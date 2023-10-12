@@ -1,5 +1,5 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
-<idea-plugin package="com.huawei.cangjie" xmlns:xi="http://www.w3.org/2001/XInclude">
+<idea-plugin   xmlns:xi="http://www.w3.org/2001/XInclude">
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>com.huawei.cangjie.lang</id>
 
@@ -16,8 +16,6 @@
     <!--  <description> </description>-->
     <xi:include href="/META-INF/cangjie-core.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
-    <dependencies>
-        <plugin id="org.toml.lang"/>
-    </dependencies>
+
 
 </idea-plugin>
