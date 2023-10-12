@@ -1,0 +1,152 @@
+{
+    parserClass='com.huawei.cangjie.lang.core.parser.CangJieParser'
+
+    parserUtilClass='com.huawei.cangjie.lang.core.parser.CangJieParserUtil'
+
+    implements='com.huawei.cangjie.lang.core.psi.ext.CjElement'
+    extends='com.huawei.cangjie.lang.core.psi.ext.CjElementImpl'
+//extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+   psiClassPrefix="CangJie"
+   psiImplClassSuffix="Impl"
+   psiPackage="com.huawei.cangjie.lang.core.psi"
+   psiImplPackage="com.huawei.cangjie.lang.core.psi.impl"
+  elementTypePrefix=""
+   elementTypeHolderClass="com.huawei.cangjie.lang.core.psi.CjElementTypes"
+   elementTypeClass="com.huawei.cangjie.lang.core.psi.CjTokenType"
+   tokenTypeClass="com.huawei.cangjie.lang.core.psi.CjTokenType"
+
+ tokenTypeClass="com.huawei.cangjie.lang.core.psi.CjElementTypes"
+
+    tokens = [
+//    关键字
+        MAIN            =   'main'
+        FUNC            =   'func'
+        CLASS           =   'class'
+        VAR             =   'var'
+        LET             =   'let'
+        MUT             =   'mut'
+        PROP            =   'prop'
+        INIT            =   'init'
+        OPEN            =   'open'
+        FROM            =   'from'
+        IMPORT          =   'import'
+        AS              =   'as'
+        ENUM            =   'enum'
+        SUPER           =   'super'
+        THIS            =   'this'
+        INTERFACE       =   'interface'
+        STATIC          =   'static'
+        STRUCT          =   'struct'
+        RETURN          =   'return'
+
+//扩展关键字
+        EXTEND          =   'extend'
+
+
+        //值
+        TRUE            =   'true'
+        FALSE           =   'false'
+
+        //基本类型
+        INT8            =   'Int8'
+        INT16           =   'Int16'
+        INT32           =   'Int32'
+        INT64           =   'Int64'
+        FLOAT32         =   'Float32'
+        FLOAT64         =   'Float64'
+        CHAE            =   'Char'
+        UINT8           =   'UInt8'
+        UINT16          =   'UInt16'
+        UINT32          =   'UInt32'
+        UINT64          =   'UInt64'
+        BOOL            =   'Bool'
+        UNIT            =   'Unit'
+
+
+
+//流程控制
+
+        IF              =   'if'
+        ELSE            =   'else'
+        WHILE           =   'while'
+        FOR             =   'for'
+        IN              =   'in'
+        DO              =   'do'
+        BREAK           =   'break'
+        CONTINUE        =   'continue'
+        MATCH           =   'match'
+        CASE            =   'case'
+
+
+
+
+        TRY             =   'try'
+        CATCH           =   'catch'
+        FINALLY         =   'finally'
+        THROW           =   'throw'
+
+
+
+
+        LBRACE      =  '{'
+         RBRACE      =  '}'
+         LBRACK      =  '['
+         RBRACK      =  ']'
+         LPAREN      =  '('
+         RPAREN      =  ')'
+       ]
+
+}
+
+
+
+
+
+
+
+Item ::=  ( Function )
+{
+  name = 'item'
+  elementType = ToBeUpped
+//  hooks = [ leftBinder = "ADJACENT_LINE_COMMENTS" ]
+}
+
+
+
+ReturnType ::= ':' 'a'
+{
+pin = 1
+}
+
+//函数
+upper Function ::= unsafe? FUNC identifier   ReturnType? (ShallowBlock){
+  pin = 'identifier'
+  name = ""
+
+
+}
+
+
+//块
+fake Block ::= '{'   (Item )* '}' {
+pin  = 1
+}
+
+SimpleBlock ::= '{'  '}' {
+  pin = 1
+  elementType = Block
+}
+
+
+
+
+
+
+
+
+
+
+private ShallowBlock ::= <<parseCodeBlockLazy>>
+
+
+fake ToBeUpped ::=

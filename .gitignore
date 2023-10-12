@@ -40,3 +40,8 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+/build.gradle.kts1
+/deps/
+/jflex-1.9.1.jar
+/testData/
+/.run/

@@ -1,9 +1,11 @@
-
-package com.huawei.cj.lang
+package com.huawei.cangjie.lang
 
 import com.intellij.lang.Language
 
-object RsLanguage : Language("CangJie", "text/CangJie", "text/x-rust", "application/x-rust") {
+object CjLanguage : Language("CangJie") {
+    private fun readResolve(): Any = CjLanguage
+
+
     override fun isCaseSensitive() = true
 
     override fun getDisplayName() = "CangJie"

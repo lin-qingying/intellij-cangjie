@@ -4,9 +4,24 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="47b8edc4-6a7b-47b3-998a-f1f1c1e5c2fa" name="更改" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/messages/CjBundle.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/messages/CjTomlBundle.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/kotlinc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/gradle.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cj/lang/CjFileType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/CjFileType.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cj/lang/CjLanguage.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/CjLanguage.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/pluginIcon.svg" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,6 +43,9 @@
             </after_sync>
           </activation>
         </task>
+        <task path="$PROJECT_DIR$/plugin">
+          <activation />
+        </task>
         <projects_view>
           <tree_state>
             <expand />
@@ -37,56 +55,222 @@
       </state>
     </system>
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+        <option value="Kotlin Interface" />
+        <option value="Kotlin Class" />
+        <option value="Kotlin File" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="LogFilters">
+    <option name="FILTER_ERRORS" value="false" />
+    <option name="FILTER_WARNINGS" value="false" />
+    <option name="FILTER_INFO" value="true" />
+    <option name="FILTER_DEBUG" value="true" />
+    <option name="CUSTOM_FILTER" />
+  </component>
   <component name="MacroExpansionManager">
-    <option name="directoryName" value="cpicld41" />
+    <option name="directoryName" value="1bfffbbn" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 8
+  &quot;associatedIndex&quot;: 0
 }</component>
-  <component name="ProjectId" id="2WYyUGmqzRAsNcPrlShooofJdcC" />
+  <component name="ProjectId" id="2WZnE5tmKH5moIhzbPaHRg7stWA" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/Code/idea/intellij-cj&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;项目&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;AndroidSdkUpdater&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "dart.analysis.tool.window.visible": "false",
+    "git-widget-placeholder": "main",
+    "jdk.selected.JAVA_MODULE": "zulu-17",
+    "last_opened_file_path": "D:/Code/idea/intellij-cangjie/build/libs/intellij-cangjie-1.0-SNAPSHOT.jar",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
+    "project.structure.last.edited": "模块",
+    "project.structure.proportion": "0.17",
+    "project.structure.side.proportion": "0.3678161",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
+  <component name="PsiViewer">
+    <option name="SPLIT_DIVIDER_POSITION" value="232" />
+  </component>
+  <component name="RebelAgentSelection">
+    <selection>jr</selection>
+  </component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="com.huawei.cangjie.lang.core.parser" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\resources\icons" />
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\com\huawei\cangjie\lang\core" />
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\com\huawei\cangjie\lang\core\psi" />
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\resources\META-INF" />
+      <recent name="D:\Code\idea\intellij-cangjie" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\com\huawei\cangjie\lang\core\psi" />
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\com\huawei\cangjie\lang\core\parser" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Gradle.Run Plugin">
+    <configuration name="RunIdea" type="GradleRunConfiguration" factoryName="Gradle">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="-PbaseIDE=idea" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":plugin:runIde" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="intellij-cangjie [jar]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="jar" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="intellij-cj [build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="build" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="build.gradle.kts" type="KotlinStandaloneScriptRunConfigurationType" temporary="true" nameIsGenerated="true">
+      <module name="intellij-cangjie" />
+      <option name="filePath" value="$PROJECT_DIR$/build.gradle.kts" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="settings.gradle.kts" type="KotlinStandaloneScriptRunConfigurationType" temporary="true" nameIsGenerated="true">
+      <module name="intellij-cangjie" />
+      <option name="filePath" value="$PROJECT_DIR$/settings.gradle.kts" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Gradle.Run Plugin" />
+      <item itemvalue="Gradle.RunIdea" />
+      <item itemvalue="Gradle.intellij-cangjie [jar]" />
+      <item itemvalue="Gradle.intellij-cj [build]" />
+      <item itemvalue="Kotlin 脚本(测试版).build.gradle.kts" />
+      <item itemvalue="Kotlin 脚本(测试版).settings.gradle.kts" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Gradle.intellij-cj [build]" />
+        <item itemvalue="Gradle.intellij-cangjie [jar]" />
+        <item itemvalue="Kotlin 脚本(测试版).settings.gradle.kts" />
+        <item itemvalue="Kotlin 脚本(测试版).build.gradle.kts" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="默认任务">
-      <changelist id="47b8edc4-6a7b-47b3-998a-f1f1c1e5c2fa" name="更改" comment="" />
-      <created>1696923823765</created>
+      <changelist id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="" />
+      <created>1696948854644</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1696923823765</updated>
-      <workItem from="1696923824871" duration="160000" />
-      <workItem from="1696924219313" duration="1197000" />
-      <workItem from="1696926146680" duration="312000" />
-      <workItem from="1696926617393" duration="4191000" />
-      <workItem from="1696932965516" duration="834000" />
-      <workItem from="1696938034183" duration="617000" />
+      <updated>1696948854644</updated>
+      <workItem from="1696948855644" duration="568000" />
+      <workItem from="1696949603838" duration="1774000" />
+      <workItem from="1696952338887" duration="1273000" />
+      <workItem from="1696984288591" duration="2720000" />
+      <workItem from="1696987088537" duration="2361000" />
+      <workItem from="1696995180812" duration="622000" />
+      <workItem from="1696995872486" duration="2373000" />
+      <workItem from="1696998879702" duration="8000" />
+      <workItem from="1697026223923" duration="2886000" />
+      <workItem from="1697075311101" duration="739000" />
+      <workItem from="1697077511285" duration="918000" />
+      <workItem from="1697078621156" duration="174000" />
+      <workItem from="1697093972345" duration="1960000" />
+      <workItem from="1697096065178" duration="1906000" />
+      <workItem from="1697098871435" duration="4431000" />
+      <workItem from="1697106994588" duration="17717000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/parser/CangJieParserDefinition.kt</url>
+          <line>41</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
