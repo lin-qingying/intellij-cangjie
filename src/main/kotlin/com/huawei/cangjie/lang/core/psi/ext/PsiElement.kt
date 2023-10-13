@@ -10,7 +10,7 @@ inline fun <reified T : PsiElement> PsiElement.contextStrict(): T? =
 val PsiElement.containingCjFileSkippingCodeFragments: CjFile?
     get() {
         var containingFile = containingFile.originalFile
-        /** Unwrap possible [com.intellij.psi.impl.source.DummyHolder]s and [org.rust.lang.core.psi.RsCodeFragment]s */
+
         while (containingFile !is CjFile) {
             containingFile = containingFile.context?.containingFile?.originalFile ?: break
         }

@@ -94,45 +94,148 @@
          RBRACK      =  ']'
          LPAREN      =  '('
          RPAREN      =  ')'
-       ]
+
+
+         //操作符
+            EQ          =   '='
+
+
+
+            EQEQ        =   '=='
+            NOTEQ       =   '!='
+            GT          =   '>'
+            GTGT        =   '>>'
+
+
+            LT          =   '<'
+            LTLT        =   '<<'
+
+            GTEQ        =   '>='
+            LTEQ        =   '<='
+
+            ANDAND      =   '&&'
+            AND         =   '&'
+            OROR        =   '||'
+            OR          =   '|'
+
+ ]
+// extends("(.+Expr)") = Expr
+  generateTokenAccessors=true
+
+
+   extraRoot(".*CodeFragmentElement")=true
 
 }
 
 
+ //自上而下的语法分析器
+ //仓颉文件 包含
+CangJie ::= RootItems
+
+StatementCodeFragmentElement ::= Stmt?
+MainFuncCodeFragmentElement ::= MainFunc?
+
+
+private  RootItems ::=  RootItem_with_recover*
+private RootItem_with_recover ::= !<<eof>> Item    {
+  pin = 1
+
+  //语法恢复
+//  recoverWhile = RootItem_recover
+}
 
 
 
-
-
-Item ::=  ( Function )
+//main方法  一个文件只能出现一次
+MainFunc ::= MAIN '(' MainFuncParam? ')' ByType? ShallowBlock ';'?
 {
-  name = 'item'
-  elementType = ToBeUpped
-//  hooks = [ leftBinder = "ADJACENT_LINE_COMMENTS" ]
+pin =  1
+
+  implements = "com.huawei.cangjie.lang.core.psi.ext.CjItemsOwner"
+  extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
+  stubClass = "com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub<?>"
+  elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
+}
+//main方法参数，Array<String>
+MainFuncParam ::= 'Array<String>'
+//上层  可以包含 函数，类，接口，枚举，结构体，变量，常量，属性,扩展，导入导出语句，注释，main方法
+Item ::= ( Function)
+{
+  name = "item"
+//  elementType = ToBeUpped
+  hooks = [ leftBinder = "ADJACENT_LINE_COMMENTS" ]
 }
 
 
+//表达式
+Expr ::= A
 
-ReturnType ::= ':' 'a'
+EOL ::=  '\n'   | '\r\n'
+
+//语句 语句可以是表达式，也可以是声明 语句以分号或者回车结束
+Stmt ::= (ExprStmt | Item )
+private ExprStmt ::= Expr ';'?
+private ItemStmt ::= Item ';'?
+
+
+
+upper  A ::= 'aa'
+
+
+upper Function ::= unsafe? FUNC identifier FuncParameters  ByType?    ShallowBlock ';'?
+{
+
+pin = 'identifier'
+}
+
+FuncParameters ::= '(' !',' ParamStmt*  ')'
 {
 pin = 1
 }
 
-//函数
-upper Function ::= unsafe? FUNC identifier   ReturnType? (ShallowBlock){
-  pin = 'identifier'
-  name = ""
-
-
+ParamStmt ::= identifier  ByType
+{
+  pin = 1
+  name = 'param'
 }
 
 
-//块
-fake Block ::= '{'   (Item )* '}' {
-pin  = 1
+
+
+
+private ByType ::= ':' Type
+{
+pin = 1
 }
 
-SimpleBlock ::= '{'  '}' {
+
+
+
+//类型  基本类型，自定义类型
+Type ::= 'a'
+{
+  pin = 1
+  name = 'type'
+}
+
+fake Block ::= '{' (Stmt | Function) *  '}'
+{
+pin = 1
+  implements = "com.huawei.cangjie.lang.core.psi.ext.CjItemsOwner"
+  extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
+  stubClass = "com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub<?>"
+  elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
+}
+
+
+
+//SimpleBlock ::= '{'   '}' {
+//  pin = 1
+//  elementType = Block
+//}
+
+//函数体  包含函数定义，和各种表达式
+FuncBlock ::= '{'( Function | ExprStmt)*  '}'{
   pin = 1
   elementType = Block
 }
@@ -140,13 +243,5 @@ SimpleBlock ::= '{'  '}' {
 
 
 
-
-
-
-
-
-
 private ShallowBlock ::= <<parseCodeBlockLazy>>
-
-
-fake ToBeUpped ::=
+//fake ToBeUpped ::=

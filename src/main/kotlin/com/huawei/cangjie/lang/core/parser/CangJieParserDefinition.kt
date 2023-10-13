@@ -51,7 +51,6 @@ class CangJieParserDefinition : ParserDefinition {
         @JvmField
         val EOL_COMMENT = CjTokenType("<EOL_COMMENT>")
 
-
         /**
          * Should be increased after any change of lexer rules
          */

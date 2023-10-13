@@ -11,14 +11,14 @@ import static com.huawei.cangjie.lang.core.psi.CjElementTypes.*;
 import com.huawei.cangjie.lang.core.psi.ext.CjElementImpl;
 import com.huawei.cangjie.lang.core.psi.*;
 
-public class CangJieReturnTypeImpl extends CjElementImpl implements CangJieReturnType {
+public class CangJieAImpl extends CjElementImpl implements CangJieA {
 
-  public CangJieReturnTypeImpl(@NotNull ASTNode node) {
+  public CangJieAImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull CangJieVisitor visitor) {
-    visitor.visitReturnType(this);
+    visitor.visitA(this);
   }
 
   @Override

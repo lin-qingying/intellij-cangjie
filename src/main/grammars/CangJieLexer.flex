@@ -57,9 +57,6 @@ SUFFIX     = {IDENTIFIER}
 
 EXPONENT      = [eE] [-+]? [0-9_]+
 
-// Note: this rule also consumes *float* literals in scientific form like `1e3`, `3e-4`.
-// `FLOAT_LITERAL` is never produced by the lexer.
-// See `RustParserUtil.parseFloatLiteral` where `INTEGER_LITERAL` turns into `FLOAT_LITERAL` during parsing.
 INT_LITERAL = ( {DEC_LITERAL}
               | {HEX_LITERAL}
               | {OCT_LITERAL}

@@ -13,18 +13,18 @@ import com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub;
 import com.huawei.cangjie.lang.core.psi.*;
 import com.intellij.psi.stubs.IStubElementType;
 
-public class CangJieBlockImpl extends CjStubbedElementImpl<CjPlaceholderStub<?>> implements CangJieBlock {
+public class CangJieMainFuncImpl extends CjStubbedElementImpl<CjPlaceholderStub<?>> implements CangJieMainFunc {
 
-  public CangJieBlockImpl(@NotNull ASTNode node) {
+  public CangJieMainFuncImpl(@NotNull ASTNode node) {
     super(node);
   }
 
-  public CangJieBlockImpl(@NotNull CjPlaceholderStub<?> stub, @NotNull IStubElementType<?, ?> type) {
+  public CangJieMainFuncImpl(@NotNull CjPlaceholderStub<?> stub, @NotNull IStubElementType<?, ?> type) {
     super(stub, type);
   }
 
   public void accept(@NotNull CangJieVisitor visitor) {
-    visitor.visitBlock(this);
+    visitor.visitMainFunc(this);
   }
 
   @Override
@@ -34,21 +34,33 @@ public class CangJieBlockImpl extends CjStubbedElementImpl<CjPlaceholderStub<?>>
   }
 
   @Override
-  @NotNull
-  public List<CangJieStmt> getStmtList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, CangJieStmt.class);
-  }
-
-  @Override
-  @NotNull
-  public PsiElement getLbrace() {
-    return notNullChild(findChildByType(LBRACE));
+  @Nullable
+  public CangJieMainFuncParam getMainFuncParam() {
+    return PsiTreeUtil.getChildOfType(this, CangJieMainFuncParam.class);
   }
 
   @Override
   @Nullable
-  public PsiElement getRbrace() {
-    return findChildByType(RBRACE);
+  public CangJieType getType() {
+    return PsiTreeUtil.getChildOfType(this, CangJieType.class);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getLparen() {
+    return findChildByType(LPAREN);
+  }
+
+  @Override
+  @NotNull
+  public PsiElement getMain() {
+    return notNullChild(findChildByType(MAIN));
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getRparen() {
+    return findChildByType(RPAREN);
   }
 
 }

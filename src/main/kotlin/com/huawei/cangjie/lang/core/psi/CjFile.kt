@@ -19,6 +19,7 @@ class CjFile(
 //    override val containingMod: CjMod get() = getOriginalOrSelf()
 
 
+
 //    override val crateRoot: CjMod? get() = cachedData.crateRoot
 
 

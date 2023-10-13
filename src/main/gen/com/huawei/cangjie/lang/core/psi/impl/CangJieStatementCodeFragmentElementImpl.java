@@ -11,14 +11,14 @@ import static com.huawei.cangjie.lang.core.psi.CjElementTypes.*;
 import com.huawei.cangjie.lang.core.psi.ext.CjElementImpl;
 import com.huawei.cangjie.lang.core.psi.*;
 
-public class CangJieFunctionImpl extends CjElementImpl implements CangJieFunction {
+public class CangJieStatementCodeFragmentElementImpl extends CjElementImpl implements CangJieStatementCodeFragmentElement {
 
-  public CangJieFunctionImpl(@NotNull ASTNode node) {
+  public CangJieStatementCodeFragmentElementImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull CangJieVisitor visitor) {
-    visitor.visitFunction(this);
+    visitor.visitStatementCodeFragmentElement(this);
   }
 
   @Override
@@ -29,32 +29,8 @@ public class CangJieFunctionImpl extends CjElementImpl implements CangJieFunctio
 
   @Override
   @Nullable
-  public CangJieFuncParameters getFuncParameters() {
-    return PsiTreeUtil.getChildOfType(this, CangJieFuncParameters.class);
-  }
-
-  @Override
-  @Nullable
-  public CangJieType getType() {
-    return PsiTreeUtil.getChildOfType(this, CangJieType.class);
-  }
-
-  @Override
-  @NotNull
-  public PsiElement getFunc() {
-    return notNullChild(findChildByType(FUNC));
-  }
-
-  @Override
-  @NotNull
-  public PsiElement getIdentifier() {
-    return notNullChild(findChildByType(IDENTIFIER));
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getUnsafe() {
-    return findChildByType(UNSAFE);
+  public CangJieStmt getStmt() {
+    return PsiTreeUtil.getChildOfType(this, CangJieStmt.class);
   }
 
 }

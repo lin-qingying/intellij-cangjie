@@ -8,15 +8,21 @@ import com.huawei.cangjie.lang.core.psi.ext.CjItemsOwner;
 import com.intellij.psi.StubBasedPsiElement;
 import com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub;
 
-public interface CangJieBlock extends CjItemsOwner, StubBasedPsiElement<CjPlaceholderStub<?>> {
-
-  @NotNull
-  List<CangJieStmt> getStmtList();
-
-  @NotNull
-  PsiElement getLbrace();
+public interface CangJieMainFunc extends CjItemsOwner, StubBasedPsiElement<CjPlaceholderStub<?>> {
 
   @Nullable
-  PsiElement getRbrace();
+  CangJieMainFuncParam getMainFuncParam();
+
+  @Nullable
+  CangJieType getType();
+
+  @Nullable
+  PsiElement getLparen();
+
+  @NotNull
+  PsiElement getMain();
+
+  @Nullable
+  PsiElement getRparen();
 
 }

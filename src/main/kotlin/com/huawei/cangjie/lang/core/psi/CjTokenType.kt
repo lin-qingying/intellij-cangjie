@@ -4,6 +4,7 @@ package com.huawei.cangjie.lang.core.psi
 import com.huawei.cangjie.lang.CjLanguage
 import com.huawei.cangjie.lang.core.parser.CangJieParserDefinition.Companion.BLOCK_COMMENT
 import com.huawei.cangjie.lang.core.parser.CangJieParserDefinition.Companion.EOL_COMMENT
+import com.huawei.cangjie.lang.core.psi.CjElementTypes.FUNCTION
 
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
@@ -17,6 +18,13 @@ fun tokenSetOf(vararg tokens: IElementType) = TokenSet.create(*tokens)
 val CJ_REGULAR_COMMENTS = tokenSetOf(BLOCK_COMMENT, EOL_COMMENT)
 
 val CJ_COMMENTS = TokenSet.orSet(CJ_REGULAR_COMMENTS)
+
+
+val CJ_ITEMS = tokenSetOf(
+
+    FUNCTION,
+
+)
 
 //
 //fun tokenSetOf(vararg tokens: IElementType) = TokenSet.create(*tokens)

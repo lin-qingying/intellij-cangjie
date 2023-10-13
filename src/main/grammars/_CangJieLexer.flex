@@ -1,4 +1,4 @@
-package com.huawei.cangjie.lang.core.lexer;
+package com.huawei.cangjie.lang.core.parser;
 
 import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.tree.IElementType;
@@ -85,6 +85,19 @@ WHITE_SPACE=\s+
   "]"                 { return RBRACK; }
   "("                 { return LPAREN; }
   ")"                 { return RPAREN; }
+  "="                 { return EQ; }
+  "=="                { return EQEQ; }
+  "!="                { return NOTEQ; }
+  ">"                 { return GT; }
+  ">>"                { return GTGT; }
+  "<"                 { return LT; }
+  "<<"                { return LTLT; }
+  ">="                { return GTEQ; }
+  "<="                { return LTEQ; }
+  "&&"                { return ANDAND; }
+  "&"                 { return AND; }
+  "||"                { return OROR; }
+  "|"                 { return OR; }
   "unsafe"            { return UNSAFE; }
   "identifier"        { return IDENTIFIER; }
 

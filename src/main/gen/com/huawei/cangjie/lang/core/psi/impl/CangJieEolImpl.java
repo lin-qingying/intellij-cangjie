@@ -11,14 +11,14 @@ import static com.huawei.cangjie.lang.core.psi.CjElementTypes.*;
 import com.huawei.cangjie.lang.core.psi.ext.CjElementImpl;
 import com.huawei.cangjie.lang.core.psi.*;
 
-public class CangJieToBeUppedImpl extends CjElementImpl implements CangJieToBeUpped {
+public class CangJieEolImpl extends CjElementImpl implements CangJieEol {
 
-  public CangJieToBeUppedImpl(@NotNull ASTNode node) {
+  public CangJieEolImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull CangJieVisitor visitor) {
-    visitor.visitToBeUpped(this);
+    visitor.visitEol(this);
   }
 
   @Override

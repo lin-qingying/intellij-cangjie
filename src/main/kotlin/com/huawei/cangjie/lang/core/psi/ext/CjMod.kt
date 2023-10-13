@@ -9,11 +9,7 @@ interface CjMod :CjQualifiedNamedElement{
 
     val `super`: CjMod?
 
-    /**。
-     *XXX：这可能与[com.intellij.psi.PsiNamedElement.getName]不同。
-     *。
-     *此扭曲是必需的，因为[org.rust.lang.core.psi.CjFile]是 [CjMod]，但不应该覆盖它的名称。
-     */
+
     val modName: String?
 
     /**。

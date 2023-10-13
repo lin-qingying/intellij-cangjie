@@ -6,6 +6,12 @@ import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 import com.huawei.cangjie.lang.core.psi.ext.CjElement;
 
-public interface CangJieToBeUpped extends CjElement {
+public interface CangJieParamStmt extends CjElement {
+
+  @Nullable
+  CangJieType getType();
+
+  @NotNull
+  PsiElement getIdentifier();
 
 }
