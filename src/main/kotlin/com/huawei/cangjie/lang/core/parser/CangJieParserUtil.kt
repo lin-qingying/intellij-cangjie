@@ -3,28 +3,21 @@ package com.huawei.cangjie.lang.core.parser
 import com.huawei.cangjie.lang.core.parser.CangJieParserDefinition.Companion.EOL_COMMENT
 import com.huawei.cangjie.lang.core.psi.CjElementTypes.*
 import com.huawei.cangjie.stdext.makeBitMask
-
-import com.intellij.lang.LighterASTNode
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.PsiBuilderUtil
 import com.intellij.lang.WhitespacesAndCommentsBinder
 import com.intellij.lang.parser.GeneratedParserUtilBase
-import com.intellij.lexer.Lexer
 import com.intellij.openapi.util.Key
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
-import com.intellij.psi.tree.TokenSet
 import com.intellij.util.BitUtil
 import com.intellij.util.containers.Stack
 import org.intellij.plugins.relaxNG.compact.RncTokenTypes.GTGT
-
-import kotlin.math.max
 
 @Suppress("UNUSED_PARAMETER")
 object CangJieParserUtil : GeneratedParserUtilBase() {
 
     enum class StmtMode { ON, OFF }
-
 
 
     private val STMT_EXPR_MODE: Int = makeBitMask(3)
@@ -36,11 +29,40 @@ object CangJieParserUtil : GeneratedParserUtilBase() {
     fun parseCodeBlockLazy(builder: PsiBuilder, level: Int): Boolean {
         return PsiBuilderUtil.parseBlockLazy(builder, LBRACE, RBRACE, BLOCK) != null
     }
+
     @JvmStatic
     fun setStmtMode(b: PsiBuilder, level: Int, mode: StmtMode): Boolean {
         b.pushFlag(STMT_EXPR_MODE, mode == StmtMode.ON)
         return true
     }
+
+
+    @JvmStatic
+    fun mainfunc(b: PsiBuilder, level: Int): Boolean {
+        val marker = b.mark()
+        if (!consumeToken(b, MAIN)) {
+            marker.drop()
+            return false
+        }
+        marker.done(MAIN_FUNC)
+        return true
+    }
+
+
+//    @JvmStatic
+//    fun nonStrictID(b: PsiBuilder, level: Int): Boolean {
+//        val marker = b.mark()
+//        if (consumeToken(b, IDENTIFIER)) {
+//            marker.done(ID)
+//            return true
+//        }
+//        b.advanceLexer()
+//        marker.done(ID)
+//        return true
+//        marker.rollbackTo()
+//        return false
+//
+//    }
 
 
     @JvmStatic
@@ -57,6 +79,7 @@ object CangJieParserUtil : GeneratedParserUtilBase() {
     private var PsiBuilder.flagStack: Stack<Int>
         get() = getUserData(FLAG_STACK) ?: Stack<Int>(0)
         set(value) = putUserData(FLAG_STACK, value)
+
     private fun PsiBuilder.pushFlag(flag: Int, mode: Boolean) {
         val stack = flagStack
         stack.push(flags)
@@ -69,8 +92,6 @@ object CangJieParserUtil : GeneratedParserUtilBase() {
     private var PsiBuilder.flags: Int
         get() = getUserData(FLAGS) ?: DEFAULT_FLAGS
         set(value) = putUserData(FLAGS, value)
-
-
 
 
     @JvmStatic
@@ -88,9 +109,9 @@ object CangJieParserUtil : GeneratedParserUtilBase() {
 
     @JvmStatic
     fun gtgtImpl(b: PsiBuilder, level: Int): Boolean = collapse(b, GTGT, GT, GT)
+
     @JvmStatic
     fun gteqImpl(b: PsiBuilder, level: Int): Boolean = collapse(b, GTEQ, GT, EQ)
-
 
 
     @JvmStatic

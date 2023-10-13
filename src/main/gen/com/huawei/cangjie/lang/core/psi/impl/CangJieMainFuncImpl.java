@@ -8,19 +8,14 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.huawei.cangjie.lang.core.psi.CjElementTypes.*;
-import com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl;
-import com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub;
+import com.huawei.cangjie.lang.core.psi.ext.CjElementImpl;
 import com.huawei.cangjie.lang.core.psi.*;
-import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.tree.IElementType;
 
-public class CangJieMainFuncImpl extends CjStubbedElementImpl<CjPlaceholderStub<?>> implements CangJieMainFunc {
+public class CangJieMainFuncImpl extends CjElementImpl implements CangJieMainFunc {
 
-  public CangJieMainFuncImpl(@NotNull ASTNode node) {
-    super(node);
-  }
-
-  public CangJieMainFuncImpl(@NotNull CjPlaceholderStub<?> stub, @NotNull IStubElementType<?, ?> type) {
-    super(stub, type);
+  public CangJieMainFuncImpl(@NotNull IElementType type) {
+    super(type);
   }
 
   public void accept(@NotNull CangJieVisitor visitor) {
@@ -43,24 +38,6 @@ public class CangJieMainFuncImpl extends CjStubbedElementImpl<CjPlaceholderStub<
   @Nullable
   public CangJieType getType() {
     return PsiTreeUtil.getChildOfType(this, CangJieType.class);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getLparen() {
-    return findChildByType(LPAREN);
-  }
-
-  @Override
-  @NotNull
-  public PsiElement getMain() {
-    return notNullChild(findChildByType(MAIN));
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getRparen() {
-    return findChildByType(RPAREN);
   }
 
 }

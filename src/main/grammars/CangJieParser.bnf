@@ -10,14 +10,15 @@
    psiImplClassSuffix="Impl"
    psiPackage="com.huawei.cangjie.lang.core.psi"
    psiImplPackage="com.huawei.cangjie.lang.core.psi.impl"
-  elementTypePrefix=""
+//  elementTypePrefix=""
    elementTypeHolderClass="com.huawei.cangjie.lang.core.psi.CjElementTypes"
-   elementTypeClass="com.huawei.cangjie.lang.core.psi.CjTokenType"
+   elementTypeClass="com.huawei.cangjie.lang.core.psi.CjElementType"
    tokenTypeClass="com.huawei.cangjie.lang.core.psi.CjTokenType"
 
- tokenTypeClass="com.huawei.cangjie.lang.core.psi.CjElementTypes"
+
 
     tokens = [
+
 //    关键字
         MAIN            =   'main'
         FUNC            =   'func'
@@ -119,11 +120,16 @@
             OR          =   '|'
 
  ]
-// extends("(.+Expr)") = Expr
-  generateTokenAccessors=true
+ extends("(.+Expr)") = Expr
 
+
+
+    elementType("(Func)Parameter") = ValueParameter
+    elementType("(Func)Parameters") = ValueParameterList
 
    extraRoot(".*CodeFragmentElement")=true
+
+
 
 }
 
@@ -133,10 +139,10 @@
 CangJie ::= RootItems
 
 StatementCodeFragmentElement ::= Stmt?
-MainFuncCodeFragmentElement ::= MainFunc?
+//MainFuncCodeFragmentElement ::= MainFunc?
+TypeReferenceCodeFragmentElement ::= Type?
 
-
-private  RootItems ::=  RootItem_with_recover*
+private  RootItems ::= RootItem_with_recover*
 private RootItem_with_recover ::= !<<eof>> Item    {
   pin = 1
 
@@ -146,20 +152,23 @@ private RootItem_with_recover ::= !<<eof>> Item    {
 
 
 
+
+
+
 //main方法  一个文件只能出现一次
 MainFunc ::= MAIN '(' MainFuncParam? ')' ByType? ShallowBlock ';'?
 {
-pin =  1
-
-  implements = "com.huawei.cangjie.lang.core.psi.ext.CjItemsOwner"
-  extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
-  stubClass = "com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub<?>"
-  elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
+    pin =  1
+//
+//  implements = "com.huawei.cangjie.lang.core.psi.ext.CjItemsOwner"
+//  extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
+//  stubClass = "com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub<?>"
+//  elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
 }
 //main方法参数，Array<String>
 MainFuncParam ::= 'Array<String>'
 //上层  可以包含 函数，类，接口，枚举，结构体，变量，常量，属性,扩展，导入导出语句，注释，main方法
-Item ::= ( Function)
+Item ::= (Function)
 {
   name = "item"
 //  elementType = ToBeUpped
@@ -167,31 +176,73 @@ Item ::= ( Function)
 }
 
 
-//表达式
-Expr ::= A
 
-EOL ::=  '\n'   | '\r\n'
+fake ValueParameter ::= 'a'?  Type? DefaultParameterValue?
+
+{
+
+  extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
+  stubClass = "com.huawei.cangjie.lang.core.stubs.CjValueParameterStub"
+  elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
+ }
+DefaultParameterValue ::= '=' ExprStmt {
+  pin = 1
+  implements = [ "com.huawei.cangjie.lang.core.psi.ext.CjInferenceContextOwner" ]
+  extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
+  stubClass = "com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub<?>"
+  elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
+}
+
+
+
+
+
+
+fake ValueParameterList ::=  ValueParameter*   {
+  extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
+  stubClass = "com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub<?>"
+  elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
+}
+//表达式
+Expr ::= AExpr
+
+//EOL ::=  '\n'   | '\r\n'
 
 //语句 语句可以是表达式，也可以是声明 语句以分号或者回车结束
-Stmt ::= (ExprStmt | Item )
+ Stmt ::= (ExprStmt | Item )
 private ExprStmt ::= Expr ';'?
 private ItemStmt ::= Item ';'?
 
 
 
-upper  A ::= 'aa'
+upper  AExpr ::= 'a'
 
 
 upper Function ::= unsafe? FUNC identifier FuncParameters  ByType?    ShallowBlock ';'?
 {
+    pin = 'identifier'
 
-pin = 'identifier'
+    implements = [
+        "com.huawei.cangjie.lang.core.psi.ext.CjNameIdentifierOwner"
+    ]
+    extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
+    mixin = "com.huawei.cangjie.lang.core.psi.ext.CjFunctionImplMixin"
+    stubClass = "com.huawei.cangjie.lang.core.stubs.CjFunctionStub"
+    elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
+
 }
 
-FuncParameters ::= '(' !',' ParamStmt*  ')'
+FuncParameters ::= '(' !','  FnParameter_with_recover*   ')'
 {
 pin = 1
 }
+
+private FnParameter_with_recover ::= !(')' | '{' | ';') FuncParameter (',' | &')') {
+  pin = 1
+//  recoverWhile = FnParameter_recover
+}
+FuncParameter ::=    'a' ':'  (Type) DefaultParameterValue?
+
 
 ParamStmt ::= identifier  ByType
 {

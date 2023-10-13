@@ -1,8 +1,16 @@
+
+
+//psiviewer插件
+
+
+
 plugins {
     idea
     id("org.jetbrains.kotlin.jvm") version "1.9.0"
     id("org.jetbrains.intellij") version "1.15.0"
     id("org.jetbrains.grammarkit") version "2022.3.2"
+
+
 }
 sourceSets {
     main {
@@ -19,13 +27,40 @@ repositories {
     mavenCentral()
 }
 
+
+val Project.dependencyCachePath
+    get(): String {
+        val cachePath = file("${rootProject.projectDir}/deps")
+        // If cache path doesn't exist, we need to create it manually
+        // because otherwise gradle-intellij-plugin will ignore it
+        if (!cachePath.exists()) {
+            cachePath.mkdirs()
+        }
+        return cachePath.absolutePath
+    }
+
+
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
+
+//    version.set("IU-2023.1")
+
+//    updateSinceUntilBuild.set(true)
+//    instrumentCode.set(false)
+//    ideaDependencyCachePath.set(dependencyCachePath)
+
+
+
     version.set("2022.2.5")
     type.set("IC") // Target IDE Platform
+////加载PsiViewer插件 grammar-kit
+    plugins.set(listOf(
 
-    plugins.set(listOf(/* Plugin Dependencies */))
+
+    ))
+
+
 }
 
 

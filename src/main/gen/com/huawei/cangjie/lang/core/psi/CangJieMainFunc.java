@@ -4,25 +4,14 @@ package com.huawei.cangjie.lang.core.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
-import com.huawei.cangjie.lang.core.psi.ext.CjItemsOwner;
-import com.intellij.psi.StubBasedPsiElement;
-import com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub;
+import com.huawei.cangjie.lang.core.psi.ext.CjElement;
 
-public interface CangJieMainFunc extends CjItemsOwner, StubBasedPsiElement<CjPlaceholderStub<?>> {
+public interface CangJieMainFunc extends CjElement {
 
   @Nullable
   CangJieMainFuncParam getMainFuncParam();
 
   @Nullable
   CangJieType getType();
-
-  @Nullable
-  PsiElement getLparen();
-
-  @NotNull
-  PsiElement getMain();
-
-  @Nullable
-  PsiElement getRparen();
 
 }

@@ -8,17 +8,23 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.huawei.cangjie.lang.core.psi.CjElementTypes.*;
-import com.huawei.cangjie.lang.core.psi.ext.CjElementImpl;
+import com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl;
+import com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub;
 import com.huawei.cangjie.lang.core.psi.*;
+import com.intellij.psi.stubs.IStubElementType;
 
-public class CangJieExpressionCodeFragmentElementImpl extends CjElementImpl implements CangJieExpressionCodeFragmentElement {
+public class CangJieValueParameterListImpl extends CjStubbedElementImpl<CjPlaceholderStub<?>> implements CangJieValueParameterList {
 
-  public CangJieExpressionCodeFragmentElementImpl(@NotNull ASTNode node) {
+  public CangJieValueParameterListImpl(@NotNull ASTNode node) {
     super(node);
   }
 
+  public CangJieValueParameterListImpl(@NotNull CjPlaceholderStub<?> stub, @NotNull IStubElementType<?, ?> type) {
+    super(stub, type);
+  }
+
   public void accept(@NotNull CangJieVisitor visitor) {
-    visitor.visitExpressionCodeFragmentElement(this);
+    visitor.visitValueParameterList(this);
   }
 
   @Override
@@ -28,9 +34,9 @@ public class CangJieExpressionCodeFragmentElementImpl extends CjElementImpl impl
   }
 
   @Override
-  @Nullable
-  public CangJieExpr getExpr() {
-    return PsiTreeUtil.getChildOfType(this, CangJieExpr.class);
+  @NotNull
+  public List<CangJieValueParameter> getValueParameterList() {
+    return PsiTreeUtil.getStubChildrenOfTypeAsList(this, CangJieValueParameter.class);
   }
 
 }

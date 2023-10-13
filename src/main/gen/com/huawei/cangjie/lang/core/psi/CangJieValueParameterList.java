@@ -5,16 +5,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 import com.huawei.cangjie.lang.core.psi.ext.CjElement;
+import com.intellij.psi.StubBasedPsiElement;
+import com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub;
 
-public interface CangJieFuncParameters extends CjElement {
+public interface CangJieValueParameterList extends CjElement, StubBasedPsiElement<CjPlaceholderStub<?>> {
 
   @NotNull
-  List<CangJieParamStmt> getParamStmtList();
-
-  @NotNull
-  PsiElement getLparen();
-
-  @Nullable
-  PsiElement getRparen();
+  List<CangJieValueParameter> getValueParameterList();
 
 }

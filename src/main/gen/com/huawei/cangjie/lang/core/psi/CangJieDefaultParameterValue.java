@@ -4,13 +4,13 @@ package com.huawei.cangjie.lang.core.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
-import com.huawei.cangjie.lang.core.psi.ext.CjItemsOwner;
+import com.huawei.cangjie.lang.core.psi.ext.CjInferenceContextOwner;
 import com.intellij.psi.StubBasedPsiElement;
 import com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub;
 
-public interface CangJieBlock extends CjItemsOwner, StubBasedPsiElement<CjPlaceholderStub<?>> {
+public interface CangJieDefaultParameterValue extends CjInferenceContextOwner, StubBasedPsiElement<CjPlaceholderStub<?>> {
 
-  @NotNull
-  List<CangJieStmt> getStmtList();
+  @Nullable
+  CangJieExpr getExpr();
 
 }

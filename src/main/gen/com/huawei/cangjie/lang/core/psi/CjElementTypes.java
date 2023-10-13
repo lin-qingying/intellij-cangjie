@@ -6,23 +6,25 @@ import com.intellij.psi.PsiElement;
 import com.intellij.lang.ASTNode;
 import com.huawei.cangjie.lang.core.stubs.StubImplementationsKt;
 import com.huawei.cangjie.lang.core.psi.impl.*;
+import com.intellij.psi.impl.source.tree.CompositePsiElement;
 
 public interface CjElementTypes {
 
-  IElementType A = new CjTokenType("A");
+  IElementType A_EXPR = new CjElementType("A_EXPR");
   IElementType BLOCK = StubImplementationsKt.factory("BLOCK");
-  IElementType EOL = new CjTokenType("EOL");
-  IElementType EXPR = new CjTokenType("EXPR");
-  IElementType FUNCTION = new CjTokenType("FUNCTION");
-  IElementType FUNC_PARAMETERS = new CjTokenType("FUNC_PARAMETERS");
-  IElementType ITEM = new CjTokenType("ITEM");
-  IElementType MAIN_FUNC = StubImplementationsKt.factory("MAIN_FUNC");
-  IElementType MAIN_FUNC_CODE_FRAGMENT_ELEMENT = new CjTokenType("MAIN_FUNC_CODE_FRAGMENT_ELEMENT");
-  IElementType MAIN_FUNC_PARAM = new CjTokenType("MAIN_FUNC_PARAM");
-  IElementType PARAM_STMT = new CjTokenType("PARAM_STMT");
-  IElementType STATEMENT_CODE_FRAGMENT_ELEMENT = new CjTokenType("STATEMENT_CODE_FRAGMENT_ELEMENT");
-  IElementType STMT = new CjTokenType("STMT");
-  IElementType TYPE = new CjTokenType("TYPE");
+  IElementType DEFAULT_PARAMETER_VALUE = StubImplementationsKt.factory("DEFAULT_PARAMETER_VALUE");
+  IElementType EXPR = new CjElementType("EXPR");
+  IElementType FUNCTION = StubImplementationsKt.factory("FUNCTION");
+  IElementType ITEM = new CjElementType("ITEM");
+  IElementType MAIN_FUNC = new CjElementType("MAIN_FUNC");
+  IElementType MAIN_FUNC_PARAM = new CjElementType("MAIN_FUNC_PARAM");
+  IElementType PARAM_STMT = new CjElementType("PARAM_STMT");
+  IElementType STATEMENT_CODE_FRAGMENT_ELEMENT = new CjElementType("STATEMENT_CODE_FRAGMENT_ELEMENT");
+  IElementType STMT = new CjElementType("STMT");
+  IElementType TYPE = new CjElementType("TYPE");
+  IElementType TYPE_REFERENCE_CODE_FRAGMENT_ELEMENT = new CjElementType("TYPE_REFERENCE_CODE_FRAGMENT_ELEMENT");
+  IElementType VALUE_PARAMETER = StubImplementationsKt.factory("VALUE_PARAMETER");
+  IElementType VALUE_PARAMETER_LIST = StubImplementationsKt.factory("VALUE_PARAMETER_LIST");
 
   IElementType AND = new CjTokenType("&");
   IElementType ANDAND = new CjTokenType("&&");
@@ -98,47 +100,51 @@ public interface CjElementTypes {
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-      if (type == A) {
-        return new CangJieAImpl(node);
-      }
-      else if (type == BLOCK) {
+      if (type == BLOCK) {
         return new CangJieBlockImpl(node);
       }
-      else if (type == EOL) {
-        return new CangJieEolImpl(node);
-      }
-      else if (type == EXPR) {
-        return new CangJieExprImpl(node);
+      else if (type == DEFAULT_PARAMETER_VALUE) {
+        return new CangJieDefaultParameterValueImpl(node);
       }
       else if (type == FUNCTION) {
         return new CangJieFunctionImpl(node);
       }
-      else if (type == FUNC_PARAMETERS) {
-        return new CangJieFuncParametersImpl(node);
+      else if (type == VALUE_PARAMETER) {
+        return new CangJieValueParameterImpl(node);
+      }
+      else if (type == VALUE_PARAMETER_LIST) {
+        return new CangJieValueParameterListImpl(node);
+      }
+      throw new AssertionError("Unknown element type: " + type);
+    }
+
+    public static CompositePsiElement createElement(IElementType type) {
+       if (type == A_EXPR) {
+        return new CangJieAExprImpl(type);
       }
       else if (type == ITEM) {
-        return new CangJieItemImpl(node);
+        return new CangJieItemImpl(type);
       }
       else if (type == MAIN_FUNC) {
-        return new CangJieMainFuncImpl(node);
-      }
-      else if (type == MAIN_FUNC_CODE_FRAGMENT_ELEMENT) {
-        return new CangJieMainFuncCodeFragmentElementImpl(node);
+        return new CangJieMainFuncImpl(type);
       }
       else if (type == MAIN_FUNC_PARAM) {
-        return new CangJieMainFuncParamImpl(node);
+        return new CangJieMainFuncParamImpl(type);
       }
       else if (type == PARAM_STMT) {
-        return new CangJieParamStmtImpl(node);
+        return new CangJieParamStmtImpl(type);
       }
       else if (type == STATEMENT_CODE_FRAGMENT_ELEMENT) {
-        return new CangJieStatementCodeFragmentElementImpl(node);
+        return new CangJieStatementCodeFragmentElementImpl(type);
       }
       else if (type == STMT) {
-        return new CangJieStmtImpl(node);
+        return new CangJieStmtImpl(type);
       }
       else if (type == TYPE) {
-        return new CangJieTypeImpl(node);
+        return new CangJieTypeImpl(type);
+      }
+      else if (type == TYPE_REFERENCE_CODE_FRAGMENT_ELEMENT) {
+        return new CangJieTypeReferenceCodeFragmentElementImpl(type);
       }
       throw new AssertionError("Unknown element type: " + type);
     }

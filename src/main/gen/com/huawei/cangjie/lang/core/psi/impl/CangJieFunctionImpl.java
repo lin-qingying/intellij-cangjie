@@ -8,13 +8,19 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.huawei.cangjie.lang.core.psi.CjElementTypes.*;
-import com.huawei.cangjie.lang.core.psi.ext.CjElementImpl;
+import com.huawei.cangjie.lang.core.psi.ext.CjFunctionImplMixin;
 import com.huawei.cangjie.lang.core.psi.*;
+import com.huawei.cangjie.lang.core.stubs.CjFunctionStub;
+import com.intellij.psi.stubs.IStubElementType;
 
-public class CangJieFunctionImpl extends CjElementImpl implements CangJieFunction {
+public class CangJieFunctionImpl extends CjFunctionImplMixin implements CangJieFunction {
 
   public CangJieFunctionImpl(@NotNull ASTNode node) {
     super(node);
+  }
+
+  public CangJieFunctionImpl(@NotNull CjFunctionStub stub, @NotNull IStubElementType<?, ?> type) {
+    super(stub, type);
   }
 
   public void accept(@NotNull CangJieVisitor visitor) {
@@ -29,32 +35,14 @@ public class CangJieFunctionImpl extends CjElementImpl implements CangJieFunctio
 
   @Override
   @Nullable
-  public CangJieFuncParameters getFuncParameters() {
-    return PsiTreeUtil.getChildOfType(this, CangJieFuncParameters.class);
-  }
-
-  @Override
-  @Nullable
   public CangJieType getType() {
     return PsiTreeUtil.getChildOfType(this, CangJieType.class);
   }
 
   @Override
-  @NotNull
-  public PsiElement getFunc() {
-    return notNullChild(findChildByType(FUNC));
-  }
-
-  @Override
-  @NotNull
-  public PsiElement getIdentifier() {
-    return notNullChild(findChildByType(IDENTIFIER));
-  }
-
-  @Override
   @Nullable
-  public PsiElement getUnsafe() {
-    return findChildByType(UNSAFE);
+  public CangJieValueParameterList getValueParameterList() {
+    return PsiTreeUtil.getStubChildOfType(this, CangJieValueParameterList.class);
   }
 
 }

@@ -21,7 +21,7 @@ public class CangJieParser implements PsiParser, LightPsiParser {
 
   public void parseLight(IElementType t, PsiBuilder b) {
     boolean r;
-    b = adapt_builder_(t, b, this, null);
+    b = adapt_builder_(t, b, this, EXTENDS_SETS_);
     Marker m = enter_section_(b, 0, _COLLAPSE_, null);
     r = parse_root_(t, b);
     exit_section_(b, 0, m, t, r, true, TRUE_CONDITION);
@@ -33,11 +33,11 @@ public class CangJieParser implements PsiParser, LightPsiParser {
 
   static boolean parse_root_(IElementType t, PsiBuilder b, int l) {
     boolean r;
-    if (t == MAIN_FUNC_CODE_FRAGMENT_ELEMENT) {
-      r = MainFuncCodeFragmentElement(b, l + 1);
-    }
-    else if (t == STATEMENT_CODE_FRAGMENT_ELEMENT) {
+    if (t == STATEMENT_CODE_FRAGMENT_ELEMENT) {
       r = StatementCodeFragmentElement(b, l + 1);
+    }
+    else if (t == TYPE_REFERENCE_CODE_FRAGMENT_ELEMENT) {
+      r = TypeReferenceCodeFragmentElement(b, l + 1);
     }
     else {
       r = CangJie(b, l + 1);
@@ -45,13 +45,17 @@ public class CangJieParser implements PsiParser, LightPsiParser {
     return r;
   }
 
+  public static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
+    create_token_set_(A_EXPR, EXPR),
+  };
+
   /* ********************************************************** */
-  // 'aa'
-  public static boolean A(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "A")) return false;
+  // 'a'
+  public static boolean AExpr(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "AExpr")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _UPPER_, A, "<a>");
-    r = consumeToken(b, "aa");
+    Marker m = enter_section_(b, l, _UPPER_, A_EXPR, "<a expr>");
+    r = consumeToken(b, "a");
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -76,24 +80,26 @@ public class CangJieParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // '\n'   | '\r\n'
-  public static boolean EOL(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "EOL")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NONE_, EOL, "<eol>");
-    r = consumeToken(b, "\\n");
-    if (!r) r = consumeToken(b, "\\r\\n");
-    exit_section_(b, l, m, r, false, null);
-    return r;
+  // '=' ExprStmt
+  public static boolean DefaultParameterValue(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "DefaultParameterValue")) return false;
+    if (!nextTokenIs(b, EQ)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, DEFAULT_PARAMETER_VALUE, null);
+    r = consumeToken(b, EQ);
+    p = r; // pin = 1
+    r = r && ExprStmt(b, l + 1);
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
   }
 
   /* ********************************************************** */
-  // A
+  // AExpr
   public static boolean Expr(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "Expr")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, EXPR, "<expr>");
-    r = A(b, l + 1);
+    Marker m = enter_section_(b, l, _COLLAPSE_, EXPR, "<expr>");
+    r = AExpr(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -115,6 +121,61 @@ public class CangJieParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "ExprStmt_1")) return false;
     consumeToken(b, ";");
     return true;
+  }
+
+  /* ********************************************************** */
+  // !(')' | '{' | ';') FuncParameter (',' | &')')
+  static boolean FnParameter_with_recover(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FnParameter_with_recover")) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = FnParameter_with_recover_0(b, l + 1);
+    p = r; // pin = 1
+    r = r && report_error_(b, FuncParameter(b, l + 1));
+    r = p && FnParameter_with_recover_2(b, l + 1) && r;
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
+  }
+
+  // !(')' | '{' | ';')
+  private static boolean FnParameter_with_recover_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FnParameter_with_recover_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_);
+    r = !FnParameter_with_recover_0_0(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // ')' | '{' | ';'
+  private static boolean FnParameter_with_recover_0_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FnParameter_with_recover_0_0")) return false;
+    boolean r;
+    r = consumeToken(b, RPAREN);
+    if (!r) r = consumeToken(b, LBRACE);
+    if (!r) r = consumeToken(b, ";");
+    return r;
+  }
+
+  // ',' | &')'
+  private static boolean FnParameter_with_recover_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FnParameter_with_recover_2")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, ",");
+    if (!r) r = FnParameter_with_recover_2_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // &')'
+  private static boolean FnParameter_with_recover_2_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FnParameter_with_recover_2_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _AND_);
+    r = consumeToken(b, RPAREN);
+    exit_section_(b, l, m, r, false, null);
+    return r;
   }
 
   /* ********************************************************** */
@@ -153,12 +214,43 @@ public class CangJieParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // '(' !',' ParamStmt*  ')'
+  // 'a' ':'  (Type) DefaultParameterValue?
+  public static boolean FuncParameter(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FuncParameter")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, VALUE_PARAMETER, "<func parameter>");
+    r = consumeToken(b, "a");
+    r = r && consumeToken(b, ":");
+    r = r && FuncParameter_2(b, l + 1);
+    r = r && FuncParameter_3(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // (Type)
+  private static boolean FuncParameter_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FuncParameter_2")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = Type(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // DefaultParameterValue?
+  private static boolean FuncParameter_3(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FuncParameter_3")) return false;
+    DefaultParameterValue(b, l + 1);
+    return true;
+  }
+
+  /* ********************************************************** */
+  // '(' !','  FnParameter_with_recover*   ')'
   public static boolean FuncParameters(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "FuncParameters")) return false;
     if (!nextTokenIs(b, LPAREN)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, FUNC_PARAMETERS, null);
+    Marker m = enter_section_(b, l, _NONE_, VALUE_PARAMETER_LIST, null);
     r = consumeToken(b, LPAREN);
     p = r; // pin = 1
     r = r && report_error_(b, FuncParameters_1(b, l + 1));
@@ -178,12 +270,12 @@ public class CangJieParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // ParamStmt*
+  // FnParameter_with_recover*
   private static boolean FuncParameters_2(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "FuncParameters_2")) return false;
     while (true) {
       int c = current_position_(b);
-      if (!ParamStmt(b, l + 1)) break;
+      if (!FnParameter_with_recover(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "FuncParameters_2", c)) break;
     }
     return true;
@@ -229,7 +321,7 @@ public class CangJieParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // ( Function)
+  // (Function)
   public static boolean Item(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "Item")) return false;
     if (!nextTokenIs(b, "<item>", FUNC, UNSAFE)) return false;
@@ -297,16 +389,6 @@ public class CangJieParser implements PsiParser, LightPsiParser {
   private static boolean MainFunc_6(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "MainFunc_6")) return false;
     consumeToken(b, ";");
-    return true;
-  }
-
-  /* ********************************************************** */
-  // MainFunc?
-  public static boolean MainFuncCodeFragmentElement(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "MainFuncCodeFragmentElement")) return false;
-    Marker m = enter_section_(b, l, _NONE_, MAIN_FUNC_CODE_FRAGMENT_ELEMENT, "<main func code fragment element>");
-    MainFunc(b, l + 1);
-    exit_section_(b, l, m, true, false, null);
     return true;
   }
 
@@ -407,6 +489,16 @@ public class CangJieParser implements PsiParser, LightPsiParser {
     r = consumeToken(b, "a");
     exit_section_(b, l, m, r, false, null);
     return r;
+  }
+
+  /* ********************************************************** */
+  // Type?
+  public static boolean TypeReferenceCodeFragmentElement(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "TypeReferenceCodeFragmentElement")) return false;
+    Marker m = enter_section_(b, l, _NONE_, TYPE_REFERENCE_CODE_FRAGMENT_ELEMENT, "<type reference code fragment element>");
+    Type(b, l + 1);
+    exit_section_(b, l, m, true, false, null);
+    return true;
   }
 
 }

@@ -8,17 +8,18 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.huawei.cangjie.lang.core.psi.CjElementTypes.*;
-import com.huawei.cangjie.lang.core.psi.ext.CjElementImpl;
 import com.huawei.cangjie.lang.core.psi.*;
+import com.intellij.psi.tree.IElementType;
 
-public class CangJieEolImpl extends CjElementImpl implements CangJieEol {
+public class CangJieAExprImpl extends CangJieExprImpl implements CangJieAExpr {
 
-  public CangJieEolImpl(@NotNull ASTNode node) {
-    super(node);
+  public CangJieAExprImpl(@NotNull IElementType type) {
+    super(type);
   }
 
+  @Override
   public void accept(@NotNull CangJieVisitor visitor) {
-    visitor.visitEol(this);
+    visitor.visitAExpr(this);
   }
 
   @Override

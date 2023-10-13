@@ -10,11 +10,12 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.huawei.cangjie.lang.core.psi.CjElementTypes.*;
 import com.huawei.cangjie.lang.core.psi.ext.CjElementImpl;
 import com.huawei.cangjie.lang.core.psi.*;
+import com.intellij.psi.tree.IElementType;
 
 public class CangJieStatementCodeFragmentElementImpl extends CjElementImpl implements CangJieStatementCodeFragmentElement {
 
-  public CangJieStatementCodeFragmentElementImpl(@NotNull ASTNode node) {
-    super(node);
+  public CangJieStatementCodeFragmentElementImpl(@NotNull IElementType type) {
+    super(type);
   }
 
   public void accept(@NotNull CangJieVisitor visitor) {

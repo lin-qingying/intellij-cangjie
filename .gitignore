@@ -45,3 +45,4 @@ bin/
 /jflex-1.9.1.jar
 /testData/
 /.run/
+/build.gradle.kts3

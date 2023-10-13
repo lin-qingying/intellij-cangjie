@@ -9,22 +9,22 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.huawei.cangjie.lang.core.psi.CjElementTypes.*;
 import com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl;
-import com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub;
+import com.huawei.cangjie.lang.core.stubs.CjValueParameterStub;
 import com.huawei.cangjie.lang.core.psi.*;
 import com.intellij.psi.stubs.IStubElementType;
 
-public class CangJieBlockImpl extends CjStubbedElementImpl<CjPlaceholderStub<?>> implements CangJieBlock {
+public class CangJieValueParameterImpl extends CjStubbedElementImpl<CjValueParameterStub> implements CangJieValueParameter {
 
-  public CangJieBlockImpl(@NotNull ASTNode node) {
+  public CangJieValueParameterImpl(@NotNull ASTNode node) {
     super(node);
   }
 
-  public CangJieBlockImpl(@NotNull CjPlaceholderStub<?> stub, @NotNull IStubElementType<?, ?> type) {
+  public CangJieValueParameterImpl(@NotNull CjValueParameterStub stub, @NotNull IStubElementType<?, ?> type) {
     super(stub, type);
   }
 
   public void accept(@NotNull CangJieVisitor visitor) {
-    visitor.visitBlock(this);
+    visitor.visitValueParameter(this);
   }
 
   @Override
@@ -34,9 +34,15 @@ public class CangJieBlockImpl extends CjStubbedElementImpl<CjPlaceholderStub<?>>
   }
 
   @Override
-  @NotNull
-  public List<CangJieStmt> getStmtList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, CangJieStmt.class);
+  @Nullable
+  public CangJieDefaultParameterValue getDefaultParameterValue() {
+    return PsiTreeUtil.getStubChildOfType(this, CangJieDefaultParameterValue.class);
+  }
+
+  @Override
+  @Nullable
+  public CangJieType getType() {
+    return PsiTreeUtil.getChildOfType(this, CangJieType.class);
   }
 
 }

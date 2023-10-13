@@ -10,21 +10,28 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.huawei.cangjie.lang.core.psi.CjElementTypes.*;
 import com.huawei.cangjie.lang.core.psi.ext.CjElementImpl;
 import com.huawei.cangjie.lang.core.psi.*;
+import com.intellij.psi.tree.IElementType;
 
-public class CangJieAImpl extends CjElementImpl implements CangJieA {
+public class CangJieTypeReferenceCodeFragmentElementImpl extends CjElementImpl implements CangJieTypeReferenceCodeFragmentElement {
 
-  public CangJieAImpl(@NotNull ASTNode node) {
-    super(node);
+  public CangJieTypeReferenceCodeFragmentElementImpl(@NotNull IElementType type) {
+    super(type);
   }
 
   public void accept(@NotNull CangJieVisitor visitor) {
-    visitor.visitA(this);
+    visitor.visitTypeReferenceCodeFragmentElement(this);
   }
 
   @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof CangJieVisitor) accept((CangJieVisitor)visitor);
     else super.accept(visitor);
+  }
+
+  @Override
+  @Nullable
+  public CangJieType getType() {
+    return PsiTreeUtil.getChildOfType(this, CangJieType.class);
   }
 
 }

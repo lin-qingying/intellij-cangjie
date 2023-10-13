@@ -8,17 +8,23 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.huawei.cangjie.lang.core.psi.CjElementTypes.*;
-import com.huawei.cangjie.lang.core.psi.ext.CjElementImpl;
+import com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl;
+import com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub;
 import com.huawei.cangjie.lang.core.psi.*;
+import com.intellij.psi.stubs.IStubElementType;
 
-public class CangJieMainFuncCodeFragmentElementImpl extends CjElementImpl implements CangJieMainFuncCodeFragmentElement {
+public class CangJieDefaultParameterValueImpl extends CjStubbedElementImpl<CjPlaceholderStub<?>> implements CangJieDefaultParameterValue {
 
-  public CangJieMainFuncCodeFragmentElementImpl(@NotNull ASTNode node) {
+  public CangJieDefaultParameterValueImpl(@NotNull ASTNode node) {
     super(node);
   }
 
+  public CangJieDefaultParameterValueImpl(@NotNull CjPlaceholderStub<?> stub, @NotNull IStubElementType<?, ?> type) {
+    super(stub, type);
+  }
+
   public void accept(@NotNull CangJieVisitor visitor) {
-    visitor.visitMainFuncCodeFragmentElement(this);
+    visitor.visitDefaultParameterValue(this);
   }
 
   @Override
@@ -29,8 +35,8 @@ public class CangJieMainFuncCodeFragmentElementImpl extends CjElementImpl implem
 
   @Override
   @Nullable
-  public CangJieMainFunc getMainFunc() {
-    return PsiTreeUtil.getChildOfType(this, CangJieMainFunc.class);
+  public CangJieExpr getExpr() {
+    return PsiTreeUtil.getChildOfType(this, CangJieExpr.class);
   }
 
 }

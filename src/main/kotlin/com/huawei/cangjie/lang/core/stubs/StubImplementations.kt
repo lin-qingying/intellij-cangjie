@@ -3,32 +3,37 @@ package com.huawei.cangjie.lang.core.stubs
 import com.huawei.cangjie.lang.CjLanguage
 import com.huawei.cangjie.lang.core.lexer.CangJieLexer
 import com.huawei.cangjie.lang.core.parser.CangJieParser
-import com.huawei.cangjie.lang.core.psi.CJ_ITEMS
-import com.huawei.cangjie.lang.core.psi.CangJieBlock
-import com.huawei.cangjie.lang.core.psi.CangJieMainFunc
-import com.huawei.cangjie.lang.core.psi.CjElementTypes
+import com.huawei.cangjie.lang.core.psi.*
 import com.huawei.cangjie.lang.core.psi.CjElementTypes.*
-import com.huawei.cangjie.lang.core.psi.impl.CangJieBlockImpl
-import com.huawei.cangjie.lang.core.psi.impl.CangJieMainFuncImpl
-import com.huawei.cangjie.lang.core.psi.tokenSetOf
+import com.huawei.cangjie.lang.core.psi.ext.block
+import com.huawei.cangjie.lang.core.psi.ext.patText
+import com.huawei.cangjie.lang.core.psi.impl.*
 import com.intellij.lang.*
 import com.intellij.lang.parser.GeneratedParserUtilBase
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import com.intellij.psi.StubBuilder
 import com.intellij.psi.impl.source.tree.LazyParseableElement
 import com.intellij.psi.impl.source.tree.RecursiveTreeElementWalkingVisitor
 import com.intellij.psi.impl.source.tree.TreeElement
+import com.intellij.psi.impl.source.tree.TreeUtil
+import com.intellij.psi.stubs.*
 import com.intellij.psi.tree.*
+import com.intellij.util.BitUtil
 import com.intellij.util.CharTable
 import com.intellij.util.diff.FlyweightCapableTreeStructure
+import com.intellij.util.io.DataInputOutputUtil
 
 
 fun factory(name: String): CjStubElementType<*, *> = when (name) {
 
 
     "BLOCK" -> CjBlockStubType
-
-    "MAIN_FUNC" -> CjMainFuncStubType
+  "VALUE_PARAMETER" -> CjValueParameterStub.Type
+    "VALUE_PARAMETER_LIST" -> CjPlaceholderStub.Type("VALUE_PARAMETER_LIST", ::CangJieValueParameterListImpl)
+//    "MAIN_FUNC" -> CjMainFuncStubType
+    "FUNCTION" -> CjFunctionStub.Type
+    "DEFAULT_PARAMETER_VALUE" -> CjPlaceholderStub.Type("DEFAULT_PARAMETER_VALUE", ::CangJieDefaultParameterValueImpl)
 
 
     else -> error("Unknown element $name")
@@ -56,74 +61,74 @@ private class ItemSeekingVisitor private constructor() : RecursiveTreeElementWal
 }
 
 
-object CjMainFuncStubType :
-    CjPlaceholderStub.Type<CangJieMainFunc>("MAIN_FUNC", ::CangJieMainFuncImpl),
-    ICustomParsingType,
-    ICompositeElementType,
-    IReparseableElementTypeBase,
-    ILightLazyParseableElementType {
-
-       //标记是否已经创建
-        var isCreated = false
-
-    override fun parse(text: CharSequence, table: CharTable): ASTNode {
-      return  LazyParseableElement(this, text)
-    }
-
-    override fun createCompositeNode(): ASTNode {
-
-
-            return LazyParseableElement(this, null)
-
-
-
-    }
-
-    override fun parseContents(chameleon: ASTNode): ASTNode {
-        //如果已经定义了一个main方法，则不需要解析
-        if (chameleon.treeParent.findChildByType(MAIN_FUNC) != null) {
-            return chameleon
-        }
-
-
-        val project = chameleon.treeParent.psi.project
-        val builder =
-            PsiBuilderFactory.getInstance().createBuilder(project, chameleon, null, CjLanguage, chameleon.chars)
-        parseMainFunc(builder)
-
-
-        return builder.treeBuilt.firstChildNode
-
-
-    }
-
-
-    override fun parseContents(chameleon: LighterLazyParseableNode?): FlyweightCapableTreeStructure<LighterASTNode> {
-        val project = chameleon?.containingFile?.project ?: error("`containingFile` must not be null: $chameleon")
-        val builder =
-            PsiBuilderFactory.getInstance().createBuilder(project, chameleon, null, CjLanguage, chameleon.text)
-          parseMainFunc(builder)
-        return builder.lightTree
-    }
-
-    private fun parseMainFunc(builder: PsiBuilder) {
-
-        val adaptBuilder = GeneratedParserUtilBase.adapt_builder_(MAIN_FUNC, builder, CangJieParser(), null)
-        val marker = GeneratedParserUtilBase.enter_section_(adaptBuilder, 0, GeneratedParserUtilBase._COLLAPSE_, null)
-        val result = CangJieParser.MainFunc(adaptBuilder, 0)
-        GeneratedParserUtilBase.exit_section_(
-            adaptBuilder,
-            0,
-            marker,
-            MAIN_FUNC,
-            result,
-            true,
-            GeneratedParserUtilBase.TRUE_CONDITION
-        )
-
-    }
-
-}
+//object CjMainFuncStubType :
+//    CjPlaceholderStub.Type<CangJieMainFunc>("MAIN_FUNC", ::CangJieMainFuncImpl),
+//    ICustomParsingType,
+//    ICompositeElementType,
+//    IReparseableElementTypeBase,
+//    ILightLazyParseableElementType {
+//
+//       //标记是否已经创建
+//        var isCreated = false
+//
+//    override fun parse(text: CharSequence, table: CharTable): ASTNode {
+//      return  LazyParseableElement(this, text)
+//    }
+//
+//    override fun createCompositeNode(): ASTNode {
+//
+//
+//            return LazyParseableElement(this, null)
+//
+//
+//
+//    }
+//
+//    override fun parseContents(chameleon: ASTNode): ASTNode {
+//        //如果已经定义了一个main方法，则不需要解析
+//        if (chameleon.treeParent.findChildByType(MAIN_FUNC) != null) {
+//            return chameleon
+//        }
+//
+//
+//        val project = chameleon.treeParent.psi.project
+//        val builder =
+//            PsiBuilderFactory.getInstance().createBuilder(project, chameleon, null, CjLanguage, chameleon.chars)
+//        parseMainFunc(builder)
+//
+//
+//        return builder.treeBuilt.firstChildNode
+//
+//
+//    }
+//
+//
+//    override fun parseContents(chameleon: LighterLazyParseableNode?): FlyweightCapableTreeStructure<LighterASTNode> {
+//        val project = chameleon?.containingFile?.project ?: error("`containingFile` must not be null: $chameleon")
+//        val builder =
+//            PsiBuilderFactory.getInstance().createBuilder(project, chameleon, null, CjLanguage, chameleon.text)
+//          parseMainFunc(builder)
+//        return builder.lightTree
+//    }
+//
+//    private fun parseMainFunc(builder: PsiBuilder) {
+//
+//        val adaptBuilder = GeneratedParserUtilBase.adapt_builder_(MAIN_FUNC, builder, CangJieParser(), null)
+//        val marker = GeneratedParserUtilBase.enter_section_(adaptBuilder, 0, GeneratedParserUtilBase._COLLAPSE_, null)
+//        val result = CangJieParser.MainFunc(adaptBuilder, 0)
+//        GeneratedParserUtilBase.exit_section_(
+//            adaptBuilder,
+//            0,
+//            marker,
+//            MAIN_FUNC,
+//            result,
+//            true,
+//            GeneratedParserUtilBase.TRUE_CONDITION
+//        )
+//
+//    }
+//
+//}
 
 object CjBlockStubType :
     CjPlaceholderStub.Type<CangJieBlock>("BLOCK", ::CangJieBlockImpl),
@@ -201,3 +206,112 @@ object CjBlockStubType :
 
 
 }
+
+class CjFunctionStub(
+    parent: StubElement<*>?, elementType: IStubElementType<*, *>,
+    override val name: String?,
+
+
+    ) :  StubBase<CangJieFunction>(parent, elementType) , CjNamedStub  {
+
+
+
+    object Type : CjStubElementType<CjFunctionStub, CangJieFunction>("FUNCTION") {
+        override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?) =
+            CjFunctionStub(
+                parentStub,
+                this,
+                dataStream.readName()?.string,
+
+
+
+
+            )
+
+        override fun serialize(stub: CjFunctionStub, dataStream: StubOutputStream) =
+            with(dataStream) {
+                writeName(stub.name)
+
+
+
+            }
+
+        override fun createPsi(stub: CjFunctionStub) =
+            CangJieFunctionImpl(stub, this)
+
+        override fun createStub(psi: CangJieFunction, parentStub: StubElement<*>?): CjFunctionStub {
+            val block = psi.block
+            return CjFunctionStub(
+                parentStub,
+                this,
+                name = psi.name,
+
+
+            )
+        }
+
+        override fun indexStub(stub: CjFunctionStub, sink: IndexSink) = sink.indexFunction(stub)
+    }
+}
+
+class CjFileStub(
+    file: CjFile?,
+    private val flags: Int,
+) : PsiFileStubImpl<CjFile>(file){
+
+
+    object Type : IStubFileElementType<CjFileStub>(CjLanguage) {
+
+
+    }
+}
+
+
+
+class CjValueParameterStub(
+    parent: StubElement<*>?, elementType: IStubElementType<*, *>,
+    val patText: String?,
+
+): StubBase< CangJieValueParameter>(parent, elementType)
+{
+
+    object Type : CjStubElementType<CjValueParameterStub, CangJieValueParameter>("VALUE_PARAMETER") {
+        override fun shouldCreateStub(node: ASTNode): Boolean = createStubIfParentIsStub(node)
+
+        override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?) =
+            CjValueParameterStub(
+                parentStub,
+                this,
+                dataStream.readNameAsString()
+
+            )
+
+        override fun serialize(stub: CjValueParameterStub, dataStream: StubOutputStream) =
+            with(dataStream) {
+                writeName(stub.patText)
+
+            }
+
+        override fun createPsi(stub: CjValueParameterStub): CangJieValueParameter =
+            CangJieValueParameterImpl(stub, this)
+
+        override fun createStub(psi: CangJieValueParameter, parentStub: StubElement<*>?) =
+            CjValueParameterStub(parentStub, this, psi.patText )
+
+
+    }
+}
+
+
+private fun StubInputStream.readNameAsString(): String? = readName()?.string
+private fun StubInputStream.readUTFFastAsNullable(): String? = DataInputOutputUtil.readNullable(this, this::readUTFFast)
+private fun StubOutputStream.writeUTFFastAsNullable(value: String?) =
+    DataInputOutputUtil.writeNullable(this, value, this::writeUTFFast)
+
+private fun StubOutputStream.writeLongAsNullable(value: Long?) =
+    DataInputOutputUtil.writeNullable(this, value, this::writeLong)
+private fun StubInputStream.readLongAsNullable(): Long? = DataInputOutputUtil.readNullable(this, this::readLong)
+
+private fun StubOutputStream.writeDoubleAsNullable(value: Double?) =
+    DataInputOutputUtil.writeNullable(this, value, this::writeDouble)
+private fun StubInputStream.readDoubleAsNullable(): Double? = DataInputOutputUtil.readNullable(this, this::readDouble)

@@ -15,14 +15,14 @@ import com.intellij.psi.util.PsiModificationTracker
 
 class CjFile(
     fileViewProvider: FileViewProvider
-)  : CjFileBase(fileViewProvider) {
+)  : CjFileBase(fileViewProvider)  {
 //    override val containingMod: CjMod get() = getOriginalOrSelf()
 
-
+//    override val crateRelativePath: String? get() = RsPsiImplUtil.modCrateRelativePath(this)
 
 //    override val crateRoot: CjMod? get() = cachedData.crateRoot
 
-
+//    override val crateRelativePath: String? get() = RsPsiImplUtil.modCrateRelativePath(this)
 }
 abstract class CjFileBase(fileViewProvider: FileViewProvider) : PsiFileBase(fileViewProvider, CjLanguage)    {
 

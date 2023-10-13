@@ -4,7 +4,7 @@ import com.huawei.cangjie.lang.core.psi.CjFile
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiDirectory
 
-interface CjMod :CjQualifiedNamedElement{
+interface CjMod :CjQualifiedNamedElement, CjItemsOwner{
 
 
     val `super`: CjMod?

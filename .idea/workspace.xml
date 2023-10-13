@@ -7,35 +7,58 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="">
+    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="develop">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/lexer/_CangJieLexer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hs_err_pid2844.log" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/parser/CangJieParser.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/parser/_CangJieLexer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieA.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieBlock.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieEol.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieExpr.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieExpressionCodeFragmentElement.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieFuncParameters.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieFunction.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieReturnType.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieToBeUpped.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieItem.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieMainFunc.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieMainFuncCodeFragmentElement.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieMainFuncParam.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieParamStmt.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieStatementCodeFragmentElement.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieStmt.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieType.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieVisitor.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CjElementTypes.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieAImpl.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieBlockImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieEolImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieExprImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieExpressionCodeFragmentElementImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieFuncParametersImpl.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieFunctionImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieReturnTypeImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieToBeUppedImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/grammars/CangJieLexer.flex" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/grammars/CangJieLexer.flex" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/grammars/CangJieParser.bnf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/grammars/_CangJieLexer.flex" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/grammars/_CangJieLexer.flex" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/lexer/CangJieLexer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/lexer/CangJieLexer.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/parser/CangJieParserDefinition.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/parser/CangJieParserDefinition.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieItemImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieMainFuncCodeFragmentElementImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieMainFuncImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieMainFuncParamImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieParamStmtImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieStatementCodeFragmentElementImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieStmtImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieTypeImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/grammars/CangJieParser.bnf" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/grammars/CangJieParser.bnf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/completion/Utils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/completion/Utils.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/parser/CangJieParserUtil.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/parser/CangJieParserUtil.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/CjCompositeElementType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/CjCompositeElementType.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/CjFile.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/CjFile.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/CjTokenType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/CjTokenType.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/ext/CjElement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/ext/CjElement.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/ext/CjMod.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/ext/CjMod.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/ext/CjModificationTrackerOwner.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/ext/CjModificationTrackerOwner.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/ext/CjNamedElement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/ext/CjNamedElement.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/ext/CjQualifiedNamedElement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/ext/CjQualifiedNamedElement.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/ext/PsiElement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/psi/ext/PsiElement.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/messages/CjTomlBundle.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testData/CangJieParser1.bnf" beforeDir="false" afterPath="$PROJECT_DIR$/testData/CangJieParser1.bnf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/stubs/StubImplementations.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/stubs/StubImplementations.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/messages/CjBundle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/messages/CjBundle.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,6 +105,12 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="KotlinScriptingSettings">
+    <scriptDefinition className="org.jetbrains.kotlin.scripting.resolve.KotlinScriptDefinitionFromAnnotatedTemplate" definitionName="KotlinBuildScript">
+      <order>2147483647</order>
+      <autoReloadConfigurations>true</autoReloadConfigurations>
+    </scriptDefinition>
+  </component>
   <component name="LogFilters">
     <option name="FILTER_ERRORS" value="false" />
     <option name="FILTER_WARNINGS" value="false" />
@@ -107,29 +136,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "android.gradle.sync.needed": "true",
-    "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "main",
-    "jdk.selected.JAVA_MODULE": "zulu-17",
-    "last_opened_file_path": "D:/Code/idea/intellij-cangjie/src/main/grammars",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
-    "project.structure.last.edited": "模块",
-    "project.structure.proportion": "0.17",
-    "project.structure.side.proportion": "0.3678161",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;zulu-17&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Code/idea/intellij-cangjie/src/main/grammars&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;模块&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.17&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.3678161&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="PsiViewer">
-    <option name="SPLIT_DIVIDER_POSITION" value="232" />
+    <option name="SPLIT_DIVIDER_POSITION" value="166" />
   </component>
   <component name="RebelAgentSelection">
     <selection>jr</selection>
@@ -278,7 +306,14 @@
       <workItem from="1697173213644" duration="122000" />
       <workItem from="1697173340430" duration="121000" />
       <workItem from="1697173529849" duration="3381000" />
-      <workItem from="1697176998398" duration="16704000" />
+      <workItem from="1697176998398" duration="17324000" />
+      <workItem from="1697195129917" duration="1588000" />
+      <workItem from="1697196805812" duration="4207000" />
+      <workItem from="1697201377631" duration="1151000" />
+      <workItem from="1697202618244" duration="894000" />
+      <workItem from="1697203528342" duration="3736000" />
+      <workItem from="1697207419998" duration="7479000" />
+      <workItem from="1697216321783" duration="4816000" />
     </task>
     <task id="LOCAL-00001" summary="语法分析">
       <option name="closed" value="true" />
@@ -304,7 +339,15 @@
       <option name="project" value="LOCAL" />
       <updated>1697125413399</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="develop">
+      <option name="closed" value="true" />
+      <created>1697194488162</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1697194488162</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -312,26 +355,31 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="语法分析" />
-    <option name="LAST_COMMIT_MESSAGE" value="语法分析" />
+    <MESSAGE value="develop" />
+    <option name="LAST_COMMIT_MESSAGE" value="develop" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/parser/CangJieParserUtil.kt</url>
-          <line>113</line>
-          <option name="timeStamp" value="4" />
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieAImpl.java</url>
+          <line>28</line>
+          <option name="timeStamp" value="25" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/stubs/StubImplementations.kt</url>
-          <line>83</line>
-          <option name="timeStamp" value="15" />
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CjElementTypes.java</url>
+          <line>111</line>
+          <option name="timeStamp" value="29" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/core/stubs/StubImplementations.kt</url>
-          <line>101</line>
-          <option name="timeStamp" value="17" />
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CjElementTypes.java</url>
+          <line>100</line>
+          <option name="timeStamp" value="30" />
         </line-breakpoint>
+        <breakpoint enabled="true" type="java-exception">
+          <properties class="java.lang.NoClassDefFoundError" package="java.lang" />
+          <option name="timeStamp" value="32" />
+        </breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>

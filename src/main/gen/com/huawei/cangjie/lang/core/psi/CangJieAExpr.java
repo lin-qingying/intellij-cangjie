@@ -4,11 +4,7 @@ package com.huawei.cangjie.lang.core.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
-import com.huawei.cangjie.lang.core.psi.ext.CjElement;
 
-public interface CangJieExpressionCodeFragmentElement extends CjElement {
-
-  @Nullable
-  CangJieExpr getExpr();
+public interface CangJieAExpr extends CangJieExpr {
 
 }

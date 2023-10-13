@@ -4,32 +4,30 @@ package com.huawei.cangjie.lang.core.psi;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
 import com.huawei.cangjie.lang.core.psi.ext.CjElement;
+import com.huawei.cangjie.lang.core.psi.ext.CjInferenceContextOwner;
+import com.huawei.cangjie.lang.core.psi.ext.CjNameIdentifierOwner;
 import com.huawei.cangjie.lang.core.psi.ext.CjItemsOwner;
 
 public class CangJieVisitor extends PsiElementVisitor {
 
-  public void visitA(@NotNull CangJieA o) {
-    visitCjElement(o);
+  public void visitAExpr(@NotNull CangJieAExpr o) {
+    visitExpr(o);
   }
 
   public void visitBlock(@NotNull CangJieBlock o) {
     visitCjItemsOwner(o);
   }
 
-  public void visitEol(@NotNull CangJieEol o) {
-    visitCjElement(o);
+  public void visitDefaultParameterValue(@NotNull CangJieDefaultParameterValue o) {
+    visitCjInferenceContextOwner(o);
   }
 
   public void visitExpr(@NotNull CangJieExpr o) {
     visitCjElement(o);
   }
 
-  public void visitFuncParameters(@NotNull CangJieFuncParameters o) {
-    visitCjElement(o);
-  }
-
   public void visitFunction(@NotNull CangJieFunction o) {
-    visitCjElement(o);
+    visitCjNameIdentifierOwner(o);
   }
 
   public void visitItem(@NotNull CangJieItem o) {
@@ -37,10 +35,6 @@ public class CangJieVisitor extends PsiElementVisitor {
   }
 
   public void visitMainFunc(@NotNull CangJieMainFunc o) {
-    visitCjItemsOwner(o);
-  }
-
-  public void visitMainFuncCodeFragmentElement(@NotNull CangJieMainFuncCodeFragmentElement o) {
     visitCjElement(o);
   }
 
@@ -64,7 +58,27 @@ public class CangJieVisitor extends PsiElementVisitor {
     visitCjElement(o);
   }
 
+  public void visitTypeReferenceCodeFragmentElement(@NotNull CangJieTypeReferenceCodeFragmentElement o) {
+    visitCjElement(o);
+  }
+
+  public void visitValueParameter(@NotNull CangJieValueParameter o) {
+    visitCjElement(o);
+  }
+
+  public void visitValueParameterList(@NotNull CangJieValueParameterList o) {
+    visitCjElement(o);
+  }
+
+  public void visitCjInferenceContextOwner(@NotNull CjInferenceContextOwner o) {
+    visitElement(o);
+  }
+
   public void visitCjItemsOwner(@NotNull CjItemsOwner o) {
+    visitElement(o);
+  }
+
+  public void visitCjNameIdentifierOwner(@NotNull CjNameIdentifierOwner o) {
     visitElement(o);
   }
 
