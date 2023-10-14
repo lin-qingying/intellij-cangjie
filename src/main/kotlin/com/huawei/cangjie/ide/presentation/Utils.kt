@@ -1,10 +1,10 @@
 package com.huawei.cangjie.ide.presentation
 
-import com.huawei.cangjie.lang.core.psi.CangJieFunction
+import com.huawei.cangjie.lang.core.psi.CjFunction
 import com.huawei.cangjie.lang.core.psi.ext.CjElement
 import com.huawei.cangjie.lang.core.psi.ext.CjNamedElement
 import com.huawei.cangjie.lang.core.psi.ext.functionName
-import com.huawei.cangjie.lang.core.psi.impl.CangJieItemImpl
+import com.huawei.cangjie.lang.core.psi.impl.CjItemImpl
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.navigation.ItemPresentation
 
@@ -20,7 +20,7 @@ fun getPresentation(psi: CjElement): ItemPresentation {
 }
 private fun presentableName(psi: CjElement): String? {
     return when (psi) {
-        is CangJieFunction -> psi.functionName
+        is CjFunction -> psi.functionName
         is CjNamedElement -> psi.name
 
         else -> null

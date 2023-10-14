@@ -3,8 +3,10 @@ package com.huawei.cangjie.lang.core.stubs
 import com.huawei.cangjie.lang.CjLanguage
 import com.huawei.cangjie.lang.core.lexer.CangJieLexer
 import com.huawei.cangjie.lang.core.parser.CangJieParser
+import com.huawei.cangjie.lang.core.parser.CangJieParserDefinition
 import com.huawei.cangjie.lang.core.psi.*
 import com.huawei.cangjie.lang.core.psi.CjElementTypes.*
+import com.huawei.cangjie.lang.core.psi.ext.PathKind
 import com.huawei.cangjie.lang.core.psi.ext.block
 import com.huawei.cangjie.lang.core.psi.ext.patText
 import com.huawei.cangjie.lang.core.psi.impl.*
@@ -30,12 +32,13 @@ fun factory(name: String): CjStubElementType<*, *> = when (name) {
 
     "BLOCK" -> CjBlockStubType
   "VALUE_PARAMETER" -> CjValueParameterStub.Type
-    "VALUE_PARAMETER_LIST" -> CjPlaceholderStub.Type("VALUE_PARAMETER_LIST", ::CangJieValueParameterListImpl)
-//    "MAIN_FUNC" -> CjMainFuncStubType
+    "VALUE_PARAMETER_LIST" -> CjPlaceholderStub.Type("VALUE_PARAMETER_LIST", ::CjValueParameterListImpl)
+    "MAIN_FUNC" -> CjMainFuncStubType
     "FUNCTION" -> CjFunctionStub.Type
-    "DEFAULT_PARAMETER_VALUE" -> CjPlaceholderStub.Type("DEFAULT_PARAMETER_VALUE", ::CangJieDefaultParameterValueImpl)
+    "DEFAULT_PARAMETER_VALUE" -> CjPlaceholderStub.Type("DEFAULT_PARAMETER_VALUE", ::CjDefaultParameterValueImpl)
 
-
+    "LIFETIME" -> CjLifetimeStub.Type
+    "LIFETIME_PARAMETER" -> CjLifetimeParameterStub.Type
     else -> error("Unknown element $name")
 }
 
@@ -61,77 +64,77 @@ private class ItemSeekingVisitor private constructor() : RecursiveTreeElementWal
 }
 
 
-//object CjMainFuncStubType :
-//    CjPlaceholderStub.Type<CangJieMainFunc>("MAIN_FUNC", ::CangJieMainFuncImpl),
-//    ICustomParsingType,
-//    ICompositeElementType,
-//    IReparseableElementTypeBase,
-//    ILightLazyParseableElementType {
-//
-//       //标记是否已经创建
-//        var isCreated = false
-//
-//    override fun parse(text: CharSequence, table: CharTable): ASTNode {
-//      return  LazyParseableElement(this, text)
-//    }
-//
-//    override fun createCompositeNode(): ASTNode {
-//
-//
-//            return LazyParseableElement(this, null)
-//
-//
-//
-//    }
-//
-//    override fun parseContents(chameleon: ASTNode): ASTNode {
-//        //如果已经定义了一个main方法，则不需要解析
-//        if (chameleon.treeParent.findChildByType(MAIN_FUNC) != null) {
-//            return chameleon
-//        }
-//
-//
-//        val project = chameleon.treeParent.psi.project
-//        val builder =
-//            PsiBuilderFactory.getInstance().createBuilder(project, chameleon, null, CjLanguage, chameleon.chars)
-//        parseMainFunc(builder)
-//
-//
-//        return builder.treeBuilt.firstChildNode
-//
-//
-//    }
-//
-//
-//    override fun parseContents(chameleon: LighterLazyParseableNode?): FlyweightCapableTreeStructure<LighterASTNode> {
-//        val project = chameleon?.containingFile?.project ?: error("`containingFile` must not be null: $chameleon")
-//        val builder =
-//            PsiBuilderFactory.getInstance().createBuilder(project, chameleon, null, CjLanguage, chameleon.text)
-//          parseMainFunc(builder)
-//        return builder.lightTree
-//    }
-//
-//    private fun parseMainFunc(builder: PsiBuilder) {
-//
-//        val adaptBuilder = GeneratedParserUtilBase.adapt_builder_(MAIN_FUNC, builder, CangJieParser(), null)
-//        val marker = GeneratedParserUtilBase.enter_section_(adaptBuilder, 0, GeneratedParserUtilBase._COLLAPSE_, null)
-//        val result = CangJieParser.MainFunc(adaptBuilder, 0)
-//        GeneratedParserUtilBase.exit_section_(
-//            adaptBuilder,
-//            0,
-//            marker,
-//            MAIN_FUNC,
-//            result,
-//            true,
-//            GeneratedParserUtilBase.TRUE_CONDITION
-//        )
-//
-//    }
-//
-//}
+object CjMainFuncStubType :
+    CjPlaceholderStub.Type<CjMainFunc>("MAIN_FUNC", ::CjMainFuncImpl),
+    ICustomParsingType,
+    ICompositeElementType,
+    IReparseableElementTypeBase,
+    ILightLazyParseableElementType {
+
+
+
+
+    override fun parse(text: CharSequence, table: CharTable): ASTNode {
+      return  LazyParseableElement(this, text)
+    }
+
+    override fun createCompositeNode(): ASTNode {
+
+
+            return LazyParseableElement(this, null)
+
+
+
+    }
+
+    override fun parseContents(chameleon: ASTNode): ASTNode {
+        //如果已经定义了一个main方法，则不需要解析
+        if (chameleon.treeParent.findChildByType(MAIN_FUNC) != null) {
+            return chameleon
+        }
+
+
+        val project = chameleon.treeParent.psi.project
+        val builder =
+            PsiBuilderFactory.getInstance().createBuilder(project, chameleon, null, CjLanguage, chameleon.chars)
+        parseMainFunc(builder)
+
+
+        return builder.treeBuilt.firstChildNode
+
+
+    }
+
+
+    override fun parseContents(chameleon: LighterLazyParseableNode?): FlyweightCapableTreeStructure<LighterASTNode> {
+        val project = chameleon?.containingFile?.project ?: error("`containingFile` must not be null: $chameleon")
+        val builder =
+            PsiBuilderFactory.getInstance().createBuilder(project, chameleon, null, CjLanguage, chameleon.text)
+          parseMainFunc(builder)
+        return builder.lightTree
+    }
+
+    private fun parseMainFunc(builder: PsiBuilder) {
+
+        val adaptBuilder = GeneratedParserUtilBase.adapt_builder_(MAIN_FUNC, builder, CangJieParser(), CangJieParser.EXTENDS_SETS_)
+        val marker = GeneratedParserUtilBase.enter_section_(adaptBuilder, 0, GeneratedParserUtilBase._COLLAPSE_, null)
+        val result = CangJieParser.MainFunc(adaptBuilder, 0)
+        GeneratedParserUtilBase.exit_section_(
+            adaptBuilder,
+            0,
+            marker,
+            MAIN_FUNC,
+            result,
+            true,
+            GeneratedParserUtilBase.TRUE_CONDITION
+        )
+
+    }
+
+}
 
 object CjBlockStubType :
-    CjPlaceholderStub.Type<CangJieBlock>("BLOCK", ::CangJieBlockImpl),
+    CjPlaceholderStub.Type<CjBlock>("BLOCK", ::CjBlockImpl),
     ICustomParsingType,
     ICompositeElementType,
     IReparseableElementTypeBase,
@@ -173,7 +176,7 @@ object CjBlockStubType :
 
 
     private fun parseBlock(builder: PsiBuilder) {
-        val adaptBuilder = GeneratedParserUtilBase.adapt_builder_(BLOCK, builder, CangJieParser(), null)
+        val adaptBuilder = GeneratedParserUtilBase.adapt_builder_(BLOCK, builder, CangJieParser(), CangJieParser.EXTENDS_SETS_)
         val marker = GeneratedParserUtilBase.enter_section_(adaptBuilder, 0, GeneratedParserUtilBase._COLLAPSE_, null)
         val result = CangJieParser.FuncBlock(adaptBuilder, 0)
         GeneratedParserUtilBase.exit_section_(
@@ -212,11 +215,11 @@ class CjFunctionStub(
     override val name: String?,
 
 
-    ) :  StubBase<CangJieFunction>(parent, elementType) , CjNamedStub  {
+    ) :  StubBase<CjFunction>(parent, elementType) , CjNamedStub  {
 
 
 
-    object Type : CjStubElementType<CjFunctionStub, CangJieFunction>("FUNCTION") {
+    object Type : CjStubElementType<CjFunctionStub, CjFunction>("FUNCTION") {
         override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?) =
             CjFunctionStub(
                 parentStub,
@@ -237,9 +240,9 @@ class CjFunctionStub(
             }
 
         override fun createPsi(stub: CjFunctionStub) =
-            CangJieFunctionImpl(stub, this)
+            CjFunctionImpl(stub, this)
 
-        override fun createStub(psi: CangJieFunction, parentStub: StubElement<*>?): CjFunctionStub {
+        override fun createStub(psi: CjFunction, parentStub: StubElement<*>?): CjFunctionStub {
             val block = psi.block
             return CjFunctionStub(
                 parentStub,
@@ -261,6 +264,9 @@ class CjFileStub(
 
 
     object Type : IStubFileElementType<CjFileStub>(CjLanguage) {
+        private const val STUB_VERSION = 234
+        override fun getStubVersion(): Int =
+            CangJieParserDefinition.PARSER_VERSION +   STUB_VERSION
 
 
     }
@@ -272,10 +278,10 @@ class CjValueParameterStub(
     parent: StubElement<*>?, elementType: IStubElementType<*, *>,
     val patText: String?,
 
-): StubBase< CangJieValueParameter>(parent, elementType)
+): StubBase< CjValueParameter>(parent, elementType)
 {
 
-    object Type : CjStubElementType<CjValueParameterStub, CangJieValueParameter>("VALUE_PARAMETER") {
+    object Type : CjStubElementType<CjValueParameterStub, CjValueParameter>("VALUE_PARAMETER") {
         override fun shouldCreateStub(node: ASTNode): Boolean = createStubIfParentIsStub(node)
 
         override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?) =
@@ -292,17 +298,75 @@ class CjValueParameterStub(
 
             }
 
-        override fun createPsi(stub: CjValueParameterStub): CangJieValueParameter =
-            CangJieValueParameterImpl(stub, this)
+        override fun createPsi(stub: CjValueParameterStub): CjValueParameter =
+            CjValueParameterImpl(stub, this)
 
-        override fun createStub(psi: CangJieValueParameter, parentStub: StubElement<*>?) =
+        override fun createStub(psi: CjValueParameter, parentStub: StubElement<*>?) =
             CjValueParameterStub(parentStub, this, psi.patText )
 
 
     }
 }
 
+class CjLifetimeParameterStub(
+    parent: StubElement<*>?, elementType: IStubElementType<*, *>,
+    override val name: String?
+) : StubBase<CjLifetimeParameter>(parent, elementType),
+    CjNamedStub {
 
+    object Type : CjStubElementType<CjLifetimeParameterStub, CjLifetimeParameter>("LIFETIME_PARAMETER") {
+
+        override fun shouldCreateStub(node: ASTNode): Boolean = createStubIfParentIsStub(node)
+
+        override fun createPsi(stub: CjLifetimeParameterStub) =
+            CjLifetimeParameterImpl(stub, this)
+
+        override fun createStub(psi: CjLifetimeParameter, parentStub: StubElement<*>?) =
+            CjLifetimeParameterStub(parentStub, this, psi.name)
+
+        override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?) =
+            CjLifetimeParameterStub(
+                parentStub,
+                this,
+                dataStream.readNameAsString()
+            )
+
+        override fun serialize(stub: CjLifetimeParameterStub, dataStream: StubOutputStream) =
+            with(dataStream) {
+                writeName(stub.name)
+            }
+    }
+}
+
+
+class CjLifetimeStub(
+    parent: StubElement<*>?, elementType: IStubElementType<*, *>,
+    override val name: String?
+) : StubBase<CjLifetime>(parent, elementType),
+    CjNamedStub {
+
+    object Type : CjStubElementType<CjLifetimeStub,CjLifetime>("LIFETIME") {
+        override fun shouldCreateStub(node: ASTNode): Boolean = createStubIfParentIsStub(node)
+
+        override fun createPsi(stub: CjLifetimeStub) =
+            CjLifetimeImpl(stub, this)
+
+        override fun createStub(psi: CjLifetime, parentStub: StubElement<*>?) =
+            CjLifetimeStub(parentStub, this, psi.referenceName)
+
+        override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?) =
+            CjLifetimeStub(
+                parentStub,
+                this,
+                dataStream.readNameAsString()
+            )
+
+        override fun serialize(stub: CjLifetimeStub, dataStream: StubOutputStream) =
+            with(dataStream) {
+                writeName(stub.name)
+            }
+    }
+}
 private fun StubInputStream.readNameAsString(): String? = readName()?.string
 private fun StubInputStream.readUTFFastAsNullable(): String? = DataInputOutputUtil.readNullable(this, this::readUTFFast)
 private fun StubOutputStream.writeUTFFastAsNullable(value: String?) =

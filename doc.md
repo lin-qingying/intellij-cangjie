@@ -11,4 +11,8 @@ func 可以嵌套声明func 可以含 函数定义，赋值定义，表达式
 
 if while match for 流程控制表达式，都是有值返回式，可以赋值给变量
  
+语法套件
+https://github.com/JetBrains/Grammar-Kit
+分析表达式
+https://en.wikipedia.org/wiki/Parsing_expression_grammar
 

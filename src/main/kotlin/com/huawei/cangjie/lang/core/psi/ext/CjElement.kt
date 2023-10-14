@@ -17,13 +17,13 @@ import org.jetbrains.annotations.NotNull
 interface CjElement : PsiElement, UserDataHolderEx {
     /**
      * 在此文件*中找到父模块*。参见[CjMo.Super]
-//     */
+     */
     val containingMod: CjMod
         get() = contextStrict<CjMod>()?.getOriginalOrSelf()
             ?: error("Element outside of module: $text")
 
-//    val crateRoot: CjMod?
-//        get() = containingCjFileSkippingCodeFragments?.crateRoot
+    val crateRoot: CjMod?
+        get() = containingCjFileSkippingCodeFragments?.crateRoot
 }
 
 //abstract class CjElementImpl(type: IElementType) : CompositePsiElement(type), CjElement {
@@ -67,11 +67,9 @@ abstract class CjStubbedElementImpl<StubT : StubElement<*>> : StubBasedPsiElemen
 
     constructor(stub: StubT, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
-//    override fun getNavigationElement(): PsiElement {
-////        return findNavigationTargetIfMacroExpansion() ?: super.getNavigationElement()
-//
-//
-//    }
+
+
+
 
     override fun toString(): String = "${javaClass.simpleName}($elementType)"
 }

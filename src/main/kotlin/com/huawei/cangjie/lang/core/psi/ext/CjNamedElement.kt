@@ -82,7 +82,7 @@ abstract class CjNamedElementImpl(type: IElementType) : CjElementImpl(type), CjN
 
 
 
-    override fun setName(name: String): PsiElement {
+    override fun setName(name: String): PsiElement? {
 
 
         println("名字："+name)

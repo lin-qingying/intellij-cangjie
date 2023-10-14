@@ -10,6 +10,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.lang.PsiParser;
 import com.intellij.lang.LightPsiParser;
+import static com.huawei.cangjie.lang.core.parser.CangJieParserUtil.PathParsingMode.*;
 
 @SuppressWarnings({"SimplifiableIfStatement", "UnusedAssignment"})
 public class CangJieParser implements PsiParser, LightPsiParser {
@@ -50,25 +51,74 @@ public class CangJieParser implements PsiParser, LightPsiParser {
   };
 
   /* ********************************************************** */
-  // 'a'
+  // 'abcdefg'
   public static boolean AExpr(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "AExpr")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _UPPER_, A_EXPR, "<a expr>");
-    r = consumeToken(b, "a");
+    r = consumeToken(b, "abcdefg");
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // ':' Type
+  // STRING_LITERAL | BYTE_STRING_LITERAL | CSTRING_LITERAL
+  //                       | RAW_STRING_LITERAL | RAW_BYTE_STRING_LITERAL | RAW_CSTRING_LITERAL
+  //                       | CHAR_LITERAL | BYTE_LITERAL
+  //                       | FLOAT_LITERAL | <<parseFloatLiteral>> | INTEGER_LITERAL
+  //                       | BOOL_LITERAL
+  static boolean AnyLitToken(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "AnyLitToken")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokenFast(b, STRING_LITERAL);
+    if (!r) r = consumeTokenFast(b, BYTE_STRING_LITERAL);
+    if (!r) r = consumeTokenFast(b, CSTRING_LITERAL);
+    if (!r) r = consumeTokenFast(b, RAW_STRING_LITERAL);
+    if (!r) r = consumeTokenFast(b, RAW_BYTE_STRING_LITERAL);
+    if (!r) r = consumeTokenFast(b, RAW_CSTRING_LITERAL);
+    if (!r) r = consumeTokenFast(b, CHAR_LITERAL);
+    if (!r) r = consumeTokenFast(b, BYTE_LITERAL);
+    if (!r) r = consumeTokenFast(b, FLOAT_LITERAL);
+    if (!r) r = parseFloatLiteral(b, l + 1);
+    if (!r) r = consumeTokenFast(b, INTEGER_LITERAL);
+    if (!r) r = consumeTokenFast(b, BOOL_LITERAL);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // STRING_LITERAL | BYTE_STRING_LITERAL | CSTRING_LITERAL
+  //                             | RAW_STRING_LITERAL | RAW_BYTE_STRING_LITERAL | RAW_CSTRING_LITERAL
+  //                             | CHAR_LITERAL | BYTE_LITERAL
+  //                             | FLOAT_LITERAL | INTEGER_LITERAL
+  //                             | BOOL_LITERAL
+  static boolean AnyLitToken_first(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "AnyLitToken_first")) return false;
+    boolean r;
+    r = consumeToken(b, STRING_LITERAL);
+    if (!r) r = consumeToken(b, BYTE_STRING_LITERAL);
+    if (!r) r = consumeToken(b, CSTRING_LITERAL);
+    if (!r) r = consumeToken(b, RAW_STRING_LITERAL);
+    if (!r) r = consumeToken(b, RAW_BYTE_STRING_LITERAL);
+    if (!r) r = consumeToken(b, RAW_CSTRING_LITERAL);
+    if (!r) r = consumeToken(b, CHAR_LITERAL);
+    if (!r) r = consumeToken(b, BYTE_LITERAL);
+    if (!r) r = consumeToken(b, FLOAT_LITERAL);
+    if (!r) r = consumeToken(b, INTEGER_LITERAL);
+    if (!r) r = consumeToken(b, BOOL_LITERAL);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // ':' TypeReference
   static boolean ByType(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ByType")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_);
     r = consumeToken(b, ":");
     p = r; // pin = 1
-    r = r && Type(b, l + 1);
+    r = r && TypeReference(b, l + 1);
     exit_section_(b, l, m, r, p, null);
     return r || p;
   }
@@ -124,61 +174,6 @@ public class CangJieParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // !(')' | '{' | ';') FuncParameter (',' | &')')
-  static boolean FnParameter_with_recover(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "FnParameter_with_recover")) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_);
-    r = FnParameter_with_recover_0(b, l + 1);
-    p = r; // pin = 1
-    r = r && report_error_(b, FuncParameter(b, l + 1));
-    r = p && FnParameter_with_recover_2(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
-  }
-
-  // !(')' | '{' | ';')
-  private static boolean FnParameter_with_recover_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "FnParameter_with_recover_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NOT_);
-    r = !FnParameter_with_recover_0_0(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  // ')' | '{' | ';'
-  private static boolean FnParameter_with_recover_0_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "FnParameter_with_recover_0_0")) return false;
-    boolean r;
-    r = consumeToken(b, RPAREN);
-    if (!r) r = consumeToken(b, LBRACE);
-    if (!r) r = consumeToken(b, ";");
-    return r;
-  }
-
-  // ',' | &')'
-  private static boolean FnParameter_with_recover_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "FnParameter_with_recover_2")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
-    if (!r) r = FnParameter_with_recover_2_1(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // &')'
-  private static boolean FnParameter_with_recover_2_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "FnParameter_with_recover_2_1")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _AND_);
-    r = consumeToken(b, RPAREN);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  /* ********************************************************** */
   // '{'( Function | ExprStmt)*  '}'
   public static boolean FuncBlock(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "FuncBlock")) return false;
@@ -214,38 +209,115 @@ public class CangJieParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // 'a' ':'  (Type) DefaultParameterValue?
+  // {'b' ':' } TypeReference DefaultParameterValue?
   public static boolean FuncParameter(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "FuncParameter")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, VALUE_PARAMETER, "<func parameter>");
-    r = consumeToken(b, "a");
-    r = r && consumeToken(b, ":");
+    r = FuncParameter_0(b, l + 1);
+    r = r && TypeReference(b, l + 1);
     r = r && FuncParameter_2(b, l + 1);
-    r = r && FuncParameter_3(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
-  // (Type)
-  private static boolean FuncParameter_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "FuncParameter_2")) return false;
+  // 'b' ':'
+  private static boolean FuncParameter_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FuncParameter_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = Type(b, l + 1);
+    r = consumeToken(b, "b");
+    r = r && consumeToken(b, ":");
     exit_section_(b, m, null, r);
     return r;
   }
 
   // DefaultParameterValue?
-  private static boolean FuncParameter_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "FuncParameter_3")) return false;
+  private static boolean FuncParameter_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FuncParameter_2")) return false;
     DefaultParameterValue(b, l + 1);
     return true;
   }
 
   /* ********************************************************** */
-  // '(' !','  FnParameter_with_recover*   ')'
+  // !(Pat_first  |   ')' | '{' | ';')
+  static boolean FuncParameter_recover(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FuncParameter_recover")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_);
+    r = !FuncParameter_recover_0(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // Pat_first  |   ')' | '{' | ';'
+  private static boolean FuncParameter_recover_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FuncParameter_recover_0")) return false;
+    boolean r;
+    r = Pat_first(b, l + 1);
+    if (!r) r = consumeToken(b, RPAREN);
+    if (!r) r = consumeToken(b, LBRACE);
+    if (!r) r = consumeToken(b, ";");
+    return r;
+  }
+
+  /* ********************************************************** */
+  // !(')' | '{' | ';') FuncParameter (',' | &')')
+  static boolean FuncParameter_with_recover(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FuncParameter_with_recover")) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = FuncParameter_with_recover_0(b, l + 1);
+    p = r; // pin = 1
+    r = r && report_error_(b, FuncParameter(b, l + 1));
+    r = p && FuncParameter_with_recover_2(b, l + 1) && r;
+    exit_section_(b, l, m, r, p, CangJieParser::FuncParameter_recover);
+    return r || p;
+  }
+
+  // !(')' | '{' | ';')
+  private static boolean FuncParameter_with_recover_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FuncParameter_with_recover_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_);
+    r = !FuncParameter_with_recover_0_0(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // ')' | '{' | ';'
+  private static boolean FuncParameter_with_recover_0_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FuncParameter_with_recover_0_0")) return false;
+    boolean r;
+    r = consumeToken(b, RPAREN);
+    if (!r) r = consumeToken(b, LBRACE);
+    if (!r) r = consumeToken(b, ";");
+    return r;
+  }
+
+  // ',' | &')'
+  private static boolean FuncParameter_with_recover_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FuncParameter_with_recover_2")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, ",");
+    if (!r) r = FuncParameter_with_recover_2_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // &')'
+  private static boolean FuncParameter_with_recover_2_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FuncParameter_with_recover_2_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _AND_);
+    r = consumeToken(b, RPAREN);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // '(' !','  FuncParameter_with_recover*    ')'
   public static boolean FuncParameters(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "FuncParameters")) return false;
     if (!nextTokenIs(b, LPAREN)) return false;
@@ -270,33 +342,33 @@ public class CangJieParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // FnParameter_with_recover*
+  // FuncParameter_with_recover*
   private static boolean FuncParameters_2(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "FuncParameters_2")) return false;
     while (true) {
       int c = current_position_(b);
-      if (!FnParameter_with_recover(b, l + 1)) break;
+      if (!FuncParameter_with_recover(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "FuncParameters_2", c)) break;
     }
     return true;
   }
 
   /* ********************************************************** */
-  // unsafe? FUNC Named FuncParameters  ByType?    ShallowBlock ';'?
+  // unsafe? FUNC identifier FuncParameters  ByType?    ShallowBlock ';'?
   public static boolean Function(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "Function")) return false;
     if (!nextTokenIs(b, "<function>", FUNC, UNSAFE)) return false;
-    boolean r;
+    boolean r, p;
     Marker m = enter_section_(b, l, _UPPER_, FUNCTION, "<function>");
     r = Function_0(b, l + 1);
-    r = r && consumeToken(b, FUNC);
-    r = r && Named(b, l + 1);
-    r = r && FuncParameters(b, l + 1);
-    r = r && Function_4(b, l + 1);
-    r = r && ShallowBlock(b, l + 1);
-    r = r && Function_6(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
+    r = r && consumeTokens(b, 2, FUNC, IDENTIFIER);
+    p = r; // pin = identifier
+    r = r && report_error_(b, FuncParameters(b, l + 1));
+    r = p && report_error_(b, Function_4(b, l + 1)) && r;
+    r = p && report_error_(b, ShallowBlock(b, l + 1)) && r;
+    r = p && Function_6(b, l + 1) && r;
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
   }
 
   // unsafe?
@@ -321,12 +393,12 @@ public class CangJieParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // namedtest | Function
+  // MainFunc | Function
   public static boolean Item(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "Item")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, ITEM, "<item>");
-    r = namedtest(b, l + 1);
+    r = MainFunc(b, l + 1);
     if (!r) r = Function(b, l + 1);
     register_hook_(b, LEFT_BINDER, ADJACENT_LINE_COMMENTS);
     exit_section_(b, l, m, r, false, null);
@@ -361,6 +433,87 @@ public class CangJieParser implements PsiParser, LightPsiParser {
     r = consumeToken(b, FUNC);
     if (!r) r = consumeToken(b, IDENTIFIER);
     return r;
+  }
+
+  /* ********************************************************** */
+  // QUOTE_IDENTIFIER ':'
+  public static boolean LabelDecl(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "LabelDecl")) return false;
+    if (!nextTokenIs(b, QUOTE_IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, QUOTE_IDENTIFIER);
+    r = r && consumeToken(b, ":");
+    exit_section_(b, m, LABEL_DECL, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // QUOTE_IDENTIFIER
+  public static boolean Lifetime(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "Lifetime")) return false;
+    if (!nextTokenIs(b, QUOTE_IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, QUOTE_IDENTIFIER);
+    exit_section_(b, m, LIFETIME, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // ':' Lifetime ('+' Lifetime)*
+  public static boolean LifetimeParamBounds(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "LifetimeParamBounds")) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, LIFETIME_PARAM_BOUNDS, "<lifetime param bounds>");
+    r = consumeToken(b, ":");
+    p = r; // pin = 1
+    r = r && report_error_(b, Lifetime(b, l + 1));
+    r = p && LifetimeParamBounds_2(b, l + 1) && r;
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
+  }
+
+  // ('+' Lifetime)*
+  private static boolean LifetimeParamBounds_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "LifetimeParamBounds_2")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!LifetimeParamBounds_2_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "LifetimeParamBounds_2", c)) break;
+    }
+    return true;
+  }
+
+  // '+' Lifetime
+  private static boolean LifetimeParamBounds_2_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "LifetimeParamBounds_2_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, "+");
+    r = r && Lifetime(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // QUOTE_IDENTIFIER LifetimeParamBounds?
+  public static boolean LifetimeParameter(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "LifetimeParameter")) return false;
+    if (!nextTokenIs(b, QUOTE_IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, QUOTE_IDENTIFIER);
+    r = r && LifetimeParameter_1(b, l + 1);
+    exit_section_(b, m, LIFETIME_PARAMETER, r);
+    return r;
+  }
+
+  // LifetimeParamBounds?
+  private static boolean LifetimeParameter_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "LifetimeParameter_1")) return false;
+    LifetimeParamBounds(b, l + 1);
+    return true;
   }
 
   /* ********************************************************** */
@@ -414,18 +567,6 @@ public class CangJieParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // identifier
-  public static boolean Named(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "Named")) return false;
-    if (!nextTokenIs(b, "<name>", IDENTIFIER)) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NONE_, NAMED, "<name>");
-    r = consumeToken(b, IDENTIFIER);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  /* ********************************************************** */
   // identifier  ByType
   public static boolean ParamStmt(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ParamStmt")) return false;
@@ -437,6 +578,30 @@ public class CangJieParser implements PsiParser, LightPsiParser {
     r = r && ByType(b, l + 1);
     exit_section_(b, l, m, r, p, null);
     return r || p;
+  }
+
+  /* ********************************************************** */
+  // '&' | '(' | '[' | Path_first | AnyLitToken_first
+  static boolean Pat_first(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "Pat_first")) return false;
+    boolean r;
+    r = consumeToken(b, AND);
+    if (!r) r = consumeToken(b, LPAREN);
+    if (!r) r = consumeToken(b, LBRACK);
+    if (!r) r = Path_first(b, l + 1);
+    if (!r) r = AnyLitToken_first(b, l + 1);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // identifier  | super
+  static boolean Path_first(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "Path_first")) return false;
+    if (!nextTokenIs(b, "", IDENTIFIER, SUPER)) return false;
+    boolean r;
+    r = consumeToken(b, IDENTIFIER);
+    if (!r) r = consumeToken(b, SUPER);
+    return r;
   }
 
   /* ********************************************************** */
@@ -515,35 +680,23 @@ public class CangJieParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // 'a'
-  public static boolean Type(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "Type")) return false;
+  public static boolean TypeReference(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "TypeReference")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, TYPE, "<type>");
+    Marker m = enter_section_(b, l, _NONE_, TYPE_REFERENCE, "<type>");
     r = consumeToken(b, "a");
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // Type?
+  // TypeReference?
   public static boolean TypeReferenceCodeFragmentElement(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "TypeReferenceCodeFragmentElement")) return false;
     Marker m = enter_section_(b, l, _NONE_, TYPE_REFERENCE_CODE_FRAGMENT_ELEMENT, "<type reference code fragment element>");
-    Type(b, l + 1);
+    TypeReference(b, l + 1);
     exit_section_(b, l, m, true, false, null);
     return true;
-  }
-
-  /* ********************************************************** */
-  // Named
-  public static boolean namedtest(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "namedtest")) return false;
-    if (!nextTokenIs(b, IDENTIFIER)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = Named(b, l + 1);
-    exit_section_(b, m, NAMEDTEST, r);
-    return r;
   }
 
 }

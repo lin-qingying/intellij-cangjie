@@ -17,6 +17,18 @@ import org.intellij.plugins.relaxNG.compact.RncTokenTypes.GTGT
 @Suppress("UNUSED_PARAMETER")
 object CangJieParserUtil : GeneratedParserUtilBase() {
 
+
+    enum class PathParsingMode {
+
+        VALUE,
+
+
+        TYPE,
+
+
+        NO_TYPE_ARGS
+    }
+
     enum class StmtMode { ON, OFF }
 
 
@@ -143,5 +155,41 @@ object CangJieParserUtil : GeneratedParserUtilBase() {
         candidate
     }
 
-
+    @JvmStatic
+    fun parseFloatLiteral(b: PsiBuilder, level: Int): Boolean {
+        return when (b.tokenType) {
+            INTEGER_LITERAL -> {
+                // Works with `0.0`, `0.`, but not `0.foo` (identifier is not accepted after `.`)
+                if (b.rawLookup(1) == DOT) {
+                    val (collapse, size) = when (b.rawLookup(2)) {
+                        INTEGER_LITERAL, FLOAT_LITERAL -> true to 3
+                        IDENTIFIER -> false to 0
+                        else -> true to 2
+                    }
+                    if (collapse) {
+                        val marker = b.mark()
+                        PsiBuilderUtil.advance(b, size)
+                        marker.collapse(FLOAT_LITERAL)
+                        return true
+                    }
+                }
+                // Works with floats without `.` like `1f32`, `1e3`, `3e-4`
+                val text = b.tokenText
+                val isFloat = text != null &&
+                        (text.contains("f") || text.contains("e", ignoreCase = true) && !text.endsWith("e"))
+                        && !text.startsWith("0x")
+                if (isFloat) {
+                    b.remapCurrentToken(FLOAT_LITERAL)
+                    b.advanceLexer()
+                }
+                isFloat
+            }
+            // Can be already remapped
+            FLOAT_LITERAL -> {
+                b.advanceLexer()
+                true
+            }
+            else -> false
+        }
+    }
 }

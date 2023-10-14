@@ -1,6 +1,7 @@
 package com.huawei.cangjie.lang.core.psi
 
 import com.huawei.cangjie.lang.CjFileType
+import com.huawei.cangjie.lang.core.psi.ext.CjElement
 import com.huawei.cangjie.lang.core.psi.ext.descendantOfTypeStrict
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -23,9 +24,9 @@ class CjPsiFactory
                 "DUMMY.cj",
                 CjFileType,
                 text,
-                /*modificationStamp =*/ LocalTimeCounter.currentTime(), // default value
-                /*eventSystemEnabled =*/ eventSystemEnabled, // `false` by default
-                /*markAsCopy =*/ markGenerated // `true` by default
+                 LocalTimeCounter.currentTime(),
+                  eventSystemEnabled,
+               markGenerated
             )
     fun createIdentifier(name: String): PsiElement? {
 
@@ -35,5 +36,13 @@ class CjPsiFactory
 
 
     }
+//    fun createMetavarIdentifier(text: String): PsiElement =
+//        createFromText<CjMetaVarIdentifier>("macro m { ($ $text) => () }")
+//            ?: error("Failed to create metavar identifier: `$text`")
 
+    private inline fun <reified T : CjElement> createFromText(code: CharSequence): T? =
+        createFile(code).descendantOfTypeStrict()
+    fun createQuoteIdentifier(text: String): PsiElement =
+        createFromText<CjLifetimeParameter>("fn foo<$text>(_: &$text u8) {}")?.quoteIdentifier
+            ?: error("Failed to create quote identifier: `$text`")
 }

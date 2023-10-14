@@ -16,14 +16,16 @@ public interface CjElementTypes {
   IElementType EXPR = new CjElementType("EXPR");
   IElementType FUNCTION = StubImplementationsKt.factory("FUNCTION");
   IElementType ITEM = new CjElementType("ITEM");
-  IElementType MAIN_FUNC = new CjElementType("MAIN_FUNC");
+  IElementType LABEL_DECL = new CjElementType("LABEL_DECL");
+  IElementType LIFETIME = StubImplementationsKt.factory("LIFETIME");
+  IElementType LIFETIME_PARAMETER = StubImplementationsKt.factory("LIFETIME_PARAMETER");
+  IElementType LIFETIME_PARAM_BOUNDS = new CjElementType("LIFETIME_PARAM_BOUNDS");
+  IElementType MAIN_FUNC = StubImplementationsKt.factory("MAIN_FUNC");
   IElementType MAIN_FUNC_PARAM = new CjElementType("MAIN_FUNC_PARAM");
-  IElementType NAMED = new CjElementType("NAMED");
-  IElementType NAMEDTEST = new CjElementType("NAMEDTEST");
   IElementType PARAM_STMT = new CjElementType("PARAM_STMT");
   IElementType STATEMENT_CODE_FRAGMENT_ELEMENT = new CjElementType("STATEMENT_CODE_FRAGMENT_ELEMENT");
   IElementType STMT = new CjElementType("STMT");
-  IElementType TYPE = new CjElementType("TYPE");
+  IElementType TYPE_REFERENCE = new CjElementType("TYPE_REFERENCE");
   IElementType TYPE_REFERENCE_CODE_FRAGMENT_ELEMENT = new CjElementType("TYPE_REFERENCE_CODE_FRAGMENT_ELEMENT");
   IElementType VALUE_PARAMETER = StubImplementationsKt.factory("VALUE_PARAMETER");
   IElementType VALUE_PARAMETER_LIST = StubImplementationsKt.factory("VALUE_PARAMETER_LIST");
@@ -32,13 +34,20 @@ public interface CjElementTypes {
   IElementType ANDAND = new CjTokenType("&&");
   IElementType AS = new CjTokenType("as");
   IElementType BOOL = new CjTokenType("Bool");
+  IElementType BOOL_LITERAL = new CjTokenType("BOOL_LITERAL");
   IElementType BREAK = new CjTokenType("break");
+  IElementType BYTE_LITERAL = new CjTokenType("BYTE_LITERAL");
+  IElementType BYTE_STRING_LITERAL = new CjTokenType("BYTE_STRING_LITERAL");
   IElementType CASE = new CjTokenType("case");
   IElementType CATCH = new CjTokenType("catch");
   IElementType CHAE = new CjTokenType("Char");
+  IElementType CHAR_LITERAL = new CjTokenType("CHAR_LITERAL");
   IElementType CLASS = new CjTokenType("class");
   IElementType CONTINUE = new CjTokenType("continue");
+  IElementType CSTRING_LITERAL = new CjTokenType("CSTRING_LITERAL");
   IElementType DO = new CjTokenType("do");
+  IElementType DOT = new CjTokenType(".");
+  IElementType DOTDOT = new CjTokenType("..");
   IElementType ELSE = new CjTokenType("else");
   IElementType ENUM = new CjTokenType("enum");
   IElementType EQ = new CjTokenType("=");
@@ -48,6 +57,7 @@ public interface CjElementTypes {
   IElementType FINALLY = new CjTokenType("finally");
   IElementType FLOAT32 = new CjTokenType("Float32");
   IElementType FLOAT64 = new CjTokenType("Float64");
+  IElementType FLOAT_LITERAL = new CjTokenType("FLOAT_LITERAL");
   IElementType FOR = new CjTokenType("for");
   IElementType FROM = new CjTokenType("from");
   IElementType FUNC = new CjTokenType("func");
@@ -63,6 +73,7 @@ public interface CjElementTypes {
   IElementType INT32 = new CjTokenType("Int32");
   IElementType INT64 = new CjTokenType("Int64");
   IElementType INT8 = new CjTokenType("Int8");
+  IElementType INTEGER_LITERAL = new CjTokenType("INTEGER_LITERAL");
   IElementType INTERFACE = new CjTokenType("interface");
   IElementType LBRACE = new CjTokenType("{");
   IElementType LBRACK = new CjTokenType("[");
@@ -79,11 +90,17 @@ public interface CjElementTypes {
   IElementType OR = new CjTokenType("|");
   IElementType OROR = new CjTokenType("||");
   IElementType PROP = new CjTokenType("prop");
+  IElementType QUOTE_IDENTIFIER = new CjTokenType("QUOTE_IDENTIFIER");
+  IElementType RAW_BYTE_STRING_LITERAL = new CjTokenType("RAW_BYTE_STRING_LITERAL");
+  IElementType RAW_CSTRING_LITERAL = new CjTokenType("RAW_CSTRING_LITERAL");
+  IElementType RAW_STRING_LITERAL = new CjTokenType("RAW_STRING_LITERAL");
   IElementType RBRACE = new CjTokenType("}");
   IElementType RBRACK = new CjTokenType("]");
   IElementType RETURN = new CjTokenType("return");
   IElementType RPAREN = new CjTokenType(")");
+  IElementType SHEBANG_LINE = new CjTokenType("shebang_line");
   IElementType STATIC = new CjTokenType("static");
+  IElementType STRING_LITERAL = new CjTokenType("STRING_LITERAL");
   IElementType STRUCT = new CjTokenType("struct");
   IElementType SUPER = new CjTokenType("super");
   IElementType THIS = new CjTokenType("this");
@@ -103,56 +120,62 @@ public interface CjElementTypes {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
       if (type == BLOCK) {
-        return new CangJieBlockImpl(node);
+        return new CjBlockImpl(node);
       }
       else if (type == DEFAULT_PARAMETER_VALUE) {
-        return new CangJieDefaultParameterValueImpl(node);
+        return new CjDefaultParameterValueImpl(node);
       }
       else if (type == FUNCTION) {
-        return new CangJieFunctionImpl(node);
+        return new CjFunctionImpl(node);
+      }
+      else if (type == LIFETIME) {
+        return new CjLifetimeImpl(node);
+      }
+      else if (type == LIFETIME_PARAMETER) {
+        return new CjLifetimeParameterImpl(node);
+      }
+      else if (type == MAIN_FUNC) {
+        return new CjMainFuncImpl(node);
       }
       else if (type == VALUE_PARAMETER) {
-        return new CangJieValueParameterImpl(node);
+        return new CjValueParameterImpl(node);
       }
       else if (type == VALUE_PARAMETER_LIST) {
-        return new CangJieValueParameterListImpl(node);
+        return new CjValueParameterListImpl(node);
       }
       throw new AssertionError("Unknown element type: " + type);
     }
 
     public static CompositePsiElement createElement(IElementType type) {
        if (type == A_EXPR) {
-        return new CangJieAExprImpl(type);
+        return new CjAExprImpl(type);
       }
       else if (type == ITEM) {
-        return new CangJieItemImpl(type);
+        return new CjItemImpl(type);
       }
-      else if (type == MAIN_FUNC) {
-        return new CangJieMainFuncImpl(type);
+      else if (type == LABEL_DECL) {
+        return new CjLabelDeclImpl(type);
+      }
+      else if (type == LIFETIME_PARAM_BOUNDS) {
+        return new CjLifetimeParamBoundsImpl(type);
       }
       else if (type == MAIN_FUNC_PARAM) {
-        return new CangJieMainFuncParamImpl(type);
-      }
-      else if (type == NAMED) {
-        return new CangJieNamedImpl(type);
-      }
-      else if (type == NAMEDTEST) {
-        return new CangJieNamedtestImpl(type);
+        return new CjMainFuncParamImpl(type);
       }
       else if (type == PARAM_STMT) {
-        return new CangJieParamStmtImpl(type);
+        return new CjParamStmtImpl(type);
       }
       else if (type == STATEMENT_CODE_FRAGMENT_ELEMENT) {
-        return new CangJieStatementCodeFragmentElementImpl(type);
+        return new CjStatementCodeFragmentElementImpl(type);
       }
       else if (type == STMT) {
-        return new CangJieStmtImpl(type);
+        return new CjStmtImpl(type);
       }
-      else if (type == TYPE) {
-        return new CangJieTypeImpl(type);
+      else if (type == TYPE_REFERENCE) {
+        return new CjTypeReferenceImpl(type);
       }
       else if (type == TYPE_REFERENCE_CODE_FRAGMENT_ELEMENT) {
-        return new CangJieTypeReferenceCodeFragmentElementImpl(type);
+        return new CjTypeReferenceCodeFragmentElementImpl(type);
       }
       throw new AssertionError("Unknown element type: " + type);
     }

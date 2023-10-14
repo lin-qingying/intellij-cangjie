@@ -1,7 +1,6 @@
 package com.huawei.cangjie.lang.core.psi.ext
 
-//: CjNamedElement
-interface CjQualifiedNamedElement  {
-//    val crateRelativePath: String?
+interface CjQualifiedNamedElement : CjNamedElement {
+    val crateRelativePath: String?
 }
-//
+

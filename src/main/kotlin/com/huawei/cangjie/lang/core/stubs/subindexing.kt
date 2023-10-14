@@ -1,7 +1,6 @@
 package com.huawei.cangjie.lang.core.stubs
 
 import com.huawei.cangjie.lang.core.stubs.index.CjNamedElementIndex
-import com.huawei.cangjie.resolve.CjLangItemIndex
 import com.intellij.psi.stubs.IndexSink
 
 fun IndexSink.indexFunction(stub: CjFunctionStub) {

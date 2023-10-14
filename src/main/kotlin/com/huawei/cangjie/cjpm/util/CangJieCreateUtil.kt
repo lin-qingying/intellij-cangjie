@@ -1,19 +1,13 @@
 package com.huawei.cangjie.cjpm.util
 
 enum class StdLibType {
-    /**
-     * An indispensable part of the stdlib
-     */
+
     ROOT,
 
-    /**
-     * A crate that can be used as a dependency if a corresponding feature is turned on
-     */
+
     FEATURE_GATED,
 
-    /**
-     * A dependency that is not visible outside of the stdlib
-     */
+
     DEPENDENCY
 }
 
@@ -29,14 +23,14 @@ object AutoInjectedCrates {
     const val CORE: String = "core"
     const val TEST: String = "test"
     val stdlibCrates = listOf(
-        // Roots
+
         StdLibInfo(CORE, StdLibType.ROOT),
         StdLibInfo(STD, StdLibType.ROOT, dependencies = listOf("alloc", "panic_unwind", "panic_abort",
             CORE, "libc", "compiler_builtins", "profiler_builtins", "unwind")),
         StdLibInfo("alloc", StdLibType.ROOT, dependencies = listOf(CORE, "compiler_builtins")),
         StdLibInfo("proc_macro", type = StdLibType.ROOT, dependencies = listOf(STD)),
         StdLibInfo(TEST, type = StdLibType.ROOT, dependencies = listOf(STD, CORE, "libc", "getopts", "term")),
-        // Feature gated
+
         StdLibInfo("libc", StdLibType.FEATURE_GATED),
         StdLibInfo("panic_unwind", type = StdLibType.FEATURE_GATED, dependencies = listOf(CORE, "libc", "alloc",
             "unwind", "compiler_builtins")),

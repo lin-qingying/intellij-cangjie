@@ -1,13 +1,11 @@
 package com.huawei.cangjie.lang.core.lexer;
 
-import com.intellij.lexer.*;
+import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.tree.IElementType;
-
-
-import static  com.huawei.cangjie.lang.core.psi.CjElementTypes.*;
-
-import  static  com.huawei.cangjie.lang.core.parser.CangJieParserDefinition.*;
 import static com.intellij.psi.TokenType.*;
+import static com.huawei.cangjie.lang.core.parser.CangJieParserDefinition.*;
+
+import static com.huawei.cangjie.lang.core.psi.CjElementTypes.*;
 
 %%
 
@@ -17,11 +15,78 @@ import static com.intellij.psi.TokenType.*;
   }
 %}
 
+%{
+  /**
+    * '#+' stride demarking start/end of raw string/byte literal
+    */
+  private int zzShaStride = -1;
+
+  /**
+    * Dedicated storage for starting position of some previously successful
+    * match
+    */
+  private int zzPostponedMarkedPos = -1;
+
+  /**
+    * Dedicated nested-comment level counter
+    */
+  private int zzNestedCommentLevel = 0;
+%}
+
+
+%{
+  IElementType imbueBlockComment() {
+      assert(zzNestedCommentLevel == 0);
+      yybegin(YYINITIAL);
+
+      zzStartRead = zzPostponedMarkedPos;
+      zzPostponedMarkedPos = -1;
+
+      if (yylength() >= 3) {
+          if (yycharat(2) == '!') {
+              return INNER_BLOCK_DOC_COMMENT;
+          } else if (yycharat(2) == '*' && (yylength() == 3 || yycharat(3) != '*' && yycharat(3) != '/')) {
+              return OUTER_BLOCK_DOC_COMMENT;
+          }
+      }
+
+      return BLOCK_COMMENT;
+  }
+
+  IElementType imbueRawLiteral() {
+      yybegin(YYINITIAL);
+
+      zzStartRead = zzPostponedMarkedPos;
+      zzShaStride = -1;
+      zzPostponedMarkedPos = -1;
+
+      if (yycharat(0) == 'b') {
+          return RAW_BYTE_STRING_LITERAL;
+      } else if (yycharat(0) == 'c') {
+          return RAW_CSTRING_LITERAL;
+      } else {
+          return RAW_STRING_LITERAL;
+      }
+  }
+
+  IElementType imbueOuterEolComment(){
+      yybegin(YYINITIAL);
+
+      zzStartRead = zzPostponedMarkedPos;
+      zzPostponedMarkedPos = -1;
+
+      return OUTER_EOL_DOC_COMMENT;
+  }
+
+%}
+
 %public
 %class _CangJieLexer
 %implements FlexLexer
 %function advance
 %type IElementType
+
+
 
 %s IN_SHEBANG
 
@@ -35,27 +100,21 @@ import static com.intellij.psi.TokenType.*;
 
 %unicode
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Whitespaces
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 EOL_WS           = \n | \r | \r\n
 LINE_WS          = [\ \t]
 WHITE_SPACE_CHAR = {EOL_WS} | {LINE_WS}
 WHITE_SPACE      = {WHITE_SPACE_CHAR}+
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Identifier
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
-IDENTIFIER = ("r#")?[_\p{xidstart}][\p{xidcontinue}]*
+// Identifier 标识符
+IDENTIFIER = ("c#")?[_\p{xidstart}][\p{xidcontinue}]*
 SUFFIX     = {IDENTIFIER}
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Literals
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Literals     字面
 EXPONENT      = [eE] [-+]? [0-9_]+
+
 
 INT_LITERAL = ( {DEC_LITERAL}
               | {HEX_LITERAL}
@@ -80,58 +139,185 @@ EOL_DOC_LINE  = {LINE_WS}*!(!("///".*)|("////".*))
 <YYINITIAL> {
 
 
-  \'                              { yybegin(IN_LIFETIME_OR_CHAR); yypushback(1); }
-
-  "{"                             { return LBRACE; }
-  "}"                             { return RBRACE; }
-  "["                             { return LBRACK; }
-  "]"                             { return RBRACK; }
-  "("                             { return LPAREN; }
-  ")"                             { return RPAREN; }
-
-
-  "as"                            { return AS; }
-
-  "break"                         { return BREAK; }
-
-  "continue"                      { return CONTINUE; }
-
-  "else"                          { return ELSE; }
-  "enum"                          { return ENUM; }
-
-  "func"                            { return FUNC; }
-  "for"                           { return FOR; }
-  "if"                            { return IF; }
-
-  "in"                            { return IN; }
-  "let"                           { return LET; }
- "var"  { return VAR; }
-
-  "match"                         { return MATCH; }
-
-
-  "mut"                           { return MUT; }
-
-
-  "return"                        { return RETURN; }
-
-  "static"                        { return STATIC; }
-  "struct"                        { return STRUCT; }
-  "super"                         { return SUPER; }
 
 
 
 
 
-  "while"                         { return WHILE; }
 
 
-  {WHITE_SPACE}                   { return WHITE_SPACE; }
+  \'                 { yybegin(IN_LIFETIME_OR_CHAR); yypushback(1); }
+
+{WHITE_SPACE}                 { return WHITE_SPACE; }
+
+
+  "main"                        { return MAIN; }
+   "func"                        { return FUNC; }
+   "class"                       { return CLASS; }
+   "var"                         { return VAR; }
+   "let"                         { return LET; }
+   "mut"                         { return MUT; }
+   "prop"                        { return PROP; }
+   "init"                        { return INIT; }
+   "open"                        { return OPEN; }
+   "from"                        { return FROM; }
+   "import"                      { return IMPORT; }
+   "as"                          { return AS; }
+   "enum"                        { return ENUM; }
+   "super"                       { return SUPER; }
+   "this"                        { return THIS; }
+   "interface"                   { return INTERFACE; }
+   "static"                      { return STATIC; }
+   "struct"                      { return STRUCT; }
+   "return"                      { return RETURN; }
+   "extend"                      { return EXTEND; }
+   "true"                        { return TRUE; }
+   "false"                       { return FALSE; }
+   "Int8"                        { return INT8; }
+   "Int16"                       { return INT16; }
+   "Int32"                       { return INT32; }
+   "Int64"                       { return INT64; }
+   "Float32"                     { return FLOAT32; }
+   "Float64"                     { return FLOAT64; }
+   "Char"                        { return CHAE; }
+   "UInt8"                       { return UINT8; }
+   "UInt16"                      { return UINT16; }
+   "UInt32"                      { return UINT32; }
+   "UInt64"                      { return UINT64; }
+   "Bool"                        { return BOOL; }
+   "Unit"                        { return UNIT; }
+   "if"                          { return IF; }
+   "else"                        { return ELSE; }
+   "while"                       { return WHILE; }
+   "for"                         { return FOR; }
+   "in"                          { return IN; }
+   "do"                          { return DO; }
+   "break"                       { return BREAK; }
+   "continue"                    { return CONTINUE; }
+   "match"                       { return MATCH; }
+   "case"                        { return CASE; }
+   "try"                         { return TRY; }
+   "catch"                       { return CATCH; }
+   "finally"                     { return FINALLY; }
+   "throw"                       { return THROW; }
+   "{"                           { return LBRACE; }
+   "}"                           { return RBRACE; }
+   "["                           { return LBRACK; }
+   "]"                           { return RBRACK; }
+   "("                           { return LPAREN; }
+   ")"                           { return RPAREN; }
+   "="                           { return EQ; }
+   "=="                          { return EQEQ; }
+   "!="                          { return NOTEQ; }
+   ">"                           { return GT; }
+   ">>"                          { return GTGT; }
+   "<"                           { return LT; }
+   "<<"                          { return LTLT; }
+   ">="                          { return GTEQ; }
+   "<="                          { return LTEQ; }
+   "&&"                          { return ANDAND; }
+   "&"                           { return AND; }
+   "||"                          { return OROR; }
+   "|"                           { return OR; }
+   "."                           { return DOT; }
+   ".."                          { return DOTDOT; }
+
+
+
+
+
+
+
+  {INNER_EOL_DOC}                 { return INNER_EOL_DOC_COMMENT; }
+  {EOL_DOC_LINE}                  { yybegin(IN_OUTER_EOL_COMMENT);
+                                    zzPostponedMarkedPos = zzStartRead; }
+
+  {IDENTIFIER}                    { return IDENTIFIER; }
+
+  {INT_LITERAL}                   { return INTEGER_LITERAL; }
+
+  "b" {CHAR_LITERAL}              { return BYTE_LITERAL; }
+
+  "b" {STRING_LITERAL}            { return BYTE_STRING_LITERAL; }
+  "c" {STRING_LITERAL}            { return CSTRING_LITERAL; }
+  {STRING_LITERAL}                { return STRING_LITERAL; }
+
+
+  [^]     { }
 }
 
 
+<IN_SHEBANG> {
+    [\r\n]  { yypushback(1); yybegin(YYINITIAL); return SHEBANG_LINE;}
+    [^]     {}
+    <<EOF>> { yybegin(YYINITIAL); return SHEBANG_LINE;}
+}
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Literals
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
+<IN_RAW_LITERAL> {
+
+  \" #* {
+    int shaExcess = yylength() - 1 - zzShaStride;
+    if (shaExcess >= 0) {
+      yybegin(IN_RAW_LITERAL_SUFFIX);
+      yypushback(shaExcess);
+    }
+  }
+
+  [^]       { }
+  <<EOF>>   {
+    return imbueRawLiteral();
+  }
+
+}
+
+<IN_RAW_LITERAL_SUFFIX> {
+  {SUFFIX}  { return imbueRawLiteral(); }
+  [^]       { yypushback(1); return imbueRawLiteral(); }
+  <<EOF>>   { return imbueRawLiteral(); }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Comments
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+<IN_BLOCK_COMMENT> {
+  "/*"    { if (zzNestedCommentLevel++ == 0)
+              zzPostponedMarkedPos = zzStartRead;
+          }
+
+  "*/"    { if (--zzNestedCommentLevel == 0)
+              return imbueBlockComment();
+          }
+
+  <<EOF>> { zzNestedCommentLevel = 0; return imbueBlockComment(); }
+
+  [^]     { }
+}
+
+<IN_OUTER_EOL_COMMENT>{
+  {EOL_WS}{LINE_WS}*"////"   { yybegin(YYINITIAL);
+                               yypushback(yylength());
+                               return imbueOuterEolComment();}
+  {EOL_WS}{EOL_DOC_LINE}     {}
+  <<EOF>>                    { return imbueOuterEolComment(); }
+  [^]                        { yybegin(YYINITIAL);
+                               yypushback(1);
+                               return imbueOuterEolComment();}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Quote identifiers & Literals
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+<IN_LIFETIME_OR_CHAR> {
+  \'{IDENTIFIER}                        { yybegin(YYINITIAL); return QUOTE_IDENTIFIER; }
+  {CHAR_LITERAL}                        { yybegin(YYINITIAL); return CHAR_LITERAL; }
+  <<EOF>>                               { yybegin(YYINITIAL); return BAD_CHARACTER; }
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -139,3 +325,7 @@ EOL_DOC_LINE  = {LINE_WS}*!(!("///".*)|("////".*))
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 [^] { return BAD_CHARACTER; }
+
+
+
+

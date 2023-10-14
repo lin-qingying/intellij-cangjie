@@ -19,13 +19,18 @@ interface CjMod :CjQualifiedNamedElement, CjItemsOwner{
      *注意，如果是非内联模块(即通过`mod foo；`声明)。
      *`path`属性属于模块声明，但不属于模块项本身。
      */
-    val pathAttribute: String?
+//    val pathAttribute: String?
 
-    val ownsDirectory: Boolean
+//    val ownsDirectory: Boolean
 
 
 
     val isCrateRoot: Boolean
+
+
+
+
+
 }
 val CjMod.superMods: List<CjMod>
     get() {

@@ -22,6 +22,18 @@
                                implementationClass="com.huawei.cangjie.lang.core.parser.CangJieParserDefinition"/>
         <stubElementTypeHolder class="com.huawei.cangjie.lang.core.psi.CjElementTypes" externalIdPrefix="cangjie."/>
 
+
+
+        <!-- PSI 管理器 -->
+
+        <lang.fileViewProviderFactory language="CangJie" implementationClass="com.huawei.cangjie.lang.core.psi.CjFileViewProviderFactory"/>
+        <projectService serviceInterface="com.huawei.cangjie.lang.core.psi.CjPsiManager"
+                        serviceImplementation="com.huawei.cangjie.lang.core.psi.CjPsiManagerImpl"/>
+
+
+
+        <annotator language="CangJie" implementationClass="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>
+        <highlightRangeExtension implementation="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>
     </extensions>
 
 </idea-plugin>

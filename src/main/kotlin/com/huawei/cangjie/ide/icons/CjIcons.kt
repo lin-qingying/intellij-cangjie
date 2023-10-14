@@ -19,17 +19,17 @@ import javax.swing.Icon
 
 
 object CjIcons {
-    // Logos
+
 
     val CANGJIE = load("/icons/cangjie.svg")
 
-    // File types
+
 
     val CANGJIE_FILE = load("/icons/cangjieFile.svg")
     val MAIN_CJ = load("/icons/cangjieMain.svg")
     val MOD_CJ = load("/icons/cangjieMod.svg")
 
-    // Marks
+
 
     val FINAL_MARK = AllIcons.Nodes.FinalMark
     val STATIC_MARK = AllIcons.Nodes.StaticMark
@@ -41,7 +41,6 @@ object CjIcons {
     val FEATURE_UNCHECKED_MARK_GRAYED = FEATURE_UNCHECKED_MARK.grayed()
     val FEATURES_SETTINGS = AllIcons.General.Settings
 
-    // Source code elements
 
     val CRATE = AllIcons.Nodes.PpLib
     val MODULE = load("/icons/nodes/module.svg")
@@ -80,26 +79,26 @@ object CjIcons {
     val FIELD = load("/icons/nodes/field.svg")
     val ENUM_VARIANT = load("/icons/nodes/enumVariant.svg")
 
-    // Structure view
+
 
     val MACRO_EXPANSION = AllIcons.Nodes.ErrorIntroduction
     val VISIBILITY_SORT = AllIcons.ObjectBrowser.VisibilitySort
 
-    // Gutter
+
 
     val IMPLEMENTED = AllIcons.Gutter.ImplementedMethod
     val IMPLEMENTING_METHOD = AllIcons.Gutter.ImplementingMethod
     val OVERRIDING_METHOD = AllIcons.Gutter.OverridingMethod
     val RECUCJIVE_CALL = AllIcons.Gutter.RecursiveMethod
 
-    // Repl
+
 
     val REPL = load("/icons/cangjieRepl.svg")
 
     val CARGO_GENERATE = load("/icons/cargoGenerate.svg")
     val WASM_PACK = load("/icons/wasmPack.svg")
 
-    // Progress
+
 
     val GEAR = load("/icons/gear.svg")
     val GEAR_OFF = load("/icons/gearOff.svg")
@@ -131,14 +130,7 @@ fun Icon.grayed(): Icon =
         }
     }, null)
 
-/**
- * Rotates the icon by the given angle, in degrees.
- *
- * **Important**: Do ***not*** rotate the icon by ±90 degrees (or any sufficiently close amount)!
- * The implementation of rotation by that amount in AWT is broken, and results in erratic shifts for composed
- * transformations. In other words, the (final) transformation matrix as a function of rotation angle
- * is discontinuous at those points.
- */
+
 fun Icon.rotated(angle: Double): Icon {
     val q = this
     return object : Icon by this {
