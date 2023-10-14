@@ -10,10 +10,19 @@ import com.huawei.cangjie.lang.core.stubs.CjFunctionStub;
 
 public interface CangJieFunction extends CjNameIdentifierOwner, StubBasedPsiElement<CjFunctionStub> {
 
+  @NotNull
+  CangJieNamed getNamed();
+
   @Nullable
   CangJieType getType();
 
-  @Nullable
+  @NotNull
   CangJieValueParameterList getValueParameterList();
+
+  @NotNull
+  PsiElement getFunc();
+
+  @Nullable
+  PsiElement getUnsafe();
 
 }

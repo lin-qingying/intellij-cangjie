@@ -14,4 +14,13 @@ public interface CangJieMainFunc extends CjElement {
   @Nullable
   CangJieType getType();
 
+  @Nullable
+  PsiElement getLparen();
+
+  @NotNull
+  PsiElement getMain();
+
+  @Nullable
+  PsiElement getRparen();
+
 }

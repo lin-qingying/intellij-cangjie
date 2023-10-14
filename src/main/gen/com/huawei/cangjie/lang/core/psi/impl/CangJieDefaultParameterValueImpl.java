@@ -39,4 +39,10 @@ public class CangJieDefaultParameterValueImpl extends CjStubbedElementImpl<CjPla
     return PsiTreeUtil.getChildOfType(this, CangJieExpr.class);
   }
 
+  @Override
+  @NotNull
+  public PsiElement getEq() {
+    return notNullChild(findChildByType(EQ));
+  }
+
 }

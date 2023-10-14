@@ -4,12 +4,9 @@ package com.huawei.cangjie.lang.core.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
-import com.huawei.cangjie.lang.core.psi.ext.CjElement;
+import com.huawei.cangjie.lang.core.psi.ext.CjNameIdentifierOwner;
 
-public interface CangJieParamStmt extends CjElement {
-
-  @Nullable
-  CangJieType getType();
+public interface CangJieNamed extends CjNameIdentifierOwner {
 
   @NotNull
   PsiElement getIdentifier();

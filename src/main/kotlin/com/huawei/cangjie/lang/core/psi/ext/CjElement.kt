@@ -51,7 +51,7 @@ interface CjElement : PsiElement, UserDataHolderEx {
 //
 //
 //}
-abstract class CjElementImpl(type: IElementType) : CompositePsiElement(type), CjElement {
+abstract class CjElementImpl(type: IElementType) :  CompositePsiElement(type), CjElement {
 
     override fun getNavigationElement(): PsiElement {
         return  super.getNavigationElement()

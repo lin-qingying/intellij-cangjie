@@ -12,14 +12,14 @@ import com.huawei.cangjie.lang.core.psi.ext.CjElementImpl;
 import com.huawei.cangjie.lang.core.psi.*;
 import com.intellij.psi.tree.IElementType;
 
-public class CangJieMainFuncImpl extends CjElementImpl implements CangJieMainFunc {
+public class CangJieNamedtestImpl extends CjElementImpl implements CangJieNamedtest {
 
-  public CangJieMainFuncImpl(@NotNull IElementType type) {
+  public CangJieNamedtestImpl(@NotNull IElementType type) {
     super(type);
   }
 
   public void accept(@NotNull CangJieVisitor visitor) {
-    visitor.visitMainFunc(this);
+    visitor.visitNamedtest(this);
   }
 
   @Override
@@ -29,33 +29,9 @@ public class CangJieMainFuncImpl extends CjElementImpl implements CangJieMainFun
   }
 
   @Override
-  @Nullable
-  public CangJieMainFuncParam getMainFuncParam() {
-    return PsiTreeUtil.getChildOfType(this, CangJieMainFuncParam.class);
-  }
-
-  @Override
-  @Nullable
-  public CangJieType getType() {
-    return PsiTreeUtil.getChildOfType(this, CangJieType.class);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getLparen() {
-    return findPsiChildByType(LPAREN);
-  }
-
-  @Override
   @NotNull
-  public PsiElement getMain() {
-    return findPsiChildByType(MAIN);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getRparen() {
-    return findPsiChildByType(RPAREN);
+  public CangJieNamed getNamed() {
+    return PsiTreeUtil.getChildOfType(this, CangJieNamed.class);
   }
 
 }

@@ -34,15 +34,33 @@ public class CangJieFunctionImpl extends CjFunctionImplMixin implements CangJieF
   }
 
   @Override
+  @NotNull
+  public CangJieNamed getNamed() {
+    return notNullChild(PsiTreeUtil.getChildOfType(this, CangJieNamed.class));
+  }
+
+  @Override
   @Nullable
   public CangJieType getType() {
     return PsiTreeUtil.getChildOfType(this, CangJieType.class);
   }
 
   @Override
-  @Nullable
+  @NotNull
   public CangJieValueParameterList getValueParameterList() {
-    return PsiTreeUtil.getStubChildOfType(this, CangJieValueParameterList.class);
+    return notNullChild(PsiTreeUtil.getStubChildOfType(this, CangJieValueParameterList.class));
+  }
+
+  @Override
+  @NotNull
+  public PsiElement getFunc() {
+    return notNullChild(findChildByType(FUNC));
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getUnsafe() {
+    return findChildByType(UNSAFE);
   }
 
 }

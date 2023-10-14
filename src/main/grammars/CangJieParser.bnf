@@ -120,7 +120,7 @@
             OR          =   '|'
 
  ]
- extends("(.+Expr)") = Expr
+    extends("(.+Expr)") = Expr
 
 
 
@@ -130,7 +130,7 @@
    extraRoot(".*CodeFragmentElement")=true
 
 
-
+    generateTokenAccessors=true
 }
 
 
@@ -147,11 +147,18 @@ private RootItem_with_recover ::= !<<eof>> Item    {
   pin = 1
 
   //语法恢复
-//  recoverWhile = RootItem_recover
+  recoverWhile = RootItem_recover
 }
 
 
+private RootItem_recover ::= !Item_first
 
+
+
+//元素语法恢复，会将其中的语法解析为一个PsiElement 如果没有这个东西，就会解析成一个字母一个PsiElement
+// 比如 struct，有这个东西就会解析成 PsiElement(struct)
+// 没有就会解析成6个PsiElement(BAD_CHARACTER)
+private Item_first ::= FUNC |   identifier
 
 
 
@@ -168,11 +175,12 @@ MainFunc ::= MAIN '(' MainFuncParam? ')' ByType? ShallowBlock ';'?
 //main方法参数，Array<String>
 MainFuncParam ::= 'Array<String>'
 //上层  可以包含 函数，类，接口，枚举，结构体，变量，常量，属性,扩展，导入导出语句，注释，main方法
-Item ::= (Function)
+Item ::= ( namedtest | Function)
 {
   name = "item"
 //  elementType = ToBeUpped
   hooks = [ leftBinder = "ADJACENT_LINE_COMMENTS" ]
+
 }
 
 
@@ -215,12 +223,23 @@ private ItemStmt ::= Item ';'?
 
 
 
+Named ::= identifier
+{
+  pin   =   'identifier'
+  name  =   'name'
+  implements = [
+            "com.huawei.cangjie.lang.core.psi.ext.CjNameIdentifierOwner"
+  ]
+  mixin =   "com.huawei.cangjie.lang.core.psi.ext.CjNamedElementImpl"
+}
+namedtest ::= Named
+
 upper  AExpr ::= 'a'
 
 
-upper Function ::= unsafe? FUNC identifier FuncParameters  ByType?    ShallowBlock ';'?
+upper Function ::= unsafe? FUNC Named FuncParameters  ByType?    ShallowBlock ';'?
 {
-    pin = 'identifier'
+//    pin = 'identifier'
 
     implements = [
         "com.huawei.cangjie.lang.core.psi.ext.CjNameIdentifierOwner"

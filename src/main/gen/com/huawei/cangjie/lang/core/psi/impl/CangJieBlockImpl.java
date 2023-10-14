@@ -39,4 +39,16 @@ public class CangJieBlockImpl extends CjStubbedElementImpl<CjPlaceholderStub<?>>
     return PsiTreeUtil.getChildrenOfTypeAsList(this, CangJieStmt.class);
   }
 
+  @Override
+  @NotNull
+  public PsiElement getLbrace() {
+    return notNullChild(findChildByType(LBRACE));
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getRbrace() {
+    return findChildByType(RBRACE);
+  }
+
 }

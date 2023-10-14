@@ -98,8 +98,8 @@ WHITE_SPACE=\s+
   "&"                 { return AND; }
   "||"                { return OROR; }
   "|"                 { return OR; }
-  "unsafe"            { return UNSAFE; }
   "identifier"        { return IDENTIFIER; }
+  "unsafe"            { return UNSAFE; }
 
 
 }

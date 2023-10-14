@@ -13,4 +13,7 @@ public interface CangJieDefaultParameterValue extends CjInferenceContextOwner, S
   @Nullable
   CangJieExpr getExpr();
 
+  @NotNull
+  PsiElement getEq();
+
 }

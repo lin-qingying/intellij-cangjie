@@ -34,4 +34,10 @@ public class CangJieParamStmtImpl extends CjElementImpl implements CangJieParamS
     return PsiTreeUtil.getChildOfType(this, CangJieType.class);
   }
 
+  @Override
+  @NotNull
+  public PsiElement getIdentifier() {
+    return findPsiChildByType(IDENTIFIER);
+  }
+
 }

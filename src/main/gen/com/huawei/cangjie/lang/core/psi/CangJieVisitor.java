@@ -42,6 +42,10 @@ public class CangJieVisitor extends PsiElementVisitor {
     visitCjElement(o);
   }
 
+  public void visitNamed(@NotNull CangJieNamed o) {
+    visitCjNameIdentifierOwner(o);
+  }
+
   public void visitParamStmt(@NotNull CangJieParamStmt o) {
     visitCjElement(o);
   }
@@ -67,6 +71,10 @@ public class CangJieVisitor extends PsiElementVisitor {
   }
 
   public void visitValueParameterList(@NotNull CangJieValueParameterList o) {
+    visitCjElement(o);
+  }
+
+  public void visitNamedtest(@NotNull CangJieNamedtest o) {
     visitCjElement(o);
   }
 

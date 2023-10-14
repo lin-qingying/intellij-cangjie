@@ -28,4 +28,10 @@ public class CangJieItemImpl extends CjElementImpl implements CangJieItem {
     else super.accept(visitor);
   }
 
+  @Override
+  @Nullable
+  public CangJieNamedtest getNamedtest() {
+    return PsiTreeUtil.getChildOfType(this, CangJieNamedtest.class);
+  }
+
 }

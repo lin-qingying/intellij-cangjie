@@ -17,7 +17,7 @@ import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.tree.IElementType
 
 
-//, PsiNamedElement, NavigatablePsiElement
+
 interface CjNamedElement : CjElement, PsiNamedElement, NavigatablePsiElement {
 
 }
@@ -79,8 +79,17 @@ abstract class CjNamedElementImpl(type: IElementType) : CjElementImpl(type), CjN
 
     override fun getName(): String? = nameIdentifier?.text
 
+
+
+
     override fun setName(name: String): PsiElement {
+
+
+        println("名字："+name)
+
         CjPsiFactory(project).createIdentifier(name)?.let { nameIdentifier?.replace(it) }
+
+
 
         return this
     }

@@ -8,4 +8,7 @@ import com.huawei.cangjie.lang.core.psi.ext.CjElement;
 
 public interface CangJieItem extends CjElement {
 
+  @Nullable
+  CangJieNamedtest getNamedtest();
+
 }

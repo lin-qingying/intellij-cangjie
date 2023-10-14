@@ -13,4 +13,10 @@ public interface CangJieBlock extends CjItemsOwner, StubBasedPsiElement<CjPlaceh
   @NotNull
   List<CangJieStmt> getStmtList();
 
+  @NotNull
+  PsiElement getLbrace();
+
+  @Nullable
+  PsiElement getRbrace();
+
 }

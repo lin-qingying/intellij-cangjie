@@ -282,21 +282,21 @@ public class CangJieParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // unsafe? FUNC identifier FuncParameters  ByType?    ShallowBlock ';'?
+  // unsafe? FUNC Named FuncParameters  ByType?    ShallowBlock ';'?
   public static boolean Function(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "Function")) return false;
     if (!nextTokenIs(b, "<function>", FUNC, UNSAFE)) return false;
-    boolean r, p;
+    boolean r;
     Marker m = enter_section_(b, l, _UPPER_, FUNCTION, "<function>");
     r = Function_0(b, l + 1);
-    r = r && consumeTokens(b, 2, FUNC, IDENTIFIER);
-    p = r; // pin = identifier
-    r = r && report_error_(b, FuncParameters(b, l + 1));
-    r = p && report_error_(b, Function_4(b, l + 1)) && r;
-    r = p && report_error_(b, ShallowBlock(b, l + 1)) && r;
-    r = p && Function_6(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+    r = r && consumeToken(b, FUNC);
+    r = r && Named(b, l + 1);
+    r = r && FuncParameters(b, l + 1);
+    r = r && Function_4(b, l + 1);
+    r = r && ShallowBlock(b, l + 1);
+    r = r && Function_6(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
   }
 
   // unsafe?
@@ -321,13 +321,13 @@ public class CangJieParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // (Function)
+  // namedtest | Function
   public static boolean Item(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "Item")) return false;
-    if (!nextTokenIs(b, "<item>", FUNC, UNSAFE)) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, ITEM, "<item>");
-    r = Function(b, l + 1);
+    r = namedtest(b, l + 1);
+    if (!r) r = Function(b, l + 1);
     register_hook_(b, LEFT_BINDER, ADJACENT_LINE_COMMENTS);
     exit_section_(b, l, m, r, false, null);
     return r;
@@ -337,7 +337,6 @@ public class CangJieParser implements PsiParser, LightPsiParser {
   // Item ';'?
   static boolean ItemStmt(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ItemStmt")) return false;
-    if (!nextTokenIs(b, "", FUNC, UNSAFE)) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = Item(b, l + 1);
@@ -351,6 +350,17 @@ public class CangJieParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "ItemStmt_1")) return false;
     consumeToken(b, ";");
     return true;
+  }
+
+  /* ********************************************************** */
+  // FUNC |   identifier
+  static boolean Item_first(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "Item_first")) return false;
+    if (!nextTokenIs(b, "", FUNC, IDENTIFIER)) return false;
+    boolean r;
+    r = consumeToken(b, FUNC);
+    if (!r) r = consumeToken(b, IDENTIFIER);
+    return r;
   }
 
   /* ********************************************************** */
@@ -404,6 +414,18 @@ public class CangJieParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // identifier
+  public static boolean Named(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "Named")) return false;
+    if (!nextTokenIs(b, "<name>", IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, NAMED, "<name>");
+    r = consumeToken(b, IDENTIFIER);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
   // identifier  ByType
   public static boolean ParamStmt(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ParamStmt")) return false;
@@ -418,6 +440,17 @@ public class CangJieParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // !Item_first
+  static boolean RootItem_recover(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "RootItem_recover")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_);
+    r = !Item_first(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
   // !<<eof>> Item
   static boolean RootItem_with_recover(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "RootItem_with_recover")) return false;
@@ -426,7 +459,7 @@ public class CangJieParser implements PsiParser, LightPsiParser {
     r = RootItem_with_recover_0(b, l + 1);
     p = r; // pin = 1
     r = r && Item(b, l + 1);
-    exit_section_(b, l, m, r, p, null);
+    exit_section_(b, l, m, r, p, CangJieParser::RootItem_recover);
     return r || p;
   }
 
@@ -499,6 +532,18 @@ public class CangJieParser implements PsiParser, LightPsiParser {
     Type(b, l + 1);
     exit_section_(b, l, m, true, false, null);
     return true;
+  }
+
+  /* ********************************************************** */
+  // Named
+  public static boolean namedtest(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "namedtest")) return false;
+    if (!nextTokenIs(b, IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = Named(b, l + 1);
+    exit_section_(b, m, NAMEDTEST, r);
+    return r;
   }
 
 }

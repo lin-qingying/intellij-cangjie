@@ -18,6 +18,8 @@ public interface CjElementTypes {
   IElementType ITEM = new CjElementType("ITEM");
   IElementType MAIN_FUNC = new CjElementType("MAIN_FUNC");
   IElementType MAIN_FUNC_PARAM = new CjElementType("MAIN_FUNC_PARAM");
+  IElementType NAMED = new CjElementType("NAMED");
+  IElementType NAMEDTEST = new CjElementType("NAMEDTEST");
   IElementType PARAM_STMT = new CjElementType("PARAM_STMT");
   IElementType STATEMENT_CODE_FRAGMENT_ELEMENT = new CjElementType("STATEMENT_CODE_FRAGMENT_ELEMENT");
   IElementType STMT = new CjElementType("STMT");
@@ -130,6 +132,12 @@ public interface CjElementTypes {
       }
       else if (type == MAIN_FUNC_PARAM) {
         return new CangJieMainFuncParamImpl(type);
+      }
+      else if (type == NAMED) {
+        return new CangJieNamedImpl(type);
+      }
+      else if (type == NAMEDTEST) {
+        return new CangJieNamedtestImpl(type);
       }
       else if (type == PARAM_STMT) {
         return new CangJieParamStmtImpl(type);
