@@ -86,6 +86,7 @@ WHITE_SPACE=\s+
   "("                           { return LPAREN; }
   ")"                           { return RPAREN; }
   "="                           { return EQ; }
+  ":"                           { return COLON; }
   "=="                          { return EQEQ; }
   "!="                          { return NOTEQ; }
   ">"                           { return GT; }
@@ -98,8 +99,10 @@ WHITE_SPACE=\s+
   "&"                           { return AND; }
   "||"                          { return OROR; }
   "|"                           { return OR; }
+  ","                           { return COMMA; }
   "."                           { return DOT; }
   ".."                          { return DOTDOT; }
+  ";"                           { return SEMICOLON; }
   "shebang_line"                { return SHEBANG_LINE; }
   "identifier"                  { return IDENTIFIER; }
   "QUOTE_IDENTIFIER"            { return QUOTE_IDENTIFIER; }

@@ -46,3 +46,4 @@ bin/
 /testData/
 /.run/
 /build.gradle.kts3
+/src/main/gen/
