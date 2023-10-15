@@ -146,7 +146,7 @@ SEMICOLON = ';'
    extraRoot(".*CodeFragmentElement")=true
 
 
-    generateTokenAccessors=true
+//    generateTokenAccessors=true
 
 //       consumeTokenMethod("((?!.*_with_recover).*_recover)|(.*_first)|(.*Expr)") = "consumeTokenFast"
 }
@@ -156,7 +156,7 @@ SEMICOLON = ';'
  //仓颉文件 包含
 CangJie ::= RootItems
 
-StatementCodeFragmentElement ::= Stmt?
+//StatementCodeFragmentElement ::= Stmt?
 //MainFuncCodeFragmentElement ::= MainFunc?
 TypeReferenceCodeFragmentElement ::= TypeReference?
 
@@ -176,7 +176,7 @@ private RootItem_recover ::= !Item_first
 //元素语法恢复，会将其中的语法解析为一个PsiElement 如果没有这个东西，就会解析成一个字母一个PsiElement
 // 比如 struct，有这个东西就会解析成 PsiElement(struct)
 // 没有就会解析成6个PsiElement(BAD_CHARACTER)
-private Item_first ::= FUNC |   identifier
+private Item_first ::= FUNC |   identifier | CLASS | MAIN
 
 
 
@@ -193,7 +193,10 @@ MainFunc ::= MAIN '(' MainFuncParam? ')' ByType? ShallowBlock ';'?
 //main方法参数，Array<String>
 MainFuncParam ::= 'Array<String>'
 //上层  可以包含 函数，类，接口，枚举，结构体，变量，常量，属性,扩展，导入导出语句，注释，main方法
-Item ::= (MainFunc | Function)
+Item ::= (MainFunc |
+ Function |
+ ClassDefinition
+ )
 {
   name = "item"
 //  elementType = ToBeUpped
@@ -201,7 +204,10 @@ Item ::= (MainFunc | Function)
 
 }
 
-LabelDecl ::= QUOTE_IDENTIFIER ':' {
+
+QuoteIdentifier ::= 'QUOTE_IDENTIFIER'
+
+LabelDecl ::= QuoteIdentifier ':' {
   implements = [ "com.huawei.cangjie.lang.core.psi.ext.CjNameIdentifierOwner" ]
   mixin = "com.huawei.cangjie.lang.core.psi.ext.CjLabelDeclImplMixin"
 }
@@ -214,7 +220,7 @@ fake ValueParameter ::=    TypeReference? DefaultParameterValue?
   elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
  }
 
-DefaultParameterValue ::= '=' ExprStmt {
+DefaultParameterValue ::= '=' Expr {
   pin = 1
   implements = [ "com.huawei.cangjie.lang.core.psi.ext.CjInferenceContextOwner" ]
   extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
@@ -233,38 +239,49 @@ fake ValueParameterList ::=  ValueParameter*   {
   elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
 }
 //表达式
-Expr ::= AExpr
+Expr ::= (AExpr)
 
 //EOL ::=  '\n'   | '\r\n'
 
 //语句 语句可以是表达式，也可以是声明 语句以分号或者回车结束
- Stmt ::= (ExprStmt | Item )
-private ExprStmt ::= Expr ';'?
-private ItemStmt ::= Item ';'?
+// Stmt ::= (ExprStmt | ItemStmt )
 
 
-//
-//IdentifierName ::= identifier
-//{
-//  pin   =   'identifier'
-//  name  =   'name'
-//  implements = [
-//            "com.huawei.cangjie.lang.core.psi.ext.CjNameIdentifierOwner"
-//  ]
-//  mixin =   "com.huawei.cangjie.lang.core.psi.ext.CjNamedElementImpl"
-//}
-
-
-upper  AExpr ::= 'abcdefg'
-
-
-upper Function ::= unsafe? FUNC identifier FuncParameters ByType? ShallowBlock ';'?
+IdentifierName ::= identifier
 {
-    pin = 'identifier'
+
+  name  =   'name'
+  implements = [
+         "com.huawei.cangjie.lang.core.psi.ext.CjNameIdentifierOwner"
+  ]
+
+
+
+  mixin = "com.huawei.cangjie.lang.core.psi.ext.CjNamedElementImpl"
+
+//  extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
+//  mixin =   "com.huawei.cangjie.lang.core.psi.ext.CjIdentifierNameMixin"
+//  stubClass = "com.huawei.cangjie.lang.core.stubs.CjIdentifierNameStub"
+//  elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
+}
+
+
+
+
+upper  AExpr ::= IdentifierName
+
+
+//func 函数定义
+upper Function ::= unsafe? FUNC IdentifierName FuncParameters ByType? ShallowBlock ';'?
+{
+    pin = 3
 
     implements = [
-        "com.huawei.cangjie.lang.core.psi.ext.CjNameIdentifierOwner"
-        "com.huawei.cangjie.lang.core.psi.ext.CjQualifiedNamedElement"
+//        "com.huawei.cangjie.lang.core.psi.ext.CjNameIdentifierOwner"
+"com.huawei.cangjie.lang.core.psi.ext.CjElement"
+
+        //CjQualifiedNamedElement 为限定名称
+//        "com.huawei.cangjie.lang.core.psi.ext.CjQualifiedNamedElement"
 
     ]
     extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
@@ -273,9 +290,6 @@ upper Function ::= unsafe? FUNC identifier FuncParameters ByType? ShallowBlock '
     elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
 
 }
-
-
-
 
 FuncParameters ::= '(' !','  FuncParameter_with_recover* ')'
 {
@@ -312,7 +326,28 @@ TypeReference ::= 'a'
   name = 'type'
 }
 
-fake Block ::= '{' (Stmt | Function) *  '}'
+
+
+
+
+
+
+//class 类定义
+upper ClassDefinition ::= 'class' IdentifierName  ShallowBlock
+{
+    pin = 2
+//mixin="com.huawei.cangjie.lang.core.psi.ext.AbstractCjPsiClass"
+//implements="com.huawei.cangjie.lang.core.psi.ext.CjClass"
+
+
+
+}
+
+
+
+
+
+fake Block ::= '{' (Expr | Function) *  '}'
 {
 pin = 1
   implements = "com.huawei.cangjie.lang.core.psi.ext.CjItemsOwner"
@@ -321,15 +356,25 @@ pin = 1
   elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
 }
 
+ClassBody ::= '{' (Function|Expr)*  '}'
+{
+    pin = 1
+      elementType = Block
+}
 
 
 
 
 //函数体  包含函数定义，和各种表达式
-FuncBlock ::= '{'( Function | ExprStmt)*  '}'{
+FuncBlock ::= '{'  ( Function | Expr)*  '}'{
   pin = 1
   elementType = Block
+
+//  recoverWhile = FuncBlock_recover
 }
+
+//FuncBlock语法恢复
+//private FuncBlock_recover ::=  class
 
 private AnyLitToken ::= STRING_LITERAL | BYTE_STRING_LITERAL | CSTRING_LITERAL
                       | RAW_STRING_LITERAL | RAW_BYTE_STRING_LITERAL | RAW_CSTRING_LITERAL
@@ -347,7 +392,7 @@ private AnyLitToken_first ::= STRING_LITERAL | BYTE_STRING_LITERAL | CSTRING_LIT
 
 LifetimeParamBounds ::= ':' Lifetime ('+' Lifetime)* { pin = 1 }
 
-Lifetime ::= QUOTE_IDENTIFIER {
+Lifetime ::= QuoteIdentifier {
   implements = [ "com.huawei.cangjie.lang.core.psi.ext.CjNameIdentifierOwner"
                  "com.huawei.cangjie.lang.core.psi.ext.CjMandatoryReferenceElement" ]
   extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
@@ -356,7 +401,7 @@ Lifetime ::= QUOTE_IDENTIFIER {
   elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
 }
 
-LifetimeParameter ::=   QUOTE_IDENTIFIER LifetimeParamBounds? {
+LifetimeParameter ::=   QuoteIdentifier LifetimeParamBounds? {
   implements = [ "com.huawei.cangjie.lang.core.psi.ext.CjGenericParameter"
                 ]
   extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"

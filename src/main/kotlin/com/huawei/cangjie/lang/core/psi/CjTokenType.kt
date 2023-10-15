@@ -9,8 +9,12 @@ import com.huawei.cangjie.lang.core.parser.CangJieParserDefinition.Companion.INN
 import com.huawei.cangjie.lang.core.parser.CangJieParserDefinition.Companion.OUTER_BLOCK_DOC_COMMENT
 import com.huawei.cangjie.lang.core.parser.CangJieParserDefinition.Companion.OUTER_EOL_DOC_COMMENT
 import com.huawei.cangjie.lang.core.psi.CjElementTypes.*
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 
 import com.intellij.psi.tree.IElementType
+import com.intellij.psi.tree.IReparseableLeafElementType
 import com.intellij.psi.tree.TokenSet
 
 
@@ -58,3 +62,18 @@ val CJSERVED_KEYWORDS: Set<String> = setOf(
 //    AND
 //)
 
+//interface PsiEolWs : PsiElement
+//class EolWsTokenType : IElementType("EOL_WS",CjLanguage) , IReparseableLeafElementType<ASTNode>
+//{
+//    override fun reparseLeaf(leaf: ASTNode, newText: CharSequence): ASTNode? {
+//
+//        return  null
+//    }
+//
+//}
+//
+//val EOL_WS = EolWsTokenType()
+//class  PsiEolWsImpl (text :CharSequence) : LeafPsiElement(EOL_WS ,text)  , PsiEolWs {
+//    override fun toString(): String = "PsiEolWs"
+//}
+//

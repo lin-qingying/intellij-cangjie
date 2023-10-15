@@ -17,7 +17,10 @@ abstract class CjFunctionImplMixin : CjStubbedNamedElementImpl<CjFunctionStub>, 
     override val modificationTracker: SimpleModificationTracker =
         SimpleModificationTracker()
     constructor(stub: CjFunctionStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
-    override val crateRelativePath: String? get() = CjPsiImplUtil.crateRelativePath(this)
+//
+//    override val crateRelativePath: String?
+//        get() =  CjPsiImplUtil.crateRelativePath(this)
+
     override fun incModificationCount(element: PsiElement): Boolean {
         val shouldInc = block?.isAncestorOf(element) == true && PsiTreeUtil.findChildOfAnyType(
             element,
@@ -32,6 +35,8 @@ abstract class CjFunctionImplMixin : CjStubbedNamedElementImpl<CjFunctionStub>, 
 
 val CjFunction.functionName: String?
     get() = (this as CjFunctionImplMixin).functionName
+
+
 val CjFunction.block: CjBlock? get() = PsiTreeUtil.getChildOfType(this, CjBlock::class.java)
 
 

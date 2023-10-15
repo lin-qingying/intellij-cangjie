@@ -104,7 +104,7 @@ import static com.huawei.cangjie.lang.core.psi.CjElementTypes.*;
 EOL_WS           = \n | \r | \r\n
 LINE_WS          = [\ \t]
 WHITE_SPACE_CHAR = {EOL_WS} | {LINE_WS}
-WHITE_SPACE      = {WHITE_SPACE_CHAR}+
+WHITE_SPACE      =  {WHITE_SPACE_CHAR}+
 
 
 // Identifier 标识符
@@ -151,82 +151,80 @@ EOL_DOC_LINE  = {LINE_WS}*!(!("///".*)|("////".*))
 {WHITE_SPACE}                 { return WHITE_SPACE; }
 
 
-
- "main"                        { return MAIN; }
-  "func"                        { return FUNC; }
-  "class"                       { return CLASS; }
-  "var"                         { return VAR; }
-  "let"                         { return LET; }
-  "mut"                         { return MUT; }
-  "prop"                        { return PROP; }
-  "init"                        { return INIT; }
-  "open"                        { return OPEN; }
-  "from"                        { return FROM; }
-  "import"                      { return IMPORT; }
-  "as"                          { return AS; }
-  "enum"                        { return ENUM; }
-  "super"                       { return SUPER; }
-  "this"                        { return THIS; }
-  "interface"                   { return INTERFACE; }
-  "static"                      { return STATIC; }
-  "struct"                      { return STRUCT; }
-  "return"                      { return RETURN; }
-  "extend"                      { return EXTEND; }
-  "true"                        { return TRUE; }
-  "false"                       { return FALSE; }
-  "Int8"                        { return INT8; }
-  "Int16"                       { return INT16; }
-  "Int32"                       { return INT32; }
-  "Int64"                       { return INT64; }
-  "Float32"                     { return FLOAT32; }
-  "Float64"                     { return FLOAT64; }
-  "Char"                        { return CHAE; }
-  "UInt8"                       { return UINT8; }
-  "UInt16"                      { return UINT16; }
-  "UInt32"                      { return UINT32; }
-  "UInt64"                      { return UINT64; }
-  "Bool"                        { return BOOL; }
-  "Unit"                        { return UNIT; }
-  "if"                          { return IF; }
-  "else"                        { return ELSE; }
-  "while"                       { return WHILE; }
-  "for"                         { return FOR; }
-  "in"                          { return IN; }
-  "do"                          { return DO; }
-  "break"                       { return BREAK; }
-  "continue"                    { return CONTINUE; }
-  "match"                       { return MATCH; }
-  "case"                        { return CASE; }
-  "try"                         { return TRY; }
-  "catch"                       { return CATCH; }
-  "finally"                     { return FINALLY; }
-  "throw"                       { return THROW; }
-  "{"                           { return LBRACE; }
-  "}"                           { return RBRACE; }
-  "["                           { return LBRACK; }
-  "]"                           { return RBRACK; }
-  "("                           { return LPAREN; }
-  ")"                           { return RPAREN; }
-  "="                           { return EQ; }
-  ":"                           { return COLON; }
-  "=="                          { return EQEQ; }
-  "!="                          { return NOTEQ; }
-  ">"                           { return GT; }
-  ">>"                          { return GTGT; }
-  "<"                           { return LT; }
-  "<<"                          { return LTLT; }
-  ">="                          { return GTEQ; }
-  "<="                          { return LTEQ; }
-  "&&"                          { return ANDAND; }
-  "&"                           { return AND; }
-  "||"                          { return OROR; }
-  "|"                           { return OR; }
-  ","                           { return COMMA; }
-  "."                           { return DOT; }
-  ".."                          { return DOTDOT; }
-
-
-
+    "main"                        { return MAIN; }
+    "func"                        { return FUNC; }
+    "class"                       { return CLASS; }
+    "var"                         { return VAR; }
+    "let"                         { return LET; }
+    "mut"                         { return MUT; }
+    "prop"                        { return PROP; }
+    "init"                        { return INIT; }
+    "open"                        { return OPEN; }
+    "from"                        { return FROM; }
+    "import"                      { return IMPORT; }
+    "as"                          { return AS; }
+    "enum"                        { return ENUM; }
+    "super"                       { return SUPER; }
+    "this"                        { return THIS; }
+    "interface"                   { return INTERFACE; }
+    "static"                      { return STATIC; }
+    "struct"                      { return STRUCT; }
+    "return"                      { return RETURN; }
+    "extend"                      { return EXTEND; }
+    "true"                        { return TRUE; }
+    "false"                       { return FALSE; }
+    "Int8"                        { return INT8; }
+    "Int16"                       { return INT16; }
+    "Int32"                       { return INT32; }
+    "Int64"                       { return INT64; }
+    "Float32"                     { return FLOAT32; }
+    "Float64"                     { return FLOAT64; }
+    "Char"                        { return CHAE; }
+    "UInt8"                       { return UINT8; }
+    "UInt16"                      { return UINT16; }
+    "UInt32"                      { return UINT32; }
+    "UInt64"                      { return UINT64; }
+    "Bool"                        { return BOOL; }
+    "Unit"                        { return UNIT; }
+    "if"                          { return IF; }
+    "else"                        { return ELSE; }
+    "while"                       { return WHILE; }
+    "for"                         { return FOR; }
+    "in"                          { return IN; }
+    "do"                          { return DO; }
+    "break"                       { return BREAK; }
+    "continue"                    { return CONTINUE; }
+    "match"                       { return MATCH; }
+    "case"                        { return CASE; }
+    "try"                         { return TRY; }
+    "catch"                       { return CATCH; }
+    "finally"                     { return FINALLY; }
+    "throw"                       { return THROW; }
+    "{"                           { return LBRACE; }
+    "}"                           { return RBRACE; }
+    "["                           { return LBRACK; }
+    "]"                           { return RBRACK; }
+    "("                           { return LPAREN; }
+    ")"                           { return RPAREN; }
+    "="                           { return EQ; }
+    ":"                           { return COLON; }
+    "=="                          { return EQEQ; }
+    "!="                          { return NOTEQ; }
+    ">"                           { return GT; }
+    ">>"                          { return GTGT; }
+    "<"                           { return LT; }
+    "<<"                          { return LTLT; }
+    ">="                          { return GTEQ; }
+    "<="                          { return LTEQ; }
+    "&&"                          { return ANDAND; }
+    "&"                           { return AND; }
+    "||"                          { return OROR; }
+    "|"                           { return OR; }
+    "<:"                          { return LTCOLON; }
+    ","                           { return COMMA; }
+    "."                           { return DOT; }
+    ".."                          { return DOTDOT; }
+    ";"                           { return SEMICOLON; }
 
 
   {INNER_EOL_DOC}                 { return INNER_EOL_DOC_COMMENT; }

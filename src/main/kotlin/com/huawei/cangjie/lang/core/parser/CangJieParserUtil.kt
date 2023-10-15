@@ -1,18 +1,26 @@
 package com.huawei.cangjie.lang.core.parser
 
+import com.huawei.cangjie.lang.CjLanguage
 import com.huawei.cangjie.lang.core.parser.CangJieParserDefinition.Companion.EOL_COMMENT
 import com.huawei.cangjie.lang.core.psi.CjElementTypes.*
+
 import com.huawei.cangjie.stdext.makeBitMask
+import com.intellij.lang.ASTNode
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.PsiBuilderUtil
 import com.intellij.lang.WhitespacesAndCommentsBinder
 import com.intellij.lang.parser.GeneratedParserUtilBase
 import com.intellij.openapi.util.Key
+import com.intellij.psi.PsiElement
 import com.intellij.psi.TokenType
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.tree.IElementType
+import com.intellij.psi.tree.IReparseableLeafElementType
 import com.intellij.util.BitUtil
 import com.intellij.util.containers.Stack
 import org.intellij.plugins.relaxNG.compact.RncTokenTypes.GTGT
+
+
 
 @Suppress("UNUSED_PARAMETER")
 object CangJieParserUtil : GeneratedParserUtilBase() {
@@ -48,6 +56,17 @@ object CangJieParserUtil : GeneratedParserUtilBase() {
         return true
     }
 
+
+//    @JvmStatic
+//    fun nl(b: PsiBuilder, level: Int): Boolean {
+//        //如果是换行符，返回true
+//        if (b.tokenType ==   EOL_WS ) {
+//            b.advanceLexer()
+//            return true
+//        }
+//return false
+//
+//    }
 
     @JvmStatic
     fun mainfunc(b: PsiBuilder, level: Int): Boolean {
@@ -137,6 +156,28 @@ object CangJieParserUtil : GeneratedParserUtilBase() {
 
     @JvmStatic
     fun andandImpl(b: PsiBuilder, level: Int): Boolean = collapse(b, ANDAND, AND, AND)
+
+    enum class StructLiteralsMode { ON, OFF }
+    private fun Int.setFlag(flag: Int, mode: Boolean): Int =
+        BitUtil.set(this, flag, mode)
+
+    @JvmStatic
+    fun exprMode(
+        b: PsiBuilder,
+        level: Int,
+        structLiterals: StructLiteralsMode,
+        stmtMode: StmtMode,
+        parser: Parser
+    ): Boolean {
+        val oldFlags = b.flags
+        val newFlags = oldFlags
+            .setFlag(STRUCT_ALLOWED, structLiterals == StructLiteralsMode.ON)
+            .setFlag(STMT_EXPR_MODE, stmtMode == StmtMode.ON)
+        b.flags = newFlags
+        val result = parser.parse(b, level)
+        b.flags = oldFlags
+        return result
+    }
 
     @JvmField
     val ADJACENT_LINE_COMMENTS = WhitespacesAndCommentsBinder { tokens, _, getter ->

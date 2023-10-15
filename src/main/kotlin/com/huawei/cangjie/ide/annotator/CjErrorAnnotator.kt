@@ -23,7 +23,7 @@ class CjErrorAnnotator : AnnotatorBase(), HighlightRangeExtension {
 
     private fun checkFunction(holder: CjAnnotationHolder, fn: CjFunction) {
 //        collectDiagnostics(holder, fn)
-        checkDuplicates(holder, fn)
+        checkDuplicates(holder, fn.identifierName)
 //        checkTypesAreSized(holder, fn)
 //        checkEmptyFunctionReturnType(holder, fn)
 //        checkRecursiveAsyncFunction(holder, fn)
@@ -45,7 +45,7 @@ class CjErrorAnnotator : AnnotatorBase(), HighlightRangeExtension {
     ) {
 
         val identifier = element.nameIdentifier ?: element
-        println(identifier)
+//        println(identifier)
     }
 
 }

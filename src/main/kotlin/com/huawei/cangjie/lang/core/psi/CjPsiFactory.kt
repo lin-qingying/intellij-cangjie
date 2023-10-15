@@ -43,6 +43,6 @@ class CjPsiFactory
     private inline fun <reified T : CjElement> createFromText(code: CharSequence): T? =
         createFile(code).descendantOfTypeStrict()
     fun createQuoteIdentifier(text: String): PsiElement =
-        createFromText<CjLifetimeParameter>("fn foo<$text>(_: &$text u8) {}")?.quoteIdentifier
+        createFromText<CjLifetimeParameter>("func foo<$text>(_: &$text u8) {}")?.quoteIdentifier
             ?: error("Failed to create quote identifier: `$text`")
 }

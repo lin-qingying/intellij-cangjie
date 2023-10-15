@@ -1,6 +1,7 @@
 package com.huawei.cangjie.lang.core.psi.ext
 
 
+import com.huawei.cangjie.lang.core.psi.CjElementTypes
 import com.huawei.cangjie.lang.core.psi.CjLifetimeParameter
 import com.huawei.cangjie.lang.core.psi.CjPsiFactory
 import com.huawei.cangjie.lang.core.psi.CjPsiImplUtil
@@ -18,13 +19,20 @@ import com.intellij.psi.stubs.IStubElementType
 //            .flatMap { it.lifetimeParamBounds?.lifetimeList.orEmpty() }
 //        return lifetimeParamBounds?.lifetimeList.orEmpty() + whereBounds
 //    }
+
+
+
+
 abstract class CjLifetimeParameterImplMixin : CjStubbedNamedElementImpl<CjLifetimeParameterStub>, CjLifetimeParameter {
 
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CjLifetimeParameterStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
-    override fun getNameIdentifier(): PsiElement = quoteIdentifier
+
+
+
+    override fun getNameIdentifier(): PsiElement =  quoteIdentifier
 
     override fun setName(name: String): PsiElement? {
         nameIdentifier.replace(CjPsiFactory(project).createQuoteIdentifier(name))

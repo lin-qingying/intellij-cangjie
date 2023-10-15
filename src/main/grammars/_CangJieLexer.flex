@@ -99,13 +99,14 @@ WHITE_SPACE=\s+
   "&"                           { return AND; }
   "||"                          { return OROR; }
   "|"                           { return OR; }
+  "<:"                          { return LTCOLON; }
   ","                           { return COMMA; }
   "."                           { return DOT; }
   ".."                          { return DOTDOT; }
   ";"                           { return SEMICOLON; }
   "shebang_line"                { return SHEBANG_LINE; }
   "identifier"                  { return IDENTIFIER; }
-  "QUOTE_IDENTIFIER"            { return QUOTE_IDENTIFIER; }
+  "ExprStmt"                    { return EXPRSTMT; }
   "unsafe"                      { return UNSAFE; }
   "STRING_LITERAL"              { return STRING_LITERAL; }
   "BYTE_STRING_LITERAL"         { return BYTE_STRING_LITERAL; }

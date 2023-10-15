@@ -39,7 +39,12 @@ fun factory(name: String): CjStubElementType<*, *> = when (name) {
 
     "LIFETIME" -> CjLifetimeStub.Type
     "LIFETIME_PARAMETER" -> CjLifetimeParameterStub.Type
-    else -> error("Unknown element $name")
+
+
+
+//    "IDENTIFIER_NAME" -> CjIdentifierNameStub.Type
+
+    else -> error("Stub 未找到 $name 元素")
 }
 
 private class ItemSeekingVisitor private constructor() : RecursiveTreeElementWalkingVisitor() {
@@ -246,8 +251,10 @@ class CjFunctionStub(
             val block = psi.block
             return CjFunctionStub(
                 parentStub,
+
                 this,
-                name = psi.name,
+                psi.identifierName.name
+
 
 
             )
@@ -272,7 +279,29 @@ class CjFileStub(
     }
 }
 
-
+//class CjIdentifierNameStub(parent: StubElement<*>?, elementType: IStubElementType<*, *>, override val name: String?) :
+//    StubBase<CjIdentifierName>(parent, elementType), CjNamedStub {
+//
+//    object Type : CjStubElementType<CjIdentifierNameStub, CjIdentifierName>("IDENTIFIER_NAME") {
+//        override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?) =
+//            CjIdentifierNameStub(
+//                parentStub,
+//                this,
+//                dataStream.readName()?.string
+//            )
+//
+//        override fun serialize(stub: CjIdentifierNameStub, dataStream: StubOutputStream) =
+//            with(dataStream) {
+//                writeName(stub.name)
+//            }
+//
+//        override fun createPsi(stub: CjIdentifierNameStub) =
+//            CjIdentifierNameImpl(stub, this)
+//
+//        override fun createStub(psi: CjIdentifierName, parentStub: StubElement<*>?) =
+//            CjIdentifierNameStub(parentStub, this, psi.name)
+//    }
+//}
 
 class CjValueParameterStub(
     parent: StubElement<*>?, elementType: IStubElementType<*, *>,

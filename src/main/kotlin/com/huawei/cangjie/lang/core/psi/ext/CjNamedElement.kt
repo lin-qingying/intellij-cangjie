@@ -1,9 +1,13 @@
 package com.huawei.cangjie.lang.core.psi.ext
 
 import com.huawei.cangjie.ide.presentation.getPresentation
+import com.huawei.cangjie.lang.core.psi.CjElementTypes
 
 import com.huawei.cangjie.lang.core.psi.CjElementTypes.IDENTIFIER
+import com.huawei.cangjie.lang.core.psi.CjIdentifierName
 import com.huawei.cangjie.lang.core.psi.CjPsiFactory
+
+import com.huawei.cangjie.lang.core.stubs.CjLifetimeParameterStub
 import com.huawei.cangjie.lang.core.stubs.CjNamedStub
 import com.intellij.extapi.psi.ASTWrapperPsiElement
 import com.intellij.lang.ASTNode
@@ -21,6 +25,8 @@ import com.intellij.psi.tree.IElementType
 interface CjNamedElement : CjElement, PsiNamedElement, NavigatablePsiElement {
 
 }
+
+
 
 abstract class CjStubbedNamedElementImpl<StubT> : CjStubbedElementImpl<StubT>,
     CjNameIdentifierOwner
@@ -71,9 +77,22 @@ open class CjPsiCompositeElementImpl(node: ASTNode) : ASTWrapperPsiElement(node)
 }
 
 
-interface CjNameIdentifierOwner : CjNamedElement, PsiNameIdentifierOwner
+interface CjNameIdentifierOwner : CjNamedElement, PsiNameIdentifierOwner{
 
 
+}
+
+//abstract  class  CjIdentifierNameMixin :CjStubbedNamedElementImpl<CjIdentifierNameStub>, CjIdentifierName{
+//
+//
+//    constructor(node: ASTNode) : super(node)
+//
+//    constructor(stub: CjIdentifierNameStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
+//
+//
+//
+//
+//}
 abstract class CjNamedElementImpl(type: IElementType) : CjElementImpl(type), CjNameIdentifierOwner {
     override fun getNameIdentifier(): PsiElement? = findChildByType(IDENTIFIER)?.psi
 
@@ -85,7 +104,7 @@ abstract class CjNamedElementImpl(type: IElementType) : CjElementImpl(type), CjN
     override fun setName(name: String): PsiElement? {
 
 
-        println("名字："+name)
+
 
         CjPsiFactory(project).createIdentifier(name)?.let { nameIdentifier?.replace(it) }
 

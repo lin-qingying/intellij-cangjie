@@ -1,3 +1,10 @@
 package com.huawei.cangjie.lang.core.psi.ext
 
-interface CjGenericParameter  : CjNameIdentifierOwner
+import com.intellij.psi.PsiElement
+import org.jetbrains.annotations.NotNull
+
+interface CjGenericParameter  : CjNameIdentifierOwner{
+
+
+
+}

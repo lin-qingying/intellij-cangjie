@@ -15,6 +15,8 @@ import com.intellij.psi.stubs.IStubElementType
 //声明周期
 val CjLifetime.isPredefined: Boolean get() = referenceName in CjNamesValidator.RESERVED_LIFETIME_NAMES
 
+
+
 abstract class CjLifetimeImplMixin : CjStubbedNamedElementImpl<CjLifetimeStub>, CjLifetime {
 
     constructor(node: ASTNode) : super(node)
@@ -22,6 +24,9 @@ abstract class CjLifetimeImplMixin : CjStubbedNamedElementImpl<CjLifetimeStub>, 
     constructor(stub: CjLifetimeStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
     override val referenceNameElement: PsiElement get() = nameIdentifier
+
+
+
 
     override val referenceName: String get() = greenStub?.name ?: referenceNameElement.text
 
