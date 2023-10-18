@@ -1,3 +1,4 @@
+
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude" allow-bundled-update="true">
     <resource-bundle>messages.CjBundle</resource-bundle>
 
@@ -9,31 +10,58 @@
 
         <!--文件类型工厂 -->
 
-        <fileType name="CangJie"
-                  language="CangJie"
-                  implementationClass="com.huawei.cangjie.lang.CjFileType"
-                  extensions="cj"
-                  fieldName="INSTANCE"/>
+<!--        <fileType name="CangJie"-->
+<!--                  language="CangJie"-->
+<!--                  implementationClass="com.huawei.cangjie.lang.CjFileType"-->
+<!--                  extensions="cj"-->
+<!--                  fieldName="INSTANCE"/>-->
         <!--        <internalFileTemplate name="CangJie File"/>-->
 
         <!-- 分析 -->
 
-        <lang.parserDefinition language="CangJie"
-                               implementationClass="com.huawei.cangjie.lang.core.parser.CangJieParserDefinition"/>
-        <stubElementTypeHolder class="com.huawei.cangjie.lang.core.psi.CjElementTypes" externalIdPrefix="cangjie."/>
+<!--        <lang.parserDefinition language="CangJie"-->
+<!--                               implementationClass="com.huawei.cangjie.lang.core.parser.CangJieParserDefinition"/>-->
+<!--        <stubElementTypeHolder class="com.huawei.cangjie.lang.core.psi.CjElementTypes" externalIdPrefix="cangjie."/>-->
 
 
 
         <!-- PSI 管理器 -->
 
-        <lang.fileViewProviderFactory language="CangJie" implementationClass="com.huawei.cangjie.lang.core.psi.CjFileViewProviderFactory"/>
-        <projectService serviceInterface="com.huawei.cangjie.lang.core.psi.CjPsiManager"
-                        serviceImplementation="com.huawei.cangjie.lang.core.psi.CjPsiManagerImpl"/>
+<!--        <lang.fileViewProviderFactory language="CangJie" implementationClass="com.huawei.cangjie.lang.core.psi.CjFileViewProviderFactory"/>-->
+<!--        <projectService serviceInterface="com.huawei.cangjie.lang.core.psi.CjPsiManager"-->
+<!--                        serviceImplementation="com.huawei.cangjie.lang.core.psi.CjPsiManagerImpl"/>-->
 
 
 
-        <annotator language="CangJie" implementationClass="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>
-        <highlightRangeExtension implementation="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>
-    </extensions>
+<!--        <annotator language="CangJie" implementationClass="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>-->
+<!--        <highlightRangeExtension implementation="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>-->
+
+
+
+        <fileType name="CangJie"
+                  language="CangJie"
+                  implementationClass="com.huawei.cangjie1.lang.CangJieFileType"
+                  extensions="cj"
+                  fieldName="INSTANCE"/>
+                <internalFileTemplate name="CangJie File"/>
+
+
+
+                <lang.parserDefinition language="CangJie"
+                                       implementationClass="com.huawei.cangjie1.parsing.CangJieParserDefinition"/>
+
+                <stubElementTypeHolder class="com.huawei.cangjie1.psi.stubs.elements.CjStubElementTypes"
+                                       externalIdPrefix="cangjie."/>
+
+
+        <!--        服务注册  cangjie1包-->
+
+        <projectService serviceInterface="com.huawei.cangjie1.psi.CjFileClassProvider"
+                        serviceImplementation="com.huawei.cangjie1.psi.CjFileClassProviderImpl"/>
+
+<!--        <applicationService serviceInterface="com.huawei.cangjie1.psi.CangJieDeclarationNavigationPolicy"-->
+<!--                        serviceImplementation="com.huawei.cangjie1.psi.CangJieDeclarationNavigationPolicyImpl"/>-->
+
+ </extensions>
 
 </idea-plugin>

@@ -266,6 +266,14 @@ IdentifierName ::= identifier
 }
 
 
+//变量声明
+//修饰符 变量名:变量类型 = 初始值
+VarStmt ::= ('var' | 'let') IdentifierName ByType? DefaultParameterValue?
+
+
+
+
+
 
 
 upper  AExpr ::= IdentifierName

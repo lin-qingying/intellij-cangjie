@@ -1,9 +1,5 @@
 
 
-//psiviewer插件
-
-
-
 plugins {
     idea
     id("org.jetbrains.kotlin.jvm") version "1.9.0"
@@ -11,11 +7,14 @@ plugins {
     id("org.jetbrains.grammarkit") version "2022.3.2"
 
 
+
+
 }
 sourceSets {
     main {
         java {
-            srcDirs("src/main/gen")
+
+            srcDirs("src/main/kotlin", "src/main/gen")
         }
     }
 }
@@ -52,7 +51,8 @@ intellij {
 
 
 
-    version.set("2022.2.5")
+
+    version.set("232-EAP-SNAPSHOT")
     type.set("IC") // Target IDE Platform
 ////加载PsiViewer插件 grammar-kit
     plugins.set(listOf(
@@ -63,17 +63,25 @@ intellij {
 
 }
 
+val intellijVersion ="213.7172.25"
+dependencies{
+    api("com.jetbrains.intellij.java:java-psi-impl:$intellijVersion") { isTransitive = false }
 
 
 
 
-idea {
-    module {
-        // https://github.com/gradle/kotlin-dsl/issues/537/
-        excludeDirs = excludeDirs + file("testData") + file("deps") + file("bin") +
-                file("$grammarKitFakePsiDeps/src/main/kotlin")
-    }
+
+    api("com.jetbrains.intellij.java:java-psi:$intellijVersion") { isTransitive = false }
 }
+
+
+//idea {
+//    module {
+//        // https://github.com/gradle/kotlin-dsl/issues/537/
+//        excludeDirs = excludeDirs + file("testData") + file("deps") + file("bin") +
+//                file("$grammarKitFakePsiDeps/src/main/kotlin")
+//    }
+//}
 tasks {
     // Set the JVM compatibility versions
     withType<JavaCompile> {
@@ -106,3 +114,5 @@ tasks {
 
 
 }
+
+

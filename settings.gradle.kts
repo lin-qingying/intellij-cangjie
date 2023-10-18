@@ -5,6 +5,8 @@ pluginManagement {
     }
 }
 
+
+
 rootProject.name = "intellij-cangjie"
 //include("plugin")
 // Configure Gradle Build Cache. It is enabled in `gradle.properties` via `org.gradle.caching`.
