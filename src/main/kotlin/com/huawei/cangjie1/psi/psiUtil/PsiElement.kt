@@ -3,8 +3,11 @@ package com.huawei.cangjie1.psi.psiUtil
 import com.huawei.cangjie1.psi.CjFile
 import com.intellij.psi.*
 import com.intellij.psi.impl.source.tree.LazyParseablePsiElement
+import com.intellij.psi.util.PsiTreeUtil
 import java.util.NoSuchElementException
-
+inline fun <reified T : PsiElement> PsiElement.getParentOfType(strict: Boolean): T? {
+    return PsiTreeUtil.getParentOfType(this, T::class.java, strict)
+}
 fun PsiElement.siblings(forward: Boolean = true, withItself: Boolean = true): Sequence<PsiElement> {
     return object : Sequence<PsiElement> {
         override fun iterator(): Iterator<PsiElement> {
@@ -70,3 +73,4 @@ fun PsiElement.parentOfType(vararg psiClassNames: String): PsiElement? {
         .filter { it !is PsiFile }
         .firstOrNull { acceptsClass(it::class.java) }
 }
+inline fun <T : Any> T?.sure(message: () -> String): T = this ?: throw AssertionError(message())

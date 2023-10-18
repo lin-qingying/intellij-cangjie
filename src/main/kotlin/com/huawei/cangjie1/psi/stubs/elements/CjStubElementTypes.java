@@ -4,6 +4,9 @@ import com.huawei.cangjie1.psi.*;
 
 public interface CjStubElementTypes {
 
+
+    CjPlaceHolderStubElementType<CjClassInitializer> CLASS_INITIALIZER =
+            new CjPlaceHolderStubElementType<>("CLASS_INITIALIZER", CjClassInitializer.class);
     CjImportAliasElementType IMPORT_ALIAS = new CjImportAliasElementType("IMPORT_ALIAS");
 
     CjTypeProjectionElementType TYPE_PROJECTION = new CjTypeProjectionElementType("TYPE_PROJECTION");

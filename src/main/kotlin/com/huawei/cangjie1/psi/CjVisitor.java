@@ -10,6 +10,12 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         return null;
     }
 
+    public R visitClassInitializer(@NotNull CjClassInitializer initializer, D data) {
+        return visitAnonymousInitializer(initializer, data);
+    }
+    public R visitAnonymousInitializer(@NotNull CjAnonymousInitializer initializer, D data) {
+        return visitDeclaration(initializer, data);
+    }
     public R visitSuperTypeListEntry(@NotNull CjSuperTypeListEntry specifier, D data) {
         return visitCjElement(specifier, data);
     }

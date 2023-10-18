@@ -14,10 +14,17 @@ class CjClassBody : CjElementImplStub<CangJiePlaceHolderStub<CjClassBody>>, CjDe
 
     constructor(node: ASTNode) : super(node)
 
+
+
+
     constructor(stub: CangJiePlaceHolderStub<CjClassBody>) : super(stub, CLASS_BODY)
 
     override fun getParent() = parentByStub
 
+
+    override fun toString():String{
+        return node.elementType.toString()
+    }
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D) = visitor.visitClassBody(this, data)
     override val declarations: List<CjDeclaration>

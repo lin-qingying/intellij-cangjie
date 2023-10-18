@@ -12,15 +12,13 @@ import org.jetbrains.annotations.NotNull;
 import static com.huawei.cangjie1.lexer.CjTokens.*;
 
 import static com.huawei.cangjie1.CjNodeTypes.*;
-import static com.huawei.cangjie1.psi.stubs.elements.CjStubElementTypes.TYPE_REFERENCE;
-import static com.huawei.cangjie1.psi.stubs.elements.CjStubElementTypes.VALUE_PARAMETER;
 
 
 public class CangJieParsing extends AbstractCangJieParsing {
     private static final TokenSet GT_COMMA_COLON_SET = TokenSet.create(GT, COMMA, COLON);
     private static final Logger LOG = Logger.getInstance(CangJieParsing.class);
 
-    private static final TokenSet TOP_LEVEL_DECLARATION_FIRST = TokenSet.create( INTERFACE_KEYWORD, CLASS_KEYWORD, FUNC_KEYWORD, LET_KEYWORD, PACKAGE_KEYWORD);
+    private static final TokenSet TOP_LEVEL_DECLARATION_FIRST = TokenSet.create(INTERFACE_KEYWORD, CLASS_KEYWORD, FUNC_KEYWORD, LET_KEYWORD, PACKAGE_KEYWORD);
     private static final TokenSet TOP_LEVEL_DECLARATION_FIRST_SEMICOLON_SET = TokenSet.orSet(TOP_LEVEL_DECLARATION_FIRST, TokenSet.create(SEMICOLON));
     private static final TokenSet LT_EQ_SEMICOLON_TOP_LEVEL_DECLARATION_FIRST_SET = TokenSet.orSet(TokenSet.create(LT, EQ, SEMICOLON), TOP_LEVEL_DECLARATION_FIRST);
     private static final TokenSet DECLARATION_FIRST = TokenSet.orSet(TOP_LEVEL_DECLARATION_FIRST, TokenSet.create(INIT_KEYWORD, GET_KEYWORD, SET_KEYWORD, CONSTRUCTOR_KEYWORD));
@@ -230,6 +228,43 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     }
 
+    private IElementType parseClassCommonDeclaration() {
+        //init func let|var prop
+        switch (getTokenId()) {
+            case FUNC_KEYWORD_Id:
+                return parseFunction();
+
+
+        }
+        return null;
+    }
+
+    private IElementType parseClassInitializer() {
+
+        return null;
+    }
+
+    /*
+     * variableDeclarationEntry
+     *   : SimpleName (":" ('?')?type)?
+     *   ;
+     *
+     * property
+     *   : modifiers ("let" | "var")
+     *   ;
+     */
+    public IElementType parseProperty() {
+        assert (at(LET_KEYWORD) || at(VAR_KEYWORD));
+        advance();
+
+
+        myBuilder.disableJoiningComplexTokens();
+
+
+        return null;
+
+    }
+
     public IElementType parseCommonDeclaration(
 
     ) {
@@ -240,9 +275,108 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 return parseFunction();
             case MAIN_KEYWORD_Id:
                 return parseMainFunc();
+
+            case CLASS_KEYWORD_Id:
+                return parseClass();
+
+            case LET_KEYWORD_Id:
+            case VAR_KEYWORD_Id:
+                return parseProperty();
         }
 
         return null;
+    }
+
+
+    /*
+     * class
+     *   : "class" SimpleName (<: delegationSpecifier{","}) classBody
+     *   ;
+     */
+    private IElementType parseClass() {
+        assert _at(CLASS_KEYWORD);
+        advance();
+
+
+        //类名
+        parseIdentifier();
+
+        // TODO 继承
+
+        if (at(LBRACE)) {
+            parseClassBody();
+        } else {
+            error("Expecting '{' or Inherit");  //应该为'{' 或者继承
+        }
+
+
+        return CLASS;
+    }
+
+
+    private void parseMemberDeclaration() {
+        if (at(SEMICOLON)) {
+            advance(); // SEMICOLON
+            return;
+        }
+        PsiBuilder.Marker decl = mark();
+
+
+        IElementType declType = parseMemberDeclarationRest();
+
+        if (declType == null) {
+            errorWithRecovery("Expecting member declaration", TokenSet.EMPTY);
+            decl.drop();
+        } else {
+            closeDeclarationWithCommentBinders(decl, declType, true);
+        }
+    }
+
+    private IElementType parseMemberDeclarationRest() {
+        IElementType declType = parseClassCommonDeclaration();
+
+        if (declType != null) return declType;
+
+        if (at(INIT_KEYWORD)) {
+            advance(); // init
+            if (at(LBRACE)) {
+                parseBlock();
+            } else {
+                mark().error("Expecting '{' after 'init'");
+            }
+            declType = CLASS_INITIALIZER;
+        } else if (at(LBRACE)) {
+            error("Expecting member declaration");
+            parseBlock();
+            declType = FUNC;
+        }
+        return declType;
+    }
+
+    /**
+     * members
+     * : memberDeclaration*
+     * ;
+     */
+    private void parseMembers() {
+        while (!eof() && !at(RBRACE)) {
+            parseMemberDeclaration();
+        }
+    }
+
+    private void parseClassBody() {
+        PsiBuilder.Marker body = mark();
+
+        myBuilder.enableNewlines();
+
+        if (expect(LBRACE, "Expecting a class body")) {
+            parseMembers();
+            expect(RBRACE, "Missing '}");
+        }
+
+        myBuilder.restoreNewlinesState();
+
+        body.done(CLASS_BODY);
     }
 
 

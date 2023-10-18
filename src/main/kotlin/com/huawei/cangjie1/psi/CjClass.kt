@@ -7,7 +7,7 @@ import com.huawei.cangjie1.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
-open class CjClass :CjClassOrObject{
+open class CjClass : CjClassOrObject {
     fun isInterface(): Boolean =
         _stub?.isInterface() ?: (findChildByType<PsiElement>(CjTokens.INTERFACE_KEYWORD) != null)
 
@@ -21,8 +21,14 @@ open class CjClass :CjClassOrObject{
         get() = TODO("Not yet implemented")
 
     override fun isLocal(): Boolean {
+
         TODO("Not yet implemented")
     }
+
+    override fun toString(): String {
+        return node.elementType.toString() + " : $name"
+    }
+
 
     override fun getSuperTypeListEntries(): MutableList<CjSuperTypeListEntry> {
         TODO("Not yet implemented")
