@@ -16,6 +16,9 @@ sourceSets {
 
             srcDirs("src/main/kotlin", "src/main/gen")
         }
+        kotlin{
+            srcDirs("testData/src/main/kotlin")
+        }
     }
 }
 
