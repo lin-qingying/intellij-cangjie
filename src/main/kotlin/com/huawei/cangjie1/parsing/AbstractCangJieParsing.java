@@ -47,6 +47,11 @@ abstract class AbstractCangJieParsing {
         this.isLazy = isLazy;
     }
 
+    /**
+     * »ñÈ¡±ê¼ÇÁ÷ÖĞµÄ×îºóÒ»¸ö±ê¼ÇÀàĞÍ
+     *
+     * @return
+     */
     protected IElementType getLastToken() {
         int i = 1;
         int currentOffset = myBuilder.getCurrentOffset();
@@ -56,18 +61,43 @@ abstract class AbstractCangJieParsing {
         return myBuilder.rawLookup(-i);
     }
 
+    /**
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÎªÖ¸¶¨µÄ CjToken ÀàĞÍ£¬²¢ÔÚ±ê¼Ç²»Æ¥ÅäÊ±±¨¸æ´íÎó
+     *
+     * @param expectation
+     * @param message
+     * @return
+     */
     protected boolean expect(CjToken expectation, String message) {
         return expect(expectation, message, null);
     }
 
+    /**
+     * ÔÚ±ê¼ÇÁ÷ÖĞ´´½¨Ò»¸ö±ê¼Ç£¬²¢·µ»Ø¸Ã±ê¼ÇµÄ PsiBuilder.Marker ¶ÔÏó
+     *
+     * @return
+     */
     protected PsiBuilder.Marker mark() {
         return myBuilder.mark();
     }
 
+    /**
+     * ±¨¸æ½âÎö´íÎó²¢Í£Ö¹½âÎö¹ı³Ì
+     *
+     * @param message
+     */
     protected void error(String message) {
         myBuilder.error(message);
     }
 
+    /**
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÎªÖ¸¶¨µÄ¸´ÔÓ±ê¼ÇÀàĞÍ£¬²¢ÔÚ±ê¼Ç²»Æ¥ÅäÊ±±¨¸æ´íÎó
+     *
+     * @param expectation
+     * @param message
+     * @param recoverySet
+     * @return
+     */
     protected boolean expect(CjToken expectation, String message, TokenSet recoverySet) {
         if (expect(expectation)) {
             return true;
@@ -78,9 +108,15 @@ abstract class AbstractCangJieParsing {
         return false;
     }
 
+    /**
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÎªÖ¸¶¨µÄ CjToken ÀàĞÍ£¬²¢ÔÚ±ê¼Ç²»Æ¥ÅäÊ±±¨¸æ´íÎó
+     *
+     * @param expectation
+     * @return
+     */
     protected boolean expect(CjToken expectation) {
         if (at(expectation)) {
-            advance(); // é¢„æœŸ
+            advance(); // Ô¤ÆÚ
             return true;
         }
 
@@ -91,15 +127,27 @@ abstract class AbstractCangJieParsing {
         return false;
     }
 
+    /**
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÎªÖ¸¶¨µÄ CjToken ÀàĞÍ£¬µ«²»»áÏûºÄ±ê¼ÇÁ÷ÖĞµÄ±ê¼Ç
+     *
+     * @param expectation
+     * @param message
+     */
     protected void expectNoAdvance(CjToken expectation, String message) {
         if (at(expectation)) {
-            advance(); // é¢„æœŸ
+            advance(); // Ô¤ÆÚ
             return;
         }
 
         error(message);
     }
 
+    /**
+     * ±¨¸æ½âÎö´íÎó²¢³¢ÊÔ»Ö¸´½âÎö¹ı³Ì
+     *
+     * @param message
+     * @param recoverySet
+     */
     protected void errorWithRecovery(String message, TokenSet recoverySet) {
         IElementType tt = tt();
         if (recoverySet == null ||
@@ -107,59 +155,108 @@ abstract class AbstractCangJieParsing {
                 tt == LBRACE || tt == RBRACE ||
                 (recoverySet.contains(EOL_OR_SEMICOLON) && (eof() || tt == SEMICOLON || myBuilder.newlineBeforeCurrentToken()))) {
             error(message);
-        }
-        else {
+        } else {
             errorAndAdvance(message);
         }
     }
 
+    /**
+     * ±¨¸æ½âÎö´íÎó²¢ÏûºÄµ±Ç°±ê¼Ç
+     *
+     * @param message
+     */
     protected void errorAndAdvance(String message) {
         errorAndAdvance(message, 1);
     }
 
+    /**
+     * ±¨¸æ½âÎö´íÎó²¢ÏûºÄÖ¸¶¨ÊıÁ¿µÄ±ê¼Ç
+     *
+     * @param message
+     * @param advanceTokenCount
+     */
     protected void errorAndAdvance(String message, int advanceTokenCount) {
         PsiBuilder.Marker err = mark();
         advance(advanceTokenCount);
         err.error(message);
     }
 
+
+
+
+
+    /**
+     * ÊÇ·ñµ½ÎÄ¼ş½áÎ²
+     *
+     * @return
+     */
     protected boolean eof() {
         return myBuilder.eof();
     }
 
+    /**
+     * ÍÆ½ø±ê¼ÇÁ÷²¢·µ»ØÏÂÒ»¸ö±ê¼Ç
+     */
     protected void advance() {
-        // TODO: å¦‚ä½•åœ¨é”™è¯¯å­—ç¬¦ä¸ŠæŠ¥å‘Šé”™è¯¯ï¼Ÿ(é™¤çªå‡ºæ˜¾ç¤ºå¤–)
+        // TODO: ÈçºÎÔÚ´íÎó×Ö·ûÉÏ±¨¸æ´íÎó£¿(³ıÍ»³öÏÔÊ¾Íâ)
         myBuilder.advanceLexer();
     }
 
+    /**
+     * ÍÆ½ø±ê¼ÇÁ÷²¢·µ»ØÏÂ  advanceTokenCount ¸ö±ê¼Ç
+     *
+     * @param advanceTokenCount
+     */
     protected void advance(int advanceTokenCount) {
         for (int i = 0; i < advanceTokenCount; i++) {
-            advance(); // é”™è¯¯çš„ä»¤ç‰Œ
+            advance(); // ´íÎóµÄÁîÅÆ
         }
     }
 
+    /**
+     * ÍÆ½ø±ê¼ÇÁ÷²¢·µ»ØÏÂÒ»¸öÖ¸¶¨ÀàĞÍµÄ±ê¼Ç
+     *
+     * @param current
+     */
     protected void advanceAt(IElementType current) {
         assert _at(current);
         myBuilder.advanceLexer();
     }
 
+    /**
+     * »ñÈ¡µ±Ç°±ê¼ÇµÄÀàĞÍid
+     *
+     * @return
+     */
     protected int getTokenId() {
         IElementType elementType = tt();
         return (elementType instanceof CjToken) ? ((CjToken) elementType).getTokenId() : INVALID_Id;
     }
 
+    /**
+     * »ñÈ¡µ±Ç°±ê¼ÇµÄÀàĞÍ
+     *
+     * @return
+     */
     protected IElementType tt() {
         return myBuilder.getTokenType();
     }
 
     /**
-     * æ— å‰¯ä½œç”¨ç‰ˆæœ¬çš„at()
+     * ÎŞ¸±×÷ÓÃ°æ±¾µÄat()
      */
     protected boolean _at(IElementType expectation) {
         IElementType token = tt();
         return tokenMatches(token, expectation);
     }
 
+    /**
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÓëÔ¤ÆÚ±ê¼ÇÆ¥Åä
+     *
+     * @param token
+     * @param expectation
+     * @return
+     */
     private boolean tokenMatches(IElementType token, IElementType expectation) {
         if (token == expectation) return true;
         if (expectation == EOL_OR_SEMICOLON) {
@@ -170,6 +267,12 @@ abstract class AbstractCangJieParsing {
         return false;
     }
 
+    /**
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÓëÔ¤ÆÚ±ê¼ÇÆ¥Åä
+     *
+     * @param expectation
+     * @return
+     */
     protected boolean at(IElementType expectation) {
         if (_at(expectation)) return true;
         IElementType token = tt();
@@ -189,7 +292,10 @@ abstract class AbstractCangJieParsing {
     }
 
     /**
-     * Side-effect-free version of atSet()
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÓëÔ¤ÆÚ±ê¼ÇÆ¥Åä
+     *
+     * @param set
+     * @return
      */
     protected boolean _atSet(TokenSet set) {
         IElementType token = tt();
@@ -202,6 +308,12 @@ abstract class AbstractCangJieParsing {
         return false;
     }
 
+    /**
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÓëÔ¤ÆÚ±ê¼ÇÆ¥Åä
+     *
+     * @param set
+     * @return
+     */
     protected boolean atSet(TokenSet set) {
         if (_atSet(set)) return true;
         IElementType token = tt();
@@ -211,8 +323,7 @@ abstract class AbstractCangJieParsing {
                 myBuilder.remapCurrentToken(keywordToken);
                 return true;
             }
-        }
-        else {
+        } else {
             // We know at this point that <code>set</code> does not contain <code>token</code>
             if (set.contains(IDENTIFIER) && token instanceof CjKeywordToken) {
                 if (((CjKeywordToken) token).isSoft()) {
@@ -224,10 +335,23 @@ abstract class AbstractCangJieParsing {
         return false;
     }
 
+    /**
+     * ²é¿´±ê¼ÇÁ÷ÖĞµÄÏÂ k ¸ö±ê¼Ç£¬¶ø²»»áÍÆ½ø±ê¼ÇÁ÷
+     *
+     * @param k
+     * @return
+     */
     protected IElementType lookahead(int k) {
+
         return myBuilder.lookAhead(k);
     }
 
+    /**
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÎªÖ¸¶¨µÄ¸´ÔÓ±ê¼Ç£¬²¢ÔÚ±ê¼ÇÆ¥ÅäÊ±ÍÆ½ø±ê¼ÇÁ÷
+     *
+     * @param token
+     * @return
+     */
     protected boolean consumeIf(CjToken token) {
         if (at(token)) {
             advance(); // token
@@ -236,7 +360,10 @@ abstract class AbstractCangJieParsing {
         return false;
     }
 
-    // TODO: Migrate to predicates
+    /**
+     * Ìø¹ı±ê¼ÇÁ÷ÖĞµÄ±ê¼Ç£¬Ö±µ½ÕÒµ½Ö¸¶¨µÄ±ê¼Ç¼¯ºÏÖĞµÄÈÎºÎÒ»¸ö±ê¼Ç
+     * @param tokenSet
+     */
     protected void skipUntil(TokenSet tokenSet) {
         boolean stopAtEolOrSemi = tokenSet.contains(EOL_OR_SEMICOLON);
         while (!eof() && !tokenSet.contains(tt()) && !(stopAtEolOrSemi && at(EOL_OR_SEMICOLON))) {
@@ -244,6 +371,13 @@ abstract class AbstractCangJieParsing {
         }
     }
 
+
+    /**
+     * ±¨¸æ½âÎö´íÎó²¢Ìø¹ı±ê¼ÇÁ÷ÖĞÖ¸¶¨µÄ±ê¼Ç¼¯ºÏ£¬Ö±µ½Óöµ½Ö¸¶¨µÄ±ê¼Ç¼¯ºÏÖĞµÄÈÎÒâÒ»¸ö±ê¼Ç
+     *
+     * @param message
+     * @param tokenSet
+     */
     protected void errorUntil(String message, TokenSet tokenSet) {
         assert tokenSet.contains(LBRACE) : "Cannot include LBRACE into error element!";
         assert tokenSet.contains(RBRACE) : "Cannot include RBRACE into error element!";
@@ -252,45 +386,77 @@ abstract class AbstractCangJieParsing {
         error.error(message);
     }
 
+    /**
+     * ÔÚÂú×ãÖ¸¶¨Ìõ¼şÊ±±¨¸æ½âÎö´íÎó
+     *
+     * @param marker
+     * @param condition
+     * @param message
+     */
     protected static void errorIf(PsiBuilder.Marker marker, boolean condition, String message) {
         if (condition) {
             marker.error(message);
-        }
-        else {
+        } else {
             marker.drop();
         }
     }
 
+    /**
+     * ±íÊ¾Ò»¸ö¿ÉÑ¡µÄ±ê¼Ç
+     */
     protected class OptionalMarker {
         private final PsiBuilder.Marker marker;
         private final int offset;
 
+        /**
+         * ´´½¨Ò»¸ö¿ÉÑ¡µÄ±ê¼Ç
+         *
+         * @param actuallyMark
+         */
         public OptionalMarker(boolean actuallyMark) {
             marker = actuallyMark ? mark() : null;
             offset = myBuilder.getCurrentOffset();
         }
 
+        /**
+         * ±ê¼Ç¿ÉÑ¡µÄÓï·¨µ¥ÔªÒÑ¾­½âÎöÍê³É£¬²¢½«Æä×ª»»ÎªÖ¸¶¨ÀàĞÍµÄÓï·¨µ¥Ôª
+         *
+         * @param elementType
+         */
         public void done(IElementType elementType) {
             if (marker == null) return;
             marker.done(elementType);
         }
 
+        /**
+         * ±¨¸æ½âÎö´íÎó
+         *
+         * @param message
+         */
         public void error(String message) {
             if (marker == null) return;
             if (offset == myBuilder.getCurrentOffset()) {
                 marker.drop(); // no empty errors
-            }
-            else {
+            } else {
                 marker.error(message);
             }
         }
 
+        /**
+         * ÓÃÓÚÉ¾³ıµ±Ç°Î»ÖÃµÄ±ê¼Ç
+         */
         public void drop() {
             if (marker == null) return;
             marker.drop();
         }
     }
 
+    /**
+     * Æ¥ÅäÖ¸¶¨µÄ±ê¼ÇÁ÷Ä£Ê½
+     *
+     * @param pattern
+     * @return
+     */
     protected int matchTokenStreamPredicate(TokenStreamPattern pattern) {
         PsiBuilder.Marker currentPosition = mark();
         Stack<IElementType> opens = new Stack<>();
@@ -348,10 +514,20 @@ abstract class AbstractCangJieParsing {
         return pattern.result();
     }
 
+    /**
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÎ»ÓÚĞĞÄ©
+     * @return
+     */
     protected boolean eol() {
         return myBuilder.newlineBeforeCurrentToken() || eof();
     }
 
+    /**
+     * ¹Ø±ÕÉùÃ÷²¢°ó¶¨×¢ÊÍ
+     * @param marker
+     * @param elementType
+     * @param precedingNonDocComments
+     */
     protected static void closeDeclarationWithCommentBinders(@NotNull PsiBuilder.Marker marker, @NotNull IElementType elementType, boolean precedingNonDocComments) {
         marker.done(elementType);
         marker.setCustomEdgeTokenBinders(precedingNonDocComments ? PrecedingCommentsBinder.INSTANCE : PrecedingDocCommentsBinder.INSTANCE,
@@ -404,6 +580,10 @@ abstract class AbstractCangJieParsing {
         }
     }
 
+    /**
+     * »ñÈ¡µ±Ç°½âÎöÉÏÏÂÎÄµÄ×Ö·û´®±íÊ¾
+     * @return
+     */
     @SuppressWarnings("UnusedDeclaration")
     @TestOnly
     public String currentContext() {

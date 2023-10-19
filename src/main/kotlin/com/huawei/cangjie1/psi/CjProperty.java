@@ -1,6 +1,7 @@
 package com.huawei.cangjie1.psi;
 
 import com.huawei.cangjie1.psi.stubs.CangJiePropertyStub;
+import com.huawei.cangjie1.psi.stubs.elements.CjStubElementTypes;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
@@ -17,8 +18,8 @@ public class CjProperty extends CjTypeParameterListOwnerStub<CangJiePropertyStub
 
     private static final Logger LOG = Logger.getInstance(CjProperty.class);
 
-    public CjProperty(@NotNull CangJiePropertyStub stub, @NotNull IStubElementType nodeType) {
-        super(stub, nodeType);
+    public CjProperty(@NotNull CangJiePropertyStub stub ) {
+        super(stub, CjStubElementTypes.PROPERTY);
     }
     public CjProperty(@NotNull ASTNode node) {
         super(node);
@@ -34,6 +35,12 @@ public class CjProperty extends CjTypeParameterListOwnerStub<CangJiePropertyStub
     @Override
     public CjParameterList getValueParameterList() {
         return null;
+    }
+
+
+    @Override
+    public String toString() {
+        return getNode().getElementType().toString();
     }
 
     @Override

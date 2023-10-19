@@ -12,6 +12,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 import com.huawei.cangjie1.psi.stubs.elements.CjStubElementTypes;
+
+
+/**
+ * 自定义类型  除了基本类型和数组类型，其他都是自定义类型
+ */
 public class CjUserType extends  CjElementImplStub<CangJieUserTypeStub> implements CjTypeElement{
 
 
@@ -38,6 +43,11 @@ public class CjUserType extends  CjElementImplStub<CangJieUserTypeStub> implemen
         // TODO: empty elements in PSI
         CjTypeArgumentList typeArgumentList = getTypeArgumentList();
         return typeArgumentList == null ? Collections.emptyList() : typeArgumentList.getArguments();
+    }
+
+    @Override
+    public String toString() {
+        return getNode().getElementType().toString();
     }
 
     @NotNull

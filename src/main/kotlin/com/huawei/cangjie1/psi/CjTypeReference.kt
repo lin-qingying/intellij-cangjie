@@ -29,8 +29,7 @@ class CjTypeReference : CjModifierListOwnerStub<CangJiePlaceHolderStub<CjTypeRef
     val typeElement: CjTypeElement?
         get() = CjStubbedPsiUtil.getStubOrPsiChild(this, CjTokenSets.TYPE_ELEMENT_TYPES, CjTypeElement.ARRAY_FACTORY)
 
-
-
+    override fun toString(): String = node.elementType.toString();
 
     fun hasParentheses(): Boolean {
         return findChildByType<PsiElement>(CjTokens.LPAR) != null && findChildByType<PsiElement>(CjTokens.RPAR) != null

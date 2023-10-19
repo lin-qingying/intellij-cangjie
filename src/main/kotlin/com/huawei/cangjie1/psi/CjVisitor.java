@@ -9,6 +9,13 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         visitElement(element);
         return null;
     }
+    public R visitSuperTypeEntry(@NotNull CjSuperTypeEntry specifier, D data) {
+        return visitSuperTypeListEntry(specifier, data);
+    }
+
+    public R visitSuperTypeCallEntry(@NotNull CjSuperTypeCallEntry call, D data) {
+        return visitSuperTypeListEntry(call, data);
+    }
 
     public R visitClassInitializer(@NotNull CjClassInitializer initializer, D data) {
         return visitAnonymousInitializer(initializer, data);
@@ -150,5 +157,21 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
 
     public R visitImportList(CjImportList cjImportList, D data) {
 return visitCjElement(cjImportList, data);
+    }
+
+    public R visitSuperTypeList(@NotNull CjSuperTypeList list, D data) {
+        return visitCjElement(list, data);
+    }
+
+    public R visitConstructorCalleeExpression(@NotNull CjConstructorCalleeExpression constructorCalleeExpression, D data) {
+        return visitCjElement(constructorCalleeExpression, data);
+    }
+
+    public R visitBasicType(CjBasicType cjBasicType, D data) {
+        return visitCjElement(cjBasicType, data);
+    }
+
+    public R visitKeyword(CjKeyword cjKeyword, D data) {
+        return visitCjElement(cjKeyword, data);
     }
 }

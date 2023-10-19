@@ -5,9 +5,11 @@ import com.huawei.cangjie1.CjNodeType
 import com.huawei.cangjie1.lexer.CangJieLexer
 import com.huawei.cangjie1.psi.stubs.elements.CjStubElementType
 import com.huawei.cangjie1.lang.CangJieLanguage
+import com.huawei.cangjie1.lexer.CjKeywordToken
 import com.huawei.cangjie1.psi.CjFile
 import com.huawei.cangjie1.lexer.CjToken
 import com.huawei.cangjie1.lexer.CjTokens
+import com.huawei.cangjie1.psi.CjKeyword
 import com.huawei.cangjie1.psi.stubs.elements.CjFileElementType
 import com.intellij.lang.ASTNode
 import com.intellij.lang.LanguageParserDefinitions
@@ -53,16 +55,22 @@ class CangJieParserDefinition : ParserDefinition {
     override fun createElement(node: ASTNode): PsiElement {
         val elementType = node.elementType
 
+
         return when (elementType) {
             is CjStubElementType<*, *> ->
                 elementType.createPsiFromAst(node)
             //TODO 代码片段类型元素
             //TODO 文档类型元素
+
+            //关键字
+
             else -> (elementType as CjNodeType).createPsi(node)
         }
     }
 
     override fun createFile(viewProvider: FileViewProvider): PsiFile = CjFile(viewProvider, false)
+
+
 
 
     object Util {

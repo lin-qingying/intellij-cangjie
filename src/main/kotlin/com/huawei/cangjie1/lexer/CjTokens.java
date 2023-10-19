@@ -116,7 +116,6 @@ public interface CjTokens {
     int MINUSEQ_Id = 91;
 
 
-
     int COMMA_Id = 96;
     int EOL_OR_SEMICOLON_Id = 97;
     int FILE_KEYWORD_Id = 98;
@@ -154,7 +153,23 @@ public interface CjTokens {
 
     int HASH_Id = 94;
     int MAIN_KEYWORD_Id = 149;
-    CjSingleValueToken HASH        = new CjSingleValueToken("HASH", "#", HASH_Id);
+
+    int INT8_Id = 150;
+    int INT16_Id = 151;
+    int INT32_Id = 152;
+    int INT64_Id = 153;
+    int UINT8_Id = 154;
+    int UINT16_Id = 155;
+    int UINT32_Id = 156;
+    int UINT64_Id = 157;
+    int FLOAT32_Id = 158;
+    int FLOAT64_Id = 159;
+    int BOOL_Id = 160;
+    int CHAR_Id = 161;
+    int UNIT_Id = 162;
+
+
+    CjSingleValueToken HASH = new CjSingleValueToken("HASH", "#", HASH_Id);
 
     CjToken EOF = new CjToken("EOF", EOF_Id);
 
@@ -183,7 +198,7 @@ public interface CjTokens {
 
     CjKeywordToken PACKAGE_KEYWORD = CjKeywordToken.keyword("package", PACKAGE_KEYWORD_Id);
     CjKeywordToken AS_KEYWORD = CjKeywordToken.keyword("as", AS_KEYWORD_Id);
-     CjKeywordToken CLASS_KEYWORD = CjKeywordToken.keyword("class", CLASS_KEYWORD_Id);
+    CjKeywordToken CLASS_KEYWORD = CjKeywordToken.keyword("class", CLASS_KEYWORD_Id);
     CjKeywordToken THIS_KEYWORD = CjKeywordToken.keyword("this", THIS_KEYWORD_Id);
     CjKeywordToken SUPER_KEYWORD = CjKeywordToken.keyword("super", SUPER_KEYWORD_Id);
     CjKeywordToken LET_KEYWORD = CjKeywordToken.keyword("let", LET_KEYWORD_Id);
@@ -237,19 +252,19 @@ public interface CjTokens {
     CjSingleValueToken GT = new CjSingleValueToken("GT", ">", GT_Id);
     CjSingleValueToken LTEQ = new CjSingleValueToken("LTEQ", "<=", LTEQ_Id);
     CjSingleValueToken GTEQ = new CjSingleValueToken("GTEQ", ">=", GTEQ_Id);
-      CjSingleValueToken ARROW = new CjSingleValueToken("ARROW", "->", ARROW_Id);
+    CjSingleValueToken ARROW = new CjSingleValueToken("ARROW", "->", ARROW_Id);
     CjSingleValueToken DOUBLE_ARROW = new CjSingleValueToken("DOUBLE_ARROW", "=>", DOUBLE_ARROW_Id);
-      CjSingleValueToken EQEQ = new CjSingleValueToken("EQEQ", "==", EQEQ_Id);
+    CjSingleValueToken EQEQ = new CjSingleValueToken("EQEQ", "==", EQEQ_Id);
     CjSingleValueToken EXCLEQ = new CjSingleValueToken("EXCLEQ", "!=", EXCLEQ_Id);
-     CjSingleValueToken ANDAND = new CjSingleValueToken("ANDAND", "&&", ANDAND_Id);
+    CjSingleValueToken ANDAND = new CjSingleValueToken("ANDAND", "&&", ANDAND_Id);
     CjSingleValueToken AND = new CjSingleValueToken("AND", "&", AND_Id);
     CjSingleValueToken OROR = new CjSingleValueToken("OROR", "||", OROR_Id);
-      CjSingleValueToken QUEST = new CjSingleValueToken("QUEST", "?", QUEST_Id);
-     CjSingleValueToken COLON = new CjSingleValueToken("COLON", ":", COLON_Id);
+    CjSingleValueToken QUEST = new CjSingleValueToken("QUEST", "?", QUEST_Id);
+    CjSingleValueToken COLON = new CjSingleValueToken("COLON", ":", COLON_Id);
     CjSingleValueToken SEMICOLON = new CjSingleValueToken("SEMICOLON", ";", SEMICOLON_Id);
     CjSingleValueToken DOUBLE_SEMICOLON = new CjSingleValueToken("DOUBLE_SEMICOLON", ";;", DOUBLE_SEMICOLON_Id);
     CjSingleValueToken RANGE = new CjSingleValueToken("RANGE", "..", RANGE_Id);
-       CjSingleValueToken EQ = new CjSingleValueToken("EQ", "=", EQ_Id);
+    CjSingleValueToken EQ = new CjSingleValueToken("EQ", "=", EQ_Id);
     CjSingleValueToken MULTEQ = new CjSingleValueToken("MULTEQ", "*=", MULTEQ_Id);
     CjSingleValueToken DIVEQ = new CjSingleValueToken("DIVEQ", "/=", DIVEQ_Id);
     CjSingleValueToken PERCEQ = new CjSingleValueToken("PERCEQ", "%=", PERCEQ_Id);
@@ -274,6 +289,22 @@ public interface CjTokens {
     CjKeywordToken CONSTRUCTOR_KEYWORD = CjKeywordToken.softKeyword("constructor", CONSTRUCTOR_KEYWORD_Id);
     CjKeywordToken INIT_KEYWORD = CjKeywordToken.softKeyword("init", INIT_KEYWORD_Id);
 
+
+    CjKeywordToken INT8_KEYWORD = CjKeywordToken.keyword("Int8", INT8_Id);
+    CjKeywordToken INT16_KEYWORD = CjKeywordToken.keyword("Int16", INT16_Id);
+    CjKeywordToken INT32_KEYWORD = CjKeywordToken.keyword("Int32", INT32_Id);
+    CjKeywordToken INT64_KEYWORD = CjKeywordToken.keyword("Int64", INT64_Id);
+    CjKeywordToken UINT8_KEYWORD = CjKeywordToken.keyword("UInt8", UINT8_Id);
+    CjKeywordToken UINT16_KEYWORD = CjKeywordToken.keyword("UInt16", UINT16_Id);
+    CjKeywordToken UINT32_KEYWORD = CjKeywordToken.keyword("UInt32", UINT32_Id);
+    CjKeywordToken UINT64_KEYWORD = CjKeywordToken.keyword("UInt64", UINT64_Id);
+    CjKeywordToken FLOAT32_KEYWORD = CjKeywordToken.keyword("Float32", FLOAT32_Id);
+    CjKeywordToken FLOAT64_KEYWORD = CjKeywordToken.keyword("Float64", FLOAT64_Id);
+    CjKeywordToken BOOL_KEYWORD = CjKeywordToken.keyword("Bool", BOOL_Id);
+    CjKeywordToken CHAR_KEYWORD = CjKeywordToken.keyword("Char", CHAR_Id);
+    CjKeywordToken UNIT_KEYWORD = CjKeywordToken.keyword("Unit", UNIT_Id);
+
+
     CjModifierKeywordToken ABSTRACT_KEYWORD = CjModifierKeywordToken.softKeywordModifier("abstract", ABSTRACT_KEYWORD_Id);
     CjModifierKeywordToken ENUM_KEYWORD = CjModifierKeywordToken.softKeywordModifier("enum", ENUM_KEYWORD_Id);
     CjModifierKeywordToken OPEN_KEYWORD = CjModifierKeywordToken.softKeywordModifier("opwen", OPEN_KEYWORD_Id);
@@ -286,41 +317,36 @@ public interface CjTokens {
     CjKeywordToken CATCH_KEYWORD = CjKeywordToken.softKeyword("catch", CATCH_KEYWORD_Id);
 
 
-
-
     CjModifierKeywordToken DEFAULT_VISIBILITY_KEYWORD = PUBLIC_KEYWORD;
 
     CjKeywordToken FINALLY_KEYWORD = CjKeywordToken.softKeyword("finally", FINALLY_KEYWORD_Id);
 
 
-
-
     CjModifierKeywordToken OPERATOR_KEYWORD = CjModifierKeywordToken.softKeywordModifier("operator", OPERATOR_KEYWORD_Id);
-
-
-
 
 
     TokenSet KEYWORDS = TokenSet.create(PACKAGE_KEYWORD, AS_KEYWORD, CLASS_KEYWORD, INTERFACE_KEYWORD,
             THIS_KEYWORD, SUPER_KEYWORD, LET_KEYWORD, VAR_KEYWORD, FUNC_KEYWORD, FOR_KEYWORD,
-MAIN_KEYWORD,
+            MAIN_KEYWORD,
             TRUE_KEYWORD, FALSE_KEYWORD, IS_KEYWORD,
             IN_KEYWORD, THROW_KEYWORD, RETURN_KEYWORD, BREAK_KEYWORD, CONTINUE_KEYWORD, IF_KEYWORD,
             ELSE_KEYWORD, WHILE_KEYWORD, DO_KEYWORD, TRY_KEYWORD, MATCH_KEYWORD, AS_SAFE,
-            TYPEOF_KEYWORD
+            TYPEOF_KEYWORD,
+            INT8_KEYWORD, INT16_KEYWORD, INT32_KEYWORD, INT64_KEYWORD, UINT8_KEYWORD, UINT16_KEYWORD, UINT32_KEYWORD, UINT64_KEYWORD, FLOAT32_KEYWORD, FLOAT64_KEYWORD, BOOL_KEYWORD, CHAR_KEYWORD, UNIT_KEYWORD
     );
 
     TokenSet SOFT_KEYWORDS = TokenSet.create(FILE_KEYWORD, IMPORT_KEYWORD, WHERE_KEYWORD, BY_KEYWORD, GET_KEYWORD,
+
             SET_KEYWORD, ABSTRACT_KEYWORD, ENUM_KEYWORD, OPEN_KEYWORD,
             OVERRIDE_KEYWORD, PRIVATE_KEYWORD, PUBLIC_KEYWORD, PROTECTED_KEYWORD,
             CATCH_KEYWORD, FINALLY_KEYWORD,
-          CONSTRUCTOR_KEYWORD, INIT_KEYWORD,
+            CONSTRUCTOR_KEYWORD, INIT_KEYWORD,
             FIELD_KEYWORD, PROPERTY_KEYWORD, RECEIVER_KEYWORD, PARAM_KEYWORD, SETPARAM_KEYWORD,
             DELEGATE_KEYWORD,
 
-
-          OPERATOR_KEYWORD
+            OPERATOR_KEYWORD
     );
+
 
     /*
         This array is used in stub serialization:
@@ -333,7 +359,7 @@ MAIN_KEYWORD,
                     PUBLIC_KEYWORD, PROTECTED_KEYWORD, IN_KEYWORD,
 
 
-                   OPERATOR_KEYWORD,
+                    OPERATOR_KEYWORD,
                     FUNC_KEYWORD, MAIN_KEYWORD
             };
 
@@ -342,8 +368,8 @@ MAIN_KEYWORD,
 
     TokenSet TYPE_ARGUMENT_MODIFIER_KEYWORDS = TokenSet.create(IN_KEYWORD);
 
-    TokenSet VISIBILITY_MODIFIERS = TokenSet.create(PRIVATE_KEYWORD, PUBLIC_KEYWORD,  PROTECTED_KEYWORD);
-    TokenSet MODALITY_MODIFIERS = TokenSet.create(ABSTRACT_KEYWORD,  OPEN_KEYWORD);
+    TokenSet VISIBILITY_MODIFIERS = TokenSet.create(PRIVATE_KEYWORD, PUBLIC_KEYWORD, PROTECTED_KEYWORD);
+    TokenSet MODALITY_MODIFIERS = TokenSet.create(ABSTRACT_KEYWORD, OPEN_KEYWORD);
 
     TokenSet WHITESPACES = TokenSet.create(TokenType.WHITE_SPACE);
 
@@ -363,4 +389,9 @@ MAIN_KEYWORD,
     TokenSet ALL_ASSIGNMENTS = TokenSet.create(EQ, PLUSEQ, MINUSEQ, MULTEQ, PERCEQ, DIVEQ);
     TokenSet INCREMENT_AND_DECREMENT = TokenSet.create(PLUSPLUS, MINUSMINUS);
 
+
+    //基本类型
+    TokenSet BASICTYPES = TokenSet.create(
+            INT8_KEYWORD, INT16_KEYWORD, INT32_KEYWORD, INT64_KEYWORD, UINT8_KEYWORD, UINT16_KEYWORD, UINT32_KEYWORD, UINT64_KEYWORD, FLOAT32_KEYWORD, FLOAT64_KEYWORD, BOOL_KEYWORD, CHAR_KEYWORD, UNIT_KEYWORD
+    );
 }

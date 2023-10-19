@@ -10,5 +10,5 @@ import com.intellij.psi.stubs.StubElement
 
 class CangJieBasicTypeStubImpl(
     parent: StubElement<out PsiElement>?
-) :CangJieStubBaseImpl<CjBasicType>(parent, CjStubElementTypes.USER_TYPE),
+) :CangJieStubBaseImpl<CjBasicType>(parent, CjStubElementTypes.BASIC_TYPE),
     CangJieBasicTypeStub

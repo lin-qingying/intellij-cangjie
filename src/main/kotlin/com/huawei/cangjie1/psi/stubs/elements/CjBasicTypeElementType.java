@@ -36,11 +36,12 @@ public class CjBasicTypeElementType extends CjStubElementType<CangJieBasicTypeSt
 
     @Override
     public void serialize(@NotNull CangJieBasicTypeStub stub, @NotNull StubOutputStream dataStream) throws IOException {
+dataStream.writeName(getDebugName());
 
     }
 
     @Override
     public @NotNull CangJieBasicTypeStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-        return null;
+        return new CangJieBasicTypeStubImpl(parentStub);
     }
 }

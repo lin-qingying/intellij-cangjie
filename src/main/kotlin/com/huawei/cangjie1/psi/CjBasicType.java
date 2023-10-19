@@ -2,7 +2,7 @@ package com.huawei.cangjie1.psi;
 
 import com.google.common.collect.Lists;
 import com.huawei.cangjie1.psi.stubs.CangJieBasicTypeStub;
-import com.huawei.cangjie1.psi.stubs.CangJieUserTypeStub;
+
 import com.huawei.cangjie1.psi.stubs.elements.CjStubElementTypes;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElementVisitor;
@@ -25,6 +25,10 @@ public class CjBasicType extends CjElementImplStub<CangJieBasicTypeStub> impleme
         super(stub, CjStubElementTypes.BASIC_TYPE);
     }
 
+    @Override
+    public String toString() {
+        return  getNode().getElementType().toString();
+    }
 
     @Override
     public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {

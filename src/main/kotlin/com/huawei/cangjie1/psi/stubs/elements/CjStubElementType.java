@@ -43,6 +43,7 @@ public abstract    class CjStubElementType<StubT extends StubElement<?>, PsiT ex
     }
 
 
+
     @NotNull
     public PsiT createPsiFromAst(@NotNull ASTNode node) {
         return ReflectionUtil.createInstance(byNodeConstructor, node);

@@ -12,6 +12,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.huawei.cangjie1.psi.psiUtil.CjPsiUtilKt;
 public class CjPsiUtil {
+
+
+    public static boolean isLocal(@NotNull CjDeclaration declaration) {
+        return getEnclosingElementForLocalDeclaration(declaration) != null;
+    }
+    @Nullable
+    public static CjElement getEnclosingElementForLocalDeclaration(@NotNull CjDeclaration declaration) {
+        return getEnclosingElementForLocalDeclaration(declaration, true);
+    }
     @NotNull
     public static String unquoteIdentifierOrFieldReference(@NotNull String quoted) {
         if (quoted.indexOf('`') < 0) {

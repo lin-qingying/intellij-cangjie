@@ -29,15 +29,14 @@ interface CangJieValueArgumentStub<T : CjValueArgument> : CangJiePlaceHolderStub
     fun isSpread(): Boolean
 }
 interface CangJieUserTypeStub : StubElement<CjUserType>
-
+interface CangJieBasicTypeStub : StubElement<CjBasicType>
 
 interface CangJieClassifierStub {
     fun getClassId(): ClassId?
 }
 interface CangJiePropertyStub : CangJieCallableStubBase<CjProperty> {
     fun isVar(): Boolean
-    fun hasDelegate(): Boolean
-    fun hasDelegateExpression(): Boolean
+
     fun hasInitializer(): Boolean
     fun hasReturnTypeRef(): Boolean
 }

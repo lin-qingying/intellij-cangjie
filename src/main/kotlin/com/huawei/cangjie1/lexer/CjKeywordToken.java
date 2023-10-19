@@ -1,13 +1,14 @@
 package com.huawei.cangjie1.lexer;
 
 
+import com.huawei.cangjie1.psi.CjElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class CjKeywordToken extends CjSingleValueToken {
+public class CjKeywordToken extends CjSingleValueToken  {
 
     /**
-     * ç”Ÿæˆå…³é”®å­—(åœ¨æ‰€æœ‰å¯èƒ½çš„ä¸Šä¸‹æ–‡ä¸­å…·æœ‰å…³é”®å­—å«ä¹‰çš„æ ‡è¯†ç¬¦)
+     * Éú³É¹Ø¼ü×Ö(ÔÚËùÓĞ¿ÉÄÜµÄÉÏÏÂÎÄÖĞ¾ßÓĞ¹Ø¼ü×Öº¬ÒåµÄ±êÊ¶·û)
      */
     @Deprecated
     public static CjKeywordToken keyword(String value) {
@@ -44,6 +45,8 @@ public class CjKeywordToken extends CjSingleValueToken {
         super(debugName, value);
         myIsSoft = isSoft;
     }
+
+
 
     protected CjKeywordToken(@NotNull @NonNls String debugName, @NotNull @NonNls String value, boolean isSoft, int tokenId) {
         super(debugName, value, tokenId);

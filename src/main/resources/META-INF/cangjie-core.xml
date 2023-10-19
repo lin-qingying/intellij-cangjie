@@ -59,6 +59,12 @@
         <projectService serviceInterface="com.huawei.cangjie1.psi.CjFileClassProvider"
                         serviceImplementation="com.huawei.cangjie1.psi.CjFileClassProviderImpl"/>
 
+
+        <completion.contributor
+                language="CangJie"
+
+                implementationClass="com.huawei.cangjie1.idea.completion.CangJieCompletionContributor"/>
+
 <!--        <applicationService serviceInterface="com.huawei.cangjie1.psi.CangJieDeclarationNavigationPolicy"-->
 <!--                        serviceImplementation="com.huawei.cangjie1.psi.CangJieDeclarationNavigationPolicyImpl"/>-->
 

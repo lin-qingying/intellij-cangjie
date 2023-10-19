@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import static com.huawei.cangjie1.psi.stubs.elements.CjStubElementTypes.*;
 
 public interface  CjTokenSets {
+     TokenSet SUPER_TYPE_LIST_ENTRIES = TokenSet.create(  SUPER_TYPE_CALL_ENTRY, SUPER_TYPE_ENTRY);
 
      TokenSet DECLARATION_TYPES =
              TokenSet.create(CLASS );

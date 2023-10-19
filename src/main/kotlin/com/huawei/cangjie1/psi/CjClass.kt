@@ -2,6 +2,7 @@ package com.huawei.cangjie1.psi
 
 import com.huawei.cangjie1.lexer.CjTokens
 import com.huawei.cangjie1.name.ClassId
+import com.huawei.cangjie1.psi.psiUtil.ClassIdCalculator
 import com.huawei.cangjie1.psi.stubs.CangJieClassStub
 import com.huawei.cangjie1.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
@@ -18,21 +19,18 @@ open class CjClass : CjClassOrObject {
     constructor(stub: CangJieClassStub) : super(stub, CjStubElementTypes.CLASS)
 
     override val declarations: List<CjDeclaration>
-        get() = TODO("Not yet implemented")
+        get() =  getBody()?.declarations.orEmpty()
 
-    override fun isLocal(): Boolean {
-
-        TODO("Not yet implemented")
-    }
+    override fun isLocal(): Boolean  = stub?.isLocal() ?: CjPsiUtil.isLocal(this)
+    override fun getSuperTypeListEntries(): List<CjSuperTypeListEntry> = getSuperTypeList()?.entries.orEmpty()
+    fun getSuperTypeList(): CjSuperTypeList? = getStubOrPsiChild(CjStubElementTypes.SUPER_TYPE_LIST)
 
     override fun toString(): String {
         return node.elementType.toString() + " : $name"
     }
 
 
-    override fun getSuperTypeListEntries(): MutableList<CjSuperTypeListEntry> {
-        TODO("Not yet implemented")
-    }
+
 
     override fun hasExplicitPrimaryConstructor(): Boolean {
         TODO("Not yet implemented")
@@ -62,11 +60,11 @@ open class CjClass : CjClassOrObject {
         TODO("Not yet implemented")
     }
 
-    override fun getBody(): CjClassBody? {
-        TODO("Not yet implemented")
+    override fun getBody(): CjClassBody?  = getStubOrPsiChild(CjStubElementTypes.CLASS_BODY)
+
+    override fun getClassId(): ClassId?  {
+        stub?.let { return it.getClassId() }
+        return ClassIdCalculator.calculateClassId(this)
     }
 
-    override fun getClassId(): ClassId? {
-        TODO("Not yet implemented")
-    }
 }

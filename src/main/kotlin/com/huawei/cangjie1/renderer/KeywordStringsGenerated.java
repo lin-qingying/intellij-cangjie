@@ -11,15 +11,13 @@ import java.util.Set;
     public static final Set<String> KEYWORDS = new HashSet<String>(Arrays.asList(
         "package",
         "as",
-        "typealias",
         "class",
         "this",
         "super",
-        "val",
+        "let",
         "var",
-        "fun",
+        "func",
         "for",
-        "null",
         "true",
         "false",
         "is",
@@ -28,14 +26,15 @@ import java.util.Set;
         "return",
         "break",
         "continue",
-        "object",
         "if",
         "try",
         "else",
         "while",
         "do",
-        "when",
+        "match",
         "interface",
-        "typeof"
+            "from",
+            "import"
+
     ));
 }
