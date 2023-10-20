@@ -40,7 +40,7 @@
 
         <fileType name="CangJie"
                   language="CangJie"
-                  implementationClass="com.huawei.cangjie1.lang.CangJieFileType"
+                  implementationClass="com.huawei.cangjie.lang.CangJieFileType"
                   extensions="cj"
                   fieldName="INSTANCE"/>
                 <internalFileTemplate name="CangJie File"/>
@@ -48,25 +48,27 @@
 
 
                 <lang.parserDefinition language="CangJie"
-                                       implementationClass="com.huawei.cangjie1.parsing.CangJieParserDefinition"/>
+                                       implementationClass="com.huawei.cangjie.parsing.CangJieParserDefinition"/>
 
-                <stubElementTypeHolder class="com.huawei.cangjie1.psi.stubs.elements.CjStubElementTypes"
+                <stubElementTypeHolder class="com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes"
                                        externalIdPrefix="cangjie."/>
 
 
         <!--        服务注册  cangjie1包-->
 
-        <projectService serviceInterface="com.huawei.cangjie1.psi.CjFileClassProvider"
-                        serviceImplementation="com.huawei.cangjie1.psi.CjFileClassProviderImpl"/>
+<!--        <projectService serviceInterface="com.huawei.cangjie.psi.CjFileClassProvider"-->
+<!--                        serviceImplementation="com.huawei.cangjie.psi.CjFileClassProviderImpl"/>-->
 
-
+        <applicationService
+                serviceInterface="com.huawei.cangjie.psi.stubs.elements.StubIndexService"
+                serviceImplementation="com.huawei.cangjie.idea.stubindex.IdeStubIndexService"/>
         <completion.contributor
                 language="CangJie"
 
-                implementationClass="com.huawei.cangjie1.idea.completion.CangJieCompletionContributor"/>
+                implementationClass="com.huawei.cangjie.idea.completion.CangJieCompletionContributor"/>
 
-<!--        <applicationService serviceInterface="com.huawei.cangjie1.psi.CangJieDeclarationNavigationPolicy"-->
-<!--                        serviceImplementation="com.huawei.cangjie1.psi.CangJieDeclarationNavigationPolicyImpl"/>-->
+<!--        <applicationService serviceInterface="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicy"-->
+<!--                        serviceImplementation="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>-->
 
  </extensions>
 

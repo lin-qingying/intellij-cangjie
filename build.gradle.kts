@@ -65,16 +65,15 @@ intellij {
 
 
 }
-
-val intellijVersion ="213.7172.25"
+//jar {
+//    from {
+//        configurations.compileClasspath.filter { it.name.startsWith('java-psi-') }.collect { it.isDirectory() ? it : zipTree(it) }
+//    }
+//}
+val intellijVersion ="232.*"
 dependencies{
-    api("com.jetbrains.intellij.java:java-psi-impl:$intellijVersion") { isTransitive = false }
-
-
-
-
-
-    api("com.jetbrains.intellij.java:java-psi:$intellijVersion") { isTransitive = false }
+//    api("com.jetbrains.intellij.java:java-psi-impl:$intellijVersion") { isTransitive = true }
+//    api("com.jetbrains.intellij.java:java-psi:$intellijVersion") { isTransitive = true }
 }
 
 

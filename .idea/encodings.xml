@@ -3,8 +3,11 @@
   <component name="Encoding" defaultCharsetForPropertiesFiles="UTF-8">
     <file url="file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CjKeywordToken.java" charset="GBK" />
     <file url="file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CjModifierKeywordToken.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/name/FqNameUnsafe.java" charset="GBK" />
     <file url="file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/AbstractCangJieParsing.java" charset="GBK" />
     <file url="file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParsing.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjBasicType.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjPsiUtil.java" charset="GBK" />
     <file url="file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjUserType.java" charset="GBK" />
     <file url="PROJECT" charset="UTF-8" />
   </component>
