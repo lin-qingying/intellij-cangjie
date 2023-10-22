@@ -14,6 +14,8 @@ public interface CjNodeTypes {
     IElementType VALUE_PARAMETER_LIST = CjStubElementTypes.VALUE_PARAMETER_LIST;
     IElementType VALUE_PARAMETER = CjStubElementTypes.VALUE_PARAMETER;
     IElementType CLASS = CjStubElementTypes.CLASS;
+    IElementType INTERFACE = CjStubElementTypes.INTERFACE;
+    IElementType STRUCT = CjStubElementTypes.STRUCT;
     IElementType PROPERTY = CjStubElementTypes.PROPERTY;
     IElementType MAIN_FUNC = CjStubElementTypes.MAIN_FUNC;
     IElementType FUNC = CjStubElementTypes.FUNCTION;
@@ -36,4 +38,9 @@ public interface CjNodeTypes {
     IElementType TYPE_PARAMETER = CjStubElementTypes.TYPE_PARAMETER;
     IElementType SUPER_TYPE_LIST                    = CjStubElementTypes.SUPER_TYPE_LIST;
     IElementType TYPE_CONSTRAINT = CjStubElementTypes.TYPE_CONSTRAINT;
+    IElementType IMPORT_LIST                        = CjStubElementTypes.IMPORT_LIST;
+    IElementType DOT_QUALIFIED_EXPRESSION  = CjStubElementTypes.DOT_QUALIFIED_EXPRESSION;
+
+    IElementType IMPORT_ALIAS                       = CjStubElementTypes.IMPORT_ALIAS;
+    IElementType IMPORT_DIRECTIVE                   = CjStubElementTypes.IMPORT_DIRECTIVE;
 }

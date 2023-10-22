@@ -112,6 +112,7 @@ public interface CjTokens {
     int SETPARAM_KEYWORD_Id = 103;
     int DELEGATE_KEYWORD_Id = 104;
     int IMPORT_KEYWORD_Id = 105;
+
     int WHERE_KEYWORD_Id = 106;
     int BY_KEYWORD_Id = 107;
     int GET_KEYWORD_Id = 108;
@@ -154,7 +155,10 @@ public interface CjTokens {
     int CHAR_Id = 161;
     int UNIT_Id = 162;
 
+    int STRUCT_KEYWORD_Id = 117;
     int LTCOLON_Id = 163;
+
+    int FROM_KEYWORD_Id = 164;
     CjSingleValueToken HASH = new CjSingleValueToken("HASH", "#", HASH_Id);
 
     CjToken EOF = new CjToken("EOF", EOF_Id);
@@ -185,6 +189,7 @@ public interface CjTokens {
     CjKeywordToken PACKAGE_KEYWORD = CjKeywordToken.keyword("package", PACKAGE_KEYWORD_Id);
     CjKeywordToken AS_KEYWORD = CjKeywordToken.keyword("as", AS_KEYWORD_Id);
     CjKeywordToken CLASS_KEYWORD = CjKeywordToken.keyword("class", CLASS_KEYWORD_Id);
+    CjKeywordToken STRUCT_KEYWORD = CjKeywordToken.keyword("struct", STRUCT_KEYWORD_Id);
     CjKeywordToken THIS_KEYWORD = CjKeywordToken.keyword("this", THIS_KEYWORD_Id);
     CjKeywordToken SUPER_KEYWORD = CjKeywordToken.keyword("super", SUPER_KEYWORD_Id);
     CjKeywordToken LET_KEYWORD = CjKeywordToken.keyword("let", LET_KEYWORD_Id);
@@ -269,6 +274,7 @@ public interface CjTokens {
     CjKeywordToken SETPARAM_KEYWORD = CjKeywordToken.softKeyword("setparam", SETPARAM_KEYWORD_Id);
     CjKeywordToken DELEGATE_KEYWORD = CjKeywordToken.softKeyword("delegate", DELEGATE_KEYWORD_Id);
     CjKeywordToken IMPORT_KEYWORD = CjKeywordToken.softKeyword("import", IMPORT_KEYWORD_Id);
+    CjKeywordToken FROM_KEYWORD = CjKeywordToken.softKeyword("from", FROM_KEYWORD_Id);
     CjKeywordToken WHERE_KEYWORD = CjKeywordToken.softKeyword("where", WHERE_KEYWORD_Id);
     CjKeywordToken BY_KEYWORD = CjKeywordToken.softKeyword("by", BY_KEYWORD_Id);
     CjKeywordToken GET_KEYWORD = CjKeywordToken.softKeyword("get", GET_KEYWORD_Id);
@@ -314,7 +320,7 @@ public interface CjTokens {
 
     TokenSet KEYWORDS = TokenSet.create(PACKAGE_KEYWORD, AS_KEYWORD, CLASS_KEYWORD, INTERFACE_KEYWORD,
             THIS_KEYWORD, SUPER_KEYWORD, LET_KEYWORD, VAR_KEYWORD, FUNC_KEYWORD, FOR_KEYWORD,
-            MAIN_KEYWORD,
+            MAIN_KEYWORD, STRUCT_KEYWORD,
             TRUE_KEYWORD, FALSE_KEYWORD, IS_KEYWORD,
             IN_KEYWORD, THROW_KEYWORD, RETURN_KEYWORD, BREAK_KEYWORD, CONTINUE_KEYWORD, IF_KEYWORD,
             ELSE_KEYWORD, WHILE_KEYWORD, DO_KEYWORD, TRY_KEYWORD, MATCH_KEYWORD, AS_SAFE,

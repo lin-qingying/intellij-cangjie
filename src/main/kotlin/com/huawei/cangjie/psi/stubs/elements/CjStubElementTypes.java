@@ -24,6 +24,10 @@ public interface CjStubElementTypes {
     CjTypeProjectionElementType TYPE_PROJECTION = new CjTypeProjectionElementType("TYPE_PROJECTION");
     CjParameterElementType VALUE_PARAMETER = new CjParameterElementType("VALUE_PARAMETER");
     CjClassElementType CLASS = new CjClassElementType("CLASS");
+
+    CjInterfaceElementType INTERFACE = new CjInterfaceElementType("INTERFACE");
+
+    CjStructElementType STRUCT = new CjStructElementType("STRUCT");
     CjPlaceHolderStubElementType<CjImportList> IMPORT_LIST =
             new CjPlaceHolderStubElementType<>("IMPORT_LIST", CjImportList.class);
     CjPlaceHolderStubElementType<CjTypeArgumentList> TYPE_ARGUMENT_LIST =

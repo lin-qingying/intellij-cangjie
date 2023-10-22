@@ -7,13 +7,14 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.huawei.cangjie.CjNodeTypes.*;
 import static com.huawei.cangjie.lexer.CjTokens.*;
 
 
 public class CangJieParsing extends AbstractCangJieParsing {
-    public static final TokenSet PARAMETER_NAME_RECOVERY_SET = TokenSet.create(COLON, EQ, COMMA, RPAR );
+    public static final TokenSet PARAMETER_NAME_RECOVERY_SET = TokenSet.create(COLON, EQ, COMMA, RPAR);
     private static final TokenSet GT_COMMA_COLON_SET = TokenSet.create(GT, COMMA, COLON);
     private static final Logger LOG = Logger.getInstance(CangJieParsing.class);
     private static final TokenSet TOP_LEVEL_DECLARATION_FIRST = TokenSet.create(INTERFACE_KEYWORD, CLASS_KEYWORD, FUNC_KEYWORD, LET_KEYWORD, PACKAGE_KEYWORD);
@@ -57,6 +58,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private static final TokenSet definitelyOutOfReceiverSet = TokenSet.orSet(TokenSet.create(EQ, COLON, LBRACE, RBRACE, BY_KEYWORD), TOP_LEVEL_DECLARATION_FIRST);
     private final static TokenSet EOL_OR_SEMICOLON_RBRACE_SET = TokenSet.create(EOL_OR_SEMICOLON, RBRACE);
     private final static TokenSet CLASS_INTERFACE_SET = TokenSet.create(CLASS_KEYWORD, INTERFACE_KEYWORD);
+    private final static TokenSet CLASS_INTERFACE_STRUCT_SET = TokenSet.create(CLASS_KEYWORD, INTERFACE_KEYWORD, STRUCT_KEYWORD);
+
+    private  final  static  TokenSet IDENTIFIER_DOT_MUL_SET = TokenSet.create(IDENTIFIER,DOT,MUL);
+
+    private  final  static  TokenSet DOT_MUL_SET = TokenSet.create(DOT,MUL);
+    private final static TokenSet FROM_IMPORT_SET = TokenSet.create(FROM_KEYWORD, IMPORT_KEYWORD);
 
     private CangJieParsing(SemanticWhitespaceAwarePsiBuilder builder, boolean isTopLevel, boolean isLazy) {
         super(builder, isLazy);
@@ -103,7 +110,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     void parseBlockExpression() {
-        parseBlock( false);
+        parseBlock(false);
     }
 
     /*
@@ -132,7 +139,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
             //TODO 处理包名
-//            parsePackageName();
+            parsePackageName();
 
             firstEntry.drop();
 
@@ -152,8 +159,195 @@ public class CangJieParsing extends AbstractCangJieParsing {
             packageDirective.setCustomEdgeTokenBinders(BindFirstShebangWithWhitespaceOnly.INSTANCE, null);
 
         }
+        parseImportDirectives();
+    }
+
+    private void parseImportDirectives() {
+        PsiBuilder.Marker importList = mark();
+
+        while (atSet(FROM_IMPORT_SET)) {
+            parseImportDirective();
+        }
+        importList.done(IMPORT_LIST);
+    }
+
+    private boolean closeImportWithErrorIfNewline(
+            PsiBuilder.Marker importDirective, @Nullable PsiBuilder.Marker importAlias, String errorMessage
+    ) {
+        if (myBuilder.newlineBeforeCurrentToken()) {
+            if (importAlias != null) {
+                importAlias.done(IMPORT_ALIAS);
+            }
+            error(errorMessage);
+            importDirective.done(IMPORT_DIRECTIVE);
+            return true;
+        }
+        return false;
+    }
+
+    /*
+     * import
+     *   ;  "from" SimpleName
+     *   : "import" SimpleName{"."} ("." "*" | "as" SimpleName)? SEMI?
+     *   ;
+     */
+    private void parseImportDirective() {
+        assert _atSet(FROM_IMPORT_SET);
+
+
+        boolean isFrom = false;
+        PsiBuilder.Marker importDirective = mark();
+        if (at(FROM_KEYWORD)) {
+            isFrom = true;
+            advance();
+
+            //处理软件包名
+            if (!at(IDENTIFIER)) {
+                error("Software package name is required");
+                importDirective.done(IMPORT_DIRECTIVE);
+                return;
+            } else {
+                advance();
+            }
+
+
+        }
+        if (!at(IMPORT_KEYWORD) && isFrom) {
+
+            error("Expecting 'import' keyword");
+            importDirective.done(IMPORT_DIRECTIVE);
+            return;
+        }
+
+
+        advance(); // IMPORT_KEYWORD
+
+        if (closeImportWithErrorIfNewline(importDirective, null, "Expecting qualified name")) {
+            return;
+        }
+
+        if (!at(IDENTIFIER)) {
+            PsiBuilder.Marker error = mark();
+            skipUntil(TokenSet.create(EOL_OR_SEMICOLON));
+            error.error("Expecting qualified name");
+            importDirective.done(IMPORT_DIRECTIVE);
+            consumeIf(SEMICOLON);
+            return;
+        }
+
+        PsiBuilder.Marker qualifiedName = mark();
+        PsiBuilder.Marker reference = mark();
+        advance(); // IDENTIFIER
+        reference.done(REFERENCE_EXPRESSION);
+
+        while (at(DOT) && lookahead(1) != MUL) {
+            advance(); // DOT
+
+            if (closeImportWithErrorIfNewline(importDirective, null, "Import must be placed on a single line")) {
+                qualifiedName.drop();
+                return;
+            }
+
+            reference = mark();
+            if (expect(IDENTIFIER, "Qualified name must be a '.'-separated identifier list", IMPORT_RECOVERY_SET)) {
+                reference.done(REFERENCE_EXPRESSION);
+            } else {
+                reference.drop();
+            }
+
+            PsiBuilder.Marker precede = qualifiedName.precede();
+            qualifiedName.done(DOT_QUALIFIED_EXPRESSION);
+            qualifiedName = precede;
+        }
+        qualifiedName.drop();
+
+        if (at(DOT)) {
+            advance(); // DOT
+            assert _at(MUL);
+            advance(); // MUL
+            if (at(AS_KEYWORD) ) {
+                PsiBuilder.Marker as = mark();
+                advance(); // AS_KEYWORD
+                if (closeImportWithErrorIfNewline(importDirective, null, "Expecting identifier")) {
+                    as.drop();
+                    return;
+                }
+                consumeIf(IDENTIFIER);
+//                as.done(IMPORT_ALIAS);
+
+                if(!match(DOT,MUL)){
+//                    as.precede().error("The alias name should contain '.*' suffix after import-all");
+                    error("The alias name should contain '.*' suffix after import-all");
+                }else {
+                    as.done(IMPORT_ALIAS);
+                }
+
+            }
+        }
+        if (at(AS_KEYWORD)) {
+            PsiBuilder.Marker alias = mark();
+            advance(); // AS_KEYWORD
+            if (closeImportWithErrorIfNewline(importDirective, alias, "Expecting identifier")) {
+                return;
+            }
+            expect(IDENTIFIER, "Expecting identifier", SEMICOLON_SET);
+            alias.done(IMPORT_ALIAS);
+        }
+        consumeIf(SEMICOLON);
+        importDirective.done(IMPORT_DIRECTIVE);
+        importDirective.setCustomEdgeTokenBinders(null, TrailingCommentsBinder.INSTANCE);
 
     }
+
+    /* SimpleName{"."} */
+    private void parsePackageName() {
+
+        PsiBuilder.Marker qualifiedExpression = mark();
+        boolean simpleName = true;
+        while (true) {
+            if (myBuilder.newlineBeforeCurrentToken()) {
+                errorWithRecovery("Package name must be a '.'-separated identifier list placed on a single line",
+                        PACKAGE_NAME_RECOVERY_SET);
+                break;
+            }
+
+            if (at(DOT)) {
+                advance(); // DOT
+                qualifiedExpression.error("Package name must be a '.'-separated identifier list");
+                qualifiedExpression = mark();
+                continue;
+            }
+
+            PsiBuilder.Marker nsName = mark();
+            boolean simpleNameFound = expect(IDENTIFIER, "Package name must be a '.'-separated identifier list", PACKAGE_NAME_RECOVERY_SET);
+            if (simpleNameFound) {
+                nsName.done(REFERENCE_EXPRESSION);
+            } else {
+                nsName.drop();
+            }
+
+            if (!simpleName) {
+                PsiBuilder.Marker precedingMarker = qualifiedExpression.precede();
+                qualifiedExpression.done(DOT_QUALIFIED_EXPRESSION);
+                qualifiedExpression = precedingMarker;
+            }
+
+            if (at(DOT)) {
+                advance(); // DOT
+
+                if (simpleName && !simpleNameFound) {
+                    qualifiedExpression.drop();
+                    qualifiedExpression = mark();
+                } else {
+                    simpleName = false;
+                }
+            } else {
+                break;
+            }
+        }
+        qualifiedExpression.drop();
+    }
+
 
     //入口
     void parseFile() {
@@ -266,6 +460,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
             case MAIN_KEYWORD_Id:
                 return parseMainFunc();
 
+
+            case STRUCT_KEYWORD_Id:
+            case INTERFACE_KEYWORD_Id:
             case CLASS_KEYWORD_Id:
                 return parseClass();
 
@@ -373,7 +570,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ;
      */
     private IElementType parseClass() {
-        assert _at(CLASS_KEYWORD);
+
+        int tokenid = getTokenId();
+
+//        assert _at(CLASS_KEYWORD);
+        assert _atSet(CLASS_INTERFACE_STRUCT_SET);
         advance();
 
 
@@ -402,8 +603,15 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
 
 
-        return CLASS;
+        return switch (tokenid) {
+            case INTERFACE_KEYWORD_Id -> INTERFACE;
+            case STRUCT_KEYWORD_Id -> STRUCT;
+            default -> CLASS;
+        };
+
+
     }
+
 
     /*
      * typeConstraints
@@ -796,9 +1004,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 errorWithoutAdvancing("Expecting ':' Missing type declaration");  //应该为':'
                 noErrors = false;
             }
-
-
-
 
 
         }

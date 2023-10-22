@@ -12,14 +12,14 @@ import java.util.ArrayList
 
 
 
-class CangJieClassStubImpl(
+open class CangJieClassStubImpl(
     type: CjClassElementType,
     parent: StubElement<out PsiElement>?,
     private val qualifiedName: StringRef?,
     private val classId: ClassId?,
     private val name: StringRef?,
     private val superNames: Array<StringRef>,
-    private val isInterface: Boolean,
+//    private val isInterface: Boolean,
 
     private val isLocal: Boolean,
     private val isTopLevel: Boolean,
@@ -30,7 +30,7 @@ class CangJieClassStubImpl(
         return FqName(stringRef)
     }
 
-    override fun isInterface() = isInterface
+//    override fun isInterface() = isInterface
 
     override fun isLocal() = isLocal
     override fun getName() = StringRef.toString(name)

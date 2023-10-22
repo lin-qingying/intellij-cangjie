@@ -9,8 +9,8 @@ import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
 open class CjClass : CjClassOrStruct {
-    fun isInterface(): Boolean =
-        _stub?.isInterface() ?: (findChildByType<PsiElement>(CjTokens.INTERFACE_KEYWORD) != null)
+//    fun isInterface(): Boolean =
+//        _stub?.isInterface() ?: (findChildByType<PsiElement>(CjTokens.INTERFACE_KEYWORD) != null)
 
     private val _stub: CangJieClassStub?
         get() = stub as? CangJieClassStub
@@ -23,7 +23,6 @@ open class CjClass : CjClassOrStruct {
 
     override fun isLocal(): Boolean  = stub?.isLocal() ?: CjPsiUtil.isLocal(this)
     override fun getSuperTypeListEntries(): List<CjSuperTypeListEntry> = getSuperTypeList()?.entries.orEmpty()
-    fun getSuperTypeList(): CjSuperTypeList? = getStubOrPsiChild(CjStubElementTypes.SUPER_TYPE_LIST)
 
     override fun toString(): String {
         return node.elementType.toString() + " : $name"

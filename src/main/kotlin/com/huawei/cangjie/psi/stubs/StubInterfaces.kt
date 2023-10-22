@@ -60,8 +60,14 @@ interface CangJieParameterStub : CangJieStubWithFqName<CjParameter> {
     fun hasDefaultValue(): Boolean
 }
 interface CangJieClassStub : CangJieClassOrStructStub<CjClass> {
-    fun isInterface(): Boolean
+//    fun isInterface(): Boolean
 //    fun isEnumEntry(): Boolean
+}
+interface  CangJieStructStub: CangJieClassOrStructStub<CjStruct> {
+
+}
+interface  CangJieInterfaceStub: CangJieClassOrStructStub<CjInterface> {
+
 }
 interface CangJieClassOrStructStub<T : CjClassOrStruct> : CangJieClassifierStub, CangJieStubWithFqName<T> {
     fun isLocal(): Boolean

@@ -18,7 +18,8 @@ open class StubIndexService protected constructor() {
 
     open fun indexClass(stub: CangJieClassStub, sink: IndexSink) {
     }
-
+    open fun indexInterface(stub: CangJieInterfaceStub, sink: IndexSink) {
+    }
     open fun indexFunction(stub: CangJieFunctionStub, sink: IndexSink) {
     }
 
@@ -47,6 +48,10 @@ open class StubIndexService protected constructor() {
         val packageFqNameAsString = dataStream.readName()
 
         return CangJieFileStubImpl(null, packageFqNameAsString!!.string)
+    }
+
+  open  fun indexStruct(stub: CangJieStructStub, sink: IndexSink) {
+
     }
 
     companion object {

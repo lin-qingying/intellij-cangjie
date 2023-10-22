@@ -3,12 +3,16 @@ package com.huawei.cangjie.psi.stubs.elements;
 import com.huawei.cangjie.name.ClassId;
 import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.psi.CjClass;
+import com.huawei.cangjie.psi.CjInterface;
 import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
 import com.huawei.cangjie.psi.psiUtil.StubUtils;
 import com.huawei.cangjie.psi.stubs.CangJieClassStub;
+import com.huawei.cangjie.psi.stubs.CangJieInterfaceStub;
 import com.huawei.cangjie.psi.stubs.impl.CangJieClassStubImpl;
+import com.huawei.cangjie.psi.stubs.impl.CangJieInterfaceStubImpl;
 import com.huawei.cangjie.psi.stubs.impl.Utils;
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
@@ -20,43 +24,46 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.List;
 
+public class CjInterfaceElementType extends CjStubElementType<CangJieInterfaceStub, CjInterface> {
+    public CjInterfaceElementType(@NotNull @NonNls String debugName) {
+        super(debugName, CjInterface.class, CangJieInterfaceStub.class);
+    }
 
-
-public class CjClassElementType extends CjStubElementType<CangJieClassStub, CjClass> {
-    public CjClassElementType(@NotNull @NonNls String debugName) {
-        super(debugName, CjClass.class, CangJieClassStub.class);
+    @Override
+    public void indexStub(@NotNull CangJieInterfaceStub stub, @NotNull IndexSink sink) {
+        StubIndexService.getInstance().indexInterface(stub, sink);
     }
 
     @NotNull
     @Override
-    public CjClass createPsi(@NotNull CangJieClassStub stub) {
-        return  new CjClass(stub) ;
+    public CjInterface createPsi(@NotNull CangJieInterfaceStub stub) {
+        return new CjInterface(stub);
     }
+
 
     @NotNull
     @Override
-    public CjClass createPsiFromAst(@NotNull ASTNode node) {
-        return   new CjClass(node);
+    public CjInterface createPsiFromAst(@NotNull ASTNode node) {
+        return new CjInterface(node);
     }
 
-    @NotNull
     @Override
-    public CangJieClassStub createStub(@NotNull CjClass psi, StubElement parentStub) {
+    public @NotNull CangJieInterfaceStub createStub(@NotNull CjInterface psi, StubElement<? extends PsiElement> parentStub) {
         FqName fqName = CjPsiUtilKt.safeFqNameForLazyResolve(psi);
 
         List<String> superNames = CjPsiUtilKt.getSuperNames(psi);
         ClassId classId = StubUtils.createNestedClassId(parentStub, psi);
-        return new CangJieClassStubImpl(
-                getStubType( ), (StubElement<?>) parentStub,
+        return new CangJieInterfaceStubImpl(
+                CjStubElementTypes.INTERFACE, (StubElement<?>) parentStub,
                 StringRef.fromString(fqName != null ? fqName.asString() : null), classId,
                 StringRef.fromString(psi.getName()),
                 Utils.INSTANCE.wrapStrings(superNames),
-                 psi.isLocal(), psi.isTopLevel()
-        );
+                psi.isLocal(), psi.isTopLevel()
+        )  ;
     }
 
     @Override
-    public void serialize(@NotNull CangJieClassStub stub, @NotNull StubOutputStream dataStream) throws IOException {
+    public void serialize(@NotNull CangJieInterfaceStub stub, @NotNull StubOutputStream dataStream) throws IOException {
         dataStream.writeName(stub.getName());
 
         FqName fqName = stub.getFqName();
@@ -64,7 +71,6 @@ public class CjClassElementType extends CjStubElementType<CangJieClassStub, CjCl
 
         StubUtils.serializeClassId(dataStream, stub.getClassId());
 
-//        dataStream.writeBoolean(stub.isInterface());
 
         dataStream.writeBoolean(stub.isLocal());
         dataStream.writeBoolean(stub.isTopLevel());
@@ -76,15 +82,14 @@ public class CjClassElementType extends CjStubElementType<CangJieClassStub, CjCl
         }
     }
 
-    @NotNull
+
     @Override
-    public CangJieClassStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
+    public @NotNull CangJieInterfaceStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
         StringRef name = dataStream.readName();
         StringRef qualifiedName = dataStream.readName();
 
         ClassId classId = StubUtils.deserializeClassId(dataStream);
 
-//        boolean isTrait = dataStream.readBoolean();
 
         boolean isLocal = dataStream.readBoolean();
         boolean isTopLevel = dataStream.readBoolean();
@@ -95,18 +100,10 @@ public class CjClassElementType extends CjStubElementType<CangJieClassStub, CjCl
             superNames[i] = dataStream.readName();
         }
 
-        return new CangJieClassStubImpl(
-                getStubType( ), (StubElement<?>) parentStub, qualifiedName,classId, name, superNames,
-                 isLocal, isTopLevel
-        );
-    }
-
-    @Override
-    public void indexStub(@NotNull CangJieClassStub stub, @NotNull IndexSink sink) {
-        StubIndexService.getInstance().indexClass(stub, sink);
-    }
-
-    public static CjClassElementType getStubType() {
-        return   CjStubElementTypes.CLASS;
+        return new CangJieInterfaceStubImpl(
+                CjStubElementTypes.INTERFACE, (StubElement<?>) parentStub, qualifiedName, classId, name, superNames,
+                isLocal, isTopLevel
+        ) {
+        };
     }
 }

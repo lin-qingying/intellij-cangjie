@@ -241,6 +241,7 @@ abstract class AbstractCangJieParsing {
         return (elementType instanceof CjToken) ? ((CjToken) elementType).getTokenId() : INVALID_Id;
     }
 
+
     /**
      * 获取当前标记的类型
      *
@@ -355,7 +356,7 @@ abstract class AbstractCangJieParsing {
     }
 
     /**
-     * 检查当前标记是否为指定的复杂标记，并在标记匹配时推进标记流
+     * 如果当前标记与指定的标记匹配，则该方法将消耗该标记并返回true。否则，该方法将不会消耗标记并返回false
      *
      * @param token
      * @return
@@ -366,6 +367,30 @@ abstract class AbstractCangJieParsing {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 如果当前标记与复杂标记匹配，则该方法将消耗该标记并返回true。否则，该方法将不会消耗标记并返回false
+     */
+    protected boolean consumeIfSet(TokenSet tokenSet) {
+      if (atSet(tokenSet)) {
+                advance(); // token
+                return true;
+            }
+            return false;
+    }
+
+    /**
+     * 根据传入的复杂类型顺序匹配标记流中的标记
+     */
+    protected boolean match(IElementType... types) {
+        int i = 0;
+        while (i < types.length && !eof()) {
+            if (!at(types[i])) return false;
+            advance();
+            i++;
+        }
+        return i == types.length;
     }
 
     /**

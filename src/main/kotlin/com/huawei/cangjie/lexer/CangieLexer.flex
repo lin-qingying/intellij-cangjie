@@ -1,5 +1,5 @@
 package com.huawei.cangjie.lexer;
-
+import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.Stack;
@@ -274,7 +274,8 @@ LONELY_BACKTICK=`
 "do"         { return CjTokens.DO_KEYWORD ;}
 "as"         { return CjTokens.AS_KEYWORD ;}
 "main"       { return CjTokens.MAIN_KEYWORD ;}
-
+"struct"     { return CjTokens.STRUCT_KEYWORD ;}
+"from"       { return CjTokens.FROM_KEYWORD ;}
 
 "Int8"       { return CjTokens.INT8_KEYWORD ;}
 "Int16"      { return CjTokens.INT16_KEYWORD ;}
