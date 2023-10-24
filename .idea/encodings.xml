@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CjKeywordToken.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CjModifierKeywordToken.java" charset="GBK" />
     <file url="file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/AbstractCangJieParsing.java" charset="GBK" />
     <file url="file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParsing.java" charset="GBK" />
     <file url="file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjPsiUtil.java" charset="UTF-8" />
