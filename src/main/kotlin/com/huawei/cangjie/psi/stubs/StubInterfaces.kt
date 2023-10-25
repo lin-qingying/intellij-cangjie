@@ -9,8 +9,17 @@ import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.stubs.NamedStub
 import com.intellij.psi.stubs.PsiFileStub
 import com.intellij.psi.stubs.StubElement
+enum class ConstantValueKind {
 
-
+    BOOLEAN_CONSTANT,
+    FLOAT_CONSTANT,
+    CHARACTER_CONSTANT,
+    INTEGER_CONSTANT
+}
+interface CangJieConstantExpressionStub : StubElement<CjConstantExpression> {
+    fun kind(): ConstantValueKind
+    fun value(): String
+}
 interface CangJieFileStub : PsiFileStub<CjFile> {
     fun getPackageFqName(): FqName
 

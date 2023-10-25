@@ -532,6 +532,60 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         return null;
     }
+    private boolean parsePropertyDelegateOrAssignment() {
+        if (at(EQ)) {
+            advance(); // EQ
+            myExpressionParsing.parseExpression();
+            return true;
+        }
+
+        return false;
+    }
+    private final LastBefore lastDotAfterReceiverNotLParPattern =
+            new LastBefore(new AtSet(RECEIVER_TYPE_TERMINATORS), new AbstractTokenStreamPredicate() {
+                @Override
+                public boolean matching(boolean topLevel) {
+                    if (topLevel && (atSet(definitelyOutOfReceiverSet) || at(LPAR))) return true;
+                    if (topLevel && at(IDENTIFIER)) {
+                        IElementType lookahead = lookahead(1);
+                        return lookahead != LT && lookahead != DOT   && lookahead != QUEST;
+                    }
+                    return false;
+                }
+            });
+    private final FirstBefore lastDotAfterReceiverLParPattern =
+            new FirstBefore(new AtSet(RECEIVER_TYPE_TERMINATORS), new AbstractTokenStreamPredicate() {
+                @Override
+                public boolean matching(boolean topLevel) {
+                    if (topLevel && atSet(definitelyOutOfReceiverSet)) {
+                        return true;
+                    }
+                    return topLevel && !at(QUEST) && !at(LPAR) && !at(RPAR);
+                }
+            });
+    private int lastDotAfterReceiver() {
+        AbstractTokenStreamPattern pattern = at(LPAR) ? lastDotAfterReceiverLParPattern : lastDotAfterReceiverNotLParPattern;
+        pattern.reset();
+        return matchTokenStreamPredicate(pattern);
+    }
+    private boolean parseReceiverType(String title, TokenSet nameFollow){
+
+        int lastDot = lastDotAfterReceiver();
+        boolean receiverPresent = lastDot != -1;
+
+
+        if (!receiverPresent) return false;
+
+        createTruncatedBuilder(lastDot).parseTypeRefWithoutIntersections();
+
+        if (atSet(RECEIVER_TYPE_TERMINATORS)) {
+            advance(); // expectation
+        }
+        else {
+            errorWithRecovery("Expecting '.' before a " + title + " name", nameFollow);
+        }
+        return true;
+    }
 
     /*
      * variableDeclarationEntry
@@ -547,29 +601,48 @@ public class CangJieParsing extends AbstractCangJieParsing {
         advance();
 
 
-        parseIdentifierByTitle("property", PROPERTY_NAME_FOLLOW_SET);
 
+//        myBuilder.disableJoiningComplexTokens();
+
+        boolean receiverTypeDeclared = parseReceiverType("property", PROPERTY_NAME_FOLLOW_SET);
+
+//        boolean isNameOnTheNextLine = eol();
+//        PsiBuilder.Marker beforeName = mark();
+
+        parseIdentifierByTitle("property", PROPERTY_NAME_FOLLOW_SET);
+        boolean noTypeReference = true;
 
         //类型 (:type)可以没有，但是默认值必须有
 
         if (at(COLON)) {
             advance(); // COLON
+            noTypeReference = false;
 
             parseTypeRef();
 
         }
 
 
+
+
         if (at(EQ)) {
             advance(); // COLON
 
             //处理表达式
-
+//myExpressionParsing.test();
+            myExpressionParsing.parseExpression();
         } else {
             errorAndAdvance("variable in top-level scope must be initialized");
         }
 
+//        if (!parsePropertyDelegateOrAssignment() && isNameOnTheNextLine && noTypeReference && !receiverTypeDeclared) {
+//
+//            beforeName.rollbackTo();
+//            error("Expecting variable name or receiver type");
+//            return VARIABLE;
+//        }
 
+//        beforeName.drop();
         return VARIABLE;
 
     }

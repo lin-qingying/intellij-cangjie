@@ -3,7 +3,18 @@ package com.huawei.cangjie.psi.stubs.elements;
 import com.huawei.cangjie.psi.*;
 
 public interface CjStubElementTypes {
+    CjConstantExpressionElementType BOOLEAN_CONSTANT = new CjConstantExpressionElementType("BOOLEAN_CONSTANT");
+    CjConstantExpressionElementType FLOAT_CONSTANT = new CjConstantExpressionElementType("FLOAT_CONSTANT");
+    CjConstantExpressionElementType CHARACTER_CONSTANT = new CjConstantExpressionElementType("CHARACTER_CONSTANT");
+    CjConstantExpressionElementType INTEGER_CONSTANT = new CjConstantExpressionElementType("INTEGER_CONSTANT");
 
+
+
+
+    CjPlaceHolderStubElementType<CjValueArgumentName> VALUE_ARGUMENT_NAME =
+            new CjPlaceHolderStubElementType<>("VALUE_ARGUMENT_NAME", CjValueArgumentName.class);
+    CjPlaceHolderStubElementType<CjValueArgumentList> VALUE_ARGUMENT_LIST =
+            new CjValueArgumentListElementType("VALUE_ARGUMENT_LIST");
     CjPlaceHolderStubElementType<CjConstructorCalleeExpression> CONSTRUCTOR_CALLEE =
             new CjPlaceHolderStubElementType<>("CONSTRUCTOR_CALLEE", CjConstructorCalleeExpression.class);
 

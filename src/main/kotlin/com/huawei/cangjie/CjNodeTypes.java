@@ -15,10 +15,18 @@ public interface CjNodeTypes {
     IElementType STRUCT = CjStubElementTypes.STRUCT;
     IElementType PROPERTY = CjStubElementTypes.PROPERTY;
     IElementType PROPERTY_BODY = CjStubElementTypes.PROPERTY_BODY;
+    IElementType VALUE_ARGUMENT_NAME                = CjStubElementTypes.VALUE_ARGUMENT_NAME;
+    IElementType VALUE_ARGUMENT                     = CjStubElementTypes.VALUE_ARGUMENT;
+    IElementType VALUE_ARGUMENT_LIST                = CjStubElementTypes.VALUE_ARGUMENT_LIST;
 
+    IElementType POSTFIX_EXPRESSION        = new CjNodeType("POSTFIX_EXPRESSION", CjPostfixExpression.class);
+    IElementType CALL_EXPRESSION           = new CjNodeType("CALL_EXPRESSION", CjCallExpression.class);
+    IElementType INDICES                   = new CjNodeType("INDICES", CjContainerNode.class);
+    IElementType ARRAY_ACCESS_EXPRESSION   = new CjNodeType("ARRAY_ACCESS_EXPRESSION", CjArrayAccessExpression.class);
     IElementType IS_EXPRESSION             = new CjNodeType("IS_EXPRESSION", CjIsExpression.class);
     IElementType BINARY_WITH_TYPE          = new CjNodeType("BINARY_WITH_TYPE", CjBinaryExpressionWithTypeRHS.class);
     IElementType BINARY_EXPRESSION         = new CjNodeType("BINARY_EXPRESSION", CjBinaryExpression.class);
+    IElementType PREFIX_EXPRESSION         = new CjNodeType("PREFIX_EXPRESSION",CjPrefixExpression.class);
     IElementType OPERATION_REFERENCE       = new CjNodeType("OPERATION_REFERENCE", CjOperationReferenceExpression.class);
     IElementType VARIABLE = CjStubElementTypes.VARIABLE;
     IElementType MAIN_FUNC = CjStubElementTypes.MAIN_FUNC;
@@ -51,4 +59,10 @@ public interface CjNodeTypes {
 
     IElementType IMPORT_ALIAS                       = CjStubElementTypes.IMPORT_ALIAS;
     IElementType IMPORT_DIRECTIVE                   = CjStubElementTypes.IMPORT_DIRECTIVE;
+
+
+    IElementType FLOAT_CONSTANT     = CjStubElementTypes.FLOAT_CONSTANT;
+    IElementType CHARACTER_CONSTANT = CjStubElementTypes.CHARACTER_CONSTANT;
+    IElementType INTEGER_CONSTANT   = CjStubElementTypes.INTEGER_CONSTANT;
+    IElementType BOOLEAN_CONSTANT   = CjStubElementTypes.BOOLEAN_CONSTANT;
 }
