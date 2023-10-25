@@ -34,12 +34,14 @@ interface CangJieBasicTypeStub : StubElement<CjBasicType>
 interface CangJieClassifierStub {
     fun getClassId(): ClassId?
 }
-interface CangJiePropertyStub : CangJieCallableStubBase<CjProperty> {
+interface CangJieVariableStub : CangJieCallableStubBase<CjVariable> {
     fun isVar(): Boolean
 
     fun hasInitializer(): Boolean
     fun hasReturnTypeRef(): Boolean
 }
+
+interface CangJiePropertyStub:CangJieStubWithFqName<CjProperty>
 interface CangJieCallableStubBase<TDeclaration : CjCallableDeclaration> : CangJieStubWithFqName<TDeclaration> {
     fun isTopLevel(): Boolean
     fun isExtension(): Boolean
@@ -69,6 +71,8 @@ interface  CangJieStructStub: CangJieClassOrStructStub<CjStruct> {
 interface  CangJieInterfaceStub: CangJieClassOrStructStub<CjInterface> {
 
 }
+
+interface  CangJieEnumStub : CangJieClassOrStructStub<CjEnum>
 interface CangJieClassOrStructStub<T : CjClassOrStruct> : CangJieClassifierStub, CangJieStubWithFqName<T> {
     fun isLocal(): Boolean
     fun getSuperNames(): List<String>

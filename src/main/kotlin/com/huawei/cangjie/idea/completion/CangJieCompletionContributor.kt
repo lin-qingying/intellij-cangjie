@@ -18,7 +18,7 @@ class CangJieCompletionContributor: CompletionContributor() {
 //            println("child: $it")
 //        }
 
-        result.addAllElements(CjTokens.KEYWORDS.types.map { LookupElementBuilder.create(it.toString()) })
+        result.addAllElements(CjTokens.KEYWORDALL.types.map { LookupElementBuilder.create(it.toString()) })
         super.fillCompletionVariants(parameters, result)
     }
 

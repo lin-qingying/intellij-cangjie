@@ -28,7 +28,7 @@ import java.util.Set;
 
 import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
 
-abstract class CjNamedDeclarationStub<T extends CangJieStubWithFqName<?>> extends CjDeclarationStub<T> implements CjNamedDeclaration {
+public abstract class CjNamedDeclarationStub<T extends CangJieStubWithFqName<?>> extends CjDeclarationStub<T> implements CjNamedDeclaration {
     public CjNamedDeclarationStub(@NotNull T stub, @NotNull IStubElementType nodeType) {
         super(stub, nodeType);
     }

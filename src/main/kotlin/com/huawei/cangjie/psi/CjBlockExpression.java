@@ -25,17 +25,13 @@ import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
 
 import static com.huawei.cangjie.CjNodeTypes.BLOCK;
 
-@SuppressWarnings("deprecation")
 public class CjBlockExpression extends LazyParseablePsiElement implements CjElement, CjExpression, CjStatementExpression {
 
     public CjBlockExpression(@Nullable CharSequence text) {
         super(BLOCK, text);
     }
 
-//    @Override
-//    public boolean shouldChangeModificationCount(PsiElement place) {
-//          return false;
-//    }
+
 
     @NotNull
     @Override
@@ -82,8 +78,8 @@ public class CjBlockExpression extends LazyParseablePsiElement implements CjElem
     }
 
     @Override
-    @NotNull
-    public PsiElement[] getChildren() {
+
+    public PsiElement @NotNull [] getChildren() {
         PsiElement psiChild = getFirstChild();
 
         List<PsiElement> result = null;

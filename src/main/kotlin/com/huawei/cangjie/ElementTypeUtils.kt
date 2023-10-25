@@ -39,10 +39,10 @@ object ElementTypeUtils {
     }
 
     fun String.getOperationSymbol(): IElementType {
-        CangJieExpressionParsing.ALL_OPERATIONS.types.forEach {
+        CangJieExpressionParsing.ALL_OPERATIONS?.types?.forEach {
             if (it is CjSingleValueToken && it.value == this) return it
         }
-        if (this == "as?") return CjTokens.AS_SAFE
+//        if (this == "as?") return CjTokens.AS_SAFE
         return CjTokens.IDENTIFIER
     }
 

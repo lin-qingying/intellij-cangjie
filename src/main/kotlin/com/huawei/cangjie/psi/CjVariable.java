@@ -1,6 +1,6 @@
 package com.huawei.cangjie.psi;
 
-import com.huawei.cangjie.psi.stubs.CangJiePropertyStub;
+import com.huawei.cangjie.psi.stubs.CangJieVariableStub;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
@@ -12,15 +12,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 
-public class CjProperty extends CjTypeParameterListOwnerStub<CangJiePropertyStub>
+public class CjVariable extends CjTypeParameterListOwnerStub<CangJieVariableStub>
         implements CjVariableDeclaration {
 
-    private static final Logger LOG = Logger.getInstance(CjProperty.class);
+    private static final Logger LOG = Logger.getInstance(CjVariable.class);
 
-    public CjProperty(@NotNull CangJiePropertyStub stub ) {
-        super(stub, CjStubElementTypes.PROPERTY);
+    public CjVariable(@NotNull CangJieVariableStub stub ) {
+        super(stub, CjStubElementTypes.VARIABLE);
     }
-    public CjProperty(@NotNull ASTNode node) {
+    public CjVariable(@NotNull ASTNode node) {
         super(node);
     }
 
@@ -52,7 +52,7 @@ public class CjProperty extends CjTypeParameterListOwnerStub<CangJiePropertyStub
         return null;
     }
     public boolean isTopLevel() {
-        CangJiePropertyStub stub = getStub();
+        CangJieVariableStub stub = getStub();
         if (stub != null) {
             return stub.isTopLevel();
         }

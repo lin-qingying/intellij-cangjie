@@ -246,9 +246,19 @@ LONELY_BACKTICK=`
 {CHARACTER_LITERAL} { return CjTokens.CHARACTER_LITERAL; }
 
 
+"package"    { return CjTokens.PACKAGE_KEYWORD ;}
+
+“import”     { return CjTokens.IMPORT_KEYWORD ;}
+"from"       { return CjTokens.FROM_KEYWORD ;}
+
+
+
+"prop"       { return CjTokens.PROP_KEYWORD ;}
+"mut"        { return CjTokens.MUT_KEYWORD ;}
+
 "interface"  { return CjTokens.INTERFACE_KEYWORD ;}
 "continue"   { return CjTokens.CONTINUE_KEYWORD ;}
-"package"    { return CjTokens.PACKAGE_KEYWORD ;}
+
 "return"     { return CjTokens.RETURN_KEYWORD ;}
 
 "while"      { return CjTokens.WHILE_KEYWORD ;}
@@ -258,9 +268,19 @@ LONELY_BACKTICK=`
 "false"      { return CjTokens.FALSE_KEYWORD ;}
 "super"      { return CjTokens.SUPER_KEYWORD ;}
 
+
+
+"public"     { return CjTokens.PUBLIC_KEYWORD ;}
+"private"    { return CjTokens.PRIVATE_KEYWORD ;}
+"protected"  { return CjTokens.PROTECTED_KEYWORD ;}
+/*"open"       { return CjTokens.OPEN_KEYWORD ;}*/
+"abstract"  { return CjTokens.ABSTRACT_KEYWORD ;}
+"override"  { return CjTokens.OVERRIDE_KEYWORD ;}
+"operator"  { return CjTokens.OPERATOR_KEYWORD ;}
 "match"       { return CjTokens.MATCH_KEYWORD ;}
 "true"       { return CjTokens.TRUE_KEYWORD ;}
-"this"       { return CjTokens.THIS_KEYWORD ;}
+//"this"       { return CjTokens.THIS_KEYWORD ;}
+"enum"       { return CjTokens.ENUM_KEYWORD ;}
 
 "else"       { return CjTokens.ELSE_KEYWORD ;}
 "try"        { return CjTokens.TRY_KEYWORD ;}
@@ -275,7 +295,7 @@ LONELY_BACKTICK=`
 "as"         { return CjTokens.AS_KEYWORD ;}
 "main"       { return CjTokens.MAIN_KEYWORD ;}
 "struct"     { return CjTokens.STRUCT_KEYWORD ;}
-"from"       { return CjTokens.FROM_KEYWORD ;}
+"where"      { return CjTokens.WHERE_KEYWORD ;}
 
 "Int8"       { return CjTokens.INT8_KEYWORD ;}
 "Int16"      { return CjTokens.INT16_KEYWORD ;}
@@ -310,6 +330,7 @@ LONELY_BACKTICK=`
 "&&"         { return CjTokens.ANDAND    ; }
 "&"          { return CjTokens.AND       ; }
 "||"         { return CjTokens.OROR      ; }
+"|"          { return CjTokens.OR        ; }
 "*="         { return CjTokens.MULTEQ    ; }
 "/="         { return CjTokens.DIVEQ     ; }
 "%="         { return CjTokens.PERCEQ    ; }
@@ -336,7 +357,7 @@ LONELY_BACKTICK=`
 ">"          { return CjTokens.GT        ; }
 "?"          { return CjTokens.QUEST     ; }
 ":"          { return CjTokens.COLON     ; }
-";;"         { return CjTokens.DOUBLE_SEMICOLON;}
+
 ";"          { return CjTokens.SEMICOLON ; }
 "="          { return CjTokens.EQ        ; }
 ","          { return CjTokens.COMMA     ; }

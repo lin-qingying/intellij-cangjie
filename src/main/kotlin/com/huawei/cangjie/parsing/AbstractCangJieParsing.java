@@ -17,7 +17,7 @@ import java.util.Map;
 import static com.huawei.cangjie.lexer.CjTokens.*;
 
 
-abstract class AbstractCangJieParsing {
+public abstract class AbstractCangJieParsing {
     private static final Map<String, CjKeywordToken> SOFT_KEYWORD_TEXTS = new HashMap<>();
 
     static {

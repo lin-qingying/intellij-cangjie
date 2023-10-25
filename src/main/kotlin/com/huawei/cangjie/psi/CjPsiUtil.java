@@ -36,7 +36,10 @@ public class CjPsiUtil {
     @Nullable
     public static CjClassOrStruct getClassIfParameterIsProperty(@NotNull CjParameter cjParameter) {
         if (cjParameter.hasValOrVar()) {
-            PsiElement grandParent = cjParameter.getParent().getParent();
+            PsiElement grandParent = null;
+            if (cjParameter.getParent() != null) {
+                grandParent = cjParameter.getParent().getParent();
+            }
             if (grandParent instanceof CjPrimaryConstructor) {
                 return ((CjPrimaryConstructor) grandParent).getContainingClassOrStruct();
             }
@@ -55,8 +58,8 @@ public class CjPsiUtil {
         return selector instanceof CjSimpleNameExpression ? (CjSimpleNameExpression) selector : null;
     }
     private static boolean isNonLocalCallable(@Nullable CjDeclaration declaration) {
-        if (declaration instanceof CjProperty) {
-            return !((CjProperty) declaration).isLocal();
+        if (declaration instanceof CjVariable) {
+            return !((CjVariable) declaration).isLocal();
         }
 
         return false;
@@ -82,9 +85,9 @@ public class CjPsiUtil {
     }
 
     private static int getPriority(@NotNull CjExpression expression) {
-        int maxPriority = CangJieExpressionParsing.Precedence.values().length + 1;
+        int maxPriority = CangJieExpressionParsing.Precedence.getEntries().size() + 1;
 
-        //与后缀操作相同
+
         if (
                 expression instanceof CjQualifiedExpression ||
                 expression instanceof CjCallExpression
@@ -101,7 +104,7 @@ public class CjPsiUtil {
         }
 
         IElementType operation = getOperation(expression);
-        for (CangJieExpressionParsing.Precedence precedence : CangJieExpressionParsing.Precedence.values()) {
+        for (CangJieExpressionParsing.Precedence precedence : CangJieExpressionParsing.Precedence.getEntries()) {
             if (precedence != CangJieExpressionParsing.Precedence.PREFIX && precedence != CangJieExpressionParsing.Precedence.POSTFIX &&
                     precedence.getOperations().contains(operation)) {
                 return maxPriority - precedence.ordinal() - 1;

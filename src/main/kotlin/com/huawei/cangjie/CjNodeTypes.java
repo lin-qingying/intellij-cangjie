@@ -1,10 +1,7 @@
 package com.huawei.cangjie;
 
 import com.huawei.cangjie.lang.CangJieLanguage;
-import com.huawei.cangjie.psi.CjContainerNode;
-import com.huawei.cangjie.psi.CjDestructuringDeclaration;
-import com.huawei.cangjie.psi.CjDestructuringDeclarationEntry;
-import com.huawei.cangjie.psi.CjLabelReferenceExpression;
+import com.huawei.cangjie.psi.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
@@ -17,6 +14,13 @@ public interface CjNodeTypes {
     IElementType INTERFACE = CjStubElementTypes.INTERFACE;
     IElementType STRUCT = CjStubElementTypes.STRUCT;
     IElementType PROPERTY = CjStubElementTypes.PROPERTY;
+    IElementType PROPERTY_BODY = CjStubElementTypes.PROPERTY_BODY;
+
+    IElementType IS_EXPRESSION             = new CjNodeType("IS_EXPRESSION", CjIsExpression.class);
+    IElementType BINARY_WITH_TYPE          = new CjNodeType("BINARY_WITH_TYPE", CjBinaryExpressionWithTypeRHS.class);
+    IElementType BINARY_EXPRESSION         = new CjNodeType("BINARY_EXPRESSION", CjBinaryExpression.class);
+    IElementType OPERATION_REFERENCE       = new CjNodeType("OPERATION_REFERENCE", CjOperationReferenceExpression.class);
+    IElementType VARIABLE = CjStubElementTypes.VARIABLE;
     IElementType MAIN_FUNC = CjStubElementTypes.MAIN_FUNC;
     IElementType FUNC = CjStubElementTypes.FUNCTION;
     IFileElementType CJ_FILE = new IFileElementType(CangJieLanguage.INSTANCE);
@@ -36,6 +40,10 @@ public interface CjNodeTypes {
     IElementType USER_TYPE = CjStubElementTypes.USER_TYPE;
     IElementType BASIC_TYPE = CjStubElementTypes.BASIC_TYPE;
     IElementType TYPE_PARAMETER = CjStubElementTypes.TYPE_PARAMETER;
+
+    IElementType ENUM = CjStubElementTypes.ENUM;
+    IElementType ENUM_BODY = CjStubElementTypes.ENUM_BODY;
+    IElementType ENUM_ENTRY = CjStubElementTypes.ENUM_ENTRY;
     IElementType SUPER_TYPE_LIST                    = CjStubElementTypes.SUPER_TYPE_LIST;
     IElementType TYPE_CONSTRAINT = CjStubElementTypes.TYPE_CONSTRAINT;
     IElementType IMPORT_LIST                        = CjStubElementTypes.IMPORT_LIST;

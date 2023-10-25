@@ -83,19 +83,20 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
 
     override fun getNameIdentifier() = null
 
-    override fun getIdentifyingElement(): PsiElement? = getConstructorKeyword()
+    override fun getIdentifyingElement(): PsiElement? = getInitKeyword()
 
     @Throws(IncorrectOperationException::class)
     override fun setName(name: String): PsiElement = throw IncorrectOperationException("setName to constructor")
 
     override fun getPresentation() = ItemPresentationProviders.getItemPresentation(this)
 
-    open fun getConstructorKeyword(): PsiElement? = findChildByType(CjTokens.CONSTRUCTOR_KEYWORD)
 
-    fun hasConstructorKeyword(): Boolean = stub != null || getConstructorKeyword() != null
+    open fun getInitKeyword(): PsiElement? = findChildByType(CjTokens.INIT_KEYWORD)
+
+    fun hasConstructorKeyword(): Boolean = stub != null || getInitKeyword() != null
 
     override fun getTextOffset(): Int {
-        return getConstructorKeyword()?.textOffset
+        return getInitKeyword()?.textOffset
             ?: valueParameterList?.textOffset
             ?: super.getTextOffset()
     }

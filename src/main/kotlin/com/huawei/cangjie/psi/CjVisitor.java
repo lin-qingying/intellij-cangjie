@@ -13,10 +13,20 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         return visitSuperTypeListEntry(specifier, data);
     }
 
+
+    public R visitIsExpression(@NotNull CjIsExpression expression, D data) {
+        return visitExpression(expression, data);
+    }
+    public R visitBinaryExpression(@NotNull CjBinaryExpression expression, D data) {
+        return visitExpression(expression, data);
+    }
+
     public R visitSuperTypeCallEntry(@NotNull CjSuperTypeCallEntry call, D data) {
         return visitSuperTypeListEntry(call, data);
     }
-
+    public R visitBinaryWithTypeRHSExpression(@NotNull CjBinaryExpressionWithTypeRHS expression, D data) {
+        return visitExpression(expression, data);
+    }
     public R visitClassInitializer(@NotNull CjClassInitializer initializer, D data) {
         return visitAnonymousInitializer(initializer, data);
     }
@@ -52,7 +62,9 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitClassBody(@NotNull CjClassBody classBody, D data) {
         return visitCjElement(classBody, data);
     }
-
+    public R visitEnumBody(@NotNull CjEnumBody enumBody, D data) {
+        return visitCjElement(enumBody, data);
+    }
     public R visitModifierList(@NotNull CjModifierList list, D data) {
         return visitCjElement(list, data);
     }
@@ -173,5 +185,10 @@ return visitCjElement(cjImportList, data);
 
     public R visitKeyword(CjKeyword cjKeyword, D data) {
         return visitCjElement(cjKeyword, data);
+    }
+
+
+    public R visitEnumEntry(CjEnumEntry cjEnumEntry, D data) {
+        return  visitCjElement(cjEnumEntry, data);
     }
 }

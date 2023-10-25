@@ -28,7 +28,7 @@ class CjSecondaryConstructor : CjConstructor<CjSecondaryConstructor> {
         return findChildByClass(CjBlockExpression::class.java)
     }
 
-    override fun getConstructorKeyword() = notNullChild<PsiElement>(super.getConstructorKeyword())
+    override fun getInitKeyword() = notNullChild<PsiElement>(super.getInitKeyword())
 
     fun getDelegationCall(): CjConstructorDelegationCall = findNotNullChildByClass(CjConstructorDelegationCall::class.java)
 

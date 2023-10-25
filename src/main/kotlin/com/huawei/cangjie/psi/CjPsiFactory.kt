@@ -29,14 +29,14 @@ class CjPsiFactory private constructor(
         return createProperty("let x: Int").findElementAt(5)!!
     }
     fun createConstructorKeyword(): PsiElement =
-        createClass("class A constructor()").primaryConstructor!!.getConstructorKeyword()!!
+        createClass("class A init()").primaryConstructor!!.getInitKeyword()!!
 
     fun createNameIdentifier(@NonNls name: String) = createNameIdentifierIfPossible(name)!!
     fun createNameIdentifierIfPossible(@NonNls name: String) = createProperty(name, null, false).nameIdentifier
-    fun createProperty(@NonNls name: String, @NonNls type: String?, isVar: Boolean): CjProperty {
+    fun createProperty(@NonNls name: String, @NonNls type: String?, isVar: Boolean): CjVariable {
         return createProperty(name, type, isVar, null)
     }
-    fun createProperty(@NonNls name: String, @NonNls type: String?, isVar: Boolean, @NonNls initializer: String?): CjProperty {
+    fun createProperty(@NonNls name: String, @NonNls type: String?, isVar: Boolean, @NonNls initializer: String?): CjVariable {
         return createProperty(null, name, type, isVar, initializer)
     }
     fun creareDelegatedSuperTypeEntry(@NonNls text: String): CjConstructorDelegationCall {
@@ -52,7 +52,7 @@ class CjPsiFactory private constructor(
         @NonNls type: String?,
         isVar: Boolean,
         @NonNls initializer: String?
-    ): CjProperty {
+    ): CjVariable {
         val text = modifiers.let { "$it " } +
                 (if (isVar) " var " else " val ") + name +
                 (if (type != null) ":$type" else "") + (if (initializer == null) "" else " = $initializer")
@@ -76,7 +76,7 @@ class CjPsiFactory private constructor(
         //注意：下面的‘\n’很重要--如果没有它，会出现一些奇怪的代码缩进问题
         return createProperty("val x =\n$text").initializer
     }
-    fun createProperty(@NonNls text: String): CjProperty {
+    fun createProperty(@NonNls text: String): CjVariable {
         return createDeclaration(text)
     }
     fun <TDeclaration : CjDeclaration> createDeclaration(@NonNls text: String): TDeclaration {

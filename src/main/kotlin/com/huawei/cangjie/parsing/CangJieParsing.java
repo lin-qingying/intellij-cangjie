@@ -20,7 +20,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private static final TokenSet TOP_LEVEL_DECLARATION_FIRST = TokenSet.create(INTERFACE_KEYWORD, CLASS_KEYWORD, FUNC_KEYWORD, LET_KEYWORD, PACKAGE_KEYWORD);
     private static final TokenSet TOP_LEVEL_DECLARATION_FIRST_SEMICOLON_SET = TokenSet.orSet(TOP_LEVEL_DECLARATION_FIRST, TokenSet.create(SEMICOLON));
     private static final TokenSet LT_EQ_SEMICOLON_TOP_LEVEL_DECLARATION_FIRST_SET = TokenSet.orSet(TokenSet.create(LT, EQ, SEMICOLON), TOP_LEVEL_DECLARATION_FIRST);
-    private static final TokenSet DECLARATION_FIRST = TokenSet.orSet(TOP_LEVEL_DECLARATION_FIRST, TokenSet.create(INIT_KEYWORD, GET_KEYWORD, SET_KEYWORD, CONSTRUCTOR_KEYWORD));
+
     private static final TokenSet CLASS_NAME_RECOVERY_SET = TokenSet.orSet(TokenSet.create(LT, LPAR, COLON, LBRACE), TOP_LEVEL_DECLARATION_FIRST);
     private static final TokenSet TYPE_PARAMETER_GT_RECOVERY_SET = TokenSet.create(WHERE_KEYWORD, LPAR, COLON, LBRACE, GT);
     private static final TokenSet PACKAGE_NAME_RECOVERY_SET = TokenSet.create(DOT, EOL_OR_SEMICOLON);
@@ -31,8 +31,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private static final TokenSet RECEIVER_TYPE_TERMINATORS = TokenSet.create(DOT);
     private static final TokenSet VALUE_PARAMETER_FIRST = TokenSet.orSet(TokenSet.create(IDENTIFIER, LBRACKET, LET_KEYWORD, VAR_KEYWORD), TokenSet.andNot(MODIFIER_KEYWORDS, TokenSet.create(FUNC_KEYWORD)));
     private static final TokenSet LAMBDA_VALUE_PARAMETER_FIRST = TokenSet.orSet(TokenSet.create(IDENTIFIER, LBRACKET), TokenSet.andNot(MODIFIER_KEYWORDS, TokenSet.create(FUNC_KEYWORD)));
-    private static final TokenSet SOFT_KEYWORDS_AT_MEMBER_START = TokenSet.create(CONSTRUCTOR_KEYWORD, INIT_KEYWORD);
-    private static final TokenSet ANNOTATION_TARGETS = TokenSet.create(FILE_KEYWORD, FIELD_KEYWORD, GET_KEYWORD, SET_KEYWORD, PROPERTY_KEYWORD, RECEIVER_KEYWORD, PARAM_KEYWORD, SETPARAM_KEYWORD, DELEGATE_KEYWORD);
+
+//    private static final TokenSet ANNOTATION_TARGETS = TokenSet.create(FILE_KEYWORD, FIELD_KEYWORD, GET_KEYWORD, SET_KEYWORD, PROPERTY_KEYWORD, RECEIVER_KEYWORD, PARAM_KEYWORD, SETPARAM_KEYWORD, DELEGATE_KEYWORD);
     private static final TokenSet BLOCK_DOC_COMMENT_SET = TokenSet.create(BLOCK_COMMENT, DOC_COMMENT);
     private static final TokenSet SEMICOLON_SET = TokenSet.create(SEMICOLON);
     private static final TokenSet COMMA_COLON_GT_SET = TokenSet.create(COMMA, COLON, GT);
@@ -45,7 +45,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private static final TokenSet PROPERTY_NAME_FOLLOW_FUNCTION_OR_PROPERTY_RECOVERY_SET = TokenSet.orSet(PROPERTY_NAME_FOLLOW_SET, LBRACE_RBRACE_SET, TOP_LEVEL_DECLARATION_FIRST);
     private static final TokenSet IDENTIFIER_EQ_COLON_SEMICOLON_SET = TokenSet.create(IDENTIFIER, EQ, COLON, SEMICOLON);
     private static final TokenSet COMMA_RPAR_COLON_EQ_SET = TokenSet.create(COMMA, RPAR, COLON, EQ);
-    private static final TokenSet ACCESSOR_FIRST_OR_PROPERTY_END = TokenSet.orSet(MODIFIER_KEYWORDS, TokenSet.create(GET_KEYWORD, SET_KEYWORD, FIELD_KEYWORD, EOL_OR_SEMICOLON, RBRACE));
+    private static final TokenSet ACCESSOR_FIRST_OR_PROPERTY_END = TokenSet.orSet(MODIFIER_KEYWORDS, TokenSet.create(GET_KEYWORD, SET_KEYWORD, EOL_OR_SEMICOLON, RBRACE));
     private static final TokenSet RPAR_IDENTIFIER_COLON_LBRACE_EQ_SET = TokenSet.create(RPAR, IDENTIFIER, COLON, LBRACE, EQ);
     private static final TokenSet COMMA_COLON_RPAR_SET = TokenSet.create(COMMA, COLON, RPAR);
     private static final TokenSet RPAR_COLON_LBRACE_EQ_SET = TokenSet.create(RPAR, COLON, LBRACE, EQ);
@@ -54,22 +54,38 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private static final TokenSet FUNCTION_NAME_RECOVERY_SET = TokenSet.orSet(TokenSet.create(LT, LPAR, RPAR, COLON, EQ), LBRACE_RBRACE_SET, TOP_LEVEL_DECLARATION_FIRST);
     private static final TokenSet VALUE_PARAMETERS_FOLLOW_SET = TokenSet.create(EQ, LBRACE, RBRACE, SEMICOLON, RPAR);
     private static final TokenSet LPAR_VALUE_PARAMETERS_FOLLOW_SET = TokenSet.orSet(TokenSet.create(LPAR), VALUE_PARAMETERS_FOLLOW_SET);
-    private static final TokenSet LPAR_LBRACE_COLON_CONSTRUCTOR_KEYWORD_SET = TokenSet.create(LPAR, LBRACE, COLON, CONSTRUCTOR_KEYWORD);
-    private static final TokenSet definitelyOutOfReceiverSet = TokenSet.orSet(TokenSet.create(EQ, COLON, LBRACE, RBRACE, BY_KEYWORD), TOP_LEVEL_DECLARATION_FIRST);
+    private static final TokenSet LPAR_LBRACE_COLON_CONSTRUCTOR_KEYWORD_SET = TokenSet.create(LPAR, LBRACE, COLON, INIT_KEYWORD);
+    private static final TokenSet definitelyOutOfReceiverSet = TokenSet.orSet(TokenSet.create(EQ, COLON, LBRACE, RBRACE), TOP_LEVEL_DECLARATION_FIRST);
     private final static TokenSet EOL_OR_SEMICOLON_RBRACE_SET = TokenSet.create(EOL_OR_SEMICOLON, RBRACE);
     private final static TokenSet CLASS_INTERFACE_SET = TokenSet.create(CLASS_KEYWORD, INTERFACE_KEYWORD);
     private final static TokenSet CLASS_INTERFACE_STRUCT_SET = TokenSet.create(CLASS_KEYWORD, INTERFACE_KEYWORD, STRUCT_KEYWORD);
 
-    private  final  static  TokenSet IDENTIFIER_DOT_MUL_SET = TokenSet.create(IDENTIFIER,DOT,MUL);
+    private final static TokenSet IDENTIFIER_DOT_MUL_SET = TokenSet.create(IDENTIFIER, DOT, MUL);
 
-    private  final  static  TokenSet DOT_MUL_SET = TokenSet.create(DOT,MUL);
+    private final static TokenSet DOT_MUL_SET = TokenSet.create(DOT, MUL);
     private final static TokenSet FROM_IMPORT_SET = TokenSet.create(FROM_KEYWORD, IMPORT_KEYWORD);
+
+    private final static TokenSet MUT_PROP_SET = TokenSet.create(MUT_KEYWORD, PROP_KEYWORD);
 
     private CangJieParsing(SemanticWhitespaceAwarePsiBuilder builder, boolean isTopLevel, boolean isLazy) {
         super(builder, isLazy);
 
+        myExpressionParsing =
+                isTopLevel ? new CangJieExpressionParsing(builder, this, isLazy) : new CangJieExpressionParsing(builder, this, isLazy) {
+
+
+                    @Override
+                    protected @NotNull CangJieParsing create(SemanticWhitespaceAwarePsiBuilder builder) {
+                        return createForByClause(builder, isLazy);
+                    }
+                };
+
 
     }
+    void parseTypeRefWithoutIntersections() {
+        parseTypeRef(TokenSet.EMPTY /* allowSimpleIntersectionTypes */);
+    }
+    private final CangJieExpressionParsing myExpressionParsing;
 
     private static CangJieParsing createForByClause(SemanticWhitespaceAwarePsiBuilder builder, boolean isLazy) {
         return new CangJieParsing(new SemanticWhitespaceAwarePsiBuilderForByClause(builder), false, isLazy);
@@ -83,6 +99,24 @@ public class CangJieParsing extends AbstractCangJieParsing {
     protected CangJieParsing create(SemanticWhitespaceAwarePsiBuilder builder) {
         return createForTopLevel(builder);
     }
+    public void advanceBalancedBlock() {
+
+        int braceCount = 1;
+        while (!eof()) {
+            if (_at(LBRACE)) {
+                braceCount++;
+            }
+            else if (_at(RBRACE)) {
+                braceCount--;
+            }
+
+            advance();
+
+            if (braceCount == 0) {
+                break;
+            }
+        }
+    }
 
     private void parseBlock(boolean collapse) {
         PsiBuilder.Marker lazyBlock = mark();
@@ -93,8 +127,16 @@ public class CangJieParsing extends AbstractCangJieParsing {
         boolean canCollapse = collapse && hasOpeningBrace && isLazy;
 
 
-        expect(RBRACE, "Expecting '}'");
+//        expect(RBRACE, "Expecting '}'");
 
+
+        if (canCollapse) {
+            advanceBalancedBlock();
+        }
+        else {
+            myExpressionParsing.parseStatements();
+            expect(RBRACE, "Expecting '}'");
+        }
 
         myBuilder.restoreNewlinesState();
 
@@ -104,7 +146,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
             lazyBlock.done(BLOCK);
         }
     }
-
+    /*
+     * block
+     *   : "{" (expressions)* "}"
+     *   ;
+     */
     void parseBlock() {
         parseBlock(true);
     }
@@ -265,7 +311,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             advance(); // DOT
             assert _at(MUL);
             advance(); // MUL
-            if (at(AS_KEYWORD) ) {
+            if (at(AS_KEYWORD)) {
                 PsiBuilder.Marker as = mark();
                 advance(); // AS_KEYWORD
                 if (closeImportWithErrorIfNewline(importDirective, null, "Expecting identifier")) {
@@ -275,10 +321,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 consumeIf(IDENTIFIER);
 //                as.done(IMPORT_ALIAS);
 
-                if(!match(DOT,MUL)){
+                if (!match(DOT, MUL)) {
 //                    as.precede().error("The alias name should contain '.*' suffix after import-all");
                     error("The alias name should contain '.*' suffix after import-all");
-                }else {
+                } else {
                     as.done(IMPORT_ALIAS);
                 }
 
@@ -375,10 +421,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
             return;
         }
         PsiBuilder.Marker decl = mark();
+        ModifierDetector detector = new ModifierDetector();
 
-        ModifierDetector modifierDetector = new ModifierDetector();
-
-        IElementType declType = parseCommonDeclaration();
+        parseModifierList(detector, TokenSet.EMPTY);
+        IElementType declType = parseCommonDeclaration(detector, NameParsingMode.REQUIRED, DeclarationParsingMode.MEMBER_OR_TOPLEVEL);
 
 
         if (declType == null) {
@@ -392,16 +438,95 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     }
 
+    private boolean tryParseModifier(
+            @Nullable Consumer<IElementType> tokenConsumer, @NotNull TokenSet noModifiersBefore, @NotNull TokenSet modifierKeywords
+    ) {
+        PsiBuilder.Marker marker = mark();
+
+        if (atSet(modifierKeywords)) {
+            IElementType lookahead = lookahead(1);
+
+            if (at(FUNC_KEYWORD) && lookahead != INTERFACE_KEYWORD) {
+                marker.rollbackTo();
+                return false;
+            }
+
+            if (lookahead != null && !noModifiersBefore.contains(lookahead)) {
+                IElementType tt = tt();
+                if (tokenConsumer != null) {
+                    tokenConsumer.consume(tt);
+                }
+                advance(); // MODIFIER
+                marker.collapse(tt);
+                return true;
+            }
+        }
+
+        marker.rollbackTo();
+        return false;
+    }
+
+    private boolean doParseModifierListBody(
+            @Nullable Consumer<IElementType> tokenConsumer,
+            @NotNull TokenSet modifierKeywords,
+
+            @NotNull TokenSet noModifiersBefore
+    ) {
+
+        boolean empty = true;
+
+        while (!eof()) {
+            if (!tryParseModifier(tokenConsumer, noModifiersBefore, modifierKeywords)) {
+                // modifier advanced
+                break;
+            }
+
+            empty = false;
+        }
+
+        return empty;
+    }
+
+    /**
+     * (modifier )*
+     * <p>
+     * 如果不为空，则将修饰符(非批注)馈送到传递的使用者
+     *
+     * @param noModifiersBefore 是一个令牌集，其中包含指示何时满足这些元素的元素。
+     *                          必须将前一个令牌解析为标识符，而不是修饰符
+     */
+    boolean parseModifierList(@Nullable Consumer<IElementType> tokenConsumer, @NotNull TokenSet noModifiersBefore) {
+        return doParseModifierList(tokenConsumer, MODIFIER_KEYWORDS, noModifiersBefore);
+    }
+
+    private boolean doParseModifierList(
+            @Nullable Consumer<IElementType> tokenConsumer,
+            @NotNull TokenSet modifierKeywords,
+
+            @NotNull TokenSet noModifiersBefore
+    ) {
+        PsiBuilder.Marker list = mark();
+
+        boolean empty = doParseModifierListBody(tokenConsumer, modifierKeywords, noModifiersBefore);
+
+        if (empty) {
+            list.drop();
+        } else {
+            list.done(MODIFIER_LIST);
+        }
+        return !empty;
+    }
+
     private IElementType parseClassCommonDeclaration() {
         //init func let|var prop
-        switch (getTokenId()) {
-            case FUNC_KEYWORD_Id:
-                return parseFunction();
-
-
-        }
-        return null;
+        return switch (getTokenId()) {
+            case FUNC_KEYWORD_Id -> parseFunction();
+            case PROP_KEYWORD_Id -> parseProperty();
+            case LET_KEYWORD_Id, VAR_KEYWORD_Id -> parseVariable();
+            default -> null;
+        };
     }
+
 
     private IElementType parseClassInitializer() {
 
@@ -417,7 +542,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   : modifiers ("let" | "var")
      *   ;
      */
-    public IElementType parseProperty() {
+    public IElementType parseVariable() {
         assert (at(LET_KEYWORD) || at(VAR_KEYWORD));
         advance();
 
@@ -445,12 +570,27 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
 
 
-        return PROPERTY;
+        return VARIABLE;
 
+    }
+    enum DeclarationParsingMode {
+        MEMBER_OR_TOPLEVEL(false, true, true), LOCAL(true, false, false), SCRIPT_TOPLEVEL(true, true, false);
+
+        public final boolean destructuringAllowed;
+        public final boolean accessorsAllowed;
+        public final boolean canBeEnumUsedAsSoftKeyword;
+
+        DeclarationParsingMode(boolean destructuringAllowed, boolean accessorsAllowed, boolean canBeEnumUsedAsSoftKeyword) {
+            this.destructuringAllowed = destructuringAllowed;
+            this.accessorsAllowed = accessorsAllowed;
+            this.canBeEnumUsedAsSoftKeyword = canBeEnumUsedAsSoftKeyword;
+        }
     }
 
     public IElementType parseCommonDeclaration(
-
+            @NotNull ModifierDetector detector,
+            @NotNull NameParsingMode nameParsingMode,
+            @NotNull DeclarationParsingMode declarationParsingMode
     ) {
 
 
@@ -461,6 +601,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 return parseMainFunc();
 
 
+            case ENUM_KEYWORD_Id:
+                return parseEnum();
+
+
             case STRUCT_KEYWORD_Id:
             case INTERFACE_KEYWORD_Id:
             case CLASS_KEYWORD_Id:
@@ -468,10 +612,168 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
             case LET_KEYWORD_Id:
             case VAR_KEYWORD_Id:
-                return parseProperty();
+                return parseVariable();
         }
 
         return null;
+    }
+
+    /*
+     * prop
+     *   :  "mnt"? prop Identifier :Type propBody
+     *   ;
+     */
+    private IElementType parseProperty() {
+        assert _at(PROP_KEYWORD);
+
+
+//        boolean isMut = false;
+//        if (at(MUT_KEYWORD)) {
+//            isMut = true;
+//            advance();
+//        }
+//        if (!at(PROP_KEYWORD)) {
+//            errorAndAdvance("Expecting 'prop'");
+//
+//        }
+        advance();
+
+        parseIdentifierByTitle(" prop ");
+
+//        if(at(COLON)){
+            parseByType();
+//        }else {
+//            error("Expecting ':'");
+//        }
+
+
+        if (at(LBRACE)) {
+            parsePropertyBody();
+        } else {
+            error("Missing prop body Expecting '{'");
+        }
+
+
+        return PROPERTY;
+
+
+    }
+
+    /**
+     * ":" type
+     */
+    private void parseByType() {
+//        assert  _at(COLON);
+        if (at(COLON)) {
+            advance(); // COLON
+            parseTypeRef();
+        } else {
+            error("Missing type Expecting ':' type");
+        }
+    }
+
+    /*
+     * propBody
+     *   :  {
+     *   ;   get(){
+     *   ;        func
+     *   ;        expr
+     *   ;     }
+     *   ;    is mut
+     *   ;    set(value){
+     *   ;       func
+     *   ;       expr
+     *   ;      }
+     *   ;   }
+     */
+    private void parsePropertyBody() {
+        assert _at(LBRACE);
+        advance(); // LBRACE
+
+        PsiBuilder.Marker body = mark();
+
+
+        if (at(RBRACE)) {
+            body.done(PROPERTY_BODY);
+            advance(); // RBRACE
+        } else {
+            body.drop();
+            error("Expecting '}'");
+        }
+
+
+    }
+
+    /*
+     * enum
+     *   : "enum" SimpleName ("{" enumEntry((Type)?){"|"}  "}")
+     *   ;
+     */
+    private IElementType parseEnum() {
+        assert _at(ENUM_KEYWORD);
+        advance();
+
+        parseIdentifierByTitle("enum", IDENTIFIER_RBRACKET_LBRACKET_SET);
+
+
+        parseEnumBody();
+
+        return ENUM;
+    }
+
+    private void parseEnumBody() {
+        PsiBuilder.Marker body = mark();
+        if (at(LBRACE)) {
+            advance(); // LBRACE
+
+
+            if (at(IDENTIFIER)) {
+                parseEnumList();
+            } else {
+                error("Expecting enum entry");
+            }
+
+            parseMembers();
+
+
+            expect(RBRACE, "Expecting '}'");
+        } else {
+            error("Expecting '{'");
+        }
+        body.done(ENUM_BODY);
+    }
+
+
+    private void parseEnumList() {
+
+
+        while (true) {
+            if (at(RBRACE)) {
+                break;
+            }
+            parseEnumEntry();
+
+
+            if (!at(OR) ) break;
+            advance(); // OR
+
+        }
+
+
+    }
+
+    private void parseEnumEntry() {
+        PsiBuilder.Marker entry = mark();
+
+        parseIdentifierByTitle("enum entry", IDENTIFIER_RBRACKET_LBRACKET_SET);
+
+        if (at(LPAR)) {
+            advance(); // LPAR
+            parseTypeRef();
+            expect(RPAR, "Expecting ')'");
+        }
+
+        entry.done(ENUM_ENTRY);
     }
 
     /*
@@ -565,6 +867,13 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     /*
+     * (modifier)*
+     */
+    boolean parseModifierList(@NotNull TokenSet noModifiersBefore) {
+        return parseModifierList(null, noModifiersBefore);
+    }
+
+    /*
      * class
      *   : "class" SimpleName (<: delegationSpecifier{"&"}) classBody
      *   ;
@@ -576,7 +885,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        assert _at(CLASS_KEYWORD);
         assert _atSet(CLASS_INTERFACE_STRUCT_SET);
         advance();
-
 
         //类名
         parseIdentifier();
@@ -683,6 +991,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
         PsiBuilder.Marker decl = mark();
 
 
+        ModifierDetector detector = new ModifierDetector();
+        parseModifierList(detector, TokenSet.EMPTY);
+
+
         IElementType declType = parseMemberDeclarationRest();
 
         if (declType == null) {
@@ -769,7 +1081,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     @NotNull
-    private IElementType parseFunction() {
+      IElementType parseFunction() {
         return parseFunction(false);
     }
 
@@ -786,7 +1098,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
         error("Expecting an CangJie identifier"); //应该为标识符
 
     }
-
+    public enum NameParsingMode {
+        REQUIRED, ALLOWED, PROHIBITED
+    }
     /*
      * IDENTIFIER
      */
@@ -802,6 +1116,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
         errorWithRecovery("Expecting " + title + " name", recoverySet);
     }
 
+    private void parseIdentifierByTitle(String title) {
+        parseIdentifierByTitle(title, TokenSet.EMPTY);
+    }
+
     /*
      * function
      *   :   "func"
@@ -811,7 +1129,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ;
      */
     @Contract("false -> !null")
-    private IElementType parseFunction(boolean failIfIdentifierExists) {
+      IElementType parseFunction(boolean failIfIdentifierExists) {
         assert _at(FUNC_KEYWORD);
         advance();
 
@@ -827,7 +1145,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         //函数名
         parseIdentifier();
 
-        expect(EXCL);
+//        expect(EXCL);
 
         boolean typeParameterListOccurred = false;
         if (at(LT)) {
@@ -1067,7 +1385,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             typeRefMarker.done(TYPE_REFERENCE);
 //            return;
         } else {
-            errorAndAdvance("Expecting a type reference ");
+            error("Expecting a type reference ");
             typeRefMarker.drop();
 //            return;
         }
@@ -1079,9 +1397,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         parseTypeRef(TokenSet.EMPTY);
     }
 
-    public enum NameParsingMode {
-        REQUIRED, ALLOWED, PROHIBITED
-    }
+
 
     static class ModifierDetector implements Consumer<IElementType> {
         private final boolean companionDetected = false;

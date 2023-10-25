@@ -18,11 +18,11 @@ class CjPrimaryConstructor : CjConstructor<CjPrimaryConstructor> {
     override fun getContainingClassOrStruct() = parent as CjClassOrStruct
 
     private fun getOrCreateConstructorKeyword(): PsiElement {
-        return getConstructorKeyword() ?: addBefore(CjPsiFactory(project).createConstructorKeyword(), valueParameterList!!)
+        return getInitKeyword() ?: addBefore(CjPsiFactory(project).createConstructorKeyword(), valueParameterList!!)
     }
 
     fun removeRedundantConstructorKeywordAndSpace() {
-        getConstructorKeyword()?.delete()
+        getInitKeyword()?.delete()
         if (prevSibling is PsiWhiteSpace) {
             prevSibling.delete()
         }
@@ -33,7 +33,7 @@ class CjPrimaryConstructor : CjConstructor<CjPrimaryConstructor> {
         if (modifierList != null) {
             addModifier(modifierList, modifier)
             if (this.modifierList == null) {
-                getConstructorKeyword()?.delete()
+                getInitKeyword()?.delete()
             }
         } else {
             if (modifier == CjTokens.PUBLIC_KEYWORD) return

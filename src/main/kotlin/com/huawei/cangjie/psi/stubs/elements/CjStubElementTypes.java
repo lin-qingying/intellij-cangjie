@@ -14,7 +14,9 @@ public interface CjStubElementTypes {
     CjPlaceHolderStubElementType<CjSuperTypeEntry> SUPER_TYPE_ENTRY =
             new CjPlaceHolderStubElementType<>("SUPER_TYPE_ENTRY", CjSuperTypeEntry.class);
 
+    CjVariableElementType VARIABLE = new CjVariableElementType("VARIABLE");
     CjPropertyElementType PROPERTY = new CjPropertyElementType("PROPERTY");
+
     CjPlaceHolderStubElementType<CjClassInitializer> CLASS_INITIALIZER =
             new CjPlaceHolderStubElementType<>("CLASS_INITIALIZER", CjClassInitializer.class);
     CjImportAliasElementType IMPORT_ALIAS = new CjImportAliasElementType("IMPORT_ALIAS");
@@ -39,6 +41,9 @@ public interface CjStubElementTypes {
     CjFunctionElementType FUNCTION = new CjFunctionElementType("FUNC");
     CjContextReceiverElementType CONTEXT_RECEIVER = new CjContextReceiverElementType("CONTEXT_RECEIVER");
 
+
+    CjEnumElementType ENUM = new CjEnumElementType("ENUM");
+
     CjPlaceHolderStubElementType<CjContextReceiverList> CONTEXT_RECEIVER_LIST =
             new CjPlaceHolderStubElementType<>("CONTEXT_RECEIVER_LIST", CjContextReceiverList.class);
     CjPlaceHolderStubElementType<CjTypeParameterList> TYPE_PARAMETER_LIST =
@@ -61,7 +66,11 @@ public interface CjStubElementTypes {
 
     CjPlaceHolderStubElementType<CjClassBody> CLASS_BODY =
             new CjPlaceHolderStubElementType<>("CLASS_BODY", CjClassBody.class);
+    CjPlaceHolderStubElementType<CjEnumBody> ENUM_BODY =
+            new CjPlaceHolderStubElementType<>("ENUM_BODY", CjEnumBody.class);
 
+    CjPlaceHolderStubElementType<CjPropertyBody> PROPERTY_BODY =
+            new CjPlaceHolderStubElementType<>("PROPERTY_BODY", CjPropertyBody.class);
 
     CjPlaceHolderStubElementType<CjTypeConstraintList> TYPE_CONSTRAINT_LIST =
             new CjPlaceHolderStubElementType<>("TYPE_CONSTRAINT_LIST", CjTypeConstraintList.class);
@@ -69,7 +78,10 @@ public interface CjStubElementTypes {
             new CjPlaceHolderStubElementType<>("VALUE_PARAMETER_LIST", CjParameterList.class);
 
     CjNameReferenceExpressionElementType REFERENCE_EXPRESSION = new CjNameReferenceExpressionElementType("REFERENCE_EXPRESSION");
-    CjClassElementType ENUM_ENTRY = new CjClassElementType("ENUM_ENTRY");
+
+    CjPlaceHolderStubElementType<CjSuperTypeEntry> ENUM_ENTRY =
+            new CjPlaceHolderStubElementType<>("ENUM_ENTRY", CjSuperTypeEntry.class);
+
     CjSecondaryConstructorElementType SECONDARY_CONSTRUCTOR =
             new CjSecondaryConstructorElementType("SECONDARY_CONSTRUCTOR");
 
