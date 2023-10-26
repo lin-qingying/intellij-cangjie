@@ -82,8 +82,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
     }
+    void parseTypeRef() {
+        parseTypeRef(TokenSet.EMPTY);
+    }
     void parseTypeRefWithoutIntersections() {
-        parseTypeRef(TokenSet.EMPTY /* allowSimpleIntersectionTypes */);
+        parseTypeRef(TokenSet.EMPTY  );
     }
     private final CangJieExpressionParsing myExpressionParsing;
 
@@ -395,6 +398,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
 
+    void parseScript() {
+        PsiBuilder.Marker fileMarker = mark();
+        fileMarker.done(CJ_FILE);
+    }
+
     //Èë¿Ú
     void parseFile() {
         PsiBuilder.Marker fileMarker = mark();
@@ -576,7 +584,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         if (!receiverPresent) return false;
 
-        createTruncatedBuilder(lastDot).parseTypeRefWithoutIntersections();
+        createTruncatedBuilder(lastDot).parseTypeRef();
 
         if (atSet(RECEIVER_TYPE_TERMINATORS)) {
             advance(); // expectation
@@ -1466,9 +1474,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     }
 
-    void parseTypeRef() {
-        parseTypeRef(TokenSet.EMPTY);
-    }
 
 
 

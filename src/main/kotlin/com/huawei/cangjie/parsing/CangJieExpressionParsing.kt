@@ -5,8 +5,10 @@ import com.huawei.cangjie.CjNodeTypes.*
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.lexer.CjTokens.*
 import com.intellij.lang.PsiBuilder
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
+
 
 open class CangJieExpressionParsing(
     builder: SemanticWhitespaceAwarePsiBuilder, private val cangJieParsing: CangJieParsing, isLazy: Boolean
@@ -14,7 +16,9 @@ open class CangJieExpressionParsing(
     builder, isLazy
 ) {
 
+
     @SuppressWarnings("UnusedDeclaration")
+
     enum class Precedence(vararg operations: IElementType) {
         POSTFIX(
             PLUSPLUS, MINUSMINUS, DOT
@@ -32,11 +36,13 @@ open class CangJieExpressionParsing(
         AS(AS_KEYWORD) {
 
             override fun parseRightHandSide(operation: IElementType, parser: CangJieExpressionParsing): IElementType {
+                logger.info("AS")
                 parser.cangJieParsing.parseTypeRefWithoutIntersections()
                 return BINARY_WITH_TYPE
             }
 
             override fun parseHigherPrecedence(parser: CangJieExpressionParsing) {
+                logger.info("AS")
                 parser.parsePrefixExpression()
             }
         },
@@ -68,6 +74,10 @@ open class CangJieExpressionParsing(
 
         @OptIn(ExperimentalStdlibApi::class)
         companion object {
+            val logger = Logger.getInstance(
+                Precedence::class.java
+            )
+
             init {
                 val values: Array<Precedence> = Precedence.entries.toTypedArray()
                 for (precedence in values) {
@@ -108,25 +118,12 @@ open class CangJieExpressionParsing(
     override fun create(builder: SemanticWhitespaceAwarePsiBuilder?): CangJieParsing = cangJieParsing.create(builder)
 
 
-
-    val STATEMENT_FIRST = TokenSet.orSet(
-        EXPRESSION_FIRST, TokenSet.create( // declaration
-            FUNC_KEYWORD, LET_KEYWORD, VAR_KEYWORD, INTERFACE_KEYWORD, CLASS_KEYWORD
-
-        ), MODIFIER_KEYWORDS
-    )
-
-    private val STATEMENT_NEW_LINE_QUICK_RECOVERY_SET = TokenSet.orSet(
-        TokenSet.andSet(
-            STATEMENT_FIRST, TokenSet.andNot(KEYWORDS, TokenSet.create(IN_KEYWORD))
-        ), TokenSet.create(EOL_OR_SEMICOLON)
-    )
-
     /*
         * expressions
         *   : SEMI* statement{SEMI+} SEMI*
         */
     fun parseStatements() {
+
         while (at(SEMICOLON)) advance() // SEMICOLON
         while (!eof() && !at(RBRACE)) {
             if (!atSet(STATEMENT_FIRST)) {
@@ -248,7 +245,7 @@ open class CangJieExpressionParsing(
      *   : typeArguments? valueArguments (getEntryPoint? functionLiteral)
      *   : typeArguments (getEntryPoint? functionLiteral)
      *   : arrayAccess
-     *   : memberAccessOperation postfixUnaryExpression // TODO: Review
+     *   : memberAccessOperation postfixUnaryExpression
      *   ;
      */
     private fun parsePostfixExpression() {
@@ -292,17 +289,14 @@ open class CangJieExpressionParsing(
      * atomicExpression
      *   : "this" label?
      *   : "super" ("<" type ">")? label?
-     *   : objectLiteral
      *   : jump
      *   : if
-     *   : when
+     *   : match
      *   : try
      *   : loop
-     *   : literalConstant
      *   : functionLiteral
      *   : declaration
      *   : SimpleName
-     *   : collectionLiteral
      *   ;
      */
     private fun parseAtomicExpression(): Boolean {
@@ -345,24 +339,24 @@ open class CangJieExpressionParsing(
             //true false
             TRUE_KEYWORD_Id, FALSE_KEYWORD_Id -> parseOneTokenExpression(BOOLEAN_CONSTANT)
             //整数
-            INTEGER_LITERAL_Id -> parseOneTokenExpression(INTEGER_CONSTANT)
-            //字符
+//            INTEGER_LITERAL_Id -> parseOneTokenExpression(INTEGER_CONSTANT)
+//            //字符
             CHARACTER_LITERAL_Id -> parseOneTokenExpression(CHARACTER_CONSTANT)
             //浮点数
-            FLOAT_LITERAL_Id -> parseOneTokenExpression(FLOAT_CONSTANT)
+//            FLOAT_LITERAL_Id -> parseOneTokenExpression(FLOAT_CONSTANT)
 //class interface func let var
-            CLASS_KEYWORD_Id, INTERFACE_KEYWORD_Id, FUNC_KEYWORD_Id, LET_KEYWORD_Id, VAR_KEYWORD_Id -> if (!parseLocalDeclaration(
-                    myBuilder.newlineBeforeCurrentToken(),
-
-                    )
-            ) {
-                ok = false
-            }
+//            CLASS_KEYWORD_Id, INTERFACE_KEYWORD_Id, FUNC_KEYWORD_Id, LET_KEYWORD_Id, VAR_KEYWORD_Id -> if (!parseLocalDeclaration(
+//                    myBuilder.newlineBeforeCurrentToken(),
+//
+//                    )
+//            ) {
+//                ok = false
+//            }
 
             else -> ok = false
         }
         if (!ok) {
-            // TODO: better recovery if FIRST(element) did not match
+
             errorWithRecovery(
                 "Expecting an element", TokenSet.orSet(
                     EXPRESSION_FOLLOW, TokenSet.create(LONG_TEMPLATE_ENTRY_END)
@@ -484,16 +478,6 @@ open class CangJieExpressionParsing(
         parseBinaryExpression(Precedence.ASSIGNMENT)
     }
 
-    private val ALLOW_NEWLINE_OPERATIONS = TokenSet.create(
-        DOT, COLON, AS_KEYWORD, ANDAND, OROR
-    )
-
-
-
-    fun test(){
-
-        println("dfsfdsff")
-    }
 
     /*
      * element (operation element)*
@@ -501,6 +485,8 @@ open class CangJieExpressionParsing(
      * 请查看排序表
      */
     private fun parseBinaryExpression(precedence: Precedence) {
+
+        logger.info("parseBinaryExpression ${489}")
         var expression = mark()
         precedence.parseHigherPrecedence(this)
 
@@ -573,6 +559,11 @@ open class CangJieExpressionParsing(
         val EXPRESSION_FOLLOW = TokenSet.create(
             EOL_OR_SEMICOLON, ARROW, COMMA, RBRACE, RPAR, RBRACKET
         )
+
+        val ALLOW_NEWLINE_OPERATIONS = TokenSet.create(
+            DOT, COLON, AS_KEYWORD, ANDAND, OROR
+        )
+
         val EXPRESSION_FIRST = TokenSet.create( // Prefix
             MINUS, PLUS, MINUSMINUS, PLUSPLUS, EXCL, LPAR,  // parenthesized
             // literal constant
@@ -591,6 +582,23 @@ open class CangJieExpressionParsing(
             FOR_KEYWORD, WHILE_KEYWORD, DO_KEYWORD, IDENTIFIER,  // SimpleName
             LBRACKET // Collection literal expression
         )
+
+        @SuppressWarnings("WeakerAccess")
+        val STATEMENT_FIRST = TokenSet.orSet(
+            EXPRESSION_FIRST, TokenSet.create( // declaration
+                FUNC_KEYWORD, LET_KEYWORD, VAR_KEYWORD, INTERFACE_KEYWORD, CLASS_KEYWORD
+
+            ), MODIFIER_KEYWORDS
+        )
+        val STATEMENT_NEW_LINE_QUICK_RECOVERY_SET = TokenSet.orSet(
+            TokenSet.andSet(
+                STATEMENT_FIRST, TokenSet.andNot(KEYWORDS, TokenSet.create(IN_KEYWORD))
+            ), TokenSet.create(EOL_OR_SEMICOLON)
+        )
+        val logger = Logger.getInstance(
+            CangJieExpressionParsing::class.java
+        )
+
         init {
             val operations: MutableSet<IElementType> = HashSet()
             val values: Array<Precedence> = Precedence.entries.toTypedArray()
