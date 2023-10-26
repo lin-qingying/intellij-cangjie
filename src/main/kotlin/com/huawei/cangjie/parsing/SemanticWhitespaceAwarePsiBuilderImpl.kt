@@ -29,12 +29,23 @@ class SemanticWhitespaceAwarePsiBuilderImpl(delegate: PsiBuilder) : PsiBuilderAd
     }
 
     override fun newlineBeforeCurrentToken(): Boolean {
+
+        //            TODO IntellijIdeaRulezzz
+        if(this.tokenText == "IntellijIdeaRulezzz") return true
+
+
         if (!newlinesEnabled.peek()) return false
+
         if (eof()) return true
 
 
         for (i in 1..currentOffset) {
             val previousToken = rawLookup(-i)
+            val a = rawLookup(0)
+
+
+
+
             if (previousToken === CjTokens.BLOCK_COMMENT || previousToken === CjTokens.DOC_COMMENT || previousToken === CjTokens.EOL_COMMENT || previousToken === CjTokens.SHEBANG_COMMENT) {
                 continue
             }

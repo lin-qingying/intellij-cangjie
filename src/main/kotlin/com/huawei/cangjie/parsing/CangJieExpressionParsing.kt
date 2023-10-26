@@ -252,32 +252,35 @@ open class CangJieExpressionParsing(
         var expression = mark()
         var firstExpressionParsed = parseAtomicExpression()
 
+
+        //TODO 问题代码
         while (true) {
             if (interruptedWithNewLine()) {
                 break
-            } else if (at(LBRACKET)) {
-                parseArrayAccess()
-                expression.done(ARRAY_ACCESS_EXPRESSION)
             }
-//            else if (parseCallSuffix()) {
-//                expression.done(CALL_EXPRESSION)
+//            else if (at(LBRACKET)) {
+//                parseArrayAccess()
+//                expression.done(ARRAY_ACCESS_EXPRESSION)
 //            }
-            else if (at(DOT)) {
-                val expressionType: IElementType = DOT_QUALIFIED_EXPRESSION
-                advance() // DOT or SAFE_ACCESS
-                if (!firstExpressionParsed) {
-                    expression.drop()
-                    expression = mark()
-                    firstExpressionParsed = parseAtomicExpression()
-                    continue
-                }
-//                parseSelectorCallExpression()
-                expression.done(expressionType)
-            } else if (atSet(Precedence.POSTFIX.getOperations())) {
-                parseOperationReference()
-                expression.done(POSTFIX_EXPRESSION)
-            }
-            expression = expression.precede()
+////            else if (parseCallSuffix()) {
+////                expression.done(CALL_EXPRESSION)
+////            }
+//            else if (at(DOT)) {
+//                val expressionType: IElementType = DOT_QUALIFIED_EXPRESSION
+//                advance() // DOT or SAFE_ACCESS
+//                if (!firstExpressionParsed) {
+//                    expression.drop()
+//                    expression = mark()
+//                    firstExpressionParsed = parseAtomicExpression()
+//                    continue
+//                }
+////                parseSelectorCallExpression()
+//                expression.done(expressionType)
+//            } else if (atSet(Precedence.POSTFIX.getOperations())) {
+//                parseOperationReference()
+//                expression.done(POSTFIX_EXPRESSION)
+//            }
+//            expression = expression.precede()
         }
 
 
@@ -339,7 +342,7 @@ open class CangJieExpressionParsing(
             //true false
             TRUE_KEYWORD_Id, FALSE_KEYWORD_Id -> parseOneTokenExpression(BOOLEAN_CONSTANT)
             //整数
-//            INTEGER_LITERAL_Id -> parseOneTokenExpression(INTEGER_CONSTANT)
+            INTEGER_LITERAL_Id -> parseOneTokenExpression(INTEGER_CONSTANT)
 //            //字符
             CHARACTER_LITERAL_Id -> parseOneTokenExpression(CHARACTER_CONSTANT)
             //浮点数
@@ -503,7 +506,10 @@ open class CangJieExpressionParsing(
     }
 
     private fun interruptedWithNewLine(): Boolean {
-        return !ALLOW_NEWLINE_OPERATIONS.contains(tt()) && myBuilder.newlineBeforeCurrentToken()
+        var a = !ALLOW_NEWLINE_OPERATIONS.contains(tt())
+        var b = myBuilder.newlineBeforeCurrentToken()
+return a && b
+//        return !ALLOW_NEWLINE_OPERATIONS.contains(tt()) && myBuilder.newlineBeforeCurrentToken()
     }
 
     private fun parseOperationReference() {
