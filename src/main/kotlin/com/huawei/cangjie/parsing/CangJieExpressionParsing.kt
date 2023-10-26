@@ -321,9 +321,9 @@ open class CangJieExpressionParsing(
 //            //return
 //            RETURN_KEYWORD_Id -> parseReturn()
 //            //continue
-//            CONTINUE_KEYWORD_Id -> parseJump(KtNodeTypes.CONTINUE)
+//            CONTINUE_KEYWORD_Id -> parseJump(CjNodeTypes.CONTINUE)
 //            //break
-//            BREAK_KEYWORD_Id -> parseJump(KtNodeTypes.BREAK)
+//            BREAK_KEYWORD_Id -> parseJump(CjNodeTypes.BREAK)
 //            //if
 //            IF_KEYWORD_Id -> parseIf()
 //            //match
