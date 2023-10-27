@@ -55,7 +55,7 @@ intellij {
 
 
 
-    version.set("232-EAP-SNAPSHOT")
+    version.set("2022.2.5")
     type.set("IC") // Target IDE Platform
 ////加载PsiViewer插件 grammar-kit
     plugins.set(listOf(

@@ -10,6 +10,7 @@ import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.stubs.CangJieClassOrStructStub
 import com.intellij.extapi.psi.StubBasedPsiElementBase
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
 import com.intellij.util.codeInsight.CommentUtilCore
@@ -144,3 +145,11 @@ fun getTrailingCommaByElementsList(elementList: PsiElement?): PsiElement? {
     val lastChild = elementList?.lastChild?.let { if (it !is PsiComment) it else it.getPrevSiblingIgnoringWhitespaceAndComments() }
     return lastChild?.takeIf { it.node.elementType == CjTokens.COMMA }
 }
+fun CjStringTemplateExpression.getContentRange(): TextRange {
+    val start = node.firstChildNode.textLength
+    val lastChild = node.lastChildNode
+    val length = textLength
+    return TextRange(start, if (lastChild.elementType == CjTokens.CLOSING_QUOTE) length - lastChild.textLength else length)
+}
+fun CjStringTemplateExpression.isSingleQuoted(): Boolean = node.firstChildNode.textLength == 1
+fun CjStringTemplateExpression.isPlain() = entries.all { it is CjLiteralStringTemplateEntry }

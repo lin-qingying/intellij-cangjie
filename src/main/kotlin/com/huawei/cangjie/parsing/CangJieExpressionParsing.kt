@@ -79,7 +79,7 @@ open class CangJieExpressionParsing(
             )
 
             init {
-                val values: Array<Precedence> = Precedence.entries.toTypedArray()
+                val values: Array<Precedence> = Precedence.values()
                 for (precedence in values) {
                     val ordinal: Int = precedence.ordinal
                     precedence.higher = if (ordinal > 0) values[ordinal - 1] else null
@@ -258,29 +258,29 @@ open class CangJieExpressionParsing(
             if (interruptedWithNewLine()) {
                 break
             }
-//            else if (at(LBRACKET)) {
-//                parseArrayAccess()
-//                expression.done(ARRAY_ACCESS_EXPRESSION)
+            else if (at(LBRACKET)) {
+                parseArrayAccess()
+                expression.done(ARRAY_ACCESS_EXPRESSION)
+            }
+//            else if (parseCallSuffix()) {
+//                expression.done(CALL_EXPRESSION)
 //            }
-////            else if (parseCallSuffix()) {
-////                expression.done(CALL_EXPRESSION)
-////            }
-//            else if (at(DOT)) {
-//                val expressionType: IElementType = DOT_QUALIFIED_EXPRESSION
-//                advance() // DOT or SAFE_ACCESS
-//                if (!firstExpressionParsed) {
-//                    expression.drop()
-//                    expression = mark()
-//                    firstExpressionParsed = parseAtomicExpression()
-//                    continue
-//                }
-////                parseSelectorCallExpression()
-//                expression.done(expressionType)
-//            } else if (atSet(Precedence.POSTFIX.getOperations())) {
-//                parseOperationReference()
-//                expression.done(POSTFIX_EXPRESSION)
-//            }
-//            expression = expression.precede()
+            else if (at(DOT)) {
+                val expressionType: IElementType = DOT_QUALIFIED_EXPRESSION
+                advance() // DOT or SAFE_ACCESS
+                if (!firstExpressionParsed) {
+                    expression.drop()
+                    expression = mark()
+                    firstExpressionParsed = parseAtomicExpression()
+                    continue
+                }
+//                parseSelectorCallExpression()
+                expression.done(expressionType)
+            } else if (atSet(Precedence.POSTFIX.getOperations())) {
+                parseOperationReference()
+                expression.done(POSTFIX_EXPRESSION)
+            }
+            expression = expression.precede()
         }
 
 
@@ -607,7 +607,7 @@ return a && b
 
         init {
             val operations: MutableSet<IElementType> = HashSet()
-            val values: Array<Precedence> = Precedence.entries.toTypedArray()
+            val values: Array<Precedence> = Precedence.values()
             for (precedence in values) {
                 operations.addAll(listOf(*precedence.getOperations().getTypes()))
             }

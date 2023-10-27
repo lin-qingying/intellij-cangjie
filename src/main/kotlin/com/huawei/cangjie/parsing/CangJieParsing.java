@@ -410,7 +410,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         //处理开头  package
         parsePreamble();
 
-        //处理声明式语句
+//        处理声明式语句
         while (!eof()) {
             parseTopLevelDeclaration();
         }

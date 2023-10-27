@@ -118,3 +118,6 @@ interface CangJieTypeProjectionStub : StubElement<CjTypeProjection> {
     fun getProjectionKind(): CjProjectionKind
 }
 //interface CangJieMainFunctionStub : CangJieFunctionStub
+interface CangJiePlaceHolderWithTextStub<T : CjElement> : CangJiePlaceHolderStub<T> {
+    fun text(): String
+}

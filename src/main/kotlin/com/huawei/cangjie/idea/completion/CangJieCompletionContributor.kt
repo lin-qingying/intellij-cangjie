@@ -1,27 +1,212 @@
 package com.huawei.cangjie.idea.completion
 
-import com.huawei.cangjie.lexer.CjTokens
-import com.intellij.codeInsight.completion.CompletionContributor
-import com.intellij.codeInsight.completion.CompletionParameters
-import com.intellij.codeInsight.completion.CompletionResultSet
-import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.huawei.cangjie.idea.completion.implCommon.StringTemplateCompletion
+import com.huawei.cangjie.idea.completion.implCommon.stringTemplates.wrapLookupElementForStringTemplateAfterDotCompletion
+import com.huawei.cangjie.idea.completion.smart.SmartCompletion
+import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.psiUtil.endOffset
+import com.huawei.cangjie.utils.getNonStrictParentOfType
+import com.intellij.codeInsight.completion.*
+import com.intellij.codeInsight.completion.impl.CamelHumpMatcher
+import com.intellij.codeInsight.lookup.LookupElement
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.openapi.util.registry.Registry
+import com.intellij.patterns.PlatformPatterns
+import com.intellij.psi.PsiComment
+import com.intellij.util.ProcessingContext
+import com.intellij.util.indexing.DumbModeAccessType
+import kotlin.math.max
 
-class CangJieCompletionContributor: CompletionContributor() {
+class CangJieCompletionContributor : CompletionContributor() {
 
 
-    override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
-
-
-//        val file = parameters.originalFile
-
-//        file.children.forEach {
-//            println("child: $it")
-//        }
-
-        result.addAllElements(CjTokens.KEYWORDALL.types.map { LookupElementBuilder.create(it.toString()) })
-        super.fillCompletionVariants(parameters, result)
+    companion object {
+        const val DEFAULT_DUMMY_IDENTIFIER: String = CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED + "$"
     }
 
+    init {
+        val provider = object : CompletionProvider<CompletionParameters>() {
+            override fun addCompletions(
+                parameters: CompletionParameters,
+                context: ProcessingContext,
+                result: CompletionResultSet
+            ) {
+                performCompletion(parameters, result)
+            }
+        }
+        extend(CompletionType.BASIC, PlatformPatterns.psiElement(), provider)
+        extend(CompletionType.SMART, PlatformPatterns.psiElement(), provider)
+    }
+
+    private fun shouldSuppressCompletion(parameters: CompletionParameters, prefixMatcher: PrefixMatcher): Boolean {
+        val position = parameters.position
+        val invocationCount = parameters.invocationCount
+
+        if (prefixMatcher is CamelHumpMatcher && prefixMatcher.isTypoTolerant) return true
+
+
+
+
+        if (invocationCount == 0 && Registry.`is`("cangjie.disable.auto.completion.inside.expression", false)) {
+            val originalPosition = parameters.originalPosition
+            val originalExpression = originalPosition?.getNonStrictParentOfType<CjNameReferenceExpression>()
+            val expression = position.getNonStrictParentOfType<CjNameReferenceExpression>()
+
+            if (expression != null && originalExpression != null &&
+                !expression.getReferencedName().startsWith(originalExpression.getReferencedName())
+            ) {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    private fun doComplete(
+        parameters: CompletionParameters,
+        result: CompletionResultSet,
+        lookupElementPostProcessor: ((LookupElement) -> LookupElement)? = null
+    ) {
+        val position = parameters.position
+        if (position.getNonStrictParentOfType<PsiComment>() != null) {
+
+            return
+        }
+
+        if (shouldSuppressCompletion(parameters, result.prefixMatcher)) {
+            result.stopHere()
+            return
+        }
+
+
+
+
+        for (extension in CangJieCompletionExtension.EP_NAME.extensionList) {
+            if (extension.perform(parameters, result)) return
+        }
+
+
+
+        result.restartCompletionWhenNothingMatches()
+
+
+    }
+
+    private fun performCompletion(parameters: CompletionParameters, result: CompletionResultSet) {
+        val position = parameters.position
+        val parametersOriginFile = parameters.originalFile
+        if (position.containingFile !is CjFile || parametersOriginFile !is CjFile) return
+
+        StringTemplateCompletion.correctParametersForInStringTemplateCompletion(parameters)
+            ?.let { correctedParameters ->
+                doComplete(correctedParameters, result, ::wrapLookupElementForStringTemplateAfterDotCompletion)
+                return
+            }
+
+        DumbModeAccessType.RELIABLE_DATA_ONLY.ignoreDumbMode(ThrowableComputable {
+            doComplete(parameters, result)
+        })
+    }
+
+    override fun beforeCompletion(context: CompletionInitializationContext) {
+
+
+//        将IntellijIdeaRulezzz节点删除
+//        val document = context.editor.document
+//        val text = document.text
+//
+//        val index = text.indexOf("IntellijIdeaRulezzz")
+//        if (index != -1) {
+//            document.deleteString(index, index + 20)
+//        }
+
+
+        val offset = context.startOffset
+        val psiFile = context.file
+        val tokenBefore = psiFile.findElementAt(max(0, offset - 1))
+
+
+        context.replacementOffset = context.replacementOffset
+
+        val dummyIdentifierCorrected =
+            CompletionDummyIdentifierProviderService.getInstance().correctPositionForStringTemplateEntry(context)
+        if (dummyIdentifierCorrected) {
+            return
+        }
+        context.dummyIdentifier = when {
+            context.completionType == CompletionType.SMART -> DEFAULT_DUMMY_IDENTIFIER
+
+            PackageDirectiveCompletion.ACTIVATION_PATTERN.accepts(tokenBefore) -> PackageDirectiveCompletion.DUMMY_IDENTIFIER
+
+            else -> CompletionDummyIdentifierProviderService.getInstance().provideDummyIdentifier(context)
+
+        }
+
+        val tokenAt = psiFile.findElementAt(max(0, offset))
+        if (tokenAt != null) {
+
+            if (context.completionType == CompletionType.SMART && !isAtEndOfLine(offset, context.editor.document)) {
+                var parent = tokenAt.parent
+                if (parent is CjExpression && parent !is CjBlockExpression) {
+
+                    var expression: CjExpression = parent
+                    parent = expression.parent
+                    while (parent is CjExpression && parent.getFirstChild() == expression) {
+                        expression = parent
+                        parent = expression.parent
+                    }
+
+                    val suggestedReplacementOffset = replacementOffsetByExpression(expression)
+                    if (suggestedReplacementOffset > context.replacementOffset) {
+                        context.replacementOffset = suggestedReplacementOffset
+                    }
+
+                    context.offsetMap.addOffset(SmartCompletion.OLD_ARGUMENTS_REPLACEMENT_OFFSET, expression.endOffset)
+
+                    val argumentList = (expression.parent as? CjValueArgument)?.parent as? CjValueArgumentList
+                    if (argumentList != null) {
+                        context.offsetMap.addOffset(
+                            SmartCompletion.MULTIPLE_ARGUMENTS_REPLACEMENT_OFFSET,
+                            argumentList.rightParenthesis?.textRange?.startOffset ?: argumentList.endOffset
+                        )
+                    }
+                }
+            }
+            CompletionDummyIdentifierProviderService.getInstance().correctPositionForParameter(context)
+        }
+    }
+
+    private fun replacementOffsetByExpression(expression: CjExpression): Int {
+        when (expression) {
+            is CjCallExpression -> {
+                val calleeExpression = expression.calleeExpression
+                if (calleeExpression != null) {
+                    return calleeExpression.textRange!!.endOffset
+                }
+            }
+
+            is CjQualifiedExpression -> {
+                val selector = expression.selectorExpression
+                if (selector != null) {
+                    return replacementOffsetByExpression(selector)
+                }
+            }
+        }
+        return expression.textRange!!.endOffset
+    }
+
+    private fun isAtEndOfLine(offset: Int, document: Document): Boolean {
+        var i = offset
+        val chars = document.charsSequence
+        while (i < chars.length) {
+            val c = chars[i]
+            if (c == '\n') return true
+            if (!Character.isWhitespace(c)) return false
+            i++
+        }
+        return true
+    }
 
 
 }

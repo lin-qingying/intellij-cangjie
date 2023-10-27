@@ -219,6 +219,8 @@ public interface CjTokens {
     CjKeywordToken INTERFACE_KEYWORD = CjKeywordToken.keyword("interface", INTERFACE_KEYWORD_Id);
 
 
+    CjToken   UNDERLINE = new CjToken("UNDERLINE", IDENTIFIER_Id);
+
     CjKeywordToken TYPEOF_KEYWORD = CjKeywordToken.keyword("typeof", TYPEOF_KEYWORD_Id);
 
 //    CjToken AS_SAFE = CjKeywordToken.keyword("AS_SAFE", AS_SAFE_Id);
@@ -343,10 +345,10 @@ public interface CjTokens {
 
     TokenSet KEYWORDALL = TokenSet.orSet(KEYWORDS, SOFT_KEYWORDS);
 
-    /*ã€‚
-    æ­¤æ•°ç»„ç”¨äºå­˜æ ¹åºåˆ—åŒ–ï¼š
-    1.è¯·å‹¿æ›´æ”¹é¡ºåºã€‚
-    2.å¦‚æœæ·»åŠ æ¡ç›®æˆ–å˜æ›´å•ï¼Œè¯·å¢åŠ å­˜æ ¹ç‰ˆæœ¬ã€‚
+    /*¡£
+    ´ËÊı×éÓÃÓÚ´æ¸ùĞòÁĞ»¯£º
+    1.ÇëÎğ¸ü¸ÄË³Ğò¡£
+    2.Èç¹ûÌí¼ÓÌõÄ¿»ò±ä¸üµ¥£¬ÇëÔö¼Ó´æ¸ù°æ±¾¡£
     */
     CjModifierKeywordToken[] MODIFIER_KEYWORDS_ARRAY =
             new CjModifierKeywordToken[]{
@@ -376,7 +378,7 @@ public interface CjTokens {
             IDENTIFIER);
 
 
-    //åŸºæœ¬ç±»å‹
+    //»ù±¾ÀàĞÍ
     TokenSet BASICTYPES = TokenSet.create(
             INT8_KEYWORD, INT16_KEYWORD, INT32_KEYWORD, INT64_KEYWORD, UINT8_KEYWORD, UINT16_KEYWORD, UINT32_KEYWORD, UINT64_KEYWORD, FLOAT32_KEYWORD, FLOAT64_KEYWORD, BOOL_KEYWORD, CHAR_KEYWORD, UNIT_KEYWORD
     );

@@ -9,8 +9,24 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         visitElement(element);
         return null;
     }
-
-
+    public R visitStringTemplateExpression(@NotNull CjStringTemplateExpression expression, D data) {
+        return visitExpression(expression, data);
+    }
+    public R visitLiteralStringTemplateEntry(@NotNull CjLiteralStringTemplateEntry entry, D data) {
+        return visitStringTemplateEntry(entry, data);
+    }
+    public R visitEscapeStringTemplateEntry(@NotNull CjEscapeStringTemplateEntry entry, D data) {
+        return visitStringTemplateEntry(entry, data);
+    }
+    public R visitStringTemplateEntry(@NotNull CjStringTemplateEntry entry, D data) {
+        return visitCjElement(entry, data);
+    }
+    public R visitStringTemplateEntryWithExpression(@NotNull CjStringTemplateEntryWithExpression entry, D data) {
+        return visitStringTemplateEntry(entry, data);
+    }
+    public R visitBlockStringTemplateEntry(@NotNull CjBlockStringTemplateEntry entry, D data) {
+        return visitStringTemplateEntryWithExpression(entry, data);
+    }
     public R visitPostfixExpression(@NotNull CjPostfixExpression expression, D data) {
         return visitUnaryExpression(expression, data);
     }
@@ -204,9 +220,15 @@ return visitCjElement(cjImportList, data);
     public R visitKeyword(CjKeyword cjKeyword, D data) {
         return visitCjElement(cjKeyword, data);
     }
-
+    public R visitSimpleNameStringTemplateEntry(@NotNull CjSimpleNameStringTemplateEntry entry, D data) {
+        return visitStringTemplateEntryWithExpression(entry, data);
+    }
 
     public R visitEnumEntry(CjEnumEntry cjEnumEntry, D data) {
         return  visitCjElement(cjEnumEntry, data);
+    }
+
+    public R visitMatchEntry(CjMatchEntry cjMatchEntry, D data) {
+        return visitCjElement(cjMatchEntry, data);
     }
 }

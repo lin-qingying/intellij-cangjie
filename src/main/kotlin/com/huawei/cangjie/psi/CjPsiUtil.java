@@ -85,7 +85,7 @@ public class CjPsiUtil {
     }
 
     private static int getPriority(@NotNull CjExpression expression) {
-        int maxPriority = CangJieExpressionParsing.Precedence.getEntries().size() + 1;
+        int maxPriority = CangJieExpressionParsing.Precedence.values().length + 1;
 
 
         if (
@@ -104,7 +104,7 @@ public class CjPsiUtil {
         }
 
         IElementType operation = getOperation(expression);
-        for (CangJieExpressionParsing.Precedence precedence : CangJieExpressionParsing.Precedence.getEntries()) {
+        for (CangJieExpressionParsing.Precedence precedence : CangJieExpressionParsing.Precedence.values()) {
             if (precedence != CangJieExpressionParsing.Precedence.PREFIX && precedence != CangJieExpressionParsing.Precedence.POSTFIX &&
                     precedence.getOperations().contains(operation)) {
                 return maxPriority - precedence.ordinal() - 1;

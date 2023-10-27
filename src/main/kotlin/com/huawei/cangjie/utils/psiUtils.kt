@@ -3,7 +3,9 @@ package com.huawei.cangjie.utils
 import com.huawei.cangjie.psi.psiUtil.parentOfType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
+import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.util.PsiTreeUtil
 
 fun getElementTextWithContext(psiElement: PsiElement): String {
     if (!psiElement.isValid) return "<invalid element $psiElement>"
@@ -34,3 +36,11 @@ fun getElementTextWithContext(psiElement: PsiElement): String {
         append(elementTextInContext)
     }
 }
+inline fun <reified T : PsiElement> PsiElement.getNonStrictParentOfType(): T? {
+    return PsiTreeUtil.getParentOfType(this, T::class.java, false)
+}
+val PsiElement.parents: Sequence<PsiElement>
+    get() = parentsWithSelf.drop(1)
+val PsiElement.parentsWithSelf: Sequence<PsiElement>
+    get() = generateSequence(this) { if (it is PsiFile) null else it.parent }
+

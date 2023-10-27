@@ -121,6 +121,14 @@ class CjPsiFactory private constructor(
     fun createModifier(modifier: CjModifierKeywordToken): PsiElement {
         return createModifierList(modifier.value).getModifier(modifier)!!
     }
+    fun createExpressionIfPossible(@NonNls text: String): CjExpression? {
+        val expression = try {
+            doCreateExpression(text) ?: return null
+        } catch (ignored: Throwable) {
+            return null
+        }
+        return if (expression.text == text) expression else null
+    }
 
 
     fun createModifierList(modifier: CjModifierKeywordToken): CjModifierList {

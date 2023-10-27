@@ -1,0 +1,22 @@
+package com.huawei.cangjie.psi;
+
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderWithTextStub;
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
+import com.intellij.lang.ASTNode;
+import org.jetbrains.annotations.NotNull;
+
+
+public class CjBlockStringTemplateEntry extends CjStringTemplateEntryWithExpression {
+    public CjBlockStringTemplateEntry(@NotNull ASTNode node) {
+        super(node);
+    }
+
+    public CjBlockStringTemplateEntry(@NotNull CangJiePlaceHolderWithTextStub<CjBlockStringTemplateEntry> stub) {
+        super(stub, CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY);
+    }
+
+    @Override
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+        return visitor.visitBlockStringTemplateEntry(this, data);
+    }
+}

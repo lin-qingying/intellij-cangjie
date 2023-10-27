@@ -1,5 +1,7 @@
 
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude" allow-bundled-update="true">
+
+
     <resource-bundle>messages.CjBundle</resource-bundle>
 
     <depends>com.intellij.modules.lang</depends>
@@ -58,18 +60,30 @@
 
 <!--        <projectService serviceInterface="com.huawei.cangjie.psi.CjFileClassProvider"-->
 <!--                        serviceImplementation="com.huawei.cangjie.psi.CjFileClassProviderImpl"/>-->
+        <applicationService serviceImplementation="com.huawei.cangjie.idea.completion.FirCompletionDummyIdentifierProviderService"
+                            serviceInterface="com.huawei.cangjie.idea.completion.CompletionDummyIdentifierProviderService"/>
 
         <applicationService
                 serviceInterface="com.huawei.cangjie.psi.stubs.elements.StubIndexService"
                 serviceImplementation="com.huawei.cangjie.idea.stubindex.IdeStubIndexService"/>
         <completion.contributor
                 language="CangJie"
-
+                id="CangJieCompletionContributor"
+                order="first, after liveTemplates"
                 implementationClass="com.huawei.cangjie.idea.completion.CangJieCompletionContributor"/>
 
 <!--        <applicationService serviceInterface="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicy"-->
 <!--                        serviceImplementation="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>-->
+        <registryKey
+                key="cangjie.disable.auto.completion.inside.expression"
+                description="Disables auto-completion inside expressions"
+                defaultValue="false"
+                restartRequired="false"/>
 
  </extensions>
-
+    <extensionPoints>
+    <extensionPoint
+            qualifiedName="com.huawei.cangjie.completionExtension"
+            interface="com.huawei.cangjie.idea.completion.CangJieCompletionExtension" dynamic="true"/>
+    </extensionPoints>
 </idea-plugin>

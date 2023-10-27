@@ -31,7 +31,7 @@ class SemanticWhitespaceAwarePsiBuilderImpl(delegate: PsiBuilder) : PsiBuilderAd
     override fun newlineBeforeCurrentToken(): Boolean {
 
         //            TODO IntellijIdeaRulezzz
-        if(this.tokenText == "IntellijIdeaRulezzz") return true
+
 
 
         if (!newlinesEnabled.peek()) return false
@@ -41,7 +41,7 @@ class SemanticWhitespaceAwarePsiBuilderImpl(delegate: PsiBuilder) : PsiBuilderAd
 
         for (i in 1..currentOffset) {
             val previousToken = rawLookup(-i)
-            val a = rawLookup(0)
+
 
 
 
