@@ -24,22 +24,22 @@ abstract class AbstractCompletionDummyIdentifierProviderService : CompletionDumm
         val psiFile = context.file
         val tokenBefore = psiFile.findElementAt(max(0, offset - 1))
 
-        if (offset > 0 && tokenBefore!!.node.elementType == CjTokens.REGULAR_STRING_PART && tokenBefore.text.startsWith(
-                "."
-            )
-        ) {
-            val prev = tokenBefore.parent.prevSibling
-            if (prev != null && prev is CjSimpleNameStringTemplateEntry) {
-                val expression = prev.expression
-                if (expression != null) {
-                    val prefix = tokenBefore.text.substring(0, offset - tokenBefore.startOffset)
-                    context.dummyIdentifier =
-                        "{" + expression.text + prefix + CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED + "}"
-                    context.offsetMap.addOffset(CompletionInitializationContext.START_OFFSET, expression.startOffset)
-                    return true
-                }
-            }
-        }
+//        if (offset > 0 && tokenBefore!!.node.elementType == CjTokens.REGULAR_STRING_PART && tokenBefore.text.startsWith(
+//                "."
+//            )
+//        ) {
+//            val prev = tokenBefore.parent.prevSibling
+//            if (prev != null && prev is CjSimpleNameStringTemplateEntry) {
+//                val expression = prev.expression
+//                if (expression != null) {
+//                    val prefix = tokenBefore.text.substring(0, offset - tokenBefore.startOffset)
+//                    context.dummyIdentifier =
+//                        "{" + expression.text + prefix + CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED + "}"
+//                    context.offsetMap.addOffset(CompletionInitializationContext.START_OFFSET, expression.startOffset)
+//                    return true
+//                }
+//            }
+//        }
         return false
     }
 

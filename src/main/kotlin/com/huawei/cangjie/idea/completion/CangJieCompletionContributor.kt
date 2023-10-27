@@ -112,14 +112,6 @@ class CangJieCompletionContributor : CompletionContributor() {
     override fun beforeCompletion(context: CompletionInitializationContext) {
 
 
-//        将IntellijIdeaRulezzz节点删除
-//        val document = context.editor.document
-//        val text = document.text
-//
-//        val index = text.indexOf("IntellijIdeaRulezzz")
-//        if (index != -1) {
-//            document.deleteString(index, index + 20)
-//        }
 
 
         val offset = context.startOffset
@@ -128,20 +120,20 @@ class CangJieCompletionContributor : CompletionContributor() {
 
 
         context.replacementOffset = context.replacementOffset
-
-        val dummyIdentifierCorrected =
-            CompletionDummyIdentifierProviderService.getInstance().correctPositionForStringTemplateEntry(context)
-        if (dummyIdentifierCorrected) {
-            return
-        }
-        context.dummyIdentifier = when {
-            context.completionType == CompletionType.SMART -> DEFAULT_DUMMY_IDENTIFIER
-
-            PackageDirectiveCompletion.ACTIVATION_PATTERN.accepts(tokenBefore) -> PackageDirectiveCompletion.DUMMY_IDENTIFIER
-
-            else -> CompletionDummyIdentifierProviderService.getInstance().provideDummyIdentifier(context)
-
-        }
+        context.dummyIdentifier = null
+//        val dummyIdentifierCorrected =
+//            CompletionDummyIdentifierProviderService.getInstance().correctPositionForStringTemplateEntry(context)
+//        if (dummyIdentifierCorrected) {
+//            return
+//        }
+//        context.dummyIdentifier = when {
+//            context.completionType == CompletionType.SMART -> DEFAULT_DUMMY_IDENTIFIER
+//
+//            PackageDirectiveCompletion.ACTIVATION_PATTERN.accepts(tokenBefore) -> PackageDirectiveCompletion.DUMMY_IDENTIFIER
+//
+//            else -> CompletionDummyIdentifierProviderService.getInstance().provideDummyIdentifier(context)
+//
+//        }
 
         val tokenAt = psiFile.findElementAt(max(0, offset))
         if (tokenAt != null) {
