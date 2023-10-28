@@ -103,7 +103,7 @@ public interface CjTokens {
     int PLUSEQ_Id = 90;
     int MINUSEQ_Id = 91;
 
-
+    int AT_Id = 95;
     int COMMA_Id = 96;
     int EOL_OR_SEMICOLON_Id = 97;
 
@@ -246,6 +246,7 @@ public interface CjTokens {
     CjSingleValueToken LT = new CjSingleValueToken("LT", "<", LT_Id);
     CjSingleValueToken GT = new CjSingleValueToken("GT", ">", GT_Id);
     CjSingleValueToken LTEQ = new CjSingleValueToken("LTEQ", "<=", LTEQ_Id);
+    CjSingleValueToken AT          = new CjSingleValueToken("AT", "@", AT_Id);
     CjSingleValueToken GTEQ = new CjSingleValueToken("GTEQ", ">=", GTEQ_Id);
     CjSingleValueToken LTCOLON = new CjSingleValueToken("LTCOLON", "<:", LTCOLON_Id);
     CjSingleValueToken ARROW = new CjSingleValueToken("ARROW", "->", ARROW_Id);

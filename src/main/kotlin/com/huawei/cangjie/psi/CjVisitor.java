@@ -9,7 +9,39 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         visitElement(element);
         return null;
     }
+
+    public R visitIfExpression(@NotNull CjIfExpression expression, D data) {
+        return visitExpression(expression, data);
+    }
+    public R visitContinueExpression(@NotNull CjContinueExpression expression, D data) {
+        return visitExpressionWithLabel(expression, data);
+    }
+    public R visitBreakExpression(@NotNull CjBreakExpression expression, D data) {
+        return visitExpressionWithLabel(expression, data);
+    }
+    public R visitCollectionLiteralExpression(@NotNull CjCollectionLiteralExpression expression, D data) {
+        return visitExpression(expression, data);
+    }
+    public R visitThrowExpression(@NotNull CjThrowExpression expression, D data) {
+        return visitExpression(expression, data);
+    }
+    public R visitReturnExpression(@NotNull CjReturnExpression expression, D data) {
+        return visitExpressionWithLabel(expression, data);
+    }
+
+    public R visitParenthesizedExpression(@NotNull CjParenthesizedExpression expression, D data) {
+        return visitExpression(expression, data);
+    }
     public R visitStringTemplateExpression(@NotNull CjStringTemplateExpression expression, D data) {
+        return visitExpression(expression, data);
+    }
+    public R visitSuperExpression(@NotNull CjSuperExpression expression, D data) {
+        return visitExpressionWithLabel(expression, data);
+    }
+    public R visitThisExpression(@NotNull CjThisExpression expression, D data) {
+        return visitExpressionWithLabel(expression, data);
+    }
+    public R visitExpressionWithLabel(@NotNull CjExpressionWithLabel expression, D data) {
         return visitExpression(expression, data);
     }
     public R visitLiteralStringTemplateEntry(@NotNull CjLiteralStringTemplateEntry entry, D data) {

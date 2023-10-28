@@ -1,8 +1,11 @@
 package com.huawei.cangjie.psi.stubs.elements;
 
 import com.huawei.cangjie.psi.*;
+import com.intellij.psi.tree.TokenSet;
 
 public interface CjStubElementTypes {
+
+
     CjConstantExpressionElementType BOOLEAN_CONSTANT = new CjConstantExpressionElementType("BOOLEAN_CONSTANT");
     CjConstantExpressionElementType FLOAT_CONSTANT = new CjConstantExpressionElementType("FLOAT_CONSTANT");
     CjConstantExpressionElementType CHARACTER_CONSTANT = new CjConstantExpressionElementType("CHARACTER_CONSTANT");
@@ -114,5 +117,36 @@ public interface CjStubElementTypes {
             new CjPlaceHolderWithTextStubElementType<>("ESCAPE_STRING_TEMPLATE_ENTRY", CjEscapeStringTemplateEntry.class);
     CjPlaceHolderWithTextStubElementType<CjLiteralStringTemplateEntry> LITERAL_STRING_TEMPLATE_ENTRY =
             new CjPlaceHolderWithTextStubElementType<>("LITERAL_STRING_TEMPLATE_ENTRY", CjLiteralStringTemplateEntry.class);
+
+
+    CjCollectionLiteralExpressionElementType COLLECTION_LITERAL_EXPRESSION =
+            new CjCollectionLiteralExpressionElementType("COLLECTION_LITERAL_EXPRESSION");
+
+
+
+
+
+
+
+
+
+
+
+
+    TokenSet CONSTANT_EXPRESSIONS_TYPES = TokenSet.create(
+
+            BOOLEAN_CONSTANT,
+            FLOAT_CONSTANT,
+            CHARACTER_CONSTANT,
+            INTEGER_CONSTANT,
+
+            REFERENCE_EXPRESSION,
+            DOT_QUALIFIED_EXPRESSION,
+
+            STRING_TEMPLATE,
+
+
+            COLLECTION_LITERAL_EXPRESSION
+    );
 
 }

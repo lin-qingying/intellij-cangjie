@@ -16,6 +16,11 @@ enum class ConstantValueKind {
     CHARACTER_CONSTANT,
     INTEGER_CONSTANT
 }
+
+
+
+interface CangJieCollectionLiteralExpressionStub : StubElement<CjCollectionLiteralExpression>
+
 interface CangJieConstantExpressionStub : StubElement<CjConstantExpression> {
     fun kind(): ConstantValueKind
     fun value(): String

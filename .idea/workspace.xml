@@ -10,8 +10,12 @@
   <component name="ChangeListManager">
     <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/CjNodeTypes.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/CjNodeTypes.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CjTokens.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CjTokens.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjVisitor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjVisitor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/StubInterfaces.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/StubInterfaces.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/elements/CjStubElementTypes.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/elements/CjStubElementTypes.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,8 +59,8 @@
         <option value="Kotlin Object" />
         <option value="AnnotationType" />
         <option value="Kotlin Annotation" />
-        <option value="Kotlin Class" />
         <option value="Class" />
+        <option value="Kotlin Class" />
       </list>
     </option>
   </component>
@@ -168,7 +172,7 @@
       <recent name="com.huawei.cangjie.lang.core.lexer" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.intellij-cj [build]">
+  <component name="RunManager" selected="Gradle.Run">
     <configuration name="Run" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -299,9 +303,9 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Gradle.Run" />
         <item itemvalue="Gradle.intellij-cj [build]" />
         <item itemvalue="Gradle.intellij-cangjie [clean]" />
-        <item itemvalue="Gradle.Run" />
         <item itemvalue="Gradle.intellij-cangjie [buildPlugin]" />
         <item itemvalue="Gradle.intellij-cangjie [assemble]" />
       </list>
@@ -468,7 +472,10 @@
       <workItem from="1698481318867" duration="54000" />
       <workItem from="1698481771568" duration="6952000" />
       <workItem from="1698490020947" duration="439000" />
-      <workItem from="1698490475452" duration="35000" />
+      <workItem from="1698490475452" duration="1371000" />
+      <workItem from="1698497190038" duration="1801000" />
+      <workItem from="1698499008703" duration="1368000" />
+      <workItem from="1698501062619" duration="4744000" />
     </task>
     <task id="LOCAL-00001" summary="语法分析">
       <option name="closed" value="true" />
@@ -638,7 +645,15 @@
       <option name="project" value="LOCAL" />
       <updated>1698490161064</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="develop">
+      <option name="closed" value="true" />
+      <created>1698490641152</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1698490641152</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -722,6 +737,16 @@
           <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/a357ccdbc1b2bf97d8dcfdd4d7dd6a6d11321a2a/ideaIC-232-EAP-SNAPSHOT-sources.jar!/org/jetbrains/plugins/gradle/service/resolve/GradleProjectReference.kt</url>
           <line>43</line>
           <option name="timeStamp" value="105" />
+        </line-breakpoint>
+        <line-breakpoint type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
+          <line>640</line>
+          <option name="timeStamp" value="113" />
+        </line-breakpoint>
+        <line-breakpoint type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
+          <line>186</line>
+          <option name="timeStamp" value="114" />
         </line-breakpoint>
         <breakpoint type="java-exception">
           <properties class="java.lang.AssertionError" package="java.lang" />

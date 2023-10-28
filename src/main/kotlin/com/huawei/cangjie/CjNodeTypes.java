@@ -59,13 +59,33 @@ public interface CjNodeTypes {
 
     IElementType IMPORT_ALIAS                       = CjStubElementTypes.IMPORT_ALIAS;
     IElementType IMPORT_DIRECTIVE                   = CjStubElementTypes.IMPORT_DIRECTIVE;
-
-
+    IElementType LONG_STRING_TEMPLATE_ENTRY    = CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY;
+    IElementType SHORT_STRING_TEMPLATE_ENTRY   = CjStubElementTypes.SHORT_STRING_TEMPLATE_ENTRY;
     IElementType FLOAT_CONSTANT     = CjStubElementTypes.FLOAT_CONSTANT;
     IElementType CHARACTER_CONSTANT = CjStubElementTypes.CHARACTER_CONSTANT;
     IElementType INTEGER_CONSTANT   = CjStubElementTypes.INTEGER_CONSTANT;
     IElementType BOOLEAN_CONSTANT   = CjStubElementTypes.BOOLEAN_CONSTANT;
-
+    IElementType STRING_TEMPLATE               = CjStubElementTypes.STRING_TEMPLATE;
     IElementType TYPE_PROJECTION          = CjStubElementTypes.TYPE_PROJECTION;
     IElementType TYPE_ARGUMENT_LIST                 = CjStubElementTypes.TYPE_ARGUMENT_LIST;
+    IElementType LITERAL_STRING_TEMPLATE_ENTRY = CjStubElementTypes.LITERAL_STRING_TEMPLATE_ENTRY;
+    IElementType ESCAPE_STRING_TEMPLATE_ENTRY  = CjStubElementTypes.ESCAPE_STRING_TEMPLATE_ENTRY;
+    IElementType SUPER_EXPRESSION          = new CjNodeType("SUPER_EXPRESSION", CjSuperExpression.class);
+    IElementType THIS_EXPRESSION           = new CjNodeType("THIS_EXPRESSION", CjThisExpression.class);
+    IElementType COLLECTION_LITERAL_EXPRESSION = CjStubElementTypes.COLLECTION_LITERAL_EXPRESSION;
+    IElementType PARENTHESIZED             = new CjNodeType("PARENTHESIZED", CjParenthesizedExpression.class);
+
+    IElementType CONTINUE                  = new CjNodeType("CONTINUE", CjContinueExpression.class);
+
+    IElementType BREAK                     = new CjNodeType("BREAK", CjBreakExpression.class);
+
+    IElementType RETURN                    = new CjNodeType("RETURN", CjReturnExpression.class);
+
+    IElementType THROW                     = new CjNodeType("THROW", CjThrowExpression.class);
+    IElementType THEN                      = new CjNodeType("THEN", CjContainerNodeForControlStructureBody.class);
+
+    IElementType ELSE                      = new CjNodeType("ELSE", CjContainerNodeForControlStructureBody.class);
+
+    IElementType IF                        = new CjNodeType("IF", CjIfExpression.class);
+    IElementType CONDITION                 = new CjNodeType("CONDITION", CjContainerNode.class);
 }
