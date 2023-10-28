@@ -641,7 +641,7 @@ open class CangJieExpressionParsing(
             EXCL,
             DIV,
             PERC,
-            LTEQ,  // TODO GTEQ,   foo<bar, baz>=x
+            LTEQ,
 
 
             EQEQ,
