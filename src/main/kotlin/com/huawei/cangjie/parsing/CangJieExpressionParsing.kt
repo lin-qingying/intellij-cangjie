@@ -368,13 +368,13 @@ open class CangJieExpressionParsing(
             //浮点数
           FLOAT_LITERAL_Id -> parseOneTokenExpression(FLOAT_CONSTANT)
 //class interface func let var
-            CLASS_KEYWORD_Id, INTERFACE_KEYWORD_Id, FUNC_KEYWORD_Id, LET_KEYWORD_Id, VAR_KEYWORD_Id -> if (!parseLocalDeclaration(
-                    myBuilder.newlineBeforeCurrentToken(),
-
-                    )
-            ) {
-                ok = false
-            }
+//            CLASS_KEYWORD_Id, INTERFACE_KEYWORD_Id, FUNC_KEYWORD_Id, LET_KEYWORD_Id, VAR_KEYWORD_Id -> if (!parseLocalDeclaration(
+//                    myBuilder.newlineBeforeCurrentToken(),
+//
+//                    )
+//            ) {
+//                ok = false
+//            }
 
             else -> ok = false
         }

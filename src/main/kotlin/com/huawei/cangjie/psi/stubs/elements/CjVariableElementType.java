@@ -26,9 +26,9 @@ public class CjVariableElementType extends CjStubElementType<CangJieVariableStub
     @NotNull
     @Override
     public CangJieVariableStub createStub(@NotNull CjVariable psi, StubElement parentStub) {
-        assert !psi.isLocal() :
-                String.format("Should not store local property: %s, parent %s",
-                        psi.getText(), psi.getParent() != null ? psi.getParent().getText() : "<no parent>");
+//        assert !psi.isLocal() :
+//                String.format("Should not store local property: %s, parent %s",
+//                        psi.getText(), psi.getParent() != null ? psi.getParent().getText() : "<no parent>");
 
         return new CangJieVariableStubImpl(
                 (StubElement<?>) parentStub, StringRef.fromString(psi.getName()),
