@@ -1454,7 +1454,45 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     }
 
+    /**
+     * 解析类型参数列表
+     *
+     */
+    boolean tryParseTypeArgumentList(TokenSet extraRecoverySet) {
 
+        myBuilder.disableNewlines();
+        advance(); // LT
+
+        while (true) {
+            PsiBuilder.Marker projection = mark();
+
+
+
+            if (at(MUL)) {
+                advance(); // MUL
+            }
+            else {
+                parseTypeRef(extraRecoverySet);
+            }
+            projection.done(TYPE_PROJECTION);
+            if (!at(COMMA)) break;
+            advance(); // COMMA
+            if (at(GT)) {
+                break;
+            }
+        }
+
+        boolean atGT = at(GT);
+        if (!atGT) {
+            error("Expecting a '>'");
+        }
+        else {
+            advance(); // GT
+        }
+        myBuilder.restoreNewlinesState();
+        return atGT;
+
+    }
     void parseTypeRef(TokenSet extraRecoverySet) {
 
         PsiBuilder.Marker typeRefMarker = mark();

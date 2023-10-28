@@ -65,4 +65,7 @@ public interface CjNodeTypes {
     IElementType CHARACTER_CONSTANT = CjStubElementTypes.CHARACTER_CONSTANT;
     IElementType INTEGER_CONSTANT   = CjStubElementTypes.INTEGER_CONSTANT;
     IElementType BOOLEAN_CONSTANT   = CjStubElementTypes.BOOLEAN_CONSTANT;
+
+    IElementType TYPE_PROJECTION          = CjStubElementTypes.TYPE_PROJECTION;
+    IElementType TYPE_ARGUMENT_LIST                 = CjStubElementTypes.TYPE_ARGUMENT_LIST;
 }

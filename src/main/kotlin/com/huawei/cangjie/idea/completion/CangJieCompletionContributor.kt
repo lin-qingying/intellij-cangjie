@@ -32,12 +32,16 @@ class CangJieCompletionContributor : CompletionContributor() {
                 context: ProcessingContext,
                 result: CompletionResultSet
             ) {
+
                 performCompletion(parameters, result)
             }
         }
         extend(CompletionType.BASIC, PlatformPatterns.psiElement(), provider)
         extend(CompletionType.SMART, PlatformPatterns.psiElement(), provider)
     }
+
+
+
 
     private fun shouldSuppressCompletion(parameters: CompletionParameters, prefixMatcher: PrefixMatcher): Boolean {
         val position = parameters.position
@@ -98,18 +102,20 @@ class CangJieCompletionContributor : CompletionContributor() {
         val parametersOriginFile = parameters.originalFile
         if (position.containingFile !is CjFile || parametersOriginFile !is CjFile) return
 
-        StringTemplateCompletion.correctParametersForInStringTemplateCompletion(parameters)
-            ?.let { correctedParameters ->
-                doComplete(correctedParameters, result, ::wrapLookupElementForStringTemplateAfterDotCompletion)
-                return
-            }
 
+        StringTemplateCompletion.correctParametersForInStringTemplateCompletion(parameters)?.let { correctedParameters ->
+            doComplete(correctedParameters, result, ::wrapLookupElementForStringTemplateAfterDotCompletion)
+            return
+        }
         DumbModeAccessType.RELIABLE_DATA_ONLY.ignoreDumbMode(ThrowableComputable {
             doComplete(parameters, result)
         })
     }
 
+
+
     override fun beforeCompletion(context: CompletionInitializationContext) {
+
 
 
 
@@ -117,31 +123,32 @@ class CangJieCompletionContributor : CompletionContributor() {
         val offset = context.startOffset
         val psiFile = context.file
         val tokenBefore = psiFile.findElementAt(max(0, offset - 1))
+//        val token = psiFile.findElementAt(offset)
 
-
+//此代码将使替换偏移量“已修改”，并防止CompletionProgressIndicator中的代码对其进行更改
         context.replacementOffset = context.replacementOffset
-        context.dummyIdentifier = null
-//        val dummyIdentifierCorrected =
-//            CompletionDummyIdentifierProviderService.getInstance().correctPositionForStringTemplateEntry(context)
-//        if (dummyIdentifierCorrected) {
-//            return
-//        }
-//        context.dummyIdentifier = when {
-//            context.completionType == CompletionType.SMART -> DEFAULT_DUMMY_IDENTIFIER
-//
-//            PackageDirectiveCompletion.ACTIVATION_PATTERN.accepts(tokenBefore) -> PackageDirectiveCompletion.DUMMY_IDENTIFIER
-//
-//            else -> CompletionDummyIdentifierProviderService.getInstance().provideDummyIdentifier(context)
-//
-//        }
+
+        val dummyIdentifierCorrected =
+            CompletionDummyIdentifierProviderService.getInstance().correctPositionForStringTemplateEntry(context)
+        if (dummyIdentifierCorrected) {
+            return
+        }
+        context.dummyIdentifier = when {
+            context.completionType == CompletionType.SMART -> DEFAULT_DUMMY_IDENTIFIER
+
+            PackageDirectiveCompletion.ACTIVATION_PATTERN.accepts(tokenBefore) -> PackageDirectiveCompletion.DUMMY_IDENTIFIER
+
+            else -> CompletionDummyIdentifierProviderService.getInstance().provideDummyIdentifier(context)
+
+        }
 
         val tokenAt = psiFile.findElementAt(max(0, offset))
         if (tokenAt != null) {
-
+//如果在行尾，不要使用父表达式-它可能被错误地解析
             if (context.completionType == CompletionType.SMART && !isAtEndOfLine(offset, context.editor.document)) {
                 var parent = tokenAt.parent
                 if (parent is CjExpression && parent !is CjBlockExpression) {
-
+//搜索要替换的表达式-当是父表达式的第一个子级时向上
                     var expression: CjExpression = parent
                     parent = expression.parent
                     while (parent is CjExpression && parent.getFirstChild() == expression) {

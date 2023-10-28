@@ -6,6 +6,7 @@ import com.huawei.cangjie.psi.psiUtil.*
 import com.huawei.cangjie.utils.getNonStrictParentOfType
 import com.huawei.cangjie.utils.parents
 import com.intellij.codeInsight.completion.CompletionInitializationContext
+import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.completion.CompletionUtil
 import com.intellij.codeInsight.completion.CompletionUtilCore
 import com.intellij.psi.*
@@ -24,22 +25,22 @@ abstract class AbstractCompletionDummyIdentifierProviderService : CompletionDumm
         val psiFile = context.file
         val tokenBefore = psiFile.findElementAt(max(0, offset - 1))
 
-//        if (offset > 0 && tokenBefore!!.node.elementType == CjTokens.REGULAR_STRING_PART && tokenBefore.text.startsWith(
-//                "."
-//            )
-//        ) {
-//            val prev = tokenBefore.parent.prevSibling
-//            if (prev != null && prev is CjSimpleNameStringTemplateEntry) {
-//                val expression = prev.expression
-//                if (expression != null) {
-//                    val prefix = tokenBefore.text.substring(0, offset - tokenBefore.startOffset)
-//                    context.dummyIdentifier =
-//                        "{" + expression.text + prefix + CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED + "}"
-//                    context.offsetMap.addOffset(CompletionInitializationContext.START_OFFSET, expression.startOffset)
-//                    return true
-//                }
-//            }
-//        }
+        if (offset > 0 && tokenBefore!!.node.elementType == CjTokens.REGULAR_STRING_PART && tokenBefore.text.startsWith(
+                "."
+            )
+        ) {
+            val prev = tokenBefore.parent.prevSibling
+            if (prev != null && prev is CjSimpleNameStringTemplateEntry) {
+                val expression = prev.expression
+                if (expression != null) {
+                    val prefix = tokenBefore.text.substring(0, offset - tokenBefore.startOffset)
+                    context.dummyIdentifier =
+                        "{" + expression.text + prefix + CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED + "}"
+                    context.offsetMap.addOffset(CompletionInitializationContext.START_OFFSET, expression.startOffset)
+                    return true
+                }
+            }
+        }
         return false
     }
 
@@ -64,29 +65,29 @@ abstract class AbstractCompletionDummyIdentifierProviderService : CompletionDumm
 
         val offset = context.startOffset
         val tokenBefore = psiFile.findElementAt(max(0, offset - 1))
-        return DEFAULT_DUMMY_IDENTIFIER
-//        return when {
-//            context.completionType == CompletionType.SMART -> DEFAULT_DUMMY_IDENTIFIER
-//
-//
-//
-////            isInClassHeader(tokenBefore) -> CompletionUtilCore.DUMMY_IDENTIFIER
-//
+
+        return when {
+            context.completionType == CompletionType.SMART -> DEFAULT_DUMMY_IDENTIFIER
+
+
+
+//            isInClassHeader(tokenBefore) -> CompletionUtilCore.DUMMY_IDENTIFIER
+
 //            isInUnclosedSuperQualifier(tokenBefore) -> CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED + ">"
-//
-////            isInSimpleStringTemplate(tokenBefore) -> CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED
-//
-//            else -> specialLambdaSignatureDummyIdentifier(tokenBefore)
-//                ?: specialExtensionReceiverDummyIdentifier(tokenBefore)
-//                ?: specialInTypeArgsDummyIdentifier(tokenBefore)
-//                ?: specialInArgumentListDummyIdentifier(tokenBefore)
-//                ?: specialInNameWithQuotes(tokenBefore)
-//                ?: specialInBinaryExpressionDummyIdentifier(tokenBefore)
-//                ?: isInValueOrTypeParametersList(tokenBefore)
-//                ?: handleDefaultCase(context)
-//
-//                ?: DEFAULT_DUMMY_IDENTIFIER
-//        }
+
+//            isInSimpleStringTemplate(tokenBefore) -> CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED
+
+            else -> specialLambdaSignatureDummyIdentifier(tokenBefore)
+                ?: specialExtensionReceiverDummyIdentifier(tokenBefore)
+                ?: specialInTypeArgsDummyIdentifier(tokenBefore)
+                ?: specialInArgumentListDummyIdentifier(tokenBefore)
+                ?: specialInNameWithQuotes(tokenBefore)
+                ?: specialInBinaryExpressionDummyIdentifier(tokenBefore)
+                ?: isInValueOrTypeParametersList(tokenBefore)
+                ?: handleDefaultCase(context)
+
+                ?: DEFAULT_DUMMY_IDENTIFIER
+        }
     }
 
 
@@ -100,14 +101,19 @@ abstract class AbstractCompletionDummyIdentifierProviderService : CompletionDumm
         return null
     }
 
+    /**
+     * lambda 表达式生成虚拟标识符
+     */
     private fun specialLambdaSignatureDummyIdentifier(tokenBefore: PsiElement?): String? {
         var leaf = tokenBefore
         while (leaf is PsiWhiteSpace || leaf is PsiComment) {
             leaf = leaf.prevLeaf(true)
         }
+        val lambda = leaf?.parents?.firstOrNull { it is CjFunctionLiteral } ?: return null
+
+        val lambdaChild = leaf.parents.takeWhile { it != lambda }.lastOrNull()
 
 
-        val lambdaChild = leaf?.parents?.lastOrNull()
 
         return if (lambdaChild is CjParameterList)
             CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED

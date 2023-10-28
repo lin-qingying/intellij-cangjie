@@ -70,6 +70,7 @@
                 language="CangJie"
                 id="CangJieCompletionContributor"
                 order="first, after liveTemplates"
+
                 implementationClass="com.huawei.cangjie.idea.completion.CangJieCompletionContributor"/>
 
 <!--        <applicationService serviceInterface="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicy"-->
