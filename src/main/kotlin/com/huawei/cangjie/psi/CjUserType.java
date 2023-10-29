@@ -14,7 +14,7 @@ import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 
 
 /**
- * ×Ô¶¨ÒåÀàÐÍ  ³ýÁË»ù±¾ÀàÐÍºÍÊý×éÀàÐÍ£¬ÆäËû¶¼ÊÇ×Ô¶¨ÒåÀàÐÍ
+ * ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½Ë»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Íºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 public class CjUserType extends  CjElementImplStub<CangJieUserTypeStub> implements CjTypeElement{
 
@@ -28,7 +28,7 @@ public class CjUserType extends  CjElementImplStub<CangJieUserTypeStub> implemen
     }
 
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitUserType(this, data);
     }
 
@@ -39,7 +39,7 @@ public class CjUserType extends  CjElementImplStub<CangJieUserTypeStub> implemen
 
     @NotNull
     public List<CjTypeProjection> getTypeArguments() {
-        // TODO: PSI ÖÐµÄ¿ÕÔªËØ
+        // TODO: PSI ï¿½ÐµÄ¿ï¿½Ôªï¿½ï¿½
         CjTypeArgumentList typeArgumentList = getTypeArgumentList();
         return typeArgumentList == null ? Collections.emptyList() : typeArgumentList.getArguments();
     }

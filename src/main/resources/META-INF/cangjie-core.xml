@@ -1,5 +1,4 @@
-
-<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude" allow-bundled-update="true">
+<idea-plugin allow-bundled-update="true">
 
 
     <resource-bundle>messages.CjBundle</resource-bundle>
@@ -9,35 +8,31 @@
     <extensions defaultExtensionNs="com.intellij">
 
 
-
         <!--文件类型工厂 -->
 
-<!--        <fileType name="CangJie"-->
-<!--                  language="CangJie"-->
-<!--                  implementationClass="com.huawei.cangjie.lang.CjFileType"-->
-<!--                  extensions="cj"-->
-<!--                  fieldName="INSTANCE"/>-->
+        <!--        <fileType name="CangJie"-->
+        <!--                  language="CangJie"-->
+        <!--                  implementationClass="com.huawei.cangjie.lang.CjFileType"-->
+        <!--                  extensions="cj"-->
+        <!--                  fieldName="INSTANCE"/>-->
         <!--        <internalFileTemplate name="CangJie File"/>-->
 
         <!-- 分析 -->
 
-<!--        <lang.parserDefinition language="CangJie"-->
-<!--                               implementationClass="com.huawei.cangjie.lang.core.parser.CangJieParserDefinition"/>-->
-<!--        <stubElementTypeHolder class="com.huawei.cangjie.lang.core.psi.CjElementTypes" externalIdPrefix="cangjie."/>-->
-
+        <!--        <lang.parserDefinition language="CangJie"-->
+        <!--                               implementationClass="com.huawei.cangjie.lang.core.parser.CangJieParserDefinition"/>-->
+        <!--        <stubElementTypeHolder class="com.huawei.cangjie.lang.core.psi.CjElementTypes" externalIdPrefix="cangjie."/>-->
 
 
         <!-- PSI 管理器 -->
 
-<!--        <lang.fileViewProviderFactory language="CangJie" implementationClass="com.huawei.cangjie.lang.core.psi.CjFileViewProviderFactory"/>-->
-<!--        <projectService serviceInterface="com.huawei.cangjie.lang.core.psi.CjPsiManager"-->
-<!--                        serviceImplementation="com.huawei.cangjie.lang.core.psi.CjPsiManagerImpl"/>-->
+        <!--        <lang.fileViewProviderFactory language="CangJie" implementationClass="com.huawei.cangjie.lang.core.psi.CjFileViewProviderFactory"/>-->
+        <!--        <projectService serviceInterface="com.huawei.cangjie.lang.core.psi.CjPsiManager"-->
+        <!--                        serviceImplementation="com.huawei.cangjie.lang.core.psi.CjPsiManagerImpl"/>-->
 
 
-
-<!--        <annotator language="CangJie" implementationClass="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>-->
-<!--        <highlightRangeExtension implementation="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>-->
-
+        <!--        <annotator language="CangJie" implementationClass="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>-->
+        <!--        <highlightRangeExtension implementation="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>-->
 
 
         <fileType name="CangJie"
@@ -45,23 +40,32 @@
                   implementationClass="com.huawei.cangjie.lang.CangJieFileType"
                   extensions="cj"
                   fieldName="INSTANCE"/>
-                <internalFileTemplate name="CangJie File"/>
+        <internalFileTemplate name="CangJie File"/>
 
 
+        <lang.parserDefinition language="CangJie"
+                               implementationClass="com.huawei.cangjie.parsing.CangJieParserDefinition"/>
 
-                <lang.parserDefinition language="CangJie"
-                                       implementationClass="com.huawei.cangjie.parsing.CangJieParserDefinition"/>
-
-                <stubElementTypeHolder class="com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes"
-                                       externalIdPrefix="cangjie."/>
+        <stubElementTypeHolder class="com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes"
+                               externalIdPrefix="cangjie."/>
 
 
         <!--        服务注册  cangjie1包-->
 
-<!--        <projectService serviceInterface="com.huawei.cangjie.psi.CjFileClassProvider"-->
-<!--                        serviceImplementation="com.huawei.cangjie.psi.CjFileClassProviderImpl"/>-->
-        <applicationService serviceImplementation="com.huawei.cangjie.idea.completion.FirCompletionDummyIdentifierProviderService"
-                            serviceInterface="com.huawei.cangjie.idea.completion.CompletionDummyIdentifierProviderService"/>
+        <!--        <projectService serviceInterface="com.huawei.cangjie.psi.CjFileClassProvider"-->
+        <!--                        serviceImplementation="com.huawei.cangjie.psi.CjFileClassProviderImpl"/>-->
+
+<!--        <projectService-->
+<!--                serviceInterface="com.huawei.cangjie.psi.CangJieReferenceProvidersService"-->
+<!--                serviceImplementation="com.huawei.cangjie.idea.references.CjIdeReferenceProviderService"/>-->
+<!--        <projectService serviceInterface="com.huawei.cangjie.idea.references.CangJieReferenceProviderContributor"-->
+<!--                        serviceImplementation="com.huawei.cangjie.idea.references.CangJieFirReferenceContributor"/>-->
+<!--        <projectService serviceInterface="com.huawei.cangjie.idea.references.ReadWriteAccessChecker"-->
+<!--                        serviceImplementation="com.huawei.cangjie.idea.references.ReadWriteAccessCheckerDescriptorsImpl"/>-->
+
+        <applicationService
+                serviceImplementation="com.huawei.cangjie.idea.completion.FirCompletionDummyIdentifierProviderService"
+                serviceInterface="com.huawei.cangjie.idea.completion.CompletionDummyIdentifierProviderService"/>
 
         <applicationService
                 serviceInterface="com.huawei.cangjie.psi.stubs.elements.StubIndexService"
@@ -73,18 +77,19 @@
 
                 implementationClass="com.huawei.cangjie.idea.completion.CangJieCompletionContributor"/>
 
-<!--        <applicationService serviceInterface="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicy"-->
-<!--                        serviceImplementation="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>-->
+        <!--        <applicationService serviceInterface="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicy"-->
+        <!--                        serviceImplementation="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>-->
         <registryKey
                 key="cangjie.disable.auto.completion.inside.expression"
                 description="Disables auto-completion inside expressions"
                 defaultValue="false"
                 restartRequired="false"/>
 
- </extensions>
+    </extensions>
     <extensionPoints>
-    <extensionPoint
-            qualifiedName="com.huawei.cangjie.completionExtension"
-            interface="com.huawei.cangjie.idea.completion.CangJieCompletionExtension" dynamic="true"/>
+
+        <extensionPoint
+                qualifiedName="com.huawei.cangjie.completionExtension"
+                interface="com.huawei.cangjie.idea.completion.CangJieCompletionExtension" dynamic="true"/>
     </extensionPoints>
 </idea-plugin>

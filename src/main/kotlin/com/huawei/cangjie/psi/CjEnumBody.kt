@@ -26,7 +26,7 @@ class CjEnumBody : CjElementImplStub<CangJiePlaceHolderStub<CjEnumBody>>, CjDecl
         return node.elementType.toString()
     }
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D) = visitor.visitEnumBody(this, data)
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?) = visitor.visitEnumBody(this, data)
     override val declarations: List<CjDeclaration>
         get() =stub?.getChildrenByType(CjFile.FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
             ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java)

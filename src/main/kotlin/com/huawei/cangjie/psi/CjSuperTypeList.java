@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 import com.huawei.cangjie.psi.stubs.elements.CjTokenSets;
+import org.jetbrains.annotations.Nullable;
+
 public class CjSuperTypeList extends CjElementImplStub<CangJiePlaceHolderStub<CjSuperTypeList>> {
     private final AtomicLong modificationStamp = new AtomicLong();
 
@@ -30,7 +32,7 @@ public class CjSuperTypeList extends CjElementImplStub<CangJiePlaceHolderStub<Cj
         return   getNode().getElementType().toString();
     }
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitSuperTypeList(this, data);
     }
 

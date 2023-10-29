@@ -6,13 +6,14 @@ import com.huawei.cangjie.psi.stubs.CangJieBasicTypeStub;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
 
 
 /**
- * »ù±¾ÀàÐÍ
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 
 public class CjBasicType extends CjElementImplStub<CangJieBasicTypeStub> implements CjTypeElement{
@@ -30,7 +31,7 @@ public class CjBasicType extends CjElementImplStub<CangJieBasicTypeStub> impleme
     }
 
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitBasicType(this, data);
     }
     public CjTypeArgumentList getTypeArgumentList() {
@@ -39,7 +40,7 @@ public class CjBasicType extends CjElementImplStub<CangJieBasicTypeStub> impleme
 
     @NotNull
     public List<CjTypeProjection> getTypeArguments() {
-        // TODO: PSI ÖÐµÄ¿ÕÔªËØ
+        // TODO: PSI ï¿½ÐµÄ¿ï¿½Ôªï¿½ï¿½
         CjTypeArgumentList typeArgumentList = getTypeArgumentList();
         return typeArgumentList == null ? Collections.emptyList() : typeArgumentList.getArguments();
     }

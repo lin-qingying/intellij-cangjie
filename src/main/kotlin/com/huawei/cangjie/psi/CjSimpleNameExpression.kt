@@ -25,7 +25,7 @@ abstract class CjSimpleNameExpressionImpl(node: ASTNode) : CjExpressionImpl(node
 
     override fun getReferencedNameElementType() = getReferencedNameElementTypeImpl(this)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitSimpleNameExpression(this, data)
     }
 

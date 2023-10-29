@@ -21,7 +21,7 @@ public class CjTypeArgumentList extends CjElementImplStub<CangJiePlaceHolderStub
     }
 
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitTypeArgumentList(this, data);
     }
 

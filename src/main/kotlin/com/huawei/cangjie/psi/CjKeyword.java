@@ -2,6 +2,7 @@ package com.huawei.cangjie.psi;
 
 import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CjKeyword extends CjElementImpl implements CjElement {
 
@@ -11,7 +12,7 @@ public class CjKeyword extends CjElementImpl implements CjElement {
     }
 
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
          return  visitor.visitKeyword(this, data);
     }
 

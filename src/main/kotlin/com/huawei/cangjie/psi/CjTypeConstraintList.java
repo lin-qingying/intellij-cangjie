@@ -7,6 +7,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import  com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
+import org.jetbrains.annotations.Nullable;
+
 public class CjTypeConstraintList extends CjElementImplStub<CangJiePlaceHolderStub<CjTypeConstraintList>> {
     public CjTypeConstraintList(@NotNull ASTNode node) {
         super(node);
@@ -17,7 +19,7 @@ public class CjTypeConstraintList extends CjElementImplStub<CangJiePlaceHolderSt
     }
 
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitTypeConstraintList(this, data);
     }
 

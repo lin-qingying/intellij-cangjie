@@ -6,6 +6,7 @@ import com.huawei.cangjie.CjNodeTypes.*
 import com.huawei.cangjie.lexer.CjToken
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.lexer.CjTokens.*
+import com.huawei.cangjie.parsing.CangJieParsing.PARAMETER_NAME_RECOVERY_SET
 import com.intellij.lang.PsiBuilder
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.tree.IElementType
@@ -325,6 +326,8 @@ open class CangJieExpressionParsing(
     private fun parseAtomicExpression(): Boolean {
         var ok = true
 
+
+
         when (getTokenId()) {
             //字面量
             LPAR_Id -> parseParenthesizedExpression()
@@ -345,15 +348,15 @@ open class CangJieExpressionParsing(
 //            //if
             IF_KEYWORD_Id -> parseIf()
 //            //match
-//            MATCH_KEYWORD_Id -> parseMatch()
+            MATCH_KEYWORD_Id -> parseMatch()
 //            //try
-//            TRY_KEYWORD_Id -> parseTry()
+            TRY_KEYWORD_Id -> parseTry()
 //            //for
-//            FOR_KEYWORD_Id -> parseFor()
+            FOR_KEYWORD_Id -> parseFor()
 //            //while
-//            WHILE_KEYWORD_Id -> parseWhile()
+            WHILE_KEYWORD_Id -> parseWhile()
 //            //do while
-//            DO_KEYWORD_Id -> parseDoWhile()
+            DO_KEYWORD_Id -> parseDoWhile()
             //标识符
             IDENTIFIER_Id -> parseSimpleNameExpression()
             //lambda
@@ -390,37 +393,326 @@ open class CangJieExpressionParsing(
         return ok
     }
 
+
+    /*
+     * match
+     *   : "match" condition "{"
+     *         matchEntry*
+     *     "}"
+     *   ;
+     */
+    private fun parseMatch() {
+
+
+        assert(_at(MATCH_KEYWORD))
+        val match = mark()
+        advance() // MATCH_KEYWORD
+
+
+        myBuilder.disableNewlines()
+
+        parseCondition()
+
+
+        myBuilder.restoreNewlinesState()
+
+
+        myBuilder.enableNewlines()
+        if (expect(LBRACE, "Expecting '{'")) {
+            while (!eof() && !at(RBRACE)) {
+
+                if(!at(CASE_KEYWORD)){
+                    error("Expecting 'case'")
+                }
+
+                parseMatchEntry()
+            }
+            expect(RBRACE, "Expecting '}'")
+        }
+        myBuilder.restoreNewlinesState()
+        match.done(MATCH)
+    }
+
+    /**
+     * caseBody
+     *
+     */
+    private fun parseCaseBody() {
+        val body = mark()
+        if (!at(SEMICOLON)) {
+           parseStatements()
+        }
+        body.done(BODY)
+    }
+
+    /*
+     * matchEntry
+     *   : case caseCondition{|} "=>" caseBody
+     *   ;
+     */
+    private fun parseMatchEntry() {
+        val entry = mark()
+
+        if (at(CASE_KEYWORD)) {
+            advance() // CASE_KEYWORD
+
+            parseCaseCondition()
+            while (at(OR)) {
+                advance() // OR
+                parseCaseCondition()
+            }
+            expect(DOUBLE_ARROW, "Expecting '=>'")
+            parseCaseBody()
+
+        } else {
+            error("Expecting 'case'")
+        }
+
+        entry.done(MATCH_ENTRY)
+
+    }
+
+    /**
+     * case condition
+     * (常量 | 通配符(_) | 绑定模式(SimpleName) | Tuple模式( (p1,p2,...,pn) ) | 类型模式(SimpleName : type) | Enum模式(SimpleName(SimpleName)? | Tuple与Enum嵌套  )  )
+     */
+    private fun parseCaseCondition() {
+        val condition = mark()
+
+        //是否常量模式
+        fun isConstantPattern(): Boolean {
+            return at(INTEGER_LITERAL) || at(CHARACTER_LITERAL) || at(TRUE_KEYWORD) || at(FALSE_KEYWORD) || at(
+                OPEN_QUOTE)
+        }
+
+        //是否通配符模式
+        fun isWildcardPattern(): Boolean {
+            return  myBuilder.tokenText == "_"
+        }
+        //是否绑定模式
+        fun isBindingPattern(): Boolean {
+            return at(IDENTIFIER)
+        }
+        //是否元组模式
+        fun isTuplePattern(): Boolean {
+            return at(LPAR)
+        }
+        //是否类型模式
+        fun isTypePattern(): Boolean {
+            return at(IDENTIFIER) && lookahead(1) == COLON
+        }
+//是否枚举模式
+//        fun isEnumPattern(): Boolean {
+//            return at(IDENTIFIER) && lookahead(1) == LPAR
+//        }
+
+        when{
+            isTypePattern() -> {
+              expect(IDENTIFIER,"Expecting a variable name")
+                expect(COLON,"Expecting ':'")
+                cangJieParsing.parseTypeRef()
+            }
+
+
+            else  -> {
+                error("Expecting a pattern")
+            }
+        }
+
+        condition.done(CASE_CONDITION)
+    }
+
+    /*
+     * for
+     *   : "for" "(" (multipleVariableDeclarations | variableDeclarationEntry) "in" expression ")" expression
+     *   ;
+     *
+     */
+    private fun parseFor() {
+
+
+        assert(_at(FOR_KEYWORD))
+        val loop = mark()
+        advance() // FOR_KEYWORD
+        if (expect(LPAR, "Expecting '(' to open a loop range", EXPRESSION_FIRST)) {
+            myBuilder.disableNewlines()
+            if (!at(RPAR)) {
+                val parameter = mark()
+                if (!at(IN_KEYWORD)) {
+                    cangJieParsing.parseModifierList(IN_KEYWORD_R_PAR_COLON_SET)
+                }
+
+                if (at(LPAR)) {
+                    val destructuringDeclaration = mark()
+                    cangJieParsing.parseMultiDeclarationName(
+                        IN_KEYWORD_L_BRACE_SET,
+                        IN_KEYWORD_L_BRACE_RECOVERY_SET
+                    )
+                    destructuringDeclaration.done(DESTRUCTURING_DECLARATION)
+                } else {
+                    expect(
+                        IDENTIFIER,
+                        "Expecting a variable name",
+                        COLON_IN_KEYWORD_SET
+                    )
+                    if (at(COLON)) {
+                        errorAndAdvance("the pattern in for-in expression must be irrefutable")
+                    }
+                }
+                parameter.done(VALUE_PARAMETER)
+                if (expect(IN_KEYWORD, "Expecting 'in'", L_PAR_L_BRACE_R_PAR_SET)) {
+                    val range = mark()
+                    parseExpression()
+                    range.done(LOOP_RANGE)
+                }
+            } else {
+                error("Expecting a variable name")
+            }
+            expectNoAdvance(RPAR, "Expecting ')'")
+            myBuilder.restoreNewlinesState()
+        }
+        parseLoopBody()
+        loop.done(FOR)
+    }
+
+    /*
+     * doWhile
+     *   : "do" element "while" "(" element ")"
+     *   ;
+     */
+    private fun parseDoWhile() {
+        assert(_at(DO_KEYWORD))
+        val loop = mark()
+        advance() // DO_KEYWORD
+        if (!at(WHILE_KEYWORD)) {
+            parseLoopBody()
+        }
+        if (expect(WHILE_KEYWORD, "Expecting 'while' followed by a post-condition")) {
+            parseCondition()
+        }
+        loop.done(DO_WHILE)
+    }
+
+    /*
+     * element
+     */
+    private fun parseLoopBody() {
+        val body = mark()
+        if (!at(SEMICOLON)) {
+            parseControlStructureBody()
+        }
+        body.done(BODY)
+    }
+
+    /*
+     * while
+     *   : "while" "(" element ")" element
+     *   ;
+     */
+    private fun parseWhile() {
+        assert(_at(WHILE_KEYWORD))
+        val loop = mark()
+        advance() // WHILE_KEYWORD
+        parseCondition()
+        parseLoopBody()
+        loop.done(WHILE)
+
+
+    }
+
+    /*
+     * try
+     *   : "try" block catchBlock* finallyBlock?
+     *   ;
+     * catchBlock
+     *   : "catch" "(" annotations SimpleName ":" userType ")" block
+     *   ;
+     *
+     * finallyBlock
+     *   : "finally" block
+     *   ;
+     */
+    private fun parseTry() {
+        assert(_at(TRY_KEYWORD))
+        val tryExpression = mark()
+        advance() // TRY_KEYWORD
+        cangJieParsing.parseBlock()
+        var catchOrFinally = false
+        while (at(CATCH_KEYWORD)) {
+            catchOrFinally = true
+            val catchBlock = mark()
+            advance() // CATCH_KEYWORD
+            if (atSet(TRY_CATCH_RECOVERY_TOKEN_SET)) {
+                error("Expecting exception variable declaration")
+            } else {
+                val parameters = mark()
+                expect(LPAR, "Expecting '('", TRY_CATCH_RECOVERY_TOKEN_SET)
+                if (!atSet(TRY_CATCH_RECOVERY_TOKEN_SET)) {
+                    cangJieParsing.parseValueParameter( /*typeRequired = */true)
+                    if (at(COMMA)) {
+                        advance() // trailing comma
+                    }
+                    expect(RPAR, "Expecting ')'", TRY_CATCH_RECOVERY_TOKEN_SET)
+                } else {
+                    error("Expecting exception variable declaration")
+                }
+                parameters.done(VALUE_PARAMETER_LIST)
+            }
+            if (at(LBRACE)) {
+                cangJieParsing.parseBlock()
+            } else {
+                error("Expecting a block: { ... }")
+            }
+            catchBlock.done(CATCH)
+        }
+        if (at(FINALLY_KEYWORD)) {
+            catchOrFinally = true
+            val finallyBlock = mark()
+            advance() // FINALLY_KEYWORD
+            cangJieParsing.parseBlock()
+            finallyBlock.done(FINALLY)
+        }
+        if (!catchOrFinally) {
+            error("Expecting 'catch' or 'finally'")
+        }
+        tryExpression.done(TRY)
+    }
+
     /*
      * "(" element ")"
      */
     private fun parseCondition() {
-        try {
-            myBuilder.disableNewlines()
-            if (expect(
-                    LPAR,
-                    "Expecting a condition in parentheses '(...)'",
-                    EXPRESSION_FIRST
-                )
-            ) {
-                val condition = mark()
 
-                parseExpression()
+        myBuilder.disableNewlines()
+        if (expect(
+                LPAR,
+                "Expecting a condition in parentheses '(...)'",
+                EXPRESSION_FIRST
+            )
+        ) {
+            val condition = mark()
 
-                condition.done(CONDITION)
-                expect(RPAR, "Expecting ')")
-            }
-            myBuilder.restoreNewlinesState()
-        } catch (e: Exception) {
+            parseExpression()
 
-            println()
-
+            condition.done(CONDITION)
+            expect(RPAR, "Expecting ')")
         }
+        myBuilder.restoreNewlinesState()
+
     }
 
 
     private fun parseControlStructureBody() {
 
-            parseBlockLevelExpression()
+
+        if (at(LBRACE)) {
+            parseFunctionLiteral()
+            return
+        } else {
+//            parseBlockLevelExpression()
+            error("Expecting '{'")
+        }
+
 
     }
 
@@ -442,6 +734,59 @@ open class CangJieExpressionParsing(
         block.done(BLOCK)
     }
 
+
+    /**
+     * 函数式
+     */
+    fun parseFunctionLiteral() {
+        assert(_at(LBRACE))
+        val literalExpression = mark()
+        val literal = mark()
+        myBuilder.enableNewlines()
+        advance() // LBRACE
+//        var paramsFound = false
+//        val token = tt()
+//      if (token === IDENTIFIER || token === COLON || token === LPAR) {
+//            // 尝试解析一个后面跟着一个箭头的简单姓名列表
+//            //   {a -> ...}
+//            //   {a, b -> ...}
+//            //   {(a, b) -> ... }
+//            val rollbackMarker = mark()
+//            val nextToken = lookahead(1)
+//            val preferParamsToExpressions = nextToken === COMMA || nextToken === COLON
+//            parseFunctionLiteralParameterList()
+//            paramsFound = if (preferParamsToExpressions) rollbackOrDrop(
+//                rollbackMarker,
+//                ARROW,
+//                "An -> is expected",
+//                RBRACE
+//            ) else rollbackOrDropAt(rollbackMarker, ARROW)
+//        }
+//        if (!paramsFound && preferBlock) {
+        literal.drop()
+        parseStatements()
+        expect(RBRACE, "Expecting '}'")
+        literalExpression.done(BLOCK)
+        myBuilder.restoreNewlinesState()
+        return
+//        }
+//        if (collapse && isLazy) {
+//            cangJieParsing.advanceBalancedBlock()
+//            literal.done(FUNCTION_LITERAL)
+//            literalExpression.collapse(LAMBDA_EXPRESSION)
+//        } else {
+//            val body = mark()
+//            parseStatements()
+//            body.done(BLOCK)
+//            body.setCustomEdgeTokenBinders(PRECEDING_ALL_COMMENTS_BINDER, TRAILING_ALL_COMMENTS_BINDER)
+//            expect(RBRACE, "Expecting '}'")
+//            literal.done(FUNCTION_LITERAL)
+//            literalExpression.done(LAMBDA_EXPRESSION)
+//        }
+//        myBuilder.restoreNewlinesState()
+    }
+
+
     /*
      * if
      *   : "if" "(" element ")" element SEMI? ("else" element)?
@@ -454,36 +799,47 @@ open class CangJieExpressionParsing(
         parseCondition()
 
 
-        if(at(LBRACE)){
-            parseBlock()
-        }else{
-            error("Expecting '{'")
+        val thenBranch = mark()
+        if (!at(ELSE_KEYWORD) && !at(SEMICOLON)) {
+
+//            if(at(LBRACE)){
+            parseControlStructureBody()
+//            }else{
+//                 error("Expecting '{'")
+//            }
+
         }
+        if (at(SEMICOLON) && lookahead(1) === ELSE_KEYWORD) {
+            advance() // SEMICOLON
+        }
+        thenBranch.done(THEN)
 
 
-//
-//        val thenBranch = mark()
-//        if (!at(ELSE_KEYWORD) && !at(SEMICOLON)) {
-////            parseControlStructureBody()
-//            parseBlock()
-//        }
-//        if (at(SEMICOLON) && lookahead(1) === ELSE_KEYWORD) {
-//            advance() // SEMICOLON
-//        }
-//        thenBranch.done(THEN)
-//
-//
-        if (at(ELSE_KEYWORD) ) {
+
+        if (at(ELSE_KEYWORD) && lookahead(1) !== ARROW) {
             advance() // ELSE_KEYWORD
             val elseBranch = mark()
             if (!at(SEMICOLON)) {
-//                parseBlock()
-                parseControlStructureBody()
+//                如歌else 后面不是代码块或者if 则报错
+                if (!at(LBRACE) && !at(IF_KEYWORD)) {
+                    error("Expecting code block or if")
+                } else if (at(IF_KEYWORD)) {
+                    parseBlockLevelExpression()
+                } else {
+                    parseControlStructureBody()
+                }
+
+
             }
             elseBranch.done(ELSE)
         }
+
+
+
+
         marker.done(IF)
     }
+
     /*
      * : "throw" element
      */
@@ -494,6 +850,7 @@ open class CangJieExpressionParsing(
         parseExpression()
         marker.done(THROW)
     }
+
     /*
      * : "continue"
      * : "break"
@@ -517,6 +874,7 @@ open class CangJieExpressionParsing(
         if (atSet(EXPRESSION_FIRST) && !at(EOL_OR_SEMICOLON)) parseExpression()
         returnExpression.done(RETURN)
     }
+
     /*
      * collectionLiteral
      *   : "[" element{","}? "]"
@@ -535,7 +893,7 @@ open class CangJieExpressionParsing(
         myBuilder.disableNewlines()
         advance() // LPAR
         if (at(RPAR)) {
-            kotlin.error("Expecting an expression")
+            error("Expecting an expression")
         } else {
             parseExpression()
         }
@@ -543,6 +901,7 @@ open class CangJieExpressionParsing(
         myBuilder.restoreNewlinesState()
         mark.done(PARENTHESIZED)
     }
+
     /*
      * "this" ("<" type ">")? label?
      */
@@ -569,6 +928,7 @@ open class CangJieExpressionParsing(
         parseLabelReferenceWithNoWhitespace()
         mark.done(SUPER_EXPRESSION)
     }
+
     /*
      * "this" label?
      */
@@ -588,7 +948,7 @@ open class CangJieExpressionParsing(
     private fun parseLabelReferenceWithNoWhitespace() {
         if (at(AT) && !myBuilder.newlineBeforeCurrentToken()) {
             if (WHITE_SPACE_OR_COMMENT_BIT_SET.contains(myBuilder.rawLookup(-1))) {
-                kotlin.error("There should be no space or comments before '@' in label reference")
+                error("There should be no space or comments before '@' in label reference")
             }
             parseLabelReference()
         }
@@ -797,6 +1157,12 @@ open class CangJieExpressionParsing(
     }
 
     fun parseExpression() {
+
+        //TODO 不知道为什么会被插入一个虚拟标识符，暂时先这样处理
+//        if(at(IDENTIFIER ) ){
+//            error("Expecting an expression")
+//            return
+//        }
         if (!atSet(EXPRESSION_FIRST)) {
             error("Expecting an expression")
             return
@@ -898,7 +1264,7 @@ open class CangJieExpressionParsing(
             // literal constant
             TRUE_KEYWORD, FALSE_KEYWORD, OPEN_QUOTE, INTEGER_LITERAL, CHARACTER_LITERAL, FLOAT_LITERAL,
 
-            LBRACE,  // functionLiteral
+//            LBRACE,  // functionLiteral
             FUNC_KEYWORD,  // expression function
             THIS_KEYWORD,  // this
             SUPER_KEYWORD,  // super
@@ -972,6 +1338,35 @@ open class CangJieExpressionParsing(
             MINUSEQ,
 
             COLON
+        )
+
+
+        private val TRY_CATCH_RECOVERY_TOKEN_SET =
+            TokenSet.create(LBRACE, RBRACE, FINALLY_KEYWORD, CATCH_KEYWORD)
+
+        private val IN_KEYWORD_R_PAR_COLON_SET = TokenSet.create(IN_KEYWORD, RPAR, COLON)
+
+
+        private val IN_KEYWORD_L_BRACE_SET = TokenSet.create(IN_KEYWORD, LBRACE)
+
+
+        private val IN_KEYWORD_L_BRACE_RECOVERY_SET =
+            TokenSet.orSet(IN_KEYWORD_L_BRACE_SET, PARAMETER_NAME_RECOVERY_SET)
+
+
+        private val COLON_IN_KEYWORD_SET = TokenSet.create(COLON, IN_KEYWORD)
+        private val IN_KEYWORD_SET = TokenSet.create(IN_KEYWORD)
+
+        private val L_PAR_L_BRACE_R_PAR_SET = TokenSet.create(LPAR, LBRACE, RPAR)
+
+
+        private val MATCH_CONDITION_RECOVERY_SET = TokenSet.create(
+            RBRACE,
+            IN_KEYWORD,
+
+            IS_KEYWORD,
+
+//            CASE_KEYWORD
         )
 
         @SuppressWarnings("WeakerAccess")

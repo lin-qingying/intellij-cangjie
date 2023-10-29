@@ -13,6 +13,7 @@ import com.intellij.psi.impl.source.PsiFileImpl;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -100,7 +101,7 @@ public class CjElementImplStub <T extends StubElement<?>> extends StubBasedPsiEl
     }
 
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitCjElement(this, data);
     }
 }

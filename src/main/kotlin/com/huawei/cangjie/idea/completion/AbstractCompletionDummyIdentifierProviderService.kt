@@ -145,7 +145,8 @@ abstract class AbstractCompletionDummyIdentifierProviderService : CompletionDumm
             else -> null
         }
         val quote = "`"
-        if (badCharacterBefore?.text == quote) return CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED + quote + "$"
+//        if (badCharacterBefore?.text == quote) return CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED + quote + "$"
+        if (badCharacterBefore?.text == quote) return CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED + quote
         return null
     }
 
@@ -212,7 +213,8 @@ abstract class AbstractCompletionDummyIdentifierProviderService : CompletionDumm
 
         val nameRef = nameToken.parent as? CjNameReferenceExpression ?: return null
         return if (allTargetsAreFunctionsOrClasses(nameRef)) {
-            CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED + ">".repeat(balance) + "$"
+//            CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED + ">".repeat(balance) + "$"
+            CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED
         } else {
             null
         }
@@ -274,8 +276,8 @@ abstract class AbstractCompletionDummyIdentifierProviderService : CompletionDumm
 
     private companion object {
         private const val DEFAULT_DUMMY_IDENTIFIER: String =
-            CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED + "$" // add '$' to ignore context after the caret
-
+//            CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED + "$" // 添加 '$' 忽略插入符号后的上下文
+        CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED
         private val declarationKeywords =
             TokenSet.create(CjTokens.FUNC_KEYWORD, CjTokens.LET_KEYWORD, CjTokens.VAR_KEYWORD)
         private val declarationTokens = TokenSet.orSet(

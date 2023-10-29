@@ -27,6 +27,8 @@ fun <D> visitChildren(element: CjElement, visitor: CjVisitor<Void, D>, data: D) 
     }
 
 }
+
+
 fun StubBasedPsiElementBase<out CangJieClassOrStructStub<out CjClassOrStruct>>.getSuperNames(): List<String> {
     fun addSuperName(result: MutableList<String>, referencedName: String) {
         result.add(referencedName)
@@ -97,6 +99,15 @@ fun CjExpression.isContractDescriptionCallPsiCheck(): Boolean =
     (this is CjCallExpression && calleeExpression?.text == "contract") || (this is CjQualifiedExpression && isContractDescriptionCallPsiCheck())
 
 fun Name?.safeNameForLazyResolve(): Name = this?.takeUnless(Name::isSpecial) ?: SpecialNames.NO_NAME_PROVIDED
+
+
+fun CjExpression.getAssignmentByLHS(): CjBinaryExpression? {
+    val parent = parent as? CjBinaryExpression ?: return null
+    return if (CjPsiUtil.isAssignment(parent) && parent.left == this) parent else null
+}
+fun CjExpression.getQualifiedExpressionForSelectorOrThis(): CjExpression {
+    return getQualifiedExpressionForSelector() ?: this
+}
 
 fun getTrailingCommaByClosingElement(closingElement: PsiElement?): PsiElement? {
     val elementBeforeClosingElement =

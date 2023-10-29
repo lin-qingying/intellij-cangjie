@@ -23,7 +23,7 @@ public class CjTypeParameter extends CjNamedDeclarationStub<CangJieTypeParameter
     }
 
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitTypeParameter(this, data);
     }
 

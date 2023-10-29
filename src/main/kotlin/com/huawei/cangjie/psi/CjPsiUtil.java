@@ -10,9 +10,13 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
+import  com.huawei.cangjie.lexer.CjTokens;
 public class CjPsiUtil {
 
-
+    public static boolean isAssignment(@NotNull PsiElement element) {
+        return element instanceof CjBinaryExpression &&
+                CjTokens.ALL_ASSIGNMENTS.contains(((CjBinaryExpression) element).getOperationToken());
+    }
     public static boolean isLocal(@NotNull CjDeclaration declaration) {
         return getEnclosingElementForLocalDeclaration(declaration) != null;
     }

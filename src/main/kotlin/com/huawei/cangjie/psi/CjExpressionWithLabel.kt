@@ -16,5 +16,5 @@ open class CjExpressionWithLabel(node: ASTNode) : CjExpressionImpl(node) {
     fun getLabelName(): String? = getTargetLabel()?.getReferencedName()
     fun getLabelNameAsName(): Name? = getTargetLabel()?.getReferencedNameAsName()
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D) = visitor.visitExpressionWithLabel(this, data)
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?) = visitor.visitExpressionWithLabel(this, data)
 }

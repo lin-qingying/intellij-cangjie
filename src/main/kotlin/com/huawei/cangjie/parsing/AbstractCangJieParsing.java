@@ -405,18 +405,15 @@ public abstract class AbstractCangJieParsing {
     }
 
 
-    /**
-     * 报告解析错误并跳过标记流中指定的标记集合，直到遇到指定的标记集合中的任意一个标记
-     *
-     * @param message
-     * @param tokenSet
-     */
+
     protected void errorUntil(String message, TokenSet tokenSet) {
         assert tokenSet.contains(LBRACE) : "Cannot include LBRACE into error element!";
         assert tokenSet.contains(RBRACE) : "Cannot include RBRACE into error element!";
         PsiBuilder.Marker error = mark();
         skipUntil(tokenSet);
         error.error(message);
+//        TODO
+        error.drop();
     }
 
     /**

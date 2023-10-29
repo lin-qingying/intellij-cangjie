@@ -79,7 +79,7 @@ public interface CjTokens {
     int EQEQEQ_Id = 67;
     int ARROW_Id = 68;
     int DOUBLE_ARROW_Id = 69;
-
+int CASE_KEYWORD_Id = 70;
     int EQEQ_Id = 71;
     int EXCLEQ_Id = 72;
 
@@ -216,6 +216,8 @@ public interface CjTokens {
     CjKeywordToken WHILE_KEYWORD = CjKeywordToken.keyword("while", WHILE_KEYWORD_Id);
     CjKeywordToken DO_KEYWORD = CjKeywordToken.keyword("do", DO_KEYWORD_Id);
     CjKeywordToken MATCH_KEYWORD = CjKeywordToken.keyword("match", MATCH_KEYWORD_Id);
+
+    CjKeywordToken CASE_KEYWORD = CjKeywordToken.keyword("case", CASE_KEYWORD_Id);
     CjKeywordToken INTERFACE_KEYWORD = CjKeywordToken.keyword("interface", INTERFACE_KEYWORD_Id);
 
 
@@ -383,5 +385,5 @@ public interface CjTokens {
     TokenSet BASICTYPES = TokenSet.create(
             INT8_KEYWORD, INT16_KEYWORD, INT32_KEYWORD, INT64_KEYWORD, UINT8_KEYWORD, UINT16_KEYWORD, UINT32_KEYWORD, UINT64_KEYWORD, FLOAT32_KEYWORD, FLOAT64_KEYWORD, BOOL_KEYWORD, CHAR_KEYWORD, UNIT_KEYWORD
     );
-
+    TokenSet ALL_ASSIGNMENTS = TokenSet.create(EQ, PLUSEQ, MINUSEQ, MULTEQ, PERCEQ, DIVEQ);
 }

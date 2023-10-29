@@ -19,7 +19,7 @@ class CjDotQualifiedExpression : CjExpressionImplStub<CangJiePlaceHolderStub<CjD
         stub, CjStubElementTypes.DOT_QUALIFIED_EXPRESSION
     )
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitDotQualifiedExpression(this, data)
     }
 

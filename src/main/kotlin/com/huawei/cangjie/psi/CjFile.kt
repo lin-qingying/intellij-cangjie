@@ -41,7 +41,7 @@ import com.intellij.util.ArrayFactory
         CjPsiUtil.visitChildren(this, visitor, data)
     }
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R =
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R =
         visitor.visitCjFile(this, data)
 
     protected open val importLists: List<CjImportList>

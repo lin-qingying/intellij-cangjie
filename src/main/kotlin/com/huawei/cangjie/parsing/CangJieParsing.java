@@ -1454,6 +1454,51 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     }
 
+
+    /*
+     * (SimpleName  {","})
+     */
+    public void parseMultiDeclarationName(TokenSet follow, TokenSet recoverySet) {
+
+
+        // Parsing multi-name, e.g.
+        //   val (a, b) = foo()
+        myBuilder.disableNewlines();
+        advance(); // LPAR
+
+        if (!atSet(follow)) {
+            while (true) {
+                if (at(COMMA)) {
+                    errorAndAdvance("Expecting a name");
+                }
+                else if (at(RPAR)) { // For declaration similar to `val () = somethingCall()`
+                    error("Expecting a name");
+                    break;
+                }
+                PsiBuilder.Marker property = mark();
+
+                parseModifierList(COMMA_RPAR_COLON_EQ_SET);
+
+                expect(IDENTIFIER, "Expecting a name", recoverySet);
+
+//                if (at(COLON)) {
+//
+//                    advance(); // COLON
+//                    parseTypeRef(follow);
+//                }
+                property.done(DESTRUCTURING_DECLARATION_ENTRY);
+
+                if (!at(COMMA)) break;
+                advance(); // COMMA
+                if (at(RPAR)) break;
+            }
+        }
+
+        expect(RPAR, "Expecting ')'", follow);
+        myBuilder.restoreNewlinesState();
+    }
+
+
     /**
      * 解析类型参数列表
      *

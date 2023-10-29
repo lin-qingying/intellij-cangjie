@@ -9,7 +9,33 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         visitElement(element);
         return null;
     }
+    public R visitTryExpression(@NotNull CjTryExpression expression, D data) {
+        return visitExpression(expression, data);
+    }
+    public R visitCatchSection(CjCatchClause cjCatchClause, D data) {
 
+        return  visitCjElement(cjCatchClause, data);
+    }
+
+    public R visitFinallySection(@NotNull CjFinallySection finallySection, D data) {
+        return visitCjElement(finallySection, data);
+    }
+    public R visitMatchExpression(@NotNull CjMatchExpression expression, D data) {
+        return visitExpression(expression, data);
+    }
+
+    public R visitWhileExpression(@NotNull CjWhileExpression expression, D data) {
+        return visitLoopExpression(expression, data);
+    }
+    public R visitDoWhileExpression(@NotNull CjDoWhileExpression expression, D data) {
+        return visitLoopExpression(expression, data);
+    }
+    public R visitLoopExpression(@NotNull CjLoopExpression loopExpression, D data) {
+        return visitExpression(loopExpression, data);
+    }
+    public R visitForExpression(@NotNull CjForExpression expression, D data) {
+        return visitLoopExpression(expression, data);
+    }
     public R visitIfExpression(@NotNull CjIfExpression expression, D data) {
         return visitExpression(expression, data);
     }
@@ -176,10 +202,7 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         return visitCjElement(cjDestructuringDeclarationEntry, data);
     }
 
-    public R visitCatchSection(CjCatchClause cjCatchClause, D data) {
 
-    return  visitCjElement(cjCatchClause, data);
-    }
 
     public R visitDeclaration(@NotNull CjDeclaration dcl, D data) {
         return visitExpression(dcl, data);

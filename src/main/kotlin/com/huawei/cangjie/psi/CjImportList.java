@@ -4,6 +4,7 @@ import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class CjImportList extends CjElementImplStub<CangJiePlaceHolderStub<CjImp
     }
 
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitImportList(this, data);
     }
 

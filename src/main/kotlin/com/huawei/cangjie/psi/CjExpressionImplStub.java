@@ -6,7 +6,7 @@ import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
-
+import org.jetbrains.annotations.Nullable;
 
 
 public abstract class CjExpressionImplStub<T extends StubElement<?>> extends CjElementImplStub<T> implements CjExpression {
@@ -19,7 +19,7 @@ public abstract class CjExpressionImplStub<T extends StubElement<?>> extends CjE
     }
 
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitExpression(this, data);
     }
 

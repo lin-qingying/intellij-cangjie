@@ -9,7 +9,7 @@ class  CjPostfixExpression(node:ASTNode):CjUnaryExpression(node){
         return PsiTreeUtil.getPrevSiblingOfType(getOperationReference(), CjExpression::class.java)
     }
 
-    override fun <R,D> accept(visitor: CjVisitor<R, D>, data: D): R {
+    override fun <R,D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitPostfixExpression(this, data)
     }
 }

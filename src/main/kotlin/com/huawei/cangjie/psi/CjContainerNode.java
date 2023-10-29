@@ -11,7 +11,7 @@ public class CjContainerNode extends CjElementImpl {
         super(node);
     }
 
-    @Override // for visibility
+    @Override
     protected <T> T findChildByClass(Class<T> aClass) {
         return super.findChildByClass(aClass);
     }

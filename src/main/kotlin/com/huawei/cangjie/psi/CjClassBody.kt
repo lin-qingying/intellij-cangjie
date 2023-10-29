@@ -26,7 +26,7 @@ class CjClassBody : CjElementImplStub<CangJiePlaceHolderStub<CjClassBody>>, CjDe
         return node.elementType.toString()
     }
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D) = visitor.visitClassBody(this, data)
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?) = visitor.visitClassBody(this, data)
     override val declarations: List<CjDeclaration>
         get() =stub?.getChildrenByType(CjFile.FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
             ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java)

@@ -56,7 +56,7 @@ public class CjBlockExpression extends LazyParseablePsiElement implements CjElem
     }
 
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitBlockExpression(this, data);
     }
 

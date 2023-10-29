@@ -24,7 +24,7 @@ public abstract class CjModifierList extends CjElementImplStub<CangJieModifierLi
     }
 
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitModifierList(this, data);
     }
 

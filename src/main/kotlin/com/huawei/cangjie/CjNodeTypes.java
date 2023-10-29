@@ -88,4 +88,27 @@ public interface CjNodeTypes {
 
     IElementType IF                        = new CjNodeType("IF", CjIfExpression.class);
     IElementType CONDITION                 = new CjNodeType("CONDITION", CjContainerNode.class);
+
+
+    IElementType TRY                       = new CjNodeType("TRY", CjTryExpression.class);
+
+    IElementType CATCH                     = new CjNodeType("CATCH", CjCatchClause.class);
+    IElementType FINALLY                   = new CjNodeType("FINALLY", CjFinallySection.class);
+
+
+    IElementType WHILE                     = new CjNodeType("WHILE", CjWhileExpression.class);
+    IElementType BODY                      = new CjNodeType("BODY", CjContainerNodeForControlStructureBody.class);
+
+    IElementType DO_WHILE                  = new CjNodeType("DO_WHILE", CjDoWhileExpression.class);
+
+    IElementType LOOP_RANGE                = new CjNodeType("LOOP_RANGE", CjContainerNode.class);
+    IElementType FOR                       = new CjNodeType("FOR", CjForExpression.class);
+
+    IElementType MATCH                      = new CjNodeType("MATCH", CjMatchExpression.class);
+    IElementType MATCH_ENTRY                = new CjNodeType("WHEN_ENTRY", CjMatchEntry.class);
+
+
+    IElementType CASE_CONDITION             = new CjNodeType("CASE_CONDITION", CjCaseCondition.class);
 }
+
+

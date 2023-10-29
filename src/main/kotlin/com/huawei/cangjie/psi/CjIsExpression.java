@@ -12,7 +12,7 @@ public class CjIsExpression extends CjExpressionImpl implements CjOperationExpre
     }
 
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitIsExpression(this, data);
     }
 

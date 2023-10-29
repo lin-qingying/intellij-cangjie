@@ -6,6 +6,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
+import org.jetbrains.annotations.Nullable;
 
 public class CjEscapeStringTemplateEntry extends CjStringTemplateEntry {
     public CjEscapeStringTemplateEntry(@NotNull ASTNode node) {
@@ -17,7 +18,7 @@ public class CjEscapeStringTemplateEntry extends CjStringTemplateEntry {
     }
 
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitEscapeStringTemplateEntry(this, data);
     }
 

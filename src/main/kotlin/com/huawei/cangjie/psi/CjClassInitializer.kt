@@ -19,7 +19,7 @@ class CjClassInitializer : CjDeclarationStub<CangJiePlaceHolderStub<CjClassIniti
 
     constructor(stub: CangJiePlaceHolderStub<CjClassInitializer>) : super(stub, CjStubElementTypes.CLASS_INITIALIZER)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D) = visitor.visitClassInitializer(this, data)
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?) = visitor.visitClassInitializer(this, data)
     override val body: CjExpression?
         get() = findChildByClass(CjExpression::class.java)
 

@@ -11,7 +11,7 @@ public class CjConstructorDelegationCall extends CjElementImpl implements CjCall
     }
 
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitConstructorDelegationCall(this, data);
     }
 

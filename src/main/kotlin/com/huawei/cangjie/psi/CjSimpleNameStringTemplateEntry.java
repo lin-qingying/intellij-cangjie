@@ -4,6 +4,7 @@ import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderWithTextStub;
 import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
+import org.jetbrains.annotations.Nullable;
 
 public class CjSimpleNameStringTemplateEntry extends CjStringTemplateEntryWithExpression {
     public CjSimpleNameStringTemplateEntry(@NotNull ASTNode node) {
@@ -15,7 +16,7 @@ public class CjSimpleNameStringTemplateEntry extends CjStringTemplateEntryWithEx
     }
 
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitSimpleNameStringTemplateEntry(this, data);
     }
 }

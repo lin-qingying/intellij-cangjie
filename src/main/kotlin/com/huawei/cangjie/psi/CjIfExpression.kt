@@ -7,7 +7,7 @@ import com.intellij.psi.PsiElement
 
 
 class CjIfExpression(node: ASTNode) : CjExpressionImpl(node) {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitIfExpression(this, data)
     }
 

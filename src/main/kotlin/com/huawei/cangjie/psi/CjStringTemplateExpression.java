@@ -8,6 +8,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 public class CjStringTemplateExpression extends CjElementImplStub<CangJiePlaceHolderStub<CjStringTemplateExpression>>
@@ -28,7 +29,7 @@ public class CjStringTemplateExpression extends CjElementImplStub<CangJiePlaceHo
     }
 
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitStringTemplateExpression(this, data);
     }
 

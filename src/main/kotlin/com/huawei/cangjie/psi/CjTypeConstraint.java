@@ -23,7 +23,7 @@ public class CjTypeConstraint extends CjElementImplStub<CangJiePlaceHolderStub<C
     }
 
     @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitTypeConstraint(this, data);
     }
 
