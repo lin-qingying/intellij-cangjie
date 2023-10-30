@@ -7,6 +7,10 @@ public interface CjStubElementTypes {
 
 
     CjConstantExpressionElementType BOOLEAN_CONSTANT = new CjConstantExpressionElementType("BOOLEAN_CONSTANT");
+
+
+    CjConstantExpressionElementType UNIT_CONSTANT = new CjConstantExpressionElementType("UNIT_CONSTANT");
+
     CjConstantExpressionElementType FLOAT_CONSTANT = new CjConstantExpressionElementType("FLOAT_CONSTANT");
     CjConstantExpressionElementType CHARACTER_CONSTANT = new CjConstantExpressionElementType("CHARACTER_CONSTANT");
     CjConstantExpressionElementType INTEGER_CONSTANT = new CjConstantExpressionElementType("INTEGER_CONSTANT");
@@ -123,6 +127,8 @@ public interface CjStubElementTypes {
             new CjCollectionLiteralExpressionElementType("COLLECTION_LITERAL_EXPRESSION");
 
 
+    CjCollectionLiteralExpressionElementType TUPLE_LITERAL_EXPRESSION =
+            new CjCollectionLiteralExpressionElementType("TUPLE_LITERAL_EXPRESSION");
 
 
 

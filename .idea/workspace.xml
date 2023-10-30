@@ -11,88 +11,13 @@
     <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/CjNodeTypes.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/CjNodeTypes.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/completion/AbstractCompletionDummyIdentifierProviderService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/completion/AbstractCompletionDummyIdentifierProviderService.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/completion/CangJieCompletionContributor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/completion/CangJieCompletionContributor.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CangieLexer.flex" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CangieLexer.flex" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CjTokens.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CjTokens.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/AbstractCangJieParsing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/AbstractCangJieParsing.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/_JetLexer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/_JetLexer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParsing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParsing.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjArrayAccessExpression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjArrayAccessExpression.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjBasicType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjBasicType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjBinaryExpression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjBinaryExpression.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjBinaryExpressionWithTypeRHS.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjBinaryExpressionWithTypeRHS.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjBlockExpression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjBlockExpression.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjBlockStringTemplateEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjBlockStringTemplateEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjBreakExpression.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjBreakExpression.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjCallExpression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjCallExpression.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjCatchClause.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjCatchClause.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjClassBody.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjClassBody.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjClassInitializer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjClassInitializer.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjCollectionLiteralExpression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjCollectionLiteralExpression.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjConstantExpression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjConstantExpression.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjConstructorCalleeExpression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjConstructorCalleeExpression.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjConstructorDelegationCall.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjConstructorDelegationCall.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjContainerNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjContainerNode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjContextReceiverList.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjContextReceiverList.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjContinueExpression.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjContinueExpression.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjDestructuringDeclaration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjDestructuringDeclaration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjDestructuringDeclarationEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjDestructuringDeclarationEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjDotQualifiedExpression.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjDotQualifiedExpression.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjElement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjElement.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjElementImplStub.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjElementImplStub.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjEnumBody.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjEnumBody.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjEnumEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjEnumEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjEscapeStringTemplateEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjEscapeStringTemplateEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjExpression.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjExpression.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjExpressionImplStub.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjExpressionImplStub.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjExpressionWithLabel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjExpressionWithLabel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjFile.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjFile.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjIfExpression.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjIfExpression.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjImportAlias.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjImportAlias.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjImportDirective.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjImportDirective.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjImportList.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjImportList.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjIsExpression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjIsExpression.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjKeyword.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjKeyword.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjLiteralStringTemplateEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjLiteralStringTemplateEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjMatchEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjMatchEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjModifierList.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjModifierList.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjNameReferenceExpression.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjNameReferenceExpression.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjNamedFunction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjNamedFunction.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjPackageDirective.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjPackageDirective.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjParameter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjParameter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjParameterList.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjParameterList.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjParenthesizedExpression.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjParenthesizedExpression.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjPostfixExpression.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjPostfixExpression.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjPrefixExpression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjPrefixExpression.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjPrimaryConstructor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjPrimaryConstructor.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjPsiUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjPsiUtil.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjReturnExpression.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjReturnExpression.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjSecondaryConstructor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjSecondaryConstructor.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjSimpleNameExpression.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjSimpleNameExpression.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjSimpleNameStringTemplateEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjSimpleNameStringTemplateEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjStringTemplateEntryWithExpression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjStringTemplateEntryWithExpression.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjStringTemplateExpression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjStringTemplateExpression.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjSuperExpression.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjSuperExpression.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjSuperTypeCallEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjSuperTypeCallEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjSuperTypeEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjSuperTypeEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjSuperTypeList.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjSuperTypeList.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjSuperTypeListEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjSuperTypeListEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjThisExpression.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjThisExpression.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjThrowExpression.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjThrowExpression.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjTypeArgumentList.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjTypeArgumentList.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjTypeConstraint.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjTypeConstraint.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjTypeConstraintList.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjTypeConstraintList.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjTypeParameter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjTypeParameter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjTypeParameterList.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjTypeParameterList.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjTypeProjection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjTypeProjection.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjTypeReference.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjTypeReference.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjUserType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjUserType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjValueArgumentList.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjValueArgumentList.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjVisitor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjVisitor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/psiUtil/CjPsiUtil.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/psiUtil/CjPsiUtil.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/resolve/ResolutionFacade.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/resolve/ResolutionFacade.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/utils/addToStdlib.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/utils/addToStdlib.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/StubInterfaces.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/StubInterfaces.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/elements/CjConstantExpressionElementType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/elements/CjConstantExpressionElementType.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/elements/CjStubElementTypes.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/elements/CjStubElementTypes.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -556,7 +481,9 @@
       <workItem from="1698554311748" duration="2241000" />
       <workItem from="1698557755452" duration="2210000" />
       <workItem from="1698578653072" duration="5731000" />
-      <workItem from="1698584855764" duration="6623000" />
+      <workItem from="1698584855764" duration="6964000" />
+      <workItem from="1698640363306" duration="2618000" />
+      <workItem from="1698643004789" duration="1371000" />
     </task>
     <task id="LOCAL-00001" summary="语法分析">
       <option name="closed" value="true" />
@@ -734,7 +661,15 @@
       <option name="project" value="LOCAL" />
       <updated>1698490641152</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="develop  match语法太难了，呜呜呜">
+      <option name="closed" value="true" />
+      <created>1698591704571</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1698591704571</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -749,7 +684,8 @@
     <MESSAGE value="图片" />
     <MESSAGE value="编译" />
     <MESSAGE value="develop" />
-    <option name="LAST_COMMIT_MESSAGE" value="develop" />
+    <MESSAGE value="develop  match语法太难了，呜呜呜" />
+    <option name="LAST_COMMIT_MESSAGE" value="develop  match语法太难了，呜呜呜" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -821,13 +757,18 @@
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
-          <line>999</line>
+          <line>1055</line>
           <option name="timeStamp" value="113" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
           <line>187</line>
           <option name="timeStamp" value="114" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
+          <line>254</line>
+          <option name="timeStamp" value="117" />
         </line-breakpoint>
         <breakpoint type="java-exception">
           <properties class="java.lang.AssertionError" package="java.lang" />

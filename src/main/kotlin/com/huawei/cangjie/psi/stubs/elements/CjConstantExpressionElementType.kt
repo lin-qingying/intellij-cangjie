@@ -69,6 +69,7 @@ class CjConstantExpressionElementType(@NonNls debugName: String) :
                 FLOAT_CONSTANT -> CjStubElementTypes.FLOAT_CONSTANT
                 CHARACTER_CONSTANT -> CjStubElementTypes.CHARACTER_CONSTANT
                 INTEGER_CONSTANT -> CjStubElementTypes.INTEGER_CONSTANT
+                UNIT_CONSTANT -> CjStubElementTypes.UNIT_CONSTANT
 
             }
         }
@@ -80,6 +81,7 @@ class CjConstantExpressionElementType(@NonNls debugName: String) :
                 CjStubElementTypes.INTEGER_CONSTANT -> INTEGER_CONSTANT
                 CjStubElementTypes.FLOAT_CONSTANT -> FLOAT_CONSTANT
                 CjStubElementTypes.CHARACTER_CONSTANT -> CHARACTER_CONSTANT
+                CjStubElementTypes.UNIT_CONSTANT -> UNIT_CONSTANT
                 else -> throw IllegalStateException("Unknown constant node type: $elementType")
             }
         }
