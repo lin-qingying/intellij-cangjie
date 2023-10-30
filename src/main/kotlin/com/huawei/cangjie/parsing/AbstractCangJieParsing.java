@@ -412,8 +412,7 @@ public abstract class AbstractCangJieParsing {
         PsiBuilder.Marker error = mark();
         skipUntil(tokenSet);
         error.error(message);
-//        TODO
-        error.drop();
+
     }
 
     /**

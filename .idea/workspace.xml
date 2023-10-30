@@ -14,9 +14,10 @@
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CangieLexer.flex" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CangieLexer.flex" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CjTokens.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CjTokens.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/_JetLexer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/_JetLexer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/AbstractCangJieParsing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/AbstractCangJieParsing.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/StubInterfaces.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/StubInterfaces.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/elements/CjConstantExpressionElementType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/elements/CjConstantExpressionElementType.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParsing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParsing.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjCaseCondition.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjCasePattern.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/elements/CjStubElementTypes.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/elements/CjStubElementTypes.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -483,7 +484,8 @@
       <workItem from="1698578653072" duration="5731000" />
       <workItem from="1698584855764" duration="6964000" />
       <workItem from="1698640363306" duration="2618000" />
-      <workItem from="1698643004789" duration="1371000" />
+      <workItem from="1698643004789" duration="2211000" />
+      <workItem from="1698665749850" duration="14736000" />
     </task>
     <task id="LOCAL-00001" summary="语法分析">
       <option name="closed" value="true" />
@@ -669,7 +671,15 @@
       <option name="project" value="LOCAL" />
       <updated>1698591704571</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="develop 元组，索引，函数调用表达式，for,while,do while,if else？， match还是太难了，呜呜呜">
+      <option name="closed" value="true" />
+      <created>1698644622953</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1698644622953</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -685,7 +695,8 @@
     <MESSAGE value="编译" />
     <MESSAGE value="develop" />
     <MESSAGE value="develop  match语法太难了，呜呜呜" />
-    <option name="LAST_COMMIT_MESSAGE" value="develop  match语法太难了，呜呜呜" />
+    <MESSAGE value="develop 元组，索引，函数调用表达式，for,while,do while,if else？， match还是太难了，呜呜呜" />
+    <option name="LAST_COMMIT_MESSAGE" value="develop 元组，索引，函数调用表达式，for,while,do while,if else？， match还是太难了，呜呜呜" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -757,23 +768,42 @@
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
-          <line>1055</line>
+          <line>1214</line>
           <option name="timeStamp" value="113" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
-          <line>187</line>
+          <line>214</line>
           <option name="timeStamp" value="114" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
+        <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
-          <line>254</line>
-          <option name="timeStamp" value="117" />
+          <line>306</line>
+          <option name="timeStamp" value="123" />
+        </line-breakpoint>
+        <line-breakpoint type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
+          <line>1394</line>
+          <option name="timeStamp" value="146" />
+        </line-breakpoint>
+        <line-breakpoint type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
+          <line>157</line>
+          <option name="timeStamp" value="161" />
         </line-breakpoint>
         <breakpoint type="java-exception">
           <properties class="java.lang.AssertionError" package="java.lang" />
           <option name="timeStamp" value="84" />
         </breakpoint>
+        <line-breakpoint type="kotlin-function">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
+          <line>24</line>
+          <properties class="com.huawei.cangjie.parsing.CangJieExpressionParsing.Precedence" method="&lt;init&gt;">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="153" />
+        </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
         <breakpoint type="dart-exception" />

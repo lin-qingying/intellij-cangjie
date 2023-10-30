@@ -52,6 +52,8 @@ public interface CjNodeTypes {
     IElementType ENUM = CjStubElementTypes.ENUM;
     IElementType ENUM_BODY = CjStubElementTypes.ENUM_BODY;
     IElementType ENUM_ENTRY = CjStubElementTypes.ENUM_ENTRY;
+
+    IElementType TYPE_LIST = CjStubElementTypes.TYPE_LIST;
     IElementType SUPER_TYPE_LIST                    = CjStubElementTypes.SUPER_TYPE_LIST;
     IElementType TYPE_CONSTRAINT = CjStubElementTypes.TYPE_CONSTRAINT;
     IElementType IMPORT_LIST                        = CjStubElementTypes.IMPORT_LIST;
@@ -65,6 +67,8 @@ public interface CjNodeTypes {
     IElementType CHARACTER_CONSTANT = CjStubElementTypes.CHARACTER_CONSTANT;
     IElementType INTEGER_CONSTANT   = CjStubElementTypes.INTEGER_CONSTANT;
     IElementType BOOLEAN_CONSTANT   = CjStubElementTypes.BOOLEAN_CONSTANT;
+
+
 
     IElementType UNIT_CONSTANT = CjStubElementTypes.UNIT_CONSTANT;
     IElementType STRING_TEMPLATE               = CjStubElementTypes.STRING_TEMPLATE;
@@ -110,10 +114,15 @@ public interface CjNodeTypes {
     IElementType FOR                       = new CjNodeType("FOR", CjForExpression.class);
 
     IElementType MATCH                      = new CjNodeType("MATCH", CjMatchExpression.class);
-    IElementType MATCH_ENTRY                = new CjNodeType("WHEN_ENTRY", CjMatchEntry.class);
+    IElementType MATCH_ENTRY                = new CjNodeType("MATCH_ENTRY", CjMatchEntry.class);
 
 
-    IElementType CASE_CONDITION             = new CjNodeType("CASE_CONDITION", CjCaseCondition.class);
+    IElementType CASE_PATTERN = new CjNodeType("CASE_PATTERN", CjCasePattern.class);
+
+
+
+    IElementType TYPE_PATTERN = new CjNodeType("TYPE_PATTERN", CjTypePattern.class);
+    IElementType ENUM_PATTERN = new CjNodeType("ENUM_PATTERN", CjEnumPattern.class);
 }
 
 

@@ -39,7 +39,7 @@ open class CangJieExpressionParsing(
         AS(AS_KEYWORD) {
 
             override fun parseRightHandSide(operation: IElementType, parser: CangJieExpressionParsing): IElementType {
-                logger.info("AS")
+
                 parser.cangJieParsing.parseTypeRefWithoutIntersections()
                 return BINARY_WITH_TYPE
             }
@@ -53,7 +53,7 @@ open class CangJieExpressionParsing(
         MULTIPLICATIVE(MUL, DIV, PERC),
         ADDITIVE(PLUS, MINUS),
         RANGE(CjTokens.RANGE),
-        SIMPLE_NAME(IDENTIFIER),
+//        SIMPLE_NAME(IDENTIFIER),
         IN_OR_IS(IN_KEYWORD, IS_KEYWORD) {
             override fun parseRightHandSide(operation: IElementType, parser: CangJieExpressionParsing): IElementType {
                 if (operation === IS_KEYWORD) {
@@ -77,9 +77,7 @@ open class CangJieExpressionParsing(
 
         @OptIn(ExperimentalStdlibApi::class)
         companion object {
-            val logger = Logger.getInstance(
-                Precedence::class.java
-            )
+
 
             init {
                 val values: Array<Precedence> = Precedence.values()
@@ -119,6 +117,35 @@ open class CangJieExpressionParsing(
 
 
     override fun create(builder: SemanticWhitespaceAwarePsiBuilder?): CangJieParsing = cangJieParsing.create(builder)
+
+
+    fun parseStatements(type: IElementType) {
+        while (at(SEMICOLON)) advance() // SEMICOLON
+        while (!eof() && !at(RBRACE) && !at(type)) {
+            if (!atSet(STATEMENT_FIRST)) {
+                errorAndAdvance("Expecting an element")
+            }
+            if (atSet(STATEMENT_FIRST)) {
+                parseStatement()
+            }
+            if (at(SEMICOLON)) {
+                while (at(SEMICOLON)) advance() // SEMICOLON
+            } else if (at(RBRACE)) {
+                break
+            } else if (at(type)) {
+                break
+            } else if (!myBuilder.newlineBeforeCurrentToken()) {
+                val severalStatementsError = "Unexpected tokens (use ';' to separate expressions on the same line)"
+                if (atSet(STATEMENT_NEW_LINE_QUICK_RECOVERY_SET)) {
+                    error(severalStatementsError)
+                } else {
+                    errorUntil(
+                        severalStatementsError, TokenSet.create(EOL_OR_SEMICOLON, LBRACE, RBRACE,type)
+                    )
+                }
+            }
+        }
+    }
 
 
     /*
@@ -447,13 +474,21 @@ open class CangJieExpressionParsing(
 
         myBuilder.enableNewlines()
         if (expect(LBRACE, "Expecting '{'")) {
+
+            if (!at(CASE_KEYWORD)) {
+                error("Expecting 'case'")
+            }
+
             while (!eof() && !at(RBRACE)) {
 
                 if (!at(CASE_KEYWORD)) {
-                    error("Expecting 'case'")
+                    errorAndAdvance("Expecting 'case'")
+//                    break
+                } else {
+                    parseMatchEntry()
+
                 }
 
-                parseMatchEntry()
             }
             expect(RBRACE, "Expecting '}'")
         }
@@ -462,13 +497,28 @@ open class CangJieExpressionParsing(
     }
 
     /**
+     * 根据结束符处理代码块
+     * @param type 结束符
+     */
+    fun parseBlock(type: IElementType) {
+        while (!at(type) && !eof() && !at(RBRACE)) {
+            parseBlockLevelExpression()
+        }
+    }
+
+
+    /**
      * caseBody
      *
      */
     private fun parseCaseBody() {
         val body = mark()
         if (!at(SEMICOLON)) {
-            parseStatements()
+
+//            parseBlock(CASE_KEYWORD)
+
+
+            parseStatements(CASE_KEYWORD)
         }
         body.done(BODY)
     }
@@ -484,10 +534,10 @@ open class CangJieExpressionParsing(
         if (at(CASE_KEYWORD)) {
             advance() // CASE_KEYWORD
 
-            parseCaseCondition()
+            parseCasePattern()
             while (at(OR)) {
                 advance() // OR
-                parseCaseCondition()
+                parseCasePattern()
             }
             expect(DOUBLE_ARROW, "Expecting '=>'")
             parseCaseBody()
@@ -504,8 +554,129 @@ open class CangJieExpressionParsing(
      * case condition
      * (常量 | 通配符(_) | 绑定模式(SimpleName) | Tuple模式( (p1,p2,...,pn) ) | 类型模式(SimpleName : type) | Enum模式(SimpleName(SimpleName)? | Tuple与Enum嵌套  )  )
      */
-    private fun parseCaseCondition() {
+    private fun parseCasePattern() {
         val condition = mark()
+
+
+        class CasePattern {
+            /**
+             * 绑定模式(id) | 类型模式(id:type) | 枚举模式(id(expression{,})?)
+             */
+            fun parseSimpleNameExpression() {
+                assert(_at(IDENTIFIER))
+                val mark = mark()
+                advance() // IDENTIFIER
+                //1.绑定模式
+                //2.类型模式
+                //3.枚举模式
+                var type = 1
+                if (at(COLON)) {
+                    advance() // COLON
+                    type = 2
+                    cangJieParsing.parseTypeRef()
+
+                } else if (at(LPAR)) {
+                    //枚举模式
+                    advance() // LPAR
+                    type = 3
+                    parseExpression()
+                    while (at(COMMA)) {
+                        advance() // COMMA
+                        parseExpression()
+                    }
+                    expect(RPAR, "Expecting ')'")
+                }
+                when (type) {
+                    1 -> mark.done(REFERENCE_EXPRESSION)
+                    2 -> mark.done(TYPE_PATTERN)
+                    3 -> mark.done(ENUM_PATTERN)
+                }
+
+
+            }
+
+
+            fun parseUnderline(){
+                assert(_at(UNDERLINE))
+
+                advance()
+            }
+
+            fun parseExpression() {
+                when (tokenId) {
+
+                    UNDERLINE_Id -> parseUnderline()
+                    LPAR_Id -> parseParenthesizedExpression()
+                    INTEGER_LITERAL_Id -> parseOneTokenExpression(INTEGER_CONSTANT)
+                    CHARACTER_LITERAL_Id -> parseOneTokenExpression(CHARACTER_CONSTANT)
+                    TRUE_KEYWORD_Id, FALSE_KEYWORD_Id -> parseOneTokenExpression(BOOLEAN_CONSTANT)
+                    FLOAT_LITERAL_Id -> parseOneTokenExpression(FLOAT_CONSTANT)
+                    OPEN_QUOTE_Id -> parseStringTemplate()
+                    IDENTIFIER_Id -> parseSimpleNameExpression()
+                    else -> error("Expecting a pattern expression")
+
+                }
+            }
+
+            fun parseTupleExpression() {
+                parseExpression()
+                if (at(COMMA)) {
+                    advance() // COMMA
+                    parseExpression()
+                    while (at(COMMA)) {
+                        advance() // COMMA
+                        parseExpression()
+                    }
+                } else {
+                    error("Expecting Tuple expression")
+                }
+
+
+            }
+
+            fun parseParenthesizedExpression() {
+                assert(_at(LPAR))
+
+
+                var isUnit = false
+                var isTuple = false
+
+                val mark = mark()
+                myBuilder.disableNewlines()
+                advance() // LPAR
+
+
+                if (at(RPAR)) {
+                    isUnit = true
+//                    mark.done(UNIT_CONSTANT)
+//                    return
+                } else {
+//                    元组
+                    isTuple = true
+                    parseTupleExpression()
+
+                }
+                expect(RPAR, "Expecting ')'")
+
+
+
+                when {
+                    isUnit -> mark.done(UNIT_CONSTANT)
+                    isTuple -> mark.done(TUPLE_LITERAL_EXPRESSION)
+
+                    else -> mark.drop()
+                }
+
+            }
+
+        }
+
+
+        val casePattern = CasePattern()
+
+        casePattern.parseExpression()
+
+
 
         //是否常量模式
         fun isConstantPattern(): Boolean {
@@ -538,20 +709,8 @@ open class CangJieExpressionParsing(
 //            return at(IDENTIFIER) && lookahead(1) == LPAR
 //        }
 
-        when {
-            isTypePattern() -> {
-                expect(IDENTIFIER, "Expecting a variable name")
-                expect(COLON, "Expecting ':'")
-                cangJieParsing.parseTypeRef()
-            }
 
-
-            else -> {
-                error("Expecting a pattern")
-            }
-        }
-
-        condition.done(CASE_CONDITION)
+        condition.done(CASE_PATTERN)
     }
 
     /*
@@ -919,7 +1078,7 @@ open class CangJieExpressionParsing(
     /*
      * "(" expression? ")"
      */
-    private fun parseParenthesizedExpression() {
+    private fun parseParenthesizedExpression(isParseOperator: Boolean = true) {
 
 
         assert(_at(LPAR))
@@ -930,10 +1089,10 @@ open class CangJieExpressionParsing(
         val mark = mark()
         myBuilder.disableNewlines()
         advance() // LPAR
-        if (!at(RPAR)) {
+        if (!at(RPAR) && isParseOperator && !at(COMMA)) {
 
             parseExpression()
-        }else{
+        } else {
             isUnit = true
         }
         // , 为元组
@@ -949,7 +1108,7 @@ open class CangJieExpressionParsing(
             isUnit -> mark.done(UNIT_CONSTANT)
             isTuple -> mark.done(TUPLE_LITERAL_EXPRESSION)
 
-            else ->     mark.done(PARENTHESIZED)
+            else -> mark.done(PARENTHESIZED)
         }
     }
 
@@ -1228,6 +1387,7 @@ open class CangJieExpressionParsing(
 
         var expression = mark()
         precedence.parseHigherPrecedence(this)
+
 
 
         while (!interruptedWithNewLine() && atSet(precedence.getOperations())) {

@@ -103,7 +103,8 @@ public interface CjStubElementTypes {
 
     CjPlaceHolderStubElementType<CjSuperTypeEntry> ENUM_ENTRY =
             new CjPlaceHolderStubElementType<>("ENUM_ENTRY", CjSuperTypeEntry.class);
-
+    CjPlaceHolderStubElementType<CjSuperTypeEntry> TYPE_LIST =
+            new CjPlaceHolderStubElementType<>("TYPE_LIST", CjSuperTypeEntry.class);
     CjSecondaryConstructorElementType SECONDARY_CONSTRUCTOR =
             new CjSecondaryConstructorElementType("SECONDARY_CONSTRUCTOR");
 
