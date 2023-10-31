@@ -11,7 +11,7 @@ import com.intellij.psi.util.PsiTreeUtil
 
 
 data class TypeArgsWithOffset(val args: CjTypeArgumentList, val offset: Int)
-var UserDataHolder.argList: TypeArgsWithOffset? by UserDataProperty(Key("KotlinInsertTypeArgument.ARG_LIST"))
+var UserDataHolder.argList: TypeArgsWithOffset? by UserDataProperty(Key("CangJieInsertTypeArgument.ARG_LIST"))
 
 
 

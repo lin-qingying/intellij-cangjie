@@ -12,4 +12,5 @@ open class CjProperty :CjNamedDeclarationStub<CangJiePropertyStub> {
     constructor(node: ASTNode) : super(node)
 
 
+    override fun toString(): String  = super.toString() + ": " + name
 }

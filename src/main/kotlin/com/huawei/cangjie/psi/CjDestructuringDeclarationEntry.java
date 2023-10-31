@@ -121,7 +121,7 @@ public class CjDestructuringDeclarationEntry extends CjNamedDeclarationNotStubbe
     }
 
     @Override
-    public PsiElement getValOrVarKeyword() {
+    public PsiElement getLetOrVarKeyword() {
         ASTNode node = getParentNode().findChildByType(VAL_VAR_KEYWORDS);
         if (node == null) return null;
         return node.getPsi();

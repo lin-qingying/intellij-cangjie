@@ -20,7 +20,7 @@ import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 import java.util.Collections;
 import java.util.List;
 
-public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> implements CjCallableDeclaration, CjValVarKeywordOwner {
+public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> implements CjCallableDeclaration, CjLetVarKeywordOwner {
 
 
     public CjParameter(@NotNull ASTNode node) {
@@ -107,12 +107,12 @@ public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> im
         if (stub != null) {
             return stub.hasValOrVar();
         }
-        return getValOrVarKeyword() != null;
+        return getLetOrVarKeyword() != null;
     }
 
     @Override
     @Nullable
-    public PsiElement getValOrVarKeyword() {
+    public PsiElement getLetOrVarKeyword() {
         CangJieParameterStub stub = getStub();
         if (stub != null && !stub.hasValOrVar()) {
             return null;

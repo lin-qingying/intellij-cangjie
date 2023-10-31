@@ -172,7 +172,7 @@ int XOR_Id = 77;
     CjToken EOL_COMMENT = new CjToken("EOL_COMMENT", EOL_COMMENT_Id);
     CjToken SHEBANG_COMMENT = new CjToken("SHEBANG_COMMENT", SHEBANG_COMMENT_Id);
 
-    IElementType DOC_COMMENT = CDocTokens.Companion.getCDOC();
+    IElementType DOC_COMMENT = CDocTokens.CDOC;
 
     IElementType WHITE_SPACE = TokenType.WHITE_SPACE;
 

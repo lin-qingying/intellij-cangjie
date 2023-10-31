@@ -58,7 +58,7 @@ class CangJiePsiReferenceRegistrar {
 //            registerProvider(factory = ::CjFirArrayAccessReference)
 //            registerProvider(factory = ::CjFirConstructorDelegationReference)
 //            registerProvider(factory = ::CjFirCollectionLiteralReference)
-//            registerProvider(factory = ::CjFirKDocReference)
+//            registerProvider(factory = ::CjFirCDOCReference)
 //
 //            registerMultiProvider<CjSimpleNameExpression> { nameReferenceExpression ->
 //                when (nameReferenceExpression.readWriteAccess(useResolveForReadWrite = true)) {

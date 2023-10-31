@@ -74,3 +74,12 @@ fun PsiElement.parentOfType(vararg psiClassNames: String): PsiElement? {
         .firstOrNull { acceptsClass(it::class.java) }
 }
 inline fun <T : Any> T?.sure(message: () -> String): T = this ?: throw AssertionError(message())
+inline fun <reified T : PsiElement> PsiElement.getChildrenOfType(): Array<T> {
+    return PsiTreeUtil.getChildrenOfType(this, T::class.java) ?: arrayOf()
+}
+inline fun <reified T : PsiElement> PsiElement.getChildOfType(): T? {
+    return PsiTreeUtil.getChildOfType(this, T::class.java)
+}
+inline fun <reified T : PsiElement> PsiElement.getStrictParentOfType(): T? {
+    return PsiTreeUtil.getParentOfType(this, T::class.java, true)
+}

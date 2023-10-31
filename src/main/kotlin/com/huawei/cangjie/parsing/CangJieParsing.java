@@ -530,8 +530,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private IElementType parseClassCommonDeclaration(Integer tokenId) {
         //init func let|var prop
         return switch (getTokenId()) {
-            case FUNC_KEYWORD_Id -> tokenId == INTERFACE_KEYWORD_Id ? parseFunction(true) : parseFunction();
-            case PROP_KEYWORD_Id -> tokenId == INTERFACE_KEYWORD_Id ? parseProperty(true) : parseProperty();
+            case FUNC_KEYWORD_Id -> tokenId != null&& tokenId == INTERFACE_KEYWORD_Id ? parseFunction(true) : parseFunction();
+            case PROP_KEYWORD_Id ->tokenId != null&&  tokenId == INTERFACE_KEYWORD_Id ? parseProperty(true) : parseProperty();
             case LET_KEYWORD_Id, VAR_KEYWORD_Id -> parseVariable();
             default -> null;
         };
@@ -815,6 +815,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (at(LBRACE)) {
             advance(); // LBRACE
 
+            expect(OR);
 
             if (at(IDENTIFIER)) {
                 parseEnumList();
@@ -1116,7 +1117,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         if (declType != null) return declType;
 
-        if (tokenId != INTERFACE_KEYWORD_Id) {
+        if (tokenId != null && tokenId != INTERFACE_KEYWORD_Id) {
 
             parseModifierList(TokenSet.EMPTY);
 

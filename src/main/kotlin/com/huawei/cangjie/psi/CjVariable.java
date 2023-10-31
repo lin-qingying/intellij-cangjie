@@ -1,15 +1,21 @@
 package com.huawei.cangjie.psi;
 
+import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.psi.stubs.CangJieVariableStub;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
 
+import com.intellij.psi.tree.TokenSet;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
+
+import static com.huawei.cangjie.lexer.CjTokens.EQ;
 
 
 public class CjVariable extends CjTypeParameterListOwnerStub<CangJieVariableStub>
@@ -39,12 +45,12 @@ public class CjVariable extends CjTypeParameterListOwnerStub<CangJieVariableStub
 
     @Override
     public String toString() {
-        return getNode().getElementType().toString();
+        return super.toString() + ": " + getName();
     }
 
     @Override
     public @NotNull List<CjParameter> getValueParameters() {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
@@ -61,7 +67,22 @@ public class CjVariable extends CjTypeParameterListOwnerStub<CangJieVariableStub
     }
     @Override
     public @Nullable CjTypeReference getTypeReference() {
-        return null;
+        CangJieVariableStub stub = getStub();
+        if (stub != null) {
+            if (!stub.hasReturnTypeRef()) {
+                return null;
+            }
+            else {
+                List<CjTypeReference> typeReferences = getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_REFERENCE);
+                int returnTypeRefPositionInPsi = stub.isExtension() ? 1 : 0;
+                if (typeReferences.size() <= returnTypeRefPositionInPsi) {
+                    LOG.error("Invalid stub structure built for property:\n" + getText());
+                    return null;
+                }
+                return typeReferences.get(returnTypeRefPositionInPsi);
+            }
+        }
+        return TypeRefHelpersKt.getTypeReference(this);
     }
     public boolean isLocal() {
         return !isTopLevel() && !isMember();
@@ -81,28 +102,56 @@ public class CjVariable extends CjTypeParameterListOwnerStub<CangJieVariableStub
 
     @Override
     public @Nullable PsiElement getColon() {
-        return null;
+        return findChildByType(CjTokens.COLON);
     }
 
     @Override
     public boolean isVar() {
-        return false;
+        CangJieVariableStub stub = getStub();
+        if (stub != null) {
+            return stub.isVar();
+        }
+
+        return getNode().findChildByType(CjTokens.VAR_KEYWORD) != null;
     }
+    private static final TokenSet LET_VAR_TOKEN_SET = TokenSet.create(CjTokens.LET_KEYWORD, CjTokens.VAR_KEYWORD);
 
     @Nullable
     @Override
-    public PsiElement getValOrVarKeyword() {
-        return null;
+    public PsiElement getLetOrVarKeyword() {
+        PsiElement element = findChildByType(LET_VAR_TOKEN_SET);
+        assert element != null : "Let or var should always exist for property" + this.getText();
+        return element;
     }
 
     @Nullable
     @Override
     public CjExpression getInitializer() {
-        return null;
+        CangJieVariableStub stub = getStub();
+        if (stub != null) {
+            if (!stub.hasInitializer()) {
+                return null;
+            }
+
+            if (getContainingCjFile().isCompiled()) {
+                //don't load ast
+                return null;
+            }
+        }
+
+        return PsiTreeUtil.getNextSiblingOfType(findChildByType(EQ), CjExpression.class);
     }
 
     @Override
     public boolean hasInitializer() {
-        return false;
+        CangJieVariableStub stub = getStub();
+        if (stub != null) {
+            return stub.hasInitializer();
+        }
+
+        return getInitializer() != null;
     }
+
+
+
 }
