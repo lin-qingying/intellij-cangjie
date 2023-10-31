@@ -30,9 +30,9 @@ class CangJieParser(project: Project) : PsiParser {
                 )
 
             val extension = FileUtilRt.getExtension(psiFile.name)
-            if (extension.isEmpty() || extension == CangJieFileType.EXTENSION || psiFile is CjFile && (psiFile as CjFile).isCompiled) {
+            if (extension.isEmpty() || extension == CangJieFileType.EXTENSION || psiFile is CjFile && psiFile.isCompiled) {
                 cjParsing.parseFile()
-            }else{
+            } else {
                 cjParsing.parseScript()
             }
 
@@ -47,7 +47,9 @@ class CangJieParser(project: Project) : PsiParser {
                     SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder)
                 )
             cjParsing.parseBlockExpression()
+
             return psiBuilder.treeBuilt
+
         }
     }
 

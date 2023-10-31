@@ -113,6 +113,7 @@ public interface CjStubElementTypes {
     CjDotQualifiedExpressionElementType DOT_QUALIFIED_EXPRESSION = new CjDotQualifiedExpressionElementType("DOT_QUALIFIED_EXPRESSION");
 
     CjMainFunctionElementType MAIN_FUNC = new CjMainFunctionElementType("MAIN_FUNC");
+    CJClassInitElementType CLASS_INIT = new CJClassInitElementType("CLASS_INIT");
 
     CjBasicTypeElementType BASIC_TYPE = new CjBasicTypeElementType("BASIC_TYPE");
     CjPlaceHolderStubElementType<CjStringTemplateExpression> STRING_TEMPLATE =

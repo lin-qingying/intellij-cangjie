@@ -5,6 +5,8 @@ import com.intellij.psi.tree.IElementType
 
 open class CjToken : IElementType {
 
+
+
      var tokenId = 0
 
 

@@ -23,6 +23,9 @@ class CjDotQualifiedExpression : CjExpressionImplStub<CangJiePlaceHolderStub<CjD
         return visitor.visitDotQualifiedExpression(this, data)
     }
 
+
+
+
     override val receiverExpression: CjExpression?
         get() {
             val stub = stub

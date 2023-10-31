@@ -6,7 +6,6 @@ import com.huawei.cangjie.doc.lexer.CDocTokens;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
-import org.apache.tools.ant.types.resources.Tokens;
 
 public interface CjTokens {
     int INVALID_Id = 0;
@@ -84,10 +83,11 @@ int CASE_KEYWORD_Id = 70;
     int EQEQ_Id = 71;
     int EXCLEQ_Id = 72;
 
+    int LEFT_ARROW_Id = 73;
     int ANDAND_Id = 74;
     int AND_Id = 75;
     int OROR_Id = 76;
-
+int XOR_Id = 77;
     int OR_Id = 78;
 
     int QUEST_Id = 79;
@@ -125,6 +125,7 @@ int CASE_KEYWORD_Id = 70;
     int OVERRIDE_KEYWORD_Id = 118;
     int PRIVATE_KEYWORD_Id = 119;
     int PUBLIC_KEYWORD_Id = 120;
+    int STATIC_KEYWORD_Id = 121;
 
     int PROTECTED_KEYWORD_Id = 122;
     int CATCH_KEYWORD_Id = 123;
@@ -258,11 +259,16 @@ int CASE_KEYWORD_Id = 70;
     CjSingleValueToken GTEQ = new CjSingleValueToken("GTEQ", ">=", GTEQ_Id);
     CjSingleValueToken LTCOLON = new CjSingleValueToken("LTCOLON", "<:", LTCOLON_Id);
     CjSingleValueToken ARROW = new CjSingleValueToken("ARROW", "->", ARROW_Id);
+    //·´Ïò¼ýÍ·
+
+    CjSingleValueToken LEFT_ARROW = new CjSingleValueToken("LEFT_ARROW", "<-", LEFT_ARROW_Id);
     CjSingleValueToken DOUBLE_ARROW = new CjSingleValueToken("DOUBLE_ARROW", "=>", DOUBLE_ARROW_Id);
     CjSingleValueToken EQEQ = new CjSingleValueToken("EQEQ", "==", EQEQ_Id);
     CjSingleValueToken EXCLEQ = new CjSingleValueToken("EXCLEQ", "!=", EXCLEQ_Id);
     CjSingleValueToken ANDAND = new CjSingleValueToken("ANDAND", "&&", ANDAND_Id);
     CjSingleValueToken AND = new CjSingleValueToken("AND", "&", AND_Id);
+
+    CjSingleValueToken XOR = new CjSingleValueToken("XOR", "^", XOR_Id);
     CjSingleValueToken OROR = new CjSingleValueToken("OROR", "||", OROR_Id);
     CjSingleValueToken OR = new CjSingleValueToken("OR", "|", OR_Id);
     CjSingleValueToken QUEST = new CjSingleValueToken("QUEST", "?", QUEST_Id);
@@ -316,6 +322,8 @@ int CASE_KEYWORD_Id = 70;
     CjModifierKeywordToken PRIVATE_KEYWORD = CjModifierKeywordToken.keywordModifier("private", PRIVATE_KEYWORD_Id);
     CjModifierKeywordToken PUBLIC_KEYWORD = CjModifierKeywordToken.keywordModifier("public", PUBLIC_KEYWORD_Id);
 
+    CjModifierKeywordToken STATIC_KEYWORD = CjModifierKeywordToken.keywordModifier("static", STATIC_KEYWORD_Id);
+
     CjModifierKeywordToken PROTECTED_KEYWORD = CjModifierKeywordToken.keywordModifier("protected", PROTECTED_KEYWORD_Id);
     CjKeywordToken CATCH_KEYWORD = CjKeywordToken.keyword("catch", CATCH_KEYWORD_Id);
 
@@ -363,7 +371,7 @@ int CASE_KEYWORD_Id = 70;
             new CjModifierKeywordToken[]{
                     ABSTRACT_KEYWORD, OPEN_KEYWORD, OVERRIDE_KEYWORD, PRIVATE_KEYWORD,
                     PUBLIC_KEYWORD, PROTECTED_KEYWORD,
-
+    STATIC_KEYWORD,
                     MUT_KEYWORD,
                     OPERATOR_KEYWORD,
 
@@ -382,7 +390,9 @@ int CASE_KEYWORD_Id = 70;
     TokenSet OPERATIONS = TokenSet.create(AS_KEYWORD, IS_KEYWORD, IN_KEYWORD, DOT, PLUSPLUS, MINUSMINUS, MUL, PLUS,
             MINUS, EXCL, DIV, PERC, LT, GT, LTEQ, GTEQ, EQEQ, EXCLEQ, ANDAND, OROR,
 
-            RANGE, EQ, MULTEQ, DIVEQ, PERCEQ, PLUSEQ, MINUSEQ
+            RANGE, EQ, MULTEQ, DIVEQ, PERCEQ, PLUSEQ, MINUSEQ,
+
+            AND,OR, XOR
 
             );
 

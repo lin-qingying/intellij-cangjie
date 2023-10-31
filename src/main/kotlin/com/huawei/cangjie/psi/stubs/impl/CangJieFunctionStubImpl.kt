@@ -20,7 +20,7 @@ class CangJieFunctionStubImpl(
     private val hasBlockBody: Boolean,
     private val hasBody: Boolean,
     private val hasTypeParameterListBeforeFunctionName: Boolean,
-    private val mayHaveContract: Boolean,
+//    private val mayHaveContract: Boolean,
 
     val origin: CangJieStubOrigin?
 ) : CangJieStubBaseImpl<CjFunctionImpl>(parent, element), CangJieFunctionStub {
@@ -38,7 +38,7 @@ class CangJieFunctionStubImpl(
     override fun hasBlockBody() = hasBlockBody
     override fun hasBody() = hasBody
     override fun hasTypeParameterListBeforeFunctionName() = hasTypeParameterListBeforeFunctionName
-    override fun mayHaveContract(): Boolean = mayHaveContract
+//    override fun mayHaveContract(): Boolean = mayHaveContract
 
 
 }

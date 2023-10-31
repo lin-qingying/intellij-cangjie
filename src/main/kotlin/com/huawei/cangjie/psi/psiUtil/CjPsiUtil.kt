@@ -84,19 +84,19 @@ fun CjNamedDeclaration.safeFqNameForLazyResolve(): FqName? {
 fun CjNamedDeclaration.safeNameForLazyResolve(): Name {
     return nameAsName.safeNameForLazyResolve()
 }
-fun CjFunctionImpl.isContractPresentPsiCheck(isAllowedOnMembers: Boolean): Boolean {
-    val contractAllowedHere =
-        (isAllowedOnMembers || isTopLevel) &&
-                hasBlockBody() &&
-                !hasModifier(CjTokens.OPERATOR_KEYWORD)
-    if (!contractAllowedHere) return false
-
-    val firstExpression = (this as? CjFunction)?.bodyBlockExpression?.statements?.firstOrNull() ?: return false
-
-    return firstExpression.isContractDescriptionCallPsiCheck()
-}
-fun CjExpression.isContractDescriptionCallPsiCheck(): Boolean =
-    (this is CjCallExpression && calleeExpression?.text == "contract") || (this is CjQualifiedExpression && isContractDescriptionCallPsiCheck())
+//fun CjFunctionImpl.isContractPresentPsiCheck(isAllowedOnMembers: Boolean): Boolean {
+//    val contractAllowedHere =
+//        (isAllowedOnMembers || isTopLevel) &&
+//                hasBlockBody() &&
+//                !hasModifier(CjTokens.OPERATOR_KEYWORD)
+//    if (!contractAllowedHere) return false
+//
+//    val firstExpression = (this as? CjFunction)?.bodyBlockExpression?.statements?.firstOrNull() ?: return false
+//
+//    return firstExpression.isContractDescriptionCallPsiCheck()
+//}
+//fun CjExpression.isContractDescriptionCallPsiCheck(): Boolean =
+//    (this is CjCallExpression && calleeExpression?.text == "contract") || (this is CjQualifiedExpression && isContractDescriptionCallPsiCheck())
 
 fun Name?.safeNameForLazyResolve(): Name = this?.takeUnless(Name::isSpecial) ?: SpecialNames.NO_NAME_PROVIDED
 

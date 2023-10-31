@@ -19,5 +19,5 @@ class CjEnum :CjClassOrStruct{
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJieEnumStub) : super(stub, CjStubElementTypes.ENUM)
 
-
+    override fun toString(): String = node.elementType.toString() + ": " + name
 }

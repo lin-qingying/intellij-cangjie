@@ -276,10 +276,14 @@ LONELY_BACKTICK=`
 "super"      { return CjTokens.SUPER_KEYWORD ;}
 
 
+"init"       { return CjTokens.INIT_KEYWORD ;}
+
+
 
 "public"     { return CjTokens.PUBLIC_KEYWORD ;}
 "private"    { return CjTokens.PRIVATE_KEYWORD ;}
 "protected"  { return CjTokens.PROTECTED_KEYWORD ;}
+"static"    { return CjTokens.STATIC_KEYWORD ;}
 /*"open"       { return CjTokens.OPEN_KEYWORD ;}*/
 "abstract"  { return CjTokens.ABSTRACT_KEYWORD ;}
 "override"  { return CjTokens.OVERRIDE_KEYWORD ;}
@@ -292,6 +296,8 @@ LONELY_BACKTICK=`
 
 "else"       { return CjTokens.ELSE_KEYWORD ;}
 "try"        { return CjTokens.TRY_KEYWORD ;}
+"catch"      { return CjTokens.CATCH_KEYWORD ;}
+ "finally"   { return CjTokens.FINALLY_KEYWORD ;}
 "let"        { return CjTokens.LET_KEYWORD ;}
 "var"        { return CjTokens.VAR_KEYWORD ;}
 "func"        { return CjTokens.FUNC_KEYWORD ;}
@@ -304,20 +310,20 @@ LONELY_BACKTICK=`
 "main"       { return CjTokens.MAIN_KEYWORD ;}
 "struct"     { return CjTokens.STRUCT_KEYWORD ;}
 "where"      { return CjTokens.WHERE_KEYWORD ;}
-
-"Int8"       { return CjTokens.INT8_KEYWORD ;}
-"Int16"      { return CjTokens.INT16_KEYWORD ;}
-"Int32"      { return CjTokens.INT32_KEYWORD ;}
-"Int64"      { return CjTokens.INT64_KEYWORD ;}
-"UInt8"      { return CjTokens.UINT8_KEYWORD ;}
-"UInt16"     { return CjTokens.UINT16_KEYWORD ;}
-"UInt32"     { return CjTokens.UINT32_KEYWORD ;}
-"UInt64"     { return CjTokens.UINT64_KEYWORD ;}
-"Float32"    { return CjTokens.FLOAT32_KEYWORD ;}
-"Float64"    { return CjTokens.FLOAT64_KEYWORD ;}
-"Bool"       { return CjTokens.BOOL_KEYWORD ;}
-"Unit"       { return CjTokens.UNIT_KEYWORD ;}
-"Char"       { return CjTokens.CHAR_KEYWORD ;}
+//
+//"Int8"       { return CjTokens.INT8_KEYWORD ;}
+//"Int16"      { return CjTokens.INT16_KEYWORD ;}
+//"Int32"      { return CjTokens.INT32_KEYWORD ;}
+//"Int64"      { return CjTokens.INT64_KEYWORD ;}
+//"UInt8"      { return CjTokens.UINT8_KEYWORD ;}
+//"UInt16"     { return CjTokens.UINT16_KEYWORD ;}
+//"UInt32"     { return CjTokens.UINT32_KEYWORD ;}
+//"UInt64"     { return CjTokens.UINT64_KEYWORD ;}
+//"Float32"    { return CjTokens.FLOAT32_KEYWORD ;}
+//"Float64"    { return CjTokens.FLOAT64_KEYWORD ;}
+//"Bool"       { return CjTokens.BOOL_KEYWORD ;}
+//"Unit"       { return CjTokens.UNIT_KEYWORD ;}
+//"Char"       { return CjTokens.CHAR_KEYWORD ;}
 
 
 "_"            { return CjTokens.UNDERLINE ;}
@@ -342,6 +348,7 @@ LONELY_BACKTICK=`
 "&"          { return CjTokens.AND       ; }
 "||"         { return CjTokens.OROR      ; }
 "|"          { return CjTokens.OR        ; }
+"^"          { return CjTokens.XOR       ; }
 "*="         { return CjTokens.MULTEQ    ; }
 "/="         { return CjTokens.DIVEQ     ; }
 "%="         { return CjTokens.PERCEQ    ; }
@@ -349,6 +356,7 @@ LONELY_BACKTICK=`
 "-="         { return CjTokens.MINUSEQ   ; }
 "->"         { return CjTokens.ARROW     ; }
 "=>"         { return CjTokens.DOUBLE_ARROW; }
+"<-"     { return CjTokens.LEFT_ARROW; }
 ".."         { return CjTokens.RANGE     ; }
 
 "["          { return CjTokens.LBRACKET  ; }

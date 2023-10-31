@@ -64,6 +64,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     private final static TokenSet DOT_MUL_SET = TokenSet.create(DOT, MUL);
     private final static TokenSet FROM_IMPORT_SET = TokenSet.create(FROM_KEYWORD, IMPORT_KEYWORD);
+    private static final TokenSet DECLARATION_FIRST =
+            TokenSet.orSet(TOP_LEVEL_DECLARATION_FIRST, TokenSet.create(INIT_KEYWORD, GET_KEYWORD, SET_KEYWORD));
 
     private final static TokenSet MUT_PROP_SET = TokenSet.create(MUT_KEYWORD, PROP_KEYWORD);
 
@@ -131,9 +133,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         boolean hasOpeningBrace = expect(LBRACE, "Expecting '{'  ");
         boolean canCollapse = collapse && hasOpeningBrace && isLazy;
-
-
-
 
 
         if (canCollapse) {
@@ -528,11 +527,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return !empty;
     }
 
-    private IElementType parseClassCommonDeclaration() {
+    private IElementType parseClassCommonDeclaration(Integer tokenId) {
         //init func let|var prop
         return switch (getTokenId()) {
-            case FUNC_KEYWORD_Id -> parseFunction();
-            case PROP_KEYWORD_Id -> parseProperty();
+            case FUNC_KEYWORD_Id -> tokenId == INTERFACE_KEYWORD_Id ? parseFunction(true) : parseFunction();
+            case PROP_KEYWORD_Id -> tokenId == INTERFACE_KEYWORD_Id ? parseProperty(true) : parseProperty();
             case LET_KEYWORD_Id, VAR_KEYWORD_Id -> parseVariable();
             default -> null;
         };
@@ -642,7 +641,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             //处理表达式
 //myExpressionParsing.test();
             myExpressionParsing.parseExpression();
-        } else {
+        } else if (noTypeReference) {
             errorAndAdvance("variable in top-level scope must be initialized");
         }
 
@@ -703,12 +702,17 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return null;
     }
 
+
+    private IElementType parseProperty() {
+        return parseProperty(false);
+    }
+
     /*
      * prop
      *   :  "mnt"? prop Identifier :Type propBody
      *   ;
      */
-    private IElementType parseProperty() {
+    private IElementType parseProperty(boolean isInterface) {
         assert _at(PROP_KEYWORD);
 
 
@@ -734,7 +738,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         if (at(LBRACE)) {
             parsePropertyBody();
-        } else {
+        } else if (!isInterface) {
             error("Missing prop body Expecting '{'");
         }
 
@@ -818,7 +822,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 error("Expecting enum entry");
             }
 
-            parseMembers();
+            parseMembers(null);
 
 
             expect(RBRACE, "Expecting '}'");
@@ -1007,7 +1011,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
         if (at(LBRACE)) {
-            parseClassBody();
+            parseClassBody(tokenid);
         } else {
             error("Expecting '{' or Inherit");  //应该为'{' 或者继承
         }
@@ -1085,7 +1089,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         constraint.done(TYPE_CONSTRAINT);
     }
 
-    private void parseMemberDeclaration() {
+    private void parseMemberDeclaration(Integer tokenId) {
         if (at(SEMICOLON)) {
             advance(); // SEMICOLON
             return;
@@ -1097,7 +1101,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         parseModifierList(detector, TokenSet.EMPTY);
 
 
-        IElementType declType = parseMemberDeclarationRest();
+        IElementType declType = parseMemberDeclarationRest(tokenId);
 
         if (declType == null) {
             errorWithRecovery("Expecting member declaration", TokenSet.EMPTY);
@@ -1107,25 +1111,55 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
     }
 
-    private IElementType parseMemberDeclarationRest() {
-        IElementType declType = parseClassCommonDeclaration();
+    private IElementType parseMemberDeclarationRest(Integer tokenId) {
+        IElementType declType = parseClassCommonDeclaration(tokenId);
 
         if (declType != null) return declType;
 
-        if (at(INIT_KEYWORD)) {
-            advance(); // init
-            if (at(LBRACE)) {
+        if (tokenId != INTERFACE_KEYWORD_Id) {
+
+            parseModifierList(TokenSet.EMPTY);
+
+            if (at(INIT_KEYWORD)) {
+                parseInitFunc();
+                declType = CLASS_INIT;
+            } else if (at(LBRACE)) {
+                error("Expecting member declaration");
                 parseBlock();
-            } else {
-                mark().error("Expecting '{' after 'init'");
+                declType = FUNC;
             }
-            declType = CLASS_INITIALIZER;
-        } else if (at(LBRACE)) {
-            error("Expecting member declaration");
-            parseBlock();
-            declType = FUNC;
+
         }
+
+
         return declType;
+    }
+
+    private void parseInitFunc() {
+        assert _at(INIT_KEYWORD);
+        advance(); // INIT_KEYWORD
+
+
+        if (at(RBRACE)) {
+            error("Function body expected");  //应该为函数体
+            return;
+        }
+
+        myBuilder.disableJoiningComplexTokens();
+        //类型参数
+        if (at(LPAR)) {
+            parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET);
+
+        } else {
+            error("Expecting '(' ");  //应该为'('
+        }
+
+
+        if (at(LBRACE)) {
+            parseFunctionBody();
+        } else {
+            error("Expecting '{' ");  //应该为'{'
+        }
     }
 
     /**
@@ -1133,19 +1167,19 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * : memberDeclaration*
      * ;
      */
-    private void parseMembers() {
+    private void parseMembers(Integer tokenId) {
         while (!eof() && !at(RBRACE)) {
-            parseMemberDeclaration();
+            parseMemberDeclaration(tokenId);
         }
     }
 
-    private void parseClassBody() {
+    private void parseClassBody(Integer tokenId) {
         PsiBuilder.Marker body = mark();
 
         myBuilder.enableNewlines();
 
         if (expect(LBRACE, "Expecting a class body")) {
-            parseMembers();
+            parseMembers(tokenId);
             expect(RBRACE, "Missing '}");
         }
 
@@ -1159,7 +1193,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         advance();
         if (at(RBRACE)) {
             error("Function body expected");  //应该为函数体
-            return FUNC;
+            return MAIN_FUNC;
         }
         myBuilder.disableJoiningComplexTokens();
         //类型参数
@@ -1233,7 +1267,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ;
      */
     @Contract("false -> !null")
-    IElementType parseFunction(boolean failIfIdentifierExists) {
+    IElementType parseFunction(boolean isInterfaceMethod) {
         assert _at(FUNC_KEYWORD);
         advance();
 
@@ -1278,7 +1312,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        } else
         if (at(LBRACE)) {
             parseFunctionBody();
-        } else {
+        } else if (!isInterfaceMethod) {
             error("Expecting '{' ");  //应该为'{'
         }
 
@@ -1433,6 +1467,107 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return noErrors;
     }
 
+    private boolean recoverOnParenthesizedWordForPlatformTypes(int offset, String word, boolean consume) {
+        // Array<(out) Foo>! or (Mutable)List<Bar>!
+        if (lookahead(offset) == LPAR &&
+                lookahead(offset + 1) == IDENTIFIER &&
+                lookahead(offset + 2) == RPAR &&
+                lookahead(offset + 3) == IDENTIFIER) {
+            PsiBuilder.Marker error = mark();
+
+            advance(offset);
+
+            advance(); // LPAR
+            if (!word.equals(myBuilder.getTokenText())) {
+                // something other than "out" / "Mutable"
+                error.rollbackTo();
+                return false;
+            } else {
+                advance(); // IDENTIFIER('out')
+                advance(); // RPAR
+
+                if (consume) {
+                    error.error("Unexpected tokens");
+                } else {
+                    error.rollbackTo();
+                }
+
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /*
+     *  (optionalProjection type){","}
+     */
+    private void parseTypeArgumentList() {
+        if (!at(LT)) return;
+
+        PsiBuilder.Marker list = mark();
+
+        tryParseTypeArgumentList(TokenSet.EMPTY);
+
+        list.done(TYPE_ARGUMENT_LIST);
+    }
+
+    private void recoverOnPlatformTypeSuffix() {
+        // 平台类型的恢复
+        if (at(EXCL)) {
+            PsiBuilder.Marker error = mark();
+            advance(); // EXCL
+            error.error("Unexpected token");
+        }
+    }
+
+    /*
+     * userType
+     *   : simpleUserType{"."}
+     *   ;
+     *
+     *   recovers on platform types:
+     *    - Foo!
+     *    - (Mutable)List<Foo>!
+     *    - Array<(out) Foo>!
+     */
+    private void parseUserType() {
+        PsiBuilder.Marker userType = mark();
+
+
+        PsiBuilder.Marker reference = mark();
+        while (true) {
+            recoverOnParenthesizedWordForPlatformTypes(0, "Mutable", true);
+
+            if (expect(IDENTIFIER, "Expecting type name",
+                    TokenSet.orSet(CangJieExpressionParsing.Companion.getEXPRESSION_FIRST(), CangJieExpressionParsing.Companion.getEXPRESSION_FOLLOW(),
+                            DECLARATION_FIRST))) {
+                reference.done(REFERENCE_EXPRESSION);
+            } else {
+                reference.drop();
+                break;
+            }
+
+            parseTypeArgumentList();
+
+//            recoverOnPlatformTypeSuffix();
+
+            if (!at(DOT)) {
+                break;
+            }
+
+            PsiBuilder.Marker precede = userType.precede();
+            userType.done(USER_TYPE);
+            userType = precede;
+
+            advance(); // DOT
+            reference = mark();
+        }
+
+        userType.done(USER_TYPE);
+
+
+    }
+
     /**
      * 解析类型引用
      *
@@ -1443,20 +1578,20 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //
 //        return typeRefMarker;
 //    }
-    private boolean parseUserType() {
-        PsiBuilder.Marker usertype = mark();
-
-        if (at(IDENTIFIER)) {
-            advance();
-            usertype.done(USER_TYPE);
-            return true;
-        }
-
-        usertype.drop();
-
-
-        return false;
-    }
+//    private boolean parseUserType() {
+//        PsiBuilder.Marker usertype = mark();
+//
+//        if (at(IDENTIFIER)) {
+//            advance();
+//            usertype.done(USER_TYPE);
+//            return true;
+//        }
+//
+//        usertype.drop();
+//
+//
+//        return false;
+//    }
 
     /**
      * 解析基本类型
@@ -1533,14 +1668,21 @@ public class CangJieParsing extends AbstractCangJieParsing {
             PsiBuilder.Marker projection = mark();
 
 
-            if (at(MUL)) {
-                advance(); // MUL
-            } else {
-                parseTypeRef(extraRecoverySet);
-            }
+//            if (at(MUL)) {
+//                advance(); // MUL
+//            } else {
+            parseTypeRef(extraRecoverySet);
+//            }
             projection.done(TYPE_PROJECTION);
-            if (!at(COMMA)) break;
-            advance(); // COMMA
+    /*        if (!at(COMMA)) break;
+            advance(); // COMMA*/
+
+            if (at(COMMA)) {
+                advance();
+                parseTypeRef(extraRecoverySet);
+            } else {
+                break;
+            }
             if (at(GT)) {
                 break;
             }
@@ -1564,15 +1706,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         expect(QUEST);
 
-        if (parseBasicType() || parseUserType()) {
-            typeRefMarker.done(TYPE_REFERENCE);
-//            return;
-        } else {
-            error("Expecting a type reference ");
-            typeRefMarker.drop();
-//            return;
-        }
+//        if (!parseBasicType()) {
+        parseUserType();
 
+//        }
+        typeRefMarker.done(TYPE_REFERENCE);
 
     }
 

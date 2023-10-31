@@ -41,7 +41,9 @@ public interface CjNodeTypes {
     IElementType MODIFIER_LIST = CjStubElementTypes.MODIFIER_LIST;
     IElementType DESTRUCTURING_DECLARATION_ENTRY = new CjNodeType("DESTRUCTURING_DECLARATION_ENTRY", CjDestructuringDeclarationEntry.class);
     IElementType DESTRUCTURING_DECLARATION = new CjNodeType("DESTRUCTURING_DECLARATION", CjDestructuringDeclaration.class);
-    IElementType CLASS_INITIALIZER = CjStubElementTypes.CLASS_INITIALIZER;
+//    IElementType CLASS_INITIALIZER = CjStubElementTypes.CLASS_INITIALIZER;
+
+    IElementType CLASS_INIT = CjStubElementTypes.CLASS_INIT;
     IElementType REFERENCE_EXPRESSION = CjStubElementTypes.REFERENCE_EXPRESSION;
     IElementType TYPE_PARAMETER_LIST = CjStubElementTypes.TYPE_PARAMETER_LIST;
     IElementType TYPE_CONSTRAINT_LIST = CjStubElementTypes.TYPE_CONSTRAINT_LIST;
@@ -98,7 +100,7 @@ public interface CjNodeTypes {
     IElementType IF                        = new CjNodeType("IF", CjIfExpression.class);
     IElementType CONDITION                 = new CjNodeType("CONDITION", CjContainerNode.class);
 
-
+    IElementType LET_EXPRESSION                 = new CjNodeType("LET_EXPRESSION", CjLetExpression.class);
     IElementType TRY                       = new CjNodeType("TRY", CjTryExpression.class);
 
     IElementType CATCH                     = new CjNodeType("CATCH", CjCatchClause.class);

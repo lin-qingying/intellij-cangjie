@@ -53,7 +53,8 @@ open class CangJieExpressionParsing(
         MULTIPLICATIVE(MUL, DIV, PERC),
         ADDITIVE(PLUS, MINUS),
         RANGE(CjTokens.RANGE),
-//        SIMPLE_NAME(IDENTIFIER),
+
+        //        SIMPLE_NAME(IDENTIFIER),
         IN_OR_IS(IN_KEYWORD, IS_KEYWORD) {
             override fun parseRightHandSide(operation: IElementType, parser: CangJieExpressionParsing): IElementType {
                 if (operation === IS_KEYWORD) {
@@ -68,6 +69,9 @@ open class CangJieExpressionParsing(
         EQUALITY(EQEQ, EXCLEQ),
         CONJUNCTION(ANDAND),
         DISJUNCTION(OROR),
+
+        //位运算
+        BITWISE(AND, OR, XOR),
 
 
         ASSIGNMENT(EQ, PLUSEQ, MINUSEQ, MULTEQ, DIVEQ, PERCEQ);
@@ -140,7 +144,7 @@ open class CangJieExpressionParsing(
                     error(severalStatementsError)
                 } else {
                     errorUntil(
-                        severalStatementsError, TokenSet.create(EOL_OR_SEMICOLON, LBRACE, RBRACE,type)
+                        severalStatementsError, TokenSet.create(EOL_OR_SEMICOLON, LBRACE, RBRACE, type)
                     )
                 }
             }
@@ -182,21 +186,21 @@ open class CangJieExpressionParsing(
     }
 
     /*
-     * (SimpleName "=")? "*"? element
+     * (SimpleName ":")? "*"? element
      */
     private fun parseValueArgument() {
         val argument = mark()
-        if (at(IDENTIFIER) && lookahead(1) === EQ) {
+        if (at(IDENTIFIER) && lookahead(1) === COLON) {
             val argName = mark()
             val reference = mark()
             advance() // IDENTIFIER
             reference.done(REFERENCE_EXPRESSION)
             argName.done(VALUE_ARGUMENT_NAME)
-            advance() // EQ
+            advance() // COLON
         }
-        if (at(MUL)) {
-            advance() // MUL
-        }
+//        if (at(MUL)) {
+//            advance() // MUL
+//        }
         parseExpression()
         argument.done(VALUE_ARGUMENT)
     }
@@ -596,7 +600,7 @@ open class CangJieExpressionParsing(
             }
 
 
-            fun parseUnderline(){
+            fun parseUnderline() {
                 assert(_at(UNDERLINE))
 
                 advance()
@@ -804,7 +808,12 @@ open class CangJieExpressionParsing(
         assert(_at(WHILE_KEYWORD))
         val loop = mark()
         advance() // WHILE_KEYWORD
-        parseCondition()
+//        parseCondition()
+        if (at(LPAR) && lookahead(1) == LET_KEYWORD) {
+            parseLetExpression()
+        } else {
+            parseCondition()
+        }
         parseLoopBody()
         loop.done(WHILE)
 
@@ -977,6 +986,55 @@ open class CangJieExpressionParsing(
 //        myBuilder.restoreNewlinesState()
     }
 
+    /**
+     * let expression
+     * ; let
+     */
+    fun parseLetExpression() {
+
+        myBuilder.disableNewlines()
+        val let = mark()
+        if (expect(
+                LPAR,
+                "Expecting a condition in parentheses '(...)'",
+                EXPRESSION_FIRST
+            )
+        ) {
+
+//
+
+
+            expect(LET_KEYWORD, "Expecting 'let'")
+
+
+            parseCasePattern()
+
+
+            if(at(LEFT_ARROW)){
+                advance()
+            }else{
+                errorAndAdvance("Expecting '<-'")
+            }
+
+
+//            expect(LEFT_ARROW, "Expecting '<-'")
+
+
+
+            parseExpression()
+
+
+
+            expect(RPAR, "Expecting ')")
+
+
+        }
+        let.done(LET_EXPRESSION)
+        myBuilder.restoreNewlinesState()
+
+
+    }
+
 
     /*
      * if
@@ -987,7 +1045,12 @@ open class CangJieExpressionParsing(
         assert(_at(IF_KEYWORD))
         val marker = mark()
         advance() //IF_KEYWORD
-        parseCondition()
+
+        if (at(LPAR) && lookahead(1) == LET_KEYWORD) {
+            parseLetExpression()
+        } else {
+            parseCondition()
+        }
 
 
         val thenBranch = mark()
@@ -1445,7 +1508,9 @@ open class CangJieExpressionParsing(
         val keyword = tt()
         if (failIfDefinitelyNotExpression) {
             if (keyword != FUNC_KEYWORD) return null
-            return cangJieParsing.parseFunction(true)
+            return cangJieParsing.parseFunction()
+
+
         }
 
 
@@ -1458,6 +1523,8 @@ open class CangJieExpressionParsing(
     @OptIn(ExperimentalStdlibApi::class)
     companion object {
         var ALL_OPERATIONS: TokenSet? = null
+
+        @JvmStatic
         val EXPRESSION_FOLLOW = TokenSet.create(
             EOL_OR_SEMICOLON, ARROW, DOUBLE_ARROW, COMMA, RBRACE, RPAR, RBRACKET
         )
@@ -1466,6 +1533,7 @@ open class CangJieExpressionParsing(
             DOT, COLON, AS_KEYWORD, ANDAND, OROR
         )
 
+        @JvmStatic
         val EXPRESSION_FIRST = TokenSet.create( // Prefix
             MINUS, PLUS, MINUSMINUS, PLUSPLUS, EXCL, LPAR,  // parenthesized
             // literal constant
@@ -1547,7 +1615,6 @@ open class CangJieExpressionParsing(
             COLON,
 //            COMMA
         )
-
 
         private val TRY_CATCH_RECOVERY_TOKEN_SET =
             TokenSet.create(LBRACE, RBRACE, FINALLY_KEYWORD, CATCH_KEYWORD)

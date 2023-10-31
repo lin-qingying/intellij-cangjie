@@ -112,8 +112,12 @@ interface CangJieFunctionStub  : CangJieCallableStubBase<CjFunctionImpl> {
     fun hasBlockBody(): Boolean
     fun hasBody(): Boolean
     fun hasTypeParameterListBeforeFunctionName(): Boolean
-    fun mayHaveContract(): Boolean
+//    fun mayHaveContract(): Boolean
 }
+
+
+
+
 interface CangJieImportDirectiveStub : StubElement<CjImportDirective> {
     fun isAllUnder(): Boolean
     fun getImportedFqName(): FqName?

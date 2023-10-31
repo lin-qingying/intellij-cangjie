@@ -201,18 +201,18 @@ public abstract class CjFunctionImpl extends CjTypeParameterListOwnerStub<CangJi
         return !(parent instanceof CjFile || parent instanceof CjClassBody);
     }
 
-    public boolean mayHaveContract() {
-        return mayHaveContract(true);
-    }
+//    public boolean mayHaveContract() {
+//        return mayHaveContract(true);
+//    }
 
-    public boolean mayHaveContract(boolean isAllowedOnMembers) {
-        CangJieFunctionStub stub = getStub();
-        if (stub != null) {
-            return stub.mayHaveContract();
-        }
-
-        return CjPsiUtilKt.isContractPresentPsiCheck(this, isAllowedOnMembers);
-    }
+//    public boolean mayHaveContract(boolean isAllowedOnMembers) {
+//        CangJieFunctionStub stub = getStub();
+//        if (stub != null) {
+//            return stub.mayHaveContract();
+//        }
+//
+//        return CjPsiUtilKt.isContractPresentPsiCheck(this, isAllowedOnMembers);
+//    }
 
     @Override
     @Nullable

@@ -41,7 +41,7 @@ public class CjMainFunctionElementType extends CjStubElementType<CangJieFunction
         return new CangJieFunctionStubImpl(
                 parentStub,CjStubElementTypes.MAIN_FUNC, StringRef.fromString(psi.getName()), isTopLevel, fqName,
                 isExtension, hasBlockBody, hasBody, psi.hasTypeParameterListBeforeFunctionName(),
-                psi.mayHaveContract(),
+
 
              null
         );
@@ -61,8 +61,8 @@ public class CjMainFunctionElementType extends CjStubElementType<CangJieFunction
         dataStream.writeBoolean(stub.hasBlockBody());
         dataStream.writeBoolean(stub.hasBody());
         dataStream.writeBoolean(stub.hasTypeParameterListBeforeFunctionName());
-        boolean haveContract = stub.mayHaveContract();
-        dataStream.writeBoolean(haveContract);
+//        boolean haveContract = stub.mayHaveContract();
+//        dataStream.writeBoolean(haveContract);
         if (stub instanceof CangJieFunctionStubImpl stubImpl) {
 
 
@@ -82,10 +82,10 @@ public class CjMainFunctionElementType extends CjStubElementType<CangJieFunction
         boolean hasBlockBody = dataStream.readBoolean();
         boolean hasBody = dataStream.readBoolean();
         boolean hasTypeParameterListBeforeFunctionName = dataStream.readBoolean();
-        boolean mayHaveContract = dataStream.readBoolean();
+//        boolean mayHaveContract = dataStream.readBoolean();
         return new CangJieFunctionStubImpl(
                 (StubElement<?>) parentStub,CjStubElementTypes.MAIN_FUNC, name, isTopLevel, fqName, isExtension, hasBlockBody, hasBody,
-                hasTypeParameterListBeforeFunctionName, mayHaveContract,
+                hasTypeParameterListBeforeFunctionName,
 
                 CangJieStubOrigin.deserialize(dataStream)
         );
