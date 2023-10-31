@@ -102,7 +102,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
     static CangJieParsing createForTopLevel(SemanticWhitespaceAwarePsiBuilder builder) {
         return new CangJieParsing(builder, true, true);
     }
-
+    static CangJieParsing createForTopLevelNonLazy(SemanticWhitespaceAwarePsiBuilder builder) {
+        return new CangJieParsing(builder, true, false);
+    }
     @Override
     protected CangJieParsing create(SemanticWhitespaceAwarePsiBuilder builder) {
         return createForTopLevel(builder);

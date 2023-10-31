@@ -1,7 +1,8 @@
 <idea-plugin allow-bundled-update="true">
 
 
-    <resource-bundle>messages.CjBundle</resource-bundle>
+    <resource-bundle>messages.CangJieBaseHighlightingBundle</resource-bundle>
+    <resource-bundle>messages.CangJieBundle</resource-bundle>
 
     <depends>com.intellij.modules.lang</depends>
 
@@ -42,6 +43,9 @@
                   fieldName="INSTANCE"/>
         <internalFileTemplate name="CangJie File"/>
 
+<!--语法高亮-->
+        <colorSettingsPage implementation="com.huawei.cangjie.highlighter.CangJieColorSettingsPage"/>
+        <lang.syntaxHighlighterFactory language="CangJie" implementationClass="com.huawei.cangjie.highlighter.CangJieSyntaxHighlighterFactory"/>
 
         <lang.parserDefinition language="CangJie"
                                implementationClass="com.huawei.cangjie.parsing.CangJieParserDefinition"/>

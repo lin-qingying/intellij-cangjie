@@ -108,7 +108,7 @@ int XOR_Id = 77;
     int COMMA_Id = 96;
     int EOL_OR_SEMICOLON_Id = 97;
 
-    int IMPORT_KEYWORD_Id = 105;
+    int IMPORT_KEYWORD_Id = 99;
 
     int WHERE_KEYWORD_Id = 106;
 //    int BY_KEYWORD_Id = 107;
@@ -288,6 +288,7 @@ int XOR_Id = 77;
     CjToken EOL_OR_SEMICOLON = new CjToken("EOL_OR_SEMICOLON", EOL_OR_SEMICOLON_Id);
 //    CjKeywordToken FILE_KEYWORD = CjKeywordToken.softKeyword("file", FILE_KEYWORD_Id);
 
+
     CjKeywordToken IMPORT_KEYWORD = CjKeywordToken.softKeyword("import", IMPORT_KEYWORD_Id);
     CjKeywordToken FROM_KEYWORD = CjKeywordToken.keyword("from", FROM_KEYWORD_Id);
     CjKeywordToken WHERE_KEYWORD = CjKeywordToken.keyword("where", WHERE_KEYWORD_Id);
@@ -357,7 +358,7 @@ int XOR_Id = 77;
 
     TokenSet SOFT_KEYWORDS = TokenSet.create(GET_KEYWORD,
             SET_KEYWORD, OPEN_KEYWORD,
-            IMPORT_KEYWORD,ABSTRACT_KEYWORD,UNDERLINE
+            IMPORT_KEYWORD,  ABSTRACT_KEYWORD,UNDERLINE
     );
 
     TokenSet KEYWORDALL = TokenSet.orSet(KEYWORDS, SOFT_KEYWORDS);

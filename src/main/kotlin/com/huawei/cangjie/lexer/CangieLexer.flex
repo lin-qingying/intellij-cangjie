@@ -98,7 +98,7 @@ SHEBANG_COMMENT="#!"[^\n]*
 
 //UNIT_LTIERAL="()"
 //元素，两个以上表达式 (p1,p2,...,pn)
-TUPLE_LTIERAL="("[^)]*")"
+//TUPLE_LTIERAL="("[^)]*")"
 
 INTEGER_LITERAL={DECIMAL_INTEGER_LITERAL}|{HEX_INTEGER_LITERAL}
 DECIMAL_INTEGER_LITERAL=(0|([1-9]({DIGIT_OR_UNDERSCORE})*))
@@ -167,6 +167,7 @@ LONELY_BACKTICK=`
 // *null*, *true* and *false* are also keywords and expression, but it does not make sense to put them
 // in a string template for it'd be easier to just type them in without a dollar
 <SHORT_TEMPLATE_ENTRY> "this"          { popState(); return CjTokens.THIS_KEYWORD; }
+
 <SHORT_TEMPLATE_ENTRY> {IDENTIFIER}    { popState(); return CjTokens.IDENTIFIER; }
 
 <STRING, RAW_STRING> {LONELY_DOLLAR}               { return CjTokens.REGULAR_STRING_PART; }
@@ -255,7 +256,7 @@ LONELY_BACKTICK=`
 
 "package"    { return CjTokens.PACKAGE_KEYWORD ;}
 
-“import”     { return CjTokens.IMPORT_KEYWORD ;}
+
 "from"       { return CjTokens.FROM_KEYWORD ;}
 
 

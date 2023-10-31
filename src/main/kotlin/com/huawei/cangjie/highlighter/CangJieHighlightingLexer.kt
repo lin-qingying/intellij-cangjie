@@ -1,0 +1,24 @@
+package com.huawei.cangjie.highlighter
+
+import com.huawei.cangjie.doc.lexer.CDocLexer
+import com.huawei.cangjie.lexer.CangJieLexer
+import com.huawei.cangjie.lexer.CjTokens
+import com.intellij.lexer.LayeredLexer
+import com.intellij.lexer.StringLiteralLexer
+import com.intellij.psi.tree.IElementType
+
+class CangJieHighlightingLexer : LayeredLexer(CangJieLexer()) {
+    init {
+        registerSelfStoppingLayer(
+            CDocLexer(),
+            arrayOf<IElementType>(CjTokens.DOC_COMMENT),
+            IElementType.EMPTY_ARRAY
+        )
+        registerSelfStoppingLayer(
+            StringLiteralLexer('\'', CjTokens.CHARACTER_LITERAL),
+            arrayOf<IElementType>(CjTokens.CHARACTER_LITERAL),
+            IElementType.EMPTY_ARRAY
+        )
+    }
+}
+

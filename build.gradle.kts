@@ -23,7 +23,7 @@ sourceSets {
 }
 
 group = "com.huawei.cangjie"
-version = "dev-0.0.1"
+version = "dev-0.0.2"
 val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
 repositories {
     mavenCentral()
