@@ -15,7 +15,7 @@ fun <T : Any> constant(calculator: () -> T): T {
     @Suppress("UNCHECKED_CAST")
     if (cached != null) return cached as T
 
-    // safety check
+
     val fields = calculator::class.java.declaredFields.filter { it.modifiers.and(Modifier.STATIC) == 0 }
     assert(fields.isEmpty()) {
         "No fields in the passed lambda expected but ${fields.joinToString()} found"

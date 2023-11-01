@@ -19,7 +19,7 @@ public final class FqName {
     @NotNull
     private final FqNameUnsafe fqName;
 
-    // cache
+
     private transient FqName parent;
 
     public FqName(@NotNull String fqName) {

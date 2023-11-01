@@ -57,7 +57,7 @@ package com.huawei.cangjie.highlighter
 //        val CDOC_TAG =
 //            createTextAttributesKey("KDOC_TAG_NAME", DefaultLanguageHighlighterColors.DOC_COMMENT_TAG)
 //        val CDOC_LINK =
-//            createTextAttributesKey("KDOC_LINK", DefaultLanguageHighlighterColors.DOC_COMMENT_TAG_VALUE)
+//            createTextAttributesKey("CDOC_LINK", DefaultLanguageHighlighterColors.DOC_COMMENT_TAG_VALUE)
 //
 //        // class kinds
 //        val CLASS = createTextAttributesKey("CANGJIE_CLASS", DefaultLanguageHighlighterColors.CLASS_NAME)

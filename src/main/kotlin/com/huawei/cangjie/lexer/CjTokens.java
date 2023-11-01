@@ -1,5 +1,3 @@
-
-
 package com.huawei.cangjie.lexer;
 
 import com.huawei.cangjie.doc.lexer.CDocTokens;
@@ -54,7 +52,7 @@ public interface CjTokens {
     int MATCH_KEYWORD_Id = 42;
     int INTERFACE_KEYWORD_Id = 43;
     int TYPEOF_KEYWORD_Id = 44;
-    int AS_SAFE_Id = 45;
+    int IMPORT_KEYWORD_Id = 45;
     int IDENTIFIER_Id = 46;
     int FIELD_IDENTIFIER_Id = 47;
     int LBRACKET_Id = 48;
@@ -79,7 +77,7 @@ public interface CjTokens {
     int EQEQEQ_Id = 67;
     int ARROW_Id = 68;
     int DOUBLE_ARROW_Id = 69;
-int CASE_KEYWORD_Id = 70;
+    int CASE_KEYWORD_Id = 70;
     int EQEQ_Id = 71;
     int EXCLEQ_Id = 72;
 
@@ -87,7 +85,7 @@ int CASE_KEYWORD_Id = 70;
     int ANDAND_Id = 74;
     int AND_Id = 75;
     int OROR_Id = 76;
-int XOR_Id = 77;
+    int XOR_Id = 77;
     int OR_Id = 78;
 
     int QUEST_Id = 79;
@@ -108,10 +106,9 @@ int XOR_Id = 77;
     int COMMA_Id = 96;
     int EOL_OR_SEMICOLON_Id = 97;
 
-    int IMPORT_KEYWORD_Id = 99;
 
     int WHERE_KEYWORD_Id = 106;
-//    int BY_KEYWORD_Id = 107;
+    //    int BY_KEYWORD_Id = 107;
     int GET_KEYWORD_Id = 108;
     int SET_KEYWORD_Id = 109;
 
@@ -162,10 +159,13 @@ int XOR_Id = 77;
     int PROP_KEYWORD_Id = 166;
 
     int UNDERLINE_Id = 167;
+
+    int ABC_KEYWORD_Id = 168;
+
+
     CjSingleValueToken HASH = new CjSingleValueToken("HASH", "#", HASH_Id);
 
     CjToken EOF = new CjToken("EOF", EOF_Id);
-
 
 
     CjToken BLOCK_COMMENT = new CjToken("BLOCK_COMMENT", BLOCK_COMMENT_Id);
@@ -204,8 +204,8 @@ int XOR_Id = 77;
     CjKeywordToken LET_KEYWORD = CjKeywordToken.keyword("let", LET_KEYWORD_Id);
     CjKeywordToken VAR_KEYWORD = CjKeywordToken.keyword("var", VAR_KEYWORD_Id);
 
-    CjModifierKeywordToken MAIN_KEYWORD = CjModifierKeywordToken.keywordModifier("main", MAIN_KEYWORD_Id);
-    CjModifierKeywordToken FUNC_KEYWORD = CjModifierKeywordToken.keywordModifier("func", FUNC_KEYWORD_Id);
+    CjKeywordToken MAIN_KEYWORD = CjKeywordToken.keyword("main", MAIN_KEYWORD_Id);
+    CjKeywordToken FUNC_KEYWORD = CjKeywordToken.keyword("func", FUNC_KEYWORD_Id);
     CjKeywordToken FOR_KEYWORD = CjKeywordToken.keyword("for", FOR_KEYWORD_Id);
 
     CjKeywordToken TRUE_KEYWORD = CjKeywordToken.keyword("true", TRUE_KEYWORD_Id);
@@ -228,11 +228,11 @@ int XOR_Id = 77;
     CjKeywordToken INTERFACE_KEYWORD = CjKeywordToken.keyword("interface", INTERFACE_KEYWORD_Id);
 
 
-    CjKeywordToken   UNDERLINE = CjKeywordToken.softKeyword("_", UNDERLINE_Id);
+    CjKeywordToken UNDERLINE = CjKeywordToken.softKeyword("_", UNDERLINE_Id);
 
     CjKeywordToken TYPEOF_KEYWORD = CjKeywordToken.keyword("typeof", TYPEOF_KEYWORD_Id);
 
-//    CjToken AS_SAFE = CjKeywordToken.keyword("AS_SAFE", AS_SAFE_Id);
+//    CjToken AS_SAFE = CjKeywordToken.keyword("AS_SAFE", IMPORT_KEYWORD_Id);
 
     CjToken IDENTIFIER = new CjToken("IDENTIFIER", IDENTIFIER_Id);
 
@@ -255,7 +255,7 @@ int XOR_Id = 77;
     CjSingleValueToken LT = new CjSingleValueToken("LT", "<", LT_Id);
     CjSingleValueToken GT = new CjSingleValueToken("GT", ">", GT_Id);
     CjSingleValueToken LTEQ = new CjSingleValueToken("LTEQ", "<=", LTEQ_Id);
-    CjSingleValueToken AT          = new CjSingleValueToken("AT", "@", AT_Id);
+    CjSingleValueToken AT = new CjSingleValueToken("AT", "@", AT_Id);
     CjSingleValueToken GTEQ = new CjSingleValueToken("GTEQ", ">=", GTEQ_Id);
     CjSingleValueToken LTCOLON = new CjSingleValueToken("LTCOLON", "<:", LTCOLON_Id);
     CjSingleValueToken ARROW = new CjSingleValueToken("ARROW", "->", ARROW_Id);
@@ -289,7 +289,9 @@ int XOR_Id = 77;
 //    CjKeywordToken FILE_KEYWORD = CjKeywordToken.softKeyword("file", FILE_KEYWORD_Id);
 
 
-    CjKeywordToken IMPORT_KEYWORD = CjKeywordToken.softKeyword("import", IMPORT_KEYWORD_Id);
+    CjKeywordToken IMPORT_KEYWORD = CjKeywordToken.keyword("import", IMPORT_KEYWORD_Id);
+
+
     CjKeywordToken FROM_KEYWORD = CjKeywordToken.keyword("from", FROM_KEYWORD_Id);
     CjKeywordToken WHERE_KEYWORD = CjKeywordToken.keyword("where", WHERE_KEYWORD_Id);
     //    CjKeywordToken BY_KEYWORD = CjKeywordToken.softKeyword("by", BY_KEYWORD_Id);
@@ -341,24 +343,27 @@ int XOR_Id = 77;
             MAIN_KEYWORD, STRUCT_KEYWORD,
             TRUE_KEYWORD, FALSE_KEYWORD, IS_KEYWORD,
             IN_KEYWORD, THROW_KEYWORD, RETURN_KEYWORD, BREAK_KEYWORD, CONTINUE_KEYWORD, IF_KEYWORD,
-            ELSE_KEYWORD, WHILE_KEYWORD, DO_KEYWORD, TRY_KEYWORD, MATCH_KEYWORD,CASE_KEYWORD,
+            ELSE_KEYWORD, WHILE_KEYWORD, DO_KEYWORD, TRY_KEYWORD, MATCH_KEYWORD, CASE_KEYWORD,
             TYPEOF_KEYWORD,
-            INT8_KEYWORD, INT16_KEYWORD, INT32_KEYWORD, INT64_KEYWORD, UINT8_KEYWORD, UINT16_KEYWORD, UINT32_KEYWORD, UINT64_KEYWORD, FLOAT32_KEYWORD, FLOAT64_KEYWORD, BOOL_KEYWORD, CHAR_KEYWORD, UNIT_KEYWORD,
-            PROP_KEYWORD, ENUM_KEYWORD,
-             WHERE_KEYWORD,
-            FROM_KEYWORD,
 
+            PROP_KEYWORD, ENUM_KEYWORD,
+            WHERE_KEYWORD,
+            FROM_KEYWORD,
+//            ABC_KEYWORD,
+            IMPORT_KEYWORD,
             OVERRIDE_KEYWORD, PRIVATE_KEYWORD, PUBLIC_KEYWORD, PROTECTED_KEYWORD,
             CATCH_KEYWORD, FINALLY_KEYWORD,
             INIT_KEYWORD,
-
+            STATIC_KEYWORD,
             MUT_KEYWORD,
-            OPERATOR_KEYWORD
+            OPERATOR_KEYWORD,
+            INT8_KEYWORD, INT16_KEYWORD, INT32_KEYWORD, INT64_KEYWORD, UINT8_KEYWORD, UINT16_KEYWORD, UINT32_KEYWORD, UINT64_KEYWORD, FLOAT32_KEYWORD, FLOAT64_KEYWORD, BOOL_KEYWORD, CHAR_KEYWORD, UNIT_KEYWORD
     );
 
     TokenSet SOFT_KEYWORDS = TokenSet.create(GET_KEYWORD,
             SET_KEYWORD, OPEN_KEYWORD,
-            IMPORT_KEYWORD,  ABSTRACT_KEYWORD,UNDERLINE
+            ABSTRACT_KEYWORD, UNDERLINE
+
     );
 
     TokenSet KEYWORDALL = TokenSet.orSet(KEYWORDS, SOFT_KEYWORDS);
@@ -372,7 +377,7 @@ int XOR_Id = 77;
             new CjModifierKeywordToken[]{
                     ABSTRACT_KEYWORD, OPEN_KEYWORD, OVERRIDE_KEYWORD, PRIVATE_KEYWORD,
                     PUBLIC_KEYWORD, PROTECTED_KEYWORD,
-    STATIC_KEYWORD,
+                    STATIC_KEYWORD,
                     MUT_KEYWORD,
                     OPERATOR_KEYWORD,
 
@@ -393,9 +398,9 @@ int XOR_Id = 77;
 
             RANGE, EQ, MULTEQ, DIVEQ, PERCEQ, PLUSEQ, MINUSEQ,
 
-            AND,OR, XOR
+            AND, OR, XOR
 
-            );
+    );
 
 
     //基本类型

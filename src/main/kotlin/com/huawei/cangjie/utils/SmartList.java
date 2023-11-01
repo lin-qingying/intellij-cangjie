@@ -16,7 +16,7 @@ import java.util.*;
 @SuppressWarnings("unchecked")
 public class SmartList<E> extends AbstractList<E> implements RandomAccess {
     private int mySize;
-    private Object myElem; // null if mySize==0, (E)elem if mySize==1, Object[] if mySize>=2
+    private Object myElem;
 
     public SmartList() { }
 
@@ -72,7 +72,7 @@ public class SmartList<E> extends AbstractList<E> implements RandomAccess {
             Object[] array = (Object[])myElem;
             int oldCapacity = array.length;
             if (mySize >= oldCapacity) {
-                // have to resize
+
                 int newCapacity = oldCapacity * 3 / 2 + 1;
                 int minCapacity = mySize + 1;
                 if (newCapacity < minCapacity) {
@@ -188,7 +188,7 @@ public class SmartList<E> extends AbstractList<E> implements RandomAccess {
     private static class EmptyIterator<T> implements Iterator<T> {
         private static final EmptyIterator INSTANCE = new EmptyIterator();
         public static <T> EmptyIterator<T> getInstance() {
-            //noinspection unchecked
+
             return INSTANCE;
         }
         @Override
@@ -298,7 +298,7 @@ public class SmartList<E> extends AbstractList<E> implements RandomAccess {
             return (T[])Arrays.copyOf((E[])myElem, mySize, a.getClass());
         }
         else if (mySize != 0) {
-            //noinspection SuspiciousSystemArraycopy
+
             System.arraycopy(myElem, 0, a, 0, mySize);
         }
 

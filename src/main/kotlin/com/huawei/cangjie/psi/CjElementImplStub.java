@@ -52,7 +52,7 @@ public class CjElementImplStub <T extends StubElement<?>> extends StubBasedPsiEl
                     fileString = " " + file.getText();
                 }
                 catch (Exception e) {
-                    // ignore when failed to get file text
+
                 }
             }
             // getNode() will fail if getContainingFile() returns not PsiFileImpl instance

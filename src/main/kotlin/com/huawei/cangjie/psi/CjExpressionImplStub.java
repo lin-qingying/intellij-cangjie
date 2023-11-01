@@ -38,7 +38,7 @@ public abstract class CjExpressionImplStub<T extends StubElement<?>> extends CjE
     public PsiElement getParent() {
         T stub = getStub();
         if (stub != null) {
-            //noinspection unchecked
+
             return stub.getParentStub().getPsi();
         }
         return super.getParent();

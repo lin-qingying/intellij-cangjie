@@ -9,7 +9,7 @@ import com.huawei.cangjie.psi.psiUtil.getAssignmentByLHS
 import com.huawei.cangjie.psi.psiUtil.getQualifiedExpressionForSelectorOrThis
 
 import com.huawei.cangjie.utils.constant
-import com.huawei.cangjie.utils.exceptions.OperatorConventions
+
 import com.intellij.openapi.project.Project
 
 

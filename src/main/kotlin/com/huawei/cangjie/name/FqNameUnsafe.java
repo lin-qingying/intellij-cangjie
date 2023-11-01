@@ -23,7 +23,7 @@ public final class FqNameUnsafe {
     @NotNull
     private final String fqName;
 
-    // cache
+
     private transient FqName safe;
     private transient FqNameUnsafe parent;
     private transient Name shortName;
@@ -44,7 +44,7 @@ public final class FqNameUnsafe {
     }
 
     public static boolean isValid(@Nullable String qualifiedName) {
-        // TODO: ´æÔÚ´øÓÐ×ªÒå×Ö·ûµÄÓÐÐ§Ãû³Æ''
+        // TODO: ï¿½ï¿½ï¿½Ú´ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½''
         return qualifiedName != null && qualifiedName.indexOf('/') < 0 && qualifiedName.indexOf('*') < 0;
     }
 

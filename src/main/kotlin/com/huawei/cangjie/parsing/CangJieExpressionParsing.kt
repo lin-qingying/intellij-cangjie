@@ -186,7 +186,7 @@ open class CangJieExpressionParsing(
     }
 
     /*
-     * (SimpleName ":")? "*"? element
+     * (SimpleName ":")?  element
      */
     private fun parseValueArgument() {
         val argument = mark()
@@ -284,7 +284,58 @@ open class CangJieExpressionParsing(
      */
     private fun parsePostfixExpression() {
         var expression = mark()
-        var firstExpressionParsed = parseAtomicExpression()
+
+
+//        if (atSet(BASICTYPES)) {
+//            if (lookahead(1) === LPAR) {
+//                cangJieParsing.parseTypeRef()//BASICTYPES
+//                if (parseCallSuffix()) {
+//                    expression.done(CALL_EXPRESSION)
+//
+//                }
+//
+//            } else if (lookahead(1) === DOT) {
+//                cangJieParsing.parseTypeRef()//BASICTYPES
+//                while (at(DOT)) {
+//
+//                    val expressionType: IElementType = DOT_QUALIFIED_EXPRESSION
+//                    advance() // DOT
+//                    if (!parseAtomicExpression()) {
+//                        expression.drop()
+//                        expression = mark()
+//                        continue
+//                    }
+////                    parseSelectorCallExpression()
+//                    expression.done(expressionType)
+//
+//                    expression = expression.precede()
+//                }
+//            } else {
+//                error("expected expression or declaration, found keyword ${myBuilder.tokenText}")
+//            }
+//            expression.drop()
+//            return
+//        }
+
+
+        var firstExpressionParsed =
+            if ((atSet(BASICTYPES) && lookahead(1) === LPAR) || (atSet(BASICTYPES) && lookahead(1) === DOT)) {
+                cangJieParsing.parseTypeRef()
+                true
+            } else if (atSet(BASICTYPES)) {
+
+
+
+                errorAndAdvance("expected expression or declaration, found keyword ${myBuilder.tokenText}")
+                false
+            } else {
+                parseAtomicExpression()
+
+            }
+
+
+
+
 
 
 
@@ -360,6 +411,7 @@ open class CangJieExpressionParsing(
 
 
         when (getTokenId()) {
+
 
             //元组
 //            TUPLE_LTIERAL_Id -> parseTupleLiteralExpression()
@@ -519,10 +571,23 @@ open class CangJieExpressionParsing(
         val body = mark()
         if (!at(SEMICOLON)) {
 
-//            parseBlock(CASE_KEYWORD)
+
+            if (at(RBRACE) || at(CASE_KEYWORD)) {
+
+//             errorBefore("match case cannot be empty")
+                val error = body.precede()
+
+                error.error("match case cannot be empty")
+
+                body.drop()
+                return
 
 
-            parseStatements(CASE_KEYWORD)
+            } else {
+                parseStatements(CASE_KEYWORD)
+            }
+
+
         }
         body.done(BODY)
     }
@@ -1010,15 +1075,14 @@ open class CangJieExpressionParsing(
             parseCasePattern()
 
 
-            if(at(LEFT_ARROW)){
+            if (at(LEFT_ARROW)) {
                 advance()
-            }else{
+            } else {
                 errorAndAdvance("Expecting '<-'")
             }
 
 
 //            expect(LEFT_ARROW, "Expecting '<-'")
-
 
 
             parseExpression()
@@ -1534,23 +1598,27 @@ open class CangJieExpressionParsing(
         )
 
         @JvmStatic
-        val EXPRESSION_FIRST = TokenSet.create( // Prefix
-            MINUS, PLUS, MINUSMINUS, PLUSPLUS, EXCL, LPAR,  // parenthesized
-            // literal constant
-            TRUE_KEYWORD, FALSE_KEYWORD, OPEN_QUOTE, INTEGER_LITERAL, CHARACTER_LITERAL, FLOAT_LITERAL,
+        val EXPRESSION_FIRST = TokenSet.orSet(
+            TokenSet.create( // Prefix
+                MINUS, PLUS, MINUSMINUS, PLUSPLUS, EXCL, LPAR,  // parenthesized
+                // literal constant
+                TRUE_KEYWORD, FALSE_KEYWORD, OPEN_QUOTE, INTEGER_LITERAL, CHARACTER_LITERAL, FLOAT_LITERAL,
 
 //            LBRACE,  // functionLiteral
-            FUNC_KEYWORD,  // expression function
-            THIS_KEYWORD,  // this
-            SUPER_KEYWORD,  // super
-            IF_KEYWORD,  // if
-            MATCH_KEYWORD,  // when
-            TRY_KEYWORD,  // try
+                FUNC_KEYWORD,  // expression function
+                THIS_KEYWORD,  // this
+                SUPER_KEYWORD,  // super
+                IF_KEYWORD,  // if
+                MATCH_KEYWORD,  // when
+                TRY_KEYWORD,  // try
 
-            // jump
-            THROW_KEYWORD, RETURN_KEYWORD, CONTINUE_KEYWORD, BREAK_KEYWORD,  // loop
-            FOR_KEYWORD, WHILE_KEYWORD, DO_KEYWORD, IDENTIFIER,  // SimpleName
-            LBRACKET // Collection literal expression
+                // jump
+                THROW_KEYWORD, RETURN_KEYWORD, CONTINUE_KEYWORD, BREAK_KEYWORD,  // loop
+                FOR_KEYWORD, WHILE_KEYWORD, DO_KEYWORD, IDENTIFIER,  // SimpleName
+                LBRACKET // Collection literal expression
+
+            ),
+            BASICTYPES
         )
         private val TYPE_ARGUMENT_LIST_STOPPERS = TokenSet.create(
             INTEGER_LITERAL,
@@ -1649,7 +1717,7 @@ open class CangJieExpressionParsing(
             EXPRESSION_FIRST, TokenSet.create( // declaration
                 FUNC_KEYWORD, LET_KEYWORD, VAR_KEYWORD, INTERFACE_KEYWORD, CLASS_KEYWORD
 
-            ), MODIFIER_KEYWORDS
+            ), MODIFIER_KEYWORDS, BASICTYPES
         )
         val STATEMENT_NEW_LINE_QUICK_RECOVERY_SET = TokenSet.orSet(
             TokenSet.andSet(

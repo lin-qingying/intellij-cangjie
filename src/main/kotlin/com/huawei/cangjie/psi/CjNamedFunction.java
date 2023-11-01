@@ -61,7 +61,7 @@ public class CjNamedFunction extends CjFunctionImpl {
     }
 
     @Nullable
-    @IfNotParsed // "function" with no "fun" keyword is created by parser for "{...}" on top-level or in class body
+    @IfNotParsed
     public PsiElement getFunKeyword() {
         return findChildByType(CjTokens.FUNC_KEYWORD);
     }
@@ -110,7 +110,7 @@ public class CjNamedFunction extends CjFunctionImpl {
                 return null;
             }
             if (getContainingCjFile().isCompiled()) {
-                //don't load ast
+
                 return null;
             }
         }
@@ -127,7 +127,7 @@ public class CjNamedFunction extends CjFunctionImpl {
                 return null;
             }
             if (getContainingCjFile().isCompiled()) {
-                //don't load ast
+
                 return null;
             }
         }
@@ -250,23 +250,7 @@ public class CjNamedFunction extends CjFunctionImpl {
         return getParent() instanceof CjFile;
     }
 
-//    @Override
-//    public boolean shouldChangeModificationCount(PsiElement place) {
-//        // Suppress Java check for out-of-block
-//        return false;
-//    }
 
 
-//    public boolean mayHaveContract() {
-//        return mayHaveContract(true);
-//    }
-//
-//    public boolean mayHaveContract(boolean isAllowedOnMembers) {
-//        CangJieFunctionStub stub = getStub();
-//        if (stub != null) {
-//            return stub.mayHaveContract();
-//        }
-//
-//        return CjPsiUtilKt.isContractPresentPsiCheck(this, isAllowedOnMembers);
-//    }
+
 }

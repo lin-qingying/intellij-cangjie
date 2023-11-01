@@ -22,19 +22,12 @@ class CjErrorAnnotator : AnnotatorBase(), HighlightRangeExtension {
     override fun isForceHighlightParents(file: PsiFile): Boolean = file is CjFile
 
     private fun checkFunction(holder: CjAnnotationHolder, fn: CjFunction) {
-//        collectDiagnostics(holder, fn)
-        checkDuplicates(holder, fn.identifierName)
-//        checkTypesAreSized(holder, fn)
-//        checkEmptyFunctionReturnType(holder, fn)
-//        checkRecursiveAsyncFunction(holder, fn)
 
-//        fn.innerAttrList.forEach { checkStartAttribute(holder, it) }
-//        fn.outerAttrList.forEach { checkStartAttribute(holder, it) }
+        checkDuplicates(holder, fn.identifierName)
+
     }
     private fun collectDiagnostics(holder: CjAnnotationHolder, element: CjInferenceContextOwner) {
-//        for (it in element.selfInferenceResult.diagnostics) {
-//            if (it.inspectionClass == javaClass) it.addToHolder(holder)
-//        }
+
     }
 
     private fun checkDuplicates(

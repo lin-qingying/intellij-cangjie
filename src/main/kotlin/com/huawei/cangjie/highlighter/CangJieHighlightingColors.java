@@ -15,13 +15,11 @@ public class CangJieHighlightingColors {
 
 
 
-    // default keys (mostly syntax elements) B40291
-    public final static TextAttributesKey KEYWORD  =
-            createTextAttributesKey("CANGJIE_KEYWORD", new TextAttributes(new JBColor(0xb40291, 0xb40291), null, null, null, Font.BOLD));
+    public final static TextAttributesKey KEYWORD  = createTextAttributesKey("CANGJIE_KEYWORD", new TextAttributes(new JBColor(0xb40291, 0xb40291), null, null, null, Font.BOLD));
     public final static TextAttributesKey BUILTIN_ANNOTATION = createTextAttributesKey("CANGJIE_BUILTIN_ANNOTATION", KEYWORD);
     public final static TextAttributesKey LET_KEYWORD = createTextAttributesKey("CANGJIE_KEYWORD_LET", KEYWORD);
     public final static TextAttributesKey VAR_KEYWORD = createTextAttributesKey("CANGJIE_KEYWORD_VAR", KEYWORD);
-  public  final  static  TextAttributesKey IMPORT_KEYWORD = createTextAttributesKey("CANGJIE_KEYWORD_IMPORT", KEYWORD);
+
     public final static TextAttributesKey NUMBER = createTextAttributesKey("CANGJIE_NUMBER", DefaultLanguageHighlighterColors.NUMBER);
     public final static TextAttributesKey STRING = createTextAttributesKey("CANGJIE_STRING", DefaultLanguageHighlighterColors.STRING);
     public final static TextAttributesKey STRING_ESCAPE = createTextAttributesKey(
@@ -65,9 +63,9 @@ public class CangJieHighlightingColors {
     public final static TextAttributesKey CDOC_TAG =
             createTextAttributesKey("KDOC_TAG_NAME", DefaultLanguageHighlighterColors.DOC_COMMENT_TAG);
     public final static TextAttributesKey CDOC_LINK =
-            createTextAttributesKey("KDOC_LINK", DefaultLanguageHighlighterColors.DOC_COMMENT_TAG_VALUE);
+            createTextAttributesKey("CDOC_LINK", DefaultLanguageHighlighterColors.DOC_COMMENT_TAG_VALUE);
 
-    // class kinds
+
     public final static TextAttributesKey CLASS = createTextAttributesKey("CANGJIE_CLASS", DefaultLanguageHighlighterColors.CLASS_NAME);
     public final static TextAttributesKey TYPE_PARAMETER  =
     createTextAttributesKey("CANGJIE_TYPE_PARAMETER", DefaultLanguageHighlighterColors.PARAMETER);
@@ -84,7 +82,7 @@ public class CangJieHighlightingColors {
             createTextAttributesKey("CANGJIE_ENUM_ENTRY", DefaultLanguageHighlighterColors.STATIC_FIELD);
     public final static TextAttributesKey TYPE_ALIAS = createTextAttributesKey("CANGJIE_TYPE_ALIAS", CLASS);
 
-    // variable kinds
+
     public final static TextAttributesKey MUTABLE_VARIABLE = createTextAttributesKey("CANGJIE_MUTABLE_VARIABLE");
     public final static TextAttributesKey LOCAL_VARIABLE = createTextAttributesKey(
             "CANGJIE_LOCAL_VARIABLE",

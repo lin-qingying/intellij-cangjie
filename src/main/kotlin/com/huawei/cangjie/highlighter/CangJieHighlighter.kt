@@ -33,6 +33,10 @@ class CangJieHighlighter : SyntaxHighlighterBase() {
         init {
 
             fillMap(keys1,CjTokens.KEYWORDS, CangJieHighlightingColors.KEYWORD)
+
+
+            fillMap(keys1,CjTokens.BASICTYPES, CangJieHighlightingColors.KEYWORD)
+
             keys1[CjTokens.LET_KEYWORD] =
                 CangJieHighlightingColors.LET_KEYWORD
             keys1[CjTokens.VAR_KEYWORD] =
@@ -40,8 +44,7 @@ class CangJieHighlighter : SyntaxHighlighterBase() {
 
 
 
-            keys1[CjTokens.IMPORT_KEYWORD] =
-                CangJieHighlightingColors.KEYWORD
+
 
             keys1[CjTokens.INTEGER_LITERAL] =
                 CangJieHighlightingColors.NUMBER

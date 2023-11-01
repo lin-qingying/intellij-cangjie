@@ -12,7 +12,7 @@ public interface CjTypeElement extends CjElement {
 
     ArrayFactory<CjTypeElement> ARRAY_FACTORY = count -> count == 0 ? EMPTY_ARRAY : new CjTypeElement[count];
 
-    // may contain null
+
     @NotNull
     List<CjTypeReference> getTypeArgumentsAsTypes();
 }

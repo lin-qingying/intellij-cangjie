@@ -128,7 +128,7 @@ public abstract class CjFunctionImpl extends CjTypeParameterListOwnerStub<CangJi
                 return null;
             }
             if (getContainingCjFile().isCompiled()) {
-                //don't load ast
+
                 return null;
             }
         }
@@ -151,7 +151,7 @@ public abstract class CjFunctionImpl extends CjTypeParameterListOwnerStub<CangJi
                 return null;
             }
             if (getContainingCjFile().isCompiled()) {
-                //don't load ast
+
                 return null;
             }
         }

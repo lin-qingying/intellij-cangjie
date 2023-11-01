@@ -6,7 +6,7 @@ import javax.swing.Icon
 
 //
 //object CangJieBuiltInFileType : FileType {
-//    override fun getName() = "kotlin_builtins"
+//    override fun getName() = "cangjie_builtins"
 //
 //    override fun getDescription(): String =
 //       CangJieLabelProviderService.getService()?.getLabelForBuiltInFileType()
@@ -22,5 +22,5 @@ import javax.swing.Icon
 //
 //    override fun getCharset(file: VirtualFile, content: ByteArray): String? = null
 //
-//    private const val DEFAULT_DESCRIPTION = "Kotlin built-in declarations"
+//    private const val DEFAULT_DESCRIPTION = "CangJie built-in declarations"
 //}

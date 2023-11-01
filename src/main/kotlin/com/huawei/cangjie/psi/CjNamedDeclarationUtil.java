@@ -37,7 +37,7 @@ public final class CjNamedDeclarationUtil {
     public static FqName getParentFqName(@NotNull CjNamedDeclaration namedDeclaration) {
         PsiElement parent = namedDeclaration.getParent();
         if (parent instanceof CjClassBody) {
-            // One nesting to JetClassBody doesn't affect to qualified name
+
             parent = parent.getParent();
         }
 

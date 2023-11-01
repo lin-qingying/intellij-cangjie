@@ -258,7 +258,7 @@ LONELY_BACKTICK=`
 
 
 "from"       { return CjTokens.FROM_KEYWORD ;}
-
+"import"   { return CjTokens.IMPORT_KEYWORD ;}
 
 
 "prop"       { return CjTokens.PROP_KEYWORD ;}
@@ -280,6 +280,9 @@ LONELY_BACKTICK=`
 "init"       { return CjTokens.INIT_KEYWORD ;}
 
 
+
+
+//"abc"      { return CjTokens.ABC_KEYWORD ;}
 
 "public"     { return CjTokens.PUBLIC_KEYWORD ;}
 "private"    { return CjTokens.PRIVATE_KEYWORD ;}
@@ -311,20 +314,20 @@ LONELY_BACKTICK=`
 "main"       { return CjTokens.MAIN_KEYWORD ;}
 "struct"     { return CjTokens.STRUCT_KEYWORD ;}
 "where"      { return CjTokens.WHERE_KEYWORD ;}
-//
-//"Int8"       { return CjTokens.INT8_KEYWORD ;}
-//"Int16"      { return CjTokens.INT16_KEYWORD ;}
-//"Int32"      { return CjTokens.INT32_KEYWORD ;}
-//"Int64"      { return CjTokens.INT64_KEYWORD ;}
-//"UInt8"      { return CjTokens.UINT8_KEYWORD ;}
-//"UInt16"     { return CjTokens.UINT16_KEYWORD ;}
-//"UInt32"     { return CjTokens.UINT32_KEYWORD ;}
-//"UInt64"     { return CjTokens.UINT64_KEYWORD ;}
-//"Float32"    { return CjTokens.FLOAT32_KEYWORD ;}
-//"Float64"    { return CjTokens.FLOAT64_KEYWORD ;}
-//"Bool"       { return CjTokens.BOOL_KEYWORD ;}
-//"Unit"       { return CjTokens.UNIT_KEYWORD ;}
-//"Char"       { return CjTokens.CHAR_KEYWORD ;}
+
+"Int8"       { return CjTokens.INT8_KEYWORD ;}
+"Int16"      { return CjTokens.INT16_KEYWORD ;}
+"Int32"      { return CjTokens.INT32_KEYWORD ;}
+"Int64"      { return CjTokens.INT64_KEYWORD ;}
+"UInt8"      { return CjTokens.UINT8_KEYWORD ;}
+"UInt16"     { return CjTokens.UINT16_KEYWORD ;}
+"UInt32"     { return CjTokens.UINT32_KEYWORD ;}
+"UInt64"     { return CjTokens.UINT64_KEYWORD ;}
+"Float32"    { return CjTokens.FLOAT32_KEYWORD ;}
+"Float64"    { return CjTokens.FLOAT64_KEYWORD ;}
+"Bool"       { return CjTokens.BOOL_KEYWORD ;}
+"Unit"       { return CjTokens.UNIT_KEYWORD ;}
+"Char"       { return CjTokens.CHAR_KEYWORD ;}
 
 
 "_"            { return CjTokens.UNDERLINE ;}

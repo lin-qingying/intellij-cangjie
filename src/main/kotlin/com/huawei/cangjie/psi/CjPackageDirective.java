@@ -111,7 +111,7 @@ public class CjPackageDirective extends CjModifierListOwnerStub<CangJiePlaceHold
     public void setFqName(@NotNull FqName fqName) {
         if (fqName.isRoot()) {
             if (!getFqName().isRoot()) {
-                //noinspection ConstantConditions
+
                 replace(new CjPsiFactory(getProject()).createFile("").getPackageDirective());
             }
             return;

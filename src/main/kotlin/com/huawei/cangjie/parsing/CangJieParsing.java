@@ -32,7 +32,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private static final TokenSet VALUE_PARAMETER_FIRST = TokenSet.orSet(TokenSet.create(IDENTIFIER, LBRACKET, LET_KEYWORD, VAR_KEYWORD), TokenSet.andNot(MODIFIER_KEYWORDS, TokenSet.create(FUNC_KEYWORD)));
     private static final TokenSet LAMBDA_VALUE_PARAMETER_FIRST = TokenSet.orSet(TokenSet.create(IDENTIFIER, LBRACKET), TokenSet.andNot(MODIFIER_KEYWORDS, TokenSet.create(FUNC_KEYWORD)));
 
-    //    private static final TokenSet ANNOTATION_TARGETS = TokenSet.create(FILE_KEYWORD, FIELD_KEYWORD, GET_KEYWORD, SET_KEYWORD, PROPERTY_KEYWORD, RECEIVER_KEYWORD, PARAM_KEYWORD, SETPARAM_KEYWORD, DELEGATE_KEYWORD);
     private static final TokenSet BLOCK_DOC_COMMENT_SET = TokenSet.create(BLOCK_COMMENT, DOC_COMMENT);
     private static final TokenSet SEMICOLON_SET = TokenSet.create(SEMICOLON);
     private static final TokenSet COMMA_COLON_GT_SET = TokenSet.create(COMMA, COLON, GT);
@@ -102,9 +101,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
     static CangJieParsing createForTopLevel(SemanticWhitespaceAwarePsiBuilder builder) {
         return new CangJieParsing(builder, true, true);
     }
+
     static CangJieParsing createForTopLevelNonLazy(SemanticWhitespaceAwarePsiBuilder builder) {
         return new CangJieParsing(builder, true, false);
     }
+
     @Override
     protected CangJieParsing create(SemanticWhitespaceAwarePsiBuilder builder) {
         return createForTopLevel(builder);
@@ -532,8 +533,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private IElementType parseClassCommonDeclaration(Integer tokenId) {
         //init func let|var prop
         return switch (getTokenId()) {
-            case FUNC_KEYWORD_Id -> tokenId != null&& tokenId == INTERFACE_KEYWORD_Id ? parseFunction(true) : parseFunction();
-            case PROP_KEYWORD_Id ->tokenId != null&&  tokenId == INTERFACE_KEYWORD_Id ? parseProperty(true) : parseProperty();
+            case FUNC_KEYWORD_Id ->
+                    tokenId != null && tokenId == INTERFACE_KEYWORD_Id ? parseFunction(true) : parseFunction();
+            case PROP_KEYWORD_Id ->
+                    tokenId != null && tokenId == INTERFACE_KEYWORD_Id ? parseProperty(true) : parseProperty();
             case LET_KEYWORD_Id, VAR_KEYWORD_Id -> parseVariable();
             default -> null;
         };
@@ -681,6 +684,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
         switch (getTokenId()) {
+
+//            case ABC_KEYWORD_Id:
+//                return parseAbc();
             case FUNC_KEYWORD_Id:
                 return parseFunction();
             case MAIN_KEYWORD_Id:
@@ -703,6 +709,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         return null;
     }
+
+//    private IElementType parseAbc() {
+//        assert _at(ABC_KEYWORD);
+//        advance();
+//        return null;
+//    }
 
 
     private IElementType parseProperty() {
@@ -1537,34 +1549,44 @@ public class CangJieParsing extends AbstractCangJieParsing {
         PsiBuilder.Marker userType = mark();
 
 
-        PsiBuilder.Marker reference = mark();
-        while (true) {
-            recoverOnParenthesizedWordForPlatformTypes(0, "Mutable", true);
+//        PsiBuilder.Marker reference = mark();
 
-            if (expect(IDENTIFIER, "Expecting type name",
-                    TokenSet.orSet(CangJieExpressionParsing.Companion.getEXPRESSION_FIRST(), CangJieExpressionParsing.Companion.getEXPRESSION_FOLLOW(),
-                            DECLARATION_FIRST))) {
-                reference.done(REFERENCE_EXPRESSION);
-            } else {
-                reference.drop();
-                break;
-            }
 
+        recoverOnParenthesizedWordForPlatformTypes(0, "Mutable", true);
+        if (expect(IDENTIFIER, "Expecting type name",
+                TokenSet.orSet(CangJieExpressionParsing.Companion.getEXPRESSION_FIRST(), CangJieExpressionParsing.Companion.getEXPRESSION_FOLLOW(),
+                        DECLARATION_FIRST))) {
             parseTypeArgumentList();
-
-//            recoverOnPlatformTypeSuffix();
-
-            if (!at(DOT)) {
-                break;
-            }
-
-            PsiBuilder.Marker precede = userType.precede();
-            userType.done(USER_TYPE);
-            userType = precede;
-
-            advance(); // DOT
-            reference = mark();
         }
+
+
+//        while (true) {
+//            recoverOnParenthesizedWordForPlatformTypes(0, "Mutable", true);
+//
+//            if (expect(IDENTIFIER, "Expecting type name",
+//                    TokenSet.orSet(CangJieExpressionParsing.Companion.getEXPRESSION_FIRST(), CangJieExpressionParsing.Companion.getEXPRESSION_FOLLOW(),
+//                            DECLARATION_FIRST))) {
+//                reference.done(REFERENCE_EXPRESSION);
+//            } else {
+//                reference.drop();
+//                break;
+//            }
+//
+//            parseTypeArgumentList();
+//
+////            recoverOnPlatformTypeSuffix();
+//
+//            if (!at(DOT)) {
+//                break;
+//            }
+//
+//            PsiBuilder.Marker precede = userType.precede();
+//            userType.done(USER_TYPE);
+//            userType = precede;
+//
+//            advance(); // DOT
+//            reference = mark();
+//        }
 
         userType.done(USER_TYPE);
 
@@ -1709,10 +1731,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         expect(QUEST);
 
-//        if (!parseBasicType()) {
-        parseUserType();
-
-//        }
+        if (!parseBasicType()) {
+            parseUserType();
+        }
         typeRefMarker.done(TYPE_REFERENCE);
 
     }

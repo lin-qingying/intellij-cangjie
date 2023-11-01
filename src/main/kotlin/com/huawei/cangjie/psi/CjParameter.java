@@ -49,7 +49,7 @@ public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> im
     }
     @Nullable
     public CjDestructuringDeclaration getDestructuringDeclaration() {
-        // No destructuring declaration in stubs
+
         if (getStub() != null) return null;
 
         return findChildByType(CjNodeTypes.DESTRUCTURING_DECLARATION);
@@ -82,7 +82,7 @@ public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> im
             }
 
             if (getContainingCjFile().isCompiled()) {
-                //don't load ast
+
                 return null;
             }
         }
@@ -130,7 +130,7 @@ public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> im
 
 
     private <T extends PsiElement> boolean checkParentOfParentType(Class<T> klass) {
-        // `parent` is supposed to be [CjParameterList]
+
         PsiElement parent = getParent();
         if (parent == null) {
             return false;

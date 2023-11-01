@@ -16,7 +16,7 @@ public class CjContainerNode extends CjElementImpl {
         return super.findChildByClass(aClass);
     }
 
-    @Override // for visibility
+    @Override
     protected <T extends PsiElement> T findChildByType(IElementType type) {
         return super.findChildByType(type);
     }

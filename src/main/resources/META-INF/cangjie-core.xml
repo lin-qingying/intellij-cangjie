@@ -54,6 +54,11 @@
                                externalIdPrefix="cangjie."/>
 
 
+        <highlightingPassFactory implementation="com.huawei.cangjie.highlighter.CangJieBeforeResolveHighlightingPass$Registrar"/>
+
+
+
+
         <!--        服务注册  cangjie1包-->
 
         <!--        <projectService serviceInterface="com.huawei.cangjie.psi.CjFileClassProvider"-->
@@ -91,7 +96,10 @@
 
     </extensions>
     <extensionPoints>
-
+        <extensionPoint
+                qualifiedName="com.huawei.cangjie.beforeResolveHighlightingVisitor"
+                interface="com.huawei.cangjie.highlighter.BeforeResolveHighlightingExtension"
+                dynamic="true"/>
         <extensionPoint
                 qualifiedName="com.huawei.cangjie.completionExtension"
                 interface="com.huawei.cangjie.idea.completion.CangJieCompletionExtension" dynamic="true"/>

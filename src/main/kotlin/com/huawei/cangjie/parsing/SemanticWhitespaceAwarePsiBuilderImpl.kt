@@ -30,7 +30,6 @@ class SemanticWhitespaceAwarePsiBuilderImpl(delegate: PsiBuilder) : PsiBuilderAd
 
     override fun newlineBeforeCurrentToken(): Boolean {
 
-        //            TODO IntellijIdeaRulezzz
 
 
 

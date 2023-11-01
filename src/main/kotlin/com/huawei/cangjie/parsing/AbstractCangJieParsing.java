@@ -14,6 +14,7 @@ import org.jetbrains.annotations.TestOnly;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.huawei.cangjie.CjNodeTypes.ERROR_ELEMENT;
 import static com.huawei.cangjie.lexer.CjTokens.*;
 
 
@@ -88,6 +89,16 @@ public abstract class AbstractCangJieParsing {
      */
     protected void error(String message) {
         myBuilder.error(message);
+    }
+
+    protected void errorBefore(String message, PsiBuilder.Marker marker) {
+////        PsiBuilder.Marker err = marker.precede();
+//
+//        marker.error(message);
+//
+////        err.done(ERROR_ELEMENT);
+
+
     }
 
     /**
@@ -188,9 +199,6 @@ public abstract class AbstractCangJieParsing {
     protected void errorWithoutAdvancing(String message) {
         mark().error(message);
     }
-
-
-
 
 
     /**
@@ -373,11 +381,11 @@ public abstract class AbstractCangJieParsing {
      * 如果当前标记与复杂标记匹配，则该方法将消耗该标记并返回true。否则，该方法将不会消耗标记并返回false
      */
     protected boolean consumeIfSet(TokenSet tokenSet) {
-      if (atSet(tokenSet)) {
-                advance(); // token
-                return true;
-            }
-            return false;
+        if (atSet(tokenSet)) {
+            advance(); // token
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -395,6 +403,7 @@ public abstract class AbstractCangJieParsing {
 
     /**
      * 跳过标记流中的标记，直到找到指定的标记集合中的任何一个标记
+     *
      * @param tokenSet
      */
     protected void skipUntil(TokenSet tokenSet) {
@@ -403,7 +412,6 @@ public abstract class AbstractCangJieParsing {
             advance();
         }
     }
-
 
 
     protected void errorUntil(String message, TokenSet tokenSet) {
@@ -545,6 +553,7 @@ public abstract class AbstractCangJieParsing {
 
     /**
      * 检查当前标记是否位于行末
+     *
      * @return
      */
     protected boolean eol() {
@@ -553,6 +562,7 @@ public abstract class AbstractCangJieParsing {
 
     /**
      * 关闭声明并绑定注释
+     *
      * @param marker
      * @param elementType
      * @param precedingNonDocComments
@@ -611,6 +621,7 @@ public abstract class AbstractCangJieParsing {
 
     /**
      * 获取当前解析上下文的字符串表示
+     *
      * @return
      */
     @SuppressWarnings("UnusedDeclaration")

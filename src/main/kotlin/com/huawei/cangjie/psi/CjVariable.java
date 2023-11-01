@@ -134,7 +134,7 @@ public class CjVariable extends CjTypeParameterListOwnerStub<CangJieVariableStub
             }
 
             if (getContainingCjFile().isCompiled()) {
-                //don't load ast
+
                 return null;
             }
         }

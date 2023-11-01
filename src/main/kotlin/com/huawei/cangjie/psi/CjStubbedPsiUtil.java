@@ -20,7 +20,7 @@ public final class CjStubbedPsiUtil {
         return getPsiOrStubParent(element, declarationClass, true);
     }
 
-    //TODO: contribute to idea PsiTreeUtil#getPsiOrStubParent
+
     @Nullable
     @SuppressWarnings("unchecked")
     public static <T extends CjElement> T getPsiOrStubParent(
