@@ -9,6 +9,9 @@ inline fun <reified T : Any> Sequence<*>.firstIsInstanceOrNull(): T? {
     return null
 }
 
+annotation class UnsafeCastFunction
+@UnsafeCastFunction
+inline fun <reified T : Any> Any?.cast(): T = this as T
 private val constantMap = ConcurrentHashMap<Function0<*>, Any>()
 fun <T : Any> constant(calculator: () -> T): T {
     val cached = constantMap[calculator]
@@ -25,3 +28,28 @@ fun <T : Any> constant(calculator: () -> T): T {
     constantMap[calculator] = value
     return value
 }
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
+@UnsafeCastFunction
+inline fun <reified T : Any> Any?.safeAs(): @kotlin.internal.NoInfer T? = this as? T
+
+
+inline fun <reified T : Any> Iterable<*>.lastIsInstanceOrNull(): T? {
+    when (this) {
+        is List<*> -> {
+            for (i in this.indices.reversed()) {
+                val element = this[i]
+                if (element is T) return element
+            }
+            return null
+        }
+
+        else -> {
+            return reversed().firstIsInstanceOrNull<T>()
+        }
+    }
+}
+inline fun <reified T : Any> Iterable<*>.firstIsInstanceOrNull(): T? {
+    for (element in this) if (element is T) return element
+    return null
+}
+

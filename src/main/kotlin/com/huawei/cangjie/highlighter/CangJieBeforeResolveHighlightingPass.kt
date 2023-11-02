@@ -40,10 +40,10 @@ class CangJieBeforeResolveHighlightingPass(file: CjFile, document: Document) : A
         override fun registerHighlightingPassFactory(registrar: TextEditorHighlightingPassRegistrar, project: Project) {
             registrar.registerTextEditorHighlightingPass(
                 Factory(),
-                /* anchor = */ TextEditorHighlightingPassRegistrar.Anchor.BEFORE,
-                /* anchorPassId = */ Pass.UPDATE_FOLDING,
-                /* needAdditionalIntentionsPass = */ false,
-                /* inPostHighlightingPass = */ false
+               TextEditorHighlightingPassRegistrar.Anchor.BEFORE,
+              Pass.UPDATE_FOLDING,
+                false,
+                 false
             )
         }
     }

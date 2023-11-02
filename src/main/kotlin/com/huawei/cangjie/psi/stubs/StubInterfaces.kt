@@ -19,7 +19,11 @@ enum class ConstantValueKind {
 }
 
 
-
+interface CangJiePropertyAccessorStub : StubElement<CjPropertyAccessor> {
+    fun isGetter(): Boolean
+    fun hasBody(): Boolean
+    fun hasBlockBody(): Boolean
+}
 interface CangJieCollectionLiteralExpressionStub : StubElement<CjCollectionLiteralExpression>
 
 interface CangJieConstantExpressionStub : StubElement<CjConstantExpression> {

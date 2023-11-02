@@ -1,4 +1,3 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 @file:JvmName("CangJieNameHighlightingStateUtils")
 
@@ -16,7 +15,7 @@ private val NAME_HIGHLIGHTING_STATE_KEY = Key<Boolean>("CANGJIE_NAME_HIGHLIGHTIN
 var Project.isNameHighlightingEnabled: Boolean
     get() = getUserData(NAME_HIGHLIGHTING_STATE_KEY) ?: true
     internal set(value) {
-        // Avoid storing garbage in the user data
+
         val valueToPut = if (!value) false else null
         putUserData(NAME_HIGHLIGHTING_STATE_KEY, valueToPut)
     }

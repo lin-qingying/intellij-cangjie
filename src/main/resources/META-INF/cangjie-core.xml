@@ -1,5 +1,7 @@
-<idea-plugin allow-bundled-update="true">
+<idea-plugin allow-bundled-update="true" xmlns:xi="http://www.w3.org/2001/XInclude">
 
+    <xi:include href="/META-INF/formatter.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/a.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <resource-bundle>messages.CangJieBaseHighlightingBundle</resource-bundle>
     <resource-bundle>messages.CangJieBundle</resource-bundle>
@@ -56,12 +58,19 @@
 
         <highlightingPassFactory implementation="com.huawei.cangjie.highlighter.CangJieBeforeResolveHighlightingPass$Registrar"/>
 
+<!--        <localInspection implementationClass="com.huawei.cangjie.idea.inspections.UseExpressionBodyInspection"-->
+<!--                         groupPath="Kotlin"-->
+<!--                         groupBundle="messages.CangJieBundle" groupKey="group.names.style.issues"-->
+<!--                         enabledByDefault="true"-->
+<!--                         level="INFORMATION"-->
+<!--                         language="CangJie"-->
+<!--                         key="inspection.use.expression.body.display.name" bundle="messages.CangJieBundle"/>-->
 
         <!-- LSP -->
 <!--        <platform.lsp.serverSupportProvider implementation="com.huawei.cangjie.lang.lsp.FooLspServerSupportProvider"/>-->
 
 
-        <!--        服务注册  cangjie1包-->
+        <!--        服务注册  cangjie包-->
 
         <!--        <projectService serviceInterface="com.huawei.cangjie.psi.CjFileClassProvider"-->
         <!--                        serviceImplementation="com.huawei.cangjie.psi.CjFileClassProviderImpl"/>-->
@@ -73,6 +82,11 @@
 <!--                        serviceImplementation="com.huawei.cangjie.idea.references.CangJieFirReferenceContributor"/>-->
 <!--        <projectService serviceInterface="com.huawei.cangjie.idea.references.ReadWriteAccessChecker"-->
 <!--                        serviceImplementation="com.huawei.cangjie.idea.references.ReadWriteAccessCheckerDescriptorsImpl"/>-->
+
+
+
+
+
 
         <applicationService
                 serviceImplementation="com.huawei.cangjie.idea.completion.FirCompletionDummyIdentifierProviderService"

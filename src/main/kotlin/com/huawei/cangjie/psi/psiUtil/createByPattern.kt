@@ -106,7 +106,7 @@ private fun processPattern(pattern: String, args: List<Any>): PatternData {
                     check(n >= 0, "invalid placeholder number: $n")
                     i = lastIndex
 
-                    val arg: Any? = if (n < args.size) args[n] else null /* report wrong number of arguments later */
+                    val arg: Any? = if (n < args.size) args[n] else null
                     val placeholderText = if (charOrNull(i) != ':' || charOrNull(i + 1) != '\'') {
                         arg as? String ?: "xyz"
                     } else {

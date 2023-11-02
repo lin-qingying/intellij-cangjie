@@ -335,4 +335,15 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitTupleType(@NotNull CjTupleType cjTupleType, D data) {
         return visitCjElement(cjTupleType, data);
     }
+
+
+    public R visitFunctionType(@NotNull CjFunctionType type, D data) {
+        return visitTypeElement(type, data);
+    }
+    private R visitTypeElement(@NotNull CjTypeElement type, D data) {
+        return visitCjElement(type, data);
+    }
+    public R visitPropertyAccessor(@NotNull CjPropertyAccessor accessor, D data) {
+        return visitDeclaration(accessor, data);
+    }
 }

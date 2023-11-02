@@ -7,12 +7,7 @@ import java.util.*;
 
 
 
-/**
- * A List which is optimised for the sizes of 0 and 1,
- * in which cases it would not allocate array at all.
- *
- * This class was copied from com.intellij.util.SmartList.
- */
+
 @SuppressWarnings("unchecked")
 public class SmartList<E> extends AbstractList<E> implements RandomAccess {
     private int mySize;
@@ -308,11 +303,7 @@ public class SmartList<E> extends AbstractList<E> implements RandomAccess {
         return a;
     }
 
-    /**
-     * Trims the capacity of this list to be the
-     * list's current size.  An application can use this operation to minimize
-     * the storage of a list instance.
-     */
+
     public void trimToSize() {
         if (mySize < 2) return;
         Object[] array = (Object[])myElem;

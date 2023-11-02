@@ -5,10 +5,6 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.0"
     id("org.jetbrains.intellij") version "1.15.0"
     id("org.jetbrains.grammarkit") version "2022.3.2"
-
-
-
-
 }
 sourceSets {
     main {
@@ -23,10 +19,14 @@ sourceSets {
 }
 
 group = "com.huawei.cangjie"
-version = "dev-0.0.3"
+version = "dev-0.0.4"
 val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
+
 repositories {
     mavenCentral()
+    maven {
+        setUrl("https://jitpack.io")
+    }
 }
 
 
@@ -65,6 +65,8 @@ intellij {
 
 
 }
+
+
 //jar {
 //    from {
 //        configurations.compileClasspath.filter { it.name.startsWith('java-psi-') }.collect { it.isDirectory() ? it : zipTree(it) }
@@ -74,6 +76,8 @@ val intellijVersion ="232.*"
 dependencies{
 //    api("com.jetbrains.intellij.java:java-psi-impl:$intellijVersion") { isTransitive = true }
 //    api("com.jetbrains.intellij.java:java-psi:$intellijVersion") { isTransitive = true }
+
+    implementation("com.github.ballerina-platform:lsp4intellij:0.95.2")
 }
 
 
@@ -116,5 +120,6 @@ tasks {
 
 
 }
+
 
 

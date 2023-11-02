@@ -307,7 +307,7 @@ open class CjVisitorVoid :  CjVisitor<Void?, Void?>() {
         super.visitStringTemplateExpression(expression, null)
     }
 
-    fun visitNamedDeclaration(declaration:CjNamedDeclaration) {
+   open fun visitNamedDeclaration(declaration:CjNamedDeclaration) {
         super.visitNamedDeclaration(declaration, null)
     }
 

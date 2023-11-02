@@ -59,7 +59,7 @@ public class Printer {
             length += string.length();
         }
         catch (IOException e) {
-            // Do nothing
+
         }
     }
 

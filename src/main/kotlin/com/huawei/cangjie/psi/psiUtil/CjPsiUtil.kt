@@ -71,6 +71,7 @@ fun StubBasedPsiElementBase<out CangJieClassOrStructStub<out CjClassOrStruct>>.g
 
     return result
 }
+
 fun isComment(element: PsiElement): Boolean {
     return CommentUtilCore.isComment(element)
 }
@@ -81,6 +82,7 @@ fun CjNamedDeclaration.safeFqNameForLazyResolve(): FqName? {
     val parentFqName = CjNamedDeclarationUtil.getParentFqName(this)
     return parentFqName?.child(safeNameForLazyResolve())
 }
+
 fun CjNamedDeclaration.safeNameForLazyResolve(): Name {
     return nameAsName.safeNameForLazyResolve()
 }
@@ -105,6 +107,7 @@ fun CjExpression.getAssignmentByLHS(): CjBinaryExpression? {
     val parent = parent as? CjBinaryExpression ?: return null
     return if (CjPsiUtil.isAssignment(parent) && parent.left == this) parent else null
 }
+
 fun CjExpression.getQualifiedExpressionForSelectorOrThis(): CjExpression {
     return getQualifiedExpressionForSelector() ?: this
 }
@@ -115,6 +118,7 @@ fun getTrailingCommaByClosingElement(closingElement: PsiElement?): PsiElement? {
 
     return elementBeforeClosingElement.run { if (node.elementType == CjTokens.COMMA) this else null }
 }
+
 var CjElement.parentSubstitute: PsiElement? by UserDataProperty(Key.create<PsiElement>("PARENT_SUBSTITUTE"))
 fun String.quoteIfNeeded(): String = if (this.isIdentifier()) this else "`$this`"
 fun String?.isIdentifier(): Boolean {
@@ -126,6 +130,7 @@ fun String?.isIdentifier(): Boolean {
     lexer.advance()
     return lexer.tokenType == null
 }
+
 fun PsiElement.astReplace(newElement: PsiElement) = parent.node.replaceChild(node, newElement.node)
 fun CjElement.getQualifiedElementSelector(): CjElement? {
     return when (this) {
@@ -135,14 +140,17 @@ fun CjElement.getQualifiedElementSelector(): CjElement? {
             val selector = selectorExpression
             (selector as? CjCallExpression)?.calleeExpression ?: selector
         }
+
         is CjUserType -> referenceExpression
         else -> null
     }
 }
+
 fun CjElement.getQualifiedExpressionForSelector(): CjQualifiedExpression? {
     val parent = parent
     return if (parent is CjQualifiedExpression && parent.selectorExpression == this) parent else null
 }
+
 val CjDeclaration.containingClassOrStruct: CjClassOrStruct?
     get() = parent.let {
         when (it) {
@@ -152,15 +160,22 @@ val CjDeclaration.containingClassOrStruct: CjClassOrStruct?
             else -> null
         }
     }
+
 fun getTrailingCommaByElementsList(elementList: PsiElement?): PsiElement? {
-    val lastChild = elementList?.lastChild?.let { if (it !is PsiComment) it else it.getPrevSiblingIgnoringWhitespaceAndComments() }
+    val lastChild =
+        elementList?.lastChild?.let { if (it !is PsiComment) it else it.getPrevSiblingIgnoringWhitespaceAndComments() }
     return lastChild?.takeIf { it.node.elementType == CjTokens.COMMA }
 }
+
 fun CjStringTemplateExpression.getContentRange(): TextRange {
     val start = node.firstChildNode.textLength
     val lastChild = node.lastChildNode
     val length = textLength
-    return TextRange(start, if (lastChild.elementType == CjTokens.CLOSING_QUOTE) length - lastChild.textLength else length)
+    return TextRange(
+        start,
+        if (lastChild.elementType == CjTokens.CLOSING_QUOTE) length - lastChild.textLength else length
+    )
 }
+
 fun CjStringTemplateExpression.isSingleQuoted(): Boolean = node.firstChildNode.textLength == 1
 fun CjStringTemplateExpression.isPlain() = entries.all { it is CjLiteralStringTemplateEntry }

@@ -26,18 +26,22 @@ class CjPsiFactory private constructor(
     private val eventSystemEnabled: Boolean,
 ) {
     fun createColon(): PsiElement {
-        return createProperty("let x: Int").findElementAt(5)!!
+        return createVariable("let x: Int64").findElementAt(5)!!
+    }
+
+    fun createSemicolon(): PsiElement {
+        return createVariable("let x: Int64;").findElementAt(12)!!
     }
     fun createConstructorKeyword(): PsiElement =
-        createClass("class A init()").primaryConstructor!!.getInitKeyword()!!
+        createClass("class A ").primaryConstructor!!.getInitKeyword()!!
 
     fun createNameIdentifier(@NonNls name: String) = createNameIdentifierIfPossible(name)!!
-    fun createNameIdentifierIfPossible(@NonNls name: String) = createProperty(name, null, false).nameIdentifier
-    fun createProperty(@NonNls name: String, @NonNls type: String?, isVar: Boolean): CjVariable {
-        return createProperty(name, type, isVar, null)
+    fun createNameIdentifierIfPossible(@NonNls name: String) = createVariable(name, null, false).nameIdentifier
+    fun createVariable(@NonNls name: String, @NonNls type: String?, isVar: Boolean): CjVariable {
+        return createVariable(name, type, isVar, null)
     }
-    fun createProperty(@NonNls name: String, @NonNls type: String?, isVar: Boolean, @NonNls initializer: String?): CjVariable {
-        return createProperty(null, name, type, isVar, initializer)
+    fun createVariable(@NonNls name: String, @NonNls type: String?, isVar: Boolean, @NonNls initializer: String?): CjVariable {
+        return createVariable(null, name, type, isVar, initializer)
     }
     fun creareDelegatedSuperTypeEntry(@NonNls text: String): CjConstructorDelegationCall {
         val colonOrEmpty = if (text.isEmpty()) "" else ": "
@@ -46,7 +50,7 @@ class CjPsiFactory private constructor(
     fun createClass(@NonNls text: String): CjClass {
         return createDeclaration(text)
     }
-    fun createProperty(
+    fun createVariable(
         @NonNls modifiers: String?,
         @NonNls name: String,
         @NonNls type: String?,
@@ -54,9 +58,9 @@ class CjPsiFactory private constructor(
         @NonNls initializer: String?
     ): CjVariable {
         val text = modifiers.let { "$it " } +
-                (if (isVar) " var " else " val ") + name +
+                (if (isVar) " var " else " let ") + name +
                 (if (type != null) ":$type" else "") + (if (initializer == null) "" else " = $initializer")
-        return createProperty(text)
+        return createVariable(text)
     }
 
     fun createPackageDirectiveIfNeeded(fqName: FqName): CjPackageDirective? {
@@ -74,11 +78,12 @@ class CjPsiFactory private constructor(
 
     private fun doCreateExpression(@NonNls text: String):CjExpression? {
         //注意：下面的‘\n’很重要--如果没有它，会出现一些奇怪的代码缩进问题
-        return createProperty("val x =\n$text").initializer
+        return createVariable("let x =\n$text").initializer
     }
-    fun createProperty(@NonNls text: String): CjVariable {
+    fun createVariable(@NonNls text: String): CjVariable {
         return createDeclaration(text)
     }
+
     fun <TDeclaration : CjDeclaration> createDeclaration(@NonNls text: String): TDeclaration {
         val file = createFile(text)
         val declarations = file.declarations
@@ -144,7 +149,7 @@ class CjPsiFactory private constructor(
         return createType("T<X, Y>").findElementAt(3)!!
     }
     fun createTypeIfPossible(@NonNls type: String): CjTypeReference? {
-        val typeReference = createProperty("val x : $type").typeReference
+        val typeReference = createVariable("val x : $type").typeReference
         return if (typeReference?.text == type) typeReference else null
     }
     fun createType(@NonNls type: String): CjTypeReference {
@@ -164,7 +169,7 @@ class CjPsiFactory private constructor(
     }
 
     fun createWhiteSpace(@NonNls text: String): PsiElement {
-        return createProperty("val${text}x: Int").findElementAt(3)!!
+        return createVariable("let${text}x: Int64").findElementAt(3)!!
     }
     fun createWhiteSpace(): PsiElement {
         return createWhiteSpace(" ")

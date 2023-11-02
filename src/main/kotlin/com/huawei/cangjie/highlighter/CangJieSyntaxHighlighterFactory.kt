@@ -14,9 +14,10 @@ internal class CangJieSyntaxHighlighterFactory : SingleLazyInstanceSyntaxHighlig
     override fun createHighlighter(): SyntaxHighlighter = CangJieHighlighter()
 
     override fun create(fileType: FileType, project: Project?, file: VirtualFile?): SyntaxHighlighter? =
-        when (fileType) {
-//            CangJieBuiltInFileType, CJlibMetaFileType -> getSyntaxHighlighter(project, file)
-            else -> null
-        }
+//        when (fileType) {
+////            CangJieBuiltInFileType, CJlibMetaFileType -> getSyntaxHighlighter(project, file)
+//            else -> null
+//        }
+    null
 
 }

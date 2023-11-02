@@ -12,14 +12,7 @@ class CjSuperExpression(node: ASTNode) : CjInstanceExpressionWithLabel(node), Cj
     }
 
     val superTypeQualifier: CjTypeReference?
-        /**
-         * class A : B, C {
-         * override fun foo() {
-         * super<B>.foo()
-         * super<C>.foo()
-         * }
-         * }
-        </C></B> */
+
         get() = findChildByType<PsiElement>(CjNodeTypes.TYPE_REFERENCE) as CjTypeReference?
 }
 

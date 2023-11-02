@@ -27,8 +27,7 @@ class CangJieStringLiteralTextEscaper(host: CjStringTemplateExpression) : Litera
             when (child) {
                 is CjEscapeStringTemplateEntry -> {
                     if (!rangeInsideHost.contains(childRange)) {
-                        //don't allow injection if its range starts or ends inside escaped sequence
-                        //but still process offsets for the already decoded part
+
                         sourceOffsetsList.add(sourceOffset)
                         sourceOffsets = sourceOffsetsList.toNativeArray()
                         return false

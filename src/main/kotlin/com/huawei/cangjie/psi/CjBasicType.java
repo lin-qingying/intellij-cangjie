@@ -12,10 +12,6 @@ import java.util.Collections;
 import java.util.List;
 
 
-/**
- * ��������
- */
-
 public class CjBasicType extends CjElementImplStub<CangJieBasicTypeStub> implements CjTypeElement{
     public CjBasicType(@NotNull ASTNode node) {
         super(node);
@@ -40,7 +36,7 @@ public class CjBasicType extends CjElementImplStub<CangJieBasicTypeStub> impleme
 
     @NotNull
     public List<CjTypeProjection> getTypeArguments() {
-        // TODO: PSI �еĿ�Ԫ��
+
         CjTypeArgumentList typeArgumentList = getTypeArgumentList();
         return typeArgumentList == null ? Collections.emptyList() : typeArgumentList.getArguments();
     }

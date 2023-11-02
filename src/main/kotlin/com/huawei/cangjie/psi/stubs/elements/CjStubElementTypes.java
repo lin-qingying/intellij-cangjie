@@ -4,10 +4,13 @@ import com.huawei.cangjie.psi.*;
 import com.intellij.psi.tree.TokenSet;
 
 public interface CjStubElementTypes {
-
-
+    CjPropertyAccessorElementType PROPERTY_ACCESSOR = new CjPropertyAccessorElementType("PROPERTY_ACCESSOR");
+    CjPlaceHolderStubElementType<CjFunctionType> FUNCTION_TYPE =
+            new CjPlaceHolderStubElementType<>("FUNCTION_TYPE", CjFunctionType.class);
     CjConstantExpressionElementType BOOLEAN_CONSTANT = new CjConstantExpressionElementType("BOOLEAN_CONSTANT");
 
+    CjPlaceHolderStubElementType<CjFunctionTypeReceiver> FUNCTION_TYPE_RECEIVER =
+            new CjPlaceHolderStubElementType<>("FUNCTION_TYPE_RECEIVER", CjFunctionTypeReceiver.class);
 
     CjConstantExpressionElementType UNIT_CONSTANT = new CjConstantExpressionElementType("UNIT_CONSTANT");
 
@@ -139,9 +142,10 @@ public interface CjStubElementTypes {
 
 
 
+    CjTypeCodeFragmentType TYPE_CODE_FRAGMENT = new CjTypeCodeFragmentType();
 
-
-
+    CjExpressionCodeFragmentType EXPRESSION_CODE_FRAGMENT = new CjExpressionCodeFragmentType();
+    CjBlockCodeFragmentType BLOCK_CODE_FRAGMENT = new CjBlockCodeFragmentType();
 
 
 

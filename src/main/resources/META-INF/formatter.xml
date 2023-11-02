@@ -1,0 +1,38 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <lang.formatter language="CangJie"
+                        implementationClass="com.huawei.cangjie.idea.formatter.CangJieFormattingModelBuilder"/>
+
+
+        <!--自动缩进-->
+        <lineIndentProvider implementation="com.huawei.cangjie.idea.formatter.CangJieLineIndentProvider"/>
+
+
+        <!--        格式化预处理-->
+        <!--        <preFormatProcessor implementation="com.huawei.cangjie.idea.formatter.CangJiePreFormatProcessor"/>-->
+
+        <!--后格式化处理器 尾随逗号-->
+        <!--        <postFormatProcessor implementation="com.huawei.cangjie.idea.formatter.TrailingCommaPostFormatProcessor"/>-->
+
+        <!--代码样式设置-->
+        <langCodeStyleSettingsProvider
+                implementation="com.huawei.cangjie.idea.formatter.CangJieLanguageCodeStyleSettingsProvider"/>
+
+        <!--代码生成-->
+        <codeStyleSettingsProvider
+                implementation="com.huawei.cangjie.idea.formatter.CangJieGenerationSettingsProvider"/>
+
+
+        <!--符合标准风格的代码样式设置-->
+        <predefinedCodeStyle implementation="com.huawei.cangjie.idea.formatter.CangJieStyleGuideCodeStyle"/>
+        <!--        废弃的代码样式-->
+        <!--        <predefinedCodeStyle implementation="com.huawei.cangjie.idea.formatter.CangJieObsoleteCodeStyle"/>-->
+
+
+        <registryKey
+                key="cangjie.formatter.allowTrailingCommaOnCallSite"
+                description="Allow a trailing comma on call-site"
+                defaultValue="false"
+                restartRequired="false"/>
+    </extensions>
+</idea-plugin>

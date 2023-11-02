@@ -627,7 +627,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   : modifiers ("let" | "var")
      *   ;
      */
-    public IElementType parseVariable(ModifierDetector classdetector ) {
+    public IElementType parseVariable(ModifierDetector classdetector) {
         assert (at(LET_KEYWORD) || at(VAR_KEYWORD));
         advance();
 
@@ -700,8 +700,36 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        }
 
 //        beforeName.drop();
+        consumeIf(SEMICOLON);
         return VARIABLE;
 
+    }
+
+    void parseExpressionCodeFragment() {
+        PsiBuilder.Marker marker = mark();
+        myExpressionParsing.parseExpression();
+
+        checkForUnexpectedSymbols();
+
+        marker.done(EXPRESSION_CODE_FRAGMENT);
+    }
+
+    void parseBlockCodeFragment() {
+        PsiBuilder.Marker marker = mark();
+        PsiBuilder.Marker blockMarker = mark();
+
+        if (at(PACKAGE_KEYWORD) || at(IMPORT_KEYWORD)) {
+            PsiBuilder.Marker err = mark();
+            parsePreamble();
+            err.error("Package directive and imports are forbidden in code fragments");
+        }
+
+        myExpressionParsing.parseStatements();
+
+        checkForUnexpectedSymbols();
+
+        blockMarker.done(BLOCK);
+        marker.done(BLOCK_CODE_FRAGMENT);
     }
 
     enum DeclarationParsingMode {
@@ -999,6 +1027,22 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
 
 
+    }
+
+
+    void parseTypeCodeFragment() {
+        PsiBuilder.Marker marker = mark();
+        parseTypeRef();
+
+        checkForUnexpectedSymbols();
+
+        marker.done(TYPE_CODE_FRAGMENT);
+    }
+
+    private void checkForUnexpectedSymbols() {
+        while (!eof()) {
+            errorAndAdvance("Unexpected symbol");
+        }
     }
 
     private void parseEnumEntry() {

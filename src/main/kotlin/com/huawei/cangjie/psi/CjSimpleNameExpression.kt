@@ -33,7 +33,7 @@ abstract class CjSimpleNameExpressionImpl(node: ASTNode) : CjExpressionImpl(node
 
     override fun getReferencedName() = getReferencedNameImpl(this)
 
-    //NOTE: an unfortunate way to share an implementation between stubbed and not stubbed tree
+
     companion object {
         fun getReferencedNameElementTypeImpl(expression: CjSimpleNameExpression): IElementType {
             return expression.getReferencedNameElement().node!!.elementType

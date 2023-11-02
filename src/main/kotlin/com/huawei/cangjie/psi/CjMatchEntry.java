@@ -21,7 +21,6 @@ public class CjMatchEntry extends CjElementImpl {
         return findChildByType(CjTokens.UNDERLINE);
     }
 
-
     @Nullable
     public CjExpression getExpression() {
         return findChildByClass(CjExpression.class);

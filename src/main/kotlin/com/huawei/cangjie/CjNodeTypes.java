@@ -39,6 +39,8 @@ public interface CjNodeTypes {
     IElementType BLOCK = new BlockExpressionElementType();
     IElementType LABEL = new CjNodeType("LABEL", CjLabelReferenceExpression.class);
     IElementType CLASS_BODY = CjStubElementTypes.CLASS_BODY;
+
+    IElementType FUNCTION_LITERAL          = new CjNodeType("FUNCTION_LITERAL", CjFunctionLiteral.class);
     IElementType LABEL_QUALIFIER = new CjNodeType("LABEL_QUALIFIER", CjContainerNode.class);
     IElementType PACKAGE_DIRECTIVE = CjStubElementTypes.PACKAGE_DIRECTIVE;
     IElementType SUPER_TYPE_ENTRY                   = CjStubElementTypes.SUPER_TYPE_ENTRY;
@@ -134,9 +136,16 @@ public interface CjNodeTypes {
 
     IElementType TYPE_PATTERN = new CjNodeType("TYPE_PATTERN", CjTypePattern.class);
     IElementType ENUM_PATTERN = new CjNodeType("ENUM_PATTERN", CjEnumPattern.class);
-
-
+    IElementType FUNCTION_TYPE            = CjStubElementTypes.FUNCTION_TYPE;
+    IElementType PROPERTY_ACCESSOR       = CjStubElementTypes.PROPERTY_ACCESSOR;
     IElementType ERROR_ELEMENT = new CjNodeType("ERROR_ELEMENT", CjErrorElement.class);
+
+    IElementType SECONDARY_CONSTRUCTOR  = CjStubElementTypes.SECONDARY_CONSTRUCTOR;
+    IElementType PRIMARY_CONSTRUCTOR    = CjStubElementTypes.PRIMARY_CONSTRUCTOR;
+    IElementType CONTEXT_RECEIVER_LIST  = CjStubElementTypes.CONTEXT_RECEIVER_LIST;
+    IFileElementType TYPE_CODE_FRAGMENT = CjStubElementTypes.TYPE_CODE_FRAGMENT;
+    IFileElementType EXPRESSION_CODE_FRAGMENT = CjStubElementTypes.EXPRESSION_CODE_FRAGMENT;
+    IFileElementType BLOCK_CODE_FRAGMENT = CjStubElementTypes.BLOCK_CODE_FRAGMENT;
 }
 
 

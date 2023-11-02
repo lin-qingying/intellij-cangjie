@@ -148,7 +148,7 @@ public class CangJieHighlightingColors {
     public final static TextAttributesKey VARIABLE_AS_FUNCTION_LIKE_CALL = createTextAttributesKey("CANGJIE_VARIABLE_AS_FUNCTION_LIKE");
 
 
-    // other
+
     public final static TextAttributesKey BAD_CHARACTER =
             createTextAttributesKey("CANGJIE_BAD_CHARACTER", HighlighterColors.BAD_CHARACTER);
     public final static TextAttributesKey SMART_CAST_VALUE = createTextAttributesKey("CANGJIE_SMART_CAST_VALUE");

@@ -31,9 +31,7 @@ abstract class AbstractHighlightingPassBase(
         @Volatile
         private var IGNORE_IN_TESTS: Boolean = false
 
-        /**
-         * Make {@link AbstractHighlightingPassBase}-derived passes report nothing inside this method
-         */
+
         @TestOnly
         fun <T> ignoreThesePassesInTests(action: () -> T): T {
             assert(ApplicationManager.getApplication().isUnitTestMode)

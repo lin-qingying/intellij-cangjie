@@ -4,6 +4,7 @@ import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes.CLASS_BODY
 import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 
@@ -31,6 +32,10 @@ class CjClassBody : CjElementImplStub<CangJiePlaceHolderStub<CjClassBody>>, CjDe
         get() =stub?.getChildrenByType(CjFile.FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
             ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java)
 
+    val rBrace: PsiElement?
+        get() = node.getChildren(rBraceTokenSet).singleOrNull()?.psi
 
+    val lBrace: PsiElement?
+        get() = node.getChildren(lBraceTokenSet).singleOrNull()?.psi
 
 }

@@ -1,8 +1,11 @@
 package com.huawei.cangjie.psi.psiUtil
 
 import com.huawei.cangjie.psi.CjFile
+import com.intellij.lang.ASTNode
+import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
 import com.intellij.psi.impl.source.tree.LazyParseablePsiElement
+import com.intellij.psi.impl.source.tree.TreeUtil
 import com.intellij.psi.util.PsiTreeUtil
 import java.util.NoSuchElementException
 inline fun <reified T : PsiElement> PsiElement.getParentOfType(strict: Boolean): T? {
@@ -28,6 +31,23 @@ fun PsiElement.siblings(forward: Boolean = true, withItself: Boolean = true): Se
     }
 }
 
+fun PsiElement.nextLeaf(skipEmptyElements: Boolean = false): PsiElement? = PsiTreeUtil.nextLeaf(this, skipEmptyElements)
+fun PsiElement.prevLeaf(filter: (PsiElement) -> Boolean): PsiElement? {
+    var leaf = prevLeaf()
+    while (leaf != null && !filter(leaf)) {
+        leaf = leaf.prevLeaf()
+    }
+    return leaf
+}
+fun PsiElement.prevLeaf(skipEmptyElements: Boolean = false): PsiElement? = PsiTreeUtil.prevLeaf(this, skipEmptyElements)
+
+fun PsiElement.nextLeaf(filter: (PsiElement) -> Boolean): PsiElement? {
+    var leaf = nextLeaf()
+    while (leaf != null && !filter(leaf)) {
+        leaf = leaf.nextLeaf()
+    }
+    return leaf
+}
 val PsiElement.endOffset: Int
     get() = textRange.endOffset
 
@@ -82,4 +102,71 @@ inline fun <reified T : PsiElement> PsiElement.getChildOfType(): T? {
 }
 inline fun <reified T : PsiElement> PsiElement.getStrictParentOfType(): T? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, true)
+}
+fun ASTNode.children() = generateSequence(firstChildNode) { node -> node.treeNext }
+fun ASTNode.siblings(forward: Boolean = true): Sequence<ASTNode> {
+    if (forward) {
+        return generateSequence(treeNext) { it.treeNext }
+    } else {
+        return generateSequence(treePrev) { it.treePrev }
+    }
+}
+fun ASTNode.parents() = generateSequence(treeParent) { node -> node.treeParent }
+fun ASTNode.leaves(forward: Boolean = true): Sequence<ASTNode> {
+    if (forward) {
+        return generateSequence(TreeUtil.nextLeaf(this)) { TreeUtil.nextLeaf(it) }
+    } else {
+        return generateSequence(TreeUtil.prevLeaf(this)) { TreeUtil.prevLeaf(it) }
+    }
+}
+
+val PsiElement.startOffsetSkippingComments: Int
+    get() {
+        if (!startsWithComment()) return startOffset // fastpath
+        val firstNonCommentChild = generateSequence(firstChild) { it.nextSibling }
+            .firstOrNull { it !is PsiWhiteSpace && it !is PsiComment }
+        return firstNonCommentChild?.startOffset ?: startOffset
+    }
+inline fun <reified T : PsiElement> T.nextSiblingOfSameType() = PsiTreeUtil.getNextSiblingOfType(this, T::class.java)
+
+fun PsiElement.startsWithComment(): Boolean = firstChild is PsiComment
+
+val PsiElement.textRangeWithoutComments: TextRange
+    get() = if (!startsWithComment()) textRange else TextRange(startOffsetSkippingComments, endOffset)
+
+fun PsiElement.getNextSiblingIgnoringWhitespace(withItself: Boolean = false): PsiElement? {
+    return siblings(withItself = withItself).filter { it !is PsiWhiteSpace }.firstOrNull()
+}
+inline fun <reified T : PsiElement> PsiElement.anyDescendantOfType(
+    crossinline canGoInside: (PsiElement) -> Boolean,
+    noinline predicate: (T) -> Boolean = { true }
+): Boolean {
+    return findDescendantOfType(canGoInside, predicate) != null
+}
+inline fun <reified T : PsiElement> PsiElement.findDescendantOfType(
+    crossinline canGoInside: (PsiElement) -> Boolean,
+    noinline predicate: (T) -> Boolean = { true }
+): T? {
+    checkDecompiledText()
+    var result: T? = null
+    this.accept(object : PsiRecursiveElementWalkingVisitor() {
+        override fun visitElement(element: PsiElement) {
+            if (element is T && predicate(element)) {
+                result = element
+                stopWalking()
+                return
+            }
+
+            if (canGoInside(element)) {
+                super.visitElement(element)
+            }
+        }
+    })
+    return result
+}
+fun PsiElement.checkDecompiledText() {
+    val file = containingFile
+    if (file is CjFile && file.isCompiled && file.stub != null) {
+        error("Attempt to load decompiled text, please use stubs instead. Decompile process might be slow and should be avoided")
+    }
 }

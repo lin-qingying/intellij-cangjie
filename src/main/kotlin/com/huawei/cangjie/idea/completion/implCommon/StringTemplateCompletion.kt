@@ -17,12 +17,7 @@ object StringTemplateCompletion {
             if (expression is CjDotQualifiedExpression) {
                 val correctedPosition = (expression.selectorExpression as? CjNameReferenceExpression)?.firstChild
                 if (correctedPosition != null) {
-                    // Workaround for Cj-16848
-                    // ex:
-                    // expression: some.IntellijIdeaRulezzz
-                    // correctedOffset: ^
-                    // expression: some.funcIntellijIdeaRulezzz
-                    // correctedOffset      ^
+
                     val correctedOffset = correctedPosition.endOffset - CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED.length
                     return parameters.withPosition(correctedPosition, correctedOffset)
                 }
