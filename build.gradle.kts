@@ -23,7 +23,7 @@ sourceSets {
 }
 
 group = "com.huawei.cangjie"
-version = "dev-0.0.2"
+version = "dev-0.0.3"
 val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
 repositories {
     mavenCentral()
@@ -55,7 +55,7 @@ intellij {
 
 
 
-    version.set("232.9559.62")
+    version.set("232-EAP-SNAPSHOT")
     type.set("IC") // Target IDE Platform
 ////加载PsiViewer插件 grammar-kit
     plugins.set(listOf(

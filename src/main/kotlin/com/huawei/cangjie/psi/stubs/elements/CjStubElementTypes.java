@@ -65,7 +65,7 @@ public interface CjStubElementTypes {
 
 
     CjEnumElementType ENUM = new CjEnumElementType("ENUM");
-
+    CjExtendElementType EXTEND = new CjExtendElementType("EXTEND");
     CjPlaceHolderStubElementType<CjContextReceiverList> CONTEXT_RECEIVER_LIST =
             new CjPlaceHolderStubElementType<>("CONTEXT_RECEIVER_LIST", CjContextReceiverList.class);
     CjPlaceHolderStubElementType<CjTypeParameterList> TYPE_PARAMETER_LIST =
@@ -85,6 +85,7 @@ public interface CjStubElementTypes {
 
     CjUserTypeElementType USER_TYPE = new CjUserTypeElementType("USER_TYPE");
 
+    CjTupleTypeElementType TUPLE_TYPE = new CjTupleTypeElementType("TUPLE_TYPE");
 
     CjPlaceHolderStubElementType<CjClassBody> CLASS_BODY =
             new CjPlaceHolderStubElementType<>("CLASS_BODY", CjClassBody.class);
@@ -93,7 +94,11 @@ public interface CjStubElementTypes {
 
     CjPlaceHolderStubElementType<CjPropertyBody> PROPERTY_BODY =
             new CjPlaceHolderStubElementType<>("PROPERTY_BODY", CjPropertyBody.class);
+    CjPlaceHolderStubElementType<CjPropertyGet> PROPERTY_GET =
+            new CjPlaceHolderStubElementType<>("PROPERTY_GET", CjPropertyGet.class);
 
+    CjPlaceHolderStubElementType<CjPropertySet> PROPERTY_SET =
+            new CjPlaceHolderStubElementType<>("PROPERTY_SET", CjPropertySet.class);
     CjPlaceHolderStubElementType<CjTypeConstraintList> TYPE_CONSTRAINT_LIST =
             new CjPlaceHolderStubElementType<>("TYPE_CONSTRAINT_LIST", CjTypeConstraintList.class);
     CjPlaceHolderStubElementType<CjParameterList> VALUE_PARAMETER_LIST =

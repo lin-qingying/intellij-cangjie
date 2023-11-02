@@ -24,7 +24,7 @@ open class CangJieInterfaceStubImpl(
 
 
     private val isLocal: Boolean,
-    private val isTopLevel: Boolean,
+//    private val isTopLevel: Boolean,
 ) : CangJieStubBaseImpl<CjInterface>(parent, type), CangJieInterfaceStub {
 
     override fun getFqName(): FqName? {
@@ -47,5 +47,5 @@ open class CangJieInterfaceStubImpl(
 
     override fun getClassId(): ClassId? = classId
 
-    override fun isTopLevel() = isTopLevel
+//    override fun isTopLevel() = isTopLevel
 }

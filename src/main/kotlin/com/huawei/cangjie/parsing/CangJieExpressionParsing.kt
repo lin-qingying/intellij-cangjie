@@ -50,7 +50,7 @@ open class CangJieExpressionParsing(
             }
         },
 
-        MULTIPLICATIVE(MUL, DIV, PERC),
+        MULTIPLICATIVE(MUL, DIV, PERC, MULMUL),
         ADDITIVE(PLUS, MINUS),
         RANGE(CjTokens.RANGE),
 
@@ -71,10 +71,10 @@ open class CangJieExpressionParsing(
         DISJUNCTION(OROR),
 
         //位运算
-        BITWISE(AND, OR, XOR),
+        BITWISE(AND, OR, XOR, LTLT, GTGT),
 
 
-        ASSIGNMENT(EQ, PLUSEQ, MINUSEQ, MULTEQ, DIVEQ, PERCEQ);
+        ASSIGNMENT(EQ, PLUSEQ, MINUSEQ, MULTEQ, DIVEQ, PERCEQ, ANDEQ, OREQ, XOREQ, LTLTEQ, GTGTEQ, MULMULEQ);
 
         private var higher: Precedence? = null
         private val operations: TokenSet
@@ -323,7 +323,6 @@ open class CangJieExpressionParsing(
                 cangJieParsing.parseTypeRef()
                 true
             } else if (atSet(BASICTYPES)) {
-
 
 
                 errorAndAdvance("expected expression or declaration, found keyword ${myBuilder.tokenText}")
@@ -634,27 +633,49 @@ open class CangJieExpressionParsing(
             fun parseSimpleNameExpression() {
                 assert(_at(IDENTIFIER))
                 val mark = mark()
-                advance() // IDENTIFIER
-                //1.绑定模式
-                //2.类型模式
-                //3.枚举模式
                 var type = 1
-                if (at(COLON)) {
-                    advance() // COLON
-                    type = 2
+
+                if (lookahead(1) == DOT) {
                     cangJieParsing.parseTypeRef()
 
-                } else if (at(LPAR)) {
-                    //枚举模式
-                    advance() // LPAR
                     type = 3
-                    parseExpression()
-                    while (at(COMMA)) {
-                        advance() // COMMA
+
+                    if (at(LPAR)) {
+                        //枚举模式
+                        advance() // LPAR
+                        type = 3
                         parseExpression()
+                        while (at(COMMA)) {
+                            advance() // COMMA
+                            parseExpression()
+                        }
+                        expect(RPAR, "Expecting ')'")
                     }
-                    expect(RPAR, "Expecting ')'")
+                } else {
+                    advance() // IDENTIFIER
+
+                    //1.绑定模式
+                    //2.类型模式
+                    //3.枚举模式
+                    if (at(COLON)) {
+                        advance() // COLON
+                        type = 2
+                        cangJieParsing.parseTypeRef()
+
+                    } else if (at(LPAR)) {
+                        //枚举模式
+                        advance() // LPAR
+                        type = 3
+                        parseExpression()
+                        while (at(COMMA)) {
+                            advance() // COMMA
+                            parseExpression()
+                        }
+                        expect(RPAR, "Expecting ')'")
+                    }
                 }
+
+
                 when (type) {
                     1 -> mark.done(REFERENCE_EXPRESSION)
                     2 -> mark.done(TYPE_PATTERN)
@@ -667,8 +688,16 @@ open class CangJieExpressionParsing(
 
             fun parseUnderline() {
                 assert(_at(UNDERLINE))
-
                 advance()
+
+
+                if (at(COLON)) {
+                    advance() // COLON
+                    //处理类型
+                    cangJieParsing.parseTypeRef()
+                }
+
+
             }
 
             fun parseExpression() {
@@ -1199,7 +1228,7 @@ open class CangJieExpressionParsing(
      *   ;
      */
     private fun parseCollectionLiteralExpression() {
-        parseAsCollectionLiteralExpression(COLLECTION_LITERAL_EXPRESSION, false, "Expecting an element")
+        parseAsCollectionLiteralExpression(COLLECTION_LITERAL_EXPRESSION, true, "Expecting an element")
     }
 
     /*

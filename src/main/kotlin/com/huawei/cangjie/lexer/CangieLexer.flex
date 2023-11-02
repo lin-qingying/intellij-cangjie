@@ -272,6 +272,7 @@ LONELY_BACKTICK=`
 "while"      { return CjTokens.WHILE_KEYWORD ;}
 "break"      { return CjTokens.BREAK_KEYWORD ;}
 "class"      { return CjTokens.CLASS_KEYWORD ;}
+"extend"     { return CjTokens.EXTEND_KEYWORD ;}
 "throw"      { return CjTokens.THROW_KEYWORD ;}
 "false"      { return CjTokens.FALSE_KEYWORD ;}
 "super"      { return CjTokens.SUPER_KEYWORD ;}
@@ -363,6 +364,8 @@ LONELY_BACKTICK=`
 "<-"     { return CjTokens.LEFT_ARROW; }
 ".."         { return CjTokens.RANGE     ; }
 
+"**="        { return CjTokens.MULMULEQ  ; }
+
 "["          { return CjTokens.LBRACKET  ; }
 "]"          { return CjTokens.RBRACKET  ; }
 "{"          { return CjTokens.LBRACE    ; }
@@ -371,6 +374,7 @@ LONELY_BACKTICK=`
 ")"          { return CjTokens.RPAR      ; }
 "."          { return CjTokens.DOT       ; }
 "*"          { return CjTokens.MUL       ; }
+"**"        { return CjTokens.MULMUL    ; }
 "+"          { return CjTokens.PLUS      ; }
 "-"          { return CjTokens.MINUS     ; }
 "!"          { return CjTokens.EXCL      ; }
@@ -384,6 +388,13 @@ LONELY_BACKTICK=`
 ";"          { return CjTokens.SEMICOLON ; }
 "="          { return CjTokens.EQ        ; }
 ","          { return CjTokens.COMMA     ; }
+"|="       { return CjTokens.OREQ     ; }
+"^="       { return CjTokens.XOREQ     ; }
+"&="       { return CjTokens.ANDEQ     ; }
+"<<="      { return CjTokens.LTLTEQ     ; }
+">>="      { return CjTokens.GTGTEQ     ; }
+//">>"     { return CjTokens.GTGT     ; }
+//"<<"     { return CjTokens.LTLT     ; }
 
 
 {LONELY_BACKTICK} { pushState(UNMATCHED_BACKTICK); return TokenType.BAD_CHARACTER; }

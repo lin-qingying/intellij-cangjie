@@ -44,6 +44,7 @@ interface CangJieValueArgumentStub<T : CjValueArgument> : CangJiePlaceHolderStub
     fun isSpread(): Boolean
 }
 interface CangJieUserTypeStub : StubElement<CjUserType>
+interface CangJieTupleTypeStub : StubElement<CjTupleType>
 interface CangJieBasicTypeStub : StubElement<CjBasicType>
 
 interface CangJieClassifierStub {
@@ -88,10 +89,12 @@ interface  CangJieInterfaceStub: CangJieClassOrStructStub<CjInterface> {
 }
 
 interface  CangJieEnumStub : CangJieClassOrStructStub<CjEnum>
+interface  CangJieExtendStub : CangJieClassOrStructStub<CjExtend>
+
 interface CangJieClassOrStructStub<T : CjClassOrStruct> : CangJieClassifierStub, CangJieStubWithFqName<T> {
     fun isLocal(): Boolean
     fun getSuperNames(): List<String>
-    fun isTopLevel(): Boolean
+//    fun isTopLevel(): Boolean
 }
 interface CangJieConstructorStub<T : CjConstructor<T>> :
     CangJieCallableStubBase<T> {

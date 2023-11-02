@@ -13,9 +13,7 @@ import java.util.List;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 
 
-/**
- * �Զ�������  ���˻������ͺ��������ͣ����������Զ�������
- */
+
 public class CjUserType extends  CjElementImplStub<CangJieUserTypeStub> implements CjTypeElement{
 
 
@@ -39,7 +37,7 @@ public class CjUserType extends  CjElementImplStub<CangJieUserTypeStub> implemen
 
     @NotNull
     public List<CjTypeProjection> getTypeArguments() {
-        // TODO: PSI �еĿ�Ԫ��
+
         CjTypeArgumentList typeArgumentList = getTypeArgumentList();
         return typeArgumentList == null ? Collections.emptyList() : typeArgumentList.getArguments();
     }

@@ -57,6 +57,8 @@
         <highlightingPassFactory implementation="com.huawei.cangjie.highlighter.CangJieBeforeResolveHighlightingPass$Registrar"/>
 
 
+        <!-- LSP -->
+<!--        <platform.lsp.serverSupportProvider implementation="com.huawei.cangjie.lang.lsp.FooLspServerSupportProvider"/>-->
 
 
         <!--        服务注册  cangjie1包-->

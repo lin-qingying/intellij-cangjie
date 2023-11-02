@@ -23,7 +23,7 @@ open  class  CangJieStructStubImpl   (
 
 
     private val isLocal: Boolean,
-    private val isTopLevel: Boolean,
+//    private val isTopLevel: Boolean,
 ) : CangJieStubBaseImpl<CjStruct>(parent, type), CangJieStructStub {
 
 
@@ -47,5 +47,5 @@ open  class  CangJieStructStubImpl   (
 
     override fun getClassId(): ClassId? = classId
 
-    override fun isTopLevel() = isTopLevel
+//    override fun isTopLevel() = isTopLevel
 }

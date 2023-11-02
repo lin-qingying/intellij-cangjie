@@ -23,7 +23,8 @@ abstract class CjClassOrStruct :
     override fun isLocal(): Boolean  = stub?.isLocal() ?: CjPsiUtil.isLocal(this)
     override val declarations: List<CjDeclaration>
         get() =  getBody()?.declarations.orEmpty()
-    fun isTopLevel(): Boolean = stub?.isTopLevel() ?: (parent is CjFile)
+
+//    fun isTopLevel(): Boolean = stub?.isTopLevel() ?: (parent is CjFile)
 
     override fun toString(): String {
         return node.elementType.toString()

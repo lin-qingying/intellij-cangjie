@@ -35,6 +35,8 @@ public interface CjTokens {
     int FUNC_KEYWORD_Id = 25;
     int FOR_KEYWORD_Id = 26;
 
+    int EXTEND_KEYWORD_Id = 27;
+
     int TRUE_KEYWORD_Id = 28;
     int FALSE_KEYWORD_Id = 29;
     int IS_KEYWORD_Id = 30;
@@ -160,7 +162,16 @@ public interface CjTokens {
 
     int UNDERLINE_Id = 167;
 
-    int ABC_KEYWORD_Id = 168;
+    int OREQ_Id = 168;
+    int ANDEQ_Id = 169;
+    int XOREQ_Id = 170;
+    int LTLT_Id = 171;
+    int GTGT_Id = 172;
+    int LTLTEQ_Id = 173;
+    int GTGTEQ_Id = 174;
+
+    int MULMUL_Id = 175;
+    int MULMULEQ_Id = 176;
 
 
     CjSingleValueToken HASH = new CjSingleValueToken("HASH", "#", HASH_Id);
@@ -195,6 +206,7 @@ public interface CjTokens {
     CjKeywordToken PACKAGE_KEYWORD = CjKeywordToken.keyword("package", PACKAGE_KEYWORD_Id);
     CjKeywordToken AS_KEYWORD = CjKeywordToken.keyword("as", AS_KEYWORD_Id);
     CjKeywordToken CLASS_KEYWORD = CjKeywordToken.keyword("class", CLASS_KEYWORD_Id);
+    CjKeywordToken EXTEND_KEYWORD = CjKeywordToken.keyword("extend", EXTEND_KEYWORD_Id);
 
     CjKeywordToken ENUM_KEYWORD = CjKeywordToken.keyword("enum", ENUM_KEYWORD_Id);
 
@@ -247,6 +259,8 @@ public interface CjTokens {
     CjSingleValueToken PLUSPLUS = new CjSingleValueToken("PLUSPLUS", "++", PLUSPLUS_Id);
     CjSingleValueToken MINUSMINUS = new CjSingleValueToken("MINUSMINUS", "--", MINUSMINUS_Id);
     CjSingleValueToken MUL = new CjSingleValueToken("MUL", "*", MUL_Id);
+    CjSingleValueToken MULMUL = new CjSingleValueToken("MULMUL", "**", MULMUL_Id);
+    CjSingleValueToken MULMULEQ = new CjSingleValueToken("MULMULEQ", "**=", MULMULEQ_Id);
     CjSingleValueToken PLUS = new CjSingleValueToken("PLUS", "+", PLUS_Id);
     CjSingleValueToken MINUS = new CjSingleValueToken("MINUS", "-", MINUS_Id);
     CjSingleValueToken EXCL = new CjSingleValueToken("EXCL", "!", EXCL_Id);
@@ -282,6 +296,17 @@ public interface CjTokens {
     CjSingleValueToken PERCEQ = new CjSingleValueToken("PERCEQ", "%=", PERCEQ_Id);
     CjSingleValueToken PLUSEQ = new CjSingleValueToken("PLUSEQ", "+=", PLUSEQ_Id);
     CjSingleValueToken MINUSEQ = new CjSingleValueToken("MINUSEQ", "-=", MINUSEQ_Id);
+
+
+    CjSingleValueToken OREQ = new CjSingleValueToken("OREQ", "|=", OREQ_Id);
+    CjSingleValueToken ANDEQ = new CjSingleValueToken("ANDEQ", "&=", ANDEQ_Id);
+    CjSingleValueToken XOREQ = new CjSingleValueToken("XOREQ", "^=", XOREQ_Id);
+
+    CjSingleValueToken LTLT = new CjSingleValueToken("LTLT", "<<", LTLT_Id);
+    CjSingleValueToken GTGT = new CjSingleValueToken("GTGT", ">>", GTGT_Id);
+    CjSingleValueToken LTLTEQ = new CjSingleValueToken("LTLTEQ", "<<=", LTLTEQ_Id);
+    CjSingleValueToken GTGTEQ = new CjSingleValueToken("GTGTEQ", ">>=", GTGTEQ_Id);
+
 
     CjSingleValueToken COMMA = new CjSingleValueToken("COMMA", ",", COMMA_Id);
 
@@ -340,7 +365,7 @@ public interface CjTokens {
 
     TokenSet KEYWORDS = TokenSet.create(PACKAGE_KEYWORD, AS_KEYWORD, CLASS_KEYWORD, INTERFACE_KEYWORD,
             THIS_KEYWORD, SUPER_KEYWORD, LET_KEYWORD, VAR_KEYWORD, FUNC_KEYWORD, FOR_KEYWORD,
-            MAIN_KEYWORD, STRUCT_KEYWORD,
+            MAIN_KEYWORD, STRUCT_KEYWORD, EXTEND_KEYWORD,
             TRUE_KEYWORD, FALSE_KEYWORD, IS_KEYWORD,
             IN_KEYWORD, THROW_KEYWORD, RETURN_KEYWORD, BREAK_KEYWORD, CONTINUE_KEYWORD, IF_KEYWORD,
             ELSE_KEYWORD, WHILE_KEYWORD, DO_KEYWORD, TRY_KEYWORD, MATCH_KEYWORD, CASE_KEYWORD,
@@ -393,15 +418,55 @@ public interface CjTokens {
     TokenSet WHITE_SPACE_OR_COMMENT_BIT_SET = TokenSet.orSet(COMMENTS, WHITESPACES);
 
 
-    TokenSet OPERATIONS = TokenSet.create(AS_KEYWORD, IS_KEYWORD, IN_KEYWORD, DOT, PLUSPLUS, MINUSMINUS, MUL, PLUS,
-            MINUS, EXCL, DIV, PERC, LT, GT, LTEQ, GTEQ, EQEQ, EXCLEQ, ANDAND, OROR,
+    TokenSet OPERATIONS = TokenSet.create(AS_KEYWORD, IS_KEYWORD, IN_KEYWORD, DOT, PLUSPLUS, MINUSMINUS, MUL, MULMUL, PLUS,
+            MINUS, EXCL, DIV, PERC, LT, GT, LTEQ, GTEQ, EQEQ, EXCLEQ, ANDAND, OROR, MULMULEQ,
 
             RANGE, EQ, MULTEQ, DIVEQ, PERCEQ, PLUSEQ, MINUSEQ,
 
-            AND, OR, XOR
-
+            AND, OR, XOR,
+            ANDEQ, OREQ, XOREQ,
+            LTLT, GTGT, LTLTEQ, GTGTEQ
     );
 
+
+    //可以被重载的运算符
+    TokenSet OPERATIONS_CAN_BE_OVERLOADED = TokenSet.orSet(
+
+
+            TokenSet.create(
+                    LBRACKET, RBRACKET
+            ),
+            TokenSet.create(
+                    LPAR, RPAR
+            ),
+
+            TokenSet.create(
+
+
+                    OR,
+                    MULMUL,
+                    MUL,
+                    DIV,
+                    PERC,
+
+                    PLUS,
+                    MINUS,
+                    GT,
+                    LT,
+                    GTEQ,
+                    LTEQ,
+                    EQEQ,
+                    EXCLEQ,
+                    AND,
+                    OROR,
+                    XOR,
+                    ANDAND,
+                    RANGE,
+                    OREQ,
+                    EXCL
+
+            )
+    );
 
     //基本类型
     TokenSet BASICTYPES = TokenSet.create(

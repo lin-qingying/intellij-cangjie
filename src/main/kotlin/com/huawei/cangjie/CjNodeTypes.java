@@ -15,6 +15,10 @@ public interface CjNodeTypes {
     IElementType STRUCT = CjStubElementTypes.STRUCT;
     IElementType PROPERTY = CjStubElementTypes.PROPERTY;
     IElementType PROPERTY_BODY = CjStubElementTypes.PROPERTY_BODY;
+
+    IElementType PROPERTY_GET = CjStubElementTypes.PROPERTY_GET;
+
+    IElementType PROPERTY_SET = CjStubElementTypes.PROPERTY_SET;
     IElementType VALUE_ARGUMENT_NAME                = CjStubElementTypes.VALUE_ARGUMENT_NAME;
     IElementType VALUE_ARGUMENT                     = CjStubElementTypes.VALUE_ARGUMENT;
     IElementType VALUE_ARGUMENT_LIST                = CjStubElementTypes.VALUE_ARGUMENT_LIST;
@@ -48,10 +52,15 @@ public interface CjNodeTypes {
     IElementType TYPE_PARAMETER_LIST = CjStubElementTypes.TYPE_PARAMETER_LIST;
     IElementType TYPE_CONSTRAINT_LIST = CjStubElementTypes.TYPE_CONSTRAINT_LIST;
     IElementType USER_TYPE = CjStubElementTypes.USER_TYPE;
+
+
+    IElementType TUPLE_TYPE = CjStubElementTypes.TUPLE_TYPE;
     IElementType BASIC_TYPE = CjStubElementTypes.BASIC_TYPE;
     IElementType TYPE_PARAMETER = CjStubElementTypes.TYPE_PARAMETER;
 
     IElementType ENUM = CjStubElementTypes.ENUM;
+
+    IElementType EXTEND = CjStubElementTypes.EXTEND;
     IElementType ENUM_BODY = CjStubElementTypes.ENUM_BODY;
     IElementType ENUM_ENTRY = CjStubElementTypes.ENUM_ENTRY;
 

@@ -9,17 +9,20 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         visitElement(element);
         return null;
     }
+
     public R visitTryExpression(@NotNull CjTryExpression expression, D data) {
         return visitExpression(expression, data);
     }
+
     public R visitCatchSection(CjCatchClause cjCatchClause, D data) {
 
-        return  visitCjElement(cjCatchClause, data);
+        return visitCjElement(cjCatchClause, data);
     }
 
     public R visitFinallySection(@NotNull CjFinallySection finallySection, D data) {
         return visitCjElement(finallySection, data);
     }
+
     public R visitMatchExpression(@NotNull CjMatchExpression expression, D data) {
         return visitExpression(expression, data);
     }
@@ -27,30 +30,39 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitWhileExpression(@NotNull CjWhileExpression expression, D data) {
         return visitLoopExpression(expression, data);
     }
+
     public R visitDoWhileExpression(@NotNull CjDoWhileExpression expression, D data) {
         return visitLoopExpression(expression, data);
     }
+
     public R visitLoopExpression(@NotNull CjLoopExpression loopExpression, D data) {
         return visitExpression(loopExpression, data);
     }
+
     public R visitForExpression(@NotNull CjForExpression expression, D data) {
         return visitLoopExpression(expression, data);
     }
+
     public R visitIfExpression(@NotNull CjIfExpression expression, D data) {
         return visitExpression(expression, data);
     }
+
     public R visitContinueExpression(@NotNull CjContinueExpression expression, D data) {
         return visitExpressionWithLabel(expression, data);
     }
+
     public R visitBreakExpression(@NotNull CjBreakExpression expression, D data) {
         return visitExpressionWithLabel(expression, data);
     }
+
     public R visitCollectionLiteralExpression(@NotNull CjCollectionLiteralExpression expression, D data) {
         return visitExpression(expression, data);
     }
+
     public R visitThrowExpression(@NotNull CjThrowExpression expression, D data) {
         return visitExpression(expression, data);
     }
+
     public R visitReturnExpression(@NotNull CjReturnExpression expression, D data) {
         return visitExpressionWithLabel(expression, data);
     }
@@ -58,57 +70,75 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitParenthesizedExpression(@NotNull CjParenthesizedExpression expression, D data) {
         return visitExpression(expression, data);
     }
+
     public R visitStringTemplateExpression(@NotNull CjStringTemplateExpression expression, D data) {
         return visitExpression(expression, data);
     }
+
     public R visitSuperExpression(@NotNull CjSuperExpression expression, D data) {
         return visitExpressionWithLabel(expression, data);
     }
+
     public R visitThisExpression(@NotNull CjThisExpression expression, D data) {
         return visitExpressionWithLabel(expression, data);
     }
+
     public R visitExpressionWithLabel(@NotNull CjExpressionWithLabel expression, D data) {
         return visitExpression(expression, data);
     }
+
     public R visitLiteralStringTemplateEntry(@NotNull CjLiteralStringTemplateEntry entry, D data) {
         return visitStringTemplateEntry(entry, data);
     }
+
     public R visitEscapeStringTemplateEntry(@NotNull CjEscapeStringTemplateEntry entry, D data) {
         return visitStringTemplateEntry(entry, data);
     }
+
     public R visitStringTemplateEntry(@NotNull CjStringTemplateEntry entry, D data) {
         return visitCjElement(entry, data);
     }
+
     public R visitStringTemplateEntryWithExpression(@NotNull CjStringTemplateEntryWithExpression entry, D data) {
         return visitStringTemplateEntry(entry, data);
     }
+
     public R visitBlockStringTemplateEntry(@NotNull CjBlockStringTemplateEntry entry, D data) {
         return visitStringTemplateEntryWithExpression(entry, data);
     }
+
     public R visitPostfixExpression(@NotNull CjPostfixExpression expression, D data) {
         return visitUnaryExpression(expression, data);
     }
+
     public R visitConstantExpression(@NotNull CjConstantExpression expression, D data) {
         return visitExpression(expression, data);
     }
+
     public R visitValueArgumentList(@NotNull CjValueArgumentList list, D data) {
         return visitCjElement(list, data);
     }
+
     public R visitArrayAccessExpression(@NotNull CjArrayAccessExpression expression, D data) {
         return visitReferenceExpression(expression, data);
     }
+
     public R visitSuperTypeEntry(@NotNull CjSuperTypeEntry specifier, D data) {
         return visitSuperTypeListEntry(specifier, data);
     }
+
     public R visitPrefixExpression(@NotNull CjPrefixExpression expression, D data) {
         return visitUnaryExpression(expression, data);
     }
+
     public R visitUnaryExpression(@NotNull CjUnaryExpression expression, D data) {
         return visitExpression(expression, data);
     }
+
     public R visitIsExpression(@NotNull CjIsExpression expression, D data) {
         return visitExpression(expression, data);
     }
+
     public R visitBinaryExpression(@NotNull CjBinaryExpression expression, D data) {
         return visitExpression(expression, data);
     }
@@ -116,15 +146,19 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitSuperTypeCallEntry(@NotNull CjSuperTypeCallEntry call, D data) {
         return visitSuperTypeListEntry(call, data);
     }
+
     public R visitBinaryWithTypeRHSExpression(@NotNull CjBinaryExpressionWithTypeRHS expression, D data) {
         return visitExpression(expression, data);
     }
+
     public R visitClassInitializer(@NotNull CjClassInitializer initializer, D data) {
         return visitAnonymousInitializer(initializer, data);
     }
+
     public R visitAnonymousInitializer(@NotNull CjAnonymousInitializer initializer, D data) {
         return visitDeclaration(initializer, data);
     }
+
     public R visitSuperTypeListEntry(@NotNull CjSuperTypeListEntry specifier, D data) {
         return visitCjElement(specifier, data);
     }
@@ -132,6 +166,7 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitTypeProjection(@NotNull CjTypeProjection typeProjection, D data) {
         return visitCjElement(typeProjection, data);
     }
+
     public R visitTypeParameterList(@NotNull CjTypeParameterList list, D data) {
         return visitCjElement(list, data);
     }
@@ -139,10 +174,12 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitTypeParameter(@NotNull CjTypeParameter parameter, D data) {
         return visitNamedDeclaration(parameter, data);
     }
+
     public R visitCjFile(@NotNull CjFile file, D data) {
         visitFile(file);
         return null;
     }
+
     public R visitBlockExpression(@NotNull CjBlockExpression expression, D data) {
         return visitExpression(expression, data);
     }
@@ -154,9 +191,11 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitClassBody(@NotNull CjClassBody classBody, D data) {
         return visitCjElement(classBody, data);
     }
+
     public R visitEnumBody(@NotNull CjEnumBody enumBody, D data) {
         return visitCjElement(enumBody, data);
     }
+
     public R visitModifierList(@NotNull CjModifierList list, D data) {
         return visitCjElement(list, data);
     }
@@ -174,9 +213,11 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitSimpleNameExpression(@NotNull CjSimpleNameExpression expression, D data) {
         return visitReferenceExpression(expression, data);
     }
+
     public R visitReferenceExpression(@NotNull CjReferenceExpression expression, D data) {
         return visitExpression(expression, data);
     }
+
     public R visitTypeConstraintList(@NotNull CjTypeConstraintList cjTypeConstraintList, D data) {
         return visitCjElement(cjTypeConstraintList, data);
     }
@@ -203,13 +244,14 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     }
 
 
-
     public R visitDeclaration(@NotNull CjDeclaration dcl, D data) {
         return visitExpression(dcl, data);
     }
+
     public R visitNamedDeclaration(@NotNull CjNamedDeclaration declaration, D data) {
         return visitDeclaration(declaration, data);
     }
+
     public R visitPrimaryConstructor(@NotNull CjPrimaryConstructor constructor, D data) {
         return visitNamedDeclaration(constructor, data);
     }
@@ -227,12 +269,13 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     }
 
     public R visitConstructorDelegationCall(CjConstructorDelegationCall cjConstructorDelegationCall, D data) {
-   return visitCjElement(cjConstructorDelegationCall, data);
+        return visitCjElement(cjConstructorDelegationCall, data);
     }
 
     public R visitPackageDirective(CjPackageDirective cjPackageDirective, D data) {
         return visitCjElement(cjPackageDirective, data);
     }
+
     public R visitQualifiedExpression(@NotNull CjQualifiedExpression expression, D data) {
         return visitExpression(expression, data);
     }
@@ -252,12 +295,13 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitTypeArgumentList(CjTypeArgumentList cjTypeArgumentList, D data) {
         return visitCjElement(cjTypeArgumentList, data);
     }
+
     public R visitImportAlias(@NotNull CjImportAlias importAlias, D data) {
         return visitCjElement(importAlias, data);
     }
 
     public R visitImportList(CjImportList cjImportList, D data) {
-return visitCjElement(cjImportList, data);
+        return visitCjElement(cjImportList, data);
     }
 
     public R visitSuperTypeList(@NotNull CjSuperTypeList list, D data) {
@@ -275,15 +319,20 @@ return visitCjElement(cjImportList, data);
     public R visitKeyword(CjKeyword cjKeyword, D data) {
         return visitCjElement(cjKeyword, data);
     }
+
     public R visitSimpleNameStringTemplateEntry(@NotNull CjSimpleNameStringTemplateEntry entry, D data) {
         return visitStringTemplateEntryWithExpression(entry, data);
     }
 
     public R visitEnumEntry(CjEnumEntry cjEnumEntry, D data) {
-        return  visitCjElement(cjEnumEntry, data);
+        return visitCjElement(cjEnumEntry, data);
     }
 
     public R visitMatchEntry(CjMatchEntry cjMatchEntry, D data) {
         return visitCjElement(cjMatchEntry, data);
+    }
+
+    public R visitTupleType(@NotNull CjTupleType cjTupleType, D data) {
+        return visitCjElement(cjTupleType, data);
     }
 }

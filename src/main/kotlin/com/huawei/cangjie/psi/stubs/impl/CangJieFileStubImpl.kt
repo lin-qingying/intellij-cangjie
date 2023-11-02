@@ -49,7 +49,7 @@ class CangJieFileStubImpl(
 
 
     companion object {
-        fun forFile(packageFqName: FqName, isScript: Boolean): CangJieFileStubImpl = CangJieFileStubImpl(
+        fun forFile(packageFqName: FqName): CangJieFileStubImpl = CangJieFileStubImpl(
             CjFile = null,
             packageName = packageFqName.asString(),
             facadeFqNameString = null,

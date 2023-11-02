@@ -58,7 +58,7 @@ public class CjInterfaceElementType extends CjStubElementType<CangJieInterfaceSt
                 StringRef.fromString(fqName != null ? fqName.asString() : null), classId,
                 StringRef.fromString(psi.getName()),
                 Utils.INSTANCE.wrapStrings(superNames),
-                psi.isLocal(), psi.isTopLevel()
+                psi.isLocal()
         )  ;
     }
 
@@ -73,7 +73,7 @@ public class CjInterfaceElementType extends CjStubElementType<CangJieInterfaceSt
 
 
         dataStream.writeBoolean(stub.isLocal());
-        dataStream.writeBoolean(stub.isTopLevel());
+//        dataStream.writeBoolean(stub.isTopLevel());
 
         List<String> superNames = stub.getSuperNames();
         dataStream.writeVarInt(superNames.size());
@@ -92,7 +92,7 @@ public class CjInterfaceElementType extends CjStubElementType<CangJieInterfaceSt
 
 
         boolean isLocal = dataStream.readBoolean();
-        boolean isTopLevel = dataStream.readBoolean();
+//        boolean isTopLevel = dataStream.readBoolean();
 
         int superCount = dataStream.readVarInt();
         StringRef[] superNames = StringRef.createArray(superCount);
@@ -102,7 +102,7 @@ public class CjInterfaceElementType extends CjStubElementType<CangJieInterfaceSt
 
         return new CangJieInterfaceStubImpl(
                 CjStubElementTypes.INTERFACE, (StubElement<?>) parentStub, qualifiedName, classId, name, superNames,
-                isLocal, isTopLevel
+                isLocal
         ) {
         };
     }
