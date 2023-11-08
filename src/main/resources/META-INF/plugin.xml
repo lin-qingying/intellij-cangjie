@@ -18,6 +18,8 @@
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <!--  <description> </description>-->
     <xi:include href="/META-INF/cangjie-core.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/formatter.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 
 

@@ -15,7 +15,7 @@ interface CjImportInfo {
     val importedFqName: FqName?
     val aliasName: String?
 
-    @JvmDefault
+
     val importedName: Name?
         get() {
             return computeNameAsString()?.takeIf(CharSequence::isNotEmpty)?.let(Name::identifier)

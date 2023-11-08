@@ -156,6 +156,10 @@ public class CjImportDirective extends CjElementImplStub<CangJieImportDirectiveS
         }
     }
 
-
-
+//
+//    @Nullable
+//    @Override
+//    public Name getImportedName() {
+//        return CjImportInfo.super.getImportedName();
+//    }
 }

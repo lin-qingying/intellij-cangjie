@@ -1,8 +1,7 @@
-
-
 plugins {
     idea
     id("org.jetbrains.kotlin.jvm") version "1.9.0"
+//    kotlin("jvm") version "1.9.0"
     id("org.jetbrains.intellij") version "1.15.0"
     id("org.jetbrains.grammarkit") version "2022.3.2"
 }
@@ -12,10 +11,13 @@ sourceSets {
 
             srcDirs("src/main/kotlin", "src/main/gen")
         }
-        kotlin{
+        kotlin {
             srcDirs("testData/src/main/kotlin")
+
+
         }
     }
+
 }
 
 group = "com.huawei.cangjie"
@@ -26,6 +28,11 @@ repositories {
     mavenCentral()
     maven {
         setUrl("https://jitpack.io")
+//        credentials { username authToken }
+//        credentials {
+//
+//        }
+
     }
 }
 
@@ -53,31 +60,56 @@ intellij {
 //    ideaDependencyCachePath.set(dependencyCachePath)
 
 
-
-
     version.set("232-EAP-SNAPSHOT")
     type.set("IC") // Target IDE Platform
 ////加载PsiViewer插件 grammar-kit
-    plugins.set(listOf(
+    plugins.set(
+        listOf(
 
 
-    ))
+        )
+    )
 
 
 }
 
+kotlin {
+    jvmToolchain(17)
+    target {
+
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "17"
+                freeCompilerArgs = listOf("-Xjvm-default=all")
+            }
+
+        }
+    }
+}
 
 //jar {
 //    from {
 //        configurations.compileClasspath.filter { it.name.startsWith('java-psi-') }.collect { it.isDirectory() ? it : zipTree(it) }
 //    }
 //}
-val intellijVersion ="232.*"
-dependencies{
+val intellijVersion = "232.*"
+dependencies {
 //    api("com.jetbrains.intellij.java:java-psi-impl:$intellijVersion") { isTransitive = true }
 //    api("com.jetbrains.intellij.java:java-psi:$intellijVersion") { isTransitive = true }
 
-    implementation("com.github.ballerina-platform:lsp4intellij:0.95.2")
+
+//    implementation(kotlin("stdlib"))
+    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.21.1")
+
+//    implementation("com.github.ballerina-platform:lsp4intellij:0.95.2")
+
+//    implementation("com.github.linqingying123:intellij-lsp:1.0")
+//    implementation("org.eclipse.lsp4j:lsp4j")
+//    {
+//        isTransitive = true
+//    }
+//    implementation(files("src/lib/lsp.jar"))
+
 }
 
 
@@ -116,7 +148,6 @@ tasks {
     publishPlugin {
         token.set(System.getenv("PUBLISH_TOKEN"))
     }
-
 
 
 }

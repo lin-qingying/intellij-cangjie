@@ -8,44 +8,44 @@ see also jetbrains documentation: https://plugins.jetbrains.com/docs/intellij/pl
 
 
     <extensions defaultExtensionNs="com.intellij">
-        <!-- register a preloading activity. You need to init IntellijLanguageClient with your config, see readme -->
-        <preloadingActivity implementation="com.huawei.cangjie.lang.lsp.BallerinaPreloadingActivity" id="your.plugin.MyPreloadingActivity"/>
+        <!-- 注册预加载活动。您需要使用您的配置初始化IntellijLanguageClient，请参阅自述文件 -->
+        <preloadingActivity implementation="com.huawei.cangjie.lang.lsp.BallerinaPreloadingActivity" id="com.huawei.cangjie.lang.lsp.BallerinaPreloadingActivity"/>
 
-        <!-- register intellijLanguageClient as a Service OR as a plugin component (see readme)... -->
+        <!-- 将intellijLanguageClient注册为服务或插件组件(请参阅自述文件)...-->
         <applicationService serviceImplementation="org.wso2.lsp4intellij.IntellijLanguageClient"/>
 
-        <!-- register a listener on editor events, required for lsp file sync -->
-        <editorFactoryListener implementation="org.wso2.lsp4intellij.listeners.LSPEditorListener"/>
-        <fileDocumentManagerListener implementation="org.wso2.lsp4intellij.listeners.LSPFileDocumentManagerListener"/>
+        <!-- 在LSP文件同步所需的编辑器事件上注册监听程序 -->
+<!--        <editorFactoryListener implementation="org.wso2.lsp4intellij.listeners.LSPEditorListener"/>-->
+<!--        <fileDocumentManagerListener implementation="org.wso2.lsp4intellij.listeners.LSPFileDocumentManagerListener"/>-->
 
-        <!-- for displaying notifications by lsp -->
-        <notificationGroup id="lsp" displayType="STICKY_BALLOON"/>
+        <!-- 用于按LSP显示通知 -->
+<!--        <notificationGroup id="lsp" displayType="STICKY_BALLOON"/>-->
 
-        <!-- for displaying the statusbar icon -->
+        <!-- 用于显示状态栏图标 -->
         <statusBarWidgetFactory implementation="org.wso2.lsp4intellij.statusbar.LSPServerStatusWidgetFactory"
                                 id="org.wso2.lsp4intellij.statusbar.LSPServerStatusWidgetFactory"
                                 order="first" />
 
-        <!-- needed for completion -->
-        <completion.contributor implementationClass="org.wso2.lsp4intellij.contributors.LSPCompletionContributor"
-                                id="org.wso2.lsp4intellij.contributors.LSPCompletionContributor" language="CangJie"/>
-        <!-- needed for completion as well as signature help -->
-        <typedHandler implementation="org.wso2.lsp4intellij.listeners.LSPTypedHandler"
-                      id="LSPTypedHandler"/>
+        <!-- 完成所需的时间 -->
+<!--        <completion.contributor implementationClass="org.wso2.lsp4intellij.contributors.LSPCompletionContributor"-->
+<!--                                id="org.wso2.lsp4intellij.contributors.LSPCompletionContributor" language="CangJie"/>-->
+        <!-- 填写所需信息以及签名帮助 -->
+<!--        <typedHandler implementation="org.wso2.lsp4intellij.listeners.LSPTypedHandler"-->
+<!--                      id="LSPTypedHandler"/>-->
 
-        <!-- needed for code diagnostics -->
-        <externalAnnotator id="LSPAnnotator" language="CangJie"
-                           implementationClass="org.wso2.lsp4intellij.contributors.annotator.LSPAnnotator"/>
+        <!-- 代码诊断所需-->
+<!--        <externalAnnotator id="LSPAnnotator" language="CangJie"-->
+<!--                           implementationClass="org.wso2.lsp4intellij.contributors.annotator.LSPAnnotator"/>-->
 
-        <!-- needed for Workspace Symbols -->
-        <gotoSymbolContributor implementation="org.wso2.lsp4intellij.contributors.symbol.LSPSymbolContributor"
-                               id="LSPSymbolContributor"/>
+        <!-- 工作空间符号所需 -->
+<!--        <gotoSymbolContributor implementation="org.wso2.lsp4intellij.contributors.symbol.LSPSymbolContributor"-->
+<!--                               id="LSPSymbolContributor"/>-->
 
-        <!-- needed for renaming -->
-        <renameHandler implementation="org.wso2.lsp4intellij.contributors.rename.LSPRenameHandler" id="LSPRenameHandler" order="first"/>
-        <renamePsiElementProcessor implementation="org.wso2.lsp4intellij.contributors.rename.LSPRenameProcessor" id="LSPRenameProcessor" order="first"/>
+        <!-- 重命名所需的 -->
+<!--        <renameHandler implementation="org.wso2.lsp4intellij.contributors.rename.LSPRenameHandler" id="LSPRenameHandler" order="first"/>-->
+<!--        <renamePsiElementProcessor implementation="org.wso2.lsp4intellij.contributors.rename.LSPRenameProcessor" id="LSPRenameProcessor" order="first"/>-->
 
-        <!-- needed for folding support -->
+        <!-- 折叠支撑所需 -->
 <!--        <lang.foldingBuilder language="CangJie" implementationClass="org.wso2.lsp4intellij.contributors.LSPFoldingRangeProvider" id="LSPFoldingRangeProvider" order="first" />-->
     </extensions>
 
