@@ -474,3 +474,16 @@ public interface CjTokens {
     );
     TokenSet ALL_ASSIGNMENTS = TokenSet.create(EQ, PLUSEQ, MINUSEQ, MULTEQ, PERCEQ, DIVEQ);
 }
+
+
+   class a<T>{
+
+}
+
+class  b<a>{
+
+}
+
+class  c extends b<a<String>>{
+
+}

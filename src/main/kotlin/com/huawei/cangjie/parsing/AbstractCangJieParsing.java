@@ -259,6 +259,11 @@ public abstract class AbstractCangJieParsing {
         return myBuilder.getTokenType();
     }
 
+
+    protected IElementType rawLookup(int steps) {
+        return myBuilder.rawLookup(steps);
+    }
+
     /**
      * 无副作用版本的at()
      */

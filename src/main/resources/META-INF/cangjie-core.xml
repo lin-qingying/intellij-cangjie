@@ -67,7 +67,7 @@
         <!--                         key="inspection.use.expression.body.display.name" bundle="messages.CangJieBundle"/>-->
 
         <!-- LSP -->
-        <lsp.serverSupportProvider implementation="com.huawei.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>
+<!--        <lsp.serverSupportProvider implementation="com.huawei.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>-->
 
 
         <!--        服务注册  cangjie包-->

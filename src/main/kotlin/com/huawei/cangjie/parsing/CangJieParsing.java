@@ -85,7 +85,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     void parseTypeRef() {
-        parseTypeRef(TokenSet.EMPTY);
+        parseTypeRef(TokenSet.EMPTY,false);
     }
 
     void parseTypeRefWithoutIntersections() {
@@ -1098,7 +1098,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             while (true) {
                 if (at(COMMA)) errorAndAdvance("Expecting type parameter declaration");
 //                parseTypeParameter();
-                parseTypeRef();
+                parseTypeRef(true);
 
                 if (!at(COMMA)) break;
                 advance(); // COMMA
@@ -1903,11 +1903,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *
      * @return
      */
-//    private PsiBuilder.Marker parseTypeRefContents(TokenSet extraRecoverySet) {
-//        PsiBuilder.Marker typeRefMarker = mark();
-//
-//        return typeRefMarker;
-//    }
+    private PsiBuilder.Marker parseTypeRefContents(TokenSet extraRecoverySet) {
+        PsiBuilder.Marker typeRefMarker = mark();
+
+        return typeRefMarker;
+    }
 //    private boolean parseUserType() {
 //        PsiBuilder.Marker usertype = mark();
 //
@@ -2029,15 +2029,43 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     }
 
-    void parseTypeRef(TokenSet extraRecoverySet) {
+
+    void parseTypeRef(boolean isConstraint) {
+        parseTypeRef(TokenSet.EMPTY, isConstraint);
+    }
+
+    void parseTypeRef(TokenSet extraRecoverySet){
+        parseTypeRef(extraRecoverySet, false);
+    }
+    /**
+     * @param extraRecoverySet
+     * @param isConstraint     是否为约束，约束没有问号,不解析userType
+     */
+    void parseTypeRef(TokenSet extraRecoverySet, boolean isConstraint) {
 
         PsiBuilder.Marker typeRefMarker = mark();
         //先解析基本类型，如果不是基本类型，则解析类型引用
 
-        expect(QUEST);
+
+        if (!isConstraint) {
+            expect(QUEST);
+        }
+        if (at(QUEST)) {
+            if (!isConstraint) {
+                advance();
+            } else {
+                error("Expecting a generic type name after '<' in generic, found '?'");
+            }
+        }
+
 
         if (!parseBasicType()) {
-            parseUserType();
+            if (!isConstraint) {
+                parseUserType();
+            } else {
+                parseIdentifier();
+            }
+
         }
         typeRefMarker.done(TYPE_REFERENCE);
 

@@ -8,6 +8,7 @@ import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.lexer.CjTokens.*
 import com.huawei.cangjie.parsing.CangJieParsing.PARAMETER_NAME_RECOVERY_SET
 import com.intellij.lang.PsiBuilder
+import com.intellij.lang.PsiBuilderUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
@@ -71,7 +72,7 @@ open class CangJieExpressionParsing(
         DISJUNCTION(OROR),
 
         //位运算
-        BITWISE(AND, OR, XOR, LTLT, GTGT),
+        BITWISE(AND, OR, XOR, LTLT, GTGT, LTLTEQ, GTGTEQ),
 
 
         ASSIGNMENT(EQ, PLUSEQ, MINUSEQ, MULTEQ, DIVEQ, PERCEQ, ANDEQ, OREQ, XOREQ, LTLTEQ, GTGTEQ, MULMULEQ);
@@ -1532,6 +1533,35 @@ open class CangJieExpressionParsing(
         parseBinaryExpression(Precedence.ASSIGNMENT)
     }
 
+    private fun getGtTokenType(): IElementType {
+        var tokenType = tt()
+        if (tokenType !== GT) return tokenType
+
+        if (rawLookup(1) === GT) {
+            tokenType = if (rawLookup(2) === EQ) {
+                GTGTEQ
+            } else {
+                GTGT
+            }
+        } else if (rawLookup(1) === EQ) {
+            tokenType = GTEQ
+        }
+        return tokenType
+    }
+
+    private fun advanceGtToken(type: IElementType) {
+        val gtToken = mark()
+        if (type === GTGTEQ) {
+            PsiBuilderUtil.advance(myBuilder, 3)
+        } else if (type === GTGT || type === GTEQ) {
+            PsiBuilderUtil.advance(myBuilder, 2)
+        } else {
+            gtToken.drop()
+            myBuilder.advanceLexer()
+            return
+        }
+        gtToken.collapse(type)
+    }
 
     /*
      * element (operation element)*
@@ -1548,7 +1578,7 @@ open class CangJieExpressionParsing(
 
         while (!interruptedWithNewLine() && atSet(precedence.getOperations())) {
 
-            val operation = tt()
+            val operation = getGtTokenType()
             parseOperationReference()
             val resultType: IElementType = precedence.parseRightHandSide(operation, this)
             expression.done(resultType)
@@ -1566,7 +1596,8 @@ open class CangJieExpressionParsing(
 
     private fun parseOperationReference() {
         val operationReference = mark()
-        advance() // operation
+//        advance() // operation
+        advanceGtToken(getGtTokenType())
         operationReference.done(OPERATION_REFERENCE)
     }
 

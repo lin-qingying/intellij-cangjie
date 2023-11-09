@@ -62,7 +62,9 @@ import com.intellij.util.containers.Stack;
             }
         }
 %}
-
+%{
+    private boolean isGenerics = false;
+%}
 %scanerror CangJieLexerException
 
 %function advance
@@ -73,6 +75,7 @@ import com.intellij.util.containers.Stack;
 
 %xstate STRING RAW_STRING SHORT_TEMPLATE_ENTRY BLOCK_COMMENT DOC_COMMENT
 %state LONG_TEMPLATE_ENTRY UNMATCHED_BACKTICK
+
 
 DIGIT=[0-9]
 DIGIT_OR_UNDERSCORE = [_0-9]
@@ -182,6 +185,8 @@ LONELY_BACKTICK=`
                                            lBraceCount--;
                                            return CjTokens.RBRACE;
                                        }
+
+
 
 // (Nested) comments
 
@@ -346,7 +351,7 @@ LONELY_BACKTICK=`
 "++"         { return CjTokens.PLUSPLUS  ; }
 "--"         { return CjTokens.MINUSMINUS; }
 "<="         { return CjTokens.LTEQ      ; }
-">="         { return CjTokens.GTEQ      ; }
+//">="         { return CjTokens.GTEQ      ; }
 "=="         { return CjTokens.EQEQ      ; }
 "!="         { return CjTokens.EXCLEQ    ; }
 "&&"         { return CjTokens.ANDAND    ; }
@@ -382,6 +387,9 @@ LONELY_BACKTICK=`
 "%"          { return CjTokens.PERC      ; }
 "<"          { return CjTokens.LT        ; }
 ">"          { return CjTokens.GT        ; }
+
+
+
 "?"          { return CjTokens.QUEST     ; }
 ":"          { return CjTokens.COLON     ; }
 
@@ -392,9 +400,9 @@ LONELY_BACKTICK=`
 "^="       { return CjTokens.XOREQ     ; }
 "&="       { return CjTokens.ANDEQ     ; }
 "<<="      { return CjTokens.LTLTEQ     ; }
-">>="      { return CjTokens.GTGTEQ     ; }
-//">>"     { return CjTokens.GTGT     ; }
-//"<<"     { return CjTokens.LTLT     ; }
+//">>="      { return CjTokens.GTGTEQ     ; }
+// ">>"     { return CjTokens.GTGT     ; }
+ "<<"     { return CjTokens.LTLT     ; }
 
 
 {LONELY_BACKTICK} { pushState(UNMATCHED_BACKTICK); return TokenType.BAD_CHARACTER; }
