@@ -179,3 +179,6 @@ fun CjStringTemplateExpression.getContentRange(): TextRange {
 
 fun CjStringTemplateExpression.isSingleQuoted(): Boolean = node.firstChildNode.textLength == 1
 fun CjStringTemplateExpression.isPlain() = entries.all { it is CjLiteralStringTemplateEntry }
+
+
+

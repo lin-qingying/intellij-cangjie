@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture
  * @param <ServerResponse> object created by the `lsp4j` library, which encapsulates the response from the LSP server
  * @param <Result> any object based on the received [ServerResponse], or simply the [ServerResponse] itself
  */
-abstract class LspRequest<ServerResponse, Result>(open val lspServer: com.linqingying.lsp.api.LspServer) {
+abstract class LspRequest<ServerResponse, Result>(open val lspServer: LspServer) {
     override fun toString(): String = javaClass.simpleName // for logging
 
     /**

@@ -11,7 +11,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either
 import java.util.concurrent.CompletableFuture
 
 class LspCompletionRequest(
-    override val lspServer: com.linqingying.lsp.api.LspServer,
+    override val lspServer: LspServer,
     file: VirtualFile,
     document: Document,
     offset: Int,
@@ -37,6 +37,9 @@ class LspCompletionRequest(
         } else {
             CompletionContext(CompletionTriggerKind.Invoked)
         }
+
+        //TODO 获取补全项的同时发送语法标记
+//        lspServer.requestExecutor.sendNotification(SemanticTokensFullNotification(lspServer,file))
     }
 
     private fun getCharacterAtPosition(document: Document, position: Int): String? {

@@ -2,6 +2,7 @@ package com.huawei.cangjie.parsing;
 
 import com.huawei.cangjie.lexer.CjTokens;
 import com.intellij.lang.PsiBuilder;
+import com.intellij.lang.WhitespacesBinders;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
@@ -85,7 +86,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     void parseTypeRef() {
-        parseTypeRef(TokenSet.EMPTY,false);
+        parseTypeRef(TokenSet.EMPTY, false);
     }
 
     void parseTypeRefWithoutIntersections() {
@@ -428,9 +429,22 @@ public class CangJieParsing extends AbstractCangJieParsing {
         while (!eof()) {
             parseTopLevelDeclaration();
         }
-
+        checkUnclosedBlockComment();
 
         fileMarker.done(CJ_FILE);
+    }
+
+    private void checkUnclosedBlockComment() {
+        if (BLOCK_DOC_COMMENT_SET.contains(myBuilder.rawLookup(-1))) {
+            int startOffset = myBuilder.rawTokenTypeStart(-1);
+            int endOffset = myBuilder.rawTokenTypeStart(0);
+            CharSequence tokenChars = myBuilder.getOriginalText().subSequence(startOffset, endOffset);
+            if (!(tokenChars.length() > 2 && tokenChars.subSequence(tokenChars.length() - 2, tokenChars.length()).toString().equals("*/"))) {
+                PsiBuilder.Marker marker = myBuilder.mark();
+                marker.error("Unclosed comment");
+                marker.setCustomEdgeTokenBinders(WhitespacesBinders.GREEDY_RIGHT_BINDER, null);
+            }
+        }
     }
 
     /*
@@ -2034,9 +2048,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
         parseTypeRef(TokenSet.EMPTY, isConstraint);
     }
 
-    void parseTypeRef(TokenSet extraRecoverySet){
+    void parseTypeRef(TokenSet extraRecoverySet) {
         parseTypeRef(extraRecoverySet, false);
     }
+
     /**
      * @param extraRecoverySet
      * @param isConstraint     是否为约束，约束没有问号,不解析userType

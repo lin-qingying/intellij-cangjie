@@ -3,6 +3,9 @@ package com.huawei.cangjie.lang.lsp
 import com.huawei.cangjie.lang.CangJieFileType
 
 import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.ide.plugins.PluginManager
+import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.linqingying.lsp.api.*
@@ -13,9 +16,14 @@ import org.eclipse.lsp4j.*
 import org.eclipse.lsp4j.services.LanguageServer
 import org.eclipse.lsp4j.services.TextDocumentService
 import org.eclipse.lsp4j.services.WorkspaceService
+import java.io.File
+import java.io.IOException
+import java.nio.file.Paths
+import java.util.*
 
 
 import java.util.concurrent.CompletableFuture
+import kotlin.io.path.pathString
 
 
 class CangJieLspServerSupportProvider : LspServerSupportProvider {
@@ -51,18 +59,75 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 
     override fun createCommandLine(): GeneralCommandLine {
 
+//        获取插件路径
+        val pluginPath = PluginManagerCore.getPlugin(PluginId.getId("com.huawei.cangjie"))!!.path.path
 
         return GeneralCommandLine().apply {
             withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE)
             withCharset(Charsets.UTF_8)
-            exePath = "D:\\Code\\idea\\intellij-cangjie\\lsp\\LSPServer.exe"
-            setWorkDirectory("D:\\Code\\idea\\intellij-cangjie\\lsp")
+            exePath = getLspServerPath()
+            setWorkDirectory("C:\\Users\\27439\\.sdk\\cangjie")
             addParameter("src")
 //            withEnvironment(getWindowsPath())
         }
     }
 
+    /**
+     * 获取lsp工作路径
+     */
+//    fun getLspServerWorkPath(): String {
+//        val classLoader = this::class.java.classLoader
+//
+//        val lspserverPath = if (isWindows()) {
+//            "lsp"
+//        } else {
+//            "lsp"
+//        }
+//
+//        val resource = classLoader.getResource(lspserverPath)
+//
+//        val path = Paths.get(resource?.toURI() ?: throw IOException("LspServer not found")).pathString
+//
+//        return path
+//    }
 
+    /**
+     * 获取lspserver路径
+     */
+    fun getLspServerPath(): String {
+        val classLoader = this::class.java.classLoader
+
+        val lspserverPath = if (isWindows()) {
+            "lsp/LSPServer.exe"
+        } else {
+            "lsp/LSPServer"
+        }
+
+        val resource = classLoader.getResource(lspserverPath)
+
+//         将文件复制到临时目录
+        val tempFile = File.createTempFile("LspServer", if (isWindows()) ".exe" else "")
+
+// 将资源文件复制到临时文件中
+        resource?.openStream().use { input ->
+            tempFile.outputStream().use { output ->
+                input?.copyTo(output) ?: throw IOException("LspServer not found")
+            }
+        }
+
+
+
+
+        return tempFile.absolutePath
+    }
+
+    /**
+     * 判断系统是否为windows
+     */
+    fun isWindows(): Boolean {
+        val os = System.getProperty("os.name")
+        return os.lowercase(Locale.getDefault()).startsWith("win")
+    }
 
 
     // 无需使用LSP服务器即可实现引用解析
@@ -493,8 +558,6 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
     }
 
 
-
-
 }
 
 //
@@ -531,14 +594,14 @@ class CangJieLangServer : LanguageServer {
 
 }
 
-class CangJieLspClientNotification(lspServer: com.linqingying.lsp.api.LspServer) : LspClientNotification(lspServer) {
+class CangJieLspClientNotification(lspServer: LspServer) : LspClientNotification(lspServer) {
     override fun sendNotification() {
         TODO("Not yet implemented")
     }
 }
 
-class CangJieLspServer : com.linqingying.lsp.api.LspServer {
-    override val descriptor: com.linqingying.lsp.api.LspServerDescriptor
+class CangJieLspServer : LspServer {
+    override val descriptor: LspServerDescriptor
         get() = TODO("Not yet implemented")
     override val lsp4jServer: LanguageServer
         get() = TODO("Not yet implemented")
@@ -546,16 +609,17 @@ class CangJieLspServer : com.linqingying.lsp.api.LspServer {
         get() = TODO("Not yet implemented")
     override val requestExecutor: LspRequestExecutor
         get() = TODO("Not yet implemented")
-    override val serverNotificationsHandler: com.linqingying.lsp.api.LspServerNotificationsHandler
+    override val serverNotificationsHandler: LspServerNotificationsHandler
         get() = TODO("Not yet implemented")
 
 }
 
 
-class CangJieLsp4jClient(handler: com.linqingying.lsp.api.LspServerNotificationsHandler) : com.linqingying.lsp.api.Lsp4jClient(handler)
+class CangJieLsp4jClient(handler: LspServerNotificationsHandler) :
+    Lsp4jClient(handler)
 
-internal class CangJieLspServerNotificationsHandler(handler: com.linqingying.lsp.api.LspServerNotificationsHandler) :
-    com.linqingying.lsp.api.LspServerNotificationsHandler {
+internal class CangJieLspServerNotificationsHandler(handler: LspServerNotificationsHandler) :
+    LspServerNotificationsHandler {
     override fun applyEdit(params: ApplyWorkspaceEditParams): CompletableFuture<ApplyWorkspaceEditResponse> {
         println(params)
         return CompletableFuture.completedFuture(null)

@@ -8,18 +8,97 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="">
+    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="解决&gt;&gt;右移运算符和支持泛型的钻石操作符（diamond operator）{a&lt;b&lt;c&gt;&gt;}冲突的问题">
+      <change afterPath="$PROJECT_DIR$/src/main/resources/lsp/log.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lsp/log.txt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/log.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CangJieLexer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CangJieLexer.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CangieLexer.flex" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CangieLexer.flex" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CjTokens.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/CjTokens.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/_JetLexer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/_JetLexer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/AbstractCangJieParsing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/AbstractCangJieParsing.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/LSPServer.exe" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/lsp/LSPServer.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/log.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/log1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/log1.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/compress/zlib.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/compress/zlib.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/crypto/crypto.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/crypto/crypto.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/encoding/base64.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/encoding/base64.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/encoding/hex.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/encoding/hex.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/encoding/json.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/encoding/json.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/encoding/url.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/encoding/url.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/net/http.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/net/http.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/net/tls.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/net/tls.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/serialization/serialization.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/serialization/serialization.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/ad.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/ad.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/argopt.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/argopt.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/ast.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/ast.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/collection.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/collection.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/console.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/console.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/convert.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/convert.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/core.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/core.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/database.sql.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/database.sql.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/format.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/format.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/fs.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/fs.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/io.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/io.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/log.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/log.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/math.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/math.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/os.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/os.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/os.posix.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/os.posix.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/overflow.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/overflow.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/random.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/random.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/regex.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/regex.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/runtime.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/runtime.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/socket.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/socket.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/sort.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/sort.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/sync.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/sync.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/time.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/time.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/unicode.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/unicode.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/unittest.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/unittest.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/unittest.testmacro.bchir" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lsp/modules/windows_x86_64_llvm/std/unittest.testmacro.cjo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParsing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParsing.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/DidChangeWatchedFilesNotification.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/DidChangeWatchedFilesNotification.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/psiUtil/CjPsiUtil.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/psiUtil/CjPsiUtil.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/LspServerDescriptor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/LspServerDescriptor.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/requests/LspClientNotification.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/requests/LspClientNotification.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/requests/LspRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/requests/LspRequest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspDynamicCapabilities.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspDynamicCapabilities.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerImpl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerManagerImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerManagerImpl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/connector/Lsp4jServerConnectorStdio.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/connector/Lsp4jServerConnectorStdio.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/DidOpenNotification.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/DidOpenNotification.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspCompletionRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspCompletionRequest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspRequestExecutorImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspRequestExecutorImpl.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,8 +143,9 @@
         <option value="Interface" />
         <option value="Kotlin Object" />
         <option value="JavaScript File" />
-        <option value="Kotlin Class" />
+        <option value="Kotlin Script" />
         <option value="Class" />
+        <option value="Kotlin Class" />
       </list>
     </option>
   </component>
@@ -125,18 +205,18 @@
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
-    "project.structure.last.edited": "模块",
+    "project.structure.last.edited": "项目",
     "project.structure.proportion": "0.17",
     "project.structure.side.proportion": "0.3678161",
     "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "dart.settings",
+    "settings.editor.selected.configurable": "language.rust",
     "two.files.diff.last.used.file": "D:/Code/idea/intellij-cangjie/lsp/log.txt",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="PsiViewer">
     <option name="HIGHLIGHT" value="true" />
-    <option name="SPLIT_DIVIDER_POSITION" value="463" />
+    <option name="SPLIT_DIVIDER_POSITION" value="239" />
   </component>
   <component name="RebelAgentSelection">
     <selection>jr</selection>
@@ -153,11 +233,11 @@
       <recent name="D:\Code\idea\intellij-cangjie\src\lib" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\resources\lsp" />
       <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\com\huawei\cangjie\idea\formatter\util" />
       <recent name="D:\Code\idea\intellij-cangjie" />
       <recent name="D:\Code\idea\intellij-cangjie\src\main\back" />
       <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\com\huawei\cangjie\lexer" />
-      <recent name="D:\Code\idea\intellij-cangjie\testData\src\main\kotlin" />
     </key>
     <key name="MoveKotlinTopLevelDeclarationsDialog.RECENTS_KEY">
       <recent name="com.huawei.cangjie1.psi" />
@@ -172,11 +252,11 @@
       <recent name="com.huawei.cangjie.lang" />
     </key>
     <key name="CopyKotlinDeclarationDialog.RECENTS_KEY">
+      <recent name="com.huawei.cangjie.idea.project.tools.projectWizard.wizard" />
+      <recent name="com.huawei.cangjie.idea.editor" />
       <recent name="com.huawei.cangjie.idea.inspections" />
       <recent name="com.huawei.cangjie.config" />
       <recent name="com.huawei.cangjie.idea.formatter.lineIndent" />
-      <recent name="com.huawei.cangjie.idea.formatter" />
-      <recent name="com.huawei.cangjie.idea.codeinsight.impl" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="com.huawei.cangjie.idea.formatter" />
@@ -522,7 +602,8 @@
       <workItem from="1699365638897" duration="5520000" />
       <workItem from="1699424943582" duration="7412000" />
       <workItem from="1699433160168" duration="27267000" />
-      <workItem from="1699501659670" duration="7928000" />
+      <workItem from="1699501659670" duration="17318000" />
+      <workItem from="1699529065090" duration="22457000" />
     </task>
     <task id="LOCAL-00001" summary="语法分析">
       <option name="closed" value="true" />
@@ -764,7 +845,15 @@
       <option name="project" value="LOCAL" />
       <updated>1699461757911</updated>
     </task>
-    <option name="localTasksCounter" value="31" />
+    <task id="LOCAL-00031" summary="解决&gt;&gt;右移运算符和支持泛型的钻石操作符（diamond operator）{a&lt;b&lt;c&gt;&gt;}冲突的问题">
+      <option name="closed" value="true" />
+      <created>1699509722692</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1699509722693</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -796,7 +885,8 @@
     <MESSAGE value="语法高亮" />
     <MESSAGE value="develop" />
     <MESSAGE value="lsp server Support" />
-    <option name="LAST_COMMIT_MESSAGE" value="lsp server Support" />
+    <MESSAGE value="解决&gt;&gt;右移运算符和支持泛型的钻石操作符（diamond operator）{a&lt;b&lt;c&gt;&gt;}冲突的问题" />
+    <option name="LAST_COMMIT_MESSAGE" value="解决&gt;&gt;右移运算符和支持泛型的钻石操作符（diamond operator）{a&lt;b&lt;c&gt;&gt;}冲突的问题" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1008,47 +1098,47 @@
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>607</line>
+          <line>671</line>
           <option name="timeStamp" value="223" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>612</line>
+          <line>676</line>
           <option name="timeStamp" value="225" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>616</line>
+          <line>680</line>
           <option name="timeStamp" value="226" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>621</line>
+          <line>685</line>
           <option name="timeStamp" value="227" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>626</line>
+          <line>690</line>
           <option name="timeStamp" value="228" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>630</line>
+          <line>694</line>
           <option name="timeStamp" value="229" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>635</line>
+          <line>699</line>
           <option name="timeStamp" value="230" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>639</line>
+          <line>703</line>
           <option name="timeStamp" value="231" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>644</line>
+          <line>708</line>
           <option name="timeStamp" value="232" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
@@ -1123,73 +1213,108 @@
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>561</line>
+          <line>625</line>
           <option name="timeStamp" value="281" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>566</line>
+          <line>630</line>
           <option name="timeStamp" value="282" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>571</line>
+          <line>635</line>
           <option name="timeStamp" value="283" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>576</line>
+          <line>640</line>
           <option name="timeStamp" value="284" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>580</line>
+          <line>644</line>
           <option name="timeStamp" value="285" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>584</line>
+          <line>648</line>
           <option name="timeStamp" value="286" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>588</line>
+          <line>652</line>
           <option name="timeStamp" value="287" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>592</line>
+          <line>656</line>
           <option name="timeStamp" value="288" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>597</line>
+          <line>661</line>
           <option name="timeStamp" value="289" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>602</line>
+          <line>666</line>
           <option name="timeStamp" value="290" />
         </line-breakpoint>
         <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>45</line>
+          <line>53</line>
           <option name="timeStamp" value="297" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
+        <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
-          <line>586</line>
+          <line>650</line>
           <option name="timeStamp" value="343" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
+        <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/DidChangeNotification.kt</url>
           <line>38</line>
           <option name="timeStamp" value="353" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
+        <line-breakpoint type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerImpl.kt</url>
-          <line>172</line>
+          <line>170</line>
           <option name="timeStamp" value="359" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspDynamicCapabilities.kt</url>
+          <line>201</line>
+          <option name="timeStamp" value="381" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerNotificationsHandlerImpl.kt</url>
+          <line>123</line>
+          <option name="timeStamp" value="388" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieProjectSdkTableListener.kt</url>
+          <line>8</line>
+          <option name="timeStamp" value="405" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieProjectSdkTableListener.kt</url>
+          <line>12</line>
+          <option name="timeStamp" value="406" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieProjectSdkTableListener.kt</url>
+          <line>16</line>
+          <option name="timeStamp" value="407" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieProjectSdkTableListener.kt</url>
+          <line>20</line>
+          <option name="timeStamp" value="408" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/CangJieStartupActivity.kt</url>
+          <line>13</line>
+          <option name="timeStamp" value="410" />
         </line-breakpoint>
         <breakpoint type="java-exception">
           <properties class="java.lang.AssertionError" package="java.lang" />
@@ -1203,10 +1328,6 @@
           <properties class="java.lang.NoClassDefFoundError" package="java.lang" />
           <option name="timeStamp" value="180" />
         </breakpoint>
-        <breakpoint type="java-exception">
-          <properties class="java.lang.NullPointerException" package="java.lang" />
-          <option name="timeStamp" value="195" />
-        </breakpoint>
         <line-breakpoint type="kotlin-function">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
           <line>25</line>
@@ -1215,6 +1336,15 @@
             <option name="WATCH_EXIT" value="false" />
           </properties>
           <option name="timeStamp" value="153" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-function">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/CangJieNewProjectWizard.kt</url>
+          <line>22</line>
+          <properties class="com.huawei.cangjie.idea.project.tools.projectWizard.CangJieNewProjectWizard" method="&lt;init&gt;">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="401" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

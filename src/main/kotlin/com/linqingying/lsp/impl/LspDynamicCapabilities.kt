@@ -118,6 +118,9 @@ internal class LspDynamicCapabilities {
         @JvmField
         val symbol = "workspace/symbol" to WorkspaceSymbolRegistrationOptions::class.java
 
+//        textDocument/semanticTokens/full
+        @JvmField
+        val  semanticTokensFull = "textDocument/semanticTokens/full" to SemanticTokensServerFull::class.java
 
         private var capabilityToLsp4jRegistrationOptionsClass = mapOf(
             prepareCallHierarchy,
@@ -152,7 +155,8 @@ internal class LspDynamicCapabilities {
             didSave,
             typeDefinition,
             prepareTypeHierarchy,
-            symbol
+            symbol,
+            semanticTokensFull
         )
         val LOG = Logger.getInstance(LspDynamicCapabilities::class.java)
 

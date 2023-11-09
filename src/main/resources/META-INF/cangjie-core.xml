@@ -4,10 +4,16 @@
     <resource-bundle>messages.CangJieBaseHighlightingBundle</resource-bundle>
     <resource-bundle>messages.CangJieBundle</resource-bundle>
 
-    <depends>com.intellij.modules.lang</depends>
+
 
     <extensions defaultExtensionNs="com.intellij">
-
+<!--        插件启动初始化-->
+<!--        <applicationService serviceImplementation="com.huawei.cangjie.CangJieStartupActivity" serviceInterface="com.intellij.openapi.startup.StartupActivity"/>-->
+<!--<postStartupActivity implementation="com.huawei.cangjie.CangJieStartupActivity"/>-->
+<!--        编辑器自动插入-->
+        <typedHandler implementation="com.huawei.cangjie.idea.editor.CangJieTypedHandler"/>
+        <typedHandler implementation="com.huawei.cangjie.idea.editor.CDocTypedHandler"/>
+        <typedHandler implementation="com.huawei.cangjie.idea.editor.CangJieRawStringTypedHandler"/>
 
         <!--文件类型工厂 -->
 
@@ -67,8 +73,21 @@
         <!--                         key="inspection.use.expression.body.display.name" bundle="messages.CangJieBundle"/>-->
 
         <!-- LSP -->
-<!--        <lsp.serverSupportProvider implementation="com.huawei.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>-->
+        <lsp.serverSupportProvider implementation="com.huawei.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>
 
+<!--SDK-->
+      <sdkType implementation="com.huawei.cangjie.lang.sdk.CangJieSdkType" />
+       <projectSdkSetupValidator implementation="com.huawei.cangjie.lang.sdk.CangJieLanguageSdkSetupValidator"/>
+
+
+
+<!--        项目向导-->
+<!--        <moduleBuilder-->
+<!--                builderClass="com.huawei.cangjie.idea.project.settings.ui.CangJieModuleWizardStep"-->
+<!--                id="DEMO_STEP"-->
+<!--                order="first"/>-->
+        <newProjectWizard.language implementation="com.huawei.cangjie.idea.project.tools.projectWizard.CangJieNewProjectWizard"/>
+<!--        <moduleBuilder builderClass=" com.huawei.cangjie.idea.project.tools.projectWizard.wizard.NewProjectWizardModuleBuilder"/>-->
 
         <!--        服务注册  cangjie包-->
 
@@ -91,12 +110,12 @@
         <applicationService
                 serviceInterface="com.huawei.cangjie.psi.stubs.elements.StubIndexService"
                 serviceImplementation="com.huawei.cangjie.idea.stubindex.IdeStubIndexService"/>
-        <completion.contributor
-                language="CangJie"
-                id="CangJieCompletionContributor"
-                order="first, after liveTemplates"
+<!--        <completion.contributor-->
+<!--                language="CangJie"-->
+<!--                id="CangJieCompletionContributor"-->
+<!--                order="first, after liveTemplates"-->
 
-                implementationClass="com.huawei.cangjie.idea.completion.CangJieCompletionContributor"/>
+<!--                implementationClass="com.huawei.cangjie.idea.completion.CangJieCompletionContributor"/>-->
 
         <!--        <applicationService serviceInterface="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicy"-->
         <!--                        serviceImplementation="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>-->
@@ -107,6 +126,13 @@
                 restartRequired="false"/>
 
     </extensions>
+
+    <!--        SDK监听-->
+    <applicationListeners>
+<!--        <listener class="com.huawei.cangjie.lang.sdk.CangJieProjectSdkTableListener" topic="com.intellij.openapi.projectRoots.ProjectJdkTable$Listener"/>-->
+    </applicationListeners>
+
+
     <extensionPoints>
         <extensionPoint
                 qualifiedName="com.huawei.cangjie.beforeResolveHighlightingVisitor"
@@ -115,5 +141,11 @@
         <extensionPoint
                 qualifiedName="com.huawei.cangjie.completionExtension"
                 interface="com.huawei.cangjie.idea.completion.CangJieCompletionExtension" dynamic="true"/>
+
+
+        <extensionPoint
+                qualifiedName="com.intellij.newProjectWizard.CangJie.buildSystem"
+                interface="com.huawei.cangjie.idea.project.tools.projectWizard.BuildSystemCangJieNewProjectWizard" dynamic="true"/>
+
     </extensionPoints>
 </idea-plugin>

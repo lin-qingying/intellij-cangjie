@@ -35,6 +35,7 @@ import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import com.linqingying.lsp.api.*
 import com.linqingying.lsp.impl.requests.DidChangeNotification
+import com.linqingying.lsp.impl.requests.SemanticTokensFullNotification
 import org.eclipse.lsp4j.FileChangeType
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.TestOnly
@@ -42,7 +43,7 @@ import javax.swing.JComponent
 
 class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable {
 
-    private val servers: MutableCollection<LspServerImpl> = ContainerUtil.createLockFreeCopyOnWriteList()
+    val servers: MutableCollection<LspServerImpl> = ContainerUtil.createLockFreeCopyOnWriteList()
 
     private val listenersAdapter: LspServerManagerListener
     private val eventDispatcher: EventDispatcher<LspServerManagerListener> =
@@ -278,7 +279,11 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
                     documentsToHandle.add(event.document)
                     handleDocuments()
                 }
+                //TODO 发生更改后，发送SemanticTokensFullNotification
+                SemanticTokensFullNotification.sendNotification(file)
             }
+
+//            lspServer.requestExecutor.sendNotification(SemanticTokensFullNotification(lspServer,file))
         }
 
         private fun handleDocuments() {

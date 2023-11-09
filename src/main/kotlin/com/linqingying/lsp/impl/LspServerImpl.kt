@@ -6,9 +6,6 @@ import com.linqingying.lsp.api.customization.requests.LspRequestExecutor
 import com.linqingying.lsp.impl.connector.Lsp4jServerConnector
 import com.linqingying.lsp.impl.connector.Lsp4jServerConnectorStdio
 import com.linqingying.lsp.impl.highlighting.DiagnosticAndQuickFixes
-import com.linqingying.lsp.impl.requests.DidChangeWatchedFilesNotification
-import com.linqingying.lsp.impl.requests.DidOpenNotification
-import com.linqingying.lsp.impl.requests.LspRequestExecutorImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
@@ -26,7 +23,8 @@ import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.concurrency.annotations.RequiresWriteLock
 import com.intellij.util.containers.ContainerUtil
-import com.linqingying.lsp.impl.requests.DidCloseNotification
+import com.linqingying.lsp.impl.requests.*
+import com.linqingying.lsp.impl.requests.DidOpenNotification
 import org.eclipse.lsp4j.*
 
 import org.eclipse.lsp4j.services.LanguageServer
@@ -37,10 +35,10 @@ import java.util.concurrent.atomic.AtomicReference
 
 class LspServerImpl(
     val pluginClass: Class<out LspServerSupportProvider>,
-    override val descriptor: com.linqingying.lsp.api.LspServerDescriptor,
+    override val descriptor: LspServerDescriptor,
     private val listenersAdapter: LspServerManagerListener
 
-) : com.linqingying.lsp.api.LspServer {
+) : LspServer {
 
     enum class State {
         CREATED,
@@ -234,9 +232,10 @@ class LspServerImpl(
 
         return null
     }
+
     fun fileEdited(file: VirtualFile, e: DocumentEvent) {
 
-       diagnosticsCache.fileEdited(file, e)
+        diagnosticsCache.fileEdited(file, e)
     }
 
     private fun getTextDocumentSyncKind(): TextDocumentSyncKind? {
@@ -248,6 +247,7 @@ class LspServerImpl(
             (textDocumentSync.right as TextDocumentSyncOptions).change
         }
     }
+
     fun requiresFullSync(): Boolean {
         return getTextDocumentSyncKind() == TextDocumentSyncKind.Full
     }
@@ -354,6 +354,25 @@ class LspServerImpl(
         }
     }
 
+    //    semanticTokens/full
+//    @RequiresWriteLock
+//    fun sendSemanticTokensFullRequest(file: VirtualFile) {
+//        ApplicationManager.getApplication().assertWriteAccessAllowed()
+//        if (!hasCapabilities()) {
+//            LOG.error("sendSemanticTokensFullRequest() can only be called when hasCapabilities() == true. Ignoring $file")
+//        } else {
+//
+//            if (openedFiles.add(file)) {
+//                requestExecutor.sendNotification(SemanticTokensFullNotification(this, file))
+//                listenersAdapter.fileOpened(file)
+//            } else {
+//                LOG.error("sendSemanticTokensFullRequest() cannot be called for already opened files. Ignoring: $file")
+//            }
+//
+//        }
+//
+//    }
+
 
     @RequiresReadLock
     @RequiresBackgroundThread
@@ -383,9 +402,7 @@ class LspServerImpl(
         val uri: String,
         val isDirectory: Boolean,
         val changeType: FileChangeType
-    ){
-
-    }
+    )
 
 
 }

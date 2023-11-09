@@ -1,17 +1,6 @@
 package com.linqingying.lsp.api
 
 
-
-
-
-
-
-import com.linqingying.lsp.api.customization.LspCodeActionsSupport
-import com.linqingying.lsp.api.customization.LspCommandsSupport
-import com.linqingying.lsp.api.customization.LspCompletionSupport
-import com.linqingying.lsp.api.customization.LspDiagnosticsSupport
-
-
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.OSProcessHandler
@@ -25,16 +14,21 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
-
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
+import com.intellij.util.io.BaseOutputReader
 import com.intellij.util.io.URLUtil
+import com.linqingying.lsp.api.customization.LspCodeActionsSupport
+import com.linqingying.lsp.api.customization.LspCommandsSupport
+import com.linqingying.lsp.api.customization.LspCompletionSupport
+import com.linqingying.lsp.api.customization.LspDiagnosticsSupport
 import org.eclipse.lsp4j.*
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 import org.eclipse.lsp4j.services.LanguageServer
 import org.jetbrains.annotations.ApiStatus
 import java.net.URI
 import java.net.URISyntaxException
+
 
 /**
  * Defines how to start the LSP server process ([startServerProcess] and [createCommandLine] functions),
@@ -101,8 +95,8 @@ abstract class LspServerDescriptor protected constructor(
     @Throws(ExecutionException::class)
     open fun startServerProcess(): OSProcessHandler {
         val startingCommandLine = createCommandLine()
-        com.linqingying.lsp.api.LspServerDescriptor.Companion.LOG.info("$this: starting LSP server: $startingCommandLine")
-        return OSProcessHandler(startingCommandLine)
+        LOG.info("$this: starting LSP server: $startingCommandLine")
+        return LspProcessHandler(startingCommandLine)
     }
 
     /**
@@ -144,17 +138,17 @@ abstract class LspServerDescriptor protected constructor(
         return try {
             val uri = URI(fixedFileUri)
             if (URLUtil.FILE_PROTOCOL != uri.scheme) {
-                com.linqingying.lsp.api.LspServerDescriptor.Companion.LOG.warn("Unexpected URI scheme: $fileUri")
+                LOG.warn("Unexpected URI scheme: $fileUri")
                 return null
             }
             val path = uri.path
             if (path == null) {
-                com.linqingying.lsp.api.LspServerDescriptor.Companion.LOG.warn("Unexpected URI (no path): $fileUri")
+                LOG.warn("Unexpected URI (no path): $fileUri")
                 return null
             }
             findLocalFileByPath(path)
         } catch (e: URISyntaxException) {
-            com.linqingying.lsp.api.LspServerDescriptor.Companion.LOG.warn("Malformed URI: " + fileUri + "; " + e.message)
+            LOG.warn("Malformed URI: " + fileUri + "; " + e.message)
             null
         }
     }
@@ -172,7 +166,7 @@ abstract class LspServerDescriptor protected constructor(
      * exceptions to this rule.
      */
     open fun getLanguageId(file: VirtualFile): String =
-        com.linqingying.lsp.api.LspServerDescriptor.Companion.getLanguageId(file)
+        Companion.getLanguageId(file)
 
     /**
      * [InitializeParams](https://microsoft.github.io/language-server-protocol/specification#initializeParams) object is sent to the LSP
@@ -265,8 +259,8 @@ abstract class LspServerDescriptor protected constructor(
      * and return their subclass of the [Lsp4jClient] class.
      * See [Lsp4jClient] class documentation for more information.
      */
-    open fun createLsp4jClient(handler: LspServerNotificationsHandler): com.linqingying.lsp.api.Lsp4jClient =
-         Lsp4jClient(handler)
+    open fun createLsp4jClient(handler: LspServerNotificationsHandler): Lsp4jClient =
+        Lsp4jClient(handler)
 
     /**
      * Returns a class that should be used as a [org.eclipse.lsp4j.services.LanguageServer] for this [LspServer].
@@ -325,12 +319,14 @@ abstract class LspServerDescriptor protected constructor(
 
     companion object {
         @JvmField
-        val LOG: Logger = Logger.getInstance(com.linqingying.lsp.api.LspServerDescriptor::class.java)
+        val LOG: Logger = Logger.getInstance(LspServerDescriptor::class.java)
 
         fun getLanguageId(file: VirtualFile): String {
             val nameLowercased = StringUtil.toLowerCase(file.name)
-            com.linqingying.lsp.api.LspServerDescriptor.Companion.FILE_NAME_ENDING_TO_LANGUAGE_ID.find { nameLowercased.endsWith(it.first) }?.let { return it.second }
-            return StringUtil.toLowerCase(file.extension)?.let { com.linqingying.lsp.api.LspServerDescriptor.Companion.FILE_EXTENSION_TO_LANGUAGE_ID[it] ?: it } ?: ""
+            FILE_NAME_ENDING_TO_LANGUAGE_ID.find { nameLowercased.endsWith(it.first) }
+                ?.let { return it.second }
+            return StringUtil.toLowerCase(file.extension)
+                ?.let { FILE_EXTENSION_TO_LANGUAGE_ID[it] ?: it } ?: ""
         }
 
         private val FILE_NAME_ENDING_TO_LANGUAGE_ID: List<Pair<String, String>> = listOf(
@@ -367,4 +363,11 @@ abstract class LspServerDescriptor protected constructor(
  * So, it uses all [BaseProjectDirectories.getBaseDirectories] as LSP server roots.
  */
 abstract class ProjectWideLspServerDescriptor(project: Project, @NlsSafe presentableName: String) :
-    com.linqingying.lsp.api.LspServerDescriptor(project, presentableName, *project.getBaseDirectories().toTypedArray())
+    LspServerDescriptor(project, presentableName, *project.getBaseDirectories().toTypedArray())
+
+
+class LspProcessHandler(generalCommandLine: GeneralCommandLine) : OSProcessHandler(generalCommandLine) {
+    override fun readerOptions(): BaseOutputReader.Options {
+        return BaseOutputReader.Options.forMostlySilentProcess()
+    }
+}
