@@ -7,6 +7,7 @@ import com.intellij.ide.plugins.PluginManager
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.SystemInfo.isWindows
 import com.intellij.openapi.vfs.VirtualFile
 import com.linqingying.lsp.api.*
 import com.linqingying.lsp.api.customization.requests.LspRequestExecutor
@@ -97,7 +98,7 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
     fun getLspServerPath(): String {
         val classLoader = this::class.java.classLoader
 
-        val lspserverPath = if (isWindows()) {
+        val lspserverPath = if (isWindows) {
             "lsp/LSPServer.exe"
         } else {
             "lsp/LSPServer"
@@ -106,7 +107,7 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
         val resource = classLoader.getResource(lspserverPath)
 
 //         将文件复制到临时目录
-        val tempFile = File.createTempFile("LspServer", if (isWindows()) ".exe" else "")
+        val tempFile = File.createTempFile("LspServer", if (isWindows) ".exe" else "")
 
 // 将资源文件复制到临时文件中
         resource?.openStream().use { input ->
@@ -121,13 +122,7 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
         return tempFile.absolutePath
     }
 
-    /**
-     * 判断系统是否为windows
-     */
-    fun isWindows(): Boolean {
-        val os = System.getProperty("os.name")
-        return os.lowercase(Locale.getDefault()).startsWith("win")
-    }
+
 
 
     // 无需使用LSP服务器即可实现引用解析

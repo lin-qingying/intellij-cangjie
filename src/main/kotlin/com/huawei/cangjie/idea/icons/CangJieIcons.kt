@@ -9,5 +9,9 @@ object CangJieIcons {
 
     val CANGJIE_FILE = load("/icons/cangjieFile.svg")
 
+    /** 16x16  */
+    val SMALL_LOGO: Icon = CangJieBaseResourcesIcons.Kotlin
+
+
     private fun load(path: String): Icon = IconLoader.getIcon(path, CangJieIcons::class.java)
 }

@@ -3,6 +3,7 @@ package com.huawei.cangjie.lang.sdk
 import com.intellij.openapi.projectRoots.*
 import org.jdom.Element
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStreamReader
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -32,13 +33,14 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
     }
 
     override fun isValidSdkHome(path: String): Boolean {
+        if (!File(path).exists()) return false
 
 //        执行path/bin/cjc -v
         return try {
             val process = ProcessBuilder("$path/bin/cjc", "-v").start()
             val reader = BufferedReader(InputStreamReader(process.inputStream))
             val output = reader.readLine()
-    // 取第一个冒号后面的内容
+            // 取第一个冒号后面的内容
             val version = output.split(":")[1].trim()
             sdkVersion = version
             version.isNotEmpty()
@@ -46,7 +48,6 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
 
             false
         }
-
 
 
     }
@@ -73,7 +74,7 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
             }
 
             override fun setSdk(sdk: Sdk?) {
-println(sdk)
+                println(sdk)
             }
 
         }
