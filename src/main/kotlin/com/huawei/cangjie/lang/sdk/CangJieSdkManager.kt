@@ -29,10 +29,18 @@ object CangJieSdkManager {
     /**
      * 获取所有仓颉sdk
      */
-    fun getAllCangJieSdks(): List<CangJieSdk> {
+    fun getAllCangJieSdks(): List<Sdk> {
+//        返回Sdktype为CangJieSdkType的sdk
+//        return ProjectJdkTable.getInstance().getSdksOfType(CangJieSdkType())
 
-        val allsdk = ProjectJdkTable.getInstance().allJdks.toList()
-        return allsdk.filterIsInstance<CangJieSdk>()
+        val sdks = ProjectJdkTable.getInstance().allJdks
+        val cangJieSdks = mutableListOf<Sdk>()
+        for (sdk in sdks) {
+            if (sdk.sdkType is CangJieSdkType) {
+                cangJieSdks.add(sdk)
+            }
+        }
+        return cangJieSdks
 
 
     }

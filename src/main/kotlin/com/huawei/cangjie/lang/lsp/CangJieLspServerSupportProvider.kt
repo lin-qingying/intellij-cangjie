@@ -1,6 +1,7 @@
 package com.huawei.cangjie.lang.lsp
 
 import com.huawei.cangjie.lang.CangJieFileType
+import com.huawei.cangjie.lang.sdk.CangJieSdkManager
 
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.ide.plugins.PluginManager
@@ -45,7 +46,16 @@ class CangJieLspServerSupportProvider : LspServerSupportProvider {
 
 
 private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServerDescriptor(project, "Cangjie") {
-    override fun isSupportedFile(file: VirtualFile) = file.fileType == CangJieFileType
+    override fun isSupportedFile(file: VirtualFile): Boolean {
+        if (file.fileType !is CangJieFileType) return false
+
+//        如果未配置sdk
+        if (CangJieSdkManager.getProjectSdk() == null) return false
+
+        return true
+
+
+    }
 //    override fun createCommandLine() = GeneralCommandLine("D:\\Code\\idea\\intellij-cangjie\\lsp\\LSPServer.exe", "src")
 
     //
@@ -60,14 +70,21 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 
     override fun createCommandLine(): GeneralCommandLine {
 
-//        获取插件路径
-        val pluginPath = PluginManagerCore.getPlugin(PluginId.getId("com.huawei.cangjie"))!!.path.path
+
+        //获取项目使用的sdk
+        val sdk = CangJieSdkManager.getProjectSdk()
+
+
+
+
 
         return GeneralCommandLine().apply {
             withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE)
             withCharset(Charsets.UTF_8)
             exePath = getLspServerPath()
-            setWorkDirectory("C:\\Users\\27439\\.sdk\\cangjie")
+            if (sdk != null) {
+                setWorkDirectory(sdk.homePath)
+            }
             addParameter("src")
 //            withEnvironment(getWindowsPath())
         }
@@ -121,8 +138,6 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 
         return tempFile.absolutePath
     }
-
-
 
 
     // 无需使用LSP服务器即可实现引用解析

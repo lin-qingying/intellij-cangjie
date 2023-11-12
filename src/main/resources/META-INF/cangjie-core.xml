@@ -15,6 +15,7 @@
                            id="CjpmRunConfiguration"/>
 
 
+
         <!--        插件启动初始化-->
         <!--        <applicationService serviceImplementation="com.huawei.cangjie.CangJieStartupActivity" serviceInterface="com.intellij.openapi.startup.StartupActivity"/>-->
         <!--<postStartupActivity implementation="com.huawei.cangjie.CangJieStartupActivity"/>-->
@@ -86,7 +87,6 @@
         <!--SDK-->
         <sdkType implementation="com.huawei.cangjie.lang.sdk.CangJieSdkType"/>
         <projectSdkSetupValidator implementation="com.huawei.cangjie.lang.sdk.CangJieLanguageSdkSetupValidator"/>
-
 
         <!--        项目向导-->
         <!--        <moduleBuilder-->
