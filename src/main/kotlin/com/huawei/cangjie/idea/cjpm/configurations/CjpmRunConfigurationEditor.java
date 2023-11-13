@@ -2,6 +2,7 @@ package com.huawei.cangjie.idea.cjpm.configurations;
 
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager;
 import com.huawei.cangjie.lang.sdk.CangJieSdkType;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SettingsEditor;
@@ -30,47 +31,50 @@ public class CjpmRunConfigurationEditor extends SettingsEditor<CjpmRunConfigurat
     private JPanel mainPanel;
     private LabeledComponent command;
     private LabeledComponent moudle;
-    private LabeledComponent cjcversion;
-    private LabeledComponent cjpmversion;
+//    private LabeledComponent cjcversion;
+//    private LabeledComponent cjpmversion;
 
 
     //    命令列表
     private final List<CjpmCommandItem> commandItems = new ArrayList<>();
 
     //    仓颉sdk列表
-    private   List<Sdk> sdks = new ArrayList<>();
+    private List<Sdk> sdks = new ArrayList<>();
 
 
     private final Project project;
+
+
+    static final String SELECTED_COMMAND_KEY = "cjpm.selected.command";
 
 
     public CjpmRunConfigurationEditor(Project project) {
 
 
         this.project = project;
-        ((ComboBox) cjcversion.getComponent()).setMinLength(200);
-        ((ComboBox) cjpmversion.getComponent()).setMinLength(200);
+//        ((ComboBox) cjcversion.getComponent()).setMinLength(200);
+//        ((ComboBox) cjpmversion.getComponent()).setMinLength(200);
 
 
         initUI();
     }
 
 
-   public  void resetSdks(){
-        initSdkItems();
-       initCjcVersion();
-       initCjpmVersion();
-   }
+//   public  void resetSdks(){
+//        initSdkItems();
+//       initCjcVersion();
+//       initCjpmVersion();
+//   }
 
     private void initUI() {
 
 
-        initSdkItems();
+//        initSdkItems();
 
         initComboxItems();
         initMoudleButton();
-        initCjcVersion();
-        initCjpmVersion();
+//        initCjcVersion();
+//        initCjpmVersion();
 
 
     }
@@ -79,19 +83,26 @@ public class CjpmRunConfigurationEditor extends SettingsEditor<CjpmRunConfigurat
         return ((ComboBox) this.command.getComponent()).getSelectedItem().toString();
     }
 
-    public String getCjpmPath() {
-        int i = ((ComboBox<?>) this.cjpmversion.getComponent()).getSelectedIndex();
-        if (sdks.get(i) == null) return null;
-        return ((CangJieSdkType) sdks.get(i).getSdkType()).getSdkAdditionalData().getCjpmPath();
-
+    public Integer getSelectedCommandIndex() {
+        return ((ComboBox) this.command.getComponent()).getSelectedIndex();
     }
 
-    public String getCjcPath() {
-        int i = ((ComboBox<?>) this.cjcversion.getComponent()).getSelectedIndex();
-        if (sdks.get(i) == null) return null;
-        return ((CangJieSdkType) sdks.get(i).getSdkType()).getSdkAdditionalData().getCjcPath();
-
+    public void setSelectedCommandIndex(Integer index) {
+        ((ComboBox) this.command.getComponent()).setSelectedIndex(index);
     }
+//    public String getCjpmPath() {
+//        int i = ((ComboBox<?>) this.cjpmversion.getComponent()).getSelectedIndex();
+//        if (sdks.get(i) == null) return null;
+//        return ((CangJieSdkType) sdks.get(i).getSdkType()).getSdkAdditionalData().getCjpmPath();
+//
+//    }
+
+//    public String getCjcPath() {
+//        int i = ((ComboBox<?>) this.cjcversion.getComponent()).getSelectedIndex();
+//        if (sdks.get(i) == null) return null;
+//        return ((CangJieSdkType) sdks.get(i).getSdkType()).getSdkAdditionalData().getCjcPath();
+//
+//    }
 
     private void initComboxItems() {
         initCjpmCommandItems();
@@ -110,6 +121,12 @@ public class CjpmRunConfigurationEditor extends SettingsEditor<CjpmRunConfigurat
         }
 
     }
+
+    @Override
+    public boolean isReadyForApply() {
+        return super.isReadyForApply();
+    }
+
 
     TextComponentAccessor<JTextField> moudelJsonAccessor = new TextComponentAccessor<>() {
         @Override
@@ -146,56 +163,56 @@ public class CjpmRunConfigurationEditor extends SettingsEditor<CjpmRunConfigurat
         moudle.setEnabled(false);
     }
 
-    void initCjpmVersion() {
-        ((ComboBox) this.cjpmversion.getComponent()).setEditable(true);
-
-
-        ((ComboBox) this.cjpmversion.getComponent()).setModel(new DefaultComboBoxModel(sdks.stream().map(sdk -> {
-            if (sdk == null) {
-                return "Please configure Changjie sdk;";
-            } else {
-                return "cjpm  " + "(" + ((CangJieSdkType) sdk.getSdkType()).getSdkAdditionalData().getCjpmPath() + ")     "
-//                        +
-                        + ((CangJieSdkType) sdk.getSdkType()).getSdkAdditionalData().getCjpmVersion();
-//                return ((CangJieSdkType) sdk.getSdkType()).getSdkAdditionalData().getCjpmPath() + "       " + ((CangJieSdkType) sdk.getSdkType()).getSdkAdditionalData().getCjpmVersion();
-            }
-        }).toArray()));
-//        ((ComboBox) this.cjpmversion.getComponent()).setRenderer(
-//                new SimpleListCellRenderer<String>() {
-//                    @Override
-//                    public void customize(JList<? extends String> list, String value, int index, boolean selected, boolean hasFocus) {
-//                        String[] parts = value.split(";");
-//                        if (parts.length == 2) {
-//                            setText("<html><div style='width:100px'>" + parts[0] + "</div><div style='float:right'>" + parts[1] + "</div></html>");
-//                        }
+//    void initCjpmVersion() {
+//        ((ComboBox) this.cjpmversion.getComponent()).setEditable(true);
+//
+//
+//        ((ComboBox) this.cjpmversion.getComponent()).setModel(new DefaultComboBoxModel(sdks.stream().map(sdk -> {
+//            if (sdk == null) {
+//                return "Please configure Changjie sdk;";
+//            } else {
+//                return "cjpm  " + "(" + ((CangJieSdkType) sdk.getSdkType()).getSdkAdditionalData().getCjpmPath() + ")     "
+////                        +
+//                        + ((CangJieSdkType) sdk.getSdkType()).getSdkAdditionalData().getCjpmVersion();
+////                return ((CangJieSdkType) sdk.getSdkType()).getSdkAdditionalData().getCjpmPath() + "       " + ((CangJieSdkType) sdk.getSdkType()).getSdkAdditionalData().getCjpmVersion();
+//            }
+//        }).toArray()));
+////        ((ComboBox) this.cjpmversion.getComponent()).setRenderer(
+////                new SimpleListCellRenderer<String>() {
+////                    @Override
+////                    public void customize(JList<? extends String> list, String value, int index, boolean selected, boolean hasFocus) {
+////                        String[] parts = value.split(";");
+////                        if (parts.length == 2) {
+////                            setText("<html><div style='width:100px'>" + parts[0] + "</div><div style='float:right'>" + parts[1] + "</div></html>");
+////                        }
+////                    }
+////                }
+////
+////        );
+//
+//    }
+//
+//    void initCjcVersion() {
+//
+////      (  (CangJieSdkType)sdks.get(0).getSdkType()).getSdkAdditionalData().getCjcPath()  + (  (CangJieSdkType)sdks.get(0).getSdkType()).getSdkAdditionalData().getCjcVersion()
+//        ((ComboBox) this.cjcversion.getComponent()).setModel(new DefaultComboBoxModel(sdks.stream().map(sdk -> {
+//            if (sdk == null) {
+//                return "Please configure Changjie sdk;";
+//            } else {
+//                return "cjc  " + "(" + ((CangJieSdkType) sdk.getSdkType()).getSdkAdditionalData().getCjcPath() + ")     " + ((CangJieSdkType) sdk.getSdkType()).getSdkAdditionalData().getCjcVersion();
+////                return ((CangJieSdkType) sdk.getSdkType()).getSdkAdditionalData().getCjcPath() + "       " + ((CangJieSdkType) sdk.getSdkType()).getSdkAdditionalData().getCjcVersion();
+//            }
+//        }).toArray()));
+//
+//        ((ComboBox) this.cjcversion.getComponent()).addItemListener(
+//                e -> {
+//                    if (e.getStateChange() == ItemEvent.SELECTED) {
+//                        e.getItem();
 //                    }
 //                }
-//
 //        );
-
-    }
-
-    void initCjcVersion() {
-
-//      (  (CangJieSdkType)sdks.get(0).getSdkType()).getSdkAdditionalData().getCjcPath()  + (  (CangJieSdkType)sdks.get(0).getSdkType()).getSdkAdditionalData().getCjcVersion()
-        ((ComboBox) this.cjcversion.getComponent()).setModel(new DefaultComboBoxModel(sdks.stream().map(sdk -> {
-            if (sdk == null) {
-                return "Please configure Changjie sdk;";
-            } else {
-                return "cjc  " + "(" + ((CangJieSdkType) sdk.getSdkType()).getSdkAdditionalData().getCjcPath() + ")     " + ((CangJieSdkType) sdk.getSdkType()).getSdkAdditionalData().getCjcVersion();
-//                return ((CangJieSdkType) sdk.getSdkType()).getSdkAdditionalData().getCjcPath() + "       " + ((CangJieSdkType) sdk.getSdkType()).getSdkAdditionalData().getCjcVersion();
-            }
-        }).toArray()));
-
-        ((ComboBox) this.cjcversion.getComponent()).addItemListener(
-                e -> {
-                    if (e.getStateChange() == ItemEvent.SELECTED) {
-                        e.getItem();
-                    }
-                }
-        );
-
-    }
+//
+//    }
 
 
     public VirtualFile getModuleJson() {
@@ -217,6 +234,7 @@ public class CjpmRunConfigurationEditor extends SettingsEditor<CjpmRunConfigurat
         commandItems.add(new CjpmCommandItem("clean", "clean", "清理模块"));
 //        commandItems.add(new CjpmCommandItem("init", "init", "初始化模块"));
         ((ComboBox) command.getComponent()).setModel(new DefaultComboBoxModel(commandItems.toArray()));
+        // 恢复上次选中的命令
 
 
     }
@@ -224,12 +242,12 @@ public class CjpmRunConfigurationEditor extends SettingsEditor<CjpmRunConfigurat
 
     @Override
     protected void resetEditorFrom(@NotNull CjpmRunConfiguration s) {
-
+        ((ComboBox) this.command.getComponent()).setSelectedIndex(s.getCommandSelectIndex());
     }
 
     @Override
     protected void applyEditorTo(@NotNull CjpmRunConfiguration s) throws ConfigurationException {
-
+        System.out.println();
     }
 
     @Override
@@ -244,7 +262,7 @@ public class CjpmRunConfigurationEditor extends SettingsEditor<CjpmRunConfigurat
 
     @Override
     public void setAnchor(@Nullable JComponent anchor) {
-
+        System.out.println();
     }
 
     private void createUIComponents() {

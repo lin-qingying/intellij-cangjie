@@ -2,6 +2,7 @@ package com.huawei.cangjie.idea.cjpm.configurations
 
 import com.huawei.cangjie.idea.icons.CangJieIcons
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager
+import com.huawei.cangjie.lang.sdk.CangJieSdkType
 import com.intellij.execution.*
 import com.intellij.execution.configurations.*
 import com.intellij.execution.filters.TextConsoleBuilderFactory
@@ -20,6 +21,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NotNullLazyValue
 import com.intellij.openapi.util.SystemInfo.isWindows
+import com.intellij.testFramework.configureInspections
+import org.jdom.Element
 import java.io.File
 
 
@@ -84,7 +87,17 @@ class CjpmRunConfigurationType : SimpleConfigurationType(
 //}
 
 class CjpmRunConfiguration(project: Project, factory: ConfigurationFactory, name: String) :
-    RunConfigurationBase<Any?>(project, factory, name) {
+    RunConfigurationBase<CangJieRunConfigurationOptions>(project, factory, name) {
+
+
+    var commandSelectIndex: Int? = null
+    var cjcPath: String? = null
+    var cjpmPath: String? = null
+    var cjpmVersion: String? = null
+    var cjcVersion: String? = null
+    var moudleJsonPath: String? = null
+
+
     override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState {
 
 //        运行命令
@@ -98,13 +111,34 @@ class CjpmRunConfiguration(project: Project, factory: ConfigurationFactory, name
         if (runConfigEditor.command.isNullOrEmpty()) {
             throw RuntimeConfigurationException("命令不能为空")
         }
-        if (runConfigEditor.cjcPath.isNullOrEmpty() || runConfigEditor.cjpmPath.isNullOrEmpty()) {
-            throw RuntimeConfigurationException("请配置仓颉SDK")
-        }
+//        if (runConfigEditor.cjcPath.isNullOrEmpty() || runConfigEditor.cjpmPath.isNullOrEmpty()) {
+//            throw RuntimeConfigurationException("请配置仓颉SDK")
+//        }
 
 
     }
 
+    override fun readExternal(element: Element) {
+        super.readExternal(element)
+//        从xml中读取配置
+        commandSelectIndex = element.getAttributeValue("commandIndex")?.toInt() ?: null
+
+
+//        runConfigEditor.selectedCommandIndex = commandSelectIndex ?: 0
+    }
+
+    override fun writeExternal(element: Element) {
+//        将runConfigEditor中的配置写入到xml中
+        element.setAttribute("commandIndex", runConfigEditor.selectedCommandIndex.toString())
+//        element.setAttribute("cjcPath", runConfigEditor.cjcPath)
+//        element.setAttribute("cjpmPath", runConfigEditor.cjpmPath)
+//        element.setAttribute("cjpmVersion", runConfigEditor.cjpmVersion)
+//        element.setAttribute("cjcVersion", runConfigEditor.cjcVersion)
+//        element.setAttribute("moudleJsonPath", runConfigEditor.moudleJsonPath)
+        super.writeExternal(element)
+
+
+    }
 //    override fun setBeforeRunTasks(value: MutableList<BeforeRunTask<*>>) {
 //        value.add(MyBeforeRunTaskProvider().createTask(this))
 //
@@ -117,10 +151,11 @@ class CjpmRunConfiguration(project: Project, factory: ConfigurationFactory, name
 //        return listOf(myBeforeRunTask).toMutableList()
 //    }
 
+
     override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> {
 //        创建
         val group = SettingsEditorGroup<CjpmRunConfiguration>()
-        runConfigEditor.resetSdks()
+//        runConfigEditor.resetSdks()
         group.addEditor(
 //            ExecutionBundle.message("run.configuration.configuration.tab.title"),
             "cjpm",
@@ -132,20 +167,29 @@ class CjpmRunConfiguration(project: Project, factory: ConfigurationFactory, name
     }
 
 
-    class CjpmCommandLineState(environment: ExecutionEnvironment, configuration: CjpmRunConfiguration) :
+    class CjpmCommandLineState(environment: ExecutionEnvironment, val configuration: CjpmRunConfiguration) :
         CommandLineState(environment) {
         override fun startProcess(): OSProcessHandler {
 
-            val sdk = CangJieSdkManager.getProjectSdk()
-            val sdkHome = sdk?.homePath
 
-            val cjpmPath = if (isWindows) "$sdkHome\\tools\\bin\\cjpm.exe" else "$sdkHome/tools/bin/cjpm"
+            val sdk = CangJieSdkManager.getProjectSdk() ?: throw RuntimeConfigurationException("请配置仓颉SDK")
+//            val sdkHome = sdk?.homePath
 
-//            获取工作目录为当前项目的根目录
+//            val cjpmPath = if (isWindows) "$sdkHome\\tools\\bin\\cjpm.exe" else "$sdkHome/tools/bin/cjpm"
+
+
+//            if (configuration.runConfigEditor.cjpmPath == null || sdk == null) {
+//                throw RuntimeConfigurationException("请配置仓颉SDK")
+//            }
+            //            获取工作目录为当前项目的根目录
             val project = environment.project
 
 
-            val commandLine = GeneralCommandLine(cjpmPath, "update")
+            val commandLine =
+                GeneralCommandLine(
+                    (sdk.sdkType as CangJieSdkType).sdkAdditionalData.cjpmPath,
+                    configuration.runConfigEditor.command
+                )
             commandLine.workDirectory = project.basePath?.let { File(it) }
             val handler = OSProcessHandler(commandLine)
 
@@ -183,3 +227,6 @@ class CjpmRunConfiguration(project: Project, factory: ConfigurationFactory, name
     }
 
 }
+
+
+class CangJieRunConfigurationOptions : RunConfigurationOptions()

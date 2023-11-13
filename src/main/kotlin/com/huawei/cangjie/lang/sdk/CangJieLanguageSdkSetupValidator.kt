@@ -35,12 +35,14 @@ class CangJieLanguageSdkSetupValidator : ProjectSdkSetupValidator {
     }
 
     override fun getErrorMessage(project: Project, file: VirtualFile): String? {
-        val module = ProjectRootManager.getInstance(project).fileIndex.getModuleForFile(file)
-        val sdk = ModuleRootManager.getInstance(module!!).sdk
+
+        val sdk = CangJieSdkManager.getProjectSdk()
         if (sdk == null || sdk.sdkType !is CangJieSdkType) {
 
             ApplicationManager.getApplication().invokeLater {
                 ApplicationManager.getApplication().runWriteAction {
+
+
                     ProjectRootManager.getInstance(project).projectSdk = null
 
                 }

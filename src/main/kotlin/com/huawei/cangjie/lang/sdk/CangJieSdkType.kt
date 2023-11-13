@@ -22,7 +22,6 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
 
       val sdkAdditionalData = CangJieSdkAdditionalData()
 
-
     override fun saveAdditionalData(additionalData: SdkAdditionalData, additional: Element) {
 //        if (additionalData is CangJieSdkAdditionalData) {
 //            val myAdditionalData: CangJieSdkAdditionalData = additionalData

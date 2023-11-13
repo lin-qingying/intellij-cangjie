@@ -17,6 +17,7 @@ class CangJieProjectSdkTableListener : ProjectJdkTable.Listener {
         checkSdkType(sdk)
     }
 
+
     private fun checkSdkType(sdk: Sdk) {
         if (sdk.sdkType !is CangJieSdkType) {
             // 清空SDK

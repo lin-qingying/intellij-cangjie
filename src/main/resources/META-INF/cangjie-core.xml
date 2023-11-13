@@ -6,6 +6,10 @@
 
 
     <extensions defaultExtensionNs="com.intellij">
+
+
+<!--        <postStartupActivity implementation="com.huawei.cangjie.idea.project.CangJieProjectActivity"/>-->
+
         <!--        cjpm运行任务-->
         <!--        <configurationType id="MyRunConfiguration" displayName="My Run Configuration" configurationTypeDescription="My Run Configuration" factoryClass="MyRunConfigurationFactory"-->
         <!--                           implementation="">-->
@@ -135,9 +139,11 @@
 
     </extensions>
 
-    <!--        SDK监听-->
+    <!--        监听-->
     <applicationListeners>
-        <!--        <listener class="com.huawei.cangjie.lang.sdk.CangJieProjectSdkTableListener" topic="com.intellij.openapi.projectRoots.ProjectJdkTable$Listener"/>-->
+<!--        <listener class="com.huawei.cangjie.idea.project.CangJieProjectManagerListener" topic="com.intellij.openapi.project.ProjectManagerListener"/>-->
+
+<!--        <listener class="com.huawei.cangjie.lang.sdk.CangJieProjectSdkTableListener" topic="com.intellij.openapi.projectRoots.ProjectJdkTable$Listener"/>-->
     </applicationListeners>
 
 
