@@ -10,7 +10,7 @@
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor>Huawei</vendor>
 
-    <version>dev-0.0.4</version>
+    <version>dev-0.0.6</version>
 <!--    <depends>com.intellij.modules.platform</depends>-->
     <depends>com.intellij.modules.lang</depends>
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.

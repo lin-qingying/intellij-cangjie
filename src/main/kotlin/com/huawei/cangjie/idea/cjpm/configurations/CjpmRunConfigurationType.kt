@@ -3,27 +3,20 @@ package com.huawei.cangjie.idea.cjpm.configurations
 import com.huawei.cangjie.idea.icons.CangJieIcons
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager
 import com.huawei.cangjie.lang.sdk.CangJieSdkType
-import com.intellij.execution.*
+import com.intellij.execution.BeforeRunTask
+import com.intellij.execution.BeforeRunTaskProvider
+import com.intellij.execution.Executor
 import com.intellij.execution.configurations.*
-import com.intellij.execution.filters.TextConsoleBuilderFactory
-import com.intellij.execution.impl.RunManagerImpl
 import com.intellij.execution.process.OSProcessHandler
-import com.intellij.execution.process.ProcessAdapter
-import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.ProgramRunner
-import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.extensions.ExtensionsArea
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.options.SettingsEditorGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NotNullLazyValue
 import com.intellij.openapi.util.SystemInfo.isWindows
-import com.intellij.testFramework.configureInspections
 import org.jdom.Element
-import java.io.File
 
 
 class MyBeforeRunTaskProvider : BeforeRunTaskProvider<BeforeRunTask<*>>() {
@@ -37,8 +30,7 @@ class MyBeforeRunTaskProvider : BeforeRunTaskProvider<BeforeRunTask<*>>() {
     }
 
     override fun executeTask(
-        context: DataContext, configuration: RunConfiguration,
-        env: ExecutionEnvironment, task: BeforeRunTask<*>
+        context: DataContext, configuration: RunConfiguration, env: ExecutionEnvironment, task: BeforeRunTask<*>
     ): Boolean {
         // 在这里执行你的任务
         return true
@@ -53,11 +45,10 @@ class MyBeforeRunTaskProvider : BeforeRunTaskProvider<BeforeRunTask<*>>() {
     }
 }
 
-class CjpmRunConfigurationType : SimpleConfigurationType(
-    "CjpmRunConfigurationType",
+class CjpmRunConfigurationType : SimpleConfigurationType("CjpmRunConfigurationType",
     "Cjpm",
     "Cjpm",
-    NotNullLazyValue.createValue { CangJieIcons.SMALL_LOGO }
+    NotNullLazyValue.createValue { CangJieIcons.CANGJIE_FILE }
 
 ) {
 
@@ -90,7 +81,9 @@ class CjpmRunConfiguration(project: Project, factory: ConfigurationFactory, name
     RunConfigurationBase<CangJieRunConfigurationOptions>(project, factory, name) {
 
 
+    var args: String? = null
     var commandSelectIndex: Int? = null
+    var commandStr: String? = null
     var cjcPath: String? = null
     var cjpmPath: String? = null
     var cjpmVersion: String? = null
@@ -104,52 +97,30 @@ class CjpmRunConfiguration(project: Project, factory: ConfigurationFactory, name
         return CjpmCommandLineState(environment, this)
     }
 
-    val runConfigEditor = CjpmRunConfigurationEditor(project)
-    override fun checkConfiguration() {
-        super.checkConfiguration()
+    override fun writeExternal(element: Element) {
+//        将配置写入xml
+        if (commandSelectIndex != null) {
+            element.setAttribute("commandIndex", commandSelectIndex.toString())
 
-        if (runConfigEditor.command.isNullOrEmpty()) {
-            throw RuntimeConfigurationException("命令不能为空")
         }
-//        if (runConfigEditor.cjcPath.isNullOrEmpty() || runConfigEditor.cjpmPath.isNullOrEmpty()) {
-//            throw RuntimeConfigurationException("请配置仓颉SDK")
-//        }
+        if (commandStr != null) {
+            element.setAttribute("commandStr", commandStr)
+        }
+        if (args != null) {
+            element.setAttribute("args", args)
+        }
 
-
+        super.writeExternal(element)
     }
+
 
     override fun readExternal(element: Element) {
         super.readExternal(element)
 //        从xml中读取配置
-        commandSelectIndex = element.getAttributeValue("commandIndex")?.toInt() ?: null
-
-
-//        runConfigEditor.selectedCommandIndex = commandSelectIndex ?: 0
+        commandSelectIndex = element.getAttributeValue("commandIndex")?.toInt()
+        args = element.getAttributeValue("args")
+        commandStr = element.getAttributeValue("commandStr")
     }
-
-    override fun writeExternal(element: Element) {
-//        将runConfigEditor中的配置写入到xml中
-        element.setAttribute("commandIndex", runConfigEditor.selectedCommandIndex.toString())
-//        element.setAttribute("cjcPath", runConfigEditor.cjcPath)
-//        element.setAttribute("cjpmPath", runConfigEditor.cjpmPath)
-//        element.setAttribute("cjpmVersion", runConfigEditor.cjpmVersion)
-//        element.setAttribute("cjcVersion", runConfigEditor.cjcVersion)
-//        element.setAttribute("moudleJsonPath", runConfigEditor.moudleJsonPath)
-        super.writeExternal(element)
-
-
-    }
-//    override fun setBeforeRunTasks(value: MutableList<BeforeRunTask<*>>) {
-//        value.add(MyBeforeRunTaskProvider().createTask(this))
-//
-//    }
-//    override fun getBeforeRunTasks(): MutableList<BeforeRunTask<*>> {
-//        val myBeforeRunTaskProvider = MyBeforeRunTaskProvider()
-//        // 创建并配置你的BeforeRunTask
-//        val myBeforeRunTask = myBeforeRunTaskProvider.createTask(this)
-//        // 返回一个包含你的BeforeRunTask的列表
-//        return listOf(myBeforeRunTask).toMutableList()
-//    }
 
 
     override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> {
@@ -158,8 +129,7 @@ class CjpmRunConfiguration(project: Project, factory: ConfigurationFactory, name
 //        runConfigEditor.resetSdks()
         group.addEditor(
 //            ExecutionBundle.message("run.configuration.configuration.tab.title"),
-            "cjpm",
-            runConfigEditor
+            "cjpm", CjpmRunConfigurationEditor(project)
         )
 
 //        group.addEditor(ExecutionBundle.message("logs.tab.title"), LogConfigurationPanel())
@@ -172,56 +142,100 @@ class CjpmRunConfiguration(project: Project, factory: ConfigurationFactory, name
         override fun startProcess(): OSProcessHandler {
 
 
-            val sdk = CangJieSdkManager.getProjectSdk() ?: throw RuntimeConfigurationException("请配置仓颉SDK")
-//            val sdkHome = sdk?.homePath
+            val sdk = CangJieSdkManager.getProjectSdk( ) ?: throw RuntimeConfigurationException("请配置仓颉SDK")
 
-//            val cjpmPath = if (isWindows) "$sdkHome\\tools\\bin\\cjpm.exe" else "$sdkHome/tools/bin/cjpm"
-
-
-//            if (configuration.runConfigEditor.cjpmPath == null || sdk == null) {
-//                throw RuntimeConfigurationException("请配置仓颉SDK")
-//            }
             //            获取工作目录为当前项目的根目录
             val project = environment.project
 
 
-            val commandLine =
-                GeneralCommandLine(
-                    (sdk.sdkType as CangJieSdkType).sdkAdditionalData.cjpmPath,
-                    configuration.runConfigEditor.command
-                )
-            commandLine.workDirectory = project.basePath?.let { File(it) }
+            val commandLine = GeneralCommandLine()
+
+            val commandStrbf = StringBuilder()
+
+            commandLine.setWorkDirectory(project.basePath)
+            commandLine.charset = Charsets.UTF_8
+
+            if (configuration.commandStr.equals("run")) {
+                if (isWindows) {
+
+                    commandLine.exePath = "cmd"
+                    commandLine.addParameter("/c")
+                    commandStrbf.append(
+                        (sdk.sdkType as CangJieSdkType).sdkAdditionalData.cjpmPath?.toWindowsPath() ?: ""
+                    )
+                } else {
+                    commandLine.exePath = "/bin/bash"
+                    commandLine.addParameter("-c")
+                    commandStrbf.append((sdk.sdkType as CangJieSdkType).sdkAdditionalData.cjpmPath ?: "")
+                }
+
+                commandStrbf.append(" ")
+                commandStrbf.append("build")
+                commandStrbf.append(" ")
+                commandStrbf.append("&&")
+                commandStrbf.append(" ")
+                commandStrbf.append("${project.basePath}${if (isWindows) "\\build\\bin\\main.exe" else "/build/bin/main"}")
+
+                commandLine.addParameter(commandStrbf.toString())
+            } else {
+                commandLine.exePath = (sdk.sdkType as CangJieSdkType).sdkAdditionalData.cjpmPath.toString()
+                configuration.commandStr?.let { commandLine.addParameter(it) }
+                //            TODO cjpm参数
+                configuration.args?.let {
+                    if (it.isNotEmpty())
+                        commandLine.addParameters(it)
+                }
+            }
+
+
+//
+//            commandLine.addParameter(if (configuration.runConfigEditor.command.equals("run")) "build" else configuration.runConfigEditor.command)
+//
+//            if (configuration.runConfigEditor.command.equals("run")) {
+//                commandLine.addParameter("&&")
+//                commandLine.addParameter("${project.basePath}${if (isWindows) "\\build\\bin\\main.exe" else "/build/bin/main"}")
+//            }
+
+
             val handler = OSProcessHandler(commandLine)
 
 
             handler.startNotify()
+
+
             return handler
 
         }
 
-
-        override fun execute(executor: Executor, runner: ProgramRunner<*>): ExecutionResult {
-            val processHandler = startProcess()
-            val consoleView = TextConsoleBuilderFactory.getInstance().createBuilder(environment.project).console
-            consoleView.attachToProcess(processHandler)
-
-            // 创建一个StringBuilder用于存储命令的输出
-            val output = StringBuilder()
-
-            // 在有新的输出可用时，将其添加到StringBuilder中
-            processHandler.addProcessListener(object : ProcessAdapter() {
-                override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
-                    output.append(event.text)
-                }
-
-                override fun processTerminated(event: ProcessEvent) {
-                    // 在命令结束后，将命令的输出打印到控制台
-                    consoleView.print("Command Output:\n$output\n", ConsoleViewContentType.NORMAL_OUTPUT)
-                }
-            })
-
-            return DefaultExecutionResult(consoleView, processHandler, *createActions(consoleView, processHandler))
+        /**
+         * 路径转为windows格式
+         */
+        private fun String.toWindowsPath(): String {
+            return this.replace("/", "\\")
         }
+
+//        override fun execute(executor: Executor, runner: ProgramRunner<*>): ExecutionResult {
+//            val processHandler = startProcess()
+//            val consoleView = TextConsoleBuilderFactory.getInstance().createBuilder(environment.project).console
+//            consoleView.attachToProcess(processHandler)
+//
+//            // 创建一个StringBuilder用于存储命令的输出
+//            val output = StringBuilder()
+//
+//            // 在有新的输出可用时，将其添加到StringBuilder中
+//            processHandler.addProcessListener(object : ProcessAdapter() {
+//                override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
+//                    output.append(event.text)
+//                }
+//
+//                override fun processTerminated(event: ProcessEvent) {
+//                    // 在命令结束后，将命令的输出打印到控制台
+//                    consoleView.print("Command Output:\n$output\n", ConsoleViewContentType.NORMAL_OUTPUT)
+//                }
+//            })
+//
+//            return DefaultExecutionResult(consoleView, processHandler, *createActions(consoleView, processHandler))
+//        }
 
 
     }
@@ -229,4 +243,11 @@ class CjpmRunConfiguration(project: Project, factory: ConfigurationFactory, name
 }
 
 
-class CangJieRunConfigurationOptions : RunConfigurationOptions()
+class CangJieRunConfigurationOptions : RunConfigurationOptions() {
+    var commandSelectIndex: Int? = null
+    var cjcPath: String? = null
+    var cjpmPath: String? = null
+    var cjpmVersion: String? = null
+    var cjcVersion: String? = null
+    var moudleJsonPath: String? = null
+}

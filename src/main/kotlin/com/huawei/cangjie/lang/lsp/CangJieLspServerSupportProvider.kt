@@ -1,31 +1,18 @@
 package com.huawei.cangjie.lang.lsp
 
+
 import com.huawei.cangjie.lang.CangJieFileType
+import com.huawei.cangjie.lang.lsp.CangJieLspServerManager.binaryPath
+import com.huawei.cangjie.lang.lsp.CangJieLspServerManager.copyLspServerToPath
+import com.huawei.cangjie.lang.lsp.CangJieLspServerManager.getCommandLine
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager
-
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.ide.plugins.PluginManager
-import com.intellij.ide.plugins.PluginManagerCore
-import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.SystemInfo.isWindows
 import com.intellij.openapi.vfs.VirtualFile
-import com.linqingying.lsp.api.*
-import com.linqingying.lsp.api.customization.requests.LspRequestExecutor
-import com.linqingying.lsp.api.requests.LspClientNotification
-
+import com.linqingying.lsp.api.LspServerSupportProvider
+import com.linqingying.lsp.api.ProjectWideLspServerDescriptor
 import org.eclipse.lsp4j.*
-import org.eclipse.lsp4j.services.LanguageServer
-import org.eclipse.lsp4j.services.TextDocumentService
-import org.eclipse.lsp4j.services.WorkspaceService
-import java.io.File
-import java.io.IOException
-import java.nio.file.Paths
-import java.util.*
-
-
-import java.util.concurrent.CompletableFuture
-import kotlin.io.path.pathString
+import java.nio.file.Files
 
 
 class CangJieLspServerSupportProvider : LspServerSupportProvider {
@@ -56,9 +43,7 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 
 
     }
-//    override fun createCommandLine() = GeneralCommandLine("D:\\Code\\idea\\intellij-cangjie\\lsp\\LSPServer.exe", "src")
 
-    //
 
     override fun getLanguageId(file: VirtualFile): String {
         return "Cangjie"
@@ -71,72 +56,8 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
     override fun createCommandLine(): GeneralCommandLine {
 
 
-        //获取项目使用的sdk
-        val sdk = CangJieSdkManager.getProjectSdk()
+        return getCommandLine()
 
-
-
-
-
-        return GeneralCommandLine().apply {
-            withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE)
-            withCharset(Charsets.UTF_8)
-            exePath = getLspServerPath()
-            if (sdk != null) {
-                setWorkDirectory(sdk.homePath)
-            }
-            addParameter("src")
-//            withEnvironment(getWindowsPath())
-        }
-    }
-
-    /**
-     * 获取lsp工作路径
-     */
-//    fun getLspServerWorkPath(): String {
-//        val classLoader = this::class.java.classLoader
-//
-//        val lspserverPath = if (isWindows()) {
-//            "lsp"
-//        } else {
-//            "lsp"
-//        }
-//
-//        val resource = classLoader.getResource(lspserverPath)
-//
-//        val path = Paths.get(resource?.toURI() ?: throw IOException("LspServer not found")).pathString
-//
-//        return path
-//    }
-
-    /**
-     * 获取lspserver路径
-     */
-    fun getLspServerPath(): String {
-        val classLoader = this::class.java.classLoader
-
-        val lspserverPath = if (isWindows) {
-            "lsp/LSPServer.exe"
-        } else {
-            "lsp/LSPServer"
-        }
-
-        val resource = classLoader.getResource(lspserverPath)
-
-//         将文件复制到临时目录
-        val tempFile = File.createTempFile("LspServer", if (isWindows) ".exe" else "")
-
-// 将资源文件复制到临时文件中
-        resource?.openStream().use { input ->
-            tempFile.outputStream().use { output ->
-                input?.copyTo(output) ?: throw IOException("LspServer not found")
-            }
-        }
-
-
-
-
-        return tempFile.absolutePath
     }
 
 
@@ -567,154 +488,5 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 
     }
 
-
-}
-
-//
-//class  CangJieLspCompletionSupport : LspCompletionSupport() {
-//
-//    override fun getTypeText(item: CompletionItem): String? {
-//        return super.getTypeText(item)
-//    }
-//
-//
-//
-//}
-
-class CangJieLangServer : LanguageServer {
-    override fun initialize(p0: InitializeParams?): CompletableFuture<InitializeResult> {
-        TODO("Not yet implemented")
-    }
-
-    override fun shutdown(): CompletableFuture<Any> {
-        TODO("Not yet implemented")
-    }
-
-    override fun exit() {
-        TODO("Not yet implemented")
-    }
-
-    override fun getTextDocumentService(): TextDocumentService {
-        TODO("Not yet implemented")
-    }
-
-    override fun getWorkspaceService(): WorkspaceService {
-        TODO("Not yet implemented")
-    }
-
-}
-
-class CangJieLspClientNotification(lspServer: LspServer) : LspClientNotification(lspServer) {
-    override fun sendNotification() {
-        TODO("Not yet implemented")
-    }
-}
-
-class CangJieLspServer : LspServer {
-    override val descriptor: LspServerDescriptor
-        get() = TODO("Not yet implemented")
-    override val lsp4jServer: LanguageServer
-        get() = TODO("Not yet implemented")
-    override val project: Project
-        get() = TODO("Not yet implemented")
-    override val requestExecutor: LspRequestExecutor
-        get() = TODO("Not yet implemented")
-    override val serverNotificationsHandler: LspServerNotificationsHandler
-        get() = TODO("Not yet implemented")
-
-}
-
-
-class CangJieLsp4jClient(handler: LspServerNotificationsHandler) :
-    Lsp4jClient(handler)
-
-internal class CangJieLspServerNotificationsHandler(handler: LspServerNotificationsHandler) :
-    LspServerNotificationsHandler {
-    override fun applyEdit(params: ApplyWorkspaceEditParams): CompletableFuture<ApplyWorkspaceEditResponse> {
-        println(params)
-        return CompletableFuture.completedFuture(null)
-    }
-
-    override fun configuration(params: ConfigurationParams): CompletableFuture<List<Any?>> {
-        println(params)
-        return CompletableFuture.completedFuture(null)
-    }
-
-    override fun createProgress(params: WorkDoneProgressCreateParams): CompletableFuture<Void> {
-        println(params)
-        return CompletableFuture.completedFuture(null)
-    }
-
-    override fun logMessage(params: MessageParams) {
-        println(params)
-    }
-
-    override fun logTrace(params: LogTraceParams) {
-        println(params)
-    }
-
-    override fun notifyProgress(params: ProgressParams) {
-        println(params)
-    }
-
-    override fun publishDiagnostics(params: PublishDiagnosticsParams) {
-        println(params)
-    }
-
-    override fun refreshCodeLenses(): CompletableFuture<Void> {
-        println("refreshCodeLenses")
-        return CompletableFuture.completedFuture(null)
-    }
-
-    override fun refreshDiagnostics(): CompletableFuture<Void> {
-        println("refreshDiagnostics")
-        return CompletableFuture.completedFuture(null)
-    }
-
-    override fun refreshInlayHints(): CompletableFuture<Void> {
-        println("refreshInlayHints")
-        return CompletableFuture.completedFuture(null)
-    }
-
-    override fun refreshInlineValues(): CompletableFuture<Void> {
-        println("refreshInlineValues")
-        return CompletableFuture.completedFuture(null)
-    }
-
-    override fun refreshSemanticTokens(): CompletableFuture<Void> {
-        return CompletableFuture.completedFuture(null)
-    }
-
-    override fun registerCapability(params: RegistrationParams): CompletableFuture<Void> {
-        println(params)
-        return CompletableFuture.completedFuture(null)
-    }
-
-    override fun showDocument(params: ShowDocumentParams): CompletableFuture<ShowDocumentResult> {
-        println(params)
-        return CompletableFuture.completedFuture(null)
-    }
-
-    override fun showMessage(params: MessageParams) {
-        println(params)
-    }
-
-    override fun showMessageRequest(params: ShowMessageRequestParams): CompletableFuture<MessageActionItem> {
-        println(params)
-        return CompletableFuture.completedFuture(null)
-    }
-
-    override fun telemetryEvent(`object`: Any) {
-        println(`object`)
-    }
-
-    override fun unregisterCapability(params: UnregistrationParams): CompletableFuture<Void> {
-        println(params)
-        return CompletableFuture.completedFuture(null)
-    }
-
-    override fun workspaceFolders(): CompletableFuture<List<WorkspaceFolder>> {
-        return CompletableFuture.completedFuture(null)
-    }
 
 }

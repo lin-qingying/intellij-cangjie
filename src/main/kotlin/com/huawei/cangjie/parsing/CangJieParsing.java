@@ -1437,6 +1437,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
             error("Expecting '(' ");  //应该为'('
         }
 
+        //返回值类型
+        if (at(COLON)) {
+            advance(); // COLON
+            parseTypeRef();
+        }
+
         //函数体
 //        if (at(SEMICOLON)) {
 //            advance(); // SEMICOLON

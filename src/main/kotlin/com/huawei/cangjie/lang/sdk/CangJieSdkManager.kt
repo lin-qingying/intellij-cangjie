@@ -1,5 +1,6 @@
 package com.huawei.cangjie.lang.sdk
 
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
@@ -8,12 +9,12 @@ import com.intellij.openapi.util.ProjectManagerScope
 
 object CangJieSdkManager {
 
-    val projectManager = ProjectManager.getInstance()
 
     /**
      * 获取项目使用sdk
      */
     fun getProjectSdk(): Sdk? {
+        val projectManager = ProjectManager.getInstance()
 
         val openProjects = projectManager.openProjects
         if (openProjects.isNotEmpty()) {
@@ -24,6 +25,11 @@ object CangJieSdkManager {
         return null
 
 
+    }
+
+    fun getProjectSdk(project:Project):Sdk?{
+        val sdk = ProjectRootManager.getInstance(project).projectSdk ?: return null
+        return if (sdk.sdkType is CangJieSdkType) sdk else null
     }
 
     /**

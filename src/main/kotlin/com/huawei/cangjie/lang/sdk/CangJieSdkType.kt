@@ -27,21 +27,21 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
 //            val myAdditionalData: CangJieSdkAdditionalData = additionalData
 
 
-        if (additionalData is CangJieSdkAdditionalData) {
-            additionalData.sdkVersion = sdkAdditionalData.sdkVersion
-            additionalData.cjcVersion = sdkAdditionalData.cjcVersion
-            additionalData.cjpmVersion = sdkAdditionalData.cjpmVersion
-            additionalData.cjcPath = sdkAdditionalData.cjcPath
-            additionalData.cjpmPath = sdkAdditionalData.cjpmPath
-            val dataElement = Element("data")
-            dataElement.setAttribute("version", sdkAdditionalData.sdkVersion)
-            dataElement.setAttribute("cjcVersion", sdkAdditionalData.cjcVersion)
-            dataElement.setAttribute("cjpmVersion", sdkAdditionalData.cjpmVersion)
-            dataElement.setAttribute("cjcPath", sdkAdditionalData.cjcPath)
-            dataElement.setAttribute("cjpmPath", sdkAdditionalData.cjpmPath)
-            additional.addContent(dataElement)
-
-        }
+//        if (additionalData is CangJieSdkAdditionalData) {
+//            additionalData.sdkVersion = sdkAdditionalData.sdkVersion
+//            additionalData.cjcVersion = sdkAdditionalData.cjcVersion
+//            additionalData.cjpmVersion = sdkAdditionalData.cjpmVersion
+//            additionalData.cjcPath = sdkAdditionalData.cjcPath
+//            additionalData.cjpmPath = sdkAdditionalData.cjpmPath
+//            val dataElement = Element("data")
+//            dataElement.setAttribute("version", sdkAdditionalData.sdkVersion)
+//            dataElement.setAttribute("cjcVersion", sdkAdditionalData.cjcVersion)
+//            dataElement.setAttribute("cjpmVersion", sdkAdditionalData.cjpmVersion)
+//            dataElement.setAttribute("cjcPath", sdkAdditionalData.cjcPath)
+//            dataElement.setAttribute("cjpmPath", sdkAdditionalData.cjpmPath)
+//            additional.addContent(dataElement)
+//
+//        }
 
 
 //        }
@@ -65,9 +65,9 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
     }
 
 
-    override fun suggestHomePath(): String? {
+    override fun suggestHomePath(): String {
 
-        return null
+        return ""
     }
 
 
@@ -135,7 +135,7 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
 //            }
 //
 //            override fun isModified(): Boolean {
-//                return true
+//                return false
 //            }
 //
 //            override fun apply() {
