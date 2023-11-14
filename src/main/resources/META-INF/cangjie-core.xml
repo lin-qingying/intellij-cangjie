@@ -13,8 +13,8 @@
         <!--        cjpm运行任务-->
 
 
-                <configurationType implementation="com.huawei.cangjie.idea.cjpm.configurations.CjpmRunConfigurationType"
-                                   id="CjpmRunConfiguration"/>
+        <configurationType implementation="com.huawei.cangjie.idea.cjpm.configurations.CjpmRunConfigurationType"
+                           id="CjpmRunConfiguration"/>
 
 
         <!--        插件启动初始化-->
@@ -96,7 +96,8 @@
         <!--                order="first"/>-->
         <newProjectWizard.language
                 implementation="com.huawei.cangjie.idea.project.tools.projectWizard.CangJieNewProjectWizard"/>
-        <!--        <moduleBuilder builderClass=" com.huawei.cangjie.idea.project.tools.projectWizard.wizard.NewProjectWizardModuleBuilder"/>-->
+        <moduleBuilder
+                builderClass="com.huawei.cangjie.idea.project.tools.projectWizard.wizard.NewProjectWizardModuleBuilder"/>
 
         <!--        服务注册  cangjie包-->
 

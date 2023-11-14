@@ -1,73 +1,124 @@
 package com.huawei.cangjie.idea.project.tools.projectWizard
 
+import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.NewProjectWizardModuleBuilder
 import com.huawei.cangjie.lang.sdk.CangJieSdkType
 import com.intellij.ide.wizard.*
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.observable.properties.ObservableMutableProperty
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
-import com.intellij.openapi.projectRoots.SdkTypeId
+import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl
 import com.intellij.openapi.roots.ui.configuration.*
 import com.intellij.openapi.roots.ui.configuration.SdkListItem.*
 import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ComboBoxPopupState
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.LabeledComponent
 import com.intellij.openapi.util.Key
+import com.intellij.testFramework.requireIs
 import com.intellij.ui.dsl.builder.Align.Companion.FILL
+import com.intellij.ui.dsl.builder.BottomGap
+import com.intellij.ui.dsl.builder.COLUMNS_MEDIUM
 import com.intellij.ui.dsl.builder.Panel
+import com.intellij.ui.dsl.builder.columns
 import com.intellij.util.Consumer
+import com.intellij.util.ui.JBUI
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
+import java.awt.GridLayout
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import java.util.*
-import javax.swing.AbstractListModel
-import javax.swing.ComboBoxModel
-import javax.swing.JButton
-import javax.swing.ListModel
+import javax.swing.*
 
 class CangJieNewProjectWizard : LanguageNewProjectWizard {
     override val name = "CangJie"
 
+    companion object {
+
+        fun generateProject(
+            project: Project,
+//            projectPath: String,
+            projectName: String,
+            sdk: Sdk?
+        ) {
+            NewProjectWizardModuleBuilder().apply {
+//                wizardContext
+
+                projectSdk = sdk
+
+
+//                wizardContext.projectJdk = sdk
+//                wizardContext.projectName = projectName
+//                wizardContext.
+
+            }
+
+                .commit(project, null, null)
+
+        }
+    }
+
     override fun createStep(parent: NewProjectWizardLanguageStep): NewProjectWizardStep = Step(parent)
 
 
-    //    class Step(parent: NewProjectWizardLanguageStep) :
-//        AbstractNewProjectWizardMultiStep<Step, BuildSystemCangJieNewProjectWizard>(
-//            parent,
-//            BuildSystemCangJieNewProjectWizard.EP_NAME
-//        ),
-//        LanguageNewProjectWizardData by parent,
-//        BuildSystemCangJieNewProjectWizardData {
-//
-//        override val self = this
-//        override val label = "Build 系统:"
-//        override val buildSystemProperty by ::stepProperty
-//        override var buildSystem by ::step
-//
-//        override fun createAndSetupSwitcher(builder: Row): SegmentedButton<String> {
-//            return super.createAndSetupSwitcher(builder)
-//                .whenItemSelectedFromUi { logBuildSystemChanged() }
-//        }
-//
-//        override fun setupProject(project: Project) {
-//            super.setupProject(project)
-//
-//            logBuildSystemFinished()
-//        }
-//
-//        init {
-//            data.putUserData(BuildSystemCangJieNewProjectWizardData.KEY, this)
-//        }
-//    }
     class Step(parent: NewProjectWizardLanguageStep) : AbstractNewProjectWizardStep(parent) {
-//        private val label = JLabel("仓颉项目创建向导")
+        //        private val label = JLabel("仓颉项目创建向导")
 
 
         //        仓颉Sdk 下拉框
         private val cangJieSdkComboBox: CangJieSdkCombox
-        private val cangjieSdkLabel: LabeledComponent<CangJieSdkCombox>
+
 
         private val sdkListModelBuilder: SdkListModelBuilder
+
+
+        //        项目类型
+        private val projectTypeComboBox: ComboBox<CangJieProjectTypeItem> = ComboBox<CangJieProjectTypeItem>().apply {
+
+//            添加条目
+            addItem(CangJieProjectTypeItem("executable", "可执行程序"))
+            addItem(CangJieProjectTypeItem("static", "静态库"))
+            addItem(CangJieProjectTypeItem("dynamic", "动态库"))
+
+
+        }
+
+
+        //        模块名
+        private val moduleNameTextField: JTextField = JTextField().apply {
+
+        }
+
+
+        //        组织名
+        private val groupIdTextField: JTextField = JTextField().apply {
+
+        }
+
+
+        override fun setupProject(project: Project) {
+
+
+            if ((cangJieSdkComboBox.selectedItem as CangJieSdkCombox.CangJieSdkItem).sdk == null) {
+                return
+            }
+
+            generateProject(
+                project,
+//                projectPath = "${project.basePath}/${project.name}",
+                projectName = project.name,
+                sdk = (cangJieSdkComboBox.selectedItem as CangJieSdkCombox.CangJieSdkItem).sdk
+            )
+
+
+        }
+
 
         init {
             val project = ProjectManager.getInstance().defaultProject
@@ -94,51 +145,65 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
             cangJieSdkComboBox = CangJieSdkCombox(project, sdkListModelBuilder, null).apply {
                 reloadModel()
 
-//                为添加sdk按钮绑定事件
-                addActionListener {
-                    val selectedSdk = selectedItem as CangJieSdkCombox.CangJieSdkItem?
-                    if (selectedSdk != null) {
-                        if (selectedSdk.sdk == null) {
-
-// 调用Sdktype添加sdk
-                            ApplicationManager.getApplication().invokeLater {
-
-                                SdkPopupFactory.newBuilder().withProject(project)
-                                    .withSdkTypeFilter { type: SdkTypeId? -> type is CangJieSdkType }
-                                    .buildEditorNotificationPanelHandler()
-                            }
-                        }
-                    }
-
-                }
+//                选择第一个sdk
+                setSelectedItem(getItemAt(0))
 
 
             }
 
 
+//            cangjieSdkLabel = LabeledComponent.create(cangJieSdkComboBox, "仓颉SDK")
 
 
-            cangjieSdkLabel = LabeledComponent.create(cangJieSdkComboBox, "仓颉SDK")
-
-
-            cangjieSdkLabel.labelLocation = "West"
+//            cangjieSdkLabel.labelLocation = "West"
 //            cangjieSdkLabel.component = cangJieSdkComboBox
 
+
+//            设置模块和组织名为必填
+//            moduleNameTextField.addFocusListener(object : FocusAdapter() {
+//                override fun focusLost(e: FocusEvent?) {
+//                    if (moduleNameTextField.text.isEmpty()) {
+//                        JOptionPane.showMessageDialog(null, "This field is required")
+//                    }
+//                }
+//            })
 
         }
 
         override fun setupUI(builder: Panel) {
+
             with(builder) {
-                row {
-//                    cell(label)
-//                        .align(FILL)
-                    cell(cangjieSdkLabel).align(FILL)
-                }
+                row("CangJie Sdk:") {
+                    cell(cangJieSdkComboBox)
+//                        .validationOnApply { validateSdk(sdkProperty, sdksModel) }
+//                        .onApply { context.projectJdk = sdkProperty.get() }
+                        .columns(COLUMNS_MEDIUM)
+                        .component
+                }.bottomGap(BottomGap.SMALL)
+                row("Project Type:") {
+                    cell(projectTypeComboBox)
+                        .columns(COLUMNS_MEDIUM)
+                        .component
+                }.bottomGap(BottomGap.SMALL)
+                row("Module Name:") {
+                    cell(moduleNameTextField)
+                        .columns(COLUMNS_MEDIUM)
+                        .component
+                }.bottomGap(BottomGap.SMALL)
+                row("Group Id:") {
+                    cell(groupIdTextField)
+                        .columns(COLUMNS_MEDIUM)
+                        .component
+                }.bottomGap(BottomGap.SMALL)
             }
+
+
         }
 
 
     }
+
+
 }
 
 interface BuildSystemCangJieNewProjectWizard : NewProjectWizardMultiStepFactory<CangJieNewProjectWizard.Step> {
@@ -187,9 +252,7 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
         this.project = project
 
         myOnNewSdkAdded = Consumer<Sdk> { sdk: Sdk? ->
-            if (onNewSdkAdded != null) {
-                onNewSdkAdded.consume(sdk)
-            }
+            onNewSdkAdded?.consume(sdk)
         }
 
         setRenderer(SdkListPresenter.create(
@@ -213,6 +276,12 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
 
         private fun wrapItem(item: SdkListItem): CangJieSdkItem {
             if (item is SdkItem) {
+//                val a = item.sdk
+                ApplicationManager.getApplication().runWriteAction {
+                    ProjectJdkTable.getInstance().addJdk(item.sdk)
+                }
+//                添加到sdk列表
+//                ProjectJdkTable.getInstance().addJdk(item.sdk)
                 return ActualSdkInnerItem(item)
             }
             if (item is NoneSdkItem) {
@@ -246,14 +315,14 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
         }
     }
 
-    private val myEditButton: JButton? = null
+//    private val myEditButton: JButton? = null
 
     //    private fun updateEditButton() {
 //        if (myEditButton != null) {
 //            val selectedItem: CangJieSdkItem? = selectedItem as CangJieSdkItem?
 //            if (selectedItem is ProjectSdkComboBoxItem && project != null) {
 //                myEditButton.setEnabled(
-//                    ProjectStructureConfigurable.getInstance(project).getProjectJdksModel().getProjectSdk() != null
+//                    ProjectStructureConfigurable.getInstance(project).getProjectsdksModel().getProjectSdk() != null
 //                )
 //            } else {
 //                myEditButton.setEnabled(selectedItem != null && selectedItem.sdk != null)
@@ -264,6 +333,10 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
         if (anObject is SdkListItem) {
             setSelectedItem((anObject as SdkListItem?)?.let { wrapItem(it) })
 //            updateEditButton()
+
+
+//            添加到sdk列表
+//            ProjectJdkTable.getInstance().addJdk( (anObject as SdkListModelBuilder).)
             return
         }
 
@@ -292,6 +365,10 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
             val item: SdkListItem = anObject.item
             if (myModel.executeAction(this, item) { newItem: SdkListItem? ->
                     setSelectedItem(newItem)
+
+//                    将新的sdk添加到sdk列表中
+//                    ProjectJdkTable.getInstance().addJdk(newItem!!.)
+
                     if (newItem is SdkItem) {
                         myOnNewSdkAdded!!.consume(newItem.sdk)
                     }
@@ -334,24 +411,24 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
         myModel.detectItems(this, dialogWrapper.disposable)
     }
 
-    open class ActualSdkComboBoxItem(val jdk: Sdk) : CangJieSdkItem(), SelectableComboBoxItem {
+    open class ActualSdkComboBoxItem(override val sdk: Sdk) : CangJieSdkItem(), SelectableComboBoxItem {
 
         override fun toString(): String {
-            return jdk.name
+            return sdk.name
         }
 
         override val sdkName: String?
-            get() = jdk.name
+            get() = sdk.name
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other == null || javaClass != other.javaClass) return false
             val item = other as ActualSdkComboBoxItem
-            return jdk == item.jdk
+            return sdk == item.sdk
         }
 
         override fun hashCode(): Int {
-            return Objects.hash(jdk)
+            return Objects.hash(sdk)
         }
     }
 
@@ -460,7 +537,7 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
     }
 
     abstract class CangJieSdkItem {
-        val sdk: Sdk?
+        open val sdk: Sdk?
             get() = null
         open val sdkName: String?
             get() = null
@@ -469,3 +546,9 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
 
 }
 
+
+class CangJieProjectTypeItem(val type: String, val description: String) {
+    override fun toString(): String {
+        return description
+    }
+}

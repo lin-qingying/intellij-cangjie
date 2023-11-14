@@ -11,6 +11,9 @@
     <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/CangJieNewProjectWizard.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/CangJieNewProjectWizard.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/IdeWizard.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/IdeWizard.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/NewProjectWizardModuleBuilder.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/NewProjectWizardModuleBuilder.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -288,9 +291,9 @@
     <recent_temporary>
       <list>
         <item itemvalue="Gradle.Run" />
+        <item itemvalue="Gradle.intellij-cangjie [clean]" />
         <item itemvalue="Gradle.intellij-cj [build]" />
         <item itemvalue="Kotlin.LspKt" />
-        <item itemvalue="Gradle.intellij-cangjie [clean]" />
         <item itemvalue="应用程序.A" />
       </list>
     </recent_temporary>
@@ -529,7 +532,10 @@
       <workItem from="1699899098783" duration="897000" />
       <workItem from="1699900013085" duration="63000" />
       <workItem from="1699900092021" duration="287000" />
-      <workItem from="1699943931809" duration="9973000" />
+      <workItem from="1699943931809" duration="10858000" />
+      <workItem from="1699964849992" duration="8092000" />
+      <workItem from="1699972998655" duration="6052000" />
+      <workItem from="1699979507534" duration="370000" />
     </task>
     <task id="LOCAL-00001" summary="语法分析">
       <option name="closed" value="true" />
@@ -795,7 +801,15 @@
       <option name="project" value="LOCAL" />
       <updated>1699604633586</updated>
     </task>
-    <option name="localTasksCounter" value="34" />
+    <task id="LOCAL-00034" summary="develop">
+      <option name="closed" value="true" />
+      <created>1699954294900</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1699954294900</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -834,321 +848,28 @@
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/impl/CangJieAImpl.java</url>
-          <line>28</line>
-          <option name="timeStamp" value="25" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/gen/com/huawei/cangjie/lang/core/psi/CangJieVisitor.java</url>
-          <line>64</line>
-          <option name="timeStamp" value="39" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/2022.2.5/35d748abc651d2934dc2925e3fc4ff1c12255d5a/ideaIC-2022.2.5-sources.jar!/com/intellij/psi/impl/source/tree/PsiWhiteSpaceImpl.java</url>
-          <line>27</line>
-          <option name="timeStamp" value="51" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/a357ccdbc1b2bf97d8dcfdd4d7dd6a6d11321a2a/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/util/indexing/FileBasedIndexImpl.java</url>
-          <line>1030</line>
-          <option name="timeStamp" value="75" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/CjNodeType.java</url>
-          <line>26</line>
-          <option name="timeStamp" value="78" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/a357ccdbc1b2bf97d8dcfdd4d7dd6a6d11321a2a/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/refactoring/IntroduceVariableUtil.java</url>
-          <line>220</line>
-          <option name="timeStamp" value="104" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.ballerina-platform/lsp4intellij/0.95.2/f8c43ff8f1944de316dda1b5816940a6ba21d64b/lsp4intellij-0.95.2-sources.jar!/org/wso2/lsp4intellij/client/languageserver/wrapper/LanguageServerWrapper.java</url>
-          <line>508</line>
-          <option name="timeStamp" value="193" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.ballerina-platform/lsp4intellij/0.95.2/f8c43ff8f1944de316dda1b5816940a6ba21d64b/lsp4intellij-0.95.2-sources.jar!/org/wso2/lsp4intellij/client/languageserver/wrapper/LanguageServerWrapper.java</url>
-          <line>200</line>
-          <option name="timeStamp" value="199" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.ballerina-platform/lsp4intellij/0.95.2/f8c43ff8f1944de316dda1b5816940a6ba21d64b/lsp4intellij-0.95.2-sources.jar!/org/wso2/lsp4intellij/client/languageserver/wrapper/LanguageServerWrapper.java</url>
-          <line>169</line>
-          <option name="timeStamp" value="200" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.ballerina-platform/lsp4intellij/0.95.1/41fa84405e4978b01a665254d1ff4cc030d807a1/lsp4intellij-0.95.1-sources.jar!/org/wso2/lsp4intellij/client/languageserver/wrapper/LanguageServerWrapper.java</url>
-          <line>165</line>
-          <option name="timeStamp" value="201" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.ballerina-platform/lsp4intellij/0.95.1/41fa84405e4978b01a665254d1ff4cc030d807a1/lsp4intellij-0.95.1-sources.jar!/org/wso2/lsp4intellij/client/languageserver/wrapper/LanguageServerWrapper.java</url>
-          <line>160</line>
-          <option name="timeStamp" value="202" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.ballerina-platform/lsp4intellij/0.95.1/41fa84405e4978b01a665254d1ff4cc030d807a1/lsp4intellij-0.95.1-sources.jar!/org/wso2/lsp4intellij/IntellijLanguageClient.java</url>
-          <line>253</line>
-          <option name="timeStamp" value="203" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>dummy://kotlinDecompiled/LspServerNotificationsHandlerImpl.decompiled.java</url>
-          <line>47</line>
-          <option name="timeStamp" value="293" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>dummy://kotlinDecompiled/LspServerNotificationsHandlerImpl.decompiled.java</url>
-          <line>49</line>
-          <option name="timeStamp" value="294" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>dummy://kotlinDecompiled/LspServerNotificationsHandlerImpl.decompiled.java</url>
-          <line>50</line>
-          <option name="timeStamp" value="295" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>dummy://kotlinDecompiled/LspServerNotificationsHandlerImpl.decompiled.java</url>
-          <line>51</line>
-          <option name="timeStamp" value="296" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/LspServerManagerImpl.class</url>
-          <line>418</line>
-          <option name="timeStamp" value="300" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/LspServerManagerImpl.class</url>
-          <line>422</line>
-          <option name="timeStamp" value="303" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/LspServerManagerImpl.class</url>
-          <line>350</line>
-          <option name="timeStamp" value="305" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/LspServerManagerImpl.class</url>
-          <line>353</line>
-          <option name="timeStamp" value="306" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/connector/Lsp4jServerConnector.class</url>
-          <line>69</line>
-          <option name="timeStamp" value="308" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/connector/Lsp4jServerConnector.class</url>
-          <line>78</line>
-          <option name="timeStamp" value="309" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/LspServerManagerImpl.class</url>
-          <line>178</line>
-          <option name="timeStamp" value="311" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/LspServerImpl.class</url>
-          <line>548</line>
-          <option name="timeStamp" value="312" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/LspServerImpl.class</url>
-          <line>549</line>
-          <option name="timeStamp" value="313" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/LspServerImpl.class</url>
-          <line>550</line>
-          <option name="timeStamp" value="314" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/LspServerImpl.class</url>
-          <line>551</line>
-          <option name="timeStamp" value="315" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/LspServerImpl.class</url>
-          <line>552</line>
-          <option name="timeStamp" value="316" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/LspServerManagerImpl.class</url>
-          <line>182</line>
-          <option name="timeStamp" value="317" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/LspServerManagerImpl.class</url>
-          <line>184</line>
-          <option name="timeStamp" value="318" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/LspServerManagerImpl.class</url>
-          <line>183</line>
-          <option name="timeStamp" value="319" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/LspServerManagerImpl.class</url>
-          <line>185</line>
-          <option name="timeStamp" value="320" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/LspServerManagerImpl.class</url>
-          <line>186</line>
-          <option name="timeStamp" value="321" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/product.jar!/com/intellij/platform/lsp/impl/LspServerManagerImpl.class</url>
-          <line>209</line>
-          <option name="timeStamp" value="322" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>dummy://kotlinDecompiled/LspRequestExecutorImpl.decompiled.java</url>
-          <line>93</line>
-          <option name="timeStamp" value="325" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/cjpm/configurations/CjpmRunConfigurationEditor.java</url>
-          <line>72</line>
-          <option name="timeStamp" value="449" />
-        </line-breakpoint>
-        <line-breakpoint type="kotlin-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/a357ccdbc1b2bf97d8dcfdd4d7dd6a6d11321a2a/ideaIC-232-EAP-SNAPSHOT-sources.jar!/org/jetbrains/plugins/gradle/service/resolve/GradleProjectReference.kt</url>
-          <line>43</line>
-          <option name="timeStamp" value="105" />
-        </line-breakpoint>
-        <line-breakpoint type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
-          <line>1383</line>
-          <option name="timeStamp" value="113" />
-        </line-breakpoint>
-        <line-breakpoint type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
-          <line>219</line>
-          <option name="timeStamp" value="114" />
-        </line-breakpoint>
-        <line-breakpoint type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
-          <line>372</line>
-          <option name="timeStamp" value="123" />
-        </line-breakpoint>
-        <line-breakpoint type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
-          <line>1592</line>
-          <option name="timeStamp" value="146" />
-        </line-breakpoint>
-        <line-breakpoint type="kotlin-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/src/src_lsp-openapi.zip!/com/intellij/platform/lsp/api/Lsp4jClient.kt</url>
-          <line>33</line>
-          <option name="timeStamp" value="245" />
-        </line-breakpoint>
-        <line-breakpoint type="kotlin-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/src/src_lsp-openapi.zip!/com/intellij/platform/lsp/api/Lsp4jClient.kt</url>
-          <line>34</line>
-          <option name="timeStamp" value="254" />
-        </line-breakpoint>
-        <line-breakpoint type="kotlin-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/src/src_lsp-openapi.zip!/com/intellij/platform/lsp/api/Lsp4jClient.kt</url>
-          <line>35</line>
-          <option name="timeStamp" value="255" />
-        </line-breakpoint>
-        <line-breakpoint type="kotlin-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/src/src_lsp-openapi.zip!/com/intellij/platform/lsp/api/Lsp4jClient.kt</url>
-          <line>36</line>
-          <option name="timeStamp" value="256" />
-        </line-breakpoint>
-        <line-breakpoint type="kotlin-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/src/src_lsp-openapi.zip!/com/intellij/platform/lsp/api/Lsp4jClient.kt</url>
-          <line>37</line>
-          <option name="timeStamp" value="257" />
-        </line-breakpoint>
-        <line-breakpoint type="kotlin-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/src/src_lsp-openapi.zip!/com/intellij/platform/lsp/api/Lsp4jClient.kt</url>
-          <line>38</line>
-          <option name="timeStamp" value="258" />
-        </line-breakpoint>
-        <line-breakpoint type="kotlin-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/src/src_lsp-openapi.zip!/com/intellij/platform/lsp/api/Lsp4jClient.kt</url>
-          <line>39</line>
-          <option name="timeStamp" value="259" />
-        </line-breakpoint>
-        <line-breakpoint type="kotlin-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIU/232-EAP-SNAPSHOT/1eab26d501fe1c8184d70616a64bdc8efc0b7ecb/ideaIU-232-EAP-SNAPSHOT/lib/src/src_lsp-openapi.zip!/com/intellij/platform/lsp/api/Lsp4jClient.kt</url>
-          <line>40</line>
-          <option name="timeStamp" value="260" />
-        </line-breakpoint>
-        <line-breakpoint type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/DidChangeNotification.kt</url>
-          <line>38</line>
-          <option name="timeStamp" value="353" />
-        </line-breakpoint>
-        <line-breakpoint type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerImpl.kt</url>
-          <line>170</line>
-          <option name="timeStamp" value="359" />
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/CangJieNewProjectWizard.kt</url>
+          <line>360</line>
+          <option name="timeStamp" value="462" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspDynamicCapabilities.kt</url>
-          <line>201</line>
-          <option name="timeStamp" value="381" />
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/CangJieNewProjectWizard.kt</url>
+          <line>365</line>
+          <option name="timeStamp" value="463" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerNotificationsHandlerImpl.kt</url>
-          <line>123</line>
-          <option name="timeStamp" value="388" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieProjectSdkTableListener.kt</url>
-          <line>8</line>
-          <option name="timeStamp" value="405" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieProjectSdkTableListener.kt</url>
-          <line>12</line>
-          <option name="timeStamp" value="406" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieProjectSdkTableListener.kt</url>
-          <line>16</line>
-          <option name="timeStamp" value="407" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieProjectSdkTableListener.kt</url>
-          <line>21</line>
-          <option name="timeStamp" value="408" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/CangJieStartupActivity.kt</url>
-          <line>13</line>
-          <option name="timeStamp" value="410" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/cjpm/action/CjpmUpdateAction.kt</url>
-          <line>24</line>
-          <option name="timeStamp" value="414" />
-        </line-breakpoint>
-        <breakpoint type="java-exception">
-          <properties class="java.lang.AssertionError" package="java.lang" />
-          <option name="timeStamp" value="84" />
-        </breakpoint>
-        <breakpoint type="java-exception">
-          <properties class="java.lang.StackOverflowError" package="java.lang" />
-          <option name="timeStamp" value="172" />
-        </breakpoint>
-        <breakpoint type="java-exception">
-          <properties class="java.lang.NoClassDefFoundError" package="java.lang" />
-          <option name="timeStamp" value="180" />
-        </breakpoint>
-        <line-breakpoint type="kotlin-function">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
-          <line>25</line>
-          <properties class="com.huawei.cangjie.parsing.CangJieExpressionParsing.Precedence" method="&lt;init&gt;">
-            <option name="EMULATED" value="true" />
-            <option name="WATCH_EXIT" value="false" />
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/CangJieNewProjectWizard.kt</url>
+          <line>327</line>
+          <properties>
+            <option name="lambda-ordinal" value="-1" />
           </properties>
-          <option name="timeStamp" value="153" />
+          <option name="timeStamp" value="464" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/NewProjectWizardModuleBuilder.kt</url>
+          <line>52</line>
+          <option name="timeStamp" value="476" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
