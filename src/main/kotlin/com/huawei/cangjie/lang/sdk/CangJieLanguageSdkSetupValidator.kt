@@ -4,6 +4,7 @@ import com.huawei.cangjie.lang.CangJieFileType
 import com.huawei.cangjie.lang.CangJieLanguage
 import com.huawei.cangjie.lang.lsp.CangJieLspServerManager
 import com.intellij.codeInsight.daemon.ProjectSdkSetupValidator
+import com.intellij.json.JsonLanguage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.project.Project
@@ -21,7 +22,7 @@ class CangJieLanguageSdkSetupValidator : ProjectSdkSetupValidator {
         private fun preparePopup(project: Project, file: VirtualFile): SdkPopupBuilder {
             return SdkPopupFactory.newBuilder()
                 .withProject(project)
-                .withSdkTypeFilter({ type: SdkTypeId? -> type is CangJieSdkType })
+                .withSdkTypeFilter { type: SdkTypeId? -> type is CangJieSdkType }
                 .updateSdkForFile(file)
         }
     }
@@ -33,6 +34,13 @@ class CangJieLanguageSdkSetupValidator : ProjectSdkSetupValidator {
 //        ) {
         val psiFile = PsiManager.getInstance(project).findFile(file)
         if (psiFile != null) {
+
+            if (psiFile.language is JsonLanguage) {
+                if (psiFile.virtualFile.name.startsWith("module")) {
+                    return true
+                }
+            }
+
             return psiFile.language.isKindOf(CangJieLanguage)
         }
 //        }

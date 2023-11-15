@@ -8,11 +8,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="">
+    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="新建项目向导 1/2">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/settings/ui/CangJieModuleWizardStep.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/settings/ui/CangJieModuleWizardStep.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/CangJieNewProjectWizard.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/CangJieNewProjectWizard.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/IdeWizard.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/IdeWizard.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/NewProjectWizardModuleBuilder.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/NewProjectWizardModuleBuilder.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieLanguageSdkSetupValidator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieLanguageSdkSetupValidator.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -535,7 +536,8 @@
       <workItem from="1699943931809" duration="10858000" />
       <workItem from="1699964849992" duration="8092000" />
       <workItem from="1699972998655" duration="6052000" />
-      <workItem from="1699979507534" duration="370000" />
+      <workItem from="1699979507534" duration="717000" />
+      <workItem from="1700016955413" duration="9500000" />
     </task>
     <task id="LOCAL-00001" summary="语法分析">
       <option name="closed" value="true" />
@@ -809,7 +811,15 @@
       <option name="project" value="LOCAL" />
       <updated>1699954294900</updated>
     </task>
-    <option name="localTasksCounter" value="35" />
+    <task id="LOCAL-00035" summary="新建项目向导 1/2">
+      <option name="closed" value="true" />
+      <created>1699980194665</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1699980194665</updated>
+    </task>
+    <option name="localTasksCounter" value="36" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -843,33 +853,21 @@
     <MESSAGE value="添加sdk管理" />
     <MESSAGE value="解决&gt;&gt;右移运算符和支持泛型的钻石操作符（diamond operator）{a&lt;b&lt;c&gt;&gt;}冲突的问题" />
     <MESSAGE value="develop" />
-    <option name="LAST_COMMIT_MESSAGE" value="develop" />
+    <MESSAGE value="新建项目向导 1/2" />
+    <option name="LAST_COMMIT_MESSAGE" value="新建项目向导 1/2" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/CangJieNewProjectWizard.kt</url>
-          <line>360</line>
-          <option name="timeStamp" value="462" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/CangJieNewProjectWizard.kt</url>
-          <line>365</line>
-          <option name="timeStamp" value="463" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/CangJieNewProjectWizard.kt</url>
-          <line>327</line>
-          <properties>
-            <option name="lambda-ordinal" value="-1" />
-          </properties>
-          <option name="timeStamp" value="464" />
+          <line>315</line>
+          <option name="timeStamp" value="477" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/NewProjectWizardModuleBuilder.kt</url>
-          <line>52</line>
-          <option name="timeStamp" value="476" />
+          <line>77</line>
+          <option name="timeStamp" value="484" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -886,6 +884,11 @@
         <PinnedItemInfo parentTag="com.intellij.psi.impl.source.CharTableImpl" memberName="entries" />
       </pinned-members>
     </pin-to-top-manager>
+    <watches-manager>
+      <configuration name="GradleRunConfiguration">
+        <watch expression="file" />
+      </configuration>
+    </watches-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

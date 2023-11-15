@@ -99,6 +99,8 @@
         <moduleBuilder
                 builderClass="com.huawei.cangjie.idea.project.tools.projectWizard.wizard.NewProjectWizardModuleBuilder"/>
 
+
+
         <!--        服务注册  cangjie包-->
 
         <!--        <projectService serviceInterface="com.huawei.cangjie.psi.CjFileClassProvider"-->

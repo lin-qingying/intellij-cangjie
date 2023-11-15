@@ -10,29 +10,36 @@ import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.ModifiableModuleModel
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.projectRoots.SdkTypeId
 import com.intellij.openapi.roots.ModifiableRootModel
-import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider
-import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.psi.PsiManager
+import java.io.File
+import javax.naming.ConfigurationException
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
+
 
 class NewProjectWizardModuleBuilder : ModuleBuilder() {
     lateinit var wizardContext: WizardContext
     private var finishButtonClicked: Boolean = false
 
     var projectSdk: Sdk? = null
+
+    //    模块名
+    var moduleName: String? = null
+
+    //    组织名
+    var organizationName: String? = null
+
+    //    项目类型
+    var projectType: String? = null
 
 
     override fun createWizardSteps(
@@ -72,8 +79,9 @@ class NewProjectWizardModuleBuilder : ModuleBuilder() {
 
 
                 addParameter("init")
-                addParameter("a")
-                addParameter("b")
+                addParameter( if ( moduleName.isNullOrEmpty()) project.name else moduleName!!)
+                addParameter( if ( organizationName.isNullOrEmpty()) project.name else organizationName!!)
+                addParameter("--type=${if (projectType.isNullOrEmpty()) "executable" else projectType!!}")
             }
             commandLine.setWorkDirectory(project.basePath)
             val processHandler = CapturingProcessHandler(commandLine)
@@ -97,26 +105,16 @@ class NewProjectWizardModuleBuilder : ModuleBuilder() {
     override fun setupRootModel(modifiableRootModel: ModifiableRootModel) {
 
 
+//        更改模块sdk为继承
+        modifiableRootModel.inheritSdk()
+
 //        将src目录添加为源文件目录
         val contentEntry = doAddContentEntry(modifiableRootModel)
-        contentEntry?.addSourceFolder(contentEntry.url + "/src", false)
+        contentEntry?.addSourceFolder(contentEntry.url  , false)
 
-        val projectSdk = projectSdk
-        if (projectSdk != null) {
-            modifiableRootModel.sdk = projectSdk
-        }
-//        // 打开文件
-//        ApplicationManager.getApplication().invokeLater {
-//            val project = modifiableRootModel.project
-//            val basePath = project.basePath
-//            if (basePath != null) {
-//                val filePath = basePath + "/src/main.cj"
-//                val file = LocalFileSystem.getInstance().findFileByPath(filePath)
-//                if (file != null) {
-//                    FileEditorManager.getInstance(project).openFile(file, true)
-//                }
-//            }
-//        }
+
+
+        super.setupRootModel(modifiableRootModel)
 
 
     }
@@ -132,25 +130,14 @@ class NewProjectWizardModuleBuilder : ModuleBuilder() {
 
 }
 
-class NewProjectWizardModuleType : ModuleType<NewProjectWizardModuleBuilder>("id1") {
-    override fun getName(): String = "abc"
+class NewProjectWizardModuleType : ModuleType<NewProjectWizardModuleBuilder>("CangJieModuleType") {
+    override fun getName(): String = "CangJieModuleType"
     override fun getDescription(): String = name
     override fun getNodeIcon(isOpened: Boolean): Icon = CangJieIcons.SMALL_LOGO
     override fun createModuleBuilder(): NewProjectWizardModuleBuilder = NewProjectWizardModuleBuilder()
 }
 
-class ModuleNewWizardSecondStep(
 
-    private val wizardContext: WizardContext,
-    disposable: Disposable
-) : WizardStep() {
-
-
-    override fun getComponent(): JComponent {
-        return JLabel("abc")
-    }
-
-}
 
 abstract class WizardStep : ModuleWizardStep() {
     override fun getHelpId(): String = HELP_ID

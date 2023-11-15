@@ -2,11 +2,15 @@ package com.huawei.cangjie.idea.project.tools.projectWizard
 
 import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.NewProjectWizardModuleBuilder
 import com.huawei.cangjie.lang.sdk.CangJieSdkType
+import com.intellij.CommonBundle
 import com.intellij.ide.wizard.*
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.observable.properties.ObservableMutableProperty
+import com.intellij.openapi.observable.properties.ObservableProperty
+import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.projectRoots.ProjectJdkTable
@@ -15,17 +19,17 @@ import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl
 import com.intellij.openapi.roots.ui.configuration.*
 import com.intellij.openapi.roots.ui.configuration.SdkListItem.*
 import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
-import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.ui.ComboBoxPopupState
-import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.ui.LabeledComponent
+import com.intellij.openapi.ui.*
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.testFramework.requireIs
 import com.intellij.ui.dsl.builder.Align.Companion.FILL
 import com.intellij.ui.dsl.builder.BottomGap
 import com.intellij.ui.dsl.builder.COLUMNS_MEDIUM
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.columns
+import com.intellij.ui.layout.ValidationInfoBuilder
 import com.intellij.util.Consumer
 import com.intellij.util.ui.JBUI
 import java.awt.GridBagConstraints
@@ -43,14 +47,19 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
 
         fun generateProject(
             project: Project,
-//            projectPath: String,
-            projectName: String,
+
+            projectModuleName: String?,
+            groupName: String?,
+            projectTypeStr: String?,
             sdk: Sdk?
         ) {
             NewProjectWizardModuleBuilder().apply {
 //                wizardContext
 
                 projectSdk = sdk
+                moduleName = projectModuleName
+                organizationName = groupName
+                projectType = projectTypeStr
 
 
 //                wizardContext.projectJdk = sdk
@@ -111,8 +120,10 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
 
             generateProject(
                 project,
-//                projectPath = "${project.basePath}/${project.name}",
-                projectName = project.name,
+                projectModuleName = moduleNameTextField.text,
+                groupName = groupIdTextField.text,
+                projectTypeStr = (projectTypeComboBox.selectedItem as CangJieProjectTypeItem).type,
+
                 sdk = (cangJieSdkComboBox.selectedItem as CangJieSdkCombox.CangJieSdkItem).sdk
             )
 
@@ -146,7 +157,10 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
                 reloadModel()
 
 //                选择第一个sdk
-                setSelectedItem(getItemAt(0))
+                if (itemCount > 0) {
+                    setSelectedItem(getItemAt(0))
+
+                }
 
 
             }
@@ -172,11 +186,26 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
 
         override fun setupUI(builder: Panel) {
 
+
             with(builder) {
                 row("CangJie Sdk:") {
+//                    val sdksModel = ProjectSdksModel()
+//
+//                    Disposer.register(context.disposable) {
+//                        sdksModel.disposeUIResources()
+//                    }
+
                     cell(cangJieSdkComboBox)
-//                        .validationOnApply { validateSdk(sdkProperty, sdksModel) }
-//                        .onApply { context.projectJdk = sdkProperty.get() }
+                        .validationOnApply {
+                            validateSdk(
+                                (cangJieSdkComboBox.selectedItem as CangJieSdkCombox.CangJieSdkItem).sdk
+//                                ,    sdksModel
+                            )
+                        }
+//                        .onApply {
+//                            context.projectJdk =
+//                                (cangJieSdkComboBox.selectedItem as CangJieSdkCombox.CangJieSdkItem).sdk
+//                        }
                         .columns(COLUMNS_MEDIUM)
                         .component
                 }.bottomGap(BottomGap.SMALL)
@@ -188,11 +217,17 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
                 row("Module Name:") {
                     cell(moduleNameTextField)
                         .columns(COLUMNS_MEDIUM)
+                        //                        .validationOnApply {
+//                            validateModuleName(moduleNameTextField.text)
+//                        }
                         .component
                 }.bottomGap(BottomGap.SMALL)
-                row("Group Id:") {
+                row("Group Name:") {
                     cell(groupIdTextField)
                         .columns(COLUMNS_MEDIUM)
+//                        .validationOnApply {
+//                            validateGroupName(groupIdTextField.text)
+//                        }
                         .component
                 }.bottomGap(BottomGap.SMALL)
             }
@@ -334,9 +369,6 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
             setSelectedItem((anObject as SdkListItem?)?.let { wrapItem(it) })
 //            updateEditButton()
 
-
-//            添加到sdk列表
-//            ProjectJdkTable.getInstance().addJdk( (anObject as SdkListModelBuilder).)
             return
         }
 
@@ -552,3 +584,67 @@ class CangJieProjectTypeItem(val type: String, val description: String) {
         return description
     }
 }
+
+fun ValidationInfoBuilder.validateSdk(sdk: Sdk?/*, sdkModel: ProjectSdksModel */): ValidationInfo? {
+    return validateAndGetSdkValidationMessage(sdk/*, sdkModel*/)?.let { error(it) }
+}
+
+fun ValidationInfoBuilder.validateModuleName(moduleName: String?): ValidationInfo? {
+    return validateAndGetModuleValidationMessage(moduleName)?.let { error(it) }
+}
+
+fun ValidationInfoBuilder.validateGroupName(groupName: String?): ValidationInfo? {
+    return validateAndGetGroupNameValidationMessage(groupName)?.let { error(it) }
+}
+
+private fun validateAndGetGroupNameValidationMessage(groupName: String?): @NlsContexts.DialogMessage String? {
+    if (groupName == null || groupName.isEmpty()) {
+        return CangJieUiBundle.message("title.group.name.specified")
+    }
+    return null
+
+}
+
+private fun validateAndGetModuleValidationMessage(moduleName: String?): @NlsContexts.DialogMessage String? {
+    if (moduleName == null || moduleName.isEmpty()) {
+        return CangJieUiBundle.message("title.module.name.specified")
+    }
+    return null
+
+}
+
+
+private fun validateAndGetSdkValidationMessage(
+    sdk: Sdk?,
+    /*  sdkModel: ProjectSdksModel*/
+): @NlsContexts.DialogMessage String? {
+    if (sdk == null) {
+        if (Messages.showDialog(
+                CangJieUiBundle.message("prompt.confirm.project.no.sdk"),
+                CangJieUiBundle.message("title.no.sdk.specified"),
+                arrayOf(CommonBundle.getYesButtonText(), CommonBundle.getNoButtonText()), 1,
+                Messages.getWarningIcon()
+            ) != Messages.YES
+        ) {
+            return CangJieUiBundle.message("title.no.sdk.specified")
+        }
+    }
+
+//    try {
+//        sdkModel.apply(null, true)
+//    } catch (e: ConfigurationException) {
+//        //IDEA-98382 We should allow Next step if user has wrong SDK
+//        if (Messages.showDialog(
+//                e.message?.let { CangJieUiBundle.message("dialog.message.0.do.you.want.to.proceed", it) },
+//                e.title, arrayOf(CommonBundle.getYesButtonText(), CommonBundle.getNoButtonText()), 1,
+//                Messages.getWarningIcon()
+//            ) != Messages.YES
+//        ) {
+//            return e.message ?: e.title
+//        }
+//    }
+    return null
+}
+
+
+
