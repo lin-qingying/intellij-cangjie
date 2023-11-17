@@ -125,6 +125,9 @@
                 description="Disables auto-completion inside expressions"
                 defaultValue="false"
                 restartRequired="false"/>
+        <registryKey key="cangjie.create.sealed.templates.enabled"
+                     defaultValue="false"
+                     description="Enables dedicated Sealed class/interface templates in File-New-CangJie File"/>
 
     </extensions>
 
@@ -150,7 +153,15 @@
                 qualifiedName="com.intellij.newProjectWizard.CangJie.buildSystem"
                 interface="com.huawei.cangjie.idea.project.tools.projectWizard.BuildSystemCangJieNewProjectWizard"
                 dynamic="true"/>
+        <extensionPoint
+                qualifiedName="com.huawei.cangjie.newFileHook"
+                interface="com.huawei.cangjie.idea.actions.NewCangJieFileHook"
+                dynamic="true"/>
 
+        <extensionPoint
+                qualifiedName="com.huawei.cangjie.projectConfigurator"
+                interface="com.huawei.cangjie.idea.configuration.CangJieProjectConfigurator"
+                dynamic="true"/>
     </extensionPoints>
 
 
@@ -160,5 +171,24 @@
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
         </action>
+<!--          icon="com.huawei.cangjie.idea.icons.CangJieIcons.CANGJIE_FILE"    -->
+        <action id="CangJie.NewFile" class="com.huawei.cangjie.idea.actions.NewCangJieFileAction"
+             >
+            <add-to-group group-id="NewGroup" anchor="after"  relative-to-action="NewGroup1"/>
+        </action>
     </actions>
+
+
+
+<!--    <extensions defaultExtensionNs="com.jetbrains">-->
+<!--        <performancePlugin.commandProvider implementation="com.huawei.cangjie.idea.performancePlugin.CangJiePluginCommandProvider"/>-->
+<!--    </extensions>-->
+
+
+    <extensions defaultExtensionNs="com.intellij">
+
+        <internalFileTemplate name="CangJie Class"/>
+
+    </extensions>
+
 </idea-plugin>

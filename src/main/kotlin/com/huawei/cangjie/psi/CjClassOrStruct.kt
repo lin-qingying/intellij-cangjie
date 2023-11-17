@@ -43,9 +43,7 @@ abstract class CjClassOrStruct :
         TODO("Not yet implemented")
     }
 
-    override fun getPrimaryConstructor(): CjPrimaryConstructor? {
-        TODO("Not yet implemented")
-    }
+    override fun getPrimaryConstructor(): CjPrimaryConstructor? = getStubOrPsiChild(CjStubElementTypes.PRIMARY_CONSTRUCTOR)
 
     override fun getPrimaryConstructorModifierList(): CjModifierList? {
         TODO("Not yet implemented")

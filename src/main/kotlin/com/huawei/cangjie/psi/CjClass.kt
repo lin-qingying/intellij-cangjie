@@ -39,9 +39,7 @@ open class CjClass : CjClassOrStruct {
         TODO("Not yet implemented")
     }
 
-    override fun getPrimaryConstructor(): CjPrimaryConstructor? {
-        TODO("Not yet implemented")
-    }
+
 
     override fun getPrimaryConstructorModifierList(): CjModifierList? {
         TODO("Not yet implemented")
