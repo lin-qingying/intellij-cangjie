@@ -1,20 +1,12 @@
-package com.huawei.cangjie.idea.cjpm.action
+package com.huawei.cangjie.idea.run.action.modulejson
 
 
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager
-import com.huawei.cangjie.utils.executeCommand
 
 
 import com.intellij.openapi.actionSystem.*
-import com.intellij.openapi.projectRoots.ProjectJdkTable
-import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.SystemInfo.isWindows
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VfsUtilCore
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
 
 
 class CjpmUpdateAction : AnAction() {

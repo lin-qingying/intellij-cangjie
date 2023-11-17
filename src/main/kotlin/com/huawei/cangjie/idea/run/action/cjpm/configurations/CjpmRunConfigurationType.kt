@@ -1,49 +1,20 @@
-package com.huawei.cangjie.idea.cjpm.configurations
+package com.huawei.cangjie.idea.run.action.cjpm.configurations
 
 import com.huawei.cangjie.idea.icons.CangJieIcons
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager
 import com.huawei.cangjie.lang.sdk.CangJieSdkType
-import com.intellij.execution.BeforeRunTask
-import com.intellij.execution.BeforeRunTaskProvider
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.*
+import com.intellij.execution.configurations.ConfigurationTypeUtil.findConfigurationType
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.options.SettingsEditorGroup
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NotNullLazyValue
 import com.intellij.openapi.util.SystemInfo.isWindows
 import org.jdom.Element
 
-
-class MyBeforeRunTaskProvider : BeforeRunTaskProvider<BeforeRunTask<*>>() {
-    private val myId = Key.create<BeforeRunTask<*>>("MyBeforeRunTask")
-    override fun getId(): Key<BeforeRunTask<*>> {
-        return myId
-    }
-
-    override fun getName(): String {
-        return "My Before Run Task"
-    }
-
-    override fun executeTask(
-        context: DataContext, configuration: RunConfiguration, env: ExecutionEnvironment, task: BeforeRunTask<*>
-    ): Boolean {
-        // 在这里执行你的任务
-        return true
-    }
-
-
-    override fun createTask(runConfiguration: RunConfiguration): BeforeRunTask<*> {
-        return object : BeforeRunTask<BeforeRunTask<*>?>(myId) {
-            val isExecutable: Boolean
-                get() = true // 返回true使得任务可以被选择
-        }
-    }
-}
 
 class CjpmRunConfigurationType : SimpleConfigurationType("CjpmRunConfigurationType",
     "Cjpm",
@@ -65,30 +36,30 @@ class CjpmRunConfigurationType : SimpleConfigurationType("CjpmRunConfigurationTy
 
     companion object {
         val instance: CjpmRunConfigurationType
-            get() = ConfigurationTypeUtil.findConfigurationType(CjpmRunConfigurationType::class.java)
+            get() = findConfigurationType(CjpmRunConfigurationType::class.java)
     }
 
 
 }
 
-//class CjpmConfigurationFactory(configurationType: ConfigurationType) : ConfigurationFactory(configurationType) {
-//    override fun createTemplateConfiguration(project: Project): RunConfiguration {
-//        return CjpmRunConfiguration(project, this, "Cjpm")
-//    }
-//}
+
 
 class CjpmRunConfiguration(project: Project, factory: ConfigurationFactory, name: String) :
     RunConfigurationBase<CangJieRunConfigurationOptions>(project, factory, name) {
 
 
     var args: String? = null
-    var commandSelectIndex: Int? = null
-    var commandStr: String? = null
+
+    //    var commandSelectIndex: Int? = null
+//    var commandStr: String? = null
     var cjcPath: String? = null
     var cjpmPath: String? = null
     var cjpmVersion: String? = null
     var cjcVersion: String? = null
     var moudleJsonPath: String? = null
+
+
+    var command: CjpmCommand? = null
 
 
     override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState {
@@ -99,13 +70,12 @@ class CjpmRunConfiguration(project: Project, factory: ConfigurationFactory, name
 
     override fun writeExternal(element: Element) {
 //        将配置写入xml
-        if (commandSelectIndex != null) {
-            element.setAttribute("commandIndex", commandSelectIndex.toString())
+        if (command != null) {
+//            element.setAttribute("commandIndex", command?.index.toString())
+//element.setAttribute("commandStr", command?.command  )
+            element.setAttribute("command", command!!.index.toString())
+        }
 
-        }
-        if (commandStr != null) {
-            element.setAttribute("commandStr", commandStr)
-        }
         if (args != null) {
             element.setAttribute("args", args)
         }
@@ -117,9 +87,10 @@ class CjpmRunConfiguration(project: Project, factory: ConfigurationFactory, name
     override fun readExternal(element: Element) {
         super.readExternal(element)
 //        从xml中读取配置
-        commandSelectIndex = element.getAttributeValue("commandIndex")?.toInt()
+
         args = element.getAttributeValue("args")
-        commandStr = element.getAttributeValue("commandStr")
+
+        command = CjpmCommand.fromInt(element.getAttributeValue("command")?.toInt() ?: 0)
     }
 
 
@@ -142,7 +113,7 @@ class CjpmRunConfiguration(project: Project, factory: ConfigurationFactory, name
         override fun startProcess(): OSProcessHandler {
 
 
-            val sdk = CangJieSdkManager.getProjectSdk( ) ?: throw RuntimeConfigurationException("请配置仓颉SDK")
+            val sdk = CangJieSdkManager.getProjectSdk() ?: throw RuntimeConfigurationException("请配置仓颉SDK")
 
             //            获取工作目录为当前项目的根目录
             val project = environment.project
@@ -155,7 +126,7 @@ class CjpmRunConfiguration(project: Project, factory: ConfigurationFactory, name
             commandLine.setWorkDirectory(project.basePath)
             commandLine.charset = Charsets.UTF_8
 
-            if (configuration.commandStr.equals("run")) {
+            if (configuration.command == CjpmCommand.RUN) {
                 if (isWindows) {
 
                     commandLine.exePath = "cmd"
@@ -179,7 +150,7 @@ class CjpmRunConfiguration(project: Project, factory: ConfigurationFactory, name
                 commandLine.addParameter(commandStrbf.toString())
             } else {
                 commandLine.exePath = (sdk.sdkType as CangJieSdkType).sdkAdditionalData.cjpmPath.toString()
-                configuration.commandStr?.let { commandLine.addParameter(it) }
+                configuration.command?.command?.let { commandLine.addParameter(it) }
                 //            TODO cjpm参数
                 configuration.args?.let {
                     if (it.isNotEmpty())
@@ -250,4 +221,67 @@ class CangJieRunConfigurationOptions : RunConfigurationOptions() {
     var cjpmVersion: String? = null
     var cjcVersion: String? = null
     var moudleJsonPath: String? = null
+}
+
+
+//internal class CjpmCommandItem(val name: String, val command: String, val description: String) {
+//
+//    override fun toString(): String {
+//        return name
+//    }
+//}
+
+enum class CjpmCommand(val index: Int?, val command: String, val description: String) {
+
+    INIT(null, "init", "初始化"),
+    RUN(0, "run", "运行模块"),
+    BUILD(1, "build", "编译模块"),
+    UPDATE(2, "update", "更新模块"),
+    CLEAN(3, "clean", "清理模块"),
+    CHECK(4, "check", "检查依赖"),
+    TEST(5, "test", "单元测试");
+
+
+    companion object {
+        @OptIn(ExperimentalStdlibApi::class)
+        @JvmStatic
+        fun toArray(): Array<CjpmCommand> {
+
+//            去掉INIT
+
+            val arr = CjpmCommand.entries.toMutableList()
+            arr.removeAt(0)
+            return arr.toTypedArray()
+
+
+        }
+
+        //        序列化和反序列化
+        @OptIn(ExperimentalStdlibApi::class)
+        @JvmStatic
+        fun fromInt(index: Int): CjpmCommand {
+            val arr = CjpmCommand.entries.toMutableList()
+            arr.removeAt(0)
+
+            return arr[index]
+
+//            return when (index) {
+//                0 -> INIT
+//                1 -> RUN
+//                2 -> BUILD
+//                3 -> UPDATE
+//                4 -> CLEAN
+//                5 -> CHECK
+//                6 -> TEST
+//                else -> throw IllegalArgumentException("Invalid ordinal $index")
+//            }
+        }
+
+
+    }
+
+    override fun toString(): String {
+
+        return command
+    }
 }

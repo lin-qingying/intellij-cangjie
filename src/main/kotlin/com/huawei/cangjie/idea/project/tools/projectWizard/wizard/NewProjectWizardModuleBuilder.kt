@@ -1,17 +1,16 @@
 package com.huawei.cangjie.idea.project.tools.projectWizard.wizard
 
-import com.huawei.cangjie.idea.cjpm.configurations.CjpmRunConfiguration
-import com.huawei.cangjie.idea.cjpm.configurations.CjpmRunConfigurationType
+import com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmRunConfiguration
+import com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmRunConfigurationType
 import com.huawei.cangjie.idea.icons.CangJieIcons
+import com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmCommand
 import com.huawei.cangjie.lang.sdk.CangJieSdkType
 import com.intellij.execution.RunManager
-import com.intellij.execution.configurations.ConfigurationTypeUtil
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
 import com.intellij.ide.util.projectWizard.ModuleBuilder
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ide.util.projectWizard.WizardContext
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.ModifiableModuleModel
@@ -23,11 +22,7 @@ import com.intellij.openapi.projectRoots.SdkTypeId
 import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider
-import java.io.File
-import javax.naming.ConfigurationException
 import javax.swing.Icon
-import javax.swing.JComponent
-import javax.swing.JLabel
 
 
 class NewProjectWizardModuleBuilder : ModuleBuilder() {
@@ -96,7 +91,7 @@ class NewProjectWizardModuleBuilder : ModuleBuilder() {
                 println("Error: ${output.stderr}")
             }
 
-//            为该项目添加一个运行配置  com.huawei.cangjie.idea.cjpm.configurations.CjpmRunConfigurationType
+//            为该项目添加一个运行配置  com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmRunConfigurationType
             val runManager = RunManager.getInstance(project)
             val runnerAndConfigurationSettings = runManager.createConfiguration(
                 "run",
@@ -104,8 +99,7 @@ class NewProjectWizardModuleBuilder : ModuleBuilder() {
             )
 //            修改运行配置的命令为run
             (runnerAndConfigurationSettings.configuration as CjpmRunConfiguration).apply {
-                commandStr = "run"
-                commandSelectIndex = 1
+             command = CjpmCommand.RUN
 
             }
 

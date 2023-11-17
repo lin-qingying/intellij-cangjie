@@ -209,7 +209,7 @@ open class LspRequestExecutorImpl(private val lspServer: LspServerImpl) : LspReq
     @RequiresBackgroundThread
     override fun <ServerResponse, Result> sendRequestSync(lspRequest: LspRequest<ServerResponse, Result>): Result? {
         val future = processRequest(lspRequest)
-        return future.let { waitForResponse(future as Future<Any>, lspRequest.toString()) as Result? }
+        return future.let { waitForResponse(future as Future<*>, lspRequest.toString()) as Result? }
 
     }
 

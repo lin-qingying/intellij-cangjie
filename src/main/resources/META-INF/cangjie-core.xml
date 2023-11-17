@@ -8,13 +8,6 @@
     <extensions defaultExtensionNs="com.intellij">
 
 
-        <!--        <postStartupActivity implementation="com.huawei.cangjie.idea.project.CangJieProjectActivity"/>-->
-
-        <!--        cjpm运行任务-->
-
-
-        <configurationType implementation="com.huawei.cangjie.idea.cjpm.configurations.CjpmRunConfigurationType"
-                           id="CjpmRunConfiguration"/>
 
 
         <!--        插件启动初始化-->
@@ -100,20 +93,16 @@
                 builderClass="com.huawei.cangjie.idea.project.tools.projectWizard.wizard.NewProjectWizardModuleBuilder"/>
 
 
-
-        <!--        服务注册  cangjie包-->
-
-        <!--        <projectService serviceInterface="com.huawei.cangjie.psi.CjFileClassProvider"-->
-        <!--                        serviceImplementation="com.huawei.cangjie.psi.CjFileClassProviderImpl"/>-->
-
-        <!--        <projectService-->
-        <!--                serviceInterface="com.huawei.cangjie.psi.CangJieReferenceProvidersService"-->
-        <!--                serviceImplementation="com.huawei.cangjie.idea.references.CjIdeReferenceProviderService"/>-->
-        <!--        <projectService serviceInterface="com.huawei.cangjie.idea.references.CangJieReferenceProviderContributor"-->
-        <!--                        serviceImplementation="com.huawei.cangjie.idea.references.CangJieFirReferenceContributor"/>-->
-        <!--        <projectService serviceInterface="com.huawei.cangjie.idea.references.ReadWriteAccessChecker"-->
-        <!--                        serviceImplementation="com.huawei.cangjie.idea.references.ReadWriteAccessCheckerDescriptorsImpl"/>-->
-
+        <!--运行-->
+        <runConfigurationProducer implementation="com.huawei.cangjie.idea.run.CjpmRunConfigurationProducer" id="CjpmRunConfigurationProducer"/>
+        <runConfigurationProducer implementation="com.huawei.cangjie.idea.run.CjcRunConfigurationProducer" id="CjcRunConfigurationProducer"/>
+        <!--        cjpm运行任务-->
+        <configurationType
+                implementation="com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmRunConfigurationType"
+                id="CjpmRunConfiguration"/>
+        <configurationType
+                implementation="com.huawei.cangjie.idea.run.action.cjc.configurations.CjcRunConfigurationType"
+                id="CjcRunConfiguration"/>
 
         <applicationService
                 serviceImplementation="com.huawei.cangjie.idea.completion.FirCompletionDummyIdentifierProviderService"
@@ -166,7 +155,8 @@
 
 
     <actions>
-        <action id="CjpmAction" class="com.huawei.cangjie.idea.cjpm.action.CjpmUpdateAction" text="run cjpm update">
+        <action id="CjpmAction" class="com.huawei.cangjie.idea.run.action.modulejson.CjpmUpdateAction"
+                text="run cjpm update">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
         </action>

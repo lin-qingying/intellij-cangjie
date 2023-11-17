@@ -1,14 +1,8 @@
 package com.huawei.cangjie.utils
 
-import com.huawei.cangjie.idea.cjpm.configurations.CjpmRunConfigurationType
-import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.process.*
-import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.Key
 import java.util.*
 

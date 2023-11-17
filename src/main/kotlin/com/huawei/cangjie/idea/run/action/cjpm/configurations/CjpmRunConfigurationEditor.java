@@ -1,4 +1,4 @@
-package com.huawei.cangjie.idea.cjpm.configurations;
+package com.huawei.cangjie.idea.run.action.cjpm.configurations;
 
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -21,12 +21,12 @@ import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
 
 public class CjpmRunConfigurationEditor extends SettingsEditor<CjpmRunConfiguration> implements PanelWithAnchor {
     private JPanel mainPanel;
-    private LabeledComponent<ComboBox<CjpmCommandItem>> command;
+    private LabeledComponent<ComboBox<CjpmCommand>> command;
     private LabeledComponent<TextFieldWithBrowseButton> moudle;
     private LabeledComponent<JTextField> args;
 //    private LabeledComponent cjcversion;
@@ -34,7 +34,7 @@ public class CjpmRunConfigurationEditor extends SettingsEditor<CjpmRunConfigurat
 
 
     //    命令列表
-    private final List<CjpmCommandItem> commandItems = new ArrayList<>();
+    private final List<CjpmCommand> commandItems = new ArrayList<>();
 
 
     private final Project project;
@@ -125,7 +125,6 @@ public class CjpmRunConfigurationEditor extends SettingsEditor<CjpmRunConfigurat
 
     //    为module的按钮添加事件
     private void initMoudleButton() {
-
         TextFieldWithBrowseButton textFieldWithBrowseButton = moudle.getComponent();
         textFieldWithBrowseButton.addBrowseFolderListener("Select moudle.json File", null, null,
                 FileChooserDescriptorFactory.createSingleFileDescriptor(), moudelJsonAccessor
@@ -211,17 +210,18 @@ public class CjpmRunConfigurationEditor extends SettingsEditor<CjpmRunConfigurat
 
     private void initCjpmCommandItems() {
 
-        commandItems.add(new CjpmCommandItem("init", "init", "初始化"));
+//        commandItems.add(new CjpmCommandItem("init", "init", "初始化"));
+//
+//        commandItems.add(new CjpmCommandItem("run", "run", "运行模块"));
+//        commandItems.add(new CjpmCommandItem("build", "build", "编译模块"));
+//        commandItems.add(new CjpmCommandItem("update", "update", "更新模块"));
+//        commandItems.add(new CjpmCommandItem("clean", "clean", "清理模块"));
+//        commandItems.add(new CjpmCommandItem("check", "check", "检查依赖"));
+//        commandItems.add(new CjpmCommandItem("test", "test", "单元测试"));
+commandItems.addAll(List.of(CjpmCommand.toArray()));
 
-        commandItems.add(new CjpmCommandItem("run", "run", "运行模块"));
-        commandItems.add(new CjpmCommandItem("build", "build", "编译模块"));
-        commandItems.add(new CjpmCommandItem("update", "update", "更新模块"));
-        commandItems.add(new CjpmCommandItem("clean", "clean", "清理模块"));
-        commandItems.add(new CjpmCommandItem("check", "check", "检查依赖"));
-        commandItems.add(new CjpmCommandItem("test", "test", "单元测试"));
 
-
-        DefaultComboBoxModel<CjpmCommandItem> model = new DefaultComboBoxModel<>();
+        DefaultComboBoxModel<CjpmCommand> model = new DefaultComboBoxModel<>();
         model.addAll(commandItems);
 
         if (this.command != null) {
@@ -243,8 +243,8 @@ public class CjpmRunConfigurationEditor extends SettingsEditor<CjpmRunConfigurat
 
     @Override
     protected void resetEditorFrom(@NotNull CjpmRunConfiguration s) {
-        if (s.getCommandSelectIndex() != null) {
-            command.getComponent().setSelectedIndex(s.getCommandSelectIndex());
+        if (s.getCommand() != null) {
+            command.getComponent().setSelectedIndex(s.getCommand().getIndex());
 
         }
         if (s.getArgs() != null) {
@@ -257,11 +257,11 @@ public class CjpmRunConfigurationEditor extends SettingsEditor<CjpmRunConfigurat
     @Override
     protected void applyEditorTo(@NotNull CjpmRunConfiguration s) {
 
-        s.setCommandSelectIndex(command.getComponent().getSelectedIndex());
+        s.setCommand(CjpmCommand.fromInt(command.getComponent().getSelectedIndex()));
         if (!args.getComponent().getText().isEmpty()) {
             s.setArgs(args.getComponent().getText());
         }
-        s.setCommandStr(commandItems.get(command.getComponent().getSelectedIndex()).getCommand());
+
 
     }
 
@@ -286,32 +286,5 @@ public class CjpmRunConfigurationEditor extends SettingsEditor<CjpmRunConfigurat
 
 
     //    cjpm命令 Item
-    class CjpmCommandItem {
-        private final String name;
-        private final String command;
-        private final String description;
 
-        public CjpmCommandItem(String name, String command, String description) {
-            this.name = name;
-            this.command = command;
-            this.description = description;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getCommand() {
-            return command;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        @Override
-        public String toString() {
-            return name;
-        }
-    }
 }

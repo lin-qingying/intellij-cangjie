@@ -259,7 +259,7 @@ class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvid
                 showCustomOption(
                     CangJieCodeStyleSettings::WRAP_EXPRESSION_BODY_FUNCTIONS,
                     CangJieBundle.message("formatter.title.expression.body.functions"),
-                    options = *arrayOf(
+                    options = arrayOf(
                         codeStyleSettingsCustomizableOptions.WRAP_OPTIONS_FOR_SINGLETON,
                         CodeStyleSettingsCustomizable.WRAP_VALUES_FOR_SINGLETON
                     )
