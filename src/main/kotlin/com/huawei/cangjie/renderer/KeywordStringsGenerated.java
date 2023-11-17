@@ -33,8 +33,8 @@ import java.util.Set;
         "do",
         "match",
         "interface",
-            "from"
-//            "import"
+            "from",
+            "import"
 
     ));
 }

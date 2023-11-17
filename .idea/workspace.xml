@@ -8,13 +8,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="新建项目向导 1/2">
+    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/settings/ui/CangJieModuleWizardStep.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/settings/ui/CangJieModuleWizardStep.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/CangJieNewProjectWizard.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/CangJieNewProjectWizard.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/NewProjectWizardModuleBuilder.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/NewProjectWizardModuleBuilder.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerManager.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieLanguageSdkSetupValidator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieLanguageSdkSetupValidator.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/renderer/KeywordStringsGenerated.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/renderer/KeywordStringsGenerated.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerManagerImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerManagerImpl.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,9 +71,13 @@
   <component name="HighlightingSettingsPerFile">
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/codeInsight/daemon/impl/SdkSetupNotificationProvider.java" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/execution/configurations/RunConfigurationBase.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/ide/util/projectWizard/ModuleBuilder.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/openapi/roots/SourceFolder.java" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/openapi/roots/ui/configuration/SdkPopupFactory.kt" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/openapi/ui/LabeledComponent.java" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/ui/EditorNotificationsImpl.kt" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/kotlin/collections/MutableCollections.kt" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/kotlin/jvm/internal/Intrinsics.java" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.java/java-psi/213.7172.25/13d1a8b7785d16d9354dbb599627c4a7d3891956/java-psi-213.7172.25-sources.jar!/com/intellij/psi/PsiClassOwner.java" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.java/java-psi/213.7172.25/13d1a8b7785d16d9354dbb599627c4a7d3891956/java-psi-213.7172.25-sources.jar!/com/intellij/psi/PsiModifiableCodeBlock.java" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/wrapper/dists/gradle-8.2-bin/bbg7u40eoinfdyxsxr3z4i7ta/gradle-8.2/lib/kotlin-stdlib-1.8.20.jar!/kotlin/kotlin.kotlin_builtins" root0="SKIP_INSPECTION" />
@@ -123,7 +127,7 @@
     &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;jdk.selected.JAVA_MODULE&quot;: &quot;zulu-17&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/Code/idea/intellij-cangjie/build/libs/intellij-cangjie-dev-0.0.5.jar&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Code/idea/intellij-cangjie/build/libs/intellij-cangjie-dev-0.0.6.jar&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
@@ -292,9 +296,9 @@
     <recent_temporary>
       <list>
         <item itemvalue="Gradle.Run" />
-        <item itemvalue="Gradle.intellij-cangjie [clean]" />
-        <item itemvalue="Gradle.intellij-cj [build]" />
         <item itemvalue="Kotlin.LspKt" />
+        <item itemvalue="Gradle.intellij-cj [build]" />
+        <item itemvalue="Gradle.intellij-cangjie [clean]" />
         <item itemvalue="应用程序.A" />
       </list>
     </recent_temporary>
@@ -537,7 +541,17 @@
       <workItem from="1699964849992" duration="8092000" />
       <workItem from="1699972998655" duration="6052000" />
       <workItem from="1699979507534" duration="717000" />
-      <workItem from="1700016955413" duration="9500000" />
+      <workItem from="1700016955413" duration="9855000" />
+      <workItem from="1700026849472" duration="156000" />
+      <workItem from="1700029171523" duration="1697000" />
+      <workItem from="1700059634682" duration="333000" />
+      <workItem from="1700060330295" duration="98000" />
+      <workItem from="1700060445351" duration="23000" />
+      <workItem from="1700060486651" duration="135000" />
+      <workItem from="1700060649998" duration="293000" />
+      <workItem from="1700060980916" duration="2000" />
+      <workItem from="1700063050818" duration="602000" />
+      <workItem from="1700210587794" duration="302000" />
     </task>
     <task id="LOCAL-00001" summary="语法分析">
       <option name="closed" value="true" />
@@ -819,7 +833,15 @@
       <option name="project" value="LOCAL" />
       <updated>1699980194665</updated>
     </task>
-    <option name="localTasksCounter" value="36" />
+    <task id="LOCAL-00036" summary="develop">
+      <option name="closed" value="true" />
+      <created>1700026760526</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1700026760526</updated>
+    </task>
+    <option name="localTasksCounter" value="37" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -852,9 +874,9 @@
     <MESSAGE value="lsp server Support" />
     <MESSAGE value="添加sdk管理" />
     <MESSAGE value="解决&gt;&gt;右移运算符和支持泛型的钻石操作符（diamond operator）{a&lt;b&lt;c&gt;&gt;}冲突的问题" />
-    <MESSAGE value="develop" />
     <MESSAGE value="新建项目向导 1/2" />
-    <option name="LAST_COMMIT_MESSAGE" value="新建项目向导 1/2" />
+    <MESSAGE value="develop" />
+    <option name="LAST_COMMIT_MESSAGE" value="develop" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -865,9 +887,12 @@
           <option name="timeStamp" value="477" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/NewProjectWizardModuleBuilder.kt</url>
-          <line>77</line>
-          <option name="timeStamp" value="484" />
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerManagerImpl.kt</url>
+          <line>102</line>
+          <properties>
+            <option name="lambda-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="485" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

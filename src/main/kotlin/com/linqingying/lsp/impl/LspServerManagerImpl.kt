@@ -100,6 +100,7 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
                             }
                         } &&
                         !descriptors.any { descriptor ->
+
                             descriptor.roots.any { root ->
                                 VfsUtilCore.isAncestor(
                                     root,
@@ -153,7 +154,7 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
 
         LOG.debug("$server: got stop server request")
         if (!this.servers.remove(server)) {
-            LOG.error("LspServerManager doesn't know the server that it is asked to stop: $server")
+//            LOG.error("LspServerManager doesn't know the server that it is asked to stop: $server")
         }
 
         (server as LspServerImpl).cleanupShutdownAndExit(false)

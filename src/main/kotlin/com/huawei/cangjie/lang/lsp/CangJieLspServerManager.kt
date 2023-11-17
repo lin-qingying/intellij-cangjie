@@ -82,6 +82,9 @@ object CangJieLspServerManager {
         LspServerManagerImpl.getInstanceImpl(project).stopServers(CangJieLspServerSupportProvider::class.java)
     }
 
+
+
+
     fun getCommandLine(): GeneralCommandLine {
 
 //        关闭现有的lspserver

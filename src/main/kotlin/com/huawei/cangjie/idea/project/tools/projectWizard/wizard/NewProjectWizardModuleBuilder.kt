@@ -1,7 +1,11 @@
 package com.huawei.cangjie.idea.project.tools.projectWizard.wizard
 
+import com.huawei.cangjie.idea.cjpm.configurations.CjpmRunConfiguration
+import com.huawei.cangjie.idea.cjpm.configurations.CjpmRunConfigurationType
 import com.huawei.cangjie.idea.icons.CangJieIcons
 import com.huawei.cangjie.lang.sdk.CangJieSdkType
+import com.intellij.execution.RunManager
+import com.intellij.execution.configurations.ConfigurationTypeUtil
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
 import com.intellij.ide.util.projectWizard.ModuleBuilder
@@ -79,8 +83,8 @@ class NewProjectWizardModuleBuilder : ModuleBuilder() {
 
 
                 addParameter("init")
-                addParameter( if ( moduleName.isNullOrEmpty()) project.name else moduleName!!)
-                addParameter( if ( organizationName.isNullOrEmpty()) project.name else organizationName!!)
+                addParameter(if (moduleName.isNullOrEmpty()) project.name else moduleName!!)
+                addParameter(if (organizationName.isNullOrEmpty()) project.name else organizationName!!)
                 addParameter("--type=${if (projectType.isNullOrEmpty()) "executable" else projectType!!}")
             }
             commandLine.setWorkDirectory(project.basePath)
@@ -92,11 +96,27 @@ class NewProjectWizardModuleBuilder : ModuleBuilder() {
                 println("Error: ${output.stderr}")
             }
 
+//            为该项目添加一个运行配置  com.huawei.cangjie.idea.cjpm.configurations.CjpmRunConfigurationType
+            val runManager = RunManager.getInstance(project)
+            val runnerAndConfigurationSettings = runManager.createConfiguration(
+                "run",
+                CjpmRunConfigurationType::class.java
+            )
+//            修改运行配置的命令为run
+            (runnerAndConfigurationSettings.configuration as CjpmRunConfiguration).apply {
+                commandStr = "run"
+                commandSelectIndex = 1
+
+            }
+
+            runManager.addConfiguration(runnerAndConfigurationSettings)
+
+//            更改项目默认使用该运行配置
+            runManager.selectedConfiguration = runnerAndConfigurationSettings
 
         }
 
 
-//        将项目类型更改为CangJie
 
 
         return super.commit(project, model, modulesProvider)
@@ -110,7 +130,7 @@ class NewProjectWizardModuleBuilder : ModuleBuilder() {
 
 //        将src目录添加为源文件目录
         val contentEntry = doAddContentEntry(modifiableRootModel)
-        contentEntry?.addSourceFolder(contentEntry.url  , false)
+        contentEntry?.addSourceFolder(contentEntry.url, false)
 
 
 
@@ -136,7 +156,6 @@ class NewProjectWizardModuleType : ModuleType<NewProjectWizardModuleBuilder>("Ca
     override fun getNodeIcon(isOpened: Boolean): Icon = CangJieIcons.SMALL_LOGO
     override fun createModuleBuilder(): NewProjectWizardModuleBuilder = NewProjectWizardModuleBuilder()
 }
-
 
 
 abstract class WizardStep : ModuleWizardStep() {

@@ -76,10 +76,11 @@ class CangJieLanguageSdkSetupValidator : ProjectSdkSetupValidator {
 //
 //                }
 //            }
+            CangJieLspServerManager.shutdownAllServers()
             return "Please setup SDK for CangJie"
         }
-
         CangJieLspServerManager.restartLspServer()
+
         return null
     }
 
