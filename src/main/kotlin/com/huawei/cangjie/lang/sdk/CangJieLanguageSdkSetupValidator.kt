@@ -1,5 +1,6 @@
 package com.huawei.cangjie.lang.sdk
 
+import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.lang.CangJieFileType
 import com.huawei.cangjie.lang.CangJieLanguage
 import com.huawei.cangjie.lang.lsp.CangJieLspServerManager
@@ -77,7 +78,7 @@ class CangJieLanguageSdkSetupValidator : ProjectSdkSetupValidator {
 //                }
 //            }
             CangJieLspServerManager.shutdownAllServers()
-            return "Please setup SDK for CangJie"
+            return CangJieBundle.message("cangjie.sdk.please.configure")
         }
         CangJieLspServerManager.restartLspServer()
 

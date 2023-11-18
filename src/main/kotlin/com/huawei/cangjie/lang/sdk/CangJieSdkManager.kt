@@ -1,5 +1,6 @@
 package com.huawei.cangjie.lang.sdk
 
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.projectRoots.ProjectJdkTable
@@ -8,6 +9,7 @@ import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.ProjectManagerScope
 
 object CangJieSdkManager {
+    private val logger = Logger.getInstance(CangJieSdkManager::class.java)
 
 
     /**
@@ -17,6 +19,7 @@ object CangJieSdkManager {
         val projectManager = ProjectManager.getInstance()
 
         val openProjects = projectManager.openProjects
+        logger.info(openProjects.toString())
         if (openProjects.isNotEmpty()) {
             val project = openProjects[0]
             val sdk = ProjectRootManager.getInstance(project).projectSdk ?: return null

@@ -44,7 +44,7 @@ class CjpmRunConfigurationProducer : LazyRunConfigurationProducer<CjpmRunConfigu
         val project = context.project
         // 获取所有的运行配置
         val runManager = RunManager.getInstance(project)
-        val configurations = runManager.allConfigurationsList.filterIsInstance<CjpmRunConfiguration>()
+//        val configurations = runManager.allConfigurationsList.filterIsInstance<CjpmRunConfiguration>()
 
         // 查找是否存在 command 为 run 的运行配置
 //        val runConfiguration = configurations.find { it.command == CjpmCommand.RUN }

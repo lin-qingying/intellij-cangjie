@@ -1,7 +1,15 @@
 package com.huawei.cangjie.idea.run.action.modulejson
 
 
+import com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmCommand
+import com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmRunConfiguration
+import com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmRunConfigurationType
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager
+import com.huawei.cangjie.lang.sdk.CangJieSdkType
+import com.intellij.execution.Executor
+import com.intellij.execution.ProgramRunnerUtil
+import com.intellij.execution.RunManager
+import com.intellij.execution.executors.DefaultRunExecutor
 
 
 import com.intellij.openapi.actionSystem.*
@@ -12,26 +20,30 @@ import com.intellij.openapi.util.SystemInfo.isWindows
 class CjpmUpdateAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) {
 
+        val project = e.project ?: return
 
-//        获取sdk的路径 执行 cjpm update
-        val sdk = CangJieSdkManager.getProjectSdk()
-        if (sdk == null) {
-            Messages.showErrorDialog("Please setup CangJie SDK", "Error")
-            return
+        // 获取 RunManager
+        val runManager = RunManager.getInstance(project)
+
+// 查找 command 为 UPDATE 的运行配置
+        var runConfiguration = runManager.allSettings.find {
+            it.configuration is CjpmRunConfiguration && (it.configuration as CjpmRunConfiguration).command == CjpmCommand.UPDATE
         }
 
-        var sdkHomePath = sdk.homePath ?: return
-
-//        拿到cjpm.exe  tools/bin/cjpm.exe
-        val cjpmPath = if (isWindows) {
-            sdkHomePath += "\\tools\\bin\\cjpm.exe"
-        } else {
-            sdkHomePath += "/tools/bin/cjpm"
+        // 如果没有找到，就创建一个新的运行配置
+        if (runConfiguration == null) {
+            runConfiguration = runManager.createConfiguration("update", CjpmRunConfigurationType.instance)
+            (runConfiguration.configuration as CjpmRunConfiguration).command = CjpmCommand.UPDATE
+            runManager.addConfiguration(runConfiguration)
         }
 
-//        打开终端执行命令
-//        executeCommand("$cjpmPath update")
-//        runCustomTask( )
+        // 设置新的运行配置为默认运行配置
+//        runManager.selectedConfiguration = runConfiguration
+
+        // 执行运行配置
+        val executor: Executor = DefaultRunExecutor.getRunExecutorInstance()
+        ProgramRunnerUtil.executeConfiguration(runConfiguration, executor)
+
 
     }
 

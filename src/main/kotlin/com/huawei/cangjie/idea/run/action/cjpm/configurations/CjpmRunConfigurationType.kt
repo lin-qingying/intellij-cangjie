@@ -1,5 +1,6 @@
 package com.huawei.cangjie.idea.run.action.cjpm.configurations
 
+import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.idea.icons.CangJieIcons
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager
 import com.huawei.cangjie.lang.sdk.CangJieSdkType
@@ -113,7 +114,7 @@ class CjpmRunConfiguration(project: Project, factory: ConfigurationFactory, name
         override fun startProcess(): OSProcessHandler {
 
 
-            val sdk = CangJieSdkManager.getProjectSdk() ?: throw RuntimeConfigurationException("请配置仓颉SDK")
+            val sdk = CangJieSdkManager.getProjectSdk() ?: throw RuntimeConfigurationException(CangJieBundle.message("cangjie.sdk.please.configure"))
 
             //            获取工作目录为当前项目的根目录
             val project = environment.project
