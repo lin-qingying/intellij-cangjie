@@ -8,6 +8,7 @@ import com.huawei.cangjie.lang.sdk.CangJieSdkType
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
+import com.intellij.ide.util.projectWizard.EmptyModuleBuilder
 import com.intellij.ide.util.projectWizard.ModuleBuilder
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ide.util.projectWizard.WizardContext
@@ -15,19 +16,22 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.ModifiableModuleModel
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.projectRoots.SdkTypeId
 import com.intellij.openapi.roots.ModifiableRootModel
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider
+import org.jetbrains.jps.model.module.JpsModuleSourceRootType
 import javax.swing.Icon
 
 
 class NewProjectWizardModuleBuilder : ModuleBuilder() {
-    lateinit var wizardContext: WizardContext
-    private var finishButtonClicked: Boolean = false
+
 
     var projectSdk: Sdk? = null
 
@@ -41,34 +45,27 @@ class NewProjectWizardModuleBuilder : ModuleBuilder() {
     var projectType: String? = null
 
 
-    override fun createWizardSteps(
-        wizardContext: WizardContext,
-        modulesProvider: ModulesProvider
-    ): Array<ModuleWizardStep> {
-        this.wizardContext = wizardContext
-        val disposable = wizardContext.disposable
-//        return arrayOf(ModuleNewWizardSecondStep(wizardContext, disposable))
-        return super.createWizardSteps(wizardContext, modulesProvider)
-    }
+//    override fun createWizardSteps(
+//        wizardContext: WizardContext,
+//        modulesProvider: ModulesProvider
+//    ): Array<ModuleWizardStep> {
+//        this.wizardContext = wizardContext
+//        val disposable = wizardContext.disposable
+////        return arrayOf(ModuleNewWizardSecondStep(wizardContext, disposable))
+//        return super.createWizardSteps(wizardContext, modulesProvider)
+//    }
 
     override fun commit(
         project: Project,
         model: ModifiableModuleModel?,
         modulesProvider: ModulesProvider?
-    ): MutableList<Module>? {
+    ): List<Module>? {
         if (projectSdk == null) {
-            return super.commit(project, model, modulesProvider)
+            return emptyList()
         }
 
 
-
-        runWriteAction {
-//更改项目使用的sdk
-            val rootManager = ProjectRootManagerEx.getInstanceEx(project)
-            rootManager.projectSdk = projectSdk
-        }
-
-
+//        val modulesModel = model ?: ModuleManager.getInstance(project).getModifiableModel()
 
         ApplicationManager.getApplication().executeOnPooledThread {
 
@@ -99,7 +96,7 @@ class NewProjectWizardModuleBuilder : ModuleBuilder() {
             )
 //            修改运行配置的命令为run
             (runnerAndConfigurationSettings.configuration as CjpmRunConfiguration).apply {
-             command = CjpmCommand.RUN
+                command = CjpmCommand.RUN
 
             }
 
@@ -109,26 +106,29 @@ class NewProjectWizardModuleBuilder : ModuleBuilder() {
             runManager.selectedConfiguration = runnerAndConfigurationSettings
 
         }
+        runWriteAction {
+//更改项目使用的sdk
+            val rootManager = ProjectRootManagerEx.getInstanceEx(project)
+            rootManager.projectSdk = projectSdk
+            // 强制刷新项目结构
+
+            ProjectManager.getInstance().reloadProject(project)
+        }
 
 
 
 
+//        return emptyList()
+//        return modulesModel.modules.toList().onEach { setupModule(it) }
         return super.commit(project, model, modulesProvider)
     }
 
     override fun setupRootModel(modifiableRootModel: ModifiableRootModel) {
-
-
 //        更改模块sdk为继承
         modifiableRootModel.inheritSdk()
-
 //        将src目录添加为源文件目录
         val contentEntry = doAddContentEntry(modifiableRootModel)
-        contentEntry?.addSourceFolder(contentEntry.url, false)
-
-
-
-        super.setupRootModel(modifiableRootModel)
+        contentEntry?.addSourceFolder("${contentEntry.url}/src", false)
 
 
     }
@@ -149,6 +149,12 @@ class NewProjectWizardModuleType : ModuleType<NewProjectWizardModuleBuilder>("Ca
     override fun getDescription(): String = name
     override fun getNodeIcon(isOpened: Boolean): Icon = CangJieIcons.SMALL_LOGO
     override fun createModuleBuilder(): NewProjectWizardModuleBuilder = NewProjectWizardModuleBuilder()
+
+    override fun isSupportedRootType(type: JpsModuleSourceRootType<*>?): Boolean {
+        return super.isSupportedRootType(type)
+    }
+
+
 }
 
 

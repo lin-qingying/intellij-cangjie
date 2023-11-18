@@ -10,115 +10,8 @@
   <component name="ChangeListManager">
     <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/CjBundle.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/cjpm/CfgOptions.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/cjpm/CjpmConfig.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/cjpm/project/model/CjpmProjectsService.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/cjpm/project/workspace/CjpmWorkSpaceData.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/cjpm/project/workspace/CjpmWorkspace.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/cjpm/project/workspace/FeatureGraph.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/cjpm/project/workspace/FeatureState.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/cjpm/project/workspace/PackageFeature.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/cjpm/project/workspace/PackageOrigin.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/cjpm/util/CangJieCreateUtil.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/ide/annotator/AnnotatorBase.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/ide/annotator/CjAnnotationHolder.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/ide/annotator/CjErrorAnnotator.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/ide/icons/CjIcons.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/ide/injected/CjDoctestLanguageInjector.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/ide/presentation/Utils.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/ide/refactoring/CjNamesValidator.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/CjFileType.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/CjLanguage.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/completion/Utils.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/create/Crate.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/create/CrateGraphService.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/create/impl/FakeCreate.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/create/impl/utils.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/lexer/CangJieLexer.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/lexer/uitls.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/parser/CangJieParserDefinition.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/parser/CangJieParserUtil.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/parser/util.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/CjCompositeElementType.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/CjFile.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/CjFileViewProviderFactory.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/CjPsiFactory.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/CjPsiImplUtil.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/CjPsiManager.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/CjPsiTreeChangeListener.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/CjRawIdentifiers.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/CjTokenType.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/SimpleMultiLineTextEscaper.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CfgUtil.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjClass.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjComponent.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjDocAndAttributeOwner.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjElement.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjFunction.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjGenericDeclaration.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjGenericParameter.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjInferenceContextOwner.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjItemElement.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjItemsOwner.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjLabelDecl.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjLifetime.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjLifetimeParameter.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjMod.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjModificationTrackerOwner.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjNamedElement.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjPath.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjQualifiedNamedElement.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjReferenceElement.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/CjValueParameter.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/PsiElement.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/psi/ext/RsLabeledExpression.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/resolve/CjLangItemIndex.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/resolve/CrateDefMap.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/resolve/DefMapService.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/resolve/FacadeResolve.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/resolve/ModCollectorBase.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/resolve/NameResolution.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/resolve/Namespace.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/resolve/Processors.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/resolve/ref/CjLifetimeReferenceImpl.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/resolve/ref/CjReference.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/resolve/ref/CjReferenceBase.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/resolve/ref/CjReferenceCached.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/resolve/ref/CjResolveCache.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/stubs/CjNamedStub.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/stubs/CjPlaceholderStub.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/stubs/CjStubElementType.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/stubs/StubImplementations.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/stubs/index/CjNamedElementIndex.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/stubs/subindexing.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/core/types/Extensions.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/doc/psi/CjDocComment.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/doc/psi/CjDocCommentElementType.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/doc/psi/CjDocElementTypes.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/doc/psi/CjDocKind.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/doc/psi/CjDocLine.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/doc/psi/CjDocLinkDestinationParser.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/doc/psi/CjDocTokenType.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/doc/psi/Psi.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/doc/psi/ext/IElementType.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/doc/psi/impl/CjDocCommentImpl.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/lang/doc/psi/impl/Psi.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/openapiext/utils.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/stdext/CjResult.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/stdext/Collections.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/stdext/Concurrency.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/stdext/HashCode.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/stdext/io.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/cangjie2/stdext/utils.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/grammars/CangJieLexer.flex" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/back/grammars/CangJieParser.bnf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/icons/CangJieBaseResourcesIcons.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/icons/CangJieIcons.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/icons/CangJieIcons.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/icons/cangjieFile.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/icons/cangjie_file.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/messages/CangJieBundle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/messages/CangJieBundle.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/NewProjectWizardModuleBuilder.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/NewProjectWizardModuleBuilder.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerManagerImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerManagerImpl.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -220,32 +113,32 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "UI_DESIGNER_EDITOR_MODE.PaletteManager.SHOW": "false",
-    "UI_DESIGNER_EDITOR_MODE.PaletteManager.WIDTH": "370",
-    "UI_DESIGNER_EDITOR_MODE.UIDesignerToolWindowManager.SHOW": "true",
-    "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "master",
-    "jdk.selected.JAVA_MODULE": "zulu-17",
-    "last_opened_file_path": "D:/Code/idea/intellij-cangjie/src/main/resources",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
-    "project.structure.last.edited": "项目",
-    "project.structure.proportion": "0.17",
-    "project.structure.side.proportion": "0.3678161",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "editing.templates",
-    "two.files.diff.last.used.file": "D:/Code/idea/intellij-cangjie/lsp/log.txt",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;UI_DESIGNER_EDITOR_MODE.PaletteManager.SHOW&quot;: &quot;false&quot;,
+    &quot;UI_DESIGNER_EDITOR_MODE.PaletteManager.WIDTH&quot;: &quot;370&quot;,
+    &quot;UI_DESIGNER_EDITOR_MODE.UIDesignerToolWindowManager.SHOW&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;zulu-17&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Code/idea/intellij-cangjie/src/main/resources&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;模块&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.17&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.3678161&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;editing.templates&quot;,
+    &quot;two.files.diff.last.used.file&quot;: &quot;D:/Code/idea/intellij-cangjie/lsp/log.txt&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="PsiViewer">
     <option name="HIGHLIGHT" value="true" />
     <option name="SPLIT_DIVIDER_POSITION" value="239" />
@@ -653,6 +546,8 @@
       <workItem from="1700214134807" duration="8538000" />
       <workItem from="1700224669621" duration="6537000" />
       <workItem from="1700237761355" duration="5197000" />
+      <workItem from="1700287106103" duration="2985000" />
+      <workItem from="1700290787204" duration="1375000" />
     </task>
     <task id="LOCAL-00001" summary="语法分析">
       <option name="closed" value="true" />
@@ -998,47 +893,28 @@
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint type="kotlin-line">
+        <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerManagerImpl.kt</url>
-          <line>102</line>
+          <line>86</line>
+          <option name="timeStamp" value="513" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerManagerImpl.kt</url>
+          <line>98</line>
           <properties>
             <option name="lambda-ordinal" value="-1" />
           </properties>
-          <option name="timeStamp" value="485" />
+          <option name="timeStamp" value="514" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/actions/NewCangJieFileAction.kt</url>
-          <line>154</line>
-          <option name="timeStamp" value="501" />
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/NewProjectWizardModuleBuilder.kt</url>
+          <line>60</line>
+          <option name="timeStamp" value="515" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/actions/NewCangJieFileAction.kt</url>
-          <line>120</line>
-          <option name="timeStamp" value="502" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/actions/NewCangJieFileAction.kt</url>
-          <line>151</line>
-          <option name="timeStamp" value="505" />
-        </line-breakpoint>
-        <breakpoint enabled="true" type="java-exception">
-          <properties class="com.intellij.diagnostic.PluginException" package="com.intellij.diagnostic" />
-          <option name="timeStamp" value="500" />
-        </breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/ide/fileTemplates/VelocityWrapper.java</url>
-          <line>70</line>
-          <option name="timeStamp" value="504" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/ide/fileTemplates/impl/FileTemplateManagerImpl.java</url>
-          <line>242</line>
-          <option name="timeStamp" value="507" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/ide/fileTemplates/impl/FTManager.java</url>
-          <line>122</line>
-          <option name="timeStamp" value="508" />
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/NewProjectWizardModuleBuilder.kt</url>
+          <line>117</line>
+          <option name="timeStamp" value="518" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

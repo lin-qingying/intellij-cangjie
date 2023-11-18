@@ -86,6 +86,11 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
             ReadAction.nonBlocking<SmartList<LspServerDescriptor>> {
                 val servers = getServersForProvider(providerClass)
                 val descriptors = SmartList<LspServerDescriptor>()
+
+                if (descriptors == null) {
+                    println()
+                }
+
                 val openFiles = FileEditorManager.getInstance(project).openFiles
                 for (file in openFiles) {
                     ProgressManager.checkCanceled()
@@ -112,7 +117,10 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
                     ) {
                         val starter = LspServerStarterImpl()
                         provider.fileOpened(project, file, starter)
-                        descriptors.add(starter.descriptor)
+                        if (starter.descriptor != null) {
+                            descriptors.add(starter.descriptor)
+
+                        }
                     }
                 }
                 descriptors
