@@ -67,32 +67,29 @@ class NewCangJieFileAction : AbstractNewCangJieFileAction(), DumbAware {
         builder
             .addKind(
                 CangJieBundle.message("action.new.file.dialog.class.title"),
-                CangJieIcons.Class,
+//
+                null,
                 "CangJie Class"
             )
             .addKind(
                 CangJieBundle.message("action.new.file.dialog.file.title"),
-                CangJieFileType.icon,
+                null,
                 "CangJie File"
             )
             .addKind(
                 CangJieBundle.message("action.new.file.dialog.interface.title"),
-                CangJieIcons.Class,
+                null,
                 "CangJie Interface"
             )
             .addKind(
                 CangJieBundle.message("action.new.file.dialog.enum.title"),
-                CangJieIcons.Class,
+                null,
                 "CangJie Enum"
             )
-//            .addKind(
-//                CangJieBundle.message("action.new.file.dialog.annotation.title"),
-//                CangJieIcons.CANGJIE_FILE,
-//                "CangJie Annotation"
-//            )
+
             .addKind(
                 CangJieBundle.message("action.new.file.dialog.struct.title"),
-                CangJieIcons.Class,
+                null,
                 "CangJie Struct"
             )
         builder.setValidator(NewCangJieFileNameValidator)

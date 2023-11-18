@@ -188,7 +188,7 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
 
 
             with(builder) {
-                row("CangJie Sdk:") {
+                row(CangJieUiBundle.message("action.new.project.cangjiesdk.title")) {
 //                    val sdksModel = ProjectSdksModel()
 //
 //                    Disposer.register(context.disposable) {
@@ -209,12 +209,12 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
                         .columns(COLUMNS_MEDIUM)
                         .component
                 }.bottomGap(BottomGap.SMALL)
-                row("Project Type:") {
+                row(CangJieUiBundle.message("action.new.project.projecttype.title")) {
                     cell(projectTypeComboBox)
                         .columns(COLUMNS_MEDIUM)
                         .component
                 }.bottomGap(BottomGap.SMALL)
-                row("Module Name:") {
+                row(CangJieUiBundle.message("action.new.project.modulename.title")) {
                     cell(moduleNameTextField)
                         .columns(COLUMNS_MEDIUM)
                         //                        .validationOnApply {
@@ -222,7 +222,7 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
 //                        }
                         .component
                 }.bottomGap(BottomGap.SMALL)
-                row("Group Name:") {
+                row(CangJieUiBundle.message("action.new.project.groupname.title")) {
                     cell(groupIdTextField)
                         .columns(COLUMNS_MEDIUM)
 //                        .validationOnApply {

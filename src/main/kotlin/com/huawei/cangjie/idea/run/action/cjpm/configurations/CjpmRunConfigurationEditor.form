@@ -29,7 +29,7 @@
           <font style="1"/>
           <labelInsets top="0" left="0" bottom="0" right="48"/>
           <labelLocation value="West"/>
-          <text value="命令 "/>
+          <text resource-bundle="messages/CangJieUiBundle" key="action.run.cjpm.configuration.command.title"/>
           <toolTipText value=""/>
         </properties>
       </component>
@@ -42,7 +42,7 @@
           <enabled value="true"/>
           <labelInsets top="0" left="0" bottom="0" right="48"/>
           <labelLocation value="West"/>
-          <text value="参数 "/>
+          <text resource-bundle="messages/CangJieUiBundle" key="action.run.cjpm.configuration.args.title"/>
         </properties>
       </component>
       <vspacer id="fe722">
