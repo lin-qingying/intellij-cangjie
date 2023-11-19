@@ -135,7 +135,8 @@ import com.intellij.util.ArrayFactory
             }
         }
 
-
+     val importList: CjImportList?
+         get() = importLists.firstOrNull()
     companion object {
         val FILE_DECLARATION_TYPES = TokenSet.orSet(CjTokenSets.DECLARATION_TYPES)
     }

@@ -1,4 +1,4 @@
-package com.huawei.cangjie.idea.run.action.cjpm.configurations
+package com.huawei.cangjie.idea.run.cjpm
 
 import com.huawei.cangjie.idea.project.tools.projectWizard.CangJieUiBundle
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
@@ -23,24 +23,15 @@ import javax.swing.JTextField
 
 class CjpmRunConfigurationEditor(private val project: Project) : SettingsEditor<CjpmRunConfiguration>() {
 
-//    private var command = LabeledComponent.create(
-//        ComboBox<CjpmCommand>(),
-//        CangJieUiBundle.message("action.run.cjpm.configuration.command.title")
-//    )
 
-    var command = ComboBox<CjpmCommand>()
+    val command = ComboBox<CjpmCommand>()
 
-    //    private var module = LabeledComponent.create(
-//        TextFieldWithBrowseButton(),
-//        CangJieUiBundle.message("action.run.cjpm.configuration.modulejson.title")
-//    )
-    var module = TextFieldWithBrowseButton()
-//    private var args =
-//        LabeledComponent.create(JTextField(), CangJieUiBundle.message("action.run.cjpm.configuration.args.title"))
 
-    var args = JTextField()
+    val module = TextFieldWithBrowseButton()
 
-    private var mainPanel: JPanel = panel {
+    val args = JTextField()
+
+    private val mainPanel: JPanel = panel {
 
         row(CangJieUiBundle.message("action.run.cjpm.configuration.modulejson.title")) {
             cell(module)

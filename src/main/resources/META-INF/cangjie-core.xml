@@ -94,15 +94,28 @@
 
 
         <!--运行-->
-        <runConfigurationProducer implementation="com.huawei.cangjie.idea.run.CjpmRunConfigurationProducer" id="CjpmRunConfigurationProducer"/>
-        <runConfigurationProducer implementation="com.huawei.cangjie.idea.run.CjcRunConfigurationProducer" id="CjcRunConfigurationProducer"/>
         <!--        cjpm运行任务-->
+        <runConfigurationProducer implementation="com.huawei.cangjie.idea.run.cjpm.CjpmRunConfigurationProducer" id="CjpmRunConfigurationProducer"/>
+        <runConfigurationProducer implementation="com.huawei.cangjie.idea.run.cjc.CjcRunConfigurationProducer" id="CjcRunConfigurationProducer"/>
+
+        <xdebugger.breakpointType implementation="com.huawei.cangjie.idea.debugger.CangJieLineBreakpointType" order="first"/>
+
+        <programRunner implementation="com.huawei.cangjie.idea.run.cjpm.CjpmProgramRunner"/>
+
         <configurationType
-                implementation="com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmRunConfigurationType"
+                implementation="com.huawei.cangjie.idea.run.cjpm.CjpmRunConfigurationType"
                 id="CjpmRunConfiguration"/>
+
+
+
+
+<!--        cjc-->
         <configurationType
-                implementation="com.huawei.cangjie.idea.run.action.cjc.configurations.CjcRunConfigurationType"
+                implementation="com.huawei.cangjie.idea.run.cjc.CjcRunConfigurationType"
                 id="CjcRunConfiguration"/>
+
+
+
 
         <applicationService
                 serviceImplementation="com.huawei.cangjie.idea.completion.FirCompletionDummyIdentifierProviderService"
@@ -166,7 +179,7 @@
 
 
     <actions>
-        <action id="CjpmAction" class="com.huawei.cangjie.idea.run.action.modulejson.CjpmUpdateAction"
+        <action id="CjpmAction" class="com.huawei.cangjie.idea.run.modulejson.CjpmUpdateAction"
                 text="run cjpm update">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>

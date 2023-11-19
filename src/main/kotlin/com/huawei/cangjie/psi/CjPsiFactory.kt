@@ -25,10 +25,21 @@ class CjPsiFactory private constructor(
     private val context: PsiElement?,
     private val eventSystemEnabled: Boolean,
 ) {
+
+    companion object {
+        @JvmStatic
+        @JvmOverloads
+        fun contextual(context: PsiElement, markGenerated: Boolean = true): CjPsiFactory {
+            return CjPsiFactory(context.project, markGenerated, context, eventSystemEnabled = false)
+        }
+    }
     fun createColon(): PsiElement {
         return createVariable("let x: Int64").findElementAt(5)!!
     }
 
+    fun createExpressionCodeFragment(@NonNls text: String, context: PsiElement?): CjExpressionCodeFragment {
+        return CjExpressionCodeFragment(project, "fragment.cj", text, null, context)
+    }
     fun createSemicolon(): PsiElement {
         return createVariable("let x: Int64;").findElementAt(12)!!
     }

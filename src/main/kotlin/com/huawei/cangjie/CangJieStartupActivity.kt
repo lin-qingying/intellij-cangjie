@@ -11,18 +11,6 @@ import com.intellij.openapi.vcs.changes.shelf.ShelveChangesManager.PostStartupAc
 
 //class CangJieStartupActivity : StartupActivity {
 //    override fun runActivity(project: Project) {
-//        val projectJdkTable = ProjectJdkTable.getInstance()
-//        val mySdkType = SdkType.findInstance(CangJieSdkType::class.java)
-//        val mySdk = projectJdkTable.createSdk("MySdk", mySdkType)
 //
-//        // 设置你的SDK的路径
-//        val sdkModificator = mySdk.sdkModificator
-//        sdkModificator.homePath = "/path/to/your/sdk"
-//        sdkModificator.commitChanges()
-//
-//        // 添加你的SDK到JDK表中
-//        ApplicationManager.getApplication().runWriteAction {
-//            projectJdkTable.addJdk(mySdk)
-//        }
 //    }
 //}

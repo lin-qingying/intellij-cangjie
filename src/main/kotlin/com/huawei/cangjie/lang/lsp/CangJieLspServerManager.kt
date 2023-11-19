@@ -2,6 +2,8 @@ package com.huawei.cangjie.lang.lsp
 
 import com.huawei.cangjie.idea.project.CangJieProjectManager
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager
+import com.huawei.cangjie.utils.getSavePluginVersion
+import com.huawei.cangjie.utils.savePluginVersion
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.ide.plugins.PluginManager
 import com.intellij.ide.plugins.PluginManagerCore
@@ -110,30 +112,8 @@ object CangJieLspServerManager {
     }
 
 
-    /**
-     * 将插件版本保存到LSPSERVERPATH
-     */
-    fun savePluginVersion() {
-        val plugin = PluginManagerCore.getPlugin(PluginId.getId("com.huawei.cangjie"))
-        val version = plugin?.version
-        if (version != null) {
-            Files.write(Paths.get("$LSPSERVERPATH/version"), version.toString().toByteArray())
-        }
-    }
 
-    /**
-     * 获取保存的插件版本
-     */
-    private fun getSavedPluginVersion(): String? {
 
-        return try {
-            val version = Files.readAllBytes(Paths.get("$LSPSERVERPATH/version"))
-            String(version)
-        } catch (e: Exception) {
-            null
-        }
-
-    }
 
     /**
      * 获取lspserver路径
@@ -145,7 +125,7 @@ object CangJieLspServerManager {
         // 获取当前插件的版本
         val currentVersion = PluginManagerCore.getPlugin(PluginId.getId("com.huawei.cangjie"))?.version
         // 获取保存的插件版本
-        val savedVersion = getSavedPluginVersion()
+        val savedVersion = getSavePluginVersion()
         // 如果当前版本和保存的版本不一致，则重新复制一份
         if (currentVersion != savedVersion) {
             reCopyLspServerToPath()

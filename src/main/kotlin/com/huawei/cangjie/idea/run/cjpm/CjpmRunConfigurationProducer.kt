@@ -1,17 +1,12 @@
-package com.huawei.cangjie.idea.run
+package com.huawei.cangjie.idea.run.cjpm
 
 
-import com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmCommand
-import com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmRunConfiguration
-import com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmRunConfigurationType
 import com.huawei.cangjie.lang.CangJieFileType
 import com.intellij.execution.RunManager
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.json.JsonFileType
-import com.intellij.json.JsonLanguage
-import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 

@@ -1,9 +1,9 @@
-package com.huawei.cangjie.idea.run.action.modulejson
+package com.huawei.cangjie.idea.run.modulejson
 
 
-import com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmCommand
-import com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmRunConfiguration
-import com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmRunConfigurationType
+import com.huawei.cangjie.idea.run.cjpm.CjpmCommand
+import com.huawei.cangjie.idea.run.cjpm.CjpmRunConfiguration
+import com.huawei.cangjie.idea.run.cjpm.CjpmRunConfigurationType
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager
 import com.huawei.cangjie.lang.sdk.CangJieSdkType
 import com.intellij.execution.Executor

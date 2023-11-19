@@ -1,9 +1,9 @@
 package com.huawei.cangjie.idea.project.tools.projectWizard.wizard
 
-import com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmRunConfiguration
-import com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmRunConfigurationType
+import com.huawei.cangjie.idea.run.cjpm.CjpmRunConfiguration
+import com.huawei.cangjie.idea.run.cjpm.CjpmRunConfigurationType
 import com.huawei.cangjie.idea.icons.CangJieIcons
-import com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmCommand
+import com.huawei.cangjie.idea.run.cjpm.CjpmCommand
 import com.huawei.cangjie.lang.sdk.CangJieSdkType
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.GeneralCommandLine
