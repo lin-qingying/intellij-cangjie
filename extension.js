@@ -1014,6 +1014,10 @@
                 }
             }
 
+            /**
+             * 获取后缀
+             * @returns {*|string}
+             */
             function y() {
                 switch (m()) {
                     case"win":
@@ -1026,6 +1030,11 @@
                 }
             }
 
+            /**
+             * 获取调试服务器文件名称
+             * @returns {*}
+             * @constructor
+             */
             function C() {
                 return a.dapServerNameBase + y()
             }
@@ -1074,6 +1083,9 @@
                 return "CJNative"
             }
 
+            /**
+             * 获取仓颉sdk
+             */
             function T() {
                 return s.workspace.getConfiguration("CangjieSdk").get("Path")
             }
@@ -1093,19 +1105,35 @@
                 }
             }
 
-            t.GlobalNlCharacter = f, f.nlMap = new Map([["win", "\r\n"], ["linux", "\n"], ["mac", "\n"]]), t.getArch = v, t.getExecFileSuffix = y, t.getDapServerName = C, t.getLauncherName = function () {
-                return a.launcherNameBase + y()
-            }, t.getDapServerPath = function () {
-                return o.join(h, a.executableFolder, C())
-            }, t.getServerLogPath = function () {
-                return o.join(l.homedir(), a.serverLogPathSubFolder)
-            }, t.setExtensionPath = function (e) {
-                h = e
-            }, t.getOutputChannel = function () {
-                return g
-            }, t.setOutputChannel = function (e) {
-                g = e
-            }, t.unifySlashOfPath = function (e) {
+            t.GlobalNlCharacter = f,
+                f.nlMap = new Map([["win", "\r\n"],
+                ["linux", "\n"], ["mac", "\n"]]),
+
+                t.getArch = v,
+                t.getExecFileSuffix = y,
+                t.getDapServerName = C,
+                t.getLauncherName = function () {
+                    return a.launcherNameBase + y()
+                },
+                t.getDapServerPath = function () {
+                    return o.join(h, a.executableFolder, C())
+                },
+                t.getServerLogPath = function () {
+                    return o.join(l.homedir(), a.serverLogPathSubFolder)
+                },
+                //
+                t.setExtensionPath = function (e) {
+                    h = e
+                },
+                //获取输出通道
+                t.getOutputChannel = function () {
+                    return g
+                },
+                //设置输出通道
+                t.setOutputChannel = function (e) {
+                    g = e
+                },
+                t.unifySlashOfPath = function (e) {
                 let t = e;
                 return "\\" === o.sep && (t = t.replace(/\\/g, "/")), t
             }, t.selectFileFromWorkspace = function (e, t = []) {
@@ -1189,12 +1217,11 @@
                     let t = e.replace("export ", "").split("=");
                     [, n[t[0]]] = t
                 }));
-                let o = S(),
-                    r = s.workspace.getConfiguration("terminal.integrated.env.linux");
+                let o = S(), r = s.workspace.getConfiguration("terminal.integrated.env.linux");
                 if (r.has("LD_LIBRARY_PATH")) {
                     let e = r.get("LD_LIBRARY_PATH");
                     i = e.indexOf(o) < 0 ? `${o}:${e}` : e
-                } else i = `${o}:${n[t.envPathName.LD_LIBRARY_PATH]}`;
+                } else i = `${o}:${n[t.envPathName.LD_LIBRARY_PATH]}`; //获取LD_LIBRARY_PATH
                 s.workspace.getConfiguration("terminal.integrated.env").update("linux", {
                     CANGJIE_HOME: `${e}`,
                     PATH: `${e}/bin:${e}/tools/bin:\${env:PATH}`,
@@ -1237,27 +1264,27 @@
             "use strict";
             Object.defineProperty(t, "__esModule", {value: !0}),
                 t.taskTitleSuffixLength = t.maxFieldLength = t.spaceFillNum = t.cjpmIncrementalCompilationCommand = t.maximumNumberOfDataBreakpoint = t.portHigherBound = t.portLowerBound = t.startUpRetryInterval = t.startUpRetryMaxCount = t.launcherExtraParamPrefix = t.serverLogPathSubFolder = t.serverDebuggerType = t.serverLogPathArgPrefix = t.serverPortArgPrefix = t.launcherNameBase = t.dapServerNameBase = t.executableFolder = t.debugType = t.debuggerPathPlaceholder = t.debuggeePathPlaceholder = t.defualtLiblldbPath = t.debugSettingsPrefix = t.extensionId = void 0,
-                t.extensionId = "IDE-Innovation-Lab.Cangjie",
-                t.debugSettingsPrefix = "cangjie_cj_sdk",
-                t.defualtLiblldbPath = "/third_party/llvm/lldb/lib/",
-                t.debuggeePathPlaceholder = "${programPath}",
-                t.debuggerPathPlaceholder = "${debuggerPath}",
-                t.debugType = "cangjieDebug",
-                t.executableFolder = "bin",
-                t.dapServerNameBase = "dap_server",
-                t.launcherNameBase = "launcher",
-                t.serverPortArgPrefix = "--port=",
-                t.serverLogPathArgPrefix = "--logpath=",
-                t.serverDebuggerType = "--debuggertype=lldbapi",
-                t.serverLogPathSubFolder = ".cangjie/debug/logs/server",
-                t.launcherExtraParamPrefix = "--dbgParams=",
-                t.startUpRetryMaxCount = 60,
-                t.startUpRetryInterval = 100,
-                t.portLowerBound = 9995, t.portHigherBound = 65535,
-                t.maximumNumberOfDataBreakpoint = 4,
-                t.cjpmIncrementalCompilationCommand = "cangjie.build.incrementWithDebug",
-                t.spaceFillNum = 2, t.maxFieldLength = 1e4,
-                t.taskTitleSuffixLength = 10
+                t.extensionId = "IDE-Innovation-Lab.Cangjie",//插件id
+                t.debugSettingsPrefix = "cangjie_cj_sdk", //调试设置前缀
+                t.defualtLiblldbPath = "/third_party/llvm/lldb/lib/", //默认lldb路径
+                t.debuggeePathPlaceholder = "${programPath}", //调试程序路径占位符
+                t.debuggerPathPlaceholder = "${debuggerPath}",//调试器路径占位符
+                t.debugType = "cangjieDebug",//调试类型
+                t.executableFolder = "bin",//可执行文件夹
+                t.dapServerNameBase = "dap_server",//dap服务器名称
+                t.launcherNameBase = "launcher",//启动器名称
+                t.serverPortArgPrefix = "--port=", //服务器端口参数前缀
+                t.serverLogPathArgPrefix = "--logpath=",//服务器日志路径参数前缀
+                t.serverDebuggerType = "--debuggertype=lldbapi",//服务器调试器类型
+                t.serverLogPathSubFolder = ".cangjie/debug/logs/server",//服务器日志路径子文件夹
+                t.launcherExtraParamPrefix = "--dbgParams=",//启动器额外参数前缀
+                t.startUpRetryMaxCount = 60,//启动重试最大次数
+                t.startUpRetryInterval = 100,//启动重试间隔
+                t.portLowerBound = 9995, t.portHigherBound = 65535,//端口范围
+                t.maximumNumberOfDataBreakpoint = 4,//最大数据断点数
+                t.cjpmIncrementalCompilationCommand = "cangjie.build.incrementWithDebug",//增量编译命令
+                t.spaceFillNum = 2, t.maxFieldLength = 1e4,//
+                t.taskTitleSuffixLength = 10//任务标题后缀长度
         }, 2445: (e, t, i) => {
             "use strict";
             Object.defineProperty(t, "__esModule", {value: !0}), t.DapMessageFilter = void 0;
@@ -1340,7 +1367,8 @@
                 p = i(4276), h = i(7012), g = i(5697);
             t.activate = function (e, t) {
                 return n(this, void 0, void 0, (function* () {
-                    g.setExtensionPath(e.extensionPath), g.setOutputChannel(t);
+                    g.setExtensionPath(e.extensionPath),
+                        g.setOutputChannel(t);
                     e.subscriptions.push(o.languages.registerCompletionItemProvider([{
                         scheme: "file",
                         language: "jsonc",

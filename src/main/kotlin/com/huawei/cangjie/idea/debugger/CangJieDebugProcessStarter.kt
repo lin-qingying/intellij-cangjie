@@ -9,4 +9,5 @@ class CangJieDebugProcessStarter(val state: RunProfileState) : XDebugProcessStar
     override fun start(session: XDebugSession): XDebugProcess {
         return CangJieDebugProcess(session, state)
     }
+
 }

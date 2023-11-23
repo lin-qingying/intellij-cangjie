@@ -1,5 +1,6 @@
 package com.huawei.cangjie.idea.debugger
 
+import com.huawei.cangjie.idea.debugger.socket.DebugSocket
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager
 import com.huawei.cangjie.utils.savePluginVersion
 import com.huawei.cangjie.utils.getSavePluginVersion
@@ -10,6 +11,8 @@ import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.SystemInfo
+import com.linqingying.lsp.api.LspProcessHandler
+
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -27,7 +30,7 @@ object CangJieDebuggerServerManager {
     /**
      * 调试端口
      */
-    val DEBUGPORT = 65534
+    val DEBUGPORT = 65500
 
     /**
      * 日志路径
@@ -72,7 +75,7 @@ object CangJieDebuggerServerManager {
 
     //    获取调试服务器进程
     fun getDebugServerProcess(): OSProcessHandler {
-        val processHandler = OSProcessHandler(getCommandLine())
+        val processHandler = LspProcessHandler(getCommandLine())
         processHandler.startNotify()
         return processHandler
     }
@@ -141,6 +144,11 @@ object CangJieDebuggerServerManager {
             }
         }
 
+
+    }
+
+    fun getDebugServerSocket(): DebugSocket {
+        return  DebugSocket(DEBUGPORT)
 
     }
 }

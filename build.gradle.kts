@@ -1,9 +1,11 @@
 plugins {
     idea
-    id("org.jetbrains.kotlin.jvm") version "1.9.0"
+    id("org.jetbrains.kotlin.jvm") version "1.9.20"
 //    kotlin("jvm") version "1.9.0"
     id("org.jetbrains.intellij") version "1.15.0"
     id("org.jetbrains.grammarkit") version "2022.3.2"
+    kotlin("plugin.serialization") version "1.9.20"
+
 }
 sourceSets {
     main {
@@ -65,7 +67,7 @@ intellij {
 ////加载PsiViewer插件 grammar-kit
     plugins.set(
         listOf(
-
+//            "plugin.serialization"
 
         )
     )
@@ -110,6 +112,7 @@ dependencies {
 //    }
 //    implementation(files("src/lib/lsp.jar"))
 
+implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
 }
 
 

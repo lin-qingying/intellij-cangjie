@@ -38,7 +38,7 @@ class _CDocLexer implements FlexLexer {
    * l is of the form l = 2*k, k a non negative integer
    */
   private static final int ZZ_LEXSTATE[] = {
-     0,  0,  1,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6,  6,  7,  7, 
+     0,  0,  1,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6,  6,  7,  7,
      8,  8,  6, 6
   };
 
@@ -413,7 +413,7 @@ class _CDocLexer implements FlexLexer {
   /* error messages for the codes above */
   private static final String[] ZZ_ERROR_MSG = {
     "Unknown internal scanner error",
-    "Error: could not match input",
+    "Error: could not match reader",
     "Error: pushback value was too large"
   };
 
@@ -447,7 +447,7 @@ class _CDocLexer implements FlexLexer {
     return j;
   }
 
-  /** the input device */
+  /** the reader device */
   private java.io.Reader zzReader;
 
   /** the current state of the DFA */
@@ -470,7 +470,7 @@ class _CDocLexer implements FlexLexer {
   private int zzStartRead;
 
   /** endRead marks the last character in the buffer, that has been read
-      from input */
+      from reader */
   private int zzEndRead;
 
   /** zzAtEOF == true <=> the scanner is at the EOF */
@@ -520,7 +520,7 @@ class _CDocLexer implements FlexLexer {
   /**
    * Creates a new scanner
    *
-   * @param   in  the java.io.Reader to read input from.
+   * @param   in  the java.io.Reader to read reader from.
    */
   _CDocLexer(java.io.Reader in) {
     this.zzReader = in;
@@ -538,7 +538,7 @@ class _CDocLexer implements FlexLexer {
   }
 
   /**
-   * Translates raw input code points to DFA table row
+   * Translates raw reader code points to DFA table row
    */
   private static int zzCMap(int input) {
     int offset = input & 255;
@@ -563,9 +563,9 @@ class _CDocLexer implements FlexLexer {
   }
 
   /**
-   * Refills the input buffer.
+   * Refills the reader buffer.
    *
-   * @return      {@code false}, iff there was new input.
+   * @return      {@code false}, iff there was new reader.
    *
    * @exception   java.io.IOException  if any I/O-Error occurs
    */
@@ -652,7 +652,7 @@ class _CDocLexer implements FlexLexer {
 
 
   /**
-   * Pushes the specified amount of characters back into the input stream.
+   * Pushes the specified amount of characters back into the reader stream.
    *
    * They will be read again by then next call of the scanning method
    *
@@ -674,7 +674,7 @@ class _CDocLexer implements FlexLexer {
   private void zzDoEOF() {
     if (!zzEOFDone) {
       zzEOFDone = true;
-    
+
   return;
     }
   }
@@ -682,7 +682,7 @@ class _CDocLexer implements FlexLexer {
 
   /**
    * Resumes scanning until the next regular expression is matched,
-   * the end of input is encountered or an I/O-Error occurs.
+   * the end of reader is encountered or an I/O-Error occurs.
    *
    * @return      the next token
    * @exception   java.io.IOException  if any I/O-Error occurs

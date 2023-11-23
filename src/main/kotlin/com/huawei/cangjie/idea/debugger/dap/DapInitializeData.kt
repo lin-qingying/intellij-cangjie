@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
-
+@Serializable
 class DapInitializeRequest {
 //    {"command":"initialize","arguments":{"clientID":"vscode","clientName":"Visual Studio Code","adapterID":"cangjieDebug","pathFormat":"path","linesStartAt1":true,"columnsStartAt1":true,"supportsVariableType":true,"supportsVariablePaging":true,"supportsRunInTerminalRequest":true,"locale":"zh-cn","supportsProgressReporting":true,"supportsInvalidatedEvent":true,"supportsMemoryReferences":true,"supportsArgsCanBeInterpretedByShell":true,"supportsMemoryEvent":true,"supportsStartDebuggingRequest":true},"type":"request","seq":1}
 // 使用kotlin json
@@ -15,7 +15,7 @@ class DapInitializeRequest {
         command = "initialize",
         arguments = InitializeArguments(
             clientID = "vscode",
-            clientName = "Visual Studio Code",
+            clientName = "Intellij IDEA",
             adapterID = "cangjieDebug",
             pathFormat = "path",
             linesStartAt1 = true,
