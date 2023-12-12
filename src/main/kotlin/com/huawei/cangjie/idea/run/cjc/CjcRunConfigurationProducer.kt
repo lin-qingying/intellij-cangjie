@@ -1,8 +1,5 @@
 package com.huawei.cangjie.idea.run.cjc
 
-import com.huawei.cangjie.idea.run.cjc.CjcRunConfiguration
-import com.huawei.cangjie.idea.run.cjc.CjcRunConfigurationType
-import com.huawei.cangjie.idea.run.cjpm.CjpmRunConfiguration
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.ConfigurationFactory

@@ -1,42 +1,28 @@
 package com.huawei.cangjie.idea.project.tools.projectWizard
 
-import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.NewProjectWizardModuleBuilder
+import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.CangJieModuleBuilder
 import com.huawei.cangjie.lang.sdk.CangJieSdkType
 import com.intellij.CommonBundle
 import com.intellij.ide.wizard.*
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.observable.properties.ObservableMutableProperty
-import com.intellij.openapi.observable.properties.ObservableProperty
-import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
-import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl
 import com.intellij.openapi.roots.ui.configuration.*
 import com.intellij.openapi.roots.ui.configuration.SdkListItem.*
 import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
 import com.intellij.openapi.ui.*
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsContexts
-import com.intellij.testFramework.requireIs
-import com.intellij.ui.dsl.builder.Align.Companion.FILL
 import com.intellij.ui.dsl.builder.BottomGap
 import com.intellij.ui.dsl.builder.COLUMNS_MEDIUM
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.columns
 import com.intellij.ui.layout.ValidationInfoBuilder
 import com.intellij.util.Consumer
-import com.intellij.util.ui.JBUI
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
-import java.awt.GridLayout
-import java.awt.event.FocusAdapter
-import java.awt.event.FocusEvent
 import java.util.*
 import javax.swing.*
 
@@ -53,7 +39,7 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
             projectTypeStr: String?,
             sdk: Sdk?
         ) {
-            NewProjectWizardModuleBuilder().apply {
+            CangJieModuleBuilder().apply {
 //                wizardContext
 
                 projectSdk = sdk
@@ -265,7 +251,7 @@ interface BuildSystemCangJieNewProjectWizardData : BuildSystemNewProjectWizardDa
 //        text(
 //            CangJieNewProjectWizardUIBundle.message("project.wizard.new.project.cangjie.comment"),
 //            action = HyperlinkEventAction {
-//                context.requestSwitchTo(NewProjectWizardModuleBuilder.MODULE_BUILDER_ID) { }
+//                context.requestSwitchTo(CangJieModuleBuilder.MODULE_BUILDER_ID) { }
 //            })
 //            .applyToComponent { foreground = JBUI.CurrentTheme.ContextHelp.FOREGROUND }
 //

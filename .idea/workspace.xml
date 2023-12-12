@@ -8,18 +8,58 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="">
+    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="修复cjpm运行配置界面ui加载不出来的问题&#10;修复切换sdk后获取不到sdk的问题">
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmCommandConfiguration.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmCommandConfigurationType.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmCommandRunner.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/kotlinc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/kotlinc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/___.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/在变基之前未提交的更改_[更改]/shelved.patch" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dap_server_20231120011815_1.log" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/extension.js" beforeDir="false" afterPath="$PROJECT_DIR$/extension.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/doc/lexer/_CDocLexer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/doc/lexer/_CDocLexer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/CangJieDebugProcess.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/CangJieDebugProcess.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/CangJieDebugProcessStarter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/CangJieDebugProcessStarter.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/CangJieDebuggerServerManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/CangJieDebuggerServerManager.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/dap/DapInitializeData.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/dap/DapInitializeData.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/debug.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/debug.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/CangJieBreakpointProperties.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/CangJieBreakpointType.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/CangJieDebugProcess.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebugProcess.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/CangJieDebugProcessStarter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebugProcessStarter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/CangJieDebuggerCoreBundle.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/CangJieDebuggerEditorsProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebuggerEditorsProvider.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/CangJieDebuggerServerManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebuggerServerManager.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/CangJieLineBreakpointType.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/CangJieLineBreakpointTypeBase.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/dap/DapInitializeData.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/debug.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/socket/DebugSocket.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/CangJieProjectActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/CangJieProjectActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/CangJieProjectManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/CangJieProjectManager.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/settings/ui/CangJieModuleWizardStep.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/settings/ui/CangJieModuleWizardStep.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/CangJieNewProjectWizard.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/CangJieNewProjectWizard.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/NewProjectWizardModuleBuilder.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/CangJieModuleBuilder.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjc/CjcRunConfigurationProducer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjc/CjcRunConfigurationProducer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjc/CjcRunConfigurationType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjc/CjcRunConfigurationType.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CangJieRunConfigurationOptions.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CangJieRunConfigurationOptions.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmCommandLineState.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmRunState.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmProgramRunner.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmRunConfiguration.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmRunConfigurationEditor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmRunConfigurationEditor.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmRunConfigurationProducer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmRunConfigurationProducer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmRunConfigurationType.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/modulejson/CjpmUpdateAction.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/modulejson/CjpmUpdateAction.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieSdkManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieSdkManager.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieSdkType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieSdkType.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/_JetLexer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lexer/_JetLexer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjElementUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjElementUtils.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/utils/utils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/utils/utils.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/LspServerDescriptor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/LspServerDescriptor.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerImpl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/messages/CangJieBundle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/messages/CangJieBundle.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/messages/CangJieUiBundle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/messages/CangJieUiBundle.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,6 +68,9 @@
   </component>
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/debugger">
       <ProjectState />
     </projectState>
   </component>
@@ -44,6 +87,9 @@
         <task path="$PROJECT_DIR$/plugin">
           <activation />
         </task>
+        <task path="$PROJECT_DIR$/debugger">
+          <activation />
+        </task>
         <projects_view>
           <tree_state>
             <expand />
@@ -57,16 +103,17 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="package-info" />
-        <option value="Kotlin Interface" />
         <option value="AnnotationType" />
         <option value="Kotlin Annotation" />
         <option value="Interface" />
-        <option value="Kotlin Object" />
         <option value="Kotlin Script" />
-        <option value="Class" />
         <option value="Python Script" />
         <option value="Kotlin File" />
         <option value="JavaScript File" />
+        <option value="Kotlin Interface" />
+        <option value="HTML File" />
+        <option value="Kotlin Object" />
+        <option value="Class" />
         <option value="Kotlin Class" />
       </list>
     </option>
@@ -85,12 +132,20 @@
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/openapi/roots/ui/configuration/SdkPopupFactory.kt" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/openapi/ui/LabeledComponent.java" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/ui/EditorNotificationsImpl.kt" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/xdebugger/XDebugProcess.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/xdebugger/XDebugSession.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/xdebugger/frame/XExecutionStack.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/xdebugger/frame/XStackFrame.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/xdebugger/frame/XSuspendContext.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/xdebugger/frame/XValue.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/xdebugger/impl/XDebugSessionImpl.java" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/kotlin/collections/ArraysJVM.kt" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/kotlin/collections/MutableCollections.kt" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/kotlin/jvm/internal/Intrinsics.java" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/org/jetbrains/kotlin/idea/quickfix/ChangeMemberFunctionSignatureFix.kt" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/org/jetbrains/kotlin/tools/projectWizard/wizard/ui/secondStep/SecondStepWizardComponent.kt" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/org/jetbrains/kotlin/tools/projectWizard/wizard/ui/secondStep/modulesEditor/ModulesEditorToolbarDecorator.kt" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.eclipse.lsp4j/org.eclipse.lsp4j.debug/0.21.1/1fbf0ea5a68bf8c86910c2cfbe6452ef4dba7bd1/org.eclipse.lsp4j.debug-0.21.1-sources.jar!/org/eclipse/lsp4j/debug/SetVariableArguments.java" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/wrapper/dists/gradle-8.2-bin/bbg7u40eoinfdyxsxr3z4i7ta/gradle-8.2/lib/kotlin-stdlib-1.8.20.jar!/kotlin/kotlin.kotlin_builtins" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.jdks/azul-17.0.9/lib/src.zip!/java.desktop/java/awt/Component.java" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.jdks/azul-17.0.9/lib/src.zip!/java.desktop/javax/swing/JComboBox.java" root0="SKIP_INSPECTION" />
@@ -129,16 +184,23 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;Gradle.Run.executor&quot;: &quot;Debug&quot;,
+    &quot;Gradle.intellij-cangjie [setupDependencies].executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;UI_DESIGNER_EDITOR_MODE.PaletteManager.SHOW&quot;: &quot;false&quot;,
     &quot;UI_DESIGNER_EDITOR_MODE.PaletteManager.WIDTH&quot;: &quot;370&quot;,
     &quot;UI_DESIGNER_EDITOR_MODE.UIDesignerToolWindowManager.SHOW&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;android.gradle.sync.needed&quot;: &quot;true&quot;,
     &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;jdk.selected.JAVA_MODULE&quot;: &quot;zulu-17&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/Code/idea/zuqiushuju/RuoYi-Vue-master&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Code/idea/intellij-cangjie/log/vscode 2l.log&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
@@ -148,14 +210,31 @@
     &quot;project.structure.proportion&quot;: &quot;0.17&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.3678161&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.language.Kotlin&quot;,
-    &quot;two.files.diff.last.used.file&quot;: &quot;D:/Code/idea/intellij-cangjie/lsp/log.txt&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settings.project.maven.archetype.catalogs&quot;,
+    &quot;two.files.diff.last.used.file&quot;: &quot;D:/Code/idea/intellij-cangjie/log/vscode 2l.log&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
   <component name="PsiViewer">
     <option name="HIGHLIGHT" value="true" />
-    <option name="SPLIT_DIVIDER_POSITION" value="239" />
+    <option name="SPLIT_DIVIDER_POSITION" value="229" />
+  </component>
+  <component name="QodanaHighlightedReportService">
+    <option name="localRunNotPublishedPersistedInfo">
+      <LocalReportPersistedInfo>
+        <option name="path" value="C:\Users\27439\AppData\Local\Temp\qodana_output\qodana.sarif.json" />
+        <option name="reportGuid" value="fe4e27b9-2e10-4617-9446-2fa8e5155d8e" />
+        <option name="reportName" value="intellij-cangjie/qodana/2023-12-12" />
+      </LocalReportPersistedInfo>
+    </option>
+  </component>
+  <component name="QodanaIsSelectedPersistenceService">
+    <option name="selectedOrLoading" value="true" />
+  </component>
+  <component name="QodanaReportsService">
+    <option name="descriptions">
+      <ReportDescription localRun="true" path="C:\Users\27439\AppData\Local\Temp\qodana_output\qodana.sarif.json" reportGuid="fe4e27b9-2e10-4617-9446-2fa8e5155d8e" reportId="intellij-cangjie/qodana/2023-12-12" />
+    </option>
   </component>
   <component name="RebelAgentSelection">
     <selection>jr</selection>
@@ -165,25 +244,25 @@
       <recent name="com.huawei.cangjie.lang.core.parser" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Code\idea\intellij-cangjie\log" />
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\com\debugger\runconfig\breakpoint" />
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\com\debugger\runconfig\dap" />
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\com\huawei\cangjie\idea\run\cjpm\runconfig\buildtool" />
       <recent name="D:\Code\idea\intellij-cangjie" />
-      <recent name="D:\Code\idea\intellij-cangjie\src\main\resources\debug" />
-      <recent name="D:\Code\idea\intellij-cangjie\src\main\resources\fileTemplates\internal" />
-      <recent name="D:\Code\idea\intellij-cangjie\src\main\resources" />
-      <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\com.linqingying.lsp" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="D:\Code\idea\intellij-cangjie\src\main\resources\lsp" />
-      <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\com\huawei\cangjie\idea\formatter\util" />
-      <recent name="D:\Code\idea\intellij-cangjie" />
-      <recent name="D:\Code\idea\intellij-cangjie\src\main\back" />
-      <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\com\huawei\cangjie\lexer" />
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\Test\test" />
+      <recent name="D:\Code\idea\intellij-cangjie\log" />
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\dap\response" />
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\dap\request" />
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\dap\event" />
     </key>
     <key name="MoveKotlinTopLevelDeclarationsDialog.RECENTS_KEY">
-      <recent name="com.huawei.cangjie.idea.run.cjpm" />
-      <recent name="com.huawei.cangjie.idea.run.action.cjc" />
-      <recent name="com.huawei.cangjie.idea.run.action.cjpm" />
-      <recent name="com.huawei.cangjie.idea.run" />
-      <recent name="com.huawei.cangjie.idea.action.modulejson" />
+      <recent name="dap.protocol" />
+      <recent name="com.debugger.runconfig.breakpoint" />
+      <recent name="com.debugger.runconfig" />
+      <recent name="com.huawei.cangjie.idea.run.cjpm.back" />
+      <recent name="com.huawei.cangjie.idea.project.settings" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
       <recent name="com.huawei.cangjie.doc.lexer" />
@@ -208,12 +287,8 @@
     </key>
   </component>
   <component name="RunManager" selected="Gradle.Run">
-    <configuration name="A" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="A" />
-      <module name="intellij-cangjie.test" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
+    <configuration name="Cjc (1)" type="CjcRunConfigurationType" temporary="true">
+      <method v="2" />
     </configuration>
     <configuration name="Run" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
@@ -237,37 +312,22 @@
       <RunAsTest>false</RunAsTest>
       <method v="2" />
     </configuration>
-    <configuration name="intellij-cj [build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value="build" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <RunAsTest>false</RunAsTest>
-      <method v="2" />
-    </configuration>
-    <configuration name="LspKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="com.huawei.cangjie.lang.lsp.LspKt" />
+    <configuration name="SocketTestKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="dap.SocketTestKt" />
       <module name="intellij-cangjie.main" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="TestKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
+    <configuration name="TestKt (1)" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="TestKt" />
+      <module name="intellij-cangjie.test" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="test.TestKt" />
       <module name="intellij-cangjie.main" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -275,20 +335,25 @@
     </configuration>
     <list>
       <item itemvalue="Gradle.Run" />
-      <item itemvalue="Gradle.intellij-cj [build]" />
+      <item itemvalue="Kotlin.TestKt (1)" />
+      <item itemvalue="Kotlin.SocketTestKt" />
       <item itemvalue="Kotlin.TestKt" />
-      <item itemvalue="Kotlin.LspKt" />
-      <item itemvalue="应用程序.A" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Gradle.Run" />
+        <item itemvalue="Kotlin.TestKt (1)" />
         <item itemvalue="Kotlin.TestKt" />
-        <item itemvalue="应用程序.A" />
-        <item itemvalue="Kotlin.LspKt" />
-        <item itemvalue="Gradle.intellij-cj [build]" />
+        <item itemvalue="Kotlin.SocketTestKt" />
       </list>
     </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="jdk-17.0.9-azul-17.0.9-3183f394aec4-cab63407" />
+      </set>
+    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
   <component name="StandaloneScriptsStorage">
@@ -555,6 +620,86 @@
       <workItem from="1700736962841" duration="1929000" />
       <workItem from="1700739982989" duration="8699000" />
       <workItem from="1700756546230" duration="5484000" />
+      <workItem from="1700918316855" duration="14470000" />
+      <workItem from="1700977660926" duration="3234000" />
+      <workItem from="1701020345744" duration="5569000" />
+      <workItem from="1701098189164" duration="15280000" />
+      <workItem from="1701113553086" duration="1000" />
+      <workItem from="1701173064535" duration="5720000" />
+      <workItem from="1701190167903" duration="6445000" />
+      <workItem from="1701243106079" duration="12716000" />
+      <workItem from="1701266511861" duration="6440000" />
+      <workItem from="1701325627751" duration="564000" />
+      <workItem from="1701326783972" duration="11037000" />
+      <workItem from="1701346996263" duration="14242000" />
+      <workItem from="1701361845353" duration="367000" />
+      <workItem from="1701362236508" duration="655000" />
+      <workItem from="1701362917012" duration="265000" />
+      <workItem from="1701363204878" duration="114000" />
+      <workItem from="1701363344852" duration="3563000" />
+      <workItem from="1701407054109" duration="5000" />
+      <workItem from="1701426081243" duration="10423000" />
+      <workItem from="1701439414407" duration="7596000" />
+      <workItem from="1701497967797" duration="2086000" />
+      <workItem from="1701503793544" duration="153000" />
+      <workItem from="1701504999447" duration="3482000" />
+      <workItem from="1701513720964" duration="283000" />
+      <workItem from="1701514022354" duration="15966000" />
+      <workItem from="1701531933222" duration="11364000" />
+      <workItem from="1701582132470" duration="3113000" />
+      <workItem from="1701594034620" duration="5391000" />
+      <workItem from="1701613160179" duration="202000" />
+      <workItem from="1701616562752" duration="6006000" />
+      <workItem from="1701622647141" duration="1519000" />
+      <workItem from="1701624173925" duration="4050000" />
+      <workItem from="1701628252581" duration="1317000" />
+      <workItem from="1701676157150" duration="3794000" />
+      <workItem from="1701686732035" duration="1248000" />
+      <workItem from="1701688016482" duration="354000" />
+      <workItem from="1701688396911" duration="438000" />
+      <workItem from="1701688855962" duration="60000" />
+      <workItem from="1701691897959" duration="1630000" />
+      <workItem from="1701695025677" duration="599000" />
+      <workItem from="1701698230227" duration="3849000" />
+      <workItem from="1701713198171" duration="4226000" />
+      <workItem from="1701776014207" duration="5748000" />
+      <workItem from="1701781853428" duration="273000" />
+      <workItem from="1701782644985" duration="301000" />
+      <workItem from="1701783767961" duration="4278000" />
+      <workItem from="1701789532340" duration="1627000" />
+      <workItem from="1701795265676" duration="1435000" />
+      <workItem from="1701797370145" duration="11000" />
+      <workItem from="1701859615924" duration="5585000" />
+      <workItem from="1701873590860" duration="3087000" />
+      <workItem from="1701946657123" duration="431000" />
+      <workItem from="1701947160516" duration="2836000" />
+      <workItem from="1701953706723" duration="7209000" />
+      <workItem from="1701961293803" duration="1217000" />
+      <workItem from="1701962648865" duration="605000" />
+      <workItem from="1701963549527" duration="332000" />
+      <workItem from="1701963899736" duration="68000" />
+      <workItem from="1701963990247" duration="537000" />
+      <workItem from="1701964547841" duration="70000" />
+      <workItem from="1701964633669" duration="4000" />
+      <workItem from="1701965077624" duration="80000" />
+      <workItem from="1701965305361" duration="132000" />
+      <workItem from="1701965448086" duration="57000" />
+      <workItem from="1701965515413" duration="167000" />
+      <workItem from="1701965694073" duration="536000" />
+      <workItem from="1702015070365" duration="115000" />
+      <workItem from="1702015197484" duration="1171000" />
+      <workItem from="1702016474364" duration="161000" />
+      <workItem from="1702019224069" duration="573000" />
+      <workItem from="1702024981678" duration="1000" />
+      <workItem from="1702028150143" duration="13806000" />
+      <workItem from="1702090112629" duration="11909000" />
+      <workItem from="1702131845413" duration="3149000" />
+      <workItem from="1702282152890" duration="18555000" />
+      <workItem from="1702351725864" duration="53000" />
+      <workItem from="1702361549609" duration="3655000" />
+      <workItem from="1702365398907" duration="5914000" />
+      <workItem from="1702380571112" duration="6986000" />
+      <workItem from="1702387884156" duration="9405000" />
     </task>
     <task id="LOCAL-00001" summary="语法分析">
       <option name="closed" value="true" />
@@ -925,62 +1070,14 @@
     <option name="LAST_COMMIT_MESSAGE" value="修复cjpm运行配置界面ui加载不出来的问题&#10;修复切换sdk后获取不到sdk的问题" />
   </component>
   <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/NewProjectWizardModuleBuilder.kt</url>
-          <line>62</line>
-          <option name="timeStamp" value="515" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/NewProjectWizardModuleBuilder.kt</url>
-          <line>127</line>
-          <option name="timeStamp" value="518" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/action/cjpm/configurations/CjpmRunConfigurationType.kt</url>
-          <line>116</line>
-          <option name="timeStamp" value="520" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/action/cjpm/configurations/CjpmRunConfigurationEditor.kt</url>
-          <line>99</line>
-          <option name="timeStamp" value="521" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/CangJieDebugProcess.kt</url>
-          <line>18</line>
-          <option name="timeStamp" value="524" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/socket/DebugSocket.kt</url>
-          <line>77</line>
-          <option name="timeStamp" value="533" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/debugger/socket/DebugSocket.kt</url>
-          <line>71</line>
-          <option name="timeStamp" value="534" />
-        </line-breakpoint>
-      </breakpoints>
-      <default-breakpoints>
-        <breakpoint type="dart-exception" />
-        <breakpoint type="python-exception">
-          <properties notifyOnTerminate="true" exception="BaseException">
-            <option name="notifyOnTerminate" value="true" />
-          </properties>
-        </breakpoint>
-      </default-breakpoints>
-    </breakpoint-manager>
     <pin-to-top-manager>
       <pinned-members>
         <PinnedItemInfo parentTag="com.intellij.psi.impl.source.CharTableImpl" memberName="entries" />
       </pinned-members>
     </pin-to-top-manager>
     <watches-manager>
-      <configuration name="GradleRunConfiguration">
-        <watch expression="file" />
-        <watch expression="((char[])((BufferedReader)reader).cb)[21]" custom="java.io.BufferedReader,char[]" />
+      <configuration name="JetRunConfigurationType">
+        <watch expression="str.split(&quot;:&quot;)" language="kotlin" />
       </configuration>
     </watches-manager>
   </component>

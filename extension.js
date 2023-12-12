@@ -386,7 +386,8 @@
                             setTimeout((() => {
                                 e && e.terminate()
                             }), this.serverTerminateTimeMillis)
-                        })), i.addMessageFilter("event", "breakpoint", (e => null)), i.addMessageFilter("request", "evaluate", (e => {
+                        })), i.addMessageFilter("event", "breakpoint", (e => null)),
+                            i.addMessageFilter("request", "evaluate", (e => {
                             const t = e;
                             if ("repl" !== t.arguments.context) return t;
                             let n = t.arguments.expression;

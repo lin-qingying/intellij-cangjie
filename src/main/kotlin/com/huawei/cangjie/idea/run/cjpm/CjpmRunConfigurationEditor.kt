@@ -5,14 +5,11 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.ui.LabeledComponent
 import com.intellij.openapi.ui.TextComponentAccessor
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.ui.PanelWithAnchor
 import com.intellij.ui.dsl.builder.COLUMNS_LARGE
-import com.intellij.ui.dsl.builder.COLUMNS_MEDIUM
 import com.intellij.ui.dsl.builder.columns
 import com.intellij.ui.dsl.builder.panel
 import java.io.File
@@ -21,7 +18,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTextField
 
-class CjpmRunConfigurationEditor(private val project: Project) : SettingsEditor<CjpmRunConfiguration>() {
+class CjpmRunConfigurationEditor(private val project: Project) : SettingsEditor<CjpmCommandConfiguration>() {
 
 
     val command = ComboBox<CjpmCommand>()
@@ -87,12 +84,12 @@ class CjpmRunConfigurationEditor(private val project: Project) : SettingsEditor<
         module.isEnabled = false
     }
 
-    override fun resetEditorFrom(s: CjpmRunConfiguration) {
+    override fun resetEditorFrom(s: CjpmCommandConfiguration) {
         command.selectedIndex = s.command?.index ?: 0
         args.text = s.args
     }
 
-    override fun applyEditorTo(s: CjpmRunConfiguration) {
+    override fun applyEditorTo(s: CjpmCommandConfiguration) {
         s.command = CjpmCommand.fromInt(command.selectedIndex)
         s.args = args.text
     }

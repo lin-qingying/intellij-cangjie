@@ -27,8 +27,8 @@ class _JetLexer implements FlexLexer {
   public static final int UNMATCHED_BACKTICK = 14;
 
   /**
-   * ZZ_LEXSTATE[l] is the state in the DFA for the lexical state l
-   * ZZ_LEXSTATE[l+1] is the state in the DFA for the lexical state l
+   * ZZ_LEXSTATE[l] is the myState in the DFA for the lexical myState l
+   * ZZ_LEXSTATE[l+1] is the myState in the DFA for the lexical myState l
    *                  at the beginning of a line
    * l is of the form l = 2*k, k a non negative integer
    */
@@ -337,7 +337,7 @@ class _JetLexer implements FlexLexer {
 
 
   /**
-   * Translates a state to a row index in the transition table
+   * Translates a myState to a row index in the transition table
    */
   private static final int [] ZZ_ROWMAP = zzUnpackRowMap();
 
@@ -761,7 +761,7 @@ class _JetLexer implements FlexLexer {
   };
 
   /**
-   * ZZ_ATTRIBUTE[aState] contains the attributes of state {@code aState}
+   * ZZ_ATTRIBUTE[aState] contains the attributes of myState {@code aState}
    */
   private static final int [] ZZ_ATTRIBUTE = zzUnpackAttribute();
 
@@ -799,17 +799,17 @@ class _JetLexer implements FlexLexer {
   /** the reader device */
   private java.io.Reader zzReader;
 
-  /** the current state of the DFA */
+  /** the current myState of the DFA */
   private int zzState;
 
-  /** the current lexical state */
+  /** the current lexical myState */
   private int zzLexicalState = YYINITIAL;
 
   /** this buffer contains the current text to be matched and is
       the source of the yytext() string */
   private CharSequence zzBuffer = "";
 
-  /** the textposition at the last accepting state */
+  /** the textposition at the last accepting myState */
   private int zzMarkedPos;
 
   /** the current text position in the buffer */
@@ -887,7 +887,7 @@ class _JetLexer implements FlexLexer {
                 case DOC_COMMENT:
                     return CjTokens.DOC_COMMENT;
                 default:
-                    throw new IllegalArgumentException("Unexpected state: " + state);
+                    throw new IllegalArgumentException("Unexpected myState: " + state);
             }
         }
     private boolean isGenerics = false;
@@ -951,7 +951,7 @@ class _JetLexer implements FlexLexer {
 
 
   /**
-   * Returns the current lexical state.
+   * Returns the current lexical myState.
    */
   public final int yystate() {
     return zzLexicalState;
@@ -959,9 +959,9 @@ class _JetLexer implements FlexLexer {
 
 
   /**
-   * Enters a new lexical state
+   * Enters a new lexical myState
    *
-   * @param newState the new lexical state
+   * @param newState the new lexical myState
    */
   public final void yybegin(int newState) {
     zzLexicalState = newState;

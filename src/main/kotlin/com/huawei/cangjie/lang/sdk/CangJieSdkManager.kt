@@ -1,36 +1,43 @@
 package com.huawei.cangjie.lang.sdk
 
+import com.huawei.cangjie.idea.project.CangJieProjectManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.openapi.util.ProjectManagerScope
 
 object CangJieSdkManager {
     private val logger = Logger.getInstance(CangJieSdkManager::class.java)
 
 
+    val sdkPath = getProjectSdk()?.homePath ?: ""
+
+val sdkVersion = getProjectSdk()?.versionString ?: ""
+    fun getProjectSdkType(): CangJieSdkType? {
+        return getProjectSdk()?.sdkType as? CangJieSdkType
+    }
+
     /**
      * 获取项目使用sdk
      */
     fun getProjectSdk(): Sdk? {
-        val projectManager = ProjectManager.getInstance()
 
-        val openProjects = projectManager.openProjects
-        logger.info(openProjects.toString())
-        if (openProjects.isNotEmpty()) {
-            val project = openProjects[0]
-            val sdk = ProjectRootManager.getInstance(project).projectSdk ?: return null
-            return if (sdk.sdkType is CangJieSdkType) sdk else null
+        val project = CangJieProjectManager.getCurrentProject()
+        if (project == null) {
+            logger.info("project is null")
+            return null
         }
-        return null
+        val sdk = ProjectRootManager.getInstance(project).projectSdk ?: return null
+        logger.info(sdk.name)
+        logger.info(sdk.sdkType.toString())
+        return if (sdk.sdkType is CangJieSdkType) sdk else null
 
 
     }
 
-    fun getProjectSdk(project:Project):Sdk?{
+    fun getProjectSdk(project: Project): Sdk? {
         val sdk = ProjectRootManager.getInstance(project).projectSdk ?: return null
         return if (sdk.sdkType is CangJieSdkType) sdk else null
     }

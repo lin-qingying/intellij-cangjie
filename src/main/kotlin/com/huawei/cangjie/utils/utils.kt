@@ -46,7 +46,7 @@ fun executeCommand(command: String) {
 //fun runCustomTask( ) {
 //    val project = ProjectManager.getInstance().openProjects[0]
 //    val runManager = RunManager.getInstance(project)
-//    val configurationFactory = CjpmRunConfigurationType().configurationFactories[0]
+//    val configurationFactory = CjpmCommandConfigurationType().configurationFactories[0]
 //    val runConfiguration = configurationFactory.createTemplateConfiguration(project)
 //    val settings = runManager.createConfiguration(runConfiguration, configurationFactory)
 //

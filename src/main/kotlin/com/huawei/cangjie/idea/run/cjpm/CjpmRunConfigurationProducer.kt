@@ -10,13 +10,13 @@ import com.intellij.json.JsonFileType
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 
-class CjpmRunConfigurationProducer : LazyRunConfigurationProducer<CjpmRunConfiguration>() {
+class CjpmRunConfigurationProducer : LazyRunConfigurationProducer<CjpmCommandConfiguration>() {
     override fun getConfigurationFactory(): ConfigurationFactory {
-        return CjpmRunConfigurationType.instance
+        return CjpmCommandConfigurationType.instance.factory
     }
 
     override fun setupConfigurationFromContext(
-        configuration: CjpmRunConfiguration, context: ConfigurationContext, sourceElement: Ref<PsiElement>
+        configuration: CjpmCommandConfiguration, context: ConfigurationContext, sourceElement: Ref<PsiElement>
     ): Boolean {
 //如果该项目有运行配置中command为run的运行配置，就使用这个运行配置，否则就创建一个run的运行配置
 
@@ -61,7 +61,7 @@ class CjpmRunConfigurationProducer : LazyRunConfigurationProducer<CjpmRunConfigu
     }
 
     override fun isConfigurationFromContext(
-        configuration: CjpmRunConfiguration, context: ConfigurationContext
+        configuration: CjpmCommandConfiguration, context: ConfigurationContext
     ): Boolean {
 //  判断是否是cjpm项目
 //        文件扩展名为.cj

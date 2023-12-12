@@ -18,7 +18,7 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
 //    private var cjpmVersion: String? = null
 //
 //    private var cjcPath: String? = null
-//    private var cjpmPath: String? = null
+//    private var sdkPath: String? = null
 
       val sdkAdditionalData = CangJieSdkAdditionalData()
 
@@ -32,13 +32,13 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
 //            additionalData.cjcVersion = sdkAdditionalData.cjcVersion
 //            additionalData.cjpmVersion = sdkAdditionalData.cjpmVersion
 //            additionalData.cjcPath = sdkAdditionalData.cjcPath
-//            additionalData.cjpmPath = sdkAdditionalData.cjpmPath
+//            additionalData.sdkPath = sdkAdditionalData.sdkPath
 //            val dataElement = Element("data")
 //            dataElement.setAttribute("version", sdkAdditionalData.sdkVersion)
 //            dataElement.setAttribute("cjcVersion", sdkAdditionalData.cjcVersion)
 //            dataElement.setAttribute("cjpmVersion", sdkAdditionalData.cjpmVersion)
 //            dataElement.setAttribute("cjcPath", sdkAdditionalData.cjcPath)
-//            dataElement.setAttribute("cjpmPath", sdkAdditionalData.cjpmPath)
+//            dataElement.setAttribute("sdkPath", sdkAdditionalData.sdkPath)
 //            additional.addContent(dataElement)
 //
 //        }
@@ -60,7 +60,7 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
             additional.getAttributeValue("cjcVersion"),
             additional.getAttributeValue("cjpmVersion"),
             additional.getAttributeValue("cjcPath"),
-            additional.getAttributeValue("cjpmPath")
+            additional.getAttributeValue("sdkPath")
         )
     }
 
@@ -118,7 +118,7 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
         sdkModel: SdkModel,
         sdkModificator: SdkModificator
     ): AdditionalDataConfigurable? {
-//        val additionalData = CangJieSdkAdditionalData(sdkVersion, cjcVersion, cjpmVersion, cjcPath, cjpmPath)
+//        val additionalData = CangJieSdkAdditionalData(sdkVersion, cjcVersion, cjpmVersion, cjcPath, sdkPath)
 //        sdkModificator.sdkAdditionalData = additionalData
 //提交修改
 //        sdkModificator.commitChanges()

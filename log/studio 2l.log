@@ -1,0 +1,1308 @@
+[DAP SERVER] | 2023-12-11 19:44:05.366 | [Info] (DapParamParser.cpp, ParseDebugOption, line: 142) | current channel type is socket.
+[DAP SERVER] | 2023-12-11 19:44:05.367 | [Info] (DapParamParser.cpp, ParseDebugOption, line: 151) | current debugger is lldbapi.
+[DAP SERVER] | 2023-12-11 19:44:05.482 | [Info] (SocketServer.cpp, OnChannelAccepted, line: 64) | SocketServer Accepted, channelServerId: 0, channelId: 0
+[DAP SERVER] | 2023-12-11 19:44:05.545 | [Info] (TimeTravelDebugManager.cpp, TimeTravelDebugManager, line: 26) | Time travel debug manager initialized successfully.
+[DAP SERVER] | 2023-12-11 19:44:05.546 | [Info] (DebugSession.cpp, OnMessageBuffer, line: 52) | OnMessageThread start.
+[DAP SERVER] | 2023-12-11 19:44:05.546 | [Info] (DebugSession.cpp, Start, line: 186) | Session start, sessionId = 1
+[DAP SERVER] | 2023-12-11 19:44:05.598 | [Info] (DebugSession.cpp, OnChannelData, line: 45) | channel 0 receive data: 
+Content-Length: 470
+
+{"type":"request","command":"initialize","seq":1,"arguments":{"clientId":"vnext_dap_client[ThreadId(1)]","clientName":"vNext DAP Client","adapterID":"cangjieDebug","locale":"en_US","linesStartAt1":true,"columnsStartAt1":true,"pathFormat":"path","supportsVariableType":false,"supportsVariablePaging":false,"supportsRunInTerminalRequest":true,"supportsMemoryReferences":false,"supportsProgressReporting":false,"supportsInvalidatedEvent":false,"supportsMemoryEvent":false}}
+[DAP SERVER] | 2023-12-11 19:44:05.598 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 42) | Head length string: Content-Length: 470
+[DAP SERVER] | 2023-12-11 19:44:05.598 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 57) | Get body length from head = 470
+[DAP SERVER] | 2023-12-11 19:44:05.598 | [Info] (MessageBuffer.cpp, Pop, line: 116) | Head length = 19, body length = 470
+[DAP SERVER] | 2023-12-11 19:44:05.598 | [Info] (MessageBuffer.cpp, GetMessageType, line: 74) | Body string: 
+{
+    "arguments": {
+        "adapterID": "cangjieDebug",
+        "clientId": "vnext_dap_client[ThreadId(1)]",
+        "clientName": "vNext DAP Client",
+        "columnsStartAt1": true,
+        "linesStartAt1": true,
+        "locale": "en_US",
+        "pathFormat": "path",
+        "supportsInvalidatedEvent": false,
+        "supportsMemoryEvent": false,
+        "supportsMemoryReferences": false,
+        "supportsProgressReporting": false,
+        "supportsRunInTerminalRequest": true,
+        "supportsVariablePaging": false,
+        "supportsVariableType": false
+    },
+    "command": "initialize",
+    "seq": 1,
+    "type": "request"
+}
+[DAP SERVER] | 2023-12-11 19:44:05.599 | [Info] (DebugSession.cpp, OnMessageBuffer, line: 69) | Pop request, command = initialize, seq = 1
+[DAP SERVER] | 2023-12-11 19:44:05.599 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 178) | request = initialize, seq = 1
+[DAP SERVER] | 2023-12-11 19:44:05.599 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 67) | Event listener started.
+[DAP SERVER] | 2023-12-11 19:44:05.599 | [Info] (DebugSession.cpp, OnDebuggerResponse, line: 152) | send response: 
+{
+    "body": {
+        "additionalModuleColumns": [],
+        "exceptionBreakpointFilters": [],
+        "supportTerminateDebuggee": true,
+        "supportedChecksumAlgorithms": [],
+        "supportedTimeTravelRecordPointTypes": [
+            "step",
+            "breakpoint",
+            "function breakpoint",
+            "instruction breakpoint",
+            "data breakpoint",
+            "exception"
+        ],
+        "supportsConditionalBreakpoints": true,
+        "supportsConfigurationDoneRequest": true,
+        "supportsDataBreakpoints": true,
+        "supportsDisassembleRequest": true,
+        "supportsFunctionBreakpoints": true,
+        "supportsHitConditionalBreakpoints": true,
+        "supportsInstructionBreakpoints": true,
+        "supportsReadMemoryRequest": true,
+        "supportsSetExecutionPoint": true,
+        "supportsSetVariable": true,
+        "supportsSteppingGranularity": true,
+        "supportsTimeTravelDebugging": false,
+        "supportsWriteMemoryRequest": true
+    },
+    "command": "initialize",
+    "request_seq": 1,
+    "seq": 1,
+    "success": true,
+    "type": "response"
+}
+[DAP SERVER] | 2023-12-11 19:44:05.599 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 213) | handle request end!
+[DAP SERVER] | 2023-12-11 19:44:05.607 | [Info] (DebugSession.cpp, OnChannelData, line: 45) | channel 0 receive data: 
+Content-Length: 238
+
+{"type":"request","command":"launch","seq":2,"arguments":{"buildBeforeLaunch":true,"externalConsole":true,"name":"Cangjie Debug (cjdb): launch","program":"d:/Code/Cj/untitled1/build/bin/main.exe","request":"launch","type":"cangjieDebug"}}
+[DAP SERVER] | 2023-12-11 19:44:05.607 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 42) | Head length string: Content-Length: 238
+[DAP SERVER] | 2023-12-11 19:44:05.607 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 57) | Get body length from head = 238
+[DAP SERVER] | 2023-12-11 19:44:05.607 | [Info] (MessageBuffer.cpp, Pop, line: 116) | Head length = 19, body length = 238
+[DAP SERVER] | 2023-12-11 19:44:05.607 | [Info] (MessageBuffer.cpp, GetMessageType, line: 74) | Body string: 
+{
+    "arguments": {
+        "buildBeforeLaunch": true,
+        "externalConsole": true,
+        "name": "Cangjie Debug (cjdb): launch",
+        "program": "d:/Code/Cj/untitled1/build/bin/main.exe",
+        "request": "launch",
+        "type": "cangjieDebug"
+    },
+    "command": "launch",
+    "seq": 2,
+    "type": "request"
+}
+[DAP SERVER] | 2023-12-11 19:44:05.607 | [Info] (DebugSession.cpp, OnMessageBuffer, line: 69) | Pop request, command = launch, seq = 2
+[DAP SERVER] | 2023-12-11 19:44:05.607 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 178) | request = launch, seq = 2
+[DAP SERVER] | 2023-12-11 19:44:05.607 | [Info] (LaunchHelper.cpp, ParseParameters, line: 66) | Launch params:
+ program: d:/Code/Cj/untitled1/build/bin/main.exe
+ remote: NO_REMOTE
+[DAP SERVER] | 2023-12-11 19:44:05.622 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000003bde8b0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {main.exe}
+[DAP SERVER] | 2023-12-11 19:44:05.623 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:05.625 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"d:\\Code\\Cj\\untitled1\\build\\bin\\main.exe\",host-name=\"d:\\Code\\Cj\\untitled1\\build\\bin\\main.exe\",loaded_addr=\"-\",codeRange=\"-~-\"\n"
+    },
+    "event": "output",
+    "seq": 2,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:05.625 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:05.635 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "event": "initialized",
+    "seq": 3,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:05.635 | [Info] (DebugSession.cpp, OnDebuggerResponse, line: 152) | send response: 
+{
+    "command": "launch",
+    "request_seq": 2,
+    "seq": 4,
+    "success": true,
+    "type": "response"
+}
+[DAP SERVER] | 2023-12-11 19:44:05.635 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 213) | handle request end!
+[DAP SERVER] | 2023-12-11 19:44:05.639 | [Info] (DebugSession.cpp, OnChannelData, line: 45) | channel 0 receive data: 
+Content-Length: 199
+
+{"type":"request","command":"setBreakpoints","seq":3,"arguments":{"source":{"name":"main.cj","path":"D:/Code/Cj/untitled1/src/main.cj"},"breakpoints":[{"line":2}],"lines":null,"sourceModified":null}}
+[DAP SERVER] | 2023-12-11 19:44:05.639 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 42) | Head length string: Content-Length: 199
+[DAP SERVER] | 2023-12-11 19:44:05.639 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 57) | Get body length from head = 199
+[DAP SERVER] | 2023-12-11 19:44:05.639 | [Info] (MessageBuffer.cpp, Pop, line: 116) | Head length = 19, body length = 199
+[DAP SERVER] | 2023-12-11 19:44:05.639 | [Info] (MessageBuffer.cpp, GetMessageType, line: 74) | Body string: 
+{
+    "arguments": {
+        "breakpoints": [
+            {
+                "line": 2
+            }
+        ],
+        "lines": null,
+        "source": {
+            "name": "main.cj",
+            "path": "D:/Code/Cj/untitled1/src/main.cj"
+        },
+        "sourceModified": null
+    },
+    "command": "setBreakpoints",
+    "seq": 3,
+    "type": "request"
+}
+[DAP SERVER] | 2023-12-11 19:44:05.639 | [Info] (DebugSession.cpp, OnMessageBuffer, line: 69) | Pop request, command = setBreakpoints, seq = 3
+[DAP SERVER] | 2023-12-11 19:44:05.639 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 178) | request = setBreakpoints, seq = 3
+[DAP SERVER] | 2023-12-11 19:44:05.639 | [Warn] (SetBreakpointsApiHandler.cpp, RemoveBreakpoints, line: 95) | WARN: No file path exist, filePath: D:/Code/Cj/untitled1/src/main.cj
+[DAP SERVER] | 2023-12-11 19:44:05.640 | [Info] (DebugSession.cpp, OnChannelData, line: 45) | channel 0 receive data: 
+Content-Length: 199
+
+{"type":"request","command":"setBreakpoints","seq":4,"arguments":{"source":{"name":"main.cj","path":"D:/Code/Cj/untitled1/src/main.cj"},"breakpoints":[{"line":2}],"lines":null,"sourceModified":null}}
+[DAP SERVER] | 2023-12-11 19:44:05.640 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 000000000415d150 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000001 (breakpoint-changed), data = {bkpt: 1 type: breakpoint added}
+[DAP SERVER] | 2023-12-11 19:44:05.640 | [Info] (LLDBApiEventHandler.cpp, HandleBreakpointEvent, line: 509) | A breakpoint event occurred!
+[DAP SERVER] | 2023-12-11 19:44:05.656 | [Info] (DebugSession.cpp, OnDebuggerResponse, line: 152) | send response: 
+{
+    "body": {
+        "breakpoints": [
+            {
+                "id": 1,
+                "line": 2,
+                "source": {
+                    "path": "D:/Code/Cj/untitled1/src/main.cj"
+                },
+                "verified": true
+            }
+        ]
+    },
+    "command": "setBreakpoints",
+    "request_seq": 3,
+    "seq": 5,
+    "success": true,
+    "type": "response"
+}
+[DAP SERVER] | 2023-12-11 19:44:05.656 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 213) | handle request end!
+[DAP SERVER] | 2023-12-11 19:44:05.656 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 42) | Head length string: Content-Length: 199
+[DAP SERVER] | 2023-12-11 19:44:05.656 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 57) | Get body length from head = 199
+[DAP SERVER] | 2023-12-11 19:44:05.656 | [Info] (MessageBuffer.cpp, Pop, line: 116) | Head length = 19, body length = 199
+[DAP SERVER] | 2023-12-11 19:44:05.656 | [Info] (MessageBuffer.cpp, GetMessageType, line: 74) | Body string: 
+{
+    "arguments": {
+        "breakpoints": [
+            {
+                "line": 2
+            }
+        ],
+        "lines": null,
+        "source": {
+            "name": "main.cj",
+            "path": "D:/Code/Cj/untitled1/src/main.cj"
+        },
+        "sourceModified": null
+    },
+    "command": "setBreakpoints",
+    "seq": 4,
+    "type": "request"
+}
+[DAP SERVER] | 2023-12-11 19:44:05.656 | [Info] (DebugSession.cpp, OnMessageBuffer, line: 69) | Pop request, command = setBreakpoints, seq = 4
+[DAP SERVER] | 2023-12-11 19:44:05.656 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 178) | request = setBreakpoints, seq = 4
+[DAP SERVER] | 2023-12-11 19:44:05.656 | [Info] (DebugSession.cpp, OnDebuggerResponse, line: 152) | send response: 
+{
+    "body": {
+        "breakpoints": [
+            {
+                "id": 2,
+                "line": 2,
+                "source": {
+                    "path": "D:/Code/Cj/untitled1/src/main.cj"
+                },
+                "verified": true
+            }
+        ]
+    },
+    "command": "setBreakpoints",
+    "request_seq": 4,
+    "seq": 6,
+    "success": true,
+    "type": "response"
+}
+[DAP SERVER] | 2023-12-11 19:44:05.656 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 213) | handle request end!
+[DAP SERVER] | 2023-12-11 19:44:05.657 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "breakpoint": {
+            "id": 1,
+            "instructionReference": "0x000000014002a3ea",
+            "line": 2,
+            "message": "Breakpoint",
+            "source": {
+                "name": "untitled1/default::main()",
+                "path": "D:/Code/Cj/untitled1/src/untitled1/default"
+            },
+            "verified": false
+        },
+        "hitCount": 0,
+        "ignoreCount": 0,
+        "reason": "new"
+    },
+    "event": "breakpoint",
+    "seq": 7,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:05.657 | [Info] (LLDBApiEventHandler.cpp, HandleBreakpointEvent, line: 559) | Breakpoint event handle finished, event type is eBreakpointEventTypeAdded
+[DAP SERVER] | 2023-12-11 19:44:05.657 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 000000000415e8d0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000001 (breakpoint-changed), data = {bkpt: 1 type: breakpoint disabled}
+[DAP SERVER] | 2023-12-11 19:44:05.657 | [Info] (LLDBApiEventHandler.cpp, HandleBreakpointEvent, line: 509) | A breakpoint event occurred!
+[DAP SERVER] | 2023-12-11 19:44:05.657 | [Info] (LLDBApiEventHandler.cpp, HandleBreakpointEvent, line: 559) | Breakpoint event handle finished, event type is eBreakpointEventTypeDisabled
+[DAP SERVER] | 2023-12-11 19:44:05.657 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 000000000415e910 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000001 (breakpoint-changed), data = {bkpt: 1 type: breakpoint removed}
+[DAP SERVER] | 2023-12-11 19:44:05.657 | [Info] (LLDBApiEventHandler.cpp, HandleBreakpointEvent, line: 509) | A breakpoint event occurred!
+[DAP SERVER] | 2023-12-11 19:44:05.657 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "breakpoint": {
+            "id": 1,
+            "instructionReference": "0x000000014002a3ea",
+            "line": 2,
+            "message": "Breakpoint",
+            "source": {
+                "name": "untitled1/default::main()",
+                "path": "D:/Code/Cj/untitled1/src/untitled1/default"
+            },
+            "verified": false
+        },
+        "hitCount": 0,
+        "ignoreCount": 0,
+        "reason": "removed"
+    },
+    "event": "breakpoint",
+    "seq": 8,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:05.657 | [Info] (LLDBApiEventHandler.cpp, HandleBreakpointEvent, line: 559) | Breakpoint event handle finished, event type is eBreakpointEventTypeRemoved
+[DAP SERVER] | 2023-12-11 19:44:05.657 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 000000000415e950 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000001 (breakpoint-changed), data = {bkpt: 2 type: breakpoint added}
+[DAP SERVER] | 2023-12-11 19:44:05.657 | [Info] (LLDBApiEventHandler.cpp, HandleBreakpointEvent, line: 509) | A breakpoint event occurred!
+[DAP SERVER] | 2023-12-11 19:44:05.657 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "breakpoint": {
+            "id": 2,
+            "instructionReference": "0x000000014002a3ea",
+            "line": 2,
+            "message": "Breakpoint",
+            "source": {
+                "name": "untitled1/default::main()",
+                "path": "D:/Code/Cj/untitled1/src/untitled1/default"
+            },
+            "verified": true
+        },
+        "hitCount": 0,
+        "ignoreCount": 0,
+        "reason": "new"
+    },
+    "event": "breakpoint",
+    "seq": 9,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:05.657 | [Info] (LLDBApiEventHandler.cpp, HandleBreakpointEvent, line: 559) | Breakpoint event handle finished, event type is eBreakpointEventTypeAdded
+[DAP SERVER] | 2023-12-11 19:44:05.659 | [Info] (DebugSession.cpp, OnChannelData, line: 45) | channel 0 receive data: 
+Content-Length: 73
+
+{"type":"request","command":"configurationDone","seq":5,"arguments":null}
+[DAP SERVER] | 2023-12-11 19:44:05.659 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 42) | Head length string: Content-Length: 73
+[DAP SERVER] | 2023-12-11 19:44:05.659 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 57) | Get body length from head = 73
+[DAP SERVER] | 2023-12-11 19:44:05.659 | [Info] (MessageBuffer.cpp, Pop, line: 116) | Head length = 18, body length = 73
+[DAP SERVER] | 2023-12-11 19:44:05.659 | [Info] (MessageBuffer.cpp, GetMessageType, line: 74) | Body string: 
+{
+    "arguments": null,
+    "command": "configurationDone",
+    "seq": 5,
+    "type": "request"
+}
+[DAP SERVER] | 2023-12-11 19:44:05.659 | [Info] (DebugSession.cpp, OnMessageBuffer, line: 69) | Pop request, command = configurationDone, seq = 5
+[DAP SERVER] | 2023-12-11 19:44:05.659 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 178) | request = configurationDone, seq = 5
+[DAP SERVER] | 2023-12-11 19:44:05.665 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 000000000415ec10 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000001 (breakpoint-changed), data = {bkpt: 2 type: locations resolved}
+[DAP SERVER] | 2023-12-11 19:44:05.665 | [Info] (LLDBApiEventHandler.cpp, HandleBreakpointEvent, line: 509) | A breakpoint event occurred!
+[DAP SERVER] | 2023-12-11 19:44:05.665 | [Info] (LLDBApiEventHandler.cpp, HandleBreakpointEvent, line: 559) | Breakpoint event handle finished, event type is eBreakpointEventTypeLocationsResolved
+[DAP SERVER] | 2023-12-11 19:44:05.666 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 000000000415f850 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {main.exe}
+[DAP SERVER] | 2023-12-11 19:44:05.666 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.101 | [Info] (DebugSession.cpp, OnDebuggerResponse, line: 152) | send response: 
+{
+    "command": "configurationDone",
+    "request_seq": 5,
+    "seq": 11,
+    "success": true,
+    "type": "response"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.101 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"d:\\Code\\Cj\\untitled1\\build\\bin\\main.exe\",host-name=\"d:\\Code\\Cj\\untitled1\\build\\bin\\main.exe\",loaded_addr=\"0x00007ff79ce50000\",codeRange=\"0x00007ff79ce51000~0x00007ff79ce7e518\"\n"
+    },
+    "event": "output",
+    "seq": 10,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.101 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 213) | handle request end!
+[DAP SERVER] | 2023-12-11 19:44:06.101 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.101 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 000000000415eb10 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {ntdll.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.101 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.101 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\ntdll.dll\",host-name=\"C:\\Windows\\System32\\ntdll.dll\",loaded_addr=\"0x00007ff9c72d0000\",codeRange=\"0x00007ff9c72d1000~0x00007ff9c73fe22e\"\n"
+    },
+    "event": "output",
+    "seq": 12,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.101 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.101 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 000000000415bcd0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {ntdll.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.101 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.101 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\ntdll.dll\",host-name=\"C:\\Windows\\System32\\ntdll.dll\",loaded_addr=\"0x00007ff9c72d0000\",codeRange=\"0x00007ff9c72d1000~0x00007ff9c73fe22e\"\n"
+    },
+    "event": "output",
+    "seq": 13,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.101 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.101 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 000000000415bd90 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {kernel32.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.101 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.101 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\kernel32.dll\",host-name=\"C:\\Windows\\System32\\kernel32.dll\",loaded_addr=\"0x00007ff9c5310000\",codeRange=\"0x00007ff9c5311000~0x00007ff9c53913cd\"\n"
+    },
+    "event": "output",
+    "seq": 14,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004343fe0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {kernel32.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\kernel32.dll\",host-name=\"C:\\Windows\\System32\\kernel32.dll\",loaded_addr=\"0x00007ff9c5310000\",codeRange=\"0x00007ff9c5311000~0x00007ff9c53913cd\"\n"
+    },
+    "event": "output",
+    "seq": 15,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004343f60 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {KernelBase.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\KernelBase.dll\",host-name=\"C:\\Windows\\System32\\KernelBase.dll\",loaded_addr=\"0x00007ff9c4760000\",codeRange=\"0x00007ff9c4761000~0x00007ff9c48f0109\"\n"
+    },
+    "event": "output",
+    "seq": 16,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004343c60 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {KernelBase.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\KernelBase.dll\",host-name=\"C:\\Windows\\System32\\KernelBase.dll\",loaded_addr=\"0x00007ff9c4760000\",codeRange=\"0x00007ff9c4761000~0x00007ff9c48f0109\"\n"
+    },
+    "event": "output",
+    "seq": 17,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 00000000043435a0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {advapi32.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\advapi32.dll\",host-name=\"C:\\Windows\\System32\\advapi32.dll\",loaded_addr=\"0x00007ff9c71d0000\",codeRange=\"0x00007ff9c71d1000~0x00007ff9c723ac17\"\n"
+    },
+    "event": "output",
+    "seq": 18,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 00000000043438a0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {advapi32.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\advapi32.dll\",host-name=\"C:\\Windows\\System32\\advapi32.dll\",loaded_addr=\"0x00007ff9c71d0000\",codeRange=\"0x00007ff9c71d1000~0x00007ff9c723ac17\"\n"
+    },
+    "event": "output",
+    "seq": 19,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004345820 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {msvcrt.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.102 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\msvcrt.dll\",host-name=\"C:\\Windows\\System32\\msvcrt.dll\",loaded_addr=\"0x00007ff9c6ad0000\",codeRange=\"0x00007ff9c6ad1000~0x00007ff9c6b4b62f\"\n"
+    },
+    "event": "output",
+    "seq": 20,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004345de0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {msvcrt.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\msvcrt.dll\",host-name=\"C:\\Windows\\System32\\msvcrt.dll\",loaded_addr=\"0x00007ff9c6ad0000\",codeRange=\"0x00007ff9c6ad1000~0x00007ff9c6b4b62f\"\n"
+    },
+    "event": "output",
+    "seq": 21,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 00000000043460e0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {sechost.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\sechost.dll\",host-name=\"C:\\Windows\\System32\\sechost.dll\",loaded_addr=\"0x00007ff9c6450000\",codeRange=\"0x00007ff9c6451000~0x00007ff9c64becbd\"\n"
+    },
+    "event": "output",
+    "seq": 22,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 00000000043459a0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {sechost.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\sechost.dll\",host-name=\"C:\\Windows\\System32\\sechost.dll\",loaded_addr=\"0x00007ff9c6450000\",codeRange=\"0x00007ff9c6451000~0x00007ff9c64becbd\"\n"
+    },
+    "event": "output",
+    "seq": 23,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004347120 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {rpcrt4.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\rpcrt4.dll\",host-name=\"C:\\Windows\\System32\\rpcrt4.dll\",loaded_addr=\"0x00007ff9c5020000\",codeRange=\"0x00007ff9c5021000~0x00007ff9c50f07cb\"\n"
+    },
+    "event": "output",
+    "seq": 24,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 00000000043465a0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {rpcrt4.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\rpcrt4.dll\",host-name=\"C:\\Windows\\System32\\rpcrt4.dll\",loaded_addr=\"0x00007ff9c5020000\",codeRange=\"0x00007ff9c5021000~0x00007ff9c50f07cb\"\n"
+    },
+    "event": "output",
+    "seq": 25,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 00000000043465e0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {libboundscheck.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Users\\27439\\.sdk\\cangjie\\runtime\\lib\\windows_x86_64_llvm\\libboundscheck.dll\",host-name=\"C:\\Users\\27439\\.sdk\\cangjie\\runtime\\lib\\windows_x86_64_llvm\\libboundscheck.dll\",loaded_addr=\"0x00007ff991da0000\",codeRange=\"0x00007ff991da1000~0x00007ff991da90b0\"\n"
+    },
+    "event": "output",
+    "seq": 26,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004346fa0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {libboundscheck.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Users\\27439\\.sdk\\cangjie\\runtime\\lib\\windows_x86_64_llvm\\libboundscheck.dll\",host-name=\"C:\\Users\\27439\\.sdk\\cangjie\\runtime\\lib\\windows_x86_64_llvm\\libboundscheck.dll\",loaded_addr=\"0x00007ff991da0000\",codeRange=\"0x00007ff991da1000~0x00007ff991da90b0\"\n"
+    },
+    "event": "output",
+    "seq": 27,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004346e60 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {libcangjie-runtime.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.103 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Users\\27439\\.sdk\\cangjie\\runtime\\lib\\windows_x86_64_llvm\\libcangjie-runtime.dll\",host-name=\"C:\\Users\\27439\\.sdk\\cangjie\\runtime\\lib\\windows_x86_64_llvm\\libcangjie-runtime.dll\",loaded_addr=\"0x00007ff983620000\",codeRange=\"0x00007ff983621000~0x00007ff98368dd00\"\n"
+    },
+    "event": "output",
+    "seq": 28,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004346b20 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {libcangjie-runtime.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Users\\27439\\.sdk\\cangjie\\runtime\\lib\\windows_x86_64_llvm\\libcangjie-runtime.dll\",host-name=\"C:\\Users\\27439\\.sdk\\cangjie\\runtime\\lib\\windows_x86_64_llvm\\libcangjie-runtime.dll\",loaded_addr=\"0x00007ff983620000\",codeRange=\"0x00007ff983621000~0x00007ff98368dd00\"\n"
+    },
+    "event": "output",
+    "seq": 29,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004346ce0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {shlwapi.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\shlwapi.dll\",host-name=\"C:\\Windows\\System32\\shlwapi.dll\",loaded_addr=\"0x00007ff9c68c0000\",codeRange=\"0x00007ff9c68c1000~0x00007ff9c68f437d\"\n"
+    },
+    "event": "output",
+    "seq": 30,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004347220 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {shlwapi.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\shlwapi.dll\",host-name=\"C:\\Windows\\System32\\shlwapi.dll\",loaded_addr=\"0x00007ff9c68c0000\",codeRange=\"0x00007ff9c68c1000~0x00007ff9c68f437d\"\n"
+    },
+    "event": "output",
+    "seq": 31,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 00000000043472a0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {dbghelp.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\dbghelp.dll\",host-name=\"C:\\Windows\\System32\\dbghelp.dll\",loaded_addr=\"0x00007ff9ba760000\",codeRange=\"0x00007ff9ba761000~0x00007ff9ba8f2028\"\n"
+    },
+    "event": "output",
+    "seq": 32,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004347720 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {dbghelp.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\dbghelp.dll\",host-name=\"C:\\Windows\\System32\\dbghelp.dll\",loaded_addr=\"0x00007ff9ba760000\",codeRange=\"0x00007ff9ba761000~0x00007ff9ba8f2028\"\n"
+    },
+    "event": "output",
+    "seq": 33,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004347ba0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {ws2_32.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.104 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\ws2_32.dll\",host-name=\"C:\\Windows\\System32\\ws2_32.dll\",loaded_addr=\"0x00007ff9c7150000\",codeRange=\"0x00007ff9c7151000~0x00007ff9c7193a30\"\n"
+    },
+    "event": "output",
+    "seq": 34,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004348320 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {ws2_32.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\ws2_32.dll\",host-name=\"C:\\Windows\\System32\\ws2_32.dll\",loaded_addr=\"0x00007ff9c7150000\",codeRange=\"0x00007ff9c7151000~0x00007ff9c7193a30\"\n"
+    },
+    "event": "output",
+    "seq": 35,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004347460 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {ucrtbase.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\ucrtbase.dll\",host-name=\"C:\\Windows\\System32\\ucrtbase.dll\",loaded_addr=\"0x00007ff9c4640000\",codeRange=\"0x00007ff9c4641000~0x00007ff9c4703565\"\n"
+    },
+    "event": "output",
+    "seq": 36,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004347820 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {ucrtbase.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\ucrtbase.dll\",host-name=\"C:\\Windows\\System32\\ucrtbase.dll\",loaded_addr=\"0x00007ff9c4640000\",codeRange=\"0x00007ff9c4641000~0x00007ff9c4703565\"\n"
+    },
+    "event": "output",
+    "seq": 37,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 00000000043478e0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {combase.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\combase.dll\",host-name=\"C:\\Windows\\System32\\combase.dll\",loaded_addr=\"0x00007ff9c6530000\",codeRange=\"0x00007ff9c6531000~0x00007ff9c6796f8c\"\n"
+    },
+    "event": "output",
+    "seq": 38,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004347560 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {combase.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\combase.dll\",host-name=\"C:\\Windows\\System32\\combase.dll\",loaded_addr=\"0x00007ff9c6530000\",codeRange=\"0x00007ff9c6531000~0x00007ff9c6796f8c\"\n"
+    },
+    "event": "output",
+    "seq": 39,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 00000000043475e0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {oleaut32.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\oleaut32.dll\",host-name=\"C:\\Windows\\System32\\oleaut32.dll\",loaded_addr=\"0x00007ff9c6f70000\",codeRange=\"0x00007ff9c6f71000~0x00007ff9c700e8cf\"\n"
+    },
+    "event": "output",
+    "seq": 40,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004347920 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {oleaut32.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\oleaut32.dll\",host-name=\"C:\\Windows\\System32\\oleaut32.dll\",loaded_addr=\"0x00007ff9c6f70000\",codeRange=\"0x00007ff9c6f71000~0x00007ff9c700e8cf\"\n"
+    },
+    "event": "output",
+    "seq": 41,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004347a20 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {msvcp_win.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.105 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\msvcp_win.dll\",host-name=\"C:\\Windows\\System32\\msvcp_win.dll\",loaded_addr=\"0x00007ff9c4b10000\",codeRange=\"0x00007ff9c4b11000~0x00007ff9c4b62e82\"\n"
+    },
+    "event": "output",
+    "seq": 42,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004348220 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {msvcp_win.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\msvcp_win.dll\",host-name=\"C:\\Windows\\System32\\msvcp_win.dll\",loaded_addr=\"0x00007ff9c4b10000\",codeRange=\"0x00007ff9c4b11000~0x00007ff9c4b62e82\"\n"
+    },
+    "event": "output",
+    "seq": 43,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 00000000043484e0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {main.exe}
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"d:\\Code\\Cj\\untitled1\\build\\bin\\main.exe\",host-name=\"d:\\Code\\Cj\\untitled1\\build\\bin\\main.exe\",loaded_addr=\"0x00007ff79ce50000\",codeRange=\"0x00007ff79ce51000~0x00007ff79ce7e518\"\n"
+    },
+    "event": "output",
+    "seq": 44,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 00000000042657c0 Event: broadcaster = 000000000425fdf8 (lldb.process), type = 0x00000001 (state-changed), data = { process = 000000000425fdc0 (pid = 27444), state = running}
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, HandleProcessEvent, line: 110) | A process event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, HandleProcessStateChangedEvent, line: 143) | Process state changed!
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "allThreadsContinued": true,
+        "threadId": 0
+    },
+    "event": "continued",
+    "seq": 45,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, HandleProcessStateChangedEvent, line: 189) | Process state changed event handler finished, process state changed toeStateRunning
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, HandleProcessEvent, line: 138) | Process event handle finished, event type is eBroadcastBitStateChanged
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 00000000043482e0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {cryptsp.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\cryptsp.dll\",host-name=\"C:\\Windows\\System32\\cryptsp.dll\",loaded_addr=\"0x00007ff9c3df0000\",codeRange=\"0x00007ff9c3df1000~0x00007ff9c3dfe99c\"\n"
+    },
+    "event": "output",
+    "seq": 46,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004347ba0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {cryptsp.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\cryptsp.dll\",host-name=\"C:\\Windows\\System32\\cryptsp.dll\",loaded_addr=\"0x00007ff9c3df0000\",codeRange=\"0x00007ff9c3df1000~0x00007ff9c3dfe99c\"\n"
+    },
+    "event": "output",
+    "seq": 47,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.106 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.109 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004348220 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {rsaenh.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.109 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.109 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\rsaenh.dll\",host-name=\"C:\\Windows\\System32\\rsaenh.dll\",loaded_addr=\"0x00007ff9c3650000\",codeRange=\"0x00007ff9c3651000~0x00007ff9c3674022\"\n"
+    },
+    "event": "output",
+    "seq": 48,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.109 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.109 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004347a20 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {rsaenh.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.109 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.109 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\rsaenh.dll\",host-name=\"C:\\Windows\\System32\\rsaenh.dll\",loaded_addr=\"0x00007ff9c3650000\",codeRange=\"0x00007ff9c3651000~0x00007ff9c3674022\"\n"
+    },
+    "event": "output",
+    "seq": 49,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.109 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.112 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 00000000043486a0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {cryptbase.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.112 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.112 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\cryptbase.dll\",host-name=\"C:\\Windows\\System32\\cryptbase.dll\",loaded_addr=\"0x00007ff9c3de0000\",codeRange=\"0x00007ff9c3de1000~0x00007ff9c3de3903\"\n"
+    },
+    "event": "output",
+    "seq": 50,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.112 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.112 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004347a20 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {cryptbase.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.112 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.112 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\cryptbase.dll\",host-name=\"C:\\Windows\\System32\\cryptbase.dll\",loaded_addr=\"0x00007ff9c3de0000\",codeRange=\"0x00007ff9c3de1000~0x00007ff9c3de3903\"\n"
+    },
+    "event": "output",
+    "seq": 51,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.113 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.117 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004348d60 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {bcryptprimitives.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.117 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.117 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\bcryptprimitives.dll\",host-name=\"C:\\Windows\\System32\\bcryptprimitives.dll\",loaded_addr=\"0x00007ff9c4dc0000\",codeRange=\"0x00007ff9c4dc1000~0x00007ff9c4e1cfbc\"\n"
+    },
+    "event": "output",
+    "seq": 52,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.117 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.117 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 00000000043486a0 Event: broadcaster = 0000000003c8a470 (lldb.target), type = 0x00000002 (modules-loaded), data = {bcryptprimitives.dll}
+[DAP SERVER] | 2023-12-11 19:44:06.117 | [Info] (DebugSession.cpp, OnChannelData, line: 45) | channel 0 receive data: 
+Content-Length: 133
+
+{"command":"debugInConsole","seq":0,"arguments":{"debugCommand":"process handle -p true -s false -n false SIGSEGV"},"type":"request"}
+[DAP SERVER] | 2023-12-11 19:44:06.117 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 422) | A target event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.117 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 42) | Head length string: Content-Length: 133
+[DAP SERVER] | 2023-12-11 19:44:06.117 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "category": "console",
+        "output": "library-loaded,target-name=\"C:\\Windows\\System32\\bcryptprimitives.dll\",host-name=\"C:\\Windows\\System32\\bcryptprimitives.dll\",loaded_addr=\"0x00007ff9c4dc0000\",codeRange=\"0x00007ff9c4dc1000~0x00007ff9c4e1cfbc\"\n"
+    },
+    "event": "output",
+    "seq": 53,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.117 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 57) | Get body length from head = 133
+[DAP SERVER] | 2023-12-11 19:44:06.117 | [Info] (MessageBuffer.cpp, Pop, line: 116) | Head length = 19, body length = 133
+[DAP SERVER] | 2023-12-11 19:44:06.117 | [Info] (LLDBApiEventHandler.cpp, HandleTargetEvent, line: 445) | Target event handle finished, event type is eBroadcastBitModulesLoaded
+[DAP SERVER] | 2023-12-11 19:44:06.117 | [Info] (MessageBuffer.cpp, GetMessageType, line: 74) | Body string: 
+{
+    "arguments": {
+        "debugCommand": "process handle -p true -s false -n false SIGSEGV"
+    },
+    "command": "debugInConsole",
+    "seq": 0,
+    "type": "request"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.117 | [Info] (DebugSession.cpp, OnMessageBuffer, line: 69) | Pop request, command = debugInConsole, seq = 0
+[DAP SERVER] | 2023-12-11 19:44:06.117 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 178) | request = debugInConsole, seq = 0
+[DAP SERVER] | 2023-12-11 19:44:06.117 | [Info] (LLDBApiDebugger.cpp, ExecCommand, line: 530) | Send Command to Debugger : process handle -p true -s false -n false SIGSEGV
+[DAP SERVER] | 2023-12-11 19:44:06.118 | [Info] (LLDBApiDebugger.cpp, ExecCommand, line: 556) | Result of Command : Success, NAME         PASS   STOP   NOTIFY
+===========  =====  =====  ======
+SIGSEGV      true   false  false
+
+[DAP SERVER] | 2023-12-11 19:44:06.118 | [Info] (DebugSession.cpp, OnDebuggerResponse, line: 152) | send response: 
+{
+    "body": {
+        "output": "NAME         PASS   STOP   NOTIFY\n===========  =====  =====  ======\nSIGSEGV      true   false  false\n"
+    },
+    "command": "debugInConsole",
+    "request_seq": 0,
+    "seq": 54,
+    "success": true,
+    "type": "response"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.118 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 213) | handle request end!
+[DAP SERVER] | 2023-12-11 19:44:06.145 | [Info] (LLDBApiEventHandler.cpp, ListenEvent, line: 80) | Description of event: 0000000004266040 Event: broadcaster = 000000000425fdf8 (lldb.process), type = 0x00000001 (state-changed), data = { process = 000000000425fdc0 (pid = 27444), state = stopped}
+[DAP SERVER] | 2023-12-11 19:44:06.145 | [Info] (LLDBApiEventHandler.cpp, HandleProcessEvent, line: 110) | A process event occurred!
+[DAP SERVER] | 2023-12-11 19:44:06.145 | [Info] (LLDBApiEventHandler.cpp, HandleProcessStateChangedEvent, line: 143) | Process state changed!
+[DAP SERVER] | 2023-12-11 19:44:06.145 | [Info] (DebugSession.cpp, OnDebuggerEvent, line: 134) | send event: 
+{
+    "body": {
+        "allThreadsStopped": true,
+        "hitBreakpointIds": [
+            2
+        ],
+        "reason": "breakpoint",
+        "threadId": 1
+    },
+    "event": "stopped",
+    "seq": 55,
+    "type": "event"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.145 | [Info] (TimeTravelDebugManager.cpp, SetRecordNodeContainer, line: 224) | Number of record points is 1
+[DAP SERVER] | 2023-12-11 19:44:06.145 | [Info] (LLDBApiEventHandler.cpp, HandleProcessStateChangedEvent, line: 189) | Process state changed event handler finished, process state changed toeStateStopped
+[DAP SERVER] | 2023-12-11 19:44:06.145 | [Info] (LLDBApiEventHandler.cpp, HandleProcessEvent, line: 138) | Process event handle finished, event type is eBroadcastBitStateChanged
+[DAP SERVER] | 2023-12-11 19:44:06.160 | [Info] (DebugSession.cpp, OnChannelData, line: 45) | channel 0 receive data: 
+Content-Length: 63
+
+{"type":"request","command":"threads","seq":6,"arguments":null}
+[DAP SERVER] | 2023-12-11 19:44:06.161 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 42) | Head length string: Content-Length: 63
+[DAP SERVER] | 2023-12-11 19:44:06.161 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 57) | Get body length from head = 63
+[DAP SERVER] | 2023-12-11 19:44:06.161 | [Info] (MessageBuffer.cpp, Pop, line: 116) | Head length = 18, body length = 63
+[DAP SERVER] | 2023-12-11 19:44:06.161 | [Info] (MessageBuffer.cpp, GetMessageType, line: 74) | Body string: 
+{
+    "arguments": null,
+    "command": "threads",
+    "seq": 6,
+    "type": "request"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.161 | [Info] (DebugSession.cpp, OnMessageBuffer, line: 69) | Pop request, command = threads, seq = 6
+[DAP SERVER] | 2023-12-11 19:44:06.161 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 178) | request = threads, seq = 6
+[DAP SERVER] | 2023-12-11 19:44:06.161 | [Info] (DebugSession.cpp, OnDebuggerResponse, line: 152) | send response: 
+{
+    "body": {
+        "threads": [
+            {
+                "id": 1,
+                "name": "Thread 1"
+            },
+            {
+                "id": 2,
+                "name": "Thread 2"
+            },
+            {
+                "id": 3,
+                "name": "Thread 3"
+            },
+            {
+                "id": 4,
+                "name": "Thread 4"
+            },
+            {
+                "id": 5,
+                "name": "Thread 5"
+            },
+            {
+                "id": 6,
+                "name": "Thread 6"
+            },
+            {
+                "id": 7,
+                "name": "Thread 7"
+            },
+            {
+                "id": 8,
+                "name": "Thread 8"
+            }
+        ]
+    },
+    "command": "threads",
+    "request_seq": 6,
+    "seq": 56,
+    "success": true,
+    "type": "response"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.161 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 213) | handle request end!
+[DAP SERVER] | 2023-12-11 19:44:06.162 | [Info] (DebugSession.cpp, OnChannelData, line: 45) | channel 0 receive data: 
+Content-Length: 117
+
+{"type":"request","command":"stackTrace","seq":7,"arguments":{"threadId":1,"startFrame":0,"levels":10,"format":null}}
+[DAP SERVER] | 2023-12-11 19:44:06.162 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 42) | Head length string: Content-Length: 117
+[DAP SERVER] | 2023-12-11 19:44:06.162 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 57) | Get body length from head = 117
+[DAP SERVER] | 2023-12-11 19:44:06.162 | [Info] (MessageBuffer.cpp, Pop, line: 116) | Head length = 19, body length = 117
+[DAP SERVER] | 2023-12-11 19:44:06.162 | [Info] (MessageBuffer.cpp, GetMessageType, line: 74) | Body string: 
+{
+    "arguments": {
+        "format": null,
+        "levels": 10,
+        "startFrame": 0,
+        "threadId": 1
+    },
+    "command": "stackTrace",
+    "seq": 7,
+    "type": "request"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.162 | [Info] (DebugSession.cpp, OnMessageBuffer, line: 69) | Pop request, command = stackTrace, seq = 7
+[DAP SERVER] | 2023-12-11 19:44:06.162 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 178) | request = stackTrace, seq = 7
+[DAP SERVER] | 2023-12-11 19:44:06.182 | [Info] (DebugSession.cpp, OnDebuggerResponse, line: 152) | send response: 
+{
+    "body": {
+        "stackFrames": [
+            {
+                "column": 0,
+                "id": 1000,
+                "instructionPointerReference": "0x00007ff79ce7a3ea",
+                "line": 2,
+                "name": "untitled1/default::main()",
+                "source": {
+                    "path": "D:/Code/Cj/untitled1/src/main.cj"
+                }
+            },
+            {
+                "column": 0,
+                "id": 1001,
+                "instructionPointerReference": "0x00007ff79ce7a46e",
+                "line": 14,
+                "name": "user.main",
+                "source": {
+                    "name": "@user.main",
+                    "sourceReference": 1000
+                }
+            },
+            {
+                "column": 0,
+                "id": 1002,
+                "instructionPointerReference": "0x00007ff79ce7a52e",
+                "line": 17,
+                "name": "cj_entry$",
+                "source": {
+                    "name": "@cj_entry$",
+                    "sourceReference": 1001
+                }
+            },
+            {
+                "column": 0,
+                "id": 1003,
+                "instructionPointerReference": "0x00007ff9836215df",
+                "line": 118,
+                "name": "CJ_MCC_N2CStub",
+                "source": {
+                    "name": "@CJ_MCC_N2CStub",
+                    "sourceReference": 1002
+                }
+            },
+            {
+                "column": 0,
+                "id": 1004,
+                "instructionPointerReference": "0x00007ff983640d52",
+                "line": 277,
+                "name": "RunCJTask",
+                "source": {
+                    "name": "@RunCJTask",
+                    "sourceReference": 1003
+                }
+            },
+            {
+                "column": 0,
+                "id": 1005,
+                "instructionPointerReference": "0x00007ff983622c90",
+                "line": 10,
+                "name": "CJ_CJThreadEntry",
+                "source": {
+                    "name": "@CJ_CJThreadEntry",
+                    "sourceReference": 1004
+                }
+            }
+        ],
+        "totalFrames": 6
+    },
+    "command": "stackTrace",
+    "request_seq": 7,
+    "seq": 57,
+    "success": true,
+    "type": "response"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.182 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 213) | handle request end!
+[DAP SERVER] | 2023-12-11 19:44:06.193 | [Info] (DebugSession.cpp, OnChannelData, line: 45) | channel 0 receive data: 
+Content-Length: 74
+
+{"type":"request","command":"scopes","seq":8,"arguments":{"frameId":1000}}
+[DAP SERVER] | 2023-12-11 19:44:06.193 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 42) | Head length string: Content-Length: 74
+[DAP SERVER] | 2023-12-11 19:44:06.193 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 57) | Get body length from head = 74
+[DAP SERVER] | 2023-12-11 19:44:06.193 | [Info] (MessageBuffer.cpp, Pop, line: 116) | Head length = 18, body length = 74
+[DAP SERVER] | 2023-12-11 19:44:06.193 | [Info] (MessageBuffer.cpp, GetMessageType, line: 74) | Body string: 
+{
+    "arguments": {
+        "frameId": 1000
+    },
+    "command": "scopes",
+    "seq": 8,
+    "type": "request"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.193 | [Info] (DebugSession.cpp, OnMessageBuffer, line: 69) | Pop request, command = scopes, seq = 8
+[DAP SERVER] | 2023-12-11 19:44:06.193 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 178) | request = scopes, seq = 8
+[DAP SERVER] | 2023-12-11 19:44:06.193 | [Info] (DebugSession.cpp, OnDebuggerResponse, line: 152) | send response: 
+{
+    "body": {
+        "scopes": [
+            {
+                "expensive": false,
+                "name": "Locals",
+                "presentationHint": "locals",
+                "variablesReference": 1006
+            },
+            {
+                "expensive": false,
+                "name": "Statics",
+                "presentationHint": "statics",
+                "variablesReference": 1007
+            },
+            {
+                "expensive": false,
+                "name": "Globals",
+                "presentationHint": "globals",
+                "variablesReference": 1008
+            },
+            {
+                "expensive": false,
+                "name": "Registers",
+                "presentationHint": "registers",
+                "variablesReference": 1009
+            }
+        ]
+    },
+    "command": "scopes",
+    "request_seq": 8,
+    "seq": 58,
+    "success": true,
+    "type": "response"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.193 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 213) | handle request end!
+[DAP SERVER] | 2023-12-11 19:44:06.195 | [Info] (DebugSession.cpp, OnChannelData, line: 45) | channel 0 receive data: 
+Content-Length: 142
+
+{"type":"request","command":"variables","seq":9,"arguments":{"variablesReference":1006,"filter":null,"start":null,"count":null,"format":null}}
+[DAP SERVER] | 2023-12-11 19:44:06.195 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 42) | Head length string: Content-Length: 142
+[DAP SERVER] | 2023-12-11 19:44:06.195 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 57) | Get body length from head = 142
+[DAP SERVER] | 2023-12-11 19:44:06.195 | [Info] (MessageBuffer.cpp, Pop, line: 116) | Head length = 19, body length = 142
+[DAP SERVER] | 2023-12-11 19:44:06.195 | [Info] (MessageBuffer.cpp, GetMessageType, line: 74) | Body string: 
+{
+    "arguments": {
+        "count": null,
+        "filter": null,
+        "format": null,
+        "start": null,
+        "variablesReference": 1006
+    },
+    "command": "variables",
+    "seq": 9,
+    "type": "request"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.195 | [Info] (DebugSession.cpp, OnMessageBuffer, line: 69) | Pop request, command = variables, seq = 9
+[DAP SERVER] | 2023-12-11 19:44:06.195 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 178) | request = variables, seq = 9
+[DAP SERVER] | 2023-12-11 19:44:06.195 | [Info] (DebugSession.cpp, OnChannelData, line: 45) | channel 0 receive data: 
+Content-Length: 143
+
+{"type":"request","command":"variables","seq":10,"arguments":{"variablesReference":1008,"filter":null,"start":null,"count":null,"format":null}}
+[DAP SERVER] | 2023-12-11 19:44:06.195 | [Info] (DebugSession.cpp, OnDebuggerResponse, line: 152) | send response: 
+{
+    "body": {
+        "variables": []
+    },
+    "command": "variables",
+    "request_seq": 9,
+    "seq": 59,
+    "success": true,
+    "type": "response"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.196 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 213) | handle request end!
+[DAP SERVER] | 2023-12-11 19:44:06.196 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 42) | Head length string: Content-Length: 143
+[DAP SERVER] | 2023-12-11 19:44:06.196 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 57) | Get body length from head = 143
+[DAP SERVER] | 2023-12-11 19:44:06.196 | [Info] (MessageBuffer.cpp, Pop, line: 116) | Head length = 19, body length = 143
+[DAP SERVER] | 2023-12-11 19:44:06.196 | [Info] (MessageBuffer.cpp, GetMessageType, line: 74) | Body string: 
+{
+    "arguments": {
+        "count": null,
+        "filter": null,
+        "format": null,
+        "start": null,
+        "variablesReference": 1008
+    },
+    "command": "variables",
+    "seq": 10,
+    "type": "request"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.196 | [Info] (DebugSession.cpp, OnMessageBuffer, line: 69) | Pop request, command = variables, seq = 10
+[DAP SERVER] | 2023-12-11 19:44:06.196 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 178) | request = variables, seq = 10
+[DAP SERVER] | 2023-12-11 19:44:06.196 | [Info] (DebugSession.cpp, OnDebuggerResponse, line: 152) | send response: 
+{
+    "body": {
+        "variables": []
+    },
+    "command": "variables",
+    "request_seq": 10,
+    "seq": 60,
+    "success": true,
+    "type": "response"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.196 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 213) | handle request end!
+[DAP SERVER] | 2023-12-11 19:44:06.196 | [Info] (DebugSession.cpp, OnChannelData, line: 45) | channel 0 receive data: 
+Content-Length: 143
+
+{"type":"request","command":"variables","seq":11,"arguments":{"variablesReference":1009,"filter":null,"start":null,"count":null,"format":null}}
+[DAP SERVER] | 2023-12-11 19:44:06.196 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 42) | Head length string: Content-Length: 143
+[DAP SERVER] | 2023-12-11 19:44:06.196 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 57) | Get body length from head = 143
+[DAP SERVER] | 2023-12-11 19:44:06.196 | [Info] (MessageBuffer.cpp, Pop, line: 116) | Head length = 19, body length = 143
+[DAP SERVER] | 2023-12-11 19:44:06.196 | [Info] (MessageBuffer.cpp, GetMessageType, line: 74) | Body string: 
+{
+    "arguments": {
+        "count": null,
+        "filter": null,
+        "format": null,
+        "start": null,
+        "variablesReference": 1009
+    },
+    "command": "variables",
+    "seq": 11,
+    "type": "request"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.196 | [Info] (DebugSession.cpp, OnMessageBuffer, line: 69) | Pop request, command = variables, seq = 11
+[DAP SERVER] | 2023-12-11 19:44:06.196 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 178) | request = variables, seq = 11
+[DAP SERVER] | 2023-12-11 19:44:06.208 | [Info] (DebugSession.cpp, OnDebuggerResponse, line: 152) | send response: 
+{
+    "body": {
+        "variables": [
+            {
+                "declaredLine": 0,
+                "evaluateName": "General Purpose Registers",
+                "isVarCreated": true,
+                "memoryAddress": "0xffffffffffffffff",
+                "name": "General Purpose Registers",
+                "namedVariables": 70,
+                "value": "{...}",
+                "variablesReference": 1010
+            },
+            {
+                "declaredLine": 0,
+                "evaluateName": "Floating Point Registers",
+                "isVarCreated": true,
+                "memoryAddress": "0xffffffffffffffff",
+                "name": "Floating Point Registers",
+                "namedVariables": 16,
+                "value": "{...}",
+                "variablesReference": 1011
+            }
+        ]
+    },
+    "command": "variables",
+    "request_seq": 11,
+    "seq": 61,
+    "success": true,
+    "type": "response"
+}
+[DAP SERVER] | 2023-12-11 19:44:06.208 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 213) | handle request end!
+[DAP SERVER] | 2023-12-11 19:44:09.483 | [Info] (DebugSession.cpp, OnChannelData, line: 45) | channel 0 receive data: 
+Content-Length: 129
+
+{"type":"request","command":"disconnect","seq":12,"arguments":{"restart":false,"terminateDebuggee":true,"suspendDebuggee":false}}
+[DAP SERVER] | 2023-12-11 19:44:09.483 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 42) | Head length string: Content-Length: 129
+[DAP SERVER] | 2023-12-11 19:44:09.484 | [Info] (MessageBuffer.cpp, GetBodyLength, line: 57) | Get body length from head = 129
+[DAP SERVER] | 2023-12-11 19:44:09.484 | [Info] (MessageBuffer.cpp, Pop, line: 116) | Head length = 19, body length = 129
+[DAP SERVER] | 2023-12-11 19:44:09.484 | [Info] (MessageBuffer.cpp, GetMessageType, line: 74) | Body string: 
+{
+    "arguments": {
+        "restart": false,
+        "suspendDebuggee": false,
+        "terminateDebuggee": true
+    },
+    "command": "disconnect",
+    "seq": 12,
+    "type": "request"
+}
+[DAP SERVER] | 2023-12-11 19:44:09.484 | [Info] (DebugSession.cpp, OnMessageBuffer, line: 69) | Pop request, command = disconnect, seq = 12
+[DAP SERVER] | 2023-12-11 19:44:09.484 | [Info] (LLDBApiDebugger.cpp, OnDapRequest, line: 178) | request = disconnect, seq = 12

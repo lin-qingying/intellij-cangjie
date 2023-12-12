@@ -80,7 +80,7 @@ class LspServerImpl(
 
     fun start() {
         if (!state.compareAndSet(State.CREATED, State.RUNNING)) {
-            LOG.debug("Attempt to start server in wrong state")
+            LOG.debug("Attempt to start server in wrong myState")
         } else {
             LOG.info("Starting server")
             openedFiles.clear()
@@ -129,7 +129,7 @@ class LspServerImpl(
      */
     fun cleanupShutdownAndExit(malfunction: Boolean) {
         if (!state.compareAndSet(State.RUNNING, if (malfunction) State.MALFUNCTIONED else State.STOPPED)) {
-            LOG.debug("Attempt to stop server in wrong state")
+            LOG.debug("Attempt to stop server in wrong myState")
         } else {
             LOG.debug("Stopping server")
             openedFiles.clear()

@@ -39,7 +39,7 @@ import java.net.URISyntaxException
  * Implementations that want to run a single LSP server for the whole project, regardless of the project structure, should extend
  * [ProjectWideLspServerDescriptor].
  *
- * Normally, `LspServerDescriptor` implementations don't store any modifiable state.
+ * Normally, `LspServerDescriptor` implementations don't store any modifiable myState.
  *
  * As a rule, plugins don't keep references to the `LspServerDescriptor` implementations. To get an `LspServerDescriptor` that is used to
  * start a specific LSP server, use [LspServer.descriptor], where [LspServer] itself could be found using
@@ -66,7 +66,7 @@ abstract class LspServerDescriptor protected constructor(
 
     /**
      * Implementations should return `true` if the LSP server needs to track the file contents while the file is being edited.
-     * In other words, `true` means that the server needs to know the maybe-not-yet-saved state of the file at any moment of time.
+     * In other words, `true` means that the server needs to know the maybe-not-yet-saved myState of the file at any moment of time.
      * In this case the IDE will take care of sending the `didOpen`, `didChange`, and `didClose` notifications to the server
      * according to the
      * [specification](https://microsoft.github.io/language-server-protocol/specification/#textDocument_synchronization).
@@ -370,4 +370,6 @@ class LspProcessHandler(generalCommandLine: GeneralCommandLine) : OSProcessHandl
     override fun readerOptions(): BaseOutputReader.Options {
         return BaseOutputReader.Options.forMostlySilentProcess()
     }
+
+
 }

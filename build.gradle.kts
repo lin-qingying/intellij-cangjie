@@ -1,10 +1,14 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+val kotlinVersion = "1.9.21"
+
 plugins {
     idea
-    id("org.jetbrains.kotlin.jvm") version "1.9.20"
+    id("org.jetbrains.kotlin.jvm") version "1.9.21"
 //    kotlin("jvm") version "1.9.0"
     id("org.jetbrains.intellij") version "1.15.0"
     id("org.jetbrains.grammarkit") version "2022.3.2"
-    kotlin("plugin.serialization") version "1.9.20"
+    kotlin("plugin.serialization") version "1.9.21"
 
 }
 sourceSets {
@@ -22,8 +26,10 @@ sourceSets {
 
 }
 
+
+
 group = "com.huawei.cangjie"
-version = "dev-0.0.7"
+version = "dev-0.0.8"
 val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
 
 repositories {
@@ -50,6 +56,11 @@ val Project.dependencyCachePath
         return cachePath.absolutePath
     }
 
+//IDEA版本
+
+val nativeDebugPlugin: String by project
+val ideaVersion = "232-EAP-SNAPSHOT"
+val ideaType = "IC" // Target IDE Platform
 
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
@@ -62,13 +73,12 @@ intellij {
 //    ideaDependencyCachePath.set(dependencyCachePath)
 
 
-    version.set("232-EAP-SNAPSHOT")
-    type.set("IC") // Target IDE Platform
+    version.set(ideaVersion)
+    type.set(ideaType) // Target IDE Platform
 ////加载PsiViewer插件 grammar-kit
     plugins.set(
         listOf(
-//            "plugin.serialization"
-
+//"com.intellij.nativeDebug:232.8660.142"
         )
     )
 
@@ -89,11 +99,7 @@ kotlin {
     }
 }
 
-//jar {
-//    from {
-//        configurations.compileClasspath.filter { it.name.startsWith('java-psi-') }.collect { it.isDirectory() ? it : zipTree(it) }
-//    }
-//}
+
 val intellijVersion = "232.*"
 dependencies {
 //    api("com.jetbrains.intellij.java:java-psi-impl:$intellijVersion") { isTransitive = true }
@@ -103,16 +109,13 @@ dependencies {
 //    implementation(kotlin("stdlib"))
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.21.1")
 
-//    implementation("com.github.ballerina-platform:lsp4intellij:0.95.2")
 
-//    implementation("com.github.linqingying123:intellij-lsp:1.0")
-//    implementation("org.eclipse.lsp4j:lsp4j")
-//    {
-//        isTransitive = true
-//    }
-//    implementation(files("src/lib/lsp.jar"))
 
-implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
+    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.debug:0.21.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
+    implementation("com.squareup.moshi:moshi-adapters:1.15.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
 }
 
 
@@ -129,8 +132,9 @@ tasks {
         sourceCompatibility = "17"
         targetCompatibility = "17"
     }
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "17"
+        kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all")
     }
 
     patchPluginXml {
@@ -154,6 +158,5 @@ tasks {
 
 
 }
-
 
 

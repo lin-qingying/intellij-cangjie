@@ -2,10 +2,8 @@ package com.huawei.cangjie.idea.run.modulejson
 
 
 import com.huawei.cangjie.idea.run.cjpm.CjpmCommand
-import com.huawei.cangjie.idea.run.cjpm.CjpmRunConfiguration
-import com.huawei.cangjie.idea.run.cjpm.CjpmRunConfigurationType
-import com.huawei.cangjie.lang.sdk.CangJieSdkManager
-import com.huawei.cangjie.lang.sdk.CangJieSdkType
+import com.huawei.cangjie.idea.run.cjpm.CjpmCommandConfiguration
+import com.huawei.cangjie.idea.run.cjpm.CjpmCommandConfigurationType
 import com.intellij.execution.Executor
 import com.intellij.execution.ProgramRunnerUtil
 import com.intellij.execution.RunManager
@@ -13,8 +11,6 @@ import com.intellij.execution.executors.DefaultRunExecutor
 
 
 import com.intellij.openapi.actionSystem.*
-import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.util.SystemInfo.isWindows
 
 
 class CjpmUpdateAction : AnAction() {
@@ -27,13 +23,13 @@ class CjpmUpdateAction : AnAction() {
 
 // 查找 command 为 UPDATE 的运行配置
         var runConfiguration = runManager.allSettings.find {
-            it.configuration is CjpmRunConfiguration && (it.configuration as CjpmRunConfiguration).command == CjpmCommand.UPDATE
+            it.configuration is CjpmCommandConfiguration && (it.configuration as CjpmCommandConfiguration).command == CjpmCommand.UPDATE
         }
 
         // 如果没有找到，就创建一个新的运行配置
         if (runConfiguration == null) {
-            runConfiguration = runManager.createConfiguration("update", CjpmRunConfigurationType.instance)
-            (runConfiguration.configuration as CjpmRunConfiguration).command = CjpmCommand.UPDATE
+            runConfiguration = runManager.createConfiguration("update", CjpmCommandConfigurationType.instance.factory)
+            (runConfiguration.configuration as CjpmCommandConfiguration).command = CjpmCommand.UPDATE
             runManager.addConfiguration(runConfiguration)
         }
 
