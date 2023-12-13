@@ -460,16 +460,67 @@ class DebugDriver(
         send(request)
     }
 
-    fun sendVariables(variablesReference: Int,count:Int = 1000,start:Int = 0) {
+    fun sendVariables(variablesReference: Int, count: Int = 1000, start: Int = 0,filter: VariablesArgumentsFilter? = null) {
         val request = VariablesRequest(
             seq = ++seq,
             arguments = VariablesArguments(
                 variablesReference = variablesReference,
                 count = count,
+                filter = filter,
                 start = start
             )
         )
         send(request)
+
+    }
+
+    fun sendStepIn(currentThreadId: Long) {
+
+        val request = StepInRequest(
+            seq = ++seq,
+            arguments = StepInArguments(
+                threadId = currentThreadId
+            )
+        )
+        send(request)
+
+
+    }
+
+    fun sendNext(currentThreadId: Long) {
+
+        val request = NextRequest(
+            seq = ++seq,
+            arguments = NextArguments(
+                threadId = currentThreadId
+            )
+        )
+        send(request)
+
+
+    }
+
+    fun sendStepOut(currentThreadId: Long) {
+
+            val request = StepOutRequest(
+                seq = ++seq,
+                arguments = StepOutArguments(
+                    threadId = currentThreadId
+                )
+            )
+            send(request)
+
+    }
+
+    fun sendContinue(currentThreadId: Long) {
+
+            val request = ContinueRequest(
+                seq = ++seq,
+                arguments = ContinueArguments(
+                    threadId = currentThreadId.toInt()
+                )
+            )
+            send(request)
 
     }
 

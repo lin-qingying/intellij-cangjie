@@ -129,6 +129,7 @@ class ResponseAdapter {
     fun fromJson(reader: JsonReader): Response {
 //            沈拷贝
         val reader1 = reader.peekJson()
+
         val jsonObject = reader1.readJsonValue() as? Map<*, *>
             ?: throw JsonDataException("Expected a JsonObject")
 
@@ -191,6 +192,24 @@ class ResponseAdapter {
                 VariablesResponse::class.java
             )
                 .fromJson(reader)!!
+            jsonObject.containsKey("command") && jsonObject["command"] == "next" -> moshi.adapter(
+                NextResponse::class.java
+            )
+                .fromJson(reader)!!
+            jsonObject.containsKey("command") && jsonObject["command"] == "stepIn" -> moshi.adapter(
+                StepInResponse::class.java
+            )
+                .fromJson(reader)!!
+
+            jsonObject.containsKey("command") && jsonObject["command"] == "stepOut" -> moshi.adapter(
+                StepOutResponse::class.java
+            )
+                .fromJson(reader)!!
+
+            jsonObject.containsKey("command") && jsonObject["command"] == "continue" -> moshi.adapter(
+                ContinueResponse::class.java
+            )
+                .fromJson(reader)!!
 
 
             else -> throw JsonDataException("Expected a JsonObject to command ${jsonObject["command"]} ")
@@ -206,6 +225,8 @@ class PathFormatAdapter {
             is PathFormat.Path -> writer.value("path")
             is PathFormat.Uri -> writer.value("uri")
             is PathFormat.Other -> writer.value(pathFormat.value)
+
+
         }
     }
 

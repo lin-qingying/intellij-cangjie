@@ -1,6 +1,7 @@
 package com.debugger.backend
 
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint
+import java.util.concurrent.atomic.AtomicBoolean
 
 open class CjCodepoint() {
 }
@@ -17,7 +18,14 @@ open class CjBreakpoint(
     val filepath: String,
 
     ) : CjCodepoint() {
-    val lines: MutableMap<Int, XLineBreakpoint<*>> = mutableMapOf()
+    val lines: MutableMap<Int, XLineBreakpoint<*>?> = mutableMapOf()
+
+
+    val isRunToCursor :MutableMap<Int, Boolean> = mutableMapOf()
+
+    fun addLine(line: Int, breakpoint: XLineBreakpoint<*>?) {
+        lines[line] = breakpoint
+    }
 
     fun addLine(map: MutableMap<Int, XLineBreakpoint<*>>) {
         lines.putAll(map)
@@ -25,21 +33,23 @@ open class CjBreakpoint(
 
     fun removeLine(line: Int) {
         lines.remove(line)
+        isRunToCursor.remove(line)
     }
 
-    fun addLines(lines: MutableMap<Int, XLineBreakpoint<*>>) {
+    fun addLines(lines: MutableMap<Int, XLineBreakpoint<*>?>) {
 //        for (line in lines) {
 //            addLine(line)
 //        }
         this.lines.putAll(lines)
     }
 
-    fun removeLines(lines: MutableMap<Int, XLineBreakpoint<*>>) {
+    fun removeLines(lines: MutableMap<Int, XLineBreakpoint<*>?>) {
 //        for (line in lines) {
 //            removeLine(line)
 //        }
         for (line in lines) {
             this.lines.remove(line.key)
+            this.isRunToCursor.remove(line.key)
         }
     }
 

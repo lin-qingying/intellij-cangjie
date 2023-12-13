@@ -1,7 +1,5 @@
 package com.debugger.runconfig.message
 
-import com.debugger.runconfig.CjFrame
-import com.debugger.runconfig.CjThread
 
 
 import com.intellij.notification.NotificationType
@@ -305,9 +303,7 @@ interface MessageHandler : EventListener {
 
     fun handleDisconnected() {}
 
-    fun handleSelectedFrameChanged(thread: CjThread, frame: CjFrame) {
 
-    }
 
     fun handleSymbolsDownloadStarted(caption: String, details: String) {
 

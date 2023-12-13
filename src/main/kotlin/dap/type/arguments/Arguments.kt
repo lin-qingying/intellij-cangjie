@@ -422,3 +422,76 @@ data class ScopesArguments(
      */
     val frameId: Int
 ) : Arguments
+
+
+@Serializable
+data class NextArguments(
+    /**
+     * 指定要为其恢复执行一步（给定粒度）的线程。
+     */
+    val threadId: Long,
+
+    /**
+     * 如果此标志为 true，则不会恢复所有其他挂起的线程。
+     */
+    val singleThread: Boolean? = null,
+
+    /**
+     * 步进粒度。如果未指定粒度，则假定粒度为 `statement`。
+     */
+    val granularity: SteppingGranularity? = null
+) : Arguments
+
+@Serializable
+data class StepOutArguments(
+    /**
+     * 指定要为其恢复执行一步（给定粒度）的线程。
+     */
+    val threadId: Long,
+
+    /**
+     * 如果此标志为 true，则不会恢复所有其他挂起的线程。
+     */
+    val singleThread: Boolean? = null,
+
+    /**
+     * 步进粒度。如果未指定粒度，则假定粒度为 `statement`。
+     */
+    val granularity: SteppingGranularity? = null
+) : Arguments
+@Serializable
+data class StepInArguments(
+    /**
+     * 指定要为其恢复执行一步（给定粒度）的线程。
+     */
+    val threadId: Long,
+
+    /**
+     * 如果此标志为 true，则不会恢复所有其他挂起的线程。
+     */
+    val singleThread: Boolean? = null,
+
+    /**
+     * 步进粒度。如果未指定粒度，则假定粒度为 `statement`。
+     */
+    val granularity: SteppingGranularity? = null
+) : Arguments
+
+
+
+/**
+ * 继续执行的参数
+ */
+@Serializable
+data class ContinueArguments(
+    /**
+     * 指定活动线程。如果调试适配器支持单线程执行（参见 `supportsSingleThreadExecutionRequests`）并且参数 `singleThread` 为 true，
+     * 则只有此 ID 的线程会被恢复执行。
+     */
+    val threadId: Int,
+
+    /**
+     * 如果此标志为 true，只有给定 `threadId` 的线程会恢复执行。
+     */
+    val singleThread: Boolean? = null
+) : Arguments

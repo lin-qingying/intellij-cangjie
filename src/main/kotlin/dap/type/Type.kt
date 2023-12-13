@@ -966,3 +966,18 @@ data class Scope(
      */
     val endColumn: Int? = null
 )
+
+/**
+ * 步进粒度
+ * 单步执行请求 、 、 和 中一个“步骤”的粒度。 值：nextstepInstepOutstepBack
+ *
+ * “statement”：该步骤应允许程序运行，直到当前语句完成执行。 语句的含义由适配器确定，可以认为它等同于一行。 例如，'for（int i = 0; i < 10; i++）' 可以认为有 3 个语句 'int i = 0'， 'i < 10' 和 'i++'。
+ * “line”：该步骤应允许程序运行，直到当前源代码行执行完毕。
+ * “instruction”：该步骤应允许执行一条指令（例如一条 x86 指令）。
+ */
+@Serializable
+enum class SteppingGranularity {
+    statement,
+    line,
+    instruction
+}

@@ -400,3 +400,82 @@ data class ScopesRequest   (
     override val type: MessageType = super.type
     override val command: MessageCommand = MessageCommand.scopes
 }
+
+
+/**
+ * 下一个请求
+ * 该请求对指定的线程执行一个步骤（在给定的粒度内），并允许所有其他线程通过恢复它们来自由运行。
+ *
+ * 如果调试适配器支持单线程执行（请参阅 capability ），则将参数设置为 true 可防止其他挂起的线程恢复。supportsSingleThreadExecutionRequestssingleThread
+ *
+ * 调试适配器首先发送响应，然后在步骤完成后发送事件（带原因）。stoppedstep
+ */
+@Serializable
+data class NextRequest(
+    override val seq: Int,
+
+    override val arguments: NextArguments? = null
+) : Request {
+    override val type: MessageType = super.type
+    override val command: MessageCommand = MessageCommand.next
+}
+
+/**
+ * StepIn 请求
+ * 该请求恢复给定线程以单步执行函数/方法，并允许所有其他线程通过恢复它们自由运行。
+ *
+ * 如果调试适配器支持单线程执行（请参阅 capability ），则将参数设置为 true 可防止其他挂起的线程恢复。supportsSingleThreadExecutionRequestssingleThread
+ *
+ * 如果请求无法单步执行目标，则其行为与请求类似。stepInnext
+ *
+ * 调试适配器首先发送响应，然后在步骤完成后发送事件（带原因）。stoppedstep
+ *
+ * 如果源代码行上有多个函数/方法调用（或其他目标），
+ *
+ * 该参数可用于控制应将该操作发送到哪个目标中。targetIdstepIn
+ *
+ * 可以通过请求检索给定源代码行的可能目标列表。stepInTargets
+ */
+
+@Serializable
+data class StepInRequest(
+    override val seq: Int,
+
+    override val arguments: StepInArguments? = null
+) : Request {
+    override val type: MessageType = super.type
+    override val command: MessageCommand = MessageCommand.stepIn
+}
+
+/**
+ * StepOut 请求
+ * 该请求恢复给定线程以从函数/方法中退出（返回），并允许所有其他线程通过恢复它们自由运行。
+ *
+ * 如果调试适配器支持单线程执行（请参阅 capability ），则将参数设置为 true 可防止其他挂起的线程恢复。supportsSingleThreadExecutionRequestssingleThread
+ *
+ * 调试适配器首先发送响应，然后在步骤完成后发送事件（带原因）。stoppedstep
+ */
+@Serializable
+
+data class StepOutRequest (
+    override val seq: Int,
+
+    override val arguments: StepOutArguments? = null
+) : Request {
+    override val type: MessageType = super.type
+    override val command: MessageCommand = MessageCommand.stepOut
+}
+
+/**
+ * 继续请求
+ * 请求将恢复所有线程的执行。如果调试适配器支持单线程执行（请参阅 capability ），则将参数设置为 true 仅恢复指定的线程。如果并非所有线程都已恢复，则响应的属性应设置为 false。supportsSingleThreadExecutionRequestssingleThreadallThreadsContinued
+ */
+@Serializable
+data class ContinueRequest(
+    override val seq: Int,
+
+    override val arguments: ContinueArguments? = null
+) : Request {
+    override val type: MessageType = super.type
+    override val command: MessageCommand = MessageCommand.Continue
+}

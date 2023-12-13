@@ -273,3 +273,49 @@ data class ScopesResponse (
 
     override val command: MessageCommand = MessageCommand.scopes
 }
+
+@Serializable
+data class NextResponse (
+    override val seq: Int,
+    override val request_seq: Int,
+    override val success: Boolean,
+
+) : Response {
+    override val type: MessageType = super.type
+
+    override val command: MessageCommand = MessageCommand.next
+}
+@Serializable
+data class StepOutResponse   (
+    override val seq: Int,
+    override val request_seq: Int,
+    override val success: Boolean,
+
+    ) : Response {
+    override val type: MessageType = super.type
+
+    override val command: MessageCommand = MessageCommand.stepOut
+}
+@Serializable
+data class StepInResponse  (
+    override val seq: Int,
+    override val request_seq: Int,
+    override val success: Boolean,
+
+    ) : Response {
+    override val type: MessageType = super.type
+
+    override val command: MessageCommand = MessageCommand.stepIn
+}
+
+@Serializable
+data class ContinueResponse (
+    override val seq: Int,
+    override val request_seq: Int,
+    override val success: Boolean,
+    override val body: ContinueResponseBody? = null,
+    ) : Response {
+    override val type: MessageType = super.type
+
+    override val command: MessageCommand = MessageCommand.Continue
+}

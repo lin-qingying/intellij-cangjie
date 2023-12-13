@@ -512,3 +512,11 @@ data class ScopesResponseBody(
      */
     val scopes: List<Scope>
 ) : Body
+
+@Serializable
+data class ContinueResponseBody(
+    /**
+     * 如果 `allThreadsContinued` 为真，调试适配器可以宣布所有线程都已继续。
+     */
+    val allThreadsContinued: Boolean? = null
+) : Body

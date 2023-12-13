@@ -32,7 +32,7 @@ class CjdbPanel(project: Project) : JBPanel<CjdbPanel>(BorderLayout()) {
     init {
 
         this.add(console.component, BorderLayout.CENTER)
-        this.add(inputField, BorderLayout.SOUTH)
+//        this.add(inputField, BorderLayout.SOUTH)
     }
 
 
