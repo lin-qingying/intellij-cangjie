@@ -141,6 +141,9 @@ class DebugDriver(
     }
 
     fun sendStacktrace(threadId: Long, levels: Int = 20, startFrame: Int = 0) {
+
+
+
         val request = StackTraceRequest(
             seq = ++seq,
             arguments = StackTraceArguments(
