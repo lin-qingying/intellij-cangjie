@@ -1,7 +1,6 @@
 package com.debugger.runconfig.message
 
 
-
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
@@ -149,16 +148,35 @@ interface MessageHandler : EventListener {
                 handleThreadsResponse(message)
             }
 
-            is  StackTraceResponse -> {
+            is StackTraceResponse -> {
                 handleStackTraceResponse(message)
             }
+
             is ScopesResponse -> {
                 handleScopesResponse(message)
             }
+
             is VariablesResponse -> {
                 handleVariablesResponse(message)
             }
+
+            is EvaluateResponse -> {
+                handleEvaluateResponse(message)
+            }
+
+        is SetVariableResponse -> {
+            handleSetVariableResponse(message)
         }
+        }
+    }
+
+    fun handleSetVariableResponse(variableResponse: SetVariableResponse) {
+
+    }
+
+    fun handleEvaluateResponse(evaluateResponse: EvaluateResponse) {
+
+
     }
 
     fun handleVariablesResponse(message: VariablesResponse) {
@@ -304,7 +322,6 @@ interface MessageHandler : EventListener {
     fun handleDisconnected() {}
 
 
-
     fun handleSymbolsDownloadStarted(caption: String, details: String) {
 
     }
@@ -316,6 +333,7 @@ interface MessageHandler : EventListener {
     fun handleNotification(message: String, type: NotificationType) {
 
     }
+
 
     companion object {
 

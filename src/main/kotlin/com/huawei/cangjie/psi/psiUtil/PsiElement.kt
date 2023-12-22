@@ -2,6 +2,8 @@ package com.huawei.cangjie.psi.psiUtil
 
 import com.huawei.cangjie.psi.CjFile
 import com.intellij.lang.ASTNode
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
 import com.intellij.psi.impl.source.tree.LazyParseablePsiElement
@@ -11,6 +13,11 @@ import java.util.NoSuchElementException
 inline fun <reified T : PsiElement> PsiElement.getParentOfType(strict: Boolean): T? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, strict)
 }
+
+
+fun Document.toPsiFile(project: Project): PsiFile? =
+    PsiDocumentManager.getInstance(project).getPsiFile(this)
+
 fun PsiElement.siblings(forward: Boolean = true, withItself: Boolean = true): Sequence<PsiElement> {
     return object : Sequence<PsiElement> {
         override fun iterator(): Iterator<PsiElement> {
@@ -170,3 +177,5 @@ fun PsiElement.checkDecompiledText() {
         error("Attempt to load decompiled text, please use stubs instead. Decompile process might be slow and should be avoided")
     }
 }
+inline fun <reified T : PsiElement> PsiElement.ancestorOrSelf(): T? =
+    PsiTreeUtil.getParentOfType(this, T::class.java, /* strict */ false)

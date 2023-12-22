@@ -495,3 +495,42 @@ data class ContinueArguments(
      */
     val singleThread: Boolean? = null
 ) : Arguments
+
+
+/**
+ * EvaluateArguments
+ */
+@Serializable
+data class EvaluateArguments(
+    /**
+     * 需要计算的表达式。
+     */
+    val expression: String,
+
+    /**
+     * 在此堆栈帧的范围内计算表达式。如果未指定，
+     * 则在全局范围内计算表达式。
+     */
+    val frameId: Int? = null,
+
+    /**
+     * 使用evaluate请求的上下文。
+     * 可能的值：
+     * 'watch': 从watch视图上下文中调用evaluate。
+     * 'repl': 从REPL上下文中调用evaluate。
+     * 'hover': 调用evaluate生成debug悬停内容。
+     * 只有在相应的能力`supportsEvaluateForHovers`为true时，才应使用此值。
+     * 'clipboard': 调用evaluate生成剪贴板内容。
+     * 只有在相应的能力`supportsClipboardContext`为true时，才应使用此值。
+     * 'variables': 从variables视图上下文中调用evaluate。
+     * 等等。
+     */
+    val context: EvaluateArgumentsContext? = null,
+
+    /**
+     * 指定如何格式化结果的详细信息。
+     * 只有在相应的能力`supportsValueFormattingOptions`为true时，
+     * 才会由debug适配器尊重此属性。
+     */
+    val format: ValueFormat? = null
+):Arguments

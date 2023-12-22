@@ -479,3 +479,25 @@ data class ContinueRequest(
     override val type: MessageType = super.type
     override val command: MessageCommand = MessageCommand.Continue
 }
+
+/**
+ * 评估请求
+ * 在最顶层堆栈帧的上下文中计算给定的表达式。
+ *
+ * 表达式有权访问作用域内的任何变量和参数。
+ */
+@Serializable
+data class EvaluateRequest(
+    override val seq: Int,
+
+    override val arguments: EvaluateArguments? = null
+) : Request {
+    override val type: MessageType = super.type
+    override val command: MessageCommand = MessageCommand.evaluate
+}
+/**
+ * SetVariable 请求
+ * 将变量容器中具有给定名称的变量设置为新值。仅当相应的功能为 true 时，客户端才应调用此请求。supportsSetVariable
+ *
+ * 如果调试适配器同时实现 和 ，则客户端将仅在变量具有属性时使用。setVariablesetExpressionsetExpressionevaluateName
+ */

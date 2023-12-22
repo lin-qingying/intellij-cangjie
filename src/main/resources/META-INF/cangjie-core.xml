@@ -46,7 +46,7 @@
         <!--        <annotator language="CangJie" implementationClass="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>-->
         <!--        <highlightRangeExtension implementation="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>-->
 
-
+        <lang.documentationProvider language="CangJie" implementationClass="com.huawei.cangjie.idea.CangJieDocumentationProvider" order="first"/>
         <fileType name="CangJie"
                   language="CangJie"
                   implementationClass="com.huawei.cangjie.lang.CangJieFileType"

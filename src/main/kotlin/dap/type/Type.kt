@@ -23,6 +23,7 @@ enum class MessageCommand {
     setVariable,
     scopes,
     debugInConsole,
+    evaluate,
 
 
     setFunctionBreakpoints,
@@ -58,7 +59,19 @@ enum class EventType {
 sealed class ResponseMessage {
     data object cancelled : ResponseMessage()
     data object notStopped : ResponseMessage()
-    data class Other(val value: String) : ResponseMessage()
+    data class Other(val value: String) : ResponseMessage(){
+        override fun toString(): String {
+            return value
+        }
+    }
+
+    override fun toString(): String {
+        return when (this) {
+            is cancelled -> "cancelled"
+            is notStopped -> "notStopped"
+            is Other -> value
+        }
+    }
 }
 
 
@@ -495,13 +508,13 @@ data class Variable(
      * 这有助于在折叠状态下识别结构化对象，当其子对象还不可见时。
      * 如果不应在UI中显示任何值，可以使用空字符串。
      */
-    val value: String,
+    var value: String,
 
     /**
      * 变量值的类型。通常在悬停在值上时在UI中显示。
      * 只有当相应的能力`supportsVariableType`为真时，调试适配器才应返回此属性。
      */
-    val type: String? = null,
+    var type: String? = null,
 
     /**
      * 可用于确定如何在UI中呈现变量的变量的属性。
@@ -980,4 +993,14 @@ enum class SteppingGranularity {
     statement,
     line,
     instruction
+}
+
+@Serializable(EvaluateArgumentsContextSerializer::class)
+sealed class EvaluateArgumentsContext{
+    data object Watch : EvaluateArgumentsContext()
+    data object Hover: EvaluateArgumentsContext()
+    data object Repl: EvaluateArgumentsContext()
+    data object Clipboard: EvaluateArgumentsContext()
+    data object Variables: EvaluateArgumentsContext()
+    data class Other(val value: String) : EvaluateArgumentsContext()
 }

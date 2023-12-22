@@ -27,6 +27,7 @@ val moshi: Moshi = Moshi.Builder()
     .add(PathFormatAdapter())
     .add(VariablePresentationHintKindAdapter)
     .add(ScopePresentationHintAdapter)
+    .add(EvaluateArgumentsContextAdapter)
     .add(BreakpointEventReasonAdapter())
     .add(StoppedEventReasonAdapter)
     .add(ThreadEventReasonAdapter())
@@ -134,8 +135,7 @@ class ResponseAdapter {
             ?: throw JsonDataException("Expected a JsonObject")
 
         return when {
-            jsonObject.containsKey("success") && !(jsonObject["success"] as Boolean) -> moshi.adapter(ErrorResponse::class.java)
-                .fromJson(reader)!!
+
 
             jsonObject.containsKey("command") && jsonObject["command"] == "initialize" ->
                 moshi.adapter(InitializeResponse::class.java).fromJson(reader)!!
@@ -176,26 +176,35 @@ class ResponseAdapter {
                 SetInstructionBreakpointsResponse::class.java
             )
                 .fromJson(reader)!!
+
             jsonObject.containsKey("command") && jsonObject["command"] == "threads" -> moshi.adapter(
                 ThreadsResponse::class.java
             )
                 .fromJson(reader)!!
+
             jsonObject.containsKey("command") && jsonObject["command"] == "stackTrace" -> moshi.adapter(
                 StackTraceResponse::class.java
             )
                 .fromJson(reader)!!
+
             jsonObject.containsKey("command") && jsonObject["command"] == "scopes" -> moshi.adapter(
                 ScopesResponse::class.java
+            )
+                .fromJson(reader)!!
+            jsonObject.containsKey("command") && jsonObject["command"] == "setVariable" -> moshi.adapter(
+                SetVariableResponse::class.java
             )
                 .fromJson(reader)!!
             jsonObject.containsKey("command") && jsonObject["command"] == "variables" -> moshi.adapter(
                 VariablesResponse::class.java
             )
                 .fromJson(reader)!!
+
             jsonObject.containsKey("command") && jsonObject["command"] == "next" -> moshi.adapter(
                 NextResponse::class.java
             )
                 .fromJson(reader)!!
+
             jsonObject.containsKey("command") && jsonObject["command"] == "stepIn" -> moshi.adapter(
                 StepInResponse::class.java
             )
@@ -210,8 +219,12 @@ class ResponseAdapter {
                 ContinueResponse::class.java
             )
                 .fromJson(reader)!!
-
-
+            jsonObject.containsKey("command") && jsonObject["command"] == "evaluate" -> moshi.adapter(
+                EvaluateResponse::class.java
+            )
+                .fromJson(reader)!!
+            jsonObject.containsKey("success") && !(jsonObject["success"] as Boolean) -> moshi.adapter(ErrorResponse::class.java)
+                .fromJson(reader)!!
             else -> throw JsonDataException("Expected a JsonObject to command ${jsonObject["command"]} ")
         }
     }
@@ -561,7 +574,7 @@ object ScopePresentationHintAdapter {
             is ScopePresentationHint.Arguments -> writer.value("arguments")
             is ScopePresentationHint.Locals -> writer.value("locals")
             is ScopePresentationHint.Registers -> writer.value("registers")
-is ScopePresentationHint.Statics -> writer.value("statics")
+            is ScopePresentationHint.Statics -> writer.value("statics")
             is ScopePresentationHint.Globals -> writer.value("globals")
             is ScopePresentationHint.This -> writer.value("this")
             is ScopePresentationHint.All -> writer.value("all")
@@ -580,6 +593,32 @@ is ScopePresentationHint.Statics -> writer.value("statics")
             "statics" -> ScopePresentationHint.Statics
             "globals" -> ScopePresentationHint.Globals
             else -> ScopePresentationHint.Other(value)
+        }
+    }
+}
+
+object EvaluateArgumentsContextAdapter {
+    @FromJson
+    fun fromJson(reader: JsonReader): EvaluateArgumentsContext {
+        return when (val value = reader.nextString()) {
+            "watch" -> EvaluateArgumentsContext.Watch
+            "hover" -> EvaluateArgumentsContext.Hover
+            "repl" -> EvaluateArgumentsContext.Repl
+            "clipboard" -> EvaluateArgumentsContext.Clipboard
+            "variables" -> EvaluateArgumentsContext.Variables
+            else -> EvaluateArgumentsContext.Other(value)
+        }
+    }
+
+    @ToJson
+    fun toJson(writer: JsonWriter, evaluateArgumentsContext: EvaluateArgumentsContext) {
+        when (evaluateArgumentsContext) {
+            is EvaluateArgumentsContext.Watch -> writer.value("watch")
+            is EvaluateArgumentsContext.Hover -> writer.value("hover")
+            is EvaluateArgumentsContext.Repl -> writer.value("repl")
+            is EvaluateArgumentsContext.Clipboard -> writer.value("clipboard")
+            is EvaluateArgumentsContext.Variables -> writer.value("variables")
+            is EvaluateArgumentsContext.Other -> writer.value(evaluateArgumentsContext.value)
         }
     }
 }

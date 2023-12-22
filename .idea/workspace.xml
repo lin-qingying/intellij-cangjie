@@ -11,7 +11,18 @@
     <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="develop">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebugProcess.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebugProcess.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebuggerLanguageSupportManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebuggerLanguageSupportManager.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/DebugDriver.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/DebugDriver.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/message/MessageHandler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/message/MessageHandler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/psiUtil/PsiElement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/psiUtil/PsiElement.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/request/Request.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/request/Request.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/response/Response.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/response/Response.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/type/Type.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/type/Type.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/type/adapter/Adapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/type/adapter/Adapter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/type/arguments/Arguments.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/type/arguments/Arguments.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/type/body/Body.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/type/body/Body.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/type/serializer/Serializer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/type/serializer/Serializer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -650,6 +661,8 @@
       <workItem from="1702557536760" duration="3077000" />
       <workItem from="1702560711336" duration="2262000" />
       <workItem from="1702563977868" duration="3995000" />
+      <workItem from="1702726553576" duration="5847000" />
+      <workItem from="1703213867664" duration="17016000" />
     </task>
     <task id="LOCAL-00001" summary="语法分析">
       <option name="closed" value="true" />
@@ -1036,9 +1049,14 @@
           <option name="timeStamp" value="18" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/test/kotlin/test.kt</url>
-          <line>16</line>
-          <option name="timeStamp" value="31" />
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebuggerLanguageSupportManager.kt</url>
+          <line>39</line>
+          <option name="timeStamp" value="73" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebuggerLanguageSupportManager.kt</url>
+          <line>36</line>
+          <option name="timeStamp" value="74" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

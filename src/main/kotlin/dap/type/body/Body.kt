@@ -520,3 +520,107 @@ data class ContinueResponseBody(
      */
     val allThreadsContinued: Boolean? = null
 ) : Body
+
+
+
+@Serializable
+data class EvaluateResponseBody(
+    /**
+     * evaluate请求的结果。
+     */
+    val result: String,
+
+    /**
+     * evaluate结果的类型。
+     * 只有在相应的能力`supportsVariableType`为true时，
+     * 才应由debug适配器返回此属性。
+     */
+    val type: String? = null,
+
+    /**
+     * 可用于确定如何在UI中呈现结果的evaluate结果的属性。
+     */
+    val presentationHint: VariablePresentationHint? = null,
+
+    /**
+     * 如果`variablesReference` > 0，那么evaluate结果是结构化的，
+     * 只要执行保持暂停，就可以通过将`variablesReference`传递给
+     * `variables`请求来获取其子项。详见概述部分的'对象引用的生命周期'。
+     */
+    val variablesReference: Int,
+
+    /**
+     * 命名子变量的数量。
+     * 客户端可以使用此信息在分页的UI中呈现变量，并分块获取它们。
+     * 该值应小于或等于2147483647 (2^31-1)。
+     */
+    val namedVariables: Int? = null,
+
+    /**
+     * 索引子变量的数量。
+     * 客户端可以使用此信息在分页的UI中呈现变量，并分块获取它们。
+     * 该值应小于或等于2147483647 (2^31-1)。
+     */
+    val indexedVariables: Int? = null,
+
+    /**
+     * 适合此结果的内存位置的内存引用。
+     * 对于指针类型的eval结果，这通常是指针中包含的内存地址的引用。
+     * 如果相应的能力`supportsMemoryReferences`为true，
+     * 则debug适配器可能返回此属性。
+     */
+    val memoryReference: String? = null
+):Body {
+    fun toVariable(name:String): Variable {
+
+        return Variable(
+            name =  name,
+            value = result,
+            type = type,
+            variablesReference = variablesReference,
+            namedVariables = namedVariables,
+            indexedVariables = indexedVariables,
+            memoryReference = memoryReference
+        )
+
+    }
+}
+
+@Serializable
+data class SetVariableResponseBody(
+    /**
+     * 变量的新值。
+     */
+    val value: String,
+
+    /**
+     * 新值的类型。通常在鼠标悬停在值上时在UI中显示。
+     */
+    val type: String? = null,
+
+    /**
+     * 如果 `variablesReference` 大于 0，那么新值是结构化的，只要执行保持暂停，就可以通过将 `variablesReference` 传递给 `variables` 请求来获取其子项。详见概述部分的“对象引用的生命周期”。
+     */
+    val variablesReference: Int? = null,
+
+    /**
+     * 命名子变量的数量。
+     * 客户端可以使用此信息在分页的UI中呈现变量，并按块获取它们。
+     * 该值应小于或等于 2147483647 (2^31-1)。
+     */
+    val namedVariables: Int? = null,
+
+    /**
+     * 索引子变量的数量。
+     * 客户端可以使用此信息在分页的UI中呈现变量，并按块获取它们。
+     * 该值应小于或等于 2147483647 (2^31-1)。
+     */
+    val indexedVariables: Int? = null,
+
+    /**
+     * 适合此结果的内存引用位置。
+     * 对于指针类型的eval结果，这通常是指针中包含的内存地址的引用。
+     * 如果相应的功能 `supportsMemoryReferences` 为真，调试适配器可能会返回此属性。
+     */
+    val memoryReference: String? = null
+) : Body

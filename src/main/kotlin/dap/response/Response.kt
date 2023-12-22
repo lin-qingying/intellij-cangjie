@@ -319,3 +319,35 @@ data class ContinueResponse (
 
     override val command: MessageCommand = MessageCommand.Continue
 }
+
+
+@Serializable
+data class EvaluateResponse(
+
+    override val seq: Int,
+    override val request_seq: Int,
+    override val success: Boolean,
+    override val body: EvaluateResponseBody? = null,
+    override val message: ResponseMessage? = null,
+    ) :Response{
+    override val command: MessageCommand = MessageCommand.evaluate
+    override val type: MessageType = super.type
+}
+
+/**
+ * SetVariableResponse
+ */
+@Serializable
+data class SetVariableResponse(
+    override val seq: Int,
+    override val request_seq: Int,
+    override val success: Boolean,
+    override val body: SetVariableResponseBody? = null,
+    override val message: ResponseMessage? = null,
+) : Response {
+    override val type: MessageType = super.type
+
+
+
+    override val command: MessageCommand = MessageCommand.setVariable
+}

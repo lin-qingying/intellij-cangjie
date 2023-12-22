@@ -527,6 +527,35 @@ class DebugDriver(
 
     }
 
+    fun sendEvaluate(expression: String,frameId: Int, context:EvaluateArgumentsContext) {
+        val request = EvaluateRequest(
+            seq = ++seq,
+            arguments = EvaluateArguments(
+                expression = expression,
+                frameId = frameId,
+                context = context,
+
+
+            )
+        )
+
+        send(request)
+    }
+
+
+    fun sendSetVariable(value: Variable,expression:String,parentScope:Int) {
+        val request = SetVariableRequest(
+            seq = ++seq,
+            arguments = SetVariableArguments(
+                variablesReference = parentScope,
+                name = value.name,
+                value = expression
+            )
+        )
+        send(request)
+
+    }
+
     data class TargetStateTransition(
         val previousState: TargetState, val currentState: TargetState
     )

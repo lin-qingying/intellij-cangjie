@@ -3,11 +3,12 @@ package com.debugger.runconfig
 import com.debugger.CangJieDebuggerPluginService
 import com.debugger.backend.CjBreakpoint
 import com.debugger.runconfig.breakpoint.CangJieBreakpointHandler
-import com.debugger.runconfig.breakpoint.CangJieLineBreakpointType
 import com.debugger.runconfig.message.MessageHandler
 import com.debugger.runconfig.views.CjdbPanel
 import com.huawei.cangjie.idea.run.cjpm.CjpmRunStateBase
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager
+import com.huawei.cangjie.psi.CjElement
+import com.huawei.cangjie.psi.psiUtil.ancestorOrSelf
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
@@ -19,17 +20,20 @@ import com.intellij.execution.ui.layout.PlaceInGrid
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.*
 import com.intellij.ui.ColoredTextContainer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.content.Content
+import com.intellij.util.DocumentUtil
 import com.intellij.util.ThreeState
-import com.intellij.util.io.await
 import com.intellij.xdebugger.*
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
@@ -37,15 +41,13 @@ import com.intellij.xdebugger.evaluation.XDebuggerEvaluator
 import com.intellij.xdebugger.frame.*
 import com.intellij.xdebugger.frame.presentation.XValuePresentation
 import com.intellij.xdebugger.impl.ui.ExecutionPointHighlighter
+import com.intellij.xdebugger.impl.ui.tree.nodes.XValueNodePresentationConfigurator
 import com.intellij.xdebugger.ui.XDebugTabLayouter
 import com.linqingying.lsp.api.LspProcessHandler
 import dap.event.*
 import dap.request.RunInTerminalRequest
 import dap.response.*
 import dap.type.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicReference
@@ -450,20 +452,20 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 //            currentSuspendContext.set(context)
 //            context.activeThread.threadid?.let { this.myDriver.sendNext(it) }
 //        }
-        if (currentThread.get() == threads[0]){
+        if (currentThread.get() == threads[0]) {
             this.myDriver.sendNext(currentThread.get()?.id ?: -1)
 
-        }else{
+        } else {
             currentThread.get()?.let { this.myDriver.sendContinue(it.id) }
         }
     }
 
     //步入
     override fun startStepInto(context: XSuspendContext?) {
-        if (currentThread.get() == threads[0]){
+        if (currentThread.get() == threads[0]) {
             this.myDriver.sendStepIn(currentThread.get()?.id ?: -1)
 
-        }else{
+        } else {
             currentThread.get()?.let { this.myDriver.sendContinue(it.id) }
 
         }
@@ -472,10 +474,10 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 
     //步出
     override fun startStepOut(context: XSuspendContext?) {
-        if (currentThread.get() == threads[0]){
+        if (currentThread.get() == threads[0]) {
             this.myDriver.sendStepOut(currentThread.get()?.id ?: -1)
 
-        }else{
+        } else {
             currentThread.get()?.let { this.myDriver.sendContinue(it.id) }
 
         }
@@ -791,6 +793,7 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 
     }
 
+
     override fun handleInitializedEvent(message: InitializedEvent) {
 //TODO
 //        设置方法断点
@@ -829,6 +832,42 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 //        断开连接
 //        this.myDriver.disconnect()
     }
+
+
+    //
+    var isEvaluateLoaded = CompletableFuture<EvaluateResponse>()
+
+    override fun handleEvaluateResponse(evaluateResponse: EvaluateResponse) {
+//        if (evaluateResponse.success) {
+//
+//        }
+        isEvaluateLoaded.complete(evaluateResponse)
+    }
+
+    /**
+     * 执行表达式
+     */
+    fun evaluate(
+        expression: String,
+        frameId: Int,
+        context: EvaluateArgumentsContext
+    ): CompletableFuture<EvaluateResponse> {
+
+        isEvaluateLoaded = CompletableFuture()
+        myDriver.sendEvaluate(expression, frameId, context)
+        return isEvaluateLoaded
+    }
+
+      var isSetVariableLoaded = CompletableFuture<SetVariableResponse>()
+    fun sendSetVariable(value: Variable,expression:String,parentScope:Int) {
+        isSetVariableLoaded = CompletableFuture()
+        myDriver.sendSetVariable(value,expression,parentScope)
+
+    }
+
+    override fun handleSetVariableResponse(variableResponse: SetVariableResponse) {
+        isSetVariableLoaded.complete(variableResponse)
+    }
 }
 
 
@@ -838,6 +877,7 @@ class CangJieStackFrame(
     val frame: StackFrame,
     val returnValue: Variable? = null
 ) : XStackFrame() {
+    val id = frame.id
 
 //    class RightAlignedTextContainer : ColoredTextContainer {
 //        private val panel = JPanel(BorderLayout())
@@ -880,6 +920,9 @@ class CangJieStackFrame(
 
     //表达式求值接口
     override fun getEvaluator(): XDebuggerEvaluator = CangJieDebuggerLanguageSupportManager.createEvaluator(this)
+
+
+    val scopesList = mutableListOf<Scope>()
     override fun computeChildren(node: XCompositeNode) {
         val children = XValueChildrenList()
 
@@ -899,12 +942,16 @@ class CangJieStackFrame(
         process.myDriver.sendScopes(frame.id)
 
         process.isVariablesLoaded[frame.id]?.thenAccept {
+            scopesList.addAll(process.scopes)
             variables.map {
                 children.add(
                     it.name,
                     CangJieValue(
                         process,
-                        it
+                        it,
+                        process.scopes[0].variablesReference,
+                        mySourcePosition,
+
                     )
                 )
             }
@@ -943,7 +990,14 @@ class CangJieStackFrame(
 }
 
 
-class CangJieValue(val process: CangJieDebugProcess, val value: Variable) : XValue() {
+class CangJieValue(
+    val process: CangJieDebugProcess,
+    val value: Variable,
+    private val parentScope:Int,
+    private val position: XSourcePosition? = null,
+
+) : XValue() {
+
 
     //    基本类型变量
     class PrimitiveValuePlace(private val value: Variable) : XValuePresentation() {
@@ -958,6 +1012,7 @@ class CangJieValue(val process: CangJieDebugProcess, val value: Variable) : XVal
         override fun renderValue(renderer: XValueTextRenderer) {
             renderer.renderValue(value.value)
         }
+
     }
 
     class ObjectValuePlace(private val value: Variable) : XValuePresentation() {
@@ -970,7 +1025,10 @@ class CangJieValue(val process: CangJieDebugProcess, val value: Variable) : XVal
         }
 
         override fun renderValue(renderer: XValueTextRenderer) {
-            renderer.renderValue("@${value.memoryAddress}")
+            if (value.memoryAddress != null) {
+                renderer.renderValue("@${value.memoryAddress}")
+            }
+
         }
     }
 
@@ -1014,7 +1072,6 @@ class CangJieValue(val process: CangJieDebugProcess, val value: Variable) : XVal
 
         }
 
-
     }
 
 
@@ -1036,12 +1093,79 @@ class CangJieValue(val process: CangJieDebugProcess, val value: Variable) : XVal
 
     val count get() = value.indexedVariables ?: 1000
     val start get() = 0
-    override fun computeSourcePosition(navigatable: XNavigatable) {
-        super.computeSourcePosition(navigatable)
-    }
+//    override fun computeSourcePosition(navigatable: XNavigatable) {
+//        val a = position?.let { XDebuggerUtil.getInstance().createPositionByOffset(position.file, it.offset) }
+//        navigatable.setSourcePosition(a)
+//    }
 
     override fun computeInlineDebuggerData(callback: XInlineDebuggerDataCallback): ThreeState {
-        return super.computeInlineDebuggerData(callback)
+        this.doComputeInlineDebuggerDataAsync(callback::computed);
+//        callback.computed(object : XInlineDebuggerData() {
+//            fun computePresentation( node: XValueNodeImpl,  place: XValuePlace?) {
+//                node.setPresentation(null, myValue, false)
+//            }
+//        })
+
+        return ThreeState.YES
+    }
+
+    //    fun getContextElement(sourcePosition: XSourcePosition): PsiElement? {
+//        val document = FileDocumentManager.getInstance().getDocument(sourcePosition.file);
+//        if (document != null) {
+//            val psiFile = PsiDocumentManager.getInstance(process.session.project).getPsiFile(document);
+//            return psiFile?.let { findContextElement(sourcePosition, document, it) };
+//        }
+//        return null
+//
+//    }
+//
+//    private fun findContextElement(
+//        sourcePosition: XSourcePosition,
+//        document: Document,
+//        psiFile: PsiFile
+//    ): PsiElement? {
+//        val positionOffset = sourcePosition.offset
+//        return if (!DocumentUtil.isValidOffset(positionOffset, document)) {
+//            null
+//        } else {
+//            val lineEndOffset = document.getLineEndOffset(document.getLineNumber(positionOffset))
+//            var offset = positionOffset
+//
+//
+//            do {
+//                val element: PsiElement = psiFile.findElementAt(offset) ?: break
+//
+//                if ((element !is PsiWhiteSpace && element !is PsiComment)) {
+//                    return element
+//                }
+//                offset = element.textRange.endOffset + 1
+//            } while (offset < lineEndOffset)
+//
+//            psiFile.findElementAt(positionOffset)
+//        }
+//    }
+//    private fun resolveToDeclaration(ctx: PsiElement?, name: String): PsiElement? {
+//        val composite = ctx?.ancestorOrSelf<CjElement>() ?: return null
+//      return null
+//    }
+//
+//      fun resolveToDeclaration(position: XSourcePosition?, `var`: String): PsiElement? {
+//        val context = position?.let { getContextElement(it) }
+//        return resolveToDeclaration(context, `var`)
+//    }
+    private fun doComputeInlineDebuggerDataAsync(navigatable: XNavigatable) {
+
+//        TODO 需要根据变量名称查找变量的位置 这里先不搞了，就先这样
+        navigatable.setSourcePosition(position)
+//        if (position == null) {
+//            navigatable.setSourcePosition(null)
+//        } else {
+//
+//
+//            val a =resolveToDeclaration(position, value.name)
+//            println()
+//
+//        }
     }
 
     override fun computeTypeSourcePosition(navigatable: XNavigatable) {
@@ -1064,7 +1188,10 @@ class CangJieValue(val process: CangJieDebugProcess, val value: Variable) : XVal
                     it.name,
                     CangJieValue(
                         process,
-                        it
+                        it,
+                        value.variablesReference,
+                        position
+
                     )
                 )
             }
@@ -1078,10 +1205,31 @@ class CangJieValue(val process: CangJieDebugProcess, val value: Variable) : XVal
 
     }
 
-    override fun getModifier(): XValueModifier? {
+    override fun getModifier(): XValueModifier {
         return object : XValueModifier() {
             override fun setValue(expression: XExpression, callback: XModificationCallback) {
-                super.setValue(expression, callback)
+
+//                TODO 需要先判断是否有写的权限
+
+
+                process.sendSetVariable(value,expression.expression,parentScope)
+
+                process.isSetVariableLoaded.thenAccept {
+
+
+                    if (it.success){
+
+                        value.value = it.body?.value.toString()
+                        value.type = it.body?.type
+
+                        callback.valueModified()
+
+                    }else{
+                        callback.errorOccurred(it.message.toString())
+
+                    }
+                }
+
             }
         }
     }
@@ -1146,19 +1294,17 @@ class CangJieExecutionStack(
     private fun requestStackFrames(): MutableList<StackFrame>? {
         process.currentThread.set(thread)
 
-        if(process.isStackTraceLoaded.containsKey(threadid!!)){
+        if (process.isStackTraceLoaded.containsKey(threadid!!)) {
             if (process.isStackTraceLoaded[threadid]?.isDone == true) {
                 process.isStackTraceLoaded[threadid] = CompletableFuture<Boolean>()
 
                 process.myDriver.sendStacktrace(threadid)
             }
-        }else{
+        } else {
             process.isStackTraceLoaded[threadid] = CompletableFuture<Boolean>()
 
             process.myDriver.sendStacktrace(threadid)
         }
-
-
 
 
 // 等待返回

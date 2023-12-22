@@ -382,3 +382,24 @@ object ScopePresentationHintSerializer : KSerializer<ScopePresentationHint> {
         }
     }
 }
+
+
+@Serializer(forClass = EvaluateArgumentsContext::class)
+object EvaluateArgumentsContextSerializer : KSerializer<EvaluateArgumentsContext> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("EvaluateArgumentsContext") {
+        element<String>("value", isOptional = true)
+    }
+
+    override fun serialize(encoder: Encoder, value: EvaluateArgumentsContext) {
+        when (value) {
+            is EvaluateArgumentsContext.Watch -> encoder.encodeString("watch")
+            is EvaluateArgumentsContext.Hover -> encoder.encodeString("hover")
+            is EvaluateArgumentsContext.Repl -> encoder.encodeString("repl")
+            is EvaluateArgumentsContext.Clipboard -> encoder.encodeString("clipboard")
+            is EvaluateArgumentsContext.Variables ->  encoder.encodeString("variables")
+
+            is EvaluateArgumentsContext.Other -> encoder.encodeString(value.value)
+
+        }
+    }
+}
