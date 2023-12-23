@@ -45,11 +45,11 @@ internal object LtGtTypingUtils {
     }
 
     fun shouldAutoCloseAngleBracket(offset: Int, editor: Editor): Boolean {
-        return isAfterClassIdentifier(offset, editor) || isAfterToken(
-            offset,
-            editor,
-            CjTokens.FUNC_KEYWORD
-        )
+        return isAfterClassIdentifier(offset, editor) || isAfterFunckeyword(offset,editor)
+    }
+
+    fun isAfterFunckeyword(offset: Int, editor: Editor): Boolean {
+        return isAfterTokenAndSeparatedByToken(offset , editor, CjTokens.FUNC_KEYWORD, CjTokens.IDENTIFIER)
     }
 
     private fun isAfterClassIdentifier(offset: Int, editor: Editor): Boolean {
@@ -77,6 +77,21 @@ internal object LtGtTypingUtils {
             iterator.retreat()
         }
         if (iterator.tokenType === CjTokens.WHITE_SPACE && iterator.start > 0) {
+            iterator.retreat()
+        }
+        return iterator.tokenType === tokenType
+    }
+
+    fun isAfterTokenAndSeparatedByToken(offset: Int, editor: Editor, tokenType: CjToken, separatedTokenType: CjToken):Boolean{
+
+        val iterator = editor.highlighter.createIterator(offset)
+        if (iterator.atEnd()) {
+            return false
+        }
+        if (iterator.start > 0) {
+            iterator.retreat()
+        }
+        while ((iterator.tokenType === CjTokens.WHITE_SPACE || iterator.tokenType === separatedTokenType) && iterator.start > 0) {
             iterator.retreat()
         }
         return iterator.tokenType === tokenType

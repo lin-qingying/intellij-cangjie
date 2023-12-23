@@ -19,7 +19,8 @@
         <typedHandler implementation="com.huawei.cangjie.idea.editor.CangJieTypedHandler"/>
         <typedHandler implementation="com.huawei.cangjie.idea.editor.CDocTypedHandler"/>
         <typedHandler implementation="com.huawei.cangjie.idea.editor.CangJieRawStringTypedHandler"/>
-
+     <backspaceHandlerDelegate implementation="com.huawei.cangjie.idea.editor.CangJieBackspaceHandlerDelegate"/>
+<lang.braceMatcher implementationClass="com.huawei.cangjie.idea.editor.CangJiePairedBraceMatcher" language="CangJie"/>
         <!--文件类型工厂 -->
 
         <!--        <fileType name="CangJie"-->

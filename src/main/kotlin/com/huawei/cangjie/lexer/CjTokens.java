@@ -1,9 +1,13 @@
 package com.huawei.cangjie.lexer;
 
 import com.huawei.cangjie.doc.lexer.CDocTokens;
+import com.intellij.lang.BracePair;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
+
+import java.util.Arrays;
+import java.util.List;
 
 public interface CjTokens {
     int INVALID_Id = 0;
@@ -473,17 +477,26 @@ public interface CjTokens {
             INT8_KEYWORD, INT16_KEYWORD, INT32_KEYWORD, INT64_KEYWORD, UINT8_KEYWORD, UINT16_KEYWORD, UINT32_KEYWORD, UINT64_KEYWORD, FLOAT32_KEYWORD, FLOAT64_KEYWORD, BOOL_KEYWORD, CHAR_KEYWORD, UNIT_KEYWORD
     );
     TokenSet ALL_ASSIGNMENTS = TokenSet.create(EQ, PLUSEQ, MINUSEQ, MULTEQ, PERCEQ, DIVEQ);
+
+
+
+//    List<BracePair>  BRACE_PAIR_LIST = Arrays.asList(
+//            new BracePair(LPAR, RPAR,true),
+//            new BracePair(LBRACE, RBRACE,true),
+//            new BracePair(LBRACKET, RBRACKET,true)
+//    );
+
+
+    BracePair[] BRACE_PAIRS = new BracePair[]{
+            new BracePair(LPAR, RPAR,true),
+            new BracePair(LBRACE, RBRACE,true),
+            new BracePair(LBRACKET, RBRACKET,true),
+            new BracePair(LT, GT,true)
+    };
 }
 
 
-   class a<T>{
 
-}
 
-class  b<a>{
 
-}
 
-class  c extends b<a<String>>{
-
-}

@@ -5,13 +5,11 @@ import com.huawei.cangjie.doc.lexer.CDocTokens
 import com.huawei.cangjie.idea.formatter.adjustLineIndent
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
-import com.huawei.cangjie.utils.safeAs
 import com.intellij.codeInsight.AutoPopupController
 import com.intellij.codeInsight.CodeInsightSettings
 import com.intellij.codeInsight.editorActions.TypedHandler
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.EditorModificationUtil
 import com.intellij.openapi.editor.EditorModificationUtilEx
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
@@ -22,7 +20,6 @@ import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.TokenType
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.formatter.FormatterUtil
-import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 
@@ -43,72 +40,72 @@ class CangJieTypedHandler : TypedHandlerDelegate() {
 
         if (file !is CjFile) return Result.CONTINUE
         when (c) {
-//            ')' -> dataClassValParameterInsert(project, editor, file,  /*beforeType = */true)
+////            ')' -> dataClassValParameterInsert(project, editor, file,  /*beforeType = */true)
             '<' -> {
                 cangjieLTTyped = CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET &&
                         LtGtTypingUtils.shouldAutoCloseAngleBracket(editor.caretModel.offset, editor)
 
                 autoPopupParameterInfo(project, editor)
             }
-
-            '>' -> {
-                if (CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET && LtGtTypingUtils.handleCangJieGTInsert(
-                        editor
-                    )
-                ) {
-                    return Result.STOP
-                }
-            }
-
-            '{' -> {
-
-
-                // Returning Result.CONTINUE will cause inserting "{}" for unmatched '{'
-                val offset = editor.caretModel.offset
-                if (offset == 0) {
-                    return Result.CONTINUE
-                }
-
-                val iterator = editor.highlighter.createIterator(offset - 1)
-                while (!iterator.atEnd() && iterator.tokenType === TokenType.WHITE_SPACE) {
-                    iterator.retreat()
-                }
-
-                if (iterator.atEnd() || iterator.tokenType !in CangJieTypedHandlerTokenSets.SUPPRESS_AUTO_INSERT_CLOSE_BRACE_AFTER) {
-                    AutoPopupController.getInstance(project).autoPopupParameterInfo(editor, null)
-                    return Result.CONTINUE
-                }
-
-                val tokenBeforeBraceOffset = iterator.start
-                val document = editor.document
-                PsiDocumentManager.getInstance(project).commitDocument(document)
-                val leaf = file.findElementAt(offset)
-                if (leaf != null) {
-                    val parent = leaf.parent
-                    if (parent != null && parent.node.elementType in CangJieTypedHandlerTokenSets.CONTROL_FLOW_EXPRESSIONS) {
-                        val nonWhitespaceSibling = FormatterUtil.getPreviousNonWhitespaceSibling(leaf.node)
-                        if (nonWhitespaceSibling != null && nonWhitespaceSibling.startOffset == tokenBeforeBraceOffset) {
-                            EditorModificationUtilEx.insertStringAtCaret(editor, "{", false, true)
-                            TypedHandler.indentBrace(project, editor, '{')
-                            return Result.STOP
-                        }
-                    }
-
-                    if (leaf.text == "}" && parent is CjFunctionLiteral && document.getLineNumber(offset) == document.getLineNumber(
-                            parent.getTextRange().startOffset
-                        )
-                    ) {
-                        EditorModificationUtilEx.insertStringAtCaret(editor, "{} ", false, false)
-                        editor.caretModel.moveToOffset(offset + 1)
-                        return Result.STOP
-                    }
-                }
-            }
-
-            '.' -> autoPopupMemberLookup(project, editor)
-//            ':' -> autoPopupCallableReferenceLookup(project, editor)
-            '[' -> autoPopupParameterInfo(project, editor)
-            '@' -> autoPopupAt(project, editor)
+//
+//            '>' -> {
+//                if (CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET && LtGtTypingUtils.handleCangJieGTInsert(
+//                        editor
+//                    )
+//                ) {
+//                    return Result.STOP
+//                }
+//            }
+//
+//            '{' -> {
+//
+//
+//                // Returning Result.CONTINUE will cause inserting "{}" for unmatched '{'
+//                val offset = editor.caretModel.offset
+//                if (offset == 0) {
+//                    return Result.CONTINUE
+//                }
+//
+//                val iterator = editor.highlighter.createIterator(offset - 1)
+//                while (!iterator.atEnd() && iterator.tokenType === TokenType.WHITE_SPACE) {
+//                    iterator.retreat()
+//                }
+//
+//                if (iterator.atEnd() || iterator.tokenType !in CangJieTypedHandlerTokenSets.SUPPRESS_AUTO_INSERT_CLOSE_BRACE_AFTER) {
+//                    AutoPopupController.getInstance(project).autoPopupParameterInfo(editor, null)
+//                    return Result.CONTINUE
+//                }
+//
+//                val tokenBeforeBraceOffset = iterator.start
+//                val document = editor.document
+//                PsiDocumentManager.getInstance(project).commitDocument(document)
+//                val leaf = file.findElementAt(offset)
+//                if (leaf != null) {
+//                    val parent = leaf.parent
+//                    if (parent != null && parent.node.elementType in CangJieTypedHandlerTokenSets.CONTROL_FLOW_EXPRESSIONS) {
+//                        val nonWhitespaceSibling = FormatterUtil.getPreviousNonWhitespaceSibling(leaf.node)
+//                        if (nonWhitespaceSibling != null && nonWhitespaceSibling.startOffset == tokenBeforeBraceOffset) {
+//                            EditorModificationUtilEx.insertStringAtCaret(editor, "{", false, true)
+//                            TypedHandler.indentBrace(project, editor, '{')
+//                            return Result.STOP
+//                        }
+//                    }
+//
+//                    if (leaf.text == "}" && parent is CjFunctionLiteral && document.getLineNumber(offset) == document.getLineNumber(
+//                            parent.getTextRange().startOffset
+//                        )
+//                    ) {
+//                        EditorModificationUtilEx.insertStringAtCaret(editor, "{} ", false, false)
+//                        editor.caretModel.moveToOffset(offset + 1)
+//                        return Result.STOP
+//                    }
+//                }
+//            }
+//
+//            '.' -> autoPopupMemberLookup(project, editor)
+////            ':' -> autoPopupCallableReferenceLookup(project, editor)
+//            '[' -> autoPopupParameterInfo(project, editor)
+//            '@' -> autoPopupAt(project, editor)
         }
 
         return Result.CONTINUE
@@ -119,102 +116,113 @@ class CangJieTypedHandler : TypedHandlerDelegate() {
 
         if (file !is CjFile) return Result.CONTINUE
 
-        var previousDollarInStringOffset: Int? = null
-        if (isGlobalPreviousDollarInString) {
-            isGlobalPreviousDollarInString = false
-            previousDollarInStringOffset = editor.getUserData(PREVIOUS_IN_STRING_DOLLAR_TYPED_OFFSET_KEY)
-        }
+//        var previousDollarInStringOffset: Int? = null
+//        if (isGlobalPreviousDollarInString) {
+//            isGlobalPreviousDollarInString = false
+//            previousDollarInStringOffset = editor.getUserData(PREVIOUS_IN_STRING_DOLLAR_TYPED_OFFSET_KEY)
+//        }
+//        c == '(' ->{
+//            val offset = editor.caretModel.offset
+//            editor.document.insertString(offset, ")")
+//            editor.caretModel.moveToOffset(offset)
+//        }
 
-        editor.putUserData(PREVIOUS_IN_STRING_DOLLAR_TYPED_OFFSET_KEY, null)
+//
+//        editor.putUserData(PREVIOUS_IN_STRING_DOLLAR_TYPED_OFFSET_KEY, null)
         when {
+//            //        c == '(' ->{
+////            val offset = editor.caretModel.offset
+////            editor.document.insertString(offset, ")")
+////            editor.caretModel.moveToOffset(offset)
+////        }
             cangjieLTTyped -> {
                 cangjieLTTyped = false
                 LtGtTypingUtils.handleCangJieAutoCloseLT(editor)
 
                 return Result.STOP
             }
-
-//            c == ',' || c == ')' -> dataClassValParameterInsert(project, editor, file,  /*beforeType = */false)
-//            c == '{' && CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET -> {
-//                PsiDocumentManager.getInstance(project).commitDocument(editor.document)
-//                val offset = editor.caretModel.offset
-//                val previousElement = file.findElementAt(offset - 1)
-//                if (previousElement is LeafPsiElement && previousElement.elementType === CjTokens.LONG_TEMPLATE_ENTRY_START) {
-//                    val identifier = file.findElementAt(offset)
-//                        ?.safeAs<LeafPsiElement>()
-//                        ?.takeIf { it.elementType == CjTokens.IDENTIFIER }
-//                        ?: kotlin.run {
-//                            editor.document.insertString(offset, "}")
-//                            return Result.STOP
-//                        }
-//
-//                    val lastInLongTemplateEntry = previousElement.getParent().lastChild
-//                    val isSimpleLongTemplateEntry = lastInLongTemplateEntry is LeafPsiElement &&
-//                            lastInLongTemplateEntry.elementType === CjTokens.LONG_TEMPLATE_ENTRY_END &&
-//                            lastInLongTemplateEntry.getParent().textLength == identifier.textLength + "\${}".length
-//
-//                    if (!isSimpleLongTemplateEntry) {
-//                        val isAfterTypedDollar =
-//                            previousDollarInStringOffset != null && previousDollarInStringOffset.toInt() == offset - 1
-//                        if (isAfterTypedDollar) {
-//                            editor.document.insertString(offset, "}")
-//                            return Result.STOP
-//                        }
-//                    }
-//                }
-//            }
-
-            c == ':' -> {
-                if (autoIndentCase(editor, project, file, CjClassOrStruct::class.java) ||
-                    autoIndentCase(editor, project, file, CjOperationReferenceExpression::class.java)
-                ) {
-                    return Result.STOP
-                }
-            }
-
-            c == '.' -> {
-                if (autoIndentCase(editor, project, file, CjQualifiedExpression::class.java)) return Result.STOP
-            }
-
-            c == '|' -> {
-                if (autoIndentCase(
-                        editor,
-                        project,
-                        file,
-                        CjOperationReferenceExpression::class.java
-                    )
-                ) return Result.STOP
-            }
-
-            c == '&' -> {
-                if (autoIndentCase(
-                        editor,
-                        project,
-                        file,
-                        CjOperationReferenceExpression::class.java
-                    )
-                ) return Result.STOP
-            }
-
-//            c == '$' -> {
-//                val offset = editor.caretModel.offset
-//                val element = file.findElementAt(offset)
-//                if (element is LeafPsiElement && element.elementType === CjTokens.REGULAR_STRING_PART) {
-//                    editor.putUserData(PREVIOUS_IN_STRING_DOLLAR_TYPED_OFFSET_KEY, offset)
-//                    isGlobalPreviousDollarInString = true
-//                }
-//            }
-
-            c == '(' -> {
-                if (autoIndentCase(
-                        editor,
-                        project,
-                        file,
-                        CjPropertyAccessor::class.java,
-                        forFirstElement = false
-                    )
-                ) return Result.STOP
-            }
+////
+////            c == ',' || c == ')' -> dataClassValParameterInsert(project, editor, file,  /*beforeType = */false)
+////            c == '{' && CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET -> {
+////                PsiDocumentManager.getInstance(project).commitDocument(editor.document)
+////                val offset = editor.caretModel.offset
+////                val previousElement = file.findElementAt(offset - 1)
+////                if (previousElement is LeafPsiElement && previousElement.elementType === CjTokens.LONG_TEMPLATE_ENTRY_START) {
+////                    val identifier = file.findElementAt(offset)
+////                        ?.safeAs<LeafPsiElement>()
+////                        ?.takeIf { it.elementType == CjTokens.IDENTIFIER }
+////                        ?: kotlin.run {
+////                            editor.document.insertString(offset, "}")
+////                            return Result.STOP
+////                        }
+////
+////                    val lastInLongTemplateEntry = previousElement.getParent().lastChild
+////                    val isSimpleLongTemplateEntry = lastInLongTemplateEntry is LeafPsiElement &&
+////                            lastInLongTemplateEntry.elementType === CjTokens.LONG_TEMPLATE_ENTRY_END &&
+////                            lastInLongTemplateEntry.getParent().textLength == identifier.textLength + "\${}".length
+////
+////                    if (!isSimpleLongTemplateEntry) {
+////                        val isAfterTypedDollar =
+////                            previousDollarInStringOffset != null && previousDollarInStringOffset.toInt() == offset - 1
+////                        if (isAfterTypedDollar) {
+////                            editor.document.insertString(offset, "}")
+////                            return Result.STOP
+////                        }
+////                    }
+////                }
+////            }
+////
+////            c == ':' -> {
+////                if (autoIndentCase(editor, project, file, CjClassOrStruct::class.java) ||
+////                    autoIndentCase(editor, project, file, CjOperationReferenceExpression::class.java)
+////                ) {
+////                    return Result.STOP
+////                }
+////            }
+////
+////            c == '.' -> {
+////                if (autoIndentCase(editor, project, file, CjQualifiedExpression::class.java)) return Result.STOP
+////            }
+////
+////            c == '|' -> {
+////                if (autoIndentCase(
+////                        editor,
+////                        project,
+////                        file,
+////                        CjOperationReferenceExpression::class.java
+////                    )
+////                ) return Result.STOP
+////            }
+////
+////            c == '&' -> {
+////                if (autoIndentCase(
+////                        editor,
+////                        project,
+////                        file,
+////                        CjOperationReferenceExpression::class.java
+////                    )
+////                ) return Result.STOP
+////            }
+//////
+//////            c == '$' -> {
+//////                val offset = editor.caretModel.offset
+//////                val element = file.findElementAt(offset)
+//////                if (element is LeafPsiElement && element.elementType === CjTokens.REGULAR_STRING_PART) {
+//////                    editor.putUserData(PREVIOUS_IN_STRING_DOLLAR_TYPED_OFFSET_KEY, offset)
+//////                    isGlobalPreviousDollarInString = true
+//////                }
+//////            }
+////
+////            c == '(' -> {
+////                if (autoIndentCase(
+////                        editor,
+////                        project,
+////                        file,
+////                        CjPropertyAccessor::class.java,
+////                        forFirstElement = false
+////                    )
+////                ) return Result.STOP
+////            }
         }
 
         return Result.CONTINUE
