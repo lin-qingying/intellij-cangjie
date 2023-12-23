@@ -8,13 +8,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="bate-1.0">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/cidr/execution/debugger/CidrDebugProcess.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/cidr/execution/debugger/CidrLocalDebugProcess.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/cidr/execution/debugger/backend/DebuggerDriver.kt" beforeDir="false" />
-    </list>
+    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="bate-1.0 add README.md" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -228,10 +222,7 @@
       <recent name="com.huawei.cangjie1.renderer" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.Run">
-    <configuration name="Cjc (1)" type="CjcRunConfigurationType" temporary="true">
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="Gradle.intellij-cangjie [build]">
     <configuration name="Run" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -254,12 +245,49 @@
       <RunAsTest>false</RunAsTest>
       <method v="2" />
     </configuration>
-    <configuration name="SocketTestKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="dap.SocketTestKt" />
-      <module name="intellij-cangjie.main" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
+    <configuration name="intellij-cangjie [build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="build" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="intellij-cangjie [clean]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="clean" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
     </configuration>
     <configuration name="TestKt (1)" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="TestKt" />
@@ -276,17 +304,19 @@
       </method>
     </configuration>
     <list>
+      <item itemvalue="Gradle.intellij-cangjie [build]" />
+      <item itemvalue="Gradle.intellij-cangjie [clean]" />
       <item itemvalue="Gradle.Run" />
       <item itemvalue="Kotlin.TestKt (1)" />
-      <item itemvalue="Kotlin.SocketTestKt" />
       <item itemvalue="Kotlin.TestKt" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Gradle.intellij-cangjie [build]" />
+        <item itemvalue="Gradle.intellij-cangjie [clean]" />
         <item itemvalue="Gradle.Run" />
         <item itemvalue="Kotlin.TestKt (1)" />
         <item itemvalue="Kotlin.TestKt" />
-        <item itemvalue="Kotlin.SocketTestKt" />
       </list>
     </recent_temporary>
   </component>
@@ -654,7 +684,7 @@
       <workItem from="1702563977868" duration="3995000" />
       <workItem from="1702726553576" duration="5847000" />
       <workItem from="1703213867664" duration="17338000" />
-      <workItem from="1703328590773" duration="6543000" />
+      <workItem from="1703328590773" duration="6854000" />
     </task>
     <task id="LOCAL-00001" summary="语法分析">
       <option name="closed" value="true" />
@@ -1008,7 +1038,15 @@
       <option name="project" value="LOCAL" />
       <updated>1703332959593</updated>
     </task>
-    <option name="localTasksCounter" value="45" />
+    <task id="LOCAL-00045" summary="bate-1.0 add README.md">
+      <option name="closed" value="true" />
+      <created>1703335341096</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1703335341096</updated>
+    </task>
+    <option name="localTasksCounter" value="46" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1048,7 +1086,8 @@
     <MESSAGE value="develop" />
     <MESSAGE value="debugger" />
     <MESSAGE value="bate-1.0" />
-    <option name="LAST_COMMIT_MESSAGE" value="bate-1.0" />
+    <MESSAGE value="bate-1.0 add README.md" />
+    <option name="LAST_COMMIT_MESSAGE" value="bate-1.0 add README.md" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
