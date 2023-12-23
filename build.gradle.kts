@@ -29,7 +29,7 @@ sourceSets {
 
 
 group = "com.huawei.cangjie"
-version = "bate-1.0"
+version = "beta-1.0"
 val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
 
 repositories {
