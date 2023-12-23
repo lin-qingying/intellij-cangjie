@@ -25,7 +25,3 @@
 如果您发现任何问题或缺少功能，欢迎您为插件做出贡献。
 
 
-[CONTRIBUTING.md]: CONTRIBUTING.md
-
-[ARCHITECTURE.md]: ARCHITECTURE.md
- 
