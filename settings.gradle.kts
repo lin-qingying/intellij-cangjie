@@ -1,21 +1,14 @@
 pluginManagement {
 
     repositories {
-
+        maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
         mavenCentral()
-
-
         gradlePluginPortal()
-
     }
 }
 
-
-
-
-
-
 rootProject.name = "intellij-cangjie"
+
 //include("plugin")
 // Configure Gradle Build Cache. It is enabled in `gradle.properties` via `org.gradle.caching`.
 //buildCache {
