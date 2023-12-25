@@ -13,6 +13,11 @@ import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
 import  com.huawei.cangjie.lexer.CjTokens;
 public class CjPsiUtil {
 
+
+    public static boolean isStatementContainer(@Nullable PsiElement container) {
+        return container instanceof CjBlockExpression ||
+                container instanceof CjContainerNodeForControlStructureBody  ;
+    }
     public static boolean isAssignment(@NotNull PsiElement element) {
         return element instanceof CjBinaryExpression &&
                 CjTokens.ALL_ASSIGNMENTS.contains(((CjBinaryExpression) element).getOperationToken());

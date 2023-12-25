@@ -15,6 +15,8 @@ public class CjNodeType extends IElementType {
     private final Constructor<? extends CjElement> myPsiFactory;
 
     public CjNodeType(@NotNull @NonNls String debugName, Class<? extends CjElement> psiClass) {
+
+
         super(debugName, CangJieLanguage.INSTANCE);
         try {
             myPsiFactory = psiClass != null ? psiClass.getConstructor(ASTNode.class) : null;

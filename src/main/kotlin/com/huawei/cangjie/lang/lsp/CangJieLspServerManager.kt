@@ -31,6 +31,8 @@ object CangJieLspServerManager {
      */
     fun copyLspServerToPath() {
 
+
+
         val classLoader = this::class.java.classLoader
 
         val lspserverPath = if (SystemInfo.isWindows) {
@@ -87,8 +89,10 @@ object CangJieLspServerManager {
         LspServerManagerImpl.getInstanceImpl(project).stopServers(CangJieLspServerSupportProvider::class.java)
     }
 
+ 
 
     fun getCommandLine(): GeneralCommandLine {
+
 
 //        关闭现有的lspserver
 //        CangJieLspServerManager.shutdownAllServers()

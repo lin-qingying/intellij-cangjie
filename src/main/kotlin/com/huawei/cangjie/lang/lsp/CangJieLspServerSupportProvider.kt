@@ -78,6 +78,8 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 //    }
 
 
+
+
     override fun createInitializeParams(): InitializeParams {
 
         val initializeParams = super.createInitializeParams()

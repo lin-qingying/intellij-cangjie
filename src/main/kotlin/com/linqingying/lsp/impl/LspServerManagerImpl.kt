@@ -87,10 +87,6 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
                 val servers = getServersForProvider(providerClass)
                 val descriptors = SmartList<LspServerDescriptor>()
 
-                if (descriptors == null) {
-                    println()
-                }
-
                 val openFiles = FileEditorManager.getInstance(project).openFiles
                 for (file in openFiles) {
                     ProgressManager.checkCanceled()

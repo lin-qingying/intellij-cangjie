@@ -9,8 +9,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="beta-1.0">
-      <change beforePath="$PROJECT_DIR$/ARCHITECTURE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/CjNodeType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/CjNodeType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/completion/CangJieCompletionContributor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/completion/CangJieCompletionContributor.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerManager.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjPsiUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjPsiUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/Lsp4jClient.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/Lsp4jClient.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerManagerImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerManagerImpl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/completion/LspCompletionContributor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/completion/LspCompletionContributor.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspRequestExecutorImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspRequestExecutorImpl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/messages/CangJieBundle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/messages/CangJieBundle.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -145,13 +156,12 @@
     "UI_DESIGNER_EDITOR_MODE.PaletteManager.WIDTH": "370",
     "UI_DESIGNER_EDITOR_MODE.UIDesignerToolWindowManager.SHOW": "true",
     "WebServerToolWindowFactoryState": "false",
-    "android.gradle.sync.needed": "true",
     "dart.analysis.tool.window.visible": "false",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
     "jdk.selected.JAVA_MODULE": "zulu-17",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/Code/idea/intellij-cangjie",
+    "last_opened_file_path": "D:/Code/idea/intellij-cangjie/src/main/resources",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
@@ -161,7 +171,7 @@
     "project.structure.proportion": "0.17",
     "project.structure.side.proportion": "0.3678161",
     "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "通义灵码",
+    "settings.editor.selected.configurable": "editing.templates",
     "two.files.diff.last.used.file": "D:/Code/idea/intellij-cangjie/log/vscode 2l.log",
     "vue.rearranger.settings.migration": "true"
   }
@@ -183,11 +193,11 @@
       <recent name="com.huawei.cangjie.lang.core.parser" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\resources" />
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\resources\META-INF" />
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\resources\messages" />
       <recent name="D:\Code\idea\intellij-cangjie" />
       <recent name="D:\Code\idea\intellij-cangjie\log" />
-      <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\com\debugger\runconfig\breakpoint" />
-      <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\com\debugger\runconfig\dap" />
-      <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\com\huawei\cangjie\idea\run\cjpm\runconfig\buildtool" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\Code\idea\intellij-cangjie\vscode" />
@@ -211,21 +221,21 @@
       <recent name="com.huawei.cangjie.lang" />
     </key>
     <key name="CopyKotlinDeclarationDialog.RECENTS_KEY">
+      <recent name="com.huawei.cangjie.idea.liveTemplates" />
       <recent name="com.huawei.cangjie.idea.project.tools.projectWizard.wizard" />
       <recent name="com.huawei.cangjie.idea.editor" />
       <recent name="com.huawei.cangjie.idea.inspections" />
       <recent name="com.huawei.cangjie.config" />
-      <recent name="com.huawei.cangjie.idea.formatter.lineIndent" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.huawei.cangjie.idea.liveTemplates" />
       <recent name="com.huawei.cangjie.idea.formatter" />
       <recent name="com.huawei.cangjie.utils" />
       <recent name="com.huawei.cangjie.descriptors" />
       <recent name="com.huawei.cangjie.resolve.check" />
-      <recent name="com.huawei.cangjie1.renderer" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.intellij-cangjie [build]">
+  <component name="RunManager" selected="Gradle.Run">
     <configuration name="Run" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -315,9 +325,9 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Gradle.Run" />
         <item itemvalue="Gradle.intellij-cangjie [build]" />
         <item itemvalue="Gradle.intellij-cangjie [clean]" />
-        <item itemvalue="Gradle.Run" />
         <item itemvalue="Kotlin.TestKt (1)" />
         <item itemvalue="Kotlin.TestKt" />
       </list>
@@ -687,7 +697,9 @@
       <workItem from="1702563977868" duration="3995000" />
       <workItem from="1702726553576" duration="5847000" />
       <workItem from="1703213867664" duration="17338000" />
-      <workItem from="1703328590773" duration="8403000" />
+      <workItem from="1703328590773" duration="8843000" />
+      <workItem from="1703484641166" duration="6560000" />
+      <workItem from="1703497735541" duration="7689000" />
     </task>
     <task id="LOCAL-00001" summary="语法分析">
       <option name="closed" value="true" />
@@ -1057,7 +1069,15 @@
       <option name="project" value="LOCAL" />
       <updated>1703337220378</updated>
     </task>
-    <option name="localTasksCounter" value="47" />
+    <task id="LOCAL-00047" summary="beta-1.0">
+      <option name="closed" value="true" />
+      <created>1703337243504</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1703337243504</updated>
+    </task>
+    <option name="localTasksCounter" value="48" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1121,6 +1141,16 @@
           <line>692</line>
           <option name="timeStamp" value="18" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/completion/CangJieCompletionContributor.kt</url>
+          <line>47</line>
+          <option name="timeStamp" value="20" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/completion/CangJieCompletionContributor.kt</url>
+          <line>99</line>
+          <option name="timeStamp" value="21" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <pin-to-top-manager>
@@ -1128,12 +1158,6 @@
         <PinnedItemInfo parentTag="com.intellij.psi.impl.source.CharTableImpl" memberName="entries" />
       </pinned-members>
     </pin-to-top-manager>
-    <watches-manager>
-      <configuration name="GradleRunConfiguration">
-        <watch expression="editor.highlighter.createIterator(offset).tokenType" language="kotlin" />
-        <watch expression="editor.highlighter.createIterator(offset -1).tokenType" language="kotlin" />
-      </configuration>
-    </watches-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
