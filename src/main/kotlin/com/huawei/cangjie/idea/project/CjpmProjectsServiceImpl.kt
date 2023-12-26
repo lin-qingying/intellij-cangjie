@@ -391,7 +391,7 @@
 //        get() = false
 //
 //    enum class TaskType(val canBeCanceledByOther: Boolean = true) {
-//        CARGO_SYNC(canBeCanceledByOther = false),
+//        CJPM_SYNC(canBeCanceledByOther = false),
 //        MACROS_CLEAR(canBeCanceledByOther = false),
 //        MACROS_UNPROCESSED,
 //        MACROS_FULL,
