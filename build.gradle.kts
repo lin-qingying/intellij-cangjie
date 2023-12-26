@@ -14,25 +14,20 @@ plugins {
 sourceSets {
     main {
         java {
-
             srcDirs("src/main/kotlin", "src/main/gen")
         }
         kotlin {
             srcDirs("testData/src/main/kotlin")
-
-
         }
     }
-
 }
-
-
 
 group = "com.huawei.cangjie"
 version = "beta-1.0"
 val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
 
 repositories {
+    maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
     mavenCentral()
     maven {
         setUrl("https://jitpack.io")
@@ -40,10 +35,8 @@ repositories {
 //        credentials {
 //
 //        }
-
     }
 }
-
 
 val Project.dependencyCachePath
     get(): String {
