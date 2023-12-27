@@ -1,4 +1,4 @@
-.gradle
+ .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -50,3 +50,4 @@ bin/
 /.run/
 /build.gradle.kts3
 /src/main/gen/
+/.gradle/
