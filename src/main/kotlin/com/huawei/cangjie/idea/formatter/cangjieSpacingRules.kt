@@ -314,7 +314,7 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
 
 
 //            after(TYPE_ALIAS_KEYWORD).spaces(1)
-
+            after(CONST_KEYWORD).spaces(1)
             after(LET_KEYWORD).spaces(1)
             after(VAR_KEYWORD).spaces(1)
             betweenInside(TYPE_PARAMETER_LIST, IDENTIFIER, PROPERTY).spaces(1)

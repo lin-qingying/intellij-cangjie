@@ -1,4 +1,4 @@
-.gradle
+ .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -8,6 +8,9 @@ build/
 .idea/modules.xml
 .idea/jarRepositories.xml
 .idea/compiler.xml
+.idea/misc.xml
+.idea/gradle.xml
+.idea/workspace.xml
 .idea/libraries/
 *.iws
 *.iml
@@ -47,3 +50,4 @@ bin/
 /.run/
 /build.gradle.kts3
 /src/main/gen/
+/.gradle/

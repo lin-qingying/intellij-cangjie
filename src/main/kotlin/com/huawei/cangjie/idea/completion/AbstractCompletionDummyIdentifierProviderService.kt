@@ -279,7 +279,7 @@ abstract class AbstractCompletionDummyIdentifierProviderService : CompletionDumm
 //            CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED + "$" // 添加 '$' 忽略插入符号后的上下文
         CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED
         private val declarationKeywords =
-            TokenSet.create(CjTokens.FUNC_KEYWORD, CjTokens.LET_KEYWORD, CjTokens.VAR_KEYWORD)
+            TokenSet.create(CjTokens.FUNC_KEYWORD, CjTokens.LET_KEYWORD, CjTokens.VAR_KEYWORD,CjTokens.CONST_KEYWORD)
         private val declarationTokens = TokenSet.orSet(
             TokenSet.create(
                 CjTokens.IDENTIFIER, CjTokens.LT, CjTokens.GT,

@@ -134,19 +134,21 @@
                 serviceInterface="com.huawei.cangjie.psi.stubs.elements.StubIndexService"
                 serviceImplementation="com.huawei.cangjie.idea.stubindex.IdeStubIndexService"/>
 
+<!--        <applicationService-->
+<!--                serviceInterface="com.huawei.cangjie.idea.liveTemplates.ShortenReferencesFacility"-->
+<!--                serviceImplementation="com.huawei.cangjie.idea.liveTemplates.CangJieShortenReferencesFacility"/>-->
 
 <!--        <projectService serviceInterface="com.huawei.cangjie.idea.project.CjpmProjectsService"-->
 <!--                        serviceImplementation="com.huawei.cangjie.idea.project.CjpmProjectsServiceImpl"-->
 <!--                      />-->
 
 <!--        <projectService serviceImplementation="com.huawei.cangjie.idea.run.cjpm.back.CangJieProjectSettingsService"/>-->
-
-        <!--        <completion.contributor-->
-        <!--                language="CangJie"-->
-        <!--                id="CangJieCompletionContributor"-->
-        <!--                order="first, after liveTemplates"-->
-
-        <!--                implementationClass="com.huawei.cangjie.idea.completion.CangJieCompletionContributor"/>-->
+<!--代码补全-->
+                <completion.contributor
+                        language="CangJie"
+                        id="CangJieCompletionContributor"
+                        order="first, after liveTemplates"
+                        implementationClass="com.huawei.cangjie.idea.completion.CangJieCompletionContributor"/>
 
         <!--        <applicationService serviceInterface="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicy"-->
         <!--                        serviceImplementation="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>-->

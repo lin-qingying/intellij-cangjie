@@ -14,6 +14,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbAware
 import org.eclipse.lsp4j.CompletionItem
+import org.eclipse.lsp4j.InsertTextFormat
 import org.eclipse.lsp4j.Position
 import org.eclipse.lsp4j.Range
 
@@ -63,7 +64,17 @@ class LspCompletionContributor : CompletionContributor(), DumbAware {
             null
         }
     }
-
+    fun processTemplate(template: String): String {
+        val regex = Regex("\\$\\{([^}]*)\\}") // Define a regex to match content wrapped in ${}
+        return regex.replace(template) {
+            // Extract the content inside ${} and replace it with actual content
+            val (matchedContent) = it.destructured
+            // Replace matched content with actual content, you would need to implement this logic
+            // For example, you can use a map to look up the actual content based on the matched content
+            // Replace matchedContent with actualContent
+            "actualContent"
+        }
+    }
     private fun processCompletionItems(
         lspCompletionSupport: LspCompletionSupport,
         completionParameters: CompletionParameters,
@@ -77,6 +88,15 @@ class LspCompletionContributor : CompletionContributor(), DumbAware {
         val lspPosition = getLsp4jPosition(document, offset)
 
         for (item in completionItems) {
+//
+//            if(item.insertTextFormat == InsertTextFormat.Snippet){
+////               TODO 处理模板
+////              将 ${}包裹的内容作为模板，在插入时，将其替换为真实内容
+////            item.insertText = processTemplate(item.insertText)
+////println()
+//            }
+
+
             val lookupElement = lspCompletionSupport.createLookupElement(completionParameters, item)
             if (lookupElement != null) {
                 val range = getRange(item)

@@ -1,11 +1,6 @@
 package com.linqingying.lsp.api
 
 
-
-
-
-
-
 import org.eclipse.lsp4j.*
 import org.eclipse.lsp4j.services.LanguageClient
 import org.jetbrains.annotations.ApiStatus
@@ -24,19 +19,29 @@ import java.util.concurrent.CompletableFuture
  *    fun fooBar(fooBar: FooBarNotification) { ... }
  */
 @ApiStatus.OverrideOnly
-open class Lsp4jClient(private val serverNotificationsHandler:  LspServerNotificationsHandler) : LanguageClient {
+open class Lsp4jClient(private val serverNotificationsHandler: LspServerNotificationsHandler) : LanguageClient {
     final override fun applyEdit(params: ApplyWorkspaceEditParams) = serverNotificationsHandler.applyEdit(params)
-    final override fun registerCapability(params: RegistrationParams) = serverNotificationsHandler.registerCapability(params)
-    final override fun unregisterCapability(params: UnregistrationParams) = serverNotificationsHandler.unregisterCapability(params)
+    final override fun registerCapability(params: RegistrationParams) =
+        serverNotificationsHandler.registerCapability(params)
+
+    final override fun unregisterCapability(params: UnregistrationParams) =
+        serverNotificationsHandler.unregisterCapability(params)
+
     final override fun telemetryEvent(`object`: Any) = serverNotificationsHandler.telemetryEvent(`object`)
-    final override fun publishDiagnostics(params: PublishDiagnosticsParams) = serverNotificationsHandler.publishDiagnostics(params)
+    final override fun publishDiagnostics(params: PublishDiagnosticsParams) =
+        serverNotificationsHandler.publishDiagnostics(params)
+
     final override fun showMessage(params: MessageParams) = serverNotificationsHandler.showMessage(params)
-    final override fun showMessageRequest(params: ShowMessageRequestParams) = serverNotificationsHandler.showMessageRequest(params)
+    final override fun showMessageRequest(params: ShowMessageRequestParams) =
+        serverNotificationsHandler.showMessageRequest(params)
+
     final override fun showDocument(params: ShowDocumentParams) = serverNotificationsHandler.showDocument(params)
     final override fun logMessage(params: MessageParams) = serverNotificationsHandler.logMessage(params)
     final override fun workspaceFolders() = serverNotificationsHandler.workspaceFolders()
     final override fun configuration(params: ConfigurationParams) = serverNotificationsHandler.configuration(params)
-    final override fun createProgress(params: WorkDoneProgressCreateParams) = serverNotificationsHandler.createProgress(params)
+    final override fun createProgress(params: WorkDoneProgressCreateParams) =
+        serverNotificationsHandler.createProgress(params)
+
     final override fun notifyProgress(params: ProgressParams) = serverNotificationsHandler.notifyProgress(params)
     final override fun logTrace(params: LogTraceParams) = serverNotificationsHandler.logTrace(params)
     final override fun refreshSemanticTokens() = serverNotificationsHandler.refreshSemanticTokens()
@@ -48,10 +53,10 @@ open class Lsp4jClient(private val serverNotificationsHandler:  LspServerNotific
 
 
 /**
- * Plugins don't need to use this interface.
+ *插件不需要使用该接口。
  *
- * Its internal implementation handles all standard (documented in the official LSP specification) requests and notifications
- * that the LSP server sends to the IDE.
+ *其内部实现处理所有标准(记录在官方LSP规范中)请求和通知。
+ *LSP服务器发送到IDE。
  */
 @ApiStatus.OverrideOnly
 interface LspServerNotificationsHandler {

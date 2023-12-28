@@ -31,7 +31,7 @@ object CangJieDebuggerServerManager {
     /**
      * 调试端口
      */
-    val DEBUGPORT = 9995
+    val DEBUGPORT = 65500
 
     /**
      * 日志路径
@@ -78,7 +78,7 @@ object CangJieDebuggerServerManager {
     fun getDebugServerProcess(): BaseProcessHandler<*> {
 
 //        删除日志文件
-        removeLogFiles()
+//        removeLogFiles()
 
         val processHandler = LspProcessHandler(getCommandLine())
         processHandler.startNotify()
@@ -114,14 +114,13 @@ object CangJieDebuggerServerManager {
             addParameter("--logpath=$LOGPATH".toSystemPath())
             addParameter("--debuggertype=$DEBUGGERTYPE")
 
-            environment.put("CANGJIE_HOME", sdk?.homePath?.toSystemPath())
+            environment["CANGJIE_HOME"] = sdk?.homePath?.toSystemPath()
 //            environment.put("PATH", "${sdk?.homePath}/bin:${sdk?.homePath}/tools/bin:\\\${env:PATH}")
-            environment.put(
-                "PATH",
-                "${sdk?.homePath}/bin;${sdk?.homePath}/tools/bin;".toSystemPath() + System.getenv("PATH")
-            )
+//            environment["PATH"] = "${sdk?.homePath}/bin;${sdk?.homePath}/tools/bin;".toSystemPath() + System.getenv("PATH")
 //            ${sdk?.homePath}/runtime/lib/windows_x86_64_llvm;
-            environment.put("LD_LIBRARY_PATH", (sdk?.homePath + DEFUALTLIBLLDBPATH).toSystemPath())
+            environment["LD_LIBRARY_PATH"] = (sdk?.homePath + DEFUALTLIBLLDBPATH).toSystemPath()
+//            //                        TODO runtime路径需要判读系统
+            environment["PATH"] = "${sdk?.homePath}/runtime/lib/windows_x86_64_llvm;${sdk?.homePath}/bin;${sdk?.homePath}/tools/bin;${System.getenv("PATH")}"
 
         }
     }
@@ -170,8 +169,10 @@ object CangJieDebuggerServerManager {
 
 
 fun String.toSystemPath(): String {
-    if (SystemInfo.isWindows) {
-        return this.replace("/", "\\")
+    return if (SystemInfo.isWindows) {
+        this.replace("/", "\\")
+    }else{
+        this
     }
-    return this
+
 }

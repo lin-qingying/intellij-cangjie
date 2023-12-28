@@ -13,14 +13,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-import static com.huawei.cangjie.lexer.CjTokens.LET_KEYWORD;
-import static com.huawei.cangjie.lexer.CjTokens.VAR_KEYWORD;
+import com.huawei.cangjie.CjNodeTypes;
 
- import com.huawei.cangjie.CjNodeTypes;
+import static com.huawei.cangjie.lexer.CjTokens.*;
+
 @SuppressWarnings("deprecation")
 public class CjDestructuringDeclarationEntry extends CjNamedDeclarationNotStubbed implements CjVariableDeclaration {
 
-    private static final TokenSet VAL_VAR_KEYWORDS = TokenSet.create(LET_KEYWORD, VAR_KEYWORD);
+    private static final TokenSet VAL_VAR_KEYWORDS = TokenSet.create(LET_KEYWORD, VAR_KEYWORD,CONST_KEYWORD);
 
     public CjDestructuringDeclarationEntry(@NotNull ASTNode node) {
         super(node);

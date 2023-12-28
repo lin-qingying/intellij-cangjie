@@ -64,11 +64,6 @@ open class LspRequestExecutorImpl(private val lspServer: LspServerImpl) : LspReq
     @RequiresReadLock
     @RequiresBackgroundThread
     fun getCompletionItems(file: VirtualFile, offset: Int, isAutoPopup: Boolean): List<CompletionItem> {
-
-
-
-
-
         return processRequest(file, offset) { hostFile, hostDocument, hostOffset ->
             LspCompletionRequest(lspServer, hostFile, hostDocument, hostOffset, isAutoPopup)
         } ?: emptyList()

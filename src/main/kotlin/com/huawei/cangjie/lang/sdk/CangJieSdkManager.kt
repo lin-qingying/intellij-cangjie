@@ -12,9 +12,9 @@ object CangJieSdkManager {
     private val logger = Logger.getInstance(CangJieSdkManager::class.java)
 
 
-    val sdkPath = getProjectSdk()?.homePath ?: ""
+    val sdkPath get()  = getProjectSdk()?.homePath ?: ""
 
-val sdkVersion = getProjectSdk()?.versionString ?: ""
+    val sdkVersion get()  =  getProjectSdk()?.versionString ?: ""
     fun getProjectSdkType(): CangJieSdkType? {
         return getProjectSdk()?.sdkType as? CangJieSdkType
     }
@@ -24,12 +24,8 @@ val sdkVersion = getProjectSdk()?.versionString ?: ""
      */
     fun getProjectSdk(): Sdk? {
 
-        val project = CangJieProjectManager.getCurrentProject()
-        if (project == null) {
-            logger.info("project is null")
-            return null
-        }
-        val sdk = ProjectRootManager.getInstance(project).projectSdk ?: return null
+        val project = CangJieProjectManager.getProject()
+        val sdk = project?.let { ProjectRootManager.getInstance(it).projectSdk } ?: return null
         logger.info(sdk.name)
         logger.info(sdk.sdkType.toString())
         return if (sdk.sdkType is CangJieSdkType) sdk else null

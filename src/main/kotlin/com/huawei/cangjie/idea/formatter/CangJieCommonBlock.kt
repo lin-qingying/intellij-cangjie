@@ -998,7 +998,8 @@ private val INDENT_RULES = arrayOf(
 
     strategy("Indent for parts")
         .within(PROPERTY, FUNC, DESTRUCTURING_DECLARATION, SECONDARY_CONSTRUCTOR)
-        .notForType(BLOCK, FUNC_KEYWORD, LET_KEYWORD, VAR_KEYWORD, INIT_KEYWORD, RPAR, EOL_COMMENT, CONTEXT_RECEIVER_LIST, MODIFIER_LIST)
+        .notForType(BLOCK, FUNC_KEYWORD,
+            CONST_KEYWORD, LET_KEYWORD, VAR_KEYWORD, INIT_KEYWORD, RPAR, EOL_COMMENT, CONTEXT_RECEIVER_LIST, MODIFIER_LIST)
         .set(Indent.getContinuationWithoutFirstIndent()),
 
     strategy("Chained calls")

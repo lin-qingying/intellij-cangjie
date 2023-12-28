@@ -86,12 +86,12 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
                 "$path/bin/cjc" + if (System.getProperty("os.name").contains("Windows")) ".exe" else ""
 
 //            执行path/tools/bin/cjpm -v
-            val process2 = ProcessBuilder("$path/tools/bin/cjpm", "-v").start()
-            val reader2 = BufferedReader(InputStreamReader(process2.inputStream))
-            val output2 = reader2.readLine()
-            // 取第一个冒号后面的内容
-            val version2 = output2.split(":")[1].trim()
-            sdkAdditionalData.cjpmVersion = version2
+//            val process2 = ProcessBuilder("$path/tools/bin/cjpm", "-v").start()
+//            val reader2 = BufferedReader(InputStreamReader(process2.inputStream))
+//            val output2 = reader2.readLine()
+//            // 取第一个冒号后面的内容
+//            val version2 = output2.split(":")[1].trim()
+//            sdkAdditionalData.cjpmVersion = version2
             sdkAdditionalData.cjpmPath =
                 "$path/tools/bin/cjpm" + if (System.getProperty("os.name").contains("Windows")) ".exe" else ""
 

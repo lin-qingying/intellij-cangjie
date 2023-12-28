@@ -16,7 +16,7 @@ import com.huawei.cangjie.CjNodeTypes;
 import static com.huawei.cangjie.lexer.CjTokens.*;
 
 public class CjDestructuringDeclaration extends CjDeclarationImpl implements CjLetVarKeywordOwner, CjDeclarationWithInitializer {
-    private static final TokenSet VAL_VAR_KEYWORDS = TokenSet.create(LET_KEYWORD, VAR_KEYWORD);
+    private static final TokenSet VAL_VAR_KEYWORDS = TokenSet.create(LET_KEYWORD, VAR_KEYWORD,CONST_KEYWORD);
 
     public CjDestructuringDeclaration(@NotNull ASTNode node) {
         super(node);
