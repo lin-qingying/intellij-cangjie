@@ -49,6 +49,7 @@ public interface CjTokens {
     int RETURN_KEYWORD_Id = 33;
     int BREAK_KEYWORD_Id = 34;
     int CONTINUE_KEYWORD_Id = 35;
+    int CONST_KEYWORD_Id = 36;
 
     int IF_KEYWORD_Id = 37;
     int TRY_KEYWORD_Id = 38;
@@ -119,7 +120,7 @@ public interface CjTokens {
     int SET_KEYWORD_Id = 109;
 
     int INIT_KEYWORD_Id = 111;
-
+    int SEALED_KEYWORD_Id = 112;
     int ABSTRACT_KEYWORD_Id = 113;
     int ENUM_KEYWORD_Id = 114;
 
@@ -219,6 +220,7 @@ public interface CjTokens {
     CjKeywordToken SUPER_KEYWORD = CjKeywordToken.keyword("super", SUPER_KEYWORD_Id);
     CjKeywordToken LET_KEYWORD = CjKeywordToken.keyword("let", LET_KEYWORD_Id);
     CjKeywordToken VAR_KEYWORD = CjKeywordToken.keyword("var", VAR_KEYWORD_Id);
+    CjKeywordToken CONST_KEYWORD = CjKeywordToken.keyword("const", CONST_KEYWORD_Id);
 
     CjKeywordToken MAIN_KEYWORD = CjKeywordToken.keyword("main", MAIN_KEYWORD_Id);
     CjKeywordToken FUNC_KEYWORD = CjKeywordToken.keyword("func", FUNC_KEYWORD_Id);
@@ -346,6 +348,7 @@ public interface CjTokens {
     CjKeywordToken CHAR_KEYWORD = CjKeywordToken.keyword("Char", CHAR_Id);
     CjKeywordToken UNIT_KEYWORD = CjKeywordToken.keyword("Unit", UNIT_Id);
 
+    CjModifierKeywordToken SEALED_KEYWORD = CjModifierKeywordToken.softKeywordModifier("sealed", SEALED_KEYWORD_Id);
 
     CjModifierKeywordToken ABSTRACT_KEYWORD = CjModifierKeywordToken.softKeywordModifier("abstract", ABSTRACT_KEYWORD_Id);
     CjModifierKeywordToken OPEN_KEYWORD = CjModifierKeywordToken.softKeywordModifier("open", OPEN_KEYWORD_Id);
@@ -368,7 +371,7 @@ public interface CjTokens {
 
 
     TokenSet KEYWORDS = TokenSet.create(PACKAGE_KEYWORD, AS_KEYWORD, CLASS_KEYWORD, INTERFACE_KEYWORD,
-            THIS_KEYWORD, SUPER_KEYWORD, LET_KEYWORD, VAR_KEYWORD, FUNC_KEYWORD, FOR_KEYWORD,
+            THIS_KEYWORD, SUPER_KEYWORD, LET_KEYWORD, VAR_KEYWORD, CONST_KEYWORD,FUNC_KEYWORD, FOR_KEYWORD,
             MAIN_KEYWORD, STRUCT_KEYWORD, EXTEND_KEYWORD,
             TRUE_KEYWORD, FALSE_KEYWORD, IS_KEYWORD,
             IN_KEYWORD, THROW_KEYWORD, RETURN_KEYWORD, BREAK_KEYWORD, CONTINUE_KEYWORD, IF_KEYWORD,
@@ -391,7 +394,8 @@ public interface CjTokens {
 
     TokenSet SOFT_KEYWORDS = TokenSet.create(GET_KEYWORD,
             SET_KEYWORD, OPEN_KEYWORD,
-            ABSTRACT_KEYWORD, UNDERLINE
+            ABSTRACT_KEYWORD, UNDERLINE,
+            SEALED_KEYWORD
 
     );
 
@@ -409,7 +413,7 @@ public interface CjTokens {
                     STATIC_KEYWORD,
                     MUT_KEYWORD,
                     OPERATOR_KEYWORD,
-
+                    SEALED_KEYWORD
             };
 
     TokenSet MODIFIER_KEYWORDS = TokenSet.create(MODIFIER_KEYWORDS_ARRAY);

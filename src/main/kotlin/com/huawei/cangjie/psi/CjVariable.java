@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
+import static com.huawei.cangjie.lexer.CjTokens.CONST_KEYWORD;
 import static com.huawei.cangjie.lexer.CjTokens.EQ;
 
 
@@ -114,7 +115,7 @@ public class CjVariable extends CjTypeParameterListOwnerStub<CangJieVariableStub
 
         return getNode().findChildByType(CjTokens.VAR_KEYWORD) != null;
     }
-    private static final TokenSet LET_VAR_TOKEN_SET = TokenSet.create(CjTokens.LET_KEYWORD, CjTokens.VAR_KEYWORD);
+    private static final TokenSet LET_VAR_TOKEN_SET = TokenSet.create(CjTokens.LET_KEYWORD,CONST_KEYWORD, CjTokens.VAR_KEYWORD);
 
     @Nullable
     @Override

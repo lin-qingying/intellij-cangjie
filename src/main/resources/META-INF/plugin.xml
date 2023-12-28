@@ -10,7 +10,7 @@
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor>Huawei</vendor>
 
-    <version>beta-1.0</version>
+    <version>beta-1.0.1</version>
 <!--    <depends>com.intellij.modules.platform</depends>-->
     <depends>com.intellij.modules.lang</depends>
 <!--    <depends>com.jetbrains.performancePlugin</depends>-->

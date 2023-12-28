@@ -1693,6 +1693,7 @@ open class CangJieExpressionParsing(
             THIS_KEYWORD,
             LET_KEYWORD,
             VAR_KEYWORD,
+            CONST_KEYWORD,
             FUNC_KEYWORD,
             FOR_KEYWORD,
 
@@ -1775,7 +1776,7 @@ open class CangJieExpressionParsing(
         @SuppressWarnings("WeakerAccess")
         val STATEMENT_FIRST = TokenSet.orSet(
             EXPRESSION_FIRST, TokenSet.create( // declaration
-                FUNC_KEYWORD, LET_KEYWORD, VAR_KEYWORD, INTERFACE_KEYWORD, CLASS_KEYWORD
+                FUNC_KEYWORD, LET_KEYWORD, CONST_KEYWORD, VAR_KEYWORD, INTERFACE_KEYWORD, CLASS_KEYWORD
 
             ), MODIFIER_KEYWORDS, BASICTYPES
         )

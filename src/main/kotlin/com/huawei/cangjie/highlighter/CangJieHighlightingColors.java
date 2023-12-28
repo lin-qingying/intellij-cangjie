@@ -19,6 +19,7 @@ public class CangJieHighlightingColors {
     public final static TextAttributesKey BUILTIN_ANNOTATION = createTextAttributesKey("CANGJIE_BUILTIN_ANNOTATION", KEYWORD);
     public final static TextAttributesKey LET_KEYWORD = createTextAttributesKey("CANGJIE_KEYWORD_LET", KEYWORD);
     public final static TextAttributesKey VAR_KEYWORD = createTextAttributesKey("CANGJIE_KEYWORD_VAR", KEYWORD);
+    public final static TextAttributesKey CONST_KEYWORD = createTextAttributesKey("CANGJIE_KEYWORD_CONST", KEYWORD);
 
     public final static TextAttributesKey NUMBER = createTextAttributesKey("CANGJIE_NUMBER", DefaultLanguageHighlighterColors.NUMBER);
     public final static TextAttributesKey STRING = createTextAttributesKey("CANGJIE_STRING", DefaultLanguageHighlighterColors.STRING);

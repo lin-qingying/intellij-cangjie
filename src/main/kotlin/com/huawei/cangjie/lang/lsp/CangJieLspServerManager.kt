@@ -1,5 +1,6 @@
 package com.huawei.cangjie.lang.lsp
 
+
 import com.huawei.cangjie.idea.project.CangJieProjectManager
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager
 import com.huawei.cangjie.utils.getSavePluginVersion
@@ -111,6 +112,7 @@ object CangJieLspServerManager {
                 setWorkDirectory(binaryPath.parent.toAbsolutePath().toString())
             }
             addParameter("src")
+            addParameter("-V")
 //            withEnvironment(getWindowsPath())
         }
     }
@@ -122,8 +124,14 @@ object CangJieLspServerManager {
     /**
      * 获取lspserver路径
      */
-    fun getLspServerPath(): String {
+    private fun getLspServerPath(): String {
 
+        val sdk = CangJieSdkManager.getProjectSdk()
+        if (sdk != null) {
+           if(Files.exists(Paths.get("${sdk.homePath}/tools/bin/LSPServer".toSystemPath()))){
+               return "${sdk.homePath}/tools/bin/LSPServer".toSystemPath()
+           }
+        }
 
 //        如果插件版本更新，则复制一份新的
         // 获取当前插件的版本
@@ -148,4 +156,13 @@ object CangJieLspServerManager {
     }
 
 
+}
+
+
+fun String.toSystemPath(): String {
+    return if (SystemInfo.isWindows) {
+        this.replace("/", "\\") + ".exe"
+    }else{
+        this
+    }
 }

@@ -104,6 +104,7 @@ var <PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION><MUTABLE_VARIABLE>globalCounte
         return arrayOf(
             CangJieBundle.message("highlighter.descriptor.text.builtin.keyword") to CangJieHighlightingColors.KEYWORD,
             CangJieBundle.message("highlighter.descriptor.text.builtin.keyword.let") to CangJieHighlightingColors.LET_KEYWORD,
+            CangJieBundle.message("highlighter.descriptor.text.builtin.keyword.const") to CangJieHighlightingColors.CONST_KEYWORD,
             CangJieBundle.message("highlighter.descriptor.text.builtin.keyword.var") to CangJieHighlightingColors.VAR_KEYWORD,
 //            CangJieBundle.message("highlighter.descriptor.text.builtin.annotation") to CangJieHighlightingColors.BUILTIN_ANNOTATION,
             CangJieBundle.message("highlighter.descriptor.text.string.escape") to CangJieHighlightingColors.STRING_ESCAPE,

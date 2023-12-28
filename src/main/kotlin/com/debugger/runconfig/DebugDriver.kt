@@ -3,6 +3,8 @@ package com.debugger.runconfig
 import com.debugger.backend.CjBreakpoint
 import com.debugger.runconfig.message.MessageHandler
 import com.huawei.cangjie.idea.project.CangJieProjectManager
+import com.huawei.cangjie.lang.lsp.toSystemPath
+import com.huawei.cangjie.lang.sdk.CangJieSdkManager
 import com.intellij.execution.process.BaseProcessHandler
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessListener
@@ -217,7 +219,15 @@ class DebugDriver(
 
 
     fun sendLaunch() {
-        val mainexe = (CangJieProjectManager.getCurrentProject()?.basePath + "/build/bin/main.exe")
+        val sdkVersion = CangJieSdkManager.sdkVersion.split(" ")[0]
+
+      
+        
+        val mainexe =   if( sdkVersion < "0.45.2"){
+           ( (CangJieProjectManager.getCurrentProject().basePath + "/build/bin/main").toSystemPath())
+        }else{
+           ( (CangJieProjectManager.getCurrentProject().basePath + "/build/debug/bin/main").toSystemPath())
+        }
         val request = LaunchRequest(
             seq = ++seq, arguments = LaunchRequestArguments(
                 buildBeforeLaunch = true,

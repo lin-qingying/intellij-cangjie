@@ -87,9 +87,10 @@ abstract class CjpmRunStateBase(
             val sdkVersion = CangJieSdkManager.sdkVersion.split(" ")[0]
 
 
-
+val sdk = CangJieSdkManager.getProjectSdk()
+//            sdkVersion < "0.45.2" &&
             val commandLine =
-                if (sdkVersion < "0.45.2" && commandLine.command == CjpmCommand.RUN) {
+                if (commandLine.command == CjpmCommand.RUN) {
                 GeneralCommandLine().apply {
 //                  执行 build/bin/main.exe
                     exePath = if (SystemInfo.isWindows) {
@@ -97,15 +98,26 @@ abstract class CjpmRunStateBase(
                     } else {
                         CangJieProjectManager.getCurrentProject().basePath + "/build/bin/main"
                     }
+//                    if (sdk != null) {
+//                        environment["CANGJIE_HOME"] = sdk.homePath
+//                        environment["PATH"] = "${sdk.homePath}/runtime/lib/windows_x86_64_llvm;${sdk.homePath}/bin;${sdk.homePath}/tools/bin;${System.getenv("PATH")}"
+
+//                    }
                     workDirectory = CangJieProjectManager.getCurrentProject().basePath?.let {
                         Paths.get(it).toFile()
                     }
                 }
-            } else {
+            }
+                else {
                 GeneralCommandLine().apply {
                     exePath =
                         (CangJieSdkManager.getProjectSdk()?.sdkType as CangJieSdkType).sdkAdditionalData.cjpmPath.toString()
                     addParameters(params)
+                    if (sdk != null) {
+                        environment["CANGJIE_HOME"] = sdk.homePath
+//                        TODO runtime路径需要判读系统
+                        environment["PATH"] = "${sdk.homePath}/runtime/lib/windows_x86_64_llvm;${sdk.homePath}/bin;${sdk.homePath}/tools/bin;${System.getenv("PATH")}"
+                    }
                     workDirectory =
                         CangJieProjectManager.getCurrentProject().basePath?.let { Paths.get(it).toFile() }
                 }

@@ -310,6 +310,7 @@ LONELY_BACKTICK=`
  "finally"   { return CjTokens.FINALLY_KEYWORD ;}
 "let"        { return CjTokens.LET_KEYWORD ;}
 "var"        { return CjTokens.VAR_KEYWORD ;}
+"const"       { return CjTokens.CONST_KEYWORD ;}
 "func"        { return CjTokens.FUNC_KEYWORD ;}
 "for"        { return CjTokens.FOR_KEYWORD ;}
 "is"         { return CjTokens.IS_KEYWORD ;}

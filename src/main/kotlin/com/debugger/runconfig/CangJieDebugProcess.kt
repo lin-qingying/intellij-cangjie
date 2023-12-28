@@ -79,11 +79,8 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 
         exePath = "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
 
-        environment.put("CANGJIE_HOME", sdk?.homePath?.toSystemPath())
-        environment.put(
-            "PATH",
-            "${sdk?.homePath}/bin;${sdk?.homePath}/tools/bin;".toSystemPath() + System.getenv("PATH")
-        )
+        environment["CANGJIE_HOME"] = sdk?.homePath?.toSystemPath()
+        environment["PATH"] = "${sdk?.homePath}/bin;${sdk?.homePath}/tools/bin;".toSystemPath() + System.getenv("PATH")
         withWorkDirectory(session.project.basePath)
     }
     private val shellProcessHandler = LspProcessHandler(

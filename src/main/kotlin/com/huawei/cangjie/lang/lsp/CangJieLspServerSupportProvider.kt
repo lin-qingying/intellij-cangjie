@@ -82,6 +82,8 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 
     override fun createInitializeParams(): InitializeParams {
 
+        val sdk = CangJieSdkManager.getProjectSdk()
+
         val initializeParams = super.createInitializeParams()
 
         initializeParams.clientInfo = ClientInfo("Intellij Idea CangJie", "1.0.0")
@@ -90,6 +92,10 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
         initializeParams.capabilities = getCapabilities()
         initializeParams.locale = "zh_cn"
         initializeParams.trace = "off"
+
+        if (sdk != null) {
+            initializeParams.initializationOptions = mapOf("modulesHomeOption" to "${sdk.homePath}")
+        }
 
         return initializeParams
 
