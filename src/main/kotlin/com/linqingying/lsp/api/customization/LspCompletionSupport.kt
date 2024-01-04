@@ -61,6 +61,12 @@ open class LspCompletionSupport {
             .withStrikeoutness(isStrikeout(item))
             .withTailText(getTailText(item), true)
             .withTypeText(getTypeText(item), true)
+            .withInsertHandler { context, item1 ->
+
+
+
+            }
+
     }
 
     protected open fun getIcon(item: CompletionItem): Icon? = when (item.kind) {

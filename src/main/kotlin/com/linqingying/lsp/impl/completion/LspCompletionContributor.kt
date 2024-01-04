@@ -7,6 +7,9 @@ import com.linqingying.lsp.impl.requests.LspRequestExecutorImpl
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
+import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.codeInsight.template.Template
+import com.intellij.codeInsight.template.impl.TemplateImpl
 import com.intellij.injected.editor.VirtualFileWindow
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.editor.Document
@@ -64,6 +67,7 @@ class LspCompletionContributor : CompletionContributor(), DumbAware {
             null
         }
     }
+
     fun processTemplate(template: String): String {
         val regex = Regex("\\$\\{([^}]*)\\}") // Define a regex to match content wrapped in ${}
         return regex.replace(template) {
@@ -75,6 +79,7 @@ class LspCompletionContributor : CompletionContributor(), DumbAware {
             "actualContent"
         }
     }
+
     private fun processCompletionItems(
         lspCompletionSupport: LspCompletionSupport,
         completionParameters: CompletionParameters,
@@ -88,13 +93,17 @@ class LspCompletionContributor : CompletionContributor(), DumbAware {
         val lspPosition = getLsp4jPosition(document, offset)
 
         for (item in completionItems) {
-//
-//            if(item.insertTextFormat == InsertTextFormat.Snippet){
-////               TODO 处理模板
-////              将 ${}包裹的内容作为模板，在插入时，将其替换为真实内容
-////            item.insertText = processTemplate(item.insertText)
-////println()
-//            }
+////
+            if (item.insertTextFormat == InsertTextFormat.Snippet) {
+//               TODO 处理模板
+//              将 ${}包裹的内容作为模板，在插入时，将其替换为真实内容
+                item.insertText = item.insertText.replace(Regex("\\([^)]*\\)"), "()")
+                // 提取冒号后面的字符
+
+                    item.insertText = item.insertText.replace("\${1:T}","T")
+
+
+            }
 
 
             val lookupElement = lspCompletionSupport.createLookupElement(completionParameters, item)
@@ -110,6 +119,7 @@ class LspCompletionContributor : CompletionContributor(), DumbAware {
                     }
                 }
                 currentResultSet.addElement(lookupElement)
+
             }
         }
     }
