@@ -9,6 +9,9 @@ import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.codeInsight.template.Expression
+import com.intellij.codeInsight.template.TemplateBuilderFactory
+import com.intellij.codeInsight.template.TemplateManager
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.registry.Registry
@@ -18,7 +21,7 @@ import com.intellij.util.ProcessingContext
 import com.intellij.util.indexing.DumbModeAccessType
 
 
-class CangJieCompletionContributor : CompletionContributor() , DumbAware {
+class CangJieCompletionContributor : CompletionContributor(), DumbAware {
 
 
 //    override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
@@ -29,7 +32,7 @@ class CangJieCompletionContributor : CompletionContributor() , DumbAware {
 //        super.fillCompletionVariants(parameters, result)
 //    }
 
-//    companion object {
+    //    companion object {
 ////        const val DEFAULT_DUMMY_IDENTIFIER: String = CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED + "$"
 //          const val DEFAULT_DUMMY_IDENTIFIER: String = CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED
 //    }
@@ -43,20 +46,7 @@ class CangJieCompletionContributor : CompletionContributor() , DumbAware {
                 context: ProcessingContext,
                 result: CompletionResultSet
             ) {
-//                println("hello")
-//
-//                performCompletion(parameters, result)
-                val insertText = "exampleFunction(\${1:param1}, \${2:param2}, \${3:param3})"
 
-                // 创建自动补全项，并设置insertText
-
-                // 创建自动补全项，并设置insertText
-                val element = LookupElementBuilder.create(insertText)
-
-                // 将自动补全项添加到结果集中
-
-                // 将自动补全项添加到结果集中
-                result.addElement(element)
 
             }
         }
@@ -65,9 +55,7 @@ class CangJieCompletionContributor : CompletionContributor() , DumbAware {
     }
 
 
-
-
-//
+    //
     private fun shouldSuppressCompletion(parameters: CompletionParameters, prefixMatcher: PrefixMatcher): Boolean {
         val position = parameters.position
         val invocationCount = parameters.invocationCount
@@ -91,7 +79,8 @@ class CangJieCompletionContributor : CompletionContributor() , DumbAware {
 
         return false
     }
-//
+
+    //
     private fun doComplete(
         parameters: CompletionParameters,
         result: CompletionResultSet,
@@ -125,13 +114,14 @@ class CangJieCompletionContributor : CompletionContributor() , DumbAware {
     private fun performCompletion(parameters: CompletionParameters, result: CompletionResultSet) {
         val position = parameters.position
         val parametersOriginFile = parameters.originalFile
-        if (  parametersOriginFile !is CjFile) return
+        if (parametersOriginFile !is CjFile) return
 
 
-        StringTemplateCompletion.correctParametersForInStringTemplateCompletion(parameters)?.let { correctedParameters ->
-            doComplete(correctedParameters, result, ::wrapLookupElementForStringTemplateAfterDotCompletion)
-            return
-        }
+        StringTemplateCompletion.correctParametersForInStringTemplateCompletion(parameters)
+            ?.let { correctedParameters ->
+                doComplete(correctedParameters, result, ::wrapLookupElementForStringTemplateAfterDotCompletion)
+                return
+            }
         DumbModeAccessType.RELIABLE_DATA_ONLY.ignoreDumbMode(ThrowableComputable {
             doComplete(parameters, result)
         })
