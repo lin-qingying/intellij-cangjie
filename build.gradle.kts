@@ -23,7 +23,7 @@ sourceSets {
 }
 
 group = "com.huawei.cangjie"
-version = "beta-1.0.1 to cangjie0.45.2"
+version = "beta-1.0.2"
 val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
 
 repositories {
@@ -52,7 +52,7 @@ val Project.dependencyCachePath
 //IDEA版本
 
 val nativeDebugPlugin: String by project
-val ideaVersion = "232-EAP-SNAPSHOT"
+val ideaVersion = "233-EAP-SNAPSHOT"
 val ideaType = "IC" // Target IDE Platform
 
 // Configure Gradle IntelliJ Plugin
