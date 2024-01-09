@@ -60,8 +60,8 @@
         <lang.syntaxHighlighterFactory language="CangJie"
                                        implementationClass="com.huawei.cangjie.highlighter.CangJieSyntaxHighlighterFactory"/>
 
-        <lang.parserDefinition language="CangJie"
-                               implementationClass="com.huawei.cangjie.parsing.CangJieParserDefinition"/>
+<!--        <lang.parserDefinition language="CangJie"-->
+<!--                               implementationClass="com.huawei.cangjie.parsing.CangJieParserDefinition"/>-->
 
         <stubElementTypeHolder class="com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes"
                                externalIdPrefix="cangjie."/>

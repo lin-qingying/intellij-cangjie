@@ -1,5 +1,6 @@
 package com.debugger.runconfig
 
+import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.getEnvironment
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager
 import com.huawei.cangjie.utils.savePluginVersion
 import com.huawei.cangjie.utils.getSavePluginVersion
@@ -114,14 +115,14 @@ object CangJieDebuggerServerManager {
             addParameter("--logpath=$LOGPATH".toSystemPath())
             addParameter("--debuggertype=$DEBUGGERTYPE")
 
-            environment["CANGJIE_HOME"] = sdk?.homePath?.toSystemPath()
+//            environment["CANGJIE_HOME"] = sdk?.homePath?.toSystemPath()
 //            environment.put("PATH", "${sdk?.homePath}/bin:${sdk?.homePath}/tools/bin:\\\${env:PATH}")
 //            environment["PATH"] = "${sdk?.homePath}/bin;${sdk?.homePath}/tools/bin;".toSystemPath() + System.getenv("PATH")
 //            ${sdk?.homePath}/runtime/lib/windows_x86_64_llvm;
-            environment["LD_LIBRARY_PATH"] = (sdk?.homePath + DEFUALTLIBLLDBPATH).toSystemPath()
+//            environment["LD_LIBRARY_PATH"] = (sdk?.homePath + DEFUALTLIBLLDBPATH).toSystemPath()
 //            //                        TODO runtime路径需要判读系统
-            environment["PATH"] = "${sdk?.homePath}/runtime/lib/windows_x86_64_llvm;${sdk?.homePath}/bin;${sdk?.homePath}/tools/bin;${System.getenv("PATH")}"
-
+//            environment["PATH"] = "${sdk?.homePath}/runtime/lib/windows_x86_64_llvm;${sdk?.homePath}/bin;${sdk?.homePath}/tools/bin;${System.getenv("PATH")}"
+            environment.putAll(sdk.getEnvironment())
         }
     }
 
@@ -171,7 +172,7 @@ object CangJieDebuggerServerManager {
 fun String.toSystemPath(): String {
     return if (SystemInfo.isWindows) {
         this.replace("/", "\\")
-    }else{
+    } else {
         this
     }
 

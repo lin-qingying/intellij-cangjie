@@ -7,7 +7,6 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.SdkType
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.startup.StartupActivity
-import com.intellij.openapi.vcs.changes.shelf.ShelveChangesManager.PostStartupActivity
 
 //class CangJieStartupActivity : StartupActivity {
 //    override fun runActivity(project: Project) {

@@ -23,7 +23,7 @@ sourceSets {
 }
 
 group = "com.huawei.cangjie"
-version = "beta-1.0.2"
+version = "beta-1.0.3"
 val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
 
 repositories {
@@ -93,7 +93,7 @@ kotlin {
 }
 
 
-val intellijVersion = "232.*"
+//val intellijVersion = "232.*"
 dependencies {
 //    api("com.jetbrains.intellij.java:java-psi-impl:$intellijVersion") { isTransitive = true }
 //    api("com.jetbrains.intellij.java:java-psi:$intellijVersion") { isTransitive = true }
@@ -131,8 +131,8 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("222")
-        untilBuild.set("232.*")
+        sinceBuild.set("223")
+        untilBuild.set("233.*")
     }
 
     signPlugin {
