@@ -2,6 +2,7 @@ package com.huawei.cangjie.lang.sdk
 
 import com.intellij.openapi.projectRoots.*
 import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import org.jdom.Element
 import java.io.BufferedReader
@@ -9,6 +10,29 @@ import java.io.File
 import java.io.InputStreamReader
 import javax.swing.JComponent
 import javax.swing.JPanel
+
+
+//TODO 该类需要重构  重构思路为将所有sdk相关整合
+
+val Sdk?.cjpmPath: String get() {
+
+    if (this != null) {
+        if (sdkType is CangJieSdkType) {
+            return "${homePath}/tools/bin/cjpm${if (SystemInfo.isWindows) ".exe" else ""}"
+        }
+    }
+    return ""
+}
+
+val Sdk?.cjcPath: String get() {
+
+    if (this != null) {
+        if (sdkType is CangJieSdkType) {
+            return "${homePath}/bin/cjc${if (SystemInfo.isWindows) ".exe" else ""}"
+        }
+    }
+    return ""
+}
 
 class CangJieSdkType : SdkType("CangJie Sdk") {
 
@@ -23,45 +47,53 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
       val sdkAdditionalData = CangJieSdkAdditionalData()
 
     override fun saveAdditionalData(additionalData: SdkAdditionalData, additional: Element) {
-//        if (additionalData is CangJieSdkAdditionalData) {
-//            val myAdditionalData: CangJieSdkAdditionalData = additionalData
-
-
-//        if (additionalData is CangJieSdkAdditionalData) {
-//            additionalData.sdkVersion = sdkAdditionalData.sdkVersion
-//            additionalData.cjcVersion = sdkAdditionalData.cjcVersion
-//            additionalData.cjpmVersion = sdkAdditionalData.cjpmVersion
-//            additionalData.cjcPath = sdkAdditionalData.cjcPath
-//            additionalData.sdkPath = sdkAdditionalData.sdkPath
-//            val dataElement = Element("data")
-//            dataElement.setAttribute("version", sdkAdditionalData.sdkVersion)
-//            dataElement.setAttribute("cjcVersion", sdkAdditionalData.cjcVersion)
-//            dataElement.setAttribute("cjpmVersion", sdkAdditionalData.cjpmVersion)
-//            dataElement.setAttribute("cjcPath", sdkAdditionalData.cjcPath)
-//            dataElement.setAttribute("sdkPath", sdkAdditionalData.sdkPath)
-//            additional.addContent(dataElement)
+////        if (additionalData is CangJieSdkAdditionalData) {
+////            val myAdditionalData: CangJieSdkAdditionalData = additionalData
 //
-//        }
-
-
-//        }
+//        val additionalDataElement = Element("additionalData")
+//        additionalDataElement.setAttribute("customAttribute","12123")
+//        additional.addContent(additionalDataElement)
+////        if (additionalData is CangJieSdkAdditionalData) {
+////            additionalData.sdkVersion = sdkAdditionalData.sdkVersion
+////            additionalData.cjcVersion = sdkAdditionalData.cjcVersion
+////            additionalData.cjpmVersion = sdkAdditionalData.cjpmVersion
+////            additionalData.cjcPath = sdkAdditionalData.cjcPath
+////            additionalData.sdkPath = sdkAdditionalData.sdkPath
+////            val dataElement = Element("data")
+////            dataElement.setAttribute("version", sdkAdditionalData.sdkVersion)
+////            dataElement.setAttribute("cjcVersion", sdkAdditionalData.cjcVersion)
+////            dataElement.setAttribute("cjpmVersion", sdkAdditionalData.cjpmVersion)
+////            dataElement.setAttribute("cjcPath", sdkAdditionalData.cjcPath)
+////            dataElement.setAttribute("sdkPath", sdkAdditionalData.sdkPath)
+////            additional.addContent(dataElement)
+////
+////        }
+//
+//println()
+////        }
     }
 
     override fun loadAdditionalData(currentSdk: Sdk, additional: Element): SdkAdditionalData {
 
-        checkSdk(currentSdk.homePath!!)
+// 相同sdktype时，sdk对象不同，但是sdktype的对象引用地址相同
+//        checkSdk(currentSdk.homePath!!)
 
+//        val additionalDataElement = additional.getChild("additionalData")
+//        val customAttribute = additionalDataElement.getAttributeValue("customAttribute")
 
-
-
-
-        return CangJieSdkAdditionalData(
-            additional.getAttributeValue("version"),
-            additional.getAttributeValue("cjcVersion"),
-            additional.getAttributeValue("cjpmVersion"),
-            additional.getAttributeValue("cjcPath"),
-            additional.getAttributeValue("sdkPath")
-        )
+        return  sdkAdditionalData
+    //
+//
+//
+//
+//
+//        return CangJieSdkAdditionalData(
+//            additional.getAttributeValue("version"),
+//            additional.getAttributeValue("cjcVersion"),
+//            additional.getAttributeValue("cjpmVersion"),
+//            additional.getAttributeValue("cjcPath"),
+//            additional.getAttributeValue("sdkPath")
+//        )
     }
 
 
@@ -110,7 +142,7 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
 
 
     override fun suggestSdkName(currentSdkName: String?, sdkHome: String): String {
-        return "CangJie Sdk"
+        return "CangJie Sdk " + sdkAdditionalData.sdkVersion
     }
 
 
@@ -156,9 +188,13 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
         return sdkAdditionalData.sdkVersion
     }
 
+
+
     override fun getPresentableName(): String {
         return "CangJie Sdk"
     }
+
+
 
 
 }

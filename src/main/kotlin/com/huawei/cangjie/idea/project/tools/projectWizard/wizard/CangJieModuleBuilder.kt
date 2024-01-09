@@ -1,10 +1,13 @@
 package com.huawei.cangjie.idea.project.tools.projectWizard.wizard
 
+import com.debugger.runconfig.CangJieDebuggerServerManager
+import com.debugger.runconfig.toSystemPath
 import com.huawei.cangjie.idea.run.cjpm.CjpmCommandConfiguration
 import com.huawei.cangjie.idea.run.cjpm.CjpmCommandConfigurationType
 
 import com.huawei.cangjie.idea.run.cjpm.CjpmCommand
 import com.huawei.cangjie.lang.sdk.CangJieSdkType
+import com.huawei.cangjie.lang.sdk.cjpmPath
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
@@ -12,6 +15,7 @@ import com.intellij.ide.util.projectWizard.ModuleBuilder
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModifiableModuleModel
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleType
@@ -23,6 +27,31 @@ import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider
 
+
+fun Sdk?.getEnvironment(): MutableMap<String, String> {
+
+//    if (sdk != null) {
+//        environment["CANGJIE_HOME"] = sdk.homePath
+////                        TODO runtime路径需要判读系统
+//        environment["PATH"] = "${sdk.homePath}/runtime/lib/windows_x86_64_llvm;${sdk.homePath}/bin;${sdk.homePath}/tools/bin;${System.getenv("PATH")}"
+//    }
+    if (this?.sdkType is CangJieSdkType) {
+        if (homePath != null) {
+            val environment = mutableMapOf<String, String>()
+            environment["LD_LIBRARY_PATH"] =  "${homePath}/third_party/llvm/lldb/lib/"
+
+            environment["CANGJIE_HOME"] = homePath!!
+            environment["PATH"] =
+                "${homePath}/runtime/lib/windows_x86_64_llvm;${homePath}/bin;${homePath}/tools/bin;${System.getenv("PATH")}"
+
+            return environment
+        }
+
+
+    }
+    return mutableMapOf()
+
+}
 
 class CangJieModuleBuilder : ModuleBuilder() {
 
@@ -49,6 +78,10 @@ class CangJieModuleBuilder : ModuleBuilder() {
 //        return super.createWizardSteps(wizardContext, modulesProvider)
 //    }
 
+    companion object{
+        val LOG = Logger.getInstance(CangJieModuleBuilder::class.java)
+    }
+
     override fun commit(
         project: Project,
         model: ModifiableModuleModel?,
@@ -65,8 +98,10 @@ class CangJieModuleBuilder : ModuleBuilder() {
 
             // 执行cjpm init
             val commandLine = GeneralCommandLine().apply {
-                exePath = (projectSdk!!.sdkType as CangJieSdkType).sdkAdditionalData.cjpmPath.toString()
+                exePath = projectSdk.cjpmPath
 
+
+                environment.putAll(projectSdk.getEnvironment())
 
                 addParameter("init")
                 addParameter(if (moduleName.isNullOrEmpty()) project.name else moduleName!!)
@@ -79,7 +114,7 @@ class CangJieModuleBuilder : ModuleBuilder() {
 
             if (output.exitCode != 0) {
                 // 处理错误
-                println("Error: ${output.stderr}")
+               LOG.error(output.stderr)
             }
 
 //            为该项目添加一个运行配置  com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmCommandConfigurationType
@@ -108,8 +143,6 @@ class CangJieModuleBuilder : ModuleBuilder() {
 
 //            ProjectManager.getInstance().reloadProject(project)
         }
-
-
 
 
 //        return emptyList()
