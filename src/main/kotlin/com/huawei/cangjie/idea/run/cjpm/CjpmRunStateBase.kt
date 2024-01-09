@@ -110,7 +110,7 @@ abstract class CjpmRunStateBase(
                         exePath = when {
                             sdkVersion >= "0.45.2" -> (CangJieProjectManager.getCurrentProject().basePath + "/build/release/bin/main").toSystemPath()
 
-                            else -> CangJieProjectManager.getCurrentProject().basePath + "/build/bin/main";
+                            else -> (CangJieProjectManager.getCurrentProject().basePath + "/build/bin/main").toSystemPath();
                         }
 
 //                    if (sdk != null) {
@@ -167,9 +167,9 @@ environment.putAll(sdk.getEnvironment())
     /**
      * 路径转为windows格式
      */
-    private fun String.toWindowsPath(): String {
-        return this.replace("/", "\\")
-    }
+//    private fun String.toWindowsPath(): String {
+//        return this.replace("/", "\\")
+//    }
 
 //        override fun execute(executor: Executor, runner: ProgramRunner<*>): ExecutionResult {
 //            val shellProcessHandler = startProcess()

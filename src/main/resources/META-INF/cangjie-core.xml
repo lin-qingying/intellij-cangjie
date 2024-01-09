@@ -116,9 +116,9 @@
         <projectTaskRunner implementation="com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildTaskRunner"/>
 
 <!--        cjc-->
-        <configurationType
-                implementation="com.huawei.cangjie.idea.run.cjc.CjcRunConfigurationType"
-                id="CjcRunConfiguration"/>
+<!--        <configurationType-->
+<!--                implementation="com.huawei.cangjie.idea.run.cjc.CjcRunConfigurationType"-->
+<!--                id="CjcRunConfiguration"/>-->
 
 
         <executionTargetLanguageRuntimeType implementation="com.huawei.cangjie.idea.run.cjpm.runconfig.CjLanguageRuntimeType"/>

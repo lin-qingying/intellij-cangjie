@@ -55,10 +55,7 @@ class CangJieParserDefinition : ParserDefinition {
 
 
     override fun createElement(node: ASTNode): PsiElement {
-        val elementType = node.elementType
-
-
-        return when (elementType) {
+        return when (val elementType = node.elementType) {
             is CjStubElementType<*, *> ->
                 elementType.createPsiFromAst(node)
 
