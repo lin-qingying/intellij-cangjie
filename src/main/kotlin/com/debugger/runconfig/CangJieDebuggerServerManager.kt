@@ -114,15 +114,15 @@ object CangJieDebuggerServerManager {
             addParameter("--port=$DEBUGPORT")
             addParameter("--logpath=$LOGPATH".toSystemPath())
             addParameter("--debuggertype=$DEBUGGERTYPE")
-
+            environment.putAll(sdk.getEnvironment())
 //            environment["CANGJIE_HOME"] = sdk?.homePath?.toSystemPath()
 //            environment.put("PATH", "${sdk?.homePath}/bin:${sdk?.homePath}/tools/bin:\\\${env:PATH}")
 //            environment["PATH"] = "${sdk?.homePath}/bin;${sdk?.homePath}/tools/bin;".toSystemPath() + System.getenv("PATH")
 //            ${sdk?.homePath}/runtime/lib/windows_x86_64_llvm;
-//            environment["LD_LIBRARY_PATH"] = (sdk?.homePath + DEFUALTLIBLLDBPATH).toSystemPath()
+            environment["LD_LIBRARY_PATH"] = (sdk?.homePath + DEFUALTLIBLLDBPATH).toSystemPath()
 //            //                        TODO runtime路径需要判读系统
 //            environment["PATH"] = "${sdk?.homePath}/runtime/lib/windows_x86_64_llvm;${sdk?.homePath}/bin;${sdk?.homePath}/tools/bin;${System.getenv("PATH")}"
-            environment.putAll(sdk.getEnvironment())
+
         }
     }
 

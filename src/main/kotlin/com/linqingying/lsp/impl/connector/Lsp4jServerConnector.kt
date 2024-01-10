@@ -67,6 +67,10 @@ abstract class Lsp4jServerConnector(lspServer: LspServer) {
                             e.addSuppressed(closeException)
                         }
                         throw e
+                    } catch (e  : IllegalStateException){
+                        println()
+                    }catch (e:Exception){
+                        println()
                     }
                     messageProducer.close()
                 } catch (e: Throwable) {

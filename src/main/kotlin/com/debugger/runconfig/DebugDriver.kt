@@ -33,6 +33,7 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
 import java.lang.Thread.sleep
+import java.nio.channels.SocketChannel
 import java.util.concurrent.CountDownLatch
 
 const val TWO_CRLF = "\r\n\r\n"
@@ -59,6 +60,8 @@ class DebugDriver(
 
     private var socket: Socket? = null
 
+
+//    private var socketChannel : SocketChannel
 
     var reader: BufferedReader? = null
 

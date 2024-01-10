@@ -569,7 +569,7 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
             }
 
 
-            if (currentThread.get() == threads[0]) {
+            if (currentThread.get() == threads[0] && currentThread.get()!!.id == 1.toLong()) {
                 if (message.body?.stackFrames?.get(0)?.source?.path == null) {
                     this.myDriver.sendNext(getCurrentThreadId())
                     return

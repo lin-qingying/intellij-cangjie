@@ -49,7 +49,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * »ñÈ¡±ê¼ÇÁ÷ÖĞµÄ×îºóÒ»¸ö±ê¼ÇÀàĞÍ
+     * è·å–æ ‡è®°æµä¸­çš„æœ€åä¸€ä¸ªæ ‡è®°ç±»å‹
      *
      * @return
      */
@@ -63,7 +63,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÎªÖ¸¶¨µÄ CjToken ÀàĞÍ£¬²¢ÔÚ±ê¼Ç²»Æ¥ÅäÊ±±¨¸æ´íÎó
+     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä¸ºæŒ‡å®šçš„ CjToken ç±»å‹ï¼Œå¹¶åœ¨æ ‡è®°ä¸åŒ¹é…æ—¶æŠ¥å‘Šé”™è¯¯
      *
      * @param expectation
      * @param message
@@ -74,7 +74,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ÔÚ±ê¼ÇÁ÷ÖĞ´´½¨Ò»¸ö±ê¼Ç£¬²¢·µ»Ø¸Ã±ê¼ÇµÄ PsiBuilder.Marker ¶ÔÏó
+     * åœ¨æ ‡è®°æµä¸­åˆ›å»ºä¸€ä¸ªæ ‡è®°ï¼Œå¹¶è¿”å›è¯¥æ ‡è®°çš„ PsiBuilder.Marker å¯¹è±¡
      *
      * @return
      */
@@ -83,7 +83,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ±¨¸æ½âÎö´íÎó²¢Í£Ö¹½âÎö¹ı³Ì
+     * æŠ¥å‘Šè§£æé”™è¯¯å¹¶åœæ­¢è§£æè¿‡ç¨‹
      *
      * @param message
      */
@@ -102,7 +102,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÎªÖ¸¶¨µÄ¸´ÔÓ±ê¼ÇÀàĞÍ£¬²¢ÔÚ±ê¼Ç²»Æ¥ÅäÊ±±¨¸æ´íÎó
+     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä¸ºæŒ‡å®šçš„å¤æ‚æ ‡è®°ç±»å‹ï¼Œå¹¶åœ¨æ ‡è®°ä¸åŒ¹é…æ—¶æŠ¥å‘Šé”™è¯¯
      *
      * @param expectation
      * @param message
@@ -120,7 +120,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÎªÖ¸¶¨µÄ CjToken ÀàĞÍ£¬²¢ÔÚ±ê¼Ç²»Æ¥ÅäÊ±±¨¸æ´íÎó
+     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä¸ºæŒ‡å®šçš„ CjToken ç±»å‹ï¼Œå¹¶åœ¨æ ‡è®°ä¸åŒ¹é…æ—¶æŠ¥å‘Šé”™è¯¯
      *
      * @param expectation
      * @return
@@ -139,7 +139,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÎªÖ¸¶¨µÄ CjToken ÀàĞÍ£¬µ«²»»áÏûºÄ±ê¼ÇÁ÷ÖĞµÄ±ê¼Ç
+     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä¸ºæŒ‡å®šçš„ CjToken ç±»å‹ï¼Œä½†ä¸ä¼šæ¶ˆè€—æ ‡è®°æµä¸­çš„æ ‡è®°
      *
      * @param expectation
      * @param message
@@ -154,7 +154,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ±¨¸æ½âÎö´íÎó²¢³¢ÊÔ»Ö¸´½âÎö¹ı³Ì
+     * æŠ¥å‘Šè§£æé”™è¯¯å¹¶å°è¯•æ¢å¤è§£æè¿‡ç¨‹
      *
      * @param message
      * @param recoverySet
@@ -172,7 +172,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ±¨¸æ½âÎö´íÎó²¢ÏûºÄµ±Ç°±ê¼Ç
+     * æŠ¥å‘Šè§£æé”™è¯¯å¹¶æ¶ˆè€—å½“å‰æ ‡è®°
      *
      * @param message
      */
@@ -181,7 +181,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ±¨¸æ½âÎö´íÎó²¢ÏûºÄÖ¸¶¨ÊıÁ¿µÄ±ê¼Ç
+     * æŠ¥å‘Šè§£æé”™è¯¯å¹¶æ¶ˆè€—æŒ‡å®šæ•°é‡çš„æ ‡è®°
      *
      * @param message
      * @param advanceTokenCount
@@ -194,7 +194,7 @@ public abstract class AbstractCangJieParsing {
 
 
     /**
-     * ±¨¸æ´íÎó£¬µ«²»ÏûºÄ±ê¼Ç
+     * æŠ¥å‘Šé”™è¯¯ï¼Œä½†ä¸æ¶ˆè€—æ ‡è®°
      */
     protected void errorWithoutAdvancing(String message) {
         mark().error(message);
@@ -202,7 +202,7 @@ public abstract class AbstractCangJieParsing {
 
 
     /**
-     * ÊÇ·ñµ½ÎÄ¼ş½áÎ²
+     * æ˜¯å¦åˆ°æ–‡ä»¶ç»“å°¾
      *
      * @return
      */
@@ -211,26 +211,26 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ÍÆ½ø±ê¼ÇÁ÷²¢·µ»ØÏÂÒ»¸ö±ê¼Ç
+     * æ¨è¿›æ ‡è®°æµå¹¶è¿”å›ä¸‹ä¸€ä¸ªæ ‡è®°
      */
     protected void advance() {
-        // TODO: ÈçºÎÔÚ´íÎó×Ö·ûÉÏ±¨¸æ´íÎó(³ıÍ»³öÏÔÊ¾Íâ)
+        // TODO: å¦‚ä½•åœ¨é”™è¯¯å­—ç¬¦ä¸ŠæŠ¥å‘Šé”™è¯¯(é™¤çªå‡ºæ˜¾ç¤ºå¤–)
         myBuilder.advanceLexer();
     }
 
     /**
-     * ÍÆ½ø±ê¼ÇÁ÷²¢·µ»ØÏÂ  advanceTokenCount ¸ö±ê¼Ç
+     * æ¨è¿›æ ‡è®°æµå¹¶è¿”å›ä¸‹  advanceTokenCount ä¸ªæ ‡è®°
      *
      * @param advanceTokenCount
      */
     protected void advance(int advanceTokenCount) {
         for (int i = 0; i < advanceTokenCount; i++) {
-            advance(); // ´íÎóµÄÁîÅÆ
+            advance(); // é”™è¯¯çš„ä»¤ç‰Œ
         }
     }
 
     /**
-     * ÍÆ½ø±ê¼ÇÁ÷²¢·µ»ØÏÂÒ»¸öÖ¸¶¨ÀàĞÍµÄ±ê¼Ç
+     * æ¨è¿›æ ‡è®°æµå¹¶è¿”å›ä¸‹ä¸€ä¸ªæŒ‡å®šç±»å‹çš„æ ‡è®°
      *
      * @param current
      */
@@ -240,7 +240,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * »ñÈ¡µ±Ç°±ê¼ÇµÄÀàĞÍid
+     * è·å–å½“å‰æ ‡è®°çš„ç±»å‹id
      *
      * @return
      */
@@ -251,7 +251,7 @@ public abstract class AbstractCangJieParsing {
 
 
     /**
-     * »ñÈ¡µ±Ç°±ê¼ÇµÄÀàĞÍ
+     * è·å–å½“å‰æ ‡è®°çš„ç±»å‹
      *
      * @return
      */
@@ -265,7 +265,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ÎŞ¸±×÷ÓÃ°æ±¾µÄat()
+     * æ— å‰¯ä½œç”¨ç‰ˆæœ¬çš„at()
      */
     protected boolean _at(IElementType expectation) {
         IElementType token = tt();
@@ -273,7 +273,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÓëÔ¤ÆÚ±ê¼ÇÆ¥Åä
+     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä¸é¢„æœŸæ ‡è®°åŒ¹é…
      *
      * @param token
      * @param expectation
@@ -290,7 +290,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÓëÔ¤ÆÚ±ê¼ÇÆ¥Åä
+     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä¸é¢„æœŸæ ‡è®°åŒ¹é…
      *
      * @param expectation
      * @return
@@ -314,7 +314,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÓëÔ¤ÆÚ±ê¼ÇÆ¥Åä
+     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä¸é¢„æœŸæ ‡è®°åŒ¹é…
      *
      * @param set
      * @return
@@ -331,7 +331,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÓëÔ¤ÆÚ±ê¼ÇÆ¥Åä
+     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä¸é¢„æœŸæ ‡è®°åŒ¹é…
      *
      * @param set
      * @return
@@ -358,7 +358,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ²é¿´±ê¼ÇÁ÷ÖĞµÄÏÂ k ¸ö±ê¼Ç£¬¶ø²»»áÍÆ½ø±ê¼ÇÁ÷
+     * æŸ¥çœ‹æ ‡è®°æµä¸­çš„ä¸‹ k ä¸ªæ ‡è®°ï¼Œè€Œä¸ä¼šæ¨è¿›æ ‡è®°æµ
      *
      * @param k
      * @return
@@ -369,7 +369,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * Èç¹ûµ±Ç°±ê¼ÇÓëÖ¸¶¨µÄ±ê¼ÇÆ¥Åä£¬Ôò¸Ã·½·¨½«ÏûºÄ¸Ã±ê¼Ç²¢·µ»Øtrue¡£·ñÔò£¬¸Ã·½·¨½«²»»áÏûºÄ±ê¼Ç²¢·µ»Øfalse
+     * å¦‚æœå½“å‰æ ‡è®°ä¸æŒ‡å®šçš„æ ‡è®°åŒ¹é…ï¼Œåˆ™è¯¥æ–¹æ³•å°†æ¶ˆè€—è¯¥æ ‡è®°å¹¶è¿”å›trueã€‚å¦åˆ™ï¼Œè¯¥æ–¹æ³•å°†ä¸ä¼šæ¶ˆè€—æ ‡è®°å¹¶è¿”å›false
      *
      * @param token
      * @return
@@ -383,7 +383,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * Èç¹ûµ±Ç°±ê¼ÇÓë¸´ÔÓ±ê¼ÇÆ¥Åä£¬Ôò¸Ã·½·¨½«ÏûºÄ¸Ã±ê¼Ç²¢·µ»Øtrue¡£·ñÔò£¬¸Ã·½·¨½«²»»áÏûºÄ±ê¼Ç²¢·µ»Øfalse
+     * å¦‚æœå½“å‰æ ‡è®°ä¸å¤æ‚æ ‡è®°åŒ¹é…ï¼Œåˆ™è¯¥æ–¹æ³•å°†æ¶ˆè€—è¯¥æ ‡è®°å¹¶è¿”å›trueã€‚å¦åˆ™ï¼Œè¯¥æ–¹æ³•å°†ä¸ä¼šæ¶ˆè€—æ ‡è®°å¹¶è¿”å›false
      */
     protected boolean consumeIfSet(TokenSet tokenSet) {
         if (atSet(tokenSet)) {
@@ -394,7 +394,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ¸ù¾İ´«ÈëµÄ¸´ÔÓÀàĞÍË³ĞòÆ¥Åä±ê¼ÇÁ÷ÖĞµÄ±ê¼Ç
+     * æ ¹æ®ä¼ å…¥çš„å¤æ‚ç±»å‹é¡ºåºåŒ¹é…æ ‡è®°æµä¸­çš„æ ‡è®°
      */
     protected boolean match(IElementType... types) {
         int i = 0;
@@ -407,7 +407,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * Ìø¹ı±ê¼ÇÁ÷ÖĞµÄ±ê¼Ç£¬Ö±µ½ÕÒµ½Ö¸¶¨µÄ±ê¼Ç¼¯ºÏÖĞµÄÈÎºÎÒ»¸ö±ê¼Ç
+     * è·³è¿‡æ ‡è®°æµä¸­çš„æ ‡è®°ï¼Œç›´åˆ°æ‰¾åˆ°æŒ‡å®šçš„æ ‡è®°é›†åˆä¸­çš„ä»»ä½•ä¸€ä¸ªæ ‡è®°
      *
      * @param tokenSet
      */
@@ -429,7 +429,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ÔÚÂú×ãÖ¸¶¨Ìõ¼şÊ±±¨¸æ½âÎö´íÎó
+     * åœ¨æ»¡è¶³æŒ‡å®šæ¡ä»¶æ—¶æŠ¥å‘Šè§£æé”™è¯¯
      *
      * @param marker
      * @param condition
@@ -444,14 +444,14 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ±íÊ¾Ò»¸ö¿ÉÑ¡µÄ±ê¼Ç
+     * è¡¨ç¤ºä¸€ä¸ªå¯é€‰çš„æ ‡è®°
      */
     protected class OptionalMarker {
         private final PsiBuilder.Marker marker;
         private final int offset;
 
         /**
-         * ´´½¨Ò»¸ö¿ÉÑ¡µÄ±ê¼Ç
+         * åˆ›å»ºä¸€ä¸ªå¯é€‰çš„æ ‡è®°
          *
          * @param actuallyMark
          */
@@ -461,7 +461,7 @@ public abstract class AbstractCangJieParsing {
         }
 
         /**
-         * ±ê¼Ç¿ÉÑ¡µÄÓï·¨µ¥ÔªÒÑ¾­½âÎöÍê³É£¬²¢½«Æä×ª»»ÎªÖ¸¶¨ÀàĞÍµÄÓï·¨µ¥Ôª
+         * æ ‡è®°å¯é€‰çš„è¯­æ³•å•å…ƒå·²ç»è§£æå®Œæˆï¼Œå¹¶å°†å…¶è½¬æ¢ä¸ºæŒ‡å®šç±»å‹çš„è¯­æ³•å•å…ƒ
          *
          * @param elementType
          */
@@ -471,21 +471,21 @@ public abstract class AbstractCangJieParsing {
         }
 
         /**
-         * ±¨¸æ½âÎö´íÎó
+         * æŠ¥å‘Šè§£æé”™è¯¯
          *
          * @param message
          */
         public void error(String message) {
             if (marker == null) return;
             if (offset == myBuilder.getCurrentOffset()) {
-                marker.drop(); // Ã»ÓĞ¿Õ´íÎó
+                marker.drop(); // æ²¡æœ‰ç©ºé”™è¯¯
             } else {
                 marker.error(message);
             }
         }
 
         /**
-         * ÓÃÓÚÉ¾³ıµ±Ç°Î»ÖÃµÄ±ê¼Ç
+         * ç”¨äºåˆ é™¤å½“å‰ä½ç½®çš„æ ‡è®°
          */
         public void drop() {
             if (marker == null) return;
@@ -494,7 +494,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * Æ¥ÅäÖ¸¶¨µÄ±ê¼ÇÁ÷Ä£Ê½
+     * åŒ¹é…æŒ‡å®šçš„æ ‡è®°æµæ¨¡å¼
      *
      * @param pattern
      * @return
@@ -557,7 +557,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÎ»ÓÚĞĞÄ©
+     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä½äºè¡Œæœ«
      *
      * @return
      */
@@ -566,7 +566,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * ¹Ø±ÕÉùÃ÷²¢°ó¶¨×¢ÊÍ
+     * å…³é—­å£°æ˜å¹¶ç»‘å®šæ³¨é‡Š
      *
      * @param marker
      * @param elementType
@@ -625,7 +625,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * »ñÈ¡µ±Ç°½âÎöÉÏÏÂÎÄµÄ×Ö·û´®±íÊ¾
+     * è·å–å½“å‰è§£æä¸Šä¸‹æ–‡çš„å­—ç¬¦ä¸²è¡¨ç¤º
      *
      * @return
      */

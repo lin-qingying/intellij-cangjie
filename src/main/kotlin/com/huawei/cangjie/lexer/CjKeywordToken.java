@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 public class CjKeywordToken extends CjSingleValueToken  {
 
     /**
-     * Éú³É¹Ø¼ü×Ö(ÔÚËùÓĞ¿ÉÄÜµÄÉÏÏÂÎÄÖĞ¾ßÓĞ¹Ø¼ü×Öº¬ÒåµÄ±êÊ¶·û)
+     * ç”Ÿæˆå…³é”®å­—(åœ¨æ‰€æœ‰å¯èƒ½çš„ä¸Šä¸‹æ–‡ä¸­å…·æœ‰å…³é”®å­—å«ä¹‰çš„æ ‡è¯†ç¬¦)
      */
     @Deprecated
     public static CjKeywordToken keyword(String value) {

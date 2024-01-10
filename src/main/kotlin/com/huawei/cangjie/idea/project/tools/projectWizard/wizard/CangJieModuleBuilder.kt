@@ -26,6 +26,7 @@ import com.intellij.openapi.projectRoots.SdkTypeId
 import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider
+import com.intellij.openapi.util.SystemInfo
 
 
 fun Sdk?.getEnvironment(): MutableMap<String, String> {
@@ -38,11 +39,21 @@ fun Sdk?.getEnvironment(): MutableMap<String, String> {
     if (this?.sdkType is CangJieSdkType) {
         if (homePath != null) {
             val environment = mutableMapOf<String, String>()
-            environment["LD_LIBRARY_PATH"] =  "${homePath}/third_party/llvm/lldb/lib/"
 
             environment["CANGJIE_HOME"] = homePath!!
+
+
+            val runtimeLlvm = if(SystemInfo.isWindows){
+                "windows_x86_64_llvm"
+            }else{
+                "linux_x86_64_llvm"
+            }
+
+            environment["LD_LIBRARY_PATH"] =  "${homePath}/runtime/lib/${runtimeLlvm};"
+
+
             environment["PATH"] =
-                "${homePath}/runtime/lib/windows_x86_64_llvm;${homePath}/bin;${homePath}/tools/bin;${System.getenv("PATH")}"
+                "${homePath}/runtime/lib/${runtimeLlvm};${homePath}/bin;${homePath}/tools/bin;${System.getenv("PATH")}"
 
             return environment
         }
