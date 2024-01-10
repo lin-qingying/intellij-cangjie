@@ -31,29 +31,35 @@ import com.intellij.openapi.util.SystemInfo
 
 fun Sdk?.getEnvironment(): MutableMap<String, String> {
 
+//     根据系统获取分隔符
+    val separator = if(SystemInfo.isWindows) ";" else   ":"
+
 //    if (sdk != null) {
 //        environment["CANGJIE_HOME"] = sdk.homePath
 ////                        TODO runtime路径需要判读系统
 //        environment["PATH"] = "${sdk.homePath}/runtime/lib/windows_x86_64_llvm;${sdk.homePath}/bin;${sdk.homePath}/tools/bin;${System.getenv("PATH")}"
 //    }
     if (this?.sdkType is CangJieSdkType) {
+
+
+
         if (homePath != null) {
             val environment = mutableMapOf<String, String>()
 
             environment["CANGJIE_HOME"] = homePath!!
 
 
-            val runtimeLlvm = if(SystemInfo.isWindows){
+            val runtimeLlvm = if (SystemInfo.isWindows) {
                 "windows_x86_64_llvm"
-            }else{
+            } else {
                 "linux_x86_64_llvm"
             }
 
-            environment["LD_LIBRARY_PATH"] =  "${homePath}/runtime/lib/${runtimeLlvm};"
+            environment["LD_LIBRARY_PATH"] = "${homePath}/runtime/lib/${runtimeLlvm}$separator${System.getenv("LD_LIBRARY_PATH") ?: ""}"
 
 
             environment["PATH"] =
-                "${homePath}/runtime/lib/${runtimeLlvm};${homePath}/bin;${homePath}/tools/bin;${System.getenv("PATH")}"
+                "${homePath}/runtime/lib/${runtimeLlvm}$separator${homePath}/bin$separator${homePath}/tools/bin$separator${System.getenv("PATH")}"
 
             return environment
         }
@@ -89,7 +95,7 @@ class CangJieModuleBuilder : ModuleBuilder() {
 //        return super.createWizardSteps(wizardContext, modulesProvider)
 //    }
 
-    companion object{
+    companion object {
         val LOG = Logger.getInstance(CangJieModuleBuilder::class.java)
     }
 
@@ -125,7 +131,7 @@ class CangJieModuleBuilder : ModuleBuilder() {
 
             if (output.exitCode != 0) {
                 // 处理错误
-               LOG.error(output.stderr)
+                LOG.error(output.stderr)
             }
 
 //            为该项目添加一个运行配置  com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmCommandConfigurationType
