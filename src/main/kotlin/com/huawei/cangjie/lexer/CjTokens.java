@@ -279,7 +279,7 @@ public interface CjTokens {
     CjSingleValueToken GTEQ = new CjSingleValueToken("GTEQ", ">=", GTEQ_Id);
     CjSingleValueToken LTCOLON = new CjSingleValueToken("LTCOLON", "<:", LTCOLON_Id);
     CjSingleValueToken ARROW = new CjSingleValueToken("ARROW", "->", ARROW_Id);
-    //·´Ïò¼ıÍ·
+    //åå‘ç®­å¤´
 
     CjSingleValueToken LEFT_ARROW = new CjSingleValueToken("LEFT_ARROW", "<-", LEFT_ARROW_Id);
     CjSingleValueToken DOUBLE_ARROW = new CjSingleValueToken("DOUBLE_ARROW", "=>", DOUBLE_ARROW_Id);
@@ -401,10 +401,10 @@ public interface CjTokens {
 
     TokenSet KEYWORDALL = TokenSet.orSet(KEYWORDS, SOFT_KEYWORDS);
 
-    /*¡£
-    ´ËÊı×éÓÃÓÚ´æ¸ùĞòÁĞ»¯£º
-    1.ÇëÎğ¸ü¸ÄË³Ğò¡£
-    2.Èç¹ûÌí¼ÓÌõÄ¿»ò±ä¸üµ¥£¬ÇëÔö¼Ó´æ¸ù°æ±¾¡£
+    /*ã€‚
+    æ­¤æ•°ç»„ç”¨äºå­˜æ ¹åºåˆ—åŒ–ï¼š
+    1.è¯·å‹¿æ›´æ”¹é¡ºåºã€‚
+    2.å¦‚æœæ·»åŠ æ¡ç›®æˆ–å˜æ›´å•ï¼Œè¯·å¢åŠ å­˜æ ¹ç‰ˆæœ¬ã€‚
     */
     CjModifierKeywordToken[] MODIFIER_KEYWORDS_ARRAY =
             new CjModifierKeywordToken[]{
@@ -437,7 +437,7 @@ public interface CjTokens {
     );
 
 
-    //¿ÉÒÔ±»ÖØÔØµÄÔËËã·û
+    //å¯ä»¥è¢«é‡è½½çš„è¿ç®—ç¬¦
     TokenSet OPERATIONS_CAN_BE_OVERLOADED = TokenSet.orSet(
 
 
@@ -476,7 +476,7 @@ public interface CjTokens {
             )
     );
 
-    //»ù±¾ÀàĞÍ
+    //åŸºæœ¬ç±»å‹
     TokenSet BASICTYPES = TokenSet.create(
             INT8_KEYWORD, INT16_KEYWORD, INT32_KEYWORD, INT64_KEYWORD, UINT8_KEYWORD, UINT16_KEYWORD, UINT32_KEYWORD, UINT64_KEYWORD, FLOAT32_KEYWORD, FLOAT64_KEYWORD, BOOL_KEYWORD, CHAR_KEYWORD, UNIT_KEYWORD
     );

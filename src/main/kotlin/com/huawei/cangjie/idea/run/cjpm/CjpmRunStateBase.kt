@@ -36,8 +36,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 
-
-
 private val CARGO_PATCHES: Key<List<CjpmPatch>> = Key.create("CJPMPATCHES")
 
 typealias CjpmPatch = (CjpmCommandLine) -> CjpmCommandLine
@@ -116,7 +114,7 @@ abstract class CjpmRunStateBase(
 //                    if (sdk != null) {
 //                        environment["CANGJIE_HOME"] = sdk.homePath
 //                        environment["PATH"] = "${sdk.homePath}/runtime/lib/windows_x86_64_llvm;${sdk.homePath}/bin;${sdk.homePath}/tools/bin;${System.getenv("PATH")}"
-environment.putAll(sdk.getEnvironment())
+                        environment.putAll(sdk.getEnvironment())
 //                    }
                         workDirectory = CangJieProjectManager.getCurrentProject().basePath?.let {
                             Paths.get(it).toFile()
@@ -125,7 +123,7 @@ environment.putAll(sdk.getEnvironment())
                 } else {
                     GeneralCommandLine().apply {
                         exePath =
-                          sdk.cjpmPath
+                            sdk.cjpmPath
                         addParameters(params)
 //                    if (sdk != null) {
 //                        environment["CANGJIE_HOME"] = sdk.homePath
