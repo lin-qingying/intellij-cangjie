@@ -1,5 +1,6 @@
 package com.huawei.cangjie.lang.sdk
 
+import com.huawei.cangjie.CangJieBundle
 import com.intellij.openapi.projectRoots.*
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.util.SystemInfo
@@ -21,7 +22,8 @@ val Sdk?.cjpmPath: String get() {
             return "${homePath}/tools/bin/cjpm${if (SystemInfo.isWindows) ".exe" else ""}"
         }
     }
-    return ""
+//    抛出运行异常
+    throw RuntimeException(CangJieBundle.message("cjpm.run.configuration.error.sdk.not.selected"))
 }
 
 val Sdk?.cjcPath: String get() {

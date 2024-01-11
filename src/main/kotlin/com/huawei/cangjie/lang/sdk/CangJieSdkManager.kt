@@ -26,8 +26,8 @@ object CangJieSdkManager {
 
         val project = CangJieProjectManager.getProject()
         val sdk = project?.let { ProjectRootManager.getInstance(it).projectSdk } ?: return null
-        logger.info(sdk.name)
-        logger.info(sdk.sdkType.toString())
+//        logger.info(sdk.name)
+//        logger.info(sdk.sdkType.toString())
         return if (sdk.sdkType is CangJieSdkType) sdk else null
 
 

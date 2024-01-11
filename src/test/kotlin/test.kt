@@ -1,20 +1,18 @@
+import java.net.Socket
 
-
-data class a(val a:Int)
-
-class b(val a:Int)
 fun main() {
+    println("Hello, world!")
+
+// p --server --listen 4419
+    val cmd = "C:\\Users\\27439\\.sdk\\cangjie\\tools\\bin\\lldb.exe"
+
+//    val cmd = "C:\\Users\\27439\\.sdk\\cangjie\\tools\\bin\\lldb-server.exe --server --listen 4419"
+    val process = Runtime.getRuntime().exec(cmd)
 
 
-//    获取pid为 25524的进程，通过标准输入输出向其中输入hello world
 
-    val a = a(1)
-    val b = b(1)
-    val str = "sdf"
-
-    val list = listOf(1,23,4)
-
-println()
+//    val socket = Socket("localhost", 4419)
 
 
+    println()
 }

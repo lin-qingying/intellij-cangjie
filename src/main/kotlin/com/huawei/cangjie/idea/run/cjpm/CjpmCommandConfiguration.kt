@@ -8,6 +8,7 @@ import com.huawei.cangjie.idea.run.CjCommandConfiguration
 import com.huawei.cangjie.idea.run.cjpm.runconfig.CjLanguageRuntimeConfiguration
 import com.huawei.cangjie.idea.run.cjpm.runconfig.CjLanguageRuntimeType
 import com.huawei.cangjie.idea.run.cjpm.runconfig.isUnitTestMode
+import com.huawei.cangjie.lang.sdk.CangJieSdkManager
 
 import com.intellij.execution.Executor
 import com.intellij.execution.InputRedirectAware
@@ -28,6 +29,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.util.execution.ParametersListUtil
 import org.jdom.Element
 import java.io.File
+import java.lang.RuntimeException
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -45,6 +47,21 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
     TargetEnvironmentAwareRunProfile {
 
 
+    override fun checkConfiguration() {
+
+        if(command == CjpmCommand.UNUSED){
+            throw RuntimeConfigurationError(
+                  CangJieBundle.message("cjpm.run.configuration.error.command.not.null")
+            )
+        }
+//        if(CangJieSdkManager.getProjectSdk() == null){
+//            throw RuntimeException(
+//                CangJieBundle.message("cjpm.run.configuration.error.sdk.not.selected")
+//            )
+//
+//        }
+
+    }
 
     private val redirectInputFile: File?
         get() {
@@ -166,6 +183,7 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
     override fun setDefaultTargetName(targetName: String?) {
         options.remoteTarget = targetName
     }
+
 
 
     override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> {

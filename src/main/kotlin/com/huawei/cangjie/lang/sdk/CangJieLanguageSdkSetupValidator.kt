@@ -33,6 +33,12 @@ class CangJieLanguageSdkSetupValidator : ProjectSdkSetupValidator {
 //        if (!FileTypeRegistry.getInstance()
 //                .isFileOfType(file, CangJieFileType)
 //        ) {
+
+
+//   如果扩展名是.cj 返回true
+        if (file.extension == "cj") {
+            return true
+        }
         val psiFile = PsiManager.getInstance(project).findFile(file)
         if (psiFile != null) {
 
@@ -41,6 +47,8 @@ class CangJieLanguageSdkSetupValidator : ProjectSdkSetupValidator {
                     return true
                 }
             }
+
+
 
             return psiFile.language.isKindOf(CangJieLanguage)
         }

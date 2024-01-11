@@ -28,6 +28,7 @@ enum class CjpmCommand(
     TEST("test", "单元测试", executeCommand = "test", index = 5),
 
 
+    OTHER("", "其他"),
     UNUSED("", "未使用");
 
 
@@ -58,12 +59,23 @@ enum class CjpmCommand(
 //            return arr.firstOrNull { it.command == firstWord }?.apply {
 //                executeCommand = command
 //            }
-            return when{
-                arr.any { it.command == firstWord } -> arr.firstOrNull { it.command == firstWord }?.apply {
-                    executeCommand = command
-                }
-                else -> UNUSED.apply {
-                    executeCommand = command
+            return when {
+                arr.any { (firstWord.isNotEmpty()) && (it.command == firstWord) } -> arr.firstOrNull { it.command == firstWord }
+                    ?.apply {
+                        executeCommand = command
+                    }
+//                command.isNotEmpty() -> OTHER.apply {
+//                    executeCommand = command
+//                }
+                else -> when {
+                    command.isNotEmpty() -> OTHER.apply {
+                        executeCommand = command
+
+                    }
+
+                    else -> UNUSED.apply {
+
+                    }
                 }
             }
         }
@@ -94,6 +106,6 @@ enum class CjpmCommand(
 
     override fun toString(): String {
 
-        return command
+        return command.toString()
     }
 }
