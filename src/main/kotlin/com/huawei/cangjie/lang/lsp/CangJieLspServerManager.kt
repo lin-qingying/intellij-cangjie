@@ -13,18 +13,19 @@ import com.intellij.openapi.util.SystemInfo
 import com.linqingying.lsp.impl.LspServerManagerImpl
 import java.io.FileOutputStream
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 
 object CangJieLspServerManager {
 
     //user  .cangjielspserver
-    val LSPSERVERPATH =
+    private val LSPSERVERPATH =
         System.getProperty("user.home") + "/.cangjie/lsp"
 
-    val LSPSERVERFILENAME = "LSPServer" + (if (SystemInfo.isWindows) ".exe" else "")
+    private val LSPSERVERFILENAME = "LSPServer" + (if (SystemInfo.isWindows) ".exe" else "")
 
     //    override fun createCommandLine() = GeneralCommandLine("D:\\Code\\idea\\intellij-cangjie\\lsp\\LSPServer.exe", "src")
-    val binaryPath = Paths.get("$LSPSERVERPATH/$LSPSERVERFILENAME")
+    val binaryPath: Path = Paths.get("$LSPSERVERPATH/$LSPSERVERFILENAME")
 
 
     /**
@@ -49,13 +50,10 @@ object CangJieLspServerManager {
         if (Files.notExists(Paths.get(LSPSERVERPATH))) {
             Files.createDirectories(Paths.get(LSPSERVERPATH))
         }
-        if (resource != null) {
-            resource.openStream().use { input ->
-                FileOutputStream(binaryPath.toFile()).use { output ->
-                    input?.copyTo(output) ?: throw Exception("LspServer not found")
-                }
+        resource?.openStream()?.use { input ->
+            FileOutputStream(binaryPath.toFile()).use { output ->
+                input.copyTo(output) ?: throw Exception("LspServer not found")
             }
-
         }
 
 
