@@ -8,6 +8,7 @@ import com.huawei.cangjie.idea.run.cjpm.CjpmCommandConfigurationType
 import com.huawei.cangjie.idea.run.cjpm.CjpmCommand
 import com.huawei.cangjie.lang.sdk.CangJieSdkType
 import com.huawei.cangjie.lang.sdk.cjpmPath
+import com.huawei.cangjie.lang.sdk.validateSdk
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
@@ -108,7 +109,9 @@ class CangJieModuleBuilder : ModuleBuilder() {
             return emptyList()
         }
 
-
+//if(!validateSdk(project,projectSdk)){
+//    return emptyList()
+//}
 //        val modulesModel = model ?: ModuleManager.getInstance(project).getModifiableModel()
 
         ApplicationManager.getApplication().executeOnPooledThread {

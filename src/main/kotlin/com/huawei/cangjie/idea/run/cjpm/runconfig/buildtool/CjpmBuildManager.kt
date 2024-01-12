@@ -10,6 +10,7 @@ import com.huawei.cangjie.idea.run.cjpm.runconfig.isUnitTestMode
 import com.huawei.cangjie.idea.run.hasRemoteTarget
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager
 import com.huawei.cangjie.lang.sdk.CangJieSdkType
+import com.huawei.cangjie.lang.sdk.validateSdk
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildViewManager
 import com.intellij.execution.ExecutorRegistry
@@ -106,7 +107,7 @@ object CjpmBuildManager {
 
 
 
-        if(configuration.executorId == "Debug"){
+        if (configuration.executorId == "Debug") {
             parsed.additionalArguments.add("-g")
         }
 
@@ -267,7 +268,10 @@ object CjpmBuildManager {
         val configuration = buildConfiguration.configuration
         val environment = buildConfiguration.environment
         val project = environment.project
-
+//        TODO 验证SDK
+        if (!validateSdk(project)) {
+            throw RuntimeException("SDK error")
+        }
         val state = CjpmRunState(
             environment,
             configuration,

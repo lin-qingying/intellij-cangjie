@@ -105,6 +105,8 @@
                 implementation="com.huawei.cangjie.idea.run.cjpm.CjpmCommandConfigurationType"
                 id="CjpmRunConfiguration"/>
 
+
+<!--    行配置之前执行的步骤   -->
         <stepsBeforeRunProvider
                 implementation="com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildTaskProvider"/>
 
@@ -168,7 +170,13 @@
                      Run Tool Window instead of raw console"/>
         <notificationGroup id="CangJie Plugin" displayType="BALLOON" bundle="messages.CangJieBundle"
                            key="notification.group.cangjie.plugin"/>
-        <notificationGroup id="CangJie Build Log" displayType="NONE" key="notification.group.cangjie.plugin"/>
+        <notificationGroup id="CangJie Build Log" bundle="messages.CangJieBundle" displayType="NONE" key="notification.group.cangjie.plugin"/>
+
+        <notificationGroup id="jps configuration error"
+                           toolWindowId="Build"
+                           displayType="TOOL_WINDOW"
+                           bundle="messages.CangJieCompilerBundle"
+                           key="notification.group.title.jps.cannot.start.compiler" />
     </extensions>
     <extensions defaultExtensionNs="com.huawei.cangjie">
 
