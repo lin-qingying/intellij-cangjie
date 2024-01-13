@@ -1,3 +1,4 @@
+
 pluginManagement {
 
     repositories {
@@ -8,6 +9,8 @@ pluginManagement {
 }
 
 rootProject.name = "intellij-cangjie"
+
+
 
 //include("plugin")
 // Configure Gradle Build Cache. It is enabled in `gradle.properties` via `org.gradle.caching`.
@@ -25,3 +28,6 @@ rootProject.name = "intellij-cangjie"
 //        gradlePluginPortal()
 //    }
 //}
+
+include("plugin")
+include("debugger")
