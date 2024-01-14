@@ -3,9 +3,23 @@
         <plugin id="com.intellij.modules.cidr.debugger"/>
     </dependencies>
 
+    <extensions defaultExtensionNs="cidr.debugger">
 
+        <languageSupport language="CangJie" implementationClass="com.huawei.cangjie.debugger.lang.CjDebuggerLanguageSupport"/>
+
+        <debugProcessConfigurator implementation="com.huawei.cangjie.debugger.runconfig.CjDebugProcessConfigurator"/>
+    </extensions>
     <extensions defaultExtensionNs="com.intellij">
+        <xdebugger.settings implementation="com.huawei.cangjie.debugger.settings.CjDebuggerSettings"/>
+
+
         <programRunner id="CjDebugRunner"
                        implementation="com.huawei.cangjie.debugger.runconfig.CjDebugRunner"/>
+
+        <programRunner id="CjDebugRunnerLegacy"
+                       implementation="com.huawei.cangjie.debugger.runconfig.legacy.CjDebugRunnerLegacy"/>
+        <registryKey key="com.huawei.cangjie.debugger.gdb.setup.v2"
+                     defaultValue="false"
+                     description="Enables new way how GDB is set up for Rust"/>
     </extensions>
 </idea-plugin>

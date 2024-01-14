@@ -16,7 +16,8 @@ object CangJieSdkManager {
 
     val sdkPath get() = getProjectSdk()?.homePath ?: ""
 
-    val sdkVersion get() = getProjectSdk()?.versionString ?: ""
+    val sdkVersion get( ) = getProjectSdk()?.versionString ?: ""
+
     fun getProjectSdkType(): CangJieSdkType? {
         return getProjectSdk()?.sdkType as? CangJieSdkType
     }

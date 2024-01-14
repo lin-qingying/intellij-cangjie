@@ -1,12 +1,10 @@
 package com.huawei.cangjie.idea.run.cjpm
 
 import com.huawei.cangjie.CangJieBundle
-import com.huawei.cangjie.idea.run.CjpmArgsParser.Companion.parseArgs
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildManager.getBuildConfiguration
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildConfiguration
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
 import com.huawei.cangjie.idea.run.cjpm.runconfig.computeWithCancelableProgress
-import com.huawei.cangjie.idea.run.cjpm.runconfig.toPath
 import com.huawei.cangjie.idea.run.hasRemoteTarget
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -20,6 +18,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsContexts
 import java.util.concurrent.CompletableFuture
 import com.intellij.execution.runners.showRunContent
+import java.io.File
 
 abstract class CjExecutableRunner(
     protected val executorId: String,
@@ -34,15 +33,29 @@ abstract class CjExecutableRunner(
                 getBuildConfiguration(profile) != null
     }
 
-//    override fun doExecute(myState: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
-//        if (myState !is CjpmRunStateBase) return null
-//
-//        val artifacts = environment.artifacts.orEmpty()
-//        val artifact = artifacts.firstOrNull()
-//        val binaries = artifact?.executables.orEmpty()
-//
-//        return showRunContent(myState, environment, runExecutable)
-//    }
+    override fun execute(environment: ExecutionEnvironment) {
+//        val state = environment.state as CjpmRunStateBase
+        val project = environment.project
+
+        if (!checkToolchainConfigured(project)) return
+//        val toolchainError = checkToolchainSupported(project, host)
+//        if (toolchainError != null) {
+//            processInvalidToolchain(project, toolchainError)
+//            return
+//        }
+
+        environment.putUserData(ARTIFACTS, CompletableFuture())
+        super.execute(environment)
+
+    }
+    override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
+        if (state !is CjpmRunStateBase) return null
+        val runExecutable = GeneralCommandLine().apply {
+            exePath = state.project.basePath + "/build/bin/main.exe"
+            workDirectory = state.project.basePath?.let { File(it) }
+        }
+        return showRunContent(state, environment, runExecutable)
+    }
 
 
     protected open fun showRunContent(

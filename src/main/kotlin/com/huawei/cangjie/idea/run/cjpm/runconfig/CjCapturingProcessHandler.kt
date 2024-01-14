@@ -24,6 +24,12 @@ class CjCapturingProcessHandler private constructor(commandLine: GeneralCommandL
         }
     }
 }
+
+fun <T, E: Throwable> CjResult<T, E>.unwrapOrThrow(): T = when (this) {
+    is CjResult.Ok -> ok
+    is CjResult.Err -> throw err
+}
+
 sealed class CjResult<out T, out E> {
     data class Ok<T>(val ok: T) : CjResult<T, Nothing>()
     data class Err<E>(val err: E) : CjResult<Nothing, E>()

@@ -6,6 +6,7 @@ import com.huawei.cangjie.idea.project.CangJieProjectManager
 
 import com.intellij.execution.*
 import com.intellij.execution.configuration.EnvironmentVariablesData
+import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessListener
@@ -108,6 +109,7 @@ data class CjpmCommandLine(
 
     fun splitOnDoubleDash(arguments: List<String>): Pair<List<String>, List<String>> {
         val idx = arguments.indexOf("--")
+
         if (idx == -1) return arguments to emptyList()
         return arguments.take(idx) to arguments.drop(idx + 1)
     }
@@ -118,6 +120,10 @@ data class CjpmCommandLine(
     fun prependArgument(arg: String): CjpmCommandLine =
         copy(additionalArguments = listOf(arg) + additionalArguments)
 
+
+    fun toGeneralCommandLine(): GeneralCommandLine {
+
+    }
     companion object {
         fun forProject(
 

@@ -22,9 +22,9 @@
     <xi:include href="/META-INF/lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <!--    <xi:include href="/META-INF/cangjie-debugger.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
     <xi:include href="/META-INF/cangjie.code-insight.live-templates-shared.xml" xpointer="xpointer(/idea-plugin/*)"/>
-<!--        <content>-->
+        <content>
 
-<!--            <module name="com.huawei.cangjie.debugger"/>-->
+            <module name="com.huawei.cangjie.debugger"/>
 
-<!--        </content>-->
+        </content>
 </idea-plugin>

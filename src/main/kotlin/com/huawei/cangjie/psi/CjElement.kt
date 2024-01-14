@@ -78,3 +78,5 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
 
     override fun getLanguage(): Language  = CangJieLanguage
 }
+
+
