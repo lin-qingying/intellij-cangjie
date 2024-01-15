@@ -227,20 +227,20 @@ project(":plugin") {
             dependsOn(mergePluginJarTask)
             enabled = prop("enableBuildSearchableOptions").toBoolean()
         }
-        withType<PrepareSandboxTask> {
-//            dependsOn(named(compileNativeCodeTaskName))
-
-            // Copy native binaries
-            from("${rootDir}/bin") {
-                into("${pluginName.get()}/bin")
-                include("**")
-            }
-            // Copy pretty printers
-            from("$rootDir/prettyPrinters") {
-                into("${pluginName.get()}/prettyPrinters")
-                include("**/*.py")
-            }
-        }
+//        withType<PrepareSandboxTask> {
+////            dependsOn(named(compileNativeCodeTaskName))
+//
+//            // Copy native binaries
+//            from("${rootDir}/bin") {
+//                into("${pluginName.get()}/bin")
+//                include("**")
+//            }
+//            // Copy pretty printers
+//            from("$rootDir/prettyPrinters") {
+//                into("${pluginName.get()}/prettyPrinters")
+//                include("**/*.py")
+//            }
+//        }
         withType<RunIdeTask> {
             dependsOn(mergePluginJarTask)
             // Default args for IDEA installation
@@ -268,7 +268,7 @@ project(":plugin") {
             channels.set(listOf("dev"))
         }
     }
-    // Generates event scheme for Rust plugin FUS events to `plugin/build/eventScheme.json`
+
     task<RunIdeTask>("buildEventsScheme") {
         dependsOn(tasks.prepareSandbox)
         args(
@@ -316,6 +316,15 @@ project(":") {
         }
     }
 }
+//project(":back") {
+//    intellij {
+//
+//    }
+//    dependencies {
+//        implementation(project(":"))
+//    }
+//}
+
 
 project(":debugger") {
     intellij {

@@ -7,7 +7,9 @@ import com.huawei.cangjie.debugger.DebuggerKind
 import com.huawei.cangjie.debugger.settings.CjDebuggerSettings
 import com.huawei.cangjie.idea.run.cjpm.BuildResult
 import com.huawei.cangjie.idea.run.cjpm.CjpmRunStateBase
+import com.huawei.cangjie.idea.run.cjpm.runconfig.isUnitTestMode
 import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.project.Project
@@ -16,6 +18,10 @@ import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.xdebugger.XDebugProcess
+import com.intellij.xdebugger.XDebugProcessStarter
+import com.intellij.xdebugger.XDebugSession
+import com.intellij.xdebugger.XDebuggerManager
 import org.jetbrains.annotations.Nls
 
 object CjDebugRunnerUtils {
@@ -23,15 +29,16 @@ object CjDebugRunnerUtils {
         if (SystemInfo.isWindows) {
 
 
-            val isGNURustToolchain = "gnu" in host
-            val isMSVCRustToolchain = "msvc" in host
-            val isGdbAvailable = CjDebuggerToolchainService.getInstance().gdbAvailability() !is DebuggerAvailability.Unavailable
+            val isGNUCangJieToolchain = "gnu" in host
+            val isMSVCCangJieToolchain = "msvc" in host
+            val isGdbAvailable =
+                CjDebuggerToolchainService.getInstance().gdbAvailability() !is DebuggerAvailability.Unavailable
             val debuggerKind = CjDebuggerSettings.getInstance().debuggerKind
 
             return when {
-                isGNURustToolchain && !isGdbAvailable -> BuildResult.ToolchainError.UnsupportedGNU
-                isGNURustToolchain && debuggerKind == DebuggerKind.LLDB -> BuildResult.ToolchainError.MSVCWithRustGNU
-                isMSVCRustToolchain && debuggerKind == DebuggerKind.GDB -> BuildResult.ToolchainError.GNUWithRustMSVC
+                isGNUCangJieToolchain && !isGdbAvailable -> BuildResult.ToolchainError.UnsupportedGNU
+                isGNUCangJieToolchain && debuggerKind == DebuggerKind.LLDB -> BuildResult.ToolchainError.MSVCWithCangJieGNU
+                isMSVCCangJieToolchain && debuggerKind == DebuggerKind.GDB -> BuildResult.ToolchainError.GNUWithCangJieMSVC
                 else -> null
             }
         }
@@ -44,8 +51,20 @@ object CjDebugRunnerUtils {
         environment: ExecutionEnvironment,
         runExecutable: GeneralCommandLine
     ): RunContentDescriptor {
-        TODO()
 
+        val runParameters = CjDebugRunParameters(environment.project, runExecutable, isUnitTestMode,state.configuration.withSudo)
+
+
+        return XDebuggerManager.getInstance(environment.project)
+            .startSession(environment, object : XDebugProcessStarter() {
+
+                override fun start(session: XDebugSession): XDebugProcess =
+                    CjLocalDebugProcess(runParameters, session, state.consoleBuilder).apply {
+                        ProcessTerminatedListener.attach(processHandler, environment.project)
+                        start()
+                    }
+
+            }).runContentDescriptor
     }
 
     private fun showDialog(
@@ -94,6 +113,7 @@ object CjDebugRunnerUtils {
         }
         return false
     }
+
     @Nls
     val ERROR_MESSAGE_TITLE: String = CangJieBundle.message("unable.to.run.debugger")
 

@@ -2,10 +2,16 @@
     <dependencies>
         <plugin id="com.intellij.modules.cidr.debugger"/>
     </dependencies>
+    <extensionPoints>
+        <extensionPoint qualifiedName="com.huawei.cangjie.debugger.driverConfigurationProvider"
+                        interface="com.huawei.cangjie.debugger.CjDebuggerDriverConfigurationProvider"
+                        dynamic="true"/>
 
+    </extensionPoints>
     <extensions defaultExtensionNs="cidr.debugger">
 
         <languageSupport language="CangJie" implementationClass="com.huawei.cangjie.debugger.lang.CjDebuggerLanguageSupport"/>
+        <lineBreakpointFileTypesProvider implementation="com.huawei.cangjie.debugger.CjLineBreakpointFileTypesProvider"/>
 
         <debugProcessConfigurator implementation="com.huawei.cangjie.debugger.runconfig.CjDebugProcessConfigurator"/>
     </extensions>
@@ -20,6 +26,21 @@
                        implementation="com.huawei.cangjie.debugger.runconfig.legacy.CjDebugRunnerLegacy"/>
         <registryKey key="com.huawei.cangjie.debugger.gdb.setup.v2"
                      defaultValue="false"
-                     description="Enables new way how GDB is set up for Rust"/>
+                     description="Enables new way how GDB is set up for CangJie"/>
+
+        <registryKey key="com.huawei.cangjie.debugger.gdb.setup.v2"
+                     defaultValue="false"
+                     description="Enables new way how GDB is set up for CangJie"/>
+
+        <registryKey key="com.huawei.cangjie.debugger.lldb.cangjie.msvc" defaultValue="true" restartRequired="false"
+                     description="Enable CangJie MSVC support in LLDB (Windows-only)"/>
+
+    </extensions>
+
+    <extensions defaultExtensionNs="com.huawei.cangjie">
+        <debugger.driverConfigurationProvider
+                id="CjDefaultDebuggerDriverConfigurationProvider"
+                implementation="com.huawei.cangjie.debugger.CjDefaultDebuggerDriverConfigurationProvider"
+                order="last"/>
     </extensions>
 </idea-plugin>

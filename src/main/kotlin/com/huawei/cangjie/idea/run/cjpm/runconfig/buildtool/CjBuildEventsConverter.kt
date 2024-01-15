@@ -1,6 +1,7 @@
 package com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool
 
 import com.huawei.cangjie.CangJieBundle
+import com.huawei.cangjie.idea.run.cjpm.CompilerArtifactMessage
 import com.huawei.cangjie.idea.run.cjpm.runconfig.CjAnsiEscapeDecoder.Companion.quantizeAnsiColors
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
@@ -254,6 +255,18 @@ class CjBuildEventsConverter(private val context: CjpmBuildContextBase) : BuildO
             cleanLine.startsWith("cjpm build success") -> {
 
                 handleFinishedMessage(null, messageConsumer)
+
+
+//                val executable = if(context.environment.)
+
+                context.artifacts += CompilerArtifactMessage(
+                    CjpmBuildManager.getExecutable(
+                        context.project,
+                        context.buildId.toString()
+                    )
+                )
+
+
             }
 
             kind in ERROR_OR_WARNING -> {
@@ -343,7 +356,9 @@ class CjBuildEventsConverter(private val context: CjpmBuildContextBase) : BuildO
                 }
             )
             messageConsumer.accept(finishEvent)
+
         }
+
     }
 
     private fun getMessageKind(kind: String): MessageEvent.Kind =

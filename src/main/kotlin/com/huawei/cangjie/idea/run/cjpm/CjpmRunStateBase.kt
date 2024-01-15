@@ -7,6 +7,7 @@ import com.huawei.cangjie.idea.project.CangJieProjectManager
 import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.getEnvironment
 import com.huawei.cangjie.idea.run.cjpm.runconfig.CjLanguageRuntimeConfiguration
 import com.huawei.cangjie.idea.run.cjpm.runconfig.CjProcessHandler
+import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildManager
 import com.huawei.cangjie.idea.run.cjpm.runconfig.startProcess
 import com.huawei.cangjie.lang.lsp.toSystemPath
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager
@@ -84,7 +85,7 @@ abstract class CjpmRunStateBase(
         val params = ParametersListUtil.parse(commandLine.command.executeCommand)
 //            如果sdkversion小于0.45.2
 //0.39.8 (476fdc21baf0 2023-09-23) 提取出来的版本号是0.39.8
-        val sdkVersion = CangJieSdkManager.sdkVersion.split(" ")[0]
+//        val sdkVersion = CangJieSdkManager.sdkVersion.split(" ")[0]
 
 
         val sdk = CangJieSdkManager.getProjectSdk()
@@ -102,11 +103,7 @@ abstract class CjpmRunStateBase(
 //                        CangJieProjectManager.getCurrentProject().basePath + "/build/bin/main"
 //                    }
 
-                    exePath = when {
-                        sdkVersion >= "0.45.2" -> (CangJieProjectManager.getCurrentProject().basePath + "/build/release/bin/main").toSystemPath()
-
-                        else -> (CangJieProjectManager.getCurrentProject().basePath + "/build/bin/main").toSystemPath();
-                    }
+                    exePath =  CjpmBuildManager.getExecutable(CangJieProjectManager.getCurrentProject(),"Run")
 
 //                    if (sdk != null) {
 //                        environment["CANGJIE_HOME"] = sdk.homePath

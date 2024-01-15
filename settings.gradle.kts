@@ -31,3 +31,5 @@ rootProject.name = "intellij-cangjie"
 
 include("plugin")
 include("debugger")
+
+//include("back")

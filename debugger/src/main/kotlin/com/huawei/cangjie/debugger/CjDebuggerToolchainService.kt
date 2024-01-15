@@ -64,7 +64,8 @@ class CjDebuggerToolchainService {
         val lldbFrontendVersion = fileNameWithoutExtension(lldbFrontendUrl.toString())
 
         if (versions[LLDB_FRAMEWORK_PROPERTY_NAME] != lldbFrameworkVersion ||
-            versions[LLDB_FRONTEND_PROPERTY_NAME] != lldbFrontendVersion) return DebuggerAvailability.NeedToUpdate
+            versions[LLDB_FRONTEND_PROPERTY_NAME] != lldbFrontendVersion
+        ) return DebuggerAvailability.NeedToUpdate
 
         return DebuggerAvailability.Binaries(LLDBBinaries(frameworkFile, frontendFile))
     }
@@ -95,27 +96,34 @@ class CjDebuggerToolchainService {
     }
 
     fun downloadDebugger(project: Project? = null, debuggerKind: DebuggerKind): DownloadResult {
-        val result = ProgressManager.getInstance().runProcessWithProgressSynchronously(ThrowableComputable<DownloadResult, Nothing> {
-            downloadDebuggerSynchronously(debuggerKind)
-        }, CjDebuggerBundle.message("dialog.title.download.debugger"), true, project)
+        val result = ProgressManager.getInstance()
+            .runProcessWithProgressSynchronously(ThrowableComputable<DownloadResult, Nothing> {
+                downloadDebuggerSynchronously(debuggerKind)
+            }, CjDebuggerBundle.message("dialog.title.download.debugger"), true, project)
 
         when (result) {
             is DownloadResult.Ok -> {
-                Notifications.Bus.notify(Notification(
-                    RUST_DEBUGGER_GROUP_ID,
-                    CjDebuggerBundle.message("notification.title.debugger"),
-                    CjDebuggerBundle.message("notification.content.debugger.successfully.downloaded"),
-                    NotificationType.INFORMATION
-                ))
+                Notifications.Bus.notify(
+                    Notification(
+                        RUST_DEBUGGER_GROUP_ID,
+                        CjDebuggerBundle.message("notification.title.debugger"),
+                        CjDebuggerBundle.message("notification.content.debugger.successfully.downloaded"),
+                        NotificationType.INFORMATION
+                    )
+                )
             }
+
             is DownloadResult.Failed -> {
-                Notifications.Bus.notify(Notification(
-                    RUST_DEBUGGER_GROUP_ID,
-                    CjDebuggerBundle.message("notification.title.debugger"),
-                    CjDebuggerBundle.message("notification.content.debugger.downloading.failed"),
-                    NotificationType.ERROR
-                ))
+                Notifications.Bus.notify(
+                    Notification(
+                        RUST_DEBUGGER_GROUP_ID,
+                        CjDebuggerBundle.message("notification.title.debugger"),
+                        CjDebuggerBundle.message("notification.content.debugger.downloading.failed"),
+                        NotificationType.ERROR
+                    )
+                )
             }
+
             else -> Unit
         }
 
@@ -132,6 +140,7 @@ class CjDebuggerToolchainService {
                     DownloadableDebuggerBinary(lldbFrontendUrl.toString(), LLDB_FRONTEND_PROPERTY_NAME)
                 )
             }
+
             DebuggerKind.GDB -> {
                 val gdbUrl = gdbUrl() ?: return DownloadResult.NoUrls
                 listOf(DownloadableDebuggerBinary(gdbUrl.toString(), GDB_PROPERTY_NAME))
@@ -242,7 +251,7 @@ class CjDebuggerToolchainService {
         private const val LLDB_FRAMEWORK_PROPERTY_NAME = "lldbFramework"
         private const val GDB_PROPERTY_NAME = "gdb"
 
-        const val RUST_DEBUGGER_GROUP_ID = "Rust Debugger"
+        const val RUST_DEBUGGER_GROUP_ID = "CangJie Debugger"
 
         private fun downloadPath(): Path = Paths.get(PathManager.getTempPath())
         private fun lldbPath(): Path = CjPathManager.pluginDirInSystem().resolve("lldb")
