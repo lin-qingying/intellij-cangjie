@@ -30,6 +30,8 @@ rootProject.name = "intellij-cangjie"
 //}
 
 include("plugin")
-include("debugger")
+//include("debugg/**/er")
+//include("debugger1")
+//include("cidr")
 
 //include("back")

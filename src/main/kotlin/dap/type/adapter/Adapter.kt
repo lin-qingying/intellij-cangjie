@@ -5,6 +5,7 @@ import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dap.event.*
 import dap.protocol.ProtocolMessage
+import dap.request.DisconnectRequest
 import dap.request.Request
 import dap.request.RunInTerminalRequest
 import dap.response.*
@@ -136,6 +137,8 @@ class ResponseAdapter {
 
         return when {
 
+            jsonObject.containsKey("command") && jsonObject["command"] == "disconnect" ->
+                moshi.adapter(DisconnectResponse::class.java).fromJson(reader)!!
 
             jsonObject.containsKey("command") && jsonObject["command"] == "initialize" ->
                 moshi.adapter(InitializeResponse::class.java).fromJson(reader)!!
@@ -214,7 +217,10 @@ class ResponseAdapter {
                 StepOutResponse::class.java
             )
                 .fromJson(reader)!!
-
+            jsonObject.containsKey("command") && jsonObject["command"] == "source" -> moshi.adapter(
+                SourceResponse::class.java
+            )
+                .fromJson(reader)!!
             jsonObject.containsKey("command") && jsonObject["command"] == "continue" -> moshi.adapter(
                 ContinueResponse::class.java
             )

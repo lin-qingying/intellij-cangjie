@@ -94,16 +94,16 @@ class LspCompletionContributor : CompletionContributor(), DumbAware {
 
         for (item in completionItems) {
 ////
-            if (item.insertTextFormat == InsertTextFormat.Snippet) {
-//               TODO 处理模板
-//              将 ${}包裹的内容作为模板，在插入时，将其替换为真实内容
-                item.insertText = item.insertText.replace(Regex("\\([^)]*\\)"), "()")
-                // 提取冒号后面的字符
-
-                    item.insertText = item.insertText.replace("\${1:T}","T")
-
-
-            }
+//            if (item.insertTextFormat == InsertTextFormat.Snippet) {
+////               TODO 处理模板
+////              将 ${}包裹的内容作为模板，在插入时，将其替换为真实内容
+//                item.insertText = item.insertText.replace(Regex("\\([^)]*\\)"), "()")
+//                // 提取冒号后面的字符
+//
+//                    item.insertText = item.insertText.replace("\${1:T}","T")
+//
+//
+//            }
 
 
             val lookupElement = lspCompletionSupport.createLookupElement(completionParameters, item)

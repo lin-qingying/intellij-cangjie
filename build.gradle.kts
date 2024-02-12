@@ -1,6 +1,5 @@
 import groovy.xml.XmlParser
 import org.jetbrains.intellij.tasks.PatchPluginXmlTask
-import org.jetbrains.intellij.tasks.PrepareSandboxTask
 import org.jetbrains.intellij.tasks.PublishPluginTask
 import org.jetbrains.intellij.tasks.RunIdeTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -34,9 +33,9 @@ val Project.dependencyCachePath
 //
 
 val ideaVersion = "233-EAP-SNAPSHOT"
-val ideaType = "IU" // Target IDE Platform
-
-val nativeDebugPlugin: String = "com.intellij.nativeDebug:233.13135.65"
+val ideaType = "IC" // Target IDE Platform
+val nativeDebugPlugin: String = "com.intellij.nativeDebug:233.13763.5"
+//val nativeDebugPlugin: String = "com.intellij.nativeDebug:233.13135.65"
 idea {
     module {
         // https://github.com/gradle/kotlin-dsl/issues/537/
@@ -78,12 +77,12 @@ allprojects {
 //        sandboxDir.set("$buildDir/$ideaVersion-sandbox")
     }
 
-    sourceSets{
-       main{
+    sourceSets {
+        main {
             java {
                 srcDirs("src/main/kotlin")
             }
-       }
+        }
     }
 
     tasks {
@@ -140,7 +139,7 @@ allprojects {
 //            token.set(System.getenv("PUBLISH_TOKEN"))
 //        }
     }
-    dependencies{
+    dependencies {
         compileOnly(kotlin("stdlib-jdk8"))
     }
 }
@@ -154,13 +153,17 @@ val pluginProjects: List<Project>
 project(":plugin") {
     intellij {
         pluginName.set("intellij-cangjie")
-        plugins.set(listOf(nativeDebugPlugin))
+//        plugins.set(listOf(nativeDebugPlugin))
     }
 //    group = "com.huawei.cangjie"
-    version = "beta-1.0.3"
+    version = "beta-1.0.4"
     dependencies {
         implementation(project(":"))
-        implementation(project(":debugger"))
+//        implementation(project(":debugger"))
+//        implementation(project(":debugger1"))
+
+
+
     }
 
 
@@ -289,7 +292,7 @@ project(":") {
     }
     dependencies {
         implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.21.1")
-
+        implementation("com.alibaba:fastjson:2.0.46")
 
 
         implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.debug:0.21.1")
@@ -297,6 +300,8 @@ project(":") {
         implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
         implementation("com.squareup.moshi:moshi-adapters:1.15.0")
         implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
+
+
     }
     tasks {
         processTestResources {
@@ -326,14 +331,33 @@ project(":") {
 //}
 
 
-project(":debugger") {
-    intellij {
-        plugins.set(listOf(nativeDebugPlugin))
-    }
-    dependencies {
-        implementation(project(":"))
-    }
-}
+//project(":debugger") {
+//    intellij {
+//        plugins.set(listOf(nativeDebugPlugin))
+//    }
+//    dependencies {
+//        implementation(project(":"))
+//    }
+//}
+
+//project(":cidr") {
+//    dependencies {
+//        implementation(project(":"))
+//
+////        implementation("com.squareup.moshi:moshi-adapters:1.15.0")
+////        implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
+//    }
+//}
+//project(":debugger1") {
+//    intellij {
+////        plugins.set(listOf(nativeDebugPlugin))
+//    }
+//    dependencies {
+//        implementation(project(":"))
+//        implementation(project(":cidr"))
+//    }
+//}
+
 
 
 fun File.isPluginJar(): Boolean {

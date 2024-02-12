@@ -1,7 +1,9 @@
 package dap.type.serializer
 
+import dap.protocol.ProtocolMessage
+import dap.request.*
+import dap.response.RunInTerminalResponse
 import dap.type.*
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -10,29 +12,50 @@ import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
 
+//val jsonConfiguration = JsonConfiguration(classDiscriminator = "kind")
 val format = Json {
 //    useArrayPolymorphism = true
-//    classDiscriminator = "jsontype"
+    classDiscriminator = "kind"
     ignoreUnknownKeys = true
     isLenient = true
     encodeDefaults = true
 //    不序列化值为null的属性
 
-//    serializersModule = SerializersModule {
-////        polymorphic(ProtocolMessage::class) {
-//
-//
-//        polymorphic(ResponseImpl::class,CustomDeserializer()) {
-////
-////            subclass(ResponseImpl.InitializeResponse::class, ResponseImpl.InitializeResponse.serializer())
-////            subclass(ResponseImpl.ErrorResponse::class, ResponseImpl.ErrorResponse.serializer())
-////            subclass(ResponseImpl.CancelResponse::class, ResponseImpl.CancelResponse.serializer())
-//
-////            }
-//        }
-//    }
+    serializersModule = SerializersModule {
+        polymorphic(ProtocolMessage::class) {
+//            polymorphic(Request::class){
+            subclass(InitializeRequest::class)
+//            }
+            subclass(ThreadsRequest::class)
+            subclass(SetBreakpointsRequest::class)
+            subclass(LaunchRequest::class)
+            subclass(ConfigurationDoneRequest::class)
+            subclass(RunInTerminalResponse::class)
+            subclass(StackTraceRequest::class)
+            subclass(DisconnectRequest::class)
+            subclass(ScopesRequest::class)
+            subclass(SetInstructionBreakpointsRequest::class)
+            subclass(DebugInConsoleRequest::class)
+            subclass(SetDataBreakpointsRequest::class)
+            subclass(SetFunctionBreakpointsRequest::class)
+            subclass(VariablesRequest::class)
 
+            subclass(NextRequest::class)
+
+            subclass(StepInRequest::class)
+            subclass(StepOutRequest::class)
+            subclass(ContinueRequest::class)
+            subclass(SourceRequest::class)
+            subclass(SetVariableRequest::class)
+            subclass(EvaluateRequest::class)
+
+
+        }
+    }
 
 }
 
@@ -396,7 +419,7 @@ object EvaluateArgumentsContextSerializer : KSerializer<EvaluateArgumentsContext
             is EvaluateArgumentsContext.Hover -> encoder.encodeString("hover")
             is EvaluateArgumentsContext.Repl -> encoder.encodeString("repl")
             is EvaluateArgumentsContext.Clipboard -> encoder.encodeString("clipboard")
-            is EvaluateArgumentsContext.Variables ->  encoder.encodeString("variables")
+            is EvaluateArgumentsContext.Variables -> encoder.encodeString("variables")
 
             is EvaluateArgumentsContext.Other -> encoder.encodeString(value.value)
 

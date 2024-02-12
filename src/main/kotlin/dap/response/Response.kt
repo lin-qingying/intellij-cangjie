@@ -213,7 +213,7 @@ data class DebugInConsoleResponse(
 }
 
 @Serializable
-data class SetFunctionBreakpointsResponse  (
+data class SetFunctionBreakpointsResponse(
     override val seq: Int,
     override val request_seq: Int,
     override val success: Boolean,
@@ -263,7 +263,7 @@ data class StackTraceResponse(
 }
 
 @Serializable
-data class ScopesResponse (
+data class ScopesResponse(
     override val seq: Int,
     override val request_seq: Int,
     override val success: Boolean,
@@ -275,18 +275,19 @@ data class ScopesResponse (
 }
 
 @Serializable
-data class NextResponse (
+data class NextResponse(
     override val seq: Int,
     override val request_seq: Int,
     override val success: Boolean,
 
-) : Response {
+    ) : Response {
     override val type: MessageType = super.type
 
     override val command: MessageCommand = MessageCommand.next
 }
+
 @Serializable
-data class StepOutResponse   (
+data class StepOutResponse(
     override val seq: Int,
     override val request_seq: Int,
     override val success: Boolean,
@@ -296,8 +297,9 @@ data class StepOutResponse   (
 
     override val command: MessageCommand = MessageCommand.stepOut
 }
+
 @Serializable
-data class StepInResponse  (
+data class StepInResponse(
     override val seq: Int,
     override val request_seq: Int,
     override val success: Boolean,
@@ -309,17 +311,29 @@ data class StepInResponse  (
 }
 
 @Serializable
-data class ContinueResponse (
+data class ContinueResponse(
     override val seq: Int,
     override val request_seq: Int,
     override val success: Boolean,
     override val body: ContinueResponseBody? = null,
-    ) : Response {
+) : Response {
     override val type: MessageType = super.type
 
     override val command: MessageCommand = MessageCommand.Continue
 }
 
+@Serializable
+data class DisconnectResponse(
+
+    override val seq: Int,
+    override val request_seq: Int,
+    override val success: Boolean,
+    override val body: Body? = null,
+    override val message: ResponseMessage? = null,
+) : Response {
+    override val command: MessageCommand = MessageCommand.disconnect
+    override val type: MessageType = super.type
+}
 
 @Serializable
 data class EvaluateResponse(
@@ -329,7 +343,7 @@ data class EvaluateResponse(
     override val success: Boolean,
     override val body: EvaluateResponseBody? = null,
     override val message: ResponseMessage? = null,
-    ) :Response{
+) : Response {
     override val command: MessageCommand = MessageCommand.evaluate
     override val type: MessageType = super.type
 }
@@ -348,6 +362,18 @@ data class SetVariableResponse(
     override val type: MessageType = super.type
 
 
-
     override val command: MessageCommand = MessageCommand.setVariable
+}
+
+@Serializable
+data class SourceResponse(
+    override val seq: Int,
+    override val request_seq: Int,
+    override val success: Boolean,
+    override val body: SourceResponseBody? = null,
+    override val message: ResponseMessage? = null,
+) : Response {
+    override val type: MessageType = super.type
+
+    override val command: MessageCommand = MessageCommand.source
 }

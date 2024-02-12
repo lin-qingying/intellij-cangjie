@@ -360,7 +360,7 @@ data class StoppedEventBody(
     /**
      * 停止的线程。
      */
-    val threadId: Int? = null,
+    val threadId: Long? = null,
 
     /**
      * 值为 true 的提示给客户端，此事件不应改变焦点。
@@ -623,4 +623,20 @@ data class SetVariableResponseBody(
      * 如果相应的功能 `supportsMemoryReferences` 为真，调试适配器可能会返回此属性。
      */
     val memoryReference: String? = null
+) : Body
+
+
+
+@Serializable
+data class SourceResponseBody(
+    /**
+     * 源的文本内容。
+     */
+    val content: String,
+
+
+    /**
+     * 源的内容类型(MIME类型)。
+     */
+    val mimeType: String? = null
 ) : Body

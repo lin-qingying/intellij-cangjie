@@ -20,6 +20,7 @@ interface CjElement : NavigatablePsiElement, CjPureElement {
 
     @Deprecated("Don't use getReference() on CjElement for the choice is unpredictable")
     override fun getReference(): PsiReference?
+
 }
 
 
@@ -80,3 +81,8 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
 }
 
 
+//fun CjElement.findInScope(name: String, ns: Set<Namespace>): PsiElement? {
+//    return pickFirstResolveVariant(name) {
+//        processNestedScopesUpwards(this, ns, it)
+//    }
+//}

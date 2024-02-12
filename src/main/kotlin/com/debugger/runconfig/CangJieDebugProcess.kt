@@ -7,8 +7,6 @@ import com.debugger.runconfig.message.MessageHandler
 import com.debugger.runconfig.views.CjdbPanel
 import com.huawei.cangjie.idea.run.cjpm.CjpmRunStateBase
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager
-import com.huawei.cangjie.psi.CjElement
-import com.huawei.cangjie.psi.psiUtil.ancestorOrSelf
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
@@ -20,19 +18,16 @@ import com.intellij.execution.ui.layout.PlaceInGrid
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.markup.GutterIconRenderer
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.*
+import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.ColoredTextContainer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.content.Content
-import com.intellij.util.DocumentUtil
 import com.intellij.util.ThreeState
 import com.intellij.xdebugger.*
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler
@@ -41,7 +36,6 @@ import com.intellij.xdebugger.evaluation.XDebuggerEvaluator
 import com.intellij.xdebugger.frame.*
 import com.intellij.xdebugger.frame.presentation.XValuePresentation
 import com.intellij.xdebugger.impl.ui.ExecutionPointHighlighter
-import com.intellij.xdebugger.impl.ui.tree.nodes.XValueNodePresentationConfigurator
 import com.intellij.xdebugger.ui.XDebugTabLayouter
 import com.linqingying.lsp.api.LspProcessHandler
 import dap.event.*
@@ -96,13 +90,18 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 
     }
 
-    protected val myConsole: ConsoleView = state.consoleBuilder.getConsole().apply {
+
+    //汇编字符串文本
+//    val asmTextMap: MutableMap<String, String> = mutableMapOf()
+
+
+    protected val myConsole: ConsoleView = state.consoleBuilder.console.apply {
         shellProcessHandler.startNotify()
         attachToProcess(shellProcessHandler)
     }
 
     private val myProcessDisposable: Disposable
-    val myUiDisposable: Disposable = Disposer.newDisposable();
+    val myUiDisposable: Disposable = Disposer.newDisposable()
 
     private val project get() = session.project
 
@@ -115,13 +114,13 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 
         val gutterIconManager = MySuspensionGutterIconManager(this)
         val debuggerPluginService = project.getService(CangJieDebuggerPluginService::class.java)
-        myProcessDisposable = Disposer.newDisposable(debuggerPluginService, "CangJieDebugProcess");
-        Disposer.register(this.myProcessDisposable, gutterIconManager);
+        myProcessDisposable = Disposer.newDisposable(debuggerPluginService, "CangJieDebugProcess")
+        Disposer.register(this.myProcessDisposable, gutterIconManager)
 
     }
 
 
-    override fun doGetProcessHandler(): ProcessHandler? {
+    override fun doGetProcessHandler(): ProcessHandler {
         return myDriver.debugProcessHandler
     }
 
@@ -163,11 +162,11 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 
         init {
             mySession.addSessionListener(this, this)
-            mySession.project.messageBus.connect(this).subscribe(XDebuggerManager.TOPIC, this);
+            mySession.project.messageBus.connect(this).subscribe(XDebuggerManager.TOPIC, this)
         }
 
         override fun dispose() {
-            this.hide();
+            this.hide()
         }
 
 //        override fun sessionPaused() {
@@ -194,15 +193,6 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 
         override fun stackFrameChanged() {
 
-            if (mySession.currentStackFrame is CangJieStackFrame) {
-//            val position = mySession.currentStackFrame?.sourcePosition
-//            if (position != null) {
-//                this.myExecutionPointHighlighter.show(position, true, null, false);
-//            }
-                process.currentThread.set((mySession.currentStackFrame as CangJieStackFrame).thread)
-                process.currentStackFrame.set(mySession.currentStackFrame as CangJieStackFrame)
-                process.variablesReference.set((mySession.currentStackFrame as CangJieStackFrame).frame.id)
-            }
 
             update()
         }
@@ -246,8 +236,16 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
         session.stop()
     }
 
-    fun createSourcePosition(file: String, line: Int): XSourcePosition? {
-
+    fun createSourcePosition(
+        file: String,
+        line: Int,
+        isBinary: Boolean = false,
+        name: String = "temp"
+    ): XSourcePosition? {
+        if (isBinary) {
+            val virtualFile: VirtualFile = LightVirtualFile(name, file)
+            return XDebuggerUtil.getInstance().createPosition(virtualFile, line)
+        }
 
         return try {
             val resolvedFile = resolveFile(file)
@@ -328,16 +326,19 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
         start: Int = 0,
         filter: VariablesArgumentsFilter? = null
     ): List<Variable> {
-        this.variablesReference.set(variablesReference)
-        isVariablesLoaded[variablesReference] = CompletableFuture<Boolean>()
-        myDriver.sendVariables(variablesReference, count, start, filter)
+//        this.variablesReference.set(variablesReference)
+//        isVariablesLoaded[variablesReference] = CompletableFuture<Boolean>()
+//        myDriver.sendVariables(variablesReference, count, start, filter)
+//
+//
+////        等待变量列表加载完成
+//        isVariablesLoaded[variablesReference]?.get()
+//
+//        return variables[variablesReference] ?: mutableListOf()
+//
+        val res = myDriver.sendVariables(variablesReference, count, start, filter)
 
-
-//        等待变量列表加载完成
-        isVariablesLoaded[variablesReference]?.get()
-
-        return variables[variablesReference] ?: mutableListOf()
-
+        return res.body.variables!!
 
     }
 
@@ -436,48 +437,57 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 
     //    继续
     override fun resume(context: XSuspendContext?) {
+        if (context is CangJieSuspendContext) {
+            this.myDriver.sendContinue(context.activeThreadId)
 
-        this.myDriver.sendContinue(getCurrentThreadId())
+        }
     }
 
-    val currentSuspendContext = AtomicReference<CangJieSuspendContext?>(null)
 
     //步过
     override fun startStepOver(context: XSuspendContext?) {
 
-//        if (context is CangJieSuspendContext) {
-//            currentSuspendContext.set(context)
-//            context.activeThread.threadid?.let { this.myDriver.sendNext(it) }
-//        }
-        if (currentThread.get() == threads[0]) {
-            this.myDriver.sendNext(currentThread.get()?.id ?: -1)
 
-        } else {
-            currentThread.get()?.let { this.myDriver.sendContinue(it.id) }
+        if (context is CangJieSuspendContext) {
+//            currentSuspendContext.set(context)
+
+            myDriver.sendNext(context.activeThreadId)
         }
+//        if (currentThread.get() == threads[0]) {
+//            this.myDriver.sendNext(currentThread.get()?.id ?: -1)
+//
+//        } else {
+//            currentThread.get()?.let { this.myDriver.sendContinue(it.id) }
+//        }
     }
 
     //步入
     override fun startStepInto(context: XSuspendContext?) {
-        if (currentThread.get() == threads[0]) {
-            this.myDriver.sendStepIn(currentThread.get()?.id ?: -1)
-
-        } else {
-            currentThread.get()?.let { this.myDriver.sendContinue(it.id) }
-
+        if (context is CangJieSuspendContext) {
+            myDriver.sendStepIn(context.activeThreadId)
         }
+//        if (currentThread.get() == threads[0]) {
+//            this.myDriver.sendStepIn(currentThread.get()?.id ?: -1)
+//
+//        } else {
+//            currentThread.get()?.let { this.myDriver.sendContinue(it.id) }
+//
+//        }
 
     }
 
     //步出
     override fun startStepOut(context: XSuspendContext?) {
-        if (currentThread.get() == threads[0]) {
-            this.myDriver.sendStepOut(currentThread.get()?.id ?: -1)
-
-        } else {
-            currentThread.get()?.let { this.myDriver.sendContinue(it.id) }
-
+        if (context is CangJieSuspendContext) {
+            myDriver.sendStepOut(context.activeThreadId)
         }
+//        if (currentThread.get() == threads[0]) {
+//            this.myDriver.sendStepOut(currentThread.get()?.id ?: -1)
+//
+//        } else {
+//            currentThread.get()?.let { this.myDriver.sendContinue(it.id) }
+//
+//        }
     }
 
 
@@ -549,35 +559,30 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
         }
     }
 
-    //    val stackTraces: MutableMap<Int,List<StackFrame>> = mutableMapOf()
-    val stackTraces: MutableMap<Long, MutableList<StackFrame>> = mutableMapOf()
-    var isStackTraceLoaded: MutableMap<Long, CompletableFuture<Boolean>> = mutableMapOf()
-    val currentStackFrame = AtomicReference<CangJieStackFrame?>(null)
-
 
     override fun handleStackTraceResponse(message: StackTraceResponse) {
-
-        if (message.success) {
-//            message.body.let { it?.let { it1 -> stackTraces.addAll(it1.stackFrames) } }
-            stackTraces[getCurrentThreadId()] = message.body?.stackFrames?.toMutableList() ?: mutableListOf()
-            isStackTraceLoaded[getCurrentThreadId()]?.complete(true)
-
-//            this.myDriver.sendScopes(stackTraces[getCurrentThreadId()]!![0].id)
-
-            if (message.body?.stackFrames?.isEmpty() == true) {
-                return
-            }
-
-
-            if (currentThread.get() == threads[0] && currentThread.get()!!.id == 1.toLong()) {
-                if (message.body?.stackFrames?.get(0)?.source?.path == null) {
-                    this.myDriver.sendNext(getCurrentThreadId())
-                    return
-                }
-            }
-
-
-        }
+//
+//        if (message.success) {
+////            message.body.let { it?.let { it1 -> stackTraces.addAll(it1.stackFrames) } }
+//            stackTraces[getCurrentThreadId()] = message.body?.stackFrames?.toMutableList() ?: mutableListOf()
+//            isStackTraceLoaded[getCurrentThreadId()]?.complete(true)
+//
+////            this.myDriver.sendScopes(stackTraces[getCurrentThreadId()]!![0].id)
+//
+//            if (message.body?.stackFrames?.isEmpty() == true) {
+//                return
+//            }
+//
+//
+//            if (currentThread.get() == threads[0] && currentThread.get()!!.id == 1.toLong()) {
+//                if (message.body?.stackFrames?.get(0)?.source?.path == null) {
+//                    this.myDriver.sendNext(getCurrentThreadId())
+//                    return
+//                }
+//            }
+//
+//
+//        }
     }
 
 
@@ -585,13 +590,13 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
     var isScopesLoaded = CompletableFuture<Boolean>()
     override fun handleScopesResponse(message: ScopesResponse) {
 
-        isScopesLoaded.complete(true)
-        if (message.success) {
-            scopes.clear()
-            message.body?.scopes?.let { scopes.addAll(it) }
-
-            this.myDriver.sendVariables(scopes[0].variablesReference)
-        }
+//        isScopesLoaded.complete(true)
+//        if (message.success) {
+//            scopes.clear()
+//            message.body?.scopes?.let { scopes.addAll(it) }
+//
+//            this.myDriver.sendVariables(scopes[0].variablesReference)
+//        }
     }
 
     val variables: MutableMap<Int, MutableList<Variable>> = mutableMapOf()
@@ -613,112 +618,110 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 
     }
 
-
-    //    程序暂停并且断点命中
-    private fun pauseAndHitBreakpoint(id: Int? = null) {
-
-//        等待threads和stackTrace数据加载完成, isStackTraceLoaded, isVariablesLoaded
-        CompletableFuture.allOf(isThreadsLoaded).thenAccept {
-
-            val suspendContext = CangJieSuspendContext(
-                this,
-                threads,
-            )
-            if (id == null) {
+    private fun pauseAndHitBreakpoint(threadId: Long, id: Int? = null) {
+        val suspendContext = CangJieSuspendContext(
+            this,
+            threadId,
+        )
+        if (id == null) {
 //                步进
-                session.positionReached(suspendContext)
-            } else {
+            session.positionReached(suspendContext)
+        } else {
 //                断点
-                val breakpoint = this.myBreakpointHandler.getXBreakpoint(id)
+            val breakpoint = this.myBreakpointHandler.getXBreakpoint(id)
 //                breakpoint?.let { it1 -> session.breakpointReached(it1, null, suspendContext) }
-                if (breakpoint != null) {
-                    session.breakpointReached(breakpoint, null, suspendContext)
-                } else {
-                    session.positionReached(suspendContext)
-                }
-
+            if (breakpoint != null) {
+                session.breakpointReached(breakpoint, null, suspendContext)
+            } else {
+                session.positionReached(suspendContext)
             }
-
-//            刷新ui
-//            this.session.rebuildViews()
-
 
         }
 
-
     }
 
+    //    程序暂停并且断点命中
 
-    /**
-     * 重置数据
-     */
-    fun reset() {
-//        this.threads.clear()
-        this.stackTraces.clear()
-//        this.scopes.clear()
-        this.variables.clear()
-
-        isThreadsLoaded = CompletableFuture<Boolean>()
-        isStackTraceLoaded.clear()
-        isScopesLoaded = CompletableFuture<Boolean>()
-        isVariablesLoaded.clear()
-    }
 
     override fun handleStoppedEvent(message: StoppedEvent) {
-
-        reset()
-        this.myDriver.sendThreads()
-
-
         when (message.body?.reason) {
             StoppedEventReason.Breakpoint -> {
                 for (id in message.body.hitBreakpointIds!!) {
+                    pauseAndHitBreakpoint(message.body.threadId!!, id)
 
-                    pauseAndHitBreakpoint(id)
-//
-//                val breakpoint = this.myBreakpointHandler.getXBreakpoint(id)
-//
-//
-//                val executionStack = CangJieExecutionStack(
-//                    this,
-//
-//                    )
-//
-//                val suspendContext = CangJieSuspendContext(
-//                    executionStack
-//                )
-//
-//                session.breakpointReached(breakpoint!!, null, suspendContext)
-//
-//                val stack = CangJieExecutionStack(this, CjThread(1, "", "", "", ""), null, CjValue())
-//
-//                val suspendContext = CangJieSuspendContext(
-//                    this,
-//                    stack,
-//                    CjThread(1, "", "", "", ""),
-//                    CjFrame(1, "", "", 1, false, false, "")
-//                )
-//                val shouldSuspend = breakpoint?.let { session.breakpointReached(it, null, suspendContext) }
                 }
-
             }
 
+            StoppedEventReason.DataBreakpoint -> TODO()
+            StoppedEventReason.Entry -> TODO()
+            StoppedEventReason.Exception -> TODO()
+            StoppedEventReason.FunctionBreakpoint -> TODO()
+            StoppedEventReason.Goto -> TODO()
+            StoppedEventReason.InstructionBreakpoint -> TODO()
+            is StoppedEventReason.Other -> TODO()
+            StoppedEventReason.Pause -> TODO()
             StoppedEventReason.Step -> {
-                pauseAndHitBreakpoint()
+                pauseAndHitBreakpoint(message.body.threadId!!)
             }
 
-            else -> {
-                println()
-            }
+            null -> TODO()
         }
-
-//        if (message.body?.reason is StoppedEventReason.Breakpoint) {
-////            断点停止
-//
-//
-//        }
-
     }
+//    override fun handleStoppedEvent(message: StoppedEvent) {
+//
+//        reset()
+//        this.myDriver.sendThreads()
+//
+//
+//        when (message.body?.reason) {
+//            StoppedEventReason.Breakpoint -> {
+//                for (id in message.body.hitBreakpointIds!!) {
+//
+//                    pauseAndHitBreakpoint(id)
+////
+////                val breakpoint = this.myBreakpointHandler.getXBreakpoint(id)
+////
+////
+////                val executionStack = CangJieExecutionStack(
+////                    this,
+////
+////                    )
+////
+////                val suspendContext = CangJieSuspendContext(
+////                    executionStack
+////                )
+////
+////                session.breakpointReached(breakpoint!!, null, suspendContext)
+////
+////                val stack = CangJieExecutionStack(this, CjThread(1, "", "", "", ""), null, CjValue())
+////
+////                val suspendContext = CangJieSuspendContext(
+////                    this,
+////                    stack,
+////                    CjThread(1, "", "", "", ""),
+////                    CjFrame(1, "", "", 1, false, false, "")
+////                )
+////                val shouldSuspend = breakpoint?.let { session.breakpointReached(it, null, suspendContext) }
+//                }
+//
+//            }
+//
+//            StoppedEventReason.Step -> {
+//                pauseAndHitBreakpoint()
+//            }
+//
+//            else -> {
+//                println()
+//            }
+//        }
+//
+////        if (message.body?.reason is StoppedEventReason.Breakpoint) {
+//////            断点停止
+////
+////
+////        }
+//
+//    }
 
 
     fun getCjBreakpoint(sourcePath: String?): CjBreakpoint? {
@@ -848,17 +851,22 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
         expression: String,
         frameId: Int,
         context: EvaluateArgumentsContext
-    ): CompletableFuture<EvaluateResponse> {
+    ): EvaluateResponse {
 
-        isEvaluateLoaded = CompletableFuture()
-        myDriver.sendEvaluate(expression, frameId, context)
-        return isEvaluateLoaded
+
+        return myDriver.sendEvaluate(expression, frameId, context)
+
     }
 
-      var isSetVariableLoaded = CompletableFuture<SetVariableResponse>()
-    fun sendSetVariable(value: Variable,expression:String,parentScope:Int) {
-        isSetVariableLoaded = CompletableFuture()
-        myDriver.sendSetVariable(value,expression,parentScope)
+    var isSetVariableLoaded = CompletableFuture<SetVariableResponse>()
+    fun sendSetVariable(
+        value: Variable,
+        expression: String,
+        parentScope: Int,
+        errorHandler: DebugDriver.ResponseMessageConsumer<SetVariableResponse, DriverException>? = null
+    ): SetVariableResponse {
+
+        return myDriver.sendSetVariable(value, expression, parentScope, errorHandler)
 
     }
 
@@ -874,28 +882,11 @@ class CangJieStackFrame(
     val frame: StackFrame,
     val returnValue: Variable? = null
 ) : XStackFrame() {
-    val id = frame.id
+    override fun getEvaluator(): XDebuggerEvaluator = CangJieDebuggerLanguageSupportManager.createEvaluator(this)
 
-//    class RightAlignedTextContainer : ColoredTextContainer {
-//        private val panel = JPanel(BorderLayout())
-//        private val label = JLabel()
-//
-//        init {
-//            panel.add(label, BorderLayout.EAST)
-//        }
-//
-//        override fun append(text: String, attributes: SimpleTextAttributes) {
-//            label.text = text
-//            label.foreground = attributes.fgColor
-//        }
-//
-//        fun getComponent(): JComponent = panel
-//
-//
-//    }
 
     override fun customizePresentation(component: ColoredTextContainer) {
-        val position = getSourcePosition()
+        val position = sourcePosition
         if (position != null) {
 
             frame.name.let { component.append(it, SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, null)) }
@@ -913,87 +904,185 @@ class CangJieStackFrame(
     }
 
 
-    val variables: MutableList<Variable> get() = process.variables[frame.id] ?: mutableListOf()
+    private var mySourcePosition: XSourcePosition? = null
 
-    //表达式求值接口
-    override fun getEvaluator(): XDebuggerEvaluator = CangJieDebuggerLanguageSupportManager.createEvaluator(this)
+    //    变量范围
+    var scope: ScopesResponse? = null
 
+    override fun getSourcePosition(): XSourcePosition? {
+        val file = frame.source?.path
 
-    val scopesList = mutableListOf<Scope>()
+        if (mySourcePosition == null) {
+            mySourcePosition = file?.let {
+                process.createSourcePosition(
+                    it,
+                    frame.line - 1
+                )
+            }
+        }
+        return mySourcePosition
+//
+//        mySourcePosition = if (file == null) {
+//            //            请求源文件
+////TODO 请求汇编文件太卡了，就不请求了
+////            val res = process.myDriver.sendSourceFile(frame.source?.name!!, frame.source.sourceReference!!)
+//
+////            res.body?.content?.let { process.createSourcePosition(it, frame.line - 1, true, frame.name) }
+//
+//     null
+//        } else {
+//            process.createSourcePosition(
+//                file,
+//                frame.line - 1
+//            )
+//        }
+//
+//        return mySourcePosition
+    }
+
     override fun computeChildren(node: XCompositeNode) {
+//        super.computeChildren(node)
+        scope = process.myDriver.sendScopes(frame.id)
         val children = XValueChildrenList()
 
 
-//        process.variables.map {
-//            children.add(
-//                it.name,
-//                CangJieValue(
-//                    it
-//                )
-//            )
-//        }
-        process.currentStackFrame.set(this)
-        process.variablesReference.set(frame.id)
-        process.isScopesLoaded = CompletableFuture<Boolean>()
-        process.isVariablesLoaded[frame.id] = CompletableFuture<Boolean>()
-        process.myDriver.sendScopes(frame.id)
+        val res = scope?.body?.scopes?.first()?.variablesReference?.let { process.myDriver.sendVariables(it) }
 
-        process.isVariablesLoaded[frame.id]?.thenAccept {
-            scopesList.addAll(process.scopes)
-            variables.map {
+
+        if (res != null) {
+            res.body.variables?.forEach {
                 children.add(
                     it.name,
                     CangJieValue(
                         process,
                         it,
-                        process.scopes[0].variablesReference,
+                        scope?.body?.scopes?.first()?.variablesReference!!,
                         mySourcePosition,
 
-                    )
+                        )
                 )
             }
+
             node.addChildren(children, true)
+        }
+
+
+    }
+
+}
+
+//相当于一个线程
+class CangJieExecutionStack(
+    val process: CangJieDebugProcess,
+    val thread: Thread? = null,
+
+//    val frame: StackFrame? = null,
+//    val returnValue: CjValue
+) : XExecutionStack(thread?.name) {
+
+
+    var stackFrames: MutableList<CangJieStackFrame?> = mutableListOf()
+    private val myTopFrame: CangJieStackFrame?
+        get() {
+
+
+            return if (stackFrames.isEmpty()) null
+            else stackFrames.first()
 
 
         }
 
-
-//        node.addChildren(children, true)
-
-    }
-
-
-    private val mySourcePosition: XSourcePosition?
-
     init {
 
-        val file = frame.source?.path
-        mySourcePosition = if (file == null) null else process.createSourcePosition(
-            file,
 
-            frame.line - 1
-        )
+    }
+
+    protected fun newFrame(frame: StackFrame?): CangJieStackFrame? {
+        if (frame == null) return null
+
+        return this.thread?.let { CangJieStackFrame(this.process, it, frame) }
+    }
+
+
+    private fun getStackFrames() {
+        val res = process.myDriver.sendStacktrace(thread?.id!!)
+
+
+        res.body?.stackFrames?.sortedBy {
+            it.id
+        }?.forEach {
+            stackFrames.add(newFrame(it))
+        }
+    }
+
+    override fun getTopFrame(): XStackFrame? {
+
+
+        return myTopFrame
+
+    }
+
+    override fun computeStackFrames(firstFrameIndex: Int, container: XStackFrameContainer?) {
+
+        if (stackFrames.isEmpty()) {
+            getStackFrames()
+        }
+
+        if (firstFrameIndex < stackFrames.size) {
+            container?.addStackFrames(stackFrames, true)
+        }
+    }
+}
+
+class CangJieSuspendContext(
+    val process: CangJieDebugProcess,
+
+    val activeThreadId: Long
+
+) : XSuspendContext() {
+//    val res =  process.myDriver.sendStacktrace(activeThreadId.toLong())
+
+    val threads = process.myDriver.sendThreads()
+
+
+    val executionStacks: MutableMap<Long, CangJieExecutionStack> = mutableMapOf()
+
+
+    init {
+        threads.body.threads.sortedBy { it.id }.forEach {
+            executionStacks.put(it.id, CangJieExecutionStack(process, it))
+        }
 
 
     }
 
-    override fun getSourcePosition(): XSourcePosition? = this.mySourcePosition;
+    override fun computeExecutionStacks(container: XExecutionStackContainer) {
+        container.addExecutionStack(executionStacks.values.toList(), true)
+    }
 
+    override fun getExecutionStacks(): Array<XExecutionStack> {
+//        return executionStacks.toList().toArray { size ->
+//            arrayOfNulls(size)
+//        }
+        return executionStacks.values.toArray { size ->
+            arrayOfNulls(size)
+        }
+    }
 
-    val threadId get() = thread.id
+    override fun getActiveExecutionStack(): XExecutionStack? {
+        return executionStacks[activeThreadId]
+    }
 
-
-//    val frameIndex get() = frame.index
 }
 
 
 class CangJieValue(
     val process: CangJieDebugProcess,
     val value: Variable,
-    private val parentScope:Int,
+    private val parentScope: Int,
     private val position: XSourcePosition? = null,
 
-) : XValue() {
+    ) : XValue() {
 
 
     //    基本类型变量
@@ -1049,6 +1138,7 @@ class CangJieValue(
 
     private val isPrimitive get() = value.variablesReference == 0
 
+    //TODO 查看CIDR中数组数据是否可以返回
     override fun computePresentation(node: XValueNode, place: XValuePlace) {
 
 
@@ -1090,66 +1180,15 @@ class CangJieValue(
 
     val count get() = value.indexedVariables ?: 1000
     val start get() = 0
-//    override fun computeSourcePosition(navigatable: XNavigatable) {
-//        val a = position?.let { XDebuggerUtil.getInstance().createPositionByOffset(position.file, it.offset) }
-//        navigatable.setSourcePosition(a)
-//    }
 
     override fun computeInlineDebuggerData(callback: XInlineDebuggerDataCallback): ThreeState {
-        this.doComputeInlineDebuggerDataAsync(callback::computed);
-//        callback.computed(object : XInlineDebuggerData() {
-//            fun computePresentation( node: XValueNodeImpl,  place: XValuePlace?) {
-//                node.setPresentation(null, myValue, false)
-//            }
-//        })
+        this.doComputeInlineDebuggerDataAsync(callback::computed)
+
 
         return ThreeState.YES
     }
 
-    //    fun getContextElement(sourcePosition: XSourcePosition): PsiElement? {
-//        val document = FileDocumentManager.getInstance().getDocument(sourcePosition.file);
-//        if (document != null) {
-//            val psiFile = PsiDocumentManager.getInstance(process.session.project).getPsiFile(document);
-//            return psiFile?.let { findContextElement(sourcePosition, document, it) };
-//        }
-//        return null
-//
-//    }
-//
-//    private fun findContextElement(
-//        sourcePosition: XSourcePosition,
-//        document: Document,
-//        psiFile: PsiFile
-//    ): PsiElement? {
-//        val positionOffset = sourcePosition.offset
-//        return if (!DocumentUtil.isValidOffset(positionOffset, document)) {
-//            null
-//        } else {
-//            val lineEndOffset = document.getLineEndOffset(document.getLineNumber(positionOffset))
-//            var offset = positionOffset
-//
-//
-//            do {
-//                val element: PsiElement = psiFile.findElementAt(offset) ?: break
-//
-//                if ((element !is PsiWhiteSpace && element !is PsiComment)) {
-//                    return element
-//                }
-//                offset = element.textRange.endOffset + 1
-//            } while (offset < lineEndOffset)
-//
-//            psiFile.findElementAt(positionOffset)
-//        }
-//    }
-//    private fun resolveToDeclaration(ctx: PsiElement?, name: String): PsiElement? {
-//        val composite = ctx?.ancestorOrSelf<CjElement>() ?: return null
-//      return null
-//    }
-//
-//      fun resolveToDeclaration(position: XSourcePosition?, `var`: String): PsiElement? {
-//        val context = position?.let { getContextElement(it) }
-//        return resolveToDeclaration(context, `var`)
-//    }
+
     private fun doComputeInlineDebuggerDataAsync(navigatable: XNavigatable) {
 
 //        TODO 需要根据变量名称查找变量的位置 这里先不搞了，就先这样
@@ -1163,10 +1202,6 @@ class CangJieValue(
 //            println()
 //
 //        }
-    }
-
-    override fun computeTypeSourcePosition(navigatable: XNavigatable) {
-        super.computeTypeSourcePosition(navigatable)
     }
 
     override fun computeChildren(node: XCompositeNode) {
@@ -1208,24 +1243,26 @@ class CangJieValue(
 
 //                TODO 需要先判断是否有写的权限
 
-
-                process.sendSetVariable(value,expression.expression,parentScope)
-
-                process.isSetVariableLoaded.thenAccept {
+                val errorHandler: DebugDriver.ResponseMessageConsumer<SetVariableResponse, DriverException> =
+                    object : DebugDriver.ResponseMessageConsumer<SetVariableResponse, DriverException>("") {
 
 
-                    if (it.success){
+                        override fun throwIfNeeded() {
 
-                        value.value = it.body?.value.toString()
-                        value.type = it.body?.type
+                            if (success()) {
+                                value.value = data?.body?.value.toString()
+                                value.type = data?.body?.type
+                                callback.valueModified()
+                            } else {
+                                callback.errorOccurred(data?.message.toString())
 
-                        callback.valueModified()
-
-                    }else{
-                        callback.errorOccurred(it.message.toString())
+                            }
+                        }
 
                     }
-                }
+
+                process.sendSetVariable(value, expression.expression, parentScope, errorHandler)
+//
 
             }
         }
@@ -1233,182 +1270,6 @@ class CangJieValue(
 
     override fun getEvaluationExpression(): String = value.name
 }
-
-
-class CangJieExecutionStack(
-    val process: CangJieDebugProcess,
-    val thread: Thread? = null,
-
-    val frame: StackFrame? = null,
-//    val returnValue: CjValue
-) : XExecutionStack(thread?.name) {
-
-    private val threadid: Long? = thread?.id
-
-
-    override fun getTopFrame(): XStackFrame? {
-        return myTopFrame
-    }
-
-    protected fun newFrame(frame: StackFrame?): CangJieStackFrame? {
-        if (frame == null) return null
-
-        return this.thread?.let { CangJieStackFrame(this.process, it, frame) }
-    }
-
-    private val stackFrames: MutableList<CangJieStackFrame?>
-        get() {
-//            if (process.stackTraces.isEmpty()) {
-//
-//                   requestStackFrames()
-//
-//            }
-            return process.stackTraces[threadid]
-//        .filter {
-//
-//
-//        it.source?.path != null
-//
-//
-//    }
-                ?.map {
-                    newFrame(it)
-                }
-                ?.toMutableList() ?: mutableListOf()
-        }
-
-
-    private val myTopFrame: CangJieStackFrame?
-        get() {
-
-            return if (stackFrames.isEmpty()) null
-            else stackFrames.first()
-
-
-        }
-
-
-    private fun requestStackFrames(): MutableList<StackFrame>? {
-        process.currentThread.set(thread)
-
-        if (process.isStackTraceLoaded.containsKey(threadid!!)) {
-            if (process.isStackTraceLoaded[threadid]?.isDone == true) {
-                process.isStackTraceLoaded[threadid] = CompletableFuture<Boolean>()
-
-                process.myDriver.sendStacktrace(threadid)
-            }
-        } else {
-            process.isStackTraceLoaded[threadid] = CompletableFuture<Boolean>()
-
-            process.myDriver.sendStacktrace(threadid)
-        }
-
-
-// 等待返回
-        process.isStackTraceLoaded[threadid]?.get()
-        return process.stackTraces[threadid]
-    }
-
-    override fun computeStackFrames(firstFrameIndex: Int, container: XStackFrameContainer?) {
-
-        if (stackFrames.isEmpty()) {
-
-            requestStackFrames()
-
-//            process.currentThread.set(thread)
-//            process.isStackTraceLoaded = CompletableFuture<Boolean>()
-//            process.myDriver.sendStacktrace(threadid!!)
-//            process.isStackTraceLoaded.thenAccept {
-//                container?.addStackFrames(stackFrames, true)
-//            }
-            container?.addStackFrames(stackFrames, true)
-        } else {
-            if (firstFrameIndex < stackFrames.size) {
-                container?.addStackFrames(stackFrames, true)
-            }
-        }
-
-
-    }
-}
-
-/**
- * 暂停上下文
- */
-class CangJieSuspendContext(
-    val process: CangJieDebugProcess,
-//    val currentStack: CangJieExecutionStack,
-
-    val threads: List<Thread> = listOf(),
-//    val activeThread: CjThread,
-//    val preferableFrameToSelect: CjFrame
-) : XSuspendContext() {
-
-    val executionStacks: MutableList<CangJieExecutionStack> = mutableListOf()
-
-
-    var activeIndex = 0
-
-    val activeThread get() = executionStacks[activeIndex]
-
-    init {
-
-        executionStacks.addAll(threads.map { CangJieExecutionStack(process, it) })
-
-    }
-
-
-    override fun computeExecutionStacks(container: XExecutionStackContainer?) {
-
-        container?.addExecutionStack(executionStacks, true)
-    }
-
-    override fun getActiveExecutionStack(): XExecutionStack {
-        return executionStacks[activeIndex]
-    }
-}
-
-
-//open class CjThread
-//    (
-//    val id: Long,
-//    val name: String?,
-//    val state: String?,
-//    val workQueue: String?,
-//
-//    val tid: String?,
-//    val frozen: Boolean = false
-//) {
-//
-//    @get:NlsSafe
-//    open val displayName: String
-//        get() {
-//            val builder = StringBuilder()
-//            builder.append("Thread-").append(this.id)
-//            this.workQueue?.let { builder.append("-<").append(it).append(">") }
-//            this.name?.let { builder.append("-[").append(it).append("]") }
-//            this.tid?.let { builder.append(" (").append(it).append(")") }
-//            return builder.toString()
-//        }
-//}
-//
-//class CjFrame(
-//    val index: Int,
-//    val function: String?,
-//    val file: String?,
-//    val line: Int,
-//    val optimized: Boolean,
-//    val inlined: Boolean,
-//    val module: String?
-//)
-//
-//class CjValue : UserDataHolderBase()
-//
-//class LLMissingThread :
-//    CjThread(-1L, null, null, null, null) {
-//    override val displayName: String
-//        get() = "Thread is not available"
-//}
 
 
 class MySuspensionGutterIconRenderer : GutterIconRenderer() {
