@@ -1,13 +1,14 @@
 package com.huawei.cangjie.idea.run.cjpm
 
 import com.huawei.cangjie.CangJieBundle
-import com.huawei.cangjie.idea.run.CjpmArgsParser.Companion.parseArgs
+import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.getEnvironment
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildManager.getBuildConfiguration
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildConfiguration
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
 import com.huawei.cangjie.idea.run.cjpm.runconfig.computeWithCancelableProgress
 import com.huawei.cangjie.idea.run.cjpm.runconfig.toPath
 import com.huawei.cangjie.idea.run.hasRemoteTarget
+import com.huawei.cangjie.lang.sdk.CangJieSdkManager
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.RunProfile
@@ -20,6 +21,8 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsContexts
 import java.util.concurrent.CompletableFuture
 import com.intellij.execution.runners.showRunContent
+import com.intellij.util.io.systemIndependentPath
+import java.io.File
 
 abstract class CjExecutableRunner(
     protected val executorId: String,
@@ -34,15 +37,36 @@ abstract class CjExecutableRunner(
                 getBuildConfiguration(profile) != null
     }
 
-//    override fun doExecute(myState: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
-//        if (myState !is CjpmRunStateBase) return null
-//
-//        val artifacts = environment.artifacts.orEmpty()
-//        val artifact = artifacts.firstOrNull()
-//        val binaries = artifact?.executables.orEmpty()
-//
-//        return showRunContent(myState, environment, runExecutable)
-//    }
+    override fun execute(environment: ExecutionEnvironment) {
+//        val state = environment.state as CjpmRunStateBase
+        val project = environment.project
+
+        if (!checkToolchainConfigured(project)) return
+//        val toolchainError = checkToolchainSupported(project, host)
+//        if (toolchainError != null) {
+//            processInvalidToolchain(project, toolchainError)
+//            return
+//        }
+
+        environment.putUserData(ARTIFACTS, CompletableFuture())
+        super.execute(environment)
+
+    }
+    override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
+        if (state !is CjpmRunStateBase) return null
+
+        val artifacts = environment.artifacts.orEmpty()
+        val artifact = artifacts.firstOrNull()
+        val binaries = artifact?.executables.orEmpty()
+
+        val runExecutable = GeneralCommandLine().apply {
+            exePath = binaries.single().toPath().systemIndependentPath
+            workDirectory = state.project.basePath?.let { File(it) }
+
+            withEnvironment(CangJieSdkManager.getProjectSdk(environment.project).getEnvironment())
+        }
+        return showRunContent(state, environment, runExecutable)
+    }
 
 
     protected open fun showRunContent(
@@ -93,18 +117,18 @@ sealed class BuildResult {
             ToolchainError(CangJieBundle.message("dialog.message.gnu.toolchain.not.supported.please.use.msvc.toolchain"))
 
         object UnsupportedWSL : ToolchainError(CangJieBundle.message("dialog.message.wsl.toolchain.not.supported"))
-        object MSVCWithRustGNU :
-            ToolchainError(CangJieBundle.message("dialog.message.msvc.debugger.cannot.be.used.with.gnu.rust.toolchain"))
+        object MSVCWithCangJieGNU :
+            ToolchainError(CangJieBundle.message("dialog.message.msvc.debugger.cannot.be.used.with.gnu.cangjie.toolchain"))
 
-        object GNUWithRustMSVC :
-            ToolchainError(CangJieBundle.message("dialog.message.gnu.debugger.cannot.be.used.with.msvc.rust.toolchain"))
+        object GNUWithCangJieMSVC :
+            ToolchainError(CangJieBundle.message("dialog.message.gnu.debugger.cannot.be.used.with.msvc.cangjie.toolchain"))
 
         object WSLWithNonWSL : ToolchainError(
             CangJieBundle.message("dialog.message.html.local.debugger.cannot.be.used.with.wsl.br.use.href.https.www.jetbrains.com.help.clion.how.to.use.wsl.development.environment.in.product.html.instructions.to.configure.wsl.toolchain.html")
         )
 
         object NonWSLWithWSL :
-            ToolchainError(CangJieBundle.message("dialog.message.wsl.debugger.cannot.be.used.with.non.wsl.rust.toolchain"))
+            ToolchainError(CangJieBundle.message("dialog.message.wsl.debugger.cannot.be.used.with.non.wsl.cangjie.toolchain"))
 
         class Other(@NlsContexts.DialogMessage message: String) : ToolchainError(message)
     }

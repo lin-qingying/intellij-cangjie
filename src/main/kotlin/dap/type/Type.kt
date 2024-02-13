@@ -24,7 +24,7 @@ enum class MessageCommand {
     scopes,
     debugInConsole,
     evaluate,
-
+    source,
 
     setFunctionBreakpoints,
     setDataBreakpoints,
@@ -415,7 +415,13 @@ data class Breakpoint(
      * 值：'pending'，'failed'
      */
     val reason: String? = null
-)
+
+
+
+){
+
+    var condition:String? = null
+}
 
 
 @Serializable(BreakpointEventReasonSerializer::class)

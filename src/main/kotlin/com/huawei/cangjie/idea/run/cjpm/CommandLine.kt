@@ -3,15 +3,20 @@ package com.huawei.cangjie.idea.run.cjpm
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.idea.notifications.CjNotifications
 import com.huawei.cangjie.idea.project.CangJieProjectManager
+import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.getEnvironment
+import com.huawei.cangjie.lang.sdk.CangJieSdkManager
+import com.huawei.cangjie.lang.sdk.cjpmPath
 
 import com.intellij.execution.*
 import com.intellij.execution.configuration.EnvironmentVariablesData
+import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.notification.NotificationType
+import com.intellij.util.io.systemIndependentPath
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -72,7 +77,7 @@ abstract class CjCommandLineBase {
                 .createNotification(
                     CangJieBundle.message(
                         "notification.0.action.is.not.available.for.1.command",
-                              executor.actionName,
+                        executor.actionName,
                         "$executableName $command"
                     ), NotificationType.WARNING
                 )
@@ -108,6 +113,7 @@ data class CjpmCommandLine(
 
     fun splitOnDoubleDash(arguments: List<String>): Pair<List<String>, List<String>> {
         val idx = arguments.indexOf("--")
+
         if (idx == -1) return arguments to emptyList()
         return arguments.take(idx) to arguments.drop(idx + 1)
     }
@@ -118,12 +124,34 @@ data class CjpmCommandLine(
     fun prependArgument(arg: String): CjpmCommandLine =
         copy(additionalArguments = listOf(arg) + additionalArguments)
 
+
+    fun toGeneralCommandLine(): GeneralCommandLine {
+
+
+        val sdk = CangJieSdkManager.getProjectSdk()
+
+
+        return GeneralCommandLine().apply {
+
+            exePath = sdk.cjpmPath
+
+            setWorkDirectory(workingDirectory.systemIndependentPath)
+
+            addParameters(command.command)
+            addParameters(additionalArguments)
+
+            environment.putAll(sdk.getEnvironment())
+
+        }
+
+
+    }
+
     companion object {
         fun forProject(
 
             command: CjpmCommand,
             additionalArguments: List<String> = emptyList(),
-
 
 
             environmentVariables: EnvironmentVariablesData = EnvironmentVariablesData.DEFAULT

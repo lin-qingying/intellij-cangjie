@@ -392,7 +392,7 @@ data class SetInstructionBreakpointsRequest(
  * 该请求返回给定堆栈帧 ID 的变量范围。
  */
 @Serializable
-data class ScopesRequest   (
+data class ScopesRequest(
     override val seq: Int,
 
     override val arguments: ScopesArguments? = null
@@ -457,7 +457,7 @@ data class StepInRequest(
  */
 @Serializable
 
-data class StepOutRequest (
+data class StepOutRequest(
     override val seq: Int,
 
     override val arguments: StepOutArguments? = null
@@ -501,3 +501,17 @@ data class EvaluateRequest(
  *
  * 如果调试适配器同时实现 和 ，则客户端将仅在变量具有属性时使用。setVariablesetExpressionsetExpressionevaluateName
  */
+
+
+/**
+ * 该请求检索给定源引用的源代码
+ */
+@Serializable
+data class SourceRequest(
+    override val seq: Int,
+
+    override val arguments: SourceArguments? = null
+) : Request {
+    override val type: MessageType = super.type
+    override val command: MessageCommand = MessageCommand.source
+}

@@ -13,7 +13,15 @@ import com.linqingying.lsp.api.LspServerSupportProvider
 import com.linqingying.lsp.api.ProjectWideLspServerDescriptor
 import org.eclipse.lsp4j.*
 import java.nio.file.Files
+fun checkCangJieFIle(file: VirtualFile): Boolean {
+//    return false
+    if (file.extension == "cj") return true
 
+    if (file.fileType is CangJieFileType) return true
+
+    return false
+
+}
 
 class CangJieLspServerSupportProvider : LspServerSupportProvider {
     override fun fileOpened(
@@ -22,10 +30,12 @@ class CangJieLspServerSupportProvider : LspServerSupportProvider {
         serverStarter: LspServerSupportProvider.LspServerStarter
     ) {
 
-
-        if (file.fileType == CangJieFileType) {
-            serverStarter.ensureServerStarted(CangJieLspServerDescriptor(project))
+        if (checkCangJieFIle(file)) {
+            if (CangJieSdkManager.getProjectSdk() != null)     {
+                serverStarter.ensureServerStarted(CangJieLspServerDescriptor(project))
+            }
         }
+
     }
 
 
@@ -34,15 +44,18 @@ class CangJieLspServerSupportProvider : LspServerSupportProvider {
 
 private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServerDescriptor(project, "Cangjie") {
     override fun isSupportedFile(file: VirtualFile): Boolean {
-        if (file.fileType !is CangJieFileType) return false
+        if (checkCangJieFIle(file)) {
 
+            return true
+        }
 //        如果未配置sdk
-        if (CangJieSdkManager.getProjectSdk() == null) return false
 
-        return true
+        return false
 
 
     }
+
+
 
 
     override fun getLanguageId(file: VirtualFile): String {
@@ -76,8 +89,6 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 //
 //        return CangJieLsp4jClient(CangJieLspServerNotificationsHandler(handler))
 //    }
-
-
 
 
     override fun createInitializeParams(): InitializeParams {

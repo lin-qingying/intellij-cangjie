@@ -1,32 +1,23 @@
 package com.debugger.runconfig
 
-import com.debugger.runconfig.message.MessageHandler
 import com.huawei.cangjie.psi.psiUtil.toPsiFile
-import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
-import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.util.concurrency.AppExecutorUtil
-
-import com.intellij.xdebugger.XExpression
 import com.intellij.xdebugger.XSourcePosition
-import com.intellij.xdebugger.evaluation.EvaluationMode
-import com.intellij.xdebugger.evaluation.ExpressionInfo
 import com.intellij.xdebugger.evaluation.XDebuggerEvaluator
 import com.intellij.xdebugger.impl.evaluate.quick.XDebuggerPsiEvaluator
 import dap.type.EvaluateArgumentsContext
-import org.jetbrains.concurrency.Promise
 
 object CangJieDebuggerLanguageSupportManager {
+
 
     fun createEvaluator(frame: CangJieStackFrame): CangJieEvaluator {
         return CangJieEvaluator(frame)
     }
-
 }
 
 
@@ -34,32 +25,34 @@ class CangJieEvaluator(private val frame: CangJieStackFrame) : XDebuggerEvaluato
     val process = frame.process
     override fun evaluate(expression: String, callback: XEvaluationCallback, expressionPosition: XSourcePosition?) {
 
-        val res = process.evaluate(expression, frame.id, EvaluateArgumentsContext.Hover)
-        res.thenAccept {
+        val res = process.evaluate(expression, frame.frame.id, EvaluateArgumentsContext.Hover)
+        val value = res.body?.toVariable(expression)
 
-            if(it.success){
-                val value = it.body?.toVariable(expression)
-
-                val cangJieValue = value?.let { it1 -> CangJieValue(process, it1, frame.scopesList[0].variablesReference) }
-
-                cangJieValue?.let { it1 -> callback.evaluated(it1) }
-//            val value = CangJieValue(process, it)
-            }else{
-                callback.errorOccurred(it.message.toString())
-            }
-
-
+        val cangJieValue = value?.let { it1 ->
+            frame.scope?.body?.scopes?.get(0)
+                ?.let { it2 -> CangJieValue(process, it1, it2.variablesReference) }
         }
+        cangJieValue?.let { it1 -> callback.evaluated(it1) }
 
-    }
+//        res.thenAccept {
+//
+//            if (it.success) {
+//                val value = it.body?.toVariable(expression)
+//
+//                val cangJieValue = value?.let { it1 ->
+//                    frame.scope?.body?.scopes?.get(0)
+//                        ?.let { it2 -> CangJieValue(process, it1, it2.variablesReference) }
+//                }
+//
+//                cangJieValue?.let { it1 -> callback.evaluated(it1) }
+////            val value = CangJieValue(process, it)
+//            } else {
+//                callback.errorOccurred(it.message.toString())
+//            }
+//
+//
+//        }
 
-
-    override fun evaluate(
-        expression: XExpression,
-        callback: XEvaluationCallback,
-        expressionPosition: XSourcePosition?
-    ) {
-        super.evaluate(expression, callback, expressionPosition)
     }
 
 
@@ -124,10 +117,6 @@ class CangJieEvaluator(private val frame: CangJieStackFrame) : XDebuggerEvaluato
 
     override fun evaluate(element: PsiElement, callback: XEvaluationCallback) {
         TODO("Not yet implemented")
-    }
-
-    override fun getEvaluationMode(text: String, startOffset: Int, endOffset: Int, psiFile: PsiFile?): EvaluationMode {
-        return super.getEvaluationMode(text, startOffset, endOffset, psiFile)
     }
 
 }

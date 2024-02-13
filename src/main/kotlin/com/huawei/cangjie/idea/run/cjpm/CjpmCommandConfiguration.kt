@@ -1,14 +1,12 @@
 package com.huawei.cangjie.idea.run.cjpm
 
 import com.huawei.cangjie.CangJieBundle
-import com.huawei.cangjie.idea.project.CangJieProjectManager
-
 import com.huawei.cangjie.idea.run.CjCommandConfiguration
-
 import com.huawei.cangjie.idea.run.cjpm.runconfig.CjLanguageRuntimeConfiguration
 import com.huawei.cangjie.idea.run.cjpm.runconfig.CjLanguageRuntimeType
-import com.huawei.cangjie.idea.run.cjpm.runconfig.isUnitTestMode
-
+import com.huawei.cangjie.lang.sdk.CangJieSdkManager
+import com.huawei.cangjie.lang.sdk.validateSdk
+import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.Executor
 import com.intellij.execution.InputRedirectAware
 import com.intellij.execution.configuration.EnvironmentVariablesData
@@ -24,11 +22,9 @@ import com.intellij.openapi.options.SettingsEditorGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.util.execution.ParametersListUtil
 import org.jdom.Element
 import java.io.File
-import java.nio.file.Path
 import java.nio.file.Paths
 
 enum class BuildTarget {
@@ -45,6 +41,24 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
     TargetEnvironmentAwareRunProfile {
 
 
+    override fun checkConfiguration() {
+
+        if (command == CjpmCommand.UNUSED) {
+            throw RuntimeConfigurationError(
+                CangJieBundle.message("cjpm.run.configuration.error.command.not.null")
+            )
+        }
+        if (CangJieSdkManager.getProjectSdk(project) == null) {
+            throw RuntimeConfigurationWarning(
+                CangJieBundle.message(
+                    "no.sdk.specified.for.module.warning.text",
+                    project.name
+                )
+            )
+
+        }
+
+    }
 
     private val redirectInputFile: File?
         get() {
@@ -108,7 +122,7 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
     }
 
 
-    var executorId:String  = "Run"
+    var executorId: String = "Run"
 
     override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? {
 

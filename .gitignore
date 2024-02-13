@@ -51,3 +51,11 @@ bin/
 /build.gradle.kts3
 /src/main/gen/
 /.gradle/
+
+
+
+/back/
+/cidr/
+/cidr1/
+/debugger/
+/debugger1/

@@ -1,27 +1,45 @@
 package com.debugger.runconfig
 
 import com.huawei.cangjie.lang.CangJieFileType
-import com.huawei.cangjie.psi.CjFile
-import com.huawei.cangjie.psi.CjPsiFactory
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.xdebugger.evaluation.XDebuggerEditorsProviderBase
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiFileFactory
+import com.intellij.xdebugger.XSourcePosition
+import com.intellij.xdebugger.evaluation.EvaluationMode
+import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
 
-class CangJieDebuggerEditorsProvider : XDebuggerEditorsProviderBase() {
+class CangJieDebuggerEditorsProvider : XDebuggerEditorsProvider() {
     override fun getFileType(): FileType = CangJieFileType
 
-    override fun createExpressionCodeFragment(
+
+    @Deprecated("Deprecated in Java")
+    override fun createDocument(
         project: Project,
         text: String,
-        context: PsiElement?,
-        isPhysical: Boolean
-    ): PsiFile? {
-//        return null
+        sourcePosition: XSourcePosition?,
+        mode: EvaluationMode
+    ): Document {
+        return PsiDocumentManager.getInstance(project).getDocument(
+            PsiFileFactory.getInstance(project).createFileFromText(
+                PlainTextLanguage.INSTANCE, text
+            )
+        ) ?: error("Unable to create plain text document for expression")
+    }
+
+
+//    override fun createExpressionCodeFragment(
+//        project: Project,
+//        text: String,
+//        context: PsiElement?,
+//        isPhysical: Boolean
+//    ): PsiFile? {
+////        return null
 //        val psiFactory = CjPsiFactory(project)
 //        return psiFactory.createExpressionCodeFragment(text, context)
-        return null
-    }
+////        return null
+//    }
 }
 

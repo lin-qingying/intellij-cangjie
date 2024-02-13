@@ -4,6 +4,7 @@ package com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.idea.run.cjpm.*
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
+import com.huawei.cangjie.lang.sdk.validateSdk
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultRunExecutor
@@ -14,7 +15,6 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
@@ -23,9 +23,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.task.*
-import org.jetbrains.concurrency.*
 import com.intellij.task.ProjectTaskRunner.Result
 import com.intellij.task.impl.ProjectModelBuildTaskImpl
+import org.jetbrains.concurrency.*
 import java.util.concurrent.*
 
 private val LOG: Logger = logger<CjpmBuildTaskRunner>()
@@ -118,6 +118,9 @@ class CjpmBuildTaskRunner : ProjectTaskRunner() {
 
         val buildConfiguration = task.buildableElement as CjpmBuildConfiguration
 
+//        if (!validateSdk(buildConfiguration.configuration.project))
+//            return resolvedPromise(TaskRunnerResults.FAILURE)
+
 
 
         if (!task.isIncrementalBuild) {
@@ -149,6 +152,10 @@ class CjpmBuildTaskRunner : ProjectTaskRunner() {
             }
         } catch (e: ExecutionException) {
             LOG.error(e)
+            TaskRunnerResults.FAILURE
+        }catch (e:RuntimeException){
+//            LOG.error(e)
+
             TaskRunnerResults.FAILURE
         }
 
@@ -209,6 +216,9 @@ private class BackgroundableProjectTaskRunner(
 
     private fun runTask(task: ProjectTask): Promise<Result> = parentRunner.executeTask(task)
     val executionStarted: CompletableFuture<Boolean> = CompletableFuture()
+
+
+    //    TODO 需要重构为CompileDriver类
     override fun run(indicator: ProgressIndicator) {
         if (!waitForStart()) {
             if (totalPromise.state == Promise.State.PENDING) {
@@ -224,12 +234,17 @@ private class BackgroundableProjectTaskRunner(
 
         try {
             for (task in allTasks) {
+// TODO 验证sdk
+//                if(validateSdk(project)){
                 val promise = runTask(task)
                 if (promise.blockingGet(Integer.MAX_VALUE) != TaskRunnerResults.SUCCESS) {
                     // Do not continue session if one of builds failed
                     totalPromise.setResult(TaskRunnerResults.FAILURE)
                     break
                 }
+//                }
+
+
             }
 
             // everything succeeded - set final result to success
@@ -245,6 +260,8 @@ private class BackgroundableProjectTaskRunner(
         } catch (e: Throwable) {
             LOG.error(e)
             totalPromise.setResult(TaskRunnerResults.FAILURE)
+        } finally {
+                                   indicator.stop()
         }
     }
 

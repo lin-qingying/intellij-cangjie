@@ -1,38 +1,92 @@
 package com.huawei.cangjie.lang.sdk
 
+import com.huawei.cangjie.CangJieBundle
+import com.huawei.cangjie.idea.notifications.CangJieCompilerBundle
+import com.huawei.cangjie.idea.notifications.CompileDriverNotifications
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.*
-import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.vfs.VirtualFile
 import org.jdom.Element
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
-import javax.swing.JComponent
-import javax.swing.JPanel
 
 
 //TODO 该类需要重构  重构思路为将所有sdk相关整合
 
-val Sdk?.cjpmPath: String get() {
 
-    if (this != null) {
-        if (sdkType is CangJieSdkType) {
-            return "${homePath}/tools/bin/cjpm${if (SystemInfo.isWindows) ".exe" else ""}"
+//fun validateSdk(project: Project, sdk: Sdk?): Boolean {
+//
+//    if (sdk != null) {
+//
+//
+//        return try {
+//            sdk.cjpmPath
+//            true
+//        } catch (e: RuntimeException) {
+//            showNotSpecifiedError(project)
+//            false
+//        }
+//    }
+//    showNotSpecifiedError(project)
+//    return false
+//
+//
+//}
+
+fun validateSdk(project: Project): Boolean {
+
+    fun showNotSpecifiedError(project: Project) {
+
+        val message = CangJieCompilerBundle.message("error.sdk.not.specified", project.name)
+
+        CompileDriverNotifications.getInstance(project)
+            .createCannotStartNotification()
+            .withContent(message)
+            .withOpenSettingsAction(null, CangJieCompilerBundle.message("modules.classpath.title"))
+            .showNotification()
+    }
+    val sdk = CangJieSdkManager.getProjectSdk(project)
+
+    if (sdk != null) {
+
+
+        return try {
+            sdk.cjpmPath
+            true
+        } catch (e: RuntimeException) {
+            showNotSpecifiedError(project)
+           false
         }
     }
-    return ""
+    showNotSpecifiedError(project)
+    return false
+
+
 }
 
-val Sdk?.cjcPath: String get() {
+val Sdk?.cjpmPath: String
+    get() {
 
-    if (this != null) {
-        if (sdkType is CangJieSdkType) {
-            return "${homePath}/bin/cjc${if (SystemInfo.isWindows) ".exe" else ""}"
+        if (this != null) {
+            if (sdkType is CangJieSdkType) {
+                return "${homePath}/tools/bin/cjpm${if (SystemInfo.isWindows) ".exe" else ""}"
+            }
         }
+//    抛出运行异常
+        throw RuntimeException(CangJieBundle.message("cjpm.run.configuration.error.sdk.not.selected"))
     }
-    return ""
-}
+
+val Sdk?.cjcPath: String
+    get() {
+
+        if (this != null) {
+            if (sdkType is CangJieSdkType) {
+                return "${homePath}/bin/cjc${if (SystemInfo.isWindows) ".exe" else ""}"
+            }
+        }
+        return ""
+    }
 
 class CangJieSdkType : SdkType("CangJie Sdk") {
 
@@ -44,7 +98,7 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
 //    private var cjcPath: String? = null
 //    private var sdkPath: String? = null
 
-      val sdkAdditionalData = CangJieSdkAdditionalData()
+    val sdkAdditionalData = CangJieSdkAdditionalData()
 
     override fun saveAdditionalData(additionalData: SdkAdditionalData, additional: Element) {
 ////        if (additionalData is CangJieSdkAdditionalData) {
@@ -81,8 +135,8 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
 //        val additionalDataElement = additional.getChild("additionalData")
 //        val customAttribute = additionalDataElement.getAttributeValue("customAttribute")
 
-        return  sdkAdditionalData
-    //
+        return sdkAdditionalData
+        //
 //
 //
 //
@@ -189,12 +243,9 @@ class CangJieSdkType : SdkType("CangJie Sdk") {
     }
 
 
-
     override fun getPresentableName(): String {
         return "CangJie Sdk"
     }
-
-
 
 
 }

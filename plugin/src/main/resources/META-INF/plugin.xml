@@ -1,5 +1,4 @@
-<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
-<idea-plugin   xmlns:xi="http://www.w3.org/2001/XInclude">
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude" allow-bundled-update="true">
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>com.huawei.cangjie</id>
 
@@ -10,10 +9,10 @@
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor>Huawei</vendor>
 
-    <version>beta-1.0.3</version>
-<!--    <depends>com.intellij.modules.platform</depends>-->
+    <version>beta-1.0.4</version>
+    <!--    <depends>com.intellij.modules.platform</depends>-->
     <depends>com.intellij.modules.lang</depends>
-<!--    <depends>com.jetbrains.performancePlugin</depends>-->
+    <!--    <depends>com.jetbrains.performancePlugin</depends>-->
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
@@ -21,7 +20,13 @@
     <xi:include href="/META-INF/cangjie-core.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/formatter.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/META-INF/cangjie-debugger.xml" xpointer="xpointer(/idea-plugin/*)"/>
+        <xi:include href="/META-INF/cangjie-debugger.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/cangjie.code-insight.live-templates-shared.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
+<!--    <xi:include href="/META-INF/NativeDebugger.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+    <content>
+
+<!--        <module name="com.huawei.cangjie.debugger"/>-->
+
+    </content>
 </idea-plugin>

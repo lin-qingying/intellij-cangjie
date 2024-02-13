@@ -25,8 +25,7 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.UserDataHolderBase
 
 
-
-open class CjpmCommandRunner :CjDefaultProgramRunnerBase() {
+open class CjpmCommandRunner : CjDefaultProgramRunnerBase() {
     override fun canRun(executorId: String, profile: RunProfile): Boolean {
 
         if (executorId != DefaultRunExecutor.EXECUTOR_ID || profile !is CjpmCommandConfiguration) return false
@@ -42,7 +41,8 @@ open class CjpmCommandRunner :CjDefaultProgramRunnerBase() {
     override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
         val configuration = environment.runProfile
         return if (configuration is CjpmCommandConfiguration &&
-            !(isBuildConfiguration(configuration) && configuration.isBuildToolWindowAvailable)) {
+            !(isBuildConfiguration(configuration) && configuration.isBuildToolWindowAvailable)
+        ) {
             super.doExecute(state, environment)
         } else {
             // For commands like `cargo build` or `cargo test --no-run`
@@ -53,7 +53,7 @@ open class CjpmCommandRunner :CjDefaultProgramRunnerBase() {
         }
     }
 
-    override fun getRunnerId(): String =  RUNNER_ID
+    override fun getRunnerId(): String = RUNNER_ID
 
     companion object {
 
@@ -67,7 +67,7 @@ typealias PathConverter = (String) -> String
 typealias PackageId = String
 
 sealed class CompilerMessage {
-    abstract val package_id: PackageId
+//    abstract val package_id: PackageId
 
     abstract fun convertPaths(converter: PathConverter): CompilerMessage
 
@@ -75,7 +75,7 @@ sealed class CompilerMessage {
         fun fromJson(json: JsonObject): CompilerMessage? {
             val reason = json.getAsJsonPrimitive("reason")?.asString ?: return null
             val cls: Class<out CompilerMessage> = when (reason) {
-                BuildScriptMessage.REASON -> BuildScriptMessage::class.java
+//                BuildScriptMessage.REASON -> BuildScriptMessage::class.java
                 CompilerArtifactMessage.REASON -> CompilerArtifactMessage::class.java
                 else -> return null
             }
@@ -84,31 +84,31 @@ sealed class CompilerMessage {
     }
 }
 
-data class BuildScriptMessage(
-    override val package_id: PackageId,
-    val cfgs: List<String>,
-    val env: List<List<String>>,
-    val out_dir: String?
-) : CompilerMessage() {
-
-    override fun convertPaths(converter: PathConverter): BuildScriptMessage = copy(
-        out_dir = out_dir?.let(converter)
-    )
-
-    companion object {
-        const val REASON: String = "build-script-executed"
-    }
-}
+//data class BuildScriptMessage(
+//    override val package_id: PackageId,
+//    val cfgs: List<String>,
+//    val env: List<List<String>>,
+//    val out_dir: String?
+//) : CompilerMessage() {
+//
+//    override fun convertPaths(converter: PathConverter): BuildScriptMessage = copy(
+//        out_dir = out_dir?.let(converter)
+//    )
+//
+//    companion object {
+//        const val REASON: String = "build-script-executed"
+//    }
+//}
 
 data class Profile(
     val test: Boolean
 )
 
 data class CompilerArtifactMessage(
-    override val package_id: PackageId,
-    val target: CjpmMetadata.Target,
-    val profile: Profile,
-    val filenames: List<String>,
+//    override val package_id: PackageId,
+//    val target: CjpmMetadata.Target,
+//    val profile: Profile,
+//    val filenames: List<String>,
     val executable: String?
 ) : CompilerMessage() {
 
@@ -117,19 +117,14 @@ data class CompilerArtifactMessage(
             return if (executable != null) {
                 listOf(executable)
             } else {
-                /**
-                 * `.dSYM` and `.pdb` files are binaries, but they should not be used when starting debug session.
-                 * Without this filtering, CLion shows error message about several binaries
-                 * in case of disabled build tool window
-                 */
-                // BACKCOMPAT: Cargo 0.34.0
-                filenames.filter { !it.endsWith(".dSYM") && !it.endsWith(".pdb") }
+                listOf()
+//                filenames.filter { !it.endsWith(".cjo")   }
             }
         }
 
     override fun convertPaths(converter: PathConverter): CompilerArtifactMessage = copy(
-        target = target.convertPaths(converter),
-        filenames = filenames.map(converter),
+//        target = target.convertPaths(converter),
+//        filenames = filenames.map(converter),
         executable = executable?.let(converter)
     )
 

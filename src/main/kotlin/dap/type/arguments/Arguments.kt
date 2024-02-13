@@ -534,3 +534,18 @@ data class EvaluateArguments(
      */
     val format: ValueFormat? = null
 ):Arguments
+
+
+@Serializable
+data class SourceArguments (
+    /**
+     * 指定要加载的源内容。必须指定`source.path`或`source.sourceReference`之一。
+     */
+    val source: Source? = null,
+
+    /**
+     * 源的引用。与`source.sourceReference`相同。
+     * 由于旧客户端不理解`source`属性，因此提供此属性以实现向后兼容性。
+     */
+    val sourceReference: Int
+):Arguments

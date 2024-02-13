@@ -39,7 +39,7 @@ import kotlin.math.max
 
 
 @Suppress("UnstableApiUsage")
-class CjpmBuildAdapter(
+class  CjpmBuildAdapter(
     private val context: CjpmBuildContext,
     buildProgressListener: BuildProgressListener
 ) : CjpmBuildAdapterBase(context, buildProgressListener) {
@@ -54,7 +54,6 @@ class CjpmBuildAdapter(
 
         buildContentDescriptor.isActivateToolWindowWhenAdded = activateToolWindow
         buildContentDescriptor.isActivateToolWindowWhenFailed = activateToolWindow
-//        buildContentDescriptor.isNavigateToError = context.project.rustSettings.autoShowErrorsInEditor
 
         val descriptor = DefaultBuildDescriptor(
             context.buildId,
@@ -187,174 +186,11 @@ abstract class CjpmBuildAdapterBase(
 
 fun createFilters(): Collection<Filter> = buildList {
 
-    val dir = CangJieProjectManager.workspaceRootDir
-    if (dir != null) {
-        add(CjConsoleFilter(CangJieProjectManager.getCurrentProject(), dir))
-        add(CjDbgFilter(CangJieProjectManager.getCurrentProject(), dir))
-        add(CjPanicFilter(CangJieProjectManager.getCurrentProject(), dir))
-//        add(CjBacktraceFilter(CangJieProjectManager.currentProject, dir, CangJieProjectManager.workspace))
-    }
-}
-
-class CjDbgFilter(
-    project: Project,
-    cargoProjectDir: VirtualFile
-) : RegexpFileLinkFilter(project, cargoProjectDir, "\\s*\\[$FILE_POSITION_RE].*")
-
-class CjConsoleFilter(
-    project: Project,
-    cargoProjectDir: VirtualFile
-) : RegexpFileLinkFilter(
-    project,
-    cargoProjectDir,
-    "(?:\\s+--> )?${FILE_POSITION_RE}.*"
-)
-
-class CjPanicFilter(
-    project: Project,
-    cargoProjectDir: VirtualFile
-) : RegexpFileLinkFilter(project, cargoProjectDir, "\\s*thread '.+' panicked at '.+', $FILE_POSITION_RE")
-
-//
-//class CjBacktraceFilter @NonInjectable constructor(
-//    private val project: Project,
-//    private val cargoProjectDir: VirtualFile?,
-//
-//) : Filter {
-//    private val backtraceItemFilters: List<CjBacktraceItemFilter>
-//        get() {
-//            if (workspace == null) {
-//                val filters = project.cargoProjects.allProjects
-//                    .mapNotNull { it.workspace }
-//                    .map { CjBacktraceItemFilter(project, it) }
-//                if (filters.isNotEmpty()) return filters
-//            }
-//            return listOf(CjBacktraceItemFilter(project, workspace))
-//        }
-//
-//    private val sourceLinkFilters: List<RegexpFileLinkFilter>
-//        get() {
-//            if (cargoProjectDir == null) {
-//                return project.cargoProjects.allProjects
-//                    .mapNotNull { it.rootDir }
-//                    .map { RegexpFileLinkFilter(project, it, LINE_REGEX) }
-//            }
-//            return listOf(RegexpFileLinkFilter(project, cargoProjectDir, LINE_REGEX))
-//        }
-//
-//
-//    constructor(project: Project) : this(project, null, null)
-//
-//    override fun applyFilter(line: String, entireLength: Int): Filter.Result? =
-//        (backtraceItemFilters.asSequence() + sourceLinkFilters.asSequence())
-//            .mapNotNull { it.applyFilter(line, entireLength) }
-//            .firstOrNull()
-//
-//    companion object {
-//        val LINE_REGEX: String = "\\s+at $FILE_POSITION_RE"
+//    val dir = CangJieProjectManager.workspaceRootDir
+//    if (dir != null) {
+//        add(CjConsoleFilter(CangJieProjectManager.getCurrentProject(), dir))
+//        add(CjDbgFilter(CangJieProjectManager.getCurrentProject(), dir))
+//        add(CjPanicFilter(CangJieProjectManager.getCurrentProject(), dir))
+//        add(CjBacktraceFilter( CangJieProjectManager.currentProject, dir, CangJieProjectManager.workspace))
 //    }
-//}
-
-
-open class RegexpFileLinkFilter(
-    private val project: Project,
-    private val cargoProjectDirectory: VirtualFile,
-    lineRegExp: String
-) : Filter, DumbAware {
-
-    companion object {
-        // TODO: named groups when Kotlin supports them
-        @Language("RegExp")
-        val FILE_POSITION_RE = """((?:\p{Alpha}:)?[0-9 a-z_A-Z\-\\./]+):([0-9]+)(?::([0-9]+))?"""
-
-        @Language("RegExp")
-        private val RUSTC_ABSOLUTE_PATH_RE = Regex("""/rustc/\w+/(.*)""")
-    }
-
-    init {
-        require(FILE_POSITION_RE in lineRegExp)
-        require('^' !in lineRegExp && '$' !in lineRegExp)
-    }
-
-    private val linePattern = ("^$lineRegExp\\R?$").toRegex()
-
-    // Line is a single sine, with line separator included
-    override fun applyFilter(line: String, entireLength: Int): Filter.Result? {
-        val match = matchLine(line) ?: return null
-        val fileGroup = match.groups[1]!!
-        val lineNumber = match.groups[2]?.let { zeroBasedNumber(it.value) } ?: 0
-        val columnNumber = match.groups[3]?.let { zeroBasedNumber(it.value) } ?: 0
-
-        val lineStart = entireLength - line.length
-
-        val file = resolveFilePath(fileGroup.value)
-        val link = file?.let { OpenFileHyperlinkInfo(project, file.file, lineNumber, columnNumber) }
-
-        val grayedOut = if (file == null) {
-            false
-        } else {
-            file !is ResolvedPath.Workspace
-        }
-
-        val end = match.groups[3]?.range?.last
-            ?: match.groups[2]?.range?.last
-            ?: fileGroup.range.last
-        return Filter.Result(
-            lineStart + fileGroup.range.first,
-            lineStart + end + 1,
-            link,
-            grayedOut
-        )
-    }
-
-    fun matchLine(line: String): MatchResult? = linePattern.matchEntire(line)
-
-    private fun zeroBasedNumber(number: String): Int {
-        return try {
-            max(0, number.toInt() - 1)
-        } catch (e: NumberFormatException) {
-            0
-        }
-    }
-
-    private fun resolveFilePath(fileName: String): ResolvedPath? {
-        val path = FileUtil.toSystemIndependentName(fileName)
-        val file = cargoProjectDirectory.findFileByRelativePath(path)
-        if (file != null) return ResolvedPath.Workspace(file)
-
-        val externalPath = resolveStdlibPath(fileName) ?: resolveCargoPath(fileName)
-        if (externalPath != null) return externalPath
-
-        // try to resolve absolute path
-        return cargoProjectDirectory.fileSystem.findFileByPath(path)?.let { ResolvedPath.Unknown(it) }
-    }
-
-    private fun resolveCargoPath(path: String): ResolvedPath? {
-        if (!path.startsWith("/cargo")) return null
-        val fullPath = Paths.get(getCjpmRoot(), path.removePrefix("/cargo")).toString()
-        return cargoProjectDirectory.fileSystem.findFileByPath(fullPath)?.let { ResolvedPath.CargoDependency(it) }
-    }
-
-    private fun resolveStdlibPath(path: String): ResolvedPath? {
-        val sysroot = getSysroot() ?: return null
-        val normalizedPath = normalizeStdLibPath(path)
-        val fullPath = "$sysroot/lib/rustlib/src/rust/$normalizedPath"
-        return cargoProjectDirectory.fileSystem.findFileByPath(fullPath)?.let { ResolvedPath.Stdlib(it) }
-    }
-
-    // /rustc/<commit hash>/src/libstd/... -> src/libstd/...
-    private fun normalizeStdLibPath(path: String): String {
-        val match = RUSTC_ABSOLUTE_PATH_RE.matchEntire(path) ?: return path
-        return match.groupValues[1]
-    }
-
-    private fun getSysroot(): String? = CangJieProjectManager.getCurrentProject().basePath
-    private fun getCjpmRoot(): String = CangJieSdkManager.sdkPath
-
-    sealed class ResolvedPath(val file: VirtualFile) {
-        class Workspace(file: VirtualFile) : ResolvedPath(file)
-        class Stdlib(file: VirtualFile) : ResolvedPath(file)
-        class CargoDependency(file: VirtualFile) : ResolvedPath(file)
-        class Unknown(file: VirtualFile) : ResolvedPath(file)
-    }
 }

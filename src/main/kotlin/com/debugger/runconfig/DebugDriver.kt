@@ -5,36 +5,32 @@ import com.debugger.runconfig.message.MessageHandler
 import com.huawei.cangjie.idea.project.CangJieProjectManager
 import com.huawei.cangjie.lang.lsp.toSystemPath
 import com.huawei.cangjie.lang.sdk.CangJieSdkManager
+import com.intellij.execution.ExecutionException
 import com.intellij.execution.process.BaseProcessHandler
-import com.intellij.execution.process.ProcessEvent
-import com.intellij.execution.process.ProcessListener
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.NlsContexts
+import com.intellij.openapi.util.Ref
+import com.intellij.util.Consumer
 import com.intellij.util.concurrency.QueueProcessor
 import com.intellij.xdebugger.XDebugSession
+import dap.event.*
 import dap.protocol.ProtocolMessage
 import dap.request.*
-import dap.response.Response
-import dap.response.RunInTerminalResponse
+import dap.response.*
 import dap.type.*
-import dap.type.adapter.moshi
 import dap.type.arguments.*
 import dap.type.body.RunInTerminalResponseBody
 import dap.type.serializer.format
 import kotlinx.serialization.encodeToString
-
 import java.io.BufferedReader
 import java.io.BufferedWriter
-import java.io.OutputStream
+import java.io.IOException
 import java.io.Writer
 import java.net.Socket
 import java.net.SocketException
-import java.util.UUID
+import java.util.*
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
-
-import java.lang.Thread.sleep
-import java.nio.channels.SocketChannel
-import java.util.concurrent.CountDownLatch
 
 const val TWO_CRLF = "\r\n\r\n"
 const val ONE_CRLF = "\r\n"
@@ -49,7 +45,7 @@ inline fun <reified T : ProtocolMessage> Writer.write(message: T) {
 
 class DebugDriver(
     val session: XDebugSession, val handler: MessageHandler
-) {
+) : Consumer<ProtocolMessage> {
 
     val debugProcessHandler = CangJieDebuggerServerManager.getDebugServerProcess()
 
@@ -81,39 +77,52 @@ class DebugDriver(
 
     private val MAX_RETRY_COUNT = 10
     private val RETRY_DELAY_MS = 20L
+    private val myConnectedClient: CompletableFuture<DapClent<Response>> = CompletableFuture()
+    private var myDapClient: DapClent<Response>? = null
 
-    val thread = Thread {
-        val isWhile = AtomicBoolean(true)
-        while (isWhile.get()) {
-
-
-            if (socket?.isConnected == true) {
-                if (socketContentState.get()) {
-                    val message = read()
-
-                    this.myMessageHandler.handleMessage(message!!)
-                }
-
-            } else {
-                isWhile.set(false)
-            }
-
-
-        }
-    }
+//    val thread = Thread {
+//        val isWhile = AtomicBoolean(true)
+//        while (isWhile.get()) {
+//
+//
+//            if (socket?.isConnected == true) {
+//                if (socketContentState.get()) {
+//                    val message = read()
+//
+//                    this.myMessageHandler.handleMessage(message!!)
+//                }
+//
+//            } else {
+//                isWhile.set(false)
+//            }
+//
+//
+//        }
+//    }
 
     val sessionid = UUID.randomUUID().toString()
 
 //    private val latch = CountDownLatch(1)
 
     init {
-        if (runState) {
-            this.content()
-            this.initialize()
+//        if (runState) {
+//            this.content()
+//            this.initialize()
+//
+//        } else {
+//            print("调试器启动失败")
+//        }
 
-        } else {
-            print("调试器启动失败")
+        try {
+            myDapClient = DapClent(CangJieDebuggerServerManager.DEBUGPORT, this@DebugDriver, getInitializeRequest())
+
+
+//            myDapClient!!.waitFor()
+        } catch (ioEx: IOException) {
+
+            throw ExecutionException(ioEx)
         }
+
 
     }
 
@@ -135,18 +144,18 @@ class DebugDriver(
     }
 
 
-    fun sendScopes(frameId: Int) {
+    fun sendScopes(frameId: Int): ScopesResponse {
         val request = ScopesRequest(
             seq = ++seq,
             arguments = ScopesArguments(
                 frameId = frameId
             )
         )
-        send(request)
+
+        return sendMessageAndWaitForReply(request, ScopesResponse::class.java)
     }
 
-    fun sendStacktrace(threadId: Long, levels: Int = 20, startFrame: Int = 0) {
-
+    fun sendStacktrace(threadId: Long, levels: Int = 20, startFrame: Int = 0): StackTraceResponse {
 
 
         val request = StackTraceRequest(
@@ -157,47 +166,54 @@ class DebugDriver(
                 startFrame = startFrame
             )
         )
-        send(request)
+
+        return sendMessageAndWaitForReply(request, StackTraceResponse::class.java)
+//        send(request)
     }
 
-    /**
-     * 开启消息进程
-     */
-    private fun startReadMessageThread() {
-//        启动一个kotlin线程
-
-        thread.start()
-    }
+//    /**
+//     * 开启消息进程
+//     */
+//    private fun startReadMessageThread() {
+////        启动一个kotlin线程
+//
+//        thread.start()
+//    }
 
     //    @Synchronized
-    fun read(): ProtocolMessage? {
-        if (reader == null) return null
-        val str = reader!!.readLine()
-        val arr = str.split(":")
+//    fun read(): ProtocolMessage? {
+//        if (reader == null) return null
+//        val str = reader!!.readLine()
+//        val arr = str.split(":")
+//
+//        if (arr.size < 2) return null
+//
+//
+//        val contentLength = arr[1].trim().toInt() + ONE_CRLF.length
+////        读2位 把\r\n读掉
+////        val charArray = CharArray(2)
+////        reader.read(CharArray(2), 0, 2)
+//
+//        val charArray = CharArray(contentLength)
+//        reader?.read(charArray, 0, contentLength)
+//
+//        val jsonstr = String(charArray).trim().trimEnd('\r', '\n', ' ', '\u0000')
+//        val response = moshi.adapter(ProtocolMessage::class.java).fromJson(jsonstr)
+//
+//
+////        seq = response?.seq ?: seq
+//
+//        if (response is Response) {
+//            requestSeq = response.request_seq
+//        }
+//        LOG.info("接收消息：$response")
+//
+//        return response
+//    }
+    @Throws(ExecutionException::class)
+    protected fun getDapClient(): DapClent<Response> {
 
-        if (arr.size < 2) return null
-
-
-        val contentLength = arr[1].trim().toInt() + ONE_CRLF.length
-//        读2位 把\r\n读掉
-//        val charArray = CharArray(2)
-//        reader.read(CharArray(2), 0, 2)
-
-        val charArray = CharArray(contentLength)
-        reader?.read(charArray, 0, contentLength)
-
-        val jsonstr = String(charArray).trim().trimEnd('\r', '\n', ' ', '\u0000')
-        val response = moshi.adapter(ProtocolMessage::class.java).fromJson(jsonstr)
-
-
-//        seq = response?.seq ?: seq
-
-        if (response is Response) {
-            requestSeq = response.request_seq
-        }
-        LOG.info("接收消息：$response")
-
-        return response
+        return ExecutionResult.get(myConnectedClient)
     }
 
     //    @Synchronized
@@ -205,15 +221,18 @@ class DebugDriver(
 //        this.socket.write(`Content-Length: ${Buffer.byteLength(e, "utf8")}${d.TWO_CRLF}${e}`, "utf8")
 
 //        writer?.write("Content-Length: ${message.toByteArray().size}$TWO_CRLF$message")
-        if (socketContentState.get()) {
+//        if (socketContentState.get()) {
+//
+//            LOG.info("发送消息：$message")
+//
+//
+//            writer?.write(message)
+//            writer?.flush()
+//
+//        }
 
-            LOG.info("发送消息：$message")
+        getDapClient().sendMessage<T>(message, null, null)
 
-
-            writer?.write(message)
-            writer?.flush()
-
-        }
 
 //        return read() as Response
         return null
@@ -224,12 +243,11 @@ class DebugDriver(
     fun sendLaunch() {
         val sdkVersion = CangJieSdkManager.sdkVersion.split(" ")[0]
 
-      
-        
-        val mainexe =   if( sdkVersion < "0.45.2"){
-           ( (CangJieProjectManager.getCurrentProject().basePath + "/build/bin/main").toSystemPath())
-        }else{
-           ( (CangJieProjectManager.getCurrentProject().basePath + "/build/debug/bin/main").toSystemPath())
+
+        val mainexe = if (sdkVersion < "0.45.2") {
+            ((CangJieProjectManager.getCurrentProject().basePath + "/build/bin/main").toSystemPath())
+        } else {
+            ((CangJieProjectManager.getCurrentProject().basePath + "/build/debug/bin/main").toSystemPath())
         }
         val request = LaunchRequest(
             seq = ++seq, arguments = LaunchRequestArguments(
@@ -400,50 +418,50 @@ class DebugDriver(
     }
 
 
-    fun content() {
-//        latch.await() // This will block the current thread
-
-        var retryCount = 0
-        while (retryCount < MAX_RETRY_COUNT) {
-            try {
-                socket = Socket("127.0.0.1", CangJieDebuggerServerManager.DEBUGPORT)
-                if (socket!!.isConnected) {
-                    reader = socket!!.getInputStream().bufferedReader()
-                    writer = socket!!.getOutputStream().bufferedWriter()
-                    socketContentState.set(true)
-                    startReadMessageThread()
-//                        unblockContent()
-                    break
-                }
-            } catch (e: SocketException) {
-
-                retryCount++
-                sleep(RETRY_DELAY_MS)
-            }
-        }
-
-//        ApplicationManager.getApplication().executeOnPooledThread {
-//            var retryCount = 0
-//            while (retryCount < MAX_RETRY_COUNT) {
-//                try {
-//                    socket = Socket("127.0.0.1", CangJieDebuggerServerManager.DEBUGPORT)
-//                    if (socket!!.isConnected) {
-//                        reader = socket!!.getInputStream().bufferedReader()
-//                        writer = socket!!.getOutputStream().bufferedWriter()
-//                        socketContentState.set(true)
-//                        startReadMessageThread()
-////                        unblockContent()
-//                        break
-//                    }
-//                } catch (e: SocketException) {
+//    fun content() {
+////        latch.await() // This will block the current thread
 //
-//                    retryCount++
-//                    sleep(RETRY_DELAY_MS)
+//        var retryCount = 0
+//        while (retryCount < MAX_RETRY_COUNT) {
+//            try {
+//                socket = Socket("127.0.0.1", CangJieDebuggerServerManager.DEBUGPORT)
+//                if (socket!!.isConnected) {
+//                    reader = socket!!.getInputStream().bufferedReader()
+//                    writer = socket!!.getOutputStream().bufferedWriter()
+//                    socketContentState.set(true)
+//                    startReadMessageThread()
+////                        unblockContent()
+//                    break
 //                }
+//            } catch (e: SocketException) {
+//
+//                retryCount++
+//                sleep(RETRY_DELAY_MS)
 //            }
-//            return@executeOnPooledThread
 //        }
-    }
+//
+////        ApplicationManager.getApplication().executeOnPooledThread {
+////            var retryCount = 0
+////            while (retryCount < MAX_RETRY_COUNT) {
+////                try {
+////                    socket = Socket("127.0.0.1", CangJieDebuggerServerManager.DEBUGPORT)
+////                    if (socket!!.isConnected) {
+////                        reader = socket!!.getInputStream().bufferedReader()
+////                        writer = socket!!.getOutputStream().bufferedWriter()
+////                        socketContentState.set(true)
+////                        startReadMessageThread()
+//////                        unblockContent()
+////                        break
+////                    }
+////                } catch (e: SocketException) {
+////
+////                    retryCount++
+////                    sleep(RETRY_DELAY_MS)
+////                }
+////            }
+////            return@executeOnPooledThread
+////        }
+//    }
 
 
     fun initialize() {
@@ -469,14 +487,19 @@ class DebugDriver(
         send(request)
     }
 
-    fun sendThreads() {
+    fun sendThreads(): ThreadsResponse {
         val request = ThreadsRequest(
             seq = ++seq
         )
-        send(request)
+        return sendMessageAndWaitForReply(request, ThreadsResponse::class.java)
     }
 
-    fun sendVariables(variablesReference: Int, count: Int = 1000, start: Int = 0,filter: VariablesArgumentsFilter? = null) {
+    fun sendVariables(
+        variablesReference: Int,
+        count: Int = 1000,
+        start: Int = 0,
+        filter: VariablesArgumentsFilter? = null
+    ): VariablesResponse {
         val request = VariablesRequest(
             seq = ++seq,
             arguments = VariablesArguments(
@@ -486,7 +509,7 @@ class DebugDriver(
                 start = start
             )
         )
-        send(request)
+        return sendMessageAndWaitForReply(request, VariablesResponse::class.java)
 
     }
 
@@ -518,29 +541,29 @@ class DebugDriver(
 
     fun sendStepOut(currentThreadId: Long) {
 
-            val request = StepOutRequest(
-                seq = ++seq,
-                arguments = StepOutArguments(
-                    threadId = currentThreadId
-                )
+        val request = StepOutRequest(
+            seq = ++seq,
+            arguments = StepOutArguments(
+                threadId = currentThreadId
             )
-            send(request)
+        )
+        send(request)
 
     }
 
     fun sendContinue(currentThreadId: Long) {
 
-            val request = ContinueRequest(
-                seq = ++seq,
-                arguments = ContinueArguments(
-                    threadId = currentThreadId.toInt()
-                )
+        val request = ContinueRequest(
+            seq = ++seq,
+            arguments = ContinueArguments(
+                threadId = currentThreadId.toInt()
             )
-            send(request)
+        )
+        send(request)
 
     }
 
-    fun sendEvaluate(expression: String,frameId: Int, context:EvaluateArgumentsContext) {
+    fun sendEvaluate(expression: String, frameId: Int, context: EvaluateArgumentsContext): EvaluateResponse {
         val request = EvaluateRequest(
             seq = ++seq,
             arguments = EvaluateArguments(
@@ -549,14 +572,19 @@ class DebugDriver(
                 context = context,
 
 
-            )
+                )
         )
 
-        send(request)
+        return sendMessageAndWaitForReply(request, EvaluateResponse::class.java)
     }
 
 
-    fun sendSetVariable(value: Variable,expression:String,parentScope:Int) {
+    fun sendSetVariable(
+        value: Variable,
+        expression: String,
+        parentScope: Int,
+        errorHandler: ResponseMessageConsumer<SetVariableResponse, DriverException>? = null
+    ): SetVariableResponse {
         val request = SetVariableRequest(
             seq = ++seq,
             arguments = SetVariableArguments(
@@ -565,7 +593,11 @@ class DebugDriver(
                 value = expression
             )
         )
-        send(request)
+        if (errorHandler == null) {
+            return sendMessageAndWaitForReply(request, SetVariableResponse::class.java)
+
+        }
+        return sendMessageAndWaitForReply(request, SetVariableResponse::class.java, errorHandler, 0)
 
     }
 
@@ -576,6 +608,28 @@ class DebugDriver(
 
     companion object {
         val LOG = Logger.getInstance(DebugDriver::class.java)
+        fun getInitializeRequest(): InitializeRequest {
+            return InitializeRequest(
+                InitializeRequestArguments(
+                    adapterID = "cangjieDebug",
+                    clientId = "idea",
+                    clientName = "Intellij IDEA",
+                    columnsStartAt1 = true,
+                    linesStartAt1 = true,
+                    locale = "zh-cn",
+                    pathFormat = PathFormat.Path,
+                    supportsInvalidatedEvent = true,
+                    supportsMemoryEvent = true,
+                    supportsArgsCanBeInterpretedByShell = true,
+                    supportsMemoryReferences = true,
+                    supportsProgressReporting = true,
+                    supportsRunInTerminalRequest = true,
+                    supportsStartDebuggingRequest = true,
+                    supportsVariablePaging = true,
+                    supportsVariableType = true
+                )
+            )
+        }
 
         enum class TargetState {
             NOT_READY, RUNNING, SUSPENDED, FINISHING, FINISHED
@@ -583,13 +637,387 @@ class DebugDriver(
 
     }
 
+    override fun consume(t: ProtocolMessage) {
+
+
+        try {
+
+            this.handleMessage(t)
+            this.myMessageHandler.handleMessage(t)
+
+
+        } catch (t: Throwable) {
+            try {
+
+            } catch (tt: Throwable) {
+                t.addSuppressed(tt)
+            }
+            throw t
+        }
+
+
+    }
+
+    private fun handleLoadedSourceEvent(loadedSourceEvent: LoadedSourceEvent) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleTerminatedEvent(terminatedEvent: TerminatedEvent) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleExitedEvent(exitedEvent: ExitedEvent) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleThreadEvent(event: ThreadEvent) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleInitializedEvent(event: InitializedEvent) {
+//        TODO("Not yet implemented")
+    }
+
+    private fun handleMessageByEvent(event: Event) {
+        when (event) {
+            is InitializedEvent -> {
+                handleInitializedEvent(event)
+            }
+
+            is ThreadEvent -> {
+                handleThreadEvent(event)
+            }
+
+            is StoppedEvent -> {
+                handleStoppedEvent(event)
+            }
+
+            is OutputEvent -> {
+                handleOutputEvent(event)
+            }
+
+            is BreakpointEvent -> {
+                handleBreakpointEvent(event)
+            }
+
+            is LoadedSourceEvent -> {
+                handleLoadedSourceEvent(event)
+            }
+
+            is ExitedEvent -> {
+                handleExitedEvent(event)
+            }
+
+            is TerminatedEvent -> {
+                handleTerminatedEvent(event)
+            }
+
+        }
+
+    }
+
+    private fun handleBreakpointEvent(event: BreakpointEvent) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleStoppedEvent(event: StoppedEvent) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleOutputEvent(outputEvent: OutputEvent) {
+//        TODO("Not yet implemented")
+        println(outputEvent)
+    }
+
+    private fun handleMessage(message: ProtocolMessage) {
+        when (message) {
+//            is Event -> {
+//                handleMessageByEvent(message)
+//            }
+
+            is Response -> {
+                handleMessageByResponse(message)
+            }
+//
+//            is Request -> {
+//                handleMessageByRequest(message)
+//            }
+//
+//            else -> {
+//                MessageHandler.LOG.info("空消息")
+//            }
+
+        }
+
+    }
+
+    private fun haveConnection(initializeResponse: InitializeResponse) {
+
+
+//        TODO 校验服务器权能
+
+        try {
+            myConnectedClient.complete(myDapClient)
+
+        } catch (e: Exception) {
+            myConnectedClient.completeExceptionally(e)
+
+
+        }
+    }
+
+    private fun handleMessageByResponse(response: Response) {
+        when (response) {
+            is InitializeResponse -> {
+                haveConnection(response)
+            }
+
+//            is ErrorResponse -> {
+//                handleErrorResponse(response)
+//            }
+//
+//            is CancelResponse -> {
+//                handleCancelResponse(response)
+//            }
+//
+//            is LaunchResponse -> {
+//                handleLaunchResponse(response)
+//            }
+//
+//            is SetBreakpointsResponse -> {
+//                handleSetBreakpointsResponse(response)
+//            }
+//
+//            is ConfigurationDoneResponse -> {
+//                handleConfigurationDoneResponse(response)
+//            }
+//
+//            is DebugInConsoleResponse -> {
+//                handleDebugInConsoleResponse(response)
+//            }
+//
+//            is ThreadsResponse -> {
+//                handleThreadsResponse(response)
+//            }
+//
+//            is StackTraceResponse -> {
+//                handleStackTraceResponse(response)
+//            }
+//
+//            is ScopesResponse -> {
+//                handleScopesResponse(response)
+//            }
+//
+//            is VariablesResponse -> {
+//                handleVariablesResponse(response)
+//            }
+//
+//            is EvaluateResponse -> {
+//                handleEvaluateResponse(response)
+//            }
+//
+//            is SetVariableResponse -> {
+//                handleSetVariableResponse(response)
+//            }
+        }
+
+
+    }
+
+    private fun handleConfigurationDoneResponse(response: ConfigurationDoneResponse) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleSetBreakpointsResponse(response: SetBreakpointsResponse) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleCancelResponse(response: CancelResponse) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleDebugInConsoleResponse(response: DebugInConsoleResponse) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleThreadsResponse(response: ThreadsResponse) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleStackTraceResponse(response: StackTraceResponse) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleLaunchResponse(response: LaunchResponse) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleEvaluateResponse(response: EvaluateResponse) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleScopesResponse(response: ScopesResponse) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleVariablesResponse(response: VariablesResponse) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleSetVariableResponse(response: SetVariableResponse) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleErrorResponse(response: ErrorResponse) {
+        TODO("Not yet implemented")
+    }
+
+    private fun handleMessageByRequest(request: Request) {
+
+        when (request) {
+            is RunInTerminalRequest -> {
+                handleRunInTerminalRequest(request)
+
+            }
+        }
+    }
+
+    private fun handleRunInTerminalRequest(request: RunInTerminalRequest) {
+        TODO("Not yet implemented")
+    }
+
+    @Throws(ExecutionException::class)
+    fun <R : ProtocolMessage> sendMessageAndWaitForReply(
+        message: ProtocolMessage,
+        responseClass: Class<R>,
+        msTimeout: Long = 0L
+    ): R {
+
+
+        val errorHandler: ResponseMessageConsumer<in R, DriverException> =
+            ThrowIfNotValid("Invalid response")
+
+        val result: ProtocolMessage = sendMessageAndWaitForReply(message, responseClass, errorHandler, msTimeout)
+
+        @Suppress("UNCHECKED_CAST")
+        return result as R
+    }
+
+    @Throws(ExecutionException::class)
+    fun <R : ProtocolMessage, E : Exception> sendMessageAndWaitForReply(
+        message: ProtocolMessage,
+        responseClass: Class<R>,
+        errorHandler: ResponseMessageConsumer<in R, E>,
+        msTimeout: Long
+    ): R {
+
+
+        val responseRef = Ref.create<R>()
+        val responseHandler = Consumer { responseMessage: R ->
+            errorHandler.consume(responseMessage)
+//            if (errorHandler.success()) {
+            responseRef.set(responseMessage)
+//            }
+        }
+
+        getDapClient().sendMessageAndWaitForReply(message, responseClass, responseHandler, msTimeout)
+        errorHandler.throwIfNeeded()
+
+        return responseRef.get()
+            ?: throw ExecutionException("Null response to message ${message}")
+    }
+
+    fun sendSourceFile(name: String, sourceReference: Int): SourceResponse {
+        val req = SourceRequest(
+            ++seq,
+            SourceArguments(
+                source = Source(
+                    name = name,
+                    sourceReference = sourceReference
+                ),
+                sourceReference = sourceReference
+            )
+        )
+        return sendMessageAndWaitForReply(req, SourceResponse::class.java)
+
+    }
+
+    abstract class ResponseMessageConsumer<T : ProtocolMessage, E : Exception>(private var myMessage: String) :
+        Consumer<T> {
+        private var mySuccess = false
+
+        private var type: String? = null
+
+        var data: T? = null
+
+        fun getMessage(): String {
+            return myMessage
+        }
+
+        fun success(): Boolean {
+            return mySuccess
+        }
+
+        override fun consume(message: T) {
+//            val allFields = message.allFields
+//            allFields.values.forEach {
+//                if (it is ProtocolResponses.CommonResponse) {
+//                    myIsValid = it.isValid
+//                    if (!myIsValid && it.hasErrorMessage()) {
+//                        val errorMessage = it.errorMessage
+//                        if (!StringUtil.isEmptyOrSpaces(errorMessage)) {
+//                            myMessage = errorMessage
+//                        }
+//                    }
+//                }
+//            }
+
+            data = message
+
+            if (message is Response) {
+                myMessage = message.message.toString()
+                mySuccess = message.success
+            } else if (message is Event) {
+
+                type = message.type.toString()
+                mySuccess = true
+            }
+        }
+
+
+        open fun throwIfNeeded() {
+            if (!mySuccess) {
+                throwError()
+            }
+        }
+
+        open fun throwError() {
+            throw ExecutionException(getMessage())
+        }
+    }
+
+
+    protected open class ThrowIfNotValid<T : ProtocolMessage>(message: String) :
+        ResponseMessageConsumer<T, DriverException>(message) {
+
+        @Throws(DriverException::class)
+        override fun throwIfNeeded() {
+            super.throwIfNeeded()
+        }
+
+        @Throws(DriverException::class)
+        override fun throwError() {
+            throw DriverException(getMessage())
+        }
+    }
 
 }
+
+class DriverException(s: @NlsContexts.DialogMessage String?) : ExecutionException(s)
+
 
 fun String.toDapPath(): String {
 //  去除file前缀 并且把windows路径转换为unix路径
     return this.substringAfter("file://").replace("\\", "/")
 }
-
-
 

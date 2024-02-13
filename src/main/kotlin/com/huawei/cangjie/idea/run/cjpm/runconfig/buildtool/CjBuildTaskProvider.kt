@@ -3,6 +3,7 @@ package com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.idea.run.cjpm.CjpmCommandConfiguration
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildManager.createBuildEnvironment
+import com.huawei.cangjie.lang.sdk.validateSdk
 import com.intellij.execution.BeforeRunTask
 import com.intellij.execution.BeforeRunTaskProvider
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -24,6 +25,8 @@ abstract class CjBuildTaskProvider<T : CjBuildTaskProvider.BuildTask<T>> : Befor
         buildConfiguration: CjpmCommandConfiguration,
         environment: ExecutionEnvironment
     ): Boolean {
+
+
         val buildEnvironment = createBuildEnvironment(buildConfiguration, environment) ?: return false
         val buildableElement = CjpmBuildConfiguration(buildConfiguration, buildEnvironment)
 
