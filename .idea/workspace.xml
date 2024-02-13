@@ -8,31 +8,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="new debugger develop">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="优化调试器方案">
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/log/idea 2l.log" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/log/log.txt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/log/studio 2l.log" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/log/vscode 2l.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/plugin/src/main/resources/META-INF/plugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/plugin/src/main/resources/META-INF/plugin.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebugProcess.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebugProcess.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebuggerEditorsProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebuggerEditorsProvider.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebuggerLanguageSupportManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebuggerLanguageSupportManager.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/DebugDriver.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/DebugDriver.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjElement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjElement.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/completion/LspCompletionContributor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/completion/LspCompletionContributor.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/request/Request.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/request/Request.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/response/Response.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/response/Response.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/type/Type.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/type/Type.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/type/adapter/Adapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/type/adapter/Adapter.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/type/arguments/Arguments.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/type/arguments/Arguments.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/type/body/Body.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/type/body/Body.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/type/serializer/Serializer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/type/serializer/Serializer.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -95,36 +80,17 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/codeInsight/daemon/impl/SdkSetupNotificationProvider.java" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/execution/configurations/CommandLineState.java" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/execution/configurations/RunConfigurationBase.java" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/execution/process/OSProcessHandler.java" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/ide/util/projectWizard/ModuleBuilder.java" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/openapi/projectRoots/Sdk.java" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/openapi/roots/SourceFolder.java" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/openapi/roots/ui/configuration/SdkPopupFactory.kt" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/openapi/ui/LabeledComponent.java" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/ui/EditorNotificationsImpl.kt" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/xdebugger/XDebugProcess.java" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/xdebugger/XDebugSession.java" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/xdebugger/frame/XExecutionStack.java" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/xdebugger/frame/XStackFrame.java" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/xdebugger/frame/XSuspendContext.java" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/xdebugger/frame/XValue.java" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/xdebugger/impl/XDebugSessionImpl.java" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/kotlin/collections/ArraysJVM.kt" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/kotlin/collections/MutableCollections.kt" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/kotlin/jvm/internal/Intrinsics.java" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/org/jetbrains/kotlin/idea/quickfix/ChangeMemberFunctionSignatureFix.kt" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/org/jetbrains/kotlin/tools/projectWizard/wizard/ui/secondStep/SecondStepWizardComponent.kt" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/org/jetbrains/kotlin/tools/projectWizard/wizard/ui/secondStep/modulesEditor/ModulesEditorToolbarDecorator.kt" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/232-EAP-SNAPSHOT/6fd173ee61048678bd13a9b88367a760ea7a1f14/ideaIC-232-EAP-SNAPSHOT-sources.jar!/com/intellij/util/Consumer.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/233-EAP-SNAPSHOT/673a8164526eee294831d705b227710478d0cf46/ideaIC-233-EAP-SNAPSHOT-sources.jar!/commonMain/generated/_Arrays.kt" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/233-EAP-SNAPSHOT/6b38a88551fcaf363afcf0fefdff5d5d11e6847a/ideaIC-233-EAP-SNAPSHOT-sources.jar!/com/intellij/task/TaskRunnerResults.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/233-EAP-SNAPSHOT/edee9b4ff740dba911917bd7447ae0895842d7f3/ideaIC-233-EAP-SNAPSHOT-sources.jar!/com/intellij/util/CollectConsumer.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/233-EAP-SNAPSHOT/edee9b4ff740dba911917bd7447ae0895842d7f3/ideaIC-233-EAP-SNAPSHOT-sources.jar!/com/intellij/util/Consumer.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/233-EAP-SNAPSHOT/edee9b4ff740dba911917bd7447ae0895842d7f3/ideaIC-233-EAP-SNAPSHOT-sources.jar!/com/intellij/xdebugger/impl/actions/handlers/XDebuggerEvaluateActionHandler.java" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/unzipped.com.jetbrains.plugins/com.intellij.nativeDebug-233.13135.65/nativeDebug-plugin/lib/nativeDebug-plugin.jar!/com/jetbrains/cidr/execution/debugger/CidrDebugProcessConfigurator.class" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/unzipped.com.jetbrains.plugins/com.intellij.nativeDebug-233.13135.65/nativeDebug-plugin/lib/nativeDebug-plugin.jar!/com/jetbrains/cidr/execution/debugger/CidrDebuggerCommandExecutor.class" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.squareup.moshi/moshi-adapters/1.15.0/3937515f4adead65ea18c72f0d392f557300b1c9/moshi-adapters-1.15.0.jar!/com/squareup/moshi/adapters/PolymorphicJsonAdapterFactory.class" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.eclipse.lsp4j/org.eclipse.lsp4j.debug/0.21.1/1fbf0ea5a68bf8c86910c2cfbe6452ef4dba7bd1/org.eclipse.lsp4j.debug-0.21.1-sources.jar!/org/eclipse/lsp4j/debug/SetVariableArguments.java" root0="SKIP_INSPECTION" />
     <setting file="jar://$USER_HOME$/.gradle/wrapper/dists/gradle-8.2-bin/bbg7u40eoinfdyxsxr3z4i7ta/gradle-8.2/lib/kotlin-stdlib-1.8.20.jar!/kotlin/kotlin.kotlin_builtins" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.jdks/azul-17.0.9/lib/src.zip!/java.desktop/java/awt/Component.java" root0="SKIP_INSPECTION" />
-    <setting file="jar://$USER_HOME$/.jdks/azul-17.0.9/lib/src.zip!/java.desktop/javax/swing/JComboBox.java" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjFile.kt" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="KotlinScriptingSettings">
@@ -174,7 +140,7 @@
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;jdk.selected.JAVA_MODULE&quot;: &quot;zulu-17&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/Code/idea/intellij-cangjie/src/main/kotlin/com/debugger/runconfig&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Code/idea/intellij-cangjie/plugin/build/idea-sandbox/plugins/intellij-cangjie/lib/intellij-cangjie-beta-1.0.4.jar&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
@@ -184,7 +150,7 @@
     &quot;project.structure.proportion&quot;: &quot;0.17&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.3678161&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;http.proxy&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;two.files.diff.last.used.file&quot;: &quot;D:/Code/idea/intellij-cangjie/log/vscode 2l.log&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
@@ -208,11 +174,11 @@
       <recent name="D:\Code\idea\intellij-cangjie\cidr1" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Code\idea\intellij-cangjie\docs" />
       <recent name="D:\Code\idea\intellij-cangjie\protoc" />
       <recent name="D:\Code\idea\intellij-cangjie\protoc-24.1-win64\bin" />
       <recent name="D:\Code\idea\intellij-cangjie\protoc-24.1-win64" />
       <recent name="D:\Code\idea\intellij-cangjie\cidr\src\main\resources" />
-      <recent name="D:\Code\idea\intellij-cangjie\plugin\src\main\resources\META-INF" />
     </key>
     <key name="MoveKotlinTopLevelDeclarationsDialog.RECENTS_KEY">
       <recent name="a" />
@@ -243,13 +209,28 @@
       <recent name="com.huawei.cangjie.resolve.check" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.intellij-cangjie [jar]">
-    <configuration name="Test" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Test" />
-      <module name="intellij-cangjie.debugger.test" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
+  <component name="RunManager" selected="Gradle.intellij-cangjie [buildPlugin]">
+    <configuration name="intellij-cangjie [buildPlugin]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="buildPlugin" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
     </configuration>
     <configuration name="intellij-cangjie [clean]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
@@ -263,6 +244,28 @@
         <option name="taskNames">
           <list>
             <option value="clean" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="intellij-cangjie [instrumentedJar]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="instrumentedJar" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -295,13 +298,6 @@
       <RunAsTest>false</RunAsTest>
       <method v="2" />
     </configuration>
-    <configuration name="AKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="test.AKt" />
-      <module name="intellij-cangjie.cidr1.test" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="TestKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="dap.TestKt" />
       <module name="intellij-cangjie.main" />
@@ -311,28 +307,21 @@
     </configuration>
     <list>
       <item itemvalue="Gradle.Run" />
+      <item itemvalue="Gradle.intellij-cangjie [instrumentedJar]" />
+      <item itemvalue="Gradle.intellij-cangjie [buildPlugin]" />
       <item itemvalue="Gradle.intellij-cangjie [jar]" />
       <item itemvalue="Gradle.intellij-cangjie [clean]" />
-      <item itemvalue="Kotlin.AKt" />
       <item itemvalue="Kotlin.TestKt" />
-      <item itemvalue="应用程序.Test" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.intellij-cangjie [jar]" />
+        <item itemvalue="Gradle.intellij-cangjie [buildPlugin]" />
+        <item itemvalue="Gradle.intellij-cangjie [instrumentedJar]" />
         <item itemvalue="Gradle.intellij-cangjie [clean]" />
         <item itemvalue="Kotlin.TestKt" />
-        <item itemvalue="Kotlin.AKt" />
-        <item itemvalue="应用程序.Test" />
+        <item itemvalue="Gradle.intellij-cangjie [jar]" />
       </list>
     </recent_temporary>
-  </component>
-  <component name="SharedIndexes">
-    <attachedChunks>
-      <set>
-        <option value="jdk-17.0.9-corretto-17.0.9-f644763e9732-220112af" />
-      </set>
-    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
   <component name="StandaloneScriptsStorage">
@@ -829,15 +818,20 @@
       <workItem from="1707721858425" duration="151000" />
       <workItem from="1707724399461" duration="4580000" />
       <workItem from="1707736215876" duration="13741000" />
-      <workItem from="1707750102772" duration="3819000" />
-    </task>
-    <task id="LOCAL-00007" summary="develop">
-      <option name="closed" value="true" />
-      <created>1697724849325</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1697724849325</updated>
+      <workItem from="1707750102772" duration="5425000" />
+      <workItem from="1707755590705" duration="649000" />
+      <workItem from="1707756261224" duration="47000" />
+      <workItem from="1707756323551" duration="17000" />
+      <workItem from="1707756379054" duration="508000" />
+      <workItem from="1707756903684" duration="209000" />
+      <workItem from="1707757134687" duration="124000" />
+      <workItem from="1707811244148" duration="67000" />
+      <workItem from="1707811361974" duration="1272000" />
+      <workItem from="1707812703723" duration="329000" />
+      <workItem from="1707813049295" duration="1101000" />
+      <workItem from="1707814167594" duration="1125000" />
+      <workItem from="1707815504781" duration="34000" />
+      <workItem from="1707816171982" duration="147000" />
     </task>
     <task id="LOCAL-00008" summary="develop">
       <option name="closed" value="true" />
@@ -1223,7 +1217,15 @@
       <option name="project" value="LOCAL" />
       <updated>1705305600916</updated>
     </task>
-    <option name="localTasksCounter" value="56" />
+    <task id="LOCAL-00056" summary="优化调试器方案">
+      <option name="closed" value="true" />
+      <created>1707754169108</created>
+      <option name="number" value="00056" />
+      <option name="presentableId" value="LOCAL-00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1707754169109</updated>
+    </task>
+    <option name="localTasksCounter" value="57" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1255,7 +1257,6 @@
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="编译" />
     <MESSAGE value="develop  match语法太难了，呜呜呜" />
     <MESSAGE value="develop 元组，索引，函数调用表达式，for,while,do while,if else？， match还是太难了，呜呜呜" />
     <MESSAGE value="完成match" />
@@ -1280,7 +1281,8 @@
     <MESSAGE value="添加linux路径" />
     <MESSAGE value="添加无sdk提示，优化构建任务" />
     <MESSAGE value="new debugger develop" />
-    <option name="LAST_COMMIT_MESSAGE" value="new debugger develop" />
+    <MESSAGE value="优化调试器方案" />
+    <option name="LAST_COMMIT_MESSAGE" value="优化调试器方案" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1298,14 +1300,12 @@
           <line>27</line>
           <option name="timeStamp" value="377" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/build.gradle.kts</url>
+          <line>391</line>
+          <option name="timeStamp" value="380" />
+        </line-breakpoint>
       </breakpoints>
-      <default-breakpoints>
-        <breakpoint type="python-exception">
-          <properties notifyOnTerminate="true" exception="BaseException">
-            <option name="notifyOnTerminate" value="true" />
-          </properties>
-        </breakpoint>
-      </default-breakpoints>
     </breakpoint-manager>
     <pin-to-top-manager>
       <pinned-members>

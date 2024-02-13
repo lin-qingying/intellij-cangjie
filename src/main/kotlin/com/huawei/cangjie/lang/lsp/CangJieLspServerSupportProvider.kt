@@ -14,7 +14,7 @@ import com.linqingying.lsp.api.ProjectWideLspServerDescriptor
 import org.eclipse.lsp4j.*
 import java.nio.file.Files
 fun checkCangJieFIle(file: VirtualFile): Boolean {
-    return false
+//    return false
     if (file.extension == "cj") return true
 
     if (file.fileType is CangJieFileType) return true

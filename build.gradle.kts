@@ -150,6 +150,24 @@ val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
 val pluginProjects: List<Project>
     get() = rootProject.allprojects.filter { it.name != grammarKitFakePsiDeps }
 
+
+//moshi版本
+val moshiVersion = "1.15.0"
+//okio版本
+val okioVersion = "2.10.0"
+
+//插件需要的依赖列表
+val pluginDescriptors = arrayOf(
+    "moshi-$moshiVersion.jar",
+    "moshi-adapters-${moshiVersion}.jar",
+    "moshi-kotlin-${moshiVersion}.jar",
+    "okio-jvm-${okioVersion}.jar",
+)
+
+
+
+
+
 project(":plugin") {
     intellij {
         pluginName.set("intellij-cangjie")
@@ -159,9 +177,10 @@ project(":plugin") {
     version = "beta-1.0.4"
     dependencies {
         implementation(project(":"))
+//        api("com.squareup.moshi:moshi-adapters:1.15.0")
+//        api("com.squareup.moshi:moshi-kotlin:1.15.0")
 //        implementation(project(":debugger"))
 //        implementation(project(":debugger1"))
-
 
 
     }
@@ -183,7 +202,13 @@ project(":plugin") {
         }
 
         val pluginJars by lazy {
-            pluginLibDir.listFiles().orEmpty().filter { it.isPluginJar() }
+            pluginLibDir.listFiles().orEmpty().filter {
+
+
+                it.isPluginJar()
+            }
+
+
         }
 
         destinationDirectory.set(project.layout.dir(provider { pluginLibDir }))
@@ -192,28 +217,32 @@ project(":plugin") {
             for (file in pluginJars) {
                 from(zipTree(file))
             }
+
         }
 
         doLast {
+
             delete(pluginJars)
         }
-    }
-    val createSourceJar = task<Jar>("createSourceJar") {
 
-        for (prj in pluginProjects) {
-            from(prj.kotlin.sourceSets.main.get().kotlin) {
-                include("**/*.java")
-                include("**/*.kt")
-            }
-        }
-        destinationDirectory.set(layout.buildDirectory.dir("libs"))
-        archiveBaseName.set(basePluginArchiveName)
-        archiveClassifier.set("src")
+
     }
+//    val createSourceJar = task<Jar>("createSourceJar") {
+//        duplicatesStrategy = DuplicatesStrategy.WARN
+//        for (prj in pluginProjects) {
+//            from(prj.kotlin.sourceSets.main.get().kotlin) {
+//                include("**/*.java")
+//                include("**/*.kt")
+//            }
+//        }
+//        destinationDirectory.set(layout.buildDirectory.dir("libs"))
+//        archiveBaseName.set(basePluginArchiveName)
+//        archiveClassifier.set("src")
+//    }
     tasks {
         buildPlugin {
-            dependsOn(createSourceJar)
-            from(createSourceJar) { into("lib/src") }
+//            dependsOn(createSourceJar)
+//            from(createSourceJar) { into("lib/src") }
             // Set proper name for final plugin zip.
             // Otherwise, base name is the same as gradle module name
             archiveBaseName.set(basePluginArchiveName)
@@ -287,12 +316,10 @@ project(":plugin") {
 }
 
 project(":") {
-    intellij {
 
-    }
     dependencies {
         implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.21.1")
-        implementation("com.alibaba:fastjson:2.0.46")
+//        implementation("com.alibaba:fastjson:2.0.46")
 
 
         implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.debug:0.21.1")
@@ -359,8 +386,15 @@ project(":") {
 //}
 
 
-
 fun File.isPluginJar(): Boolean {
+    if ("buildPlugin" in gradle.startParameter.taskNames){
+        if (pluginDescriptors.contains(name)  ) {
+            return true
+        }
+    }
+
+
+
     if (!isFile) return false
     if (extension != "jar") return false
     return zipTree(this).files.any { it.isManifestFile() }

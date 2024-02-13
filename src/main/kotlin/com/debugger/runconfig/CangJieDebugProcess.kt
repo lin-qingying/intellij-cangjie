@@ -100,7 +100,7 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
         attachToProcess(shellProcessHandler)
     }
 
-    private val myProcessDisposable: Disposable
+//    private val myProcessDisposable: Disposable
     val myUiDisposable: Disposable = Disposer.newDisposable()
 
     private val project get() = session.project
@@ -112,10 +112,10 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
         val handlersList: List<XBreakpointHandler<*>> = listOfNotNull(myBreakpointHandler)
         myBreakpointHandlers = handlersList.toTypedArray()
 
-        val gutterIconManager = MySuspensionGutterIconManager(this)
-        val debuggerPluginService = project.getService(CangJieDebuggerPluginService::class.java)
+//        val gutterIconManager = MySuspensionGutterIconManager(this)
+/*        val debuggerPluginService = project.getService(CangJieDebuggerPluginService::class.java)
         myProcessDisposable = Disposer.newDisposable(debuggerPluginService, "CangJieDebugProcess")
-        Disposer.register(this.myProcessDisposable, gutterIconManager)
+        Disposer.register(this.myProcessDisposable, gutterIconManager)*/
 
     }
 
