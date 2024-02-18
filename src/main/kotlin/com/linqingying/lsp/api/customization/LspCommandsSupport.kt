@@ -1,9 +1,9 @@
 package com.linqingying.lsp.api.customization
-import com.linqingying.lsp.api.LspServer
+
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.vfs.VirtualFile
-
 import com.intellij.util.concurrency.annotations.RequiresEdt
+import com.linqingying.lsp.api.LspServer
 import org.eclipse.lsp4j.Command
 import org.jetbrains.annotations.ApiStatus
 
@@ -25,7 +25,7 @@ open class LspCommandsSupport {
      * a background thread, for example, using [Application.executeOnPooledThread]
      */
     @RequiresEdt
-    open fun executeCommand(server: com.linqingying.lsp.api.LspServer, contextFile: VirtualFile, command: Command) {
+    open fun executeCommand(server: LspServer, contextFile: VirtualFile, command: Command) {
         // TODO send `workspace/executeCommand` request to the server
     }
 }

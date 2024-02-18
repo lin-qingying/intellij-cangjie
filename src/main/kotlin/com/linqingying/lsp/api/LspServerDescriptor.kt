@@ -18,10 +18,7 @@ import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.io.BaseOutputReader
 import com.intellij.util.io.URLUtil
-import com.linqingying.lsp.api.customization.LspCodeActionsSupport
-import com.linqingying.lsp.api.customization.LspCommandsSupport
-import com.linqingying.lsp.api.customization.LspCompletionSupport
-import com.linqingying.lsp.api.customization.LspDiagnosticsSupport
+import com.linqingying.lsp.api.customization.*
 import org.eclipse.lsp4j.*
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 import org.eclipse.lsp4j.services.LanguageServer
@@ -166,7 +163,7 @@ abstract class LspServerDescriptor protected constructor(
      * exceptions to this rule.
      */
     open fun getLanguageId(file: VirtualFile): String =
-        Companion.getLanguageId(file)
+        getLanguageId(file)
 
     /**
      * [InitializeParams](https://microsoft.github.io/language-server-protocol/specification#initializeParams) object is sent to the LSP
@@ -300,12 +297,17 @@ abstract class LspServerDescriptor protected constructor(
     open val lspDiagnosticsSupport: LspDiagnosticsSupport? = LspDiagnosticsSupport()
 
     open val lspCodeActionsSupport: LspCodeActionsSupport? = LspCodeActionsSupport()
+    public open val lspHoverSupport: kotlin.Boolean = true
 
     /**
      * Handles [Command](https://microsoft.github.io/language-server-protocol/specification#command) objects received from the LSP server.
      * @see LspCommandsSupport.executeCommand
      */
     open val lspCommandsSupport: LspCommandsSupport? = LspCommandsSupport()
+
+
+    open val lspFormattingSupport: LspFormattingSupport? = LspFormattingSupport()
+
 
     /**
      * Handles
@@ -358,12 +360,6 @@ abstract class LspServerDescriptor protected constructor(
 }
 
 
-/**
- * A helper class that assumes that a single LSP server is going to serve the whole project, regardless of the project structure.
- * So, it uses all [BaseProjectDirectories.getBaseDirectories] as LSP server roots.
- */
-abstract class ProjectWideLspServerDescriptor(project: Project, @NlsSafe presentableName: String) :
-    LspServerDescriptor(project, presentableName, *project.getBaseDirectories().toTypedArray())
 
 
 class LspProcessHandler(generalCommandLine: GeneralCommandLine) : OSProcessHandler(generalCommandLine) {

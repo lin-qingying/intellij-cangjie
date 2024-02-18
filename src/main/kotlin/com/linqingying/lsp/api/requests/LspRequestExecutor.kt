@@ -1,12 +1,11 @@
 package com.linqingying.lsp.api.customization.requests
-import com.linqingying.lsp.api.requests.LspClientNotification
+
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.vfs.VirtualFile
-
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
+import com.linqingying.lsp.api.requests.LspClientNotification
 import org.eclipse.lsp4j.TextDocumentIdentifier
-
 
 
 /**
@@ -48,6 +47,9 @@ interface LspRequestExecutor {
      *  - server responds with an error (the error will appear in the IDE logs)
      */
     fun <Result> sendRequestAsync(lspRequest: LspRequest<*, Result>, resultConsumer: (Result?) -> Unit)
+
+
+
 
     /**
      * Sends a request to the LSP server and waits for the response for no more than 10 seconds.

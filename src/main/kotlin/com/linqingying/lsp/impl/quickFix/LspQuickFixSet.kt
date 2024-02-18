@@ -1,6 +1,5 @@
 package com.linqingying.lsp.impl.quickFix
 
-import com.linqingying.lsp.api.LspServer
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -10,24 +9,37 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiManager
 import com.linqingying.lsp.impl.LspServerImpl
 import com.linqingying.lsp.impl.requests.LspCodeActionRequest
-import com.linqingying.lsp.impl.requests.LspRequestExecutorImpl
 import org.eclipse.lsp4j.CodeAction
 import org.eclipse.lsp4j.Diagnostic
 
-class LspQuickFixSet(val lspServer: LspServerImpl, val file: VirtualFile, val diagnostic: Diagnostic) {
-    val quickFixes: List<IntentionAction> = emptyList()
 
-    val MAX_QUICK_FIXES: Int = 8
+class LspQuickFixSet(
+    val lspServer: LspServerImpl,
+    val file: VirtualFile,
+    val diagnostic: Diagnostic
+) {
+    private val MAX_QUICK_FIXES: Int = 8
 
+
+    private var psiModCountWhenRequestSent: Long = 0
+
+    val quickFixes: List<IntentionAction>
+
+    private var vfsModCountWhenRequestSent: Long  = 0
+
+
+    init {
+
+        val list = mutableListOf<LspQuickFixWrapper>()
+
+        for (i in 0 until MAX_QUICK_FIXES) {
+            list.add(LspQuickFixWrapper(this, i))
+        }
+        quickFixes = list
+    }
     companion object {
         val LOG = Logger.getInstance(LspQuickFixSet::class.java)
     }
-
-
-    var psiModCountWhenRequestSent: Long? = null
-
-
-    var vfsModCountWhenRequestSent: Long? = null
 
     private fun processCodeActions(codeActions: List<CodeAction>) {
 
@@ -45,7 +57,6 @@ class LspQuickFixSet(val lspServer: LspServerImpl, val file: VirtualFile, val di
         }
 
     }
-
     internal fun ensureInitialized() {
         if (!ApplicationManager.getApplication().isDispatchThread) {
             ProgressManager.checkCanceled()
@@ -56,7 +67,7 @@ class LspQuickFixSet(val lspServer: LspServerImpl, val file: VirtualFile, val di
                     (quickFix as? LspQuickFixWrapper)?.lspIntentionAction = null
                 }
                 val request = LspCodeActionRequest(lspServer, file, diagnostic)
-                (lspServer.requestExecutor as LspRequestExecutorImpl).sendRequestAsyncButWaitForResponseWithCheckCanceled(
+                lspServer.requestExecutor.sendRequestAsyncButWaitForResponseWithCheckCanceled(
                     request
                 ) { codeActions ->
                     if (psiModCount == PsiManager.getInstance(lspServer.project).modificationTracker.modificationCount &&
@@ -69,5 +80,50 @@ class LspQuickFixSet(val lspServer: LspServerImpl, val file: VirtualFile, val di
                 }
             }
         }
+
     }
 }
+
+//
+//class LspQuickFixSet(val lspServer: LspServerImpl, val file: VirtualFile, val diagnostic: Diagnostic) {
+//    val quickFixes: List<IntentionAction> = emptyList()
+//
+//    val MAX_QUICK_FIXES: Int = 8
+//
+//    companion object {
+//        val LOG = Logger.getInstance(LspQuickFixSet::class.java)
+//    }
+//
+//
+//    var psiModCountWhenRequestSent: Long? = null
+//
+//
+//    var vfsModCountWhenRequestSent: Long? = null
+//
+//
+//
+//    internal fun ensureInitialized() {
+//        if (!ApplicationManager.getApplication().isDispatchThread) {
+//            ProgressManager.checkCanceled()
+//            val psiModCount = PsiManager.getInstance(lspServer.project).modificationTracker.modificationCount
+//            val vfsModCount = VirtualFileManager.getInstance().modificationCount
+//            if (psiModCountWhenRequestSent != psiModCount || vfsModCountWhenRequestSent != vfsModCount) {
+//                quickFixes.forEach { quickFix ->
+//                    (quickFix as? LspQuickFixWrapper)?.lspIntentionAction = null
+//                }
+//                val request = LspCodeActionRequest(lspServer, file, diagnostic)
+//                lspServer.requestExecutor.sendRequestAsyncButWaitForResponseWithCheckCanceled(
+//                    request
+//                ) { codeActions ->
+//                    if (psiModCount == PsiManager.getInstance(lspServer.project).modificationTracker.modificationCount &&
+//                        vfsModCount == VirtualFileManager.getInstance().modificationCount
+//                    ) {
+//                        psiModCountWhenRequestSent = psiModCount
+//                        vfsModCountWhenRequestSent = vfsModCount
+//                        codeActions?.let { processCodeActions(it) }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}

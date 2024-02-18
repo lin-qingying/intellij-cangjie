@@ -10,7 +10,7 @@ class CangJieRunConfigurationOptions : RunConfigurationOptions() {
     var cjcVersion: String? = null
     var moudleJsonPath: String? = null
 }
-
+/*
 enum class CjpmCommand(
     val command: String,
     val description: String,
@@ -49,24 +49,19 @@ enum class CjpmCommand(
         }
 
         //        根据命令判断类型
-        @OptIn(ExperimentalStdlibApi::class)
         @JvmStatic
         fun fromCommand(command: String): CjpmCommand? {
 //            根据第一词判断
             val arr = CjpmCommand.entries.toMutableList()
             arr.removeAt(0)
             val firstWord = command.split(" ")[0]
-//            return arr.firstOrNull { it.command == firstWord }?.apply {
-//                executeCommand = command
-//            }
+
             return when {
                 arr.any { (firstWord.isNotEmpty()) && (it.command == firstWord) } -> arr.firstOrNull { it.command == firstWord }
                     ?.apply {
                         executeCommand = command
                     }
-//                command.isNotEmpty() -> OTHER.apply {
-//                    executeCommand = command
-//                }
+
                 else -> when {
                     command.isNotEmpty() -> OTHER.apply {
                         executeCommand = command
@@ -89,16 +84,6 @@ enum class CjpmCommand(
 
             return arr.filter { it.index == index }.first()
 
-//            return when (index) {
-//                0 -> INIT
-//                1 -> RUN
-//                2 -> BUILD
-//                3 -> UPDATE
-//                4 -> CLEAN
-//                5 -> CHECK
-//                6 -> TEST
-//                else -> throw IllegalArgumentException("Invalid ordinal $index")
-//            }
         }
 
 
@@ -108,4 +93,4 @@ enum class CjpmCommand(
 
         return command.toString()
     }
-}
+}*/

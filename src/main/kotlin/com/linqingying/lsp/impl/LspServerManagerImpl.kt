@@ -56,17 +56,17 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
     init {
         this.listenersAdapter = object : LspServerManagerListener {
             override fun serverInitializationFailed() {
-                this@LspServerManagerImpl.eventDispatcher.getMulticaster().serverInitializationFailed()
+                this@LspServerManagerImpl.eventDispatcher.multicaster.serverInitializationFailed()
             }
 
             override fun fileOpened(file: VirtualFile) {
 
-                this@LspServerManagerImpl.eventDispatcher.getMulticaster().fileOpened(file)
+                this@LspServerManagerImpl.eventDispatcher.multicaster.fileOpened(file)
             }
 
             override fun diagnosticsReceived(file: VirtualFile) {
 
-                this@LspServerManagerImpl.eventDispatcher.getMulticaster().diagnosticsReceived(
+                this@LspServerManagerImpl.eventDispatcher.multicaster.diagnosticsReceived(
                     file
                 )
             }
@@ -130,7 +130,7 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
         }
     }
 
-    fun getServersWithThisFileOpen(file: VirtualFile): Collection<LspServerImpl> {
+    fun getServersWithThisFileOpen(file: VirtualFile): List<LspServerImpl> {
 
         return ContainerUtil.findAll(this.servers) { it.isFileOpened(file) }
     }
@@ -223,6 +223,16 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
             }
         }
     }
+
+    fun findServer(condition: (LspServerImpl) -> Boolean): LspServerImpl? {
+        servers.forEach { server ->
+            if (condition(server)) {
+                return server
+            }
+        }
+        return null
+    }
+
 
     companion object {
         val LOG = Logger.getInstance(LspServerManagerImpl::class.java)

@@ -1,10 +1,9 @@
 package com.linqingying.lsp.impl.requests
 
-import com.linqingying.lsp.api.LspServer
-import com.linqingying.lsp.api.customization.requests.LspRequest
-import com.linqingying.lsp.api.customization.requests.util.getLsp4jPosition
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.vfs.VirtualFile
+import com.linqingying.lsp.api.customization.requests.LspRequest
+import com.linqingying.lsp.api.customization.requests.util.getLsp4jPosition
 import org.eclipse.lsp4j.DefinitionParams
 import org.eclipse.lsp4j.Location
 import org.eclipse.lsp4j.LocationLink
@@ -21,6 +20,7 @@ class LspDefinitionRequest(override val lspServer: com.linqingying.lsp.api.LspSe
 
     override fun sendRequest(): CompletableFuture<Either<List<Location>, List<LocationLink>>> =
         lspServer.lsp4jServer.textDocumentService.definition(definitionParams)
+    override fun toString(): String ="textDocument/definition"
 
     override fun preprocessResponse(serverResponse: Either<List<Location>, List<LocationLink>>): List<LocationLink> {
         return if (serverResponse.isRight) {

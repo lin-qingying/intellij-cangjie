@@ -11,13 +11,7 @@ class DiagnosticInfo(
     val textRange: TextRange,
     val quickFixes: List<IntentionAction>
 ) {
-    operator fun component1(): LspDiagnosticsSupport = diagnosticsSupport
 
-    operator fun component2(): Diagnostic = diagnostic
-
-    operator fun component3(): TextRange = textRange
-
-    operator fun component4(): List<IntentionAction> = quickFixes
 
     override operator fun equals(other: Any?): Boolean {
         if (this === other) return true

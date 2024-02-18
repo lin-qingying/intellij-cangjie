@@ -1,13 +1,19 @@
 package com.huawei.cangjie.idea.run
 
 
-import com.huawei.cangjie.idea.run.cjpm.CjpmCommand
+import com.huawei.cangjie.cjpm.project.model.cjpmProjects
+import com.huawei.cangjie.cjpm.project.model.impl.workingDirectory
+import com.huawei.cangjie.idea.experiments.CjExperiments
+
 import com.huawei.cangjie.idea.run.cjpm.CjpmCommandConfiguration
+import com.huawei.cangjie.idea.run.cjpm.isUnitTestMode
+import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.isHeadlessEnvironment
 import com.intellij.execution.ExternalizablePath
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.LocatableConfigurationBase
 import com.intellij.execution.configurations.RunConfigurationWithSuppressedDefaultDebugAction
 import com.intellij.execution.configurations.RunProfileState
+import com.intellij.openapi.application.Experiments
 import com.intellij.openapi.project.Project
 import org.jdom.Element
 import java.nio.file.Path
@@ -23,25 +29,36 @@ abstract class CjCommandConfiguration(
     factory: ConfigurationFactory
 ) : LocatableConfigurationBase<RunProfileState>(project, factory, name),
     RunConfigurationWithSuppressedDefaultDebugAction {
-    abstract var command: CjpmCommand?
 
-    //
-//    var workingDirectory: Path? = if (!project.isDefault) {
-//        project.cjpmProjects.allProjects.firstOrNull()?.workingDirectory
-//    } else {
-//        null
-//    }
+        companion object{
+            val emulateTerminalDefault: Boolean
+                get() = isFeatureEnabled(CjExperiments.EMULATE_TERMINAL) && !isUnitTestMode
+        }
+
+    abstract var command: String
+    var emulateTerminal: Boolean = emulateTerminalDefault
+
+    var workingDirectory: Path? = if (!project.isDefault) {
+        project.cjpmProjects.allProjects.firstOrNull()?.workingDirectory
+    } else {
+        null
+    }
+
     override fun writeExternal(element: Element) {
         super.writeExternal(element)
-        command?.let { it.executeCommand.let { it1 -> element.writeString("command", it1) } }
+        element.writeString("command", command)
+
+        element.writePath("workingDirectory", workingDirectory)
+        element.writeBool("emulateTerminal", emulateTerminal)
 
     }
 
     override fun readExternal(element: Element) {
         super.readExternal(element)
-        element.readString("command")?.let { command = CjpmCommand.fromCommand(it) }
-//        element.readPath("workingDirectory")?.let { workingDirectory = it }
 
+        element.readString("command")?.let { command = it }
+        element.readPath("workingDirectory")?.let { workingDirectory = it }
+        element.readBool("emulateTerminal")?.let { emulateTerminal = it }
     }
 }
 
@@ -86,4 +103,14 @@ inline fun <reified E : Enum<E>> Element.readEnum(name: String): E? {
     } catch (_: IllegalArgumentException) {
         null
     }
+}
+fun isFeatureEnabled(featureId: String): Boolean {
+    // Hack to pass values of experimental features in headless IDE run
+    // Should help to configure IDE-based tools like Qodana
+    if (isHeadlessEnvironment) {
+        val value = System.getProperty(featureId)?.toBooleanStrictOrNull()
+        if (value != null) return value
+    }
+
+    return Experiments.getInstance().isFeatureEnabled(featureId)
 }

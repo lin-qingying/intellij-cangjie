@@ -1,15 +1,16 @@
 package com.huawei.cangjie.lang.lsp
 
 
-import com.huawei.cangjie.idea.project.CangJieProjectManager
-import com.huawei.cangjie.lang.sdk.CangJieSdkManager
+import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
+
 import com.huawei.cangjie.utils.getSavePluginVersion
 import com.huawei.cangjie.utils.savePluginVersion
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.ide.plugins.PluginManager
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.extensions.PluginId
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.util.io.systemIndependentPath
 import com.linqingying.lsp.impl.LspServerManagerImpl
 import java.io.FileOutputStream
 import java.nio.file.Files
@@ -34,7 +35,6 @@ object CangJieLspServerManager {
     fun copyLspServerToPath() {
 
 
-
         val classLoader = this::class.java.classLoader
 
         val lspserverPath = if (SystemInfo.isWindows) {
@@ -52,7 +52,7 @@ object CangJieLspServerManager {
         }
         resource?.openStream()?.use { input ->
             FileOutputStream(binaryPath.toFile()).use { output ->
-                input.copyTo(output) ?: throw Exception("LspServer not found")
+                input.copyTo(output)
             }
         }
 
@@ -73,8 +73,8 @@ object CangJieLspServerManager {
     /**
      * 重新启动lspserver
      */
-    fun restartLspServer() {
-        val project = CangJieProjectManager.getCurrentProject()
+    fun restartLspServer(project: Project) {
+
         LspServerManagerImpl.getInstanceImpl(project)
             .stopAndRestartIfNeeded(CangJieLspServerSupportProvider::class.java)
     }
@@ -83,29 +83,28 @@ object CangJieLspServerManager {
     /**
      * 关闭所有的LSP服务
      */
-    fun shutdownAllServers() {
-        val project = CangJieProjectManager.getCurrentProject()
+    fun shutdownAllServers(project: Project) {
+
         LspServerManagerImpl.getInstanceImpl(project).stopServers(CangJieLspServerSupportProvider::class.java)
     }
 
- 
 
-    fun getCommandLine(): GeneralCommandLine {
+    fun getCommandLine(project: Project): GeneralCommandLine {
 
 
 //        关闭现有的lspserver
 //        CangJieLspServerManager.shutdownAllServers()
 
 
-        //获取项目使用的sdk
-        val sdk = CangJieSdkManager.getProjectSdk()
-
+        val toolchain = project.cangjieSettings.toolchain
         return GeneralCommandLine().apply {
             withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE)
             withCharset(Charsets.UTF_8)
-            exePath = getLspServerPath()
-            if (sdk != null) {
-                setWorkDirectory(sdk.homePath)
+            exePath = getLspServerPath(project)
+            if (toolchain != null) {
+                setWorkDirectory(toolchain.sdkHome.systemIndependentPath)
+                withEnvironment(toolchain.getEnvironment())
+
             } else {
                 setWorkDirectory(binaryPath.parent.toAbsolutePath().toString())
             }
@@ -116,19 +115,17 @@ object CangJieLspServerManager {
     }
 
 
-
-
-
     /**
      * 获取lspserver路径
      */
-    private fun getLspServerPath(): String {
+    private fun getLspServerPath(project: Project): String {
+        val toolchain = project.cangjieSettings.toolchain
 
-        val sdk = CangJieSdkManager.getProjectSdk()
-        if (sdk != null) {
-           if(Files.exists(Paths.get("${sdk.homePath}/tools/bin/LSPServer".toSystemPath()))){
-               return "${sdk.homePath}/tools/bin/LSPServer".toSystemPath()
-           }
+
+        if (toolchain != null) {
+            if (Files.exists(Paths.get("${toolchain.sdkHome.systemIndependentPath}/tools/bin/LSPServer".toSystemPath()))) {
+                return "${toolchain.sdkHome.systemIndependentPath}/tools/bin/LSPServer".toSystemPath()
+            }
         }
 
 //        如果插件版本更新，则复制一份新的
@@ -160,7 +157,7 @@ object CangJieLspServerManager {
 fun String.toSystemPath(): String {
     return if (SystemInfo.isWindows) {
         this.replace("/", "\\") + ".exe"
-    }else{
+    } else {
         this
     }
 }

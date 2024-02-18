@@ -1,28 +1,35 @@
 package com.huawei.cangjie.idea.project.tools.projectWizard
 
+import com.huawei.cangjie.cjpm.project.toPathOrNull
+import com.huawei.cangjie.idea.newProject.CjProjectGeneratorPeer
 import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.CangJieModuleBuilder
-import com.huawei.cangjie.lang.sdk.CangJieSdkType
+
 import com.intellij.CommonBundle
 import com.intellij.ide.wizard.*
+import com.intellij.ide.wizard.GitNewProjectWizardData.Companion.gitData
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.roots.ui.configuration.*
 import com.intellij.openapi.roots.ui.configuration.SdkListItem.*
 import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
 import com.intellij.openapi.ui.*
+import com.intellij.openapi.ui.validation.DialogValidation
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsContexts
-import com.intellij.ui.dsl.builder.BottomGap
-import com.intellij.ui.dsl.builder.COLUMNS_MEDIUM
-import com.intellij.ui.dsl.builder.Panel
-import com.intellij.ui.dsl.builder.columns
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.ui.dsl.builder.*
+import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.intellij.ui.layout.ValidationInfoBuilder
 import com.intellij.util.Consumer
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.*
 import javax.swing.*
 
@@ -30,47 +37,51 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
     override val name = "CangJie"
 
     companion object {
+        private const val GITIGNORE: String = ".gitignore"
 
-        fun generateProject(
-            project: Project,
-
-            projectModuleName: String?,
-            groupName: String?,
-            projectTypeStr: String?,
-            sdk: Sdk?
-        ) {
-            CangJieModuleBuilder().apply {
-//                wizardContext
-
-                projectSdk = sdk
-                moduleName = projectModuleName
-                organizationName = groupName
-                projectType = projectTypeStr
-
-
-//                wizardContext.projectJdk = sdk
-//                wizardContext.projectName = projectName
-//                wizardContext.
-
-            }
-
-                .commit(project, null, null)
-
+        private fun createGitIgnoreFile(projectDir: Path, module: Module) {
+            val directory = VfsUtil.createDirectoryIfMissing(projectDir.toString()) ?: return
+            val existingFile = directory.findChild(GITIGNORE)
+            if (existingFile != null) return
+            val file = directory.createChildData(module, GITIGNORE)
+            VfsUtil.saveText(file, "/build\n")
         }
+//        fun generateProject(
+//            project: Project,
+//
+//            projectModuleName: String?,
+//            groupName: String?,
+//            projectTypeStr: String?,
+//            sdk: Sdk?
+//        ) {
+//            CangJieModuleBuilder().apply {
+////                wizardContext
+//
+//                projectSdk = sdk
+//                moduleName = projectModuleName
+//                organizationName = groupName
+//                projectType = projectTypeStr
+//
+//
+////                wizardContext.projectJdk = sdk
+////                wizardContext.projectName = projectName
+////                wizardContext.
+//
+//            }
+//
+//                .commit(project, null, null)
+//
+//        }
     }
 
     override fun createStep(parent: NewProjectWizardLanguageStep): NewProjectWizardStep = Step(parent)
 
 
     class Step(parent: NewProjectWizardLanguageStep) : AbstractNewProjectWizardStep(parent) {
-        //        private val label = JLabel("仓颉项目创建向导")
+
+        private val peer: CjProjectGeneratorPeer = CjProjectGeneratorPeer(parent.path.toPathOrNull() ?: Paths.get("."))
 
 
-        //        仓颉Sdk 下拉框
-        private val cangJieSdkComboBox: CangJieSdkCombox
-
-
-        private val sdkListModelBuilder: SdkListModelBuilder
 
 
         //        项目类型
@@ -99,102 +110,38 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
 
         override fun setupProject(project: Project) {
 
-
-            if ((cangJieSdkComboBox.selectedItem as CangJieSdkCombox.CangJieSdkItem).sdk == null) {
-                return
+            val builder = CangJieModuleBuilder(moduleName = moduleNameTextField.text, organizationName = groupIdTextField.text , projectType = (projectTypeComboBox.selectedItem as CangJieProjectTypeItem).type)
+            val module = builder.commit(project)?.firstOrNull() ?: return
+            ModuleRootModificationUtil.updateModel(module) { rootModel ->
+                builder.configurationData = peer.settings
+                builder.createProject(rootModel )
+                if (gitData?.git == true) createGitIgnoreFile(context.projectDirectory, module)
             }
 
-            generateProject(
-                project,
-                projectModuleName = moduleNameTextField.text,
-                groupName = groupIdTextField.text,
-                projectTypeStr = (projectTypeComboBox.selectedItem as CangJieProjectTypeItem).type,
-
-                sdk = (cangJieSdkComboBox.selectedItem as CangJieSdkCombox.CangJieSdkItem).sdk
-            )
 
 
         }
 
 
         init {
-            val project = ProjectManager.getInstance().defaultProject
-            val model = ProjectSdksModel()
-            model.reset(project)
-
-
-//            初始化仓颉sdk下拉框
-            sdkListModelBuilder = SdkListModelBuilder(
-                project,
-                model,
-                { type -> type is CangJieSdkType },
-                {
-//                添加sdk
-                        type ->
-
-
-                    type is CangJieSdkType
-                },
-                null
-            )
-//            sdkListModelBuilder.showProjectSdkItem()
-
-            cangJieSdkComboBox = CangJieSdkCombox(project, sdkListModelBuilder, null).apply {
-                reloadModel()
-
-//                选择第一个sdk
-                if (itemCount > 0) {
-                    setSelectedItem(getItemAt(0))
-
-                }
-
-
-            }
-
-
-//            cangjieSdkLabel = LabeledComponent.create(cangJieSdkComboBox, "仓颉SDK")
-
-
-//            cangjieSdkLabel.labelLocation = "West"
-//            cangjieSdkLabel.component = cangJieSdkComboBox
-
-
-//            设置模块和组织名为必填
-//            moduleNameTextField.addFocusListener(object : FocusAdapter() {
-//                override fun focusLost(e: FocusEvent?) {
-//                    if (moduleNameTextField.text.isEmpty()) {
-//                        JOptionPane.showMessageDialog(null, "This field is required")
-//                    }
-//                }
-//            })
-
+//            val project = ProjectManager.getInstance().defaultProject
+//            val model = ProjectSdksModel()
+//            model.reset(project)
+//
         }
 
         override fun setupUI(builder: Panel) {
 
 
             with(builder) {
-                row(CangJieUiBundle.message("action.new.project.cangjiesdk.title")) {
-//                    val sdksModel = ProjectSdksModel()
-//
-//                    Disposer.register(context.disposable) {
-//                        sdksModel.disposeUIResources()
-//                    }
 
-                    cell(cangJieSdkComboBox)
-                        .validationOnApply {
-                            validateSdk(
-                                (cangJieSdkComboBox.selectedItem as CangJieSdkCombox.CangJieSdkItem).sdk
-//                                ,    sdksModel
-                            )
-                        }
-//                        .onApply {
-//                            context.projectJdk =
-//                                (cangJieSdkComboBox.selectedItem as CangJieSdkCombox.CangJieSdkItem).sdk
-//                        }
-                        .columns(COLUMNS_MEDIUM)
-                        .component
-                }.bottomGap(BottomGap.SMALL)
+                row {
+                    cell(peer.component).align(Align.FILL)
+
+                        .validationRequestor { peer.checkValid = Runnable(it) }
+                        .validation(DialogValidation { peer.validate() })
+
+                }
                 row(CangJieUiBundle.message("action.new.project.projecttype.title")) {
                     cell(projectTypeComboBox)
                         .columns(COLUMNS_MEDIUM)

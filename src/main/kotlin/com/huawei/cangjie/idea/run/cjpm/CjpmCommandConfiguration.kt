@@ -1,12 +1,15 @@
 package com.huawei.cangjie.idea.run.cjpm
 
 import com.huawei.cangjie.CangJieBundle
+import com.huawei.cangjie.cjpm.project.model.CjpmProject
+import com.huawei.cangjie.cjpm.project.model.cjpmProjects
+import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
+import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
+import com.huawei.cangjie.cjpm.toolchain.tools.Cjpm
 import com.huawei.cangjie.idea.run.CjCommandConfiguration
 import com.huawei.cangjie.idea.run.cjpm.runconfig.CjLanguageRuntimeConfiguration
 import com.huawei.cangjie.idea.run.cjpm.runconfig.CjLanguageRuntimeType
-import com.huawei.cangjie.lang.sdk.CangJieSdkManager
-import com.huawei.cangjie.lang.sdk.validateSdk
-import com.intellij.execution.ExecutionBundle
+import com.huawei.cangjie.idea.run.hasRemoteTarget
 import com.intellij.execution.Executor
 import com.intellij.execution.InputRedirectAware
 import com.intellij.execution.configuration.EnvironmentVariablesData
@@ -17,15 +20,31 @@ import com.intellij.execution.target.TargetEnvironmentAwareRunProfile
 import com.intellij.execution.target.TargetEnvironmentConfiguration
 import com.intellij.execution.testframework.actions.ConsolePropertiesProvider
 import com.intellij.execution.util.ProgramParametersUtil
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.options.SettingsEditorGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsContexts
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.util.execution.ParametersListUtil
 import org.jdom.Element
 import java.io.File
+import java.nio.file.Path
 import java.nio.file.Paths
+
+val isUnitTestMode: Boolean get() = ApplicationManager.getApplication().isUnitTestMode
+
+val Project.toolchain: CjToolchainBase?
+    get() {
+        val toolchain = cangjieSettings.state.toolchain
+        return when {
+            toolchain != null -> toolchain
+            isUnitTestMode -> CjToolchainBase.suggest()
+            else -> null
+        }
+    }
 
 enum class BuildTarget {
     LOCAL, REMOTE;
@@ -40,24 +59,38 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
     ConsolePropertiesProvider,
     TargetEnvironmentAwareRunProfile {
 
-
+    override var command: String = "run"
     override fun checkConfiguration() {
 
-        if (command == CjpmCommand.UNUSED) {
-            throw RuntimeConfigurationError(
-                CangJieBundle.message("cjpm.run.configuration.error.command.not.null")
-            )
+        if (isRedirectInput) {
+            val file = redirectInputFile
+            when {
+                file?.exists() != true -> throw RuntimeConfigurationWarning(CangJieBundle.message("dialog.message.input.file.doesn.t.exist"))
+                !file.isFile -> throw RuntimeConfigurationWarning(CangJieBundle.message("dialog.message.input.file.not.valid"))
+            }
         }
-        if (CangJieSdkManager.getProjectSdk(project) == null) {
-            throw RuntimeConfigurationWarning(
-                CangJieBundle.message(
-                    "no.sdk.specified.for.module.warning.text",
-                    project.name
-                )
-            )
+        val config = clean()
+        if (config is CleanConfiguration.Err) throw config.error
+        config as CleanConfiguration.Ok
 
+        // TODO: remove when `com.intellij.execution.process.ElevationService` supports error stream redirection
+
+        if (withSudo && showTestToolWindow(config.cmd)) {
+            val message = if (SystemInfo.isWindows) {
+                CangJieBundle.message("notification.run.tests.as.root.windows")
+            } else {
+                CangJieBundle.message("notification.run.tests.as.root.unix")
+            }
+            throw RuntimeConfigurationWarning(message)
         }
+    }
 
+    private fun showTestToolWindow(commandLine: CjpmCommandLine): Boolean = when {
+
+        commandLine.command !in listOf("test", "bench") -> false
+        "--nocapture" in commandLine.additionalArguments -> false
+        Cjpm.TEST_NOCAPTURE_ENABLED_KEY.asBoolean() -> false
+        else -> !hasRemoteTarget
     }
 
     private val redirectInputFile: File?
@@ -71,7 +104,7 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
                     project
                 )
             )
-            var file = File(redirectInputPath)
+            val file = File(redirectInputPath)
 
             return file
         }
@@ -85,7 +118,7 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
 //        ) : CleanConfiguration()
         class Ok(
             val cmd: CjpmCommandLine,
-//            val toolchain: CjToolchainBase
+            val toolchain: CjToolchainBase
         ) : CleanConfiguration()
 
         class Err(val error: RuntimeConfigurationError) : CleanConfiguration()
@@ -93,15 +126,13 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
         val ok: Ok? get() = this as? Ok
 
         companion object {
-            fun error(@Suppress("UnstableApiUsage") @NlsContexts.DialogMessage message: String) =
+            fun error(@NlsContexts.DialogMessage message: String) =
                 Err(RuntimeConfigurationError(message))
         }
     }
 
     var args: String? = null
 
-
-    override var command: CjpmCommand? = CjpmCommand.RUN
 
     var requiredFeatures: Boolean = true
     var allFeatures: Boolean = false
@@ -137,20 +168,20 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
     }
 
     fun clean(): CleanConfiguration {
-//        val workingDirectory = workingDirectory
-//            ?: return CleanConfiguration.error(CangJieBundle.message("dialog.message.no.working.directory.specified"))
         val workingDirectory = project.basePath?.let { Paths.get(it) }
             ?: return CleanConfiguration.error(CangJieBundle.message("dialog.message.no.working.directory.specified"))
         val cmd = run {
-            val parsed = command?.let { ParsedCommand.parse(it) }
+            val parsed = command.let { ParsedCommand.parse(it) }
                 ?: return CleanConfiguration.error(CangJieBundle.message("dialog.message.no.command.specified"))
 
             CjpmCommandLine(
                 parsed.command,
+
                 workingDirectory,
                 parsed.additionalArguments,
                 redirectInputFile,
-
+                parsed.toolchain,
+                emulateTerminal,
                 env,
                 requiredFeatures,
                 allFeatures,
@@ -158,13 +189,21 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
             )
         }
 
-//
-//        val toolchain = project.toolchain
-//            ?: return CleanConfiguration.error(CangJieBundle.message("dialog.message.no.cangjie.toolchain.specified"))
-//
+
+        val toolchain = project.toolchain
+            ?: return CleanConfiguration.error(CangJieBundle.message("dialog.message.no.cangjie.toolchain.specified"))
+
+        if (!toolchain.looksLikeValidToolchain()) {
+            return CleanConfiguration.error(
+                CangJieBundle.message(
+                    "dialog.message.invalid.toolchain",
+                    toolchain.presentableLocation
+                )
+            )
+        }
 
 
-        return CleanConfiguration.Ok(cmd)
+        return CleanConfiguration.Ok(cmd, toolchain)
     }
 
     override fun canRunOn(target: TargetEnvironmentConfiguration): Boolean =
@@ -221,27 +260,46 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
 
     }
 
+    companion object {
+        fun findCjpmProject(project: Project, cmd: String, workingDirectory: Path?): CjpmProject? = findCjpmProject(
+            project, ParametersListUtil.parse(cmd), workingDirectory
+        )
 
+        fun findCjpmProject(project: Project, additionalArgs: List<String>, workingDirectory: Path?): CjpmProject? {
+            val cjpmProjects = project.cjpmProjects
+            cjpmProjects.allProjects.singleOrNull()?.let { return it }
+
+            val manifestPath = run {
+                val idx = additionalArgs.indexOf("--manifest-path")
+                if (idx == -1) return@run null
+                additionalArgs.getOrNull(idx + 1)?.let { Paths.get(it) }
+            }
+
+            for (dir in listOfNotNull(manifestPath?.parent, workingDirectory)) {
+                LocalFileSystem.getInstance().findFileByIoFile(dir.toFile())
+                    ?.let { cjpmProjects.findProjectForFile(it) }
+                    ?.let { return it }
+            }
+            return null
+        }
+
+    }
 }
 
-data class ParsedCommand(val command: CjpmCommand, val additionalArguments: MutableList<String>) {
+
+data class ParsedCommand(
+    val command: String,
+    val toolchain: String?,
+    val additionalArguments: MutableList<String>
+) {
+
     companion object {
-//        fun parse(rawCommand: String): ParsedCommand? {
-//            val args = ParametersListUtil.parse(rawCommand)
-//            val command = args.firstOrNull { !it.startsWith("+") } ?: return null
-//
-//            val additionalArguments = args.drop(args.indexOf(command) + 1)
-//            return ParsedCommand(command, additionalArguments)
-//        }
-
-        fun parse(rawCommand: CjpmCommand): ParsedCommand? {
-
-            val args = rawCommand.executeCommand.let { it.let { it1 -> ParametersListUtil.parse(it1) } }
+        fun parse(rawCommand: String): ParsedCommand? {
+            val args = ParametersListUtil.parse(rawCommand)
             val command = args.firstOrNull { !it.startsWith("+") } ?: return null
-
+            val toolchain = args.firstOrNull()?.takeIf { it.startsWith("+") }?.removePrefix("+")
             val additionalArguments = args.drop(args.indexOf(command) + 1)
-            return ParsedCommand(rawCommand, additionalArguments.toMutableList())
-
+            return ParsedCommand(command, toolchain, additionalArguments.toMutableList())
         }
     }
 }

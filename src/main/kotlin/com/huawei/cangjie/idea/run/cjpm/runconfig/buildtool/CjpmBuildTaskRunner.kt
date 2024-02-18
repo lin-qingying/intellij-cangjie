@@ -2,9 +2,11 @@ package com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool
 
 
 import com.huawei.cangjie.CangJieBundle
+import com.huawei.cangjie.cjpm.CjpmConstants
+import com.huawei.cangjie.cjpm.project.model.cjpmProjects
 import com.huawei.cangjie.idea.run.cjpm.*
+import com.huawei.cangjie.idea.run.cjpm.CjpmCommandConfiguration.Companion.findCjpmProject
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
-import com.huawei.cangjie.lang.sdk.validateSdk
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultRunExecutor
@@ -97,17 +99,28 @@ class CjpmBuildTaskRunner : ProjectTaskRunner() {
             return listOf(ProjectModelBuildTaskImpl(buildableElement, task.isIncrementalBuild))
         }
 
+        val cjpmProjects = project.cjpmProjects.allProjects
+        if (cjpmProjects.isEmpty()) return emptyList()
+
+
         val executor =
             ExecutorRegistry.getInstance().getExecutorById(DefaultRunExecutor.EXECUTOR_ID) ?: return emptyList()
         val runner = ProgramRunner.findRunnerById(CjpmCommandRunner.RUNNER_ID) ?: return emptyList()
 
-        val commandLine = CjpmCommandLine.forProject(CjpmCommand.BUILD)
-        val settings = runManager.createCjpmCommandRunConfiguration(commandLine)
-        val environment = ExecutionEnvironment(executor, runner, settings, project)
-        val configuration = settings.configuration as? CjpmCommandConfiguration
 
-        val buildableElement = configuration?.let { CjpmBuildConfiguration(it, environment) }
-        return listOf(ProjectModelBuildTaskImpl(buildableElement, task.isIncrementalBuild))
+        return cjpmProjects.mapNotNull {
+
+            val commandLine = CjpmCommandLine.forProject(it, "build")
+            val settings = runManager.createCjpmCommandRunConfiguration(commandLine)
+            val environment = ExecutionEnvironment(executor, runner, settings, project)
+            val configuration = settings.configuration as? CjpmCommandConfiguration ?: return@mapNotNull null
+
+            val buildableElement = CjpmBuildConfiguration(configuration, environment)
+
+            ProjectModelBuildTaskImpl(buildableElement, task.isIncrementalBuild)
+
+        }
+
     }
 
 
@@ -118,27 +131,28 @@ class CjpmBuildTaskRunner : ProjectTaskRunner() {
 
         val buildConfiguration = task.buildableElement as CjpmBuildConfiguration
 
-//        if (!validateSdk(buildConfiguration.configuration.project))
-//            return resolvedPromise(TaskRunnerResults.FAILURE)
-
-
 
         if (!task.isIncrementalBuild) {
+            val cjpmProject = with(buildConfiguration.configuration) {
+                findCjpmProject(project, command, workingDirectory)
+            }
 
-
-            val result = try {
-                val cleanFuture = CjpmBuildManager.clean()
-                if (cleanFuture.get()) {
-                    TaskRunnerResults.SUCCESS
-                } else {
+            if (cjpmProject != null) {
+                val result = try {
+                    val cleanFuture = CjpmBuildManager.clean(cjpmProject)
+                    if (cleanFuture.get()) {
+                        TaskRunnerResults.SUCCESS
+                    } else {
+                        TaskRunnerResults.FAILURE
+                    }
+                } catch (e: ExecutionException) {
                     TaskRunnerResults.FAILURE
                 }
-            } catch (e: ExecutionException) {
-                TaskRunnerResults.FAILURE
+                if (result.hasErrors()) {
+                    resolvedPromise(result)
+                }
             }
-            if (result.hasErrors()) {
-                resolvedPromise(result)
-            }
+
 
         }
 
@@ -153,7 +167,7 @@ class CjpmBuildTaskRunner : ProjectTaskRunner() {
         } catch (e: ExecutionException) {
             LOG.error(e)
             TaskRunnerResults.FAILURE
-        }catch (e:RuntimeException){
+        } catch (e: RuntimeException) {
 //            LOG.error(e)
 
             TaskRunnerResults.FAILURE
@@ -261,7 +275,7 @@ private class BackgroundableProjectTaskRunner(
             LOG.error(e)
             totalPromise.setResult(TaskRunnerResults.FAILURE)
         } finally {
-                                   indicator.stop()
+            indicator.stop()
         }
     }
 

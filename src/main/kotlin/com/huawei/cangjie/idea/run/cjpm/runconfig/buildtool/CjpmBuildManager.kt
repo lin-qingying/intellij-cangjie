@@ -1,17 +1,16 @@
 package com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool
 
-import com.huawei.cangjie.CangJieBundle
-import com.huawei.cangjie.idea.notifications.CjNotifications
-import com.huawei.cangjie.idea.run.CjpmArgsParser
-import com.huawei.cangjie.idea.run.cjpm.*
-import com.huawei.cangjie.idea.run.cjpm.runconfig.isUnitTestMode
 
+import com.huawei.cangjie.CangJieBundle
+import com.huawei.cangjie.cjpm.project.model.CjpmProject
+import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
+import com.huawei.cangjie.cjpm.toolchain.tools.cjc
+import com.huawei.cangjie.idea.notifications.CjNotifications
+import com.huawei.cangjie.idea.run.CjpmArgsParser.Companion.parseArgs
+import com.huawei.cangjie.idea.run.cjpm.*
 
 import com.huawei.cangjie.idea.run.hasRemoteTarget
 import com.huawei.cangjie.lang.lsp.toSystemPath
-import com.huawei.cangjie.lang.sdk.CangJieSdkManager
-import com.huawei.cangjie.lang.sdk.CangJieSdkType
-import com.huawei.cangjie.lang.sdk.validateSdk
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildViewManager
 import com.intellij.execution.ExecutorRegistry
@@ -37,9 +36,8 @@ import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.SystemNotifications
-
-
 import com.intellij.util.execution.ParametersListUtil
+import com.intellij.util.text.SemVer
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.CompletableFuture
@@ -86,11 +84,11 @@ object CjpmBuildManager {
 
 
     fun isBuildConfiguration(configuration: CjpmCommandConfiguration): Boolean {
-        val parsed = configuration.command?.let { ParsedCommand.parse(it) } ?: return false
-        return when (val command = parsed.command.command) {
+        val parsed = configuration.command.let { ParsedCommand.parse(it) } ?: return false
+        return when (val command = parsed.command) {
             "build", "check", "clippy" -> true
             "test", "bench" -> {
-                val (commandArguments, _) = CjpmArgsParser.parseArgs(command, parsed.additionalArguments)
+                val (commandArguments, _) = parseArgs(command, parsed.additionalArguments)
                 "--no-run" in commandArguments
             }
 
@@ -103,71 +101,40 @@ object CjpmBuildManager {
     fun getBuildConfiguration(configuration: CjpmCommandConfiguration): CjpmCommandConfiguration? {
         if (isBuildConfiguration(configuration)) return configuration
 
-        val parsed = configuration.command?.let { ParsedCommand.parse(it) } ?: return null
-        if (parsed.command.command !in BUILDABLE_COMMANDS) return null
-
+        val parsed = configuration.command.let { ParsedCommand.parse(it) } ?: return null
+        if (parsed.command !in BUILDABLE_COMMANDS) return null
 
 
         if (configuration.executorId == "Debug") {
             parsed.additionalArguments.add("-g")
         }
 
-        val commandArguments = CjpmArgsParser.parseArgs(
-            parsed.command.command,
+        val commandArguments = parseArgs(
+            parsed.command,
             parsed.additionalArguments
         ).commandArguments.toMutableList()
         commandArguments.addAll(configuration.localBuildArgsForRemoteRun)
 
 
-        if (parsed.command == CjpmCommand.TEST && commandArguments.contains("--doc")) return null
+        if (parsed.command == "test") return null
 
         val buildConfiguration = configuration.clone() as CjpmCommandConfiguration
 
 
         buildConfiguration.name = "Build `${buildConfiguration.name}`"
 
-        buildConfiguration.command = when (parsed.command) {
+        buildConfiguration.command = ParametersListUtil.join(
+            when (parsed.command) {
+                "run" -> listOfNotNull(parsed.toolchain, "build", *commandArguments.toTypedArray())
+                "test" -> listOfNotNull(parsed.toolchain, "test",  *commandArguments.toTypedArray())
 
-            CjpmCommand.RUN -> {
-                CjpmCommand.BUILD.apply {
-                    executeCommand = ParametersListUtil.join(listOfNotNull("build", *commandArguments.toTypedArray()))
-                }
+                else -> return null
             }
+        )
 
+        buildConfiguration.emulateTerminal = false
 
-            CjpmCommand.TEST -> {
-                CjpmCommand.TEST.apply {
-                    executeCommand =
-                        ParametersListUtil.join(listOfNotNull("test", "--no-run", *commandArguments.toTypedArray()))
-                }
-            }
-//            parsed.command.command == "run" -> {
-//                CjpmCommand.BUILD.apply {
-//                    executeCommand = ParametersListUtil.join(listOfNotNull("build", *commandArguments.toTypedArray()))
-//                }
-//            }
-//
-//
-//
-//            parsed.command.command == "test" -> {
-//                val command = CjpmCommand.TEST
-//                command.executeCommand =
-//                    ParametersListUtil.join(
-//                        listOfNotNull(
-//
-//                            "test",
-//                            "--no-run",
-//                            *commandArguments.toTypedArray()
-//                        )
-//                    )
-//                command
-//            }
-
-            else -> return null
-        }
-
-
-        // building does not require root privileges and redirect input anyway
+        //构建不需要超级用户权限和重定向输入
         buildConfiguration.withSudo = false
         buildConfiguration.isRedirectInput = false
 
@@ -175,13 +142,18 @@ object CjpmBuildManager {
             .takeIf { buildConfiguration.buildTarget.isRemote }
 
         return buildConfiguration
+
+
     }
 
     private val CANCELED_BUILD_RESULT: Future<CjpmBuildResult> =
         CompletableFuture.completedFuture(CjpmBuildResult(succeeded = false, canceled = true, started = 0))
 
-    fun clean(): Future<Boolean> =
-        CjpmCommandLine.forProject(CjpmCommand.CLEAN)
+    fun clean(project: CjpmProject): Future<Boolean> =
+        CjpmCommandLine.forProject(
+            project, "clean",
+            emulateTerminal = false
+        )
             .runAsync(saveConfiguration = false)
 
 
@@ -269,28 +241,23 @@ object CjpmBuildManager {
         val configuration = buildConfiguration.configuration
         val environment = buildConfiguration.environment
         val project = environment.project
-//        TODO 验证SDK
-        if (!validateSdk(project)) {
-            throw RuntimeException("SDK error")
-        }
+
         val state = CjpmRunState(
             environment,
             configuration,
             configuration.clean().ok ?: return CANCELED_BUILD_RESULT
         )
         // 确保生成工具窗口已初始化：
-        @Suppress("UsePropertyAccessSyntax")
         ApplicationManager.getApplication().invokeLater {
             BuildContentManager.getInstance(project).getOrCreateToolWindow()
         }
         val buildId = configuration.executorId
         return execute(
             CjpmBuildContext(
-
                 environment = environment,
                 taskName = CangJieBundle.message("progress.title.build"),
                 progressTitle = CangJieBundle.message("progress.text.building1"),
-                isTestBuild = state.commandLine.command.command in listOf("test", "bench"),
+                isTestBuild = state.commandLine.command in listOf("test"),
                 buildId = buildId,
                 parentId = buildId
             )
@@ -299,7 +266,6 @@ object CjpmBuildManager {
 
 
             if (!isHeadlessEnvironment) {
-                @Suppress("UsePropertyAccessSyntax")
                 val buildToolWindow = BuildContentManager.getInstance(project).getOrCreateToolWindow()
                 buildToolWindow.setAvailable(true, null)
                 if (environment.isActivateToolWindowBeforeRun) {
@@ -355,9 +321,12 @@ object CjpmBuildManager {
     }
 
     fun getExecutable(project: Project, buildId: String): String {
-        val sdkVersion = CangJieSdkManager.sdkVersion.split(" ")[0]
-
-        if (sdkVersion < "0.45.2") return "${project.basePath}/build/bin/main".toSystemPath()
+//        val sdkVersion = CangJieSdkManager.sdkVersion.split(" ")[0]
+        val toolchain = project.cangjieSettings.toolchain
+//        if (sdkVersion < "0.45.2") return "${project.basePath}/build/bin/main".toSystemPath()
+        if (toolchain?.cjc()?.version?.semver!! < SemVer.parseFromText("0.45.2")) {
+            return "${project.basePath}/build/bin/main".toSystemPath()
+        }
         return when (buildId) {
             "Debug" -> "${project.basePath}/build/debug/bin/main".toSystemPath()
             "Run" -> "${project.basePath}/build/release/bin/main".toSystemPath()

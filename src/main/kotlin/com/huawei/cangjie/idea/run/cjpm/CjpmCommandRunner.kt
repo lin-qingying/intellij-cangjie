@@ -32,7 +32,7 @@ open class CjpmCommandRunner : CjDefaultProgramRunnerBase() {
         val cleaned = profile.clean().ok ?: return false
         val isLocalRun = !profile.hasRemoteTarget || profile.buildTarget.isRemote
         val isLegacyTestRun = !profile.isBuildToolWindowAvailable &&
-                cleaned.cmd.command.command in listOf("test", "bench") &&
+                cleaned.cmd.command in listOf("test") &&
                 getBuildConfiguration(profile) != null
         return isLocalRun && !isLegacyTestRun
     }
@@ -45,9 +45,7 @@ open class CjpmCommandRunner : CjDefaultProgramRunnerBase() {
         ) {
             super.doExecute(state, environment)
         } else {
-            // For commands like `cargo build` or `cargo test --no-run`
-            // we skip execution here because build already was performed
-            // in Build Tool window
+
             environment.putUserData(ExecutionManagerImpl.EXECUTION_SKIP_RUN, true)
             null
         }
@@ -263,7 +261,6 @@ object CjpmMetadata {
 
         val doctest: Boolean?,
 
-        @Suppress("KDocUnresolvedReference")
         @JsonProperty("required-features")
         val required_features: List<String>?
     ) {

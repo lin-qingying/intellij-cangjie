@@ -8,15 +8,15 @@ import java.util.function.Supplier
 
 object LspBundle {
     private const val BUNDLE = "messages.LspBundle"
-    private val INSTANCE = DynamicBundle(LspBundle::class.java, "messages.LspBundle")
+    private val INSTANCE = DynamicBundle(LspBundle::class.java, BUNDLE)
 
     @Nls
-    fun message(@PropertyKey(resourceBundle = "messages.LspBundle") key: String, vararg params: Any): String {
+    fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String {
         return INSTANCE.getMessage(key, *params)
     }
 
     fun messagePointer(
-        @PropertyKey(resourceBundle = "messages.LspBundle") key: String,
+        @PropertyKey(resourceBundle = BUNDLE) key: String,
         vararg params: Any
     ): Supplier<@Nls String> {
         return INSTANCE.getLazyMessage(key, *params)

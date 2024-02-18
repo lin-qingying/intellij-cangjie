@@ -1,5 +1,6 @@
 package com.huawei.cangjie.idea.run.cjpm
 
+import com.huawei.cangjie.idea.project.settings.ui.fullWidthCell
 import com.huawei.cangjie.idea.project.tools.projectWizard.CangJieUiBundle
 import com.huawei.cangjie.idea.run.CjCommandConfiguration
 import com.intellij.codeInsight.completion.CompletionResultSet
@@ -77,10 +78,7 @@ class CjpmCommandConfigurationEditor(project: Project) :
     }
 }
 
-fun <T : JComponent> Row.fullWidthCell(component: T): Cell<T> {
-    return cell(component)
-        .align(Align.FILL)
-}
+
 
 
 abstract class CjCommandConfigurationEditor<T : CjCommandConfiguration>(
@@ -90,11 +88,11 @@ abstract class CjCommandConfigurationEditor<T : CjCommandConfiguration>(
 
 
     override fun resetEditorFrom(configuration: T) {
-        command.text = configuration.command?.executeCommand ?: ""
+        command.text = configuration.command ?: ""
     }
 
     override fun applyEditorTo(configuration: T) {
-        configuration.command = CjpmCommand.fromCommand(command.text)
+        configuration.command = command.text
     }
 
 }

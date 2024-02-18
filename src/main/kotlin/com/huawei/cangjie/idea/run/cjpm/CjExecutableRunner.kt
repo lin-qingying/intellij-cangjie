@@ -1,28 +1,25 @@
 package com.huawei.cangjie.idea.run.cjpm
 
 import com.huawei.cangjie.CangJieBundle
-import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.getEnvironment
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildManager.getBuildConfiguration
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildConfiguration
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
-import com.huawei.cangjie.idea.run.cjpm.runconfig.computeWithCancelableProgress
 import com.huawei.cangjie.idea.run.cjpm.runconfig.toPath
 import com.huawei.cangjie.idea.run.hasRemoteTarget
-import com.huawei.cangjie.lang.sdk.CangJieSdkManager
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.runners.showRunContent
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsContexts
-import java.util.concurrent.CompletableFuture
-import com.intellij.execution.runners.showRunContent
 import com.intellij.util.io.systemIndependentPath
 import java.io.File
+import java.util.concurrent.CompletableFuture
 
 abstract class CjExecutableRunner(
     protected val executorId: String,
@@ -52,6 +49,7 @@ abstract class CjExecutableRunner(
         super.execute(environment)
 
     }
+
     override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
         if (state !is CjpmRunStateBase) return null
 
@@ -63,7 +61,9 @@ abstract class CjExecutableRunner(
             exePath = binaries.single().toPath().systemIndependentPath
             workDirectory = state.project.basePath?.let { File(it) }
 
-            withEnvironment(CangJieSdkManager.getProjectSdk(environment.project).getEnvironment())
+            val toolchain = state.project.toolchain
+
+            withEnvironment(toolchain?.getEnvironment())
         }
         return showRunContent(state, environment, runExecutable)
     }
@@ -95,7 +95,7 @@ abstract class CjExecutableRunner(
 
     companion object {
         private val ARTIFACTS: Key<CompletableFuture<List<CompilerArtifactMessage>>> =
-            Key.create("CARGO.CONFIGURATION.ARTIFACTS")
+            Key.create("CJPM.CONFIGURATION.ARTIFACTS")
 
         var ExecutionEnvironment.artifacts: List<CompilerArtifactMessage>?
             get() = getUserData(this@Companion.ARTIFACTS)?.get()

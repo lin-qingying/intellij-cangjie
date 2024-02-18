@@ -29,6 +29,29 @@
                                 implementationClass="com.linqingying.lsp.impl.completion.LspCompletionContributor"/>
         <psi.implicitReferenceProvider id="LspImplicitReferenceProvider"
                                        implementation="com.linqingying.lsp.impl.navigation.LspImplicitReferenceProvider"/>
+
+        <platform.backend.documentation.targetProvider id="LspDocumentationTargetProvider"
+                                                       implementation="com.linqingying.lsp.impl.documentation.LspDocumentationTargetProvider"/>
+        <formattingService id="LspFormattingService"
+                           implementation="com.linqingying.lsp.impl.formatter.LspFormattingService"/>
+        <!--@formatter:off-->
+        <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention0</className>  <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
+        <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention1</className>  <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
+        <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention2</className>  <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
+        <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention3</className>  <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
+        <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention4</className>  <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
+        <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention5</className>  <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
+        <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention6</className>  <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
+        <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention7</className>  <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
+        <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention8</className>  <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
+        <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention9</className>  <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
+        <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention10</className> <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
+        <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention11</className> <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
+        <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention12</className> <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
+        <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention13</className> <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
+        <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention14</className> <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
+        <!--@formatter:on-->
+
     </extensions>
 
     <projectListeners>
