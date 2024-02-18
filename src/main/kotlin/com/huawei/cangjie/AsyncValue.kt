@@ -1,7 +1,6 @@
 package com.huawei.cangjie
 
 
-
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -15,13 +14,9 @@ import kotlin.reflect.KProperty
 
 
 /**
- * A container for an immutable value, which allows
- * reading and updating value safely concurrently.
- * [AsyncValue] is similar to Clojure's atom.
- *
- * [updateAsync] method is used to schedule a modification
- * of the form `(T) -> Promise<T>`. It is guaranteed that
- * all updates are serialized.
+ *一个包含不可变值的容器，允许安全并发地读取和更新值。
+ *[AsyncValue] 类似于Clojure的atom。
+ *[updateAsync] 方法用于调度形式为(T) -> Promise<T>的修改。保证所有更新都是串行化的。
  */
 class AsyncValue<T>(initial: T) {
     @Volatile
@@ -47,7 +42,6 @@ class AsyncValue<T>(initial: T) {
                         }
                         result.completeExceptionally(err)
                     }
-                    Unit
                 }
         }
         startUpdateProcessing()

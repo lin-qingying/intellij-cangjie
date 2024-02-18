@@ -1,4 +1,5 @@
 package com.linqingying.lsp.api.customization
+
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
@@ -51,7 +52,8 @@ open class LspCompletionSupport {
     open fun createLookupElement(parameters: CompletionParameters, item: CompletionItem): LookupElement? {
         val toShow = item.label
         val toUseForPrefixMatching = item.filterText ?: item.label
-        val toInsert = item.textEdit?.let { if (it.isLeft) it.left.newText else it.right.newText } ?: item.insertText ?: item.label
+        val toInsert =
+            item.textEdit?.let { if (it.isLeft) it.left.newText else it.right.newText } ?: item.insertText ?: item.label
 
         return LookupElementBuilder.create(item, toInsert)
             .withPresentableText(toShow)
@@ -62,7 +64,6 @@ open class LspCompletionSupport {
             .withTailText(getTailText(item), true)
             .withTypeText(getTypeText(item), true)
             .withInsertHandler { context, item1 ->
-
 
 
             }

@@ -1,8 +1,9 @@
 package com.huawei.cangjie.utils
 
 import com.huawei.cangjie.CjTask
+import com.huawei.cangjie.idea.run.cjpm.isUnitTestMode
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.isHeadlessEnvironment
-import com.huawei.cangjie.idea.run.cjpm.runconfig.isUnitTestMode
+
 import com.huawei.cangjie.openapiext.DelayedBackgroundableProcessIndicator
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState

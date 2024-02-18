@@ -38,22 +38,11 @@ class CjpmRunConfigurationProducer : LazyRunConfigurationProducer<CjpmCommandCon
         // 获取项目
         val project = context.project
         // 获取所有的运行配置
-        val runManager = RunManager.getInstance(project)
-//        val configurations = runManager.allConfigurationsList.filterIsInstance<CjpmRunConfiguration>()
+//        val runManager = RunManager.getInstance(project)
 
-        // 查找是否存在 command 为 run 的运行配置
-//        val runConfiguration = configurations.find { it.command == CjpmCommand.RUN }
-//return false
-//        return if (runConfiguration != null) {
-//             如果存在，则使用这个运行配置
-//            configuration.name = runConfiguration.name
-//            configuration.command = runConfiguration.command
-//            sourceElement.set(context.psiLocation)
-//            true
-//        } else {
         // 如果不存在，则创建一个新的运行配置
         configuration.name = project.name
-        configuration.command = CjpmCommand.RUN
+        configuration.command = "run"
         sourceElement.set(context.psiLocation)
         return true
 //            true
@@ -78,10 +67,10 @@ class CjpmRunConfigurationProducer : LazyRunConfigurationProducer<CjpmCommandCon
 
 
         return if (isInSrc) {
-            fileType is CangJieFileType && configuration.command == CjpmCommand.RUN
+            fileType is CangJieFileType && configuration.command ==  "run"
         } else {
             //    判断是否是module.json文件
-            fileType is JsonFileType && fileName?.startsWith("module") == true && configuration.command == CjpmCommand.RUN
+            fileType is JsonFileType && fileName?.startsWith("module") == true && configuration.command == "run"
         }
 
 

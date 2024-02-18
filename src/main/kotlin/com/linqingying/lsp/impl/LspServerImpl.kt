@@ -1,11 +1,6 @@
 package com.linqingying.lsp.impl
 
 import com.esotericsoftware.kryo.kryo5.minlog.Log
-import com.linqingying.lsp.api.*
-import com.linqingying.lsp.api.customization.requests.LspRequestExecutor
-import com.linqingying.lsp.impl.connector.Lsp4jServerConnector
-import com.linqingying.lsp.impl.connector.Lsp4jServerConnectorStdio
-import com.linqingying.lsp.impl.highlighting.DiagnosticAndQuickFixes
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
@@ -23,11 +18,17 @@ import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.concurrency.annotations.RequiresWriteLock
 import com.intellij.util.containers.ContainerUtil
-import com.linqingying.lsp.impl.requests.*
+import com.linqingying.lsp.api.*
+import com.linqingying.lsp.impl.connector.Lsp4jServerConnector
+import com.linqingying.lsp.impl.connector.Lsp4jServerConnectorStdio
+import com.linqingying.lsp.impl.highlighting.DiagnosticAndQuickFixes
+import com.linqingying.lsp.impl.requests.DidChangeWatchedFilesNotification
+import com.linqingying.lsp.impl.requests.DidCloseNotification
 import com.linqingying.lsp.impl.requests.DidOpenNotification
+import com.linqingying.lsp.impl.requests.LspRequestExecutorImpl
 import org.eclipse.lsp4j.*
-
 import org.eclipse.lsp4j.services.LanguageServer
+import org.jetbrains.annotations.NonNls
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
@@ -133,7 +134,7 @@ class LspServerImpl(
         } else {
             LOG.debug("Stopping server")
             openedFiles.clear()
-            (requestExecutor as LspRequestExecutorImpl).shutdownNow()
+            requestExecutor.shutdownNow()
             val task = Runnable {
                 synchronized(connectorLock) {
                     lsp4jServerConnector?.shutdownExitDisconnect()
@@ -152,7 +153,7 @@ class LspServerImpl(
 
     override val lsp4jServer: LanguageServer
         get() = lsp4jServerConnector.let { it?.lsp4jServer } ?: throw IllegalStateException("Server is not running")
-    override val requestExecutor: LspRequestExecutor
+    override val requestExecutor: LspRequestExecutorImpl
         get() = myRequestExecutor
     override val serverNotificationsHandler: LspServerNotificationsHandler
         get() = myServerNotificationsHandler
@@ -389,6 +390,147 @@ class LspServerImpl(
             unsupportedFilePaths.add(file.path)
         }
         return isSupported
+    }
+
+
+    fun supportsHover(): Boolean {
+        val serverCapabilities = getServerCapabilities()
+        return serverCapabilities?.hoverProvider?.let { provider ->
+            if (provider.isLeft) {
+                provider.left as Boolean
+            } else {
+                true
+            }
+        } ?: false
+    }
+
+
+    fun logError(@NonNls message: String) {
+
+
+        LOG.error(this.generateMessage(message))
+    }
+
+    private fun generateMessage(message: String): String {
+        return "${this.javaClass.simpleName}: $message"
+    }
+
+    fun logDebug(@NonNls message: String) {
+
+
+        LOG.debug(this.generateMessage(message))
+    }
+
+    fun logWarn(@NonNls message: String, t: Throwable?) {
+
+
+        LOG.warn(this.generateMessage(message), t)
+    }
+
+    fun logInfo(@NonNls message: String) {
+
+        LOG.info(this.generateMessage(message))
+    }
+
+    fun hasFormattingRelatedCapabilities(): Boolean {
+        if (dynamicCapabilities.hasCapability(LspDynamicCapabilities.formatting)) {
+            return true
+        } else {
+            val serverCapabilities = getServerCapabilities()
+            if (serverCapabilities == null) {
+                return false
+            } else {
+                val documentFormattingProvider = serverCapabilities.documentFormattingProvider
+                return documentFormattingProvider?.isLeft ?: false
+            }
+        }
+    }
+
+    private fun <T : TextDocumentRegistrationOptions> checkTextDocumentRegistration(
+        file: VirtualFile,
+        formatting: Pair<String, Class<T>>
+    ): Boolean {
+
+        if (file.isDirectory) {
+            logWarn("Directory not expected here. Capability: ${formatting.first}, file: ${file.path}", null)
+            return false
+        } else {
+            val optionsList = dynamicCapabilities.getCapabilityRegistrationOptions(formatting)
+            for (options in optionsList) {
+                val documentSelector = options.documentSelector
+                if (documentSelector != null) {
+                    for (filter in documentSelector) {
+                        if ("file" == filter.scheme) {
+                            val language = filter.language
+                            val pattern = filter.pattern
+                            if ((language == null || language == descriptor.getLanguageId(file)) &&
+                                (pattern == null || matchesFileInfo(SimpleFileInfo(file.path, false), pattern, null))
+                            ) {
+                                return true
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false
+    }
+
+    private fun matchesFileInfo(fileInfo: FileInfo, pattern: String, basePath: String?): Boolean {
+
+        val path = basePath ?: fileInfo.path
+        val relativePath = if (basePath == null || fileInfo.path != basePath) {
+            if (!fileInfo.path.startsWith("$basePath/")) {
+                return false
+            }
+            fileInfo.path.substring(basePath?.length?.plus(1) ?: 0)
+        } else {
+            ""
+        }
+
+        if (fileInfo.isDirectory) {
+            return true
+        } else {
+            val pathMatcher = dynamicCapabilities.getPathMatcherCaching(pattern)
+            return pathMatcher.matches(Paths.get(relativePath))
+        }
+    }
+
+    fun doesServerExplicitlyWantToFormatThisFile(file: VirtualFile): Boolean {
+        return this.checkTextDocumentRegistration(
+            file,
+            LspDynamicCapabilities.formatting
+        )
+
+    }
+
+    private interface FileInfo {
+        val path: String
+
+        val isDirectory: Boolean
+    }
+
+    private data class SimpleFileInfo(
+        override val path: String,
+        override val isDirectory: Boolean
+    ) : FileInfo {
+        init {
+            requireNotNull(path) { "Path cannot be null" }
+        }
+
+        override fun toString(): String {
+            return this.toString()
+        }
+
+        override fun hashCode(): Int {
+            return this.hashCode()
+        }
+
+        override fun equals(other: Any?): Boolean {
+            return this === other
+        }
+
+
     }
 
     companion object {

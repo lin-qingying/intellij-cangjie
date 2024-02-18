@@ -11,7 +11,8 @@ inline fun <T, E> CjResult<T, E>.unwrapOrElse(op: (E) -> T): T = when (this) {
     is CjResult.Ok -> ok
     is CjResult.Err -> op(err)
 }
-class CjCapturingProcessHandler private constructor(commandLine: GeneralCommandLine) : CapturingProcessHandler(commandLine) {
+
+class CjCapturingProcessHandler(commandLine: GeneralCommandLine) : CapturingProcessHandler(commandLine) {
     override fun readerOptions(): BaseOutputReader.Options = BaseOutputReader.Options.BLOCKING
 
     companion object {
@@ -25,7 +26,7 @@ class CjCapturingProcessHandler private constructor(commandLine: GeneralCommandL
     }
 }
 
-fun <T, E: Throwable> CjResult<T, E>.unwrapOrThrow(): T = when (this) {
+fun <T, E : Throwable> CjResult<T, E>.unwrapOrThrow(): T = when (this) {
     is CjResult.Ok -> ok
     is CjResult.Err -> throw err
 }
@@ -66,6 +67,7 @@ sealed class CjResult<out T, out E> {
         }
     }
 }
+
 sealed class CjProcessExecutionException : CjProcessExecutionOrDeserializationException {
     constructor(message: String) : super(message)
     constructor(cause: Throwable) : super(cause)
@@ -103,6 +105,7 @@ sealed class CjProcessExecutionException : CjProcessExecutionOrDeserializationEx
         """.trimMargin()
     }
 }
+
 sealed class CjProcessExecutionOrDeserializationException : RuntimeException {
     constructor(cause: Throwable) : super(cause)
     constructor(message: String) : super(message)

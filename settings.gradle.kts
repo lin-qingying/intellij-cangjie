@@ -28,7 +28,7 @@ rootProject.name = "intellij-cangjie"
 //        gradlePluginPortal()
 //    }
 //}
-
+//include("lsp4j")
 include("plugin")
 //include("debugg/**/er")
 //include("debugger1")

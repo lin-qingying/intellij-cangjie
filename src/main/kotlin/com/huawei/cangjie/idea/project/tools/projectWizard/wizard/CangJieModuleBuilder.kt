@@ -1,186 +1,86 @@
 package com.huawei.cangjie.idea.project.tools.projectWizard.wizard
 
-import com.debugger.runconfig.CangJieDebuggerServerManager
-import com.debugger.runconfig.toSystemPath
+
+import com.huawei.cangjie.cjpm.CjpmConstants
+import com.huawei.cangjie.cjpm.toolchain.tools.Cjpm
+import com.huawei.cangjie.cjpm.toolchain.tools.cjpm
+import com.huawei.cangjie.idea.newProject.CjCustomTemplate
+import com.huawei.cangjie.idea.newProject.CjGenericTemplate
+import com.huawei.cangjie.idea.newProject.CjProjectTemplate
+import com.huawei.cangjie.idea.newProject.ui.ConfigurationData
 import com.huawei.cangjie.idea.run.cjpm.CjpmCommandConfiguration
 import com.huawei.cangjie.idea.run.cjpm.CjpmCommandConfigurationType
-
-import com.huawei.cangjie.idea.run.cjpm.CjpmCommand
-import com.huawei.cangjie.lang.sdk.CangJieSdkType
-import com.huawei.cangjie.lang.sdk.cjpmPath
-import com.huawei.cangjie.lang.sdk.validateSdk
+import com.huawei.cangjie.idea.run.cjpm.runconfig.CjProcessExecutionException
+import com.huawei.cangjie.idea.run.cjpm.runconfig.CjResult
+import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.isHeadlessEnvironment
+import com.huawei.cangjie.idea.run.cjpm.runconfig.toPath
 import com.intellij.execution.RunManager
-import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.execution.process.CapturingProcessHandler
+import com.intellij.execution.RunnerAndConfigurationSettings
+import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.ide.util.projectWizard.ModuleBuilder
-import com.intellij.ide.util.projectWizard.ModuleWizardStep
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.ModifiableModuleModel
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleType
+import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.projectRoots.SdkTypeId
 import com.intellij.openapi.roots.ModifiableRootModel
-import com.intellij.openapi.roots.ex.ProjectRootManagerEx
-import com.intellij.openapi.roots.ui.configuration.ModulesProvider
-import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.vfs.VirtualFile
 
-
-fun Sdk?.getEnvironment(): MutableMap<String, String> {
-
-//     根据系统获取分隔符
-    val separator = if(SystemInfo.isWindows) ";" else   ":"
-
-//    if (sdk != null) {
-//        environment["CANGJIE_HOME"] = sdk.homePath
-////                        TODO runtime路径需要判读系统
-//        environment["PATH"] = "${sdk.homePath}/runtime/lib/windows_x86_64_llvm;${sdk.homePath}/bin;${sdk.homePath}/tools/bin;${System.getenv("PATH")}"
-//    }
-    if (this?.sdkType is CangJieSdkType) {
-
-
-
-        if (homePath != null) {
-            val environment = mutableMapOf<String, String>()
-
-            environment["CANGJIE_HOME"] = homePath!!
-
-
-            val runtimeLlvm = if (SystemInfo.isWindows) {
-                "windows_x86_64_llvm"
-            } else {
-                "linux_x86_64_llvm"
-            }
-
-            environment["LD_LIBRARY_PATH"] = "${homePath}/runtime/lib/${runtimeLlvm}$separator${System.getenv("LD_LIBRARY_PATH") ?: ""}"
-
-
-            environment["PATH"] =
-                "${homePath}/runtime/lib/${runtimeLlvm}$separator${homePath}/bin$separator${homePath}/tools/bin$separator${System.getenv("PATH")}"
-
-            return environment
-        }
-
-
-    }
-    return mutableMapOf()
-
-}
-
-class CangJieModuleBuilder : ModuleBuilder() {
-
-
-    var projectSdk: Sdk? = null
-
+class CangJieModuleBuilder(
     //    模块名
-    var moduleName: String? = null
+    var moduleName: String? = null,
 
     //    组织名
-    var organizationName: String? = null
+    var organizationName: String? = null,
 
     //    项目类型
-    var projectType: String? = null
+    var projectType: String? = null,
 
-
-//    override fun createWizardSteps(
-//        wizardContext: WizardContext,
-//        modulesProvider: ModulesProvider
-//    ): Array<ModuleWizardStep> {
-//        this.wizardContext = wizardContext
-//        val disposable = wizardContext.disposable
-////        return arrayOf(ModuleNewWizardSecondStep(wizardContext, disposable))
-//        return super.createWizardSteps(wizardContext, modulesProvider)
-//    }
-
+    ) : ModuleBuilder() {
     companion object {
         val LOG = Logger.getInstance(CangJieModuleBuilder::class.java)
     }
 
-    override fun commit(
-        project: Project,
-        model: ModifiableModuleModel?,
-        modulesProvider: ModulesProvider?
-    ): List<Module>? {
-        if (projectSdk == null) {
-            return emptyList()
-        }
+    var configurationData: ConfigurationData? = null
 
-//if(!validateSdk(project,projectSdk)){
-//    return emptyList()
-//}
-//        val modulesModel = model ?: ModuleManager.getInstance(project).getModifiableModel()
+    override fun setupRootModel(modifiableRootModel: ModifiableRootModel) = createProject(modifiableRootModel)
 
-        ApplicationManager.getApplication().executeOnPooledThread {
-
-            // 执行cjpm init
-            val commandLine = GeneralCommandLine().apply {
-                exePath = projectSdk.cjpmPath
-
-
-                environment.putAll(projectSdk.getEnvironment())
-
-                addParameter("init")
-                addParameter(if (moduleName.isNullOrEmpty()) project.name else moduleName!!)
-                addParameter(if (organizationName.isNullOrEmpty()) project.name else organizationName!!)
-                addParameter("--type=${if (projectType.isNullOrEmpty()) "executable" else projectType!!}")
-            }
-            commandLine.setWorkDirectory(project.basePath)
-            val processHandler = CapturingProcessHandler(commandLine)
-            val output = processHandler.runProcess()
-
-            if (output.exitCode != 0) {
-                // 处理错误
-                LOG.error(output.stderr)
-            }
-
-//            为该项目添加一个运行配置  com.huawei.cangjie.idea.run.action.cjpm.configurations.CjpmCommandConfigurationType
-            val runManager = RunManager.getInstance(project)
-            val runnerAndConfigurationSettings = runManager.createConfiguration(
-                "run",
-                CjpmCommandConfigurationType::class.java
-            )
-//            修改运行配置的命令为run
-            (runnerAndConfigurationSettings.configuration as CjpmCommandConfiguration).apply {
-                command = CjpmCommand.RUN
-
-            }
-
-            runManager.addConfiguration(runnerAndConfigurationSettings)
-
-//            更改项目默认使用该运行配置
-            runManager.selectedConfiguration = runnerAndConfigurationSettings
-
-        }
-        runWriteAction {
-//更改项目使用的sdk
-            val rootManager = ProjectRootManagerEx.getInstanceEx(project)
-            rootManager.projectSdk = projectSdk
-            // 强制刷新项目结构
-
-//            ProjectManager.getInstance().reloadProject(project)
-        }
-
-
-//        return emptyList()
-//        return modulesModel.modules.toList().onEach { setupModule(it) }
-        return super.commit(project, model, modulesProvider)
-    }
-
-    override fun setupRootModel(modifiableRootModel: ModifiableRootModel) {
-//        更改模块sdk为继承
+    fun createProject(modifiableRootModel: ModifiableRootModel, vcs: String? = null) {
+        val root = doAddContentEntry(modifiableRootModel)?.file ?: return
         modifiableRootModel.inheritSdk()
-//        将src目录添加为源文件目录
-        val contentEntry = doAddContentEntry(modifiableRootModel)
-        contentEntry?.addSourceFolder("${contentEntry.url}/src", false)
-//        设置build目录为输出目录
-        contentEntry?.addExcludeFolder("${contentEntry.url}/build")
+        val toolchain = configurationData?.settings?.toolchain
+        root.refresh(/* async = */ false, /* recursive = */ true)
+        // Just work if user "creates new project" over an existing one.
+        if (toolchain != null && root.findChild(CjpmConstants.MANIFEST_FILE) == null) {
+            // TODO: rewrite this somehow to fix `Synchronous execution on EDT` exception
+            // The problem is that `setupRootModel` is called on EDT under write action
+            // so `$ cjpm init` invocation blocks UI thread
 
+            val template = configurationData?.template ?: return
+            val cjpm = toolchain.cjpm()
+            val project = modifiableRootModel.project
+            val name = project.name.replace(' ', '_')
 
+            val generatedFiles = cjpm.makeProject(
+                project,
+                modifiableRootModel.module,
+                root,
+                name,
+                if (moduleName.isNullOrEmpty()) name else moduleName!!,
+                if (organizationName.isNullOrEmpty()) name else organizationName!!,
+                projectType ?: "executable"
+            ).unwrapOrElse {
+                LOG.error(it)
+                throw ConfigurationException(it.message)
+            }
+
+            project.makeDefaultRunConfiguration(template)
+            project.openFiles(generatedFiles)
+        }
     }
+
 
     override fun isSuitableSdkType(sdkType: SdkTypeId?): Boolean {
         return false
@@ -190,35 +90,146 @@ class CangJieModuleBuilder : ModuleBuilder() {
         return CangJieModuleType()
     }
 
-
 }
 
-//class NewProjectWizardModuleType : ModuleType<CangJieModuleBuilder>(CangJieModuleType.ID) {
-//    override fun getName(): String = "CangJieModuleType"
-//    override fun getDescription(): String = name
-//    override fun getNodeIcon(isOpened: Boolean): Icon = CangJieIcons.SMALL_LOGO
-//    override fun createModuleBuilder(): CangJieModuleBuilder = CangJieModuleBuilder()
+//class CangJieModuleBuilder : ModuleBuilder() {
 //
-//    override fun isSupportedRootType(type: JpsModuleSourceRootType<*>?): Boolean {
-//        return super.isSupportedRootType(type)
+//
+//
+//
+//
+//
+//    companion object {
+//        val LOG = Logger.getInstance(CangJieModuleBuilder::class.java)
+//    }
+//
+//    var configurationData: ConfigurationData? = null
+//
+//    override fun setupRootModel(modifiableRootModel: ModifiableRootModel) = createProject(modifiableRootModel )
+//
+//    fun createProject(modifiableRootModel: ModifiableRootModel, vcs: String? = null) {
+//        val root = doAddContentEntry(modifiableRootModel)?.file ?: return
+//        modifiableRootModel.inheritSdk()
+//        val toolchain = configurationData?.settings?.toolchain
+//        root.refresh(/* async = */ false, /* recursive = */ true)
+//        // Just work if user "creates new project" over an existing one.
+//        if (toolchain != null && root.findChild(CjpmConstants.MANIFEST_FILE) == null) {
+//            // TODO: rewrite this somehow to fix `Synchronous execution on EDT` exception
+//            // The problem is that `setupRootModel` is called on EDT under write action
+//            // so `$ cjpm init` invocation blocks UI thread
+//
+//            val template = configurationData?.template ?: return
+//            val cjpm = toolchain.cjpm()
+//            val project = modifiableRootModel.project
+//            val name = project.name.replace(' ', '_')
+//
+//            val generatedFiles = cjpm.makeProject(
+//                project,
+//                modifiableRootModel.module,
+//                root,
+//                name,
+//                template,
+//                vcs
+//            )  .unwrapOrElse {
+//                LOG.error(it)
+//                throw ConfigurationException(it.message)
+//            }
+//
+//            project.makeDefaultRunConfiguration(template)
+//            project.openFiles(generatedFiles)
+//        }
+//    }
+//
+//
+//    override fun isSuitableSdkType(sdkType: SdkTypeId?): Boolean {
+//        return false
+//    }
+//
+//    override fun getModuleType(): ModuleType<*> {
+//        return CangJieModuleType()
 //    }
 //
 //
 //}
 
+inline fun <T, E> CjResult<T, E>.unwrapOrElse(op: (E) -> T): T = when (this) {
+    is CjResult.Ok -> ok
+    is CjResult.Err -> op(err)
+}
 
-abstract class WizardStep : ModuleWizardStep() {
-    override fun getHelpId(): String = HELP_ID
+fun Cjpm.makeProject(
+    project: Project,
+    module: Module,
+    baseDir: VirtualFile,
+    name: String,
+    moduleName: String = name,
+    organizationName: String = name,
+    projectType: String? = null
+): CjProcessResult<Cjpm.GeneratedFilesHolder> {
+    return init(project, module, baseDir, name, moduleName, organizationName, projectType)
 
-    override fun updateDataModel() = Unit // model is updated on every UI action
-    override fun validate(): Boolean =
-        false
+}
 
-//    protected open fun handleErrors(error: ValidationResult.ValidationError) {
-//        throw ConfigurationException(error.asHtml(), KotlinNewProjectWizardUIBundle.message("dialog.title.validation.error"))
-//    }
-
-    companion object {
-        private const val HELP_ID = "new_project_wizard_kotlin"
+fun Cjpm.makeProject(
+    project: Project,
+    module: Module,
+    baseDir: VirtualFile,
+    name: String,
+    template: CjProjectTemplate,
+    vcs: String? = null
+): CjProcessResult<Cjpm.GeneratedFilesHolder> {
+    return when (template) {
+        is CjGenericTemplate -> init(project, module, baseDir, name, template.isBinary, vcs)
+        is CjCustomTemplate -> generate(project, module, baseDir, name, template.url, vcs)
     }
+}
+
+typealias CjProcessResult<T> = CjResult<T, CjProcessExecutionException>
+
+
+fun Project.openFiles(files: Cjpm.GeneratedFilesHolder) = invokeLater {
+    if (!isHeadlessEnvironment) {
+        val navigation = PsiNavigationSupport.getInstance()
+        navigation.createNavigatable(this, files.manifest, -1).navigate(false)
+        for (file in files.sourceFiles) {
+            navigation.createNavigatable(this, file, -1).navigate(true)
+        }
+    }
+}
+
+fun Project.makeDefaultRunConfiguration(template: CjProjectTemplate) {
+    val runManager = RunManager.getInstance(this)
+    val configurationFactory = DefaultRunConfigurationFactory(runManager, this)
+
+    val configuration = when (template) {
+        is CjGenericTemplate.CjpmBinaryTemplate -> configurationFactory.createCjpmRunConfiguration()
+        is CjGenericTemplate.CjpmLibraryTemplate -> configurationFactory.createCjpmTestConfiguration()
+
+        is CjCustomTemplate -> return
+    }
+
+    runManager.addConfiguration(configuration)
+    runManager.selectedConfiguration = configuration
+}
+
+private class DefaultRunConfigurationFactory(val runManager: RunManager, val project: Project) {
+    private val cjpmProjectName = project.name.replace(' ', '_')
+
+    fun createCjpmRunConfiguration(): RunnerAndConfigurationSettings =
+        runManager.createConfiguration("Run", CjpmCommandConfigurationType.instance.factory).apply {
+            (configuration as? CjpmCommandConfiguration)?.apply {
+                command = "run"
+                workingDirectory = project.basePath?.toPath()
+            }
+        }
+
+    fun createCjpmTestConfiguration(): RunnerAndConfigurationSettings =
+        runManager.createConfiguration("Test", CjpmCommandConfigurationType.instance.factory).apply {
+            (configuration as? CjpmCommandConfiguration)?.apply {
+                command = "test $cjpmProjectName"
+                workingDirectory = project.basePath?.toPath()
+            }
+        }
+
+
 }

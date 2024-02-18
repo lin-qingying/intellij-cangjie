@@ -1,18 +1,11 @@
 package com.debugger.runconfig
 
-import com.debugger.CangJieDebuggerPluginService
 import com.debugger.backend.CjBreakpoint
 import com.debugger.runconfig.breakpoint.CangJieBreakpointHandler
 import com.debugger.runconfig.message.MessageHandler
 import com.debugger.runconfig.views.CjdbPanel
 import com.huawei.cangjie.idea.run.cjpm.CjpmRunStateBase
-import com.huawei.cangjie.lang.sdk.CangJieSdkManager
-import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
-import com.intellij.execution.process.ProcessListener
-import com.intellij.execution.ui.ConsoleView
-import com.intellij.execution.ui.ExecutionConsole
 import com.intellij.execution.ui.RunnerLayoutUi
 import com.intellij.execution.ui.layout.PlaceInGrid
 import com.intellij.icons.AllIcons
@@ -21,7 +14,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
@@ -37,7 +29,6 @@ import com.intellij.xdebugger.frame.*
 import com.intellij.xdebugger.frame.presentation.XValuePresentation
 import com.intellij.xdebugger.impl.ui.ExecutionPointHighlighter
 import com.intellij.xdebugger.ui.XDebugTabLayouter
-import com.linqingying.lsp.api.LspProcessHandler
 import dap.event.*
 import dap.request.RunInTerminalRequest
 import dap.response.*
@@ -67,40 +58,40 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 
 //    val command = arrayOf("cmd.exe") //
 
-    val command = GeneralCommandLine().apply {
-
-        val sdk = CangJieSdkManager.getProjectSdk()
-
-        exePath = "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
-
-        environment["CANGJIE_HOME"] = sdk?.homePath?.toSystemPath()
-        environment["PATH"] = "${sdk?.homePath}/bin;${sdk?.homePath}/tools/bin;".toSystemPath() + System.getenv("PATH")
-        withWorkDirectory(session.project.basePath)
-    }
-    private val shellProcessHandler = LspProcessHandler(
-        command
-    ).apply {
-        addProcessListener(
-            object : ProcessListener {
-                override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
-                    super.onTextAvailable(event, outputType)
-                }
-            }
-        )
-
-    }
+//    val command = GeneralCommandLine().apply {
+//
+//        val sdk = CangJieSdkManager.getProjectSdk()
+//
+//        exePath = "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+//
+//        environment["CANGJIE_HOME"] = sdk?.homePath?.toSystemPath()
+//        environment["PATH"] = "${sdk?.homePath}/bin;${sdk?.homePath}/tools/bin;".toSystemPath() + System.getenv("PATH")
+//        withWorkDirectory(session.project.basePath)
+//    }
+//    private val shellProcessHandler = LspProcessHandler(
+//        command
+//    ).apply {
+//        addProcessListener(
+//            object : ProcessListener {
+//                override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
+//                    super.onTextAvailable(event, outputType)
+//                }
+//            }
+//        )
+//
+//    }
 
 
     //汇编字符串文本
 //    val asmTextMap: MutableMap<String, String> = mutableMapOf()
 
 
-    protected val myConsole: ConsoleView = state.consoleBuilder.console.apply {
-        shellProcessHandler.startNotify()
-        attachToProcess(shellProcessHandler)
-    }
+//    protected val myConsole: ConsoleView = state.consoleBuilder.console.apply {
+//        shellProcessHandler.startNotify()
+//        attachToProcess(shellProcessHandler)
+//    }
 
-//    private val myProcessDisposable: Disposable
+    //    private val myProcessDisposable: Disposable
     val myUiDisposable: Disposable = Disposer.newDisposable()
 
     private val project get() = session.project
@@ -113,9 +104,9 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
         myBreakpointHandlers = handlersList.toTypedArray()
 
 //        val gutterIconManager = MySuspensionGutterIconManager(this)
-/*        val debuggerPluginService = project.getService(CangJieDebuggerPluginService::class.java)
-        myProcessDisposable = Disposer.newDisposable(debuggerPluginService, "CangJieDebugProcess")
-        Disposer.register(this.myProcessDisposable, gutterIconManager)*/
+        /*        val debuggerPluginService = project.getService(CangJieDebuggerPluginService::class.java)
+                myProcessDisposable = Disposer.newDisposable(debuggerPluginService, "CangJieDebugProcess")
+                Disposer.register(this.myProcessDisposable, gutterIconManager)*/
 
     }
 
@@ -124,24 +115,12 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
         return myDriver.debugProcessHandler
     }
 
-    fun isDetachDefault(): Boolean {
-        return false
-    }
-
     override fun isLibraryFrameFilterSupported(): Boolean {
         return true
     }
 
     override fun getEditorsProvider(): XDebuggerEditorsProvider = myEditorsProvider
 
-
-    override fun createConsole(): ExecutionConsole {
-
-
-        return myConsole
-
-//        return super.createConsole()
-    }
 
     //    protected fun waitForTermination(): Boolean {
 //        return this.myDriver.getShellProcessHandler().waitFor()
@@ -156,7 +135,7 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
     private class MySuspensionGutterIconManager(private val process: CangJieDebugProcess) : XDebugSessionListener,
         XDebuggerManagerListener, Disposable {
 
-        val mySession = process.session
+        val mySession: XDebugSession = process.session
         val myExecutionPointHighlighter = ExecutionPointHighlighter(mySession.project, process.myUiDisposable)
 
 
@@ -526,7 +505,7 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 
     /*********************************MessageHandler**************************************/
     override fun handleRunInTerminalRequest(message: RunInTerminalRequest) {
-        this.myDriver.sendShellProcessId(shellProcessHandler.process.pid(), message.seq)
+//        this.myDriver.sendShellProcessId(shellProcessHandler.process.pid(), message.seq)
     }
 
     override fun handleOutputEvent(message: OutputEvent) {
@@ -586,8 +565,6 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
     }
 
 
-    val scopes: MutableList<Scope> = mutableListOf()
-    var isScopesLoaded = CompletableFuture<Boolean>()
     override fun handleScopesResponse(message: ScopesResponse) {
 
 //        isScopesLoaded.complete(true)
@@ -814,9 +791,9 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
     }
 
     override fun handleInitializeResponse(response: InitializeResponse) {
-        if (response.success) {
-            this.myDriver.sendLaunch()
-        }
+//        if (response.success) {
+//            this.myDriver.sendLaunch()
+//        }
     }
 
 

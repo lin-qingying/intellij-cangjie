@@ -1,18 +1,19 @@
 package com.huawei.cangjie.lang.lsp
 
 
+import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
 import com.huawei.cangjie.lang.CangJieFileType
-import com.huawei.cangjie.lang.lsp.CangJieLspServerManager.binaryPath
-import com.huawei.cangjie.lang.lsp.CangJieLspServerManager.copyLspServerToPath
 import com.huawei.cangjie.lang.lsp.CangJieLspServerManager.getCommandLine
-import com.huawei.cangjie.lang.sdk.CangJieSdkManager
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
+
+import com.intellij.util.io.systemIndependentPath
 import com.linqingying.lsp.api.LspServerSupportProvider
 import com.linqingying.lsp.api.ProjectWideLspServerDescriptor
 import org.eclipse.lsp4j.*
-import java.nio.file.Files
+
 fun checkCangJieFIle(file: VirtualFile): Boolean {
 //    return false
     if (file.extension == "cj") return true
@@ -23,15 +24,17 @@ fun checkCangJieFIle(file: VirtualFile): Boolean {
 
 }
 
+
 class CangJieLspServerSupportProvider : LspServerSupportProvider {
     override fun fileOpened(
         project: Project,
         file: VirtualFile,
         serverStarter: LspServerSupportProvider.LspServerStarter
     ) {
+        val cangjieSettings = project.cangjieSettings
 
         if (checkCangJieFIle(file)) {
-            if (CangJieSdkManager.getProjectSdk() != null)     {
+            if (cangjieSettings.toolchain != null) {
                 serverStarter.ensureServerStarted(CangJieLspServerDescriptor(project))
             }
         }
@@ -44,18 +47,11 @@ class CangJieLspServerSupportProvider : LspServerSupportProvider {
 
 private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServerDescriptor(project, "Cangjie") {
     override fun isSupportedFile(file: VirtualFile): Boolean {
-        if (checkCangJieFIle(file)) {
-
-            return true
-        }
+        return checkCangJieFIle(file)
 //        如果未配置sdk
-
-        return false
 
 
     }
-
-
 
 
     override fun getLanguageId(file: VirtualFile): String {
@@ -69,8 +65,8 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
     override fun createCommandLine(): GeneralCommandLine {
 
 
-        return getCommandLine()
-
+        val a = getCommandLine(project)
+        return a
     }
 
 
@@ -93,7 +89,8 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 
     override fun createInitializeParams(): InitializeParams {
 
-        val sdk = CangJieSdkManager.getProjectSdk()
+        val toolchain = project.cangjieSettings.toolchain
+
 
         val initializeParams = super.createInitializeParams()
 
@@ -104,8 +101,22 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
         initializeParams.locale = "zh_cn"
         initializeParams.trace = "off"
 
-        if (sdk != null) {
-            initializeParams.initializationOptions = mapOf("modulesHomeOption" to "${sdk.homePath}")
+        fun String.replacePath(): String {
+            if (SystemInfo.isWindows) {
+                return this.replace("/", "\\")
+
+            }
+            return this
+        }
+
+        if (toolchain != null) {
+            initializeParams.initializationOptions =
+                mapOf(
+                    "modulesHomeOption" to toolchain.sdkHome.systemIndependentPath,
+                    "extensionPath" to "C:\\Users\\27439\\.cangjie\\lsp"
+                )
+
+
         }
 
         return initializeParams
@@ -117,7 +128,7 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
         val workspace = WorkspaceClientCapabilities()
 //    //{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"processId":22140,"clientInfo":{"name":"Visual Studio Code","version":"1.84.0"},"locale":"zh-cn","rootPath":"d:\\Code\\Cj\\xml","rootUri":"file:///d%3A/Code/Cj/xml","capabilities":{"workspace":{"applyEdit":true,"workspaceEdit":{"documentChanges":true,"resourceOperations":["create","rename","delete"],"failureHandling":"textOnlyTransactional","normalizesLineEndings":true,"changeAnnotationSupport":{"groupsOnLabel":true}},"configuration":true,"didChangeWatchedFiles":{"dynamicRegistration":true,"relativePatternSupport":true},"symbol":{"dynamicRegistration":true,"symbolKind":{"valueSet":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26]},"tagSupport":{"valueSet":[1]},"resolveSupport":{"properties":["location.range"]}},"codeLens":{"refreshSupport":true},"executeCommand":{"dynamicRegistration":true},"didChangeConfiguration":{"dynamicRegistration":true},"workspaceFolders":true,"semanticTokens":{"refreshSupport":true},"fileOperations":{"dynamicRegistration":true,"didCreate":true,"didRename":true,"didDelete":true,"willCreate":true,"willRename":true,"willDelete":true},"inlineValue":{"refreshSupport":true},"inlayHint":{"refreshSupport":true},"diagnostics":{"refreshSupport":true}},"textDocument":{"publishDiagnostics":{"relatedInformation":true,"versionSupport":false,"tagSupport":{"valueSet":[1,2]},"codeDescriptionSupport":true,"dataSupport":true},"synchronization":{"dynamicRegistration":true,"willSave":true,"willSaveWaitUntil":true,"didSave":true},"completion":{"dynamicRegistration":true,"contextSupport":true,"completionItem":{"snippetSupport":true,"commitCharactersSupport":true,"documentationFormat":["markdown","plaintext"],"deprecatedSupport":true,"preselectSupport":true,"tagSupport":{"valueSet":[1]},"insertReplaceSupport":true,"resolveSupport":{"properties":["documentation","detail","additionalTextEdits"]},"insertTextModeSupport":{"valueSet":[1,2]},"labelDetailsSupport":true},"insertTextMode":2,"completionItemKind":{"valueSet":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]},"completionList":{"itemDefaults":["commitCharacters","editRange","insertTextFormat","insertTextMode"]},"editsNearCursor":true},"hover":{"dynamicRegistration":true,"contentFormat":["markdown","plaintext"]},"signatureHelp":{"dynamicRegistration":true,"signatureInformation":{"documentationFormat":["markdown","plaintext"],"parameterInformation":{"labelOffsetSupport":true},"activeParameterSupport":true},"contextSupport":true},"definition":{"dynamicRegistration":true,"linkSupport":true},"references":{"dynamicRegistration":true},"documentHighlight":{"dynamicRegistration":true},"documentSymbol":{"dynamicRegistration":true,"symbolKind":{"valueSet":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26]},"hierarchicalDocumentSymbolSupport":true,"tagSupport":{"valueSet":[1]},"labelSupport":true},"codeAction":{"dynamicRegistration":true,"isPreferredSupport":true,"disabledSupport":true,"dataSupport":true,"resolveSupport":{"properties":["edit"]},"codeActionLiteralSupport":{"codeActionKind":{"valueSet":["","quickfix","refactor","refactor.extract","refactor.inline","refactor.rewrite","source","source.organizeImports"]}},"honorsChangeAnnotations":false},"codeLens":{"dynamicRegistration":true},"formatting":{"dynamicRegistration":true},"rangeFormatting":{"dynamicRegistration":true},"onTypeFormatting":{"dynamicRegistration":true},"rename":{"dynamicRegistration":true,"prepareSupport":true,"prepareSupportDefaultBehavior":1,"honorsChangeAnnotations":true},"documentLink":{"dynamicRegistration":true,"tooltipSupport":true},"typeDefinition":{"dynamicRegistration":true,"linkSupport":true},"implementation":{"dynamicRegistration":true,"linkSupport":true},"colorProvider":{"dynamicRegistration":true},"foldingRange":{"dynamicRegistration":true,"rangeLimit":5000,"lineFoldingOnly":true,"foldingRangeKind":{"valueSet":["comment","imports","region"]},"foldingRange":{"collapsedText":false}},"declaration":{"dynamicRegistration":true,"linkSupport":true},"selectionRange":{"dynamicRegistration":true},"callHierarchy":{"dynamicRegistration":true},"semanticTokens":{"dynamicRegistration":true,"tokenTypes":["namespace","type","class","enum","interface","struct","typeParameter","parameter","variable","property","enumMember","event","function","method","macro","keyword","modifier","comment","string","number","regexp","operator","decorator"],"tokenModifiers":["declaration","definition","readonly","static","deprecated","abstract","async","modification","documentation","defaultLibrary"],"formats":["relative"],"requests":{"range":true,"full":{"delta":true}},"multilineTokenSupport":false,"overlappingTokenSupport":false,"serverCancelSupport":true,"augmentsSyntaxTokens":true},"linkedEditingRange":{"dynamicRegistration":true},"typeHierarchy":{"dynamicRegistration":true},"inlineValue":{"dynamicRegistration":true},"inlayHint":{"dynamicRegistration":true,"resolveSupport":{"properties":["tooltip","textEdits","label.tooltip","label.location","label.command"]}},"diagnostic":{"dynamicRegistration":true,"relatedDocumentSupport":false}},"window":{"showMessage":{"messageActionItem":{"additionalPropertiesSupport":true}},"showDocument":{"support":true},"workDoneProgress":true},"general":{"staleRequestSupport":{"cancel":true,"retryOnContentModified":["textDocument/semanticTokens/full","textDocument/semanticTokens/range","textDocument/semanticTokens/full/delta"]},"regularExpressions":{"engine":"ECMAScript","version":"ES2020"},"markdown":{"parser":"marked","version":"1.1.0"},"positionEncodings":["utf-16"]},"notebookDocument":{"synchronization":{"dynamicRegistration":true,"executionSummarySupport":true}}},"initializationOptions":{"multiModuleOption":{"file:///d%3A/Code/Cj/xml":{"name":"xml","package_requires":{"path_option":[],"package_option":{}},"requires":{}}},"conditionCompileOption":{},"singleConditionCompileOption":{}},"trace":"off","workspaceFolders":[{"uri":"file:///d%3A/Code/Cj/xml","name":"xml"}],"workDoneToken":"f59f2995-4c7d-4cc0-971b-581edb616683"}}
         workspace.applyEdit = true
-        val workspaceEdit = WorkspaceEdit()
+//        val workspaceEdit = WorkspaceEdit()
 //    workspaceEdit.documentChanges = Either.forLeft(listOf(TextDocumentEdit()))
 //    workspaceEdit.resourceOperations =
 //        listOf(ResourceOperationKind.Create, ResourceOperationKind.Rename, ResourceOperationKind.Delete)

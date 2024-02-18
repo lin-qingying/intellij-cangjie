@@ -1,139 +1,127 @@
 package com.linqingying.lsp.impl.completion
 
-import com.linqingying.lsp.api.customization.LspCompletionSupport
-import com.linqingying.lsp.api.customization.requests.util.getLsp4jPosition
-import com.linqingying.lsp.impl.LspServerManagerImpl
-import com.linqingying.lsp.impl.requests.LspRequestExecutorImpl
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
-import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.codeInsight.template.Template
-import com.intellij.codeInsight.template.impl.TemplateImpl
-import com.intellij.injected.editor.VirtualFileWindow
+import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbAware
+import com.linqingying.lsp.api.customization.requests.util.getLsp4jPosition
+import com.linqingying.lsp.impl.LspServerImpl
+import com.linqingying.lsp.impl.LspServerManagerImpl
 import org.eclipse.lsp4j.CompletionItem
-import org.eclipse.lsp4j.InsertTextFormat
 import org.eclipse.lsp4j.Position
 import org.eclipse.lsp4j.Range
 
 class LspCompletionContributor : CompletionContributor(), DumbAware {
     override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
-        val psiFile = parameters.originalFile
-        val project = psiFile.project
+
+
+        val originalFile = parameters.originalFile
+        val project = originalFile.project
+
         if (!project.isDefault) {
-            val virtualFile = psiFile.originalFile.virtualFile
-            val actualFile = if (virtualFile is VirtualFileWindow) virtualFile.delegate else virtualFile
-            actualFile?.let { file ->
-                val document = FileDocumentManager.getInstance().getDocument(file) ?: return
-                val offset = InjectedLanguageManager.getInstance(project).injectedToHost(psiFile, parameters.offset)
-                val servers = LspServerManagerImpl.getInstanceImpl(project).getServersWithThisFileOpen(file)
-                for (server in servers) {
-                    ProgressManager.checkCanceled()
-                    val lspCompletionSupport = server.descriptor.lspCompletionSupport
-                    if (lspCompletionSupport?.shouldRunCodeCompletion(parameters) == true) {
-                        val completionItems = (server.requestExecutor as LspRequestExecutorImpl).getCompletionItems(
-                            file,
-                            offset,
+            val virtualFile = originalFile.virtualFile ?: return
+            val document = FileDocumentManager.getInstance().getDocument(virtualFile) ?: return
+
+            val hostOffset =
+                InjectedLanguageManager.getInstance(project).injectedToHost(originalFile, parameters.offset)
+
+            LspServerManagerImpl.getInstanceImpl(project).getServersWithThisFileOpen(virtualFile).forEach { lspServer ->
+                ProgressManager.checkCanceled()
+                val serverCapabilities = lspServer.getServerCapabilities()
+                if (serverCapabilities?.completionProvider != null) {
+                    val completionSupport = lspServer.descriptor.lspCompletionSupport
+                    if (completionSupport != null && completionSupport.shouldRunCodeCompletion(parameters)) {
+                        val completionItems = lspServer.requestExecutor.getCompletionItems(
+                            virtualFile,
+                            hostOffset,
                             parameters.isAutoPopup
                         )
-                        processCompletionItems(
-                            lspCompletionSupport,
-                            parameters,
+                        processCompletionItemsImpl(
+                            lspServer,
                             document,
-                            offset,
-                            completionItems,
-                            result
-                        )
+                            hostOffset,
+                            result,
+                            completionItems
+                        ) { completionItem ->
+                            completionSupport.createLookupElement(parameters, completionItem)
+                        }
                     }
                 }
             }
         }
     }
 
-    private fun getRange(completionItem: CompletionItem): Range? {
-        val textEdit = completionItem.textEdit
-        return if (textEdit != null) {
-            if (textEdit.isLeft) {
-                textEdit.left.range
-            } else {
-                textEdit.right.insert
-            }
-        } else {
-            null
-        }
-    }
 
-    fun processTemplate(template: String): String {
-        val regex = Regex("\\$\\{([^}]*)\\}") // Define a regex to match content wrapped in ${}
-        return regex.replace(template) {
-            // Extract the content inside ${} and replace it with actual content
-            val (matchedContent) = it.destructured
-            // Replace matched content with actual content, you would need to implement this logic
-            // For example, you can use a map to look up the actual content based on the matched content
-            // Replace matchedContent with actualContent
-            "actualContent"
-        }
-    }
+}
 
-    private fun processCompletionItems(
-        lspCompletionSupport: LspCompletionSupport,
-        completionParameters: CompletionParameters,
-        document: Document,
-        offset: Int,
-        completionItems: List<CompletionItem>,
-        resultSet: CompletionResultSet
-    ) {
-        var currentResultSet = resultSet
-        var currentRange: Range? = null
-        val lspPosition = getLsp4jPosition(document, offset)
+fun <T> processCompletionItemsImpl(
+    lspServer: LspServerImpl,
+    document: Document,
+    offset: Int,
+    originalResultSet: CompletionResultSet,
+    items: List<T>,
+    createLookupElement: (T) -> LookupElement?
+) {
+    val lspPosition = getLsp4jPosition(document, offset)
+    var currentResultSet = originalResultSet
+    var previousRange: Range? = null
 
-        for (item in completionItems) {
-////
-//            if (item.insertTextFormat == InsertTextFormat.Snippet) {
-////               TODO 处理模板
-////              将 ${}包裹的内容作为模板，在插入时，将其替换为真实内容
-//                item.insertText = item.insertText.replace(Regex("\\([^)]*\\)"), "()")
-//                // 提取冒号后面的字符
-//
-//                    item.insertText = item.insertText.replace("\${1:T}","T")
-//
-//
-//            }
+    for (item in items) {
+        val lookupElement = createLookupElement.invoke(item)
+        if (lookupElement != null) {
+            val completionItem = lookupElement.getObject() as? CompletionItem
+            if (completionItem != null) {
+                val itemRange = getRange(completionItem)
 
-
-            val lookupElement = lspCompletionSupport.createLookupElement(completionParameters, item)
-            if (lookupElement != null) {
-                val range = getRange(item)
-                if (range != currentRange) {
-                    currentRange = range
-                    currentResultSet = if (range == null) {
-                        resultSet
+                if (itemRange != previousRange) {
+                    previousRange = itemRange
+                    val prefixMatcher = if (itemRange != null) {
+                        val prefix = extractPrefix(document, lspPosition, itemRange)
+                        if (prefix != null) originalResultSet.withPrefixMatcher(prefix) else null
                     } else {
-                        val prefix = getCompletionPrefix(document, lspPosition, range)
-                        prefix?.let { resultSet.withPrefixMatcher(it) } ?: resultSet
+                        originalResultSet
                     }
-                }
-                currentResultSet.addElement(lookupElement)
 
+                    currentResultSet = prefixMatcher ?: originalResultSet
+                }
+
+                currentResultSet.addElement(LspLookupElementDecorator(lspServer, lookupElement, completionItem))
             }
+
         }
     }
+}
 
-    private fun getCompletionPrefix(document: Document, position: Position, range: Range): String? {
-        return if (range.start.line == range.end.line && range.start.line == position.line &&
-            range.start.character <= position.character && range.end.character >= position.character
-        ) {
-            val lineStartOffset = document.getLineStartOffset(position.line)
-            val startOffset = lineStartOffset + range.start.character
-            val endOffset = lineStartOffset + position.character
-            document.charsSequence.subSequence(startOffset, endOffset).toString()
+private fun extractPrefix(document: Document, position: Position, range: Range): String? {
+    if (range.start.line == range.end.line &&
+        range.start.line == position.line &&
+        range.start.character <= position.character &&
+        range.end.character >= position.character
+    ) {
+        val lineStartOffset = document.getLineStartOffset(position.line)
+        val startOffset = lineStartOffset + range.start.character
+        val endOffset = lineStartOffset + position.character
+        return document.charsSequence.subSequence(startOffset, endOffset).toString()
+    } else {
+        return null
+    }
+}
+
+
+private fun getRange(completionItem: CompletionItem): Range? {
+    val textEdit = completionItem.textEdit
+    return if (textEdit != null) {
+        if (textEdit.isLeft) {
+            textEdit.left.range
         } else {
-            null
+            textEdit.right.insert
         }
+    } else {
+        null
     }
 }

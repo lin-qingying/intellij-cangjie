@@ -1,11 +1,11 @@
 package com.linqingying.lsp.impl.requests
 
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.vfs.VirtualFile
 import com.linqingying.lsp.api.LspServer
 import com.linqingying.lsp.api.customization.requests.LspRequest
 import com.linqingying.lsp.api.customization.requests.util.getLsp4jPosition
 import com.linqingying.lsp.impl.LspServerImpl
-import com.intellij.openapi.editor.Document
-import com.intellij.openapi.vfs.VirtualFile
 import org.eclipse.lsp4j.*
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 import java.util.concurrent.CompletableFuture
@@ -92,6 +92,7 @@ class LspCompletionRequest(
             item.data = defaults.data
         }
     }
+    override fun toString(): String  =  "textDocument/completion"
 
     override fun preprocessResponse(serverResponse: Either<List<CompletionItem>, CompletionList>): List<CompletionItem> {
         return when {

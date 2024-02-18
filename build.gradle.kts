@@ -31,9 +31,9 @@ val Project.dependencyCachePath
 //
 ////IDEA版本
 //
-
+//val ideaVersion = "2023.3.2"
 val ideaVersion = "233-EAP-SNAPSHOT"
-val ideaType = "IC" // Target IDE Platform
+val ideaType = "IU" // Target IDE Platform
 val nativeDebugPlugin: String = "com.intellij.nativeDebug:233.13763.5"
 //val nativeDebugPlugin: String = "com.intellij.nativeDebug:233.13135.65"
 idea {
@@ -174,9 +174,11 @@ project(":plugin") {
 //        plugins.set(listOf(nativeDebugPlugin))
     }
 //    group = "com.huawei.cangjie"
-    version = "beta-1.0.4"
+    version = "beta-1.0.5"
     dependencies {
         implementation(project(":"))
+//        implementation(project(":lsp4j"))
+
 //        api("com.squareup.moshi:moshi-adapters:1.15.0")
 //        api("com.squareup.moshi:moshi-kotlin:1.15.0")
 //        implementation(project(":debugger"))
@@ -318,11 +320,11 @@ project(":plugin") {
 project(":") {
 
     dependencies {
-        implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.21.1")
+        implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")
 //        implementation("com.alibaba:fastjson:2.0.46")
 
 
-        implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.debug:0.21.1")
+//        implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.debug:0.22.0")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
         implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
         implementation("com.squareup.moshi:moshi-adapters:1.15.0")
@@ -348,6 +350,10 @@ project(":") {
         }
     }
 }
+//
+//project(":lsp4j") {
+//
+//}
 //project(":back") {
 //    intellij {
 //
@@ -387,8 +393,8 @@ project(":") {
 
 
 fun File.isPluginJar(): Boolean {
-    if ("buildPlugin" in gradle.startParameter.taskNames){
-        if (pluginDescriptors.contains(name)  ) {
+    if ("buildPlugin" in gradle.startParameter.taskNames) {
+        if (pluginDescriptors.contains(name)) {
             return true
         }
     }

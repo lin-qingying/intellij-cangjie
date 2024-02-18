@@ -1,17 +1,11 @@
 package com.linqingying.lsp.api
 
 
-
-
-
-
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.TestOnly
-import java.util.*
 
 /**
  * Tracks started LSP servers, allows starting, restarting, and stopping LSP servers.
@@ -38,7 +32,7 @@ interface LspServerManager {
         fun getInstance(project: Project): LspServerManager = project.service()
     }
 
-    fun getServersForProvider(providerClass: Class<out LspServerSupportProvider>): Collection<com.linqingying.lsp.api.LspServer>
+    fun getServersForProvider(providerClass: Class<out LspServerSupportProvider>): Collection<LspServer>
 
     /**
      * This function is designed for the cases like "a user has enabled some framework support in Settings." It notifies the `providerClass`
@@ -71,10 +65,3 @@ interface LspServerManager {
     fun addLspServerManagerListener(listener: LspServerManagerListener, parentDisposable: Disposable)
 }
 
-
-@ApiStatus.Internal
-interface LspServerManagerListener : EventListener {
-    fun serverInitializationFailed() {}
-    fun fileOpened(file: VirtualFile) {}
-    fun diagnosticsReceived(file: VirtualFile) {}
-}

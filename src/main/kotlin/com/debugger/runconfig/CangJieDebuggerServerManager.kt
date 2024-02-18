@@ -1,19 +1,16 @@
 package com.debugger.runconfig
 
-import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.getEnvironment
-import com.huawei.cangjie.lang.sdk.CangJieSdkManager
-import com.huawei.cangjie.utils.savePluginVersion
+import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
 import com.huawei.cangjie.utils.getSavePluginVersion
+import com.huawei.cangjie.utils.savePluginVersion
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.BaseProcessHandler
-
-import com.intellij.execution.process.OSProcessHandler
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.util.io.systemIndependentPath
 import com.linqingying.lsp.api.LspProcessHandler
-
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -103,7 +100,8 @@ object CangJieDebuggerServerManager {
 
         val project = ProjectManager.getInstance().openProjects[0]
 
-        val sdk = CangJieSdkManager.getProjectSdk()
+        val cangjieSettings = project.cangjieSettings
+
 
         return GeneralCommandLine().apply {
             withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE)
@@ -114,14 +112,11 @@ object CangJieDebuggerServerManager {
             addParameter("--port=$DEBUGPORT")
             addParameter("--logpath=$LOGPATH".toSystemPath())
             addParameter("--debuggertype=$DEBUGGERTYPE")
-            environment.putAll(sdk.getEnvironment())
-//            environment["CANGJIE_HOME"] = sdk?.homePath?.toSystemPath()
-//            environment.put("PATH", "${sdk?.homePath}/bin:${sdk?.homePath}/tools/bin:\\\${env:PATH}")
-//            environment["PATH"] = "${sdk?.homePath}/bin;${sdk?.homePath}/tools/bin;".toSystemPath() + System.getenv("PATH")
-//            ${sdk?.homePath}/runtime/lib/windows_x86_64_llvm;
-            environment["LD_LIBRARY_PATH"] = (sdk?.homePath + DEFUALTLIBLLDBPATH).toSystemPath()
+            cangjieSettings.toolchain?.getEnvironment()?.let { environment.putAll(it) }
+
+            environment["LD_LIBRARY_PATH"] =
+                (cangjieSettings.toolchain?.sdkHome?.systemIndependentPath + DEFUALTLIBLLDBPATH).toSystemPath()
 //            //                        TODO runtime路径需要判读系统
-//            environment["PATH"] = "${sdk?.homePath}/runtime/lib/windows_x86_64_llvm;${sdk?.homePath}/bin;${sdk?.homePath}/tools/bin;${System.getenv("PATH")}"
 
         }
     }

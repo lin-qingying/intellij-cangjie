@@ -51,7 +51,7 @@ class CjpmArgsParser private constructor(
         fun parseArgs(commandName: String, cjpmArgs: List<String>): ParsedCjpmArgs =
             when (commandName) {
                 "run" -> parseRunArgs(cjpmArgs)
-                "test", "bench" -> parseTestArgs(cjpmArgs)
+                "test" -> parseTestArgs(cjpmArgs)
                 else -> error("Unsupported command")
             }
 

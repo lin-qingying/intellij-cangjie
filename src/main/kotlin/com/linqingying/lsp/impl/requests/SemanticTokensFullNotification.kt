@@ -59,6 +59,7 @@ class SemanticTokensFullNotification(override val lspServer: LspServer, val file
 
     }
 
+
     override fun sendNotification() {
 
         val textDocumentItem = TextDocumentIdentifier()

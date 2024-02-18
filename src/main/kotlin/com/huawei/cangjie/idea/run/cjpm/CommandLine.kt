@@ -1,22 +1,21 @@
 package com.huawei.cangjie.idea.run.cjpm
 
+
 import com.huawei.cangjie.CangJieBundle
+import com.huawei.cangjie.cjpm.project.model.CjpmProject
+import com.huawei.cangjie.cjpm.project.model.cjpmProjects
+import com.huawei.cangjie.cjpm.project.model.impl.workingDirectory
 import com.huawei.cangjie.idea.notifications.CjNotifications
 import com.huawei.cangjie.idea.project.CangJieProjectManager
-import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.getEnvironment
-import com.huawei.cangjie.lang.sdk.CangJieSdkManager
-import com.huawei.cangjie.lang.sdk.cjpmPath
-
+import com.huawei.cangjie.idea.run.CjCommandConfiguration.Companion.emulateTerminalDefault
 import com.intellij.execution.*
 import com.intellij.execution.configuration.EnvironmentVariablesData
-import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.notification.NotificationType
-import com.intellij.util.io.systemIndependentPath
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -24,11 +23,62 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
 abstract class CjCommandLineBase {
-    abstract val command: CjpmCommand
+    abstract val command: String
     abstract val workingDirectory: Path
     abstract val redirectInputFrom: File?
     abstract val additionalArguments: List<String>
+    abstract val emulateTerminal: Boolean
 
+
+    private fun <T> runInner(
+        cjpmProject: CjpmProject,
+        presentableName: String = command,
+        saveConfiguration: Boolean = true,
+        executor: Executor = DefaultRunExecutor.getRunExecutorInstance(),
+        doRun: (RunnerAndConfigurationSettings, Executor) -> Future<T>
+    ): Future<T> {
+        val project = cjpmProject.project
+        val configurationName = when {
+            project.cjpmProjects.allProjects.size > 1 -> "$presentableName "
+            else -> presentableName
+        }
+        val runManager = RunManagerEx.getInstanceEx(project)
+        val configuration = createRunConfiguration(runManager, configurationName).apply {
+            if (saveConfiguration) {
+                runManager.setTemporaryConfiguration(this)
+            }
+        }
+
+        val runner = ProgramRunner.getRunner(executor.id, configuration.configuration)
+        val finalExecutor = if (runner == null) {
+            CjNotifications.pluginNotifications()
+                .createNotification(
+                    CangJieBundle.message(
+                        "notification.0.action.is.not.available.for.1.command",
+                        executor.actionName,
+                        "$executableName $command"
+                    ), NotificationType.WARNING
+                )
+                .notify(project)
+            DefaultRunExecutor.getRunExecutorInstance()
+        } else {
+            executor
+        }
+
+        return doRun(configuration, finalExecutor)
+    }
+
+    fun run(
+        cjpmProject: CjpmProject,
+        presentableName: String = command,
+        saveConfiguration: Boolean = true,
+        executor: Executor = DefaultRunExecutor.getRunExecutorInstance()
+    ) {
+        runInner(cjpmProject, presentableName, saveConfiguration, executor) { configuration, finalExecutor ->
+            ProgramRunnerUtil.executeConfiguration(configuration, finalExecutor)
+            CompletableFuture.completedFuture(true)
+        }
+    }
 
     protected abstract val executableName: String
 
@@ -38,7 +88,7 @@ abstract class CjCommandLineBase {
     ): RunnerAndConfigurationSettings
 
     fun runAsync(
-        presentableName: String = command.command,
+        presentableName: String = command,
         saveConfiguration: Boolean = true,
         executor: Executor = DefaultRunExecutor.getRunExecutorInstance()
     ): Future<Boolean> =
@@ -57,7 +107,7 @@ abstract class CjCommandLineBase {
 
     private fun <T> runInner(
 
-        presentableName: String = command.command,
+        presentableName: String = command,
         saveConfiguration: Boolean = true,
         executor: Executor = DefaultRunExecutor.getRunExecutorInstance(),
         doRun: (RunnerAndConfigurationSettings, Executor) -> Future<T>
@@ -94,11 +144,15 @@ abstract class CjCommandLineBase {
 }
 
 data class CjpmCommandLine(
-    override val command: CjpmCommand,
+
+    override val command: String, // Can't be `enum` because of custom subcommands
+
     override val workingDirectory: Path,
     override val additionalArguments: List<String> = emptyList(),
     override val redirectInputFrom: File? = null,
 
+    val toolchain: String? = null,
+    override val emulateTerminal: Boolean = emulateTerminalDefault,
 
     val environmentVariables: EnvironmentVariablesData = EnvironmentVariablesData.DEFAULT,
     val requiredFeatures: Boolean = true,
@@ -125,40 +179,43 @@ data class CjpmCommandLine(
         copy(additionalArguments = listOf(arg) + additionalArguments)
 
 
-    fun toGeneralCommandLine(): GeneralCommandLine {
-
-
-        val sdk = CangJieSdkManager.getProjectSdk()
-
-
-        return GeneralCommandLine().apply {
-
-            exePath = sdk.cjpmPath
-
-            setWorkDirectory(workingDirectory.systemIndependentPath)
-
-            addParameters(command.command)
-            addParameters(additionalArguments)
-
-            environment.putAll(sdk.getEnvironment())
-
-        }
-
-
-    }
-
     companion object {
+
+        fun forProject(
+            cjpmProject: CjpmProject,
+
+
+            command: String,
+            additionalArguments: List<String> = emptyList(),
+            emulateTerminal: Boolean = emulateTerminalDefault,
+
+            environmentVariables: EnvironmentVariablesData = EnvironmentVariablesData.DEFAULT
+        ): CjpmCommandLine = CjpmCommandLine(
+            command,
+
+            workingDirectory = cjpmProject.workingDirectory,
+            additionalArguments = additionalArguments,
+            emulateTerminal = emulateTerminal,
+
+            environmentVariables = environmentVariables
+        )
+
         fun forProject(
 
-            command: CjpmCommand,
+
+            command: String,
+
             additionalArguments: List<String> = emptyList(),
+            toolchain: String? = null,
 
 
             environmentVariables: EnvironmentVariablesData = EnvironmentVariablesData.DEFAULT
         ): CjpmCommandLine = CjpmCommandLine(
             command,
+
             workingDirectory = Paths.get(CangJieProjectManager.getCurrentProject().basePath),
             additionalArguments = additionalArguments,
+            toolchain = toolchain,
 
 
             environmentVariables = environmentVariables
@@ -172,7 +229,7 @@ fun RunManager.createCjpmCommandRunConfiguration(
     name: String? = null
 ): RunnerAndConfigurationSettings {
     val runnerAndConfigurationSettings = createConfiguration(
-        name ?: cjpmCommandLine.command.command,
+        name ?: cjpmCommandLine.command,
         CjpmCommandConfigurationType.instance.factory
     )
     val configuration = runnerAndConfigurationSettings.configuration as CjpmCommandConfiguration

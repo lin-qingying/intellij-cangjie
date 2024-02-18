@@ -4,8 +4,7 @@ import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.idea.run.CjCommandConfiguration
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.createFilters
 import com.huawei.cangjie.idea.run.hasRemoteTarget
-import com.huawei.cangjie.lang.sdk.CangJieSdkManager
-import com.huawei.cangjie.lang.sdk.CangJieSdkType
+
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.RuntimeConfigurationException
 import com.intellij.execution.filters.TextConsoleBuilderImpl

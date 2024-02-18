@@ -1,6 +1,6 @@
 package com.huawei.cangjie
 
-import com.huawei.cangjie.lang.sdk.CangJieSdkType
+
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.ProjectJdkTable

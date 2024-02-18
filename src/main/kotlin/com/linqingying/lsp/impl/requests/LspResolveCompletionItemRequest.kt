@@ -1,6 +1,5 @@
 package com.linqingying.lsp.impl.requests
 
-import com.linqingying.lsp.api.LspServer
 import com.linqingying.lsp.api.customization.requests.LspRequest
 import org.eclipse.lsp4j.CompletionItem
 import java.util.concurrent.CompletableFuture
@@ -14,6 +13,7 @@ class LspResolveCompletionItemRequest(override val lspServer: com.linqingying.ls
 
 
     override fun preprocessResponse(serverResponse: CompletionItem): CompletionItem = serverResponse
+    override fun toString(): String  = "completionItem/resolve"
 
 }
 

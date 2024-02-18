@@ -2,9 +2,11 @@ package com.debugger.runconfig
 
 import com.debugger.backend.CjBreakpoint
 import com.debugger.runconfig.message.MessageHandler
+import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
+import com.huawei.cangjie.cjpm.toolchain.tools.cjc
 import com.huawei.cangjie.idea.project.CangJieProjectManager
 import com.huawei.cangjie.lang.lsp.toSystemPath
-import com.huawei.cangjie.lang.sdk.CangJieSdkManager
+
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.process.BaseProcessHandler
 import com.intellij.openapi.diagnostic.Logger
@@ -12,6 +14,7 @@ import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.Ref
 import com.intellij.util.Consumer
 import com.intellij.util.concurrency.QueueProcessor
+import com.intellij.util.text.SemVer
 import com.intellij.xdebugger.XDebugSession
 import dap.event.*
 import dap.protocol.ProtocolMessage
@@ -241,10 +244,12 @@ class DebugDriver(
 
 
     fun sendLaunch() {
-        val sdkVersion = CangJieSdkManager.sdkVersion.split(" ")[0]
+
+        val toolchain = session.project.cangjieSettings.toolchain
+        val sdkVersion = toolchain?.cjc()?.version?.semver
 
 
-        val mainexe = if (sdkVersion < "0.45.2") {
+        val mainexe = if (sdkVersion!! < SemVer.parseFromText("0.45.2")) {
             ((CangJieProjectManager.getCurrentProject().basePath + "/build/bin/main").toSystemPath())
         } else {
             ((CangJieProjectManager.getCurrentProject().basePath + "/build/debug/bin/main").toSystemPath())
@@ -252,7 +257,7 @@ class DebugDriver(
         val request = LaunchRequest(
             seq = ++seq, arguments = LaunchRequestArguments(
                 buildBeforeLaunch = true,
-                externalConsole = false,
+                externalConsole = true,
                 name = "Cangjie Debug (cjdb): launch",
                 program = mainexe,
                 request = MessageCommand.launch,
@@ -464,12 +469,12 @@ class DebugDriver(
 //    }
 
 
-    fun initialize() {
-//        进行调试器配置
-        sendInitializeData()
-
-
-    }
+//    fun initialize() {
+////        进行调试器配置
+//        sendInitializeData()
+//
+//
+//    }
 
 
     fun getProcessHandler(): BaseProcessHandler<*> {
@@ -738,7 +743,7 @@ class DebugDriver(
             is Response -> {
                 handleMessageByResponse(message)
             }
-//
+
 //            is Request -> {
 //                handleMessageByRequest(message)
 //            }
@@ -758,6 +763,10 @@ class DebugDriver(
 
         try {
             myConnectedClient.complete(myDapClient)
+
+            if (initializeResponse.success) {
+                sendLaunch()
+            }
 
         } catch (e: Exception) {
             myConnectedClient.completeExceptionally(e)
@@ -924,7 +933,7 @@ class DebugDriver(
         errorHandler.throwIfNeeded()
 
         return responseRef.get()
-            ?: throw ExecutionException("Null response to message ${message}")
+            ?: throw ExecutionException("Null response to message $message")
     }
 
     fun sendSourceFile(name: String, sourceReference: Int): SourceResponse {

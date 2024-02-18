@@ -1,4 +1,4 @@
-<idea-plugin allow-bundled-update="true" xmlns:xi="http://www.w3.org/2001/XInclude">
+<idea-plugin allow-bundled-update="true">
 
 
     <resource-bundle>messages.CangJieBaseHighlightingBundle</resource-bundle>
@@ -6,6 +6,10 @@
 
 
     <extensions defaultExtensionNs="com.intellij">
+
+
+        <!--        文件索引-->
+        <!--        <fileBasedIndex implementation=""></fileBasedIndex>-->
 
 
         <!--        插件启动初始化-->
@@ -83,8 +87,8 @@
         <lsp.serverSupportProvider implementation="com.huawei.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>
 
         <!--SDK-->
-        <sdkType implementation="com.huawei.cangjie.lang.sdk.CangJieSdkType"/>
-        <projectSdkSetupValidator implementation="com.huawei.cangjie.lang.sdk.CangJieLanguageSdkSetupValidator"/>
+        <!--        <sdkType implementation="com.huawei.cangjie.lang.sdk.CangJieSdkType"/>-->
+        <!--        <projectSdkSetupValidator implementation="com.huawei.cangjie.lang.sdk.CangJieLanguageSdkSetupValidator"/>-->
 
         <!--        项目向导-->
         <!--        <moduleBuilder-->
@@ -106,7 +110,7 @@
                 id="CjpmRunConfiguration"/>
 
 
-<!--    行配置之前执行的步骤   -->
+        <!--    行配置之前执行的步骤   -->
         <stepsBeforeRunProvider
                 implementation="com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildTaskProvider"/>
 
@@ -125,6 +129,11 @@
         <!--        <runConfigurationProducer implementation="com.huawei.cangjie.idea.run.cjc.CjcRunConfigurationProducer" id="CjcRunConfigurationProducer"/>-->
 
 
+        <projectConfigurable instance="com.huawei.cangjie.cjpm.project.configurable.CjProjectConfigurable"
+                             groupId="language"
+                             id="language.cangjie"
+                             bundle="messages.CangJieBundle" key="settings.cangjie.toolchain.name"/>
+
         <executionTargetLanguageRuntimeType
                 implementation="com.huawei.cangjie.idea.run.cjpm.runconfig.CjLanguageRuntimeType"/>
         <applicationService
@@ -142,10 +151,13 @@
         <!--        <applicationService-->
         <!--                serviceInterface="com.huawei.cangjie.idea.liveTemplates.ShortenReferencesFacility"-->
         <!--                serviceImplementation="com.huawei.cangjie.idea.liveTemplates.CangJieShortenReferencesFacility"/>-->
+        <projectService serviceInterface="com.huawei.cangjie.cjpm.project.model.CjpmProjectsService"
+                        serviceImplementation="com.huawei.cangjie.cjpm.project.model.impl.CjpmProjectsServiceImpl"
+                   />
+        <projectService serviceImplementation="com.huawei.cangjie.cjpm.project.settings.CangJieProjectSettingsService"/>
+        <projectService serviceImplementation="com.huawei.cangjie.cjpm.project.settings.CjExternalLinterProjectSettingsService"/>
 
-        <!--        <projectService serviceInterface="com.huawei.cangjie.idea.project.CjpmProjectsService"-->
-        <!--                        serviceImplementation="com.huawei.cangjie.idea.project.CjpmProjectsServiceImpl"-->
-        <!--                      />-->
+        <applicationService serviceImplementation="com.huawei.cangjie.idea.newProject.state.CjUserTemplatesState"/>
 
         <!--        <projectService serviceImplementation="com.huawei.cangjie.idea.run.cjpm.back.CangJieProjectSettingsService"/>-->
         <!--代码补全-->
@@ -162,6 +174,12 @@
                 description="Disables auto-completion inside expressions"
                 defaultValue="false"
                 restartRequired="false"/>
+
+        <registryKey key="com.huawei.cangjie.cjpm.new.auto.import"
+                     defaultValue="true"
+                     description="Enable new Cjpm project model reloading"
+                     restartRequired="true"/>
+
         <registryKey key="cangjie.create.sealed.templates.enabled"
                      defaultValue="false"
                      description="Enables dedicated Sealed class/interface templates in File-New-CangJie File"/>
@@ -170,13 +188,28 @@
                      Run Tool Window instead of raw console"/>
         <notificationGroup id="CangJie Plugin" displayType="BALLOON" bundle="messages.CangJieBundle"
                            key="notification.group.cangjie.plugin"/>
-        <notificationGroup id="CangJie Build Log" bundle="messages.CangJieBundle" displayType="NONE" key="notification.group.cangjie.plugin"/>
+        <notificationGroup id="CangJie Build Log" bundle="messages.CangJieBundle" displayType="NONE"
+                           key="notification.group.cangjie.plugin"/>
 
         <notificationGroup id="jps configuration error"
                            toolWindowId="Build"
                            displayType="TOOL_WINDOW"
                            bundle="messages.CangJieCompilerBundle"
-                           key="notification.group.title.jps.cannot.start.compiler" />
+                           key="notification.group.title.jps.cannot.start.compiler"/>
+
+        <!-- Notifications -->
+
+        <editorNotificationProvider
+                implementation="com.huawei.cangjie.idea.notifications.MissingToolchainNotificationProvider"/>
+        <editorNotificationProvider
+                implementation="com.huawei.cangjie.idea.notifications.NoCjpmProjectNotificationProvider"/>
+
+
+
+        <statusBarWidgetFactory id="cangjieExternalLinterWidget"
+                                implementation="com.huawei.cangjie.idea.status.CjExternalLinterWidgetFactory"
+                                order="first"/>
+
     </extensions>
     <extensions defaultExtensionNs="com.huawei.cangjie">
 
@@ -191,9 +224,15 @@
         <!--        <listener class="com.huawei.cangjie.lang.sdk.CangJieProjectSdkTableListener" topic="com.intellij.openapi.projectRoots.ProjectJdkTable$Listener"/>-->
     </applicationListeners>
 
+    <projectListeners>
+                      <listener class="com.huawei.cangjie.idea.status.CjExternalLinterWidgetUpdater"
+                          topic="com.huawei.cangjie.cjpm.project.model.CjpmProjectsService$CjpmProjectsListener"/>
+    </projectListeners>
 
     <extensionPoints>
-
+        <extensionPoint qualifiedName="com.huawei.cangjie.toolchainProvider"
+                        interface="com.huawei.cangjie.cjpm.toolchain.CjToolchainProvider"
+                        dynamic="true"/>
         <!--        <extensionPoint qualifiedName="com.huawei.cangjie.toolchainProvider"-->
         <!--                        interface="com.huawei.cangjie.idea.run.cjpm.back.CjToolchainProvider"-->
         <!--                        dynamic="true"/>-->
@@ -201,6 +240,10 @@
         <!--        <extensionPoint qualifiedName="com.huawei.cangjie.toolchainFlavor"-->
         <!--                        interface="com.huawei.cangjie.idea.run.cjpm.back.CjToolchainFlavor"-->
         <!--                        dynamic="true"/>-->
+
+        <extensionPoint qualifiedName="com.huawei.cangjie.toolchainFlavor"
+                        interface="com.huawei.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor"
+                        dynamic="true"/>
         <extensionPoint
                 qualifiedName="com.huawei.cangjie.beforeResolveHighlightingVisitor"
                 interface="com.huawei.cangjie.highlighter.BeforeResolveHighlightingExtension"
@@ -239,6 +282,18 @@
         >
             <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewGroup1"/>
         </action>
+
+
+
+<!--        CJPM-->
+
+        <action id="Cjpm.AttachCjpmProject"
+                class="com.huawei.cangjie.cjpm.project.model.AttachCjpmProjectAction"
+                icon="AllIcons.General.Add"/>
+
+        <action id="Cjpm.RefreshCjpmProject"
+                class="com.huawei.cangjie.idea.actions.RefreshCjpmProjectsAction"
+                icon="AllIcons.Actions.Refresh"/>
     </actions>
 
 
@@ -251,6 +306,21 @@
 
         <internalFileTemplate name="CangJie Class"/>
 
+    </extensions>
+
+
+    <extensions defaultExtensionNs="com.huawei.cangjie">
+        <!-- Toolchains -->
+        <toolchainFlavor id="cangjie.cjpmToolchainFlavor"
+                         implementation="com.huawei.cangjie.cjpm.toolchain.flavors.CjpmToolchainFlavor"
+                         order="first"/>
+        <toolchainFlavor id="cangjie.winToolchainFlavor"
+                         implementation="com.huawei.cangjie.cjpm.toolchain.flavors.CjWinToolchainFlavor"/>
+
+        <toolchainProvider implementation="com.huawei.cangjie.cjpm.toolchain.CjLocalToolchainProvider"/>
+
+        <toolchainFlavor id="cangjie.wslToolchainFlavor"
+                         implementation="com.huawei.cangjie.cjpm.toolchain.wsl.CjWslToolchainFlavor"/>
     </extensions>
 
 </idea-plugin>

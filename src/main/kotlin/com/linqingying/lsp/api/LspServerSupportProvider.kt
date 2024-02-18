@@ -1,10 +1,6 @@
 package com.linqingying.lsp.api
 
 
-
-
-
-
 import com.intellij.openapi.extensions.ExtensionPointName.Companion.create
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
