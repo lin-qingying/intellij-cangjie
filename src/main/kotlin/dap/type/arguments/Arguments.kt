@@ -533,7 +533,7 @@ data class EvaluateArguments(
      * 才会由debug适配器尊重此属性。
      */
     val format: ValueFormat? = null
-):Arguments
+): Arguments
 
 
 @Serializable
@@ -548,4 +548,4 @@ data class SourceArguments (
      * 由于旧客户端不理解`source`属性，因此提供此属性以实现向后兼容性。
      */
     val sourceReference: Int
-):Arguments
+): Arguments

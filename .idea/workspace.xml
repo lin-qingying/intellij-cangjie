@@ -8,86 +8,129 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="添加自动插件打包构建">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="从sdk修改为工具链，添加lsp补全模板">
       <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/log/idea 2l.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/log/log.txt" beforeDir="false" afterPath="$PROJECT_DIR$/log/log.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/log/studio 2l.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/log/vscode 2l.log" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/log/log.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugin/src/main/resources/META-INF/plugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/plugin/src/main/resources/META-INF/plugin.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebugProcess.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebugProcess.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebuggerServerManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CangJieDebuggerServerManager.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/CjLocalDebugProcess.kt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/DebugDriver.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/debugger/runconfig/DebugDriver.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/AsyncValue.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/AsyncValue.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/CangJieStartupActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/CangJieStartupActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/model/CjpmProjectsService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/model/CjpmProjectsService.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/model/impl/CjpmJsonWatcher.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/model/impl/CjpmJsonWatcher.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/model/impl/CjpmProjectsImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/model/impl/CjpmProjectsImpl.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/model/impl/CjpmSyncTask.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/model/impl/CjpmSyncTask.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/icons/CangJieIcons.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/icons/CangJieIcons.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/settings/ui/CangJieLanguageConfigurable.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/settings/ui/CangJieModuleWizardStep.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/settings/ui/CangJieProjectSettingsPanel.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/model/impl/UserDisabledFeatures.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/model/impl/UserDisabledFeatures.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/settings/CangJieProjectSettingsService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/settings/CangJieProjectSettingsService.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/toolwindow/CjpmToolWindow.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/toolwindow/CjpmToolWindow.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/workspace/CjpmWorkspace.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/workspace/CjpmWorkspace.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/workspace/StandardLibrary.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/project/workspace/StandardLibrary.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/toolchain/tools/Cjpm.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/cjpm/toolchain/tools/Cjpm.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/highlighter/BeforeResolveHighlightingVisitor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/highlighter/BeforeResolveHighlightingVisitor.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/highlighter/CangJieColorSettingsPage.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/highlighter/CangJieColorSettingsPage.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/highlighter/CangJieHighlightInfoTypeSemanticNames.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/highlighter/CangJieHighlightInfoTypeSemanticNames.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/formatter/CangJieCodeStyleSettings.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/formatter/CangJieCodeStyleSettings.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/formatter/CangJieLanguageCodeStyleSettingsProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/formatter/CangJieLanguageCodeStyleSettingsProvider.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/CangJieProjectActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/CangJieProjectActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/CangJieProjectManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/CangJieProjectManager.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/CangJieNewProjectWizard.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/CangJieNewProjectWizard.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/CangJieModuleBuilder.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/project/tools/projectWizard/wizard/CangJieModuleBuilder.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/CjCommandConfiguration.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/CjCommandConfiguration.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/CjpmArgsParser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/CjpmArgsParser.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CangJieRunConfigurationOptions.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CangJieRunConfigurationOptions.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjExecutableRunner.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjExecutableRunner.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/Cjpm.kt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmCommandConfiguration.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmCommandConfiguration.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmCommandConfigurationEditor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmCommandConfigurationEditor.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmCommandRunner.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmCommandRunner.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmRunConfigurationEditor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmRunConfigurationEditor.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmRunConfigurationProducer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmRunConfigurationProducer.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmRunState.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmRunState.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmRunStateBase.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CjpmRunStateBase.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CommandLine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/CommandLine.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/runconfig/CjCapturingProcessHandler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/runconfig/CjCapturingProcessHandler.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/runconfig/Utils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/runconfig/Utils.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/runconfig/buildtool/CjBuildTaskProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/runconfig/buildtool/CjBuildTaskProvider.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/runconfig/buildtool/CjpmBuildAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/runconfig/buildtool/CjpmBuildAdapter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/runconfig/buildtool/CjpmBuildContext.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/runconfig/buildtool/CjpmBuildContext.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/runconfig/buildtool/CjpmBuildManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/runconfig/buildtool/CjpmBuildManager.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/runconfig/buildtool/CjpmBuildTaskRunner.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/runconfig/buildtool/CjpmBuildTaskRunner.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/modulejson/CjpmUpdateAction.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/modulejson/CjpmUpdateAction.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerManager.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/BallerinaPreloadingActivity.kt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieLanguageSdkSetupValidator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieLanguageSdkSetupValidator.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieProjectSdkTableListener.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieSdk.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieSdkManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieSdkManager.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieSdkType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieSdkType.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/sdk/CangJieSdkVersionDetector.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/utils/CjBackgroundTaskQueue.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/utils/CjBackgroundTaskQueue.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/Lsp4jClient.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/Lsp4jClient.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/LspServerDescriptor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/LspServerDescriptor.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/LspServerManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/LspServerManager.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/LspServerSupportProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/LspServerSupportProvider.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/customization/LspCodeActionsSupport.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/customization/LspCodeActionsSupport.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/customization/LspCommandsSupport.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/customization/LspCommandsSupport.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/customization/LspCompletionSupport.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/customization/LspCompletionSupport.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/customization/LspIntentionAction.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/customization/LspIntentionAction.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/requests/LspRequestExecutor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/requests/LspRequestExecutor.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspBundle.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspBundle.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerImpl.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerManagerImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerManagerImpl.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/completion/LspCompletionContributor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/completion/LspCompletionContributor.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/connector/Lsp4jServerConnector.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/connector/Lsp4jServerConnector.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/highlighting/DiagnosticInfo.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/highlighting/DiagnosticInfo.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/quickFix/LspQuickFixSet.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/quickFix/LspQuickFixSet.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/quickFix/LspQuickFixWrapper.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/quickFix/LspQuickFixWrapper.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspCodeActionRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspCodeActionRequest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspCompletionRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspCompletionRequest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspDefinitionRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspDefinitionRequest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspHoverRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspHoverRequest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspRequestExecutorImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspRequestExecutorImpl.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspResolveCompletionItemRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspResolveCompletionItemRequest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/SemanticTokensFullNotification.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/SemanticTokensFullNotification.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/util/Lsp4jUtil.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/util/Lsp4jUtil.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/Lsp.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParser.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParserDefinition.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParserDefinition.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParsing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParsing.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjCallExpression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjCallExpression.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjFile.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjFile.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/utils/PluginVersionUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/utils/PluginVersionUtils.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/utils/utils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/utils/utils.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/Lsp4jClient.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/Lsp4jClient.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/LspServer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/LspServer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/LspServerDescriptor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/LspServerDescriptor.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/LspServerListener.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/LspServerListener.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/LspServerManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/LspServerManager.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/LspServerManagerListener.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/LspServerManagerListener.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/LspServerNotificationsHandler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/LspServerNotificationsHandler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/LspServerSupportProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/LspServerSupportProvider.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/ProjectWideLspServerDescriptor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/ProjectWideLspServerDescriptor.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/customization/LspCodeActionsSupport.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/customization/LspCodeActionsSupport.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/customization/LspCommandsSupport.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/customization/LspCommandsSupport.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/customization/LspCompletionSupport.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/customization/LspCompletionSupport.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/customization/LspDiagnosticsSupport.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/customization/LspDiagnosticsSupport.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/customization/LspFormattingSupport.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/customization/LspFormattingSupport.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/customization/LspIntentionAction.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/customization/LspIntentionAction.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/requests/LspClientNotification.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/requests/LspClientNotification.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/requests/LspRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/requests/LspRequest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/api/requests/LspRequestExecutor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/api/requests/LspRequestExecutor.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/GlobUtil.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/GlobUtil.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspBundle.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/LspBundle.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspDiagnosticsCache.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/LspDiagnosticsCache.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspDynamicCapabilities.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/LspDynamicCapabilities.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/LspServerImpl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerManagerImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/LspServerManagerImpl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/LspServerNotificationsHandlerImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/LspServerNotificationsHandlerImpl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/completion/LspCompletionContributor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/completion/LspCompletionContributor.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/completion/LspCompletionItemInsertHandler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/completion/LspCompletionItemInsertHandler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/completion/LspCompletionObject.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/completion/LspCompletionObject.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/completion/LspLookupElementDecorator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/completion/LspLookupElementDecorator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/completion/SnippetToTemplateConverter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/completion/SnippetToTemplateConverter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/connector/Lsp4jServerConnector.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/connector/Lsp4jServerConnector.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/connector/Lsp4jServerConnectorStdio.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/connector/Lsp4jServerConnectorStdio.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/connector/LspServerProcessListener.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/connector/LspServerProcessListener.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/documentation/LspDocumentationTargetProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/documentation/LspDocumentationTargetProvider.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/formatter/LspFormattingService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/formatter/LspFormattingService.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/highlighting/DiagnosticAndQuickFixes.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/highlighting/DiagnosticAndQuickFixes.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/highlighting/DiagnosticInfo.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/highlighting/DiagnosticInfo.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/highlighting/LspAnnotator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/highlighting/LspAnnotator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/intention/LspIntentionActionWrapper.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/intention/LspIntentionActionWrapper.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/intention/LspIntentionsService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/intention/LspIntentionsService.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/navigation/CurrentActionHolder.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/navigation/CurrentActionHolder.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/navigation/CurrentActionListener.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/navigation/CurrentActionListener.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/navigation/LspImplicitReferenceProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/navigation/LspImplicitReferenceProvider.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/navigation/LspNavigatableSymbol.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/navigation/LspNavigatableSymbol.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/navigation/LspNavigationTarget.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/navigation/LspNavigationTarget.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/navigation/LspServerAndLocationLinks.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/navigation/LspServerAndLocationLinks.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/navigation/LspSymbolReference.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/navigation/LspSymbolReference.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/quickFix/LspIntentionActionWrapperBase.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/quickFix/LspIntentionActionWrapperBase.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/quickFix/LspQuickFixSet.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/quickFix/LspQuickFixSet.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/quickFix/LspQuickFixWrapper.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/quickFix/LspQuickFixWrapper.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/DidChangeNotification.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/requests/DidChangeNotification.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/DidChangeWatchedFilesNotification.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/requests/DidChangeWatchedFilesNotification.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/DidCloseNotification.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/requests/DidCloseNotification.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/DidOpenNotification.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/requests/DidOpenNotification.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspCodeActionRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/requests/LspCodeActionRequest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspCompletionRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/requests/LspCompletionRequest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspDefinitionRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/requests/LspDefinitionRequest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspFormattingRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/requests/LspFormattingRequest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspHoverRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/requests/LspHoverRequest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspRequestExecutorImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/requests/LspRequestExecutorImpl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/LspResolveCompletionItemRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/requests/LspResolveCompletionItemRequest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/SemanticTokensFullNotification.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/requests/SemanticTokensFullNotification.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/impl/requests/TextRangeAndMarkupContent.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/requests/TextRangeAndMarkupContent.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/linqingying/lsp/util/Lsp4jUtil.kt" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/util/Lsp4jUtil.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/event/Event.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/event/Event.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/type/arguments/Arguments.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/type/arguments/Arguments.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/type/body/Body.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/type/body/Body.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/dap/type/serializer/Serializer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/dap/type/serializer/Serializer.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/lsp.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/lsp.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/lsp.xml" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/resources/META-INF/lsp.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/lsp/LSPServer.exe" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/resources/lsp/LSPServer.exe" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/messages/CangJieBundle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/messages/CangJieBundle.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/messages/LspBundle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/messages/LspBundle.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/messages/LspBundle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/lsp/src/main/resources/messages/LspBundle.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/test.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/test.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -128,28 +171,19 @@
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="intellij-cangjie" type="f1a62948:ProjectNode" />
-                <item name="Dependencies" type="6de06a37:ExternalSystemViewDefaultContributor$MyDependenciesNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
               </path>
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="intellij-cangjie" type="f1a62948:ProjectNode" />
-                <item name="Dependencies" type="6de06a37:ExternalSystemViewDefaultContributor$MyDependenciesNode" />
-                <item name="compileClasspath" type="62daadca:ExternalSystemViewDefaultContributor$DependencyScopeExternalSystemNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="build" type="c8890929:TasksNode$1" />
               </path>
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="intellij-cangjie" type="f1a62948:ProjectNode" />
-                <item name="Dependencies" type="6de06a37:ExternalSystemViewDefaultContributor$MyDependenciesNode" />
-                <item name="compileClasspath" type="62daadca:ExternalSystemViewDefaultContributor$DependencyScopeExternalSystemNode" />
-                <item name="org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0" type="b3323d55:ExternalSystemViewDefaultContributor$DependencyExternalSystemNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="intellij-cangjie" type="f1a62948:ProjectNode" />
-                <item name="Dependencies" type="6de06a37:ExternalSystemViewDefaultContributor$MyDependenciesNode" />
-                <item name="compileClasspath" type="62daadca:ExternalSystemViewDefaultContributor$DependencyScopeExternalSystemNode" />
-                <item name="org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0" type="b3323d55:ExternalSystemViewDefaultContributor$DependencyExternalSystemNode" />
-                <item name="org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc:0.22.0" type="b3323d55:ExternalSystemViewDefaultContributor$DependencyExternalSystemNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="intellij" type="c8890929:TasksNode$1" />
               </path>
             </expand>
             <select />
@@ -168,11 +202,12 @@
         <option value="Kotlin Script" />
         <option value="Python Script" />
         <option value="JavaScript File" />
-        <option value="Kotlin Interface" />
         <option value="HTML File" />
         <option value="Kotlin Object" />
         <option value="Class" />
         <option value="Kotlin File" />
+        <option value="InspectionDescription" />
+        <option value="Kotlin Interface" />
         <option value="Kotlin Class" />
       </list>
     </option>
@@ -193,6 +228,9 @@
     <setting file="jar://$USER_HOME$/.gradle/wrapper/dists/gradle-8.2-bin/bbg7u40eoinfdyxsxr3z4i7ta/gradle-8.2/lib/kotlin-stdlib-1.8.20.jar!/kotlin/kotlin.kotlin_builtins" root0="SKIP_INSPECTION" />
     <setting file="jar://$PROJECT_DIR$/deps/ideaIU-2023.3.2/lib/lib.jar!/org/eclipse/lsp4j/jsonrpc/messages/Either.class" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjFile.kt" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="KotlinCodeInsightWorkspaceSettings">
+    <option name="optimizeImportsOnTheFly" value="true" />
   </component>
   <component name="KotlinScriptingSettings">
     <scriptDefinition className="org.jetbrains.kotlin.scripting.resolve.KotlinScriptDefinitionFromAnnotatedTemplate" definitionName="KotlinBuildScript">
@@ -225,38 +263,42 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
-    &quot;Gradle.Run.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.intellij-cangjie [setupDependencies].executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;UI_DESIGNER_EDITOR_MODE.PaletteManager.SHOW&quot;: &quot;false&quot;,
-    &quot;UI_DESIGNER_EDITOR_MODE.PaletteManager.WIDTH&quot;: &quot;370&quot;,
-    &quot;UI_DESIGNER_EDITOR_MODE.UIDesignerToolWindowManager.SHOW&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;zulu-17&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/Code/idea/intellij-cangjie/lsp4j/src/main/java/org/eclipse/lsp4j&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
-    &quot;org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon&quot;: &quot;&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;库&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.17&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.54196155&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;http.proxy&quot;,
-    &quot;two.files.diff.last.used.file&quot;: &quot;D:/Code/idea/intellij-cangjie/log/test2.json&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultHtmlFileTemplate": "HTML File",
+    "Gradle.Run.executor": "Run",
+    "Gradle.intellij-cangjie [buildPlugin].executor": "Run",
+    "Gradle.intellij-cangjie [clean].executor": "Run",
+    "Gradle.intellij-cangjie [setupDependencies].executor": "Run",
+    "Gradle.构建 intellij-cangjie.executor": "Run",
+    "Kotlin.TestKt (1).executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "UI_DESIGNER_EDITOR_MODE.PaletteManager.SHOW": "false",
+    "UI_DESIGNER_EDITOR_MODE.PaletteManager.WIDTH": "370",
+    "UI_DESIGNER_EDITOR_MODE.UIDesignerToolWindowManager.SHOW": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "dart.analysis.tool.window.visible": "false",
+    "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
+    "jdk.selected.JAVA_MODULE": "zulu-17",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/Code/idea/intellij-cangjie/log",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
+    "org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon": "",
+    "project.structure.last.edited": "模块",
+    "project.structure.proportion": "0.17",
+    "project.structure.side.proportion": "0.54196155",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "two.files.diff.last.used.file": "D:/Code/idea/intellij-cangjie/log/test2.json",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="PsiViewer">
     <option name="HIGHLIGHT" value="true" />
     <option name="SPLIT_DIVIDER_POSITION" value="229" />
@@ -269,25 +311,25 @@
       <recent name="com.huawei.cangjie.lang.core.parser" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Code\idea\intellij-cangjie\log" />
       <recent name="D:\Code\idea\intellij-cangjie\lsp4j\src\main\java\org\eclipse\lsp4j" />
       <recent name="D:\Code\idea\intellij-cangjie\lsp4j" />
-      <recent name="D:\Code\idea\intellij-cangjie\log" />
       <recent name="D:\Code\idea\intellij-cangjie\vscode" />
       <recent name="D:\Code\idea\intellij-cangjie\src\main\kotlin\com\huawei\cangjie\cjpm\project\settings" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="D:\Code\idea\intellij-cangjie\docs" />
-      <recent name="D:\Code\idea\intellij-cangjie\protoc" />
-      <recent name="D:\Code\idea\intellij-cangjie\protoc-24.1-win64\bin" />
-      <recent name="D:\Code\idea\intellij-cangjie\protoc-24.1-win64" />
-      <recent name="D:\Code\idea\intellij-cangjie\cidr\src\main\resources" />
+      <recent name="D:\Code\idea\intellij-cangjie\src\main\resources\META-INF" />
+      <recent name="D:\Code\idea\intellij-cangjie\lsp\src\main\resources\META-INF" />
+      <recent name="D:\Code\idea\intellij-cangjie\lsp\src\main\resources\messages" />
+      <recent name="D:\Code\idea\intellij-cangjie\lsp\src\main\resources" />
+      <recent name="D:\Code\idea\intellij-cangjie\inspections\src\main\resources\META-INF" />
     </key>
     <key name="MoveKotlinTopLevelDeclarationsDialog.RECENTS_KEY">
+      <recent name="com.huawei.cangjie.idea.actions.runAnything" />
+      <recent name="com.huawei.cangjie.highlighter" />
       <recent name="com.huawei.cangjie.cjpm.project.settings" />
       <recent name="com.huawei.cangjie.cjpm.project.model" />
       <recent name="com.huawei.cangjie.cjpm.project" />
-      <recent name="a" />
-      <recent name="dap.protocol" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
       <recent name="com.huawei.cangjie.doc.lexer" />
@@ -378,27 +420,12 @@
       <RunAsTest>false</RunAsTest>
       <method v="2" />
     </configuration>
-    <configuration name="intellij-cangjie [jar]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value="jar" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <RunAsTest>false</RunAsTest>
-      <method v="2" />
+    <configuration name="TestKt (1)" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="TestKt" />
+      <module name="intellij-cangjie.test" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
     </configuration>
     <configuration name="TestKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="dap.TestKt" />
@@ -412,16 +439,16 @@
       <item itemvalue="Gradle.intellij-cangjie [buildPlugin]" />
       <item itemvalue="Gradle.intellij-cangjie [clean]" />
       <item itemvalue="Gradle.intellij-cangjie [instrumentedJar]" />
-      <item itemvalue="Gradle.intellij-cangjie [jar]" />
+      <item itemvalue="Kotlin.TestKt (1)" />
       <item itemvalue="Kotlin.TestKt" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Kotlin.TestKt (1)" />
         <item itemvalue="Gradle.intellij-cangjie [buildPlugin]" />
-        <item itemvalue="Gradle.intellij-cangjie [instrumentedJar]" />
         <item itemvalue="Gradle.intellij-cangjie [clean]" />
+        <item itemvalue="Gradle.intellij-cangjie [instrumentedJar]" />
         <item itemvalue="Kotlin.TestKt" />
-        <item itemvalue="Gradle.intellij-cangjie [jar]" />
       </list>
     </recent_temporary>
   </component>
@@ -432,6 +459,7 @@
     <attachedChunks>
       <set>
         <option value="jdk-17.0.9-jbr-17.0.9-4caba194b151-ee11d055" />
+        <option value="project-project-4caba194b151-d25d50f7" />
       </set>
     </attachedChunks>
   </component>
@@ -975,14 +1003,35 @@
       <workItem from="1708236853793" duration="14074000" />
       <workItem from="1708255771350" duration="6689000" />
       <workItem from="1708262629930" duration="7538000" />
-    </task>
-    <task id="LOCAL-00009" summary="图片">
-      <option name="closed" value="true" />
-      <created>1697805597813</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1697805597813</updated>
+      <workItem from="1708270240910" duration="993000" />
+      <workItem from="1708271252404" duration="211000" />
+      <workItem from="1708271537400" duration="263000" />
+      <workItem from="1708271814127" duration="93000" />
+      <workItem from="1708324235733" duration="7980000" />
+      <workItem from="1708338183351" duration="3939000" />
+      <workItem from="1708343806960" duration="433000" />
+      <workItem from="1708345716268" duration="1130000" />
+      <workItem from="1708356363644" duration="2120000" />
+      <workItem from="1708405510825" duration="4444000" />
+      <workItem from="1708416878114" duration="598000" />
+      <workItem from="1708420031635" duration="3798000" />
+      <workItem from="1708425067691" duration="16000" />
+      <workItem from="1708437943423" duration="2762000" />
+      <workItem from="1708442387448" duration="659000" />
+      <workItem from="1708494263177" duration="2447000" />
+      <workItem from="1708515266883" duration="9064000" />
+      <workItem from="1708525022628" duration="2977000" />
+      <workItem from="1708528147065" duration="10000" />
+      <workItem from="1708577301631" duration="645000" />
+      <workItem from="1708580148013" duration="5374000" />
+      <workItem from="1708588261102" duration="2347000" />
+      <workItem from="1708599344133" duration="3493000" />
+      <workItem from="1708602894760" duration="4899000" />
+      <workItem from="1708607854337" duration="3327000" />
+      <workItem from="1708611232761" duration="1644000" />
+      <workItem from="1708612924162" duration="5301000" />
+      <workItem from="1708667092187" duration="11273000" />
+      <workItem from="1708680290884" duration="10567000" />
     </task>
     <task id="LOCAL-00010" summary="编译">
       <option name="closed" value="true" />
@@ -1368,7 +1417,15 @@
       <option name="project" value="LOCAL" />
       <updated>1707816562892</updated>
     </task>
-    <option name="localTasksCounter" value="58" />
+    <task id="LOCAL-00058" summary="从sdk修改为工具链，添加lsp补全模板">
+      <option name="closed" value="true" />
+      <created>1708270542872</created>
+      <option name="number" value="00058" />
+      <option name="presentableId" value="LOCAL-00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1708270542872</updated>
+    </task>
+    <option name="localTasksCounter" value="59" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1400,7 +1457,6 @@
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="develop 元组，索引，函数调用表达式，for,while,do while,if else？， match还是太难了，呜呜呜" />
     <MESSAGE value="完成match" />
     <MESSAGE value="class_init" />
     <MESSAGE value="语法高亮" />
@@ -1425,7 +1481,8 @@
     <MESSAGE value="new debugger develop" />
     <MESSAGE value="优化调试器方案" />
     <MESSAGE value="添加自动插件打包构建" />
-    <option name="LAST_COMMIT_MESSAGE" value="添加自动插件打包构建" />
+    <MESSAGE value="从sdk修改为工具链，添加lsp补全模板" />
+    <option name="LAST_COMMIT_MESSAGE" value="从sdk修改为工具链，添加lsp补全模板" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1434,6 +1491,26 @@
           <properties class="kotlin.NotImplementedError" package="kotlin" />
           <option name="timeStamp" value="441" />
         </breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/impl/documentation/LspDocumentationTargetProvider.kt</url>
+          <line>55</line>
+          <option name="timeStamp" value="521" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/lsp/src/main/kotlin/com/linqingying/lsp/util/Lsp4jUtil.kt</url>
+          <line>62</line>
+          <option name="timeStamp" value="524" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt</url>
+          <line>155</line>
+          <option name="timeStamp" value="554" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/run/cjpm/runconfig/buildtool/CjpmBuildManager.kt</url>
+          <line>108</line>
+          <option name="timeStamp" value="561" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <pin-to-top-manager>

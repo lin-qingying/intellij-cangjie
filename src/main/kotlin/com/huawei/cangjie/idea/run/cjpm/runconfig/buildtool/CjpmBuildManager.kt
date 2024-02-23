@@ -1,6 +1,7 @@
 package com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool
 
 
+import com.debugger.runconfig.toSystemIndependentPath
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.cjpm.project.model.CjpmProject
 import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
@@ -10,7 +11,7 @@ import com.huawei.cangjie.idea.run.CjpmArgsParser.Companion.parseArgs
 import com.huawei.cangjie.idea.run.cjpm.*
 
 import com.huawei.cangjie.idea.run.hasRemoteTarget
-import com.huawei.cangjie.lang.lsp.toSystemPath
+
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildViewManager
 import com.intellij.execution.ExecutorRegistry
@@ -86,8 +87,8 @@ object CjpmBuildManager {
     fun isBuildConfiguration(configuration: CjpmCommandConfiguration): Boolean {
         val parsed = configuration.command.let { ParsedCommand.parse(it) } ?: return false
         return when (val command = parsed.command) {
-            "build", "check", "clippy" -> true
-            "test", "bench" -> {
+            "build" -> true
+            "test" -> {
                 val (commandArguments, _) = parseArgs(command, parsed.additionalArguments)
                 "--no-run" in commandArguments
             }
@@ -97,7 +98,7 @@ object CjpmBuildManager {
     }
 
 
-    private val BUILDABLE_COMMANDS: List<String> = listOf("run", "test", "bench")
+    private val BUILDABLE_COMMANDS: List<String> = listOf("run", "test")
     fun getBuildConfiguration(configuration: CjpmCommandConfiguration): CjpmCommandConfiguration? {
         if (isBuildConfiguration(configuration)) return configuration
 
@@ -105,9 +106,9 @@ object CjpmBuildManager {
         if (parsed.command !in BUILDABLE_COMMANDS) return null
 
 
-        if (configuration.executorId == "Debug") {
-            parsed.additionalArguments.add("-g")
-        }
+//        if (configuration.executorId == "Debug") {
+//            parsed.additionalArguments.add("-g")
+//        }
 
         val commandArguments = parseArgs(
             parsed.command,
@@ -125,13 +126,54 @@ object CjpmBuildManager {
 
         buildConfiguration.command = ParametersListUtil.join(
             when (parsed.command) {
-                "run" -> listOfNotNull(parsed.toolchain, "build", *commandArguments.toTypedArray())
-                "test" -> listOfNotNull(parsed.toolchain, "test",  *commandArguments.toTypedArray())
+//                "run" -> listOfNotNull(
+//                    parsed.toolchain, "build",  *commandArguments.toTypedArray()
+//                )
+
+                "run" -> {
+                    var buildArgs: String = ""
+                    for (arg in commandArguments) {
+                        if (arg.startsWith("--build-args")) {
+                            buildArgs = arg.split("--build-args=")[1]
+//                            val regex = "\"(.*?)\"".toRegex()
+//
+//                            buildArgs = regex.find(buildArgs)?.groupValues?.get(1) ?: buildArgs
+
+                            if (buildArgs.startsWith("\"") || buildArgs.startsWith("“")) {
+                                buildArgs = buildArgs.substring(1, buildArgs.length - 1)
+                            }
+                            if (buildArgs.endsWith("\"") || buildArgs.endsWith("”"))
+                                buildArgs = buildArgs.substring(0, buildArgs.length - 1)
+
+
+
+                        }
+
+                    }
+                    if (configuration.executorId == "Debug") {
+                        buildArgs = buildArgs.replace("-g", "")
+                        buildArgs = "$buildArgs-g"
+
+                    }
+                    if (buildArgs.isEmpty()) listOfNotNull(
+
+
+                        parsed.toolchain, "build"
+                    ) else listOfNotNull(
+                        parsed.toolchain, "build", buildArgs
+                    )
+
+                }
+//if ("--build-args" in commandArguments) {
+//                        commandArguments.toTypedArray()
+//                    } else {
+//                        arrayOf()
+//                    }
+                "test" -> listOfNotNull(parsed.toolchain, "test", *commandArguments.toTypedArray())
 
                 else -> return null
             }
         )
-
         buildConfiguration.emulateTerminal = false
 
         //构建不需要超级用户权限和重定向输入
@@ -154,7 +196,7 @@ object CjpmBuildManager {
             project, "clean",
             emulateTerminal = false
         )
-            .runAsync(saveConfiguration = false)
+            .runAsync(project, saveConfiguration = false)
 
 
     private fun execute(
@@ -245,8 +287,11 @@ object CjpmBuildManager {
         val state = CjpmRunState(
             environment,
             configuration,
-            configuration.clean().ok ?: return CANCELED_BUILD_RESULT
+            configuration.clean().ok ?: return CANCELED_BUILD_RESULT,
         )
+
+        val cjpmProject = state.cjpmProject ?: return CANCELED_BUILD_RESULT
+
         // 确保生成工具窗口已初始化：
         ApplicationManager.getApplication().invokeLater {
             BuildContentManager.getInstance(project).getOrCreateToolWindow()
@@ -254,6 +299,7 @@ object CjpmBuildManager {
         val buildId = configuration.executorId
         return execute(
             CjpmBuildContext(
+                cjpmProject,
                 environment = environment,
                 taskName = CangJieBundle.message("progress.title.build"),
                 progressTitle = CangJieBundle.message("progress.text.building1"),
@@ -325,11 +371,11 @@ object CjpmBuildManager {
         val toolchain = project.cangjieSettings.toolchain
 //        if (sdkVersion < "0.45.2") return "${project.basePath}/build/bin/main".toSystemPath()
         if (toolchain?.cjc()?.version?.semver!! < SemVer.parseFromText("0.45.2")) {
-            return "${project.basePath}/build/bin/main".toSystemPath()
+            return "${project.basePath}/build/bin/main".toSystemIndependentPath()
         }
         return when (buildId) {
-            "Debug" -> "${project.basePath}/build/debug/bin/main".toSystemPath()
-            "Run" -> "${project.basePath}/build/release/bin/main".toSystemPath()
+            "Debug" -> "${project.basePath}/build/debug/bin/main".toSystemIndependentPath()
+            "Run" -> "${project.basePath}/build/release/bin/main".toSystemIndependentPath()
             else -> ""
         }
 

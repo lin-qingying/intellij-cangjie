@@ -3,35 +3,35 @@ package com.huawei.cangjie.idea.project.tools.projectWizard
 import com.huawei.cangjie.cjpm.project.toPathOrNull
 import com.huawei.cangjie.idea.newProject.CjProjectGeneratorPeer
 import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.CangJieModuleBuilder
-
 import com.intellij.CommonBundle
 import com.intellij.ide.wizard.*
 import com.intellij.ide.wizard.GitNewProjectWizardData.Companion.gitData
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.roots.ui.configuration.*
 import com.intellij.openapi.roots.ui.configuration.SdkListItem.*
-import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
 import com.intellij.openapi.ui.*
 import com.intellij.openapi.ui.validation.DialogValidation
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.ui.dsl.builder.*
-import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.intellij.ui.layout.ValidationInfoBuilder
 import com.intellij.util.Consumer
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
-import javax.swing.*
+import javax.swing.AbstractListModel
+import javax.swing.ComboBoxModel
+import javax.swing.JTextField
+import javax.swing.ListModel
 
 class CangJieNewProjectWizard : LanguageNewProjectWizard {
     override val name = "CangJie"
@@ -82,8 +82,6 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
         private val peer: CjProjectGeneratorPeer = CjProjectGeneratorPeer(parent.path.toPathOrNull() ?: Paths.get("."))
 
 
-
-
         //        项目类型
         private val projectTypeComboBox: ComboBox<CangJieProjectTypeItem> = ComboBox<CangJieProjectTypeItem>().apply {
 
@@ -110,14 +108,20 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
 
         override fun setupProject(project: Project) {
 
-            val builder = CangJieModuleBuilder(moduleName = moduleNameTextField.text, organizationName = groupIdTextField.text , projectType = (projectTypeComboBox.selectedItem as CangJieProjectTypeItem).type)
+            val builder = CangJieModuleBuilder(
+                moduleName = moduleNameTextField.text,
+                organizationName = groupIdTextField.text,
+                projectType = (projectTypeComboBox.selectedItem as CangJieProjectTypeItem).type
+            )
             val module = builder.commit(project)?.firstOrNull() ?: return
             ModuleRootModificationUtil.updateModel(module) { rootModel ->
                 builder.configurationData = peer.settings
-                builder.createProject(rootModel )
-                if (gitData?.git == true) createGitIgnoreFile(context.projectDirectory, module)
-            }
+                builder.createProject(rootModel)
 
+                if (gitData?.git == true) runWriteAction {
+                    createGitIgnoreFile(context.projectDirectory, module)
+                }
+            }
 
 
         }

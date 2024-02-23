@@ -1,6 +1,7 @@
 package com.debugger.runconfig
 
 import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
+import com.huawei.cangjie.idea.run.cjpm.runconfig.CjProcessHandler
 import com.huawei.cangjie.utils.getSavePluginVersion
 import com.huawei.cangjie.utils.savePluginVersion
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -10,7 +11,7 @@ import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.systemIndependentPath
-import com.linqingying.lsp.api.LspProcessHandler
+
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -78,7 +79,7 @@ object CangJieDebuggerServerManager {
 //        删除日志文件
 //        removeLogFiles()
 
-        val processHandler = LspProcessHandler(getCommandLine())
+        val processHandler = CjProcessHandler(getCommandLine())
         processHandler.startNotify()
         return processHandler
     }
@@ -110,12 +111,14 @@ object CangJieDebuggerServerManager {
 
             setWorkDirectory(project.basePath)
             addParameter("--port=$DEBUGPORT")
-            addParameter("--logpath=$LOGPATH".toSystemPath())
+//            addParameter("--logpath=$LOGPATH".toSystemPath())
+            addParameter("--logpath=$LOGPATH")
             addParameter("--debuggertype=$DEBUGGERTYPE")
             cangjieSettings.toolchain?.getEnvironment()?.let { environment.putAll(it) }
-
+//            environment["LD_LIBRARY_PATH"] =
+//                (cangjieSettings.toolchain?.sdkHome?.systemIndependentPath + DEFUALTLIBLLDBPATH).toSystemPath()
             environment["LD_LIBRARY_PATH"] =
-                (cangjieSettings.toolchain?.sdkHome?.systemIndependentPath + DEFUALTLIBLLDBPATH).toSystemPath()
+                (cangjieSettings.toolchain?.sdkHome?.systemIndependentPath + DEFUALTLIBLLDBPATH)
 //            //                        TODO runtime路径需要判读系统
 
         }
@@ -163,12 +166,19 @@ object CangJieDebuggerServerManager {
 
 }
 
-
-fun String.toSystemPath(): String {
+fun String.toSystemIndependentPath(): String {
     return if (SystemInfo.isWindows) {
-        this.replace("/", "\\")
-    } else {
-        this
+        "$this.exe"
+    }else{
+          this
     }
-
 }
+
+//fun String.toSystemPath(): String {
+//    return if (SystemInfo.isWindows) {
+//        this.replace("/", "\\")
+//    } else {
+//        this
+//    }
+//
+//}

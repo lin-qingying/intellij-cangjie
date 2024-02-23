@@ -1,6 +1,8 @@
 package com.huawei.cangjie.psi
 
 import com.huawei.cangjie.CjNodeTypes
+import com.huawei.cangjie.cjpm.project.model.CjpmProject
+import com.huawei.cangjie.cjpm.project.workspace.CjpmWorkspace
 import com.huawei.cangjie.lang.CangJieFileType
 import com.huawei.cangjie.lang.CangJieLanguage
 
@@ -10,15 +12,19 @@ import com.huawei.cangjie.psi.stubs.elements.CjPlaceHolderStubElementType
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.huawei.cangjie.psi.stubs.elements.CjTokenSets
 import com.intellij.extapi.psi.PsiFileBase
+import com.intellij.injected.editor.VirtualFileWindow
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.vfs.VirtualFileWithId
 import com.intellij.psi.*
 import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.tree.TokenSet
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ArrayFactory
 
- open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = false) :
+open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = false) :
     PsiFileBase(viewProvider, CangJieLanguage),
 //    PsiClassOwner,
     PsiNamedElement,
@@ -36,7 +42,7 @@ import com.intellij.util.ArrayFactory
 ////        TODO("更改包名  完全限定名")
 //    }
 
-//    override fun shouldChangeModificationCount(place: PsiElement?): Boolean = false
+    //    override fun shouldChangeModificationCount(place: PsiElement?): Boolean = false
     override fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D) {
         CjPsiUtil.visitChildren(this, visitor, data)
     }
@@ -60,9 +66,40 @@ import com.intellij.util.ArrayFactory
         return "CangJie File: $name"
     }
 
+    @Volatile
+    private var forcedCachedData: (() -> CachedData)? = null
+//    private val cachedData: CachedData
+//        get() {
+//            forcedCachedData?.let { return it() }
+//
+//            val originalFile = originalFile
+//            if (originalFile != this) {
+//                return (originalFile as? CjFile)?.cachedData
+//                    ?: CachedData(crate = FakeInvalidCrate(project))
+//            }
+//
+//            val key = CACHED_DATA_KEY
+//            return CachedValuesManager.getCachedValue(this, key) {
+//                val value = doGetCachedData()
+//                // Note: if the cached result is invalidated, then the cached result from `memExpansionResult`
+//                // must also be invalidated, so keep them in sync
+//                val modificationTracker: Any = when {
+//                    /** See [rustStructureOrAnyPsiModificationTracker] */
+//                    virtualFile is VirtualFileWindow -> PsiModificationTracker.MODIFICATION_COUNT
+//                    value.crate.origin == PackageOrigin.WORKSPACE -> project.rustStructureModificationTracker
+//                    else -> project.rustPsiManager.rustStructureModificationTrackerInDependencies
+//                }
+//                CachedValueProvider.Result(value, modificationTracker)
+//            }
+//        }
+
     override fun getPsiOrParent(): CjElement = this
     open val importDirectives: List<CjImportDirective>
         get() = importLists.flatMap { it.imports }
+
+
+//    val isDeeplyEnabledByCfg: Boolean get() = cachedData.isDeeplyEnabledByCfg
+
 
     override fun getContainingCjFile(): CjFile = this
 
@@ -135,8 +172,9 @@ import com.intellij.util.ArrayFactory
             }
         }
 
-     val importList: CjImportList?
-         get() = importLists.firstOrNull()
+    val importList: CjImportList?
+        get() = importLists.firstOrNull()
+
     companion object {
         val FILE_DECLARATION_TYPES = TokenSet.orSet(CjTokenSets.DECLARATION_TYPES)
     }
@@ -155,3 +193,16 @@ private fun CjImportList.computeHasImportAlias(): Boolean {
     return false
 }
 
+private data class CachedData(
+    val cargoProject: CjpmProject? = null,
+    val cargoWorkspace: CjpmWorkspace? = null,
+    val crateRoot: CjFile? = null,
+
+    val isDeeplyEnabledByCfg: Boolean = true,
+    val isIncludedByIncludeMacro: Boolean = false,
+    /**
+     * Note: it accounts only for in-memory macro calls depth. Top-level macro calls don't need it because
+     * their depth is checked in [DefCollector]
+     */
+    val macroExpansionDepth: Int = 0
+)

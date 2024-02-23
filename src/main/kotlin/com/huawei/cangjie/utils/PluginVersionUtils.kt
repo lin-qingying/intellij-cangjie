@@ -1,6 +1,6 @@
 package com.huawei.cangjie.utils
 
-import com.huawei.cangjie.lang.lsp.CangJieLspServerManager
+
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.extensions.PluginId
 import java.nio.file.Files

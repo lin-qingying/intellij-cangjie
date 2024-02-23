@@ -623,8 +623,8 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
     override fun handleStoppedEvent(message: StoppedEvent) {
         when (message.body?.reason) {
             StoppedEventReason.Breakpoint -> {
-                for (id in message.body.hitBreakpointIds!!) {
-                    pauseAndHitBreakpoint(message.body.threadId!!, id)
+                for (id in message.body!!.hitBreakpointIds!!) {
+                    pauseAndHitBreakpoint(message.body!!.threadId!!, id)
 
                 }
             }
@@ -638,7 +638,7 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
             is StoppedEventReason.Other -> TODO()
             StoppedEventReason.Pause -> TODO()
             StoppedEventReason.Step -> {
-                pauseAndHitBreakpoint(message.body.threadId!!)
+                pauseAndHitBreakpoint(message.body!!.threadId!!)
             }
 
             null -> TODO()

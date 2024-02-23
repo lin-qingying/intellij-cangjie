@@ -76,18 +76,18 @@ public class CangJieCodeStyleSettings extends CustomCodeStyleSettings {
         this.isTempForDeserialize = isTempForDeserialize;
 
 
-        if (!ApplicationManager.getApplication().isUnitTestMode()) {
-            PACKAGES_TO_USE_STAR_IMPORTS.addEntry(new CangJiePackageEntry("java.util", false));
-            PACKAGES_TO_USE_STAR_IMPORTS.addEntry(new CangJiePackageEntry("kotlinx.android.synthetic", true));
-            PACKAGES_TO_USE_STAR_IMPORTS.addEntry(new CangJiePackageEntry("io.ktor", true));
-        }
-
-
-        PACKAGES_IMPORT_LAYOUT.addEntry(CangJiePackageEntry.ALL_OTHER_IMPORTS_ENTRY);
-        PACKAGES_IMPORT_LAYOUT.addEntry(new CangJiePackageEntry("java", true));
-        PACKAGES_IMPORT_LAYOUT.addEntry(new CangJiePackageEntry("javax", true));
-        PACKAGES_IMPORT_LAYOUT.addEntry(new CangJiePackageEntry("kotlin", true));
-        PACKAGES_IMPORT_LAYOUT.addEntry(CangJiePackageEntry.ALL_OTHER_ALIAS_IMPORTS_ENTRY);
+//        if (!ApplicationManager.getApplication().isUnitTestMode()) {
+//            PACKAGES_TO_USE_STAR_IMPORTS.addEntry(new CangJiePackageEntry("java.util", false));
+//            PACKAGES_TO_USE_STAR_IMPORTS.addEntry(new CangJiePackageEntry("kotlinx.android.synthetic", true));
+//            PACKAGES_TO_USE_STAR_IMPORTS.addEntry(new CangJiePackageEntry("io.ktor", true));
+//        }
+//
+//
+//        PACKAGES_IMPORT_LAYOUT.addEntry(CangJiePackageEntry.ALL_OTHER_IMPORTS_ENTRY);
+//        PACKAGES_IMPORT_LAYOUT.addEntry(new CangJiePackageEntry("java", true));
+//        PACKAGES_IMPORT_LAYOUT.addEntry(new CangJiePackageEntry("javax", true));
+//        PACKAGES_IMPORT_LAYOUT.addEntry(new CangJiePackageEntry("kotlin", true));
+//        PACKAGES_IMPORT_LAYOUT.addEntry(CangJiePackageEntry.ALL_OTHER_ALIAS_IMPORTS_ENTRY);
     }
 
     @Override

@@ -570,7 +570,7 @@ data class EvaluateResponseBody(
      * 则debug适配器可能返回此属性。
      */
     val memoryReference: String? = null
-):Body {
+): Body {
     fun toVariable(name:String): Variable {
 
         return Variable(

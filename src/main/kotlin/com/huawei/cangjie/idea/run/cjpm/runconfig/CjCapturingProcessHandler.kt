@@ -1,5 +1,6 @@
 package com.huawei.cangjie.idea.run.cjpm.runconfig
 
+import com.fasterxml.jackson.core.JacksonException
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
@@ -66,7 +67,13 @@ sealed class CjResult<out T, out E> {
             throw IllegalStateException("called `CjResult.unwrap()` on an `Err` value: $err")
         }
     }
+
+
 }
+
+class CjDeserializationException(cause: JacksonException) : CjProcessExecutionOrDeserializationException(cause)
+class CjModuleNotFound : CjProcessExecutionOrDeserializationException("module not found")
+
 
 sealed class CjProcessExecutionException : CjProcessExecutionOrDeserializationException {
     constructor(message: String) : super(message)

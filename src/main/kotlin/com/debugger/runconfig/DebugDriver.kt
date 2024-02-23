@@ -4,8 +4,8 @@ import com.debugger.backend.CjBreakpoint
 import com.debugger.runconfig.message.MessageHandler
 import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
 import com.huawei.cangjie.cjpm.toolchain.tools.cjc
-import com.huawei.cangjie.idea.project.CangJieProjectManager
-import com.huawei.cangjie.lang.lsp.toSystemPath
+//import com.huawei.cangjie.idea.project.CangJieProjectManager
+
 
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.process.BaseProcessHandler
@@ -250,9 +250,9 @@ class DebugDriver(
 
 
         val mainexe = if (sdkVersion!! < SemVer.parseFromText("0.45.2")) {
-            ((CangJieProjectManager.getCurrentProject().basePath + "/build/bin/main").toSystemPath())
+            ((session.project.basePath + "/build/bin/main").toSystemIndependentPath())
         } else {
-            ((CangJieProjectManager.getCurrentProject().basePath + "/build/debug/bin/main").toSystemPath())
+            ((session.project.basePath + "/build/debug/bin/main").toSystemIndependentPath())
         }
         val request = LaunchRequest(
             seq = ++seq, arguments = LaunchRequestArguments(

@@ -1,8 +1,13 @@
 package com.huawei.cangjie.utils
 
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.execution.process.*
+import com.intellij.execution.process.OSProcessHandler
+import com.intellij.execution.process.ProcessEvent
+import com.intellij.execution.process.ProcessListener
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.options.Configurable
+import com.intellij.openapi.options.ShowSettingsUtil
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import java.util.*
 
@@ -55,3 +60,17 @@ fun executeCommand(command: String) {
 //
 //    ExecutionUtil.runConfiguration(settings, DefaultRunExecutor.getRunExecutorInstance())
 //}
+fun checkWriteAccessAllowed() {
+    check(ApplicationManager.getApplication().isWriteAccessAllowed) {
+        "Needs write action"
+    }
+}
+fun checkReadAccessAllowed() {
+    check(ApplicationManager.getApplication().isReadAccessAllowed) {
+        "Needs read action"
+    }
+}
+
+inline fun <reified T: Configurable> Project.showSettingsDialog() {
+    ShowSettingsUtil.getInstance().showSettingsDialog(this, T::class.java)
+}

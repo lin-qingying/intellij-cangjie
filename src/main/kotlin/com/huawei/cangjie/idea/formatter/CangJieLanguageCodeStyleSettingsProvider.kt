@@ -335,8 +335,7 @@ class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvid
         SettingsType.WRAPPING_AND_BRACES_SETTINGS ->
             """
                public class ThisIsASampleClass <: Comparable<Any> & Appendable {
-                   let test =
-                       12
+                   let test = 12
 
                     func foo1(i1: Int, i2: Int, i3: Int) : Int {
                        match (i1) {

@@ -55,7 +55,9 @@ class BeforeResolveHighlightingVisitor(holder: HighlightInfoHolder) : AbstractHi
         val calleeExpression = call.calleeExpression
         val typeElement = calleeExpression.typeReference?.typeElement
         if (typeElement is CjUserType) {
-            typeElement.referenceExpression?.let { highlightName(it, CangJieHighlightInfoTypeSemanticNames.CONSTRUCTOR_CALL) }
+            typeElement.referenceExpression?.let { highlightName(it,
+                CangJieHighlightInfoTypeSemanticNames.CONSTRUCTOR_CALL
+            ) }
         }
         super.visitSuperTypeCallEntry(call)
     }

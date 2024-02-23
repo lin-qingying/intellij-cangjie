@@ -12,42 +12,42 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 
-object CangJieProjectManager {
-
-    fun basePath(): Path = Paths.get(getProject()?.basePath!!)
-    val workspaceRootDir: VirtualFile? = getProject()?.baseDir
-//    val currentProject: Project
-//        get() = getCurrentProject()
-
-
-    /**
-     * 获取当前的项目
-     */
-
-    private var project: Project? = null
-
-
-    fun setProject(project: Project) {
-        this.project = project
-    }
-
-    fun getProject(): Project? {
-        return project
-    }
-
-
-    fun getCurrentProject(): Project {
-
-//        val service = service<CangJieService>()
+//object CangJieProjectManager {
 //
-//        return service.project!!
+//    fun basePath(): Path = Paths.get(getProject()?.basePath!!)
+//    val workspaceRootDir: VirtualFile? = getProject()?.baseDir
+////    val currentProject: Project
+////        get() = getCurrentProject()
 //
-
-//        if (project == null) return DataManager.getInstance()
-//            .getDataContext(WindowManager.getInstance().suggestParentWindow(null)).getData(CommonDataKeys.PROJECT)!!
-
-        return getProject()!!
-
-    }
-
-}
+//
+//    /**
+//     * 获取当前的项目
+//     */
+//
+//    private var project: Project? = null
+//
+//
+//    fun setProject(project: Project) {
+//        this.project = project
+//    }
+//
+//    fun getProject(): Project? {
+//        return project
+//    }
+//
+//
+//    fun getCurrentProject(): Project {
+//
+////        val service = service<CangJieService>()
+////
+////        return service.project!!
+////
+//
+////        if (project == null) return DataManager.getInstance()
+////            .getDataContext(WindowManager.getInstance().suggestParentWindow(null)).getData(CommonDataKeys.PROJECT)!!
+//
+//        return getProject()!!
+//
+//    }
+//
+//}

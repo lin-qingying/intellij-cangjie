@@ -1,18 +1,16 @@
 package com.huawei.cangjie.parsing
 
-import com.huawei.cangjie.doc.lexer.CDocTokens
 import com.huawei.cangjie.CjNodeType
-import com.huawei.cangjie.CjNodeTypes
+import com.huawei.cangjie.doc.lexer.CDocTokens
 import com.huawei.cangjie.doc.parser.CDocElementType
 import com.huawei.cangjie.doc.psi.impl.CDocLink
-import com.huawei.cangjie.lexer.CangJieLexer
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementType
 import com.huawei.cangjie.lang.CangJieLanguage
-import com.huawei.cangjie.psi.CjFile
+import com.huawei.cangjie.lexer.CangJieLexer
 import com.huawei.cangjie.lexer.CjToken
 import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.psi.stubs.elements.CjFileElementType
-import com.intellij.extapi.psi.ASTWrapperPsiElement
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementType
 import com.intellij.lang.ASTNode
 import com.intellij.lang.LanguageParserDefinitions
 import com.intellij.lang.ParserDefinition
@@ -60,7 +58,6 @@ class CangJieParserDefinition : ParserDefinition {
                 elementType.createPsiFromAst(node)
 
 
-
             is CDocElementType -> elementType.createPsi(node)
             CDocTokens.MARKDOWN_LINK -> CDocLink(node)
             else -> (elementType as CjNodeType).createPsi(node)
@@ -70,14 +67,12 @@ class CangJieParserDefinition : ParserDefinition {
     override fun createFile(viewProvider: FileViewProvider): PsiFile = CjFile(viewProvider, false)
 
 
-
-
     object Util {
         @JvmField
         val STD_SCRIPT_SUFFIX = "cj"
 
         @JvmField
-        val STD_SCRIPT_EXT = "." + STD_SCRIPT_SUFFIX
+        val STD_SCRIPT_EXT = ".$STD_SCRIPT_SUFFIX"
         val instance: CangJieParserDefinition
             get() = LanguageParserDefinitions.INSTANCE.forLanguage(CangJieLanguage) as CangJieParserDefinition
     }

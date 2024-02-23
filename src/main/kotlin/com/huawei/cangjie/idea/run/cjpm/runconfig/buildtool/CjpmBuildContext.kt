@@ -1,14 +1,13 @@
 package com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool
 
 import com.huawei.cangjie.CangJieBundle
-import com.huawei.cangjie.idea.project.CangJieProjectManager
+import com.huawei.cangjie.cjpm.project.model.CjpmProject
+import com.huawei.cangjie.cjpm.project.model.impl.workingDirectory
 import com.huawei.cangjie.idea.run.cjpm.CjExecutableRunner.Companion.artifacts
-
 import com.huawei.cangjie.idea.run.cjpm.CompilerArtifactMessage
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildManager.showBuildNotification
 import com.intellij.execution.ExecutionListener
 import com.intellij.execution.ExecutionManager
-
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -26,14 +25,17 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 abstract class CjpmBuildContextBase(
+    open val cjpmProject: CjpmProject,
 
     @NlsContexts.ProgressText val progressTitle: String,
     val isTestBuild: Boolean,
     val buildId: Any,
     val parentId: Any
 ) {
-    val project: Project get() =  CangJieProjectManager.getCurrentProject()
-    val workingDirectory: Path get() = CangJieProjectManager.getCurrentProject().basePath?.let { Path.of(it) } ?: throw ProcessCanceledException()
+    //    val project: Project get() =  CangJieProjectManager.getCurrentProject()
+//    val workingDirectory: Path get() = CangJieProjectManager.getCurrentProject().basePath?.let { Path.of(it) } ?: throw ProcessCanceledException()
+    val project: Project get() = cjpmProject.project
+    val workingDirectory: Path get() = cjpmProject.workingDirectory
 
     @Volatile
     var indicator: ProgressIndicator? = null
@@ -45,28 +47,30 @@ abstract class CjpmBuildContextBase(
     @Volatile
     var artifacts: List<CompilerArtifactMessage> = emptyList()
 }
-class CjpmBuildContext(
 
+class CjpmBuildContext(
+    cjpmProject: CjpmProject,
     val environment: ExecutionEnvironment,
     @NlsContexts.ProgressTitle val taskName: String,
     @NlsContexts.ProgressText progressTitle: String,
     isTestBuild: Boolean,
     buildId: Any,
     parentId: Any
-) : CjpmBuildContextBase( progressTitle, isTestBuild, buildId, parentId) {
+) : CjpmBuildContextBase(cjpmProject,progressTitle, isTestBuild, buildId, parentId) {
     @Volatile
     var processHandler: ProcessHandler? = null
     val result: CompletableFuture<CjpmBuildResult> = CompletableFuture()
+
     companion object {
         private val BUILD_SEMAPHORE_KEY: Key<Semaphore> = Key.create("BUILD_SEMAPHORE_KEY")
     }
+
     private val buildSemaphore: Semaphore = project.getUserData(BUILD_SEMAPHORE_KEY)
         ?: (project as UserDataHolderEx).putUserDataIfAbsent(BUILD_SEMAPHORE_KEY, Semaphore(1))
     val started: Long = System.currentTimeMillis()
     var finished: Long = started
 
     private val duration: Long get() = finished - started
-
 
 
     fun finished(isSuccess: Boolean) {
@@ -90,7 +94,10 @@ class CjpmBuildContext(
             MessageType.INFO
         } else {
             val hasWarningsOrErrors = errors > 0 || warnings > 0
-            finishMessage = if (isSuccess) CangJieBundle.message("system.notification.title.finished", taskName) else CangJieBundle.message("system.notification.title.failed", taskName)
+            finishMessage = if (isSuccess) CangJieBundle.message(
+                "system.notification.title.finished",
+                taskName
+            ) else CangJieBundle.message("system.notification.title.failed", taskName)
             finishDetails = if (hasWarningsOrErrors) {
                 val errorsString = if (errors == 1) "error" else "errors"
                 val warningsString = if (warnings == 1) "warning" else "warnings"
@@ -106,15 +113,17 @@ class CjpmBuildContext(
             }
         }
 
-        result.complete(CjpmBuildResult(
-            succeeded = isSuccess,
-            canceled = isCanceled,
-            started = started,
-            duration = duration,
-            errors = errors,
-            warnings = warnings,
-            message = finishMessage
-        ))
+        result.complete(
+            CjpmBuildResult(
+                succeeded = isSuccess,
+                canceled = isCanceled,
+                started = started,
+                duration = duration,
+                errors = errors,
+                warnings = warnings,
+                message = finishMessage
+            )
+        )
 
         showBuildNotification(project, messageType, finishMessage, finishDetails, duration)
     }
@@ -124,18 +133,19 @@ class CjpmBuildContext(
 
         result.complete(
             CjpmBuildResult(
-            succeeded = false,
-            canceled = true,
-            started = started,
-            duration = duration,
-            errors = errors.get(),
-            warnings = warnings.get(),
-            message = "$taskName canceled"
-        )
+                succeeded = false,
+                canceled = true,
+                started = started,
+                duration = duration,
+                errors = errors.get(),
+                warnings = warnings.get(),
+                message = "$taskName canceled"
+            )
         )
 
         environment.notifyProcessNotStarted()
     }
+
     fun waitAndStart(): Boolean {
         indicator?.pushState()
         try {
@@ -158,17 +168,24 @@ class CjpmBuildContext(
         return true
     }
 }
+
 fun ExecutionEnvironment.notifyProcessNotStarted() =
     executionListener.processNotStarted(executor.id, this)
+
 private val ExecutionEnvironment.executionListener: ExecutionListener
     get() = project.messageBus.syncPublisher(ExecutionManager.EXECUTION_TOPIC)
+
 fun ExecutionEnvironment.notifyProcessStartScheduled() =
     executionListener.processStartScheduled(executor.id, this)
+
 fun ExecutionEnvironment.notifyProcessStarting() =
     executionListener.processStarting(executor.id, this)
+
 fun ExecutionEnvironment.notifyProcessStarted(handler: ProcessHandler) =
     executionListener.processStarted(executor.id, this, handler)
+
 fun ExecutionEnvironment.notifyProcessTerminated(handler: ProcessHandler, exitCode: Int) =
     executionListener.processTerminated(executor.id, this, handler, exitCode)
+
 fun ExecutionEnvironment.notifyProcessTerminating(handler: ProcessHandler) =
     executionListener.processTerminating(executor.id, this, handler)

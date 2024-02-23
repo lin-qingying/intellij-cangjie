@@ -87,8 +87,8 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
 
     private fun showTestToolWindow(commandLine: CjpmCommandLine): Boolean = when {
 
-        commandLine.command !in listOf("test", "bench") -> false
-        "--nocapture" in commandLine.additionalArguments -> false
+        commandLine.command !in listOf("test" ) -> false
+
         Cjpm.TEST_NOCAPTURE_ENABLED_KEY.asBoolean() -> false
         else -> !hasRemoteTarget
     }
@@ -140,9 +140,13 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
 
 
     var env: EnvironmentVariablesData = EnvironmentVariablesData.DEFAULT
+    private fun CjpmCommandLine.toRawCommand(): String {
+        val toolchainOverride = toolchain?.let { "+$it" }
+        return ParametersListUtil.join(listOfNotNull(toolchainOverride, command, *additionalArguments.toTypedArray()))
+    }
 
     fun setFromCmd(cmd: CjpmCommandLine) {
-        command = cmd.command
+        command = cmd.toRawCommand()
         requiredFeatures = cmd.requiredFeatures
         allFeatures = cmd.allFeatures
 
@@ -163,7 +167,7 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
         val config = clean().ok ?: return null
 //        运行命令
 
-        return CjpmRunState(environment, this, config)
+        return CjpmRunState(environment, this, config,)
 
     }
 
@@ -268,7 +272,8 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
         fun findCjpmProject(project: Project, additionalArgs: List<String>, workingDirectory: Path?): CjpmProject? {
             val cjpmProjects = project.cjpmProjects
             cjpmProjects.allProjects.singleOrNull()?.let { return it }
-
+//TODO 严重问题 需要修改
+//            没有--manifest-path
             val manifestPath = run {
                 val idx = additionalArgs.indexOf("--manifest-path")
                 if (idx == -1) return@run null

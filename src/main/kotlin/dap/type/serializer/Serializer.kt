@@ -413,6 +413,21 @@ object EvaluateArgumentsContextSerializer : KSerializer<EvaluateArgumentsContext
         element<String>("value", isOptional = true)
     }
 
+    override fun deserialize(decoder: Decoder): EvaluateArgumentsContext {
+        val value = decoder.decodeString()
+        return when (value){
+            "watch" -> EvaluateArgumentsContext.Watch
+            "hover" -> EvaluateArgumentsContext.Hover
+            "repl" -> EvaluateArgumentsContext.Repl
+            "clipboard" -> EvaluateArgumentsContext.Clipboard
+            "variables" -> EvaluateArgumentsContext.Variables
+
+            else -> EvaluateArgumentsContext.Other(value)
+        }
+
+    }
+
+
     override fun serialize(encoder: Encoder, value: EvaluateArgumentsContext) {
         when (value) {
             is EvaluateArgumentsContext.Watch -> encoder.encodeString("watch")

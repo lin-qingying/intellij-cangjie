@@ -30,8 +30,20 @@ rootProject.name = "intellij-cangjie"
 //}
 //include("lsp4j")
 include("plugin")
+
+//检查
+include("inspections")
+//高亮
+include("highlighter")
+//lsp支持
+include("lsp")
+//描述
+include("descriptors")
 //include("debugg/**/er")
 //include("debugger1")
 //include("cidr")
 
 //include("back")
+
+//dap协议序列化
+//include("dap")

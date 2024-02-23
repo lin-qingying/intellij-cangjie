@@ -1,6 +1,5 @@
 package com.huawei.cangjie.parsing;
 
-import com.huawei.cangjie.lexer.CjTokens;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.WhitespacesBinders;
 import com.intellij.openapi.diagnostic.Logger;
@@ -18,7 +17,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     public static final TokenSet PARAMETER_NAME_RECOVERY_SET = TokenSet.create(COLON, EQ, COMMA, RPAR);
     private static final TokenSet GT_COMMA_COLON_SET = TokenSet.create(GT, COMMA, COLON);
     private static final Logger LOG = Logger.getInstance(CangJieParsing.class);
-    private static final TokenSet TOP_LEVEL_DECLARATION_FIRST = TokenSet.create(INTERFACE_KEYWORD, CLASS_KEYWORD, FUNC_KEYWORD, LET_KEYWORD,VAR_KEYWORD,CONST_KEYWORD, PACKAGE_KEYWORD);
+    private static final TokenSet TOP_LEVEL_DECLARATION_FIRST = TokenSet.create(INTERFACE_KEYWORD, CLASS_KEYWORD, FUNC_KEYWORD, LET_KEYWORD, VAR_KEYWORD, CONST_KEYWORD, PACKAGE_KEYWORD);
     private static final TokenSet TOP_LEVEL_DECLARATION_FIRST_SEMICOLON_SET = TokenSet.orSet(TOP_LEVEL_DECLARATION_FIRST, TokenSet.create(SEMICOLON));
     private static final TokenSet LT_EQ_SEMICOLON_TOP_LEVEL_DECLARATION_FIRST_SET = TokenSet.orSet(TokenSet.create(LT, EQ, SEMICOLON), TOP_LEVEL_DECLARATION_FIRST);
 
@@ -30,7 +29,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private static final TokenSet LBRACE_RBRACE_TYPE_REF_FIRST_SET = TokenSet.orSet(TokenSet.create(LBRACE, RBRACE), TYPE_REF_FIRST);
     private static final TokenSet LTCOLON_COMMA_LBRACE_RBRACE_TYPE_REF_FIRST_SET = TokenSet.orSet(TokenSet.create(LTCOLON, COMMA, LBRACE, RBRACE), TYPE_REF_FIRST);
     private static final TokenSet RECEIVER_TYPE_TERMINATORS = TokenSet.create(DOT);
-    private static final TokenSet VALUE_PARAMETER_FIRST = TokenSet.orSet(TokenSet.create(IDENTIFIER, LBRACKET, LET_KEYWORD,CONST_KEYWORD, VAR_KEYWORD), TokenSet.andNot(MODIFIER_KEYWORDS, TokenSet.create(FUNC_KEYWORD)));
+    private static final TokenSet VALUE_PARAMETER_FIRST = TokenSet.orSet(TokenSet.create(IDENTIFIER, LBRACKET, LET_KEYWORD, CONST_KEYWORD, VAR_KEYWORD), TokenSet.andNot(MODIFIER_KEYWORDS, TokenSet.create(FUNC_KEYWORD)));
     private static final TokenSet LAMBDA_VALUE_PARAMETER_FIRST = TokenSet.orSet(TokenSet.create(IDENTIFIER, LBRACKET), TokenSet.andNot(MODIFIER_KEYWORDS, TokenSet.create(FUNC_KEYWORD)));
 
     private static final TokenSet BLOCK_DOC_COMMENT_SET = TokenSet.create(BLOCK_COMMENT, DOC_COMMENT);
@@ -434,6 +433,18 @@ public class CangJieParsing extends AbstractCangJieParsing {
         fileMarker.done(CJ_FILE);
     }
 
+    void parseLspFile() {
+        PsiBuilder.Marker fileMarker = mark();
+//        将所有节点全都读取
+        while (!eof()) {
+            advance();
+        }
+
+        fileMarker.done(CJ_FILE);
+
+
+    }
+
     private void checkUnclosedBlockComment() {
         if (BLOCK_DOC_COMMENT_SET.contains(myBuilder.rawLookup(-1))) {
             int startOffset = myBuilder.rawTokenTypeStart(-1);
@@ -565,7 +576,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
                     tokenId != null && (tokenId == INTERFACE_KEYWORD_Id || tokenId == EXTEND_KEYWORD_Id) ? parseFunction(true) : parseFunction(classdetector, detector);
             case PROP_KEYWORD_Id ->
                     tokenId != null && (tokenId == INTERFACE_KEYWORD_Id || tokenId == EXTEND_KEYWORD_Id) ? parseProperty(true) : parseProperty(classdetector, detector);
-            case LET_KEYWORD_Id, VAR_KEYWORD_Id ,CONST_KEYWORD_Id-> parseVariable(classdetector);
+            case LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id -> parseVariable(classdetector);
             default -> null;
         };
     }
