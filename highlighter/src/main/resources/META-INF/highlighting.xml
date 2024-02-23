@@ -1,0 +1,12 @@
+<idea-plugin>
+
+
+
+    <extensions defaultExtensionNs="com.intellij">
+        <highlightVisitor implementation="com.huawei.cangjie.idea.highlighter.CangJieHighlightVisitor"/>
+        <registryKey key="cangjie.highlighting.suspended.timeout"
+                     description="Timeout (in seconds) when highlighting is temporarily turned off in case of unexpected errors."
+                     defaultValue="10"
+                     restartRequired="true"/>
+    </extensions>
+</idea-plugin>

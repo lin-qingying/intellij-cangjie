@@ -1,18 +1,12 @@
-import java.net.Socket
-
 fun main() {
-    println("Hello, world!")
-
-// p --server --listen 4419
-    val cmd = "C:\\Users\\27439\\.sdk\\cangjie\\tools\\bin\\lldb.exe"
-
-//    val cmd = "C:\\Users\\27439\\.sdk\\cangjie\\tools\\bin\\lldb-server.exe --server --listen 4419"
-    val process = Runtime.getRuntime().exec(cmd)
 
 
+    val a = "file://C:/Users/27439/AppData/Local/.cjpm/git/zuchongzhi/85e880ab7f08249ea746ea2a3d7038f80a172d28"
+ println(a.encodeUrl())
+}
 
-//    val socket = Socket("localhost", 4419)
+fun String.encodeUrl():String
 
-
-    println()
+{
+    return this.replace(":","%3A")
 }

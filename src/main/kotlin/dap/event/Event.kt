@@ -134,7 +134,7 @@ data class ExitedEvent(
 data class ContinuedEvent(
     override val seq: Int,
     override val body: ContinuedEventBody? = null
-    ) : Event{
+    ) : Event {
     override val type: MessageType
         get() = super.type
     override val event: EventType = EventType.continued

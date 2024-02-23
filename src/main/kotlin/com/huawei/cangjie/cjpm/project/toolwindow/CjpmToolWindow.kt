@@ -2,15 +2,11 @@ package com.huawei.cangjie.cjpm.project.toolwindow
 
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.cjpm.project.model.CjpmProject
-import com.huawei.cangjie.cjpm.project.model.CjpmProjectsService
 import com.huawei.cangjie.cjpm.project.model.cjpmProjects
-import com.intellij.ide.DefaultTreeExpander
-import com.intellij.ide.TreeExpander
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
@@ -39,7 +35,9 @@ class CjpmToolWindow(
         isEditable = false
     }
 
-//    private val projectTree = CjpmProjectsTree()
+    private val projectTree = CjpmProjectsTree()
+
+
 //    private val projectStructure = CjpmProjectTreeStructure(projectTree, project)
 
 //    val treeExpander: TreeExpander = object : DefaultTreeExpander(projectTree) {
@@ -49,7 +47,7 @@ class CjpmToolWindow(
 
 //    val selectedProject: CjpmProject get() = projectTree.selectedProject
 
-//    val content: JComponent = ScrollPaneFactory.createScrollPane(projectTree, 0)
+    val content: JComponent = ScrollPaneFactory.createScrollPane(projectTree, 0)
 
 //    init {
 //        with(project.messageBus.connect()) {

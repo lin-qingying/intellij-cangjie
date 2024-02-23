@@ -1,6 +1,7 @@
 package com.huawei.cangjie.idea.run.cjpm
 
 
+import com.huawei.cangjie.cjpm.project.model.CjpmProject
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
 import com.huawei.cangjie.cjpm.toolchain.tools.Cjpm
 import com.huawei.cangjie.cjpm.toolchain.tools.cjpm
@@ -38,7 +39,11 @@ abstract class CjpmRunStateBase(
     val executorId: String = environment.executor.id
     protected val commandLinePatches: MutableList<CjpmPatch> = mutableListOf()
     val toolchain: CjToolchainBase = config.toolchain
-
+    val cjpmProject: CjpmProject? = CjpmCommandConfiguration.findCjpmProject(
+        project,
+        commandLine.additionalArguments,
+        commandLine.workingDirectory
+    )
     init {
         commandLinePatches.addAll(environment.cjpmPatches)
     }

@@ -4,12 +4,11 @@ import com.huawei.cangjie.cjpm.project.configurable.CjProjectConfigurable
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainProvider
 import com.huawei.cangjie.cjpm.toolchain.ExternalLinter
+import com.huawei.cangjie.utils.showSettingsDialog
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
 import com.intellij.openapi.components.service
-import com.intellij.openapi.options.Configurable
-import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.util.io.systemIndependentPath
 import com.intellij.util.xmlb.annotations.Transient
@@ -78,6 +77,3 @@ class CangJieProjectSettingsService(
 
 val Project.cangjieSettings: CangJieProjectSettingsService
     get() = service<CangJieProjectSettingsService>()
-inline fun <reified T: Configurable> Project.showSettingsDialog() {
-    ShowSettingsUtil.getInstance().showSettingsDialog(this, T::class.java)
-}

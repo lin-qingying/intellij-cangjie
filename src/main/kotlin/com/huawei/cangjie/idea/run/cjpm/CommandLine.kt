@@ -6,7 +6,6 @@ import com.huawei.cangjie.cjpm.project.model.CjpmProject
 import com.huawei.cangjie.cjpm.project.model.cjpmProjects
 import com.huawei.cangjie.cjpm.project.model.impl.workingDirectory
 import com.huawei.cangjie.idea.notifications.CjNotifications
-import com.huawei.cangjie.idea.project.CangJieProjectManager
 import com.huawei.cangjie.idea.run.CjCommandConfiguration.Companion.emulateTerminalDefault
 import com.intellij.execution.*
 import com.intellij.execution.configuration.EnvironmentVariablesData
@@ -18,7 +17,6 @@ import com.intellij.execution.runners.ProgramRunner
 import com.intellij.notification.NotificationType
 import java.io.File
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
@@ -28,6 +26,42 @@ abstract class CjCommandLineBase {
     abstract val redirectInputFrom: File?
     abstract val additionalArguments: List<String>
     abstract val emulateTerminal: Boolean
+//    private fun <T> runInner(
+//        cjpmProject: CjpmProject ,
+//
+//        presentableName: String = command,
+//        saveConfiguration: Boolean = true,
+//        executor: Executor = DefaultRunExecutor.getRunExecutorInstance(),
+//        doRun: (RunnerAndConfigurationSettings, Executor) -> Future<T>
+//    ): Future<T> {
+//        val project = cjpmProject.project
+//
+//        val runManager = RunManagerEx.getInstanceEx(project)
+//        val configuration = createRunConfiguration(runManager, presentableName).apply {
+//            if (saveConfiguration) {
+//                runManager.setTemporaryConfiguration(this)
+//            }
+//        }
+//
+//        val runner = ProgramRunner.getRunner(executor.id, configuration.configuration)
+//        val finalExecutor = if (runner == null) {
+//            CjNotifications.pluginNotifications()
+//                .createNotification(
+//                    CangJieBundle.message(
+//                        "notification.0.action.is.not.available.for.1.command",
+//                        executor.actionName,
+//                        "$executableName $command"
+//                    ), NotificationType.WARNING
+//                )
+//                .notify(project)
+//            DefaultRunExecutor.getRunExecutorInstance()
+//        } else {
+//            executor
+//        }
+//
+//        return doRun(configuration, finalExecutor)
+//    }
+//
 
 
     private fun <T> runInner(
@@ -88,11 +122,13 @@ abstract class CjCommandLineBase {
     ): RunnerAndConfigurationSettings
 
     fun runAsync(
+        cjpmProject:CjpmProject,
+
         presentableName: String = command,
         saveConfiguration: Boolean = true,
         executor: Executor = DefaultRunExecutor.getRunExecutorInstance()
     ): Future<Boolean> =
-        runInner(presentableName, saveConfiguration, executor) { configuration, finalExecutor ->
+        runInner(cjpmProject,presentableName, saveConfiguration, executor) { configuration, finalExecutor ->
             val environment = ExecutionEnvironmentBuilder.create(finalExecutor, configuration).build()
             val promise = CompletableFuture<Boolean>()
             ProgramRunnerUtil.executeConfigurationAsync(environment, true, true) { descriptor ->
@@ -104,41 +140,6 @@ abstract class CjCommandLineBase {
             }
             promise
         }
-
-    private fun <T> runInner(
-
-        presentableName: String = command,
-        saveConfiguration: Boolean = true,
-        executor: Executor = DefaultRunExecutor.getRunExecutorInstance(),
-        doRun: (RunnerAndConfigurationSettings, Executor) -> Future<T>
-    ): Future<T> {
-        val project = CangJieProjectManager.getCurrentProject()
-
-        val runManager = RunManagerEx.getInstanceEx(project)
-        val configuration = createRunConfiguration(runManager, presentableName).apply {
-            if (saveConfiguration) {
-                runManager.setTemporaryConfiguration(this)
-            }
-        }
-
-        val runner = ProgramRunner.getRunner(executor.id, configuration.configuration)
-        val finalExecutor = if (runner == null) {
-            CjNotifications.pluginNotifications()
-                .createNotification(
-                    CangJieBundle.message(
-                        "notification.0.action.is.not.available.for.1.command",
-                        executor.actionName,
-                        "$executableName $command"
-                    ), NotificationType.WARNING
-                )
-                .notify(project)
-            DefaultRunExecutor.getRunExecutorInstance()
-        } else {
-            executor
-        }
-
-        return doRun(configuration, finalExecutor)
-    }
 
 
 }
@@ -200,26 +201,26 @@ data class CjpmCommandLine(
             environmentVariables = environmentVariables
         )
 
-        fun forProject(
-
-
-            command: String,
-
-            additionalArguments: List<String> = emptyList(),
-            toolchain: String? = null,
-
-
-            environmentVariables: EnvironmentVariablesData = EnvironmentVariablesData.DEFAULT
-        ): CjpmCommandLine = CjpmCommandLine(
-            command,
-
-            workingDirectory = Paths.get(CangJieProjectManager.getCurrentProject().basePath),
-            additionalArguments = additionalArguments,
-            toolchain = toolchain,
-
-
-            environmentVariables = environmentVariables
-        )
+//        fun forProject(
+//
+//
+//            command: String,
+//
+//            additionalArguments: List<String> = emptyList(),
+//            toolchain: String? = null,
+//
+//
+//            environmentVariables: EnvironmentVariablesData = EnvironmentVariablesData.DEFAULT
+//        ): CjpmCommandLine = CjpmCommandLine(
+//            command,
+//
+//            workingDirectory = Paths.get(CangJieProjectManager.getCurrentProject().basePath),
+//            additionalArguments = additionalArguments,
+//            toolchain = toolchain,
+//
+//
+//            environmentVariables = environmentVariables
+//        )
     }
 
 }

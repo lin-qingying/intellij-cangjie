@@ -1,9 +1,9 @@
 package com.huawei.cangjie.cjpm.project.model
 
 import com.huawei.cangjie.cjpm.CjpmConstants
-import com.huawei.cangjie.cjpm.project.model.impl.ContentEntryWrapper
 import com.huawei.cangjie.cjpm.project.pathAsPath
 import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
+import com.huawei.cangjie.cjpm.project.workspace.CjpmWorkspace
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
 import com.huawei.cangjie.cjpm.toolchain.impl.CjcVersion
 import com.intellij.ide.util.PropertiesComponent
@@ -13,13 +13,17 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ContentEntry
-import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.UserDataHolderEx
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.messages.Topic
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 
+val Project.currentCjpmProject: CjpmProject?
+    get() {
+        return cjpmProjects.currentCjpmProject
+    }
 
 /**。
  *存储与当前IntelliJ[Project]关联的[CjpmProject]\的列表
@@ -31,12 +35,25 @@ interface CjpmProjectsService {
     val hasAtLeastOneValidProject: Boolean
     val initialized: Boolean
     val allProjects: Collection<CjpmProject>
+
+
+    //    拿到当前cjpm项目
+    val currentCjpmProject: CjpmProject?
+        get() = project.guessProjectDir()?.pathAsPath?.resolve(CjpmConstants.MANIFEST_FILE)?.toFile()
+            ?.let { LocalFileSystem.getInstance().findFileByIoFile(it) }
+            ?.let { project.cjpmProjects.findProjectForModuleFile(it) }
+
+
     fun findProjectForFile(file: VirtualFile): CjpmProject?
+
+    fun findProjectForModuleFile(file: VirtualFile): CjpmProject?
 
     fun discoverAndRefresh(): CompletableFuture<out List<CjpmProject>>
     fun refreshAllProjects(): CompletableFuture<out List<CjpmProject>>
     fun suggestManifests(): Sequence<VirtualFile>
     fun attachCjpmProject(manifest: Path): Boolean
+    fun findPackageForFile(file: VirtualFile): CjpmWorkspace.Package?
+
     interface CjpmProjectsRefreshListener {
         fun onRefreshStarted()
         fun onRefreshFinished(status: CjpmRefreshStatus)
@@ -72,41 +89,7 @@ interface CjpmProjectsService {
  *致此。请注意，由于此类的实例在每次项目刷新时重新创建
  *用户数据也将在项目刷新时刷新
  */
-interface CjpmProject : UserDataHolderEx {
 
-    val rootDir: VirtualFile?
-
-    val project: Project
-
-    val workspaceRootDir: VirtualFile?
-    val cjcInfo: CjcInfo?
-    val presentableName: String
-
-    val manifest: Path
-
-    //    val workspace: CjpmWorkspace?
-//    val userDisabledFeatures: UserDisabledFeatures
-    val workspaceStatus: UpdateStatus
-    val stdlibStatus: UpdateStatus
-
-    val cjcInfoStatus: UpdateStatus
-
-
-    val mergedStatus: UpdateStatus
-        get() = workspaceStatus
-            .merge(stdlibStatus)
-            .merge(cjcInfoStatus)
-
-    sealed class UpdateStatus(private val priority: Int) {
-        object UpToDate : UpdateStatus(0)
-        object NeedsUpdate : UpdateStatus(1)
-        class UpdateFailed(@Suppress("UnstableApiUsage") @NlsContexts.Tooltip val reason: String) : UpdateStatus(2) {
-            override fun toString(): String = reason
-        }
-
-        fun merge(status: UpdateStatus): UpdateStatus = if (priority >= status.priority) this else status
-    }
-}
 
 val Project.cjpmProjects: CjpmProjectsService get() = service()
 
@@ -170,14 +153,5 @@ private fun discoverToolchain(project: Project) {
     }
 }
 
-fun ContentEntryWrapper.setup(contentRoot: VirtualFile) {
-    val makeVfsUrl = { dirName: String -> contentRoot.findChild(dirName)?.url }
-    CjpmConstants.ProjectLayout.sources.mapNotNull(makeVfsUrl).forEach {
-        addSourceFolder(it, isTestSource = false)
-    }
-    CjpmConstants.ProjectLayout.tests.mapNotNull(makeVfsUrl).forEach {
-        addSourceFolder(it, isTestSource = true)
-    }
-    makeVfsUrl(CjpmConstants.ProjectLayout.target)?.let(::addExcludeFolder)
-}
+
 fun ContentEntry.setup(contentRoot: VirtualFile) = ContentEntryWrapper(this).setup(contentRoot)

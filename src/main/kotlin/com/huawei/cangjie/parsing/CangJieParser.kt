@@ -24,7 +24,7 @@ class CangJieParser(project: Project) : PsiParser {
 
         fun parseBlockCodeFragment(psiBuilder: PsiBuilder): ASTNode {
             val cjParsing: CangJieParsing =
-      createForTopLevel(
+                createForTopLevel(
                     SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder)
                 )
             cjParsing.parseBlockCodeFragment()
@@ -34,7 +34,7 @@ class CangJieParser(project: Project) : PsiParser {
         @JvmStatic
         fun parseExpressionCodeFragment(psiBuilder: PsiBuilder): ASTNode {
             val cjParsing: CangJieParsing =
-         createForTopLevel(
+                createForTopLevel(
                     SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder)
                 )
             cjParsing.parseExpressionCodeFragment()
@@ -44,8 +44,8 @@ class CangJieParser(project: Project) : PsiParser {
         @JvmStatic
         fun parseTypeCodeFragment(psiBuilder: PsiBuilder): ASTNode {
             val cjParsing: CangJieParsing =
-               createForTopLevel(
-                   SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder)
+                createForTopLevel(
+                    SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder)
                 )
             cjParsing.parseTypeCodeFragment()
             return psiBuilder.treeBuilt
@@ -63,6 +63,9 @@ class CangJieParser(project: Project) : PsiParser {
             val extension = FileUtilRt.getExtension(psiFile.name)
             if (extension.isEmpty() || extension == CangJieFileType.EXTENSION || psiFile is CjFile && psiFile.isCompiled) {
                 cjParsing.parseFile()
+
+//                TODO LSP 使用 parseLspFile
+//                cjParsing.parseLspFile()
             } else {
                 cjParsing.parseScript()
             }

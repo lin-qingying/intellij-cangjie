@@ -1,19 +1,14 @@
 package com.huawei.cangjie.idea.run.cjpm
 
-import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.idea.run.CjCommandConfiguration
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.createFilters
 import com.huawei.cangjie.idea.run.hasRemoteTarget
 
-import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.execution.configurations.RuntimeConfigurationException
 import com.intellij.execution.filters.TextConsoleBuilderImpl
 import com.intellij.execution.impl.ConsoleViewImpl
-import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.psi.search.ExecutionSearchScopes
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.terminal.TerminalExecutionConsole
@@ -22,7 +17,8 @@ import com.intellij.terminal.TerminalExecutionConsole
 class CjpmRunState(
     environment: ExecutionEnvironment,
     configuration: CjpmCommandConfiguration,
-    config: CjpmCommandConfiguration.CleanConfiguration.Ok
+    config: CjpmCommandConfiguration.CleanConfiguration.Ok,
+
 ) :
     CjpmRunStateBase(environment, configuration, config) {
 

@@ -1,0 +1,15 @@
+package com.huawei.cangjie.cjpm.runconfig.command
+
+import com.huawei.cangjie.cjpm.project.toolwindow.hasCjpmProject
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.DumbAwareAction
+
+
+abstract class RunCjpmCommandActionBase : DumbAwareAction() {
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+    override fun update(e: AnActionEvent) {
+        val hasCargoProject = e.project?.hasCjpmProject == true
+        e.presentation.isEnabledAndVisible = hasCargoProject
+    }
+}

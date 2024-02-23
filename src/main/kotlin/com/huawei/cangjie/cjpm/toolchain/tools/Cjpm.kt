@@ -1,20 +1,24 @@
 package com.huawei.cangjie.cjpm.toolchain.tools
 
+import CjpmWorkspaceData
+import com.fasterxml.jackson.core.JacksonException
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.huawei.cangjie.cjpm.CjpmConstants
 import com.huawei.cangjie.cjpm.project.pathAsPath
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
+import com.huawei.cangjie.cjpm.toolchain.impl.CjpmMetadata
 import com.huawei.cangjie.cjpm.toolchain.parseSemVer
 import com.huawei.cangjie.idea.experiments.CjExperiments
 import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.CjProcessResult
 import com.huawei.cangjie.idea.run.cjpm.CjpmCommandLine
-import com.huawei.cangjie.idea.run.cjpm.runconfig.CjCapturingProcessHandler
-import com.huawei.cangjie.idea.run.cjpm.runconfig.CjProcessExecutionException
-import com.huawei.cangjie.idea.run.cjpm.runconfig.CjResult
+import com.huawei.cangjie.idea.run.cjpm.runconfig.*
 import com.huawei.cangjie.idea.run.isFeatureEnabled
 import com.huawei.cangjie.lang.CjConstants.LIB_CJ_FILE
 import com.huawei.cangjie.lang.CjConstants.MAIN_CJ_FILE
-
 import com.huawei.cangjie.utils.buildList
+import com.intellij.execution.configuration.EnvironmentVariablesData
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
 import com.intellij.execution.process.ProcessListener
@@ -29,6 +33,9 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.net.HttpConfigurable
 import com.intellij.util.text.SemVer
+import java.io.IOException
+import java.nio.file.Path
+import kotlin.io.path.exists
 
 
 fun fullyRefreshDirectory(directory: VirtualFile) {
@@ -126,6 +133,80 @@ class Cjpm(
         return CjResult.Ok(GeneratedFilesHolder(manifest, sourceFiles))
     }
 
+    /**
+     * 获取所有依赖项并计算项目信息
+     */
+    fun fullProjectDescription(
+        owner: Project,
+        projectDirectory: Path,
+
+
+        listenerProvider: (CjpmCallType) -> ProcessListener? = { null }
+    ): CjResult<CjpmWorkspaceData, CjProcessExecutionOrDeserializationException> {
+        val rawData = fetchUpdate(owner, projectDirectory, listener = listenerProvider(CjpmCallType.METADATA))
+            .unwrapOrElse { return CjResult.Err(it) }
+//        return CjResult.Ok(ProjectDescription(workspaceData, status))
+        val workspaceData =CjpmMetadata.clean(rawData)
+        return CjResult.Ok( workspaceData )
+
+
+    }
+
+    /**
+     * 对cjpm项目进行更新
+     */
+    fun fetchUpdate(
+        owner: Project,
+        projectDirectory: Path,
+
+        toolchainOverride: String? = null,
+        environmentVariables: EnvironmentVariablesData = EnvironmentVariablesData.DEFAULT,
+        listener: ProcessListener?,
+
+        ): CjResult<CjpmMetadata.Project, CjProcessExecutionOrDeserializationException> {
+
+        val commandLine = CjpmCommandLine(
+            command = "update",
+            projectDirectory,
+            toolchain = toolchainOverride,
+            environmentVariables = environmentVariables
+        )
+        val output = commandLine.execute(
+            owner, listener = listener
+        ).unwrapOrElse { return CjResult.Err(it) }
+        if (output.exitCode == 0 && output.stdout == "cjpm update success\n") {
+            try {
+                val project = readFile(projectDirectory)
+                return CjResult.Ok(project)
+            } catch (e: JacksonException) {
+                return CjResult.Err(CjDeserializationException(e))
+            } catch (e: IOException) {
+                return CjResult.Err(CjModuleNotFound())
+            }
+        }
+
+        return CjResult.Err(CjProcessExecutionException.Canceled(commandLine.command, output))
+//        return CjResult.Ok(CjpmMetadata.Project(1))
+    }
+
+
+    /**
+     * 读取module-lock.json文件内容并序列化
+     */
+    private fun readFile(projectDirectory: Path): CjpmMetadata.Project {
+        val path = projectDirectory.resolve(CjpmConstants.LOCK_FILE)
+
+        if (path.exists()) {
+            val json = path.toFile().readText()
+            val project = JSON_MAPPER.readValue(json, CjpmMetadata.Project::class.java)
+                .convertPaths(path.parent, toolchain::toLocalPath)
+            return project
+
+
+        }
+
+        throw IOException("Can't find the module-lock.json file")
+    }
 
     fun generate(
         project: Project,
@@ -225,7 +306,9 @@ class Cjpm(
     }
 
     companion object {
-
+        val JSON_MAPPER: ObjectMapper = ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .registerKotlinModule()
         const val NAME: String = "tools/bin/cjpm"
 
         @JvmStatic
@@ -299,3 +382,20 @@ fun GeneralCommandLine.execute(
         else -> CjResult.Ok(output)
     }
 }
+
+enum class CjpmCallType {
+    METADATA,
+    BUILD_SCRIPT_CHECK
+}
+
+enum class ProjectDescriptionStatus {
+    BUILD_SCRIPT_EVALUATION_ERROR,
+    OK
+}
+
+data class ProjectDescription(
+    val workspaceData: CjpmWorkspaceData,
+    val status: ProjectDescriptionStatus
+)
+
+

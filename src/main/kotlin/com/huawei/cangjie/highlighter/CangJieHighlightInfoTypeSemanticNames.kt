@@ -44,7 +44,9 @@ object CangJieHighlightInfoTypeSemanticNames {
     val SYNTHETIC_EXTENSION_PROPERTY: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.SYNTHETIC_EXTENSION_PROPERTY)
     val DYNAMIC_PROPERTY_CALL: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.DYNAMIC_PROPERTY_CALL)
     val ANDROID_EXTENSIONS_PROPERTY_CALL: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.ANDROID_EXTENSIONS_PROPERTY_CALL)
-    val INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION)
+    val INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION: HighlightInfoType = createSymbolTypeInfo(
+        CangJieHighlightingColors.INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION
+    )
     val PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION)
 
     // functions

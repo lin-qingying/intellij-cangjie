@@ -3,7 +3,7 @@ package com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool
 
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.cjpm.CjpmConstants
-import com.huawei.cangjie.idea.project.CangJieProjectManager
+
 
 
 import com.intellij.build.BuildContentDescriptor
