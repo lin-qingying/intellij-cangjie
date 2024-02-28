@@ -4,12 +4,13 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.PtyCommandLine
 import com.intellij.execution.process.AnsiEscapeDecoder
 import com.intellij.execution.process.KillableProcessHandler
+import com.intellij.execution.process.ProcessOutputType
 import com.intellij.openapi.util.Key
 import com.intellij.util.io.BaseOutputReader
 import com.pty4j.PtyProcess
 import java.nio.charset.Charset
 
-class CjProcessHandler: KillableProcessHandler, AnsiEscapeDecoder.ColoredTextAcceptor {
+class CjProcessHandler : KillableProcessHandler, AnsiEscapeDecoder.ColoredTextAcceptor {
     private val decoder: AnsiEscapeDecoder?
 
     constructor(commandLine: GeneralCommandLine, processColors: Boolean = true) : super(commandLine) {
@@ -30,7 +31,29 @@ class CjProcessHandler: KillableProcessHandler, AnsiEscapeDecoder.ColoredTextAcc
     }
 
     override fun notifyTextAvailable(text: String, outputType: Key<*>) {
-        decoder?.escapeText(text, outputType, this) ?: super.notifyTextAvailable(text, outputType)
+
+        var text = text
+
+        if (text == "\n") text = "\r\n"
+
+
+
+        when (outputType) {
+            ProcessOutputType.STDOUT -> {
+                decoder?.escapeText(text, outputType, this) ?: super.notifyTextAvailable(text, outputType)
+
+            }
+
+            ProcessOutputType.SYSTEM -> {
+
+            }
+
+            ProcessOutputType.STDERR -> {
+
+            }
+
+        }
+
     }
 
     override fun coloredTextAvailable(text: String, attributes: Key<*>) {

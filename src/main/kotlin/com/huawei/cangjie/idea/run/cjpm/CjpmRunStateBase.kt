@@ -9,6 +9,7 @@ import com.huawei.cangjie.idea.run.cjpm.runconfig.CjLanguageRuntimeConfiguration
 import com.huawei.cangjie.idea.run.cjpm.runconfig.CjProcessHandler
 import com.huawei.cangjie.idea.run.cjpm.runconfig.startProcess
 import com.intellij.execution.configurations.CommandLineState
+import com.intellij.execution.filters.TextConsoleBuilder
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessTerminatedListener
@@ -48,6 +49,9 @@ abstract class CjpmRunStateBase(
         commandLinePatches.addAll(environment.cjpmPatches)
     }
 
+    override fun getConsoleBuilder(): TextConsoleBuilder {
+        return super.getConsoleBuilder()
+    }
     fun cjpm(): Cjpm = toolchain.cjpm()
 
 
