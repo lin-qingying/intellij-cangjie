@@ -2,8 +2,10 @@ package com.huawei.cangjie.idea.project.tools.projectWizard.wizard
 
 
 import com.huawei.cangjie.cjpm.CjpmConstants
+import com.huawei.cangjie.cjpm.findChild
+import com.huawei.cangjie.cjpm.toolchain.cjpm
 import com.huawei.cangjie.cjpm.toolchain.tools.Cjpm
-import com.huawei.cangjie.cjpm.toolchain.tools.cjpm
+
 import com.huawei.cangjie.idea.newProject.CjCustomTemplate
 import com.huawei.cangjie.idea.newProject.CjGenericTemplate
 import com.huawei.cangjie.idea.newProject.CjProjectTemplate
@@ -33,7 +35,7 @@ class CangJieModuleBuilder(
     var moduleName: String? = null,
 
     //    组织名
-    var organizationName: String? = null,
+//    var organizationName: String? = null,
 
     //    项目类型
     var projectType: String? = null,
@@ -69,8 +71,10 @@ class CangJieModuleBuilder(
                 root,
                 name,
                 if (moduleName.isNullOrEmpty()) name else moduleName!!,
-                if (organizationName.isNullOrEmpty()) name else organizationName!!,
-                projectType ?: "executable"
+//                if (organizationName.isNullOrEmpty()) name else organizationName!!,
+                projectType ?: "executable",
+//                cjcVersion = toolchain.cjc().version
+
             ).unwrapOrElse {
                 LOG.error(it)
                 throw ConfigurationException(it.message)
@@ -163,10 +167,11 @@ fun Cjpm.makeProject(
     baseDir: VirtualFile,
     name: String,
     moduleName: String = name,
-    organizationName: String = name,
-    projectType: String? = null
+//    organizationName: String = name,
+    projectType: String? = null,
+//    cjcVersion: CjcVersion? = null,
 ): CjProcessResult<Cjpm.GeneratedFilesHolder> {
-    return init(project, module, baseDir, name, moduleName, organizationName, projectType)
+    return init(project, module, baseDir, name, moduleName/*, organizationName*/, projectType)
 
 }
 

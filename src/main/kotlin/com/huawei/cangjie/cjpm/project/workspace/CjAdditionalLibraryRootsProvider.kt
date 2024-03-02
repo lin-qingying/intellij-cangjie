@@ -4,7 +4,7 @@ import com.huawei.cangjie.cjpm.project.model.CjpmProject
 import com.huawei.cangjie.cjpm.project.model.cjpmProjects
 import com.huawei.cangjie.cjpm.project.workspace.PackageOrigin.*
 import com.huawei.cangjie.cjpm.toolchain.impl.CjcVersion
-import com.huawei.cangjie.idea.icons.CangJieIcons
+import com.huawei.cangjie.icon.CangJieIcons
 import com.intellij.navigation.ItemPresentation
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.AdditionalLibraryRootsProvider

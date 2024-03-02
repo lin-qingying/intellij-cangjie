@@ -6,7 +6,7 @@ import com.huawei.cangjie.cjpm.project.model.cjpmProjects
 import com.huawei.cangjie.idea.actions.runAnything.CjRunAnythingProvider
 import com.huawei.cangjie.idea.actions.runAnything.RunAnythingCjpmItem
 import com.huawei.cangjie.idea.actions.runAnything.getAppropriateCjpmProject
-import com.huawei.cangjie.idea.icons.CangJieIcons
+import com.huawei.cangjie.icon.CangJieIcons
 import com.huawei.cangjie.idea.run.cjpm.CjCommandCompletionProvider
 import com.huawei.cangjie.idea.run.cjpm.CjpmCommandCompletionProvider
 import com.huawei.cangjie.idea.run.cjpm.CjpmCommandLine

@@ -62,10 +62,10 @@ class CangJieParser(project: Project) : PsiParser {
 
             val extension = FileUtilRt.getExtension(psiFile.name)
             if (extension.isEmpty() || extension == CangJieFileType.EXTENSION || psiFile is CjFile && psiFile.isCompiled) {
-                cjParsing.parseFile()
+//                cjParsing.parseFile()
 
 //                TODO LSP 使用 parseLspFile
-//                cjParsing.parseLspFile()
+                cjParsing.parseLspFile()
             } else {
                 cjParsing.parseScript()
             }

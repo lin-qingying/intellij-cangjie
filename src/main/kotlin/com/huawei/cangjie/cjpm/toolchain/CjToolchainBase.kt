@@ -1,6 +1,7 @@
 package com.huawei.cangjie.cjpm.toolchain
 
 import com.huawei.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor
+import com.huawei.cangjie.cjpm.toolchain.tools.Cjc
 import com.huawei.cangjie.cjpm.toolchain.tools.Cjpm
 import com.huawei.cangjie.cjpm.toolchain.tools.GeneralCommandLine
 import com.huawei.cangjie.cjpm.toolchain.tools.withWorkDirectory
@@ -20,6 +21,24 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.exists
 
+//val CjToolchainBase.cjpm: Cjpm
+//    get() = Cjpm(this)
+//
+//
+//val CjToolchainBase.cjc: Cjc
+//    get() = Cjc(this)
+
+fun CjToolchainBase.cjc() :Cjc{
+
+    if(this.cjc == null) return Cjc(this)
+
+    return this.cjc!!
+}
+fun CjToolchainBase.cjpm():Cjpm {
+    if (this.cjpm == null) return Cjpm(this)
+
+    return this.cjpm!!
+}
 
 abstract class CjToolchainBase(location: Path) {
     val sdkHome: Path
@@ -27,6 +46,8 @@ abstract class CjToolchainBase(location: Path) {
     val binPath: Path
     val toolsPath: Path
 
+    var cjpm : Cjpm? = null
+    var cjc: Cjc? = null
 
     val presentableLocation: String get() = pathToExecutable(Cjpm.NAME).toString()
 

@@ -1,7 +1,7 @@
 package com.huawei.cangjie.idea.newProject
 
 import com.huawei.cangjie.CangJieBundle
-import com.huawei.cangjie.idea.icons.CangJieIcons
+import com.huawei.cangjie.icon.CangJieIcons
 import com.intellij.openapi.util.NlsContexts
 import org.jetbrains.annotations.Nls
 import javax.swing.Icon

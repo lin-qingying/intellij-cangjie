@@ -3,12 +3,14 @@ package com.huawei.cangjie.idea.run.cjpm
 
 import com.huawei.cangjie.cjpm.project.model.CjpmProject
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
+import com.huawei.cangjie.cjpm.toolchain.cjpm
 import com.huawei.cangjie.cjpm.toolchain.tools.Cjpm
-import com.huawei.cangjie.cjpm.toolchain.tools.cjpm
+
 import com.huawei.cangjie.idea.run.cjpm.runconfig.CjLanguageRuntimeConfiguration
 import com.huawei.cangjie.idea.run.cjpm.runconfig.CjProcessHandler
 import com.huawei.cangjie.idea.run.cjpm.runconfig.startProcess
 import com.intellij.execution.configurations.CommandLineState
+import com.intellij.execution.filters.TextConsoleBuilder
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessTerminatedListener
@@ -48,7 +50,10 @@ abstract class CjpmRunStateBase(
         commandLinePatches.addAll(environment.cjpmPatches)
     }
 
-    fun cjpm(): Cjpm = toolchain.cjpm()
+    override fun getConsoleBuilder(): TextConsoleBuilder {
+        return super.getConsoleBuilder()
+    }
+    fun cjpm(): Cjpm = toolchain.    cjpm()
 
 
     companion object {

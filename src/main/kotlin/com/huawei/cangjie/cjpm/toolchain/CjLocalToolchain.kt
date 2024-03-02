@@ -11,7 +11,6 @@ import java.nio.file.Path
 
 open class CjLocalToolchain(location: Path) : CjToolchainBase(location) {
 
-
     override fun pathToExecutable(toolName: String): Path = sdkHome.pathToExecutable(toolName)
 
 

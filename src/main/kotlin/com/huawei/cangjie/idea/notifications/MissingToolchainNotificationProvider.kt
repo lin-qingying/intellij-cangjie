@@ -19,7 +19,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
 
-
 class MissingToolchainNotificationProvider(project: Project) : CjNotificationProvider(project), DumbAware {
 
     override val VirtualFile.disablingKey: String get() = NOTIFICATION_STATUS_KEY
@@ -44,7 +43,7 @@ class MissingToolchainNotificationProvider(project: Project) : CjNotificationPro
         project: Project
     ): CjEditorNotificationPanel? {
         if (isUnitTestMode) return null
-        if (!(file.isCangJieFile || file.isCjpmJson) || isNotificationDisabled(file)) return null
+        if (!(file.isCangJieFile || file.isCjpmManifestFile) || isNotificationDisabled(file)) return null
         @Suppress("UnstableApiUsage")
         if (!project.isTrusted()) return null
         if (guessAndSetupCangJieProject(project)) return null
@@ -75,12 +74,12 @@ class MissingToolchainNotificationProvider(project: Project) : CjNotificationPro
         }
 
 
-
     companion object {
         private const val NOTIFICATION_STATUS_KEY = "com.huawei.cangjie.hideToolchainNotifications"
         const val NO_CANGJIE_TOOLCHAIN = "NoCangjieToolchain"
 
     }
 }
+
 val VirtualFile.isCangJieFile: Boolean get() = fileType == CangJieFileType
-val VirtualFile.isCjpmJson: Boolean get() = name == CjpmConstants.MANIFEST_FILE
+val VirtualFile.isCjpmManifestFile: Boolean get() = name in CjpmConstants.MANIFEST_FILE

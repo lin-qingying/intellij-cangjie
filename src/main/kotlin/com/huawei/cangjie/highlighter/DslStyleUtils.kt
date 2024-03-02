@@ -1,6 +1,6 @@
 package com.huawei.cangjie.highlighter
 
-import com.huawei.cangjie.idea.icons.CangJieIcons
+import com.huawei.cangjie.icon.CangJieIcons
 import com.huawei.cangjie.name.ClassId
 import com.huawei.cangjie.name.FqName
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType

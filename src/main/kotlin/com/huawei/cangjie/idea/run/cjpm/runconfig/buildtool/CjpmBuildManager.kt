@@ -5,13 +5,11 @@ import com.debugger.runconfig.toSystemIndependentPath
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.cjpm.project.model.CjpmProject
 import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
-import com.huawei.cangjie.cjpm.toolchain.tools.cjc
+import com.huawei.cangjie.cjpm.toolchain.cjc
 import com.huawei.cangjie.idea.notifications.CjNotifications
 import com.huawei.cangjie.idea.run.CjpmArgsParser.Companion.parseArgs
 import com.huawei.cangjie.idea.run.cjpm.*
-
 import com.huawei.cangjie.idea.run.hasRemoteTarget
-
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildViewManager
 import com.intellij.execution.ExecutorRegistry

@@ -1,6 +1,6 @@
 package com.huawei.cangjie.lang
 
-import com.huawei.cangjie.idea.icons.CangJieIcons
+import com.huawei.cangjie.icon.CangJieIcons
 import com.intellij.openapi.fileTypes.LanguageFileType
 import javax.swing.Icon
 

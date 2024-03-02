@@ -7,7 +7,7 @@ import com.huawei.cangjie.cjpm.project.model.CjpmProjectInfo
 import com.huawei.cangjie.cjpm.project.model.Require
 import com.huawei.cangjie.cjpm.project.model.impl.CachedVirtualFile
 import com.huawei.cangjie.cjpm.project.pathAsPath
-import com.huawei.cangjie.cjpm.toolchain.tools.Cjpm
+import com.huawei.cangjie.cjpm.resolve
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -34,6 +34,7 @@ import kotlin.io.path.exists
 interface CjpmWorkspace {
     val manifestPath: Path
     val contentRoot: Path get() = manifestPath.parent
+
 
     //
     val workspaceRoot: VirtualFile?
@@ -137,6 +138,8 @@ class WorkspaceImpl(
     val workspaceRootUrl: String?,
     packagesData: Collection<CjpmWorkspaceData.Package>,
 ) : CjpmWorkspace {
+
+
     override val workspaceRoot: VirtualFile? by CachedVirtualFile(workspaceRootUrl)
 //    override fun withDisabledFeatures(userDisabledFeatures: UserDisabledFeatures): CjpmWorkspace {
 //        val featuresState = inferFeatureState(userDisabledFeatures).associateByPackageRoot()
@@ -154,9 +157,9 @@ class WorkspaceImpl(
 
     override val moduleData: CjpmProjectInfo? = if (manifestPath.exists()) {
 
-        val json = manifestPath.toFile().readText()
         try {
-            Cjpm.JSON_MAPPER.readValue(json, CjpmProjectInfo::class.java)
+//            Cjpm.JSON_MAPPER.readValue(json, CjpmProjectInfo::class.java)
+            CjpmProjectInfo.deserialize(manifestPath )
         } catch (e: JacksonException) {
             throw e
             println(e)

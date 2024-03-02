@@ -8,8 +8,10 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
 import com.intellij.psi.impl.source.tree.LazyParseablePsiElement
 import com.intellij.psi.impl.source.tree.TreeUtil
+import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
-import java.util.NoSuchElementException
+import com.intellij.psi.util.PsiUtilCore
+
 inline fun <reified T : PsiElement> PsiElement.getParentOfType(strict: Boolean): T? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, strict)
 }
@@ -17,7 +19,17 @@ inline fun <reified T : PsiElement> PsiElement.getParentOfType(strict: Boolean):
 
 fun Document.toPsiFile(project: Project): PsiFile? =
     PsiDocumentManager.getInstance(project).getPsiFile(this)
+/**
+ * Extracts node's element type
+ */
+val PsiElement.elementType: IElementType
+    get() = elementTypeOrNull!!
 
+
+
+val PsiElement.elementTypeOrNull: IElementType?
+    // XXX: be careful not to switch to AST
+    get() =   PsiUtilCore.getElementType(this)
 fun PsiElement.siblings(forward: Boolean = true, withItself: Boolean = true): Sequence<PsiElement> {
     return object : Sequence<PsiElement> {
         override fun iterator(): Iterator<PsiElement> {

@@ -8,7 +8,6 @@ import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.CjProcessResul
 import com.huawei.cangjie.idea.run.cjpm.isUnitTestMode
 import com.huawei.cangjie.idea.run.cjpm.runconfig.CjCapturingProcessHandler
 import com.huawei.cangjie.idea.run.cjpm.runconfig.CjProcessExecutionException
-
 import com.huawei.cangjie.idea.run.cjpm.runconfig.unwrapOrElse
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
@@ -21,11 +20,15 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import java.nio.file.Path
 
-fun CjToolchainBase.cjc(): Cjc = Cjc(this)
-
+//fun CjToolchainBase.cjc(): Cjc = Cjc(this)
+//val CjToolchainBase.cjc :Cjc = toolchain::cjc
 
 class Cjc(toolchain: CjToolchainBase) : CangJieComponent(NAME, toolchain) {
-    val version: CjcVersion? get() = queryVersion()
+    var version: CjcVersion? = null
+
+    init {
+        toolchain.cjc = this
+    }
 
     fun queryVersion(workingDirectory: Path? = null): CjcVersion? {
         if (!isUnitTestMode) {
@@ -34,8 +37,28 @@ class Cjc(toolchain: CjToolchainBase) : CangJieComponent(NAME, toolchain) {
         val lines = createBaseCommandLine("-v", workingDirectory = workingDirectory)
             .execute(toolchain.executionTimeoutInMilliseconds)
             ?.stdoutLines
-        return lines?.let { parseCjcVersion(it) }
+        version = lines?.let { parseCjcVersion(it) }
+        return version
     }
+
+    fun queryVersion(
+        workingDirectory: Path,
+        owner: Disposable,
+        listener: ProcessListener
+    ): CjProcessResult<CjcVersion?> {
+        if (!isUnitTestMode) {
+            checkIsBackgroundThread()
+        }
+        return createBaseCommandLine("-v", workingDirectory = workingDirectory)
+            .execute(owner, listener = listener)
+            .map {
+                parseCjcVersion(it.stdoutLines)
+
+//            version
+            }
+    }
+
+
     fun getSysroot(projectDirectory: Path): String? {
         if (!isUnitTestMode) {
             checkIsBackgroundThread()
@@ -50,18 +73,6 @@ class Cjc(toolchain: CjToolchainBase) : CangJieComponent(NAME, toolchain) {
         return toolchain.toLocalPath(output.stdout.trim())
     }
 
-    fun queryVersion(
-        workingDirectory: Path,
-        owner: Disposable,
-        listener: ProcessListener
-    ):CjProcessResult<CjcVersion?> {
-        if (!isUnitTestMode) {
-            checkIsBackgroundThread()
-        }
-        return createBaseCommandLine("-v",  workingDirectory = workingDirectory)
-            .execute(owner, listener = listener)
-            .map { parseCjcVersion(it.stdoutLines) }
-    }
 
     companion object {
         const val NAME: String = "bin/cjc"

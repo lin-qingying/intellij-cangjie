@@ -4,6 +4,7 @@ import com.huawei.cangjie.cjpm.CjpmConstants
 import com.huawei.cangjie.cjpm.project.pathAsPath
 import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
 import com.huawei.cangjie.cjpm.project.workspace.CjpmWorkspace
+import com.huawei.cangjie.cjpm.resolve
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
 import com.huawei.cangjie.cjpm.toolchain.impl.CjcVersion
 import com.intellij.ide.util.PropertiesComponent

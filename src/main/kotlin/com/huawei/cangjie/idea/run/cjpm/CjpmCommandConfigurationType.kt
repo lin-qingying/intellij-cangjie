@@ -1,10 +1,9 @@
 package com.huawei.cangjie.idea.run.cjpm
 
-import com.huawei.cangjie.idea.icons.CangJieIcons
+import com.huawei.cangjie.icon.CangJieIcons
 import com.intellij.execution.configurations.*
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NotNullLazyValue
-import com.intellij.util.PlatformUtils
 
 
 class CjpmCommandConfigurationType : ConfigurationTypeBase("CjpmCommandConfigurationType",

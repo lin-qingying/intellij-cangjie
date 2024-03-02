@@ -2,7 +2,7 @@ package com.huawei.cangjie.highlighter
 
 
 import com.huawei.cangjie.CangJieBundle
-import com.huawei.cangjie.idea.icons.CangJieIcons
+import com.huawei.cangjie.icon.CangJieIcons
 import com.huawei.cangjie.lang.CangJieLanguage
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighter

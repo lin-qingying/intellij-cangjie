@@ -3,7 +3,8 @@ package com.debugger.runconfig
 import com.debugger.backend.CjBreakpoint
 import com.debugger.runconfig.message.MessageHandler
 import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
-import com.huawei.cangjie.cjpm.toolchain.tools.cjc
+import com.huawei.cangjie.cjpm.toolchain.cjc
+
 //import com.huawei.cangjie.idea.project.CangJieProjectManager
 
 

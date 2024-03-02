@@ -9,12 +9,18 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.huawei.cangjie.cjpm.CjpmConstants
 import com.huawei.cangjie.cjpm.project.workspace.PackageOrigin
+import com.huawei.cangjie.cjpm.resolve
+import com.huawei.cangjie.cjpm.toolchain.tools.Cjpm
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.util.PathUtil
 import com.intellij.util.io.systemIndependentPath
+import com.moandjiezana.toml.Toml
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.exists
+
 
 class CjpmMetadataException(message: String) : IllegalStateException(message)
 
@@ -38,7 +44,7 @@ object CjpmMetadata {
             root.url, name, version ?: "",
             origin = if (isWorkspaceMember) PackageOrigin.WORKSPACE else PackageOrigin.DEPENDENCY,
 
-        )
+            )
 
     }
 
@@ -50,7 +56,7 @@ object CjpmMetadata {
         val workspaceRoot = project.workspace_root?.let { fs.refreshAndFindFileByPath(it) }
         requireNotNull(workspaceRoot) { "`cjpm metadata` reported a workspace path which does not exist at `${project.workspace_root}`" }
         val packages = project.packages.map { pkg ->
-            pkg.clean(fs,false)
+            pkg.clean(fs, false)
 
         }
         return CjpmWorkspaceData(
@@ -62,10 +68,13 @@ object CjpmMetadata {
 
     }
 
+
+    @Serializable
     data class Project(
+        @SerialName("requires")
         @JsonProperty("requires")
         @JsonDeserialize(using = PackageListDeserializer::class)
-        val packages: List<Package>,
+        val packages: List<Package> = emptyList(),
 
         val version: Int,
 
@@ -79,8 +88,47 @@ object CjpmMetadata {
         )
 
 
+        companion object {
+            fun serialization(filePath: Path): Project {
+
+
+                val file = filePath.toFile()
+                val data = file.readText()
+
+                if(file.name == "cjpm.lock"){
+
+
+                    val toml: Toml = Toml().read(data)
+                    val jsonString =    Cjpm.JSON_MAPPER.writeValueAsString(toml.toMap())
+
+                    return Cjpm.JSON_MAPPER.readValue(jsonString, Project::class.java)
+
+                }else{
+                    return Cjpm.JSON_MAPPER.readValue(data, Project::class.java)
+
+                }
+
+
+//                val version = toolchain.cjc?.version
+//
+//                if (version != null && version.semver < "0.49.2".parseSemVer()) {
+
+
+//                }
+
+
+//             val toml = Toml.decodeFromString<Project>(data)
+
+//                val toml = TomlFileReader.decodeFromFile(serializer() , filePath.systemIndependentPath)
+
+
+                TODO()
+            }
+        }
+
     }
 
+    @Serializable
 
     data class Package(
         val name: String,
@@ -110,10 +158,11 @@ object CjpmMetadata {
         } else if (git != null && commitId != null) {
             val localPath = Paths.get(System.getProperty("user.home")).resolve("AppData").resolve("Local")
             val cjpmPath = localPath.resolve(".cjpm")
-         var cjpmPathString = ""
+            var cjpmPathString = ""
             if (cjpmPath.exists()) {
                 val gitPath = cjpmPath.resolve("git")
-                cjpmPathString =  gitPath.resolve(name).resolve(commitId).resolve(CjpmConstants.MANIFEST_FILE).systemIndependentPath
+                cjpmPathString =
+                    gitPath.resolve(name).resolve(commitId).resolve(CjpmConstants.MANIFEST_FILE).systemIndependentPath
             }
             cjpmPathString
         } else {

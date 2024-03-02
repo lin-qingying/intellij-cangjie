@@ -42,12 +42,14 @@ open class CjConsoleBuilder(
     project: Project,
     val config: CjCommandConfiguration
 ) : TextConsoleBuilderImpl(project, ExecutionSearchScopes.executionScope(project, config)) {
-    override fun createConsole(): ConsoleView =
-        if (!config.hasRemoteTarget) {
+    override fun createConsole(): ConsoleView {
+        return  if (!config.hasRemoteTarget) {
             TerminalExecutionConsole(project, null)
         } else {
             CjpmConsoleView(project, scope, isViewer, true)
         }
+    }
+
 }
 
 

@@ -34,7 +34,7 @@ class NoCjpmProjectNotificationProvider(project: Project) : CjNotificationProvid
         project: Project
     ): CjEditorNotificationPanel? {
         if (isUnitTestMode && !isDispatchThread) return null
-        if (!(file.isCangJieFile || file.isCjpmJson) || isNotificationDisabled(file)) return null
+        if (!(file.isCangJieFile || file.isCjpmManifestFile) || isNotificationDisabled(file)) return null
         if (ScratchUtil.isScratch(file)) return null
         @Suppress("UnstableApiUsage")
         if (!project.isTrusted()) return null
@@ -45,7 +45,7 @@ class NoCjpmProjectNotificationProvider(project: Project) : CjNotificationProvid
             return createNoCjpmProjectsPanel(file)
         }
 
-        if (file.isCjpmJson) {
+        if (file.isCjpmManifestFile) {
             if (AttachCjpmProjectAction.canBeAttached(project, file)) {
                 return createNoCjpmProjectForFilePanel(file)
             }

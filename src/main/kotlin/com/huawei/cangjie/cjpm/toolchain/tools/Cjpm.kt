@@ -6,8 +6,11 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.huawei.cangjie.cjpm.CjpmConstants
+import com.huawei.cangjie.cjpm.findChild
 import com.huawei.cangjie.cjpm.project.pathAsPath
+import com.huawei.cangjie.cjpm.resolve
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
+import com.huawei.cangjie.cjpm.toolchain.cjc
 import com.huawei.cangjie.cjpm.toolchain.impl.CjpmMetadata
 import com.huawei.cangjie.cjpm.toolchain.parseSemVer
 import com.huawei.cangjie.idea.experiments.CjExperiments
@@ -42,10 +45,15 @@ fun fullyRefreshDirectory(directory: VirtualFile) {
     VfsUtil.markDirtyAndRefresh(/* async = */ false, /* recursive = */ true, /* reloadChildren = */ true, directory)
 }
 
-fun CjToolchainBase.cjpm(): Cjpm = Cjpm(this)
+//fun CjToolchainBase.cjpm(): Cjpm = Cjpm(this)
 class Cjpm(
     toolchain: CjToolchainBase
 ) : CangJieComponent(NAME, toolchain) {
+
+    init {
+        toolchain.cjpm = this
+    }
+
     fun checkNeedInstallCjpmGenerate(): Boolean {
         val crateName = "cjpm-generate"
         val minVersion = "0.45.2".parseSemVer()
@@ -87,17 +95,41 @@ class Cjpm(
         directory: VirtualFile,
         name: String,
         moduleName: String = name,
-        organizationName: String = name,
-        projectType: String? = null
+//        organizationName: String = name,
+        projectType: String? = null,
+//        cjcVersion: CjcVersion? = null,
     ): CjProcessResult<GeneratedFilesHolder> {
         val path = directory.pathAsPath
         val crateType = "--type=$projectType"
+        val args = mutableListOf<String>()
+//        val args = mutableListOf<String>(crateType,"--name=$moduleName")
+        args.add(crateType)
 
-        val args = mutableListOf(crateType, moduleName, organizationName)
+        val cjcVersion = toolchain.cjc().version
+
+        if (cjcVersion?.semver != null) {
+            if (cjcVersion.semver < SemVer.parseFromText("0.49.2")) {
+                args.add(moduleName)
+                args.add(moduleName)
+            } else {
+                args.add("--name=$moduleName")
+
+            }
+        } else {
+            args.add(moduleName)
+            args.add(moduleName)
+
+        }
+
 
         CjpmCommandLine("init", path, args).execute(project, owner).unwrapOrElse { return CjResult.Err(it) }
         fullyRefreshDirectory(directory)
-        val manifest = checkNotNull(directory.findChild(CjpmConstants.MANIFEST_FILE)) { "Can't find the manifest file" }
+
+        val manifest =
+            checkNotNull(directory.findChild(CjpmConstants.MANIFEST_FILE)) { "Can't find the manifest file" }
+
+
+//        val manifest = checkNotNull(directory.findChild(CjpmConstants.MANIFEST_FILE)) { "Can't find the manifest file" }
         val fileName = MAIN_CJ_FILE
         val sourceFiles = listOfNotNull(directory.findFileByRelativePath("src/$fileName"))
         return CjResult.Ok(GeneratedFilesHolder(manifest, sourceFiles))
@@ -146,8 +178,8 @@ class Cjpm(
         val rawData = fetchUpdate(owner, projectDirectory, listener = listenerProvider(CjpmCallType.METADATA))
             .unwrapOrElse { return CjResult.Err(it) }
 //        return CjResult.Ok(ProjectDescription(workspaceData, status))
-        val workspaceData =CjpmMetadata.clean(rawData)
-        return CjResult.Ok( workspaceData )
+        val workspaceData = CjpmMetadata.clean(rawData)
+        return CjResult.Ok(workspaceData)
 
 
     }
@@ -195,10 +227,10 @@ class Cjpm(
      */
     private fun readFile(projectDirectory: Path): CjpmMetadata.Project {
         val path = projectDirectory.resolve(CjpmConstants.LOCK_FILE)
+//        val path = projectDirectory.resolve(CjpmConstantsService(toolchain = toolchain).LOCK_FILE)
 
         if (path.exists()) {
-            val json = path.toFile().readText()
-            val project = JSON_MAPPER.readValue(json, CjpmMetadata.Project::class.java)
+            val project = CjpmMetadata.Project.serialization(path)
                 .convertPaths(path.parent, toolchain::toLocalPath)
             return project
 
@@ -309,6 +341,9 @@ class Cjpm(
         val JSON_MAPPER: ObjectMapper = ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .registerKotlinModule()
+
+        //        val TOML_MAPPER: ObjectMapper = TomlMapper().configure(TomlReadFeature.PARSE_JAVA_TIME, false)
+//            .registerKotlinModule()
         const val NAME: String = "tools/bin/cjpm"
 
         @JvmStatic
@@ -319,6 +354,7 @@ class Cjpm(
     }
 
 }
+
 
 inline fun <T, E> CjResult<T, E>.unwrapOrElse(op: (E) -> T): T = when (this) {
     is CjResult.Ok -> ok

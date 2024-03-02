@@ -43,6 +43,12 @@ class CjPsiFactory private constructor(
     fun createSemicolon(): PsiElement {
         return createVariable("let x: Int64;").findElementAt(12)!!
     }
+
+
+//    fun createIdentifier(text: String): PsiElement =
+//        createFromText<CjModDeclItem>("mod ${text.escapeIdentifierIfNeeded()};")?.identifier
+//            ?: error("Failed to create identifier: `$text`")
+
     fun createConstructorKeyword(): PsiElement =
         createClass("class A ").primaryConstructor!!.getInitKeyword()!!
 
