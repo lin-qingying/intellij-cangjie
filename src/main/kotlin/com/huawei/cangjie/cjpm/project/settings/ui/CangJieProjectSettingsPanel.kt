@@ -10,8 +10,9 @@ import com.huawei.cangjie.cjpm.project.CjToolchainPathChoosingComboBox
 import com.huawei.cangjie.cjpm.project.settings.CangJieProjectSettingsService
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainProvider
+import com.huawei.cangjie.cjpm.toolchain.cjc
 import com.huawei.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor
-import com.huawei.cangjie.cjpm.toolchain.tools.cjc
+
 import com.intellij.execution.wsl.WslPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.options.ConfigurationException

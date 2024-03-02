@@ -3,10 +3,11 @@ package com.huawei.cangjie.cjpm.project.model
 import com.google.common.annotations.VisibleForTesting
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.cjpm.CjpmConstants
+import com.huawei.cangjie.cjpm.findChild
 import com.huawei.cangjie.cjpm.project.pathAsPath
 import com.huawei.cangjie.cjpm.project.toolwindow.CjpmToolWindow
 import com.huawei.cangjie.idea.notifications.CjEditorNotificationPanel
-import com.huawei.cangjie.idea.notifications.isCjpmJson
+import com.huawei.cangjie.idea.notifications.isCjpmManifestFile
 import com.huawei.cangjie.idea.run.cjpm.isUnitTestMode
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.saveAllDocuments
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -21,7 +22,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VirtualFile
-import java.nio.file.Path
 
 abstract class CjpmProjectActionBase : DumbAwareAction() {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
@@ -41,7 +41,7 @@ class AttachCjpmProjectAction : CjpmProjectActionBase() {
             CjpmToolWindow.CJPM_TOOLBAR_PLACE -> chooseFile(project, e)
             CjEditorNotificationPanel.NOTIFICATION_PANEL_PLACE -> {
                 val file = e.getData(PlatformDataKeys.VIRTUAL_FILE)
-                if (file?.isCjpmJson == true) file else chooseFile(project, e)
+                if (file?.isCjpmManifestFile == true) file else chooseFile(project, e)
             }
             else -> e.getData(PlatformDataKeys.VIRTUAL_FILE)
         } ?: return
@@ -87,7 +87,7 @@ class AttachCjpmProjectAction : CjpmProjectActionBase() {
     }
 
     private fun VirtualFile.findCjpmToml(): VirtualFile? {
-        return if (isDirectory) findChild(CjpmConstants.MANIFEST_FILE) else takeIf { it.isCjpmJson }
+        return if (isDirectory) findChild(CjpmConstants.MANIFEST_FILE) else takeIf { it.isCjpmManifestFile }
     }
 
     companion object {
@@ -95,7 +95,7 @@ class AttachCjpmProjectAction : CjpmProjectActionBase() {
         val MOCK_CHOSEN_FILE_KEY: DataKey<VirtualFile> = DataKey.create("MOCK_CHOSEN_FILE_KEY")
 
         fun canBeAttached(project: Project, cjpmToml: VirtualFile): Boolean {
-            require(cjpmToml.isCjpmJson)
+            require(cjpmToml.isCjpmManifestFile)
             if (!ProjectFileIndex.getInstance(project).isInContent(cjpmToml)) return false
 
             val path = cjpmToml.pathAsPath
@@ -115,7 +115,7 @@ object CjpmProjectChooserDescriptor : FileChooserDescriptor(true, true, false, f
 
     init {
         // The filter is not used for directories
-        withFileFilter { it.isCjpmJson }
+        withFileFilter { it.isCjpmManifestFile }
         @Suppress("DialogTitleCapitalization")
         withTitle(CangJieBundle.message("dialog.title.select.cjpm.json"))
     }

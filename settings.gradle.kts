@@ -32,13 +32,13 @@ rootProject.name = "intellij-cangjie"
 include("plugin")
 
 //检查
-include("inspections")
+//include("inspections")
 //高亮
-include("highlighter")
+//include("highlighter")
 //lsp支持
 include("lsp")
 //描述
-include("descriptors")
+//include("descriptors")
 //include("debugg/**/er")
 //include("debugger1")
 //include("cidr")

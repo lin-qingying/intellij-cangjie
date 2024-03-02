@@ -8,11 +8,13 @@ import com.huawei.cangjie.cjpm.project.model.CjpmProject
 import com.huawei.cangjie.cjpm.project.model.ProcessProgressListener
 import com.huawei.cangjie.cjpm.project.workspace.CjpmWorkspace
 import com.huawei.cangjie.cjpm.project.workspace.StandardLibrary
+import com.huawei.cangjie.cjpm.resolve
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
+import com.huawei.cangjie.cjpm.toolchain.cjc
+import com.huawei.cangjie.cjpm.toolchain.cjpm
 import com.huawei.cangjie.cjpm.toolchain.impl.CjcVersion
 import com.huawei.cangjie.cjpm.toolchain.tools.CjpmCallType
-import com.huawei.cangjie.cjpm.toolchain.tools.cjc
-import com.huawei.cangjie.cjpm.toolchain.tools.cjpm
+
 import com.huawei.cangjie.cjpm.toolchain.tools.unwrapOrElse
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildAdapterBase
 import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildContextBase

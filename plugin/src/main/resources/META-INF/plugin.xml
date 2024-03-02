@@ -9,21 +9,27 @@
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor>Huawei</vendor>
 
-    <version>beta-1.0.6</version>
+    <version>beta-1.0.7</version>
     <!--    <depends>com.intellij.modules.platform</depends>-->
     <depends>com.intellij.modules.lang</depends>
+    <dependencies>
+        <plugin id="org.toml.lang"/>
+    </dependencies>
+
     <!--    <depends>com.jetbrains.performancePlugin</depends>-->
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <!--  <description> </description>-->
     <xi:include href="/META-INF/cangjie-core.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-toml.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
     <xi:include href="/META-INF/formatter.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 <!--    代码检查-->
-    <xi:include href="/META-INF/inspections.xml" xpointer="xpointer(/idea-plugin/*)"/>
+<!--    <xi:include href="/META-INF/inspections.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
 <!--语义突出显示-->
-    <xi:include href="/META-INF/highlighting.xml" xpointer="xpointer(/idea-plugin/*)"/>
+<!--    <xi:include href="/META-INF/highlighting.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
 
 <!--    <xi:include href="/META-INF/lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
 

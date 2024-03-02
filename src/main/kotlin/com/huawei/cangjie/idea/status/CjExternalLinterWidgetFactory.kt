@@ -6,7 +6,7 @@ import com.huawei.cangjie.cjpm.project.model.CjpmProjectsService
 import com.huawei.cangjie.cjpm.project.settings.externalLinterSettings
 import com.huawei.cangjie.cjpm.project.toolwindow.hasCjpmProject
 import com.huawei.cangjie.cjpm.toolchain.ExternalLinter
-import com.huawei.cangjie.idea.icons.CangJieIcons
+import com.huawei.cangjie.icon.CangJieIcons
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer

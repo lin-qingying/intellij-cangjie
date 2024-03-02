@@ -3,6 +3,7 @@ package com.huawei.cangjie.cjpm.project.model.impl
 import com.huawei.cangjie.AsyncValue
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.cjpm.CjpmConstants
+import com.huawei.cangjie.cjpm.findChild
 import com.huawei.cangjie.cjpm.project.model.CjpmProject
 import com.huawei.cangjie.cjpm.project.model.CjpmProjectsService
 import com.huawei.cangjie.cjpm.project.model.ContentEntryWrapper

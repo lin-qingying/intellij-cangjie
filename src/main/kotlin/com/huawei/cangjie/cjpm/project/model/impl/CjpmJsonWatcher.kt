@@ -23,7 +23,7 @@ import java.nio.file.Paths
 class CjpmJsonWatcher(
     private val cjpmProjects: CjpmProjectsService,
     private val onCjpmJsonChange: () -> Unit
-) : BulkFileListener{
+) : BulkFileListener {
     override fun before(events: List<VFileEvent>) = Unit
     override fun after(events: List<VFileEvent>) {
         if (events.any { isInterestingEvent(it) }) onCjpmJsonChange()
@@ -39,12 +39,12 @@ class CjpmJsonWatcher(
         }
         val fileParentPath = file.pathAsPath.parent
 
-        return  cjpmProjects.allProjects.any { it.manifest.parent == fileParentPath }
+        return cjpmProjects.allProjects.any { it.manifest.parent == fileParentPath }
 //     ||   cjpmProjects.findPackageForFile(file)?.origin == PackageOrigin.WORKSPACE
 
     }
 
-    companion object{
+    companion object {
 
         private val IMPLICIT_TARGET_FILES = listOf(
             "/build.cj", "/src/main.cj", "/src/lib.cj"
@@ -53,8 +53,9 @@ class CjpmJsonWatcher(
         private val IMPLICIT_TARGET_DIRS = listOf(
             "/src/bin", "/examples", "/tests", "/benches"
         )
+
         @VisibleForTesting
-        fun isInterestingEvent(project: Project, event: VFileEvent): Boolean{
+        fun isInterestingEvent(project: Project, event: VFileEvent): Boolean {
             return when {
                 event.pathEndsWith(CjpmConstants.MANIFEST_FILE) -> true
                 event.pathEndsWith(CjpmConstants.LOCK_FILE) -> {
@@ -73,19 +74,31 @@ class CjpmJsonWatcher(
                         false
                     }
                 }
+
                 event is VFileContentChangeEvent -> false
-                !event.pathEndsWith(".rs") -> false
+                !event.pathEndsWith(".cj") -> false
                 event is VFilePropertyChangeEvent && event.propertyName != VirtualFile.PROP_NAME -> false
                 IMPLICIT_TARGET_FILES.any { event.pathEndsWith(it) } -> true
                 else -> {
                     val parent = PathUtil.getParentPath(event.path)
                     val grandParent = PathUtil.getParentPath(parent)
-                    IMPLICIT_TARGET_DIRS.any { parent.endsWith(it) || (event.pathEndsWith(MAIN_CJ_FILE) && grandParent.endsWith(it)) }
+                    IMPLICIT_TARGET_DIRS.any {
+                        parent.endsWith(it) || (event.pathEndsWith(MAIN_CJ_FILE) && grandParent.endsWith(
+                            it
+                        ))
+                    }
                 }
             }
         }
+
         private fun VFileEvent.pathEndsWith(suffix: String): Boolean = path.endsWith(suffix) ||
                 this is VFilePropertyChangeEvent && oldPath.endsWith(suffix)
+
+        private fun VFileEvent.pathEndsWith(suffix: List<String>): Boolean {
+            //list中只要有一个为true就是true
+            return suffix.any { pathEndsWith(it) }
+        }
+
 
         private val LOG = logger<CjpmJsonWatcher>()
     }

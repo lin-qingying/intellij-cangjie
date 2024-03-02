@@ -2,8 +2,6 @@ package com.huawei.cangjie.idea.actions
 
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.idea.configuration.CangJieProjectConfigurator
-import com.huawei.cangjie.idea.configuration.ConfigureCangJieStatus
-import com.huawei.cangjie.idea.icons.CangJieIcons
 import com.huawei.cangjie.lang.CangJieFileType
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.parsing.CangJieParserDefinition.Util.STD_SCRIPT_SUFFIX

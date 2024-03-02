@@ -100,17 +100,17 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
         }
 
 
-        //        组织名
-        private val groupIdTextField: JTextField = JTextField().apply {
-
-        }
+//        //        组织名
+//        private val groupIdTextField: JTextField = JTextField().apply {
+//
+//        }
 
 
         override fun setupProject(project: Project) {
 
             val builder = CangJieModuleBuilder(
                 moduleName = moduleNameTextField.text,
-                organizationName = groupIdTextField.text,
+//                organizationName = groupIdTextField.text,
                 projectType = (projectTypeComboBox.selectedItem as CangJieProjectTypeItem).type
             )
             val module = builder.commit(project)?.firstOrNull() ?: return
@@ -159,14 +159,14 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
 //                        }
                         .component
                 }.bottomGap(BottomGap.SMALL)
-                row(CangJieUiBundle.message("action.new.project.groupname.title")) {
-                    cell(groupIdTextField)
-                        .columns(COLUMNS_MEDIUM)
-//                        .validationOnApply {
-//                            validateGroupName(groupIdTextField.text)
-//                        }
-                        .component
-                }.bottomGap(BottomGap.SMALL)
+//                row(CangJieUiBundle.message("action.new.project.groupname.title")) {
+//                    cell(groupIdTextField)
+//                        .columns(COLUMNS_MEDIUM)
+////                        .validationOnApply {
+////                            validateGroupName(groupIdTextField.text)
+////                        }
+//                        .component
+//                }.bottomGap(BottomGap.SMALL)
             }
 
 

@@ -1,7 +1,7 @@
 package com.huawei.cangjie.idea.project.tools.projectWizard.wizard
 
 import com.huawei.cangjie.CangJieBundle
-import com.huawei.cangjie.idea.icons.CangJieIcons
+import com.huawei.cangjie.icon.CangJieIcons
 import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.module.ModuleTypeManager
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType

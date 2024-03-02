@@ -10,6 +10,9 @@ import java.nio.file.Path
 abstract class CjTool(toolName: String, val toolchain: CjToolchainBase) {
     open val executable: Path = toolchain.pathToExecutable(toolName)
 
+
+
+
     protected fun createBaseCommandLine(
         vararg parameters: String,
         workingDirectory: Path? = null,
@@ -46,5 +49,8 @@ fun GeneralCommandLine.withWorkDirectory(path: Path?) = withWorkDirectory(path?.
 
 abstract class CangJieComponent(componentName: String, toolchain: CjToolchainBase) : CjTool(componentName, toolchain) {
 
-      val executionPath: String = executable.systemIndependentPath
+    val executionPath: String = executable.systemIndependentPath
+
+
+
 }

@@ -1,4 +1,4 @@
-package com.huawei.cangjie.idea.icons;
+package com.huawei.cangjie.icon;
 
 import com.intellij.ui.IconManager;
 import org.jetbrains.annotations.NotNull;

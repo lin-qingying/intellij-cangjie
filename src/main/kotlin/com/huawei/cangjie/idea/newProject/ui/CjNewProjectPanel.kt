@@ -1,8 +1,9 @@
 package com.huawei.cangjie.idea.newProject.ui
 
 import com.huawei.cangjie.CangJieBundle
+import com.huawei.cangjie.cjpm.toolchain.cjpm
 import com.huawei.cangjie.cjpm.toolchain.tools.Cjpm
-import com.huawei.cangjie.cjpm.toolchain.tools.cjpm
+
 import com.huawei.cangjie.idea.newProject.CjCustomTemplate
 import com.huawei.cangjie.idea.newProject.CjGenericTemplate
 import com.huawei.cangjie.idea.newProject.CjProjectTemplate

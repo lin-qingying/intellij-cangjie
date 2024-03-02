@@ -1,4 +1,4 @@
-package com.huawei.cangjie.idea.icons
+package com.huawei.cangjie.icon
 
 
 import com.intellij.openapi.util.IconLoader

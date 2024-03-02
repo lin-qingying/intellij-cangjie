@@ -1,6 +1,6 @@
 package com.huawei.cangjie.idea.run.cjc
 
-import com.huawei.cangjie.idea.icons.CangJieIcons
+import com.huawei.cangjie.icon.CangJieIcons
 import com.huawei.cangjie.idea.run.cjpm.CangJieRunConfigurationOptions
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.*

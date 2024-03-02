@@ -7,6 +7,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 //import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 //
 val kotlinVersion = "1.9.21"
+val tomlPlugin = "org.toml.lang"
+val psiViewerPlugin: String ="PsiViewer:233.2"
 
 plugins {
     idea
@@ -155,13 +157,15 @@ val pluginProjects: List<Project>
 val moshiVersion = "1.15.0"
 //okio版本
 val okioVersion = "2.10.0"
-
+//toml4j版本
+val toml4jVersion = "0.7.3"
 //插件需要的依赖列表
 val pluginDescriptors = arrayOf(
     "moshi-$moshiVersion.jar",
     "moshi-adapters-${moshiVersion}.jar",
     "moshi-kotlin-${moshiVersion}.jar",
     "okio-jvm-${okioVersion}.jar",
+    "toml4j-${toml4jVersion}.jar"
 )
 
 
@@ -171,15 +175,15 @@ val pluginDescriptors = arrayOf(
 project(":plugin") {
     intellij {
         pluginName.set("intellij-cangjie")
-//        plugins.set(listOf(nativeDebugPlugin))
+        plugins.set(listOf(       psiViewerPlugin))
     }
 //    group = "com.huawei.cangjie"
-    version = "beta-1.0.6"
+    version = "beta-1.0.7"
     dependencies {
         implementation(project(":"))
-        implementation(project(":inspections"))
-        implementation(project(":highlighter"))
-        implementation(project(":descriptors"))
+//        implementation(project(":inspections"))
+//        implementation(project(":highlighter"))
+//        implementation(project(":descriptors"))
 //        implementation(project(":lsp"))
 //        implementation(project(":lsp4j"))
 
@@ -322,7 +326,9 @@ project(":plugin") {
 }
 
 project(":") {
-
+    intellij {
+        plugins.set(listOf(tomlPlugin))
+    }
     dependencies {
 //        implementation("com.alibaba:fastjson:2.0.46")
         implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")
@@ -332,9 +338,18 @@ project(":") {
         implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
         implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+//        implementation("org.jetbrains.kotlinx:kotlinx-serialization-toml:1.6.2")
+//        implementation("com.akuleshov7:ktoml-file:0.5.1")
+        // https://mvnrepository.com/artifact/com.akuleshov7/ktoml-core
+//        implementation("com.akuleshov7:ktoml-core:0.5.1")
         implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
-
-
+//        implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:2.15.2"){
+//            exclude(group = "com.fasterxml.jackson.core", module = "jackson-core")
+//            exclude(group = "com.fasterxml.jackson.core", module = "jackson-databind")
+//
+//            exclude(group = "com.fasterxml.jackson.core", module = "jackson-annotations")
+//        }
+        implementation("io.hotmoka:toml4j:0.7.3")
 //        implementation(project(":dap"))
         implementation(project(":lsp"))
 
@@ -358,24 +373,24 @@ project(":") {
         }
     }
 }
-project(":highlighter"){
-    dependencies{
-        implementation(project(":"))
-        implementation(project(":descriptors"))
-
-    }
-}
-project(":inspections"){
-    dependencies{
-        implementation(project(":"))
-    }
-}
-project(":descriptors"){
-    dependencies{
-        implementation(project(":"))
-
-    }
-}
+//project(":highlighter"){
+//    dependencies{
+//        implementation(project(":"))
+//        implementation(project(":descriptors"))
+//
+//    }
+//}
+//project(":inspections"){
+//    dependencies{
+//        implementation(project(":"))
+//    }
+//}
+//project(":descriptors"){
+//    dependencies{
+//        implementation(project(":"))
+//
+//    }
+//}
 //
 //project(":dap"){
 //
