@@ -187,6 +187,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
          */
         PsiBuilder.Marker packageDirective = mark();
 
+        if (at(MARCO_KEYWORD)) {
+            advance(); // MARCO_KEYWORD 宏声明
+        }
 
         if (at(PACKAGE_KEYWORD)) {
             advance(); // PACKAGE_KEYWORD
@@ -205,7 +208,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             //因此，我们回滚解析位置，重新解析文件注释列表，非文件注释没有上报错误。
             firstEntry.rollbackTo();
 
-            //TODO 解析文件注释列表
+            //TODO 解析文件注解列表
 //            parseFileAnnotationList(FILE_ANNOTATIONS_WHEN_PACKAGE_OMITTED);
             packageDirective = mark();
             packageDirective.done(PACKAGE_DIRECTIVE);
@@ -213,6 +216,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             packageDirective.setCustomEdgeTokenBinders(BindFirstShebangWithWhitespaceOnly.INSTANCE, null);
 
         }
+
         parseImportDirectives();
     }
 
@@ -222,15 +226,18 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        while (atSet(FROM_IMPORT_SET)) {
 //            parseImportDirective();
 //        }
-        do {
-            if (at(PUBLIC_KEYWORD) && (lookahead(1) == FROM_KEYWORD || lookahead(1) == IMPORT_KEYWORD)) {
-                advance();
-            }
-            if (atSet(FROM_IMPORT_SET)) {
-                parseImportDirective();
-            }
+        while (atSet(FROM_IMPORT_SET) || (at(PUBLIC_KEYWORD) && (lookahead(1) == FROM_KEYWORD || lookahead(1) == IMPORT_KEYWORD))) {
+//            if (at(PUBLIC_KEYWORD) && (lookahead(1) == FROM_KEYWORD || lookahead(1) == IMPORT_KEYWORD)) {
+////                advance();
+//
+//                parseImportDirective();
+//
+//            }else
+//            if (atSet(FROM_IMPORT_SET)) {
+            parseImportDirective();
+//            }
 
-        } while (atSet(FROM_IMPORT_SET));
+        }
         importList.done(IMPORT_LIST);
     }
 
@@ -242,10 +249,96 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 importAlias.done(IMPORT_ALIAS);
             }
             error(errorMessage);
-            importDirective.done(IMPORT_DIRECTIVE);
+            importDirective.done(IMPORT_DIRECTIVE_ITEM);
             return true;
         }
         return false;
+    }
+
+
+    /**
+     * 处理Import关键字后的单个导入项
+     * : "import"
+     * : SimpleName{"."} ("." "*" )? | ("as" SimpleName{"."} ("." "*"))? SEMI?
+     */
+    private void parseImportDirectiveItem() {
+
+
+        PsiBuilder.Marker importDirectiveItem = mark();
+
+        if (!at(IDENTIFIER)) {
+            PsiBuilder.Marker error = mark();
+            skipUntil(TokenSet.create(EOL_OR_SEMICOLON));
+            error.error("Expecting qualified name");
+            importDirectiveItem.done(IMPORT_DIRECTIVE_ITEM);
+            consumeIf(SEMICOLON);
+            return;
+        }
+
+        PsiBuilder.Marker qualifiedName = mark();
+        PsiBuilder.Marker reference = mark();
+        advance(); // IDENTIFIER
+        reference.done(REFERENCE_EXPRESSION);
+
+        while (at(DOT) && lookahead(1) != MUL) {
+            advance(); // DOT
+
+            if (closeImportWithErrorIfNewline(importDirectiveItem, null, "Import must be placed on a single line")) {
+                qualifiedName.drop();
+                return;
+            }
+
+            reference = mark();
+            if (expect(IDENTIFIER, "Qualified name must be a '.'-separated identifier list", IMPORT_RECOVERY_SET)) {
+                reference.done(REFERENCE_EXPRESSION);
+            } else {
+                reference.drop();
+            }
+
+            PsiBuilder.Marker precede = qualifiedName.precede();
+            qualifiedName.done(DOT_QUALIFIED_EXPRESSION);
+            qualifiedName = precede;
+        }
+        qualifiedName.drop();
+
+        if (at(DOT)) {
+            advance(); // DOT
+            assert _at(MUL);
+            advance(); // MUL
+            if (at(AS_KEYWORD)) {
+                PsiBuilder.Marker as = mark();
+                advance(); // AS_KEYWORD
+                if (closeImportWithErrorIfNewline(importDirectiveItem, null, "Expecting identifier")) {
+                    as.drop();
+                    return;
+                }
+                consumeIf(IDENTIFIER);
+//                as.done(IMPORT_ALIAS);
+
+                if (!match(DOT, MUL)) {
+//                    as.precede().error("The alias name should contain '.*' suffix after import-all");
+
+
+//                    TODO 如果使用了LSP psi会重复报错一次
+                    error("The alias name should contain '.*' suffix after import-all");
+                }
+//                else {
+                as.done(IMPORT_ALIAS);
+//                }
+
+            }
+        }
+        if (at(AS_KEYWORD)) {
+            PsiBuilder.Marker alias = mark();
+            advance(); // AS_KEYWORD
+            if (closeImportWithErrorIfNewline(importDirectiveItem, alias, "Expecting identifier")) {
+                return;
+            }
+            expect(IDENTIFIER, "Expecting identifier", SEMICOLON_SET);
+            alias.done(IMPORT_ALIAS);
+        }
+
+        importDirectiveItem.done(IMPORT_DIRECTIVE_ITEM);
     }
 
     /*
@@ -255,11 +348,19 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ;
      */
     private void parseImportDirective() {
-        assert _atSet(FROM_IMPORT_SET);
+
+
+        assert _atSet(FROM_IMPORT_SET) || _at(PUBLIC_KEYWORD);
 
 
         boolean isFrom = false;
         PsiBuilder.Marker importDirective = mark();
+
+
+        if (at(PUBLIC_KEYWORD)) {
+            advance(); //PUBLIC_KEYWORD
+        }
+
         if (at(FROM_KEYWORD)) {
             isFrom = true;
             advance();
@@ -288,74 +389,16 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (closeImportWithErrorIfNewline(importDirective, null, "Expecting qualified name")) {
             return;
         }
-
-        if (!at(IDENTIFIER)) {
-            PsiBuilder.Marker error = mark();
-            skipUntil(TokenSet.create(EOL_OR_SEMICOLON));
-            error.error("Expecting qualified name");
-            importDirective.done(IMPORT_DIRECTIVE);
-            consumeIf(SEMICOLON);
-            return;
-        }
-
-        PsiBuilder.Marker qualifiedName = mark();
-        PsiBuilder.Marker reference = mark();
-        advance(); // IDENTIFIER
-        reference.done(REFERENCE_EXPRESSION);
-
-        while (at(DOT) && lookahead(1) != MUL) {
-            advance(); // DOT
-
-            if (closeImportWithErrorIfNewline(importDirective, null, "Import must be placed on a single line")) {
-                qualifiedName.drop();
-                return;
+        do {
+            if (at(COMMA)) {
+                advance();
             }
 
-            reference = mark();
-            if (expect(IDENTIFIER, "Qualified name must be a '.'-separated identifier list", IMPORT_RECOVERY_SET)) {
-                reference.done(REFERENCE_EXPRESSION);
-            } else {
-                reference.drop();
-            }
+            parseImportDirectiveItem();
 
-            PsiBuilder.Marker precede = qualifiedName.precede();
-            qualifiedName.done(DOT_QUALIFIED_EXPRESSION);
-            qualifiedName = precede;
-        }
-        qualifiedName.drop();
+        } while (at(COMMA));
 
-        if (at(DOT)) {
-            advance(); // DOT
-            assert _at(MUL);
-            advance(); // MUL
-            if (at(AS_KEYWORD)) {
-                PsiBuilder.Marker as = mark();
-                advance(); // AS_KEYWORD
-                if (closeImportWithErrorIfNewline(importDirective, null, "Expecting identifier")) {
-                    as.drop();
-                    return;
-                }
-                consumeIf(IDENTIFIER);
-//                as.done(IMPORT_ALIAS);
 
-                if (!match(DOT, MUL)) {
-//                    as.precede().error("The alias name should contain '.*' suffix after import-all");
-                    error("The alias name should contain '.*' suffix after import-all");
-                } else {
-                    as.done(IMPORT_ALIAS);
-                }
-
-            }
-        }
-        if (at(AS_KEYWORD)) {
-            PsiBuilder.Marker alias = mark();
-            advance(); // AS_KEYWORD
-            if (closeImportWithErrorIfNewline(importDirective, alias, "Expecting identifier")) {
-                return;
-            }
-            expect(IDENTIFIER, "Expecting identifier", SEMICOLON_SET);
-            alias.done(IMPORT_ALIAS);
-        }
         consumeIf(SEMICOLON);
         importDirective.done(IMPORT_DIRECTIVE);
         importDirective.setCustomEdgeTokenBinders(null, TrailingCommentsBinder.INSTANCE);
@@ -469,11 +512,21 @@ public class CangJieParsing extends AbstractCangJieParsing {
             return;
         }
         PsiBuilder.Marker decl = mark();
+
+//如果有导入语句
+
+        if ((atSet(FROM_IMPORT_SET) || (at(PUBLIC_KEYWORD) && (lookahead(1) == FROM_KEYWORD || lookahead(1) == IMPORT_KEYWORD)))) {
+//            error("imports are only allowed in the beginning of file");
+            parseImportDirectives();
+            decl.drop();
+
+            return;
+        }
+
         ModifierDetector detector = new ModifierDetector();
 
         parseModifierList(detector, TokenSet.EMPTY);
         IElementType declType = parseCommonDeclaration(detector, NameParsingMode.REQUIRED, DeclarationParsingMode.MEMBER_OR_TOPLEVEL);
-
 
         if (declType == null) {
 
@@ -780,6 +833,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
         switch (getTokenId()) {
+            case MARCO_KEYWORD_Id:
+                return parseMacro();
 
 //            case ABC_KEYWORD_Id:
 //                return parseAbc();
@@ -1483,10 +1538,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return parseFunction(false, null, detector);
     }
 
+
     @NotNull
     IElementType parseFunction(ModifierDetector classdetector, ModifierDetector detector) {
         return parseFunction(false, classdetector, detector);
     }
+
 
     /*
      * IDENTIFIER 标识符
@@ -1639,6 +1696,65 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         return FUNC;
     }
+
+
+    /**
+     * 宏定义  与方法定义相同
+     *
+     * @return
+     */
+    private IElementType parseMacro() {
+        assert _at(MARCO_KEYWORD);
+        advance();
+
+        if (at(RBRACE)) {
+            error("Function body expected");  //应该为函数体
+            return FUNC;
+        }
+
+
+        myBuilder.disableJoiningComplexTokens();
+
+
+        //函数名
+        parseIdentifier();
+
+
+//        expect(EXCL);
+
+        boolean typeParameterListOccurred = false;
+        if (at(LT)) {
+            parseTypeParameterList(LBRACKET_LBRACE_RBRACE_LPAR_SET);
+            typeParameterListOccurred = true;
+        }
+
+
+        //类型参数
+        if (at(LPAR)) {
+            parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET);
+
+        } else {
+            error("Expecting '(' ");  //应该为'('
+        }
+
+        //返回值类型
+        if (at(COLON)) {
+            advance(); // COLON
+            parseTypeRef();
+        }
+        parseTypeConstraintsGuarded(typeParameterListOccurred);
+        //函数体
+//        if (at(SEMICOLON)) {
+//            advance(); // SEMICOLON
+//        } else
+        if (at(LBRACE)) {
+            parseFunctionBody();
+        } else {
+            error("Expecting '{' ");  //应该为'{'
+        }
+        return MACRO;
+    }
+
 
     /*
      * functionBody

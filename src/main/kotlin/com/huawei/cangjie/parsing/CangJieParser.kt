@@ -12,6 +12,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
 import org.jetbrains.annotations.NotNull
 
+
 class CangJieParser(project: Project) : PsiParser {
     override fun parse(root: IElementType, builder: PsiBuilder): ASTNode {
         TODO("Not yet implemented")
@@ -62,10 +63,10 @@ class CangJieParser(project: Project) : PsiParser {
 
             val extension = FileUtilRt.getExtension(psiFile.name)
             if (extension.isEmpty() || extension == CangJieFileType.EXTENSION || psiFile is CjFile && psiFile.isCompiled) {
-//                cjParsing.parseFile()
+                cjParsing.parseFile()
 
 //                TODO LSP 使用 parseLspFile
-                cjParsing.parseLspFile()
+//                cjParsing.parseLspFile()
             } else {
                 cjParsing.parseScript()
             }

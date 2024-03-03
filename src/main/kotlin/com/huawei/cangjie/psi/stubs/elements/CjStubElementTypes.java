@@ -62,7 +62,7 @@ public interface CjStubElementTypes {
     CjTypeParameterElementType TYPE_PARAMETER = new CjTypeParameterElementType("TYPE_PARAMETER");
     CjPrimaryConstructorElementType PRIMARY_CONSTRUCTOR =
             new CjPrimaryConstructorElementType("PRIMARY_CONSTRUCTOR");
-
+    CjMacroElementType MACRO = new CjMacroElementType("MACRO");
     CjFunctionElementType FUNCTION = new CjFunctionElementType("FUNC");
     CjContextReceiverElementType CONTEXT_RECEIVER = new CjContextReceiverElementType("CONTEXT_RECEIVER");
 
@@ -117,6 +117,7 @@ public interface CjStubElementTypes {
             new CjSecondaryConstructorElementType("SECONDARY_CONSTRUCTOR");
 
     CjImportDirectiveElementType IMPORT_DIRECTIVE = new CjImportDirectiveElementType("IMPORT_DIRECTIVE");
+    CjImportDirectiveItemElementType IMPORT_DIRECTIVE_ITEM = new CjImportDirectiveItemElementType("IMPORT_DIRECTIVE_ITEM");
 
     CjDotQualifiedExpressionElementType DOT_QUALIFIED_EXPRESSION = new CjDotQualifiedExpressionElementType("DOT_QUALIFIED_EXPRESSION");
 

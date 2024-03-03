@@ -289,7 +289,7 @@ LONELY_BACKTICK=`
 
 
 //"abc"      { return CjTokens.ABC_KEYWORD ;}
-
+"macro"     { return CjTokens.MARCO_KEYWORD ;}
 "public"     { return CjTokens.PUBLIC_KEYWORD ;}
 "private"    { return CjTokens.PRIVATE_KEYWORD ;}
 "protected"  { return CjTokens.PROTECTED_KEYWORD ;}

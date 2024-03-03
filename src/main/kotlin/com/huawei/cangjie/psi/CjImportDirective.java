@@ -4,14 +4,13 @@ import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.psi.stubs.CangJieImportDirectiveStub;
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 import com.huawei.cangjie.psi.stubs.elements.CjTokenSets;
 import com.huawei.cangjie.resolve.ImportPath;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 
 public class CjImportDirective extends CjElementImplStub<CangJieImportDirectiveStub> implements CjImportInfo {
 
@@ -22,12 +21,14 @@ public class CjImportDirective extends CjElementImplStub<CangJieImportDirectiveS
     public CjImportDirective(@NotNull CangJieImportDirectiveStub stub) {
         super(stub, CjStubElementTypes.IMPORT_DIRECTIVE);
     }
+
     @Override
     @Nullable
     public String getAliasName() {
         CjImportAlias alias = getAlias();
         return alias != null ? alias.getName() : null;
     }
+
     @Nullable
     public CjImportAlias getAlias() {
         return getStubOrPsiChild(CjStubElementTypes.IMPORT_ALIAS);
@@ -155,6 +156,14 @@ public class CjImportDirective extends CjElementImplStub<CangJieImportDirectiveS
             throw new IllegalArgumentException("Can't construct name for: " + expression.getClass());
         }
     }
+
+
+    public boolean isPublic() {
+
+        return false;
+//        return getStubOrPsiChild(CjStubElementTypes.IMPORT_PUBLIC) != null;
+    }
+
 
 //
 //    @Nullable

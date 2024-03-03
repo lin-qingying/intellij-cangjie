@@ -34,6 +34,7 @@ public interface CjNodeTypes {
     IElementType OPERATION_REFERENCE       = new CjNodeType("OPERATION_REFERENCE", CjOperationReferenceExpression.class);
     IElementType VARIABLE = CjStubElementTypes.VARIABLE;
     IElementType MAIN_FUNC = CjStubElementTypes.MAIN_FUNC;
+    IElementType MACRO = CjStubElementTypes.MACRO;
     IElementType FUNC = CjStubElementTypes.FUNCTION;
     IFileElementType CJ_FILE = new IFileElementType(CangJieLanguage.INSTANCE);
     IElementType BLOCK = new BlockExpressionElementType();
@@ -74,6 +75,9 @@ public interface CjNodeTypes {
 
     IElementType IMPORT_ALIAS                       = CjStubElementTypes.IMPORT_ALIAS;
     IElementType IMPORT_DIRECTIVE                   = CjStubElementTypes.IMPORT_DIRECTIVE;
+
+    IElementType IMPORT_DIRECTIVE_ITEM                   = CjStubElementTypes.IMPORT_DIRECTIVE_ITEM;
+
     IElementType LONG_STRING_TEMPLATE_ENTRY    = CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY;
     IElementType SHORT_STRING_TEMPLATE_ENTRY   = CjStubElementTypes.SHORT_STRING_TEMPLATE_ENTRY;
     IElementType FLOAT_CONSTANT     = CjStubElementTypes.FLOAT_CONSTANT;

@@ -1,6 +1,5 @@
 package com.huawei.cangjie.psi.stubs
 
-import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.name.ClassId
 import com.huawei.cangjie.name.FqName
@@ -9,6 +8,7 @@ import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.stubs.NamedStub
 import com.intellij.psi.stubs.PsiFileStub
 import com.intellij.psi.stubs.StubElement
+
 enum class ConstantValueKind {
 
     BOOLEAN_CONSTANT,
@@ -115,6 +115,7 @@ interface CangJieImportAliasStub : StubElement<CjImportAlias> {
 //    fun mayHaveContract(): Boolean
 //}
 
+
 interface CangJieFunctionStub  : CangJieCallableStubBase<CjFunctionImpl> {
     fun hasBlockBody(): Boolean
     fun hasBody(): Boolean
@@ -122,7 +123,11 @@ interface CangJieFunctionStub  : CangJieCallableStubBase<CjFunctionImpl> {
 //    fun mayHaveContract(): Boolean
 }
 
-
+interface CangJieImportDirectiveItemStub : StubElement<CjImportDirectiveItem> {
+//    fun isAllUnder(): Boolean
+//    fun getImportedFqName(): FqName?
+//    fun isValid(): Boolean
+}
 
 
 interface CangJieImportDirectiveStub : StubElement<CjImportDirective> {

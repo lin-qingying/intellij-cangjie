@@ -134,6 +134,7 @@ public interface CjTokens {
     int PROTECTED_KEYWORD_Id = 122;
     int CATCH_KEYWORD_Id = 123;
 
+    int MARCO_KEYWORD_Id = 124;
 
     int FINALLY_KEYWORD_Id = 130;
 
@@ -356,6 +357,7 @@ public interface CjTokens {
     CjModifierKeywordToken OVERRIDE_KEYWORD = CjModifierKeywordToken.keywordModifier("override", OVERRIDE_KEYWORD_Id);
     CjModifierKeywordToken PRIVATE_KEYWORD = CjModifierKeywordToken.keywordModifier("private", PRIVATE_KEYWORD_Id);
     CjModifierKeywordToken PUBLIC_KEYWORD = CjModifierKeywordToken.keywordModifier("public", PUBLIC_KEYWORD_Id);
+    CjModifierKeywordToken MARCO_KEYWORD = CjModifierKeywordToken.keywordModifier("marco", MARCO_KEYWORD_Id);
 
     CjModifierKeywordToken STATIC_KEYWORD = CjModifierKeywordToken.keywordModifier("static", STATIC_KEYWORD_Id);
 
@@ -377,7 +379,7 @@ public interface CjTokens {
             IN_KEYWORD, THROW_KEYWORD, RETURN_KEYWORD, BREAK_KEYWORD, CONTINUE_KEYWORD, IF_KEYWORD,
             ELSE_KEYWORD, WHILE_KEYWORD, DO_KEYWORD, TRY_KEYWORD, MATCH_KEYWORD, CASE_KEYWORD,
             TYPEOF_KEYWORD,
-
+            MARCO_KEYWORD,
             PROP_KEYWORD, ENUM_KEYWORD,
             WHERE_KEYWORD,
             FROM_KEYWORD,
