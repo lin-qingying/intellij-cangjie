@@ -9,6 +9,9 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         visitElement(element);
         return null;
     }
+    public R visitUnsafeExpression(@NotNull CjUnsafeExpression expression, D data) {
+        return visitExpression(expression, data);
+    }
 
     public R visitTryExpression(@NotNull CjTryExpression expression, D data) {
         return visitExpression(expression, data);

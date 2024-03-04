@@ -329,6 +329,8 @@ abstract class AbstractCangJieParsing1(val builder: SemanticWhitespaceAwarePsiBu
         return builder.lookAhead(k)
     }
 
+
+
     /**
      * 如果当前标记与指定的标记匹配，则该方法将消耗该标记并返回true。否则，该方法将不会消耗标记并返回false
      *

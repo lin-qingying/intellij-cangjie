@@ -24,6 +24,8 @@ public interface CjNodeTypes {
     IElementType VALUE_ARGUMENT_LIST                = CjStubElementTypes.VALUE_ARGUMENT_LIST;
 
     IElementType POSTFIX_EXPRESSION        = new CjNodeType("POSTFIX_EXPRESSION", CjPostfixExpression.class);
+//CjUnsafeExpression
+ IElementType   UNSAFE_EXPRESSION           = new CjNodeType("UNSAFE_EXPRESSION", CjUnsafeExpression.class);
     IElementType CALL_EXPRESSION           = new CjNodeType("CALL_EXPRESSION", CjCallExpression.class);
     IElementType INDICES                   = new CjNodeType("INDICES", CjContainerNode.class);
     IElementType ARRAY_ACCESS_EXPRESSION   = new CjNodeType("ARRAY_ACCESS_EXPRESSION", CjArrayAccessExpression.class);
@@ -35,6 +37,10 @@ public interface CjNodeTypes {
     IElementType VARIABLE = CjStubElementTypes.VARIABLE;
     IElementType MAIN_FUNC = CjStubElementTypes.MAIN_FUNC;
     IElementType MACRO = CjStubElementTypes.MACRO;
+    IElementType FOREIGN = CjStubElementTypes.FOREIGN;
+
+
+    IElementType FOREIGN_BODY = CjStubElementTypes.FOREIGN_BODY;
     IElementType FUNC = CjStubElementTypes.FUNCTION;
     IFileElementType CJ_FILE = new IFileElementType(CangJieLanguage.INSTANCE);
     IElementType BLOCK = new BlockExpressionElementType();
@@ -51,6 +57,8 @@ public interface CjNodeTypes {
 //    IElementType CLASS_INITIALIZER = CjStubElementTypes.CLASS_INITIALIZER;
 
     IElementType CLASS_INIT = CjStubElementTypes.CLASS_INIT;
+    IElementType CLASS_TILDE_INIT = CjStubElementTypes.CLASS_TILDE_INIT;
+    IElementType CLASS_MAIN_INIT = CjStubElementTypes.CLASS_MAIN_INIT;
     IElementType REFERENCE_EXPRESSION = CjStubElementTypes.REFERENCE_EXPRESSION;
     IElementType TYPE_PARAMETER_LIST = CjStubElementTypes.TYPE_PARAMETER_LIST;
     IElementType TYPE_CONSTRAINT_LIST = CjStubElementTypes.TYPE_CONSTRAINT_LIST;

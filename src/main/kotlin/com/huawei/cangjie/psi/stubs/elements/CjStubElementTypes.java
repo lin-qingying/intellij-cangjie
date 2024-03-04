@@ -63,6 +63,9 @@ public interface CjStubElementTypes {
     CjPrimaryConstructorElementType PRIMARY_CONSTRUCTOR =
             new CjPrimaryConstructorElementType("PRIMARY_CONSTRUCTOR");
     CjMacroElementType MACRO = new CjMacroElementType("MACRO");
+    CjForeignDirectiveElementType FOREIGN = new CjForeignDirectiveElementType("FOREIGN");
+    CjPlaceHolderStubElementType<CjForeignBody> FOREIGN_BODY =
+            new CjPlaceHolderStubElementType<>("FOREIGN_BODY", CjForeignBody.class);
     CjFunctionElementType FUNCTION = new CjFunctionElementType("FUNC");
     CjContextReceiverElementType CONTEXT_RECEIVER = new CjContextReceiverElementType("CONTEXT_RECEIVER");
 
@@ -123,6 +126,8 @@ public interface CjStubElementTypes {
 
     CjMainFunctionElementType MAIN_FUNC = new CjMainFunctionElementType("MAIN_FUNC");
     CJClassInitElementType CLASS_INIT = new CJClassInitElementType("CLASS_INIT");
+    CJClassInitElementType CLASS_MAIN_INIT = new CJClassInitElementType("CLASS_MAIN_INIT");
+    CJClassInitElementType CLASS_TILDE_INIT = new CJClassInitElementType("CLASS_TILDE_INIT");
 
     CjBasicTypeElementType BASIC_TYPE = new CjBasicTypeElementType("BASIC_TYPE");
     CjPlaceHolderStubElementType<CjStringTemplateExpression> STRING_TEMPLATE =
@@ -142,13 +147,10 @@ public interface CjStubElementTypes {
             new CjCollectionLiteralExpressionElementType("TUPLE_LITERAL_EXPRESSION");
 
 
-
     CjTypeCodeFragmentType TYPE_CODE_FRAGMENT = new CjTypeCodeFragmentType();
 
     CjExpressionCodeFragmentType EXPRESSION_CODE_FRAGMENT = new CjExpressionCodeFragmentType();
     CjBlockCodeFragmentType BLOCK_CODE_FRAGMENT = new CjBlockCodeFragmentType();
-
-
 
 
     TokenSet CONSTANT_EXPRESSIONS_TYPES = TokenSet.create(

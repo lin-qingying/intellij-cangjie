@@ -1428,7 +1428,10 @@ open class CangJieExpressionParsing(
             advance() // LONG_TEMPLATE_ENTRY_START
             while (!eof()) {
                 val offset = myBuilder.currentOffset
-                parseExpression()
+//                parseExpression()
+//                cangJieParsing.parseBlock()
+//                parseStatement()
+                parseStatementsByStringTemplate()
                 if (_at(LONG_TEMPLATE_ENTRY_END)) {
                     advance()
                     break
@@ -1514,6 +1517,41 @@ open class CangJieExpressionParsing(
         }
     }
 
+    //    处理字符串模板语句
+    private fun parseStatementsByStringTemplate() {
+        while (at(SEMICOLON)) advance() // SEMICOLON
+        while (!eof() && !at(LONG_TEMPLATE_ENTRY_END)) {
+            if (!atSet(STATEMENT_FIRST)) {
+                errorAndAdvance("Expecting an element")
+            }
+
+            if (atSet(STATEMENT_FIRST)) {
+                parseStatement()
+            }
+
+            if (at(SEMICOLON)) {
+                while (at(SEMICOLON)) advance() // SEMICOLON
+            } else if (at(LONG_TEMPLATE_ENTRY_END)) {
+                break
+            }
+            else if (!myBuilder.newlineBeforeCurrentToken()) {
+                val severalStatementsError = "Unexpected tokens (use ';' to separate expressions on the same line)"
+                if (atSet(STATEMENT_NEW_LINE_QUICK_RECOVERY_SET)) {
+                    error(severalStatementsError)
+                } else {
+
+                    val errorMarker = mark()
+                    errorMarker.error(severalStatementsError)
+
+//                    errorUntil(
+//                        severalStatementsError,
+//                        TokenSet.create(EOL_OR_SEMICOLON, LONG_TEMPLATE_ENTRY_START, LONG_TEMPLATE_ENTRY_END)
+//                    )
+                }
+            }
+        }
+    }
+
     /*
      * blockLevelExpression
      *  :  expression
@@ -1525,11 +1563,14 @@ open class CangJieExpressionParsing(
 
     fun parseExpression() {
 
-
-        if (!atSet(EXPRESSION_FIRST)) {
-            error("Expecting an expression")
+        if (at(UNSAFE_KEYWORD)) {
+            cangJieParsing.parseUnsafeExpression()
             return
-        }
+        } else
+            if (!atSet(EXPRESSION_FIRST)) {
+                error("Expecting an expression")
+                return
+            }
         parseBinaryExpression(Precedence.ASSIGNMENT)
     }
 
@@ -1659,7 +1700,8 @@ open class CangJieExpressionParsing(
 
         @JvmStatic
         val EXPRESSION_FIRST = TokenSet.orSet(
-            TokenSet.create( // Prefix
+            TokenSet.create(
+                // Prefix
                 MINUS, PLUS, MINUSMINUS, PLUSPLUS, EXCL, LPAR,  // parenthesized
                 // literal constant
                 TRUE_KEYWORD, FALSE_KEYWORD, OPEN_QUOTE, INTEGER_LITERAL, CHARACTER_LITERAL, FLOAT_LITERAL,
@@ -1675,10 +1717,11 @@ open class CangJieExpressionParsing(
                 // jump
                 THROW_KEYWORD, RETURN_KEYWORD, CONTINUE_KEYWORD, BREAK_KEYWORD,  // loop
                 FOR_KEYWORD, WHILE_KEYWORD, DO_KEYWORD, IDENTIFIER,  // SimpleName
-                LBRACKET // Collection literal expression
-
+                LBRACKET,// Collection literal expression
+//                UNSAFE_EXPRESSION
+//                UNSAFE_KEYWORD
             ),
-            BASICTYPES
+            BASICTYPES,
         )
         private val TYPE_ARGUMENT_LIST_STOPPERS = TokenSet.create(
             INTEGER_LITERAL,
@@ -1778,7 +1821,7 @@ open class CangJieExpressionParsing(
             EXPRESSION_FIRST, TokenSet.create( // declaration
                 FUNC_KEYWORD, LET_KEYWORD, CONST_KEYWORD, VAR_KEYWORD, INTERFACE_KEYWORD, CLASS_KEYWORD
 
-            ), MODIFIER_KEYWORDS, BASICTYPES
+            ), MODIFIER_KEYWORDS, BASICTYPES, SPECIAL_MODIFIER_KEYWORDS
         )
         val STATEMENT_NEW_LINE_QUICK_RECOVERY_SET = TokenSet.orSet(
             TokenSet.andSet(
@@ -1793,7 +1836,7 @@ open class CangJieExpressionParsing(
 
         private fun tokenSetToMap(tokens: TokenSet): ImmutableMap<String, CjToken> {
             val builder: ImmutableMap.Builder<String, CjToken> = ImmutableMap.builder<String, CjToken>()
-            for (token in tokens.getTypes()) {
+            for (token in tokens.types) {
                 builder.put(token.toString(), token as CjToken)
             }
             return builder.build()
@@ -1803,7 +1846,7 @@ open class CangJieExpressionParsing(
             val operations: MutableSet<IElementType> = HashSet()
             val values: Array<Precedence> = Precedence.values()
             for (precedence in values) {
-                operations.addAll(listOf(*precedence.getOperations().getTypes()))
+                operations.addAll(listOf(*precedence.getOperations().types))
             }
             ALL_OPERATIONS = TokenSet.create(*operations.toTypedArray<IElementType>())
 
@@ -1811,9 +1854,9 @@ open class CangJieExpressionParsing(
         }
 
         init {
-            val operations: Array<IElementType> = OPERATIONS.getTypes()
+            val operations: Array<IElementType> = OPERATIONS.types
             val opSet: MutableSet<IElementType> = HashSet(listOf(*operations))
-            val usedOperations: Array<IElementType> = ALL_OPERATIONS?.getTypes() ?: emptyArray()
+            val usedOperations: Array<IElementType> = ALL_OPERATIONS?.types ?: emptyArray()
             val usedSet: MutableSet<IElementType> = HashSet(listOf(*usedOperations))
 
             if (opSet.size > usedSet.size) {

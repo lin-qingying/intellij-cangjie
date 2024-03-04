@@ -122,6 +122,9 @@ interface CangJieFunctionStub  : CangJieCallableStubBase<CjFunctionImpl> {
     fun hasTypeParameterListBeforeFunctionName(): Boolean
 //    fun mayHaveContract(): Boolean
 }
+interface CangJieForeignDirectiveStub : StubElement<CjForeignDirective> {
+
+}
 
 interface CangJieImportDirectiveItemStub : StubElement<CjImportDirectiveItem> {
 //    fun isAllUnder(): Boolean

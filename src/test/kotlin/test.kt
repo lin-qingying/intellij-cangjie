@@ -6,6 +6,7 @@ public fun a(){
 
 }
 @NotNull
+//@NotNull
 fun main() {
 
 
