@@ -13,7 +13,13 @@ public interface CjStubElementTypes {
             new CjPlaceHolderStubElementType<>("FUNCTION_TYPE_RECEIVER", CjFunctionTypeReceiver.class);
 
     CjConstantExpressionElementType UNIT_CONSTANT = new CjConstantExpressionElementType("UNIT_CONSTANT");
+    CjAnnotationEntryElementType ANNOTATION_ENTRY = new CjAnnotationEntryElementType("ANNOTATION_ENTRY");
+    CjAnnotationEntryElementType MACRO_EXPRESSION = new CjAnnotationEntryElementType("MACRO_EXPRESSION");
 
+
+
+    //    KtPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
+//            new CjPlaceHolderStubElementType<>("ANNOTATION", CjAnnotation.class);
     CjConstantExpressionElementType FLOAT_CONSTANT = new CjConstantExpressionElementType("FLOAT_CONSTANT");
     CjConstantExpressionElementType CHARACTER_CONSTANT = new CjConstantExpressionElementType("CHARACTER_CONSTANT");
     CjConstantExpressionElementType INTEGER_CONSTANT = new CjConstantExpressionElementType("INTEGER_CONSTANT");
@@ -41,6 +47,8 @@ public interface CjStubElementTypes {
 
     CjVariableElementType VARIABLE = new CjVariableElementType("VARIABLE");
     CjPropertyElementType PROPERTY = new CjPropertyElementType("PROPERTY");
+  CjTypeAliasElementType TYPEALIAS = new CjTypeAliasElementType("TYPEALIAS");
+
 
     CjPlaceHolderStubElementType<CjClassInitializer> CLASS_INITIALIZER =
             new CjPlaceHolderStubElementType<>("CLASS_INITIALIZER", CjClassInitializer.class);
@@ -59,6 +67,13 @@ public interface CjStubElementTypes {
             new CjPlaceHolderStubElementType<>("IMPORT_LIST", CjImportList.class);
     CjPlaceHolderStubElementType<CjTypeArgumentList> TYPE_ARGUMENT_LIST =
             new CjPlaceHolderStubElementType<>("TYPE_ARGUMENT_LIST", CjTypeArgumentList.class);
+
+//    CjPlaceHolderStubElementType<CjMacroAttrArgumentList> MACRO_ARGUMENT_LIST =
+//            new CjPlaceHolderStubElementType<>("MACRO_ARGUMENT_LIST", CjMacroAttrArgumentList.class);
+
+
+
+
     CjTypeParameterElementType TYPE_PARAMETER = new CjTypeParameterElementType("TYPE_PARAMETER");
     CjPrimaryConstructorElementType PRIMARY_CONSTRUCTOR =
             new CjPrimaryConstructorElementType("PRIMARY_CONSTRUCTOR");

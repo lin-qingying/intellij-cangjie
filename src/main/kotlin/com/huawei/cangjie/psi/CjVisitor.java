@@ -298,7 +298,9 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitTypeArgumentList(CjTypeArgumentList cjTypeArgumentList, D data) {
         return visitCjElement(cjTypeArgumentList, data);
     }
-
+//    public R visitMacroArgumentList(CjMacroAttrArgumentList psi, D data) {
+//        return visitCjElement(psi, data);
+//    }
     public R visitImportAlias(@NotNull CjImportAlias importAlias, D data) {
         return visitCjElement(importAlias, data);
     }

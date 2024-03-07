@@ -4,22 +4,19 @@ import com.huawei.cangjie.CjNodeTypes
 import com.huawei.cangjie.doc.lexer.CDocTokens
 import com.huawei.cangjie.idea.formatter.adjustLineIndent
 import com.huawei.cangjie.lexer.CjTokens
-import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.CjFile
+import com.huawei.cangjie.psi.CjSimpleNameStringTemplateEntry
 import com.intellij.codeInsight.AutoPopupController
 import com.intellij.codeInsight.CodeInsightSettings
-import com.intellij.codeInsight.editorActions.TypedHandler
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.EditorModificationUtilEx
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiWhiteSpace
-import com.intellij.psi.TokenType
 import com.intellij.psi.codeStyle.CodeStyleManager
-import com.intellij.psi.formatter.FormatterUtil
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 
@@ -256,7 +253,7 @@ class CangJieTypedHandler : TypedHandlerDelegate() {
             if (CjTokens.COMMENTS.contains(tokenType) ||
                 tokenType === CjTokens.REGULAR_STRING_PART ||
                 tokenType === CjTokens.OPEN_QUOTE ||
-                tokenType === CjTokens.CHARACTER_LITERAL
+                tokenType === CjTokens.CHARACTER_LITERAL || tokenType == CjTokens.CHARACTER_BYTE_LITERAL
             ) {
                 return
             }

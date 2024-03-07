@@ -37,7 +37,10 @@ interface CangJieFileStub : PsiFileStub<CjFile> {
 }
 interface CangJiePlaceHolderStub<T : CjElement> : StubElement<T>
 
-
+interface CangJieAnnotationEntryStub : StubElement<CjAnnotationEntry> {
+    fun getShortName(): String?
+    fun hasValueArguments(): Boolean
+}
 interface CangJieModifierListStub : StubElement<CjDeclarationModifierList> {
     fun hasModifier(modifierToken: CjModifierKeywordToken): Boolean
 }
@@ -60,7 +63,9 @@ interface CangJieVariableStub : CangJieCallableStubBase<CjVariable> {
     fun hasInitializer(): Boolean
     fun hasReturnTypeRef(): Boolean
 }
+interface CangJieTypeAliasStub : CangJieClassifierStub, CangJieStubWithFqName<CjTypeAlias> {
 
+}
 interface CangJiePropertyStub:CangJieStubWithFqName<CjProperty>
 interface CangJieCallableStubBase<TDeclaration : CjCallableDeclaration> : CangJieStubWithFqName<TDeclaration> {
     fun isTopLevel(): Boolean

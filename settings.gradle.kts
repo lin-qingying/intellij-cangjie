@@ -47,3 +47,4 @@ include("lsp")
 
 //dap协议序列化
 //include("dap")
+include("grammar")

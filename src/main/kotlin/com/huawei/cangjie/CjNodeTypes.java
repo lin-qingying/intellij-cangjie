@@ -14,6 +14,12 @@ public interface CjNodeTypes {
     IElementType INTERFACE = CjStubElementTypes.INTERFACE;
     IElementType STRUCT = CjStubElementTypes.STRUCT;
     IElementType PROPERTY = CjStubElementTypes.PROPERTY;
+
+    IElementType TYPEALIAS = CjStubElementTypes.TYPEALIAS;
+
+
+
+
     IElementType PROPERTY_BODY = CjStubElementTypes.PROPERTY_BODY;
 
     IElementType PROPERTY_GET = CjStubElementTypes.PROPERTY_GET;
@@ -50,6 +56,10 @@ public interface CjNodeTypes {
     IElementType FUNCTION_LITERAL          = new CjNodeType("FUNCTION_LITERAL", CjFunctionLiteral.class);
     IElementType LABEL_QUALIFIER = new CjNodeType("LABEL_QUALIFIER", CjContainerNode.class);
     IElementType PACKAGE_DIRECTIVE = CjStubElementTypes.PACKAGE_DIRECTIVE;
+
+
+
+
     IElementType SUPER_TYPE_ENTRY                   = CjStubElementTypes.SUPER_TYPE_ENTRY;
     IElementType MODIFIER_LIST = CjStubElementTypes.MODIFIER_LIST;
     IElementType DESTRUCTURING_DECLARATION_ENTRY = new CjNodeType("DESTRUCTURING_DECLARATION_ENTRY", CjDestructuringDeclarationEntry.class);
@@ -63,6 +73,7 @@ public interface CjNodeTypes {
     IElementType TYPE_PARAMETER_LIST = CjStubElementTypes.TYPE_PARAMETER_LIST;
     IElementType TYPE_CONSTRAINT_LIST = CjStubElementTypes.TYPE_CONSTRAINT_LIST;
     IElementType USER_TYPE = CjStubElementTypes.USER_TYPE;
+    IElementType FUNCTION_TYPE            = CjStubElementTypes.FUNCTION_TYPE;
 
 
     IElementType TUPLE_TYPE = CjStubElementTypes.TUPLE_TYPE;
@@ -85,6 +96,8 @@ public interface CjNodeTypes {
     IElementType IMPORT_DIRECTIVE                   = CjStubElementTypes.IMPORT_DIRECTIVE;
 
     IElementType IMPORT_DIRECTIVE_ITEM                   = CjStubElementTypes.IMPORT_DIRECTIVE_ITEM;
+   IElementType ANNOTATION_ENTRY                   = CjStubElementTypes.ANNOTATION_ENTRY;
+   IElementType MACRO_EXPRESSION                   = CjStubElementTypes.MACRO_EXPRESSION;
 
     IElementType LONG_STRING_TEMPLATE_ENTRY    = CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY;
     IElementType SHORT_STRING_TEMPLATE_ENTRY   = CjStubElementTypes.SHORT_STRING_TEMPLATE_ENTRY;
@@ -99,6 +112,7 @@ public interface CjNodeTypes {
     IElementType STRING_TEMPLATE               = CjStubElementTypes.STRING_TEMPLATE;
     IElementType TYPE_PROJECTION          = CjStubElementTypes.TYPE_PROJECTION;
     IElementType TYPE_ARGUMENT_LIST                 = CjStubElementTypes.TYPE_ARGUMENT_LIST;
+//    IElementType MACRO_ARGUMENT_LIST                 = CjStubElementTypes.MACRO_ARGUMENT_LIST;
     IElementType LITERAL_STRING_TEMPLATE_ENTRY = CjStubElementTypes.LITERAL_STRING_TEMPLATE_ENTRY;
     IElementType ESCAPE_STRING_TEMPLATE_ENTRY  = CjStubElementTypes.ESCAPE_STRING_TEMPLATE_ENTRY;
     IElementType SUPER_EXPRESSION          = new CjNodeType("SUPER_EXPRESSION", CjSuperExpression.class);
@@ -148,7 +162,7 @@ public interface CjNodeTypes {
 
     IElementType TYPE_PATTERN = new CjNodeType("TYPE_PATTERN", CjTypePattern.class);
     IElementType ENUM_PATTERN = new CjNodeType("ENUM_PATTERN", CjEnumPattern.class);
-    IElementType FUNCTION_TYPE            = CjStubElementTypes.FUNCTION_TYPE;
+
     IElementType PROPERTY_ACCESSOR       = CjStubElementTypes.PROPERTY_ACCESSOR;
     IElementType ERROR_ELEMENT = new CjNodeType("ERROR_ELEMENT", CjErrorElement.class);
 

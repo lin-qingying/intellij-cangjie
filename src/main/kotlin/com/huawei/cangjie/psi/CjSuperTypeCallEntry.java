@@ -1,5 +1,6 @@
 package com.huawei.cangjie.psi;
 
+import com.huawei.cangjie.CjNodeTypes;
 import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 import com.intellij.lang.ASTNode;
@@ -27,9 +28,11 @@ public class CjSuperTypeCallEntry extends CjSuperTypeListEntry implements CjCall
         return getRequiredStubOrPsiChild(CjStubElementTypes.CONSTRUCTOR_CALLEE);
     }
 
+    @Override
+    public @Nullable CjValueArgumentList getValueArgumentList() {
+        return (CjValueArgumentList) findChildByType(CjNodeTypes.VALUE_ARGUMENT_LIST);
 
-
-
+    }
 
 
     @Override

@@ -69,7 +69,6 @@ public class CjFileElementType extends IStubFileElementType<CangJieFileStub> {
         Language languageForParser = getLanguageForParser(psi);
         PsiBuilder builder = PsiBuilderFactory.getInstance().createBuilder(project, chameleon, null, languageForParser, chameleon.getChars());
         return CangJieParser.parse(builder, psi.getContainingFile()).getFirstChildNode();
-
     }
 
     @Override

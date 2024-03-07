@@ -86,7 +86,7 @@ import com.intellij.util.containers.Stack;
   return;
 %eof}
 
-%xstate SHOP_STRING STRING RAW_STRING SHORT_TEMPLATE_ENTRY BLOCK_COMMENT DOC_COMMENT
+%xstate HSAH_STRING STRING RAW_STRING SHORT_TEMPLATE_ENTRY BLOCK_COMMENT DOC_COMMENT
 %state LONG_TEMPLATE_ENTRY UNMATCHED_BACKTICK
 
 
@@ -136,11 +136,11 @@ OCT_INTEGER_LITERAL=0[Oo]({OCT_DIGIT_OR_UNDERSCORE})*
 
 //FLOAT_LITERAL=(({FLOATING_POINT_LITERAL1})[Ff])|(({FLOATING_POINT_LITERAL2})[Ff])|(({FLOATING_POINT_LITERAL3})[Ff])|(({FLOATING_POINT_LITERAL4})[Ff])
 //DOUBLE_LITERAL=(({FLOATING_POINT_LITERAL1})[Dd]?)|(({FLOATING_POINT_LITERAL2})[Dd]?)|(({FLOATING_POINT_LITERAL3})[Dd]?)|(({FLOATING_POINT_LITERAL4})[Dd])
-FLOAT_LITERAL=({ FLOAT_LITERAL_POINT} |{HEX_FLOATING_POINT_LITERAL} )
+FLOAT_LITERAL={ FLOAT_LITERAL_POINT} |{HEX_FLOATING_POINT_LITERAL}
 FLOAT_LITERAL_POINT = ({FLOATING_POINT_LITERAL1}|{FLOATING_POINT_LITERAL2}|{FLOATING_POINT_LITERAL3})(f32|f16|f64)?
 FLOATING_POINT_LITERAL1=({DIGITS})"."({DIGITS})+({EXPONENT_PART})?
 FLOATING_POINT_LITERAL2="."({DIGITS})({EXPONENT_PART})?
-FLOATING_POINT_LITERAL3=({DIGITS})({EXPONENT_PART})?
+FLOATING_POINT_LITERAL3=({DIGITS})({EXPONENT_PART})
 
 
 
@@ -157,6 +157,8 @@ EXPONENT_PART=[Ee]["+""-"]?({DIGIT_OR_UNDERSCORE})*
 
 
 CHARACTER_LITERAL="b"?"'"([^\\\'\n]|{ESCAPE_SEQUENCE})*("'"|\\)?
+//CHARACTER_BYTE_LITERAL = {CHARACTER_LITERAL}
+
 // TODO: 引入符号(例如‘foo)作为编写字符串文字的另一种方式
 ESCAPE_SEQUENCE=\\(u{HEX_DIGIT}{HEX_DIGIT}{HEX_DIGIT}{HEX_DIGIT}|[^\n])
 
@@ -165,9 +167,9 @@ THREE_QUO = (\"\"\")
 THREE_OR_MORE_QUO = ({THREE_QUO}\"*)
 
 //#[n*]""#[n*]
-//SHOP_STRING =(\#\{\1\,\})(\?:\"[^\"]\*\"\1)
-SHOP_QUO = (#+\")
-SHOP_OR_MORE_QUO = (\"#+)`
+//HSAH_STRING =(\#\{\1\,\})(\?:\"[^\"]\*\"\1)
+HSAH_QUO = (#+\")
+HSAH_OR_MORE_QUO = (\"#+)`
 
 REGULAR_STRING_PART=[^\\\"\n\$]+
 SHORT_TEMPLATE_ENTRY=\${IDENTIFIER}
@@ -180,15 +182,15 @@ LONELY_BACKTICK=`
 // String 模板
 //
 //
-{SHOP_QUO}                      {
+{HSAH_QUO}                      {
           lBraceCount = yytext().length() - 1;
-                                      pushState(SHOP_STRING);
+                                      pushState(HSAH_STRING);
                                       return CjTokens.OPEN_QUOTE; }
 
-<SHOP_STRING> \n                          { return CjTokens.REGULAR_STRING_PART; }
-<SHOP_STRING> \"                  { return CjTokens.REGULAR_STRING_PART; }
-<SHOP_STRING> \\                  { return CjTokens.REGULAR_STRING_PART; }
-<SHOP_STRING>  \"#+        {
+<HSAH_STRING> \n                          { return CjTokens.REGULAR_STRING_PART; }
+<HSAH_STRING> \"                  { return CjTokens.REGULAR_STRING_PART; }
+<HSAH_STRING> \\                  { return CjTokens.REGULAR_STRING_PART; }
+<HSAH_STRING>  \"#+        {
 
 //                                       popState();
                                        int lenght = yytext().length() - 1;
@@ -232,13 +234,13 @@ LONELY_BACKTICK=`
                                         return CjTokens.REGULAR_STRING_PART;
                                     }
                                  }
-
+b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 \"                          { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 <STRING> \n                 { popState(); yypushback(1); return CjTokens.DANGLING_NEWLINE; }
 <STRING> \"                 { popState(); return CjTokens.CLOSING_QUOTE; }
 <STRING> {ESCAPE_SEQUENCE}  { return CjTokens.ESCAPE_SEQUENCE; }
 
-<STRING, RAW_STRING ,SHOP_STRING> {REGULAR_STRING_PART}           { return CjTokens.REGULAR_STRING_PART; }
+<STRING, RAW_STRING ,HSAH_STRING> {REGULAR_STRING_PART}           { return CjTokens.REGULAR_STRING_PART; }
 <STRING, RAW_STRING> {SHORT_TEMPLATE_ENTRY}        {
                                                         pushState(SHORT_TEMPLATE_ENTRY);
                                                         yypushback(yylength() - 1);
@@ -329,15 +331,15 @@ LONELY_BACKTICK=`
 
 {FLOAT_LITERAL}     { return CjTokens.FLOAT_LITERAL; }
 
-{INTEGER_LITERAL}\.\. { yypushback(2); return CjTokens.INTEGER_LITERAL; }
+//{INTEGER_LITERAL}\.\. { yypushback(2); return CjTokens.INTEGER_LITERAL; }
 {INTEGER_LITERAL} { return CjTokens.INTEGER_LITERAL; }
 
 //{UNIT_LTIERAL} { return CjTokens.UNIT_LTIERAL;}
 //{TUPLE_LTIERAL} { return CjTokens.TUPLE_LTIERAL;}
 
 
-{CHARACTER_LITERAL} { return CjTokens.CHARACTER_LITERAL; }
-
+{CHARACTER_LITERAL}   { return CjTokens.CHARACTER_LITERAL; }
+//{CHARACTER_BYTE_LITERAL}    { return CjTokens.CHARACTER_BYTE_LITERAL; }
 
 "package"    { return CjTokens.PACKAGE_KEYWORD ;}
 
@@ -407,6 +409,7 @@ LONELY_BACKTICK=`
 "main"       { return CjTokens.MAIN_KEYWORD ;}
 "struct"     { return CjTokens.STRUCT_KEYWORD ;}
 "where"      { return CjTokens.WHERE_KEYWORD ;}
+"type"         { return CjTokens.TYPE_KEYWORD ;}
 
 "Int8"       { return CjTokens.INT8_KEYWORD ;}
 "Int16"      { return CjTokens.INT16_KEYWORD ;}
@@ -475,7 +478,7 @@ LONELY_BACKTICK=`
 "<"          { return CjTokens.LT        ; }
 ">"          { return CjTokens.GT        ; }
 
-
+"@"          { return CjTokens.AT; }
 
 "?"          { return CjTokens.QUEST     ; }
 ":"          { return CjTokens.COLON     ; }
@@ -497,6 +500,6 @@ LONELY_BACKTICK=`
 // error fallback
 [\s\S]       { return TokenType.BAD_CHARACTER; }
 // error fallback for exclusive states
-<STRING, RAW_STRING, SHORT_TEMPLATE_ENTRY, BLOCK_COMMENT, DOC_COMMENT , SHOP_STRING> .
+<STRING, RAW_STRING, SHORT_TEMPLATE_ENTRY, BLOCK_COMMENT, DOC_COMMENT , HSAH_STRING> .
              { return TokenType.BAD_CHARACTER; }
 

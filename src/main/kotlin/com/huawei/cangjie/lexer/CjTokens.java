@@ -94,10 +94,14 @@ public interface CjTokens {
 
     int QUEST_Id = 79;
 
+    int  CHARACTER_BYTE_LITERAL_Id = 80;
+
     int COLON_Id = 81;
     int SEMICOLON_Id = 82;
     int DOUBLE_SEMICOLON_Id = 83;
     int RANGE_Id = 84;
+
+
 
     int EQ_Id = 86;
     int MULTEQ_Id = 87;
@@ -123,7 +127,6 @@ public interface CjTokens {
     int ENUM_KEYWORD_Id = 114;
     int SPAWN_KEYWORD_Id = 114;
     int OPEN_KEYWORD_Id = 116;
-
     int OVERRIDE_KEYWORD_Id = 118;
     int PRIVATE_KEYWORD_Id = 119;
     int PUBLIC_KEYWORD_Id = 120;
@@ -133,6 +136,8 @@ public interface CjTokens {
     int CATCH_KEYWORD_Id = 123;
 
     int MARCO_KEYWORD_Id = 124;
+    int TYPE_KEYWORD_Id = 125;
+
 
     int FINALLY_KEYWORD_Id = 130;
     int REDEF_KEYWORD_Id = 131;
@@ -198,6 +203,7 @@ public interface CjTokens {
     CjToken UNIT_LTIERAL = new CjToken("UNIT_LTIERAL", UNIT_LTIERAL_Id);
     CjToken TUPLE_LTIERAL = new CjToken("TUPLE_LTIERAL", TUPLE_LTIERAL_Id);
     CjToken CHARACTER_LITERAL = new CjToken("CHARACTER_LITERAL", CHARACTER_LITERAL_Id);
+    CjToken CHARACTER_BYTE_LITERAL = new CjToken("CHARACTER_BYTE_LITERAL", CHARACTER_BYTE_LITERAL_Id);
     CjToken SHOP_STRING = new CjToken("SHOP_STRING", SHOP_STRING_Id);
 
     CjToken CLOSING_QUOTE = new CjToken("CLOSING_QUOTE", CLOSING_QUOTE_Id);
@@ -362,6 +368,7 @@ public interface CjTokens {
     CjModifierKeywordToken PUBLIC_KEYWORD = CjModifierKeywordToken.keywordModifier("public", PUBLIC_KEYWORD_Id);
     CjModifierKeywordToken MARCO_KEYWORD = CjModifierKeywordToken.keywordModifier("marco", MARCO_KEYWORD_Id);
 
+
     CjModifierKeywordToken STATIC_KEYWORD = CjModifierKeywordToken.keywordModifier("static", STATIC_KEYWORD_Id);
 
     CjModifierKeywordToken PROTECTED_KEYWORD = CjModifierKeywordToken.keywordModifier("protected", PROTECTED_KEYWORD_Id);
@@ -372,6 +379,7 @@ public interface CjTokens {
     CjModifierKeywordToken REDEF_KEYWORD = CjModifierKeywordToken.keywordModifier("redef", REDEF_KEYWORD_Id);
 
     CjKeywordToken FOREIGN_KEYWORD = CjKeywordToken.keyword("foreign", FOREIGN_KEYWORD_Id);
+    CjKeywordToken TYPE_KEYWORD = CjKeywordToken.keyword("type", TYPE_KEYWORD_Id);
 
     CjKeywordToken UNSAFE_KEYWORD = CjKeywordToken.keyword("unsafe", UNSAFE_KEYWORD_Id);
 
@@ -401,7 +409,7 @@ public interface CjTokens {
             OPERATOR_KEYWORD,
             INT8_KEYWORD, INT16_KEYWORD, INT32_KEYWORD, INT64_KEYWORD, UINT8_KEYWORD, UINT16_KEYWORD, UINT32_KEYWORD, UINT64_KEYWORD, FLOAT32_KEYWORD, FLOAT64_KEYWORD, BOOL_KEYWORD, CHAR_KEYWORD, UNIT_KEYWORD
 
-
+            ,TYPE_KEYWORD
             , SPAWN_KEYWORD,
             FOREIGN_KEYWORD,
             UNSAFE_KEYWORD

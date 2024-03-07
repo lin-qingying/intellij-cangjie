@@ -23,11 +23,24 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
+import org.jetbrains.annotations.NotNull
+
 
 class CangJieParserDefinition : ParserDefinition {
     override fun createLexer(project: Project?): Lexer = CangJieLexer()
 
     override fun createParser(project: Project?): PsiParser = CangJieParser(project!!)
+
+
+/**
+ *  如果使用bnf 需要把 [com.huawei.cangjie.psi.stubs.elements.CjFileElementType]的[doParseContents]方法注释掉
+ */
+//    override fun createLexer(p0: Project?): Lexer {
+//     return FlexAdapter(_CangJieLexer())
+//    }
+//    override fun createParser(p0: Project?): PsiParser {
+//        return CangJieParser()
+//    }
 
     override fun getFileNodeType(): IFileElementType = CjFileElementType.INSTANCE
 

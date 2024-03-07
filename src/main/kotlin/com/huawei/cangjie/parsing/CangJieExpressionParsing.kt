@@ -10,9 +10,9 @@ import com.huawei.cangjie.parsing.CangJieParsing.PARAMETER_NAME_RECOVERY_SET
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.PsiBuilderUtil
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Pair
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
-
 
 open class CangJieExpressionParsing(
     builder: SemanticWhitespaceAwarePsiBuilder, private val cangJieParsing: CangJieParsing, isLazy: Boolean
@@ -211,11 +211,15 @@ open class CangJieExpressionParsing(
      *   : "(" (SimpleName "=")? "*"? element{","} ")"
      *   ;
      */
-    fun parseValueArgumentList() {
+    fun parseValueArgumentList(struct: Pair<CjToken, CjToken> = Pair(LPAR, RPAR)) {
         val list = mark()
+
+        val sturctStart = struct.first
+        val sturctEnd = struct.second
+
         myBuilder.disableNewlines()
-        if (expect(LPAR, "Expecting an argument list", EXPRESSION_FOLLOW)) {
-            if (!at(RPAR)) {
+        if (expect(sturctStart, "Expecting an argument list", EXPRESSION_FOLLOW)) {
+            if (!at(sturctEnd)) {
                 while (true) {
                     while (at(COMMA)) errorAndAdvance("Expecting an argument")
                     parseValueArgument()
@@ -236,7 +240,7 @@ open class CangJieExpressionParsing(
                     }
                 }
             }
-            expect(RPAR, "Expecting ')'", EXPRESSION_FOLLOW)
+            expect(sturctEnd, "Expecting '${sturctEnd.debugName}'", EXPRESSION_FOLLOW)
         }
         myBuilder.restoreNewlinesState()
         list.done(VALUE_ARGUMENT_LIST)
@@ -411,6 +415,8 @@ open class CangJieExpressionParsing(
 
 
         when (getTokenId()) {
+
+//            宏表达式
 
 
             //元组
@@ -1533,8 +1539,7 @@ open class CangJieExpressionParsing(
                 while (at(SEMICOLON)) advance() // SEMICOLON
             } else if (at(LONG_TEMPLATE_ENTRY_END)) {
                 break
-            }
-            else if (!myBuilder.newlineBeforeCurrentToken()) {
+            } else if (!myBuilder.newlineBeforeCurrentToken()) {
                 val severalStatementsError = "Unexpected tokens (use ';' to separate expressions on the same line)"
                 if (atSet(STATEMENT_NEW_LINE_QUICK_RECOVERY_SET)) {
                     error(severalStatementsError)
@@ -1563,14 +1568,25 @@ open class CangJieExpressionParsing(
 
     fun parseExpression() {
 
-        if (at(UNSAFE_KEYWORD)) {
+        if (at(AT)) {
+            val macroMark = mark()
+            val type = cangJieParsing.parseAnnotation(null)
+            if (type == ANNOTATION_ENTRY) {
+                 error("Should call (..) for macros")
+
+
+            }
+
+            macroMark.done(MACRO_EXPRESSION)
+
+            return
+        } else if (at(UNSAFE_KEYWORD)) {
             cangJieParsing.parseUnsafeExpression()
             return
-        } else
-            if (!atSet(EXPRESSION_FIRST)) {
-                error("Expecting an expression")
-                return
-            }
+        } else if (!atSet(EXPRESSION_FIRST)) {
+            error("Expecting an expression")
+            return
+        }
         parseBinaryExpression(Precedence.ASSIGNMENT)
     }
 
@@ -1645,15 +1661,23 @@ open class CangJieExpressionParsing(
     /*
      * modifiers declarationRest
      */
-    private fun parseLocalDeclaration(rollbackIfDefinitelyNotExpression: Boolean): Boolean {
+    private fun parseLocalDeclaration(
+        rollbackIfDefinitelyNotExpression: Boolean,
+        rollbackMacro: Boolean = false
+    ): Boolean {
         val decl: PsiBuilder.Marker = mark()
         val detector: CangJieParsing.ModifierDetector = CangJieParsing.ModifierDetector()
 
 //        修饰符
-        cangJieParsing.parseModifierList(detector, TokenSet.EMPTY)
+        cangJieParsing.parseModifierList(detector, TokenSet.EMPTY, rollbackMacro)
         val declType: IElementType? = parseLocalDeclarationRest(detector, rollbackIfDefinitelyNotExpression)
 
-        return if (declType != null) {
+        return if (declType == ANNOTATION_ENTRY) {
+            decl.rollbackTo()
+
+
+            return parseLocalDeclaration(rollbackIfDefinitelyNotExpression, true)
+        } else if (declType != null) {
             // 不将前面的注释(非文档)附加到局部变量，因为它们可能会注释下面的几个语句
             closeDeclarationWithCommentBinders(
                 decl, declType, declType !== VARIABLE && declType !== DESTRUCTURING_DECLARATION
@@ -1704,7 +1728,7 @@ open class CangJieExpressionParsing(
                 // Prefix
                 MINUS, PLUS, MINUSMINUS, PLUSPLUS, EXCL, LPAR,  // parenthesized
                 // literal constant
-                TRUE_KEYWORD, FALSE_KEYWORD, OPEN_QUOTE, INTEGER_LITERAL, CHARACTER_LITERAL, FLOAT_LITERAL,
+                TRUE_KEYWORD, FALSE_KEYWORD, OPEN_QUOTE, INTEGER_LITERAL, CHARACTER_LITERAL, CHARACTER_BYTE_LITERAL, FLOAT_LITERAL,
 
 //            LBRACE,  // functionLiteral
                 FUNC_KEYWORD,  // expression function
@@ -1727,6 +1751,7 @@ open class CangJieExpressionParsing(
             INTEGER_LITERAL,
             FLOAT_LITERAL,
             CHARACTER_LITERAL,
+            CHARACTER_BYTE_LITERAL,
             OPEN_QUOTE,
             PACKAGE_KEYWORD,
             AS_KEYWORD,
@@ -1821,7 +1846,7 @@ open class CangJieExpressionParsing(
             EXPRESSION_FIRST, TokenSet.create( // declaration
                 FUNC_KEYWORD, LET_KEYWORD, CONST_KEYWORD, VAR_KEYWORD, INTERFACE_KEYWORD, CLASS_KEYWORD
 
-            ), MODIFIER_KEYWORDS, BASICTYPES, SPECIAL_MODIFIER_KEYWORDS
+            ), MODIFIER_KEYWORDS, BASICTYPES, SPECIAL_MODIFIER_KEYWORDS, TokenSet.create(AT)
         )
         val STATEMENT_NEW_LINE_QUICK_RECOVERY_SET = TokenSet.orSet(
             TokenSet.andSet(
