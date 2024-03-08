@@ -29,7 +29,7 @@ open class CangJieExpressionParsing(
         ),
 
 
-        PREFIX(MINUS, PLUS, MINUSMINUS, PLUSPLUS, EXCL) {
+        PREFIX(MINUS, PLUS, EXCL) {
 
             override fun parseHigherPrecedence(parser: CangJieExpressionParsing) {
                 throw IllegalStateException("Don't call this method")
@@ -53,7 +53,19 @@ open class CangJieExpressionParsing(
 
         MULTIPLICATIVE(MUL, DIV, PERC, MULMUL),
         ADDITIVE(PLUS, MINUS),
-        RANGE(CjTokens.RANGE),
+        RANGE(CjTokens.RANGE, RANGEEQ) {
+
+            override fun parseRightHandSide(operation: IElementType, parser: CangJieExpressionParsing): IElementType {
+                if (operation == CjTokens.RANGE || operation == RANGEEQ) {
+                    parser.parseRangeExpression()
+                    return RANGE_EXPRESSION
+                }
+                return super.parseRightHandSide(operation, parser)
+
+
+            }
+
+        },
 
         //        SIMPLE_NAME(IDENTIFIER),
         IN_OR_IS(IN_KEYWORD, IS_KEYWORD) {
@@ -118,6 +130,20 @@ open class CangJieExpressionParsing(
             higher?.let { parser.parseBinaryExpression(it) }
         }
 
+    }
+
+    private fun parseRangeExpression() {
+        parseExpression()
+        if(at(COLON)){
+            advance()
+            if(at(INTEGER_LITERAL)){
+                advance()
+            }else{
+
+                error("Lack of step frequency")
+//                errorAndAdvance("Expecting an integer literal")
+            }
+        }
     }
 
 
@@ -338,11 +364,6 @@ open class CangJieExpressionParsing(
             }
 
 
-
-
-
-
-
         while (true) {
             if (interruptedWithNewLine()) {
                 break
@@ -363,8 +384,24 @@ open class CangJieExpressionParsing(
                 parseSelectorCallExpression()
                 expression.done(expressionType)
             } else if (atSet(Precedence.POSTFIX.getOperations())) {
+
+
                 parseOperationReference()
+
+
+
                 expression.done(POSTFIX_EXPRESSION)
+
+
+            } else if (at(RANGE) && lookahead(1) === RBRACKET) {
+//                后缀切片或者区间
+                advance()
+
+
+//                TODO 更改为区间或者切片
+                expression.done(SLICE_EXPRESSION)
+
+
             } else {
 
                 break
@@ -1375,10 +1412,31 @@ open class CangJieExpressionParsing(
             if (at(RBRACKET)) {
                 break
             }
-            parseExpression()
+
+            if (at(RANGE)) {
+//                前缀切片
+                parsePefixSliceExpression()
+            } else {
+                parseExpression()
+
+            }
+
             if (!at(COMMA)) break
             advance() // COMMA
         }
+    }
+
+
+    private fun parsePefixSliceExpression() {
+        val mark = mark()
+
+//        TODO 切片结构
+        advance() // RANGE
+        if(!at(RBRACKET)){
+            parseExpression()
+
+        }
+        mark.done(SLICE_EXPRESSION)
     }
 
     private fun parseOneTokenExpression(type: IElementType) {
@@ -1572,7 +1630,7 @@ open class CangJieExpressionParsing(
             val macroMark = mark()
             val type = cangJieParsing.parseAnnotation(null)
             if (type == ANNOTATION_ENTRY) {
-                 error("Should call (..) for macros")
+                error("Should call (..) for macros")
 
 
             }
@@ -1726,9 +1784,20 @@ open class CangJieExpressionParsing(
         val EXPRESSION_FIRST = TokenSet.orSet(
             TokenSet.create(
                 // Prefix
-                MINUS, PLUS, MINUSMINUS, PLUSPLUS, EXCL, LPAR,  // parenthesized
+                MINUS,
+                PLUS,
+                MINUSMINUS,
+                PLUSPLUS,
+                EXCL,
+                LPAR,  // parenthesized
                 // literal constant
-                TRUE_KEYWORD, FALSE_KEYWORD, OPEN_QUOTE, INTEGER_LITERAL, CHARACTER_LITERAL, CHARACTER_BYTE_LITERAL, FLOAT_LITERAL,
+                TRUE_KEYWORD,
+                FALSE_KEYWORD,
+                OPEN_QUOTE,
+                INTEGER_LITERAL,
+                CHARACTER_LITERAL,
+                CHARACTER_BYTE_LITERAL,
+                FLOAT_LITERAL,
 
 //            LBRACE,  // functionLiteral
                 FUNC_KEYWORD,  // expression function
@@ -1739,8 +1808,14 @@ open class CangJieExpressionParsing(
                 TRY_KEYWORD,  // try
 
                 // jump
-                THROW_KEYWORD, RETURN_KEYWORD, CONTINUE_KEYWORD, BREAK_KEYWORD,  // loop
-                FOR_KEYWORD, WHILE_KEYWORD, DO_KEYWORD, IDENTIFIER,  // SimpleName
+                THROW_KEYWORD,
+                RETURN_KEYWORD,
+                CONTINUE_KEYWORD,
+                BREAK_KEYWORD,  // loop
+                FOR_KEYWORD,
+                WHILE_KEYWORD,
+                DO_KEYWORD,
+                IDENTIFIER,  // SimpleName
                 LBRACKET,// Collection literal expression
 //                UNSAFE_EXPRESSION
 //                UNSAFE_KEYWORD

@@ -101,6 +101,7 @@ public interface CjTokens {
     int DOUBLE_SEMICOLON_Id = 83;
     int RANGE_Id = 84;
 
+    int RANGEEQ_Id = 85;
 
 
     int EQ_Id = 86;
@@ -306,6 +307,8 @@ public interface CjTokens {
     CjSingleValueToken SEMICOLON = new CjSingleValueToken("SEMICOLON", ";", SEMICOLON_Id);
     CjSingleValueToken DOUBLE_SEMICOLON = new CjSingleValueToken("DOUBLE_SEMICOLON", ";;", DOUBLE_SEMICOLON_Id);
     CjSingleValueToken RANGE = new CjSingleValueToken("RANGE", "..", RANGE_Id);
+    CjSingleValueToken RANGEEQ = new CjSingleValueToken("RANGEEQ", "..=", RANGEEQ_Id);
+
     CjSingleValueToken EQ = new CjSingleValueToken("EQ", "=", EQ_Id);
     CjSingleValueToken MULTEQ = new CjSingleValueToken("MULTEQ", "*=", MULTEQ_Id);
     CjSingleValueToken DIVEQ = new CjSingleValueToken("DIVEQ", "/=", DIVEQ_Id);
@@ -549,7 +552,7 @@ public interface CjTokens {
     TokenSet OPERATIONS = TokenSet.create(AS_KEYWORD, IS_KEYWORD, IN_KEYWORD, DOT, PLUSPLUS, MINUSMINUS, MUL, MULMUL, PLUS,
             MINUS, EXCL, DIV, PERC, LT, GT, LTEQ, GTEQ, EQEQ, EXCLEQ, ANDAND, OROR, MULMULEQ,
 
-            RANGE, EQ, MULTEQ, DIVEQ, PERCEQ, PLUSEQ, MINUSEQ,
+            RANGE,RANGEEQ, EQ, MULTEQ, DIVEQ, PERCEQ, PLUSEQ, MINUSEQ,
 
             AND, OR, XOR,
             ANDEQ, OREQ, XOREQ,

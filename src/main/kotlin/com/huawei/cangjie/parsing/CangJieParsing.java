@@ -2531,6 +2531,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        }
 
 
+
+
         if (at(LPAR)) {
 
 

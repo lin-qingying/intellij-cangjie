@@ -1496,7 +1496,7 @@ loopExpression
 
 // for-in 循环表达式规则，遍历集合或范围中的元素
 forInExpression
-    : FOR NL* LPAREN NL* patternsMaybeIrrefutable NL* IN NL* expression NL* patternGuard? NL*
+    : FOR (NL* | WS+) LPAREN (NL* | WS+) patternsMaybeIrrefutable (NL* | WS+) IN (NL* | WS+) expression NL* patternGuard? NL*
         RPAREN NL* block
     ;
 

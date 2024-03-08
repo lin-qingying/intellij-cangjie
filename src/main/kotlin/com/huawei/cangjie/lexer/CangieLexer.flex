@@ -458,7 +458,7 @@ b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 "=>"         { return CjTokens.DOUBLE_ARROW; }
 "<-"     { return CjTokens.LEFT_ARROW; }
 ".."         { return CjTokens.RANGE     ; }
-
+"..="         { return CjTokens.RANGEEQ     ; }
 "**="        { return CjTokens.MULMULEQ  ; }
 
 "["          { return CjTokens.LBRACKET  ; }

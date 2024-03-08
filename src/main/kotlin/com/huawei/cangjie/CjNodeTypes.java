@@ -29,6 +29,11 @@ public interface CjNodeTypes {
     IElementType VALUE_ARGUMENT                     = CjStubElementTypes.VALUE_ARGUMENT;
     IElementType VALUE_ARGUMENT_LIST                = CjStubElementTypes.VALUE_ARGUMENT_LIST;
 
+//    区间表达式
+
+    IElementType RANGE_EXPRESSION        = new CjNodeType("RANGE_EXPRESSION", CjRangeExpression.class);
+
+    IElementType SLICE_EXPRESSION        = new CjNodeType("SLICE_EXPRESSION", CjSliceExpression.class);
     IElementType POSTFIX_EXPRESSION        = new CjNodeType("POSTFIX_EXPRESSION", CjPostfixExpression.class);
 //CjUnsafeExpression
  IElementType   UNSAFE_EXPRESSION           = new CjNodeType("UNSAFE_EXPRESSION", CjUnsafeExpression.class);
