@@ -6,6 +6,7 @@ import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.utils.StringsKt;
 import com.intellij.lang.LighterASTNode;
 import com.intellij.lang.PsiBuilder;
+import com.intellij.lang.PsiBuilderUtil;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.util.containers.Stack;
@@ -63,6 +64,42 @@ public abstract class AbstractCangJieParsing {
         return myBuilder.rawLookup(-i);
     }
 
+    protected IElementType getGtTokenType() {
+        IElementType tokenType = tt();
+        if (tokenType != GT) return tokenType;
+        if (rawLookup(1) == GT) {
+            if (rawLookup(2) == EQ) {
+                tokenType = GTGTEQ;
+            } else {
+                tokenType = GTGT;
+            }
+        } else if (rawLookup(1) == EQ) {
+            tokenType = GTEQ;
+        }
+        return tokenType;
+    }
+
+    protected void advanceGtToken(IElementType type) {
+        PsiBuilder.Marker gtToken = mark();
+        if (type == GTGTEQ) {
+            PsiBuilderUtil.advance(myBuilder, 3);
+        } else if (type == GTGT || type == GTEQ) {
+            PsiBuilderUtil.advance(myBuilder, 2);
+        } else {
+            gtToken.drop();
+//            myBuilder.advanceLexer();
+            advance();
+            return;
+
+//            gtToken.collapse(type);
+
+//
+        }
+
+//        gtToken.done(type);
+        gtToken.collapse(type);
+    }
+
     /**
      * 检查当前标记是否为指定的 CjToken 类型，并在标记不匹配时报告错误
      *
@@ -85,11 +122,11 @@ public abstract class AbstractCangJieParsing {
 
 
     //    获取上一个标记类型
-    protected @Nullable LighterASTNode getLatestMarker( ) {
+    protected @Nullable LighterASTNode getLatestMarker() {
         return myBuilder.getLatestDoneMarker();
     }
 
-//    上一个已解析的标记是否以分号结尾
+    //    上一个已解析的标记是否以分号结尾
     protected boolean expectSemicolon() {
         return expect(SEMICOLON, "Expected semicolon");
     }
@@ -130,6 +167,17 @@ public abstract class AbstractCangJieParsing {
 
         return false;
     }
+    protected boolean expect(TokenSet expectationSet, String message, TokenSet recoverySet) {
+        if (expect(expectationSet)) {
+            return true;
+        }
+
+        errorWithRecovery(message, recoverySet);
+
+        return false;
+    }
+
+
 
     /**
      * 检查当前标记是否为指定的 CjToken 类型，并在标记不匹配时报告错误
@@ -146,6 +194,18 @@ public abstract class AbstractCangJieParsing {
         if (expectation == CjTokens.IDENTIFIER && "`".equals(myBuilder.getTokenText())) {
             advance();
         }
+
+        return false;
+    }
+    protected boolean expect(TokenSet expectationSet) {
+        if (atSet(expectationSet)) {
+            advance();
+            return true;
+        }
+//
+//        if (expectationSet == CjTokens.IDENTIFIER && "`".equals(myBuilder.getTokenText())) {
+//            advance();
+//        }
 
         return false;
     }

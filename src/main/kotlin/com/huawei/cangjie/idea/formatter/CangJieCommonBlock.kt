@@ -35,7 +35,7 @@ private const val CDOC_COMMENT_INDENT = 1
 private val BINARY_EXPRESSIONS = TokenSet.create(BINARY_EXPRESSION, BINARY_WITH_TYPE, IS_EXPRESSION)
 private val CDOC_CONTENT = TokenSet.create(CDocTokens.CDOC, CDocElementTypes.CDOC_SECTION, CDocElementTypes.CDOC_TAG)
 
-private val CODE_BLOCKS = TokenSet.create(BLOCK, CLASS_BODY, FUNCTION_LITERAL)
+private val CODE_BLOCKS = TokenSet.create(BLOCK, CLASS_BODY, FUNCTION_LITERAL, PROPERTY_BODY)
 
 private val ALIGN_FOR_BINARY_OPERATIONS = TokenSet.create(MUL, DIV, PERC, PLUS, MINUS, LT, GT, LTEQ, GTEQ, ANDAND, OROR)
 private val ANNOTATIONS = TokenSet.create( )
@@ -681,6 +681,17 @@ abstract class CangJieCommonBlock(
                         null
                     }
                 }
+            nodePsi is CjProperty ->
+                return wrap@{ childElement ->
+                    val wrapSetting =  commonSettings.FIELD_ANNOTATION_WRAP
+                    getWrapAfterAnnotation(childElement, wrapSetting)?.let {
+                        return@wrap it
+                    }
+                    if (getSiblingWithoutWhitespaceAndComments(childElement)?.elementType == EQ) {
+                        return@wrap Wrap.createWrap(settings.cangjieCommonSettings.ASSIGNMENT_WRAP, true)
+                    }
+                    null
+                }
 
             nodePsi is CjBinaryExpression -> {
                 if (nodePsi.operationToken == EQ) {
@@ -901,12 +912,12 @@ fun NodeIndentStrategy.PositionStrategy.continuationIf(
 
 private val INDENT_RULES = arrayOf(
     strategy("No indent for braces in blocks")
-        .within(BLOCK, CLASS_BODY, FUNCTION_LITERAL)
+        .within(BLOCK, CLASS_BODY, FUNCTION_LITERAL )
         .forType(RBRACE, LBRACE)
         .set(Indent.getNoneIndent()),
 
     strategy("Indent for block content")
-        .within(BLOCK, CLASS_BODY, FUNCTION_LITERAL)
+        .within(BLOCK, CLASS_BODY, FUNCTION_LITERAL, PROPERTY_BODY)
         .notForType(RBRACE, LBRACE, BLOCK)
         .set(Indent.getNormalIndent()),
 
@@ -921,7 +932,7 @@ private val INDENT_RULES = arrayOf(
         .set(Indent.getNoneIndent()),
 
     strategy("Indent for property accessors")
-        .within(PROPERTY).forType(PROPERTY_ACCESSOR)
+        .within(PROPERTY).forType(PROPERTY_BODY)
         .set(Indent.getNormalIndent()),
 
     strategy("For a single statement in 'for'")

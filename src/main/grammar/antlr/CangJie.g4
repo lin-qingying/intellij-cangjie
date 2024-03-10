@@ -716,9 +716,9 @@ functionDefinition
 
 //变量声明
 variableDeclaration
-: variableModifier* NL* (LET | VAR | CONST) NL* patternsMaybeIrrefutable
-  ( (NL* COLON NL* type)? (NL* ASSIGN NL* expression)
-  | (NL* COLON NL* type)
+: variableModifier* (NL* | WS+) (LET | VAR | CONST) (NL* | WS+)  patternsMaybeIrrefutable
+  ( ((NL* | WS+)  COLON (NL* | WS+)  type)? ((NL* | WS+)  ASSIGN (NL* | WS+)  expression)
+  | ((NL* | WS+)  COLON (NL* | WS+)  type)
   )
 ;
 
@@ -1008,12 +1008,12 @@ type
 
 // 箭头类型（函数类型）规则，例如 (A, B) -> C
 arrowType
-    : arrowParameters NL* ARROW NL* type
+    : arrowParameters (NL* | WS+)  ARROW (NL* | WS+)  type
     ;
 
 // 箭头参数列表规则，可以包含多个类型参数
 arrowParameters
-    : LPAREN NL* (type (NL* COMMA NL* type)* NL*)? RPAREN
+    : LPAREN (NL* | WS+)  (type ((NL* | WS+)  COMMA (NL* | WS+)  type)* (NL* | WS+) )? RPAREN
     ;
 
 // 元组类型规则，例如 (A, B)
@@ -1522,8 +1522,8 @@ doWhileExpression
 // 尝试/捕获/最终化表达式规则：
 // - 标准 try-finally 结构
 tryExpression
-    : TRY NL* block NL* FINALLY NL* block
-    | TRY NL* block (NL* CATCH NL* LPAREN NL* catchPattern NL* RPAREN NL* block)+ (NL* FINALLY NL* block)?
+    : TRY (NL* | WS+) block NL* FINALLY NL* block
+    | TRY NL* block (NL* CATCH (NL* | WS+) LPAREN NL* catchPattern NL* RPAREN NL* block)+ (NL* FINALLY NL* block)?
     | TRY NL* LPAREN NL* resourceSpecifications NL* RPAREN NL* block
         (NL* CATCH NL* LPAREN NL* catchPattern NL* RPAREN NL* block)* (NL* FINALLY NL* block)?
     ;

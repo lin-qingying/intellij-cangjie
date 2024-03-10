@@ -1,12 +1,12 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
-<!--        <lang.formatter language="CangJie"-->
-<!--                        implementationClass="com.huawei.cangjie.idea.formatter.CangJieFormattingModelBuilder"/>-->
-        <formattingService id="LspFormattingService"
-                           implementation="com.huawei.cangjie.idea.formatter.CangJieFormattingService"/>
+        <lang.formatter language="CangJie"
+                        implementationClass="com.huawei.cangjie.idea.formatter.CangJieFormattingModelBuilder"/>
+<!--        <formattingService id="LspFormattingService"-->
+<!--                           implementation="com.huawei.cangjie.idea.formatter.CangJieFormattingService"/>-->
 
         <!--自动缩进-->
-<!--        <lineIndentProvider implementation="com.huawei.cangjie.idea.formatter.CangJieLineIndentProvider"/>-->
+        <lineIndentProvider implementation="com.huawei.cangjie.idea.formatter.CangJieLineIndentProvider"/>
 
 
         <!--        格式化预处理-->
@@ -16,16 +16,16 @@
         <!--        <postFormatProcessor implementation="com.huawei.cangjie.idea.formatter.TrailingCommaPostFormatProcessor"/>-->
 
         <!--代码样式设置-->
-<!--        <langCodeStyleSettingsProvider-->
-<!--                implementation="com.huawei.cangjie.idea.formatter.CangJieLanguageCodeStyleSettingsProvider"/>-->
+        <langCodeStyleSettingsProvider
+                implementation="com.huawei.cangjie.idea.formatter.CangJieLanguageCodeStyleSettingsProvider"/>
 
         <!--代码生成-->
-<!--        <codeStyleSettingsProvider-->
-<!--                implementation="com.huawei.cangjie.idea.formatter.CangJieGenerationSettingsProvider"/>-->
+        <codeStyleSettingsProvider
+                implementation="com.huawei.cangjie.idea.formatter.CangJieGenerationSettingsProvider"/>
 
 
         <!--符合标准风格的代码样式设置-->
-<!--        <predefinedCodeStyle implementation="com.huawei.cangjie.idea.formatter.CangJieStyleGuideCodeStyle"/>-->
+        <predefinedCodeStyle implementation="com.huawei.cangjie.idea.formatter.CangJieStyleGuideCodeStyle"/>
         <!--        废弃的代码样式-->
         <!--        <predefinedCodeStyle implementation="com.huawei.cangjie.idea.formatter.CangJieObsoleteCodeStyle"/>-->
 
