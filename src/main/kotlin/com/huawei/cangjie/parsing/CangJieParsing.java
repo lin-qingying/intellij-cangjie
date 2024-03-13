@@ -718,6 +718,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     }
 
+
+        void parseLambdaExpression() {
+            myExpressionParsing.parseFunctionLiteral(/* preferBlock = */ false, /* collapse = */false,false);
+        }
+
+
     enum MacroType {
         MACRO_CALL,
         //        ×¢½â
@@ -1351,6 +1357,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     }
 
+
     /**
      * ":" type
      */
@@ -1386,7 +1393,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             }
         }
 
-get.done(PROPERTY_ACCESSOR);
+        get.done(PROPERTY_ACCESSOR);
 //        get.done(PROPERTY_GET);
     }
 
@@ -1423,7 +1430,7 @@ get.done(PROPERTY_ACCESSOR);
             return;
         }
 //        set.done(PROPERTY_SET);
-set.done(PROPERTY_ACCESSOR);
+        set.done(PROPERTY_ACCESSOR);
 
     }
 

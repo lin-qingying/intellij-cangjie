@@ -24,3 +24,6 @@ interface ValueArgumentName {
     val asName: Name
     val referenceExpression: CjSimpleNameExpression?
 }
+interface LambdaArgument : ValueArgument {
+    fun getLambdaExpression(): CjLambdaExpression?
+}
