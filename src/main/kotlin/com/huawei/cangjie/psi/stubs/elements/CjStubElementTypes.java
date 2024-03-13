@@ -8,7 +8,9 @@ public interface CjStubElementTypes {
     CjPlaceHolderStubElementType<CjFunctionType> FUNCTION_TYPE =
             new CjPlaceHolderStubElementType<>("FUNCTION_TYPE", CjFunctionType.class);
     CjConstantExpressionElementType BOOLEAN_CONSTANT = new CjConstantExpressionElementType("BOOLEAN_CONSTANT");
-
+    CjValueArgumentElementType<CjLambdaArgument> LAMBDA_ARGUMENT =
+            new CjValueArgumentElementType<>
+                    ("LAMBDA_ARGUMENT", CjLambdaArgument.class);
     CjPlaceHolderStubElementType<CjFunctionTypeReceiver> FUNCTION_TYPE_RECEIVER =
             new CjPlaceHolderStubElementType<>("FUNCTION_TYPE_RECEIVER", CjFunctionTypeReceiver.class);
 

@@ -8,20 +8,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="更新psi语法树">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/references/CjIdeReferenceProviderService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/idea/references/CjIdeReferenceProviderService.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CangJieReferenceProvidersService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CangJieReferenceProvidersService.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjElement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjElement.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjElementImplStub.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjElementImplStub.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/references/AbstractCjReference.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/references/AbstractCjReference.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/references/CangJieReferenceContributor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/references/CangJieReferenceContributor.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/references/CjPolyVariantResolver.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/references/CjPolyVariantResolver.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/references/CjReference.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/references/CjReference.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/references/CjSimpleNameReference.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/references/CjSimpleNameReference.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/cangjie-core.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/liveTemplates/CangJie.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/liveTemplates/CangJie.xml" afterDir="false" />
-    </list>
+    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="更新psi语法树，修复lsp在无法找到当前项目引用的问题" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -62,12 +49,6 @@
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="intellij-cangjie" type="f1a62948:ProjectNode" />
                 <item name="Tasks" type="e4a08cd1:TasksNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="intellij-cangjie" type="f1a62948:ProjectNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="build" type="c8890929:TasksNode$1" />
               </path>
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
@@ -135,9 +116,9 @@
         <option value="Kotlin Interface" />
         <option value="JUnit5 Test Class" />
         <option value="Kotlin Object" />
-        <option value="Class" />
         <option value="JUnit3 Test Class" />
         <option value="JavaScript File" />
+        <option value="Class" />
         <option value="Kotlin Class" />
       </list>
     </option>
@@ -192,6 +173,7 @@
     &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
     &quot;Gradle.CangJieParsingTest.executor&quot;: &quot;Run&quot;,
     &quot;Gradle.Run.executor&quot;: &quot;Debug&quot;,
+    &quot;Gradle.intellij-cangjie [assemble].executor&quot;: &quot;Run&quot;,
     &quot;Gradle.intellij-cangjie [buildPlugin].executor&quot;: &quot;Run&quot;,
     &quot;Gradle.intellij-cangjie [clean].executor&quot;: &quot;Run&quot;,
     &quot;Gradle.intellij-cangjie [setupDependencies].executor&quot;: &quot;Run&quot;,
@@ -291,7 +273,7 @@
       <recent name="com.huawei.cangjie.resolve.check" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.Run">
+  <component name="RunManager" selected="Gradle.intellij-cangjie [buildPlugin]">
     <configuration name="CangJieParsingTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -314,6 +296,28 @@
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
       <DebugAllEnabled>false</DebugAllEnabled>
       <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="intellij-cangjie [assemble]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="assemble" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
       <method v="2" />
     </configuration>
     <configuration name="intellij-cangjie [buildPlugin]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
@@ -360,28 +364,6 @@
       <RunAsTest>false</RunAsTest>
       <method v="2" />
     </configuration>
-    <configuration name="intellij-cangjie [instrumentedJar]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value="instrumentedJar" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <RunAsTest>false</RunAsTest>
-      <method v="2" />
-    </configuration>
     <configuration name="TestKt (1)" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="TestKt" />
       <module name="intellij-cangjie.test" />
@@ -391,19 +373,19 @@
     </configuration>
     <list>
       <item itemvalue="Gradle.Run" />
+      <item itemvalue="Gradle.intellij-cangjie [assemble]" />
       <item itemvalue="Gradle.CangJieParsingTest" />
       <item itemvalue="Gradle.intellij-cangjie [buildPlugin]" />
       <item itemvalue="Gradle.intellij-cangjie [clean]" />
-      <item itemvalue="Gradle.intellij-cangjie [instrumentedJar]" />
       <item itemvalue="Kotlin.TestKt (1)" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Gradle.intellij-cangjie [buildPlugin]" />
+        <item itemvalue="Gradle.intellij-cangjie [assemble]" />
         <item itemvalue="Gradle.intellij-cangjie [clean]" />
         <item itemvalue="Gradle.CangJieParsingTest" />
-        <item itemvalue="Gradle.intellij-cangjie [buildPlugin]" />
         <item itemvalue="Kotlin.TestKt (1)" />
-        <item itemvalue="Gradle.intellij-cangjie [instrumentedJar]" />
       </list>
     </recent_temporary>
   </component>
@@ -1019,22 +1001,10 @@
       <workItem from="1709978803704" duration="7872000" />
       <workItem from="1710039072643" duration="10456000" />
       <workItem from="1710151759068" duration="7156000" />
-    </task>
-    <task id="LOCAL-00015" summary="develop">
-      <option name="closed" value="true" />
-      <created>1698300358970</created>
-      <option name="number" value="00015" />
-      <option name="presentableId" value="LOCAL-00015" />
-      <option name="project" value="LOCAL" />
-      <updated>1698300358970</updated>
-    </task>
-    <task id="LOCAL-00016" summary="develop">
-      <option name="closed" value="true" />
-      <created>1698324425539</created>
-      <option name="number" value="00016" />
-      <option name="presentableId" value="LOCAL-00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1698324425539</updated>
+      <workItem from="1710301229247" duration="506000" />
+      <workItem from="1710301772068" duration="154000" />
+      <workItem from="1710332170685" duration="7460000" />
+      <workItem from="1710341689564" duration="3159000" />
     </task>
     <task id="LOCAL-00017" summary="develop">
       <option name="closed" value="true" />
@@ -1412,7 +1382,23 @@
       <option name="project" value="LOCAL" />
       <updated>1709824317489</updated>
     </task>
-    <option name="localTasksCounter" value="64" />
+    <task id="LOCAL-00064" summary="更新psi语法树">
+      <option name="closed" value="true" />
+      <created>1710301386913</created>
+      <option name="number" value="00064" />
+      <option name="presentableId" value="LOCAL-00064" />
+      <option name="project" value="LOCAL" />
+      <updated>1710301386913</updated>
+    </task>
+    <task id="LOCAL-00065" summary="更新psi语法树，修复lsp在无法找到当前项目引用的问题">
+      <option name="closed" value="true" />
+      <created>1710344861371</created>
+      <option name="number" value="00065" />
+      <option name="presentableId" value="LOCAL-00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1710344861371</updated>
+    </task>
+    <option name="localTasksCounter" value="66" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1444,7 +1430,6 @@
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="lsp server Support" />
     <MESSAGE value="添加sdk管理" />
     <MESSAGE value="解决&gt;&gt;右移运算符和支持泛型的钻石操作符（diamond operator）{a&lt;b&lt;c&gt;&gt;}冲突的问题" />
     <MESSAGE value="新建项目向导 1/2" />
@@ -1469,7 +1454,8 @@
     <MESSAGE value="修复控制台打印换行格式问题" />
     <MESSAGE value="添加toml解析" />
     <MESSAGE value="更新psi语法树" />
-    <option name="LAST_COMMIT_MESSAGE" value="更新psi语法树" />
+    <MESSAGE value="更新psi语法树，修复lsp在无法找到当前项目引用的问题" />
+    <option name="LAST_COMMIT_MESSAGE" value="更新psi语法树，修复lsp在无法找到当前项目引用的问题" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1479,9 +1465,34 @@
           <option name="timeStamp" value="57" />
         </breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/references/CjPolyVariantResolver.kt</url>
-          <line>50</line>
-          <option name="timeStamp" value="78" />
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
+          <line>1326</line>
+          <option name="timeStamp" value="94" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
+          <line>228</line>
+          <option name="timeStamp" value="96" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
+          <line>194</line>
+          <option name="timeStamp" value="97" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
+          <line>1821</line>
+          <option name="timeStamp" value="98" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
+          <line>219</line>
+          <option name="timeStamp" value="99" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
+          <line>1962</line>
+          <option name="timeStamp" value="101" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -1495,7 +1506,7 @@
         <watch expression="bytes.size.to" language="kotlin" />
       </configuration>
       <configuration name="GradleRunConfiguration">
-        <watch expression="result[1].name" language="kotlin" />
+        <watch expression="atSet(STATEMENT_FIRST)" language="kotlin" />
       </configuration>
     </watches-manager>
   </component>

@@ -20,7 +20,15 @@ class CangJieParser(project: Project) : PsiParser {
 
 
     companion object {
-
+        @JvmStatic
+        fun parseLambdaExpression(psiBuilder: PsiBuilder): ASTNode {
+            val cjParsing: CangJieParsing =
+               createForTopLevel(
+                  SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder)
+                )
+            cjParsing.parseLambdaExpression()
+            return psiBuilder.treeBuilt
+        }
         @JvmStatic
 
         fun parseBlockCodeFragment(psiBuilder: PsiBuilder): ASTNode {

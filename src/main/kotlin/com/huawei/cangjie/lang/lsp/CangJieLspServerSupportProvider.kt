@@ -104,15 +104,18 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 
 
         if (toolchain != null) {
-            initializeParams.initializationOptions =
-                mapOf(
+
+            var projectName = project.name
+
+            fun getMap():Map<String,Any>{
+              return  mapOf(
                     "modulesHomeOption" to toolchain.sdkHome.systemIndependentPath,
 //                    "extensionPath" to "C:\\Users\\27439\\.cangjie\\lsp"
 
 
                     "multiModuleOption" to mutableMapOf<String, Any>(
                         getFileUri(project.guessProjectDir()!!) to mapOf(
-                            "name" to project.name,
+                            "name" to projectName,
 
                             "package_requires" to mapOf(
                                 "path_option" to listOf<String>(),
@@ -184,6 +187,12 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
                                                 )
                                             )
                                         }
+                                    }else if(`package`.origin == PackageOrigin.WORKSPACE){
+                                       if( `package`.name != projectName){
+                                           projectName = `package`.name
+
+                                           return getMap();
+                                       }
                                     }
 
                                 }
@@ -192,6 +201,15 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
                         }
                     }
                 )
+
+            }
+
+
+            val map = getMap()
+
+            initializeParams.initializationOptions = map
+
+
 
 
         }

@@ -35,8 +35,10 @@ public interface CjNodeTypes {
     IElementType VALUE_ARGUMENT = CjStubElementTypes.VALUE_ARGUMENT;
     IElementType VALUE_ARGUMENT_LIST = CjStubElementTypes.VALUE_ARGUMENT_LIST;
 
-//    区间表达式
 IElementType OPERATOR = new CjNodeType("OPERATOR", CjOperator.class );
+
+//    区间表达式
+
     IElementType RANGE_EXPRESSION = new CjNodeType("RANGE_EXPRESSION", CjRangeExpression.class);
 
     IElementType SLICE_EXPRESSION = new CjNodeType("SLICE_EXPRESSION", CjSliceExpression.class);
@@ -58,11 +60,15 @@ IElementType OPERATOR = new CjNodeType("OPERATOR", CjOperator.class );
     IElementType MACRO = CjStubElementTypes.MACRO;
     IElementType FOREIGN = CjStubElementTypes.FOREIGN;
 
+    IElementType LAMBDA_ARGUMENT                    =CjStubElementTypes.LAMBDA_ARGUMENT;
 
     IElementType FOREIGN_BODY = CjStubElementTypes.FOREIGN_BODY;
     IElementType FUNC = CjStubElementTypes.FUNCTION;
     IFileElementType CJ_FILE = new IFileElementType(CangJieLanguage.INSTANCE);
     IElementType BLOCK = new BlockExpressionElementType();
+
+    IElementType LAMBDA_EXPRESSION         = new LambdaExpressionElementType();
+
     IElementType LABEL = new CjNodeType("LABEL", CjLabelReferenceExpression.class);
     IElementType CLASS_BODY = CjStubElementTypes.CLASS_BODY;
 
