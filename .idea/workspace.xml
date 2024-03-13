@@ -8,42 +8,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="更新psi语法树">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/parser/CangJieParser.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/parser/_CangJieLexer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/CjElementTypes.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/CjEnd.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/CjImportAlias.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/CjImportAll.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/CjImportAllOrSpecified.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/CjImportList.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/CjImportSpecified.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/CjPackageDeclaration.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/CjPackageName.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/CjPreamble.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/CjVisitor.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/impl/CjEndImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/impl/CjImportAliasImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/impl/CjImportAllImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/impl/CjImportAllOrSpecifiedImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/impl/CjImportListImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/impl/CjImportSpecifiedImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/impl/CjPackageDeclarationImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/impl/CjPackageNameImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gen/com/huawei/cangjie/grammar/psi/impl/CjPreambleImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/CjNodeTypes.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/CjNodeTypes.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/lang/lsp/CangJieLspServerSupportProvider.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParser.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParsing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieParsing.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjVisitor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/CjVisitor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/ValueArgument.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/ValueArgument.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/psiUtil/CjElementUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/psiUtil/CjElementUtils.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/elements/CjStubElementTypes.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/psi/stubs/elements/CjStubElementTypes.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/references/CjPolyVariantResolver.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/references/CjPolyVariantResolver.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/test.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/test.kt" afterDir="false" />
-    </list>
+    <list default="true" id="92e88f28-82a9-4259-bea3-35a67d39740c" name="更改" comment="更新psi语法树，修复lsp在无法找到当前项目引用的问题" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -308,7 +273,7 @@
       <recent name="com.huawei.cangjie.resolve.check" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.Run">
+  <component name="RunManager" selected="Gradle.intellij-cangjie [buildPlugin]">
     <configuration name="CangJieParsingTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -1039,15 +1004,7 @@
       <workItem from="1710301229247" duration="506000" />
       <workItem from="1710301772068" duration="154000" />
       <workItem from="1710332170685" duration="7460000" />
-      <workItem from="1710341689564" duration="2848000" />
-    </task>
-    <task id="LOCAL-00016" summary="develop">
-      <option name="closed" value="true" />
-      <created>1698324425539</created>
-      <option name="number" value="00016" />
-      <option name="presentableId" value="LOCAL-00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1698324425539</updated>
+      <workItem from="1710341689564" duration="3159000" />
     </task>
     <task id="LOCAL-00017" summary="develop">
       <option name="closed" value="true" />
@@ -1433,7 +1390,15 @@
       <option name="project" value="LOCAL" />
       <updated>1710301386913</updated>
     </task>
-    <option name="localTasksCounter" value="65" />
+    <task id="LOCAL-00065" summary="更新psi语法树，修复lsp在无法找到当前项目引用的问题">
+      <option name="closed" value="true" />
+      <created>1710344861371</created>
+      <option name="number" value="00065" />
+      <option name="presentableId" value="LOCAL-00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1710344861371</updated>
+    </task>
+    <option name="localTasksCounter" value="66" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1465,7 +1430,6 @@
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="lsp server Support" />
     <MESSAGE value="添加sdk管理" />
     <MESSAGE value="解决&gt;&gt;右移运算符和支持泛型的钻石操作符（diamond operator）{a&lt;b&lt;c&gt;&gt;}冲突的问题" />
     <MESSAGE value="新建项目向导 1/2" />
@@ -1490,7 +1454,8 @@
     <MESSAGE value="修复控制台打印换行格式问题" />
     <MESSAGE value="添加toml解析" />
     <MESSAGE value="更新psi语法树" />
-    <option name="LAST_COMMIT_MESSAGE" value="更新psi语法树" />
+    <MESSAGE value="更新psi语法树，修复lsp在无法找到当前项目引用的问题" />
+    <option name="LAST_COMMIT_MESSAGE" value="更新psi语法树，修复lsp在无法找到当前项目引用的问题" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1501,32 +1466,32 @@
         </breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
-          <line>1327</line>
+          <line>1326</line>
           <option name="timeStamp" value="94" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
-          <line>229</line>
+          <line>228</line>
           <option name="timeStamp" value="96" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
-          <line>195</line>
+          <line>194</line>
           <option name="timeStamp" value="97" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
-          <line>1822</line>
+          <line>1821</line>
           <option name="timeStamp" value="98" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
-          <line>220</line>
+          <line>219</line>
           <option name="timeStamp" value="99" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/huawei/cangjie/parsing/CangJieExpressionParsing.kt</url>
-          <line>1981</line>
+          <line>1962</line>
           <option name="timeStamp" value="101" />
         </line-breakpoint>
       </breakpoints>
