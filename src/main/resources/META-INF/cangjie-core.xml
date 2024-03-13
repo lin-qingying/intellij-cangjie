@@ -208,13 +208,13 @@
 <!--        />-->
 
 
-        <!--        <projectService-->
-<!--                serviceInterface="com.huawei.cangjie.psi.CangJieReferenceProvidersService"-->
-<!--                serviceImplementation="com.huawei.cangjie.idea.references.CjIdeReferenceProviderService"/>-->
+                <projectService
+                serviceInterface="com.huawei.cangjie.psi.CangJieReferenceProvidersService"
+                serviceImplementation="com.huawei.cangjie.idea.references.CjIdeReferenceProviderService"/>
 
 
-<!--        <projectService serviceInterface="com.huawei.cangjie.idea.references.CangJieReferenceProviderContributor"-->
-<!--                        serviceImplementation="com.huawei.cangjie.references.CangJieReferenceContributor"/>-->
+        <projectService serviceInterface="com.huawei.cangjie.idea.references.CangJieReferenceProviderContributor"
+                        serviceImplementation="com.huawei.cangjie.references.CangJieReferenceContributor"/>
     </extensions>
 
     <!--        监听-->

@@ -5,10 +5,7 @@ import com.huawei.cangjie.psi.stubs.elements.CjStubElementType;
 import com.intellij.extapi.psi.StubBasedPsiElementBase;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementVisitor;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.StubBasedPsiElement;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiFileImpl;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubElement;
@@ -38,6 +35,19 @@ public class CjElementImplStub <T extends StubElement<?>> extends StubBasedPsiEl
     @Override
     public String toString() {
         return getNode().getElementType().toString();
+    }
+
+
+    @Override
+    public PsiReference getReference() {
+        PsiReference[] references = getReferences();
+        return (references.length > 0) ? references[0] : null;
+    }
+
+    @Override
+    public PsiReference @NotNull [] getReferences() {
+        return CangJieReferenceProvidersService.getReferencesFromProviders(this);
+
     }
 
     @NotNull
