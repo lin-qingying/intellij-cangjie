@@ -1,5 +1,6 @@
 package com.huawei.cangjie.psi
 
+import com.huawei.cangjie.CjNodeTypes
 import com.intellij.lang.ASTNode
 
 
@@ -10,6 +11,11 @@ class CjCallExpression(node: ASTNode) : CjExpressionImpl(node), CjCallElement, C
 
     override fun getCalleeExpression(): CjExpression? {
         return findChildByClass(CjExpression::class.java)
+    }
+
+    override fun getValueArgumentList(): CjValueArgumentList? {
+        return findChildByType (CjNodeTypes.VALUE_ARGUMENT_LIST) as CjValueArgumentList?
+
     }
 
 

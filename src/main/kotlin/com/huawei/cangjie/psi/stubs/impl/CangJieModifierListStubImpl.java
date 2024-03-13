@@ -1,5 +1,6 @@
 package com.huawei.cangjie.psi.stubs.impl;
 
+import com.huawei.cangjie.lexer.CjKeywordToken;
 import com.huawei.cangjie.lexer.CjModifierKeywordToken;
 import com.huawei.cangjie.psi.CjDeclarationModifierList;
 import com.huawei.cangjie.psi.stubs.CangJieModifierListStub;

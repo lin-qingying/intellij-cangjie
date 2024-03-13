@@ -1,6 +1,7 @@
 package com.huawei.cangjie.parsing;
 
 import com.intellij.lang.PsiBuilder;
+import com.intellij.lang.SyntaxTreeBuilder;
 import com.intellij.lang.WhitespacesBinders;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.tree.IElementType;
@@ -9,8 +10,13 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.huawei.cangjie.CjNodeTypes.*;
 import static com.huawei.cangjie.lexer.CjTokens.*;
+import static com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes.CONSTRUCTOR_CALLEE;
 
 
 public class CangJieParsing extends AbstractCangJieParsing {
@@ -90,6 +96,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     void parseTypeRefWithoutIntersections() {
         parseTypeRef(TokenSet.EMPTY);
+    }
+
+    void parseTest() {
+//        SyntaxTreeBuilder.Marker a = mark();
+        advance();
+//        a.done(IMPORT_LIST);
     }
 
     private final CangJieExpressionParsing myExpressionParsing;
@@ -176,23 +188,26 @@ public class CangJieParsing extends AbstractCangJieParsing {
         PsiBuilder.Marker firstEntry = mark();
 
         /*
-         * TODO fileAnnotationList  æ–‡æ¡£æ³¨é‡Š
+         * TODO fileAnnotationList  ÎÄµµ×¢ÊÍ
          *   : fileAnnotations*
          */
 
         /*
-         * packageDirective  åŒ…å£°æ˜
+         * packageDirective  °üÉùÃ÷
          *   : modifiers "package" SimpleName{"."} SEMI?
          *   ;
          */
         PsiBuilder.Marker packageDirective = mark();
 
+        if (at(MARCO_KEYWORD)) {
+            advance(); // MARCO_KEYWORD ºêÉùÃ÷
+        }
 
         if (at(PACKAGE_KEYWORD)) {
             advance(); // PACKAGE_KEYWORD
 
 
-            //TODO å¤„ç†åŒ…å
+            //TODO ´¦Àí°üÃû
             parsePackageName();
 
             firstEntry.drop();
@@ -201,18 +216,19 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
             packageDirective.done(PACKAGE_DIRECTIVE);
         } else {
-            //å½“å¿½ç•¥PackageæŒ‡ä»¤æ—¶ï¼Œæˆ‘ä»¬ä¸åº”è¯¥åœ¨æ–‡ä»¶å¼€å¤´æŠ¥å‘Šéæ–‡ä»¶æ‰¹æ³¨çš„é”™è¯¯ã€‚
-            //å› æ­¤ï¼Œæˆ‘ä»¬å›æ»šè§£æä½ç½®ï¼Œé‡æ–°è§£ææ–‡ä»¶æ³¨é‡Šåˆ—è¡¨ï¼Œéæ–‡ä»¶æ³¨é‡Šæ²¡æœ‰ä¸ŠæŠ¥é”™è¯¯ã€‚
+            //µ±ºöÂÔPackageÖ¸ÁîÊ±£¬ÎÒÃÇ²»Ó¦¸ÃÔÚÎÄ¼ş¿ªÍ·±¨¸æ·ÇÎÄ¼şÅú×¢µÄ´íÎó¡£
+            //Òò´Ë£¬ÎÒÃÇ»Ø¹ö½âÎöÎ»ÖÃ£¬ÖØĞÂ½âÎöÎÄ¼ş×¢ÊÍÁĞ±í£¬·ÇÎÄ¼ş×¢ÊÍÃ»ÓĞÉÏ±¨´íÎó¡£
             firstEntry.rollbackTo();
 
-            //TODO è§£ææ–‡ä»¶æ³¨é‡Šåˆ—è¡¨
+            //TODO ½âÎöÎÄ¼ş×¢½âÁĞ±í
 //            parseFileAnnotationList(FILE_ANNOTATIONS_WHEN_PACKAGE_OMITTED);
             packageDirective = mark();
             packageDirective.done(PACKAGE_DIRECTIVE);
-            //éœ€è¦è·³è¿‡é™¤Shebangæ³¨é‡Šä¹‹å¤–çš„æ‰€æœ‰å†…å®¹ï¼Œä»¥å…è®¸å°†æ–‡ä»¶å¼€å¤´çš„æ³¨é‡Šç»‘å®šåˆ°ç¬¬ä¸€ä¸ªå£°æ˜ã€‚
+            //ĞèÒªÌø¹ı³ıShebang×¢ÊÍÖ®ÍâµÄËùÓĞÄÚÈİ£¬ÒÔÔÊĞí½«ÎÄ¼ş¿ªÍ·µÄ×¢ÊÍ°ó¶¨µ½µÚÒ»¸öÉùÃ÷¡£
             packageDirective.setCustomEdgeTokenBinders(BindFirstShebangWithWhitespaceOnly.INSTANCE, null);
 
         }
+
         parseImportDirectives();
     }
 
@@ -222,15 +238,18 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        while (atSet(FROM_IMPORT_SET)) {
 //            parseImportDirective();
 //        }
-        do {
-            if (at(PUBLIC_KEYWORD) && (lookahead(1) == FROM_KEYWORD || lookahead(1) == IMPORT_KEYWORD)) {
-                advance();
-            }
-            if (atSet(FROM_IMPORT_SET)) {
-                parseImportDirective();
-            }
+        while (atSet(FROM_IMPORT_SET) || (at(PUBLIC_KEYWORD) && (lookahead(1) == FROM_KEYWORD || lookahead(1) == IMPORT_KEYWORD))) {
+//            if (at(PUBLIC_KEYWORD) && (lookahead(1) == FROM_KEYWORD || lookahead(1) == IMPORT_KEYWORD)) {
+////                advance();
+//
+//                parseImportDirective();
+//
+//            }else
+//            if (atSet(FROM_IMPORT_SET)) {
+            parseImportDirective();
+//            }
 
-        } while (atSet(FROM_IMPORT_SET));
+        }
         importList.done(IMPORT_LIST);
     }
 
@@ -242,10 +261,129 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 importAlias.done(IMPORT_ALIAS);
             }
             error(errorMessage);
-            importDirective.done(IMPORT_DIRECTIVE);
+            importDirective.done(IMPORT_DIRECTIVE_ITEM);
             return true;
         }
         return false;
+    }
+
+
+    /**
+     * ´¦ÀíImport¹Ø¼ü×ÖºóµÄµ¥¸öµ¼ÈëÏî
+     * : "import"
+     * : SimpleName{"."} ("." "*" )? | ("as" SimpleName{"."} ("." "*"))? SEMI?
+     */
+    private void parseImportDirectiveItem(boolean isTopLevel) {
+
+
+        PsiBuilder.Marker importDirectiveItem = mark();
+
+        if (!at(IDENTIFIER)) {
+
+//            if (at(RBRACE)){
+//                error();
+//                importDirectiveItem.drop();
+//
+//
+//            }
+
+//            PsiBuilder.Marker error = mark();
+//            skipUntil(TokenSet.create(EOL_OR_SEMICOLON));
+//            error.  error("Expecting qualified name");
+
+            error("expected a package name after '.' in qualified name, found '" + myBuilder.getTokenText() + "'");
+            importDirectiveItem.done(IMPORT_DIRECTIVE_ITEM);
+            consumeIf(SEMICOLON);
+            return;
+        }
+
+        PsiBuilder.Marker qualifiedName = mark();
+        PsiBuilder.Marker reference = mark();
+        advance(); // IDENTIFIER
+        reference.done(REFERENCE_EXPRESSION);
+
+        boolean isParseDot = false;
+
+        while (at(DOT) && lookahead(1) != MUL) {
+            advance(); // DOT
+
+//            Í¬Ò»¸ö°ü¶à¸öµ¼ÈëÏî
+            if (at(LBRACE) && isTopLevel) {
+                advance();
+                do {
+                    expect(COMMA);
+                    parseImportDirectiveItem(false);
+
+                } while (at(COMMA));
+
+                expect(RBRACE, "Expecting '}'");
+
+
+            } else {
+                isParseDot = true;
+                if (closeImportWithErrorIfNewline(importDirectiveItem, null, "Import must be placed on a single line")) {
+                    qualifiedName.drop();
+                    return;
+                }
+
+                reference = mark();
+                if (expect(IDENTIFIER, "Qualified name must be a '.'-separated identifier list", IMPORT_RECOVERY_SET)) {
+                    reference.done(REFERENCE_EXPRESSION);
+                } else {
+                    reference.drop();
+                }
+
+                PsiBuilder.Marker precede = qualifiedName.precede();
+                qualifiedName.done(DOT_QUALIFIED_EXPRESSION);
+                qualifiedName = precede;
+            }
+
+
+        }
+        qualifiedName.drop();
+
+        if (isTopLevel || !isParseDot) {
+
+            if (at(DOT)) {
+                advance(); // DOT
+                assert _at(MUL);
+                advance(); // MUL
+                if (at(AS_KEYWORD)) {
+                    PsiBuilder.Marker as = mark();
+                    advance(); // AS_KEYWORD
+                    if (closeImportWithErrorIfNewline(importDirectiveItem, null, "Expecting identifier")) {
+                        as.drop();
+                        return;
+                    }
+                    consumeIf(IDENTIFIER);
+//                as.done(IMPORT_ALIAS);
+
+                    if (!match(DOT, MUL)) {
+//                    as.precede().error("The alias name should contain '.*' suffix after import-all");
+
+
+//                    TODO Èç¹ûÊ¹ÓÃÁËLSP psi»áÖØ¸´±¨´íÒ»´Î
+                        error("The alias name should contain '.*' suffix after import-all");
+                    }
+//                else {
+                    as.done(IMPORT_ALIAS);
+//                }
+
+                }
+            }
+//            else
+            if (at(AS_KEYWORD)) {
+                PsiBuilder.Marker alias = mark();
+                advance(); // AS_KEYWORD
+                if (closeImportWithErrorIfNewline(importDirectiveItem, alias, "Expecting identifier")) {
+                    return;
+                }
+                expect(IDENTIFIER, "Expecting identifier", SEMICOLON_SET);
+                alias.done(IMPORT_ALIAS);
+            }
+        }
+
+        importDirectiveItem.done(IMPORT_DIRECTIVE_ITEM);
     }
 
     /*
@@ -255,16 +393,24 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ;
      */
     private void parseImportDirective() {
-        assert _atSet(FROM_IMPORT_SET);
+
+
+        assert _atSet(FROM_IMPORT_SET) || _at(PUBLIC_KEYWORD);
 
 
         boolean isFrom = false;
         PsiBuilder.Marker importDirective = mark();
+
+
+        if (at(PUBLIC_KEYWORD)) {
+            advance(); //PUBLIC_KEYWORD
+        }
+
         if (at(FROM_KEYWORD)) {
             isFrom = true;
             advance();
 
-            //å¤„ç†è½¯ä»¶åŒ…å
+            //´¦ÀíÈí¼ş°üÃû
             if (!at(IDENTIFIER)) {
                 error("Software package name is required");
                 importDirective.done(IMPORT_DIRECTIVE);
@@ -288,74 +434,16 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (closeImportWithErrorIfNewline(importDirective, null, "Expecting qualified name")) {
             return;
         }
-
-        if (!at(IDENTIFIER)) {
-            PsiBuilder.Marker error = mark();
-            skipUntil(TokenSet.create(EOL_OR_SEMICOLON));
-            error.error("Expecting qualified name");
-            importDirective.done(IMPORT_DIRECTIVE);
-            consumeIf(SEMICOLON);
-            return;
-        }
-
-        PsiBuilder.Marker qualifiedName = mark();
-        PsiBuilder.Marker reference = mark();
-        advance(); // IDENTIFIER
-        reference.done(REFERENCE_EXPRESSION);
-
-        while (at(DOT) && lookahead(1) != MUL) {
-            advance(); // DOT
-
-            if (closeImportWithErrorIfNewline(importDirective, null, "Import must be placed on a single line")) {
-                qualifiedName.drop();
-                return;
+        do {
+            if (at(COMMA)) {
+                advance();
             }
 
-            reference = mark();
-            if (expect(IDENTIFIER, "Qualified name must be a '.'-separated identifier list", IMPORT_RECOVERY_SET)) {
-                reference.done(REFERENCE_EXPRESSION);
-            } else {
-                reference.drop();
-            }
+            parseImportDirectiveItem(true);
 
-            PsiBuilder.Marker precede = qualifiedName.precede();
-            qualifiedName.done(DOT_QUALIFIED_EXPRESSION);
-            qualifiedName = precede;
-        }
-        qualifiedName.drop();
+        } while (at(COMMA));
 
-        if (at(DOT)) {
-            advance(); // DOT
-            assert _at(MUL);
-            advance(); // MUL
-            if (at(AS_KEYWORD)) {
-                PsiBuilder.Marker as = mark();
-                advance(); // AS_KEYWORD
-                if (closeImportWithErrorIfNewline(importDirective, null, "Expecting identifier")) {
-                    as.drop();
-                    return;
-                }
-                consumeIf(IDENTIFIER);
-//                as.done(IMPORT_ALIAS);
 
-                if (!match(DOT, MUL)) {
-//                    as.precede().error("The alias name should contain '.*' suffix after import-all");
-                    error("The alias name should contain '.*' suffix after import-all");
-                } else {
-                    as.done(IMPORT_ALIAS);
-                }
-
-            }
-        }
-        if (at(AS_KEYWORD)) {
-            PsiBuilder.Marker alias = mark();
-            advance(); // AS_KEYWORD
-            if (closeImportWithErrorIfNewline(importDirective, alias, "Expecting identifier")) {
-                return;
-            }
-            expect(IDENTIFIER, "Expecting identifier", SEMICOLON_SET);
-            alias.done(IMPORT_ALIAS);
-        }
         consumeIf(SEMICOLON);
         importDirective.done(IMPORT_DIRECTIVE);
         importDirective.setCustomEdgeTokenBinders(null, TrailingCommentsBinder.INSTANCE);
@@ -417,14 +505,14 @@ public class CangJieParsing extends AbstractCangJieParsing {
         fileMarker.done(CJ_FILE);
     }
 
-    //å…¥å£
+    //Èë¿Ú
     void parseFile() {
         PsiBuilder.Marker fileMarker = mark();
 
-        //å¤„ç†å¼€å¤´  package
+        //´¦Àí¿ªÍ·  package
         parsePreamble();
 
-//        å¤„ç†å£°æ˜å¼è¯­å¥
+//        ´¦ÀíÉùÃ÷Ê½Óï¾ä
         while (!eof()) {
             parseTopLevelDeclaration();
         }
@@ -435,7 +523,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     void parseLspFile() {
         PsiBuilder.Marker fileMarker = mark();
-//        å°†æ‰€æœ‰èŠ‚ç‚¹å…¨éƒ½è¯»å–
+//        ½«ËùÓĞ½ÚµãÈ«¶¼¶ÁÈ¡
         while (!eof()) {
             advance();
         }
@@ -458,26 +546,51 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
     }
 
+    private void parseTopLevelDeclaration() {
+        parseTopLevelDeclaration(false);
+    }
+
     /*
-     * é¡¶å±‚å£°æ˜è¯­å¥
+     * ¶¥²ãÉùÃ÷Óï¾ä
      *   : function
      *   : class enum interface struct
      */
-    private void parseTopLevelDeclaration() {
+    private void parseTopLevelDeclaration(boolean parseMacro) {
         if (at(SEMICOLON)) {
             advance(); // SEMICOLON
             return;
         }
+
+
         PsiBuilder.Marker decl = mark();
+
+//Èç¹ûÓĞµ¼ÈëÓï¾ä
+
+        if ((atSet(FROM_IMPORT_SET) || (at(PUBLIC_KEYWORD) && (lookahead(1) == FROM_KEYWORD || lookahead(1) == IMPORT_KEYWORD)))) {
+//            error("imports are only allowed in the beginning of file");
+            parseImportDirectives();
+            decl.drop();
+
+            return;
+        }
+
+
         ModifierDetector detector = new ModifierDetector();
 
-        parseModifierList(detector, TokenSet.EMPTY);
-        IElementType declType = parseCommonDeclaration(detector, NameParsingMode.REQUIRED, DeclarationParsingMode.MEMBER_OR_TOPLEVEL);
+        parseModifierList(detector, TokenSet.EMPTY, parseMacro);
+        IElementType declType = parseCommonDeclaration(detector, NameParsingMode.REQUIRED, DeclarationParsingMode.TOPLEVEL);
 
+        if (declType == ANNOTATION_ENTRY) {
 
-        if (declType == null) {
+            decl.rollbackTo(); //·µ»Ø¸øÎÄµµÁ÷²¢ÖØĞÂ½âÎö
+//            decl.drop();
 
-            errorAndAdvance("Expecting a top level declaration"); //æœŸå¾…ä¸€ä¸ªé¡¶å±‚å£°æ˜è¯­å¥
+//           Ó¦¸ÃÎª×¢½â£¬¼ÓÈëµ½ĞŞÊÎ·ûÖĞ²¢ÖØĞÂ½âÎöÉùÃ÷
+            parseTopLevelDeclaration(true);
+
+        } else if (declType == null) {
+
+            errorAndAdvance("Expecting a top level declaration"); //ÆÚ´ıÒ»¸ö¶¥²ãÉùÃ÷Óï¾ä
             decl.drop();
         } else {
             closeDeclarationWithCommentBinders(decl, declType, true);
@@ -508,8 +621,37 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 marker.collapse(tt);
                 return true;
             }
-        }
+        } else if (at(CONST_KEYWORD) && /* lookahead(1) != IDENTIFIER && */lookahead(2) != EQ && lookahead(2) != COLON /* && (lookahead(2) == FUNC_KEYWORD || lookahead(3) == FUNC_KEYWORD || lookahead(4) == FUNC_KEYWORD)*/) {
 
+
+//            ´¦ÀíÌØÊâµÄconstĞŞÊÎµÄ
+            advance(); // MODIFIER
+            if (tokenConsumer != null) {
+                tokenConsumer.consume(CONST_KEYWORD);
+            }
+            marker.collapse(CONST_KEYWORD);
+            return true;
+
+        } else if (at(UNSAFE_KEYWORD) && lookahead(1) != LBRACE) {
+            advance();
+
+            if (tokenConsumer != null) {
+                tokenConsumer.consume(UNSAFE_KEYWORD);
+            }
+            marker.collapse(UNSAFE_KEYWORD);
+
+            return true;
+
+        } else if (at(FOREIGN_KEYWORD) && lookahead(1) != LBRACE) {
+            advance();
+            if (tokenConsumer != null) {
+                tokenConsumer.consume(FOREIGN_KEYWORD);
+            }
+            marker.collapse(FOREIGN_KEYWORD);
+
+            return true;
+
+        }
         marker.rollbackTo();
         return false;
     }
@@ -519,12 +661,40 @@ public class CangJieParsing extends AbstractCangJieParsing {
             @NotNull TokenSet modifierKeywords,
 
             @NotNull TokenSet noModifiersBefore
+
+    ) {
+        return doParseModifierListBody(tokenConsumer, modifierKeywords, noModifiersBefore, false);
+    }
+
+    private boolean doParseModifierListBody(
+            @Nullable Consumer<IElementType> tokenConsumer,
+            @NotNull TokenSet modifierKeywords,
+
+            @NotNull TokenSet noModifiersBefore,
+            boolean isParseMacro
     ) {
 
         boolean empty = true;
+        PsiBuilder.Marker beforeAnnotationMarker;
 
         while (!eof()) {
-            if (!tryParseModifier(tokenConsumer, noModifiersBefore, modifierKeywords)) {
+
+            if (at(AT) && isParseMacro) {
+
+                beforeAnnotationMarker = mark();
+                IElementType type = parseAnnotation(null);
+
+                if (type == null || type == MACRO_EXPRESSION) {
+//                    beforeAnnotationMarker.drop();
+                    beforeAnnotationMarker.rollbackTo();
+                    break;
+                } else {
+                    tokenConsumer.consume(type);
+                    beforeAnnotationMarker.done(type);
+                }
+
+
+            } else if (!tryParseModifier(tokenConsumer, noModifiersBefore, modifierKeywords)) {
                 // modifier advanced
                 break;
             }
@@ -535,16 +705,221 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return empty;
     }
 
+    private void parseMacroExpression() {
+
+
+//        do{
+//
+//            IElementType type = parseAnnotation();
+//
+//
+//
+//        }while (at(AT)) ;
+
+    }
+
+    enum MacroType {
+        MACRO_CALL,
+        //        ×¢½â
+        ANNOTATION,
+
+    }
+
+//    public IElementType parseAnnotation(ModifierDetector detector) {
+//        return parseAnnotation(detector, MacroType.MACRO_CALL);
+//    }
+
+    /*TODO ×¢½âÓëºê
+     *  ×¢½âÓëºê
+     * annotation
+     *   : "@" (annotationUseSiteTarget ":")? unescapedAnnotation
+     *   ;
+     *
+     * unescapedAnnotation
+     *   : SimpleName{"."} typeArguments? valueArguments?
+     *   ;
+     */
+    public IElementType parseAnnotation(ModifierDetector detector) {
+
+
+//        detectorÃÇÃ»ÓĞĞŞÊÎ·û
+//        ¸Ãºêµ÷ÓÃÃ»ÓĞÀ¨ºÅ     ½âÎöÎª×¢½â
+
+//        Èç¹ûÃ»ÓĞĞŞÊÎ·û,¸ù¾İÊÇ·ñÓĞÀ¨ºÅÅĞ¶Ï
+
+        assert _at(AT);
+        IElementType nextRawToken = lookahead(1);
+
+
+        int modifierSize = 0;
+        if (detector != null) {
+            modifierSize = detector.getSize();
+        }
+
+//        PsiBuilder.Marker annotation = mark();
+
+
+        if (nextRawToken == IDENTIFIER) {
+            advance(); // AT
+
+            PsiBuilder.Marker reference = mark();
+            PsiBuilder.Marker typeReference = mark();
+            parseUserType();
+            typeReference.done(TYPE_REFERENCE);
+            reference.done(CONSTRUCTOR_CALLEE);
+
+
+//            ºêÊôĞÔ
+            if (at(LBRACKET)) {
+                myExpressionParsing.parseValueArgumentList(LBRACKET, RBRACKET);
+
+            }
+
+        } else {
+
+            errorAndAdvance("Expected annotation identifier after '@'", 1); // AT @
+
+//            annotation.drop();
+
+            return null;
+        }
+
+//
+//        if (modifierSize > 0) {
+//
+////            ´¦Àíºêµ÷ÓÃ
+//
+//            return MACRO_EXPRESSION;
+//        }else {
+//
+//
+//            return ANNOTATION_ENTRY;
+//        }
+
+        if (at(LPAR)) {
+
+            //            TODO ´¦Àíºêµ÷ÓÃ
+            advance();
+//          ¸ÃÓï¾äÓ¦¸ÃÊÇºêµ÷ÓÃ±í´ïÊ½£¬¶ø·Ç×¢½â
+
+
+            if (at(RPAR)) {
+//                Ö±½Ó·µ»Ø
+                advance();
+            } else {
+                while (!eof()) {
+                    if (at(COMMA)) {
+                        advance();
+                    }
+
+
+//                    parseTopLevelDeclaration();
+
+                    myExpressionParsing.parseStatementByScope(DeclarationParsingMode.ALL);
+                    if (at(RPAR)) {
+                        break;
+                    }
+
+//                if (at(AT)) {
+//                    parseTopLevelDeclaration();
+//                } else {
+////                    TODO ÆäËûtokenÁîÅÆ
+//                    advance();
+//
+//                }
+//
+//
+//                if (at(RPAR)) {
+//                    if (lookahead(1) == COMMA) {
+//                        advance();
+//                    } else {
+//                        break;
+//                    }
+//                }
+
+                }
+
+                expect(RPAR, "expected ')'");
+
+            }
+
+
+//            parseMacroInputExprWithParens();
+
+
+            return MACRO_EXPRESSION;
+        } else {
+
+//            return ANNOTATION_ENTRY;
+            if (modifierSize > 0) {
+                error("Should call (..) for macros");
+
+                return MACRO_EXPRESSION;
+            } else {
+//                error("expected declaration, found '" + myBuilder.getTokenText() + "'");
+
+                return ANNOTATION_ENTRY;
+
+            }
+
+        }
+
+
+//        annotation.done(ANNOTATION_ENTRY);
+//        return ANNOTATION_ENTRY;
+
+//        return true;
+    }
+
+//    private void parseMacroInputExprWithParens() {
+//        assert _at(LPAR);
+//
+//        PsiBuilder.Marker parens = mark();
+//
+//        advance();
+//
+//        parseMacroToken();
+//
+//
+//        expect(RPAR, "expected ')'");
+//
+//        parens.done(MACRO_INPUT_EXPR_PARENS);
+//    }
+
+    private void parseMacroToken() {
+
+
+    }
+
+
+//    private void parseMacroAttrArgumentList() {
+//
+//
+//        PsiBuilder.Marker list = mark();
+//
+//        tryParseTypeArgumentList(TokenSet.EMPTY);
+//        list.done(TYPE_ARGUMENT_LIST);
+//
+//    }
+
+
+    boolean parseModifierList(@Nullable Consumer<IElementType> tokenConsumer, @NotNull TokenSet noModifiersBefore) {
+        return parseModifierList(tokenConsumer, noModifiersBefore, false);
+
+    }
+
     /**
      * (modifier )*
      * <p>
-     * å¦‚æœä¸ä¸ºç©ºï¼Œåˆ™å°†ä¿®é¥°ç¬¦(éæ‰¹æ³¨)é¦ˆé€åˆ°ä¼ é€’çš„ä½¿ç”¨è€…
+     * Èç¹û²»Îª¿Õ£¬Ôò½«ĞŞÊÎ·û(·ÇÅú×¢)À¡ËÍµ½´«µİµÄÊ¹ÓÃÕß
      *
-     * @param noModifiersBefore æ˜¯ä¸€ä¸ªä»¤ç‰Œé›†ï¼Œå…¶ä¸­åŒ…å«æŒ‡ç¤ºä½•æ—¶æ»¡è¶³è¿™äº›å…ƒç´ çš„å…ƒç´ ã€‚
-     *                          å¿…é¡»å°†å‰ä¸€ä¸ªä»¤ç‰Œè§£æä¸ºæ ‡è¯†ç¬¦ï¼Œè€Œä¸æ˜¯ä¿®é¥°ç¬¦
+     * @param noModifiersBefore ÊÇÒ»¸öÁîÅÆ¼¯£¬ÆäÖĞ°üº¬Ö¸Ê¾ºÎÊ±Âú×ãÕâĞ©ÔªËØµÄÔªËØ¡£
+     *                          ±ØĞë½«Ç°Ò»¸öÁîÅÆ½âÎöÎª±êÊ¶·û£¬¶ø²»ÊÇĞŞÊÎ·û
      */
-    boolean parseModifierList(@Nullable Consumer<IElementType> tokenConsumer, @NotNull TokenSet noModifiersBefore) {
-        return doParseModifierList(tokenConsumer, MODIFIER_KEYWORDS, noModifiersBefore);
+    boolean parseModifierList(@Nullable Consumer<IElementType> tokenConsumer, @NotNull TokenSet noModifiersBefore, boolean isParseMacro) {
+
+
+        return doParseModifierList(tokenConsumer, MODIFIER_KEYWORDS, noModifiersBefore, isParseMacro);
     }
 
     private boolean doParseModifierList(
@@ -553,9 +928,19 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
             @NotNull TokenSet noModifiersBefore
     ) {
+        return doParseModifierList(tokenConsumer, modifierKeywords, noModifiersBefore, false);
+    }
+
+    private boolean doParseModifierList(
+            @Nullable Consumer<IElementType> tokenConsumer,
+            @NotNull TokenSet modifierKeywords,
+
+            @NotNull TokenSet noModifiersBefore,
+            boolean isParseMacro
+    ) {
         PsiBuilder.Marker list = mark();
 
-        boolean empty = doParseModifierListBody(tokenConsumer, modifierKeywords, noModifiersBefore);
+        boolean empty = doParseModifierListBody(tokenConsumer, modifierKeywords, noModifiersBefore, isParseMacro);
 
         if (empty) {
             list.drop();
@@ -568,10 +953,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private IElementType parseClassCommonDeclaration(Integer tokenId, ModifierDetector classdetector, ModifierDetector detector) {
         //init func let|var prop
 
-        //åˆ¤æ–­æ˜¯å¦æ˜¯abstract class
+        //ÅĞ¶ÏÊÇ·ñÊÇabstract class
 
 
         return switch (getTokenId()) {
+            case AT_Id -> parseAnnotation(null);
             case FUNC_KEYWORD_Id ->
                     tokenId != null && (tokenId == INTERFACE_KEYWORD_Id || tokenId == EXTEND_KEYWORD_Id) ? parseFunction(true) : parseFunction(classdetector, detector);
             case PROP_KEYWORD_Id ->
@@ -667,7 +1053,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
         if (at(LPAR)) {
-            //(æ ‡è¯†ç¬¦ ',' æ ‡è¯†ç¬¦ {',' æ ‡è¯†ç¬¦})
+            //(±êÊ¶·û ',' ±êÊ¶·û {',' ±êÊ¶·û})
 //            PsiBuilder.Marker tuple = mark();
             advance();
 
@@ -697,7 +1083,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
         boolean noTypeReference = true;
 
-        //ç±»å‹ (:type)å¯ä»¥æ²¡æœ‰ï¼Œä½†æ˜¯é»˜è®¤å€¼å¿…é¡»æœ‰
+        //ÀàĞÍ (:type)¿ÉÒÔÃ»ÓĞ£¬µ«ÊÇÄ¬ÈÏÖµ±ØĞëÓĞ
 
         if (at(COLON)) {
             advance(); // COLON
@@ -711,7 +1097,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (at(EQ)) {
             advance(); // COLON
 
-            //å¤„ç†è¡¨è¾¾å¼
+            //´¦Àí±í´ïÊ½
 //myExpressionParsing.test();
             myExpressionParsing.parseExpression();
         } else if (noTypeReference) {
@@ -726,7 +1112,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        }
 
 //        beforeName.drop();
-        consumeIf(SEMICOLON);
+//        consumeIf(SEMICOLON);
         return VARIABLE;
 
     }
@@ -758,8 +1144,13 @@ public class CangJieParsing extends AbstractCangJieParsing {
         marker.done(BLOCK_CODE_FRAGMENT);
     }
 
-    enum DeclarationParsingMode {
-        MEMBER_OR_TOPLEVEL(false, true, true), LOCAL(true, false, false), SCRIPT_TOPLEVEL(true, true, false);
+    public enum DeclarationParsingMode {
+        ALL(false, true, true),
+        TOPLEVEL(false, true, true),
+        MEMBER(false, true, true),
+        MEMBER_OR_TOPLEVEL(false, true, true),
+        LOCAL(true, false, false);
+//        SCRIPT_TOPLEVEL(true, true, false);
 
         public final boolean destructuringAllowed;
         public final boolean accessorsAllowed;
@@ -778,35 +1169,125 @@ public class CangJieParsing extends AbstractCangJieParsing {
             @NotNull DeclarationParsingMode declarationParsingMode
     ) {
 
+//       TODO ÉùÃ÷×÷ÓÃÓòÅĞ¶Ï
 
-        switch (getTokenId()) {
+        return switch (getTokenId()) {
+
+            case TYPE_KEYWORD_Id ->
+//                if (declarationParsingMode == DeclarationParsingMode.LOCAL) {
+//                    yield null;
+//                } else {
+//                    yield parseTypeAlias();
+//                }
+
+                    switch (declarationParsingMode) {
+                        case LOCAL, MEMBER, MEMBER_OR_TOPLEVEL -> {
+                            parseTypeAlias();
+                            yield INVALID_DECLARATION;
+                        }
+                        case ALL, TOPLEVEL -> parseTypeAlias();
+
+
+                    };
+
+
+            case AT_Id -> parseAnnotation(detector);
+
+
+            case FOREIGN_KEYWORD_Id ->
+//                if (declarationParsingMode == DeclarationParsingMode.LOCAL) {
+//                    yield null;
+//                } else {
+//                    yield parseForeign();
+//                }
+
+                    switch (declarationParsingMode) {
+
+                        case ALL, TOPLEVEL -> parseForeign();
+
+                        case MEMBER, MEMBER_OR_TOPLEVEL, LOCAL -> {
+                            parseForeign();
+                            yield INVALID_DECLARATION;
+                        }
+
+                    };
+
+            case MARCO_KEYWORD_Id -> parseMacro();
 
 //            case ABC_KEYWORD_Id:
 //                return parseAbc();
-            case FUNC_KEYWORD_Id:
-                return parseFunction(detector);
-            case MAIN_KEYWORD_Id:
-                return parseMainFunc();
+            case FUNC_KEYWORD_Id -> parseFunction(detector);
+            case MAIN_KEYWORD_Id ->
+//                if (declarationParsingMode == DeclarationParsingMode.LOCAL) {
+//                    yield null;
+//                } else {
+//                    yield parseMainFunc();
+//                }
+
+                    switch (declarationParsingMode) {
+
+                        case ALL, TOPLEVEL -> parseMainFunc();
+
+                        case MEMBER, MEMBER_OR_TOPLEVEL, LOCAL -> {
+                            parseMainFunc();
+                            yield INVALID_DECLARATION;
+                        }
+
+                    };
 
 
-            case EXTEND_KEYWORD_Id:
-            case ENUM_KEYWORD_Id:
 //                return parseEnum();
 
 
-            case STRUCT_KEYWORD_Id:
-            case INTERFACE_KEYWORD_Id:
-            case CLASS_KEYWORD_Id:
-                return parseClass(detector);
+            case EXTEND_KEYWORD_Id, ENUM_KEYWORD_Id, STRUCT_KEYWORD_Id, INTERFACE_KEYWORD_Id, CLASS_KEYWORD_Id ->
+                    switch (declarationParsingMode) {
 
-            case LET_KEYWORD_Id:
-            case VAR_KEYWORD_Id:
-            case CONST_KEYWORD_Id:
-                return parseVariable(detector);
+                        case ALL, TOPLEVEL -> parseClass(detector);
+
+                        case MEMBER, MEMBER_OR_TOPLEVEL, LOCAL -> {
+                            parseClass(detector);
+                            yield INVALID_DECLARATION;
+                        }
+
+                    };
+
+
+            case LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id -> parseVariable(detector);
+            case UNSAFE_KEYWORD_Id -> parseUnsafeExpression();
+            default -> null;
+        };
+
+    }
+
+    /*
+     * typeAlias
+     *   : modifiers "typealias" SimpleName typeParameters? "=" type
+     *   ;
+     */
+    private IElementType parseTypeAlias() {
+        assert _at(TYPE_KEYWORD);
+
+        advance(); // TYPE_KEYWORD
+
+        expect(IDENTIFIER, "Type name expected", LT_EQ_SEMICOLON_TOP_LEVEL_DECLARATION_FIRST_SET);
+
+        parseTypeParameterList(TYPE_PARAMETER_GT_RECOVERY_SET);
+
+        if (at(WHERE_KEYWORD)) {
+            PsiBuilder.Marker error = mark();
+            parseTypeConstraints();
+            error.error("Type alias parameters can't have bounds");
         }
 
-        return null;
+        expect(EQ, "Expecting '='", TOP_LEVEL_DECLARATION_FIRST_SEMICOLON_SET);
+
+        parseTypeRef();
+
+        consumeIf(SEMICOLON);
+
+        return TYPEALIAS;
     }
+
 
 //    private IElementType parseAbc() {
 //        assert _at(ABC_KEYWORD);
@@ -905,8 +1386,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
             }
         }
 
-
-        get.done(PROPERTY_GET);
+get.done(PROPERTY_ACCESSOR);
+//        get.done(PROPERTY_GET);
     }
 
     /**
@@ -941,8 +1422,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
             set.error("immutable property cannot have setter");
             return;
         }
-        set.done(PROPERTY_SET);
-
+//        set.done(PROPERTY_SET);
+set.done(PROPERTY_ACCESSOR);
 
     }
 
@@ -1215,17 +1696,29 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         int tokenid = getTokenId();
 
+        IElementType token = myBuilder.getTokenType();
+
+
 //        assert _at(CLASS_KEYWORD);
         assert _atSet(CLASS_INTERFACE_STRUCT_ENUM_EXTEND_SET);
         advance();
 
-        //ç±»å
-        parseIdentifier();
+
+        if (token == EXTEND_KEYWORD) {
+            if (atSet(BASICTYPES)) {
+                advance();
+            }
+        } else {
+            parseIdentifier();
+
+        }
+
+        //ÀàÃû
 
         boolean typeParametersDeclared = parseTypeParameterList(TYPE_PARAMETER_GT_RECOVERY_SET);
 
 
-        // TODO ç»§æ‰¿
+        // TODO ¼Ì³Ğ
         if (at(LTCOLON)) {
             advance(); // COLON
             parseDelegationSpecifierList();
@@ -1256,7 +1749,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             }
 
         } else {
-            error("Expecting '{' or Inherit");  //åº”è¯¥ä¸º'{' æˆ–è€…ç»§æ‰¿
+            error("Expecting '{' or Inherit");  //Ó¦¸ÃÎª'{' »òÕß¼Ì³Ğ
         }
 
 
@@ -1336,6 +1829,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     private void parseMemberDeclaration(Integer tokenId, ModifierDetector classdetector) {
+        parseMemberDeclaration(tokenId, classdetector, false);
+    }
+
+    private void parseMemberDeclaration(Integer tokenId, ModifierDetector classdetector, boolean rollbackMacro) {
         if (at(SEMICOLON)) {
             advance(); // SEMICOLON
             return;
@@ -1344,12 +1841,15 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
         ModifierDetector detector = new ModifierDetector();
-        parseModifierList(detector, TokenSet.EMPTY);
+        parseModifierList(detector, TokenSet.EMPTY, rollbackMacro);
 
 
         IElementType declType = parseMemberDeclarationRest(tokenId, classdetector, detector);
 
-        if (declType == null) {
+        if (declType == ANNOTATION_ENTRY) {
+            decl.rollbackTo();
+            parseMemberDeclaration(tokenId, classdetector, true);
+        } else if (declType == null) {
             errorWithRecovery("Expecting member declaration", TokenSet.EMPTY);
             decl.drop();
         } else {
@@ -1373,6 +1873,16 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 error("Expecting member declaration");
                 parseBlock();
                 declType = FUNC;
+            } else if (at(IDENTIFIER) && lookahead(1) == LPAR) {
+//                Ö÷¹¹Ôìº¯Êı
+                parseMainInitFunc();
+                declType = CLASS_MAIN_INIT;
+            } else if (at(TILDE) && lookahead(1) == INIT_KEYWORD) {
+                advance(); // TILDE ~
+                parseInitFunc();
+//                Îö¹¹º¯Êı
+                declType = CLASS_TILDE_INIT;
+
             }
 
         }
@@ -1381,30 +1891,59 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return declType;
     }
 
+    private void parseMainInitFunc() {
+        assert _at(IDENTIFIER);
+        advance(); // IDENTIFIER
+
+
+        if (at(RBRACE)) {
+            error("Function body expected");  //Ó¦¸ÃÎªº¯ÊıÌå
+            return;
+        }
+
+        myBuilder.disableJoiningComplexTokens();
+        //ÀàĞÍ²ÎÊı
+        if (at(LPAR)) {
+            parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET);
+
+        } else {
+//            error("Expecting '(' ");  //Ó¦¸ÃÎª'('
+            errorAndAdvance("Expecting '('  but available" + myBuilder.getTokenText());
+
+        }
+
+        if (at(LBRACE)) {
+            parseFunctionBody();
+        } else {
+            error("Expecting '{' ");  //Ó¦¸ÃÎª'{'
+        }
+    }
+
     private void parseInitFunc() {
         assert _at(INIT_KEYWORD);
         advance(); // INIT_KEYWORD
 
 
         if (at(RBRACE)) {
-            error("Function body expected");  //åº”è¯¥ä¸ºå‡½æ•°ä½“
+            error("Function body expected");  //Ó¦¸ÃÎªº¯ÊıÌå
             return;
         }
 
         myBuilder.disableJoiningComplexTokens();
-        //ç±»å‹å‚æ•°
+        //ÀàĞÍ²ÎÊı
         if (at(LPAR)) {
             parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET);
 
         } else {
-            error("Expecting '(' ");  //åº”è¯¥ä¸º'('
+//            error("Expecting '(' ");  //Ó¦¸ÃÎª'('
+            errorAndAdvance("Expecting '('  but available" + myBuilder.getTokenText());
         }
 
 
         if (at(LBRACE)) {
             parseFunctionBody();
         } else {
-            error("Expecting '{' ");  //åº”è¯¥ä¸º'{'
+            error("Expecting '{' ");  //Ó¦¸ÃÎª'{'
         }
     }
 
@@ -1438,67 +1977,74 @@ public class CangJieParsing extends AbstractCangJieParsing {
         assert _at(MAIN_KEYWORD);
         advance();
         if (at(RBRACE)) {
-            error("Function body expected");  //åº”è¯¥ä¸ºå‡½æ•°ä½“
+            error("Function body expected");  //Ó¦¸ÃÎªº¯ÊıÌå
             return MAIN_FUNC;
         }
         myBuilder.disableJoiningComplexTokens();
-        //ç±»å‹å‚æ•°
+        //ÀàĞÍ²ÎÊı
         if (at(LPAR)) {
             parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET);
 
         } else {
-            error("Expecting '(' ");  //åº”è¯¥ä¸º'('
+            error("Expecting '(' ");  //Ó¦¸ÃÎª'('
         }
 
-        //è¿”å›å€¼ç±»å‹
+        //·µ»ØÖµÀàĞÍ
         if (at(COLON)) {
             advance(); // COLON
             parseTypeRef();
         }
 
-        //å‡½æ•°ä½“
+        //º¯ÊıÌå
 //        if (at(SEMICOLON)) {
 //            advance(); // SEMICOLON
 //        } else
         if (at(LBRACE)) {
             parseFunctionBody();
         } else {
-            error("Expecting '{' ");  //åº”è¯¥ä¸º'{'
+            error("Expecting '{' ");  //Ó¦¸ÃÎª'{'
         }
         return MAIN_FUNC;
     }
 
     @NotNull
     IElementType parseFunction() {
-        return parseFunction(false, null, null);
+        return parseFunction(false, null, null, false);
     }
 
     @NotNull
     IElementType parseFunction(boolean isInterfaceMethod) {
-        return parseFunction(isInterfaceMethod, null, null);
+        return parseFunction(isInterfaceMethod, null, null, false);
     }
 
     @NotNull
     IElementType parseFunction(ModifierDetector detector) {
-        return parseFunction(false, null, detector);
+        return parseFunction(false, null, detector, false);
     }
 
     @NotNull
-    IElementType parseFunction(ModifierDetector classdetector, ModifierDetector detector) {
-        return parseFunction(false, classdetector, detector);
+    IElementType parseForeignFunction(ModifierDetector detector) {
+        return parseFunction(false, null, detector, true);
     }
 
+
+    @NotNull
+    IElementType parseFunction(ModifierDetector classdetector, ModifierDetector detector) {
+        return parseFunction(false, classdetector, detector, false);
+    }
+
+
     /*
-     * IDENTIFIER æ ‡è¯†ç¬¦
+     * IDENTIFIER ±êÊ¶·û
      */
     private void parseIdentifier() {
         if (expect(IDENTIFIER)) return;
 
         if (atSet(KEYWORDS)) {
-            error("Keywords cannot be used"); //å…³é”®å­—ä¸èƒ½ä½¿ç”¨
+            error("Keywords cannot be used"); //¹Ø¼ü×Ö²»ÄÜÊ¹ÓÃ
         }
 
-        error("Expecting an CangJie identifier"); //åº”è¯¥ä¸ºæ ‡è¯†ç¬¦
+        error("Expecting an CangJie identifier"); //Ó¦¸ÃÎª±êÊ¶·û
 
     }
 
@@ -1534,12 +2080,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ;
      */
     @Contract("false -> !null")
-    IElementType parseFunction(boolean isInterfaceMethod, ModifierDetector classdetector, ModifierDetector detector) {
+    IElementType parseFunction(boolean isInterfaceMethod, ModifierDetector classdetector, ModifierDetector detector, boolean isForeign) {
         assert _at(FUNC_KEYWORD);
         advance();
 
         if (at(RBRACE)) {
-            error("Function body expected");  //åº”è¯¥ä¸ºå‡½æ•°ä½“
+            error("Function body expected");  //Ó¦¸ÃÎªº¯ÊıÌå
             return FUNC;
         }
 
@@ -1553,8 +2099,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //                error("unexpected modifier 'operator' on function declaration in 'top-level' scope");
 //            } else
 
-            //è¿ç®—ç¬¦é‡è½½
-            if (atSet(OPERATIONS_CAN_BE_OVERLOADED)) {
+            //ÔËËã·ûÖØÔØ
+
+            IElementType operatorToken = getGtTokenType();
+
+            if (OPERATIONS_CAN_BE_OVERLOADED.contains(operatorToken)) {
+                PsiBuilder.Marker operator = mark();
 
                 if (at(LPAR)) {
                     advance();
@@ -1570,10 +2120,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
                     } else {
                         error("Expecting ']'");
                     }
+                } else if (operatorToken == GTGT || operatorToken == GTEQ) {
+                    advanceGtToken(operatorToken);
                 } else {
                     advance();
                 }
-
+                operator.done(OPERATION_REFERENCE);
             } else {
 
                 PsiBuilder.Marker mark = mark();
@@ -1599,7 +2151,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 //            return FUNC;
         } else {
-            //å‡½æ•°å
+            //º¯ÊıÃû
             parseIdentifier();
         }
 
@@ -1613,32 +2165,211 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
 
 
-        //ç±»å‹å‚æ•°
+        //ÀàĞÍ²ÎÊı
         if (at(LPAR)) {
             parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET);
 
         } else {
-            error("Expecting '(' ");  //åº”è¯¥ä¸º'('
+            error("Expecting '(' ");  //Ó¦¸ÃÎª'('
         }
 
-        //è¿”å›å€¼ç±»å‹
+        //·µ»ØÖµÀàĞÍ
         if (at(COLON)) {
             advance(); // COLON
             parseTypeRef();
         }
         parseTypeConstraintsGuarded(typeParameterListOccurred);
-        //å‡½æ•°ä½“
+        //º¯ÊıÌå
+//        if (at(SEMICOLON)) {
+//            advance(); // SEMICOLON
+//        } else
+        if (at(LBRACE)) {
+
+            parseFunctionBody();
+            if (isForeign) {
+                error("foreign function can not have body");  //Ó¦¸ÃÎª'{'
+            }
+
+        } else if (!(isInterfaceMethod || (classdetector != null && classdetector.isAbstractDetected())) && (detector != null && !detector.isForeignDetected())) {
+            error("Expecting '{' ");  //Ó¦¸ÃÎª'{'
+        }
+
+        return FUNC;
+    }
+
+    public void parseSynchronizedExpression() {
+        assert _at(SYNCHRONIZED_KEYWORD);
+        SyntaxTreeBuilder.Marker synchronizedMarker = mark();
+        advance();
+
+
+        if (at(LPAR)) {
+            advance();
+            myExpressionParsing.parseExpression();
+
+            expect(RPAR, "Expecting '('");
+
+
+        } else {
+            error("Expecting '(' ");
+        }
+
+        if (at(LBRACE)) {
+            parseBlock();
+        } else {
+            error("Expecting '{' ");  //Ó¦¸ÃÎª'{'
+        }
+
+        synchronizedMarker.done(SYNCHRONIZED_EXPRESSION);
+    }
+
+    public void parseSpawnExpression() {
+        assert _at(SPAWN_KEYWORD);
+        SyntaxTreeBuilder.Marker spawn = mark();
+        advance();
+
+
+        if (at(LBRACE)) {
+            parseBlock();
+        } else {
+            error("Expecting '{' ");  //Ó¦¸ÃÎª'{'
+        }
+
+
+        spawn.done(SPAWN_EXPRESSION);
+    }
+
+    public IElementType parseUnsafeExpression() {
+        assert _at(UNSAFE_KEYWORD);
+        advance();
+
+
+        if (at(LBRACE)) {
+            parseBlock();
+        } else {
+            error("Expecting '{' ");  //Ó¦¸ÃÎª'{'
+        }
+
+
+        return UNSAFE_EXPRESSION;
+    }
+
+
+    /**
+     * Íâ²¿º¯ÊıÉùÃ÷¿é
+     */
+    private IElementType parseForeign() {
+        assert _at(FOREIGN_KEYWORD);
+        advance();
+
+//        ´¦ÀíÉùÃ÷¿é
+        if (at(LBRACE)) {
+            parseForeignBody();
+
+        } else {
+            error("Expecting '{' ");
+
+        }
+
+
+        return FOREIGN;
+    }
+
+    /**
+     * Íâ²¿º¯ÊıÉùÃ÷¿é
+     */
+    private void parseForeignBody() {
+        assert _at(LBRACE);
+
+        PsiBuilder.Marker mark = mark();
+        advance(); // LBRACE
+
+        while (!at(RBRACE) && !eof()) {
+            ModifierDetector detector = new ModifierDetector();
+
+            parseModifierList(detector, TokenSet.EMPTY);
+
+
+            if (at(FUNC_KEYWORD)) {
+                detector.consume(FOREIGN_KEYWORD);
+
+                parseForeignFunction(detector);
+            } else {
+                errorWithRecovery("Expecting function declaration", TokenSet.create(FUNC_KEYWORD));
+            }
+
+
+//            advance();
+
+        }
+        expect(RBRACE, "Missing '}");
+//        if (at(RBRACE)) {
+//            advance();
+//
+//        } else {
+//            error("Expecting '}' ");
+//        }
+        mark.done(FOREIGN_BODY);
+
+    }
+
+    /**
+     * ºê¶¨Òå  Óë·½·¨¶¨ÒåÏàÍ¬
+     *
+     * @return
+     */
+    private IElementType parseMacro() {
+        assert _at(MARCO_KEYWORD);
+        advance();
+
+        if (at(RBRACE)) {
+            error("Function body expected");  //Ó¦¸ÃÎªº¯ÊıÌå
+            return FUNC;
+        }
+
+
+        myBuilder.disableJoiningComplexTokens();
+
+
+        //º¯ÊıÃû
+        parseIdentifier();
+
+
+//        expect(EXCL);
+
+        boolean typeParameterListOccurred = false;
+        if (at(LT)) {
+            parseTypeParameterList(LBRACKET_LBRACE_RBRACE_LPAR_SET);
+            typeParameterListOccurred = true;
+        }
+
+
+        //ÀàĞÍ²ÎÊı
+        if (at(LPAR)) {
+            parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET);
+
+        } else {
+            error("Expecting '(' ");  //Ó¦¸ÃÎª'('
+        }
+
+        //·µ»ØÖµÀàĞÍ
+        if (at(COLON)) {
+            advance(); // COLON
+            parseTypeRef();
+        }
+        parseTypeConstraintsGuarded(typeParameterListOccurred);
+        //º¯ÊıÌå
 //        if (at(SEMICOLON)) {
 //            advance(); // SEMICOLON
 //        } else
         if (at(LBRACE)) {
             parseFunctionBody();
-        } else if (!isInterfaceMethod) {
-            error("Expecting '{' ");  //åº”è¯¥ä¸º'{'
+        } else {
+            error("Expecting '{' ");  //Ó¦¸ÃÎª'{'
         }
-
-        return FUNC;
+        return MACRO;
     }
+
 
     /*
      * functionBody
@@ -1650,10 +2381,22 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (at(LBRACE)) {
             parseBlock();
         } else {
-            error("Expecting function body"); //åº”è¯¥ä¸ºå‡½æ•°ä½“
+            error("Expecting function body"); //Ó¦¸ÃÎªº¯ÊıÌå
         }
     }
 
+    /*
+     * functionParameter
+     *   : modifiers ("val" | "var")? parameter ("=" element)?
+     *   ;
+     */
+    private boolean tryParseValueParameter(boolean typeRequired) {
+        return parseValueParameter(true, typeRequired);
+    }
+
+    //    private void parseFunctionTypeValueParameterModifierList() {
+//        doParseModifierList(null, RESERVED_VALUE_PARAMETER_MODIFIER_KEYWORDS, NO_ANNOTATIONS, NO_MODIFIER_BEFORE_FOR_VALUE_PARAMETER);
+//    }
     /*
      * functionParameters
      *   : "(" functionParameter{","}? ")"
@@ -1676,42 +2419,90 @@ public class CangJieParsing extends AbstractCangJieParsing {
         advance(); // (
 
 
-        if (!at(RPAR) && !atSet(recoverySet)) {
-            while (true) {
-                //ç¬¬ä¸€ä¸ªä¸èƒ½ä¸º,
-                if (at(COMMA)) {
-                    errorAndAdvance("Expecting a parameter declaration");  //åº”è¯¥ä¸ºå‚æ•°å£°æ˜
+//        ÓÃÓÚ±¨¸æ´íÎó   ÒªÃ´È«ÎªÃüÃû²ÎÊı£¬ÒªÃ´È«²»ÎªÃüÃû²ÎÊı
+//        boolean isNamedParameter = false;
+        List<Boolean> isNamedParameters = new ArrayList<Boolean>();
 
-                } else if (at(RPAR)) {  //å¦‚æœä¸º)åˆ™è·³å‡ºå¾ªç¯
-                    break;
-                }
+        while (!at(RPAR) && !atSet(recoverySet) && !eof()) {
+            if (at(COMMA)) {
+                errorAndAdvance("Expecting a parameter declaration");  //Ó¦¸ÃÎª²ÎÊıÉùÃ÷
+            }
+            if (isFunctionTypeContents) {
+                if (!tryParseValueParameter(typeRequired)) {
+                    PsiBuilder.Marker valueParameter = mark();
+//                    parseFunctionTypeValueParameterModifierList();
+                    parseTypeRef();
+                    closeDeclarationWithCommentBinders(valueParameter, VALUE_PARAMETER, false);
+                    isNamedParameters.add(false);
 
-
-//                if (isFunctionTypeContents) {
-//
-//                }
-//                else {
-                parseValueParameter(typeRequired);
-//                }
-
-
-                if (at(COMMA)) {
-                    advance(); // COMMA
-                } else if (at(COLON)) {
-                    continue;
                 } else {
-                    if (!at(RPAR)) error("Expecting Parameter list or ')'");
-                    if (!atSet(isFunctionTypeContents ? LAMBDA_VALUE_PARAMETER_FIRST : VALUE_PARAMETER_FIRST)) break;
+                    isNamedParameters.add(true);
+
                 }
+            } else {
+                parseValueParameter(typeRequired);
+            }
+//            parseValueParameter(typeRequired);
+            if (at(COMMA)) {
+                advance(); // COMMA
+
+                if (at(RPAR)) {
+                    error("Expecting a parameter declaration");  //Ó¦¸ÃÎª²ÎÊıÉùÃ÷
+                }
+
+            } else {
+                if (!at(RPAR)) {
+                    errorAndAdvance("Expecting ',' or ')',found '" + myBuilder.getTokenText() + "'");  //Ó¦¸ÃÎª²ÎÊıÉùÃ÷
+                }
+//                if (!atSet(isFunctionTypeContents ? LAMBDA_VALUE_PARAMETER_FIRST : VALUE_PARAMETER_FIRST)) break;
 
             }
-
-
         }
+
+
+//        if (!at(RPAR) && !atSet(recoverySet) && false) {
+//            while (true) {
+//                //µÚÒ»¸ö²»ÄÜÎª,
+//                if (at(COMMA)) {
+//                    errorAndAdvance("Expecting a parameter declaration");  //Ó¦¸ÃÎª²ÎÊıÉùÃ÷
+//
+//                } else if (at(RPAR)) {  //Èç¹ûÎª)ÔòÌø³öÑ­»·
+//                    break;
+//                }
+//
+//
+////                if (isFunctionTypeContents) {
+////
+////                }
+////                else {
+//                parseValueParameter(typeRequired);
+////                }
+//
+//
+//                if (at(COMMA)) {
+//                    advance(); // COMMA
+//                } else if (at(COLON)) {
+//                    continue;
+//                } else {
+//                    expect(RPAR, "Expecting Parameter list or ')' but found '" + myBuilder + "'");
+////                    if (!at(RPAR)) errorAndAdvance("Expecting Parameter list or ')' but found '" + myBuilder + "'");
+//                    if (!atSet(isFunctionTypeContents ? LAMBDA_VALUE_PARAMETER_FIRST : VALUE_PARAMETER_FIRST)) break;
+//                }
+//
+//            }
+//        }
         expect(RPAR, "Expecting ')'", recoverySet);
         myBuilder.restoreNewlinesState();
 
-        parameters.done(VALUE_PARAMETER_LIST);
+
+        if (isNamedParameters.contains(true) && isNamedParameters.contains(false)) {
+//            ÒªÃ´È«Îªtrue ÒªÃ´È«Îªfalse
+            parameters.error("in a parameter type list, either all parameters must be named, or none of them; mixed is not allowed");
+        } else {
+            parameters.done(VALUE_PARAMETER_LIST);
+
+        }
+
     }
 
 
@@ -1727,7 +2518,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        if (at(VAR_KEYWORD) || at(LET_KEYWORD)) {
 //            advance(); // VAR_KEYWORD | LET_KEYWORD
 ////            return false;
-////            error("Expecting parameter declaration");  //åº”è¯¥ä¸ºå‚æ•°å£°æ˜
+////            error("Expecting parameter declaration");  //Ó¦¸ÃÎª²ÎÊıÉùÃ÷
 //        }
 
 
@@ -1741,20 +2532,21 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     /*
-     * functionParameterRest  å‡½æ•°å‚æ•°
+     * functionParameterRest  º¯Êı²ÎÊı
      *   : parameter
-     *   : identifier('!') ':' type ("=" element)  ! å’Œ = å¿…é¡»åŒæ—¶å‡ºç°
-     *   ; identifier ':' ('?')?type   å¯ä»¥ä¸ºOption.Nono
+     *   : identifier('!') ':' type ("=" element)  ! ºÍ = ±ØĞëÍ¬Ê±³öÏÖ
+     *   ; identifier ':' ('?')?type   ¿ÉÒÔÎªOption.Nono
      *   ;
      */
     private boolean parseFunctionParameterRest(boolean typeRequired) {
         boolean noErrors = true;
-        // æ¢å¤ 'func foo(Array<String>) {}'
-        // æ¢å¤ 'func foo(: Int) {}'
+        boolean isDefault = false;
+        // »Ö¸´ 'func foo(Array<String>) {}'
+        // »Ö¸´ 'func foo(: Int) {}'
         if ((at(IDENTIFIER) && lookahead(1) == LT) || at(COLON)) {
-            error("Missing parameter name");  //ç¼ºå°‘å‚æ•°åç§°
+            error("Missing parameter name");  //È±ÉÙ²ÎÊıÃû³Æ
             if (at(COLON)) {
-                // ä¿ç•™noErrors==trueï¼Œè¿™æ ·åœ¨å‡½æ•°ç±»å‹çš„è§£æè¿‡ç¨‹ä¸­ä¸ä¼šå›æ»šä»¥â€œï¼šâ€å¼€å¤´çš„æœªå‘½åå‚æ•°
+                // ±£ÁônoErrors==true£¬ÕâÑùÔÚº¯ÊıÀàĞÍµÄ½âÎö¹ı³ÌÖĞ²»»á»Ø¹öÒÔ¡°£º¡±¿ªÍ·µÄÎ´ÃüÃû²ÎÊı
                 advance(); // :
 
 
@@ -1765,26 +2557,45 @@ public class CangJieParsing extends AbstractCangJieParsing {
         } else {
             expect(IDENTIFIER, "Missing parameter name", PARAMETER_NAME_RECOVERY_SET);
 
-            expect(EXCL);
+            if (expect(EXCL)) {
+//              ¿ÉÒÔÓĞÄ¬ÈÏÖµ
+                isDefault = true;
+            }
 
             if (at(COLON)) {
                 advance(); // :
 
                 if (at(IDENTIFIER) && lookahead(1) == COLON) {
-                    // æ¢å¤ "func foo(x: y: Int)" å¤„ç† 'y:' æ—¶ï¼Œå¯èƒ½æ˜¯ä¸‹ä¸€ä¸ªå‚æ•°çš„åç§°
+                    // »Ö¸´ "func foo(x: y: Int)" ´¦Àí 'y:' Ê±£¬¿ÉÄÜÊÇÏÂÒ»¸ö²ÎÊıµÄÃû³Æ
                     error("Type reference expected");
                     return false;
                 }
 
                 parseTypeRef();
-            } else {
-                errorWithoutAdvancing("Expecting ':' Missing type declaration");  //åº”è¯¥ä¸º':'
+            } else if (typeRequired) {
+                errorWithRecovery("Parameters must have type annotation", PARAMETER_NAME_RECOVERY_SET);
                 noErrors = false;
             }
+//            {
+//                errorWithoutAdvancing("Expecting ':' Missing type declaration");  //Ó¦¸ÃÎª':'
+//                noErrors = false;
+//            }
 
 
         }
+        if (at(EQ)) {
+            if (isDefault) {
+                advance();
+            } else {
+                error("The default value cannot be set for non-named parameters");
+                errorAndAdvance("Expecting ',' or ')', found '='");
+                noErrors = false;
 
+            }
+
+
+            myExpressionParsing.parseExpression();
+        }
         return noErrors;
     }
 
@@ -1833,7 +2644,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     private void recoverOnPlatformTypeSuffix() {
-        // å¹³å°ç±»å‹çš„æ¢å¤
+        // Æ½Ì¨ÀàĞÍµÄ»Ö¸´
         if (at(EXCL)) {
             PsiBuilder.Marker error = mark();
             advance(); // EXCL
@@ -1841,11 +2652,30 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
     }
 
+    /*
+     * functionType
+     *   : (type ".")? "(" parameter{","}? ")" "->" type?
+     *   ;
+     */
+    private void parseFunctionType(PsiBuilder.Marker functionType) {
+        parseFunctionTypeContents(functionType).done(FUNCTION_TYPE);
+    }
+
+    private PsiBuilder.Marker parseFunctionTypeContents(PsiBuilder.Marker functionType) {
+        assert _at(LPAR) : tt();
+
+        parseValueParameterList(true, /* typeRequired  = */ true, TokenSet.EMPTY);
+
+        expect(ARROW, "Expecting '->' to specify return type of a function type", TYPE_REF_FIRST);
+        parseTypeRef();
+
+        return functionType;
+    }
 
     private void parseTupleType() {
         assert _at(LPAR);
 
-        PsiBuilder.Marker tupleType = mark();
+//        PsiBuilder.Marker tupleType = mark();
 
         advance(); // LPAR
 
@@ -1861,7 +2691,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         expect(RPAR, "Expecting ')'");
 
-        tupleType.done(TUPLE_TYPE);
+
+//        tupleType.done(TUPLE_TYPE);
     }
 
     /*
@@ -1874,7 +2705,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *    - (Mutable)List<Foo>!
      *    - Array<(out) Foo>!
      */
-    private void parseUserType() {
+    public void parseUserType() {
         PsiBuilder.Marker userType = mark();
 
 
@@ -1891,8 +2722,31 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        } else {
 //            error("Expecting type name");
 //        }
+
+
         if (at(LPAR)) {
+
+
+            PsiBuilder.Marker oType = mark();
+
+
             parseTupleType();
+
+
+            if (at(ARROW) || at(COLON)) {
+//                advance(); // ARROW
+//                parseTypeRef();
+                oType.rollbackTo();
+                oType = mark();
+                parseFunctionType(oType);
+//                oType.done(FUNCTION_TYPE);
+
+            } else {
+                oType.done(TUPLE_TYPE);
+
+            }
+
+
             userType.done(USER_TYPE);
 
             return;
@@ -1932,7 +2786,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     /**
-     * è§£æç±»å‹å¼•ç”¨
+     * ½âÎöÀàĞÍÒıÓÃ
      *
      * @return
      */
@@ -1957,7 +2811,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //    }
 
     /**
-     * è§£æåŸºæœ¬ç±»å‹
+     * ½âÎö»ù±¾ÀàĞÍ
      */
     private boolean parseBasicType() {
 
@@ -2020,7 +2874,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
     /**
-     * è§£æç±»å‹å‚æ•°åˆ—è¡¨
+     * ½âÎöÀàĞÍ²ÎÊıÁĞ±í
      */
     boolean tryParseTypeArgumentList(TokenSet extraRecoverySet) {
 
@@ -2073,12 +2927,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     /**
      * @param extraRecoverySet
-     * @param isConstraint     æ˜¯å¦ä¸ºçº¦æŸï¼Œçº¦æŸæ²¡æœ‰é—®å·,ä¸è§£æuserType
+     * @param isConstraint     ÊÇ·ñÎªÔ¼Êø£¬Ô¼ÊøÃ»ÓĞÎÊºÅ,²»½âÎöuserType
      */
     void parseTypeRef(TokenSet extraRecoverySet, boolean isConstraint) {
 
         PsiBuilder.Marker typeRefMarker = mark();
-        //å…ˆè§£æåŸºæœ¬ç±»å‹ï¼Œå¦‚æœä¸æ˜¯åŸºæœ¬ç±»å‹ï¼Œåˆ™è§£æç±»å‹å¼•ç”¨
+        //ÏÈ½âÎö»ù±¾ÀàĞÍ£¬Èç¹û²»ÊÇ»ù±¾ÀàĞÍ£¬Ôò½âÎöÀàĞÍÒıÓÃ
 
 
         if (!isConstraint) {
@@ -2117,6 +2971,44 @@ public class CangJieParsing extends AbstractCangJieParsing {
         private boolean protectedDetected = false;
         private boolean operatorDetected = false;
 
+        private boolean foreignDetected = false;
+
+        private boolean constDetected = false;
+
+        private boolean unsafeDetected = false;
+        private boolean sealedDetected = false;
+        private boolean redefDetected = false;
+
+        private boolean openDetected = false;
+
+        private boolean staticDetected = false;
+        //×¢½âÊıÁ¿
+        private int annotationCount = 0;
+
+        /**
+         * ·µ»ØĞŞÊÎ·ûµÄÊıÁ¿
+         *
+         * @return size
+         */
+        public int getSize() {
+//            ±éÀú¸ÃÀàËùÓĞÊôĞÔ
+            int size = 0;
+
+
+//            this.getClass().getDeclaredFields()
+            for (Field field : this.getClass().getDeclaredFields()) {
+                try {
+                    if (field.get(this).equals(true)) {
+                        size++;
+                    }
+                } catch (IllegalAccessException e) {
+//                    throw new RuntimeException(e);
+                }
+            }
+
+            return size;
+        }
+
         @Override
         public void consume(IElementType item) {
 //            if (item == ABSTRACT_KEYWORD) {
@@ -2137,6 +3029,22 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 mutDetected = true;
             } else if (item.equals(OPERATOR_KEYWORD)) {
                 operatorDetected = true;
+            } else if (item.equals(FOREIGN_KEYWORD)) {
+                foreignDetected = true;
+            } else if (item.equals(CONST_KEYWORD)) {
+                constDetected = true;
+            } else if (item.equals(UNSAFE_KEYWORD)) {
+                unsafeDetected = true;
+            } else if (item.equals(OPEN_KEYWORD)) {
+                openDetected = true;
+            } else if (item.equals(STATIC_KEYWORD)) {
+                staticDetected = true;
+            } else if (item.equals(SEALED_KEYWORD)) {
+                sealedDetected = true;
+            } else if (item.equals(REDEF_KEYWORD)) {
+                redefDetected = true;
+            } else if (item.equals(ANNOTATION_ENTRY)) {
+                annotationCount++;
             }
         }
 
@@ -2171,6 +3079,35 @@ public class CangJieParsing extends AbstractCangJieParsing {
         public boolean isPublicOrProtectedDetected() {
             return publicDetected || protectedDetected;
         }
+
+        public boolean isForeignDetected() {
+            return foreignDetected;
+        }
+
+        public boolean isStaticDetected() {
+            return staticDetected;
+        }
+
+        public boolean isUnsafeDetected() {
+            return unsafeDetected;
+        }
+
+        public boolean isSealedDetected() {
+            return sealedDetected;
+        }
+
+        public boolean isRedefDetected() {
+            return redefDetected;
+        }
+
+        public boolean isOpenDetected() {
+            return openDetected;
+        }
+
+        public boolean isConstDetected() {
+            return constDetected;
+        }
+
 
     }
 }

@@ -2,6 +2,7 @@ package com.huawei.cangjie.psi;
 
 
 
+import com.huawei.cangjie.lexer.CjKeywordToken;
 import com.huawei.cangjie.lexer.CjModifierKeywordToken;
 import com.huawei.cangjie.psi.stubs.CangJieModifierListStub;
 import com.intellij.lang.ASTNode;
@@ -40,7 +41,7 @@ public abstract class CjModifierList extends CjElementImplStub<CangJieModifierLi
     }
 
     @Nullable
-    public PsiElement getModifier(@NotNull CjModifierKeywordToken tokenType) {
+    public PsiElement getModifier(@NotNull CjKeywordToken tokenType) {
         return findChildByType(tokenType);
     }
 

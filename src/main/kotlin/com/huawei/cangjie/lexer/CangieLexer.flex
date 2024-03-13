@@ -1,9 +1,8 @@
 package com.huawei.cangjie.lexer;
-import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.Stack;
-
+import com.intellij.lexer.FlexLexer;
 %%
 
 %unicode
@@ -15,6 +14,7 @@ import com.intellij.util.containers.Stack;
  public _JetLexer() {
     this((java.io.Reader)null);}
 %}
+
 
 
 %{
@@ -51,6 +51,18 @@ import com.intellij.util.containers.Stack;
             yybegin(state.state);
         }
 
+        private State getState(){
+
+        int size = states.size();
+        if(size == 0){
+            return null;
+        }
+
+           return  states.get(states.size() - 1);
+
+
+        }
+
         private IElementType commentStateToTokenType(int state) {
             switch (state) {
                 case BLOCK_COMMENT:
@@ -73,15 +85,22 @@ import com.intellij.util.containers.Stack;
   return;
 %eof}
 
-%xstate STRING RAW_STRING SHORT_TEMPLATE_ENTRY BLOCK_COMMENT DOC_COMMENT
+%xstate HSAH_STRING STRING RAW_STRING SHORT_TEMPLATE_ENTRY BLOCK_COMMENT DOC_COMMENT
 %state LONG_TEMPLATE_ENTRY UNMATCHED_BACKTICK
 
 
 DIGIT=[0-9]
-DIGIT_OR_UNDERSCORE = [_0-9]
+DIGIT_OR_UNDERSCORE = [0-9_]
 DIGITS = {DIGIT} {DIGIT_OR_UNDERSCORE}*
 HEX_DIGIT=[0-9A-Fa-f]
-HEX_DIGIT_OR_UNDERSCORE = [_0-9A-Fa-f]
+HEX_DIGIT_OR_UNDERSCORE = [0-9A-Fa-f_]
+BIN_DIGIT=[0-1]
+BIN_DIGIT_OR_UNDERSCORE = [01_]
+OCT_DIGIT=[0-7]
+OCT_DIGIT_OR_UNDERSCORE = [07_]
+
+
+
 WHITE_SPACE_CHAR=[\ \n\t\f]
 
 // TODO: 是否禁止标识符中的“$”？
@@ -97,37 +116,59 @@ IDENTIFIER = {PLAIN_IDENTIFIER}|{ESCAPED_IDENTIFIER}
 FIELD_IDENTIFIER = \${IDENTIFIER}
 
 EOL_COMMENT="/""/"[^\n]*
-SHEBANG_COMMENT="#!"[^\n]*
+//SHEBANG_COMMENT="#!"[^\n]*
 
 //UNIT_LTIERAL="()"
 //元素，两个以上表达式 (p1,p2,...,pn)
 //TUPLE_LTIERAL="("[^)]*")"
 
-INTEGER_LITERAL={DECIMAL_INTEGER_LITERAL}|{HEX_INTEGER_LITERAL}
+INTEGER_LITERAL=({DECIMAL_INTEGER_LITERAL}|{HEX_INTEGER_LITERAL}|{BIN_INTEGER_LITERAL} |{OCT_INTEGER_LITERAL})(u8|u16|u32|u64|i8|i16|i32|i64)?
 DECIMAL_INTEGER_LITERAL=(0|([1-9]({DIGIT_OR_UNDERSCORE})*))
 HEX_INTEGER_LITERAL=0[Xx]({HEX_DIGIT_OR_UNDERSCORE})*
-//BIN_INTEGER_LITERAL=0[Bb]({DIGIT_OR_UNDERSCORE})*
+BIN_INTEGER_LITERAL=0[Bb]({BIN_DIGIT_OR_UNDERSCORE})*
+//八进制
+OCT_INTEGER_LITERAL=0[Oo]({OCT_DIGIT_OR_UNDERSCORE})*
+
 //LONG_SUFFIX=[Ll]
 //UNSIGNED_SUFFIX=[Uu]
 //TYPED_INTEGER_SUFFIX = {UNSIGNED_SUFFIX}?{LONG_SUFFIX}?
 
-FLOAT_LITERAL=(({FLOATING_POINT_LITERAL1})[Ff])|(({FLOATING_POINT_LITERAL2})[Ff])|(({FLOATING_POINT_LITERAL3})[Ff])|(({FLOATING_POINT_LITERAL4})[Ff])
+//FLOAT_LITERAL=(({FLOATING_POINT_LITERAL1})[Ff])|(({FLOATING_POINT_LITERAL2})[Ff])|(({FLOATING_POINT_LITERAL3})[Ff])|(({FLOATING_POINT_LITERAL4})[Ff])
 //DOUBLE_LITERAL=(({FLOATING_POINT_LITERAL1})[Dd]?)|(({FLOATING_POINT_LITERAL2})[Dd]?)|(({FLOATING_POINT_LITERAL3})[Dd]?)|(({FLOATING_POINT_LITERAL4})[Dd])
-FLOAT_LITERAL={FLOATING_POINT_LITERAL1}|{FLOATING_POINT_LITERAL2}|{FLOATING_POINT_LITERAL3}|{FLOATING_POINT_LITERAL4}
-FLOATING_POINT_LITERAL1=({DIGITS})"."({DIGITS})+({EXPONENT_PART})?({FLOATING_POINT_LITERAL_SUFFIX})?
-FLOATING_POINT_LITERAL2="."({DIGITS})({EXPONENT_PART})?({FLOATING_POINT_LITERAL_SUFFIX})?
-FLOATING_POINT_LITERAL3=({DIGITS})({EXPONENT_PART})({FLOATING_POINT_LITERAL_SUFFIX})?
-FLOATING_POINT_LITERAL4=({DIGITS})({FLOATING_POINT_LITERAL_SUFFIX})
-FLOATING_POINT_LITERAL_SUFFIX=[Ff]
+FLOAT_LITERAL={ FLOAT_LITERAL_POINT} |{HEX_FLOATING_POINT_LITERAL}
+FLOAT_LITERAL_POINT = ({FLOATING_POINT_LITERAL1}|{FLOATING_POINT_LITERAL2}|{FLOATING_POINT_LITERAL3})(f32|f16|f64)?
+FLOATING_POINT_LITERAL1=({DIGITS})"."({DIGITS})+({EXPONENT_PART})?
+FLOATING_POINT_LITERAL2="."({DIGITS})({EXPONENT_PART})?
+FLOATING_POINT_LITERAL3=({DIGITS})({EXPONENT_PART})
+
+
+
+HEX_FLOATING_POINT_LITERAL= {HEX_FLOATING_POINT_LITERAL1} |{HEX_FLOATING_POINT_LITERAL2} |{HEX_FLOATING_POINT_LITERAL3}
+HEX_FLOATING_POINT_LITERAL1= 0[xX]({DIGITS})"."({DIGITS})+({EXPONENT_PART})?"p"({DIGIT})
+HEX_FLOATING_POINT_LITERAL2= 0[xX]"."({DIGITS})({EXPONENT_PART})?"p"({DIGIT})
+HEX_FLOATING_POINT_LITERAL3= 0[xX]({DIGITS})({EXPONENT_PART})?"p"({DIGIT})
+
+
+//FLOATING_POINT_LITERAL_SUFFIX=[Ff]
 EXPONENT_PART=[Ee]["+""-"]?({DIGIT_OR_UNDERSCORE})*
 
-CHARACTER_LITERAL="'"([^\\\'\n]|{ESCAPE_SEQUENCE})*("'"|\\)?
+
+
+
+CHARACTER_LITERAL="b"?"'"([^\\\'\n]|{ESCAPE_SEQUENCE})*("'"|\\)?
+//CHARACTER_BYTE_LITERAL = {CHARACTER_LITERAL}
+
 // TODO: 引入符号(例如‘foo)作为编写字符串文字的另一种方式
 ESCAPE_SEQUENCE=\\(u{HEX_DIGIT}{HEX_DIGIT}{HEX_DIGIT}{HEX_DIGIT}|[^\n])
 
 // ANY_ESCAPE_SEQUENCE = \\[^]
 THREE_QUO = (\"\"\")
 THREE_OR_MORE_QUO = ({THREE_QUO}\"*)
+
+//#[n*]""#[n*]
+//HSAH_STRING =(\#\{\1\,\})(\?:\"[^\"]\*\"\1)
+HSAH_QUO = (#+\")
+HSAH_OR_MORE_QUO = (\"#+)`
 
 REGULAR_STRING_PART=[^\\\"\n\$]+
 SHORT_TEMPLATE_ENTRY=\${IDENTIFIER}
@@ -138,6 +179,44 @@ LONELY_BACKTICK=`
 %%
 
 // String 模板
+//
+//
+{HSAH_QUO}                      {
+          lBraceCount = yytext().length() - 1;
+                                      pushState(HSAH_STRING);
+                                      return CjTokens.OPEN_QUOTE; }
+
+<HSAH_STRING> \n                          { return CjTokens.REGULAR_STRING_PART; }
+<HSAH_STRING> \"                  { return CjTokens.REGULAR_STRING_PART; }
+<HSAH_STRING> \\                  { return CjTokens.REGULAR_STRING_PART; }
+<HSAH_STRING>  \"#+        {
+
+//                                       popState();
+                                       int lenght = yytext().length() - 1;
+                                       int lBraceCount1 = getState() != null ? getState().lBraceCount : lBraceCount;
+                                       if(lBraceCount1 == lenght){
+                                           popState();
+
+                                                 return CjTokens.CLOSING_QUOTE;
+                                       }
+
+
+                                       else if(lBraceCount1 < lenght){
+//
+                                           popState();
+
+                                           yypushback(lenght - lBraceCount1);
+                                             return CjTokens.CLOSING_QUOTE;
+                                       }else {
+
+//                                            yypushback(yylength()); // return the closing quotes (""") to the stream
+                                                                               return CjTokens.REGULAR_STRING_PART;
+                                       }
+//
+
+
+      }
+
 
 {THREE_QUO}                      { pushState(RAW_STRING); return CjTokens.OPEN_QUOTE; }
 <RAW_STRING> \n                  { return CjTokens.REGULAR_STRING_PART; }
@@ -154,13 +233,13 @@ LONELY_BACKTICK=`
                                         return CjTokens.REGULAR_STRING_PART;
                                     }
                                  }
-
+b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 \"                          { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 <STRING> \n                 { popState(); yypushback(1); return CjTokens.DANGLING_NEWLINE; }
 <STRING> \"                 { popState(); return CjTokens.CLOSING_QUOTE; }
 <STRING> {ESCAPE_SEQUENCE}  { return CjTokens.ESCAPE_SEQUENCE; }
 
-<STRING, RAW_STRING> {REGULAR_STRING_PART}         { return CjTokens.REGULAR_STRING_PART; }
+<STRING, RAW_STRING ,HSAH_STRING> {REGULAR_STRING_PART}           { return CjTokens.REGULAR_STRING_PART; }
 <STRING, RAW_STRING> {SHORT_TEMPLATE_ENTRY}        {
                                                         pushState(SHORT_TEMPLATE_ENTRY);
                                                         yypushback(yylength() - 1);
@@ -173,7 +252,7 @@ LONELY_BACKTICK=`
 
 <SHORT_TEMPLATE_ENTRY> {IDENTIFIER}    { popState(); return CjTokens.IDENTIFIER; }
 
-<STRING, RAW_STRING> {LONELY_DOLLAR}               { return CjTokens.REGULAR_STRING_PART; }
+<STRING, RAW_STRING > {LONELY_DOLLAR}               { return CjTokens.REGULAR_STRING_PART; }
 <STRING, RAW_STRING> {LONG_TEMPLATE_ENTRY_START}   { pushState(LONG_TEMPLATE_ENTRY); return CjTokens.LONG_TEMPLATE_ENTRY_START; }
 
 <LONG_TEMPLATE_ENTRY> "{"              { lBraceCount++; return CjTokens.LBRACE; }
@@ -238,26 +317,28 @@ LONELY_BACKTICK=`
 ({WHITE_SPACE_CHAR})+ { return CjTokens.WHITE_SPACE; }
 
 {EOL_COMMENT} { return CjTokens.EOL_COMMENT; }
-{SHEBANG_COMMENT} {
-            if (zzCurrentPos == 0) {
-                return CjTokens.SHEBANG_COMMENT;
-            }
-            else {
-                yypushback(yylength() - 1);
-                return CjTokens.HASH;
-            }
-          }
 
-{INTEGER_LITERAL}\.\. { yypushback(2); return CjTokens.INTEGER_LITERAL; }
+//{SHEBANG_COMMENT} {
+//            if (zzCurrentPos == 0) {
+//                return CjTokens.SHEBANG_COMMENT;
+//            }
+//            else {
+//                yypushback(yylength() - 1);
+//                return CjTokens.HASH;
+//            }
+//          }
+
+{FLOAT_LITERAL}     { return CjTokens.FLOAT_LITERAL; }
+
+//{INTEGER_LITERAL}\.\. { yypushback(2); return CjTokens.INTEGER_LITERAL; }
 {INTEGER_LITERAL} { return CjTokens.INTEGER_LITERAL; }
 
 //{UNIT_LTIERAL} { return CjTokens.UNIT_LTIERAL;}
 //{TUPLE_LTIERAL} { return CjTokens.TUPLE_LTIERAL;}
 
-{FLOAT_LITERAL}     { return CjTokens.FLOAT_LITERAL; }
 
-{CHARACTER_LITERAL} { return CjTokens.CHARACTER_LITERAL; }
-
+{CHARACTER_LITERAL}   { return CjTokens.CHARACTER_LITERAL; }
+//{CHARACTER_BYTE_LITERAL}    { return CjTokens.CHARACTER_BYTE_LITERAL; }
 
 "package"    { return CjTokens.PACKAGE_KEYWORD ;}
 
@@ -284,12 +365,18 @@ LONELY_BACKTICK=`
 
 
 "init"       { return CjTokens.INIT_KEYWORD ;}
+"synchronized"     { return CjTokens.SYNCHRONIZED_KEYWORD ;}
+"spawn"       { return CjTokens.SPAWN_KEYWORD ;}
+"unsafe"       { return CjTokens.UNSAFE_KEYWORD ;}
+"foreign"       { return CjTokens.FOREIGN_KEYWORD ;}
+
+
 
 
 
 
 //"abc"      { return CjTokens.ABC_KEYWORD ;}
-
+"macro"     { return CjTokens.MARCO_KEYWORD ;}
 "public"     { return CjTokens.PUBLIC_KEYWORD ;}
 "private"    { return CjTokens.PRIVATE_KEYWORD ;}
 "protected"  { return CjTokens.PROTECTED_KEYWORD ;}
@@ -321,6 +408,7 @@ LONELY_BACKTICK=`
 "main"       { return CjTokens.MAIN_KEYWORD ;}
 "struct"     { return CjTokens.STRUCT_KEYWORD ;}
 "where"      { return CjTokens.WHERE_KEYWORD ;}
+"type"         { return CjTokens.TYPE_KEYWORD ;}
 
 "Int8"       { return CjTokens.INT8_KEYWORD ;}
 "Int16"      { return CjTokens.INT16_KEYWORD ;}
@@ -345,7 +433,7 @@ LONELY_BACKTICK=`
 \!is{IDENTIFIER_PART}        { yypushback(3); return CjTokens.EXCL; }
 
 
-
+"~"        { return CjTokens.TILDE  ; }
 "<:"        { return CjTokens.LTCOLON  ; }
 
 
@@ -366,12 +454,13 @@ LONELY_BACKTICK=`
 "+="         { return CjTokens.PLUSEQ    ; }
 "-="         { return CjTokens.MINUSEQ   ; }
 "->"         { return CjTokens.ARROW     ; }
+"~>"         { return CjTokens.COMPOSITION     ; }
 "=>"         { return CjTokens.DOUBLE_ARROW; }
 "<-"     { return CjTokens.LEFT_ARROW; }
 ".."         { return CjTokens.RANGE     ; }
-
+"..="         { return CjTokens.RANGEEQ     ; }
 "**="        { return CjTokens.MULMULEQ  ; }
-
+"&&="        { return CjTokens.ANDANDEQ  ; }
 "["          { return CjTokens.LBRACKET  ; }
 "]"          { return CjTokens.RBRACKET  ; }
 "{"          { return CjTokens.LBRACE    ; }
@@ -389,9 +478,15 @@ LONELY_BACKTICK=`
 "<"          { return CjTokens.LT        ; }
 ">"          { return CjTokens.GT        ; }
 
+"@"          { return CjTokens.AT; }
+"??"          { return CjTokens.ELVIS     ; }
+"?"           { return CjTokens.QUEST     ; }
+"?."          { return CjTokens.SAFE_ACCESS     ; }
+"?["          { return CjTokens.SAFE_INDEXEX     ; }
+"?("          { return CjTokens.SAFE_CALL    ; }
+"?{"          { return CjTokens.SAFE_LAMBDA    ; }
 
 
-"?"          { return CjTokens.QUEST     ; }
 ":"          { return CjTokens.COLON     ; }
 
 ";"          { return CjTokens.SEMICOLON ; }
@@ -411,6 +506,6 @@ LONELY_BACKTICK=`
 // error fallback
 [\s\S]       { return TokenType.BAD_CHARACTER; }
 // error fallback for exclusive states
-<STRING, RAW_STRING, SHORT_TEMPLATE_ENTRY, BLOCK_COMMENT, DOC_COMMENT> .
+<STRING, RAW_STRING, SHORT_TEMPLATE_ENTRY, BLOCK_COMMENT, DOC_COMMENT , HSAH_STRING> .
              { return TokenType.BAD_CHARACTER; }
 

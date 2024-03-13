@@ -7,5 +7,6 @@ public interface CjCallElement extends CjElement {
     @Nullable
     CjExpression getCalleeExpression();
 
-
+    @Nullable
+   CjValueArgumentList getValueArgumentList();
 }

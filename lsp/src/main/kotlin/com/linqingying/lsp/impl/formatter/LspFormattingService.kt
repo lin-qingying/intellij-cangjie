@@ -9,8 +9,6 @@ import com.intellij.lang.LanguageFormatting
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-
-
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.linqingying.lsp.api.customization.requests.util.applyTextEdits
@@ -20,7 +18,6 @@ import com.linqingying.lsp.impl.LspServerManagerImpl
 import com.linqingying.lsp.impl.requests.LspFormattingRequest
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NotNull
-import java.util.logging.Level
 
 
 private class LspFormattingService :
@@ -34,7 +31,7 @@ private class LspFormattingService :
         return V(project, virtualFile) != null
     }
 
-    override fun createFormattingTask(formattingRequest: AsyncFormattingRequest): FormattingTask? { /* compiled code */
+    override fun createFormattingTask(formattingRequest: AsyncFormattingRequest): FormattingTask? {
 
         val project = formattingRequest.context.project
         val virtualFile = formattingRequest.context.virtualFile

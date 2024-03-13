@@ -82,9 +82,13 @@ allprojects {
     sourceSets {
         main {
             java {
+                srcDirs("src/gen")
                 srcDirs("src/main/kotlin")
             }
         }
+
+
+
     }
 
     tasks {
@@ -178,7 +182,7 @@ project(":plugin") {
         plugins.set(listOf(       psiViewerPlugin))
     }
 //    group = "com.huawei.cangjie"
-    version = "beta-1.0.7"
+    version = "beta-1.0.8"
     dependencies {
         implementation(project(":"))
 //        implementation(project(":inspections"))
@@ -353,7 +357,7 @@ project(":") {
 //        implementation(project(":dap"))
         implementation(project(":lsp"))
 
-
+        implementation("org.antlr:antlr4-intellij-adaptor:0.1")
     }
     tasks {
         processTestResources {
@@ -409,17 +413,31 @@ project(":lsp"){
 //        implementation(project(":"))
     }
 }
-//
+
+
+
+project(":grammar"){
+    apply {
+        plugin("antlr")
+    }
+
+    // Kotlin Gradle support doesn't generate proper extensions if the plugin is not declared in `plugin` block.
+// But if we do it, `antlr` plugin will be applied to root project as well that we want to avoid.
+// So, let's define all necessary things manually
+    val antlr by configurations
+
+    dependencies{
+
+        antlr("org.antlr:antlr4:4.13.1")
+        implementation("org.antlr:antlr4-runtime:4.13.1")
+    }
+}
+
 //project(":lsp4j") {
 //
 //}
 //project(":back") {
-//    intellij {
 //
-//    }
-//    dependencies {
-//        implementation(project(":"))
-//    }
 //}
 
 

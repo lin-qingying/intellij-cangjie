@@ -13,7 +13,13 @@ public interface CjStubElementTypes {
             new CjPlaceHolderStubElementType<>("FUNCTION_TYPE_RECEIVER", CjFunctionTypeReceiver.class);
 
     CjConstantExpressionElementType UNIT_CONSTANT = new CjConstantExpressionElementType("UNIT_CONSTANT");
+    CjAnnotationEntryElementType ANNOTATION_ENTRY = new CjAnnotationEntryElementType("ANNOTATION_ENTRY");
+    CjAnnotationEntryElementType MACRO_EXPRESSION = new CjAnnotationEntryElementType("MACRO_EXPRESSION");
 
+
+
+    //    KtPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
+//            new CjPlaceHolderStubElementType<>("ANNOTATION", CjAnnotation.class);
     CjConstantExpressionElementType FLOAT_CONSTANT = new CjConstantExpressionElementType("FLOAT_CONSTANT");
     CjConstantExpressionElementType CHARACTER_CONSTANT = new CjConstantExpressionElementType("CHARACTER_CONSTANT");
     CjConstantExpressionElementType INTEGER_CONSTANT = new CjConstantExpressionElementType("INTEGER_CONSTANT");
@@ -41,6 +47,8 @@ public interface CjStubElementTypes {
 
     CjVariableElementType VARIABLE = new CjVariableElementType("VARIABLE");
     CjPropertyElementType PROPERTY = new CjPropertyElementType("PROPERTY");
+  CjTypeAliasElementType TYPEALIAS = new CjTypeAliasElementType("TYPEALIAS");
+
 
     CjPlaceHolderStubElementType<CjClassInitializer> CLASS_INITIALIZER =
             new CjPlaceHolderStubElementType<>("CLASS_INITIALIZER", CjClassInitializer.class);
@@ -59,10 +67,20 @@ public interface CjStubElementTypes {
             new CjPlaceHolderStubElementType<>("IMPORT_LIST", CjImportList.class);
     CjPlaceHolderStubElementType<CjTypeArgumentList> TYPE_ARGUMENT_LIST =
             new CjPlaceHolderStubElementType<>("TYPE_ARGUMENT_LIST", CjTypeArgumentList.class);
+
+//    CjPlaceHolderStubElementType<CjMacroAttrArgumentList> MACRO_ARGUMENT_LIST =
+//            new CjPlaceHolderStubElementType<>("MACRO_ARGUMENT_LIST", CjMacroAttrArgumentList.class);
+
+
+
+
     CjTypeParameterElementType TYPE_PARAMETER = new CjTypeParameterElementType("TYPE_PARAMETER");
     CjPrimaryConstructorElementType PRIMARY_CONSTRUCTOR =
             new CjPrimaryConstructorElementType("PRIMARY_CONSTRUCTOR");
-
+    CjMacroElementType MACRO = new CjMacroElementType("MACRO");
+    CjForeignDirectiveElementType FOREIGN = new CjForeignDirectiveElementType("FOREIGN");
+    CjPlaceHolderStubElementType<CjForeignBody> FOREIGN_BODY =
+            new CjPlaceHolderStubElementType<>("FOREIGN_BODY", CjForeignBody.class);
     CjFunctionElementType FUNCTION = new CjFunctionElementType("FUNC");
     CjContextReceiverElementType CONTEXT_RECEIVER = new CjContextReceiverElementType("CONTEXT_RECEIVER");
 
@@ -117,11 +135,14 @@ public interface CjStubElementTypes {
             new CjSecondaryConstructorElementType("SECONDARY_CONSTRUCTOR");
 
     CjImportDirectiveElementType IMPORT_DIRECTIVE = new CjImportDirectiveElementType("IMPORT_DIRECTIVE");
+    CjImportDirectiveItemElementType IMPORT_DIRECTIVE_ITEM = new CjImportDirectiveItemElementType("IMPORT_DIRECTIVE_ITEM");
 
     CjDotQualifiedExpressionElementType DOT_QUALIFIED_EXPRESSION = new CjDotQualifiedExpressionElementType("DOT_QUALIFIED_EXPRESSION");
 
     CjMainFunctionElementType MAIN_FUNC = new CjMainFunctionElementType("MAIN_FUNC");
     CJClassInitElementType CLASS_INIT = new CJClassInitElementType("CLASS_INIT");
+    CJClassInitElementType CLASS_MAIN_INIT = new CJClassInitElementType("CLASS_MAIN_INIT");
+    CJClassInitElementType CLASS_TILDE_INIT = new CJClassInitElementType("CLASS_TILDE_INIT");
 
     CjBasicTypeElementType BASIC_TYPE = new CjBasicTypeElementType("BASIC_TYPE");
     CjPlaceHolderStubElementType<CjStringTemplateExpression> STRING_TEMPLATE =
@@ -141,13 +162,10 @@ public interface CjStubElementTypes {
             new CjCollectionLiteralExpressionElementType("TUPLE_LITERAL_EXPRESSION");
 
 
-
     CjTypeCodeFragmentType TYPE_CODE_FRAGMENT = new CjTypeCodeFragmentType();
 
     CjExpressionCodeFragmentType EXPRESSION_CODE_FRAGMENT = new CjExpressionCodeFragmentType();
     CjBlockCodeFragmentType BLOCK_CODE_FRAGMENT = new CjBlockCodeFragmentType();
-
-
 
 
     TokenSet CONSTANT_EXPRESSIONS_TYPES = TokenSet.create(

@@ -25,6 +25,7 @@
         <backspaceHandlerDelegate implementation="com.huawei.cangjie.idea.editor.CangJieBackspaceHandlerDelegate"/>
         <lang.braceMatcher implementationClass="com.huawei.cangjie.idea.editor.CangJiePairedBraceMatcher"
                            language="CangJie"/>
+<!--        <treeStructureProvider implementation="com.huawei.cangjie.idea.projectView.CangJieExpandNodeProjectViewProvider" order="last"/>-->
 
 
         <!-- PSI 管理器 -->
@@ -207,13 +208,13 @@
 <!--        />-->
 
 
-        <!--        <projectService-->
-<!--                serviceInterface="com.huawei.cangjie.psi.CangJieReferenceProvidersService"-->
-<!--                serviceImplementation="com.huawei.cangjie.idea.references.CjIdeReferenceProviderService"/>-->
+                <projectService
+                serviceInterface="com.huawei.cangjie.psi.CangJieReferenceProvidersService"
+                serviceImplementation="com.huawei.cangjie.idea.references.CjIdeReferenceProviderService"/>
 
 
-<!--        <projectService serviceInterface="com.huawei.cangjie.idea.references.CangJieReferenceProviderContributor"-->
-<!--                        serviceImplementation="com.huawei.cangjie.references.CangJieReferenceContributor"/>-->
+        <projectService serviceInterface="com.huawei.cangjie.idea.references.CangJieReferenceProviderContributor"
+                        serviceImplementation="com.huawei.cangjie.references.CangJieReferenceContributor"/>
     </extensions>
 
     <!--        监听-->
@@ -337,7 +338,7 @@
     <extensions defaultExtensionNs="lsp">
 
         <!-- LSP -->
-        <serverSupportProvider implementation="com.huawei.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>
+<!--        <serverSupportProvider implementation="com.huawei.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>-->
 
 
     </extensions>

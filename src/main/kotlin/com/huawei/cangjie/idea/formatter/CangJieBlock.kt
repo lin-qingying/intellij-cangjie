@@ -21,7 +21,7 @@ class CangJieBlock(node: ASTNode,
 
 : AbstractBlock(node, wrap, myAlignmentStrategy.getAlignment(node)) {
 
-    private val kotlinDelegationBlock = object : CangJieCommonBlock(
+    private val cangjieDelegationBlock = object : CangJieCommonBlock(
         node, mySettings, mySpacingBuilder, myAlignmentStrategy, overrideChildren
     ) {
         override fun getNullAlignmentStrategy(): CommonAlignmentStrategy = NodeAlignmentStrategy.getNullStrategy()
@@ -79,17 +79,17 @@ class CangJieBlock(node: ASTNode,
 
     override fun getIndent(): Indent? = myIndent
 
-    override fun buildChildren(): List<Block> = kotlinDelegationBlock.buildChildren()
+    override fun buildChildren(): List<Block> = cangjieDelegationBlock.buildChildren()
 
     override fun getSpacing(child1: Block?, child2: Block): Spacing? = mySpacingBuilder.getSpacing(this, child1, child2)
 
-    override fun getChildAttributes(newChildIndex: Int): ChildAttributes = kotlinDelegationBlock.getChildAttributes(newChildIndex)
+    override fun getChildAttributes(newChildIndex: Int): ChildAttributes = cangjieDelegationBlock.getChildAttributes(newChildIndex)
 
-    override fun isLeaf(): Boolean = kotlinDelegationBlock.isLeaf()
+    override fun isLeaf(): Boolean = cangjieDelegationBlock.isLeaf()
 
-    override fun getTextRange() = kotlinDelegationBlock.getTextRange()
+    override fun getTextRange() = cangjieDelegationBlock.getTextRange()
 
-    override fun isIncomplete(): Boolean = kotlinDelegationBlock.isIncomplete()
+    override fun isIncomplete(): Boolean = cangjieDelegationBlock.isIncomplete()
 }
 
 object CangJieSpacingBuilderUtilImpl : CangJieSpacingBuilderUtil {

@@ -6,13 +6,13 @@ import com.huawei.cangjie.CjNodeTypes.*
 import com.huawei.cangjie.lexer.CjToken
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.lexer.CjTokens.*
+import com.huawei.cangjie.parsing.CangJieParsing.DeclarationParsingMode
 import com.huawei.cangjie.parsing.CangJieParsing.PARAMETER_NAME_RECOVERY_SET
 import com.intellij.lang.PsiBuilder
-import com.intellij.lang.PsiBuilderUtil
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Pair
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
-
 
 open class CangJieExpressionParsing(
     builder: SemanticWhitespaceAwarePsiBuilder, private val cangJieParsing: CangJieParsing, isLazy: Boolean
@@ -25,11 +25,11 @@ open class CangJieExpressionParsing(
 
     enum class Precedence(vararg operations: IElementType) {
         POSTFIX(
-            PLUSPLUS, MINUSMINUS, DOT
+            PLUSPLUS, MINUSMINUS, DOT,SAFE_ACCESS,
         ),
 
 
-        PREFIX(MINUS, PLUS, MINUSMINUS, PLUSPLUS, EXCL) {
+        PREFIX(MINUS, PLUS, EXCL) {
 
             override fun parseHigherPrecedence(parser: CangJieExpressionParsing) {
                 throw IllegalStateException("Don't call this method")
@@ -40,6 +40,7 @@ open class CangJieExpressionParsing(
         AS(AS_KEYWORD) {
 
             override fun parseRightHandSide(operation: IElementType, parser: CangJieExpressionParsing): IElementType {
+                parser.mark().drop()
 
                 parser.cangJieParsing.parseTypeRefWithoutIntersections()
                 return BINARY_WITH_TYPE
@@ -53,13 +54,37 @@ open class CangJieExpressionParsing(
 
         MULTIPLICATIVE(MUL, DIV, PERC, MULMUL),
         ADDITIVE(PLUS, MINUS),
-        RANGE(CjTokens.RANGE),
 
-        //        SIMPLE_NAME(IDENTIFIER),
-        IN_OR_IS(IN_KEYWORD, IS_KEYWORD) {
+
+        RANGE(CjTokens.RANGE, RANGEEQ) {
+
+            override fun parseRightHandSide(operation: IElementType, parser: CangJieExpressionParsing): IElementType {
+                if (operation == CjTokens.RANGE || operation == RANGEEQ) {
+                    parser.parseRangeExpression()
+                    return RANGE_EXPRESSION
+                }
+                return super.parseRightHandSide(operation, parser)
+
+
+            }
+
+        },
+        ELVIS(CjTokens.ELVIS),
+
+        IS( IS_KEYWORD) {
             override fun parseRightHandSide(operation: IElementType, parser: CangJieExpressionParsing): IElementType {
                 if (operation === IS_KEYWORD) {
+//                    TODO Marker already done.  未知原因，只能先这样解决，包括as 也有这个问题
+                  parser.mark().drop()
+
+
+//parser.advance()
+//              parser. parseTest()
+//mark.done(IS_EXPRESSION)
                     parser.cangJieParsing.parseTypeRefWithoutIntersections()
+
+//                    parser.parseStatement()
+//                    parser.advance()
                     return IS_EXPRESSION
                 }
                 return super.parseRightHandSide(operation, parser)
@@ -70,12 +95,12 @@ open class CangJieExpressionParsing(
         EQUALITY(EQEQ, EXCLEQ),
         CONJUNCTION(ANDAND),
         DISJUNCTION(OROR),
-
+        COMPOSITION(CjTokens.COMPOSITION),
         //位运算
         BITWISE(AND, OR, XOR, LTLT, GTGT, LTLTEQ, GTGTEQ),
 
 
-        ASSIGNMENT(EQ, PLUSEQ, MINUSEQ, MULTEQ, DIVEQ, PERCEQ, ANDEQ, OREQ, XOREQ, LTLTEQ, GTGTEQ, MULMULEQ);
+        ASSIGNMENT(EQ, PLUSEQ, MINUSEQ, MULTEQ, DIVEQ, PERCEQ, ANDEQ, ANDANDEQ, OREQ, XOREQ, LTLTEQ, GTGTEQ, MULMULEQ);
 
         private var higher: Precedence? = null
         private val operations: TokenSet
@@ -85,7 +110,7 @@ open class CangJieExpressionParsing(
 
 
             init {
-                val values: Array<Precedence> = Precedence.values()
+                val values: Array<Precedence> = entries.toTypedArray()
                 for (precedence in values) {
                     val ordinal: Int = precedence.ordinal
                     precedence.higher = if (ordinal > 0) values[ordinal - 1] else null
@@ -118,6 +143,29 @@ open class CangJieExpressionParsing(
             higher?.let { parser.parseBinaryExpression(it) }
         }
 
+    }
+
+    private fun parseTest() {
+        val ma = mark()
+        advance()
+        ma.done(REFERENCE_EXPRESSION)
+    }
+
+    private fun parseRangeExpression() {
+        parseExpression()
+        if (at(COLON)) {
+            advance()
+
+            parseExpression()
+
+//            if (at(INTEGER_LITERAL)) {
+//                advance()
+//            } else {
+//
+//                error("Lack of step frequency")
+////                errorAndAdvance("Expecting an integer literal")
+//            }
+        }
     }
 
 
@@ -211,11 +259,19 @@ open class CangJieExpressionParsing(
      *   : "(" (SimpleName "=")? "*"? element{","} ")"
      *   ;
      */
-    fun parseValueArgumentList() {
+    fun parseValueArgumentList(start:CjToken = LPAR,end:CjToken = RPAR){
+
+        parseValueArgumentList(Pair.create(TokenSet.create(start),end))
+    }
+    fun parseValueArgumentList(struct: Pair<TokenSet, CjToken> = Pair(TokenSet.create(LPAR, SAFE_CALL), RPAR)) {
         val list = mark()
+
+        val sturctStart = struct.first
+        val sturctEnd = struct.second
+
         myBuilder.disableNewlines()
-        if (expect(LPAR, "Expecting an argument list", EXPRESSION_FOLLOW)) {
-            if (!at(RPAR)) {
+        if (expect(sturctStart, "Expecting an argument list", EXPRESSION_FOLLOW)) {
+            if (!at(sturctEnd)) {
                 while (true) {
                     while (at(COMMA)) errorAndAdvance("Expecting an argument")
                     parseValueArgument()
@@ -236,7 +292,7 @@ open class CangJieExpressionParsing(
                     }
                 }
             }
-            expect(RPAR, "Expecting ')'", EXPRESSION_FOLLOW)
+            expect(sturctEnd, "Expecting '${sturctEnd.debugName}'", EXPRESSION_FOLLOW)
         }
         myBuilder.restoreNewlinesState()
         list.done(VALUE_ARGUMENT_LIST)
@@ -249,7 +305,7 @@ open class CangJieExpressionParsing(
      *   ;
      */
     private fun parseCallSuffix(): Boolean {
-        if (at(LPAR)) {
+        if (at(LPAR) || at(SAFE_CALL)) {
             parseValueArgumentList()
 
         } else if (at(LT)) {
@@ -320,7 +376,8 @@ open class CangJieExpressionParsing(
 
 
         var firstExpressionParsed =
-            if ((atSet(BASICTYPES) && lookahead(1) === LPAR) || (atSet(BASICTYPES) && lookahead(1) === DOT)) {
+//            TODO 是否应该处理安全访问 ?.
+            if ((atSet(BASICTYPES) && lookahead(1) === LPAR) || (atSet(BASICTYPES) && (lookahead(1) === DOT || lookahead(1) === SAFE_ACCESS))) {
                 cangJieParsing.parseTypeRef()
                 true
             } else if (atSet(BASICTYPES)) {
@@ -334,22 +391,17 @@ open class CangJieExpressionParsing(
             }
 
 
-
-
-
-
-
         while (true) {
             if (interruptedWithNewLine()) {
                 break
-            } else if (at(LBRACKET)) {
+            } else if (at(LBRACKET) || at(SAFE_INDEXEX)) {
                 parseArrayAccess()
                 expression.done(ARRAY_ACCESS_EXPRESSION)
             } else if (parseCallSuffix()) {
                 expression.done(CALL_EXPRESSION)
-            } else if (at(DOT)) {
+            } else if (at(DOT) || at(SAFE_ACCESS)) {
                 val expressionType: IElementType = DOT_QUALIFIED_EXPRESSION
-                advance() // DOT
+                advance() // DOT or SAFE_ACCESS
                 if (!firstExpressionParsed) {
                     expression.drop()
                     expression = mark()
@@ -357,10 +409,31 @@ open class CangJieExpressionParsing(
                     continue
                 }
                 parseSelectorCallExpression()
-                expression.done(expressionType)
+              try{
+                  expression.done(expressionType)
+              }catch (ass:Throwable){
+                  println()
+
+              }
             } else if (atSet(Precedence.POSTFIX.getOperations())) {
+
+
                 parseOperationReference()
+
+
+
                 expression.done(POSTFIX_EXPRESSION)
+
+
+            } else if (at(RANGE) && lookahead(1) === RBRACKET) {
+//                后缀切片或者区间
+                advance()
+
+
+//                TODO 更改为区间或者切片
+                expression.done(SLICE_EXPRESSION)
+
+
             } else {
 
                 break
@@ -411,6 +484,8 @@ open class CangJieExpressionParsing(
 
 
         when (getTokenId()) {
+
+//            宏表达式
 
 
             //元组
@@ -931,6 +1006,38 @@ open class CangJieExpressionParsing(
         assert(_at(TRY_KEYWORD))
         val tryExpression = mark()
         advance() // TRY_KEYWORD
+
+        if (at(LPAR)) {
+            advance()
+            do {
+                if (at(COMMA)) advance()
+
+                if (expect(IDENTIFIER, "Expecting resource name")) {
+//                    advance()
+                    if (expect(EQ, "Expecting '='", TRY_CATCH_RECOVERY_TOKEN_SET)) {
+                        parseExpression()
+
+                    }
+
+
+                }
+//
+//                expect(IDENTIFIER, "Expecting resource name")
+//
+//                expect(EQ, "Expecting '='", TRY_CATCH_RECOVERY_TOKEN_SET)
+//
+//                parseExpression()
+
+
+            } while (at(COMMA))
+
+
+            expect(RPAR, "Expecting ')'")
+
+        }
+
+
+
         cangJieParsing.parseBlock()
         var catchOrFinally = false
         while (at(CATCH_KEYWORD)) {
@@ -943,10 +1050,19 @@ open class CangJieExpressionParsing(
                 val parameters = mark()
                 expect(LPAR, "Expecting '('", TRY_CATCH_RECOVERY_TOKEN_SET)
                 if (!atSet(TRY_CATCH_RECOVERY_TOKEN_SET)) {
-                    cangJieParsing.parseValueParameter( /*typeRequired = */true)
-                    if (at(COMMA)) {
-                        advance() // trailing comma
+
+                    if(at(UNDERLINE)){
+//                        所有匹配项
+                        advance()
+                    }else
+                    {
+                        cangJieParsing.parseValueParameter( /*typeRequired = */true)
+                        if (at(COMMA)) {
+                            advance() // trailing comma
+                        }
                     }
+
+
                     expect(RPAR, "Expecting ')'", TRY_CATCH_RECOVERY_TOKEN_SET)
                 } else {
                     error("Expecting exception variable declaration")
@@ -1369,10 +1485,31 @@ open class CangJieExpressionParsing(
             if (at(RBRACKET)) {
                 break
             }
-            parseExpression()
+
+            if (at(RANGE)) {
+//                前缀切片
+                parsePefixSliceExpression()
+            } else {
+                parseExpression()
+
+            }
+
             if (!at(COMMA)) break
             advance() // COMMA
         }
+    }
+
+
+    private fun parsePefixSliceExpression() {
+        val mark = mark()
+
+//        TODO 切片结构
+        advance() // RANGE
+        if (!at(RBRACKET)) {
+            parseExpression()
+
+        }
+        mark.done(SLICE_EXPRESSION)
     }
 
     private fun parseOneTokenExpression(type: IElementType) {
@@ -1428,7 +1565,10 @@ open class CangJieExpressionParsing(
             advance() // LONG_TEMPLATE_ENTRY_START
             while (!eof()) {
                 val offset = myBuilder.currentOffset
-                parseExpression()
+//                parseExpression()
+//                cangJieParsing.parseBlock()
+//                parseStatement()
+                parseStatementsByStringTemplate()
                 if (_at(LONG_TEMPLATE_ENTRY_END)) {
                     advance()
                     break
@@ -1458,10 +1598,10 @@ open class CangJieExpressionParsing(
     private fun parseAsCollectionLiteralExpression(
         nodeType: IElementType, canBeEmpty: Boolean, missingElementErrorMessage: String
     ) {
-        assert(_at(LBRACKET))
+        assert(_at(LBRACKET) || _at(SAFE_INDEXEX))
         val innerExpressions = mark()
         myBuilder.disableNewlines()
-        advance() // LBRACKET
+        advance() // LBRACKET or SAFE_INDEXEX
         if (!canBeEmpty && at(RBRACKET)) {
             error(missingElementErrorMessage)
         } else {
@@ -1498,18 +1638,69 @@ open class CangJieExpressionParsing(
         }
     }
 
+
+    /**
+     * 根据作用域解析语句
+     */
+    fun parseStatementByScope(scope: DeclarationParsingMode) {
+
+        if (!parseDeclaration(scope, false)) {
+            if (!atSet(EXPRESSION_FIRST)) {
+                errorAndAdvance("Expecting a statement")
+            } else {
+                parseBlockLevelExpression()
+            }
+        }
+
+
+    }
+
     /*
      * statement
      *  : declaration
      *  : blockLevelExpression
      *  ;
      */
-    private fun parseStatement() {
+    fun parseStatement() {
         if (!parseLocalDeclaration(false)) {
             if (!atSet(EXPRESSION_FIRST)) {
                 errorAndAdvance("Expecting a statement")
             } else {
                 parseBlockLevelExpression()
+            }
+        }
+    }
+
+    //    处理字符串模板语句
+    private fun parseStatementsByStringTemplate() {
+        while (at(SEMICOLON)) advance() // SEMICOLON
+        while (!eof() && !at(LONG_TEMPLATE_ENTRY_END)) {
+            if (!atSet(STATEMENT_FIRST)) {
+                errorAndAdvance("Expecting an element")
+            }
+
+            if (atSet(STATEMENT_FIRST)) {
+                parseStatement()
+            }
+
+            if (at(SEMICOLON)) {
+                while (at(SEMICOLON)) advance() // SEMICOLON
+            } else if (at(LONG_TEMPLATE_ENTRY_END)) {
+                break
+            } else if (!myBuilder.newlineBeforeCurrentToken()) {
+                val severalStatementsError = "Unexpected tokens (use ';' to separate expressions on the same line)"
+                if (atSet(STATEMENT_NEW_LINE_QUICK_RECOVERY_SET)) {
+                    error(severalStatementsError)
+                } else {
+
+                    val errorMarker = mark()
+                    errorMarker.error(severalStatementsError)
+
+//                    errorUntil(
+//                        severalStatementsError,
+//                        TokenSet.create(EOL_OR_SEMICOLON, LONG_TEMPLATE_ENTRY_START, LONG_TEMPLATE_ENTRY_END)
+//                    )
+                }
             }
         }
     }
@@ -1525,43 +1716,65 @@ open class CangJieExpressionParsing(
 
     fun parseExpression() {
 
+        if (at(AT)) {
+            val macroMark = mark()
+            val type = cangJieParsing.parseAnnotation(null)
+            if (type == ANNOTATION_ENTRY) {
+                error("Should call (..) for macros")
 
-        if (!atSet(EXPRESSION_FIRST)) {
+
+            }
+
+            macroMark.done(MACRO_EXPRESSION)
+
+            return
+
+        }else if(at(SPAWN_KEYWORD)){
+            cangJieParsing.parseSpawnExpression()
+            return
+        }else if(at(SYNCHRONIZED_KEYWORD)){
+            cangJieParsing.parseSynchronizedExpression()
+            return
+        }
+        else if (at(UNSAFE_KEYWORD)) {
+            cangJieParsing.parseUnsafeExpression()
+            return
+        } else if (!atSet(EXPRESSION_FIRST)) {
             error("Expecting an expression")
             return
         }
         parseBinaryExpression(Precedence.ASSIGNMENT)
     }
 
-    private fun getGtTokenType(): IElementType {
-        var tokenType = tt()
-        if (tokenType !== GT) return tokenType
+//      fun getGtTokenType(): IElementType {
+//        var tokenType = tt()
+//        if (tokenType !== GT) return tokenType
+//
+//        if (rawLookup(1) === GT) {
+//            tokenType = if (rawLookup(2) === EQ) {
+//                GTGTEQ
+//            } else {
+//                GTGT
+//            }
+//        } else if (rawLookup(1) === EQ) {
+//            tokenType = GTEQ
+//        }
+//        return tokenType
+//    }
 
-        if (rawLookup(1) === GT) {
-            tokenType = if (rawLookup(2) === EQ) {
-                GTGTEQ
-            } else {
-                GTGT
-            }
-        } else if (rawLookup(1) === EQ) {
-            tokenType = GTEQ
-        }
-        return tokenType
-    }
-
-    private fun advanceGtToken(type: IElementType) {
-        val gtToken = mark()
-        if (type === GTGTEQ) {
-            PsiBuilderUtil.advance(myBuilder, 3)
-        } else if (type === GTGT || type === GTEQ) {
-            PsiBuilderUtil.advance(myBuilder, 2)
-        } else {
-            gtToken.drop()
-            myBuilder.advanceLexer()
-            return
-        }
-        gtToken.collapse(type)
-    }
+//      fun advanceGtToken(type: IElementType) {
+//        val gtToken = mark()
+//        if (type === GTGTEQ) {
+//            PsiBuilderUtil.advance(myBuilder, 3)
+//        } else if (type === GTGT || type === GTEQ) {
+//            PsiBuilderUtil.advance(myBuilder, 2)
+//        } else {
+//            gtToken.drop()
+//            myBuilder.advanceLexer()
+//            return
+//        }
+//        gtToken.collapse(type)
+//    }
 
     /*
      * element (operation element)*
@@ -1601,31 +1814,52 @@ open class CangJieExpressionParsing(
         operationReference.done(OPERATION_REFERENCE)
     }
 
-    /*
-     * modifiers declarationRest
-     */
-    private fun parseLocalDeclaration(rollbackIfDefinitelyNotExpression: Boolean): Boolean {
+
+    fun parseDeclaration(
+        scope: DeclarationParsingMode, rollbackIfDefinitelyNotExpression: Boolean,
+        rollbackMacro: Boolean = false
+    ): Boolean {
         val decl: PsiBuilder.Marker = mark()
         val detector: CangJieParsing.ModifierDetector = CangJieParsing.ModifierDetector()
 
 //        修饰符
-        cangJieParsing.parseModifierList(detector, TokenSet.EMPTY)
-        val declType: IElementType? = parseLocalDeclarationRest(detector, rollbackIfDefinitelyNotExpression)
+        cangJieParsing.parseModifierList(detector, TokenSet.EMPTY, rollbackMacro)
+        val declType: IElementType? = parseDeclarationRest(detector, rollbackIfDefinitelyNotExpression, scope)
 
-        return if (declType != null) {
+        return if (declType == ANNOTATION_ENTRY) {
+            decl.rollbackTo()
+
+
+            return parseLocalDeclaration(rollbackIfDefinitelyNotExpression, true)
+        } else if (declType == INVALID_DECLARATION) {
+            decl.error("Invalid declaration in scope")
+            true
+        } else if (declType != null) {
             // 不将前面的注释(非文档)附加到局部变量，因为它们可能会注释下面的几个语句
             closeDeclarationWithCommentBinders(
                 decl, declType, declType !== VARIABLE && declType !== DESTRUCTURING_DECLARATION
             )
             true
         } else {
+//            decl.drop()
             decl.rollbackTo()
+//
             false
         }
     }
 
-    private fun parseLocalDeclarationRest(
-        detector: CangJieParsing.ModifierDetector, failIfDefinitelyNotExpression: Boolean
+    /*
+     * modifiers declarationRest
+     */
+    private fun parseLocalDeclaration(
+        rollbackIfDefinitelyNotExpression: Boolean,
+        rollbackMacro: Boolean = false
+    ): Boolean {
+        return parseDeclaration(DeclarationParsingMode.LOCAL, rollbackIfDefinitelyNotExpression, rollbackMacro)
+    }
+
+    private fun parseDeclarationRest(
+        detector: CangJieParsing.ModifierDetector, failIfDefinitelyNotExpression: Boolean, scope: DeclarationParsingMode
     ): IElementType? {
 
 
@@ -1639,7 +1873,7 @@ open class CangJieExpressionParsing(
 
 
         return cangJieParsing.parseCommonDeclaration(
-            detector, CangJieParsing.NameParsingMode.REQUIRED, CangJieParsing.DeclarationParsingMode.LOCAL
+            detector, CangJieParsing.NameParsingMode.REQUIRED, scope
         )
     }
 
@@ -1650,19 +1884,31 @@ open class CangJieExpressionParsing(
 
         @JvmStatic
         val EXPRESSION_FOLLOW = TokenSet.create(
-            EOL_OR_SEMICOLON, ARROW, DOUBLE_ARROW, COMMA, RBRACE, RPAR, RBRACKET
+            EOL_OR_SEMICOLON, ARROW, DOUBLE_ARROW,COMPOSITION, COMMA, RBRACE, RPAR, RBRACKET
         )
 
         val ALLOW_NEWLINE_OPERATIONS = TokenSet.create(
-            DOT, COLON, AS_KEYWORD, ANDAND, OROR
+            DOT, COLON, AS_KEYWORD, ANDAND, OROR,ELVIS, SAFE_ACCESS
         )
 
         @JvmStatic
         val EXPRESSION_FIRST = TokenSet.orSet(
-            TokenSet.create( // Prefix
-                MINUS, PLUS, MINUSMINUS, PLUSPLUS, EXCL, LPAR,  // parenthesized
+            TokenSet.create(
+                // Prefix
+                MINUS,
+                PLUS,
+                MINUSMINUS,
+                PLUSPLUS,
+                EXCL,
+                LPAR,  // parenthesized
                 // literal constant
-                TRUE_KEYWORD, FALSE_KEYWORD, OPEN_QUOTE, INTEGER_LITERAL, CHARACTER_LITERAL, FLOAT_LITERAL,
+                TRUE_KEYWORD,
+                FALSE_KEYWORD,
+                OPEN_QUOTE,
+                INTEGER_LITERAL,
+                CHARACTER_LITERAL,
+                CHARACTER_BYTE_LITERAL,
+                FLOAT_LITERAL,
 
 //            LBRACE,  // functionLiteral
                 FUNC_KEYWORD,  // expression function
@@ -1673,21 +1919,34 @@ open class CangJieExpressionParsing(
                 TRY_KEYWORD,  // try
 
                 // jump
-                THROW_KEYWORD, RETURN_KEYWORD, CONTINUE_KEYWORD, BREAK_KEYWORD,  // loop
-                FOR_KEYWORD, WHILE_KEYWORD, DO_KEYWORD, IDENTIFIER,  // SimpleName
-                LBRACKET // Collection literal expression
+                THROW_KEYWORD,
+                RETURN_KEYWORD,
+                CONTINUE_KEYWORD,
+                BREAK_KEYWORD,  // loop
+                FOR_KEYWORD,
+                WHILE_KEYWORD,
+                DO_KEYWORD,
+                IDENTIFIER,  // SimpleName
+                LBRACKET,// Collection literal expression
+//                UNSAFE_EXPRESSION
+//                UNSAFE_KEYWORD
 
+
+                //线程
+                SPAWN_KEYWORD,
+                SYNCHRONIZED_KEYWORD
             ),
-            BASICTYPES
+            BASICTYPES,
         )
         private val TYPE_ARGUMENT_LIST_STOPPERS = TokenSet.create(
             INTEGER_LITERAL,
             FLOAT_LITERAL,
             CHARACTER_LITERAL,
+            CHARACTER_BYTE_LITERAL,
             OPEN_QUOTE,
             PACKAGE_KEYWORD,
             AS_KEYWORD,
-
+ELVIS,  SAFE_ACCESS,
             INTERFACE_KEYWORD,
             CLASS_KEYWORD,
             THIS_KEYWORD,
@@ -1776,9 +2035,9 @@ open class CangJieExpressionParsing(
         @SuppressWarnings("WeakerAccess")
         val STATEMENT_FIRST = TokenSet.orSet(
             EXPRESSION_FIRST, TokenSet.create( // declaration
-                FUNC_KEYWORD, LET_KEYWORD, CONST_KEYWORD, VAR_KEYWORD, INTERFACE_KEYWORD, CLASS_KEYWORD
-
-            ), MODIFIER_KEYWORDS, BASICTYPES
+                FUNC_KEYWORD, LET_KEYWORD, CONST_KEYWORD, VAR_KEYWORD, INTERFACE_KEYWORD, CLASS_KEYWORD,
+SPAWN_KEYWORD, SYNCHRONIZED_KEYWORD
+            ), MODIFIER_KEYWORDS, BASICTYPES, SPECIAL_MODIFIER_KEYWORDS, TokenSet.create(AT)
         )
         val STATEMENT_NEW_LINE_QUICK_RECOVERY_SET = TokenSet.orSet(
             TokenSet.andSet(
@@ -1793,7 +2052,7 @@ open class CangJieExpressionParsing(
 
         private fun tokenSetToMap(tokens: TokenSet): ImmutableMap<String, CjToken> {
             val builder: ImmutableMap.Builder<String, CjToken> = ImmutableMap.builder<String, CjToken>()
-            for (token in tokens.getTypes()) {
+            for (token in tokens.types) {
                 builder.put(token.toString(), token as CjToken)
             }
             return builder.build()
@@ -1801,9 +2060,9 @@ open class CangJieExpressionParsing(
 
         init {
             val operations: MutableSet<IElementType> = HashSet()
-            val values: Array<Precedence> = Precedence.values()
+            val values: Array<Precedence> = Precedence.entries.toTypedArray()
             for (precedence in values) {
-                operations.addAll(listOf(*precedence.getOperations().getTypes()))
+                operations.addAll(listOf(*precedence.getOperations().types))
             }
             ALL_OPERATIONS = TokenSet.create(*operations.toTypedArray<IElementType>())
 
@@ -1811,9 +2070,9 @@ open class CangJieExpressionParsing(
         }
 
         init {
-            val operations: Array<IElementType> = OPERATIONS.getTypes()
+            val operations: Array<IElementType> = OPERATIONS.types
             val opSet: MutableSet<IElementType> = HashSet(listOf(*operations))
-            val usedOperations: Array<IElementType> = ALL_OPERATIONS?.getTypes() ?: emptyArray()
+            val usedOperations: Array<IElementType> = ALL_OPERATIONS?.types ?: emptyArray()
             val usedSet: MutableSet<IElementType> = HashSet(listOf(*usedOperations))
 
             if (opSet.size > usedSet.size) {

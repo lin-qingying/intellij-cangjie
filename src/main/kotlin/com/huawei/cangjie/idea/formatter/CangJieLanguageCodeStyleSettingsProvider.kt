@@ -334,50 +334,59 @@ class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvid
     override fun getCodeSample(settingsType: SettingsType): String = when (settingsType) {
         SettingsType.WRAPPING_AND_BRACES_SETTINGS ->
             """
-               public class ThisIsASampleClass <: Comparable<Any> & Appendable {
-                   let test = 12
+              public class ThisIsASampleClass <: Comparable<Any> & Appendable{
+    let test = 12
 
-                    func foo1(i1: Int, i2: Int, i3: Int) : Int {
-                       match (i1) {
-                          case 0 => 1
-                          case _ => 0
-                       }
-                       if (i2 > 0 &&
-                               i3 < 0) {
-                           return 2
-                       }
-                       return 0
-                   }
-                   private func foo2():Int {
-               // todo: something
-                       try {            return foo1(12, 13, 14)
-                       }        catch (e: Exception) {            return 0        }        finally {           if (true) {               return 1           }           else {               return 2           }        }    }
-                
-                   func longMethod( param1: Int,
-                    param2: String) {
-                     let foo = 1
-                   }
+    func foo1(i1: Int, i2: Int, i3: Int): Int {
+        match (i1) {
+            case 0 => 1
+            case _ => 0
+        }
+        if (i2 > 0 && i3 < 0) {
+            return 2
+        }
+        return 0
+    }
+    private func foo2(): Int {
+        // todo: something
+        try {
+            return foo1(12, 13, 14)
+        } catch (e: Exception) {
+            return 0
+        } finally {
+            if (true) {
+                return 1
+            } else {
+                return 2
+            }
+        }
+    }
 
-                   func multilineMethod(
-                           foo: String,
-                           bar: String?,
-                           x: Int?
-                       ) {
-                       foo.toUpperCase().trim()
-                           .length
-                       let barLen = bar?.length() ?: x ?: -1
-                       if (foo.length > 0 &&
-                           barLen > 0) {
-                           println("> 0")
-                       }
-                   }
-               }
+    func longMethod(
+        param1: Int,
+        param2: String
+    ) {
+        let foo = 1
+    }
 
-                let bar = 1
+    func multilineMethod(
+        foo: String,
+        bar: ?String,
+        x: ?Int
+    ) {
+        foo.toAsciiUpper().trimAscii().size
+        let barLen = bar?.size ?? x ?? -1
+        if (foo.size > 0 && barLen > 0) {
+            println("> 0")
+        }
+    }
+}
 
-               enum Enumeration {
-                   A | B
-               }
+let bar = 1
+
+enum Enumeration {
+    A | B
+}
 
         
             """.trimIndent()
@@ -387,7 +396,8 @@ class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvid
                 class Foo {
                    private var field1: Int = 1
                    private let field2: String? = None
-
+                   
+               
 
                    init() {
                        field1 = 2;
@@ -427,6 +437,7 @@ class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvid
                }
                
                class Bar {
+                
                    
                    let a = 42
                    
@@ -443,46 +454,57 @@ class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvid
                }
                """.trimIndent()
 
-        else -> """open class Some {
-                       func b(a: Int): Int {
-                           return 1
-                       }
-                       private let f: (Int)->Int = b
-                       func foo(): Int {
-                           let test: Int = 12
-                           for (i in 10..42) {
-                               println (match(i) {
-                                   case a => i
-                               })
-                           }
-                           if (true) { }
-                           while (true) { break }
-                           try {
-                               match (test) {
-                                   caes 12 => println("foo")
-                                   
-                                   case _  => println("bar")
-                               }
-                           } catch (e: Exception) {
-                           } finally {
-                           }
-                           return test
-                       }
-                       private func foo2<T>(): Int where T <: List<T> {
-                           return 0
-                       }
+        else -> """func b(a: Int): Int {
+  return 1
+}
+open class Some {
+  private let f: (a:Int ) -> Int = b
 
-                       func multilineMethod(
-                           foo: String,
-                           bar: String
-                       ) {
-                           foo
-                               .length
-                       }
 
-                    
-                   }
-                   class AnotherClass<T> where T <: String
+  prop aprop: String {
+  get() {
+    "this is a String"
+  }
+  }
+
+  func foo(): Int {
+    let test: Int = 12
+    for (i in 10..42) {
+      println(match (i) {
+          case a => i
+      })
+    }
+    if (true) {
+    }
+    while (true) {
+      break
+    }
+    try {
+      match (test) {
+          case 12 => println("foo")
+
+          case _ => println("bar")
+      }
+    } catch (e: Exception) {
+    } finally {
+    }
+    return test
+  }
+
+  private func foo2<T>(): Int where T <: List<T> {
+    return 0
+  }
+
+  func multilineMethod(
+          foo: String,
+          bar: String
+  ) {
+    foo.size
+  }
+}
+
+class AnotherClass<T> where T <: String {}
+
                    """.trimIndent()
     }
 }

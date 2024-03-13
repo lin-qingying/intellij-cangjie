@@ -1,6 +1,5 @@
 package com.huawei.cangjie.psi.stubs
 
-import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.name.ClassId
 import com.huawei.cangjie.name.FqName
@@ -9,6 +8,7 @@ import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.stubs.NamedStub
 import com.intellij.psi.stubs.PsiFileStub
 import com.intellij.psi.stubs.StubElement
+
 enum class ConstantValueKind {
 
     BOOLEAN_CONSTANT,
@@ -37,7 +37,10 @@ interface CangJieFileStub : PsiFileStub<CjFile> {
 }
 interface CangJiePlaceHolderStub<T : CjElement> : StubElement<T>
 
-
+interface CangJieAnnotationEntryStub : StubElement<CjAnnotationEntry> {
+    fun getShortName(): String?
+    fun hasValueArguments(): Boolean
+}
 interface CangJieModifierListStub : StubElement<CjDeclarationModifierList> {
     fun hasModifier(modifierToken: CjModifierKeywordToken): Boolean
 }
@@ -60,7 +63,9 @@ interface CangJieVariableStub : CangJieCallableStubBase<CjVariable> {
     fun hasInitializer(): Boolean
     fun hasReturnTypeRef(): Boolean
 }
+interface CangJieTypeAliasStub : CangJieClassifierStub, CangJieStubWithFqName<CjTypeAlias> {
 
+}
 interface CangJiePropertyStub:CangJieStubWithFqName<CjProperty>
 interface CangJieCallableStubBase<TDeclaration : CjCallableDeclaration> : CangJieStubWithFqName<TDeclaration> {
     fun isTopLevel(): Boolean
@@ -115,14 +120,22 @@ interface CangJieImportAliasStub : StubElement<CjImportAlias> {
 //    fun mayHaveContract(): Boolean
 //}
 
+
 interface CangJieFunctionStub  : CangJieCallableStubBase<CjFunctionImpl> {
     fun hasBlockBody(): Boolean
     fun hasBody(): Boolean
     fun hasTypeParameterListBeforeFunctionName(): Boolean
 //    fun mayHaveContract(): Boolean
 }
+interface CangJieForeignDirectiveStub : StubElement<CjForeignDirective> {
 
+}
 
+interface CangJieImportDirectiveItemStub : StubElement<CjImportDirectiveItem> {
+//    fun isAllUnder(): Boolean
+//    fun getImportedFqName(): FqName?
+//    fun isValid(): Boolean
+}
 
 
 interface CangJieImportDirectiveStub : StubElement<CjImportDirective> {

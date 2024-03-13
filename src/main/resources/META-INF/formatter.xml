@@ -2,7 +2,8 @@
     <extensions defaultExtensionNs="com.intellij">
         <lang.formatter language="CangJie"
                         implementationClass="com.huawei.cangjie.idea.formatter.CangJieFormattingModelBuilder"/>
-
+<!--        <formattingService id="LspFormattingService"-->
+<!--                           implementation="com.huawei.cangjie.idea.formatter.CangJieFormattingService"/>-->
 
         <!--自动缩进-->
         <lineIndentProvider implementation="com.huawei.cangjie.idea.formatter.CangJieLineIndentProvider"/>

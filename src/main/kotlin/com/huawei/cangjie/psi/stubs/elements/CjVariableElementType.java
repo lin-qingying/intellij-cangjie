@@ -23,6 +23,11 @@ public class CjVariableElementType extends CjStubElementType<CangJieVariableStub
         super(debugName, CjVariable.class, CangJieVariableStub.class);
     }
 
+    @Override
+    public @NotNull CjVariable createPsi(@NotNull CangJieVariableStub stub) {
+        return super.createPsi(stub);
+    }
+
     @NotNull
     @Override
     public CangJieVariableStub createStub(@NotNull CjVariable psi, StubElement parentStub) {

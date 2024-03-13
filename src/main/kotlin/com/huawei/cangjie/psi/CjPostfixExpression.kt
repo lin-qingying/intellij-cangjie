@@ -6,7 +6,7 @@ import com.intellij.psi.util.PsiTreeUtil
 
 class  CjPostfixExpression(node:ASTNode):CjUnaryExpression(node){
     override fun getBaseExpression(): CjExpression? {
-        return PsiTreeUtil.getPrevSiblingOfType(getOperationReference(), CjExpression::class.java)
+        return PsiTreeUtil.getPrevSiblingOfType(operationReference, CjExpression::class.java)
     }
 
     override fun <R,D> accept(visitor: CjVisitor<R, D>, data: D?): R {

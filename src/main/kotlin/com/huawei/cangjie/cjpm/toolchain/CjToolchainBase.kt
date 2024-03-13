@@ -1,10 +1,7 @@
 package com.huawei.cangjie.cjpm.toolchain
 
 import com.huawei.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor
-import com.huawei.cangjie.cjpm.toolchain.tools.Cjc
-import com.huawei.cangjie.cjpm.toolchain.tools.Cjpm
-import com.huawei.cangjie.cjpm.toolchain.tools.GeneralCommandLine
-import com.huawei.cangjie.cjpm.toolchain.tools.withWorkDirectory
+import com.huawei.cangjie.cjpm.toolchain.tools.*
 import com.huawei.cangjie.cjpm.toolchain.wsl.getHomePathCandidates
 import com.intellij.execution.configuration.EnvironmentVariablesData
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -28,16 +25,23 @@ import kotlin.io.path.exists
 //val CjToolchainBase.cjc: Cjc
 //    get() = Cjc(this)
 
-fun CjToolchainBase.cjc() :Cjc{
+fun CjToolchainBase.cjc(): Cjc {
 
-    if(this.cjc == null) return Cjc(this)
+    if (this.cjc == null) return Cjc(this)
 
     return this.cjc!!
 }
-fun CjToolchainBase.cjpm():Cjpm {
+
+fun CjToolchainBase.cjpm(): Cjpm {
     if (this.cjpm == null) return Cjpm(this)
 
     return this.cjpm!!
+}
+
+fun CjToolchainBase.cjfmt(): CjFmt {
+    if (this.cjfmt == null) return CjFmt(this)
+
+    return this.cjfmt!!
 }
 
 abstract class CjToolchainBase(location: Path) {
@@ -46,9 +50,9 @@ abstract class CjToolchainBase(location: Path) {
     val binPath: Path
     val toolsPath: Path
 
-    var cjpm : Cjpm? = null
+    var cjpm: Cjpm? = null
     var cjc: Cjc? = null
-
+    var cjfmt: CjFmt? = null
     val presentableLocation: String get() = pathToExecutable(Cjpm.NAME).toString()
 
     init {

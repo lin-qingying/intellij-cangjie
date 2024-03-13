@@ -2,7 +2,7 @@
 <templateSet group="CangJie">
     <template resource-bundle="messages.CangJieBundle" key="livetemplate.description.main"
               name="main" toReformat="true" toShortenFQNames="true"
-              value="func main($ARGS$) {&#10;  $END$&#10;}">
+              value="main($ARGS$) {&#10;  $END$&#10;}">
         <variable name="ARGS" expression="cangjieMainArguments()" defaultValue="" alwaysStopAt="false" />
         <context>
             <option name="CANGJIE_TOPLEVEL" value="true" />

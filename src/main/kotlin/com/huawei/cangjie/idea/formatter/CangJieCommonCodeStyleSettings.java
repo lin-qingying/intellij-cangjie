@@ -170,7 +170,7 @@ public class CangJieCommonCodeStyleSettings extends CommonCodeStyleSettings {
 
 
     private void serializeInto(@NotNull List<Integer> softMargins, @NotNull Element element) {
-        if (softMargins.size() > 0) {
+        if (!softMargins.isEmpty()) {
             XmlSerializer.serializeInto(this, element);
         }
     }

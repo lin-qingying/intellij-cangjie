@@ -5,22 +5,17 @@ import com.huawei.cangjie.cjpm.project.model.CjpmProject
 import com.huawei.cangjie.cjpm.project.workspace.CjpmWorkspace
 import com.huawei.cangjie.lang.CangJieFileType
 import com.huawei.cangjie.lang.CangJieLanguage
-
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.stubs.CangJieFileStub
 import com.huawei.cangjie.psi.stubs.elements.CjPlaceHolderStubElementType
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.huawei.cangjie.psi.stubs.elements.CjTokenSets
 import com.intellij.extapi.psi.PsiFileBase
-import com.intellij.injected.editor.VirtualFileWindow
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.vfs.VirtualFileWithId
 import com.intellij.psi.*
 import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.tree.TokenSet
-import com.intellij.psi.util.CachedValueProvider
-import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ArrayFactory
 
@@ -157,8 +152,10 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
 
 
     override val declarations: List<CjDeclaration>
-        get() = stub?.getChildrenByType(FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
-            ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java)
+        get() {
+        return    stub?.getChildrenByType(FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
+                ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java)
+        }
 
     var packageFqName: FqName
         get() = stub?.getPackageFqName() ?: packageFqNameByTree

@@ -4,17 +4,19 @@ import com.huawei.cangjie.lexer.CjKeywordToken;
 import com.huawei.cangjie.lexer.CjToken;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.utils.StringsKt;
+import com.intellij.lang.LighterASTNode;
 import com.intellij.lang.PsiBuilder;
+import com.intellij.lang.PsiBuilderUtil;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.util.containers.Stack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.huawei.cangjie.CjNodeTypes.ERROR_ELEMENT;
 import static com.huawei.cangjie.lexer.CjTokens.*;
 
 
@@ -49,7 +51,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * è·å–æ ‡è®°æµä¸­çš„æœ€åä¸€ä¸ªæ ‡è®°ç±»å‹
+     * »ñÈ¡±ê¼ÇÁ÷ÖĞµÄ×îºóÒ»¸ö±ê¼ÇÀàĞÍ
      *
      * @return
      */
@@ -62,8 +64,44 @@ public abstract class AbstractCangJieParsing {
         return myBuilder.rawLookup(-i);
     }
 
+    protected IElementType getGtTokenType() {
+        IElementType tokenType = tt();
+        if (tokenType != GT) return tokenType;
+        if (rawLookup(1) == GT) {
+            if (rawLookup(2) == EQ) {
+                tokenType = GTGTEQ;
+            } else {
+                tokenType = GTGT;
+            }
+        } else if (rawLookup(1) == EQ) {
+            tokenType = GTEQ;
+        }
+        return tokenType;
+    }
+
+    protected void advanceGtToken(IElementType type) {
+        PsiBuilder.Marker gtToken = mark();
+        if (type == GTGTEQ) {
+            PsiBuilderUtil.advance(myBuilder, 3);
+        } else if (type == GTGT || type == GTEQ) {
+            PsiBuilderUtil.advance(myBuilder, 2);
+        } else {
+            gtToken.drop();
+//            myBuilder.advanceLexer();
+            advance();
+            return;
+
+//            gtToken.collapse(type);
+
+//
+        }
+
+//        gtToken.done(type);
+        gtToken.collapse(type);
+    }
+
     /**
-     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä¸ºæŒ‡å®šçš„ CjToken ç±»å‹ï¼Œå¹¶åœ¨æ ‡è®°ä¸åŒ¹é…æ—¶æŠ¥å‘Šé”™è¯¯
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÎªÖ¸¶¨µÄ CjToken ÀàĞÍ£¬²¢ÔÚ±ê¼Ç²»Æ¥ÅäÊ±±¨¸æ´íÎó
      *
      * @param expectation
      * @param message
@@ -74,7 +112,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * åœ¨æ ‡è®°æµä¸­åˆ›å»ºä¸€ä¸ªæ ‡è®°ï¼Œå¹¶è¿”å›è¯¥æ ‡è®°çš„ PsiBuilder.Marker å¯¹è±¡
+     * ÔÚ±ê¼ÇÁ÷ÖĞ´´½¨Ò»¸ö±ê¼Ç£¬²¢·µ»Ø¸Ã±ê¼ÇµÄ PsiBuilder.Marker ¶ÔÏó
      *
      * @return
      */
@@ -82,8 +120,19 @@ public abstract class AbstractCangJieParsing {
         return myBuilder.mark();
     }
 
+
+    //    »ñÈ¡ÉÏÒ»¸ö±ê¼ÇÀàĞÍ
+    protected @Nullable LighterASTNode getLatestMarker() {
+        return myBuilder.getLatestDoneMarker();
+    }
+
+    //    ÉÏÒ»¸öÒÑ½âÎöµÄ±ê¼ÇÊÇ·ñÒÔ·ÖºÅ½áÎ²
+    protected boolean expectSemicolon() {
+        return expect(SEMICOLON, "Expected semicolon");
+    }
+
     /**
-     * æŠ¥å‘Šè§£æé”™è¯¯å¹¶åœæ­¢è§£æè¿‡ç¨‹
+     * ±¨¸æ½âÎö´íÎó²¢Í£Ö¹½âÎö¹ı³Ì
      *
      * @param message
      */
@@ -102,7 +151,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä¸ºæŒ‡å®šçš„å¤æ‚æ ‡è®°ç±»å‹ï¼Œå¹¶åœ¨æ ‡è®°ä¸åŒ¹é…æ—¶æŠ¥å‘Šé”™è¯¯
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÎªÖ¸¶¨µÄ¸´ÔÓ±ê¼ÇÀàĞÍ£¬²¢ÔÚ±ê¼Ç²»Æ¥ÅäÊ±±¨¸æ´íÎó
      *
      * @param expectation
      * @param message
@@ -118,9 +167,20 @@ public abstract class AbstractCangJieParsing {
 
         return false;
     }
+    protected boolean expect(TokenSet expectationSet, String message, TokenSet recoverySet) {
+        if (expect(expectationSet)) {
+            return true;
+        }
+
+        errorWithRecovery(message, recoverySet);
+
+        return false;
+    }
+
+
 
     /**
-     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä¸ºæŒ‡å®šçš„ CjToken ç±»å‹ï¼Œå¹¶åœ¨æ ‡è®°ä¸åŒ¹é…æ—¶æŠ¥å‘Šé”™è¯¯
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÎªÖ¸¶¨µÄ CjToken ÀàĞÍ£¬²¢ÔÚ±ê¼Ç²»Æ¥ÅäÊ±±¨¸æ´íÎó
      *
      * @param expectation
      * @return
@@ -137,9 +197,21 @@ public abstract class AbstractCangJieParsing {
 
         return false;
     }
+    protected boolean expect(TokenSet expectationSet) {
+        if (atSet(expectationSet)) {
+            advance();
+            return true;
+        }
+//
+//        if (expectationSet == CjTokens.IDENTIFIER && "`".equals(myBuilder.getTokenText())) {
+//            advance();
+//        }
+
+        return false;
+    }
 
     /**
-     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä¸ºæŒ‡å®šçš„ CjToken ç±»å‹ï¼Œä½†ä¸ä¼šæ¶ˆè€—æ ‡è®°æµä¸­çš„æ ‡è®°
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÎªÖ¸¶¨µÄ CjToken ÀàĞÍ£¬µ«²»»áÏûºÄ±ê¼ÇÁ÷ÖĞµÄ±ê¼Ç
      *
      * @param expectation
      * @param message
@@ -154,7 +226,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * æŠ¥å‘Šè§£æé”™è¯¯å¹¶å°è¯•æ¢å¤è§£æè¿‡ç¨‹
+     * ±¨¸æ½âÎö´íÎó²¢³¢ÊÔ»Ö¸´½âÎö¹ı³Ì
      *
      * @param message
      * @param recoverySet
@@ -172,7 +244,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * æŠ¥å‘Šè§£æé”™è¯¯å¹¶æ¶ˆè€—å½“å‰æ ‡è®°
+     * ±¨¸æ½âÎö´íÎó²¢ÏûºÄµ±Ç°±ê¼Ç
      *
      * @param message
      */
@@ -181,7 +253,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * æŠ¥å‘Šè§£æé”™è¯¯å¹¶æ¶ˆè€—æŒ‡å®šæ•°é‡çš„æ ‡è®°
+     * ±¨¸æ½âÎö´íÎó²¢ÏûºÄÖ¸¶¨ÊıÁ¿µÄ±ê¼Ç
      *
      * @param message
      * @param advanceTokenCount
@@ -194,7 +266,7 @@ public abstract class AbstractCangJieParsing {
 
 
     /**
-     * æŠ¥å‘Šé”™è¯¯ï¼Œä½†ä¸æ¶ˆè€—æ ‡è®°
+     * ±¨¸æ´íÎó£¬µ«²»ÏûºÄ±ê¼Ç
      */
     protected void errorWithoutAdvancing(String message) {
         mark().error(message);
@@ -202,7 +274,7 @@ public abstract class AbstractCangJieParsing {
 
 
     /**
-     * æ˜¯å¦åˆ°æ–‡ä»¶ç»“å°¾
+     * ÊÇ·ñµ½ÎÄ¼ş½áÎ²
      *
      * @return
      */
@@ -211,26 +283,26 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * æ¨è¿›æ ‡è®°æµå¹¶è¿”å›ä¸‹ä¸€ä¸ªæ ‡è®°
+     * ÍÆ½ø±ê¼ÇÁ÷²¢·µ»ØÏÂÒ»¸ö±ê¼Ç
      */
     protected void advance() {
-        // TODO: å¦‚ä½•åœ¨é”™è¯¯å­—ç¬¦ä¸ŠæŠ¥å‘Šé”™è¯¯(é™¤çªå‡ºæ˜¾ç¤ºå¤–)
+        // TODO: ÈçºÎÔÚ´íÎó×Ö·ûÉÏ±¨¸æ´íÎó(³ıÍ»³öÏÔÊ¾Íâ)
         myBuilder.advanceLexer();
     }
 
     /**
-     * æ¨è¿›æ ‡è®°æµå¹¶è¿”å›ä¸‹  advanceTokenCount ä¸ªæ ‡è®°
+     * ÍÆ½ø±ê¼ÇÁ÷²¢·µ»ØÏÂ  advanceTokenCount ¸ö±ê¼Ç
      *
      * @param advanceTokenCount
      */
     protected void advance(int advanceTokenCount) {
         for (int i = 0; i < advanceTokenCount; i++) {
-            advance(); // é”™è¯¯çš„ä»¤ç‰Œ
+            advance(); // ´íÎóµÄÁîÅÆ
         }
     }
 
     /**
-     * æ¨è¿›æ ‡è®°æµå¹¶è¿”å›ä¸‹ä¸€ä¸ªæŒ‡å®šç±»å‹çš„æ ‡è®°
+     * ÍÆ½ø±ê¼ÇÁ÷²¢·µ»ØÏÂÒ»¸öÖ¸¶¨ÀàĞÍµÄ±ê¼Ç
      *
      * @param current
      */
@@ -240,7 +312,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * è·å–å½“å‰æ ‡è®°çš„ç±»å‹id
+     * »ñÈ¡µ±Ç°±ê¼ÇµÄÀàĞÍid
      *
      * @return
      */
@@ -251,7 +323,7 @@ public abstract class AbstractCangJieParsing {
 
 
     /**
-     * è·å–å½“å‰æ ‡è®°çš„ç±»å‹
+     * »ñÈ¡µ±Ç°±ê¼ÇµÄÀàĞÍ
      *
      * @return
      */
@@ -265,7 +337,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * æ— å‰¯ä½œç”¨ç‰ˆæœ¬çš„at()
+     * ÎŞ¸±×÷ÓÃ°æ±¾µÄat()
      */
     protected boolean _at(IElementType expectation) {
         IElementType token = tt();
@@ -273,7 +345,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä¸é¢„æœŸæ ‡è®°åŒ¹é…
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÓëÔ¤ÆÚ±ê¼ÇÆ¥Åä
      *
      * @param token
      * @param expectation
@@ -290,7 +362,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä¸é¢„æœŸæ ‡è®°åŒ¹é…
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÓëÔ¤ÆÚ±ê¼ÇÆ¥Åä
      *
      * @param expectation
      * @return
@@ -314,7 +386,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä¸é¢„æœŸæ ‡è®°åŒ¹é…
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÓëÔ¤ÆÚ±ê¼ÇÆ¥Åä
      *
      * @param set
      * @return
@@ -331,7 +403,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä¸é¢„æœŸæ ‡è®°åŒ¹é…
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÓëÔ¤ÆÚ±ê¼ÇÆ¥Åä
      *
      * @param set
      * @return
@@ -358,7 +430,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * æŸ¥çœ‹æ ‡è®°æµä¸­çš„ä¸‹ k ä¸ªæ ‡è®°ï¼Œè€Œä¸ä¼šæ¨è¿›æ ‡è®°æµ
+     * ²é¿´±ê¼ÇÁ÷ÖĞµÄÏÂ k ¸ö±ê¼Ç£¬¶ø²»»áÍÆ½ø±ê¼ÇÁ÷
      *
      * @param k
      * @return
@@ -369,7 +441,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * å¦‚æœå½“å‰æ ‡è®°ä¸æŒ‡å®šçš„æ ‡è®°åŒ¹é…ï¼Œåˆ™è¯¥æ–¹æ³•å°†æ¶ˆè€—è¯¥æ ‡è®°å¹¶è¿”å›trueã€‚å¦åˆ™ï¼Œè¯¥æ–¹æ³•å°†ä¸ä¼šæ¶ˆè€—æ ‡è®°å¹¶è¿”å›false
+     * Èç¹ûµ±Ç°±ê¼ÇÓëÖ¸¶¨µÄ±ê¼ÇÆ¥Åä£¬Ôò¸Ã·½·¨½«ÏûºÄ¸Ã±ê¼Ç²¢·µ»Øtrue¡£·ñÔò£¬¸Ã·½·¨½«²»»áÏûºÄ±ê¼Ç²¢·µ»Øfalse
      *
      * @param token
      * @return
@@ -383,7 +455,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * å¦‚æœå½“å‰æ ‡è®°ä¸å¤æ‚æ ‡è®°åŒ¹é…ï¼Œåˆ™è¯¥æ–¹æ³•å°†æ¶ˆè€—è¯¥æ ‡è®°å¹¶è¿”å›trueã€‚å¦åˆ™ï¼Œè¯¥æ–¹æ³•å°†ä¸ä¼šæ¶ˆè€—æ ‡è®°å¹¶è¿”å›false
+     * Èç¹ûµ±Ç°±ê¼ÇÓë¸´ÔÓ±ê¼ÇÆ¥Åä£¬Ôò¸Ã·½·¨½«ÏûºÄ¸Ã±ê¼Ç²¢·µ»Øtrue¡£·ñÔò£¬¸Ã·½·¨½«²»»áÏûºÄ±ê¼Ç²¢·µ»Øfalse
      */
     protected boolean consumeIfSet(TokenSet tokenSet) {
         if (atSet(tokenSet)) {
@@ -394,7 +466,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * æ ¹æ®ä¼ å…¥çš„å¤æ‚ç±»å‹é¡ºåºåŒ¹é…æ ‡è®°æµä¸­çš„æ ‡è®°
+     * ¸ù¾İ´«ÈëµÄ¸´ÔÓÀàĞÍË³ĞòÆ¥Åä±ê¼ÇÁ÷ÖĞµÄ±ê¼Ç
      */
     protected boolean match(IElementType... types) {
         int i = 0;
@@ -407,7 +479,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * è·³è¿‡æ ‡è®°æµä¸­çš„æ ‡è®°ï¼Œç›´åˆ°æ‰¾åˆ°æŒ‡å®šçš„æ ‡è®°é›†åˆä¸­çš„ä»»ä½•ä¸€ä¸ªæ ‡è®°
+     * Ìø¹ı±ê¼ÇÁ÷ÖĞµÄ±ê¼Ç£¬Ö±µ½ÕÒµ½Ö¸¶¨µÄ±ê¼Ç¼¯ºÏÖĞµÄÈÎºÎÒ»¸ö±ê¼Ç
      *
      * @param tokenSet
      */
@@ -429,7 +501,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * åœ¨æ»¡è¶³æŒ‡å®šæ¡ä»¶æ—¶æŠ¥å‘Šè§£æé”™è¯¯
+     * ÔÚÂú×ãÖ¸¶¨Ìõ¼şÊ±±¨¸æ½âÎö´íÎó
      *
      * @param marker
      * @param condition
@@ -444,14 +516,14 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * è¡¨ç¤ºä¸€ä¸ªå¯é€‰çš„æ ‡è®°
+     * ±íÊ¾Ò»¸ö¿ÉÑ¡µÄ±ê¼Ç
      */
     protected class OptionalMarker {
         private final PsiBuilder.Marker marker;
         private final int offset;
 
         /**
-         * åˆ›å»ºä¸€ä¸ªå¯é€‰çš„æ ‡è®°
+         * ´´½¨Ò»¸ö¿ÉÑ¡µÄ±ê¼Ç
          *
          * @param actuallyMark
          */
@@ -461,7 +533,7 @@ public abstract class AbstractCangJieParsing {
         }
 
         /**
-         * æ ‡è®°å¯é€‰çš„è¯­æ³•å•å…ƒå·²ç»è§£æå®Œæˆï¼Œå¹¶å°†å…¶è½¬æ¢ä¸ºæŒ‡å®šç±»å‹çš„è¯­æ³•å•å…ƒ
+         * ±ê¼Ç¿ÉÑ¡µÄÓï·¨µ¥ÔªÒÑ¾­½âÎöÍê³É£¬²¢½«Æä×ª»»ÎªÖ¸¶¨ÀàĞÍµÄÓï·¨µ¥Ôª
          *
          * @param elementType
          */
@@ -471,21 +543,21 @@ public abstract class AbstractCangJieParsing {
         }
 
         /**
-         * æŠ¥å‘Šè§£æé”™è¯¯
+         * ±¨¸æ½âÎö´íÎó
          *
          * @param message
          */
         public void error(String message) {
             if (marker == null) return;
             if (offset == myBuilder.getCurrentOffset()) {
-                marker.drop(); // æ²¡æœ‰ç©ºé”™è¯¯
+                marker.drop(); // Ã»ÓĞ¿Õ´íÎó
             } else {
                 marker.error(message);
             }
         }
 
         /**
-         * ç”¨äºåˆ é™¤å½“å‰ä½ç½®çš„æ ‡è®°
+         * ÓÃÓÚÉ¾³ıµ±Ç°Î»ÖÃµÄ±ê¼Ç
          */
         public void drop() {
             if (marker == null) return;
@@ -494,7 +566,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * åŒ¹é…æŒ‡å®šçš„æ ‡è®°æµæ¨¡å¼
+     * Æ¥ÅäÖ¸¶¨µÄ±ê¼ÇÁ÷Ä£Ê½
      *
      * @param pattern
      * @return
@@ -557,7 +629,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * æ£€æŸ¥å½“å‰æ ‡è®°æ˜¯å¦ä½äºè¡Œæœ«
+     * ¼ì²éµ±Ç°±ê¼ÇÊÇ·ñÎ»ÓÚĞĞÄ©
      *
      * @return
      */
@@ -566,7 +638,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * å…³é—­å£°æ˜å¹¶ç»‘å®šæ³¨é‡Š
+     * ¹Ø±ÕÉùÃ÷²¢°ó¶¨×¢ÊÍ
      *
      * @param marker
      * @param elementType
@@ -625,7 +697,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     /**
-     * è·å–å½“å‰è§£æä¸Šä¸‹æ–‡çš„å­—ç¬¦ä¸²è¡¨ç¤º
+     * »ñÈ¡µ±Ç°½âÎöÉÏÏÂÎÄµÄ×Ö·û´®±íÊ¾
      *
      * @return
      */
