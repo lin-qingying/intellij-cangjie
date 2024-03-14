@@ -648,7 +648,10 @@ ELVIS,COMPOSITION, SAFE_ACCESS,
             new BracePair(LPAR, RPAR, true),
             new BracePair(LBRACE, RBRACE, true),
             new BracePair(LBRACKET, RBRACKET, true),
-            new BracePair(LT, GT, true)
+            new BracePair(LT, GT, true),
+
+            new   BracePair( LONG_TEMPLATE_ENTRY_START, LONG_TEMPLATE_ENTRY_END, false),
+
     };
 
 }

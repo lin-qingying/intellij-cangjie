@@ -25,6 +25,10 @@
         <backspaceHandlerDelegate implementation="com.huawei.cangjie.idea.editor.CangJieBackspaceHandlerDelegate"/>
         <lang.braceMatcher implementationClass="com.huawei.cangjie.idea.editor.CangJiePairedBraceMatcher"
                            language="CangJie"/>
+        <quoteHandler fileType="CangJie" className="com.huawei.cangjie.idea.editor.CangJieQuoteHandler"/>
+        <backspaceHandlerDelegate implementation="com.huawei.cangjie.idea.editor.CangJieRawStringBackspaceHandler"/>
+        <backspaceHandlerDelegate implementation="com.huawei.cangjie.idea.editor.CangJieStringTemplateBackspaceHandler"/>
+
 <!--        <treeStructureProvider implementation="com.huawei.cangjie.idea.projectView.CangJieExpandNodeProjectViewProvider" order="last"/>-->
 
 
@@ -103,6 +107,10 @@
                              groupId="language"
                              id="language.cangjie"
                              bundle="messages.CangJieBundle" key="settings.cangjie.toolchain.name"/>
+<!--注释-->
+        <lang.commenter language="CangJie" implementationClass="com.huawei.cangjie.idea.commenter.CjCommenter"/>
+
+
 
         <executionTargetLanguageRuntimeType
                 implementation="com.huawei.cangjie.idea.run.cjpm.runconfig.CjLanguageRuntimeType"/>

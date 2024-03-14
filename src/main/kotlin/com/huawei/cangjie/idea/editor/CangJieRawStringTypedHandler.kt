@@ -31,6 +31,24 @@ class CangJieRawStringTypedHandler : TypedHandlerDelegate() {
             return Result.CONTINUE
         }
 
+        if (file.findElementAt(offset - 1)?.text == "#") {
+            var length = 1
+
+            while (file.findElementAt(offset - (length + 1 ))?.text == "#") {
+                length++
+            }
+
+            val str = StringBuilder().append('\"').append('\"').apply {
+                for (i in 0 until length)
+                    append("#")
+            }
+            editor.document.insertString(offset, str.toString())
+            editor.caretModel.currentCaret.moveToOffset(offset + 1)
+
+            return Result.STOP
+        }
+
+
         val openQuote = file.findElementAt(offset - 2)
         if (openQuote == null || openQuote !is LeafPsiElement || openQuote.elementType != CjTokens.OPEN_QUOTE) {
             return Result.CONTINUE
