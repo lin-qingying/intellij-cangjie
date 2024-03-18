@@ -4,8 +4,6 @@ import org.jetbrains.intellij.tasks.PublishPluginTask
 import org.jetbrains.intellij.tasks.RunIdeTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-//import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-//
 val kotlinVersion = "1.9.21"
 val tomlPlugin = "org.toml.lang"
 val psiViewerPlugin: String ="PsiViewer:233.2"
@@ -31,7 +29,7 @@ val Project.dependencyCachePath
         return cachePath.absolutePath
     }
 //
-////IDEA版本
+//IDEA版本
 //
 //val ideaVersion = "2023.3.2"
 val ideaVersion = "233-EAP-SNAPSHOT"
@@ -86,9 +84,6 @@ allprojects {
                 srcDirs("src/main/kotlin")
             }
         }
-
-
-
     }
 
     tasks {
@@ -172,10 +167,6 @@ val pluginDescriptors = arrayOf(
     "toml4j-${toml4jVersion}.jar"
 )
 
-
-
-
-
 project(":plugin") {
     intellij {
         pluginName.set("intellij-cangjie")
@@ -195,10 +186,7 @@ project(":plugin") {
 //        api("com.squareup.moshi:moshi-kotlin:1.15.0")
 //        implementation(project(":debugger"))
 //        implementation(project(":debugger1"))
-
-
     }
-
 
     // Collects all jars produced by compilation of project modules and merges them into singe one.
     // We need to put all plugin manifest files into single jar to make new plugin mode        l work
@@ -218,10 +206,8 @@ project(":plugin") {
         val pluginJars by lazy {
             pluginLibDir.listFiles().orEmpty().filter {
 
-
                 it.isPluginJar()
             }
-
 
         }
 
@@ -231,14 +217,12 @@ project(":plugin") {
             for (file in pluginJars) {
                 from(zipTree(file))
             }
-
         }
 
         doLast {
 
             delete(pluginJars)
         }
-
 
     }
 //    val createSourceJar = task<Jar>("createSourceJar") {
