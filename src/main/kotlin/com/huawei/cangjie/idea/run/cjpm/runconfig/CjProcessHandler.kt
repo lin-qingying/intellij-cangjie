@@ -31,17 +31,15 @@ class CjProcessHandler : KillableProcessHandler, AnsiEscapeDecoder.ColoredTextAc
     }
 
     override fun notifyTextAvailable(text: String, outputType: Key<*>) {
+        var textN = text
 
-        var text = text
-
-        if (text == "\n") text = "\r\n"
-
-
+        if (!textN.contains("\r\n")) {
+            textN = textN.replace("\n", "\r\n")
+        }
 
         when (outputType) {
             ProcessOutputType.STDOUT -> {
-                decoder?.escapeText(text, outputType, this) ?: super.notifyTextAvailable(text, outputType)
-
+                decoder?.escapeText(textN, outputType, this) ?: super.notifyTextAvailable(textN, outputType)
             }
 
             ProcessOutputType.SYSTEM -> {
@@ -51,9 +49,7 @@ class CjProcessHandler : KillableProcessHandler, AnsiEscapeDecoder.ColoredTextAc
             ProcessOutputType.STDERR -> {
 
             }
-
         }
-
     }
 
     override fun coloredTextAvailable(text: String, attributes: Key<*>) {
