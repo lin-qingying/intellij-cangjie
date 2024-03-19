@@ -719,9 +719,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
 
-        void parseLambdaExpression() {
-            myExpressionParsing.parseFunctionLiteral(/* preferBlock = */ false, /* collapse = */false,false);
-        }
+    void parseLambdaExpression() {
+        myExpressionParsing.parseFunctionLiteral(/* preferBlock = */ false, /* collapse = */false, false);
+    }
 
 
     enum MacroType {
@@ -1052,7 +1052,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 //        myBuilder.disableJoiningComplexTokens();
 
-        boolean receiverTypeDeclared = parseReceiverType("property", PROPERTY_NAME_FOLLOW_SET);
+//        boolean receiverTypeDeclared = parseReceiverType("property", PROPERTY_NAME_FOLLOW_SET);
 
 //        boolean isNameOnTheNextLine = eol();
 //        PsiBuilder.Marker beforeName = mark();
@@ -1084,7 +1084,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //            }
 
         } else {
-            parseIdentifierByTitle("property", PROPERTY_NAME_FOLLOW_SET);
+            parseIdentifierByTitle("property", PROPERTY_NAME_FOLLOW_SET,true);
 
         }
         boolean noTypeReference = true;
@@ -1492,7 +1492,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         assert _at(ENUM_KEYWORD);
         advance();
 
-        parseIdentifierByTitle("enum", IDENTIFIER_RBRACKET_LBRACKET_SET);
+        parseIdentifierByTitle("enum", IDENTIFIER_RBRACKET_LBRACKET_SET,false);
 
 
         parseEnumBody();
@@ -2051,6 +2051,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
             error("Keywords cannot be used"); //关键字不能使用
         }
 
+        if (!at(LPAR)) {
+            errorAndAdvance("Expecting an CangJie identifier");
+            return;
+        }
+
         error("Expecting an CangJie identifier"); //应该为标识符
 
     }
@@ -2063,9 +2068,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * IDENTIFIER
      */
     private void parseIdentifierByTitle(
-            String title, TokenSet recoverySet
+            String title, TokenSet recoverySet, boolean isUnderline
     ) {
 
+        if (isUnderline && expect(CangJieExpressionParsing.getIDENTIFIER_RECOVERY_SET())) {
+            return;
+        }
 
         if (expect(IDENTIFIER)) {
             return;
@@ -2075,7 +2083,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     private void parseIdentifierByTitle(String title) {
-        parseIdentifierByTitle(title, TokenSet.EMPTY);
+        parseIdentifierByTitle(title, TokenSet.EMPTY,false);
     }
 
     /*
@@ -2550,7 +2558,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         boolean isDefault = false;
         // 恢复 'func foo(Array<String>) {}'
         // 恢复 'func foo(: Int) {}'
-        if ((at(IDENTIFIER) && lookahead(1) == LT) || at(COLON)) {
+        if ((at (IDENTIFIER) && lookahead(1) == LT) || at(COLON)) {
             error("Missing parameter name");  //缺少参数名称
             if (at(COLON)) {
                 // 保留noErrors==true，这样在函数类型的解析过程中不会回滚以“：”开头的未命名参数
@@ -2562,7 +2570,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             }
             parseTypeRef();
         } else {
-            expect(IDENTIFIER, "Missing parameter name", PARAMETER_NAME_RECOVERY_SET);
+            expect(CangJieExpressionParsing.getIDENTIFIER_RECOVERY_SET(), "Missing parameter name", PARAMETER_NAME_RECOVERY_SET);
 
             if (expect(EXCL)) {
 //              可以有默认值

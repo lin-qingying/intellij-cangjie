@@ -16,6 +16,8 @@ interface CjLetVarKeywordOwner : PsiElement {
 interface CjDeclarationWithInitializer : CjDeclaration {
     val initializer: CjExpression?
 
+
+
     fun hasInitializer(): Boolean
 }
 

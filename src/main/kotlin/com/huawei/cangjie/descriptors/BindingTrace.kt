@@ -1,0 +1,21 @@
+package com.huawei.cangjie.descriptors
+
+import com.huawei.cangjie.descriptors.DiagnosticSink
+import com.huawei.cangjie.psi.CjExpression
+import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.utils.slicedMap.ReadOnlySlice
+import com.huawei.cangjie.utils.slicedMap.WritableSlice
+
+interface BindingTrace : DiagnosticSink {
+    // slice.isCollective() must be true
+    fun <K, V> getKeys(slice: WritableSlice<K, V>): Collection<K>
+    /**
+     * Expression type should be taken from EXPRESSION_TYPE_INFO slice
+     */
+    fun getType(expression: CjExpression): CangJieType?
+
+    fun <K, V> record(slice:  WritableSlice<K, V>, key: K, value: V)
+
+
+    fun <K, V> get(slice: ReadOnlySlice<K, V>, key: K): V?
+}

@@ -2,6 +2,13 @@ package com.huawei.cangjie.utils
 
 import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentHashMap
+inline fun <T, R : Any> Iterable<T>.firstNotNullResult(transform: (T) -> R?): R? {
+    for (element in this) {
+        val result = transform(element)
+        if (result != null) return result
+    }
+    return null
+}
 
 inline fun <R> runIf(condition: Boolean, block: () -> R): R? = if (condition) block() else null
 inline fun <reified T : Any> Sequence<*>.firstIsInstanceOrNull(): T? {

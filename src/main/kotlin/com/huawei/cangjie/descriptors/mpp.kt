@@ -1,0 +1,3 @@
+package com.huawei.cangjie.descriptors
+
+interface DeclarationSymbolMarker
