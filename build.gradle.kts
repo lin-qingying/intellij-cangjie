@@ -173,7 +173,7 @@ project(":plugin") {
         plugins.set(listOf(       psiViewerPlugin))
     }
 //    group = "com.huawei.cangjie"
-    version = "1.1.0"
+    version = "1.1.1"
     dependencies {
         implementation(project(":"))
 //        implementation(project(":inspections"))

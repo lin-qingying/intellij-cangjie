@@ -2,6 +2,7 @@ package com.huawei.cangjie.idea.codeinsight.hints.type
 
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.psi.CjElement
+import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.psi.CjVariable
 import com.intellij.codeInsight.hints.*
 import com.intellij.openapi.components.service
@@ -11,6 +12,14 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import javax.swing.JComponent
 import javax.swing.JPanel
+
+
+val CjExpression.declaration: CjElement?
+    get() = when (this) {
+//        is CjSimpleNameExpression -> path.reference?.resolve()
+
+        else -> null
+    }
 
 @Suppress("UnstableApiUsage")
 class CjInlayTypeHintsProvider : InlayHintsProvider<CjInlayTypeHintsProvider.Settings> {
@@ -54,8 +63,8 @@ class CjInlayTypeHintsProvider : InlayHintsProvider<CjInlayTypeHintsProvider.Set
         return object : FactoryInlayHintsCollector(editor) {
 
 
-//            private fun presentTypeForPat(pat: RsPat, expr: CjExpression?, isExpanded: Boolean) {
-//                if (!settings.showObviousTypes && isObvious(pat, expr?.declaration)) return
+//            private fun presentTypeForIdentify(identify: PsiElement, expr: CjExpression?, isExpanded: Boolean) {
+//                if (!settings.showObviousTypes  ) return
 //
 //                for (binding in pat.descendantsOfType<RsPatBinding>()) {
 //                    if (binding.referenceName.startsWith("_")) continue
@@ -72,9 +81,11 @@ class CjInlayTypeHintsProvider : InlayHintsProvider<CjInlayTypeHintsProvider.Set
 //                        }
 
                         if (element.typeReference != null) return
+                       val identify =  element.identifyingElement ?: return
+//element.expression
 
-//                        val pat = element.pat ?: return
-//                        presentTypeForPat(pat, element.expr, isExpanded)
+
+//                        presentTypeForIdentify(identify, element.expression, isExpanded)
                     }
 
                 }

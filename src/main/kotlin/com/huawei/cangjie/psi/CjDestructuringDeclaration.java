@@ -21,7 +21,11 @@ public class CjDestructuringDeclaration extends CjDeclarationImpl implements CjL
     public CjDestructuringDeclaration(@NotNull ASTNode node) {
         super(node);
     }
+    @Override
+    public @Nullable CjExpression getExpression() {
+        return PsiTreeUtil.getStubChildOfType(this, CjExpression.class);
 
+    }
     @Override
     public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitDestructuringDeclaration(this, data);

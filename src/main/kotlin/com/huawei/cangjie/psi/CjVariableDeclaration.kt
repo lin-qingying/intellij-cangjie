@@ -3,7 +3,7 @@ package com.huawei.cangjie.psi
 import com.intellij.psi.PsiElement
 
 
-interface CjVariableDeclaration : CjCallableDeclaration, CjDeclarationWithInitializer, CjLetVarKeywordOwner {
+interface  CjVariableDeclaration : CjCallableDeclaration, CjDeclarationWithInitializer, CjLetVarKeywordOwner {
     val isVar: Boolean
 }
 
