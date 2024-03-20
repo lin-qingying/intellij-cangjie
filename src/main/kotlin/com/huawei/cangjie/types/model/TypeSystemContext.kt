@@ -1,0 +1,9 @@
+package com.huawei.cangjie.types.model
+
+interface CangJieTypeMarker
+
+
+interface TypeSubstitutorMarker
+interface TypeConstructorMarker
+interface TypeParameterMarker
+interface TypeArgumentListMarker

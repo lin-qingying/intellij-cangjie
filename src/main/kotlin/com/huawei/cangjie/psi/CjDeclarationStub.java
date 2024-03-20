@@ -7,6 +7,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +25,11 @@ public abstract class CjDeclarationStub<T extends StubElement<?>> extends CjModi
     public CjDeclarationStub(@NotNull ASTNode node) {
         super(node);
     }
+    @Override
+    public @Nullable CjExpression getExpression() {
+        return PsiTreeUtil.getStubChildOfType(this, CjExpression.class);
 
+    }
     @Override
     public void subtreeChanged() {
         super.subtreeChanged();

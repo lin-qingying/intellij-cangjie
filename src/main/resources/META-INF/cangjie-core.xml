@@ -1,9 +1,11 @@
-<idea-plugin allow-bundled-update="true">
+<idea-plugin allow-bundled-update="true" xmlns:xi="http://www.w3.org/2001/XInclude">
 
 
     <resource-bundle>messages.CangJieBaseHighlightingBundle</resource-bundle>
     <resource-bundle>messages.CangJieBundle</resource-bundle>
 
+
+    <xi:include href="/META-INF/codeInsight.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <extensions defaultExtensionNs="com.intellij">
 
@@ -276,6 +278,14 @@
                 qualifiedName="com.huawei.cangjie.projectConfigurator"
                 interface="com.huawei.cangjie.idea.configuration.CangJieProjectConfigurator"
                 dynamic="true"/>
+
+
+
+
+        <extensionPoint qualifiedName="com.huawei.cangjie.diagnosticSuppressor"
+                        interface="com.huawei.cangjie.descriptors.DiagnosticSuppressor"
+                        dynamic="true"/>
+
     </extensionPoints>
 
 

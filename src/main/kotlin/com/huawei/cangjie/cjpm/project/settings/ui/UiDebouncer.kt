@@ -35,7 +35,7 @@ class UiDebouncer(
     private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, parentDisposable)
 
     /**
-     * @param onUiThread: callback to be executed in EDT with **any** modality state.
+     * @param onUiThread: callback to be executed in EDT with **any** myModality state.
      * Use it only for UI updates
      */
     fun <T> run(onPooledThread: () -> T, onUiThread: (T) -> Unit) {

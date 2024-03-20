@@ -69,7 +69,7 @@ internal fun addModifier(modifierList: CjModifierList, modifier: CjModifierKeywo
         }
         modifierList.addAfter(newModifier, anchor)
 
-        if (anchor == lastChild) { // add line break if needed, otherwise visibility keyword may appear on previous line
+        if (anchor == lastChild) { // add line break if needed, otherwise myVisibility keyword may appear on previous line
             val whiteSpace = modifierList.nextSibling as? PsiWhiteSpace
             if (whiteSpace != null && whiteSpace.text.contains('\n')) {
                 modifierList.addAfter(whiteSpace, anchor)

@@ -1,0 +1,11 @@
+<idea-plugin>
+
+
+
+    <extensions defaultExtensionNs="com.intellij">
+
+
+        <codeInsight.inlayProvider language="CangJie" implementationClass="com.huawei.cangjie.idea.codeinsight.hints.type.CjInlayTypeHintsProvider"/>
+
+    </extensions>
+</idea-plugin>

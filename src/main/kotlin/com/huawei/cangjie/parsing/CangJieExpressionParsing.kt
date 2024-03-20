@@ -111,6 +111,7 @@ open class CangJieExpressionParsing(
 
         @OptIn(ExperimentalStdlibApi::class)
         companion object {
+            //        标识符，通配符
 
 
             init {
@@ -927,7 +928,7 @@ open class CangJieExpressionParsing(
                     destructuringDeclaration.done(DESTRUCTURING_DECLARATION)
                 } else {
                     expect(
-                        IDENTIFIER,
+                        IDENTIFIER_RECOVERY_SET,
                         "Expecting a variable name",
                         COLON_IN_KEYWORD_SET
                     )
@@ -975,7 +976,8 @@ open class CangJieExpressionParsing(
     private fun parseLoopBody() {
         val body = mark()
         if (!at(SEMICOLON)) {
-            parseControlStructureBody()
+//            parseControlStructureBody()
+            parseBlockLevelExpression()
         }
         body.done(BODY)
     }
@@ -1124,7 +1126,9 @@ open class CangJieExpressionParsing(
 
 
     private fun parseControlStructureBody() {
-
+//        if (!parseAnnotatedLambda( /* preferBlock = */true)) {
+//            parseBlockLevelExpression()
+//        }
 
         if (at(LBRACE)) {
             parseFunctionLiteral()
@@ -1201,10 +1205,10 @@ open class CangJieExpressionParsing(
             val parameter = mark()
 
             if (at(COLON)) {
-                kotlin.error("Expecting parameter name")
+             error("Expecting parameter name")
             } else {
                 expect(
-                    IDENTIFIER,
+                    IDENTIFIER_RECOVERY_SET,
                     "Expecting parameter name",
                     ARROW_SET
                 )
@@ -1221,7 +1225,7 @@ open class CangJieExpressionParsing(
             } else if (at(COMMA)) {
                 advance() // COMMA
             } else {
-                kotlin.error("Expecting '->' or ','")
+                error("Expecting '->' or ','")
                 break
             }
         }
@@ -1251,7 +1255,7 @@ open class CangJieExpressionParsing(
             mark().done(VALUE_PARAMETER_LIST)
             advance() // ARROW
             paramsFound = true
-        } else if (token === IDENTIFIER || token === COLON || token === LPAR) {
+        } else if (token.equal(IDENTIFIER_RECOVERY_SET) || token === COLON || token === LPAR) {
             // Try to parse a simple name list followed by an ARROW
             //   {a => ...}
             //   {a, b => ...}
@@ -1454,7 +1458,7 @@ open class CangJieExpressionParsing(
         assert(_at(BREAK_KEYWORD) || _at(CONTINUE_KEYWORD))
         val marker = mark()
         advance() // BREAK_KEYWORD or CONTINUE_KEYWORD
-//        parseLabelReferenceWithNoWhitespace()
+
         marker.done(type)
     }
 
@@ -2052,7 +2056,10 @@ open class CangJieExpressionParsing(
     @OptIn(ExperimentalStdlibApi::class)
     companion object {
         var ALL_OPERATIONS: TokenSet? = null
-
+        @JvmStatic
+          val IDENTIFIER_RECOVERY_SET = TokenSet.create(
+            IDENTIFIER, UNDERLINE
+        )
         private fun doneOrDrop(
             marker: PsiBuilder.Marker,
             type: IElementType,
@@ -2200,6 +2207,8 @@ open class CangJieExpressionParsing(
             TokenSet.orSet(IN_KEYWORD_L_BRACE_SET, PARAMETER_NAME_RECOVERY_SET)
 
 
+
+
         private val COLON_IN_KEYWORD_SET = TokenSet.create(COLON, IN_KEYWORD)
         private val IN_KEYWORD_SET = TokenSet.create(IN_KEYWORD)
 
@@ -2269,5 +2278,13 @@ open class CangJieExpressionParsing(
             assert(usedSet.isEmpty()) { usedSet.toString() }
         }
     }
+
+}
+private fun IElementType.equal(token: IElementType): Boolean {
+    return token === this
+
+}
+private fun IElementType.equal(tokenSet: TokenSet): Boolean {
+    return tokenSet.contains(this)
 
 }

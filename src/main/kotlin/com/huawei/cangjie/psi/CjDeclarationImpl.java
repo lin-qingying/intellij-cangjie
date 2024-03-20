@@ -5,6 +5,8 @@ import com.huawei.cangjie.lexer.CjModifierKeywordToken;
 import com.huawei.cangjie.psi.psiUtil.AddRemoveModifierKt;
 import com.huawei.cangjie.psi.psiUtil.FindDocCommentKt;
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiTreeUtilKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,6 +28,12 @@ public abstract class CjDeclarationImpl extends CjExpressionImpl implements CjDe
     public boolean hasModifier(@NotNull CjModifierKeywordToken modifier) {
         CjModifierList modifierList = getModifierList();
         return modifierList != null && modifierList.hasModifier(modifier);
+    }
+
+    @Override
+    public @Nullable CjExpression getExpression() {
+        return PsiTreeUtil.getStubChildOfType(this, CjExpression.class);
+
     }
 
     @Override

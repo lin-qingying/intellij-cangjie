@@ -12,4 +12,10 @@ public interface CjDeclaration extends CjExpression, CjModifierListOwner {
 
     @Nullable
     CDoc getDocComment();
+
+
+    @Nullable
+    CjExpression getExpression();
+
+
 }

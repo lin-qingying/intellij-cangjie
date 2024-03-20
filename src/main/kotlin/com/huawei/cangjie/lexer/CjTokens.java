@@ -263,7 +263,7 @@ public interface CjTokens {
     CjKeywordToken INTERFACE_KEYWORD = CjKeywordToken.keyword("interface", INTERFACE_KEYWORD_Id);
 
 
-    CjKeywordToken UNDERLINE = CjKeywordToken.softKeyword("_", UNDERLINE_Id);
+    CjSingleValueToken UNDERLINE = new CjSingleValueToken("UNDERLINE","_", UNDERLINE_Id);
 
     CjKeywordToken TYPEOF_KEYWORD = CjKeywordToken.keyword("typeof", TYPEOF_KEYWORD_Id);
 
@@ -452,7 +452,7 @@ public interface CjTokens {
 
     TokenSet SOFT_KEYWORDS = TokenSet.create(GET_KEYWORD,
             SET_KEYWORD, OPEN_KEYWORD,
-            ABSTRACT_KEYWORD, UNDERLINE,
+            ABSTRACT_KEYWORD,
             SEALED_KEYWORD
 
     );
