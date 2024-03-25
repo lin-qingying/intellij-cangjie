@@ -1,12 +1,11 @@
 package com.huawei.cangjie.resolve.constants
 
-import com.huawei.cangjie.descriptors.ModuleDescriptor
+//import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.annotations.AnnotationArgumentVisitor
-import com.huawei.cangjie.types.CangJieType
 
 
 abstract class ConstantValue<out T>(open val value: T) {
-    abstract fun getType(module: ModuleDescriptor): CangJieType
+//    abstract fun getType(module: ModuleDescriptor): CangJieType
 
     abstract fun <R, D> accept(visitor: AnnotationArgumentVisitor<R, D>, data: D): R
 

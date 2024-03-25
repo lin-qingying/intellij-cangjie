@@ -1,5 +1,8 @@
 package com.huawei.cangjie.descriptors
 
+import com.huawei.cangjie.diagnostics.DiagnosticFactory1
+import com.huawei.cangjie.diagnostics.PositioningStrategies
+import com.huawei.cangjie.diagnostics.Severity
 import com.huawei.cangjie.psi.CjReferenceExpression
 
 object Errors {

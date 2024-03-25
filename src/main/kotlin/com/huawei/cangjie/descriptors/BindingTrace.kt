@@ -1,12 +1,15 @@
 package com.huawei.cangjie.descriptors
 
-import com.huawei.cangjie.descriptors.DiagnosticSink
 import com.huawei.cangjie.psi.CjExpression
+import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.utils.slicedMap.ReadOnlySlice
 import com.huawei.cangjie.utils.slicedMap.WritableSlice
 
 interface BindingTrace : DiagnosticSink {
+
+//    fun getBindingContext(): BindingContext
+    val bindingContext: BindingContext
     // slice.isCollective() must be true
     fun <K, V> getKeys(slice: WritableSlice<K, V>): Collection<K>
     /**

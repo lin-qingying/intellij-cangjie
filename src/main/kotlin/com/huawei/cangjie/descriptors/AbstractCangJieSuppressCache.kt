@@ -1,6 +1,7 @@
 package com.huawei.cangjie.descriptors
 
 import com.google.common.collect.ImmutableSet
+import com.huawei.cangjie.diagnostics.Severity
 import com.intellij.util.containers.ContainerUtil
 
 abstract class AbstractCangJieSuppressCache<Element> {

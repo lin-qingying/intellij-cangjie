@@ -93,7 +93,6 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
 //            candidate is DeclarationDescriptor || candidate is Collection<*> && candidate.any(::checkIfDescriptor)
 
 
-
 //        val shouldHighlightErrors = file.shouldHighlightErrors()
 //        val isInjectedCode = isIgnoredInjectedCode(holder)
 

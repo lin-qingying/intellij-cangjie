@@ -7,12 +7,13 @@ package com.huawei.cangjie.resolve.calls.smartcasts
 interface DataFlowInfo {
 
 
-    companion object {
+//    companion object {
 //        val EMPTY = DataFlowInfoFactory.EMPTY
-    }
+//    }
 }
 
 //object DataFlowInfoFactory {
 //    @JvmField
 //    val EMPTY: DataFlowInfo = DataFlowInfoImpl()
 //}
+//

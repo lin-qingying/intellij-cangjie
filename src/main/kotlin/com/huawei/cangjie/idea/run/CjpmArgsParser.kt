@@ -58,27 +58,18 @@ class CjpmArgsParser private constructor(
         private val RUN_OPTIONS: Map<String, OptionArgsCountRange> =
             hashMapOf(
                 "--bin" to OptionArgsCountRange.ONE,
-                "--example" to OptionArgsCountRange.ONE,
-                "-p" to OptionArgsCountRange.ONE,
+
                 "--package" to OptionArgsCountRange.ONE,
-                "-j" to OptionArgsCountRange.ONE,
-                "--jobs" to OptionArgsCountRange.ONE,
-                "--color" to OptionArgsCountRange.ONE,
-                "--profile" to OptionArgsCountRange.ONE,
-                "-F" to OptionArgsCountRange.MANY,
-                "--features" to OptionArgsCountRange.MANY,
-                "--config" to OptionArgsCountRange.ONE,
-                "-Z" to OptionArgsCountRange.ONE,
+
+
                 "--target" to OptionArgsCountRange.ONE,
                 "--target-dir" to OptionArgsCountRange.ONE,
-                "--manifest-path" to OptionArgsCountRange.ONE,
-                "--message-format" to OptionArgsCountRange.ONE
+
             )
         private val TEST_OPTIONS: Map<String, OptionArgsCountRange> =
             RUN_OPTIONS + hashMapOf(
                 "--test" to OptionArgsCountRange.ONE,
-                "--bench" to OptionArgsCountRange.ONE,
-                "--exclude" to OptionArgsCountRange.ONE
+
             )
         private fun parseTestArgs(cjpmArgs: List<String>): ParsedCjpmArgs {
             val argsParser = CjpmArgsParser(cjpmArgs, TEST_OPTIONS)

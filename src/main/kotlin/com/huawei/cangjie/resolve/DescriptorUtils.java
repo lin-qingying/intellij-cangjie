@@ -1,7 +1,7 @@
 package com.huawei.cangjie.resolve;
 
 import com.huawei.cangjie.descriptors.DeclarationDescriptor;
-import com.huawei.cangjie.descriptors.ModuleDescriptor;
+//import com.huawei.cangjie.descriptors.ModuleDescriptor;
 import com.huawei.cangjie.descriptors.PackageFragmentDescriptor;
 import com.huawei.cangjie.descriptors.PackageViewDescriptor;
 import com.huawei.cangjie.name.FqName;
@@ -16,7 +16,7 @@ import static com.huawei.cangjie.descriptors.annotations.AnnotationDescriptorKt.
 public class DescriptorUtils {
     @Nullable
     private static FqName getFqNameSafeIfPossible(@NotNull DeclarationDescriptor descriptor) {
-        if (descriptor instanceof ModuleDescriptor || ErrorUtils.isError(descriptor)) {
+        if (/*descriptor instanceof ModuleDescriptor || */ErrorUtils.isError(descriptor)) {
             return FqName.ROOT;
         }
 

@@ -1,11 +1,14 @@
 package com.huawei.cangjie.resolve
 
-import com.huawei.cangjie.name.FqName
-import java.util.ArrayList
+import com.huawei.cangjie.container.StorageComponentContainer
 
-//
-//abstract class PlatformDependentAnalyzerServices {
-//    private data class DefaultImportsKey(val includeCangJieComparisons: Boolean, val includeLowPriorityImports: Boolean)
+interface PlatformConfigurator {
+    val platformSpecificContainer: StorageComponentContainer
+    fun configureModuleComponents(container: StorageComponentContainer)
+    fun configureModuleDependentCheckers(container: StorageComponentContainer)
+}
+abstract class PlatformDependentAnalyzerServices {
+    private data class DefaultImportsKey(val includeCangJieComparisons: Boolean, val includeLowPriorityImports: Boolean)
 //
 //    private val defaultImports = LockBasedStorageManager("TargetPlatform").let { storageManager ->
 //        storageManager.createMemoizedFunction<DefaultImportsKey, List<ImportPath>> { (includeCangJieComparisons, includeLowPriorityImports) ->
@@ -26,8 +29,8 @@ import java.util.ArrayList
 //            }
 //        }
 //    }
-//
-//    abstract val platformConfigurator: PlatformConfigurator
+
+    abstract val platformConfigurator: PlatformConfigurator
 //
 //    open val defaultLowPriorityImports: List<ImportPath> get() = emptyList()
 //
@@ -48,4 +51,4 @@ import java.util.ArrayList
 //
 //    open fun dependencyOnBuiltIns(): ModuleInfo.DependencyOnBuiltIns =
 //        ModuleInfo.DependencyOnBuiltIns.LAST
-//}
+}

@@ -6,10 +6,8 @@ import com.huawei.cangjie.descriptors.ClassDescriptor;
 import com.huawei.cangjie.descriptors.DeclarationDescriptor;
 import com.huawei.cangjie.descriptors.Diagnostics;
 
-import com.huawei.cangjie.psi.Call;
-import com.huawei.cangjie.psi.CjElement;
-import com.huawei.cangjie.psi.CjExpression;
-import com.huawei.cangjie.psi.CjReferenceExpression;
+import com.huawei.cangjie.descriptors.annotations.AnnotationDescriptor;
+import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.utils.ReadOnly;
@@ -29,6 +27,9 @@ import java.util.Collections;
 import static com.huawei.cangjie.utils.slicedMap.RewritePolicy.DO_NOTHING;
 
 public interface BindingContext {
+
+    WritableSlice<CjAnnotationEntry, AnnotationDescriptor> ANNOTATION = Slices.createSimpleSlice();
+
     BindingContext EMPTY = new BindingContext() {
         @NotNull
         @Override
