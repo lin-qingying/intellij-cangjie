@@ -11,3 +11,7 @@ fun <T : Any> ComponentProvider.getService(request: Class<T>): T {
 fun <T : Any> ComponentProvider.tryGetService(request: Class<T>): T? {
     return resolve(request)?.getValue() as T?
 }
+
+inline fun <reified T : Any> ComponentProvider.get(): T {
+    return getService(T::class.java)
+}

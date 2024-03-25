@@ -1,5 +1,6 @@
 package com.huawei.cangjie.descriptors
 
+import com.huawei.cangjie.diagnostics.Severity
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.utils.ExtensionProvider
 import com.intellij.openapi.extensions.ExtensionPointName

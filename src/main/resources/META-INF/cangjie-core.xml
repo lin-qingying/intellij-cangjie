@@ -8,6 +8,9 @@
     <xi:include href="/META-INF/codeInsight.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <extensions defaultExtensionNs="com.intellij">
+        <projectService
+                serviceInterface="com.huawei.cangjie.analyzer.CangJieModificationTrackerService"
+                serviceImplementation="com.huawei.cangjie.idea.cache.trackers.CangJieIDEModificationTrackerService"/>
 
 
         <!--        文件索引-->

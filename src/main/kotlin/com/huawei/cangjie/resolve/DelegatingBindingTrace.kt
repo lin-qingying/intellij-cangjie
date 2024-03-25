@@ -1,0 +1,105 @@
+package com.huawei.cangjie.resolve
+
+import com.google.common.collect.ImmutableMap
+import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.psi.CjExpression
+import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.utils.slicedMap.*
+import org.jetbrains.annotations.TestOnly
+
+open class DelegatingBindingTrace(
+    private val parentContext: BindingContext,
+    private val name: String,
+    withParentDiagnostics: Boolean = true,
+    private val filter: BindingTraceFilter = BindingTraceFilter.ACCEPT_ALL,
+    allowSliceRewrite: Boolean = false,
+    customSuppressCache: CangJieSuppressCache? = null,
+) : BindingTrace {
+    override val bindingContext = MyBindingContext()
+
+    inner class MyBindingContext : BindingContext {
+        override fun getDiagnostics(): Diagnostics = mutableDiagnostics ?: Diagnostics.EMPTY
+
+        override fun <K, V> get(slice: ReadOnlySlice<K, V>, key: K): V? {
+            return this@DelegatingBindingTrace.get(slice, key)
+        }
+
+        override fun getType(expression: CjExpression): CangJieType? {
+            return this@DelegatingBindingTrace.getType(expression)
+        }
+
+        override fun <K, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
+            return this@DelegatingBindingTrace.getKeys(slice)
+        }
+
+        override fun addOwnDataTo(trace: BindingTrace, commitDiagnostics: Boolean) {
+            BindingContextUtils.addOwnDataTo(trace, null, commitDiagnostics, map, mutableDiagnostics)
+        }
+
+        @TestOnly
+        override fun <K, V> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> {
+            return ImmutableMap.copyOf(parentContext.getSliceContents(slice) + map.getSliceContents(slice))
+        }
+    }
+
+    open fun clear() {
+        map.clear()
+        mutableDiagnostics?.clear()
+    }
+
+    protected fun <K, V> selfGet(slice: ReadOnlySlice<K, V>, key: K): V? {
+        val value = map.get(slice, key)
+        return if (slice is SetSlice<*>) {
+            assert(value != null)
+            if (value != SetSlice.DEFAULT) value else null
+        } else value
+    }
+
+    protected val mutableDiagnostics: MutableDiagnosticsWithSuppression? =
+        if (filter.ignoreDiagnostics) null
+        else MutableDiagnosticsWithSuppression(
+            customSuppressCache ?: BindingContextSuppressCache(bindingContext),
+            if (withParentDiagnostics) parentContext.diagnostics else Diagnostics.EMPTY
+        )
+
+    protected val map = if (BindingTraceContext.TRACK_REWRITES && !allowSliceRewrite)
+        TrackingSlicedMap(BindingTraceContext.TRACK_WITH_STACK_TRACES)
+    else
+        SlicedMapImpl(allowSliceRewrite)
+
+//    override fun getBindingContext(): BindingContext = bindingContext
+
+
+    override fun <K, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
+        val keys = map.getKeys(slice)
+        val fromParent = parentContext.getKeys(slice)
+        if (keys.isEmpty()) return fromParent
+        if (fromParent.isEmpty()) return keys
+
+        return keys + fromParent
+    }
+
+    override fun getType(expression: CjExpression): CangJieType? {
+        val typeInfo = get(BindingContext.EXPRESSION_TYPE_INFO, expression)
+        return typeInfo?.type
+    }
+
+    override fun <K, V> record(slice: WritableSlice<K, V>, key: K, value: V) {
+        map.put(slice, key, value)
+    }
+
+    override fun <K, V> get(slice: ReadOnlySlice<K, V>, key: K): V? =
+        selfGet(slice, key) ?: parentContext.get(slice, key)
+
+
+    override fun report(diagnostic: Diagnostic) {
+        if (mutableDiagnostics == null) {
+            return
+        }
+        mutableDiagnostics.report(diagnostic)
+    }
+
+
+    override fun wantsDiagnostics(): Boolean = mutableDiagnostics != null
+
+}

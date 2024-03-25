@@ -1,5 +1,7 @@
 package com.huawei.cangjie.descriptors
 
+import com.huawei.cangjie.diagnostics.UnboundDiagnostic
+
 interface GenericDiagnostics<T : UnboundDiagnostic> : Iterable<T> {
     fun all(): Collection<T>
 

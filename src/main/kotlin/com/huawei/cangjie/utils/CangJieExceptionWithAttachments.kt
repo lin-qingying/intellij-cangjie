@@ -36,3 +36,4 @@ open class CangJieExceptionWithAttachments : RuntimeException, CangJieExceptionW
         return this
     }
 }
+

@@ -1,14 +1,15 @@
 package com.huawei.cangjie.idea.run.cjpm
 
 
+import com.huawei.cangjie.cjpm.project.model.currentCjpmProject
 import com.huawei.cangjie.lang.CangJieFileType
-import com.intellij.execution.RunManager
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.json.JsonFileType
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
+import org.toml.lang.psi.TomlFileType
 
 class CjpmRunConfigurationProducer : LazyRunConfigurationProducer<CjpmCommandConfiguration>() {
     override fun getConfigurationFactory(): ConfigurationFactory {
@@ -29,9 +30,19 @@ class CjpmRunConfigurationProducer : LazyRunConfigurationProducer<CjpmCommandCon
         val isInSrc = file?.path?.contains("/src/") == true
 
 
-        if (fileType !is CangJieFileType && (fileType !is JsonFileType && fileName?.startsWith("module") == false)) {
-            return false
-        } else if (fileType is CangJieFileType && !isInSrc) {
+        if (fileType !is CangJieFileType) {
+
+            if((fileType is JsonFileType && fileName?.startsWith("module") == true) || fileType is TomlFileType){
+                if(configuration.project.currentCjpmProject == null){
+                    return false
+
+                }
+            }else{
+                return false
+
+            }
+
+        } else if (!isInSrc) {
             return false
         }
 

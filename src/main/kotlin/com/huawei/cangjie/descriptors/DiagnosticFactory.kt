@@ -1,6 +1,8 @@
 package com.huawei.cangjie.descriptors
 
-import com.huawei.cangjie.descriptors.rendering.DiagnosticRenderer
+import com.huawei.cangjie.diagnostics.Severity
+import com.huawei.cangjie.diagnostics.UnboundDiagnostic
+import com.huawei.cangjie.diagnostics.rendering.DiagnosticRenderer
 
 abstract class DiagnosticFactory<D : UnboundDiagnostic> protected constructor(
     private var _name: String?,
