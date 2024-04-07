@@ -98,7 +98,7 @@ allprojects {
 
         withType<PatchPluginXmlTask> {
             sinceBuild.set("223")
-            untilBuild.set("233.*")
+            untilBuild.set("241.*")
         }
         runIde { enabled = false }
         prepareSandbox { enabled = false }
