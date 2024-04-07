@@ -6,13 +6,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val kotlinVersion = "1.9.21"
 val tomlPlugin = "org.toml.lang"
-val psiViewerPlugin: String ="PsiViewer:233.2"
+val psiViewerPlugin: String ="PsiViewer:241-SNAPSHOT"
 
 plugins {
     idea
 //    id("org.jetbrains.kotlin.jvm") version "1.9.21"
     kotlin("jvm") version "1.9.21"
-    id("org.jetbrains.intellij") version "1.15.0"
+    id("org.jetbrains.intellij") version "1.17.3"
     id("org.jetbrains.grammarkit") version "2022.3.2"
     kotlin("plugin.serialization") version "1.9.21"
     id("org.gradle.test-retry") version "1.5.3"
@@ -32,9 +32,9 @@ val Project.dependencyCachePath
 //IDEA版本
 //
 //val ideaVersion = "2023.3.2"
-val ideaVersion = "233-EAP-SNAPSHOT"
+val ideaVersion = "2024.1"
 val ideaType = "IC" // Target IDE Platform
-val nativeDebugPlugin: String = "com.intellij.nativeDebug:233.13763.5"
+val nativeDebugPlugin: String = "com.intellij.nativeDebug:241.14494.234"
 //val nativeDebugPlugin: String = "com.intellij.nativeDebug:233.13135.65"
 idea {
     module {
@@ -71,7 +71,7 @@ allprojects {
         type.set(ideaType)
 
         downloadSources.set(!isCI)
-        updateSinceUntilBuild.set(true)
+        updateSinceUntilBuild.set(false)
         instrumentCode.set(false)
         ideaDependencyCachePath.set(dependencyCachePath)
 //        sandboxDir.set("$buildDir/$ideaVersion-sandbox")
