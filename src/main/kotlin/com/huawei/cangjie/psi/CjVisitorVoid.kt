@@ -7,10 +7,13 @@ open class CjVisitorVoid :  CjVisitor<Void?, Void?>() {
     open fun visitCjElement(element: CjElement) {
         super.visitCjElement(element, null)
     }
-
+    open  fun visitFunctionType(type: CjFunctionType) {
+        super.visitFunctionType(type, null)
+    }
     open fun visitDeclaration(dcl:CjDeclaration) {
         super.visitDeclaration(dcl, null)
     }
+
 
 
     open fun visitSecondaryConstructor(constructor: CjSecondaryConstructor) {
@@ -290,7 +293,7 @@ open class CjVisitorVoid :  CjVisitor<Void?, Void?>() {
         super.visitTypeConstraint(constraint, null)
     }
 
-    fun visitUserType(type:CjUserType) {
+    open fun visitUserType(type:CjUserType) {
         super.visitUserType(type, null)
     }
 

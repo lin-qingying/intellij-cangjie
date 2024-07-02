@@ -5,10 +5,11 @@ import com.huawei.cangjie.psi.CjProjectionKind
 import com.huawei.cangjie.psi.CjUserType
 import com.huawei.cangjie.psi.stubs.CangJieUserTypeStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
-import com.huawei.cangjie.types.CangJieTypeMarker
-import com.huawei.cangjie.types.FlexibleTypeMarker
-import com.huawei.cangjie.types.SimpleTypeMarker
-import com.huawei.cangjie.types.TypeArgumentMarker
+import com.huawei.cangjie.types.model.CangJieTypeMarker
+import com.huawei.cangjie.types.model.FlexibleTypeMarker
+import com.huawei.cangjie.types.model.SimpleTypeMarker
+import com.huawei.cangjie.types.model.TypeArgumentMarker
+
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 

@@ -1,4 +1,7 @@
-# CangJie plugin for the IntelliJ Platform
+# 适用于intellij平台的仓颉语言插件(CangJie Language Plugin)
+
+该提交为语法分析(analyze)备份，无法运行
+
 
 ## 安装和使用
 

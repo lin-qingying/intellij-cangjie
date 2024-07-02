@@ -1,10 +1,14 @@
 package com.huawei.cangjie.descriptors;
 
+import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.TypeSubstitutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface ConstructorDescriptor extends FunctionDescriptor{
+    boolean isPrimary();
+
+
     @NotNull
     @Override
     ConstructorDescriptor copy(
@@ -14,7 +18,9 @@ public interface ConstructorDescriptor extends FunctionDescriptor{
             Kind kind,
             boolean copyOverrides
     );
-
+//    @NotNull
+//    @Override
+//    CangJieType getReturnType();
 
     @Nullable
     @Override

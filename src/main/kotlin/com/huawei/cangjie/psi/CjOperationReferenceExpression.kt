@@ -12,5 +12,8 @@ class CjOperationReferenceExpression(node: ASTNode) : CjSimpleNameExpressionImpl
     override fun getReferencedNameElement() = findChildByType<PsiElement?>(CangJieExpressionParsing.ALL_OPERATIONS) ?: this
 
 
+    val operationSignTokenType: CjSingleValueToken?
+        get() = (firstChild as? TreeElement)?.elementType as? CjSingleValueToken
+
 
 }

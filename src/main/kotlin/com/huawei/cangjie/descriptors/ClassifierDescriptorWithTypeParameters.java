@@ -15,7 +15,7 @@ public interface ClassifierDescriptorWithTypeParameters
     /**
      * @return <code>true</code> if this class contains a reference to its outer class (as opposed to static nested class)
      */
-    boolean isInner();
+
 
     @ReadOnly
     @NotNull

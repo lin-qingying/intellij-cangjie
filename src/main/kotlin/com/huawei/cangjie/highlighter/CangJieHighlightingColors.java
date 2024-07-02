@@ -76,7 +76,7 @@ public class CangJieHighlightingColors {
             createTextAttributesKey("CANGJIE_TRAIT", DefaultLanguageHighlighterColors.INTERFACE_NAME);
     public final static TextAttributesKey ANNOTATION  =
     createTextAttributesKey("CANGJIE_ANNOTATION", DefaultLanguageHighlighterColors.METADATA);
-    public final static TextAttributesKey OBJECT = createTextAttributesKey("CANGJIE_OBJECT", CLASS);
+
     public final static TextAttributesKey ENUM  =
     createTextAttributesKey("CANGJIE_ENUM", DefaultLanguageHighlighterColors.CLASS_NAME);
     public final static TextAttributesKey ENUM_ENTRY =

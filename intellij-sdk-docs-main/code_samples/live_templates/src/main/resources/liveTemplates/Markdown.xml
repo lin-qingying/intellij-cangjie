@@ -1,0 +1,23 @@
+<templateSet group="Markdown">
+  <template name="{"
+            value="[$TEXT$]($LINK$)$END$"
+            toReformat="false"
+            toShortenFQNames="false"
+            key="live.template.{.description" resource-bundle="messages.LiveTemplates">
+    <variable name="TEXT" expression="" defaultValue="" alwaysStopAt="true"/>
+    <variable name="LINK" expression="complete()" defaultValue="" alwaysStopAt="true"/>
+    <context>
+      <option name="MARKDOWN" value="true"/>
+    </context>
+  </template>
+  <template name="mc"
+            value="$TITLE$"
+            toReformat="true"
+            toShortenFQNames="false"
+            key="live.template.mc.description" resource-bundle="messages.LiveTemplates">
+    <variable name="TITLE" expression="titleCase(SELECTION)" defaultValue="the quick brown fox" alwaysStopAt="true" />
+    <context>
+      <option name="MARKDOWN" value="true" />
+    </context>
+  </template>
+</templateSet>

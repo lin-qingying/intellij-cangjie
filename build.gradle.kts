@@ -6,7 +6,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val kotlinVersion = "1.9.21"
 val tomlPlugin = "org.toml.lang"
-val psiViewerPlugin: String ="PsiViewer:241-SNAPSHOT"
+val psiViewerPlugin: String = "PsiViewer:241-SNAPSHOT"
+//val indexViewerPlugin: String = "Index Viewer:1.25"
 
 plugins {
     idea
@@ -141,6 +142,9 @@ allprojects {
 //        }
     }
     dependencies {
+
+        // https://mvnrepository.com/artifact/jakarta.inject/jakarta.inject-api
+        implementation("jakarta.inject:jakarta.inject-api:2.0.1")
         compileOnly(kotlin("stdlib-jdk8"))
     }
 }
@@ -170,7 +174,8 @@ val pluginDescriptors = arrayOf(
 project(":plugin") {
     intellij {
         pluginName.set("intellij-cangjie")
-        plugins.set(listOf(       psiViewerPlugin))
+        plugins.set(listOf(psiViewerPlugin))
+
     }
 //    group = "com.huawei.cangjie"
     version = "1.1.2"
@@ -340,6 +345,8 @@ project(":") {
         implementation("io.hotmoka:toml4j:0.7.3")
 //        implementation(project(":dap"))
         implementation(project(":lsp"))
+        implementation(project(":utils"))
+
 
         implementation("org.antlr:antlr4-intellij-adaptor:0.1")
     }
@@ -390,9 +397,10 @@ project(":") {
 //        implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
 //    }
 //}
-project(":lsp"){
-    dependencies{
+project(":lsp") {
+    dependencies {
         implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")
+        implementation(project(":utils"))
 
 //        implementation(project(":"))
     }
@@ -400,7 +408,7 @@ project(":lsp"){
 
 
 
-project(":grammar"){
+project(":grammar") {
     apply {
         plugin("antlr")
     }
@@ -410,13 +418,18 @@ project(":grammar"){
 // So, let's define all necessary things manually
     val antlr by configurations
 
-    dependencies{
+    dependencies {
 
         antlr("org.antlr:antlr4:4.13.1")
         implementation("org.antlr:antlr4-runtime:4.13.1")
     }
 }
+project(":utils") {
+    dependencies {
 
+//        implementation("org.yaml:snakeyaml:2.2")
+    }
+}
 //project(":lsp4j") {
 //
 //}

@@ -7,6 +7,8 @@ import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 
 public class CjSuperTypeCallEntry extends CjSuperTypeListEntry implements CjCallElement {
     public CjSuperTypeCallEntry(@NotNull ASTNode node) {
@@ -26,6 +28,16 @@ public class CjSuperTypeCallEntry extends CjSuperTypeListEntry implements CjCall
     @Override
     public CjConstructorCalleeExpression getCalleeExpression() {
         return getRequiredStubOrPsiChild(CjStubElementTypes.CONSTRUCTOR_CALLEE);
+    }
+
+    @Override
+    public @NotNull List<CjLambdaArgument> getLambdaArguments() {
+        return null;
+    }
+
+    @Override
+    public @Nullable CjTypeArgumentList getTypeArgumentList() {
+        return null;
     }
 
     @Override

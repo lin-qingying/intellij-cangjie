@@ -6,9 +6,14 @@ object SpecialNames {
 
     @JvmField
     val ROOT_PACKAGE = Name.special("<root package>")
+    private const val ANONYMOUS_PARAMETER_NAME_PREFIX = "anonymous parameter"
 
     @JvmField
     val DEFAULT_NAME_FOR_COMPANION_OBJECT = Name.identifier("Companion")
+    @JvmStatic
+    fun anonymousParameterName(index: Int): Name {
+        return Name.special("<$ANONYMOUS_PARAMETER_NAME_PREFIX $index>")
+    }
 
      @JvmField
     val SAFE_IDENTIFIER_FOR_NO_NAME = Name.identifier("no_name_in_PSI_3d19d79d_1ba9_4cd0_b7f5_b46aa3cd5d40")

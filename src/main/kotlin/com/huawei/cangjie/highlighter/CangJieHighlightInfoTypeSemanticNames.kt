@@ -27,7 +27,7 @@ object CangJieHighlightInfoTypeSemanticNames {
     val ABSTRACT_CLASS: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.ABSTRACT_CLASS)
     val TRAIT: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.TRAIT)
     val ANNOTATION: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.ANNOTATION)
-    val OBJECT: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.OBJECT)
+
     val ENUM: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.ENUM)
     val ENUM_ENTRY: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.ENUM_ENTRY)
     val TYPE_ALIAS: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.TYPE_ALIAS)

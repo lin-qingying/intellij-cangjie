@@ -22,7 +22,7 @@ public final class FqName {
 
     private transient FqName parent;
 
-    public FqName(@NotNull String fqName) {
+    public  FqName(@NotNull String fqName) {
         this.fqName = new FqNameUnsafe(fqName, this);
     }
 

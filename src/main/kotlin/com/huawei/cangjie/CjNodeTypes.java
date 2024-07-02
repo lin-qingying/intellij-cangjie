@@ -10,6 +10,7 @@ public interface CjNodeTypes {
 
 
 
+    IElementType NULL               = CjStubElementTypes.NULL;
 
 
     IElementType TYPE_REFERENCE = CjStubElementTypes.TYPE_REFERENCE;
@@ -115,6 +116,7 @@ IElementType OPERATOR = new CjNodeType("OPERATOR", CjOperator.class );
     IElementType IMPORT_DIRECTIVE_ITEM = CjStubElementTypes.IMPORT_DIRECTIVE_ITEM;
     IElementType ANNOTATION_ENTRY = CjStubElementTypes.ANNOTATION_ENTRY;
     IElementType MACRO_EXPRESSION = CjStubElementTypes.MACRO_EXPRESSION;
+
 
     IElementType LONG_STRING_TEMPLATE_ENTRY = CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY;
     IElementType SHORT_STRING_TEMPLATE_ENTRY = CjStubElementTypes.SHORT_STRING_TEMPLATE_ENTRY;

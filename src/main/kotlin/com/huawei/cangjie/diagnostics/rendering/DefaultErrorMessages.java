@@ -47,6 +47,6 @@ public class DefaultErrorMessages {
 
     static {
 
-        MAP.put(UNRESOLVED_REFERENCE(), "Unresolved reference: {0}", ELEMENT_TEXT);
+        MAP.put(UNRESOLVED_REFERENCE, "Unresolved reference: {0}", ELEMENT_TEXT);
     }
 }

@@ -10,6 +10,12 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         return null;
     }
 
+    public R visitCallableReferenceExpression(@NotNull CjCallableReferenceExpression expression, D data) {
+        return visitDoubleColonExpression(expression, data);
+    }
+    public R visitDoubleColonExpression(@NotNull CjDoubleColonExpression expression, D data) {
+        return visitExpression(expression, data);
+    }
     public R visitRangeExpression(@NotNull CjRangeExpression expression, D data) {
         return visitExpression(expression, data);
 
@@ -358,5 +364,9 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     }
     public R visitPropertyAccessor(@NotNull CjPropertyAccessor accessor, D data) {
         return visitDeclaration(accessor, data);
+    }
+
+    public R visitAnnotation(@NotNull CjAnnotation annotation, D data) {
+        return visitCjElement(annotation, data);
     }
 }

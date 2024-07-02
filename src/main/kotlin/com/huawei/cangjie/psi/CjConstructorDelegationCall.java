@@ -5,6 +5,8 @@ import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 
 public class CjConstructorDelegationCall extends CjElementImpl implements CjCallElement {
     public CjConstructorDelegationCall(@NotNull ASTNode node) {
@@ -22,6 +24,16 @@ public class CjConstructorDelegationCall extends CjElementImpl implements CjCall
     @Override
     public CjConstructorDelegationReferenceExpression getCalleeExpression() {
         return findChildByClass(CjConstructorDelegationReferenceExpression.class);
+    }
+
+    @Override
+    public @NotNull List<CjLambdaArgument> getLambdaArguments() {
+        return null;
+    }
+
+    @Override
+    public @Nullable CjTypeArgumentList getTypeArgumentList() {
+        return null;
     }
 
     @Override

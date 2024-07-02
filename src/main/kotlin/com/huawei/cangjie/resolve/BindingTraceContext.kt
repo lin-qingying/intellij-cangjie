@@ -134,6 +134,11 @@ class BindingTraceContext(
         map.put(slice, key, value)
     }
 
+    override fun <K> record(slice: WritableSlice<K, Boolean>, key: K) {
+        record(slice, key, true)
+
+    }
+
     override fun <K, V> get(slice: ReadOnlySlice<K, V>, key: K): V? {
         return map.get(slice, key)
 

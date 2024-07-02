@@ -10,6 +10,12 @@ inline fun <T, R : Any> Iterable<T>.firstNotNullResult(transform: (T) -> R?): R?
     return null
 }
 
+fun <T> Set<T>.compactIfPossible(): Set<T> =
+    when (size) {
+        0 -> emptySet()
+        1 -> setOf(single())
+        else -> this
+    }
 inline fun <R> runIf(condition: Boolean, block: () -> R): R? = if (condition) block() else null
 inline fun <reified T : Any> Sequence<*>.firstIsInstanceOrNull(): T? {
     for (element in this) if (element is T) return element

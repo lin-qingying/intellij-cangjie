@@ -1,6 +1,8 @@
 package com.huawei.cangjie.references
 
+import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.psi.CjElement
+import com.huawei.cangjie.resolve.BindingContext
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiPolyVariantReferenceBase
 import com.intellij.psi.ResolveResult
@@ -81,7 +83,9 @@ abstract class AbstractCjReference<T : CjElement>(element: T) : PsiPolyVariantRe
     override fun multiResolve(incompleteCode: Boolean): Array<out ResolveResult> =
         ResolveCache.getInstance(expression.project).resolveWithCaching(this, resolver, false, incompleteCode)
 
+    override fun toString() = this::class.java.simpleName + ": " + expression.text
 
+    abstract fun getTargetDescriptors(bindingContext: BindingContext): Collection<DeclarationDescriptor>
 
 //    override fun multiResolve(incompleteCode: Boolean): Array<out ResolveResult> {
 //        // 这里是实现多重引用解析的逻辑

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/SDK_Code_Samples.iml" filepath="$PROJECT_DIR$/.idea/modules/SDK_Code_Samples.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/intellij-sdk-docs.iml" filepath="$PROJECT_DIR$/.idea/intellij-sdk-docs.iml" />
+      <module fileurl="file://$PROJECT_DIR$/code_samples/theme_basics/theme_basics.iml" filepath="$PROJECT_DIR$/code_samples/theme_basics/theme_basics.iml" group="code_samples" />
+    </modules>
+  </component>
+</project>

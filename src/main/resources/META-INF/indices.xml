@@ -1,0 +1,60 @@
+<idea-plugin>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <stubElementTypeHolder externalIdPrefix="cangjie." class="com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes"/>
+
+        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieTopLevelFunctionByPackageIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieTopLevelTypeAliasByPackageIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieTopLevelVariableByPackageIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieTopLevelFunctionFqnNameIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieFunctionShortNameIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieProbablyNothingFunctionShortNameIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJiePrimeSymbolNameIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieOverridableInternalMembersShortNameIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieExactPackagesIndex"/>
+
+        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieTopLevelClassByPackageIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieFullClassNameIndex"/>
+
+
+
+        <fileBasedIndex implementation="com.huawei.cangjie.idea.vfilefinder.CangJiePackageSourcesMemberNamesIndex"/>
+
+
+
+        <idIndexer filetype="CangJie" implementationClass="com.huawei.cangjie.idea.search.CangJieIdIndexer"/>
+        <todoIndexer filetype="CangJie" implementationClass="com.huawei.cangjie.idea.search.CangJieTodoIndexer"/>
+
+        <indexPatternBuilder implementation="com.huawei.cangjie.idea.search.CangJieIndexPatternBuilder"/>
+
+        <notificationGroup
+                id="Recover CangJie Indices"
+                displayType="STICKY_BALLOON"
+                bundle="messages.CangJieBaseAnalysisBundle"
+                key="cangjie.repair.indices.group.name"
+        />
+        <projectService
+                serviceInterface="com.huawei.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService"
+                serviceImplementation="com.huawei.cangjie.idea.stubindex.resolve.PluginDeclarationProviderFactoryService"/>
+
+        <registryKey key="cangjie.indices.nested.access.enabled"
+                     defaultValue="false"
+                     description="Allows nested indices access" />
+        <registryKey key="cangjie.indices.timing.threshold.single"
+                     defaultValue="2500"
+                     description="Time threshold in ms to report slow index single get access" />
+        <registryKey key="cangjie.indices.timing.threshold.batch"
+                     defaultValue="5000"
+                     description="Time threshold in ms to report slow index batch (processAll-like) access" />
+        <registryKey key="cangjie.indices.timing.enabled"
+                     defaultValue="false"
+                     description="Allows indices access time tracking"/>
+    </extensions>
+
+    <projectListeners>
+        <listener class="com.huawei.cangjie.idea.stubindex.resolve.CangJieRepairIdeAfterCorruptionNotification"
+                  topic="com.huawei.cangjie.idea.stubindex.resolve.CangJieCorruptedIndexListener"
+                  activeInHeadlessMode="false"
+                  activeInTestMode="false"/>
+    </projectListeners>
+</idea-plugin>

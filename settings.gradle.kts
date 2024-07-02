@@ -3,6 +3,7 @@ pluginManagement {
 
     repositories {
         maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
+        maven { url = uri("https://www.jitpack.io") }
         mavenCentral()
         gradlePluginPortal()
     }
@@ -30,6 +31,7 @@ rootProject.name = "intellij-cangjie"
 //}
 //include("lsp4j")
 include("plugin")
+include("utils")
 
 //检查
 //include("inspections")

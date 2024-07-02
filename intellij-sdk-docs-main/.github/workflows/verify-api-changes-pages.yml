@@ -1,0 +1,32 @@
+name: Check API Changes pages
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'reference_guide/**', '.github/workflows/verify-api-changes-pages.yml' ]
+  pull_request:
+    paths: [ 'reference_guide/**', '.github/workflows/verify-api-changes-pages.yml' ]
+
+jobs:
+
+  documentedProblemsPageVerification:
+    name: Documented Problems Page Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Sources
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 11
+      - name: Download Plugin Verifier
+        run: |
+          curl -s https://api.github.com/repos/JetBrains/intellij-plugin-verifier/releases/latest \
+            | jq -r '.assets[].browser_download_url' \
+            | xargs curl -L --output ~/verifier-all.jar
+      - name: Run Plugin Verifier
+        run: |
+          PR_REPOSITORY=$(jq -re ".pull_request.head.repo.full_name // empty" $GITHUB_EVENT_PATH) || true
+          REPOSITORY=${PR_REPOSITORY:-$GITHUB_REPOSITORY}
+          REF=${GITHUB_HEAD_REF:-${GITHUB_REF#*/*/}}
+          java -cp ~/verifier-all.jar com.jetbrains.pluginverifier.filtering.documented.DocumentedProblemsPageVerifierMain $REPOSITORY $REF

@@ -1,16 +1,13 @@
 package com.huawei.cangjie.references
 
-import com.huawei.cangjie.lang.CangJieFileType
+import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.psi.CjElement
-import com.huawei.cangjie.psi.CjFile
+import com.huawei.cangjie.psi.CjReferenceExpression
+import com.huawei.cangjie.resolve.BindingContext
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementResolveResult
-import com.intellij.psi.PsiManager
 import com.intellij.psi.ResolveResult
 import com.intellij.psi.impl.source.resolve.ResolveCache
-import com.intellij.psi.search.FileTypeIndex
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.util.PsiTreeUtil
 import java.util.*
 
 
@@ -20,40 +17,47 @@ object CjPolyVariantResolver : ResolveCache.PolyVariantResolver<CjReference> {
 
     val result = mutableListOf<CjElement>()
 
-
-    override fun resolve(ref: CjReference, incompleteCode: Boolean): Array<ResolveResult> {
-        val project = ref.element.project
-
-
-        val virtualFiles =
-            FileTypeIndex.getFiles(CangJieFileType, GlobalSearchScope.allScope(ref.element.project))
-        for (virtualFile in virtualFiles) {
-            val cjFile: CjFile? = PsiManager.getInstance(project).findFile(virtualFile!!) as CjFile?
-            if (cjFile != null) {
-                val properties = PsiTreeUtil.getChildrenOfType(
-                    cjFile,
-                    CjElement::class.java
-                )
-                if (properties != null) {
-                    Collections.addAll(result, *properties)
-                }
-            }
+    private fun resolveToPsiElements(
+        ref: CjReference,
+        targetDescriptor: DeclarationDescriptor
+    ): Collection<PsiElement> {
+        TODO()
+    }
+    private fun resolveToPsiElements(
+        ref: CjReference,
+        context: BindingContext,
+        targetDescriptors: Collection<DeclarationDescriptor>
+    ): Collection<PsiElement> {
+        if (targetDescriptors.isNotEmpty()) {
+            return targetDescriptors.flatMap { target -> resolveToPsiElements(ref, target) }.toSet()
         }
 
-//        TODO()
+        val labelTargets = getLabelTargets(ref, context)
+        if (labelTargets != null) {
+            return labelTargets
+        }
 
-//         val a = CangJieResolveResult(ref.element)
+        return Collections.emptySet()
+    }
+    private fun getLabelTargets(ref: CjReference, context: BindingContext): Collection<PsiElement>? {
+        val reference = ref.element as? CjReferenceExpression ?: return null
+        val labelTarget = context[BindingContext.LABEL_TARGET, reference]
+        if (labelTarget != null) {
+            return listOf(labelTarget)
+        }
 
-//        val resolveElement = result.filter { it.name == ref.resolvesByNames.toString() }.map {
-//            CangJieResolveResult(it)
-//        }
+        return context[BindingContext.AMBIGUOUS_LABEL_TARGET, reference]
+    }
+    private fun resolveToPsiElements(ref: CjReference): Collection<PsiElement> {
+        require(ref is AbstractCjReference<*>) { "reference should be AbstractCjReference, but was ${ref::class}" }
+        val bindingContext = CjReferenceResolutionHelper.getInstance().partialAnalyze(ref.expression)
+        if (bindingContext == BindingContext.EMPTY) return emptySet()
+        return resolveToPsiElements(ref, bindingContext, ref.getTargetDescriptors(bindingContext))
+    }
 
-//        return resolveElement.toTypedArray()
-//
-return arrayOf()
-//
-//        val resolveToPsiElements = resolveToPsiElements(ref)
-//        return resolveToPsiElements.map { CangJieResolveResult(it) }.toTypedArray()
+    override fun resolve(ref: CjReference, incompleteCode: Boolean): Array<ResolveResult> {
+        val resolveToPsiElements = resolveToPsiElements(ref)
+        return resolveToPsiElements.map { CangJieResolveResult(it) }.toTypedArray()
     }
 
 }

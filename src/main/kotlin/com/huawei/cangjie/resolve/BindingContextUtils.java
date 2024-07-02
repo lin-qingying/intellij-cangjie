@@ -3,12 +3,25 @@ package com.huawei.cangjie.resolve;
 import com.huawei.cangjie.descriptors.BindingTrace;
 import com.huawei.cangjie.descriptors.Diagnostic;
 import com.huawei.cangjie.descriptors.MutableDiagnosticsWithSuppression;
+import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor;
+import com.huawei.cangjie.psi.CjExpression;
+import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfoFactory;
+import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
+import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.huawei.cangjie.utils.slicedMap.MutableSlicedMap;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BindingContextUtils {
-
+    @Nullable
+    public static CangJieTypeInfo getRecordedTypeInfo(@NotNull CjExpression expression, @NotNull BindingContext context) {
+        // noinspection ConstantConditions
+        if (context.get(BindingContext.PROCESSED, expression) != Boolean.TRUE) return null;
+        // NB: should never return null if expression is already processed
+        CangJieTypeInfo result = context.get(BindingContext.EXPRESSION_TYPE_INFO, expression);
+        return result != null ? result : TypeInfoFactoryKt.noTypeInfo(DataFlowInfoFactory.EMPTY);
+    }
     @SuppressWarnings("unchecked")
     static void addOwnDataTo(
             @NotNull BindingTrace trace, @Nullable TraceEntryFilter filter, boolean commitDiagnostics,
@@ -30,5 +43,10 @@ public class BindingContextUtils {
             }
         }
 
+    }
+
+    public static void recordFunctionDeclarationToDescriptor(@NotNull BindingTrace trace,
+                                                             @NotNull PsiElement psiElement, @NotNull SimpleFunctionDescriptor function) {
+        trace.record(BindingContext.FUNCTION, psiElement, function);
     }
 }

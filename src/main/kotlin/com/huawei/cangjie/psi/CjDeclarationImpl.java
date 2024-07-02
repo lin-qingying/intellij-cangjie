@@ -12,6 +12,9 @@ import org.jetbrains.annotations.Nullable;
 
 import com.huawei.cangjie.CjNodeTypes;
 
+import java.util.Collections;
+import java.util.List;
+
 
 public abstract class CjDeclarationImpl extends CjExpressionImpl implements CjDeclaration {
     public CjDeclarationImpl(@NotNull ASTNode node) {
@@ -35,7 +38,21 @@ public abstract class CjDeclarationImpl extends CjExpressionImpl implements CjDe
         return PsiTreeUtil.getStubChildOfType(this, CjExpression.class);
 
     }
+    @NotNull
+    @Override
+    public List<CjAnnotation> getAnnotations() {
+        CjModifierList modifierList = getModifierList();
+        if (modifierList == null) return Collections.emptyList();
+        return modifierList.getAnnotations();
+    }
 
+    @NotNull
+    @Override
+    public List<CjAnnotationEntry> getAnnotationEntries() {
+        CjModifierList modifierList = getModifierList();
+        if (modifierList == null) return Collections.emptyList();
+        return modifierList.getAnnotationEntries();
+    }
     @Override
     public void addModifier(@NotNull CjModifierKeywordToken modifier) {
         AddRemoveModifierKt.addModifier(this, modifier);

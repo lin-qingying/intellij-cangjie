@@ -6,13 +6,38 @@ import com.huawei.cangjie.types.TypeSubstitution;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface CallableMemberDescriptor extends CallableDescriptor, MemberDescriptor {
+    /**
+     * Is this a real function or function projection.
+     */
+    @NotNull
+    Kind getKind();
 
+    @NotNull
+    @Override
+    Collection<? extends CallableMemberDescriptor> getOverriddenDescriptors();
 
+    @NotNull
+    CallableMemberDescriptor copy(DeclarationDescriptor newOwner, Modality modality, DescriptorVisibility visibility, Kind kind, boolean copyOverrides);
 
- public    interface CopyBuilder<D extends CallableMemberDescriptor> {
+    @NotNull
+    CopyBuilder<? extends CallableMemberDescriptor> newCopyBuilder();
+
+    enum Kind {
+        DECLARATION,
+        FAKE_OVERRIDE,
+        DELEGATION,
+        SYNTHESIZED;
+
+        public boolean isReal() {
+            return this != FAKE_OVERRIDE;
+        }
+    }
+
+    interface CopyBuilder<D extends CallableMemberDescriptor> {
         @NotNull
         CopyBuilder<D> setOwner(@NotNull DeclarationDescriptor owner);
 
@@ -51,20 +76,5 @@ public interface CallableMemberDescriptor extends CallableDescriptor, MemberDesc
 
         @Nullable
         D build();
-    }
-    @NotNull
-    CallableMemberDescriptor copy(DeclarationDescriptor newOwner, Modality modality, DescriptorVisibility visibility, Kind kind, boolean copyOverrides);
-    @NotNull
-    CopyBuilder<? extends CallableMemberDescriptor> newCopyBuilder();
-    enum Kind {
-        DECLARATION,
-        FAKE_OVERRIDE,
-        DELEGATION,
-        SYNTHESIZED
-        ;
-
-        public boolean isReal() {
-            return this != FAKE_OVERRIDE;
-        }
     }
 }

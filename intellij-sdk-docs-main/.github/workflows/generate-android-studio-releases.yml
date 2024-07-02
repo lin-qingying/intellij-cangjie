@@ -1,0 +1,19 @@
+name: Generate Android Studio releases
+
+on:
+  schedule:
+    - cron: "1 1 * * *"
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate
+        run: "${GITHUB_WORKSPACE}/.github/scripts/android_studio_releases.main.kts"
+      - name: Commit changes
+        uses: Endbug/add-and-commit@v9
+        with:
+          message: 'Generate Android Studio releases'
+          add: 'topics/_generated/*'

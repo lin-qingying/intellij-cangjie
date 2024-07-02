@@ -3,6 +3,7 @@ package com.huawei.cangjie.psi;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.psi.stubs.CangJiePropertyAccessorStub;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
+import com.huawei.cangjie.types.CangJieType;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -22,6 +23,7 @@ public class CjPropertyAccessor extends CjDeclarationStub<CangJiePropertyAccesso
     public CjPropertyAccessor(@NotNull CangJiePropertyAccessorStub stub) {
         super(stub, CjStubElementTypes.PROPERTY_ACCESSOR);
     }
+
 
     @Override
     public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {

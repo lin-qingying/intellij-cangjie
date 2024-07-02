@@ -6,11 +6,12 @@ class DiagnosticsWithSuppression(val suppressCache: CangJieSuppressCache, val di
     Diagnostics {
 
 
-//    val elementsCache = DiagnosticsElementsCache(this, suppressCache.filter)
+    //    val elementsCache = DiagnosticsElementsCache(this, suppressCache.filter)
     override fun all(): Collection<Diagnostic> {
 //        return diagnostics.filter(suppressCache.filter)
+        return diagnostics.filter(suppressCache.filter)
 
-        TODO()
+
 
     }
 

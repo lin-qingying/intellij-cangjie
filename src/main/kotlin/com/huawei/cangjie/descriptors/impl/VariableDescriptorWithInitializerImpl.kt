@@ -13,7 +13,7 @@ abstract class VariableDescriptorWithInitializerImpl (
     outType:CangJieType?,
     override val isVar:Boolean,
     source: SourceElement
-):  AbstractVariableDescriptorImpl (containingDeclaration, annotations, name, outType, source){
+):  VariableDescriptorImpl (containingDeclaration, annotations, name, outType, source){
 
 
 }

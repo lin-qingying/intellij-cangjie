@@ -10,6 +10,8 @@ import com.intellij.psi.impl.source.resolve.ResolveCache
 interface CjReference : PsiPolyVariantReference {
     val resolver: ResolveCache.PolyVariantResolver<CjReference>
     override fun getElement(): CjElement
+
+
     val resolvesByNames: Collection<Name>
 
 }

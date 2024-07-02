@@ -643,6 +643,7 @@ ELVIS,COMPOSITION, SAFE_ACCESS,
 //            new BracePair(LBRACKET, RBRACKET,true)
 //    );
 
+    TokenSet STRINGS = TokenSet.create(CHARACTER_LITERAL, REGULAR_STRING_PART);
 
     BracePair[] BRACE_PAIRS = new BracePair[]{
             new BracePair(LPAR, RPAR, true),

@@ -1,5 +1,7 @@
 package com.huawei.cangjie.types
 
+import com.huawei.cangjie.types.model.CangJieTypeMarker
+
 /**
  * This annotation marks part of internal compiler API related to type refinement.
  *
@@ -19,6 +21,8 @@ annotation class TypeRefinement
 
 
 abstract class AbstractTypeRefiner {
+
+
     @TypeRefinement
     abstract fun refineType(type: CangJieTypeMarker): CangJieTypeMarker
 

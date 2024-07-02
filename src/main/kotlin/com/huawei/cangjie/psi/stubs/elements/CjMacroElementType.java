@@ -34,7 +34,7 @@ public class CjMacroElementType extends CjStubElementType<CangJieFunctionStub, C
                 (StubElement<?>) parentStub,CjStubElementTypes.FUNCTION, StringRef.fromString(psi.getName()), isTopLevel, fqName,
                 isExtension, hasBlockBody, hasBody, psi.hasTypeParameterListBeforeFunctionName(),
 
-
+null,
                 null
         );
     }
@@ -76,7 +76,7 @@ public class CjMacroElementType extends CjStubElementType<CangJieFunctionStub, C
         return new CangJieFunctionStubImpl(
                 (StubElement<?>) parentStub,CjStubElementTypes.FUNCTION, name, isTopLevel, fqName, isExtension, hasBlockBody, hasBody,
                 hasTypeParameterListBeforeFunctionName,
-
+null,
                 CangJieStubOrigin.deserialize(dataStream)
         );
     }

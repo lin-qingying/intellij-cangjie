@@ -1,0 +1,70 @@
+<!-- Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license. -->
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+
+<idea-plugin>
+
+  <!-- Unique id for this plugin. Must stay constant for the life of the plugin. -->
+  <id>org.intellij.sdk.codeInspection</id>
+
+  <!-- Text to display as name on Settings | Plugin page -->
+  <name>SDK: Comparing References Inspection Sample</name>
+
+  <!-- Product and plugin compatibility requirements -->
+  <depends>com.intellij.modules.platform</depends>
+  <depends>com.intellij.java</depends>
+
+  <!-- Text to display as description on Settings | Plugin page -->
+  <description>
+    <![CDATA[
+      Demonstrates implementing a Local Inspection Tool.<br> Adds entries to
+      <b>Settings | Editor | Inspections | Java | Probable Bugs</b>.
+    ]]>
+  </description>
+  <change-notes>
+    <![CDATA[
+      <ul>
+        <li><b>2.0.0</b> Convert to Gradle-based plugin.</li>
+        <li><b>1.1.0</b> Refactor resources, register this inspection.</li>
+        <li><b>1.0.0</b> Release 2018.3 and earlier.</li>
+      </ul>
+    ]]>
+  </change-notes>
+
+  <!-- Text to display as company information on Settings | Plugin page -->
+  <vendor url="https://plugins.jetbrains.com">IntelliJ Platform SDK</vendor>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <!--
+      Extend the IntelliJ Platform local inspection type and connect it to the implementation class in this plugin.
+      <localInspection> type element is applied within the scope of a file under edit.
+      It is preferred over <inspectionToolProvider>
+      @see com.intellij.codeInspection.InspectionProfileEntry
+
+      Attributes:
+        - language - inspection language ID
+        - shortName - not specified, will be computed by the underlying implementation classes
+        - bundle - name of the message bundle for the "key" attribute
+        - key - the key of the message to be shown in the Settings | Editor | Inspections panel
+        - groupPath - defines the outermost grouping for this inspection in
+            the Settings | Editor | Inspections panel. Not localized.
+        - groupBundle - the name of a message bundle file to translate groupKey
+            In this case, reuse an IntelliJ Platform bundle file from intellij.platform.resources.en
+        - groupKey - the key to use for translation subgroup name using groupBundle file.
+            In this case, reuse the IntelliJ Platform subcategory "Probable bugs"
+        - enabledByDefault - inspection state when the Inspections panel is created.
+        - level - the default level of error found by this inspection, e.g. INFO, ERROR, etc.
+            @see com.intellij.codeHighlighting.HighlightDisplayLevel
+        - implementationClass= the fully-qualified name of the inspection implementation class
+    -->
+    <localInspection language="JAVA"
+                     bundle="messages.InspectionBundle"
+                     key="inspection.comparing.string.references.display.name"
+                     groupPath="Java"
+                     groupBundle="messages.InspectionsBundle"
+                     groupKey="group.names.probable.bugs"
+                     enabledByDefault="true"
+                     level="WARNING"
+                     implementationClass="org.intellij.sdk.codeInspection.ComparingStringReferencesInspection"/>
+  </extensions>
+
+</idea-plugin>

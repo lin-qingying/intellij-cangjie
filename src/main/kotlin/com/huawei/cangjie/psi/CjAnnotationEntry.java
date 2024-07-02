@@ -8,6 +8,8 @@ import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class CjAnnotationEntry extends CjElementImplStub<CangJieAnnotationEntryStub> implements CjCallElement  {
 
 
@@ -22,6 +24,17 @@ public class CjAnnotationEntry extends CjElementImplStub<CangJieAnnotationEntryS
     public CjConstructorCalleeExpression getCalleeExpression() {
         return getStubOrPsiChild(CjStubElementTypes.CONSTRUCTOR_CALLEE);
     }
+
+    @Override
+    public @NotNull List<CjLambdaArgument> getLambdaArguments() {
+        return null;
+    }
+
+    @Override
+    public @Nullable CjTypeArgumentList getTypeArgumentList() {
+        return null;
+    }
+
     @Override
     public CjValueArgumentList getValueArgumentList() {
         CangJieAnnotationEntryStub stub = getStub();

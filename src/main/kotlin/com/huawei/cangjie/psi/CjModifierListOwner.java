@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 
-public interface CjModifierListOwner extends PsiElement ,CjElement {
+public interface CjModifierListOwner extends PsiElement ,CjAnnotated {
     @Nullable
     CjModifierList getModifierList();
 

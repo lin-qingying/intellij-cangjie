@@ -14,6 +14,8 @@ fun composeContainer(
 inline fun <reified T : Any> StorageComponentContainer.useImpl() {
     registerSingleton(T::class.java)
 }
+
+
 fun StorageComponentContainer.useInstance(instance: Any) {
     registerInstance(instance)
 }

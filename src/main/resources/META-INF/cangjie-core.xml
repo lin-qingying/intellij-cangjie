@@ -32,11 +32,17 @@
                            language="CangJie"/>
         <quoteHandler fileType="CangJie" className="com.huawei.cangjie.idea.editor.CangJieQuoteHandler"/>
         <backspaceHandlerDelegate implementation="com.huawei.cangjie.idea.editor.CangJieRawStringBackspaceHandler"/>
-        <backspaceHandlerDelegate implementation="com.huawei.cangjie.idea.editor.CangJieStringTemplateBackspaceHandler"/>
+        <backspaceHandlerDelegate
+                implementation="com.huawei.cangjie.idea.editor.CangJieStringTemplateBackspaceHandler"/>
 
-<!--        <treeStructureProvider implementation="com.huawei.cangjie.idea.projectView.CangJieExpandNodeProjectViewProvider" order="last"/>-->
-
-
+        <!--        <treeStructureProvider implementation="com.huawei.cangjie.idea.projectView.CangJieExpandNodeProjectViewProvider" order="last"/>-->
+        <registryKey key="cangjie.resolve.cache.uses.perfile.cache"
+                     description="Allows ResolveElementCache to reuse analysis results of PerFileCache"
+                     defaultValue="true"
+                     restartRequired="true"/>
+        <applicationService
+                serviceInterface="com.huawei.cangjie.references.CjReferenceResolutionHelper"
+                serviceImplementation="com.huawei.cangjie.references.CjReferenceResolutionHelperImpl"/>
         <!-- PSI 管理器 -->
 
         <!--        <lang.fileViewProviderFactory language="CangJie" implementationClass="com.huawei.cangjie.lang.core.psi.CjFileViewProviderFactory"/>-->
@@ -66,8 +72,8 @@
                                        implementationClass="com.huawei.cangjie.highlighter.CangJieSyntaxHighlighterFactory"/>
 
 
-        <stubElementTypeHolder class="com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes"
-                               externalIdPrefix="cangjie."/>
+        <!--        <stubElementTypeHolder class="com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes"-->
+        <!--                               externalIdPrefix="cangjie."/>-->
 
 
         <highlightingPassFactory
@@ -112,9 +118,8 @@
                              groupId="language"
                              id="language.cangjie"
                              bundle="messages.CangJieBundle" key="settings.cangjie.toolchain.name"/>
-<!--注释-->
+        <!--注释-->
         <lang.commenter language="CangJie" implementationClass="com.huawei.cangjie.idea.commenter.CjCommenter"/>
-
 
 
         <executionTargetLanguageRuntimeType
@@ -213,15 +218,15 @@
         <fileIconProvider implementation="com.huawei.cangjie.icon.CjpmIconProvider"/>
 
 
-<!--        <projectService-->
-<!--                serviceInterface="com.huawei.cangjie.cjpm.CjpmConstantsService"-->
-<!--                serviceImplementation="com.huawei.cangjie.cjpm.CjpmConstantsServiceImpl"-->
+        <!--        <projectService-->
+        <!--                serviceInterface="com.huawei.cangjie.cjpm.CjpmConstantsService"-->
+        <!--                serviceImplementation="com.huawei.cangjie.cjpm.CjpmConstantsServiceImpl"-->
 
 
-<!--        />-->
+        <!--        />-->
 
 
-                <projectService
+        <projectService
                 serviceInterface="com.huawei.cangjie.psi.CangJieReferenceProvidersService"
                 serviceImplementation="com.huawei.cangjie.idea.references.CjIdeReferenceProviderService"/>
 
@@ -283,11 +288,15 @@
                 dynamic="true"/>
 
 
-
-
         <extensionPoint qualifiedName="com.huawei.cangjie.diagnosticSuppressor"
                         interface="com.huawei.cangjie.descriptors.DiagnosticSuppressor"
                         dynamic="true"/>
+
+
+        <extensionPoint
+                qualifiedName="com.huawei.cangjie.declarationAttributeAltererExtension"
+                interface="com.huawei.cangjie.extensions.DeclarationAttributeAltererExtension"
+                area="IDEA_PROJECT"/>
 
     </extensionPoints>
 
@@ -359,7 +368,7 @@
     <extensions defaultExtensionNs="lsp">
 
         <!-- LSP -->
-<!--        <serverSupportProvider implementation="com.huawei.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>-->
+        <!--        <serverSupportProvider implementation="com.huawei.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>-->
 
 
     </extensions>

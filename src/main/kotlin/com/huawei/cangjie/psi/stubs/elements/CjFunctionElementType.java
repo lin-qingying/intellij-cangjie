@@ -1,7 +1,7 @@
 package com.huawei.cangjie.psi.stubs.elements;
 
-import com.huawei.cangjie.psi.CjFile;
 import com.huawei.cangjie.name.FqName;
+import com.huawei.cangjie.psi.CjFile;
 import com.huawei.cangjie.psi.CjNamedFunction;
 import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
 import com.huawei.cangjie.psi.stubs.CangJieFunctionStub;
@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-
 
 
 public class CjFunctionElementType extends CjStubElementType<CangJieFunctionStub, CjNamedFunction> {
@@ -36,10 +35,10 @@ public class CjFunctionElementType extends CjStubElementType<CangJieFunctionStub
         boolean hasBlockBody = psi.hasBlockBody();
         boolean hasBody = psi.hasBody();
         return new CangJieFunctionStubImpl(
-                (StubElement<?>) parentStub,CjStubElementTypes.FUNCTION, StringRef.fromString(psi.getName()), isTopLevel, fqName,
+                (StubElement<?>) parentStub, CjStubElementTypes.FUNCTION, StringRef.fromString(psi.getName()), isTopLevel, fqName,
                 isExtension, hasBlockBody, hasBody, psi.hasTypeParameterListBeforeFunctionName(),
-
-
+//                psi.mayHaveContract(),
+                null,
                 null
         );
     }
@@ -58,8 +57,11 @@ public class CjFunctionElementType extends CjStubElementType<CangJieFunctionStub
         dataStream.writeBoolean(stub.hasTypeParameterListBeforeFunctionName());
 //        boolean haveContract = stub.mayHaveContract();
 //        dataStream.writeBoolean(haveContract);
-        if (stub instanceof CangJieFunctionStubImpl stubImpl) {
 
+        if (stub instanceof CangJieFunctionStubImpl stubImpl) {
+//            if (haveContract) {
+//                stubImpl.serializeContract(dataStream);
+//            }
 
             CangJieStubOrigin.serialize(stubImpl.getOrigin(), dataStream);
         }
@@ -80,8 +82,12 @@ public class CjFunctionElementType extends CjStubElementType<CangJieFunctionStub
         boolean hasTypeParameterListBeforeFunctionName = dataStream.readBoolean();
 //        boolean mayHaveContract = dataStream.readBoolean();
         return new CangJieFunctionStubImpl(
-                (StubElement<?>) parentStub,CjStubElementTypes.FUNCTION, name, isTopLevel, fqName, isExtension, hasBlockBody, hasBody,
+                (StubElement<?>) parentStub, CjStubElementTypes.FUNCTION, name, isTopLevel, fqName, isExtension, hasBlockBody, hasBody,
                 hasTypeParameterListBeforeFunctionName,
+//                mayHaveContract,
+//                mayHaveContract ? CangJieFunctionStubImpl.Companion.deserializeContract(dataStream) :
+                        null,
+
 
                 CangJieStubOrigin.deserialize(dataStream)
         );
@@ -89,7 +95,7 @@ public class CjFunctionElementType extends CjStubElementType<CangJieFunctionStub
 
     @Override
     public void indexStub(@NotNull CangJieFunctionStub stub, @NotNull IndexSink sink) {
-//        StubIndexService.getInstance().indexFunction(stub, sink);
+        StubIndexService.getInstance().indexFunction(stub, sink);
     }
 
     @NotNull

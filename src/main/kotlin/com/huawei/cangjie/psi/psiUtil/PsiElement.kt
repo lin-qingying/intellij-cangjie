@@ -1,6 +1,8 @@
 package com.huawei.cangjie.psi.psiUtil
 
+import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.CjFile
+import com.huawei.cangjie.psi.CjModifierList
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project
@@ -85,6 +87,10 @@ fun PsiElement.getPrevSiblingIgnoringWhitespaceAndComments(withItself: Boolean =
     return siblings(withItself = withItself, forward = false).filter { it !is PsiWhiteSpace && it !is PsiComment }
         .firstOrNull()
 }
+fun PsiElement.getNextSiblingIgnoringWhitespaceAndComments(withItself: Boolean = false): PsiElement? {
+    return siblings(withItself = withItself).filter { it !is PsiWhiteSpace && it !is PsiComment }.firstOrNull()
+}
+//fun CjModifierList.hasSuspendModifier() = hasModifier(CjTokens.SUSPEND_KEYWORD)
 
 fun LazyParseablePsiElement.getContainingCjFile(): CjFile {
 

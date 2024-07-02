@@ -47,7 +47,7 @@ private fun Member.bindArguments(
         val descriptor = context.resolve(parameter)
         if (descriptor == null) {
             if (unsatisfied == null)
-                unsatisfied = java.util.ArrayList<Type>()
+                unsatisfied = ArrayList()
             unsatisfied.add(parameter)
         } else {
             bound.add(descriptor)

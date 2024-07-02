@@ -1,6 +1,5 @@
 package com.huawei.cangjie.types
 
-interface CangJieTypeMarker
-interface SimpleTypeMarker : CangJieTypeMarker
-interface TypeArgumentMarker
-interface FlexibleTypeMarker : CangJieTypeMarker
+import com.huawei.cangjie.types.model.CangJieTypeMarker
+
+

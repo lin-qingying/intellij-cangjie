@@ -1,6 +1,6 @@
 package com.huawei.cangjie.psi.psiUtil
 
-import com.huawei.cangjie.psi.CjFile
+import com.huawei.cangjie.CjNodeTypes
 import com.huawei.cangjie.lexer.CangJieLexer
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.FqName
@@ -13,9 +13,31 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.StubElement
 import com.intellij.util.codeInsight.CommentUtilCore
 import java.util.*
+fun PsiElement.isFunctionalExpression(): Boolean = this is CjNamedFunction && nameIdentifier == null
 
+fun CjSimpleNameExpression.getTopmostParentQualifiedExpressionForSelector(): CjQualifiedExpression? {
+    return generateSequence<CjExpression>(this) {
+        val parentQualified = it.parent as? CjQualifiedExpression
+        if (parentQualified?.selectorExpression == it) parentQualified else null
+    }.last() as? CjQualifiedExpression
+}
+fun CjNamedFunction.isContractPresentPsiCheck(isAllowedOnMembers: Boolean): Boolean {
+    val contractAllowedHere =
+        (isAllowedOnMembers || isTopLevel) &&
+                hasBlockBody() &&
+                !hasModifier(CjTokens.OPERATOR_KEYWORD)
+    if (!contractAllowedHere) return false
+
+    val firstExpression = (this as? CjFunction)?.bodyBlockExpression?.statements?.firstOrNull() ?: return false
+
+    return firstExpression.isContractDescriptionCallPsiCheck()
+}
+
+fun CjExpression.isContractDescriptionCallPsiCheck(): Boolean =
+    (this is CjCallExpression && calleeExpression?.text == "contract") || (this is CjQualifiedExpression && isContractDescriptionCallPsiCheck())
 
 fun <D> visitChildren(element: CjElement, visitor: CjVisitor<Void, D>, data: D) {
     var child = element.firstChild
@@ -28,6 +50,30 @@ fun <D> visitChildren(element: CjElement, visitor: CjVisitor<Void, D>, data: D) 
 
 }
 
+private fun StubElement<*>.collectAnnotationEntriesFromStubElement(): List<CjAnnotationEntry> {
+    return childrenStubs.flatMap { child ->
+        when (child.stubType) {
+            CjNodeTypes.ANNOTATION_ENTRY -> listOf(child.psi as CjAnnotationEntry)
+
+            else -> emptyList()
+        }
+    }
+}
+private fun CjAnnotationsContainer.collectAnnotationEntriesFromPsi(): List<CjAnnotationEntry> {
+    return children.flatMap { child ->
+        when (child) {
+            is CjAnnotationEntry -> listOf(child)
+
+            else -> emptyList()
+        }
+    }
+}
+fun CjAnnotationsContainer.collectAnnotationEntriesFromStubOrPsi(): List<CjAnnotationEntry> {
+    return when (this) {
+        is StubBasedPsiElementBase<*> -> stub?.collectAnnotationEntriesFromStubElement() ?: collectAnnotationEntriesFromPsi()
+        else -> collectAnnotationEntriesFromPsi()
+    }
+}
 
 fun StubBasedPsiElementBase<out CangJieClassOrStructStub<out CjClassOrStruct>>.getSuperNames(): List<String> {
     fun addSuperName(result: MutableList<String>, referencedName: String) {

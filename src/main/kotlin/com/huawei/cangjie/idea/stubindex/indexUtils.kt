@@ -4,16 +4,45 @@ import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.stubs.*
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
-import com.intellij.psi.StubBasedPsiElement
 import com.intellij.psi.stubs.IndexSink
 import com.intellij.psi.stubs.NamedStub
 import com.intellij.psi.stubs.StubElement
-import com.intellij.psi.tree.TokenSet
+
+
+fun indexInternals(stub: CangJieCallableStubBase<*>, sink: IndexSink) {
+    val name = stub.name ?: return
+
+    val modifierListStub = stub.modifierList ?: return
 
 
 
+    if (stub.isTopLevel()) return
 
+    if (modifierListStub.hasModifier(CjTokens.OPEN_KEYWORD) || modifierListStub.hasModifier(CjTokens.ABSTRACT_KEYWORD)) {
+        sink.occurrence(CangJieOverridableInternalMembersShortNameIndex.indexKey, name)
+    }
+}
 
+private fun <TDeclaration : CjCallableDeclaration> CangJieExtensionsByReceiverTypeStubIndexHelper.indexExtension(
+    stub: CangJieCallableStubBase<TDeclaration>,
+    sink: IndexSink
+) {
+    if (!stub.isExtension()) return
+
+    val declaration = stub.psi
+    val callableName = declaration.name ?: return
+    val containingTypeReference = declaration.receiverTypeReference!!
+    containingTypeReference.typeElement?.index(declaration, containingTypeReference) { typeName ->
+        sink.occurrence(indexKey, buildKey(typeName, callableName))
+    }
+}
+
+fun <TDeclaration : CjCallableDeclaration> indexTopLevelExtension(
+    stub: CangJieCallableStubBase<TDeclaration>,
+    sink: IndexSink
+) {
+    CangJieTopLevelExtensionsByReceiverTypeIndex.indexExtension(stub, sink)
+}
 
 private fun CjTypeElement.index(
     declaration: CjTypeParameterListOwner,
@@ -51,16 +80,12 @@ private fun CjTypeElement.index(
             }
 
 
-
-
-
             else -> error("Unsupported type: $this")
         }
     }
 
     indexWithVisited(declaration, containingTypeReference, mutableSetOf(), occurrence)
 }
-
 
 
 //private val STRING_TEMPLATE_EMPTY_ARRAY = emptyArray<CjStringTemplateExpression>()
@@ -75,9 +100,6 @@ private fun CjTypeElement.index(
 //    }
 //    return getArgumentExpression() as? CjStringTemplateExpression
 //}
-
-
-
 
 
 private val StubElement<*>.annotatedJvmNameElementName: String?

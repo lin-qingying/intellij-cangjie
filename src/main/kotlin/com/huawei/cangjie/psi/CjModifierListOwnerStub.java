@@ -10,6 +10,9 @@ import org.jetbrains.annotations.Nullable;
 
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 
+import java.util.Collections;
+import java.util.List;
+
 
 public class CjModifierListOwnerStub<T extends StubElement<?>> extends CjElementImplStub<T> implements CjModifierListOwner {
     public CjModifierListOwnerStub(ASTNode node) {
@@ -30,6 +33,21 @@ public class CjModifierListOwnerStub<T extends StubElement<?>> extends CjElement
     public boolean hasModifier(@NotNull CjModifierKeywordToken modifier) {
         CjModifierList modifierList = getModifierList();
         return modifierList != null && modifierList.hasModifier(modifier);
+    }
+
+    @Override
+    public @NotNull List<CjAnnotation> getAnnotations() {
+        CjModifierList modifierList = getModifierList();
+        if (modifierList == null) return Collections.emptyList();
+        return modifierList.getAnnotations();
+    }
+
+    @Override
+    @NotNull
+    public List<CjAnnotationEntry> getAnnotationEntries() {
+        CjModifierList modifierList = getModifierList();
+        if (modifierList == null) return Collections.emptyList();
+        return modifierList.getAnnotationEntries();
     }
 
     @Override

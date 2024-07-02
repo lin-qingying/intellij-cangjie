@@ -1,5 +1,6 @@
 package com.huawei.cangjie.diagnostics;
 
+import com.huawei.cangjie.descriptors.PositioningStrategies;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 

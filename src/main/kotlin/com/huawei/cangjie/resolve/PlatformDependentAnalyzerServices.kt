@@ -52,3 +52,9 @@ abstract class PlatformDependentAnalyzerServices {
 //    open fun dependencyOnBuiltIns(): ModuleInfo.DependencyOnBuiltIns =
 //        ModuleInfo.DependencyOnBuiltIns.LAST
 }
+
+
+ object PlatformDependentAnalyzerServicesImpl : PlatformDependentAnalyzerServices(){
+     override val platformConfigurator: PlatformConfigurator = CangJiePlatformConfigurator
+
+ }

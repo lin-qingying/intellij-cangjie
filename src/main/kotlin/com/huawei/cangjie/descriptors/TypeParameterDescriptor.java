@@ -2,10 +2,12 @@ package com.huawei.cangjie.descriptors;
 
 
 import com.huawei.cangjie.mpp.TypeParameterSymbolMarker;
+import com.huawei.cangjie.storage.StorageManager;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.TypeConstructor;
+import com.huawei.cangjie.types.Variance;
 import com.huawei.cangjie.types.model.TypeParameterMarker;
-import kotlin.reflect.jvm.internal.impl.storage.StorageManager;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -14,6 +16,8 @@ public interface TypeParameterDescriptor extends ClassifierDescriptor, TypeParam
     boolean isReified();
 
 
+    @NotNull
+    Variance getVariance();
     @NotNull
     List<CangJieType> getUpperBounds();
 

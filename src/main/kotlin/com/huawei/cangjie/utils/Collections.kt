@@ -4,6 +4,12 @@ package com.huawei.cangjie.utils
 
 import com.intellij.util.SmartList
 import java.util.*
+fun <E> newHashSetWithExpectedSize(expectedSize: Int): HashSet<E> =
+    HashSet(capacity(expectedSize))
+private fun capacity(expectedSize: Int): Int =
+    if (expectedSize < 3) 3 else expectedSize + expectedSize / 3 + 1
+fun <E> newLinkedHashSetWithExpectedSize(expectedSize: Int): LinkedHashSet<E> =
+    LinkedHashSet(capacity(expectedSize))
 
 @Suppress("UNCHECKED_CAST")
 inline fun <T> buildList(builder: (CollectionBuilder<T>).() -> Unit): List<T> =

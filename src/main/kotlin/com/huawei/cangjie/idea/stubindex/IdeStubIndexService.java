@@ -2,10 +2,8 @@ package com.huawei.cangjie.idea.stubindex;
 
 
 import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.name.ClassId;
 import com.huawei.cangjie.name.FqName;
-import com.huawei.cangjie.name.Name;
-import com.huawei.cangjie.psi.CjClassOrStruct;
+import com.huawei.cangjie.psi.CangJiePsiHeuristics;
 import com.huawei.cangjie.psi.CjFile;
 import com.huawei.cangjie.psi.CjTypeReference;
 import com.huawei.cangjie.psi.stubs.*;
@@ -19,20 +17,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IdeStubIndexService extends StubIndexService{
-
-
-
-
-
-
-
-
-
+public class IdeStubIndexService extends StubIndexService {
 
 
     @Nullable
@@ -41,19 +29,10 @@ public class IdeStubIndexService extends StubIndexService{
     }
 
 
-
-
-
-
-
-
-
-
-
     @NotNull
     @Override
     public CangJieFileStub createFileStub(@NotNull CjFile file) {
-        String packageFqName =file.getPackageFqNameByTree().asString();
+        String packageFqName = file.getPackageFqNameByTree().asString();
 
 
         return new CangJieFileStubImpl(file, packageFqName, null, null, null);
@@ -72,8 +51,7 @@ public class IdeStubIndexService extends StubIndexService{
         List<String> facadePartNames = fileStub.getFacadePartSimpleNames();
         if (facadePartNames == null) {
             dataStream.writeInt(0);
-        }
-        else {
+        } else {
             dataStream.writeInt(facadePartNames.size());
             for (String partName : facadePartNames) {
                 dataStream.writeName(partName);
@@ -81,6 +59,69 @@ public class IdeStubIndexService extends StubIndexService{
         }
     }
 
+    @Override
+    public void indexFunction(@NotNull CangJieFunctionStub stub, @NotNull IndexSink sink) {
+        String name = stub.getName();
+        if (name != null) {
+            sink.occurrence(CangJieFunctionShortNameIndex.Helper.getIndexKey(), name);
+
+//            if (IndexUtilsKt.isDeclaredInObject(stub)) {
+//                IndexUtilsKt.indexExtensionInObject(stub, sink);
+//            }
+
+            CjTypeReference typeReference = stub.getPsi().getTypeReference();
+            if (typeReference != null && CangJiePsiHeuristics.isProbablyNothing(typeReference)) {
+                sink.occurrence(CangJieProbablyNothingFunctionShortNameIndex.Helper.getIndexKey(), name);
+            }
+//
+       /*     if (stub.mayHaveContract()) {
+                sink.occurrence(CangJieProbablyContractedFunctionShortNameIndex.Helper.getIndexKey(), name);
+            }*/
+
+            indexPrime(stub, sink);
+        }
+
+        if (stub.isTopLevel()) {
+            // can have special fq name in case of syntactically incorrect function with no name
+            FqName fqName = stub.getFqName();
+            if (fqName != null) {
+                sink.occurrence(CangJieTopLevelFunctionFqnNameIndex.Helper.getIndexKey(), fqName.asString());
+                sink.occurrence(CangJieTopLevelFunctionByPackageIndex.Helper.getIndexKey(), fqName.parent().asString());
+                IndexUtilsKt.indexTopLevelExtension(stub, sink);
+            }
+        }
+
+        IndexUtilsKt.indexInternals(stub, sink);
+
+    }
+    /**
+     * Indexes non-private top-level symbols or members of top-level objects and companion objects subject to this object serving as namespaces.
+     */
+    private static void indexPrime(CangJieStubWithFqName<?> stub, IndexSink sink) {
+        String name = stub.getName();
+        if (name == null) return;
+
+        CangJieModifierListStub modifierList = getModifierListStub(stub);
+        if (modifierList != null && modifierList.hasModifier(CjTokens.PRIVATE_KEYWORD)) return;
+        if (modifierList != null && modifierList.hasModifier(CjTokens.OVERRIDE_KEYWORD)) return;
+
+        var parent = stub.getParentStub();
+        boolean prime = false;
+        if (parent instanceof CangJieFileStub) {
+            prime = true;
+        }
+//        else if (parent instanceof CangJieStructStub) {
+//            var grand = parent.getParentStub();
+//            boolean primeGrand = grand instanceof CangJieClassStub && ((CangJieClassStub) grand).isTopLevel();
+//
+//            prime = ((CangJieStructStub) parent).isTopLevel() ||
+//                    primeGrand && ((CangJieStructStub) parent).isCompanion();
+//        }
+
+        if (prime) {
+            sink.occurrence(CangJiePrimeSymbolNameIndex.Helper.getIndexKey(), name);
+        }
+    }
     @NotNull
     @Override
     public CangJieFileStub deserializeFileStub(@NotNull StubInputStream dataStream) throws IOException {

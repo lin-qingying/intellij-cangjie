@@ -1,6 +1,14 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
         <projectService
+                serviceInterface="com.huawei.cangjie.resolve.CodeAnalyzerInitializer"
+                serviceImplementation="com.huawei.cangjie.resolve.DummyCodeAnalyzerInitializer"/>
+        <registryKey
+                key="cangjie.dispatch.thread.resolve.check"
+                description="Whether to enable the check for resolve activated from the write action"
+                defaultValue="false"
+                restartRequired="false"/>
+        <projectService
                 serviceInterface="com.huawei.cangjie.resolve.caches.CangJieCacheService"
                 serviceImplementation="com.huawei.cangjie.resolve.caches.CangJieCacheServiceImpl"/>
     </extensions>

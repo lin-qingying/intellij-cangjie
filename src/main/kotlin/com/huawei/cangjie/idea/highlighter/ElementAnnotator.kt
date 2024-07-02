@@ -17,7 +17,7 @@ internal class ElementAnnotator(
         highlightInfoByDiagnostic: MutableMap<Diagnostic, HighlightInfo>?,
         calculatingInProgress: Boolean
     ) = diagnostics.groupBy { it.factory }
-        .forEach {
+//        .forEach {
 //            val sameTypeDiagnostics = it.value
 //            val presentationInfo = presentationInfo(sameTypeDiagnostics)
 //            if (presentationInfo != null) {
@@ -29,7 +29,7 @@ internal class ElementAnnotator(
 //                    }
 //                presentationInfo.processDiagnostics(holder, sameTypeDiagnostics, highlightInfoByDiagnostic, fixesMap, calculatingInProgress)
 //            }
-
-            TODO()
-        }
+//
+//            TODO()
+//        }
 }

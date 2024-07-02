@@ -4,6 +4,11 @@ import com.huawei.cangjie.psi.*;
 import com.intellij.psi.tree.TokenSet;
 
 public interface CjStubElementTypes {
+
+    CjConstantExpressionElementType NULL                = new CjConstantExpressionElementType("NULL");
+
+    CjPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
+            new CjPlaceHolderStubElementType<>("ANNOTATION", CjAnnotation.class);
     CjPropertyAccessorElementType PROPERTY_ACCESSOR = new CjPropertyAccessorElementType("PROPERTY_ACCESSOR");
     CjPlaceHolderStubElementType<CjFunctionType> FUNCTION_TYPE =
             new CjPlaceHolderStubElementType<>("FUNCTION_TYPE", CjFunctionType.class);
@@ -142,9 +147,9 @@ public interface CjStubElementTypes {
     CjDotQualifiedExpressionElementType DOT_QUALIFIED_EXPRESSION = new CjDotQualifiedExpressionElementType("DOT_QUALIFIED_EXPRESSION");
 
     CjMainFunctionElementType MAIN_FUNC = new CjMainFunctionElementType("MAIN_FUNC");
-    CJClassInitElementType CLASS_INIT = new CJClassInitElementType("CLASS_INIT");
-    CJClassInitElementType CLASS_MAIN_INIT = new CJClassInitElementType("CLASS_MAIN_INIT");
-    CJClassInitElementType CLASS_TILDE_INIT = new CJClassInitElementType("CLASS_TILDE_INIT");
+    CjClassInitElementType CLASS_INIT = new CjClassInitElementType("CLASS_INIT");
+    CjClassInitElementType CLASS_MAIN_INIT = new CjClassInitElementType("CLASS_MAIN_INIT");
+    CjClassInitElementType CLASS_TILDE_INIT = new CjClassInitElementType("CLASS_TILDE_INIT");
 
     CjBasicTypeElementType BASIC_TYPE = new CjBasicTypeElementType("BASIC_TYPE");
     CjPlaceHolderStubElementType<CjStringTemplateExpression> STRING_TEMPLATE =

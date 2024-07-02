@@ -24,6 +24,8 @@ public interface ClassDescriptor extends ClassifierDescriptorWithTypeParameters,
         RegularClassSymbolMarker {
     @NotNull
     MemberScope getMemberScope(@NotNull List<? extends TypeProjection> typeArguments);
+    @NotNull
+    ReceiverParameterDescriptor getThisAsReceiverParameter();
 
     @NotNull
     MemberScope getMemberScope(@NotNull TypeSubstitution typeSubstitution);
@@ -69,11 +71,11 @@ public interface ClassDescriptor extends ClassifierDescriptorWithTypeParameters,
     @NotNull
     DescriptorVisibility getVisibility();
 
-    boolean isCompanionObject();
+//    boolean isCompanionObject();
 
-    boolean isData();
-
-    boolean isInline();
+//    boolean isData();
+//
+//    boolean isInline();
 
     boolean isFun();
 

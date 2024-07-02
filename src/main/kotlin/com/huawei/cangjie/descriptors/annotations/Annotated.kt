@@ -6,6 +6,29 @@ interface Annotated {
     val annotations: Annotations
 }
 
+class CompositeAnnotations(
+    private val delegates: List<Annotations>
+) : Annotations {
+    constructor(vararg delegates: Annotations) : this(delegates.toList())
+
+    override fun isEmpty() = delegates.all { it.isEmpty() }
+
+    override fun hasAnnotation(fqName: FqName) = delegates.asSequence().any { it.hasAnnotation(fqName) }
+
+    override fun findAnnotation(fqName: FqName) = delegates.asSequence().mapNotNull { it.findAnnotation(fqName) }.firstOrNull()
+
+    @Suppress("DEPRECATION", "OverridingDeprecatedMember", "OVERRIDE_DEPRECATION")
+    override fun getUseSiteTargetedAnnotations() = delegates.flatMap { it.getUseSiteTargetedAnnotations() }
+
+    override fun iterator() = delegates.asSequence().flatMap { it.asSequence() }.iterator()
+}
+fun composeAnnotations(first: Annotations, second: Annotations) =
+    when {
+        first.isEmpty() -> second
+        second.isEmpty() -> first
+        else -> CompositeAnnotations(first, second)
+    }
+
 interface Annotations : Iterable<AnnotationDescriptor> {
     fun isEmpty(): Boolean
 

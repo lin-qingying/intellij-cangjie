@@ -1,0 +1,25 @@
+<!-- Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license. -->
+
+# IntelliJ IDEA Ultimate
+
+<link-summary>The IntelliJ IDEA Ultimate section overview.</link-summary>
+
+<var name="productID" value="idea"/>
+<var name="marketplaceProductID" value="idea"/>
+<include from="snippets.md" element-id="jetbrainsIDE_TLDR"/>
+
+IntelliJ IDEA Ultimate comes with a number of additional features and bundled plugins.
+<include from="idea.md" element-id="idea_editions"/>
+
+<include from="snippets.md" element-id="jetbrainsProductOpenSourceLicense"/>
+
+## Bundled Open Source Plugins API
+
+See [](oss_plugins_extension_point_list.md) on how to extend bundled plugins.
+
+## IntelliJ IDEA Ultimate API
+
+The following pages describe targeting APIs which are available only in IntelliJ IDEA Ultimate:
+
+* [Tomcat Integration](tomcat_integration.md)
+* [Spring API](spring_api.md)

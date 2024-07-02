@@ -11,26 +11,33 @@ import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
 
 import java.io.IOException
-
 open class StubIndexService protected constructor() {
     open fun indexFile(stub: CangJieFileStub, sink: IndexSink) {
     }
 
     open fun indexClass(stub: CangJieClassStub, sink: IndexSink) {
     }
-    open fun indexInterface(stub: CangJieInterfaceStub, sink: IndexSink) {
-    }
+
     open fun indexFunction(stub: CangJieFunctionStub, sink: IndexSink) {
     }
 
+    open fun indexTypeAlias(stub: CangJieTypeAliasStub, sink: IndexSink) {
+    }
 
-
+    open fun indexStruct(stub: CangJieStructStub, sink: IndexSink) {
+    }
     open fun indexVariable(stub: CangJieVariableStub, sink: IndexSink) {
+    }
+    open fun indexProperty(stub: CangJiePropertyStub, sink: IndexSink) {
     }
 
     open fun indexParameter(stub: CangJieParameterStub, sink: IndexSink) {
     }
+    open   fun indexInterface(stub: CangJieInterfaceStub, sink: IndexSink) {
 
+    }
+    open fun indexAnnotation(stub: CangJieAnnotationEntryStub, sink: IndexSink) {
+    }
 
 
     open fun createFileStub(file: CjFile): CangJieFileStub {
@@ -47,12 +54,10 @@ open class StubIndexService protected constructor() {
     open fun deserializeFileStub(dataStream: StubInputStream): CangJieFileStub {
         val packageFqNameAsString = dataStream.readName()
 
-        return CangJieFileStubImpl(null, packageFqNameAsString!!.string)
+        return CangJieFileStubImpl(null, packageFqNameAsString!!.string )
     }
 
-  open  fun indexStruct(stub: CangJieStructStub, sink: IndexSink) {
 
-    }
 
     companion object {
         @JvmStatic

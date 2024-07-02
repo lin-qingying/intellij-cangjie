@@ -13,7 +13,13 @@ inline fun <T> SimpleLock.guarded(crossinline computable: () -> T): T {
     }
 }
 private const val CHECK_CANCELLATION_PERIOD_MS: Long = 50
+object EmptySimpleLock : SimpleLock {
+    override fun lock() {
+    }
 
+    override fun unlock() {
+    }
+}
 interface SimpleLock {
     fun lock()
 

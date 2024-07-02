@@ -5,12 +5,13 @@ import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.stubs.IStubElementType
 
+
 class CjClassInit: CjFunctionImpl {
 
     constructor(node: ASTNode) : super(node)
 
-
+//
     constructor(stub: CangJieFunctionStub): super(stub, CjStubElementTypes.CLASS_INIT)
-
-    constructor(stub: CangJieFunctionStub, nodeType: IStubElementType<*,*>): super(stub, nodeType)
+//
+    constructor(stub: CangJieFunctionStub, nodeType: IStubElementType<*, *>): super(stub, nodeType)
 }

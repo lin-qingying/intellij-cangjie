@@ -19,6 +19,7 @@ interface BindingTrace : DiagnosticSink {
 
     fun <K, V> record(slice:  WritableSlice<K, V>, key: K, value: V)
 
-
-    fun <K, V> get(slice: ReadOnlySlice<K, V>, key: K): V?
+    // Writes TRUE for a boolean value
+    fun <K> record(slice: WritableSlice<K, Boolean>, key: K)
+    operator fun <K, V> get(slice: ReadOnlySlice<K, V>, key: K): V?
 }

@@ -42,7 +42,7 @@ public class CjMainFunctionElementType extends CjStubElementType<CangJieFunction
                 parentStub,CjStubElementTypes.MAIN_FUNC, StringRef.fromString(psi.getName()), isTopLevel, fqName,
                 isExtension, hasBlockBody, hasBody, psi.hasTypeParameterListBeforeFunctionName(),
 
-
+null,
              null
         );
     }
@@ -86,7 +86,7 @@ public class CjMainFunctionElementType extends CjStubElementType<CangJieFunction
         return new CangJieFunctionStubImpl(
                 (StubElement<?>) parentStub,CjStubElementTypes.MAIN_FUNC, name, isTopLevel, fqName, isExtension, hasBlockBody, hasBody,
                 hasTypeParameterListBeforeFunctionName,
-
+null,
                 CangJieStubOrigin.deserialize(dataStream)
         );
     }

@@ -7,9 +7,11 @@ interface PackageViewDescriptor : DeclarationDescriptor {
 
     val fqName: FqName
 
+    override val containingDeclaration: PackageViewDescriptor?
+
     val memberScope: MemberScope
 
-//    val module: ModuleDescriptor
+    val module: ModuleDescriptor
 
     val fragments: List<PackageFragmentDescriptor>
 
