@@ -1,12 +1,13 @@
 package com.huawei.cangjie.types
 
 import com.huawei.cangjie.types.checker.AbstractTypePreparator
-import com.huawei.cangjie.types.model.CangJieTypeMarker
-import com.huawei.cangjie.types.model.SimpleTypeMarker
-import com.huawei.cangjie.types.model.TypeCheckerProviderContext
-import com.huawei.cangjie.types.model.TypeSystemContext
+import com.huawei.cangjie.types.model.*
+import com.huawei.cangjie.utils.SmartSet
+import java.util.*
 
 object AbstractTypeChecker {
+    @JvmField
+    var RUN_SLOW_ASSERTIONS = false
     fun equalTypes(
         context: TypeCheckerProviderContext,
         a: CangJieTypeMarker,
@@ -15,6 +16,18 @@ object AbstractTypeChecker {
     ): Boolean {
         return equalTypes(context.newTypeCheckerState(false, stubTypesEqualToAnything), a, b)
     }
+
+    fun effectiveVariance(declared: TypeVariance, useSite: TypeVariance): TypeVariance? {
+        if (declared == TypeVariance.INV) return useSite
+        if (useSite == TypeVariance.INV) return declared
+
+        // both not INVARIANT
+        if (declared == useSite) return declared
+
+        // composite In with Out
+        return null
+    }
+
 
     fun equalTypes(state: TypeCheckerState, a: CangJieTypeMarker, b: CangJieTypeMarker): Boolean =
         with(state.typeSystemContext) {
@@ -172,12 +185,94 @@ open class TypeCheckerState(
     val cangjieTypePreparator: AbstractTypePreparator,
     val cangjieTypeRefiner: AbstractTypeRefiner
 ) {
+    sealed class SupertypesPolicy {
+        abstract fun transformType(state: TypeCheckerState, type: CangJieTypeMarker): SimpleTypeMarker
+
+        object None : SupertypesPolicy() {
+            override fun transformType(state: TypeCheckerState, type: CangJieTypeMarker) =
+                throw UnsupportedOperationException("Should not be called")
+        }
+
+        object UpperIfFlexible : SupertypesPolicy() {
+            override fun transformType(state: TypeCheckerState, type: CangJieTypeMarker) =
+                with(state.typeSystemContext) { type.upperBoundIfFlexible() }
+        }
+
+        object LowerIfFlexible : SupertypesPolicy() {
+            override fun transformType(state: TypeCheckerState, type: CangJieTypeMarker) =
+                with(state.typeSystemContext) { type.lowerBoundIfFlexible() }
+        }
+
+        abstract class DoCustomTransform : SupertypesPolicy()
+    }
+
+    private var supertypesLocked = false
+    var supertypesDeque: ArrayDeque<SimpleTypeMarker>? = null
+        private set
+    var supertypesSet: MutableSet<SimpleTypeMarker>? = null
+        private set
 
     open fun addSubtypeConstraint(
         subType: CangJieTypeMarker,
         superType: CangJieTypeMarker,
         isFromNullabilityConstraint: Boolean = false
     ): Boolean? = null
+
+    fun initialize() {
+        assert(!supertypesLocked) {
+            "Supertypes were locked for ${this::class}"
+        }
+        supertypesLocked = true
+
+        if (supertypesDeque == null) {
+            supertypesDeque = ArrayDeque(4)
+        }
+        if (supertypesSet == null) {
+            supertypesSet = SmartSet.create()
+        }
+    }
+
+    inline fun anySupertype(
+        start: SimpleTypeMarker,
+        predicate: (SimpleTypeMarker) -> Boolean,
+        supertypesPolicy: (SimpleTypeMarker) -> SupertypesPolicy
+    ): Boolean {
+        if (predicate(start)) return true
+
+        initialize()
+
+        val deque = supertypesDeque!!
+        val visitedSupertypes = supertypesSet!!
+
+        deque.push(start)
+        while (deque.isNotEmpty()) {
+            if (visitedSupertypes.size > 1000) {
+                error("Too many supertypes for type: $start. Supertypes = ${visitedSupertypes.joinToString()}")
+            }
+            val current = deque.pop()
+            if (!visitedSupertypes.add(current)) continue
+
+            val policy = supertypesPolicy(current).takeIf { it != SupertypesPolicy.None } ?: continue
+            val supertypes = with(typeSystemContext) { current.typeConstructor().supertypes() }
+            for (supertype in supertypes) {
+                val newType = policy.transformType(this, supertype)
+                if (predicate(newType)) {
+                    clear()
+                    return true
+                }
+                deque.add(newType)
+            }
+        }
+
+        clear()
+        return false
+    }
+
+    fun clear() {
+        supertypesDeque!!.clear()
+        supertypesSet!!.clear()
+        supertypesLocked = false
+    }
 
     @OptIn(TypeRefinement::class)
     fun refineType(type: CangJieTypeMarker): CangJieTypeMarker {
@@ -188,4 +283,19 @@ open class TypeCheckerState(
     fun prepareType(type: CangJieTypeMarker): CangJieTypeMarker {
         return cangjieTypePreparator.prepareType(type)
     }
+}
+
+object AbstractNullabilityChecker {
+    fun TypeCheckerState.hasNotNullSupertype(
+        type: SimpleTypeMarker, supertypesPolicy:
+        TypeCheckerState.SupertypesPolicy
+    ) =
+        with(typeSystemContext) {
+            anySupertype(type, {
+                (it.isClassType() && !it.isMarkedNullable()) || it.isDefinitelyNotNullType()
+            }) {
+                if (it.isMarkedNullable()) TypeCheckerState.SupertypesPolicy.None else supertypesPolicy
+            }
+        }
+
 }

@@ -1,11 +1,13 @@
 package com.huawei.cangjie.frontend
 
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.container.*
 import com.huawei.cangjie.context.ModuleContext
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.incremental.components.LookupTracker
 import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.calls.components.ClassicTypeSystemContextForCS
+import com.huawei.cangjie.resolve.calls.inference.components.ClassicConstraintSystemUtilContext
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactoryImpl
 import com.huawei.cangjie.resolve.calls.tower.CangJieResolutionStatelessCallbacksImpl
 import com.huawei.cangjie.resolve.lazy.*
@@ -58,7 +60,7 @@ private fun StorageComponentContainer.configurePlatformIndependentComponents() {
 //    useImpl<CompilerDeserializationConfiguration>()
 //
     useImpl<ClassicTypeSystemContextForCS>()
-//    useImpl<ClassicConstraintSystemUtilContext>()
+    useImpl<ClassicConstraintSystemUtilContext>()
     useInstance(ProgressManagerBasedCancellationChecker)
 }
 
@@ -70,7 +72,7 @@ fun createContainerForBodyResolve(
     analyzerServices: PlatformDependentAnalyzerServices,
 //    declarationProviderFactory: DeclarationProviderFactory,
 
-//    languageVersionSettings: LanguageVersionSettings,
+    languageVersionSettings: LanguageVersionSettings,
 //    moduleStructureOracle: ModuleStructureOracle,
 //    sealedProvider: SealedClassInheritorsProvider,
 //    controlFlowInformationProviderFactory: ControlFlowInformationProvider.Factory,
@@ -78,7 +80,7 @@ fun createContainerForBodyResolve(
 ): StorageComponentContainer = createContainer("BodyResolve", analyzerServices) {
     configure(
         moduleContext, analyzerServices, bindingTrace,
-
+        languageVersionSettings,
         absentDescriptorHandlerClass = if (absentDescriptorHandler == null) BasicAbsentDescriptorHandler::class.java else null
     )
     useInstanceIfNotNull(absentDescriptorHandler)
@@ -101,7 +103,7 @@ fun StorageComponentContainer.configure(
 //    platform: TargetPlatform,
     analyzerServices: PlatformDependentAnalyzerServices,
     trace: BindingTrace,
-//    languageVersionSettings: LanguageVersionSettings,
+    languageVersionSettings: LanguageVersionSettings,
 //    sealedProvider: SealedClassInheritorsProvider = CliSealedClassInheritorsProvider,
 //    optimizingOptions: OptimizingOptions?,
     absentDescriptorHandlerClass: Class<out AbsentDescriptorHandler>?
@@ -112,6 +114,7 @@ fun StorageComponentContainer.configure(
     useInstance(trace)
     useInstance(context)
     useInstance(context.module)
+    useInstance(languageVersionSettings)
 
     useInstance(context.project)
     useInstance(context.storageManager)
@@ -129,55 +132,55 @@ fun StorageComponentContainer.configure(
 
 }
 
-fun createContainerForLazyLocalClassifierAnalyzer(
-    moduleContext: ModuleContext,
-    bindingTrace: BindingTrace,
-
-    lookupTracker: LookupTracker,
-
-//    statementFilter: StatementFilter,
-    localClassDescriptorHolder: LocalClassDescriptorHolder,
-    analyzerServices: PlatformDependentAnalyzerServices,
-//    controlFlowInformationProviderFactory: ControlFlowInformationProvider.Factory,
-    absentDescriptorHandler: AbsentDescriptorHandler?
-): StorageComponentContainer = createContainer("LocalClassifierAnalyzer", analyzerServices) {
-    configure(
-        moduleContext,
-
-        analyzerServices,
-        bindingTrace,
-
-
-        absentDescriptorHandlerClass = null
-    )
-
-    if (absentDescriptorHandler != null) {
-        useInstance(absentDescriptorHandler)
-    }
-    useInstance(localClassDescriptorHolder)
-    useInstance(lookupTracker)
-    /*
-        useInstance(ExpectActualTracker.DoNothing)
-        useInstance(InlineConstTracker.DoNothing)
-        useInstance(EnumWhenTracker.DoNothing)
-    */
-
-    useImpl<LazyTopDownAnalyzer>()
-
-//    useInstance(NoTopLevelDescriptorProvider)
+//fun createContainerForLazyLocalClassifierAnalyzer(
+//    moduleContext: ModuleContext,
+//    bindingTrace: BindingTrace,
 //
-//    TargetEnvironment.configureCompilerEnvironment(this)
-//    useInstance(controlFlowInformationProviderFactory)
-
-
-    useInstance(FileScopeProvider.ThrowException)
-    useImpl<AnnotationResolverImpl>()
-
-    useImpl<DeclarationScopeProviderForLocalClassifierAnalyzer>()
-    useImpl<LocalLazyDeclarationResolver>()
-
-//    useInstance(statementFilter)
-}
+//    lookupTracker: LookupTracker,
+//
+////    statementFilter: StatementFilter,
+//    localClassDescriptorHolder: LocalClassDescriptorHolder,
+//    analyzerServices: PlatformDependentAnalyzerServices,
+////    controlFlowInformationProviderFactory: ControlFlowInformationProvider.Factory,
+//    absentDescriptorHandler: AbsentDescriptorHandler?
+//): StorageComponentContainer = createContainer("LocalClassifierAnalyzer", analyzerServices) {
+//    configure(
+//        moduleContext,
+//
+//        analyzerServices,
+//        bindingTrace,
+//
+//
+//        absentDescriptorHandlerClass = null
+//    )
+//
+//    if (absentDescriptorHandler != null) {
+//        useInstance(absentDescriptorHandler)
+//    }
+//    useInstance(localClassDescriptorHolder)
+//    useInstance(lookupTracker)
+//    /*
+//        useInstance(ExpectActualTracker.DoNothing)
+//        useInstance(InlineConstTracker.DoNothing)
+//        useInstance(EnumWhenTracker.DoNothing)
+//    */
+//
+//    useImpl<LazyTopDownAnalyzer>()
+//
+////    useInstance(NoTopLevelDescriptorProvider)
+////
+////    TargetEnvironment.configureCompilerEnvironment(this)
+////    useInstance(controlFlowInformationProviderFactory)
+//
+//
+//    useInstance(FileScopeProvider.ThrowException)
+//    useImpl<AnnotationResolverImpl>()
+//
+//    useImpl<DeclarationScopeProviderForLocalClassifierAnalyzer>()
+//    useImpl<LocalLazyDeclarationResolver>()
+//
+////    useInstance(statementFilter)
+//}
 
 
 fun createContainerForLazyResolve(
@@ -187,18 +190,23 @@ fun createContainerForLazyResolve(
     declarationProviderFactory: DeclarationProviderFactory,
 //    moduleContentScope: GlobalSearchScope,
 
+    languageVersionSettings: LanguageVersionSettings,
 
     absentDescriptorHandlerClass: Class<out AbsentDescriptorHandler>? = null
+
 ) = createContainer("LazyResolveWith", PlatformDependentAnalyzerServicesImpl)
 {
     configure(
         context,
         PlatformDependentAnalyzerServicesImpl,
         bindingTrace,
-        absentDescriptorHandlerClass
+        languageVersionSettings,
+
+        absentDescriptorHandlerClass,
+
     )
 
-    val builtIns = context.module.builtIns
+//    val builtIns = context.module.builtIns
 //    if (useBuiltInsProvider && builtIns is JvmBuiltIns) {
         // TODO(dsavvinov): make sure that useBuiltInsProvider == true <=> builtIns is JvmBuiltIns
         // Currently, that's not the case at least in IDE unit-tests, because they do not set-up
@@ -228,9 +236,9 @@ fun createContainerForLazyBodyResolve(
 //    platform: TargetPlatform,
     bodyResolveCache: BodyResolveCache,
     analyzerServices: PlatformDependentAnalyzerServices,
-    declarationProviderFactory: DeclarationProviderFactory,
+//    declarationProviderFactory: DeclarationProviderFactory,
 
-//    languageVersionSettings: LanguageVersionSettings,
+    languageVersionSettings: LanguageVersionSettings,
 //    moduleStructureOracle: ModuleStructureOracle,
 //    mainFunctionDetectorFactory: MainFunctionDetector.Factory,
 //    sealedProvider: SealedClassInheritorsProvider,
@@ -243,6 +251,7 @@ fun createContainerForLazyBodyResolve(
         context,
         analyzerServices,
         bindingTrace,
+        languageVersionSettings,
 
         absentDescriptorHandlerClass = BasicAbsentDescriptorHandler::class.java.takeIf { absentDescriptorHandler == null }
     )

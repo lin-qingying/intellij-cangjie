@@ -202,7 +202,7 @@ class EmptyLabeledReturn(
 ) : ExpressionCangJieCallArgument {
     override val isSpread: Boolean get() = false
     override val argumentName: Name? get() = null
-    override val receiver = ReceiverValueWithSmartCastInfo(TransientReceiver(builtIns.getUnitType()), emptySet(), true)
+    override val receiver = ReceiverValueWithSmartCastInfo(TransientReceiver(builtIns.unitType), emptySet(), true)
     override val isSafeCall: Boolean get() = false
 }
 

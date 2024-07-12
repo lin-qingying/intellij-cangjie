@@ -9,6 +9,7 @@ import com.huawei.cangjie.context.withProject
 import com.huawei.cangjie.descriptors.DiagnosticSink
 import com.huawei.cangjie.frontend.createContainerForLazyResolve
 import com.huawei.cangjie.idea.cache.trackers.CangJieCodeBlockModificationListener
+import com.huawei.cangjie.idea.projectStructure.languageVersionSettings
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.resolve.CodeAnalyzerInitializer
@@ -93,7 +94,7 @@ class ProjectResolutionFacade(
                     componentProvider = createContainerForLazyResolve(
                         globalContext.withProject(project)
                             .withModule(moduleDescriptor),
-                        trace, declarationProviderFactory, IdeaAbsentDescriptorHandler::class.java
+                        trace, declarationProviderFactory,file.languageVersionSettings,  IdeaAbsentDescriptorHandler::class.java
                     )
                     return PerFileAnalysisCache(
                         file,

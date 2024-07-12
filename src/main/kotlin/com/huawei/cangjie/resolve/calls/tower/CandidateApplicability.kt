@@ -124,3 +124,9 @@ enum class CandidateApplicability {
  */
 val CandidateApplicability.shouldStopResolve: Boolean
     get() = this >= CandidateApplicability.K2_SYNTHETIC_RESOLVED
+/**
+ * This property determines that the considered candidate is "successful" in terms of having no resolve errors.
+ * Note that it does not necessarily mean tower resolve should stop on this candidate.
+ */
+val CandidateApplicability.isSuccess: Boolean
+    get() = this >= CandidateApplicability.RESOLVED_LOW_PRIORITY && this != CandidateApplicability.RESOLVED_WITH_ERROR

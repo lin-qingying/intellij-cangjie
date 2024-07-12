@@ -1,10 +1,9 @@
 package com.huawei.cangjie.resolve.calls
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
-import com.huawei.cangjie.psi.CjExpression
-import com.huawei.cangjie.psi.CjPsiUtil
-import com.huawei.cangjie.psi.CjReferenceExpression
-import com.huawei.cangjie.psi.CjSimpleNameExpression
+import com.huawei.cangjie.descriptors.ConstructorDescriptor
+import com.huawei.cangjie.descriptors.FunctionDescriptor
+import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.QualifiedExpressionResolver
 import com.huawei.cangjie.resolve.calls.context.TemporaryTraceAndCache
@@ -22,9 +21,13 @@ import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo
 import com.intellij.lang.ASTNode
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
 import com.huawei.cangjie.resolve.calls.context.CheckArgumentTypesMode
+import com.huawei.cangjie.resolve.calls.context.ResolutionContext
+import com.huawei.cangjie.resolve.calls.model.DataFlowInfoForArgumentsImpl
+import com.huawei.cangjie.resolve.calls.model.ResolvedCall
 import com.huawei.cangjie.resolve.calls.util.getCalleeExpressionIfAny
 
 import com.huawei.cangjie.resolve.scopes.receivers.Qualifier
+import com.huawei.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 
 class CallExpressionResolver(
     private val callResolver: CallResolver,
@@ -90,7 +93,22 @@ class CallExpressionResolver(
 
 //        resolveQualifierAsReceiverInExpression(qualifier, selectorDescriptor, context)
     }
-
+    private fun getResolvedCallForFunction(
+        call: Call,
+        context: ResolutionContext<*>,
+        checkArguments: CheckArgumentTypesMode,
+        initialDataFlowInfoForArguments: DataFlowInfo
+    ): Pair<Boolean, ResolvedCall<FunctionDescriptor>?> {
+        val results = callResolver.resolveFunctionCall(
+            BasicCallResolutionContext.create(
+                context, call, checkArguments, DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
+            )
+        )
+        return if (!results.isNothing)
+            Pair(true, OverloadResolutionResultsUtil.getResultingCall(results, context))
+        else
+            Pair(false, null)
+    }
     private fun getSimpleNameExpressionTypeInfo(
         nameExpression: CjSimpleNameExpression, receiver: Receiver?,
         callOperationNode: ASTNode?, context: ExpressionTypingContext,
@@ -105,40 +123,40 @@ class CallExpressionResolver(
             context.replaceTraceAndCache(temporaryForVariable)
         )
 
-//        if (notNothing) {
-//            temporaryForVariable.commit()
-//            return createTypeInfo(type, initialDataFlowInfoForArguments)
-//        }
-//
-//        val call = CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression, emptyList())
-//        val temporaryForFunction = TemporaryTraceAndCache.create(
-//            context, "trace to resolve as function", nameExpression
-//        )
-//        val newContext = context.replaceTraceAndCache(temporaryForFunction)
-//        val (resolveResult, resolvedCall) = getResolvedCallForFunction(
-//            call, newContext, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, initialDataFlowInfoForArguments
-//        )
-//        if (resolveResult) {
-//            val functionDescriptor = resolvedCall?.resultingDescriptor
-//            if (functionDescriptor !is ConstructorDescriptor) {
-//                temporaryForFunction.commit()
-//                val hasValueParameters = functionDescriptor == null || functionDescriptor.valueParameters.size > 0
-//                context.trace.report(FUNCTION_CALL_EXPECTED.on(nameExpression, nameExpression, hasValueParameters))
-//                return createTypeInfo(functionDescriptor?.returnType, context)
-//            }
-//        }
-//
-//        val temporaryForQualifier =
-//            TemporaryTraceAndCache.create(context, "trace to resolve as qualifier", nameExpression)
-//        val contextForQualifier = context.replaceTraceAndCache(temporaryForQualifier)
-//        qualifiedExpressionResolver.resolveNameExpressionAsQualifierForDiagnostics(
-//            nameExpression,
-//            receiver,
-//            contextForQualifier
-//        )?.let {
-//            resolveQualifierAsStandaloneExpression(it, contextForQualifier)
-//            temporaryForQualifier.commit()
-//        } ?: temporaryForVariable.commit()
+        if (notNothing) {
+            temporaryForVariable.commit()
+            return createTypeInfo(type, initialDataFlowInfoForArguments)
+        }
+
+        val call = CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression, emptyList())
+        val temporaryForFunction = TemporaryTraceAndCache.create(
+            context, "trace to resolve as function", nameExpression
+        )
+        val newContext = context.replaceTraceAndCache(temporaryForFunction)
+        val (resolveResult, resolvedCall) = getResolvedCallForFunction(
+            call, newContext, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, initialDataFlowInfoForArguments
+        )
+        if (resolveResult) {
+            val functionDescriptor = resolvedCall?.resultingDescriptor
+            if (functionDescriptor !is ConstructorDescriptor) {
+                temporaryForFunction.commit()
+                val hasValueParameters = functionDescriptor == null || functionDescriptor.valueParameters.size > 0
+                context.trace.report(FUNCTION_CALL_EXPECTED.on(nameExpression, nameExpression, hasValueParameters))
+                return createTypeInfo(functionDescriptor?.returnType, context)
+            }
+        }
+
+        val temporaryForQualifier =
+            TemporaryTraceAndCache.create(context, "trace to resolve as qualifier", nameExpression)
+        val contextForQualifier = context.replaceTraceAndCache(temporaryForQualifier)
+        qualifiedExpressionResolver.resolveNameExpressionAsQualifierForDiagnostics(
+            nameExpression,
+            receiver,
+            contextForQualifier
+        )?.let {
+            resolveQualifierAsStandaloneExpression(it, contextForQualifier)
+            temporaryForQualifier.commit()
+        } ?: temporaryForVariable.commit()
         return noTypeInfo(context)
     }
 }

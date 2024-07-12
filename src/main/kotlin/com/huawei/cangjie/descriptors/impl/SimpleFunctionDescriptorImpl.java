@@ -8,10 +8,7 @@ import com.huawei.cangjie.types.CangJieType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SimpleFunctionDescriptorImpl extends FunctionDescriptorImpl implements SimpleFunctionDescriptor {
     protected SimpleFunctionDescriptorImpl(
@@ -24,8 +21,6 @@ public class SimpleFunctionDescriptorImpl extends FunctionDescriptorImpl impleme
     ) {
         super(containingDeclaration, original, annotations, name, kind, source);
     }
-
-
 
 
     @NotNull
@@ -50,7 +45,7 @@ public class SimpleFunctionDescriptorImpl extends FunctionDescriptorImpl impleme
             @Nullable Modality modality,
             @NotNull DescriptorVisibility visibility
     ) {
-        return initialize(extensionReceiverParameter, dispatchReceiverParameter, Collections.<ReceiverParameterDescriptor>emptyList(),
+        return initialize(extensionReceiverParameter, dispatchReceiverParameter, Collections.emptyList(),
                 typeParameters, unsubstitutedValueParameters, unsubstitutedReturnType, modality, visibility, null);
     }
 
@@ -119,6 +114,7 @@ public class SimpleFunctionDescriptorImpl extends FunctionDescriptorImpl impleme
         );
     }
 
+
     @NotNull
     @Override
     public SimpleFunctionDescriptor copy(
@@ -137,7 +133,6 @@ public class SimpleFunctionDescriptorImpl extends FunctionDescriptorImpl impleme
     public CopyBuilder<? extends SimpleFunctionDescriptor> newCopyBuilder() {
         return (CopyBuilder<? extends SimpleFunctionDescriptor>) super.newCopyBuilder();
     }
-
 
 
     @Override

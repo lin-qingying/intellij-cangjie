@@ -21,6 +21,7 @@ interface StorageManager{
      *                    LockBasedLazyValue for details.
      */
     fun <T : Any> createLazyValueWithPostCompute(computable: () -> T, onRecursiveCall: ((Boolean) -> T)?, postCompute: (T) -> Unit): NotNullLazyValue<T>
+    fun <T : Any> createLazyValue(computable: () -> T, onRecursiveCall: (Boolean) -> T): NotNullLazyValue<T>
 
     fun <T : Any> createLazyValue(computable: () -> T): NotNullLazyValue<T>
     fun <K, V : Any> createMemoizedFunctionWithNullableValues(compute: (K) -> V?): MemoizedFunctionToNullable<K, V>

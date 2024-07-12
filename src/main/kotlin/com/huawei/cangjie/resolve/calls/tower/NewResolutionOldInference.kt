@@ -7,6 +7,8 @@ import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.calls.CallResolver
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext
+import com.huawei.cangjie.resolve.calls.model.CangJieCallDiagnostic
+import com.huawei.cangjie.resolve.calls.model.MutableResolvedCall
 import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResultsImpl
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
@@ -14,6 +16,7 @@ import com.huawei.cangjie.resolve.calls.tasks.TracingStrategy
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
+import com.huawei.cangjie.types.TypeApproximator
 import com.huawei.cangjie.utils.compactIfPossible
 
 class NewResolutionOldInference(
@@ -25,11 +28,37 @@ class NewResolutionOldInference(
 //    private val languageVersionSettings: LanguageVersionSettings,
 //    private val builderInferenceSupport: BuilderInferenceSupport,
     private val deprecationResolver: DeprecationResolver,
-//    private val typeApproximator: TypeApproximator,
+    private val typeApproximator: TypeApproximator,
 //    private val implicitsResolutionFilter: ImplicitsExtensionsResolutionFilter,
     private val callResolver: CallResolver,
 //    private val candidateInterceptor: CandidateInterceptor
 ) {
+
+    class MyCandidate(
+        // Diagnostics that are already computed
+        // if resultingApplicability is successful they must be the same as `diagnostics`,
+        // otherwise they might be a bit different but result remains unsuccessful
+        val eagerDiagnostics: List<CangJieCallDiagnostic>,
+        val resolvedCall: MutableResolvedCall<*>,
+        finalDiagnosticsComputation: (() -> List<CangJieCallDiagnostic>)? = null
+    ) : Candidate {
+        val diagnostics: List<CangJieCallDiagnostic> by lazy(LazyThreadSafetyMode.NONE) {
+            finalDiagnosticsComputation?.invoke() ?: eagerDiagnostics
+        }
+
+        operator fun component1() = diagnostics
+        operator fun component2() = resolvedCall
+
+        override val resultingApplicability: CandidateApplicability by lazy(LazyThreadSafetyMode.NONE) {
+            getResultApplicability(diagnostics)
+        }
+
+        override fun addCompatibilityWarning(other: Candidate) {
+            // Only applicable for new inference
+        }
+
+        override val isSuccessful = getResultApplicability(eagerDiagnostics).isSuccess
+    }
     sealed class ResolutionKind {
 //        abstract internal fun createTowerProcessor(
 //            outer: NewResolutionOldInference,

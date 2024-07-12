@@ -2,27 +2,34 @@ package com.huawei.cangjie.types
 
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.ModuleDescriptor
+import com.huawei.cangjie.descriptors.PropertyDescriptor
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.types.error.*
 
 object ErrorUtils {
-//    private val errorVariable: VariableDescriptor = ErrorVariableDescriptor()
-//    val errorVariableGroup: Set<VariableDescriptor> = setOf(errorVariable)
+    private val errorProperty: PropertyDescriptor = ErrorPropertyDescriptor()
+    val errorPropertyGroup: Set<PropertyDescriptor> = setOf(errorProperty)
+
 
     val errorModule: ModuleDescriptor = ErrorModuleDescriptor
-    val errorVariableType: CangJieType = createErrorType(ErrorTypeKind.ERROR_PROPERTY_TYPE)
+    val errorPropertyType: CangJieType get()  = createErrorType(ErrorTypeKind.ERROR_PROPERTY_TYPE)
 
     // Do not move it into AbstractTypeConstructor.Companion because of cycle in initialization(see KT-13264)
     val errorTypeForLoopInSupertypes: CangJieType = createErrorType(ErrorTypeKind.CYCLIC_SUPERTYPES)
 
-    val errorClass: ErrorClassDescriptor =
+    val errorClass: ErrorClassDescriptor get() =
         ErrorClassDescriptor(Name.special(ErrorEntity.ERROR_CLASS.debugText.format("unknown class")))
 
     //    private fun isErrorClass(candidate: DeclarationDescriptor?): Boolean = candidate is ErrorClassDescriptor
     @JvmStatic
     fun createErrorType(kind: ErrorTypeKind, vararg formatParams: String): ErrorType =
         createErrorTypeWithArguments(kind, emptyList(), *formatParams)
-
+    @JvmStatic
+    fun isUninferredTypeVariable(type: CangJieType?): Boolean {
+        if (type == null) return false
+        val constructor = type.constructor
+        return constructor is ErrorTypeConstructor && constructor.kind == ErrorTypeKind.UNINFERRED_TYPE_VARIABLE
+    }
     @JvmStatic
     fun createErrorType(kind: ErrorTypeKind, typeConstructor: TypeConstructor, vararg formatParams: String): ErrorType =
         createErrorTypeWithArguments(kind, emptyList(), typeConstructor, *formatParams)

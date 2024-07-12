@@ -35,6 +35,10 @@ class TypeAttributes private constructor(attributes: List<TypeAttribute<*>>) :
     fun add(other: TypeAttributes): TypeAttributes {
         return perform(other) { this.add(it) }
     }
+
+    fun intersect(other: TypeAttributes): TypeAttributes {
+        return perform(other) { this.intersect(it) }
+    }
     private inline fun perform(other: TypeAttributes, op: TypeAttribute<*>.(TypeAttribute<*>?) -> TypeAttribute<*>?): TypeAttributes {
         if (this.isEmpty() && other.isEmpty()) return this
         val attributes = mutableListOf<TypeAttribute<*>>()

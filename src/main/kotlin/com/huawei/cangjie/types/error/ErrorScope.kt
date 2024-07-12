@@ -5,6 +5,7 @@ import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.MemberScope
+import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.utils.Printer
 
 open class ErrorScope(val kind: ErrorScopeKind, vararg formatParams: String) : MemberScope {
@@ -18,8 +19,8 @@ open class ErrorScope(val kind: ErrorScopeKind, vararg formatParams: String) : M
     ): DescriptorWithDeprecation<ClassifierDescriptor>? = null
 
     override fun getContributedVariables(name: Name, location: LookupLocation): Set<VariableDescriptor> =
-        setOf()
-//        ErrorUtils.errorVariableGroup
+//        setOf()
+        ErrorUtils.errorPropertyGroup
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Set<SimpleFunctionDescriptor> =
         setOf()

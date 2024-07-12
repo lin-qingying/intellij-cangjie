@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.calls.context;
 
 
+import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.descriptors.BindingTrace;
 import com.huawei.cangjie.psi.Call;
 import com.huawei.cangjie.psi.CjExpression;
@@ -32,7 +33,7 @@ public class BasicCallResolutionContext extends CallResolutionContext<BasicCallR
             boolean collectAllCandidates,
             @NotNull CallPosition callPosition,
             @NotNull Function1<CjExpression, CjExpression> expressionContextProvider,
-//            @NotNull LanguageVersionSettings languageVersionSettings,
+            @NotNull LanguageVersionSettings languageVersionSettings,
             @NotNull DataFlowValueFactory dataFlowValueFactory,
             @NotNull InferenceSession inferenceSession
     ) {
@@ -40,7 +41,7 @@ public class BasicCallResolutionContext extends CallResolutionContext<BasicCallR
                 dataFlowInfoForArguments, statementFilter, isAnnotationContext, isDebuggerContext, collectAllCandidates,
                 callPosition, expressionContextProvider
                 ,
-//                languageVersionSettings,
+                languageVersionSettings,
                 dataFlowValueFactory, inferenceSession);
     }
 
@@ -54,7 +55,7 @@ public class BasicCallResolutionContext extends CallResolutionContext<BasicCallR
             @NotNull ContextDependency contextDependency,
             @NotNull CheckArgumentTypesMode checkArguments,
             boolean isAnnotationContext,
-//            @NotNull LanguageVersionSettings languageVersionSettings,
+            @NotNull LanguageVersionSettings languageVersionSettings,
             @NotNull DataFlowValueFactory dataFlowValueFactory,
             @NotNull InferenceSession inferenceSession
     ) {
@@ -62,7 +63,7 @@ public class BasicCallResolutionContext extends CallResolutionContext<BasicCallR
                 new ResolutionResultsCacheImpl(), null,
                 StatementFilter.NONE, isAnnotationContext, false, false,
                 CallPosition.Unknown.INSTANCE, DEFAULT_EXPRESSION_CONTEXT_PROVIDER,
-//                languageVersionSettings,
+                languageVersionSettings,
                 dataFlowValueFactory, inferenceSession);
     }
 
@@ -76,14 +77,14 @@ public class BasicCallResolutionContext extends CallResolutionContext<BasicCallR
             @NotNull ContextDependency contextDependency,
             @NotNull CheckArgumentTypesMode checkArguments,
             boolean isAnnotationContext,
-//            @NotNull LanguageVersionSettings languageVersionSettings,
+            @NotNull LanguageVersionSettings languageVersionSettings,
             @NotNull DataFlowValueFactory dataFlowValueFactory
     ) {
         return new BasicCallResolutionContext(trace, scope, call, expectedType, dataFlowInfo, contextDependency, checkArguments,
                 new ResolutionResultsCacheImpl(), null,
                 StatementFilter.NONE, isAnnotationContext, false, false,
                 CallPosition.Unknown.INSTANCE, DEFAULT_EXPRESSION_CONTEXT_PROVIDER,
-//                languageVersionSettings,
+                languageVersionSettings,
                 dataFlowValueFactory, InferenceSession.Companion.getDefault());
     }
 
@@ -97,7 +98,7 @@ public class BasicCallResolutionContext extends CallResolutionContext<BasicCallR
                 context.resolutionResultsCache, dataFlowInfoForArguments,
                 context.statementFilter, context.isAnnotationContext, context.isDebuggerContext, context.collectAllCandidates,
                 context.callPosition, context.expressionContextProvider,
-//                context.languageVersionSettings,
+                context.languageVersionSettings,
                 context.dataFlowValueFactory,
                 context.inferenceSession);
     }
@@ -121,7 +122,7 @@ public class BasicCallResolutionContext extends CallResolutionContext<BasicCallR
             boolean collectAllCandidates,
             @NotNull CallPosition callPosition,
             @NotNull Function1<CjExpression, CjExpression> expressionContextProvider,
-//            @NotNull LanguageVersionSettings languageVersionSettings,
+            @NotNull LanguageVersionSettings languageVersionSettings,
             @NotNull DataFlowValueFactory dataFlowValueFactory,
             @NotNull InferenceSession inferenceSession
     ) {
@@ -129,7 +130,7 @@ public class BasicCallResolutionContext extends CallResolutionContext<BasicCallR
                 trace, scope, call, expectedType, dataFlowInfo, contextDependency, checkArguments, resolutionResultsCache,
                 dataFlowInfoForArguments, statementFilter, isAnnotationContext, isDebuggerContext, collectAllCandidates,
                 callPosition, expressionContextProvider,
-//                languageVersionSettings,
+                languageVersionSettings,
                 dataFlowValueFactory, inferenceSession);
     }
 
@@ -139,7 +140,9 @@ public class BasicCallResolutionContext extends CallResolutionContext<BasicCallR
                 trace, scope, newCall, expectedType, dataFlowInfo, contextDependency, checkArguments, resolutionResultsCache,
                 dataFlowInfoForArguments, statementFilter, isAnnotationContext, isDebuggerContext, collectAllCandidates,
                 callPosition, expressionContextProvider,
-//                languageVersionSettings,
+                languageVersionSettings,
                 dataFlowValueFactory, inferenceSession);
     }
+
+
 }

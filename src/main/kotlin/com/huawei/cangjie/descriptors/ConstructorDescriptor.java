@@ -10,6 +10,9 @@ public interface ConstructorDescriptor extends FunctionDescriptor{
 
 
     @NotNull
+    ClassDescriptor getConstructedClass();
+
+    @NotNull
     @Override
     ConstructorDescriptor copy(
             DeclarationDescriptor newOwner,

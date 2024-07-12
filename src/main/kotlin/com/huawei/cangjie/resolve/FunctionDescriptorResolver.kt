@@ -16,8 +16,9 @@ import com.huawei.cangjie.psi.CjFunction
 import com.huawei.cangjie.psi.CjFunctionLiteral
 import com.huawei.cangjie.psi.CjNamedFunction
 import com.huawei.cangjie.psi.CjParameter
-import com.huawei.cangjie.resolve.DescriptorResolver.Companion.getDefaultModality
-import com.huawei.cangjie.resolve.DescriptorResolver.Companion.getDefaultVisibility
+import com.huawei.cangjie.resolve.DescriptorResolver.getDefaultModality
+import com.huawei.cangjie.resolve.DescriptorResolver.getDefaultVisibility
+
 import com.huawei.cangjie.resolve.DescriptorUtils.getDispatchReceiverParameterIfNeeded
 import com.huawei.cangjie.resolve.ModifiersChecker.Companion.resolveMemberModalityFromModifiers
 import com.huawei.cangjie.resolve.ModifiersChecker.Companion.resolveVisibilityFromModifiers

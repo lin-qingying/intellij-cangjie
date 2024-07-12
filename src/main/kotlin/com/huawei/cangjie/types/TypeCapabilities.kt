@@ -10,3 +10,7 @@ interface CustomTypeParameter {
     // Throws an exception when isTypeParameter == false
     fun substitutionResult(replacement: CangJieType): CangJieType
 }
+// That interface is needed to provide information about definitely not null
+
+//   type parameters (e.g. from @NotNull annotation) to type system
+interface NotNullTypeParameter : CustomTypeParameter

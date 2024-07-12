@@ -1,10 +1,14 @@
 package com.huawei.cangjie.resolve.calls.components
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.builtins.functions.FunctionTypeKind
+import com.huawei.cangjie.resolve.calls.inference.components.ConstraintInjector
 import com.huawei.cangjie.resolve.calls.inference.components.EmptySubstitutor
 import com.huawei.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
 import com.huawei.cangjie.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
+import com.huawei.cangjie.resolve.calls.inference.model.NewConstraintSystemImpl
 import com.huawei.cangjie.resolve.calls.inference.model.NewTypeVariable
+import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableTypeConstructor
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.*
 import com.huawei.cangjie.types.model.*
@@ -22,31 +26,32 @@ class ClassicTypeSystemContextForCS(
         return this.defaultType
     }
 
+
     override fun TypeVariableMarker.freshTypeConstructor(): TypeConstructorMarker {
         require(this is NewTypeVariable, this::errorMessage)
         return this.freshTypeConstructor
     }
-//
-//    override fun createCapturedType(
-//        constructorProjection: TypeArgumentMarker,
-//        constructorSupertypes: List<CangJieTypeMarker>,
-//        lowerType: CangJieTypeMarker?,
-//        captureStatus: CaptureStatus
-//    ): CapturedTypeMarker {
-//        require(lowerType is UnwrappedType?, lowerType::errorMessage)
-//        require(constructorProjection is TypeProjectionBase, constructorProjection::errorMessage)
-//
-//        @Suppress("UNCHECKED_CAST")
-//        val newCapturedTypeConstructor = NewCapturedTypeConstructor(
-//            constructorProjection,
-//            constructorSupertypes as List<UnwrappedType>
-//        )
-//        return NewCapturedType(
-//            captureStatus,
-//            newCapturedTypeConstructor,
-//            lowerType = lowerType
-//        )
-//    }
+
+    override fun createCapturedType(
+        constructorProjection: TypeArgumentMarker,
+        constructorSupertypes: List<CangJieTypeMarker>,
+        lowerType: CangJieTypeMarker?,
+        captureStatus: CaptureStatus
+    ): CapturedTypeMarker {
+        require(lowerType is UnwrappedType?, lowerType::errorMessage)
+        require(constructorProjection is TypeProjectionBase, constructorProjection::errorMessage)
+
+        @Suppress("UNCHECKED_CAST")
+        val newCapturedTypeConstructor = NewCapturedTypeConstructor(
+            constructorProjection,
+            constructorSupertypes as List<UnwrappedType>
+        )
+        return NewCapturedType(
+            captureStatus,
+            newCapturedTypeConstructor,
+            lowerType = lowerType
+        )
+    }
 
     override fun typeSubstitutorByTypeConstructor(map: Map<TypeConstructorMarker, CangJieTypeMarker>): TypeSubstitutorMarker {
         if (map.isEmpty()) return createEmptySubstitutor()
@@ -68,28 +73,30 @@ class ClassicTypeSystemContextForCS(
         }
     }
 
-//    override fun createStubTypeForBuilderInference(typeVariable: TypeVariableMarker): StubTypeMarker {
-//        return StubTypeForBuilderInference(
-//            typeVariable.freshTypeConstructor() as NewTypeVariableConstructor,
-//            typeVariable.defaultType().isMarkedNullable()
-//        )
-//    }
-//
-//    override fun createStubTypeForTypeVariablesInSubtyping(typeVariable: TypeVariableMarker): StubTypeMarker {
-//        return StubTypeForTypeVariablesInSubtyping(
-//            typeVariable.freshTypeConstructor() as NewTypeVariableConstructor,
-//            typeVariable.defaultType().isMarkedNullable()
-//        )
-//    }
-//
-//    override fun TypeConstructorMarker.isTypeVariable(): Boolean {
-//        return this is TypeVariableTypeConstructor
-//    }
-//
-//    override fun TypeVariableTypeConstructorMarker.isContainedInInvariantOrContravariantPositions(): Boolean {
-//        require(this is TypeVariableTypeConstructor)
-//        return isContainedInInvariantOrContravariantPositions
-//    }
+    override fun createStubTypeForBuilderInference(typeVariable: TypeVariableMarker): StubTypeMarker {
+        return StubTypeForBuilderInference(
+            typeVariable.freshTypeConstructor() as NewTypeVariableConstructor,
+            typeVariable.defaultType().isMarkedNullable()
+        )
+    }
+
+    override fun createStubTypeForTypeVariablesInSubtyping(typeVariable: TypeVariableMarker): StubTypeMarker {
+        return StubTypeForTypeVariablesInSubtyping(
+            typeVariable.freshTypeConstructor() as NewTypeVariableConstructor,
+            typeVariable.defaultType().isMarkedNullable()
+        )
+    }
+
+    override fun TypeConstructorMarker.isTypeVariable(): Boolean {
+        return this is TypeVariableTypeConstructor
+    }
+
+    override fun TypeVariableTypeConstructorMarker.isContainedInInvariantOrContravariantPositions(): Boolean {
+        require(this is TypeVariableTypeConstructor)
+        return isContainedInInvariantOrContravariantPositions
+    }
+
+
 
     override fun newTypeCheckerState(errorTypesEqualToAnything: Boolean, stubTypesEqualToAnything: Boolean): TypeCheckerState {
         return createClassicTypeCheckerState(
@@ -106,12 +113,12 @@ private inline fun Any?.errorMessage(): String {
     return "ClassicTypeSystemContextForCS couldn't handle: $this, ${this?.let { it::class }}"
 }
 
-//@Suppress("FunctionName")
-//fun <CangJieBuiltIns> NewConstraintSystemImpl(
-//    constraintInjector: ConstraintInjector,
-//    builtIns: CangJieBuiltIns,
-//    cangjieTypeRefiner: CangJieTypeRefiner,
+@Suppress("FunctionName")
+fun   NewConstraintSystemImpl(
+    constraintInjector: ConstraintInjector,
+    builtIns: CangJieBuiltIns,
+    cangjieTypeRefiner: CangJieTypeRefiner,
 //    languageVersionSettings: LanguageVersionSettings
-//): NewConstraintSystemImpl {
-//    return NewConstraintSystemImpl(constraintInjector, ClassicTypeSystemContextForCS(builtIns, cangjieTypeRefiner), languageVersionSettings)
-//}
+): NewConstraintSystemImpl {
+    return NewConstraintSystemImpl(constraintInjector, ClassicTypeSystemContextForCS(builtIns, cangjieTypeRefiner)/*, languageVersionSettings*/)
+}

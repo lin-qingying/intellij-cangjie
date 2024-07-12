@@ -1,15 +1,17 @@
 package com.huawei.cangjie.types
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.resolve.calls.components.ClassicTypeSystemContextForCS
+import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 
-//
-//class TypeApproximator(
-//    builtIns: CangJieBuiltIns,
+
+class TypeApproximator(
+    builtIns: CangJieBuiltIns,
 //    languageVersionSettings: LanguageVersionSettings,
-//) : AbstractTypeApproximator(
-//    ClassicTypeSystemContextForCS(builtIns, CangJieTypeRefiner.Default),
+) : AbstractTypeApproximator(
+    ClassicTypeSystemContextForCS(builtIns, CangJieTypeRefiner.Default),
 //    languageVersionSettings
-//) {
+) {
 //    fun approximateDeclarationType(baseType: CangJieType, local: Boolean): UnwrappedType {
 //        if (!languageVersionSettings.supportsFeature(LanguageFeature.NewInference)) return baseType.unwrap()
 //
@@ -29,4 +31,4 @@ import com.huawei.cangjie.builtins.CangJieBuiltIns
 //
 //    fun approximateTo(type: UnwrappedType, conf: TypeApproximatorConfiguration, toSuperType: Boolean): UnwrappedType? =
 //        if (toSuperType) approximateToSuperType(type, conf) else approximateToSubType(type, conf)
-//}
+}

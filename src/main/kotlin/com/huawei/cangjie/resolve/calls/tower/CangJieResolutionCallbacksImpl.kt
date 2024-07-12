@@ -53,6 +53,11 @@ class CangJieResolutionCallbacksImpl(
     ): Collection<CallableReferenceResolutionCandidate> {
         TODO("Not yet implemented")
     }
+    override fun getCandidateFactoryForInvoke(
+        scopeTower: ImplicitScopeTower,
+        cangjieCall: CangJieCall
+    ): PSICallResolver.FactoryProviderForInvoke =
+        psiCallResolver.FactoryProviderForInvoke(topLevelCallContext, scopeTower, cangjieCall as PSICangJieCallImpl)
 
     override fun findResultType(
         constraintSystem: NewConstraintSystem,

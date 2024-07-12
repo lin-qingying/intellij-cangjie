@@ -15,13 +15,15 @@ class CompositeAnnotations(
 
     override fun hasAnnotation(fqName: FqName) = delegates.asSequence().any { it.hasAnnotation(fqName) }
 
-    override fun findAnnotation(fqName: FqName) = delegates.asSequence().mapNotNull { it.findAnnotation(fqName) }.firstOrNull()
+    override fun findAnnotation(fqName: FqName) =
+        delegates.asSequence().mapNotNull { it.findAnnotation(fqName) }.firstOrNull()
 
     @Suppress("DEPRECATION", "OverridingDeprecatedMember", "OVERRIDE_DEPRECATION")
     override fun getUseSiteTargetedAnnotations() = delegates.flatMap { it.getUseSiteTargetedAnnotations() }
 
     override fun iterator() = delegates.asSequence().flatMap { it.asSequence() }.iterator()
 }
+
 fun composeAnnotations(first: Annotations, second: Annotations) =
     when {
         first.isEmpty() -> second
@@ -54,4 +56,34 @@ interface Annotations : Iterable<AnnotationDescriptor> {
         fun create(annotations: List<AnnotationDescriptor>): Annotations =
             if (annotations.isEmpty()) EMPTY else AnnotationsImpl(annotations)
     }
+}
+
+class FilteredAnnotations(
+    private val delegate: Annotations,
+    private val isDefinitelyNewInference: Boolean,
+    private val fqNameFilter: (FqName) -> Boolean
+) : Annotations {
+
+    constructor(delegate: Annotations, fqNameFilter: (FqName) -> Boolean) : this(delegate, false, fqNameFilter)
+
+    override fun hasAnnotation(fqName: FqName) =
+        if (fqNameFilter(fqName)) delegate.hasAnnotation(fqName)
+        else false
+
+    override fun findAnnotation(fqName: FqName) =
+        if (fqNameFilter(fqName)) delegate.findAnnotation(fqName)
+        else null
+
+    override fun iterator() = delegate.filter(this::shouldBeReturned).iterator()
+
+    override fun isEmpty(): Boolean {
+        val condition = delegate.any(this::shouldBeReturned)
+        // fixing KT-32189 && KT-32138 for the new inference only
+        return if (isDefinitelyNewInference) !condition else condition
+    }
+
+    private fun shouldBeReturned(annotation: AnnotationDescriptor): Boolean =
+        annotation.fqName.let { fqName ->
+            fqName != null && fqNameFilter(fqName)
+        }
 }

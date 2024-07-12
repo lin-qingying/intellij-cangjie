@@ -16,8 +16,13 @@ public interface CallableDescriptor extends DeclarationDescriptorWithVisibility,
     List<ValueParameterDescriptor> getValueParameters();
 
     @NotNull
+    @Override
+    CallableDescriptor getOriginal();
+
+    @NotNull
     @ReadOnly
     List<ReceiverParameterDescriptor> getContextReceiverParameters();
+
     /**
      * Method may return null for not yet fully initialized object or if error occurred.
      */
@@ -26,6 +31,7 @@ public interface CallableDescriptor extends DeclarationDescriptorWithVisibility,
 
     @Nullable
     ReceiverParameterDescriptor getExtensionReceiverParameter();
+
     @NotNull
     Collection<? extends CallableDescriptor> getOverriddenDescriptors();
 
@@ -35,8 +41,11 @@ public interface CallableDescriptor extends DeclarationDescriptorWithVisibility,
     @NotNull
     @ReadOnly
     List<TypeParameterDescriptor> getTypeParameters();
+
     @NotNull
     CangJieType getType();
-    interface UserDataKey<V> {}
+
+    interface UserDataKey<V> {
+    }
 
 }

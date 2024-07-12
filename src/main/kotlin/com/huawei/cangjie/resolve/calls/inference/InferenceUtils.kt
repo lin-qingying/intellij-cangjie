@@ -4,8 +4,20 @@ import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage
 import com.huawei.cangjie.types.model.TypeSubstitutorMarker
 import com.huawei.cangjie.types.model.TypeSystemInferenceExtensionContext
 import com.huawei.cangjie.types.model.*
+fun ConstraintStorage.buildNotFixedVariablesToNonSubtypableTypesSubstitutor(
+    context: TypeSystemInferenceExtensionContext
+): TypeSubstitutorMarker {
+    return context.typeSubstitutorByTypeConstructor(
+        notFixedTypeVariables.mapValues { context.createStubTypeForTypeVariablesInSubtyping(it.value.typeVariable) }
+    )
+}
 
-
+fun ConstraintStorage.buildCurrentSubstitutor(
+    context: TypeSystemInferenceExtensionContext,
+    additionalBindings: Map<TypeConstructorMarker, CangJieTypeMarker>
+): TypeSubstitutorMarker {
+    return context.typeSubstitutorByTypeConstructor(fixedTypeVariables.entries.associate { it.key to it.value } + additionalBindings)
+}
 fun ConstraintStorage.buildAbstractResultingSubstitutor(
     context: TypeSystemInferenceExtensionContext,
     transformTypeVariablesToErrorTypes: Boolean = true

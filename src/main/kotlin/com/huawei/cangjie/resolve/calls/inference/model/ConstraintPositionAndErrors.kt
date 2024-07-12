@@ -2,10 +2,18 @@ package com.huawei.cangjie.resolve.calls.inference.model
 
 import com.huawei.cangjie.resolve.calls.tower.CandidateApplicability
 import com.huawei.cangjie.types.model.CangJieTypeMarker
+import com.huawei.cangjie.types.model.TypeVariableMarker
 
 interface OnlyInputTypeConstraintPosition
 class LowerPriorityToPreserveCompatibility(val needToReportWarning: Boolean) :
     ConstraintSystemError(CandidateApplicability.RESOLVED_NEED_PRESERVE_COMPATIBILITY)
+
+abstract class FixVariableConstraintPosition<T>(val variable: TypeVariableMarker, val resolvedAtom: T) :
+    ConstraintPosition() {
+    override fun toString(): String = "Fix variable $variable"
+}
+
+class NoSuccessfulFork(val position: IncorporationConstraintPosition) : ConstraintSystemError(CandidateApplicability.INAPPLICABLE)
 
 sealed class ConstraintSystemError(val applicability: CandidateApplicability)
 sealed class ConstraintPosition
@@ -38,6 +46,7 @@ class NewConstraintError(
         return "$lowerType <: $upperType"
     }
 }
+
 class NewConstraintWarning(
     override val lowerType: CangJieTypeMarker,
     override val upperType: CangJieTypeMarker,

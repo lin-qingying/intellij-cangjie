@@ -1,5 +1,6 @@
 package com.huawei.cangjie.resolve.calls.smartcasts
 
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.types.CangJieType
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.ImmutableSet
@@ -7,6 +8,8 @@ import kotlinx.collections.immutable.ImmutableSet
 private typealias ImmutableMultimap<K, V> = ImmutableMap<K, ImmutableSet<V>>
 
 internal class DataFlowInfoImpl : DataFlowInfo {
+    override fun getCollectedTypes(key: DataFlowValue, languageVersionSettings: LanguageVersionSettings) =
+        getCollectedTypes(key, true, languageVersionSettings)
 
 
     override fun getCollectedTypes(key: DataFlowValue/*, languageVersionSettings: LanguageVersionSettings*/) =
@@ -16,7 +19,7 @@ internal class DataFlowInfoImpl : DataFlowInfo {
     private fun getCollectedTypes(
         key: DataFlowValue,
         enrichWithNotNull: Boolean,
-//        languageVersionSettings: LanguageVersionSettings
+        languageVersionSettings: LanguageVersionSettings? = null
     ): Set<CangJieType> {
         return emptySet()
 //        val types = completeTypeInfo[key].getOrElse(ImmutableLinkedHashSet.empty())

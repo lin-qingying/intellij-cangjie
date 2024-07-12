@@ -9,6 +9,7 @@ import com.huawei.cangjie.resolve.calls.inference.NewConstraintSystem
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage
 import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableTypeConstructor
 import com.huawei.cangjie.resolve.calls.model.*
+import com.huawei.cangjie.resolve.calls.tower.CandidateFactoryProviderForInvoke
 import com.huawei.cangjie.resolve.calls.tower.ImplicitScopeTower
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.UnwrappedType
@@ -54,10 +55,10 @@ interface CangJieResolutionCallbacks {
 //        stubsForPostponedVariables: Map<NewTypeVariable, StubTypeForBuilderInference>,
 //    ): ReturnArgumentsAnalysisResult
 
-//    fun getCandidateFactoryForInvoke(
-//        scopeTower: ImplicitScopeTower,
-//        cangjieCall: CangJieCall,
-//    ): CandidateFactoryProviderForInvoke<ResolutionCandidate>
+    fun getCandidateFactoryForInvoke(
+        scopeTower: ImplicitScopeTower,
+        cangjieCall: CangJieCall,
+    ): CandidateFactoryProviderForInvoke<ResolutionCandidate>
 
     fun resolveCallableReferenceArgument(
         argument: CallableReferenceCangJieCallArgument,

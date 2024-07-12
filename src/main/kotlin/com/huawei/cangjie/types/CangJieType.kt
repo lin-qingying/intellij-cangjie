@@ -99,3 +99,5 @@ abstract class FlexibleType(val lowerBound: SimpleType, val upperBound: SimpleTy
 fun CangJieType.asSimpleType(): SimpleType {
     return unwrap() as? SimpleType ?: error("This is should be simple type: $this")
 }
+
+

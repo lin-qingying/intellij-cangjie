@@ -1,8 +1,15 @@
 package com.huawei.cangjie.types
 
+import com.huawei.cangjie.descriptors.TypeParameterDescriptor
+import com.huawei.cangjie.descriptors.impl.TypeParameterDescriptorImpl
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
+import com.huawei.cangjie.types.checker.NewCapturedType
+import com.huawei.cangjie.types.checker.NewTypeVariableConstructor
+import com.huawei.cangjie.types.checker.NullabilityChecker
+
+import com.huawei.cangjie.types.model.DefinitelyNotNullTypeMarker
 
 fun SimpleType.withAbbreviation(abbreviatedType: SimpleType): SimpleType {
     if (isError) return this
@@ -16,7 +23,10 @@ class AbbreviatedType(override val delegate: SimpleType, val abbreviation: Simpl
         AbbreviatedType(delegate.replaceAttributes(newAttributes), abbreviation)
 
     override fun makeNullableAsSpecified(newNullability: Boolean) =
-        AbbreviatedType(delegate.makeNullableAsSpecified(newNullability), abbreviation.makeNullableAsSpecified(newNullability))
+        AbbreviatedType(
+            delegate.makeNullableAsSpecified(newNullability),
+            abbreviation.makeNullableAsSpecified(newNullability)
+        )
 
     @TypeRefinement
     override fun replaceDelegate(delegate: SimpleType) = AbbreviatedType(delegate, abbreviation)
@@ -73,6 +83,7 @@ abstract class WrappedType : CangJieType() {
         }
     }
 }
+
 class LazyWrappedType(
     private val storageManager: StorageManager,
     private val computation: () -> CangJieType
@@ -82,10 +93,141 @@ class LazyWrappedType(
     override val delegate: CangJieType get() = lazyValue()
 
     override fun isComputed(): Boolean = lazyValue.isComputed()
-//
+
+    //
     @TypeRefinement
     @OptIn(TypeRefinement::class)
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) = LazyWrappedType(storageManager) {
         cangjieTypeRefiner.refineType(computation())
     }
 }
+
+class DefinitelyNotNullType private constructor(
+    val original: SimpleType,
+    private val useCorrectedNullabilityForTypeParameters: Boolean
+) : DelegatingSimpleType(), CustomTypeParameter,
+    DefinitelyNotNullTypeMarker {
+
+    companion object {
+        // Having `@JvmOverloads` just to make sure we don't break ABI compatibility
+        @JvmOverloads
+        fun makeDefinitelyNotNull(
+            type: UnwrappedType,
+            useCorrectedNullabilityForTypeParameters: Boolean = false,
+            // Should be used when we are sure that original type is nullable, i.e. makesSenseToBeDefinitelyNotNull would return true,
+            // but we can't actually call it because otherwise we would fail with StackOverFlow because supertypes are being computed recursively
+            // and there's no easy way to prevent recursion.
+            // NB: makesSenseToBeDefinitelyNotNull is mostly needed as an optimization because nothing really bad would happen even if we
+            // create DNN for a type parameter with non-nullable bound.
+            avoidCheckingActualTypeNullability: Boolean = false,
+        ): DefinitelyNotNullType? {
+            return when {
+                type is DefinitelyNotNullType -> type
+
+                avoidCheckingActualTypeNullability || makesSenseToBeDefinitelyNotNull(
+                    type,
+                    useCorrectedNullabilityForTypeParameters
+                ) -> {
+                    if (type is FlexibleType) {
+                        assert(type.lowerBound.constructor == type.upperBound.constructor) {
+                            "DefinitelyNotNullType for flexible type ($type) can be created only from type variable with the same constructor for bounds"
+                        }
+                    }
+
+
+                    DefinitelyNotNullType(
+                        type.lowerIfFlexible().makeNullableAsSpecified(false),
+                        useCorrectedNullabilityForTypeParameters
+                    )
+                }
+
+                else -> null
+            }
+        }
+
+        private fun makesSenseToBeDefinitelyNotNull(
+            type: UnwrappedType,
+            useCorrectedNullabilityForFlexibleTypeParameters: Boolean
+        ): Boolean {
+            if (!type.canHaveUndefinedNullability()) return false
+
+            if (type is StubTypeForBuilderInference) return TypeUtils.isNullableType(type)
+
+            if ((type.constructor.declarationDescriptor as? TypeParameterDescriptorImpl)?.isInitialized == false) {
+                return true
+            }
+
+            // Replacing `useCorrectedNullabilityForFlexibleTypeParameters` with true for all call-sites seems to be correct
+            // But it seems that it should be a new feature: KT-28785 would be automatically fixed then
+            // (see the tests org.jetbrains.kotlin.spec.checkers.DiagnosticsTestSpecGenerated.NotLinked.Dfa.Pos.test12/13)
+            // So it should be a language feature, but it's hard correctly identify language version settings for all call sites
+            // Thus, we have non-trivial value at org.jetbrains.kotlin.load.java.typeEnhancement.JavaTypeEnhancement.notNullTypeParameter
+            // that run under related language-feature only
+            if (useCorrectedNullabilityForFlexibleTypeParameters && type.constructor.declarationDescriptor is TypeParameterDescriptor) {
+                // Effectively checks if the type is flexible or has nullable bound
+                return TypeUtils.isNullableType(type)
+            }
+
+            // Actually, this code should work for type parameters as well, but it breaks some cases
+            // See KT-40114
+            return !NullabilityChecker.isSubtypeOfAny(type)
+        }
+
+        private fun UnwrappedType.canHaveUndefinedNullability(): Boolean =
+            constructor is NewTypeVariableConstructor
+                    || constructor.declarationDescriptor is TypeParameterDescriptor
+                    || this is NewCapturedType
+                    || this is StubTypeForBuilderInference
+
+    }
+
+    override val delegate: SimpleType
+        get() = original
+
+    override val isMarkedNullable: Boolean
+        get() = false
+
+    override val isTypeParameter: Boolean
+        get() = delegate.constructor is NewTypeVariableConstructor ||
+                delegate.constructor.declarationDescriptor is TypeParameterDescriptor
+
+    override fun substitutionResult(replacement: CangJieType): CangJieType =
+        replacement.unwrap().makeDefinitelyNotNullOrNotNull(useCorrectedNullabilityForTypeParameters)
+
+    override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType =
+        DefinitelyNotNullType(delegate.replaceAttributes(newAttributes), useCorrectedNullabilityForTypeParameters)
+
+    override fun makeNullableAsSpecified(newNullability: Boolean): SimpleType =
+        if (newNullability) delegate.makeNullableAsSpecified(newNullability) else this
+
+    override fun toString(): String = "$delegate & Any"
+
+    @TypeRefinement
+    override fun replaceDelegate(delegate: SimpleType) =
+        DefinitelyNotNullType(delegate, useCorrectedNullabilityForTypeParameters)
+}
+
+fun SimpleType.makeSimpleTypeDefinitelyNotNullOrNotNull(useCorrectedNullabilityForTypeParameters: Boolean = false): SimpleType =
+    DefinitelyNotNullType.makeDefinitelyNotNull(this, useCorrectedNullabilityForTypeParameters)
+        ?: makeIntersectionTypeDefinitelyNotNullOrNotNull()
+        ?: makeNullableAsSpecified(false)
+
+fun NewCapturedType.withNotNullProjection() =
+    NewCapturedType(captureStatus, constructor, lowerType, attributes, isMarkedNullable, isProjectionNotNull = true)
+
+fun UnwrappedType.makeDefinitelyNotNullOrNotNull(useCorrectedNullabilityForTypeParameters: Boolean = false): UnwrappedType =
+    DefinitelyNotNullType.makeDefinitelyNotNull(this, useCorrectedNullabilityForTypeParameters)
+        ?: makeIntersectionTypeDefinitelyNotNullOrNotNull()
+        ?: makeNullableAsSpecified(false)
+
+private fun IntersectionTypeConstructor.makeDefinitelyNotNullOrNotNull(): IntersectionTypeConstructor? {
+    return transformComponents({ TypeUtils.isNullableType(it) }, { it.unwrap().makeDefinitelyNotNullOrNotNull() })
+}
+
+private fun CangJieType.makeIntersectionTypeDefinitelyNotNullOrNotNull(): SimpleType? {
+    val typeConstructor = constructor as? IntersectionTypeConstructor ?: return null
+    val definitelyNotNullConstructor = typeConstructor.makeDefinitelyNotNullOrNotNull() ?: return null
+
+    return definitelyNotNullConstructor.createType()
+}
+

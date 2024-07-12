@@ -1,21 +1,22 @@
 package com.huawei.cangjie.resolve.calls.model
 
+import com.huawei.cangjie.resolve.calls.components.CreateFreshVariablesSubstitutor
 
 
 enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
-//    VARIABLE(
+    VARIABLE(
 //        CheckVisibility,
 //        CheckSuperExpressionCallPart,
 //        NoTypeArguments,
 //        NoArguments,
-//        CreateFreshVariablesSubstitutor,
+        CreateFreshVariablesSubstitutor,
 //        CollectionTypeVariableUsagesInfo,
 //        CheckExplicitReceiverKindConsistency,
 //        CheckReceivers,
 //        PostponedVariablesInitializerResolutionPart,
 //        CheckContextReceiversResolutionPart,
 //        CheckIncompatibleTypeVariableUpperBounds
-//    ),
+    ),
     FUNCTION(
 //        CheckVisibility,
 //        CheckInfixResolutionPart,
@@ -24,7 +25,7 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
 //        MapTypeArguments,
 //        MapArguments,
 //        ArgumentsToCandidateParameterDescriptor,
-//        CreateFreshVariablesSubstitutor,
+        CreateFreshVariablesSubstitutor,
 //        CollectionTypeVariableUsagesInfo,
 //        CheckExplicitReceiverKindConsistency,
 //        CheckReceivers,

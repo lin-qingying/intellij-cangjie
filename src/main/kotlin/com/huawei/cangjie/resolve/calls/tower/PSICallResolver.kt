@@ -1,9 +1,9 @@
 package com.huawei.cangjie.resolve.calls.tower
 
-import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.descriptors.CallableDescriptor
-import com.huawei.cangjie.descriptors.Errors
-import com.huawei.cangjie.descriptors.ModuleDescriptor
+import com.huawei.cangjie.config.LanguageFeature
+import com.huawei.cangjie.config.LanguageVersionSettings
+import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.extensions.internal.CandidateInterceptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
@@ -17,6 +17,7 @@ import com.huawei.cangjie.resolve.calls.checkers.PassingProgressionAsCollectionC
 import com.huawei.cangjie.resolve.calls.checkers.ResolutionWithStubTypesChecker
 import com.huawei.cangjie.resolve.calls.components.CangJieResolutionCallbacks
 import com.huawei.cangjie.resolve.calls.components.InferenceSession
+import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
 import com.huawei.cangjie.resolve.calls.context.ContextDependency
 import com.huawei.cangjie.resolve.calls.model.*
@@ -30,32 +31,30 @@ import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
 import com.huawei.cangjie.resolve.descriptorUtil.isUnderscoreNamed
 import com.huawei.cangjie.resolve.lazy.ForceResolveUtil
-import com.huawei.cangjie.resolve.scopes.LexicalScope
-import com.huawei.cangjie.resolve.scopes.LexicalScopeKind
-import com.huawei.cangjie.resolve.scopes.LexicalWritableScope
-import com.huawei.cangjie.resolve.scopes.SyntheticScopes
+import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.receivers.*
 import com.huawei.cangjie.resolve.source.getPsi
+import com.huawei.cangjie.types.DeferredType
 import com.huawei.cangjie.types.TypeUtils
 import com.huawei.cangjie.types.UnwrappedType
 import com.huawei.cangjie.types.expressions.DoubleColonExpressionResolver
-import com.huawei.cangjie.types.expressions.ExpressionTypingContext
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices
 import com.huawei.cangjie.types.isError
 import com.huawei.cangjie.utils.CangJieExceptionWithAttachments
+import com.huawei.cangjie.utils.compactIfPossible
 
 class PSICallResolver(
     private val typeResolver: TypeResolver,
     private val expressionTypingServices: ExpressionTypingServices,
     private val doubleColonExpressionResolver: DoubleColonExpressionResolver,
-//    private val languageVersionSettings: LanguageVersionSettings,
+    private val languageVersionSettings: LanguageVersionSettings,
 //    private val dynamicCallableDescriptors: DynamicCallableDescriptors,
     private val syntheticScopes: SyntheticScopes,
     private val callComponents: CangJieCallComponents,
     private val cangjieToResolvedCallTransformer: CangJieToResolvedCallTransformer,
     private val cangjieCallResolver: CangJieCallResolver,
 //    private val typeApproximator: TypeApproximator,
-//    private val implicitsResolutionFilter: ImplicitsExtensionsResolutionFilter,
+    private val implicitsResolutionFilter: ImplicitsExtensionsResolutionFilter,
     private val argumentTypeResolver: ArgumentTypeResolver,
 //    private val effectSystem: EffectSystem,
     private val constantExpressionEvaluator: ConstantExpressionEvaluator,
@@ -64,7 +63,7 @@ class PSICallResolver(
 //    private val cangjieConstraintSystemCompleter: CangJieConstraintSystemCompleter,
     private val deprecationResolver: DeprecationResolver,
     private val moduleDescriptor: ModuleDescriptor,
-//    private val candidateInterceptor: CandidateInterceptor,
+    private val candidateInterceptor: CandidateInterceptor,
     private val missingSupertypesResolver: MissingSupertypesResolver,
 //    private val resultTypeResolver: ResultTypeResolver,
 ) {
@@ -74,10 +73,102 @@ class PSICallResolver(
     )
     val defaultResolutionKinds = setOf(
         NewResolutionOldInference.ResolutionKind.Function,
-//        NewResolutionOldInference.ResolutionKind.Variable,
+        NewResolutionOldInference.ResolutionKind.Variable,
 //        NewResolutionOldInference.ResolutionKind.Invoke,
 //        NewResolutionOldInference.ResolutionKind.CallableReference
     )
+    inner class FactoryProviderForInvoke(
+        val context: BasicCallResolutionContext,
+        val scopeTower: ImplicitScopeTower,
+        val cangjieCall: PSICangJieCallImpl
+    ) : CandidateFactoryProviderForInvoke<ResolutionCandidate> {
+
+        init {
+            assert(cangjieCall.dispatchReceiverForInvokeExtension == null) { cangjieCall }
+        }
+
+        override fun transformCandidate(
+            variable: ResolutionCandidate,
+            invoke: ResolutionCandidate
+        ) = invoke
+
+        override fun factoryForVariable(stripExplicitReceiver: Boolean): CandidateFactory<ResolutionCandidate> {
+            val explicitReceiver = if (stripExplicitReceiver) null else cangjieCall.explicitReceiver
+            val variableCall = PSICangJieCallForVariable(cangjieCall, explicitReceiver, cangjieCall.name)
+            return SimpleCandidateFactory(callComponents, scopeTower, variableCall, createResolutionCallbacks(context))
+        }
+
+        override fun factoryForInvoke(variable: ResolutionCandidate, useExplicitReceiver: Boolean):
+                Pair<ReceiverValueWithSmartCastInfo, CandidateFactory<ResolutionCandidate>>? {
+            if (isRecursiveVariableResolution(variable)) return null
+
+            assert(variable.isSuccessful) {
+                "Variable call should be successful: $variable " +
+                        "Descriptor: ${variable.resolvedCall.candidateDescriptor}"
+            }
+            val variableCallArgument = createReceiverCallArgument(variable)
+
+            val explicitReceiver = cangjieCall.explicitReceiver
+            val callForInvoke = if (useExplicitReceiver && explicitReceiver != null) {
+                PSICangJieCallForInvoke(cangjieCall, variable, explicitReceiver, variableCallArgument)
+            } else {
+                PSICangJieCallForInvoke(cangjieCall, variable, variableCallArgument, null)
+            }
+
+            return variableCallArgument.receiver to SimpleCandidateFactory(
+                callComponents, scopeTower, callForInvoke, createResolutionCallbacks(context)
+            )
+        }
+
+        // todo: create special check that there is no invoke on variable
+        private fun isRecursiveVariableResolution(variable: ResolutionCandidate): Boolean {
+            val variableType = variable.resolvedCall.candidateDescriptor.returnType
+            return variableType is DeferredType && variableType.isComputing
+        }
+
+        // todo: review
+        private fun createReceiverCallArgument(variable: ResolutionCandidate): SimpleCangJieCallArgument {
+            variable.forceResolution()
+            val variableReceiver = createReceiverValueWithSmartCastInfo(variable)
+            if (variableReceiver.hasTypesFromSmartCasts()) {
+                return ReceiverExpressionCangJieCallArgument(
+                    createReceiverValueWithSmartCastInfo(variable),
+                    isForImplicitInvoke = true
+                )
+            }
+
+            val psiCangJieCall = variable.resolvedCall.atom.psiCangJieCall
+
+            val variableResult = PartialCallResolutionResult(variable.resolvedCall, listOf(), variable.getSystem())
+
+            return SubCangJieCallArgumentImpl(
+                CallMaker.makeExternalValueArgument((variableReceiver.receiverValue as ExpressionReceiver).expression),
+                psiCangJieCall.resultDataFlowInfo, psiCangJieCall.resultDataFlowInfo, variableReceiver,
+                variableResult
+            )
+        }
+
+        // todo: decrease hacks count
+        private fun createReceiverValueWithSmartCastInfo(variable: ResolutionCandidate): ReceiverValueWithSmartCastInfo {
+            val callForVariable = variable.resolvedCall.atom as PSICangJieCallForVariable
+            val calleeExpression = callForVariable.baseCall.psiCall.calleeExpression as? CjReferenceExpression
+                ?: error("Unexpected call : ${callForVariable.baseCall.psiCall}")
+
+            val temporaryTrace = TemporaryBindingTrace.create(context.trace, "Context for resolve candidate")
+
+            val type = variable.resolvedCall.freshReturnType!!
+            val variableReceiver = ExpressionReceiver.create(calleeExpression, type, temporaryTrace.bindingContext)
+
+            temporaryTrace.record(BindingContext.REFERENCE_TARGET, calleeExpression, variable.resolvedCall.candidateDescriptor)
+            val dataFlowValue =
+                dataFlowValueFactory.createDataFlowValue(variableReceiver, temporaryTrace.bindingContext, context.scope.ownerDescriptor)
+            return ReceiverValueWithSmartCastInfo(
+                variableReceiver,
+                context.dataFlowInfo.getCollectedTypes(dataFlowValue, context.languageVersionSettings).compactIfPossible(),
+                dataFlowValue.isStable
+            ).prepareReceiverRegardingCaptureTypes()
+        }
+    }
 
     fun <D : CallableDescriptor> convertToOverloadResolutionResults(
         context: BasicCallResolutionContext,
@@ -115,15 +206,76 @@ class PSICallResolver(
 //        TODO()
     }
 
+    private fun ResolvedCall<*>.recordEffects(trace: BindingTrace) {
+//        val moduleDescriptor = DescriptorUtils.getContainingModule(this.resultingDescriptor?.containingDeclaration ?: return)
+//        recordLambdasInvocations(trace, moduleDescriptor)
+//        recordResultInfo(trace, moduleDescriptor)
+    }
 
     private inner class ASTScopeTower(
         val context: BasicCallResolutionContext,
         cjExpression: CjExpression? = null
     ) : ImplicitScopeTower {
+
+        private val cache = HashMap<ReceiverParameterDescriptor, ReceiverValueWithSmartCastInfo>()
+
         override val lexicalScope: LexicalScope get() = context.scope
+        override val areContextReceiversEnabled: Boolean get() = context.languageVersionSettings.supportsFeature(
+            LanguageFeature.ContextReceivers)
+        override val syntheticScopes: SyntheticScopes get() = this@PSICallResolver.syntheticScopes
+        override fun interceptVariableCandidates(
+            resolutionScope: ResolutionScope,
+            name: Name,
+            initialResults: Collection<VariableDescriptor>,
+            location: LookupLocation,
+            dispatchReceiver: ReceiverValueWithSmartCastInfo?,
+            extensionReceiver: ReceiverValueWithSmartCastInfo?
+        ): Collection<VariableDescriptor> {
+            return candidateInterceptor.interceptVariableCandidates(
+                initialResults,
+                this,
+                context,
+                resolutionScope,
+                this@PSICallResolver,
+                name,
+                location,
+                dispatchReceiver,
+                extensionReceiver
+            )
+        }
+
+        override fun interceptFunctionCandidates(
+            resolutionScope: ResolutionScope,
+            name: Name,
+            initialResults: Collection<FunctionDescriptor>,
+            location: LookupLocation,
+            dispatchReceiver: ReceiverValueWithSmartCastInfo?,
+            extensionReceiver: ReceiverValueWithSmartCastInfo?
+        ): Collection<FunctionDescriptor> {
+            return candidateInterceptor.interceptFunctionCandidates(
+                initialResults,
+                this,
+                context,
+                resolutionScope,
+                this@PSICallResolver,
+                name,
+                location,
+                dispatchReceiver,
+                extensionReceiver
+            )
+        }
 
         override val location: LookupLocation =
             cjExpression?.createLookupLocation() ?: context.call.createLookupLocation()
+        override val implicitsResolutionFilter: ImplicitsExtensionsResolutionFilter get() = this@PSICallResolver.implicitsResolutionFilter
+
+        override fun getImplicitReceiver(scope: LexicalScope): ReceiverValueWithSmartCastInfo? {
+            val implicitReceiver = scope.implicitReceiver ?: return null
+
+            return cache.getOrPut(implicitReceiver) {
+                context.transformToReceiverWithSmartCastInfo(implicitReceiver.value)
+            }
+        }
 
     }
 
@@ -224,6 +376,7 @@ class PSICallResolver(
         cangjieCallKind: CangJieCallKind,
         oldCall: Call
     ): ReceiverCangJieCallArgument? {
+        return null
 //        if (cangjieCallKind != CangJieCallKind.INVOKE) return null
 
         require(oldCall is CallTransformer.CallForImplicitInvoke) { "Call should be CallForImplicitInvoke, but it is: $oldCall" }
@@ -365,10 +518,12 @@ class PSICallResolver(
             isForImplicitInvoke
         )
     }
+
     private fun BasicCallResolutionContext.expandContextForCatchClause(cjExpression: Any): BasicCallResolutionContext {
         if (cjExpression !is CjExpression) return this
 
-        val variableDescriptorHolder = trace.bindingContext[NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER, cjExpression] ?: return this
+        val variableDescriptorHolder =
+            trace.bindingContext[NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER, cjExpression] ?: return this
         val variableDescriptor = variableDescriptorHolder.get() ?: return this
         variableDescriptorHolder.set(null)
 
@@ -384,6 +539,7 @@ class PSICallResolver(
         }
         return replaceScope(catchScope)
     }
+
     private fun resolveValueArgument(
         outerCallContext: BasicCallResolutionContext,
         startDataFlowInfo: DataFlowInfo,
@@ -508,11 +664,11 @@ class PSICallResolver(
     private fun NewResolutionOldInference.ResolutionKind.toCangJieCallKind(): CangJieCallKind =
         when (this) {
             is NewResolutionOldInference.ResolutionKind.Function -> CangJieCallKind.FUNCTION
-//            is NewResolutionOldInference.ResolutionKind.Variable -> CangJieCallKind.VARIABLE
+            is NewResolutionOldInference.ResolutionKind.Variable -> CangJieCallKind.VARIABLE
 //            is NewResolutionOldInference.ResolutionKind.Invoke -> CangJieCallKind.INVOKE
 //            is NewResolutionOldInference.ResolutionKind.CallableReference -> CangJieCallKind.CALLABLE_REFERENCE
             is NewResolutionOldInference.ResolutionKind.GivenCandidates -> CangJieCallKind.UNSUPPORTED
-            NewResolutionOldInference.ResolutionKind.Variable -> TODO()
+
         }
 
     private fun refineNameForRemOperator(isBinaryRemOperator: Boolean, name: Name): Name {
@@ -574,6 +730,7 @@ class PSICallResolver(
             checkCallWithAdditionalResolve(it, scopeTower, resolutionCallbacks, expectedType, context)
         }
     }
+
     private fun <D : CallableDescriptor> checkCallWithAdditionalResolve(
         overloadResolutionResults: OverloadResolutionResults<D>,
         scopeTower: ImplicitScopeTower,
@@ -585,6 +742,7 @@ class PSICallResolver(
             callChecker.check(overloadResolutionResults, scopeTower, resolutionCallbacks, expectedType, context)
         }
     }
+
     private fun clearCacheForApproximationResults() {
         // Mostly, we approximate captured or some other internal types that don't live longer than resolve for a call,
         // so it's quite useless to preserve cache for longer time

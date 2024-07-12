@@ -83,6 +83,27 @@ val ReceiverCangJieCallArgument.receiverValue: ReceiverValue?
         else -> null
     }
 
+class PSICangJieCallForVariable(
+    val baseCall: PSICangJieCallImpl,
+    override val explicitReceiver: ReceiverCangJieCallArgument?,
+    override val name: Name
+) : PSICangJieCall() {
+    override val callKind: CangJieCallKind get() = CangJieCallKind.VARIABLE
+    override val typeArguments: List<TypeArgument> get() = emptyList()
+    override val argumentsInParenthesis: List<CangJieCallArgument> get() = emptyList()
+    override val externalArgument: CangJieCallArgument? get() = null
+
+    override val startingDataFlowInfo: DataFlowInfo get() = baseCall.startingDataFlowInfo
+    override val resultDataFlowInfo: DataFlowInfo get() = baseCall.startingDataFlowInfo
+    override val dataFlowInfoForArguments: DataFlowInfoForArguments get() = baseCall.dataFlowInfoForArguments
+
+    override val tracingStrategy: TracingStrategy get() = baseCall.tracingStrategy
+    override val psiCall: Call = CallTransformer.stripCallArguments(baseCall.psiCall).let {
+        if (explicitReceiver == null) CallTransformer.stripReceiver(it) else it
+    }
+
+    override val isForImplicitInvoke: Boolean get() = false
+}
 class PSICangJieCallImpl(
     override val callKind: CangJieCallKind,
     override val psiCall: Call,

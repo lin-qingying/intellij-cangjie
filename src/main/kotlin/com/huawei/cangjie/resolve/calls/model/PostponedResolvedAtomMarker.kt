@@ -8,3 +8,8 @@ interface PostponedResolvedAtomMarker {
     val expectedType: CangJieTypeMarker?
     val analyzed: Boolean
 }
+interface PostponedAtomWithRevisableExpectedType : PostponedResolvedAtomMarker {
+    val revisedExpectedType: CangJieTypeMarker?
+
+    fun reviseExpectedType(expectedType: CangJieTypeMarker)
+}

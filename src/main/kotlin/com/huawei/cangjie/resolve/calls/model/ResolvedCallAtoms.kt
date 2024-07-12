@@ -15,7 +15,7 @@ abstract class ResolutionPart {
 
     // helper functions
     protected inline val ResolutionCandidate.candidateDescriptor get() = resolvedCall.candidateDescriptor
-    protected inline val ResolutionCandidate.kotlinCall get() = resolvedCall.atom
+    protected inline val ResolutionCandidate.cangjieCall get() = resolvedCall.atom
 }
 
 fun CangJieDiagnosticsHolder.addDiagnosticIfNotNull(diagnostic: CangJieCallDiagnostic?) {
@@ -59,7 +59,9 @@ open class MutableResolvedCallAtom(
         _candidateDescriptor = newCandidateDescriptor
     }
 
-
+    public override fun setAnalyzedResults(subResolvedAtoms: List<ResolvedAtom>) {
+        super.setAnalyzedResults(subResolvedAtoms)
+    }
 }
 
 interface CangJieDiagnosticsHolder {

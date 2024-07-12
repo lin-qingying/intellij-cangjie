@@ -1,5 +1,6 @@
 package com.huawei.cangjie.resolve.calls.smartcasts
 
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.types.CangJieType
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.ImmutableSet
@@ -28,6 +29,9 @@ interface DataFlowInfo {
      */
     fun getCollectedTypes(key: DataFlowValue
 //                          , languageVersionSettings: LanguageVersionSettings
+    ): Set<CangJieType>
+    fun getCollectedTypes(key: DataFlowValue
+                         , languageVersionSettings: LanguageVersionSettings
     ): Set<CangJieType>
 
     /**

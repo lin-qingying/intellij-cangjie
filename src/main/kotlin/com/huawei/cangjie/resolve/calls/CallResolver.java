@@ -1,34 +1,54 @@
 package com.huawei.cangjie.resolve.calls;
 
-import com.huawei.cangjie.descriptors.CallableDescriptor;
-import com.huawei.cangjie.descriptors.VariableDescriptor;
+import com.huawei.cangjie.config.LanguageFeature;
+import com.huawei.cangjie.descriptors.*;
+import com.huawei.cangjie.descriptors.annotations.Annotations;
+import com.huawei.cangjie.diagnostics.DiagnosticFactory0;
 import com.huawei.cangjie.name.Name;
-import com.huawei.cangjie.psi.Call;
-import com.huawei.cangjie.psi.CjExpression;
-import com.huawei.cangjie.psi.CjReferenceExpression;
-import com.huawei.cangjie.psi.CjSimpleNameExpression;
+import com.huawei.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus;
+import com.huawei.cangjie.psi.*;
+import com.huawei.cangjie.resolve.BindingContext;
 import com.huawei.cangjie.resolve.BindingContextUtilsKt;
 import com.huawei.cangjie.resolve.TemporaryBindingTrace;
+import com.huawei.cangjie.resolve.calls.components.InferenceSession;
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext;
 import com.huawei.cangjie.resolve.calls.context.CheckArgumentTypesMode;
+import com.huawei.cangjie.resolve.calls.context.ContextDependency;
 import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResults;
 import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResultsImpl;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.tasks.TracingStrategy;
+import com.huawei.cangjie.resolve.calls.tasks.TracingStrategyForInvoke;
 import com.huawei.cangjie.resolve.calls.tasks.TracingStrategyImpl;
 import com.huawei.cangjie.resolve.calls.tower.NewResolutionOldInference;
-import com.huawei.cangjie.resolve.calls.util.ResolveArgumentsMode;
+import com.huawei.cangjie.resolve.calls.tower.PSICallResolver;
+import com.huawei.cangjie.resolve.calls.util.CallMaker;
+import com.huawei.cangjie.resolve.scopes.LexicalScope;
+import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver;
+import com.huawei.cangjie.types.CangJieType;
+import com.huawei.cangjie.types.CangJieTypeKt;
 import com.huawei.cangjie.types.expressions.ExpressionTypingVisitorDispatcher;
 import com.huawei.cangjie.utils.PerformanceCounter;
+import com.intellij.psi.PsiElement;
 import jakarta.inject.Inject;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.huawei.cangjie.resolve.calls.tower.PSICallResolver;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import static com.huawei.cangjie.descriptors.Errors.DELEGATION_SUPER_CALL_IN_ENUM_CONSTRUCTOR;
+import static com.huawei.cangjie.types.TypeUtils.NO_EXPECTED_TYPE;
+
 public class CallResolver {
     private static final PerformanceCounter callResolvePerfCounter = PerformanceCounter.Companion.create("Call resolve", ExpressionTypingVisitorDispatcher.typeInfoPerfCounter);
     private ArgumentTypeResolver argumentTypeResolver;
     private NewResolutionOldInference newResolutionOldInference;
     private PSICallResolver PSICallResolver;
+
     @Inject
     public void setPSICallResolver(@NotNull PSICallResolver PSICallResolver) {
         this.PSICallResolver = PSICallResolver;
@@ -44,6 +64,217 @@ public class CallResolver {
     ) {
         TracingStrategy tracing = TracingStrategyImpl.create(referenceExpression, context.call);
         return computeTasksAndResolveCall(context, name, tracing, kind);
+    }
+    private <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> checkArgumentTypesAndFail(BasicCallResolutionContext context) {
+        argumentTypeResolver.checkTypesWithNoCallee(context);
+        return OverloadResolutionResultsImpl.nameNotFound();
+    }
+    @NotNull
+    private OverloadResolutionResults<ConstructorDescriptor> resolveConstructorDelegationCall(
+            @NotNull BasicCallResolutionContext context,
+            @NotNull CjConstructorDelegationCall call,
+            @NotNull CjConstructorDelegationReferenceExpression calleeExpression,
+            @NotNull ClassDescriptor currentClassDescriptor
+    ) {
+        context.trace.record(BindingContext.LEXICAL_SCOPE, call, context.scope);
+
+        boolean isThisCall = calleeExpression.isThis();
+        if (currentClassDescriptor.getKind() == ClassKind.ENUM && !isThisCall) {
+            context.trace.report(DELEGATION_SUPER_CALL_IN_ENUM_CONSTRUCTOR.on(calleeExpression));
+            return checkArgumentTypesAndFail(context);
+        }
+
+        ClassDescriptor delegateClassDescriptor = isThisCall ? currentClassDescriptor :
+                DescriptorUtilsKt.getSuperClassOrAny(currentClassDescriptor);
+        Collection<ClassConstructorDescriptor> constructors = delegateClassDescriptor.getConstructors();
+
+        if (!isThisCall && currentClassDescriptor.getUnsubstitutedPrimaryConstructor() != null) {
+            if (DescriptorUtils.canHaveDeclaredConstructors(currentClassDescriptor)) {
+                // Diagnostic is meaningless when reporting on interfaces and object
+                PsiElement reportOn = calcReportOn(calleeExpression);
+                context.trace.report(PRIMARY_CONSTRUCTOR_DELEGATION_CALL_EXPECTED.on(reportOn));
+            }
+            if (call.isImplicit()) return OverloadResolutionResultsImpl.nameNotFound();
+        }
+
+        if (constructors.isEmpty()) {
+            context.trace.report(NO_CONSTRUCTOR.on(CallUtilKt.getValueArgumentListOrElement(context.call)));
+            return checkArgumentTypesAndFail(context);
+        }
+
+
+        CangJieType superType =
+                isThisCall ? currentClassDescriptor.getDefaultType() : DescriptorUtils.getSuperClassType(currentClassDescriptor);
+
+        Pair<Collection<OldResolutionCandidate<ConstructorDescriptor>>, BasicCallResolutionContext> candidatesAndContext =
+                prepareCandidatesAndContextForConstructorCall(superType, context, syntheticScopes);
+        Collection<OldResolutionCandidate<ConstructorDescriptor>> candidates = candidatesAndContext.getFirst();
+        context = candidatesAndContext.getSecond();
+
+        TracingStrategy tracing = call.isImplicit() ?
+                new TracingStrategyForImplicitConstructorDelegationCall(call, context.call) :
+                TracingStrategyImpl.create(calleeExpression, context.call);
+
+        PsiElement reportOn = call.isImplicit() ? call : calleeExpression;
+
+        if (delegateClassDescriptor.isInner()
+                && !DescriptorResolver.checkHasOuterClassInstance(context.scope, context.trace, reportOn,
+                (ClassDescriptor) delegateClassDescriptor.getContainingDeclaration())) {
+            return checkArgumentTypesAndFail(context);
+        }
+
+        return computeTasksFromCandidatesAndResolvedCall(context, candidates, tracing);
+    }
+
+    @NotNull
+    @SuppressWarnings("unchecked")
+    public OverloadResolutionResults<FunctionDescriptor> resolveFunctionCall(@NotNull BasicCallResolutionContext context) {
+        ProgressIndicatorAndCompilationCanceledStatus.checkCanceled();
+
+//        Call.CallType callType = context.call.getCallType();
+//        if (callType == Call.CallType.ARRAY_GET_METHOD || callType == Call.CallType.ARRAY_SET_METHOD) {
+//            Name name = callType == Call.CallType.ARRAY_GET_METHOD ? OperatorNameConventions.GET : OperatorNameConventions.SET;
+//            CjArrayAccessExpression arrayAccessExpression = (CjArrayAccessExpression) context.call.getCallElement();
+//            return computeTasksAndResolveCall(
+//                    context, name, arrayAccessExpression,
+//                    NewResolutionOldInference.ResolutionKind.Function.INSTANCE);
+//        }
+
+        CjExpression calleeExpression = context.call.getCalleeExpression();
+        if (calleeExpression instanceof CjSimpleNameExpression expression) {
+            return computeTasksAndResolveCall(
+                    context, expression.getReferencedNameAsName(), expression,
+                    NewResolutionOldInference.ResolutionKind.Function.INSTANCE);
+        } else if (calleeExpression instanceof CjConstructorCalleeExpression) {
+            return (OverloadResolutionResults) resolveCallForConstructor(context, (CjConstructorCalleeExpression) calleeExpression);
+        } else if (calleeExpression instanceof CjConstructorDelegationReferenceExpression) {
+            CjConstructorDelegationCall delegationCall = (CjConstructorDelegationCall) context.call.getCallElement();
+            DeclarationDescriptor container = context.scope.getOwnerDescriptor();
+            assert container instanceof ConstructorDescriptor : "Trying to resolve KtConstructorDelegationCall not in constructor. scope.ownerDescriptor = " + container;
+            return (OverloadResolutionResults) resolveConstructorDelegationCall(
+                    context,
+                    delegationCall,
+                    (CjConstructorDelegationReferenceExpression) calleeExpression,
+                    (ClassDescriptor) container.getContainingDeclaration()
+            );
+        } else if (calleeExpression == null) {
+            return checkArgumentTypesAndFail(context);
+        }
+
+        // Here we handle the case where the callee expression must be something of type function, e.g. (foo.bar())(1, 2)
+        CangJieType expectedType = NO_EXPECTED_TYPE;
+        if (calleeExpression instanceof CjLambdaExpression) {
+            int parameterNumber = ((CjLambdaExpression) calleeExpression).getValueParameters().size();
+            List<CangJieType> parameterTypes = new ArrayList<>(parameterNumber);
+            for (int i = 0; i < parameterNumber; i++) {
+                parameterTypes.add(NO_EXPECTED_TYPE);
+            }
+            expectedType = FunctionTypesKt.createFunctionType(
+                    builtIns, Annotations.Companion.getEMPTY(), null, Collections.emptyList(), parameterTypes, null, context.expectedType
+            );
+        }
+        CangJieType calleeType = expressionTypingServices.safeGetType(
+                context.scope, calleeExpression, expectedType, context.dataFlowInfo, context.inferenceSession, context.trace);
+        ExpressionReceiver expressionReceiver = ExpressionReceiver.Companion.create(calleeExpression, calleeType, context.trace.getBindingContext());
+
+        Call call = new CallTransformer.CallForImplicitInvoke(context.call.getExplicitReceiver(), expressionReceiver, context.call,
+                false);
+        TracingStrategyForInvoke tracingForInvoke = new TracingStrategyForInvoke(calleeExpression, call, calleeType);
+        return resolveCallForInvoke(context.replaceCall(call), tracingForInvoke);
+    }
+
+    @Nullable
+    public OverloadResolutionResults<ConstructorDescriptor> resolveConstructorDelegationCall(
+            @NotNull BindingTrace trace, @NotNull LexicalScope scope, @NotNull DataFlowInfo dataFlowInfo,
+            @NotNull ClassConstructorDescriptor constructorDescriptor,
+            @NotNull CjConstructorDelegationCall call,
+            @Nullable InferenceSession inferenceSession
+    ) {
+        // Method returns `null` when there is nothing to resolve in trivial cases like `null` call expression or
+        // when super call should be conventional enum constructor and super call should be empty
+
+        BasicCallResolutionContext context = BasicCallResolutionContext.create(
+                trace, scope,
+                CallMaker.makeCall(null, null, call),
+                NO_EXPECTED_TYPE,
+                dataFlowInfo, ContextDependency.INDEPENDENT, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+                false,
+                languageVersionSettings,
+                dataFlowValueFactory,
+                inferenceSession != null ? inferenceSession : InferenceSession.Companion.getDefault());
+
+        CjConstructorDelegationReferenceExpression calleeExpression = call.getCalleeExpression();
+
+        if (calleeExpression == null) return checkArgumentTypesAndFail(context);
+
+        ClassDescriptor currentClassDescriptor = constructorDescriptor.getContainingDeclaration();
+
+        if (constructorDescriptor.getConstructedClass().getKind() == ClassKind.ENUM && call.isImplicit()) {
+            if (currentClassDescriptor.getUnsubstitutedPrimaryConstructor() != null) {
+                DiagnosticFactory0<PsiElement> warningOrError;
+
+                if (languageVersionSettings.supportsFeature(LanguageFeature.RequiredPrimaryConstructorDelegationCallInEnums)) {
+                    warningOrError = PRIMARY_CONSTRUCTOR_DELEGATION_CALL_EXPECTED; // error
+                } else {
+                    warningOrError = PRIMARY_CONSTRUCTOR_DELEGATION_CALL_EXPECTED_IN_ENUM; // warning
+                }
+                PsiElement reportOn = calcReportOn(calleeExpression);
+                context.trace.report(warningOrError.on(reportOn));
+            }
+            return null;
+        }
+
+        return resolveConstructorDelegationCall(context, call, call.getCalleeExpression(), currentClassDescriptor);
+    }
+
+    private OverloadResolutionResults<ConstructorDescriptor> resolveCallForConstructor(
+            @NotNull BasicCallResolutionContext context,
+            @NotNull CjConstructorCalleeExpression expression
+    ) {
+        assert context.call.getExplicitReceiver() == null :
+                "Constructor can't be invoked with explicit receiver: " + context.call.getCallElement().getText();
+
+        context.trace.record(BindingContext.LEXICAL_SCOPE, context.call.getCallElement(), context.scope);
+
+        CjReferenceExpression functionReference = expression.getConstructorReferenceExpression();
+        CjTypeReference typeReference = expression.getTypeReference();
+        if (functionReference == null || typeReference == null) {
+            CallResolverUtilKt.checkForConstructorCallOnFunctionalType(typeReference, context);
+            return checkArgumentTypesAndFail(context); // No type there
+        }
+        CangJieType constructedType = typeResolver.resolveType(context.scope, typeReference, context.trace, true);
+        if (CangJieTypeKt.isError(constructedType)) {
+            return checkArgumentTypesAndFail(context);
+        }
+
+        DeclarationDescriptor declarationDescriptor = constructedType.getConstructor().getDeclarationDescriptor();
+        if (!(declarationDescriptor instanceof ClassDescriptor classDescriptor)) {
+            context.trace.report(NOT_A_CLASS.on(expression));
+            return checkArgumentTypesAndFail(context);
+        }
+
+        Collection<ClassConstructorDescriptor> constructors = classDescriptor.getConstructors();
+        if (constructors.isEmpty()) {
+            context.trace.report(NO_CONSTRUCTOR.on(CallUtilKt.getValueArgumentListOrElement(context.call)));
+            return checkArgumentTypesAndFail(context);
+        }
+
+        return resolveConstructorCall(context, functionReference, constructedType);
+    }
+
+    @NotNull
+    public OverloadResolutionResults<ConstructorDescriptor> resolveConstructorCall(
+            @NotNull BasicCallResolutionContext context,
+            @NotNull CjReferenceExpression functionReference,
+            @NotNull CangJieType constructedType
+    ) {
+        Pair<Collection<OldResolutionCandidate<ConstructorDescriptor>>, BasicCallResolutionContext> candidatesAndContext =
+                prepareCandidatesAndContextForConstructorCall(constructedType, context, syntheticScopes);
+
+        Collection<OldResolutionCandidate<ConstructorDescriptor>> candidates = candidatesAndContext.getFirst();
+        context = candidatesAndContext.getSecond();
+
+        return computeTasksFromCandidatesAndResolvedCall(context, functionReference, candidates);
     }
 
     @SuppressWarnings("WeakerAccess")

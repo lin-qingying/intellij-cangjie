@@ -6,6 +6,7 @@ import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.resolve.calls.inference.CapturedTypeConstructor
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.types.*
+import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.replaceArguments
 import com.huawei.cangjie.types.error.ErrorScopeKind
 import com.huawei.cangjie.types.model.CaptureStatus
 import com.huawei.cangjie.types.model.CapturedTypeMarker
@@ -39,7 +40,7 @@ class NewCapturedTypeConstructor(
     override fun getParameters(): List<TypeParameterDescriptor> = emptyList()
 
 //    override fun isFinal() = false
-//    override fun isDenotable() = false
+    override fun isDenotable() = false
     override fun getDeclarationDescriptor(): ClassifierDescriptor? = null
     override fun getBuiltIns(): CangJieBuiltIns = projection.type.builtIns
 
@@ -113,7 +114,49 @@ class NewCapturedType(
         )
 }
 
+private fun captureArguments(type: UnwrappedType, status: CaptureStatus): List<TypeProjection>? {
+    if (type.arguments.size != type.constructor.parameters.size) return null
 
+    val arguments = type.arguments
+    if (arguments.all { it.projectionKind == Variance.INVARIANT }) return null
+
+    val capturedArguments = arguments.zip(type.constructor.parameters).map { (projection, parameter) ->
+        if (projection.projectionKind == Variance.INVARIANT) return@map projection
+
+        val lowerType =
+            if (!projection.isStarProjection && projection.projectionKind == Variance.IN_VARIANCE) {
+                projection.type.unwrap()
+            } else {
+                null
+            }
+
+        NewCapturedType(status, lowerType, projection, parameter).asTypeProjection() // todo optimization: do not create type projection
+    }
+
+    val substitutor = TypeConstructorSubstitution.create(type.constructor, capturedArguments).buildSubstitutor()
+
+    for (index in arguments.indices) {
+        val oldProjection = arguments[index]
+        val newProjection = capturedArguments[index]
+
+        if (oldProjection.projectionKind == Variance.INVARIANT) continue
+        val capturedTypeSupertypes = type.constructor.parameters[index].upperBounds.mapTo(mutableListOf()) {
+            CangJieTypePreparator.Default.prepareType(substitutor.safeSubstitute(it, Variance.INVARIANT).unwrap())
+        }
+//
+//        if (!oldProjection.isStarProjection && oldProjection.projectionKind == Variance.OUT_VARIANCE) {
+//            capturedTypeSupertypes += CangJieTypePreparator.Default.prepareType(oldProjection.type.unwrap())
+//        }
+
+        val capturedType = newProjection.type as NewCapturedType
+        capturedType.constructor.initializeSupertypes(capturedTypeSupertypes)
+    }
+
+    return capturedArguments
+}
+// this function suppose that input type is simple classifier type
+internal fun captureFromArguments(type: SimpleType, status: CaptureStatus) =
+    captureArguments(type, status)?.let { type.replaceArguments(it) }
 
 // null means that type should be leaved as is
 fun prepareArgumentTypeRegardingCaptureTypes(argumentType: UnwrappedType): UnwrappedType? {

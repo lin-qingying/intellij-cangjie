@@ -166,6 +166,18 @@ public class LockBasedStorageManager implements StorageManager {
 
     }
 
+    @NotNull
+    @Override
+    public <T> NotNullLazyValue<T> createLazyValue(@NotNull Function0<? extends T> computable, @NotNull Function1<? super Boolean, ? extends T> onRecursiveCall) {
+        return new LockBasedNotNullLazyValue<T>(this, computable) {
+            @NotNull
+            @Override
+            protected RecursionDetectedResult<T> recursionDetected(boolean firstTime) {
+                return RecursionDetectedResult.value(onRecursiveCall.invoke(firstTime));
+            }
+        };
+    }
+
     /**
      * Computed value has an early publication and accessible from the same thread while executing a post-compute lambda.
      * For other threads value will be accessible only after post-compute lambda is finished (when a real lock is used).

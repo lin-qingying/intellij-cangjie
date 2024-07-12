@@ -77,7 +77,7 @@ class CapturedTypeConstructorImpl(
 
 //    override fun isFinal() = true
 //
-//    override fun isDenotable() = false
+    override fun isDenotable() = false
 
     override fun getDeclarationDescriptor() = null
 

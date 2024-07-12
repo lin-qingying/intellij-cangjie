@@ -3,6 +3,8 @@ package com.huawei.cangjie.resolve
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.fqNameUnsafe
+import com.huawei.cangjie.incremental.components.LookupLocation
+import com.huawei.cangjie.name.ClassId
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
@@ -12,11 +14,29 @@ import com.huawei.cangjie.types.ErrorUtils.isError
 import com.huawei.cangjie.types.TypeRefinement
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.checker.REFINER_CAPABILITY
+fun ModuleDescriptor.resolveClassByFqName(fqName: FqName, lookupLocation: LookupLocation): ClassDescriptor? {
+    if (fqName.isRoot) return null
 
+    (getPackage(fqName.parent())
+        .memberScope.getContributedClassifier(fqName.shortName(), lookupLocation) as? ClassDescriptor)?.let { return it }
+
+    return resolveClassByFqName(fqName.parent(), lookupLocation)
+        ?.unsubstitutedInnerClassesScope
+        ?.getContributedClassifier(fqName.shortName(), lookupLocation) as? ClassDescriptor
+}
 val DeclarationDescriptor.builtIns: CangJieBuiltIns
     get() = module.builtIns
 val DeclarationDescriptor.module: ModuleDescriptor
     get() = DescriptorUtils.getContainingModule(this)
+val ClassifierDescriptor?.classId: ClassId?
+    get() = this?.containingDeclaration?.let { owner ->
+        when (owner) {
+            is PackageFragmentDescriptor -> ClassId(owner.fqName, name)
+            is ClassifierDescriptorWithTypeParameters -> owner.classId?.createNestedClassId(name)
+            else -> null
+        }
+    }
+fun ClassDescriptor.getClassObjectReferenceTarget(): ClassDescriptor = companionObjectDescriptor ?: this
 
 object DescriptorUtils {
 

@@ -7,6 +7,7 @@ import com.huawei.cangjie.context.withProject
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.frontend.createContainerForBodyResolve
+import com.huawei.cangjie.idea.projectStructure.languageVersionSettings
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getElementTextWithContext
@@ -354,7 +355,7 @@ class ResolveElementCache(
             statementFilter,
             PlatformDependentAnalyzerServicesImpl,
 //            targetPlatform.findAnalyzerServices(file.project),
-//            file.languageVersionSettings,
+            file.languageVersionSettings,
 //            IdeaModuleStructureOracle(),
 //            IdeSealedClassInheritorsProvider,
 //            ControlFlowInformationProviderImpl.Factory,

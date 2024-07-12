@@ -1,13 +1,20 @@
 package com.huawei.cangjie.resolve.calls.inference
 
+import com.huawei.cangjie.resolve.calls.inference.components.ConstraintSystemCompletionContext
 import com.huawei.cangjie.resolve.calls.inference.model.Constraint
+import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintSystemError
 import com.huawei.cangjie.types.model.TypeVariableMarker
 
 interface NewConstraintSystem {
-//    val hasContradiction: Boolean
+        val hasContradiction: Boolean
     val errors: List<ConstraintSystemError>
-//
+
+    //
+    fun asConstraintSystemCompleterContext(): ConstraintSystemCompletionContext
+    // after this method we shouldn't mutate system via ConstraintSystemBuilder
+    fun asReadOnlyStorage(): ConstraintStorage
+
     fun getBuilder(): ConstraintSystemBuilder
 //
 //    // after this method we shouldn't mutate system via ConstraintSystemBuilder

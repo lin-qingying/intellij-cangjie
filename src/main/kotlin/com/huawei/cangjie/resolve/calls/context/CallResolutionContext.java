@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.calls.context;
 
 
+import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.descriptors.BindingTrace;
 import com.huawei.cangjie.psi.Call;
 import com.huawei.cangjie.psi.CjExpression;
@@ -41,13 +42,13 @@ public abstract class CallResolutionContext<Context extends CallResolutionContex
             boolean collectAllCandidates,
             @NotNull CallPosition callPosition,
             @NotNull Function1<CjExpression, CjExpression> expressionContextProvider,
-//            @NotNull LanguageVersionSettings languageVersionSettings,
+            @NotNull LanguageVersionSettings languageVersionSettings,
             @NotNull DataFlowValueFactory dataFlowValueFactory,
             @NotNull InferenceSession inferenceSession
     ) {
         super(trace, scope, expectedType, dataFlowInfo, contextDependency, resolutionResultsCache,
                 statementFilter, isAnnotationContext, isDebuggerContext, collectAllCandidates, callPosition, expressionContextProvider,
-//                languageVersionSettings,
+                languageVersionSettings,
                 dataFlowValueFactory, inferenceSession);
         this.call = call;
         this.checkArguments = checkArguments;

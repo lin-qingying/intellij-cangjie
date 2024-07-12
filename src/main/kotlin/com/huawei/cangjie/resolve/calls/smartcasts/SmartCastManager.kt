@@ -1,23 +1,24 @@
-//package com.huawei.cangjie.resolve.calls.smartcasts
-//
-//import com.huawei.cangjie.builtins.CangJieBuiltIns
-//import com.huawei.cangjie.descriptors.BindingTrace
-//import com.huawei.cangjie.descriptors.DeclarationDescriptor
-//import com.huawei.cangjie.descriptors.Errors
-//import com.huawei.cangjie.psi.Call
-//import com.huawei.cangjie.psi.CjExpression
-//import com.huawei.cangjie.resolve.BindingContext
-//import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver
-//import com.huawei.cangjie.resolve.calls.context.ResolutionContext
-//import com.huawei.cangjie.resolve.scopes.receivers.ImplicitReceiver
-//import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
-//import com.huawei.cangjie.types.CangJieType
-//import com.huawei.cangjie.types.TypeUtils
-//import com.huawei.cangjie.utils.slicedMap.WritableSlice
-//
-//
-//class SmartCastManager(private val argumentTypeResolver: ArgumentTypeResolver) {
-//
+package com.huawei.cangjie.resolve.calls.smartcasts
+
+import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.config.LanguageVersionSettings
+import com.huawei.cangjie.descriptors.BindingTrace
+import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.descriptors.Errors
+import com.huawei.cangjie.psi.Call
+import com.huawei.cangjie.psi.CjExpression
+import com.huawei.cangjie.resolve.BindingContext
+import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver
+import com.huawei.cangjie.resolve.calls.context.ResolutionContext
+import com.huawei.cangjie.resolve.scopes.receivers.ImplicitReceiver
+import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
+import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.TypeUtils
+import com.huawei.cangjie.utils.slicedMap.WritableSlice
+
+
+class SmartCastManager(private val argumentTypeResolver: ArgumentTypeResolver) {
+
 //    fun getSmartCastVariants(
 //        receiverToCast: ReceiverValue,
 //        bindingContext: BindingContext,
@@ -240,4 +241,4 @@
 //            trace.record(key, expression, updatedSmartCasts)
 //        }
 //    }
-//}
+}

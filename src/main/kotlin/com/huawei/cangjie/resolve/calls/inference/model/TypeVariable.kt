@@ -21,7 +21,7 @@ class TypeVariableTypeConstructor(
     override fun getSupertypes(): Collection<CangJieType> = emptyList()
 
     //    override fun isFinal(): Boolean = false
-//    override fun isDenotable(): Boolean = false
+    override fun isDenotable(): Boolean = false
     override fun getDeclarationDescriptor(): ClassifierDescriptor? = null
 
     override fun getBuiltIns() = builtIns

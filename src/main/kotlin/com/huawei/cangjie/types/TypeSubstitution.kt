@@ -2,6 +2,7 @@ package com.huawei.cangjie.types
 
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
+import com.huawei.cangjie.descriptors.annotations.FilteredAnnotations
 import com.huawei.cangjie.types.error.ErrorType
 
 abstract class TypeSubstitution{
@@ -13,10 +14,22 @@ abstract class TypeSubstitution{
             override fun toString() = "Empty TypeSubstitution"
         }
     }
+    // This can be used to perform preliminary manipulations with top-level types
+    open fun prepareTopLevelType(topLevelType: CangJieType, position: Variance): CangJieType = topLevelType
+    open fun filterAnnotations(annotations: Annotations) = annotations
 
     abstract operator fun get(key: CangJieType): TypeProjection?
     fun buildSubstitutor(): TypeSubstitutor = TypeSubstitutor.create(this)
+    fun replaceWithNonApproximating() = object : TypeSubstitution() {
+        override fun get(key: CangJieType) = this@TypeSubstitution[key]
+        override fun approximateCapturedTypes() = false
+        override fun approximateContravariantCapturedTypes() = false
+        override fun filterAnnotations(annotations: Annotations) = this@TypeSubstitution.filterAnnotations(annotations)
+        override fun prepareTopLevelType(topLevelType: CangJieType, position: Variance) =
+            this@TypeSubstitution.prepareTopLevelType(topLevelType, position)
 
+        override fun isEmpty() = this@TypeSubstitution.isEmpty()
+    }
     open fun isEmpty(): Boolean = false
 
     open fun approximateCapturedTypes(): Boolean = false
@@ -50,7 +63,7 @@ abstract class TypeConstructorSubstitution : TypeSubstitution() {
             }
 
         @JvmStatic
-        fun create(kotlinType: CangJieType) = create(kotlinType.constructor, kotlinType.arguments)
+        fun create(CangJieType: CangJieType) = create(CangJieType.constructor, CangJieType.arguments)
 
         @JvmStatic
         fun create(typeConstructor: TypeConstructor, arguments: List<TypeProjection>): TypeSubstitution {
@@ -130,4 +143,25 @@ open class DelegatedTypeSubstitution(val substitution: TypeSubstitution) : TypeS
     override fun approximateContravariantCapturedTypes() = substitution.approximateContravariantCapturedTypes()
 
 //    override fun filterAnnotations(annotations: Annotations) = substitution.filterAnnotations(annotations)
+}
+@JvmOverloads
+fun CangJieType.replace(
+    newArguments: List<TypeProjection> = arguments,
+    newAnnotations: Annotations = annotations,
+    newArgumentsForUpperBound: List<TypeProjection> = newArguments
+): CangJieType {
+    if ((newArguments.isEmpty() || newArguments === arguments) && newAnnotations === annotations) return this
+
+    val newAttributes = attributes.replaceAnnotations(
+        // Specially handle FilteredAnnotations here due to FilteredAnnotations.isEmpty()
+        if (newAnnotations is FilteredAnnotations && newAnnotations.isEmpty()) Annotations.EMPTY else newAnnotations
+    )
+
+    return when (val unwrapped = unwrap()) {
+        is FlexibleType -> CangJieTypeFactory.flexibleType(
+            unwrapped.lowerBound.replace(newArguments, newAttributes),
+            unwrapped.upperBound.replace(newArgumentsForUpperBound, newAttributes)
+        )
+        is SimpleType -> unwrapped.replace(newArguments, newAttributes)
+    }
 }

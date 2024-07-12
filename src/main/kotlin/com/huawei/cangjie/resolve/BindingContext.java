@@ -15,6 +15,8 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValue;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.resolve.scopes.receivers.Qualifier;
 import com.huawei.cangjie.types.CangJieType;
+import com.huawei.cangjie.types.DeferredType;
+import com.huawei.cangjie.utils.Box;
 import com.huawei.cangjie.utils.ReadOnly;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.huawei.cangjie.utils.slicedMap.BasicWritableSlice;
@@ -69,6 +71,7 @@ public interface BindingContext {
             // Do nothing
         }
     };
+    WritableSlice<Box<DeferredType>, Boolean> DEFERRED_TYPE = Slices.createCollectiveSetSlice();
 
     WritableSlice<CjTypeReference, CangJieType> TYPE = Slices.createSimpleSlice();
     WritableSlice<DeclarationDescriptor, Multimap<String, ReceiverParameterDescriptor>> DESCRIPTOR_TO_CONTEXT_RECEIVER_MAP = Slices.createSimpleSlice();

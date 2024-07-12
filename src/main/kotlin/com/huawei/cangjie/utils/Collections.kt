@@ -19,6 +19,9 @@ inline fun <T> buildList(builder: (CollectionBuilder<T>).() -> Unit): List<T> =
 inline fun <T> buildSet(builder: (CollectionBuilder<T>).() -> Unit): Set<T> =
     buildCollection(mutableSetOf(), builder) as Set<T>
 
+fun <K, V> newLinkedHashMapWithExpectedSize(expectedSize: Int): LinkedHashMap<K, V> =
+    LinkedHashMap(capacity(expectedSize))
+
 inline fun <T> buildCollection(
     result: MutableCollection<T>,
     builder: (CollectionBuilder<T>).() -> Unit

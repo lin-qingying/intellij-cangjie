@@ -9,7 +9,9 @@ inline fun <T, R : Any> Iterable<T>.firstNotNullResult(transform: (T) -> R?): R?
     }
     return null
 }
-
+fun <E> MutableList<E>.trimToSize(newSize: Int) {
+    subList(newSize, size).clear()
+}
 fun <T> Set<T>.compactIfPossible(): Set<T> =
     when (size) {
         0 -> emptySet()

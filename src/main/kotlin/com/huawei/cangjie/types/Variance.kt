@@ -8,11 +8,14 @@ enum class Variance(
     private val superpositionFactor: Int
 ) {
     INVARIANT("", true, true, 0),
-    IN_VARIANCE("in", true, false, -1);
+    IN_VARIANCE("in", true, false, -1),
+    OUT_VARIANCE("out", false, true, +1);
+    ;
 
     fun allowsPosition(position: Variance): Boolean
             = when (position) {
         IN_VARIANCE -> allowsInPosition
+        OUT_VARIANCE -> allowsOutPosition
 
         INVARIANT -> allowsInPosition && allowsOutPosition
     }
@@ -30,7 +33,8 @@ enum class Variance(
     fun opposite(): Variance {
         return when (this) {
             INVARIANT -> INVARIANT
-            IN_VARIANCE -> TODO()
+            IN_VARIANCE -> OUT_VARIANCE
+            OUT_VARIANCE -> IN_VARIANCE
         }
     }
 

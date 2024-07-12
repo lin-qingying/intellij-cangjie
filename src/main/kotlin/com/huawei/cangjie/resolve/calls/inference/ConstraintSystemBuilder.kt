@@ -49,7 +49,19 @@ interface ConstraintSystemOperation {
 
     val errors: List<ConstraintSystemError>
 }
+// if runOperations return true, then this operation will be applied, and function return true
+inline fun ConstraintSystemBuilder.runTransaction(crossinline runOperations: ConstraintSystemOperation.() -> Boolean): Boolean {
+    val transactionState = prepareTransaction()
 
+    // typeVariablesTransaction is clear
+    if (runOperations()) {
+        transactionState.closeTransaction()
+        return true
+    }
+
+    transactionState.rollbackTransaction()
+    return false
+}
 abstract class ConstraintSystemTransaction {
     abstract fun closeTransaction()
 

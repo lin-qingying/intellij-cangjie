@@ -99,7 +99,7 @@ class CallableReferencesCandidateFactory(
 //                )
 //
 //                // conversions aren't needed for top-level callable references
-//                val buildTypeWithConversions = kotlinCall is CallableReferenceCangJieCallArgument
+//                val buildTypeWithConversions = cangjieCall is CallableReferenceCangJieCallArgument
 //
 //                val returnType = if (callableReferenceAdaptation == null || !buildTypeWithConversions) {
 //                    descriptor.valueParameters.mapTo(argumentsAndReceivers) { it.type }
@@ -155,7 +155,7 @@ class CallableReferencesCandidateFactory(
             kotlinCall, expectedType, callComponents, scopeTower, resolutionCallbacks, baseSystem
         ).also { diagnostics.forEach(it::addDiagnostic) }
 
-//        if (callComponents.statelessCallbacks.isHiddenInResolution(candidateDescriptor, kotlinCall.call, resolutionCallbacks)) {
+//        if (callComponents.statelessCallbacks.isHiddenInResolution(candidateDescriptor, cangjieCall.call, resolutionCallbacks)) {
 //            diagnostics.add(HiddenDescriptor)
 //            return createCallableReferenceCallCandidate(diagnostics)
 //        }
@@ -166,7 +166,7 @@ class CallableReferencesCandidateFactory(
 //
 //        if (callableReferenceAdaptation != null && expectedType != null && hasNonTrivialAdaptation(callableReferenceAdaptation)) {
 //            if (!expectedType.isFunctionType && !expectedType.isSuspendFunctionType) { // expectedType has some reflection type
-//                diagnostics.add(AdaptedCallableReferenceIsUsedWithReflection(kotlinCall))
+//                diagnostics.add(AdaptedCallableReferenceIsUsedWithReflection(cangjieCall))
 //            }
 //        }
 //
@@ -174,11 +174,11 @@ class CallableReferencesCandidateFactory(
 //            callableReferenceAdaptation.defaults != 0 &&
 //            !callComponents.languageVersionSettings.supportsFeature(LanguageFeature.FunctionReferenceWithDefaultValueAsOtherType)
 //        ) {
-//            diagnostics.add(CallableReferencesDefaultArgumentUsed(kotlinCall, candidateDescriptor, callableReferenceAdaptation.defaults))
+//            diagnostics.add(CallableReferencesDefaultArgumentUsed(cangjieCall, candidateDescriptor, callableReferenceAdaptation.defaults))
 //        }
 //
 //        if (candidateDescriptor !is CallableMemberDescriptor) {
-//            return createCallableReferenceCallCandidate(listOf(NotCallableMemberReference(kotlinCall, candidateDescriptor)))
+//            return createCallableReferenceCallCandidate(listOf(NotCallableMemberReference(cangjieCall, candidateDescriptor)))
 //        }
 //
 //        if (candidateDescriptor is PropertyDescriptor && candidateDescriptor.isSyntheticEnumEntries()) {

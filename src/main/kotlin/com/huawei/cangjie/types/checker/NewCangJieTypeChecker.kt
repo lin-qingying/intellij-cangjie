@@ -1,7 +1,12 @@
 package com.huawei.cangjie.types.checker
 
 import com.huawei.cangjie.resolve.OverridingUtil
+import com.huawei.cangjie.types.AbstractNullabilityChecker.hasNotNullSupertype
+
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.TypeCheckerState
+import com.huawei.cangjie.types.UnwrappedType
+import com.huawei.cangjie.types.lowerIfFlexible
 import com.huawei.cangjie.types.model.SimpleTypeMarker
 
 object SimpleClassicTypeSystemContext : ClassicTypeSystemContext
@@ -40,4 +45,10 @@ class NewCangJieTypeCheckerImpl(
 //    fun TypeCheckerState.isSubtypeOf(subType: UnwrappedType, superType: UnwrappedType): Boolean {
 //        return AbstractTypeChecker.isSubtypeOf(this, subType, superType)
 //    }
+}
+object NullabilityChecker {
+    fun isSubtypeOfAny(type: UnwrappedType): Boolean =
+        SimpleClassicTypeSystemContext
+            .newTypeCheckerState(errorTypesEqualToAnything = false, stubTypesEqualToAnything = true)
+            .hasNotNullSupertype(type.lowerIfFlexible(), TypeCheckerState.SupertypesPolicy.LowerIfFlexible)
 }

@@ -12,6 +12,8 @@ import com.huawei.cangjie.types.TypeProjection
 
 val DeclarationDescriptor.fqNameUnsafe: FqNameUnsafe
     get() = DescriptorUtils.getFqName(this)
+fun getFunctionDescriptor(builtIns: CangJieBuiltIns, parameterCount: Int, isSuspendFunction: Boolean = false) =
+ /*   if (isSuspendFunction) builtIns.getSuspendFunction(parameterCount) else*/ builtIns.getFunction(parameterCount)
 
 fun DeclarationDescriptor.getFunctionTypeKind(): FunctionTypeKind? {
     if (this !is ClassDescriptor) return null

@@ -25,7 +25,6 @@ import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.resolve.scopes.TypeIntersectionScope
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.model.IntersectionTypeConstructorMarker
-import java.util.*
 
 class IntersectionTypeConstructor(typesToIntersect: Collection<CangJieType>) : TypeConstructor,
     IntersectionTypeConstructorMarker {
@@ -55,18 +54,23 @@ class IntersectionTypeConstructor(typesToIntersect: Collection<CangJieType>) : T
 
 //    override fun isFinal(): Boolean = false
 
-//    override fun isDenotable(): Boolean = false
+    override fun isDenotable(): Boolean = false
 
     override fun getDeclarationDescriptor(): ClassifierDescriptor? = null
 
     override fun getBuiltIns(): CangJieBuiltIns =
         intersectedTypes.iterator().next().constructor.builtIns
 
+
     override fun toString(): String = makeDebugNameForIntersectionType()
 
     fun makeDebugNameForIntersectionType(getProperTypeRelatedToStringify: (CangJieType) -> Any = { it.toString() }): String {
         return intersectedTypes.sortedBy { getProperTypeRelatedToStringify(it).toString() }
-            .joinToString(separator = " & ", prefix = "{", postfix = "}") { getProperTypeRelatedToStringify(it).toString() }
+            .joinToString(
+                separator = " & ",
+                prefix = "{",
+                postfix = "}"
+            ) { getProperTypeRelatedToStringify(it).toString() }
     }
 
     override fun equals(other: Any?): Boolean {

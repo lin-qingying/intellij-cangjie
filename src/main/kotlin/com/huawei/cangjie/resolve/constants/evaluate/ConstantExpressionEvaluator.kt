@@ -1,4 +1,17 @@
 package com.huawei.cangjie.resolve.constants.evaluate
+
+import com.huawei.cangjie.descriptors.BindingTrace
+import com.huawei.cangjie.psi.CjConstantExpression
+import com.huawei.cangjie.psi.CjExpression
+import com.huawei.cangjie.psi.CjPsiUtil
+import com.huawei.cangjie.psi.CjVisitor
+import com.huawei.cangjie.resolve.BindingContext
+import com.huawei.cangjie.resolve.BindingContextUtils
+import com.huawei.cangjie.resolve.StatementFilter
+import com.huawei.cangjie.resolve.constants.CompileTimeConstant
+import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.TypeUtils
+
 //
 //import com.huawei.cangjie.descriptors.BindingTrace
 //import com.huawei.cangjie.descriptors.Errors
@@ -12,6 +25,63 @@ package com.huawei.cangjie.resolve.constants.evaluate
 //import com.intellij.psi.util.PsiTreeUtil
 //
 class ConstantExpressionEvaluator {
+    private fun checkExperimentalityOfConstantLiteral(
+        expression: CjExpression,
+        constant: CompileTimeConstant<*>,
+        expectedType: CangJieType?,
+        trace: BindingTrace
+    ) {
+        if (constant.isError) return
+        if (!constant.parameters.isUnsignedNumberLiteral && !constant.parameters.isUnsignedLongNumberLiteral) return
+//
+//        val constantType = when {
+//            constant is TypedCompileTimeConstant<*> -> constant.type
+//            expectedType != null -> constant.toConstantValue(expectedType).getType(module)
+//            else -> return
+//        }
+//
+//        if (!UnsignedTypes.isUnsignedType(constantType)) return
+//
+//        with(OptInUsageChecker) {
+//            val descriptor = constantType.constructor.declarationDescriptor ?: return
+//            val optInDescriptions = descriptor.loadOptIns(moduleAnnotationsResolver, trace.bindingContext, languageVersionSettings)
+//
+//            reportNotAllowedOptIns(
+//                optInDescriptions, expression, languageVersionSettings, trace, EXPERIMENTAL_UNSIGNED_LITERALS_DIAGNOSTICS
+//            )
+//        }
+    }
+    fun evaluateExpression(
+        expression: CjExpression,
+        trace: BindingTrace,
+        expectedType: CangJieType? = TypeUtils.NO_EXPECTED_TYPE
+    ): CompileTimeConstant<*>? {
+        val visitor = ConstantExpressionEvaluatorVisitor(this, trace)
+        val constant = visitor.evaluate(expression, expectedType) ?: return null
+
+        checkExperimentalityOfConstantLiteral(expression, constant, expectedType, trace)
+
+        return if (!constant.isError) constant else null
+    }
+    fun updateNumberType(
+        numberType: CangJieType,
+        expression: CjExpression?,
+        statementFilter: StatementFilter,
+        trace: BindingTrace
+    ) {
+        if (expression == null) return
+        BindingContextUtils.updateRecordedType(numberType, expression, trace, false)
+
+        if (expression !is CjConstantExpression) {
+            val deparenthesized = CjPsiUtil.getLastElementDeparenthesized(expression, statementFilter)
+            if (deparenthesized !== expression) {
+                updateNumberType(numberType, deparenthesized, statementFilter, trace)
+            }
+            return
+        }
+
+        evaluateExpression(expression, trace, numberType)
+    }
 //
 //
 //    fun evaluateExpression(
@@ -28,11 +98,11 @@ class ConstantExpressionEvaluator {
 //    }
 }
 //
-//private class ConstantExpressionEvaluatorVisitor(
-//    private val constantExpressionEvaluator: ConstantExpressionEvaluator,
-//    private val trace: BindingTrace
-//) : CjVisitor<CompileTimeConstant<*>?, CangJieType>() {
-////    private val languageVersionSettings = constantExpressionEvaluator.languageVersionSettings
+private class ConstantExpressionEvaluatorVisitor(
+    private val constantExpressionEvaluator: ConstantExpressionEvaluator,
+    private val trace: BindingTrace
+) : CjVisitor<CompileTimeConstant<*>?, CangJieType>() {
+//    private val languageVersionSettings = constantExpressionEvaluator.languageVersionSettings
 //    private val builtIns = constantExpressionEvaluator.module.builtIns
 //    private val inlineConstTracker =
 //        if (constantExpressionEvaluator.inlineConstTracker is InlineConstTracker.DoNothing)
@@ -40,7 +110,7 @@ class ConstantExpressionEvaluator {
 //        else
 //            constantExpressionEvaluator.inlineConstTracker
 //
-//    fun evaluate(expression: CjExpression, expectedType: CangJieType?): CompileTimeConstant<*>? {
+    fun evaluate(expression: CjExpression, expectedType: CangJieType?): CompileTimeConstant<*>? {
 //        val recordedCompileTimeConstant = ConstantExpressionEvaluator.getPossiblyErrorConstant(expression, trace.bindingContext)
 //        if (recordedCompileTimeConstant != null) {
 //            return recordedCompileTimeConstant
@@ -60,8 +130,8 @@ class ConstantExpressionEvaluator {
 //            trace.record(BindingContext.COMPILE_TIME_VALUE, expression, compileTimeConstant)
 //            return compileTimeConstant
 //        }
-//        return null
-//    }
+        return null
+    }
 //
 //    private fun shouldSkipComplexBooleanValue(
 //        expression: CjExpression,
@@ -798,4 +868,4 @@ class ConstantExpressionEvaluator {
 //                isConvertableConstVal
 //            )
 //        )
-//}
+}

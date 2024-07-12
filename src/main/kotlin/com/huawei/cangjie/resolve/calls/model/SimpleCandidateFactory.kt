@@ -1,19 +1,54 @@
 package com.huawei.cangjie.resolve.calls.model
 
+import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.resolve.calls.components.CangJieResolutionCallbacks
+import com.huawei.cangjie.resolve.calls.components.InferenceSession
+import com.huawei.cangjie.resolve.calls.components.NewConstraintSystemImpl
+import com.huawei.cangjie.resolve.calls.components.candidate.SimpleErrorResolutionCandidate
 import com.huawei.cangjie.resolve.calls.components.candidate.SimpleResolutionCandidate
+import com.huawei.cangjie.resolve.calls.inference.addSubsystemFromArgument
+import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage
 import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.huawei.cangjie.resolve.calls.tower.CandidateFactory
 import com.huawei.cangjie.resolve.calls.tower.CandidateWithBoundDispatchReceiver
 import com.huawei.cangjie.resolve.calls.tower.ImplicitScopeTower
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
+import com.huawei.cangjie.types.ErrorUtils
+import com.huawei.cangjie.types.TypeSubstitutor
+import com.huawei.cangjie.types.error.ErrorScopeKind
+import com.huawei.cangjie.types.isDynamic
 
 class SimpleCandidateFactory(
     val callComponents: CangJieCallComponents,
     val scopeTower: ImplicitScopeTower,
-    val kotlinCall: CangJieCall,
+    val cangjieCall: CangJieCall,
     val resolutionCallbacks: CangJieResolutionCallbacks,
 ) : CandidateFactory<SimpleResolutionCandidate> {
+
+    val inferenceSession: InferenceSession = resolutionCallbacks.inferenceSession
+
+    val baseSystem: ConstraintStorage
+
+    init {
+        val baseSystem = NewConstraintSystemImpl(
+            callComponents.constraintInjector, callComponents.builtIns,
+            callComponents.cangjieTypeRefiner
+            /*, callComponents.languageVersionSettings*/
+        )
+        if (!inferenceSession.resolveReceiverIndependently()) {
+            baseSystem.addSubsystemFromArgument(cangjieCall.explicitReceiver)
+            baseSystem.addSubsystemFromArgument(cangjieCall.dispatchReceiverForInvokeExtension)
+        }
+        for (argument in cangjieCall.argumentsInParenthesis) {
+            baseSystem.addSubsystemFromArgument(argument)
+        }
+        baseSystem.addSubsystemFromArgument(cangjieCall.externalArgument)
+
+        baseSystem.addOtherSystem(inferenceSession.currentConstraintSystem())
+
+        this.baseSystem = baseSystem.asReadOnlyStorage()
+    }
+
     override fun createCandidate(
         towerCandidate: CandidateWithBoundDispatchReceiver,
         explicitReceiverKind: ExplicitReceiverKind,
@@ -22,8 +57,91 @@ class SimpleCandidateFactory(
         TODO("Not yet implemented")
     }
 
+    // todo: try something else, because current method is ugly and unstable
+    private fun createReceiverArgument(
+        explicitReceiver: ReceiverCangJieCallArgument?,
+        fromResolution: ReceiverValueWithSmartCastInfo?
+    ): SimpleCangJieCallArgument? =
+        explicitReceiver as? SimpleCangJieCallArgument ?: // qualifier receiver cannot be safe
+        fromResolution?.let {
+            ReceiverExpressionCangJieCallArgument(
+                it,
+                isSafeCall = false,
+                isForImplicitInvoke = cangjieCall.isForImplicitInvoke
+            )
+        }
+
     override fun createErrorCandidate(): SimpleResolutionCandidate {
-        TODO("Not yet implemented")
+        val errorScope =
+            ErrorUtils.createErrorScope(ErrorScopeKind.SCOPE_FOR_ERROR_RESOLUTION_CANDIDATE, cangjieCall.toString())
+        val errorDescriptor = if (cangjieCall.callKind == CangJieCallKind.VARIABLE) {
+            errorScope.getContributedVariables(cangjieCall.name, scopeTower.location)
+        } else {
+            errorScope.getContributedFunctions(cangjieCall.name, scopeTower.location)
+        }.first()
+
+        val dispatchReceiver = createReceiverArgument(cangjieCall.explicitReceiver, fromResolution = null)
+        val explicitReceiverKind =
+            if (dispatchReceiver == null) ExplicitReceiverKind.NO_EXPLICIT_RECEIVER else ExplicitReceiverKind.DISPATCH_RECEIVER
+
+        return createCandidate(
+            errorDescriptor, explicitReceiverKind, dispatchReceiver, extensionArgumentReceiver = null,
+            extensionArgumentReceiverCandidates = null, initialDiagnostics = listOf(), knownSubstitutor = null
+        )
+    }
+
+    private fun createCandidate(
+        descriptor: CallableDescriptor,
+        explicitReceiverKind: ExplicitReceiverKind,
+        dispatchArgumentReceiver: SimpleCangJieCallArgument?,
+        extensionArgumentReceiver: SimpleCangJieCallArgument?,
+        extensionArgumentReceiverCandidates: List<SimpleCangJieCallArgument>?,
+        initialDiagnostics: Collection<CangJieCallDiagnostic>,
+        knownSubstitutor: TypeSubstitutor?
+    ): SimpleResolutionCandidate {
+        val resolvedKtCall = MutableResolvedCallAtom(
+            cangjieCall, descriptor, explicitReceiverKind,
+            dispatchArgumentReceiver, extensionArgumentReceiver, extensionArgumentReceiverCandidates
+        )
+
+        if (ErrorUtils.isError(descriptor)) {
+            return SimpleErrorResolutionCandidate(
+                callComponents,
+                resolutionCallbacks,
+                scopeTower,
+                baseSystem,
+                resolvedKtCall
+            )
+        }
+
+        val candidate =
+            SimpleResolutionCandidate(
+                callComponents,
+                resolutionCallbacks,
+                scopeTower,
+                baseSystem,
+                resolvedKtCall,
+                knownSubstitutor
+            )
+
+        initialDiagnostics.forEach(candidate::addDiagnostic)
+
+//        if (callComponents.statelessCallbacks.isHiddenInResolution(descriptor, cangjieCall, resolutionCallbacks)) {
+//            candidate.addDiagnostic(HiddenDescriptor)
+//        }
+
+        if (extensionArgumentReceiver != null) {
+            val parameterIsDynamic = descriptor.extensionReceiverParameter!!.value.type.isDynamic()
+            val argumentIsDynamic = extensionArgumentReceiver.receiver.receiverValue.type.isDynamic()
+
+//            if (parameterIsDynamic != argumentIsDynamic ||
+//                (parameterIsDynamic && !descriptor.hasDynamicExtensionAnnotation())
+//            ) {
+//                candidate.addDiagnostic(HiddenExtensionRelatedToDynamicTypes)
+//            }
+        }
+
+        return candidate
     }
 
     override fun createCandidate(

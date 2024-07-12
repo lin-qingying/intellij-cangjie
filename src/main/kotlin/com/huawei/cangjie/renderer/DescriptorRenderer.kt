@@ -2,6 +2,8 @@ package com.huawei.cangjie.renderer
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.name.FqNameUnsafe
+import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.types.CangJieType
 import java.lang.reflect.Modifier
 import kotlin.jvm.internal.PropertyReference1Impl
@@ -13,6 +15,8 @@ abstract class DescriptorRenderer {
     abstract fun renderType(type: CangJieType): String
     abstract fun renderFlexibleType(lowerRendered: String, upperRendered: String, builtIns: CangJieBuiltIns): String
     abstract fun render(declarationDescriptor: DeclarationDescriptor): String
+    abstract fun renderName(name: Name, rootRenderedElement: Boolean): String
+    abstract fun renderFqName(fqName: FqNameUnsafe): String
 
     fun withOptions(changeOptions: DescriptorRendererOptions.() -> Unit): DescriptorRenderer {
         val options = (this as DescriptorRendererImpl).options.copy()
@@ -22,6 +26,11 @@ abstract class DescriptorRenderer {
     }
 
     companion object {
+        @JvmField
+        val COMPACT: DescriptorRenderer = withOptions {
+            withDefinedIn = false
+//            modifiers = emptySet()
+        }
         fun withOptions(changeOptions: DescriptorRendererOptions.() -> Unit): DescriptorRenderer {
             val options = DescriptorRendererOptionsImpl()
             options.changeOptions()
@@ -38,14 +47,28 @@ abstract class DescriptorRenderer {
     }
 }
 
+enum class RenderingFormat {
+    PLAIN {
+        override fun escape(string: String) = string
+    },
+    HTML {
+        override fun escape(string: String) = string.replace("<", "&lt;").replace(">", "&gt;")
+    };
+
+    abstract fun escape(string: String): String
+}
+
 interface DescriptorRendererOptions {
-    //    var classifierNamePolicy: ClassifierNamePolicy
+    var classifierNamePolicy: ClassifierNamePolicy
 //    var modifiers: Set<DescriptorRendererModifier>
+
+    //    var modifiers: Set<DescriptorRendererModifier>
 //
 //    var debugMode: Boolean
     var withDefinedIn: Boolean
-//    var textFormat: RenderingFormat
+    var textFormat: RenderingFormat
 
+    var boldOnlyForNamesInHtml: Boolean
 
 }
 
@@ -90,7 +113,13 @@ internal class DescriptorRendererOptionsImpl : DescriptorRendererOptions {
 
         return copy
     }
+
+    override var classifierNamePolicy: ClassifierNamePolicy by property(ClassifierNamePolicy.SOURCE_CODE_QUALIFIED)
+
     override var withDefinedIn by property(true)
+    override var textFormat by property(RenderingFormat.PLAIN)
+
+    override var boldOnlyForNamesInHtml: Boolean by property(false)
 
 
 }
@@ -160,6 +189,22 @@ internal class DescriptorRendererImpl(
             }
         }
     }
+
+    /* NAMES RENDERING */
+    override fun renderName(name: Name, rootRenderedElement: Boolean): String {
+        val escaped = escape(name.render())
+        return if (boldOnlyForNamesInHtml && textFormat == RenderingFormat.HTML && rootRenderedElement) {
+            "<b>$escaped</b>"
+        } else
+            escaped
+    }
+
+    private fun escape(string: String) = textFormat.escape(string)
+
+    private fun renderFqName(pathSegments: List<Name>) = escape(com.huawei.cangjie.renderer.renderFqName(pathSegments))
+
+    override fun renderFqName(fqName: FqNameUnsafe) = renderFqName(fqName.pathSegments())
+
 
     /* METHODS FOR ALL KINDS OF DESCRIPTORS */
     private fun StringBuilder.appendDefinedIn(descriptor: DeclarationDescriptor) {
@@ -264,6 +309,10 @@ internal class DescriptorRendererImpl(
 
         override fun visitModuleDeclaration(descriptor: ModuleDescriptor?, data: StringBuilder?) {
 //            TODO("Not yet implemented")
+        }
+
+        override fun visitPropertyDescriptor(descriptor: PropertyDescriptor?, data: StringBuilder) {
+            TODO("Not yet implemented")
         }
 //
 //        override fun visitConstructorDescriptor(constructorDescriptor: ConstructorDescriptor, builder: StringBuilder) {

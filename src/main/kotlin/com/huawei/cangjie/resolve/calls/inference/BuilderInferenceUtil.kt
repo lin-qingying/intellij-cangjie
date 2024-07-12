@@ -5,8 +5,13 @@ import com.huawei.cangjie.builtins.isBuiltinFunctionalType
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor
 import com.huawei.cangjie.psi.CjLambdaExpression
 import com.huawei.cangjie.psi.ValueArgument
+import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver
+import com.huawei.cangjie.types.expressions.ExpressionTypingServices
 
-
+class BuilderInferenceSupport(
+    val argumentTypeResolver: ArgumentTypeResolver,
+    val expressionTypingServices: ExpressionTypingServices
+)
 fun isBuilderInferenceCall(
     parameterDescriptor: ValueParameterDescriptor,
     argument: ValueArgument,

@@ -1,14 +1,27 @@
 package com.huawei.cangjie.types
 
 import com.huawei.cangjie.descriptors.TypeAliasDescriptor
+import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
+import com.huawei.cangjie.types.error.ErrorScopeKind
 
 private class ExpandedTypeOrRefinedConstructor(val expandedType: SimpleType?, val refinedConstructor: TypeConstructor?)
 
 object CangJieTypeFactory {
 
-
+    @JvmStatic
+    fun integerLiteralType(
+        attributes: TypeAttributes,
+        constructor: IntegerLiteralTypeConstructor,
+        nullable: Boolean
+    ): SimpleType = simpleTypeWithNonTrivialMemberScope(
+        attributes,
+        constructor,
+        emptyList(),
+        nullable,
+        ErrorUtils.createErrorScope(ErrorScopeKind.INTEGER_LITERAL_TYPE_SCOPE, throwExceptions = true, "unknown integer literal type")
+    )
     @JvmStatic
     fun flexibleType(lowerBound: SimpleType, upperBound: SimpleType): UnwrappedType {
         if (lowerBound == upperBound) return lowerBound

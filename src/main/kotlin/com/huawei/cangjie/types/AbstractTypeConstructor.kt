@@ -39,7 +39,7 @@ abstract class AbstractTypeConstructor(storageManager: StorageManager) : Classif
         override fun getSupertypes(): List<CangJieType> = refinedSupertypes
 //
 //        override fun isFinal(): Boolean = this@AbstractTypeConstructor.isFinal
-//        override fun isDenotable(): Boolean = this@AbstractTypeConstructor.isDenotable
+        override fun isDenotable(): Boolean = this@AbstractTypeConstructor.isDenotable
 
         override fun getDeclarationDescriptor() = this@AbstractTypeConstructor.declarationDescriptor
 

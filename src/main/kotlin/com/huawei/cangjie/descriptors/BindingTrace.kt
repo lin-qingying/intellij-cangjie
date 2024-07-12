@@ -21,5 +21,11 @@ interface BindingTrace : DiagnosticSink {
 
     // Writes TRUE for a boolean value
     fun <K> record(slice: WritableSlice<K, Boolean>, key: K)
+
+    /**
+     * Expression type should be recorded into EXPRESSION_TYPE_INFO slice
+     * (either updated old or a new one)
+     */
+    fun recordType(expression: CjExpression, type: CangJieType?)
     operator fun <K, V> get(slice: ReadOnlySlice<K, V>, key: K): V?
 }

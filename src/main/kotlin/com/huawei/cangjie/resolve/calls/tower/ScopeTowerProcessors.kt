@@ -1,7 +1,10 @@
 package com.huawei.cangjie.resolve.calls.tower
 
+import com.huawei.cangjie.descriptors.ClassKind
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
+import com.huawei.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
 import com.huawei.cangjie.resolve.scopes.receivers.DetailedReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.QualifierReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
@@ -104,6 +107,7 @@ private class QualifierScopeTowerProcessor<C : Candidate>(
     // QualifierScopeTowerProcessor works only with TowerData.Empty that should not be ignored
     override fun recordLookups(skippedData: Collection<TowerData>, name: Name) {}
 }
+
 private class NoExplicitReceiverScopeTowerProcessor<C : Candidate>(
     context: CandidateFactory<C>,
     val collectCandidates: CandidatesCollector
@@ -114,11 +118,13 @@ private class NoExplicitReceiverScopeTowerProcessor<C : Candidate>(
             ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
             null
         )
+
         is TowerData.BothTowerLevelAndImplicitReceiver -> createCandidates(
             data.level.collectCandidates(data.implicitReceiver),
             ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
             data.implicitReceiver
         )
+
         is TowerData.BothTowerLevelAndContextReceiversGroup -> {
             val groupsOfDuplicateCandidates = data.contextReceiversGroup.flatMap { receiver ->
                 data.level.collectCandidates(receiver).map { it to receiver }
@@ -139,6 +145,7 @@ private class NoExplicitReceiverScopeTowerProcessor<C : Candidate>(
                 )
             }
         }
+
         else -> emptyList()
     }
 
@@ -154,6 +161,7 @@ private class NoExplicitReceiverScopeTowerProcessor<C : Candidate>(
         }
     }
 }
+
 private fun <C : Candidate> createSimpleProcessorWithoutClassValueReceiver(
     scopeTower: ImplicitScopeTower,
     context: CandidateFactory<C>,
@@ -206,7 +214,7 @@ fun <C : Candidate> createFunctionProcessor(
     scopeTower: ImplicitScopeTower,
     name: Name,
     simpleContext: CandidateFactory<C>,
-//    factoryProviderForInvoke: CandidateFactoryProviderForInvoke<C>,
+    factoryProviderForInvoke: CandidateFactoryProviderForInvoke<C>,
     explicitReceiver: DetailedReceiver?
 ): PrioritizedCompositeScopeTowerProcessor<C> {
 
@@ -221,5 +229,65 @@ fun <C : Candidate> createFunctionProcessor(
 //        InvokeExtensionTowerProcessor(scopeTower, name, factoryProviderForInvoke, it)
 //    }
 
-    return PrioritizedCompositeScopeTowerProcessor(simpleFunction,/* invokeProcessor,invokeExtensionProcessor*/ )
+    return PrioritizedCompositeScopeTowerProcessor(simpleFunction/* invokeProcessor,invokeExtensionProcessor*/)
+}
+
+fun <C : Candidate> createVariableProcessor(
+    scopeTower: ImplicitScopeTower, name: Name,
+    context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
+) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getVariables(name, it) }
+
+fun <C : Candidate> createVariableAndObjectProcessor(
+    scopeTower: ImplicitScopeTower, name: Name,
+    context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
+) = VariableAndObjectScopeTowerProcessor(
+    createVariableProcessor(scopeTower, name, context, explicitReceiver),
+//    createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getObjects(name, it) }
+)
+
+class VariableAndObjectScopeTowerProcessor<out C : Candidate>(
+    private val variableProcessor: ScopeTowerProcessor<C>,
+//    private val objectProcessor: ScopeTowerProcessor<C>
+) : ScopeTowerProcessor<C> {
+    override fun process(data: TowerData): List<Collection<C>> {
+        val variablesResult = variableProcessor.process(data)
+//        val objectResult = objectProcessor.process(data)
+//        if (objectResult.isEmpty()) return variablesResult
+//        if (objectResult.none { level ->
+//                level.any {
+//                    it.isEnumEntryCandidate()
+//                }
+//            }
+//        )
+//        return variablesResult + objectResult
+        val result = mutableListOf<List<C>>()
+        result.addAll(variablesResult.map { it.toMutableList() })
+//        for ((index, objectLevel) in objectResult.withIndex()) {
+//            val enumEntryLevel = objectLevel.filter { it.isEnumEntryCandidate() }
+//            if (enumEntryLevel.isEmpty()) continue
+//            if (index < variablesResult.size) {
+//                // It's guaranteed this element is a mutable list
+//                (result[index] as MutableList).addAll(enumEntryLevel)
+//            } else {
+//                result.add(enumEntryLevel)
+//            }
+//        }
+//        for (objectLevel in objectResult) {
+//            val nonEnumEntryLevel = objectLevel.filter { !it.isEnumEntryCandidate() }
+//            if (nonEnumEntryLevel.isEmpty()) continue
+//            result.add(nonEnumEntryLevel)
+//        }
+        return result
+    }
+
+    private fun Candidate.isEnumEntryCandidate(): Boolean {
+        if (this !is ResolutionCandidate) return false
+        val callableDescriptor = resolvedCall.candidateDescriptor as? FakeCallableDescriptorForObject ?: return false
+        return callableDescriptor.classDescriptor.kind == ClassKind.ENUM_ENTRY
+    }
+
+    override fun recordLookups(skippedData: Collection<TowerData>, name: Name) {
+        variableProcessor.recordLookups(skippedData, name)
+//        objectProcessor.recordLookups(skippedData, name)
+    }
 }

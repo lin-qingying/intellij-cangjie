@@ -1,6 +1,7 @@
 package com.huawei.cangjie.types.expressions;
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
+import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.descriptors.BindingTrace;
 import com.huawei.cangjie.descriptors.DeclarationDescriptor;
 import com.huawei.cangjie.descriptors.FunctionDescriptor;
@@ -305,13 +306,16 @@ public class ExpressionTypingServices {
         ExpressionTypingContext context = ExpressionTypingContext.newContext(
                 trace,
                 functionInnerScope, dataFlowInfo, expectedReturnType != null ? expectedReturnType : NO_EXPECTED_TYPE,
-                /*getLanguageVersionSettings(),*/ expressionTypingComponents.dataFlowValueFactory,
+               getLanguageVersionSettings(), expressionTypingComponents.dataFlowValueFactory,
                 localContext != null ? localContext.inferenceSession : InferenceSession.Companion.getDefault()
         );
 
         checkFunctionReturnType(function, context);
     }
-
+    @NotNull
+    public LanguageVersionSettings getLanguageVersionSettings() {
+        return expressionTypingComponents.languageVersionSettings;
+    }
     private static class EffectsFilteringTrace extends AbstractFilteringTrace {
         public EffectsFilteringTrace(BindingTrace parentTrace) {
             super(parentTrace, "Effects filtering trace");

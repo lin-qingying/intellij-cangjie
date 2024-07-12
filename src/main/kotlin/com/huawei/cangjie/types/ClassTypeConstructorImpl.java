@@ -30,6 +30,12 @@ public class ClassTypeConstructorImpl extends AbstractClassTypeConstructor imple
     }
 
     @Override
+    public boolean isDenotable() {
+        return true;
+    }
+
+
+    @Override
     public @NotNull ClassDescriptor getDeclarationDescriptor() {
         return classDescriptor;
 

@@ -5,6 +5,8 @@ import com.huawei.cangjie.name.ClassId
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.utils.newHashMapWithExpectedSize
+import com.huawei.cangjie.utils.newHashSetWithExpectedSize
 import com.squareup.wire.internal.JvmField
 
 @Suppress("Reformat")
@@ -12,7 +14,10 @@ object StandardNames {
     @kotlin.jvm.JvmField
     val CONTEXT_FUNCTION_TYPE_PARAMETER_COUNT_NAME = Name.identifier("count")
 
-
+    @JvmStatic
+    fun getFunctionName(parameterCount: Int): String {
+        return "Function$parameterCount"
+    }
     @JvmField
     val STD_PACKAGE_FQ_NAME = FqName("std")
 
@@ -23,6 +28,18 @@ object StandardNames {
     val BUILT_INS_PACKAGE_FQ_NAME = FqName("")
 
     object FqNames {
+        @JvmField
+        val fqNameToPrimitiveType: Map<FqNameUnsafe, PrimitiveType> =
+            newHashMapWithExpectedSize<FqNameUnsafe, PrimitiveType>(PrimitiveType.entries.size).apply {
+                for (primitiveType in PrimitiveType.entries) {
+                    this[fqNameUnsafe(primitiveType.typeName.asString())] = primitiveType
+                }
+            }
+
+        @JvmField
+        val primitiveTypeShortNames: Set<Name> = newHashSetWithExpectedSize<Name>(PrimitiveType.entries.size).apply {
+            PrimitiveType.entries.mapTo(this) { it.typeName }
+        }
         @JvmField
         val any: FqNameUnsafe = fqNameUnsafe("Any")
 
@@ -54,16 +71,16 @@ object StandardNames {
         val _char: FqNameUnsafe = fqNameUnsafe("Char")
 
         @JvmField
-        val _byte: FqNameUnsafe = fqNameUnsafe("Byte")
+        val _int8: FqNameUnsafe = fqNameUnsafe("Int8")
 
         @JvmField
-        val _short: FqNameUnsafe = fqNameUnsafe("Short")
+        val _int16: FqNameUnsafe = fqNameUnsafe("Int16")
 
         @JvmField
-        val _int: FqNameUnsafe = fqNameUnsafe("Int")
+        val _int32: FqNameUnsafe = fqNameUnsafe("Int32")
 
         @JvmField
-        val _long: FqNameUnsafe = fqNameUnsafe("Long")
+        val _int64: FqNameUnsafe = fqNameUnsafe("Int64")
 
         @JvmField
         val _float: FqNameUnsafe = fqNameUnsafe("Float")
@@ -180,28 +197,28 @@ object StandardNames {
 //        @JvmField val findAssociatedObject: FqNameUnsafe = reflect("findAssociatedObject")
 
         @JvmField
-        val uByteFqName: FqName = fqName("UByte")
+        val uInt8FqName: FqName = fqName("UInt8")
 
         @JvmField
-        val uShortFqName: FqName = fqName("UShort")
+        val uInt16FqName: FqName = fqName("UInt16")
 
         @JvmField
-        val uIntFqName: FqName = fqName("UInt")
+        val uInt32FqName: FqName = fqName("UInt32")
 
         @JvmField
-        val uLongFqName: FqName = fqName("ULong")
+        val uInt64FqName: FqName = fqName("UInt64")
 
         @JvmField
-        val uByte: ClassId = ClassId.topLevel(uByteFqName)
+        val uInt8: ClassId = ClassId.topLevel(uInt8FqName)
 
         @JvmField
-        val uShort: ClassId = ClassId.topLevel(uShortFqName)
+        val uInt16: ClassId = ClassId.topLevel(uInt16FqName)
 
         @JvmField
-        val uInt: ClassId = ClassId.topLevel(uIntFqName)
+        val uInt32: ClassId = ClassId.topLevel(uInt32FqName)
 
         @JvmField
-        val uLong: ClassId = ClassId.topLevel(uLongFqName)
+        val uInt64: ClassId = ClassId.topLevel(uInt64FqName)
 
         @JvmField
         val uByteArrayFqName: FqName = fqName("UByteArray")

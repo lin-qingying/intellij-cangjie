@@ -6,14 +6,34 @@ import com.huawei.cangjie.descriptors.MutableDiagnosticsWithSuppression;
 import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor;
 import com.huawei.cangjie.psi.CjExpression;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfoFactory;
+import com.huawei.cangjie.types.CangJieType;
+import com.huawei.cangjie.types.TypeUtils;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.huawei.cangjie.utils.slicedMap.MutableSlicedMap;
 import com.intellij.psi.PsiElement;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BindingContextUtils {
+
+    @Nullable
+    public static CangJieType updateRecordedType(
+            @Nullable CangJieType type,
+            @NotNull CjExpression expression,
+            @NotNull BindingTrace trace,
+            boolean shouldBeMadeNullable
+    ) {
+        if (type == null) return null;
+        if (shouldBeMadeNullable) {
+            type = TypeUtils.makeNullable(type);
+
+        }
+        trace.recordType(expression, type);
+        return type;
+    }
+
     @Nullable
     public static CangJieTypeInfo getRecordedTypeInfo(@NotNull CjExpression expression, @NotNull BindingContext context) {
         // noinspection ConstantConditions

@@ -10,6 +10,9 @@ import java.util.List;
 
 public class Slices {
 
+    public static <K> WritableSlice<K, Boolean> createCollectiveSetSlice() {
+        return new SetSlice<>(RewritePolicy.DO_NOTHING, true);
+    }
     public static final RewritePolicy ONLY_REWRITE_TO_EQUAL = new RewritePolicy() {
 
         @Override

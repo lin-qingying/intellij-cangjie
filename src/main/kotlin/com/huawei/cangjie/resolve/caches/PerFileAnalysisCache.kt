@@ -12,6 +12,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.diagnostics.DiagnosticFactoryWithPsiElement
 import com.huawei.cangjie.diagnostics.DiagnosticUtils
 import com.huawei.cangjie.frontend.createContainerForLazyBodyResolve
+import com.huawei.cangjie.idea.projectStructure.languageVersionSettings
 import com.huawei.cangjie.idea.stubindex.resolve.PluginDeclarationProviderFactory
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.*
@@ -416,8 +417,8 @@ object CangJieResolveDataProvider {
                 bodyResolveCache,
 //                targetPlatform.findAnalyzerServices(project),
                 PlatformDependentAnalyzerServicesImpl,
-                pluginDeclarationProviderFactory,
-//                analyzableElement.languageVersionSettings,
+//                pluginDeclarationProviderFactory,
+                analyzableElement.languageVersionSettings,
 //                IdeaModuleStructureOracle(),
 //                IdeMainFunctionDetectorFactory(),
 //                IdeSealedClassInheritorsProvider,

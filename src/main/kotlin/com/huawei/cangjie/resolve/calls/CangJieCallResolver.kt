@@ -10,6 +10,7 @@ import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.model.CangJieCallKind.*
 import com.huawei.cangjie.resolve.calls.tower.*
+import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.huawei.cangjie.types.UnwrappedType
 
 class CangJieCallResolver(
@@ -82,22 +83,28 @@ class CangJieCallResolver(
 
         @Suppress("UNCHECKED_CAST")
         val processor = when (cangjieCall.callKind) {
-//            CangJieCallKind.VARIABLE -> {
-//                createVariableAndObjectProcessor(scopeTower, cangjieCall.name, candidateFactory, cangjieCall.explicitReceiver?.receiver)
-//            }
+            VARIABLE -> {
+                createVariableAndObjectProcessor(
+                    scopeTower,
+                    cangjieCall.name,
+                    candidateFactory,
+                    cangjieCall.explicitReceiver?.receiver
+                )
+            }
+
             FUNCTION -> {
                 createFunctionProcessor(
                     scopeTower,
                     cangjieCall.name,
                     candidateFactory,
-//                    resolutionCallbacks.getCandidateFactoryForInvoke(scopeTower, cangjieCall),
+                    resolutionCallbacks.getCandidateFactoryForInvoke(scopeTower, cangjieCall),
                     cangjieCall.explicitReceiver?.receiver
                 )
             }
 //            CangJieCallKind.CALLABLE_REFERENCE -> {
 //                createCallableReferenceProcessor(candidateFactory as CallableReferencesCandidateFactory) as ScopeTowerProcessor<C>
 //            }
-//            CangJieCallKind.INVOKE -> {
+//            INVOKE -> {
 //                createProcessorWithReceiverValueOrEmpty(cangjieCall.explicitReceiver?.receiver) {
 //                    createCallTowerProcessorForExplicitInvoke(
 //                        scopeTower,
@@ -107,6 +114,7 @@ class CangJieCallResolver(
 //                    )
 //                }
 //            }
+
             UNSUPPORTED -> throw UnsupportedOperationException()
 
         }

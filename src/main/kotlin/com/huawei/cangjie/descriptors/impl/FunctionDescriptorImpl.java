@@ -57,6 +57,17 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         this.original = original == null ? this : original;
         this.kind = kind;
     }
+    @Override
+    @SuppressWarnings("unchecked")
+    public void setOverriddenDescriptors(@NotNull Collection<? extends CallableMemberDescriptor> overriddenDescriptors) {
+        overriddenFunctions = (Collection<? extends FunctionDescriptor>) overriddenDescriptors;
+        for (FunctionDescriptor function : overriddenFunctions) {
+            if (function.isHiddenForResolutionEverywhereBesideSupercalls()) {
+                isHiddenForResolutionEverywhereBesideSupercalls = true;
+                break;
+            }
+        }
+    }
 
     public void setIsOperator(boolean isOperator) {
         this.isOperator = isOperator;

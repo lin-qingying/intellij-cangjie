@@ -7,6 +7,7 @@ public interface DeclarationDescriptorVisitor<R, D>{
         descriptor: ValueParameterDescriptor,
         data: D?
     ): R
+    fun visitPropertyDescriptor(descriptor:  PropertyDescriptor?, data: D): R
 
     fun visitModuleDeclaration(descriptor: ModuleDescriptor?, data: D?): R
 

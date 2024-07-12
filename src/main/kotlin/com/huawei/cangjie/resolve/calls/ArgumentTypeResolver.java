@@ -1,28 +1,64 @@
 package com.huawei.cangjie.resolve.calls;
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns;
+import com.huawei.cangjie.builtins.ReflectionTypes;
+import com.huawei.cangjie.descriptors.BindingTrace;
+import com.huawei.cangjie.descriptors.Errors;
+import com.huawei.cangjie.descriptors.ModuleDescriptor;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.StatementFilter;
+import com.huawei.cangjie.resolve.TypeResolver;
 import com.huawei.cangjie.resolve.calls.context.CallResolutionContext;
+import com.huawei.cangjie.resolve.calls.context.CheckArgumentTypesMode;
 import com.huawei.cangjie.resolve.calls.context.ContextDependency;
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext;
 import com.huawei.cangjie.resolve.calls.model.MutableDataFlowInfoForArguments;
 import com.huawei.cangjie.resolve.calls.util.ResolveArgumentsMode;
 import com.huawei.cangjie.resolve.calls.context.ContextDependency.*;
+import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor;
+import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator;
 import com.huawei.cangjie.types.CangJieType;
+import com.huawei.cangjie.types.TypeConstructor;
+import com.huawei.cangjie.types.TypeUtils;
+import com.huawei.cangjie.types.checker.CangJieTypeChecker;
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
+import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstructor;
 import static com.huawei.cangjie.psi.CjPsiUtil.getLastElementDeparenthesized;
 import static com.huawei.cangjie.resolve.BindingContextUtils.getRecordedTypeInfo;
 import static com.huawei.cangjie.types.TypeUtils.NO_EXPECTED_TYPE;
 
 public class ArgumentTypeResolver {
     private ExpressionTypingServices expressionTypingServices;
+    @NotNull private final TypeResolver typeResolver;
+    @NotNull private final CangJieBuiltIns builtIns;
+    @NotNull private final ReflectionTypes reflectionTypes;
+    @NotNull private final ConstantExpressionEvaluator constantExpressionEvaluator;
+//    @NotNull private final FunctionPlaceholders functionPlaceholders;
+    @NotNull private final ModuleDescriptor moduleDescriptor;
+    @NotNull private final CangJieTypeChecker kotlinTypeChecker;
 
+    public ArgumentTypeResolver(
+            @NotNull TypeResolver typeResolver,
+            @NotNull CangJieBuiltIns builtIns,
+            @NotNull ReflectionTypes reflectionTypes,
+            @NotNull ConstantExpressionEvaluator constantExpressionEvaluator,
+//            @NotNull FunctionPlaceholders functionPlaceholders,
+            @NotNull ModuleDescriptor moduleDescriptor,
+            @NotNull CangJieTypeChecker kotlinTypeChecker
+    ) {
+        this.typeResolver = typeResolver;
+        this.builtIns = builtIns;
+        this.reflectionTypes = reflectionTypes;
+        this.constantExpressionEvaluator = constantExpressionEvaluator;
+//        this.functionPlaceholders = functionPlaceholders;
+        this.moduleDescriptor = moduleDescriptor;
+        this.kotlinTypeChecker = kotlinTypeChecker;
+    }
     // component dependency cycle
     @Inject
     public void setExpressionTypingServices(@NotNull ExpressionTypingServices expressionTypingServices) {
@@ -31,7 +67,100 @@ public class ArgumentTypeResolver {
     private static boolean isCollectionLiteralInsideAnnotation(CjExpression expression, CallResolutionContext<?> context) {
         return expression instanceof CjCollectionLiteralExpression && context.call.getCallElement() instanceof CjAnnotationEntry;
     }
+    @Nullable
+    public CangJieType updateResultArgumentTypeIfNotDenotable(
+            @NotNull ResolutionContext context,
+            @NotNull CjExpression expression
+    ) {
+        return updateResultArgumentTypeIfNotDenotable(context.trace, context.statementFilter, context.expectedType, expression);
+    }
+    @Nullable
+    public CangJieType updateResultArgumentTypeIfNotDenotable(
+            @NotNull BindingTrace trace,
+            @NotNull StatementFilter statementFilter,
+            @NotNull CangJieType expectedType,
+            @NotNull CjExpression expression
+    ) {
+        CangJieType type = trace.getType(expression);
+        return type != null ? updateResultArgumentTypeIfNotDenotable(trace, statementFilter, expectedType, type, expression) : null;
+    }
 
+    @Nullable
+    public CangJieType updateResultArgumentTypeIfNotDenotable(
+            @NotNull BindingTrace trace,
+            @NotNull StatementFilter statementFilter,
+            @NotNull CangJieType expectedType,
+            @NotNull CangJieType targetType,
+            @NotNull CjExpression expression
+    ) {
+        TypeConstructor typeConstructor = targetType.getConstructor();
+        if (!typeConstructor.isDenotable()) {
+            if (typeConstructor instanceof IntegerValueTypeConstructor) {
+                IntegerValueTypeConstructor constructor = (IntegerValueTypeConstructor) typeConstructor;
+                CangJieType primitiveType = TypeUtils.getPrimitiveNumberType(constructor, expectedType);
+                constantExpressionEvaluator.updateNumberType(primitiveType, expression, statementFilter, trace);
+                return primitiveType;
+            }
+            if (typeConstructor instanceof IntegerLiteralTypeConstructor) {
+                IntegerLiteralTypeConstructor constructor = (IntegerLiteralTypeConstructor) typeConstructor;
+                CangJieType primitiveType = TypeUtils.getPrimitiveNumberType(constructor, expectedType);
+                constantExpressionEvaluator.updateNumberType(primitiveType, expression, statementFilter, trace);
+                return primitiveType;
+            }
+        }
+        return null;
+    }
+
+    private void checkArgumentTypeWithNoCallee(CallResolutionContext<?> context, CjExpression argumentExpression) {
+        expressionTypingServices.getTypeInfo(argumentExpression, context.replaceExpectedType(NO_EXPECTED_TYPE));
+        updateResultArgumentTypeIfNotDenotable(context, argumentExpression);
+    }
+    public void checkTypesWithNoCallee(
+            @NotNull CallResolutionContext<?> context
+    ) {
+        if (context.checkArguments != CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS) return;
+
+        for (ValueArgument valueArgument : context.call.getValueArguments()) {
+            CjExpression argumentExpression = valueArgument.getArgumentExpression();
+            if (argumentExpression != null && !(argumentExpression instanceof CjLambdaExpression)) {
+                checkArgumentTypeWithNoCallee(context, argumentExpression);
+            }
+        }
+
+        checkTypesForFunctionArgumentsWithNoCallee(context);
+
+        for (CjTypeProjection typeProjection : context.call.getTypeArguments()) {
+            CjTypeReference typeReference = typeProjection.getTypeReference();
+            if (typeReference == null) {
+                context.trace.report(Errors.PROJECTION_ON_NON_CLASS_TYPE_ARGUMENT.on(typeProjection));
+            }
+            else {
+                typeResolver.resolveType(context.scope, typeReference, context.trace, true);
+            }
+        }
+    }
+
+    private static boolean isFunctionLiteralArgument(
+            @NotNull CjExpression expression, @NotNull StatementFilter statementFilter
+    ) {
+        return getFunctionLiteralArgumentIfAny(expression, statementFilter) != null;
+    }
+    public static boolean isFunctionLiteralArgument(
+            @NotNull CjExpression expression, @NotNull ResolutionContext context
+    ) {
+        return isFunctionLiteralArgument(expression, context.statementFilter);
+    }
+
+    private void checkTypesForFunctionArgumentsWithNoCallee(@NotNull CallResolutionContext<?> context) {
+        if (context.checkArguments != CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS) return;
+
+        for (ValueArgument valueArgument : context.call.getValueArguments()) {
+            CjExpression argumentExpression = valueArgument.getArgumentExpression();
+            if (argumentExpression != null && isFunctionLiteralArgument(argumentExpression, context)) {
+                checkArgumentTypeWithNoCallee(context, argumentExpression);
+            }
+        }
+    }
     @Nullable
     public static CjCallableReferenceExpression getCallableReferenceExpressionIfAny(
             @NotNull CjExpression expression,

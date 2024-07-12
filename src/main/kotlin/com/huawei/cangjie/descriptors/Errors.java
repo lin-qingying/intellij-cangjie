@@ -19,7 +19,8 @@ import static com.huawei.cangjie.diagnostics.Severity.WARNING;
  * For error messages, see DefaultErrorMessages and IdeErrorMessages.
  */
 public interface Errors {
-
+    DiagnosticFactory0<CjConstructorDelegationReferenceExpression> DELEGATION_SUPER_CALL_IN_ENUM_CONSTRUCTOR =
+            DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<LeafPsiElement> SPREAD_OF_LAMBDA_OR_CALLABLE_REFERENCE = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactory1<PsiElement, Collection<DeclarationDescriptor>> CONFLICTING_OVERLOADS =

@@ -17,10 +17,13 @@ public interface TypeConstructor extends TypeConstructorMarker {
     @ReadOnly
     Collection<CangJieType> getSupertypes();
 
-
     @NotNull
     CangJieBuiltIns getBuiltIns();
-
+    /**
+     * If the type is non-denotable, it can't be written in code directly, it only can appear internally inside a type checker.
+     * Examples: intersection type or number value type.
+     */
+    boolean isDenotable();
     @Nullable
     ClassifierDescriptor getDeclarationDescriptor();
     /**
@@ -44,7 +47,7 @@ public interface TypeConstructor extends TypeConstructorMarker {
      */
     @TypeRefinement
     @NotNull
-    TypeConstructor refine(@NotNull CangJieTypeRefiner kotlinTypeRefiner);
+    TypeConstructor refine(@NotNull CangJieTypeRefiner cangjieTypeRefiner);
     /**
      * It may differ from ClassDescriptor.declaredParameters if the class is inner, in such case
      * it also contains additional parameters from outer declarations.

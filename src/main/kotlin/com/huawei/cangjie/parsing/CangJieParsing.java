@@ -746,8 +746,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ;
      */
     public IElementType parseAnnotation(ModifierDetector detector) {
-
-
 //        detector们没有修饰符
 //        该宏调用没有括号     解析为注解
 
@@ -761,54 +759,33 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (detector != null) {
             modifierSize = detector.getSize();
         }
-
 //        PsiBuilder.Marker annotation = mark();
-
-
         if (nextRawToken == IDENTIFIER) {
             advance(); // AT
-
             PsiBuilder.Marker reference = mark();
             PsiBuilder.Marker typeReference = mark();
             parseUserType();
             typeReference.done(TYPE_REFERENCE);
             reference.done(CONSTRUCTOR_CALLEE);
-
-
 //            宏属性
             if (at(LBRACKET)) {
                 myExpressionParsing.parseValueArgumentList(LBRACKET, RBRACKET);
-
             }
-
         } else {
-
             errorAndAdvance("Expected annotation identifier after '@'", 1); // AT @
-
 //            annotation.drop();
-
             return null;
         }
-
-//
 //        if (modifierSize > 0) {
-//
 ////            处理宏调用
-//
 //            return MACRO_EXPRESSION;
 //        }else {
-//
-//
 //            return ANNOTATION_ENTRY;
 //        }
-
         if (at(LPAR)) {
-
             //            TODO 处理宏调用
             advance();
 //          该语句应该是宏调用表达式，而非注解
-
-
             if (at(RPAR)) {
 //                直接返回
                 advance();
@@ -817,24 +794,17 @@ public class CangJieParsing extends AbstractCangJieParsing {
                     if (at(COMMA)) {
                         advance();
                     }
-
-
 //                    parseTopLevelDeclaration();
-
                     myExpressionParsing.parseStatementByScope(DeclarationParsingMode.ALL);
                     if (at(RPAR)) {
                         break;
                     }
-
 //                if (at(AT)) {
 //                    parseTopLevelDeclaration();
 //                } else {
 ////                    TODO 其他token令牌
 //                    advance();
-//
 //                }
-//
-//
 //                if (at(RPAR)) {
 //                    if (lookahead(1) == COMMA) {
 //                        advance();
@@ -842,20 +812,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //                        break;
 //                    }
 //                }
-
                 }
-
                 expect(RPAR, "expected ')'");
-
             }
-
-
 //            parseMacroInputExprWithParens();
-
-
             return MACRO_EXPRESSION;
         } else {
-
 //            return ANNOTATION_ENTRY;
             if (modifierSize > 0) {
                 error("Should call (..) for macros");
@@ -863,17 +825,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 return MACRO_EXPRESSION;
             } else {
 //                error("expected declaration, found '" + myBuilder.getTokenText() + "'");
-
                 return ANNOTATION_ENTRY;
-
             }
-
         }
-
-
 //        annotation.done(ANNOTATION_ENTRY);
 //        return ANNOTATION_ENTRY;
-
 //        return true;
     }
 
