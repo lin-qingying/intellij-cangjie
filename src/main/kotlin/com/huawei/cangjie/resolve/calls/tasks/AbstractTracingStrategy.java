@@ -3,24 +3,16 @@ package com.huawei.cangjie.resolve.calls.tasks;
 
 import com.huawei.cangjie.descriptors.BindingTrace;
 import com.huawei.cangjie.descriptors.CallableDescriptor;
-import com.huawei.cangjie.descriptors.Diagnostic;
-import com.huawei.cangjie.descriptors.ValueParameterDescriptor;
 import com.huawei.cangjie.psi.Call;
-import com.huawei.cangjie.psi.CjElement;
 import com.huawei.cangjie.psi.CjExpression;
-import com.huawei.cangjie.resolve.calls.context.ResolutionContext;
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
-import com.huawei.cangjie.types.CangJieType;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.HashSet;
 
+import static com.huawei.cangjie.descriptors.Errors.*;
 import static com.huawei.cangjie.resolve.BindingContext.AMBIGUOUS_REFERENCE_TARGET;
-import static com.huawei.cangjie.types.TypeUtils.noExpectedType;
 
 public abstract class AbstractTracingStrategy implements TracingStrategy {
     protected final CjExpression reference;
@@ -30,16 +22,34 @@ public abstract class AbstractTracingStrategy implements TracingStrategy {
         this.reference = reference;
         this.call = call;
     }
-//
-//    @Override
-//    public <D extends CallableDescriptor> void recordAmbiguity(@NotNull BindingTrace trace, @NotNull Collection<? extends ResolvedCall<D>> candidates) {
-//        Collection<D> descriptors = new HashSet<>();
-//        for (ResolvedCall<D> candidate : candidates) {
-//            descriptors.add(candidate.getCandidateDescriptor());
-//        }
-//        trace.record(AMBIGUOUS_REFERENCE_TARGET, reference, descriptors);
-//    }
-//
+
+    @Override
+    public <D extends CallableDescriptor> void noneApplicable(@NotNull BindingTrace trace, @NotNull Collection<? extends ResolvedCall<D>> descriptors) {
+        trace.report(NONE_APPLICABLE.on(reference, descriptors));
+    }
+
+    @Override
+    public <D extends CallableDescriptor> void cannotCompleteResolve(
+            @NotNull BindingTrace trace,
+            @NotNull Collection<? extends ResolvedCall<D>> descriptors
+    ) {
+        trace.report(CANNOT_COMPLETE_RESOLVE.on(reference, descriptors));
+    }
+
+    @Override
+    public <D extends CallableDescriptor> void ambiguity(@NotNull BindingTrace trace, @NotNull Collection<? extends ResolvedCall<D>> resolvedCalls) {
+        trace.report(OVERLOAD_RESOLUTION_AMBIGUITY.on(reference, resolvedCalls));
+    }
+
+    @Override
+    public <D extends CallableDescriptor> void recordAmbiguity(@NotNull BindingTrace trace, @NotNull Collection<? extends ResolvedCall<D>> candidates) {
+        Collection<D> descriptors = new HashSet<>();
+        for (ResolvedCall<D> candidate : candidates) {
+            descriptors.add(candidate.getCandidateDescriptor());
+        }
+        trace.record(AMBIGUOUS_REFERENCE_TARGET, reference, descriptors);
+    }
+
 //    @Override
 //    public void noValueForParameter(@NotNull BindingTrace trace, @NotNull ValueParameterDescriptor valueParameter) {
 //        CjElement reportOn = CallUtilKt.getValueArgumentListOrElement(call);

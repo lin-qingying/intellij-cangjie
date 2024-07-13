@@ -5,8 +5,8 @@ import com.huawei.cangjie.descriptors.PackageFragmentDescriptor
 import com.huawei.cangjie.descriptors.PackageFragmentProvider
 import com.huawei.cangjie.descriptors.PackageFragmentProviderImpl
 import com.huawei.cangjie.name.FqName
-import com.huawei.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorBasicImpl
-import com.huawei.cangjie.resolve.lazy.declarations.impl.craetePackageFragmentDescriptor
+//import com.huawei.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorBasicImpl
+//import com.huawei.cangjie.resolve.lazy.declarations.impl.craetePackageFragmentDescriptor
 import com.huawei.cangjie.storage.StorageManager
 import java.io.InputStream
 import java.util.*
@@ -47,15 +47,15 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
         loadResource: (String) -> InputStream?
     ): PackageFragmentProvider{
 
-        val packageFragments:List<PackageFragmentDescriptor> = packageFqNames.map { fqName ->
-            craetePackageFragmentDescriptor(storageManager,module, fqName)
-//            val resourcePath = BuiltInSerializerProtocol.getBuiltInsFilePath(fqName)
-
-//            val inputStream = loadResource(resourcePath) ?: throw IllegalStateException("Resource not found in classpath: $resourcePath")
-//            BuiltInsPackageFragmentImpl.create(fqName, storageManager, module, inputStream, isFallback)
-        }
-        val provider = PackageFragmentProviderImpl(packageFragments )
-
+//        val packageFragments:List<PackageFragmentDescriptor> = packageFqNames.map { fqName ->
+//            craetePackageFragmentDescriptor(storageManager,module, fqName)
+////            val resourcePath = BuiltInSerializerProtocol.getBuiltInsFilePath(fqName)
+//
+////            val inputStream = loadResource(resourcePath) ?: throw IllegalStateException("Resource not found in classpath: $resourcePath")
+////            BuiltInsPackageFragmentImpl.create(fqName, storageManager, module, inputStream, isFallback)
+//        }
+//        val provider = PackageFragmentProviderImpl(packageFragments )
+        val provider = PackageFragmentProviderImpl( )
 //        val notFoundClasses = NotFoundClasses(storageManager, module)
 //
 //        val components = DeserializationComponents(

@@ -1,6 +1,7 @@
 package com.huawei.cangjie.builtins
 
 import com.huawei.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
+import com.huawei.cangjie.builtins.StandardNames.FqNames._boolean
 import com.huawei.cangjie.builtins.StandardNames.FqNames._int16
 import com.huawei.cangjie.builtins.StandardNames.FqNames._int32
 import com.huawei.cangjie.builtins.StandardNames.FqNames._int64
@@ -24,7 +25,7 @@ import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.SimpleType
 import com.huawei.cangjie.types.TypeConstructor
-import com.huawei.cangjie.types.TypeUtils
+import com.huawei.cangjie.types.util.TypeUtils
 
 
 open class CangJieBuiltIns(
@@ -33,7 +34,12 @@ open class CangJieBuiltIns(
     companion object {
         val BUILTINS_MODULE_NAME: Name =
             Name.special("<built-ins module>")
-
+        fun isBoolean(type: CangJieType): Boolean {
+            return  isConstructedFromGivenClassAndNotNullable(
+                type,
+                _boolean
+            )
+        }
         fun isPrimitiveType(type: CangJieType): Boolean {
             return !type.isMarkedNullable && isPrimitiveTypeOrNullablePrimitiveType(
                 type

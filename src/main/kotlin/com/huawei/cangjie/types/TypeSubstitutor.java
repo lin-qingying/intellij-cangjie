@@ -58,6 +58,11 @@ public class TypeSubstitutor implements TypeSubstitutorMarker {
                 substitute(new TypeProjectionImpl(howThisTypeIsUsed, getSubstitution().prepareTopLevelType(type, howThisTypeIsUsed)));
         return projection == null ? null : projection.getType();
     }
+
+    @NotNull
+    public static TypeSubstitutor create(@NotNull CangJieType context) {
+        return create(TypeConstructorSubstitution.create(context.getConstructor(), context.getArguments()));
+    }
     @NotNull
     public static TypeSubstitutor create(@NotNull TypeSubstitution substitution) {
         return new TypeSubstitutor(substitution);

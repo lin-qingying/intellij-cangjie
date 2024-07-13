@@ -10,20 +10,27 @@ import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
+import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.ErrorUtils.isError
+import com.huawei.cangjie.types.TypeConstructor
 import com.huawei.cangjie.types.TypeRefinement
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.checker.REFINER_CAPABILITY
+
 fun ModuleDescriptor.resolveClassByFqName(fqName: FqName, lookupLocation: LookupLocation): ClassDescriptor? {
     if (fqName.isRoot) return null
 
     (getPackage(fqName.parent())
-        .memberScope.getContributedClassifier(fqName.shortName(), lookupLocation) as? ClassDescriptor)?.let { return it }
+        .memberScope.getContributedClassifier(
+            fqName.shortName(),
+            lookupLocation
+        ) as? ClassDescriptor)?.let { return it }
 
     return resolveClassByFqName(fqName.parent(), lookupLocation)
         ?.unsubstitutedInnerClassesScope
         ?.getContributedClassifier(fqName.shortName(), lookupLocation) as? ClassDescriptor
 }
+
 val DeclarationDescriptor.builtIns: CangJieBuiltIns
     get() = module.builtIns
 val DeclarationDescriptor.module: ModuleDescriptor
@@ -36,9 +43,111 @@ val ClassifierDescriptor?.classId: ClassId?
             else -> null
         }
     }
+
 fun ClassDescriptor.getClassObjectReferenceTarget(): ClassDescriptor = companionObjectDescriptor ?: this
+fun ClassDescriptor.getSuperClassNotAny(): ClassDescriptor? {
+    for (supertype in defaultType.constructor.supertypes) {
+        if (!CangJieBuiltIns.isAnyOrNullableAny(supertype)) {
+            val superClassifier = supertype.constructor.declarationDescriptor
+            if (DescriptorUtils.isClassOrEnum(superClassifier)) {
+                return superClassifier as ClassDescriptor
+            }
+        }
+    }
+    return null
+}
+
+fun ClassDescriptor.getSuperClassOrAny(): ClassDescriptor = getSuperClassNotAny() ?: builtIns.any
+
+
+val ClassDescriptor.classValueDescriptor: ClassDescriptor?
+    get() =
+        if (kind.isSingleton)
+            this
+        else
+            companionObjectDescriptor
 
 object DescriptorUtils {
+    @JvmStatic
+
+    fun isClassOrEnum(descriptor: DeclarationDescriptor?): Boolean {
+        return isClass(descriptor) || isEnum(
+            descriptor
+        )
+    }
+
+    @JvmStatic
+
+    fun <D : DeclarationDescriptor?> getParentOfType(
+        descriptor: DeclarationDescriptor?,
+        aClass: Class<D>
+    ): D? {
+        return getParentOfType<D>(descriptor, aClass, true)
+    }
+
+    fun <D : DeclarationDescriptor?> getParentOfType(
+        descriptor: DeclarationDescriptor?,
+        aClass: Class<D>,
+        strict: Boolean
+    ): D? {
+        if (descriptor == null) return null
+        var descriptor = descriptor
+        if (strict) {
+            descriptor = descriptor.containingDeclaration
+        }
+        while (descriptor != null) {
+            if (aClass.isInstance(descriptor)) {
+                return descriptor as D
+            }
+            descriptor = descriptor.containingDeclaration
+        }
+        return null
+    }
+
+    @JvmStatic
+
+    fun isClass(descriptor: DeclarationDescriptor?): Boolean {
+        return isKindOf(
+            descriptor,
+            ClassKind.CLASS
+        )
+    }
+
+    fun getClassDescriptorForTypeConstructor(typeConstructor: TypeConstructor): ClassDescriptor {
+        val descriptor =
+            typeConstructor.getDeclarationDescriptor()
+        assert(
+            descriptor is ClassDescriptor
+        ) { "Classifier descriptor of a type should be of type ClassDescriptor: $typeConstructor" }
+        return descriptor as ClassDescriptor
+    }
+
+    fun getClassDescriptorForType(type: CangJieType): ClassDescriptor {
+        return getClassDescriptorForTypeConstructor(type.constructor)
+    }
+
+    @JvmStatic
+    fun getSuperClassType(classDescriptor: ClassDescriptor): CangJieType {
+        val superclassTypes: Collection<CangJieType> =
+            classDescriptor.getTypeConstructor().getSupertypes()
+        for (type in superclassTypes) {
+            val superClassDescriptor: ClassDescriptor =
+                getClassDescriptorForType(type)
+            if (superClassDescriptor.getKind() != ClassKind.INTERFACE) {
+                return type
+            }
+        }
+        return classDescriptor.builtIns.anyType
+    }
+
+    @JvmStatic
+
+    fun isEnum(descriptor: DeclarationDescriptor?): Boolean {
+        return isKindOf(
+            descriptor,
+            ClassKind.ENUM
+        )
+    }
 
     @JvmStatic
     fun getDispatchReceiverParameterIfNeeded(containingDeclaration: DeclarationDescriptor): ReceiverParameterDescriptor? {

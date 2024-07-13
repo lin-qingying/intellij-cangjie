@@ -21,8 +21,7 @@ import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
 import com.huawei.cangjie.resolve.calls.context.ContextDependency
 import com.huawei.cangjie.resolve.calls.model.*
-import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResults
-import com.huawei.cangjie.resolve.calls.results.SingleOverloadResolutionResult
+import com.huawei.cangjie.resolve.calls.results.*
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import com.huawei.cangjie.resolve.calls.tasks.TracingStrategy
@@ -35,13 +34,15 @@ import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.receivers.*
 import com.huawei.cangjie.resolve.source.getPsi
 import com.huawei.cangjie.types.DeferredType
-import com.huawei.cangjie.types.TypeUtils
+
 import com.huawei.cangjie.types.UnwrappedType
 import com.huawei.cangjie.types.expressions.DoubleColonExpressionResolver
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices
 import com.huawei.cangjie.types.isError
+import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.utils.CangJieExceptionWithAttachments
 import com.huawei.cangjie.utils.compactIfPossible
+import com.huawei.cangjie.utils.firstIsInstanceOrNull
 
 class PSICallResolver(
     private val typeResolver: TypeResolver,
@@ -74,9 +75,10 @@ class PSICallResolver(
     val defaultResolutionKinds = setOf(
         NewResolutionOldInference.ResolutionKind.Function,
         NewResolutionOldInference.ResolutionKind.Variable,
-//        NewResolutionOldInference.ResolutionKind.Invoke,
+        NewResolutionOldInference.ResolutionKind.Invoke,
 //        NewResolutionOldInference.ResolutionKind.CallableReference
     )
+
     inner class FactoryProviderForInvoke(
         val context: BasicCallResolutionContext,
         val scopeTower: ImplicitScopeTower,
@@ -159,12 +161,21 @@ class PSICallResolver(
             val type = variable.resolvedCall.freshReturnType!!
             val variableReceiver = ExpressionReceiver.create(calleeExpression, type, temporaryTrace.bindingContext)
 
-            temporaryTrace.record(BindingContext.REFERENCE_TARGET, calleeExpression, variable.resolvedCall.candidateDescriptor)
+            temporaryTrace.record(
+                BindingContext.REFERENCE_TARGET,
+                calleeExpression,
+                variable.resolvedCall.candidateDescriptor
+            )
             val dataFlowValue =
-                dataFlowValueFactory.createDataFlowValue(variableReceiver, temporaryTrace.bindingContext, context.scope.ownerDescriptor)
+                dataFlowValueFactory.createDataFlowValue(
+                    variableReceiver,
+                    temporaryTrace.bindingContext,
+                    context.scope.ownerDescriptor
+                )
             return ReceiverValueWithSmartCastInfo(
                 variableReceiver,
-                context.dataFlowInfo.getCollectedTypes(dataFlowValue, context.languageVersionSettings).compactIfPossible(),
+                context.dataFlowInfo.getCollectedTypes(dataFlowValue, context.languageVersionSettings)
+                    .compactIfPossible(),
                 dataFlowValue.isStable
             ).prepareReceiverRegardingCaptureTypes()
         }
@@ -191,10 +202,10 @@ class PSICallResolver(
 
         val trace = context.trace
 
-//        handleErrorResolutionResult<D>(context, trace, result, tracingStrategy)?.let { errorResult ->
-//            context.inferenceSession.addErrorCallInfo(PSIErrorCallInfo(result, errorResult))
-//            return errorResult
-//        }
+        handleErrorResolutionResult<D>(context, trace, result, tracingStrategy)?.let { errorResult ->
+            context.inferenceSession.addErrorCallInfo(PSIErrorCallInfo(result, errorResult))
+            return errorResult
+        }
 
         val resolvedCall = cangjieToResolvedCallTransformer.transformAndReport<D>(result, context, tracingStrategy)
 
@@ -203,8 +214,84 @@ class PSICallResolver(
 //        resolvedCall.recordEffects(trace)
 
         return SingleOverloadResolutionResult(resolvedCall)
-//        TODO()
     }
+
+    private fun <D : CallableDescriptor> handleErrorResolutionResult(
+        context: BasicCallResolutionContext,
+        trace: BindingTrace,
+        result: CallResolutionResult,
+        tracingStrategy: TracingStrategy
+    ): OverloadResolutionResults<D>? {
+        val diagnostics = result.diagnostics
+
+        diagnostics.firstIsInstanceOrNull<NoneCandidatesCallDiagnostic>()?.let {
+            cangjieToResolvedCallTransformer.transformAndReport<D>(result, context, tracingStrategy)
+
+            tracingStrategy.unresolvedReference(trace)
+            return OverloadResolutionResultsImpl.nameNotFound()
+        }
+
+        diagnostics.firstIsInstanceOrNull<ManyCandidatesCallDiagnostic>()?.let {
+            cangjieToResolvedCallTransformer.transformAndReport<D>(result, context, tracingStrategy)
+
+            return transformManyCandidatesAndRecordTrace(it, tracingStrategy, trace, context)
+        }
+
+        if (getResultApplicability(diagnostics.filterErrorDiagnostics()) == CandidateApplicability.INAPPLICABLE_WRONG_RECEIVER) {
+            val singleCandidate = result.resultCallAtom() ?: error("Should be not null for result: $result")
+            val resolvedCall = cangjieToResolvedCallTransformer.onlyTransform<D>(singleCandidate, diagnostics).also {
+                tracingStrategy.unresolvedReferenceWrongReceiver(trace, listOf(it))
+            }
+
+            return SingleOverloadResolutionResult(resolvedCall)
+        }
+
+        return null
+    }
+
+    private fun Collection<ResolutionCandidate>.areAllFailed() =
+        all {
+            !it.resultingApplicability.isSuccess
+        }
+
+    private fun Collection<ResolutionCandidate>.areAllFailedWithInapplicableWrongReceiver() =
+        all {
+            it.resultingApplicability == CandidateApplicability.INAPPLICABLE_WRONG_RECEIVER
+        }
+
+    private fun <D : CallableDescriptor> transformManyCandidatesAndRecordTrace(
+        diagnostic: ManyCandidatesCallDiagnostic,
+        tracingStrategy: TracingStrategy,
+        trace: BindingTrace,
+        context: BasicCallResolutionContext
+    ): ManyCandidates<D> {
+        val resolvedCalls = diagnostic.candidates.map {
+            cangjieToResolvedCallTransformer.onlyTransform<D>(
+                it.resolvedCall, it.diagnostics + it.getSystem().errors.asDiagnostics()
+            )
+        }
+
+        if (diagnostic.candidates.areAllFailed()) {
+            if (diagnostic.candidates.areAllFailedWithInapplicableWrongReceiver()) {
+                tracingStrategy.unresolvedReferenceWrongReceiver(trace, resolvedCalls)
+            } else {
+                tracingStrategy.noneApplicable(trace, resolvedCalls)
+                tracingStrategy.recordAmbiguity(trace, resolvedCalls)
+            }
+        } else {
+            tracingStrategy.recordAmbiguity(trace, resolvedCalls)
+            if (!context.call.hasUnresolvedArguments(context)) {
+                if (resolvedCalls.allIncomplete) {
+                    tracingStrategy.cannotCompleteResolve(trace, resolvedCalls)
+                } else {
+                    tracingStrategy.ambiguity(trace, resolvedCalls)
+                }
+            }
+        }
+        return ManyCandidates(resolvedCalls)
+    }
+
+    private val List<ResolvedCall<*>>.allIncomplete: Boolean get() = all { it.status == ResolutionStatus.INCOMPLETE_TYPE_INFERENCE }
 
     private fun ResolvedCall<*>.recordEffects(trace: BindingTrace) {
 //        val moduleDescriptor = DescriptorUtils.getContainingModule(this.resultingDescriptor?.containingDeclaration ?: return)
@@ -220,8 +307,10 @@ class PSICallResolver(
         private val cache = HashMap<ReceiverParameterDescriptor, ReceiverValueWithSmartCastInfo>()
 
         override val lexicalScope: LexicalScope get() = context.scope
-        override val areContextReceiversEnabled: Boolean get() = context.languageVersionSettings.supportsFeature(
-            LanguageFeature.ContextReceivers)
+        override val areContextReceiversEnabled: Boolean
+            get() = context.languageVersionSettings.supportsFeature(
+                LanguageFeature.ContextReceivers
+            )
         override val syntheticScopes: SyntheticScopes get() = this@PSICallResolver.syntheticScopes
         override fun interceptVariableCandidates(
             resolutionScope: ResolutionScope,
@@ -665,7 +754,7 @@ class PSICallResolver(
         when (this) {
             is NewResolutionOldInference.ResolutionKind.Function -> CangJieCallKind.FUNCTION
             is NewResolutionOldInference.ResolutionKind.Variable -> CangJieCallKind.VARIABLE
-//            is NewResolutionOldInference.ResolutionKind.Invoke -> CangJieCallKind.INVOKE
+            is NewResolutionOldInference.ResolutionKind.Invoke -> CangJieCallKind.INVOKE
 //            is NewResolutionOldInference.ResolutionKind.CallableReference -> CangJieCallKind.CALLABLE_REFERENCE
             is NewResolutionOldInference.ResolutionKind.GivenCandidates -> CangJieCallKind.UNSUPPORTED
 
@@ -693,7 +782,7 @@ class PSICallResolver(
         resolutionKind: NewResolutionOldInference.ResolutionKind,
         tracingStrategy: TracingStrategy
     ): OverloadResolutionResults<D> {
-//        return OverloadResolutionResultsImpl.nameNotFound()
+
         val isBinaryRemOperator = isBinaryRemOperator(context.call)
         val refinedName = refineNameForRemOperator(isBinaryRemOperator, name)
 //
@@ -719,9 +808,15 @@ class PSICallResolver(
 //            result = resolveToDeprecatedMod(name, context, cangjieCallKind, tracingStrategy, scopeTower, resolutionCallbacks, expectedType)
 //        }
 //
-//        if (result.isEmpty() && reportAdditionalDiagnosticIfNoCandidates(context, scopeTower, cangjieCallKind, cangjieCall)) {
-//            return OverloadResolutionResultsImpl.nameNotFound()
-//        }
+        if (result.isEmpty() && reportAdditionalDiagnosticIfNoCandidates(
+                context,
+                scopeTower,
+                cangjieCallKind,
+                cangjieCall
+            )
+        ) {
+            return OverloadResolutionResultsImpl.nameNotFound()
+        }
 ////
         val overloadResolutionResults = convertToOverloadResolutionResults<D>(context, result, tracingStrategy)
 ////
@@ -730,6 +825,9 @@ class PSICallResolver(
             checkCallWithAdditionalResolve(it, scopeTower, resolutionCallbacks, expectedType, context)
         }
     }
+
+    private fun CallResolutionResult.isEmpty(): Boolean =
+        diagnostics.firstIsInstanceOrNull<NoneCandidatesCallDiagnostic>() != null
 
     private fun <D : CallableDescriptor> checkCallWithAdditionalResolve(
         overloadResolutionResults: OverloadResolutionResults<D>,
@@ -741,6 +839,42 @@ class PSICallResolver(
         for (callChecker in callCheckersWithAdditionalResolve) {
             callChecker.check(overloadResolutionResults, scopeTower, resolutionCallbacks, expectedType, context)
         }
+    }
+
+    // true if we found something
+    private fun reportAdditionalDiagnosticIfNoCandidates(
+        context: BasicCallResolutionContext,
+        scopeTower: ImplicitScopeTower,
+        kind: CangJieCallKind,
+        cangjieCall: CangJieCall
+    ): Boolean {
+        val reference = context.call.calleeExpression as? CjReferenceExpression ?: return false
+
+        val errorCandidates = when (kind) {
+            CangJieCallKind.FUNCTION ->
+                collectErrorCandidatesForFunction(scopeTower, cangjieCall.name, cangjieCall.explicitReceiver?.receiver)
+
+            CangJieCallKind.VARIABLE ->
+                collectErrorCandidatesForVariable(scopeTower, cangjieCall.name, cangjieCall.explicitReceiver?.receiver)
+
+            else -> emptyList()
+        }
+
+        for (candidate in errorCandidates) {
+            if (candidate is ErrorCandidate.Classifier) {
+                context.trace.record(BindingContext.REFERENCE_TARGET, reference, candidate.descriptor)
+                context.trace.report(
+                    Errors.RESOLUTION_TO_CLASSIFIER.on(
+                        reference,
+                        candidate.descriptor,
+                        candidate.kind,
+                        candidate.errorMessage
+                    )
+                )
+                return true
+            }
+        }
+        return false
     }
 
     private fun clearCacheForApproximationResults() {

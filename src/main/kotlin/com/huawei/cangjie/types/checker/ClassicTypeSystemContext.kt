@@ -1,6 +1,5 @@
 package com.huawei.cangjie.types.checker
 
-
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.builtins.StandardNames.FqNames
 import com.huawei.cangjie.builtins.functionTypeKind
@@ -12,6 +11,7 @@ import com.huawei.cangjie.descriptors.TypeAliasDescriptor
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.impl.AbstractTypeParameterDescriptor
+import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.SpecialNames
 import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.calls.inference.CapturedType
@@ -21,9 +21,13 @@ import com.huawei.cangjie.resolve.scopes.SubstitutingScope
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.model.*
-import com.huawei.cangjie.types.util.replaceAnnotations
+import com.huawei.cangjie.types.util.*
 import com.huawei.cangjie.utils.firstIsInstanceOrNull
 import com.intellij.util.containers.addIfNotNull
+import com.huawei.cangjie.types.util.isSignedOrUnsignedNumberType as classicIsSignedOrUnsignedNumberType
+import com.huawei.cangjie.types.util.isStubType as isSimpleTypeStubType
+import com.huawei.cangjie.types.util.isStubTypeForBuilderInference as isSimpleTypeStubTypeForBuilderInference
+import com.huawei.cangjie.types.util.isStubTypeForVariableInSubtyping as isSimpleTypeStubTypeForVariableInSubtyping
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun Any.errorMessage(): String {
@@ -101,20 +105,20 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return ErrorUtils.isUninferredTypeVariable(this)
     }
 
-//    override fun SimpleTypeMarker.isStubType(): Boolean {
-//        require(this is SimpleType, this::errorMessage)
-//        return this.isSimpleTypeStubType()
-//    }
+    override fun SimpleTypeMarker.isStubType(): Boolean {
+        require(this is SimpleType, this::errorMessage)
+        return this.isSimpleTypeStubType()
+    }
 
-//    override fun SimpleTypeMarker.isStubTypeForVariableInSubtyping(): Boolean {
-//        require(this is SimpleType, this::errorMessage)
-//        return this.isSimpleTypeStubTypeForVariableInSubtyping()
-//    }
-//
-//    override fun SimpleTypeMarker.isStubTypeForBuilderInference(): Boolean {
-//        require(this is SimpleType, this::errorMessage)
-//        return this.isSimpleTypeStubTypeForBuilderInference()
-//    }
+    override fun SimpleTypeMarker.isStubTypeForVariableInSubtyping(): Boolean {
+        require(this is SimpleType, this::errorMessage)
+        return this.isSimpleTypeStubTypeForVariableInSubtyping()
+    }
+
+    override fun SimpleTypeMarker.isStubTypeForBuilderInference(): Boolean {
+        require(this is SimpleType, this::errorMessage)
+        return this.isSimpleTypeStubTypeForBuilderInference()
+    }
 
     override fun TypeConstructorMarker.unwrapStubTypeVariableConstructor(): TypeConstructorMarker {
         return this
@@ -595,10 +599,10 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         )
     }
 
-//    override fun createTypeArgument(type: CangJieTypeMarker, variance: TypeVariance): TypeArgumentMarker {
-//        require(type is CangJieType, type::errorMessage)
-//        return TypeProjectionImpl(variance.convertVariance(), type)
-//    }
+    override fun createTypeArgument(type: CangJieTypeMarker, variance: TypeVariance): TypeArgumentMarker {
+        require(type is CangJieType, type::errorMessage)
+        return TypeProjectionImpl(variance.convertVariance(), type)
+    }
 
     override fun createStarProjection(typeParameter: TypeParameterMarker): TypeArgumentMarker {
         require(typeParameter is TypeParameterDescriptor, typeParameter::errorMessage)
@@ -612,10 +616,10 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
                 this is NewCapturedType
     }
 
-//    override fun SimpleTypeMarker.isExtensionFunction(): Boolean {
-//        require(this is SimpleType, this::errorMessage)
-//        return this.hasAnnotation(FqNames.extensionFunctionType)
-//    }
+    override fun SimpleTypeMarker.isExtensionFunction(): Boolean {
+        require(this is SimpleType, this::errorMessage)
+        return this.hasAnnotation(FqNames.extensionFunctionType)
+    }
 
     override fun SimpleTypeMarker.replaceArguments(newArguments: List<TypeArgumentMarker>): SimpleTypeMarker {
         require(this is SimpleType, this::errorMessage)
@@ -686,10 +690,10 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         errorSupportedOnlyInTypeInference()
     }
 
-//    override fun CangJieTypeMarker.isSignedOrUnsignedNumberType(): Boolean {
-//        require(this is CangJieType)
-//        return classicIsSignedOrUnsignedNumberType() || constructor is IntegerLiteralTypeConstructor
-//    }
+    override fun CangJieTypeMarker.isSignedOrUnsignedNumberType(): Boolean {
+        require(this is CangJieType)
+        return classicIsSignedOrUnsignedNumberType() || constructor is IntegerLiteralTypeConstructor
+    }
 
     override fun findCommonIntegerLiteralTypesSuperType(explicitSupertypes: List<SimpleTypeMarker>): SimpleTypeMarker? {
         @Suppress("UNCHECKED_CAST")
@@ -697,10 +701,21 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return IntegerLiteralTypeConstructor.findCommonSuperType(explicitSupertypes)
     }
 
-//    override fun unionTypeAttributes(types: List<CangJieTypeMarker>): List<AnnotationMarker> {
-//        @Suppress("UNCHECKED_CAST")
-//        return (types as List<CangJieType>).map { it.unwrap().attributes }.reduce { x, y -> x.union(y) }.toList()
-//    }
+    override fun unionTypeAttributes(types: List<CangJieTypeMarker>): List<AnnotationMarker> {
+        @Suppress("UNCHECKED_CAST")
+        return    (types as List<CangJieType>).map {
+            it.unwrap().attributes
+
+        }.reduce { x, y ->
+            x.union(y)
+        }.toList()
+
+
+
+
+
+
+    }
 
     override fun CangJieTypeMarker.replaceCustomAttributes(newAttributes: List<AnnotationMarker>): CangJieTypeMarker {
         require(this is CangJieType)
@@ -783,7 +798,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return this is ClassifierBasedTypeConstructor && this.declarationDescriptor is AbstractTypeParameterDescriptor
     }
 
-//    override fun arrayType(componentType: CangJieTypeMarker): SimpleTypeMarker {
+    //    override fun arrayType(componentType: CangJieTypeMarker): SimpleTypeMarker {
 //        require(componentType is CangJieType, this::errorMessage)
 //        return builtIns.getArrayType(Variance.INVARIANT, componentType)
 //    }
@@ -793,10 +808,10 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 //        return CangJieBuiltIns.isArray(this)
 //    }
 //
-//    override fun CangJieTypeMarker.hasAnnotation(fqName: FqName): Boolean {
-//        require(this is CangJieType, this::errorMessage)
-//        return annotations.hasAnnotation(fqName)
-//    }
+    override fun CangJieTypeMarker.hasAnnotation(fqName: FqName): Boolean {
+        require(this is CangJieType, this::errorMessage)
+        return annotations.hasAnnotation(fqName)
+    }
 //
 //    override fun CangJieTypeMarker.getAnnotationFirstArgumentValue(fqName: FqName): Any? {
 //        require(this is CangJieType, this::errorMessage)
@@ -948,19 +963,19 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun useRefinedBoundsForTypeVariableInFlexiblePosition(): Boolean = false
 
-//    override fun substitutionSupertypePolicy(type: SimpleTypeMarker): TypeCheckerState.SupertypesPolicy {
-//        require(type is SimpleType, type::errorMessage)
-//        val substitutor = TypeConstructorSubstitution.create(type).buildSubstitutor()
-//
-//        return object : TypeCheckerState.SupertypesPolicy.DoCustomTransform() {
-//            override fun transformType(state: TypeCheckerState, type: CangJieTypeMarker): SimpleTypeMarker {
-//                return substitutor.safeSubstitute(
-//                    type.lowerBoundIfFlexible() as CangJieType,
-//                    Variance.INVARIANT
-//                ).asSimpleType()!!
-//            }
-//        }
-//    }
+    override fun substitutionSupertypePolicy(type: SimpleTypeMarker): TypeCheckerState.SupertypesPolicy {
+        require(type is SimpleType, type::errorMessage)
+        val substitutor = TypeConstructorSubstitution.create(type).buildSubstitutor()
+
+        return object : TypeCheckerState.SupertypesPolicy.DoCustomTransform() {
+            override fun transformType(state: TypeCheckerState, type: CangJieTypeMarker): SimpleTypeMarker {
+                return substitutor.safeSubstitute(
+                    type.lowerBoundIfFlexible() as CangJieType,
+                    Variance.INVARIANT
+                ).asSimpleType()!!
+            }
+        }
+    }
 
     override fun CangJieTypeMarker.isTypeVariableType(): Boolean {
         return this is UnwrappedType && constructor is NewTypeVariableConstructor
@@ -987,3 +1002,11 @@ private fun singleBestRepresentative(collection: Collection<CangJieType>) = coll
 
 private fun containsInternal(type: CangJieType, predicate: (CangJieTypeMarker) -> Boolean): Boolean =
     type.contains(predicate)
+
+fun TypeVariance.convertVariance(): Variance {
+    return when (this) {
+        TypeVariance.INV -> Variance.INVARIANT
+        TypeVariance.IN -> Variance.IN_VARIANCE
+        TypeVariance.OUT -> Variance.OUT_VARIANCE
+    }
+}

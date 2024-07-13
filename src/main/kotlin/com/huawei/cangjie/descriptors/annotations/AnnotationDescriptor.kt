@@ -10,8 +10,9 @@ import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.constants.ConstantValue
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.ErrorUtils
+import com.huawei.cangjie.types.model.AnnotationMarker
 
-interface AnnotationMarker
+
 val AnnotationDescriptor.annotationClass: ClassDescriptor?
     get() = type.constructor.declarationDescriptor as? ClassDescriptor
 

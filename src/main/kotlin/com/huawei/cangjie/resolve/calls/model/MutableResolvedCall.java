@@ -50,7 +50,7 @@ public interface MutableResolvedCall<D extends CallableDescriptor> extends Resol
 //    TypeSubstitutor getKnownTypeParametersSubstitutor();
 //
 //    //todo remove: use value to parameter map status
-//    boolean hasInferredReturnType();
+    boolean hasInferredReturnType();
 //
 //    void setSmartCastDispatchReceiverType(@NotNull CangJieType smartCastDispatchReceiverType);
 //

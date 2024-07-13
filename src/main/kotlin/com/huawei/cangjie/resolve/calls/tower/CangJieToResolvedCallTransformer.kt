@@ -5,6 +5,7 @@ import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.descriptors.ModuleDescriptor
+import com.huawei.cangjie.extensions.internal.CandidateInterceptor
 import com.huawei.cangjie.psi.Call
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.MissingSupertypesResolver
@@ -18,11 +19,13 @@ import com.huawei.cangjie.resolve.calls.inference.buildResultingSubstitutor
 import com.huawei.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
+import com.huawei.cangjie.resolve.calls.smartcasts.SmartCastManager
 //import com.huawei.cangjie.resolve.calls.smartcasts.SmartCastManager
 import com.huawei.cangjie.resolve.calls.tasks.TracingStrategy
 import com.huawei.cangjie.resolve.calls.util.isFakeElement
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
+import com.huawei.cangjie.types.TypeApproximator
 import com.huawei.cangjie.types.expressions.DataFlowAnalyzer
 import com.huawei.cangjie.types.expressions.DoubleColonExpressionResolver
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices
@@ -44,10 +47,10 @@ class CangJieToResolvedCallTransformer(
     private val dataFlowValueFactory: DataFlowValueFactory,
     private val builtIns: CangJieBuiltIns,
     private val typeSystemContext: TypeSystemInferenceExtensionContextDelegate,
-//    private val smartCastManager: SmartCastManager,
-//    private val typeApproximator: TypeApproximator,
+    private val smartCastManager: SmartCastManager,
+    private val typeApproximator: TypeApproximator,
     private val missingSupertypesResolver: MissingSupertypesResolver,
-//    private val candidateInterceptor: CandidateInterceptor,
+    private val candidateInterceptor: CandidateInterceptor,
     private val callComponents: CangJieCallComponents,
 ) {
 
@@ -61,6 +64,11 @@ class CangJieToResolvedCallTransformer(
         }
     }
 
+    fun <D : CallableDescriptor> onlyTransform(
+        resolvedCallAtom: ResolvedCallAtom,
+        diagnostics: Collection<CangJieCallDiagnostic>,
+    ): NewAbstractResolvedCall<D> = transformToResolvedCall(resolvedCallAtom, null, null, diagnostics)
+
     private fun bind(trace: BindingTrace, simpleResolvedCall: NewAbstractResolvedCall<*>) {
         val tracing = simpleResolvedCall.psiCangJieCall.tracingStrategy
 
@@ -72,7 +80,6 @@ class CangJieToResolvedCallTransformer(
         (resolvedCall as? NewAbstractResolvedCall<*>)?.let { bind(trace, it) }
 //        (resolvedCall as? NewVariableAsFunctionResolvedCallImpl)?.let { bind(trace, it) }
     }
-
 
 
     fun runCallCheckers(resolvedCall: ResolvedCall<*>, callCheckerContext: CallCheckerContext) {
@@ -101,15 +108,15 @@ class CangJieToResolvedCallTransformer(
     ): NewAbstractResolvedCall<D> {
         val psiCangJieCall = completedCallAtom.atom.psiCangJieCall
 
-//        completedCallAtom.setCandidateDescriptor(
-//            candidateInterceptor.interceptResolvedCallAtomCandidate(
-//                completedCallAtom.candidateDescriptor,
-//                completedCallAtom,
-//                trace,
-//                resultSubstitutor,
-//                diagnostics
-//            )
-//        )
+        completedCallAtom.setCandidateDescriptor(
+            candidateInterceptor.interceptResolvedCallAtomCandidate(
+                completedCallAtom.candidateDescriptor,
+                completedCallAtom,
+                trace,
+                resultSubstitutor,
+                diagnostics
+            )
+        )
 
         return if (psiCangJieCall is PSICangJieCallForInvoke) {
             val diagnosticsForVariableCall =
@@ -146,10 +153,10 @@ class CangJieToResolvedCallTransformer(
                 return storedResolvedCall
             }
         }
-return    NewResolvedCallImpl(
-    completedSimpleAtom, resultSubstitutor, diagnostics,
-//                typeApproximator, expressionTypingServices.languageVersionSettings
-)
+        return NewResolvedCallImpl(
+            completedSimpleAtom, resultSubstitutor, diagnostics,
+            typeApproximator, expressionTypingServices.languageVersionSettings
+        )
 //        return if (completedSimpleAtom.atom.callKind == CangJieCallKind.CALLABLE_REFERENCE) {
 //            NewCallableReferenceResolvedCall(
 //                completedSimpleAtom as ResolvedCallableReferenceCallAtom,
@@ -164,6 +171,7 @@ return    NewResolvedCallImpl(
 //            )
 //        }
     }
+
     fun <D : CallableDescriptor> createStubResolvedCallAndWriteItToTrace(
         candidate: ResolvedCallAtom,
         trace: BindingTrace,
@@ -172,13 +180,15 @@ return    NewResolvedCallImpl(
     ): NewAbstractResolvedCall<D> {
         val result = transformToResolvedCall<D>(candidate, trace, substitutor, diagnostics)
         val psiCangJieCall = candidate.atom.psiCangJieCall
-        val tracing = (psiCangJieCall as? PSICangJieCallForInvoke)?.baseCall?.tracingStrategy ?: psiCangJieCall.tracingStrategy
+        val tracing =
+            (psiCangJieCall as? PSICangJieCallForInvoke)?.baseCall?.tracingStrategy ?: psiCangJieCall.tracingStrategy
 
         tracing.bindReference(trace, result)
         tracing.bindResolvedCall(trace, result)
 
         return result
     }
+
     private fun forwardCallToInferenceSession(
         baseResolvedCall: CallResolutionResult,
         context: BasicCallResolutionContext,
@@ -186,9 +196,17 @@ return    NewResolvedCallImpl(
         tracingStrategy: TracingStrategy,
     ) {
         if (baseResolvedCall is CompletedCallResolutionResult) {
-            context.inferenceSession.addCompletedCallInfo(PSICompletedCallInfo(baseResolvedCall, context, resolvedCall, tracingStrategy))
+            context.inferenceSession.addCompletedCallInfo(
+                PSICompletedCallInfo(
+                    baseResolvedCall,
+                    context,
+                    resolvedCall,
+                    tracingStrategy
+                )
+            )
         }
     }
+
     fun <D : CallableDescriptor> transformAndReport(
         baseResolvedCall: CallResolutionResult,
         context: BasicCallResolutionContext,

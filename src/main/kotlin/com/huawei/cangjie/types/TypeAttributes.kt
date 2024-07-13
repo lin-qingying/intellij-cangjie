@@ -1,7 +1,8 @@
 package com.huawei.cangjie.types
 
-import com.huawei.cangjie.descriptors.annotations.AnnotationMarker
+
 import com.huawei.cangjie.descriptors.annotations.Annotations
+import com.huawei.cangjie.types.model.AnnotationMarker
 import com.huawei.cangjie.utils.AttributeArrayOwner
 import com.huawei.cangjie.utils.TypeRegistry
 import com.intellij.util.containers.addIfNotNull
@@ -28,6 +29,7 @@ abstract class TypeAttribute<out T : TypeAttribute<T>> : AnnotationMarker {
 
     abstract val key: KClass<out T>
 }
+fun Annotations.toDefaultAttributes(): TypeAttributes = DefaultTypeAttributeTranslator.toAttributes(this)
 
 class TypeAttributes private constructor(attributes: List<TypeAttribute<*>>) :
     AttributeArrayOwner<TypeAttribute<*>, TypeAttribute<*>>(),
@@ -35,7 +37,9 @@ class TypeAttributes private constructor(attributes: List<TypeAttribute<*>>) :
     fun add(other: TypeAttributes): TypeAttributes {
         return perform(other) { this.add(it) }
     }
-
+    fun union(other: TypeAttributes): TypeAttributes {
+        return perform(other) { this.union(it) }
+    }
     fun intersect(other: TypeAttributes): TypeAttributes {
         return perform(other) { this.intersect(it) }
     }

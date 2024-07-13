@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.huawei.cangjie.utils.slicedMap.*
 import org.jetbrains.annotations.TestOnly
 
@@ -59,6 +60,16 @@ open class DelegatingBindingTrace(
     open fun clear() {
         map.clear()
         mutableDiagnostics?.clear()
+    }
+
+    override fun recordType(expression: CjExpression, type: CangJieType?) {
+        var typeInfo = get(BindingContext.EXPRESSION_TYPE_INFO, expression)
+        if (typeInfo == null) {
+            typeInfo = createTypeInfo(type)
+        } else {
+            typeInfo = typeInfo.replaceType(type)
+        }
+        record(BindingContext.EXPRESSION_TYPE_INFO, expression, typeInfo)
     }
 
     protected fun <K, V> selfGet(slice: ReadOnlySlice<K, V>, key: K): V? {

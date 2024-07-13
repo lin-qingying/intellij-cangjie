@@ -5,6 +5,7 @@ import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.types.error.ErrorType
 import com.huawei.cangjie.types.error.ErrorTypeKind
+import com.huawei.cangjie.types.util.TypeUtils
 
 
 class TypeAliasExpander(

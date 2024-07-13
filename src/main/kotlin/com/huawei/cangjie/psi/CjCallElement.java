@@ -9,10 +9,19 @@ import java.util.List;
 public interface CjCallElement extends CjElement {
     @Nullable
     CjExpression getCalleeExpression();
+
+    @Nullable
+    CjValueArgumentList getValueArgumentList();
+
+    @NotNull
+    List<? extends ValueArgument> getValueArguments();
+
     @NotNull
     List<CjLambdaArgument> getLambdaArguments();
+
+    @NotNull
+    List<CjTypeProjection> getTypeArguments();
+
     @Nullable
     CjTypeArgumentList getTypeArgumentList();
-    @Nullable
-   CjValueArgumentList getValueArgumentList();
 }

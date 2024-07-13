@@ -86,7 +86,7 @@ interface TypeSystemTypeFactoryContext : TypeSystemBuiltInsContext {
         attributes: List<AnnotationMarker>? = null
     ): SimpleTypeMarker
 
-    //    fun createTypeArgument(type: CangJieTypeMarker, variance: TypeVariance): TypeArgumentMarker
+    fun createTypeArgument(type: CangJieTypeMarker, variance: TypeVariance): TypeArgumentMarker
     fun createStarProjection(typeParameter: TypeParameterMarker): TypeArgumentMarker
 
     fun createErrorType(debugName: String, delegatedType: SimpleTypeMarker?): SimpleTypeMarker
@@ -120,7 +120,7 @@ interface TypeSystemCommonSuperTypesContext : TypeSystemContext, TypeSystemTypeF
 
     fun CangJieTypeMarker.canHaveUndefinedNullability(): Boolean
 
-//    fun SimpleTypeMarker.isExtensionFunction(): Boolean
+    fun SimpleTypeMarker.isExtensionFunction(): Boolean
 
     fun SimpleTypeMarker.typeDepth(): Int
 
@@ -138,7 +138,7 @@ interface TypeSystemCommonSuperTypesContext : TypeSystemContext, TypeSystemTypeF
      */
     fun TypeConstructorMarker.toErrorType(): SimpleTypeMarker
 
-//    fun unionTypeAttributes(types: List<CangJieTypeMarker>): List<AnnotationMarker>
+    fun unionTypeAttributes(types: List<CangJieTypeMarker>): List<AnnotationMarker>
 
     fun CangJieTypeMarker.replaceCustomAttributes(newAttributes: List<AnnotationMarker>): CangJieTypeMarker
 }
@@ -250,7 +250,7 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
     fun TypeConstructorMarker.isTypeVariable(): Boolean
     fun TypeVariableTypeConstructorMarker.isContainedInInvariantOrContravariantPositions(): Boolean
 
-//    fun CangJieTypeMarker.isSignedOrUnsignedNumberType(): Boolean
+    fun CangJieTypeMarker.isSignedOrUnsignedNumberType(): Boolean
 
     // ------------- functional type utils -------------
 
@@ -408,9 +408,9 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
         return null
     }
 
-//    fun SimpleTypeMarker.isStubType(): Boolean
-//    fun SimpleTypeMarker.isStubTypeForVariableInSubtyping(): Boolean
-//    fun SimpleTypeMarker.isStubTypeForBuilderInference(): Boolean
+    fun SimpleTypeMarker.isStubType(): Boolean
+    fun SimpleTypeMarker.isStubTypeForVariableInSubtyping(): Boolean
+    fun SimpleTypeMarker.isStubTypeForBuilderInference(): Boolean
     fun TypeConstructorMarker.unwrapStubTypeVariableConstructor(): TypeConstructorMarker
 
     fun CangJieTypeMarker.asTypeArgument(): TypeArgumentMarker
@@ -562,7 +562,7 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
 
 //    fun CangJieTypeMarker.getCustomAttributes(): List<AnnotationMarker>
 
-//    fun substitutionSupertypePolicy(type: SimpleTypeMarker): TypeCheckerState.SupertypesPolicy
+    fun substitutionSupertypePolicy(type: SimpleTypeMarker): TypeCheckerState.SupertypesPolicy
 
     fun CangJieTypeMarker.isTypeVariableType(): Boolean
 

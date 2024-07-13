@@ -1,17 +1,30 @@
 package com.huawei.cangjie.resolve.scopes;
 
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.PackageFragmentDescriptor
-import com.huawei.cangjie.descriptors.PackageViewDescriptor
-import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.source.MemberScopeImpl
 import com.huawei.cangjie.utils.Printer
+import com.huawei.cangjie.utils.flatMapToNullable
 
+fun MemberScope.computeAllNames() = getClassifierNames()?.let { classifierNames ->
+    getFunctionNames().toMutableSet().also {
+        it.addAll(getVariableNames())
+        it.addAll(classifierNames)
+    }
+}
+fun Iterable<MemberScope>.flatMapClassifierNamesOrNull(): MutableSet<Name>? =
+    flatMapToNullable(hashSetOf(), MemberScope::getClassifierNames)
 
 interface MemberScope : ResolutionScope{
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard com.huawei.cangjie.descriptors.VariableDescriptor>
+       override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard PropertyDescriptor>
+
+    /**
+     * These methods may return a superset of an actual names' set
+     */
+    fun getFunctionNames(): Set<Name>
+    fun getVariableNames(): Set<Name>
+    fun getClassifierNames(): Set<Name>?
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<@JvmWildcard SimpleFunctionDescriptor>
     companion object {
@@ -28,9 +41,9 @@ interface MemberScope : ResolutionScope{
 
         override fun definitelyDoesNotContainName(name: Name): Boolean = true
 
-//        override fun getFunctionNames() = emptySet<Name>()
-//        override fun getVariableNames() = emptySet<Name>()
-//        override fun getClassifierNames() = emptySet<Name>()
+        override fun getFunctionNames() = emptySet<Name>()
+        override fun getVariableNames() = emptySet<Name>()
+        override fun getClassifierNames() = emptySet<Name>()
     }
 }
 
@@ -67,6 +80,8 @@ class DescriptorKindFilter(
     }
     fun acceptsKinds(kinds: Int): Boolean
             = kindMask and kinds != 0
+    fun withoutKinds(kinds: Int): DescriptorKindFilter
+            = DescriptorKindFilter(kindMask and kinds.inv(), excludes)
 
     companion object{
 
@@ -79,6 +94,8 @@ class DescriptorKindFilter(
         val ALL_KINDS_MASK: Int = nextMask() - 1
         val PACKAGES_MASK: Int = nextMask()
         @JvmField val PACKAGES: DescriptorKindFilter = DescriptorKindFilter(PACKAGES_MASK)
+        @JvmField val FUNCTIONS: DescriptorKindFilter = DescriptorKindFilter(FUNCTIONS_MASK)
+        @JvmField val VARIABLES: DescriptorKindFilter = DescriptorKindFilter(VARIABLES_MASK)
 
         @JvmField val ALL: DescriptorKindFilter = DescriptorKindFilter(ALL_KINDS_MASK)
 

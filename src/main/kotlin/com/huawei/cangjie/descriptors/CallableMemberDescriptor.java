@@ -21,6 +21,9 @@ public interface CallableMemberDescriptor extends CallableDescriptor, MemberDesc
     @Override
     Collection<? extends CallableMemberDescriptor> getOverriddenDescriptors();
 
+    // TODO: pull up userdata related members to DeclarationDescriptor and use more efficient implementation (e.g. THashMap)
+    @Nullable
+    <V> V getUserData(UserDataKey<V> key);
     @NotNull
     CallableMemberDescriptor copy(DeclarationDescriptor newOwner, Modality modality, DescriptorVisibility visibility, Kind kind, boolean copyOverrides);
 

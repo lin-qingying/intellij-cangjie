@@ -50,6 +50,7 @@ interface ImplicitScopeTower {
         dispatchReceiver: ReceiverValueWithSmartCastInfo?,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<VariableDescriptor>
+
     fun allScopesWithImplicitsResolutionInfo(): Sequence<ScopeWithImplicitsExtensionsResolutionInfo> =
         implicitsResolutionFilter.getScopesWithInfo(lexicalScope.parentsWithSelf)
 
@@ -81,6 +82,7 @@ class CandidateWithBoundDispatchReceiver(
     val descriptor: CallableDescriptor,
     val diagnostics: List<ResolutionDiagnostic>
 )
+object ErrorDescriptorDiagnostic : ResolutionDiagnostic(CandidateApplicability.RESOLVED) // todo discuss and change to INAPPLICABLE
 
 class ResolvedUsingDeprecatedVisibility(val baseSourceScope: ResolutionScope, val lookupLocation: LookupLocation) :
     ResolutionDiagnostic(

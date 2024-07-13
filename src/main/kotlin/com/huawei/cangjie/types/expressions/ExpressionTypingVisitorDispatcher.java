@@ -50,7 +50,7 @@ public static class ForBlock extends ExpressionTypingVisitorDispatcher {
         super(components, annotationChecker);
         this.visitorForBlock = new ExpressionTypingVisitorForStatements(
                 this, writableScope
-//                , basic
+                , basic
 //                , controlStructures, patterns, functions
         );
     }
@@ -96,9 +96,9 @@ public static class ForBlock extends ExpressionTypingVisitorDispatcher {
     protected ExpressionTypingVisitorForStatements createStatementVisitor(ExpressionTypingContext context) {
         return new ExpressionTypingVisitorForStatements(this,
                 ExpressionTypingUtils.newWritableScopeImpl(context, LexicalScopeKind.CODE_BLOCK, components.overloadChecker)
-
-        /*,
-                basic, controlStructures, patterns, functions*/);
+                ,
+                basic
+        /*, controlStructures, patterns, functions*/);
     }
 
     @Override

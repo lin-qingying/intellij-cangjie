@@ -3,8 +3,9 @@ package com.huawei.cangjie.resolve.calls.smartcasts
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.ErrorUtils
-import com.huawei.cangjie.types.TypeUtils
+
 import com.huawei.cangjie.types.error.ErrorTypeKind
+import com.huawei.cangjie.types.util.TypeUtils
 
 private val CangJieType.immanentNullability: Nullability
     get() = if (TypeUtils.isNullableType(this)) Nullability.UNKNOWN else Nullability.NOT_NULL

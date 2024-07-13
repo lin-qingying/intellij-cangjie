@@ -10,11 +10,14 @@ import com.huawei.cangjie.types.checker.NewTypeVariableConstructor
 import com.huawei.cangjie.types.checker.NullabilityChecker
 
 import com.huawei.cangjie.types.model.DefinitelyNotNullTypeMarker
+import com.huawei.cangjie.types.util.TypeUtils
 
 fun SimpleType.withAbbreviation(abbreviatedType: SimpleType): SimpleType {
     if (isError) return this
     return AbbreviatedType(this, abbreviatedType)
 }
+val CangJieType.isDefinitelyNotNullType: Boolean
+    get() = unwrap() is DefinitelyNotNullType
 
 class AbbreviatedType(override val delegate: SimpleType, val abbreviation: SimpleType) : DelegatingSimpleType() {
     val expandedType: SimpleType get() = delegate

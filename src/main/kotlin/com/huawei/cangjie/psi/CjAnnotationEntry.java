@@ -8,6 +8,7 @@ import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 
 public class CjAnnotationEntry extends CjElementImplStub<CangJieAnnotationEntryStub> implements CjCallElement  {
@@ -27,7 +28,17 @@ public class CjAnnotationEntry extends CjElementImplStub<CangJieAnnotationEntryS
 
     @Override
     public @NotNull List<CjLambdaArgument> getLambdaArguments() {
-        return null;
+        return Collections.emptyList();
+
+    }
+
+    @Override
+    public @NotNull List<CjTypeProjection> getTypeArguments() {
+        CjTypeArgumentList typeArgumentList = getTypeArgumentList();
+        if (typeArgumentList == null) {
+            return Collections.emptyList();
+        }
+        return typeArgumentList.getArguments();
     }
 
     @Override
@@ -39,11 +50,23 @@ public class CjAnnotationEntry extends CjElementImplStub<CangJieAnnotationEntryS
     public CjValueArgumentList getValueArgumentList() {
         CangJieAnnotationEntryStub stub = getStub();
         if (stub == null && getGreenStub() != null) {
-            return (CjValueArgumentList) findChildByType(CjNodeTypes.VALUE_ARGUMENT_LIST);
+            return findChildByType(CjNodeTypes.VALUE_ARGUMENT_LIST);
         }
 
         return getStubOrPsiChild(CjStubElementTypes.VALUE_ARGUMENT_LIST);
     }
+
+    @Override
+    public @NotNull List<? extends ValueArgument> getValueArguments() {
+        CangJieAnnotationEntryStub stub = getStub();
+        if (stub != null && !stub.hasValueArguments()) {
+            return Collections.<CjValueArgument>emptyList();
+        }
+
+        CjValueArgumentList list = getValueArgumentList();
+        return list != null ? list.getArguments() : Collections.<CjValueArgument>emptyList();
+    }
+
     @Nullable @IfNotParsed
     public CjTypeReference getTypeReference() {
         CjConstructorCalleeExpression calleeExpression = getCalleeExpression();

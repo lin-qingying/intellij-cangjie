@@ -1,4 +1,4 @@
-@file:JvmName("KotlinHighlightingUtils")
+@file:JvmName("CangJieHighlightingUtils")
 package com.huawei.cangjie.idea.highlighter
 
 import com.huawei.cangjie.idea.base.projectStructure.RootKindFilter

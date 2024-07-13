@@ -2,11 +2,13 @@ package com.huawei.cangjie.resolve.caches
 
 import com.huawei.cangjie.analyzer.AnalysisResult
 import com.huawei.cangjie.analyzer.createModuleDescriptor
+import com.huawei.cangjie.builtins.BuiltInsLoader
 import com.huawei.cangjie.container.ComponentProvider
 import com.huawei.cangjie.context.GlobalContextImpl
 import com.huawei.cangjie.context.withModule
 import com.huawei.cangjie.context.withProject
 import com.huawei.cangjie.descriptors.DiagnosticSink
+import com.huawei.cangjie.descriptors.impl.ModuleDescriptorImpl
 import com.huawei.cangjie.frontend.createContainerForLazyResolve
 import com.huawei.cangjie.idea.cache.trackers.CangJieCodeBlockModificationListener
 import com.huawei.cangjie.idea.projectStructure.languageVersionSettings
@@ -56,7 +58,7 @@ class ProjectResolutionFacade(
 //        {
 //            val resolverProvider = computeModuleResolverProvider()
 //            val allDependencies = if (invalidateOnOOCB) {
-//                resolverForProjectDependencies + KotlinCodeBlockModificationListener.getInstance(project).kotlinOutOfCodeBlockTracker
+//                resolverForProjectDependencies + CangJieCodeBlockModificationListener.getInstance(project).kotlinOutOfCodeBlockTracker
 //            } else {
 //                resolverForProjectDependencies
 //            }
@@ -70,6 +72,22 @@ class ProjectResolutionFacade(
 //
 
     val moduleDescriptor = createModuleDescriptor(globalContext.withProject(project), project)
+        .apply {
+            this as ModuleDescriptorImpl
+            initialize(
+                BuiltInsLoader.Instance.createPackageFragmentProvider(
+                    globalContext.storageManager,
+                    this,
+//                getClassDescriptorFactories(),
+//                getPlatformDependentDeclarationFilter(),
+//                getAdditionalClassPartsProvider(),
+                    false
+                )
+            )
+            setDependencies(this)
+        }
+
+
     var componentProvider: ComponentProvider? = null
     private val analysisResults = CachedValuesManager.getManager(project).createCachedValue(
         {
@@ -94,7 +112,10 @@ class ProjectResolutionFacade(
                     componentProvider = createContainerForLazyResolve(
                         globalContext.withProject(project)
                             .withModule(moduleDescriptor),
-                        trace, declarationProviderFactory,file.languageVersionSettings,  IdeaAbsentDescriptorHandler::class.java
+                        trace,
+                        declarationProviderFactory,
+                        file.languageVersionSettings,
+                        IdeaAbsentDescriptorHandler::class.java
                     )
                     return PerFileAnalysisCache(
                         file,
@@ -214,7 +235,6 @@ class ProjectResolutionFacade(
         val perFileCache = cache?.getIfCached(element.getContainingCjFile())
         return perFileCache?.fetchAnalysisResults(element)
     }
-
 
 
 }

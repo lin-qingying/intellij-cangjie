@@ -14,6 +14,8 @@ object StandardNames {
     @kotlin.jvm.JvmField
     val CONTEXT_FUNCTION_TYPE_PARAMETER_COUNT_NAME = Name.identifier("count")
 
+    @kotlin.jvm.JvmField
+    val NAME = Name.identifier("name")
     @JvmStatic
     fun getFunctionName(parameterCount: Int): String {
         return "Function$parameterCount"
@@ -112,7 +114,7 @@ object StandardNames {
         val deprecated: FqName = fqName("Deprecated")
 
         @JvmField
-        val deprecatedSinceKotlin: FqName = fqName("DeprecatedSinceKotlin")
+        val deprecatedSinceCangJie: FqName = fqName("DeprecatedSinceCangJie")
 
         @JvmField
         val deprecationLevel: FqName = fqName("DeprecationLevel")

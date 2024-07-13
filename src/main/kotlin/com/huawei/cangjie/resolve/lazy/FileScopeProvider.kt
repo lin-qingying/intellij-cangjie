@@ -9,7 +9,6 @@ import com.huawei.cangjie.resolve.scopes.ImportingScope
 import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.storage.StorageManager
 import com.intellij.openapi.util.Key
-data class FileScopes(val lexicalScope: LexicalScope, val importingScope: ImportingScope, val importForceResolver: ImportForceResolver)
 
 @DefaultImplementation(FileScopeProviderImpl::class)
 interface FileScopeProvider {

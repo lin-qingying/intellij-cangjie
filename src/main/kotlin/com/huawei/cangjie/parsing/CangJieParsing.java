@@ -188,7 +188,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         PsiBuilder.Marker firstEntry = mark();
 
         /*
-         * TODO fileAnnotationList  ÎÄµµ×¢ÊÍ
+         * TODO fileAnnotationList  KoÎÄµµ×¢ÊÍ
          *   : fileAnnotations*
          */
 

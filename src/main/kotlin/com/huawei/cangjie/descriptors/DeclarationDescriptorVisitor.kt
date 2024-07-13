@@ -2,6 +2,7 @@ package com.huawei.cangjie.descriptors
 
 public interface DeclarationDescriptorVisitor<R, D>{
     fun visitPackageViewDescriptor(descriptor: PackageViewDescriptor?, data: D?): R
+    fun visitTypeParameterDescriptor(descriptor:  TypeParameterDescriptor?, data: D): R
 
     fun visitValueParameterDescriptor(
         descriptor: ValueParameterDescriptor,

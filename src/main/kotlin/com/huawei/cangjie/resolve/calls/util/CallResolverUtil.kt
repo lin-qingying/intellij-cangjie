@@ -1,8 +1,48 @@
 package com.huawei.cangjie.resolve.calls.util
 
+import com.huawei.cangjie.config.LanguageFeature
+import com.huawei.cangjie.descriptors.ClassDescriptor
+import com.huawei.cangjie.descriptors.ConstructorDescriptor
+import com.huawei.cangjie.descriptors.Errors
+import com.huawei.cangjie.descriptors.TypeAliasDescriptor
+import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
 import com.huawei.cangjie.lexer.CjToken
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.psiUtil.getStrictParentOfType
+import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
+import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
+import com.huawei.cangjie.resolve.calls.tasks.OldResolutionCandidate
+import com.huawei.cangjie.resolve.calls.util.getValueArgumentListOrElement
+import com.huawei.cangjie.resolve.scopes.LexicalScope
+import com.huawei.cangjie.resolve.scopes.SyntheticScopes
+import com.huawei.cangjie.resolve.scopes.collectSyntheticConstructors
 import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver
+import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
+import com.huawei.cangjie.types.AbbreviatedType
+import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.TypeSubstitutor
+import com.huawei.cangjie.types.checker.CangJieTypeChecker
+import com.intellij.psi.PsiElement
+
+internal fun PsiElement.reportOnElement() =
+    (this as? CjConstructorDelegationCall)
+        ?.takeIf { isImplicit }
+        ?.let { getStrictParentOfType<CjSecondaryConstructor>()!! }
+        ?: this
+
+fun checkForConstructorCallOnFunctionalType(
+    typeReference: CjTypeReference?,
+    context: BasicCallResolutionContext
+) {
+    if (typeReference?.typeElement is CjFunctionType) {
+        val factory =
+            when (context.languageVersionSettings.supportsFeature(LanguageFeature.ProhibitConstructorCallOnFunctionalSupertype)) {
+                true -> Errors.NO_CONSTRUCTOR
+                false -> Errors.NO_CONSTRUCTOR_WARNING
+            }
+        context.trace.report(factory.on(context.call.getValueArgumentListOrElement()))
+    }
+}
 
 fun isSuperOrDelegatingConstructorCall(call: Call): Boolean =
     call.calleeExpression.let { it is CjConstructorCalleeExpression || it is CjConstructorDelegationReferenceExpression }
@@ -14,18 +54,71 @@ fun isInvokeCallOnVariable(call: Call): Boolean {
     val expression = (dispatchReceiver as ExpressionReceiver).expression
     return expression is CjSimpleNameExpression
 }
+
 fun isBinaryRemOperator(call: Call): Boolean {
     val callElement = call.callElement as? CjBinaryExpression ?: return false
     val operator = callElement.operationToken
-    if (operator !is CjToken) return false
+    return operator is CjToken
 
     //TODO: check if this is correct
-    return true
 //    val name = OperatorConventions.getNameForOperationSymbol(operator, true, true) ?: return false
 //    return name in OperatorConventions.REM_TO_MOD_OPERATION_NAMES.keys
 }
+
 fun isInfixCall(call: Call): Boolean {
     val operationRefExpression = call.calleeExpression as? CjOperationReferenceExpression ?: return false
     val binaryExpression = operationRefExpression.parent as? CjBinaryExpression ?: return false
     return binaryExpression.operationReference === operationRefExpression && operationRefExpression.operationSignTokenType == null
+}
+fun createResolutionCandidatesForConstructors(
+    lexicalScope: LexicalScope,
+    call: Call,
+    typeWithConstructors: CangJieType,
+    useKnownTypeSubstitutor: Boolean,
+    syntheticScopes: SyntheticScopes
+): List<OldResolutionCandidate<ConstructorDescriptor>> {
+    val classWithConstructors = typeWithConstructors.constructor.declarationDescriptor as ClassDescriptor
+
+    val unwrappedType = typeWithConstructors.unwrap()
+    val knownSubstitutor =
+        if (useKnownTypeSubstitutor)
+            TypeSubstitutor.create(
+                (unwrappedType as? AbbreviatedType)?.abbreviation ?: unwrappedType
+            )
+        else null
+
+    val typeAliasDescriptor =
+        if (unwrappedType is AbbreviatedType)
+            unwrappedType.abbreviation.constructor.declarationDescriptor as? TypeAliasDescriptor
+        else
+            null
+
+    val constructors = typeAliasDescriptor?.constructors?.mapNotNull(TypeAliasConstructorDescriptor::withDispatchReceiver)
+        ?: classWithConstructors.constructors
+
+    if (constructors.isEmpty()) return emptyList()
+
+    val receiverKind: ExplicitReceiverKind
+    val dispatchReceiver: ReceiverValue?
+
+//    if (classWithConstructors.isInner) {
+//        val outerClassType = (classWithConstructors.containingDeclaration as? ClassDescriptor)?.defaultType ?: return emptyList()
+//        val substitutedOuterClassType = knownSubstitutor?.substitute(outerClassType, Variance.INVARIANT) ?: outerClassType
+//
+//        val receiver = lexicalScope.getImplicitReceiversHierarchy().firstOrNull {
+//            CangJieTypeChecker.DEFAULT.isSubtypeOf(it.type, substitutedOuterClassType)
+//        } ?: return emptyList()
+//
+//        receiverKind = ExplicitReceiverKind.DISPATCH_RECEIVER
+//        dispatchReceiver = receiver.value
+//    } else {
+        receiverKind = ExplicitReceiverKind.NO_EXPLICIT_RECEIVER
+        dispatchReceiver = null
+//    }
+
+    val syntheticConstructors = constructors.flatMap { syntheticScopes.collectSyntheticConstructors(it) }
+
+    return (constructors + syntheticConstructors).map {
+        OldResolutionCandidate.create(call, it, dispatchReceiver, receiverKind, knownSubstitutor)
+    }
 }

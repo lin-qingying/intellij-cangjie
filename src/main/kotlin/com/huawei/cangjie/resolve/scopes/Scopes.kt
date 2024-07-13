@@ -10,6 +10,7 @@ interface HierarchicalScope : ResolutionScope {
 
     fun printStructure(p: Printer)
 }
+
 enum class LexicalScopeKind(val withLocalDescriptors: Boolean) {
     EMPTY(false),
     THROWING(false),
@@ -52,6 +53,7 @@ enum class LexicalScopeKind(val withLocalDescriptors: Boolean) {
     // for tests, KDoc & IDE
     SYNTHETIC(false)
 }
+
 abstract class BaseHierarchicalScope(override val parent: HierarchicalScope?) : HierarchicalScope {
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
@@ -60,9 +62,11 @@ abstract class BaseHierarchicalScope(override val parent: HierarchicalScope?) : 
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> = emptyList()
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
+        emptyList()
 
-    override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> = emptyList()
+    override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
+        emptyList()
 }
 
 interface LexicalScope : HierarchicalScope {
@@ -99,8 +103,6 @@ interface LexicalScope : HierarchicalScope {
         override fun printStructure(p: Printer) {
             p.println("Base lexical scope with owner = $ownerDescriptor and parent = $parent")
         }
-
-
 
 
     }
@@ -172,3 +174,54 @@ inline fun <T : Any> HierarchicalScope.findFirstFromMeAndParent(fetch: (Hierarch
 
 fun HierarchicalScope.findClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
     findFirstFromMeAndParent { it.getContributedClassifier(name, location) }
+
+class CompositePrioritizedImportingScope(
+    private val primaryScope: ImportingScope,
+    private val secondaryScope: ImportingScope,
+) : ImportingScope {
+    override val parent: ImportingScope?
+        get() = primaryScope.parent ?: secondaryScope.parent
+
+    override fun getContributedPackage(name: Name): PackageViewDescriptor? {
+        return primaryScope.getContributedPackage(name) ?: secondaryScope.getContributedPackage(name)
+    }
+
+    override fun getContributedDescriptors(
+        kindFilter: DescriptorKindFilter,
+        nameFilter: (Name) -> Boolean,
+        changeNamesForAliased: Boolean
+    ): Collection<DeclarationDescriptor> {
+        return primaryScope.getContributedDescriptors(kindFilter, nameFilter, changeNamesForAliased).union(
+            secondaryScope.getContributedDescriptors(kindFilter, nameFilter, changeNamesForAliased)
+        )
+    }
+
+    override fun computeImportedNames(): Set<Name>? {
+        val primaryNames = primaryScope.computeImportedNames()
+        val secondaryNames = secondaryScope.computeImportedNames()
+        return primaryNames?.union(secondaryNames.orEmpty()) ?: secondaryNames
+    }
+
+    override fun printStructure(p: Printer) {
+        p.println(primaryScope::class.java.simpleName)
+    }
+
+    override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
+        return primaryScope.getContributedClassifier(name, location) ?: secondaryScope.getContributedClassifier(
+            name,
+            location
+        )
+    }
+
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
+        return primaryScope.getContributedVariables(name, location).union(
+            secondaryScope.getContributedVariables(name, location)
+        )
+    }
+
+    override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> {
+        return primaryScope.getContributedFunctions(name, location).union(
+            secondaryScope.getContributedFunctions(name, location)
+        )
+    }
+}

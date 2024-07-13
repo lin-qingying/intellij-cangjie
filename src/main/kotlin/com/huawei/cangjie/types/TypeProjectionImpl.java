@@ -34,8 +34,8 @@ public class TypeProjectionImpl extends TypeProjectionBase{
     @NotNull
     @Override
     @TypeRefinement
-    public  TypeProjection refine(@NotNull CangJieTypeRefiner kotlinTypeRefiner) {
-        return new TypeProjectionImpl(projection, kotlinTypeRefiner.refineType(type));
+    public  TypeProjection refine(@NotNull CangJieTypeRefiner cangjieTypeRefiner) {
+        return new TypeProjectionImpl(projection, cangjieTypeRefiner.refineType(type));
 
     }
     @NotNull

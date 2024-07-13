@@ -11,7 +11,7 @@
 //        OsFileSystemWizardService(),
 //        BuildSystemAvailabilityWizardServiceImpl(),
 //        DummyFileFormattingService(),
-//        CoreKotlinVersionProviderService(),
+//        CoreCangJieVersionProviderService(),
 //        CoreJvmTargetVersionsProviderService(),
 //        RunConfigurationsServiceImpl(),
 //        EmptyInspectionWizardService(),

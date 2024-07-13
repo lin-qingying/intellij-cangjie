@@ -1,22 +1,25 @@
 package com.huawei.cangjie.resolve.calls.tower
 
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor
+import com.huawei.cangjie.resolve.calls.inference.components.FreshVariableNewTypeSubstitutor
 import com.huawei.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.util.toResolutionStatus
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.TypeApproximator
 import com.huawei.cangjie.types.UnwrappedType
 
 
 class NewCallableReferenceResolvedCall<D : CallableDescriptor>(
     val resolvedAtom: ResolvedCallableReferenceAtom,
-//    override val typeApproximator: TypeApproximator,
-//    override val languageVersionSettings: LanguageVersionSettings,
+    override val typeApproximator: TypeApproximator,
+    override val languageVersionSettings: LanguageVersionSettings,
     substitutor: NewTypeSubstitutor? = null,
 ) : NewAbstractResolvedCall<D>() {
-//    override val positionDependentApproximation: Boolean = true
+    override val positionDependentApproximation: Boolean = true
 //    override val argumentMappingByOriginal: Map<ValueParameterDescriptor, ResolvedCallArgument> = emptyMap()
     override val diagnostics: Collection<CangJieCallDiagnostic> = emptyList()
     override fun updateExtensionReceiverType(newType: CangJieType) {
@@ -37,11 +40,11 @@ class NewCallableReferenceResolvedCall<D : CallableDescriptor>(
             is ResolvedCallableReferenceArgumentAtom -> resolvedAtom.atom.call.psiCangJieCall
         }
 
-//    override val freshSubstitutor: FreshVariableNewTypeSubstitutor?
-//        get() = when (resolvedAtom) {
-//            is ResolvedCallableReferenceCallAtom -> resolvedAtom.freshVariablesSubstitutor
-//            is ResolvedCallableReferenceArgumentAtom -> resolvedAtom.candidate?.freshVariablesSubstitutor
-//        }
+    override val freshSubstitutor: FreshVariableNewTypeSubstitutor?
+        get() = when (resolvedAtom) {
+            is ResolvedCallableReferenceCallAtom -> resolvedAtom.freshVariablesSubstitutor
+            is ResolvedCallableReferenceArgumentAtom -> resolvedAtom.candidate?.freshVariablesSubstitutor
+        }
 
     override val cangjieCall: CangJieCall?
         get() = when (resolvedAtom) {

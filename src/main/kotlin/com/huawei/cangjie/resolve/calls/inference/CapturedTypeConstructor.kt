@@ -9,6 +9,7 @@ import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.error.ErrorScopeKind
 import com.huawei.cangjie.types.model.CapturedTypeConstructorMarker
 import com.huawei.cangjie.types.model.CapturedTypeMarker
+import com.huawei.cangjie.types.util.builtIns
 
 fun TypeSubstitution.wrapWithCapturingSubstitution(needApproximation: Boolean = true): TypeSubstitution =
     if (this is IndexedParametersSubstitution)

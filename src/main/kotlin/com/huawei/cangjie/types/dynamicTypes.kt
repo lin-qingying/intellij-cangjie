@@ -7,6 +7,7 @@ import com.huawei.cangjie.renderer.DescriptorRenderer
 import com.huawei.cangjie.renderer.DescriptorRendererOptions
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.model.DynamicTypeMarker
+import com.huawei.cangjie.types.util.builtIns
 
 
 @DefaultImplementation(impl = DynamicTypesSettings::class)

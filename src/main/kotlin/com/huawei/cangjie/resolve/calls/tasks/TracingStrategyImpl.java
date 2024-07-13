@@ -114,6 +114,11 @@ public class TracingStrategyImpl extends AbstractTracingStrategy {
     }
 
 
+
+
+
+
+
 //    @Override
 //    public <D extends CallableDescriptor> void bindReference(@NotNull BindingTrace trace, @NotNull ResolvedCall<D> resolvedCall) {
 //        DeclarationDescriptor descriptor = resolvedCall.getCandidateDescriptor();
@@ -172,7 +177,7 @@ public class TracingStrategyImpl extends AbstractTracingStrategy {
 //        ResolvedCall<VariableDescriptor> variableCall = ((VariableAsFunctionResolvedCall) candidate).getVariableCall();
 //        ResolvedCall<FunctionDescriptor> functionCall = ((VariableAsFunctionResolvedCall) candidate).getFunctionCall();
 //
-//        KotlinType type = variableCall.getCandidateDescriptor().getType();
+//        CangJieType type = variableCall.getCandidateDescriptor().getType();
 //
 //        boolean nonFunctionalVar = variableCall.getStatus().isSuccess() && !FunctionTypesCj.isFunctionType(type);
 //        Call functionPsiCall = functionCall.getCall();

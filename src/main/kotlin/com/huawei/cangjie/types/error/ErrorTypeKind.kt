@@ -106,7 +106,7 @@ enum class ErrorTypeKind(val debugMessage: String, val isUnresolved: Boolean = f
     NOT_FOUND_DESCRIPTOR_FOR_FUNCTION("Descriptor not found for function %s"),
     NOT_FOUND_DESCRIPTOR_FOR_CLASS("Cannot build class type, descriptor not found for builder %s"),
     NOT_FOUND_DESCRIPTOR_FOR_TYPE_PARAMETER("Cannot build type parameter type, descriptor not found for builder %s"),
-    UNMAPPED_ANNOTATION_TARGET_TYPE("Type for unmapped Java annotation target to Kotlin one"), // java.lang.annotation.Target -> kotlin.annotation.Target
+    UNMAPPED_ANNOTATION_TARGET_TYPE("Type for unmapped Java annotation target to CangJie one"), // java.lang.annotation.Target -> kotlin.annotation.Target
     UNKNOWN_ARRAY_ELEMENT_TYPE_OF_ANNOTATION_ARGUMENT("Unknown type for an array element of a java annotation argument"),
     NOT_FOUND_FQNAME_FOR_JAVA_ANNOTATION("No fqName for annotation %s"),
     NOT_FOUND_FQNAME("No fqName for %s"),

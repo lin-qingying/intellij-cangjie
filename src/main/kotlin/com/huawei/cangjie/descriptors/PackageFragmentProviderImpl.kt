@@ -15,17 +15,17 @@ class PackageFragmentProviderImpl(
     }
 
     override fun isEmpty(fqName: FqName): Boolean {
-     return   this.packageFragments.none { it.fqName == fqName }
+        return this.packageFragments.none { it.fqName == fqName }
 
     }
 
     override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> {
-        return   packageFragments.filter { it.fqName == fqName }
+        return packageFragments.filter { it.fqName == fqName }
 
     }
 
     override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> {
-      return  packageFragments.asSequence()
+        return packageFragments.asSequence()
             .map { it.fqName }
             .filter { !it.isRoot && it.parent() == fqName }
             .toList()

@@ -83,7 +83,7 @@ fun <T> SmartList<T>.optimizeList(): List<T> = when (size) {
 
 private const val INT_MAX_POWER_OF_TWO: Int = Int.MAX_VALUE / 2 + 1
 
-/* Copied from Kotlin's internal Maps.kt */
+/* Copied from CangJie's internal Maps.kt */
 fun mapCapacity(expectedSize: Int): Int {
     if (expectedSize < 3) {
         return expectedSize + 1
@@ -97,7 +97,7 @@ fun mapCapacity(expectedSize: Int): Int {
 fun <K, V> newHashMapWithExpectedSize(size: Int): HashMap<K, V> =
     HashMap<K, V>(mapCapacity(size))
 
-/* Copied from Kotlin's internal Iterables.kt */
+/* Copied from CangJie's internal Iterables.kt */
 fun <T> Iterable<T>.collectionSizeOrDefault(default: Int): Int =
     if (this is Collection<*>) size else default
 

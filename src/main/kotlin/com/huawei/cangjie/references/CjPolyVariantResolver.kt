@@ -1,8 +1,10 @@
 package com.huawei.cangjie.references
 
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.descriptors.PackageViewDescriptor
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjReferenceExpression
+import com.huawei.cangjie.references.util.DescriptorToSourceUtilsIde
 import com.huawei.cangjie.resolve.BindingContext
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementResolveResult
@@ -21,7 +23,15 @@ object CjPolyVariantResolver : ResolveCache.PolyVariantResolver<CjReference> {
         ref: CjReference,
         targetDescriptor: DeclarationDescriptor
     ): Collection<PsiElement> {
-        TODO()
+      return  DescriptorToSourceUtilsIde.getAllDeclarations(ref.element.project, targetDescriptor, ref.element.resolveScope)
+
+//     return   if (targetDescriptor is PackageViewDescriptor) {
+//            val psiFacade = JavaPsiFacade.getInstance(ref.element.project)
+//            val fqName = targetDescriptor.fqName.asString()
+//            listOfNotNull(psiFacade.findPackage(fqName))
+//        } else {
+//            DescriptorToSourceUtilsIde.getAllDeclarations(ref.element.project, targetDescriptor, ref.element.resolveScope)
+//        }
     }
     private fun resolveToPsiElements(
         ref: CjReference,

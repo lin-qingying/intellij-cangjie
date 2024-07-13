@@ -22,6 +22,7 @@ interface CompletedCallInfo {
 interface InferenceSession {
     val parentSession: InferenceSession?
     fun shouldRunCompletion(candidate: ResolutionCandidate): Boolean
+    fun addErrorCallInfo(callInfo: ErrorCallInfo)
 
     fun addPartialCallInfo(callInfo: PartialCallInfo)
     fun callCompleted(resolvedAtom: ResolvedAtom): Boolean
@@ -39,6 +40,10 @@ interface InferenceSession {
             override fun callCompleted(resolvedAtom: ResolvedAtom): Boolean = false
             override fun writeOnlyStubs(callInfo: SingleCallResolutionResult): Boolean = false
             override fun shouldRunCompletion(candidate: ResolutionCandidate): Boolean = true
+            override fun addErrorCallInfo(callInfo: ErrorCallInfo) {
+
+            }
+
             override fun resolveReceiverIndependently(): Boolean = false
             override fun currentConstraintSystem(): ConstraintStorage = ConstraintStorage.Empty
 

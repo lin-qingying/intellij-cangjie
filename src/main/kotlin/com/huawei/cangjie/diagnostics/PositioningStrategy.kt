@@ -28,8 +28,12 @@ fun hasSyntaxErrors(psiElement: PsiElement): Boolean {
     val children = psiElement.children
     return children.isNotEmpty() && hasSyntaxErrors(children.last())
 }
-
-
+fun markRange(range: TextRange): List<TextRange> {
+    return listOf(range)
+}
+fun markRange(from: PsiElement, to: PsiElement): List<TextRange> {
+    return markRange(TextRange(getStartOffset(from), getEndOffset(to)))
+}
 fun markElement(element: PsiElement): List<TextRange> {
     return listOf(TextRange(getStartOffset(element), getEndOffset(element)))
 }

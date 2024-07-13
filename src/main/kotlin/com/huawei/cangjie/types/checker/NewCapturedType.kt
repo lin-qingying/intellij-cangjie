@@ -10,6 +10,8 @@ import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.replaceAr
 import com.huawei.cangjie.types.error.ErrorScopeKind
 import com.huawei.cangjie.types.model.CaptureStatus
 import com.huawei.cangjie.types.model.CapturedTypeMarker
+import com.huawei.cangjie.types.util.asTypeProjection
+import com.huawei.cangjie.types.util.builtIns
 
 
 class NewCapturedTypeConstructor(

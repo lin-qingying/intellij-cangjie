@@ -40,7 +40,7 @@ public class BodyResolver {
             @NotNull BindingTrace trace,
 //            @NotNull ValueParameterResolver valueParameterResolver,
 //            @NotNull AnnotationChecker annotationChecker,
-//            @NotNull KotlinBuiltIns builtIns,
+//            @NotNull CangJieBuiltIns builtIns,
             @NotNull OverloadChecker overloadChecker
 //            @NotNull LanguageVersionSettings languageVersionSettings
     ) {
@@ -122,7 +122,7 @@ public class BodyResolver {
 //                && functionDescriptor.getContextReceiverParameters().isEmpty()) {
 //            PropertyAccessorDescriptor accessorDescriptor = (PropertyAccessorDescriptor) functionDescriptor;
 //            CjProperty property = (CjProperty) function.getParent();
-//            SourceElement propertySourceElement = KotlinSourceElementCj.toSourceElement(property);
+//            SourceElement propertySourceElement = CangJieSourceElementCj.toSourceElement(property);
 //            SyntheticFieldDescriptor fieldDescriptor = new SyntheticFieldDescriptor(accessorDescriptor, propertySourceElement);
 //            innerScope = new LexicalScopeImpl(innerScope, functionDescriptor, true, null, Collections.emptyList(),
 //                    LexicalScopeKind.PROPERTY_ACCESSOR_BODY,

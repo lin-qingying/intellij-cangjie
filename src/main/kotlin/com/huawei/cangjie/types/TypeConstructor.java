@@ -33,10 +33,10 @@ public interface TypeConstructor extends TypeConstructorMarker {
      * - returned TypeConstructor has refined supertypes, i.e. it has correct supertypes resolved as if
      *   we were looking at them from refiner's module
      * - IT DOES NOT ADD PLATFORM DECLARED SUPERTYPES!!!!!!!!
-     * - all other similar sources of KotlinTypes/Descriptors should return refined instances as well
+     * - all other similar sources of CangJieTypes/Descriptors should return refined instances as well
      *
      * That method is part of internal refinement infrastructure, so IT SHOULD NOT BE CALLED from anywhere except
-     *   methods from refinement (like methods of KotlinTypeRefinerImpl or KotlinType.refine
+     *   methods from refinement (like methods of CangJieTypeRefinerImpl or CangJieType.refine
      *
      * Implementation notice:
      * - the most interesting part happens in 'AbstractTypeConstructor': it returns 'ModuleViewTypeConstructor', which

@@ -4,8 +4,7 @@ import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeCheckerState
 import com.huawei.cangjie.types.TypeConstructor
 import com.huawei.cangjie.types.checker.*
-import com.huawei.cangjie.types.model.CangJieTypeMarker
-import com.huawei.cangjie.types.model.TypeConstructorMarker
+import com.huawei.cangjie.types.model.*
 
 
 class OverridingUtilTypeSystemContext(
@@ -48,6 +47,11 @@ class OverridingUtilTypeSystemContext(
             }
         }
     }
+
+
+
+
+
 
     private fun areEqualTypeConstructorsByAxioms(a: TypeConstructor, b: TypeConstructor): Boolean {
         if (equalityAxioms.equals(a, b)) return true

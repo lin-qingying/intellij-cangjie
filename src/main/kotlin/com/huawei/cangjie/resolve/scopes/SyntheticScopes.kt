@@ -87,9 +87,13 @@ interface SyntheticScopes {
 
     }
 }
+fun SyntheticScopes.collectSyntheticExtensionProperties(receiverTypes: Collection<CangJieType>, name: Name, location: LookupLocation)
+        = scopes.flatMap { it.getSyntheticExtensionProperties(receiverTypes, name, location) }
+
 fun SyntheticScopes.collectSyntheticConstructors(contributedClassifier: ClassifierDescriptor, location: LookupLocation)
         = scopes.flatMap { it.getSyntheticConstructors(contributedClassifier, location) }
-
+fun SyntheticScopes.collectSyntheticConstructors(constructor: ConstructorDescriptor)
+        = scopes.mapNotNull { it.getSyntheticConstructor(constructor) }
 fun SyntheticScopes.collectSyntheticStaticFunctions(
     contributedFunctions: Collection<FunctionDescriptor>,
     location: LookupLocation

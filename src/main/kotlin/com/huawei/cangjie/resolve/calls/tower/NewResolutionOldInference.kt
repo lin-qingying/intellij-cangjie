@@ -109,7 +109,7 @@ class NewResolutionOldInference(
 //            }
 //        }
 //
-//        object Invoke : ResolutionKind() {
+        object Invoke : ResolutionKind() {
 //            override fun createTowerProcessor(
 //                outer: NewResolutionOldInference, name: Name, tracing: TracingStrategy,
 //                scopeTower: ImplicitScopeTower, explicitReceiver: DetailedReceiver?, context: BasicCallResolutionContext
@@ -128,8 +128,8 @@ class NewResolutionOldInference(
 //                    )
 //                }
 //            }
-//
-//        }
+
+        }
 
         class GivenCandidates : ResolutionKind() {
 //            override fun createTowerProcessor(

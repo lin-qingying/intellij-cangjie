@@ -5,9 +5,11 @@ import com.huawei.cangjie.types.TypeSubstitutor
 
 interface ClassConstructorDescriptor : ConstructorDescriptor, ConstructorSymbolMarker {
 
-    override val containingDeclaration: ClassifierDescriptorWithTypeParameters
+    override val containingDeclaration: ClassDescriptor
 
-    override val original: ConstructorDescriptor
+
+
+    override val original: ClassConstructorDescriptor
 
 
     override fun substitute(substitutor: TypeSubstitutor): ClassConstructorDescriptor?

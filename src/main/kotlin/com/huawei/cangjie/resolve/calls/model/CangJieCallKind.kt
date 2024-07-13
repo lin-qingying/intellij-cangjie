@@ -37,7 +37,7 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
 //        CheckContextReceiversResolutionPart,
 //        CheckIncompatibleTypeVariableUpperBounds
     ),
-//    INVOKE(*FUNCTION.resolutionSequence.toTypedArray()),
+    INVOKE(*FUNCTION.resolutionSequence.toTypedArray()),
 //    CALLABLE_REFERENCE(
 //        CheckVisibility,
 //        NoTypeArguments,

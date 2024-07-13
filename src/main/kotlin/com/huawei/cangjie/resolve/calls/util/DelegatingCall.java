@@ -19,11 +19,12 @@ public class DelegatingCall implements Call {
         this.delegate = delegate;
     }
 
-//    @Override
-//    @Nullable
-//    public ASTNode getCallOperationNode() {
-//        return delegate.getCallOperationNode();
-//    }
+
+        @Override
+    @Nullable
+    public ASTNode getCallOperationNode() {
+        return delegate.getCallOperationNode();
+    }
 @Override
 @Nullable
 public Receiver getExplicitReceiver() {
@@ -44,12 +45,12 @@ public Receiver getExplicitReceiver() {
     }
 
 
-    //
-//    @Override
-//    @Nullable
-//    public CjValueArgumentList getValueArgumentList() {
-//        return delegate.getValueArgumentList();
-//    }
+
+    @Override
+    @Nullable
+    public CjValueArgumentList getValueArgumentList() {
+        return delegate.getValueArgumentList();
+    }
 //
     @Override
     @NotNull
@@ -71,12 +72,14 @@ public Receiver getExplicitReceiver() {
     public List<CjTypeProjection> getTypeArguments() {
         return delegate.getTypeArguments();
     }
+
+
 //
-//    @Override
-//    @Nullable
-//    public CjTypeArgumentList getTypeArgumentList() {
-//        return delegate.getTypeArgumentList();
-//    }
+    @Override
+    @Nullable
+    public CjTypeArgumentList getTypeArgumentList() {
+        return delegate.getTypeArgumentList();
+    }
 
 
 

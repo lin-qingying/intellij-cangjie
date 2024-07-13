@@ -149,7 +149,7 @@ private fun ResolutionScope.getContributedVariablesAndIntercept(
 //    private val typeApproximator = scopeTower.typeApproximator
 //
 //    private fun collectMembers(
-//        getMembers: ResolutionScope.(KotlinType?) -> Collection<CallableDescriptor>
+//        getMembers: ResolutionScope.(CangJieType?) -> Collection<CallableDescriptor>
 //    ): Collection<CandidateWithBoundDispatchReceiver> {
 //        val receiverValue = dispatchReceiver.receiverValue
 //        val memberScope = receiverValue.type.memberScope
@@ -206,8 +206,8 @@ private fun ResolutionScope.getContributedVariablesAndIntercept(
 //        if (!isNewInferenceEnabled) return this
 //
 //        val wrappedSubstitution = object : TypeSubstitution() {
-//            override fun get(key: KotlinType): TypeProjection? = null
-//            override fun prepareTopLevelType(topLevelType: KotlinType, position: Variance) = when (position) {
+//            override fun get(key: CangJieType): TypeProjection? = null
+//            override fun prepareTopLevelType(topLevelType: CangJieType, position: Variance) = when (position) {
 //                Variance.INVARIANT -> null
 //                Variance.OUT_VARIANCE -> approximator.approximateToSuperType(
 //                    topLevelType.unwrap(),
@@ -222,7 +222,7 @@ private fun ResolutionScope.getContributedVariablesAndIntercept(
 //        return substitute(TypeSubstitutor.create(wrappedSubstitution))
 //    }
 //
-//    private fun ReceiverValueWithSmartCastInfo.smartCastReceiver(targetType: KotlinType): ReceiverValueWithSmartCastInfo {
+//    private fun ReceiverValueWithSmartCastInfo.smartCastReceiver(targetType: CangJieType): ReceiverValueWithSmartCastInfo {
 //        if (receiverValue !is ImplicitClassReceiver) return this
 //
 //        val newReceiverValue = CastImplicitClassReceiver(receiverValue.classDescriptor, targetType)

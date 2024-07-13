@@ -1,6 +1,9 @@
 package com.huawei.cangjie.resolve.calls.model
 
 import com.huawei.cangjie.descriptors.CallableDescriptor
+import com.huawei.cangjie.descriptors.ClassDescriptor
+import com.huawei.cangjie.descriptors.ClassKind
+import com.huawei.cangjie.descriptors.PropertyDescriptor
 import com.huawei.cangjie.resolve.calls.components.CangJieResolutionCallbacks
 import com.huawei.cangjie.resolve.calls.components.InferenceSession
 import com.huawei.cangjie.resolve.calls.components.NewConstraintSystemImpl
@@ -8,10 +11,12 @@ import com.huawei.cangjie.resolve.calls.components.candidate.SimpleErrorResoluti
 import com.huawei.cangjie.resolve.calls.components.candidate.SimpleResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.addSubsystemFromArgument
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage
+import com.huawei.cangjie.resolve.calls.inference.model.LowerPriorityToPreserveCompatibility
 import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.huawei.cangjie.resolve.calls.tower.CandidateFactory
 import com.huawei.cangjie.resolve.calls.tower.CandidateWithBoundDispatchReceiver
 import com.huawei.cangjie.resolve.calls.tower.ImplicitScopeTower
+import com.huawei.cangjie.resolve.calls.tower.isSynthesized
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.TypeSubstitutor
@@ -49,13 +54,6 @@ class SimpleCandidateFactory(
         this.baseSystem = baseSystem.asReadOnlyStorage()
     }
 
-    override fun createCandidate(
-        towerCandidate: CandidateWithBoundDispatchReceiver,
-        explicitReceiverKind: ExplicitReceiverKind,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
-    ): SimpleResolutionCandidate {
-        TODO("Not yet implemented")
-    }
 
     // todo: try something else, because current method is ugly and unstable
     private fun createReceiverArgument(
@@ -87,6 +85,42 @@ class SimpleCandidateFactory(
         return createCandidate(
             errorDescriptor, explicitReceiverKind, dispatchReceiver, extensionArgumentReceiver = null,
             extensionArgumentReceiverCandidates = null, initialDiagnostics = listOf(), knownSubstitutor = null
+        )
+    }
+
+    private fun CangJieCall.getExplicitDispatchReceiver(explicitReceiverKind: ExplicitReceiverKind) =
+        when (explicitReceiverKind) {
+            ExplicitReceiverKind.DISPATCH_RECEIVER -> explicitReceiver
+            ExplicitReceiverKind.BOTH_RECEIVERS -> dispatchReceiverForInvokeExtension
+            else -> null
+        }
+
+    private fun CangJieCall.getExplicitExtensionReceiver(explicitReceiverKind: ExplicitReceiverKind) =
+        when (explicitReceiverKind) {
+            ExplicitReceiverKind.EXTENSION_RECEIVER, ExplicitReceiverKind.BOTH_RECEIVERS -> explicitReceiver
+            else -> null
+        }
+
+    override fun createCandidate(
+        towerCandidate: CandidateWithBoundDispatchReceiver,
+        explicitReceiverKind: ExplicitReceiverKind,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): SimpleResolutionCandidate {
+        val dispatchArgumentReceiver = createReceiverArgument(
+            cangjieCall.getExplicitDispatchReceiver(explicitReceiverKind),
+            towerCandidate.dispatchReceiver
+        )
+        val extensionArgumentReceiver =
+            createReceiverArgument(cangjieCall.getExplicitExtensionReceiver(explicitReceiverKind), extensionReceiver)
+        val descriptor = towerCandidate.descriptor
+        var diagnostics: List<CangJieCallDiagnostic> = towerCandidate.diagnostics
+        if (descriptor is PropertyDescriptor && descriptor.isSyntheticEnumEntries()) {
+            diagnostics = diagnostics + LowerPriorityToPreserveCompatibility(needToReportWarning = false).asDiagnostic()
+        }
+
+        return createCandidate(
+            descriptor, explicitReceiverKind, dispatchArgumentReceiver,
+            extensionArgumentReceiver, extensionArgumentReceiverCandidates = null, diagnostics, knownSubstitutor = null
         )
     }
 
@@ -149,6 +183,24 @@ class SimpleCandidateFactory(
         explicitReceiverKind: ExplicitReceiverKind,
         extensionReceiverCandidates: List<ReceiverValueWithSmartCastInfo>
     ): SimpleResolutionCandidate {
-        TODO("Not yet implemented")
+        val dispatchArgumentReceiver = createReceiverArgument(
+            cangjieCall.getExplicitDispatchReceiver(explicitReceiverKind),
+            towerCandidate.dispatchReceiver
+        )
+        val extensionArgumentReceiverCandidates = extensionReceiverCandidates.mapNotNull {
+            createReceiverArgument(cangjieCall.getExplicitExtensionReceiver(explicitReceiverKind), it)
+        }
+
+        return createCandidate(
+            towerCandidate.descriptor, explicitReceiverKind, dispatchArgumentReceiver,
+            null, extensionArgumentReceiverCandidates, towerCandidate.diagnostics, knownSubstitutor = null
+        )
     }
 }
+
+fun PropertyDescriptor.isSyntheticEnumEntries(): Boolean {
+    return isSynthesized && dispatchReceiverParameter == null && extensionReceiverParameter == null &&
+            (containingDeclaration as? ClassDescriptor)?.kind == ClassKind.ENUM
+}
+
+

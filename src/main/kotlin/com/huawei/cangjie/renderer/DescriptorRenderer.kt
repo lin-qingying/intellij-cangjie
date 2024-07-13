@@ -94,7 +94,7 @@ internal class DescriptorRendererOptionsImpl : DescriptorRendererOptions {
     fun copy(): DescriptorRendererOptionsImpl {
         val copy = DescriptorRendererOptionsImpl()
 
-        //TODO: use Kotlin reflection
+        //TODO: use CangJie reflection
         for (field in this::class.java.declaredFields) {
             if (field.modifiers.and(Modifier.STATIC) != 0) continue
             field.isAccessible = true
@@ -312,6 +312,10 @@ internal class DescriptorRendererImpl(
         }
 
         override fun visitPropertyDescriptor(descriptor: PropertyDescriptor?, data: StringBuilder) {
+            TODO("Not yet implemented")
+        }
+
+        override fun visitTypeParameterDescriptor(descriptor: TypeParameterDescriptor?, data: StringBuilder) {
             TODO("Not yet implemented")
         }
 //

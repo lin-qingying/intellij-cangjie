@@ -8,16 +8,13 @@ import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import com.huawei.cangjie.psi.*
-import com.huawei.cangjie.resolve.scopes.ImportingScope
-import com.huawei.cangjie.resolve.scopes.LexicalScope
-import com.huawei.cangjie.resolve.scopes.findClassifier
-import com.huawei.cangjie.resolve.scopes.receivers.ClassQualifier
-import com.huawei.cangjie.resolve.scopes.receivers.Qualifier
-import com.huawei.cangjie.resolve.scopes.receivers.expression
+import com.huawei.cangjie.resolve.scopes.*
+import com.huawei.cangjie.resolve.scopes.receivers.*
 import com.huawei.cangjie.resolve.source.CangJieSourceElement
 import com.huawei.cangjie.types.expressions.ExpressionTypingContext
 import com.huawei.cangjie.types.expressions.isWithoutValueArguments
 import com.huawei.cangjie.utils.SmartList
+import com.intellij.codeInsight.completion.CompletionUtilCore
 import com.intellij.openapi.util.Key
 import com.intellij.psi.impl.source.DummyHolder
 
@@ -148,7 +145,36 @@ class QualifiedExpressionResolver {
 
         return result.asReversed()
     }
+    fun resolveNameExpressionAsQualifierForDiagnostics(
+        expression: CjSimpleNameExpression,
+        receiver: Receiver?,
+        context: ExpressionTypingContext
+    ): Qualifier? {
+        val name = expression.getReferencedNameAsName()
+        if (!expression.isPhysical && !name.isSpecial && name.asString().endsWith(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)) {
+            return null
+        }
 
+        val location = CangJieLookupLocation(expression)
+        val qualifierDescriptor = when (receiver) {
+//            is PackageQualifier -> {
+//                val childPackageFQN = receiver.descriptor.fqName.child(name)
+//                receiver.descriptor.module.getPackage(childPackageFQN).takeUnless { it.isEmpty() }
+//                    ?: receiver.descriptor.memberScope.getContributedClassifier(name, location)
+//            }
+            is ClassQualifier -> receiver.staticScope.getContributedClassifier(name, location)
+            null -> context.scope.findClassifier(name, location)
+                ?: context.scope.ownerDescriptor.module.getPackage(FqName.ROOT.child(name)).takeUnless { it.isEmpty() }
+            is ReceiverValue -> receiver.type.memberScope.memberScopeAsImportingScope().findClassifier(name, location)
+            else -> null
+        }
+
+        if (qualifierDescriptor != null) {
+            return storeResult(context.trace, expression, qualifierDescriptor, context.scope.ownerDescriptor, QualifierPosition.EXPRESSION)
+        }
+
+        return null
+    }
     private fun computePackageFragmentToCheck(
         containingFile: CjFile,
         packageFragmentForVisibilityCheck: PackageFragmentDescriptor?
@@ -528,12 +554,12 @@ class QualifiedExpressionResolver {
             )
 
         val primaryImportingScope = processReferenceInContextOf(moduleDescriptor)
-TODO()
+
 //
-//        val resolutionAnchor = moduleDescriptor.getResolutionAnchorIfAny() ?: return primaryImportingScope
-//        val anchorImportingScope = processReferenceInContextOf(resolutionAnchor) ?: return primaryImportingScope
-//        if (primaryImportingScope == null) return anchorImportingScope
-//        return CompositePrioritizedImportingScope(anchorImportingScope, primaryImportingScope)
+        val resolutionAnchor = moduleDescriptor.getResolutionAnchorIfAny() ?: return primaryImportingScope
+        val anchorImportingScope = processReferenceInContextOf(resolutionAnchor) ?: return primaryImportingScope
+        if (primaryImportingScope == null) return anchorImportingScope
+        return CompositePrioritizedImportingScope(anchorImportingScope, primaryImportingScope)
     }
 }
 

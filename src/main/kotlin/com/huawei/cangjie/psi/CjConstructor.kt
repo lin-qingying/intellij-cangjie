@@ -18,6 +18,7 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
         stub,
         nodeType
     )
+    open fun getConstructorKeyword(): PsiElement? = findChildByType(CjTokens.INIT_KEYWORD)
 
     abstract fun getContainingClassOrStruct(): CjClassOrStruct
 

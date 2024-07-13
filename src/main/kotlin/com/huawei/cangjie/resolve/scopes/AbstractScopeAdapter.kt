@@ -1,9 +1,6 @@
 package com.huawei.cangjie.resolve.scopes
 
-import com.huawei.cangjie.descriptors.ClassifierDescriptor
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor
-import com.huawei.cangjie.descriptors.VariableDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.utils.Printer
@@ -14,7 +11,9 @@ import com.huawei.cangjie.utils.Printer
  */
 abstract class AbstractScopeAdapter : MemberScope {
     protected abstract val workerScope: MemberScope
-
+    override fun getFunctionNames() = workerScope.getFunctionNames()
+    override fun getVariableNames() = workerScope.getVariableNames()
+    override fun getClassifierNames() = workerScope.getClassifierNames()
     fun getActualScope(): MemberScope =
         if (workerScope is AbstractScopeAdapter)
             (workerScope as AbstractScopeAdapter).getActualScope()
@@ -29,7 +28,7 @@ abstract class AbstractScopeAdapter : MemberScope {
         return workerScope.getContributedClassifier(name, location)
     }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard PropertyDescriptor> {
         return workerScope.getContributedVariables(name, location)
     }
 

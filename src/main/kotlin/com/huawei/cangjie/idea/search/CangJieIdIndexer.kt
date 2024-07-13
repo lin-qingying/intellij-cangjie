@@ -26,7 +26,7 @@ private val ALL_SEARCHABLE_OPERATIONS: ImmutableSet<CjToken> = ImmutableSet
 
     .build()
 
-class KotlinFilterLexer(private val occurrenceConsumer: OccurrenceConsumer) :
+class CangJieFilterLexer(private val occurrenceConsumer: OccurrenceConsumer) :
     BaseFilterLexer(CangJieLexer(), occurrenceConsumer) {
     private companion object {
         private val CODE_TOKENS = TokenSet.orSet(
@@ -122,12 +122,12 @@ class KotlinFilterLexer(private val occurrenceConsumer: OccurrenceConsumer) :
 class CangJieTodoIndexer : LexerBasedTodoIndexer(), IdAndToDoScannerBasedOnFilterLexer {
     override fun getVersion() = 2
 
-    override fun createLexer(consumer: OccurrenceConsumer) = KotlinFilterLexer(consumer)
+    override fun createLexer(consumer: OccurrenceConsumer) = CangJieFilterLexer(consumer)
 }
 
 
 class CangJieIdIndexer : LexerBasedIdIndexer() {
-    override fun createLexer(consumer: OccurrenceConsumer): Lexer = KotlinFilterLexer(consumer)
+    override fun createLexer(consumer: OccurrenceConsumer): Lexer = CangJieFilterLexer(consumer)
 
     override fun getVersion() = 3
 }

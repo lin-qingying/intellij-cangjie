@@ -34,7 +34,7 @@ sealed class CangJieType : Annotated, CangJieTypeMarker {
     abstract val isMarkedNullable: Boolean
     abstract val memberScope: MemberScope
     /**
-     * Returns refined type using passed KotlinTypeRefiner
+     * Returns refined type using passed CangJieTypeRefiner
      *
      * Refined type has its member scope refined
      *

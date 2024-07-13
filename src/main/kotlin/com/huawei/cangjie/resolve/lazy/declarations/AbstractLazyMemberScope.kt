@@ -11,7 +11,6 @@ import com.huawei.cangjie.resolve.source.MemberScopeImpl
 import com.huawei.cangjie.storage.MemoizedFunctionToNotNull
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.utils.Printer
-import com.intellij.psi.stubs.AbstractStubIndex
 
 abstract class AbstractLazyMemberScope<out D : DeclarationDescriptor, out DP : DeclarationProvider>
 protected constructor(
@@ -26,7 +25,7 @@ protected constructor(
         storageManager.createMemoizedFunction { doGetFunctions(it) }
     private val classDescriptors: MemoizedFunctionToNotNull<Name, List<ClassDescriptor>> =
         storageManager.createMemoizedFunction { doGetClasses(it) }
-    private val variableDescriptors: MemoizedFunctionToNotNull<Name, Collection<VariableDescriptor>> =
+    private val propertyDescriptors: MemoizedFunctionToNotNull<Name, Collection<PropertyDescriptor>> =
         storageManager.createMemoizedFunction { doGetProperties(it) }
     private val declaredFunctionDescriptors: MemoizedFunctionToNotNull<Name, Collection<SimpleFunctionDescriptor>> =
         storageManager.createMemoizedFunction { getDeclaredFunctions(it) }
@@ -46,7 +45,7 @@ protected constructor(
         }.toList()
     }
 
-    private fun doGetProperties(name: Name): Collection<VariableDescriptor> {
+    private fun doGetProperties(name: Name): Collection<PropertyDescriptor> {
 //        val result = LinkedHashSet(declaredPropertyDescriptors(name))
 //
 //        getNonDeclaredProperties(name, result)
@@ -73,9 +72,9 @@ protected constructor(
         return result
     }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard PropertyDescriptor> {
         recordLookup(name, location)
-        return variableDescriptors(name)
+        return propertyDescriptors(name)
     }
     override fun printScopeStructure(p: Printer) {
         p.println(this::class.java.simpleName, " {")

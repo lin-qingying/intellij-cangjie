@@ -5,6 +5,7 @@ import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 
 
@@ -28,7 +29,14 @@ public class CjConstructorDelegationCall extends CjElementImpl implements CjCall
 
     @Override
     public @NotNull List<CjLambdaArgument> getLambdaArguments() {
-        return null;
+        return Collections.emptyList();
+
+    }
+
+    @Override
+    public @NotNull List<CjTypeProjection> getTypeArguments() {
+        return Collections.emptyList();
+
     }
 
     @Override
@@ -40,6 +48,12 @@ public class CjConstructorDelegationCall extends CjElementImpl implements CjCall
         public @Nullable CjValueArgumentList getValueArgumentList() {
         return findChildByType(CjNodeTypes.VALUE_ARGUMENT_LIST);
 
+    }
+
+    @Override
+    public @NotNull List<? extends ValueArgument> getValueArguments() {
+        CjValueArgumentList list = getValueArgumentList();
+        return list != null ? list.getArguments() : Collections.<CjValueArgument>emptyList();
     }
 
 

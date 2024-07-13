@@ -209,6 +209,24 @@ fun <C : Candidate> createSimpleFunctionProcessor(
     scopeTower: ImplicitScopeTower, name: Name,
     context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
 ) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getFunctions(name, it) }
+fun <C : Candidate> createProcessorWithReceiverValueOrEmpty(
+    explicitReceiver: DetailedReceiver?,
+    create: (ReceiverValueWithSmartCastInfo?) -> ScopeTowerProcessor<C>
+): ScopeTowerProcessor<C> {
+    return if (explicitReceiver is QualifierReceiver) {
+        explicitReceiver.classValueReceiverWithSmartCastInfo?.let(create)
+            ?: KnownResultProcessor<C>(listOf())
+    } else {
+        create(explicitReceiver as ReceiverValueWithSmartCastInfo?)
+    }
+}
+class KnownResultProcessor<out C>(
+    val result: Collection<C>
+) : ScopeTowerProcessor<C> {
+    override fun process(data: TowerData) = if (data == TowerData.Empty) listOfNotNull(result.takeIf { it.isNotEmpty() }) else emptyList()
+
+    override fun recordLookups(skippedData: Collection<TowerData>, name: Name) {}
+}
 
 fun <C : Candidate> createFunctionProcessor(
     scopeTower: ImplicitScopeTower,

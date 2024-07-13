@@ -397,10 +397,10 @@ public class OverridingUtil {
             }
         }
 
-        if (superDescriptor instanceof FunctionDescriptor && subDescriptor instanceof FunctionDescriptor &&
-                ((FunctionDescriptor) superDescriptor).isSuspend() != ((FunctionDescriptor) subDescriptor).isSuspend()) {
-            return OverrideCompatibilityInfo.conflict("Incompatible suspendability");
-        }
+//        if (superDescriptor instanceof FunctionDescriptor && subDescriptor instanceof FunctionDescriptor &&
+//                ((FunctionDescriptor) superDescriptor).isSuspend() != ((FunctionDescriptor) subDescriptor).isSuspend()) {
+//            return OverrideCompatibilityInfo.conflict("Incompatible suspendability");
+//        }
 
         if (checkReturnType) {
             CangJieType superReturnType = superDescriptor.getReturnType();

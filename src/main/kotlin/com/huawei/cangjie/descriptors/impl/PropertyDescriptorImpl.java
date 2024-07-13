@@ -538,13 +538,13 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
 
 
 
-/*
+
     @Nullable
     @Override
     public <V> V getUserData(UserDataKey<V> key) {
         return null;
     }
-*/
+
 
     public class CopyConfiguration implements PropertyDescriptor.CopyBuilder<PropertyDescriptor> {
         private DeclarationDescriptor owner = getContainingDeclaration();

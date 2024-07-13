@@ -18,7 +18,9 @@ public class OverloadResolutionResultsImpl <D extends CallableDescriptor> implem
         this.resultCode = resultCode;
     }
     private Collection<ResolvedCall<D>> allCandidates;
-
+    public static <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> ambiguity(Collection<MutableResolvedCall<D>> candidates) {
+        return new OverloadResolutionResultsImpl<>(Code.AMBIGUITY, candidates);
+    }
     public static <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> nameNotFound() {
         OverloadResolutionResultsImpl<D> results = new OverloadResolutionResultsImpl<>(
                 Code.NAME_NOT_FOUND, Collections.<MutableResolvedCall<D>>emptyList());

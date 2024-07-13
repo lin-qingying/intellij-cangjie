@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.descriptors.ClassifierDescriptor
+import com.huawei.cangjie.descriptors.PropertyDescriptor
 import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor
 import com.huawei.cangjie.descriptors.VariableDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
@@ -13,11 +14,13 @@ class ChainedMemberScope private constructor(
     private val debugName: String,
     private val scopes: Array<out MemberScope>
 ) : MemberScope {
-
+    override fun getFunctionNames() = scopes.flatMapTo(mutableSetOf()) { it.getFunctionNames() }
+    override fun getVariableNames() = scopes.flatMapTo(mutableSetOf()) { it.getVariableNames() }
+    override fun getClassifierNames(): Set<Name>? = scopes.asIterable().flatMapClassifierNamesOrNull()
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
         getFirstClassifierDiscriminateHeaders(scopes) { it.getContributedClassifier(name, location) }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard PropertyDescriptor> =
         getFromAllScopes(scopes) { it.getContributedVariables(name, location) }
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> =

@@ -2,7 +2,9 @@ package com.huawei.cangjie.descriptors
 
 import com.huawei.cangjie.diagnostics.PositioningStrategy
 import com.huawei.cangjie.diagnostics.markElement
+import com.huawei.cangjie.diagnostics.markRange
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.psiUtil.getStrictParentOfType
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 
@@ -74,6 +76,40 @@ object PositioningStrategies {
             return markElement(nameIdentifier ?: element)
         }
     }
+    @JvmField
+    val CALL_EXPRESSION: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
+        override fun mark(element: PsiElement): List<TextRange> {
+            if (element is CjCallExpression) {
+                return markRange(element, element.typeArgumentList ?: element.calleeExpression ?: element)
+            }
+            return markElement(element)
+        }
+    }
+
+
+    @JvmField
+    val SECONDARY_CONSTRUCTOR_DELEGATION_CALL: PositioningStrategy<PsiElement> =
+        object : PositioningStrategy<PsiElement>() {
+            override fun mark(element: PsiElement): List<TextRange> {
+                return when (element) {
+                    is CjSecondaryConstructor -> {
+                        val valueParameterList = element.valueParameterList ?: return markElement(element)
+                        markRange(element.getConstructorKeyword(), valueParameterList.lastChild)
+                    }
+                    is CjConstructorDelegationCall -> {
+                        if (element.isImplicit) {
+                            // TODO: [VD] FIR collects for some reason implicit KtConstructorDelegationCall
+                            // check(!element.isImplicit) { "Implicit KtConstructorDelegationCall should not be collected directly" }
+                            val constructor = element.getStrictParentOfType<CjSecondaryConstructor>()!!
+                            val valueParameterList = constructor.valueParameterList ?: return markElement(constructor)
+                            return markRange(constructor.getConstructorKeyword(), valueParameterList.lastChild)
+                        }
+                        markElement(element.calleeExpression ?: element)
+                    }
+                    else -> markElement(element)
+                }
+            }
+        }
 
     @JvmField
     val VARIANCE_IN_PROJECTION: PositioningStrategy<CjTypeProjection> = object : PositioningStrategy<CjTypeProjection>() {

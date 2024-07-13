@@ -55,5 +55,5 @@ class CallCheckerContext @JvmOverloads constructor(
 // Computing it in CallChecker#check is not feasible since it would trigger "type checking has run into a recursive problem" errors.
 // Receiver parameter is present to emphasize that this function should ideally be only used from call checkers.
 //@Suppress("unused")
-//fun CallChecker.isComputingDeferredType(type: KotlinType) =
+//fun CallChecker.isComputingDeferredType(type: CangJieType) =
 //    type is DeferredType && type.isComputing

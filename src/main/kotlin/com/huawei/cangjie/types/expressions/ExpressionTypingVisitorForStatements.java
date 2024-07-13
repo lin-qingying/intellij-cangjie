@@ -3,6 +3,7 @@ package com.huawei.cangjie.types.expressions;
 import com.huawei.cangjie.psi.CjBlockExpression;
 import com.huawei.cangjie.psi.CjElement;
 import com.huawei.cangjie.psi.CjExpression;
+import com.huawei.cangjie.psi.CjNamedFunction;
 import com.huawei.cangjie.resolve.scopes.LexicalWritableScope;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
@@ -13,22 +14,22 @@ import static com.huawei.cangjie.descriptors.Errors.UNSUPPORTED;
 @SuppressWarnings("SuspiciousMethodCalls")
 public class ExpressionTypingVisitorForStatements extends ExpressionTypingVisitor{
     private final LexicalWritableScope scope;
-//    private final BasicExpressionTypingVisitor basic;
+    private final BasicExpressionTypingVisitor basic;
 //    private final ControlStructureTypingVisitor controlStructures;
 //    private final PatternMatchingTypingVisitor patterns;
 //    private final FunctionsTypingVisitor functions;
 
     public ExpressionTypingVisitorForStatements(
             @NotNull ExpressionTypingInternals facade,
-            @NotNull LexicalWritableScope scope
-//            @NotNull BasicExpressionTypingVisitor basic,
+            @NotNull LexicalWritableScope scope,
+            @NotNull BasicExpressionTypingVisitor basic
 //            @NotNull ControlStructureTypingVisitor controlStructures,
 //            @NotNull PatternMatchingTypingVisitor patterns,
 //            @NotNull FunctionsTypingVisitor functions
     ) {
         super(facade);
         this.scope = scope;
-//        this.basic = basic;
+        this.basic = basic;
 //        this.controlStructures = controlStructures;
 //        this.patterns = patterns;
 //        this.functions = functions;
@@ -43,7 +44,10 @@ public class ExpressionTypingVisitorForStatements extends ExpressionTypingVisito
         context.trace.report(UNSUPPORTED.on(element, "in a block"));
         return TypeInfoFactoryKt.noTypeInfo(context);
     }
-
+//    @Override
+//    public CangJieTypeInfo visitNamedFunction(@NotNull CjNamedFunction function, ExpressionTypingContext context) {
+//        return functions.visitNamedFunction(function, context, /* isDeclaration = */ function.getName() != null, scope);
+//    }
     @Override
     public CangJieTypeInfo visitExpression(@NotNull CjExpression expression, ExpressionTypingContext context) {
         return facade.getTypeInfo(expression, context);

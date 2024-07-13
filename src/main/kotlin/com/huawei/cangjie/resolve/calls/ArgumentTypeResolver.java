@@ -14,33 +14,39 @@ import com.huawei.cangjie.resolve.calls.context.ContextDependency;
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext;
 import com.huawei.cangjie.resolve.calls.model.MutableDataFlowInfoForArguments;
 import com.huawei.cangjie.resolve.calls.util.ResolveArgumentsMode;
-import com.huawei.cangjie.resolve.calls.context.ContextDependency.*;
 import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor;
+import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstructor;
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.TypeConstructor;
-import com.huawei.cangjie.types.TypeUtils;
 import com.huawei.cangjie.types.checker.CangJieTypeChecker;
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
+import com.huawei.cangjie.types.util.TypeUtils;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstructor;
+
 import static com.huawei.cangjie.psi.CjPsiUtil.getLastElementDeparenthesized;
 import static com.huawei.cangjie.resolve.BindingContextUtils.getRecordedTypeInfo;
-import static com.huawei.cangjie.types.TypeUtils.NO_EXPECTED_TYPE;
+import static com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;
 
 public class ArgumentTypeResolver {
+    @NotNull
+    private final TypeResolver typeResolver;
+    @NotNull
+    private final CangJieBuiltIns builtIns;
+    @NotNull
+    private final ReflectionTypes reflectionTypes;
+    @NotNull
+    private final ConstantExpressionEvaluator constantExpressionEvaluator;
+    //    @NotNull private final FunctionPlaceholders functionPlaceholders;
+    @NotNull
+    private final ModuleDescriptor moduleDescriptor;
+    @NotNull
+    private final CangJieTypeChecker kotlinTypeChecker;
     private ExpressionTypingServices expressionTypingServices;
-    @NotNull private final TypeResolver typeResolver;
-    @NotNull private final CangJieBuiltIns builtIns;
-    @NotNull private final ReflectionTypes reflectionTypes;
-    @NotNull private final ConstantExpressionEvaluator constantExpressionEvaluator;
-//    @NotNull private final FunctionPlaceholders functionPlaceholders;
-    @NotNull private final ModuleDescriptor moduleDescriptor;
-    @NotNull private final CangJieTypeChecker kotlinTypeChecker;
 
     public ArgumentTypeResolver(
             @NotNull TypeResolver typeResolver,
@@ -59,14 +65,82 @@ public class ArgumentTypeResolver {
         this.moduleDescriptor = moduleDescriptor;
         this.kotlinTypeChecker = kotlinTypeChecker;
     }
+
+    private static boolean isCollectionLiteralInsideAnnotation(CjExpression expression, CallResolutionContext<?> context) {
+        return expression instanceof CjCollectionLiteralExpression && context.call.getCallElement() instanceof CjAnnotationEntry;
+    }
+
+    private static boolean isCallableReferenceArgument(
+            @NotNull CjExpression expression, @NotNull StatementFilter statementFilter
+    ) {
+        return getCallableReferenceExpressionIfAny(expression, statementFilter) != null;
+    }
+
+    private static boolean isFunctionLiteralArgument(
+            @NotNull CjExpression expression, @NotNull StatementFilter statementFilter
+    ) {
+        return getFunctionLiteralArgumentIfAny(expression, statementFilter) != null;
+    }
+
+    public static boolean isFunctionLiteralOrCallableReference(
+            @NotNull CjExpression expression, @NotNull StatementFilter statementFilter
+    ) {
+        return isFunctionLiteralArgument(expression, statementFilter) || isCallableReferenceArgument(expression, statementFilter);
+    }
+
+    public static boolean isFunctionLiteralArgument(
+            @NotNull CjExpression expression, @NotNull ResolutionContext context
+    ) {
+        return isFunctionLiteralArgument(expression, context.statementFilter);
+    }
+
+    @Nullable
+    public static CjCallableReferenceExpression getCallableReferenceExpressionIfAny(
+            @NotNull CjExpression expression,
+            @NotNull StatementFilter statementFilter
+    ) {
+        CjExpression deparenthesizedExpression = getLastElementDeparenthesized(expression, statementFilter);
+        if (deparenthesizedExpression instanceof CjCallableReferenceExpression) {
+            return (CjCallableReferenceExpression) deparenthesizedExpression;
+        }
+        return null;
+    }
+
+    @Nullable
+    public static CjCallableReferenceExpression getCallableReferenceExpressionIfAny(
+            @NotNull CjExpression expression,
+            @NotNull ResolutionContext context
+    ) {
+        return getCallableReferenceExpressionIfAny(expression, context.statementFilter);
+    }
+
+    @Nullable
+    public static CjFunction getFunctionLiteralArgumentIfAny(
+            @NotNull CjExpression expression, @NotNull StatementFilter statementFilter
+    ) {
+        CjExpression deparenthesizedExpression = getLastElementDeparenthesized(expression, statementFilter);
+        if (deparenthesizedExpression instanceof CjLambdaExpression) {
+            return ((CjLambdaExpression) deparenthesizedExpression).getFunctionLiteral();
+        }
+        if (deparenthesizedExpression instanceof CjFunction) {
+            return (CjFunction) deparenthesizedExpression;
+        }
+        return null;
+    }
+
+    @Nullable
+    public static CjFunction getFunctionLiteralArgumentIfAny(
+            @NotNull CjExpression expression, @NotNull ResolutionContext context
+    ) {
+        return getFunctionLiteralArgumentIfAny(expression, context.statementFilter);
+    }
+
     // component dependency cycle
     @Inject
     public void setExpressionTypingServices(@NotNull ExpressionTypingServices expressionTypingServices) {
         this.expressionTypingServices = expressionTypingServices;
     }
-    private static boolean isCollectionLiteralInsideAnnotation(CjExpression expression, CallResolutionContext<?> context) {
-        return expression instanceof CjCollectionLiteralExpression && context.call.getCallElement() instanceof CjAnnotationEntry;
-    }
+
     @Nullable
     public CangJieType updateResultArgumentTypeIfNotDenotable(
             @NotNull ResolutionContext context,
@@ -74,6 +148,7 @@ public class ArgumentTypeResolver {
     ) {
         return updateResultArgumentTypeIfNotDenotable(context.trace, context.statementFilter, context.expectedType, expression);
     }
+
     @Nullable
     public CangJieType updateResultArgumentTypeIfNotDenotable(
             @NotNull BindingTrace trace,
@@ -95,14 +170,12 @@ public class ArgumentTypeResolver {
     ) {
         TypeConstructor typeConstructor = targetType.getConstructor();
         if (!typeConstructor.isDenotable()) {
-            if (typeConstructor instanceof IntegerValueTypeConstructor) {
-                IntegerValueTypeConstructor constructor = (IntegerValueTypeConstructor) typeConstructor;
+            if (typeConstructor instanceof IntegerValueTypeConstructor constructor) {
                 CangJieType primitiveType = TypeUtils.getPrimitiveNumberType(constructor, expectedType);
                 constantExpressionEvaluator.updateNumberType(primitiveType, expression, statementFilter, trace);
                 return primitiveType;
             }
-            if (typeConstructor instanceof IntegerLiteralTypeConstructor) {
-                IntegerLiteralTypeConstructor constructor = (IntegerLiteralTypeConstructor) typeConstructor;
+            if (typeConstructor instanceof IntegerLiteralTypeConstructor constructor) {
                 CangJieType primitiveType = TypeUtils.getPrimitiveNumberType(constructor, expectedType);
                 constantExpressionEvaluator.updateNumberType(primitiveType, expression, statementFilter, trace);
                 return primitiveType;
@@ -115,6 +188,7 @@ public class ArgumentTypeResolver {
         expressionTypingServices.getTypeInfo(argumentExpression, context.replaceExpectedType(NO_EXPECTED_TYPE));
         updateResultArgumentTypeIfNotDenotable(context, argumentExpression);
     }
+
     public void checkTypesWithNoCallee(
             @NotNull CallResolutionContext<?> context
     ) {
@@ -133,22 +207,10 @@ public class ArgumentTypeResolver {
             CjTypeReference typeReference = typeProjection.getTypeReference();
             if (typeReference == null) {
                 context.trace.report(Errors.PROJECTION_ON_NON_CLASS_TYPE_ARGUMENT.on(typeProjection));
-            }
-            else {
+            } else {
                 typeResolver.resolveType(context.scope, typeReference, context.trace, true);
             }
         }
-    }
-
-    private static boolean isFunctionLiteralArgument(
-            @NotNull CjExpression expression, @NotNull StatementFilter statementFilter
-    ) {
-        return getFunctionLiteralArgumentIfAny(expression, statementFilter) != null;
-    }
-    public static boolean isFunctionLiteralArgument(
-            @NotNull CjExpression expression, @NotNull ResolutionContext context
-    ) {
-        return isFunctionLiteralArgument(expression, context.statementFilter);
     }
 
     private void checkTypesForFunctionArgumentsWithNoCallee(@NotNull CallResolutionContext<?> context) {
@@ -161,26 +223,7 @@ public class ArgumentTypeResolver {
             }
         }
     }
-    @Nullable
-    public static CjCallableReferenceExpression getCallableReferenceExpressionIfAny(
-            @NotNull CjExpression expression,
-            @NotNull StatementFilter statementFilter
-    ) {
-        CjExpression deparenthesizedExpression = getLastElementDeparenthesized(expression, statementFilter);
-        if (deparenthesizedExpression instanceof CjCallableReferenceExpression) {
-            return (CjCallableReferenceExpression) deparenthesizedExpression;
-        }
-        return null;
-    }
 
-
-    @Nullable
-    public static CjCallableReferenceExpression getCallableReferenceExpressionIfAny(
-            @NotNull CjExpression expression,
-            @NotNull ResolutionContext context
-    ) {
-        return getCallableReferenceExpressionIfAny(expression, context.statementFilter);
-    }
     /**
      * Visits function call arguments and determines data flow information changes
      */
@@ -204,27 +247,8 @@ public class ArgumentTypeResolver {
             infoForArguments.updateInfo(argument, typeInfoForCall.getDataFlowInfo());
         }
     }
-    @Nullable
-    public static CjFunction getFunctionLiteralArgumentIfAny(
-            @NotNull CjExpression expression, @NotNull StatementFilter statementFilter
-    ) {
-       CjExpression deparenthesizedExpression = getLastElementDeparenthesized(expression, statementFilter);
-        if (deparenthesizedExpression instanceof CjLambdaExpression) {
-            return ((CjLambdaExpression) deparenthesizedExpression).getFunctionLiteral();
-        }
-        if (deparenthesizedExpression instanceof CjFunction) {
-            return (CjFunction) deparenthesizedExpression;
-        }
-        return null;
-    }
-    @Nullable
-    public static CjFunction getFunctionLiteralArgumentIfAny(
-            @NotNull CjExpression expression, @NotNull ResolutionContext context
-    ) {
-        return getFunctionLiteralArgumentIfAny(expression, context.statementFilter);
-    }
 
-//    @NotNull
+    //    @NotNull
 //    public CangJieTypeInfo getFunctionLiteralTypeInfo(
 //            @NotNull CjExpression expression,
 //            @NotNull CjFunction functionLiteral,

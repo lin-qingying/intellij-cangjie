@@ -10,6 +10,7 @@ import com.huawei.cangjie.storage.NotNullLazyValue;
 import com.huawei.cangjie.storage.StorageManager;
 import com.huawei.cangjie.types.*;
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner;
+import com.huawei.cangjie.types.util.TypeUtils;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;

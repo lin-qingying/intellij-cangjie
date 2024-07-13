@@ -10,7 +10,8 @@ import com.huawei.cangjie.resolve.BindingContextUtils
 import com.huawei.cangjie.resolve.StatementFilter
 import com.huawei.cangjie.resolve.constants.CompileTimeConstant
 import com.huawei.cangjie.types.CangJieType
-import com.huawei.cangjie.types.TypeUtils
+
+import com.huawei.cangjie.types.util.TypeUtils
 
 //
 //import com.huawei.cangjie.descriptors.BindingTrace

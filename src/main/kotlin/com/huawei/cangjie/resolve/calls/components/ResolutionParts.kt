@@ -5,17 +5,38 @@ import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.ConstraintSystemOperation
-import com.huawei.cangjie.resolve.calls.inference.components.EmptySubstitutor
-import com.huawei.cangjie.resolve.calls.inference.components.FreshVariableNewTypeSubstitutor
+import com.huawei.cangjie.resolve.calls.inference.components.*
 import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableFromCallableDescriptor
 import com.huawei.cangjie.resolve.calls.model.CangJieCall
 import com.huawei.cangjie.resolve.calls.model.ResolutionPart
 import com.huawei.cangjie.resolve.calls.model.SimpleCangJieCallArgument
 import com.huawei.cangjie.resolve.calls.model.SimpleTypeArgument
-import com.huawei.cangjie.types.CangJieType
-import com.huawei.cangjie.types.ErrorUtils
+import com.huawei.cangjie.types.*
+import com.huawei.cangjie.resolve.calls.inference.substitute
 
 internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
+
+
+    private fun createKnownParametersFromFreshVariablesSubstitutor(
+        freshVariableSubstitutor: FreshVariableNewTypeSubstitutor,
+        knownTypeParametersSubstitutor: TypeSubstitutor,
+    ): NewTypeSubstitutor {
+        if (knownTypeParametersSubstitutor.isEmpty)
+            return EmptySubstitutor
+
+        val knownTypeParameterByTypeVariable = mutableMapOf<TypeConstructor, UnwrappedType>().let { map ->
+            for (typeVariable in freshVariableSubstitutor.freshVariables) {
+                val typeParameterType = typeVariable.originalTypeParameter.defaultType
+                val substitutedKnownTypeParameter = knownTypeParametersSubstitutor.substitute(typeParameterType)
+
+                if (substitutedKnownTypeParameter !== typeParameterType)
+                    map[typeVariable.defaultType.constructor] = substitutedKnownTypeParameter
+            }
+            map
+        }
+
+        return knownTypeParametersSubstitutor.composeWith(NewTypeSubstitutorByConstructorMap(knownTypeParameterByTypeVariable))
+    }
     override fun ResolutionCandidate.process(workIndex: Int) {
         val csBuilder = getSystem().getBuilder()
         val toFreshVariables =
@@ -24,12 +45,12 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 //            else
 //                createToFreshVariableSubstitutorAndAddInitialConstraints(candidateDescriptor, resolvedCall.atom, csBuilder)
 
-//        val knownTypeParametersSubstitutor = knownTypeParametersResultingSubstitutor?.let {
-//            createKnownParametersFromFreshVariablesSubstitutor(toFreshVariables, it)
-//        } ?: EmptySubstitutor
+        val knownTypeParametersSubstitutor = knownTypeParametersResultingSubstitutor?.let {
+            createKnownParametersFromFreshVariablesSubstitutor(toFreshVariables, it)
+        } ?: EmptySubstitutor
 
         resolvedCall.freshVariablesSubstitutor = toFreshVariables
-//        resolvedCall.knownParametersSubstitutor = knownTypeParametersSubstitutor
+        resolvedCall.knownParametersSubstitutor = knownTypeParametersSubstitutor
 
         if (candidateDescriptor.typeParameters.isEmpty()) {
             return
@@ -180,8 +201,8 @@ internal object ErrorDescriptorResolutionPart : ResolutionPart() {
         }
 //        resolvedCall.typeArgumentMappingByOriginal = TypeArgumentsToParametersMapper.TypeArgumentsMapping.NoExplicitArguments
         resolvedCall.argumentMappingByOriginal = emptyMap()
-//        resolvedCall.freshVariablesSubstitutor = FreshVariableNewTypeSubstitutor.Empty
-//        resolvedCall.knownParametersSubstitutor = EmptySubstitutor
+        resolvedCall.freshVariablesSubstitutor = FreshVariableNewTypeSubstitutor.Empty
+        resolvedCall.knownParametersSubstitutor = EmptySubstitutor
         resolvedCall.argumentToCandidateParameter = emptyMap()
 
 //        (cangjieCall.explicitReceiver as? SimpleCangJieCallArgument)?.let {

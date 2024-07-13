@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.calls.util;
 
 import com.huawei.cangjie.psi.*;
+import com.huawei.cangjie.psi.debugtext.DebugTextUtilKt;
 import com.huawei.cangjie.resolve.scopes.receivers.Receiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue;
 import com.huawei.cangjie.utils.slicedMap.BasicWritableSlice;
@@ -55,6 +56,80 @@ public class CallMaker {
     @NotNull
     public static Call makeCall(CjElement callElement, @Nullable Receiver explicitReceiver, @Nullable ASTNode callOperationNode, CjExpression calleeExpression, List<? extends ValueArgument> arguments) {
         return makeCall(callElement, explicitReceiver, callOperationNode, calleeExpression, arguments, Call.CallType.DEFAULT);
+    }
+    @NotNull
+    public static Call makeCall(@Nullable Receiver explicitReceiver, @Nullable ASTNode callOperationNode, @NotNull CjCallElement callElement) {
+        return new Call() {
+            @Override
+            public ASTNode getCallOperationNode() {
+                return callOperationNode;
+            }
+
+            @Nullable
+            @Override
+            public Receiver getExplicitReceiver() {
+                return explicitReceiver;
+            }
+
+            @Nullable
+            @Override
+            public ReceiverValue getDispatchReceiver() {
+                return null;
+            }
+
+            @Override
+            @Nullable
+            public CjExpression getCalleeExpression() {
+                return callElement.getCalleeExpression();
+            }
+
+            @Override
+            @Nullable
+            public CjValueArgumentList getValueArgumentList() {
+                return callElement.getValueArgumentList();
+            }
+
+            @Override
+            @NotNull
+            public List<? extends ValueArgument> getValueArguments() {
+                return callElement.getValueArguments();
+            }
+
+            @Override
+            @NotNull
+            public List<? extends LambdaArgument> getFunctionLiteralArguments() {
+                return callElement.getLambdaArguments();
+            }
+
+            @Override
+            @NotNull
+            public List<CjTypeProjection> getTypeArguments() {
+                return callElement.getTypeArguments();
+            }
+
+            @Override
+            @Nullable
+            public CjTypeArgumentList getTypeArgumentList() {
+                return callElement.getTypeArgumentList();
+            }
+
+            @NotNull
+            @Override
+            public CjElement getCallElement() {
+                return callElement;
+            }
+
+            @Override
+            public String toString() {
+                return DebugTextUtilKt.getDebugText(callElement);
+            }
+
+            @NotNull
+            @Override
+            public CallType getCallType() {
+                return CallType.DEFAULT;
+            }
+        };
     }
 
     @NotNull
@@ -194,10 +269,10 @@ public class CallMaker {
             this.isSemanticallyEquivalentToSafeCall = isSemanticallyEquivalentToSafeCall;
         }
 
-//        @Override
-//        public ASTNode getCallOperationNode() {
-//            return callOperationNode;
-//        }
+        @Override
+        public ASTNode getCallOperationNode() {
+            return callOperationNode;
+        }
 
         @Override
         public boolean isSemanticallyEquivalentToSafeCall() {
@@ -235,26 +310,29 @@ public class CallMaker {
             return callElement;
         }
 
-//        @Override
-//        public CjValueArgumentList getValueArgumentList() {
-//            return null;
-//        }
+
 
         @NotNull
         @Override
         public List<LambdaArgument> getFunctionLiteralArguments() {
             return Collections.emptyList();
         }
+
+        @Override
+        public @Nullable CjValueArgumentList getValueArgumentList() {
+            return null;
+        }
+
         @NotNull
         @Override
         public List<CjTypeProjection> getTypeArguments() {
             return Collections.emptyList();
         }
 
-//        @Override
-//        public CjTypeArgumentList getTypeArgumentList() {
-//            return null;
-//        }
+        @Override
+        public CjTypeArgumentList getTypeArgumentList() {
+            return null;
+        }
 
         @Override
         public String toString() {

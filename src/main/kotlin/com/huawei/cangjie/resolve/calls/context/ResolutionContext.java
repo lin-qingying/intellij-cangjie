@@ -2,7 +2,6 @@ package com.huawei.cangjie.resolve.calls.context;
 
 
 import com.huawei.cangjie.config.LanguageVersionSettings;
-import com.huawei.cangjie.config.LanguageVersionSettingsImpl;
 import com.huawei.cangjie.descriptors.BindingTrace;
 import com.huawei.cangjie.psi.CjExpression;
 import com.huawei.cangjie.resolve.StatementFilter;
@@ -11,7 +10,8 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.types.CangJieType;
-import com.huawei.cangjie.types.TypeUtils;
+
+import com.huawei.cangjie.types.util.TypeUtils;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import kotlin.jvm.functions.Function1;
@@ -51,7 +51,7 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
     public final InferenceSession inferenceSession;
 
     @NotNull
-    public final LanguageVersionSettings languageVersionSettings ;
+    public final LanguageVersionSettings languageVersionSettings;
     /**
      * Used for analyzing expression in the given context.
      * Should be used for going through parents to find containing function, loop etc.
@@ -62,13 +62,7 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
      */
     @NotNull
     public final Function1<CjExpression, CjExpression> expressionContextProvider;
-    @NotNull
-    public Context replaceContextDependency(@NotNull ContextDependency newContextDependency) {
-        if (newContextDependency == contextDependency) return self();
-        return create(trace, scope, dataFlowInfo, expectedType, newContextDependency, resolutionResultsCache, statementFilter,
-                collectAllCandidates, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
-                inferenceSession);
-    }
+
     protected ResolutionContext(
             @NotNull BindingTrace trace,
             @NotNull LexicalScope scope,
@@ -103,28 +97,41 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
         this.dataFlowValueFactory = factory;
         this.inferenceSession = inferenceSession;
 
-    this.languageVersionSettings = languageVersionSettings;
-
-
+        this.languageVersionSettings = languageVersionSettings;
 
 
     }
+    @NotNull
+    public Context replaceExpressionContextProvider(@NotNull Function1<CjExpression, CjExpression> expressionContextProvider) {
+        return create(trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
+                collectAllCandidates, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                inferenceSession);
+    }
+    @NotNull
+    public Context replaceContextDependency(@NotNull ContextDependency newContextDependency) {
+        if (newContextDependency == contextDependency) return self();
+        return create(trace, scope, dataFlowInfo, expectedType, newContextDependency, resolutionResultsCache, statementFilter,
+                collectAllCandidates, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                inferenceSession);
+    }
+
     @NotNull
     public Context replaceTraceAndCache(@NotNull TemporaryTraceAndCache traceAndCache) {
         return replaceBindingTrace(traceAndCache.trace).replaceResolutionResultsCache(traceAndCache.cache);
     }
+
     @NotNull
     public Context replaceResolutionResultsCache(@NotNull ResolutionResultsCache newResolutionResultsCache) {
         if (newResolutionResultsCache == resolutionResultsCache) return self();
         return create(trace, scope, dataFlowInfo, expectedType, contextDependency, newResolutionResultsCache, statementFilter,
-                collectAllCandidates, callPosition, expressionContextProvider , languageVersionSettings, dataFlowValueFactory,
+                collectAllCandidates, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
                 inferenceSession);
     }
 
     @NotNull
     public Context replaceStatementFilter(@NotNull StatementFilter statementFilter) {
         return create(trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
-                collectAllCandidates, callPosition, expressionContextProvider,languageVersionSettings, dataFlowValueFactory,
+                collectAllCandidates, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
                 inferenceSession);
     }
 
@@ -156,7 +163,7 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
 //        throw new UnsupportedOperationException("replaceBindingTrace is not implemented");
         if (this.trace == trace) return self();
         return create(trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
-                collectAllCandidates, callPosition, expressionContextProvider,languageVersionSettings,  dataFlowValueFactory,
+                collectAllCandidates, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
                 inferenceSession);
     }
 
@@ -166,7 +173,7 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
 
         if (newDataFlowInfo == dataFlowInfo) return self();
         return create(trace, scope, newDataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
-                collectAllCandidates, callPosition, expressionContextProvider,languageVersionSettings,  dataFlowValueFactory,
+                collectAllCandidates, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
                 inferenceSession);
     }
 
@@ -176,7 +183,7 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
 
         if (newInferenceSession == inferenceSession) return self();
         return create(trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
-                collectAllCandidates, callPosition, expressionContextProvider,languageVersionSettings,  dataFlowValueFactory,
+                collectAllCandidates, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
                 newInferenceSession);
     }
 
@@ -186,7 +193,7 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
         if (newExpectedType == null) return replaceExpectedType(TypeUtils.NO_EXPECTED_TYPE);
         if (expectedType == newExpectedType) return self();
         return create(trace, scope, dataFlowInfo, newExpectedType, contextDependency, resolutionResultsCache, statementFilter,
-                collectAllCandidates, callPosition, expressionContextProvider,languageVersionSettings,  dataFlowValueFactory,
+                collectAllCandidates, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
                 inferenceSession);
     }
 
@@ -196,7 +203,7 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
 //
         if (newScope == scope) return self();
         return create(trace, newScope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
-                collectAllCandidates, callPosition, expressionContextProvider,languageVersionSettings,  dataFlowValueFactory,
+                collectAllCandidates, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
                 inferenceSession);
     }
 
@@ -208,7 +215,7 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
 //                inferenceSession);
 //    }
 
-//    @NotNull
+    //    @NotNull
 //    public Context replaceResolutionResultsCache(@NotNull ResolutionResultsCache newResolutionResultsCache) {
 //        if (newResolutionResultsCache == resolutionResultsCache) return self();
 //        return create(trace, scope, dataFlowInfo, expectedType, contextDependency, newResolutionResultsCache, statementFilter,

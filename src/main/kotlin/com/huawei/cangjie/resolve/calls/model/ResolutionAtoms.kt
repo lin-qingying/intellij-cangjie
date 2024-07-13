@@ -72,8 +72,9 @@ abstract class ResolvedCallAtom : ResolvedAtom() {
     abstract val argumentMappingByOriginal: Map<ValueParameterDescriptor, ResolvedCallArgument>
     abstract val freshVariablesSubstitutor: FreshVariableNewTypeSubstitutor
 
-    //    abstract val knownParametersSubstitutor: NewTypeSubstitutor
-//    abstract val argumentsWithConversion: Map<CangJieCallArgument, SamConversionDescription>
+    abstract val knownParametersSubstitutor: NewTypeSubstitutor
+
+    //    abstract val argumentsWithConversion: Map<CangJieCallArgument, SamConversionDescription>
 //    abstract val argumentsWithSuspendConversion: Map<CangJieCallArgument, UnwrappedType>
     abstract val argumentsWithUnitConversion: Map<CangJieCallArgument, UnwrappedType>
 
@@ -192,3 +193,5 @@ val ResolvedCallAtom.freshReturnType: UnwrappedType?
         return freshVariablesSubstitutor.safeSubstitute(returnType.unwrap())
     }
 
+fun CallResolutionResult.resultCallAtom(): ResolvedCallAtom? =
+    if (this is SingleCallResolutionResult) resultCallAtom else null

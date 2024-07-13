@@ -4,7 +4,8 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.types.CangJieType
-import com.huawei.cangjie.types.shouldBeUpdated
+import com.huawei.cangjie.types.util.shouldBeUpdated
+
 
 abstract class VariableDescriptorImpl(
     containingDeclaration: DeclarationDescriptor,

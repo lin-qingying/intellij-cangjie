@@ -104,16 +104,16 @@ class CangJieCallResolver(
 //            CangJieCallKind.CALLABLE_REFERENCE -> {
 //                createCallableReferenceProcessor(candidateFactory as CallableReferencesCandidateFactory) as ScopeTowerProcessor<C>
 //            }
-//            INVOKE -> {
-//                createProcessorWithReceiverValueOrEmpty(cangjieCall.explicitReceiver?.receiver) {
-//                    createCallTowerProcessorForExplicitInvoke(
-//                        scopeTower,
-//                        candidateFactory,
-//                        cangjieCall.dispatchReceiverForInvokeExtension?.receiver as ReceiverValueWithSmartCastInfo,
-//                        it
-//                    )
-//                }
-//            }
+            INVOKE -> {
+                createProcessorWithReceiverValueOrEmpty(cangjieCall.explicitReceiver?.receiver) {
+                    createCallTowerProcessorForExplicitInvoke(
+                        scopeTower,
+                        candidateFactory,
+                        cangjieCall.dispatchReceiverForInvokeExtension?.receiver as ReceiverValueWithSmartCastInfo,
+                        it
+                    )
+                }
+            }
 
             UNSUPPORTED -> throw UnsupportedOperationException()
 

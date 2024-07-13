@@ -6,10 +6,7 @@ import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.model.LowerPriorityToPreserveCompatibility
 import com.huawei.cangjie.resolve.calls.model.constraintSystemError
 import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
-import com.huawei.cangjie.resolve.scopes.HierarchicalScope
-import com.huawei.cangjie.resolve.scopes.ImportingScope
-import com.huawei.cangjie.resolve.scopes.LexicalScope
-import com.huawei.cangjie.resolve.scopes.ResolutionScope
+import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.huawei.cangjie.resolve.scopes.util.parentsWithSelf
 import com.huawei.cangjie.types.CangJieType
@@ -77,7 +74,36 @@ interface CandidateFactoryProviderForInvoke<C : Candidate> {
     // null means that there is no invoke on variable
     fun factoryForInvoke(variable: C, useExplicitReceiver: Boolean): Pair<ReceiverValueWithSmartCastInfo, CandidateFactory<C>>?
 }
+internal class SyntheticScopeBasedTowerLevel(
+    scopeTower: ImplicitScopeTower,
+    private val syntheticScopes: SyntheticScopes
+) : AbstractScopeTowerLevel(scopeTower) {
+    override fun getVariables(
+        name: Name,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): Collection<CandidateWithBoundDispatchReceiver> {
+        if (extensionReceiver == null) return emptyList()
 
+        return syntheticScopes.collectSyntheticExtensionProperties(extensionReceiver.allOriginalTypes, name, location).map {
+            createCandidateDescriptor(it, dispatchReceiver = null)
+        }
+    }
+
+//    override fun getObjects(
+//        name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?
+//    ): Collection<CandidateWithBoundDispatchReceiver> =
+//        emptyList()
+
+    override fun getFunctions(
+        name: Name,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): Collection<CandidateWithBoundDispatchReceiver> =
+        emptyList()
+
+    override fun recordLookup(name: Name) {
+
+    }
+}
 class TowerResolver {
     private fun <C : Candidate> ImplicitScopeTower.run(
         processor: ScopeTowerProcessor<C>,
@@ -301,7 +327,8 @@ class TowerResolver {
             }
             return process()
         }
-//
+        val syntheticLevel = SyntheticScopeBasedTowerLevel(implicitScopeTower, implicitScopeTower.syntheticScopes)
+
         fun run(): Collection<C> {
 //            if (isNameForHidesMember) {
 //                // hides members extensions for explicit receiver
@@ -311,7 +338,7 @@ class TowerResolver {
             // possibly there is explicit member
             TowerData.Empty.process()?.let { return it }
             // synthetic property for explicit receiver
-//            TowerData.TowerLevel(syntheticLevel).process()?.let { return it }
+            TowerData.TowerLevel(syntheticLevel).process()?.let { return it }
 
             // local non-extensions or extension for explicit receiver
             for (localLevel in localLevels) {

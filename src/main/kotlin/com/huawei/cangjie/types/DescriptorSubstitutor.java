@@ -7,12 +7,15 @@ import com.huawei.cangjie.descriptors.SourceElement;
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor;
 import com.huawei.cangjie.descriptors.impl.TypeParameterDescriptorImpl;
 import com.huawei.cangjie.utils.ReadOnly;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.huawei.cangjie.types.util.TypeUtilKt.hasTypeParameterRecursiveBounds;
 
 public class DescriptorSubstitutor {
     private DescriptorSubstitutor() {
@@ -71,7 +74,7 @@ public class DescriptorSubstitutor {
             TypeParameterDescriptorImpl substituted = substitutedMap.get(descriptor);
             for (CangJieType upperBound : descriptor.getUpperBounds()) {
                 ClassifierDescriptor upperBoundDeclaration = upperBound.getConstructor().getDeclarationDescriptor();
-                TypeSubstitutor boundSubstitutor = upperBoundDeclaration instanceof TypeParameterDescriptor && TypeUtilsKt.hasTypeParameterRecursiveBounds((TypeParameterDescriptor) upperBoundDeclaration)
+                TypeSubstitutor boundSubstitutor = upperBoundDeclaration instanceof TypeParameterDescriptor &&  hasTypeParameterRecursiveBounds((TypeParameterDescriptor) upperBoundDeclaration)
                         ? substitutor
                         : nonApproximatingSubstitutor;
 

@@ -5,6 +5,7 @@ import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.resolve.calls.components.CallableReceiver
 import com.huawei.cangjie.resolve.calls.components.CallableReferenceAdaptation
 import com.huawei.cangjie.resolve.calls.components.CangJieResolutionCallbacks
+import com.huawei.cangjie.resolve.calls.inference.components.FreshVariableNewTypeSubstitutor
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
@@ -52,8 +53,8 @@ class CallableReferenceResolutionCandidate(
 
     override fun getSubResolvedAtoms(): List<ResolvedAtom> = emptyList()
 
-//    var freshVariablesSubstitutor: FreshVariableNewTypeSubstitutor? = null
-//        internal set
+    var freshVariablesSubstitutor: FreshVariableNewTypeSubstitutor? = null
+        internal set
 
 //    val numDefaults get() = callableReferenceAdaptation?.defaults ?: 0
 }

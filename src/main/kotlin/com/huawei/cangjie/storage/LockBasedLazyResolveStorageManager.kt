@@ -71,6 +71,10 @@ class LockBasedLazyResolveStorageManager(private val storageManager: StorageMana
             storageManager.compute { trace.record<K>(slice, key) }
         }
 
+        override fun recordType(expression:CjExpression, type: CangJieType?) {
+            storageManager.compute { trace.recordType(expression, type) }
+        }
+
         override fun <K, V> get(slice: ReadOnlySlice<K, V>, key: K): V? =
             storageManager.compute { trace.get<K, V>(slice, key) }
 

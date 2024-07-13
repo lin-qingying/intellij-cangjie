@@ -22,7 +22,6 @@ public class SimpleFunctionDescriptorImpl extends FunctionDescriptorImpl impleme
         super(containingDeclaration, original, annotations, name, kind, source);
     }
 
-
     @NotNull
     public static SimpleFunctionDescriptorImpl create(
             @NotNull DeclarationDescriptor containingDeclaration,
@@ -126,6 +125,15 @@ public class SimpleFunctionDescriptorImpl extends FunctionDescriptorImpl impleme
     ) {
         return (SimpleFunctionDescriptor) super.copy(newOwner, modality, visibility, kind, copyOverrides);
     }
+
+    @Override
+    public boolean isOperator() {
+        return false;
+    }
+
+
+
+
 
     @NotNull
     @Override

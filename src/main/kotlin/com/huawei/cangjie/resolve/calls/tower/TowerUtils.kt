@@ -1,5 +1,7 @@
 package com.huawei.cangjie.resolve.calls.tower
 
+import com.huawei.cangjie.descriptors.CallableDescriptor
+import com.huawei.cangjie.descriptors.CallableMemberDescriptor
 import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
@@ -11,6 +13,10 @@ fun <C : Candidate> C.forceResolution(): C {
     resultingApplicability
     return this
 }
+
+val CallableDescriptor.isSynthesized: Boolean
+    get() = (this is CallableMemberDescriptor && kind == CallableMemberDescriptor.Kind.SYNTHESIZED)
+
 val CandidateWithBoundDispatchReceiver.requiresExtensionReceiver: Boolean
     get() = descriptor.extensionReceiverParameter != null
 //private fun ResolutionScope.getContributedFunctionsAndConstructors(

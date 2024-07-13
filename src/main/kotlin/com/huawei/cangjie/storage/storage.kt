@@ -11,7 +11,11 @@ interface MemoizedFunctionToNullable<in P, out R : Any> : Function1<P, R?> {
 interface NullableLazyValue<out T : Any> : Function0<T?> {
     fun isComputed(): Boolean
     fun isComputing(): Boolean
+
 }
+
+
+operator fun <T : Any> NullableLazyValue<T>.getValue(_this: Any?, p: KProperty<*>): T? = invoke()
 interface CacheWithNullableValues<in K, V : Any> {
     fun computeIfAbsent(key: K, computation: () -> V?): V?
 }

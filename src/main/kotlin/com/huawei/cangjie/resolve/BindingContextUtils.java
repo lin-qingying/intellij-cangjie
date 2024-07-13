@@ -7,7 +7,7 @@ import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor;
 import com.huawei.cangjie.psi.CjExpression;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfoFactory;
 import com.huawei.cangjie.types.CangJieType;
-import com.huawei.cangjie.types.TypeUtils;
+import com.huawei.cangjie.types.util.TypeUtils;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.huawei.cangjie.utils.slicedMap.MutableSlicedMap;

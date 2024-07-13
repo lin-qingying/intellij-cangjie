@@ -10,6 +10,8 @@ import com.huawei.cangjie.resolve.calls.inference.isCaptured
 
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
+import com.huawei.cangjie.types.util.TypeUtils
+import com.huawei.cangjie.types.util.builtIns
 
 
 data class ApproximationBounds<out T>(

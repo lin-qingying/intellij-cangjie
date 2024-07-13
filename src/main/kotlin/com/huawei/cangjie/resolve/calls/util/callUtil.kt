@@ -6,17 +6,45 @@ import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.BindingContext.CALL
 import com.huawei.cangjie.resolve.BindingContext.RESOLVED_CALL
+import com.huawei.cangjie.resolve.StatementFilter
+import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver
 import com.huawei.cangjie.resolve.calls.CallTransformer
+import com.huawei.cangjie.resolve.calls.context.ResolutionContext
 import com.huawei.cangjie.resolve.calls.model.CangJieCall
+import com.huawei.cangjie.resolve.calls.model.MutableResolvedCall
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall
+import com.huawei.cangjie.resolve.calls.tower.NewResolvedCallImpl
 import com.huawei.cangjie.resolve.calls.tower.psiCangJieCall
+import com.huawei.cangjie.types.isError
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
-
+fun Call.getValueArgumentListOrElement(): CjElement =
+    if (this is CallTransformer.CallForImplicitInvoke) {
+        outerCall.getValueArgumentListOrElement()
+    } else {
+        valueArgumentList ?: calleeExpression ?: callElement
+    }
 enum class ResolveArgumentsMode {
     RESOLVE_FUNCTION_ARGUMENTS,
     SHAPE_FUNCTION_ARGUMENTS
 }
+
+fun Call.hasUnresolvedArguments(bindingContext: BindingContext, statementFilter: StatementFilter): Boolean {
+    val arguments = valueArguments.map { it.getArgumentExpression() }
+    return arguments.any(fun(argument: CjExpression?): Boolean {
+        if (argument == null || ArgumentTypeResolver.isFunctionLiteralOrCallableReference(argument, statementFilter)) return false
+
+        when (val resolvedCall = argument.getResolvedCall(bindingContext)) {
+            is MutableResolvedCall<*> -> if (!resolvedCall.hasInferredReturnType()) return false
+            is NewResolvedCallImpl<*> -> if (resolvedCall.resultingDescriptor.returnType?.isError == true) return false
+        }
+
+        val expressionType = bindingContext.getType(argument)
+        return expressionType == null || expressionType.isError
+    })
+}
+fun <C : ResolutionContext<C>> Call.hasUnresolvedArguments(context: ResolutionContext<C>): Boolean =
+    hasUnresolvedArguments(context.trace.bindingContext, context.statementFilter)
 
 //
 //import com.huawei.cangjie.descriptors.CallableDescriptor

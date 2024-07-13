@@ -6,6 +6,7 @@ import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.resolve.builtIns
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
+import com.huawei.cangjie.types.util.TypeUtils
 
 
 class StarProjectionImpl(

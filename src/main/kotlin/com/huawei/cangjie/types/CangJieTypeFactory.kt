@@ -1,5 +1,6 @@
 package com.huawei.cangjie.types
 
+import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.TypeAliasDescriptor
 import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.huawei.cangjie.resolve.scopes.MemberScope
@@ -9,6 +10,12 @@ import com.huawei.cangjie.types.error.ErrorScopeKind
 private class ExpandedTypeOrRefinedConstructor(val expandedType: SimpleType?, val refinedConstructor: TypeConstructor?)
 
 object CangJieTypeFactory {
+    @JvmStatic
+    fun simpleNotNullType(
+        attributes: TypeAttributes,
+        descriptor: ClassDescriptor,
+        arguments: List<TypeProjection>
+    ): SimpleType = simpleType(attributes, descriptor.typeConstructor, arguments, nullable = false)
 
     @JvmStatic
     fun integerLiteralType(
@@ -31,13 +38,13 @@ object CangJieTypeFactory {
     private fun computeMemberScope(
         constructor: TypeConstructor,
         arguments: List<TypeProjection>,
-        kotlinTypeRefiner: CangJieTypeRefiner? = null
+        cangjieTypeRefiner: CangJieTypeRefiner? = null
     ): MemberScope {
         val descriptor = constructor.declarationDescriptor
         return when (descriptor) {
 //            is TypeParameterDescriptor -> descriptor.getDefaultType().memberScope
 //            is ClassDescriptor -> {
-//                val refinerToUse = kotlinTypeRefiner ?: descriptor.module.getKotlinTypeRefiner()
+//                val refinerToUse = kotlinTypeRefiner ?: descriptor.module.getCangJieTypeRefiner()
 //                if (arguments.isEmpty())
 //                    descriptor.getRefinedUnsubstitutedMemberScopeIfPossible(refinerToUse)
 //                else
@@ -52,7 +59,7 @@ object CangJieTypeFactory {
 //            )
             else -> {
 //                if (constructor is IntersectionTypeConstructor) {
-//                    return constructor.createScopeForKotlinType()
+//                    return constructor.createScopeForCangJieType()
 //                }
 
                 throw IllegalStateException("Unsupported classifier: $descriptor for constructor: $constructor")

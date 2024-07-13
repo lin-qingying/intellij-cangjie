@@ -4,26 +4,37 @@ import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.resolve.scopes.receivers.Receiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue;
 import com.huawei.cangjie.utils.ReadOnly;
+import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-
 public interface Call {
-    enum CallType {
-        DEFAULT, ARRAY_GET_METHOD, ARRAY_SET_METHOD, INVOKE, CONTAINS
-    }
+
+    // SAFE_ACCESS or DOT or so
+    @Nullable
+    ASTNode getCallOperationNode();
+
     default boolean isSemanticallyEquivalentToSafeCall() {
-        return true;
-//        return getCallOperationNode() != null && getCallOperationNode().getElementType() == CjTokens.SAFE_ACCESS;
+        return getCallOperationNode() != null && getCallOperationNode().getElementType() == CjTokens.SAFE_ACCESS;
     }
+
+    @Nullable
+    Receiver getExplicitReceiver();
+
     @Nullable
     ReceiverValue getDispatchReceiver();
+
+    @Nullable
+    CjExpression getCalleeExpression();
+
+    @Nullable
+    CjValueArgumentList getValueArgumentList();
+
     @ReadOnly
     @NotNull
     List<? extends ValueArgument> getValueArguments();
-    @Nullable
-    Receiver getExplicitReceiver();
+
     @ReadOnly
     @NotNull
     List<? extends LambdaArgument> getFunctionLiteralArguments();
@@ -31,10 +42,17 @@ public interface Call {
     @ReadOnly
     @NotNull
     List<CjTypeProjection> getTypeArguments();
+
+    @Nullable
+    CjTypeArgumentList getTypeArgumentList();
+
     @NotNull
     CjElement getCallElement();
-    @Nullable
-    CjExpression getCalleeExpression();
+
+    enum CallType {
+        DEFAULT, ARRAY_GET_METHOD, ARRAY_SET_METHOD, INVOKE, CONTAINS
+    }
+
     @NotNull
     Call.CallType getCallType();
 }

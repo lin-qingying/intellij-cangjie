@@ -26,7 +26,7 @@ class AnnotationSplitter(
 //            for (target in TARGET_PRIORITIES) {
 //                if (target !in applicableTargetsWithoutUseSiteTarget) continue
 
-//                val declarationSiteTargetForCurrentTarget = KotlinTarget.USE_SITE_MAPPING[target] ?: continue
+//                val declarationSiteTargetForCurrentTarget = CangJieTarget.USE_SITE_MAPPING[target] ?: continue
 //                val applicableTargetsForAnnotation = AnnotationChecker.applicableTargetSet(annotation)
 //
 //                if (declarationSiteTargetForCurrentTarget in applicableTargetsForAnnotation) {

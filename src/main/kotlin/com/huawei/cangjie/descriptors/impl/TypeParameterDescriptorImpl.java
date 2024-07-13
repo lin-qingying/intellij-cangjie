@@ -102,8 +102,24 @@ public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor
 
 
     @Override
+    protected void reportSupertypeLoopError(@NotNull CangJieType type) {
+        if (reportCycleError == null) return;
+        reportCycleError.invoke(type);
+    }
+    private void checkInitialized() {
+        if (!initialized) {
+            throw new IllegalStateException("Type parameter descriptor is not initialized: " + nameForAssertions());
+        }
+    }
+    @Override
     public void validate() {
         super.validate();
+    }
+
+    @Override
+    protected @NotNull List<CangJieType> resolveUpperBounds() {
+        checkInitialized();
+        return upperBounds;
     }
 
 

@@ -58,8 +58,5 @@ public class AnonymousFunctionDescriptor extends SimpleFunctionDescriptorImpl {
         );
     }
 
-    @Override
-    public boolean isSuspend() {
-        return isSuspend;
-    }
+
 }

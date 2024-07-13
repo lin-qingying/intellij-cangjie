@@ -2,10 +2,133 @@ package com.huawei.cangjie.types
 
 import com.huawei.cangjie.types.checker.AbstractTypePreparator
 import com.huawei.cangjie.types.model.*
+import com.huawei.cangjie.utils.SmartList
 import com.huawei.cangjie.utils.SmartSet
 import java.util.*
 
 object AbstractTypeChecker {
+
+    /**
+     * If we have several paths to some interface, we should prefer pure kotlin path.
+     * Example:
+     *
+     * class MyList : AbstractList<String>(), MutableList<String>
+     *
+     * We should see `String` in `get` function and others, also MyList is not subtype of MutableList<String?>
+     *
+     * More tests: javaAndCangJieSuperType & purelyImplementedCollection folder
+     */
+    private fun selectOnlyPureCangJieSupertypes(
+        state: TypeCheckerState,
+        supertypes: List<SimpleTypeMarker>
+    ): List<SimpleTypeMarker> = with(state.typeSystemContext) {
+        if (supertypes.size < 2) return supertypes
+
+        val allPureSupertypes = supertypes.filter {
+            it.asArgumentList().all(this) { it.getType().asFlexibleType() == null }
+        }
+        return if (allPureSupertypes.isNotEmpty()) allPureSupertypes else supertypes
+    }
+    private fun collectAndFilter(
+        state: TypeCheckerState,
+        classType: SimpleTypeMarker,
+        constructor: TypeConstructorMarker
+    ) =
+        selectOnlyPureCangJieSupertypes(state, collectAllSupertypesWithGivenTypeConstructor(state, classType, constructor))
+    private fun collectAllSupertypesWithGivenTypeConstructor(
+        state: TypeCheckerState,
+        subType: SimpleTypeMarker,
+        superConstructor: TypeConstructorMarker
+    ): List<SimpleTypeMarker> = with(state.typeSystemContext) {
+        subType.fastCorrespondingSupertypes(superConstructor)?.let {
+            return it
+        }
+
+        if (!superConstructor.isClassTypeConstructor() && subType.isClassType()) return emptyList()
+
+//        if (superConstructor.isCommonFinalClassConstructor()) {
+//            return if (areEqualTypeConstructors(subType.typeConstructor(), superConstructor))
+//                listOf(captureFromArguments(subType, CaptureStatus.FOR_SUBTYPING) ?: subType)
+//            else
+//                emptyList()
+//        }
+
+        val result: MutableList<SimpleTypeMarker> = SmartList()
+
+        state.anySupertype(subType, { false }) {
+
+            val current = captureFromArguments(it, CaptureStatus.FOR_SUBTYPING) ?: it
+
+            when {
+                areEqualTypeConstructors(current.typeConstructor(), superConstructor) -> {
+                    result.add(current)
+                    TypeCheckerState.SupertypesPolicy.None
+                }
+                current.argumentsCount() == 0 -> {
+                    TypeCheckerState.SupertypesPolicy.LowerIfFlexible
+                }
+                else -> {
+                    state.typeSystemContext.substitutionSupertypePolicy(current)
+                }
+            }
+        }
+
+        return result
+    }
+
+    // nullability was checked earlier via nullabilityChecker
+    // should be used only if you really sure that it is correct
+    fun findCorrespondingSupertypes(
+        state: TypeCheckerState,
+        subType: SimpleTypeMarker,
+        superConstructor: TypeConstructorMarker
+    ): List<SimpleTypeMarker> = with(state.typeSystemContext) {
+        if (subType.isClassType()) {
+            return collectAndFilter(state, subType, superConstructor)
+        }
+
+        // i.e. superType is not a classType
+        if (!superConstructor.isClassTypeConstructor() && !superConstructor.isIntegerLiteralTypeConstructor()) {
+            return collectAllSupertypesWithGivenTypeConstructor(state, subType, superConstructor)
+        }
+
+        // todo add tests
+        val classTypeSupertypes = SmartList<SimpleTypeMarker>()
+        state.anySupertype(subType, { false }) {
+            if (it.isClassType()) {
+                classTypeSupertypes.add(it)
+                TypeCheckerState.SupertypesPolicy.None
+            } else {
+                TypeCheckerState.SupertypesPolicy.LowerIfFlexible
+            }
+        }
+
+        return classTypeSupertypes.flatMap { collectAndFilter(state, it, superConstructor) }
+    }
+    private fun isApplicableAsEndNode(state: TypeCheckerState, type: SimpleTypeMarker, end: TypeConstructorMarker): Boolean =
+        with(state.typeSystemContext) {
+            if (type.isNothing()) return true
+            if (type.isMarkedNullable()) return false
+
+            if (state.isStubTypeEqualsToAnything && type.isStubType()) return true
+
+            return areEqualTypeConstructors(type.typeConstructor(), end)
+        }
+    fun hasPathByNotMarkedNullableNodes(state: TypeCheckerState, start: SimpleTypeMarker, end: TypeConstructorMarker) =
+        with(state.typeSystemContext) {
+            state.anySupertype(
+                start,
+                { isApplicableAsEndNode(state, it, end) },
+                { if (it.isMarkedNullable()) TypeCheckerState.SupertypesPolicy.None else TypeCheckerState.SupertypesPolicy.LowerIfFlexible }
+            )
+        }
+
+
+    fun TypeCheckerProviderContext.hasPathByNotMarkedNullableNodes(start: SimpleTypeMarker, end: TypeConstructorMarker) =
+        hasPathByNotMarkedNullableNodes(
+            newTypeCheckerState(errorTypesEqualToAnything = false, stubTypesEqualToAnything = true), start, end
+        )
+
     @JvmField
     var RUN_SLOW_ASSERTIONS = false
     fun equalTypes(
@@ -16,6 +139,11 @@ object AbstractTypeChecker {
     ): Boolean {
         return equalTypes(context.newTypeCheckerState(false, stubTypesEqualToAnything), a, b)
     }
+    fun prepareType(
+        context: TypeCheckerProviderContext,
+        type: CangJieTypeMarker,
+        stubTypesEqualToAnything: Boolean = true
+    ) = context.newTypeCheckerState(true, stubTypesEqualToAnything).prepareType(type)
 
     fun effectiveVariance(declared: TypeVariance, useSite: TypeVariance): TypeVariance? {
         if (declared == TypeVariance.INV) return useSite
@@ -286,6 +414,21 @@ open class TypeCheckerState(
 }
 
 object AbstractNullabilityChecker {
+
+    fun isSubtypeOfAny(state: TypeCheckerState, type: CangJieTypeMarker): Boolean =
+        with(state.typeSystemContext) {
+            state.hasNotNullSupertype(type.lowerBoundIfFlexible(), TypeCheckerState.SupertypesPolicy.LowerIfFlexible)
+        }
+    private fun isApplicableAsEndNode(state: TypeCheckerState, type: SimpleTypeMarker, end: TypeConstructorMarker): Boolean =
+        with(state.typeSystemContext) {
+            if (type.isNothing()) return true
+            if (type.isMarkedNullable()) return false
+
+            if (state.isStubTypeEqualsToAnything && type.isStubType()) return true
+
+            return areEqualTypeConstructors(type.typeConstructor(), end)
+        }
+
     fun TypeCheckerState.hasNotNullSupertype(
         type: SimpleTypeMarker, supertypesPolicy:
         TypeCheckerState.SupertypesPolicy
@@ -297,5 +440,36 @@ object AbstractNullabilityChecker {
                 if (it.isMarkedNullable()) TypeCheckerState.SupertypesPolicy.None else supertypesPolicy
             }
         }
+    fun hasPathByNotMarkedNullableNodes(state: TypeCheckerState, start: SimpleTypeMarker, end: TypeConstructorMarker) =
+        with(state.typeSystemContext) {
+            state.anySupertype(
+                start,
+                { isApplicableAsEndNode(state, it, end) },
+                { if (it.isMarkedNullable()) TypeCheckerState.SupertypesPolicy.None else TypeCheckerState.SupertypesPolicy.LowerIfFlexible }
+            )
+        }
 
+}
+object AbstractFlexibilityChecker {
+    fun TypeSystemCommonSuperTypesContext.hasDifferentFlexibilityAtDepth(types: Collection<CangJieTypeMarker>): Boolean {
+        if (types.isEmpty()) return false
+        if (hasDifferentFlexibility(types)) return true
+
+        for (i in 0 until types.first().argumentsCount()) {
+            val typeArgumentForOtherTypes = types.mapNotNull {
+                if (it.argumentsCount() > i && !it.getArgument(i).isStarProjection()) it.getArgument(i).getType() else null
+            }
+
+            if (hasDifferentFlexibilityAtDepth(typeArgumentForOtherTypes)) return true
+        }
+
+        return false
+    }
+
+    private fun TypeSystemCommonSuperTypesContext.hasDifferentFlexibility(types: Collection<CangJieTypeMarker>): Boolean {
+        val firstType = types.first()
+        if (types.all { it === firstType }) return false
+
+        return !types.all { it.isFlexible() } && !types.all { !it.isFlexible() }
+    }
 }

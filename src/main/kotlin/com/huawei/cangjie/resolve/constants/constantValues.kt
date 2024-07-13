@@ -24,7 +24,7 @@ open class ArrayValue(
     private val computeType: (ModuleDescriptor) -> CangJieType
 ) : ConstantValue<List<ConstantValue<*>>>(value) {
 //    override fun getType(module: ModuleDescriptor): CangJieType = computeType(module).also { type ->
-//        assert(KotlinBuiltIns.isArray(type) || KotlinBuiltIns.isPrimitiveArray(type) || KotlinBuiltIns.isUnsignedArrayType(type)) {
+//        assert(CangJieBuiltIns.isArray(type) || CangJieBuiltIns.isPrimitiveArray(type) || CangJieBuiltIns.isUnsignedArrayType(type)) {
 //            "Type should be an array, but was $type: $value"
 //        }
 //    }

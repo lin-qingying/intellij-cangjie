@@ -1,5 +1,7 @@
 package com.huawei.cangjie.types;
 
+import com.huawei.cangjie.types.util.TypeUtils;
+
 public abstract class TypeProjectionBase implements TypeProjection {
     @Override
     public String toString() {

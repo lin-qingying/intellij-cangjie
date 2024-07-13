@@ -1,5 +1,6 @@
 package com.huawei.cangjie.types.expressions;
 
+import com.huawei.cangjie.config.LanguageFeature;
 import com.huawei.cangjie.descriptors.FunctionDescriptor;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.psi.*;
@@ -17,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 
-import static com.huawei.cangjie.types.TypeUtils.NO_EXPECTED_TYPE;
+import static com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;
 
 @SuppressWarnings("SuspiciousMethodCalls")
 public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor{
@@ -125,11 +126,11 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor{
 //        // TODO : type substitutions???
         CallExpressionResolver callExpressionResolver = components.callExpressionResolver;
         CangJieTypeInfo typeInfo = callExpressionResolver.getSimpleNameExpressionTypeInfo(expression, null, null, context);
-//        checkNull(expression, context, typeInfo.getType());
+        checkNull(expression, context, typeInfo.getType());
 
-//        components.constantExpressionEvaluator.evaluateExpression(
-//                expression, context.trace, context.expectedType
-//        );
+        components.constantExpressionEvaluator.evaluateExpression(
+                expression, context.trace, context.expectedType
+        );
         return components.dataFlowAnalyzer.checkType(typeInfo, expression, context); // TODO : Extensions to this
     }
 }

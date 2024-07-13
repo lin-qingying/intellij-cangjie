@@ -1,10 +1,12 @@
 package com.huawei.cangjie.storage
 
 
+
 import java.util.concurrent.ConcurrentMap
 
 interface StorageManager{
     fun <K : Any, V : Any> createMemoizedFunction(compute: (K) -> V, onRecursiveCall: (K, Boolean) -> V): MemoizedFunctionToNotNull<K, V>
+    fun <T : Any> createNullableLazyValue(computable: () -> T?): NullableLazyValue<T>
 
     fun <K, V : Any> createCacheWithNotNullValues(): CacheWithNotNullValues<K, V>
 

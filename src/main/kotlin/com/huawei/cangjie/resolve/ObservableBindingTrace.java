@@ -14,6 +14,12 @@ import java.util.Collection;
 
 public class ObservableBindingTrace implements BindingTrace  {
 
+    @Override
+    public void recordType(@NotNull CjExpression expression, @Nullable CangJieType type) {
+        originalTrace.recordType(expression, type);
+
+    }
+
     public interface RecordHandler<K, V> {
 
         void handleRecord(WritableSlice<K, V> slice, K key, V value);

@@ -23,13 +23,13 @@ class ErrorTypeConstructor(val kind: ErrorTypeKind, vararg val formatParams: Str
 
     @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor {
-        Intrinsics.checkNotNullParameter(cangjieTypeRefiner, "kotlinTypeRefiner")
+        Intrinsics.checkNotNullParameter(cangjieTypeRefiner, "cangjieTypeRefiner")
         return this
     }
 
     override fun getParameters(): MutableList<TypeParameterDescriptor> = mutableListOf()
 
-    //    override fun getBuiltIns(): KotlinBuiltIns = DefaultBuiltIns.Instance
+    //    override fun getBuiltIns(): CangJieBuiltIns = DefaultBuiltIns.Instance
     override fun toString(): String = debugText
     override fun getBuiltIns(): CangJieBuiltIns {
         return DefaultBuiltIns

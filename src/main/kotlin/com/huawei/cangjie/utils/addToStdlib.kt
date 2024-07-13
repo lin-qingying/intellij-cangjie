@@ -2,6 +2,8 @@ package com.huawei.cangjie.utils
 
 import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentHashMap
+fun <T> sequenceOfLazyValues(vararg elements: () -> T): Sequence<T> = elements.asSequence().map { it() }
+
 inline fun <T, R : Any> Iterable<T>.firstNotNullResult(transform: (T) -> R?): R? {
     for (element in this) {
         val result = transform(element)
@@ -9,15 +11,29 @@ inline fun <T, R : Any> Iterable<T>.firstNotNullResult(transform: (T) -> R?): R?
     }
     return null
 }
+
+inline fun <T, R, C : MutableCollection<in R>> Iterable<T>.flatMapToNullable(
+    destination: C,
+    transform: (T) -> Iterable<R>?
+): C? {
+    for (element in this) {
+        val list = transform(element) ?: return null
+        destination.addAll(list)
+    }
+    return destination
+}
+
 fun <E> MutableList<E>.trimToSize(newSize: Int) {
     subList(newSize, size).clear()
 }
+
 fun <T> Set<T>.compactIfPossible(): Set<T> =
     when (size) {
         0 -> emptySet()
         1 -> setOf(single())
         else -> this
     }
+
 inline fun <R> runIf(condition: Boolean, block: () -> R): R? = if (condition) block() else null
 inline fun <reified T : Any> Sequence<*>.firstIsInstanceOrNull(): T? {
     for (element in this) if (element is T) return element
@@ -25,6 +41,7 @@ inline fun <reified T : Any> Sequence<*>.firstIsInstanceOrNull(): T? {
 }
 
 annotation class UnsafeCastFunction
+
 @UnsafeCastFunction
 inline fun <reified T : Any> Any?.cast(): T = this as T
 private val constantMap = ConcurrentHashMap<Function0<*>, Any>()
@@ -43,6 +60,7 @@ fun <T : Any> constant(calculator: () -> T): T {
     constantMap[calculator] = value
     return value
 }
+
 @Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @UnsafeCastFunction
 inline fun <reified T : Any> Any?.safeAs(): @kotlin.internal.NoInfer T? = this as? T
@@ -63,6 +81,7 @@ inline fun <reified T : Any> Iterable<*>.lastIsInstanceOrNull(): T? {
         }
     }
 }
+
 inline fun <reified T : Any> Iterable<*>.firstIsInstanceOrNull(): T? {
     for (element in this) if (element is T) return element
     return null

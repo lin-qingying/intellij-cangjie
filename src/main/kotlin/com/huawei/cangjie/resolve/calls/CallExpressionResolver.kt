@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve.calls
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.ConstructorDescriptor
+import com.huawei.cangjie.descriptors.Errors.FUNCTION_CALL_EXPECTED
 import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext
@@ -24,7 +25,9 @@ import com.huawei.cangjie.resolve.calls.context.CheckArgumentTypesMode
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext
 import com.huawei.cangjie.resolve.calls.model.DataFlowInfoForArgumentsImpl
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall
+import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResultsUtil
 import com.huawei.cangjie.resolve.calls.util.getCalleeExpressionIfAny
+import com.huawei.cangjie.resolve.resolveQualifierAsStandaloneExpression
 
 import com.huawei.cangjie.resolve.scopes.receivers.Qualifier
 import com.huawei.cangjie.types.expressions.typeInfoFactory.createTypeInfo
@@ -38,7 +41,7 @@ class CallExpressionResolver(
     private val qualifiedExpressionResolver: QualifiedExpressionResolver,
 //    private val languageVersionSettings: LanguageVersionSettings,
     private val dataFlowValueFactory: DataFlowValueFactory,
-    private val kotlinTypeRefiner: CangJieTypeRefiner
+    private val cangjieTypeRefiner: CangJieTypeRefiner
 ) {
 
 

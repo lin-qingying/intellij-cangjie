@@ -3,7 +3,10 @@ package com.huawei.cangjie.resolve
 import com.google.common.collect.ImmutableMap
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.psi.CjExpression
+import com.huawei.cangjie.resolve.BindingContext.EXPRESSION_TYPE_INFO
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.expressions.typeInfoFactory.createTypeInfo
+import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo
 import com.huawei.cangjie.utils.slicedMap.*
 import com.intellij.openapi.progress.ProgressManager
 import org.jetbrains.annotations.TestOnly
@@ -42,7 +45,7 @@ class BindingTraceContext(
 
     )
 
-       override val bindingContext: BindingContext = object : CleanableBindingContext {
+    override val bindingContext: BindingContext = object : CleanableBindingContext {
 
 
         override fun clear() {
@@ -51,10 +54,8 @@ class BindingTraceContext(
         }
 
         override fun getDiagnostics(): Diagnostics {
-          return mutableDiagnostics ?: Diagnostics.EMPTY
+            return mutableDiagnostics ?: Diagnostics.EMPTY
         }
-
-
 
 
         override fun <K, V> get(slice: ReadOnlySlice<K, V>, key: K): V? {
@@ -122,7 +123,7 @@ class BindingTraceContext(
 
     override fun getType(expression: CjExpression): CangJieType? {
         return get(
-            BindingContext.EXPRESSION_TYPE_INFO,
+            EXPRESSION_TYPE_INFO,
             expression
         )?.type
     }
@@ -137,6 +138,20 @@ class BindingTraceContext(
     override fun <K> record(slice: WritableSlice<K, Boolean>, key: K) {
         record(slice, key, true)
 
+    }
+
+    override fun recordType(expression: CjExpression, type: CangJieType?) {
+        var typeInfo =
+            get<CjExpression, CangJieTypeInfo>(
+                EXPRESSION_TYPE_INFO,
+                expression
+            )
+        typeInfo = if (typeInfo != null) typeInfo.replaceType(type) else createTypeInfo(type)
+        record<CjExpression, CangJieTypeInfo?>(
+            EXPRESSION_TYPE_INFO,
+            expression,
+            typeInfo
+        )
     }
 
     override fun <K, V> get(slice: ReadOnlySlice<K, V>, key: K): V? {

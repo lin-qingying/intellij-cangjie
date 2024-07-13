@@ -28,7 +28,7 @@
 //
 //    private fun initNonPluginDefaultValues() {
 //        context.writeSettings {
-//            KotlinPlugin.modules.notRequiredSettingValue
+//            CangJiePlugin.modules.notRequiredSettingValue
 //                ?.withAllSubModules(includeSourcesets = true)
 //                ?.forEach { module ->
 //                    with(module) { initDefaultValuesForSettings() }

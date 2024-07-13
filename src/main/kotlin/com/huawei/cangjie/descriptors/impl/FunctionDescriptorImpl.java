@@ -26,7 +26,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     private Modality modality;
     private DescriptorVisibility visibility = DescriptorVisibilities.UNKNOWN;
     private boolean isOperator = false;
-//    private boolean isInfix = false;
+    //    private boolean isInfix = false;
 //    private boolean isExternal = false;
 //    private boolean isInline = false;
 //    private boolean isTailrec = false;
@@ -57,26 +57,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         this.original = original == null ? this : original;
         this.kind = kind;
     }
-    @Override
-    @SuppressWarnings("unchecked")
-    public void setOverriddenDescriptors(@NotNull Collection<? extends CallableMemberDescriptor> overriddenDescriptors) {
-        overriddenFunctions = (Collection<? extends FunctionDescriptor>) overriddenDescriptors;
-        for (FunctionDescriptor function : overriddenFunctions) {
-            if (function.isHiddenForResolutionEverywhereBesideSupercalls()) {
-                isHiddenForResolutionEverywhereBesideSupercalls = true;
-                break;
-            }
-        }
-    }
 
-    public void setIsOperator(boolean isOperator) {
-        this.isOperator = isOperator;
-    }
-    @Nullable
-    @Override
-    public ReceiverParameterDescriptor getDispatchReceiverParameter() {
-        return dispatchReceiverParameter;
-    }
     @Nullable
     public static List<ValueParameterDescriptor> getSubstitutedValueParameters(
             FunctionDescriptor substitutedDescriptor,
@@ -84,10 +65,6 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
             @NotNull TypeSubstitutor substitutor
     ) {
         return getSubstitutedValueParameters(substitutedDescriptor, unsubstitutedValueParameters, substitutor, false, false, null);
-    }
-    @Override
-    public boolean isSuspend() {
-        return isSuspend;
     }
 
     @Nullable
@@ -146,6 +123,23 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         return result;
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public <V> V getUserData(UserDataKey<V> key) {
+        if (userDataMap == null) return null;
+        return (V) userDataMap.get(key);
+    }
+
+    public void setIsOperator(boolean isOperator) {
+        this.isOperator = isOperator;
+    }
+
+    @Nullable
+    @Override
+    public ReceiverParameterDescriptor getDispatchReceiverParameter() {
+        return dispatchReceiverParameter;
+    }
+
     @NotNull
     public FunctionDescriptorImpl initialize(
             @Nullable ReceiverParameterDescriptor extensionReceiverParameter,
@@ -191,6 +185,10 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         this.isOperator = isOperator;
     }
 
+    public void setSuspend(boolean suspend) {
+        isSuspend = suspend;
+    }
+
 //    public void setInfix(boolean isInfix) {
 //        this.isInfix = isInfix;
 //    }
@@ -202,10 +200,6 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 //    public void setTailrec(boolean isTailrec) {
 //        this.isTailrec = isTailrec;
 //    }
-
-    public void setSuspend(boolean suspend) {
-        isSuspend = suspend;
-    }
 
     public void setHasStableParameterNames(boolean hasStableParameterNames) {
         this.hasStableParameterNames = hasStableParameterNames;
@@ -237,6 +231,18 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     public Collection<? extends FunctionDescriptor> getOverriddenDescriptors() {
         performOverriddenLazyCalculationIfNeeded();
         return overriddenFunctions != null ? overriddenFunctions : Collections.emptyList();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void setOverriddenDescriptors(@NotNull Collection<? extends CallableMemberDescriptor> overriddenDescriptors) {
+        overriddenFunctions = (Collection<? extends FunctionDescriptor>) overriddenDescriptors;
+        for (FunctionDescriptor function : overriddenFunctions) {
+            if (function.isHiddenForResolutionEverywhereBesideSupercalls()) {
+                isHiddenForResolutionEverywhereBesideSupercalls = true;
+                break;
+            }
+        }
     }
 
     private void performOverriddenLazyCalculationIfNeeded() {
@@ -337,12 +343,6 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         return isHiddenToOvercomeSignatureClash;
     }
 
-//    @Override
-//    @SuppressWarnings("unchecked")
-//    public <V> V getUserData(UserDataKey<V> key) {
-//        if (userDataMap == null) return null;
-//        return (V) userDataMap.get(key);
-//    }
 
     private void setHiddenToOvercomeSignatureClash(boolean hiddenToOvercomeSignatureClash) {
         isHiddenToOvercomeSignatureClash = hiddenToOvercomeSignatureClash;
@@ -695,9 +695,6 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     }
 
     public class CopyConfiguration implements SimpleFunctionDescriptor.CopyBuilder<FunctionDescriptor> {
-        private final boolean isHiddenToOvercomeSignatureClash = isHiddenToOvercomeSignatureClash();
-        private final Annotations additionalAnnotations = null;
-        private final boolean isHiddenForResolutionEverywhereBesideSupercalls = isHiddenForResolutionEverywhereBesideSupercalls();
         private final Map<UserDataKey<?>, Object> userDataMap = new LinkedHashMap<UserDataKey<?>, Object>();
         protected @NotNull TypeSubstitution substitution;
         protected @NotNull DeclarationDescriptor newOwner;
@@ -717,6 +714,9 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         protected boolean preserveSourceElement = false;
         protected boolean dropOriginalInContainingParts = false;
         protected boolean justForTypeSubstitution = false;
+        private boolean isHiddenToOvercomeSignatureClash = isHiddenToOvercomeSignatureClash();
+        private Annotations additionalAnnotations = null;
+        private boolean isHiddenForResolutionEverywhereBesideSupercalls = isHiddenForResolutionEverywhereBesideSupercalls();
         private List<TypeParameterDescriptor> newTypeParameters = null;
         private Boolean newHasSynthesizedParameterNames = null;
 
@@ -786,12 +786,13 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
             return this;
         }
 
-//        @Override
-//        @NotNull
-//        public CopyConfiguration setValueParameters(@NotNull List<ValueParameterDescriptor> parameters) {
-//            this.newValueParameterDescriptors = parameters;
-//            return this;
-//        }
+
+        @Override
+        @NotNull
+        public CopyConfiguration setValueParameters(@NotNull List<ValueParameterDescriptor> parameters) {
+            this.newValueParameterDescriptors = parameters;
+            return this;
+        }
 
         @Override
         @NotNull
@@ -807,19 +808,20 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
             return this;
         }
 
-//        @NotNull
-//        @Override
-//        public CopyBuilder<FunctionDescriptor> setContextReceiverParameters(@NotNull List<ReceiverParameterDescriptor> contextReceiverParameters) {
-//            this.newContextReceiverParameters = contextReceiverParameters;
-//            return this;
-//        }
 
-//        @NotNull
-//        @Override
-//        public CopyConfiguration setExtensionReceiverParameter(@Nullable ReceiverParameterDescriptor extensionReceiverParameter) {
-//            this.newExtensionReceiverParameter = extensionReceiverParameter;
-//            return this;
-//        }
+        @NotNull
+        @Override
+        public CopyBuilder<FunctionDescriptor> setContextReceiverParameters(@NotNull List<ReceiverParameterDescriptor> contextReceiverParameters) {
+            this.newContextReceiverParameters = contextReceiverParameters;
+            return this;
+        }
+
+        @NotNull
+        @Override
+        public CopyConfiguration setExtensionReceiverParameter(@Nullable ReceiverParameterDescriptor extensionReceiverParameter) {
+            this.newExtensionReceiverParameter = extensionReceiverParameter;
+            return this;
+        }
 
         @Override
         @NotNull
@@ -835,45 +837,46 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
             return this;
         }
 
-//        @Override
-//        @NotNull
-//        public CopyConfiguration setSignatureChange() {
-//            this.signatureChange = true;
-//            return this;
-//        }
+
+        @Override
+        @NotNull
+        public CopyConfiguration setSignatureChange() {
+            this.signatureChange = true;
+            return this;
+        }
 
         public CopyConfiguration setHasSynthesizedParameterNames(boolean value) {
             this.newHasSynthesizedParameterNames = value;
             return this;
         }
 
-//        @Override
-//        @NotNull
-//        public CopyConfiguration setDropOriginalInContainingParts() {
-//            this.dropOriginalInContainingParts = true;
-//            return this;
-//        }
+        @Override
+        @NotNull
+        public CopyConfiguration setDropOriginalInContainingParts() {
+            this.dropOriginalInContainingParts = true;
+            return this;
+        }
 
-//        @Override
-//        @NotNull
-//        public CopyConfiguration setHiddenToOvercomeSignatureClash() {
-//            isHiddenToOvercomeSignatureClash = true;
-//            return this;
-//        }
+        @Override
+        @NotNull
+        public CopyConfiguration setHiddenToOvercomeSignatureClash() {
+            isHiddenToOvercomeSignatureClash = true;
+            return this;
+        }
 
-//        @Override
-//        @NotNull
-//        public CopyConfiguration setHiddenForResolutionEverywhereBesideSupercalls() {
-//            isHiddenForResolutionEverywhereBesideSupercalls = true;
-//            return this;
-//        }
-//
-//        @NotNull
-//        @Override
-//        public CopyConfiguration setAdditionalAnnotations(@NotNull Annotations additionalAnnotations) {
-//            this.additionalAnnotations = additionalAnnotations;
-//            return this;
-//        }
+        @Override
+        @NotNull
+        public CopyConfiguration setHiddenForResolutionEverywhereBesideSupercalls() {
+            isHiddenForResolutionEverywhereBesideSupercalls = true;
+            return this;
+        }
+
+        @NotNull
+        @Override
+        public CopyConfiguration setAdditionalAnnotations(@NotNull Annotations additionalAnnotations) {
+            this.additionalAnnotations = additionalAnnotations;
+            return this;
+        }
 
         @Override
         @Nullable
@@ -886,17 +889,17 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
             return original;
         }
 
-//        @NotNull
-//        @Override
-//        public <V> CopyBuilder<FunctionDescriptor> putUserData(@NotNull UserDataKey<V> userDataKey, V value) {
-//            userDataMap.put(userDataKey, value);
-//            return this;
-//        }
-
         @Override
         @NotNull
         public CopyConfiguration setOriginal(@Nullable CallableMemberDescriptor original) {
             this.original = (FunctionDescriptor) original;
+            return this;
+        }
+
+        @NotNull
+        @Override
+        public <V> CopyBuilder<FunctionDescriptor> putUserData(@NotNull UserDataKey<V> userDataKey, V value) {
+            userDataMap.put(userDataKey, value);
             return this;
         }
 
@@ -911,6 +914,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
             this.substitution = substitution;
             return this;
         }
+
 
         @NotNull
         public CopyConfiguration setJustForTypeSubstitution(boolean value) {

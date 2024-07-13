@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.calls.model
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintSystemError
 import com.huawei.cangjie.resolve.calls.inference.model.NewConstraintError
+import com.huawei.cangjie.resolve.calls.inference.model.NewConstraintWarning
 import com.huawei.cangjie.resolve.calls.inference.model.transformToWarning
 import com.huawei.cangjie.resolve.calls.tower.CandidateApplicability
 import com.huawei.cangjie.types.UnwrappedType
@@ -11,6 +12,7 @@ import com.huawei.cangjie.types.UnwrappedType
 interface TransformableToWarning<T : CangJieCallDiagnostic> {
     fun transformToWarning(): T?
 }
+
 class CangJieConstraintSystemDiagnostic(
     val error: ConstraintSystemError
 ) : CangJieCallDiagnostic(error.applicability), TransformableToWarning<CangJieConstraintSystemDiagnostic> {
@@ -22,8 +24,11 @@ class CangJieConstraintSystemDiagnostic(
 
 val CangJieCallDiagnostic.constraintSystemError: ConstraintSystemError?
     get() = (this as? CangJieConstraintSystemDiagnostic)?.error
+
 fun ConstraintSystemError.asDiagnostic(): CangJieConstraintSystemDiagnostic = CangJieConstraintSystemDiagnostic(this)
-fun Collection<ConstraintSystemError>.asDiagnostics(): List<CangJieConstraintSystemDiagnostic> = map(ConstraintSystemError::asDiagnostic)
+fun Collection<ConstraintSystemError>.asDiagnostics(): List<CangJieConstraintSystemDiagnostic> =
+    map(ConstraintSystemError::asDiagnostic)
+
 // SmartCasts
 class SmartCastDiagnostic(
     val argument: ExpressionCangJieCallArgument,
@@ -64,6 +69,7 @@ sealed class UnstableSmartCast(
         }
     }
 }
+
 class ManyCandidatesCallDiagnostic(val candidates: Collection<ResolutionCandidate>) : CangJieCallDiagnostic(
     CandidateApplicability.INAPPLICABLE
 ) {
@@ -78,3 +84,5 @@ class NoneCandidatesCallDiagnostic : CangJieCallDiagnostic(CandidateApplicabilit
         reporter.onCall(this)
     }
 }
+fun List<CangJieCallDiagnostic>.filterErrorDiagnostics() =
+    filter { it !is CangJieConstraintSystemDiagnostic || it.error !is NewConstraintWarning }

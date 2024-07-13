@@ -39,7 +39,7 @@ abstract class PlatformConfiguratorBase : PlatformConfigurator {
 //            additionalClashResolvers.forEach { useClashResolver(it) }
 //            useInstanceIfNotNull(identifierChecker)
 //            useInstanceIfNotNull(overloadFilter)
-//            useInstanceIfNotNull(platformToKotlinClassMapper)
+//            useInstanceIfNotNull(platformToCangJieClassMapper)
 //            useInstanceIfNotNull(platformSpecificCastChecker)
 //            useInstanceIfNotNull(delegationFilter)
 //            useInstanceIfNotNull(overridesBackwardCompatibilityHelper)

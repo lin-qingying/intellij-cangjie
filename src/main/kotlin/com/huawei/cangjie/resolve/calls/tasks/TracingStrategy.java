@@ -61,11 +61,7 @@ public interface TracingStrategy {
 //        @Override
 //        public <D extends CallableDescriptor> void noneApplicable(@NotNull BindingTrace trace, @NotNull Collection<? extends ResolvedCall<D>> descriptors) {}
 //
-//        @Override
-//        public <D extends CallableDescriptor> void cannotCompleteResolve(
-//                @NotNull BindingTrace trace,
-//                @NotNull Collection<? extends ResolvedCall<D>> descriptors
-//        ) {}
+
 //
 ////        @Override
 ////        public void recursiveType(@NotNull BindingTrace trace, @NotNull LanguageVersionSettings languageVersionSettings, boolean insideAugmentedAssignment) {}
@@ -103,7 +99,7 @@ public interface TracingStrategy {
 //
     <D extends CallableDescriptor> void unresolvedReferenceWrongReceiver(@NotNull BindingTrace trace, @NotNull Collection<? extends ResolvedCall<D>> candidates);
 //
-//    <D extends CallableDescriptor> void recordAmbiguity(@NotNull BindingTrace trace, @NotNull Collection<? extends ResolvedCall<D>> candidates);
+    <D extends CallableDescriptor> void recordAmbiguity(@NotNull BindingTrace trace, @NotNull Collection<? extends ResolvedCall<D>> candidates);
 //
 //    void missingReceiver(@NotNull BindingTrace trace, @NotNull ReceiverParameterDescriptor expectedReceiver);
 //
@@ -124,14 +120,14 @@ public interface TracingStrategy {
 //            @NotNull CallableDescriptor descriptor
 //    );
 //
-//    <D extends CallableDescriptor> void ambiguity(@NotNull BindingTrace trace, @NotNull Collection<? extends ResolvedCall<D>> resolvedCalls);
-//
-//    <D extends CallableDescriptor> void noneApplicable(@NotNull BindingTrace trace, @NotNull Collection<? extends ResolvedCall<D>> descriptors);
-//
-//    <D extends CallableDescriptor> void cannotCompleteResolve(
-//            @NotNull BindingTrace trace,
-//            @NotNull Collection<? extends ResolvedCall<D>> descriptors
-//    );
+    <D extends CallableDescriptor> void ambiguity(@NotNull BindingTrace trace, @NotNull Collection<? extends ResolvedCall<D>> resolvedCalls);
+
+    <D extends CallableDescriptor> void noneApplicable(@NotNull BindingTrace trace, @NotNull Collection<? extends ResolvedCall<D>> descriptors);
+
+    <D extends CallableDescriptor> void cannotCompleteResolve(
+            @NotNull BindingTrace trace,
+            @NotNull Collection<? extends ResolvedCall<D>> descriptors
+    );
 //
 ////    void recursiveType(@NotNull BindingTrace trace, @NotNull LanguageVersionSettings languageVersionSettings, boolean insideAugmentedAssignment);
 //

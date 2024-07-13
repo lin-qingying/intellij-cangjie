@@ -5,6 +5,7 @@ import com.huawei.cangjie.descriptors.ValueParameterDescriptor
 import com.huawei.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.components.FreshVariableNewTypeSubstitutor
+import com.huawei.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
 import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.huawei.cangjie.types.UnwrappedType
 
@@ -40,6 +41,8 @@ open class MutableResolvedCallAtom(
     override var contextReceiversArguments: List<SimpleCangJieCallArgument> = listOf()
     override lateinit var argumentMappingByOriginal: Map<ValueParameterDescriptor, ResolvedCallArgument>
     override lateinit var freshVariablesSubstitutor: FreshVariableNewTypeSubstitutor
+    override lateinit var knownParametersSubstitutor: NewTypeSubstitutor
+
 
     lateinit var argumentToCandidateParameter: Map<CangJieCallArgument, ValueParameterDescriptor>
     private var samAdapterMap: HashMap<CangJieCallArgument, SamConversionDescription>? = null

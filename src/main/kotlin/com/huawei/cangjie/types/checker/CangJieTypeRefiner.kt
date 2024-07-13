@@ -15,7 +15,7 @@ sealed class TypeRefinementSupport(val isEnabled: Boolean) {
 }
 
 @TypeRefinement
-val REFINER_CAPABILITY = ModuleCapability<Ref<TypeRefinementSupport>>("KotlinTypeRefiner")
+val REFINER_CAPABILITY = ModuleCapability<Ref<TypeRefinementSupport>>("CangJieTypeRefiner")
 class Ref<T : Any>(var value: T)
 
 @TypeRefinement

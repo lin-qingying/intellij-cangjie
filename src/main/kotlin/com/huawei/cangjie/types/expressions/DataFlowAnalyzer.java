@@ -22,7 +22,7 @@ import com.huawei.cangjie.psi.CjPsiUtil;
 
 import com.huawei.cangjie.resolve.BindingContext;
 
-import static com.huawei.cangjie.types.TypeUtils.*;
+import static com.huawei.cangjie.types.util.TypeUtils.*;
 
 public class DataFlowAnalyzer {
 

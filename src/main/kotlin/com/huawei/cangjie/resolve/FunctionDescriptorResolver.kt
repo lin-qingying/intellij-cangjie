@@ -34,13 +34,14 @@ import com.huawei.cangjie.resolve.source.toSourceElement
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.ErrorUtils
-import com.huawei.cangjie.types.TypeUtils
+
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.expressions.ExpressionTypingUtils
 import com.huawei.cangjie.types.expressions.ExpressionTypingUtils.isFunctionExpression
 import com.huawei.cangjie.types.expressions.ExpressionTypingUtils.isFunctionLiteral
 import com.huawei.cangjie.types.isError
+import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.replaceAnnotations
 import java.util.*
 

@@ -14,6 +14,8 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValue;
 import com.huawei.cangjie.resolve.scopes.*;
 import com.huawei.cangjie.types.CangJieType;
+import com.huawei.cangjie.types.ErrorUtils;
+import com.huawei.cangjie.types.error.ErrorTypeKind;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.huawei.cangjie.utils.slicedMap.WritableSlice;
@@ -25,9 +27,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.huawei.cangjie.types.TypeUtils.NO_EXPECTED_TYPE;
-import static com.huawei.cangjie.types.TypeUtils.UNIT_EXPECTED_TYPE;
+
 import static com.huawei.cangjie.types.expressions.CoercionStrategy.COERCION_TO_UNIT;
+import static com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;
+import static com.huawei.cangjie.types.util.TypeUtils.UNIT_EXPECTED_TYPE;
 
 public class ExpressionTypingServices {
     private final ExpressionTypingFacade expressionTypingFacade;
@@ -49,6 +52,67 @@ public class ExpressionTypingServices {
         this.statementFilter = statementFilter;
         this.expressionTypingFacade = facade;
     }
+    @NotNull
+    public CangJieTypeInfo getTypeInfo(
+            @NotNull LexicalScope scope,
+            @NotNull CjExpression expression,
+            @NotNull CangJieType expectedType,
+            @NotNull DataFlowInfo dataFlowInfo,
+            @NotNull InferenceSession inferenceSession,
+            @NotNull BindingTrace trace,
+            boolean isStatement
+    ) {
+        return getTypeInfo(
+                scope, expression, expectedType, dataFlowInfo, inferenceSession,
+                trace, isStatement, expression, ContextDependency.INDEPENDENT
+        );
+    }
+    @NotNull
+    public CangJieTypeInfo getTypeInfo(
+            @NotNull LexicalScope scope,
+            @NotNull CjExpression expression,
+            @NotNull CangJieType expectedType,
+            @NotNull DataFlowInfo dataFlowInfo,
+            @NotNull InferenceSession inferenceSession,
+            @NotNull BindingTrace trace,
+            boolean isStatement,
+            @NotNull CjExpression contextExpression,
+            @NotNull ContextDependency contextDependency
+    ) {
+        ExpressionTypingContext context = ExpressionTypingContext.newContext(
+                trace, scope, dataFlowInfo, expectedType, contextDependency, statementFilter, getLanguageVersionSettings(),
+                expressionTypingComponents.dataFlowValueFactory, inferenceSession
+        );
+        if (contextExpression != expression) {
+            context = context.replaceExpressionContextProvider(arg -> arg == expression ? contextExpression : null);
+        }
+        return expressionTypingFacade.getTypeInfo(expression, context, isStatement);
+    }
+    @Nullable
+    public CangJieType getType(
+            @NotNull LexicalScope scope,
+            @NotNull CjExpression expression,
+            @NotNull CangJieType expectedType,
+            @NotNull DataFlowInfo dataFlowInfo,
+            @NotNull InferenceSession inferenceSession,
+            @NotNull BindingTrace trace
+    ) {
+        return getTypeInfo(scope, expression, expectedType, dataFlowInfo, inferenceSession, trace, false).getType();
+    }
+    @NotNull
+    public CangJieType safeGetType(
+            @NotNull LexicalScope scope,
+            @NotNull CjExpression expression,
+            @NotNull CangJieType expectedType,
+            @NotNull DataFlowInfo dataFlowInfo,
+            @NotNull InferenceSession inferenceSession,
+            @NotNull BindingTrace trace
+    ) {
+        CangJieType type = getType(scope, expression, expectedType, dataFlowInfo, inferenceSession, trace);
+
+        return type != null ? type : ErrorUtils.createErrorType(ErrorTypeKind.NO_RECORDED_TYPE, expression.getText());
+    }
+
     @NotNull
     public CangJieTypeInfo getTypeInfo(@NotNull CjExpression expression, @NotNull ResolutionContext resolutionContext) {
         return expressionTypingFacade.getTypeInfo(expression, ExpressionTypingContext.newContext(resolutionContext));
@@ -325,5 +389,7 @@ public class ExpressionTypingServices {
         protected <K, V> boolean shouldBeHiddenFromParent(@NotNull WritableSlice<K, V> slice, K key) {
             return slice == BindingContext.EXPRESSION_EFFECTS;
         }
+
+
     }
 }
