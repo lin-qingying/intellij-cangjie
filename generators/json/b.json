@@ -1,0 +1,2266 @@
+{
+  "strings": {
+    "string": [
+      "kotlin",
+      "collections",
+      "BooleanIterator",
+      "Iterator",
+      "Boolean",
+      "next",
+      "nextBoolean",
+      "ByteIterator",
+      "Byte",
+      "nextByte",
+      "CharIterator",
+      "Char",
+      "nextChar",
+      "Cloneable",
+      "Any",
+      "clone",
+      "Collection",
+      "E",
+      "Iterable",
+      "size",
+      "Int",
+      "contains",
+      "element",
+      "containsAll",
+      "elements",
+      "isEmpty",
+      "iterator",
+      "DoubleIterator",
+      "Double",
+      "nextDouble",
+      "FloatIterator",
+      "Float",
+      "nextFloat",
+      "IntIterator",
+      "nextInt",
+      "T",
+      "hasNext",
+      "List",
+      "get",
+      "index",
+      "indexOf",
+      "lastIndexOf",
+      "listIterator",
+      "ListIterator",
+      "subList",
+      "fromIndex",
+      "toIndex",
+      "hasPrevious",
+      "nextIndex",
+      "previous",
+      "previousIndex",
+      "LongIterator",
+      "Long",
+      "nextLong",
+      "Map",
+      "Entry",
+      "K",
+      "V",
+      "key",
+      "value",
+      "entries",
+      "Set",
+      "keys",
+      "values",
+      "containsKey",
+      "containsValue",
+      "getOrDefault",
+      "defaultValue",
+      "SinceKotlin",
+      "version",
+      "1.1",
+      "internal",
+      "PlatformDependent",
+      "MutableCollection",
+      "MutableIterable",
+      "add",
+      "addAll",
+      "clear",
+      "Unit",
+      "MutableIterator",
+      "remove",
+      "removeAll",
+      "retainAll",
+      "MutableList",
+      "MutableListIterator",
+      "removeAt",
+      "set",
+      "MutableMap",
+      "MutableEntry",
+      "setValue",
+      "newValue",
+      "MutableSet",
+      "put",
+      "putAll",
+      "from",
+      "ShortIterator",
+      "Short",
+      "nextShort"
+    ]
+  },
+  "qualifiedNames": {
+    "qualifiedName": [
+      {
+        "shortName": 0
+      },
+      {
+        "parentQualifiedName": 0,
+        "shortName": 1
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 2,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 3,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 0,
+        "shortName": 4,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 7,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 0,
+        "shortName": 8,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 10,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 0,
+        "shortName": 11,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 0,
+        "shortName": 13,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 0,
+        "shortName": 14,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 16,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 18,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 0,
+        "shortName": 20,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 27,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 0,
+        "shortName": 28,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 30,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 0,
+        "shortName": 31,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 33,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 37,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 43,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 51,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 0,
+        "shortName": 52,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 54,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 23,
+        "shortName": 55,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 61,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 0,
+        "shortName": 68,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 0,
+        "shortName": 71
+      },
+      {
+        "parentQualifiedName": 27,
+        "shortName": 72,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 73,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 74,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 0,
+        "shortName": 78,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 79,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 83,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 84,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 87,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 35,
+        "shortName": 88,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 91,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 1,
+        "shortName": 95,
+        "kind": "CLASS"
+      },
+      {
+        "parentQualifiedName": 0,
+        "shortName": 96,
+        "kind": "CLASS"
+      }
+    ]
+  },
+  "package": {
+    "packageFqName": 1
+  },
+  "class": [
+    {
+      "flags": 38,
+      "supertypeId": [
+        1
+      ],
+      "fqName": 2,
+      "constructor": [
+        {
+        }
+      ],
+      "function": [
+        {
+          "name": 5,
+          "returnTypeId": 0,
+          "flags": 262
+        },
+        {
+          "name": 6,
+          "returnTypeId": 0,
+          "flags": 38
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "className": 4
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 3
+          }
+        ]
+      }
+    },
+    {
+      "flags": 38,
+      "supertypeId": [
+        1
+      ],
+      "fqName": 5,
+      "constructor": [
+        {
+        }
+      ],
+      "function": [
+        {
+          "name": 5,
+          "returnTypeId": 0,
+          "flags": 262
+        },
+        {
+          "name": 9,
+          "returnTypeId": 0,
+          "flags": 38
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "className": 6
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 3
+          }
+        ]
+      }
+    },
+    {
+      "flags": 38,
+      "supertypeId": [
+        1
+      ],
+      "fqName": 7,
+      "constructor": [
+        {
+        }
+      ],
+      "function": [
+        {
+          "name": 5,
+          "returnTypeId": 0,
+          "flags": 262
+        },
+        {
+          "name": 12,
+          "returnTypeId": 0,
+          "flags": 38
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "className": 8
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 3
+          }
+        ]
+      }
+    },
+    {
+      "flags": 102,
+      "supertypeId": [
+        0
+      ],
+      "fqName": 9,
+      "function": [
+        {
+          "name": 15,
+          "returnTypeId": 0,
+          "flags": 20
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "className": 10
+          }
+        ]
+      }
+    },
+    {
+      "flags": 102,
+      "supertypeId": [
+        1
+      ],
+      "fqName": 11,
+      "typeParameter": [
+        {
+          "id": 0,
+          "name": 17,
+          "variance": "OUT"
+        }
+      ],
+      "function": [
+        {
+          "name": 21,
+          "valueParameter": [
+            {
+              "name": 22,
+              "typeId": 4
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 294
+        },
+        {
+          "name": 23,
+          "valueParameter": [
+            {
+              "name": 24,
+              "typeId": 5
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 25,
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 26,
+          "returnTypeId": 6,
+          "flags": 294
+        }
+      ],
+      "property": [
+        {
+          "name": 19,
+          "returnTypeId": 2,
+          "flags": 550
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "typeParameterName": 17
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 12
+          },
+          {
+            "className": 13
+          },
+          {
+            "className": 4
+          },
+          {
+            "typeParameter": 0
+          },
+          {
+            "argument": [
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 11
+          },
+          {
+            "argument": [
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 3
+          }
+        ]
+      }
+    },
+    {
+      "flags": 38,
+      "supertypeId": [
+        1
+      ],
+      "fqName": 14,
+      "constructor": [
+        {
+        }
+      ],
+      "function": [
+        {
+          "name": 5,
+          "returnTypeId": 0,
+          "flags": 262
+        },
+        {
+          "name": 29,
+          "returnTypeId": 0,
+          "flags": 38
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "className": 15
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 3
+          }
+        ]
+      }
+    },
+    {
+      "flags": 38,
+      "supertypeId": [
+        1
+      ],
+      "fqName": 16,
+      "constructor": [
+        {
+        }
+      ],
+      "function": [
+        {
+          "name": 5,
+          "returnTypeId": 0,
+          "flags": 262
+        },
+        {
+          "name": 32,
+          "returnTypeId": 0,
+          "flags": 38
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "className": 17
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 3
+          }
+        ]
+      }
+    },
+    {
+      "flags": 38,
+      "supertypeId": [
+        1
+      ],
+      "fqName": 18,
+      "constructor": [
+        {
+        }
+      ],
+      "function": [
+        {
+          "name": 5,
+          "returnTypeId": 0,
+          "flags": 262
+        },
+        {
+          "name": 34,
+          "returnTypeId": 0,
+          "flags": 38
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "className": 13
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 3
+          }
+        ]
+      }
+    },
+    {
+      "flags": 102,
+      "supertypeId": [
+        0
+      ],
+      "fqName": 12,
+      "typeParameter": [
+        {
+          "id": 0,
+          "name": 35,
+          "variance": "OUT"
+        }
+      ],
+      "function": [
+        {
+          "name": 26,
+          "returnTypeId": 2,
+          "flags": 294
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "className": 10
+          },
+          {
+            "typeParameter": 0
+          },
+          {
+            "argument": [
+              {
+                "typeId": 1
+              }
+            ],
+            "className": 3
+          }
+        ]
+      }
+    },
+    {
+      "flags": 102,
+      "supertypeId": [
+        0
+      ],
+      "fqName": 3,
+      "typeParameter": [
+        {
+          "id": 0,
+          "name": 35,
+          "variance": "OUT"
+        }
+      ],
+      "function": [
+        {
+          "name": 36,
+          "returnTypeId": 1,
+          "flags": 294
+        },
+        {
+          "name": 5,
+          "returnTypeId": 2,
+          "flags": 294
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "className": 10
+          },
+          {
+            "className": 4
+          },
+          {
+            "typeParameter": 0
+          }
+        ]
+      }
+    },
+    {
+      "flags": 102,
+      "supertypeId": [
+        1
+      ],
+      "fqName": 19,
+      "typeParameter": [
+        {
+          "id": 0,
+          "name": 17,
+          "variance": "OUT"
+        }
+      ],
+      "function": [
+        {
+          "name": 21,
+          "valueParameter": [
+            {
+              "name": 22,
+              "typeId": 4
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 294
+        },
+        {
+          "name": 23,
+          "valueParameter": [
+            {
+              "name": 24,
+              "typeId": 5
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 38,
+          "valueParameter": [
+            {
+              "name": 39,
+              "typeId": 2
+            }
+          ],
+          "returnTypeId": 4,
+          "flags": 294
+        },
+        {
+          "name": 40,
+          "valueParameter": [
+            {
+              "name": 22,
+              "typeId": 4
+            }
+          ],
+          "returnTypeId": 2,
+          "flags": 38
+        },
+        {
+          "name": 25,
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 26,
+          "returnTypeId": 6,
+          "flags": 294
+        },
+        {
+          "name": 41,
+          "valueParameter": [
+            {
+              "name": 22,
+              "typeId": 4
+            }
+          ],
+          "returnTypeId": 2,
+          "flags": 38
+        },
+        {
+          "name": 42,
+          "returnTypeId": 7,
+          "flags": 38
+        },
+        {
+          "name": 42,
+          "valueParameter": [
+            {
+              "name": 39,
+              "typeId": 2
+            }
+          ],
+          "returnTypeId": 7,
+          "flags": 38
+        },
+        {
+          "name": 44,
+          "valueParameter": [
+            {
+              "name": 45,
+              "typeId": 2
+            },
+            {
+              "name": 46,
+              "typeId": 2
+            }
+          ],
+          "returnTypeId": 8,
+          "flags": 38
+        }
+      ],
+      "property": [
+        {
+          "name": 19,
+          "returnTypeId": 2,
+          "flags": 550
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "typeParameterName": 17
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 11
+          },
+          {
+            "className": 13
+          },
+          {
+            "className": 4
+          },
+          {
+            "typeParameter": 0
+          },
+          {
+            "argument": [
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 11
+          },
+          {
+            "argument": [
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 3
+          },
+          {
+            "argument": [
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 20
+          },
+          {
+            "argument": [
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 19
+          }
+        ]
+      }
+    },
+    {
+      "flags": 102,
+      "supertypeId": [
+        1
+      ],
+      "fqName": 20,
+      "typeParameter": [
+        {
+          "id": 0,
+          "name": 35,
+          "variance": "OUT"
+        }
+      ],
+      "function": [
+        {
+          "name": 36,
+          "returnTypeId": 2,
+          "flags": 294
+        },
+        {
+          "name": 47,
+          "returnTypeId": 2,
+          "flags": 38
+        },
+        {
+          "name": 5,
+          "returnTypeId": 3,
+          "flags": 294
+        },
+        {
+          "name": 48,
+          "returnTypeId": 4,
+          "flags": 38
+        },
+        {
+          "name": 49,
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 50,
+          "returnTypeId": 4,
+          "flags": 38
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "typeParameterName": 35
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 3
+          },
+          {
+            "className": 4
+          },
+          {
+            "typeParameter": 0
+          },
+          {
+            "className": 13
+          }
+        ]
+      }
+    },
+    {
+      "flags": 38,
+      "supertypeId": [
+        1
+      ],
+      "fqName": 21,
+      "constructor": [
+        {
+        }
+      ],
+      "function": [
+        {
+          "name": 5,
+          "returnTypeId": 0,
+          "flags": 262
+        },
+        {
+          "name": 53,
+          "returnTypeId": 0,
+          "flags": 38
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "className": 22
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 3
+          }
+        ]
+      }
+    },
+    {
+      "flags": 102,
+      "supertypeId": [
+        0
+      ],
+      "fqName": 24,
+      "typeParameter": [
+        {
+          "id": 2,
+          "name": 56,
+          "variance": "OUT"
+        },
+        {
+          "id": 3,
+          "name": 57,
+          "variance": "OUT"
+        }
+      ],
+      "property": [
+        {
+          "name": 58,
+          "returnTypeId": 1,
+          "flags": 550
+        },
+        {
+          "name": 59,
+          "returnTypeId": 2,
+          "flags": 550
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "className": 10
+          },
+          {
+            "typeParameter": 2
+          },
+          {
+            "typeParameter": 3
+          }
+        ]
+      }
+    },
+    {
+      "flags": 102,
+      "supertypeId": [
+        0
+      ],
+      "fqName": 23,
+      "typeParameter": [
+        {
+          "id": 0,
+          "name": 56
+        },
+        {
+          "id": 1,
+          "name": 57,
+          "variance": "OUT"
+        }
+      ],
+      "nestedClassName": [
+        55
+      ],
+      "function": [
+        {
+          "name": 64,
+          "valueParameter": [
+            {
+              "name": 58,
+              "typeId": 1
+            }
+          ],
+          "returnTypeId": 8,
+          "flags": 38
+        },
+        {
+          "name": 65,
+          "valueParameter": [
+            {
+              "name": 59,
+              "typeId": 2
+            }
+          ],
+          "returnTypeId": 8,
+          "flags": 38
+        },
+        {
+          "name": 38,
+          "valueParameter": [
+            {
+              "name": 58,
+              "typeId": 1
+            }
+          ],
+          "returnTypeId": 9,
+          "flags": 294
+        },
+        {
+          "name": 66,
+          "valueParameter": [
+            {
+              "name": 58,
+              "typeId": 1
+            },
+            {
+              "name": 67,
+              "typeId": 2
+            }
+          ],
+          "returnTypeId": 2,
+          "flags": 23,
+          "functionAnnotation": [
+            {
+              "id": 26,
+              "argument": [
+                {
+                  "nameId": 69,
+                  "value": {
+                    "type": "STRING",
+                    "stringValue": 70
+                  }
+                }
+              ]
+            },
+            {
+              "id": 28
+            }
+          ]
+        },
+        {
+          "name": 25,
+          "returnTypeId": 8,
+          "flags": 38
+        }
+      ],
+      "property": [
+        {
+          "name": 60,
+          "returnTypeId": 4,
+          "flags": 550
+        },
+        {
+          "name": 62,
+          "returnTypeId": 5,
+          "flags": 550
+        },
+        {
+          "name": 19,
+          "returnTypeId": 6,
+          "flags": 550
+        },
+        {
+          "name": 63,
+          "returnTypeId": 7,
+          "flags": 550
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "className": 10
+          },
+          {
+            "typeParameter": 0
+          },
+          {
+            "typeParameter": 1
+          },
+          {
+            "argument": [
+              {
+                "typeId": 1
+              },
+              {
+                "typeId": 2
+              }
+            ],
+            "className": 24
+          },
+          {
+            "argument": [
+              {
+                "typeId": 3
+              }
+            ],
+            "className": 25
+          },
+          {
+            "argument": [
+              {
+                "typeId": 1
+              }
+            ],
+            "className": 25
+          },
+          {
+            "className": 13
+          },
+          {
+            "argument": [
+              {
+                "typeId": 2
+              }
+            ],
+            "className": 11
+          },
+          {
+            "className": 4
+          },
+          {
+            "nullable": true,
+            "typeParameter": 1
+          }
+        ]
+      }
+    },
+    {
+      "flags": 102,
+      "supertypeId": [
+        1,
+        2
+      ],
+      "fqName": 29,
+      "typeParameter": [
+        {
+          "id": 0,
+          "name": 17
+        }
+      ],
+      "function": [
+        {
+          "name": 75,
+          "valueParameter": [
+            {
+              "name": 22,
+              "typeId": 4
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 76,
+          "valueParameter": [
+            {
+              "name": 24,
+              "typeId": 5
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 77,
+          "returnTypeId": 6,
+          "flags": 38
+        },
+        {
+          "name": 26,
+          "returnTypeId": 7,
+          "flags": 294
+        },
+        {
+          "name": 80,
+          "valueParameter": [
+            {
+              "name": 22,
+              "typeId": 4
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 81,
+          "valueParameter": [
+            {
+              "name": 24,
+              "typeId": 5
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 82,
+          "valueParameter": [
+            {
+              "name": 24,
+              "typeId": 5
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "typeParameterName": 17
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 11
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 30
+          },
+          {
+            "className": 4
+          },
+          {
+            "typeParameter": 0
+          },
+          {
+            "argument": [
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 11
+          },
+          {
+            "className": 31
+          },
+          {
+            "argument": [
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 32
+          }
+        ]
+      }
+    },
+    {
+      "flags": 102,
+      "supertypeId": [
+        1
+      ],
+      "fqName": 30,
+      "typeParameter": [
+        {
+          "id": 0,
+          "name": 35,
+          "variance": "OUT"
+        }
+      ],
+      "function": [
+        {
+          "name": 26,
+          "returnTypeId": 3,
+          "flags": 294
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "typeParameterName": 35
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 12
+          },
+          {
+            "typeParameter": 0
+          },
+          {
+            "argument": [
+              {
+                "typeId": 2
+              }
+            ],
+            "className": 32
+          }
+        ]
+      }
+    },
+    {
+      "flags": 102,
+      "supertypeId": [
+        1
+      ],
+      "fqName": 32,
+      "typeParameter": [
+        {
+          "id": 0,
+          "name": 35,
+          "variance": "OUT"
+        }
+      ],
+      "function": [
+        {
+          "name": 80,
+          "returnTypeId": 2,
+          "flags": 38
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "typeParameterName": 35
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 3
+          },
+          {
+            "className": 31
+          }
+        ]
+      }
+    },
+    {
+      "flags": 102,
+      "supertypeId": [
+        1,
+        2
+      ],
+      "fqName": 33,
+      "typeParameter": [
+        {
+          "id": 0,
+          "name": 17
+        }
+      ],
+      "function": [
+        {
+          "name": 75,
+          "valueParameter": [
+            {
+              "name": 22,
+              "typeId": 4
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 75,
+          "valueParameter": [
+            {
+              "name": 39,
+              "typeId": 6
+            },
+            {
+              "name": 22,
+              "typeId": 4
+            }
+          ],
+          "returnTypeId": 5,
+          "flags": 38
+        },
+        {
+          "name": 76,
+          "valueParameter": [
+            {
+              "name": 39,
+              "typeId": 6
+            },
+            {
+              "name": 24,
+              "typeId": 7
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 76,
+          "valueParameter": [
+            {
+              "name": 24,
+              "typeId": 7
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 77,
+          "returnTypeId": 5,
+          "flags": 38
+        },
+        {
+          "name": 42,
+          "returnTypeId": 8,
+          "flags": 38
+        },
+        {
+          "name": 42,
+          "valueParameter": [
+            {
+              "name": 39,
+              "typeId": 6
+            }
+          ],
+          "returnTypeId": 8,
+          "flags": 38
+        },
+        {
+          "name": 80,
+          "valueParameter": [
+            {
+              "name": 22,
+              "typeId": 4
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 81,
+          "valueParameter": [
+            {
+              "name": 24,
+              "typeId": 7
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 85,
+          "valueParameter": [
+            {
+              "name": 39,
+              "typeId": 6
+            }
+          ],
+          "returnTypeId": 4,
+          "flags": 38
+        },
+        {
+          "name": 82,
+          "valueParameter": [
+            {
+              "name": 24,
+              "typeId": 7
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 86,
+          "valueParameter": [
+            {
+              "name": 39,
+              "typeId": 6
+            },
+            {
+              "name": 22,
+              "typeId": 4
+            }
+          ],
+          "returnTypeId": 4,
+          "flags": 294
+        },
+        {
+          "name": 44,
+          "valueParameter": [
+            {
+              "name": 45,
+              "typeId": 6
+            },
+            {
+              "name": 46,
+              "typeId": 6
+            }
+          ],
+          "returnTypeId": 9,
+          "flags": 38
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "typeParameterName": 17
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 19
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 29
+          },
+          {
+            "className": 4
+          },
+          {
+            "typeParameter": 0
+          },
+          {
+            "className": 31
+          },
+          {
+            "className": 13
+          },
+          {
+            "argument": [
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 11
+          },
+          {
+            "argument": [
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 34
+          },
+          {
+            "argument": [
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 33
+          }
+        ]
+      }
+    },
+    {
+      "flags": 102,
+      "supertypeId": [
+        1,
+        2
+      ],
+      "fqName": 34,
+      "typeParameter": [
+        {
+          "id": 0,
+          "name": 35
+        }
+      ],
+      "function": [
+        {
+          "name": 75,
+          "valueParameter": [
+            {
+              "name": 22,
+              "typeId": 4
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 36,
+          "returnTypeId": 5,
+          "flags": 294
+        },
+        {
+          "name": 5,
+          "returnTypeId": 4,
+          "flags": 294
+        },
+        {
+          "name": 80,
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 86,
+          "valueParameter": [
+            {
+              "name": 22,
+              "typeId": 4
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "typeParameterName": 35
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 20
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 32
+          },
+          {
+            "className": 31
+          },
+          {
+            "typeParameter": 0
+          },
+          {
+            "className": 4
+          }
+        ]
+      }
+    },
+    {
+      "flags": 102,
+      "supertypeId": [
+        2
+      ],
+      "fqName": 36,
+      "typeParameter": [
+        {
+          "id": 2,
+          "name": 56
+        },
+        {
+          "id": 3,
+          "name": 57
+        }
+      ],
+      "function": [
+        {
+          "name": 89,
+          "valueParameter": [
+            {
+              "name": 90,
+              "typeId": 3
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "typeParameterName": 56
+          },
+          {
+            "typeParameterName": 57
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              },
+              {
+                "typeId": 1
+              }
+            ],
+            "className": 24
+          },
+          {
+            "typeParameter": 3
+          }
+        ]
+      }
+    },
+    {
+      "flags": 102,
+      "supertypeId": [
+        2
+      ],
+      "fqName": 35,
+      "typeParameter": [
+        {
+          "id": 0,
+          "name": 56
+        },
+        {
+          "id": 1,
+          "name": 57
+        }
+      ],
+      "nestedClassName": [
+        88
+      ],
+      "function": [
+        {
+          "name": 77,
+          "returnTypeId": 9,
+          "flags": 38
+        },
+        {
+          "name": 92,
+          "valueParameter": [
+            {
+              "name": 58,
+              "typeId": 3
+            },
+            {
+              "name": 59,
+              "typeId": 4
+            }
+          ],
+          "returnTypeId": 10,
+          "flags": 38
+        },
+        {
+          "name": 93,
+          "valueParameter": [
+            {
+              "name": 94,
+              "typeId": 11
+            }
+          ],
+          "returnTypeId": 9,
+          "flags": 38
+        },
+        {
+          "name": 80,
+          "valueParameter": [
+            {
+              "name": 58,
+              "typeId": 3
+            }
+          ],
+          "returnTypeId": 10,
+          "flags": 38
+        },
+        {
+          "name": 80,
+          "valueParameter": [
+            {
+              "name": 58,
+              "typeId": 3
+            },
+            {
+              "name": 59,
+              "typeId": 4
+            }
+          ],
+          "returnTypeId": 12,
+          "flags": 23,
+          "functionAnnotation": [
+            {
+              "id": 26,
+              "argument": [
+                {
+                  "nameId": 69,
+                  "value": {
+                    "type": "STRING",
+                    "stringValue": 70
+                  }
+                }
+              ]
+            },
+            {
+              "id": 28
+            }
+          ]
+        }
+      ],
+      "property": [
+        {
+          "name": 60,
+          "returnTypeId": 6,
+          "flags": 550
+        },
+        {
+          "name": 62,
+          "returnTypeId": 7,
+          "flags": 550
+        },
+        {
+          "name": 63,
+          "returnTypeId": 8,
+          "flags": 550
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "typeParameterName": 56
+          },
+          {
+            "typeParameterName": 57
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              },
+              {
+                "typeId": 1
+              }
+            ],
+            "className": 23
+          },
+          {
+            "typeParameter": 0
+          },
+          {
+            "typeParameter": 1
+          },
+          {
+            "argument": [
+              {
+                "typeId": 3
+              },
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 36
+          },
+          {
+            "argument": [
+              {
+                "typeId": 5
+              }
+            ],
+            "className": 37
+          },
+          {
+            "argument": [
+              {
+                "typeId": 3
+              }
+            ],
+            "className": 37
+          },
+          {
+            "argument": [
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 29
+          },
+          {
+            "className": 31
+          },
+          {
+            "nullable": true,
+            "typeParameter": 1
+          },
+          {
+            "argument": [
+              {
+                "projection": "OUT",
+                "typeId": 3
+              },
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 23
+          },
+          {
+            "className": 4
+          }
+        ]
+      }
+    },
+    {
+      "flags": 102,
+      "supertypeId": [
+        1,
+        2
+      ],
+      "fqName": 37,
+      "typeParameter": [
+        {
+          "id": 0,
+          "name": 17
+        }
+      ],
+      "function": [
+        {
+          "name": 75,
+          "valueParameter": [
+            {
+              "name": 22,
+              "typeId": 4
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 76,
+          "valueParameter": [
+            {
+              "name": 24,
+              "typeId": 5
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 77,
+          "returnTypeId": 6,
+          "flags": 38
+        },
+        {
+          "name": 26,
+          "returnTypeId": 7,
+          "flags": 294
+        },
+        {
+          "name": 80,
+          "valueParameter": [
+            {
+              "name": 22,
+              "typeId": 4
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 81,
+          "valueParameter": [
+            {
+              "name": 24,
+              "typeId": 5
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 82,
+          "valueParameter": [
+            {
+              "name": 24,
+              "typeId": 5
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "typeParameterName": 17
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 25
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 29
+          },
+          {
+            "className": 4
+          },
+          {
+            "typeParameter": 0
+          },
+          {
+            "argument": [
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 11
+          },
+          {
+            "className": 31
+          },
+          {
+            "argument": [
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 32
+          }
+        ]
+      }
+    },
+    {
+      "flags": 102,
+      "supertypeId": [
+        1
+      ],
+      "fqName": 25,
+      "typeParameter": [
+        {
+          "id": 0,
+          "name": 17,
+          "variance": "OUT"
+        }
+      ],
+      "function": [
+        {
+          "name": 21,
+          "valueParameter": [
+            {
+              "name": 22,
+              "typeId": 4
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 294
+        },
+        {
+          "name": 23,
+          "valueParameter": [
+            {
+              "name": 24,
+              "typeId": 5
+            }
+          ],
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 25,
+          "returnTypeId": 3,
+          "flags": 38
+        },
+        {
+          "name": 26,
+          "returnTypeId": 6,
+          "flags": 294
+        }
+      ],
+      "property": [
+        {
+          "name": 19,
+          "returnTypeId": 2,
+          "flags": 550
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "typeParameterName": 17
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 11
+          },
+          {
+            "className": 13
+          },
+          {
+            "className": 4
+          },
+          {
+            "typeParameter": 0
+          },
+          {
+            "argument": [
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 11
+          },
+          {
+            "argument": [
+              {
+                "typeId": 4
+              }
+            ],
+            "className": 3
+          }
+        ]
+      }
+    },
+    {
+      "flags": 38,
+      "supertypeId": [
+        1
+      ],
+      "fqName": 38,
+      "constructor": [
+        {
+        }
+      ],
+      "function": [
+        {
+          "name": 5,
+          "returnTypeId": 0,
+          "flags": 262
+        },
+        {
+          "name": 97,
+          "returnTypeId": 0,
+          "flags": 38
+        }
+      ],
+      "typeTable": {
+        "type": [
+          {
+            "className": 39
+          },
+          {
+            "argument": [
+              {
+                "typeId": 0
+              }
+            ],
+            "className": 3
+          }
+        ]
+      }
+    }
+  ]
+}

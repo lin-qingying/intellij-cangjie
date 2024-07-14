@@ -16,12 +16,48 @@ object StandardNames {
 
     @kotlin.jvm.JvmField
     val NAME = Name.identifier("name")
+
     @JvmStatic
     fun getFunctionName(parameterCount: Int): String {
         return "Function$parameterCount"
     }
+
+
+    val STD_PACKAGE_NAME = Name.identifier("std")
+    val COMPRESS_PACKAGE_NAME = Name.identifier("compress")
+
+    val CRYPTO_PACKAGE_NAME = Name.identifier("crypto")
+
+    val ENCODING_PACKAGE_NAME = Name.identifier("encoding")
+
+    val FUZZ_PACKAGE_NAME = Name.identifier("fuzz")
+
+    val NET_PACKAGE_NAME = Name.identifier("net")
+
+    val SERIALIZATION_PACKAGE_NAME = Name.identifier("serialization")
+
+
     @JvmField
-    val STD_PACKAGE_FQ_NAME = FqName("std")
+    val STD_PACKAGE_FQ_NAME = FqName.topLevel(STD_PACKAGE_NAME)
+
+    @JvmField
+    val COMPRESS_PACKAGE_FQ_NAME = FqName.topLevel(COMPRESS_PACKAGE_NAME)
+
+    @JvmField
+    val CRYPTO_PACKAGE_FQ_NAME = FqName.topLevel(CRYPTO_PACKAGE_NAME)
+
+    @JvmField
+    val ENCODING_PACKAGE_FQ_NAME = FqName.topLevel(ENCODING_PACKAGE_NAME)
+
+    @JvmField
+    val FUZZ_PACKAGE_FQ_NAME = FqName.topLevel(FUZZ_PACKAGE_NAME)
+
+    @JvmField
+    val NET_PACKAGE_FQ_NAME = FqName.topLevel(NET_PACKAGE_NAME)
+
+    @JvmField
+    val SERIALIZATION_PACKAGE_FQ_NAME = FqName.topLevel(SERIALIZATION_PACKAGE_NAME)
+
 
     @JvmField
     val STD_CORE_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(Name.identifier("core"))
@@ -42,6 +78,7 @@ object StandardNames {
         val primitiveTypeShortNames: Set<Name> = newHashSetWithExpectedSize<Name>(PrimitiveType.entries.size).apply {
             PrimitiveType.entries.mapTo(this) { it.typeName }
         }
+
         @JvmField
         val any: FqNameUnsafe = fqNameUnsafe("Any")
 
@@ -304,7 +341,13 @@ object StandardNames {
 
     @JvmField
     val BUILT_INS_PACKAGE_FQ_NAMES = setOf(
-        BUILT_INS_PACKAGE_FQ_NAME,
-//        STD_PACKAGE_FQ_NAME
+//        BUILT_INS_PACKAGE_FQ_NAME,
+        STD_PACKAGE_FQ_NAME,
+        COMPRESS_PACKAGE_FQ_NAME,
+        NET_PACKAGE_FQ_NAME,
+        FUZZ_PACKAGE_FQ_NAME,
+        ENCODING_PACKAGE_FQ_NAME,
+        CRYPTO_PACKAGE_FQ_NAME,
+        SERIALIZATION_PACKAGE_FQ_NAME
     )
 }

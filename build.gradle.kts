@@ -57,6 +57,8 @@ allprojects {
     }
 
     repositories {
+        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-dependencies") }
+
         maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
         mavenCentral()
         maven {
@@ -346,9 +348,18 @@ project(":") {
 //        implementation(project(":dap"))
         implementation(project(":lsp"))
         implementation(project(":utils"))
+        implementation(project(":metadata"))
 
 
         implementation("org.antlr:antlr4-intellij-adaptor:0.1")
+
+
+//        implementation(project(":protobuf2.6.1"))
+        implementation("com.google.protobuf:protobuf-java:4.27.2")
+
+        // https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java-util
+        implementation("com.google.protobuf:protobuf-java-util:4.27.2")
+
     }
     tasks {
         processTestResources {

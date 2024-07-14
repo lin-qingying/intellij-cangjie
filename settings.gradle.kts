@@ -1,12 +1,18 @@
 
 pluginManagement {
+//    includeBuild("gradle-util")
 
     repositories {
+
+        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-dependencies") }
         maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
         maven { url = uri("https://www.jitpack.io") }
         mavenCentral()
         gradlePluginPortal()
     }
+}
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
 }
 
 rootProject.name = "intellij-cangjie"
@@ -32,7 +38,9 @@ rootProject.name = "intellij-cangjie"
 //include("lsp4j")
 include("plugin")
 include("utils")
+include("gradle-util")
 
+include("gradle-util")
 //检查
 //include("inspections")
 //高亮
@@ -49,4 +57,12 @@ include("lsp")
 
 //dap协议序列化
 //include("dap")
+
+
+include("repo")
+
 include("grammar")
+include("generators")
+include("metadata")
+include("build-common")
+include("protobuf2.6.1")

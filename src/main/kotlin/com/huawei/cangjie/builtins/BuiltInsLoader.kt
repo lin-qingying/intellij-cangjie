@@ -1,15 +1,22 @@
 package com.huawei.cangjie.builtins
 
-import com.huawei.cangjie.descriptors.ModuleDescriptor
-import com.huawei.cangjie.descriptors.PackageFragmentDescriptor
-import com.huawei.cangjie.descriptors.PackageFragmentProvider
-import com.huawei.cangjie.descriptors.PackageFragmentProviderImpl
-import com.huawei.cangjie.name.FqName
 //import com.huawei.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorBasicImpl
 //import com.huawei.cangjie.resolve.lazy.declarations.impl.craetePackageFragmentDescriptor
+
+//import org.jetbrains.kotlin.protobuf.ExtensionRegistryLite
+import com.google.protobuf.ExtensionRegistry
+import com.google.protobuf.util.JsonFormat
+import com.huawei.cangjie.descriptors.ModuleDescriptor
+import com.huawei.cangjie.descriptors.PackageFragmentProvider
+import com.huawei.cangjie.descriptors.PackageFragmentProviderImpl
+import com.huawei.cangjie.metadata.ProtoBuf
+import com.huawei.cangjie.metadata.builtins.BuiltInsBinaryVersion
+import com.huawei.cangjie.metadata.builtins.BuiltInsProtoBuf
+import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.storage.StorageManager
 import java.io.InputStream
 import java.util.*
+
 
 interface BuiltInsLoader {
     fun createPackageFragmentProvider(
@@ -32,9 +39,27 @@ interface BuiltInsLoader {
     }
 }
 
+fun InputStream.readBuiltinsPackageFragment(): Pair<ProtoBuf.PackageFragment?, BuiltInsBinaryVersion> =
+    use { stream ->
+        val version = BuiltInsBinaryVersion.readFrom(stream)
+        val proto =
+            if (version.isCompatibleWithCurrentCompilerVersion()) {
+
+                ProtoBuf.PackageFragment.parseFrom(
+                    stream,
+//                ExtensionRegistryLite.newInstance().apply(BuiltInsProtoBuf::registerAllExtensions) //轻量级
+                ExtensionRegistry.newInstance().apply(BuiltInsProtoBuf::registerAllExtensions)
+                )
+            } else null
+
+
+        val printer: JsonFormat.Printer = JsonFormat.printer()
+        val  jsonStr: String = printer.print(proto)
+
+        proto to version
+    }
 
 class BuiltInsLoaderImpl : BuiltInsLoader {
-
 
     fun createBuiltInPackageFragmentProvider(
         storageManager: StorageManager,
@@ -45,7 +70,18 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
 //        additionalClassPartsProvider: AdditionalClassPartsProvider = AdditionalClassPartsProvider.None,
         isFallback: Boolean,
         loadResource: (String) -> InputStream?
-    ): PackageFragmentProvider{
+    ): PackageFragmentProvider {
+//        val resourcePath =
+//            "kotlin/kotlin.kotlin_builtins"
+////            "kotlin/collections/collections.kotlin_builtins"
+//        val inputStream =
+//            loadResource(resourcePath) ?: throw IllegalStateException("Resource not found in classpath: $resourcePath")
+//
+//
+//        println(inputStream)
+//
+//        val (proto, version) = inputStream.readBuiltinsPackageFragment()
+
 
 //        val packageFragments:List<PackageFragmentDescriptor> = packageFqNames.map { fqName ->
 //            craetePackageFragmentDescriptor(storageManager,module, fqName)
@@ -55,7 +91,7 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
 ////            BuiltInsPackageFragmentImpl.create(fqName, storageManager, module, inputStream, isFallback)
 //        }
 //        val provider = PackageFragmentProviderImpl(packageFragments )
-        val provider = PackageFragmentProviderImpl( )
+        val provider = PackageFragmentProviderImpl()
 //        val notFoundClasses = NotFoundClasses(storageManager, module)
 //
 //        val components = DeserializationComponents(
@@ -84,6 +120,7 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
 
         return provider
     }
+
     private val resourceLoader = BuiltInsResourceLoader()
 
     override fun createPackageFragmentProvider(
