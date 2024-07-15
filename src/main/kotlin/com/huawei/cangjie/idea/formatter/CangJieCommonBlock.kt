@@ -1,5 +1,3 @@
-
-
 package com.huawei.cangjie.idea.formatter
 
 import com.huawei.cangjie.CjNodeTypes.*
@@ -38,7 +36,7 @@ private val CDOC_CONTENT = TokenSet.create(CDocTokens.CDOC, CDocElementTypes.CDO
 private val CODE_BLOCKS = TokenSet.create(BLOCK, CLASS_BODY, FUNCTION_LITERAL, PROPERTY_BODY)
 
 private val ALIGN_FOR_BINARY_OPERATIONS = TokenSet.create(MUL, DIV, PERC, PLUS, MINUS, LT, GT, LTEQ, GTEQ, ANDAND, OROR)
-private val ANNOTATIONS = TokenSet.create( )
+private val ANNOTATIONS = TokenSet.create()
 
 typealias WrappingStrategy = (childElement: ASTNode) -> Wrap?
 
@@ -83,7 +81,9 @@ abstract class CangJieCommonBlock(
 
     protected abstract fun getAlignment(): Alignment?
 
-    protected abstract fun createAlignmentStrategy(alignOption: Boolean, defaultAlignment: Alignment?): CommonAlignmentStrategy
+    protected abstract fun createAlignmentStrategy(
+        alignOption: Boolean, defaultAlignment: Alignment?
+    ): CommonAlignmentStrategy
 
     protected abstract fun getNullAlignmentStrategy(): CommonAlignmentStrategy
 
@@ -109,7 +109,7 @@ abstract class CangJieCommonBlock(
             nodeSubBlocks = splitSubBlocksOnDot(nodeSubBlocks)
         } else {
             val psi = node.psi
-            if (psi is CjBinaryExpression  ) {
+            if (psi is CjBinaryExpression) {
                 nodeSubBlocks = splitSubBlocksOnElvis(nodeSubBlocks)
             }
         }
@@ -138,28 +138,25 @@ abstract class CangJieCommonBlock(
         val enforceIndent = enforceIndentToChildren && anyCallInCallChainIsWrapped(currentNode)
         val indent = createIndentForQualifierExpression(enforceIndent)
 
-        @Suppress("UNCHECKED_CAST")
-        val subBlocks = subBlocks as List<ASTBlock>
+        @Suppress("UNCHECKED_CAST") val subBlocks = subBlocks as List<ASTBlock>
         val elementType = currentNode.elementType
         if (elementType != POSTFIX_EXPRESSION && elementType !in QUALIFIED_EXPRESSIONS) return this
 
         val index = 0
-        val resultWrap = if (currentNode.wrapForFirstCallInChainIsAllowed)
-            wrap ?: createWrapForQualifierExpression(currentNode)
-        else
-            null
+        val resultWrap =
+            if (currentNode.wrapForFirstCallInChainIsAllowed) wrap ?: createWrapForQualifierExpression(currentNode)
+            else null
 
         val newBlock = subBlocks.elementAt(index).processBlock(resultWrap, enforceIndent)
         return subBlocks.replaceBlock(newBlock, index).let {
             val operationIndex = subBlocks.indexOfBlockWithType(QUALIFIED_OPERATION)
-            if (operationIndex != -1)
-                it.splitAtIndex(operationIndex, indent, resultWrap)
-            else
-                it
+            if (operationIndex != -1) it.splitAtIndex(operationIndex, indent, resultWrap)
+            else it
         }.wrapToBlock(currentNode, this)
     }
 
-    private fun List<ASTBlock>.replaceBlock(block: ASTBlock, index: Int = 0): List<ASTBlock> = toMutableList().apply { this[index] = block }
+    private fun List<ASTBlock>.replaceBlock(block: ASTBlock, index: Int = 0): List<ASTBlock> =
+        toMutableList().apply { this[index] = block }
 
     private val ASTNode.wrapForFirstCallInChainIsAllowed: Boolean
         get() {
@@ -168,13 +165,11 @@ abstract class CangJieCommonBlock(
         }
 
     private fun createWrapForQualifierExpression(node: ASTNode): Wrap? =
-        if (node.wrapForFirstCallInChainIsAllowed && node.receiverIsCall())
-            Wrap.createWrap(
-              settings.cangjieCommonSettings.METHOD_CALL_CHAIN_WRAP,
+        if (node.wrapForFirstCallInChainIsAllowed && node.receiverIsCall()) Wrap.createWrap(
+            settings.cangjieCommonSettings.METHOD_CALL_CHAIN_WRAP,
             true,
-            )
-        else
-            null
+        )
+        else null
 
 
     private fun createIndentForQualifierExpression(enforceIndentToChildren: Boolean): Indent {
@@ -278,10 +273,8 @@ abstract class CangJieCommonBlock(
                     return Indent.getNoneIndent()
                 }
 
-                return if (settings.cangjieCustomSettings.CONTINUATION_INDENT_IN_ARGUMENT_LISTS)
-                    Indent.getContinuationWithoutFirstIndent()
-                else
-                    Indent.getNormalIndent()
+                return if (settings.cangjieCustomSettings.CONTINUATION_INDENT_IN_ARGUMENT_LISTS) Indent.getContinuationWithoutFirstIndent()
+                else Indent.getNormalIndent()
             }
 
             if (parentType === TYPE_PARAMETER_LIST || parentType === TYPE_ARGUMENT_LIST) {
@@ -300,9 +293,7 @@ abstract class CangJieCommonBlock(
         }
 
         val parentType = parent.elementType
-        return    parentType == BLOCK_CODE_FRAGMENT
-                || parentType == EXPRESSION_CODE_FRAGMENT
-                || parentType == TYPE_CODE_FRAGMENT
+        return parentType == BLOCK_CODE_FRAGMENT || parentType == EXPRESSION_CODE_FRAGMENT || parentType == TYPE_CODE_FRAGMENT
     }
 
     fun getChildAttributes(newChildIndex: Int): ChildAttributes {
@@ -343,9 +334,7 @@ abstract class CangJieCommonBlock(
                     ChildAttributes(block.indent, block.alignment)
                 } else {
                     val indent =
-                        if ((type == VALUE_PARAMETER_LIST && !settings.cangjieCustomSettings.CONTINUATION_INDENT_IN_PARAMETER_LISTS) ||
-                            (type == VALUE_ARGUMENT_LIST && !settings.cangjieCustomSettings.CONTINUATION_INDENT_IN_ARGUMENT_LISTS)
-                        ) {
+                        if ((type == VALUE_PARAMETER_LIST && !settings.cangjieCustomSettings.CONTINUATION_INDENT_IN_PARAMETER_LISTS) || (type == VALUE_ARGUMENT_LIST && !settings.cangjieCustomSettings.CONTINUATION_INDENT_IN_ARGUMENT_LISTS)) {
                             Indent.getNormalIndent()
                         } else {
                             Indent.getContinuationIndent()
@@ -362,7 +351,8 @@ abstract class CangJieCommonBlock(
             else -> {
                 val blocks = getSubBlocks()
                 if (newChildIndex != 0) {
-                    val isIncomplete = if (newChildIndex < blocks.size) blocks[newChildIndex - 1].isIncomplete else isIncompleteInSuper()
+                    val isIncomplete =
+                        if (newChildIndex < blocks.size) blocks[newChildIndex - 1].isIncomplete else isIncompleteInSuper()
                     if (isIncomplete) {
                         if (blocks.size == newChildIndex && !settings.cangjieCustomSettings.CONTINUATION_INDENT_FOR_EXPRESSION_BODIES) {
                             val lastInParent = blocks.last()
@@ -390,58 +380,55 @@ abstract class CangJieCommonBlock(
         val cangjieCustomSettings = settings.cangjieCustomSettings
         val parentType = node.elementType
         return when {
-            parentType === VALUE_PARAMETER_LIST ->
-                getAlignmentForChildInParenthesis(
-                    cangjieCommonSettings.ALIGN_MULTILINE_PARAMETERS,
-                    VALUE_PARAMETER,
-                    cangjieCommonSettings.ALIGN_MULTILINE_METHOD_BRACKETS,
-                )
+            parentType === VALUE_PARAMETER_LIST -> getAlignmentForChildInParenthesis(
+                cangjieCommonSettings.ALIGN_MULTILINE_PARAMETERS,
+                VALUE_PARAMETER,
+                cangjieCommonSettings.ALIGN_MULTILINE_METHOD_BRACKETS,
+            )
 
-            parentType === VALUE_ARGUMENT_LIST ->
-                getAlignmentForChildInParenthesis(
-                    cangjieCommonSettings.ALIGN_MULTILINE_PARAMETERS_IN_CALLS,
-                    VALUE_ARGUMENT,
-                    cangjieCommonSettings.ALIGN_MULTILINE_METHOD_BRACKETS,
-                )
+            parentType === VALUE_ARGUMENT_LIST -> getAlignmentForChildInParenthesis(
+                cangjieCommonSettings.ALIGN_MULTILINE_PARAMETERS_IN_CALLS,
+                VALUE_ARGUMENT,
+                cangjieCommonSettings.ALIGN_MULTILINE_METHOD_BRACKETS,
+            )
 
-            parentType === MATCH ->
-                getAlignmentForCaseBranch(cangjieCustomSettings.ALIGN_IN_COLUMNS_CASE_BRANCH)
+            parentType === MATCH -> getAlignmentForCaseBranch(cangjieCustomSettings.ALIGN_IN_COLUMNS_CASE_BRANCH)
 
-            parentType === MATCH_ENTRY ->
-                alignmentStrategy
+            parentType === MATCH_ENTRY -> alignmentStrategy
 
-            parentType in BINARY_EXPRESSIONS && getOperationType(node) in ALIGN_FOR_BINARY_OPERATIONS ->
-                createAlignmentStrategy(cangjieCommonSettings.ALIGN_MULTILINE_BINARY_OPERATION, getAlignment())
+            parentType in BINARY_EXPRESSIONS && getOperationType(node) in ALIGN_FOR_BINARY_OPERATIONS -> createAlignmentStrategy(
+                cangjieCommonSettings.ALIGN_MULTILINE_BINARY_OPERATION,
+                getAlignment()
+            )
 
-            parentType === SUPER_TYPE_LIST ->
-                createAlignmentStrategy(cangjieCommonSettings.ALIGN_MULTILINE_EXTENDS_LIST, getAlignment())
+            parentType === SUPER_TYPE_LIST -> createAlignmentStrategy(
+                cangjieCommonSettings.ALIGN_MULTILINE_EXTENDS_LIST,
+                getAlignment()
+            )
 
-            parentType === PARENTHESIZED ->
-                object : CommonAlignmentStrategy() {
-                    private var bracketsAlignment: Alignment? =
-                        if (cangjieCommonSettings.ALIGN_MULTILINE_BINARY_OPERATION) Alignment.createAlignment() else null
+            parentType === PARENTHESIZED -> object : CommonAlignmentStrategy() {
+                private var bracketsAlignment: Alignment? =
+                    if (cangjieCommonSettings.ALIGN_MULTILINE_BINARY_OPERATION) Alignment.createAlignment() else null
 
-                    override fun getAlignment(node: ASTNode): Alignment? {
-                        val childNodeType = node.elementType
-                        val prev = getPrevWithoutWhitespace(node)
+                override fun getAlignment(node: ASTNode): Alignment? {
+                    val childNodeType = node.elementType
+                    val prev = getPrevWithoutWhitespace(node)
 
-                        if (prev != null && prev.elementType === TokenType.ERROR_ELEMENT || childNodeType === TokenType.ERROR_ELEMENT) {
-                            return bracketsAlignment
-                        }
-
-                        if (childNodeType === LPAR || childNodeType === RPAR) {
-                            return bracketsAlignment
-                        }
-
-                        return null
+                    if (prev != null && prev.elementType === TokenType.ERROR_ELEMENT || childNodeType === TokenType.ERROR_ELEMENT) {
+                        return bracketsAlignment
                     }
+
+                    if (childNodeType === LPAR || childNodeType === RPAR) {
+                        return bracketsAlignment
+                    }
+
+                    return null
                 }
+            }
 
-            parentType == TYPE_CONSTRAINT_LIST ->
-                createAlignmentStrategy(true, getAlignment())
+            parentType == TYPE_CONSTRAINT_LIST -> createAlignmentStrategy(true, getAlignment())
 
-            else ->
-                getNullAlignmentStrategy()
+            else -> getNullAlignmentStrategy()
         }
     }
 
@@ -470,7 +457,9 @@ abstract class CangJieCommonBlock(
             }
         }
 
-        return createBlock(child, alignmentStrategy, createChildIndent(child), childWrap, settings, spacingBuilder, overrideChildren)
+        return createBlock(
+            child, alignmentStrategy, createChildIndent(child), childWrap, settings, spacingBuilder, overrideChildren
+        )
     }
 
     private fun buildSubBlocks(): List<ASTBlock> {
@@ -493,10 +482,8 @@ abstract class CangJieCommonBlock(
             else -> node.children()
         }
 
-        return childNodes
-            .filter { it.textRange.length > 0 && it.elementType != TokenType.WHITE_SPACE }
-            .flatMap { buildSubBlocksForChildNode(it, childrenAlignmentStrategy, wrappingStrategy) }
-            .toList()
+        return childNodes.filter { it.textRange.length > 0 && it.elementType != TokenType.WHITE_SPACE }
+            .flatMap { buildSubBlocksForChildNode(it, childrenAlignmentStrategy, wrappingStrategy) }.toList()
     }
 
     private fun buildSubBlocksForChildNode(
@@ -504,7 +491,7 @@ abstract class CangJieCommonBlock(
         childrenAlignmentStrategy: CommonAlignmentStrategy,
         wrappingStrategy: WrappingStrategy,
     ): Sequence<ASTBlock> {
-        if (node.elementType == FUNC   ) {
+        if (node.elementType == FUNC) {
             val filteredChildren = node.children().filter {
                 it.textRange.length > 0 && it.elementType != TokenType.WHITE_SPACE
             }
@@ -515,8 +502,10 @@ abstract class CangJieCommonBlock(
             }.toList()
             val remainingChildren = filteredChildren.drop(eolComments.size)
 
-            val blocks = eolComments.map { buildSubBlock(it, childrenAlignmentStrategy, wrappingStrategy) } +
-                    sequenceOf(buildSubBlock(node, childrenAlignmentStrategy, wrappingStrategy, remainingChildren))
+            val blocks =
+                eolComments.map { buildSubBlock(it, childrenAlignmentStrategy, wrappingStrategy) } + sequenceOf(
+                    buildSubBlock(node, childrenAlignmentStrategy, wrappingStrategy, remainingChildren)
+                )
             val blockList = blocks.toList()
             return blockList.asSequence()
         }
@@ -543,8 +532,7 @@ abstract class CangJieCommonBlock(
         when {
             elementType === VALUE_ARGUMENT_LIST -> {
                 val wrapSetting = commonSettings.CALL_PARAMETERS_WRAP
-                if (!node.addTrailingComma &&
-                    (wrapSetting == CommonCodeStyleSettings.WRAP_AS_NEEDED || wrapSetting == CommonCodeStyleSettings.WRAP_ON_EVERY_ITEM)
+                if (!node.addTrailingComma && (wrapSetting == CommonCodeStyleSettings.WRAP_AS_NEEDED || wrapSetting == CommonCodeStyleSettings.WRAP_ON_EVERY_ITEM)
 
                 ) {
                     return ::noWrapping
@@ -569,9 +557,13 @@ abstract class CangJieCommonBlock(
 
                     FUNCTION_TYPE -> return defaultTrailingCommaWrappingStrategy(LPAR, RPAR)
                     FUNCTION_LITERAL -> if (trailingCommaExistsOrCanExist(nodePsi.parent, settings)) {
-                        val check = thisOrPrevIsMultiLineElement(LBRACE , ARROW  )
+                        val check = thisOrPrevIsMultiLineElement(LBRACE, ARROW)
                         return { childElement ->
-                            createWrapAlwaysIf(getSiblingWithoutWhitespaceAndComments(childElement) == null || check(childElement))
+                            createWrapAlwaysIf(
+                                getSiblingWithoutWhitespaceAndComments(childElement) == null || check(
+                                    childElement
+                                )
+                            )
                         }
                     }
                 }
@@ -583,7 +575,7 @@ abstract class CangJieCommonBlock(
 
 
             elementType === MATCH_ENTRY -> if (trailingCommaExistsOrCanExist(nodePsi, settings)) {
-                val check = thisOrPrevIsMultiLineElement(LBRACE , ARROW  )
+                val check = thisOrPrevIsMultiLineElement(LBRACE, ARROW)
                 return trailingCommaWrappingStrategy(rightAnchor = ARROW) {
                     getSiblingWithoutWhitespaceAndComments(it, true) != null && check(it)
                 }
@@ -594,7 +586,9 @@ abstract class CangJieCommonBlock(
                 if (nodePsi.letOrVarKeyword == null) return defaultTrailingCommaWrappingStrategy(LPAR, RPAR)
                 if (trailingCommaExistsOrCanExist(nodePsi, settings)) {
                     val check = thisOrPrevIsMultiLineElement(LPAR, RPAR)
-                    return trailingCommaWrappingStrategy(leftAnchor = LPAR, rightAnchor = RPAR, filter = { it.elementType !== EQ }) {
+                    return trailingCommaWrappingStrategy(leftAnchor = LPAR,
+                        rightAnchor = RPAR,
+                        filter = { it.elementType !== EQ }) {
                         getSiblingWithoutWhitespaceAndComments(it, true) != null && check(it)
                     }
                 }
@@ -606,92 +600,90 @@ abstract class CangJieCommonBlock(
 
             elementType === TYPE_ARGUMENT_LIST -> return defaultTrailingCommaWrappingStrategy(LT, GT)
 
-            elementType === COLLECTION_LITERAL_EXPRESSION -> return defaultTrailingCommaWrappingStrategy(LBRACKET, RBRACKET)
+            elementType === COLLECTION_LITERAL_EXPRESSION -> return defaultTrailingCommaWrappingStrategy(
+                LBRACKET, RBRACKET
+            )
 
             elementType === SUPER_TYPE_LIST -> {
                 val wrap = Wrap.createWrap(commonSettings.EXTENDS_LIST_WRAP, false)
                 return { childElement -> if (childElement.psi is CjSuperTypeListEntry) wrap else null }
             }
 
-            elementType === CLASS_BODY -> return getWrappingStrategyForItemList(commonSettings.ENUM_CONSTANTS_WRAP, ENUM_ENTRY)
+//            elementType === CLASS_BODY -> return getWrappingStrategyForItemList(
+//                commonSettings.ENUM_CONSTANTS_WRAP,
+//                ENUM_ENTRY
+//            )
 
             elementType === MODIFIER_LIST -> {
                 when (val parent = node.treeParent.psi) {
-                    is CjParameter ->
-                        return getWrappingStrategyForItemList(
-                            commonSettings.PARAMETER_ANNOTATION_WRAP,
-                            ANNOTATIONS,
-                            !node.treeParent.isFirstParameter(),
-                        )
+                    is CjParameter -> return getWrappingStrategyForItemList(
+                        commonSettings.PARAMETER_ANNOTATION_WRAP,
+                        ANNOTATIONS,
+                        !node.treeParent.isFirstParameter(),
+                    )
 
-                    is CjClassOrStruct  ->
-                        return getWrappingStrategyForItemList(
-                            commonSettings.CLASS_ANNOTATION_WRAP,
-                            ANNOTATIONS,
-                        )
+                    is CjClassOrStruct -> return getWrappingStrategyForItemList(
+                        commonSettings.CLASS_ANNOTATION_WRAP,
+                        ANNOTATIONS,
+                    )
 
-                    is CjNamedFunction, is CjSecondaryConstructor ->
-                        return getWrappingStrategyForItemList(
-                            commonSettings.METHOD_ANNOTATION_WRAP,
-                            ANNOTATIONS,
-                        )
+                    is CjNamedFunction, is CjSecondaryConstructor -> return getWrappingStrategyForItemList(
+                        commonSettings.METHOD_ANNOTATION_WRAP,
+                        ANNOTATIONS,
+                    )
 
-                    is CjVariable ->
-                        return getWrappingStrategyForItemList(
-                            if (parent.isLocal)
-                                commonSettings.VARIABLE_ANNOTATION_WRAP
-                            else
-                                commonSettings.FIELD_ANNOTATION_WRAP,
-                            ANNOTATIONS,
-                        )
+                    is CjVariable -> return getWrappingStrategyForItemList(
+                        if (parent.isLocal) commonSettings.VARIABLE_ANNOTATION_WRAP
+                        else commonSettings.FIELD_ANNOTATION_WRAP,
+                        ANNOTATIONS,
+                    )
                 }
             }
 
-            elementType === VALUE_PARAMETER ->
-                return wrapAfterAnnotation(commonSettings.PARAMETER_ANNOTATION_WRAP)
+            elementType === VALUE_PARAMETER -> return wrapAfterAnnotation(commonSettings.PARAMETER_ANNOTATION_WRAP)
 
+            nodePsi is CjEnumBody -> return getWrappingStrategyForEnum(commonSettings.ENUM_CONSTANTS_WRAP)
+//                return getWrappingStrategyForItemList(commonSettings.ENUM_CONSTANTS_WRAP, ENUM_ENTRY)
 
             //TODO 别名
-            nodePsi is CjClassOrStruct   ->
-                return wrapAfterAnnotation(commonSettings.CLASS_ANNOTATION_WRAP)
+            nodePsi is CjClassOrStruct -> return wrapAfterAnnotation(commonSettings.CLASS_ANNOTATION_WRAP)
 
-            nodePsi is CjNamedFunction || nodePsi is CjSecondaryConstructor ->
-                return wrap@{ childElement ->
-                    getWrapAfterAnnotation(childElement, commonSettings.METHOD_ANNOTATION_WRAP)?.let {
-                        return@wrap it
-                    }
-
-                    if (getSiblingWithoutWhitespaceAndComments(childElement)?.elementType == EQ) {
-                        Wrap.createWrap(settings.cangjieCustomSettings.WRAP_EXPRESSION_BODY_FUNCTIONS, true)
-                    } else {
-                        null
-                    }
+            nodePsi is CjNamedFunction || nodePsi is CjSecondaryConstructor -> return wrap@{ childElement ->
+                getWrapAfterAnnotation(childElement, commonSettings.METHOD_ANNOTATION_WRAP)?.let {
+                    return@wrap it
                 }
 
-            nodePsi is CjVariable ->
-                return wrap@{ childElement ->
-                    val wrapSetting = if (nodePsi.isLocal) commonSettings.VARIABLE_ANNOTATION_WRAP else commonSettings.FIELD_ANNOTATION_WRAP
-                    getWrapAfterAnnotation(childElement, wrapSetting)?.let {
-                        return@wrap it
-                    }
-
-                    if (getSiblingWithoutWhitespaceAndComments(childElement)?.elementType == EQ) {
-                        Wrap.createWrap(settings.cangjieCommonSettings.ASSIGNMENT_WRAP, true)
-                    } else {
-                        null
-                    }
-                }
-            nodePsi is CjProperty ->
-                return wrap@{ childElement ->
-                    val wrapSetting =  commonSettings.FIELD_ANNOTATION_WRAP
-                    getWrapAfterAnnotation(childElement, wrapSetting)?.let {
-                        return@wrap it
-                    }
-                    if (getSiblingWithoutWhitespaceAndComments(childElement)?.elementType == EQ) {
-                        return@wrap Wrap.createWrap(settings.cangjieCommonSettings.ASSIGNMENT_WRAP, true)
-                    }
+                if (getSiblingWithoutWhitespaceAndComments(childElement)?.elementType == EQ) {
+                    Wrap.createWrap(settings.cangjieCustomSettings.WRAP_EXPRESSION_BODY_FUNCTIONS, true)
+                } else {
                     null
                 }
+            }
+
+            nodePsi is CjVariable -> return wrap@{ childElement ->
+                val wrapSetting =
+                    if (nodePsi.isLocal) commonSettings.VARIABLE_ANNOTATION_WRAP else commonSettings.FIELD_ANNOTATION_WRAP
+                getWrapAfterAnnotation(childElement, wrapSetting)?.let {
+                    return@wrap it
+                }
+
+                if (getSiblingWithoutWhitespaceAndComments(childElement)?.elementType == EQ) {
+                    Wrap.createWrap(settings.cangjieCommonSettings.ASSIGNMENT_WRAP, true)
+                } else {
+                    null
+                }
+            }
+
+            nodePsi is CjProperty -> return wrap@{ childElement ->
+                val wrapSetting = commonSettings.FIELD_ANNOTATION_WRAP
+                getWrapAfterAnnotation(childElement, wrapSetting)?.let {
+                    return@wrap it
+                }
+                if (getSiblingWithoutWhitespaceAndComments(childElement)?.elementType == EQ) {
+                    return@wrap Wrap.createWrap(settings.cangjieCommonSettings.ASSIGNMENT_WRAP, true)
+                }
+                null
+            }
 
             nodePsi is CjBinaryExpression -> {
                 if (nodePsi.operationToken == EQ) {
@@ -721,13 +713,17 @@ abstract class CangJieCommonBlock(
         return ::noWrapping
     }
 
-    private fun defaultTrailingCommaWrappingStrategy(leftAnchor: IElementType, rightAnchor: IElementType): WrappingStrategy =
-        fun(childElement: ASTNode): Wrap? = trailingCommaWrappingStrategyWithMultiLineCheck(leftAnchor, rightAnchor)(childElement)
+    private fun defaultTrailingCommaWrappingStrategy(
+        leftAnchor: IElementType, rightAnchor: IElementType
+    ): WrappingStrategy = fun(childElement: ASTNode): Wrap? =
+        trailingCommaWrappingStrategyWithMultiLineCheck(leftAnchor, rightAnchor)(childElement)
 
     private val ASTNode.addTrailingComma: Boolean
-        get() = (settings.cangjieCustomSettings.addTrailingCommaIsAllowedFor(this) ||
-                lastChildNode?.let { getSiblingWithoutWhitespaceAndComments(it) }?.elementType === COMMA) &&
-                psi?.let(PsiElement::isMultiline) == true
+        get() = (settings.cangjieCustomSettings.addTrailingCommaIsAllowedFor(this) || lastChildNode?.let {
+            getSiblingWithoutWhitespaceAndComments(
+                it
+            )
+        }?.elementType === COMMA) && psi?.let(PsiElement::isMultiline) == true
 
 
     private fun ASTNode.notDelimiterSiblingNodeInSequence(
@@ -736,7 +732,8 @@ abstract class CangJieCommonBlock(
         typeOfLastElement: IElementType,
     ): ASTNode? {
         var sibling: ASTNode? = null
-        for (element in siblings(forward).filter { it.elementType != WHITE_SPACE }.takeWhile { it.elementType != typeOfLastElement }) {
+        for (element in siblings(forward).filter { it.elementType != WHITE_SPACE }
+            .takeWhile { it.elementType != typeOfLastElement }) {
             val elementType = element.elementType
             if (!forward) {
                 sibling = element
@@ -767,10 +764,12 @@ abstract class CangJieCommonBlock(
         val psi = childElement.psi ?: return false
         if (psi.isMultiline()) return true
 
-        val startOffset = childElement.notDelimiterSiblingNodeInSequence(false, delimiterType, typeOfFirstElement)?.startOffset
-            ?: psi.startOffset
-        val endOffset = childElement.notDelimiterSiblingNodeInSequence(true, delimiterType, typeOfLastElement)?.psi?.endOffset
-            ?: psi.endOffset
+        val startOffset =
+            childElement.notDelimiterSiblingNodeInSequence(false, delimiterType, typeOfFirstElement)?.startOffset
+                ?: psi.startOffset
+        val endOffset =
+            childElement.notDelimiterSiblingNodeInSequence(true, delimiterType, typeOfLastElement)?.psi?.endOffset
+                ?: psi.endOffset
 
         return psi.parent.containsLineBreakInChild(startOffset, endOffset)
     }
@@ -795,20 +794,15 @@ abstract class CangJieCommonBlock(
         if (!filter(childElement)) return null
         val childElementType = childElement.elementType
         return createWrapAlwaysIf(
-            (!checkTrailingComma || childElement.treeParent.addTrailingComma) && (
-                    rightAnchor != null && rightAnchor === childElementType ||
-                            leftAnchor != null && leftAnchor === getPrevWithoutWhitespace(childElement)?.elementType ||
-                            additionalCheck(childElement)
-                    ),
+            (!checkTrailingComma || childElement.treeParent.addTrailingComma) && (rightAnchor != null && rightAnchor === childElementType || leftAnchor != null && leftAnchor === getPrevWithoutWhitespace(
+                childElement
+            )?.elementType || additionalCheck(childElement)),
         )
     }
 }
 
-private fun ASTNode.qualifierReceiver(): ASTNode? = unwrapQualifier()?.psi
-    ?.safeAs<CjQualifiedExpression>()
-    ?.receiverExpression
-    ?.node
-    ?.unwrapQualifier()
+private fun ASTNode.qualifierReceiver(): ASTNode? =
+    unwrapQualifier()?.psi?.safeAs<CjQualifiedExpression>()?.receiverExpression?.node?.unwrapQualifier()
 
 private tailrec fun ASTNode.unwrapQualifier(): ASTNode? {
     if (elementType in QUALIFIED_EXPRESSIONS) return this
@@ -864,7 +858,8 @@ private fun anyCallInCallChainIsWrapped(node: ASTNode): Boolean {
 
 private fun ASTNode.isFirstParameter(): Boolean = treePrev?.elementType == LPAR
 
-private fun wrapAfterAnnotation(wrapType: Int): WrappingStrategy = { childElement -> getWrapAfterAnnotation(childElement, wrapType) }
+private fun wrapAfterAnnotation(wrapType: Int): WrappingStrategy =
+    { childElement -> getWrapAfterAnnotation(childElement, wrapType) }
 
 private fun getWrapAfterAnnotation(childElement: ASTNode, wrapType: Int): Wrap? {
     if (childElement.elementType in COMMENTS) return null
@@ -884,9 +879,7 @@ private fun getWrapAfterAnnotation(childElement: ASTNode, wrapType: Int): Wrap? 
 
 
 private fun hasLineBreakBefore(node: ASTNode): Boolean {
-    val prevSibling = node.leaves(false)
-        .dropWhile { it.psi is PsiComment }
-        .firstOrNull()
+    val prevSibling = node.leaves(false).dropWhile { it.psi is PsiComment }.firstOrNull()
 
     return prevSibling?.elementType == TokenType.WHITE_SPACE && prevSibling?.textContains('\n') == true
 }
@@ -902,187 +895,134 @@ fun NodeIndentStrategy.PositionStrategy.continuationIf(
     indentFirst: Boolean = false,
 ): NodeIndentStrategy = set { settings ->
     if (option(settings.cangjieCustomSettings)) {
-        if (indentFirst)
-            Indent.getContinuationIndent()
-        else
-            Indent.getContinuationWithoutFirstIndent()
-    } else
-        Indent.getNormalIndent()
+        if (indentFirst) Indent.getContinuationIndent()
+        else Indent.getContinuationWithoutFirstIndent()
+    } else Indent.getNormalIndent()
 }
 
+//TODO 块相对于父级块的缩进
 private val INDENT_RULES = arrayOf(
-    strategy("No indent for braces in blocks")
-        .within(BLOCK, CLASS_BODY, FUNCTION_LITERAL )
-        .forType(RBRACE, LBRACE)
-        .set(Indent.getNoneIndent()),
 
-    strategy("Indent for block content")
-        .within(BLOCK, CLASS_BODY, FUNCTION_LITERAL, PROPERTY_BODY)
-        .notForType(RBRACE, LBRACE, BLOCK)
+
+    strategy("No indent for braces in blocks").within(BLOCK, CLASS_BODY, FUNCTION_LITERAL, ENUM_BODY)
+        .forType(RBRACE, LBRACE).set(Indent.getNoneIndent()),
+
+    strategy("Indent for block content").within(BLOCK, CLASS_BODY, FUNCTION_LITERAL, PROPERTY_BODY, ENUM_BODY)
+        .notForType(RBRACE, LBRACE, BLOCK, ENUM_ENTRY).set(Indent.getNormalIndent()),
+
+    strategy("Indent for template content").within(LONG_STRING_TEMPLATE_ENTRY)
+        .notForType(LONG_TEMPLATE_ENTRY_START, LONG_TEMPLATE_ENTRY_END).set(Indent.getNormalIndent()),
+
+    strategy("No indent for braces in template").within(LONG_STRING_TEMPLATE_ENTRY)
+        .forType(LONG_TEMPLATE_ENTRY_START, LONG_TEMPLATE_ENTRY_END).set(Indent.getNoneIndent()),
+
+    strategy("Indent for property accessors").within(PROPERTY).forType(PROPERTY_BODY).set(Indent.getNormalIndent()),
+
+    strategy("For a single statement in 'for'").within(BODY).notForType(BLOCK).set(Indent.getNormalIndent()),
+
+    strategy("For single statement in THEN and ELSE").within(THEN, ELSE).notForType(BLOCK)
         .set(Indent.getNormalIndent()),
 
-    strategy("Indent for template content")
-        .within(LONG_STRING_TEMPLATE_ENTRY)
-        .notForType(LONG_TEMPLATE_ENTRY_START, LONG_TEMPLATE_ENTRY_END)
-        .set(Indent.getNormalIndent()),
+    strategy("Expression body").within(FUNC).forElement {
+        (it.psi is CjExpression && it.psi !is CjBlockExpression)
+    }.continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES, indentFirst = true),
 
-    strategy("No indent for braces in template")
-        .within(LONG_STRING_TEMPLATE_ENTRY)
-        .forType(LONG_TEMPLATE_ENTRY_START, LONG_TEMPLATE_ENTRY_END)
-        .set(Indent.getNoneIndent()),
-
-    strategy("Indent for property accessors")
-        .within(PROPERTY).forType(PROPERTY_BODY)
-        .set(Indent.getNormalIndent()),
-
-    strategy("For a single statement in 'for'")
-        .within(BODY).notForType(BLOCK)
-        .set(Indent.getNormalIndent()),
-
-    strategy("For single statement in THEN and ELSE")
-        .within(THEN, ELSE).notForType(BLOCK)
-        .set(Indent.getNormalIndent()),
-
-    strategy("Expression body")
-        .within(FUNC)
-        .forElement {
-            (it.psi is CjExpression && it.psi !is CjBlockExpression)
+    strategy("Line comment at expression body position").forElement { node ->
+        val psi = node.psi
+        val parent = psi.parent
+        if (psi is PsiComment && parent is CjDeclarationWithInitializer) {
+            psi.getNextSiblingIgnoringWhitespace() == parent.initializer
+        } else {
+            false
         }
-        .continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES, indentFirst = true),
+    }.continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES, indentFirst = true),
 
-    strategy("Line comment at expression body position")
-        .forElement { node ->
-            val psi = node.psi
-            val parent = psi.parent
-            if (psi is PsiComment && parent is CjDeclarationWithInitializer) {
-                psi.getNextSiblingIgnoringWhitespace() == parent.initializer
-            } else {
-                false
-            }
-        }
-        .continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES, indentFirst = true),
+    strategy("If condition").within(CONDITION).set { settings ->
+        val indentType =
+            if (settings.cangjieCustomSettings.CONTINUATION_INDENT_IN_IF_CONDITIONS) Indent.Type.CONTINUATION
+            else Indent.Type.NORMAL
 
-    strategy("If condition")
-        .within(CONDITION)
-        .set { settings ->
-            val indentType = if (settings.cangjieCustomSettings.CONTINUATION_INDENT_IN_IF_CONDITIONS)
-                Indent.Type.CONTINUATION
-            else
-                Indent.Type.NORMAL
+        Indent.getIndent(indentType, false, true)
+    },
 
-            Indent.getIndent(indentType, false, true)
-        },
+    strategy("Property accessor expression body").within(PROPERTY_ACCESSOR).forElement {
+        it.psi is CjExpression && it.psi !is CjBlockExpression
+    }.set(Indent.getNormalIndent()),
 
-    strategy("Property accessor expression body")
-        .within(PROPERTY_ACCESSOR)
-        .forElement {
-            it.psi is CjExpression && it.psi !is CjBlockExpression
-        }
-        .set(Indent.getNormalIndent()),
+    strategy("Property initializer").within(PROPERTY).forElement {
+        it.psi is CjExpression
+    }.continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES),
 
-    strategy("Property initializer")
-        .within(PROPERTY)
-        .forElement {
-            it.psi is CjExpression
-        }
-        .continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES),
+    strategy("Destructuring declaration").within(DESTRUCTURING_DECLARATION).forElement {
+        it.psi is CjExpression
+    }.continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES),
 
-    strategy("Destructuring declaration")
-        .within(DESTRUCTURING_DECLARATION)
-        .forElement {
-            it.psi is CjExpression
-        }
-        .continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES),
+    strategy("Assignment expressions").within(BINARY_EXPRESSION).within {
+        val binaryExpression = it.psi as? CjBinaryExpression ?: return@within false
+        ALL_ASSIGNMENTS.contains(binaryExpression.operationToken)
+    }.forElement {
+        val psi = it.psi
+        val binaryExpression = psi?.parent as? CjBinaryExpression
+        binaryExpression?.right == psi
+    }.continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES),
 
-    strategy("Assignment expressions")
-        .within(BINARY_EXPRESSION)
-        .within {
-            val binaryExpression = it.psi as? CjBinaryExpression ?: return@within false
-            ALL_ASSIGNMENTS.contains(binaryExpression.operationToken)
-        }
-        .forElement {
-            val psi = it.psi
-            val binaryExpression = psi?.parent as? CjBinaryExpression
-            binaryExpression?.right == psi
-        }
-        .continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES),
+    strategy("Indent for parts").within(PROPERTY, FUNC, DESTRUCTURING_DECLARATION, SECONDARY_CONSTRUCTOR).notForType(
+        BLOCK,
+        FUNC_KEYWORD,
+        CONST_KEYWORD,
+        LET_KEYWORD,
+        VAR_KEYWORD,
+        INIT_KEYWORD,
+        RPAR,
+        EOL_COMMENT,
+        CONTEXT_RECEIVER_LIST,
+        MODIFIER_LIST
+    ).set(Indent.getContinuationWithoutFirstIndent()),
 
-    strategy("Indent for parts")
-        .within(PROPERTY, FUNC, DESTRUCTURING_DECLARATION, SECONDARY_CONSTRUCTOR)
-        .notForType(BLOCK, FUNC_KEYWORD,
-            CONST_KEYWORD, LET_KEYWORD, VAR_KEYWORD, INIT_KEYWORD, RPAR, EOL_COMMENT, CONTEXT_RECEIVER_LIST, MODIFIER_LIST)
-        .set(Indent.getContinuationWithoutFirstIndent()),
-
-    strategy("Chained calls")
-        .within(QUALIFIED_EXPRESSIONS)
+    strategy("Chained calls").within(QUALIFIED_EXPRESSIONS)
         .forType(EOL_COMMENT, BLOCK_COMMENT, DOC_COMMENT, SHEBANG_COMMENT)
         .continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_CHAINED_CALLS),
 
 
-
-    strategy("Delegation list")
-        .within(SUPER_TYPE_LIST)
+    strategy("Delegation list").within(SUPER_TYPE_LIST)
         .continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_IN_SUPERTYPE_LISTS, indentFirst = true),
 
-    strategy("Indices")
-        .within(INDICES)
-        .notForType(RBRACKET)
+    strategy("Indices").within(INDICES).notForType(RBRACKET)
         .continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_IN_ARGUMENT_LISTS),
-
-    strategy("Binary expressions")
-        .within(BINARY_EXPRESSIONS)
+    strategy("Binary expressions").within(BINARY_EXPRESSIONS)
         .forElement { node -> !node.suppressBinaryExpressionIndent() }
         .set(Indent.getContinuationWithoutFirstIndent(false)),
 
-    strategy("Parenthesized expression")
-        .within(PARENTHESIZED)
-        .set(Indent.getContinuationWithoutFirstIndent(false)),
+    strategy("Parenthesized expression").within(PARENTHESIZED).set(Indent.getContinuationWithoutFirstIndent(false)),
 
-    strategy("Opening parenthesis for conditions")
-        .forType(LPAR)
-        .within(IF, MATCH_ENTRY, WHILE, DO_WHILE, FOR, MATCH)
+    strategy("Opening parenthesis for conditions").forType(LPAR).within(IF, MATCH_ENTRY, WHILE, DO_WHILE, FOR, MATCH)
         .set(Indent.getContinuationWithoutFirstIndent(true)),
 
-    strategy("Closing parenthesis for conditions")
-        .forType(RPAR)
+    strategy("Closing parenthesis for conditions").forType(RPAR)
         .forElement { node -> !hasErrorElementBefore(node) || node.prev()?.textLength == 0 }
-        .within(IF, MATCH_ENTRY, WHILE, DO_WHILE, FOR, MATCH)
-        .set(Indent.getNoneIndent()),
+        .within(IF, MATCH_ENTRY, WHILE, DO_WHILE, FOR, MATCH).set(Indent.getNoneIndent()),
 
-    strategy("Closing parenthesis for incomplete conditions")
-        .forType(RPAR)
-        .forElement { node -> hasErrorElementBefore(node) }
-        .within(IF, MATCH_ENTRY, WHILE, DO_WHILE, FOR, MATCH)
+    strategy("Closing parenthesis for incomplete conditions").forType(RPAR)
+        .forElement { node -> hasErrorElementBefore(node) }.within(IF, MATCH_ENTRY, WHILE, DO_WHILE, FOR, MATCH)
         .set(Indent.getContinuationWithoutFirstIndent()),
-
-    strategy("For MATCH content")
-        .within(MATCH)
-        .notForType(RBRACE, LBRACE, MATCH_KEYWORD)
-        .set(Indent.getNormalIndent()),
-
-    strategy("KDoc comment indent")
-        .within(CDOC_CONTENT)
-        .forType(CDocTokens.LEADING_ASTERISK, CDocTokens.END)
+    strategy("For MATCH content").within(MATCH).notForType(RBRACE, LBRACE, MATCH_KEYWORD).set(Indent.getNormalIndent()),
+    strategy("CDoc comment indent").within(CDOC_CONTENT).forType(CDocTokens.LEADING_ASTERISK, CDocTokens.END)
         .set(Indent.getSpaceIndent(CDOC_COMMENT_INDENT)),
 
-    strategy("Block in when entry")
-        .within(MATCH_ENTRY)
-        .notForType(BLOCK, CASE_PATTERN,   DOUBLE_ARROW)
-        .set(Indent.getNormalIndent()),
 
-    strategy("Parameter list")
-        .within(VALUE_PARAMETER_LIST)
+    //TODO error case会多出一个缩进
+//    strategy("Block in when entry")
+//        .within(MATCH_ENTRY)
+//        .notForType(CASE_PATTERN, DOUBLE_ARROW, BLOCK)
+//        .set(Indent.getNormalIndent()),
+
+    strategy("Parameter list").within(VALUE_PARAMETER_LIST)
         .forElement { it.elementType == VALUE_PARAMETER && it.psi.prevSibling != null }
         .continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_IN_PARAMETER_LISTS, indentFirst = true),
 
-    strategy("Where clause")
-        .within(CLASS, FUNC, PROPERTY)
-        .forType(WHERE_KEYWORD)
-        .set(Indent.getContinuationIndent()),
+    strategy("Where clause").within(CLASS, FUNC, PROPERTY).forType(WHERE_KEYWORD).set(Indent.getContinuationIndent()),
 
-    strategy("Array literals")
-        .within(COLLECTION_LITERAL_EXPRESSION)
-        .notForType(LBRACKET, RBRACKET)
+    strategy("Array literals").within(COLLECTION_LITERAL_EXPRESSION).notForType(LBRACKET, RBRACKET)
         .set(Indent.getNormalIndent()),
 
 //    strategy("Type aliases")
@@ -1090,14 +1030,27 @@ private val INDENT_RULES = arrayOf(
 //        .notForType(TYPE_ALIAS_KEYWORD, EOL_COMMENT, MODIFIER_LIST, BLOCK_COMMENT, DOC_COMMENT)
 //        .set(Indent.getContinuationIndent()),
 
-    strategy("Default parameter values")
-        .within(VALUE_PARAMETER)
+    strategy("Default parameter values").within(VALUE_PARAMETER)
         .forElement { node -> node.psi != null && node.psi == (node.psi.parent as? CjParameter)?.defaultValue }
         .continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES, indentFirst = true),
+
+
+//        ENUM_ENTRY后面换行
+//    strategy("Enum entries")
+//        .within(ENUM_BODY)
+//        .forType(ENUM_ENTRY)
+//        .set {
+//
+//            Indent.getNormalIndent()
+//
+//        },
+
+
 )
 
 
-private fun getOperationType(node: ASTNode): IElementType? = node.findChildByType(OPERATION_REFERENCE)?.firstChildNode?.elementType
+private fun getOperationType(node: ASTNode): IElementType? =
+    node.findChildByType(OPERATION_REFERENCE)?.firstChildNode?.elementType
 
 fun hasErrorElementBefore(node: ASTNode): Boolean {
     val prevSibling = getPrevWithoutWhitespace(node) ?: return false
@@ -1143,11 +1096,7 @@ private fun getAlignmentForChildInParenthesis(
                 return bracketsAlignment
             }
 
-            if (childNodeType === parameter ||
-                childNodeType === delimiter ||
-                childNodeType === BLOCK_COMMENT ||
-                childNodeType === DOC_COMMENT
-            ) {
+            if (childNodeType === parameter || childNodeType === delimiter || childNodeType === BLOCK_COMMENT || childNodeType === DOC_COMMENT) {
                 return parameterAlignment
             }
 
@@ -1166,6 +1115,65 @@ private fun getSiblingWithoutWhitespaceAndComments(pNode: ASTNode, forward: Bool
     }
 }
 
+private fun getWrappingStrategyForEnum(
+    wrapType: Int,
+
+    wrapFirstElement: Boolean = false,
+    additionalWrap: WrappingStrategy? = null,
+): WrappingStrategy {
+    val itemWrap = Wrap.createWrap(wrapType, wrapFirstElement)
+    return { childElement ->
+
+
+
+
+
+        additionalWrap?.invoke(childElement)
+            ?: if (childElement.elementType == ENUM_ENTRY                && (childElement.prev()?.elementType == OR || childElement.prev()
+                    ?.prev()?.elementType == OR)
+            ) {
+//                Wrap.createWrap(CommonCodeStyleSettings.DO_NOT_WRAP, wrapFirstElement)
+//                if (childElement.elementType == OR) {
+//                    if (childElement.treeNext.elementType == WHITE_SPACE && childElement.treeNext.treeNext.elementType == ENUM_ENTRY) {
+//                        val psi = childElement.treePrev.psi
+////                WriteCommandAction.runWriteCommandAction(psi.project, Runnable {
+//                        // 在这里修改 PSI 元素的文本
+//                        if (psi.text != " ") {
+//                            psi.replace(
+//                                CjPsiFactory.contextual(psi).createWhiteSpace()
+//                            )
+//                        }
+//
+//
+//                    }
+//                }
+                null
+
+            }/* if (childElement.elementType == OR && (childElement.treeNext?.elementType == ENUM_ENTRY || childElement.treeNext
+                     ?.treeNext?.elementType == ENUM_ENTRY) ) {
+                 Wrap.createWrap(CommonCodeStyleSettings.DO_NOT_WRAP, wrapFirstElement)
+
+             }*/ else {
+
+                if (childElement.elementType === OR) {
+                    itemWrap
+                } else {
+
+
+//           如果第一个枚举没有 | 也换行
+                    if (childElement.elementType == ENUM_ENTRY && (childElement.prev()?.elementType == LBRACE || childElement.prev()
+                            ?.prev()?.elementType == LBRACE)
+                    ) {
+                        itemWrap
+
+                    } else
+
+                        null
+                }
+            }
+    }
+}
+
 private fun getWrappingStrategyForItemList(
     wrapType: Int,
     itemType: IElementType,
@@ -1178,15 +1186,15 @@ private fun getWrappingStrategyForItemList(
     }
 }
 
-private fun getWrappingStrategyForItemList(wrapType: Int, itemTypes: TokenSet, wrapFirstElement: Boolean = false): WrappingStrategy {
+private fun getWrappingStrategyForItemList(
+    wrapType: Int, itemTypes: TokenSet, wrapFirstElement: Boolean = false
+): WrappingStrategy {
     val itemWrap = Wrap.createWrap(wrapType, wrapFirstElement)
     return { childElement ->
         val thisType = childElement.elementType
         val prevType = getPrevWithoutWhitespace(childElement)?.elementType
-        if (thisType in itemTypes || prevType in itemTypes && thisType != EOL_COMMENT && prevType != EOL_COMMENT)
-            itemWrap
-        else
-            null
+        if (thisType in itemTypes || prevType in itemTypes && thisType != EOL_COMMENT && prevType != EOL_COMMENT) itemWrap
+        else null
     }
 }
 
@@ -1200,11 +1208,14 @@ private fun ASTNode.prev(): ASTNode? {
     return if (treeParent != null) treeParent.prev() else null
 }
 
-private fun List<ASTBlock>.indexOfBlockWithType(tokenSet: TokenSet): Int = indexOfFirst { block -> block.node?.elementType in tokenSet }
+private fun List<ASTBlock>.indexOfBlockWithType(tokenSet: TokenSet): Int =
+    indexOfFirst { block -> block.node?.elementType in tokenSet }
 
 private fun extractIndent(node: ASTNode): String {
     val prevNode = node.treePrev
-    return if (prevNode?.elementType != TokenType.WHITE_SPACE) "" else prevNode.text.substringAfterLast("\n", prevNode.text)
+    return if (prevNode?.elementType != TokenType.WHITE_SPACE) "" else prevNode.text.substringAfterLast(
+        "\n", prevNode.text
+    )
 }
 
 private fun createWrapAlwaysIf(option: Boolean): Wrap? = if (option) Wrap.createWrap(WrapType.ALWAYS, true) else null

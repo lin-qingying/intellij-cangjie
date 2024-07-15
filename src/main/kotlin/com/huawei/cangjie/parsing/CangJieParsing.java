@@ -209,7 +209,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
         PsiBuilder.Marker firstEntry = mark();
 
         /*
-         * TODO fileAnnotationList  Ko文档注释
+         * TODO fileAnnotationList  Ko
+         *
+         *
+         *
+         * 文档注释
          *   : fileAnnotations*
          */
 
@@ -930,7 +934,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return switch (getTokenId()) {
             case AT_Id -> parseAnnotation(null);
             case FUNC_KEYWORD_Id ->
-                    tokenId != null ? tokenId == INTERFACE_KEYWORD_Id ? parseFunction(true, classdetector, detector) : parseFunction(classdetector, detector) : parseFunction();
+                    tokenId != null ? tokenId == INTERFACE_KEYWORD_Id ? parseFunction(true, classdetector, detector) : parseFunction(classdetector, detector) : parseFunction(detector);
 
 
 //                    tokenId != null && (tokenId == INTERFACE_KEYWORD_Id || tokenId == EXTEND_KEYWORD_Id) ?  parseFunction(true,classdetector, detector):parseFunction( ) ;
@@ -1498,7 +1502,13 @@ public class CangJieParsing extends AbstractCangJieParsing {
             return;
         }
 
+
 //        parseIdentifierByTitle("enum entry", IDENTIFIER_RBRACKET_LBRACKET_SET);
+
+
+//        处理泛型
+//        parseTypeArgumentList();
+
 
         if (at(LPAR)) {
             advance(); // LPAR

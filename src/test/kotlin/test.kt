@@ -1,3 +1,5 @@
-fun a(): Unit {
-
+enum class a {
+    A,
+    B,
+    C
 }

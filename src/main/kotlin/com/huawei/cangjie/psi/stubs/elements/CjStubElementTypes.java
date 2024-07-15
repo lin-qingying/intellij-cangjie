@@ -5,7 +5,7 @@ import com.intellij.psi.tree.TokenSet;
 
 public interface CjStubElementTypes {
 
-    CjConstantExpressionElementType NULL                = new CjConstantExpressionElementType("NULL");
+    CjConstantExpressionElementType NULL = new CjConstantExpressionElementType("NULL");
 
     CjPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
             new CjPlaceHolderStubElementType<>("ANNOTATION", CjAnnotation.class);
@@ -22,7 +22,6 @@ public interface CjStubElementTypes {
     CjConstantExpressionElementType UNIT_CONSTANT = new CjConstantExpressionElementType("UNIT_CONSTANT");
     CjAnnotationEntryElementType ANNOTATION_ENTRY = new CjAnnotationEntryElementType("ANNOTATION_ENTRY");
     CjAnnotationEntryElementType MACRO_EXPRESSION = new CjAnnotationEntryElementType("MACRO_EXPRESSION");
-
 
 
     //    KtPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
@@ -54,7 +53,7 @@ public interface CjStubElementTypes {
 
     CjVariableElementType VARIABLE = new CjVariableElementType("VARIABLE");
     CjPropertyElementType PROPERTY = new CjPropertyElementType("PROPERTY");
-  CjTypeAliasElementType TYPEALIAS = new CjTypeAliasElementType("TYPEALIAS");
+    CjTypeAliasElementType TYPEALIAS = new CjTypeAliasElementType("TYPEALIAS");
 
 
     CjPlaceHolderStubElementType<CjClassInitializer> CLASS_INITIALIZER =
@@ -77,8 +76,6 @@ public interface CjStubElementTypes {
 
 //    CjPlaceHolderStubElementType<CjMacroAttrArgumentList> MACRO_ARGUMENT_LIST =
 //            new CjPlaceHolderStubElementType<>("MACRO_ARGUMENT_LIST", CjMacroAttrArgumentList.class);
-
-
 
 
     CjTypeParameterElementType TYPE_PARAMETER = new CjTypeParameterElementType("TYPE_PARAMETER");
@@ -113,7 +110,8 @@ public interface CjStubElementTypes {
 
     CjUserTypeElementType USER_TYPE = new CjUserTypeElementType("USER_TYPE");
 
-    CjTupleTypeElementType TUPLE_TYPE = new CjTupleTypeElementType("TUPLE_TYPE");
+    //    CjTupleTypeElementType TUPLE_TYPE = new CjTupleTypeElementType("TUPLE_TYPE");
+    CjPlaceHolderStubElementType<CjTupleType> TUPLE_TYPE = new CjPlaceHolderStubElementType<>("TUPLE_TYPE", CjTupleType.class);
 
     CjPlaceHolderStubElementType<CjClassBody> CLASS_BODY =
             new CjPlaceHolderStubElementType<>("CLASS_BODY", CjClassBody.class);

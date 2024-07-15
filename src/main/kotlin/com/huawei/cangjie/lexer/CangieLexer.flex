@@ -418,6 +418,8 @@ b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 "UInt16"     { return CjTokens.UINT16_KEYWORD ;}
 "UInt32"     { return CjTokens.UINT32_KEYWORD ;}
 "UInt64"     { return CjTokens.UINT64_KEYWORD ;}
+"Float16"    { return CjTokens.FLOAT32_KEYWORD ;}
+
 "Float32"    { return CjTokens.FLOAT32_KEYWORD ;}
 "Float64"    { return CjTokens.FLOAT64_KEYWORD ;}
 "Bool"       { return CjTokens.BOOL_KEYWORD ;}

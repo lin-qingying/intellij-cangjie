@@ -4,6 +4,7 @@ package com.huawei.cangjie.idea.stubindex;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.psi.CangJiePsiHeuristics;
+import com.huawei.cangjie.psi.CjClassOrStruct;
 import com.huawei.cangjie.psi.CjFile;
 import com.huawei.cangjie.psi.CjTypeReference;
 import com.huawei.cangjie.psi.stubs.*;
@@ -17,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,8 +67,8 @@ public class IdeStubIndexService extends StubIndexService {
         if (name != null) {
             sink.occurrence(CangJieFunctionShortNameIndex.Helper.getIndexKey(), name);
 
-//            if (IndexUtilsKt.isDeclaredInObject(stub)) {
-//                IndexUtilsKt.indexExtensionInObject(stub, sink);
+//            if (IndexUtilsKt.isDeclaredInStruct(stub)) {
+//                IndexUtilsKt.indexExtensionInStruct(stub, sink);
 //            }
 
             CjTypeReference typeReference = stub.getPsi().getTypeReference();
@@ -93,6 +95,69 @@ public class IdeStubIndexService extends StubIndexService {
 
         IndexUtilsKt.indexInternals(stub, sink);
 
+    }
+
+    private static void indexSuperNames(CangJieClassOrStructStub<? extends CjClassOrStruct> stub, IndexSink sink) {
+        for (String superName : stub.getSuperNames()) {
+            sink.occurrence(CangJieSuperClassIndex.Helper.getIndexKey(), superName);
+        }
+
+        if (!(stub instanceof CangJieClassStub)) {
+            return;
+        }
+
+//        CangJieModifierListStub modifierListStub = getModifierListStub(stub);
+
+//        if (modifierListStub.hasModifier(CjTokens.ENUM_KEYWORD)) {
+//            sink.occurrence(CangJieSuperClassIndex.Helper.getIndexKey(), Enum.class.getSimpleName());
+//        }
+//        if (modifierListStub.hasModifier(CjTokens.ANNOTATION_KEYWORD)) {
+//            sink.occurrence(CangJieSuperClassIndex.Helper.getIndexKey(), Annotation.class.getSimpleName());
+//        }
+    }
+    @Override
+    public void indexClass(@NotNull CangJieClassStub stub, @NotNull IndexSink sink) {
+        processNames(sink, stub.getName(), stub.getFqName()/*, stub.isTopLevel()*/);
+
+//        if (stub.isInterface()) {
+//            sink.occurrence(CangJieClassShortNameIndex.Helper.getIndexKey(), JvmAbi.DEFAULT_IMPLS_CLASS_NAME);
+//        }
+
+        indexSuperNames(stub, sink);
+
+        indexPrime(stub, sink);
+    }
+
+    @Override
+    public void indexInterface(@NotNull CangJieInterfaceStub stub, @NotNull IndexSink sink) {
+        processNames(sink, stub.getName(), stub.getFqName()/*, stub.isTopLevel()*/);
+            sink.occurrence(CangJieClassShortNameIndex.Helper.getIndexKey(),"DefaultImpls");
+        indexSuperNames(stub, sink);
+        indexPrime(stub, sink);
+
+    }
+
+    private void processNames(IndexSink sink, String name, FqName fqName) {
+
+        processNames(sink, name, fqName, true);
+    }
+
+    private static void processNames(
+            @NotNull IndexSink sink,
+            String shortName,
+            FqName fqName,
+            boolean level) {
+        if (shortName != null) {
+            sink.occurrence(CangJieClassShortNameIndex.Helper.getIndexKey(), shortName);
+        }
+
+        if (fqName != null) {
+            sink.occurrence(CangJieFullClassNameIndex.Helper.getIndexKey(), fqName.asString());
+
+            if (level) {
+                sink.occurrence(CangJieTopLevelClassByPackageIndex.Helper.getIndexKey(), fqName.parent().asString());
+            }
+        }
     }
     /**
      * Indexes non-private top-level symbols or members of top-level objects and companion objects subject to this object serving as namespaces.

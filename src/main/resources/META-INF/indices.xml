@@ -12,6 +12,8 @@
         <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJiePrimeSymbolNameIndex"/>
         <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieOverridableInternalMembersShortNameIndex"/>
         <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieExactPackagesIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieClassShortNameIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieSuperClassIndex"/>
 
         <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieTopLevelClassByPackageIndex"/>
         <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieFullClassNameIndex"/>

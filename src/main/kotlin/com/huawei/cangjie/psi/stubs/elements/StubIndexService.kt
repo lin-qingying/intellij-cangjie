@@ -1,5 +1,3 @@
-
-
 package com.huawei.cangjie.psi.stubs.elements
 
 import com.huawei.cangjie.psi.CjFile
@@ -11,6 +9,7 @@ import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
 
 import java.io.IOException
+
 open class StubIndexService protected constructor() {
     open fun indexFile(stub: CangJieFileStub, sink: IndexSink) {
     }
@@ -26,16 +25,20 @@ open class StubIndexService protected constructor() {
 
     open fun indexStruct(stub: CangJieStructStub, sink: IndexSink) {
     }
+
     open fun indexVariable(stub: CangJieVariableStub, sink: IndexSink) {
     }
+
     open fun indexProperty(stub: CangJiePropertyStub, sink: IndexSink) {
     }
 
     open fun indexParameter(stub: CangJieParameterStub, sink: IndexSink) {
     }
-    open   fun indexInterface(stub: CangJieInterfaceStub, sink: IndexSink) {
+
+    open fun indexInterface(stub: CangJieInterfaceStub, sink: IndexSink) {
 
     }
+
     open fun indexAnnotation(stub: CangJieAnnotationEntryStub, sink: IndexSink) {
     }
 
@@ -54,9 +57,8 @@ open class StubIndexService protected constructor() {
     open fun deserializeFileStub(dataStream: StubInputStream): CangJieFileStub {
         val packageFqNameAsString = dataStream.readName()
 
-        return CangJieFileStubImpl(null, packageFqNameAsString!!.string )
+        return CangJieFileStubImpl(null, packageFqNameAsString!!.string)
     }
-
 
 
     companion object {

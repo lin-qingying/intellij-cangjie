@@ -132,9 +132,12 @@
                 serviceImplementation="com.huawei.cangjie.idea.completion.FirCompletionDummyIdentifierProviderService"
                 serviceInterface="com.huawei.cangjie.idea.completion.CompletionDummyIdentifierProviderService"/>
 
+<!--        <applicationService-->
+<!--                serviceInterface="com.huawei.cangjie.psi.stubs.elements.StubIndexService"-->
+<!--                serviceImplementation="com.huawei.cangjie.idea.stubindex.IdeStubIndexService"/>-->
         <applicationService
                 serviceInterface="com.huawei.cangjie.psi.stubs.elements.StubIndexService"
-                serviceImplementation="com.huawei.cangjie.idea.stubindex.IdeStubIndexService"/>
+                serviceImplementation="com.huawei.cangjie.idea.stubindex.CangJieIdeStubIndexService"/>
 
         <!--        <applicationService-->
         <!--                serviceInterface="com.huawei.cangjie.idea.liveTemplates.ShortenReferencesFacility"-->

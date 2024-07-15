@@ -376,6 +376,8 @@ public interface CjTokens {
     CjKeywordToken UINT16_KEYWORD = CjKeywordToken.keyword("UInt16", UINT16_Id);
     CjKeywordToken UINT32_KEYWORD = CjKeywordToken.keyword("UInt32", UINT32_Id);
     CjKeywordToken UINT64_KEYWORD = CjKeywordToken.keyword("UInt64", UINT64_Id);
+    CjKeywordToken FLOAT16_KEYWORD = CjKeywordToken.keyword("Float16", FLOAT32_Id);
+
     CjKeywordToken FLOAT32_KEYWORD = CjKeywordToken.keyword("Float32", FLOAT32_Id);
     CjKeywordToken FLOAT64_KEYWORD = CjKeywordToken.keyword("Float64", FLOAT64_Id);
     CjKeywordToken BOOL_KEYWORD = CjKeywordToken.keyword("Bool", BOOL_Id);
@@ -414,7 +416,7 @@ public interface CjTokens {
 
     //基本类型
     TokenSet BASICTYPES = TokenSet.create(
-            INT8_KEYWORD, INT16_KEYWORD, INT32_KEYWORD, INT64_KEYWORD, UINT8_KEYWORD, UINT16_KEYWORD, UINT32_KEYWORD, UINT64_KEYWORD, FLOAT32_KEYWORD, FLOAT64_KEYWORD, BOOL_KEYWORD, CHAR_KEYWORD, UNIT_KEYWORD
+            INT8_KEYWORD, INT16_KEYWORD, INT32_KEYWORD, INT64_KEYWORD, UINT8_KEYWORD, UINT16_KEYWORD, UINT32_KEYWORD, UINT64_KEYWORD,FLOAT16_KEYWORD, FLOAT32_KEYWORD, FLOAT64_KEYWORD, BOOL_KEYWORD, CHAR_KEYWORD, UNIT_KEYWORD
     );
 
     TokenSet KEYWORDS = TokenSet.orSet(

@@ -1,5 +1,6 @@
 package com.huawei.cangjie.idea.formatter.lineIndent
 
+import com.huawei.cangjie.idea.formatter.lineIndent.CangJieLangLineIndentProvider.CangJieElement.*
 import com.huawei.cangjie.lang.CangJieLanguage
 import com.huawei.cangjie.lexer.CjTokens
 import com.intellij.formatting.Indent
@@ -10,10 +11,9 @@ import com.intellij.psi.codeStyle.lineIndent.LineIndentProvider
 import com.intellij.psi.impl.source.codeStyle.SemanticEditorPosition
 import com.intellij.psi.impl.source.codeStyle.lineIndent.IndentCalculator
 import com.intellij.psi.impl.source.codeStyle.lineIndent.JavaLikeLangLineIndentProvider
+import com.intellij.psi.impl.source.codeStyle.lineIndent.JavaLikeLangLineIndentProvider.JavaLikeElement.*
 import com.intellij.psi.tree.IElementType
 import com.intellij.util.text.CharArrayUtil
-import com.intellij.psi.impl.source.codeStyle.lineIndent.JavaLikeLangLineIndentProvider.JavaLikeElement.*
-import  com.huawei.cangjie.idea.formatter.lineIndent.CangJieLangLineIndentProvider.CangJieElement.*
 
 abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() {
     abstract fun indentionSettings(editor: Editor): CangJieIndentationAdjuster
@@ -23,7 +23,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
     override fun isSuitableForLanguage(language: Language): Boolean = language.isKindOf(CangJieLanguage)
 
     override fun getLineIndent(project: Project, editor: Editor, language: Language?, offset: Int): String? {
-          return if (offset > 0 && getPosition(editor, offset - 1).isAt(CangJieElement.RegularStringPart))
+        return if (offset > 0 && getPosition(editor, offset - 1).isAt(RegularStringPart))
             LineIndentProvider.DO_NOT_ADJUST
         else
             super.getLineIndent(project, editor, language, offset)
@@ -42,12 +42,24 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             after.isAt(BlockClosingBrace) &&
                     !currentPosition.hasLineBreaksAfter(offset) &&
                     !(currentPosition.after().let { it.isAt(BlockComment) && it.isAtMultiline }) ->
-                return factory.createIndentCalculatorForBrace(before, after, BlockOpeningBrace, BlockClosingBrace, Indent.getNoneIndent())
+                return factory.createIndentCalculatorForBrace(
+                    before,
+                    after,
+                    BlockOpeningBrace,
+                    BlockClosingBrace,
+                    Indent.getNoneIndent()
+                )
 
             before.isAt(BlockOpeningBrace) ->
-                return factory.createIndentCalculatorForBrace(before, after, BlockOpeningBrace, BlockClosingBrace, Indent.getNormalIndent())
+                return factory.createIndentCalculatorForBrace(
+                    before,
+                    after,
+                    BlockOpeningBrace,
+                    BlockClosingBrace,
+                    Indent.getNormalIndent()
+                )
 
-            before.isAt(CangJieElement.Arrow) -> {
+            before.isAt(Arrow) -> {
                 return factory.createIndentCalculatorForArrow(before, after)
             }
 
@@ -60,7 +72,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
                     Indent.getNoneIndent()
                 )
 
-            before.isAt(ArrayOpeningBracket) && after.isAt( ArrayClosingBracket) -> {
+            before.isAt(ArrayOpeningBracket) && after.isAt(ArrayClosingBracket) -> {
                 val indent = if (isSimilarToFunctionInvocation(before))
                     Indent.getContinuationIndent()
                 else
@@ -70,14 +82,15 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             }
 
 
-            before.isAt(Colon) && before.before().isAt(CangJieElement.Quest) ->
+            before.isAt(Colon) && before.before().isAt(Quest) ->
                 return factory.createIndentCalculator(Indent.getNoneIndent(), before.startOffset)
 
-            before.isAt(CangJieElement.TemplateEntryOpen) -> {
-                val indent = if (!currentPosition.hasLineBreaksAfter(offset) && after.isAt(CangJieElement.TemplateEntryClose))
-                    Indent.getNoneIndent()
-                else
-                    Indent.getNormalIndent()
+            before.isAt(TemplateEntryOpen) -> {
+                val indent =
+                    if (!currentPosition.hasLineBreaksAfter(offset) && after.isAt(TemplateEntryClose))
+                        Indent.getNoneIndent()
+                    else
+                        Indent.getNormalIndent()
 
                 return factory.createIndentCalculator(indent, before.startOffset)
             }
@@ -85,14 +98,16 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             before.isAtAnyOf(TryKeyword) || before.isFinallyKeyword() ->
                 return factory.createIndentCalculator(Indent.getNoneIndent(), IndentCalculator.LINE_BEFORE)
 
-            after.isAt(CangJieElement.TemplateEntryClose) -> {
-                val indent = if (currentPosition.hasEmptyLineAfter(offset)) Indent.getNormalIndent() else Indent.getNoneIndent()
-                after.moveBeforeParentheses(CangJieElement.TemplateEntryOpen, CangJieElement.TemplateEntryClose)
+            after.isAt(TemplateEntryClose) -> {
+                val indent =
+                    if (currentPosition.hasEmptyLineAfter(offset)) Indent.getNormalIndent() else Indent.getNoneIndent()
+                after.moveBeforeParentheses(TemplateEntryOpen, TemplateEntryClose)
                 return factory.createIndentCalculator(indent, after.startOffset)
             }
 
-            before.isAt(CangJieElement.Eq) -> {
-                val declaration = findFunctionOrPropertyOrMultiDeclarationBefore(before.beforeIgnoringWhiteSpaceOrComment())
+            before.isAt(Eq) -> {
+                val declaration =
+                    findFunctionOrPropertyOrMultiDeclarationBefore(before.beforeIgnoringWhiteSpaceOrComment())
                 if (declaration != null) {
                     val indent = if (settings.continuationIndentForExpressionBodies)
                         Indent.getContinuationIndent()
@@ -104,14 +119,17 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             }
 
             after.isAt(RightParenthesis) ->
-                factory.createIndentCalculatorForParenthesis(before, currentPosition, after, offset, settings)?.let { return it }
+                factory.createIndentCalculatorForParenthesis(before, currentPosition, after, offset, settings)
+                    ?.let { return it }
 
-            after.isAt(CangJieElement.Dot) || after.isAt(CangJieElement.Quest) && after.after().isAt(CangJieElement.Dot) ->
+            after.isAt(Dot) || after.isAt(Quest) && after.after()
+                .isAt(Dot) ->
                 factory.createIndentCalculatorForDot(before, settings)?.let { return it }
         }
 
         findFunctionOrPropertyOrMultiDeclarationBefore(before)?.let {
-            val indent = if (after.similarToPropertyAccessorKeyword()) Indent.getNormalIndent() else Indent.getNoneIndent()
+            val indent =
+                if (after.similarToPropertyAccessorKeyword()) Indent.getNormalIndent() else Indent.getNoneIndent()
             return factory.createIndentCalculator(indent, it.startOffset)
         }
 
@@ -123,7 +141,11 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             val indent = when {
                 controlFlowKeywordPosition.similarToCatchKeyword() -> if (before.isAt(RightParenthesis)) Indent.getNoneIndent() else Indent.getNormalIndent()
                 after.isAt(LeftParenthesis) -> if (before.isAt(BlockOpeningBrace)) Indent.getNormalIndent() else Indent.getContinuationIndent()
-                after.isAtAnyOf(BlockOpeningBrace, Arrow) || controlFlowKeywordPosition.isWhileInsideDoWhile() -> Indent.getNoneIndent()
+                after.isAtAnyOf(
+                    BlockOpeningBrace,
+                    Arrow
+                ) || controlFlowKeywordPosition.isWhileInsideDoWhile() -> Indent.getNoneIndent()
+
                 else -> Indent.getNormalIndent()
             }
 
@@ -156,7 +178,6 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
         OpenQuote, ClosingQuote,
 
         Literal,
-
 
 
     }
@@ -204,28 +225,28 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             CjTokens.CATCH_KEYWORD to Identifier,
 
 
-            CjTokens.FUNC_KEYWORD to CangJieElement.FunctionKeyword,
-            CjTokens.DOT to CangJieElement.Dot,
-            CjTokens.QUEST to CangJieElement.Quest,
+            CjTokens.FUNC_KEYWORD to FunctionKeyword,
+            CjTokens.DOT to Dot,
+            CjTokens.QUEST to Quest,
             CjTokens.COMMA to Comma,
             CjTokens.COLON to Colon,
 
-            CjTokens.EQ to CangJieElement.Eq,
+            CjTokens.EQ to Eq,
 
-            CjTokens.LET_KEYWORD  to CangJieElement.Let,
-            CjTokens.VAR_KEYWORD to CangJieElement.Var,
+            CjTokens.LET_KEYWORD to Let,
+            CjTokens.VAR_KEYWORD to Var,
 
-            CjTokens.INTEGER_LITERAL to CangJieElement.Literal,
-            CjTokens.FLOAT_LITERAL to CangJieElement.Literal,
-            CjTokens.CHARACTER_LITERAL to CangJieElement.Literal,
+            CjTokens.INTEGER_LITERAL to Literal,
+            CjTokens.FLOAT_LITERAL to Literal,
+            CjTokens.CHARACTER_LITERAL to Literal,
         )
 
         private val CONTROL_FLOW_KEYWORDS: HashSet<SemanticEditorPosition.SyntaxElement> = hashSetOf(
-            CangJieElement.MatchKeyword,
+            MatchKeyword,
             IfKeyword,
             ElseKeyword,
             DoKeyword,
-            CangJieElement.WhileKeyword,
+            WhileKeyword,
             ForKeyword,
             TryKeyword,
         )
@@ -236,11 +257,12 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             BlockComment,
         )
 
-        private val PARENTHESES: List<Pair<SemanticEditorPosition.SyntaxElement, SemanticEditorPosition.SyntaxElement>> = listOf(
-            LeftParenthesis to RightParenthesis,
-            BlockOpeningBrace to BlockClosingBrace,
-            ArrayOpeningBracket to ArrayClosingBracket,
-        )
+        private val PARENTHESES: List<Pair<SemanticEditorPosition.SyntaxElement, SemanticEditorPosition.SyntaxElement>> =
+            listOf(
+                LeftParenthesis to RightParenthesis,
+                BlockOpeningBrace to BlockClosingBrace,
+                ArrayOpeningBracket to ArrayClosingBracket,
+            )
 
         private fun IndentCalculatorFactory.createIndentCalculatorForArrow(
             arrowPosition: SemanticEditorPosition,
@@ -299,11 +321,11 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
         ): IndentCalculator? {
 
             val calleeOrReference = when {
-                beforeDotPosition.isAt(CangJieElement.Literal) -> beforeDotPosition
-                beforeDotPosition.isAt(CangJieElement.ClosingQuote) ->
+                beforeDotPosition.isAt(Literal) -> beforeDotPosition
+                beforeDotPosition.isAt(ClosingQuote) ->
                     beforeDotPosition.before().findLeftParenthesisBackwardsSkippingNested(
-                        CangJieElement.OpenQuote,
-                        CangJieElement.ClosingQuote,
+                        OpenQuote,
+                        ClosingQuote,
                     )
 
                 else -> findCalleeOrReference(beforeDotPosition)
@@ -322,9 +344,9 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             }
 
 
-            if (calleeOrReference.isAt(CangJieElement.Dot)) {
+            if (calleeOrReference.isAt(Dot)) {
                 val before = calleeOrReference.copyAnd(SemanticEditorPosition::moveBefore)
-                if (before.isAt(CangJieElement.Quest)) {
+                if (before.isAt(Quest)) {
                     before.moveBefore()
                 }
 
@@ -361,7 +383,8 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
         ): IndentCalculator? {
             assert(rightParenthesis.isAt(RightParenthesis))
 
-            val leftParenthesis = currentPosition.findLeftParenthesisBackwardsSkippingNested(LeftParenthesis, RightParenthesis)
+            val leftParenthesis =
+                currentPosition.findLeftParenthesisBackwardsSkippingNested(LeftParenthesis, RightParenthesis)
             if (!leftParenthesis.isAt(LeftParenthesis)) return null
 
             val hasLineBreaksAfter = currentPosition.hasLineBreaksAfter(offset)
@@ -376,7 +399,10 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
                                 isParameterList && settings.alignMultilineParameters ||
                                         !isParameterList && settings.alignMultilineParametersInCalls
                                 ) -> {
-                            return createIndentCalculator(createAlignMultilineIndent(firstElement), firstElement.startOffset)
+                            return createIndentCalculator(
+                                createAlignMultilineIndent(firstElement),
+                                firstElement.startOffset
+                            )
                         }
 
                         isParameterList && settings.continuationIndentInParameterLists ||
@@ -423,7 +449,8 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             }
 
             return if (settings.alignWhenMultilineBinaryExpression && !hasLineBreaksAfter) {
-                val anchor = if (before.isAt(LeftParenthesis)) leftParenthesis else leftParenthesis.afterIgnoringWhiteSpaceOrComment()
+                val anchor =
+                    if (before.isAt(LeftParenthesis)) leftParenthesis else leftParenthesis.afterIgnoringWhiteSpaceOrComment()
                 createIndentCalculator(createAlignMultilineIndent(anchor), anchor.startOffset)
             } else {
                 createIndentCalculator(Indent.getContinuationIndent(), leftParenthesis.startOffset)
@@ -438,7 +465,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
                 moveBeforeParentheses(LeftParenthesis, RightParenthesis)
             }
 
-            if (probableContextReceiverKeyword.isAt(CangJieElement.Identifier)
+            if (probableContextReceiverKeyword.isAt(Identifier)
                 && probableContextReceiverKeyword.after().isAt(LeftParenthesis)
 
             ) {
@@ -446,7 +473,6 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             }
             return null
         }
-
 
 
         private fun findFunctionOrPropertyOrMultiDeclarationBefore(endOfDeclaration: SemanticEditorPosition): SemanticEditorPosition? =
@@ -466,7 +492,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
         private fun findPropertyDeclarationBeforeAssignment(endOfDeclaration: SemanticEditorPosition): SemanticEditorPosition? {
 
 
-            if (endOfDeclaration.isAt(CangJieElement.Identifier)) {
+            if (endOfDeclaration.isAt(Identifier)) {
                 findPropertyKeywordBeforeIdentifier(endOfDeclaration)?.let { return it }
             }
 
@@ -496,7 +522,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             }
 
         private fun findPropertyKeywordBeforeIdentifier(identifierPosition: SemanticEditorPosition): SemanticEditorPosition? {
-            if (!identifierPosition.isAt(CangJieElement.Identifier)) return null
+            if (!identifierPosition.isAt(Identifier)) return null
             return with(identifierPosition.copy()) {
                 if (!moveBeforeTypeQualifierIfPossible(false)) return null
 
@@ -508,25 +534,25 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
 
         private fun findFunctionKeywordBeforeIdentifier(identifierPosition: SemanticEditorPosition): SemanticEditorPosition? {
 
-            if (identifierPosition.isAt(CangJieElement.FunctionKeyword)) return identifierPosition
+            if (identifierPosition.isAt(FunctionKeyword)) return identifierPosition
 
             return with(identifierPosition.copy()) {
                 moveBeforeWhileThisIsWhiteSpaceOrComment()
 
 
-                if (isAt(CangJieElement.Dot)) {
+                if (isAt(Dot)) {
                     moveBeforeIgnoringWhiteSpaceOrComment()
                     if (!moveBeforeTypeQualifierIfPossible(true)) return null
-                    return if (isAt(CangJieElement.FunctionKeyword)) this else null
+                    return if (isAt(FunctionKeyword)) this else null
                 }
 
 
-                if (!isAt(CangJieElement.Identifier)) return null
+                if (!isAt(Identifier)) return null
                 if (!moveBeforeTypeQualifierIfPossible(false)) return null
 
                 moveBeforeTypeParametersIfPossible()
 
-                takeIf { it.isAt(CangJieElement.FunctionKeyword) }
+                takeIf { it.isAt(FunctionKeyword) }
             }
         }
 
@@ -538,7 +564,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
          * @param position reference or left/right parentheses
          */
         private fun findCalleeOrReference(position: SemanticEditorPosition): SemanticEditorPosition? {
-            if (position.isAt(CangJieElement.Identifier)) return position.copy()
+            if (position.isAt(Identifier)) return position.copy()
 
             for ((left, right) in PARENTHESES) {
                 if (position.isAt(left)) {
@@ -617,7 +643,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
                 if (isAt(RightParenthesis)) return moveBeforeParenthesesIfPossible()
 
 
-                if (!isAt(CangJieElement.Identifier)) return false
+                if (!isAt(Identifier)) return false
                 moveBeforeIgnoringWhiteSpaceOrComment()
             }
 
@@ -626,14 +652,14 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
 
 
         private fun SemanticEditorPosition.moveBeforeTypeQualifierIfPossible(canStartWithTypeParameter: Boolean): Boolean {
-            if (!canStartWithTypeParameter && !isAt(CangJieElement.Identifier)) return false
+            if (!canStartWithTypeParameter && !isAt(Identifier)) return false
 
             while (!isAtEnd) {
                 moveBeforeOptionalMix(Quest, *WHITE_SPACE_OR_COMMENT_BIT_SET)
                 moveBeforeTypeParametersIfPossible()
-                if (!isAt(CangJieElement.Identifier)) return false
+                if (!isAt(Identifier)) return false
                 moveBeforeIgnoringWhiteSpaceOrComment()
-                if (!isAt(CangJieElement.Dot)) return true
+                if (!isAt(Dot)) return true
                 moveBeforeIgnoringWhiteSpaceOrComment()
             }
 
@@ -687,7 +713,8 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
         private fun SemanticEditorPosition.isControlFlowKeyword(): Boolean =
             currElement in CONTROL_FLOW_KEYWORDS || isCatchKeyword() || isFinallyKeyword()
 
-        private fun SemanticEditorPosition.similarToCatchKeyword(): Boolean = textOfCurrentPosition() == CjTokens.CATCH_KEYWORD.value
+        private fun SemanticEditorPosition.similarToCatchKeyword(): Boolean =
+            textOfCurrentPosition() == CjTokens.CATCH_KEYWORD.value
 
         private fun SemanticEditorPosition.similarToPropertyAccessorKeyword(): Boolean =
             isAt(Identifier) && textOfCurrentPosition().let { text ->
@@ -712,7 +739,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
         }
 
         private fun SemanticEditorPosition.isFinallyKeyword(): Boolean {
-            if (!isAt(CangJieElement.Identifier)) return false
+            if (!isAt(Identifier)) return false
             if (textOfCurrentPosition() != CjTokens.FINALLY_KEYWORD.value) return false
             with(copy()) {
                 moveBeforeIgnoringWhiteSpaceOrComment()
@@ -744,8 +771,12 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             moveAfterWhileThisIsWhiteSpaceOrComment()
         }
 
-        private fun SemanticEditorPosition.beforeIgnoringWhiteSpaceOrComment() = copyAnd { it.moveBeforeIgnoringWhiteSpaceOrComment() }
-        private fun SemanticEditorPosition.afterIgnoringWhiteSpaceOrComment() = copyAnd { it.moveAfterIgnoringWhiteSpaceOrComment() }
+        private fun SemanticEditorPosition.beforeIgnoringWhiteSpaceOrComment() =
+            copyAnd { it.moveBeforeIgnoringWhiteSpaceOrComment() }
+
+        private fun SemanticEditorPosition.afterIgnoringWhiteSpaceOrComment() =
+            copyAnd { it.moveAfterIgnoringWhiteSpaceOrComment() }
+
         private fun SemanticEditorPosition.moveBeforeWhileThisIsWhiteSpaceOnSameLineOrBlockComment(): Boolean {
             while (!isAtEnd) {
                 if (isAt(Whitespace) && isAtMultiline) return false
@@ -756,17 +787,20 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             return true
         }
 
-        private fun SemanticEditorPosition.isIdentifier(): Boolean = isAt(CangJieElement.Identifier) || isAt(CjTokens.THIS_KEYWORD)
+        private fun SemanticEditorPosition.isIdentifier(): Boolean =
+            isAt(Identifier) || isAt(CjTokens.THIS_KEYWORD)
+
         private fun SemanticEditorPosition.isVarOrVal(): Boolean = isAtAnyOf(Var, Let)
         private fun SemanticEditorPosition.moveBeforeBlockIfPossible(): Boolean = moveBeforeParenthesesIfPossible(
             leftParenthesis = BlockOpeningBrace,
             rightParenthesis = BlockClosingBrace,
         )
 
-        private fun SemanticEditorPosition.moveBeforeTypeParametersIfPossible(): Boolean = moveBeforeParenthesesIfPossible(
-            leftParenthesis = OpenTypeBrace,
-            rightParenthesis = CloseTypeBrace,
-        )
+        private fun SemanticEditorPosition.moveBeforeTypeParametersIfPossible(): Boolean =
+            moveBeforeParenthesesIfPossible(
+                leftParenthesis = OpenTypeBrace,
+                rightParenthesis = CloseTypeBrace,
+            )
 
         private fun SemanticEditorPosition.moveBeforeParenthesesIfPossible(): Boolean = moveBeforeParenthesesIfPossible(
             leftParenthesis = LeftParenthesis,
@@ -785,8 +819,10 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
         }
     }
 }
+
 private fun SemanticEditorPosition.textOfCurrentPosition(): String =
     if (isAtEnd) "" else chars.subSequence(startOffset, after().startOffset).toString()
+
 private fun JavaLikeLangLineIndentProvider.IndentCalculatorFactory.createIndentCalculator(
     indent: Indent,
     baseLineOffset: Int,

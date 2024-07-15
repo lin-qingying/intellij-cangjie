@@ -176,7 +176,7 @@ val pluginDescriptors = arrayOf(
 project(":plugin") {
     intellij {
         pluginName.set("intellij-cangjie")
-        plugins.set(listOf(psiViewerPlugin))
+        plugins.set(listOf(psiViewerPlugin,))
 
     }
 //    group = "com.huawei.cangjie"
