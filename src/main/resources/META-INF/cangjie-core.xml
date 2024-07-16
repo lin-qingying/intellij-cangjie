@@ -8,6 +8,11 @@
     <xi:include href="/META-INF/codeInsight.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <extensions defaultExtensionNs="com.intellij">
+
+        <!-- 编辑器执行配置 -->
+        <runLineMarkerContributor language="CangJie"
+                                  implementationClass="com.huawei.cangjie.idea.run.CjRunLineMarkersProvider"/>
+
         <projectService
                 serviceInterface="com.huawei.cangjie.analyzer.CangJieModificationTrackerService"
                 serviceImplementation="com.huawei.cangjie.idea.cache.trackers.CangJieIDEModificationTrackerService"/>
@@ -305,6 +310,7 @@
 
 
     <actions>
+        <action id="CjpmRunMain" class="com.huawei.cangjie.idea.run.cjpm.RunMainAction" />
         <action id="CjpmAction" class="com.huawei.cangjie.idea.run.modulejson.CjpmUpdateAction"
                 text="run cjpm update">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
