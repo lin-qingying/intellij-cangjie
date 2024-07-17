@@ -32,7 +32,7 @@ public abstract class AbstractClassDescriptor extends ModuleAwareClassDescriptor
 
                 return TypeUtils.makeUnsubstitutedType(
                         AbstractClassDescriptor.this, getUnsubstitutedMemberScope(),
-                        new Function1<CangJieTypeRefiner, SimpleType>() {
+                        new Function1<>() {
                             @Override
                             public SimpleType invoke(CangJieTypeRefiner cangjieTypeRefiner) {
                                 ClassifierDescriptor descriptor = cangjieTypeRefiner.refineDescriptor(AbstractClassDescriptor.this);
@@ -82,6 +82,11 @@ public abstract class AbstractClassDescriptor extends ModuleAwareClassDescriptor
         return name;
     }
 
+    @Override
+    public @NotNull DescriptorVisibility getVisibility() {
+        return DescriptorVisibilities.PUBLIC;
+
+    }
 
     @NotNull
     @Override
@@ -182,14 +187,14 @@ public abstract class AbstractClassDescriptor extends ModuleAwareClassDescriptor
 //        return getUnsubstitutedMemberScope(DescriptorUtilsKt.getCangJieTypeRefiner(DescriptorUtils.getContainingModule(this)));
 //    }
 //
-//    @NotNull
-//    @Override
-//    public ClassDescriptor substitute(@NotNull TypeSubstitutor substitutor) {
-//        if (substitutor.isEmpty()) {
-//            return this;
-//        }
-//        return new LazySubstitutingClassDescriptor(this, substitutor);
-//    }
+    @NotNull
+    @Override
+    public ClassDescriptor substitute(@NotNull TypeSubstitutor substitutor) {
+        if (substitutor.isEmpty()) {
+            return this;
+        }
+        return new LazySubstitutingClassDescriptor(this, substitutor);
+    }
 
     @NotNull
     @Override

@@ -14,7 +14,8 @@ interface DeclarationDescriptor : Annotated,
     val original: DeclarationDescriptor
 
     val containingDeclaration: DeclarationDescriptor?
-//    fun getCorrespondingProperty():  PropertyDescriptor
+
+    //    fun getCorrespondingProperty():  PropertyDescriptor
 
     fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R
 

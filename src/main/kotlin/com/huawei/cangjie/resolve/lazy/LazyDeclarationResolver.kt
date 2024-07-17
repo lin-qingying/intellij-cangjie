@@ -55,12 +55,18 @@ open class LazyDeclarationResolver(
         findClassDescriptorIfAny(classObjectOrScript, location)
             ?: (absentDescriptorHandler.diagnoseDescriptorNotFound(classObjectOrScript) as ClassDescriptor)
 
-    fun resolveToDescriptor(declaration: CjDeclaration): DeclarationDescriptor =
+    fun resolveToDescriptor(declaration: CjDeclaration): DeclarationDescriptor
 
-        resolveToDescriptor(declaration, /*track =*/true) ?: absentDescriptorHandler.diagnoseDescriptorNotFound(
+    {
+
+        val a = resolveToDescriptor(declaration, /*track =*/true) ?: absentDescriptorHandler.diagnoseDescriptorNotFound(
             declaration
         )
 
+        a.toString()
+      return  a
+
+    }
     private fun resolveToDescriptor(declaration: CjDeclaration, track: Boolean): DeclarationDescriptor? {
         return declaration.accept(object : CjVisitor<DeclarationDescriptor?, Nothing?>() {
             private fun lookupLocationFor(declaration: CjDeclaration, isTopLevel: Boolean): LookupLocation =

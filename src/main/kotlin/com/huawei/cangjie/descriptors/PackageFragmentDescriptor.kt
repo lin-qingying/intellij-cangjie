@@ -16,5 +16,5 @@ interface PackageFragmentDescriptor : ClassOrPackageFragmentDescriptor {
 
     val fqName: FqName
 
-//    fun getMemberScope(): MemberScope
+
 }

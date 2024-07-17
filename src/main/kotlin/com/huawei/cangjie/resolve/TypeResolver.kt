@@ -1,11 +1,11 @@
 package com.huawei.cangjie.resolve
 
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.Errors
-import com.huawei.cangjie.descriptors.Errors.MODIFIER_LIST_NOT_ALLOWED
 import com.huawei.cangjie.descriptors.Errors.UNSUPPORTED
+import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
-import com.huawei.cangjie.descriptors.annotations.composeAnnotations
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.debugtext.getDebugText
@@ -17,9 +17,12 @@ import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.error.ErrorTypeKind
+import com.huawei.cangjie.types.util.createBasicType
 
 class TypeResolver(
     private val annotationResolver: AnnotationResolver,
+    private val moduleDescriptor: ModuleDescriptor,
+    private val languageVersionSettings: LanguageVersionSettings,
 
     ) {
 
@@ -131,7 +134,10 @@ class TypeResolver(
 
 
         typeElement?.accept(object : CjVisitorVoid() {
+            override fun visitBasicType(type: CjBasicType) {
 
+                result = type(createBasicType(moduleDescriptor.builtIns, type.text))
+            }
 
             override fun visitUserType(type: CjUserType) {
 //                super.visitUserType(type)

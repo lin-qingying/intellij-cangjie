@@ -143,8 +143,5 @@ public class SimpleFunctionDescriptorImpl extends FunctionDescriptorImpl impleme
     }
 
 
-    @Override
-    public @NotNull CangJieType getType() {
-        return null;
-    }
+
 }

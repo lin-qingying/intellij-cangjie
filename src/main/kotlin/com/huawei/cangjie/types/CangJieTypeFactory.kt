@@ -2,6 +2,7 @@ package com.huawei.cangjie.types
 
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.TypeAliasDescriptor
+import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
@@ -18,6 +19,16 @@ object CangJieTypeFactory {
     ): SimpleType = simpleType(attributes, descriptor.typeConstructor, arguments, nullable = false)
 
     @JvmStatic
+
+    fun basicType(descriptor: BasicTypeDescriptor): BasicType {
+        return BasicType(
+            descriptor.typeConstructor,
+            descriptor.basicMemberScope
+
+        )
+    }
+
+    @JvmStatic
     fun integerLiteralType(
         attributes: TypeAttributes,
         constructor: IntegerLiteralTypeConstructor,
@@ -27,21 +38,26 @@ object CangJieTypeFactory {
         constructor,
         emptyList(),
         nullable,
-        ErrorUtils.createErrorScope(ErrorScopeKind.INTEGER_LITERAL_TYPE_SCOPE, throwExceptions = true, "unknown integer literal type")
+        ErrorUtils.createErrorScope(
+            ErrorScopeKind.INTEGER_LITERAL_TYPE_SCOPE,
+            throwExceptions = true,
+            "unknown integer literal type"
+        )
     )
+
     @JvmStatic
     fun flexibleType(lowerBound: SimpleType, upperBound: SimpleType): UnwrappedType {
         if (lowerBound == upperBound) return lowerBound
         return FlexibleTypeImpl(lowerBound, upperBound)
     }
+
     @OptIn(TypeRefinement::class)
     private fun computeMemberScope(
         constructor: TypeConstructor,
         arguments: List<TypeProjection>,
         cangjieTypeRefiner: CangJieTypeRefiner? = null
     ): MemberScope {
-        val descriptor = constructor.declarationDescriptor
-        return when (descriptor) {
+        return when (val descriptor = constructor.declarationDescriptor) {
 //            is TypeParameterDescriptor -> descriptor.getDefaultType().memberScope
 //            is ClassDescriptor -> {
 //                val refinerToUse = kotlinTypeRefiner ?: descriptor.module.getCangJieTypeRefiner()
@@ -66,6 +82,7 @@ object CangJieTypeFactory {
             }
         }
     }
+
     @JvmStatic
     @JvmOverloads
     @OptIn(TypeRefinement::class)
@@ -91,7 +108,7 @@ object CangJieTypeFactory {
             simpleType(
                 attributes,
                 expandedTypeOrRefinedConstructor.refinedConstructor!!,
-                arguments,  nullable,
+                arguments, nullable,
                 refiner
             )
         }

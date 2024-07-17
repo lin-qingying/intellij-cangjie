@@ -11,6 +11,7 @@ import com.huawei.cangjie.types.model.CangJieTypeMarker
 import com.huawei.cangjie.types.model.FlexibleTypeMarker
 import com.huawei.cangjie.types.model.SimpleTypeMarker
 import com.huawei.cangjie.types.model.TypeArgumentListMarker
+
 val CangJieType.isError: Boolean
     get() = unwrap().let { unwrapped ->
         unwrapped is ErrorType
@@ -19,11 +20,12 @@ val CangJieType.isError: Boolean
     }
 
 interface SubtypingRepresentatives {
-    val subTypeRepresentative:CangJieType
-    val superTypeRepresentative:CangJieType
+    val subTypeRepresentative: CangJieType
+    val superTypeRepresentative: CangJieType
 
-    fun sameTypeConstructor(type:CangJieType): Boolean
+    fun sameTypeConstructor(type: CangJieType): Boolean
 }
+
 sealed class CangJieType : Annotated, CangJieTypeMarker {
     abstract fun unwrap(): UnwrappedType
     abstract val constructor: TypeConstructor
@@ -33,6 +35,7 @@ sealed class CangJieType : Annotated, CangJieTypeMarker {
         get() = attributes.annotations
     abstract val isMarkedNullable: Boolean
     abstract val memberScope: MemberScope
+
     /**
      * Returns refined type using passed CangJieTypeRefiner
      *
@@ -50,18 +53,49 @@ sealed class CangJieType : Annotated, CangJieTypeMarker {
      * content using passed refiner and other low-level methods
      */
     @TypeRefinement
-    abstract fun refine(cangjieTypeRefiner:CangJieTypeRefiner): CangJieType
+    abstract fun refine(cangjieTypeRefiner: CangJieTypeRefiner): CangJieType
 
 }
 
-sealed class UnwrappedType : CangJieType(){
+sealed class UnwrappedType : CangJieType() {
     final override fun unwrap(): UnwrappedType = this
     abstract fun replaceAttributes(newAttributes: TypeAttributes): UnwrappedType
     abstract fun makeNullableAsSpecified(newNullability: Boolean): UnwrappedType
+
     @TypeRefinement
     abstract override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType
 }
-abstract class SimpleType : UnwrappedType(), SimpleTypeMarker, TypeArgumentListMarker{
+
+class BasicType(
+
+    override val constructor: TypeConstructor,
+    override val memberScope: MemberScope
+) : SimpleType() {
+
+    override val arguments: List<TypeProjection>
+        get() = listOf()
+    override val attributes: TypeAttributes
+        get() = TypeAttributes.Empty
+    override val isMarkedNullable: Boolean
+        get() = false
+
+
+    val typeName = constructor.declarationDescriptor?.name ?: ""
+
+
+    override fun toString(): String {
+        return "$typeName"
+    }
+
+    @TypeRefinement
+    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType = this
+
+    override fun makeNullableAsSpecified(newNullability: Boolean) = this
+
+    override fun replaceAttributes(newAttributes: TypeAttributes) = this
+}
+
+abstract class SimpleType : UnwrappedType(), SimpleTypeMarker, TypeArgumentListMarker {
     abstract override fun makeNullableAsSpecified(newNullability: Boolean): SimpleType
     abstract override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType
 

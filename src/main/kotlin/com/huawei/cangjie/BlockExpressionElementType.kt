@@ -5,10 +5,12 @@ import com.huawei.cangjie.lexer.CangJieLexer
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.parsing.CangJieParser
 import com.huawei.cangjie.psi.CjBlockExpression
+import com.huawei.cangjie.psi.dummpholder.CangJieDummyHolderFactory
 import com.intellij.lang.ASTNode
 import com.intellij.lang.Language
 import com.intellij.lang.PsiBuilderFactory
 import com.intellij.openapi.project.Project
+import com.intellij.psi.impl.source.DummyHolderFactory
 import com.intellij.psi.tree.ICompositeElementType
 import com.intellij.psi.tree.IErrorCounterReparseableElementType
 
@@ -16,6 +18,11 @@ import com.intellij.psi.tree.IErrorCounterReparseableElementType
 class BlockExpressionElementType : IErrorCounterReparseableElementType("BLOCK", CangJieLanguage),
     ICompositeElementType {
 
+
+        init {
+//            DummyHolderFactory.setFactory(CangJieDummyHolderFactory())
+
+        }
     override fun createCompositeNode() = CjBlockExpression(null)
 
     override fun createNode(text: CharSequence?) = CjBlockExpression(text)
@@ -37,6 +44,7 @@ class BlockExpressionElementType : IErrorCounterReparseableElementType("BLOCK", 
 
         return CangJieParser.parseBlockExpression(builder).firstChildNode
     }
+
 
     companion object {
 

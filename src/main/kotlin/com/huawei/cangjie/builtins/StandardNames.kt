@@ -91,8 +91,6 @@ object StandardNames {
         @JvmField
         val suppress: FqName = fqName("Suppress")
 
-        @JvmField
-        val unit: FqNameUnsafe = fqNameUnsafe("Unit")
 
         @JvmField
         val charSequence: FqNameUnsafe = fqNameUnsafe("CharSequence")
@@ -104,34 +102,37 @@ object StandardNames {
         val array: FqNameUnsafe = fqNameUnsafe("Array")
 
         @JvmField
-        val _boolean: FqNameUnsafe = fqNameUnsafe("Boolean")
+        val boolean: FqNameUnsafe = fqNameUnsafe("Boolean")
 
         @JvmField
-        val _char: FqNameUnsafe = fqNameUnsafe("Char")
+        val char: FqNameUnsafe = fqNameUnsafe("Char")
 
         @JvmField
-        val _int8: FqNameUnsafe = fqNameUnsafe("Int8")
+        val unit = fqNameUnsafe("Unit")
 
         @JvmField
-        val _int16: FqNameUnsafe = fqNameUnsafe("Int16")
+        val int8: FqNameUnsafe = fqNameUnsafe("Int8")
 
         @JvmField
-        val _int32: FqNameUnsafe = fqNameUnsafe("Int32")
+        val int16: FqNameUnsafe = fqNameUnsafe("Int16")
 
         @JvmField
-        val _int64: FqNameUnsafe = fqNameUnsafe("Int64")
+        val int32: FqNameUnsafe = fqNameUnsafe("Int32")
 
         @JvmField
-        val _float: FqNameUnsafe = fqNameUnsafe("Float")
+        val int64: FqNameUnsafe = fqNameUnsafe("Int64")
 
         @JvmField
-        val _double: FqNameUnsafe = fqNameUnsafe("Double")
+        val float: FqNameUnsafe = fqNameUnsafe("Float")
+
+        @JvmField
+        val double: FqNameUnsafe = fqNameUnsafe("Double")
 
         @JvmField
         val number: FqNameUnsafe = fqNameUnsafe("Number")
 
         @JvmField
-        val _enum: FqNameUnsafe = fqNameUnsafe("Enum")
+        val enum: FqNameUnsafe = fqNameUnsafe("Enum")
 
         @JvmField
         val functionSupertype: FqNameUnsafe = fqNameUnsafe("Function")
@@ -187,53 +188,6 @@ object StandardNames {
         @JvmField
         val platformDependentClassId: ClassId = ClassId.topLevel(platformDependent)
 
-//        @JvmField
-//        val iterator: FqName = collectionsFqName("Iterator")
-//        @JvmField
-//        val iterable: FqName = collectionsFqName("Iterable")
-//        @JvmField
-//        val collection: FqName = collectionsFqName("Collection")
-//        @JvmField
-//        val list: FqName = collectionsFqName("List")
-//        @JvmField
-//        val listIterator: FqName = collectionsFqName("ListIterator")
-//        @JvmField
-//        val set: FqName = collectionsFqName("Set")
-//        @JvmField
-//        val map: FqName = collectionsFqName("Map")
-//        @JvmField
-//        val mapEntry: FqName = map.child(Name.identifier("Entry"))
-//        @JvmField
-        /*        val mutableIterator: FqName = collectionsFqName("MutableIterator")
-                @JvmField
-                val mutableIterable: FqName = collectionsFqName("MutableIterable")
-                @JvmField
-                val mutableCollection: FqName = collectionsFqName("MutableCollection")
-                @JvmField
-                val mutableList: FqName = collectionsFqName("MutableList")
-                @JvmField
-                val mutableListIterator: FqName = collectionsFqName("MutableListIterator")
-                @JvmField
-                val mutableSet: FqName = collectionsFqName("MutableSet")
-                @JvmField
-                val mutableMap: FqName = collectionsFqName("MutableMap")*/
-//        @JvmField
-//        val mutableMapEntry: FqName = mutableMap.child(Name.identifier("MutableEntry"))
-
-//        @JvmField val kClass: FqNameUnsafe = reflect("KClass")
-//        @JvmField val kType: FqNameUnsafe = reflect("KType")
-//        @JvmField val kCallable: FqNameUnsafe = reflect("KCallable")
-//        @JvmField val kProperty0: FqNameUnsafe = reflect("KProperty0")
-//        @JvmField val kProperty1: FqNameUnsafe = reflect("KProperty1")
-//        @JvmField val kProperty2: FqNameUnsafe = reflect("KProperty2")
-//        @JvmField val kMutableProperty0: FqNameUnsafe = reflect("KMutableProperty0")
-//        @JvmField val kMutableProperty1: FqNameUnsafe = reflect("KMutableProperty1")
-//        @JvmField val kMutableProperty2: FqNameUnsafe = reflect("KMutableProperty2")
-//        @JvmField val kPropertyFqName: FqNameUnsafe = reflect("KProperty")
-//        @JvmField val kMutablePropertyFqName: FqNameUnsafe = reflect("KMutableProperty")
-//        @JvmField val kProperty: ClassId = ClassId.topLevel(kPropertyFqName.toSafe())
-//        @JvmField val kDeclarationContainer: FqNameUnsafe = reflect("KDeclarationContainer")
-//        @JvmField val findAssociatedObject: FqNameUnsafe = reflect("findAssociatedObject")
 
         @JvmField
         val uInt8FqName: FqName = fqName("UInt8")
@@ -334,14 +288,13 @@ object StandardNames {
 //    val ANNOTATION_PACKAGE_FQ_NAME = BUILT_INS_PACKAGE_FQ_NAME.child(Name.identifier("annotation"))
 
     @JvmField
-    val BASIC_TYPES = setOf(
+    val BASIC_TYPE_NAMES = setOf(
         unit
     )
 
 
     @JvmField
-    val BUILT_INS_PACKAGE_FQ_NAMES = setOf(
-//        BUILT_INS_PACKAGE_FQ_NAME,
+    val STDLIB_PACKAGE_FQ_NAMES = setOf(
         STD_PACKAGE_FQ_NAME,
         COMPRESS_PACKAGE_FQ_NAME,
         NET_PACKAGE_FQ_NAME,
@@ -350,4 +303,27 @@ object StandardNames {
         CRYPTO_PACKAGE_FQ_NAME,
         SERIALIZATION_PACKAGE_FQ_NAME
     )
+
+
+    private fun namesToSetOf(): Set<FqName> {
+
+
+        val set = mutableSetOf<FqName>()
+
+
+        set.add(BUILT_INS_PACKAGE_FQ_NAME)
+
+
+//        STDLIB_PACKAGE_FQ_NAMES.map {
+//            set.add(it)
+//
+
+//        }
+        return set
+
+
+    }
+
+    @JvmField
+    val ALL_NAMES = namesToSetOf()
 }

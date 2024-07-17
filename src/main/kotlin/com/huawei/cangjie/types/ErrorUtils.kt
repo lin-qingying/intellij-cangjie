@@ -5,6 +5,7 @@ import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.PropertyDescriptor
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.types.error.*
+import com.huawei.cangjie.types.util.isUnresolvedType
 
 object ErrorUtils {
     private val errorProperty: PropertyDescriptor = ErrorPropertyDescriptor()
@@ -29,6 +30,11 @@ object ErrorUtils {
         if (type == null) return false
         val constructor = type.constructor
         return constructor is ErrorTypeConstructor && constructor.kind == ErrorTypeKind.UNINFERRED_TYPE_VARIABLE
+    }
+
+    fun unresolvedTypeAsItIs(type: CangJieType): String {
+        assert(isUnresolvedType(type))
+        return (type.constructor as ErrorTypeConstructor).getParam(0)
     }
     @JvmStatic
     fun createErrorType(kind: ErrorTypeKind, typeConstructor: TypeConstructor, vararg formatParams: String): ErrorType =

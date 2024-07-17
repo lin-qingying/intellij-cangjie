@@ -59,7 +59,7 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
         try {
 
 //          TODO  静态分析
-//            analyze(file, holder)
+            analyze(file, holder)
 
             action.run()
 

@@ -12,6 +12,9 @@ abstract class DescriptorVisibility protected constructor(){
     val isPublicAPI: Boolean
         get() = delegate.isPublicAPI
 
+    abstract val internalDisplayName: String
+
+    abstract fun normalize(): DescriptorVisibility
     /**
      * @param receiver can be used to determine callee accessibility for some special receiver value
      *
@@ -45,12 +48,12 @@ abstract class DelegatedDescriptorVisibility(override val delegate: Visibility) 
 //    }
 //
 //    // internal representation for descriptors
-//    override val internalDisplayName: String
-//        get() = delegate.internalDisplayName
-//
+    override val internalDisplayName: String
+        get() = delegate.internalDisplayName
+
 //    // external representation for diagnostics
 //    override val externalDisplayName: String
 //        get() = delegate.externalDisplayName
 //
-//    override fun normalize(): DescriptorVisibility = DescriptorVisibilities.toDescriptorVisibility(delegate.normalize())
+    override fun normalize(): DescriptorVisibility = DescriptorVisibilities.toDescriptorVisibility(delegate.normalize())
 }

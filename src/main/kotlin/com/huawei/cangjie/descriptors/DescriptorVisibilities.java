@@ -36,6 +36,8 @@ public class DescriptorVisibilities {
     @NotNull
     public static final DescriptorVisibility PROTECTED = new DelegatedDescriptorVisibility(Visibilities.Protected.INSTANCE) {
 
+
+
     };
     @NotNull
     public static final DescriptorVisibility PRIVATE = new DelegatedDescriptorVisibility(Visibilities.Private.INSTANCE) {

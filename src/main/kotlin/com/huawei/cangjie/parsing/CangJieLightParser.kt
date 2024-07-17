@@ -7,10 +7,10 @@ import com.intellij.util.diff.FlyweightCapableTreeStructure
 
 object CangJieLightParser {
     fun parse(builder: PsiBuilder): FlyweightCapableTreeStructure<LighterASTNode> {
-        val ktParsing: CangJieParsing = CangJieParsing.createForTopLevelNonLazy(
+        val cjParsing: CangJieParsing = CangJieParsing.createForTopLevelNonLazy(
             SemanticWhitespaceAwarePsiBuilderImpl(builder)
         )
-        ktParsing.parseFile()
+        cjParsing.parseFile()
         return builder.lightTree
     }
 }

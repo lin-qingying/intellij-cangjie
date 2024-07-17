@@ -297,7 +297,10 @@ open class CjVisitorVoid :  CjVisitor<Void?, Void?>() {
         super.visitUserType(type, null)
     }
 
+open fun visitBasicType(type:CjBasicType) {
+    super.visitBasicType(type, null)
 
+}
 
 
 
@@ -731,6 +734,10 @@ open class CjVisitorVoid :  CjVisitor<Void?, Void?>() {
         return null
     }
 
+    override fun visitBasicType(cjBasicType: CjBasicType, data: Void?): Void? {
+        visitBasicType(cjBasicType)
+        return null
+    }
 
 
     override fun visitBinaryWithTypeRHSExpression(

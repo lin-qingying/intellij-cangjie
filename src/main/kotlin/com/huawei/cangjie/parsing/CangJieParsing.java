@@ -97,6 +97,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 }
             });
 
+    //    如果是声明文件，则不需要函数体
+
     private CangJieParsing(SemanticWhitespaceAwarePsiBuilder builder, boolean isTopLevel, boolean isLazy) {
         super(builder, isLazy);
 
@@ -526,7 +528,19 @@ public class CangJieParsing extends AbstractCangJieParsing {
     void parseScript() {
         PsiBuilder.Marker fileMarker = mark();
         fileMarker.done(CJ_FILE);
+
     }
+
+//    public void parseDeclarationsFile() {
+//        isDeclarationsFile = true;
+//        parseFile();
+//    }
+//
+//
+//    void parseCjFile() {
+//        isDeclarationsFile = false;
+//        parseFile();
+//    }
 
     //入口
     void parseFile() {
@@ -1279,6 +1293,17 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //            error("Expecting ':'");
 //        }
 
+        if (isDeclarationsFile) {
+
+            if (at(LBRACE)) {
+                PsiBuilder.Marker body = mark();
+                parsePropertyBody(detector);
+                body.error("Property body is not allowed in declarations file");
+
+            }
+            return PROPERTY;
+        }
+
         if (at(LBRACE)) {
             parsePropertyBody(detector);
         } else if (!isInterface) {
@@ -1895,6 +1920,22 @@ public class CangJieParsing extends AbstractCangJieParsing {
             errorAndAdvance("Expecting '('  but available" + myBuilder.getTokenText());
         }
 
+        if (isDeclarationsFile) {
+            if (at(LBRACE)) {
+                PsiBuilder.Marker body = mark();
+                while (!atSet(KEYWORDALL)) {
+                    advance();
+                }
+
+//                parseFunctionBody();
+
+                body.error("Method bodies are not allowed in declaration files");
+
+
+            }
+            return;
+        }
+
 
         if (at(LBRACE)) {
             parseFunctionBody();
@@ -2146,6 +2187,31 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        if (at(SEMICOLON)) {
 //            advance(); // SEMICOLON
 //        } else
+
+        if (isDeclarationsFile) {
+
+            if (at(LBRACE)) {
+                PsiBuilder.Marker body = mark();
+                while (!atSet(KEYWORDALL)) {
+                    advance();
+                }
+
+//                if (!(MODIFIER_KEYWORDS.contains(lookahead(1)) || lookahead(1) == FUNC)) {
+//                    parseFunctionBody();
+//
+//                }else {
+//                    advance();
+//                }
+
+
+                body.error("Method bodies are not allowed in declaration files");
+
+            }
+//            else body.drop();
+
+            return FUNC;
+        }
+
         if (at(LBRACE)) {
 
             parseFunctionBody();
@@ -3095,11 +3161,5 @@ public class CangJieParsing extends AbstractCangJieParsing {
             return openDetected;
         }
 
-        public boolean isConstDetected() {
-            return constDetected;
-        }
-
-
     }
 }
-

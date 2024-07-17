@@ -10,6 +10,6 @@ public interface  CjTokenSets {
      TokenSet DECLARATION_TYPES =
              TokenSet.create(CLASS );
      TokenSet INSIDE_DIRECTIVE_EXPRESSIONS = TokenSet.create(REFERENCE_EXPRESSION, DOT_QUALIFIED_EXPRESSION);
-     TokenSet TYPE_ELEMENT_TYPES = TokenSet.create(USER_TYPE);
+     TokenSet TYPE_ELEMENT_TYPES = TokenSet.create(USER_TYPE,BASIC_TYPE);
 
 }

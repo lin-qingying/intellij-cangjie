@@ -5,6 +5,8 @@ import com.huawei.cangjie.doc.lexer.CDocTokens
 import com.huawei.cangjie.doc.parser.CDocElementType
 import com.huawei.cangjie.doc.psi.impl.CDocLink
 import com.huawei.cangjie.lang.CangJieLanguage
+import com.huawei.cangjie.lang.declarations.CangJieDeclarationsFileViewProvider
+import com.huawei.cangjie.lang.declarations.CjDeclarationsFile
 import com.huawei.cangjie.lexer.CangJieLexer
 import com.huawei.cangjie.lexer.CjToken
 import com.huawei.cangjie.lexer.CjTokens
@@ -77,7 +79,22 @@ class CangJieParserDefinition : ParserDefinition {
         }
     }
 
-    override fun createFile(viewProvider: FileViewProvider): PsiFile = CjFile(viewProvider, false)
+    override fun reparseSpace(originalSpaceNode: ASTNode, newWhiteSpaceSequence: CharSequence): ASTNode? {
+        return super.reparseSpace(originalSpaceNode, newWhiteSpaceSequence)
+    }
+
+
+
+
+    override fun createFile(viewProvider: FileViewProvider): PsiFile{
+
+        if(viewProvider is CangJieDeclarationsFileViewProvider){
+
+            return CjDeclarationsFile(viewProvider)
+        }
+
+        return  CjFile(viewProvider, false)
+    }
 
 
     object Util {

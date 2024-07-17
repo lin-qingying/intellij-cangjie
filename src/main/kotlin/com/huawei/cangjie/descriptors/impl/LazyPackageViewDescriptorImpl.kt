@@ -15,7 +15,7 @@ open class LazyPackageViewDescriptorImpl(
     storageManager: StorageManager
 ) : DeclarationDescriptorImpl(Annotations.EMPTY, fqName.shortNameOrSpecial()), PackageViewDescriptor {
     override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R =
-        visitor.visitPackageViewDescriptor(this, data)
+        visitor.visitPackageViewDescriptor(this, data!!)
 
 
     protected val empty: Boolean by storageManager.createLazyValue {

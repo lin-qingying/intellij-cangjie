@@ -19,6 +19,7 @@ import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiComment
 import com.intellij.util.ProcessingContext
 import com.intellij.util.indexing.DumbModeAccessType
+import kotlin.math.max
 
 
 class CangJieCompletionContributor : CompletionContributor(), DumbAware {
@@ -129,18 +130,18 @@ class CangJieCompletionContributor : CompletionContributor(), DumbAware {
 //
 //
 //
-//    override fun beforeCompletion(context: CompletionInitializationContext) {
-//
-//
-//
-//
-//
-//        val offset = context.startOffset
-//        val psiFile = context.file
-//        val tokenBefore = psiFile.findElementAt(max(0, offset - 1))
-////        val token = psiFile.findElementAt(offset)
-//
-////此代码将使替换偏移量“已修改”，并防止CompletionProgressIndicator中的代码对其进行更改
+    override fun beforeCompletion(context: CompletionInitializationContext) {
+
+
+
+
+
+        val offset = context.startOffset
+        val psiFile = context.file
+        val tokenBefore = psiFile.findElementAt(max(0, offset - 1))
+//        val token = psiFile.findElementAt(offset)
+
+//此代码将使替换偏移量“已修改”，并防止CompletionProgressIndicator中的代码对其进行更改
 //        context.replacementOffset = context.replacementOffset
 //
 //        val dummyIdentifierCorrected =
@@ -189,7 +190,7 @@ class CangJieCompletionContributor : CompletionContributor(), DumbAware {
 //            }
 //            CompletionDummyIdentifierProviderService.getInstance().correctPositionForParameter(context)
 //        }
-//    }
+    }
 //
 //    private fun replacementOffsetByExpression(expression: CjExpression): Int {
 //        when (expression) {

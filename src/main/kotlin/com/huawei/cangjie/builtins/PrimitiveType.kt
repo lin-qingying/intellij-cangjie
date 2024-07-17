@@ -10,9 +10,12 @@ enum class PrimitiveType(typeName: String) {
 
     INT64("Int64"),
     INT32("Int32"),
-
     INT16("Int16"),
     INT8("Int8"),
+    UINT64("Int64"),
+    UINT32("Int32"),
+    UINT16("Int16"),
+    UINT8("Int8"),
 
 
     FLOAT("Float"),

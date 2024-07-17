@@ -236,6 +236,9 @@ public class CjNamedFunction extends CjFunctionImpl {
         return TypeRefHelpersKt.setTypeReference(this, getValueParameterList(), typeRef);
     }
 
+
+
+
     @Nullable
     @Override
     public PsiElement getColon() {

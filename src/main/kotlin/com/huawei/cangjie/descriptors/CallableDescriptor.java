@@ -43,7 +43,7 @@ public interface CallableDescriptor extends DeclarationDescriptorWithVisibility,
     List<TypeParameterDescriptor> getTypeParameters();
 
     @NotNull
-    CangJieType getType();
+
 
     interface UserDataKey<V> {
     }

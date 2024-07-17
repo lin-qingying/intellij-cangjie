@@ -3,13 +3,14 @@ package com.huawei.cangjie.psi;
 import com.huawei.cangjie.lang.CangJieLanguage;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.psi.psiUtil.CjElementUtilsKt;
+import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
 import com.huawei.cangjie.psi.psiUtil.PsiElementKt;
 import com.huawei.cangjie.utils.ReadOnly;
 import com.intellij.lang.Language;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
-
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.tree.CompositeElement;
 import com.intellij.psi.impl.source.tree.LazyParseablePsiElement;
 import com.intellij.psi.util.PsiUtilCore;
@@ -21,8 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
-
 import static com.huawei.cangjie.CjNodeTypes.BLOCK;
 
 public class CjBlockExpression extends LazyParseablePsiElement implements CjElement, CjExpression, CjStatementExpression {
@@ -30,7 +29,6 @@ public class CjBlockExpression extends LazyParseablePsiElement implements CjElem
     public CjBlockExpression(@Nullable CharSequence text) {
         super(BLOCK, text);
     }
-
 
 
     @NotNull
@@ -44,10 +42,21 @@ public class CjBlockExpression extends LazyParseablePsiElement implements CjElem
         return getNode().getElementType().toString();
     }
 
+
+    @Override
+    public PsiFile getContainingFile() {
+        return super.getContainingFile();
+    }
+
+    @Override
+    public <T extends PsiElement> T getPsi(@NotNull Class<T> clazz) {
+        return super.getPsi(clazz);
+    }
+
     @NotNull
     @Override
     public CjFile getContainingCjFile() {
-        return PsiElementKt. getContainingCjFile(this);
+        return PsiElementKt.getContainingCjFile(this);
     }
 
     @Override
@@ -65,8 +74,7 @@ public class CjBlockExpression extends LazyParseablePsiElement implements CjElem
     public final void accept(@NotNull PsiElementVisitor visitor) {
         if (visitor instanceof CjVisitor) {
             accept((CjVisitor) visitor, null);
-        }
-        else {
+        } else {
             visitor.visitElement(this);
         }
     }
@@ -85,7 +93,7 @@ public class CjBlockExpression extends LazyParseablePsiElement implements CjElem
         List<PsiElement> result = null;
         while (psiChild != null) {
             if (psiChild.getNode() instanceof CompositeElement) {
-                if(result == null) result = new ArrayList<>();
+                if (result == null) result = new ArrayList<>();
                 result.add(psiChild);
             }
             psiChild = psiChild.getNextSibling();

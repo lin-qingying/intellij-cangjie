@@ -14,23 +14,29 @@ import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
+import com.huawei.cangjie.types.error.ErrorType
 import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.model.TypeArgumentMarker
 import com.huawei.cangjie.types.model.TypeVariableTypeConstructorMarker
 import com.huawei.cangjie.utils.SmartSet
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 fun CangJieType.replaceAnnotations(newAnnotations: Annotations): CangJieType {
     if (annotations.isEmpty() && newAnnotations.isEmpty()) return this
     return unwrap().replaceAttributes(attributes.replaceAnnotations(newAnnotations))
 }
+
 fun CangJieType.makeNullable() = TypeUtils.makeNullable(this)
 fun CangJieType.makeNotNullable() = TypeUtils.makeNotNullable(this)
 
 
 fun UnwrappedType.unCapture(): UnwrappedType = when (this) {
+
     is AbbreviatedType -> unCapture()
     is SimpleType -> unCapture()
     is FlexibleType -> unCapture()
+
 }
 
 fun CangJieType.expandIntersectionTypeIfNecessary(): Collection<CangJieType> {
@@ -42,8 +48,6 @@ fun CangJieType.expandIntersectionTypeIfNecessary(): Collection<CangJieType> {
         types
     }
 }
-
-
 
 
 //fun CangJieType?.shouldBeUpdated() =
@@ -58,6 +62,7 @@ fun CangJieType.contains(predicate: (UnwrappedType) -> Boolean) = TypeUtils.cont
 fun CangJieType.isSignedOrUnsignedNumberType(): Boolean = isPrimitiveNumberType() /*|| isUnsignedNumberType()*/
 fun CangJieType.isStubTypeForBuilderInference(): Boolean =
     this is StubTypeForBuilderInference || isDefNotNullStubType<StubTypeForBuilderInference>()
+
 fun CangJieType.isPrimitiveNumberType(): Boolean = CangJieBuiltIns.isPrimitiveType(this) && !isBoolean()
 fun CangJieType.isBoolean(): Boolean = CangJieBuiltIns.isBoolean(this)
 //fun CangJieType.isUnsignedNumberType(): Boolean = UnsignedTypes.isUnsignedType(this)
@@ -101,6 +106,25 @@ private fun CangJieType.containsSelfTypeParameter(
 inline fun SimpleType.replaceArgumentsByExistingArgumentsWith(replacement: (TypeArgumentMarker) -> TypeArgumentMarker): SimpleType {
     if (arguments.isEmpty()) return this
     return replace(newArguments = arguments.map { replacement(it) as TypeProjection })
+}
+
+
+fun createBasicType(
+    builtIns: CangJieBuiltIns,
+    name: String
+): BasicType {
+    val classDescriptor = builtIns.getBuiltInBasicTypeByName(name)
+
+
+    return CangJieTypeFactory.basicType(classDescriptor)
+}
+
+@OptIn(ExperimentalContracts::class)
+fun isUnresolvedType(type: CangJieType): Boolean {
+    contract {
+        returns(true) implies (type is ErrorType)
+    }
+    return type is ErrorType && type.kind.isUnresolved
 }
 
 object TypeUtils {
@@ -220,9 +244,10 @@ object TypeUtils {
     fun makeNullable(type: CangJieType): CangJieType {
         return makeNullableAsSpecified(type, true)
     }
+
     @JvmStatic
     fun makeNotNullable(type: CangJieType): CangJieType {
-        return  makeNullableAsSpecified(type, false)
+        return makeNullableAsSpecified(type, false)
     }
 
     @JvmStatic

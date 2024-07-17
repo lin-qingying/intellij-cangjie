@@ -57,8 +57,6 @@ public interface ClassDescriptor extends ClassifierDescriptorWithTypeParameters,
     /**
      * @return nested object declared as 'companion' if one is present.
      */
-    @Nullable
-    ClassDescriptor getCompanionObjectDescriptor();
 
     @NotNull
     ClassKind getKind();

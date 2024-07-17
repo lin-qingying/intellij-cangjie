@@ -123,7 +123,7 @@ open class ValueParameterDescriptorImpl(
 
     override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R {
 
-        return visitor.visitValueParameterDescriptor(this, data)
+        return visitor.visitValueParameterDescriptor(this, data!!)
 
     }
 

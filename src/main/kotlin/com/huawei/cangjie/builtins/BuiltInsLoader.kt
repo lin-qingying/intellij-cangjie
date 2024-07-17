@@ -7,12 +7,14 @@ package com.huawei.cangjie.builtins
 import com.google.protobuf.ExtensionRegistry
 import com.google.protobuf.util.JsonFormat
 import com.huawei.cangjie.descriptors.ModuleDescriptor
+import com.huawei.cangjie.descriptors.PackageFragmentDescriptor
 import com.huawei.cangjie.descriptors.PackageFragmentProvider
 import com.huawei.cangjie.descriptors.PackageFragmentProviderImpl
 import com.huawei.cangjie.metadata.ProtoBuf
 import com.huawei.cangjie.metadata.builtins.BuiltInsBinaryVersion
 import com.huawei.cangjie.metadata.builtins.BuiltInsProtoBuf
 import com.huawei.cangjie.name.FqName
+import com.huawei.cangjie.resolve.lazy.declarations.impl.craetePackageFragmentDescriptor
 import com.huawei.cangjie.storage.StorageManager
 import java.io.InputStream
 import java.util.*
@@ -48,13 +50,13 @@ fun InputStream.readBuiltinsPackageFragment(): Pair<ProtoBuf.PackageFragment?, B
                 ProtoBuf.PackageFragment.parseFrom(
                     stream,
 //                ExtensionRegistryLite.newInstance().apply(BuiltInsProtoBuf::registerAllExtensions) //轻量级
-                ExtensionRegistry.newInstance().apply(BuiltInsProtoBuf::registerAllExtensions)
+                    ExtensionRegistry.newInstance().apply(BuiltInsProtoBuf::registerAllExtensions)
                 )
             } else null
 
 
         val printer: JsonFormat.Printer = JsonFormat.printer()
-        val  jsonStr: String = printer.print(proto)
+        val jsonStr: String = printer.print(proto)
 
         proto to version
     }
@@ -90,8 +92,14 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
 ////            val inputStream = loadResource(resourcePath) ?: throw IllegalStateException("Resource not found in classpath: $resourcePath")
 ////            BuiltInsPackageFragmentImpl.create(fqName, storageManager, module, inputStream, isFallback)
 //        }
-//        val provider = PackageFragmentProviderImpl(packageFragments )
-        val provider = PackageFragmentProviderImpl()
+
+        val packageFragments: List<PackageFragmentDescriptor> = packageFqNames.map { fqName ->
+            craetePackageFragmentDescriptor(storageManager, module, fqName)
+
+        }
+
+        val provider = PackageFragmentProviderImpl(packageFragments)
+//        val provider = PackageFragmentProviderImpl()
 //        val notFoundClasses = NotFoundClasses(storageManager, module)
 //
 //        val components = DeserializationComponents(
@@ -131,7 +139,7 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
         return createBuiltInPackageFragmentProvider(
             storageManager,
             builtInsModule,
-            StandardNames.BUILT_INS_PACKAGE_FQ_NAMES,
+            StandardNames.ALL_NAMES,
 //            classDescriptorFactories,
 //            platformDependentDeclarationFilter,
 //            additionalClassPartsProvider,

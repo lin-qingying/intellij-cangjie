@@ -16,7 +16,7 @@ interface ModuleDescriptor : DeclarationDescriptor{
     override val containingDeclaration: DeclarationDescriptor?
         get() = null
     override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R {
-        return visitor.visitModuleDeclaration(this, data)
+        return visitor.visitModuleDeclaration(this, data!!)
 
     }
     fun assertValid()

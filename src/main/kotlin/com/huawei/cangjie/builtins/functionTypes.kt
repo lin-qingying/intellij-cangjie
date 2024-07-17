@@ -162,7 +162,10 @@ fun CangJieType.getReceiverTypeFromFunctionType(): CangJieType? {
     val index = contextFunctionTypeParamsCount()
     return arguments[index].type
 }
-
+fun CangJieType.getReturnTypeFromFunctionType(): CangJieType {
+    assert(isBuiltinFunctionalType) { "Not a function type: $this" }
+    return arguments.last().type
+}
 val CangJieType.functionTypeKind: FunctionTypeKind?
     get() = constructor.declarationDescriptor?.getFunctionTypeKind()
 
@@ -171,3 +174,11 @@ val CangJieType.isFunctionType: Boolean
 
 val CangJieType.isNonExtensionFunctionType: Boolean
     get() = isFunctionType && !isTypeAnnotatedWithExtensionFunctionType
+fun CangJieType.extractParameterNameFromFunctionTypeArgument(): Name? {
+    val annotation = annotations.findAnnotation(StandardNames.FqNames.parameterName) ?: return null
+    val name = (annotation.allValueArguments.values.singleOrNull() as? StringValue)
+        ?.value
+        ?.takeIf { Name.isValidIdentifier(it) }
+        ?: return null
+    return Name.identifier(name)
+}

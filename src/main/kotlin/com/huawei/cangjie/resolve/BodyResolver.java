@@ -89,7 +89,7 @@ public class BodyResolver {
 
         resolveFunctionBody(outerDataFlowInfo, trace, function, functionDescriptor, declaringScope, null, null, localContext);
 //TODO 检查返回值
-//        assert functionDescriptor.getReturnType() != null;
+        assert functionDescriptor.getReturnType() != null;
     }
 
     private void resolveFunctionBody(

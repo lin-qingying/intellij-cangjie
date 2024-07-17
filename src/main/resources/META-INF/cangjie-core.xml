@@ -66,10 +66,25 @@
                   implementationClass="com.huawei.cangjie.lang.CangJieFileType"
                   extensions="cj"
                   fieldName="INSTANCE"/>
+        <fileType name="cangjie_declarations" fieldName="INSTANCE" extensions="cangjie_declarations"
+                  implementationClass="com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType"/>
+
+
+        <fileType.fileViewProviderFactory filetype="cangjie_declarations" implementationClass="com.huawei.cangjie.lang.declarations.CangJieDeclarationsFileViewProviderFactory"/>
+
+
+<!--        仓颉声明文件 为标准库提供索引支持-->
+
+
+
+
+
+
         <internalFileTemplate name="CangJie File"/>
         <!--       PSI解析 -->
         <lang.parserDefinition language="CangJie"
                                implementationClass="com.huawei.cangjie.parsing.CangJieParserDefinition"/>
+
 
         <!--语法高亮-->
         <colorSettingsPage implementation="com.huawei.cangjie.highlighter.CangJieColorSettingsPage"/>

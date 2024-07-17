@@ -159,7 +159,7 @@ public class ClassDescriptorImpl extends ClassDescriptorBase {
     @NotNull
     @Override
     public DescriptorVisibility getVisibility() {
-        throw new UnsupportedOperationException("replaceBindingTrace is not implemented");
+        return DescriptorVisibilities.PUBLIC;
 
 //        return DescriptorVisibilities.PUBLIC;
     }

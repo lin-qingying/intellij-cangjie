@@ -40,6 +40,14 @@ public abstract class AbstractCangJieParsing {
 
     protected final SemanticWhitespaceAwarePsiBuilder myBuilder;
     protected final boolean isLazy;
+    protected boolean isDeclarationsFile = false;
+
+    public void setDeclarationsFile(boolean isDeclarationsFile) {
+        this.isDeclarationsFile = isDeclarationsFile;
+
+
+
+    }
 
     public AbstractCangJieParsing(SemanticWhitespaceAwarePsiBuilder builder) {
         this(builder, true);

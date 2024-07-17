@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.annotations.AnnotationDescriptor
 import com.huawei.cangjie.descriptors.annotations.fqNameUnsafe
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.ClassId
@@ -16,6 +17,7 @@ import com.huawei.cangjie.types.TypeConstructor
 import com.huawei.cangjie.types.TypeRefinement
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.checker.REFINER_CAPABILITY
+import com.huawei.cangjie.utils.DFS
 
 fun ModuleDescriptor.resolveClassByFqName(fqName: FqName, lookupLocation: LookupLocation): ClassDescriptor? {
     if (fqName.isRoot) return null
@@ -67,6 +69,16 @@ val ClassDescriptor.classValueDescriptor: ClassDescriptor?
         else
             companionObjectDescriptor
 
+fun ValueParameterDescriptor.declaresOrInheritsDefaultValue(): Boolean {
+    return DFS.ifAny(
+        listOf(this),
+        { current -> current.overriddenDescriptors.map(ValueParameterDescriptor::original) },
+        ValueParameterDescriptor::declaresDefaultValue
+    )
+}
+val AnnotationDescriptor.annotationClass: ClassDescriptor?
+    get() = type.constructor.declarationDescriptor as? ClassDescriptor
+
 object DescriptorUtils {
     @JvmStatic
 
@@ -75,7 +87,10 @@ object DescriptorUtils {
             descriptor
         )
     }
-
+@JvmStatic
+fun isTopLevelDeclaration(descriptor: DeclarationDescriptor?): Boolean {
+    return descriptor != null && descriptor.containingDeclaration is  PackageFragmentDescriptor
+}
     @JvmStatic
 
     fun <D : DeclarationDescriptor?> getParentOfType(
