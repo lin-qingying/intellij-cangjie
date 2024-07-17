@@ -348,7 +348,7 @@ private class ConstantExpressionEvaluatorVisitor(
 //            val result = when (operationToken) {
 //                CjTokens.ANDAND -> leftValue && rightValue
 //                CjTokens.OROR -> leftValue || rightValue
-//                else -> throw IllegalArgumentException("Unknown boolean operation token $operationToken")
+//                else -> throw IllegalArgumentException("Unknown bool operation token $operationToken")
 //            }
 //            return createConstant(
 //                result, expectedType,

@@ -9,7 +9,6 @@ import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.ClassTypeConstructorImpl
 import com.huawei.cangjie.types.TypeConstructor
-import com.huawei.cangjie.types.TypeSubstitutor
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 
 
@@ -20,6 +19,34 @@ class BasicTypeDescriptor(
 ) : AbstractClassDescriptor(
     storageManager, name
 ) {
+
+    private var constructors: Set< ClassConstructorDescriptor>  = mutableSetOf()
+
+
+    companion object{
+
+        fun create(
+            memberScope: PackageFragmentDescriptorBasicImpl.BasicMemberScope,
+            storageManager: StorageManager,
+            name: Name
+        ): BasicTypeDescriptor {
+            return BasicTypeDescriptor(
+                memberScope,
+                storageManager,
+                name
+            )
+        }
+    }
+
+    fun initialize(
+
+        constructors: Set< ClassConstructorDescriptor>,
+
+    ) {
+
+        this.constructors = constructors
+
+    }
     override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner): MemberScope {
 
 
@@ -48,13 +75,12 @@ class BasicTypeDescriptor(
         return MemberScope.Empty
     }
 
-    override fun getConstructors(): MutableCollection<ClassConstructorDescriptor> {
-        TODO("Not yet implemented")
+    override fun getConstructors(): Set<ClassConstructorDescriptor> {
+        return constructors
+
     }
 
-    override fun getCompanionObjectDescriptor(): ClassDescriptor? {
-        TODO("Not yet implemented")
-    }
+
 
     override fun getKind(): ClassKind = ClassKind.BASIC
     override fun isFun(): Boolean = false

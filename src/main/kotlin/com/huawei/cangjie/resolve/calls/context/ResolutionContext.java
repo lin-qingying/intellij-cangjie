@@ -229,7 +229,7 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
 //    }
 //
 //    @NotNull
-//    public Context replaceCollectAllCandidates(boolean newCollectAllCandidates) {
+//    public Context replaceCollectAllCandidates(bool newCollectAllCandidates) {
 //        return create(trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
 //                newCollectAllCandidates, callPosition, expressionContextProvider, dataFlowValueFactory,
 //                inferenceSession);

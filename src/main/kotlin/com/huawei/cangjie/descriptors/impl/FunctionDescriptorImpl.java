@@ -1,5 +1,6 @@
 package com.huawei.cangjie.descriptors.impl;
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.name.Name;
@@ -26,20 +27,18 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     private Modality modality;
     private DescriptorVisibility visibility = DescriptorVisibilities.UNKNOWN;
     private boolean isOperator = false;
-    //    private boolean isInfix = false;
-//    private boolean isExternal = false;
-//    private boolean isInline = false;
-//    private boolean isTailrec = false;
-//    private boolean isExpect = false;
-//    private boolean isActual = false;
+    //    private bool isInfix = false;
+//    private bool isExternal = false;
+//    private bool isInline = false;
+//    private bool isTailrec = false;
+//    private bool isExpect = false;
+//    private bool isActual = false;
     // Difference between these hidden kinds:
     // 1. isHiddenToOvercomeSignatureClash prohibit calling such functions even in super-call context
     // 2. isHiddenForResolutionEverywhereBesideSupercalls propagates to it's overrides descriptors while isHiddenToOvercomeSignatureClash does not
     private boolean isHiddenToOvercomeSignatureClash = false;
     private boolean isHiddenForResolutionEverywhereBesideSupercalls = false;
-    private boolean isSuspend = false;
-    private boolean hasStableParameterNames = true;
-    private boolean hasSynthesizedParameterNames = false;
+
     private Collection<? extends FunctionDescriptor> overriddenFunctions = null;
     private volatile Function0<Collection<FunctionDescriptor>> lazyOverriddenFunctionsTask = null;
     @Nullable
@@ -185,29 +184,22 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         this.isOperator = isOperator;
     }
 
-    public void setSuspend(boolean suspend) {
-        isSuspend = suspend;
-    }
 
-//    public void setInfix(boolean isInfix) {
+//    public void setInfix(bool isInfix) {
 //        this.isInfix = isInfix;
 //    }
 //
-//    public void setInline(boolean isInline) {
+//    public void setInline(bool isInline) {
 //        this.isInline = isInline;
 //    }
 //
-//    public void setTailrec(boolean isTailrec) {
+//    public void setTailrec(bool isTailrec) {
 //        this.isTailrec = isTailrec;
 //    }
 
-    public void setHasStableParameterNames(boolean hasStableParameterNames) {
-        this.hasStableParameterNames = hasStableParameterNames;
-    }
 
-    public void setHasSynthesizedParameterNames(boolean hasSynthesizedParameterNames) {
-        this.hasSynthesizedParameterNames = hasSynthesizedParameterNames;
-    }
+
+
 
     @NotNull
     @Override
@@ -275,25 +267,25 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 
 
 //    @Override
-//    public boolean isExternal() {
+//    public bool isExternal() {
 //        return isExternal;
 //    }
 
-//    public void setExternal(boolean isExternal) {
+//    public void setExternal(bool isExternal) {
 //        this.isExternal = isExternal;
 //    }
 
 //    @Override
-//    public boolean isExpect() {
+//    public bool isExpect() {
 //        return isExpect;
 //    }
 
-//    public void setExpect(boolean isExpect) {
+//    public void setExpect(bool isExpect) {
 //        this.isExpect = isExpect;
 //    }
 
 //    @Override
-//    public boolean isOperator() {
+//    public bool isOperator() {
 //        if (isOperator) return true;
 //
 //        for (FunctionDescriptor descriptor : getOriginal().getOverriddenDescriptors()) {
@@ -304,7 +296,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 //    }
 
 //    @Override
-//    public boolean isInfix() {
+//    public bool isInfix() {
 //        if (isInfix) return true;
 //
 //        for (FunctionDescriptor descriptor : getOriginal().getOverriddenDescriptors()) {
@@ -315,26 +307,26 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 //    }
 
 //    @Override
-//    public boolean isActual() {
+//    public bool isActual() {
 //        return isActual;
 //    }
 
 //    @Override
-//    public boolean isInline() {
+//    public bool isInline() {
 //        return isInline;
 //    }
 //
 //    @Override
-//    public boolean isTailrec() {
+//    public bool isTailrec() {
 //        return isTailrec;
 //    }
 //
 //    @Override
-//    public boolean isSuspend() {
+//    public bool isSuspend() {
 //        return isSuspend;
 //    }
 
-//    public void setActual(boolean isActual) {
+//    public void setActual(bool isActual) {
 //        this.isActual = isActual;
 //    }
 
@@ -382,18 +374,12 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         return unsubstitutedValueParameters;
     }
 
-    //    @Override
-//    public boolean hasStableParameterNames() {
-//        return hasStableParameterNames;
-//    }
-//
-//    @Override
-//    public boolean hasSynthesizedParameterNames() {
-//        return hasSynthesizedParameterNames;
-//    }
-//
+
     @Override
     public CangJieType getReturnType() {
+
+
+
         return unsubstitutedReturnType;
     }
 

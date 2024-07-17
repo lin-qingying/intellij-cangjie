@@ -5,7 +5,7 @@ import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.findClassAcrossModuleDependencies
 
 fun hasUnsignedTypesInModuleDependencies(module: ModuleDescriptor): Boolean {
-    return module.findClassAcrossModuleDependencies(StandardNames.FqNames.uInt32) != null
+    return module.findClassAcrossModuleDependencies(StandardNames.FqNames.uInt32ClassId) != null
 }
 interface CompileTimeConstant<out T>{
     val isError: Boolean

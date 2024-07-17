@@ -25,11 +25,11 @@ public class CjNamedFunction extends CjFunctionImpl {
     public CjNamedFunction(@NotNull CangJieFunctionStub stub) {
         super(stub, CjStubElementTypes.FUNCTION);
     }
-//    public boolean mayHaveContract() {
+//    public bool mayHaveContract() {
 //        return mayHaveContract(true);
 //    }
 
-//    public boolean mayHaveContract(boolean isAllowedOnMembers) {
+//    public bool mayHaveContract(bool isAllowedOnMembers) {
 //        CangJieFunctionStub stub = getStub();
 //        if (stub != null) {
 //            return stub.mayHaveContract();

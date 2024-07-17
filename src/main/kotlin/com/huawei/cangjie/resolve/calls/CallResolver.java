@@ -413,7 +413,7 @@ public class CallResolver {
         tracing.bindCall(context.trace, call);
 
 
-//        boolean newInferenceEnabled = languageVersionSettings.supportsFeature(LanguageFeature.NewInference);
+//        bool newInferenceEnabled = languageVersionSettings.supportsFeature(LanguageFeature.NewInference);
         NewResolutionOldInference.ResolutionKind resolutionKind = resolutionTask.resolutionKind;
         if (
 //                newInferenceEnabled &&

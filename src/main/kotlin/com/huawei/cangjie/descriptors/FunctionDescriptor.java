@@ -55,15 +55,15 @@ public interface FunctionDescriptor extends CallableMemberDescriptor, FunctionSy
 
     boolean isOperator();
 
-//    boolean isInfix();
+//    bool isInfix();
 
-//    boolean isInline();
+//    bool isInline();
 
-//    boolean isTailrec();
+//    bool isTailrec();
 
     boolean isHiddenForResolutionEverywhereBesideSupercalls();
 
-//    boolean isSuspend();
+//    bool isSuspend();
 
     @NotNull
     @Override

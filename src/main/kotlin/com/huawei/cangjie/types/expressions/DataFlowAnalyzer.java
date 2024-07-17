@@ -121,7 +121,7 @@ public class DataFlowAnalyzer {
 //
 //        if (expression instanceof CjConstantExpression && reportErrorForTypeMismatch) {
 //            ConstantValue<?> constantValue = constantExpressionEvaluator.evaluateToConstantValue(expression, c.trace, c.expectedType);
-//            boolean error = new CompileTimeConstantChecker(c, module, true)
+//            bool error = new CompileTimeConstantChecker(c, module, true)
 //                    .checkConstantExpressionType(constantValue, (CjConstantExpression) expression, c.expectedType);
 //            hasError.set(error);
 //            return expressionType;

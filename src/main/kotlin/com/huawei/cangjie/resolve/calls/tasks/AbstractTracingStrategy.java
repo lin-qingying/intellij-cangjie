@@ -117,7 +117,7 @@ public abstract class AbstractTracingStrategy implements TracingStrategy {
 //    }
 //
 //    @Override
-//    public void recursiveType(@NotNull BindingTrace trace, @NotNull LanguageVersionSettings languageVersionSettings, boolean insideAugmentedAssignment) {
+//    public void recursiveType(@NotNull BindingTrace trace, @NotNull LanguageVersionSettings languageVersionSettings, bool insideAugmentedAssignment) {
 //        CjExpression expression = call.getCalleeExpression();
 //        if (expression == null) return;
 //        if (insideAugmentedAssignment) {
@@ -162,7 +162,7 @@ public abstract class AbstractTracingStrategy implements TracingStrategy {
 //    }
 //
 //    @Override
-//    public void unsafeCall(@NotNull BindingTrace trace, @NotNull CangJieType type, boolean isCallForImplicitInvoke) {
+//    public void unsafeCall(@NotNull BindingTrace trace, @NotNull CangJieType type, bool isCallForImplicitInvoke) {
 //        ASTNode callOperationNode = call.getCallOperationNode();
 //        if (callOperationNode != null && !isCallForImplicitInvoke) {
 //            trace.report(UNSAFE_CALL.on(callOperationNode.getPsi(), type));
@@ -183,7 +183,7 @@ public abstract class AbstractTracingStrategy implements TracingStrategy {
 //
 //    private void reportUnsafeCallOnBinaryExpression(@NotNull BindingTrace trace, @NotNull CjBinaryExpression binaryExpression) {
 //        CjSimpleNameExpression operationReference = binaryExpression.getOperationReference();
-//        boolean isInfixCall = operationReference.getReferencedNameElementType() == CjTokens.IDENTIFIER;
+//        bool isInfixCall = operationReference.getReferencedNameElementType() == CjTokens.IDENTIFIER;
 //        Name operationString = isInfixCall ?
 //                Name.identifier(operationReference.getText()) :
 //                OperatorConventions.getNameForOperationSymbol((CjToken) operationReference.getReferencedNameElementType());
@@ -198,7 +198,7 @@ public abstract class AbstractTracingStrategy implements TracingStrategy {
 //            trace.report(UNSAFE_INFIX_CALL.on(reference, left, operationString.asString(), right));
 //        }
 //        else {
-//            boolean inOperation = CjPsiUtil.isInOrNotInOperation(binaryExpression);
+//            bool inOperation = CjPsiUtil.isInOrNotInOperation(binaryExpression);
 //            CjExpression receiver = inOperation ? right : left;
 //            CjExpression argument = inOperation ? left : right;
 //            trace.report(UNSAFE_OPERATOR_CALL.on(reference, receiver, operationString.asString(), argument));

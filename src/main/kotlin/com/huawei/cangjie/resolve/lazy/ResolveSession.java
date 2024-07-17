@@ -88,7 +88,7 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
 //            }
 //
 //            @Override
-//            public boolean isEmpty(@NotNull FqName fqName) {
+//            public bool isEmpty(@NotNull FqName fqName) {
 //                PackageMemberDeclarationProvider provider = declarationProviderFactory.getPackageMemberDeclarationProvider(fqName);
 //                return provider == null;
 //            }

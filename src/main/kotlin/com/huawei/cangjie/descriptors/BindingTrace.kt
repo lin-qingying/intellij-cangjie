@@ -19,7 +19,7 @@ interface BindingTrace : DiagnosticSink {
 
     fun <K, V> record(slice:  WritableSlice<K, V>, key: K, value: V)
 
-    // Writes TRUE for a boolean value
+    // Writes TRUE for a bool value
     fun <K> record(slice: WritableSlice<K, Boolean>, key: K)
 
     /**

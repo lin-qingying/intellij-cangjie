@@ -612,7 +612,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
 
 
-        ModifierDetector detector = new ModifierDetector();
+        ModifierDetector detector = new ModifierDetector(this);
 
         parseModifierList(detector, TokenSet.EMPTY, parseMacro);
         IElementType declType = parseCommonDeclaration(detector, NameParsingMode.REQUIRED, DeclarationParsingMode.TOPLEVEL);
@@ -1014,9 +1014,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 //        myBuilder.disableJoiningComplexTokens();
 
-//        boolean receiverTypeDeclared = parseReceiverType("property", PROPERTY_NAME_FOLLOW_SET);
+//        bool receiverTypeDeclared = parseReceiverType("property", PROPERTY_NAME_FOLLOW_SET);
 
-//        boolean isNameOnTheNextLine = eol();
+//        bool isNameOnTheNextLine = eol();
 //        PsiBuilder.Marker beforeName = mark();
 
 
@@ -1274,7 +1274,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         assert _at(PROP_KEYWORD);
 
 
-//        boolean isMut = false;
+//        bool isMut = false;
 //        if (at(MUT_KEYWORD)) {
 //            isMut = true;
 //            advance();
@@ -1297,7 +1297,15 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
             if (at(LBRACE)) {
                 PsiBuilder.Marker body = mark();
-                parsePropertyBody(detector);
+
+                TokenSet tokenSet = TokenSet.orSet(
+                        KEYWORDS, TokenSet.create(OPEN_KEYWORD,
+                                ABSTRACT_KEYWORD,
+                                SEALED_KEYWORD)
+                );
+                while (!atSet(tokenSet) && !eof()) {
+                    advance();
+                }
                 body.error("Property body is not allowed in declarations file");
 
             }
@@ -1821,7 +1829,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         PsiBuilder.Marker decl = mark();
 
 
-        ModifierDetector detector = new ModifierDetector();
+        ModifierDetector detector = new ModifierDetector(this);
         parseModifierList(detector, TokenSet.EMPTY, rollbackMacro);
 
 
@@ -1923,7 +1931,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (isDeclarationsFile) {
             if (at(LBRACE)) {
                 PsiBuilder.Marker body = mark();
-                while (!atSet(KEYWORDALL)) {
+                while (!atSet(KEYWORDALL) && !eof()) {
                     advance();
                 }
 
@@ -2085,8 +2093,17 @@ public class CangJieParsing extends AbstractCangJieParsing {
      */
     @Contract("false -> !null")
     IElementType parseFunction(boolean isInterfaceMethod, ModifierDetector classdetector, ModifierDetector detector, boolean isForeign) {
+
+
+//        if (detector != null) {
+//            if (detector.isOperatorDetected() && classdetector == null) {
+////              detector.OPERATOR_MARK.error("unexpected modifier 'operator' on function declaration in 'top-level' scope");
+//
+//            }
+//        }
         assert _at(FUNC_KEYWORD);
         advance();
+
 
         if (at(RBRACE)) {
             error("Function body expected");  //应该为函数体
@@ -2133,12 +2150,13 @@ public class CangJieParsing extends AbstractCangJieParsing {
             } else {
 
                 PsiBuilder.Marker mark = mark();
+                advance();
                 mark.error("Should be an overloaded operator");
 
 //              return FUNC;
 
             }
-        } else if (atSet(OPERATIONS_CAN_BE_OVERLOADED) && detector != null && !detector.isOperatorDetected()) {
+        } /*else if (atSet(OPERATIONS_CAN_BE_OVERLOADED) && detector != null && !detector.isOperatorDetected()) {
 
 //            PsiBuilder.Marker mark = mark();
 //            mark.error("Missing modifier as 'operator'");
@@ -2154,7 +2172,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
 //            return FUNC;
-        } else {
+        } */ else {
             //函数名
             parseIdentifier();
         }
@@ -2192,7 +2210,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
             if (at(LBRACE)) {
                 PsiBuilder.Marker body = mark();
-                while (!atSet(KEYWORDALL)) {
+                while (!atSet(KEYWORDALL) && !eof()) {
                     advance();
                 }
 
@@ -2313,7 +2331,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         advance(); // LBRACE
 
         while (!at(RBRACE) && !eof()) {
-            ModifierDetector detector = new ModifierDetector();
+            ModifierDetector detector = new ModifierDetector(this);
 
             parseModifierList(detector, TokenSet.EMPTY);
 
@@ -2447,7 +2465,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
 //        用于报告错误   要么全为命名参数，要么全不为命名参数
-//        boolean isNamedParameter = false;
+//        bool isNamedParameter = false;
         List<Boolean> isNamedParameters = new ArrayList<Boolean>();
 
         while (!at(RPAR) && !atSet(recoverySet) && !eof()) {
@@ -2929,7 +2947,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return atGT;
 
     }
-//    private boolean parseUserType() {
+//    private bool parseUserType() {
 //        PsiBuilder.Marker usertype = mark();
 //
 //        if (at(IDENTIFIER)) {
@@ -3018,29 +3036,32 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     static class ModifierDetector implements Consumer<IElementType> {
+        PsiBuilder.Marker OPERATOR_MARK = null;
+        private CangJieParsing parsing = null;
         private boolean abstractDetected = false;
         private boolean mutDetected = false;
-
         private boolean publicDetected = false;
-
         private boolean privateDetected = false;
-
         private boolean protectedDetected = false;
         private boolean operatorDetected = false;
-
         private boolean foreignDetected = false;
-
         private boolean constDetected = false;
-
         private boolean unsafeDetected = false;
         private boolean sealedDetected = false;
         private boolean redefDetected = false;
-
         private boolean openDetected = false;
-
         private boolean staticDetected = false;
         //注解数量
         private int annotationCount = 0;
+
+        ModifierDetector() {
+
+        }
+
+
+        ModifierDetector(CangJieParsing parsing) {
+            this.parsing = parsing;
+        }
 
         /**
          * 返回修饰符的数量
@@ -3086,6 +3107,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 mutDetected = true;
             } else if (item.equals(OPERATOR_KEYWORD)) {
                 operatorDetected = true;
+//
             } else if (item.equals(FOREIGN_KEYWORD)) {
                 foreignDetected = true;
             } else if (item.equals(CONST_KEYWORD)) {

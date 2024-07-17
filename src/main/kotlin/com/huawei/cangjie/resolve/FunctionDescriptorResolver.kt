@@ -50,7 +50,7 @@ class FunctionDescriptorResolver(
     private val typeResolver: TypeResolver ,
     private val descriptorResolver: DescriptorResolver,
     private val annotationResolver: AnnotationResolver,
-//    private val builtIns: CangJieBuiltIns,
+    private val builtIns: CangJieBuiltIns,
     private val modifiersChecker: ModifiersChecker,
     private val overloadChecker: OverloadChecker,
 //    private val contractParsingServices: ContractParsingServices,
@@ -330,7 +330,23 @@ class FunctionDescriptorResolver(
         dataFlowInfo: DataFlowInfo,
         inferenceSession: InferenceSession?
     ) {
-
+        if (functionDescriptor.returnType != null) return
+        assert(function.typeReference == null) {
+            "Return type must be initialized early for function: " + function.text + ", at: " + PsiDiagnosticUtils.atLocation(
+                function
+            )
+        }
+        val inferredReturnType = when {
+            function.hasBlockBody() ->
+                builtIns.unitType
+            function.hasBody() ->
+                descriptorResolver.inferReturnTypeFromExpressionBody(
+                    trace, scope, dataFlowInfo, function, functionDescriptor, inferenceSession
+                )
+            else ->
+                ErrorUtils.createErrorType(ErrorTypeKind.RETURN_TYPE, functionDescriptor.name.asString())
+        }
+        functionDescriptor.setReturnType(inferredReturnType)
     }
 
     private fun resolveFunctionDescriptor(

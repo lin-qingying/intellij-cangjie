@@ -42,10 +42,10 @@ class CjEnumElementType(debugName:String):CjStubElementType<CangJieEnumStub, CjE
 
         val classId = deserializeClassId(dataStream)
 
-//        boolean isTrait = dataStream.readBoolean();
+//        bool isTrait = dataStream.readBoolean();
 
 
-//        boolean isTrait = dataStream.readBoolean();
+//        bool isTrait = dataStream.readBoolean();
         val isLocal = dataStream.readBoolean()
 //        val isTopLevel = dataStream.readBoolean()
 

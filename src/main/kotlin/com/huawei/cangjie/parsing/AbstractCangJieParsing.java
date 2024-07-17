@@ -149,7 +149,7 @@ public abstract class AbstractCangJieParsing {
     }
 
     protected void errorBefore(String message, PsiBuilder.Marker marker) {
-////        PsiBuilder.Marker err = marker.precede();
+        PsiBuilder.Marker err = marker.precede();
 //
 //        marker.error(message);
 //

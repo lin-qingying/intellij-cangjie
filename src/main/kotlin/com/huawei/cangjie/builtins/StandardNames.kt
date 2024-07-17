@@ -82,18 +82,9 @@ object StandardNames {
         @JvmField
         val any: FqNameUnsafe = fqNameUnsafe("Any")
 
-        @JvmField
-        val nothing: FqNameUnsafe = fqNameUnsafe("Nothing")
-
-        @JvmField
-        val cloneable: FqNameUnsafe = fqNameUnsafe("Cloneable")
-
-        @JvmField
-        val suppress: FqName = fqName("Suppress")
 
 
-        @JvmField
-        val charSequence: FqNameUnsafe = fqNameUnsafe("CharSequence")
+
 
         @JvmField
         val string: FqNameUnsafe = fqNameUnsafe("String")
@@ -101,15 +92,32 @@ object StandardNames {
         @JvmField
         val array: FqNameUnsafe = fqNameUnsafe("Array")
 
+
+        /***************************Nothing***************************/
+
         @JvmField
-        val boolean: FqNameUnsafe = fqNameUnsafe("Boolean")
+        val nothing: FqNameUnsafe = fqNameUnsafe("Nothing")
+
+
+
+
+
+        /***************************Char***************************/
+
 
         @JvmField
         val char: FqNameUnsafe = fqNameUnsafe("Char")
 
+
+
+        /***************************Unit***************************/
+
         @JvmField
         val unit = fqNameUnsafe("Unit")
 
+
+
+        /***************************Int***************************/
         @JvmField
         val int8: FqNameUnsafe = fqNameUnsafe("Int8")
 
@@ -123,70 +131,23 @@ object StandardNames {
         val int64: FqNameUnsafe = fqNameUnsafe("Int64")
 
         @JvmField
-        val float: FqNameUnsafe = fqNameUnsafe("Float")
+        val int_native: FqNameUnsafe = fqNameUnsafe("IntNative")
+
+        /***************************UInt***************************/
 
         @JvmField
-        val double: FqNameUnsafe = fqNameUnsafe("Double")
+        val uint8: FqNameUnsafe = fqNameUnsafe("UInt8")
 
         @JvmField
-        val number: FqNameUnsafe = fqNameUnsafe("Number")
+        val uint16: FqNameUnsafe = fqNameUnsafe("UInt16")
 
         @JvmField
-        val enum: FqNameUnsafe = fqNameUnsafe("Enum")
+        val uint32: FqNameUnsafe = fqNameUnsafe("UInt32")
 
         @JvmField
-        val functionSupertype: FqNameUnsafe = fqNameUnsafe("Function")
-
+        val uint64: FqNameUnsafe = fqNameUnsafe("UInt64")
         @JvmField
-        val throwable: FqName = fqName("Throwable")
-
-        @JvmField
-        val comparable: FqName = fqName("Comparable")
-
-//        @JvmField
-//        val intRange: FqNameUnsafe = rangesFqName("IntRange")
-//        @JvmField
-//        val longRange: FqNameUnsafe = rangesFqName("LongRange")
-
-        @JvmField
-        val deprecated: FqName = fqName("Deprecated")
-
-        @JvmField
-        val deprecatedSinceCangJie: FqName = fqName("DeprecatedSinceCangJie")
-
-        @JvmField
-        val deprecationLevel: FqName = fqName("DeprecationLevel")
-
-        @JvmField
-        val replaceWith: FqName = fqName("ReplaceWith")
-
-        @JvmField
-        val extensionFunctionType: FqName = fqName("ExtensionFunctionType")
-
-        @JvmField
-        val contextFunctionTypeParams: FqName = fqName("ContextFunctionTypeParams")
-
-        @JvmField
-        val parameterName: FqName = fqName("ParameterName")
-
-        @JvmField
-        val parameterNameClassId: ClassId = ClassId.topLevel(parameterName)
-
-        @JvmField
-        val annotation: FqName = fqName("Annotation")
-
-
-        @JvmField
-        val unsafeVariance: FqName = fqName("UnsafeVariance")
-
-        @JvmField
-        val publishedApi: FqName = fqName("PublishedApi")
-
-        @JvmField
-        val platformDependent: FqName = FqName("kotlin.internal.PlatformDependent")
-
-        @JvmField
-        val platformDependentClassId: ClassId = ClassId.topLevel(platformDependent)
+        val uint_native: FqNameUnsafe = fqNameUnsafe("UIntNative")
 
 
         @JvmField
@@ -202,50 +163,57 @@ object StandardNames {
         val uInt64FqName: FqName = fqName("UInt64")
 
         @JvmField
-        val uInt8: ClassId = ClassId.topLevel(uInt8FqName)
+        val uInt8ClassId: ClassId = ClassId.topLevel(uInt8FqName)
 
         @JvmField
-        val uInt16: ClassId = ClassId.topLevel(uInt16FqName)
+        val uInt16ClassId: ClassId = ClassId.topLevel(uInt16FqName)
 
         @JvmField
-        val uInt32: ClassId = ClassId.topLevel(uInt32FqName)
+        val uInt32ClassId: ClassId = ClassId.topLevel(uInt32FqName)
 
         @JvmField
-        val uInt64: ClassId = ClassId.topLevel(uInt64FqName)
+        val uInt64ClassId: ClassId = ClassId.topLevel(uInt64FqName)
+
+
+        /***************************Float***************************/
+        @JvmField
+        val float16: FqNameUnsafe = fqNameUnsafe("Float16")
+        @JvmField
+        val float32: FqNameUnsafe = fqNameUnsafe("Float32")
+        @JvmField
+        val float64: FqNameUnsafe = fqNameUnsafe("Float64")
+        /***************************Bool***************************/
+        @JvmField
+        val bool: FqNameUnsafe = fqNameUnsafe("Bool")
+
+
 
         @JvmField
-        val uByteArrayFqName: FqName = fqName("UByteArray")
+        val enum: FqNameUnsafe = fqNameUnsafe("Enum")
+
 
         @JvmField
-        val uShortArrayFqName: FqName = fqName("UShortArray")
+        val throwable: FqName = fqName("Throwable")
+
 
         @JvmField
-        val uIntArrayFqName: FqName = fqName("UIntArray")
+        val extensionFunctionType: FqName = fqName("ExtensionFunctionType")
 
         @JvmField
-        val uLongArrayFqName: FqName = fqName("ULongArray")
+        val contextFunctionTypeParams: FqName = fqName("ContextFunctionTypeParams")
 
-//        @JvmField val primitiveTypeShortNames: Set<Name> = newHashSetWithExpectedSize<Name>(PrimitiveType.values().size).apply {
-//            PrimitiveType.values().mapTo(this) { it.typeName }
-//        }
-//
-//        @JvmField val primitiveArrayTypeShortNames: Set<Name> = newHashSetWithExpectedSize<Name>(PrimitiveType.values().size).apply {
-//            PrimitiveType.values().mapTo(this) { it.arrayTypeName }
-//        }
-//
-//        @JvmField val fqNameToPrimitiveType: Map<FqNameUnsafe, PrimitiveType> =
-//            newHashMapWithExpectedSize<FqNameUnsafe, PrimitiveType>(PrimitiveType.values().size).apply {
-//                for (primitiveType in PrimitiveType.values()) {
-//                    this[fqNameUnsafe(primitiveType.typeName.asString())] = primitiveType
-//                }
-//            }
-//
-//        @JvmField val arrayClassFqNameToPrimitiveType: MutableMap<FqNameUnsafe, PrimitiveType> =
-//            newHashMapWithExpectedSize<FqNameUnsafe, PrimitiveType>(PrimitiveType.values().size).apply {
-//                for (primitiveType in PrimitiveType.values()) {
-//                    this[fqNameUnsafe(primitiveType.arrayTypeName.asString())] = primitiveType
-//                }
-//            }
+        @JvmField
+        val parameterName: FqName = fqName("ParameterName")
+
+
+        @JvmField
+        val annotation: FqName = fqName("Annotation")
+
+
+
+
+
+
 
 
         private fun fqNameUnsafe(simpleName: String): FqNameUnsafe {
@@ -256,36 +224,8 @@ object StandardNames {
             return BUILT_INS_PACKAGE_FQ_NAME.child(Name.identifier(simpleName))
         }
 
-//        private fun collectionsFqName(simpleName: String): FqName {
-//            return COLLECTIONS_PACKAGE_FQ_NAME.child(Name.identifier(simpleName))
-//        }
-//
-//        private fun rangesFqName(simpleName: String): FqNameUnsafe {
-//            return RANGES_PACKAGE_FQ_NAME.child(Name.identifier(simpleName)).toUnsafe()
-//        }
-
-//        @JvmStatic
-//        fun reflect(simpleName: String): FqNameUnsafe {
-//            return CANGJIE_REFLECT_FQ_NAME.child(Name.identifier(simpleName)).toUnsafe()
-//        }
-
-//        private fun annotationName(simpleName: String): FqName {
-//            return ANNOTATION_PACKAGE_FQ_NAME.child(Name.identifier(simpleName))
-//        }
-//
-//        private fun internalName(simpleName: String): FqName {
-//            return CANGJIE_INTERNAL_FQ_NAME.child(Name.identifier(simpleName))
-//        }
     }
 
-//    @JvmField
-//    val CANGJIE_INTERNAL_FQ_NAME = BUILT_INS_PACKAGE_FQ_NAME.child(Name.identifier("internal"))
-//
-//    @JvmField
-//    val RANGES_PACKAGE_FQ_NAME = BUILT_INS_PACKAGE_FQ_NAME.child(Name.identifier("ranges"))
-//
-//    @JvmField
-//    val ANNOTATION_PACKAGE_FQ_NAME = BUILT_INS_PACKAGE_FQ_NAME.child(Name.identifier("annotation"))
 
     @JvmField
     val BASIC_TYPE_NAMES = setOf(

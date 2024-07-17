@@ -28,7 +28,7 @@ public interface MutableResolvedCall<D extends CallableDescriptor> extends Resol
 //
 //    void performRemainingTasks();
 //
-//    boolean isCompleted();
+//    bool isCompleted();
 //
 //
 //    void recordValueArgument(@NotNull ValueParameterDescriptor valueParameter, @NotNull ResolvedValueArgument valueArgument);

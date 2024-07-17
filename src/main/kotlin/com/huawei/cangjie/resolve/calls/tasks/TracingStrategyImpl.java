@@ -179,7 +179,7 @@ public class TracingStrategyImpl extends AbstractTracingStrategy {
 //
 //        CangJieType type = variableCall.getCandidateDescriptor().getType();
 //
-//        boolean nonFunctionalVar = variableCall.getStatus().isSuccess() && !FunctionTypesCj.isFunctionType(type);
+//        bool nonFunctionalVar = variableCall.getStatus().isSuccess() && !FunctionTypesCj.isFunctionType(type);
 //        Call functionPsiCall = functionCall.getCall();
 //        if (nonFunctionalVar && CallResolverUtilCj.isInvokeCallOnVariable(functionPsiCall) && functionPsiCall.getValueArguments().isEmpty()) {
 //            return variableCall.getCandidateDescriptor();

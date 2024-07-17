@@ -46,7 +46,7 @@ val ClassifierDescriptor?.classId: ClassId?
         }
     }
 
-fun ClassDescriptor.getClassObjectReferenceTarget(): ClassDescriptor = companionObjectDescriptor ?: this
+fun ClassDescriptor.getClassObjectReferenceTarget(): ClassDescriptor =  this
 fun ClassDescriptor.getSuperClassNotAny(): ClassDescriptor? {
     for (supertype in defaultType.constructor.supertypes) {
         if (!CangJieBuiltIns.isAnyOrNullableAny(supertype)) {
@@ -62,12 +62,8 @@ fun ClassDescriptor.getSuperClassNotAny(): ClassDescriptor? {
 fun ClassDescriptor.getSuperClassOrAny(): ClassDescriptor = getSuperClassNotAny() ?: builtIns.any
 
 
-val ClassDescriptor.classValueDescriptor: ClassDescriptor?
-    get() =
-        if (kind.isSingleton)
-            this
-        else
-            companionObjectDescriptor
+val ClassDescriptor.classValueDescriptor: ClassDescriptor
+    get() =this
 
 fun ValueParameterDescriptor.declaresOrInheritsDefaultValue(): Boolean {
     return DFS.ifAny(

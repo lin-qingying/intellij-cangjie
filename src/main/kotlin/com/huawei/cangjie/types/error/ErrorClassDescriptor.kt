@@ -27,10 +27,7 @@ class ErrorClassDescriptor(name: Name) : ClassDescriptorImpl(
         TODO("Not yet implemented")
     }
 
-    override fun getCompanionObjectDescriptor(): ClassDescriptor? {
-        TODO("Not yet implemented")
-    }
-
+ 
     override fun getKind(): ClassKind {
         TODO("Not yet implemented")
     }

@@ -179,7 +179,7 @@ public class OverridingUtil {
         return true;
     }
 
-//    private static boolean isAccessorMoreSpecific(@Nullable PropertyAccessorDescriptor a, @Nullable PropertyAccessorDescriptor b) {
+//    private static bool isAccessorMoreSpecific(@Nullable PropertyAccessorDescriptor a, @Nullable PropertyAccessorDescriptor b) {
 //        if (a == null || b == null) return true;
 //        return isVisibilityMoreSpecific(a, b);
 //    }

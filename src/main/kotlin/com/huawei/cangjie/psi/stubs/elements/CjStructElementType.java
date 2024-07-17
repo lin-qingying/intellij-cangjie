@@ -94,7 +94,7 @@ public class CjStructElementType extends CjStubElementType<CangJieStructStub, Cj
 
 
         boolean isLocal = dataStream.readBoolean();
-//        boolean isTopLevel = dataStream.readBoolean();
+//        bool isTopLevel = dataStream.readBoolean();
 
         int superCount = dataStream.readVarInt();
         StringRef[] superNames = StringRef.createArray(superCount);

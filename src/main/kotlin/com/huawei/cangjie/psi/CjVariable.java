@@ -33,7 +33,7 @@ public class CjVariable extends CjTypeParameterListOwnerStub<CangJieVariableStub
 
 
 //    @Override
-//    public boolean shouldChangeModificationCount(PsiElement place) {
+//    public bool shouldChangeModificationCount(PsiElement place) {
 //        return false;
 //    }
 

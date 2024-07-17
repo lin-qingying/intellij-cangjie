@@ -21,11 +21,11 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
     private final Modality modality;
     private final PropertyDescriptor original;
     private final CallableMemberDescriptor.Kind kind;
-//    private final boolean lateInit;
-//    private final boolean isConst;
-//    private final boolean isExpect;
-//    private final boolean isActual;
-//    private final boolean isExternal;
+//    private final bool lateInit;
+//    private final bool isConst;
+//    private final bool isExpect;
+//    private final bool isActual;
+//    private final bool isExternal;
     private final boolean isDelegated;
     private DescriptorVisibility visibility;
     private Collection<? extends PropertyDescriptor> overriddenProperties = null;
@@ -50,11 +50,11 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
             @NotNull CallableMemberDescriptor.Kind kind,
             @NotNull SourceElement source
             ,
-//            boolean lateInit,
-//            boolean isConst,
-//            boolean isExpect,
-//            boolean isActual,
-//            boolean isExternal,
+//            bool lateInit,
+//            bool isConst,
+//            bool isExpect,
+//            bool isActual,
+//            bool isExternal,
             boolean isDelegated
     ) {
         super(containingDeclaration, annotations, name, null, isVar, source);
@@ -80,11 +80,11 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
             @NotNull Name name,
             @NotNull CallableMemberDescriptor.Kind kind,
             @NotNull SourceElement source,
-//            boolean lateInit,
-//            boolean isConst,
-//            boolean isExpect,
-//            boolean isActual,
-//            boolean isExternal,
+//            bool lateInit,
+//            bool isConst,
+//            bool isExpect,
+//            bool isActual,
+//            bool isExternal,
             boolean isDelegated
     ) {
         return new PropertyDescriptorImpl(containingDeclaration, null, annotations,
@@ -276,17 +276,17 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
     }
 
 //    @Override
-//    public boolean isLateInit() {
+//    public bool isLateInit() {
 //        return lateInit;
 //    }
 //
 //    @Override
-//    public boolean isConst() {
+//    public bool isConst() {
 //        return isConst;
 //    }
 //
 //    @Override
-//    public boolean isExternal() {
+//    public bool isExternal() {
 //        return isExternal;
 //    }
 //
@@ -489,12 +489,12 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
     }
 
 //    @Override
-//    public boolean isExpect() {
+//    public bool isExpect() {
 //        return isExpect;
 //    }
 //
 //    @Override
-//    public boolean isActual() {
+//    public bool isActual() {
 //        return isActual;
 //    }
 //

@@ -69,11 +69,11 @@ public interface ClassDescriptor extends ClassifierDescriptorWithTypeParameters,
     @NotNull
     DescriptorVisibility getVisibility();
 
-//    boolean isCompanionObject();
+//    bool isCompanionObject();
 
-//    boolean isData();
+//    bool isData();
 //
-//    boolean isInline();
+//    bool isInline();
 
     boolean isFun();
 

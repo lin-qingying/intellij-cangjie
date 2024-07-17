@@ -29,20 +29,6 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
 
 
     }
-//    @Override
-//    @NotNull
-//    public LexicalScope getScopeForInitializerResolution() {
-//        return scopeForInitializerResolution.invoke();
-//    }
-    @Override
-    public @NotNull MemberScope getMemberScope(@NotNull List<? extends TypeProjection> typeArguments) {
-        return null;
-    }
-
-    @Override
-    public @NotNull MemberScope getMemberScope(@NotNull TypeSubstitution typeSubstitution) {
-        return null;
-    }
 
     @Override
     public @NotNull MemberScope getUnsubstitutedMemberScope() {
@@ -60,11 +46,6 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
     }
 
     @Override
-    public @Nullable ClassDescriptor getCompanionObjectDescriptor() {
-        return null;
-    }
-
-    @Override
     public @NotNull ClassKind getKind() {
         return null;
     }
@@ -73,36 +54,6 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
     public @NotNull Modality getModality() {
         return null;
     }
-
-    @Override
-    public @NotNull DescriptorVisibility getVisibility() {
-        return null;
-    }
-
-//    @Override
-//    public boolean isExpect() {
-//        return false;
-//    }
-//
-//    @Override
-//    public boolean isActual() {
-//        return false;
-//    }
-//
-//    @Override
-//    public boolean isCompanionObject() {
-//        return false;
-//    }
-//
-//    @Override
-//    public boolean isData() {
-//        return false;
-//    }
-//
-//    @Override
-//    public boolean isInline() {
-//        return false;
-//    }
 
     @Override
     public boolean isFun() {
@@ -118,11 +69,6 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
     public @Nullable ClassConstructorDescriptor getUnsubstitutedPrimaryConstructor() {
         return null;
     }
-
-//    @Override
-//    public boolean isInner() {
-//        return false;
-//    }
 
     @Override
     public @NotNull List<TypeParameterDescriptor> getDeclaredTypeParameters() {
@@ -141,24 +87,18 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
 
     @NotNull
     @Override
-    public ClassifierDescriptorWithTypeParameters substitute(@NotNull TypeSubstitutor substitutor) {
+    public Annotations getAnnotations() {
         return null;
     }
 
     @NotNull
     @Override
-    public Annotations getAnnotations() {
+    public MemberScope getUnsubstitutedMemberScope(@NotNull CangJieTypeRefiner cangjieTypeRefiner) {
         return null;
     }
 
     @Override
     public void forceResolveAllContents() {
 
-    }
-
-    @NotNull
-    @Override
-    protected MemberScope getUnsubstitutedMemberScope(@NotNull CangJieTypeRefiner kotlinTypeRefiner) {
-        return null;
     }
 }

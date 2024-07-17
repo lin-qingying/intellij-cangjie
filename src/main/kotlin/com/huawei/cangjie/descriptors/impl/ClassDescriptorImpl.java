@@ -20,7 +20,7 @@ import java.util.Set;
 public class ClassDescriptorImpl extends ClassDescriptorBase {
     private final Modality modality;
     private final ClassKind kind;
-//    private final TypeConstructor typeConstructor;
+    private final TypeConstructor typeConstructor;
 
     private MemberScope unsubstitutedMemberScope;
     private Set<ClassConstructorDescriptor> constructors;
@@ -41,7 +41,7 @@ public class ClassDescriptorImpl extends ClassDescriptorBase {
         this.modality = modality;
         this.kind = kind;
 
-//        this.typeConstructor = new ClassTypeConstructorImpl(this, Collections.<TypeParameterDescriptor>emptyList(), supertypes, storageManager);
+        this.typeConstructor = new ClassTypeConstructorImpl(this, Collections.emptyList(), supertypes, storageManager);
     }
     @NotNull
     @Override
@@ -57,63 +57,6 @@ public class ClassDescriptorImpl extends ClassDescriptorBase {
         this.constructors = constructors;
         this.primaryConstructor = primaryConstructor;
     }
-
-//    @NotNull
-//    @Override
-//    public Annotations getAnnotations() {
-//        return Annotations.Companion.getEMPTY();
-//    }
-//
-//    @Override
-//    @NotNull
-//    public TypeConstructor getTypeConstructor() {
-//        return typeConstructor;
-//    }
-//
-//    @NotNull
-//    @Override
-//    public Collection<ClassConstructorDescriptor> getConstructors() {
-//        return constructors;
-//    }
-//
-//    @NotNull
-//    @Override
-//    public MemberScope getUnsubstitutedMemberScope(@NotNull CangJieTypeRefiner kotlinTypeRefiner) {
-//        return unsubstitutedMemberScope;
-//    }
-//
-//    @NotNull
-//    @Override
-//    public MemberScope getStaticScope() {
-//        return MemberScope.Empty.INSTANCE;
-//    }
-//
-//    @Nullable
-//    @Override
-//    public ClassDescriptor getCompanionObjectDescriptor() {
-//        return null;
-//    }
-//
-//    @NotNull
-//    @Override
-//    public ClassKind getKind() {
-//        return kind;
-//    }
-
-//    @Override
-//    public boolean isCompanionObject() {
-//        return false;
-//    }
-//
-//    @Override
-//    public boolean isExpect() {
-//        return false;
-//    }
-//
-//    @Override
-//    public boolean isActual() {
-//        return false;
-//    }
 
     @Override
     public ClassConstructorDescriptor getUnsubstitutedPrimaryConstructor() {
@@ -140,10 +83,7 @@ public class ClassDescriptorImpl extends ClassDescriptorBase {
 
     }
 
-    @Override
-    public @Nullable ClassDescriptor getCompanionObjectDescriptor() {
-        return null;
-    }
+
 
     @Override
     public @NotNull ClassKind getKind() {
@@ -161,18 +101,8 @@ public class ClassDescriptorImpl extends ClassDescriptorBase {
     public DescriptorVisibility getVisibility() {
         return DescriptorVisibilities.PUBLIC;
 
-//        return DescriptorVisibilities.PUBLIC;
+
     }
-//
-//    @Override
-//    public boolean isData() {
-//        return false;
-//    }
-//
-//    @Override
-//    public boolean isInline() {
-//        return false;
-//    }
 
     @Override
     public boolean isFun() {
@@ -183,11 +113,6 @@ public class ClassDescriptorImpl extends ClassDescriptorBase {
     public boolean isValue() {
         return false;
     }
-
-//    @Override
-//    public boolean isInner() {
-//        return false;
-//    }
 
     @Override
     public String toString() {
@@ -208,26 +133,19 @@ public class ClassDescriptorImpl extends ClassDescriptorBase {
 
     @Override
     public @NotNull TypeConstructor getTypeConstructor() {
-        return null;
+        return typeConstructor;
+
     }
 
-    @NotNull
-    @Override
-    public ClassifierDescriptorWithTypeParameters substitute(@NotNull TypeSubstitutor substitutor) {
-        return null;
-    }
+
 
     @NotNull
     @Override
     public Annotations getAnnotations() {
-        return null;
+        return Annotations.Companion.getEMPTY();
     }
 
 
 
-//    @Nullable
-//    @Override
-//    public ValueClassRepresentation<SimpleType> getValueClassRepresentation() {
-//        return null;
-//    }
+
 }

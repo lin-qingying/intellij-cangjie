@@ -38,7 +38,7 @@ public class ExpressionTypingContext extends ResolutionContext<ExpressionTypingC
                 languageVersionSettings, dataFlowValueFactory, inferenceSession);
     }
 
-    //    protected ExpressionTypingContext(@NotNull BindingTrace trace, @NotNull LexicalScope scope, @NotNull CangJieType expectedType, @NotNull DataFlowInfo dataFlowInfo, boolean isAnnotationContext, boolean isDebuggerContext, boolean collectAllCandidates, @NotNull Function1<CjExpression, CjExpression> expressionContextProvider, @NotNull DataFlowValueFactory factory, @NotNull InferenceSession inferenceSession) {
+    //    protected ExpressionTypingContext(@NotNull BindingTrace trace, @NotNull LexicalScope scope, @NotNull CangJieType expectedType, @NotNull DataFlowInfo dataFlowInfo, bool isAnnotationContext, bool isDebuggerContext, bool collectAllCandidates, @NotNull Function1<CjExpression, CjExpression> expressionContextProvider, @NotNull DataFlowValueFactory factory, @NotNull InferenceSession inferenceSession) {
 //        super(trace, scope, expectedType, dataFlowInfo, isAnnotationContext, isDebuggerContext, collectAllCandidates, expressionContextProvider, factory, inferenceSession);
 //    }
     @NotNull

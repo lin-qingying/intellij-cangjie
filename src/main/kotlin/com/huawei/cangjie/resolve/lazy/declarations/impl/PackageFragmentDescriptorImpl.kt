@@ -1,7 +1,22 @@
 package com.huawei.cangjie.resolve.lazy.declarations.impl
 
-import com.huawei.cangjie.builtins.StandardNames.BASIC_TYPE_NAMES
 import com.huawei.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
+import com.huawei.cangjie.builtins.StandardNames.FqNames.bool
+import com.huawei.cangjie.builtins.StandardNames.FqNames.char
+import com.huawei.cangjie.builtins.StandardNames.FqNames.float16
+import com.huawei.cangjie.builtins.StandardNames.FqNames.float32
+import com.huawei.cangjie.builtins.StandardNames.FqNames.float64
+import com.huawei.cangjie.builtins.StandardNames.FqNames.int16
+import com.huawei.cangjie.builtins.StandardNames.FqNames.int32
+import com.huawei.cangjie.builtins.StandardNames.FqNames.int64
+import com.huawei.cangjie.builtins.StandardNames.FqNames.int8
+import com.huawei.cangjie.builtins.StandardNames.FqNames.int_native
+import com.huawei.cangjie.builtins.StandardNames.FqNames.nothing
+import com.huawei.cangjie.builtins.StandardNames.FqNames.uint16
+import com.huawei.cangjie.builtins.StandardNames.FqNames.uint32
+import com.huawei.cangjie.builtins.StandardNames.FqNames.uint64
+import com.huawei.cangjie.builtins.StandardNames.FqNames.uint8
+import com.huawei.cangjie.builtins.StandardNames.FqNames.uint_native
 import com.huawei.cangjie.builtins.StandardNames.FqNames.unit
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
@@ -9,11 +24,13 @@ import com.huawei.cangjie.descriptors.impl.DeclarationDescriptorNonRootImpl
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.FqName
+import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.utils.Printer
+import kotlin.reflect.full.memberProperties
 
 
 abstract class PackageFragmentDescriptorImpl(
@@ -73,26 +90,74 @@ abstract class AbstractPackageFragmentDescriptorBuiltlnImpl(
 
 //
 class PackageFragmentDescriptorBasicImpl(
-    storageManager: StorageManager,
-    module: ModuleDescriptor,
+    val storageManager: StorageManager,
+    val module: ModuleDescriptor,
     fqName: FqName
 ) : AbstractPackageFragmentDescriptorBuiltlnImpl(module, fqName) {
+
     val basicMemberScope = BasicMemberScope()
+    private fun createBasicTypeDescriptor(name: FqNameUnsafe): BasicTypeDescriptor =
+        BasicTypeDescriptor.create(basicMemberScope, storageManager, name.shortName())
 
-    val UNIT_DESCRIPTOR = BasicTypeDescriptor(basicMemberScope, storageManager, unit.shortName())
 
-    val DESCRIPTOR_MAP = mapOf(
-        unit.shortName() to UNIT_DESCRIPTOR
+    //Unit
+    val UNIT_DESCRIPTOR = createBasicTypeDescriptor(unit)
+
+    //    Int
+    val INT8_DESCRIPTOR = createBasicTypeDescriptor(int8)
+    val INT16_DESCRIPTOR = createBasicTypeDescriptor(int16)
+    val INT32_DESCRIPTOR = createBasicTypeDescriptor(int32)
+    val INT64_DESCRIPTOR = createBasicTypeDescriptor(int64)
+    val INTNATIVE_DESCRIPTOR = createBasicTypeDescriptor(int_native)
+
+    //    UInt
+    val UINT8_DESCRIPTOR = createBasicTypeDescriptor(uint8)
+    val UINT16_DESCRIPTOR = createBasicTypeDescriptor(uint16)
+    val UINT32_DESCRIPTOR = createBasicTypeDescriptor(uint32)
+    val UINT64_DESCRIPTOR = createBasicTypeDescriptor(uint64)
+    val UINTNATIVE_DESCRIPTOR = createBasicTypeDescriptor(uint_native)
+
+    //    Char
+    val CHAR_DESCRIPTOR = createBasicTypeDescriptor(char)
+
+    //    Bool
+    val BOOL_DESCRIPTOR = createBasicTypeDescriptor(bool)
+
+    //Nothing
+    val NOTHING_DESCRIPTOR = createBasicTypeDescriptor(nothing)
+
+    //    Float
+    val FLOAT16_DESCRIPTOR = createBasicTypeDescriptor(float16)
+    val FLOAT32_DESCRIPTOR = createBasicTypeDescriptor(float32)
+    val FLOAT64_DESCRIPTOR = createBasicTypeDescriptor(float64)
+
+
+    val DESCRIPTOR_MAP = mutableMapOf<Name, BasicTypeDescriptor>(
+
     )
+
+    init {
+//        反射赋值
+        val fields = this::class.memberProperties
+        fields.forEach { field ->
+
+            val descriptor = field.call(this)
+            if (descriptor is BasicTypeDescriptor) {
+                DESCRIPTOR_MAP[descriptor.name] = descriptor
+
+            }
+
+
+        }
+
+    }
 
 
     inner class BasicMemberScope : MemberScope {
         override fun getContributedVariables(
             name: Name,
             location: LookupLocation
-        ): Collection<@JvmWildcard PropertyDescriptor> {
-            TODO("Not yet implemented")
-        }
+        ): Collection<@JvmWildcard PropertyDescriptor> = emptyList()
 
         override fun getFunctionNames(): Set<Name> = emptySet()
 
@@ -112,17 +177,15 @@ class PackageFragmentDescriptorBasicImpl(
             p.println("Basic member scope")
         }
 
-        override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor {
-//            TODO("Not yet implemented")
+        override fun getContributedClassifier(name: Name, location: LookupLocation): BasicTypeDescriptor {
+
             return DESCRIPTOR_MAP.get(name)!!
         }
 
         override fun getContributedDescriptors(
             kindFilter: DescriptorKindFilter,
             nameFilter: (Name) -> Boolean
-        ): Collection<DeclarationDescriptor> {
-            TODO("Not yet implemented")
-        }
+        ): Collection<BasicTypeDescriptor> = emptyList()
 
     }
 

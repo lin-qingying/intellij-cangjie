@@ -23,7 +23,7 @@ public abstract class AbstractClassTypeConstructor extends AbstractTypeConstruct
     public abstract ClassDescriptor getDeclarationDescriptor();
 
 //    @Override
-//    public final boolean isFinal() {
+//    public final bool isFinal() {
 //        ClassDescriptor descriptor = getDeclarationDescriptor();
 //        return ModalityUtilsKt.isFinalClass(descriptor) && !descriptor.isExpect();
 //    }
@@ -39,13 +39,13 @@ protected boolean isSameClassifier(@NotNull ClassifierDescriptor classifier) {
     }
 
 //    @Override
-//    protected boolean isSameClassifier(@NotNull ClassifierDescriptor classifier) {
+//    protected bool isSameClassifier(@NotNull ClassifierDescriptor classifier) {
 //        return classifier instanceof ClassDescriptor && areFqNamesEqual(getDeclarationDescriptor(), classifier);
 //    }
 
 //    @NotNull
 //    @Override
-//    protected Collection<CangJieType> getAdditionalNeighboursInSupertypeGraph(boolean useCompanions) {
+//    protected Collection<CangJieType> getAdditionalNeighboursInSupertypeGraph(bool useCompanions) {
 //        DeclarationDescriptor containingDeclaration = getDeclarationDescriptor().getContainingDeclaration();
 //
 //        if (!(containingDeclaration instanceof ClassDescriptor)) {

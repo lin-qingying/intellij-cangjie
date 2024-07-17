@@ -56,13 +56,13 @@ internal val ModuleDescriptor.allSignedLiteralTypes: Collection<CangJieType>
 internal fun ModuleDescriptor.unsignedType(classId: ClassId): SimpleType = findClassAcrossModuleDependencies(classId)!!.defaultType
 
 internal val ModuleDescriptor.uInt32Type: SimpleType
-    get() = unsignedType(StandardNames.FqNames.uInt32)
+    get() = unsignedType(StandardNames.FqNames.uInt32ClassId)
 
 internal val ModuleDescriptor.uInt64Type: SimpleType
-    get() = unsignedType(StandardNames.FqNames.uInt64)
+    get() = unsignedType(StandardNames.FqNames.uInt64ClassId)
 
 internal val ModuleDescriptor.uInt8Type: SimpleType
-    get() = unsignedType(StandardNames.FqNames.uInt8)
+    get() = unsignedType(StandardNames.FqNames.uInt8ClassId)
 
 internal val ModuleDescriptor.uInt16Type: SimpleType
-    get() = unsignedType(StandardNames.FqNames.uInt16)
+    get() = unsignedType(StandardNames.FqNames.uInt16ClassId)

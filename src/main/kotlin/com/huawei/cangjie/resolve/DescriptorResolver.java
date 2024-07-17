@@ -1,68 +1,41 @@
 package com.huawei.cangjie.resolve;
 
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns;
+import com.huawei.cangjie.descriptors.*;
+import com.huawei.cangjie.descriptors.annotations.AnnotationSplitter;
+import com.huawei.cangjie.descriptors.annotations.Annotations;
+import com.huawei.cangjie.descriptors.annotations.CompositeAnnotations;
+import com.huawei.cangjie.descriptors.impl.TypeParameterDescriptorImpl;
+import com.huawei.cangjie.descriptors.impl.ValueParameterDescriptorImpl;
+import com.huawei.cangjie.name.Name;
+import com.huawei.cangjie.name.SpecialNames;
+import com.huawei.cangjie.psi.*;
+import com.huawei.cangjie.resolve.calls.components.InferenceSession;
+import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
+import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
+import com.huawei.cangjie.resolve.calls.util.UnderscoreUtilKt;
+import com.huawei.cangjie.resolve.scopes.LexicalScope;
+import com.huawei.cangjie.resolve.scopes.LexicalWritableScope;
+import com.huawei.cangjie.resolve.source.CangJieSourceElementKt;
 import com.huawei.cangjie.storage.StorageManager;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import com.huawei.cangjie.types.CangJieType;
+import com.huawei.cangjie.types.CangJieTypeKt;
+import com.huawei.cangjie.types.TypeApproximator;
+import com.huawei.cangjie.types.Variance;
+import com.huawei.cangjie.types.expressions.ExpressionTypingServices;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiElement;
-import kotlin.Pair;
-import kotlin.TuplesKt;
-import kotlin.collections.CollectionsKt;
 import kotlin.collections.SetsKt;
 import kotlin.jvm.functions.Function0;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.huawei.cangjie.builtins.FunctionTypesKt;
-import com.huawei.cangjie.builtins.CangJieBuiltIns;
-import com.huawei.cangjie.config.LanguageFeature;
-import com.huawei.cangjie.config.LanguageVersionSettings;
-import com.huawei.cangjie.descriptors.*;
-import com.huawei.cangjie.descriptors.annotations.AnnotationSplitter;
-import com.huawei.cangjie.descriptors.annotations.AnnotationUseSiteTarget;
-import com.huawei.cangjie.descriptors.annotations.Annotations;
-import com.huawei.cangjie.descriptors.annotations.CompositeAnnotations;
-import com.huawei.cangjie.descriptors.impl.*;
 
-import com.huawei.cangjie.incremental.components.NoLookupLocation;
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.name.Name;
-import com.huawei.cangjie.name.SpecialNames;
-import com.huawei.cangjie.psi.*;
-
-import com.huawei.cangjie.resolve.calls.components.InferenceSession;
-import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
-import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfoFactory;
-import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
-import com.huawei.cangjie.resolve.calls.util.CallResolverUtilKt;
-import com.huawei.cangjie.resolve.calls.util.UnderscoreUtilKt;
-
-import com.huawei.cangjie.resolve.lazy.ForceResolveUtil;
-
-import com.huawei.cangjie.resolve.scopes.*;
-import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver;
-import com.huawei.cangjie.resolve.scopes.receivers.TransientReceiver;
-
-import com.huawei.cangjie.resolve.source.CangJieSourceElementKt;
-import com.huawei.cangjie.storage.StorageManager;
-import com.huawei.cangjie.types.*;
-import com.huawei.cangjie.types.checker.CangJieTypeChecker;
-import com.huawei.cangjie.types.error.ErrorTypeKind;
-
-import com.huawei.cangjie.types.expressions.*;
-
-
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import static com.huawei.cangjie.descriptors.Errors.VARIANCE_ON_TYPE_PARAMETER_NOT_ALLOWED;
-import static com.huawei.cangjie.descriptors.annotations.AnnotationUseSiteTarget.*;
-
-import static com.huawei.cangjie.lexer.CjTokens.*;
-import static com.huawei.cangjie.resolve.BindingContext.*;
-import static com.huawei.cangjie.resolve.DescriptorUtils.*;
+import static com.huawei.cangjie.descriptors.annotations.AnnotationUseSiteTarget.CONSTRUCTOR_PARAMETER;
 
 public class DescriptorResolver {
     private final TypeResolver typeResolver;
@@ -70,17 +43,17 @@ public class DescriptorResolver {
     private final StorageManager storageManager;
     private final CangJieBuiltIns builtIns;
     private final SupertypeLoopChecker supertypeLoopsResolver;
-//    private final VariableTypeAndInitializerResolver variableTypeAndInitializerResolver;
+    //    private final VariableTypeAndInitializerResolver variableTypeAndInitializerResolver;
     private final ExpressionTypingServices expressionTypingServices;
     private final OverloadChecker overloadChecker;
-//    private final LanguageVersionSettings languageVersionSettings;
+    //    private final LanguageVersionSettings languageVersionSettings;
 //    private final FunctionsTypingVisitor functionsTypingVisitor;
 //    private final DestructuringDeclarationResolver destructuringDeclarationResolver;
     private final ModifiersChecker modifiersChecker;
-//    private final WrappedTypeFactory wrappedTypeFactory;
+    //    private final WrappedTypeFactory wrappedTypeFactory;
 //    private final SyntheticResolveExtension syntheticResolveExtension;
     private final TypeApproximator typeApproximator;
-//    private final DeclarationReturnTypeSanitizer declarationReturnTypeSanitizer;
+    //    private final DeclarationReturnTypeSanitizer declarationReturnTypeSanitizer;
     private final DataFlowValueFactory dataFlowValueFactory;
 //    private final Iterable<DeclarationSignatureAnonymousTypeTransformer> anonymousTypeTransformers;
 //    private final AdditionalClassPartsProvider additionalClassPartsProvider;
@@ -128,38 +101,6 @@ public class DescriptorResolver {
 //        this.additionalClassPartsProvider = additionalClassPartsProvider;
     }
 
-//    public List<CangJieType> resolveSupertypes(
-//            @NotNull LexicalScope scope,
-//            @NotNull ClassDescriptor classDescriptor,
-//            @Nullable CjPureClassOrObject correspondingClassOrObject,
-//            BindingTrace trace
-//    ) {
-//        List<CangJieType> supertypes = Lists.newArrayList();
-//        List<CjSuperTypeListEntry> delegationSpecifiers =
-//                correspondingClassOrObject == null ? Collections.emptyList() : correspondingClassOrObject.getSuperTypeListEntries();
-//        Collection<CangJieType> declaredSupertypes = resolveSuperTypeListEntries(
-//                scope,
-//                delegationSpecifiers,
-//                typeResolver, trace, false);
-//
-//        for (CangJieType declaredSupertype : declaredSupertypes) {
-//            addValidSupertype(supertypes, declaredSupertype);
-//        }
-//
-//        if (classDescriptor.getKind() == ClassKind.ENUM_CLASS && !containsClass(supertypes)) {
-//            supertypes.add(0, builtIns.getEnumType(classDescriptor.getDefaultType()));
-//        }
-//
-//        syntheticResolveExtension.addSyntheticSupertypes(classDescriptor, supertypes);
-//        supertypes.addAll(additionalClassPartsProvider.getAdditionalSupertypes(classDescriptor, supertypes));
-//
-//        if (supertypes.isEmpty()) {
-//            addValidSupertype(supertypes, getDefaultSupertype(classDescriptor));
-//        }
-//
-//        return supertypes;
-//    }
-
     private static void addValidSupertype(List<CangJieType> supertypes, CangJieType declaredSupertype) {
         if (!CangJieTypeKt.isError(declaredSupertype)) {
             supertypes.add(declaredSupertype);
@@ -174,6 +115,23 @@ public class DescriptorResolver {
             }
         }
         return false;
+    }
+
+    public static DescriptorVisibility getDefaultVisibility(CjModifierListOwner modifierListOwner, DeclarationDescriptor containingDescriptor) {
+        DescriptorVisibility defaultVisibility;
+        if (containingDescriptor instanceof ClassDescriptor) {
+            CjModifierList modifierList = modifierListOwner.getModifierList();
+            defaultVisibility =
+//                    modifierList != null && modifierList.hasModifier(OVERRIDE_KEYWORD)
+//                    ? DescriptorVisibilities.INHERITED
+//                    :
+                    DescriptorVisibilities.DEFAULT_VISIBILITY;
+        } else if (containingDescriptor instanceof FunctionDescriptor /*|| containingDescriptor instanceof PropertyDescriptor*/) {
+            defaultVisibility = DescriptorVisibilities.LOCAL;
+        } else {
+            defaultVisibility = DescriptorVisibilities.DEFAULT_VISIBILITY;
+        }
+        return defaultVisibility;
     }
 
 //    @NotNull
@@ -192,7 +150,7 @@ public class DescriptorResolver {
 //            List<CjSuperTypeListEntry> delegationSpecifiers,
 //            @NotNull TypeResolver resolver,
 //            BindingTrace trace,
-//            boolean checkBounds
+//            bool checkBounds
 //    ) {
 //        if (delegationSpecifiers.isEmpty()) {
 //            return Collections.emptyList();
@@ -238,7 +196,7 @@ public class DescriptorResolver {
 //    ) {
 //        if (typeElement == null) return;
 //
-//        boolean hasProjectionsInWrittenArguments = false;
+//        bool hasProjectionsInWrittenArguments = false;
 //        if (typeElement instanceof CjUserType) {
 //            CjUserType userType = (CjUserType) typeElement;
 //            List<CjTypeProjection> typeArguments = userType.getTypeArguments();
@@ -260,25 +218,6 @@ public class DescriptorResolver {
 //        }
 //    }
 
-    public static DescriptorVisibility getDefaultVisibility(CjModifierListOwner modifierListOwner, DeclarationDescriptor containingDescriptor) {
-        DescriptorVisibility defaultVisibility;
-        if (containingDescriptor instanceof ClassDescriptor) {
-            CjModifierList modifierList = modifierListOwner.getModifierList();
-            defaultVisibility =
-//                    modifierList != null && modifierList.hasModifier(OVERRIDE_KEYWORD)
-//                    ? DescriptorVisibilities.INHERITED
-//                    :
-                    DescriptorVisibilities.DEFAULT_VISIBILITY;
-        }
-        else if (containingDescriptor instanceof FunctionDescriptor /*|| containingDescriptor instanceof PropertyDescriptor*/) {
-            defaultVisibility = DescriptorVisibilities.LOCAL;
-        }
-        else {
-            defaultVisibility = DescriptorVisibilities.DEFAULT_VISIBILITY;
-        }
-        return defaultVisibility;
-    }
-
     public static Modality getDefaultModality(DeclarationDescriptor containingDescriptor, DescriptorVisibility visibility, boolean isBodyPresent) {
         Modality defaultModality;
         if (containingDescriptor instanceof ClassDescriptor) {
@@ -286,11 +225,68 @@ public class DescriptorResolver {
             boolean isDefinitelyAbstract = isTrait && !isBodyPresent;
             Modality basicModality = isTrait && !DescriptorVisibilities.isPrivate(visibility) ? Modality.OPEN : Modality.FINAL;
             defaultModality = isDefinitelyAbstract ? Modality.ABSTRACT : basicModality;
-        }
-        else {
+        } else {
             defaultModality = Modality.FINAL;
         }
         return defaultModality;
+    }
+
+    //    public List<CangJieType> resolveSupertypes(
+//            @NotNull LexicalScope scope,
+//            @NotNull ClassDescriptor classDescriptor,
+//            @Nullable CjPureClassOrObject correspondingClassOrObject,
+//            BindingTrace trace
+//    ) {
+//        List<CangJieType> supertypes = Lists.newArrayList();
+//        List<CjSuperTypeListEntry> delegationSpecifiers =
+//                correspondingClassOrObject == null ? Collections.emptyList() : correspondingClassOrObject.getSuperTypeListEntries();
+//        Collection<CangJieType> declaredSupertypes = resolveSuperTypeListEntries(
+//                scope,
+//                delegationSpecifiers,
+//                typeResolver, trace, false);
+//
+//        for (CangJieType declaredSupertype : declaredSupertypes) {
+//            addValidSupertype(supertypes, declaredSupertype);
+//        }
+//
+//        if (classDescriptor.getKind() == ClassKind.ENUM_CLASS && !containsClass(supertypes)) {
+//            supertypes.add(0, builtIns.getEnumType(classDescriptor.getDefaultType()));
+//        }
+//
+//        syntheticResolveExtension.addSyntheticSupertypes(classDescriptor, supertypes);
+//        supertypes.addAll(additionalClassPartsProvider.getAdditionalSupertypes(classDescriptor, supertypes));
+//
+//        if (supertypes.isEmpty()) {
+//            addValidSupertype(supertypes, getDefaultSupertype(classDescriptor));
+//        }
+//
+//        return supertypes;
+//    }
+    @NotNull
+    /*package*/ CangJieType inferReturnTypeFromExpressionBody(
+            @NotNull BindingTrace trace,
+            @NotNull LexicalScope scope,
+            @NotNull DataFlowInfo dataFlowInfo,
+            @NotNull CjDeclarationWithBody function,
+            @NotNull FunctionDescriptor functionDescriptor,
+            @Nullable InferenceSession inferenceSession
+    ) {
+
+//        TODO 推断返回值类型
+        return builtIns.getUnitType();
+//    return wrappedTypeFactory.createRecursionIntolerantDeferredType(trace, () -> {
+//        PreliminaryDeclarationVisitor.Companion.createForDeclaration(function, trace, languageVersionSettings);
+//        CangJieType type = expressionTypingServices.getBodyExpressionType(
+//                trace, scope, dataFlowInfo, function, functionDescriptor, inferenceSession
+//        );
+//        CangJieType publicType = transformAnonymousTypeIfNeeded(
+//                functionDescriptor, function, type, trace, anonymousTypeTransformers, languageVersionSettings
+//        );
+//        UnwrappedType approximatedType = typeApproximator.approximateDeclarationType(publicType, false);
+//        CangJieType sanitizedType = declarationReturnTypeSanitizer.sanitizeReturnType(approximatedType, wrappedTypeFactory, trace, languageVersionSettings);
+//        functionsTypingVisitor.checkTypesForReturnStatements(function, trace, sanitizedType);
+//        return sanitizedType;
+//    });
     }
 
     @NotNull
@@ -341,8 +337,7 @@ public class DescriptorResolver {
             //                modifiersChecker.withTrace(trace).checkModifiersForDestructuringDeclaration(destructuringDeclaration);
             //                return result;
             destructuringVariables = ArrayList::new;
-        }
-        else {
+        } else {
             destructuringVariables = null;
         }
 
@@ -356,8 +351,7 @@ public class DescriptorResolver {
             parameterName = !valueParameter.hasValOrVar() && UnderscoreUtilKt.isSingleUnderscore(valueParameter)
                     ? SpecialNames.anonymousParameterName(index)
                     : CjPsiUtil.safeName(valueParameter.getName());
-        }
-        else {
+        } else {
             parameterName = Name.special("<name for destructuring parameter " + index + ">");
         }
 
@@ -387,7 +381,7 @@ public class DescriptorResolver {
             @NotNull BindingTrace trace,
             @NotNull Annotations additionalAnnotations
     ) {
-       CjModifierList modifierList = parameter.getModifierList();
+        CjModifierList modifierList = parameter.getModifierList();
         if (modifierList == null) {
             return additionalAnnotations;
         }
@@ -494,222 +488,6 @@ public class DescriptorResolver {
 //        return constructorDescriptor;
 //    }
 
-    static final class UpperBoundCheckRequest {
-        public final Name typeParameterName;
-        public final CjTypeReference upperBound;
-        public final CangJieType upperBoundType;
-
-        UpperBoundCheckRequest(Name typeParameterName, CjTypeReference upperBound, CangJieType upperBoundType) {
-            this.typeParameterName = typeParameterName;
-            this.upperBound = upperBound;
-            this.upperBoundType = upperBoundType;
-        }
-    }
-
-//    public void resolveGenericBounds(
-//            @NotNull CjTypeParameterListOwner declaration,
-//            @NotNull DeclarationDescriptor descriptor,
-//            LexicalScope scope,
-//            List<TypeParameterDescriptorImpl> parameters,
-//            BindingTrace trace
-//    ) {
-//        List<UpperBoundCheckRequest> upperBoundCheckRequests = Lists.newArrayList();
-//
-//        List<CjTypeParameter> typeParameters = declaration.getTypeParameters();
-//        Map<Name, TypeParameterDescriptorImpl> parameterByName = new HashMap<>();
-//        for (int i = 0; i < typeParameters.size(); i++) {
-//            CjTypeParameter ktTypeParameter = typeParameters.get(i);
-//            TypeParameterDescriptorImpl typeParameterDescriptor = parameters.get(i);
-//
-//            parameterByName.put(typeParameterDescriptor.getName(), typeParameterDescriptor);
-//
-//            CjTypeReference extendsBound = ktTypeParameter.getExtendsBound();
-//            if (extendsBound != null) {
-//                CangJieType type = typeResolver.resolveType(scope, extendsBound, trace, false);
-//                typeParameterDescriptor.addUpperBound(type);
-//                upperBoundCheckRequests.add(new UpperBoundCheckRequest(ktTypeParameter.getNameAsName(), extendsBound, type));
-//            }
-//        }
-//        for (CjTypeConstraint constraint : declaration.getTypeConstraints()) {
-//            CjSimpleNameExpression subjectTypeParameterName = constraint.getSubjectTypeParameterName();
-//            if (subjectTypeParameterName == null) {
-//                continue;
-//            }
-//            Name referencedName = subjectTypeParameterName.getReferencedNameAsName();
-//            TypeParameterDescriptorImpl typeParameterDescriptor = parameterByName.get(referencedName);
-//            CjTypeReference boundTypeReference = constraint.getBoundTypeReference();
-//            CangJieType bound = null;
-//            if (boundTypeReference != null) {
-//                bound = typeResolver.resolveType(scope, boundTypeReference, trace, false);
-//                upperBoundCheckRequests.add(new UpperBoundCheckRequest(referencedName, boundTypeReference, bound));
-//            }
-//
-//            if (typeParameterDescriptor != null) {
-//                trace.record(BindingContext.REFERENCE_TARGET, subjectTypeParameterName, typeParameterDescriptor);
-//                if (bound != null) {
-//                    typeParameterDescriptor.addUpperBound(bound);
-//                }
-//            }
-//        }
-//
-//        for (TypeParameterDescriptorImpl parameter : parameters) {
-//            parameter.addDefaultUpperBound();
-//            parameter.setInitialized();
-//        }
-//
-//        for (TypeParameterDescriptorImpl parameter : parameters) {
-//            checkConflictingUpperBounds(trace, parameter, typeParameters.get(parameter.getIndex()));
-//        }
-//
-//        if (!(declaration instanceof CjClass)) {
-//            checkUpperBoundTypes(trace, upperBoundCheckRequests, declaration.hasModifier(CjTokens.OVERRIDE_KEYWORD));
-//            checkNamesInConstraints(declaration, descriptor, scope, trace);
-//        }
-//    }
-
-//    public static void checkUpperBoundTypes(
-//            @NotNull BindingTrace trace,
-//            @NotNull List<UpperBoundCheckRequest> requests,
-//            boolean hasOverrideModifier
-//    ) {
-//        if (requests.isEmpty()) return;
-//
-//        Set<Name> classBoundEncountered = new HashSet<>();
-//        Set<Pair<Name, TypeConstructor>> allBounds = new HashSet<>();
-//
-//        for (UpperBoundCheckRequest request : requests) {
-//            Name typeParameterName = request.typeParameterName;
-//            CangJieType upperBound = request.upperBoundType;
-//            CjTypeReference upperBoundElement = request.upperBound;
-//
-//            if (!CangJieTypeCj.isError(upperBound)) {
-//                if (!allBounds.add(new Pair<>(typeParameterName, upperBound.getConstructor()))) {
-//                    trace.report(REPEATED_BOUND.on(upperBoundElement));
-//                }
-//                else {
-//                    ClassDescriptor classDescriptor = TypeUtils.getClassDescriptor(upperBound);
-//                    if (classDescriptor != null) {
-//                        ClassKind kind = classDescriptor.getKind();
-//                        if (kind == ClassKind.CLASS || kind == ClassKind.ENUM_CLASS || kind == ClassKind.OBJECT) {
-//                            if (!classBoundEncountered.add(typeParameterName)) {
-//                                trace.report(ONLY_ONE_CLASS_BOUND_ALLOWED.on(upperBoundElement));
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//
-//            checkUpperBoundType(upperBoundElement, upperBound, trace, hasOverrideModifier);
-//        }
-//    }
-
-//    public static void checkConflictingUpperBounds(
-//            @NotNull BindingTrace trace,
-//            @NotNull TypeParameterDescriptor parameter,
-//            @NotNull CjTypeParameter typeParameter
-//    ) {
-//        if (CangJieBuiltIns.isNothing(TypeIntersector.getUpperBoundsAsType(parameter))) {
-//            trace.report(CONFLICTING_UPPER_BOUNDS.on(typeParameter, parameter));
-//        }
-//    }
-
-//    public void checkNamesInConstraints(
-//            @NotNull CjTypeParameterListOwner declaration,
-//            @NotNull DeclarationDescriptor descriptor,
-//            @NotNull LexicalScope scope,
-//            @NotNull BindingTrace trace
-//    ) {
-//        for (CjTypeConstraint constraint : declaration.getTypeConstraints()) {
-//            CjSimpleNameExpression nameExpression = constraint.getSubjectTypeParameterName();
-//            if (nameExpression == null) continue;
-//
-//            Name name = nameExpression.getReferencedNameAsName();
-//
-//            ClassifierDescriptor classifier = ScopeUtilsCj.findClassifier(scope, name, NoLookupLocation.FOR_NON_TRACKED_SCOPE);
-//            if (classifier instanceof TypeParameterDescriptor && classifier.getContainingDeclaration() == descriptor) continue;
-//
-//            if (classifier != null) {
-//                // To tell the user that we look only for locally defined type parameters
-//                trace.report(NAME_IN_CONSTRAINT_IS_NOT_A_TYPE_PARAMETER.on(nameExpression, constraint, declaration));
-//                trace.record(BindingContext.REFERENCE_TARGET, nameExpression, classifier);
-//            }
-//            else {
-//                trace.report(UNRESOLVED_REFERENCE.on(nameExpression, nameExpression));
-//            }
-//
-//            CjTypeReference boundTypeReference = constraint.getBoundTypeReference();
-//            if (boundTypeReference != null) {
-//                typeResolver.resolveType(scope, boundTypeReference, trace, true);
-//            }
-//        }
-//    }
-//
-//    public static void checkUpperBoundType(
-//            CjTypeReference upperBound,
-//            @NotNull CangJieType upperBoundType,
-//            BindingTrace trace,
-//            boolean hasOverrideModifier
-//    ) {
-//        if (!hasOverrideModifier && !TypeUtils.canHaveSubtypes(CangJieTypeChecker.DEFAULT, upperBoundType)) {
-//            trace.report(FINAL_UPPER_BOUND.on(upperBound, upperBoundType));
-//        }
-//        if (DynamicTypesCj.isDynamic(upperBoundType)) {
-//            trace.report(DYNAMIC_UPPER_BOUND.on(upperBound));
-//        }
-//        if (FunctionTypesCj.isExtensionFunctionType(upperBoundType)) {
-//            trace.report(UPPER_BOUND_IS_EXTENSION_FUNCTION_TYPE.on(upperBound));
-//        }
-//        if (DefinitelyNonNullableTypesCj.containsIncorrectExplicitDefinitelyNonNullableType(upperBoundType)) {
-//            trace.report(INCORRECT_LEFT_COMPONENT_OF_INTERSECTION.on(upperBound));
-//        }
-//    }
-//
-//    @NotNull
-//    public VariableDescriptor resolveLocalVariableDescriptor(
-//            @NotNull LexicalScope scope,
-//            @NotNull CjParameter parameter,
-//            BindingTrace trace
-//    ) {
-//        CangJieType type = resolveParameterType(scope, parameter, trace);
-//        return resolveLocalVariableDescriptor(parameter, type, trace, scope);
-//    }
-
-//    private CangJieType resolveParameterType(LexicalScope scope, CjParameter parameter, BindingTrace trace) {
-//        CjTypeReference typeReference = parameter.getTypeReference();
-//        CangJieType type;
-//        if (typeReference != null) {
-//            type = typeResolver.resolveType(scope, typeReference, trace, true);
-//        }
-//        else {
-//            // Error is reported by the parser
-//            type = ErrorUtils.createErrorType(ErrorTypeKind.NO_TYPE_SPECIFIED, parameter.getText());
-//        }
-//        if (parameter.hasModifier(VARARG_KEYWORD)) {
-//            return getVarargParameterType(type);
-//        }
-//        return type;
-//    }
-
-//    public VariableDescriptor resolveLocalVariableDescriptor(
-//            @NotNull CjParameter parameter,
-//            @NotNull CangJieType type,
-//            BindingTrace trace,
-//            @NotNull LexicalScope scope
-//    ) {
-//        UnwrappedType approximatedType = typeApproximator.approximateDeclarationType(type, true);
-//        VariableDescriptor variableDescriptor = new LocalVariableDescriptor(
-//                scope.getOwnerDescriptor(),
-//                annotationResolver.resolveAnnotationsWithArguments(scope, parameter.getModifierList(), trace),
-//                CjPsiUtil.safeName(parameter.getName()),
-//                approximatedType,
-//                CangJieSourceElementCj.toSourceElement(parameter)
-//        );
-//        trace.record(BindingContext.VALUE_PARAMETER, parameter, variableDescriptor);
-//        // Type annotations also should be resolved
-//        ForceResolveUtil.forceResolveAllContents(type.getAnnotations());
-//        return variableDescriptor;
-//    }
-
     @NotNull
     public TypeAliasDescriptor resolveTypeAliasDescriptor(
             @NotNull DeclarationDescriptor containingDeclaration,
@@ -787,6 +565,222 @@ public class DescriptorResolver {
 //
 //        trace.record(TYPE_ALIAS, typeAlias, typeAliasDescriptor);
 //        return typeAliasDescriptor;
+    }
+
+//    public void resolveGenericBounds(
+//            @NotNull CjTypeParameterListOwner declaration,
+//            @NotNull DeclarationDescriptor descriptor,
+//            LexicalScope scope,
+//            List<TypeParameterDescriptorImpl> parameters,
+//            BindingTrace trace
+//    ) {
+//        List<UpperBoundCheckRequest> upperBoundCheckRequests = Lists.newArrayList();
+//
+//        List<CjTypeParameter> typeParameters = declaration.getTypeParameters();
+//        Map<Name, TypeParameterDescriptorImpl> parameterByName = new HashMap<>();
+//        for (int i = 0; i < typeParameters.size(); i++) {
+//            CjTypeParameter ktTypeParameter = typeParameters.get(i);
+//            TypeParameterDescriptorImpl typeParameterDescriptor = parameters.get(i);
+//
+//            parameterByName.put(typeParameterDescriptor.getName(), typeParameterDescriptor);
+//
+//            CjTypeReference extendsBound = ktTypeParameter.getExtendsBound();
+//            if (extendsBound != null) {
+//                CangJieType type = typeResolver.resolveType(scope, extendsBound, trace, false);
+//                typeParameterDescriptor.addUpperBound(type);
+//                upperBoundCheckRequests.add(new UpperBoundCheckRequest(ktTypeParameter.getNameAsName(), extendsBound, type));
+//            }
+//        }
+//        for (CjTypeConstraint constraint : declaration.getTypeConstraints()) {
+//            CjSimpleNameExpression subjectTypeParameterName = constraint.getSubjectTypeParameterName();
+//            if (subjectTypeParameterName == null) {
+//                continue;
+//            }
+//            Name referencedName = subjectTypeParameterName.getReferencedNameAsName();
+//            TypeParameterDescriptorImpl typeParameterDescriptor = parameterByName.get(referencedName);
+//            CjTypeReference boundTypeReference = constraint.getBoundTypeReference();
+//            CangJieType bound = null;
+//            if (boundTypeReference != null) {
+//                bound = typeResolver.resolveType(scope, boundTypeReference, trace, false);
+//                upperBoundCheckRequests.add(new UpperBoundCheckRequest(referencedName, boundTypeReference, bound));
+//            }
+//
+//            if (typeParameterDescriptor != null) {
+//                trace.record(BindingContext.REFERENCE_TARGET, subjectTypeParameterName, typeParameterDescriptor);
+//                if (bound != null) {
+//                    typeParameterDescriptor.addUpperBound(bound);
+//                }
+//            }
+//        }
+//
+//        for (TypeParameterDescriptorImpl parameter : parameters) {
+//            parameter.addDefaultUpperBound();
+//            parameter.setInitialized();
+//        }
+//
+//        for (TypeParameterDescriptorImpl parameter : parameters) {
+//            checkConflictingUpperBounds(trace, parameter, typeParameters.get(parameter.getIndex()));
+//        }
+//
+//        if (!(declaration instanceof CjClass)) {
+//            checkUpperBoundTypes(trace, upperBoundCheckRequests, declaration.hasModifier(CjTokens.OVERRIDE_KEYWORD));
+//            checkNamesInConstraints(declaration, descriptor, scope, trace);
+//        }
+//    }
+
+//    public static void checkUpperBoundTypes(
+//            @NotNull BindingTrace trace,
+//            @NotNull List<UpperBoundCheckRequest> requests,
+//            bool hasOverrideModifier
+//    ) {
+//        if (requests.isEmpty()) return;
+//
+//        Set<Name> classBoundEncountered = new HashSet<>();
+//        Set<Pair<Name, TypeConstructor>> allBounds = new HashSet<>();
+//
+//        for (UpperBoundCheckRequest request : requests) {
+//            Name typeParameterName = request.typeParameterName;
+//            CangJieType upperBound = request.upperBoundType;
+//            CjTypeReference upperBoundElement = request.upperBound;
+//
+//            if (!CangJieTypeCj.isError(upperBound)) {
+//                if (!allBounds.add(new Pair<>(typeParameterName, upperBound.getConstructor()))) {
+//                    trace.report(REPEATED_BOUND.on(upperBoundElement));
+//                }
+//                else {
+//                    ClassDescriptor classDescriptor = TypeUtils.getClassDescriptor(upperBound);
+//                    if (classDescriptor != null) {
+//                        ClassKind kind = classDescriptor.getKind();
+//                        if (kind == ClassKind.CLASS || kind == ClassKind.ENUM_CLASS || kind == ClassKind.OBJECT) {
+//                            if (!classBoundEncountered.add(typeParameterName)) {
+//                                trace.report(ONLY_ONE_CLASS_BOUND_ALLOWED.on(upperBoundElement));
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            checkUpperBoundType(upperBoundElement, upperBound, trace, hasOverrideModifier);
+//        }
+//    }
+
+//    public static void checkConflictingUpperBounds(
+//            @NotNull BindingTrace trace,
+//            @NotNull TypeParameterDescriptor parameter,
+//            @NotNull CjTypeParameter typeParameter
+//    ) {
+//        if (CangJieBuiltIns.isNothing(TypeIntersector.getUpperBoundsAsType(parameter))) {
+//            trace.report(CONFLICTING_UPPER_BOUNDS.on(typeParameter, parameter));
+//        }
+//    }
+
+//    public void checkNamesInConstraints(
+//            @NotNull CjTypeParameterListOwner declaration,
+//            @NotNull DeclarationDescriptor descriptor,
+//            @NotNull LexicalScope scope,
+//            @NotNull BindingTrace trace
+//    ) {
+//        for (CjTypeConstraint constraint : declaration.getTypeConstraints()) {
+//            CjSimpleNameExpression nameExpression = constraint.getSubjectTypeParameterName();
+//            if (nameExpression == null) continue;
+//
+//            Name name = nameExpression.getReferencedNameAsName();
+//
+//            ClassifierDescriptor classifier = ScopeUtilsCj.findClassifier(scope, name, NoLookupLocation.FOR_NON_TRACKED_SCOPE);
+//            if (classifier instanceof TypeParameterDescriptor && classifier.getContainingDeclaration() == descriptor) continue;
+//
+//            if (classifier != null) {
+//                // To tell the user that we look only for locally defined type parameters
+//                trace.report(NAME_IN_CONSTRAINT_IS_NOT_A_TYPE_PARAMETER.on(nameExpression, constraint, declaration));
+//                trace.record(BindingContext.REFERENCE_TARGET, nameExpression, classifier);
+//            }
+//            else {
+//                trace.report(UNRESOLVED_REFERENCE.on(nameExpression, nameExpression));
+//            }
+//
+//            CjTypeReference boundTypeReference = constraint.getBoundTypeReference();
+//            if (boundTypeReference != null) {
+//                typeResolver.resolveType(scope, boundTypeReference, trace, true);
+//            }
+//        }
+//    }
+//
+//    public static void checkUpperBoundType(
+//            CjTypeReference upperBound,
+//            @NotNull CangJieType upperBoundType,
+//            BindingTrace trace,
+//            bool hasOverrideModifier
+//    ) {
+//        if (!hasOverrideModifier && !TypeUtils.canHaveSubtypes(CangJieTypeChecker.DEFAULT, upperBoundType)) {
+//            trace.report(FINAL_UPPER_BOUND.on(upperBound, upperBoundType));
+//        }
+//        if (DynamicTypesCj.isDynamic(upperBoundType)) {
+//            trace.report(DYNAMIC_UPPER_BOUND.on(upperBound));
+//        }
+//        if (FunctionTypesCj.isExtensionFunctionType(upperBoundType)) {
+//            trace.report(UPPER_BOUND_IS_EXTENSION_FUNCTION_TYPE.on(upperBound));
+//        }
+//        if (DefinitelyNonNullableTypesCj.containsIncorrectExplicitDefinitelyNonNullableType(upperBoundType)) {
+//            trace.report(INCORRECT_LEFT_COMPONENT_OF_INTERSECTION.on(upperBound));
+//        }
+//    }
+//
+//    @NotNull
+//    public VariableDescriptor resolveLocalVariableDescriptor(
+//            @NotNull LexicalScope scope,
+//            @NotNull CjParameter parameter,
+//            BindingTrace trace
+//    ) {
+//        CangJieType type = resolveParameterType(scope, parameter, trace);
+//        return resolveLocalVariableDescriptor(parameter, type, trace, scope);
+//    }
+
+//    private CangJieType resolveParameterType(LexicalScope scope, CjParameter parameter, BindingTrace trace) {
+//        CjTypeReference typeReference = parameter.getTypeReference();
+//        CangJieType type;
+//        if (typeReference != null) {
+//            type = typeResolver.resolveType(scope, typeReference, trace, true);
+//        }
+//        else {
+//            // Error is reported by the parser
+//            type = ErrorUtils.createErrorType(ErrorTypeKind.NO_TYPE_SPECIFIED, parameter.getText());
+//        }
+//        if (parameter.hasModifier(VARARG_KEYWORD)) {
+//            return getVarargParameterType(type);
+//        }
+//        return type;
+//    }
+
+//    public VariableDescriptor resolveLocalVariableDescriptor(
+//            @NotNull CjParameter parameter,
+//            @NotNull CangJieType type,
+//            BindingTrace trace,
+//            @NotNull LexicalScope scope
+//    ) {
+//        UnwrappedType approximatedType = typeApproximator.approximateDeclarationType(type, true);
+//        VariableDescriptor variableDescriptor = new LocalVariableDescriptor(
+//                scope.getOwnerDescriptor(),
+//                annotationResolver.resolveAnnotationsWithArguments(scope, parameter.getModifierList(), trace),
+//                CjPsiUtil.safeName(parameter.getName()),
+//                approximatedType,
+//                CangJieSourceElementCj.toSourceElement(parameter)
+//        );
+//        trace.record(BindingContext.VALUE_PARAMETER, parameter, variableDescriptor);
+//        // Type annotations also should be resolved
+//        ForceResolveUtil.forceResolveAllContents(type.getAnnotations());
+//        return variableDescriptor;
+//    }
+
+    static final class UpperBoundCheckRequest {
+        public final Name typeParameterName;
+        public final CjTypeReference upperBound;
+        public final CangJieType upperBoundType;
+
+        UpperBoundCheckRequest(Name typeParameterName, CjTypeReference upperBound, CangJieType upperBoundType) {
+            this.typeParameterName = typeParameterName;
+            this.upperBound = upperBound;
+            this.upperBoundType = upperBoundType;
+        }
     }
 
 //    private static void checkNoGenericBoundsOnTypeAliasParameters(@NotNull CjTypeAlias typeAlias, @NotNull BindingTrace trace) {
@@ -878,7 +872,7 @@ public class DescriptorResolver {
 //            @NotNull VariableAsPropertyInfo propertyInfo
 //    ) {
 //        CjModifierList modifierList = variableDeclaration.getModifierList();
-//        boolean isVar = variableDeclaration.isVar();
+//        bool isVar = variableDeclaration.isVar();
 //
 //        DescriptorVisibility visibility = resolveVisibilityFromModifiers(variableDeclaration, getDefaultVisibility(variableDeclaration, container));
 //        Modality modality = container instanceof ClassDescriptor
@@ -1068,9 +1062,9 @@ public class DescriptorResolver {
 //            return type;
 //        }
 //
-//        boolean isPrivate = DescriptorVisibilities.isPrivate(descriptor.getVisibility());
-//        boolean isInlineFunction = descriptor instanceof SimpleFunctionDescriptor && ((SimpleFunctionDescriptor) descriptor).isInline();
-//        boolean isAnonymousReturnTypesInPrivateInlineFunctionsForbidden =
+//        bool isPrivate = DescriptorVisibilities.isPrivate(descriptor.getVisibility());
+//        bool isInlineFunction = descriptor instanceof SimpleFunctionDescriptor && ((SimpleFunctionDescriptor) descriptor).isInline();
+//        bool isAnonymousReturnTypesInPrivateInlineFunctionsForbidden =
 //                languageVersionSettings.supportsFeature(LanguageFeature.ApproximateAnonymousReturnTypesInPrivateInlineFunctions);
 //
 //        if (!isPrivate || (isInlineFunction && isAnonymousReturnTypesInPrivateInlineFunctionsForbidden)) {
@@ -1086,8 +1080,8 @@ public class DescriptorResolver {
 //                }
 //
 //                UnwrappedType unwrapped = type.unwrap();
-//                boolean lowerNullable = FlexibleTypesCj.lowerIfFlexible(unwrapped).isMarkedNullable();
-//                boolean upperNullable = FlexibleTypesCj.upperIfFlexible(unwrapped).isMarkedNullable();
+//                bool lowerNullable = FlexibleTypesCj.lowerIfFlexible(unwrapped).isMarkedNullable();
+//                bool upperNullable = FlexibleTypesCj.upperIfFlexible(unwrapped).isMarkedNullable();
 //                if (languageVersionSettings.supportsFeature(LanguageFeature.KeepNullabilityWhenApproximatingLocalType)) {
 //                    if (lowerNullable != upperNullable) {
 //                        return CangJieTypeFactory.flexibleType(
@@ -1120,7 +1114,7 @@ public class DescriptorResolver {
 //            @NotNull AnnotationSplitter annotationSplitter,
 //            @NotNull BindingTrace trace,
 //            @Nullable CjPropertyAccessor setter,
-//            boolean hasDelegate,
+//            bool hasDelegate,
 //            @Nullable InferenceSession inferenceSession
 //    ) {
 //        PropertySetterDescriptorImpl setterDescriptor = null;
@@ -1207,7 +1201,7 @@ public class DescriptorResolver {
 //            @NotNull BindingTrace trace,
 //            @Nullable CangJieType propertyTypeIfKnown,
 //            @Nullable CjPropertyAccessor getter,
-//            boolean hasDelegate,
+//            bool hasDelegate,
 //            @Nullable InferenceSession inferenceSession
 //    ) {
 //        PropertyGetterDescriptorImpl getterDescriptor;
@@ -1280,30 +1274,7 @@ public class DescriptorResolver {
 //        return propertyTypeIfKnown;
 //    }
 //
-//    @NotNull
-//        /*package*/ CangJieType inferReturnTypeFromExpressionBody(
-//            @NotNull BindingTrace trace,
-//            @NotNull LexicalScope scope,
-//            @NotNull DataFlowInfo dataFlowInfo,
-//            @NotNull CjDeclarationWithBody function,
-//            @NotNull FunctionDescriptor functionDescriptor,
-//            @Nullable InferenceSession inferenceSession
-//    ) {
-//        return wrappedTypeFactory.createRecursionIntolerantDeferredType(trace, () -> {
-//            PreliminaryDeclarationVisitor.Companion.createForDeclaration(function, trace, languageVersionSettings);
-//            CangJieType type = expressionTypingServices.getBodyExpressionType(
-//                    trace, scope, dataFlowInfo, function, functionDescriptor, inferenceSession
-//            );
-//            CangJieType publicType = transformAnonymousTypeIfNeeded(
-//                    functionDescriptor, function, type, trace, anonymousTypeTransformers, languageVersionSettings
-//            );
-//            UnwrappedType approximatedType = typeApproximator.approximateDeclarationType(publicType, false);
-//            CangJieType sanitizedType = declarationReturnTypeSanitizer.sanitizeReturnType(approximatedType, wrappedTypeFactory, trace, languageVersionSettings);
-//            functionsTypingVisitor.checkTypesForReturnStatements(function, trace, sanitizedType);
-//            return sanitizedType;
-//        });
-//    }
-
+//
 //    public PropertyDescriptor resolvePrimaryConstructorParameterToAProperty(
 //            @NotNull ClassDescriptor classDescriptor,
 //            @NotNull ValueParameterDescriptor valueParameter,
@@ -1313,7 +1284,7 @@ public class DescriptorResolver {
 //    ) {
 //        CangJieType type = resolveParameterType(scope, parameter, trace);
 //        Name name = parameter.getNameAsSafeName();
-//        boolean isMutable = parameter.isMutable();
+//        bool isMutable = parameter.isMutable();
 //        CjModifierList modifierList = parameter.getModifierList();
 //
 //        if (modifierList != null) {
@@ -1379,7 +1350,7 @@ public class DescriptorResolver {
 //        return propertyDescriptor;
 //    }
 
-//    public static boolean checkHasOuterClassInstance(
+//    public static bool checkHasOuterClassInstance(
 //            @NotNull LexicalScope scope,
 //            @NotNull BindingTrace trace,
 //            @NotNull PsiElement reportErrorsOn,
@@ -1406,7 +1377,7 @@ public class DescriptorResolver {
 //        return true;
 //    }
 
-//    private static boolean isInsideOuterClassOrItsSubclass(@Nullable DeclarationDescriptor nested, @NotNull ClassDescriptor outer) {
+//    private static bool isInsideOuterClassOrItsSubclass(@Nullable DeclarationDescriptor nested, @NotNull ClassDescriptor outer) {
 //        if (nested == null) return false;
 //
 //        if (nested instanceof ClassDescriptor && isSubclass((ClassDescriptor) nested, outer)) return true;

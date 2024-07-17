@@ -69,11 +69,11 @@ public class DescriptorVisibilities {
     @NotNull
     public static final DescriptorVisibility LOCAL = new DelegatedDescriptorVisibility(Visibilities.Local.INSTANCE) {
 //        @Override
-//        public boolean isVisible(
+//        public bool isVisible(
 //                @Nullable ReceiverValue receiver,
 //                @NotNull DeclarationDescriptorWithVisibility what,
 //                @NotNull DeclarationDescriptor from,
-//                boolean useSpecialRulesForPrivateSealedConstructors
+//                bool useSpecialRulesForPrivateSealedConstructors
 //        ) {
 //            throw new IllegalStateException("This method shouldn't be invoked for LOCAL visibility");
 //        }
@@ -83,9 +83,9 @@ public class DescriptorVisibilities {
     @NotNull
     public static final DescriptorVisibility UNKNOWN = new DelegatedDescriptorVisibility(Visibilities.Unknown.INSTANCE) {
 //        @Override
-//        public boolean isVisible(
+//        public bool isVisible(
 //                @Nullable ReceiverValue receiver, @NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from,
-//                boolean useSpecialRulesForPrivateSealedConstructors
+//                bool useSpecialRulesForPrivateSealedConstructors
 //        ) {
 //            return false;
 //        }

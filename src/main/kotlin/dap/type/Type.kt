@@ -227,7 +227,7 @@ data class ColumnDescriptor(
 
     /**
      * 此列中值的数据类型。如果未指定，默认为 `string`。
-     * 值：'string'，'number'，'boolean'，'unixTimestampUTC'
+     * 值：'string'，'number'，'bool'，'unixTimestampUTC'
      */
     val type: ColumnDataType? = null,
 

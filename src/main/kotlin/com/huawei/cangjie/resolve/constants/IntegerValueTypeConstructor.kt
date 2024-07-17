@@ -49,10 +49,10 @@ class IntegerValueTypeConstructor(
     }
 
     private fun addUnsignedSuperTypes() {
-        checkBoundsAndAddSuperType(value, module.unsignedType(StandardNames.FqNames.uInt32))
-        checkBoundsAndAddSuperType(value, module.unsignedType(StandardNames.FqNames.uInt8))
-        checkBoundsAndAddSuperType(value, module.unsignedType(StandardNames.FqNames.uInt16))
-        supertypes.add(module.unsignedType(StandardNames.FqNames.uInt64))
+        checkBoundsAndAddSuperType(value, module.unsignedType(StandardNames.FqNames.uInt32ClassId))
+        checkBoundsAndAddSuperType(value, module.unsignedType(StandardNames.FqNames.uInt8ClassId))
+        checkBoundsAndAddSuperType(value, module.unsignedType(StandardNames.FqNames.uInt16ClassId))
+        supertypes.add(module.unsignedType(StandardNames.FqNames.uInt64ClassId))
     }
 
     private fun checkBoundsAndAddSuperType(value: Long, kotlinType: CangJieType) {

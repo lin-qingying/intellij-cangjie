@@ -26,10 +26,10 @@
 //        }
 //        return null;
 //    }
-//    public static boolean isEnumEntry(@NotNull DeclarationDescriptor descriptor) {
+//    public static bool isEnumEntry(@NotNull DeclarationDescriptor descriptor) {
 //        return isKindOf(descriptor, ClassKind.ENUM_ENTRY);
 //    }
-//    private static boolean isKindOf(@Nullable DeclarationDescriptor descriptor, @NotNull ClassKind classKind) {
+//    private static bool isKindOf(@Nullable DeclarationDescriptor descriptor, @NotNull ClassKind classKind) {
 //        return descriptor instanceof ClassDescriptor && ((ClassDescriptor) descriptor).getKind() == classKind;
 //    }
 //
@@ -37,7 +37,7 @@
 //    public static Collection<DeclarationDescriptor> getAllDescriptors(@NotNull MemberScope scope) {
 //        return scope.getContributedDescriptors(DescriptorKindFilter.ALL, MemberScope.Companion.getALL_NAME_FILTER());
 //    }
-//    public static boolean isInterface(@Nullable DeclarationDescriptor descriptor) {
+//    public static bool isInterface(@Nullable DeclarationDescriptor descriptor) {
 //        return isKindOf(descriptor, ClassKind.INTERFACE);
 //    }
 //    @Nullable

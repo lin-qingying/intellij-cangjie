@@ -9,7 +9,7 @@ abstract class DiagnosticFactory<D : UnboundDiagnostic> protected constructor(
     open val severity: Severity
 ){
     open val name: String
-        get() = _name!!
+        get() = _name ?: "<unnamed>"
     fun initializeName(name: String) {
         _name = name
     }

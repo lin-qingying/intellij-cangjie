@@ -2,7 +2,7 @@ package com.huawei.cangjie.builtins
 
 import com.huawei.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import com.huawei.cangjie.builtins.StandardNames.FqNames.any
-import com.huawei.cangjie.builtins.StandardNames.FqNames.boolean
+import com.huawei.cangjie.builtins.StandardNames.FqNames.bool
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int16
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int32
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int64
@@ -39,7 +39,7 @@ open class CangJieBuiltIns(
         fun isBoolean(type: CangJieType): Boolean {
             return isConstructedFromGivenClassAndNotNullable(
                 type,
-                boolean
+                bool
             )
         }
 
@@ -308,7 +308,7 @@ open class CangJieBuiltIns(
 
     val unit get() = getBuiltInClassByName("Unit")
     val unitType: SimpleType get() = unit.getDefaultType()
-    val nothing: ClassDescriptor get() = getBuiltInClassByName("Unit")
+    val nothing: ClassDescriptor get() = getBuiltInClassByName("Nothing")
 
     val any get() = getBuiltInClassByName("Unit")
     val anyType: SimpleType
@@ -322,11 +322,13 @@ open class CangJieBuiltIns(
     val int32Type get() = getPrimitiveCangJieType(PrimitiveType.INT32)
     val int16Type get() = getPrimitiveCangJieType(PrimitiveType.INT16)
     val int8Type get() = getPrimitiveCangJieType(PrimitiveType.INT8)
+    val intNativeType get() = getPrimitiveCangJieType(PrimitiveType.INTNATIVE)
 
     val uint64Type = getPrimitiveCangJieType(PrimitiveType.UINT64)
     val uint32Type = getPrimitiveCangJieType(PrimitiveType.UINT32)
     val uint16Type = getPrimitiveCangJieType(PrimitiveType.UINT16)
     val uint8Type = getPrimitiveCangJieType(PrimitiveType.UINT8)
+    val uintNativeType get() = getPrimitiveCangJieType(PrimitiveType.UINTNATIVE)
 
 }
 

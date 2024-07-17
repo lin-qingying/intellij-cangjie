@@ -202,11 +202,11 @@ public abstract class CjFunctionImpl extends CjTypeParameterListOwnerStub<CangJi
         return !(parent instanceof CjFile || parent instanceof CjClassBody);
     }
 
-//    public boolean mayHaveContract() {
+//    public bool mayHaveContract() {
 //        return mayHaveContract(true);
 //    }
 
-//    public boolean mayHaveContract(boolean isAllowedOnMembers) {
+//    public bool mayHaveContract(bool isAllowedOnMembers) {
 //        CangJieFunctionStub stub = getStub();
 //        if (stub != null) {
 //            return stub.mayHaveContract();
@@ -227,7 +227,7 @@ public abstract class CjFunctionImpl extends CjTypeParameterListOwnerStub<CangJi
     }
 
 //    @Override
-//    public boolean shouldChangeModificationCount(PsiElement place) {
+//    public bool shouldChangeModificationCount(PsiElement place) {
 //        // Suppress Java check for out-of-block
 //        return false;
 //    }

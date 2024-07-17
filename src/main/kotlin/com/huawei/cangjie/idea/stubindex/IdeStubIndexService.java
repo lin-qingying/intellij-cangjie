@@ -177,7 +177,7 @@ public class IdeStubIndexService extends StubIndexService {
         }
 //        else if (parent instanceof CangJieStructStub) {
 //            var grand = parent.getParentStub();
-//            boolean primeGrand = grand instanceof CangJieClassStub && ((CangJieClassStub) grand).isTopLevel();
+//            bool primeGrand = grand instanceof CangJieClassStub && ((CangJieClassStub) grand).isTopLevel();
 //
 //            prime = ((CangJieStructStub) parent).isTopLevel() ||
 //                    primeGrand && ((CangJieStructStub) parent).isCompanion();

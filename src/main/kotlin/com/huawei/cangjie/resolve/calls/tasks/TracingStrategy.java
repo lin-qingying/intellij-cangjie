@@ -64,7 +64,7 @@ public interface TracingStrategy {
 
 //
 ////        @Override
-////        public void recursiveType(@NotNull BindingTrace trace, @NotNull LanguageVersionSettings languageVersionSettings, boolean insideAugmentedAssignment) {}
+////        public void recursiveType(@NotNull BindingTrace trace, @NotNull LanguageVersionSettings languageVersionSettings, bool insideAugmentedAssignment) {}
 //
 //        @Override
 //        public void instantiationOfAbstractClass(@NotNull BindingTrace trace) {}
@@ -80,7 +80,7 @@ public interface TracingStrategy {
 ////        ) {}
 //
 //        @Override
-//        public void unsafeCall(@NotNull BindingTrace trace, @NotNull CangJieType type, boolean isCallForImplicitInvoke) {}
+//        public void unsafeCall(@NotNull BindingTrace trace, @NotNull CangJieType type, bool isCallForImplicitInvoke) {}
 //
 //        @Override
 //        public void invisibleMember(@NotNull BindingTrace trace, @NotNull DeclarationDescriptorWithVisibility descriptor) {}
@@ -129,7 +129,7 @@ public interface TracingStrategy {
             @NotNull Collection<? extends ResolvedCall<D>> descriptors
     );
 //
-////    void recursiveType(@NotNull BindingTrace trace, @NotNull LanguageVersionSettings languageVersionSettings, boolean insideAugmentedAssignment);
+////    void recursiveType(@NotNull BindingTrace trace, @NotNull LanguageVersionSettings languageVersionSettings, bool insideAugmentedAssignment);
 //
 //    void instantiationOfAbstractClass(@NotNull BindingTrace trace);
 //
@@ -145,7 +145,7 @@ public interface TracingStrategy {
 ////            @NotNull ExplicitReceiverKind explicitReceiverKind
 ////    );
 //
-//    void unsafeCall(@NotNull BindingTrace trace, @NotNull CangJieType type, boolean isCallForImplicitInvoke);
+//    void unsafeCall(@NotNull BindingTrace trace, @NotNull CangJieType type, bool isCallForImplicitInvoke);
 //
 //    void invisibleMember(@NotNull BindingTrace trace, @NotNull DeclarationDescriptorWithVisibility descriptor);
 

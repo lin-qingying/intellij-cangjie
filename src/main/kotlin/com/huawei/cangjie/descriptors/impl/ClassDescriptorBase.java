@@ -28,7 +28,7 @@ public abstract class ClassDescriptorBase extends AbstractClassDescriptor {
     }
 
 //    @Override
-//    public boolean isExternal() {
+//    public bool isExternal() {
 //        return isExternal;
 //    }
 

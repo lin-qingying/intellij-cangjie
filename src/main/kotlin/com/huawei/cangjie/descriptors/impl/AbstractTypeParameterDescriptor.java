@@ -163,7 +163,7 @@ public abstract class AbstractTypeParameterDescriptor extends DeclarationDescrip
         }
 
 //        @Override
-//        public boolean isFinal() {
+//        public bool isFinal() {
 //            return false;
 //        }
 

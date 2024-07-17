@@ -254,7 +254,7 @@ public class ArgumentTypeResolver {
 //            @NotNull CjFunction functionLiteral,
 //            @NotNull CallResolutionContext<?> context,
 //            @NotNull ResolveArgumentsMode resolveArgumentsMode,
-//            boolean suspendFunctionTypeExpected
+//            bool suspendFunctionTypeExpected
 //    ) {
 //        if (resolveArgumentsMode == SHAPE_FUNCTION_ARGUMENTS) {
 //            CangJieType type = getShapeTypeOfFunctionLiteral(functionLiteral, context.scope, context.trace, true, suspendFunctionTypeExpected);
