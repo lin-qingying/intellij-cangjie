@@ -4,10 +4,12 @@ import com.huawei.cangjie.analyzer.AnalysisResult
 import com.huawei.cangjie.descriptors.DiagnosticSink
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 
 
 interface ResolutionFacade{
+//    val project: Project
 
     fun fetchWithAllCompilerChecks(element: CjElement): AnalysisResult? = null
 

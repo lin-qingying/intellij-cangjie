@@ -177,9 +177,9 @@ class PackageFragmentDescriptorBasicImpl(
             p.println("Basic member scope")
         }
 
-        override fun getContributedClassifier(name: Name, location: LookupLocation): BasicTypeDescriptor {
+        override fun getContributedClassifier(name: Name, location: LookupLocation): BasicTypeDescriptor? {
 
-            return DESCRIPTOR_MAP.get(name)!!
+            return DESCRIPTOR_MAP[name]
         }
 
         override fun getContributedDescriptors(

@@ -4,13 +4,18 @@ import com.huawei.cangjie.diagnostics.DiagnosticFactory0;
 import com.huawei.cangjie.diagnostics.DiagnosticFactory1;
 import com.huawei.cangjie.diagnostics.DiagnosticFactory2;
 import com.huawei.cangjie.diagnostics.DiagnosticFactory3;
+import com.huawei.cangjie.diagnostics.rendering.DiagnosticFactoryToRendererMap;
+import com.huawei.cangjie.diagnostics.rendering.DiagnosticRenderer;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
 import com.huawei.cangjie.resolve.calls.tower.WrongResolutionToClassifier;
 import com.huawei.cangjie.types.CangJieType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
-
+import org.jetbrains.annotations.NotNull;
+import com.huawei.cangjie.diagnostics.rendering.DefaultErrorMessages;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 
 import static com.huawei.cangjie.descriptors.PositioningStrategies.*;
@@ -26,6 +31,15 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, Collection<? extends ResolvedCall<?>>> NONE_APPLICABLE = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, Collection<? extends ResolvedCall<?>>> CANNOT_COMPLETE_RESOLVE = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, Collection<? extends ResolvedCall<?>>> OVERLOAD_RESOLUTION_AMBIGUITY = DiagnosticFactory1.create(ERROR);
+    //Elements with "INVISIBLE_REFERENCE" error are marked as unresolved, unlike elements with "INVISIBLE_MEMBER" error
+    //"INVISIBLE_REFERENCE" is used for invisible classes references and references in import
+    DiagnosticFactory3<CjSimpleNameExpression, DeclarationDescriptor, DescriptorVisibility, DeclarationDescriptor> INVISIBLE_REFERENCE =
+            DiagnosticFactory3.create(ERROR);
+    DiagnosticFactory2<CjExpression, String, Collection<? extends ResolvedCall<?>>> DELEGATE_SPECIAL_FUNCTION_NONE_APPLICABLE =
+            DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory3<CjExpression, String, CangJieType, String> DELEGATE_SPECIAL_FUNCTION_MISSING = DiagnosticFactory3.create(ERROR);
+
+    DiagnosticFactory1<PsiElement, CallableDescriptor> TOO_MANY_ARGUMENTS = DiagnosticFactory1.create(ERROR);
 
     DiagnosticFactory2<CjExpression, CjExpression, Boolean> FUNCTION_CALL_EXPECTED = DiagnosticFactory2.create(ERROR, CALL_EXPRESSION);
     DiagnosticFactory3<CjReferenceExpression, ClassifierDescriptor, WrongResolutionToClassifier, String> RESOLUTION_TO_CLASSIFIER =
@@ -72,5 +86,61 @@ public interface Errors {
     DiagnosticFactory0<CjExpression> NO_RECEIVER_ALLOWED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory2<CjExpression, CjExpression, CangJieType> FUNCTION_EXPECTED = DiagnosticFactory2.create(ERROR);
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    @SuppressWarnings("UnusedDeclaration")
+    Initializer __initializer = Initializer.INSTANCE;
 
+    class Initializer {
+        private static final String WARNING = "_WARNING";
+        private static final String ERROR = "_ERROR";
+
+        static {
+            initializeFactoryNames(Errors.class);
+        }
+
+        public static void initializeFactoryNames(@NotNull Class<?> aClass) {
+            initializeFactoryNamesAndDefaultErrorMessages(aClass, DiagnosticFactoryToRendererMap::new);
+        }
+
+        public static void initializeFactoryNamesAndDefaultErrorMessages(
+                @NotNull Class<?> aClass,
+                @NotNull DefaultErrorMessages.Extension defaultErrorMessages
+        ) {
+            DiagnosticFactoryToRendererMap diagnosticToRendererMap = defaultErrorMessages.getMap();
+            for (Field field : aClass.getFields()) {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    try {
+                        Object value = field.get(null);
+                        if (value instanceof DiagnosticFactory) {
+                            initializeNameAndRenderer(diagnosticToRendererMap, field.getName(), (DiagnosticFactory<?>) value);
+                        }
+                        if (value instanceof DiagnosticFactoryForDeprecation) {
+                            String errorName = field.getName();
+                            DiagnosticFactoryForDeprecation<?, ?, ?> factory = (DiagnosticFactoryForDeprecation<?, ?, ?>) value;
+                            initializeNameAndRenderer(diagnosticToRendererMap, field.getName() + ERROR, factory.getErrorFactory());
+                            initializeNameAndRenderer(diagnosticToRendererMap, field.getName() + WARNING, factory.getWarningFactory());
+                        }
+                    }
+                    catch (IllegalAccessException e) {
+                        throw new IllegalStateException(e);
+                    }
+                }
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        private static void initializeNameAndRenderer(
+                DiagnosticFactoryToRendererMap diagnosticToRendererMap,
+                String name,
+                DiagnosticFactory<?> factory
+        ) {
+            factory.initializeName(name);
+            factory.setDefaultRenderer((DiagnosticRenderer) diagnosticToRendererMap.get(factory));
+        }
+
+        private static final Initializer INSTANCE = new Initializer();
+
+        private Initializer() {
+        }
+    }
 }

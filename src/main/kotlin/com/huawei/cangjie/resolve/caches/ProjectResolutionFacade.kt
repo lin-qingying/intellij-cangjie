@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.caches
 
 import com.huawei.cangjie.analyzer.AnalysisResult
+import com.huawei.cangjie.analyzer.ResolverForModule
 import com.huawei.cangjie.analyzer.createModuleDescriptor
 import com.huawei.cangjie.builtins.BuiltInsLoader
 import com.huawei.cangjie.container.ComponentProvider
@@ -24,6 +25,7 @@ import com.intellij.openapi.diagnostic.ControlFlowException
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
@@ -235,7 +237,9 @@ class ProjectResolutionFacade(
         val perFileCache = cache?.getIfCached(element.getContainingCjFile())
         return perFileCache?.fetchAnalysisResults(element)
     }
+    internal fun resolverForElement(element: PsiElement): ResolverForModule{
 
+    }
 
 }
 

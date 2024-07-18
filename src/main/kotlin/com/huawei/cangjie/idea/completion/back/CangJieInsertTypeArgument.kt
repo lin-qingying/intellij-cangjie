@@ -1,13 +1,9 @@
-package com.huawei.cangjie.idea.completion
+package com.huawei.cangjie.idea.completion.back
 
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getQualifiedExpressionForSelector
-import com.huawei.cangjie.utils.match
-import com.huawei.cangjie.utils.parents
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolder
-import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiTreeUtil
 
 
 data class TypeArgsWithOffset(val args: CjTypeArgumentList, val offset: Int)

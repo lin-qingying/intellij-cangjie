@@ -1,4 +1,4 @@
-package com.huawei.cangjie.idea.completion
+package com.huawei.cangjie.idea.completion.back
 
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.onClosed

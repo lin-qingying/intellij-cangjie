@@ -1,4 +1,4 @@
-package com.huawei.cangjie.idea.completion.implCommon.stringTemplates
+package com.huawei.cangjie.idea.completion.back.implCommon.stringTemplates
 
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.CjNameReferenceExpression

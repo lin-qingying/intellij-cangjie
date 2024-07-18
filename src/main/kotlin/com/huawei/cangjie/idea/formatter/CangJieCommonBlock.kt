@@ -275,6 +275,7 @@ abstract class CangJieCommonBlock(
 
                 return if (settings.cangjieCustomSettings.CONTINUATION_INDENT_IN_ARGUMENT_LISTS) Indent.getContinuationWithoutFirstIndent()
                 else Indent.getNormalIndent()
+//                else Indent.getNoneIndent()
             }
 
             if (parentType === TYPE_PARAMETER_LIST || parentType === TYPE_ARGUMENT_LIST) {
@@ -442,20 +443,21 @@ abstract class CangJieCommonBlock(
         val childWrap = wrappingStrategy(child)
 
 
-        if (child.elementType === OPERATION_REFERENCE) {
-            val operationNode = child.firstChildNode
-            if (operationNode != null) {
-                return createBlock(
-                    operationNode,
-                    alignmentStrategy,
-                    createChildIndent(child),
-                    childWrap,
-                    settings,
-                    spacingBuilder,
-                    overrideChildren,
-                )
-            }
-        }
+//        if (child.elementType === OPERATION_REFERENCE) {
+////            val operationNode = child.firstChildNode
+//                        val operationNode = child
+//            if (operationNode != null) {
+//                return createBlock(
+//                    operationNode,
+//                    alignmentStrategy,
+//                    createChildIndent(child),
+//                    childWrap,
+//                    settings,
+//                    spacingBuilder,
+//                    overrideChildren,
+//                )
+//            }
+//        }
 
         return createBlock(
             child, alignmentStrategy, createChildIndent(child), childWrap, settings, spacingBuilder, overrideChildren
@@ -923,7 +925,7 @@ private val INDENT_RULES = arrayOf(
     strategy("For single statement in THEN and ELSE").within(THEN, ELSE).notForType(BLOCK)
         .set(Indent.getNormalIndent()),
 
-    strategy("Expression body").within(FUNC).forElement {
+    strategy("Expression body").within(FUNC).notForType(OPERATION_REFERENCE).forElement {
         (it.psi is CjExpression && it.psi !is CjBlockExpression)
     }.continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES, indentFirst = true),
 

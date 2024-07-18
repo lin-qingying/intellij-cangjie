@@ -10,7 +10,7 @@ class CangJieFormattingModelBuilder  : FormattingModelBuilder {
 
     override fun createModel(formattingContext: FormattingContext): FormattingModel {
 
-        formattingContext.project.toolchain
+
         val settings = formattingContext.codeStyleSettings
         val containingFile = formattingContext.containingFile
         val block = CangJieBlock(

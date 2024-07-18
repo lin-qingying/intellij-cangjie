@@ -1,4 +1,4 @@
-package com.huawei.cangjie.idea.completion
+package com.huawei.cangjie.idea.completion.back
 
 import com.huawei.cangjie.psi.CjSimpleNameExpression
 import com.intellij.codeInsight.completion.CompletionParameters

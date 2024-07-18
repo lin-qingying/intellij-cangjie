@@ -9,7 +9,12 @@
                      defaultValue="10"
                      restartRequired="true"/>
 
-
+        <registryKey key="cangjie.highlighting.suppress.deprecated"
+                     description="Suppress cangjie.Deprecated warning"
+                     defaultValue="false"/>
+        <projectService
+                serviceInterface="com.huawei.cangjie.idea.highlighter.CangJieQuickFixProvider"
+                serviceImplementation="com.huawei.cangjie.idea.codeinsight.CangJieQuickFixProviderImpl"/>
 
         <projectService
                 serviceInterface="com.huawei.cangjie.idea.base.projectStructure.RootKindMatcher"

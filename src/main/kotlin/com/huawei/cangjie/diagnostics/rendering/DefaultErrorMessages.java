@@ -13,7 +13,10 @@ import static com.huawei.cangjie.diagnostics.rendering.Renderers.ELEMENT_TEXT;
 
 public class DefaultErrorMessages {
     private static final List<DiagnosticFactoryToRendererMap> RENDERER_MAPS;
-
+    public interface Extension {
+        @NotNull
+        DiagnosticFactoryToRendererMap getMap();
+    }
     @NotNull
     @SuppressWarnings("unchecked")
     public static String render(@NotNull UnboundDiagnostic diagnostic) {

@@ -31,9 +31,13 @@ val EXTEND_COLON_ELEMENTS =
 
 
 val DECLARATIONS = TokenSet.create(PROPERTY, FUNC, CLASS, ENUM_ENTRY, SECONDARY_CONSTRUCTOR, CLASS_INITIALIZER)
+
+
+//缩进
 fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacingBuilderUtil): CangJieSpacingBuilder {
     val cangjieCommonSettings = settings.cangjieCommonSettings
     val cangjieCustomSettings = settings.cangjieCustomSettings
+
     return rules(cangjieCommonSettings, builderUtil) {
         simple {
 
@@ -334,6 +338,8 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
             betweenInside(TYPE_REFERENCE, DOT, FUNC).spacing(0, 0, 0, false, 0)
             betweenInside(DOT, IDENTIFIER, FUNC).spacing(0, 0, 0, false, 0)
             afterInside(IDENTIFIER, FUNC).spacing(0, 0, 0, false, 0)
+            afterInside(OPERATION_REFERENCE, FUNC).spacing(0, 0, 0, false, 0)
+
             aroundInside(DOT, USER_TYPE).spaces(0)
 
             around(AS_KEYWORD).spaces(1)
@@ -375,7 +381,7 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
             beforeInside(GT, TYPE_ARGUMENT_LIST).spaces(0)
             before(TYPE_ARGUMENT_LIST).spaces(0)
 
-            after(LPAR).spaces(0)
+                   after(LPAR).spaces(0)
             before(RPAR).spaces(0)
 
             betweenInside(FOR_KEYWORD, LPAR, FOR).spaceIf(cangjieCommonSettings.SPACE_BEFORE_FOR_PARENTHESES)
@@ -577,7 +583,7 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
             ).customRule { _, _, right ->
                 val rightNode = right.requireNode()
                 val rightType = rightNode.elementType
-                if (rightType == VALUE_PARAMETER_LIST) {
+                if (rightType == VALUE_PARAMETER_LIST  ) {
                     createSpacing(spacesInSimpleFunction, keepLineBreaks = false)
                 } else {
                     createSpacing(spacesInSimpleFunction)

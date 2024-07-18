@@ -148,9 +148,9 @@
                 serviceImplementation="com.huawei.cangjie.idea.run.cjpm.runconfig.CjRunConfigurationExtensionManager"/>
 
 
-        <applicationService
-                serviceImplementation="com.huawei.cangjie.idea.completion.FirCompletionDummyIdentifierProviderService"
-                serviceInterface="com.huawei.cangjie.idea.completion.CompletionDummyIdentifierProviderService"/>
+<!--        <applicationService-->
+<!--                serviceImplementation="com.huawei.cangjie.idea.completion.back.FirCompletionDummyIdentifierProviderService"-->
+<!--                serviceInterface="com.huawei.cangjie.idea.completion.back.CompletionDummyIdentifierProviderService"/>-->
 
 <!--        <applicationService-->
 <!--                serviceInterface="com.huawei.cangjie.psi.stubs.elements.StubIndexService"-->
@@ -291,7 +291,7 @@
                 dynamic="true"/>
         <extensionPoint
                 qualifiedName="com.huawei.cangjie.completionExtension"
-                interface="com.huawei.cangjie.idea.completion.CangJieCompletionExtension" dynamic="true"/>
+                interface="com.huawei.cangjie.idea.completion.back.CangJieCompletionExtension" dynamic="true"/>
 
         <extensionPoint qualifiedName="com.huawei.cangjie.runConfigurationExtension"
                         interface="com.huawei.cangjie.idea.run.cjpm.runconfig.CjpmCommandConfigurationExtension"

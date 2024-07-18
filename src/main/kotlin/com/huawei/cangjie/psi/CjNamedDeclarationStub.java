@@ -5,29 +5,22 @@ import com.huawei.cangjie.lang.CangJieFileType;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.name.Name;
+import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
 import com.huawei.cangjie.psi.stubs.CangJieStubWithFqName;
-
-
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
-
 import com.intellij.psi.PsiElement;
-
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.LocalSearchScope;
-
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
-
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-
-
-import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
+import static com.huawei.cangjie.CjNodeTypes.OPERATION_REFERENCE;
 
 public abstract class CjNamedDeclarationStub<T extends CangJieStubWithFqName<?>> extends CjDeclarationStub<T> implements CjNamedDeclaration {
     public CjNamedDeclarationStub(@NotNull T stub, @NotNull IStubElementType nodeType) {
@@ -50,9 +43,14 @@ public abstract class CjNamedDeclarationStub<T extends CangJieStubWithFqName<?>>
             String text = identifier.getText();
             return text != null ? CjPsiUtil.unquoteIdentifier(text) : null;
         }
-        else {
-            return null;
+        PsiElement operation = getOperatorReference();
+
+        if (operation != null) {
+            return operation.getText();
         }
+
+        return null;
+
     }
 
     @Override
@@ -72,8 +70,9 @@ public abstract class CjNamedDeclarationStub<T extends CangJieStubWithFqName<?>>
         return findChildByType(CjTokens.IDENTIFIER);
     }
 
-
-
+    public PsiElement getOperatorReference() {
+        return findChildByType(OPERATION_REFERENCE);
+    }
 
 
     @Override
@@ -85,8 +84,7 @@ public abstract class CjNamedDeclarationStub<T extends CangJieStubWithFqName<?>>
         PsiElement newIdentifier = new CjPsiFactory(getProject()).createNameIdentifierIfPossible(CjPsiUtilKt.quoteIfNeeded(name));
         if (newIdentifier != null) {
             CjPsiUtilKt.astReplace(identifier, newIdentifier);
-        }
-        else {
+        } else {
             identifier.delete();
         }
         return this;
@@ -104,7 +102,6 @@ public abstract class CjNamedDeclarationStub<T extends CangJieStubWithFqName<?>>
         CjElement enclosingBlock = CjPsiUtil.getEnclosingElementForLocalDeclaration(this, false);
         if (enclosingBlock != null) {
 //            PsiElement enclosingParent = enclosingBlock.getParent();
-
 
 
 //            if (enclosingParent instanceof CjContainerNode) {
@@ -136,10 +133,9 @@ public abstract class CjNamedDeclarationStub<T extends CangJieStubWithFqName<?>>
 
                 SearchScope fileScope = GlobalSearchScope.fileScope(CjFile);
 
-               SearchScope nonCangJieJvmScope = GlobalSearchScope.notScope(CangJieFilesScope) ;
+                SearchScope nonCangJieJvmScope = GlobalSearchScope.notScope(CangJieFilesScope);
                 return fileScope.union(nonCangJieJvmScope);
-            }
-            else {
+            } else {
                 return new LocalSearchScope(CjFile);
             }
         }

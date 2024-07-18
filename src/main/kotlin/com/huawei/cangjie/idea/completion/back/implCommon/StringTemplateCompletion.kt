@@ -1,4 +1,4 @@
-package com.huawei.cangjie.idea.completion.implCommon
+package com.huawei.cangjie.idea.completion.back.implCommon
 
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.CjBlockStringTemplateEntry

@@ -1,4 +1,4 @@
-package com.huawei.cangjie.idea.completion.smart
+package com.huawei.cangjie.idea.completion.back.smart
 
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.CjBinaryExpressionWithTypeRHS

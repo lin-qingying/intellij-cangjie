@@ -1,4 +1,4 @@
-package com.huawei.cangjie.idea.completion
+package com.huawei.cangjie.idea.completion.back
 
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet

@@ -14,10 +14,11 @@ interface PlatformConfigurator {
 }
 abstract class PlatformDependentAnalyzerServices {
     private data class DefaultImportsKey(val includeCangJieComparisons: Boolean, val includeLowPriorityImports: Boolean)
-//
+// TODO 默认导入
 private val defaultImports = LockBasedStorageManager("TargetPlatform").let { storageManager ->
-    storageManager.createMemoizedFunction<DefaultImportsKey, List<ImportPath>> { (includeKotlinComparisons, includeLowPriorityImports) ->
+    storageManager.createMemoizedFunction<DefaultImportsKey, List<ImportPath>> { (includeCangJieComparisons, includeLowPriorityImports) ->
         ArrayList<ImportPath>().apply {
+            listOf<String>()
 //            listOf(
 //                "kotlin.*",
 //                "kotlin.annotation.*",
@@ -28,9 +29,9 @@ private val defaultImports = LockBasedStorageManager("TargetPlatform").let { sto
 //                "kotlin.io.*"
 //            ).forEach { add(ImportPath.fromString(it)) }
 
-            if (includeKotlinComparisons) {
-                add(ImportPath.fromString("kotlin.comparisons.*"))
-            }
+//            if (includeCangJieComparisons) {
+//                add(ImportPath.fromString("kotlin.comparisons.*"))
+//            }
 
 //            computePlatformSpecificDefaultImports(storageManager, this)
 

@@ -136,6 +136,8 @@ class StubBasedPackageMemberDeclarationProvider(
         }
     }
 }
+@Suppress("NOTHING_TO_INLINE")
+inline fun isUnitTestMode(): Boolean = ApplicationManager.getApplication().isUnitTestMode
 
 @Suppress("NOTHING_TO_INLINE")
 inline fun isApplicationInternalMode(): Boolean = ApplicationManager.getApplication().isInternal

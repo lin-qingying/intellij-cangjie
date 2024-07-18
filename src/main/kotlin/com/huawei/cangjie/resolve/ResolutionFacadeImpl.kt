@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.analyzer.AnalysisResult
+import com.huawei.cangjie.analyzer.ResolverForModule
 import com.huawei.cangjie.container.getService
 import com.huawei.cangjie.descriptors.DiagnosticSink
 import com.huawei.cangjie.psi.CjElement
@@ -62,7 +63,7 @@ class ResolutionFacadeImpl(
 //        if (usePerFileAnalysisCache) {
 //            fetchWithAllCompilerChecks(element)?.takeUnless { it.isError() }?.let { return it.bindingContext }
 //        }
-//TODO()
+
         @OptIn(FrontendInternals::class)
         val resolveElementCache = getFrontendService(element, ResolveElementCache::class.java)
         return runWithCancellationCheck {
@@ -73,7 +74,8 @@ class ResolutionFacadeImpl(
 
     @FrontendInternals
     override fun <T : Any> getFrontendService(element: PsiElement, serviceClass: Class<T>): T {
-        return projectFacade.componentProvider!!.getService(serviceClass)
+
+        return  projectFacade.resolverForElement(element).componentProvider.getService(serviceClass)
     }
 }
 

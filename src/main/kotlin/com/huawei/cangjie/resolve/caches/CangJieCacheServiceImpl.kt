@@ -83,7 +83,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
 
         val projectFacade = facadeForModules(settings)
 
-        return ResolutionFacadeImpl(projectFacade)
+        return ResolutionFacadeImpl(projectFacade).createdFor(emptyList(),/* moduleInfo,*/ settings)
     }
 
     override fun getResolutionFacade(elements: List<CjElement>): ResolutionFacade {

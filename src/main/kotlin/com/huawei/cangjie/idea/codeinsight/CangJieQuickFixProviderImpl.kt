@@ -1,0 +1,36 @@
+package com.huawei.cangjie.idea.codeinsight
+
+import com.huawei.cangjie.descriptors.Diagnostic
+import com.huawei.cangjie.idea.highlighter.CangJieQuickFixProvider
+import com.huawei.cangjie.idea.inspections.suppress.AnnotationHostKind
+import com.huawei.cangjie.psi.CjElement
+import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.codeInspection.SuppressIntentionAction
+import com.intellij.psi.PsiElement
+import com.intellij.util.containers.MultiMap
+
+class CangJieQuickFixProviderImpl: CangJieQuickFixProvider {
+    override fun createQuickFixes(sameTypeDiagnostics: Collection<Diagnostic>): MultiMap<Diagnostic, IntentionAction> {
+        TODO("Not yet implemented")
+    }
+
+    override fun createPostponedUnresolvedReferencesQuickFixes(sameTypeDiagnostics: Collection<Diagnostic>): MultiMap<Diagnostic, IntentionAction> {
+        TODO("Not yet implemented")
+    }
+
+    override fun createUnresolvedReferenceQuickFixes(sameTypeDiagnostics: Collection<Diagnostic>): MultiMap<Diagnostic, IntentionAction> {
+        TODO("Not yet implemented")
+    }
+
+    override fun createUnresolvedReferenceQuickFixesForElement(element: CjElement): Map<PsiElement, Sequence<IntentionAction>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun createSuppressFix(
+        element: CjElement,
+        suppressionKey: String,
+        hostKind: AnnotationHostKind
+    ): SuppressIntentionAction {
+        TODO("Not yet implemented")
+    }
+}

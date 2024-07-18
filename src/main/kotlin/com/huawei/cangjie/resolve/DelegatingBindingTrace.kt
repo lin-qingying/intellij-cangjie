@@ -25,14 +25,16 @@ open class DelegatingBindingTrace(
         record(slice, key, true)
 
     }
+
     @JvmOverloads
     fun addOwnDataTo(trace: BindingTrace, filter: TraceEntryFilter? = null, commitDiagnostics: Boolean = true) {
         BindingContextUtils.addOwnDataTo(trace, filter, commitDiagnostics, map, mutableDiagnostics)
     }
+
     @Volatile
     protected var diagnosticsCallback: DiagnosticSink.DiagnosticsCallback? = null
 
-     inner class MyBindingContext : BindingContext {
+    inner class MyBindingContext : BindingContext {
         override fun getDiagnostics(): Diagnostics = mutableDiagnostics ?: Diagnostics.EMPTY
 
         override fun <K, V> get(slice: ReadOnlySlice<K, V>, key: K): V? {
@@ -86,7 +88,6 @@ open class DelegatingBindingTrace(
             customSuppressCache ?: BindingContextSuppressCache(bindingContext),
             if (withParentDiagnostics) parentContext.diagnostics else Diagnostics.EMPTY
         )
-
 
 
 //    override fun getBindingContext(): BindingContext = bindingContext
