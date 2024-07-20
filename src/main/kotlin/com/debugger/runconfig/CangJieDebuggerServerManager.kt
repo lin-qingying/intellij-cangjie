@@ -144,7 +144,7 @@ object CangJieDebuggerServerManager {
         val dapserverPath = if (SystemInfo.isWindows) {
             "debugger/dap_server.exe"
         } else {
-            "debugger/dap_server"
+            "debugger/dap_server-linux_x64"
         }
 
         val resource = classLoader.getResource(dapserverPath)
