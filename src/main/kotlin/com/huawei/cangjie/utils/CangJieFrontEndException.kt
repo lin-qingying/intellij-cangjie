@@ -1,6 +1,5 @@
 package com.huawei.cangjie.utils
 
-import com.huawei.cangjie.descriptors.PsiDiagnosticUtils
 import com.intellij.psi.PsiElement
 
 fun getExceptionMessage(
@@ -24,13 +23,3 @@ fun getExceptionMessage(
         }
     }
 
-
-class CangJieFrontEndException(message: String, cause: Throwable) : CangJieExceptionWithAttachments(message, cause) {
-    constructor(
-        message: String,
-        cause: Throwable,
-        element: PsiElement
-    ) : this(getExceptionMessage("Front-end", message, cause, PsiDiagnosticUtils.atLocation(element)), cause) {
-        withPsiAttachment("element.kt", element)
-    }
-}

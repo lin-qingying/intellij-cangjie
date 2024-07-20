@@ -76,7 +76,7 @@ public abstract class CjStubElementType<StubT extends StubElement<?>, PsiT exten
     /**
      * 语句是否以分号结尾
      */
-//    public boolean isStatementEndWithSemicolon() {
+//    public bool isStatementEndWithSemicolon() {
 //
 //    }
 }

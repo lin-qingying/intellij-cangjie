@@ -2,7 +2,7 @@ package com.huawei.cangjie.psi;
 
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.psi.stubs.CangJieTypeParameterStub;
-import com.huawei.cangjie.types.Variance;
+
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.LocalSearchScope;
@@ -33,22 +33,6 @@ public class CjTypeParameter extends CjNamedDeclarationStub<CangJieTypeParameter
         return  getNode().getElementType().toString();
     }
 
-    @NotNull
-    public Variance getVariance() {
-        CangJieTypeParameterStub stub = getStub();
-        if (stub != null) {
-
-//            if (stub.isInVariance()) return Variance.IN_VARIANCE;
-            return Variance.INVARIANT;
-        }
-
-        CjModifierList modifierList = getModifierList();
-        if (modifierList == null) return Variance.INVARIANT;
-
-
-        if (modifierList.hasModifier(CjTokens.IN_KEYWORD)) return Variance.IN_VARIANCE;
-        return Variance.INVARIANT;
-    }
 
     @Nullable
     public CjTypeReference setExtendsBound(@Nullable CjTypeReference typeReference) {

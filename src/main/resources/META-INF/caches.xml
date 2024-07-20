@@ -1,7 +1,0 @@
-<idea-plugin>
-    <extensions defaultExtensionNs="com.intellij">
-        <projectService
-                serviceInterface="com.huawei.cangjie.resolve.caches.CangJieCacheService"
-                serviceImplementation="com.huawei.cangjie.resolve.caches.CangJieCacheServiceImpl"/>
-    </extensions>
-</idea-plugin>

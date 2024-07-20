@@ -14,7 +14,7 @@ class CjTupleTypeElementType(debugName:String) :CjStubElementType<CangJieTupleTy
     CjTupleType::class.java,
     CangJieTupleTypeStub::class.java) {
     override fun serialize(stub: CangJieTupleTypeStub, dataStream: StubOutputStream) {
-        dataStream.writeName(debugName)
+//        dataStream.writeName(debugName)
     }
 
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?): CangJieTupleTypeStub {

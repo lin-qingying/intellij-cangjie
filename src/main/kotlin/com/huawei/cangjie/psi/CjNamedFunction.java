@@ -25,7 +25,18 @@ public class CjNamedFunction extends CjFunctionImpl {
     public CjNamedFunction(@NotNull CangJieFunctionStub stub) {
         super(stub, CjStubElementTypes.FUNCTION);
     }
+//    public bool mayHaveContract() {
+//        return mayHaveContract(true);
+//    }
 
+//    public bool mayHaveContract(bool isAllowedOnMembers) {
+//        CangJieFunctionStub stub = getStub();
+//        if (stub != null) {
+//            return stub.mayHaveContract();
+//        }
+//
+//        return CjPsiUtilKt.isContractPresentPsiCheck(this, isAllowedOnMembers);
+//    }
     @Override
     public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
         return visitor.visitNamedFunction(this, data);
@@ -224,6 +235,9 @@ public class CjNamedFunction extends CjFunctionImpl {
     public CjTypeReference setTypeReference(@Nullable CjTypeReference typeRef) {
         return TypeRefHelpersKt.setTypeReference(this, getValueParameterList(), typeRef);
     }
+
+
+
 
     @Nullable
     @Override

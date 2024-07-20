@@ -4,9 +4,11 @@ import com.huawei.cangjie.cjpm.toolchain.pathToExecutable
 import com.huawei.cangjie.cjpm.toolchain.tools.Cjc
 import com.huawei.cangjie.cjpm.toolchain.tools.Cjpm
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.util.io.isDirectory
+
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.io.path.isDirectory
+
 fun Path.hasExecutable(toolName: String): Boolean = pathToExecutable(toolName).isExecutable()
 fun Path.isExecutable(): Boolean = Files.isExecutable(this)
 

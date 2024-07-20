@@ -12,6 +12,7 @@ class CjSecondaryConstructor : CjConstructor<CjSecondaryConstructor> {
     constructor(stub: CangJieConstructorStub<CjSecondaryConstructor>) : super(stub, CjStubElementTypes.SECONDARY_CONSTRUCTOR)
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?) = visitor.visitSecondaryConstructor(this, data)
+    override fun getConstructorKeyword() = notNullChild<PsiElement>(super.getConstructorKeyword())
 
     override fun getContainingClassOrStruct() = parent?.parent as CjClassOrStruct
 

@@ -10,13 +10,23 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         return null;
     }
 
+    public R visitCallableReferenceExpression(@NotNull CjCallableReferenceExpression expression, D data) {
+        return visitDoubleColonExpression(expression, data);
+    }
+
+    public R visitDoubleColonExpression(@NotNull CjDoubleColonExpression expression, D data) {
+        return visitExpression(expression, data);
+    }
+
     public R visitRangeExpression(@NotNull CjRangeExpression expression, D data) {
         return visitExpression(expression, data);
 
     }
+
     public R visitLambdaExpression(@NotNull CjLambdaExpression expression, D data) {
         return visitExpression(expression, data);
     }
+
     public R visitUnsafeExpression(@NotNull CjUnsafeExpression expression, D data) {
         return visitExpression(expression, data);
     }
@@ -306,7 +316,8 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitTypeArgumentList(CjTypeArgumentList cjTypeArgumentList, D data) {
         return visitCjElement(cjTypeArgumentList, data);
     }
-//    public R visitMacroArgumentList(CjMacroAttrArgumentList psi, D data) {
+
+    //    public R visitMacroArgumentList(CjMacroAttrArgumentList psi, D data) {
 //        return visitCjElement(psi, data);
 //    }
     public R visitImportAlias(@NotNull CjImportAlias importAlias, D data) {
@@ -353,10 +364,24 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitFunctionType(@NotNull CjFunctionType type, D data) {
         return visitTypeElement(type, data);
     }
+
     private R visitTypeElement(@NotNull CjTypeElement type, D data) {
         return visitCjElement(type, data);
     }
+
     public R visitPropertyAccessor(@NotNull CjPropertyAccessor accessor, D data) {
         return visitDeclaration(accessor, data);
+    }
+
+    public R visitAnnotation(@NotNull CjAnnotation annotation, D data) {
+        return visitCjElement(annotation, data);
+    }
+
+    public R visitMainFunction(CjMainFunction cjMainFunction, D data) {
+        return visitDeclaration(cjMainFunction, data);
+    }
+
+    public R visitClassInitFunction(@NotNull CjClassInit cjClassInit, D data) {
+        return visitDeclaration(cjClassInit, data);
     }
 }

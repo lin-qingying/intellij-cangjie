@@ -4,6 +4,11 @@ import com.huawei.cangjie.psi.*;
 import com.intellij.psi.tree.TokenSet;
 
 public interface CjStubElementTypes {
+
+    CjConstantExpressionElementType NULL = new CjConstantExpressionElementType("NULL");
+
+    CjPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
+            new CjPlaceHolderStubElementType<>("ANNOTATION", CjAnnotation.class);
     CjPropertyAccessorElementType PROPERTY_ACCESSOR = new CjPropertyAccessorElementType("PROPERTY_ACCESSOR");
     CjPlaceHolderStubElementType<CjFunctionType> FUNCTION_TYPE =
             new CjPlaceHolderStubElementType<>("FUNCTION_TYPE", CjFunctionType.class);
@@ -17,7 +22,6 @@ public interface CjStubElementTypes {
     CjConstantExpressionElementType UNIT_CONSTANT = new CjConstantExpressionElementType("UNIT_CONSTANT");
     CjAnnotationEntryElementType ANNOTATION_ENTRY = new CjAnnotationEntryElementType("ANNOTATION_ENTRY");
     CjAnnotationEntryElementType MACRO_EXPRESSION = new CjAnnotationEntryElementType("MACRO_EXPRESSION");
-
 
 
     //    KtPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
@@ -49,7 +53,7 @@ public interface CjStubElementTypes {
 
     CjVariableElementType VARIABLE = new CjVariableElementType("VARIABLE");
     CjPropertyElementType PROPERTY = new CjPropertyElementType("PROPERTY");
-  CjTypeAliasElementType TYPEALIAS = new CjTypeAliasElementType("TYPEALIAS");
+    CjTypeAliasElementType TYPEALIAS = new CjTypeAliasElementType("TYPEALIAS");
 
 
     CjPlaceHolderStubElementType<CjClassInitializer> CLASS_INITIALIZER =
@@ -72,8 +76,6 @@ public interface CjStubElementTypes {
 
 //    CjPlaceHolderStubElementType<CjMacroAttrArgumentList> MACRO_ARGUMENT_LIST =
 //            new CjPlaceHolderStubElementType<>("MACRO_ARGUMENT_LIST", CjMacroAttrArgumentList.class);
-
-
 
 
     CjTypeParameterElementType TYPE_PARAMETER = new CjTypeParameterElementType("TYPE_PARAMETER");
@@ -108,7 +110,8 @@ public interface CjStubElementTypes {
 
     CjUserTypeElementType USER_TYPE = new CjUserTypeElementType("USER_TYPE");
 
-    CjTupleTypeElementType TUPLE_TYPE = new CjTupleTypeElementType("TUPLE_TYPE");
+    //    CjTupleTypeElementType TUPLE_TYPE = new CjTupleTypeElementType("TUPLE_TYPE");
+    CjPlaceHolderStubElementType<CjTupleType> TUPLE_TYPE = new CjPlaceHolderStubElementType<>("TUPLE_TYPE", CjTupleType.class);
 
     CjPlaceHolderStubElementType<CjClassBody> CLASS_BODY =
             new CjPlaceHolderStubElementType<>("CLASS_BODY", CjClassBody.class);
@@ -142,9 +145,9 @@ public interface CjStubElementTypes {
     CjDotQualifiedExpressionElementType DOT_QUALIFIED_EXPRESSION = new CjDotQualifiedExpressionElementType("DOT_QUALIFIED_EXPRESSION");
 
     CjMainFunctionElementType MAIN_FUNC = new CjMainFunctionElementType("MAIN_FUNC");
-    CJClassInitElementType CLASS_INIT = new CJClassInitElementType("CLASS_INIT");
-    CJClassInitElementType CLASS_MAIN_INIT = new CJClassInitElementType("CLASS_MAIN_INIT");
-    CJClassInitElementType CLASS_TILDE_INIT = new CJClassInitElementType("CLASS_TILDE_INIT");
+    CjClassInitElementType CLASS_INIT = new CjClassInitElementType("CLASS_INIT");
+    CjClassInitElementType CLASS_MAIN_INIT = new CjClassInitElementType("CLASS_MAIN_INIT");
+    CjClassInitElementType CLASS_TILDE_INIT = new CjClassInitElementType("CLASS_TILDE_INIT");
 
     CjBasicTypeElementType BASIC_TYPE = new CjBasicTypeElementType("BASIC_TYPE");
     CjPlaceHolderStubElementType<CjStringTemplateExpression> STRING_TEMPLATE =

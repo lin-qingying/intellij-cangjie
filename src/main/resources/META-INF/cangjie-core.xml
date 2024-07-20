@@ -8,10 +8,10 @@
     <xi:include href="/META-INF/codeInsight.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <extensions defaultExtensionNs="com.intellij">
-        <projectService
-                serviceInterface="com.huawei.cangjie.analyzer.CangJieModificationTrackerService"
-                serviceImplementation="com.huawei.cangjie.idea.cache.trackers.CangJieIDEModificationTrackerService"/>
 
+        <!-- 编辑器执行配置 -->
+        <runLineMarkerContributor language="CangJie"
+                                  implementationClass="com.huawei.cangjie.idea.run.CjRunLineMarkersProvider"/>
 
         <!--        文件索引-->
         <!--        <fileBasedIndex implementation=""></fileBasedIndex>-->
@@ -285,9 +285,6 @@
 
 
 
-        <extensionPoint qualifiedName="com.huawei.cangjie.diagnosticSuppressor"
-                        interface="com.huawei.cangjie.descriptors.DiagnosticSuppressor"
-                        dynamic="true"/>
 
     </extensionPoints>
 

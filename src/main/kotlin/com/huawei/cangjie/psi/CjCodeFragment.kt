@@ -62,7 +62,7 @@ abstract class CjCodeFragment(
         if (context != null && context !is CjElement) {
             val logInfoForContextElement =
                 (context as? PsiFile)?.virtualFile?.path ?: context.getElementTextWithContext()
-            LOG.warn("CodeFragment with non-kotlin context should have fakeContextForJavaFile set: \noriginalContext = $logInfoForContextElement")
+            LOG.warn("CodeFragment with non-cangjie context should have fakeContextForJavaFile set: \noriginalContext = $logInfoForContextElement")
             return null
         }
 

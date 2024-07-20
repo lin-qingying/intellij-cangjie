@@ -34,8 +34,8 @@ public class CjMacroElementType extends CjStubElementType<CangJieFunctionStub, C
                 (StubElement<?>) parentStub,CjStubElementTypes.FUNCTION, StringRef.fromString(psi.getName()), isTopLevel, fqName,
                 isExtension, hasBlockBody, hasBody, psi.hasTypeParameterListBeforeFunctionName(),
 
+null
 
-                null
         );
     }
 
@@ -51,7 +51,7 @@ public class CjMacroElementType extends CjStubElementType<CangJieFunctionStub, C
         dataStream.writeBoolean(stub.hasBlockBody());
         dataStream.writeBoolean(stub.hasBody());
         dataStream.writeBoolean(stub.hasTypeParameterListBeforeFunctionName());
-//        boolean haveContract = stub.mayHaveContract();
+//        bool haveContract = stub.mayHaveContract();
 //        dataStream.writeBoolean(haveContract);
         if (stub instanceof CangJieFunctionStubImpl stubImpl) {
 
@@ -72,7 +72,7 @@ public class CjMacroElementType extends CjStubElementType<CangJieFunctionStub, C
         boolean hasBlockBody = dataStream.readBoolean();
         boolean hasBody = dataStream.readBoolean();
         boolean hasTypeParameterListBeforeFunctionName = dataStream.readBoolean();
-//        boolean mayHaveContract = dataStream.readBoolean();
+//        bool mayHaveContract = dataStream.readBoolean();
         return new CangJieFunctionStubImpl(
                 (StubElement<?>) parentStub,CjStubElementTypes.FUNCTION, name, isTopLevel, fqName, isExtension, hasBlockBody, hasBody,
                 hasTypeParameterListBeforeFunctionName,

@@ -128,6 +128,8 @@ object CangJieLspServerManager {
             }
         }
 
+        throw Exception("LSPServer not found")
+
 //        如果插件版本更新，则复制一份新的
         // 获取当前插件的版本
         val currentVersion = PluginManagerCore.getPlugin(PluginId.getId("com.huawei.cangjie"))?.version

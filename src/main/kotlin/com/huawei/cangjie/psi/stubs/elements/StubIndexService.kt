@@ -1,5 +1,3 @@
-
-
 package com.huawei.cangjie.psi.stubs.elements
 
 import com.huawei.cangjie.psi.CjFile
@@ -18,19 +16,31 @@ open class StubIndexService protected constructor() {
 
     open fun indexClass(stub: CangJieClassStub, sink: IndexSink) {
     }
-    open fun indexInterface(stub: CangJieInterfaceStub, sink: IndexSink) {
-    }
+
     open fun indexFunction(stub: CangJieFunctionStub, sink: IndexSink) {
     }
 
+    open fun indexTypeAlias(stub: CangJieTypeAliasStub, sink: IndexSink) {
+    }
 
+    open fun indexStruct(stub: CangJieStructStub, sink: IndexSink) {
+    }
 
     open fun indexVariable(stub: CangJieVariableStub, sink: IndexSink) {
+    }
+
+    open fun indexProperty(stub: CangJiePropertyStub, sink: IndexSink) {
     }
 
     open fun indexParameter(stub: CangJieParameterStub, sink: IndexSink) {
     }
 
+    open fun indexInterface(stub: CangJieInterfaceStub, sink: IndexSink) {
+
+    }
+
+    open fun indexAnnotation(stub: CangJieAnnotationEntryStub, sink: IndexSink) {
+    }
 
 
     open fun createFileStub(file: CjFile): CangJieFileStub {
@@ -50,9 +60,6 @@ open class StubIndexService protected constructor() {
         return CangJieFileStubImpl(null, packageFqNameAsString!!.string)
     }
 
-  open  fun indexStruct(stub: CangJieStructStub, sink: IndexSink) {
-
-    }
 
     companion object {
         @JvmStatic

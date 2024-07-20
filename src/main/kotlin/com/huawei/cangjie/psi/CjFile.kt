@@ -32,18 +32,38 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
 //        return fileClassProvider?.getFileClasses(this) ?: PsiClass.EMPTY_ARRAY
 //    }
 
-//    override fun getPackageName(): String    = packageFqName.asString()
+    //    override fun getPackageName(): String    = packageFqName.asString()
 //    override fun setPackageName(packageName: String?) {
 ////        TODO("更改包名  完全限定名")
 //    }
+    @Volatile
+    private var pathCached: String? = null
 
     //    override fun shouldChangeModificationCount(place: PsiElement?): Boolean = false
     override fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D) {
         CjPsiUtil.visitChildren(this, visitor, data)
     }
 
+    val virtualFilePath
+        get(): String {
+            pathCached?.let { return it }
+
+            return virtualFile.path.also {
+                pathCached = it
+            }
+        }
+
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R =
         visitor.visitCjFile(this, data)
+
+    override fun accept(visitor: PsiElementVisitor) {
+        if (visitor is CjVisitor<*, *>) {
+            @Suppress("UNCHECKED_CAST")
+            accept(visitor as CjVisitor<Any, Any?>, null)
+        } else {
+            visitor.visitFile(this)
+        }
+    }
 
     protected open val importLists: List<CjImportList>
         get() = findChildrenByTypeOrClass(CjStubElementTypes.IMPORT_LIST, CjImportList::class.java).asList()
@@ -153,7 +173,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
 
     override val declarations: List<CjDeclaration>
         get() {
-        return    stub?.getChildrenByType(FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
+            return stub?.getChildrenByType(FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
                 ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java)
         }
 

@@ -6,7 +6,7 @@ import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.psi.stubs.CangJieImportDirectiveStub;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 import com.huawei.cangjie.psi.stubs.elements.CjTokenSets;
-import com.huawei.cangjie.resolve.ImportPath;
+
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -90,22 +90,6 @@ public class CjImportDirective extends CjElementImplStub<CangJieImportDirectiveS
         return importedFqName;
     }
 
-    @Nullable
-    @IfNotParsed
-    public ImportPath getImportPath() {
-        FqName importFqn = getImportedFqName();
-        if (importFqn == null) {
-            return null;
-        }
-
-        Name alias = null;
-//        String aliasName = getAliasName();
-//        if (aliasName != null) {
-//            alias = Name.identifier(aliasName);
-//        }
-
-        return new ImportPath(importFqn, isAllUnder(), alias);
-    }
 
     public boolean isValidImport() {
         CangJieImportDirectiveStub stub = getStub();

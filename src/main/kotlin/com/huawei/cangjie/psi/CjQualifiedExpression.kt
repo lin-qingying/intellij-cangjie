@@ -11,7 +11,7 @@ import java.util.*
 
 
 interface CjQualifiedExpression : CjExpression {
-    val receiverExpression: CjExpression?
+    val receiverExpression: CjExpression
         get() = getExpression(false) ?: throw AssertionError("No receiver found: ${getElementTextWithContext()}")
 
     val selectorExpression: CjExpression?

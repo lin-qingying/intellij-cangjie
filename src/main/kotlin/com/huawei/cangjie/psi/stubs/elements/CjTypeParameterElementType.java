@@ -38,7 +38,7 @@ public class CjTypeParameterElementType extends CjStubElementType<CangJieTypePar
     @Override
     public CangJieTypeParameterStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
         StringRef name = dataStream.readName();
-//        boolean isInVariance = dataStream.readBoolean();
+//        bool isInVariance = dataStream.readBoolean();
 
 
         return new CangJieTypeParameterStubImpl((StubElement<?>) parentStub, name);

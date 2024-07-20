@@ -1,6 +1,7 @@
 package com.huawei.cangjie.parsing
 
 import com.huawei.cangjie.lang.CangJieFileType
+
 import com.huawei.cangjie.parsing.CangJieParsing.createForTopLevel
 import com.huawei.cangjie.psi.CjFile
 import com.intellij.lang.ASTNode
@@ -23,12 +24,13 @@ class CangJieParser(project: Project) : PsiParser {
         @JvmStatic
         fun parseLambdaExpression(psiBuilder: PsiBuilder): ASTNode {
             val cjParsing: CangJieParsing =
-               createForTopLevel(
-                  SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder)
+                createForTopLevel(
+                    SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder)
                 )
             cjParsing.parseLambdaExpression()
             return psiBuilder.treeBuilt
         }
+
         @JvmStatic
 
         fun parseBlockCodeFragment(psiBuilder: PsiBuilder): ASTNode {
@@ -71,11 +73,17 @@ class CangJieParser(project: Project) : PsiParser {
 
             val extension = FileUtilRt.getExtension(psiFile.name)
             if (extension.isEmpty() || extension == CangJieFileType.EXTENSION || psiFile is CjFile && psiFile.isCompiled) {
+
+
                 cjParsing.parseFile()
 
 //                TODO LSP 使用 parseLspFile
 //                cjParsing.parseLspFile()
-            } else {
+            }
+            /*if (psiFile.viewProvider is CangJieDeclarationsFileViewProvider) {
+                cjParsing.parseDeclarationsFile()
+
+            }*/ else {
                 cjParsing.parseScript()
             }
 
@@ -85,6 +93,7 @@ class CangJieParser(project: Project) : PsiParser {
 
         @JvmStatic
         fun parseBlockExpression(psiBuilder: PsiBuilder): ASTNode {
+
             psiBuilder.setDebugMode(true)
             val cjParsing: CangJieParsing =
                 createForTopLevel(

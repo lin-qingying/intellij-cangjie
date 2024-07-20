@@ -59,7 +59,7 @@ public class CjAnnotationEntryElementType extends CjStubElementType<CangJieAnnot
 //        Map<Name, ConstantValue<?>> args = new LinkedHashMap<>();
 //        for (int i = 0; i < valueArgCount; i++) {
 //            args.put(Name.identifier(Objects.requireNonNull(dataStream.readNameString())),
-//                    KotlinConstantValueKt.createConstantValue(dataStream));
+//                    CangJieConstantValueKt.createConstantValue(dataStream));
 //        }
         return new CangJieAnnotationEntryStubImpl((StubElement<?>) parentStub, text, hasValueArguments );
 

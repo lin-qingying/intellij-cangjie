@@ -5,6 +5,7 @@ import com.huawei.cangjie.doc.lexer.CDocTokens
 import com.huawei.cangjie.doc.parser.CDocElementType
 import com.huawei.cangjie.doc.psi.impl.CDocLink
 import com.huawei.cangjie.lang.CangJieLanguage
+
 import com.huawei.cangjie.lexer.CangJieLexer
 import com.huawei.cangjie.lexer.CjToken
 import com.huawei.cangjie.lexer.CjTokens
@@ -23,7 +24,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
-import org.jetbrains.annotations.NotNull
 
 
 class CangJieParserDefinition : ParserDefinition {
@@ -77,7 +77,19 @@ class CangJieParserDefinition : ParserDefinition {
         }
     }
 
-    override fun createFile(viewProvider: FileViewProvider): PsiFile = CjFile(viewProvider, false)
+    override fun reparseSpace(originalSpaceNode: ASTNode, newWhiteSpaceSequence: CharSequence): ASTNode? {
+        return super.reparseSpace(originalSpaceNode, newWhiteSpaceSequence)
+    }
+
+
+
+
+    override fun createFile(viewProvider: FileViewProvider): PsiFile{
+
+
+
+        return  CjFile(viewProvider, false)
+    }
 
 
     object Util {

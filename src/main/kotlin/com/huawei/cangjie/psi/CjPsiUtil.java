@@ -3,6 +3,7 @@ package com.huawei.cangjie.psi;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.name.SpecialNames;
 import com.huawei.cangjie.parsing.CangJieExpressionParsing;
+
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IElementType;
@@ -12,8 +13,53 @@ import org.jetbrains.annotations.Nullable;
 import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
 import  com.huawei.cangjie.lexer.CjTokens;
 public class CjPsiUtil {
+    public interface CjExpressionWrapper {
+        CjExpression getBaseExpression();
+    }
+    @NotNull
+    public static CjExpression safeDeparenthesize(@NotNull CjExpression expression) {
+        return safeDeparenthesize(expression, false);
+    }
 
+    @Nullable
+    public static CjExpression deparenthesizeOnce(
+            @Nullable CjExpression expression, boolean keepAnnotations
+    ) {
+//        if (expression instanceof CjAnnotatedExpression && !keepAnnotations) {
+//            return ((CjAnnotatedExpression) expression).getBaseExpression();
+//        }
+//        else if (expression instanceof CjLabeledExpression) {
+//            return ((CjLabeledExpression) expression).getBaseExpression();
+//        }
+//        else
+            if (expression instanceof CjExpressionWrapper) {
+            return ((CjExpressionWrapper) expression).getBaseExpression();
+        }
+        else if (expression instanceof CjParenthesizedExpression) {
+            return ((CjParenthesizedExpression) expression).getExpression();
+        }
+        return expression;
+    }
 
+    @Nullable
+    public static CjExpression deparenthesize(@Nullable CjExpression expression) {
+        return deparenthesize(expression, false);
+    }
+
+    @Nullable
+    public static CjExpression deparenthesize(@Nullable CjExpression expression, boolean keepAnnotations) {
+        while (true) {
+            CjExpression baseExpression = deparenthesizeOnce(expression, keepAnnotations);
+
+            if (baseExpression == expression) return baseExpression;
+            expression = baseExpression;
+        }
+    }
+    @NotNull
+    public static CjExpression safeDeparenthesize(@NotNull CjExpression expression, boolean keepAnnotations) {
+        CjExpression deparenthesized = deparenthesize(expression, keepAnnotations);
+        return deparenthesized != null ? deparenthesized : expression;
+    }
     public static boolean isStatementContainer(@Nullable PsiElement container) {
         return container instanceof CjBlockExpression ||
                 container instanceof CjContainerNodeForControlStructureBody  ;

@@ -15,8 +15,6 @@ object CangJieIcons {
 
     val CANGJIE_FILE = load("/icons/cangjie_file.svg")
 
-    /** 16x16  */
-    val SMALL_LOGO: Icon = load("/icons/kotlin.svg")
 
 
     /** 16x16  */

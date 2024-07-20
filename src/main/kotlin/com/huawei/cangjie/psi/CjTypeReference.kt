@@ -22,7 +22,9 @@ class CjTypeReference : CjModifierListOwnerStub<CangJiePlaceHolderStub<CjTypeRef
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitTypeReference(this, data)
     }
-
+    override fun getAnnotationEntries(): List<CjAnnotationEntry> {
+        return modifierList?.annotationEntries.orEmpty()
+    }
     val isPlaceholder: Boolean
         get() = ((typeElement as? CjUserType)?.referenceExpression as? CjNameReferenceExpression)?.isPlaceholder == true
 

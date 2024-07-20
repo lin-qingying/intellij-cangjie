@@ -7,6 +7,9 @@ import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.List;
+
 
 public class CjSuperTypeCallEntry extends CjSuperTypeListEntry implements CjCallElement {
     public CjSuperTypeCallEntry(@NotNull ASTNode node) {
@@ -29,9 +32,34 @@ public class CjSuperTypeCallEntry extends CjSuperTypeListEntry implements CjCall
     }
 
     @Override
+    public @NotNull List<CjLambdaArgument> getLambdaArguments() {
+        return null;
+    }
+
+    @Override
+    public @NotNull List<CjTypeProjection> getTypeArguments() {
+       CjTypeArgumentList typeArgumentList = getTypeArgumentList();
+        if (typeArgumentList == null) {
+            return Collections.emptyList();
+        }
+        return typeArgumentList.getArguments();
+    }
+
+    @Override
+    public @Nullable CjTypeArgumentList getTypeArgumentList() {
+        return null;
+    }
+
+    @Override
     public @Nullable CjValueArgumentList getValueArgumentList() {
         return (CjValueArgumentList) findChildByType(CjNodeTypes.VALUE_ARGUMENT_LIST);
 
+    }
+
+    @Override
+    public @NotNull List<? extends ValueArgument> getValueArguments() {
+       CjValueArgumentList list = getValueArgumentList();
+        return list != null ? list.getArguments() : Collections.<CjValueArgument>emptyList();
     }
 
 

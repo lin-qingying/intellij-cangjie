@@ -32,7 +32,7 @@ val Project.dependencyCachePath
 //IDEA版本
 //
 //val ideaVersion = "2023.3.2"
-val ideaVersion = "233-EAP-SNAPSHOT"
+val ideaVersion = "2024.1"
 val ideaType = "IC" // Target IDE Platform
 val nativeDebugPlugin: String = "com.intellij.nativeDebug:233.13763.5"
 //val nativeDebugPlugin: String = "com.intellij.nativeDebug:233.13135.65"
@@ -98,7 +98,7 @@ allprojects {
 
         withType<PatchPluginXmlTask> {
             sinceBuild.set("223")
-            untilBuild.set("233.*")
+            untilBuild.set("242.*")
         }
         runIde { enabled = false }
         prepareSandbox { enabled = false }
@@ -170,10 +170,10 @@ val pluginDescriptors = arrayOf(
 project(":plugin") {
     intellij {
         pluginName.set("intellij-cangjie")
-        plugins.set(listOf(       psiViewerPlugin))
+        plugins.set(listOf(       /*psiViewerPlugin*/))
     }
 //    group = "com.huawei.cangjie"
-    version = "1.1.2"
+    version = "1.1.3"
     dependencies {
         implementation(project(":"))
 //        implementation(project(":inspections"))

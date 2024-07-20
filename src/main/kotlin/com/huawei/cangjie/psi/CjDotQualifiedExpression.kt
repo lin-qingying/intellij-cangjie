@@ -26,13 +26,13 @@ class CjDotQualifiedExpression : CjExpressionImplStub<CangJiePlaceHolderStub<CjD
 
 
 
-    override val receiverExpression: CjExpression?
+    override val receiverExpression: CjExpression
         get() {
             val stub = stub
             if (stub != null) {
                 val childExpressionsByStub = getChildExpressionsByStub(stub)
                 if (childExpressionsByStub != null) {
-                    return childExpressionsByStub[0]
+                    return childExpressionsByStub[0]!!
                 }
             }
             return super.receiverExpression

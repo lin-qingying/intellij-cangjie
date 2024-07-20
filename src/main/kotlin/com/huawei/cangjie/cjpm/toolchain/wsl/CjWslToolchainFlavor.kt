@@ -8,7 +8,7 @@ import com.intellij.execution.wsl.WslDistributionManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.NlsContexts
-import com.intellij.util.io.isDirectory
+import kotlin.io.path.isDirectory
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 

@@ -84,10 +84,10 @@ public class CjClassElementType extends CjStubElementType<CangJieClassStub, CjCl
 
         ClassId classId = StubUtils.deserializeClassId(dataStream);
 
-//        boolean isTrait = dataStream.readBoolean();
+//        bool isTrait = dataStream.readBoolean();
 
         boolean isLocal = dataStream.readBoolean();
-//        boolean isTopLevel = dataStream.readBoolean();
+//        bool isTopLevel = dataStream.readBoolean();
 
         int superCount = dataStream.readVarInt();
         StringRef[] superNames = StringRef.createArray(superCount);
