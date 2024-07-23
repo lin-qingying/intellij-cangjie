@@ -16,6 +16,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.io.systemIndependentPath
 import com.linqingying.lsp.api.LspServerSupportProvider
 import com.linqingying.lsp.api.ProjectWideLspServerDescriptor
+import com.linqingying.utils.Config
 import org.eclipse.lsp4j.*
 
 fun checkCangJieFIle(file: VirtualFile): Boolean {
@@ -35,6 +36,8 @@ class CangJieLspServerSupportProvider : LspServerSupportProvider {
         file: VirtualFile,
         serverStarter: LspServerSupportProvider.LspServerStarter
     ) {
+        if (!Config.isLsp) return
+
         val cangjieSettings = project.cangjieSettings
 
         if (checkCangJieFIle(file)) {

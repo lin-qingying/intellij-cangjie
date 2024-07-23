@@ -8,6 +8,7 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.BaseProcessHandler
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.extensions.PluginId
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.systemIndependentPath
@@ -73,16 +74,6 @@ object CangJieDebuggerServerManager {
 //        return tempFile.absolutePath
     }
 
-    //    获取调试服务器进程
-    fun getDebugServerProcess(): BaseProcessHandler<*> {
-
-//        删除日志文件
-//        removeLogFiles()
-
-        val processHandler = CjProcessHandler(getCommandLine())
-        processHandler.startNotify()
-        return processHandler
-    }
 
     //    删除日志文件
     fun removeLogFiles() {
@@ -97,9 +88,9 @@ object CangJieDebuggerServerManager {
     }
 
     //    获取调试服务器路径
-    fun getCommandLine(): GeneralCommandLine {
+    fun getCommandLine(project:Project): GeneralCommandLine {
 
-        val project = ProjectManager.getInstance().openProjects[0]
+
 
         val cangjieSettings = project.cangjieSettings
 

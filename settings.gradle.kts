@@ -40,10 +40,11 @@ include("lsp")
 //描述
 //include("descriptors")
 //include("debugg/**/er")
-//include("debugger1")
+//include("debugger")
 //include("cidr")
 
 //include("back")
+include("utils")
 
 //dap协议序列化
 //include("dap")

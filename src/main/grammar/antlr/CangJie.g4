@@ -3,7 +3,7 @@ grammar CangJie;
 
 
 @header {
-package cangjie.antlr;
+package  antlr.parser;
 }
 
 
@@ -20,10 +20,10 @@ LineComment
 ;
 /*********************************空白和换行*****************************************/
 WS
-:  [\u0020\u0009\u000C]
+:  [\u0020\u0009\u000C]+ -> channel(HIDDEN)
 ;
 NL
-: '\n' | '\r\n'
+: '\u000A' | '\u000D' '\u000A'
 ;
 
 
@@ -95,10 +95,10 @@ QUOTESYMBOL        : '`';
 DOLLAR             : '$';
 QUOTE_OPEN         : '"';
 TRIPLE_QUOTE_OPEN  : '"""' NL;
-QUOTE_CLOSE        : '"';
+//QUOTE_CLOSE        : '"';
 //TRIPLE_QUOTE_CLOSE : '"""'?;
 LineStrExprStart   : '${';
-MultiLineStrExprStart: '${';
+//MultiLineStrExprStart: '${';
 
 /*********************************关键字*****************************************/
 INT8               : 'Int8';
@@ -114,10 +114,10 @@ UINTNATIVE         : 'UIntNative';
 FLOAT16            : 'Float16';
 FLOAT32            : 'Float32';
 FLOAT64            : 'Float64';
-CHAR               : 'Char';
-BOOLEAN            : 'Bool';
+RUNE               : 'Rune';
+BOOL            : 'Bool';
 UNIT               : 'Unit';
-Nothing            : 'Nothing';
+NOTHING            : 'Nothing';
 STRUCT             : 'struct';
 ENUM               : 'enum';
 THISTYPE           : 'This';
@@ -400,6 +400,7 @@ identifier
 | GET
 | SET
 ;
+
 Identifier
 : '_'* Letter (Letter | '_' | DecimalDigit)*
 | '`' '_'* Letter (Letter | '_' | DecimalDigit)* '`'
@@ -407,14 +408,16 @@ Identifier
 Letter
 : [a-zA-Z]
 ;
+
 DollarIdentifier
 : '$' Identifier
 ;
 ////////////////////////////////////语法/////////////////////////////////////////////////
 /*********************************编译单元*****************************************/
 translationUnit
-  : NL* preamble end* topLevelObject* (end+ mainDefinition)? NL* (topLevelObject (end+ topLevelObject?)*)? EOF
-  ;
+: NL* preamble end* topLevelObject* (end+ mainDefinition)? NL* (topLevelObject (end+
+  topLevelObject?)*)? EOF
+;
 
 end
   : NL | SEMI
@@ -428,7 +431,7 @@ preamble
   ;
 
 packageHeader
-  : PACKAGE (NL* | WS+ ) packageNameIdentifier end+
+  : PACKAGE  packageNameIdentifier
   ;
 
 packageNameIdentifier
@@ -436,8 +439,8 @@ packageNameIdentifier
   ;
 
 importList
-  : (FROM (NL* | WS+ ) identifier)? (NL* | WS+ ) IMPORT (NL* | WS+ ) importAllOrSpecified
-    (NL* COMMA NL* importAllOrSpecified)* end+
+: (FROM NL* identifier)? NL* IMPORT NL* importAllOrSpecified
+(NL* COMMA NL* importAllOrSpecified)* end+
   ;
 
 importAllOrSpecified
@@ -446,11 +449,11 @@ importAllOrSpecified
   ;
 
 importSpecified
-  : (identifier (NL* | WS+ ) DOT (NL* | WS+ ))+ identifier
+  :  (identifier NL* DOT NL*)+ identifier
   ;
 
 importAll
-  : (identifier (NL* | WS+ ) DOT (NL* | WS+ ))+ MUL
+  :  (identifier NL* DOT NL*)+ MUL
   ;
 
 importAlias
@@ -476,12 +479,13 @@ topLevelObject
 
 // 类定义
 classDefinition
-    : (classModifierList NL*)? CLASS (NL* | WS+) identifier
-        (NL* typeParameters NL*)?
-        (NL* UPPERBOUND NL* superClassOrInterfaces)?
-        (NL* genericConstraints)?
-        NL* classBody
-    ;
+  : (classModifierList NL*)? CLASS NL* identifier
+  (NL* typeParameters NL*)?
+  (NL* UPPERBOUND NL* superClassOrInterfaces)?
+  (NL* genericConstraints)?
+  NL* classBody
+  ;
+
 
 superClassOrInterfaces
     : superClass (NL* BITAND NL* superInterfaces)?
@@ -866,8 +870,8 @@ extendType
     | FLOAT16
     | FLOAT32
     | FLOAT64
-    | CHAR
-    | BOOLEAN
+    | RUNE
+    | BOOL
     | NOTHING
     | UNIT
     ;
@@ -1041,9 +1045,9 @@ atomicType
 // 字符语言类型规则，涵盖了数值类型、字符、布尔值、Nothing、Unit 和 ThisType 关键字
 charLangTypes
     : numericTypes
-    | CHAR
-    | BOOLEAN
-    | Nothing
+    | RUNE
+    | BOOL
+    | NOTHING
     | UNIT
     | THISTYPE
     ;
@@ -1340,7 +1344,7 @@ lineStringContent
 
 // 单行字符串字面量规则，支持简单的插值表达式
 lineStringLiteral
-    : QUOTE_OPEN (lineStringExpression | lineStringContent)* QUOTE_CLOSE
+    : QUOTE_OPEN (lineStringExpression | lineStringContent)* QUOTE_OPEN
     ;
 
 // 单行字符串中的插值表达式规则
@@ -1360,7 +1364,7 @@ multiLineStringLiteral
 
 // 多行字符串中的插值表达式规则
 multiLineStringExpression
-    : MultiLineStrExprStart end* (expressionOrDeclaration (end+ expressionOrDeclaration?)*)
+    : LineStrExprStart end* (expressionOrDeclaration (end+ expressionOrDeclaration?)*)
       end* RCURL
     ;
 
@@ -1647,27 +1651,33 @@ quoteParameters
 
 // 引用标记规则，包含所有可能的语法符号和关键字作为不可计算引用
 quoteToken
-: DOT | COMMA | LPAREN | RPAREN | LSQUARE | RSQUARE | LCURL | RCURL | EXP | MUL | MOD | DIV
-  | ADD | SUB
+: DOT | COMMA | LPAREN | RPAREN | LSQUARE | RSQUARE | LCURL | RCURL | EXP | MUL
+| MOD | DIV | ADD | SUB
 | PIPELINE | COMPOSITION
-| INC | DEC | AND | OR | NOT | BITAND | BITOR | BITXOR | LSHIFT | RSHIFT | COLON | SEMI
-| ASSIGN | ADD_ASSIGN | SUB_ASSIGN | MUL_ASSIGN | EXP_ASSIGN | DIV_ASSIGN | MOD_ASSIGN
-| AND_ASSIGN | OR_ASSIGN | BITAND_ASSIGN | BITOR_ASSIGN | BITXOR_ASSIGN | LSHIFT_ASSIGN |
-  RSHIFT_ASSIGN
-| ARROW | BACKARROW | DOUBLE_ARROW | ELLIPSIS | CLOSEDRANGEOP | RANGEOP | HASH | AT | QUEST
-  | UPPERBOUND | LT | GT | LE | GE
+| INC | DEC | AND | OR | NOT | BITAND | BITOR | BITXOR | LSHIFT | RSHIFT |
+COLON | SEMI
+| ASSIGN | ADD_ASSIGN | SUB_ASSIGN | MUL_ASSIGN | EXP_ASSIGN | DIV_ASSIGN |
+ MOD_ASSIGN
+| AND_ASSIGN | OR_ASSIGN | BITAND_ASSIGN | BITOR_ASSIGN | BITXOR_ASSIGN |
+ LSHIFT_ASSIGN | RSHIFT_ASSIGN
+| ARROW | BACKARROW | DOUBLE_ARROW | ELLIPSIS | CLOSEDRANGEOP | RANGEOP | HASH
+ | AT | QUEST | UPPERBOUND | LT | GT | LE | GE
+
 | NOTEQUAL | EQUAL | WILDCARD | BACKSLASH | QUOTESYMBOL | DOLLAR
-| INT8 | INT16 | INT32 | INT64 | INTNATIVE | UINT8 | UINT16 | UINT32 | UINT64 | UINTNATIVE |
-  FLOAT16 | FLOAT32 | FLOAT64 | CHAR | BOOL | UNIT | NOTHING | STRUCT | ENUM | THIS
-| PACKAGE | IMPORT | CLASS | INTERFACE | FUNC | LET | VAR | CONST | TYPE
+| INT8 | INT16 | INT32 | INT64 | INTNATIVE | UINT8 | UINT16 | UINT32 | UINT64 |
+ UINTNATIVE | FLOAT16
+| FLOAT32 | FLOAT64 | RUNE | BOOL | UNIT | NOTHING | STRUCT | ENUM | THIS
+| PACKAGE | IMPORT | CLASS | INTERFACE | FUNC | LET | VAR | CONST | type
 | INIT | THIS | SUPER | IF | ELSE | CASE | TRY | CATCH | FINALLY
 | FOR | DO | WHILE | THROW | RETURN | CONTINUE | BREAK | AS | IN
-| MATCH | FROM | WHERE | EXTEND | SPAWN | SYNCHRONIZED | MACRO | QUOTE | TRUE | FALSE
+| MATCH | FROM | WHERE | EXTEND | SPAWN | SYNCHRONIZED | MACRO | QUOTE | TRUE |
+ FALSE
 | STATIC | PUBLIC | PRIVATE | PROTECTED
 | OVERRIDE | ABSTRACT | OPEN | OPERATOR | FOREIGN
 | Identifier | DollarIdentifier
 | literalConstant
 ;
+
 
 // 插值引用表达式规则，允许在引用中嵌入可计算表达式
 quoteInterpolate

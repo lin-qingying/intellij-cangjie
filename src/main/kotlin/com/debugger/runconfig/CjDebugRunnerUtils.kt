@@ -15,30 +15,34 @@ import org.jetbrains.annotations.Nls
 
 
 object CjDebugRunnerUtils {
-    @Nls
+
+
     val ERROR_MESSAGE_TITLE: String = CangJieBundle.message("unable.to.run.debugger")
+
+
     fun showRunContent(
         state: CjpmRunStateBase,
         environment: ExecutionEnvironment,
         runExecutable: GeneralCommandLine
     ): RunContentDescriptor {
-//        val runParameters = CjDebugRunParameters(
-//            environment.project,
-//            runExecutable,
-//
-//
-//        )
-        return XDebuggerManager.getInstance(environment.project)
-//            .startSession(environment, object : XDebugProcessStarter() {
-//                override fun start(session: XDebugSession): XDebugProcess =
-//                    CangJieDebugProcess(session, myState).apply {
-//                        ProcessTerminatedListener.attach(shellProcessHandler, environment.project)
-//
-//                    }
-//            })
-            .startSession(environment, CangJieDebugProcessStarter(state))
-            .runContentDescriptor
+        val runParameters = RunParameters(
+
+            CangJieDebuggerServerManager.getCommandLine(state.project),
+            CangJieDebuggerServerManager.DEBUGPORT,
+            runExecutable.commandLineString
+
+        )
+
+
+
+        return XDebuggerManager.getInstance(environment.project).startSession(
+            environment, object : XDebugProcessStarter() {
+                override fun start(session: XDebugSession): XDebugProcess =
+                    CangJieDebugProcess(runParameters, session).apply {
+                        start()
+                    }
+
+            }
+        ).runContentDescriptor
     }
-
-
 }

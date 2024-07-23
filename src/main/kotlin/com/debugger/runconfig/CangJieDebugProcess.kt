@@ -1,26 +1,42 @@
 package com.debugger.runconfig
 
+
 import com.debugger.backend.CjBreakpoint
+import com.debugger.protocol.ProtocolMessage
+import com.debugger.protocol.event.*
+import com.debugger.protocol.request.*
+import com.debugger.protocol.response.*
+import com.debugger.protocol.type.*
+import com.debugger.protocol.type.arguments.*
+import com.debugger.protocol.type.body.RunInTerminalResponseBody
 import com.debugger.runconfig.breakpoint.CangJieBreakpointHandler
 import com.debugger.runconfig.message.MessageHandler
 import com.debugger.runconfig.views.CjdbPanel
-import com.huawei.cangjie.idea.run.cjpm.CjpmRunStateBase
+import com.intellij.execution.ExecutionException
+import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.ui.ExecutionConsole
 import com.intellij.execution.ui.RunnerLayoutUi
 import com.intellij.execution.ui.layout.PlaceInGrid
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.NlsContexts
+import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.ColoredTextContainer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.content.Content
+import com.intellij.util.Consumer
 import com.intellij.util.ThreeState
+import com.intellij.util.concurrency.QueueProcessor
 import com.intellij.xdebugger.*
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
@@ -29,25 +45,44 @@ import com.intellij.xdebugger.frame.*
 import com.intellij.xdebugger.frame.presentation.XValuePresentation
 import com.intellij.xdebugger.impl.ui.ExecutionPointHighlighter
 import com.intellij.xdebugger.ui.XDebugTabLayouter
-import dap.event.*
-import dap.request.RunInTerminalRequest
-import dap.response.*
-import dap.type.*
+import java.io.IOException
+import java.net.SocketException
 import java.nio.file.Paths
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.Icon
 
+data class RunParameters(
+    val command: GeneralCommandLine, val port: Int,
 
-class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) : XDebugProcess(session),
-    MessageHandler {
+    val program: String, val runExecutable: GeneralCommandLine? = null, val state: RunProfileState? = null
+)
+
+class DriverException(s: @NlsContexts.DialogMessage String?) : ExecutionException(s)
+
+//
+class CangJieDebugProcess(val parameters: RunParameters, session: XDebugSession) : XDebugProcess(session),
+    MessageHandler,
+    Consumer<ProtocolMessage> {
+
+    val dapProcessHandler = DapProcessHandler(parameters.command)
+    var dapClent: DapClent<Response>? = null
+    private val myConnectedClient: CompletableFuture<DapClent<Response>> = CompletableFuture()
+
+    private val myHandlerProcessor: QueueProcessor<Runnable> = QueueProcessor.createRunnableQueueProcessor()
+
+    private val myMessageHandler: MessageHandler =
+        MessageHandler.createQueuedHandler(this, myHandlerProcessor)
+    private var seq = 1
+
+    private var requestSeq = 0
 
 
-    //    调试器的socket
-    var myDriver: DebugDriver = DebugDriver(session, this)
+    val consoleView = DapTerminalConsole(project)
 
 
-    private val myEditorsProvider = CangJieDebuggerEditorsProvider()
+    private val editorsProvider = CangJieDebuggerEditorsProvider()
 
 
     private val cjdbpanpel = CjdbPanel(session.project)
@@ -56,45 +91,15 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
     private val myBreakpointHandler: CangJieBreakpointHandler
 
 
-//    val command = arrayOf("cmd.exe") //
-
-//    val command = GeneralCommandLine().apply {
-//
-//        val sdk = CangJieSdkManager.getProjectSdk()
-//
-//        exePath = "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
-//
-//        environment["CANGJIE_HOME"] = sdk?.homePath?.toSystemPath()
-//        environment["PATH"] = "${sdk?.homePath}/bin;${sdk?.homePath}/tools/bin;".toSystemPath() + System.getenv("PATH")
-//        withWorkDirectory(session.project.basePath)
-//    }
-//    private val shellProcessHandler = LspProcessHandler(
-//        command
-//    ).apply {
-//        addProcessListener(
-//            object : ProcessListener {
-//                override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
-//                    super.onTextAvailable(event, outputType)
-//                }
-//            }
-//        )
-//
-//    }
-
-
-    //汇编字符串文本
-//    val asmTextMap: MutableMap<String, String> = mutableMapOf()
-
-
-//    protected val myConsole: ConsoleView = state.consoleBuilder.console.apply {
-//        shellProcessHandler.startNotify()
-//        attachToProcess(shellProcessHandler)
-//    }
-
-    //    private val myProcessDisposable: Disposable
     val myUiDisposable: Disposable = Disposer.newDisposable()
 
     private val project get() = session.project
+
+
+    companion object {
+        val LOG = Logger.getInstance(CangJieDebugProcess::class.java)
+
+    }
 
     init {
 
@@ -103,34 +108,86 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
         val handlersList: List<XBreakpointHandler<*>> = listOfNotNull(myBreakpointHandler)
         myBreakpointHandlers = handlersList.toTypedArray()
 
-//        val gutterIconManager = MySuspensionGutterIconManager(this)
-        /*        val debuggerPluginService = project.getService(CangJieDebuggerPluginService::class.java)
-                myProcessDisposable = Disposer.newDisposable(debuggerPluginService, "CangJieDebugProcess")
-                Disposer.register(this.myProcessDisposable, gutterIconManager)*/
+        startDapServer()
 
     }
 
+    /**
+     * 启动dap服务器
+     */
+    fun startDapServer() {
+        dapProcessHandler.startNotify()
+    }
+
+    //执行终端
+    override fun createConsole(): ExecutionConsole {
+        return consoleView
+
+    }
+
+    fun start() {
+
+
+        try {
+            dapClent = DapClent(
+                parameters.port, this,
+
+                InitializeRequest(
+                    InitializeRequestArguments(
+                        adapterID = "cangjieDebug",
+                        clientId = "idea",
+                        clientName = "Intellij IDEA",
+                        columnsStartAt1 = true,
+                        linesStartAt1 = true,
+                        locale = "zh-cn",
+                        pathFormat = PathFormat.Path,
+                        supportsInvalidatedEvent = true,
+                        supportsMemoryEvent = true,
+                        supportsArgsCanBeInterpretedByShell = true,
+                        supportsMemoryReferences = true,
+                        supportsProgressReporting = true,
+                        supportsRunInTerminalRequest = true,
+                        supportsStartDebuggingRequest = true,
+                        supportsVariablePaging = true,
+                        supportsVariableType = true
+                    )
+                )
+            )
+
+
+//            myDapClient!!.waitFor()
+        } catch (ioEx: IOException) {
+
+            throw ExecutionException(ioEx)
+        }
+    }
 
     override fun doGetProcessHandler(): ProcessHandler {
-        return myDriver.debugProcessHandler
+        return dapProcessHandler
+    }
+
+    fun sendScopes(frameId: Int): ScopesResponse {
+        val request = ScopesRequest(
+            seq = ++seq,
+            arguments = ScopesArguments(
+                frameId = frameId
+            )
+        )
+
+        return sendMessageAndWaitForReply(request, ScopesResponse::class.java)
     }
 
     override fun isLibraryFrameFilterSupported(): Boolean {
         return true
     }
 
-    override fun getEditorsProvider(): XDebuggerEditorsProvider = myEditorsProvider
+    override fun getEditorsProvider(): XDebuggerEditorsProvider = editorsProvider
 
 
-    //    protected fun waitForTermination(): Boolean {
-//        return this.myDriver.getShellProcessHandler().waitFor()
-//    }
     private fun createBreakpointHandler(): CangJieBreakpointHandler {
         return CangJieBreakpointHandler(this)
     }
 
-
-//    private class MySuspensionGutterIconManager implements XDebugSessionListener, XDebuggerManagerListener, Disposable
 
     private class MySuspensionGutterIconManager(private val process: CangJieDebugProcess) : XDebugSessionListener,
         XDebuggerManagerListener, Disposable {
@@ -148,27 +205,6 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
             this.hide()
         }
 
-//        override fun sessionPaused() {
-//            this.update()
-//        }
-//
-//        override fun sessionResumed() {
-//            this.update()
-//        }
-//        override fun sessionStopped() {
-//            this.update()
-//        }
-//
-//
-//        override fun settingsChanged() {
-//            this.update()
-//        }
-//
-//        override fun currentSessionChanged(previousSession: XDebugSession?, currentSession: XDebugSession?) {
-//            this.update()
-//        }
-//
-
 
         override fun stackFrameChanged() {
 
@@ -179,27 +215,6 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
         private fun update() {
             this.hide()
 
-//            if (XDebuggerManager.getInstance(this.mySession.project).currentSession == this.mySession) {
-//                val suspendContext = mySession.suspendContext
-//                if (suspendContext != null) {
-//                    val suspendExecutionStack = suspendContext.activeExecutionStack
-//                    if (suspendExecutionStack is CangJieExecutionStack) {
-//
-////                        if (true) {
-//                        val suspendFrame = suspendExecutionStack.getTopFrame()
-////                        && this.mySession.currentStackFrame == suspendFrame
-//                        if (suspendFrame != null ) {
-//                            val position: XSourcePosition? =   suspendFrame.sourcePosition
-//
-//
-//
-//
-//                            position?.let { this.myExecutionPointHighlighter.show(it, true, null, false) };
-//                        }
-////                        }
-//                    }
-//                }
-//            }
         }
 
         private fun hide() {
@@ -208,10 +223,67 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 
     }
 
+    private fun sendDisconnect() {
+        val request = DisconnectRequest(
+            seq = ++seq, arguments = DisconnectArguments(
+                restart = false,
+                terminateDebuggee = true,
+//                suspendDebuggee = false
+            )
+        )
+        send(request)
+    }
+
+    @Throws(ExecutionException::class)
+    protected fun getDapClient(): DapClent<Response> {
+
+        return ExecutionResult.get(myConnectedClient)
+    }
+
+    private inline fun <reified T> send(message: T): Response? where T : ProtocolMessage {
+
+        getDapClient().sendMessage<T>(message, null, null)
+
+
+        return null
+
+    }
+
+    /**
+     * 释放资源
+     */
+    private fun dispose() {
+
+//        if (dapTerminaProcessHandle.detachIsDefault()) {
+//            dapTerminaProcessHandle.detachProcess()
+//        } else {
+//            dapTerminaProcessHandle.destroyProcess()
+//        }
+    }
+
+    fun sendThreads(): ThreadsResponse {
+        val request = ThreadsRequest(
+            seq = ++seq
+        )
+        return sendMessageAndWaitForReply(request, ThreadsResponse::class.java)
+    }
+
     override fun getBreakpointHandlers(): Array<XBreakpointHandler<*>> = this.myBreakpointHandlers
+    fun disconnect() {
+
+        try {
+            sendDisconnect()
+        } catch (e: SocketException) {
+            LOG.info("调试器已经断开连接")
+        }
+
+
+        dispose()
+
+    }
 
     override fun stop() {
-        this.myDriver.disconnect()
+        disconnect()
         session.stop()
     }
 
@@ -305,22 +377,140 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
         start: Int = 0,
         filter: VariablesArgumentsFilter? = null
     ): List<Variable> {
-//        this.variablesReference.set(variablesReference)
-//        isVariablesLoaded[variablesReference] = CompletableFuture<Boolean>()
-//        myDriver.sendVariables(variablesReference, count, start, filter)
-//
-//
-////        等待变量列表加载完成
-//        isVariablesLoaded[variablesReference]?.get()
-//
-//        return variables[variablesReference] ?: mutableListOf()
-//
-        val res = myDriver.sendVariables(variablesReference, count, start, filter)
+
+        val res = sendVariables(variablesReference, count, start, filter)
 
         return res.body.variables!!
 
     }
 
+    protected open class ThrowIfNotValid<T : ProtocolMessage>(message: String) :
+        ResponseMessageConsumer<T, DriverException>(message) {
+
+        @Throws(DriverException::class)
+        override fun throwIfNeeded() {
+            super.throwIfNeeded()
+        }
+
+        @Throws(DriverException::class)
+        override fun throwError() {
+            throw DriverException(getMessage())
+        }
+    }
+
+    abstract class ResponseMessageConsumer<T : ProtocolMessage, E : Exception>(private var myMessage: String) :
+        Consumer<T> {
+        private var mySuccess = false
+
+        private var type: String? = null
+
+        var data: T? = null
+
+        fun getMessage(): String {
+            return myMessage
+        }
+
+        fun success(): Boolean {
+            return mySuccess
+        }
+
+        override fun consume(message: T) {
+//            val allFields = message.allFields
+//            allFields.values.forEach {
+//                if (it is ProtocolResponses.CommonResponse) {
+//                    myIsValid = it.isValid
+//                    if (!myIsValid && it.hasErrorMessage()) {
+//                        val errorMessage = it.errorMessage
+//                        if (!StringUtil.isEmptyOrSpaces(errorMessage)) {
+//                            myMessage = errorMessage
+//                        }
+//                    }
+//                }
+//            }
+
+            data = message
+
+            if (message is Response) {
+                myMessage = message.message.toString()
+                mySuccess = message.success
+            } else if (message is Event) {
+
+                type = message.type.toString()
+                mySuccess = true
+            }
+        }
+
+
+        open fun throwIfNeeded() {
+            if (!mySuccess) {
+                throwError()
+            }
+        }
+
+        open fun throwError() {
+            throw ExecutionException(getMessage())
+        }
+    }
+
+    @Throws(ExecutionException::class)
+    fun <R : ProtocolMessage, E : Exception> sendMessageAndWaitForReply(
+        message: ProtocolMessage,
+        responseClass: Class<R>,
+        errorHandler: ResponseMessageConsumer<in R, E>,
+        msTimeout: Long
+    ): R {
+
+
+        val responseRef = Ref.create<R>()
+        val responseHandler = Consumer { responseMessage: R ->
+            errorHandler.consume(responseMessage)
+//            if (errorHandler.success()) {
+            responseRef.set(responseMessage)
+//            }
+        }
+
+        getDapClient().sendMessageAndWaitForReply(message, responseClass, responseHandler, msTimeout)
+        errorHandler.throwIfNeeded()
+
+        return responseRef.get()
+            ?: throw ExecutionException("Null response to message $message")
+    }
+
+    @Throws(ExecutionException::class)
+    fun <R : ProtocolMessage> sendMessageAndWaitForReply(
+        message: ProtocolMessage,
+        responseClass: Class<R>,
+        msTimeout: Long = 0L
+    ): R {
+
+
+        val errorHandler: ResponseMessageConsumer<in R, DriverException> =
+            ThrowIfNotValid("Invalid response")
+
+        val result: ProtocolMessage = sendMessageAndWaitForReply(message, responseClass, errorHandler, msTimeout)
+
+        @Suppress("UNCHECKED_CAST")
+        return result as R
+    }
+
+    fun sendVariables(
+        variablesReference: Int,
+        count: Int = 1000,
+        start: Int = 0,
+        filter: VariablesArgumentsFilter? = null
+    ): VariablesResponse {
+        val request = VariablesRequest(
+            seq = ++seq,
+            arguments = VariablesArguments(
+                variablesReference = variablesReference,
+                count = count,
+                filter = filter,
+                start = start
+            )
+        )
+        return sendMessageAndWaitForReply(request, VariablesResponse::class.java)
+
+    }
 
     override fun sessionInitialized() {
 //        session.initBreakpoints()
@@ -352,6 +542,39 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
         addBreakpoints(listOf(breakpoint))
     }
 
+    fun sendBreakpointsToDebugger(breakpoints: List<CjBreakpoint>) {
+
+
+        for (breakpoint in breakpoints) {
+            val source = Source(
+                name = breakpoint.filename, path = breakpoint.filepath
+            )
+
+
+            val response = SetBreakpointsRequest(
+                seq = ++seq,
+                arguments = SetBreakpointsArguments(
+                    source = source,
+                    breakpoints = breakpoint.lines.map { line ->
+                        SourceBreakpoint(
+//                            line = line.key + 1,
+                            line = line.key,
+                        )
+
+                    },
+                    sourceModified = false,
+                    lines = breakpoint.lines.map { it.key },
+//                    lines = breakpoint.lines.map { it.key + 1 },
+
+                )
+            )
+
+            send(response)
+        }
+
+
+    }
+
     fun addBreakpoints(breakpoints: List<CjBreakpoint>) {
 
         //        如果文件已经存在，那么就直接添加行号
@@ -366,7 +589,7 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
         }
 
         if (isReady.get()) {
-            this.myDriver.sendBreakpointsToDebugger(this.breakpoints)
+            sendBreakpointsToDebugger(this.breakpoints)
 
         }
 
@@ -409,19 +632,43 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 
 
         if (isReady.get()) {
-            this.myDriver.sendBreakpointsToDebugger(this.breakpoints)
+            sendBreakpointsToDebugger(this.breakpoints)
         }
+
+    }
+
+    fun sendContinue(currentThreadId: Long) {
+
+        val request = ContinueRequest(
+            seq = ++seq,
+            arguments = ContinueArguments(
+                threadId = currentThreadId.toInt()
+            )
+        )
+        send(request)
 
     }
 
     //    继续
     override fun resume(context: XSuspendContext?) {
         if (context is CangJieSuspendContext) {
-            this.myDriver.sendContinue(context.activeThreadId)
+            this.sendContinue(context.activeThreadId)
 
         }
     }
 
+    fun sendNext(currentThreadId: Long) {
+
+        val request = NextRequest(
+            seq = ++seq,
+            arguments = NextArguments(
+                threadId = currentThreadId
+            )
+        )
+        send(request)
+
+
+    }
 
     //步过
     override fun startStepOver(context: XSuspendContext?) {
@@ -430,43 +677,51 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
         if (context is CangJieSuspendContext) {
 //            currentSuspendContext.set(context)
 
-            myDriver.sendNext(context.activeThreadId)
+            sendNext(context.activeThreadId)
         }
-//        if (currentThread.get() == threads[0]) {
-//            this.myDriver.sendNext(currentThread.get()?.id ?: -1)
-//
-//        } else {
-//            currentThread.get()?.let { this.myDriver.sendContinue(it.id) }
-//        }
+
+    }
+
+    fun sendStepIn(currentThreadId: Long) {
+
+        val request = StepInRequest(
+            seq = ++seq,
+            arguments = StepInArguments(
+                threadId = currentThreadId
+            )
+        )
+        send(request)
+
+
     }
 
     //步入
     override fun startStepInto(context: XSuspendContext?) {
         if (context is CangJieSuspendContext) {
-            myDriver.sendStepIn(context.activeThreadId)
+            sendStepIn(context.activeThreadId)
         }
-//        if (currentThread.get() == threads[0]) {
-//            this.myDriver.sendStepIn(currentThread.get()?.id ?: -1)
-//
-//        } else {
-//            currentThread.get()?.let { this.myDriver.sendContinue(it.id) }
-//
-//        }
+
+
+    }
+
+    fun sendStepOut(currentThreadId: Long) {
+
+        val request = StepOutRequest(
+            seq = ++seq,
+            arguments = StepOutArguments(
+                threadId = currentThreadId
+            )
+        )
+        send(request)
 
     }
 
     //步出
     override fun startStepOut(context: XSuspendContext?) {
         if (context is CangJieSuspendContext) {
-            myDriver.sendStepOut(context.activeThreadId)
+            sendStepOut(context.activeThreadId)
         }
-//        if (currentThread.get() == threads[0]) {
-//            this.myDriver.sendStepOut(currentThread.get()?.id ?: -1)
-//
-//        } else {
-//            currentThread.get()?.let { this.myDriver.sendContinue(it.id) }
-//
-//        }
+
     }
 
 
@@ -504,20 +759,61 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 
 
     /*********************************MessageHandler**************************************/
-    override fun handleRunInTerminalRequest(message: RunInTerminalRequest) {
-//        this.myDriver.sendShellProcessId(shellProcessHandler.process.pid(), message.seq)
+    override fun handleInitializeResponse(response: InitializeResponse) {
+        haveConnection(response)
+    }
+
+    override fun handleErrorResponse(response: ErrorResponse) {
+//      TODO 是否像前端报告错误，怎么报告？
+
+
+        when (response.command) {
+            MessageCommand.launch -> session.stop()
+
+            else -> {
+
+            }
+        }
+
     }
 
     override fun handleOutputEvent(message: OutputEvent) {
         message.body?.output?.let { cjdbpanpel.print(it) }
     }
 
+    override fun consume(t: ProtocolMessage) {
+
+        this.myMessageHandler.handleMessage(t)
+
+    }
 
     val threads: MutableList<Thread> = mutableListOf()
     val currentThread = AtomicReference<Thread?>(null)
 
     //    线程数据是否已经加载
     var isThreadsLoaded = CompletableFuture<Boolean>()
+    override fun handleRunInTerminalRequest(message: RunInTerminalRequest) {
+
+        requestSeq = message.seq
+
+
+//        session.consoleView.print("测试", ConsoleViewContentType.NORMAL_OUTPUT)
+
+        val id = consoleView.shellId
+        val response = RunInTerminalResponse(
+            seq = ++seq,
+            request_seq = requestSeq,
+
+            body = RunInTerminalResponseBody(
+//                shellProcessId = 14980
+                shellProcessId = id
+            ), success = true
+        )
+
+        send(response)
+
+
+    }
 
     override fun handleThreadsResponse(message: ThreadsResponse) {
 
@@ -531,9 +827,6 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
                 return
             }
             isThreadsLoaded.complete(true)
-//            this.currentThread.set(this.threads[0])
-////            this.isStackTraceLoaded[getCurrentThreadId()] = CompletableFuture<Boolean>()
-//            this.myDriver.sendStacktrace(getCurrentThreadId())
 
         }
     }
@@ -541,39 +834,28 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 
     override fun handleStackTraceResponse(message: StackTraceResponse) {
 //
-//        if (message.success) {
-////            message.body.let { it?.let { it1 -> stackTraces.addAll(it1.stackFrames) } }
-//            stackTraces[getCurrentThreadId()] = message.body?.stackFrames?.toMutableList() ?: mutableListOf()
-//            isStackTraceLoaded[getCurrentThreadId()]?.complete(true)
-//
-////            this.myDriver.sendScopes(stackTraces[getCurrentThreadId()]!![0].id)
-//
-//            if (message.body?.stackFrames?.isEmpty() == true) {
-//                return
-//            }
-//
-//
-//            if (currentThread.get() == threads[0] && currentThread.get()!!.id == 1.toLong()) {
-//                if (message.body?.stackFrames?.get(0)?.source?.path == null) {
-//                    this.myDriver.sendNext(getCurrentThreadId())
-//                    return
-//                }
-//            }
-//
-//
-//        }
+
     }
 
+    fun sendStacktrace(threadId: Long, levels: Int = 20, startFrame: Int = 0): StackTraceResponse {
+
+
+        val request = StackTraceRequest(
+            seq = ++seq,
+            arguments = StackTraceArguments(
+                threadId = threadId,
+                levels = levels,
+                startFrame = startFrame
+            )
+        )
+
+        return sendMessageAndWaitForReply(request, StackTraceResponse::class.java)
+//        send(request)
+    }
 
     override fun handleScopesResponse(message: ScopesResponse) {
 
-//        isScopesLoaded.complete(true)
-//        if (message.success) {
-//            scopes.clear()
-//            message.body?.scopes?.let { scopes.addAll(it) }
-//
-//            this.myDriver.sendVariables(scopes[0].variablesReference)
-//        }
+
     }
 
     val variables: MutableMap<Int, MutableList<Variable>> = mutableMapOf()
@@ -623,8 +905,8 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
     override fun handleStoppedEvent(message: StoppedEvent) {
         when (message.body?.reason) {
             StoppedEventReason.Breakpoint -> {
-                for (id in message.body!!.hitBreakpointIds!!) {
-                    pauseAndHitBreakpoint(message.body!!.threadId!!, id)
+                for (id in message.body.hitBreakpointIds!!) {
+                    pauseAndHitBreakpoint(message.body.threadId!!, id)
 
                 }
             }
@@ -638,67 +920,12 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
             is StoppedEventReason.Other -> TODO()
             StoppedEventReason.Pause -> TODO()
             StoppedEventReason.Step -> {
-                pauseAndHitBreakpoint(message.body!!.threadId!!)
+                pauseAndHitBreakpoint(message.body.threadId!!)
             }
 
             null -> TODO()
         }
     }
-//    override fun handleStoppedEvent(message: StoppedEvent) {
-//
-//        reset()
-//        this.myDriver.sendThreads()
-//
-//
-//        when (message.body?.reason) {
-//            StoppedEventReason.Breakpoint -> {
-//                for (id in message.body.hitBreakpointIds!!) {
-//
-//                    pauseAndHitBreakpoint(id)
-////
-////                val breakpoint = this.myBreakpointHandler.getXBreakpoint(id)
-////
-////
-////                val executionStack = CangJieExecutionStack(
-////                    this,
-////
-////                    )
-////
-////                val suspendContext = CangJieSuspendContext(
-////                    executionStack
-////                )
-////
-////                session.breakpointReached(breakpoint!!, null, suspendContext)
-////
-////                val stack = CangJieExecutionStack(this, CjThread(1, "", "", "", ""), null, CjValue())
-////
-////                val suspendContext = CangJieSuspendContext(
-////                    this,
-////                    stack,
-////                    CjThread(1, "", "", "", ""),
-////                    CjFrame(1, "", "", 1, false, false, "")
-////                )
-////                val shouldSuspend = breakpoint?.let { session.breakpointReached(it, null, suspendContext) }
-//                }
-//
-//            }
-//
-//            StoppedEventReason.Step -> {
-//                pauseAndHitBreakpoint()
-//            }
-//
-//            else -> {
-//                println()
-//            }
-//        }
-//
-////        if (message.body?.reason is StoppedEventReason.Breakpoint) {
-//////            断点停止
-////
-////
-////        }
-//
-//    }
 
 
     fun getCjBreakpoint(sourcePath: String?): CjBreakpoint? {
@@ -714,15 +941,11 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
             val id = breakpoint.id
 
             val cjBreakpoint = getCjBreakpoint(breakpoint.source?.path)
-//            if (cjBreakpoint?.isRunToCursor?.get() == true) {
-//                this.myDriver.sendContinue(getCurrentThreadId())
-//                continue
-//            }
 
 
             if (cjBreakpoint != null) {
                 if (cjBreakpoint.isRunToCursor[breakpoint.line] == true) {
-                    this.myDriver.sendContinue(getCurrentThreadId())
+                    sendContinue(getCurrentThreadId())
 
                     breakpoint.line?.let { removeBreakpoint(breakpoint.source?.path, it) }
                     continue
@@ -747,17 +970,6 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 
     override fun handleBreakpointEvent(message: BreakpointEvent) {
 
-//        val breakpoint = getCjBreakpoint(message.body?.breakpoint?.source?.path)
-//
-//        if (breakpoint != null) {
-//            val line = message.body?.breakpoint?.line
-//            if (breakpoint.isRunToCursor[line] == true) {
-//                this.myDriver.sendContinue(getCurrentThreadId())
-//                breakpoint.isRunToCursor.remove(line)
-//                line?.let { removeBreakpoint(breakpoint.filepath, it) }
-//                return
-//            }
-//        }
 
     }
 
@@ -779,35 +991,131 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
 
         isReady.set(true)
         if (this.breakpoints.isNotEmpty()) {
-            this.myDriver.sendBreakpointsToDebugger(this.breakpoints)
+            sendBreakpointsToDebugger(this.breakpoints)
 
         }
 
-        this.myDriver.sendFunctionBreakpointsToDebugger()
-        this.myDriver.sendDataBreakpointsToDebugger()
-        this.myDriver.sendInstructionBreakpointsToDebugger()
+        sendFunctionBreakpointsToDebugger()
+        sendDataBreakpointsToDebugger()
+        sendInstructionBreakpointsToDebugger()
 
-        myDriver.sendConfigurationDone()
+        sendConfigurationDone()
     }
 
-    override fun handleInitializeResponse(response: InitializeResponse) {
-//        if (response.success) {
-//            this.myDriver.sendLaunch()
-//        }
+    /**
+     * 发送配置完成
+     */
+    fun sendConfigurationDone() {
+        val request = ConfigurationDoneRequest(
+            seq = ++seq,
+
+            )
+        send(request)
+    }
+
+    fun sendInstructionBreakpointsToDebugger() {
+        val request = SetInstructionBreakpointsRequest(
+            seq = ++seq,
+            arguments = SetInstructionBreakpointsArguments(
+                breakpoints = listOf()
+            )
+        )
+        send(request)
+    }
+
+    fun sendDataBreakpointsToDebugger() {
+        val request = SetDataBreakpointsRequest(
+            seq = ++seq,
+            arguments = SetDataBreakpointsArguments(
+                breakpoints = listOf()
+            )
+        )
+        send(request)
+    }
+
+    fun sendFunctionBreakpointsToDebugger() {
+        val request = SetFunctionBreakpointsRequest(
+            seq = ++seq,
+            arguments = SetFunctionBreakpointsArguments(
+                breakpoints = listOf()
+            )
+        )
+        send(request)
+    }
+
+    private var serverCapabilities: InitializeResponse? = null
+
+    val sessionid = UUID.randomUUID().toString()
+
+    private fun sendLaunch() {
+        val mainexe = parameters.program
+
+        val request =
+            LaunchRequestArguments(
+                buildBeforeLaunch = true,
+                externalConsole = false,
+                env = mapOf(
+//                    "PATH" to "C:\\Users\\27439\\.sdk\\cangjie0.53.4\\runtime\\lib\\windows_x86_64_llvm"
+                ),
+                name = "Cangjie Debug (cjdb): launch",
+                program = mainexe,
+                request = MessageCommand.launch,
+                type = "cangjieDebug",
+                __sessionId = sessionid,
+                __configurationTarget = 6
+
+            )
+
+        val data = LaunchRequest(
+            seq = ++seq, arguments = request
+        )
+        send(data)
+
+    }
+
+    private fun haveConnection(initializeResponse: InitializeResponse) {
+
+
+        serverCapabilities = initializeResponse
+
+//        TODO 校验服务器权能
+
+        try {
+            myConnectedClient.complete(dapClent)
+
+            if (initializeResponse.success) {
+                sendLaunch()
+            }
+//            TODO 在返回的success字段为false时是否需要抛出异常？
+
+        } catch (e: Exception) {
+            myConnectedClient.completeExceptionally(e)
+
+
+        }
     }
 
 
     override fun handleConfigurationDoneResponse(response: ConfigurationDoneResponse) {
         if (response.success) {
-            this.myDriver.sendDebugInConsole()
+            sendDebugInConsole()
         }
+    }
+
+    fun sendDebugInConsole() {
+
+        val request = DebugInConsoleRequest(
+            seq = ++seq,
+            arguments = DebugInConsoleRequestArguments(
+                debugCommand = "process handle -p true -s false -n false SIGSEGV"
+            )
+        )
+        send(request)
     }
 
     override fun handleTerminatedEvent(event: TerminatedEvent) {
 
 
-//        断开连接
-//        this.myDriver.disconnect()
     }
 
 
@@ -831,8 +1139,23 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
     ): EvaluateResponse {
 
 
-        return myDriver.sendEvaluate(expression, frameId, context)
+        return sendEvaluate(expression, frameId, context)
 
+    }
+
+    fun sendEvaluate(expression: String, frameId: Int, context: EvaluateArgumentsContext): EvaluateResponse {
+        val request = EvaluateRequest(
+            seq = ++seq,
+            arguments = EvaluateArguments(
+                expression = expression,
+                frameId = frameId,
+                context = context,
+
+
+                )
+        )
+
+        return sendMessageAndWaitForReply(request, EvaluateResponse::class.java)
     }
 
     var isSetVariableLoaded = CompletableFuture<SetVariableResponse>()
@@ -840,10 +1163,21 @@ class CangJieDebugProcess(session: XDebugSession, val state: CjpmRunStateBase) :
         value: Variable,
         expression: String,
         parentScope: Int,
-        errorHandler: DebugDriver.ResponseMessageConsumer<SetVariableResponse, DriverException>? = null
+        errorHandler: ResponseMessageConsumer<SetVariableResponse, DriverException>? = null
     ): SetVariableResponse {
+        val request = SetVariableRequest(
+            seq = ++seq,
+            arguments = SetVariableArguments(
+                variablesReference = parentScope,
+                name = value.name,
+                value = expression
+            )
+        )
+        if (errorHandler == null) {
+            return sendMessageAndWaitForReply(request, SetVariableResponse::class.java)
 
-        return myDriver.sendSetVariable(value, expression, parentScope, errorHandler)
+        }
+        return sendMessageAndWaitForReply(request, SetVariableResponse::class.java, errorHandler, 0)
 
     }
 
@@ -919,11 +1253,11 @@ class CangJieStackFrame(
 
     override fun computeChildren(node: XCompositeNode) {
 //        super.computeChildren(node)
-        scope = process.myDriver.sendScopes(frame.id)
+        scope = process.sendScopes(frame.id)
         val children = XValueChildrenList()
 
 
-        val res = scope?.body?.scopes?.first()?.variablesReference?.let { process.myDriver.sendVariables(it) }
+        val res = scope?.body?.scopes?.first()?.variablesReference?.let { process.sendVariables(it) }
 
 
         if (res != null) {
@@ -982,7 +1316,7 @@ class CangJieExecutionStack(
 
 
     private fun getStackFrames() {
-        val res = process.myDriver.sendStacktrace(thread?.id!!)
+        val res = process.sendStacktrace(thread?.id!!)
 
 
         res.body?.stackFrames?.sortedBy {
@@ -1017,9 +1351,8 @@ class CangJieSuspendContext(
     val activeThreadId: Long
 
 ) : XSuspendContext() {
-//    val res =  process.myDriver.sendStacktrace(activeThreadId.toLong())
 
-    val threads = process.myDriver.sendThreads()
+    val threads = process.sendThreads()
 
 
     val executionStacks: MutableMap<Long, CangJieExecutionStack> = mutableMapOf()
@@ -1220,8 +1553,8 @@ class CangJieValue(
 
 //                TODO 需要先判断是否有写的权限
 
-                val errorHandler: DebugDriver.ResponseMessageConsumer<SetVariableResponse, DriverException> =
-                    object : DebugDriver.ResponseMessageConsumer<SetVariableResponse, DriverException>("") {
+                val errorHandler: CangJieDebugProcess.ResponseMessageConsumer<SetVariableResponse, DriverException> =
+                    object : CangJieDebugProcess.ResponseMessageConsumer<SetVariableResponse, DriverException>("") {
 
 
                         override fun throwIfNeeded() {

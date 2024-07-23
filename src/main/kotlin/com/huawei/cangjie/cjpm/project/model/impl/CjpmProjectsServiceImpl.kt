@@ -53,6 +53,7 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.indexing.LightDirectoryIndex
 import com.intellij.util.io.systemIndependentPath
+import com.linqingying.utils.Config
 import org.jdom.Element
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -402,8 +403,12 @@ private fun doRefresh(project: Project, projects: List<CjpmProjectImpl>): Comple
         runWithNonLightProject(project) {
             setupProjectRoots(project, updatedProjects)
 
+            if(Config.isLsp){
+
 //            TODO 重启lsp服务器
-                 CangJieLspServerManager.restartLspServer(project)
+                CangJieLspServerManager.restartLspServer(project)
+            }
+
         }
         updatedProjects
     }

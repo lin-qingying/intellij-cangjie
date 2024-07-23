@@ -1,5 +1,6 @@
 package com.debugger.runconfig
 
+import com.debugger.protocol.type.EvaluateArgumentsContext
 import com.huawei.cangjie.psi.psiUtil.toPsiFile
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.Document
@@ -10,7 +11,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.xdebugger.XSourcePosition
 import com.intellij.xdebugger.evaluation.XDebuggerEvaluator
 import com.intellij.xdebugger.impl.evaluate.quick.XDebuggerPsiEvaluator
-import dap.type.EvaluateArgumentsContext
 
 object CangJieDebuggerLanguageSupportManager {
 
