@@ -1,12 +1,13 @@
 import groovy.xml.XmlParser
 import org.jetbrains.intellij.tasks.PatchPluginXmlTask
+import org.jetbrains.intellij.tasks.PrepareSandboxTask
 import org.jetbrains.intellij.tasks.PublishPluginTask
 import org.jetbrains.intellij.tasks.RunIdeTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val kotlinVersion = "1.9.21"
 val tomlPlugin = "org.toml.lang"
-val psiViewerPlugin: String ="PsiViewer:233.2"
+val psiViewerPlugin: String = "PsiViewer:241-SNAPSHOT"
 
 plugins {
     idea
@@ -16,6 +17,9 @@ plugins {
     id("org.jetbrains.grammarkit") version "2022.3.2"
     kotlin("plugin.serialization") version "1.9.21"
     id("org.gradle.test-retry") version "1.5.3"
+
+//    id("antlr")
+
 }
 
 val Project.dependencyCachePath
@@ -30,12 +34,10 @@ val Project.dependencyCachePath
     }
 //
 //IDEA版本
-//
-//val ideaVersion = "2023.3.2"
 val ideaVersion = "2024.1"
 val ideaType = "IC" // Target IDE Platform
-val nativeDebugPlugin: String = "com.intellij.nativeDebug:233.13763.5"
-//val nativeDebugPlugin: String = "com.intellij.nativeDebug:233.13135.65"
+val nativeDebugPlugin: String = "com.intellij.nativeDebug:241.14494.73"
+
 idea {
     module {
         // https://github.com/gradle/kotlin-dsl/issues/537/
@@ -170,10 +172,10 @@ val pluginDescriptors = arrayOf(
 project(":plugin") {
     intellij {
         pluginName.set("intellij-cangjie")
-        plugins.set(listOf(       /*psiViewerPlugin*/))
+        plugins.set(listOf(psiViewerPlugin))
     }
 //    group = "com.huawei.cangjie"
-    version = "1.1.3"
+    version = "1.1.4"
     dependencies {
         implementation(project(":"))
 //        implementation(project(":inspections"))
@@ -181,7 +183,7 @@ project(":plugin") {
 //        implementation(project(":descriptors"))
 //        implementation(project(":lsp"))
 //        implementation(project(":lsp4j"))
-
+//        implementation(project(":dap"))
 //        api("com.squareup.moshi:moshi-adapters:1.15.0")
 //        api("com.squareup.moshi:moshi-kotlin:1.15.0")
 //        implementation(project(":debugger"))
@@ -225,18 +227,7 @@ project(":plugin") {
         }
 
     }
-//    val createSourceJar = task<Jar>("createSourceJar") {
-//        duplicatesStrategy = DuplicatesStrategy.WARN
-//        for (prj in pluginProjects) {
-//            from(prj.kotlin.sourceSets.main.get().kotlin) {
-//                include("**/*.java")
-//                include("**/*.kt")
-//            }
-//        }
-//        destinationDirectory.set(layout.buildDirectory.dir("libs"))
-//        archiveBaseName.set(basePluginArchiveName)
-//        archiveClassifier.set("src")
-//    }
+
     tasks {
         buildPlugin {
 //            dependsOn(createSourceJar)
@@ -257,20 +248,20 @@ project(":plugin") {
             dependsOn(mergePluginJarTask)
             enabled = prop("enableBuildSearchableOptions").toBoolean()
         }
-//        withType<PrepareSandboxTask> {
-////            dependsOn(named(compileNativeCodeTaskName))
-//
-//            // Copy native binaries
+        withType<PrepareSandboxTask> {
+//            dependsOn(named(compileNativeCodeTaskName))
+
+            // Copy native binaries
 //            from("${rootDir}/bin") {
 //                into("${pluginName.get()}/bin")
 //                include("**")
 //            }
-//            // Copy pretty printers
-//            from("$rootDir/prettyPrinters") {
-//                into("${pluginName.get()}/prettyPrinters")
-//                include("**/*.py")
-//            }
-//        }
+            // Copy shell
+            from("$rootDir/shell-integrations") {
+                into("${pluginName.get()}/shell-integrations")
+                include("**")
+            }
+        }
         withType<RunIdeTask> {
             dependsOn(mergePluginJarTask)
             // Default args for IDEA installation
@@ -315,7 +306,7 @@ project(":plugin") {
 
 project(":") {
     intellij {
-        plugins.set(listOf(tomlPlugin))
+        plugins.set(listOf(tomlPlugin,"org.jetbrains.plugins.terminal"))
     }
     dependencies {
 //        implementation("com.alibaba:fastjson:2.0.46")
@@ -325,12 +316,13 @@ project(":") {
 //        implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.debug:0.22.0")
         implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
         implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
+        implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
 //        implementation("org.jetbrains.kotlinx:kotlinx-serialization-toml:1.6.2")
 //        implementation("com.akuleshov7:ktoml-file:0.5.1")
         // https://mvnrepository.com/artifact/com.akuleshov7/ktoml-core
 //        implementation("com.akuleshov7:ktoml-core:0.5.1")
-        implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
+
 //        implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:2.15.2"){
 //            exclude(group = "com.fasterxml.jackson.core", module = "jackson-core")
 //            exclude(group = "com.fasterxml.jackson.core", module = "jackson-databind")
@@ -341,7 +333,13 @@ project(":") {
 //        implementation(project(":dap"))
         implementation(project(":lsp"))
 
-        implementation("org.antlr:antlr4-intellij-adaptor:0.1")
+        implementation(project(":utils"))
+
+//        antlr("org.antlr:antlr4:4.13.1") { // use ANTLR version 4
+//
+//            exclude(group = "com.ibm.icu", module = "icu4j")
+//        }
+//        implementation("org.antlr:antlr4-intellij-adaptor:0.1")
     }
     tasks {
         processTestResources {
@@ -379,20 +377,11 @@ project(":") {
 //
 //    }
 //}
-//
-//project(":dap"){
-//
-//
-//    dependencies{
-//        implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
-//        implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
-//        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-//        implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
-//    }
-//}
-project(":lsp"){
-    dependencies{
+
+project(":lsp") {
+    dependencies {
         implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")
+        implementation(project(":utils"))
 
 //        implementation(project(":"))
     }
@@ -400,21 +389,21 @@ project(":lsp"){
 
 
 
-project(":grammar"){
+project(":grammar") {
     apply {
-        plugin("antlr")
+//        plugin("antlr")
     }
 
     // Kotlin Gradle support doesn't generate proper extensions if the plugin is not declared in `plugin` block.
 // But if we do it, `antlr` plugin will be applied to root project as well that we want to avoid.
 // So, let's define all necessary things manually
-    val antlr by configurations
-
-    dependencies{
-
-        antlr("org.antlr:antlr4:4.13.1")
-        implementation("org.antlr:antlr4-runtime:4.13.1")
-    }
+//    val antlr by configurations
+//
+//    dependencies{
+//
+//        antlr("org.antlr:antlr4:4.13.1")
+//        implementation("org.antlr:antlr4-runtime:4.13.1")
+//    }
 }
 
 //project(":lsp4j") {
@@ -451,8 +440,26 @@ project(":grammar"){
 //        implementation(project(":cidr"))
 //    }
 //}
+//project(":dap") {
+//
+//    apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
+//    intellij {
+//        plugins.set(listOf("org.jetbrains.plugins.terminal"))
+//    }
+//    dependencies {
+//        implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
+//        implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
+//
+//        implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
+//        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+//    }
+//}
+project(":utils") {
+    dependencies {
 
-
+//        implementation("org.yaml:snakeyaml:2.2")
+    }
+}
 fun File.isPluginJar(): Boolean {
     if ("buildPlugin" in gradle.startParameter.taskNames) {
         if (pluginDescriptors.contains(name)) {

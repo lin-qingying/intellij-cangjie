@@ -70,5 +70,5 @@ public abstract class CangJieCodePointHandlerBase<T extends XBreakpoint<?>, C ex
 
 
     protected abstract List<CjBreakpoint> addCodepointsInBackend(T breakpoint, long threadId );
-//protected abstract Collection<C>  addCodepointsInBackend(T breakpoint, long threadId, int frameIndex);
+
 }

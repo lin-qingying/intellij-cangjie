@@ -91,7 +91,7 @@ abstract class LspServerDescriptor protected constructor(
     open fun startServerProcess(): OSProcessHandler {
         val startingCommandLine = createCommandLine()
         com.linqingying.lsp.api.LspServerDescriptor.Companion.LOG.info("$this: starting LSP server: $startingCommandLine")
-        return com.linqingying.lsp.api.LspProcessHandler(startingCommandLine)
+        return LspProcessHandler(startingCommandLine)
     }
 
     /**

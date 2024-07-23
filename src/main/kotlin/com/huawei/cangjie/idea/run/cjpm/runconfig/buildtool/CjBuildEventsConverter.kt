@@ -279,40 +279,7 @@ class CjBuildEventsConverter(private val context: CjpmBuildContextBase) : BuildO
 
         }
 
-//        when{
-//            kind == MessageEvent.Kind.ERROR -> {
-////        error: expected ';' or '<NL>', found literal '1'
-//// ==> D:\Code\Cj\ideatest\ideatest\src\main.cj:4:27:
-////  |
-////4 |     println("hello world")1
-////  |                           ^ expected ';' or '<NL>' here
-////  |
-////
-////1 error generated, 1 error printed.
-////Error: cjpm build failed
-////                记录错误信息，并添加到strBuffer中  line是一行一行的，并不是所有
-////                //        error: expected ';' or '<NL>', found literal '1'
-////// ==> D:\Code\Cj\ideatest\ideatest\src\main.cj:4:27:
-//////  |
-//////4 |     println("hello world")1
-//////  |                           ^ expected ';' or '<NL>' here
-//////  |为一个单元粗错误信息
-//
-//                isRecordError = true
-//
-//
-//
-//            }
-//            else -> {
-//                messageConsumer.acceptText(context.parentId, line.withNewLine())
-//            }
-//        }
 
-//        when {
-//
-//            kind in ERROR_OR_WARNING ->
-//                handleProblemMessage(kind, message, line, messageConsumer)
-//        }
         messageConsumer.acceptText(context.parentId, line.withNewLine())
         return true
     }

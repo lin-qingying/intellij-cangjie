@@ -32,9 +32,10 @@
                            language="CangJie"/>
         <quoteHandler fileType="CangJie" className="com.huawei.cangjie.idea.editor.CangJieQuoteHandler"/>
         <backspaceHandlerDelegate implementation="com.huawei.cangjie.idea.editor.CangJieRawStringBackspaceHandler"/>
-        <backspaceHandlerDelegate implementation="com.huawei.cangjie.idea.editor.CangJieStringTemplateBackspaceHandler"/>
+        <backspaceHandlerDelegate
+                implementation="com.huawei.cangjie.idea.editor.CangJieStringTemplateBackspaceHandler"/>
 
-<!--        <treeStructureProvider implementation="com.huawei.cangjie.idea.projectView.CangJieExpandNodeProjectViewProvider" order="last"/>-->
+        <!--        <treeStructureProvider implementation="com.huawei.cangjie.idea.projectView.CangJieExpandNodeProjectViewProvider" order="last"/>-->
 
 
         <!-- PSI 管理器 -->
@@ -56,9 +57,17 @@
                   extensions="cj"
                   fieldName="INSTANCE"/>
         <internalFileTemplate name="CangJie File"/>
+
+
+
         <!--       PSI解析 -->
-        <lang.parserDefinition language="CangJie"
-                               implementationClass="com.huawei.cangjie.parsing.CangJieParserDefinition"/>
+                <lang.parserDefinition language="CangJie"
+                                       implementationClass="com.huawei.cangjie.parsing.CangJieParserDefinition"/>
+        <!--antlr psi解析-->
+<!--        <lang.parserDefinition language="CangJie"-->
+<!--                               implementationClass="antlr.ANTLRCangJieParserDefinition"/>-->
+
+
 
         <!--语法高亮-->
         <colorSettingsPage implementation="com.huawei.cangjie.highlighter.CangJieColorSettingsPage"/>
@@ -112,9 +121,8 @@
                              groupId="language"
                              id="language.cangjie"
                              bundle="messages.CangJieBundle" key="settings.cangjie.toolchain.name"/>
-<!--注释-->
+        <!--注释-->
         <lang.commenter language="CangJie" implementationClass="com.huawei.cangjie.idea.commenter.CjCommenter"/>
-
 
 
         <executionTargetLanguageRuntimeType
@@ -213,15 +221,15 @@
         <fileIconProvider implementation="com.huawei.cangjie.icon.CjpmIconProvider"/>
 
 
-<!--        <projectService-->
-<!--                serviceInterface="com.huawei.cangjie.cjpm.CjpmConstantsService"-->
-<!--                serviceImplementation="com.huawei.cangjie.cjpm.CjpmConstantsServiceImpl"-->
+        <!--        <projectService-->
+        <!--                serviceInterface="com.huawei.cangjie.cjpm.CjpmConstantsService"-->
+        <!--                serviceImplementation="com.huawei.cangjie.cjpm.CjpmConstantsServiceImpl"-->
 
 
-<!--        />-->
+        <!--        />-->
 
 
-                <projectService
+        <projectService
                 serviceInterface="com.huawei.cangjie.psi.CangJieReferenceProvidersService"
                 serviceImplementation="com.huawei.cangjie.idea.references.CjIdeReferenceProviderService"/>
 
@@ -281,9 +289,6 @@
                 qualifiedName="com.huawei.cangjie.projectConfigurator"
                 interface="com.huawei.cangjie.idea.configuration.CangJieProjectConfigurator"
                 dynamic="true"/>
-
-
-
 
 
     </extensionPoints>
@@ -356,7 +361,7 @@
     <extensions defaultExtensionNs="lsp">
 
         <!-- LSP -->
-<!--        <serverSupportProvider implementation="com.huawei.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>-->
+        <!--        <serverSupportProvider implementation="com.huawei.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>-->
 
 
     </extensions>

@@ -15,7 +15,9 @@ import com.huawei.cangjie.cjpm.toolchain.impl.CjpmMetadata
 import com.huawei.cangjie.cjpm.toolchain.parseSemVer
 import com.huawei.cangjie.idea.experiments.CjExperiments
 import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.CjProcessResult
+import com.huawei.cangjie.idea.run.cjpm.CjpmCommandConfiguration.Companion.findCjpmProject
 import com.huawei.cangjie.idea.run.cjpm.CjpmCommandLine
+import com.huawei.cangjie.idea.run.cjpm.CjpmPatch
 import com.huawei.cangjie.idea.run.cjpm.runconfig.*
 import com.huawei.cangjie.idea.run.isFeatureEnabled
 import com.huawei.cangjie.lang.CjConstants.LIB_CJ_FILE
@@ -351,6 +353,51 @@ class Cjpm(
         private val FEATURES_ACCEPTING_COMMANDS: List<String> = listOf(
             "update", "build", "check", "run-script", "clean", "run", "test", "publish", "list", "load", "init", "help"
         )
+
+        fun getCjpmCommonPatch(project: Project): CjpmPatch = { it.patchArgs(project, true) }
+        fun CjpmCommandLine.patchArgs(project: Project, colors: Boolean): CjpmCommandLine {
+            val (pre, post) = splitOnDoubleDash()
+                .let { (pre, post) -> pre.toMutableList() to post.toMutableList() }
+
+//            if (command in listOf("test", "bench")) {
+//                if (allFeatures && !pre.contains("--all-features")) {
+//                    pre.add("--all-features")
+//                }
+//                if (TEST_NOCAPTURE_ENABLED_KEY.asBoolean() && !post.contains("--nocapture")) {
+//                    post.add(0, "--nocapture")
+//                }
+//            }
+
+//            if (requiredFeatures && command in FEATURES_ACCEPTING_COMMANDS) {
+//                run {
+//                    val cjpmProject = findCjpmProject(project, additionalArguments, workingDirectory) ?: return@run
+//                    val cjpmPackage = findCjpmPackage(cjpmProject, additionalArguments, workingDirectory)
+//                        ?: return@run
+//                    if (workingDirectory != cjpmPackage.rootDirectory) {
+//                        val manifestIdx = pre.indexOf("--manifest-path")
+//                        val packageIdx = pre.indexOf("--package")
+//                        if (manifestIdx == -1 && packageIdx != -1) {
+//                            pre.removeAt(packageIdx) // remove `--package`
+//                            pre.removeAt(packageIdx) // remove package name
+//                            pre.add("--manifest-path")
+//                            val manifest = cjpmPackage.rootDirectory.resolve(CjpmConstants.MANIFEST_FILE)
+//                            pre.add(manifest.toAbsolutePath().toString())
+//                        }
+//                    }
+//                    val cjpmTargets = findCjpmTargets(cjpmPackage, additionalArguments)
+//                    val features = cjpmTargets.flatMap { it.requiredFeatures }.distinct().joinToString(",")
+//                    if (features.isNotEmpty()) pre.add("--features=$features")
+//                }
+//            }
+
+//            // Force colors
+//            val forceColors = colors &&
+//                    command in COLOR_ACCEPTING_COMMANDS &&
+//                    additionalArguments.none { it.startsWith("--color") }
+//            if (forceColors) pre.add(0, "--color=always")
+
+            return copy(additionalArguments = if (post.isEmpty()) pre else pre + "--" + post)
+        }
     }
 
 }

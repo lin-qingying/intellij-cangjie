@@ -5,11 +5,11 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
 import com.intellij.util.concurrency.QueueProcessor
-import dap.event.*
-import dap.protocol.ProtocolMessage
-import dap.request.Request
-import dap.request.RunInTerminalRequest
-import dap.response.*
+import com.debugger.protocol.event.*
+import com.debugger.protocol.ProtocolMessage
+import com.debugger.protocol.request.Request
+import com.debugger.protocol.request.RunInTerminalRequest
+import com.debugger.protocol.response.*
 
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Proxy
@@ -71,6 +71,9 @@ interface MessageHandler : EventListener {
             is OutputEvent -> {
                 handleOutputEvent(message)
             }
+            is ModuleEvent -> {
+                handleModuleEvent(message)
+            }
 
             is BreakpointEvent -> {
                 handleBreakpointEvent(message)
@@ -97,7 +100,9 @@ interface MessageHandler : EventListener {
     fun handleLoadedSourceEvent(message: LoadedSourceEvent) {
 
     }
+    fun handleModuleEvent(message: ModuleEvent) {
 
+    }
     fun handleOutputEvent(message: OutputEvent) {
 
     }
@@ -119,7 +124,9 @@ interface MessageHandler : EventListener {
             is InitializeResponse -> {
                 handleInitializeResponse(message)
             }
-
+            is ModulesResponse -> {
+                handleModulesResponse(message)
+            }
             is ErrorResponse -> {
                 handleErrorResponse(message)
             }
@@ -164,9 +171,9 @@ interface MessageHandler : EventListener {
                 handleEvaluateResponse(message)
             }
 
-        is SetVariableResponse -> {
-            handleSetVariableResponse(message)
-        }
+            is SetVariableResponse -> {
+                handleSetVariableResponse(message)
+            }
         }
     }
 
@@ -203,7 +210,9 @@ interface MessageHandler : EventListener {
     fun handleConfigurationDoneResponse(response: ConfigurationDoneResponse) {
 
     }
-
+    fun handleModulesResponse(response: ModulesResponse) {
+        // Your implementation here
+    }
     fun handleErrorResponse(response: ErrorResponse) {
         // Your implementation here
     }
@@ -309,7 +318,7 @@ interface MessageHandler : EventListener {
 //
 //    }
 
-    fun handleExited(event: ExitedEvent) {}
+
 
     fun handleAttached(pid: Int) {}
 

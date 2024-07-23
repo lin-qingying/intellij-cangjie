@@ -8,16 +8,16 @@ import com.intellij.openapi.util.Conditions
 import com.intellij.openapi.util.Pair
 import com.intellij.util.Consumer
 import com.intellij.util.concurrency.QueueProcessor
-import dap.ONE_CRLF
-import dap.TWO_CRLF
-import dap.protocol.ProtocolMessage
-import dap.request.InitializeRequest
-import dap.response.InitializeResponse
-import dap.type.adapter.moshi
-import dap.type.serializer.format
+
+import com.debugger.protocol.ProtocolMessage
+import com.debugger.protocol.request.InitializeRequest
+import com.debugger.protocol.response.InitializeResponse
+import com.debugger.protocol.type.adapter.moshi
+import com.debugger.protocol.type.serializer.format
 import kotlinx.serialization.encodeToString
 import org.jetbrains.annotations.TestOnly
 import java.io.IOException
+import java.io.Writer
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -30,12 +30,20 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Supplier
 
+const val TWO_CRLF = "\r\n\r\n"
+const val ONE_CRLF = "\r\n"
 
 fun <T> Consumer<T>.accept(v: T) {
     this.consume(v)
 
 }
+inline fun <reified T : ProtocolMessage> Writer.write(message: T) {
+    val json = format.encodeToString(message)
+    val size = json.toByteArray().size
+    this.write("Content-Length: ${size}$TWO_CRLF${json}")
+    this.flush()
 
+}
 open class DapClent<T : ProtocolMessage>(
     private val prot: Int,
     inboxConsumer: Consumer<ProtocolMessage>,
@@ -116,7 +124,7 @@ open class DapClent<T : ProtocolMessage>(
                 buf.put(bytes)
                 buf.rewind()
                 debug { "req(${bytes.size + 4}): $generatedMessage" }
-                writeStringToFile(generatedMessage.toString(), "发送消息")
+//                writeStringToFile(generatedMessage.toString(), "发送消息")
                 try {
                     socketChannel!!.write(buf)
                 } catch (ioEx: IOException) {
@@ -145,26 +153,7 @@ open class DapClent<T : ProtocolMessage>(
 
 
     private fun sendInit() {
-//        val init = InitializeRequest(
-//            InitializeRequestArguments(
-//                adapterID = "cangjieDebug",
-//                clientId = "idea",
-//                clientName = "Intellij IDEA",
-//                columnsStartAt1 = true,
-//                linesStartAt1 = true,
-//                locale = "zh-cn",
-//                pathFormat = PathFormat.Path,
-//                supportsInvalidatedEvent = true,
-//                supportsMemoryEvent = true,
-//                supportsArgsCanBeInterpretedByShell = true,
-//                supportsMemoryReferences = true,
-//                supportsProgressReporting = true,
-//                supportsRunInTerminalRequest = true,
-//                supportsStartDebuggingRequest = true,
-//                supportsVariablePaging = true,
-//                supportsVariableType = true
-//            )
-//        )
+
         this.sendMessage(initData, InitializeResponse::class.java, null)
     }
 
@@ -281,7 +270,7 @@ open class DapClent<T : ProtocolMessage>(
     fun handleMessage(message: String) {
         var messageTemp = message
 
-//        TODO 气死了，这里最好没问题
+//
         if (!message.startsWith("Content-Length")) {
             if (message.length < length) {
                 strBuffer.append(message.substring(length - strBuffer.length))
@@ -291,7 +280,7 @@ open class DapClent<T : ProtocolMessage>(
 
 
 
-                writeStringToFile(strBuffer.toString(), "接收到的消息")
+//                writeStringToFile(strBuffer.toString(), "接收到的消息")
                 val protocolMessage = moshi.adapter(ProtocolMessage::class.java).fromJson(strBuffer.toString())
 
                 inboxProcessor.add(protocolMessage!!)
@@ -328,7 +317,7 @@ open class DapClent<T : ProtocolMessage>(
             val content = messageTemp.substring(position, position + length)
 
 
-            writeStringToFile(content, "接收到的消息")
+//            writeStringToFile(content, "接收到的消息")
             val protocolMessage = moshi.adapter(ProtocolMessage::class.java).fromJson(content)
 
             inboxProcessor.add(protocolMessage!!)
@@ -368,7 +357,7 @@ open class DapClent<T : ProtocolMessage>(
                 if (read == 0) {
                     continue
                 }
-                writeStringToFile(String(buffer.array(), 0, read))
+//                writeStringToFile(String(buffer.array(), 0, read))
 
 
 
@@ -509,7 +498,7 @@ open class DapClent<T : ProtocolMessage>(
         }
     }
 
-    fun releaseAll() {
+    private fun releaseAll() {
         this.inboxProcessor.clear()
 
         this.outboxProcessor.clear()

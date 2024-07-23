@@ -9,11 +9,12 @@
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor>Huawei</vendor>
 
-    <version>1.1.3</version>
+    <version>1.1.4</version>
     <!--    <depends>com.intellij.modules.platform</depends>-->
     <depends>com.intellij.modules.lang</depends>
     <dependencies>
         <plugin id="org.toml.lang"/>
+        <plugin id="org.jetbrains.plugins.terminal"/>
     </dependencies>
 
     <!--    <depends>com.jetbrains.performancePlugin</depends>-->
@@ -35,8 +36,12 @@
 
     <xi:include href="/META-INF/cangjie-lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>
         <xi:include href="/META-INF/cangjie-debugger.xml" xpointer="xpointer(/idea-plugin/*)"/>
+<!--    <xi:include href="/META-INF/dap.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+
     <xi:include href="/META-INF/cangjie.code-insight.live-templates-shared.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
+
+<!--    cidr-->
 <!--    <xi:include href="/META-INF/NativeDebugger.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
     <content>
 

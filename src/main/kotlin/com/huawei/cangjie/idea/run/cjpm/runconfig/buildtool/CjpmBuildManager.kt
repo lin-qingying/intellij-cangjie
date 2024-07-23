@@ -365,15 +365,10 @@ object CjpmBuildManager {
     }
 
     fun getExecutable(project: Project, buildId: String): String {
-//        val sdkVersion = CangJieSdkManager.sdkVersion.split(" ")[0]
-        val toolchain = project.cangjieSettings.toolchain
-//        if (sdkVersion < "0.45.2") return "${project.basePath}/build/bin/main".toSystemPath()
-        if (toolchain?.cjc()?.version?.semver!! < SemVer.parseFromText("0.45.2")) {
-            return "${project.basePath}/build/bin/main".toSystemIndependentPath()
-        }
+
         return when (buildId) {
-            "Debug" -> "${project.basePath}/build/debug/bin/main".toSystemIndependentPath()
-            "Run" -> "${project.basePath}/build/release/bin/main".toSystemIndependentPath()
+            "Debug" -> "${project.basePath}/target/debug/bin/main".toSystemIndependentPath()
+            "Run" -> "${project.basePath}/target/release/bin/main".toSystemIndependentPath()
             else -> ""
         }
 
