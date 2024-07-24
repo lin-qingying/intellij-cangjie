@@ -1,5 +1,6 @@
 package com.huawei.cangjie.idea.run.cjpm
 
+import com.huawei.cangjie.idea.run.cjpm.util.executeActionCjpmCommand
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 

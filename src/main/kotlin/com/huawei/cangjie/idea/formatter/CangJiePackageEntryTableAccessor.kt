@@ -5,8 +5,6 @@ package com.huawei.cangjie.idea.formatter
 import com.intellij.application.options.codeStyle.properties.CodeStylePropertiesUtil
 import com.intellij.application.options.codeStyle.properties.ValueListPropertyAccessor
 
-import org.jetbrains.kotlin.idea.core.formatter.CangJiePackageEntry
-import org.jetbrains.kotlin.idea.core.formatter.CangJiePackageEntryTable
 import java.lang.reflect.Field
 
 class CangJiePackageEntryTableAccessor(cangjieCodeStyle: CangJieCodeStyleSettings, field: Field) :

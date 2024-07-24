@@ -67,10 +67,16 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
 
     private inner class GlobalFacade(settings: PlatformAnalysisSettings) {
         private val context = GlobalContext("sdk")
+//        private val moduleFilters = GlobalFacadeModuleFilters(project)
 
         val facadeForModules = ProjectResolutionFacade(
             "facadeForModules", "sdk with settings=$settings",
             project, context,
+            reuseDataFrom = null,
+//            moduleFilter = moduleFilters::sdkFacadeFilter,
+            moduleFilter = {
+                false
+            },
 
             dependencies = listOf(ProjectRootModificationTracker.getInstance(project)),
             invalidateOnOOCB = true

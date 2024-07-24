@@ -9,9 +9,11 @@
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor>Huawei</vendor>
 
-    <version>1.1.2</version>
+    <version>1.1.4</version>
     <!--    <depends>com.intellij.modules.platform</depends>-->
     <depends>com.intellij.modules.lang</depends>
+    <!--suppress PluginXmlValidity -->
+
     <dependencies>
         <plugin id="org.toml.lang"/>
     </dependencies>
@@ -34,7 +36,7 @@
 <!--    <xi:include href="/META-INF/lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
 
     <xi:include href="/META-INF/cangjie-lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>
-        <xi:include href="/META-INF/cangjie-debugger.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
     <xi:include href="/META-INF/cangjie.code-insight.live-templates-shared.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/caches.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/indices.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -42,9 +44,8 @@
 <!--    <xi:include href="/META-INF/NativeDebugger.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
     <content>
 
-<!--        <module name="com.huawei.cangjie.debugger"/>-->
 
-    </content>
+    <module name="com.huawei.cangjie.nativeDebug"/><module name="com.huawei.cangjie.debugger"/></content>
 
 
 

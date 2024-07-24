@@ -17,8 +17,6 @@ import com.intellij.ui.table.JBTable
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.JBInsets
 import org.jetbrains.annotations.Nls
-import org.jetbrains.kotlin.idea.core.formatter.CangJiePackageEntry
-import org.jetbrains.kotlin.idea.core.formatter.CangJiePackageEntryTable
 
 import java.awt.BorderLayout
 import java.awt.Dimension

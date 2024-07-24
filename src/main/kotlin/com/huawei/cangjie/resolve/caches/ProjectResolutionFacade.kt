@@ -1,8 +1,6 @@
 package com.huawei.cangjie.resolve.caches
 
-import com.huawei.cangjie.analyzer.AnalysisResult
-import com.huawei.cangjie.analyzer.ResolverForModule
-import com.huawei.cangjie.analyzer.createModuleDescriptor
+import com.huawei.cangjie.analyzer.*
 import com.huawei.cangjie.builtins.BuiltInsLoader
 import com.huawei.cangjie.container.ComponentProvider
 import com.huawei.cangjie.context.GlobalContextImpl
@@ -11,8 +9,13 @@ import com.huawei.cangjie.context.withProject
 import com.huawei.cangjie.descriptors.DiagnosticSink
 import com.huawei.cangjie.descriptors.impl.ModuleDescriptorImpl
 import com.huawei.cangjie.frontend.createContainerForLazyResolve
+import com.huawei.cangjie.idea.cache.project.getModuleInfosFromIdeaModel
 import com.huawei.cangjie.idea.cache.trackers.CangJieCodeBlockModificationListener
+import com.huawei.cangjie.idea.projectStructure.ModuleInfoProvider
 import com.huawei.cangjie.idea.projectStructure.languageVersionSettings
+import com.huawei.cangjie.idea.projectStructure.moduleInfo
+import com.huawei.cangjie.idea.projectStructure.moduleInfo.IdeaModuleInfo
+import com.huawei.cangjie.idea.projectStructure.moduleInfo.NotUnderContentRootModuleInfo
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.resolve.CodeAnalyzerInitializer
@@ -40,15 +43,31 @@ class ProjectResolutionFacade(
     val project: Project,
     val globalContext: GlobalContextImpl,
 //    val settings: PlatformAnalysisSettings,
-//    val reuseDataFrom: ProjectResolutionFacade?,
-//    val moduleFilter: (IdeaModuleInfo) -> Boolean,
+    val reuseDataFrom: ProjectResolutionFacade?,
+    val moduleFilter: (IdeaModuleInfo) -> Boolean,
     dependencies: List<Any>,
     private val invalidateOnOOCB: Boolean,
     val syntheticFiles: Collection<CjFile> = listOf(),
-//    val allModules: Collection<IdeaModuleInfo>? = null // null means create resolvers for modules from idea model
+    val allModules: Collection<IdeaModuleInfo>? = null // null means create resolvers for modules from idea model
 ) {
+
+
+    private val cachedValue = CachedValuesManager.getManager(project).createCachedValue(
+        {
+            val resolverProvider = computeModuleResolverProvider()
+            val allDependencies = if (invalidateOnOOCB) {
+                resolverForProjectDependencies + CangJieCodeBlockModificationListener.getInstance(project).cangjieOutOfCodeBlockTracker
+            } else {
+                resolverForProjectDependencies
+            }
+            CachedValueProvider.Result.create(resolverProvider, allDependencies)
+        },
+        /* trackValue = */ false
+    )
     private val analysisResultsLock = ReentrantLock()
     private val resolverForProjectDependencies = dependencies + globalContext.exceptionTracker
+    private val cachedResolverForProject: ResolverForProject<IdeaModuleInfo>
+        get() = globalContext.storageManager.compute { cachedValue.value }
 
     private val analysisResultsSimpleLock = CancellableSimpleLock(analysisResultsLock,
         checkCancelled = {
@@ -56,22 +75,40 @@ class ProjectResolutionFacade(
         },
         interruptedExceptionHandler = { throw ProcessCanceledException(it) })
 
-//    private val cachedValue = CachedValuesManager.getManager(project).createCachedValue(
-//        {
-//            val resolverProvider = computeModuleResolverProvider()
-//            val allDependencies = if (invalidateOnOOCB) {
-//                resolverForProjectDependencies + CangJieCodeBlockModificationListener.getInstance(project).kotlinOutOfCodeBlockTracker
-//            } else {
-//                resolverForProjectDependencies
+    private fun computeModuleResolverProvider(): ResolverForProject<IdeaModuleInfo> {
+        val delegateResolverForProject: ResolverForProject<IdeaModuleInfo> =
+            reuseDataFrom?.cachedResolverForProject ?: EmptyResolverForProject()
+//        val allModuleInfos = allModules!!
+//            .toMutableSet()
+        val allModuleInfos = (allModules ?: getModuleInfosFromIdeaModel(project/*, (settings as? PlatformAnalysisSettingsImpl)?.platform*/))
+            .toMutableSet()
+//            .also {
+//                it.checkValidity {
+//                    ("allModules".takeIf { allModules != null }
+//                        ?: "getModuleInfosFromIdeaModel(${(settings as? PlatformAnalysisSettingsImpl)?.platform})") + toString()
+//                }
 //            }
-//            CachedValueProvider.Result.create(resolverProvider, allDependencies)
-//        },
-//        /* trackValue = */ false
-//    )
 
-//    private val cachedResolverForProject: ResolverForProject<IdeaModuleInfo>
-//        get() = globalContext.storageManager.compute { cachedValue.value }
-//
+        val syntheticFilesByModule = syntheticFiles.groupBy { it.moduleInfo }
+        val syntheticFilesModules = syntheticFilesByModule.keys
+        allModuleInfos.addAll(syntheticFilesModules)
+
+        val resolvedModules = allModuleInfos.filter(moduleFilter)
+        val resolvedModulesWithDependencies = resolvedModules /*+
+                listOfNotNull(ScriptDependenciesInfo.ForProject.createIfRequired(project, resolvedModules))*/
+
+        return IdeaResolverForProject(
+            resolverDebugName,
+            globalContext.withProject(project),
+            resolvedModulesWithDependencies,
+            syntheticFilesByModule,
+            delegateResolverForProject,
+      /*      if (invalidateOnOOCB)*/ CangJieModificationTrackerService.getInstance(project).outOfBlockModificationTracker /*else JavaLibraryModificationTracker.getInstance(
+                project
+            ),*/
+//            settings
+        )
+    }
 
     val moduleDescriptor = createModuleDescriptor(globalContext.withProject(project), project)
         .apply {
@@ -237,8 +274,41 @@ class ProjectResolutionFacade(
         val perFileCache = cache?.getIfCached(element.getContainingCjFile())
         return perFileCache?.fetchAnalysisResults(element)
     }
-    internal fun resolverForElement(element: PsiElement): ResolverForModule{
 
+    internal fun resolverForElement(element: PsiElement): ResolverForModule {
+
+
+        val moduleInfos = mutableSetOf<IdeaModuleInfo>()
+//
+//        val config = allModules?.firstIsInstanceOrNull<ScriptDependenciesInfo.ForFile>()?.let {
+//            ModuleInfoProvider.Configuration(contextualModuleInfo = it)
+//        }
+
+        val elementModuleInfos = ModuleInfoProvider.getInstance(element.project).collect(
+            element,
+            config =/* config ?:*/ ModuleInfoProvider.Configuration.Default,
+        )
+
+        for (result in elementModuleInfos) {
+            val moduleInfo = result.getOrNull()
+            if (moduleInfo != null) {
+                val resolver = cachedResolverForProject.tryGetResolverForModule(moduleInfo)
+                if (resolver != null) {
+                    return resolver
+                } else {
+                    moduleInfos += moduleInfo
+                }
+            }
+
+            val error = result.exceptionOrNull()
+            if (error != null) {
+                LOG.warn("Could not find correct module information", error)
+            }
+        }
+
+        val containingFile = element.containingFile as? CjFile
+        return cachedResolverForProject.tryGetResolverForModule(NotUnderContentRootModuleInfo(project, containingFile))
+            ?: cachedResolverForProject.diagnoseUnknownModuleInfo(moduleInfos.toList())
     }
 
 }

@@ -20,7 +20,7 @@ import com.linqingying.utils.Config
 import org.eclipse.lsp4j.*
 
 fun checkCangJieFIle(file: VirtualFile): Boolean {
-
+//    return false
     if (file.extension == "cj") return true
 
     if (file.fileType is CangJieFileType) return true
@@ -110,8 +110,8 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 
             var projectName = project.name
 
-            fun getMap(): Map<String, Any> {
-                return mapOf(
+            fun getMap():Map<String,Any>{
+                return  mapOf(
                     "modulesHomeOption" to toolchain.sdkHome.systemIndependentPath,
 //                    "extensionPath" to "C:\\Users\\27439\\.cangjie\\lsp"
 
@@ -190,11 +190,11 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
                                                 )
                                             )
                                         }
-                                    } else if (`package`.origin == PackageOrigin.WORKSPACE) {
-                                        if (`package`.name != projectName) {
+                                    }else if(`package`.origin == PackageOrigin.WORKSPACE){
+                                        if( `package`.name != projectName){
                                             projectName = `package`.name
 
-                                            return getMap()
+                                            return getMap();
                                         }
                                     }
 
@@ -211,6 +211,8 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
             val map = getMap()
 
             initializeParams.initializationOptions = map
+
+
 
 
         }
@@ -618,7 +620,7 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 
 fun Require.contentRoot(project: Project): VirtualFile? =
     if (path != null) {
-        LocalFileSystem.getInstance().findFileByPath(path)
+        LocalFileSystem.getInstance().findFileByPath(path!!)
     } else {
         project.currentCjpmProject?.workspace?.packages?.find { `package` ->
             name == `package`.name

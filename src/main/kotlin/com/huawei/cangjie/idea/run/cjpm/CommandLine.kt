@@ -9,6 +9,7 @@ import com.huawei.cangjie.idea.notifications.CjNotifications
 import com.huawei.cangjie.idea.run.CjCommandConfiguration.Companion.emulateTerminalDefault
 import com.intellij.execution.*
 import com.intellij.execution.configuration.EnvironmentVariablesData
+import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessListener
@@ -140,6 +141,16 @@ abstract class CjCommandLineBase {
             }
             promise
         }
+    fun toGeneralCommandLine(): GeneralCommandLine {
+
+//TODO 可能会有问题
+        return GeneralCommandLine().apply {
+            exePath = command
+            workDirectory = workingDirectory.toFile()
+
+            addParameters(additionalArguments)
+        }
+    }
 
 
 }

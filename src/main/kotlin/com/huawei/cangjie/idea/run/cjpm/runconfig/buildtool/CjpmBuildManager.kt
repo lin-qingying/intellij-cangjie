@@ -1,7 +1,7 @@
 package com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool
 
 
-import com.debugger.runconfig.toSystemIndependentPath
+
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.cjpm.project.model.CjpmProject
 import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
@@ -38,6 +38,7 @@ import com.intellij.ui.SystemNotifications
 import com.intellij.util.execution.ParametersListUtil
 import com.intellij.util.text.SemVer
 import com.intellij.util.ui.UIUtil
+import com.linqingying.utils.toSystemIndependentPath
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
@@ -365,15 +366,10 @@ object CjpmBuildManager {
     }
 
     fun getExecutable(project: Project, buildId: String): String {
-//        val sdkVersion = CangJieSdkManager.sdkVersion.split(" ")[0]
-        val toolchain = project.cangjieSettings.toolchain
-//        if (sdkVersion < "0.45.2") return "${project.basePath}/build/bin/main".toSystemPath()
-        if (toolchain?.cjc()?.version?.semver!! < SemVer.parseFromText("0.45.2")) {
-            return "${project.basePath}/build/bin/main".toSystemIndependentPath()
-        }
+
         return when (buildId) {
-            "Debug" -> "${project.basePath}/build/debug/bin/main".toSystemIndependentPath()
-            "Run" -> "${project.basePath}/build/release/bin/main".toSystemIndependentPath()
+            "Debug" -> "${project.basePath}/target/debug/bin/main".toSystemIndependentPath()
+            "Run" -> "${project.basePath}/target/release/bin/main".toSystemIndependentPath()
             else -> ""
         }
 

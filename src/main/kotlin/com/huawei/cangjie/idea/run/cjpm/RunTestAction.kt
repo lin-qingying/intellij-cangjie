@@ -1,10 +1,9 @@
 package com.huawei.cangjie.idea.run.cjpm
 
+import com.huawei.cangjie.idea.run.cjpm.util.executeActionCjpmCommand
 import com.huawei.cangjie.psi.CjAnnotated
 import com.huawei.cangjie.psi.CjClass
-import com.huawei.cangjie.psi.CjFile
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.psi.PsiElement
 import org.jetbrains.annotations.NonNls

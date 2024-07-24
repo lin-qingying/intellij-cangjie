@@ -68,8 +68,8 @@ class ModuleDescriptorImpl(
 
 
 
-    override val isValid: Boolean
-        get() = true
+    override var isValid: Boolean = true
+
     private val packages = storageManager.createMemoizedFunction { fqName: FqName ->
         packageViewDescriptorFactory.compute(this, fqName, storageManager)
     }

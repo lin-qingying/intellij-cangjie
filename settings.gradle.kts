@@ -1,4 +1,4 @@
-
+import Settings_gradle.BuildType.*
 pluginManagement {
 //    includeBuild("gradle-util")
 
@@ -17,6 +17,33 @@ plugins {
 
 rootProject.name = "intellij-cangjie"
 
+val build_type: String by settings
+
+enum class BuildType {
+
+
+    //    IU + nativeDebug
+    IU_NATIVE_DEBUG,
+    IC_DAP,
+    IC_CIDR_NATIVE_DEBUG;
+
+
+    companion object {
+
+        fun fromString(str: String): BuildType {
+            return when (str) {
+                "IU_NATIVE_DEBUG" -> IU_NATIVE_DEBUG
+                "IC_DAP" -> IC_DAP
+                "IC_CIDR_NATIVE_DEBUG" -> IC_CIDR_NATIVE_DEBUG
+                else -> IC_DAP
+            }
+        }
+    }
+}
+
+
+//构建方式
+val buildType = BuildType.fromString(build_type)
 
 
 //include("plugin")
@@ -38,31 +65,34 @@ rootProject.name = "intellij-cangjie"
 //include("lsp4j")
 include("plugin")
 include("utils")
-include("gradle-util")
+//include("gradle-util")
 
-include("gradle-util")
-//检查
-//include("inspections")
-//高亮
-//include("highlighter")
+
+
 //lsp支持
 include("lsp")
-//描述
-//include("descriptors")
-//include("debugg/**/er")
-//include("debugger1")
-//include("cidr")
-
-//include("back")
-
-//dap协议序列化
-//include("dap")
 
 
-include("repo")
 
-include("grammar")
-include("generators")
-include("metadata")
-include("build-common")
-include("protobuf2.6.1")
+
+
+//include("grammar")
+//include("generators")
+//include("metadata")
+//include("build-common")
+//include("protobuf2.6.1")
+
+
+when (buildType) {
+    IU_NATIVE_DEBUG -> {
+        include("native-debugger")
+
+    }
+
+    IC_DAP -> {
+        include("dap-debugger")
+
+    }
+
+    IC_CIDR_NATIVE_DEBUG -> TODO()
+}

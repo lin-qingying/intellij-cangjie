@@ -36,11 +36,11 @@ import com.intellij.util.ui.update.Update
 import com.linqingying.lsp.api.*
 import com.linqingying.lsp.impl.requests.DidChangeNotification
 import com.linqingying.lsp.impl.requests.SemanticTokensFullNotification
-import com.linqingying.utils.Config
 import org.eclipse.lsp4j.FileChangeType
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.TestOnly
 import javax.swing.JComponent
+import com.linqingying.utils.Config
 
 class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable {
 
@@ -80,6 +80,7 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
     }
 
     override fun  startServersIfNeeded(providerClass: Class<out LspServerSupportProvider>) {
+
         if(!Config.isLsp){
 
             LOG.error("未启用LSP")
@@ -243,7 +244,7 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
     companion object {
         val LOG = Logger.getInstance(LspServerManagerImpl::class.java)
         fun getInstanceImpl(project: Project): LspServerManagerImpl {
-            return project.getService(LspServerManager::class.java) as LspServerManagerImpl
+            return LspServerManager.getInstance(project) as LspServerManagerImpl
         }
 
         /**

@@ -5,14 +5,14 @@ package com.huawei.cangjie.builtins
 
 //import org.jetbrains.kotlin.protobuf.ExtensionRegistryLite
 import com.google.protobuf.ExtensionRegistry
-import com.google.protobuf.util.JsonFormat
+//import com.google.protobuf.util.JsonFormat
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.PackageFragmentDescriptor
 import com.huawei.cangjie.descriptors.PackageFragmentProvider
 import com.huawei.cangjie.descriptors.PackageFragmentProviderImpl
-import com.huawei.cangjie.metadata.ProtoBuf
-import com.huawei.cangjie.metadata.builtins.BuiltInsBinaryVersion
-import com.huawei.cangjie.metadata.builtins.BuiltInsProtoBuf
+//import com.huawei.cangjie.metadata.ProtoBuf
+//import com.huawei.cangjie.metadata.builtins.BuiltInsBinaryVersion
+//import com.huawei.cangjie.metadata.builtins.BuiltInsProtoBuf
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.resolve.lazy.declarations.impl.craetePackageFragmentDescriptor
 import com.huawei.cangjie.storage.StorageManager
@@ -41,25 +41,25 @@ interface BuiltInsLoader {
     }
 }
 
-fun InputStream.readBuiltinsPackageFragment(): Pair<ProtoBuf.PackageFragment?, BuiltInsBinaryVersion> =
-    use { stream ->
-        val version = BuiltInsBinaryVersion.readFrom(stream)
-        val proto =
-            if (version.isCompatibleWithCurrentCompilerVersion()) {
-
-                ProtoBuf.PackageFragment.parseFrom(
-                    stream,
-//                ExtensionRegistryLite.newInstance().apply(BuiltInsProtoBuf::registerAllExtensions) //轻量级
-                    ExtensionRegistry.newInstance().apply(BuiltInsProtoBuf::registerAllExtensions)
-                )
-            } else null
-
-
-        val printer: JsonFormat.Printer = JsonFormat.printer()
-        val jsonStr: String = printer.print(proto)
-
-        proto to version
-    }
+//fun InputStream.readBuiltinsPackageFragment(): Pair<ProtoBuf.PackageFragment?, BuiltInsBinaryVersion> =
+//    use { stream ->
+//        val version = BuiltInsBinaryVersion.readFrom(stream)
+//        val proto =
+//            if (version.isCompatibleWithCurrentCompilerVersion()) {
+//
+//                ProtoBuf.PackageFragment.parseFrom(
+//                    stream,
+////                ExtensionRegistryLite.newInstance().apply(BuiltInsProtoBuf::registerAllExtensions) //轻量级
+//                    ExtensionRegistry.newInstance().apply(BuiltInsProtoBuf::registerAllExtensions)
+//                )
+//            } else null
+//
+//
+//        val printer: JsonFormat.Printer = JsonFormat.printer()
+//        val jsonStr: String = printer.print(proto)
+//
+//        proto to version
+//    }
 
 class BuiltInsLoaderImpl : BuiltInsLoader {
 
