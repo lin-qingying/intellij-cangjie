@@ -112,7 +112,7 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 
             fun getMap():Map<String,Any>{
               return  mapOf(
-                    "modulesHomeOption" to toolchain.sdkHome.systemIndependentPath,
+                    "modulesHomeOption" to toolchain.location.systemIndependentPath,
 //                    "extensionPath" to "C:\\Users\\27439\\.cangjie\\lsp"
 
 

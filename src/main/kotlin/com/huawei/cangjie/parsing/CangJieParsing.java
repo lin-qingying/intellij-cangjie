@@ -67,8 +67,14 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     private final static TokenSet IDENTIFIER_DOT_MUL_SET = TokenSet.create(IDENTIFIER, DOT, MUL);
 
+
+    //    包的访问修饰符
+    private final static TokenSet PACKAGE_ACCESS_MODIFIER_SET = TokenSet.create(PUBLIC_KEYWORD, INTERNAL_KEYWORD, PROTECTED_KEYWORD);
+    //导入语句访问修饰符
+    private final static TokenSet IMPORT_ACCESS_MODIFIER_SET = TokenSet.create(PUBLIC_KEYWORD, INTERNAL_KEYWORD, PROTECTED_KEYWORD, PRIVATE_KEYWORD);
+
+
     private final static TokenSet DOT_MUL_SET = TokenSet.create(DOT, MUL);
-    private final static TokenSet FROM_IMPORT_SET = TokenSet.create(FROM_KEYWORD, IMPORT_KEYWORD);
     private static final TokenSet DECLARATION_FIRST =
             TokenSet.orSet(TOP_LEVEL_DECLARATION_FIRST, TokenSet.create(INIT_KEYWORD, GET_KEYWORD, SET_KEYWORD));
 
@@ -97,7 +103,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 }
             });
 
-    //    pr����������ļ�������Ҫ������
+    //    如果是声明文件，则不需要函数体
 
     private CangJieParsing(SemanticWhitespaceAwarePsiBuilder builder, boolean isTopLevel, boolean isLazy) {
         super(builder, isLazy);
@@ -215,26 +221,41 @@ public class CangJieParsing extends AbstractCangJieParsing {
          *
          *
          *
-         * �ĵ�ע��
+         * 文档注释
          *   : fileAnnotations*
          */
 
         /*
-         * packageDirective  ������
+         * packageDirective  包声明
          *   : modifiers "package" SimpleName{"."} SEMI?
          *   ;
          */
         PsiBuilder.Marker packageDirective = mark();
 
+
+//        是否有修饰符
+        boolean istPackageAccessModifier = false;
+        if (atSet(PACKAGE_ACCESS_MODIFIER_SET) && (lookahead(1) == MARCO_KEYWORD || lookahead(1) == PACKAGE_KEYWORD)) {
+            advance(); //修饰符
+            istPackageAccessModifier = true;
+        }
         if (at(MARCO_KEYWORD)) {
-            advance(); // MARCO_KEYWORD ������
+            advance(); // MARCO_KEYWORD 宏声明
+            istPackageAccessModifier = true;
+
         }
 
         if (at(PACKAGE_KEYWORD)) {
-            advance(); // PACKAGE_KEYWORD
 
 
-            //TODO �������
+            if (at(PACKAGE_KEYWORD)) {
+                advance(); // PACKAGE_KEYWORD
+            } else if (istPackageAccessModifier) {
+                error("Expecting package keyword");
+            }
+
+
+            //TODO 处理包名
             parsePackageName();
 
             firstEntry.drop();
@@ -243,16 +264,20 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
             packageDirective.done(PACKAGE_DIRECTIVE);
         } else {
-            //������Packageָ��ʱ�����ǲ�Ӧ�����ļ���ͷ������ļ���ע�Ĵ���
-            //��ˣ����ǻع�����λ�ã����½����ļ�ע���б����ļ�ע��û���ϱ�����
+            //当忽略Package指令时，我们不应该在文件开头报告非文件批注的错误。
+            //因此，我们回滚解析位置，重新解析文件注释列表，非文件注释没有上报错误。
             firstEntry.rollbackTo();
 
-            //TODO �����ļ�ע���б�
+            //TODO 解析文件注解列表
 //            parseFileAnnotationList(FILE_ANNOTATIONS_WHEN_PACKAGE_OMITTED);
             packageDirective = mark();
             packageDirective.done(PACKAGE_DIRECTIVE);
-            //��Ҫ������Shebangע��֮����������ݣ��������ļ���ͷ��ע�Ͱ󶨵���һ��������
+            //需要跳过除Shebang注释之外的所有内容，以允许将文件开头的注释绑定到第一个声明。
             packageDirective.setCustomEdgeTokenBinders(BindFirstShebangWithWhitespaceOnly.INSTANCE, null);
+
+
+//          TODO   仓颉0.53.4 更新 位于包中的文件必须要包名
+//            但是单文件可以没有
 
         }
 
@@ -262,20 +287,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private void parseImportDirectives() {
         PsiBuilder.Marker importList = mark();
 
-//        while (atSet(FROM_IMPORT_SET)) {
-//            parseImportDirective();
-//        }
-        while (atSet(FROM_IMPORT_SET) || (at(PUBLIC_KEYWORD) && (lookahead(1) == FROM_KEYWORD || lookahead(1) == IMPORT_KEYWORD))) {
-//            if (at(PUBLIC_KEYWORD) && (lookahead(1) == FROM_KEYWORD || lookahead(1) == IMPORT_KEYWORD)) {
-////                advance();
-//
-//                parseImportDirective();
-//
-//            }else
-//            if (atSet(FROM_IMPORT_SET)) {
-            parseImportDirective();
-//            }
 
+        while (at(IMPORT_KEYWORD) || atSet(IMPORT_ACCESS_MODIFIER_SET) && (lookahead(1) == IMPORT_KEYWORD))  {
+            parseImportDirective();
         }
         importList.done(IMPORT_LIST);
     }
@@ -294,8 +308,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return false;
     }
 
+
     /**
-     * ����Import�ؼ��ֺ�ĵ���������
+     * 处理Import关键字后的单个导入项
      * : "import"
      * : SimpleName{"."} ("." "*" )? | ("as" SimpleName{"."} ("." "*"))? SEMI?
      */
@@ -304,18 +319,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         PsiBuilder.Marker importDirectiveItem = mark();
 
+
         if (!at(IDENTIFIER)) {
-
-//            if (at(RBRACE)){
-//                error();
-//                importDirectiveItem.drop();
-//
-//
-//            }
-
-//            PsiBuilder.Marker error = mark();
-//            skipUntil(TokenSet.create(EOL_OR_SEMICOLON));
-//            error.  error("Expecting qualified name");
 
             error("expected a package name after '.' in qualified name, found '" + myBuilder.getTokenText() + "'");
             importDirectiveItem.done(IMPORT_DIRECTIVE_ITEM);
@@ -333,7 +338,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         while (at(DOT) && lookahead(1) != MUL) {
             advance(); // DOT
 
-//            ͬһ�������������
+//            同一个包多个导入项
             if (at(LBRACE) && isTopLevel) {
                 advance();
                 do {
@@ -388,7 +393,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //                    as.precede().error("The alias name should contain '.*' suffix after import-all");
 
 
-//                    TODO ���ʹ����LSP psi���ظ�����һ��
+//                    TODO 如果使用了LSP psi会重复报错一次
                         error("The alias name should contain '.*' suffix after import-all");
                     }
 //                else {
@@ -421,33 +426,18 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private void parseImportDirective() {
 
 
-        assert _atSet(FROM_IMPORT_SET) || _at(PUBLIC_KEYWORD);
+        assert _at(IMPORT_KEYWORD) || _atSet(IMPORT_ACCESS_MODIFIER_SET);
 
 
-        boolean isFrom = false;
         PsiBuilder.Marker importDirective = mark();
 
 
-        if (at(PUBLIC_KEYWORD)) {
+        if (_atSet(IMPORT_ACCESS_MODIFIER_SET)) {
             advance(); //PUBLIC_KEYWORD
         }
 
-        if (at(FROM_KEYWORD)) {
-            isFrom = true;
-            advance();
 
-            //�����������
-            if (!at(IDENTIFIER)) {
-                error("Software package name is required");
-                importDirective.done(IMPORT_DIRECTIVE);
-                return;
-            } else {
-                advance();
-            }
-
-
-        }
-        if (!at(IMPORT_KEYWORD) && isFrom) {
+        if (!at(IMPORT_KEYWORD)) {
 
             error("Expecting 'import' keyword");
             importDirective.done(IMPORT_DIRECTIVE);
@@ -465,7 +455,24 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 advance();
             }
 
-            parseImportDirectiveItem(true);
+            if (at(LBRACE)) {
+                advance();
+                parseImportDirectiveItem(false);
+
+//                多个导入语句
+
+
+                while (at(COMMA)) {
+                    advance();
+                    parseImportDirectiveItem(false);
+                }
+
+                expect(RBRACE, "Expecting '}'");
+
+            } else {
+                parseImportDirectiveItem(true);
+            }
+
 
         } while (at(COMMA));
 
@@ -542,14 +549,14 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        parseFile();
 //    }
 
-    //���
+    //入口
     void parseFile() {
         PsiBuilder.Marker fileMarker = mark();
 
-        //����ͷ  package
+        //处理开头  package
         parsePreamble();
 
-//        ��������ʽ���
+//        处理声明式语句
         while (!eof()) {
             parseTopLevelDeclaration();
         }
@@ -560,7 +567,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     void parseLspFile() {
         PsiBuilder.Marker fileMarker = mark();
-//        �����нڵ�ȫ����ȡ
+//        将所有节点全都读取
         while (!eof()) {
             advance();
         }
@@ -588,7 +595,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     /*
-     * �����������
+     * 顶层声明语句
      *   : function
      *   : class enum interface struct
      */
@@ -601,9 +608,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         PsiBuilder.Marker decl = mark();
 
-//����е������
+//如果有导入语句
 
-        if ((atSet(FROM_IMPORT_SET) || (at(PUBLIC_KEYWORD) && (lookahead(1) == FROM_KEYWORD || lookahead(1) == IMPORT_KEYWORD)))) {
+        if ((at(PUBLIC_KEYWORD) && lookahead(1) == IMPORT_KEYWORD)) {
 //            error("imports are only allowed in the beginning of file");
             parseImportDirectives();
             decl.drop();
@@ -612,22 +619,22 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
 
 
-        ModifierDetector detector = new ModifierDetector(this);
+        ModifierDetector detector = new ModifierDetector();
 
         parseModifierList(detector, TokenSet.EMPTY, parseMacro);
         IElementType declType = parseCommonDeclaration(detector, NameParsingMode.REQUIRED, DeclarationParsingMode.TOPLEVEL);
 
         if (declType == ANNOTATION_ENTRY) {
 
-            decl.rollbackTo(); //���ظ��ĵ��������½���
+            decl.rollbackTo(); //返回给文档流并重新解析
 //            decl.drop();
 
-//           Ӧ��Ϊע�⣬���뵽���η��в����½�������
+//           应该为注解，加入到修饰符中并重新解析声明
             parseTopLevelDeclaration(true);
 
         } else if (declType == null) {
 
-            errorAndAdvance("Expecting a top level declaration"); //�ڴ�һ�������������
+            errorAndAdvance("Expecting a top level declaration"); //期待一个顶层声明语句
             decl.drop();
         } else {
             closeDeclarationWithCommentBinders(decl, declType, true);
@@ -661,7 +668,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         } else if (at(CONST_KEYWORD) && /* lookahead(1) != IDENTIFIER && */lookahead(2) != EQ && lookahead(2) != COLON /* && (lookahead(2) == FUNC_KEYWORD || lookahead(3) == FUNC_KEYWORD || lookahead(4) == FUNC_KEYWORD)*/) {
 
 
-//            ���������const���ε�
+//            处理特殊的const修饰的
             advance(); // MODIFIER
             if (tokenConsumer != null) {
                 tokenConsumer.consume(CONST_KEYWORD);
@@ -742,18 +749,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return empty;
     }
 
-    private void parseMacroExpression() {
-
-
-//        do{
-//
-//            IElementType type = parseAnnotation();
-//
-//
-//
-//        }while (at(AT)) ;
-
-    }
 
 //    public IElementType parseAnnotation(ModifierDetector detector) {
 //        return parseAnnotation(detector, MacroType.MACRO_CALL);
@@ -763,23 +758,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
         myExpressionParsing.parseFunctionLiteral(/* preferBlock = */ false, /* collapse = */false, false);
     }
 
-//    private void parseMacroInputExprWithParens() {
-//        assert _at(LPAR);
-//
-//        PsiBuilder.Marker parens = mark();
-//
-//        advance();
-//
-//        parseMacroToken();
-//
-//
-//        expect(RPAR, "expected ')'");
-//
-//        parens.done(MACRO_INPUT_EXPR_PARENS);
-//    }
 
-    /*TODO ע�����
-     *  ע�����
+    /*TODO 注解与宏
+     *  注解与宏
      * annotation
      *   : "@" (annotationUseSiteTarget ":")? unescapedAnnotation
      *   ;
@@ -789,10 +770,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ;
      */
     public IElementType parseAnnotation(ModifierDetector detector) {
-//        detector��û�����η�
-//        �ú����û������     ����Ϊע��
+//        detector们没有修饰符
+//        该宏调用没有括号     解析为注解
 
-//        ���û�����η�,�����Ƿ��������ж�
+//        如果没有修饰符,根据是否有括号判断
 
         assert _at(AT);
         IElementType nextRawToken = lookahead(1);
@@ -810,7 +791,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             parseUserType();
             typeReference.done(TYPE_REFERENCE);
             reference.done(CONSTRUCTOR_CALLEE);
-//            ������
+//            宏属性
             if (at(LBRACKET)) {
                 myExpressionParsing.parseValueArgumentList(LBRACKET, RBRACKET);
             }
@@ -820,17 +801,17 @@ public class CangJieParsing extends AbstractCangJieParsing {
             return null;
         }
 //        if (modifierSize > 0) {
-////            ��������
+////            处理宏调用
 //            return MACRO_EXPRESSION;
 //        }else {
 //            return ANNOTATION_ENTRY;
 //        }
         if (at(LPAR)) {
-            //            TODO ��������
+            //            TODO 处理宏调用
             advance();
-//          �����Ӧ���Ǻ���ñ��ʽ������ע��
+//          该语句应该是宏调用表达式，而非注解
             if (at(RPAR)) {
-//                ֱ�ӷ���
+//                直接返回
                 advance();
             } else {
                 while (!eof()) {
@@ -845,7 +826,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //                if (at(AT)) {
 //                    parseTopLevelDeclaration();
 //                } else {
-////                    TODO ����token����
+////                    TODO 其他token令牌
 //                    advance();
 //                }
 //                if (at(RPAR)) {
@@ -877,21 +858,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
 
-//    private void parseMacroAttrArgumentList() {
-//
-//
-//        PsiBuilder.Marker list = mark();
-//
-//        tryParseTypeArgumentList(TokenSet.EMPTY);
-//        list.done(TYPE_ARGUMENT_LIST);
-//
-//    }
-
-    private void parseMacroToken() {
-
-
-    }
-
     boolean parseModifierList(@Nullable Consumer<IElementType> tokenConsumer, @NotNull TokenSet noModifiersBefore) {
         return parseModifierList(tokenConsumer, noModifiersBefore, false);
 
@@ -900,10 +866,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
     /**
      * (modifier )*
      * <p>
-     * �����Ϊ�գ������η�(����ע)���͵����ݵ�ʹ����
+     * 如果不为空，则将修饰符(非批注)馈送到传递的使用者
      *
-     * @param noModifiersBefore ��һ�����Ƽ������а���ָʾ��ʱ������ЩԪ�ص�Ԫ�ء�
-     *                          ���뽫ǰһ�����ƽ���Ϊ��ʶ�������������η�
+     * @param noModifiersBefore 是一个令牌集，其中包含指示何时满足这些元素的元素。
+     *                          必须将前一个令牌解析为标识符，而不是修饰符
      */
     boolean parseModifierList(@Nullable Consumer<IElementType> tokenConsumer, @NotNull TokenSet noModifiersBefore, boolean isParseMacro) {
 
@@ -942,7 +908,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private IElementType parseClassCommonDeclaration(Integer tokenId, ModifierDetector classdetector, ModifierDetector detector) {
         //init func let|var prop
 
-        //�ж��Ƿ���abstract class
+        //判断是否是abstract class
 
 
         return switch (getTokenId()) {
@@ -1021,7 +987,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
         if (at(LPAR)) {
-            //(��ʶ�� ',' ��ʶ�� {',' ��ʶ��})
+            //(标识符 ',' 标识符 {',' 标识符})
 //            PsiBuilder.Marker tuple = mark();
             advance();
 
@@ -1051,7 +1017,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
         boolean noTypeReference = true;
 
-        //���� (:type)����û�У�����Ĭ��ֵ������
+        //类型 (:type)可以没有，但是默认值必须有
 
         if (at(COLON)) {
             advance(); // COLON
@@ -1065,7 +1031,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (at(EQ)) {
             advance(); // COLON
 
-            //������ʽ
+            //处理表达式
 //myExpressionParsing.test();
             myExpressionParsing.parseExpression();
         } else if (noTypeReference) {
@@ -1118,7 +1084,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             @NotNull DeclarationParsingMode declarationParsingMode
     ) {
 
-//       TODO �����������ж�
+//       TODO 声明作用域判断
 
         return switch (getTokenId()) {
 
@@ -1539,7 +1505,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        parseIdentifierByTitle("enum entry", IDENTIFIER_RBRACKET_LBRACKET_SET);
 
 
-//        ������
+//        处理泛型
 //        parseTypeArgumentList();
 
 
@@ -1688,6 +1654,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         if (token == EXTEND_KEYWORD) {
 
+            if(at(LT)){
+                parseTypeParameterList(TYPE_PARAMETER_GT_RECOVERY_SET);
+            }
+
+
             if (atSet(BASICTYPES)) {
                 advance();
             } else if (at(IDENTIFIER)) {
@@ -1697,12 +1668,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 error("Expecting a type");
             }
         } else {
-            parseIdentifier(); //����
+            parseIdentifier(); //类名
             typeParametersDeclared = parseTypeParameterList(TYPE_PARAMETER_GT_RECOVERY_SET);
         }
 
 
-        // TODO �̳�
+        // TODO 继承
         if (at(LTCOLON)) {
             advance(); // COLON
             parseDelegationSpecifierList();
@@ -1733,7 +1704,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             }
 
         } else {
-            error("Expecting '{' or Inherit");  //Ӧ��Ϊ'{' ���߼̳�
+            error("Expecting '{' or Inherit");  //应该为'{' 或者继承
         }
 
 
@@ -1829,7 +1800,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         PsiBuilder.Marker decl = mark();
 
 
-        ModifierDetector detector = new ModifierDetector(this);
+        ModifierDetector detector = new ModifierDetector();
         parseModifierList(detector, TokenSet.EMPTY, rollbackMacro);
 
 
@@ -1863,13 +1834,13 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 parseBlock();
                 declType = FUNC;
             } else if (at(IDENTIFIER) && lookahead(1) == LPAR) {
-//                �����캯��
+//                主构造函数
                 parseMainInitFunc();
                 declType = CLASS_MAIN_INIT;
             } else if (at(TILDE) && lookahead(1) == INIT_KEYWORD) {
                 advance(); // TILDE ~
                 parseInitFunc();
-//                ��������
+//                析构函数
                 declType = CLASS_TILDE_INIT;
 
             }
@@ -1886,17 +1857,16 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
         if (at(RBRACE)) {
-            error("Function body expected");  //Ӧ��Ϊ������
+            error("Function body expected");  //应该为函数体
             return;
         }
 
         myBuilder.disableJoiningComplexTokens();
-        //���Ͳ���
+        //类型参数
         if (at(LPAR)) {
-            parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET);
-
+            parseInitFuncValueParameterList();
         } else {
-//            error("Expecting '(' ");  //Ӧ��Ϊ'('
+//            error("Expecting '(' ");  //应该为'('
             errorAndAdvance("Expecting '('  but available" + myBuilder.getTokenText());
 
         }
@@ -1904,7 +1874,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (at(LBRACE)) {
             parseFunctionBody();
         } else {
-            error("Expecting '{' ");  //Ӧ��Ϊ'{'
+            error("Expecting '{' ");  //应该为'{'
         }
     }
 
@@ -1914,17 +1884,16 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
         if (at(RBRACE)) {
-            error("Function body expected");  //Ӧ��Ϊ������
+            error("Function body expected");  //应该为函数体
             return;
         }
 
         myBuilder.disableJoiningComplexTokens();
-        //���Ͳ���
+        //类型参数
         if (at(LPAR)) {
-            parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET);
-
+            parseInitFuncValueParameterList();
         } else {
-//            error("Expecting '(' ");  //Ӧ��Ϊ'('
+//            error("Expecting '(' ");  //应该为'('
             errorAndAdvance("Expecting '('  but available" + myBuilder.getTokenText());
         }
 
@@ -1948,7 +1917,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (at(LBRACE)) {
             parseFunctionBody();
         } else {
-            error("Expecting '{' ");  //Ӧ��Ϊ'{'
+            error("Expecting '{' ");  //应该为'{'
         }
     }
 
@@ -1982,32 +1951,32 @@ public class CangJieParsing extends AbstractCangJieParsing {
         assert _at(MAIN_KEYWORD);
         advance();
         if (at(RBRACE)) {
-            error("Function body expected");  //Ӧ��Ϊ������
+            error("Function body expected");  //应该为函数体
             return MAIN_FUNC;
         }
         myBuilder.disableJoiningComplexTokens();
-        //���Ͳ���
+        //类型参数
         if (at(LPAR)) {
             parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET);
 
         } else {
-            error("Expecting '(' ");  //Ӧ��Ϊ'('
+            error("Expecting '(' ");  //应该为'('
         }
 
-        //����ֵ����
+        //返回值类型
         if (at(COLON)) {
             advance(); // COLON
             parseTypeRef();
         }
 
-        //������
+        //函数体
 //        if (at(SEMICOLON)) {
 //            advance(); // SEMICOLON
 //        } else
         if (at(LBRACE)) {
             parseFunctionBody();
         } else {
-            error("Expecting '{' ");  //Ӧ��Ϊ'{'
+            error("Expecting '{' ");  //应该为'{'
         }
         return MAIN_FUNC;
     }
@@ -2043,13 +2012,13 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     /*
-     * IDENTIFIER ��ʶ��
+     * IDENTIFIER 标识符
      */
     private void parseIdentifier() {
         if (expect(IDENTIFIER)) return;
 
         if (atSet(KEYWORDS)) {
-            error("Keywords cannot be used"); //�ؼ��ֲ���ʹ��
+            error("Keywords cannot be used"); //关键字不能使用
         }
 
         if (!at(LPAR)) {
@@ -2057,7 +2026,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             return;
         }
 
-        error("Expecting an CangJie identifier"); //Ӧ��Ϊ��ʶ��
+        error("Expecting an CangJie identifier"); //应该为标识符
 
     }
 
@@ -2068,7 +2037,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             String title, TokenSet recoverySet, boolean isUnderline
     ) {
 
-        if (isUnderline && expect(CangJieExpressionParsing.getIDENTIFIER_RECOVERY_SET())) {
+        if (isUnderline && expect(CangJieExpressionParsing.IDENTIFIER_RECOVERY_SET)) {
             return;
         }
 
@@ -2106,7 +2075,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
         if (at(RBRACE)) {
-            error("Function body expected");  //Ӧ��Ϊ������
+            error("Function body expected");  //应该为函数体
             return FUNC;
         }
 
@@ -2120,7 +2089,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //                error("unexpected modifier 'operator' on function declaration in 'top-level' scope");
 //            } else
 
-            //���������
+            //运算符重载
 
             IElementType operatorToken = getGtTokenType();
 
@@ -2173,7 +2142,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 //            return FUNC;
         } */ else {
-            //������
+            //函数名
             parseIdentifier();
         }
 
@@ -2187,21 +2156,21 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
 
 
-        //���Ͳ���
+        //类型参数
         if (at(LPAR)) {
             parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET);
 
         } else {
-            error("Expecting '(' ");  //Ӧ��Ϊ'('
+            error("Expecting '(' ");  //应该为'('
         }
 
-        //����ֵ����
+        //返回值类型
         if (at(COLON)) {
             advance(); // COLON
             parseTypeRef();
         }
         parseTypeConstraintsGuarded(typeParameterListOccurred);
-        //������
+        //函数体
 //        if (at(SEMICOLON)) {
 //            advance(); // SEMICOLON
 //        } else
@@ -2234,11 +2203,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
             parseFunctionBody();
             if (isForeign) {
-                error("foreign function can not have body");  //Ӧ��Ϊ'{'
+                error("foreign function can not have body");  //应该为'{'
             }
 
         } else if (!(isInterfaceMethod || (classdetector != null && classdetector.isAbstractDetected())) && (detector != null && !detector.isForeignDetected())) {
-            error("Expecting '{' ");  //Ӧ��Ϊ'{'
+            error("Expecting '{' ");  //应该为'{'
         }
 
         return FUNC;
@@ -2264,7 +2233,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (at(LBRACE)) {
             parseBlock();
         } else {
-            error("Expecting '{' ");  //Ӧ��Ϊ'{'
+            error("Expecting '{' ");  //应该为'{'
         }
 
         synchronizedMarker.done(SYNCHRONIZED_EXPRESSION);
@@ -2279,7 +2248,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (at(LBRACE)) {
             parseBlock();
         } else {
-            error("Expecting '{' ");  //Ӧ��Ϊ'{'
+            error("Expecting '{' ");  //应该为'{'
         }
 
 
@@ -2294,7 +2263,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (at(LBRACE)) {
             parseBlock();
         } else {
-            error("Expecting '{' ");  //Ӧ��Ϊ'{'
+            error("Expecting '{' ");  //应该为'{'
         }
 
 
@@ -2302,13 +2271,13 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     /**
-     * �ⲿ����������
+     * 外部函数声明块
      */
     private IElementType parseForeign() {
         assert _at(FOREIGN_KEYWORD);
         advance();
 
-//        ����������
+//        处理声明块
         if (at(LBRACE)) {
             parseForeignBody();
 
@@ -2322,7 +2291,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     /**
-     * �ⲿ����������
+     * 外部函数声明块
      */
     private void parseForeignBody() {
         assert _at(LBRACE);
@@ -2331,7 +2300,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         advance(); // LBRACE
 
         while (!at(RBRACE) && !eof()) {
-            ModifierDetector detector = new ModifierDetector(this);
+            ModifierDetector detector = new ModifierDetector();
 
             parseModifierList(detector, TokenSet.EMPTY);
 
@@ -2360,7 +2329,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     /**
-     * �궨��  �뷽��������ͬ
+     * 宏定义  与方法定义相同
      *
      * @return
      */
@@ -2369,7 +2338,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         advance();
 
         if (at(RBRACE)) {
-            error("Function body expected");  //Ӧ��Ϊ������
+            error("Function body expected");  //应该为函数体
             return FUNC;
         }
 
@@ -2377,7 +2346,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         myBuilder.disableJoiningComplexTokens();
 
 
-        //������
+        //函数名
         parseIdentifier();
 
 
@@ -2390,28 +2359,28 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
 
 
-        //���Ͳ���
+        //类型参数
         if (at(LPAR)) {
             parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET);
 
         } else {
-            error("Expecting '(' ");  //Ӧ��Ϊ'('
+            error("Expecting '(' ");  //应该为'('
         }
 
-        //����ֵ����
+        //返回值类型
         if (at(COLON)) {
             advance(); // COLON
             parseTypeRef();
         }
         parseTypeConstraintsGuarded(typeParameterListOccurred);
-        //������
+        //函数体
 //        if (at(SEMICOLON)) {
 //            advance(); // SEMICOLON
 //        } else
         if (at(LBRACE)) {
             parseFunctionBody();
         } else {
-            error("Expecting '{' ");  //Ӧ��Ϊ'{'
+            error("Expecting '{' ");  //应该为'{'
         }
         return MACRO;
     }
@@ -2426,9 +2395,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (at(LBRACE)) {
             parseBlock();
         } else {
-            error("Expecting function body"); //Ӧ��Ϊ������
+            error("Expecting function body"); //应该为函数体
         }
     }
+
 
     /*
      * functionParameter
@@ -2442,6 +2412,18 @@ public class CangJieParsing extends AbstractCangJieParsing {
     //    private void parseFunctionTypeValueParameterModifierList() {
 //        doParseModifierList(null, RESERVED_VALUE_PARAMETER_MODIFIER_KEYWORDS, NO_ANNOTATIONS, NO_MODIFIER_BEFORE_FOR_VALUE_PARAMETER);
 //    }
+
+
+    private void parseInitFuncValueParameterList() {
+        parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET, true);
+    }
+
+
+    private void parseValueParameterList(boolean isFunctionTypeContents, boolean typeRequired, TokenSet recoverySet) {
+        parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET, false);
+
+    }
+
     /*
      * functionParameters
      *   : "(" functionParameter{","}? ")"
@@ -2455,7 +2437,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   : parameter ("=" element)?
      *   ;
      */
-    private void parseValueParameterList(boolean isFunctionTypeContents, boolean typeRequired, TokenSet recoverySet) {
+    private void parseValueParameterList(boolean isFunctionTypeContents, boolean typeRequired, TokenSet recoverySet, boolean isInitFunc) {
         assert at(LPAR);
         PsiBuilder.Marker parameters = mark();
 
@@ -2464,13 +2446,13 @@ public class CangJieParsing extends AbstractCangJieParsing {
         advance(); // (
 
 
-//        ���ڱ������   ҪôȫΪ����������Ҫôȫ��Ϊ��������
+//        用于报告错误   要么全为命名参数，要么全不为命名参数
 //        bool isNamedParameter = false;
-        List<Boolean> isNamedParameters = new ArrayList<Boolean>();
+        List<Boolean> isNamedParameters = new ArrayList<>();
 
         while (!at(RPAR) && !atSet(recoverySet) && !eof()) {
             if (at(COMMA)) {
-                errorAndAdvance("Expecting a parameter declaration");  //Ӧ��Ϊ��������
+                errorAndAdvance("Expecting a parameter declaration");  //应该为参数声明
             }
             if (isFunctionTypeContents) {
                 if (!tryParseValueParameter(typeRequired)) {
@@ -2485,19 +2467,19 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
                 }
             } else {
-                parseValueParameter(typeRequired);
+                parseValueParameter(false, typeRequired, isInitFunc);
             }
 //            parseValueParameter(typeRequired);
             if (at(COMMA)) {
                 advance(); // COMMA
 
                 if (at(RPAR)) {
-                    error("Expecting a parameter declaration");  //Ӧ��Ϊ��������
+                    error("Expecting a parameter declaration");  //应该为参数声明
                 }
 
             } else {
                 if (!at(RPAR)) {
-                    errorAndAdvance("Expecting ',' or ')',found '" + myBuilder.getTokenText() + "'");  //Ӧ��Ϊ��������
+                    errorAndAdvance("Expecting ',' or ')',found '" + myBuilder.getTokenText() + "'");  //应该为参数声明
                 }
 //                if (!atSet(isFunctionTypeContents ? LAMBDA_VALUE_PARAMETER_FIRST : VALUE_PARAMETER_FIRST)) break;
 
@@ -2507,11 +2489,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 //        if (!at(RPAR) && !atSet(recoverySet) && false) {
 //            while (true) {
-//                //��һ������Ϊ,
+//                //第一个不能为,
 //                if (at(COMMA)) {
-//                    errorAndAdvance("Expecting a parameter declaration");  //Ӧ��Ϊ��������
+//                    errorAndAdvance("Expecting a parameter declaration");  //应该为参数声明
 //
-//                } else if (at(RPAR)) {  //���Ϊ)������ѭ��
+//                } else if (at(RPAR)) {  //如果为)则跳出循环
 //                    break;
 //                }
 //
@@ -2541,7 +2523,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
         if (isNamedParameters.contains(true) && isNamedParameters.contains(false)) {
-//            ҪôȫΪtrue ҪôȫΪfalse
+//            要么全为true 要么全为false
             parameters.error("in a parameter type list, either all parameters must be named, or none of them; mixed is not allowed");
         } else {
             parameters.done(VALUE_PARAMETER_LIST);
@@ -2555,14 +2537,32 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     private boolean parseValueParameter(boolean rollbackOnFailure, boolean typeRequired) {
+        return parseValueParameter(false, typeRequired, false);
+
+    }
+
+    private boolean parseValueParameter(boolean rollbackOnFailure, boolean typeRequired, boolean isInitFunc) {
         PsiBuilder.Marker parameter = mark();
 
 //
 //        if (at(VAR_KEYWORD) || at(LET_KEYWORD)) {
 //            advance(); // VAR_KEYWORD | LET_KEYWORD
 ////            return false;
-////            error("Expecting parameter declaration");  //Ӧ��Ϊ��������
+////            error("Expecting parameter declaration");  //应该为参数声明
 //        }
+        if (isInitFunc) {
+
+
+            ModifierDetector detector = new ModifierDetector();
+
+            parseModifierList(detector, TokenSet.EMPTY, true);
+            if ((at(LET_KEYWORD) || at(VAR_KEYWORD))) {
+                advance();
+            } else if (detector.getSize() > 0) {
+
+                error("Missing variable declaration symbol let or var after modifier");  //应该为参数声明
+            }
+        }
 
 
         if (!parseFunctionParameterRest(typeRequired) && rollbackOnFailure) {
@@ -2574,22 +2574,25 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return true;
     }
 
+
     /*
-     * functionParameterRest  ��������
+     * functionParameterRest  函数参数
      *   : parameter
-     *   : identifier('!') ':' type ("=" element)  ! �� = ����ͬʱ����
-     *   ; identifier ':' ('?')?type   ����ΪOption.Nono
+     *   : identifier('!') ':' type ("=" element)  ! 和 = 必须同时出现
+     *   ; identifier ':' ('?')?type   可以为Option.Nono
      *   ;
      */
     private boolean parseFunctionParameterRest(boolean typeRequired) {
         boolean noErrors = true;
         boolean isDefault = false;
-        // �ָ� 'func foo(Array<String>) {}'
-        // �ָ� 'func foo(: Int) {}'
+
+
+        // 恢复 'func foo(Array<String>) {}'
+        // 恢复 'func foo(: Int) {}'
         if ((at(IDENTIFIER) && lookahead(1) == LT) || at(COLON)) {
-            error("Missing parameter name");  //ȱ�ٲ�������
+            error("Missing parameter name");  //缺少参数名称
             if (at(COLON)) {
-                // ����noErrors==true�������ں������͵Ľ��������в���ع��ԡ�������ͷ��δ��������
+                // 保留noErrors==true，这样在函数类型的解析过程中不会回滚以“：”开头的未命名参数
                 advance(); // :
 
 
@@ -2598,10 +2601,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
             }
             parseTypeRef();
         } else {
-            expect(CangJieExpressionParsing.getIDENTIFIER_RECOVERY_SET(), "Missing parameter name", PARAMETER_NAME_RECOVERY_SET);
+            expect(CangJieExpressionParsing.IDENTIFIER_RECOVERY_SET, "Missing parameter name", PARAMETER_NAME_RECOVERY_SET);
 
             if (expect(EXCL)) {
-//              ������Ĭ��ֵ
+//              可以有默认值
                 isDefault = true;
             }
 
@@ -2609,7 +2612,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 advance(); // :
 
                 if (at(IDENTIFIER) && lookahead(1) == COLON) {
-                    // �ָ� "func foo(x: y: Int)" ���� 'y:' ʱ����������һ������������
+                    // 恢复 "func foo(x: y: Int)" 处理 'y:' 时，可能是下一个参数的名称
                     error("Type reference expected");
                     return false;
                 }
@@ -2620,7 +2623,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 noErrors = false;
             }
 //            {
-//                errorWithoutAdvancing("Expecting ':' Missing type declaration");  //Ӧ��Ϊ':'
+//                errorWithoutAdvancing("Expecting ':' Missing type declaration");  //应该为':'
 //                noErrors = false;
 //            }
 
@@ -2689,7 +2692,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     private void recoverOnPlatformTypeSuffix() {
-        // ƽ̨���͵Ļָ�
+        // 平台类型的恢复
         if (at(EXCL)) {
             PsiBuilder.Marker error = mark();
             advance(); // EXCL
@@ -2751,7 +2754,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *    - Array<(out) Foo>!
      */
     public boolean parseUserType() {
-//        �Ƿ���з���
+//        是否具有泛型
         boolean isTypeArgumentList = false;
 
         PsiBuilder.Marker userType = mark();
@@ -2834,7 +2837,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     /**
-     * ������������
+     * 解析类型引用
      *
      * @return
      */
@@ -2845,7 +2848,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     /**
-     * ������������
+     * 解析基本类型
      */
     private boolean parseBasicType() {
 
@@ -2906,7 +2909,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     /**
-     * �������Ͳ����б�
+     * 解析类型参数列表
      */
     boolean tryParseTypeArgumentList(TokenSet extraRecoverySet) {
 
@@ -2972,12 +2975,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     /**
      * @param extraRecoverySet
-     * @param isConstraint     �Ƿ�ΪԼ����Լ��û���ʺ�,������userType
+     * @param isConstraint     是否为约束，约束没有问号,不解析userType
      */
     void parseTypeRef(TokenSet extraRecoverySet, boolean isConstraint) {
 
         PsiBuilder.Marker typeRefMarker = mark();
-        //�Ƚ����������ͣ�������ǻ������ͣ��������������
+        //先解析基本类型，如果不是基本类型，则解析类型引用
 
 
         if (!isConstraint) {
@@ -3007,7 +3010,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     enum MacroType {
         MACRO_CALL,
-        //        ע��
+        //        注解
         ANNOTATION,
 
     }
@@ -3036,8 +3039,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     static class ModifierDetector implements Consumer<IElementType> {
-        PsiBuilder.Marker OPERATOR_MARK = null;
-        private CangJieParsing parsing = null;
+
         private boolean abstractDetected = false;
         private boolean mutDetected = false;
         private boolean publicDetected = false;
@@ -3051,7 +3053,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         private boolean redefDetected = false;
         private boolean openDetected = false;
         private boolean staticDetected = false;
-        //ע������
+        //注解数量
         private int annotationCount = 0;
 
         ModifierDetector() {
@@ -3059,17 +3061,13 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
 
 
-        ModifierDetector(CangJieParsing parsing) {
-            this.parsing = parsing;
-        }
-
         /**
-         * �������η�������
+         * 返回修饰符的数量
          *
          * @return size
          */
         public int getSize() {
-//            ����������������
+//            遍历该类所有属性
             int size = 0;
 
 

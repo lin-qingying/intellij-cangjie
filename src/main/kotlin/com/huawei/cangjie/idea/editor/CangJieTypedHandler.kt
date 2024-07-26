@@ -28,7 +28,9 @@ import com.intellij.util.DocumentUtil
 
 
 internal object CangJieTypedHandlerHelper {
-    internal val PREVIOUS_IN_STRING_DOLLAR_TYPED_OFFSET_KEY = Key.create<Int>("PREVIOUS_IN_STRING_DOLLAR_TYPED_OFFSET_KEY")
+    internal val PREVIOUS_IN_STRING_DOLLAR_TYPED_OFFSET_KEY =
+        Key.create<Int>("PREVIOUS_IN_STRING_DOLLAR_TYPED_OFFSET_KEY")
+
     internal fun autoPopupParameterInfo(project: Project, editor: Editor) {
         val offset = editor.caretModel.offset
         if (offset == 0) return
@@ -37,7 +39,7 @@ internal object CangJieTypedHandlerHelper {
         if (CjTokens.COMMENTS.contains(tokenType) ||
             tokenType === CjTokens.REGULAR_STRING_PART ||
             tokenType === CjTokens.OPEN_QUOTE ||
-            tokenType === CjTokens.CHARACTER_LITERAL
+            tokenType === CjTokens.RUNE_LITERAL
         ) {
             return
         }
@@ -70,7 +72,7 @@ internal object CangJieTypedHandlerHelper {
      */
     private fun isAnnotationCompletion(atElement: PsiElement): Boolean {
         val errorElement = atElement.parent as? PsiErrorElement
-        return errorElement?.parent.let { it is CjDeclarationModifierList  }
+        return errorElement?.parent.let { it is CjDeclarationModifierList }
     }
 
     internal fun autoPopupAt(project: Project, editor: Editor) {
@@ -81,7 +83,9 @@ internal object CangJieTypedHandlerHelper {
             val lastNodeType = elementAtCaret?.node?.elementType ?: return@autoPopupMemberLookup false
 
             lastNodeType === CDocTokens.TEXT ||
-                    lastNodeType === CjTokens.AT && (isLabelCompletion(chars, offset) || isAnnotationCompletion(elementAtCaret))
+                    lastNodeType === CjTokens.AT && (isLabelCompletion(chars, offset) || isAnnotationCompletion(
+                elementAtCaret
+            ))
         }
     }
 
@@ -89,7 +93,7 @@ internal object CangJieTypedHandlerHelper {
         AutoPopupController.getInstance(project).autoPopupMemberLookup(editor) { file: PsiFile ->
             val offset = editor.caretModel.offset
             val lastElement = file.findElementAt(offset - 1) ?: return@autoPopupMemberLookup false
-          isAnnotationAfterUseSiteTargetCompletion(lastElement)
+            isAnnotationAfterUseSiteTargetCompletion(lastElement)
         }
 
     /**
@@ -105,7 +109,6 @@ internal object CangJieTypedHandlerHelper {
 
     private fun endsWith(chars: CharSequence, offset: Int, text: String): Boolean =
         if (offset < text.length) false else chars.subSequence(offset - text.length, offset).toString() == text
-
 
 
     internal fun autoIndentCase(
@@ -134,7 +137,8 @@ internal object CangJieTypedHandlerHelper {
                 } else {
                     val document = PsiDocumentManager.getInstance(project).getDocument(file)
                     if (document != null) {
-                        CodeStyleManager.getInstance(project).adjustLineIndent(document, DocumentUtil.getLineStartOffset(offset, document))
+                        CodeStyleManager.getInstance(project)
+                            .adjustLineIndent(document, DocumentUtil.getLineStartOffset(offset, document))
                     }
                 }
 
@@ -170,11 +174,16 @@ class CangJieTypedHandler : TypedHandlerDelegate() {
 
                 autoPopupParameterInfo(project, editor)
             }
+
             '>' -> {
-                if (CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET && LtGtTypingUtils.handleCangJieGTInsert(editor)) {
+                if (CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET && LtGtTypingUtils.handleCangJieGTInsert(
+                        editor
+                    )
+                ) {
                     return Result.STOP
                 }
             }
+
             '{' -> {
                 // Returning Result.CONTINUE will cause inserting "{}" for unmatched '{'
                 val offset = editor.caretModel.offset
@@ -207,13 +216,17 @@ class CangJieTypedHandler : TypedHandlerDelegate() {
                         }
                     }
 
-                    if (leaf.text == "}" && parent is CjFunctionLiteral && document.getLineNumber(offset) == document.getLineNumber(parent.getTextRange().startOffset)) {
+                    if (leaf.text == "}" && parent is CjFunctionLiteral && document.getLineNumber(offset) == document.getLineNumber(
+                            parent.getTextRange().startOffset
+                        )
+                    ) {
                         EditorModificationUtilEx.insertStringAtCaret(editor, "{} ", false, false)
                         editor.caretModel.moveToOffset(offset + 1)
                         return Result.STOP
                     }
                 }
             }
+
             '.' -> CangJieTypedHandlerHelper.autoPopupMemberLookup(project, editor)
             ':' -> CangJieTypedHandlerHelper.autoPopupColon(project, editor)
             '[' -> CangJieTypedHandlerHelper.autoPopupParameterInfo(project, editor)
@@ -230,7 +243,8 @@ class CangJieTypedHandler : TypedHandlerDelegate() {
         var previousDollarInStringOffset: Int? = null
         if (isGlobalPreviousDollarInString) {
             isGlobalPreviousDollarInString = false
-            previousDollarInStringOffset = editor.getUserData(CangJieTypedHandlerHelper.PREVIOUS_IN_STRING_DOLLAR_TYPED_OFFSET_KEY)
+            previousDollarInStringOffset =
+                editor.getUserData(CangJieTypedHandlerHelper.PREVIOUS_IN_STRING_DOLLAR_TYPED_OFFSET_KEY)
         }
         editor.putUserData(CangJieTypedHandlerHelper.PREVIOUS_IN_STRING_DOLLAR_TYPED_OFFSET_KEY, null)
 
@@ -249,6 +263,7 @@ class CangJieTypedHandler : TypedHandlerDelegate() {
 
                 return Result.STOP
             }
+
             c == '{' && CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET -> {
                 PsiDocumentManager.getInstance(project).commitDocument(editor.document)
                 val offset = editor.caretModel.offset
@@ -268,7 +283,8 @@ class CangJieTypedHandler : TypedHandlerDelegate() {
                             lastInLongTemplateEntry.getParent().textLength == identifier.textLength + "\${}".length
 
                     if (!isSimpleLongTemplateEntry) {
-                        val isAfterTypedDollar = previousDollarInStringOffset != null && previousDollarInStringOffset.toInt() == offset - 1
+                        val isAfterTypedDollar =
+                            previousDollarInStringOffset != null && previousDollarInStringOffset.toInt() == offset - 1
                         if (isAfterTypedDollar) {
                             editor.document.insertString(offset, "}")
                             return Result.STOP
@@ -318,7 +334,8 @@ class CangJieTypedHandler : TypedHandlerDelegate() {
             if (CjTokens.COMMENTS.contains(tokenType) ||
                 tokenType === CjTokens.REGULAR_STRING_PART ||
                 tokenType === CjTokens.OPEN_QUOTE ||
-                tokenType === CjTokens.CHARACTER_LITERAL || tokenType == CjTokens.CHARACTER_BYTE_LITERAL
+                tokenType === CjTokens.RUNE_LITERAL ||
+                tokenType == CjTokens.CHARACTER_BYTE_LITERAL
             ) {
                 return
             }

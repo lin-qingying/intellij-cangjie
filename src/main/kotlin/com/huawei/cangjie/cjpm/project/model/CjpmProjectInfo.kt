@@ -21,10 +21,10 @@ import java.util.*
 data class CjpmProjectInfo(
 
     @JsonProperty("cjc_version")
-    private  val cjc_version1: String? = null,
+    private val cjc_version1: String? = null,
 
     @JsonProperty("cjc-version")
-private    val cjc_version2: String? = null,
+    private val cjc_version2: String? = null,
 
     val organization: String? = null,
     val name: String,
@@ -39,26 +39,26 @@ private    val cjc_version2: String? = null,
 
 //     依赖模块信息配置项，非必须
     @JsonDeserialize(using = Require.ListDeserializer::class)
-    private    val requires: List<Dependencie> = emptyList(),
+    private val requires: List<Dependencie> = emptyList(),
 
 
 //    用于指定仅在开发过程中使用的依赖项，非必须
     @JsonProperty("dev_requires")
     @JsonDeserialize(using = Require.ListDeserializer::class)
-    private  val devRequires: List<Dependencie> = emptyList(),
+    private val devRequires: List<Dependencie> = emptyList(),
 
 
 //    依赖的仓颉package， 非必须
     @JsonProperty("package_requires")
     @JsonDeserialize(using = Require.ListDeserializer::class)
-    private   val package_requires1: List<PackageRequires> = emptyList(),
+    private val package_requires1: List<PackageRequires> = emptyList(),
     @JsonProperty("package-requires")
     @JsonDeserialize(using = Require.ListDeserializer::class)
-    private    val package_requires2: List<PackageRequires> = emptyList(),
+    private val package_requires2: List<PackageRequires> = emptyList(),
 //    外部调用 c 库的依赖项，非必须
     @JsonProperty("foreign_requires")
     @JsonDeserialize(using = ForeignRequires.ListDeserializer::class)
-    private   val foreign_requires1: List<ForeignRequires> = emptyList(),
+    private val foreign_requires1: List<ForeignRequires> = emptyList(),
     @JsonProperty("ffi")
     @JsonDeserialize(using = ForeignRequires.ListDeserializer1::class)
     private val foreign_requires2: List<ForeignRequires> = emptyList(),
@@ -67,7 +67,7 @@ private    val cjc_version2: String? = null,
 //项目类型 二进制执行程序，静态库，动态库
     @JsonProperty("output_type")
     @JsonDeserialize(using = OutPutType.EnumDeserializer::class)
-    private   val output_type1: OutPutType? = null,
+    private val output_type1: OutPutType? = null,
     @JsonProperty("output-type")
     @JsonDeserialize(using = OutPutType.EnumDeserializer::class)
     private val output_type2: OutPutType? = null,
@@ -75,15 +75,15 @@ private    val cjc_version2: String? = null,
 
 //    额外编译命令选项，非必须
     @JsonProperty("command_option")
-    private  val command_option1: String? = null,
+    private val command_option1: String? = null,
     @JsonProperty("command-option")
-    private  val command_option2: String? = null,
+    private val command_option2: String? = null,
 
 //    传给链接器的编译选项，可用于透传安全编译命令，如下所示。注意，这里配置的命令在编译时只会自动透传给动态库和可执行文件对应的包。
     @JsonProperty("link_option")
-    private    val link_option1: String? = null,
+    private val link_option1: String? = null,
     @JsonProperty("link-option")
-    private  val link_option2: String? = null,
+    private val link_option2: String? = null,
 
 //    按照条件选项透传给 cjc 的命令
     @JsonProperty("condition_option")
@@ -94,15 +94,15 @@ private    val cjc_version2: String? = null,
 //    单包配置选项，非必须
     @JsonProperty("package_configuration")
     @JsonDeserialize(using = PackageConfiguration.ListDeserializer::class)
-    private    val package_configuration1: List<PackageConfiguration> = emptyList(),
+    private val package_configuration1: List<PackageConfiguration> = emptyList(),
     @JsonProperty("package-configuration")
     @JsonDeserialize(using = PackageConfiguration.ListDeserializer::class)
-    private  val package_configuration2: List<PackageConfiguration> = emptyList(),
+    private val package_configuration2: List<PackageConfiguration> = emptyList(),
 
 
 //    交叉编译到目标平台所需的配置项
     @JsonProperty("cross_compile_configuration")
-    private   val cross_compile_configuration1: Map<String, String> = mapOf(),
+    private val cross_compile_configuration1: Map<String, String> = mapOf(),
     @JsonProperty("cross_compile-configuration")
     private val cross_compile_configuration2: Map<String, String> = mapOf(),
 
@@ -142,6 +142,7 @@ private    val cjc_version2: String? = null,
     var buildDir: String
     val packageRequires: List<PackageRequires>
     val conditionOption: Map<String, String>
+
     init {
         cjcVersion = cjc_version1 ?: cjc_version2 ?: ""
         commandOption = command_option1 ?: command_option2

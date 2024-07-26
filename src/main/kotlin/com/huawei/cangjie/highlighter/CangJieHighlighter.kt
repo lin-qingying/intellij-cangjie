@@ -90,7 +90,7 @@ class CangJieHighlighter : SyntaxHighlighterBase() {
                 CangJieHighlightingColors.STRING_ESCAPE
             keys1[CjTokens.ESCAPE_SEQUENCE] =
                 CangJieHighlightingColors.STRING_ESCAPE
-            keys1[CjTokens.CHARACTER_LITERAL] =
+            keys1[CjTokens.RUNE_LITERAL] =
                 CangJieHighlightingColors.STRING
             keys1[CjTokens.EOL_COMMENT] =
                 CangJieHighlightingColors.LINE_COMMENT

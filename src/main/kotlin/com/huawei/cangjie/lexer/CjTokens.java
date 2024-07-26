@@ -15,7 +15,7 @@ public interface CjTokens {
     int SHEBANG_COMMENT_Id = 5;
     int INTEGER_LITERAL_Id = 6;
     int FLOAT_LITERAL_Id = 7;
-    int CHARACTER_LITERAL_Id = 8;
+    int RUNE_LITERAL_Id = 8;
     int CLOSING_QUOTE_Id = 9;
     int OPEN_QUOTE_Id = 10;
     int REGULAR_STRING_PART_Id = 11;
@@ -154,7 +154,8 @@ public interface CjTokens {
     int FOREIGN_KEYWORD_Id = 132;
     int UNSAFE_KEYWORD_Id = 133;
     int OPERATOR_KEYWORD_Id = 141;
-
+    int INTERNAL_KEYWORD_Id = 142;
+    int QUOTE_KEYWORD_Id = 143;
     int HASH_Id = 94;
     int MAIN_KEYWORD_Id = 149;
 
@@ -174,7 +175,7 @@ public interface CjTokens {
 
     int LTCOLON_Id = 163;
 
-    int FROM_KEYWORD_Id = 164;
+
 
     int MUT_KEYWORD_Id = 165;
     int PROP_KEYWORD_Id = 166;
@@ -211,7 +212,8 @@ public interface CjTokens {
 
     CjToken UNIT_LTIERAL = new CjToken("UNIT_LTIERAL", UNIT_LTIERAL_Id);
     CjToken TUPLE_LTIERAL = new CjToken("TUPLE_LTIERAL", TUPLE_LTIERAL_Id);
-    CjToken CHARACTER_LITERAL = new CjToken("CHARACTER_LITERAL", CHARACTER_LITERAL_Id);
+    CjToken RUNE_LITERAL = new CjToken("RUNE_LITERAL", RUNE_LITERAL_Id);
+
     CjToken CHARACTER_BYTE_LITERAL = new CjToken("CHARACTER_BYTE_LITERAL", CHARACTER_BYTE_LITERAL_Id);
     CjToken SHOP_STRING = new CjToken("SHOP_STRING", SHOP_STRING_Id);
 
@@ -357,7 +359,7 @@ public interface CjTokens {
     CjKeywordToken IMPORT_KEYWORD = CjKeywordToken.keyword("import", IMPORT_KEYWORD_Id);
 
 
-    CjKeywordToken FROM_KEYWORD = CjKeywordToken.keyword("from", FROM_KEYWORD_Id);
+
     CjKeywordToken WHERE_KEYWORD = CjKeywordToken.keyword("where", WHERE_KEYWORD_Id);
     //    CjKeywordToken BY_KEYWORD = CjKeywordToken.softKeyword("by", BY_KEYWORD_Id);
     CjKeywordToken GET_KEYWORD = CjKeywordToken.softKeyword("get", GET_KEYWORD_Id);
@@ -379,7 +381,7 @@ public interface CjTokens {
     CjKeywordToken FLOAT32_KEYWORD = CjKeywordToken.keyword("Float32", FLOAT32_Id);
     CjKeywordToken FLOAT64_KEYWORD = CjKeywordToken.keyword("Float64", FLOAT64_Id);
     CjKeywordToken BOOL_KEYWORD = CjKeywordToken.keyword("Bool", BOOL_Id);
-    CjKeywordToken CHAR_KEYWORD = CjKeywordToken.keyword("Char", CHAR_Id);
+    CjKeywordToken RUNE_KEYWORD = CjKeywordToken.keyword("Rune", CHAR_Id);
     CjKeywordToken UNIT_KEYWORD = CjKeywordToken.keyword("Unit", UNIT_Id);
 
     CjModifierKeywordToken SEALED_KEYWORD = CjModifierKeywordToken.softKeywordModifier("sealed", SEALED_KEYWORD_Id);
@@ -394,6 +396,8 @@ public interface CjTokens {
 
 
     CjModifierKeywordToken STATIC_KEYWORD = CjModifierKeywordToken.keywordModifier("static", STATIC_KEYWORD_Id);
+    CjModifierKeywordToken INTERNAL_KEYWORD = CjModifierKeywordToken.keywordModifier("internal", INTERNAL_KEYWORD_Id);
+
 
     CjModifierKeywordToken PROTECTED_KEYWORD = CjModifierKeywordToken.keywordModifier("protected", PROTECTED_KEYWORD_Id);
     CjKeywordToken CATCH_KEYWORD = CjKeywordToken.keyword("catch", CATCH_KEYWORD_Id);
@@ -401,7 +405,7 @@ public interface CjTokens {
     CjKeywordToken FINALLY_KEYWORD = CjKeywordToken.keyword("finally", FINALLY_KEYWORD_Id);
 
     CjModifierKeywordToken REDEF_KEYWORD = CjModifierKeywordToken.keywordModifier("redef", REDEF_KEYWORD_Id);
-
+    CjKeywordToken QUOTE_KEYWORD = CjKeywordToken.keyword("quote", QUOTE_KEYWORD_Id);
     CjKeywordToken FOREIGN_KEYWORD = CjKeywordToken.keyword("foreign", FOREIGN_KEYWORD_Id);
     CjKeywordToken TYPE_KEYWORD = CjKeywordToken.keyword("type", TYPE_KEYWORD_Id);
 
@@ -414,7 +418,7 @@ public interface CjTokens {
 
     //基本类型
     TokenSet BASICTYPES = TokenSet.create(
-            INT8_KEYWORD, INT16_KEYWORD, INT32_KEYWORD, INT64_KEYWORD, UINT8_KEYWORD, UINT16_KEYWORD, UINT32_KEYWORD, UINT64_KEYWORD, FLOAT32_KEYWORD, FLOAT64_KEYWORD, BOOL_KEYWORD, CHAR_KEYWORD, UNIT_KEYWORD
+            INT8_KEYWORD, INT16_KEYWORD, INT32_KEYWORD, INT64_KEYWORD, UINT8_KEYWORD, UINT16_KEYWORD, UINT32_KEYWORD, UINT64_KEYWORD, FLOAT32_KEYWORD, FLOAT64_KEYWORD, BOOL_KEYWORD, RUNE_KEYWORD, UNIT_KEYWORD
     );
 
     TokenSet KEYWORDS = TokenSet.orSet(
@@ -428,7 +432,7 @@ public interface CjTokens {
                     MARCO_KEYWORD,
                     PROP_KEYWORD, ENUM_KEYWORD,
                     WHERE_KEYWORD,
-                    FROM_KEYWORD,
+
 //            ABC_KEYWORD,
                     IMPORT_KEYWORD,
                     OVERRIDE_KEYWORD, PRIVATE_KEYWORD, PUBLIC_KEYWORD, PROTECTED_KEYWORD,

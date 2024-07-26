@@ -3,6 +3,8 @@ package com.huawei.cangjie.idea.project.tools.projectWizard.wizard
 
 import com.huawei.cangjie.cjpm.CjpmConstants
 import com.huawei.cangjie.cjpm.findChild
+import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
+import com.huawei.cangjie.cjpm.toolchain.CjToolchainServices
 import com.huawei.cangjie.cjpm.toolchain.cjpm
 import com.huawei.cangjie.cjpm.toolchain.tools.Cjpm
 
@@ -20,6 +22,7 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.ide.util.projectWizard.ModuleBuilder
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -32,7 +35,7 @@ import com.intellij.openapi.vfs.VirtualFile
 
 class CangJieModuleBuilder(
     //    模块名
-    var moduleName: String? = null,
+//    var moduleName: String? = null,
 
     //    组织名
 //    var organizationName: String? = null,
@@ -70,7 +73,8 @@ class CangJieModuleBuilder(
                 modifiableRootModel.module,
                 root,
                 name,
-                if (moduleName.isNullOrEmpty()) name else moduleName!!,
+                name,
+//                if (moduleName.isNullOrEmpty()) name else moduleName!!,
 //                if (organizationName.isNullOrEmpty()) name else organizationName!!,
                 projectType ?: "executable",
 //                cjcVersion = toolchain.cjc().version
@@ -78,6 +82,12 @@ class CangJieModuleBuilder(
             ).unwrapOrElse {
                 LOG.error(it)
                 throw ConfigurationException(it.message)
+            }
+
+
+//            设置工具链
+            project.cangjieSettings.modify {
+                it.toolchain = toolchain
             }
 
             project.makeDefaultRunConfiguration(template)

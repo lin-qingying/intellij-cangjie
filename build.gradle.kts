@@ -1,13 +1,90 @@
+import Build_gradle.BuildType.*
 import groovy.xml.XmlParser
 import org.jetbrains.intellij.tasks.PatchPluginXmlTask
 import org.jetbrains.intellij.tasks.PrepareSandboxTask
 import org.jetbrains.intellij.tasks.PublishPluginTask
 import org.jetbrains.intellij.tasks.RunIdeTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.w3c.dom.Document
+import org.w3c.dom.Element
+import java.io.ByteArrayOutputStream
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.OutputKeys
+import javax.xml.transform.TransformerConfigurationException
+import javax.xml.transform.TransformerException
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
+
+
+val build_type: String by project
+
+enum class BuildType {
+
+
+    //   IDEA Ultimate Edition + nativeDebug本地调试插件  LLDB
+    IU_NATIVE_DEBUG,
+
+    // IDEA Community Edition + DAP调试插件
+    IC_DAP,
+
+    //    IDEA Community Edition + cidr本地代码调试   LLDB
+    IC_CIDR_NATIVE_DEBUG;
+
+
+    companion object {
+
+        fun fromString(str: String): BuildType {
+            return when (str) {
+                "IU_NATIVE_DEBUG" -> IU_NATIVE_DEBUG
+                "IC_DAP" -> IC_DAP
+                "IC_CIDR_NATIVE_DEBUG" -> IC_CIDR_NATIVE_DEBUG
+                else -> IC_DAP
+            }
+        }
+    }
+}
+
+
+//构建方式
+val buildType = BuildType.fromString(build_type)
+
+//IDEA版本
+val ideaVersion = "2024.1"
+//插件版本
+val cangjiePluginVersion = "1.1.5-beta"
+
 
 val kotlinVersion = "1.9.21"
 val tomlPlugin = "org.toml.lang"
+val terminalPlugin = "org.jetbrains.plugins.terminal"
+val nativeDebugPlugin: String = "com.intellij.nativeDebug:241.14494.73"
 val psiViewerPlugin: String = "PsiViewer:241-SNAPSHOT"
+
+
+val basePluginArchiveName = "intellij-cangjie"
+
+val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
+
+val pluginProjects: List<Project>
+    get() = rootProject.allprojects.filter { it.name != grammarKitFakePsiDeps }
+
+
+//moshi版本
+val moshiVersion = "1.15.0"
+//okio版本
+val okioVersion = "2.10.0"
+//toml4j版本
+val toml4jVersion = "0.7.3"
+//插件需要的依赖列表
+val pluginDescriptors = arrayOf(
+    "moshi-$moshiVersion.jar",
+    "moshi-adapters-${moshiVersion}.jar",
+    "moshi-kotlin-${moshiVersion}.jar",
+    "okio-jvm-${okioVersion}.jar",
+    "toml4j-${toml4jVersion}.jar",
+    "utils.jar"
+)
 
 plugins {
     idea
@@ -15,7 +92,7 @@ plugins {
     kotlin("jvm") version "1.9.21"
     id("org.jetbrains.intellij") version "1.15.0"
     id("org.jetbrains.grammarkit") version "2022.3.2"
-    kotlin("plugin.serialization") version "1.9.21"
+    kotlin("plugin.serialization") version "1.9.21" apply false
     id("org.gradle.test-retry") version "1.5.3"
 
 //    id("antlr")
@@ -32,11 +109,7 @@ val Project.dependencyCachePath
         }
         return cachePath.absolutePath
     }
-//
-//IDEA版本
-val ideaVersion = "2024.1"
-val ideaType = "IC" // Target IDE Platform
-val nativeDebugPlugin: String = "com.intellij.nativeDebug:241.14494.73"
+
 
 idea {
     module {
@@ -70,8 +143,15 @@ allprojects {
     }
     intellij {
         version.set(ideaVersion)
-        type.set(ideaType)
 
+
+        val ideaType = // Target IDE Platform
+            when (buildType) {
+                IU_NATIVE_DEBUG -> "IU"
+                IC_DAP, IC_CIDR_NATIVE_DEBUG -> "IC"
+
+            }
+        type.set(ideaType)
         downloadSources.set(!isCI)
         updateSinceUntilBuild.set(true)
         instrumentCode.set(false)
@@ -99,7 +179,7 @@ allprojects {
         }
 
         withType<PatchPluginXmlTask> {
-            sinceBuild.set("223")
+            sinceBuild.set("233")
             untilBuild.set("242.*")
         }
         runIde { enabled = false }
@@ -144,38 +224,23 @@ allprojects {
     }
     dependencies {
         compileOnly(kotlin("stdlib-jdk8"))
+//        implementation(project(":utils"))
+
     }
 }
-val basePluginArchiveName = "intellij-cangjie"
-
-val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
-
-val pluginProjects: List<Project>
-    get() = rootProject.allprojects.filter { it.name != grammarKitFakePsiDeps }
 
 
-//moshi版本
-val moshiVersion = "1.15.0"
-//okio版本
-val okioVersion = "2.10.0"
-//toml4j版本
-val toml4jVersion = "0.7.3"
-//插件需要的依赖列表
-val pluginDescriptors = arrayOf(
-    "moshi-$moshiVersion.jar",
-    "moshi-adapters-${moshiVersion}.jar",
-    "moshi-kotlin-${moshiVersion}.jar",
-    "okio-jvm-${okioVersion}.jar",
-    "toml4j-${toml4jVersion}.jar"
-)
-
-project(":plugin") {
+val cangjie_plugin_project = project(":plugin") {
     intellij {
         pluginName.set("intellij-cangjie")
-        plugins.set(listOf(psiViewerPlugin))
+        plugins.set(
+            listOf(
+//                psiViewerPlugin
+            )
+        )
     }
-//    group = "com.huawei.cangjie"
-    version = "1.1.4"
+    group = "com.huawei.cangjie"
+    version = cangjiePluginVersion
     dependencies {
         implementation(project(":"))
 //        implementation(project(":inspections"))
@@ -186,7 +251,7 @@ project(":plugin") {
 //        implementation(project(":dap"))
 //        api("com.squareup.moshi:moshi-adapters:1.15.0")
 //        api("com.squareup.moshi:moshi-kotlin:1.15.0")
-//        implementation(project(":debugger"))
+//        implementation(project(":native-debugger"))
 //        implementation(project(":debugger1"))
     }
 
@@ -257,10 +322,10 @@ project(":plugin") {
 //                include("**")
 //            }
             // Copy shell
-            from("$rootDir/shell-integrations") {
-                into("${pluginName.get()}/shell-integrations")
-                include("**")
-            }
+//            from("$rootDir/shell-integrations") {
+//                into("${pluginName.get()}/shell-integrations")
+//                include("**")
+//            }
         }
         withType<RunIdeTask> {
             dependsOn(mergePluginJarTask)
@@ -304,31 +369,24 @@ project(":plugin") {
     }
 }
 
-project(":") {
+val cangjie_src_project = project(":") {
     intellij {
-        plugins.set(listOf(tomlPlugin,"org.jetbrains.plugins.terminal"))
+        plugins.set(
+            listOf(
+                tomlPlugin,
+
+                )
+        )
     }
     dependencies {
-//        implementation("com.alibaba:fastjson:2.0.46")
-        implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")
-
-
-//        implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.debug:0.22.0")
         implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
         implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
         implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-//        implementation("org.jetbrains.kotlinx:kotlinx-serialization-toml:1.6.2")
-//        implementation("com.akuleshov7:ktoml-file:0.5.1")
-        // https://mvnrepository.com/artifact/com.akuleshov7/ktoml-core
-//        implementation("com.akuleshov7:ktoml-core:0.5.1")
 
-//        implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:2.15.2"){
-//            exclude(group = "com.fasterxml.jackson.core", module = "jackson-core")
-//            exclude(group = "com.fasterxml.jackson.core", module = "jackson-databind")
-//
-//            exclude(group = "com.fasterxml.jackson.core", module = "jackson-annotations")
-//        }
+
+        implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")
+
         implementation("io.hotmoka:toml4j:0.7.3")
 //        implementation(project(":dap"))
         implementation(project(":lsp"))
@@ -359,34 +417,14 @@ project(":") {
         }
     }
 }
-//project(":highlighter"){
-//    dependencies{
-//        implementation(project(":"))
-//        implementation(project(":descriptors"))
-//
-//    }
-//}
-//project(":inspections"){
-//    dependencies{
-//        implementation(project(":"))
-//    }
-//}
-//project(":descriptors"){
-//    dependencies{
-//        implementation(project(":"))
-//
-//    }
-//}
-
 project(":lsp") {
     dependencies {
         implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")
         implementation(project(":utils"))
 
-//        implementation(project(":"))
+
     }
 }
-
 
 
 project(":grammar") {
@@ -406,60 +444,70 @@ project(":grammar") {
 //    }
 }
 
-//project(":lsp4j") {
-//
-//}
-//project(":back") {
-//
-//}
 
 
-//project(":debugger") {
-//    intellij {
-//        plugins.set(listOf(nativeDebugPlugin))
-//    }
-//    dependencies {
-//        implementation(project(":"))
-//    }
-//}
-
-//project(":cidr") {
-//    dependencies {
-//        implementation(project(":"))
-//
-////        implementation("com.squareup.moshi:moshi-adapters:1.15.0")
-////        implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
-//    }
-//}
-//project(":debugger1") {
-//    intellij {
-////        plugins.set(listOf(nativeDebugPlugin))
-//    }
-//    dependencies {
-//        implementation(project(":"))
-//        implementation(project(":cidr"))
-//    }
-//}
-//project(":dap") {
-//
-//    apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
-//    intellij {
-//        plugins.set(listOf("org.jetbrains.plugins.terminal"))
-//    }
-//    dependencies {
-//        implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
-//        implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
-//
-//        implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
-//        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-//    }
-//}
 project(":utils") {
     dependencies {
+// https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
+        implementation("org.apache.commons:commons-lang3:3.15.0")
 
 //        implementation("org.yaml:snakeyaml:2.2")
     }
 }
+
+
+
+
+when (buildType) {
+    IU_NATIVE_DEBUG -> {
+        project(":native-debugger") {
+            intellij {
+                plugins.set(listOf(nativeDebugPlugin))
+            }
+            dependencies {
+                implementation(project(":"))
+            }
+        }
+
+        cangjie_plugin_project.intellij.plugins.add(nativeDebugPlugin)
+        cangjie_plugin_project.dependencies {
+            implementation(project(":native-debugger"))
+
+        }
+
+
+    }
+
+    IC_DAP -> {
+        project(":dap-debugger") {
+            intellij {
+                plugins.set(listOf(terminalPlugin))
+            }
+            apply {
+                plugin("org.jetbrains.kotlin.plugin.serialization")
+            }
+            dependencies {
+                implementation(project(":"))
+                implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
+                implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
+                implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+            }
+        }
+
+        cangjie_plugin_project.intellij.plugins.add(terminalPlugin)
+        cangjie_plugin_project.dependencies {
+            implementation(project(":dap-debugger"))
+
+        }
+
+    }
+
+    IC_CIDR_NATIVE_DEBUG -> TODO()
+}
+
+
+
 fun File.isPluginJar(): Boolean {
     if ("buildPlugin" in gradle.startParameter.taskNames) {
         if (pluginDescriptors.contains(name)) {
@@ -499,3 +547,139 @@ fun <T : ModuleDependency> T.excludeKotlinDeps() {
 fun prop(name: String): String =
     extra.properties[name] as? String
         ?: error("Property `$name` is not defined in gradle.properties")
+
+afterEvaluate {
+    updatePluginXmlFile()
+}
+
+/**
+ * 修改plugin.xml文件
+ */
+fun updatePluginXmlFile() {
+    // Instantiate the Factory
+    val dbf = DocumentBuilderFactory.newInstance()
+    try {
+
+        val pluginPath = this.cangjie_plugin_project.projectDir
+
+        val pluginXmlFile = pluginPath.resolve("src/main/resources/META-INF/plugin.xml")
+        val xmlDoc = dbf.newDocumentBuilder().parse(pluginXmlFile)
+        xmlDoc.documentElement.normalize()
+
+        val content = xmlDoc.getElementsByTagName("content").item(0) as Element
+        val moduleList = content.getElementsByTagName("module")
+
+
+//        需要删除节点属性的值
+        val attsStrs = listOf(
+
+            "com.huawei.cangjie.nativeDebug",
+            "com.huawei.cangjie.debugger",
+            "com.huawei.cangjie.dapDebugger"
+        )
+
+
+// 需要删除的节点
+        val removeNodeList = mutableListOf<Element>()
+        for (i in 0 until moduleList.length) {
+            val module = moduleList.item(i) as Element
+            val attrName = module.getAttribute("name")
+            if (attsStrs.contains(attrName)) {
+                removeNodeList.add(module)
+            }
+        }
+        removeNodeList.forEach {
+            content.removeChild(it)
+        }
+
+        when (buildType) {
+            IU_NATIVE_DEBUG -> {
+                var node = xmlDoc.createElement("module")
+                node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {
+                    nodeValue = "com.huawei.cangjie.nativeDebug"
+                })
+                content.appendChild(node)
+
+                node = xmlDoc.createElement("module")
+                node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {
+                    nodeValue = "com.huawei.cangjie.debugger"
+                })
+
+                content.appendChild(node)
+
+            }
+
+            IC_DAP -> {
+
+                val node = xmlDoc.createElement("module")
+                node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {
+                    nodeValue = "com.huawei.cangjie.dapDebugger"
+                })
+                content.appendChild(node)
+            }
+
+            IC_CIDR_NATIVE_DEBUG -> {
+
+            }
+        }
+
+
+
+        writeXmlToFile(xmlDoc, pluginXmlFile)
+
+    } catch (e: Throwable) {
+        e.printStackTrace()
+    }
+}
+
+/**
+ * Document 转换为 String 并且进行了格式化缩进
+ *
+ * @param doc XML的Document对象
+ * @return String
+ */
+
+fun docToString(doc: Document?): String {
+    // XML转字符串
+    var xmlStr = ""
+    try {
+        val tf = TransformerFactory.newInstance()
+        val t = tf.newTransformer()
+        t.setOutputProperty("encoding", "UTF-8") // 解决中文问题，试过用GBK不行
+        val bos = ByteArrayOutputStream()
+        t.transform(DOMSource(doc), StreamResult(bos))
+        xmlStr = bos.toString()
+        xmlStr = xmlStr.replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>", "")
+
+    } catch (e: TransformerConfigurationException) {
+        // TODO Auto-generated catch block
+        e.printStackTrace()
+    } catch (e: TransformerException) {
+        // TODO Auto-generated catch block
+        e.printStackTrace()
+    }
+    return xmlStr
+}
+
+/**
+ * 将xml重新写入文件
+ */
+fun writeXmlToFile(doc: Document, file: File) {
+    val xmlstr = docToString(doc)
+//    清空文件
+    file.writeText("")
+    file.appendText(xmlstr)
+}
+
+
+fun generateXml(doc: Document, file: File) {
+    // Instantiate the Transformer
+    val transformerFactory = TransformerFactory.newInstance()
+    val transformer = transformerFactory.newTransformer()
+
+    // pretty print
+    transformer.setOutputProperty(OutputKeys.INDENT, "yes")
+    val source = DOMSource(doc)
+    val result = StreamResult(file)
+    transformer.transform(source, result)
+}

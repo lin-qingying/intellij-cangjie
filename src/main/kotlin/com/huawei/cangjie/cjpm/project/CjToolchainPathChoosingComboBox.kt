@@ -1,6 +1,7 @@
 package com.huawei.cangjie.cjpm.project
 
 import com.huawei.cangjie.cjpm.project.CjToolchainPathChoosingComboBox.Companion.LOG
+import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
 import com.huawei.cangjie.idea.project.settings.ui.addTextChangeListener
 import com.intellij.openapi.application.AppUIExecutor
 import com.intellij.openapi.application.ApplicationManager
@@ -13,14 +14,11 @@ import com.intellij.openapi.ui.ComponentWithBrowseButton
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ComboboxSpeedSearch
-import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.components.fields.ExtendableTextComponent
 import com.intellij.ui.components.fields.ExtendableTextField
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import java.nio.file.Paths
-import javax.swing.JTextField
-import javax.swing.event.DocumentEvent
 import javax.swing.plaf.basic.BasicComboBoxEditor
 
 /**。
@@ -48,6 +46,7 @@ class CjToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
         set(value) {
             pathTextField.text = value?.toString().orEmpty()
         }
+
     init {
         ComboboxSpeedSearch(childComponent)
         childComponent.editor = editor
@@ -63,6 +62,7 @@ class CjToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
 
         pathTextField.addTextChangeListener { onTextChanged() }
     }
+
     private fun setBusy(busy: Boolean) {
         if (busy) {
             pathTextField.addExtension(busyIconExtension)
@@ -76,11 +76,32 @@ class CjToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
     /**。
      *使用[toolchainObtainer]获取池上的工具链列表，然后填充组合框并在EDT上调用[callback]。
      */
+//    @Suppress("MemberVisibilityCanBePrivate")
+//    fun addToolchainsAsync(toolchainObtainer: () -> List<Path>, callback: () -> Unit) {
+//        setBusy(true)
+//        ApplicationManager.getApplication().executeOnPooledThread {
+//            var toolchains = emptyList<Path>()
+//            try {
+//                toolchains = toolchainObtainer()
+//            } finally {
+//                val executor = AppUIExecutor.onUiThread(ModalityState.any()).expireWith(this)
+//                executor.execute {
+//                    setBusy(false)
+//                    val oldSelectedPath = selectedPath
+//                    childComponent.removeAllItems()
+//                    toolchains.forEach(childComponent::addItem)
+//                    selectedPath = oldSelectedPath
+//                    callback()
+//                }
+//            }
+//        }
+//    }
+
     @Suppress("MemberVisibilityCanBePrivate")
-    fun addToolchainsAsync(toolchainObtainer: () -> List<Path>, callback: () -> Unit) {
+    fun <T> addToolchainsAsync(toolchainObtainer: () -> List<T>, callback: () -> Unit) {
         setBusy(true)
         ApplicationManager.getApplication().executeOnPooledThread {
-            var toolchains = emptyList<Path>()
+            var toolchains = emptyList<T>()
             try {
                 toolchains = toolchainObtainer()
             } finally {
@@ -89,7 +110,16 @@ class CjToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
                     setBusy(false)
                     val oldSelectedPath = selectedPath
                     childComponent.removeAllItems()
-                    toolchains.forEach(childComponent::addItem)
+
+                    toolchains.forEach {
+
+                        when (it) {
+                            is CjToolchainBase -> childComponent.addItem(it.location)
+                            is Path -> childComponent.addItem(it)
+                            is String -> childComponent.addItem(it.toPath())
+                        }
+
+                    }
                     selectedPath = oldSelectedPath
                     callback()
                 }
@@ -97,9 +127,13 @@ class CjToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
         }
     }
 
-    fun addToolchainsAsync(toolchainObtainer: () -> List<Path>) {
+    fun <T> addToolchainsAsync(toolchainObtainer: () -> List<T>) {
         addToolchainsAsync(toolchainObtainer) {}
     }
+
+//    fun addToolchainsAsync(toolchainObtainer: () -> List<Path>) {
+//        addToolchainsAsync(toolchainObtainer) {}
+//    }
 
 }
 

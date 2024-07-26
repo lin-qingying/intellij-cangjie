@@ -58,7 +58,7 @@ class Cjpm(
 
     fun checkNeedInstallCjpmGenerate(): Boolean {
         val crateName = "cjpm-generate"
-        val minVersion = "0.45.2".parseSemVer()
+        val minVersion = "0.53.4".parseSemVer()
         return checkBinaryCrateIsNotInstalled(crateName, minVersion)
     }
 
@@ -107,21 +107,21 @@ class Cjpm(
 //        val args = mutableListOf<String>(crateType,"--name=$moduleName")
         args.add(crateType)
 
-        val cjcVersion = toolchain.cjc().version
-
-        if (cjcVersion?.semver != null) {
-            if (cjcVersion.semver < SemVer.parseFromText("0.49.2")) {
-                args.add(moduleName)
-                args.add(moduleName)
-            } else {
-                args.add("--name=$moduleName")
-
-            }
-        } else {
-            args.add(moduleName)
-            args.add(moduleName)
-
-        }
+//        val cjcVersion = toolchain.cjc().version
+//
+//        if (cjcVersion?.semver != null) {
+//            if (cjcVersion.semver < SemVer.parseFromText("0.49.2")) {
+//                args.add(moduleName)
+//                args.add(moduleName)
+//            } else {
+//
+//            }
+//        } else {
+//            args.add(moduleName)
+//            args.add(moduleName)
+//
+//        }
+        args.add("--name=$moduleName")
 
 
         CjpmCommandLine("init", path, args).execute(project, owner).unwrapOrElse { return CjResult.Err(it) }

@@ -5,10 +5,12 @@ import com.huawei.cangjie.cjpm.project.model.cjpmProjects
 import com.huawei.cangjie.cjpm.project.pathAsPath
 import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
-import com.huawei.cangjie.idea.project.settings.ui.CangJieProjectSettingsPanel
+import com.huawei.cangjie.cjpm.project.settings.ui.CangJieProjectSettingsPanel
 import com.intellij.openapi.options.Configurable
+import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.panel
 import java.nio.file.Paths
 
@@ -18,7 +20,16 @@ class CjProjectConfigurable(override val project: Project) : CjConfigurableBase(
 
 
     private val cangjieProjectSettings by lazy { CangJieProjectSettingsPanel(projectDir) }
+    @Throws(ConfigurationException::class)
+    override fun apply() {
+        cangjieProjectSettings.validateSettings()
+        super.apply()
+    }
 
+    override fun disposeUIResources() {
+        super.disposeUIResources()
+        Disposer.dispose(cangjieProjectSettings)
+    }
     override fun createPanel(): DialogPanel  =  panel {
         val settings = project.cangjieSettings
         val state = settings.state.copy()
@@ -44,7 +55,7 @@ class CjProjectConfigurable(override val project: Project) : CjConfigurableBase(
 
         onIsModified {
             val data = cangjieProjectSettings.data
-            data.toolchain?.sdkHome != settings.toolchain?.sdkHome
+            data.toolchain?.location != settings.toolchain?.location
 
         }
 

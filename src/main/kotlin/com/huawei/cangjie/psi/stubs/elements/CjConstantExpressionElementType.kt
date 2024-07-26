@@ -51,7 +51,7 @@ class CjConstantExpressionElementType(@NonNls debugName: String) :
         val kindOrdinal = dataStream.readInt()
         val value = dataStream.readName() ?: StringRef.fromString("")
 
-        val valueKind = ConstantValueKind.values()[kindOrdinal]
+        val valueKind = entries[kindOrdinal]
 
         return CangJieConstantExpressionStubImpl(
             parentStub,
@@ -67,7 +67,8 @@ class CjConstantExpressionElementType(@NonNls debugName: String) :
 
                 BOOLEAN_CONSTANT -> CjStubElementTypes.BOOLEAN_CONSTANT
                 FLOAT_CONSTANT -> CjStubElementTypes.FLOAT_CONSTANT
-                CHARACTER_CONSTANT -> CjStubElementTypes.CHARACTER_CONSTANT
+                RUNE_CONSTANT -> CjStubElementTypes.RUNE_CONSTANT
+//                CHARACTER_BYTE_LITERAL -> CjStubElementTypes.CHARACTER_BYTE_LITERAL
                 INTEGER_CONSTANT -> CjStubElementTypes.INTEGER_CONSTANT
                 UNIT_CONSTANT -> CjStubElementTypes.UNIT_CONSTANT
 
@@ -80,7 +81,8 @@ class CjConstantExpressionElementType(@NonNls debugName: String) :
                 CjStubElementTypes.BOOLEAN_CONSTANT -> BOOLEAN_CONSTANT
                 CjStubElementTypes.INTEGER_CONSTANT -> INTEGER_CONSTANT
                 CjStubElementTypes.FLOAT_CONSTANT -> FLOAT_CONSTANT
-                CjStubElementTypes.CHARACTER_CONSTANT -> CHARACTER_CONSTANT
+//                CjStubElementTypes.CHARACTER_BYTE_LITERAL -> CHARACTER_BYTE_LITERAL
+                CjStubElementTypes.RUNE_CONSTANT -> RUNE_CONSTANT
                 CjStubElementTypes.UNIT_CONSTANT -> UNIT_CONSTANT
                 else -> throw IllegalStateException("Unknown constant node type: $elementType")
             }

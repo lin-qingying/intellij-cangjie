@@ -14,7 +14,6 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.dsl.builder.*
 import com.intellij.ui.layout.selected
 import com.intellij.util.ui.JBUI
-import org.jetbrains.kotlin.idea.core.formatter.CangJiePackageEntryTable
 
 import javax.swing.JCheckBox
 import javax.swing.JRadioButton

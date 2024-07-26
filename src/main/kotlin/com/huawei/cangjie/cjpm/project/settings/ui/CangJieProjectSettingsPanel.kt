@@ -3,24 +3,26 @@
  * found in the LICENSE file.
  */
 
-package com.huawei.cangjie.idea.project.settings.ui
+package com.huawei.cangjie.cjpm.project.settings.ui
 
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.cjpm.project.CjToolchainPathChoosingComboBox
 import com.huawei.cangjie.cjpm.project.settings.CangJieProjectSettingsService
+import com.huawei.cangjie.cjpm.project.toPath
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainProvider
+import com.huawei.cangjie.cjpm.toolchain.CjToolchainServices
 import com.huawei.cangjie.cjpm.toolchain.cjc
-import com.huawei.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor
-
+import com.huawei.cangjie.idea.project.settings.ui.UiDebouncer
+import com.huawei.cangjie.idea.project.settings.ui.fullWidthCell
 import com.intellij.execution.wsl.WslPath
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.dsl.builder.Panel
-
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.swing.JLabel
@@ -43,11 +45,11 @@ class CangJieProjectSettingsPanel(
             return Data(
                 toolchain = toolchain,
 
-            )
+                )
         }
         set(value) {
             // https://youtrack.jetbrains.com/issue/KT-16367
-            pathToToolchainComboBox.selectedPath = value.toolchain?.sdkHome
+            pathToToolchainComboBox.selectedPath = value.toolchain?.location
 //            pathToStdlibField.text = value.explicitPathToStdlib ?: ""
             update()
         }
@@ -58,21 +60,35 @@ class CangJieProjectSettingsPanel(
 
     private val toolchainVersion = JLabel()
     private val compilerType = JLabel()
+
+
+    //    所有历史工具链路径
+    private val toolchainsService = ApplicationManager.getApplication().getService(CjToolchainServices::class.java)
+//    private val toolchainPaths: List<CjToolchainBase> = toolchainsService.getToolchainPaths()
+    private val toolchainPaths: List<String> = toolchainsService.getToolchainPaths()
+
     @Throws(ConfigurationException::class)
     fun validateSettings() {
         val toolchain = data.toolchain ?: return
         if (!toolchain.looksLikeValidToolchain()) {
-            throw ConfigurationException(CangJieBundle.message("settings.cangjie.toolchain.invalid.toolchain.error", toolchain.sdkHome))
+            toolchainsService.removeToolchain(toolchain.location.toString())
+            throw ConfigurationException(
+                CangJieBundle.message(
+                    "settings.cangjie.toolchain.invalid.toolchain.error",
+                    toolchain.location
+                )
+            )
         }
     }
 
     fun attachTo(panel: Panel) = with(panel) {
         data = Data(
             toolchain = ProjectManager.getInstance().defaultProject
+                .getService(CangJieProjectSettingsService::class.java)?.toolchain
+                ?: CjToolchainBase.suggest(
+                    cjpmProjectDir
+                ) ?: toolchainPaths.getOrNull(0)?.toPath()?.let { CjToolchainProvider.getToolchain(it) }
 
-                .getService(CangJieProjectSettingsService::class.java)?.toolchain ?: CjToolchainBase.suggest(
-                cjpmProjectDir
-            ),
 
         )
 
@@ -85,13 +101,20 @@ class CangJieProjectSettingsPanel(
         row(CangJieBundle.message("settings.cangjie.toolchain.compiler.type.label")) {
             cell(compilerType)
         }
-
+//        pathToToolchainComboBox.addToolchainsAsync  {
+//            CjToolchainFlavor.getApplicableFlavors()
+//                .flatMap {
+//                    it.suggestHomePaths()
+//
+//                }.distinct()
+//        }
+//            TODO 修改为历史可用的工具链路径
 
         pathToToolchainComboBox.addToolchainsAsync {
-            CjToolchainFlavor.getApplicableFlavors().flatMap {
-                it.suggestHomePaths()
-            }.distinct()
+            toolchainPaths
         }
+
+
     }
 
 
@@ -121,7 +144,7 @@ class CangJieProjectSettingsPanel(
 //                fetchedSysroot = stdlibLocation
 
 
-//                pathToToolchainComboBox.selectedPath = data.toolchain?.sdkHome
+//                pathToToolchainComboBox.selectedPath = data.toolchain?.location
 
             if (cjcVersion == null) {
                 toolchainVersion.text = CangJieBundle.message("settings.cangjie.toolchain.not.applicable.version.text")

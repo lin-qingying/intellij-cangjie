@@ -1,7 +1,7 @@
 package com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool
 
 
-import com.debugger.runconfig.toSystemIndependentPath
+
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.cjpm.project.model.CjpmProject
 import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
@@ -38,6 +38,7 @@ import com.intellij.ui.SystemNotifications
 import com.intellij.util.execution.ParametersListUtil
 import com.intellij.util.text.SemVer
 import com.intellij.util.ui.UIUtil
+import com.linqingying.utils.toSystemIndependentPath
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException

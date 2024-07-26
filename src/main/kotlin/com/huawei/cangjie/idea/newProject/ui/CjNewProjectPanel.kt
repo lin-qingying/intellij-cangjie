@@ -8,7 +8,7 @@ import com.huawei.cangjie.idea.newProject.CjCustomTemplate
 import com.huawei.cangjie.idea.newProject.CjGenericTemplate
 import com.huawei.cangjie.idea.newProject.CjProjectTemplate
 import com.huawei.cangjie.idea.newProject.state.CjUserTemplatesState
-import com.huawei.cangjie.idea.project.settings.ui.CangJieProjectSettingsPanel
+import com.huawei.cangjie.cjpm.project.settings.ui.CangJieProjectSettingsPanel
 import com.huawei.cangjie.idea.project.settings.ui.UiDebouncer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbarPosition

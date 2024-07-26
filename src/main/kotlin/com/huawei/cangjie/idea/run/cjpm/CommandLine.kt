@@ -9,6 +9,7 @@ import com.huawei.cangjie.idea.notifications.CjNotifications
 import com.huawei.cangjie.idea.run.CjCommandConfiguration.Companion.emulateTerminalDefault
 import com.intellij.execution.*
 import com.intellij.execution.configuration.EnvironmentVariablesData
+import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessListener
@@ -122,13 +123,13 @@ abstract class CjCommandLineBase {
     ): RunnerAndConfigurationSettings
 
     fun runAsync(
-        cjpmProject:CjpmProject,
+        cjpmProject: CjpmProject,
 
         presentableName: String = command,
         saveConfiguration: Boolean = true,
         executor: Executor = DefaultRunExecutor.getRunExecutorInstance()
     ): Future<Boolean> =
-        runInner(cjpmProject,presentableName, saveConfiguration, executor) { configuration, finalExecutor ->
+        runInner(cjpmProject, presentableName, saveConfiguration, executor) { configuration, finalExecutor ->
             val environment = ExecutionEnvironmentBuilder.create(finalExecutor, configuration).build()
             val promise = CompletableFuture<Boolean>()
             ProgramRunnerUtil.executeConfigurationAsync(environment, true, true) { descriptor ->
@@ -141,7 +142,16 @@ abstract class CjCommandLineBase {
             promise
         }
 
+    fun toGeneralCommandLine(): GeneralCommandLine {
 
+//TODO 可能会有问题
+        return GeneralCommandLine().apply {
+            exePath = command
+            workDirectory = workingDirectory.toFile()
+
+            addParameters(additionalArguments)
+        }
+    }
 
 
 }

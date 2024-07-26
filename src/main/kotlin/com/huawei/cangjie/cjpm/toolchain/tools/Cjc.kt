@@ -31,26 +31,29 @@ class Cjc(toolchain: CjToolchainBase) : CangJieComponent(NAME, toolchain) {
     }
 
     fun queryVersion(workingDirectory: Path? = null): CjcVersion? {
-        if (!isUnitTestMode) {
-            checkIsBackgroundThread()
+        try {
+            if (!isUnitTestMode) {
+                checkIsBackgroundThread()
+            }
+            val lines = createBaseCommandLine(
+                "-v",
+                workingDirectory = workingDirectory
+            ).execute(toolchain.executionTimeoutInMilliseconds)?.stdoutLines
+            version = lines?.let { parseCjcVersion(it) }
+            return version
+        } catch (e: CjProcessExecutionException) {
+
+            return null
         }
-        val lines = createBaseCommandLine("-v", workingDirectory = workingDirectory)
-            .execute(toolchain.executionTimeoutInMilliseconds)
-            ?.stdoutLines
-        version = lines?.let { parseCjcVersion(it) }
-        return version
     }
 
     fun queryVersion(
-        workingDirectory: Path,
-        owner: Disposable,
-        listener: ProcessListener
+        workingDirectory: Path, owner: Disposable, listener: ProcessListener
     ): CjProcessResult<CjcVersion?> {
         if (!isUnitTestMode) {
             checkIsBackgroundThread()
         }
-        return createBaseCommandLine("-v", workingDirectory = workingDirectory)
-            .execute(owner, listener = listener)
+        return createBaseCommandLine("-v", workingDirectory = workingDirectory).execute(owner, listener = listener)
             .map {
                 parseCjcVersion(it.stdoutLines)
 
@@ -65,8 +68,7 @@ class Cjc(toolchain: CjToolchainBase) : CangJieComponent(NAME, toolchain) {
         }
         val timeoutMs = 10000
         val output = createBaseCommandLine(
-            "--print", "sysroot",
-            workingDirectory = projectDirectory
+            "--print", "sysroot", workingDirectory = projectDirectory
         ).execute(timeoutMs)
 
         if (output?.isSuccess != true) return null
@@ -93,12 +95,13 @@ fun CapturingProcessHandler.runProcessWithGlobalProgress(timeoutInMilliseconds: 
 }
 
 fun CapturingProcessHandler.runProcess(
-    indicator: ProgressIndicator?,
-    timeoutInMilliseconds: Int? = null
+    indicator: ProgressIndicator?, timeoutInMilliseconds: Int? = null
 ): ProcessOutput {
     return when {
-        indicator != null && timeoutInMilliseconds != null ->
-            runProcessWithProgressIndicator(indicator, timeoutInMilliseconds)
+        indicator != null && timeoutInMilliseconds != null -> runProcessWithProgressIndicator(
+            indicator,
+            timeoutInMilliseconds
+        )
 
         indicator != null -> runProcessWithProgressIndicator(indicator)
         timeoutInMilliseconds != null -> runProcess(timeoutInMilliseconds)

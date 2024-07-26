@@ -37,6 +37,7 @@ import com.intellij.openapi.ui.InputValidatorEx
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
 import com.intellij.util.IncorrectOperationException
+import com.linqingying.utils.toCamelCase
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes
 import java.util.*
@@ -44,6 +45,7 @@ import java.util.*
 
 internal const val CANGJIE_WORKSHEET_TEMPLATE_NAME: String = "CangJie Worksheet"
 const val CANGJIE_WORKSHEET_EXTENSION: String = "ws.cj"
+
 class NewCangJieFileAction : AbstractNewCangJieFileAction(), DumbAware {
 
 
@@ -103,7 +105,7 @@ class NewCangJieFileAction : AbstractNewCangJieFileAction(), DumbAware {
 }
 
 
-abstract class AbstractNewCangJieFileAction : CreateFileFromTemplateAction(){
+abstract class AbstractNewCangJieFileAction : CreateFileFromTemplateAction() {
 
     private fun CjFile.editor(): Editor? =
         FileEditorManager.getInstance(this.project).selectedTextEditor?.takeIf { it.document == this.viewProvider.document }
@@ -123,16 +125,16 @@ abstract class AbstractNewCangJieFileAction : CreateFileFromTemplateAction(){
                 }
             }
 
-            val ktClass = createdElement.declarations.singleOrNull() as? CjNamedDeclaration
-            if (ktClass != null) {
-                if (ktClass is CjClass ) {
-                    val primaryConstructor = ktClass.primaryConstructor
+            val cjClass = createdElement.declarations.singleOrNull() as? CjNamedDeclaration
+            if (cjClass != null) {
+                if (cjClass is CjClass) {
+                    val primaryConstructor = cjClass.primaryConstructor
                     if (primaryConstructor != null) {
                         createdElement.editor()?.caretModel?.moveToOffset(primaryConstructor.startOffset + 1)
                         return
                     }
                 }
-                CreateFromTemplateAction.moveCaretAfterNameIdentifier(ktClass)
+                CreateFromTemplateAction.moveCaretAfterNameIdentifier(cjClass)
             } else {
                 val editor = createdElement.editor() ?: return
                 val lineCount = editor.document.lineCount
@@ -199,6 +201,7 @@ internal fun createFileFromTemplateWithStat(name: String, template: FileTemplate
 //    CangJieCreateFileFUSCollector.logFileTemplate(template.name)
     return createCangJieFileFromTemplate(name, template, dir)
 }
+
 internal fun createCangJieFileFromTemplate(name: String, template: FileTemplate, dir: PsiDirectory): PsiFile? {
     val directorySeparators = when (template.name) {
         "CangJie File" -> FILE_SEPARATORS
@@ -209,13 +212,16 @@ internal fun createCangJieFileFromTemplate(name: String, template: FileTemplate,
 
     val (className, targetDir) = findOrCreateTarget(dir, name, directorySeparators)
 
+
+    template.fileName = name
+
     val service = DumbService.getInstance(dir.project)
     return service.computeWithAlternativeResolveEnabled<PsiFile?, Throwable> {
         val adjustedDir = CreateTemplateInPackageAction.adjustDirectory(targetDir, JavaModuleSourceRootTypes.SOURCES)
         val psiFile = createCangJieFileFromTemplate(adjustedDir, className, template)
         if (psiFile is CjFile) {
             val singleClass = psiFile.declarations.singleOrNull() as? CjClass
-            if (singleClass != null    && name.contains("Abstract")) {
+            if (singleClass != null && name.contains("Abstract")) {
                 runWriteAction {
                     singleClass.addModifier(CjTokens.ABSTRACT_KEYWORD)
                 }
@@ -234,8 +240,13 @@ internal fun createCangJieFileFromTemplate(name: String, template: FileTemplate,
         return@computeWithAlternativeResolveEnabled psiFile
     }
 }
-private fun findOrCreateTarget(dir: PsiDirectory, name: String, directorySeparators: CharArray): Pair<String, PsiDirectory> {
-    var className = removeCangJieExtensionIfPresent(name)
+
+private fun findOrCreateTarget(
+    dir: PsiDirectory,
+    name: String,
+    directorySeparators: CharArray
+): Pair<String, PsiDirectory> {
+    var className = removeCangJieExtensionIfPresent(name).toCamelCase()
     var targetDir = dir
 
     for (splitChar in directorySeparators) {
@@ -254,12 +265,14 @@ private fun findOrCreateTarget(dir: PsiDirectory, name: String, directorySeparat
     }
     return Pair(className, targetDir)
 }
+
 private fun removeCangJieExtensionIfPresent(name: String): String = when {
     name.endsWith(".$CANGJIE_WORKSHEET_EXTENSION") -> name.removeSuffix(".$CANGJIE_WORKSHEET_EXTENSION")
     name.endsWith(".$STD_SCRIPT_SUFFIX") -> name.removeSuffix(".$STD_SCRIPT_SUFFIX")
     name.endsWith(".${CangJieFileType.EXTENSION}") -> name.removeSuffix(".${CangJieFileType.EXTENSION}")
     else -> name
 }
+
 private fun createCangJieFileFromTemplate(dir: PsiDirectory, className: String, template: FileTemplate): PsiFile? {
     val project = dir.project
     val defaultProperties = FileTemplateManager.getInstance(project).defaultProperties

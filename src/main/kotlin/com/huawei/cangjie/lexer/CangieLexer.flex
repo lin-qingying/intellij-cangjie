@@ -154,8 +154,13 @@ EXPONENT_PART=[Ee]["+""-"]?({DIGIT_OR_UNDERSCORE})*
 
 
 
+//0.53.4 字符字节字面量
+CHARACTER_BYTE_LITERAL="b'"([^\\\'\n]|{ESCAPE_SEQUENCE})*("'"|\\)?
 
-CHARACTER_LITERAL="b"?"'"([^\\\'\n]|{ESCAPE_SEQUENCE})*("'"|\\)?
+//字符
+RUNE_LITERAL = {RUNE_SINGLE_LITERAL} | {RUNE_DOUBLE_LITERAL}
+RUNE_SINGLE_LITERAL = "r'"([^\\\'\n]|{ESCAPE_SEQUENCE})*("'"|\\)?
+RUNE_DOUBLE_LITERAL = "r\""([^\\\'\n]|{ESCAPE_SEQUENCE})*\"
 //CHARACTER_BYTE_LITERAL = {CHARACTER_LITERAL}
 
 // TODO: 引入符号(例如‘foo)作为编写字符串文字的另一种方式
@@ -333,17 +338,15 @@ b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 //{INTEGER_LITERAL}\.\. { yypushback(2); return CjTokens.INTEGER_LITERAL; }
 {INTEGER_LITERAL} { return CjTokens.INTEGER_LITERAL; }
 
-//{UNIT_LTIERAL} { return CjTokens.UNIT_LTIERAL;}
-//{TUPLE_LTIERAL} { return CjTokens.TUPLE_LTIERAL;}
 
+{RUNE_LITERAL}   { return CjTokens.RUNE_LITERAL; }
 
-{CHARACTER_LITERAL}   { return CjTokens.CHARACTER_LITERAL; }
-//{CHARACTER_BYTE_LITERAL}    { return CjTokens.CHARACTER_BYTE_LITERAL; }
+{CHARACTER_BYTE_LITERAL}   { return CjTokens.CHARACTER_BYTE_LITERAL; }
+
 
 "package"    { return CjTokens.PACKAGE_KEYWORD ;}
 
 
-"from"       { return CjTokens.FROM_KEYWORD ;}
 "import"   { return CjTokens.IMPORT_KEYWORD ;}
 
 
@@ -371,7 +374,7 @@ b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 "foreign"       { return CjTokens.FOREIGN_KEYWORD ;}
 
 
-
+"quote"         { return CjTokens.QUOTE_KEYWORD ;}
 
 
 
@@ -381,6 +384,8 @@ b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 "private"    { return CjTokens.PRIVATE_KEYWORD ;}
 "protected"  { return CjTokens.PROTECTED_KEYWORD ;}
 "static"    { return CjTokens.STATIC_KEYWORD ;}
+  "internal"    { return CjTokens.INTERNAL_KEYWORD ;}
+
 /*"open"       { return CjTokens.OPEN_KEYWORD ;}*/
 "abstract"  { return CjTokens.ABSTRACT_KEYWORD ;}
 "override"  { return CjTokens.OVERRIDE_KEYWORD ;}
@@ -422,7 +427,7 @@ b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 "Float64"    { return CjTokens.FLOAT64_KEYWORD ;}
 "Bool"       { return CjTokens.BOOL_KEYWORD ;}
 "Unit"       { return CjTokens.UNIT_KEYWORD ;}
-"Char"       { return CjTokens.CHAR_KEYWORD ;}
+"Rune"       { return CjTokens.RUNE_KEYWORD ;}
 
 
 "_"            { return CjTokens.UNDERLINE ;}

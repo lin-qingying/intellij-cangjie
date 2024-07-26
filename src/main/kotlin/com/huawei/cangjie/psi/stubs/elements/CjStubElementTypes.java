@@ -27,7 +27,11 @@ public interface CjStubElementTypes {
     //    KtPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
 //            new CjPlaceHolderStubElementType<>("ANNOTATION", CjAnnotation.class);
     CjConstantExpressionElementType FLOAT_CONSTANT = new CjConstantExpressionElementType("FLOAT_CONSTANT");
-    CjConstantExpressionElementType CHARACTER_CONSTANT = new CjConstantExpressionElementType("CHARACTER_CONSTANT");
+    CjConstantExpressionElementType RUNE_CONSTANT = new CjConstantExpressionElementType("RUNE_CONSTANT");
+
+
+//    CjConstantExpressionElementType CHARACTER_BYTE_LITERAL = new CjConstantExpressionElementType("CHARACTER_BYTE_LITERAL");
+
     CjConstantExpressionElementType INTEGER_CONSTANT = new CjConstantExpressionElementType("INTEGER_CONSTANT");
 
     CjPlaceHolderWithTextStubElementType<CjSimpleNameStringTemplateEntry> SHORT_STRING_TEMPLATE_ENTRY =
@@ -177,7 +181,7 @@ public interface CjStubElementTypes {
 
             BOOLEAN_CONSTANT,
             FLOAT_CONSTANT,
-            CHARACTER_CONSTANT,
+            RUNE_CONSTANT,
             INTEGER_CONSTANT,
 
             REFERENCE_EXPRESSION,

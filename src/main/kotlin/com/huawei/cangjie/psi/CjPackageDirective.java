@@ -33,7 +33,7 @@ public class CjPackageDirective extends CjModifierListOwnerStub<CangJiePlaceHold
 
     @Override
     public String toString() {
-        return getNode().getElementType().toString();
+        return super.toString();
     }
 
     @Nullable

@@ -542,7 +542,10 @@ open class CangJieExpressionParsing(
             //整数
             INTEGER_LITERAL_Id -> parseOneTokenExpression(INTEGER_CONSTANT)
 //            //字符
-            CHARACTER_LITERAL_Id -> parseOneTokenExpression(CHARACTER_CONSTANT)
+            RUNE_LITERAL_Id -> parseOneTokenExpression(RUNE_CONSTANT)
+//            字符字节字面量
+            CHARACTER_BYTE_LITERAL_Id -> parseOneTokenExpression(RUNE_CONSTANT)
+
             //浮点数
             FLOAT_LITERAL_Id -> parseOneTokenExpression(FLOAT_CONSTANT)
             // Unit
@@ -794,7 +797,8 @@ open class CangJieExpressionParsing(
                     UNDERLINE_Id -> parseUnderline()
                     LPAR_Id -> parseParenthesizedExpression()
                     INTEGER_LITERAL_Id -> parseOneTokenExpression(INTEGER_CONSTANT)
-                    CHARACTER_LITERAL_Id -> parseOneTokenExpression(CHARACTER_CONSTANT)
+                    RUNE_LITERAL_Id -> parseOneTokenExpression(RUNE_CONSTANT)
+                    CHARACTER_BYTE_LITERAL_Id -> parseOneTokenExpression(RUNE_CONSTANT)
                     TRUE_KEYWORD_Id, FALSE_KEYWORD_Id -> parseOneTokenExpression(BOOLEAN_CONSTANT)
                     FLOAT_LITERAL_Id -> parseOneTokenExpression(FLOAT_CONSTANT)
                     OPEN_QUOTE_Id -> parseStringTemplate()
@@ -866,7 +870,7 @@ open class CangJieExpressionParsing(
 
         //是否常量模式
         fun isConstantPattern(): Boolean {
-            return at(INTEGER_LITERAL) || at(CHARACTER_LITERAL) || at(TRUE_KEYWORD) || at(FALSE_KEYWORD) || at(
+            return at(INTEGER_LITERAL) || at(RUNE_LITERAL) || at(TRUE_KEYWORD) || at(FALSE_KEYWORD) || at(
                 OPEN_QUOTE
             )
         }
@@ -895,6 +899,12 @@ open class CangJieExpressionParsing(
 //            return at(IDENTIFIER) && lookahead(1) == LPAR
 //        }
 
+
+        if (at(WHERE_KEYWORD)) {
+            advance()
+
+            parseExpression()
+        }
 
         condition.done(CASE_PATTERN)
     }
@@ -1205,7 +1215,7 @@ open class CangJieExpressionParsing(
             val parameter = mark()
 
             if (at(COLON)) {
-             error("Expecting parameter name")
+                error("Expecting parameter name")
             } else {
                 expect(
                     IDENTIFIER_RECOVERY_SET,
@@ -1849,6 +1859,25 @@ open class CangJieExpressionParsing(
         parseExpression()
     }
 
+
+    fun parseQuoteExpression() {
+        assert(_at(QUOTE_KEYWORD))
+
+        val quoteExpression = mark()
+        advance()
+
+
+
+        if(at(LPAR)){
+
+        }else{
+
+            error("quote expression is missing '('")
+        }
+
+        quoteExpression.done(QUOTE_EXPRESSION)
+    }
+
     fun parseExpression() {
 
         if (at(AT)) {
@@ -1872,6 +1901,9 @@ open class CangJieExpressionParsing(
             return
         } else if (at(UNSAFE_KEYWORD)) {
             cangJieParsing.parseUnsafeExpression()
+            return
+        } else if (at(QUOTE_KEYWORD)) {
+            parseQuoteExpression()
             return
         } else if (!atSet(EXPRESSION_FIRST)) {
             error("Expecting an expression")
@@ -2056,10 +2088,12 @@ open class CangJieExpressionParsing(
     @OptIn(ExperimentalStdlibApi::class)
     companion object {
         var ALL_OPERATIONS: TokenSet? = null
-        @JvmStatic
-          val IDENTIFIER_RECOVERY_SET = TokenSet.create(
+
+        @JvmField
+        val IDENTIFIER_RECOVERY_SET = TokenSet.create(
             IDENTIFIER, UNDERLINE
         )
+
         private fun doneOrDrop(
             marker: PsiBuilder.Marker,
             type: IElementType,
@@ -2096,7 +2130,7 @@ open class CangJieExpressionParsing(
                 FALSE_KEYWORD,
                 OPEN_QUOTE,
                 INTEGER_LITERAL,
-                CHARACTER_LITERAL,
+                RUNE_LITERAL,
                 CHARACTER_BYTE_LITERAL,
                 FLOAT_LITERAL,
 
@@ -2131,7 +2165,7 @@ open class CangJieExpressionParsing(
         private val TYPE_ARGUMENT_LIST_STOPPERS = TokenSet.create(
             INTEGER_LITERAL,
             FLOAT_LITERAL,
-            CHARACTER_LITERAL,
+            RUNE_LITERAL,
             CHARACTER_BYTE_LITERAL,
             OPEN_QUOTE,
             PACKAGE_KEYWORD,
@@ -2207,8 +2241,6 @@ open class CangJieExpressionParsing(
             TokenSet.orSet(IN_KEYWORD_L_BRACE_SET, PARAMETER_NAME_RECOVERY_SET)
 
 
-
-
         private val COLON_IN_KEYWORD_SET = TokenSet.create(COLON, IN_KEYWORD)
         private val IN_KEYWORD_SET = TokenSet.create(IN_KEYWORD)
 
@@ -2280,10 +2312,12 @@ open class CangJieExpressionParsing(
     }
 
 }
+
 private fun IElementType.equal(token: IElementType): Boolean {
     return token === this
 
 }
+
 private fun IElementType.equal(tokenSet: TokenSet): Boolean {
     return tokenSet.contains(this)
 

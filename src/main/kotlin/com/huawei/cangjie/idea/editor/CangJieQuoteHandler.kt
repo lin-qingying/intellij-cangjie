@@ -10,7 +10,7 @@ class CangJieQuoteHandler: QuoteHandler {
     override fun isClosingQuote(iterator: HighlighterIterator, offset: Int): Boolean {
         val tokenType = iterator.tokenType
 
-        if (tokenType == CjTokens.CHARACTER_LITERAL) {
+        if (tokenType == CjTokens.RUNE_LITERAL) {
             val start = iterator.start
             val end = iterator.end
             return end - start >= 1 && offset == end - 1
@@ -35,7 +35,7 @@ class CangJieQuoteHandler: QuoteHandler {
     override fun isOpeningQuote(iterator: HighlighterIterator, offset: Int): Boolean {
         val tokenType = iterator.tokenType
 
-        if (tokenType == CjTokens.OPEN_QUOTE || tokenType == CjTokens.CHARACTER_LITERAL) {
+        if (tokenType == CjTokens.OPEN_QUOTE || tokenType == CjTokens.RUNE_LITERAL) {
             val start = iterator.start
             return offset == start
         }

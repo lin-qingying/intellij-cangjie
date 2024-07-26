@@ -173,7 +173,7 @@
 //    override fun isValidSdkHome(path: String): Boolean = checkSdk(path)
 //
 //
-//    override fun suggestSdkName(currentSdkName: String?, sdkHome: String): String {
+//    override fun suggestSdkName(currentSdkName: String?, location: String): String {
 //        return "CangJie Sdk " + sdkAdditionalData.sdkVersion
 //    }
 //

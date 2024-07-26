@@ -15,8 +15,8 @@ class CangJieHighlightingLexer : LayeredLexer(CangJieLexer()) {
             IElementType.EMPTY_ARRAY
         )
         registerSelfStoppingLayer(
-            StringLiteralLexer('\'', CjTokens.CHARACTER_LITERAL),
-            arrayOf<IElementType>(CjTokens.CHARACTER_LITERAL),
+            StringLiteralLexer('\'', CjTokens.RUNE_LITERAL),
+            arrayOf<IElementType>(CjTokens.RUNE_LITERAL),
             IElementType.EMPTY_ARRAY
         )
     }

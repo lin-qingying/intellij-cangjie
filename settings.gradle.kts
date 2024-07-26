@@ -1,3 +1,4 @@
+import Settings_gradle.BuildType.*
 
 pluginManagement {
 
@@ -11,7 +12,33 @@ pluginManagement {
 rootProject.name = "intellij-cangjie"
 
 
+val build_type: String by settings
 
+enum class BuildType {
+
+
+    //    IU + nativeDebug
+    IU_NATIVE_DEBUG,
+    IC_DAP,
+    IC_CIDR_NATIVE_DEBUG;
+
+
+    companion object {
+
+        fun fromString(str: String): BuildType {
+            return when (str) {
+                "IU_NATIVE_DEBUG" -> IU_NATIVE_DEBUG
+                "IC_DAP" -> IC_DAP
+                "IC_CIDR_NATIVE_DEBUG" -> IC_CIDR_NATIVE_DEBUG
+                else -> IC_DAP
+            }
+        }
+    }
+}
+
+
+//构建方式
+val buildType = BuildType.fromString(build_type)
 //include("plugin")
 // Configure Gradle Build Cache. It is enabled in `gradle.properties` via `org.gradle.caching`.
 //buildCache {
@@ -40,7 +67,20 @@ include("lsp")
 //描述
 //include("descriptors")
 //include("debugg/**/er")
-//include("debugger")
+
+when (buildType) {
+    IU_NATIVE_DEBUG -> {
+        include("native-debugger")
+
+    }
+
+    IC_DAP -> {
+        include("dap-debugger")
+
+    }
+
+    IC_CIDR_NATIVE_DEBUG -> TODO()
+}
 //include("cidr")
 
 //include("back")

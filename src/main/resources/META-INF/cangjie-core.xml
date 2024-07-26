@@ -145,7 +145,7 @@
         <projectService serviceInterface="com.huawei.cangjie.cjpm.project.model.CjpmProjectsService"
                         serviceImplementation="com.huawei.cangjie.cjpm.project.model.impl.CjpmProjectsServiceImpl"
         />
-        <projectService serviceImplementation="com.huawei.cangjie.cjpm.project.settings.CangJieProjectSettingsService"/>
+<!--        <projectService serviceImplementation="com.huawei.cangjie.cjpm.project.settings.CangJieProjectSettingsService"/>-->
         <projectService
                 serviceImplementation="com.huawei.cangjie.cjpm.project.settings.CjExternalLinterProjectSettingsService"/>
 
@@ -229,14 +229,8 @@
         <!--        />-->
 
 
-        <projectService
-                serviceInterface="com.huawei.cangjie.psi.CangJieReferenceProvidersService"
-                serviceImplementation="com.huawei.cangjie.idea.references.CjIdeReferenceProviderService"/>
 
-
-        <projectService serviceInterface="com.huawei.cangjie.idea.references.CangJieReferenceProviderContributor"
-                        serviceImplementation="com.huawei.cangjie.references.CangJieReferenceContributor"/>
-    </extensions>
+         </extensions>
 
     <!--        监听-->
     <applicationListeners>

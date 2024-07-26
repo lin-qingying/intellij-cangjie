@@ -217,7 +217,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
 
             CjTokens.INTEGER_LITERAL to CangJieElement.Literal,
             CjTokens.FLOAT_LITERAL to CangJieElement.Literal,
-            CjTokens.CHARACTER_LITERAL to CangJieElement.Literal,
+            CjTokens.RUNE_LITERAL to CangJieElement.Literal,
         )
 
         private val CONTROL_FLOW_KEYWORDS: HashSet<SemanticEditorPosition.SyntaxElement> = hashSetOf(

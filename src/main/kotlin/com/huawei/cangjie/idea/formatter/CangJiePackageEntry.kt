@@ -1,5 +1,5 @@
 
-package org.jetbrains.kotlin.idea.core.formatter
+package com.huawei.cangjie.idea.formatter
 
 class CangJiePackageEntry(
     packageName: String,

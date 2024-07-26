@@ -7,11 +7,23 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import java.io.File
 import java.nio.file.Path
+import kotlin.io.path.isDirectory
 
 
 open class CjLocalToolchain(location: Path) : CjToolchainBase(location) {
+    companion object {
+        fun create(homePath: Path): CjLocalToolchain? {
+            val tool = CjLocalToolchain(homePath)
 
-    override fun pathToExecutable(toolName: String): Path = sdkHome.pathToExecutable(toolName)
+            if (tool.toolsPath.isDirectory()) {
+                return tool
+
+            }
+            return null
+        }
+    }
+
+    override fun pathToExecutable(toolName: String): Path = location.pathToExecutable(toolName)
 
 
     override val fileSeparator: String
@@ -20,10 +32,11 @@ open class CjLocalToolchain(location: Path) : CjToolchainBase(location) {
         get() = 1000
 
     override fun hasExecutable(exec: String): Boolean {
-        return sdkHome.hasExecutable(exec)
+        return location.hasExecutable(exec)
     }
 
     override fun hasCjpmExecutable(exec: String): Boolean = pathToCjpmExecutable(exec).isExecutable()
+    override val platformType: String = "local"
 
     override fun patchCommandLine(commandLine: GeneralCommandLine): GeneralCommandLine = commandLine
     override fun toLocalPath(remotePath: String): String {

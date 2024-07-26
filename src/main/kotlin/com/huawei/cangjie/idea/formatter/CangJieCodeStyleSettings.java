@@ -12,8 +12,6 @@ import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CustomCodeStyleSettings;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.core.formatter.CangJiePackageEntry;
-import org.jetbrains.kotlin.idea.core.formatter.CangJiePackageEntryTable;
 
 
 public class CangJieCodeStyleSettings extends CustomCodeStyleSettings {

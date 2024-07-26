@@ -11,6 +11,7 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
@@ -25,6 +26,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.ui.dsl.builder.*
 import com.intellij.ui.layout.ValidationInfoBuilder
 import com.intellij.util.Consumer
+import com.jetbrains.rd.util.getThrowableText
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
@@ -94,14 +96,8 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
         }
 
 
-        //        模块名
-        private val moduleNameTextField: JTextField = JTextField().apply {
-
-        }
-
-
-//        //        组织名
-//        private val groupIdTextField: JTextField = JTextField().apply {
+//        //        模块名
+//        private val moduleNameTextField: JTextField = JTextField().apply {
 //
 //        }
 
@@ -109,14 +105,31 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
         override fun setupProject(project: Project) {
 
             val builder = CangJieModuleBuilder(
-                moduleName = moduleNameTextField.text,
+//                moduleName = moduleNameTextField.text,
 //                organizationName = groupIdTextField.text,
                 projectType = (projectTypeComboBox.selectedItem as CangJieProjectTypeItem).type
             )
             val module = builder.commit(project)?.firstOrNull() ?: return
+//
             ModuleRootModificationUtil.updateModel(module) { rootModel ->
                 builder.configurationData = peer.settings
-                builder.createProject(rootModel)
+
+
+                try {
+                    builder.createProject(rootModel)
+                } catch (e: ConfigurationException) {
+//                    捕获cjpm执行错误
+//                    弹窗向用户报告错误
+
+                    var message =
+                        e.getThrowableText().replace("com.intellij.openapi.options.ConfigurationException: ", "")
+                    message = message.substring(0, message.indexOf("stderr : "))
+                    MessageDialogBuilder.yesNo(e.title, message)
+
+
+                    return@updateModel
+                }
+
 
                 if (gitData?.git == true) runWriteAction {
                     createGitIgnoreFile(context.projectDirectory, module)
@@ -127,12 +140,7 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
         }
 
 
-        init {
-//            val project = ProjectManager.getInstance().defaultProject
-//            val model = ProjectSdksModel()
-//            model.reset(project)
-//
-        }
+
 
         override fun setupUI(builder: Panel) {
 
@@ -151,14 +159,14 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
                         .columns(COLUMNS_MEDIUM)
                         .component
                 }.bottomGap(BottomGap.SMALL)
-                row(CangJieUiBundle.message("action.new.project.modulename.title")) {
-                    cell(moduleNameTextField)
-                        .columns(COLUMNS_MEDIUM)
-                        //                        .validationOnApply {
-//                            validateModuleName(moduleNameTextField.text)
-//                        }
-                        .component
-                }.bottomGap(BottomGap.SMALL)
+//                row(CangJieUiBundle.message("action.new.project.modulename.title")) {
+//                    cell(moduleNameTextField)
+//                        .columns(COLUMNS_MEDIUM)
+//                        //                        .validationOnApply {
+////                            validateModuleName(moduleNameTextField.text)
+////                        }
+//                        .component
+//                }.bottomGap(BottomGap.SMALL)
 //                row(CangJieUiBundle.message("action.new.project.groupname.title")) {
 //                    cell(groupIdTextField)
 //                        .columns(COLUMNS_MEDIUM)
@@ -184,32 +192,6 @@ interface BuildSystemCangJieNewProjectWizard : NewProjectWizardMultiStepFactory<
             ExtensionPointName<BuildSystemCangJieNewProjectWizard>("com.intellij.newProjectWizard.CangJie.buildSystem")
     }
 }
-
-interface BuildSystemCangJieNewProjectWizardData : BuildSystemNewProjectWizardData {
-
-    companion object {
-
-        val KEY =
-            Key.create<BuildSystemCangJieNewProjectWizardData>(BuildSystemCangJieNewProjectWizardData::class.java.name)
-
-        @JvmStatic
-        val NewProjectWizardStep.CangJieBuildSystemData: BuildSystemCangJieNewProjectWizardData?
-            get() = data.getUserData(KEY)
-    }
-}
-//fun NewProjectWizardStep.setupKmpWizardLinkUI(builder: Panel) {
-//    builder.row {
-//        text(
-//            CangJieNewProjectWizardUIBundle.message("project.wizard.new.project.cangjie.comment"),
-//            action = HyperlinkEventAction {
-//                context.requestSwitchTo(CangJieModuleBuilder.MODULE_BUILDER_ID) { }
-//            })
-//            .applyToComponent { foreground = JBUI.CurrentTheme.ContextHelp.FOREGROUND }
-//
-//        topGap(TopGap.SMALL)
-//        bottomGap(BottomGap.SMALL)
-//    }
-//}
 
 class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
     val project: Project
@@ -241,9 +223,9 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
             if (item == null) item = ProjectSdkComboBoxItem()
             if (item is InnerComboBoxItem) {
                 return (item as InnerComboBoxItem?)?.item
-                    ?: throw RuntimeException("Failed to unwrap " + item.javaClass.getName() + ": " + item)
+                    ?: throw RuntimeException("Failed to unwrap " + item.javaClass.name + ": " + item)
             }
-            throw RuntimeException("Failed to unwrap " + item.javaClass.getName() + ": " + item)
+            throw RuntimeException("Failed to unwrap " + item.javaClass.name + ": " + item)
         }
 
         private fun wrapItem(item: SdkListItem): CangJieSdkItem {

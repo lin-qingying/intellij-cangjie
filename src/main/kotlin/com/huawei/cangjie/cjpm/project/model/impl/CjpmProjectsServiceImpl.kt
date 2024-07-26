@@ -40,6 +40,7 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
+import com.intellij.openapi.project.impl.ProjectImpl
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleRootModificationUtil
@@ -200,7 +201,7 @@ class CjpmProjectsServiceImpl(
         file.applyWithSymlink { directoryIndex.getInfoForFile(it).takeIf { info -> info !== noProjectMarker } }
 
     override fun findProjectForModuleFile(file: VirtualFile): CjpmProject? {
-     return   file.applyWithSymlink { directoryIndex.getInfoForFile(it)  }
+        return file.applyWithSymlink { directoryIndex.getInfoForFile(it) }
 
     }
 
@@ -403,11 +404,13 @@ private fun doRefresh(project: Project, projects: List<CjpmProjectImpl>): Comple
         runWithNonLightProject(project) {
             setupProjectRoots(project, updatedProjects)
 
-            if(Config.isLsp){
+            if (Config.isLsp) {
 
 //            TODO 重启lsp服务器
                 CangJieLspServerManager.restartLspServer(project)
             }
+
+
 
         }
         updatedProjects
@@ -433,6 +436,17 @@ private fun setupProjectRoots(project: Project, cjpmProjects: List<CjpmProject>)
             if (project.isDisposed) return@runWriteAction
             ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring {
                 for (cjpmProject in cjpmProjects) {
+                    cjpmProject as CjpmProjectImpl
+
+
+                    if(cjpmProject.project.name !=  cjpmProject.workspace?.moduleData?.name){
+                        cjpmProject.workspace?.moduleData?.name?.let {
+                            (cjpmProject.project as ProjectImpl).setProjectName(
+                                it
+                            )
+                        }
+                    }
+
 
 
                     cjpmProject.workspaceRootDir?.setupContentRoots(project) { contentRoot ->
@@ -447,6 +461,8 @@ private fun setupProjectRoots(project: Project, cjpmProjects: List<CjpmProject>)
                     for (pkg in workspacePackages) {
                         pkg.contentRoot?.setupContentRoots(project, ContentEntryWrapper::setup)
                     }
+
+
                 }
             }
         }

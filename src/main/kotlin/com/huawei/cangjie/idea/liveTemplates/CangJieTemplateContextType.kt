@@ -20,9 +20,12 @@ abstract class CangJieTemplateContextType(@NlsContexts.Label presentableName: St
     open fun isCommentInContext(): Boolean {
         return false
     }
+
+
     @Deprecated("Deprecated in Java")
     @Suppress("deprecation")
     override fun isInContext(file: PsiFile, offset: Int): Boolean {
+
         if (!PsiUtilCore.getLanguageAtOffset(file, offset)
                 .isKindOf(CangJieLanguage)
         ) {

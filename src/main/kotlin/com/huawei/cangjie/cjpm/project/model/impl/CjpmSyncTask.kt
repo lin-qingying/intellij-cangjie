@@ -316,7 +316,7 @@ private fun CjpmSyncTask.SyncContext.warning(
     syncProgress.message(title, message, com.intellij.build.events.MessageEvent.Kind.WARNING, null)
 }
 
-private fun fetchCjpmWorkspace(context: CjpmSyncTask.SyncContext, rustcInfo: CjcInfo?): TaskResult<CjpmWorkspace> {
+private fun fetchCjpmWorkspace(context: CjpmSyncTask.SyncContext, cjcInfo: CjcInfo?): TaskResult<CjpmWorkspace> {
     return context.runWithChildProgress(CangJieBundle.message("progress.text.updating.workspace.info")) { childContext ->
         val toolchain = childContext.toolchain
         if (!toolchain.looksLikeValidToolchain()) {
@@ -432,9 +432,9 @@ private class CjpmProjectWithStdlib(
  */
 private fun List<CjpmProjectWithStdlib>.chooseAndAttachStdlib(): List<CjpmProjectImpl> {
     val projectsWithStdlib = mapNotNull {
-        val rustcVersion = it.cjpmProject.cjcInfo?.version ?: return@mapNotNull null
+        val cjcVersion = it.cjpmProject.cjcInfo?.version ?: return@mapNotNull null
         val stdlib = (it.stdlib as? TaskResult.Ok)?.value ?: return@mapNotNull null
-        CjpmProjectWithExistingStdlib(it.cjpmProject, rustcVersion, stdlib)
+        CjpmProjectWithExistingStdlib(it.cjpmProject, cjcVersion, stdlib)
     }
     val embeddedStdlib = projectsWithStdlib.find { it.stdlib.isPartOfCjpmProject }
     val theMostRecentStdlib = embeddedStdlib

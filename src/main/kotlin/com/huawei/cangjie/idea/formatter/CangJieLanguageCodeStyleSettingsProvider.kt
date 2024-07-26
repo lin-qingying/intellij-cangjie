@@ -15,7 +15,6 @@ import com.intellij.psi.codeStyle.*
 import org.jetbrains.annotations.Nls
 
 
-import org.jetbrains.kotlin.idea.core.formatter.CangJiePackageEntryTable
 import java.lang.reflect.Field
 import kotlin.reflect.KProperty
 
