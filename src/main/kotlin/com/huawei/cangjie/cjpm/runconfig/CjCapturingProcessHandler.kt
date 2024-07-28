@@ -1,6 +1,6 @@
 package com.huawei.cangjie.cjpm.runconfig
 
-import com.huawei.cangjie.idea.run.cjpm.runconfig.CjResult
+import com.huawei.cangjie.ide.run.cjpm.runconfig.CjResult
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler

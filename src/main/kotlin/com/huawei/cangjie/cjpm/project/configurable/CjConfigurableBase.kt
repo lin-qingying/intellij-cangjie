@@ -11,5 +11,5 @@ abstract class CjConfigurableBase(
     @NlsContexts.ConfigurableName displayName: String
 ) : BoundConfigurable(displayName) {
     // Currently, we have help page only for CLion
-    override fun getHelpTopic(): String? = if (PlatformUtils.isCLion()) "cangjiesupport" else null
+//    override fun getHelpTopic(): String? = if (PlatformUtils.isCLion()) "cangjiesupport" else null
 }

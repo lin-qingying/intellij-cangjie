@@ -2,6 +2,7 @@ package com.huawei.cangjie.lang.lsp
 
 
 import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
+import com.huawei.cangjie.ide.run.cjpm.toolchain
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
@@ -14,6 +15,9 @@ import java.nio.file.Paths
 enum class LspServerType {
     LSPSERVER, LSPMACROSERVER
 }
+
+
+val LOG = com.intellij.openapi.diagnostic.Logger.getInstance(CangJieLspServerManager::class.java)
 
 object CangJieLspServerManager {
 
@@ -38,46 +42,6 @@ object CangJieLspServerManager {
             }
         )
     }
-
-    /**
-     * 复制lspserver到目录
-     */
-//    fun copyLspServerToPath() {
-//
-//
-//        val classLoader = this::class.java.classLoader
-//
-//        val lspserverPath = if (SystemInfo.isWindows) {
-//            "lsp/LSPServer.exe"
-//        } else {
-//            "lsp/LSPServer"
-//        }
-//
-//        val resource = classLoader.getResource(lspserverPath)
-//
-//
-////创建目录
-//        if (Files.notExists(Paths.get(LSPSERVERPATH))) {
-//            Files.createDirectories(Paths.get(LSPSERVERPATH))
-//        }
-//        resource?.openStream()?.use { input ->
-//            FileOutputStream(binaryPath.toFile()).use { output ->
-//                input.copyTo(output)
-//            }
-//        }
-//
-//
-//    }
-
-    /**
-     * 重新复制lspserver到目录
-     */
-//    fun reCopyLspServerToPath() {
-//        if (Files.exists(binaryPath)) {
-//            Files.delete(binaryPath)
-//        }
-//        copyLspServerToPath()
-//    }
 
 
     /**
@@ -110,7 +74,7 @@ object CangJieLspServerManager {
         return GeneralCommandLine().apply {
             withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE)
             withCharset(Charsets.UTF_8)
-            exePath = getLspServerPath(project,lspServerType)
+            exePath = getLspServerPath(project, lspServerType)
             if (toolchain != null) {
                 setWorkDirectory(toolchain.location.systemIndependentPath)
                 withEnvironment(toolchain.getEnvironment())
@@ -170,6 +134,36 @@ object CangJieLspServerManager {
     }
 
 
+    // ... existing code ...
+    fun getDefaultServerPath(project: Project): String {
+
+
+        val exepath = if (SystemInfo.isWindows) "LSPServer.exe" else "LSPServer"
+
+        val sdkHome = project.toolchain?.location.toString()
+
+        var toolPath = project.toolchain?.toolsPath?.resolve(exepath)
+
+
+        if (toolPath == null) {
+
+
+            val o = if (System.getProperty("os.arch") == "arm64") "aarch64" else "x64"
+
+            val r = when {
+                System.getProperty("os.name").contains("darwin", ignoreCase = true) -> "darwin"
+                SystemInfo.isLinux -> "linux"
+                else -> "windows"
+
+            }
+
+            toolPath = Paths.get(sdkHome, r, o, exepath)
+
+        }
+
+        return toolPath.toString()
+    }
+// ... existing code ...
 }
 
 

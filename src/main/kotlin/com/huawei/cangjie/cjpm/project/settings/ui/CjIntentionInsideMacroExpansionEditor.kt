@@ -1,4 +1,4 @@
-package com.huawei.cangjie.idea.project.settings.ui
+package com.huawei.cangjie.ide.project.settings.ui
 
 
 import com.intellij.openapi.editor.*

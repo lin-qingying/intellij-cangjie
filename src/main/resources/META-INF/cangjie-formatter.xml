@@ -2,8 +2,8 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>org.jetbrains.plugins.terminal</depends>
     <extensions defaultExtensionNs="com.intellij">
-        <projectService serviceImplementation="com.huawei.cangjie.idea.formatter.cjfmt.CangJieFormatService"/>
-        <typingActionsExtension implementation="com.huawei.cangjie.idea.formatter.cjfmt.CangjieTypingActionsExtension" order="first"/>
+        <projectService serviceImplementation="com.huawei.cangjie.ide.formatter.cjfmt.CangJieFormatService"/>
+        <typingActionsExtension implementation="com.huawei.cangjie.ide.formatter.cjfmt.CangjieTypingActionsExtension" order="first"/>
     </extensions>
 <!--    <extensions defaultExtensionNs="com.huawei.deveco.projectmodel.ohos">-->
 <!--        <syncProject implementation="com.huawei.deveco.cjfmt.core.SyncFormat"/>-->
@@ -13,13 +13,13 @@
 <!--    </extensions>-->
     <actions>
         <unregister id="ReformatCode"/>
-        <action id="ReformatCode" class="com.huawei.cangjie.idea.formatter.cjfmt.action.CangJieFormatCodeAction" description="Reformat Code" text="Reformat Code">
+        <action id="ReformatCode" class="com.huawei.cangjie.ide.formatter.cjfmt.action.CangJieFormatCodeAction" description="Reformat Code" text="Reformat Code">
             <add-to-group group-id="CodeFormatGroup" anchor="before" relative-to-action="ShowReformatFileDialog"/>
             <add-to-group group-id="ProjectViewPopupMenuModifyGroup" anchor="before" relative-to-action="OptimizeImports"/>
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt L" />
         </action>
         <unregister id="ShowReformatFileDialog"/>
-        <action id="ShowReformatFileDialog" class="com.huawei.cangjie.idea.formatter.cjfmt.action.CangJieFormatFileAction" description="Reformat File" text="Reformat File...">
+        <action id="ShowReformatFileDialog" class="com.huawei.cangjie.ide.formatter.cjfmt.action.CangJieFormatFileAction" description="Reformat File" text="Reformat File...">
             <add-to-group group-id="CodeFormatGroup" anchor="before" relative-to-action="AutoIndentLines"/>
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift L" />
         </action>

@@ -1,9 +1,9 @@
 package com.huawei.cangjie.debugger.runconfig
 
 
-import com.huawei.cangjie.idea.run.cjpm.BuildResult
-import com.huawei.cangjie.idea.run.cjpm.CjpmCommandConfiguration
-import com.huawei.cangjie.idea.run.cjpm.CjpmRunStateBase
+import com.huawei.cangjie.ide.run.cjpm.BuildResult
+import com.huawei.cangjie.ide.run.cjpm.CjpmCommandConfiguration
+import com.huawei.cangjie.ide.run.cjpm.CjpmRunStateBase
   
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.RunProfile

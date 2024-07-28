@@ -1,8 +1,8 @@
 package com.huawei.cangjie.debugger.runconfig.legacy
 
 import com.huawei.cangjie.debugger.runconfig.CjDebugRunnerUtils
-import com.huawei.cangjie.idea.run.cjpm.BuildResult
-import com.huawei.cangjie.idea.run.cjpm.CjpmCommandConfiguration
+import com.huawei.cangjie.ide.run.cjpm.BuildResult
+import com.huawei.cangjie.ide.run.cjpm.CjpmCommandConfiguration
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.openapi.project.Project
 

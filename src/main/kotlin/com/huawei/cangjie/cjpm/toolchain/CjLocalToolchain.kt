@@ -3,6 +3,7 @@ package com.huawei.cangjie.cjpm.toolchain
 import com.huawei.cangjie.cjpm.toolchain.flavors.hasExecutable
 import com.huawei.cangjie.cjpm.toolchain.flavors.isExecutable
 import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import java.io.File
@@ -10,7 +11,7 @@ import java.nio.file.Path
 import kotlin.io.path.isDirectory
 
 
-open class CjLocalToolchain(location: Path) : CjToolchainBase(location) {
+open class CjLocalToolchain(  location: Path) : CjToolchainBase(location) {
     companion object {
         fun create(homePath: Path): CjLocalToolchain? {
             val tool = CjLocalToolchain(homePath)

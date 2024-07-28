@@ -5,8 +5,8 @@
 
 package com.huawei.cangjie.debugger.lang
 
-import com.huawei.cangjie.idea.run.cjpm.runconfig.CjResult
-import com.huawei.cangjie.idea.run.cjpm.runconfig.unwrapOrThrow
+import com.huawei.cangjie.ide.run.cjpm.runconfig.CjResult
+import com.huawei.cangjie.ide.run.cjpm.runconfig.unwrapOrThrow
 import com.huawei.cangjie.psi.psiUtil.toPsiFile
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.Document

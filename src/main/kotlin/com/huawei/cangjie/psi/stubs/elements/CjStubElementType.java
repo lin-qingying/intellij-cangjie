@@ -1,5 +1,5 @@
 package com.huawei.cangjie.psi.stubs.elements;
-import  com.intellij.psi.stubs.StubBase;
+
 import com.huawei.cangjie.lang.CangJieLanguage;
 import com.huawei.cangjie.psi.CjElementImplStub;
 import com.intellij.lang.ASTNode;
@@ -58,7 +58,7 @@ public abstract class CjStubElementType<StubT extends StubElement<?>, PsiT exten
     @NotNull
     @Override
     public String getExternalId() {
-        return "cangjie." + getDebugName();
+        return "cangjie." + this;
     }
 
 

@@ -298,7 +298,7 @@ open class CangJieExpressionParsing(
                     }
                 }
             }
-            expect(sturctEnd, "Expecting '${sturctEnd.debugName}'", EXPRESSION_FOLLOW)
+            expect(sturctEnd, "Expecting '${sturctEnd}'", EXPRESSION_FOLLOW)
         }
         myBuilder.restoreNewlinesState()
         list.done(VALUE_ARGUMENT_LIST)
@@ -1694,7 +1694,7 @@ open class CangJieExpressionParsing(
                 reference.done(REFERENCE_EXPRESSION)
                 thisExpression.done(THIS_EXPRESSION)
             } else {
-                val keyword: CjToken? = KEYWORD_TEXTS.get(myBuilder.tokenText)
+                val keyword: CjToken? = KEYWORD_TEXTS[myBuilder.tokenText]
                 if (keyword != null) {
                     myBuilder.remapCurrentToken(keyword)
                     errorAndAdvance("Keyword cannot be used as a reference")

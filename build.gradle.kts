@@ -29,8 +29,12 @@ enum class BuildType {
     IC_DAP,
 
     //    IDEA Community Edition + cidr本地代码调试   LLDB
-    IC_CIDR_NATIVE_DEBUG;
+    IC_CIDR_NATIVE_DEBUG,
 
+
+    //    CLION
+    CLION_NATIVE_DEBUG,
+    CLION_DAP;
 
     companion object {
 
@@ -39,6 +43,11 @@ enum class BuildType {
                 "IU_NATIVE_DEBUG" -> IU_NATIVE_DEBUG
                 "IC_DAP" -> IC_DAP
                 "IC_CIDR_NATIVE_DEBUG" -> IC_CIDR_NATIVE_DEBUG
+
+                "CLION_NATIVE_DEBUG" -> CLION_NATIVE_DEBUG
+
+                "CLION_DAP" -> CLION_DAP
+
                 else -> IC_DAP
             }
         }
@@ -52,7 +61,7 @@ val buildType = BuildType.fromString(build_type)
 //IDEA版本
 val ideaVersion = "2024.1"
 //插件版本
-val cangjiePluginVersion = "1.1.5"
+val cangjiePluginVersion = "1.1.6"
 
 
 val kotlinVersion = "1.9.21"
@@ -149,6 +158,7 @@ allprojects {
             when (buildType) {
                 IU_NATIVE_DEBUG -> "IU"
                 IC_DAP, IC_CIDR_NATIVE_DEBUG -> "IC"
+                CLION_NATIVE_DEBUG, CLION_DAP -> "CL"
 
             }
         type.set(ideaType)
@@ -478,8 +488,25 @@ when (buildType) {
 
 
     }
+    CLION_NATIVE_DEBUG -> {
+        val clionPlugins = listOf("com.intellij.cidr.base", "com.intellij.clion", "com.intellij.nativeDebug")
+        project(":native-debugger") {
+            intellij {
+                plugins.set(clionPlugins)
+            }
+            dependencies {
+                implementation(project(":"))
+            }
+        }
 
-    IC_DAP -> {
+        cangjie_plugin_project.intellij.plugins.add(nativeDebugPlugin)
+        cangjie_plugin_project.dependencies {
+            implementation(project(":native-debugger"))
+
+        }
+    }
+
+    IC_DAP, CLION_DAP -> {
         project(":dap-debugger") {
             intellij {
                 plugins.set(listOf(terminalPlugin))
@@ -505,6 +532,7 @@ when (buildType) {
     }
 
     IC_CIDR_NATIVE_DEBUG -> TODO()
+
 }
 
 
@@ -594,7 +622,7 @@ fun updatePluginXmlFile() {
         }
 
         when (buildType) {
-            IU_NATIVE_DEBUG -> {
+            IU_NATIVE_DEBUG ,CLION_NATIVE_DEBUG-> {
                 var node = xmlDoc.createElement("module")
                 node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {
                     nodeValue = "com.huawei.cangjie.nativeDebug"
@@ -610,7 +638,7 @@ fun updatePluginXmlFile() {
 
             }
 
-            IC_DAP -> {
+            IC_DAP ,CLION_DAP-> {
 
                 val node = xmlDoc.createElement("module")
                 node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {

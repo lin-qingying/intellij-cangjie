@@ -2,7 +2,7 @@ package com.huawei.cangjie.cjpm.project
 
 import com.huawei.cangjie.cjpm.project.CjToolchainPathChoosingComboBox.Companion.LOG
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
-import com.huawei.cangjie.idea.project.settings.ui.addTextChangeListener
+import com.huawei.cangjie.ide.project.settings.ui.addTextChangeListener
 import com.intellij.openapi.application.AppUIExecutor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState

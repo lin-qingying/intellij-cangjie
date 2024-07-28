@@ -4,11 +4,11 @@ package com.huawei.cangjie.cjpm.toolchain.tools
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
 import com.huawei.cangjie.cjpm.toolchain.impl.CjcVersion
 import com.huawei.cangjie.cjpm.toolchain.impl.parseCjcVersion
-import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.CjProcessResult
-import com.huawei.cangjie.idea.run.cjpm.isUnitTestMode
-import com.huawei.cangjie.idea.run.cjpm.runconfig.CjCapturingProcessHandler
-import com.huawei.cangjie.idea.run.cjpm.runconfig.CjProcessExecutionException
-import com.huawei.cangjie.idea.run.cjpm.runconfig.unwrapOrElse
+import com.huawei.cangjie.ide.project.tools.projectWizard.wizard.CjProcessResult
+import com.huawei.cangjie.ide.run.cjpm.isUnitTestMode
+import com.huawei.cangjie.ide.run.cjpm.runconfig.CjCapturingProcessHandler
+import com.huawei.cangjie.ide.run.cjpm.runconfig.CjProcessExecutionException
+import com.huawei.cangjie.ide.run.cjpm.runconfig.unwrapOrElse
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
 import com.intellij.execution.process.ProcessListener

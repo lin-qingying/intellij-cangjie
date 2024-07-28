@@ -6,10 +6,10 @@ import com.huawei.cangjie.cjpm.CjpmConstants
 import com.huawei.cangjie.cjpm.findChild
 import com.huawei.cangjie.cjpm.project.pathAsPath
 import com.huawei.cangjie.cjpm.project.toolwindow.CjpmToolWindow
-import com.huawei.cangjie.idea.notifications.CjEditorNotificationPanel
-import com.huawei.cangjie.idea.notifications.isCjpmManifestFile
-import com.huawei.cangjie.idea.run.cjpm.isUnitTestMode
-import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.saveAllDocuments
+import com.huawei.cangjie.ide.notifications.CjEditorNotificationPanel
+import com.huawei.cangjie.ide.notifications.isCjpmManifestFile
+import com.huawei.cangjie.ide.run.cjpm.isUnitTestMode
+import com.huawei.cangjie.ide.run.cjpm.runconfig.buildtool.saveAllDocuments
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey

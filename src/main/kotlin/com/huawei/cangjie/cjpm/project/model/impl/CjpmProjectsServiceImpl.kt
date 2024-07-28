@@ -16,8 +16,8 @@ import com.huawei.cangjie.cjpm.project.workspace.CjpmWorkspace
 import com.huawei.cangjie.cjpm.project.workspace.PackageOrigin
 import com.huawei.cangjie.cjpm.project.workspace.additionalRoots
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
-import com.huawei.cangjie.idea.notifications.CjNotifications
-import com.huawei.cangjie.idea.run.cjpm.isUnitTestMode
+import com.huawei.cangjie.ide.notifications.CjNotifications
+import com.huawei.cangjie.ide.run.cjpm.isUnitTestMode
 import com.huawei.cangjie.lang.CangJieFileType
 import com.huawei.cangjie.lang.lsp.CangJieLspServerManager
 import com.huawei.cangjie.taskQueue
@@ -334,7 +334,7 @@ class CjpmProjectsServiceImpl(
     override fun noStateLoaded() {
 
 
-        // 显示在 [com.huawei.cangjie.idea.notifications.MissingToolchainNotificationProvider]
+        // 显示在 [com.huawei.cangjie.ide.notifications.MissingToolchainNotificationProvider]
 
         initialized = true // 不需要锁定B/C的服务初始时间
 

@@ -16,9 +16,9 @@ import com.huawei.cangjie.cjpm.toolchain.impl.CjcVersion
 import com.huawei.cangjie.cjpm.toolchain.tools.CjpmCallType
 
 import com.huawei.cangjie.cjpm.toolchain.tools.unwrapOrElse
-import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildAdapterBase
-import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildContextBase
-import com.huawei.cangjie.idea.run.cjpm.toolchain
+import com.huawei.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildAdapterBase
+import com.huawei.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildContextBase
+import com.huawei.cangjie.ide.run.cjpm.toolchain
 import com.intellij.build.BuildContentDescriptor
 import com.intellij.build.BuildDescriptor
 import com.intellij.build.DefaultBuildDescriptor
@@ -31,6 +31,7 @@ import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
@@ -250,6 +251,10 @@ class CjpmSyncTask(
 
         override fun update(e: AnActionEvent) {
             e.presentation.isEnabled = progress.isRunning
+        }
+
+        override fun getActionUpdateThread(): ActionUpdateThread {
+            return ActionUpdateThread.BGT
         }
 
         override fun actionPerformed(e: AnActionEvent) {

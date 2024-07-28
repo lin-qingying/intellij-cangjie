@@ -1,4 +1,4 @@
-package com.huawei.cangjie.dapDebugger.runconfig.breakpoint//package com.huawei.cangjie.idea.debugger
+package com.huawei.cangjie.dapDebugger.runconfig.breakpoint//package com.huawei.cangjie.ide.debugger
 //
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties

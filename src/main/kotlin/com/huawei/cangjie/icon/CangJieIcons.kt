@@ -14,7 +14,8 @@ object CangJieIcons {
 //    val FILE: Icon = CangJieResourcesIcons.CangJie_file
 
     val CANGJIE_FILE = load("/icons/cangjie_file.svg")
-
+    val CANGJIE = load("/icons/cangjie_icon.png")
+    val CANGJIE_16 = load("/icons/cangjie_icon_16_16.png")
 
 
     /** 16x16  */
@@ -34,7 +35,7 @@ object CangJieIcons {
 
     private fun load(path: String, cacheKey: Int, flags: Int): Icon {
         return IconManager.getInstance()
-            .loadRasterizedIcon(path, CangJieIcons::class.java.getClassLoader(), cacheKey, flags)
+            .loadRasterizedIcon(path, CangJieIcons::class.java.classLoader, cacheKey, flags)
     }
 
 }

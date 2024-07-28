@@ -5,9 +5,9 @@ import com.huawei.cangjie.debugger.CjDebuggerToolchainService
 import com.huawei.cangjie.debugger.DebuggerAvailability
 import com.huawei.cangjie.debugger.DebuggerKind
 import com.huawei.cangjie.debugger.settings.CjDebuggerSettings
-import com.huawei.cangjie.idea.run.cjpm.BuildResult
-import com.huawei.cangjie.idea.run.cjpm.CjpmRunStateBase
-import com.huawei.cangjie.idea.run.cjpm.isUnitTestMode
+import com.huawei.cangjie.ide.run.cjpm.BuildResult
+import com.huawei.cangjie.ide.run.cjpm.CjpmRunStateBase
+import com.huawei.cangjie.ide.run.cjpm.isUnitTestMode
 
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.ProcessTerminatedListener

@@ -1,7 +1,7 @@
 package com.huawei.cangjie.cjpm.toolchain.tools
 
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
-import com.huawei.cangjie.idea.run.cjpm.runconfig.ExecuteResult
+import com.huawei.cangjie.ide.run.cjpm.runconfig.ExecuteResult
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.ElevationService
 import com.intellij.openapi.diagnostic.Logger

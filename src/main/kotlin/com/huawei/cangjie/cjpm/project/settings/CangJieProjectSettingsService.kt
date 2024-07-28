@@ -5,7 +5,7 @@ import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainProvider
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainServices
 import com.huawei.cangjie.cjpm.toolchain.ExternalLinter
-import com.huawei.cangjie.idea.run.cjpm.isUnitTestMode
+import com.huawei.cangjie.ide.run.cjpm.isUnitTestMode
 import com.huawei.cangjie.utils.showSettingsDialog
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.*

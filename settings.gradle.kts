@@ -17,11 +17,19 @@ val build_type: String by settings
 enum class BuildType {
 
 
-    //    IU + nativeDebug
+    //   IDEA Ultimate Edition + nativeDebug本地调试插件  LLDB
     IU_NATIVE_DEBUG,
-    IC_DAP,
-    IC_CIDR_NATIVE_DEBUG;
 
+    // IDEA Community Edition + DAP调试插件
+    IC_DAP,
+
+    //    IDEA Community Edition + cidr本地代码调试   LLDB
+    IC_CIDR_NATIVE_DEBUG,
+
+
+    //    CLION
+    CLION_NATIVE_DEBUG,
+    CLION_DAP;
 
     companion object {
 
@@ -30,6 +38,11 @@ enum class BuildType {
                 "IU_NATIVE_DEBUG" -> IU_NATIVE_DEBUG
                 "IC_DAP" -> IC_DAP
                 "IC_CIDR_NATIVE_DEBUG" -> IC_CIDR_NATIVE_DEBUG
+
+                "CLION_NATIVE_DEBUG" -> CLION_NATIVE_DEBUG
+
+                "CLION_DAP" -> CLION_DAP
+
                 else -> IC_DAP
             }
         }
@@ -69,17 +82,18 @@ include("lsp")
 //include("debugg/**/er")
 
 when (buildType) {
-    IU_NATIVE_DEBUG -> {
+    IU_NATIVE_DEBUG,CLION_NATIVE_DEBUG -> {
         include("native-debugger")
 
     }
 
-    IC_DAP -> {
+    IC_DAP ,CLION_DAP-> {
         include("dap-debugger")
 
     }
 
     IC_CIDR_NATIVE_DEBUG -> TODO()
+
 }
 //include("cidr")
 

@@ -13,8 +13,8 @@ import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainProvider
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainServices
 import com.huawei.cangjie.cjpm.toolchain.cjc
-import com.huawei.cangjie.idea.project.settings.ui.UiDebouncer
-import com.huawei.cangjie.idea.project.settings.ui.fullWidthCell
+import com.huawei.cangjie.ide.project.settings.ui.UiDebouncer
+import com.huawei.cangjie.ide.project.settings.ui.fullWidthCell
 import com.intellij.execution.wsl.WslPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
