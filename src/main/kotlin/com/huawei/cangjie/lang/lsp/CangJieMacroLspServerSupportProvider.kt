@@ -1,17 +1,12 @@
 package com.huawei.cangjie.lang.lsp
 
-
-import com.huawei.cangjie.cjpm.project.model.Require
 import com.huawei.cangjie.cjpm.project.model.cjpmProjects
 import com.huawei.cangjie.cjpm.project.model.currentCjpmProject
 import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
 import com.huawei.cangjie.cjpm.project.workspace.PackageOrigin
-import com.huawei.cangjie.lang.CangJieFileType
-import com.huawei.cangjie.lang.lsp.CangJieLspServerManager.getCommandLine
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.io.systemIndependentPath
 import com.linqingying.lsp.api.LspServerSupportProvider
@@ -19,18 +14,8 @@ import com.linqingying.lsp.api.ProjectWideLspServerDescriptor
 import com.linqingying.utils.Config
 import org.eclipse.lsp4j.*
 
-fun checkCangJieFIle(file: VirtualFile): Boolean {
-//    return false
-    if (file.extension == "cj") return true
 
-    if (file.fileType is CangJieFileType) return true
-
-    return false
-
-}
-
-
-class CangJieLspServerSupportProvider : LspServerSupportProvider {
+class CangJieMacroLspServerSupportProvider : LspServerSupportProvider {
     override fun fileOpened(
         project: Project,
         file: VirtualFile,
@@ -42,7 +27,7 @@ class CangJieLspServerSupportProvider : LspServerSupportProvider {
 
         if (checkCangJieFIle(file)) {
             if (cangjieSettings.toolchain != null) {
-                serverStarter.ensureServerStarted(CangJieLspServerDescriptor(project))
+                serverStarter.ensureServerStarted(CangJieMacroLspServerDescriptor(project))
             }
         }
 
@@ -51,8 +36,7 @@ class CangJieLspServerSupportProvider : LspServerSupportProvider {
 
 }
 
-
-private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServerDescriptor(project, "Cangjie") {
+private class CangJieMacroLspServerDescriptor(project: Project) : ProjectWideLspServerDescriptor(project, "Cangjie") {
     override fun isSupportedFile(file: VirtualFile): Boolean {
 
 
@@ -71,7 +55,7 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 //    override val lsp4jServerClass: Class<out LanguageServer>
 //        get() = CangJieLangServer::class.java
 
-    override fun createCommandLine(): GeneralCommandLine = getCommandLine(project, LspServerType.LSPSERVER)
+    override fun createCommandLine(): GeneralCommandLine = CangJieLspServerManager.getCommandLine(project,LspServerType.LSPMACROSERVER)
 
 
     // 无需使用LSP服务器即可实现引用解析
@@ -114,7 +98,7 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
                 return mapOf(
                     "modulesHomeOption" to toolchain.location.systemIndependentPath,
 //                    "extensionPath" to "C:\\Users\\27439\\.cangjie\\lsp"
-                    "telemetryOption" to true,
+
 
                     "multiModuleOption" to mutableMapOf<String, Any>(
                         getFileUri(project.guessProjectDir()!!) to mapOf(
@@ -223,45 +207,16 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
         val capabilities = ClientCapabilities()
         val workspace = WorkspaceClientCapabilities()
         workspace.applyEdit = true
-
-
-//        "workspaceEdit": {
-//            "documentChanges": true,
-//            "resourceOperations": [
-//            "create",
-//            "rename",
-//            "delete"
-//            ],
-//            "failureHandling": "textOnlyTransactional",
-//            "normalizesLineEndings": true,
-//            "changeAnnotationSupport": {
-//            "groupsOnLabel": true
-//        }
-//        },
-
-        val workedit = WorkspaceEditCapabilities(
-
-        ).apply {
-            documentChanges = true
-            resourceOperations = listOf(
-
-                "create",
-
-                "rename",
-
-                "delete"
-
-            )
-            failureHandling = "textOnlyTransactional"
-
-            normalizesLineEndings = true
-
-            changeAnnotationSupport = WorkspaceEditChangeAnnotationSupportCapabilities().apply {
-                groupsOnLabel = true
-            }
-        }
-
-        workspace.workspaceEdit = workedit
+//        val workspaceEdit = WorkspaceEdit()
+//    workspaceEdit.documentChanges = Either.forLeft(listOf(TextDocumentEdit()))
+//    workspaceEdit.resourceOperations =
+//        listOf(ResourceOperationKind.Create, ResourceOperationKind.Rename, ResourceOperationKind.Delete)
+//    workspaceEdit.failureHandling = FailureHandlingKind.TextOnlyTransactional
+//    workspaceEdit.normalizesLineEndings = true
+//    val changeAnnotationSupport = ChangeAnnotationSupport()
+//    changeAnnotationSupport.groupsOnLabel = true
+//    workspaceEdit.changeAnnotationSupport = changeAnnotationSupport
+//    workspace.workspaceEdit = workspaceEdit
         workspace.configuration = true
         val didChangeWatchedFiles = DidChangeWatchedFilesCapabilities()
         didChangeWatchedFiles.dynamicRegistration = true
@@ -341,14 +296,6 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
         val publishDiagnosticsCapabilities = PublishDiagnosticsCapabilities()
         publishDiagnosticsCapabilities.relatedInformation = true
         publishDiagnosticsCapabilities.versionSupport = false
-
-
-        textDocument.rename = RenameCapabilities().apply {
-            dynamicRegistration = true
-            prepareSupport = true
-            prepareSupportDefaultBehavior = PrepareSupportDefaultBehavior.Identifier
-            honorsChangeAnnotations = true
-        }
 
         publishDiagnosticsCapabilities.codeDescriptionSupport = true
         publishDiagnosticsCapabilities.dataSupport = true
@@ -644,7 +591,6 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 
         notebookDocument.synchronization = synchronizationCapabilities1
 
-
         capabilities.notebookDocument = notebookDocument
 
         return capabilities
@@ -653,12 +599,3 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 
 
 }
-
-fun Require.contentRoot(project: Project): VirtualFile? =
-    if (path != null) {
-        LocalFileSystem.getInstance().findFileByPath(path)
-    } else {
-        project.currentCjpmProject?.workspace?.packages?.find { `package` ->
-            name == `package`.name
-        }?.contentRoot
-    }

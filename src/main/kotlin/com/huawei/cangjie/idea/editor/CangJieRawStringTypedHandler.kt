@@ -5,6 +5,7 @@ package com.huawei.cangjie.idea.editor
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.CjFile
 import com.intellij.codeInsight.CodeInsightSettings
+import com.intellij.codeInsight.editorActions.TypedHandler
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileTypes.FileType
@@ -15,6 +16,35 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 
 class CangJieRawStringTypedHandler : TypedHandlerDelegate() {
     override fun beforeCharTyped(c: Char, project: Project, editor: Editor, file: PsiFile, fileType: FileType): Result {
+        // A quote is typed after 2 other quotes
+        val offset = editor.caretModel.offset
+
+
+        if(c == '\''){
+
+
+
+            val prevText = file.findElementAt(offset - 1)?.text
+
+            if(prevText!= "\'"){
+
+                if(prevText == "r"){
+                    editor.document.insertString(offset, "''")
+                    editor.caretModel.currentCaret.moveToOffset(offset + 1)
+
+                }else{
+                    editor.document.insertString(offset, "r''")
+                    editor.caretModel.currentCaret.moveToOffset(offset +2 )
+
+
+                }
+
+            }
+
+
+
+            return Result.STOP
+        }
         if (c != '"') {
             return Result.CONTINUE
         }
@@ -25,8 +55,8 @@ class CangJieRawStringTypedHandler : TypedHandlerDelegate() {
             return Result.CONTINUE
         }
 
-        // A quote is typed after 2 other quotes
-        val offset = editor.caretModel.offset
+
+
         if (offset < 2) {
             return Result.CONTINUE
         }

@@ -3,10 +3,8 @@ grammar CangJie;
 
 
 @header {
-package  antlr.parser;
+package cangjie.antlr;
 }
-
-
 
 // **词法部分**
 
@@ -19,15 +17,13 @@ LineComment
 : '//' ~[\n\r]*  // 单行注释将被忽略
 ;
 /*********************************空白和换行*****************************************/
-WS
-:  [\u0020\u0009\u000C]+ -> channel(HIDDEN)
-;
+//WS
+//:  [\u0020\u0009\u000C]+ -> channel(HIDDEN)
+//;
+WS: [ \t\r\n]+ -> skip; // Skip whitespace
 NL
 : '\u000A' | '\u000D' '\u000A'
 ;
-
-
-
 
 
 /*********************************符号*****************************************/
@@ -95,10 +91,10 @@ QUOTESYMBOL        : '`';
 DOLLAR             : '$';
 QUOTE_OPEN         : '"';
 TRIPLE_QUOTE_OPEN  : '"""' NL;
-//QUOTE_CLOSE        : '"';
+QUOTE_CLOSE        : '"';
 //TRIPLE_QUOTE_CLOSE : '"""'?;
 LineStrExprStart   : '${';
-//MultiLineStrExprStart: '${';
+MultiLineStrExprStart: '${';
 
 /*********************************关键字*****************************************/
 INT8               : 'Int8';
@@ -114,10 +110,10 @@ UINTNATIVE         : 'UIntNative';
 FLOAT16            : 'Float16';
 FLOAT32            : 'Float32';
 FLOAT64            : 'Float64';
-RUNE               : 'Rune';
-BOOL            : 'Bool';
+CHAR               : 'Char';
+BOOLEAN            : 'Bool';
 UNIT               : 'Unit';
-NOTHING            : 'Nothing';
+Nothing            : 'Nothing';
 STRUCT             : 'struct';
 ENUM               : 'enum';
 THISTYPE           : 'This';
@@ -167,6 +163,7 @@ STATIC            : 'static';
 PUBLIC            : 'public';
 PRIVATE           : 'private';
 PROTECTED         : 'protected';
+INTERNAL          : 'internal';
 OVERRIDE          : 'override';
 REDEF             : 'redef';
 ABSTRACT          : 'abstract';
@@ -337,20 +334,34 @@ ByteEscapeSeq
 
 // 单个字节字符（排除特定ASCII码）
 SingleCharByte
-  : [\u0000-\u0009\u000B\u000C\u000E-\u0021\u0023-\u0026\u0028-\u005B\u005D-\u007F]
+// ASCII 0x00~0x7F without \n \r \' \" \\
+// +-------+-----+-----+
+// | Rune | Hex | Dec |
+// +-------+-----+-----+
+// | \n | 0A | 10 |
+// | \r | 0D | 13 |
+// | \" | 22 | 34 |
+// | \' | 27 | 39 |
+// | \\ | 5C | 92 |
+// +-------+-----+-----+
+:
+  [\u0000-\u0009\u000B\u000C\u000E-\u0021\u0023-\u0026\u0028-\u005B\u005D-\u007F]
 ;
 
+
 fragment ByteEscapedIdentifier
-  : '\\' ('t' | 'b' | 'r' | 'n' | '\'' | '"' | '\\' | 'f' | 'v' | '0')
+: '\\' ('t' | 'b' | 'r' | 'n' | '\'' | '"' | '\\' | 'f' | 'v' | '0')
 ;
 
 fragment HexCharByte
-  : '\\' 'u' '{' HexadecimalDigit (HexadecimalDigit)? '}'
+: '\\' 'u' '{' HexadecimalDigit '}'
+| '\\' 'u' '{' HexadecimalDigit HexadecimalDigit '}'
 ;
+
 
 // 定义字节数组字符串字面量
 ByteStringArrayLiteral
-  : 'b' '"' (SingleCharByte | ByteEscapeSeq)* '"'
+: 'b' '"' (SingleCharByte | ByteEscapeSeq)* '"'
 ;
 
 // J风格字符串字面量
@@ -388,36 +399,155 @@ fragment MultiLineRawStringContent
   | HASH '"' .*? '"' HASH
 ;
 /*********************************标识符*****************************************/
-identifier
-: Identifier
-| PUBLIC
-| PRIVATE
-| PROTECTED
-| OVERRIDE
-| ABSTRACT
-| OPEN
-| REDEF
-| GET
-| SET
-;
+
+
+fragment XID_Start
+    : [\u0041-\u005A] // A-Z
+    | [\u0061-\u007A] // a-z
+    | [\u00C0-\u00FF] // Latin-1 Supplement
+    | [\u0100-\u017F] // Latin Extended-A
+    | [\u0180-\u024F] // Latin Extended-B
+    | [\u0250-\u02AF] // IPA Extensions
+    | [\u0300-\u036F] // Combining Diacritical Marks
+    | [\u0370-\u03FF] // Greek and Coptic
+    | [\u0400-\u04FF] // Cyrillic
+    | [\u0530-\u058F] // Armenian
+    | [\u0590-\u05FF] // Hebrew
+    | [\u0600-\u06FF] // Arabic
+    | [\u0900-\u097F] // Devanagari
+    | [\u0980-\u09FF] // Bengali
+    | [\u0A00-\u0A7F] // Gurmukhi
+    | [\u0A80-\u0AFF] // Gujarati
+    | [\u0B00-\u0B7F] // Oriya
+    | [\u0B80-\u0BFF] // Tamil
+    | [\u0C00-\u0C7F] // Telugu
+    | [\u0C80-\u0CFF] // Kannada
+    | [\u0D00-\u0D7F] // Malayalam
+    | [\u0D80-\u0DFF] // Sinhala
+    | [\u0E00-\u0E7F] // Thai
+    | [\u0E80-\u0EFF] // Lao
+    | [\u0F00-\u0FFF] // Tibetan
+    | [\u1000-\u109F] // Myanmar
+    | [\u10A0-\u10FF] // Georgian
+    | [\u1100-\u11FF] // Hangul Jamo
+    | [\u1200-\u137F] // Ethiopic
+    | [\u1380-\u139F] // Ethiopic Supplement
+    | [\u13A0-\u13FF] // Cherokee
+    | [\u1400-\u167F] // Unified Canadian Aboriginal Syllabics
+    | [\u1680-\u169F] // Ogham
+    | [\u16A0-\u16FF] // Runic
+    | [\u1700-\u171F] // Tagalog
+    | [\u1720-\u173F] // Hanunoo
+    | [\u1740-\u175F] // Buhid
+    | [\u1760-\u177F] // Tagbanwa
+    | [\u1780-\u17FF] // Khmer
+    | [\u1800-\u18AF] // Mongolian
+    | [\u1900-\u194F] // Limbu
+    | [\u1950-\u197F] // Tai Le
+    | [\u1980-\u19DF] // New Tai Lue
+    | [\u1A00-\u1A1F] // Tai Tham
+    | [\u1A20-\u1AAF] // Combining Diacritical Marks Extended
+    | [\u1B00-\u1B7F] // Balinese
+    | [\u1B80-\u1BBF] // Sundanese
+    | [\u1C00-\u1C4F] // Lepcha
+    | [\u1C50-\u1C7F] // Ol Chiki
+    | [\u1D00-\u1D7F] // Phonetic Extensions
+    | [\u1D80-\u1DBF] // Phonetic Extensions Supplement
+    | [\u1E00-\u1EFF] // Latin Extended Additional
+    | [\u1F00-\u1FFF] // Greek Extended
+    | [\u2000-\u206F] // General Punctuation
+    | [\u2070-\u209F] // Superscripts and Subscripts
+    | [\u20A0-\u20CF] // Currency Symbols
+    | [\u20D0-\u20FF] // Combining Marks for Symbols
+    | [\u2100-\u214F] // Letterlike Symbols
+    | [\u2150-\u218F] // Number Forms
+    | [\u2190-\u21FF] // Arrows
+    | [\u2200-\u22FF] // Mathematical Operators
+    | [\u2300-\u23FF] // Miscellaneous Technical
+    | [\u2400-\u243F] // Control Pictures
+    | [\u2440-\u245F] // Optical Character Recognition
+    | [\u2460-\u24FF] // Enclosed Alphanumerics
+    | [\u2500-\u257F] // Box Drawing
+    | [\u2580-\u259F] // Block Elements
+    | [\u25A0-\u25FF] // Geometric Shapes
+    | [\u2600-\u26FF] // Miscellaneous Symbols
+    | [\u2700-\u27BF] // Dingbats
+    | [\u2800-\u28FF] // Braille Patterns
+    | [\u2900-\u297F] // Supplemental Arrows-B
+    | [\u2980-\u29FF] // Miscellaneous Mathematical Symbols-B
+    | [\u2A00-\u2AFF] // Supplemental Mathematical Operators
+    | [\u2B00-\u2BFF] // Miscellaneous Symbols and Arrows
+    | [\u2C00-\u2C5F] // Glagolitic
+    | [\u2C60-\u2C7F] // Latin Extended-C
+    | [\u2C80-\u2CFF] // Coptic
+    | [\u2D00-\u2D2F] // Georgian Supplement
+    | [\u2D30-\u2D7F] // Tifinagh
+    | [\u2D80-\u2DDF] // Ethiopic Extended
+    | [\u2E00-\u2E7F] // Supplemental Punctuation
+    | [\u2E80-\u2EFF] // CJK Radicals Supplement
+    | [\u2F00-\u2FDF] // Kangxi Radicals
+    | [\u2FF0-\u2FFF] // Ideographic Description Characters
+    | [\u3000-\u303F] // CJK Symbols and Punctuation
+    | [\u3040-\u309F] // Hiragana
+    | [\u30A0-\u30FF] // Katakana
+    | [\u3100-\u312F] // Bopomofo
+    | [\u3130-\u318F] // Hangul Compatibility Jamo
+    | [\u3190-\u319F] // Kanbun
+    | [\u31A0-\u31BF] // Bopomofo Extended
+    | [\u31C0-\u31EF] // CJK Strokes
+    | [\u31F0-\u31FF] // Katakana Phonetic Extensions
+    | [\u3200-\u32FF] // Enclosed CJK Letters and Months
+    | [\u3300-\u33FF] // CJK Compatibility
+    | [\u3400-\u4DBF] // CJK Unified Ideographs Extension A
+    | [\u4E00-\u9FFF] // CJK Unified Ideographs
+    | [\uF900-\uFAFF] // CJK Compatibility Ideographs
+    | [\uFB00-\uFB4F] // Alphabetic Presentation Forms
+    | [\uFB50-\uFDFF] // Arabic Presentation Forms-A
+    | [\uFE00-\uFE0F] // Variation Selectors
+    | [\uFE10-\uFE1F] // Vertical Forms
+    | [\uFE20-\uFE2F] // Combining Half Marks
+    | [\uFE30-\uFE4F] // CJK Compatibility Forms
+    | [\uFE50-\uFE6F] // Small Form Variants
+    | [\uFE70-\uFEFF] // Arabic Presentation Forms-B
+    | [\uFF00-\uFFEF] // Halfwidth and Fullwidth Forms
+    | [\uFFF0-\uFFFF] // Specials
+    ;
+
+fragment XID_Continue
+    : XID_Start
+    | [\u0030-\u0039] // 0-9
+    | [\u203F-\u2040] // Underscore and other punctuation
+    | [\u200C-\u200D] // Zero Width Joiner and Non-Joiner
+    | [\u2E80-\u2EFF] // CJK Radicals Supplement
+    | [\u3000-\u303F] // CJK Symbols and Punctuation
+    | [\u3040-\u309F] // Hiragana
+    | [\u30A0-\u30FF] // Katakana
+    | [\u4E00-\u9FFF] // CJK Unified Ideographs
+    ;
+
+fragment Ident
+    : XID_Start XID_Continue*
+    | '_' XID_Continue+
+    ;
+
+fragment RawIdent
+    : '`' Ident '`'
+    ;
 
 Identifier
-: '_'* Letter (Letter | '_' | DecimalDigit)*
-| '`' '_'* Letter (Letter | '_' | DecimalDigit)* '`'
-;
-Letter
-: [a-zA-Z]
-;
+    : Ident
+    | RawIdent
+    ;
 
 DollarIdentifier
-: '$' Identifier
-;
+    : '$' (Ident | RawIdent)
+    ;
+
 ////////////////////////////////////语法/////////////////////////////////////////////////
 /*********************************编译单元*****************************************/
 translationUnit
-: NL* preamble end* topLevelObject* (end+ mainDefinition)? NL* (topLevelObject (end+
-  topLevelObject?)*)? EOF
-;
+  : NL* preamble end* topLevelObject* (end+ mainDefinition)? NL* (topLevelObject (end+ topLevelObject?)*)? EOF
+  ;
 
 end
   : NL | SEMI
@@ -431,34 +561,50 @@ preamble
   ;
 
 packageHeader
-  : PACKAGE  packageNameIdentifier
+  : PACKAGE NL* packageNameIdentifier end+
   ;
 
 packageNameIdentifier
   : identifier (NL* DOT NL* identifier)*
   ;
 
-importList
-: (FROM NL* identifier)? NL* IMPORT NL* importAllOrSpecified
-(NL* COMMA NL* importAllOrSpecified)* end+
-  ;
 
-importAllOrSpecified
-  : importAll
-  | importSpecified (NL* importAlias)?
-  ;
+importList
+: importModifier? (NL* | WS) IMPORT (NL* | WS) importContent end+
+;
+
+importModifier
+: PUBLIC | PRIVATE | PROTECTED | INTERNAL
+;
+
+importContent
+: importSingle | importAlias | importAll | importMulti
+;
+
+importSingle
+: (packageNameIdentifier NL* DOT NL*)* (identifier | packageNameIdentifier)
+;
+
+
 
 importSpecified
-  :  (identifier NL* DOT NL*)+ identifier
-  ;
-
-importAll
-  :  (identifier NL* DOT NL*)+ MUL
-  ;
-
+: (identifier '.')+ identifier
+;
 importAlias
-  : AS (NL* | WS+ ) identifier
-  ;
+: importSingle NL* AS NL* identifier
+;
+importAll
+: (packageNameIdentifier NL* DOT NL*)+ MUL
+;
+importMulti
+: (packageNameIdentifier NL* DOT NL*)* LCURL NL*
+(importSingle | importAlias | importAll) NL*
+(COMMA NL* (importSingle | importAlias | importAll))* NL*
+COMMA? NL* RCURL
+;
+
+
+
 
 
 /*********************************顶层声明*****************************************/
@@ -479,13 +625,12 @@ topLevelObject
 
 // 类定义
 classDefinition
-  : (classModifierList NL*)? CLASS NL* identifier
-  (NL* typeParameters NL*)?
-  (NL* UPPERBOUND NL* superClassOrInterfaces)?
-  (NL* genericConstraints)?
-  NL* classBody
-  ;
-
+    : (classModifierList NL*)? CLASS NL* identifier
+        (NL* typeParameters NL*)?
+        (NL* UPPERBOUND NL* superClassOrInterfaces)?
+        (NL* genericConstraints)?
+        NL* classBody
+    ;
 
 superClassOrInterfaces
     : superClass (NL* BITAND NL* superInterfaces)?
@@ -642,7 +787,7 @@ interfaceModifier
 
 // 函数定义规则
 functionDefinition
-    : (functionModifierList NL*)? FUNC (NL* | WS+) identifier
+    : (functionModifierList NL*)? FUNC NL* identifier
         (NL* typeParameters NL*)?
         NL* functionParameters
         (NL* COLON NL* type)?
@@ -720,9 +865,9 @@ functionDefinition
 
 //变量声明
 variableDeclaration
-: variableModifier* (NL* | WS+) (LET | VAR | CONST) (NL* | WS+)  patternsMaybeIrrefutable
-  ( ((NL* | WS+)  COLON (NL* | WS+)  type)? ((NL* | WS+)  ASSIGN (NL* | WS+)  expression)
-  | ((NL* | WS+)  COLON (NL* | WS+)  type)
+: variableModifier* NL* (LET | VAR | CONST) NL* patternsMaybeIrrefutable
+  ( (NL* COLON NL* type)? (NL* ASSIGN NL* expression)
+  | (NL* COLON NL* type)
   )
 ;
 
@@ -837,7 +982,7 @@ structNonStaticMemberModifier
 
 // 类型别名定义规则
 typeAlias
-    : (typeModifier NL*)? TYPE_ALIAS (NL* | WS+) identifier ((NL* | WS+) typeParameters)? (NL* | WS+) ASSIGN (NL* | WS+) type end*
+    : (typeModifier NL*)? TYPE_ALIAS NL* identifier (NL* typeParameters)? NL* ASSIGN NL* type end*
     ;
 
 // 类型修饰符规则
@@ -870,8 +1015,8 @@ extendType
     | FLOAT16
     | FLOAT32
     | FLOAT64
-    | RUNE
-    | BOOL
+    | CHAR
+    | BOOLEAN
     | NOTHING
     | UNIT
     ;
@@ -1012,12 +1157,12 @@ type
 
 // 箭头类型（函数类型）规则，例如 (A, B) -> C
 arrowType
-    : arrowParameters (NL* | WS+)  ARROW (NL* | WS+)  type
+    : arrowParameters NL* ARROW NL* type
     ;
 
 // 箭头参数列表规则，可以包含多个类型参数
 arrowParameters
-    : LPAREN (NL* | WS+)  (type ((NL* | WS+)  COMMA (NL* | WS+)  type)* (NL* | WS+) )? RPAREN
+    : LPAREN NL* (type (NL* COMMA NL* type)* NL*)? RPAREN
     ;
 
 // 元组类型规则，例如 (A, B)
@@ -1045,9 +1190,9 @@ atomicType
 // 字符语言类型规则，涵盖了数值类型、字符、布尔值、Nothing、Unit 和 ThisType 关键字
 charLangTypes
     : numericTypes
-    | RUNE
-    | BOOL
-    | NOTHING
+    | CHAR
+    | BOOLEAN
+    | Nothing
     | UNIT
     | THISTYPE
     ;
@@ -1314,15 +1459,23 @@ atomicExpression
 
 // 字面常量规则，包括整型、浮点型、字符型、布尔型、字符串等类型的基本值
 literalConstant
-    : IntegerLiteral
-    | FloatLiteral
-    | CharacterLiteral
-    | CharacterByteLiteral
-    | booleanLiteral
-    | stringLiteral
-    | ByteStringArrayLiteral
-    | unitLiteral
-    ;
+: IntegerLiteral
+| FloatLiteral
+| RuneLiteral
+| ByteLiteral
+| booleanLiteral
+| stringLiteral
+| ByteStringArrayLiteral
+| unitLiteral
+;
+ByteLiteral
+: 'b' '\'' (SingleCharByte | ByteEscapeSeq) '\''
+;
+RuneLiteral
+: 'r' '\'' (SingleChar | EscapeSeq) '\''
+| 'r' '"' (SingleChar | EscapeSeq) '"'
+;
+
 
 // 布尔字面量规则，表示 true 或 false
 booleanLiteral
@@ -1344,7 +1497,7 @@ lineStringContent
 
 // 单行字符串字面量规则，支持简单的插值表达式
 lineStringLiteral
-    : QUOTE_OPEN (lineStringExpression | lineStringContent)* QUOTE_OPEN
+    : QUOTE_OPEN (lineStringExpression | lineStringContent)* QUOTE_CLOSE
     ;
 
 // 单行字符串中的插值表达式规则
@@ -1364,7 +1517,7 @@ multiLineStringLiteral
 
 // 多行字符串中的插值表达式规则
 multiLineStringExpression
-    : LineStrExprStart end* (expressionOrDeclaration (end+ expressionOrDeclaration?)*)
+    : MultiLineStrExprStart end* (expressionOrDeclaration (end+ expressionOrDeclaration?)*)
       end* RCURL
     ;
 
@@ -1500,7 +1653,7 @@ loopExpression
 
 // for-in 循环表达式规则，遍历集合或范围中的元素
 forInExpression
-    : FOR (NL* | WS+) LPAREN (NL* | WS+) patternsMaybeIrrefutable (NL* | WS+) IN (NL* | WS+) expression NL* patternGuard? NL*
+    : FOR NL* LPAREN NL* patternsMaybeIrrefutable NL* IN NL* expression NL* patternGuard? NL*
         RPAREN NL* block
     ;
 
@@ -1526,8 +1679,8 @@ doWhileExpression
 // 尝试/捕获/最终化表达式规则：
 // - 标准 try-finally 结构
 tryExpression
-    : TRY (NL* | WS+) block NL* FINALLY NL* block
-    | TRY NL* block (NL* CATCH (NL* | WS+) LPAREN NL* catchPattern NL* RPAREN NL* block)+ (NL* FINALLY NL* block)?
+    : TRY NL* block NL* FINALLY NL* block
+    | TRY NL* block (NL* CATCH NL* LPAREN NL* catchPattern NL* RPAREN NL* block)+ (NL* FINALLY NL* block)?
     | TRY NL* LPAREN NL* resourceSpecifications NL* RPAREN NL* block
         (NL* CATCH NL* LPAREN NL* catchPattern NL* RPAREN NL* block)* (NL* FINALLY NL* block)?
     ;
@@ -1649,35 +1802,46 @@ quoteParameters
     ;
 
 
+//keywords
+
+
+
+identifier
+: Identifier
+//| PUBLIC
+//| PRIVATE
+//| PROTECTED
+//| OVERRIDE
+//| ABSTRACT
+//| OPEN
+//| REDEF
+//| GET
+//| SET
+;
+
 // 引用标记规则，包含所有可能的语法符号和关键字作为不可计算引用
 quoteToken
-: DOT | COMMA | LPAREN | RPAREN | LSQUARE | RSQUARE | LCURL | RCURL | EXP | MUL
-| MOD | DIV | ADD | SUB
+: DOT | COMMA | LPAREN | RPAREN | LSQUARE | RSQUARE | LCURL | RCURL | EXP | MUL | MOD | DIV
+  | ADD | SUB
 | PIPELINE | COMPOSITION
-| INC | DEC | AND | OR | NOT | BITAND | BITOR | BITXOR | LSHIFT | RSHIFT |
-COLON | SEMI
-| ASSIGN | ADD_ASSIGN | SUB_ASSIGN | MUL_ASSIGN | EXP_ASSIGN | DIV_ASSIGN |
- MOD_ASSIGN
-| AND_ASSIGN | OR_ASSIGN | BITAND_ASSIGN | BITOR_ASSIGN | BITXOR_ASSIGN |
- LSHIFT_ASSIGN | RSHIFT_ASSIGN
-| ARROW | BACKARROW | DOUBLE_ARROW | ELLIPSIS | CLOSEDRANGEOP | RANGEOP | HASH
- | AT | QUEST | UPPERBOUND | LT | GT | LE | GE
-
+| INC | DEC | AND | OR | NOT | BITAND | BITOR | BITXOR | LSHIFT | RSHIFT | COLON | SEMI
+| ASSIGN | ADD_ASSIGN | SUB_ASSIGN | MUL_ASSIGN | EXP_ASSIGN | DIV_ASSIGN | MOD_ASSIGN
+| AND_ASSIGN | OR_ASSIGN | BITAND_ASSIGN | BITOR_ASSIGN | BITXOR_ASSIGN | LSHIFT_ASSIGN |
+  RSHIFT_ASSIGN
+| ARROW | BACKARROW | DOUBLE_ARROW | ELLIPSIS | CLOSEDRANGEOP | RANGEOP | HASH | AT | QUEST
+  | UPPERBOUND | LT | GT | LE | GE
 | NOTEQUAL | EQUAL | WILDCARD | BACKSLASH | QUOTESYMBOL | DOLLAR
-| INT8 | INT16 | INT32 | INT64 | INTNATIVE | UINT8 | UINT16 | UINT32 | UINT64 |
- UINTNATIVE | FLOAT16
-| FLOAT32 | FLOAT64 | RUNE | BOOL | UNIT | NOTHING | STRUCT | ENUM | THIS
-| PACKAGE | IMPORT | CLASS | INTERFACE | FUNC | LET | VAR | CONST | type
+| INT8 | INT16 | INT32 | INT64 | INTNATIVE | UINT8 | UINT16 | UINT32 | UINT64 | UINTNATIVE |
+  FLOAT16 | FLOAT32 | FLOAT64 | CHAR | BOOL | UNIT | NOTHING | STRUCT | ENUM | THIS
+| PACKAGE | IMPORT | CLASS | INTERFACE | FUNC | LET | VAR | CONST | TYPE
 | INIT | THIS | SUPER | IF | ELSE | CASE | TRY | CATCH | FINALLY
 | FOR | DO | WHILE | THROW | RETURN | CONTINUE | BREAK | AS | IN
-| MATCH | FROM | WHERE | EXTEND | SPAWN | SYNCHRONIZED | MACRO | QUOTE | TRUE |
- FALSE
+| MATCH | FROM | WHERE | EXTEND | SPAWN | SYNCHRONIZED | MACRO | QUOTE | TRUE | FALSE
 | STATIC | PUBLIC | PRIVATE | PROTECTED
 | OVERRIDE | ABSTRACT | OPEN | OPERATOR | FOREIGN
 | Identifier | DollarIdentifier
 | literalConstant
 ;
-
 
 // 插值引用表达式规则，允许在引用中嵌入可计算表达式
 quoteInterpolate

@@ -2,20 +2,18 @@ package com.huawei.cangjie.lang.lsp
 
 
 import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
-
-import com.huawei.cangjie.utils.getSavePluginVersion
-import com.huawei.cangjie.utils.savePluginVersion
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.ide.plugins.PluginManagerCore
-import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.systemIndependentPath
 import com.linqingying.lsp.impl.LspServerManagerImpl
-import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+
+enum class LspServerType {
+    LSPSERVER, LSPMACROSERVER
+}
 
 object CangJieLspServerManager {
 
@@ -25,49 +23,61 @@ object CangJieLspServerManager {
 
     private val LSPSERVERFILENAME = "LSPServer" + (if (SystemInfo.isWindows) ".exe" else "")
 
-    //    override fun createCommandLine() = GeneralCommandLine("D:\\Code\\idea\\intellij-cangjie\\lsp\\LSPServer.exe", "src")
-    val binaryPath: Path = Paths.get("$LSPSERVERPATH/$LSPSERVERFILENAME")
+    private val LSPMacroServerName = "LSPMacroServer" + (if (SystemInfo.isWindows) ".exe" else "")
 
+    //    override fun createCommandLine() = GeneralCommandLine("D:\\Code\\idea\\intellij-cangjie\\lsp\\LSPServer.exe", "src")
+//    val binaryPath: Path = Paths.get("$LSPSERVERPATH/$LSPSERVERFILENAME")
+
+
+    fun getBinaryPath(LspServerType: LspServerType): Path {
+
+        return Paths.get(
+            when (LspServerType) {
+                com.huawei.cangjie.lang.lsp.LspServerType.LSPSERVER -> "$LSPSERVERPATH/$LSPSERVERFILENAME"
+                com.huawei.cangjie.lang.lsp.LspServerType.LSPMACROSERVER -> "$LSPSERVERPATH/$LSPMacroServerName"
+            }
+        )
+    }
 
     /**
      * 复制lspserver到目录
      */
-    fun copyLspServerToPath() {
-
-
-        val classLoader = this::class.java.classLoader
-
-        val lspserverPath = if (SystemInfo.isWindows) {
-            "lsp/LSPServer.exe"
-        } else {
-            "lsp/LSPServer"
-        }
-
-        val resource = classLoader.getResource(lspserverPath)
-
-
-//创建目录
-        if (Files.notExists(Paths.get(LSPSERVERPATH))) {
-            Files.createDirectories(Paths.get(LSPSERVERPATH))
-        }
-        resource?.openStream()?.use { input ->
-            FileOutputStream(binaryPath.toFile()).use { output ->
-                input.copyTo(output)
-            }
-        }
-
-
-    }
+//    fun copyLspServerToPath() {
+//
+//
+//        val classLoader = this::class.java.classLoader
+//
+//        val lspserverPath = if (SystemInfo.isWindows) {
+//            "lsp/LSPServer.exe"
+//        } else {
+//            "lsp/LSPServer"
+//        }
+//
+//        val resource = classLoader.getResource(lspserverPath)
+//
+//
+////创建目录
+//        if (Files.notExists(Paths.get(LSPSERVERPATH))) {
+//            Files.createDirectories(Paths.get(LSPSERVERPATH))
+//        }
+//        resource?.openStream()?.use { input ->
+//            FileOutputStream(binaryPath.toFile()).use { output ->
+//                input.copyTo(output)
+//            }
+//        }
+//
+//
+//    }
 
     /**
      * 重新复制lspserver到目录
      */
-    fun reCopyLspServerToPath() {
-        if (Files.exists(binaryPath)) {
-            Files.delete(binaryPath)
-        }
-        copyLspServerToPath()
-    }
+//    fun reCopyLspServerToPath() {
+//        if (Files.exists(binaryPath)) {
+//            Files.delete(binaryPath)
+//        }
+//        copyLspServerToPath()
+//    }
 
 
     /**
@@ -89,7 +99,7 @@ object CangJieLspServerManager {
     }
 
 
-    fun getCommandLine(project: Project): GeneralCommandLine {
+    fun getCommandLine(project: Project, lspServerType: LspServerType): GeneralCommandLine {
 
 
 //        关闭现有的lspserver
@@ -100,13 +110,13 @@ object CangJieLspServerManager {
         return GeneralCommandLine().apply {
             withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE)
             withCharset(Charsets.UTF_8)
-            exePath = getLspServerPath(project)
+            exePath = getLspServerPath(project,lspServerType)
             if (toolchain != null) {
                 setWorkDirectory(toolchain.location.systemIndependentPath)
                 withEnvironment(toolchain.getEnvironment())
 
             } else {
-                setWorkDirectory(binaryPath.parent.toAbsolutePath().toString())
+                setWorkDirectory(getBinaryPath(lspServerType).parent.toAbsolutePath().toString())
             }
             addParameter("src")
             addParameter("-V")
@@ -118,37 +128,44 @@ object CangJieLspServerManager {
     /**
      * 获取lspserver路径
      */
-    private fun getLspServerPath(project: Project): String {
+    private fun getLspServerPath(project: Project, lspServerType: LspServerType): String {
         val toolchain = project.cangjieSettings.toolchain
 
 
         if (toolchain != null) {
-            if (Files.exists(Paths.get("${toolchain.location.systemIndependentPath}/tools/bin/LSPServer".toSystemPath()))) {
-                return "${toolchain.location.systemIndependentPath}/tools/bin/LSPServer".toSystemPath()
+
+            val exename = when (lspServerType) {
+                LspServerType.LSPSERVER -> "LSPServer"
+                LspServerType.LSPMACROSERVER -> "LSPMacroServer"
             }
+            if (Files.exists(Paths.get("${toolchain.location.systemIndependentPath}/tools/bin/$exename".toSystemPath()))) {
+                return "${toolchain.location.systemIndependentPath}/tools/bin/$exename".toSystemPath()
+            }
+
+
         }
 
         throw Exception("LSPServer not found")
 
 //        如果插件版本更新，则复制一份新的
-        // 获取当前插件的版本
-        val currentVersion = PluginManagerCore.getPlugin(PluginId.getId("com.huawei.cangjie"))?.version
-        // 获取保存的插件版本
-        val savedVersion = getSavePluginVersion()
-        // 如果当前版本和保存的版本不一致，则重新复制一份
-        if (currentVersion != savedVersion) {
-            reCopyLspServerToPath()
-            savePluginVersion()
-        }
-
-
-// 如果二进制文件不存在，则将其复制到固定位置
-        if (Files.notExists(binaryPath)) {
-            copyLspServerToPath()
-        }
-
-
-        return binaryPath.toAbsolutePath().toString()
+//        // 获取当前插件的版本
+//        val currentVersion = PluginManagerCore.getPlugin(PluginId.getId("com.huawei.cangjie"))?.version
+//        // 获取保存的插件版本
+//        val savedVersion = getSavePluginVersion()
+//        // 如果当前版本和保存的版本不一致，则重新复制一份
+//        if (currentVersion != savedVersion) {
+//            reCopyLspServerToPath()
+//            savePluginVersion()
+//        }
+//
+//
+//// 如果二进制文件不存在，则将其复制到固定位置
+//        if (Files.notExists(binaryPath)) {
+//            copyLspServerToPath()
+//        }
+//
+//
+//        return binaryPath.toAbsolutePath().toString()
 //        return tempFile.absolutePath
     }
 

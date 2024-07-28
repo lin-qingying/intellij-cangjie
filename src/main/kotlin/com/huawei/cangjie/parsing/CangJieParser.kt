@@ -75,10 +75,10 @@ class CangJieParser(project: Project) : PsiParser {
             if (extension.isEmpty() || extension == CangJieFileType.EXTENSION || psiFile is CjFile && psiFile.isCompiled) {
 
 
-                cjParsing.parseFile()
+//                cjParsing.parseFile()
 
 //                TODO LSP 使用 parseLspFile
-//                cjParsing.parseLspFile()
+                cjParsing.parseLspFile()
             }
             /*if (psiFile.viewProvider is CangJieDeclarationsFileViewProvider) {
                 cjParsing.parseDeclarationsFile()

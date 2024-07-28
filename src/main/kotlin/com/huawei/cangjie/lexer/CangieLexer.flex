@@ -152,19 +152,32 @@ HEX_FLOATING_POINT_LITERAL3= 0[xX]({DIGITS})({EXPONENT_PART})?"p"({DIGIT})
 //FLOATING_POINT_LITERAL_SUFFIX=[Ff]
 EXPONENT_PART=[Ee]["+""-"]?({DIGIT_OR_UNDERSCORE})*
 
+// TODO: 引入符号(例如‘foo)作为编写字符串文字的另一种方式
+ESCAPE_SEQUENCE=\\(u{HEX_DIGIT}{HEX_DIGIT}{HEX_DIGIT}{HEX_DIGIT}|[^\n])
 
 
 //0.53.4 字符字节字面量
 CHARACTER_BYTE_LITERAL="b'"([^\\\'\n]|{ESCAPE_SEQUENCE})*("'"|\\)?
 
+
+//单字符
+SINGLE_CHAR=[^'\\\r\n]
+
+// 定义转义序列
+ESCAPE_SEQ  = ({UNI_CHARACTER_LITERAL} | {ESCAPED_IDENTIFIER})
+
+// 定义 Unicode 字符字面量
+UNI_CHARACTER_LITERAL  =  '\\' 'u' \{ {HEX_DIGIT} ({HEX_DIGIT}  ({HEX_DIGIT}  ({HEX_DIGIT}  ({HEX_DIGIT}  {HEX_DIGIT} ?)?)?)?)? \}
+
+// 定义转义标识符
+ESCAPED_IDENTIFIER   =   '\\' ('t' | 'b' | 'r' | 'n' | '\'' | '\"' | '\\' | 'f' | 'v' | '0' | '\$')
+
 //字符
 RUNE_LITERAL = {RUNE_SINGLE_LITERAL} | {RUNE_DOUBLE_LITERAL}
-RUNE_SINGLE_LITERAL = "r'"([^\\\'\n]|{ESCAPE_SEQUENCE})*("'"|\\)?
-RUNE_DOUBLE_LITERAL = "r\""([^\\\'\n]|{ESCAPE_SEQUENCE})*\"
+RUNE_SINGLE_LITERAL = r \'  ({SINGLE_CHAR} | {ESCAPE_SEQ})  \'
+RUNE_DOUBLE_LITERAL = r \" ({SINGLE_CHAR} | {ESCAPE_SEQ}) \"
 //CHARACTER_BYTE_LITERAL = {CHARACTER_LITERAL}
 
-// TODO: 引入符号(例如‘foo)作为编写字符串文字的另一种方式
-ESCAPE_SEQUENCE=\\(u{HEX_DIGIT}{HEX_DIGIT}{HEX_DIGIT}{HEX_DIGIT}|[^\n])
 
 // ANY_ESCAPE_SEQUENCE = \\[^]
 THREE_QUO = (\"\"\")

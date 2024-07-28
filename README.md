@@ -1,12 +1,13 @@
-# CangJie plugin for the IntelliJ Platform
+# Cangjie language plugin for intellij platform
+## 适用于intellij平台的仓颉语言插件
 
-## 安装和使用
+### 安装和使用
 
 如果您想要立即开始，请在您的IDE中打开`设置 > 插件 > 从磁盘安装`。
 要创建项目，请使用 **CangJie** 模板。
 
 
-## 支持的功能
+### 支持的功能
 
 
 |        |   |      
@@ -19,7 +20,7 @@
 | 分析器   | - |  
 |Valgrind内存检查 | - | 
 
-## 贡献
+### 贡献
 
 如果您发现任何问题或缺少功能，欢迎您为插件做出贡献。
 

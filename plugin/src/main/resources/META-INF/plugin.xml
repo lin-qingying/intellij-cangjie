@@ -12,7 +12,7 @@
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
 
     <vendor email="lin17624294976@outlook.com" url="https://gitee.com/Lin_Qing_Ying">@Lin_Qing_Ying</vendor>
-    <version>1.1.5-beta</version>
+    <version>1.1.5</version>
 
     <!--    <depends>com.intellij.modules.platform</depends>-->
 
@@ -38,7 +38,8 @@
 
     <xi:include href="/META-INF/cangjie-toml.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
-    <xi:include href="/META-INF/formatter.xml" xpointer="xpointer(/idea-plugin/*)"/>
+<!--    <xi:include href="/META-INF/formatter.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+    <xi:include href="/META-INF/cangjie-formatter.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <!--    代码检查-->
 

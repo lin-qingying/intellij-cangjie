@@ -411,7 +411,6 @@ private fun doRefresh(project: Project, projects: List<CjpmProjectImpl>): Comple
             }
 
 
-
         }
         updatedProjects
     }
@@ -438,8 +437,8 @@ private fun setupProjectRoots(project: Project, cjpmProjects: List<CjpmProject>)
                 for (cjpmProject in cjpmProjects) {
                     cjpmProject as CjpmProjectImpl
 
-
-                    if(cjpmProject.project.name !=  cjpmProject.workspace?.moduleData?.name){
+// TODO 可能会出现多个cjpm项目更改同一个intellij project的行为 ,在此标记
+                    if (cjpmProject.project.name != cjpmProject.workspace?.moduleData?.name) {
                         cjpmProject.workspace?.moduleData?.name?.let {
                             (cjpmProject.project as ProjectImpl).setProjectName(
                                 it

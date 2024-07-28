@@ -4,6 +4,8 @@ import com.huawei.cangjie.cjpm.project.toPath
 import com.huawei.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor
 import com.huawei.cangjie.cjpm.toolchain.tools.*
 import com.huawei.cangjie.cjpm.toolchain.wsl.getHomePathCandidates
+import com.huawei.cangjie.idea.run.cjpm.runconfig.ExecuteResult
+import com.huawei.cangjie.lang.lsp.toSystemPath
 import com.intellij.execution.configuration.EnvironmentVariablesData
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.PtyCommandLine
@@ -95,6 +97,7 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
     }
 
 
+
     fun getEnvironment(): Map<String, String> {
         val separator = if (SystemInfo.isWindows) ";" else ":"
 
@@ -108,6 +111,7 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
         val sdkHome = this.location.systemIndependentPath
         map["LD_LIBRARY_PATH"] =
             "${sdkHome}/runtime/lib/${runtimeLlvm}$separator${System.getenv("LD_LIBRARY_PATH") ?: ""}"
+        map["cjcPath"] = "${sdkHome}/bin/"
         map["PATH"] =
             "${sdkHome}/runtime/lib/${runtimeLlvm}$separator${sdkHome}/bin$separator${sdkHome}/tools/bin$separator${
                 System.getenv(

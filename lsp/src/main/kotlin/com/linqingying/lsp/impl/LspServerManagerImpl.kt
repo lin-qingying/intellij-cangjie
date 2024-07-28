@@ -90,9 +90,9 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
         if (provider == null) {
             LOG.error("${providerClass.name} is not loaded")
         } else {
-            ReadAction.nonBlocking<SmartList<com.linqingying.lsp.api.LspServerDescriptor>> {
+            ReadAction.nonBlocking<SmartList<LspServerDescriptor>> {
                 val servers = getServersForProvider(providerClass)
-                val descriptors = SmartList<com.linqingying.lsp.api.LspServerDescriptor>()
+                val descriptors = SmartList<LspServerDescriptor>()
 
                 val openFiles = FileEditorManager.getInstance(project).openFiles
                 for (file in openFiles) {
@@ -145,7 +145,7 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
     @RequiresEdt
     private fun startNewServer(
         providerClass: Class<out LspServerSupportProvider>,
-        descriptor: com.linqingying.lsp.api.LspServerDescriptor
+        descriptor: LspServerDescriptor
     ) {
         ApplicationManager.getApplication().assertIsDispatchThread()
         if (!servers.any { it.pluginClass == providerClass && it.descriptor.roots.contentEquals(descriptor.roots) }) {
@@ -671,7 +671,7 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
         private class OpenedFilesData {
             val handledFiles: MutableSet<VirtualFile> = HashSet()
             val serversToSendDidOpen: MultiMap<LspServerImpl, VirtualFile> = MultiMap.create()
-            val newServersToStart: MutableCollection<Pair<LspServerSupportProvider, com.linqingying.lsp.api.LspServerDescriptor>> =
+            val newServersToStart: MutableCollection<Pair<LspServerSupportProvider, LspServerDescriptor>> =
                 SmartList()
         }
 
@@ -730,8 +730,8 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
 
 
     private class LspServerStarterImpl : LspServerSupportProvider.LspServerStarter {
-        var descriptor: com.linqingying.lsp.api.LspServerDescriptor? = null
-        override fun ensureServerStarted(descriptor: com.linqingying.lsp.api.LspServerDescriptor) {
+        var descriptor: LspServerDescriptor? = null
+        override fun ensureServerStarted(descriptor: LspServerDescriptor) {
 
             this.descriptor = descriptor
         }

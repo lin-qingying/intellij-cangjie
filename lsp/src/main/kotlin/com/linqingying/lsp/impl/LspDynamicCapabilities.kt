@@ -9,7 +9,6 @@ import com.intellij.util.containers.MultiMap
 import org.eclipse.lsp4j.*
 import org.eclipse.lsp4j.jsonrpc.json.MessageJsonHandler
 import java.nio.file.PathMatcher
-import kotlin.jvm.internal.Intrinsics
 
 internal class LspDynamicCapabilities {
 
@@ -118,9 +117,9 @@ internal class LspDynamicCapabilities {
         @JvmField
         val symbol = "workspace/symbol" to WorkspaceSymbolRegistrationOptions::class.java
 
-//        textDocument/semanticTokens/full
+        //        textDocument/semanticTokens/full
         @JvmField
-        val  semanticTokensFull = "textDocument/semanticTokens/full" to SemanticTokensServerFull::class.java
+        val semanticTokensFull = "textDocument/semanticTokens/full" to SemanticTokensServerFull::class.java
 
         private var capabilityToLsp4jRegistrationOptionsClass = mapOf(
             prepareCallHierarchy,
@@ -165,17 +164,30 @@ internal class LspDynamicCapabilities {
         }
     }
 
-    private val capabilityToInfo: MultiMap<String, CapabilityInfo> = MultiMap.createConcurrent()
+    private val capabilityToInfo: MultiMap<String, CapabilityInfo> =
+        MultiMap.createConcurrent<String, CapabilityInfo>().apply {
+
+        }
+
+    init {
+//        capabilityToInfo.putValue(
+//            didChangeWatchedFiles.first, CapabilityInfo(
+//                didChangeWatchedFiles.first, null, null
+//            )
+//        )
+
+    }
+
     private val patternToPathMatcherCache: MutableMap<String, PathMatcher> = mutableMapOf()
     private val gson: Gson = MessageJsonHandler(emptyMap()).gson
 
     fun hasCapability(capability: String): Boolean {
-        Intrinsics.checkNotNullParameter(capability, "capability")
+
         return this.capabilityToInfo.containsKey(capability)
     }
 
     fun hasCapability(capabilityAndOptionsClass: Pair<String, Class<*>>): Boolean {
-        Intrinsics.checkNotNullParameter(capabilityAndOptionsClass, "capabilityAndOptionsClass")
+
         return this.hasCapability(capabilityAndOptionsClass.first)
 
     }
@@ -228,14 +240,14 @@ internal class LspDynamicCapabilities {
 
     fun unregisterCapability(unregistration: Unregistration) {
         val capabilities = capabilityToInfo[unregistration.method]
-        capabilities.removeIf {  it.registrationId == unregistration.id }
+        capabilities.removeIf { it.registrationId == unregistration.id }
         if (capabilities.isEmpty()) {
             capabilityToInfo.remove(unregistration.method)
         }
     }
 
     data class CapabilityInfo(
-        val registrationId: String, val rawRegistrationOptions: JsonObject,
+        val registrationId: String, val rawRegistrationOptions: JsonObject?,
         val lsp4jRegistrationOptions: Any?
     )
 

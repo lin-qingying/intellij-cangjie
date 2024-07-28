@@ -11,7 +11,7 @@
                                           order="first"/>
 
 
-                <toolWindow factoryClass="com.huawei.cangjie.dapDebugger.runconfig.MyToolWindowFactory" id="1"/>
+<!--                <toolWindow factoryClass="com.huawei.cangjie.dapDebugger.runconfig.MyToolWindowFactory" id="1"/>-->
 
         <!--   重构内容如下-->
 <!--        <programRunner implementation="com.debug.CjDebugRunner" id="CjDebugRunner"/>-->

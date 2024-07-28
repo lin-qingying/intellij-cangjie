@@ -172,7 +172,7 @@ class LspServerImpl(
         val registrationOptions =
             dynamicCapabilities.getCapabilityRegistrationOptions(LspDynamicCapabilities.didChangeWatchedFiles)
         val roots = descriptor.roots.map { descriptor.getFileUri(it) }.toTypedArray()
-        val notifications = fileChangeInfos.map { processFileEvent(it, registrationOptions, roots) }
+        val notifications = fileChangeInfos.map { processFileEvents(it, registrationOptions, roots) }
 
         if (notifications.isNotEmpty()) {
             requestExecutor.sendNotification(DidChangeWatchedFilesNotification(this, notifications))
@@ -202,12 +202,14 @@ class LspServerImpl(
         return false
     }
 
-    private fun processFileEvent(
+    private fun processFileEvents(
         fileChangeInfo: FileChangeInfo,
         registrationOptions: List<DidChangeWatchedFilesRegistrationOptions>,
         roots: Array<String>
     ): FileEvent? {
 
+//        TODO 为支持仓颉，这里不做检查能力，直接返回
+//        return FileEvent(fileChangeInfo.uri, fileChangeInfo.changeType)
         for (option in registrationOptions) {
             for (watcher in option.watchers) {
                 if (watcher.kind != null && watcher.kind and fileChangeInfo.changeType.value == 0) {

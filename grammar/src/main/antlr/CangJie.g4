@@ -18,11 +18,12 @@ LineComment
 ;
 /*********************************空白和换行*****************************************/
 WS
-:  [\u0020\u0009\u000C]
+:  [\u0020\u0009\u000C]+ -> channel(HIDDEN)
 ;
 NL
-: '\n' | '\r\n'
+: '\u000A' | '\u000D' '\u000A'
 ;
+
 
 /*********************************符号*****************************************/
 DOT                : '.';
@@ -161,6 +162,7 @@ STATIC            : 'static';
 PUBLIC            : 'public';
 PRIVATE           : 'private';
 PROTECTED         : 'protected';
+INTERNAL          : 'internal';
 OVERRIDE          : 'override';
 REDEF             : 'redef';
 ABSTRACT          : 'abstract';
@@ -429,27 +431,43 @@ packageNameIdentifier
   : identifier (NL* DOT NL* identifier)*
   ;
 
-importList
-  : (FROM NL* identifier)? NL* IMPORT NL* importAllOrSpecified
-    (NL* COMMA NL* importAllOrSpecified)* end+
-  ;
 
-importAllOrSpecified
-  : importAll
-  | importSpecified (NL* importAlias)?
-  ;
+importList
+: importModifier? NL* IMPORT NL* importContent end+
+;
+
+importModifier
+: PUBLIC | PRIVATE | PROTECTED | INTERNAL
+;
+
+importContent
+: importSingle | importAlias | importAll | importMulti
+;
+
+importSingle
+: (packageNameIdentifier NL* DOT NL*)* (identifier | packageNameIdentifier)
+;
+
+
 
 importSpecified
-  : (identifier NL* DOT NL*)+ identifier
-  ;
-
-importAll
-  : (identifier NL* DOT NL*)+ MUL
-  ;
-
+: (identifier '.')+ identifier
+;
 importAlias
-  : AS NL* identifier
-  ;
+: importSingle NL* AS NL* identifier
+;
+importAll
+: (packageNameIdentifier NL* DOT NL*)+ MUL
+;
+importMulti
+: (packageNameIdentifier NL* DOT NL*)* LCURL NL*
+(importSingle | importAlias | importAll) NL*
+(COMMA NL* (importSingle | importAlias | importAll))* NL*
+COMMA? NL* RCURL
+;
+
+
+
 
 
 /*********************************顶层声明*****************************************/

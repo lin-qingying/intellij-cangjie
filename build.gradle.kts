@@ -52,7 +52,7 @@ val buildType = BuildType.fromString(build_type)
 //IDEA版本
 val ideaVersion = "2024.1"
 //插件版本
-val cangjiePluginVersion = "1.1.5-beta"
+val cangjiePluginVersion = "1.1.5"
 
 
 val kotlinVersion = "1.9.21"
@@ -235,7 +235,7 @@ val cangjie_plugin_project = project(":plugin") {
         pluginName.set("intellij-cangjie")
         plugins.set(
             listOf(
-//                psiViewerPlugin
+                psiViewerPlugin
             )
         )
     }
@@ -370,6 +370,7 @@ val cangjie_plugin_project = project(":plugin") {
 }
 
 val cangjie_src_project = project(":") {
+
     intellij {
         plugins.set(
             listOf(
@@ -392,10 +393,10 @@ val cangjie_src_project = project(":") {
         implementation(project(":lsp"))
 
         implementation(project(":utils"))
-
+//
 //        antlr("org.antlr:antlr4:4.13.1") { // use ANTLR version 4
 //
-//            exclude(group = "com.ibm.icu", module = "icu4j")
+////            exclude(group = "com.ibm.icu", module = "icu4j")
 //        }
 //        implementation("org.antlr:antlr4-intellij-adaptor:0.1")
     }

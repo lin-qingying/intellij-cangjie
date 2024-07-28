@@ -108,7 +108,7 @@ abstract class LspServerDescriptor protected constructor(
      */
     open fun getFileUri(file: VirtualFile): String {
         val escapedPath = URLUtil.encodePath(getFilePath(file))
-          val url = VirtualFileManager.constructUrl(URLUtil.FILE_PROTOCOL, escapedPath)
+        val url = VirtualFileManager.constructUrl(URLUtil.FILE_PROTOCOL, escapedPath)
         val uri = VfsUtil.toUri(url)
         return uri?.toString() ?: url
     }
@@ -254,8 +254,8 @@ abstract class LspServerDescriptor protected constructor(
      * and return their subclass of the [Lsp4jClient] class.
      * See [Lsp4jClient] class documentation for more information.
      */
-    open fun createLsp4jClient(handler: com.linqingying.lsp.api.LspServerNotificationsHandler): com.linqingying.lsp.api.Lsp4jClient =
-        com.linqingying.lsp.api.Lsp4jClient(handler)
+    open fun createLsp4jClient(handler: LspServerNotificationsHandler): Lsp4jClient =
+        Lsp4jClient(handler)
 
     /**
      * Returns a class that should be used as a [org.eclipse.lsp4j.services.LanguageServer] for this [LspServer].
