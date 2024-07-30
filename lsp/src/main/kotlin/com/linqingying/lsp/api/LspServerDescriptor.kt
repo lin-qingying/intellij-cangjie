@@ -47,7 +47,7 @@ import java.net.URISyntaxException
  *
  * @param presentableName used to print information received from the LSP server to the Notifications tool window
  */
-@ApiStatus.Experimental
+
 abstract class LspServerDescriptor protected constructor(
     val project: Project,
     @NlsSafe val presentableName: String,

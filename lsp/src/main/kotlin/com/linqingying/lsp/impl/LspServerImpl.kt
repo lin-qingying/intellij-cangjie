@@ -34,12 +34,16 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 
 
+fun nonModal(): ModalityState {
+    return ModalityState.NON_MODAL
+}
+
 class LspServerImpl(
     val pluginClass: Class<out LspServerSupportProvider>,
-    override val descriptor: com.linqingying.lsp.api.LspServerDescriptor,
+    override val descriptor: LspServerDescriptor,
     private val listenersAdapter: LspServerManagerListener
 
-) : com.linqingying.lsp.api.LspServer {
+) : LspServer {
 
     enum class State {
         CREATED,
@@ -318,7 +322,7 @@ class LspServerImpl(
             }
             newFiles
         }.expireWhen { !isRunning() }
-            .finishOnUiThread(ModalityState.nonModal()) { files ->
+            .finishOnUiThread(nonModal()) { files ->
                 if (files.isNotEmpty()) {
                     WriteAction.run<Throwable> {
                         LOG.debug("Opening files after server initialization or after move/rename: $files")

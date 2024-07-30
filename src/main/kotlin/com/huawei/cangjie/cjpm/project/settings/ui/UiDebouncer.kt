@@ -6,6 +6,7 @@ import com.huawei.cangjie.psi.CjElement
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.components.ComponentManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ScrollType
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
@@ -21,9 +22,7 @@ import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
-import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.intellij.util.Alarm
-
 import javax.swing.JComponent
 import javax.swing.JTextField
 import javax.swing.event.DocumentEvent
@@ -34,22 +33,24 @@ class UiDebouncer(
 ) {
     private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, parentDisposable)
 
-    /**
-     * @param onUiThread: callback to be executed in EDT with **any** myModality state.
-     * Use it only for UI updates
-     */
+
     fun <T> run(onPooledThread: () -> T, onUiThread: (T) -> Unit) {
-        if (Disposer.isDisposed(parentDisposable)) return
+        if (parentDisposable is ComponentManager && parentDisposable.isDisposed) return
+
+//        if (Disposer.isDisposed(parentDisposable)) return
         alarm.cancelAllRequests()
         alarm.addRequest({
             val r = onPooledThread()
             invokeLater(ModalityState.any()) {
-                if (!Disposer.isDisposed(parentDisposable)) {
+                if (!(parentDisposable is ComponentManager && parentDisposable.isDisposed))
+//                if (!Disposer.isDisposed(parentDisposable))
+                {
                     onUiThread(r)
                 }
             }
         }, delayMillis)
     }
+
 }
 
 fun pathToDirectoryTextField(
@@ -72,7 +73,7 @@ fun pathToRsFileTextField(
 ): TextFieldWithBrowseButton =
     pathTextField(
         FileChooserDescriptorFactory
-            .createSingleFileDescriptor(CangJieFileType )
+            .createSingleFileDescriptor(CangJieFileType)
             .withRoots(project.guessProjectDir()),
         disposable,
         title,
@@ -107,12 +108,13 @@ fun JTextField.addTextChangeListener(listener: (DocumentEvent) -> Unit) {
 
 fun selectElement(element: CjElement, editor: Editor) {
     val start = element.textRange.startOffset
-    val unwrappedEditor = if (editor is CjIntentionInsideMacroExpansionEditor && element.containingFile != editor.psiFileCopy) {
-        if (element.containingFile != editor.originalFile) return
-        editor.originalEditor
-    } else {
-        editor
-    }
+    val unwrappedEditor =
+        if (editor is CjIntentionInsideMacroExpansionEditor && element.containingFile != editor.psiFileCopy) {
+            if (element.containingFile != editor.originalFile) return
+            editor.originalEditor
+        } else {
+            editor
+        }
     unwrappedEditor.caretModel.moveToOffset(start)
     unwrappedEditor.scrollingModel.scrollToCaret(ScrollType.RELATIVE)
     unwrappedEditor.selectionModel.setSelection(start, element.textRange.endOffset)

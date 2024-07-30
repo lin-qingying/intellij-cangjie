@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture
  *    @JsonNotification("@/foo/bar")
  *    fun fooBar(fooBar: FooBarNotification) { ... }
  */
-@ApiStatus.OverrideOnly
+
 open class Lsp4jClient(private val serverNotificationsHandler: LspServerNotificationsHandler) : LanguageClient {
     final override fun applyEdit(params: ApplyWorkspaceEditParams) = serverNotificationsHandler.applyEdit(params)
     final override fun registerCapability(params: RegistrationParams) =

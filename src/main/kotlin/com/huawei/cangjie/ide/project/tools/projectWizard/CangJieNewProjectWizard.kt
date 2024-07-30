@@ -9,6 +9,7 @@ import com.intellij.CommonBundle
 import com.intellij.ide.wizard.*
 import com.intellij.ide.wizard.GitNewProjectWizardData.Companion.gitData
 import com.intellij.ide.wizard.language.LanguageGeneratorNewProjectWizard
+
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger

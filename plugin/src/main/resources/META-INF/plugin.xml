@@ -10,9 +10,12 @@
     <name>Cangjie</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-
+    <change-notes><![CDATA[
+    The plugin provides support for CangJie language
+    ]]>
+    </change-notes>
     <vendor email="lin17624294976@outlook.com" url="https://gitee.com/Lin_Qing_Ying">@Lin_Qing_Ying</vendor>
-    <version>1.1.6</version>
+    <version>1.1.6-241-SNAPSHOT</version>
 
     <!--    <depends>com.intellij.modules.platform</depends>-->
 

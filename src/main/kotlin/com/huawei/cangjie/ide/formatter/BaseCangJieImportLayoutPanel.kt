@@ -1,13 +1,10 @@
-
-
 package com.huawei.cangjie.ide.formatter
 
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.highlighter.CangJieHighlightingColors
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonShortcuts
-import com.intellij.openapi.actionSystem.ShortcutSet
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.*
 import com.intellij.ui.components.JBCheckBox
@@ -17,9 +14,9 @@ import com.intellij.ui.table.JBTable
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.JBInsets
 import org.jetbrains.annotations.Nls
-
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.util.function.Supplier
 import javax.swing.DefaultCellEditor
 import javax.swing.JPanel
 import javax.swing.JTable
@@ -34,7 +31,7 @@ open class BaseCangJieImportLayoutPanel(@Nls title: String) : JPanel(BorderLayou
         border = IdeBorderFactory.createTitledBorder(
             title,
             false,
-            JBInsets.emptyInsets()
+            JBInsets(0, 0, 0, 0)
         )
         putClientProperty(DslComponentProperty.VISUAL_PADDINGS, UnscaledGaps.EMPTY)
     }
@@ -166,7 +163,8 @@ open class BaseCangJieImportLayoutPanel(@Nls title: String) : JPanel(BorderLayou
     }
 }
 
-class CangJieStarImportLayoutPanel : BaseCangJieImportLayoutPanel(CangJieBundle.message("title.packages.to.use.import.with")) {
+class CangJieStarImportLayoutPanel :
+    BaseCangJieImportLayoutPanel(CangJieBundle.message("title.packages.to.use.import.with")) {
     init {
         val importLayoutPanel = ToolbarDecorator.createDecorator(layoutTable)
             .setAddAction { addPackage() }
@@ -183,21 +181,21 @@ class CangJieStarImportLayoutPanel : BaseCangJieImportLayoutPanel(CangJieBundle.
 }
 
 class CangJieImportOrderLayoutPanel : BaseCangJieImportLayoutPanel(CangJieBundle.message("title.import.layout")) {
-    private val cbImportAliasesSeparately = JBCheckBox(CangJieBundle.message("codestyle.layout.import.aliases.separately"))
+    private val cbImportAliasesSeparately =
+        JBCheckBox(CangJieBundle.message("codestyle.layout.import.aliases.separately"))
 
     init {
         add(cbImportAliasesSeparately, BorderLayout.NORTH)
 
         val importLayoutPanel = ToolbarDecorator.createDecorator(layoutTable)
             .addExtraAction(
-                object : DumbAwareActionButton(CangJieBundle.message("button.add.package"), IconUtil.addPackageIcon) {
+                object : DumbAwareAction(Supplier {
+                    CangJieBundle.message("button.add.package")
+                }, IconUtil.addPackageIcon) {
                     override fun actionPerformed(event: AnActionEvent) {
                         addPackage()
                     }
 
-                    override fun getShortcut(): ShortcutSet {
-                        return CommonShortcuts.getNewForDialogs()
-                    }
 
                     override fun getActionUpdateThread() = ActionUpdateThread.BGT
                 }
@@ -207,7 +205,8 @@ class CangJieImportOrderLayoutPanel : BaseCangJieImportLayoutPanel(CangJieBundle
             .setMoveDownAction { movePackageDown() }
             .setRemoveActionUpdater {
                 val selectedRow = layoutTable.selectedRow
-                val entry = if (selectedRow in 0 until packageTable.entryCount) packageTable.getEntryAt(selectedRow) else null
+                val entry =
+                    if (selectedRow in 0 until packageTable.entryCount) packageTable.getEntryAt(selectedRow) else null
 
                 entry?.isSpecial == false
             }.setButtonComparator(
@@ -250,7 +249,8 @@ class CangJieImportOrderLayoutPanel : BaseCangJieImportLayoutPanel(CangJieBundle
     }
 
     fun recomputeAliasesCheckbox() {
-        cbImportAliasesSeparately.isSelected = CangJiePackageEntry.ALL_OTHER_ALIAS_IMPORTS_ENTRY in packageTable.getEntries()
+        cbImportAliasesSeparately.isSelected =
+            CangJiePackageEntry.ALL_OTHER_ALIAS_IMPORTS_ENTRY in packageTable.getEntries()
     }
 
     private fun areImportAliasesEnabled(): Boolean {
@@ -259,7 +259,10 @@ class CangJieImportOrderLayoutPanel : BaseCangJieImportLayoutPanel(CangJieBundle
 }
 
 fun createTableForPackageEntries(packageTable: CangJiePackageEntryTable): JBTable {
-    val names = arrayOf(CangJieBundle.message("listbox.import.package"), CangJieBundle.message("listbox.import.with.subpackages"))
+    val names = arrayOf(
+        CangJieBundle.message("listbox.import.package"),
+        CangJieBundle.message("listbox.import.with.subpackages")
+    )
     val packageNameColumnIndex = 0
     val withSubpackagesColumnIndex = 1
 

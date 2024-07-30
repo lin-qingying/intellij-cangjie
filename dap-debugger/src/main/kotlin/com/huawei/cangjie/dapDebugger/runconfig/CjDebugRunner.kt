@@ -11,10 +11,8 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 
 
-private const val RUNNER_ID = "CjDebugRunner"
+class CjDebugRunner : CjDebugRunnerBase() {
 
-class CjDebugRunner : CjExecutableRunner(DefaultDebugExecutor.EXECUTOR_ID, ERROR_MESSAGE_TITLE) {
-    override fun getRunnerId(): String = RUNNER_ID
     override fun canRun(executorId: String, profile: RunProfile): Boolean {
 
 
@@ -22,11 +20,6 @@ class CjDebugRunner : CjExecutableRunner(DefaultDebugExecutor.EXECUTOR_ID, ERROR
                 profile is CjpmCommandConfiguration
     }
 
-    override fun showRunContent(
-        state: CjpmRunStateBase,
-        environment: ExecutionEnvironment,
-        runExecutable: GeneralCommandLine
-    ): RunContentDescriptor = CjDebugRunnerUtils.showRunContent(state, environment, runExecutable)
+
 
 }
-

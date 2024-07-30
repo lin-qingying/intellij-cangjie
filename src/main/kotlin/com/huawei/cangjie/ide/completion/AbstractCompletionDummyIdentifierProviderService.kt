@@ -18,7 +18,7 @@ import org.jetbrains.annotations.ApiStatus
 import kotlin.math.max
 
 
-@ApiStatus.Internal
+
 abstract class AbstractCompletionDummyIdentifierProviderService : CompletionDummyIdentifierProviderService {
     override fun correctPositionForStringTemplateEntry(context: CompletionInitializationContext): Boolean {
         val offset = context.startOffset

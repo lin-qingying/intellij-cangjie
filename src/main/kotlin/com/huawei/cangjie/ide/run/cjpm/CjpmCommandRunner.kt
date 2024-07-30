@@ -1,11 +1,10 @@
 package com.huawei.cangjie.ide.run.cjpm
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-
 import com.huawei.cangjie.cjpm.toolchain.impl.PathConverter
 import com.huawei.cangjie.ide.run.cjpm.runconfig.CjRunConfigurationExtensionManager
+import com.huawei.cangjie.ide.run.cjpm.runconfig.ConfigurationExtensionContext
 import com.huawei.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.getBuildConfiguration
 import com.huawei.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildConfiguration
 import com.huawei.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
@@ -22,8 +21,6 @@ import com.intellij.execution.target.RunTargetsEnabled
 import com.intellij.execution.target.TargetEnvironmentConfiguration
 import com.intellij.execution.target.TargetEnvironmentsManager
 import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.UserDataHolderBase
 
 
@@ -165,6 +162,6 @@ val CjpmCommandConfiguration.targetEnvironment: TargetEnvironmentConfiguration?
         return TargetEnvironmentsManager.getInstance(project).targets.findByName(targetName)
     }
 
-class ConfigurationExtensionContext : UserDataHolderBase()
+
 
 

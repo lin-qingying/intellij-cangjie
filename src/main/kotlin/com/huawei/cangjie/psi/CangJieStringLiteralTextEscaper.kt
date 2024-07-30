@@ -13,7 +13,7 @@ class CangJieStringLiteralTextEscaper(host: CjStringTemplateExpression) : Litera
     private var sourceOffsets: IntArray? = null
 
     override fun decode(rangeInsideHost: TextRange, outChars: StringBuilder): Boolean {
-        val sourceOffsetsList = TIntArrayList()
+        val sourceOffsetsList = mutableListOf<Int>()
         var sourceOffset = 0
 
         for (child in myHost.entries) {
@@ -29,7 +29,7 @@ class CangJieStringLiteralTextEscaper(host: CjStringTemplateExpression) : Litera
                     if (!rangeInsideHost.contains(childRange)) {
 
                         sourceOffsetsList.add(sourceOffset)
-                        sourceOffsets = sourceOffsetsList.toNativeArray()
+                        sourceOffsets = sourceOffsetsList.toIntArray()
                         return false
                     }
                     val unescaped = child.unescapedValue
@@ -49,7 +49,7 @@ class CangJieStringLiteralTextEscaper(host: CjStringTemplateExpression) : Litera
             }
         }
         sourceOffsetsList.add(sourceOffset)
-        sourceOffsets = sourceOffsetsList.toNativeArray()
+        sourceOffsets = sourceOffsetsList.toIntArray()
         return true
     }
 

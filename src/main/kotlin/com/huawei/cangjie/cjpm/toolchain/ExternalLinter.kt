@@ -4,7 +4,7 @@ import com.huawei.cangjie.BUNDLE
 import com.huawei.cangjie.CangJieBundle
 import org.jetbrains.annotations.PropertyKey
 
-enum class ExternalLinter(@PropertyKey(resourceBundle = BUNDLE) val titleKey: String) {
+enum class ExternalLinter( val titleKey: String) {
     CJPM_CHECK("cangjie.external.linter.cjpm.check.item"),
     CLIPPY("cangjie.external.linter.clippy.item");
 

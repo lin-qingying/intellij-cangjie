@@ -68,6 +68,7 @@ class DapTerminalConsole(val project: Project) : ConsoleView {
 
     private val terminalWidget: TerminalWidget = terminalRunner.startShellTerminalWidget(this, option, false)
 
+    @OptIn(ExperimentalStdlibApi::class)
     @Volatile
     private var lastCR = false
     private val dataStream: AppendableTerminalDataStream = AppendableTerminalDataStream()
@@ -275,7 +276,7 @@ class DapTerminalConsole(val project: Project) : ConsoleView {
 
     private inner class ScrollToTheEndAction : DumbAwareAction(
         ActionsBundle.messagePointer("action.EditorConsoleScrollToTheEnd.text"),
-        ActionsBundle.messagePointer("action.EditorConsoleScrollToTheEnd.text")
+
     ) {
         override fun update(e: AnActionEvent) {
             val verticalScrollModel: BoundedRangeModel = terminalPanel.verticalScrollModel

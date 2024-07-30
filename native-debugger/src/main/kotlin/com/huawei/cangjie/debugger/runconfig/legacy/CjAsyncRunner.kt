@@ -2,7 +2,6 @@ package com.huawei.cangjie.debugger.runconfig.legacy
 
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.cjpm.toolchain.tools.Cjpm.Companion.getCjpmCommonPatch
-
 import com.huawei.cangjie.ide.run.CjpmArgsParser.Companion.parseArgs
 import com.huawei.cangjie.ide.run.cjpm.*
 import com.huawei.cangjie.ide.run.cjpm.runconfig.CjProcessHandler
@@ -11,8 +10,6 @@ import com.huawei.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBu
 import com.huawei.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
 import com.huawei.cangjie.ide.run.cjpm.runconfig.buildtool.localBuildArgsForRemoteRun
 import com.huawei.cangjie.ide.run.hasRemoteTarget
-import com.huawei.cangjie.lang.lsp.toSystemPath
-
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.RunContentExecutor
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -35,11 +32,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.util.io.systemIndependentPath
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import java.nio.file.Path
 import java.nio.file.Paths
+
 fun saveAllDocuments() = FileDocumentManager.getInstance().saveAllDocuments()
 abstract class CjAsyncRunner(
     private val executorId: String,
@@ -90,10 +87,10 @@ abstract class CjAsyncRunner(
         val (commandArguments, executableArguments) = parseArgs(commandLine.command, commandLine.additionalArguments)
         val additionalBuildArgs = state.configuration.localBuildArgsForRemoteRun
 
-        val isTestRun = commandLine.command in listOf("test", "bench")
-        val cmdHasNoRun = "--no-run" in commandLine.additionalArguments
+        val isTestRun = commandLine.command in listOf("test")
+//        val cmdHasNoRun = "--no-run" in commandLine.additionalArguments
         val buildCommand = if (isTestRun) {
-            if (cmdHasNoRun) commandLine else commandLine.prependArgument("--no-run")
+            commandLine
         } else {
             commandLine.copy(command = "build", additionalArguments = commandArguments + additionalBuildArgs)
         }.copy(withSudo = false) // building does not require root privileges
@@ -117,7 +114,7 @@ abstract class CjAsyncRunner(
 
         return buildProjectAndGetBinaryArtifactPath(environment.project, buildCommand, state, isTestRun)
             .then { binary ->
-                if (isTestRun && cmdHasNoRun) return@then null
+                if (isTestRun) return@then null
                 val path = binary?.path ?: return@then null
                 val runCommand = getRunCommand(path)
                 getRunContentDescriptor(state, environment, runCommand)
@@ -171,7 +168,6 @@ abstract class CjAsyncRunner(
     ): Promise<Binary?> {
 
         val promise = AsyncPromise<Binary?>()
-
 
 
         val processForUserOutput = ProcessOutput()

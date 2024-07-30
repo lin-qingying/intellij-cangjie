@@ -11,6 +11,7 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.runners.showRunContent
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.project.Project
@@ -34,8 +35,7 @@ abstract class CjExecutableRunner(
                 getBuildConfiguration(profile) != null
     }
 
-    override fun execute(environment: ExecutionEnvironment) {
-//        val state = environment.state as CjpmRunStateBase
+    override fun execute(environment: ExecutionEnvironment, state: RunProfileState) {
         val project = environment.project
 
         if (!checkToolchainConfigured(project)) return
@@ -46,11 +46,17 @@ abstract class CjExecutableRunner(
 //        }
 
         environment.putUserData(ARTIFACTS, CompletableFuture())
-        super.execute(environment)
-
+        super.execute(environment,state)
     }
 
+
+
+
+
+
     override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
+
+
         if (state !is CjpmRunStateBase) return null
 
         val artifacts = environment.artifacts.orEmpty()

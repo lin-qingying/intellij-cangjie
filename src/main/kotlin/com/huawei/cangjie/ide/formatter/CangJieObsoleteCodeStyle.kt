@@ -18,7 +18,7 @@ class CangJieObsoleteCodeStyle : CangJiePredefinedCodeStyle(CODE_STYLE_TITLE, Ca
     companion object {
         val INSTANCE = CangJieObsoleteCodeStyle()
 
-        const val CODE_STYLE_ID = "KOTLIN_OLD_DEFAULTS"
+        const val CODE_STYLE_ID = "CANGJIE_OLD_DEFAULTS"
         const val CODE_STYLE_SETTING = "obsolete"
         val CODE_STYLE_TITLE
             @NlsContexts.ListItem

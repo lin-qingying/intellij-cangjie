@@ -33,10 +33,10 @@ object CangJieIcons {
 
     private fun load(path: String): Icon = IconLoader.getIcon(path, CangJieIcons::class.java)
 
-    private fun load(path: String, cacheKey: Int, flags: Int): Icon {
-        return IconManager.getInstance()
-            .loadRasterizedIcon(path, CangJieIcons::class.java.classLoader, cacheKey, flags)
-    }
+//    private fun load(path: String, cacheKey: Int, flags: Int): Icon {
+//        return IconManager.getInstance()
+//            .loadRasterizedIcon(path, CangJieIcons::class.java.classLoader, cacheKey, flags)
+//    }
 
 }
 

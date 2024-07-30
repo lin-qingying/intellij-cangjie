@@ -14,6 +14,7 @@ import com.huawei.cangjie.dapDebugger.protocol.request.InitializeRequest
 import com.huawei.cangjie.dapDebugger.protocol.response.InitializeResponse
 import com.huawei.cangjie.dapDebugger.protocol.type.adapter.moshi
 import com.huawei.cangjie.dapDebugger.protocol.type.serializer.format
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import org.jetbrains.annotations.TestOnly
 import java.io.IOException
@@ -33,7 +34,7 @@ import java.util.function.Supplier
 const val TWO_CRLF = "\r\n\r\n"
 const val ONE_CRLF = "\r\n"
 
-fun <T> Consumer<T>.accept(v: T) {
+fun <T> Consumer<T>.acceptConsume(v: T) {
     this.consume(v)
 
 }
@@ -84,13 +85,13 @@ open class DapClent<T : ProtocolMessage>(
 
 //                val responseHandler = responseHandlers.peekFirst() as Pair<Consumer<Message>, *>
                 if (responseHandler != null && responseHandler.second == generatedMessage.javaClass) {
-                    responseHandler.first.accept(generatedMessage)
+                    responseHandler.first.acceptConsume(generatedMessage)
                     responseHandlers.removeFirst()
                     return@synchronized
                 }
             }
 
-            inboxConsumer.accept(generatedMessage)
+            inboxConsumer.acceptConsume(generatedMessage)
         }, Conditions.alwaysFalse<Message>()
     )
 
@@ -282,6 +283,9 @@ open class DapClent<T : ProtocolMessage>(
 
 //                writeStringToFile(strBuffer.toString(), "接收到的消息")
                 val protocolMessage = moshi.adapter(ProtocolMessage::class.java).fromJson(strBuffer.toString())
+
+
+//                format.decodeFromString<ProtocolMessage>(strBuffer.toString())
 
                 inboxProcessor.add(protocolMessage!!)
 

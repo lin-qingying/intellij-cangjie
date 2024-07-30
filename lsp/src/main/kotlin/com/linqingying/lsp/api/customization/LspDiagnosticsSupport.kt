@@ -17,7 +17,7 @@ import org.jetbrains.annotations.ApiStatus
 /**
  * Handles [Diagnostic](https://microsoft.github.io/language-server-protocol/specification#diagnostic) objects received from the LSP server.
  */
-@ApiStatus.Experimental
+
 open class LspDiagnosticsSupport {
     @RequiresReadLock
     @RequiresBackgroundThread

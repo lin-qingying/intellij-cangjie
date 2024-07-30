@@ -12,9 +12,7 @@ import com.intellij.execution.ui.RunContentDescriptor
 abstract class CjDebugRunnerBase : CjExecutableRunner(DefaultDebugExecutor.EXECUTOR_ID, ERROR_MESSAGE_TITLE) {
 
     override fun getRunnerId(): String  = RUNNER_ID
-    override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
-        return super.doExecute(state, environment)
-    }
+
 
     override fun showRunContent(
         state: CjpmRunStateBase,

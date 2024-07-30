@@ -11,7 +11,6 @@ import com.huawei.cangjie.cjpm.project.model.setup
 import com.huawei.cangjie.cjpm.project.pathAsPath
 import com.huawei.cangjie.cjpm.project.settings.CjProjectSettingsServiceBase
 import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
-import com.huawei.cangjie.cjpm.project.toolwindow.CjpmToolWindow
 import com.huawei.cangjie.cjpm.project.workspace.CjpmWorkspace
 import com.huawei.cangjie.cjpm.project.workspace.PackageOrigin
 import com.huawei.cangjie.cjpm.project.workspace.additionalRoots
@@ -23,16 +22,15 @@ import com.huawei.cangjie.lang.lsp.CangJieLspServerManager
 import com.huawei.cangjie.taskQueue
 import com.intellij.execution.RunManager
 import com.intellij.ide.impl.isTrusted
-import com.intellij.notification.NotificationListener
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.*
-import com.intellij.openapi.externalSystem.autoimport.AutoImportProjectTracker
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker
 import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.module.Module
@@ -40,18 +38,15 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
-import com.intellij.openapi.project.impl.ProjectImpl
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx
-import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.EmptyRunnable
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.indexing.LightDirectoryIndex
 import com.intellij.util.io.systemIndependentPath
 import com.linqingying.utils.Config
@@ -84,7 +79,7 @@ class CjpmProjectsServiceImpl(
      *[CjpmProject]
      */
     private val directoryIndex: LightDirectoryIndex<CjpmProjectImpl> =
-        LightDirectoryIndex(project, noProjectMarker) { index ->
+        LightDirectoryIndex(this, noProjectMarker) { index ->
             val visited = mutableSetOf<VirtualFile>()
 
             fun VirtualFile.put(cjpmProject: CjpmProjectImpl) {
@@ -134,7 +129,6 @@ class CjpmProjectsServiceImpl(
     init {
         val newProjectModelImportEnabled = isNewProjectModelImportEnabled
         if (newProjectModelImportEnabled) {
-            @Suppress("LeakingThis")
             registerProjectAware(project, this)
         }
 
@@ -158,14 +152,14 @@ class CjpmProjectsServiceImpl(
                     })
             }
 
-            subscribe(CjpmProjectsService.CJPM_PROJECTS_TOPIC, CjpmProjectsService.CjpmProjectsListener { _, _ ->
-                StartupManager.getInstance(project).runAfterOpened {
-
-                    ToolWindowManager.getInstance(project).invokeLater {
-                        CjpmToolWindow.initializeToolWindow(project)
-                    }
-                }
-            })
+//            subscribe(CjpmProjectsService.CJPM_PROJECTS_TOPIC, CjpmProjectsService.CjpmProjectsListener { _, _ ->
+//                StartupManager.getInstance(project).runAfterOpened {
+//
+//                    ToolWindowManager.getInstance(project).invokeLater {
+//                        CjpmToolWindow.initializeToolWindow(project)
+//                    }
+//                }
+//            })
         }
     }
 
@@ -188,11 +182,11 @@ class CjpmProjectsServiceImpl(
                 CjProjectSettingsServiceBase.CANGJIE_SETTINGS_TOPIC,
                 object : CjProjectSettingsServiceBase.CjSettingsListener {
                     override fun <T : CjProjectSettingsServiceBase.CjProjectSettingsBase<T>> settingsChanged(e: CjProjectSettingsServiceBase.SettingsChangedEventBase<T>) {
-                        if (e.affectsCjpmMetadata) {
-                            val tracker = AutoImportProjectTracker.getInstance(project)
-                            tracker.markDirty(cjpmProjectAware.projectId)
-                            tracker.scheduleProjectRefresh()
-                        }
+//                        if (e.affectsCjpmMetadata) {
+//                            val tracker = AutoImportProjectTracker.getInstance(project)
+//                            tracker.markDirty(cjpmProjectAware.projectId)
+//                            tracker.scheduleProjectRefresh()
+//                        }
                     }
                 })
     }
@@ -222,7 +216,6 @@ class CjpmProjectsServiceImpl(
         return true
     }
 
-    @Suppress("LeakingThis")
     private val packageIndex: CjpmPackageIndex = CjpmPackageIndex(project, this)
 
     override fun findPackageForFile(file: VirtualFile): CjpmWorkspace.Package? =
@@ -424,6 +417,18 @@ private inline fun runWithNonLightProject(project: Project, action: () -> Unit) 
     }
 }
 
+fun <T> invokeAndWaitIfNeeded(modalityState: ModalityState? = null, runnable: () -> T): T {
+    val app = ApplicationManager.getApplication()
+    if (app.isDispatchThread) {
+        return runnable()
+    } else {
+        var resultRef: T? = null
+        app.invokeAndWait({ resultRef = runnable() }, modalityState ?: ModalityState.defaultModalityState())
+        @Suppress("UNCHECKED_CAST")
+        return resultRef as T
+    }
+}
+
 private fun setupProjectRoots(project: Project, cjpmProjects: List<CjpmProject>) {
     invokeAndWaitIfNeeded {
         // Initialize services that we use (probably indirectly) in write action below.
@@ -439,8 +444,9 @@ private fun setupProjectRoots(project: Project, cjpmProjects: List<CjpmProject>)
 
 // TODO 可能会出现多个cjpm项目更改同一个intellij project的行为 ,在此标记
                     if (cjpmProject.project.name != cjpmProject.workspace?.moduleData?.name) {
+
                         cjpmProject.workspace?.moduleData?.name?.let {
-                            (cjpmProject.project as ProjectImpl).setProjectName(
+                            (cjpmProject.project as ProjectEx).setProjectName(
                                 it
                             )
                         }
@@ -493,16 +499,17 @@ inline fun <T> VirtualFile.applyWithSymlink(f: (VirtualFile) -> T?): T? {
 
 
 fun Project.showBalloon(
-    @Suppress("UnstableApiUsage") @NlsContexts.NotificationTitle title: String,
-    @Suppress("UnstableApiUsage") @NlsContexts.NotificationContent content: String,
+    @NlsContexts.NotificationTitle title: String,
+    @NlsContexts.NotificationContent content: String,
     type: NotificationType,
     action: AnAction? = null,
-    listener: NotificationListener? = null
+//    listener: NotificationListener? = null
 ) {
     val notification = CjNotifications.pluginNotifications().createNotification(title, content, type)
-    if (listener != null) {
-        notification.setListener(listener)
-    }
+//    if (listener != null) {
+//        notification.setListener(listener)
+//
+//    }
     if (action != null) {
         notification.addAction(action)
     }
@@ -510,7 +517,7 @@ fun Project.showBalloon(
 }
 
 fun Project.showBalloon(
-    @Suppress("UnstableApiUsage") @NlsContexts.NotificationContent content: String,
+    @NlsContexts.NotificationContent content: String,
     type: NotificationType,
     action: AnAction? = null
 ) {

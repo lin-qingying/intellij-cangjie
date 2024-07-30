@@ -1,9 +1,6 @@
 import Build_gradle.BuildType.*
 import groovy.xml.XmlParser
-import org.jetbrains.intellij.tasks.PatchPluginXmlTask
-import org.jetbrains.intellij.tasks.PrepareSandboxTask
-import org.jetbrains.intellij.tasks.PublishPluginTask
-import org.jetbrains.intellij.tasks.RunIdeTask
+import org.jetbrains.intellij.tasks.*
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -61,13 +58,13 @@ val buildType = BuildType.fromString(build_type)
 //IDEA版本
 val ideaVersion = "2024.1"
 //插件版本
-val cangjiePluginVersion = "1.1.6"
+val cangjiePluginVersion = "1.1.6-241-SNAPSHOT"
 
 
 val kotlinVersion = "1.9.21"
 val tomlPlugin = "org.toml.lang"
 val terminalPlugin = "org.jetbrains.plugins.terminal"
-val nativeDebugPlugin: String = "com.intellij.nativeDebug:241.14494.73"
+val nativeDebugPlugin: String = "com.intellij.nativeDebug:233.11799.30"
 val psiViewerPlugin: String = "PsiViewer:241-SNAPSHOT"
 
 
@@ -86,13 +83,13 @@ val okioVersion = "2.10.0"
 //toml4j版本
 val toml4jVersion = "0.7.3"
 //插件需要的依赖列表
-val pluginDescriptors = arrayOf(
-    "moshi-$moshiVersion.jar",
-    "moshi-adapters-${moshiVersion}.jar",
-    "moshi-kotlin-${moshiVersion}.jar",
-    "okio-jvm-${okioVersion}.jar",
-    "toml4j-${toml4jVersion}.jar",
-    "utils.jar"
+val pluginDescriptors = arrayOf<String>(
+//    "moshi-$moshiVersion.jar",
+//    "moshi-adapters-${moshiVersion}.jar",
+//    "moshi-kotlin-${moshiVersion}.jar",
+//    "okio-jvm-${okioVersion}.jar",
+//    "toml4j-${toml4jVersion}.jar",
+//    "utils.jar"
 )
 
 plugins {
@@ -126,10 +123,12 @@ idea {
         excludeDirs = excludeDirs + file("testData") + file("deps") + file("bin") +
                 file("$grammarKitFakePsiDeps/src/main/kotlin")
     }
+
 }
 
 val isCI = System.getenv("CI") != null
 allprojects {
+
     apply {
         plugin("idea")
         plugin("kotlin")
@@ -188,8 +187,9 @@ allprojects {
             kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all")
         }
 
+
         withType<PatchPluginXmlTask> {
-            sinceBuild.set("233")
+            sinceBuild.set("241")
             untilBuild.set("242.*")
         }
         runIde { enabled = false }
@@ -197,7 +197,9 @@ allprojects {
         buildSearchableOptions { enabled = false }
 
 
+
         test {
+
             systemProperty("java.awt.headless", "true")
             testLogging {
                 showStandardStreams = prop("showStandardStreams").toBoolean()
@@ -245,7 +247,7 @@ val cangjie_plugin_project = project(":plugin") {
         pluginName.set("intellij-cangjie")
         plugins.set(
             listOf(
-                psiViewerPlugin
+//                psiViewerPlugin
             )
         )
     }
@@ -266,7 +268,7 @@ val cangjie_plugin_project = project(":plugin") {
     }
 
     // Collects all jars produced by compilation of project modules and merges them into singe one.
-    // We need to put all plugin manifest files into single jar to make new plugin mode        l work
+    // We need to put all plugin manifest files into single jar to make new plugin model work
     val mergePluginJarTask = task<Jar>("mergePluginJars") {
         dependsOn
         duplicatesStrategy = DuplicatesStrategy.FAIL
@@ -310,6 +312,8 @@ val cangjie_plugin_project = project(":plugin") {
             // Set proper name for final plugin zip.
             // Otherwise, base name is the same as gradle module name
             archiveBaseName.set(basePluginArchiveName)
+
+
         }
         runIde { enabled = true }
         prepareSandbox {
@@ -363,6 +367,29 @@ val cangjie_plugin_project = project(":plugin") {
             token.set(token)
             channels.set(listOf("dev"))
         }
+        verifyPlugin {
+            dependsOn(mergePluginJarTask)
+
+
+
+        }
+        runPluginVerifier{
+            dependsOn(mergePluginJarTask)
+
+
+        }
+
+
+//        withType<RunPluginVerifierTask> {
+//
+//            dependsOn(mergePluginJarTask)
+//            mustRunAfter(mergePluginJarTask)
+////            distributionFile.set(
+////                this@project.projectDir.resolve("build").resolve("idea-sandbox").resolve("plugins").resolve("lib")
+////                    .resolve("$basePluginArchiveName-$cangjiePluginVersion.jar")
+////            )
+//        }
+
     }
 
     task<RunIdeTask>("buildEventsScheme") {
@@ -488,6 +515,7 @@ when (buildType) {
 
 
     }
+
     CLION_NATIVE_DEBUG -> {
         val clionPlugins = listOf("com.intellij.cidr.base", "com.intellij.clion", "com.intellij.nativeDebug")
         project(":native-debugger") {
@@ -622,7 +650,7 @@ fun updatePluginXmlFile() {
         }
 
         when (buildType) {
-            IU_NATIVE_DEBUG ,CLION_NATIVE_DEBUG-> {
+            IU_NATIVE_DEBUG, CLION_NATIVE_DEBUG -> {
                 var node = xmlDoc.createElement("module")
                 node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {
                     nodeValue = "com.huawei.cangjie.nativeDebug"
@@ -638,7 +666,7 @@ fun updatePluginXmlFile() {
 
             }
 
-            IC_DAP ,CLION_DAP-> {
+            IC_DAP, CLION_DAP -> {
 
                 val node = xmlDoc.createElement("module")
                 node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {

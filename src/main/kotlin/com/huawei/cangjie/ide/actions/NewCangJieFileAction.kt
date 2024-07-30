@@ -161,7 +161,7 @@ abstract class AbstractNewCangJieFileAction : CreateFileFromTemplateAction() {
 }
 
 
-@ApiStatus.Internal
+
 object NewCangJieFileNameValidator : InputValidatorEx {
     override fun getErrorText(inputString: String): String? {
         if (inputString.trim().isEmpty()) {
@@ -185,7 +185,7 @@ private val FQNAME_SEPARATORS: CharArray = charArrayOf('/', '\\', '.')
 private val FILE_SEPARATORS: CharArray = charArrayOf('/', '\\')
 
 
-@ApiStatus.Internal
+
 abstract class NewCangJieFileHook {
     companion object {
         val EP_NAME: ExtensionPointName<NewCangJieFileHook> =

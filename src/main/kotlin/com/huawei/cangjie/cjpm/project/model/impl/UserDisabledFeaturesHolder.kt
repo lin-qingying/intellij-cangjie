@@ -1,9 +1,7 @@
 package com.huawei.cangjie.cjpm.project.model.impl
 
-import com.huawei.cangjie.cjpm.project.model.cjpmProjects
 import com.intellij.openapi.components.*
 import com.intellij.openapi.project.Project
-import com.intellij.util.io.systemIndependentPath
 import org.jdom.Element
 import java.nio.file.Path
 
@@ -16,7 +14,7 @@ import java.nio.file.Path
         Storage(StoragePathMacros.WORKSPACE_FILE, roamingType = RoamingType.DISABLED)
     ]
 )
-@Service
+@Service(Service.Level.PROJECT)
 class UserDisabledFeaturesHolder(private val project: Project) : PersistentStateComponent<Element> {
     private var loadedUserDisabledFeatures: Map<Path, UserDisabledFeatures> = emptyMap()
 

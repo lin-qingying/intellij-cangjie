@@ -4,7 +4,6 @@ package com.linqingying.lsp.api
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.TestOnly
 
 /**
@@ -20,7 +19,7 @@ import org.jetbrains.annotations.TestOnly
  * Plugins may want to start an LSP server not on 'file opened in the editor' event but on some other event, for example, on enabling a
  * plugin-specific framework support in Settings. In this case plugins can use [LspServerManager.startServersIfNeeded].
  */
-@ApiStatus.Experimental
+
 interface LspServerManager {
     companion object {
         /**
@@ -32,7 +31,7 @@ interface LspServerManager {
         fun getInstance(project: Project): LspServerManager = project.service()
     }
 
-    fun getServersForProvider(providerClass: Class<out LspServerSupportProvider>): Collection<com.linqingying.lsp.api.LspServer>
+    fun getServersForProvider(providerClass: Class<out LspServerSupportProvider>): Collection<LspServer>
 
     /**
      * This function is designed for the cases like "a user has enabled some framework support in Settings." It notifies the `providerClass`
@@ -61,7 +60,7 @@ interface LspServerManager {
     fun stopAndRestartIfNeeded(providerClass: Class<out LspServerSupportProvider>)
 
     @TestOnly
-    @ApiStatus.Internal
+
     fun addLspServerManagerListener(listener: LspServerManagerListener, parentDisposable: Disposable)
 }
 

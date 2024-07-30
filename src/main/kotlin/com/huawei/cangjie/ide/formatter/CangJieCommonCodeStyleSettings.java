@@ -53,53 +53,53 @@ public class CangJieCommonCodeStyleSettings extends CommonCodeStyleSettings {
 
         super.readExternal(element);
     }
-
-    @Override
-    public void writeExternal(@NotNull Element element, @NotNull LanguageCodeStyleProvider provider) {
-        CommonCodeStyleSettings defaultSettings = provider.getDefaultCommonSettings();
-        FormatterUtilKt.applyCangJieCodeStyle(CODE_STYLE_DEFAULTS, defaultSettings, false);
-
-        writeExternalBase(element, defaultSettings, provider);
-    }
-
-
-    private void writeExternalBase(
-            @NotNull Element element,
-            @NotNull CommonCodeStyleSettings defaultSettings,
-            @NotNull LanguageCodeStyleProvider provider
-    ) {
-        Set<String> supportedFields = provider.getSupportedFields();
-        if (supportedFields != null) {
-            supportedFields.add("FORCE_REARRANGE_MODE");
-            supportedFields.add("CODE_STYLE_DEFAULTS");
-        } else {
-            return;
-        }
-
-
-        DefaultJDOMExternalizer.write(this, element, new SupportedFieldsDiffFilter(this, supportedFields, defaultSettings));
-        List<Integer> softMargins = getSoftMargins();
-        serializeInto(softMargins, element);
-
-        IndentOptions myIndentOptions = getIndentOptions();
-        if (myIndentOptions != null) {
-            IndentOptions defaultIndentOptions = defaultSettings.getIndentOptions();
-            Element indentOptionsElement = new Element(INDENT_OPTIONS_TAG);
-            myIndentOptions.serialize(indentOptionsElement, defaultIndentOptions);
-            if (!indentOptionsElement.getChildren().isEmpty()) {
-                element.addContent(indentOptionsElement);
-            }
-        }
-
-        ArrangementSettings myArrangementSettings = getArrangementSettings();
-        if (myArrangementSettings != null) {
-            Element container = new Element(ARRANGEMENT_ELEMENT_NAME);
-            ArrangementUtil.writeExternal(container, myArrangementSettings, provider.getLanguage());
-            if (!container.getChildren().isEmpty()) {
-                element.addContent(container);
-            }
-        }
-    }
+//
+//    @Override
+//    public void writeExternal(@NotNull Element element, @NotNull LanguageCodeStyleProvider provider) {
+//        CommonCodeStyleSettings defaultSettings = provider.getDefaultCommonSettings();
+//        FormatterUtilKt.applyCangJieCodeStyle(CODE_STYLE_DEFAULTS, defaultSettings, false);
+//
+//        writeExternalBase(element, defaultSettings, provider);
+//    }
+//
+//
+//    private void writeExternalBase(
+//            @NotNull Element element,
+//            @NotNull CommonCodeStyleSettings defaultSettings,
+//            @NotNull LanguageCodeStyleProvider provider
+//    ) {
+//        Set<String> supportedFields = provider.getSupportedFields();
+//        if (supportedFields != null) {
+//            supportedFields.add("FORCE_REARRANGE_MODE");
+//            supportedFields.add("CODE_STYLE_DEFAULTS");
+//        } else {
+//            return;
+//        }
+//
+//
+//        DefaultJDOMExternalizer.write(this, element, new SupportedFieldsDiffFilter(this, supportedFields, defaultSettings));
+//        List<Integer> softMargins = getSoftMargins();
+//        serializeInto(softMargins, element);
+//
+//        IndentOptions myIndentOptions = getIndentOptions();
+//        if (myIndentOptions != null) {
+//            IndentOptions defaultIndentOptions = defaultSettings.getIndentOptions();
+//            Element indentOptionsElement = new Element(INDENT_OPTIONS_TAG);
+//            myIndentOptions.serialize(indentOptionsElement, defaultIndentOptions);
+//            if (!indentOptionsElement.getChildren().isEmpty()) {
+//                element.addContent(indentOptionsElement);
+//            }
+//        }
+//
+//        ArrangementSettings myArrangementSettings = getArrangementSettings();
+//        if (myArrangementSettings != null) {
+//            Element container = new Element(ARRANGEMENT_ELEMENT_NAME);
+//            ArrangementUtil.writeExternal(container, myArrangementSettings, provider.getLanguage());
+//            if (!container.getChildren().isEmpty()) {
+//                element.addContent(container);
+//            }
+//        }
+//    }
 
     @Override
     public CommonCodeStyleSettings clone(@NotNull CodeStyleSettings rootSettings) {

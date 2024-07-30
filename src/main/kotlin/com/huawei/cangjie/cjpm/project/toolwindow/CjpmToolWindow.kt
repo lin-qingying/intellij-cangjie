@@ -27,7 +27,11 @@ class CjpmToolWindow(
 ) {
     val toolbar: ActionToolbar = run {
         val actionManager = ActionManager.getInstance()
-        actionManager.createActionToolbar(CJPM_TOOLBAR_PLACE, actionManager.getAction("CangJie.Cjpm") as DefaultActionGroup, true)
+        actionManager.createActionToolbar(
+            CJPM_TOOLBAR_PLACE,
+            actionManager.getAction("CangJie.Cjpm") as DefaultActionGroup,
+            true
+        )
     }
 
     val note = JEditorPane("text/html", html("")).apply {
@@ -64,8 +68,14 @@ class CjpmToolWindow(
 //    }
 
     @Nls
-    private fun html(body: String): String = CangJieBundle.message("html.head.0.style.body.background.1.text.align.center.style.head.body.2.body.html", UIUtil.getCssFontDeclaration(
-        UIUtil.getLabelFont()), ColorUtil.toHex(UIUtil.getTreeBackground()), body)
+    private fun html(body: String): String = CangJieBundle.message(
+        "html.head.0.style.body.background.1.text.align.center.style.head.body.2.body.html",
+        UIUtil.getCssFontDeclaration(
+            UIUtil.getLabelFont()
+        ),
+        ColorUtil.toHex(UIUtil.getTreeBackground()),
+        body
+    )
 
     companion object {
         private val LOG: Logger = logger<CjpmToolWindow>()
@@ -77,19 +87,32 @@ class CjpmToolWindow(
 
         private const val ID: String = "Cjpm"
 
-        fun initializeToolWindow(project: Project) {
-            try {
-                @Suppress("UnstableApiUsage")
-                val manager = ToolWindowManager.getInstance(project) as? ToolWindowManagerImpl ?: return
-                val bean = ToolWindowEP.EP_NAME.extensionList.find { it.id == ID }
-                if (bean != null) {
-                    @Suppress("DEPRECATION", "UnstableApiUsage")
-                    manager.initToolWindow(bean)
-                }
-            } catch (e: Exception) {
-                LOG.error("Unable to initialize $ID tool window", e)
-            }
-        }
+//        fun initializeToolWindow(project: Project) {
+//            try {
+//                @Suppress("UnstableApiUsage")
+//                val manager = ToolWindowManager.getInstance(project) as? ToolWindowManagerImpl ?: return
+//                val bean = ToolWindowEP.EP_NAME.extensionList.find { it.id == ID }
+//                if (bean != null) {
+//                    @Suppress("DEPRECATION", "UnstableApiUsage")
+//                    manager.initToolWindow(bean)
+//                }
+//            } catch (e: Exception) {
+//                LOG.error("Unable to initialize $ID tool window", e)
+//            }
+//
+////                    try {
+////                val manager = ToolWindowManager.getInstance(project)
+////                val bean = ToolWindowEP.EP_NAME.extensionList.find { it.id == ID }
+////                if (bean != null) {
+////                    manager.registerToolWindow(ID){
+////TODO()
+////                    }
+////
+////                }
+////            } catch (e: Exception) {
+////                LOG.error("Unable to initialize $ID tool window", e)
+////            }
+//        }
 
         fun isRegistered(project: Project): Boolean {
             val manager = ToolWindowManager.getInstance(project)

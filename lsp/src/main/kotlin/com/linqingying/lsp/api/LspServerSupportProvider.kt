@@ -19,7 +19,7 @@ import org.jetbrains.annotations.ApiStatus
  *
  * @see [https://microsoft.github.io/language-server-protocol/](https://microsoft.github.io/language-server-protocol/)
  */
-@ApiStatus.Experimental
+
 interface LspServerSupportProvider {
     /**
      * [LspServerSupportProvider] implementations may call [LspServerStarter.ensureServerStarted] function in their

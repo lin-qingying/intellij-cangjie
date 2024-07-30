@@ -17,7 +17,7 @@ import javax.swing.Icon
  * Implementations may fine-tune the code completion behavior.
  * For example, they may filter out unneeded completion items or tweak completion item decoration.
  */
-@ApiStatus.Experimental
+
 open class LspCompletionSupport {
     /**
      * Called when the IDE is going to run a code completion session.

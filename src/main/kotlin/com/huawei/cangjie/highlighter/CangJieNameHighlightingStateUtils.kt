@@ -10,8 +10,7 @@ import org.jetbrains.annotations.TestOnly
 
 private val NAME_HIGHLIGHTING_STATE_KEY = Key<Boolean>("CANGJIE_NAME_HIGHLIGHTING_STATE")
 
-@get:ApiStatus.Internal
-@set:ApiStatus.Internal
+
 var Project.isNameHighlightingEnabled: Boolean
     get() = getUserData(NAME_HIGHLIGHTING_STATE_KEY) ?: true
     internal set(value) {
@@ -21,7 +20,7 @@ var Project.isNameHighlightingEnabled: Boolean
     }
 
 @TestOnly
-@ApiStatus.Internal
+
 fun Project.withNameHighlightingDisabled(block: () -> Unit) {
     val oldValue = isNameHighlightingEnabled
     try {

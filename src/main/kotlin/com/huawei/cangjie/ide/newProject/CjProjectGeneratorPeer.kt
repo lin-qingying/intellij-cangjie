@@ -14,7 +14,8 @@ import javax.swing.JComponent
 
 class CjProjectGeneratorPeer(cjpmProjectDir: Path = Paths.get(".")) : GeneratorPeerImpl<ConfigurationData>() {
 
-    private val newProjectPanel = CjNewProjectPanel(showProjectTypeSelection = true, cjpmProjectDir) { checkValid?.run() }
+    private val newProjectPanel =
+        CjNewProjectPanel(showProjectTypeSelection = true, cjpmProjectDir) { checkValid?.run() }
     var checkValid: Runnable? = null
 
     override fun getSettings(): ConfigurationData = newProjectPanel.data
@@ -32,6 +33,8 @@ class CjProjectGeneratorPeer(cjpmProjectDir: Path = Paths.get(".")) : GeneratorP
         newProjectPanel.validateSettings()
         null
     } catch (e: ConfigurationException) {
-        ValidationInfo(e.message ?: "")
+        ValidationInfo(e.message ?: "", component)
+
+//        ValidationInfo(e.getMessageHtml(), component)
     }
 }

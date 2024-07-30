@@ -25,7 +25,7 @@ class CangJieStyleGuideCodeStyle :
     companion object {
         val INSTANCE = CangJieStyleGuideCodeStyle()
 
-        const val CODE_STYLE_ID = "KOTLIN_OFFICIAL"
+        const val CODE_STYLE_ID = "CANGJIE_OFFICIAL"
         const val CODE_STYLE_SETTING = "official"
         const val CODE_STYLE_TITLE = "CangJie Coding Conventions"
 

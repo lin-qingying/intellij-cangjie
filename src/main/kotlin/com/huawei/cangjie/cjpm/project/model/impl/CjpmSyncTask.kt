@@ -217,6 +217,8 @@ class CjpmSyncTask(
     override val taskType: CjTask.TaskType
         get() = CjTask.TaskType.CJPM_SYNC
 
+
+
     override val runSyncInUnitTests: Boolean
         get() = true
 

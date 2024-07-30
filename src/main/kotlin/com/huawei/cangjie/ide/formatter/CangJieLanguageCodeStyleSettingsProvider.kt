@@ -1,21 +1,18 @@
 package com.huawei.cangjie.ide.formatter
 
+
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.lang.CangJieLanguage
 import com.intellij.application.options.CodeStyleAbstractConfigurable
 import com.intellij.application.options.CodeStyleAbstractPanel
 import com.intellij.application.options.IndentOptionsEditor
 import com.intellij.application.options.SmartIndentOptionsEditor
-import com.intellij.application.options.codeStyle.properties.CodeStyleFieldAccessor
 import com.intellij.application.options.codeStyle.properties.CodeStylePropertyAccessor
 import com.intellij.lang.Language
 import com.intellij.openapi.application.ApplicationBundle
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.psi.codeStyle.*
 import org.jetbrains.annotations.Nls
-
-
-import java.lang.reflect.Field
 import kotlin.reflect.KProperty
 
 class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvider() {
@@ -34,20 +31,20 @@ class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvid
 
     override fun getIndentOptionsEditor(): IndentOptionsEditor = SmartIndentOptionsEditor()
 
-    override fun getDefaultCommonSettings(): CommonCodeStyleSettings = CangJieCommonCodeStyleSettings().apply {
-        initIndentOptions()
-    }
+//    override fun getDefaultCommonSettings(): CommonCodeStyleSettings = CangJieCommonCodeStyleSettings().apply {
+//        initIndentOptions()
+//    }
 
     override fun createCustomSettings(settings: CodeStyleSettings): CustomCodeStyleSettings =
         CangJieCodeStyleSettings(settings)
 
-    override fun getAccessor(codeStyleObject: Any, field: Field): CodeStyleFieldAccessor<*, *>? {
-        if (codeStyleObject is CangJieCodeStyleSettings && CangJiePackageEntryTable::class.java.isAssignableFrom(field.type)) {
-            return CangJiePackageEntryTableAccessor(codeStyleObject, field)
-        }
-
-        return super.getAccessor(codeStyleObject, field)
-    }
+//    override fun getAccessor(codeStyleObject: Any, field: Field): CodeStyleFieldAccessor<*, *>? {
+//        if (codeStyleObject is CangJieCodeStyleSettings && CangJiePackageEntryTable::class.java.isAssignableFrom(field.type)) {
+//            return CangJiePackageEntryTableAccessor(codeStyleObject, field)
+//        }
+//
+//        return super.getAccessor(codeStyleObject, field)
+//    }
 
     override fun getAdditionalAccessors(codeStyleObject: Any): List<CodeStylePropertyAccessor<*>> {
         if (codeStyleObject is CangJieCodeStyleSettings) {
@@ -273,7 +270,7 @@ class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvid
                 showCustomOption(
                     CangJieCodeStyleSettings::WRAP_ELVIS_EXPRESSIONS,
                     CangJieBundle.message("formatter.title.elvis.expressions"),
-                    options = *arrayOf(
+                    options = arrayOf(
                         codeStyleSettingsCustomizableOptions.WRAP_OPTIONS_FOR_SINGLETON,
                         CodeStyleSettingsCustomizable.WRAP_VALUES_FOR_SINGLETON
                     )
@@ -326,9 +323,9 @@ class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvid
         }
     }
 
-    override fun usesCommonKeepLineBreaks(): Boolean {
-        return true
-    }
+//    override fun usesCommonKeepLineBreaks(): Boolean {
+//        return true
+//    }
 
     override fun getCodeSample(settingsType: SettingsType): String = when (settingsType) {
         SettingsType.WRAPPING_AND_BRACES_SETTINGS ->

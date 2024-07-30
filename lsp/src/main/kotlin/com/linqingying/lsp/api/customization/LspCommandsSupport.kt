@@ -10,7 +10,7 @@ import org.jetbrains.annotations.ApiStatus
 /**
  * Handles [Command](https://microsoft.github.io/language-server-protocol/specification#command) objects received from the LSP server.
  */
-@ApiStatus.Experimental
+
 open class LspCommandsSupport {
     /**
      * Handles [Command](https://microsoft.github.io/language-server-protocol/specification#command) objects received from the LSP server.

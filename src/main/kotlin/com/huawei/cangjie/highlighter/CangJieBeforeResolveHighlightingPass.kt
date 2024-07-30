@@ -53,7 +53,7 @@ class CangJieBeforeResolveHighlightingPass(file: CjFile, document: Document) : A
     }
 }
 
-@ApiStatus.Internal
+
 interface BeforeResolveHighlightingExtension {
     fun createVisitor(holder: HighlightInfoHolder): AbstractHighlightingVisitor
 }

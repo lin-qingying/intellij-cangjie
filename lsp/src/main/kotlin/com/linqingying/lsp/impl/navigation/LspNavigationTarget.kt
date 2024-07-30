@@ -3,19 +3,23 @@ package com.linqingying.lsp.impl.navigation
 import com.linqingying.lsp.api.customization.requests.util.getOffsetInDocument
 import com.linqingying.lsp.api.customization.requests.util.getRangeInDocument
 import com.intellij.model.Pointer
+
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.backend.navigation.NavigationRequest
 import com.intellij.platform.backend.navigation.NavigationTarget
+
 import com.intellij.platform.backend.presentation.TargetPresentation
 import org.eclipse.lsp4j.LocationLink
 import org.eclipse.lsp4j.Position
+import org.jetbrains.annotations.ApiStatus.AvailableSince
 import kotlin.math.min
 
-
-class LspNavigationTarget(val project: Project,val targetFile: VirtualFile,val locationLink: LocationLink) : NavigationTarget {
+//@AvailableSince("2022.2")
+class LspNavigationTarget(val project: Project,val targetFile: VirtualFile,val locationLink: LocationLink) :
+    NavigationTarget {
     override fun createPointer(): Pointer<out NavigationTarget> = Pointer.hardPointer(this)
 
     override fun computePresentation(): TargetPresentation {
@@ -23,7 +27,6 @@ class LspNavigationTarget(val project: Project,val targetFile: VirtualFile,val l
         val start = locationLink.targetSelectionRange.start
         val presentation = builder.locationText(getFormattedPosition(targetFile, start)).presentation()
 
-        requireNotNull(presentation) { "Presentation cannot be null" }
 
         return presentation
     }

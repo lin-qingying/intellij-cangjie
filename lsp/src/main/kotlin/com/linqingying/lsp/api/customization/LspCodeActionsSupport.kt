@@ -10,7 +10,7 @@ import org.jetbrains.annotations.ApiStatus
 /**
  * Handles [CodeAction](https://microsoft.github.io/language-server-protocol/specification#codeAction) objects received from the LSP server.
  */
-@ApiStatus.Experimental
+
 open class LspCodeActionsSupport {
 
     open val intentionActionsSupport: Boolean = true

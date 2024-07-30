@@ -34,7 +34,7 @@ import org.jetbrains.annotations.ApiStatus
  * create [LspIntentionAction] objects. After that, those quick fix stubs delegate [getText], [isAvailable], and [invoke] calls to these
  * [LspIntentionAction] objects.
  */
-@ApiStatus.Experimental
+
 open class LspIntentionAction(
     protected val lspServer: com.linqingying.lsp.api.LspServer, protected val codeAction: CodeAction
 ) : IntentionAction {

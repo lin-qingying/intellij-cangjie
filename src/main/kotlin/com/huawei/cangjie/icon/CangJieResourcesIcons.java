@@ -5,10 +5,17 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public final class CangJieResourcesIcons {
-    private static @NotNull Icon load(@NotNull String path, int cacheKey, int flags) {
-        return IconManager.getInstance().loadRasterizedIcon(path, CangJieResourcesIcons.class.getClassLoader(), cacheKey, flags);
-    }
-    /** 16x16 */ public static final @NotNull Icon CangJie_file = load("/icons/cangjie_file.svg", 486618922, 0);
-
-}
+//public final class CangJieResourcesIcons {
+//    /**
+//     * 16x16
+//     */
+//    public static final @NotNull Icon CangJie_file = load("/icons/cangjie_file.svg");
+//
+//    private static @NotNull Icon load(@NotNull String path) {
+//
+//        CangJieResourcesIcons.class.getClassLoader().getResourceAsStream(path);
+//
+//        return IconManager.getInstance().getIcon(path, CangJieResourcesIcons.class.getClassLoader());
+//    }
+//
+//}

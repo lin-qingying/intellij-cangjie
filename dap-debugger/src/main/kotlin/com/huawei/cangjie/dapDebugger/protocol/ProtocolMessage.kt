@@ -1,11 +1,15 @@
 package com.huawei.cangjie.dapDebugger.protocol
 
 import com.huawei.cangjie.dapDebugger.protocol.type.MessageType
-
-import kotlinx.serialization.*
+import com.huawei.cangjie.dapDebugger.protocol.type.serializer.ProtocolMessageSerializer
+import kotlinx.serialization.Polymorphic
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 
 @Polymorphic
+//@Serializable(ProtocolMessageSerializer::class)
+
 interface ProtocolMessage {
 
     /**
@@ -19,7 +23,7 @@ interface ProtocolMessage {
     /**
      * 消息类型
      */
-//    @SerialName("type")
+//    @SerialName("kind")
     val type: MessageType
 
 

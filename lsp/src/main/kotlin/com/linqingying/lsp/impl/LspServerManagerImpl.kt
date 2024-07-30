@@ -127,7 +127,7 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
                     }
                 }
                 descriptors
-            }.expireWith(this).finishOnUiThread(ModalityState.nonModal()) { descriptors ->
+            }.expireWith(this).finishOnUiThread( nonModal()) { descriptors ->
                 descriptors.forEach { descriptor ->
                     startNewServer(providerClass, descriptor)
                 }
@@ -188,7 +188,7 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
 
 
     @TestOnly
-    @ApiStatus.Internal
+
     override fun addLspServerManagerListener(listener: LspServerManagerListener, parentDisposable: Disposable) {
         this.eventDispatcher.addListener(listener, parentDisposable)
         for (server in this.servers) {
@@ -349,7 +349,7 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
 
                 changedFilesData
             }.coalesceBy(DOCUMENT_CHANGED_COALESCE_OBJECT)
-                .finishOnUiThread(ModalityState.nonModal()) { data ->
+                .finishOnUiThread( nonModal()) { data ->
                     documentsToHandle.removeAll(data.handledDocuments)
                     if (data.serversToSendDidOpen.isNotEmpty() || data.serversToSendDidChange.isNotEmpty()) {
                         WriteAction.run<Throwable> {
@@ -629,7 +629,7 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
 
                 openedFilesData
             }.coalesceBy(project, OPEN_FILES_COALESCE_OBJECT).expireWith(lspServerManager)
-                .finishOnUiThread(ModalityState.nonModal()) { data ->
+                .finishOnUiThread( nonModal()) { data ->
                     openedFilesToHandle.removeAll(data.handledFiles)
                     if (!data.serversToSendDidOpen.isEmpty) {
                         WriteAction.run<Throwable> {
@@ -709,7 +709,7 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
                 filesToClose
             }.expireWith(serverManager)
                 .coalesceBy(serverManager, CLOSE_FILES_COALESCE_OBJECT)
-                .finishOnUiThread(ModalityState.nonModal()) { map ->
+                .finishOnUiThread( nonModal()) { map ->
                     if (!map.isEmpty) {
                         WriteAction.run<Throwable> {
                             for ((server, files) in map.entrySet()) {

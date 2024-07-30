@@ -2,6 +2,8 @@ package com.huawei.cangjie.dapDebugger.protocol.type.serializer
 
 import com.huawei.cangjie.dapDebugger.protocol.ProtocolMessage
 import com.huawei.cangjie.dapDebugger.protocol.request.*
+import com.huawei.cangjie.dapDebugger.protocol.response.InitializeResponse
+import com.huawei.cangjie.dapDebugger.protocol.response.Response
 import com.huawei.cangjie.dapDebugger.protocol.response.RunInTerminalResponse
 import com.huawei.cangjie.dapDebugger.protocol.type.*
 import kotlinx.serialization.KSerializer
@@ -12,9 +14,79 @@ import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+
+
+//val format1 = Json {
+//    classDiscriminator = "kind"
+//    ignoreUnknownKeys = true
+//    isLenient = true
+//    encodeDefaults = true
+//
+//    serializersModule = SerializersModule {
+//
+//        polymorphic(ProtocolMessage::class) {
+//            polymorphic(Response::class)
+////
+////            polymorphic(Event::class)
+////            polymorphic(Request::class){
+////
+////            }
+//        }
+//        polymorphic(Response::class) {
+//            subclass(InitializeResponse::class)
+//        }
+//    }
+//}
+//
+//fun main() {
+//    val a = """{
+//    "body": {
+//        "additionalModuleColumns": [],
+//        "exceptionBreakpointFilters": [],
+//        "supportTerminateDebuggee": true,
+//        "supportedChecksumAlgorithms": [],
+//        "supportedTimeTravelRecordPointTypes": [
+//            "step",
+//            "breakpoint",
+//            "function breakpoint",
+//            "instruction breakpoint",
+//            "data breakpoint",
+//            "exception",
+//            "pause",
+//            "set executionpoint"
+//        ],
+//        "supportsConditionalBreakpoints": true,
+//        "supportsConfigurationDoneRequest": true,
+//        "supportsDataBreakpoints": true,
+//        "supportsDisassembleRequest": true,
+//        "supportsFunctionBreakpoints": true,
+//        "supportsHitConditionalBreakpoints": true,
+//        "supportsInstructionBreakpoints": true,
+//        "supportsLogPoints": true,
+//        "supportsReadMemoryRequest": true,
+//        "supportsSetExecutionPoint": true,
+//        "supportsSetVariable": true,
+//        "supportsSteppingGranularity": true,
+//        "supportsTimeTravelDebugging": true,
+//        "supportsWriteMemoryRequest": true
+//    },
+//    "command": "initialize",
+//    "request_seq": 1,
+//    "seq": 1,
+//    "success": true,
+//    "type": "response"
+//}"""
+//
+//    val bb = format1.decodeFromString<ProtocolMessage>(a)
+//
+//    println(bb)
+//}
+
 
 //val jsonConfiguration = JsonConfiguration(classDiscriminator = "kind")
 val format = Json {
@@ -76,8 +148,7 @@ object EventReasonSerializer : KSerializer<EventReason> {
     }
 
     override fun deserialize(decoder: Decoder): EventReason {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "changed" -> EventReason.changed
             "new" -> EventReason.new
             "removed" -> EventReason.removed
@@ -101,8 +172,7 @@ object PathFormatSerializer : KSerializer<PathFormat> {
     }
 
     override fun deserialize(decoder: Decoder): PathFormat {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "path" -> PathFormat.Path
             "uri" -> PathFormat.Uri
             else -> PathFormat.Other(value)
@@ -127,8 +197,7 @@ object ColumnDataTypeSerializer : KSerializer<ColumnDataType> {
     }
 
     override fun deserialize(decoder: Decoder): ColumnDataType {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "string" -> ColumnDataType.string
             "number" -> ColumnDataType.number
             "boolean" -> ColumnDataType.boolean
@@ -154,8 +223,7 @@ object MessageTypeSerializer : KSerializer<MessageType> {
     }
 
     override fun deserialize(decoder: Decoder): MessageType {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "request" -> MessageType.request
             "response" -> MessageType.response
             "event" -> MessageType.event
@@ -182,8 +250,7 @@ object CategorySerializer : KSerializer<Category> {
     }
 
     override fun deserialize(decoder: Decoder): Category {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "console" -> Category.console
             "important" -> Category.important
             "stdout" -> Category.stdout
@@ -210,8 +277,7 @@ object ThreadEventReasonSerializer : KSerializer<ThreadEventReason> {
     }
 
     override fun deserialize(decoder: Decoder): ThreadEventReason {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "started" -> ThreadEventReason.started
             "exited" -> ThreadEventReason.exited
 
@@ -244,8 +310,7 @@ object VariablePresentationHintKindSerializer : KSerializer<VariablePresentation
     }
 
     override fun deserialize(decoder: Decoder): VariablePresentationHintKind {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "property" -> VariablePresentationHintKind.Property
             "method" -> VariablePresentationHintKind.Method
             "class" -> VariablePresentationHintKind.Class
@@ -284,8 +349,7 @@ object VariablePresentationHintAttributesSerializer : KSerializer<VariablePresen
     }
 
     override fun deserialize(decoder: Decoder): VariablePresentationHintAttributes {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "static" -> VariablePresentationHintAttributes.Static
             "constant" -> VariablePresentationHintAttributes.Constant
             "readOnly" -> VariablePresentationHintAttributes.ReadOnly
@@ -317,8 +381,7 @@ object VariablePresentationHintVisibilitySerializer : KSerializer<VariablePresen
     }
 
     override fun deserialize(decoder: Decoder): VariablePresentationHintVisibility {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "public" -> VariablePresentationHintVisibility.Public
             "private" -> VariablePresentationHintVisibility.Private
             "protected" -> VariablePresentationHintVisibility.Protected
@@ -354,8 +417,7 @@ object StoppedEventReasonSerializer : KSerializer<StoppedEventReason> {
     }
 
     override fun deserialize(decoder: Decoder): StoppedEventReason {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "step" -> StoppedEventReason.Step
             "breakpoint" -> StoppedEventReason.Breakpoint
             "exception" -> StoppedEventReason.Exception
@@ -392,8 +454,7 @@ object ScopePresentationHintSerializer : KSerializer<ScopePresentationHint> {
     }
 
     override fun deserialize(decoder: Decoder): ScopePresentationHint {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "arguments" -> ScopePresentationHint.Arguments
             "locals" -> ScopePresentationHint.Locals
             "registers" -> ScopePresentationHint.Registers
@@ -406,6 +467,33 @@ object ScopePresentationHintSerializer : KSerializer<ScopePresentationHint> {
     }
 }
 
+@Serializer(forClass = ProtocolMessage::class)
+object ProtocolMessageSerializer : KSerializer<ProtocolMessage> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("ProtocolMessage") {
+        element<String>("type", isOptional = true)
+    }
+
+    override fun deserialize(decoder: Decoder): ProtocolMessage {
+
+        decoder as JsonDecoder
+        val element =(decoder as JsonDecoder).decodeJsonElement()
+
+        when (element.jsonObject["type"]) {
+
+            else -> {}
+        }
+
+        TODO()
+
+    }
+
+    override fun serialize(encoder: Encoder, value: ProtocolMessage) {
+        TODO("Not yet implemented")
+    }
+
+
+}
+
 
 @Serializer(forClass = EvaluateArgumentsContext::class)
 object EvaluateArgumentsContextSerializer : KSerializer<EvaluateArgumentsContext> {
@@ -414,8 +502,7 @@ object EvaluateArgumentsContextSerializer : KSerializer<EvaluateArgumentsContext
     }
 
     override fun deserialize(decoder: Decoder): EvaluateArgumentsContext {
-        val value = decoder.decodeString()
-        return when (value){
+        return when (val value = decoder.decodeString()) {
             "watch" -> EvaluateArgumentsContext.Watch
             "hover" -> EvaluateArgumentsContext.Hover
             "repl" -> EvaluateArgumentsContext.Repl

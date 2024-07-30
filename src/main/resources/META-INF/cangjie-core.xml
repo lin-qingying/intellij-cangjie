@@ -59,14 +59,12 @@
         <internalFileTemplate name="CangJie File"/>
 
 
-
         <!--       PSI解析 -->
-                <lang.parserDefinition language="CangJie"
-                                       implementationClass="com.huawei.cangjie.parsing.CangJieParserDefinition"/>
+        <lang.parserDefinition language="CangJie"
+                               implementationClass="com.huawei.cangjie.parsing.CangJieParserDefinition"/>
         <!--antlr psi解析-->
-<!--        <lang.parserDefinition language="CangJie"-->
-<!--                               implementationClass="antlr.ANTLRCangJieParserDefinition"/>-->
-
+        <!--        <lang.parserDefinition language="CangJie"-->
+        <!--                               implementationClass="antlr.ANTLRCangJieParserDefinition"/>-->
 
 
         <!--语法高亮-->
@@ -82,8 +80,8 @@
         <highlightingPassFactory
                 implementation="com.huawei.cangjie.highlighter.CangJieBeforeResolveHighlightingPass$Registrar"/>
 
-        <newProjectWizard.languageGenerator
-                implementation="com.huawei.cangjie.ide.project.tools.projectWizard.CangJieGeneratorNewProjectWizard"/>
+                <newProjectWizard.languageGenerator
+                        implementation="com.huawei.cangjie.ide.project.tools.projectWizard.CangJieGeneratorNewProjectWizard"/>
 <!--        <newProjectWizard.language-->
 <!--                implementation="com.huawei.cangjie.ide.project.tools.projectWizard.CangJieNewProjectWizard"/>-->
         <moduleBuilder
@@ -129,8 +127,8 @@
 
         <executionTargetLanguageRuntimeType
                 implementation="com.huawei.cangjie.ide.run.cjpm.runconfig.CjLanguageRuntimeType"/>
-<!--        <applicationService-->
-<!--                serviceImplementation="com.huawei.cangjie.ide.run.cjpm.runconfig.CjRunConfigurationExtensionManager"/>-->
+        <!--        <applicationService-->
+        <!--                serviceImplementation="com.huawei.cangjie.ide.run.cjpm.runconfig.CjRunConfigurationExtensionManager"/>-->
 
 
         <applicationService
@@ -147,7 +145,7 @@
         <projectService serviceInterface="com.huawei.cangjie.cjpm.project.model.CjpmProjectsService"
                         serviceImplementation="com.huawei.cangjie.cjpm.project.model.impl.CjpmProjectsServiceImpl"
         />
-<!--        <projectService serviceImplementation="com.huawei.cangjie.cjpm.project.settings.CangJieProjectSettingsService"/>-->
+        <!--        <projectService serviceImplementation="com.huawei.cangjie.cjpm.project.settings.CangJieProjectSettingsService"/>-->
         <projectService
                 serviceImplementation="com.huawei.cangjie.cjpm.project.settings.CjExternalLinterProjectSettingsService"/>
 
@@ -155,11 +153,11 @@
 
         <!--        <projectService serviceImplementation="com.huawei.cangjie.ide.run.cjpm.back.CangJieProjectSettingsService"/>-->
         <!--代码补全-->
-        <completion.contributor
-                language="CangJie"
-                id="CangJieCompletionContributor"
-                order="first, after liveTemplates"
-                implementationClass="com.huawei.cangjie.ide.completion.CangJieCompletionContributor"/>
+        <!--        <completion.contributor-->
+        <!--                language="CangJie"-->
+        <!--                id="CangJieCompletionContributor"-->
+        <!--                order="first, after liveTemplates"-->
+        <!--                implementationClass="com.huawei.cangjie.ide.completion.CangJieCompletionContributor"/>-->
 
         <!--        <applicationService serviceInterface="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicy"-->
         <!--                        serviceImplementation="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>-->
@@ -231,8 +229,7 @@
         <!--        />-->
 
 
-
-         </extensions>
+    </extensions>
 
     <!--        监听-->
     <applicationListeners>
@@ -292,7 +289,7 @@
 
     <actions>
 
-        <action id="CjpmRunMain" class="com.huawei.cangjie.ide.run.cjpm.RunMainAction" />
+        <action id="CjpmRunMain" class="com.huawei.cangjie.ide.run.cjpm.RunMainAction"/>
 
 
         <action id="CjpmAction" class="com.huawei.cangjie.ide.run.modulejson.CjpmUpdateAction"

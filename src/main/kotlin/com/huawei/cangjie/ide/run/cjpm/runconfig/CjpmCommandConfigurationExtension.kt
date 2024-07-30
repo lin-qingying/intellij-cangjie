@@ -1,7 +1,7 @@
 package com.huawei.cangjie.ide.run.cjpm.runconfig
 
 import com.huawei.cangjie.ide.run.cjpm.CjpmCommandConfiguration
-import com.huawei.cangjie.ide.run.cjpm.ConfigurationExtensionContext
+
 import com.intellij.execution.configuration.RunConfigurationExtensionBase
 import com.intellij.execution.configurations.CommandLineState
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -11,15 +11,13 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.util.UserDataHolderBase
 
+class ConfigurationExtensionContext : UserDataHolderBase()
 abstract class CjpmCommandConfigurationExtension: RunConfigurationExtensionBase<CjpmCommandConfiguration>() {
-    override fun isApplicableFor(configuration: CjpmCommandConfiguration): Boolean {
-        TODO("Not yet implemented")
-    }
 
-    override fun isEnabledFor(applicableConfiguration: CjpmCommandConfiguration, runnerSettings: RunnerSettings?): Boolean {
-        TODO("Not yet implemented")
-    }
+
+
     open fun patchCommandLineState(
         configuration: CjpmCommandConfiguration,
         environment: ExecutionEnvironment,
@@ -40,7 +38,7 @@ abstract class CjpmCommandConfigurationExtension: RunConfigurationExtensionBase<
         cmdLine: GeneralCommandLine,
         runnerId: String
     ) {
-        TODO("Not yet implemented")
+        LOG.error("use the other overload of 'patchCommandLine' method")
     }
     abstract fun patchCommandLine(
         configuration: CjpmCommandConfiguration,

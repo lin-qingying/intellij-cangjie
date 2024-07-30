@@ -1,24 +1,9 @@
 package com.huawei.cangjie.ide.completion
 
-import com.huawei.cangjie.ide.completion.implCommon.StringTemplateCompletion
-import com.huawei.cangjie.ide.completion.implCommon.stringTemplates.wrapLookupElementForStringTemplateAfterDotCompletion
-import com.huawei.cangjie.psi.CjFile
-import com.huawei.cangjie.psi.CjNameReferenceExpression
-import com.huawei.cangjie.utils.getNonStrictParentOfType
 import com.intellij.codeInsight.completion.*
-import com.intellij.codeInsight.completion.impl.CamelHumpMatcher
-import com.intellij.codeInsight.lookup.LookupElement
-import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.codeInsight.template.Expression
-import com.intellij.codeInsight.template.TemplateBuilderFactory
-import com.intellij.codeInsight.template.TemplateManager
 import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.util.ThrowableComputable
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.patterns.PlatformPatterns
-import com.intellij.psi.PsiComment
 import com.intellij.util.ProcessingContext
-import com.intellij.util.indexing.DumbModeAccessType
 
 
 class CangJieCompletionContributor : CompletionContributor(), DumbAware {
@@ -56,76 +41,76 @@ class CangJieCompletionContributor : CompletionContributor(), DumbAware {
 
 
     //
-    private fun shouldSuppressCompletion(parameters: CompletionParameters, prefixMatcher: PrefixMatcher): Boolean {
-        val position = parameters.position
-        val invocationCount = parameters.invocationCount
-
-        if (prefixMatcher is CamelHumpMatcher && prefixMatcher.isTypoTolerant) return true
-
-
-
-
-        if (invocationCount == 0 && Registry.`is`("cangjie.disable.auto.completion.inside.expression", false)) {
-            val originalPosition = parameters.originalPosition
-            val originalExpression = originalPosition?.getNonStrictParentOfType<CjNameReferenceExpression>()
-            val expression = position.getNonStrictParentOfType<CjNameReferenceExpression>()
-
-            if (expression != null && originalExpression != null &&
-                !expression.getReferencedName().startsWith(originalExpression.getReferencedName())
-            ) {
-                return true
-            }
-        }
-
-        return false
-    }
+//    private fun shouldSuppressCompletion(parameters: CompletionParameters, prefixMatcher: PrefixMatcher): Boolean {
+//        val position = parameters.position
+//        val invocationCount = parameters.invocationCount
+//
+//        if (prefixMatcher is CamelHumpMatcher && prefixMatcher.isTypoTolerant) return true
+//
+//
+//
+//
+//        if (invocationCount == 0 && Registry.`is`("cangjie.disable.auto.completion.inside.expression", false)) {
+//            val originalPosition = parameters.originalPosition
+//            val originalExpression = originalPosition?.getNonStrictParentOfType<CjNameReferenceExpression>()
+//            val expression = position.getNonStrictParentOfType<CjNameReferenceExpression>()
+//
+//            if (expression != null && originalExpression != null &&
+//                !expression.getReferencedName().startsWith(originalExpression.getReferencedName())
+//            ) {
+//                return true
+//            }
+//        }
+//
+//        return false
+//    }
 
     //
-    private fun doComplete(
-        parameters: CompletionParameters,
-        result: CompletionResultSet,
-        lookupElementPostProcessor: ((LookupElement) -> LookupElement)? = null
-    ) {
-        val position = parameters.position
-        if (position.getNonStrictParentOfType<PsiComment>() != null) {
+//    private fun doComplete(
+//        parameters: CompletionParameters,
+//        result: CompletionResultSet,
+//        lookupElementPostProcessor: ((LookupElement) -> LookupElement)? = null
+//    ) {
+//        val position = parameters.position
+//        if (position.getNonStrictParentOfType<PsiComment>() != null) {
+//
+//            return
+//        }
+//
+//        if (shouldSuppressCompletion(parameters, result.prefixMatcher)) {
+//            result.stopHere()
+//            return
+//        }
+//
+//
+//
+//
+//        for (extension in CangJieCompletionExtension.EP_NAME.extensionList) {
+//            if (extension.perform(parameters, result)) return
+//        }
+//
+//
+//
+//        result.restartCompletionWhenNothingMatches()
+//
+//
+//    }
 
-            return
-        }
-
-        if (shouldSuppressCompletion(parameters, result.prefixMatcher)) {
-            result.stopHere()
-            return
-        }
-
-
-
-
-        for (extension in CangJieCompletionExtension.EP_NAME.extensionList) {
-            if (extension.perform(parameters, result)) return
-        }
-
-
-
-        result.restartCompletionWhenNothingMatches()
-
-
-    }
-
-    private fun performCompletion(parameters: CompletionParameters, result: CompletionResultSet) {
-        val position = parameters.position
-        val parametersOriginFile = parameters.originalFile
-        if (parametersOriginFile !is CjFile) return
-
-
-        StringTemplateCompletion.correctParametersForInStringTemplateCompletion(parameters)
-            ?.let { correctedParameters ->
-                doComplete(correctedParameters, result, ::wrapLookupElementForStringTemplateAfterDotCompletion)
-                return
-            }
-        DumbModeAccessType.RELIABLE_DATA_ONLY.ignoreDumbMode(ThrowableComputable {
-            doComplete(parameters, result)
-        })
-    }
+//    private fun performCompletion(parameters: CompletionParameters, result: CompletionResultSet) {
+//        val position = parameters.position
+//        val parametersOriginFile = parameters.originalFile
+//        if (parametersOriginFile !is CjFile) return
+//
+//
+//        StringTemplateCompletion.correctParametersForInStringTemplateCompletion(parameters)
+//            ?.let { correctedParameters ->
+//                doComplete(correctedParameters, result, ::wrapLookupElementForStringTemplateAfterDotCompletion)
+//                return
+//            }
+//        DumbModeAccessType.RELIABLE_DATA_ONLY.ignoreDumbMode(ThrowableComputable {
+//            doComplete(parameters, result)
+//        })
+//    }
 //
 //
 //

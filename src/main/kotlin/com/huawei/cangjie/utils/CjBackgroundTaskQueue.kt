@@ -61,7 +61,7 @@ class CjBackgroundTaskQueue {
     private fun runTaskInCurrentThread(task: Task.Backgroundable) {
         check(isUnitTestMode)
         val pm = ProgressManager.getInstance() as ProgressManagerImpl
-        pm.runProcessWithProgressInCurrentThread(task, EmptyProgressIndicator(), ModalityState.NON_MODAL)
+        pm.runProcessWithProgressInCurrentThread(task, EmptyProgressIndicator(), ModalityState. nonModal())
     }
     @Synchronized
     fun run(task: Task.Backgroundable) {
@@ -153,17 +153,17 @@ class CjBackgroundTaskQueue {
                     onFinish(this)
                     continuation.run()
                 },
-                ModalityState.NON_MODAL
+                ModalityState. nonModal()
             )
         }
 
 
 
         private sealed class State {
-            object Pending : State()
+            data object Pending : State()
             data class WaitForSmartMode(val continuation: Runnable) : State()
-            object Canceled : State()
-            object CanceledContinued : State()
+            data object Canceled : State()
+            data object CanceledContinued : State()
             data class Running(val indicator: ProgressIndicator) : State()
         }
 
