@@ -1,6 +1,9 @@
 import Build_gradle.BuildType.*
 import groovy.xml.XmlParser
-import org.jetbrains.intellij.tasks.*
+import org.jetbrains.intellij.tasks.PatchPluginXmlTask
+import org.jetbrains.intellij.tasks.PrepareSandboxTask
+import org.jetbrains.intellij.tasks.PublishPluginTask
+import org.jetbrains.intellij.tasks.RunIdeTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -13,6 +16,7 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
 
+gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS
 
 val build_type: String by project
 
@@ -55,20 +59,11 @@ enum class BuildType {
 //构建方式
 val buildType = BuildType.fromString(build_type)
 
-//IDEA版本
-val ideaVersion = "2024.1"
-//插件版本
-val cangjiePluginVersion = "1.1.6-241-SNAPSHOT"
-
 
 val kotlinVersion = "1.9.21"
 val tomlPlugin = "org.toml.lang"
 val terminalPlugin = "org.jetbrains.plugins.terminal"
-val nativeDebugPlugin: String = "com.intellij.nativeDebug:233.11799.30"
-val psiViewerPlugin: String = "PsiViewer:241-SNAPSHOT"
 
-
-val basePluginArchiveName = "intellij-cangjie"
 
 val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
 
@@ -92,6 +87,29 @@ val pluginDescriptors = arrayOf<String>(
 //    "utils.jar"
 )
 
+
+/********************属性**************************/
+val platformVersion = prop("platformVersion").toInt()
+
+//val sinceBuild = prop("sinceBuild")
+//val untilBuild = prop("untilBuild")
+val psiViewerPlugin: String = prop("psiViewerPlugin")
+val basePluginArchiveName = prop("basePluginArchiveName")
+//插件版本
+val cangjiePluginVersion = prop("cangjiePluginVersion")
+val nativeDebugPlugin: String = prop("nativeDebugPlugin")
+val baseIDE = prop("baseIDE")
+val ideToRun = prop("ideToRun").ifEmpty { baseIDE }
+
+val ideaVersion = prop("ideaVersion")
+val clionVersion = prop("clionVersion")
+val compileNativeCodeTaskName = "compileNativeCode"
+val baseVersion = versionForIde(baseIDE)
+val baseVersionForRun = versionForIde(ideToRun)
+
+/************************************************/
+
+
 plugins {
     idea
 //    id("org.jetbrains.kotlin.jvm") version "1.9.21"
@@ -100,6 +118,7 @@ plugins {
     id("org.jetbrains.grammarkit") version "2022.3.2"
     kotlin("plugin.serialization") version "1.9.21" apply false
     id("org.gradle.test-retry") version "1.5.3"
+    id("net.saliman.properties") version "1.5.2"
 
 //    id("antlr")
 
@@ -129,6 +148,7 @@ idea {
 val isCI = System.getenv("CI") != null
 allprojects {
 
+
     apply {
         plugin("idea")
         plugin("kotlin")
@@ -150,26 +170,39 @@ allprojects {
         }
     }
     intellij {
-        version.set(ideaVersion)
+        version.set(baseVersion)
 
 
-        val ideaType = // Target IDE Platform
-            when (buildType) {
-                IU_NATIVE_DEBUG -> "IU"
-                IC_DAP, IC_CIDR_NATIVE_DEBUG -> "IC"
-                CLION_NATIVE_DEBUG, CLION_DAP -> "CL"
-
-            }
-        type.set(ideaType)
+//        val ideaType = // Target IDE Platform
+//            when (buildType) {
+//                IU_NATIVE_DEBUG -> "IU"
+//                IC_DAP, IC_CIDR_NATIVE_DEBUG -> "IC"
+//                CLION_NATIVE_DEBUG, CLION_DAP -> "CL"
+//
+//            }
+//        type.set(ideaType)
         downloadSources.set(!isCI)
         updateSinceUntilBuild.set(true)
         instrumentCode.set(false)
         ideaDependencyCachePath.set(dependencyCachePath)
-//        sandboxDir.set("$buildDir/$ideaVersion-sandbox")
+        sandboxDir.set(layout.buildDirectory.dir("$ideToRun-sandbox-$platformVersion").map { it.asFile.absolutePath })
+
     }
 
     sourceSets {
+
+
+        test {
+            kotlin.srcDirs("src/$platformVersion/test/kotlin")
+
+            resources.srcDirs("src/$platformVersion/test/resources")
+        }
+
         main {
+            kotlin.srcDirs("src/$platformVersion/main/kotlin")
+
+
+            resources.srcDirs("src/$platformVersion/main/resources")
             java {
                 srcDirs("src/gen")
                 srcDirs("src/main/kotlin")
@@ -189,8 +222,8 @@ allprojects {
 
 
         withType<PatchPluginXmlTask> {
-            sinceBuild.set("241")
-            untilBuild.set("242.*")
+            sinceBuild.set(prop("sinceBuild"))
+            untilBuild.set(prop("untilBuild"))
         }
         runIde { enabled = false }
         prepareSandbox { enabled = false }
@@ -220,18 +253,25 @@ allprojects {
                 }
             }
         }
-//        signPlugin {
-//            certificateChain.set(System.getenv("CERTIFICATE_CHAIN"))
-//            privateKey.set(System.getenv("PRIVATE_KEY"))
-//            password.set(System.getenv("PRIVATE_KEY_PASSWORD"))
-//        }
-//        grammarKit {
-//            jflexRelease.set("1.7.0-1")
-//            grammarKitRelease.set("2021.1.2")
-//            intellijRelease.set("203.7717.81")
-//        }
-//        publishPlugin {
-//            token.set(System.getenv("PUBLISH_TOKEN"))
+
+//         if (project.name in listOf("intellij-cangjie", "plugin")) {
+//            task<Exec>(compileNativeCodeTaskName) {
+//                workingDir = rootDir.resolve("native-helper")
+//                executable = "cargo"
+//
+//                val hostPlatform = DefaultNativePlatform.host()
+//                val archName = when (val archName = hostPlatform.architecture.name) {
+//                    "arm-v8", "aarch64" -> "arm64"
+//                    else -> archName
+//                }
+//                val outDir = "${rootDir}/bin/${hostPlatform.operatingSystem.toFamilyName()}/$archName"
+//                args("build", "--release", "-Z", "unstable-options", "--out-dir", outDir)
+//
+//                // It may be useful to disable compilation of native code.
+//                // For example, CI builds native code for each platform in separate tasks and puts it into `bin` dir manually
+//                // so there is no need to do it again.
+//                enabled = prop("compileNativeCode").toBoolean()
+//            }
 //        }
     }
     dependencies {
@@ -247,14 +287,35 @@ val cangjie_plugin_project = project(":plugin") {
         pluginName.set("intellij-cangjie")
         plugins.set(
             listOf(
-//                psiViewerPlugin
+                psiViewerPlugin,
+                terminalPlugin, tomlPlugin
             )
         )
+        version.set(baseVersionForRun)
+
     }
     group = "com.huawei.cangjie"
-    version = cangjiePluginVersion
+//    version = cangjiePluginVersion
+
+
+    val pluginVersion = System.getenv("BUILD_NUMBER") ?: "${prop("cangjiePluginVersion")}.${platformVersion}"
+    version = pluginVersion
+//    version =  if (pluginVersion.contains(".")) {
+//        val split = pluginVersion.split(".").toMutableList()
+//        split[0] = platformVersion.toString()
+//
+//        split[1] = (split[1].toIntOrNull()?.plus(10000))?.toString() ?: split[1]
+//        split.joinToString(".")
+//    } else {
+//        pluginVersion
+//    }
     dependencies {
         implementation(project(":"))
+
+        implementation(project(":idea"))
+        implementation(project(":clion"))
+        implementation(project(":dap-debugger"))
+
 //        implementation(project(":inspections"))
 //        implementation(project(":highlighter"))
 //        implementation(project(":descriptors"))
@@ -371,9 +432,8 @@ val cangjie_plugin_project = project(":plugin") {
             dependsOn(mergePluginJarTask)
 
 
-
         }
-        runPluginVerifier{
+        runPluginVerifier {
             dependsOn(mergePluginJarTask)
 
 
@@ -405,6 +465,7 @@ val cangjie_plugin_project = project(":plugin") {
 //        environment("IDEA_BUILD_NUMBER", "231")
     }
 }
+
 
 val cangjie_src_project = project(":") {
 
@@ -455,6 +516,31 @@ val cangjie_src_project = project(":") {
         }
     }
 }
+
+
+project(":idea") {
+    intellij {
+        version.set(ideaVersion)
+
+    }
+    dependencies {
+        implementation(project(":"))
+
+    }
+}
+
+project(":clion") {
+    intellij {
+        version.set(clionVersion)
+
+//        plugins.set(listOf("com.intellij.clion"))
+    }
+    dependencies {
+        implementation(project(":"))
+
+    }
+}
+
 project(":lsp") {
     dependencies {
         implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")
@@ -494,75 +580,72 @@ project(":utils") {
 }
 
 
-
-
-when (buildType) {
-    IU_NATIVE_DEBUG -> {
-        project(":native-debugger") {
-            intellij {
-                plugins.set(listOf(nativeDebugPlugin))
-            }
-            dependencies {
-                implementation(project(":"))
-            }
-        }
-
-        cangjie_plugin_project.intellij.plugins.add(nativeDebugPlugin)
-        cangjie_plugin_project.dependencies {
-            implementation(project(":native-debugger"))
-
-        }
-
-
+//when (buildType) {
+//    IU_NATIVE_DEBUG -> {
+//        project(":native-debugger") {
+//            intellij {
+//                plugins.set(listOf(nativeDebugPlugin))
+//            }
+//            dependencies {
+//                implementation(project(":"))
+//            }
+//        }
+//
+//        cangjie_plugin_project.intellij.plugins.add(nativeDebugPlugin)
+//        cangjie_plugin_project.dependencies {
+//            implementation(project(":native-debugger"))
+//
+//        }
+//
+//
+//    }
+//
+//    CLION_NATIVE_DEBUG -> {
+//        val clionPlugins = listOf("com.intellij.cidr.base", "com.intellij.clion", "com.intellij.nativeDebug")
+//        project(":native-debugger") {
+//            intellij {
+//                plugins.set(clionPlugins)
+//            }
+//            dependencies {
+//                implementation(project(":"))
+//            }
+//        }
+//
+//        cangjie_plugin_project.intellij.plugins.add(nativeDebugPlugin)
+//        cangjie_plugin_project.dependencies {
+//            implementation(project(":native-debugger"))
+//
+//        }
+//    }
+//
+//    IC_DAP, CLION_DAP -> {
+project(":dap-debugger") {
+    intellij {
+        plugins.set(listOf(terminalPlugin))
     }
-
-    CLION_NATIVE_DEBUG -> {
-        val clionPlugins = listOf("com.intellij.cidr.base", "com.intellij.clion", "com.intellij.nativeDebug")
-        project(":native-debugger") {
-            intellij {
-                plugins.set(clionPlugins)
-            }
-            dependencies {
-                implementation(project(":"))
-            }
-        }
-
-        cangjie_plugin_project.intellij.plugins.add(nativeDebugPlugin)
-        cangjie_plugin_project.dependencies {
-            implementation(project(":native-debugger"))
-
-        }
+    apply {
+        plugin("org.jetbrains.kotlin.plugin.serialization")
     }
-
-    IC_DAP, CLION_DAP -> {
-        project(":dap-debugger") {
-            intellij {
-                plugins.set(listOf(terminalPlugin))
-            }
-            apply {
-                plugin("org.jetbrains.kotlin.plugin.serialization")
-            }
-            dependencies {
-                implementation(project(":"))
-                implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
-                implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
-                implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-            }
-        }
-
-        cangjie_plugin_project.intellij.plugins.add(terminalPlugin)
-        cangjie_plugin_project.dependencies {
-            implementation(project(":dap-debugger"))
-
-        }
-
+    dependencies {
+        implementation(project(":"))
+        implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
+        implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
+        implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
     }
-
-    IC_CIDR_NATIVE_DEBUG -> TODO()
-
 }
 
+//cangjie_plugin_project.intellij.plugins.add(terminalPlugin)
+//cangjie_plugin_project.dependencies {
+//    implementation(project(":dap-debugger"))
+//
+//}
+//
+//    }
+//
+//    IC_CIDR_NATIVE_DEBUG -> TODO()
+//
+//}
 
 
 fun File.isPluginJar(): Boolean {
@@ -605,6 +688,12 @@ fun prop(name: String): String =
     extra.properties[name] as? String
         ?: error("Property `$name` is not defined in gradle.properties")
 
+fun versionForIde(ideName: String): String = when (ideName) {
+    "idea" -> ideaVersion
+    "clion" -> clionVersion
+
+    else -> error("Unexpected IDE name: `$baseIDE`")
+}
 afterEvaluate {
     updatePluginXmlFile()
 }

@@ -3,7 +3,15 @@
 
 ### 安装和使用
 
-如果您想要立即开始，请在您的IDE中打开`设置 > 插件 > 从磁盘安装`。
+```
+在intellij平台的插件界面，添加插件仓库
+https://plugins.jetbrains.com/plugins/linqingying/list
+搜索CangJie 安装即可
+```
+
+![img.png](img%2Fimg.png)
+![img_1.png](img%2Fimg_1.png)
+![img_2.png](img%2Fimg_2.png)
 要创建项目，请使用 **CangJie** 模板。
 
 

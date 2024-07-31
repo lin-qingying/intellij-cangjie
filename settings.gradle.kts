@@ -81,20 +81,20 @@ include("lsp")
 //include("descriptors")
 //include("debugg/**/er")
 
-when (buildType) {
-    IU_NATIVE_DEBUG,CLION_NATIVE_DEBUG -> {
-        include("native-debugger")
-
-    }
-
-    IC_DAP ,CLION_DAP-> {
+//when (buildType) {
+//    IU_NATIVE_DEBUG,CLION_NATIVE_DEBUG -> {
+//        include("native-debugger")
+//
+//    }
+//
+//    IC_DAP ,CLION_DAP-> {
         include("dap-debugger")
-
-    }
-
-    IC_CIDR_NATIVE_DEBUG -> TODO()
-
-}
+//
+//    }
+//
+//    IC_CIDR_NATIVE_DEBUG -> TODO()
+//
+//}
 //include("cidr")
 
 //include("back")
@@ -103,3 +103,7 @@ include("utils")
 //dap协议序列化
 //include("dap")
 include("grammar")
+
+
+include("idea")
+include("clion")

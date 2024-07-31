@@ -5,7 +5,6 @@ package com.huawei.cangjie.ide.editor
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.CjFile
 import com.intellij.codeInsight.CodeInsightSettings
-import com.intellij.codeInsight.editorActions.TypedHandler
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileTypes.FileType
@@ -20,32 +19,32 @@ class CangJieRawStringTypedHandler : TypedHandlerDelegate() {
         val offset = editor.caretModel.offset
 
 
-        if(c == '\''){
-
-
-
-            val prevText = file.findElementAt(offset - 1)?.text
-
-            if(prevText!= "\'"){
-
-                if(prevText == "r"){
-                    editor.document.insertString(offset, "''")
-                    editor.caretModel.currentCaret.moveToOffset(offset + 1)
-
-                }else{
-                    editor.document.insertString(offset, "r''")
-                    editor.caretModel.currentCaret.moveToOffset(offset +2 )
-
-
-                }
-
-            }
-
-
-
-            return Result.STOP
-        }
-        if (c != '"') {
+//        if(c == '\''){
+//
+//
+//
+//            val prevText = file.findElementAt(offset - 1)?.text
+//
+//            if(prevText!= "\'"){
+//
+//                if(prevText == "r"){
+//                    editor.document.insertString(offset, "''")
+//                    editor.caretModel.currentCaret.moveToOffset(offset + 1)
+//
+//                }else{
+//                    editor.document.insertString(offset, "r''")
+//                    editor.caretModel.currentCaret.moveToOffset(offset +2 )
+//
+//
+//                }
+//
+//            }
+//
+//
+//
+//            return Result.STOP
+//        }
+        if (c != '"' && c != '\'') {
             return Result.CONTINUE
         }
         if (!CodeInsightSettings.getInstance().AUTOINSERT_PAIR_QUOTE) {
@@ -60,15 +59,20 @@ class CangJieRawStringTypedHandler : TypedHandlerDelegate() {
         if (offset < 2) {
             return Result.CONTINUE
         }
+        val openQue = if (c == '"') {
+            "\""
+        } else {
+            "\'"
+        }
 
         if (file.findElementAt(offset - 1)?.text == "#") {
             var length = 1
 
-            while (file.findElementAt(offset - (length + 1 ))?.text == "#") {
+            while (file.findElementAt(offset - (length + 1))?.text == "#") {
                 length++
             }
 
-            val str = StringBuilder().append('\"').append('\"').apply {
+            val str = StringBuilder().append(openQue).append(openQue).apply {
                 for (i in 0 until length)
                     append("#")
             }
@@ -89,12 +93,14 @@ class CangJieRawStringTypedHandler : TypedHandlerDelegate() {
             return Result.CONTINUE
         }
 
-        if (closeQuote.text != "\"") {
+        if (closeQuote.text != "\"" && closeQuote.text != "'")  {
             // Check it is not a multi-line quote
             return Result.CONTINUE
         }
 
-        editor.document.insertString(offset, "\"\"\"\"")
+
+
+        editor.document.insertString(offset, "$openQue\n$openQue$openQue$openQue")
         editor.caretModel.currentCaret.moveToOffset(offset + 1)
 
         return Result.STOP

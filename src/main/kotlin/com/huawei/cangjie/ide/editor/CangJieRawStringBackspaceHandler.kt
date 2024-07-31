@@ -20,24 +20,24 @@ class CangJieRawStringBackspaceHandler : BackspaceHandlerDelegate() {
         val psiElement = file.findElementAt(offset) ?: return
 
 
-        if (c == '\'') {
-            val prevText = file.findElementAt(offset - 1)?.text
-            val currText = file.findElementAt(offset )?.text
-
-
-
-            if (prevText == "\'" && currText == "\'") {
-                rangeMarker = if (file.findElementAt(offset - 2)?.text == "r") {
-                    editor.document.createRangeMarker(offset - 2, offset +1 )
-                } else {
-                    editor.document.createRangeMarker(offset - 1, offset +1 )
-
-                }
-
-            }
-
-            return
-        }
+//        if (c == '\'') {
+//            val prevText = file.findElementAt(offset - 1)?.text
+//            val currText = file.findElementAt(offset )?.text
+//
+//
+//
+//            if (prevText == "\'" && currText == "\'") {
+//                rangeMarker = if (file.findElementAt(offset - 2)?.text == "r") {
+//                    editor.document.createRangeMarker(offset - 2, offset +1 )
+//                } else {
+//                    editor.document.createRangeMarker(offset - 1, offset +1 )
+//
+//                }
+//
+//            }
+//
+//            return
+//        }
 
         if (!CodeInsightSettings.getInstance().AUTOINSERT_PAIR_QUOTE) {
             return
@@ -46,24 +46,24 @@ class CangJieRawStringBackspaceHandler : BackspaceHandlerDelegate() {
             return
         }
 
-
-        psiElement.parent?.let {
-            if (it is CjStringTemplateExpression && it.text == "\"\"\"\"\"\"") {
-                if (editor.caretModel.offset == it.textOffset + 3) {
-                    rangeMarker = editor.document.createRangeMarker(it.textRange)
-                }
-            } else if (it is CjStringTemplateExpression && it.text.startsWith("#") && it.text.endsWith("#")) {
-//                #*n""#*n
-
-//                #的数量
-                val length = it.text.count { it == '#' } / 2 + 1
-                if (editor.caretModel.offset == it.textOffset + length) {
-                    rangeMarker = editor.document.createRangeMarker(it.textRange)
-                }
-
-
-            }
-        }
+//
+//        psiElement.parent?.let {
+//            if (it is CjStringTemplateExpression && it.text == "\"\"\"\"\"\"") {
+//                if (editor.caretModel.offset == it.textOffset + 3) {
+//                    rangeMarker = editor.document.createRangeMarker(it.textRange)
+//                }
+//            } else if (it is CjStringTemplateExpression && it.text.startsWith("#") && it.text.endsWith("#")) {
+////                #*n""#*n
+//
+////                #的数量
+//                val length = it.text.count { it == '#' } / 2 + 1
+//                if (editor.caretModel.offset == it.textOffset + length) {
+//                    rangeMarker = editor.document.createRangeMarker(it.textRange)
+//                }
+//
+//
+//            }
+//        }
     }
 
     override fun charDeleted(c: Char, file: PsiFile, editor: Editor): Boolean {

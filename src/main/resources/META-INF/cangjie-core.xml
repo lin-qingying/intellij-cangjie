@@ -6,6 +6,7 @@
 
 
     <xi:include href="/META-INF/codeInsight.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/com.huawei.cangjie.byversion.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <extensions defaultExtensionNs="com.intellij">
 
@@ -80,10 +81,6 @@
         <highlightingPassFactory
                 implementation="com.huawei.cangjie.highlighter.CangJieBeforeResolveHighlightingPass$Registrar"/>
 
-                <newProjectWizard.languageGenerator
-                        implementation="com.huawei.cangjie.ide.project.tools.projectWizard.CangJieGeneratorNewProjectWizard"/>
-<!--        <newProjectWizard.language-->
-<!--                implementation="com.huawei.cangjie.ide.project.tools.projectWizard.CangJieNewProjectWizard"/>-->
         <moduleBuilder
                 builderClass="com.huawei.cangjie.ide.project.tools.projectWizard.wizard.CangJieModuleBuilder"/>
 
@@ -269,10 +266,7 @@
         <extensionPoint qualifiedName="com.huawei.cangjie.runConfigurationExtension"
                         interface="com.huawei.cangjie.ide.run.cjpm.runconfig.CjpmCommandConfigurationExtension"
                         dynamic="true"/>
-        <extensionPoint
-                qualifiedName="com.intellij.newProjectWizard.CangJie.buildSystem"
-                interface="com.huawei.cangjie.ide.project.tools.projectWizard.BuildSystemCangJieNewProjectWizard"
-                dynamic="true"/>
+
         <extensionPoint
                 qualifiedName="com.huawei.cangjie.newFileHook"
                 interface="com.huawei.cangjie.ide.actions.NewCangJieFileHook"
@@ -281,6 +275,13 @@
         <extensionPoint
                 qualifiedName="com.huawei.cangjie.projectConfigurator"
                 interface="com.huawei.cangjie.ide.configuration.CangJieProjectConfigurator"
+                dynamic="true"/>
+
+        <extensionPoint
+                qualifiedName="com.intellij.newProjectWizard.CangJie.buildSystem"
+                interface="com.huawei.cangjie.byversion.ide.project.projectWizard.BuildSystemCangJieNewProjectWizard"
+
+
                 dynamic="true"/>
 
 

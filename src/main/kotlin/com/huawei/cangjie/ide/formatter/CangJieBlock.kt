@@ -110,12 +110,13 @@ object CangJieSpacingBuilderUtilImpl : CangJieSpacingBuilderUtil {
         dependency: TextRange,
         rule: DependentSpacingRule
     ): Spacing {
-        return object : DependantSpacingImpl(minSpaces, maxSpaces, dependency, keepLineBreaks, keepBlankLines, rule) {
-            override fun getMinLineFeeds(): Int {
-                val superMin = super.getMinLineFeeds()
-                return if (superMin == 0) minimumLineFeeds else superMin
-            }
-        }
+TODO("内部API替换")
+//        return object : DependantSpacingImpl(minSpaces, maxSpaces, dependency, keepLineBreaks, keepBlankLines, rule) {
+//            override fun getMinLineFeeds(): Int {
+//                val superMin = super.getMinLineFeeds()
+//                return if (superMin == 0) minimumLineFeeds else superMin
+//            }
+//        }
     }
 }
 

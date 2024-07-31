@@ -178,15 +178,16 @@ RUNE_SINGLE_LITERAL = r \'  ({SINGLE_CHAR} | {ESCAPE_SEQ})  \'
 RUNE_DOUBLE_LITERAL = r \" ({SINGLE_CHAR} | {ESCAPE_SEQ}) \"
 //CHARACTER_BYTE_LITERAL = {CHARACTER_LITERAL}
 
+QUO = \" | \'
 
 // ANY_ESCAPE_SEQUENCE = \\[^]
-THREE_QUO = (\"\"\")
+THREE_QUO = (\"\"\") | (\'\'\')
 THREE_OR_MORE_QUO = ({THREE_QUO}\"*)
 
 //#[n*]""#[n*]
 //HSAH_STRING =(\#\{\1\,\})(\?:\"[^\"]\*\"\1)
-HSAH_QUO = (#+\")
-HSAH_OR_MORE_QUO = (\"#+)`
+HSAH_QUO = (#+(\" | \'))
+HSAH_OR_MORE_QUO = ((\" | \')#+)`
 
 REGULAR_STRING_PART=[^\\\"\n\$]+
 SHORT_TEMPLATE_ENTRY=\${IDENTIFIER}
@@ -207,7 +208,7 @@ LONELY_BACKTICK=`
 <HSAH_STRING> \n                          { return CjTokens.REGULAR_STRING_PART; }
 <HSAH_STRING> \"                  { return CjTokens.REGULAR_STRING_PART; }
 <HSAH_STRING> \\                  { return CjTokens.REGULAR_STRING_PART; }
-<HSAH_STRING>  \"#+        {
+<HSAH_STRING>  (\" | \')#+        {
 
 //                                       popState();
                                        int lenght = yytext().length() - 1;
@@ -238,7 +239,7 @@ LONELY_BACKTICK=`
 
 {THREE_QUO}                      { pushState(RAW_STRING); return CjTokens.OPEN_QUOTE; }
 <RAW_STRING> \n                  { return CjTokens.REGULAR_STRING_PART; }
-<RAW_STRING> \"                  { return CjTokens.REGULAR_STRING_PART; }
+<RAW_STRING> {QUO}                  { return CjTokens.REGULAR_STRING_PART; }
 <RAW_STRING> \\                  { return CjTokens.REGULAR_STRING_PART; }
 <RAW_STRING> {THREE_OR_MORE_QUO} {
                                     int length = yytext().length();
@@ -252,9 +253,9 @@ LONELY_BACKTICK=`
                                     }
                                  }
 b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
-\"                          { pushState(STRING); return CjTokens.OPEN_QUOTE; }
+   {QUO}                  { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 <STRING> \n                 { popState(); yypushback(1); return CjTokens.DANGLING_NEWLINE; }
-<STRING> \"                 { popState(); return CjTokens.CLOSING_QUOTE; }
+<STRING>     {QUO}             { popState(); return CjTokens.CLOSING_QUOTE; }
 <STRING> {ESCAPE_SEQUENCE}  { return CjTokens.ESCAPE_SEQUENCE; }
 
 <STRING, RAW_STRING ,HSAH_STRING> {REGULAR_STRING_PART}           { return CjTokens.REGULAR_STRING_PART; }

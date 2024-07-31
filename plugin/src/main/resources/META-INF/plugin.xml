@@ -15,7 +15,7 @@
     ]]>
     </change-notes>
     <vendor email="lin17624294976@outlook.com" url="https://gitee.com/Lin_Qing_Ying">@Lin_Qing_Ying</vendor>
-    <version>1.1.6-241-SNAPSHOT</version>
+    <version>1.1.7</version>
 
     <!--    <depends>com.intellij.modules.platform</depends>-->
 
@@ -67,7 +67,7 @@
     <!--    <xi:include href="/META-INF/NativeDebugger.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
 
     <content>
-
+<!--        <module name="com.huawei.cangjie.byversion"/>-->
         <!--        <module name="com.huawei.cangjie.nativeDebug"/>-->
 
         <!--        <module name="com.huawei.cangjie.dapDebugger"/>-->

@@ -2085,7 +2085,7 @@ open class CangJieExpressionParsing(
     }
 
 
-    @OptIn(ExperimentalStdlibApi::class)
+
     companion object {
         var ALL_OPERATIONS: TokenSet? = null
 
