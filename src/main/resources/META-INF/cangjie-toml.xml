@@ -3,7 +3,7 @@
 
 <!--        <fileType name="TOML"-->
 <!--                  language="TOML"-->
-<!--                  implementationClass="com.huawei.cangjie.toml.CangJieTomlFileType"-->
+<!--                  implementationClass="com.linqingying.cangjie.toml.CangJieTomlFileType"-->
 <!--                  fieldName="INSTANCE"-->
 <!--                  extensions="toml"-->
 <!--                  fileNames="cjpm.lock"/>-->
@@ -11,10 +11,10 @@
 language="TOML"
           fileNames="cjpm.lock"
 />
-<!--<filetype.decompiler filetype="TOML" implementationClass="com.huawei.cangjie.toml.CangJieTomlDecompile"/>-->
-<!--<fileTypeRegistrar implementation="com.huawei.cangjie.toml.CangJieTomlFileTypeRegistrar"/>-->
-<!--        <fileTypeFactory implementation="com.huawei.cangjie.toml.CangJieTomlFileTypeFactory"/>-->
-<!--        <fileTypeOverrider implementation="com.huawei.cangjie.toml.CangJieTomlFileTypeOverrider"/>-->
+<!--<filetype.decompiler filetype="TOML" implementationClass="com.linqingying.cangjie.toml.CangJieTomlDecompile"/>-->
+<!--<fileTypeRegistrar implementation="com.linqingying.cangjie.toml.CangJieTomlFileTypeRegistrar"/>-->
+<!--        <fileTypeFactory implementation="com.linqingying.cangjie.toml.CangJieTomlFileTypeFactory"/>-->
+<!--        <fileTypeOverrider implementation="com.linqingying.cangjie.toml.CangJieTomlFileTypeOverrider"/>-->
 <!--   -->
     </extensions>
 

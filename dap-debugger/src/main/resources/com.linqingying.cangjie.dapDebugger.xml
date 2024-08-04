@@ -1,0 +1,23 @@
+<idea-plugin package="com.linqingying.cangjie.dapDebugger">
+    <!--suppress PluginXmlValidity -->
+    <dependencies>
+
+        <plugin id="org.jetbrains.plugins.terminal"/>
+    </dependencies>
+    <extensions defaultExtensionNs="com.intellij">
+                <programRunner id="CjDebugRunner"
+                               implementation="com.linqingying.cangjie.dapDebugger.runconfig.CjDebugRunner"/>
+                <xdebugger.breakpointType implementation="com.linqingying.cangjie.dapDebugger.runconfig.breakpoint.CangJieLineBreakpointType"
+                                          order="first"/>
+
+
+<!--                <toolWindow factoryClass="com.linqingying.cangjie.dapDebugger.runconfig.MyToolWindowFactory" id="1"/>-->
+
+        <!--   重构内容如下-->
+<!--        <programRunner implementation="com.debug.CjDebugRunner" id="CjDebugRunner"/>-->
+
+
+    </extensions>
+
+
+</idea-plugin>

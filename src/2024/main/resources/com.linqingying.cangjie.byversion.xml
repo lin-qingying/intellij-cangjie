@@ -1,0 +1,11 @@
+<idea-plugin package="com.linqingying.cangjie.byversion">
+
+
+    <extensions defaultExtensionNs="com.intellij">
+
+
+                        <newProjectWizard.languageGenerator
+                                implementation="com.linqingying.cangjie.byversion.ide.project.projectWizard.CangJieGeneratorNewProjectWizard"/>
+
+    </extensions>
+</idea-plugin>

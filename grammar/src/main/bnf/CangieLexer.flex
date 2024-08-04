@@ -1,4 +1,4 @@
-package com.huawei.cangjie.lexer;
+package com.linqingying.cangjie.lexer;
 import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;

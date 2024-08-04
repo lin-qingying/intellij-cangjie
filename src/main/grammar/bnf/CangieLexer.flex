@@ -1,15 +1,15 @@
-package com.huawei.cangjie.grammar.parser;
+package com.linqingying.cangjie.grammar.parser;
 
 import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.Stack;
-import com.huawei.cangjie.lexer.CangJieLexerException;
+import com.linqingying.cangjie.lexer.CangJieLexerException;
 import static com.intellij.psi.TokenType.BAD_CHARACTER;
 import static com.intellij.psi.TokenType.WHITE_SPACE;
 
 import static com.intellij.psi.TokenType.BAD_CHARACTER;
 
-import static com.huawei.cangjie.grammar.psi.CjElementTypes.*;
+import static com.linqingying.cangjie.grammar.psi.CjElementTypes.*;
 
 %%
 

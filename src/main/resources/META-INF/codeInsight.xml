@@ -5,7 +5,7 @@
     <extensions defaultExtensionNs="com.intellij">
 
 
-        <codeInsight.inlayProvider language="CangJie" implementationClass="com.huawei.cangjie.ide.codeinsight.hints.type.CjInlayTypeHintsProvider"/>
+        <codeInsight.inlayProvider language="CangJie" implementationClass="com.linqingying.cangjie.ide.codeinsight.hints.type.CjInlayTypeHintsProvider"/>
 
     </extensions>
 </idea-plugin>

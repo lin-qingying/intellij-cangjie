@@ -1,0 +1,38 @@
+package com.linqingying.cangjie.psi.psiUtil
+
+import com.linqingying.cangjie.name.ClassId
+import com.linqingying.cangjie.psi.CjClassLikeDeclaration
+import com.linqingying.cangjie.psi.stubs.CangJieFileStub
+import com.intellij.psi.stubs.StubElement
+import com.intellij.psi.stubs.StubInputStream
+import com.intellij.psi.stubs.StubOutputStream
+
+
+
+object StubUtils {
+    @JvmStatic
+    fun deserializeClassId(dataStream: StubInputStream): ClassId? {
+        val classId = dataStream.readName() ?: return null
+        return ClassId.fromString(classId.string)
+    }
+
+    @JvmStatic
+    fun serializeClassId(dataStream: StubOutputStream, classId: ClassId?) {
+        dataStream.writeName(classId?.asString())
+    }
+
+    @JvmStatic
+    fun createNestedClassId(parentStub: StubElement<*>, currentDeclaration: CjClassLikeDeclaration): ClassId? = when {
+        parentStub is CangJieFileStub -> ClassId(parentStub.getPackageFqName(), currentDeclaration.nameAsSafeName)
+
+//        parentStub is CangJiePlaceHolderStub<*> && parentStub.stubType == CjStubElementTypes.CLASS_BODY -> {
+//            val containingClassStub = parentStub.parentStub as? CangJieClassifierStub
+//            if (containingClassStub != null && currentDeclaration !is CjEnumEntry) {
+//                containingClassStub.getClassId()?.createNestedClassId(currentDeclaration.nameAsSafeName)
+//            } else {
+//                null
+//            }
+//        }
+        else -> null
+    }
+}

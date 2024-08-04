@@ -294,7 +294,7 @@ val cangjie_plugin_project = project(":plugin") {
         version.set(baseVersionForRun)
 
     }
-    group = "com.huawei.cangjie"
+    group = "com.linqingying.cangjie"
 //    version = cangjiePluginVersion
 
 
@@ -457,7 +457,7 @@ val cangjie_plugin_project = project(":plugin") {
         args(
             "buildEventsScheme",
             "--outputFile=${buildDir.resolve("eventScheme.json").absolutePath}",
-            "--pluginId=com.huawei.cangjie"
+            "--pluginId=linqingying.cangjie"
         )
         // BACKCOMPAT: 2023.1. Update value to 232 and this comment
         // `IDEA_BUILD_NUMBER` variable is used by `buildEventsScheme` task to write `buildNumber` to output json.
@@ -719,9 +719,9 @@ fun updatePluginXmlFile() {
 //        需要删除节点属性的值
         val attsStrs = listOf(
 
-            "com.huawei.cangjie.nativeDebug",
-            "com.huawei.cangjie.debugger",
-            "com.huawei.cangjie.dapDebugger"
+            "com.linqingying.cangjie.nativeDebug",
+            "com.linqingying.cangjie.debugger",
+            "com.linqingying.cangjie.dapDebugger"
         )
 
 
@@ -742,13 +742,13 @@ fun updatePluginXmlFile() {
             IU_NATIVE_DEBUG, CLION_NATIVE_DEBUG -> {
                 var node = xmlDoc.createElement("module")
                 node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {
-                    nodeValue = "com.huawei.cangjie.nativeDebug"
+                    nodeValue = "com.linqingying.cangjie.nativeDebug"
                 })
                 content.appendChild(node)
 
                 node = xmlDoc.createElement("module")
                 node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {
-                    nodeValue = "com.huawei.cangjie.debugger"
+                    nodeValue = "com.linqingying.cangjie.debugger"
                 })
 
                 content.appendChild(node)
@@ -759,7 +759,7 @@ fun updatePluginXmlFile() {
 
                 val node = xmlDoc.createElement("module")
                 node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {
-                    nodeValue = "com.huawei.cangjie.dapDebugger"
+                    nodeValue = "com.linqingying.cangjie.dapDebugger"
                 })
                 content.appendChild(node)
             }

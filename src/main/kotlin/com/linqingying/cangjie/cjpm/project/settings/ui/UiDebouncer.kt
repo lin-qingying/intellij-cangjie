@@ -1,0 +1,129 @@
+package com.linqingying.cangjie.ide.project.settings.ui
+
+
+import com.linqingying.cangjie.lang.CangJieFileType
+import com.linqingying.cangjie.psi.CjElement
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.components.ComponentManager
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.ScrollType
+import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.ui.TextComponentAccessor
+import com.intellij.openapi.ui.TextFieldWithBrowseButton
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.NlsContexts.DialogTitle
+import com.intellij.ui.DocumentAdapter
+import com.intellij.ui.components.JBTextField
+import com.intellij.ui.dsl.builder.Align
+import com.intellij.ui.dsl.builder.Cell
+import com.intellij.ui.dsl.builder.Row
+import com.intellij.util.Alarm
+import javax.swing.JComponent
+import javax.swing.JTextField
+import javax.swing.event.DocumentEvent
+
+class UiDebouncer(
+    private val parentDisposable: Disposable,
+    private val delayMillis: Int = 200
+) {
+    private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, parentDisposable)
+
+
+    fun <T> run(onPooledThread: () -> T, onUiThread: (T) -> Unit) {
+        if (parentDisposable is ComponentManager && parentDisposable.isDisposed) return
+
+//        if (Disposer.isDisposed(parentDisposable)) return
+        alarm.cancelAllRequests()
+        alarm.addRequest({
+            val r = onPooledThread()
+            invokeLater(ModalityState.any()) {
+                if (!(parentDisposable is ComponentManager && parentDisposable.isDisposed))
+//                if (!Disposer.isDisposed(parentDisposable))
+                {
+                    onUiThread(r)
+                }
+            }
+        }, delayMillis)
+    }
+
+}
+
+fun pathToDirectoryTextField(
+    disposable: Disposable,
+    @Suppress("UnstableApiUsage") @DialogTitle title: String,
+    onTextChanged: () -> Unit = {}
+): TextFieldWithBrowseButton =
+    pathTextField(
+        FileChooserDescriptorFactory.createSingleFolderDescriptor(),
+        disposable,
+        title,
+        onTextChanged
+    )
+
+fun pathToRsFileTextField(
+    disposable: Disposable,
+    @DialogTitle title: String,
+    project: Project,
+    onTextChanged: () -> Unit = {}
+): TextFieldWithBrowseButton =
+    pathTextField(
+        FileChooserDescriptorFactory
+            .createSingleFileDescriptor(CangJieFileType)
+            .withRoots(project.guessProjectDir()),
+        disposable,
+        title,
+        onTextChanged
+    )
+
+fun pathTextField(
+    fileChooserDescriptor: FileChooserDescriptor,
+    disposable: Disposable,
+    @DialogTitle title: String,
+    onTextChanged: () -> Unit = {}
+): TextFieldWithBrowseButton {
+    val component = TextFieldWithBrowseButton(null, disposable)
+    component.addBrowseFolderListener(
+        title, null, null,
+        fileChooserDescriptor,
+        TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
+    )
+    component.childComponent.addTextChangeListener { onTextChanged() }
+    return component
+}
+
+fun JTextField.addTextChangeListener(listener: (DocumentEvent) -> Unit) {
+    document.addDocumentListener(
+        object : DocumentAdapter() {
+            override fun textChanged(e: DocumentEvent) {
+                listener(e)
+            }
+        }
+    )
+}
+
+fun selectElement(element: CjElement, editor: Editor) {
+    val start = element.textRange.startOffset
+    val unwrappedEditor =
+        if (editor is CjIntentionInsideMacroExpansionEditor && element.containingFile != editor.psiFileCopy) {
+            if (element.containingFile != editor.originalFile) return
+            editor.originalEditor
+        } else {
+            editor
+        }
+    unwrappedEditor.caretModel.moveToOffset(start)
+    unwrappedEditor.scrollingModel.scrollToCaret(ScrollType.RELATIVE)
+    unwrappedEditor.selectionModel.setSelection(start, element.textRange.endOffset)
+}
+
+fun <T : JComponent> Row.fullWidthCell(component: T): Cell<T> {
+    return cell(component).align(Align.FILL)
+
+}
+
+val JBTextField.trimmedText: String
+    get() = text.trim()

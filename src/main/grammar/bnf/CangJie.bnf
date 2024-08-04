@@ -1,17 +1,17 @@
 // 顶部注释块，包含自定义的解析器类、元素类型持有类及 PSI 类相关配置信息
 {
-    parserClass='com.huawei.cangjie.grammar.parser.CangJieParser'
-    elementTypeHolderClass='com.huawei.cangjie.grammar.psi.CjElementTypes'
+    parserClass='com.linqingying.cangjie.grammar.parser.CangJieParser'
+    elementTypeHolderClass='com.linqingying.cangjie.grammar.psi.CjElementTypes'
     psiClassPrefix='Cj'
     psiImplClassSuffix='Impl'
-    parserUtilClass='com.huawei.cangjie.grammar.psi.CangJieParserUtil'
+    parserUtilClass='com.linqingying.cangjie.grammar.psi.CangJieParserUtil'
 
-    psiPackage='com.huawei.cangjie.grammar.psi'
-    psiImplPackage='com.huawei.cangjie.grammar.psi.impl'
- tokenTypeClass="com.huawei.cangjie.lexer.CjToken"
+    psiPackage='com.linqingying.cangjie.grammar.psi'
+    psiImplPackage='com.linqingying.cangjie.grammar.psi.impl'
+ tokenTypeClass="com.linqingying.cangjie.lexer.CjToken"
 
-    implements='com.huawei.cangjie.psi.CjElement'
-    extends='com.huawei.cangjie.psi.CjElementImpl'
+    implements='com.linqingying.cangjie.psi.CjElement'
+    extends='com.linqingying.cangjie.psi.CjElementImpl'
 
 
     tokens=[
@@ -192,8 +192,8 @@ packageName
 importList  ::= (FROM   identifier)?  IMPORT  importAllOrSpecified
     (  COMMA   importAllOrSpecified)* end?
     {
-    extends="com.huawei.cangjie.psi.CjElementImplStub<?>"
-    stubClass = "com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub<?>"
+    extends="com.linqingying.cangjie.psi.CjElementImplStub<?>"
+    stubClass = "com.linqingying.cangjie.psi.stubs.CangJiePlaceHolderStub<?>"
     }
 
 

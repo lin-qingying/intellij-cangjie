@@ -1687,7 +1687,7 @@ quoteInterpolate
 ;
 
 // 宏表达式规则，包括宏名称、可选的属性表达式以及宏输入表达式
-macroExpression
+    macroExpression
 : AT Identifier macroAttrExpr? NL* (macroInputExprWithoutParens | macroInputExprWithParens)
 ;
 

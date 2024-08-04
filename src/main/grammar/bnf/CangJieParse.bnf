@@ -1,23 +1,23 @@
 {
-    parserClass='com.huawei.cangjie.lang.core.parser.CangJieParser'
+    parserClass='com.linqingying.cangjie.lang.core.parser.CangJieParser'
 
-    parserUtilClass='com.huawei.cangjie.lang.core.parser.CangJieParserUtil'
+    parserUtilClass='com.linqingying.cangjie.lang.core.parser.CangJieParserUtil'
 
-    implements='com.huawei.cangjie.lang.core.psi.ext.CjElement'
-    extends='com.huawei.cangjie.lang.core.psi.ext.CjElementImpl'
+    implements='com.linqingying.cangjie.lang.core.psi.ext.CjElement'
+    extends='com.linqingying.cangjie.lang.core.psi.ext.CjElementImpl'
 
    psiClassPrefix="Cj"
    psiImplClassSuffix="Impl"
-   psiPackage="com.huawei.cangjie.lang.core.psi"
-   psiImplPackage="com.huawei.cangjie.lang.core.psi.impl"
+   psiPackage="com.linqingying.cangjie.lang.core.psi"
+   psiImplPackage="com.linqingying.cangjie.lang.core.psi.impl"
 
-   elementTypeHolderClass="com.huawei.cangjie.lang.core.psi.CjElementTypes"
-   elementTypeClass="com.huawei.cangjie.lang.core.psi.CjElementType"
-   tokenTypeClass="com.huawei.cangjie.lang.core.psi.CjTokenType"
+   elementTypeHolderClass="com.linqingying.cangjie.lang.core.psi.CjElementTypes"
+   elementTypeClass="com.linqingying.cangjie.lang.core.psi.CjElementType"
+   tokenTypeClass="com.linqingying.cangjie.lang.core.psi.CjTokenType"
 
 
     parserImports=[
-      'static com.huawei.cangjie.lang.core.parser.CangJieParserUtil.PathParsingMode.*'
+      'static com.linqingying.cangjie.lang.core.parser.CangJieParserUtil.PathParsingMode.*'
     ]
     tokens = [
 
@@ -185,10 +185,10 @@ MainFunc ::= MAIN '(' MainFuncParam? ')' ByType? ShallowBlock ';'?
 {
     pin =  1
 
-  implements = "com.huawei.cangjie.lang.core.psi.ext.CjItemsOwner"
-  extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
-  stubClass = "com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub<?>"
-  elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
+  implements = "com.linqingying.cangjie.lang.core.psi.ext.CjItemsOwner"
+  extends = "com.linqingying.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
+  stubClass = "com.linqingying.cangjie.lang.core.stubs.CjPlaceholderStub<?>"
+  elementTypeFactory = "com.linqingying.cangjie.lang.core.stubs.StubImplementationsKt.factory"
 }
 //main方法参数，Array<String>
 MainFuncParam ::= 'Array<String>'
@@ -208,24 +208,24 @@ Item ::= (MainFunc |
 QuoteIdentifier ::= 'QUOTE_IDENTIFIER'
 
 LabelDecl ::= QuoteIdentifier ':' {
-  implements = [ "com.huawei.cangjie.lang.core.psi.ext.CjNameIdentifierOwner" ]
-  mixin = "com.huawei.cangjie.lang.core.psi.ext.CjLabelDeclImplMixin"
+  implements = [ "com.linqingying.cangjie.lang.core.psi.ext.CjNameIdentifierOwner" ]
+  mixin = "com.linqingying.cangjie.lang.core.psi.ext.CjLabelDeclImplMixin"
 }
 
 fake ValueParameter ::=    TypeReference? DefaultParameterValue?
 {
 
-  extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
-  stubClass = "com.huawei.cangjie.lang.core.stubs.CjValueParameterStub"
-  elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
+  extends = "com.linqingying.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
+  stubClass = "com.linqingying.cangjie.lang.core.stubs.CjValueParameterStub"
+  elementTypeFactory = "com.linqingying.cangjie.lang.core.stubs.StubImplementationsKt.factory"
  }
 
 DefaultParameterValue ::= '=' Expr {
   pin = 1
-  implements = [ "com.huawei.cangjie.lang.core.psi.ext.CjInferenceContextOwner" ]
-  extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
-  stubClass = "com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub<?>"
-  elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
+  implements = [ "com.linqingying.cangjie.lang.core.psi.ext.CjInferenceContextOwner" ]
+  extends = "com.linqingying.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
+  stubClass = "com.linqingying.cangjie.lang.core.stubs.CjPlaceholderStub<?>"
+  elementTypeFactory = "com.linqingying.cangjie.lang.core.stubs.StubImplementationsKt.factory"
 }
 
 
@@ -234,9 +234,9 @@ DefaultParameterValue ::= '=' Expr {
 
 
 fake ValueParameterList ::=  ValueParameter*   {
-  extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
-  stubClass = "com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub<?>"
-  elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
+  extends = "com.linqingying.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
+  stubClass = "com.linqingying.cangjie.lang.core.stubs.CjPlaceholderStub<?>"
+  elementTypeFactory = "com.linqingying.cangjie.lang.core.stubs.StubImplementationsKt.factory"
 }
 //表达式
 Expr ::= (AExpr)
@@ -252,17 +252,17 @@ IdentifierName ::= identifier
 
   name  =   'name'
   implements = [
-         "com.huawei.cangjie.lang.core.psi.ext.CjNameIdentifierOwner"
+         "com.linqingying.cangjie.lang.core.psi.ext.CjNameIdentifierOwner"
   ]
 
 
 
-  mixin = "com.huawei.cangjie.lang.core.psi.ext.CjNamedElementImpl"
+  mixin = "com.linqingying.cangjie.lang.core.psi.ext.CjNamedElementImpl"
 
-//  extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
-//  mixin =   "com.huawei.cangjie.lang.core.psi.ext.CjIdentifierNameMixin"
-//  stubClass = "com.huawei.cangjie.lang.core.stubs.CjIdentifierNameStub"
-//  elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
+//  extends = "com.linqingying.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
+//  mixin =   "com.linqingying.cangjie.lang.core.psi.ext.CjIdentifierNameMixin"
+//  stubClass = "com.linqingying.cangjie.lang.core.stubs.CjIdentifierNameStub"
+//  elementTypeFactory = "com.linqingying.cangjie.lang.core.stubs.StubImplementationsKt.factory"
 }
 
 
@@ -285,17 +285,17 @@ upper Function ::= unsafe? FUNC IdentifierName FuncParameters ByType? ShallowBlo
     pin = 3
 
     implements = [
-//        "com.huawei.cangjie.lang.core.psi.ext.CjNameIdentifierOwner"
-"com.huawei.cangjie.lang.core.psi.ext.CjElement"
+//        "com.linqingying.cangjie.lang.core.psi.ext.CjNameIdentifierOwner"
+"com.linqingying.cangjie.lang.core.psi.ext.CjElement"
 
         //CjQualifiedNamedElement 为限定名称
-//        "com.huawei.cangjie.lang.core.psi.ext.CjQualifiedNamedElement"
+//        "com.linqingying.cangjie.lang.core.psi.ext.CjQualifiedNamedElement"
 
     ]
-    extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
-    mixin = "com.huawei.cangjie.lang.core.psi.ext.CjFunctionImplMixin"
-    stubClass = "com.huawei.cangjie.lang.core.stubs.CjFunctionStub"
-    elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
+    extends = "com.linqingying.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
+    mixin = "com.linqingying.cangjie.lang.core.psi.ext.CjFunctionImplMixin"
+    stubClass = "com.linqingying.cangjie.lang.core.stubs.CjFunctionStub"
+    elementTypeFactory = "com.linqingying.cangjie.lang.core.stubs.StubImplementationsKt.factory"
 
 }
 
@@ -344,8 +344,8 @@ TypeReference ::= 'a'
 upper ClassDefinition ::= 'class' IdentifierName  ShallowBlock
 {
     pin = 2
-//mixin="com.huawei.cangjie.lang.core.psi.ext.AbstractCjPsiClass"
-//implements="com.huawei.cangjie.lang.core.psi.ext.CjClass"
+//mixin="com.linqingying.cangjie.lang.core.psi.ext.AbstractCjPsiClass"
+//implements="com.linqingying.cangjie.lang.core.psi.ext.CjClass"
 
 
 
@@ -358,10 +358,10 @@ upper ClassDefinition ::= 'class' IdentifierName  ShallowBlock
 fake Block ::= '{' (Expr | Function) *  '}'
 {
 pin = 1
-  implements = "com.huawei.cangjie.lang.core.psi.ext.CjItemsOwner"
-  extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
-  stubClass = "com.huawei.cangjie.lang.core.stubs.CjPlaceholderStub<?>"
-  elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
+  implements = "com.linqingying.cangjie.lang.core.psi.ext.CjItemsOwner"
+  extends = "com.linqingying.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
+  stubClass = "com.linqingying.cangjie.lang.core.stubs.CjPlaceholderStub<?>"
+  elementTypeFactory = "com.linqingying.cangjie.lang.core.stubs.StubImplementationsKt.factory"
 }
 
 ClassBody ::= '{' (Function|Expr)*  '}'
@@ -401,21 +401,21 @@ private AnyLitToken_first ::= STRING_LITERAL | BYTE_STRING_LITERAL | CSTRING_LIT
 LifetimeParamBounds ::= ':' Lifetime ('+' Lifetime)* { pin = 1 }
 
 Lifetime ::= QuoteIdentifier {
-  implements = [ "com.huawei.cangjie.lang.core.psi.ext.CjNameIdentifierOwner"
-                 "com.huawei.cangjie.lang.core.psi.ext.CjMandatoryReferenceElement" ]
-  extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
-  mixin = "com.huawei.cangjie.lang.core.psi.ext.CjLifetimeImplMixin"
-  stubClass = "com.huawei.cangjie.lang.core.stubs.CjLifetimeStub"
-  elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
+  implements = [ "com.linqingying.cangjie.lang.core.psi.ext.CjNameIdentifierOwner"
+                 "com.linqingying.cangjie.lang.core.psi.ext.CjMandatoryReferenceElement" ]
+  extends = "com.linqingying.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
+  mixin = "com.linqingying.cangjie.lang.core.psi.ext.CjLifetimeImplMixin"
+  stubClass = "com.linqingying.cangjie.lang.core.stubs.CjLifetimeStub"
+  elementTypeFactory = "com.linqingying.cangjie.lang.core.stubs.StubImplementationsKt.factory"
 }
 
 LifetimeParameter ::=   QuoteIdentifier LifetimeParamBounds? {
-  implements = [ "com.huawei.cangjie.lang.core.psi.ext.CjGenericParameter"
+  implements = [ "com.linqingying.cangjie.lang.core.psi.ext.CjGenericParameter"
                 ]
-  extends = "com.huawei.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
-  mixin = "com.huawei.cangjie.lang.core.psi.ext.CjLifetimeParameterImplMixin"
-  stubClass = "com.huawei.cangjie.lang.core.stubs.CjLifetimeParameterStub"
-  elementTypeFactory = "com.huawei.cangjie.lang.core.stubs.StubImplementationsKt.factory"
+  extends = "com.linqingying.cangjie.lang.core.psi.ext.CjStubbedElementImpl<?>"
+  mixin = "com.linqingying.cangjie.lang.core.psi.ext.CjLifetimeParameterImplMixin"
+  stubClass = "com.linqingying.cangjie.lang.core.stubs.CjLifetimeParameterStub"
+  elementTypeFactory = "com.linqingying.cangjie.lang.core.stubs.StubImplementationsKt.factory"
 }
 
 

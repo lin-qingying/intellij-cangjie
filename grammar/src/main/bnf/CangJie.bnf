@@ -1,17 +1,17 @@
 // 顶部注释块，包含自定义的解析器类、元素类型持有类及 PSI 类相关配置信息
 {
-    parserClass='com.huawei.cangjie.grammar.parser.CangJieParser'
-    elementTypeHolderClass='com.huawei.cangjie.grammar.psi.CjElementTypes'
+    parserClass='com.linqingying.cangjie.grammar.parser.CangJieParser'
+    elementTypeHolderClass='com.linqingying.cangjie.grammar.psi.CjElementTypes'
     psiClassPrefix='Cj'
     psiImplClassSuffix='Impl'
-    parserUtilClass='com.huawei.cangjie.grammar.parser.CangJieParserUtil'
+    parserUtilClass='com.linqingying.cangjie.grammar.parser.CangJieParserUtil'
 
-    psiPackage='com.huawei.cangjie.grammar.psi'
-    psiImplPackage='com.huawei.cangjie.grammar.psi.impl'
+    psiPackage='com.linqingying.cangjie.grammar.psi'
+    psiImplPackage='com.linqingying.cangjie.grammar.psi.impl'
 
 
-    implements='com.huawei.cangjie.psi.CjElement'
-    extends='com.huawei.cangjie.psi.CjElementImpl'
+    implements='com.linqingying.cangjie.psi.CjElement'
+    extends='com.linqingying.cangjie.psi.CjElementImpl'
 
     tokens=[
     /*********************************关键字定义*****************************************/

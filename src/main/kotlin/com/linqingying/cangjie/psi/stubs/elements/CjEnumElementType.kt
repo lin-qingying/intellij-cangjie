@@ -1,0 +1,85 @@
+package com.linqingying.cangjie.psi.stubs.elements
+
+import com.linqingying.cangjie.psi.CjEnum
+import com.linqingying.cangjie.psi.psiUtil.StubUtils.createNestedClassId
+import com.linqingying.cangjie.psi.psiUtil.StubUtils.deserializeClassId
+import com.linqingying.cangjie.psi.psiUtil.StubUtils.serializeClassId
+import com.linqingying.cangjie.psi.psiUtil.getSuperNames
+import com.linqingying.cangjie.psi.psiUtil.safeFqNameForLazyResolve
+import com.linqingying.cangjie.psi.stubs.CangJieEnumStub
+import com.linqingying.cangjie.psi.stubs.impl.CangJieEnumStubImpl
+import com.linqingying.cangjie.psi.stubs.impl.Utils.wrapStrings
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.StubElement
+import com.intellij.psi.stubs.StubInputStream
+import com.intellij.psi.stubs.StubOutputStream
+import com.intellij.util.io.StringRef
+
+class CjEnumElementType(debugName:String):CjStubElementType<CangJieEnumStub, CjEnum>(debugName,
+    CjEnum::class.java,CangJieEnumStub::class.java) {
+    override fun serialize(stub: CangJieEnumStub, dataStream: StubOutputStream) {
+        dataStream.writeName(stub.name)
+
+        val fqName = stub.getFqName()
+        dataStream.writeName(fqName?.asString())
+
+        serializeClassId(dataStream, stub.getClassId())
+
+        dataStream.writeBoolean(stub.isLocal())
+//        dataStream.writeBoolean(stub.isTopLevel())
+
+        val superNames = stub.getSuperNames()
+        dataStream.writeVarInt(superNames.size)
+        for (name in superNames) {
+            dataStream.writeName(name)
+        }
+    }
+
+    override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?): CangJieEnumStub {
+        val name = dataStream.readName()
+        val qualifiedName = dataStream.readName()
+
+        val classId = deserializeClassId(dataStream)
+
+//        bool isTrait = dataStream.readBoolean();
+
+
+//        bool isTrait = dataStream.readBoolean();
+        val isLocal = dataStream.readBoolean()
+//        val isTopLevel = dataStream.readBoolean()
+
+        val superCount = dataStream.readVarInt()
+        val superNames = StringRef.createArray(superCount)
+        for (i in 0 until superCount) {
+            superNames[i] = dataStream.readName()
+        }
+
+        return CangJieEnumStubImpl(
+            CjStubElementTypes.ENUM, parentStub, qualifiedName, classId, name, superNames,
+            isLocal
+        )
+    }
+
+    override fun createStub(psi: CjEnum, parentStub: StubElement<out PsiElement>?): CangJieEnumStub {
+        val fqName = psi.safeFqNameForLazyResolve()
+
+        val superNames = psi.getSuperNames()
+        val classId = createNestedClassId(parentStub!!, psi)
+        return CangJieEnumStubImpl(
+            CjStubElementTypes.ENUM, parentStub as StubElement<*>?,
+            StringRef.fromString(fqName?.asString()), classId,
+            StringRef.fromString(psi.getName()),
+            wrapStrings(superNames),
+            psi.isLocal()
+        )
+    }
+
+    override fun createPsi(stub: CangJieEnumStub): CjEnum {
+        return CjEnum(stub)
+    }
+
+    override fun createPsiFromAst(node: ASTNode): CjEnum {
+        return CjEnum(node)
+    }
+}
