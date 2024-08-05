@@ -61,7 +61,7 @@ interface LspServerManager {
     fun stopAndRestartIfNeeded(providerClass: Class<out LspServerSupportProvider>)
 
     @TestOnly
-    @ApiStatus.Internal
+    
     fun addLspServerManagerListener(listener: LspServerManagerListener, parentDisposable: Disposable)
 }
 

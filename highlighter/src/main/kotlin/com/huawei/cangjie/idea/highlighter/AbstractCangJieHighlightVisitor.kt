@@ -1,8 +1,8 @@
-package com.huawei.cangjie.idea.highlighter
+package com.huawei.cangjie.ide.highlighter
 
 import com.huawei.cangjie.descriptors.Diagnostic
 import com.huawei.cangjie.descriptors.InvalidModuleException
-import com.huawei.cangjie.idea.highlighter.suspender.CangJieHighlightingSuspender
+import com.huawei.cangjie.ide.highlighter.suspender.CangJieHighlightingSuspender
 import com.huawei.cangjie.psi.CjFile
 import com.intellij.codeInsight.daemon.impl.Divider
 import com.intellij.codeInsight.daemon.impl.HighlightInfo

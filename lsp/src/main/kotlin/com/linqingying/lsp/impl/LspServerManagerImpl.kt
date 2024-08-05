@@ -188,7 +188,7 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
 
 
     @TestOnly
-    @ApiStatus.Internal
+    
     override fun addLspServerManagerListener(listener: LspServerManagerListener, parentDisposable: Disposable) {
         this.eventDispatcher.addListener(listener, parentDisposable)
         for (server in this.servers) {

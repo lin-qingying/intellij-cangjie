@@ -2,8 +2,8 @@ package com.huawei.cangjie.resolve.lazy
 
 import com.huawei.cangjie.container.PlatformSpecificExtension
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.idea.stubindex.resolve.PluginDeclarationProviderFactory
-import com.huawei.cangjie.idea.stubindex.resolve.StubBasedPackageMemberDeclarationProvider
+import com.huawei.cangjie.ide.stubindex.resolve.PluginDeclarationProviderFactory
+import com.huawei.cangjie.ide.stubindex.resolve.StubBasedPackageMemberDeclarationProvider
 import com.huawei.cangjie.psi.CjClassOrStruct
 import com.huawei.cangjie.psi.CjDeclaration
 import com.huawei.cangjie.resolve.lazy.declarations.DeclarationProviderFactory

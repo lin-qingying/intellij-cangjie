@@ -90,7 +90,19 @@ class QualifiedExpressionResolver {
         override fun component2() = expression
     }
 
-
+    fun resolvePackageHeader(
+        packageDirective: CjPackageDirective,
+        module: ModuleDescriptor,
+        trace: BindingTrace
+    ) {
+        val packageNames = packageDirective.packageNames
+        for ((index, nameExpression) in packageNames.withIndex()) {
+            storeResult(
+                trace, nameExpression, module.getPackage(packageDirective.getFqName(nameExpression)),
+                shouldBeVisibleFrom = null, position = QualifierPosition.PACKAGE_HEADER, isQualifier = index != packageNames.lastIndex
+            )
+        }
+    }
     open class QualifierPart(
         val name: Name,
         val typeArguments: CjTypeArgumentList? = null,

@@ -16,8 +16,8 @@ import com.huawei.cangjie.cjpm.project.workspace.CjpmWorkspace
 import com.huawei.cangjie.cjpm.project.workspace.PackageOrigin
 import com.huawei.cangjie.cjpm.project.workspace.additionalRoots
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
-import com.huawei.cangjie.idea.notifications.CjNotifications
-import com.huawei.cangjie.idea.run.cjpm.isUnitTestMode
+import com.huawei.cangjie.ide.notifications.CjNotifications
+import com.huawei.cangjie.ide.run.cjpm.isUnitTestMode
 import com.huawei.cangjie.lang.CangJieFileType
 import com.huawei.cangjie.lang.lsp.CangJieLspServerManager
 import com.huawei.cangjie.taskQueue
@@ -40,6 +40,7 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
+import com.intellij.openapi.project.impl.ProjectImpl
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleRootModificationUtil
@@ -54,7 +55,6 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.indexing.LightDirectoryIndex
 import com.intellij.util.io.systemIndependentPath
 import com.linqingying.utils.Config
-import com.linqingying.utils.YamlUtil
 import org.jdom.Element
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -201,7 +201,7 @@ class CjpmProjectsServiceImpl(
         file.applyWithSymlink { directoryIndex.getInfoForFile(it).takeIf { info -> info !== noProjectMarker } }
 
     override fun findProjectForModuleFile(file: VirtualFile): CjpmProject? {
-     return   file.applyWithSymlink { directoryIndex.getInfoForFile(it)  }
+        return file.applyWithSymlink { directoryIndex.getInfoForFile(it) }
 
     }
 
@@ -334,7 +334,7 @@ class CjpmProjectsServiceImpl(
     override fun noStateLoaded() {
 
 
-        // 显示在 [com.huawei.cangjie.idea.notifications.MissingToolchainNotificationProvider]
+        // 显示在 [com.huawei.cangjie.ide.notifications.MissingToolchainNotificationProvider]
 
         initialized = true // 不需要锁定B/C的服务初始时间
 
@@ -404,12 +404,13 @@ private fun doRefresh(project: Project, projects: List<CjpmProjectImpl>): Comple
         runWithNonLightProject(project) {
             setupProjectRoots(project, updatedProjects)
 
-
-         if(Config.isLsp){
+            if (Config.isLsp) {
 
 //            TODO 重启lsp服务器
-             CangJieLspServerManager.restartLspServer(project)
-         }
+                CangJieLspServerManager.restartLspServer(project)
+            }
+
+
 
         }
         updatedProjects
@@ -435,6 +436,17 @@ private fun setupProjectRoots(project: Project, cjpmProjects: List<CjpmProject>)
             if (project.isDisposed) return@runWriteAction
             ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring {
                 for (cjpmProject in cjpmProjects) {
+                    cjpmProject as CjpmProjectImpl
+
+
+                    if(cjpmProject.project.name !=  cjpmProject.workspace?.moduleData?.name){
+                        cjpmProject.workspace?.moduleData?.name?.let {
+                            (cjpmProject.project as ProjectImpl).setProjectName(
+                                it
+                            )
+                        }
+                    }
+
 
 
                     cjpmProject.workspaceRootDir?.setupContentRoots(project) { contentRoot ->
@@ -449,6 +461,8 @@ private fun setupProjectRoots(project: Project, cjpmProjects: List<CjpmProject>)
                     for (pkg in workspacePackages) {
                         pkg.contentRoot?.setupContentRoots(project, ContentEntryWrapper::setup)
                     }
+
+
                 }
             }
         }

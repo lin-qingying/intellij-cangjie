@@ -362,7 +362,7 @@ open fun visitBasicType(type:CjBasicType) {
         super.visitEscapeStringTemplateEntry(entry, null)
     }
 
-    fun visitPackageDirective(directive:CjPackageDirective) {
+    open fun visitPackageDirective(directive:CjPackageDirective) {
         super.visitPackageDirective(directive, null)
     }
 

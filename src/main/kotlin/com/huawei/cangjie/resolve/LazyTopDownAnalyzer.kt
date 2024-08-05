@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve
 
 import com.google.common.collect.HashMultimap
 import com.huawei.cangjie.descriptors.BindingTrace
+import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.*
@@ -15,6 +16,9 @@ class LazyTopDownAnalyzer(
     private val trace: BindingTrace,
     private val lazyDeclarationResolver: LazyDeclarationResolver,
     private val bodyResolver: BodyResolver,
+    private val identifierChecker: IdentifierChecker,
+    private val qualifiedExpressionResolver: QualifiedExpressionResolver,
+    private val moduleDescriptor: ModuleDescriptor,
 
 //    private val declarationScopeProvider: DeclarationScopeProvider,
     private val filePreprocessor: FilePreprocessor
@@ -50,6 +54,9 @@ class LazyTopDownAnalyzer(
                     }
                 }
 
+                override fun visitDeclaration(dcl: CjDeclaration) {
+                    throw IllegalArgumentException("Unsupported declaration: " + dcl + " " + dcl.text)
+                }
 
                 override fun visitCjFile(file: CjFile) {
                     filePreprocessor.preprocessFile(file)

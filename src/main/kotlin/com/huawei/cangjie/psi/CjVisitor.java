@@ -10,6 +10,13 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         return null;
     }
 
+
+    public R visitQuoteExpression(@NotNull CjQuoteExpression element, D data) {
+        return visitExpression(element, data);
+
+
+    }
+
     public R visitCallableReferenceExpression(@NotNull CjCallableReferenceExpression expression, D data) {
         return visitDoubleColonExpression(expression, data);
     }

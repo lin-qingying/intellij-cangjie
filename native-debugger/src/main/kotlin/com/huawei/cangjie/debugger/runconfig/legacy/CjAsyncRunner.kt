@@ -3,15 +3,14 @@ package com.huawei.cangjie.debugger.runconfig.legacy
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.cjpm.toolchain.tools.Cjpm.Companion.getCjpmCommonPatch
 
-import com.huawei.cangjie.idea.run.CjpmArgsParser.Companion.parseArgs
-import com.huawei.cangjie.idea.run.cjpm.*
-import com.huawei.cangjie.idea.run.cjpm.runconfig.CjProcessHandler
-import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildManager.getBuildConfiguration
-import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildConfiguration
-import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
-import com.huawei.cangjie.idea.run.cjpm.runconfig.buildtool.localBuildArgsForRemoteRun
-import com.huawei.cangjie.idea.run.hasRemoteTarget
-import com.huawei.cangjie.lang.lsp.toSystemPath
+import com.huawei.cangjie.ide.run.CjpmArgsParser.Companion.parseArgs
+import com.huawei.cangjie.ide.run.cjpm.*
+import com.huawei.cangjie.ide.run.cjpm.runconfig.CjProcessHandler
+import com.huawei.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.getBuildConfiguration
+import com.huawei.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildConfiguration
+import com.huawei.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
+import com.huawei.cangjie.ide.run.cjpm.runconfig.buildtool.localBuildArgsForRemoteRun
+import com.huawei.cangjie.ide.run.hasRemoteTarget
 
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.RunContentExecutor
@@ -35,7 +34,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.util.io.systemIndependentPath
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import java.nio.file.Path

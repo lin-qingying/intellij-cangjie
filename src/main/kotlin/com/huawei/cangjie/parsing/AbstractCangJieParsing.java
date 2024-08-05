@@ -82,7 +82,7 @@ public abstract class AbstractCangJieParsing {
                 tokenType = GTGT;
             }
         } else if (rawLookup(1) == EQ) {
-            tokenType = GTEQ;
+            tokenType = GT_EQ;
         }
         return tokenType;
     }
@@ -91,7 +91,7 @@ public abstract class AbstractCangJieParsing {
         PsiBuilder.Marker gtToken = mark();
         if (type == GTGTEQ) {
             PsiBuilderUtil.advance(myBuilder, 3);
-        } else if (type == GTGT || type == GTEQ) {
+        } else if (type == GTGT || type == GT_EQ) {
             PsiBuilderUtil.advance(myBuilder, 2);
         } else {
             gtToken.drop();

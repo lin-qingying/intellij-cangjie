@@ -1,6 +1,6 @@
 package com.huawei.cangjie.dapDebugger.runconfig
 
-import com.huawei.cangjie.idea.run.cjpm.CjpmRunStateBase
+import com.huawei.cangjie.ide.run.cjpm.CjpmRunStateBase
 import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugProcessStarter

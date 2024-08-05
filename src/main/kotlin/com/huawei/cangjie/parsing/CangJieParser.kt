@@ -68,6 +68,9 @@ class CangJieParser(project: Project) : PsiParser {
         @NotNull
         @JvmStatic
         fun parse(psiBuilder: PsiBuilder, psiFile: PsiFile): ASTNode {
+
+            psiBuilder.setDebugMode(true)
+
             val cjParsing: CangJieParsing =
                 createForTopLevel(
                     SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder)

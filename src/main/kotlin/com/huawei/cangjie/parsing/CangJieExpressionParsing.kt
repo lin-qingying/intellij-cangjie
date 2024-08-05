@@ -94,17 +94,33 @@ open class CangJieExpressionParsing(
             }
         },
 
-        COMPARISON(LT, GT, LTEQ, GTEQ),
+        COMPARISON(LT, GT, LTEQ, GT_EQ),
         EQUALITY(EQEQ, EXCLEQ),
         CONJUNCTION(ANDAND),
         DISJUNCTION(OROR),
-        COMPOSITION(CjTokens.COMPOSITION),
+//        COMPOSITION(CjTokens.COMPOSITION),
 
         //位运算
-        BITWISE(AND, OR, XOR, LTLT, GTGT, LTLTEQ, GTGTEQ),
+        BITWISE(AND, OR, XOR, LTLT, GTGT, LT_LT_EQ, GTGTEQ),
 
+        //flow
+        FLOW(PIPELINE,COMPOSITION),
 
-        ASSIGNMENT(EQ, PLUSEQ, MINUSEQ, MULTEQ, DIVEQ, PERCEQ, ANDEQ, ANDANDEQ, OREQ, XOREQ, LTLTEQ, GTGTEQ, MULMULEQ);
+        ASSIGNMENT(
+            EQ,
+            PLUSEQ,
+            MINUSEQ,
+            MULTEQ,
+            DIVEQ,
+            PERCEQ,
+            ANDEQ,
+            ANDANDEQ,
+            OR_EQ,
+            XOREQ,
+            LT_LT_EQ,
+            GTGTEQ,
+            MULMULEQ
+        );
 
         private var higher: Precedence? = null
         private val operations: TokenSet
@@ -542,7 +558,10 @@ open class CangJieExpressionParsing(
             //整数
             INTEGER_LITERAL_Id -> parseOneTokenExpression(INTEGER_CONSTANT)
 //            //字符
-            CHARACTER_LITERAL_Id -> parseOneTokenExpression(CHARACTER_CONSTANT)
+            RUNE_LITERAL_Id -> parseOneTokenExpression(RUNE_CONSTANT)
+//            字符字节字面量
+            CHARACTER_BYTE_LITERAL_Id -> parseOneTokenExpression(CHARACTER_BYTE_CONSTANT)
+
             //浮点数
             FLOAT_LITERAL_Id -> parseOneTokenExpression(FLOAT_CONSTANT)
             // Unit
@@ -794,7 +813,8 @@ open class CangJieExpressionParsing(
                     UNDERLINE_Id -> parseUnderline()
                     LPAR_Id -> parseParenthesizedExpression()
                     INTEGER_LITERAL_Id -> parseOneTokenExpression(INTEGER_CONSTANT)
-                    CHARACTER_LITERAL_Id -> parseOneTokenExpression(CHARACTER_CONSTANT)
+                    RUNE_LITERAL_Id -> parseOneTokenExpression(RUNE_CONSTANT)
+                    CHARACTER_BYTE_LITERAL_Id -> parseOneTokenExpression(CHARACTER_BYTE_CONSTANT)
                     TRUE_KEYWORD_Id, FALSE_KEYWORD_Id -> parseOneTokenExpression(BOOLEAN_CONSTANT)
                     FLOAT_LITERAL_Id -> parseOneTokenExpression(FLOAT_CONSTANT)
                     OPEN_QUOTE_Id -> parseStringTemplate()
@@ -866,7 +886,7 @@ open class CangJieExpressionParsing(
 
         //是否常量模式
         fun isConstantPattern(): Boolean {
-            return at(INTEGER_LITERAL) || at(CHARACTER_LITERAL) || at(TRUE_KEYWORD) || at(FALSE_KEYWORD) || at(
+            return at(INTEGER_LITERAL) || at(RUNE_LITERAL) || at(TRUE_KEYWORD) || at(FALSE_KEYWORD) || at(
                 OPEN_QUOTE
             )
         }
@@ -895,6 +915,12 @@ open class CangJieExpressionParsing(
 //            return at(IDENTIFIER) && lookahead(1) == LPAR
 //        }
 
+
+        if (at(WHERE_KEYWORD)) {
+            advance()
+
+            parseExpression()
+        }
 
         condition.done(CASE_PATTERN)
     }
@@ -1205,7 +1231,7 @@ open class CangJieExpressionParsing(
             val parameter = mark()
 
             if (at(COLON)) {
-             error("Expecting parameter name")
+                error("Expecting parameter name")
             } else {
                 expect(
                     IDENTIFIER_RECOVERY_SET,
@@ -1849,19 +1875,470 @@ open class CangJieExpressionParsing(
         parseExpression()
     }
 
+
+    private val QUOTE_TOKENS = TokenSet.orSet(
+        TokenSet.create(
+            DOT,
+            COMMA,
+            LPAR,
+            RPAR,
+            LBRACKET,
+            RBRACKET,
+            LBRACE,
+            RBRACE,
+            MULMUL,
+            MUL,
+            PERC,
+            DIV,
+            PLUS,
+            MINUS,
+            PIPELINE,
+            COMPOSITION,
+            PLUSPLUS,
+            MINUSMINUS,
+            AND,
+            OR,
+            EXCL,
+            AND,
+            OR,
+            XOREQ,
+            LT_LT_EQ,
+            GTGTEQ,
+            COLON,
+            SEMICOLON,
+            EQ,
+            PLUSEQ,
+            MINUSEQ,
+            MULTEQ,
+            PLUS,
+            MINUSEQ,
+            PERCEQ,
+            ANDEQ,
+            OR_OR_EQ,
+            ANDEQ,
+            OR_EQ,
+            XOREQ,
+            LT_LT_EQ,
+            GTGTEQ,
+            ARROW,
+            LEFT_ARROW,
+            DOUBLE_ARROW,
+            ELLIPSIS,
+            RANGEEQ,
+            RANGE,
+            HASH,
+            AT,
+            QUEST,
+            LT_COLON,
+            LT,
+            GT,
+            LTEQ,
+            GT_EQ,
+            EXCLEQ,
+            EQEQ,
+            UNDERLINE,
+            BACKSLASH,
+            QUOTESYMBOL,
+            DOLLAR,
+            INT8_KEYWORD,
+            INT16_KEYWORD,
+            INT32_KEYWORD,
+            INT64_KEYWORD,
+            INTNATIVE_KEYWORD,
+            UINT8_KEYWORD,
+            UINT16_KEYWORD,
+            UINT32_KEYWORD,
+            UINT64_KEYWORD,
+            UINTNATIVE_KEYWORD,
+            FLOAT16_KEYWORD,
+            FLOAT32_KEYWORD,
+            FLOAT64_KEYWORD,
+            RUNE_KEYWORD,
+            BOOL_KEYWORD,
+            UNIT_KEYWORD,
+            NOTHING_KEYWORD,
+            STRUCT_KEYWORD,
+            ENUM_KEYWORD,
+            THIS_KEYWORD,
+            PACKAGE_KEYWORD,
+            IMPORT_KEYWORD,
+            CLASS_KEYWORD,
+            INTERFACE_KEYWORD,
+            FUNC_KEYWORD,
+            LET_KEYWORD,
+            VAR_KEYWORD,
+            CONST_KEYWORD,
+
+            INIT_KEYWORD,
+
+            SUPER_KEYWORD,
+            IF_KEYWORD,
+            ELSE_KEYWORD,
+            CASE_KEYWORD,
+            TRY_KEYWORD,
+            CATCH_KEYWORD,
+            FINALLY_KEYWORD,
+            FOR_KEYWORD,
+            DO_KEYWORD,
+            WHILE_KEYWORD,
+            THROW_KEYWORD,
+            RETURN_KEYWORD,
+            CONTINUE_KEYWORD,
+            BREAK_KEYWORD,
+            AS_KEYWORD,
+            IN_KEYWORD,
+            MATCH_KEYWORD,
+
+            WHERE_KEYWORD,
+            EXTEND_KEYWORD,
+            SPAWN_KEYWORD,
+            SYNCHRONIZED_KEYWORD,
+            MACRO_KEYWORD,
+            QUOTE_KEYWORD,
+            TRUE_KEYWORD,
+            FALSE_KEYWORD,
+            STATIC_KEYWORD,
+            PUBLIC_KEYWORD,
+            PRIVATE_KEYWORD,
+            PROTECTED_KEYWORD,
+            OVERRIDE_KEYWORD,
+            ABSTRACT_KEYWORD,
+            OPEN_KEYWORD,
+            OPERATOR_KEYWORD,
+            FOREIGN_KEYWORD,
+            USER_TYPE,
+            IDENTIFIER,
+            FIELD_IDENTIFIER,
+            ESCAPE_LPAR,
+            ESCAPE_RPAR,
+            ESCAPE_DOLLAR,
+            ESCAPE_LBRACKET,
+            ESCAPE_RBRACKET
+        ), LITERAL_CONSTANT
+    )
+
+
+    /**
+     *     quoteExpr
+     *     : LPAREN NL* quoteParameters NL* RPAREN
+     *     ;
+     */
+    fun parseQuoteExpression() {
+        assert(_at(QUOTE_KEYWORD))
+
+        val quoteExpression = mark()
+        advance()
+
+
+
+        if (at(LPAR)) {
+            advance()
+            parseQuoteParameters()
+        } else {
+
+            error("expected '(' after 'quote'")
+        }
+        expect(RPAR, "expected ')' ")
+        quoteExpression.done(QUOTE_EXPRESSION)
+    }
+
+
+    /**
+     *  插值引用表达式规则，允许在引用中嵌入可计算表达式
+     * quoteInterpolate
+     * : DOLLAR LPAREN NL* expression NL* RPAREN
+     * ;
+     */
+    private fun parseQuoteInterpolate() {
+        assert(_at(DOLLAR) && lookahead(1) == LPAR)
+
+        advance()
+        advance()
+        parseExpression()
+
+
+        if (at(RPAR)) {
+            advance()
+        } else {
+            error("expected ')' after '$'")
+        }
+
+    }
+
+
+    /**
+     *  引用参数列表规则，由一个或多个引用标记、插值表达式或宏表达式组成
+     * quoteParameters
+     *     : (NL* quoteToken | NL* quoteInterpolate | NL* macroExpression)+
+     *     ;
+     */
+    private fun parseQuoteParameters() {
+//TODO 在没有参数的情况下是否报告错误
+//        if (at(RPAR)){
+//            error("expected quote token ")
+//        }
+
+
+//        解析中出现的 ( 标记数量
+        var lparCount = 0
+
+
+        do {
+
+
+            if (at(DOLLAR) && lookahead(1) == LPAR) {
+                parseQuoteInterpolate()
+            } else if (at(AT) && lookahead(1) == IDENTIFIER) {
+                parseMacroExpression()
+            } else if (atSet(QUOTE_TOKENS)) {
+                if (at(LPAR)) {
+                    lparCount++
+                } else if (at(RPAR)) {
+                    lparCount--
+                    if (lparCount < 0) {
+                        break
+                    }
+                } else if (at(DOLLAR)) {
+
+                    errorAndAdvance("expected identifier or '(' after '$'")
+                } else if (at(ESCAPE_LBRACKET) || at(ESCAPE_RBRACKET)) {
+                    errorAndAdvance("Illegal Token")
+                }
+                advance()
+            }
+        } while (atSet(QUOTE_TOKENS))
+
+    }
+
+    fun parseMacroExpression(backToken: Boolean = false): IElementType? {
+        assert(_at(AT))
+
+        val macroExpression = mark()
+        advance()
+
+        if (at(IDENTIFIER)) {
+            advance()
+        } else {
+            error("expected identifier after '@'")
+            macroExpression.drop()
+            return null
+        }
+
+
+//        带属性的宏
+        if (at(LBRACKET)) {
+            parseMacroAttrExpression()
+        }
+
+
+//        宏的输入
+        if (at(LPAR)) {
+            parseMacroInputExprWithParens()
+
+
+        } else {
+
+            val decl = mark()
+
+            val modifiterDetector = CangJieParsing.ModifierDetector()
+
+            cangJieParsing.parseModifierList(modifiterDetector, TokenSet.EMPTY)
+
+            val declType = parseMacroInputExprWithoutParens(modifiterDetector)
+
+            if (declType == null) {
+
+                error("Macro call has no input")
+                //            decl.error("Expecting a top level declaration");
+                decl.drop()
+
+            } else {
+                closeDeclarationWithCommentBinders(decl, declType, true)
+
+            }
+        }
+        if (backToken) {
+            macroExpression.drop()
+            return MACRO_EXPRESSION
+        } else {
+            macroExpression.done(MACRO_EXPRESSION)
+            return null
+        }
+
+    }
+
+    private fun parseMacroInputExprWithoutParens(modifiterDetector: CangJieParsing.ModifierDetector): IElementType? {
+
+        var declType = parseMacroInputExprWithoutParensDeclaration(modifiterDetector)
+
+        if (declType == null) {
+
+
+            if (at(IDENTIFIER) && modifiterDetector.size <= 0) {
+//                尝试解析为enum entry
+//                val mark  = mark()
+//                if (cangJieParsing.parseEnumEntry(false)) {
+//
+//                }
+
+                advance()
+                if (at(LPAR)) {
+
+                    if (lookahead(1) == IDENTIFIER && lookahead(2) === COLON || lookahead(1) == RPAR) {
+//                        解析为主构造方法
+                        cangJieParsing.parseInitFuncValueParameterList()
+
+                        if (at(LBRACE)) {
+                            cangJieParsing.parseFunctionBody()
+                        } else {
+                            error("Expecting '{' ") //应该为'{'
+                        }
+
+
+                    declType = CLASS_MAIN_INIT
+
+                    } else if ((lookahead(1) == IDENTIFIER && lookahead(2) === COMMA) || (lookahead(1) == IDENTIFIER && lookahead(
+                            2
+                        ) === LT) ||  (lookahead(1) == IDENTIFIER && lookahead(2) === RPAR)
+                    ) {
+                        advance() // LPAR
+                        cangJieParsing.parseTypeList()
+
+                        expect(RPAR, "Expecting ')'")
+                        declType = ENUM_ENTRY
+
+                    }
+
+                } else {
+                    declType = ENUM_ENTRY
+
+
+                }
+
+
+            } else
+                if (at(IDENTIFIER) && lookahead(1) === LPAR) {
+
+
+//                主构造函数
+                    cangJieParsing.parseMainInitFunc()
+                    declType = CLASS_MAIN_INIT
+                }
+
+        }
+
+
+
+
+        return declType
+    }
+
+    private fun parseMacroInputExprWithoutParensDeclaration(modifiterDetector: CangJieParsing.ModifierDetector): IElementType? {
+
+
+        return when (tokenId) {
+            AT_Id -> parseMacroExpression(true)
+            FUNC_KEYWORD_Id -> cangJieParsing.parseFunction(modifiterDetector)
+            EXTEND_KEYWORD_Id, ENUM_KEYWORD_Id, STRUCT_KEYWORD_Id, INTERFACE_KEYWORD_Id, CLASS_KEYWORD_Id ->
+
+                cangJieParsing.parseClass(modifiterDetector)
+
+            LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id -> cangJieParsing.parseVariable(modifiterDetector)
+
+            PROP_KEYWORD_Id -> cangJieParsing.parseProperty(null, modifiterDetector)
+            INIT_KEYWORD_Id -> {
+                cangJieParsing.parseInitFunc()
+                CLASS_INIT
+            }
+
+            else -> null
+        }
+
+
+    }
+
+    private fun parseMacroInputExprWithParens() {
+        assert(_at(LPAR))
+        advance()
+
+        var lparCount = 0
+
+        while (atSet(QUOTE_TOKENS)) {
+
+            if (at(AT) && lookahead(1) == IDENTIFIER) {
+                parseMacroExpression()
+            } else {
+                if (at(LPAR)) {
+                    lparCount++
+                } else if (at(RPAR)) {
+                    lparCount--
+                    if (lparCount < 0) {
+                        break
+                    }
+                } else if (at(DOLLAR)) {
+
+                    errorAndAdvance("expected identifier or '(' after '$'")
+                } else if (at(ESCAPE_LBRACKET) || at(ESCAPE_RBRACKET)) {
+                    errorAndAdvance("Illegal Token")
+                }
+                advance()
+            }
+
+        }
+        expect(RPAR, "expected ')'")
+
+    }
+
+
+    /**
+     *  宏属性表达式规则，由方括号包围的一系列引用标记组成
+     * parseMacroAttrExpression
+     * : LBRACKET NL* quoteToken* NL* RBRACKET
+     * ;
+     */
+
+    private fun parseMacroAttrExpression() {
+
+        if (at(LBRACKET)) {
+            advance()
+            var lparCount = 0
+            while (atSet(QUOTE_TOKENS)) {
+                if (at(LBRACKET)) {
+
+                    lparCount++
+                } else if (at(RBRACKET)) {
+                    lparCount--
+                    if (lparCount < 0) {
+                        break
+                    }
+                } else if (at(DOLLAR)) {
+
+                    errorAndAdvance("expected identifier or '(' after '$'")
+                } else if (at(ESCAPE_LPAR) || at(ESCAPE_RPAR)) {
+                    errorAndAdvance("Illegal Token")
+                }
+                advance()
+            }
+            expect(RBRACKET, "expected ']'")
+        } else {
+            error("expected '['")
+        }
+
+    }
+
     fun parseExpression() {
 
         if (at(AT)) {
-            val macroMark = mark()
-            val type = cangJieParsing.parseAnnotation(null)
-            if (type == ANNOTATION_ENTRY) {
-                error("Should call (..) for macros")
-
-
-            }
-
-            macroMark.done(MACRO_EXPRESSION)
-
+//            val macroMark = mark()
+//            val type = cangJieParsing.parseAnnotation(null)
+//            if (type == ANNOTATION_ENTRY) {
+//                error("Should call (..) for macros")
+//
+//
+//            }
+//
+//            macroMark.done(MACRO_EXPRESSION)
+            parseMacroExpression()
             return
 
         } else if (at(SPAWN_KEYWORD)) {
@@ -1872,6 +2349,9 @@ open class CangJieExpressionParsing(
             return
         } else if (at(UNSAFE_KEYWORD)) {
             cangJieParsing.parseUnsafeExpression()
+            return
+        } else if (at(QUOTE_KEYWORD)) {
+            parseQuoteExpression()
             return
         } else if (!atSet(EXPRESSION_FIRST)) {
             error("Expecting an expression")
@@ -1891,7 +2371,7 @@ open class CangJieExpressionParsing(
 //                GTGT
 //            }
 //        } else if (rawLookup(1) === EQ) {
-//            tokenType = GTEQ
+//            tokenType = GT_EQ
 //        }
 //        return tokenType
 //    }
@@ -1900,7 +2380,7 @@ open class CangJieExpressionParsing(
 //        val gtToken = mark()
 //        if (type === GTGTEQ) {
 //            PsiBuilderUtil.advance(myBuilder, 3)
-//        } else if (type === GTGT || type === GTEQ) {
+//        } else if (type === GTGT || type === GT_EQ) {
 //            PsiBuilderUtil.advance(myBuilder, 2)
 //        } else {
 //            gtToken.drop()
@@ -2056,10 +2536,12 @@ open class CangJieExpressionParsing(
     @OptIn(ExperimentalStdlibApi::class)
     companion object {
         var ALL_OPERATIONS: TokenSet? = null
-        @JvmStatic
-          val IDENTIFIER_RECOVERY_SET = TokenSet.create(
+
+        @JvmField
+        val IDENTIFIER_RECOVERY_SET = TokenSet.create(
             IDENTIFIER, UNDERLINE
         )
+
         private fun doneOrDrop(
             marker: PsiBuilder.Marker,
             type: IElementType,
@@ -2096,7 +2578,7 @@ open class CangJieExpressionParsing(
                 FALSE_KEYWORD,
                 OPEN_QUOTE,
                 INTEGER_LITERAL,
-                CHARACTER_LITERAL,
+                RUNE_LITERAL,
                 CHARACTER_BYTE_LITERAL,
                 FLOAT_LITERAL,
 
@@ -2131,7 +2613,7 @@ open class CangJieExpressionParsing(
         private val TYPE_ARGUMENT_LIST_STOPPERS = TokenSet.create(
             INTEGER_LITERAL,
             FLOAT_LITERAL,
-            CHARACTER_LITERAL,
+            RUNE_LITERAL,
             CHARACTER_BYTE_LITERAL,
             OPEN_QUOTE,
             PACKAGE_KEYWORD,
@@ -2207,8 +2689,6 @@ open class CangJieExpressionParsing(
             TokenSet.orSet(IN_KEYWORD_L_BRACE_SET, PARAMETER_NAME_RECOVERY_SET)
 
 
-
-
         private val COLON_IN_KEYWORD_SET = TokenSet.create(COLON, IN_KEYWORD)
         private val IN_KEYWORD_SET = TokenSet.create(IN_KEYWORD)
 
@@ -2280,10 +2760,12 @@ open class CangJieExpressionParsing(
     }
 
 }
+
 private fun IElementType.equal(token: IElementType): Boolean {
     return token === this
 
 }
+
 private fun IElementType.equal(tokenSet: TokenSet): Boolean {
     return tokenSet.contains(this)
 

@@ -21,7 +21,7 @@ class CjSimpleNameReference(expression: CjSimpleNameExpression) : CjSimpleRefere
             val element = element
 
 
-//            TODO
+
 
             return listOf(element.getReferencedNameAsName())
 

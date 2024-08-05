@@ -11,7 +11,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.annotations.ApiStatus
 
 
-@ApiStatus.Internal
+
 abstract class AbstractHighlightingVisitor(protected val holder: HighlightInfoHolder): CjVisitorVoid() {
     protected fun highlightName(element: PsiElement, highlightInfoType: HighlightInfoType, message: String? = null) {
         holder.add(HighlightingFactory.highlightName(element, highlightInfoType, message)?.create())

@@ -12,7 +12,6 @@ public interface CjNodeTypes {
 
     IElementType NULL               = CjStubElementTypes.NULL;
 
-
     IElementType TYPE_REFERENCE = CjStubElementTypes.TYPE_REFERENCE;
     IElementType VALUE_PARAMETER_LIST = CjStubElementTypes.VALUE_PARAMETER_LIST;
     IElementType VALUE_PARAMETER = CjStubElementTypes.VALUE_PARAMETER;
@@ -36,7 +35,7 @@ public interface CjNodeTypes {
     IElementType VALUE_ARGUMENT = CjStubElementTypes.VALUE_ARGUMENT;
     IElementType VALUE_ARGUMENT_LIST = CjStubElementTypes.VALUE_ARGUMENT_LIST;
 
-IElementType OPERATOR = new CjNodeType("OPERATOR", CjOperator.class );
+    IElementType OPERATOR = new CjNodeType("OPERATOR", CjOperator.class );
 
 //    区间表达式
 
@@ -49,6 +48,8 @@ IElementType OPERATOR = new CjNodeType("OPERATOR", CjOperator.class );
     IElementType SPAWN_EXPRESSION = new CjNodeType("SPAWN_EXPRESSION", CjSpawnExpression.class);
     IElementType SYNCHRONIZED_EXPRESSION = new CjNodeType("SYNCHRONIZED_EXPRESSION", CjSynchronizedExpression.class);
     IElementType CALL_EXPRESSION = new CjNodeType("CALL_EXPRESSION", CjCallExpression.class);
+    IElementType QUOTE_EXPRESSION = new CjNodeType("QUOTE_EXPRESSION", CjQuoteExpression.class);
+
     IElementType INDICES = new CjNodeType("INDICES", CjContainerNode.class);
     IElementType ARRAY_ACCESS_EXPRESSION = new CjNodeType("ARRAY_ACCESS_EXPRESSION", CjArrayAccessExpression.class);
     IElementType IS_EXPRESSION = new CjNodeType("IS_EXPRESSION", CjIsExpression.class);
@@ -117,11 +118,11 @@ IElementType OPERATOR = new CjNodeType("OPERATOR", CjOperator.class );
     IElementType ANNOTATION_ENTRY = CjStubElementTypes.ANNOTATION_ENTRY;
     IElementType MACRO_EXPRESSION = CjStubElementTypes.MACRO_EXPRESSION;
 
-
     IElementType LONG_STRING_TEMPLATE_ENTRY = CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY;
     IElementType SHORT_STRING_TEMPLATE_ENTRY = CjStubElementTypes.SHORT_STRING_TEMPLATE_ENTRY;
     IElementType FLOAT_CONSTANT = CjStubElementTypes.FLOAT_CONSTANT;
-    IElementType CHARACTER_CONSTANT = CjStubElementTypes.CHARACTER_CONSTANT;
+    IElementType RUNE_CONSTANT = CjStubElementTypes.RUNE_CONSTANT;
+        IElementType CHARACTER_BYTE_CONSTANT = CjStubElementTypes.CHARACTER_BYTE_CONSTANT;
     IElementType INTEGER_CONSTANT = CjStubElementTypes.INTEGER_CONSTANT;
     IElementType BOOLEAN_CONSTANT = CjStubElementTypes.BOOLEAN_CONSTANT;
 
@@ -176,6 +177,7 @@ IElementType OPERATOR = new CjNodeType("OPERATOR", CjOperator.class );
 
     IElementType CASE_PATTERN = new CjNodeType("CASE_PATTERN", CjCasePattern.class);
 
+    IElementType CHARACTER_CONSTANT = CjStubElementTypes.CHARACTER_CONSTANT;
 
     IElementType TYPE_PATTERN = new CjNodeType("TYPE_PATTERN", CjTypePattern.class);
     IElementType ENUM_PATTERN = new CjNodeType("ENUM_PATTERN", CjEnumPattern.class);

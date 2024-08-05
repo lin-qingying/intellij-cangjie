@@ -58,7 +58,7 @@ public abstract class CjStubElementType<StubT extends StubElement<?>, PsiT exten
     @NotNull
     @Override
     public String getExternalId() {
-        return "cangjie." + getDebugName();
+        return "cangjie." + this;
     }
 
 

@@ -1,7 +1,7 @@
 package com.huawei.cangjie.inspections
 
-import com.huawei.cangjie.idea.run.cjpm.isUnitTestMode
-import com.huawei.cangjie.idea.run.cjpm.toolchain
+import com.huawei.cangjie.ide.run.cjpm.isUnitTestMode
+import com.huawei.cangjie.ide.run.cjpm.toolchain
 import com.huawei.cangjie.psi.CjFile
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.LocalInspectionToolSession

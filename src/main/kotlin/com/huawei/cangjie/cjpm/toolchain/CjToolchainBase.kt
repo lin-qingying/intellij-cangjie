@@ -1,5 +1,6 @@
 package com.huawei.cangjie.cjpm.toolchain
 
+import com.huawei.cangjie.cjpm.project.toPath
 import com.huawei.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor
 import com.huawei.cangjie.cjpm.toolchain.tools.*
 import com.huawei.cangjie.cjpm.toolchain.wsl.getHomePathCandidates
@@ -44,8 +45,8 @@ fun CjToolchainBase.cjfmt(): CjFmt {
     return this.cjfmt!!
 }
 
-abstract class CjToolchainBase(location: Path) {
-    val sdkHome: Path
+abstract class CjToolchainBase(var location: Path = "".toPath()) {
+
 
     val binPath: Path
     val toolsPath: Path
@@ -70,20 +71,25 @@ abstract class CjToolchainBase(location: Path) {
         val toolsPath = location.resolve("tools")
         if (Files.exists(binPath) && Files.exists(toolsPath)) {
 //            当前在主目录
-            sdkHome = location
 
             this.binPath = binPath
             this.toolsPath = toolsPath
         } else if (Files.exists(location.resolve("cjc".toSystemPath()))) {
 //       当前在bin目录
-            sdkHome = location.parent
+            this.location = location.parent
             this.binPath = location
-            this.toolsPath = sdkHome.resolve("tools")
+            this.toolsPath = this.location.resolve("tools")
 
         } else {
-            sdkHome = Path.of(System.getenv("CANGJIE_HOME"))
-            this.binPath = sdkHome.resolve("bin")
-            this.toolsPath = sdkHome.resolve("tools")
+
+//            TODO 是否需要获取仓颉环境变量
+
+
+//            this.location = Path.of(System.getenv("CANGJIE_HOME"))
+//            this.binPath = this.location.resolve("bin")
+//            this.toolsPath = this.location.resolve("tools")
+            this.binPath = location
+            this.toolsPath = location
         }
 
     }
@@ -99,7 +105,7 @@ abstract class CjToolchainBase(location: Path) {
         }
         val map = mutableMapOf<String, String>()
 
-        val sdkHome = this.sdkHome.systemIndependentPath
+        val sdkHome = this.location.systemIndependentPath
         map["LD_LIBRARY_PATH"] =
             "${sdkHome}/runtime/lib/${runtimeLlvm}$separator${System.getenv("LD_LIBRARY_PATH") ?: ""}"
         map["PATH"] =
@@ -123,7 +129,8 @@ abstract class CjToolchainBase(location: Path) {
 
     abstract fun hasCjpmExecutable(exec: String): Boolean
 
-    fun looksLikeValidToolchain(): Boolean = CjToolchainFlavor.getFlavor(sdkHome) != null
+    abstract val platformType: String
+    fun looksLikeValidToolchain(): Boolean = CjToolchainFlavor.getFlavor(location) != null
 
     abstract fun patchCommandLine(commandLine: GeneralCommandLine): GeneralCommandLine
 
@@ -135,6 +142,17 @@ abstract class CjToolchainBase(location: Path) {
 
     abstract fun getExecutableName(toolName: String): String
 
+    override fun toString(): String {
+        return "Platform: $platformType, Location: $location"
+    }
+
+    override fun hashCode(): Int {
+        return location.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other.hashCode() == this.hashCode()
+    }
 
     fun pathToCjpmExecutable(toolName: String): Path {
 
@@ -189,10 +207,31 @@ abstract class CjToolchainBase(location: Path) {
 
     }
 
+    fun toSerializedString(): String {
+
+        return "$platformType::::$location"
+
+    }
+
 
     companion object {
 
-        val MIN_SUPPORTED_TOOLCHAIN = "0.45.2".parseSemVer()
+        val MIN_SUPPORTED_TOOLCHAIN = "0.53.4".parseSemVer()
+
+
+        fun fromSerializedString(serializedString: String): CjToolchainBase? {
+
+            val (platform, location) = serializedString.split("::::")
+
+//            TODO 扩展点选择的平台是什么？
+            return CjToolchainProvider.getToolchain(Paths.get(location))
+
+//            return when (platform) {
+//                "loacl" -> CjLocalToolchain(location.toPath())
+//
+//                else -> null
+//            }
+        }
 
         @JvmOverloads
         fun suggest(projectDir: Path? = null): CjToolchainBase? {

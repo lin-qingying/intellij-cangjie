@@ -1,6 +1,6 @@
 package com.huawei.cangjie.cjpm.runconfig.command
 
-import com.huawei.cangjie.idea.actions.runAnything.cjpm.CjpmRunAnythingProvider.Companion.HELP_COMMAND
+import com.huawei.cangjie.ide.actions.runAnything.cjpm.CjpmRunAnythingProvider.Companion.HELP_COMMAND
 import com.intellij.ide.actions.runAnything.RunAnythingManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 

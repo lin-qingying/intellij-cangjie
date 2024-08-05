@@ -1,15 +1,12 @@
 package com.huawei.cangjie.dapDebugger.runconfig
 
 import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
-import com.huawei.cangjie.idea.run.cjpm.runconfig.CjProcessHandler
 import com.huawei.cangjie.utils.getSavePluginVersion
 import com.huawei.cangjie.utils.savePluginVersion
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.execution.process.BaseProcessHandler
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.systemIndependentPath
 
@@ -107,9 +104,9 @@ object CangJieDebuggerServerManager {
             addParameter("--debuggertype=$DEBUGGERTYPE")
             cangjieSettings.toolchain?.getEnvironment()?.let { environment.putAll(it) }
 //            environment["LD_LIBRARY_PATH"] =
-//                (cangjieSettings.toolchain?.sdkHome?.systemIndependentPath + DEFUALTLIBLLDBPATH).toSystemPath()
+//                (cangjieSettings.toolchain?.location?.systemIndependentPath + DEFUALTLIBLLDBPATH).toSystemPath()
             environment["LD_LIBRARY_PATH"] =
-                (cangjieSettings.toolchain?.sdkHome?.systemIndependentPath + DEFUALTLIBLLDBPATH)
+                (cangjieSettings.toolchain?.location?.systemIndependentPath + DEFUALTLIBLLDBPATH)
 //            //                        TODO runtime路径需要判读系统
 
         }

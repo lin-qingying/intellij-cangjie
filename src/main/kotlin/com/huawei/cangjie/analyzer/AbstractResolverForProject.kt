@@ -6,6 +6,7 @@ import com.huawei.cangjie.context.ProjectContext
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.impl.ModuleDescriptorImpl
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.utils.CangJieExceptionWithAttachments
 import com.huawei.cangjie.utils.checkWithAttachment
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -156,7 +157,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
 //            )
 //        )
     }
-    private fun checkModuleIsCorrect(moduleInfo: M) {
+        private fun checkModuleIsCorrect(moduleInfo: M) {
         if (!isCorrectModuleInfo(moduleInfo)) {
             diagnoseUnknownModuleInfo(listOf(moduleInfo))
         }
@@ -248,3 +249,55 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
 }
 
 class InvalidResolverException(message: String) : IllegalStateException(message)
+private object DiagnoseUnknownModuleInfoReporter {
+    fun report(name: String, infos: List<ModuleInfo>, allModules: Collection<ModuleInfo>): Nothing {
+        val message = "$name does not know how to resolve"
+        val error = when {
+//            name.contains(ResolverForProject.resolverForSdkName) -> errorInSdkResolver(message)
+//            name.contains(ResolverForProject.resolverForLibrariesName) -> errorInLibrariesResolver(message)
+//            name.contains(ResolverForProject.resolverForModulesName) -> {
+//                when {
+//                    infos.isEmpty() -> errorInModulesResolverWithEmptyInfos(message)
+//                    infos.size == 1 -> {
+//                        val infoAsString = infos.single().toString()
+//                        when {
+//                            infoAsString.contains("ScriptDependencies") -> errorInModulesResolverWithScriptDependencies(message)
+//                            infoAsString.contains("Library") -> errorInModulesResolverWithLibraryInfo(message)
+//                            else -> errorInModulesResolver(message)
+//                        }
+//                    }
+//
+//                    else -> errorInModulesResolver(message)
+//                }
+//            }
+//
+//            name.contains(ResolverForProject.resolverForScriptDependenciesName) -> errorInScriptDependenciesInfoResolver(message)
+//            name.contains(ResolverForProject.resolverForSpecialInfoName) -> {
+//                when {
+//                    name.contains("ScriptModuleInfo") -> errorInScriptModuleInfoResolver(message)
+//                    else -> errorInSpecialModuleInfoResolver(message)
+//                }
+//            }
+
+            else -> otherError(message)
+        }
+
+        throw error.withAttachment("infos.txt", infos).withAttachment("allModules.txt", allModules)
+    }
+
+    // Do not inline 'error*'-methods, they are needed to avoid Exception Analyzer merging those AssertionErrors
+
+    private fun errorInSdkResolver(message: String) = CangJieExceptionWithAttachments(message)
+    private fun errorInLibrariesResolver(message: String) = CangJieExceptionWithAttachments(message)
+    private fun errorInModulesResolver(message: String) = CangJieExceptionWithAttachments(message)
+
+    private fun errorInModulesResolverWithEmptyInfos(message: String) = CangJieExceptionWithAttachments(message)
+    private fun errorInModulesResolverWithScriptDependencies(message: String) = CangJieExceptionWithAttachments(message)
+    private fun errorInModulesResolverWithLibraryInfo(message: String) = CangJieExceptionWithAttachments(message)
+
+    private fun errorInScriptDependenciesInfoResolver(message: String) = CangJieExceptionWithAttachments(message)
+    private fun errorInScriptModuleInfoResolver(message: String) = CangJieExceptionWithAttachments(message)
+    private fun errorInSpecialModuleInfoResolver(message: String) = CangJieExceptionWithAttachments(message)
+
+    private fun otherError(message: String) = CangJieExceptionWithAttachments(message)
+}

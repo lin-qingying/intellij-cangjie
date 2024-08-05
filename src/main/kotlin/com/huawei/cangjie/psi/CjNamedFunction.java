@@ -1,7 +1,6 @@
 package com.huawei.cangjie.psi;
 
 import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
 import com.huawei.cangjie.psi.stubs.CangJieFunctionStub;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 import com.intellij.lang.ASTNode;
@@ -29,7 +28,7 @@ public class CjNamedFunction extends CjFunctionImpl {
 //        return mayHaveContract(true);
 //    }
 
-//    public bool mayHaveContract(bool isAllowedOnMembers) {
+    //    public bool mayHaveContract(bool isAllowedOnMembers) {
 //        CangJieFunctionStub stub = getStub();
 //        if (stub != null) {
 //            return stub.mayHaveContract();
@@ -80,7 +79,7 @@ public class CjNamedFunction extends CjFunctionImpl {
     @Override
     @Nullable
     public PsiElement getEqualsToken() {
-        return findChildByType(CjTokens.EQ);
+        return super.getEqualsToken();
     }
 
     @Override
@@ -102,7 +101,7 @@ public class CjNamedFunction extends CjFunctionImpl {
     @Override
     @Nullable
     public CjParameterList getValueParameterList() {
-        return getStubOrPsiChild(CjStubElementTypes.VALUE_PARAMETER_LIST);
+        return super.getValueParameterList();
     }
 
     @Override
@@ -115,40 +114,15 @@ public class CjNamedFunction extends CjFunctionImpl {
     @Override
     @Nullable
     public CjExpression getBodyExpression() {
-        CangJieFunctionStub stub = getStub();
-        if (stub != null) {
-            if (!stub.hasBody()) {
-                return null;
-            }
-            if (getContainingCjFile().isCompiled()) {
 
-                return null;
-            }
-        }
-
-        return findChildByClass(CjExpression.class);
+        return super.getBodyExpression();
     }
 
     @Nullable
     @Override
     public CjBlockExpression getBodyBlockExpression() {
-        CangJieFunctionStub stub = getStub();
-        if (stub != null) {
-            if (!(stub.hasBlockBody() && stub.hasBody())) {
-                return null;
-            }
-            if (getContainingCjFile().isCompiled()) {
 
-                return null;
-            }
-        }
-
-        CjExpression bodyExpression = findChildByClass(CjExpression.class);
-        if (bodyExpression instanceof CjBlockExpression) {
-            return (CjBlockExpression) bodyExpression;
-        }
-
-        return null;
+        return super.getBodyBlockExpression();
     }
 
     @Override
@@ -218,16 +192,7 @@ public class CjNamedFunction extends CjFunctionImpl {
     @Override
     @Nullable
     public CjTypeReference getTypeReference() {
-        CangJieFunctionStub stub = getStub();
-        if (stub != null) {
-            List<CjTypeReference> typeReferences = getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_REFERENCE);
-            int returnTypeIndex = stub.isExtension() ? 1 : 0;
-            if (returnTypeIndex >= typeReferences.size()) {
-                return null;
-            }
-            return typeReferences.get(returnTypeIndex);
-        }
-        return TypeRefHelpersKt.getTypeReference(this);
+        return super.getTypeReference();
     }
 
     @Override
@@ -237,18 +202,10 @@ public class CjNamedFunction extends CjFunctionImpl {
     }
 
 
-
-
     @Nullable
     @Override
     public PsiElement getColon() {
-        return findChildByType(CjTokens.COLON);
-    }
-
-    @Override
-    public boolean isLocal() {
-        PsiElement parent = getParent();
-        return !(parent instanceof CjFile || parent instanceof CjClassBody);
+        return super.getColon();
     }
 
     public boolean isAnonymous() {
@@ -256,15 +213,9 @@ public class CjNamedFunction extends CjFunctionImpl {
     }
 
     public boolean isTopLevel() {
-        CangJieFunctionStub stub = getStub();
-        if (stub != null) {
-            return stub.isTopLevel();
-        }
 
-        return getParent() instanceof CjFile;
+        return super.isTopLevel();
     }
-
-
 
 
 }

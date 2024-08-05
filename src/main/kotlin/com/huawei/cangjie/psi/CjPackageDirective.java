@@ -33,7 +33,7 @@ public class CjPackageDirective extends CjModifierListOwnerStub<CangJiePlaceHold
 
     @Override
     public String toString() {
-        return getNode().getElementType().toString();
+        return super.toString();
     }
 
     @Nullable
@@ -148,7 +148,7 @@ public class CjPackageDirective extends CjModifierListOwnerStub<CangJiePlaceHold
     private String getQualifiedNameOf(@Nullable CjSimpleNameExpression nameExpression) {
         StringBuilder builder = new StringBuilder();
         for (CjSimpleNameExpression e : getPackageNames()) {
-            if (builder.length() > 0) {
+            if (!builder.isEmpty()) {
                 builder.append(".");
             }
             builder.append(e.getReferencedName());

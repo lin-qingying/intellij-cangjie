@@ -1,5 +1,6 @@
 package com.huawei.cangjie.lexer;
 
+import com.huawei.cangjie.CjNodeTypes;
 import com.huawei.cangjie.doc.lexer.CDocTokens;
 import com.intellij.lang.BracePair;
 import com.intellij.psi.TokenType;
@@ -15,7 +16,7 @@ public interface CjTokens {
     int SHEBANG_COMMENT_Id = 5;
     int INTEGER_LITERAL_Id = 6;
     int FLOAT_LITERAL_Id = 7;
-    int CHARACTER_LITERAL_Id = 8;
+    int RUNE_LITERAL_Id = 8;
     int CLOSING_QUOTE_Id = 9;
     int OPEN_QUOTE_Id = 10;
     int REGULAR_STRING_PART_Id = 11;
@@ -116,7 +117,7 @@ public interface CjTokens {
     int COMMA_Id = 96;
     int EOL_OR_SEMICOLON_Id = 97;
     int ELVIS_Id = 98;
-
+    int PIPELINE_Id = 99;
     int WHERE_KEYWORD_Id = 106;
     //    int BY_KEYWORD_Id = 107;
     int GET_KEYWORD_Id = 108;
@@ -154,7 +155,8 @@ public interface CjTokens {
     int FOREIGN_KEYWORD_Id = 132;
     int UNSAFE_KEYWORD_Id = 133;
     int OPERATOR_KEYWORD_Id = 141;
-
+    int INTERNAL_KEYWORD_Id = 142;
+    int QUOTE_KEYWORD_Id = 143;
     int HASH_Id = 94;
     int MAIN_KEYWORD_Id = 149;
 
@@ -174,26 +176,45 @@ public interface CjTokens {
 
     int LTCOLON_Id = 163;
 
-    int FROM_KEYWORD_Id = 164;
 
     int MUT_KEYWORD_Id = 165;
     int PROP_KEYWORD_Id = 166;
 
     int UNDERLINE_Id = 167;
 
-    int OREQ_Id = 168;
+    int OR_EQ_Id = 168;
     int ANDEQ_Id = 169;
     int XOREQ_Id = 170;
     int LTLT_Id = 171;
     int GTGT_Id = 172;
-    int LTLTEQ_Id = 173;
+    int LT_LT_EQ_Id = 173;
     int GTGTEQ_Id = 174;
 
     int MULMUL_Id = 175;
-    int MULMULEQ_Id = 176;
+    int MUL_MUL_EQ_Id = 176;
+    int OR_OR_EQ_Id = 177;
+    int ELLIPSIS_Id = 178;
+    int BACKSLASH_Id = 179;
+    int QUOTESYMBOL_Id = 180;
+    int DOLLAR_Id = 181;
+    int FLOAT16_Id = 182;
+    int INTNATIVE_Id = 183;
+    int UINTNATIVE_Id = 184;
+    int NOTHING_Id = 185;
+
+    int MACRO_KEYWORD_Id = 186;
+
+
+    int ESCAPE_LPAR_Id = 187;
+    int ESCAPE_RPAR_Id = 187;
+    int ESCAPE_DOLLAR_Id = 187;
+    int ESCAPE_LBRACKET_Id = 188;
+    int ESCAPE_RBRACKET_Id = 189;
 
 
     CjSingleValueToken HASH = new CjSingleValueToken("HASH", "#", HASH_Id);
+    CjSingleValueToken QUOTESYMBOL = new CjSingleValueToken("QUOTESYMBOL", "`", QUOTESYMBOL_Id);
+    CjSingleValueToken DOLLAR = new CjSingleValueToken("DOLLAR", "$", DOLLAR_Id);
 
     CjToken EOF = new CjToken("EOF", EOF_Id);
 
@@ -202,19 +223,13 @@ public interface CjTokens {
     CjToken EOL_COMMENT = new CjToken("EOL_COMMENT", EOL_COMMENT_Id);
     CjToken SHEBANG_COMMENT = new CjToken("SHEBANG_COMMENT", SHEBANG_COMMENT_Id);
 
-    IElementType DOC_COMMENT = CDocTokens.CDOC;
-
-    IElementType WHITE_SPACE = TokenType.WHITE_SPACE;
-
     CjToken INTEGER_LITERAL = new CjToken("INTEGER_LITERAL", INTEGER_LITERAL_Id);
     CjToken FLOAT_LITERAL = new CjToken("FLOAT_CONSTANT", FLOAT_LITERAL_Id);
-
     CjToken UNIT_LTIERAL = new CjToken("UNIT_LTIERAL", UNIT_LTIERAL_Id);
     CjToken TUPLE_LTIERAL = new CjToken("TUPLE_LTIERAL", TUPLE_LTIERAL_Id);
-    CjToken CHARACTER_LITERAL = new CjToken("CHARACTER_LITERAL", CHARACTER_LITERAL_Id);
+    CjToken RUNE_LITERAL = new CjToken("RUNE_LITERAL", RUNE_LITERAL_Id);
     CjToken CHARACTER_BYTE_LITERAL = new CjToken("CHARACTER_BYTE_LITERAL", CHARACTER_BYTE_LITERAL_Id);
     CjToken SHOP_STRING = new CjToken("SHOP_STRING", SHOP_STRING_Id);
-
     CjToken CLOSING_QUOTE = new CjToken("CLOSING_QUOTE", CLOSING_QUOTE_Id);
     CjToken OPEN_QUOTE = new CjToken("OPEN_QUOTE", OPEN_QUOTE_Id);
     CjToken REGULAR_STRING_PART = new CjToken("REGULAR_STRING_PART", REGULAR_STRING_PART_Id);
@@ -223,14 +238,11 @@ public interface CjTokens {
     CjToken LONG_TEMPLATE_ENTRY_START = new CjToken("LONG_TEMPLATE_ENTRY_START", LONG_TEMPLATE_ENTRY_START_Id);
     CjToken LONG_TEMPLATE_ENTRY_END = new CjToken("LONG_TEMPLATE_ENTRY_END", LONG_TEMPLATE_ENTRY_END_Id);
     CjToken DANGLING_NEWLINE = new CjToken("DANGLING_NEWLINE", DANGLING_NEWLINE_Id);
-
     CjKeywordToken PACKAGE_KEYWORD = CjKeywordToken.keyword("package", PACKAGE_KEYWORD_Id);
     CjKeywordToken AS_KEYWORD = CjKeywordToken.keyword("as", AS_KEYWORD_Id);
     CjKeywordToken CLASS_KEYWORD = CjKeywordToken.keyword("class", CLASS_KEYWORD_Id);
     CjKeywordToken EXTEND_KEYWORD = CjKeywordToken.keyword("extend", EXTEND_KEYWORD_Id);
-
     CjKeywordToken ENUM_KEYWORD = CjKeywordToken.keyword("enum", ENUM_KEYWORD_Id);
-
     CjKeywordToken STRUCT_KEYWORD = CjKeywordToken.keyword("struct", STRUCT_KEYWORD_Id);
     CjKeywordToken THIS_KEYWORD = CjKeywordToken.keyword("this", THIS_KEYWORD_Id);
     CjKeywordToken SUPER_KEYWORD = CjKeywordToken.keyword("super", SUPER_KEYWORD_Id);
@@ -242,7 +254,6 @@ public interface CjTokens {
     CjKeywordToken MAIN_KEYWORD = CjKeywordToken.keyword("main", MAIN_KEYWORD_Id);
     CjKeywordToken FUNC_KEYWORD = CjKeywordToken.keyword("func", FUNC_KEYWORD_Id);
     CjKeywordToken FOR_KEYWORD = CjKeywordToken.keyword("for", FOR_KEYWORD_Id);
-
     CjKeywordToken TRUE_KEYWORD = CjKeywordToken.keyword("true", TRUE_KEYWORD_Id);
     CjKeywordToken FALSE_KEYWORD = CjKeywordToken.keyword("false", FALSE_KEYWORD_Id);
     CjKeywordToken IS_KEYWORD = CjKeywordToken.keyword("is", IS_KEYWORD_Id);
@@ -251,26 +262,18 @@ public interface CjTokens {
     CjKeywordToken RETURN_KEYWORD = CjKeywordToken.keyword("return", RETURN_KEYWORD_Id);
     CjKeywordToken BREAK_KEYWORD = CjKeywordToken.keyword("break", BREAK_KEYWORD_Id);
     CjKeywordToken CONTINUE_KEYWORD = CjKeywordToken.keyword("continue", CONTINUE_KEYWORD_Id);
-
     CjKeywordToken IF_KEYWORD = CjKeywordToken.keyword("if", IF_KEYWORD_Id);
     CjKeywordToken TRY_KEYWORD = CjKeywordToken.keyword("try", TRY_KEYWORD_Id);
     CjKeywordToken ELSE_KEYWORD = CjKeywordToken.keyword("else", ELSE_KEYWORD_Id);
     CjKeywordToken WHILE_KEYWORD = CjKeywordToken.keyword("while", WHILE_KEYWORD_Id);
     CjKeywordToken DO_KEYWORD = CjKeywordToken.keyword("do", DO_KEYWORD_Id);
     CjKeywordToken MATCH_KEYWORD = CjKeywordToken.keyword("match", MATCH_KEYWORD_Id);
-
     CjKeywordToken CASE_KEYWORD = CjKeywordToken.keyword("case", CASE_KEYWORD_Id);
     CjKeywordToken INTERFACE_KEYWORD = CjKeywordToken.keyword("interface", INTERFACE_KEYWORD_Id);
-
-
-    CjSingleValueToken UNDERLINE = new CjSingleValueToken("UNDERLINE","_", UNDERLINE_Id);
-
+    //    CjToken AS_SAFE = CjKeywordToken.keyword("AS_SAFE", IMPORT_KEYWORD_Id);
+    CjSingleValueToken UNDERLINE = new CjSingleValueToken("UNDERLINE", "_", UNDERLINE_Id);
     CjKeywordToken TYPEOF_KEYWORD = CjKeywordToken.keyword("typeof", TYPEOF_KEYWORD_Id);
-
-//    CjToken AS_SAFE = CjKeywordToken.keyword("AS_SAFE", IMPORT_KEYWORD_Id);
-
     CjToken IDENTIFIER = new CjToken("IDENTIFIER", IDENTIFIER_Id);
-
     CjToken FIELD_IDENTIFIER = new CjToken("FIELD_IDENTIFIER", FIELD_IDENTIFIER_Id);
     CjSingleValueToken LBRACKET = new CjSingleValueToken("LBRACKET", "[", LBRACKET_Id);
     CjSingleValueToken RBRACKET = new CjSingleValueToken("RBRACKET", "]", RBRACKET_Id);
@@ -278,12 +281,17 @@ public interface CjTokens {
     CjSingleValueToken RBRACE = new CjSingleValueToken("RBRACE", "}", RBRACE_Id);
     CjSingleValueToken LPAR = new CjSingleValueToken("LPAR", "(", LPAR_Id);
     CjSingleValueToken RPAR = new CjSingleValueToken("RPAR", ")", RPAR_Id);
+    CjSingleValueToken ESCAPE_LPAR = new CjSingleValueToken("ESCAPE_LPAR", "\\(", ESCAPE_LPAR_Id);
+    CjSingleValueToken ESCAPE_RPAR = new CjSingleValueToken("ESCAPE_RPAR", "\\)", ESCAPE_RPAR_Id);
+    CjSingleValueToken ESCAPE_DOLLAR = new CjSingleValueToken("ESCAPE_DOLLAR", "\\$", ESCAPE_DOLLAR_Id);
+    CjSingleValueToken ESCAPE_LBRACKET = new CjSingleValueToken("ESCAPE_LBRACKET", "\\]", ESCAPE_LBRACKET_Id);
+    CjSingleValueToken ESCAPE_RBRACKET = new CjSingleValueToken("ESCAPE_RBRACKET", "\\[", ESCAPE_RBRACKET_Id);
     CjSingleValueToken DOT = new CjSingleValueToken("DOT", ".", DOT_Id);
     CjSingleValueToken PLUSPLUS = new CjSingleValueToken("PLUSPLUS", "++", PLUSPLUS_Id);
     CjSingleValueToken MINUSMINUS = new CjSingleValueToken("MINUSMINUS", "--", MINUSMINUS_Id);
     CjSingleValueToken MUL = new CjSingleValueToken("MUL", "*", MUL_Id);
     CjSingleValueToken MULMUL = new CjSingleValueToken("MULMUL", "**", MULMUL_Id);
-    CjSingleValueToken MULMULEQ = new CjSingleValueToken("MULMULEQ", "**=", MULMULEQ_Id);
+    CjSingleValueToken MULMULEQ = new CjSingleValueToken("MULMULEQ", "**=", MUL_MUL_EQ_Id);
     CjSingleValueToken PLUS = new CjSingleValueToken("PLUS", "+", PLUS_Id);
     CjSingleValueToken MINUS = new CjSingleValueToken("MINUS", "-", MINUS_Id);
     CjSingleValueToken EXCL = new CjSingleValueToken("EXCL", "!", EXCL_Id);
@@ -291,10 +299,19 @@ public interface CjTokens {
     CjSingleValueToken PERC = new CjSingleValueToken("PERC", "%", PERC_Id);
     CjSingleValueToken LT = new CjSingleValueToken("LT", "<", LT_Id);
     CjSingleValueToken GT = new CjSingleValueToken("GT", ">", GT_Id);
+    BracePair[] BRACE_PAIRS = new BracePair[]{
+            new BracePair(LPAR, RPAR, true),
+            new BracePair(LBRACE, RBRACE, true),
+            new BracePair(LBRACKET, RBRACKET, true),
+            new BracePair(LT, GT, true),
+
+            new BracePair(LONG_TEMPLATE_ENTRY_START, LONG_TEMPLATE_ENTRY_END, false),
+
+    };
     CjSingleValueToken LTEQ = new CjSingleValueToken("LTEQ", "<=", LTEQ_Id);
     CjSingleValueToken AT = new CjSingleValueToken("AT", "@", AT_Id);
-    CjSingleValueToken GTEQ = new CjSingleValueToken("GTEQ", ">=", GTEQ_Id);
-    CjSingleValueToken LTCOLON = new CjSingleValueToken("LTCOLON", "<:", LTCOLON_Id);
+    CjSingleValueToken GT_EQ = new CjSingleValueToken("GT_EQ", ">=", GTEQ_Id);
+    CjSingleValueToken LT_COLON = new CjSingleValueToken("LT_COLON", "<:", LTCOLON_Id);
     CjSingleValueToken ARROW = new CjSingleValueToken("ARROW", "->", ARROW_Id);
     CjSingleValueToken COMPOSITION = new CjSingleValueToken("COMPOSITION", "~>", COMPOSITION_Id);
     //反向箭头composition
@@ -302,72 +319,107 @@ public interface CjTokens {
     CjSingleValueToken SAFE_INDEXEX = new CjSingleValueToken("SAFE_INDEXEX", "?[", SAFE_INDEXEX_Id);
     CjSingleValueToken SAFE_CALL = new CjSingleValueToken("SAFE_CALL", "?(", SAFE_CALL_Id);
     CjSingleValueToken SAFE_LAMBDA = new CjSingleValueToken("SAFE_LAMBDA", "?{", SAFE_LAMBDA_Id);
-
+    CjSingleValueToken BACKSLASH = new CjSingleValueToken("BACKSLASH", "\\", BACKSLASH_Id);
     CjSingleValueToken LEFT_ARROW = new CjSingleValueToken("LEFT_ARROW", "<-", LEFT_ARROW_Id);
     CjSingleValueToken DOUBLE_ARROW = new CjSingleValueToken("DOUBLE_ARROW", "=>", DOUBLE_ARROW_Id);
     CjSingleValueToken EQEQ = new CjSingleValueToken("EQEQ", "==", EQEQ_Id);
     CjSingleValueToken EXCLEQ = new CjSingleValueToken("EXCLEQ", "!=", EXCLEQ_Id);
     CjSingleValueToken ANDAND = new CjSingleValueToken("ANDAND", "&&", ANDAND_Id);
     CjSingleValueToken AND = new CjSingleValueToken("AND", "&", AND_Id);
-
     CjSingleValueToken TILDE = new CjSingleValueToken("TILDE", "~", TILED_Id);
-
-
+    CjSingleValueToken PIPELINE = new CjSingleValueToken("PIPELINE", "|>", PIPELINE_Id);
     CjSingleValueToken XOR = new CjSingleValueToken("XOR", "^", XOR_Id);
     CjSingleValueToken OROR = new CjSingleValueToken("OROR", "||", OROR_Id);
     CjSingleValueToken OR = new CjSingleValueToken("OR", "|", OR_Id);
     CjSingleValueToken QUEST = new CjSingleValueToken("QUEST", "?", QUEST_Id);
-
-
-//    CjSingleValueToken QUESTQUEST = new CjSingleValueToken("QUEST", "??", ELVIS_Id);
-    CjSingleValueToken ELVIS       = new CjSingleValueToken("ELVIS", "??", ELVIS_Id);
-
-
+    //    CjSingleValueToken QUESTQUEST = new CjSingleValueToken("QUEST", "??", ELVIS_Id);
+    CjSingleValueToken ELVIS = new CjSingleValueToken("ELVIS", "??", ELVIS_Id);
     CjSingleValueToken COLON = new CjSingleValueToken("COLON", ":", COLON_Id);
     CjSingleValueToken SEMICOLON = new CjSingleValueToken("SEMICOLON", ";", SEMICOLON_Id);
     CjSingleValueToken DOUBLE_SEMICOLON = new CjSingleValueToken("DOUBLE_SEMICOLON", ";;", DOUBLE_SEMICOLON_Id);
     CjSingleValueToken RANGE = new CjSingleValueToken("RANGE", "..", RANGE_Id);
+    CjSingleValueToken ELLIPSIS = new CjSingleValueToken("ELLIPSIS", "...", ELLIPSIS_Id);
     CjSingleValueToken RANGEEQ = new CjSingleValueToken("RANGEEQ", "..=", RANGEEQ_Id);
-
     CjSingleValueToken EQ = new CjSingleValueToken("EQ", "=", EQ_Id);
     CjSingleValueToken MULTEQ = new CjSingleValueToken("MULTEQ", "*=", MULTEQ_Id);
     CjSingleValueToken DIVEQ = new CjSingleValueToken("DIVEQ", "/=", DIVEQ_Id);
     CjSingleValueToken PERCEQ = new CjSingleValueToken("PERCEQ", "%=", PERCEQ_Id);
     CjSingleValueToken PLUSEQ = new CjSingleValueToken("PLUSEQ", "+=", PLUSEQ_Id);
     CjSingleValueToken MINUSEQ = new CjSingleValueToken("MINUSEQ", "-=", MINUSEQ_Id);
+    TokenSet ALL_ASSIGNMENTS = TokenSet.create(EQ, PLUSEQ, MINUSEQ, MULTEQ, PERCEQ, DIVEQ);
     CjSingleValueToken ANDANDEQ = new CjSingleValueToken("ANDANDEQ", "&&=", ANDANDEQ_Id);
-
-
-    CjSingleValueToken OREQ = new CjSingleValueToken("OREQ", "|=", OREQ_Id);
+    CjSingleValueToken OR_EQ = new CjSingleValueToken("OR_EQ", "|=", OR_EQ_Id);
+    CjSingleValueToken OR_OR_EQ = new CjSingleValueToken("OR_OR_EQ", "||=", OR_OR_EQ_Id);
     CjSingleValueToken ANDEQ = new CjSingleValueToken("ANDEQ", "&=", ANDEQ_Id);
     CjSingleValueToken XOREQ = new CjSingleValueToken("XOREQ", "^=", XOREQ_Id);
-
+    //    CjKeywordToken FILE_KEYWORD = CjKeywordToken.softKeyword("file", FILE_KEYWORD_Id);
     CjSingleValueToken LTLT = new CjSingleValueToken("LTLT", "<<", LTLT_Id);
     CjSingleValueToken GTGT = new CjSingleValueToken("GTGT", ">>", GTGT_Id);
-    CjSingleValueToken LTLTEQ = new CjSingleValueToken("LTLTEQ", "<<=", LTLTEQ_Id);
+    //可以被重载的运算符
+    TokenSet OPERATIONS_CAN_BE_OVERLOADED = TokenSet.orSet(
+
+
+            TokenSet.create(
+                    LBRACKET, RBRACKET
+            ),
+            TokenSet.create(
+                    LPAR, RPAR
+            ),
+
+            TokenSet.create(
+
+
+                    OR,
+                    MULMUL,
+                    MUL,
+                    DIV,
+                    PERC,
+
+                    PLUS,
+                    MINUS,
+                    GT,
+                    GTGT,
+                    LT,
+                    LTLT,
+                    GT_EQ,
+                    LTEQ,
+                    EQEQ,
+                    EXCLEQ,
+                    AND,
+                    OROR,
+                    XOR,
+                    ANDAND,
+                    RANGE,
+                    OR_EQ,
+                    EXCL
+
+            )
+    );
+    IElementType DOC_COMMENT = CDocTokens.CDOC;
+    IElementType WHITE_SPACE = TokenType.WHITE_SPACE;
+    TokenSet WHITESPACES = TokenSet.create(TokenType.WHITE_SPACE);
+    CjSingleValueToken LT_LT_EQ = new CjSingleValueToken("LT_LT_EQ", "<<=", LT_LT_EQ_Id);
     CjSingleValueToken GTGTEQ = new CjSingleValueToken("GTGTEQ", ">>=", GTGTEQ_Id);
+    TokenSet OPERATIONS = TokenSet.create(AS_KEYWORD, IS_KEYWORD, DOT, PLUSPLUS, MINUSMINUS, MUL, MULMUL, PLUS,
+            MINUS, EXCL, DIV, PERC, LT, GT, LTEQ, GT_EQ, EQEQ, EXCLEQ, ANDAND, OROR, MULMULEQ,
 
+            RANGE, RANGEEQ, EQ, MULTEQ, DIVEQ, PERCEQ, PLUSEQ, MINUSEQ,
+            ELVIS, SAFE_ACCESS,
+            AND, OR, XOR,
+            ANDEQ, OR_EQ, XOREQ, ANDANDEQ,
+            LTLT, GTGT, LT_LT_EQ, GTGTEQ,
 
+            COMPOSITION,PIPELINE
+    );
     CjSingleValueToken COMMA = new CjSingleValueToken("COMMA", ",", COMMA_Id);
-
     CjToken EOL_OR_SEMICOLON = new CjToken("EOL_OR_SEMICOLON", EOL_OR_SEMICOLON_Id);
-//    CjKeywordToken FILE_KEYWORD = CjKeywordToken.softKeyword("file", FILE_KEYWORD_Id);
-
-
     CjKeywordToken IMPORT_KEYWORD = CjKeywordToken.keyword("import", IMPORT_KEYWORD_Id);
-
-
-    CjKeywordToken FROM_KEYWORD = CjKeywordToken.keyword("from", FROM_KEYWORD_Id);
     CjKeywordToken WHERE_KEYWORD = CjKeywordToken.keyword("where", WHERE_KEYWORD_Id);
     //    CjKeywordToken BY_KEYWORD = CjKeywordToken.softKeyword("by", BY_KEYWORD_Id);
     CjKeywordToken GET_KEYWORD = CjKeywordToken.softKeyword("get", GET_KEYWORD_Id);
     CjKeywordToken SET_KEYWORD = CjKeywordToken.softKeyword("set", SET_KEYWORD_Id);
-
     CjKeywordToken INIT_KEYWORD = CjKeywordToken.keyword("init", INIT_KEYWORD_Id);
-
-
     CjKeywordToken PROP_KEYWORD = CjKeywordToken.keyword("prop", PROP_KEYWORD_Id);
-
     CjKeywordToken INT8_KEYWORD = CjKeywordToken.keyword("Int8", INT8_Id);
     CjKeywordToken INT16_KEYWORD = CjKeywordToken.keyword("Int16", INT16_Id);
     CjKeywordToken INT32_KEYWORD = CjKeywordToken.keyword("Int32", INT32_Id);
@@ -376,49 +428,83 @@ public interface CjTokens {
     CjKeywordToken UINT16_KEYWORD = CjKeywordToken.keyword("UInt16", UINT16_Id);
     CjKeywordToken UINT32_KEYWORD = CjKeywordToken.keyword("UInt32", UINT32_Id);
     CjKeywordToken UINT64_KEYWORD = CjKeywordToken.keyword("UInt64", UINT64_Id);
-    CjKeywordToken FLOAT16_KEYWORD = CjKeywordToken.keyword("Float16", FLOAT32_Id);
-
     CjKeywordToken FLOAT32_KEYWORD = CjKeywordToken.keyword("Float32", FLOAT32_Id);
     CjKeywordToken FLOAT64_KEYWORD = CjKeywordToken.keyword("Float64", FLOAT64_Id);
+    CjKeywordToken FLOAT16_KEYWORD = CjKeywordToken.keyword("Float16", FLOAT16_Id);
+    CjKeywordToken INTNATIVE_KEYWORD = CjKeywordToken.keyword("IntNative", INTNATIVE_Id);
+    CjKeywordToken UINTNATIVE_KEYWORD = CjKeywordToken.keyword("UIntNative", UINTNATIVE_Id);
+    CjKeywordToken NOTHING_KEYWORD = CjKeywordToken.keyword("Nothing", NOTHING_Id);
     CjKeywordToken BOOL_KEYWORD = CjKeywordToken.keyword("Bool", BOOL_Id);
-    CjKeywordToken CHAR_KEYWORD = CjKeywordToken.keyword("Char", CHAR_Id);
+    CjKeywordToken RUNE_KEYWORD = CjKeywordToken.keyword("Rune", CHAR_Id);
     CjKeywordToken UNIT_KEYWORD = CjKeywordToken.keyword("Unit", UNIT_Id);
-
+    //基本类型
+    TokenSet BASICTYPES = TokenSet.create(
+            INT8_KEYWORD, INT16_KEYWORD, INT32_KEYWORD, INT64_KEYWORD, UINT8_KEYWORD, UINT16_KEYWORD, UINT32_KEYWORD, UINT64_KEYWORD, FLOAT32_KEYWORD, FLOAT64_KEYWORD, BOOL_KEYWORD, RUNE_KEYWORD, UNIT_KEYWORD
+    );
     CjModifierKeywordToken SEALED_KEYWORD = CjModifierKeywordToken.softKeywordModifier("sealed", SEALED_KEYWORD_Id);
-
     CjModifierKeywordToken ABSTRACT_KEYWORD = CjModifierKeywordToken.softKeywordModifier("abstract", ABSTRACT_KEYWORD_Id);
     CjModifierKeywordToken OPEN_KEYWORD = CjModifierKeywordToken.softKeywordModifier("open", OPEN_KEYWORD_Id);
+    TokenSet SOFT_KEYWORDS = TokenSet.create(GET_KEYWORD,
+            SET_KEYWORD, OPEN_KEYWORD,
+            ABSTRACT_KEYWORD,
+            SEALED_KEYWORD
 
+    );
     CjModifierKeywordToken OVERRIDE_KEYWORD = CjModifierKeywordToken.keywordModifier("override", OVERRIDE_KEYWORD_Id);
     CjModifierKeywordToken PRIVATE_KEYWORD = CjModifierKeywordToken.keywordModifier("private", PRIVATE_KEYWORD_Id);
     CjModifierKeywordToken PUBLIC_KEYWORD = CjModifierKeywordToken.keywordModifier("public", PUBLIC_KEYWORD_Id);
     CjModifierKeywordToken MARCO_KEYWORD = CjModifierKeywordToken.keywordModifier("marco", MARCO_KEYWORD_Id);
-
-
     CjModifierKeywordToken STATIC_KEYWORD = CjModifierKeywordToken.keywordModifier("static", STATIC_KEYWORD_Id);
-
+    CjModifierKeywordToken INTERNAL_KEYWORD = CjModifierKeywordToken.keywordModifier("internal", INTERNAL_KEYWORD_Id);
     CjModifierKeywordToken PROTECTED_KEYWORD = CjModifierKeywordToken.keywordModifier("protected", PROTECTED_KEYWORD_Id);
+    //    Class修饰符
+    CjKeywordToken[] CLASS_MODIFIER_KEYWORDS_ARRAY = new CjKeywordToken[]{
+            OPEN_KEYWORD,
+            SEALED_KEYWORD,
+            ABSTRACT_KEYWORD,
+            PUBLIC_KEYWORD,
+            PRIVATE_KEYWORD,
+            PROTECTED_KEYWORD
+    };
+    //    接口修饰符
+    CjKeywordToken[] INTERFACE_MODIFIER_KEYWORDS_ARRAY = new CjKeywordToken[]{
+            OPEN_KEYWORD,
+            SEALED_KEYWORD,
+            PUBLIC_KEYWORD,
+            PRIVATE_KEYWORD,
+            PROTECTED_KEYWORD
+    };
+    //    结构体修饰符
+    CjKeywordToken[] STRUCT_MODIFIER_KEYWORDS_ARRAY = new CjKeywordToken[]{
+            PUBLIC_KEYWORD,
+            PRIVATE_KEYWORD,
+            PROTECTED_KEYWORD
+    };
     CjKeywordToken CATCH_KEYWORD = CjKeywordToken.keyword("catch", CATCH_KEYWORD_Id);
-
     CjKeywordToken FINALLY_KEYWORD = CjKeywordToken.keyword("finally", FINALLY_KEYWORD_Id);
-
     CjModifierKeywordToken REDEF_KEYWORD = CjModifierKeywordToken.keywordModifier("redef", REDEF_KEYWORD_Id);
+    CjKeywordToken QUOTE_KEYWORD = CjKeywordToken.keyword("quote", QUOTE_KEYWORD_Id);
 
+    //    特殊修饰符
     CjKeywordToken FOREIGN_KEYWORD = CjKeywordToken.keyword("foreign", FOREIGN_KEYWORD_Id);
     CjKeywordToken TYPE_KEYWORD = CjKeywordToken.keyword("type", TYPE_KEYWORD_Id);
-
     CjKeywordToken UNSAFE_KEYWORD = CjKeywordToken.keyword("unsafe", UNSAFE_KEYWORD_Id);
-
+    CjKeywordToken[] SPECIAL_MODIFIER_KEYWORDS_ARRAY = new CjKeywordToken[]{
+            CONST_KEYWORD,
+            FOREIGN_KEYWORD,
+            UNSAFE_KEYWORD,
+    };
+    TokenSet SPECIAL_MODIFIER_KEYWORDS = TokenSet.create(SPECIAL_MODIFIER_KEYWORDS_ARRAY);
+    //   全局函数修饰符
+    CjKeywordToken[] FUNC_GLOBAL_MODIFIER_KEYWORDS_ARRAY = new CjKeywordToken[]{
+            PUBLIC_KEYWORD,
+            FOREIGN_KEYWORD,
+            UNSAFE_KEYWORD,
+            CONST_KEYWORD
+    };
+    CjKeywordToken MACRO_KEYWORD = CjKeywordToken.keyword("macro", MACRO_KEYWORD_Id);
     CjModifierKeywordToken MUT_KEYWORD = CjModifierKeywordToken.keywordModifier("mut", MUT_KEYWORD_Id);
-
     CjModifierKeywordToken OPERATOR_KEYWORD = CjModifierKeywordToken.keywordModifier("operator", OPERATOR_KEYWORD_Id);
-
-
-    //基本类型
-    TokenSet BASICTYPES = TokenSet.create(
-            INT8_KEYWORD, INT16_KEYWORD, INT32_KEYWORD, INT64_KEYWORD, UINT8_KEYWORD, UINT16_KEYWORD, UINT32_KEYWORD, UINT64_KEYWORD,FLOAT16_KEYWORD, FLOAT32_KEYWORD, FLOAT64_KEYWORD, BOOL_KEYWORD, CHAR_KEYWORD, UNIT_KEYWORD
-    );
-
     TokenSet KEYWORDS = TokenSet.orSet(
             TokenSet.create(PACKAGE_KEYWORD, AS_KEYWORD, CLASS_KEYWORD, INTERFACE_KEYWORD,
                     THIS_KEYWORD, SUPER_KEYWORD, LET_KEYWORD, VAR_KEYWORD, CONST_KEYWORD, FUNC_KEYWORD, FOR_KEYWORD,
@@ -430,7 +516,7 @@ public interface CjTokens {
                     MARCO_KEYWORD,
                     PROP_KEYWORD, ENUM_KEYWORD,
                     WHERE_KEYWORD,
-                    FROM_KEYWORD,
+
 //            ABC_KEYWORD,
                     IMPORT_KEYWORD,
                     OVERRIDE_KEYWORD, PRIVATE_KEYWORD, PUBLIC_KEYWORD, PROTECTED_KEYWORD,
@@ -451,16 +537,7 @@ public interface CjTokens {
             ),
             BASICTYPES
     );
-
-    TokenSet SOFT_KEYWORDS = TokenSet.create(GET_KEYWORD,
-            SET_KEYWORD, OPEN_KEYWORD,
-            ABSTRACT_KEYWORD,
-            SEALED_KEYWORD
-
-    );
-
     TokenSet KEYWORDALL = TokenSet.orSet(KEYWORDS, SOFT_KEYWORDS);
-
     /*。
     此数组用于存根序列化：
     1.请勿更改顺序。
@@ -479,54 +556,7 @@ public interface CjTokens {
 //                    UNSAFE_KEYWORD,
                     REDEF_KEYWORD
             };
-
-    //    特殊修饰符
-
-    CjKeywordToken[] SPECIAL_MODIFIER_KEYWORDS_ARRAY = new CjKeywordToken[]{
-            CONST_KEYWORD,
-            FOREIGN_KEYWORD,
-            UNSAFE_KEYWORD,
-    };
-
-    //    Class修饰符
-    CjKeywordToken[] CLASS_MODIFIER_KEYWORDS_ARRAY = new CjKeywordToken[]{
-            OPEN_KEYWORD,
-            SEALED_KEYWORD,
-            ABSTRACT_KEYWORD,
-            PUBLIC_KEYWORD,
-            PRIVATE_KEYWORD,
-            PROTECTED_KEYWORD
-    };
-
-    //    接口修饰符
-    CjKeywordToken[] INTERFACE_MODIFIER_KEYWORDS_ARRAY = new CjKeywordToken[]{
-            OPEN_KEYWORD,
-            SEALED_KEYWORD,
-            PUBLIC_KEYWORD,
-            PRIVATE_KEYWORD,
-            PROTECTED_KEYWORD
-    };
-
-    //    结构体修饰符
-    CjKeywordToken[] STRUCT_MODIFIER_KEYWORDS_ARRAY = new CjKeywordToken[]{
-            PUBLIC_KEYWORD,
-            PRIVATE_KEYWORD,
-            PROTECTED_KEYWORD
-    };
-
-    //    扩展修饰符
-    CjKeywordToken[] EXTEND_MODIFIER_KEYWORDS_ARRAY = new CjKeywordToken[]{
-
-    };
-
-    //   全局函数修饰符
-    CjKeywordToken[] FUNC_GLOBAL_MODIFIER_KEYWORDS_ARRAY = new CjKeywordToken[]{
-            PUBLIC_KEYWORD,
-            FOREIGN_KEYWORD,
-            UNSAFE_KEYWORD,
-            CONST_KEYWORD
-    };
-
+    TokenSet MODIFIER_KEYWORDS = TokenSet.create(MODIFIER_KEYWORDS_ARRAY);
     //    类成员函数修饰符
     CjKeywordToken[] FUNC_CLASSMEMBER_MODIFIER_KEYWORDS_ARRAY = new CjKeywordToken[]{
             OVERRIDE_KEYWORD,
@@ -544,7 +574,6 @@ public interface CjTokens {
 
             REDEF_KEYWORD
     };
-
     //    enum成员函数
     CjKeywordToken[] FUNC_ENUMMEMBER_MODIFIER_KEYWORDS_ARRAY = new CjKeywordToken[]{
             PUBLIC_KEYWORD,
@@ -572,90 +601,28 @@ public interface CjTokens {
             MUT_KEYWORD
 
     };
+    //    扩展修饰符
+    CjKeywordToken[] EXTEND_MODIFIER_KEYWORDS_ARRAY = new CjKeywordToken[]{
 
-    TokenSet MODIFIER_KEYWORDS = TokenSet.create(MODIFIER_KEYWORDS_ARRAY);
-    TokenSet SPECIAL_MODIFIER_KEYWORDS = TokenSet.create(SPECIAL_MODIFIER_KEYWORDS_ARRAY);
-
-    TokenSet WHITESPACES = TokenSet.create(TokenType.WHITE_SPACE);
-
+    };
 
     TokenSet COMMENTS = TokenSet.create(EOL_COMMENT, BLOCK_COMMENT, DOC_COMMENT, SHEBANG_COMMENT);
     TokenSet WHITE_SPACE_OR_COMMENT_BIT_SET = TokenSet.orSet(COMMENTS, WHITESPACES);
-
-
-    TokenSet OPERATIONS = TokenSet.create(AS_KEYWORD, IS_KEYWORD, DOT, PLUSPLUS, MINUSMINUS, MUL, MULMUL, PLUS,
-            MINUS, EXCL, DIV, PERC, LT, GT, LTEQ, GTEQ, EQEQ, EXCLEQ, ANDAND, OROR, MULMULEQ,
-
-            RANGE, RANGEEQ, EQ, MULTEQ, DIVEQ, PERCEQ, PLUSEQ, MINUSEQ,
-ELVIS,COMPOSITION, SAFE_ACCESS,
-            AND, OR, XOR,
-            ANDEQ, OREQ, XOREQ,ANDANDEQ,
-            LTLT, GTGT, LTLTEQ, GTGTEQ
-    );
-
-
-    //可以被重载的运算符
-    TokenSet OPERATIONS_CAN_BE_OVERLOADED = TokenSet.orSet(
-
-
-            TokenSet.create(
-                    LBRACKET, RBRACKET
-            ),
-            TokenSet.create(
-                    LPAR, RPAR
-            ),
-
-            TokenSet.create(
-
-
-                    OR,
-                    MULMUL,
-                    MUL,
-                    DIV,
-                    PERC,
-
-                    PLUS,
-                    MINUS,
-                    GT,
-                    GTGT,
-                    LT,
-                    LTLT,
-                    GTEQ,
-                    LTEQ,
-                    EQEQ,
-                    EXCLEQ,
-                    AND,
-                    OROR,
-                    XOR,
-                    ANDAND,
-                    RANGE,
-                    OREQ,
-                    EXCL
-
-            )
-    );
-
-
-    TokenSet ALL_ASSIGNMENTS = TokenSet.create(EQ, PLUSEQ, MINUSEQ, MULTEQ, PERCEQ, DIVEQ);
-
-
-//    List<BracePair>  BRACE_PAIR_LIST = Arrays.asList(
+    //    List<BracePair>  BRACE_PAIR_LIST = Arrays.asList(
 //            new BracePair(LPAR, RPAR,true),
 //            new BracePair(LBRACE, RBRACE,true),
 //            new BracePair(LBRACKET, RBRACKET,true)
 //    );
-
-    TokenSet STRINGS = TokenSet.create(CHARACTER_LITERAL, REGULAR_STRING_PART);
-
-    BracePair[] BRACE_PAIRS = new BracePair[]{
-            new BracePair(LPAR, RPAR, true),
-            new BracePair(LBRACE, RBRACE, true),
-            new BracePair(LBRACKET, RBRACKET, true),
-            new BracePair(LT, GT, true),
-
-            new   BracePair( LONG_TEMPLATE_ENTRY_START, LONG_TEMPLATE_ENTRY_END, false),
-
-    };
+    //字面常量规则，包括整型、浮点型、字符型、布尔型、字符串等类型的基本值
+    TokenSet LITERAL_CONSTANT = TokenSet.create(
+            CjNodeTypes.STRING_TEMPLATE,
+            CjNodeTypes.RUNE_CONSTANT,
+            CjNodeTypes.UNIT_CONSTANT,
+            CjNodeTypes.BOOLEAN_CONSTANT,
+            CjNodeTypes.FLOAT_CONSTANT,
+            CjNodeTypes.INTEGER_CONSTANT,
+            CjNodeTypes.CHARACTER_BYTE_CONSTANT
+    );
 
 }
 

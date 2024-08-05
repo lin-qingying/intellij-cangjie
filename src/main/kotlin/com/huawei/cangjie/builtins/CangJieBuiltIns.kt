@@ -1,5 +1,6 @@
 package com.huawei.cangjie.builtins
 
+import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import com.huawei.cangjie.builtins.StandardNames.FqNames.any
 import com.huawei.cangjie.builtins.StandardNames.FqNames.bool
@@ -9,6 +10,7 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.int64
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int8
 import com.huawei.cangjie.builtins.StandardNames.FqNames.nothing
 import com.huawei.cangjie.builtins.StandardNames.getFunctionName
+import com.huawei.cangjie.context.ProjectContext
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.ClassifierDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
@@ -19,6 +21,7 @@ import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.DescriptorUtils
+import com.huawei.cangjie.resolve.caches.IdeaResolverForProject
 import com.huawei.cangjie.resolve.resolveClassByFqName
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.NotNullLazyValue
@@ -30,7 +33,8 @@ import com.huawei.cangjie.types.util.TypeUtils
 
 
 open class CangJieBuiltIns(
-    val storageManager: StorageManager
+    val storageManager: StorageManager,
+//    val moduleInfo: ModuleInfo? = null
 ) {
     companion object {
         val BUILTINS_MODULE_NAME: Name =
@@ -334,3 +338,9 @@ open class CangJieBuiltIns(
 
 
 
+
+fun  createBuiltIns(projectContext: ProjectContext, resolver: IdeaResolverForProject):CangJieBuiltIns{
+
+
+    return CangJieBuiltIns(projectContext.storageManager )
+}

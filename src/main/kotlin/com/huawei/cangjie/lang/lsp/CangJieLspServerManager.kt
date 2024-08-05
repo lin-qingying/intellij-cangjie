@@ -102,7 +102,7 @@ object CangJieLspServerManager {
             withCharset(Charsets.UTF_8)
             exePath = getLspServerPath(project)
             if (toolchain != null) {
-                setWorkDirectory(toolchain.sdkHome.systemIndependentPath)
+                setWorkDirectory(toolchain.location.systemIndependentPath)
                 withEnvironment(toolchain.getEnvironment())
 
             } else {
@@ -123,8 +123,8 @@ object CangJieLspServerManager {
 
 
         if (toolchain != null) {
-            if (Files.exists(Paths.get("${toolchain.sdkHome.systemIndependentPath}/tools/bin/LSPServer".toSystemPath()))) {
-                return "${toolchain.sdkHome.systemIndependentPath}/tools/bin/LSPServer".toSystemPath()
+            if (Files.exists(Paths.get("${toolchain.location.systemIndependentPath}/tools/bin/LSPServer".toSystemPath()))) {
+                return "${toolchain.location.systemIndependentPath}/tools/bin/LSPServer".toSystemPath()
             }
         }
 

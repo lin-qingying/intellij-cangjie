@@ -6,6 +6,7 @@ import com.intellij.psi.tree.TokenSet;
 public interface CjStubElementTypes {
 
     CjConstantExpressionElementType NULL = new CjConstantExpressionElementType("NULL");
+    CjConstantExpressionElementType CHARACTER_CONSTANT  = new CjConstantExpressionElementType("CHARACTER_CONSTANT");
 
     CjPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
             new CjPlaceHolderStubElementType<>("ANNOTATION", CjAnnotation.class);
@@ -27,7 +28,11 @@ public interface CjStubElementTypes {
     //    KtPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
 //            new CjPlaceHolderStubElementType<>("ANNOTATION", CjAnnotation.class);
     CjConstantExpressionElementType FLOAT_CONSTANT = new CjConstantExpressionElementType("FLOAT_CONSTANT");
-    CjConstantExpressionElementType CHARACTER_CONSTANT = new CjConstantExpressionElementType("CHARACTER_CONSTANT");
+    CjConstantExpressionElementType RUNE_CONSTANT = new CjConstantExpressionElementType("RUNE_CONSTANT");
+
+
+    CjConstantExpressionElementType CHARACTER_BYTE_CONSTANT = new CjConstantExpressionElementType("CHARACTER_BYTE_CONSTANT");
+
     CjConstantExpressionElementType INTEGER_CONSTANT = new CjConstantExpressionElementType("INTEGER_CONSTANT");
 
     CjPlaceHolderWithTextStubElementType<CjSimpleNameStringTemplateEntry> SHORT_STRING_TEMPLATE_ENTRY =
@@ -168,7 +173,6 @@ public interface CjStubElementTypes {
 
 
     CjTypeCodeFragmentType TYPE_CODE_FRAGMENT = new CjTypeCodeFragmentType();
-
     CjExpressionCodeFragmentType EXPRESSION_CODE_FRAGMENT = new CjExpressionCodeFragmentType();
     CjBlockCodeFragmentType BLOCK_CODE_FRAGMENT = new CjBlockCodeFragmentType();
 
@@ -177,8 +181,9 @@ public interface CjStubElementTypes {
 
             BOOLEAN_CONSTANT,
             FLOAT_CONSTANT,
-            CHARACTER_CONSTANT,
+            RUNE_CONSTANT,
             INTEGER_CONSTANT,
+            CHARACTER_CONSTANT,
 
             REFERENCE_EXPRESSION,
             DOT_QUALIFIED_EXPRESSION,

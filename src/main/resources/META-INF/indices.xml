@@ -3,31 +3,32 @@
     <extensions defaultExtensionNs="com.intellij">
         <stubElementTypeHolder externalIdPrefix="cangjie." class="com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes"/>
 
-        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieTopLevelFunctionByPackageIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieTopLevelTypeAliasByPackageIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieTopLevelVariableByPackageIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieTopLevelFunctionFqnNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieFunctionShortNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieProbablyNothingFunctionShortNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJiePrimeSymbolNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieOverridableInternalMembersShortNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieExactPackagesIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieClassShortNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieSuperClassIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelFunctionByPackageIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelTypeAliasByPackageIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelVariableByPackageIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelFunctionFqnNameIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieFunctionShortNameIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieProbablyNothingFunctionShortNameIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJiePrimeSymbolNameIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieOverridableInternalMembersShortNameIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieExactPackagesIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieClassShortNameIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieSuperClassIndex"/>
 
-        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieTopLevelClassByPackageIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.idea.stubindex.CangJieFullClassNameIndex"/>
-
-
-
-        <fileBasedIndex implementation="com.huawei.cangjie.idea.vfilefinder.CangJiePackageSourcesMemberNamesIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelClassByPackageIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieFullClassNameIndex"/>
 
 
 
-        <idIndexer filetype="CangJie" implementationClass="com.huawei.cangjie.idea.search.CangJieIdIndexer"/>
-        <todoIndexer filetype="CangJie" implementationClass="com.huawei.cangjie.idea.search.CangJieTodoIndexer"/>
+        <fileBasedIndex implementation="com.huawei.cangjie.ide.vfilefinder.CangJiePackageSourcesMemberNamesIndex"/>
 
-        <indexPatternBuilder implementation="com.huawei.cangjie.idea.search.CangJieIndexPatternBuilder"/>
+        <fileBasedIndex implementation="com.huawei.cangjie.ide.vfilefinder.CangJiePartialPackageNamesIndex"/>
+
+
+        <idIndexer filetype="CangJie" implementationClass="com.huawei.cangjie.ide.search.CangJieIdIndexer"/>
+        <todoIndexer filetype="CangJie" implementationClass="com.huawei.cangjie.ide.search.CangJieTodoIndexer"/>
+
+        <indexPatternBuilder implementation="com.huawei.cangjie.ide.search.CangJieIndexPatternBuilder"/>
 
         <notificationGroup
                 id="Recover CangJie Indices"
@@ -37,7 +38,7 @@
         />
         <projectService
                 serviceInterface="com.huawei.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService"
-                serviceImplementation="com.huawei.cangjie.idea.stubindex.resolve.PluginDeclarationProviderFactoryService"/>
+                serviceImplementation="com.huawei.cangjie.ide.stubindex.resolve.PluginDeclarationProviderFactoryService"/>
 
         <registryKey key="cangjie.indices.nested.access.enabled"
                      defaultValue="false"
@@ -54,8 +55,8 @@
     </extensions>
 
     <projectListeners>
-        <listener class="com.huawei.cangjie.idea.stubindex.resolve.CangJieRepairIdeAfterCorruptionNotification"
-                  topic="com.huawei.cangjie.idea.stubindex.resolve.CangJieCorruptedIndexListener"
+        <listener class="com.huawei.cangjie.ide.stubindex.resolve.CangJieRepairIdeAfterCorruptionNotification"
+                  topic="com.huawei.cangjie.ide.stubindex.resolve.CangJieCorruptedIndexListener"
                   activeInHeadlessMode="false"
                   activeInTestMode="false"/>
     </projectListeners>

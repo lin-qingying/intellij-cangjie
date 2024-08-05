@@ -45,7 +45,7 @@
     <content>
 
 
-    <module name="com.huawei.cangjie.nativeDebug"/><module name="com.huawei.cangjie.debugger"/></content>
+    <module name="com.huawei.cangjie.dapDebugger"/></content>
 
 
 

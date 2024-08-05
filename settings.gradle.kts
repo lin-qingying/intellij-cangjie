@@ -75,6 +75,10 @@ include("lsp")
 
 
 
+include("idea")
+
+include("clion")
+
 
 //include("grammar")
 //include("generators")

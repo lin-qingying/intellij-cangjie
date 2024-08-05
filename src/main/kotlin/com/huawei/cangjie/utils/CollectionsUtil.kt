@@ -11,7 +11,7 @@ inline fun <reified T, reified R, C : MutableCollection<in R>> Iterable<*>.filte
     }
     return destination
 }
-@ApiStatus.Internal
+
 fun <T : Any> Sequence<Any>.match(vararg expectedTypes: KClass<*>, last: KClass<T>): T? =
     (expectedTypes.asSequence() + last).zip(this + sequenceOf(null).cycle())
         .map { (expectedType, parent) -> parent?.takeIf(expectedType::isInstance) }
@@ -19,7 +19,7 @@ fun <T : Any> Sequence<Any>.match(vararg expectedTypes: KClass<*>, last: KClass<
         .lastOrNull()
         ?.let(last::cast)
 private fun <T> Sequence<T>.cycle(): Sequence<T> = sequence { while (true) yieldAll(this@cycle) }
-@ApiStatus.Internal
+
 fun <T> Sequence<T>.takeWhileInclusive(predicate: (T) -> Boolean): Sequence<T> =
     sequence {
         for (elem in this@takeWhileInclusive) {

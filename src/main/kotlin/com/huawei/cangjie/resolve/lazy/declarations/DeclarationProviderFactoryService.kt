@@ -1,5 +1,6 @@
 package com.huawei.cangjie.resolve.lazy.declarations
 
+import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.storage.StorageManager
 import com.intellij.openapi.project.Project
@@ -13,6 +14,7 @@ abstract class DeclarationProviderFactoryService{
         storageManager: StorageManager,
         syntheticFiles: Collection<CjFile>,
         filesScope: GlobalSearchScope,
+        moduleInfo: ModuleInfo
 
     ): DeclarationProviderFactory
     companion object {
@@ -22,10 +24,11 @@ abstract class DeclarationProviderFactoryService{
             storageManager: StorageManager,
             syntheticFiles: Collection<CjFile>,
             moduleContentScope: GlobalSearchScope,
+            moduleInfo: ModuleInfo
 
         ): DeclarationProviderFactory {
             return project.getService(DeclarationProviderFactoryService::class.java)!!
-                .create(project, storageManager, syntheticFiles, filteringScope(syntheticFiles, moduleContentScope))
+                .create(project, storageManager, syntheticFiles, filteringScope(syntheticFiles, moduleContentScope),moduleInfo)
         }
 
         private fun filteringScope(syntheticFiles: Collection<CjFile>, baseScope: GlobalSearchScope): GlobalSearchScope {

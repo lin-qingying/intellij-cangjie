@@ -5,7 +5,7 @@ import org.jetbrains.annotations.ApiStatus
 import java.util.*
 
 
-@ApiStatus.Internal
+
 interface LspServerManagerListener : EventListener {
     fun serverInitializationFailed() {}
     fun fileOpened(file: VirtualFile) {}

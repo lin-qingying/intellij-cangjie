@@ -11,12 +11,12 @@ import org.jetbrains.annotations.ApiStatus
 val PsiElement.module: Module?
     get() = ModuleUtilCore.findModuleForPsiElement(this)
 
-@ApiStatus.Internal
+
 fun PsiElement.reformat(canChangeWhiteSpacesOnly: Boolean = false){
     CodeStyleManager.getInstance(project).reformat(this, canChangeWhiteSpacesOnly)
 }
 
-@ApiStatus.Internal
+
 fun PsiElement.reformatted(canChangeWhiteSpacesOnly: Boolean = false): PsiElement {
     reformat(canChangeWhiteSpacesOnly = canChangeWhiteSpacesOnly)
     return this

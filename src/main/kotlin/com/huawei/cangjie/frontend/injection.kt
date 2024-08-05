@@ -19,6 +19,7 @@ import com.huawei.cangjie.types.expressions.DeclarationScopeProviderForLocalClas
 import com.huawei.cangjie.types.expressions.LocalClassDescriptorHolder
 import com.huawei.cangjie.types.expressions.LocalLazyDeclarationResolver
 import com.huawei.cangjie.utils.ProgressManagerBasedCancellationChecker
+import com.intellij.psi.search.GlobalSearchScope
 
 /**
  * Actually, those should be present in 'configurePlatformIndependentComponents',
@@ -188,13 +189,13 @@ fun createContainerForLazyResolve(
     context: ModuleContext,
     bindingTrace: BindingTrace,
     declarationProviderFactory: DeclarationProviderFactory,
-//    moduleContentScope: GlobalSearchScope,
+    moduleContentScope: GlobalSearchScope,
 
     languageVersionSettings: LanguageVersionSettings,
 
     absentDescriptorHandlerClass: Class<out AbsentDescriptorHandler>? = null
 
-) = createContainer("LazyResolveWith", PlatformDependentAnalyzerServicesImpl)
+) = createContainer("LazyResolve", PlatformDependentAnalyzerServicesImpl)
 {
     configure(
         context,
@@ -205,6 +206,8 @@ fun createContainerForLazyResolve(
         absentDescriptorHandlerClass,
 
     )
+    useInstance(moduleContentScope)
+//    useInstance(VirtualFileFinderFactory.getInstance(context.project).create(moduleContentScope))
 
 //    val builtIns = context.module.builtIns
 //    if (useBuiltInsProvider && builtIns is JvmBuiltIns) {

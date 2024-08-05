@@ -10,15 +10,14 @@ import com.huawei.cangjie.cjpm.findChild
 import com.huawei.cangjie.cjpm.project.pathAsPath
 import com.huawei.cangjie.cjpm.resolve
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
-import com.huawei.cangjie.cjpm.toolchain.cjc
 import com.huawei.cangjie.cjpm.toolchain.impl.CjpmMetadata
 import com.huawei.cangjie.cjpm.toolchain.parseSemVer
-import com.huawei.cangjie.idea.experiments.CjExperiments
-import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.CjProcessResult
-import com.huawei.cangjie.idea.run.cjpm.CjpmCommandLine
-import com.huawei.cangjie.idea.run.cjpm.CjpmPatch
-import com.huawei.cangjie.idea.run.cjpm.runconfig.*
-import com.huawei.cangjie.idea.run.isFeatureEnabled
+import com.huawei.cangjie.ide.experiments.CjExperiments
+import com.huawei.cangjie.ide.project.tools.projectWizard.wizard.CjProcessResult
+import com.huawei.cangjie.ide.run.cjpm.CjpmCommandLine
+import com.huawei.cangjie.ide.run.cjpm.CjpmPatch
+import com.huawei.cangjie.ide.run.cjpm.runconfig.*
+import com.huawei.cangjie.ide.run.isFeatureEnabled
 import com.huawei.cangjie.lang.CjConstants.LIB_CJ_FILE
 import com.huawei.cangjie.lang.CjConstants.MAIN_CJ_FILE
 import com.huawei.cangjie.utils.buildList
@@ -57,7 +56,7 @@ class Cjpm(
 
     fun checkNeedInstallCjpmGenerate(): Boolean {
         val crateName = "cjpm-generate"
-        val minVersion = "0.45.2".parseSemVer()
+        val minVersion = "0.53.4".parseSemVer()
         return checkBinaryCrateIsNotInstalled(crateName, minVersion)
     }
 
@@ -106,21 +105,21 @@ class Cjpm(
 //        val args = mutableListOf<String>(crateType,"--name=$moduleName")
         args.add(crateType)
 
-        val cjcVersion = toolchain.cjc().version
-
-        if (cjcVersion?.semver != null) {
-            if (cjcVersion.semver < SemVer.parseFromText("0.49.2")) {
-                args.add(moduleName)
-                args.add(moduleName)
-            } else {
-                args.add("--name=$moduleName")
-
-            }
-        } else {
-            args.add(moduleName)
-            args.add(moduleName)
-
-        }
+//        val cjcVersion = toolchain.cjc().version
+//
+//        if (cjcVersion?.semver != null) {
+//            if (cjcVersion.semver < SemVer.parseFromText("0.49.2")) {
+//                args.add(moduleName)
+//                args.add(moduleName)
+//            } else {
+//
+//            }
+//        } else {
+//            args.add(moduleName)
+//            args.add(moduleName)
+//
+//        }
+        args.add("--name=$moduleName")
 
 
         CjpmCommandLine("init", path, args).execute(project, owner).unwrapOrElse { return CjResult.Err(it) }
@@ -352,7 +351,6 @@ class Cjpm(
         private val FEATURES_ACCEPTING_COMMANDS: List<String> = listOf(
             "update", "build", "check", "run-script", "clean", "run", "test", "publish", "list", "load", "init", "help"
         )
-
 
         fun getCjpmCommonPatch(project: Project): CjpmPatch = { it.patchArgs(project, true) }
         fun CjpmCommandLine.patchArgs(project: Project, colors: Boolean): CjpmCommandLine {

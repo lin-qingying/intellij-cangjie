@@ -1,5 +1,7 @@
-enum class a {
-    A,
-    B,
-    C
+
+
+
+
+public class a{
+
 }

@@ -9,7 +9,7 @@ import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 
- import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.lexer.CjTokens
 
 
 class CangJieHighlighter : SyntaxHighlighterBase() {
@@ -54,11 +54,11 @@ class CangJieHighlighter : SyntaxHighlighterBase() {
             fillMap(
                 keys1,
                 TokenSet.andNot(
-                   CjTokens.OPERATIONS,
+                    CjTokens.OPERATIONS,
                     TokenSet.orSet(
                         TokenSet.create(
-                           CjTokens.IDENTIFIER,
-                           CjTokens.AT
+                            CjTokens.IDENTIFIER,
+                            CjTokens.AT
                         ),CjTokens.KEYWORDS
                     )
                 ),
@@ -90,7 +90,7 @@ class CangJieHighlighter : SyntaxHighlighterBase() {
                 CangJieHighlightingColors.STRING_ESCAPE
             keys1[CjTokens.ESCAPE_SEQUENCE] =
                 CangJieHighlightingColors.STRING_ESCAPE
-            keys1[CjTokens.CHARACTER_LITERAL] =
+            keys1[CjTokens.RUNE_LITERAL] =
                 CangJieHighlightingColors.STRING
             keys1[CjTokens.EOL_COMMENT] =
                 CangJieHighlightingColors.LINE_COMMENT

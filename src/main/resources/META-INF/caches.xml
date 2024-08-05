@@ -18,6 +18,14 @@
                 restartRequired="true"
         />
 
+        <registryKey key="cangjie.cache.packages.strong.map"
+                     description="Hold info about packages using strong references instead of soft ones"
+                     defaultValue="true"
+                     restartRequired="true"/>
+        <projectService
+                serviceInterface="com.huawei.cangjie.analyzer.LanguageSettingsProvider"
+                serviceImplementation="com.huawei.cangjie.ide.projectStructure.IDELanguageSettingsProvider"/>
+
         <registryKey
                 key="cangjie.caches.fine.grained.throttling.timeout.ms"
                 description="Minimal time in ms between two successive invalidations of the same cache on low memory"
@@ -26,8 +34,8 @@
         />
 
         <projectService
-                serviceInterface="com.huawei.cangjie.idea.cache.project.IdeaModelInfosCache"
-                serviceImplementation="com.huawei.cangjie.idea.cache.project.FineGrainedIdeaModelInfosCache"/>
+                serviceInterface="com.huawei.cangjie.ide.cache.project.ModelInfosCache"
+                serviceImplementation="com.huawei.cangjie.ide.cache.project.FineGrainedIdeaModelInfosCache"/>
 
     </extensions>
 </idea-plugin>

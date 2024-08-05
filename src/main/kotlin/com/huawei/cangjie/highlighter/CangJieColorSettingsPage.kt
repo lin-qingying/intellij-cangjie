@@ -16,7 +16,7 @@ import java.lang.reflect.Modifier
 
 class CangJieColorSettingsPage : ColorSettingsPage, RainbowColorSettingsPage {
     override fun getLanguage() = CangJieLanguage
-    override fun getIcon() = CangJieIcons.CANGJIE_FILE
+    override fun getIcon() = CangJieIcons.CANGJIE_16
     override fun getHighlighter(): SyntaxHighlighter = CangJieHighlighter()
 
     override fun getDemoText(): String {

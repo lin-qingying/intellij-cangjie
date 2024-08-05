@@ -7,15 +7,16 @@ import com.huawei.cangjie.context.GlobalContextImpl
 import com.huawei.cangjie.context.withModule
 import com.huawei.cangjie.context.withProject
 import com.huawei.cangjie.descriptors.DiagnosticSink
+import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.impl.ModuleDescriptorImpl
 import com.huawei.cangjie.frontend.createContainerForLazyResolve
-import com.huawei.cangjie.idea.cache.project.getModuleInfosFromIdeaModel
-import com.huawei.cangjie.idea.cache.trackers.CangJieCodeBlockModificationListener
-import com.huawei.cangjie.idea.projectStructure.ModuleInfoProvider
-import com.huawei.cangjie.idea.projectStructure.languageVersionSettings
-import com.huawei.cangjie.idea.projectStructure.moduleInfo
-import com.huawei.cangjie.idea.projectStructure.moduleInfo.IdeaModuleInfo
-import com.huawei.cangjie.idea.projectStructure.moduleInfo.NotUnderContentRootModuleInfo
+import com.huawei.cangjie.ide.cache.project.getModuleInfosFromIdeaModel
+import com.huawei.cangjie.ide.cache.trackers.CangJieCodeBlockModificationListener
+import com.huawei.cangjie.ide.projectStructure.ModuleInfoProvider
+import com.huawei.cangjie.ide.projectStructure.languageVersionSettings
+import com.huawei.cangjie.ide.projectStructure.moduleInfo
+
+import com.huawei.cangjie.ide.projectStructure.moduleInfo.NotUnderContentRootModuleInfo
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.resolve.CodeAnalyzerInitializer
@@ -44,11 +45,11 @@ class ProjectResolutionFacade(
     val globalContext: GlobalContextImpl,
 //    val settings: PlatformAnalysisSettings,
     val reuseDataFrom: ProjectResolutionFacade?,
-    val moduleFilter: (IdeaModuleInfo) -> Boolean,
+    val moduleFilter: (ModuleInfo) -> Boolean,
     dependencies: List<Any>,
     private val invalidateOnOOCB: Boolean,
     val syntheticFiles: Collection<CjFile> = listOf(),
-    val allModules: Collection<IdeaModuleInfo>? = null // null means create resolvers for modules from idea model
+    val allModules: Collection<ModuleInfo>? = null // null means create resolvers for modules from idea model
 ) {
 
 
@@ -66,7 +67,7 @@ class ProjectResolutionFacade(
     )
     private val analysisResultsLock = ReentrantLock()
     private val resolverForProjectDependencies = dependencies + globalContext.exceptionTracker
-    private val cachedResolverForProject: ResolverForProject<IdeaModuleInfo>
+    private val cachedResolverForProject: ResolverForProject<ModuleInfo>
         get() = globalContext.storageManager.compute { cachedValue.value }
 
     private val analysisResultsSimpleLock = CancellableSimpleLock(analysisResultsLock,
@@ -75,8 +76,8 @@ class ProjectResolutionFacade(
         },
         interruptedExceptionHandler = { throw ProcessCanceledException(it) })
 
-    private fun computeModuleResolverProvider(): ResolverForProject<IdeaModuleInfo> {
-        val delegateResolverForProject: ResolverForProject<IdeaModuleInfo> =
+    private fun computeModuleResolverProvider(): ResolverForProject<ModuleInfo> {
+        val delegateResolverForProject: ResolverForProject<ModuleInfo> =
             reuseDataFrom?.cachedResolverForProject ?: EmptyResolverForProject()
 //        val allModuleInfos = allModules!!
 //            .toMutableSet()
@@ -110,66 +111,69 @@ class ProjectResolutionFacade(
         )
     }
 
-    val moduleDescriptor = createModuleDescriptor(globalContext.withProject(project), project)
-        .apply {
-            this as ModuleDescriptorImpl
-            initialize(
-                BuiltInsLoader.Instance.createPackageFragmentProvider(
-                    globalContext.storageManager,
-                    this,
-//                getClassDescriptorFactories(),
-//                getPlatformDependentDeclarationFilter(),
-//                getAdditionalClassPartsProvider(),
-                    false
-                )
-            )
-            setDependencies(this)
-        }
+//    val moduleDescriptor = createModuleDescriptor(globalContext.withProject(project), project)
+//        .apply {
+//            this as ModuleDescriptorImpl
+//            initialize(
+//                BuiltInsLoader.Instance.createPackageFragmentProvider(
+//                    globalContext.storageManager,
+//                    this,
+////                getClassDescriptorFactories(),
+////                getPlatformDependentDeclarationFilter(),
+////                getAdditionalClassPartsProvider(),
+//                    false
+//                )
+//            )
+//            setDependencies(this)
+//        }
 
 
     var componentProvider: ComponentProvider? = null
     private val analysisResults = CachedValuesManager.getManager(project).createCachedValue(
         {
-
+            val resolverForProject = cachedResolverForProject
 //            val resolverForProject = cachedResolverForProject
             val results = object : SLRUCache<CjFile, PerFileAnalysisCache>(2, 3) {
                 private val lock = ReentrantLock()
 
                 override fun createValue(file: CjFile): PerFileAnalysisCache {
 //                    TODO()
-
-                    val trace = CodeAnalyzerInitializer.getInstance(project).createTrace()
-
-
-                    val declarationProviderFactory = DeclarationProviderFactoryService.createDeclarationProviderFactory(
-                        project, globalContext.storageManager, syntheticFiles,
-//                        moduleContentScope,
-                        GlobalSearchScope.fileScope(file)
-
-
-                    )
-                    componentProvider = createContainerForLazyResolve(
-                        globalContext.withProject(project)
-                            .withModule(moduleDescriptor),
-                        trace,
-                        declarationProviderFactory,
-                        file.languageVersionSettings,
-                        IdeaAbsentDescriptorHandler::class.java
-                    )
                     return PerFileAnalysisCache(
                         file,
-                        componentProvider!!
-//                        TODO()
-//
-
-//                        createContainer("cangjie", PlatformDependentAnalyzerServicesImpl){
-
-//                            useInstance(trace)
-//
-//                            configureStandardResolveComponents()
-//                        }
-//                        resolverForProject.resolverForModule(file.moduleInfo).componentProvider
+                        resolverForProject.resolverForModule(file.moduleInfo).componentProvider
                     )
+//                    val trace = CodeAnalyzerInitializer.getInstance(project).createTrace()
+//
+//
+//                    val declarationProviderFactory = DeclarationProviderFactoryService.createDeclarationProviderFactory(
+//                        project, globalContext.storageManager, syntheticFiles,
+////                        moduleContentScope,
+//                        GlobalSearchScope.fileScope(file)
+//
+//
+//                    )
+//                    componentProvider = createContainerForLazyResolve(
+//                        globalContext.withProject(project)
+//                            .withModule(moduleDescriptor),
+//                        trace,
+//                        declarationProviderFactory,
+//                        file.languageVersionSettings,
+//                        IdeaAbsentDescriptorHandler::class.java
+//                    )
+//                    return PerFileAnalysisCache(
+//                        file,
+//                        componentProvider!!
+////                        TODO()
+////
+//
+////                        createContainer("cangjie", PlatformDependentAnalyzerServicesImpl){
+//
+////                            useInstance(trace)
+////
+////                            configureStandardResolveComponents()
+////                        }
+////                        resolverForProject.resolverForModule(file.moduleInfo).componentProvider
+//                    )
                 }
 
                 override fun getIfCached(key: CjFile?): PerFileAnalysisCache? {
@@ -205,7 +209,9 @@ class ProjectResolutionFacade(
             CachedValueProvider.Result.create(results, allDependencies)
         }, false
     )
-
+    internal fun findModuleDescriptor(ideaModuleInfo: ModuleInfo): ModuleDescriptor {
+        return cachedResolverForProject.descriptorForModule(ideaModuleInfo)
+    }
     internal fun getAnalysisResultsForElements(
         elements: Collection<CjElement>,
         callback: DiagnosticSink.DiagnosticsCallback? = null
@@ -220,7 +226,9 @@ class ProjectResolutionFacade(
         }
 
         //TODO: (module refactoring) several elements are passed here in debugger
-        return AnalysisResult.success(bindingContext, moduleDescriptor)
+//        return AnalysisResult.success(bindingContext, moduleDescriptor)
+        return AnalysisResult.success(bindingContext, findModuleDescriptor(elements.first().moduleInfo))
+
     }
 
     internal fun getAnalysisResultsForElement(
@@ -237,7 +245,9 @@ class ProjectResolutionFacade(
         }
 
         //TODO: (module refactoring) several elements are passed here in debugger
-        return AnalysisResult.success(bindingContext, moduleDescriptor)
+        return AnalysisResult.success(bindingContext, findModuleDescriptor(element.moduleInfo))
+
+//        return AnalysisResult.success(bindingContext, moduleDescriptor)
     }
 
     private fun analysisResultForElement(
@@ -278,7 +288,7 @@ class ProjectResolutionFacade(
     internal fun resolverForElement(element: PsiElement): ResolverForModule {
 
 
-        val moduleInfos = mutableSetOf<IdeaModuleInfo>()
+        val moduleInfos = mutableSetOf<ModuleInfo>()
 //
 //        val config = allModules?.firstIsInstanceOrNull<ScriptDependenciesInfo.ForFile>()?.let {
 //            ModuleInfoProvider.Configuration(contextualModuleInfo = it)

@@ -1,7 +1,7 @@
 package com.huawei.cangjie.references
 
-import com.huawei.cangjie.idea.references.CangJiePsiReferenceRegistrar
-import com.huawei.cangjie.idea.references.CangJieReferenceProviderContributor
+import com.huawei.cangjie.ide.references.CangJiePsiReferenceRegistrar
+import com.huawei.cangjie.ide.references.CangJieReferenceProviderContributor
 
 
 class CangJieReferenceContributor : CangJieReferenceProviderContributor {

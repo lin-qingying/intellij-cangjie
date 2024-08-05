@@ -59,7 +59,8 @@ val tomlPlugin = "org.toml.lang"
 val terminalPlugin = "org.jetbrains.plugins.terminal"
 val nativeDebugPlugin: String = "com.intellij.nativeDebug:241.14494.73"
 val psiViewerPlugin: String = "PsiViewer:241-SNAPSHOT"
-
+val indexViewPlugin = "com.jetbrains.hackathon.indices.viewer:1.26"
+val chinesePlugin = "com.intellij.zh:241.230"
 
 val basePluginArchiveName = "intellij-cangjie"
 
@@ -76,13 +77,13 @@ val okioVersion = "2.10.0"
 //toml4j版本
 val toml4jVersion = "0.7.3"
 //插件需要的依赖列表
-val pluginDescriptors = arrayOf(
-    "moshi-$moshiVersion.jar",
-    "moshi-adapters-${moshiVersion}.jar",
-    "moshi-kotlin-${moshiVersion}.jar",
-    "okio-jvm-${okioVersion}.jar",
-    "toml4j-${toml4jVersion}.jar",
-    "utils.jar"
+val pluginDescriptors = arrayOf<String>(
+//    "moshi-$moshiVersion.jar",
+//    "moshi-adapters-${moshiVersion}.jar",
+//    "moshi-kotlin-${moshiVersion}.jar",
+//    "okio-jvm-${okioVersion}.jar",
+//    "toml4j-${toml4jVersion}.jar",
+//    "utils.jar"
 )
 
 plugins {
@@ -151,22 +152,33 @@ allprojects {
         version.set(ideaVersion)
         type.set(ideaType)
 
-        downloadSources.set(!isCI)
+        downloadSources.set(/*!isCI*/true)
         updateSinceUntilBuild.set(false)
         instrumentCode.set(false)
         ideaDependencyCachePath.set(dependencyCachePath)
 //        sandboxDir.set("$buildDir/$ideaVersion-sandbox")
     }
 
+//    sourceSets {
+//        main {
+//            java {
+//
+//                srcDirs("src/main/gen")
+//                srcDirs("src/main/kotlin")
+//            }
+//        }
+//    }
     sourceSets {
+
         main {
-            java {
-                srcDirs("src/gen")
-                srcDirs("src/main/kotlin")
-            }
+            java.srcDirs("src/gen")
+            java.srcDirs("src/main/kotlin")
+//            resources.srcDirs("src/$platformVersion/main/resources")
+        }
+        test {
+//            resources.srcDirs("src/$platformVersion/test/resources")
         }
     }
-
     tasks {
 //        withType<JavaCompile> {
 //            sourceCompatibility = "17"
@@ -178,8 +190,8 @@ allprojects {
         }
 
         withType<PatchPluginXmlTask> {
-            sinceBuild.set("223")
-            untilBuild.set("242.*")
+            sinceBuild.set("241")
+            untilBuild.set("243.*")
         }
         runIde { enabled = false }
         prepareSandbox { enabled = false }
@@ -233,7 +245,7 @@ allprojects {
 val cangjie_plugin_project = project(":plugin") {
     intellij {
         pluginName.set("intellij-cangjie")
-        plugins.set(listOf(psiViewerPlugin))
+        plugins.set(listOf(psiViewerPlugin,indexViewPlugin,chinesePlugin))
 
     }
 //    group = "com.huawei.cangjie"
@@ -398,7 +410,6 @@ val cangjie_src_project = project(":") {
         implementation(project(":utils"))
 
 
-
     }
     tasks {
         processTestResources {
@@ -427,7 +438,6 @@ project(":lsp") {
 //        implementation(project(":"))
     }
 }
-
 
 
 //project(":grammar") {
@@ -474,7 +484,7 @@ when (buildType) {
     }
 
     IC_DAP -> {
-    val dap =    project(":dap-debugger") {
+        val dap = project(":dap-debugger") {
             intellij {
                 plugins.set(listOf(terminalPlugin))
             }

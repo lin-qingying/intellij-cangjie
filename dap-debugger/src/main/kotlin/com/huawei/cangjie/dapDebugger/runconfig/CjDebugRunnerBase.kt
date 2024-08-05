@@ -1,8 +1,8 @@
 package com.huawei.cangjie.dapDebugger.runconfig
 
 import com.huawei.cangjie.dapDebugger.runconfig.CjDebugRunnerUtils.ERROR_MESSAGE_TITLE
-import com.huawei.cangjie.idea.run.cjpm.CjExecutableRunner
-import com.huawei.cangjie.idea.run.cjpm.CjpmRunStateBase
+import com.huawei.cangjie.ide.run.cjpm.CjExecutableRunner
+import com.huawei.cangjie.ide.run.cjpm.CjpmRunStateBase
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.executors.DefaultDebugExecutor

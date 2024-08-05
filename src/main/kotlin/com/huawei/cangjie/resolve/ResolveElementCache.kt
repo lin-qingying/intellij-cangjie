@@ -7,7 +7,7 @@ import com.huawei.cangjie.context.withProject
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.frontend.createContainerForBodyResolve
-import com.huawei.cangjie.idea.projectStructure.languageVersionSettings
+import com.huawei.cangjie.ide.projectStructure.languageVersionSettings
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getElementTextWithContext
@@ -18,7 +18,6 @@ import com.huawei.cangjie.utils.getNonStrictParentOfType
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.util.*
-import com.intellij.util.containers.CollectionFactory
 
 class ResolveElementCache(
     private val resolveSession: ResolveSession,

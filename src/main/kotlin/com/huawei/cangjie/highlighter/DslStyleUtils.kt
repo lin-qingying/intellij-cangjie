@@ -17,7 +17,7 @@ import javax.swing.Icon
 import kotlin.math.absoluteValue
 
 
-@ApiStatus.Internal
+
 object DslStyleUtils {
     private const val STYLE_COUNT = 4
 

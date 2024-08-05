@@ -75,7 +75,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
             reuseDataFrom = null,
 //            moduleFilter = moduleFilters::sdkFacadeFilter,
             moduleFilter = {
-                false
+                true
             },
 
             dependencies = listOf(ProjectRootModificationTracker.getInstance(project)),

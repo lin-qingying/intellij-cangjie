@@ -1,8 +1,20 @@
 package com.huawei.cangjie.analyzer
 
+import com.huawei.cangjie.config.LanguageVersionSettings
+import com.huawei.cangjie.config.LanguageVersionSettingsImpl
 import com.huawei.cangjie.container.ComponentProvider
+import com.huawei.cangjie.container.get
+import com.huawei.cangjie.context.ModuleContext
+import com.huawei.cangjie.descriptors.CompositePackageFragmentProvider
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.PackageFragmentProvider
+import com.huawei.cangjie.descriptors.impl.ModuleDescriptorImpl
+import com.huawei.cangjie.frontend.createContainerForLazyResolve
+import com.huawei.cangjie.resolve.CodeAnalyzerInitializer
+import com.huawei.cangjie.resolve.caches.ModuleContent
+import com.huawei.cangjie.resolve.lazy.AbsentDescriptorHandler
+import com.huawei.cangjie.resolve.lazy.ResolveSession
+import com.huawei.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 
@@ -55,6 +67,7 @@ class EmptyResolverForProject<M : ModuleInfo> : ResolverForProject<M>() {
 
 abstract class ResolverForProject<M : ModuleInfo> {
     abstract val allModules: Collection<M>
+    fun resolverForModule(moduleInfo: M): ResolverForModule = resolverForModuleDescriptor(descriptorForModule(moduleInfo))
 
     abstract val name: String
     abstract fun descriptorForModule(moduleInfo: M): ModuleDescriptor
@@ -74,4 +87,121 @@ interface ResolverForModuleComputationTracker {
         fun getInstance(project: Project): ResolverForModuleComputationTracker? =
             project.getComponent(ResolverForModuleComputationTracker::class.java) ?: null
     }
+}
+abstract class ResolverForModuleFactory {
+    open fun <M : ModuleInfo> createResolverForModule(
+        moduleDescriptor: ModuleDescriptorImpl,
+        moduleContext: ModuleContext,
+        moduleContent: ModuleContent<M>,
+        resolverForProject: ResolverForProject<M>,
+        languageVersionSettings: LanguageVersionSettings,
+//        sealedInheritorsProvider: SealedClassInheritorsProvider,
+//        resolveOptimizingOptions: OptimizingOptions?,
+        absentDescriptorHandlerClass: Class<out AbsentDescriptorHandler>?
+    ): ResolverForModule {
+        @Suppress("DEPRECATION")
+        return createResolverForModule(
+            moduleDescriptor,
+            moduleContext,
+            moduleContent,
+            resolverForProject,
+            languageVersionSettings,
+//            sealedInheritorsProvider,
+//            resolveOptimizingOptions
+        )
+    }
+
+    @Deprecated(
+        "Left only for compatibility, please use full version",
+        ReplaceWith("createResolverForModule(moduleDescriptor, moduleContext, moduleContent, resolverForProject, languageVersionSettings, sealedInheritorsProvider, null, null)")
+    )
+    open fun <M : ModuleInfo> createResolverForModule(
+        moduleDescriptor: ModuleDescriptorImpl,
+        moduleContext: ModuleContext,
+        moduleContent: ModuleContent<M>,
+        resolverForProject: ResolverForProject<M>,
+        languageVersionSettings: LanguageVersionSettings,
+//        sealedInheritorsProvider: SealedClassInheritorsProvider,
+//        resolveOptimizingOptions: OptimizingOptions?,
+    ): ResolverForModule {
+        @Suppress("DEPRECATION")
+        return createResolverForModule(
+            moduleDescriptor,
+            moduleContext,
+            moduleContent,
+            resolverForProject,
+            languageVersionSettings,
+//            sealedInheritorsProvider
+            null
+        )
+    }
+
+
+}
+
+
+class CangJieResolverForModuleFactory:ResolverForModuleFactory(){
+    override fun <M : ModuleInfo> createResolverForModule(
+        moduleDescriptor: ModuleDescriptorImpl,
+        moduleContext: ModuleContext,
+        moduleContent: ModuleContent<M>,
+        resolverForProject: ResolverForProject<M>,
+        languageVersionSettings: LanguageVersionSettings,
+        absentDescriptorHandlerClass: Class<out AbsentDescriptorHandler>?
+    ): ResolverForModule {
+
+        val project = moduleContext.project
+        val (moduleInfo, syntheticFiles, moduleContentScope) = moduleContent
+
+        val declarationProviderFactory = DeclarationProviderFactoryService.createDeclarationProviderFactory(
+            project, moduleContext.storageManager, syntheticFiles,
+            moduleContentScope,
+            moduleInfo
+        )
+        val trace = CodeAnalyzerInitializer.getInstance(project).createTrace()
+
+
+        val container = createContainerForLazyResolve(
+
+            moduleContext,
+            trace,
+            declarationProviderFactory,
+            moduleContentScope,
+//            moduleClassResolver,
+//            targetEnvironment,
+//            lookupTracker,
+//            ExpectActualTracker.DoNothing,
+//            InlineConstTracker.DoNothing,
+//            EnumWhenTracker.DoNothing,
+//            packagePartProvider,
+            languageVersionSettings,
+//            sealedInheritorsProvider = sealedInheritorsProvider,
+//            useBuiltInsProvider = platformParameters.useBuiltinsProviderForModule(moduleInfo),
+//            optimizingOptions = resolveOptimizingOptions,
+            absentDescriptorHandlerClass = absentDescriptorHandlerClass
+        )
+        val providersForModule = arrayListOf(
+            container.get<ResolveSession>().getPackageFragmentProvider(),
+
+        )
+        return ResolverForModule(
+            CompositePackageFragmentProvider(providersForModule, "CompositeProvider@JvmResolver for $moduleDescriptor"),
+            container
+        )
+    }
+}
+interface LanguageSettingsProvider {
+    fun getLanguageVersionSettings(
+        moduleInfo: ModuleInfo,
+        project: Project
+    ): LanguageVersionSettings
+
+
+    object Default : LanguageSettingsProvider {
+        override fun getLanguageVersionSettings(
+            moduleInfo: ModuleInfo,
+            project: Project
+        ) = LanguageVersionSettingsImpl.DEFAULT
+
+             }
 }

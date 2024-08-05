@@ -2,7 +2,7 @@ package com.huawei.cangjie.utils
 
 import org.jetbrains.annotations.ApiStatus
 
-@ApiStatus.Internal
+
 fun <T> seq(block: SeqScope<T>.() -> Unit): Sequence<T> = Sequence {
     val secScope = DefaultSeqScope<T>()
     block(secScope)
@@ -103,7 +103,7 @@ private class SeqIterator<T>(providers: List<Iterable<T?>>) : TransformingIterat
     }
 }
 
-@ApiStatus.Internal
+
 abstract class SeqScope<in T> internal constructor() {
     abstract fun yield(value: () -> T?)
 

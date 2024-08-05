@@ -21,7 +21,7 @@ var Project.isNameHighlightingEnabled: Boolean
     }
 
 @TestOnly
-@ApiStatus.Internal
+
 fun Project.withNameHighlightingDisabled(block: () -> Unit) {
     val oldValue = isNameHighlightingEnabled
     try {

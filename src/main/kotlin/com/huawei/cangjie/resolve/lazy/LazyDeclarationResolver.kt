@@ -55,6 +55,10 @@ open class LazyDeclarationResolver(
         findClassDescriptorIfAny(classObjectOrScript, location)
             ?: (absentDescriptorHandler.diagnoseDescriptorNotFound(classObjectOrScript) as ClassDescriptor)
 
+
+//    fun resolveToDescriptor(declaration: CjDeclaration): DeclarationDescriptor =
+//        resolveToDescriptor(declaration, /*track =*/true) ?: absentDescriptorHandler.diagnoseDescriptorNotFound(declaration)
+
     fun resolveToDescriptor(declaration: CjDeclaration): DeclarationDescriptor
 
     {

@@ -108,7 +108,7 @@ abstract class LspServerDescriptor protected constructor(
      */
     open fun getFileUri(file: VirtualFile): String {
         val escapedPath = URLUtil.encodePath(getFilePath(file))
-          val url = VirtualFileManager.constructUrl(URLUtil.FILE_PROTOCOL, escapedPath)
+        val url = VirtualFileManager.constructUrl(URLUtil.FILE_PROTOCOL, escapedPath)
         val uri = VfsUtil.toUri(url)
         return uri?.toString() ?: url
     }

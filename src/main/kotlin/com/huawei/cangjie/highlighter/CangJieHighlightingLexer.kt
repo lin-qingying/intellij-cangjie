@@ -9,14 +9,15 @@ import com.intellij.psi.tree.IElementType
 
 class CangJieHighlightingLexer : LayeredLexer(CangJieLexer()) {
     init {
+
         registerSelfStoppingLayer(
             CDocLexer(),
             arrayOf<IElementType>(CjTokens.DOC_COMMENT),
             IElementType.EMPTY_ARRAY
         )
         registerSelfStoppingLayer(
-            StringLiteralLexer('\'', CjTokens.CHARACTER_LITERAL),
-            arrayOf<IElementType>(CjTokens.CHARACTER_LITERAL),
+            StringLiteralLexer('r', CjTokens.RUNE_LITERAL),
+            arrayOf<IElementType>(CjTokens.RUNE_LITERAL),
             IElementType.EMPTY_ARRAY
         )
     }

@@ -2,7 +2,7 @@ package com.huawei.cangjie.cjpm.toolchain.wsl
 
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor
-import com.huawei.cangjie.idea.run.cjpm.runconfig.computeWithCancelableProgress
+import com.huawei.cangjie.ide.run.cjpm.runconfig.computeWithCancelableProgress
 import com.intellij.execution.wsl.WSLDistribution
 import com.intellij.execution.wsl.WslDistributionManager
 import com.intellij.openapi.application.ApplicationManager

@@ -3,7 +3,7 @@
 
 
     <extensions defaultExtensionNs="com.intellij">
-        <highlightVisitor implementation="com.huawei.cangjie.idea.highlighter.CangJieHighlightVisitor"/>
+        <highlightVisitor implementation="com.huawei.cangjie.ide.highlighter.CangJieHighlightVisitor"/>
         <registryKey key="cangjie.highlighting.suspended.timeout"
                      description="Timeout (in seconds) when highlighting is temporarily turned off in case of unexpected errors."
                      defaultValue="10"
@@ -13,11 +13,11 @@
                      description="Suppress cangjie.Deprecated warning"
                      defaultValue="false"/>
         <projectService
-                serviceInterface="com.huawei.cangjie.idea.highlighter.CangJieQuickFixProvider"
-                serviceImplementation="com.huawei.cangjie.idea.codeinsight.CangJieQuickFixProviderImpl"/>
+                serviceInterface="com.huawei.cangjie.ide.highlighter.CangJieQuickFixProvider"
+                serviceImplementation="com.huawei.cangjie.ide.codeinsight.CangJieQuickFixProviderImpl"/>
 
         <projectService
-                serviceInterface="com.huawei.cangjie.idea.base.projectStructure.RootKindMatcher"
-                serviceImplementation="com.huawei.cangjie.idea.base.analysis.RootKindMatcherImpl"/>
+                serviceInterface="com.huawei.cangjie.ide.base.projectStructure.RootKindMatcher"
+                serviceImplementation="com.huawei.cangjie.ide.base.analysis.RootKindMatcherImpl"/>
     </extensions>
 </idea-plugin>

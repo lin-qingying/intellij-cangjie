@@ -1,5 +1,6 @@
 package com.huawei.cangjie.psi
 
+import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.lang.CangJieFileType
 import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.name.FqName
@@ -7,18 +8,24 @@ import com.huawei.cangjie.utils.checkWithAttachment
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.util.LocalTimeCounter
 import org.jetbrains.annotations.NonNls
 
 
-
 var CjFile.doNotAnalyze: String? by UserDataProperty(Key.create("DO_NOT_ANALYZE"))
 var CjFile.analysisContext: PsiElement? by UserDataProperty(Key.create("ANALYSIS_CONTEXT"))
 
+/**
+ * [forcedModuleInfo] provides a [ModuleInfo] instance for a dummy file. It must not be changed after the first assignment because
+ * [ModuleInfoProvider] might cache the module info.
+ */
+var PsiFile.forcedModuleInfo: ModuleInfo? by UserDataProperty(Key.create("FORCED_MODULE_INFO"))
 
 private const val DO_NOT_ANALYZE_NOTIFICATION = "This file was created by CjPsiFactory and should not be analyzed\n" +
         "Use createAnalyzableFile to create file that can be analyzed\n"
+
 class CjPsiFactory private constructor(
     private val project: Project,
     private val markGenerated: Boolean,
@@ -33,6 +40,7 @@ class CjPsiFactory private constructor(
             return CjPsiFactory(context.project, markGenerated, context, eventSystemEnabled = false)
         }
     }
+
     fun createColon(): PsiElement {
         return createVariable("let x: Int64").findElementAt(5)!!
     }
@@ -40,6 +48,7 @@ class CjPsiFactory private constructor(
     fun createExpressionCodeFragment(@NonNls text: String, context: PsiElement?): CjExpressionCodeFragment {
         return CjExpressionCodeFragment(project, "fragment.cj", text, null, context)
     }
+
     fun createSemicolon(): PsiElement {
         return createVariable("let x: Int64;").findElementAt(12)!!
     }
@@ -57,16 +66,26 @@ class CjPsiFactory private constructor(
     fun createVariable(@NonNls name: String, @NonNls type: String?, isVar: Boolean): CjVariable {
         return createVariable(name, type, isVar, null)
     }
-    fun createVariable(@NonNls name: String, @NonNls type: String?, isVar: Boolean, @NonNls initializer: String?): CjVariable {
+
+    fun createVariable(
+        @NonNls name: String,
+        @NonNls type: String?,
+        isVar: Boolean,
+        @NonNls initializer: String?
+    ): CjVariable {
         return createVariable(null, name, type, isVar, initializer)
     }
+
     fun creareDelegatedSuperTypeEntry(@NonNls text: String): CjConstructorDelegationCall {
         val colonOrEmpty = if (text.isEmpty()) "" else ": "
-        return createClass("class A { constructor()$colonOrEmpty$text {}").secondaryConstructors.first().getDelegationCall()
+        return createClass("class A { constructor()$colonOrEmpty$text {}").secondaryConstructors.first()
+            .getDelegationCall()
     }
+
     fun createClass(@NonNls text: String): CjClass {
         return createDeclaration(text)
     }
+
     fun createVariable(
         @NonNls modifiers: String?,
         @NonNls name: String,
@@ -83,9 +102,11 @@ class CjPsiFactory private constructor(
     fun createPackageDirectiveIfNeeded(fqName: FqName): CjPackageDirective? {
         return if (fqName.isRoot) null else createPackageDirective(fqName)
     }
+
     fun createPackageDirective(fqName: FqName): CjPackageDirective {
         return createFile("package ${fqName.asString()}").packageDirective!!
     }
+
     @JvmOverloads
     constructor(project: Project, markGenerated: Boolean = true) :
             this(project, markGenerated, context = null, eventSystemEnabled = false)
@@ -93,10 +114,11 @@ class CjPsiFactory private constructor(
     constructor(project: Project, markGenerated: Boolean = true, eventSystemEnabled: Boolean) :
             this(project, markGenerated, context = null, eventSystemEnabled = eventSystemEnabled)
 
-    private fun doCreateExpression(@NonNls text: String):CjExpression? {
+    private fun doCreateExpression(@NonNls text: String): CjExpression? {
         //注意：下面的‘\n’很重要--如果没有它，会出现一些奇怪的代码缩进问题
         return createVariable("let x =\n$text").initializer
     }
+
     fun createVariable(@NonNls text: String): CjVariable {
         return createDeclaration(text)
     }
@@ -114,6 +136,7 @@ class CjPsiFactory private constructor(
         @Suppress("UNCHECKED_CAST")
         return declarations.first() as TDeclaration
     }
+
     private fun doCreateFile(@NonNls fileName: String, @NonNls text: String): CjFile {
         return PsiFileFactory.getInstance(project).createFileFromText(
             fileName,
@@ -137,12 +160,15 @@ class CjPsiFactory private constructor(
 
         return file
     }
+
     fun createFile(@NonNls text: String): CjFile {
         return createFile("dummy.cj", text)
     }
+
     fun createModifier(modifier: CjModifierKeywordToken): PsiElement {
         return createModifierList(modifier.value).getModifier(modifier)!!
     }
+
     fun createExpressionIfPossible(@NonNls text: String): CjExpression? {
         val expression = try {
             doCreateExpression(text) ?: return null
@@ -156,19 +182,21 @@ class CjPsiFactory private constructor(
     fun createModifierList(modifier: CjModifierKeywordToken): CjModifierList {
         return createModifierList(modifier.value)
     }
+
     fun createModifierList(@NonNls text: String): CjModifierList {
         return createClass("$text interface x").modifierList!!
     }
 
 
-
     fun createComma(): PsiElement {
         return createType("T<X, Y>").findElementAt(3)!!
     }
+
     fun createTypeIfPossible(@NonNls type: String): CjTypeReference? {
         val typeReference = createVariable("val x : $type").typeReference
         return if (typeReference?.text == type) typeReference else null
     }
+
     fun createType(@NonNls type: String): CjTypeReference {
         val typeReference = createTypeIfPossible(type)
         if (typeReference == null || typeReference.text != type) {
@@ -188,6 +216,7 @@ class CjPsiFactory private constructor(
     fun createWhiteSpace(@NonNls text: String): PsiElement {
         return createVariable("let${text}x: Int64").findElementAt(3)!!
     }
+
     fun createWhiteSpace(): PsiElement {
         return createWhiteSpace(" ")
     }

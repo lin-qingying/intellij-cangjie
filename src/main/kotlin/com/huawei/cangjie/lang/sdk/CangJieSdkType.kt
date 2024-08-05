@@ -1,8 +1,8 @@
 //package com.huawei.cangjie.lang.sdk
 //
 //import com.huawei.cangjie.CangJieBundle
-//import com.huawei.cangjie.idea.notifications.CangJieCompilerBundle
-//import com.huawei.cangjie.idea.notifications.CompileDriverNotifications
+//import com.huawei.cangjie.ide.notifications.CangJieCompilerBundle
+//import com.huawei.cangjie.ide.notifications.CompileDriverNotifications
 //import com.intellij.openapi.project.Project
 //import com.intellij.openapi.projectRoots.*
 //import com.intellij.openapi.util.SystemInfo

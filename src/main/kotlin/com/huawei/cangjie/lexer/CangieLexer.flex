@@ -1,8 +1,8 @@
 package com.huawei.cangjie.lexer;
 import com.intellij.psi.*;
+import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.Stack;
-import com.intellij.lexer.FlexLexer;
 %%
 
 %unicode
@@ -85,7 +85,7 @@ import com.intellij.lexer.FlexLexer;
   return;
 %eof}
 
-%xstate HSAH_STRING STRING RAW_STRING SHORT_TEMPLATE_ENTRY BLOCK_COMMENT DOC_COMMENT
+%xstate HSAH_STRING_SINGLE HSAH_STRING_DOUBLE  STRING_SINGLE STRING_DOUBLE RAW_STRING_SINGLE RAW_STRING_DOUBLE SHORT_TEMPLATE_ENTRY BLOCK_COMMENT DOC_COMMENT
 %state LONG_TEMPLATE_ENTRY UNMATCHED_BACKTICK
 
 
@@ -107,7 +107,7 @@ WHITE_SPACE_CHAR=[\ \n\t\f]
 LETTER = [:letter:]|_
 IDENTIFIER_PART=[:digit:]|{LETTER}
 PLAIN_IDENTIFIER={LETTER} {IDENTIFIER_PART}*
-
+BOOLEAN_LITERAL= true | false
 
 //TODO：这必须允许运行库接受的所有内容。
 //TODO：将反号替换为开头的一个反斜杠
@@ -152,25 +152,61 @@ HEX_FLOATING_POINT_LITERAL3= 0[xX]({DIGITS})({EXPONENT_PART})?"p"({DIGIT})
 //FLOATING_POINT_LITERAL_SUFFIX=[Ff]
 EXPONENT_PART=[Ee]["+""-"]?({DIGIT_OR_UNDERSCORE})*
 
-
-
-
-CHARACTER_LITERAL="b"?"'"([^\\\'\n]|{ESCAPE_SEQUENCE})*("'"|\\)?
-//CHARACTER_BYTE_LITERAL = {CHARACTER_LITERAL}
-
 // TODO: 引入符号(例如‘foo)作为编写字符串文字的另一种方式
 ESCAPE_SEQUENCE=\\(u{HEX_DIGIT}{HEX_DIGIT}{HEX_DIGIT}{HEX_DIGIT}|[^\n])
 
-// ANY_ESCAPE_SEQUENCE = \\[^]
-THREE_QUO = (\"\"\")
-THREE_OR_MORE_QUO = ({THREE_QUO}\"*)
 
+//0.53.4 字符字节字面量
+//CHARACTER_BYTE_LITERAL="b'"([^\\\'\n]|{ESCAPE_SEQUENCE})*("'"|\\)?
+CHARACTER_BYTE_LITERAL = {CHARACTER_BYTE_SINGLE_LITERAL} | {CHARACTER_BYTE_DOUBLE_LITERAL}
+CHARACTER_BYTE_SINGLE_LITERAL = b \'  ([^\\\'\n] | {ESCAPE_SEQUENCE})*  \'
+CHARACTER_BYTE_DOUBLE_LITERAL = b \" ([^\\\'\n] | {ESCAPE_SEQUENCE})* \"
+
+//单字符
+SINGLE_CHAR=[^'\\\r\n]
+
+// 定义转义序列
+ESCAPE_SEQ  = ({UNI_CHARACTER_LITERAL} | {ESCAPED_IDENTIFIER})
+
+// 定义 Unicode 字符字面量
+UNI_CHARACTER_LITERAL  =  '\\' 'u' \{ {HEX_DIGIT} ({HEX_DIGIT}  ({HEX_DIGIT}  ({HEX_DIGIT}  ({HEX_DIGIT}  {HEX_DIGIT} ?)?)?)?)? \}
+
+// 定义转义标识符
+ESCAPED_IDENTIFIER   =   '\\' ('t' | 'b' | 'r' | 'n' | '\'' | '\"' | '\\' | 'f' | 'v' | '0' | '\$')
+
+//字符
+RUNE_LITERAL = {RUNE_SINGLE_LITERAL} | {RUNE_DOUBLE_LITERAL}
+RUNE_SINGLE_LITERAL = r \'  ({SINGLE_CHAR} | {ESCAPE_SEQ})  \'
+RUNE_DOUBLE_LITERAL = r \" ({SINGLE_CHAR} | {ESCAPE_SEQ}) \"
+//CHARACTER_BYTE_LITERAL = {CHARACTER_LITERAL}
+
+
+//单引号
+THREE_QUO_SINGLE =   (\'\'\')
+THREE_OR_SINGLE_MORE_QUO = ({THREE_QUO_SINGLE}\'*)
+//双引号
+THREE_QUO_DOUBLE =   (\"\"\")
+THREE_OR_DOUBLE_MORE_QUO = ({THREE_QUO_DOUBLE}\"*)
 //#[n*]""#[n*]
 //HSAH_STRING =(\#\{\1\,\})(\?:\"[^\"]\*\"\1)
-HSAH_QUO = (#+\")
-HSAH_OR_MORE_QUO = (\"#+)`
 
-REGULAR_STRING_PART=[^\\\"\n\$]+
+// 单引号
+HASH_QUO_SINGLE = (#+\')
+HSAH_OR_SINGLE_MORE_QUO = (\'#+)
+//双引号
+HASH_QUO_DOUBLE = (#+\")
+HSAH_OR_DOUBLE_MORE_QUO = (\"#+)
+
+
+//单引号
+SINGLE_QUO = \'
+//双引号
+DOUBLE_QUO = \"
+
+
+REGULAR_STRING_PART_DOUBLE=[^\\\"\n\$]+
+REGULAR_STRING_PART_SINGLE=[^\\\'\n\$]+
+
 SHORT_TEMPLATE_ENTRY=\${IDENTIFIER}
 LONELY_DOLLAR=\$
 LONG_TEMPLATE_ENTRY_START=\$\{
@@ -181,15 +217,15 @@ LONELY_BACKTICK=`
 // String 模板
 //
 //
-{HSAH_QUO}                      {
+{HASH_QUO_SINGLE}                      {
           lBraceCount = yytext().length() - 1;
-                                      pushState(HSAH_STRING);
+                                      pushState(HSAH_STRING_SINGLE);
                                       return CjTokens.OPEN_QUOTE; }
 
-<HSAH_STRING> \n                          { return CjTokens.REGULAR_STRING_PART; }
-<HSAH_STRING> \"                  { return CjTokens.REGULAR_STRING_PART; }
-<HSAH_STRING> \\                  { return CjTokens.REGULAR_STRING_PART; }
-<HSAH_STRING>  \"#+        {
+<HSAH_STRING_SINGLE> \n                  { return CjTokens.REGULAR_STRING_PART; }
+<HSAH_STRING_SINGLE> \"  | \'               { return CjTokens.REGULAR_STRING_PART; }
+<HSAH_STRING_SINGLE> \\                  { return CjTokens.REGULAR_STRING_PART; }
+<HSAH_STRING_SINGLE>  {HSAH_OR_SINGLE_MORE_QUO}      {
 
 //                                       popState();
                                        int lenght = yytext().length() - 1;
@@ -218,11 +254,79 @@ LONELY_BACKTICK=`
       }
 
 
-{THREE_QUO}                      { pushState(RAW_STRING); return CjTokens.OPEN_QUOTE; }
-<RAW_STRING> \n                  { return CjTokens.REGULAR_STRING_PART; }
-<RAW_STRING> \"                  { return CjTokens.REGULAR_STRING_PART; }
-<RAW_STRING> \\                  { return CjTokens.REGULAR_STRING_PART; }
-<RAW_STRING> {THREE_OR_MORE_QUO} {
+{HASH_QUO_DOUBLE}                      {
+          lBraceCount = yytext().length() - 1;
+                                      pushState(HSAH_STRING_DOUBLE);
+                                      return CjTokens.OPEN_QUOTE; }
+<HSAH_STRING_DOUBLE> \n                          { return CjTokens.REGULAR_STRING_PART; }
+<HSAH_STRING_DOUBLE>  \"  | \'             { return CjTokens.REGULAR_STRING_PART; }
+<HSAH_STRING_DOUBLE> \\                  { return CjTokens.REGULAR_STRING_PART; }
+<HSAH_STRING_DOUBLE>  {HSAH_OR_DOUBLE_MORE_QUO}      {
+
+//                                       popState();
+                                       int lenght = yytext().length() - 1;
+                                       int lBraceCount1 = getState() != null ? getState().lBraceCount : lBraceCount;
+                                       if(lBraceCount1 == lenght){
+                                           popState();
+
+                                                 return CjTokens.CLOSING_QUOTE;
+                                       }
+
+
+                                       else if(lBraceCount1 < lenght){
+//
+                                           popState();
+
+                                           yypushback(lenght - lBraceCount1);
+                                             return CjTokens.CLOSING_QUOTE;
+                                       }else {
+
+//                                            yypushback(yylength()); // return the closing quotes (""") to the stream
+                                                                               return CjTokens.REGULAR_STRING_PART;
+                                       }
+//
+
+
+      }
+
+
+{THREE_QUO_SINGLE} \n                      { pushState(RAW_STRING_SINGLE); return CjTokens.OPEN_QUOTE; }
+<RAW_STRING_SINGLE> \n                  {
+               System.out.println("RAW_STRING_SINGLE1");
+
+          return CjTokens.REGULAR_STRING_PART; }
+<RAW_STRING_SINGLE> \" | \'                 {
+               System.out.println("RAW_STRING_SINGLE2");
+          return CjTokens.REGULAR_STRING_PART; }
+<RAW_STRING_SINGLE> \\                  {
+               System.out.println("RAW_STRING_SINGLE3");
+
+          return CjTokens.REGULAR_STRING_PART; }
+<RAW_STRING_SINGLE> {THREE_OR_SINGLE_MORE_QUO} {
+                                    int length = yytext().length();
+                                    if (length <= 3) { // closing '''
+                                        popState();
+                                        return CjTokens.CLOSING_QUOTE;
+                                    }
+                                    else { // some quotes at the end of a string, e.g. """ "foo""""
+                                        yypushback(3); // return the closing quotes (""") to the stream
+                                        return CjTokens.REGULAR_STRING_PART;
+                                    }
+                                 }
+
+{THREE_QUO_DOUBLE} \n                      { pushState(RAW_STRING_DOUBLE); return CjTokens.OPEN_QUOTE; }
+<RAW_STRING_DOUBLE> \n                  {
+          System.out.println("RAW_STRING_DOUBLE1");
+
+          return CjTokens.REGULAR_STRING_PART; }
+<RAW_STRING_DOUBLE> \" | \'               {
+          System.out.println("RAW_STRING_DOUBLE2");
+          return CjTokens.REGULAR_STRING_PART; }
+<RAW_STRING_DOUBLE> \\                  {
+          System.out.println("RAW_STRING_DOUBLE3");
+
+          return CjTokens.REGULAR_STRING_PART; }
+<RAW_STRING_DOUBLE> {THREE_OR_DOUBLE_MORE_QUO} {
                                     int length = yytext().length();
                                     if (length <= 3) { // closing """
                                         popState();
@@ -233,14 +337,29 @@ LONELY_BACKTICK=`
                                         return CjTokens.REGULAR_STRING_PART;
                                     }
                                  }
-b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
-\"                          { pushState(STRING); return CjTokens.OPEN_QUOTE; }
-<STRING> \n                 { popState(); yypushback(1); return CjTokens.DANGLING_NEWLINE; }
-<STRING> \"                 { popState(); return CjTokens.CLOSING_QUOTE; }
-<STRING> {ESCAPE_SEQUENCE}  { return CjTokens.ESCAPE_SEQUENCE; }
 
-<STRING, RAW_STRING ,HSAH_STRING> {REGULAR_STRING_PART}           { return CjTokens.REGULAR_STRING_PART; }
-<STRING, RAW_STRING> {SHORT_TEMPLATE_ENTRY}        {
+//b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
+
+
+ {SINGLE_QUO}                  { pushState(STRING_SINGLE); return CjTokens.OPEN_QUOTE; }
+<STRING_SINGLE> \n                 { popState(); yypushback(1); return CjTokens.DANGLING_NEWLINE; }
+<STRING_SINGLE>     {SINGLE_QUO}             { popState(); return CjTokens.CLOSING_QUOTE; }
+
+{DOUBLE_QUO}                  { pushState(STRING_DOUBLE); return CjTokens.OPEN_QUOTE; }
+<STRING_DOUBLE> \n                 { popState(); yypushback(1); return CjTokens.DANGLING_NEWLINE; }
+<STRING_DOUBLE>     {DOUBLE_QUO}             { popState(); return CjTokens.CLOSING_QUOTE; }
+
+
+<STRING_DOUBLE,STRING_SINGLE> {ESCAPE_SEQUENCE}  { return CjTokens.ESCAPE_SEQUENCE; }
+
+<STRING_SINGLE, RAW_STRING_SINGLE ,HSAH_STRING_SINGLE> {REGULAR_STRING_PART_SINGLE}           {
+          System.out.println("STRING, RAW_STRING_DOUBLE,RAW_STRING_SINGLE ,HSAH_STRING_DOUBLE,HSAH_STRING_SINGLE");
+          return CjTokens.REGULAR_STRING_PART; }
+<STRING_DOUBLE, RAW_STRING_DOUBLE ,HSAH_STRING_DOUBLE> {REGULAR_STRING_PART_DOUBLE}           {
+          System.out.println("STRING, RAW_STRING_DOUBLE,RAW_STRING_SINGLE ,HSAH_STRING_DOUBLE,HSAH_STRING_SINGLE");
+          return CjTokens.REGULAR_STRING_PART; }
+
+<STRING_SINGLE,STRING_DOUBLE, RAW_STRING_DOUBLE,RAW_STRING_SINGLE> {SHORT_TEMPLATE_ENTRY}        {
                                                         pushState(SHORT_TEMPLATE_ENTRY);
                                                         yypushback(yylength() - 1);
                                                         return CjTokens.SHORT_TEMPLATE_ENTRY_START;
@@ -252,8 +371,10 @@ b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 
 <SHORT_TEMPLATE_ENTRY> {IDENTIFIER}    { popState(); return CjTokens.IDENTIFIER; }
 
-<STRING, RAW_STRING > {LONELY_DOLLAR}               { return CjTokens.REGULAR_STRING_PART; }
-<STRING, RAW_STRING> {LONG_TEMPLATE_ENTRY_START}   { pushState(LONG_TEMPLATE_ENTRY); return CjTokens.LONG_TEMPLATE_ENTRY_START; }
+<STRING_DOUBLE,STRING_SINGLE, RAW_STRING_DOUBLE,RAW_STRING_SINGLE > {LONELY_DOLLAR}               {
+          System.out.println("LONELY_DOLLAR");
+          return CjTokens.REGULAR_STRING_PART; }
+<STRING_DOUBLE,STRING_SINGLE, RAW_STRING_DOUBLE,RAW_STRING_SINGLE> {LONG_TEMPLATE_ENTRY_START}   { pushState(LONG_TEMPLATE_ENTRY); return CjTokens.LONG_TEMPLATE_ENTRY_START; }
 
 <LONG_TEMPLATE_ENTRY> "{"              { lBraceCount++; return CjTokens.LBRACE; }
 <LONG_TEMPLATE_ENTRY> "}"              {
@@ -333,17 +454,15 @@ b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 //{INTEGER_LITERAL}\.\. { yypushback(2); return CjTokens.INTEGER_LITERAL; }
 {INTEGER_LITERAL} { return CjTokens.INTEGER_LITERAL; }
 
-//{UNIT_LTIERAL} { return CjTokens.UNIT_LTIERAL;}
-//{TUPLE_LTIERAL} { return CjTokens.TUPLE_LTIERAL;}
 
+{RUNE_LITERAL}   { return CjTokens.RUNE_LITERAL; }
 
-{CHARACTER_LITERAL}   { return CjTokens.CHARACTER_LITERAL; }
-//{CHARACTER_BYTE_LITERAL}    { return CjTokens.CHARACTER_BYTE_LITERAL; }
+{CHARACTER_BYTE_LITERAL}   { return CjTokens.CHARACTER_BYTE_LITERAL; }
+
 
 "package"    { return CjTokens.PACKAGE_KEYWORD ;}
 
 
-"from"       { return CjTokens.FROM_KEYWORD ;}
 "import"   { return CjTokens.IMPORT_KEYWORD ;}
 
 
@@ -371,7 +490,7 @@ b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 "foreign"       { return CjTokens.FOREIGN_KEYWORD ;}
 
 
-
+"quote"         { return CjTokens.QUOTE_KEYWORD ;}
 
 
 
@@ -381,6 +500,8 @@ b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 "private"    { return CjTokens.PRIVATE_KEYWORD ;}
 "protected"  { return CjTokens.PROTECTED_KEYWORD ;}
 "static"    { return CjTokens.STATIC_KEYWORD ;}
+  "internal"    { return CjTokens.INTERNAL_KEYWORD ;}
+
 /*"open"       { return CjTokens.OPEN_KEYWORD ;}*/
 "abstract"  { return CjTokens.ABSTRACT_KEYWORD ;}
 "override"  { return CjTokens.OVERRIDE_KEYWORD ;}
@@ -418,13 +539,15 @@ b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 "UInt16"     { return CjTokens.UINT16_KEYWORD ;}
 "UInt32"     { return CjTokens.UINT32_KEYWORD ;}
 "UInt64"     { return CjTokens.UINT64_KEYWORD ;}
-"Float16"    { return CjTokens.FLOAT32_KEYWORD ;}
-
 "Float32"    { return CjTokens.FLOAT32_KEYWORD ;}
+"Float16"    { return CjTokens.FLOAT16_KEYWORD ;}
+"IntNative"  { return CjTokens.INTNATIVE_KEYWORD ;}
+"UIntNative" { return CjTokens.UINTNATIVE_KEYWORD ;}
 "Float64"    { return CjTokens.FLOAT64_KEYWORD ;}
 "Bool"       { return CjTokens.BOOL_KEYWORD ;}
 "Unit"       { return CjTokens.UNIT_KEYWORD ;}
-"Char"       { return CjTokens.CHAR_KEYWORD ;}
+"Rune"       { return CjTokens.RUNE_KEYWORD ;}
+"Nothing"    { return CjTokens.NOTHING_KEYWORD; }
 
 
 "_"            { return CjTokens.UNDERLINE ;}
@@ -436,13 +559,13 @@ b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 
 
 "~"        { return CjTokens.TILDE  ; }
-"<:"        { return CjTokens.LTCOLON  ; }
+"<:"        { return CjTokens.LT_COLON  ; }
 
 
 "++"         { return CjTokens.PLUSPLUS  ; }
 "--"         { return CjTokens.MINUSMINUS; }
 "<="         { return CjTokens.LTEQ      ; }
-//">="         { return CjTokens.GTEQ      ; }
+//">="         { return CjTokens.GT_EQ      ; }
 "=="         { return CjTokens.EQEQ      ; }
 "!="         { return CjTokens.EXCLEQ    ; }
 "&&"         { return CjTokens.ANDAND    ; }
@@ -456,8 +579,8 @@ b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 "+="         { return CjTokens.PLUSEQ    ; }
 "-="         { return CjTokens.MINUSEQ   ; }
 "->"         { return CjTokens.ARROW     ; }
-"~>"         { return CjTokens.COMPOSITION     ; }
-"=>"         { return CjTokens.DOUBLE_ARROW; }
+"..."         { return CjTokens.ARROW     ; }
+"=>"         { return CjTokens.ELLIPSIS; }
 "<-"     { return CjTokens.LEFT_ARROW; }
 ".."         { return CjTokens.RANGE     ; }
 "..="         { return CjTokens.RANGEEQ     ; }
@@ -467,8 +590,19 @@ b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 "]"          { return CjTokens.RBRACKET  ; }
 "{"          { return CjTokens.LBRACE    ; }
 "}"          { return CjTokens.RBRACE    ; }
+"\\("          { return CjTokens.ESCAPE_LPAR      ; }
+"\\)"          { return CjTokens.ESCAPE_RPAR      ; }
+"\\["          { return CjTokens.ESCAPE_LBRACKET      ; }
+"\\]"          { return CjTokens.ESCAPE_RBRACKET      ; }
+
+
+
+"\\$"          { return CjTokens.ESCAPE_DOLLAR      ; }
+"$"                { return CjTokens. DOLLAR      ; }
 "("          { return CjTokens.LPAR      ; }
 ")"          { return CjTokens.RPAR      ; }
+
+
 "."          { return CjTokens.DOT       ; }
 "*"          { return CjTokens.MUL       ; }
 "**"        { return CjTokens.MULMUL    ; }
@@ -479,7 +613,7 @@ b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 "%"          { return CjTokens.PERC      ; }
 "<"          { return CjTokens.LT        ; }
 ">"          { return CjTokens.GT        ; }
-
+"#"          { return CjTokens.HASH; }
 "@"          { return CjTokens.AT; }
 "??"          { return CjTokens.ELVIS     ; }
 "?"           { return CjTokens.QUEST     ; }
@@ -487,17 +621,17 @@ b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 "?["          { return CjTokens.SAFE_INDEXEX     ; }
 "?("          { return CjTokens.SAFE_CALL    ; }
 "?{"          { return CjTokens.SAFE_LAMBDA    ; }
-
-
+"|>"         { return CjTokens.PIPELINE; }
+"~>"         { return CjTokens.COMPOSITION     ; }
 ":"          { return CjTokens.COLON     ; }
-
+"\\"         { return CjTokens.BACKSLASH; }
 ";"          { return CjTokens.SEMICOLON ; }
 "="          { return CjTokens.EQ        ; }
 ","          { return CjTokens.COMMA     ; }
-"|="       { return CjTokens.OREQ     ; }
+"|="       { return CjTokens.OR_EQ     ; }
 "^="       { return CjTokens.XOREQ     ; }
 "&="       { return CjTokens.ANDEQ     ; }
-"<<="      { return CjTokens.LTLTEQ     ; }
+"<<="      { return CjTokens.LT_LT_EQ     ; }
 //">>="      { return CjTokens.GTGTEQ     ; }
 // ">>"     { return CjTokens.GTGT     ; }
  "<<"     { return CjTokens.LTLT     ; }
@@ -508,6 +642,6 @@ b\"                           { pushState(STRING); return CjTokens.OPEN_QUOTE; }
 // error fallback
 [\s\S]       { return TokenType.BAD_CHARACTER; }
 // error fallback for exclusive states
-<STRING, RAW_STRING, SHORT_TEMPLATE_ENTRY, BLOCK_COMMENT, DOC_COMMENT , HSAH_STRING> .
+<STRING_DOUBLE,STRING_SINGLE, RAW_STRING_DOUBLE,RAW_STRING_SINGLE, SHORT_TEMPLATE_ENTRY, BLOCK_COMMENT, DOC_COMMENT , HSAH_STRING_DOUBLE,HSAH_STRING_SINGLE> .
              { return TokenType.BAD_CHARACTER; }
 

@@ -1,5 +1,6 @@
 package com.huawei.cangjie.cjpm.project.model
 
+import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.cjpm.CjpmConstants
 import com.huawei.cangjie.cjpm.project.pathAsPath
 import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
@@ -8,6 +9,7 @@ import com.huawei.cangjie.cjpm.resolve
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
 import com.huawei.cangjie.cjpm.toolchain.impl.CjcVersion
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.service
@@ -148,7 +150,9 @@ private fun discoverToolchain(project: Project) {
             project.cangjieSettings.modify { it.toolchain = toolchain }
         }
 
-
+//        val tool = if (toolchain.isRustupAvailable) CangJieBundle.message("notification.content.rustup") else RsBundle.message("notification.content.cargo.at", toolchain.presentableLocation)
+//        project.showBalloon(RsBundle.message("notification.content.using", tool), NotificationType.INFORMATION)
+//
 
         project.cjpmProjects.discoverAndRefresh()
     }

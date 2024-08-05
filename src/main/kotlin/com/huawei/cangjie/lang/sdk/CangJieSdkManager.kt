@@ -1,7 +1,7 @@
 //package com.huawei.cangjie.lang.sdk
 //
 //
-//import com.huawei.cangjie.idea.project.CangJieProjectManager
+//import com.huawei.cangjie.ide.project.CangJieProjectManager
 //import com.intellij.openapi.diagnostic.Logger
 //import com.intellij.openapi.project.Project
 //import com.intellij.openapi.project.ProjectManager

@@ -47,6 +47,7 @@ public final class FqName {
 
     public boolean isRoot() {
         return fqName.isRoot();
+//        return parent == null;
     }
 
     @NotNull

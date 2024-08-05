@@ -1,4 +1,4 @@
-package com.huawei.cangjie.idea.highlighter
+package com.huawei.cangjie.ide.highlighter
 
 import com.huawei.cangjie.psi.CjCodeFragment
 import com.huawei.cangjie.psi.CjFile
@@ -7,7 +7,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.ApiStatus
 
-//@ApiStatus.Internal
+//
 //fun CjFile.shouldHighlightErrors(): Boolean {
 //    if (isCompiled) {
 //        return false

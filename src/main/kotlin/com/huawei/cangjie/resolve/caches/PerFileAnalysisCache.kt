@@ -12,8 +12,8 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.diagnostics.DiagnosticFactoryWithPsiElement
 import com.huawei.cangjie.diagnostics.DiagnosticUtils
 import com.huawei.cangjie.frontend.createContainerForLazyBodyResolve
-import com.huawei.cangjie.idea.projectStructure.languageVersionSettings
-import com.huawei.cangjie.idea.stubindex.resolve.PluginDeclarationProviderFactory
+import com.huawei.cangjie.ide.projectStructure.languageVersionSettings
+import com.huawei.cangjie.ide.stubindex.resolve.PluginDeclarationProviderFactory
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.lazy.IdeaAbsentDescriptorHandler
@@ -436,7 +436,7 @@ object CangJieResolveDataProvider {
         }
         return AnalysisResult.success(trace.bindingContext, moduleDescriptor)
 
-        TODO()
+
     }
 
 }
@@ -624,7 +624,6 @@ private class StackedCompositeBindingContextTrace(
 
     companion object {
         private fun selfDiagnosticToHold(d: Diagnostic): Boolean {
-            @Suppress("MoveVariableDeclarationIntoWhen")
             val positioningStrategy = d.factory.safeAs<DiagnosticFactoryWithPsiElement<*, *>>()?.positioningStrategy
 //            return when (positioningStrategy) {
 //                DECLARATION_WITH_BODY -> false

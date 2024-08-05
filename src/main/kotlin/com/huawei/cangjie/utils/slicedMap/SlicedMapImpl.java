@@ -85,7 +85,6 @@ public class SlicedMapImpl implements MutableSlicedMap {
         if (!alwaysAllowRewrite && rewritePolicy.rewriteProcessingNeeded(key)) {
             V oldValue = holder.get(sliceKey);
             if (oldValue != null) {
-                //noinspection unchecked
                 if (!rewritePolicy.processRewrite(slice, key, oldValue, value)) {
                     return;
                 }

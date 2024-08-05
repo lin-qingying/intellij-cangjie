@@ -80,6 +80,7 @@ public final class FqNameUnsafe {
 
     public boolean isRoot() {
         return fqName.isEmpty();
+//        return parent == null;
     }
 
     @NotNull

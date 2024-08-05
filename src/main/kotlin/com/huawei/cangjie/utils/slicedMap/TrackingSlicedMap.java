@@ -66,12 +66,12 @@ public class TrackingSlicedMap extends SlicedMapImpl {
     }
 
     @Override
-    public <K, V> V get(ReadOnlySlice<K, V> slice, K key) {
+    public <K, V> V get(@NotNull ReadOnlySlice<K, V> slice, K key) {
         return super.get(wrapSlice(slice), key).value;
     }
 
     @Override
-    public <K, V> Collection<K> getKeys(WritableSlice<K, V> slice) {
+    public <K, V> @NotNull Collection<K> getKeys(@NotNull WritableSlice<K, V> slice) {
         return super.getKeys(wrapSlice(slice));
     }
 

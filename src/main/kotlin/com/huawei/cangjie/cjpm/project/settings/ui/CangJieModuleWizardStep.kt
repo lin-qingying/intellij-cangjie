@@ -1,6 +1,6 @@
-package com.huawei.cangjie.idea.project.settings.ui
+package com.huawei.cangjie.ide.project.settings.ui
 
-import com.huawei.cangjie.idea.project.tools.projectWizard.wizard.CangJieModuleType
+import com.huawei.cangjie.ide.project.tools.projectWizard.wizard.CangJieModuleType
 import com.intellij.ide.util.projectWizard.ModuleBuilder
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ide.util.projectWizard.WizardContext
