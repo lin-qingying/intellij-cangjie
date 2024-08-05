@@ -2,17 +2,18 @@ package com.linqingying.cangjie.cjpm.project.workspace
 
 import CjpmWorkspaceData
 import com.fasterxml.jackson.core.JacksonException
+import com.intellij.openapi.util.UserDataHolderBase
+import com.intellij.openapi.util.UserDataHolderEx
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.linqingying.cangjie.cjpm.CjpmConstants
 import com.linqingying.cangjie.cjpm.project.model.CjpmProjectInfo
 import com.linqingying.cangjie.cjpm.project.model.Require
 import com.linqingying.cangjie.cjpm.project.model.impl.CachedVirtualFile
 import com.linqingying.cangjie.cjpm.project.pathAsPath
 import com.linqingying.cangjie.cjpm.resolve
-import com.intellij.openapi.util.UserDataHolderBase
-import com.intellij.openapi.util.UserDataHolderEx
-import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
+import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.exists
@@ -63,7 +64,7 @@ interface CjpmWorkspace {
 
 
         val moduleData: CjpmProjectInfo?
-        val version: String
+        val version: String?
         val outDir: VirtualFile?
         val origin: PackageOrigin
 
@@ -85,7 +86,7 @@ class PackageImpl(
     override val workspace: WorkspaceImpl,
     val contentRootUrl: String,
     override val name: String,
-    override val version: String,
+    override val version: String?,
 
     override var origin: PackageOrigin,
     val outDirUrl: String? = null,
@@ -159,7 +160,7 @@ class WorkspaceImpl(
 
         try {
 //            Cjpm.JSON_MAPPER.readValue(json, CjpmProjectInfo::class.java)
-            CjpmProjectInfo.deserialize(manifestPath )
+            CjpmProjectInfo.deserialize(manifestPath)
         } catch (e: JacksonException) {
             throw e
             println(e)
@@ -193,6 +194,34 @@ class WorkspaceImpl(
 
             )
         )
+        moduleData?.dependencies?.forEach {
+
+            if (it.path != null) {
+
+//                尝试获取路径，先尝试绝对路径，再尝试相对路径
+                var file = File(it.path)
+
+                if (!file.exists()) {
+                    file = File(manifestPath.toFile().parent, it.path)
+                }
+
+                if (file.exists()) {
+                    add(
+                        PackageImpl(
+                            this@WorkspaceImpl,
+                            LocalFileSystem.getInstance().findFileByIoFile(file)?.url ?: it.path,
+                            it.name,
+                            it.version,
+                            PackageOrigin.DEPENDENCY,
+
+                            )
+                    )
+                }
+
+
+            }
+
+        }
     }
 //    override val moduleData: CjpmProjectInfo? = ApplicationManager.getApplication().executeOnPooledThread<CjpmProjectInfo> {
 //

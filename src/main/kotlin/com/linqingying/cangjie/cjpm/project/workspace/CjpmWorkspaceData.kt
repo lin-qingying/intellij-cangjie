@@ -23,7 +23,7 @@ data class CjpmWorkspaceData(
 //        val id: PackageId,
         val contentRootUrl: String,
         val name: String,
-        val version: String,
+        val version: String?,
 
 
         val origin: PackageOrigin,
