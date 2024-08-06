@@ -1,0 +1,11 @@
+<idea-plugin>
+
+    <extensions defaultExtensionNs="com.intellij">
+
+
+
+        <fileType name="cangjie_declarations" fieldName="INSTANCE" extensions="cangjie_declarations"
+                  implementationClass="com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType"/>
+
+    </extensions>
+</idea-plugin>

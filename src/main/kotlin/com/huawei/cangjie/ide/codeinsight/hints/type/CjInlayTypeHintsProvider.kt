@@ -3,6 +3,7 @@ package com.huawei.cangjie.ide.codeinsight.hints.type
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjExpression
+import com.huawei.cangjie.psi.CjSimpleNameExpression
 import com.huawei.cangjie.psi.CjVariable
 import com.intellij.codeInsight.hints.*
 import com.intellij.openapi.components.service

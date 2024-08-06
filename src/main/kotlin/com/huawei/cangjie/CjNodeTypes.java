@@ -5,6 +5,7 @@ import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
+import com.intellij.psi.tree.TokenSet;
 
 public interface CjNodeTypes {
 
@@ -188,9 +189,37 @@ public interface CjNodeTypes {
     IElementType SECONDARY_CONSTRUCTOR = CjStubElementTypes.SECONDARY_CONSTRUCTOR;
     IElementType PRIMARY_CONSTRUCTOR = CjStubElementTypes.PRIMARY_CONSTRUCTOR;
     IElementType CONTEXT_RECEIVER_LIST = CjStubElementTypes.CONTEXT_RECEIVER_LIST;
-    IFileElementType TYPE_CODE_FRAGMENT = CjStubElementTypes.TYPE_CODE_FRAGMENT;
-    IFileElementType EXPRESSION_CODE_FRAGMENT = CjStubElementTypes.EXPRESSION_CODE_FRAGMENT;
-    IFileElementType BLOCK_CODE_FRAGMENT = CjStubElementTypes.BLOCK_CODE_FRAGMENT;
+
+
+
+//    IFileElementType TYPE_CODE_FRAGMENT = CjStubElementTypes.TYPE_CODE_FRAGMENT;
+//    IFileElementType EXPRESSION_CODE_FRAGMENT = CjStubElementTypes.EXPRESSION_CODE_FRAGMENT;
+//    IFileElementType BLOCK_CODE_FRAGMENT = CjStubElementTypes.BLOCK_CODE_FRAGMENT;
+
+    CjTypeCodeFragmentType TYPE_CODE_FRAGMENT = new CjTypeCodeFragmentType();
+    CjExpressionCodeFragmentType EXPRESSION_CODE_FRAGMENT = new CjExpressionCodeFragmentType();
+    CjBlockCodeFragmentType BLOCK_CODE_FRAGMENT = new CjBlockCodeFragmentType();
+
+
+
+    TokenSet CONSTANT_EXPRESSIONS_TYPES = TokenSet.create(
+
+            BOOLEAN_CONSTANT,
+            FLOAT_CONSTANT,
+            RUNE_CONSTANT,
+            INTEGER_CONSTANT,
+            CHARACTER_CONSTANT,
+
+            REFERENCE_EXPRESSION,
+            DOT_QUALIFIED_EXPRESSION,
+
+            STRING_TEMPLATE,
+
+//            CLASS_LITERAL_EXPRESSION,
+
+            COLLECTION_LITERAL_EXPRESSION
+    );
+
 }
 
 

@@ -1,7 +1,7 @@
 package com.huawei.cangjie.name
 
 
-class Name private constructor(private val name: String, val isSpecial: Boolean) : Comparable<Name> {
+data class Name(private val name: String, val isSpecial: Boolean) : Comparable<Name> {
 
     fun asString(): String {
         return name
@@ -29,25 +29,26 @@ class Name private constructor(private val name: String, val isSpecial: Boolean)
     }
 
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is Name) return false
-        val name1 = other
-        if (isSpecial != name1.isSpecial) return false
-        return name == name1.name
-    }
-
-    override fun hashCode(): Int {
-        var result = name.hashCode()
-        result = 31 * result + if (isSpecial) 1 else 0
-        return result
-    }
+//    override fun equals(other: Any?): Boolean {
+//        if (this === other) return true
+//        if (other !is Name) return false
+//        val name1 = other
+//        if (isSpecial != name1.isSpecial) return false
+//        return name == name1.name
+//    }
+//
+//    override fun hashCode(): Int {
+//        var result = name.hashCode()
+//        result = 31 * result + if (isSpecial) 1 else 0
+//        return result
+//    }
 
     companion object {
         @JvmStatic
         fun identifier(name: String): Name {
             return Name(name, false)
         }
+
         @JvmStatic
         fun isValidIdentifier(name: String): Boolean {
             if (name.isEmpty() || name.startsWith("<")) return false
@@ -59,6 +60,7 @@ class Name private constructor(private val name: String, val isSpecial: Boolean)
             }
             return true
         }
+
         @JvmStatic
         fun identifierIfValid(name: String): Name? {
             return if (!isValidIdentifier(name)) null else identifier(name)
@@ -69,6 +71,7 @@ class Name private constructor(private val name: String, val isSpecial: Boolean)
             require(name.startsWith("<")) { "special name must start with '<': $name" }
             return Name(name, true)
         }
+
         @JvmStatic
         fun guessByFirstCharacter(name: String): Name {
             return if (name.startsWith("<")) {
@@ -77,8 +80,6 @@ class Name private constructor(private val name: String, val isSpecial: Boolean)
                 identifier(name)
             }
         }
-
-
 
 
     }

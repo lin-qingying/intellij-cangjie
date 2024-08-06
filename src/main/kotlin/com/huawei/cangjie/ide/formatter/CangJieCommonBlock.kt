@@ -294,7 +294,9 @@ abstract class CangJieCommonBlock(
         }
 
         val parentType = parent.elementType
-        return parentType == BLOCK_CODE_FRAGMENT || parentType == EXPRESSION_CODE_FRAGMENT || parentType == TYPE_CODE_FRAGMENT
+        return  parentType == EXPRESSION_CODE_FRAGMENT ||
+                parentType == TYPE_CODE_FRAGMENT
+//       || parentType == BLOCK_CODE_FRAGMENT
     }
 
     fun getChildAttributes(newChildIndex: Int): ChildAttributes {

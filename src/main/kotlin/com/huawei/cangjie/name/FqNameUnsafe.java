@@ -13,12 +13,7 @@ public final class FqNameUnsafe {
     private static final Name ROOT_NAME = Name.special("<root>");
     private static final Pattern SPLIT_BY_DOTS = Pattern.compile("\\.");
 
-    private static final Function1<String, Name> STRING_TO_NAME = new Function1<String, Name>() {
-        @Override
-        public Name invoke(String name) {
-            return Name.guessByFirstCharacter(name);
-        }
-    };
+    private static final Function1<String, Name> STRING_TO_NAME = Name::guessByFirstCharacter;
 
     @NotNull
     private final String fqName;

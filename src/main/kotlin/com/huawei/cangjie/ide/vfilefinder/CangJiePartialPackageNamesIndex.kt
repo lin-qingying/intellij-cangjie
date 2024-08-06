@@ -2,6 +2,7 @@ package com.huawei.cangjie.ide.vfilefinder
 
 
 import com.huawei.cangjie.lang.CangJieFileType
+import com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.name.parentOrNull
@@ -44,8 +45,10 @@ class CangJiePartialPackageNamesIndex : FileBasedIndexExtension<FqName, Name?>()
         DefaultFileTypeSpecificInputFilter(
 //            JavaClassFileType.INSTANCE,
             CangJieFileType,
+            CangJieBuiltInFileType
+
 //            CangJieJavaScriptMetaFileType,
-//            CangJieBuiltInFileType,
+
 //            KlibMetaFileType,
         )
 

@@ -5,121 +5,200 @@ import com.intellij.psi.tree.TokenSet;
 
 public interface CjStubElementTypes {
 
-    CjConstantExpressionElementType NULL = new CjConstantExpressionElementType("NULL");
-    CjConstantExpressionElementType CHARACTER_CONSTANT  = new CjConstantExpressionElementType("CHARACTER_CONSTANT");
 
+
+    CjClassElementType CLASS = new CjClassElementType("CLASS");
+    CjFunctionElementType FUNCTION = new CjFunctionElementType("FUN");
+
+    CjVariableElementType VARIABLE = new CjVariableElementType("VARIABLE");
+    CjPropertyElementType PROPERTY = new CjPropertyElementType("PROPERTY");
+    CjPropertyAccessorElementType PROPERTY_ACCESSOR = new CjPropertyAccessorElementType("PROPERTY_ACCESSOR");
+//    CjBackingFieldElementType BACKING_FIELD = new CjBackingFieldElementType("BACKING_FIELD");
+    CjTypeAliasElementType TYPEALIAS = new CjTypeAliasElementType("TYPEALIAS");
+
+    CjClassElementType ENUM_ENTRY = new CjClassElementType("ENUM_ENTRY");
+//    CjObjectElementType OBJECT_DECLARATION = new CjObjectElementType("OBJECT_DECLARATION");
+    CjPlaceHolderStubElementType<CjClassInitializer> CLASS_INITIALIZER =
+            new CjPlaceHolderStubElementType<>("CLASS_INITIALIZER", CjClassInitializer.class);
+    CjSecondaryConstructorElementType SECONDARY_CONSTRUCTOR =
+            new CjSecondaryConstructorElementType("SECONDARY_CONSTRUCTOR");
+    CjPrimaryConstructorElementType PRIMARY_CONSTRUCTOR =
+            new CjPrimaryConstructorElementType("PRIMARY_CONSTRUCTOR");
+
+    CjParameterElementType VALUE_PARAMETER = new CjParameterElementType("VALUE_PARAMETER");
+    CjPlaceHolderStubElementType<CjParameterList> VALUE_PARAMETER_LIST =
+            new CjPlaceHolderStubElementType<>("VALUE_PARAMETER_LIST", CjParameterList.class);
+
+    CjTypeParameterElementType TYPE_PARAMETER = new CjTypeParameterElementType("TYPE_PARAMETER");
+    CjPlaceHolderStubElementType<CjTypeParameterList> TYPE_PARAMETER_LIST =
+            new CjPlaceHolderStubElementType<>("TYPE_PARAMETER_LIST", CjTypeParameterList.class);
+
+    CjAnnotationEntryElementType ANNOTATION_ENTRY = new CjAnnotationEntryElementType("ANNOTATION_ENTRY");
     CjPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
             new CjPlaceHolderStubElementType<>("ANNOTATION", CjAnnotation.class);
-    CjPropertyAccessorElementType PROPERTY_ACCESSOR = new CjPropertyAccessorElementType("PROPERTY_ACCESSOR");
+
+//    CjAnnotationUseSiteTargetElementType ANNOTATION_TARGET = new CjAnnotationUseSiteTargetElementType("ANNOTATION_TARGET");
+
+    CjPlaceHolderStubElementType<CjClassBody> CLASS_BODY =
+            new CjPlaceHolderStubElementType<>("CLASS_BODY", CjClassBody.class);
+
+    CjPlaceHolderStubElementType<CjImportList> IMPORT_LIST =
+            new CjPlaceHolderStubElementType<>("IMPORT_LIST", CjImportList.class);
+
+//    CjPlaceHolderStubElementType<CjFileAnnotationList> FILE_ANNOTATION_LIST =
+//            new CjPlaceHolderStubElementType<>("FILE_ANNOTATION_LIST", CjFileAnnotationList.class);
+
+    CjImportDirectiveElementType IMPORT_DIRECTIVE = new CjImportDirectiveElementType("IMPORT_DIRECTIVE");
+
+    CjImportAliasElementType IMPORT_ALIAS = new CjImportAliasElementType("IMPORT_ALIAS");
+
+    CjPlaceHolderStubElementType<CjPackageDirective> PACKAGE_DIRECTIVE =
+            new CjPlaceHolderStubElementType<>("PACKAGE_DIRECTIVE", CjPackageDirective.class);
+
+    CjModifierListElementType<CjDeclarationModifierList> MODIFIER_LIST =
+            new CjModifierListElementType<>("MODIFIER_LIST", CjDeclarationModifierList.class);
+
+    CjPlaceHolderStubElementType<CjTypeConstraintList> TYPE_CONSTRAINT_LIST =
+            new CjPlaceHolderStubElementType<>("TYPE_CONSTRAINT_LIST", CjTypeConstraintList.class);
+
+    CjPlaceHolderStubElementType<CjTypeConstraint> TYPE_CONSTRAINT =
+            new CjPlaceHolderStubElementType<>("TYPE_CONSTRAINT", CjTypeConstraint.class);
+
+//    CjPlaceHolderStubElementType<CjNullableType> NULLABLE_TYPE =
+//            new CjPlaceHolderStubElementType<>("NULLABLE_TYPE", CjNullableType.class);
+
+//    CjPlaceHolderStubElementType<CjIntersectionType> INTERSECTION_TYPE =
+//            new CjPlaceHolderStubElementType<>("INTERSECTION_TYPE", CjIntersectionType.class);
+
+    CjPlaceHolderStubElementType<CjTypeReference> TYPE_REFERENCE =
+            new CjPlaceHolderStubElementType<>("TYPE_REFERENCE", CjTypeReference.class);
+
+    CjUserTypeElementType USER_TYPE = new CjUserTypeElementType("USER_TYPE");
+//    CjPlaceHolderStubElementType<CjDynamicType> DYNAMIC_TYPE =
+//            new CjPlaceHolderStubElementType<>("DYNAMIC_TYPE", CjDynamicType.class);
+
     CjPlaceHolderStubElementType<CjFunctionType> FUNCTION_TYPE =
             new CjPlaceHolderStubElementType<>("FUNCTION_TYPE", CjFunctionType.class);
-    CjConstantExpressionElementType BOOLEAN_CONSTANT = new CjConstantExpressionElementType("BOOLEAN_CONSTANT");
-    CjValueArgumentElementType<CjLambdaArgument> LAMBDA_ARGUMENT =
-            new CjValueArgumentElementType<>
-                    ("LAMBDA_ARGUMENT", CjLambdaArgument.class);
+
+
+    CjTypeProjectionElementType TYPE_PROJECTION = new CjTypeProjectionElementType("TYPE_PROJECTION");
+
     CjPlaceHolderStubElementType<CjFunctionTypeReceiver> FUNCTION_TYPE_RECEIVER =
             new CjPlaceHolderStubElementType<>("FUNCTION_TYPE_RECEIVER", CjFunctionTypeReceiver.class);
 
+    CjNameReferenceExpressionElementType REFERENCE_EXPRESSION = new CjNameReferenceExpressionElementType("REFERENCE_EXPRESSION");
+    CjDotQualifiedExpressionElementType DOT_QUALIFIED_EXPRESSION = new CjDotQualifiedExpressionElementType("DOT_QUALIFIED_EXPRESSION");
+//    CjEnumEntrySuperClassReferenceExpressionElementType
+//            ENUM_ENTRY_SUPERCLASS_REFERENCE_EXPRESSION =
+//            new CjEnumEntrySuperClassReferenceExpressionElementType("ENUM_ENTRY_SUPERCLASS_REFERENCE_EXPRESSION");
+    CjPlaceHolderStubElementType<CjTypeArgumentList> TYPE_ARGUMENT_LIST =
+            new CjPlaceHolderStubElementType<>("TYPE_ARGUMENT_LIST", CjTypeArgumentList.class);
+
+    CjPlaceHolderStubElementType<CjValueArgumentList> VALUE_ARGUMENT_LIST =
+            new CjValueArgumentListElementType("VALUE_ARGUMENT_LIST");
+
+    CjValueArgumentElementType<CjValueArgument> VALUE_ARGUMENT =
+            new CjValueArgumentElementType<>("VALUE_ARGUMENT", CjValueArgument.class);
+
+//    CjPlaceHolderStubElementType<CjContractEffectList> CONTRACT_EFFECT_LIST =
+//            new CjContractEffectListElementType("CONTRACT_EFFECT_LIST");
+
+//    CjContractEffectElementType CONTRACT_EFFECT =
+//            new CjContractEffectElementType("CONTRACT_EFFECT", CjContractEffect.class);
+
+    CjValueArgumentElementType<CjLambdaArgument> LAMBDA_ARGUMENT =
+            new CjValueArgumentElementType<>("LAMBDA_ARGUMENT", CjLambdaArgument.class);
+
+    CjPlaceHolderStubElementType<CjValueArgumentName> VALUE_ARGUMENT_NAME =
+            new CjPlaceHolderStubElementType<>("VALUE_ARGUMENT_NAME", CjValueArgumentName.class);
+
+    CjPlaceHolderStubElementType<CjSuperTypeList> SUPER_TYPE_LIST =
+            new CjPlaceHolderStubElementType<>("SUPER_TYPE_LIST", CjSuperTypeList.class);
+
+//    CjPlaceHolderStubElementType<CjInitializerList> INITIALIZER_LIST =
+//            new CjPlaceHolderStubElementType<>("INITIALIZER_LIST", CjInitializerList.class);
+
+//    CjPlaceHolderStubElementType<CjDelegatedSuperTypeEntry> DELEGATED_SUPER_TYPE_ENTRY =
+//            new CjPlaceHolderStubElementType<>("DELEGATED_SUPER_TYPE_ENTRY", CjDelegatedSuperTypeEntry.class);
+
+    CjPlaceHolderStubElementType<CjSuperTypeCallEntry> SUPER_TYPE_CALL_ENTRY =
+            new CjPlaceHolderStubElementType<>("SUPER_TYPE_CALL_ENTRY", CjSuperTypeCallEntry.class);
+    CjPlaceHolderStubElementType<CjSuperTypeEntry> SUPER_TYPE_ENTRY =
+            new CjPlaceHolderStubElementType<>("SUPER_TYPE_ENTRY", CjSuperTypeEntry.class);
+    CjPlaceHolderStubElementType<CjConstructorCalleeExpression> CONSTRUCTOR_CALLEE =
+            new CjPlaceHolderStubElementType<>("CONSTRUCTOR_CALLEE", CjConstructorCalleeExpression.class);
+
+    CjContextReceiverElementType CONTEXT_RECEIVER = new CjContextReceiverElementType("CONTEXT_RECEIVER");
+    CjPlaceHolderStubElementType<CjContextReceiverList> CONTEXT_RECEIVER_LIST =
+            new CjPlaceHolderStubElementType<>("CONTEXT_RECEIVER_LIST", CjContextReceiverList.class);
+
+    CjConstantExpressionElementType NULL                = new CjConstantExpressionElementType("NULL");
+    CjConstantExpressionElementType BOOLEAN_CONSTANT    = new CjConstantExpressionElementType("BOOLEAN_CONSTANT");
+    CjConstantExpressionElementType FLOAT_CONSTANT      = new CjConstantExpressionElementType("FLOAT_CONSTANT");
+    CjConstantExpressionElementType CHARACTER_CONSTANT  = new CjConstantExpressionElementType("CHARACTER_CONSTANT");
+    CjConstantExpressionElementType INTEGER_CONSTANT    = new CjConstantExpressionElementType("INTEGER_CONSTANT");
+//    CjClassLiteralExpressionElementType CLASS_LITERAL_EXPRESSION = new CjClassLiteralExpressionElementType("CLASS_LITERAL_EXPRESSION");
+    CjCollectionLiteralExpressionElementType COLLECTION_LITERAL_EXPRESSION = new CjCollectionLiteralExpressionElementType("COLLECTION_LITERAL_EXPRESSION");
+
+    CjPlaceHolderStubElementType<CjStringTemplateExpression> STRING_TEMPLATE =
+            new CjStringTemplateExpressionElementType("STRING_TEMPLATE");
+
+    CjPlaceHolderWithTextStubElementType<CjBlockStringTemplateEntry> LONG_STRING_TEMPLATE_ENTRY =
+            new CjPlaceHolderWithTextStubElementType<>("LONG_STRING_TEMPLATE_ENTRY", CjBlockStringTemplateEntry.class);
+
+    CjPlaceHolderWithTextStubElementType<CjSimpleNameStringTemplateEntry> SHORT_STRING_TEMPLATE_ENTRY =
+            new CjPlaceHolderWithTextStubElementType<>("SHORT_STRING_TEMPLATE_ENTRY", CjSimpleNameStringTemplateEntry.class);
+
+    CjPlaceHolderWithTextStubElementType<CjLiteralStringTemplateEntry> LITERAL_STRING_TEMPLATE_ENTRY =
+            new CjPlaceHolderWithTextStubElementType<>("LITERAL_STRING_TEMPLATE_ENTRY", CjLiteralStringTemplateEntry.class);
+
+    CjPlaceHolderWithTextStubElementType<CjEscapeStringTemplateEntry> ESCAPE_STRING_TEMPLATE_ENTRY =
+            new CjPlaceHolderWithTextStubElementType<>("ESCAPE_STRING_TEMPLATE_ENTRY", CjEscapeStringTemplateEntry.class);
+
+
+
+
+    CjCollectionLiteralExpressionElementType TUPLE_LITERAL_EXPRESSION =
+            new CjCollectionLiteralExpressionElementType("TUPLE_LITERAL_EXPRESSION");
+
+
+
     CjConstantExpressionElementType UNIT_CONSTANT = new CjConstantExpressionElementType("UNIT_CONSTANT");
-    CjAnnotationEntryElementType ANNOTATION_ENTRY = new CjAnnotationEntryElementType("ANNOTATION_ENTRY");
     CjAnnotationEntryElementType MACRO_EXPRESSION = new CjAnnotationEntryElementType("MACRO_EXPRESSION");
 
 
-    //    KtPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
+    //    CjPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
 //            new CjPlaceHolderStubElementType<>("ANNOTATION", CjAnnotation.class);
-    CjConstantExpressionElementType FLOAT_CONSTANT = new CjConstantExpressionElementType("FLOAT_CONSTANT");
     CjConstantExpressionElementType RUNE_CONSTANT = new CjConstantExpressionElementType("RUNE_CONSTANT");
 
 
     CjConstantExpressionElementType CHARACTER_BYTE_CONSTANT = new CjConstantExpressionElementType("CHARACTER_BYTE_CONSTANT");
 
-    CjConstantExpressionElementType INTEGER_CONSTANT = new CjConstantExpressionElementType("INTEGER_CONSTANT");
-
-    CjPlaceHolderWithTextStubElementType<CjSimpleNameStringTemplateEntry> SHORT_STRING_TEMPLATE_ENTRY =
-            new CjPlaceHolderWithTextStubElementType<>("SHORT_STRING_TEMPLATE_ENTRY", CjSimpleNameStringTemplateEntry.class);
-
-    CjPlaceHolderWithTextStubElementType<CjBlockStringTemplateEntry> LONG_STRING_TEMPLATE_ENTRY =
-            new CjPlaceHolderWithTextStubElementType<>("LONG_STRING_TEMPLATE_ENTRY", CjBlockStringTemplateEntry.class);
 
 
-    CjPlaceHolderStubElementType<CjValueArgumentName> VALUE_ARGUMENT_NAME =
-            new CjPlaceHolderStubElementType<>("VALUE_ARGUMENT_NAME", CjValueArgumentName.class);
-    CjPlaceHolderStubElementType<CjValueArgumentList> VALUE_ARGUMENT_LIST =
-            new CjValueArgumentListElementType("VALUE_ARGUMENT_LIST");
-    CjPlaceHolderStubElementType<CjConstructorCalleeExpression> CONSTRUCTOR_CALLEE =
-            new CjPlaceHolderStubElementType<>("CONSTRUCTOR_CALLEE", CjConstructorCalleeExpression.class);
-
-    CjPlaceHolderStubElementType<CjSuperTypeCallEntry> SUPER_TYPE_CALL_ENTRY =
-            new CjPlaceHolderStubElementType<>("SUPER_TYPE_CALL_ENTRY", CjSuperTypeCallEntry.class);
 
 
-    CjPlaceHolderStubElementType<CjSuperTypeEntry> SUPER_TYPE_ENTRY =
-            new CjPlaceHolderStubElementType<>("SUPER_TYPE_ENTRY", CjSuperTypeEntry.class);
 
-    CjVariableElementType VARIABLE = new CjVariableElementType("VARIABLE");
-    CjPropertyElementType PROPERTY = new CjPropertyElementType("PROPERTY");
-    CjTypeAliasElementType TYPEALIAS = new CjTypeAliasElementType("TYPEALIAS");
-
-
-    CjPlaceHolderStubElementType<CjClassInitializer> CLASS_INITIALIZER =
-            new CjPlaceHolderStubElementType<>("CLASS_INITIALIZER", CjClassInitializer.class);
-    CjImportAliasElementType IMPORT_ALIAS = new CjImportAliasElementType("IMPORT_ALIAS");
-    CjPlaceHolderStubElementType<CjSuperTypeList> SUPER_TYPE_LIST =
-            new CjPlaceHolderStubElementType<>("SUPER_TYPE_LIST", CjSuperTypeList.class);
-
-    CjTypeProjectionElementType TYPE_PROJECTION = new CjTypeProjectionElementType("TYPE_PROJECTION");
-    CjParameterElementType VALUE_PARAMETER = new CjParameterElementType("VALUE_PARAMETER");
-    CjClassElementType CLASS = new CjClassElementType("CLASS");
 
     CjInterfaceElementType INTERFACE = new CjInterfaceElementType("INTERFACE");
 
     CjStructElementType STRUCT = new CjStructElementType("STRUCT");
-    CjPlaceHolderStubElementType<CjImportList> IMPORT_LIST =
-            new CjPlaceHolderStubElementType<>("IMPORT_LIST", CjImportList.class);
-    CjPlaceHolderStubElementType<CjTypeArgumentList> TYPE_ARGUMENT_LIST =
-            new CjPlaceHolderStubElementType<>("TYPE_ARGUMENT_LIST", CjTypeArgumentList.class);
-
-//    CjPlaceHolderStubElementType<CjMacroAttrArgumentList> MACRO_ARGUMENT_LIST =
-//            new CjPlaceHolderStubElementType<>("MACRO_ARGUMENT_LIST", CjMacroAttrArgumentList.class);
 
 
-    CjTypeParameterElementType TYPE_PARAMETER = new CjTypeParameterElementType("TYPE_PARAMETER");
-    CjPrimaryConstructorElementType PRIMARY_CONSTRUCTOR =
-            new CjPrimaryConstructorElementType("PRIMARY_CONSTRUCTOR");
+
     CjMacroElementType MACRO = new CjMacroElementType("MACRO");
     CjForeignDirectiveElementType FOREIGN = new CjForeignDirectiveElementType("FOREIGN");
     CjPlaceHolderStubElementType<CjForeignBody> FOREIGN_BODY =
             new CjPlaceHolderStubElementType<>("FOREIGN_BODY", CjForeignBody.class);
-    CjFunctionElementType FUNCTION = new CjFunctionElementType("FUNC");
-    CjContextReceiverElementType CONTEXT_RECEIVER = new CjContextReceiverElementType("CONTEXT_RECEIVER");
 
 
     CjEnumElementType ENUM = new CjEnumElementType("ENUM");
     CjExtendElementType EXTEND = new CjExtendElementType("EXTEND");
-    CjPlaceHolderStubElementType<CjContextReceiverList> CONTEXT_RECEIVER_LIST =
-            new CjPlaceHolderStubElementType<>("CONTEXT_RECEIVER_LIST", CjContextReceiverList.class);
-    CjPlaceHolderStubElementType<CjTypeParameterList> TYPE_PARAMETER_LIST =
-            new CjPlaceHolderStubElementType<>("TYPE_PARAMETER_LIST", CjTypeParameterList.class);
-    CjPlaceHolderStubElementType<CjTypeConstraint> TYPE_CONSTRAINT =
-            new CjPlaceHolderStubElementType<>("TYPE_CONSTRAINT", CjTypeConstraint.class);
-
-    CjPlaceHolderStubElementType<CjTypeReference> TYPE_REFERENCE =
-            new CjPlaceHolderStubElementType<>("TYPE_REFERENCE", CjTypeReference.class);
-    CjPlaceHolderStubElementType<CjPackageDirective> PACKAGE_DIRECTIVE = new CjPlaceHolderStubElementType<>("PACKAGE_DIRECTIVE", CjPackageDirective.class);
-
-    CjModifierListElementType<CjDeclarationModifierList> MODIFIER_LIST =
-            new CjModifierListElementType<>("MODIFIER_LIST", CjDeclarationModifierList.class);
-
-    CjValueArgumentElementType<CjValueArgument> VALUE_ARGUMENT =
-            new CjValueArgumentElementType<>("VALUE_ARGUMENT", CjValueArgument.class);
-
-    CjUserTypeElementType USER_TYPE = new CjUserTypeElementType("USER_TYPE");
 
     //    CjTupleTypeElementType TUPLE_TYPE = new CjTupleTypeElementType("TUPLE_TYPE");
     CjPlaceHolderStubElementType<CjTupleType> TUPLE_TYPE = new CjPlaceHolderStubElementType<>("TUPLE_TYPE", CjTupleType.class);
 
-    CjPlaceHolderStubElementType<CjClassBody> CLASS_BODY =
-            new CjPlaceHolderStubElementType<>("CLASS_BODY", CjClassBody.class);
+
     CjPlaceHolderStubElementType<CjEnumBody> ENUM_BODY =
             new CjPlaceHolderStubElementType<>("ENUM_BODY", CjEnumBody.class);
 
@@ -130,24 +209,14 @@ public interface CjStubElementTypes {
 
     CjPlaceHolderStubElementType<CjPropertySet> PROPERTY_SET =
             new CjPlaceHolderStubElementType<>("PROPERTY_SET", CjPropertySet.class);
-    CjPlaceHolderStubElementType<CjTypeConstraintList> TYPE_CONSTRAINT_LIST =
-            new CjPlaceHolderStubElementType<>("TYPE_CONSTRAINT_LIST", CjTypeConstraintList.class);
-    CjPlaceHolderStubElementType<CjParameterList> VALUE_PARAMETER_LIST =
-            new CjPlaceHolderStubElementType<>("VALUE_PARAMETER_LIST", CjParameterList.class);
 
-    CjNameReferenceExpressionElementType REFERENCE_EXPRESSION = new CjNameReferenceExpressionElementType("REFERENCE_EXPRESSION");
 
-    CjPlaceHolderStubElementType<CjSuperTypeEntry> ENUM_ENTRY =
-            new CjPlaceHolderStubElementType<>("ENUM_ENTRY", CjSuperTypeEntry.class);
     CjPlaceHolderStubElementType<CjSuperTypeEntry> TYPE_LIST =
             new CjPlaceHolderStubElementType<>("TYPE_LIST", CjSuperTypeEntry.class);
-    CjSecondaryConstructorElementType SECONDARY_CONSTRUCTOR =
-            new CjSecondaryConstructorElementType("SECONDARY_CONSTRUCTOR");
 
-    CjImportDirectiveElementType IMPORT_DIRECTIVE = new CjImportDirectiveElementType("IMPORT_DIRECTIVE");
+
     CjImportDirectiveItemElementType IMPORT_DIRECTIVE_ITEM = new CjImportDirectiveItemElementType("IMPORT_DIRECTIVE_ITEM");
 
-    CjDotQualifiedExpressionElementType DOT_QUALIFIED_EXPRESSION = new CjDotQualifiedExpressionElementType("DOT_QUALIFIED_EXPRESSION");
 
     CjMainFunctionElementType MAIN_FUNC = new CjMainFunctionElementType("MAIN_FUNC");
     CjClassInitElementType CLASS_INIT = new CjClassInitElementType("CLASS_INIT");
@@ -155,43 +224,16 @@ public interface CjStubElementTypes {
     CjClassInitElementType CLASS_TILDE_INIT = new CjClassInitElementType("CLASS_TILDE_INIT");
 
     CjBasicTypeElementType BASIC_TYPE = new CjBasicTypeElementType("BASIC_TYPE");
-    CjPlaceHolderStubElementType<CjStringTemplateExpression> STRING_TEMPLATE =
-            new CjStringTemplateExpressionElementType("STRING_TEMPLATE");
-
-    CjPlaceHolderWithTextStubElementType<CjEscapeStringTemplateEntry> ESCAPE_STRING_TEMPLATE_ENTRY =
-            new CjPlaceHolderWithTextStubElementType<>("ESCAPE_STRING_TEMPLATE_ENTRY", CjEscapeStringTemplateEntry.class);
-    CjPlaceHolderWithTextStubElementType<CjLiteralStringTemplateEntry> LITERAL_STRING_TEMPLATE_ENTRY =
-            new CjPlaceHolderWithTextStubElementType<>("LITERAL_STRING_TEMPLATE_ENTRY", CjLiteralStringTemplateEntry.class);
 
 
-    CjCollectionLiteralExpressionElementType COLLECTION_LITERAL_EXPRESSION =
-            new CjCollectionLiteralExpressionElementType("COLLECTION_LITERAL_EXPRESSION");
 
 
-    CjCollectionLiteralExpressionElementType TUPLE_LITERAL_EXPRESSION =
-            new CjCollectionLiteralExpressionElementType("TUPLE_LITERAL_EXPRESSION");
 
 
-    CjTypeCodeFragmentType TYPE_CODE_FRAGMENT = new CjTypeCodeFragmentType();
-    CjExpressionCodeFragmentType EXPRESSION_CODE_FRAGMENT = new CjExpressionCodeFragmentType();
-    CjBlockCodeFragmentType BLOCK_CODE_FRAGMENT = new CjBlockCodeFragmentType();
 
 
-    TokenSet CONSTANT_EXPRESSIONS_TYPES = TokenSet.create(
-
-            BOOLEAN_CONSTANT,
-            FLOAT_CONSTANT,
-            RUNE_CONSTANT,
-            INTEGER_CONSTANT,
-            CHARACTER_CONSTANT,
-
-            REFERENCE_EXPRESSION,
-            DOT_QUALIFIED_EXPRESSION,
-
-            STRING_TEMPLATE,
 
 
-            COLLECTION_LITERAL_EXPRESSION
-    );
+
 
 }

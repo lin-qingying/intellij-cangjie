@@ -1,11 +1,11 @@
-<idea-plugin allow-bundled-update="true" xmlns:xi="http://www.w3.org/2001/XInclude">
+<idea-plugin allow-bundled-update="true">
 
 
     <resource-bundle>messages.CangJieBaseHighlightingBundle</resource-bundle>
     <resource-bundle>messages.CangJieBundle</resource-bundle>
 
 
-    <xi:include href="/META-INF/codeInsight.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <!--    <xi:include href="/META-INF/codeInsight.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
 
     <extensions defaultExtensionNs="com.intellij">
 
@@ -40,8 +40,6 @@
 
         <!-- PSI 管理器 -->
 
-        <!--        <lang.fileViewProviderFactory language="CangJie" implementationClass="com.huawei.cangjie.lang.core.psi.CjFileViewProviderFactory"/>-->
-
 
         <!--        <annotator language="CangJie" implementationClass="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>-->
         <!--        <highlightRangeExtension implementation="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>-->
@@ -56,17 +54,22 @@
                   implementationClass="com.huawei.cangjie.lang.CangJieFileType"
                   extensions="cj"
                   fieldName="INSTANCE"/>
-        <internalFileTemplate name="CangJie File"/>
 
+
+        <fileType name="cangjie_declarations" fieldName="INSTANCE" extensions="cangjie_declarations"
+                  implementationClass="com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType"/>
+
+<!--        <lang.fileViewProviderFactory language="CangJie"-->
+<!--                                      implementationClass="com.huawei.cangjie.lang.declarations.CangJieDeclarationsFileViewProviderFactory"/>-->
+        <fileType.fileViewProviderFactory filetype="cangjie_declarations"
+                                          implementationClass="com.huawei.cangjie.lang.declarations.CangJieDeclarationsFileViewProviderFactory"/>
+
+        <internalFileTemplate name="CangJie File"/>
 
 
         <!--       PSI解析 -->
         <lang.parserDefinition language="CangJie"
                                implementationClass="com.huawei.cangjie.parsing.CangJieParserDefinition"/>
-        <!--antlr psi解析-->
-        <!--        <lang.parserDefinition language="CangJie"-->
-        <!--                               implementationClass="antlr.ANTLRCangJieParserDefinition"/>-->
-
 
 
         <!--语法高亮-->
@@ -85,8 +88,8 @@
         <newProjectWizard.languageGenerator
                 implementation="com.huawei.cangjie.ide.project.tools.projectWizard.CangJieGeneratorNewProjectWizard"/>
 
-<!--        <newProjectWizard.language-->
-<!--                implementation="com.huawei.cangjie.ide.project.tools.projectWizard.CangJieNewProjectWizard"/>-->
+        <!--        <newProjectWizard.language-->
+        <!--                implementation="com.huawei.cangjie.ide.project.tools.projectWizard.CangJieNewProjectWizard"/>-->
         <moduleBuilder
                 builderClass="com.huawei.cangjie.ide.project.tools.projectWizard.wizard.CangJieModuleBuilder"/>
 
@@ -134,9 +137,9 @@
                 serviceImplementation="com.huawei.cangjie.ide.run.cjpm.runconfig.CjRunConfigurationExtensionManager"/>
 
 
-<!--        <applicationService-->
-<!--                serviceImplementation="com.huawei.cangjie.ide.completion.FirCompletionDummyIdentifierProviderService"-->
-<!--                serviceInterface="com.huawei.cangjie.ide.completion.CompletionDummyIdentifierProviderService"/>-->
+        <!--        <applicationService-->
+        <!--                serviceImplementation="com.huawei.cangjie.ide.completion.FirCompletionDummyIdentifierProviderService"-->
+        <!--                serviceInterface="com.huawei.cangjie.ide.completion.CompletionDummyIdentifierProviderService"/>-->
 
         <applicationService
                 serviceInterface="com.huawei.cangjie.psi.stubs.elements.StubIndexService"
@@ -271,9 +274,9 @@
                 qualifiedName="com.huawei.cangjie.beforeResolveHighlightingVisitor"
                 interface="com.huawei.cangjie.highlighter.BeforeResolveHighlightingExtension"
                 dynamic="true"/>
-<!--        <extensionPoint-->
-<!--                qualifiedName="com.huawei.cangjie.completionExtension"-->
-<!--                interface="com.huawei.cangjie.ide.completion.CangJieCompletionExtension" dynamic="true"/>-->
+        <!--        <extensionPoint-->
+        <!--                qualifiedName="com.huawei.cangjie.completionExtension"-->
+        <!--                interface="com.huawei.cangjie.ide.completion.CangJieCompletionExtension" dynamic="true"/>-->
 
         <extensionPoint qualifiedName="com.huawei.cangjie.runConfigurationExtension"
                         interface="com.huawei.cangjie.ide.run.cjpm.runconfig.CjpmCommandConfigurationExtension"
@@ -303,16 +306,16 @@
 
 
     <actions>
-        <action id="CjpmRunMain" class="com.huawei.cangjie.ide.run.cjpm.RunMainAction" />
+        <action id="CjpmRunMain" class="com.huawei.cangjie.ide.run.cjpm.RunMainAction"/>
 
         <action id="CjpmAction" class="com.huawei.cangjie.ide.run.modulejson.CjpmUpdateAction"
-                text="run cjpm update">
+                text="Run Cjpm Update">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
         </action>
         <!--          icon="com.huawei.cangjie.ide.icons.CangJieIcons.CANGJIE_FILE"    -->
         <action id="CangJie.NewFile" class="com.huawei.cangjie.ide.actions.NewCangJieFileAction"
-                text="add Cangjie File"
+                text="Add Cangjie File"
         >
 
             <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewGroup1"/>
@@ -390,7 +393,8 @@
         <toolchainFlavor id="cangjie.wslToolchainFlavor"
                          implementation="com.huawei.cangjie.cjpm.toolchain.wsl.CjWslToolchainFlavor"/>
 
-        <moduleinfo.moduleInfoProviderExtension implementation="com.huawei.cangjie.ide.projectStructure.DefaultModuleInfoProviderExtension"/>
+        <moduleinfo.moduleInfoProviderExtension
+                implementation="com.huawei.cangjie.ide.projectStructure.DefaultModuleInfoProviderExtension"/>
     </extensions>
 
 </idea-plugin>

@@ -1,6 +1,7 @@
 <idea-plugin>
 
     <extensions defaultExtensionNs="com.intellij">
+
         <stubElementTypeHolder externalIdPrefix="cangjie." class="com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes"/>
 
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelFunctionByPackageIndex"/>
@@ -21,6 +22,7 @@
 
 
         <fileBasedIndex implementation="com.huawei.cangjie.ide.vfilefinder.CangJiePackageSourcesMemberNamesIndex"/>
+<!--        <fileBasedIndex implementation="com.huawei.cangjie.ide.vfilefinder.CangJieFIleIndexTest"/>-->
 
         <fileBasedIndex implementation="com.huawei.cangjie.ide.vfilefinder.CangJiePartialPackageNamesIndex"/>
 
