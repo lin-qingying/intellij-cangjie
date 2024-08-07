@@ -2439,7 +2439,7 @@ boolean parseEnumEntry( ){
 
 
     private void parseValueParameterList(boolean isFunctionTypeContents, boolean typeRequired, TokenSet recoverySet) {
-        parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET, false);
+        parseValueParameterList(isFunctionTypeContents, typeRequired, recoverySet, false);
 
     }
 
@@ -2556,7 +2556,7 @@ boolean parseEnumEntry( ){
     }
 
     private boolean parseValueParameter(boolean rollbackOnFailure, boolean typeRequired) {
-        return parseValueParameter(false, typeRequired, false);
+        return parseValueParameter(rollbackOnFailure, typeRequired, false);
 
     }
 

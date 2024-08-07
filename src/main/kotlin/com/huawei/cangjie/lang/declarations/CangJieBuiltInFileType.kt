@@ -1,11 +1,13 @@
 package com.huawei.cangjie.lang.declarations
 
 import com.huawei.cangjie.icon.CangJieIcons
+import com.huawei.cangjie.lang.CangJieLanguage
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.fileTypes.LanguageFileType
 import com.intellij.openapi.vfs.VirtualFile
 import javax.swing.Icon
 
-object CangJieBuiltInFileType : FileType {
+object CangJieBuiltInFileType : FileType{
     const val EXTENSION: String = "cangjie_declarations"
 
 
@@ -13,7 +15,7 @@ object CangJieBuiltInFileType : FileType {
 
     override fun getDescription(): String = DEFAULT_DESCRIPTION
 
-    override fun getDefaultExtension() = EXTENSION
+    override fun getDefaultExtension() = "cjd"
 
     override fun getIcon(): Icon = CangJieIcons.CANGJIE_FILE
 

@@ -211,6 +211,8 @@ public interface CjTokens {
     int ESCAPE_LBRACKET_Id = 188;
     int ESCAPE_RBRACKET_Id = 189;
 
+    int VARRAY_Id = 190;
+
 
     CjSingleValueToken HASH = new CjSingleValueToken("HASH", "#", HASH_Id);
     CjSingleValueToken QUOTESYMBOL = new CjSingleValueToken("QUOTESYMBOL", "`", QUOTESYMBOL_Id);
@@ -437,10 +439,32 @@ public interface CjTokens {
     CjKeywordToken BOOL_KEYWORD = CjKeywordToken.keyword("Bool", BOOL_Id);
     CjKeywordToken RUNE_KEYWORD = CjKeywordToken.keyword("Rune", CHAR_Id);
     CjKeywordToken UNIT_KEYWORD = CjKeywordToken.keyword("Unit", UNIT_Id);
+    CjKeywordToken VARRAY_KEYWORD = CjKeywordToken.keyword("VArray", VARRAY_Id);
+
     //基本类型
     TokenSet BASICTYPES = TokenSet.create(
-            INT8_KEYWORD, INT16_KEYWORD, INT32_KEYWORD, INT64_KEYWORD, UINT8_KEYWORD, UINT16_KEYWORD, UINT32_KEYWORD, UINT64_KEYWORD, FLOAT32_KEYWORD, FLOAT64_KEYWORD, BOOL_KEYWORD, RUNE_KEYWORD, UNIT_KEYWORD
+            INTNATIVE_KEYWORD,
+            INT8_KEYWORD,
+            INT16_KEYWORD,
+            INT32_KEYWORD,
+            INT64_KEYWORD,
+            UINTNATIVE_KEYWORD,
+            UINT8_KEYWORD,
+            UINT16_KEYWORD,
+            UINT32_KEYWORD,
+            UINT64_KEYWORD,
+            FLOAT16_KEYWORD,
+            FLOAT32_KEYWORD,
+            FLOAT64_KEYWORD,
+            NOTHING_KEYWORD,
+
+            VARRAY_KEYWORD,
+
+            BOOL_KEYWORD,
+            RUNE_KEYWORD,
+            UNIT_KEYWORD
     );
+
     CjModifierKeywordToken SEALED_KEYWORD = CjModifierKeywordToken.softKeywordModifier("sealed", SEALED_KEYWORD_Id);
     CjModifierKeywordToken ABSTRACT_KEYWORD = CjModifierKeywordToken.softKeywordModifier("abstract", ABSTRACT_KEYWORD_Id);
     CjModifierKeywordToken OPEN_KEYWORD = CjModifierKeywordToken.softKeywordModifier("open", OPEN_KEYWORD_Id);
@@ -517,7 +541,7 @@ public interface CjTokens {
                     PROP_KEYWORD, ENUM_KEYWORD,
                     WHERE_KEYWORD,
 
-//            ABC_KEYWORD,
+
                     IMPORT_KEYWORD,
                     OVERRIDE_KEYWORD, PRIVATE_KEYWORD, PUBLIC_KEYWORD, PROTECTED_KEYWORD,
                     CATCH_KEYWORD, FINALLY_KEYWORD,

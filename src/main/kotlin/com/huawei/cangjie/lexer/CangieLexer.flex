@@ -1,4 +1,4 @@
-package com.huawei.cangjie.lexer;
+package com.linqingying.cangjie.lexer;
 import com.intellij.psi.*;
 import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.tree.IElementType;
@@ -559,7 +559,7 @@ LONELY_BACKTICK=`
 
 
 "~"        { return CjTokens.TILDE  ; }
-"<:"        { return CjTokens.LT_COLON  ; }
+"<:"        { return CjTokens.LTCOLON  ; }
 
 
 "++"         { return CjTokens.PLUSPLUS  ; }
@@ -579,8 +579,8 @@ LONELY_BACKTICK=`
 "+="         { return CjTokens.PLUSEQ    ; }
 "-="         { return CjTokens.MINUSEQ   ; }
 "->"         { return CjTokens.ARROW     ; }
-"..."         { return CjTokens.ARROW     ; }
-"=>"         { return CjTokens.ELLIPSIS; }
+"~>"         { return CjTokens.COMPOSITION     ; }
+"=>"         { return CjTokens.DOUBLE_ARROW; }
 "<-"     { return CjTokens.LEFT_ARROW; }
 ".."         { return CjTokens.RANGE     ; }
 "..="         { return CjTokens.RANGEEQ     ; }
@@ -590,19 +590,8 @@ LONELY_BACKTICK=`
 "]"          { return CjTokens.RBRACKET  ; }
 "{"          { return CjTokens.LBRACE    ; }
 "}"          { return CjTokens.RBRACE    ; }
-"\\("          { return CjTokens.ESCAPE_LPAR      ; }
-"\\)"          { return CjTokens.ESCAPE_RPAR      ; }
-"\\["          { return CjTokens.ESCAPE_LBRACKET      ; }
-"\\]"          { return CjTokens.ESCAPE_RBRACKET      ; }
-
-
-
-"\\$"          { return CjTokens.ESCAPE_DOLLAR      ; }
-"$"                { return CjTokens. DOLLAR      ; }
 "("          { return CjTokens.LPAR      ; }
 ")"          { return CjTokens.RPAR      ; }
-
-
 "."          { return CjTokens.DOT       ; }
 "*"          { return CjTokens.MUL       ; }
 "**"        { return CjTokens.MULMUL    ; }
@@ -613,7 +602,7 @@ LONELY_BACKTICK=`
 "%"          { return CjTokens.PERC      ; }
 "<"          { return CjTokens.LT        ; }
 ">"          { return CjTokens.GT        ; }
-"#"          { return CjTokens.HASH; }
+
 "@"          { return CjTokens.AT; }
 "??"          { return CjTokens.ELVIS     ; }
 "?"           { return CjTokens.QUEST     ; }
@@ -621,17 +610,17 @@ LONELY_BACKTICK=`
 "?["          { return CjTokens.SAFE_INDEXEX     ; }
 "?("          { return CjTokens.SAFE_CALL    ; }
 "?{"          { return CjTokens.SAFE_LAMBDA    ; }
-"|>"         { return CjTokens.PIPELINE; }
-"~>"         { return CjTokens.COMPOSITION     ; }
+
+
 ":"          { return CjTokens.COLON     ; }
-"\\"         { return CjTokens.BACKSLASH; }
+
 ";"          { return CjTokens.SEMICOLON ; }
 "="          { return CjTokens.EQ        ; }
 ","          { return CjTokens.COMMA     ; }
-"|="       { return CjTokens.OR_EQ     ; }
+"|="       { return CjTokens.OREQ     ; }
 "^="       { return CjTokens.XOREQ     ; }
 "&="       { return CjTokens.ANDEQ     ; }
-"<<="      { return CjTokens.LT_LT_EQ     ; }
+"<<="      { return CjTokens.LTLTEQ     ; }
 //">>="      { return CjTokens.GTGTEQ     ; }
 // ">>"     { return CjTokens.GTGT     ; }
  "<<"     { return CjTokens.LTLT     ; }

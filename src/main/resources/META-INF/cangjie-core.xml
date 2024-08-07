@@ -56,8 +56,8 @@
                   fieldName="INSTANCE"/>
 
 
-        <fileType name="cangjie_declarations" fieldName="INSTANCE" extensions="cangjie_declarations"
-                  implementationClass="com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType"/>
+        <fileType name="cangjie_declarations" fieldName="INSTANCE" extensions="cjd"
+                  language="CangJie"   implementationClass="com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType"/>
 
 <!--        <lang.fileViewProviderFactory language="CangJie"-->
 <!--                                      implementationClass="com.huawei.cangjie.lang.declarations.CangJieDeclarationsFileViewProviderFactory"/>-->

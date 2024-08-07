@@ -66,7 +66,10 @@ interface CangJieClassifierStub {
     fun getClassId(): ClassId?
 }
 
-interface CangJieTypeAliasStub : CangJieClassifierStub, CangJieStubWithFqName<CjTypeAlias>
+interface CangJieTypeAliasStub : CangJieClassifierStub, CangJieStubWithFqName<CjTypeAlias>{
+//    fun isTopLevel(): Boolean
+
+}
 
 interface CangJieVariableStub : CangJieCallableStubBase<CjVariable> {
     fun isVar(): Boolean

@@ -2,6 +2,7 @@ package com.huawei.cangjie.ide.stubindex;
 
 
 import com.huawei.cangjie.lexer.CjTokens;
+import com.huawei.cangjie.name.ClassId;
 import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.psi.CangJiePsiHeuristics;
@@ -61,7 +62,29 @@ public class IdeStubIndexService extends StubIndexService {
     private static CangJieModifierListStub getModifierListStub(@NotNull CangJieStubWithFqName<?> stub) {
         return stub.findChildStubByType(CjStubElementTypes.MODIFIER_LIST);
     }
-
+    @Override
+    public void indexTypeAlias(@NotNull CangJieTypeAliasStub stub, @NotNull IndexSink sink) {
+//        String name = stub.getName();
+//        if (name != null) {
+//            sink.occurrence(CangJieTypeAliasShortNameIndex.Helper.getIndexKey(), name);
+//            indexPrime(stub, sink);
+//        }
+//
+//        IndexUtilsKt.indexTypeAliasExpansion(stub, sink);
+//
+//        FqName fqName = stub.getFqName();
+//        if (fqName != null) {
+//            if (stub.isTopLevel()) {
+//                sink.occurrence(CangJieTopLevelTypeAliasFqNameIndex.Helper.getIndexKey(), fqName.asString());
+//                sink.occurrence(CangJieTopLevelTypeAliasByPackageIndex.Helper.getIndexKey(), fqName.parent().asString());
+//            }
+//        }
+//
+//        ClassId classId = stub.getClassId();
+//        if (classId != null && !stub.isTopLevel()) {
+//            sink.occurrence(CangJieInnerTypeAliasClassIdIndex.Helper.getIndexKey(), classId.asString());
+//        }
+    }
 
     @NotNull
     @Override

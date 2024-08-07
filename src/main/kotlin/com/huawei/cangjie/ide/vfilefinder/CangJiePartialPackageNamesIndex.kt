@@ -3,6 +3,7 @@ package com.huawei.cangjie.ide.vfilefinder
 
 import com.huawei.cangjie.lang.CangJieFileType
 import com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType
+import com.huawei.cangjie.lang.declarations.CjDeclarationsFile
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.name.parentOrNull
@@ -10,6 +11,9 @@ import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.utils.safeAs
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.psi.PsiManager
+import com.intellij.psi.search.FileTypeIndex
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.indexing.*
 import com.intellij.util.io.DataExternalizer
 import com.intellij.util.io.IOUtil
@@ -55,18 +59,22 @@ class CangJiePartialPackageNamesIndex : FileBasedIndexExtension<FqName, Name?>()
     override fun getVersion() = 1
 
     override fun traceKeyHashToVirtualFileMapping(): Boolean = true
-
+    private fun FileContent.getBuiltInFilePackage(): FqName? {
+        assert(this.fileType == CangJieBuiltInFileType)
+        val virtualFile =
+            FileTypeIndex.getFiles(fileType, GlobalSearchScope.projectScope(project)).firstOrNull()
+        val psiFIle = virtualFile?.let { PsiManager.getInstance(project).findFile(it) }
+     return   psiFIle.safeAs<CjDeclarationsFile>()?.packageFqName
+    }
     private fun FileContent.toPackageFqName(): FqName? =
         when (this.fileType) {
             CangJieFileType -> this.psiFile.safeAs<CjFile>()?.packageFqName
-//            JavaClassFileType.INSTANCE -> ClsCangJieBinaryClassCache.getInstance()
-//                .getCangJieBinaryClassHeaderData(this.file, this.content)?.packageNameWithFallback
-//            CangJieJavaScriptMetaFileType -> this.fqNameFromJsMetadata()
-//            CangJieBuiltInFileType -> this.classIdFromCangJieMetadata()?.packageFqName
-//            KlibMetaFileType -> KlibLoadingMetadataCache.getInstance().getCachedPackageFragment(file)
-//                ?.getExtension(KlibMetadataProtoBuf.fqName)?.let(::FqName)
+
+            CangJieBuiltInFileType ->  this.getBuiltInFilePackage()
+            
             else -> null
         }
+
 
     override fun getIndexer() = DataIndexer<FqName, Name?, FileContent> { fileContent ->
         try {
