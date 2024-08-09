@@ -1,17 +1,10 @@
 package com.linqingying.cangjie.ide.run.cjpm
 
-import com.linqingying.cangjie.CangJieBundle
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.getBuildConfiguration
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildConfiguration
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.toPath
-import com.linqingying.cangjie.ide.run.hasRemoteTarget
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.runners.showRunContent
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.project.Project
@@ -19,6 +12,12 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.util.io.systemIndependentPath
+import com.linqingying.cangjie.CangJieBundle
+import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.getBuildConfiguration
+import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildConfiguration
+import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
+import com.linqingying.cangjie.ide.run.cjpm.runconfig.toPath
+import com.linqingying.cangjie.ide.run.hasRemoteTarget
 import java.io.File
 import java.util.concurrent.CompletableFuture
 
@@ -46,12 +45,8 @@ abstract class CjExecutableRunner(
 //        }
 
         environment.putUserData(ARTIFACTS, CompletableFuture())
-        super.execute(environment,state)
+        super.execute(environment, state)
     }
-
-
-
-
 
 
     override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
@@ -102,6 +97,12 @@ abstract class CjExecutableRunner(
     companion object {
         private val ARTIFACTS: Key<CompletableFuture<List<CompilerArtifactMessage>>> =
             Key.create("CJPM.CONFIGURATION.ARTIFACTS")
+        val ExecutionEnvironment.binaries: List<String>
+            get() {
+                val artifacts = artifacts.orEmpty()
+                val artifact = artifacts.firstOrNull()
+                return artifact?.executables.orEmpty()
+            }
 
         var ExecutionEnvironment.artifacts: List<CompilerArtifactMessage>?
             get() = getUserData(this@Companion.ARTIFACTS)?.get()

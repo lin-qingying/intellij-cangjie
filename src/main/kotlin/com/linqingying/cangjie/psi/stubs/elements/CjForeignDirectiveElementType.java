@@ -29,7 +29,7 @@ public class CjForeignDirectiveElementType extends CjStubElementType<CangJieFore
     public @NotNull CangJieForeignDirectiveStub createStub(@NotNull CjForeignDirective cjForeign, StubElement<? extends PsiElement> parentStub) {
 
         return new CangJieForeignDirectiveStubImpl(
-                (StubElement<?>) parentStub
+                parentStub
         );
     }
 

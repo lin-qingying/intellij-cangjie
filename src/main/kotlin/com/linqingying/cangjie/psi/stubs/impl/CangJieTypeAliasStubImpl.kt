@@ -10,7 +10,7 @@ import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
 
 
-public class CangJieTypeAliasStubImpl(
+class CangJieTypeAliasStubImpl(
      parent: StubElement<out PsiElement>?,
      private val name: StringRef?,
      private val qualifiedName: StringRef?,

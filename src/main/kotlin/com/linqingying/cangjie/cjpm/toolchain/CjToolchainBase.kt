@@ -500,10 +500,11 @@ abstract class CjToolchainBase(  var location: Path = "".toPath()) {
             .withRedirectErrorStream(true)
         withProxyIfNeeded(commandLine, http)
         env.configureCommandLine(commandLine, true)
+
         if (emulateTerminal) {
             commandLine = PtyCommandLine(commandLine)
                 .withInitialColumns(PtyCommandLine.MAX_COLUMNS)
-                .withConsoleMode(false)
+                .withConsoleMode(true)
         }
         if (patchToRemote) {
             commandLine = patchCommandLine(commandLine)

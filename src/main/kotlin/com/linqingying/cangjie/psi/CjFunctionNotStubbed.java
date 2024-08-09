@@ -21,7 +21,7 @@ public abstract class CjFunctionNotStubbed extends CjTypeParameterListOwnerNotSt
     @Override
     @Nullable
     public CjParameterList getValueParameterList() {
-        return (CjParameterList) findChildByType(CjNodeTypes.VALUE_PARAMETER_LIST);
+        return findChildByType(CjNodeTypes.VALUE_PARAMETER_LIST);
     }
 
     @Override

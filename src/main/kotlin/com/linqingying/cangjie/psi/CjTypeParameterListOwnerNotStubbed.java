@@ -18,13 +18,13 @@ abstract class CjTypeParameterListOwnerNotStubbed extends CjNamedDeclarationNotS
     @Override
     @Nullable
     public CjTypeParameterList getTypeParameterList() {
-        return (CjTypeParameterList) findChildByType(CjNodeTypes.TYPE_PARAMETER_LIST);
+        return findChildByType(CjNodeTypes.TYPE_PARAMETER_LIST);
     }
 
     @Override
     @Nullable
     public CjTypeConstraintList getTypeConstraintList() {
-        return (CjTypeConstraintList) findChildByType(CjNodeTypes.TYPE_CONSTRAINT_LIST);
+        return findChildByType(CjNodeTypes.TYPE_CONSTRAINT_LIST);
     }
 
     @Override

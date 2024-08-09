@@ -14,7 +14,7 @@ import org.eclipse.lsp4j.MarkupContent
 import java.util.concurrent.CompletableFuture
 
 internal class LspHoverRequest(
-    lspServer: com.linqingying.lsp.api.LspServer,
+    lspServer: LspServer,
     val file: VirtualFile,
     val document: Document,
     val offset: Int

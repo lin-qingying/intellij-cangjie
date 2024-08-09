@@ -77,12 +77,6 @@ class CangJieParserDefinition : ParserDefinition {
         }
     }
 
-    override fun reparseSpace(originalSpaceNode: ASTNode, newWhiteSpaceSequence: CharSequence): ASTNode? {
-        return super.reparseSpace(originalSpaceNode, newWhiteSpaceSequence)
-    }
-
-
-
 
     override fun createFile(viewProvider: FileViewProvider): PsiFile{
 

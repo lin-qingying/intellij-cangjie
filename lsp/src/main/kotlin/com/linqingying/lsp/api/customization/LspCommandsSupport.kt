@@ -25,7 +25,7 @@ open class LspCommandsSupport {
      * a background thread, for example, using [Application.executeOnPooledThread]
      */
     @RequiresEdt
-    open fun executeCommand(server: com.linqingying.lsp.api.LspServer, contextFile: VirtualFile, command: Command) {
+    open fun executeCommand(server: LspServer, contextFile: VirtualFile, command: Command) {
         // TODO send `workspace/executeCommand` request to the server
     }
 }

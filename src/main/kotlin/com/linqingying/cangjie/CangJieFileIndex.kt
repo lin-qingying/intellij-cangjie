@@ -33,6 +33,4 @@ class CangJieFileIndex: FileBasedIndexExtension<A, List<String>>() {
         TODO("Not yet implemented")
     }
 }
-  class A(){
-
-}
+  class A

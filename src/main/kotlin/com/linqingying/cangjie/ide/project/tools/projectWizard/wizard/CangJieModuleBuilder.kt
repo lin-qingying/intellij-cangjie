@@ -30,17 +30,7 @@ import com.intellij.openapi.projectRoots.SdkTypeId
 import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.openapi.vfs.VirtualFile
 
-class CangJieModuleBuilder(
-    //    模块名
-//    var moduleName: String? = null,
-
-    //    组织名
-//    var organizationName: String? = null,
-
-    //    项目类型
-//    var projectType: String? = null,
-
-    ) : ModuleBuilder() {
+class CangJieModuleBuilder : ModuleBuilder() {
     companion object {
         val LOG = Logger.getInstance(CangJieModuleBuilder::class.java)
     }

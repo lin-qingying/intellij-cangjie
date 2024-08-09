@@ -30,7 +30,7 @@ public class CjAnnotationEntryElementType extends CjStubElementType<CangJieAnnot
         String resultName = shortName != null ? shortName.asString() : null;
         CjValueArgumentList valueArgumentList = psi.getValueArgumentList();
         boolean hasValueArguments = valueArgumentList != null && !valueArgumentList.getArguments().isEmpty();
-        return new CangJieAnnotationEntryStubImpl((StubElement<?>) parentStub, StringRef.fromString(resultName), hasValueArguments );
+        return new CangJieAnnotationEntryStubImpl(parentStub, StringRef.fromString(resultName), hasValueArguments );
 
     }
 

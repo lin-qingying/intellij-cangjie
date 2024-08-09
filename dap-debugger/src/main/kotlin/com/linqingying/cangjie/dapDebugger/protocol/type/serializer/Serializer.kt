@@ -476,7 +476,7 @@ object ProtocolMessageSerializer : KSerializer<ProtocolMessage> {
     override fun deserialize(decoder: Decoder): ProtocolMessage {
 
         decoder as JsonDecoder
-        val element =(decoder as JsonDecoder).decodeJsonElement()
+        val element = decoder.decodeJsonElement()
 
         when (element.jsonObject["type"]) {
 

@@ -31,7 +31,7 @@ public class CjMacroElementType extends CjStubElementType<CangJieFunctionStub, C
         boolean hasBlockBody = psi.hasBlockBody();
         boolean hasBody = psi.hasBody();
         return new CangJieFunctionStubImpl(
-                (StubElement<?>) parentStub,CjStubElementTypes.FUNCTION, StringRef.fromString(psi.getName()), isTopLevel, fqName,
+                parentStub,CjStubElementTypes.FUNCTION, StringRef.fromString(psi.getName()), isTopLevel, fqName,
                 isExtension, hasBlockBody, hasBody, psi.hasTypeParameterListBeforeFunctionName(),
 
 null

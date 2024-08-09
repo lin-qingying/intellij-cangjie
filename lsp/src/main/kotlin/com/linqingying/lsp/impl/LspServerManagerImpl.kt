@@ -74,7 +74,7 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
         }
     }
 
-    override fun getServersForProvider(providerClass: Class<out LspServerSupportProvider>): Collection<com.linqingying.lsp.api.LspServer> {
+    override fun getServersForProvider(providerClass: Class<out LspServerSupportProvider>): Collection<LspServer> {
 
         return this.servers.filter { it.pluginClass == providerClass }
     }
@@ -161,7 +161,7 @@ class LspServerManagerImpl(val project: Project) : LspServerManager, Disposable 
         }
     }
 
-    private fun stopServer(server: com.linqingying.lsp.api.LspServer) {
+    private fun stopServer(server: LspServer) {
 
         LOG.debug("$server: got stop server request")
         if (!this.servers.remove(server)) {

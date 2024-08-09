@@ -36,38 +36,3 @@ class CjpmConfigurationFactory(type: CjpmCommandConfigurationType) : Configurati
         const val ID: String = "Cjpm Command"
     }
 }
-
-
-//
-//class CjpmCommandConfigurationType : SimpleConfigurationType("CjpmCommandConfigurationType",
-//    "Cjpm",
-//    "Cjpm",
-//    NotNullLazyValue.createValue { CangJieIcons.CANGJIE_FILE }
-//
-//) {
-//
-//
-//    override fun createTemplateConfiguration(project: Project): CjpmCommandConfiguration {
-//
-//        return CjpmCommandConfiguration(project, this, "Cjpm")
-//    }
-//
-//    override fun isDumbAware(): Boolean = true
-//
-//    override fun isEditableInDumbMode(): Boolean = true
-//
-//
-//    companion object {
-//        val instance: CjpmCommandConfigurationType
-//            get() = findConfigurationType(CjpmCommandConfigurationType::class.java)
-//    }
-//
-//
-//}
-//
-//
-//
-//
-//
-//
-//

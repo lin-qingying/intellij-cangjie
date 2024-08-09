@@ -1,4 +1,3 @@
 package com.linqingying.cangjie.psi
 
-interface CjCodeFragmentBase {
-}
+interface CjCodeFragmentBase

@@ -14,9 +14,7 @@ interface InheritanceItemsSearcher {
     fun search(nameFilter: (String) -> Boolean, consumer: (LookupElement) -> Unit)
 }
 
-  class SmartCompletion(
-
-) {
+  class SmartCompletion {
 
 
     companion object {

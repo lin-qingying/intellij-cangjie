@@ -132,7 +132,7 @@ abstract class CangJieTemplateContextType(@NlsContexts.Label presentableName: St
 
     class Expression :
         CangJieTemplateContextType(CangJieLiveTemplatesBundle.message("template.context.type.expression")) {
-        protected override fun isInContext(element: PsiElement): Boolean {
+        override fun isInContext(element: PsiElement): Boolean {
             return (element.parent is CjExpression && element.parent !is CjConstantExpression &&
                     element.parent.parent !is CjDotQualifiedExpression
                     && element.parent !is CjParameter)

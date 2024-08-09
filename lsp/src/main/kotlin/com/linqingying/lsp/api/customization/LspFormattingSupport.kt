@@ -5,7 +5,7 @@ import com.intellij.util.concurrency.annotations.RequiresEdt
 import org.jetbrains.annotations.ApiStatus
 
 
-open class LspFormattingSupport() {
+open class LspFormattingSupport {
     @RequiresEdt
     open fun shouldFormatThisFileExclusivelyByServer(
         file: VirtualFile,

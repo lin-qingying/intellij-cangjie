@@ -7,6 +7,8 @@ import com.linqingying.cangjie.ide.run.hasRemoteTarget
 import com.intellij.execution.filters.TextConsoleBuilderImpl
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.target.TargetEnvironment
+import com.intellij.execution.target.TargetProgressIndicator
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.ExecutionSearchScopes
@@ -24,8 +26,8 @@ class CjpmRunState(
 
 
     init {
-        consoleBuilder = CjConsoleBuilder(project, configuration)
-        createFilters().forEach { consoleBuilder.addFilter(it) }
+//        consoleBuilder = CjConsoleBuilder(project, configuration)
+//        createFilters().forEach { consoleBuilder.addFilter(it) }
     }
 
     /**
@@ -34,6 +36,7 @@ class CjpmRunState(
     private fun String.toWindowsPath(): String {
         return this.replace("/", "\\")
     }
+
 
 
 }

@@ -2,12 +2,13 @@ package com.linqingying.cangjie.cjpm.toolchain.wsl
 
 import com.linqingying.cangjie.CangJieBundle
 import com.linqingying.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.computeWithCancelableProgress
+
 import com.intellij.execution.wsl.WSLDistribution
 import com.intellij.execution.wsl.WslDistributionManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.NlsContexts
+import com.linqingying.cangjie.ide.run.computeWithCancelableProgress
 import kotlin.io.path.isDirectory
 import java.nio.file.InvalidPathException
 import java.nio.file.Path

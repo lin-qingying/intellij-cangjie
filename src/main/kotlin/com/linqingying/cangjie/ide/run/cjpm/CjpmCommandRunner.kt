@@ -2,14 +2,6 @@ package com.linqingying.cangjie.ide.run.cjpm
 
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import com.linqingying.cangjie.cjpm.toolchain.impl.PathConverter
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.CjRunConfigurationExtensionManager
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.ConfigurationExtensionContext
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.getBuildConfiguration
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildConfiguration
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.startProcess
-import com.linqingying.cangjie.ide.run.hasRemoteTarget
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.RunProfile
@@ -17,14 +9,23 @@ import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.ExecutionManagerImpl
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.runners.executeState
 import com.intellij.execution.target.RunTargetsEnabled
 import com.intellij.execution.target.TargetEnvironmentConfiguration
 import com.intellij.execution.target.TargetEnvironmentsManager
 import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.openapi.util.UserDataHolderBase
+import com.linqingying.cangjie.cjpm.toolchain.impl.PathConverter
+import com.linqingying.cangjie.ide.run.cjpm.runconfig.CjRunConfigurationExtensionManager
+import com.linqingying.cangjie.ide.run.cjpm.runconfig.ConfigurationExtensionContext
+import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.getBuildConfiguration
+import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildConfiguration
+import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
+
+import com.linqingying.cangjie.ide.run.hasRemoteTarget
+import com.linqingying.cangjie.ide.run.startProcess
 
 
-open class CjpmCommandRunner : CjDefaultProgramRunnerBase() {
+open class CjpmCommandRunner : CjExecutableRunner(DefaultRunExecutor.EXECUTOR_ID, "") {
     override fun canRun(executorId: String, profile: RunProfile): Boolean {
 
         if (executorId != DefaultRunExecutor.EXECUTOR_ID || profile !is CjpmCommandConfiguration) return false
@@ -42,7 +43,20 @@ open class CjpmCommandRunner : CjDefaultProgramRunnerBase() {
         return if (configuration is CjpmCommandConfiguration &&
             !(isBuildConfiguration(configuration) && configuration.isBuildToolWindowAvailable)
         ) {
-            super.doExecute(state, environment)
+//            super.doExecute(state, environment)
+
+//            if (configuration.command == "run") {
+//                val binaries = environment.binaries
+//
+//
+//                if (binaries.isNotEmpty()) {
+//
+//                    state.setCommand(binaries.first())
+//                }
+//            }
+            executeState(state, environment, this)
+
+
         } else {
 
             environment.putUserData(ExecutionManagerImpl.EXECUTION_SKIP_RUN, true)
@@ -78,25 +92,6 @@ sealed class CompilerMessage {
     }
 }
 
-//data class BuildScriptMessage(
-//    override val package_id: PackageId,
-//    val cfgs: List<String>,
-//    val env: List<List<String>>,
-//    val out_dir: String?
-//) : CompilerMessage() {
-//
-//    override fun convertPaths(converter: PathConverter): BuildScriptMessage = copy(
-//        out_dir = out_dir?.let(converter)
-//    )
-//
-//    companion object {
-//        const val REASON: String = "build-script-executed"
-//    }
-//}
-
-data class Profile(
-    val test: Boolean
-)
 
 data class CompilerArtifactMessage(
 //    override val package_id: PackageId,
@@ -163,5 +158,9 @@ val CjpmCommandConfiguration.targetEnvironment: TargetEnvironmentConfiguration?
     }
 
 
+fun RunProfileState.setCommand(command: String) {
+    if (this !is CjpmRunStateBase) return
 
-
+    this.commandLine.command = command
+    this.configuration.command = command
+}

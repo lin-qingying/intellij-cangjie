@@ -36,7 +36,7 @@ import org.jetbrains.annotations.ApiStatus
  */
 
 open class LspIntentionAction(
-    protected val lspServer: com.linqingying.lsp.api.LspServer, protected val codeAction: CodeAction
+    protected val lspServer: LspServer, protected val codeAction: CodeAction
 ) : IntentionAction {
     private var uriToDocumentMapInitialized: Boolean = false
     private var uriToDocumentMap: Map<String, Document>? = null

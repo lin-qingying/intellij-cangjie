@@ -23,7 +23,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
     override fun isSuitableForLanguage(language: Language): Boolean = language.isKindOf(CangJieLanguage)
 
     override fun getLineIndent(project: Project, editor: Editor, language: Language?, offset: Int): String? {
-          return if (offset > 0 && getPosition(editor, offset - 1).isAt(CangJieElement.RegularStringPart))
+          return if (offset > 0 && getPosition(editor, offset - 1).isAt(RegularStringPart))
             LineIndentProvider.DO_NOT_ADJUST
         else
             super.getLineIndent(project, editor, language, offset)
@@ -47,7 +47,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             before.isAt(BlockOpeningBrace) ->
                 return factory.createIndentCalculatorForBrace(before, after, BlockOpeningBrace, BlockClosingBrace, Indent.getNormalIndent())
 
-            before.isAt(CangJieElement.Arrow) -> {
+            before.isAt(Arrow) -> {
                 return factory.createIndentCalculatorForArrow(before, after)
             }
 
@@ -70,11 +70,11 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             }
 
 
-            before.isAt(Colon) && before.before().isAt(CangJieElement.Quest) ->
+            before.isAt(Colon) && before.before().isAt(Quest) ->
                 return factory.createIndentCalculator(Indent.getNoneIndent(), before.startOffset)
 
-            before.isAt(CangJieElement.TemplateEntryOpen) -> {
-                val indent = if (!currentPosition.hasLineBreaksAfter(offset) && after.isAt(CangJieElement.TemplateEntryClose))
+            before.isAt(TemplateEntryOpen) -> {
+                val indent = if (!currentPosition.hasLineBreaksAfter(offset) && after.isAt(TemplateEntryClose))
                     Indent.getNoneIndent()
                 else
                     Indent.getNormalIndent()
@@ -85,13 +85,13 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             before.isAtAnyOf(TryKeyword) || before.isFinallyKeyword() ->
                 return factory.createIndentCalculator(Indent.getNoneIndent(), IndentCalculator.LINE_BEFORE)
 
-            after.isAt(CangJieElement.TemplateEntryClose) -> {
+            after.isAt(TemplateEntryClose) -> {
                 val indent = if (currentPosition.hasEmptyLineAfter(offset)) Indent.getNormalIndent() else Indent.getNoneIndent()
-                after.moveBeforeParentheses(CangJieElement.TemplateEntryOpen, CangJieElement.TemplateEntryClose)
+                after.moveBeforeParentheses(TemplateEntryOpen, TemplateEntryClose)
                 return factory.createIndentCalculator(indent, after.startOffset)
             }
 
-            before.isAt(CangJieElement.Eq) -> {
+            before.isAt(Eq) -> {
                 val declaration = findFunctionOrPropertyOrMultiDeclarationBefore(before.beforeIgnoringWhiteSpaceOrComment())
                 if (declaration != null) {
                     val indent = if (settings.continuationIndentForExpressionBodies)
@@ -106,7 +106,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             after.isAt(RightParenthesis) ->
                 factory.createIndentCalculatorForParenthesis(before, currentPosition, after, offset, settings)?.let { return it }
 
-            after.isAt(CangJieElement.Dot) || after.isAt(CangJieElement.Quest) && after.after().isAt(CangJieElement.Dot) ->
+            after.isAt(Dot) || after.isAt(Quest) && after.after().isAt(Dot) ->
                 factory.createIndentCalculatorForDot(before, settings)?.let { return it }
         }
 
@@ -204,28 +204,28 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             CjTokens.CATCH_KEYWORD to Identifier,
 
 
-            CjTokens.FUNC_KEYWORD to CangJieElement.FunctionKeyword,
-            CjTokens.DOT to CangJieElement.Dot,
-            CjTokens.QUEST to CangJieElement.Quest,
+            CjTokens.FUNC_KEYWORD to FunctionKeyword,
+            CjTokens.DOT to Dot,
+            CjTokens.QUEST to Quest,
             CjTokens.COMMA to Comma,
             CjTokens.COLON to Colon,
 
-            CjTokens.EQ to CangJieElement.Eq,
+            CjTokens.EQ to Eq,
 
-            CjTokens.LET_KEYWORD  to CangJieElement.Let,
-            CjTokens.VAR_KEYWORD to CangJieElement.Var,
+            CjTokens.LET_KEYWORD  to Let,
+            CjTokens.VAR_KEYWORD to Var,
 
-            CjTokens.INTEGER_LITERAL to CangJieElement.Literal,
-            CjTokens.FLOAT_LITERAL to CangJieElement.Literal,
-            CjTokens.RUNE_LITERAL to CangJieElement.Literal,
+            CjTokens.INTEGER_LITERAL to Literal,
+            CjTokens.FLOAT_LITERAL to Literal,
+            CjTokens.RUNE_LITERAL to Literal,
         )
 
         private val CONTROL_FLOW_KEYWORDS: HashSet<SemanticEditorPosition.SyntaxElement> = hashSetOf(
-            CangJieElement.MatchKeyword,
+            MatchKeyword,
             IfKeyword,
             ElseKeyword,
             DoKeyword,
-            CangJieElement.WhileKeyword,
+            WhileKeyword,
             ForKeyword,
             TryKeyword,
         )
@@ -299,11 +299,11 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
         ): IndentCalculator? {
 
             val calleeOrReference = when {
-                beforeDotPosition.isAt(CangJieElement.Literal) -> beforeDotPosition
-                beforeDotPosition.isAt(CangJieElement.ClosingQuote) ->
+                beforeDotPosition.isAt(Literal) -> beforeDotPosition
+                beforeDotPosition.isAt(ClosingQuote) ->
                     beforeDotPosition.before().findLeftParenthesisBackwardsSkippingNested(
-                        CangJieElement.OpenQuote,
-                        CangJieElement.ClosingQuote,
+                        OpenQuote,
+                        ClosingQuote,
                     )
 
                 else -> findCalleeOrReference(beforeDotPosition)
@@ -322,9 +322,9 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             }
 
 
-            if (calleeOrReference.isAt(CangJieElement.Dot)) {
+            if (calleeOrReference.isAt(Dot)) {
                 val before = calleeOrReference.copyAnd(SemanticEditorPosition::moveBefore)
-                if (before.isAt(CangJieElement.Quest)) {
+                if (before.isAt(Quest)) {
                     before.moveBefore()
                 }
 
@@ -438,7 +438,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
                 moveBeforeParentheses(LeftParenthesis, RightParenthesis)
             }
 
-            if (probableContextReceiverKeyword.isAt(CangJieElement.Identifier)
+            if (probableContextReceiverKeyword.isAt(Identifier)
                 && probableContextReceiverKeyword.after().isAt(LeftParenthesis)
 
             ) {
@@ -466,7 +466,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
         private fun findPropertyDeclarationBeforeAssignment(endOfDeclaration: SemanticEditorPosition): SemanticEditorPosition? {
 
 
-            if (endOfDeclaration.isAt(CangJieElement.Identifier)) {
+            if (endOfDeclaration.isAt(Identifier)) {
                 findPropertyKeywordBeforeIdentifier(endOfDeclaration)?.let { return it }
             }
 
@@ -496,7 +496,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             }
 
         private fun findPropertyKeywordBeforeIdentifier(identifierPosition: SemanticEditorPosition): SemanticEditorPosition? {
-            if (!identifierPosition.isAt(CangJieElement.Identifier)) return null
+            if (!identifierPosition.isAt(Identifier)) return null
             return with(identifierPosition.copy()) {
                 if (!moveBeforeTypeQualifierIfPossible(false)) return null
 
@@ -508,25 +508,25 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
 
         private fun findFunctionKeywordBeforeIdentifier(identifierPosition: SemanticEditorPosition): SemanticEditorPosition? {
 
-            if (identifierPosition.isAt(CangJieElement.FunctionKeyword)) return identifierPosition
+            if (identifierPosition.isAt(FunctionKeyword)) return identifierPosition
 
             return with(identifierPosition.copy()) {
                 moveBeforeWhileThisIsWhiteSpaceOrComment()
 
 
-                if (isAt(CangJieElement.Dot)) {
+                if (isAt(Dot)) {
                     moveBeforeIgnoringWhiteSpaceOrComment()
                     if (!moveBeforeTypeQualifierIfPossible(true)) return null
-                    return if (isAt(CangJieElement.FunctionKeyword)) this else null
+                    return if (isAt(FunctionKeyword)) this else null
                 }
 
 
-                if (!isAt(CangJieElement.Identifier)) return null
+                if (!isAt(Identifier)) return null
                 if (!moveBeforeTypeQualifierIfPossible(false)) return null
 
                 moveBeforeTypeParametersIfPossible()
 
-                takeIf { it.isAt(CangJieElement.FunctionKeyword) }
+                takeIf { it.isAt(FunctionKeyword) }
             }
         }
 
@@ -538,7 +538,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
          * @param position reference or left/right parentheses
          */
         private fun findCalleeOrReference(position: SemanticEditorPosition): SemanticEditorPosition? {
-            if (position.isAt(CangJieElement.Identifier)) return position.copy()
+            if (position.isAt(Identifier)) return position.copy()
 
             for ((left, right) in PARENTHESES) {
                 if (position.isAt(left)) {
@@ -617,7 +617,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
                 if (isAt(RightParenthesis)) return moveBeforeParenthesesIfPossible()
 
 
-                if (!isAt(CangJieElement.Identifier)) return false
+                if (!isAt(Identifier)) return false
                 moveBeforeIgnoringWhiteSpaceOrComment()
             }
 
@@ -626,14 +626,14 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
 
 
         private fun SemanticEditorPosition.moveBeforeTypeQualifierIfPossible(canStartWithTypeParameter: Boolean): Boolean {
-            if (!canStartWithTypeParameter && !isAt(CangJieElement.Identifier)) return false
+            if (!canStartWithTypeParameter && !isAt(Identifier)) return false
 
             while (!isAtEnd) {
                 moveBeforeOptionalMix(Quest, *WHITE_SPACE_OR_COMMENT_BIT_SET)
                 moveBeforeTypeParametersIfPossible()
-                if (!isAt(CangJieElement.Identifier)) return false
+                if (!isAt(Identifier)) return false
                 moveBeforeIgnoringWhiteSpaceOrComment()
-                if (!isAt(CangJieElement.Dot)) return true
+                if (!isAt(Dot)) return true
                 moveBeforeIgnoringWhiteSpaceOrComment()
             }
 
@@ -712,7 +712,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
         }
 
         private fun SemanticEditorPosition.isFinallyKeyword(): Boolean {
-            if (!isAt(CangJieElement.Identifier)) return false
+            if (!isAt(Identifier)) return false
             if (textOfCurrentPosition() != CjTokens.FINALLY_KEYWORD.value) return false
             with(copy()) {
                 moveBeforeIgnoringWhiteSpaceOrComment()
@@ -756,7 +756,7 @@ abstract class CangJieLangLineIndentProvider : JavaLikeLangLineIndentProvider() 
             return true
         }
 
-        private fun SemanticEditorPosition.isIdentifier(): Boolean = isAt(CangJieElement.Identifier) || isAt(CjTokens.THIS_KEYWORD)
+        private fun SemanticEditorPosition.isIdentifier(): Boolean = isAt(Identifier) || isAt(CjTokens.THIS_KEYWORD)
         private fun SemanticEditorPosition.isVarOrVal(): Boolean = isAtAnyOf(Var, Let)
         private fun SemanticEditorPosition.moveBeforeBlockIfPossible(): Boolean = moveBeforeParenthesesIfPossible(
             leftParenthesis = BlockOpeningBrace,

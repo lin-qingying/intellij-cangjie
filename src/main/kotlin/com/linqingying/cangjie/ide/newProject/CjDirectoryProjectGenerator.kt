@@ -7,7 +7,7 @@ import com.linqingying.cangjie.icon.CangJieIcons
 import com.linqingying.cangjie.ide.newProject.ui.ConfigurationData
 import com.linqingying.cangjie.ide.project.tools.projectWizard.wizard.makeProject
 import com.linqingying.cangjie.ide.project.tools.projectWizard.wizard.openFiles
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.computeWithCancelableProgress
+
 import com.linqingying.cangjie.ide.run.cjpm.runconfig.unwrapOrThrow
 import com.intellij.facet.ui.ValidationResult
 import com.intellij.ide.util.projectWizard.AbstractNewProjectStep
@@ -20,6 +20,7 @@ import com.intellij.openapi.wm.impl.welcomeScreen.AbstractActionWithPanel
 import com.intellij.platform.DirectoryProjectGenerator
 import com.intellij.platform.DirectoryProjectGeneratorBase
 import com.intellij.platform.ProjectGeneratorPeer
+import com.linqingying.cangjie.ide.run.computeWithCancelableProgress
 import javax.swing.Icon
 
 open class CjProjectSettingsStep(generator: DirectoryProjectGenerator<ConfigurationData>) :

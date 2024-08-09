@@ -1,41 +1,32 @@
-@file:Suppress("UnstableApiUsage")
-package com.linqingying.cangjie.ide.run.cjpm.runconfig
+package com.linqingying.cangjie.ide.run
 
-import com.linqingying.cangjie.CangJieBundle
-import com.linqingying.cangjie.cjpm.project.CjToolchainPathChoosingComboBox
-import com.linqingying.cangjie.ide.run.cjpm.isUnitTestMode
-import com.linqingying.cangjie.ide.run.cjpm.languageRuntime
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.execution.process.ProcessHandler
-import com.intellij.execution.process.ProcessTerminatedListener
-import com.intellij.execution.target.*
+import com.intellij.execution.configurations.PtyCommandLine
+import com.intellij.execution.process.*
+import com.intellij.execution.target.TargetEnvironmentConfiguration
+import com.intellij.execution.target.TargetedCommandLine
+import com.intellij.execution.target.TargetedCommandLineBuilder
 import com.intellij.execution.target.value.TargetValue
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
-import com.intellij.openapi.progress.ProcessCanceledException
-import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.NlsContexts
-import com.intellij.util.text.nullize
-private val LOG: Logger = Logger.getInstance("com.linqingying.cangjie.ide.run.cjpm.runconfig.Utils")
+import com.intellij.util.io.BaseOutputReader
+import com.linqingying.cangjie.CangJieBundle
+import com.linqingying.cangjie.cjpm.project.CjToolchainPathChoosingComboBox
+import com.linqingying.cangjie.ide.run.cjpm.runconfig.*
+import com.pty4j.PtyProcess
+import java.nio.charset.Charset
 
 
 
 
-
-fun <T> Project.computeWithCancelableProgress(
-    @Suppress("UnstableApiUsage") @NlsContexts.ProgressTitle title: String,
-    supplier: () -> T
-): T {
-    if (isUnitTestMode) {
-        return supplier()
-    }
-    return ProgressManager.getInstance().runProcessWithProgressSynchronously<T, Exception>(supplier, title, true, this)
+@Throws(ExecutionException::class)
+fun GeneralCommandLine.createProcessHandler(): OSProcessHandler {
+    return KillableColoredProcessHandler.Silent(this)
 }
+
 
 fun GeneralCommandLine.startProcess(
     project: Project,
@@ -44,7 +35,7 @@ fun GeneralCommandLine.startProcess(
     uploadExecutable: Boolean
 ): ProcessHandler {
     if (config == null) {
-        val handler = CjProcessHandler(this)
+        val handler = createProcessHandler()
         ProcessTerminatedListener.attach(handler)
         return handler
     }
@@ -103,31 +94,56 @@ private fun GeneralCommandLine.toTargeted(
     return commandLineBuilder.build()
 }
 
-private fun TargetEnvironmentRequest.prepareEnvironment(
-    setup: CjCommandLineSetup,
-    progressIndicator: ProgressIndicator
-): TargetEnvironment {
-    val targetProgressIndicator = object : TargetProgressIndicator {
-        override fun isCanceled(): Boolean = progressIndicator.isCanceled
-        override fun stop() = progressIndicator.cancel()
-        override fun isStopped(): Boolean = isCanceled
-        override fun addText(text: String, key: Key<*>) {
-            progressIndicator.text2 = text.trim()
+class CjProcessHandler : KillableProcessHandler, AnsiEscapeDecoder.ColoredTextAcceptor {
+    private val decoder: AnsiEscapeDecoder?
+
+    constructor(commandLine: GeneralCommandLine, processColors: Boolean = true) : super(commandLine) {
+        setHasPty(commandLine is PtyCommandLine)
+        setShouldDestroyProcessRecursively(!hasPty())
+        decoder = if (processColors && !hasPty()) CjAnsiEscapeDecoder() else null
+    }
+
+    constructor(
+        process: Process,
+        commandRepresentation: String,
+        charset: Charset,
+        processColors: Boolean = true
+    ) : super(process, commandRepresentation, charset) {
+        setHasPty(process is PtyProcess)
+        setShouldDestroyProcessRecursively(!hasPty())
+        decoder = if (processColors && !hasPty()) CjAnsiEscapeDecoder() else null
+    }
+
+    override fun notifyTextAvailable(text: String, outputType: Key<*>) {
+        var textN = text
+
+        if (!textN.contains("\r\n")) {
+            textN = textN.replace("\n", "\r\n")
+        }
+
+        when (outputType) {
+            ProcessOutputType.STDOUT -> {
+                decoder?.escapeText(textN, outputType, this) ?: super.notifyTextAvailable(textN, outputType)
+            }
+
+            ProcessOutputType.SYSTEM -> {
+
+            }
+
+            ProcessOutputType.STDERR -> {
+
+            }
         }
     }
 
-    return try {
-        val environment = prepareEnvironment(targetProgressIndicator)
-        setup.provideEnvironment(environment, targetProgressIndicator)
-        environment
-    } catch (e: ProcessCanceledException) {
-        throw e
-    } catch (e: Exception) {
-        throw ExecutionException(
-            CangJieBundle.message(
-                "dialog.message.failed.to.prepare.remote.environment",
-                e.localizedMessage
-            ), e
-        )
+    override fun coloredTextAvailable(text: String, attributes: Key<*>) {
+        super.notifyTextAvailable(text, attributes)
     }
+
+    override fun readerOptions(): BaseOutputReader.Options =
+        if (hasPty()) {
+            BaseOutputReader.Options.forTerminalPtyProcess()
+        } else {
+            BaseOutputReader.Options.forMostlySilentProcess()
+        }
 }

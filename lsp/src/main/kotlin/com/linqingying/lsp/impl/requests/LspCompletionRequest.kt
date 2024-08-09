@@ -11,7 +11,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either
 import java.util.concurrent.CompletableFuture
 
 class LspCompletionRequest(
-    override val lspServer: com.linqingying.lsp.api.LspServer,
+    override val lspServer: LspServer,
     file: VirtualFile,
     document: Document,
     offset: Int,

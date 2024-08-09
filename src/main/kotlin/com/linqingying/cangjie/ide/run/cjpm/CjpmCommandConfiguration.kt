@@ -29,6 +29,7 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.util.execution.ParametersListUtil
+import com.linqingying.cangjie.ide.run.CangJieCommandLineState
 import org.jdom.Element
 import java.io.File
 import java.nio.file.Path
@@ -112,10 +113,7 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
     var buildTarget: BuildTarget = BuildTarget.REMOTE
 
     sealed class CleanConfiguration {
-        //        class Ok(
-//            val cmd: CjpmCommandLine,
-//            val toolchain: CjToolchainBase
-//        ) : CleanConfiguration()
+
         class Ok(
             val cmd: CjpmCommandLine,
             val toolchain: CjToolchainBase
@@ -166,6 +164,10 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
 
         val config = clean().ok ?: return null
 //        运行命令
+//
+//        if(config.cmd.command == "run"){
+//            return CangJieCommandLineState(environment, this, config)
+//        }
 
         return CjpmRunState(environment, this, config,)
 

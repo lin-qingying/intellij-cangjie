@@ -52,7 +52,7 @@ public class CjSuperTypeCallEntry extends CjSuperTypeListEntry implements CjCall
 
     @Override
     public @Nullable CjValueArgumentList getValueArgumentList() {
-        return (CjValueArgumentList) findChildByType(CjNodeTypes.VALUE_ARGUMENT_LIST);
+        return findChildByType(CjNodeTypes.VALUE_ARGUMENT_LIST);
 
     }
 

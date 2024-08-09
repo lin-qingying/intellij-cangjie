@@ -37,7 +37,7 @@ interface LspServerSupportProvider {
          *
          * For a running [LspServer], the passed [descriptor] object is available as [LspServer.descriptor].
          */
-        fun ensureServerStarted(descriptor: com.linqingying.lsp.api.LspServerDescriptor)
+        fun ensureServerStarted(descriptor: LspServerDescriptor)
 
     }
 

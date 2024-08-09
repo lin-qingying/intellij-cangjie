@@ -18,7 +18,7 @@ class CjPropertyElementType(debugName: String) : CjStubElementType<CangJieProper
     CangJiePropertyStub::class.java
 ) {
     override fun serialize(stub: CangJiePropertyStub, dataStream: StubOutputStream) {
-        dataStream.writeName(stub.getName())
+        dataStream.writeName(stub.name)
         val fqName = stub.getFqName()
         dataStream.writeName(if (fqName != null) fqName.asString() else null)
 

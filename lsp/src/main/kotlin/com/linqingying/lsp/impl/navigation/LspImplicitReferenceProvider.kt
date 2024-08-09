@@ -38,7 +38,7 @@ class LspImplicitReferenceProvider: ImplicitReferenceProvider {
         val serverAndLocationLinks = servers.toList()
             .filter { it.descriptor.lspGoToDefinitionSupport }
             .mapNotNull { server ->
-                (server.requestExecutor as LspRequestExecutorImpl).getElementDefinitions(virtualFile, offsetInElement).takeIf { it.isNotEmpty() }?.let { definitions ->
+                server.requestExecutor.getElementDefinitions(virtualFile, offsetInElement).takeIf { it.isNotEmpty() }?.let { definitions ->
                     LspServerAndLocationLinks(server, definitions)
                 }
             }

@@ -55,11 +55,6 @@ class CangJieDummyHolder : DummyHolder {
     constructor(manager: PsiManager, table: CharTable?) : super(manager, null, null, table, null, CangJieLanguage)
 
 
-    override fun getFileElementType(): IFileElementType? {
-
-
-        return super.getFileElementType()
-    }
 }
 
 

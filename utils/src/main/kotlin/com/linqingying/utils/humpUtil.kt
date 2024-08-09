@@ -1,6 +1,7 @@
 package com.linqingying.utils
 
 import org.apache.commons.lang3.StringUtils
+import java.util.*
 
 
 /**
@@ -9,5 +10,5 @@ import org.apache.commons.lang3.StringUtils
 
 fun String.toCamelCase( ): String {
     return this.split('_')
-        .joinToString("") { it.capitalize() }
+        .joinToString("") { it.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } }
 }

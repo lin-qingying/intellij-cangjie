@@ -22,10 +22,10 @@ class CjLambdaExpression(text: CharSequence?) :
         get() = functionLiteral.getValueParameters()
 
     val bodyExpression: CjBlockExpression?
-        get() = functionLiteral.getBodyExpression()
+        get() = functionLiteral.bodyExpression
 
     fun hasDeclaredReturnType(): Boolean {
-        return functionLiteral.getTypeReference() != null
+        return functionLiteral.typeReference != null
     }
 
     fun asElement(): CjElement {

@@ -288,7 +288,9 @@ val cangjie_plugin_project = project(":plugin") {
         plugins.set(
             listOf(
                 psiViewerPlugin,
-                terminalPlugin, tomlPlugin
+                terminalPlugin, tomlPlugin,
+//                "com.intellij.cidr.base", "com.intellij.clion"
+//"com.intellij.java"
             )
         )
         version.set(baseVersionForRun)
@@ -473,8 +475,10 @@ val cangjie_src_project = project(":") {
         plugins.set(
             listOf(
                 tomlPlugin,
-
-                )
+                terminalPlugin,
+//                "com.intellij.cidr.base", "com.intellij.clion"
+//            "com.intellij.java"
+            )
         )
     }
     dependencies {

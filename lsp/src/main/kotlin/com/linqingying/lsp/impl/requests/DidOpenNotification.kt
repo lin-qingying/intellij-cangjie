@@ -20,7 +20,7 @@ internal class DidOpenNotification :
     private val file: VirtualFile
 
     @RequiresReadLock
-    constructor(lspServer: com.linqingying.lsp.api.LspServer, file: VirtualFile, document: Document) : super(lspServer) {
+    constructor(lspServer: LspServer, file: VirtualFile, document: Document) : super(lspServer) {
         this.file = file
         this.documentText = document.text
         this.documentVersion = lspServer.requestExecutor.getDocumentVersion(document)

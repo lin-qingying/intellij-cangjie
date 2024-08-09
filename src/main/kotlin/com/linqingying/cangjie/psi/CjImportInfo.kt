@@ -24,8 +24,7 @@ interface CjImportInfo {
     private fun computeNameAsString(): String? {
         if (isAllUnder) return null
 //        aliasName?.let { return it }
-        val importContent = importContent
-        return when (importContent) {
+        return when (val importContent = importContent) {
             is ImportContent.ExpressionBased -> CjPsiUtil.getLastReference(importContent.expression)
                 ?.getReferencedName()
 

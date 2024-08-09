@@ -11,7 +11,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
-class SemanticTokensFullNotification(override val lspServer: com.linqingying.lsp.api.LspServer, val file: VirtualFile) :
+class SemanticTokensFullNotification(override val lspServer: LspServer, val file: VirtualFile) :
     LspClientNotification(lspServer) {
 
     companion object {

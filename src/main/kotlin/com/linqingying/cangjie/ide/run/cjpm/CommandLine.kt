@@ -158,7 +158,7 @@ abstract class CjCommandLineBase {
 
 data class CjpmCommandLine(
 
-    override val command: String, // Can't be `enum` because of custom subcommands
+    override var command: String, // Can't be `enum` because of custom subcommands
 
     override val workingDirectory: Path,
     override val additionalArguments: List<String> = emptyList(),

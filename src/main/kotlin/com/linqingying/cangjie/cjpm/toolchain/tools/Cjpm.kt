@@ -5,29 +5,13 @@ import com.fasterxml.jackson.core.JacksonException
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.linqingying.cangjie.cjpm.CjpmConstants
-import com.linqingying.cangjie.cjpm.findChild
-import com.linqingying.cangjie.cjpm.project.pathAsPath
-import com.linqingying.cangjie.cjpm.resolve
-import com.linqingying.cangjie.cjpm.toolchain.CjToolchainBase
-import com.linqingying.cangjie.cjpm.toolchain.cjc
-import com.linqingying.cangjie.cjpm.toolchain.impl.CjpmMetadata
-import com.linqingying.cangjie.cjpm.toolchain.parseSemVer
-import com.linqingying.cangjie.ide.experiments.CjExperiments
-import com.linqingying.cangjie.ide.project.tools.projectWizard.wizard.CjProcessResult
-import com.linqingying.cangjie.ide.run.cjpm.CjpmCommandConfiguration.Companion.findCjpmProject
-import com.linqingying.cangjie.ide.run.cjpm.CjpmCommandLine
-import com.linqingying.cangjie.ide.run.cjpm.CjpmPatch
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.*
-import com.linqingying.cangjie.ide.run.isFeatureEnabled
-import com.linqingying.cangjie.lang.CjConstants.LIB_CJ_FILE
-import com.linqingying.cangjie.lang.CjConstants.MAIN_CJ_FILE
-import com.linqingying.cangjie.utils.buildList
 import com.intellij.execution.configuration.EnvironmentVariablesData
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
 import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.process.ProcessOutput
+import com.intellij.execution.target.TargetEnvironmentRequest
+import com.intellij.execution.target.TargetedCommandLineBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
@@ -38,6 +22,22 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.net.HttpConfigurable
 import com.intellij.util.text.SemVer
+import com.linqingying.cangjie.cjpm.CjpmConstants
+import com.linqingying.cangjie.cjpm.findChild
+import com.linqingying.cangjie.cjpm.project.pathAsPath
+import com.linqingying.cangjie.cjpm.resolve
+import com.linqingying.cangjie.cjpm.toolchain.CjToolchainBase
+import com.linqingying.cangjie.cjpm.toolchain.impl.CjpmMetadata
+import com.linqingying.cangjie.cjpm.toolchain.parseSemVer
+import com.linqingying.cangjie.ide.experiments.CjExperiments
+import com.linqingying.cangjie.ide.project.tools.projectWizard.wizard.CjProcessResult
+import com.linqingying.cangjie.ide.run.cjpm.CjpmCommandLine
+import com.linqingying.cangjie.ide.run.cjpm.CjpmPatch
+import com.linqingying.cangjie.ide.run.cjpm.runconfig.*
+import com.linqingying.cangjie.ide.run.isFeatureEnabled
+import com.linqingying.cangjie.lang.CjConstants.LIB_CJ_FILE
+import com.linqingying.cangjie.lang.CjConstants.MAIN_CJ_FILE
+import com.linqingying.cangjie.utils.buildList
 import java.io.IOException
 import java.nio.file.Path
 import kotlin.io.path.exists
@@ -208,7 +208,7 @@ class Cjpm(
         val output = commandLine.execute(
             owner, listener = listener
         ).unwrapOrElse { return CjResult.Err(it) }
-        if (output.exitCode == 0 && output.stdout == "cjpm update success\n") {
+        if (output.exitCode == 0 && output.stdout.contains("cjpm update success\n")) {
             try {
                 val project = readFile(projectDirectory)
                 return CjResult.Ok(project)
@@ -282,6 +282,39 @@ class Cjpm(
         return toGeneralCommandLine(project, copy(emulateTerminal = false)).execute(owner, stdIn, listener = listener)
     }
 
+    fun toTargetedCommandLineBuilder(
+        project: Project,
+        request: TargetEnvironmentRequest,
+        commandLine: CjpmCommandLine
+    ): TargetedCommandLineBuilder =
+        with(
+            commandLine.patchArgs(project)
+        ) {
+
+            val parameters = buildList {
+                when {
+
+                    toolchain != null -> add("+$toolchain")
+                }
+
+                add(command)
+                addAll(additionalArguments)
+            }
+            val build = TargetedCommandLineBuilder(request)
+            build.setExePath(executable.toString())
+//            build.setExePath("D:\\Code\\cangjietest\\untitled3\\target\\release\\bin\\untitled1.exe")
+            build.setWorkingDirectory(workingDirectory.toString())
+//            build.setInputFile(TargetValue.fixed(redirectInputFrom?.path.toString()))
+            build.addParameters(parameters)
+            this@Cjpm.toolchain.getEnvironment().forEach { (s, s2) ->
+                build.addEnvironmentVariable(s, s2)
+            }
+            environmentVariables.envs.forEach { (s, s2) ->
+                build.addEnvironmentVariable(s, s2)
+            }
+            return build
+        }
+
     fun toGeneralCommandLine(project: Project, commandLine: CjpmCommandLine): GeneralCommandLine =
         with(commandLine.patchArgs(project)) {
             val parameters = buildList {
@@ -298,17 +331,23 @@ class Cjpm(
 //            val cjcExecutable = this@Cjpm.toolchain.cjc().executable.toString()
             this@Cjpm.toolchain.createGeneralCommandLine(
                 executable,
+//                "D:\\Code\\cangjietest\\untitled3\\target\\release\\bin\\untitled1.exe".toPath(),
                 workingDirectory,
                 redirectInputFrom,
 
                 environmentVariables,
                 parameters,
-                emulateTerminal,
+//                emulateTerminal,
+//                true,
+                if (parameters.first() == "run") true else emulateTerminal,
 
                 if (isFeatureEnabled(CjExperiments.BUILD_TOOL_WINDOW)) withSudo else false,
                 http = http
             )
-//                .withEnvironment("CJC", cjcExecutable)
+
+
+//            C:\Users\27439\.jdks\openjdk-21.0.2\bin\java.exe -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 -classpath D:\Code\test\untitled2\out\production\untitled2;D:\Maven\repository\org\jetbrains\kotlin\kotlin-stdlib\1.9.22\kotlin-stdlib-1.9.22.jar;D:\Maven\repository\org\jetbrains\annotations\13.0\annotations-13.0.jar AKt
+
 
         }
 
