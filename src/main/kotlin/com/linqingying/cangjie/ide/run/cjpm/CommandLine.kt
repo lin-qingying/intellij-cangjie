@@ -147,7 +147,7 @@ abstract class CjCommandLineBase {
 //TODO 可能会有问题
         return GeneralCommandLine().apply {
             exePath = command
-            workDirectory = workingDirectory.toFile()
+            workDirectory = workingDirectory?.toFile()
 
             addParameters(additionalArguments)
         }

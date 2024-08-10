@@ -1,6 +1,7 @@
 package com.linqingying.cangjie.cjpm.project.model
 
 //import com.akuleshov7.ktoml.file.TomlFileReader
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
@@ -18,6 +19,7 @@ import java.util.*
  * cjpm项目信息，该类存储module.json原始数据
  */
 //@JsonDeserialize(using = CjpmProjectInfo.CjpmProjectInfoDeserializer::class)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class CjpmProjectInfo(
 
     @JsonProperty("cjc_version")
@@ -25,43 +27,48 @@ data class CjpmProjectInfo(
 
     @JsonProperty("cjc-version")
     private val cjc_version2: String? = null,
-
+    @JsonProperty("organization")
     val organization: String? = null,
+    @JsonProperty("name")
     val name: String,
+    @JsonProperty("version")
     val version: String,
-    val description: String,
+    @JsonProperty("description")
+    val description: String? = null,
 //    仓颉中心仓库依赖
+    @JsonProperty("dependencies")
     @JsonDeserialize(using = Dependencie.ListDeserializer::class)
-    var dependencies: List<Dependencie> = emptyList(),
+    var dependencies1: List<Dependencie>? = emptyList(),
     @JsonProperty("dev-dependencies")
     @JsonDeserialize(using = Require.ListDeserializer::class)
-    var devDependencies: List<Dependencie> = emptyList(),
+    var devDependencies1: List<Dependencie>? = emptyList(),
 
 //     依赖模块信息配置项，非必须
+    @JsonProperty("requires")
     @JsonDeserialize(using = Require.ListDeserializer::class)
-    private val requires: List<Dependencie> = emptyList(),
+    private val requires: List<Dependencie>? = emptyList(),
 
 
 //    用于指定仅在开发过程中使用的依赖项，非必须
     @JsonProperty("dev_requires")
     @JsonDeserialize(using = Require.ListDeserializer::class)
-    private val devRequires: List<Dependencie> = emptyList(),
+    private val devRequires: List<Dependencie>? = emptyList(),
 
 
 //    依赖的仓颉package， 非必须
     @JsonProperty("package_requires")
     @JsonDeserialize(using = Require.ListDeserializer::class)
-    private val package_requires1: List<PackageRequires> = emptyList(),
+    private val package_requires1: List<PackageRequires>? = emptyList(),
     @JsonProperty("package-requires")
     @JsonDeserialize(using = Require.ListDeserializer::class)
-    private val package_requires2: List<PackageRequires> = emptyList(),
+    private val package_requires2: List<PackageRequires>? = emptyList(),
 //    外部调用 c 库的依赖项，非必须
     @JsonProperty("foreign_requires")
     @JsonDeserialize(using = ForeignRequires.ListDeserializer::class)
-    private val foreign_requires1: List<ForeignRequires> = emptyList(),
+    private val foreign_requires1: List<ForeignRequires>? = emptyList(),
     @JsonProperty("ffi")
     @JsonDeserialize(using = ForeignRequires.ListDeserializer1::class)
-    private val foreign_requires2: List<ForeignRequires> = emptyList(),
+    private val foreign_requires2: List<ForeignRequires>? = emptyList(),
 
 
 //项目类型 二进制执行程序，静态库，动态库
@@ -87,24 +94,24 @@ data class CjpmProjectInfo(
 
 //    按照条件选项透传给 cjc 的命令
     @JsonProperty("condition_option")
-    val condition_option1: Map<String, String> = mapOf(),
+    val condition_option1: Map<String, String>? = mapOf(),
     @JsonProperty("condition-option")
-    val condition_option2: Map<String, String> = mapOf(),
+    val condition_option2: Map<String, String>? = mapOf(),
 
 //    单包配置选项，非必须
     @JsonProperty("package_configuration")
     @JsonDeserialize(using = PackageConfiguration.ListDeserializer::class)
-    private val package_configuration1: List<PackageConfiguration> = emptyList(),
+    private val package_configuration1: List<PackageConfiguration>? = emptyList(),
     @JsonProperty("package-configuration")
     @JsonDeserialize(using = PackageConfiguration.ListDeserializer::class)
-    private val package_configuration2: List<PackageConfiguration> = emptyList(),
+    private val package_configuration2: List<PackageConfiguration>? = emptyList(),
 
 
 //    交叉编译到目标平台所需的配置项
     @JsonProperty("cross_compile_configuration")
-    private val cross_compile_configuration1: Map<String, String> = mapOf(),
+    private val cross_compile_configuration1: Map<String, String>? = mapOf(),
     @JsonProperty("cross_compile-configuration")
-    private val cross_compile_configuration2: Map<String, String> = mapOf(),
+    private val cross_compile_configuration2: Map<String, String>? = mapOf(),
 
 
 //    指定编译产物的存放路径
@@ -132,37 +139,91 @@ data class CjpmProjectInfo(
     val cjcVersion: String
 
     var commandOption: String? = null
-    var packageConfiguration: List<PackageConfiguration>
+    var packageConfiguration: List<PackageConfiguration> = emptyList()
     val outputType: OutPutType
-    val crossCompileConfiguration: Map<String, String>
-
+    var crossCompileConfiguration: Map<String, String> = mapOf()
+    var dependencies: List<Dependencie> = emptyList()
     var sourceDir: String
-    val linkOption: String?
-    val foreignRequires: List<ForeignRequires>
+    var linkOption: String?
+    var foreignRequires: List<ForeignRequires> = emptyList()
     var buildDir: String
-    val packageRequires: List<PackageRequires>
-    val conditionOption: Map<String, String>
+    var packageRequires: List<PackageRequires> = emptyList()
+    var conditionOption: Map<String, String> = mapOf()
+    var devDependencies: List<Dependencie> = emptyList()
 
     init {
         cjcVersion = cjc_version1 ?: cjc_version2 ?: ""
         commandOption = command_option1 ?: command_option2
-        packageConfiguration = package_configuration1 + package_configuration2
+
+        if (package_requires1 != null) {
+            packageRequires += package_requires1
+        }
+        if (package_requires2 != null) {
+            packageRequires += package_requires2
+
+        }
+        //  packageConfiguration = package_configuration1 + package_configuration2
         outputType = output_type1 ?: output_type2 ?: OutPutType.EXECUTABLE
 
-        crossCompileConfiguration = cross_compile_configuration1 + cross_compile_configuration2
-
+        if (package_configuration1 != null) {
+            packageConfiguration += package_configuration1
+        }
+        if (package_configuration2 != null) {
+            packageConfiguration += package_configuration2
+        }
+        if (cross_compile_configuration1 != null) {
+            crossCompileConfiguration += cross_compile_configuration1
+        }
+//        crossCompileConfiguration = cross_compile_configuration1 + cross_compile_configuration2
+        if (cross_compile_configuration2 != null) {
+            crossCompileConfiguration += cross_compile_configuration2
+        }
         sourceDir = src_dir1 ?: src_dir2 ?: "src"
         buildDir = build_dir1 ?: build_dir2 ?: "build"
 
         linkOption = link_option1 ?: link_option2
 
-        packageRequires = package_requires1 + package_requires2
+        if (package_requires1 != null) {
+            packageRequires += package_requires1
+        }
+        if (package_requires2 != null) {
+            packageRequires += package_requires2
+        }
 
-        foreignRequires = foreign_requires1 + foreign_requires2
-        conditionOption = condition_option1 + condition_option2
 
-        dependencies += requires
-        devDependencies += devRequires
+        // packageRequires = package_requires1?.plus(package_requires2) ?: emptyList<PackageRequires>()
+        if (foreign_requires1 != null) {
+            foreignRequires += foreign_requires1
+        }
+        if (foreign_requires2 != null) {
+            foreignRequires += foreign_requires2
+
+        }
+        //    foreignRequires = foreign_requires1?.plus(foreign_requires2) ?: emptyList()
+
+        if (condition_option1 != null) {
+            conditionOption += condition_option1
+        }
+        if (condition_option2 != null) {
+            conditionOption += condition_option2
+        }
+
+        if (dependencies1 != null) {
+            dependencies += dependencies1!!
+        }
+        if (requires != null) {
+            dependencies += requires
+        }
+        //  dependencies += requires
+        // devDependencies = devDependencies?.plus(devRequires
+
+        if (devDependencies1 != null) {
+            devDependencies += devDependencies1!!
+        }
+        if (devRequires != null) {
+            devDependencies += devRequires
+        }
+
     }
 
 

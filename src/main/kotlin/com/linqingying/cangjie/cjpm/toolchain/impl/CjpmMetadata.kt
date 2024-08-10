@@ -75,10 +75,10 @@ object CjpmMetadata {
         @JsonProperty("requires")
         @JsonDeserialize(using = PackageListDeserializer::class)
         val packages: List<Package> = emptyList(),
-
+        @JsonProperty("version")
         val version: Int,
 
-
+        @JsonProperty("workspace_root")
         val workspace_root: String? = null
 
     ) {
