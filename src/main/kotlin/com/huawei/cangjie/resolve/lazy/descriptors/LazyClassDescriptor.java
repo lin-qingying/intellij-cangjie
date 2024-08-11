@@ -4,16 +4,14 @@ import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.descriptors.impl.ClassDescriptorBase;
 import com.huawei.cangjie.name.Name;
+import com.huawei.cangjie.resolve.DescriptorUtils;
+import com.huawei.cangjie.resolve.lazy.LazyClassContext;
 import com.huawei.cangjie.resolve.lazy.LazyEntity;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.resolve.scopes.MemberScope;
-import com.huawei.cangjie.storage.NotNullLazyValue;
-import com.huawei.cangjie.storage.StorageManager;
 import com.huawei.cangjie.types.TypeConstructor;
-import com.huawei.cangjie.types.TypeProjection;
-import com.huawei.cangjie.types.TypeSubstitution;
-import com.huawei.cangjie.types.TypeSubstitutor;
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner;
+import kotlin.collections.CollectionsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,11 +21,36 @@ import java.util.List;
 public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDescriptorWithResolutionScopes, LazyEntity {
 //    private final NotNullLazyValue<LexicalScope> scopeForInitializerResolution;
 
+//    private final ClassResolutionScopesSupport resolutionScopesSupport;
+    private final LazyClassContext c;
+//    private final ClassMemberDeclarationProvider declarationProvider;
 
-    protected LazyClassDescriptor(@NotNull StorageManager storageManager, @NotNull DeclarationDescriptor containingDeclaration, @NotNull Name name, @NotNull SourceElement source, boolean isExternal) {
-        super(storageManager, containingDeclaration, name, source, isExternal);
+    protected LazyClassDescriptor(@NotNull LazyClassContext c, @NotNull DeclarationDescriptor containingDeclaration, @NotNull Name name, @NotNull SourceElement source, boolean isExternal) {
+        super(c.getStorageManager(), containingDeclaration, name, source, isExternal);
+        this.c = c;
+//        this.declarationProvider = c.getDeclarationProviderFactory().getClassMemberDeclarationProvider(classLikeInfo);
+//
+//        StorageManager storageManager = c.getStorageManager();
+//
+//        this.resolutionScopesSupport = new ClassResolutionScopesSupport(
+//                this,
+//                storageManager,
+//                c.getLanguageVersionSettings(),
+//                this::getOuterScope
+//        );
 
+    }
+//
 
+    @NotNull
+    @Override
+    @SuppressWarnings("unchecked")
+    public Collection<CallableMemberDescriptor> getDeclaredCallableMembers() {
+        return (Collection) CollectionsKt.filter(
+                DescriptorUtils.getAllDescriptors(getUnsubstitutedMemberScope()),
+                descriptor -> descriptor instanceof CallableMemberDescriptor
+                        && ((CallableMemberDescriptor) descriptor).getKind() != CallableMemberDescriptor.Kind.FAKE_OVERRIDE
+        );
     }
 
     @Override
@@ -100,5 +123,13 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
     @Override
     public void forceResolveAllContents() {
 
+    }
+
+    @Override
+    public @NotNull LexicalScope getScopeForMemberDeclarationResolution() {
+//        return resolutionScopesSupport.getScopeForMemberDeclarationResolution().invoke();
+
+
+        throw new UnsupportedOperationException();
     }
 }

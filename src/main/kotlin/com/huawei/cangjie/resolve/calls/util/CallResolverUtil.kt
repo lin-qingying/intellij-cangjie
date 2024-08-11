@@ -1,18 +1,17 @@
 package com.huawei.cangjie.resolve.calls.util
 
 import com.huawei.cangjie.config.LanguageFeature
-import com.huawei.cangjie.descriptors.ClassDescriptor
-import com.huawei.cangjie.descriptors.ConstructorDescriptor
-import com.huawei.cangjie.descriptors.Errors
-import com.huawei.cangjie.descriptors.TypeAliasDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
 import com.huawei.cangjie.lexer.CjToken
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getStrictParentOfType
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
+import com.huawei.cangjie.resolve.calls.inference.ConstraintSystem
+import com.huawei.cangjie.resolve.calls.inference.constraintPosition.ConstraintPositionKind
+import com.huawei.cangjie.resolve.calls.inference.getNestedTypeVariables
 import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.huawei.cangjie.resolve.calls.tasks.OldResolutionCandidate
-import com.huawei.cangjie.resolve.calls.util.getValueArgumentListOrElement
 import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.resolve.scopes.SyntheticScopes
 import com.huawei.cangjie.resolve.scopes.collectSyntheticConstructors
@@ -21,7 +20,6 @@ import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.huawei.cangjie.types.AbbreviatedType
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeSubstitutor
-import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.intellij.psi.PsiElement
 
 internal fun PsiElement.reportOnElement() =
@@ -29,6 +27,12 @@ internal fun PsiElement.reportOnElement() =
         ?.takeIf { isImplicit }
         ?.let { getStrictParentOfType<CjSecondaryConstructor>()!! }
         ?: this
+
+private fun CallableDescriptor.hasReturnTypeDependentOnUninferredParams(constraintSystem: ConstraintSystem): Boolean {
+    val returnType = returnType ?: return false
+    val nestedTypeVariables = constraintSystem.getNestedTypeVariables(returnType)
+    return nestedTypeVariables.any { constraintSystem.getTypeBounds(it).value == null }
+}
 
 fun checkForConstructorCallOnFunctionalType(
     typeReference: CjTypeReference?,
@@ -42,6 +46,14 @@ fun checkForConstructorCallOnFunctionalType(
             }
         context.trace.report(factory.on(context.call.getValueArgumentListOrElement()))
     }
+}
+
+fun CallableDescriptor.hasInferredReturnType(constraintSystem: ConstraintSystem): Boolean {
+    if (hasReturnTypeDependentOnUninferredParams(constraintSystem)) return false
+
+    // Expected type mismatch was reported before as 'TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH'
+    if (constraintSystem.status.hasOnlyErrorsDerivedFrom(ConstraintPositionKind.EXPECTED_TYPE_POSITION)) return false
+    return true
 }
 
 fun isSuperOrDelegatingConstructorCall(call: Call): Boolean =
@@ -70,6 +82,7 @@ fun isInfixCall(call: Call): Boolean {
     val binaryExpression = operationRefExpression.parent as? CjBinaryExpression ?: return false
     return binaryExpression.operationReference === operationRefExpression && operationRefExpression.operationSignTokenType == null
 }
+
 fun createResolutionCandidatesForConstructors(
     lexicalScope: LexicalScope,
     call: Call,
@@ -93,8 +106,9 @@ fun createResolutionCandidatesForConstructors(
         else
             null
 
-    val constructors = typeAliasDescriptor?.constructors?.mapNotNull(TypeAliasConstructorDescriptor::withDispatchReceiver)
-        ?: classWithConstructors.constructors
+    val constructors =
+        typeAliasDescriptor?.constructors?.mapNotNull(TypeAliasConstructorDescriptor::withDispatchReceiver)
+            ?: classWithConstructors.constructors
 
     if (constructors.isEmpty()) return emptyList()
 
@@ -112,8 +126,8 @@ fun createResolutionCandidatesForConstructors(
 //        receiverKind = ExplicitReceiverKind.DISPATCH_RECEIVER
 //        dispatchReceiver = receiver.value
 //    } else {
-        receiverKind = ExplicitReceiverKind.NO_EXPLICIT_RECEIVER
-        dispatchReceiver = null
+    receiverKind = ExplicitReceiverKind.NO_EXPLICIT_RECEIVER
+    dispatchReceiver = null
 //    }
 
     val syntheticConstructors = constructors.flatMap { syntheticScopes.collectSyntheticConstructors(it) }

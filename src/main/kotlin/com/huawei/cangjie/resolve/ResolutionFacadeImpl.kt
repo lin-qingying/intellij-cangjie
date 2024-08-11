@@ -1,20 +1,37 @@
 package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.analyzer.AnalysisResult
-import com.huawei.cangjie.analyzer.ResolverForModule
+import com.huawei.cangjie.analyzer.ModuleInfo
+import com.huawei.cangjie.analyzer.ResolverForProject
 import com.huawei.cangjie.container.getService
 import com.huawei.cangjie.descriptors.DiagnosticSink
+import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.resolve.caches.ProjectResolutionFacade
+import com.huawei.cangjie.resolve.caches.ResolutionFacadeModuleDescriptorProvider
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.utils.runWithCancellationCheck
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiElement
 
-class ResolutionFacadeImpl(
+class ModuleResolutionFacadeImpl(
     private val projectFacade: ProjectResolutionFacade,
+    private val moduleInfo: ModuleInfo
+) : ResolutionFacade, ResolutionFacadeModuleDescriptorProvider {
+    override val moduleDescriptor: ModuleDescriptor
+        get() = findModuleDescriptor(moduleInfo)
 
-    ) : ResolutionFacade {
+    @FrontendInternals
+    override fun <T : Any> getFrontendService(serviceClass: Class<T>): T = getFrontendService(moduleInfo, serviceClass)
+
+    private fun <T : Any> getFrontendService(ideaModuleInfo: ModuleInfo, serviceClass: Class<T>): T {
+        return projectFacade.resolverForModuleInfo(ideaModuleInfo).componentProvider.getService(serviceClass)
+    }
+
+    override fun findModuleDescriptor(ideaModuleInfo: ModuleInfo) = projectFacade.findModuleDescriptor(ideaModuleInfo)
+    override fun getResolverForProject(): ResolverForProject<ModuleInfo> {
+        return projectFacade.getResolverForProject()
+    }
 
     override fun analyzeWithAllCompilerChecks(
         element: CjElement,
@@ -49,7 +66,7 @@ class ResolutionFacadeImpl(
 
 
     companion object {
-//        private val usePerFileAnalysisCache = Registry.`is`("cangjie.resolve.cache.uses.perfile.cache", true)
+        private val usePerFileAnalysisCache = Registry.`is`("cangjie.resolve.cache.uses.perfile.cache", true)
     }
 
     //    @FrontendInternals
@@ -59,10 +76,16 @@ class ResolutionFacadeImpl(
     override fun analyze(element: CjElement, bodyResolveMode: BodyResolveMode): BindingContext {
 
         ResolveInDispatchThreadManager.assertNoResolveInDispatchThread()
-//        return projectFacade
-//        if (usePerFileAnalysisCache) {
-//            fetchWithAllCompilerChecks(element)?.takeUnless { it.isError() }?.let { return it.bindingContext }
-//        }
+
+        if (usePerFileAnalysisCache) {
+            fetchWithAllCompilerChecks(element)?.takeUnless { it.isError() }?.let {
+
+
+                val a = it.bindingContext
+
+                return a
+            }
+        }
 
         @OptIn(FrontendInternals::class)
         val resolveElementCache = getFrontendService(element, ResolveElementCache::class.java)
@@ -75,7 +98,7 @@ class ResolutionFacadeImpl(
     @FrontendInternals
     override fun <T : Any> getFrontendService(element: PsiElement, serviceClass: Class<T>): T {
 
-        return  projectFacade.resolverForElement(element).componentProvider.getService(serviceClass)
+        return projectFacade.resolverForElement(element).componentProvider.getService(serviceClass)
     }
 }
 
@@ -89,3 +112,10 @@ class ResolutionFacadeImpl(
  */
 @RequiresOptIn
 annotation class FrontendInternals
+
+
+fun ResolutionFacade.findModuleDescriptor(ideaModuleInfo: ModuleInfo): ModuleDescriptor {
+    return (this as ResolutionFacadeModuleDescriptorProvider).findModuleDescriptor(ideaModuleInfo)
+}
+
+

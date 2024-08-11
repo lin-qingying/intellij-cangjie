@@ -1,8 +1,9 @@
 package com.huawei.cangjie.resolve.calls.tower
 
-import com.huawei.cangjie.descriptors.CallableDescriptor
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.synthetic.SyntheticMemberDescriptor
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.psi.Call
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.calls.CallResolver
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
@@ -13,7 +14,10 @@ import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResultsImpl
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import com.huawei.cangjie.resolve.calls.tasks.TracingStrategy
+import com.huawei.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
+import com.huawei.cangjie.resolve.scopes.HierarchicalScope
+import com.huawei.cangjie.resolve.scopes.canBeResolvedWithoutDeprecation
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.huawei.cangjie.types.TypeApproximator
@@ -170,4 +174,48 @@ fun transformToReceiverWithSmartCastInfo(
         dataFlowInfo.getCollectedTypes(dataFlowValue/*, languageVersionSettings*/).compactIfPossible(),
         dataFlowValue.isStable
     )
+}
+internal fun reportResolvedUsingDeprecatedVisibility(
+    call: Call,
+    candidateDescriptor: CallableDescriptor,
+    resultingDescriptor : CallableDescriptor,
+    diagnostic: ResolvedUsingDeprecatedVisibility,
+    trace: BindingTrace
+) {
+    trace.record(
+        BindingContext.DEPRECATED_SHORT_NAME_ACCESS,
+        call.calleeExpression
+    )
+
+    val descriptorToLookup: DeclarationDescriptor = when (candidateDescriptor) {
+        is ClassConstructorDescriptor -> candidateDescriptor.containingDeclaration
+        is FakeCallableDescriptorForObject -> candidateDescriptor.classDescriptor
+        is SyntheticMemberDescriptor<*> -> candidateDescriptor.baseDescriptorForSynthetic
+        is PropertyDescriptor, is FunctionDescriptor -> candidateDescriptor
+        else -> error(
+            "Unexpected candidate descriptor of resolved call with " +
+                    "ResolvedUsingDeprecatedVisibility-diagnostic: $candidateDescriptor\n" +
+                    "Call context: ${call.callElement.parent?.text}"
+        )
+    }
+
+    // If this descriptor was resolved from HierarchicalScope, then there can be another, non-deprecated path
+    // in parents of base scope
+    val sourceScope = diagnostic.baseSourceScope
+    val canBeResolvedWithoutDeprecation = if (sourceScope is HierarchicalScope) {
+        descriptorToLookup.canBeResolvedWithoutDeprecation(
+            sourceScope,
+            diagnostic.lookupLocation
+        )
+    } else {
+        // Normally, that should be unreachable, but instead of asserting that, we will report diagnostic
+        false
+    }
+
+    if (!canBeResolvedWithoutDeprecation) {
+        trace.report(
+            Errors.DEPRECATED_ACCESS_BY_SHORT_NAME.on(call.callElement, resultingDescriptor)
+        )
+    }
+
 }

@@ -3,6 +3,7 @@ package com.huawei.cangjie.ide.highlighter
 
 import com.huawei.cangjie.ide.base.projectStructure.RootKindFilter
 import com.huawei.cangjie.ide.base.projectStructure.RootKindMatcher
+import com.huawei.cangjie.ide.base.projectStructure.matches
 import com.huawei.cangjie.psi.CjCodeFragment
 import com.huawei.cangjie.psi.CjFile
 import com.intellij.openapi.application.runReadAction
@@ -31,9 +32,4 @@ fun CjFile.shouldHighlightErrors(): Boolean {
 
 private fun isIndexingInProgress(project: Project) = runReadAction { DumbService.getInstance(project).isDumb }
 
-fun RootKindFilter.matches(element: PsiElement): Boolean {
-    return RootKindMatcher.matches(element, this)
-}
-fun RootKindFilter.matches(project: Project, virtualFile: VirtualFile): Boolean {
-    return RootKindMatcher.matches(project, virtualFile, this)
-}
+

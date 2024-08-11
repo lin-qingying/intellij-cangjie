@@ -37,7 +37,9 @@ inline fun <T> buildCollection(
     }.builder()
     return result
 }
-
+fun <T : Any> MutableCollection<T>.addIfNotNull(t: T?) {
+    if (t != null) add(t)
+}
 interface CollectionBuilder<in T> {
     fun add(item: T)
     fun addAll(items: Collection<T>)

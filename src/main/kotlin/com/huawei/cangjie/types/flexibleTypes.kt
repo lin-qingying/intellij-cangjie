@@ -1,8 +1,11 @@
 package com.huawei.cangjie.types
 
+import com.huawei.cangjie.builtins.StandardNames.FqNames
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
+import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.renderer.DescriptorRenderer
 import com.huawei.cangjie.renderer.DescriptorRendererOptions
+import com.huawei.cangjie.resolve.fqNameSafe
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.util.builtIns
 
@@ -51,6 +54,7 @@ fun Collection<CangJieType>.singleBestRepresentative(): CangJieType? {
         }
     }
 }
+
 
 fun Collection<TypeProjection>.singleBestRepresentative(): TypeProjection? {
     if (this.size == 1) return this.first()
@@ -166,4 +170,21 @@ class FlexibleTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : Flexibl
 //    fun getBaseBoundFqNameByMutability(fqName: FqName): FqName? {
 //        return CommonFlexibleTypeBoundsChecker.getBaseBoundFqNameByMutability(fqName)
 //    }
+//}
+//object CommonFlexibleTypeBoundsChecker {
+//    val baseTypesToMutableEquivalent = mapOf(
+//        FqNames.iterable to  FqNames.mutableIterable,
+//        FqNames.iterator to FqNames.mutableIterator,
+//        FqNames.listIterator to FqNames.mutableListIterator,
+//        FqNames.list to FqNames.mutableList,
+//        FqNames.collection to FqNames.mutableCollection,
+//        FqNames.set to FqNames.mutableSet,
+//        FqNames.map to FqNames.mutableMap,
+//        FqNames.mapEntry to FqNames.mutableMapEntry
+//    )
+//    val mutableToBaseMap = baseTypesToMutableEquivalent.entries.associateBy({ it.value }) { it.key }
+//
+//    fun getBaseBoundFqNameByMutability(fqName: FqName): FqName? =
+//        if (fqName in baseTypesToMutableEquivalent) fqName
+//        else mutableToBaseMap[fqName]
 //}

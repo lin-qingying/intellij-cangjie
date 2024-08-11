@@ -1,6 +1,7 @@
 package com.huawei.cangjie.types
 
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.PropertyDescriptor
 import com.huawei.cangjie.name.Name
@@ -13,18 +14,20 @@ object ErrorUtils {
 
 
     val errorModule: ModuleDescriptor = ErrorModuleDescriptor
-    val errorPropertyType: CangJieType get()  = createErrorType(ErrorTypeKind.ERROR_PROPERTY_TYPE)
+    val errorPropertyType: CangJieType get() = createErrorType(ErrorTypeKind.ERROR_PROPERTY_TYPE)
 
     // Do not move it into AbstractTypeConstructor.Companion because of cycle in initialization(see KT-13264)
     val errorTypeForLoopInSupertypes: CangJieType = createErrorType(ErrorTypeKind.CYCLIC_SUPERTYPES)
 
-    val errorClass: ErrorClassDescriptor get() =
-        ErrorClassDescriptor(Name.special(ErrorEntity.ERROR_CLASS.debugText.format("unknown class")))
+    val errorClass: ErrorClassDescriptor
+        get() =
+            ErrorClassDescriptor(Name.special(ErrorEntity.ERROR_CLASS.debugText.format("unknown class")))
 
     //    private fun isErrorClass(candidate: DeclarationDescriptor?): Boolean = candidate is ErrorClassDescriptor
     @JvmStatic
     fun createErrorType(kind: ErrorTypeKind, vararg formatParams: String): ErrorType =
         createErrorTypeWithArguments(kind, emptyList(), *formatParams)
+
     @JvmStatic
     fun isUninferredTypeVariable(type: CangJieType?): Boolean {
         if (type == null) return false
@@ -32,10 +35,21 @@ object ErrorUtils {
         return constructor is ErrorTypeConstructor && constructor.kind == ErrorTypeKind.UNINFERRED_TYPE_VARIABLE
     }
 
+    fun containsErrorType(type: CangJieType?): Boolean {
+        if (type == null) return false
+        if (type.isError) return true
+        for (projection in type.arguments) {
+            if (!projection.isStarProjection && containsErrorType(projection.type))
+                return true
+        }
+        return false
+    }
+
     fun unresolvedTypeAsItIs(type: CangJieType): String {
         assert(isUnresolvedType(type))
         return (type.constructor as ErrorTypeConstructor).getParam(0)
     }
+
     @JvmStatic
     fun createErrorType(kind: ErrorTypeKind, typeConstructor: TypeConstructor, vararg formatParams: String): ErrorType =
         createErrorTypeWithArguments(kind, emptyList(), typeConstructor, *formatParams)
@@ -70,7 +84,28 @@ object ErrorUtils {
     )
 
     private fun isErrorClass(candidate: DeclarationDescriptor?): Boolean = candidate is ErrorClassDescriptor
+    /**
+     * @return true if any of the types referenced in parameter types (including type parameters and extension receiver) of the function
+     * is an error type. Does not check the return type of the function.
+     */
+    fun containsErrorTypeInParameters(function: FunctionDescriptor): Boolean {
+        val receiverParameter = function.extensionReceiverParameter
+        if (receiverParameter != null && containsErrorType(receiverParameter.type))
+            return true
 
+        for (parameter in function.valueParameters) {
+            if (containsErrorType(parameter.type))
+                return true
+        }
+
+        for (parameter in function.typeParameters) {
+            for (upperBound in parameter.upperBounds) {
+                if (containsErrorType(upperBound))
+                    return true
+            }
+        }
+        return false
+    }
     @JvmStatic
     fun isError(candidate: DeclarationDescriptor?): Boolean =
         candidate != null

@@ -110,6 +110,8 @@ class ProjectResolutionFacade(
 //            settings
         )
     }
+    internal fun getResolverForProject(): ResolverForProject< ModuleInfo> = cachedResolverForProject
+    internal fun resolverForModuleInfo(moduleInfo: ModuleInfo) = cachedResolverForProject.resolverForModule(moduleInfo)
 
 //    val moduleDescriptor = createModuleDescriptor(globalContext.withProject(project), project)
 //        .apply {

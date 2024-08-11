@@ -3,9 +3,13 @@ package com.huawei.cangjie.analyzer
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.cjpm.project.model.currentCjpmProject
 import com.huawei.cangjie.context.ProjectContext
-import com.huawei.cangjie.descriptors.ModuleDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.ModuleDescriptorImpl
+import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.PackageOracle
+import com.huawei.cangjie.resolve.PackageOracleFactory
+import com.huawei.cangjie.resolve.caches.ModuleContent
 import com.huawei.cangjie.utils.CangJieExceptionWithAttachments
 import com.huawei.cangjie.utils.checkWithAttachment
 import com.intellij.openapi.Disposable
@@ -28,7 +32,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
     modules: Collection<M>,
     protected val fallbackModificationTracker: ModificationTracker? = null,
     private val delegateResolver: ResolverForProject<M> = EmptyResolverForProject(),
-//    private val packageOracleFactory: PackageOracleFactory = PackageOracleFactory.OptimisticFactory
+    private val packageOracleFactory: PackageOracleFactory = PackageOracleFactory.OptimisticFactory
 ) : ResolverForProject<M>(), Disposable {
     @Volatile
     protected var disposed = false
@@ -50,6 +54,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
             moduleInfoByDescriptor.clear()
         }
     }
+
     protected class ModuleData(
         val moduleDescriptor: ModuleDescriptorImpl,
         val modificationTracker: ModificationTracker?
@@ -61,6 +66,11 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
             return currentModCount != null && currentModCount > modificationCount
         }
     }
+
+    internal fun isResolverForModuleDescriptorComputed(descriptor: ModuleDescriptor) =
+        projectContext.storageManager.compute {
+            descriptor in resolverByModuleDescriptor
+        }
 
     // Protected by ("projectContext.storageManager.lock")
     private val moduleInfoByDescriptor = hashMapOf<ModuleDescriptorImpl, M>()
@@ -90,6 +100,8 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
             reportInvalidResolver()
         }
     }
+
+    abstract fun modulesContent(module: M): ModuleContent<M>
 
     protected open fun reportInvalidResolver() {
         throw InvalidResolverException("$name is invalidated")
@@ -138,26 +150,28 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
             (module as? TrackableModuleInfo)?.createModificationTracker() ?: fallbackModificationTracker
         return ModuleData(moduleDescriptor, modificationTracker)
     }
+
     private fun setupModuleDescriptor(module: M, moduleDescriptor: ModuleDescriptorImpl) {
         checkValid()
-//        moduleDescriptor.setDependencies(
-//            LazyModuleDependencies(
-//                projectContext.storageManager,
-//                module,
-//                sdkDependency(module),
-//                this
-//            )
-//        )
-//
-//        val content = modulesContent(module)
-//        moduleDescriptor.initialize(
-//            DelegatingPackageFragmentProvider(
-//                this, moduleDescriptor, content,
-//                packageOracleFactory.createOracle(module)
-//            )
-//        )
+        moduleDescriptor.setDependencies(
+            LazyModuleDependencies(
+                projectContext.storageManager,
+                module,
+                /*  sdkDependency(module)*/null,
+                this
+            )
+        )
+
+        val content = modulesContent(module)
+        moduleDescriptor.initialize(
+            DelegatingPackageFragmentProvider(
+                this, moduleDescriptor, content,
+                packageOracleFactory.createOracle(module)
+            )
+        )
     }
-        private fun checkModuleIsCorrect(moduleInfo: M) {
+
+    private fun checkModuleIsCorrect(moduleInfo: M) {
         if (!isCorrectModuleInfo(moduleInfo)) {
             diagnoseUnknownModuleInfo(listOf(moduleInfo))
         }
@@ -300,4 +314,57 @@ private object DiagnoseUnknownModuleInfoReporter {
     private fun errorInSpecialModuleInfoResolver(message: String) = CangJieExceptionWithAttachments(message)
 
     private fun otherError(message: String) = CangJieExceptionWithAttachments(message)
+}
+
+private class DelegatingPackageFragmentProvider<M : ModuleInfo>(
+    private val resolverForProject: AbstractResolverForProject<M>,
+    private val module: ModuleDescriptor,
+    moduleContent: ModuleContent<M>,
+    private val packageOracle: PackageOracle
+) : PackageFragmentProviderOptimized {
+    private val syntheticFilePackages = moduleContent.syntheticFiles.map { it.packageFqName }.toSet()
+
+    @Suppress("OverridingDeprecatedMember", "OVERRIDE_DEPRECATION")
+    override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> {
+        if (certainlyDoesNotExist(fqName)) return emptyList()
+
+        @Suppress("DEPRECATION")
+        return resolverForProject.resolverForModuleDescriptor(module).packageFragmentProvider.getPackageFragments(fqName)
+    }
+
+    override fun collectPackageFragments(
+        fqName: FqName,
+        packageFragments: MutableCollection<PackageFragmentDescriptor>
+    ) {
+        if (certainlyDoesNotExist(fqName)) return
+
+        resolverForProject.resolverForModuleDescriptor(module)
+            .packageFragmentProvider
+            .collectPackageFragmentsOptimizedIfPossible(fqName, packageFragments)
+    }
+
+    override fun isEmpty(fqName: FqName): Boolean {
+        if (certainlyDoesNotExist(fqName)) return true
+
+        return resolverForProject.resolverForModuleDescriptor(module).packageFragmentProvider.isEmpty(fqName)
+    }
+
+    override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> {
+        if (certainlyDoesNotExist(fqName)) return emptyList()
+
+        return resolverForProject.resolverForModuleDescriptor(module).packageFragmentProvider.getSubPackagesOf(
+            fqName,
+            nameFilter
+        )
+    }
+
+    private fun certainlyDoesNotExist(fqName: FqName): Boolean {
+        if (resolverForProject.isResolverForModuleDescriptorComputed(module)) return false // let this request get cached inside delegate
+
+        return !packageOracle.packageExists(fqName) && fqName !in syntheticFilePackages
+    }
+
+    override fun toString(): String {
+        return "DelegatingProvider for $module in ${resolverForProject.name}"
+    }
 }

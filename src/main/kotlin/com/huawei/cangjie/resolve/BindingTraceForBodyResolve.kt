@@ -12,9 +12,9 @@ class BindingTraceForBodyResolve(
     filter: BindingTraceFilter = BindingTraceFilter.ACCEPT_ALL
 ) : DelegatingBindingTrace(parentContext, debugName, filter = filter, allowSliceRewrite = true) {
     override fun <K, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
-//        if (slice == BindingContext.DEFERRED_TYPE) {
-//            return map.getKeys(slice)
-//        }
+        if (slice == BindingContext.DEFERRED_TYPE) {
+            return map.getKeys(slice)
+        }
 
         return super.getKeys(slice)
     }

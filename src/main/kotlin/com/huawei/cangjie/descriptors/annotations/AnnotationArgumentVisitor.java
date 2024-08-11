@@ -2,18 +2,19 @@ package com.huawei.cangjie.descriptors.annotations;
 
 
 import com.huawei.cangjie.resolve.constants.ArrayValue;
-import com.huawei.cangjie.resolve.constants.IntValue;
+import com.huawei.cangjie.resolve.constants.ErrorValue;
+import com.huawei.cangjie.resolve.constants.Int32Value;
 import com.huawei.cangjie.resolve.constants.StringValue;
-import org.jetbrains.annotations.NotNull;
 
 public interface AnnotationArgumentVisitor<R, D> {
     R visitArrayValue(ArrayValue value, D data);
     R visitStringValue(StringValue value, D data);
-    R visitIntValue(IntValue value, D data);
+    R visitIntValue(Int32Value value, D data);
+    R visitErrorValue(ErrorValue value, D data);
 
 //    R visitLongValue(@NotNull LongValue value, D data);
 //
-//    R visitIntValue(IntValue value, D data);
+//    R visitIntValue(Int32Value value, D data);
 //
 //    R visitErrorValue(ErrorValue value, D data);
 //

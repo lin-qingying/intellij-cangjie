@@ -1,9 +1,11 @@
 package com.huawei.cangjie.types.checker
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.huawei.cangjie.types.*
 
 import com.huawei.cangjie.types.error.ErrorTypeKind
+import com.huawei.cangjie.types.util.TypeUtils
 
 fun intersectTypes(types: List<SimpleType>) = intersectTypes(types as List<UnwrappedType>) as SimpleType
 
@@ -49,7 +51,98 @@ fun intersectTypes(types: List<UnwrappedType>): UnwrappedType {
 }
 
 object TypeIntersector {
+    fun intersectTypes(types: Collection<CangJieType>): CangJieType? {
+        assert(!types.isEmpty()) { "Attempting to intersect empty collection of types, this case should be dealt with on the call site." }
 
+        if (types.size == 1) {
+            return types.iterator().next()
+        }
+
+        // Intersection of T1..Tn is an intersection of their non-null versions,
+        //   made nullable is they all were nullable
+        var nothingOrNullableNothing: CangJieType? = null
+        var allNullable = true
+        val nullabilityStripped: MutableList<CangJieType> = java.util.ArrayList<CangJieType>(types.size)
+        for (type in types) {
+            if (type.isError) continue
+
+            if (CangJieBuiltIns.isNothingOrNullableNothing(type)) {
+                nothingOrNullableNothing = type
+            }
+            allNullable = allNullable and type.isMarkedNullable
+            nullabilityStripped.add(TypeUtils.makeNotNullable(type))
+        }
+
+        if (nothingOrNullableNothing != null) {
+            return TypeUtils.makeNullableAsSpecified(nothingOrNullableNothing, allNullable)
+        }
+
+        if (nullabilityStripped.isEmpty()) {
+            // All types were errors
+            return ErrorUtils.createErrorType(ErrorTypeKind.INTERSECTION_OF_ERROR_TYPES, types.toString())
+        }
+
+        val typeChecker: CangJieTypeChecker = CangJieTypeChecker.DEFAULT
+        // Now we remove types that have subtypes in the list
+        val resultingTypes: MutableList<CangJieType> = java.util.ArrayList<CangJieType>()
+        outer@ for (type in nullabilityStripped) {
+//            if (!TypeUtils.canHaveSubtypes(typeChecker, type)) {
+//                var relativeToAll = true
+//                for (other in nullabilityStripped) {
+//                    // It makes sense to check for subtyping (other <: type), despite that
+//                    // type is not supposed to be open, for there're enums
+//                    val mayBeEqual: Boolean =
+//                      TypeIntersector.TypeUnifier.mayBeEqual(type, other)
+//                    val relative = typeChecker.isSubtypeOf(type, other) || typeChecker.isSubtypeOf(other, type)
+//                    if (!mayBeEqual && !relative) {
+//                        return null
+//                    } else if (!relative) {
+//                        // To build T & (final A), instead of returning just A as intersection
+//                        relativeToAll = false
+//                        break
+//                    }
+//                }
+//                if (relativeToAll) return TypeUtils.makeNullableAsSpecified(type, allNullable)
+//            }
+            for (other in nullabilityStripped) {
+                if (!type.equals(other) && typeChecker.isSubtypeOf(other, type)) {
+                    continue@outer
+                }
+            }
+
+            // Don't add type if it is already present, to avoid trivial type intersections in result
+            for (other in resultingTypes) {
+                if (typeChecker.equalTypes(other, type)) {
+                    continue@outer
+                }
+            }
+            resultingTypes.add(type)
+        }
+
+        if (resultingTypes.isEmpty()) {
+            // If we ended up here, it means that all types from `nullabilityStripped` were excluded by the code above
+            // most likely, this is because they are all semantically interchangeable (e.g. List<Foo>! and List<Foo>),
+            // in that case, we can safely select the best representative out of that set and return it
+            // TODO: maybe return the most specific among the types that are subtypes to all others in the `nullabilityStripped`?
+            // TODO: e.g. among {Int, Int?, Int!}, return `Int` (now it returns `Int!`).
+            var bestRepresentative = nullabilityStripped.singleBestRepresentative()
+
+            if (bestRepresentative == null) {
+                bestRepresentative =  hackForTypeIntersector(nullabilityStripped)
+            }
+
+            if (bestRepresentative == null) {
+                return null
+            }
+            return TypeUtils.makeNullableAsSpecified(bestRepresentative, allNullable)
+        }
+
+        if (resultingTypes.size == 1) {
+            return TypeUtils.makeNullableAsSpecified(resultingTypes[0], allNullable)
+        }
+
+        return IntersectionTypeConstructor(resultingTypes).createType()
+    }
     internal fun intersectTypes(types: List<SimpleType>): SimpleType {
         assert(types.size > 1) {
             "Size should be at least 2, but it is ${types.size}"

@@ -4,13 +4,27 @@
 package com.huawei.cangjie.resolve.caches
 
 import com.huawei.cangjie.analyzer.AnalysisResult
+import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.Diagnostic
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.ResolutionFacade
+import com.huawei.cangjie.resolve.calls.model.ResolvedCall
+import com.huawei.cangjie.resolve.calls.util.getResolvedCall
+import com.huawei.cangjie.resolve.calls.util.safeAnalyze
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.utils.actionUnderSafeAnalyzeBlock
+/**
+ * **Please, use overload with providing resolutionFacade for stable results of subsequent calls**
+ */
+fun CjElement.resolveToCall(bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL) =
+    resolveToCall(getResolutionFacade(), bodyResolveMode)
+fun CjElement.resolveToCall(
+    resolutionFacade: ResolutionFacade,
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL
+): ResolvedCall<out CallableDescriptor>? = getResolvedCall(safeAnalyze(resolutionFacade, bodyResolveMode))
+
 
 //fun CjElement.getResolutionFacade(): ResolutionFacade =CangJieCacheService.getInstance(project).getResolutionFacade(this)
 fun CjFile.analyzeWithAllCompilerChecks(vararg extraFiles: CjFile): AnalysisResult = this.analyzeWithAllCompilerChecks(null, *extraFiles)
@@ -29,6 +43,11 @@ fun CjElement.analyze(
     resolutionFacade: ResolutionFacade,
     bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
 ): BindingContext = resolutionFacade.analyze(this, bodyResolveMode)
+
+@JvmOverloads
+fun CjElement.analyze(
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
+): BindingContext = analyze(getResolutionFacade(), bodyResolveMode)
 
 fun CjElement.safeAnalyzeNonSourceRootCode(
     resolutionFacade: ResolutionFacade,

@@ -21,12 +21,13 @@ open class TypeApproximatorConfiguration {
     open val intersection: IntersectionStrategy = IntersectionStrategy.TO_COMMON_SUPERTYPE
     open val intersectionTypesInContravariantPositions = false
     open val localTypes = false
+    open val expectedTypeForIntegerLiteralType:CangJieTypeMarker? get() = null
 
     /**
      * Is only expected to be true for FinalApproximationAfterResolutionAndInference
      * But it's only used for K2 to reproduce K1 behavior for the approximation of resolved calls
      */
-    open val convertToNonRawVersionAfterApproximationInK2 get() = false
+    open val convertToNonRawVersionAfterApproximation get() = false
 
     /**
      * Whether to approximate anonymous type. This flag does not have any effect if `localTypes` is true because all anonymous types are
@@ -41,7 +42,7 @@ open class TypeApproximatorConfiguration {
      * @param isK2 true for K2 compiler, false for K1 compiler
      * @return true if the type variable based type should be kept, false if it should be approximated
      */
-    internal open fun shouldKeepTypeVariableBasedType(marker: TypeVariableTypeConstructorMarker, isK2: Boolean): Boolean = false
+    internal open fun shouldKeepTypeVariableBasedType(marker: TypeVariableTypeConstructorMarker): Boolean = false
 
     open fun capturedType(ctx: TypeSystemInferenceExtensionContext, type: CapturedTypeMarker): Boolean =
         true  // false means that this type we can leave as is
@@ -62,7 +63,15 @@ open class TypeApproximatorConfiguration {
         override val intersectionTypesInContravariantPositions: Boolean get() = true
 
         // Probably, it's worth thinking of returning true only for delegated property accessors, see KT-61090
-        override fun shouldKeepTypeVariableBasedType(marker: TypeVariableTypeConstructorMarker, isK2: Boolean): Boolean = isK2
+        override fun shouldKeepTypeVariableBasedType(marker: TypeVariableTypeConstructorMarker): Boolean = false
+    }
+    class TopLevelIntegerLiteralTypeApproximationWithExpectedType(
+        override val expectedTypeForIntegerLiteralType: CangJieTypeMarker?,
+    ) : AllFlexibleSameValue() {
+        override val allFlexible: Boolean get() = false
+        override val integerLiteralConstantType: Boolean get() = true
+        override val integerConstantOperatorType: Boolean get() = true
+
     }
 
     open class PublicDeclaration(override val localTypes: Boolean, override val anonymous: Boolean) : AllFlexibleSameValue() {
@@ -73,7 +82,7 @@ open class TypeApproximatorConfiguration {
         override val intersectionTypesInContravariantPositions: Boolean get() = true
 
         // Probably, it's worth thinking of returning true only for delegated property accessors, see KT-61090
-        override fun shouldKeepTypeVariableBasedType(marker: TypeVariableTypeConstructorMarker, isK2: Boolean): Boolean = isK2
+        override fun shouldKeepTypeVariableBasedType(marker: TypeVariableTypeConstructorMarker): Boolean = false
 
         object SaveAnonymousTypes : PublicDeclaration(localTypes = false, anonymous = false)
         object ApproximateAnonymousTypes : PublicDeclaration(localTypes = false, anonymous = true)
@@ -89,7 +98,7 @@ open class TypeApproximatorConfiguration {
             approximatedCapturedStatus != null && type.captureStatus(ctx) == approximatedCapturedStatus
 
         override val intersection: IntersectionStrategy get() = IntersectionStrategy.ALLOWED
-        override fun shouldKeepTypeVariableBasedType(marker: TypeVariableTypeConstructorMarker, isK2: Boolean): Boolean = true
+        override fun shouldKeepTypeVariableBasedType(marker: TypeVariableTypeConstructorMarker): Boolean = true
     }
 
     object IncorporationConfiguration : AbstractCapturedTypesApproximation(CaptureStatus.FOR_INCORPORATION)
@@ -106,7 +115,7 @@ open class TypeApproximatorConfiguration {
         override val integerConstantOperatorType: Boolean get() = true
         override val intersectionTypesInContravariantPositions: Boolean get() = true
 
-        override val convertToNonRawVersionAfterApproximationInK2: Boolean get() = true
+        override val convertToNonRawVersionAfterApproximation: Boolean get() = true
     }
 
     object IntermediateApproximationToSupertypeAfterCompletionInK2 :
@@ -115,13 +124,13 @@ open class TypeApproximatorConfiguration {
         override val integerConstantOperatorType: Boolean get() = true
         override val intersectionTypesInContravariantPositions: Boolean get() = true
 
-        override val convertToNonRawVersionAfterApproximationInK2: Boolean get() = true
+        override val convertToNonRawVersionAfterApproximation: Boolean get() = true
 
         override fun capturedType(ctx: TypeSystemInferenceExtensionContext, type: CapturedTypeMarker): Boolean {
             /**
              * Only approximate captured types when they contain a raw supertype.
              * This is an awful hack required to keep K1 compatibility.
-             * See [convertToNonRawVersionAfterApproximationInK2].
+             * See [convertToNonRawVersionAfterApproximation].
              */
             return type.captureStatus(ctx) == CaptureStatus.FROM_EXPRESSION && with(ctx) { type.hasRawSuperType() }
         }
@@ -137,7 +146,7 @@ open class TypeApproximatorConfiguration {
         override val integerLiteralConstantType: Boolean get() = true
         override val allFlexible: Boolean get() = true
         override val intersection: IntersectionStrategy get() = IntersectionStrategy.ALLOWED
-        override fun shouldKeepTypeVariableBasedType(marker: TypeVariableTypeConstructorMarker, isK2: Boolean): Boolean = true
+        override fun shouldKeepTypeVariableBasedType(marker: TypeVariableTypeConstructorMarker): Boolean = true
         override val errorType: Boolean get() = true
 
         override fun capturedType(ctx: TypeSystemInferenceExtensionContext, type: CapturedTypeMarker): Boolean = false

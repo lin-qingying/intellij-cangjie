@@ -1,15 +1,13 @@
 package com.huawei.cangjie.resolve.calls.tower
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
-import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.descriptors.CallableDescriptor
-import com.huawei.cangjie.descriptors.FunctionDescriptor
-import com.huawei.cangjie.descriptors.ModuleDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.extensions.internal.CandidateInterceptor
 import com.huawei.cangjie.psi.Call
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.MissingSupertypesResolver
 import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver
+import com.huawei.cangjie.resolve.calls.DiagnosticReporterByTrackingStrategy
 import com.huawei.cangjie.resolve.calls.checkers.AdditionalTypeChecker
 import com.huawei.cangjie.resolve.calls.checkers.CallChecker
 import com.huawei.cangjie.resolve.calls.checkers.CallCheckerContext
@@ -55,12 +53,102 @@ class CangJieToResolvedCallTransformer(
 ) {
 
     companion object {
+        private val REPORT_MISSING_NEW_INFERENCE_DIAGNOSTIC
+            get() = false
+
         fun keyForPartiallyResolvedCall(resolvedCallAtom: ResolvedCallAtom): Call {
             val psiCangJieCall = resolvedCallAtom.atom.psiCangJieCall
             return if (psiCangJieCall is PSICangJieCallForInvoke)
                 psiCangJieCall.baseCall.psiCall
             else
                 psiCangJieCall.psiCall
+        }
+    }
+
+    fun reportCallDiagnostic(
+        context: BasicCallResolutionContext,
+        trace: BindingTrace,
+        resolvedCall: NewAbstractResolvedCall<*>,
+        resultingDescriptor: CallableDescriptor,
+        diagnostics: Collection<CangJieCallDiagnostic>,
+    ) {
+        val trackingTrace = TrackingBindingTrace(trace)
+        val newContext = context.replaceBindingTrace(trackingTrace)
+
+        val diagnosticHolder = CangJieDiagnosticsHolder.SimpleHolder()
+        val resolvedCallAtom = resolvedCall.resolvedCallAtom
+
+        if (resolvedCallAtom != null) {
+            additionalDiagnosticReporter.reportAdditionalDiagnostics(
+                resolvedCallAtom,
+                resultingDescriptor,
+                diagnosticHolder,
+                diagnostics
+            )
+        }
+
+        val allDiagnostics = diagnostics + diagnosticHolder.getDiagnostics()
+
+        val diagnosticReporter = DiagnosticReporterByTrackingStrategy(
+            constantExpressionEvaluator,
+            newContext,
+            resolvedCall.psiCangJieCall,
+            context.dataFlowValueFactory,
+            allDiagnostics,
+            smartCastManager,
+            typeSystemContext
+        )
+
+        for (diagnostic in allDiagnostics) {
+            trackingTrace.reported = false
+            diagnostic.report(diagnosticReporter)
+
+            if (diagnostic is ResolvedUsingDeprecatedVisibility) {
+                reportResolvedUsingDeprecatedVisibility(
+                    resolvedCall.psiCangJieCall.psiCall,
+                    resolvedCall.candidateDescriptor,
+                    resultingDescriptor,
+                    diagnostic,
+                    trace,
+                )
+            }
+
+            val dontRecordToTraceAsIs = diagnostic is ResolutionDiagnostic && diagnostic !is VisibilityError
+            val shouldReportMissingDiagnostic = !trackingTrace.reported && !dontRecordToTraceAsIs
+            if (shouldReportMissingDiagnostic && REPORT_MISSING_NEW_INFERENCE_DIAGNOSTIC) {
+                val factory =
+                    if (diagnostic.candidateApplicability.isSuccess) Errors.NEW_INFERENCE_DIAGNOSTIC else Errors.NEW_INFERENCE_ERROR
+                trace.report(
+                    factory.on(
+                        diagnosticReporter.psiCangJieCall.psiCall.callElement,
+                        "Missing diagnostic: $diagnostic"
+                    )
+                )
+            }
+        }
+    }
+
+    fun reportDiagnostics(
+        context: BasicCallResolutionContext,
+        trace: BindingTrace,
+        resolvedCall: NewAbstractResolvedCall<*>,
+        diagnostics: Collection<CangJieCallDiagnostic>,
+    ) {
+        when (resolvedCall) {
+            is NewVariableAsFunctionResolvedCallImpl -> {
+                val variableCall = resolvedCall.variableCall
+                val functionCall = resolvedCall.functionCall
+
+                reportCallDiagnostic(context, trace, variableCall, variableCall.resultingDescriptor, diagnostics)
+                reportCallDiagnostic(context, trace, functionCall, functionCall.resultingDescriptor, emptyList())
+            }
+
+            else -> {
+                val resolvedCallAtom = resolvedCall.resolvedCallAtom
+                if (resolvedCallAtom != null) {
+                    reportCallDiagnostic(context, trace, resolvedCall, resolvedCall.resultingDescriptor, diagnostics)
+                }
+            }
         }
     }
 
@@ -73,12 +161,12 @@ class CangJieToResolvedCallTransformer(
         val tracing = simpleResolvedCall.psiCangJieCall.tracingStrategy
 
         tracing.bindReference(trace, simpleResolvedCall)
-//        tracing.bindResolvedCall(trace, simpleResolvedCall)
+        tracing.bindResolvedCall(trace, simpleResolvedCall)
     }
 
     internal fun bind(trace: BindingTrace, resolvedCall: ResolvedCall<*>) {
         (resolvedCall as? NewAbstractResolvedCall<*>)?.let { bind(trace, it) }
-//        (resolvedCall as? NewVariableAsFunctionResolvedCallImpl)?.let { bind(trace, it) }
+        (resolvedCall as? NewVariableAsFunctionResolvedCallImpl)?.let { bind(trace, it) }
     }
 
 
@@ -236,7 +324,7 @@ class CangJieToResolvedCallTransformer(
             }
 
             is CompletedCallResolutionResult, is ErrorCallResolutionResult -> {
-                @Suppress("USELESS_CAST") // K2 warning suppression, TODO: KT-62472
+                // K2 warning suppression, TODO: KT-62472
                 val candidate = (baseResolvedCall as SingleCallResolutionResult).resultCallAtom
 
                 val resultSubstitutor =
@@ -267,7 +355,7 @@ class CangJieToResolvedCallTransformer(
                     deprecationResolver,
                     moduleDescriptor,
                     dataFlowValueFactory,
-//                    typeApproximator,
+                    typeApproximator,
                     missingSupertypesResolver,
                     callComponents,
                 )

@@ -12,7 +12,7 @@ import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstructor
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.types.*
-import com.huawei.cangjie.types.checker.CangJieTypeChecker
+import com.huawei.cangjie.types.checker.CangJieTypeChecker.DEFAULT
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.error.ErrorType
 import com.huawei.cangjie.types.error.ErrorTypeKind
@@ -128,6 +128,60 @@ fun isUnresolvedType(type: CangJieType): Boolean {
 }
 
 object TypeUtils {
+
+    val DONT_CARE: SimpleType = ErrorUtils.createErrorType(ErrorTypeKind.DONT_CARE)
+
+    fun createSubstitutedSupertype(
+        subType: CangJieType,
+        superType: CangJieType,
+        substitutor: TypeSubstitutor
+    ): CangJieType? {
+        val substitutedType: CangJieType? = substitutor.substitute(superType, Variance.INVARIANT)
+        if (substitutedType != null) {
+            return makeNullableIfNeeded(substitutedType, subType.isMarkedNullable)
+        }
+        return null
+    }
+
+    fun isDontCarePlaceholder(type: CangJieType?): Boolean {
+        return type != null && type.constructor === DONT_CARE.constructor
+    }
+
+    fun getImmediateSupertypes(type: CangJieType): List<CangJieType> {
+        val substitutor: TypeSubstitutor = TypeSubstitutor.create(type)
+        val originalSupertypes: Collection<CangJieType> = type.constructor.getSupertypes()
+        val result: MutableList<CangJieType> = ArrayList<CangJieType>(originalSupertypes.size)
+        for (supertype in originalSupertypes) {
+            val substitutedType =
+                createSubstitutedSupertype(type, supertype, substitutor)
+            if (substitutedType != null) {
+                result.add(substitutedType)
+            }
+        }
+        return result
+    }
+
+    private fun collectAllSupertypes(type: CangJieType, result: MutableSet<CangJieType>) {
+        val immediateSupertypes: List<CangJieType> = getImmediateSupertypes(type)
+        result.addAll(immediateSupertypes)
+        for (supertype in immediateSupertypes) {
+            collectAllSupertypes(supertype, result)
+        }
+    }
+
+    fun getAllSupertypes(type: CangJieType): Set<CangJieType> {
+        // 15 is obtained by experimentation: JDK classes like ArrayList tend to have so many supertypes,
+        // the average number is lower
+        val result = LinkedHashSet<CangJieType>(15)
+        collectAllSupertypes(type, result)
+        return result
+    }
+
+    @JvmStatic
+    fun equalTypes(a: CangJieType, b: CangJieType): Boolean {
+        return DEFAULT.equalTypes(a, b)
+    }
+
     @JvmStatic
 
     fun getDefaultPrimitiveNumberType(supertypes: Collection<CangJieType>): CangJieType? {
@@ -204,12 +258,12 @@ object TypeUtils {
         // If approximated type does not match expected type then expected type is very
         //  specific type (e.g. Comparable<Byte>), so only one of possible types could match it
         val approximatedType: CangJieType = literalTypeConstructor.getApproximatedType()
-        if (CangJieTypeChecker.DEFAULT.isSubtypeOf(approximatedType, expectedType)) {
+        if (DEFAULT.isSubtypeOf(approximatedType, expectedType)) {
             return approximatedType
         }
 
         for (primitiveNumberType in literalTypeConstructor.possibleTypes) {
-            if (CangJieTypeChecker.DEFAULT.isSubtypeOf(
+            if (DEFAULT.isSubtypeOf(
                     primitiveNumberType,
                     expectedType
                 )
@@ -229,7 +283,7 @@ object TypeUtils {
             return getDefaultPrimitiveNumberType(numberValueTypeConstructor)
         }
         for (primitiveNumberType in numberValueTypeConstructor.getSupertypes()) {
-            if (CangJieTypeChecker.DEFAULT.isSubtypeOf(
+            if (DEFAULT.isSubtypeOf(
                     primitiveNumberType,
                     expectedType
                 )
@@ -404,6 +458,10 @@ object TypeUtils {
         return contains(type, isSpecialType, null)
     }
 
+    fun contains(type: CangJieType?, specialType: CangJieType): Boolean {
+        return contains(type) { type: UnwrappedType? -> specialType.equals(type) }
+    }
+
     val CANNOT_INFER_FUNCTION_PARAM_TYPE: SimpleType =
         ErrorUtils.createErrorType(ErrorTypeKind.UNINFERRED_LAMBDA_PARAMETER_TYPE)
 
@@ -470,3 +528,8 @@ object TypeUtils {
 
 }
 
+fun CangJieType.getSupertypeRepresentative(): CangJieType =
+    (unwrap() as? SubtypingRepresentatives)?.superTypeRepresentative ?: this
+
+fun CangJieType.isDefaultBound(): Boolean = CangJieBuiltIns.isDefaultBound(getSupertypeRepresentative())
+fun List<CangJieType>.defaultProjections(): List<TypeProjection> = map(::TypeProjectionImpl)

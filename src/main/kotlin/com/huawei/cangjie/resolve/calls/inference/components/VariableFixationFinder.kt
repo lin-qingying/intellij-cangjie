@@ -4,7 +4,25 @@ import com.huawei.cangjie.resolve.calls.inference.ForkPointData
 import com.huawei.cangjie.resolve.calls.inference.model.IncorporationConstraintPosition
 import com.huawei.cangjie.resolve.calls.inference.model.VariableWithConstraints
 import com.huawei.cangjie.types.model.*
+/**
+ * Returns `false` for fixed type variables types even if `isProper(type) == true`
+ * Thus allowing only non-TVs types to be used for fixation on top level.
+ * While this limitation is important, it doesn't really limit final results because when we have a constraint like T <: E or E <: T
+ * and we're going to fix T into E, we assume that if E has some other constraints, they are being incorporated to T, so we would choose
+ * them instead of E itself.
+ */
+inline fun TypeSystemInferenceExtensionContext.isProperTypeForFixation(
+    type: CangJieTypeMarker,
+    notFixedTypeVariables: Set<TypeConstructorMarker>,
+    isProper: (CangJieTypeMarker) -> Boolean
+): Boolean {
+    // We don't allow fixing T into any top-level TV type, like T := F or T := F & Any
+    // Even if F is considered as a proper by `isProper` (e.g., it belongs to an outer CS)
+    // But at the same time, we don't forbid fixing into T := MutableList<F>
+    if (type.typeConstructor() in notFixedTypeVariables) return false
 
+    return isProper(type) && extractProjectionsForAllCapturedTypes(type).all(isProper)
+}
 class VariableFixationFinder(
     private val trivialConstraintTypeInferenceOracle: TrivialConstraintTypeInferenceOracle,
 //    private val languageVersionSettings: LanguageVersionSettings,

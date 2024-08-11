@@ -52,19 +52,13 @@ class TracingStrategyForImplicitConstructorDelegationCall(
 
 
 
-//    override fun noValueForParameter(trace: BindingTrace, valueParameter: ValueParameterDescriptor) {
-//        reportError(trace)
-//    }
-
-//
     override fun <D : CallableDescriptor?> noneApplicable(trace: BindingTrace, descriptors: MutableCollection<out ResolvedCall<D>>) {
         reportError(trace)
     }
-//
-//    override fun invisibleMember(trace: BindingTrace, descriptor: DeclarationDescriptorWithVisibility) {
-//        reportError(trace)
-//    }
 
+    override fun noValueForParameter(trace: BindingTrace, valueParameter: ValueParameterDescriptor) {
+        reportError(trace)
+    }
     private fun reportError(trace: BindingTrace) {
         val reportOn = delegationCall.reportOnElement()
         if (!trace.bindingContext.diagnostics.forElement(reportOn).any { it.factory == Errors.EXPLICIT_DELEGATION_CALL_REQUIRED }) {
@@ -77,49 +71,11 @@ class TracingStrategyForImplicitConstructorDelegationCall(
     override fun <D : CallableDescriptor?> cannotCompleteResolve(trace: BindingTrace, descriptors: MutableCollection<out ResolvedCall<D>>) {
         unexpectedError("cannotCompleteResolve")
     }
-//
-//    override fun instantiationOfAbstractClass(trace: BindingTrace) {
-//        unexpectedError("instantiationOfAbstractClass")
-//    }
-//
-//    override fun abstractSuperCall(trace: BindingTrace) {
-//        unexpectedError("abstractSuperCall")
-//    }
-//
-//    override fun nestedClassAccessViaInstanceReference(
-//        trace: BindingTrace, classDescriptor: ClassDescriptor, explicitReceiverKind: ExplicitReceiverKind
-//    ) {
-//        unexpectedError("nestedClassAccessViaInstanceReference")
-//    }
-//
-//    override fun unsafeCall(trace: BindingTrace, type: CangJieType, isCallForImplicitInvoke: Boolean) {
-//        unexpectedError("unsafeCall")
-//    }
-//
-//    override fun missingReceiver(trace: BindingTrace, expectedReceiver: ReceiverParameterDescriptor) {
-//        unexpectedError("missingReceiver")
-//    }
-//
-//    override fun wrongReceiverType(
-//        trace: BindingTrace,
-//        receiverParameter: ReceiverParameterDescriptor,
-//        receiverArgument: ReceiverValue,
-//        c: ResolutionContext<*>
-//    ) {
-//        unexpectedError("wrongReceiverType")
-//    }
-//
-//    override fun noReceiverAllowed(trace: BindingTrace) {
-//        unexpectedError("noReceiverAllowed")
-//    }
-//
-//    override fun wrongNumberOfTypeArguments(trace: BindingTrace, expectedTypeArgumentCount: Int, descriptor: CallableDescriptor) {
-//        unexpectedError("wrongNumberOfTypeArguments")
-//    }
-//
-//    override fun typeInferenceFailed(context: ResolutionContext<*>, data: InferenceErrorData) {
-//        unexpectedError("typeInferenceFailed")
-//    }
+
+    override fun invisibleMember(trace: BindingTrace, descriptor: DeclarationDescriptorWithVisibility) {
+        reportError(trace)
+
+    }
 
     private fun unexpectedError(type: String) {
         throw AssertionError("Unexpected error type: $type")

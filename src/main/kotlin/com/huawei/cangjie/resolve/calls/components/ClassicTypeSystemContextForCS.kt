@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve.calls.components
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.builtins.functions.FunctionTypeKind
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.resolve.calls.inference.components.ConstraintInjector
 import com.huawei.cangjie.resolve.calls.inference.components.EmptySubstitutor
 import com.huawei.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
@@ -118,7 +119,7 @@ fun   NewConstraintSystemImpl(
     constraintInjector: ConstraintInjector,
     builtIns: CangJieBuiltIns,
     cangjieTypeRefiner: CangJieTypeRefiner,
-//    languageVersionSettings: LanguageVersionSettings
+    languageVersionSettings: LanguageVersionSettings
 ): NewConstraintSystemImpl {
-    return NewConstraintSystemImpl(constraintInjector, ClassicTypeSystemContextForCS(builtIns, cangjieTypeRefiner)/*, languageVersionSettings*/)
+    return NewConstraintSystemImpl(constraintInjector, ClassicTypeSystemContextForCS(builtIns, cangjieTypeRefiner) , languageVersionSettings )
 }

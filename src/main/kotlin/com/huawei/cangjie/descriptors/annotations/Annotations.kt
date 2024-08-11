@@ -24,12 +24,7 @@ class CompositeAnnotations(
     override fun iterator() = delegates.asSequence().flatMap { it.asSequence() }.iterator()
 }
 
-fun composeAnnotations(first: Annotations, second: Annotations) =
-    when {
-        first.isEmpty() -> second
-        second.isEmpty() -> first
-        else -> CompositeAnnotations(first, second)
-    }
+
 
 interface Annotations : Iterable<AnnotationDescriptor> {
     fun isEmpty(): Boolean
@@ -87,3 +82,10 @@ class FilteredAnnotations(
             fqName != null && fqNameFilter(fqName)
         }
 }
+
+fun composeAnnotations(first: Annotations, second: Annotations) =
+    when {
+        first.isEmpty() -> second
+        second.isEmpty() -> first
+        else -> CompositeAnnotations(first, second)
+    }

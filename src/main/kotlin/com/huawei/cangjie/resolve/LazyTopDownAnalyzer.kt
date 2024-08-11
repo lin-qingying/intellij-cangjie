@@ -10,17 +10,21 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.lazy.DeclarationScopeProvider
 import com.huawei.cangjie.resolve.lazy.ForceResolveUtil
 import com.huawei.cangjie.resolve.lazy.LazyDeclarationResolver
+import com.huawei.cangjie.types.expressions.ExpressionTypingContext
 import com.intellij.psi.PsiElement
 
-class LazyTopDownAnalyzer(
+    class LazyTopDownAnalyzer(
     private val trace: BindingTrace,
     private val lazyDeclarationResolver: LazyDeclarationResolver,
+    private val overrideResolver: OverrideResolver,
+    private val overloadResolver: OverloadResolver,
+
     private val bodyResolver: BodyResolver,
     private val identifierChecker: IdentifierChecker,
     private val qualifiedExpressionResolver: QualifiedExpressionResolver,
     private val moduleDescriptor: ModuleDescriptor,
 
-//    private val declarationScopeProvider: DeclarationScopeProvider,
+    private val declarationScopeProvider: DeclarationScopeProvider,
     private val filePreprocessor: FilePreprocessor
 ) {
 
@@ -29,17 +33,17 @@ class LazyTopDownAnalyzer(
         topDownAnalysisMode: TopDownAnalysisMode,
         declarations: Collection<PsiElement>,
         outerDataFlowInfo: DataFlowInfo = DataFlowInfo.EMPTY,
-//        localContext: ExpressionTypingContext? = null
+        localContext: ExpressionTypingContext? = null
     ): TopDownAnalysisContext{
 
-        val c = TopDownAnalysisContext(topDownAnalysisMode, outerDataFlowInfo /*, declarationScopeProvider,localContext*/)
+        val c = TopDownAnalysisContext(topDownAnalysisMode, outerDataFlowInfo  , declarationScopeProvider,localContext )
 
-//        val variable = ArrayList<CjVariable>()
+        val variable = ArrayList<CjVariable>()
 
-//        val properties = ArrayList<CjProperty>()
+        val properties = ArrayList<CjProperty>()
         val functions = ArrayList<CjNamedFunction>()
-//        val typeAliases = ArrayList<CjTypeAlias>()
-//        val destructuringDeclarations = ArrayList<CjDestructuringDeclaration>()
+        val typeAliases = ArrayList<CjTypeAlias>()
+        val destructuringDeclarations = ArrayList<CjDestructuringDeclaration>()
 
         val topLevelFqNames = HashMultimap.create<FqName, CjElement>()
 
@@ -80,6 +84,9 @@ class LazyTopDownAnalyzer(
             declaration.accept(visitor)
         }
         createFunctionDescriptors(c, functions)
+
+
+        overloadResolver.checkOverloads(c)
 
         bodyResolver.resolveBodies(c)
 

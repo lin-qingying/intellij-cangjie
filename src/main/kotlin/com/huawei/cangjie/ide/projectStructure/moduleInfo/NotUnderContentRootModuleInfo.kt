@@ -1,8 +1,11 @@
 package com.huawei.cangjie.ide.projectStructure.moduleInfo
 
 import com.huawei.cangjie.analyzer.ModuleInfo
+import com.huawei.cangjie.analyzer.ModuleOrigin
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjFile
+import com.huawei.cangjie.resolve.PlatformDependentAnalyzerServices
+import com.huawei.cangjie.resolve.PlatformDependentAnalyzerServicesImpl
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.SmartPointerManager
@@ -23,8 +26,8 @@ class NotUnderContentRootModuleInfo(
     val file: CjFile?
         get() = filePointer?.element
 
-//    override val moduleOrigin: ModuleOrigin
-//        get() = ModuleOrigin.OTHER
+    override val moduleOrigin: ModuleOrigin
+        get() = ModuleOrigin.OTHER
 
     override val name: Name = Name.special("<special module for files not under source root>")
     override val module: Module? = null
@@ -42,8 +45,8 @@ class NotUnderContentRootModuleInfo(
 //    override val platform: TargetPlatform
 //        get() = JvmPlatforms.defaultJvmPlatform
 //
-//    override val analyzerServices: PlatformDependentAnalyzerServices
-//        get() = platform.single().findAnalyzerServices()
+    override val analyzerServices: PlatformDependentAnalyzerServices
+        get() = PlatformDependentAnalyzerServicesImpl
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

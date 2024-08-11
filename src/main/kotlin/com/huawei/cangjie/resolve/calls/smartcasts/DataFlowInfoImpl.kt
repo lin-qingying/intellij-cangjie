@@ -1,13 +1,31 @@
 package com.huawei.cangjie.resolve.calls.smartcasts
 
+import com.google.common.collect.LinkedHashMultimap
+import com.google.common.collect.SetMultimap
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.types.CangJieType
-import kotlinx.collections.immutable.ImmutableMap
-import kotlinx.collections.immutable.ImmutableSet
-
+import com.huawei.cangjie.types.checker.NewCapturedTypeConstructor
+import com.huawei.cangjie.types.util.contains
+import com.huawei.cangjie.utils.*
+import javaslang.Tuple2
 private typealias ImmutableMultimap<K, V> = ImmutableMap<K, ImmutableSet<V>>
 
-internal class DataFlowInfoImpl : DataFlowInfo {
+
+private fun <K, V> ImmutableMultimap<K, V>.put(key: K, value: V): ImmutableMultimap<K, V> {
+    val oldSet = this[key].getOrElse(ImmutableLinkedHashSet.empty<V>())
+    if (oldSet.contains(value)) return this
+
+    return put(key, oldSet.add(value))
+}
+internal class DataFlowInfoImpl(
+
+    override val completeNullabilityInfo: ImmutableMap<DataFlowValue, Nullability>,
+    override val completeTypeInfo: ImmutableMultimap<DataFlowValue, CangJieType>
+) : DataFlowInfo {
+
+    constructor() : this(EMPTY_NULLABILITY_INFO, EMPTY_TYPE_INFO)
+
+
     override fun getCollectedTypes(key: DataFlowValue, languageVersionSettings: LanguageVersionSettings) =
         getCollectedTypes(key, true, languageVersionSettings)
 
@@ -82,5 +100,71 @@ internal class DataFlowInfoImpl : DataFlowInfo {
 
     }
 
+    override fun toString() = if (completeTypeInfo.isEmpty && completeNullabilityInfo.isEmpty()) "EMPTY" else "Non-trivial DataFlowInfo"
 
+    companion object {
+        private val EMPTY_NULLABILITY_INFO: ImmutableMap<DataFlowValue, Nullability> =
+            ImmutableHashMap.empty()
+
+        private val EMPTY_TYPE_INFO: ImmutableMultimap<DataFlowValue, CangJieType> =
+            ImmutableHashMap.empty()
+
+        private fun newTypeInfoBuilder(): SetMultimap<DataFlowValue, CangJieType> =
+            LinkedHashMultimap.create()
+
+        private fun create(
+            parent: DataFlowInfo?,
+            updatedNullabilityInfo: Map<DataFlowValue, Nullability>,
+            updatedTypeInfo: SetMultimap<DataFlowValue, CangJieType>
+        ): DataFlowInfo =
+            create(
+                parent,
+                updatedNullabilityInfo,
+                updatedTypeInfo.asMap().entries.map { Tuple2(it.key, it.value) }
+            )
+
+        private fun create(
+            parent: DataFlowInfo?,
+            updatedNullabilityInfo: Map<DataFlowValue, Nullability>,
+            // NB: typeInfo must be mutable here!
+            updatedTypeInfo: Iterable<Tuple2<DataFlowValue, out Iterable<CangJieType>>>,
+            valueToClearPreviousTypeInfo: DataFlowValue? = null
+        ): DataFlowInfo {
+            if (updatedNullabilityInfo.isEmpty() && updatedTypeInfo.none() && valueToClearPreviousTypeInfo == null) {
+                return parent ?: DataFlowInfo.EMPTY
+            }
+
+            val resultingNullabilityInfo =
+                updatedNullabilityInfo.entries.fold(
+                    parent?.completeNullabilityInfo ?: EMPTY_NULLABILITY_INFO
+                ) { result, (dataFlowValue, nullability) ->
+                    if (dataFlowValue.immanentNullability != nullability)
+                        result.put(dataFlowValue, nullability)
+                    else
+                        result.remove(dataFlowValue)
+                }
+
+            var resultingTypeInfo = parent?.completeTypeInfo ?: EMPTY_TYPE_INFO
+
+            valueToClearPreviousTypeInfo?.let {
+                resultingTypeInfo = resultingTypeInfo.remove(it)
+            }
+
+            for ((value, types) in updatedTypeInfo) {
+                for (type in types) {
+                    if (value.type == type || type.contains { it.constructor is NewCapturedTypeConstructor }) continue
+                    resultingTypeInfo = resultingTypeInfo.put(value, type)
+                }
+            }
+
+            if (resultingNullabilityInfo.isEmpty && resultingTypeInfo.isEmpty) return DataFlowInfo.EMPTY
+            if (resultingNullabilityInfo === parent?.completeNullabilityInfo && resultingTypeInfo === parent.completeTypeInfo) {
+                return parent
+            }
+
+            return DataFlowInfoImpl(resultingNullabilityInfo, resultingTypeInfo)
+        }
+    }
 }
+
+

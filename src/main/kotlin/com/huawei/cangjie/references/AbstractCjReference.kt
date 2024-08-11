@@ -85,7 +85,7 @@ abstract class AbstractCjReference<T : CjElement>(element: T) : PsiPolyVariantRe
 
     override fun toString() = this::class.java.simpleName + ": " + expression.text
 
-    abstract fun getTargetDescriptors(bindingContext: BindingContext): Collection<DeclarationDescriptor>
+    abstract override fun getTargetDescriptors(context: BindingContext): Collection<DeclarationDescriptor>
 
 //    override fun multiResolve(incompleteCode: Boolean): Array<out ResolveResult> {
 //        // 这里是实现多重引用解析的逻辑

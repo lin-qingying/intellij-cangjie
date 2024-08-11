@@ -1,6 +1,8 @@
 package com.huawei.cangjie.psi
 
 import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.psiUtil.firstIsInstanceOrNull
+import com.huawei.cangjie.psi.psiUtil.siblings
 import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.huawei.cangjie.psi.stubs.elements.CjTokenSets
@@ -39,7 +41,6 @@ class CjTypeReference : CjModifierListOwnerStub<CangJiePlaceHolderStub<CjTypeRef
 
     fun nameForReceiverLabel() = (typeElement as? CjUserType)?.referencedName
 
-
     fun getTypeText(): String {
         return stub?.let { getTypeText(typeElement) } ?: text
     }
@@ -73,3 +74,4 @@ class CjTypeReference : CjModifierListOwnerStub<CangJiePlaceHolderStub<CjTypeRef
         }
     }
 }
+

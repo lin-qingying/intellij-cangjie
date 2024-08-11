@@ -1,55 +1,177 @@
 package com.huawei.cangjie.resolve.calls
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.ConstructorDescriptor
 import com.huawei.cangjie.descriptors.Errors.FUNCTION_CALL_EXPECTED
+import com.huawei.cangjie.descriptors.Errors.FUNCTION_EXPECTED
 import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext
+import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.QualifiedExpressionResolver
-import com.huawei.cangjie.resolve.calls.context.TemporaryTraceAndCache
+import com.huawei.cangjie.resolve.calls.context.*
+import com.huawei.cangjie.resolve.calls.model.DataFlowInfoForArgumentsImpl
+import com.huawei.cangjie.resolve.calls.model.ResolvedCall
+import com.huawei.cangjie.resolve.calls.model.ResolvedCallImpl
+import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResultsUtil
+import com.huawei.cangjie.resolve.calls.results.ResolutionStatus
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import com.huawei.cangjie.resolve.calls.util.CallMaker
+import com.huawei.cangjie.resolve.calls.util.ResolveArgumentsMode
+import com.huawei.cangjie.resolve.calls.util.getCalleeExpressionIfAny
+import com.huawei.cangjie.resolve.calls.util.getResolvedCall
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
+import com.huawei.cangjie.resolve.resolveQualifierAsStandaloneExpression
+import com.huawei.cangjie.resolve.scopes.receivers.PackageQualifier
+import com.huawei.cangjie.resolve.scopes.receivers.Qualifier
 import com.huawei.cangjie.resolve.scopes.receivers.Receiver
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
+import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.expressions.DataFlowAnalyzer
 import com.huawei.cangjie.types.expressions.ExpressionTypingContext
+import com.huawei.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.huawei.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo
 import com.intellij.lang.ASTNode
-import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
-import com.huawei.cangjie.resolve.calls.context.CheckArgumentTypesMode
-import com.huawei.cangjie.resolve.calls.context.ResolutionContext
-import com.huawei.cangjie.resolve.calls.model.DataFlowInfoForArgumentsImpl
-import com.huawei.cangjie.resolve.calls.model.ResolvedCall
-import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResultsUtil
-import com.huawei.cangjie.resolve.calls.util.getCalleeExpressionIfAny
-import com.huawei.cangjie.resolve.resolveQualifierAsStandaloneExpression
-
-import com.huawei.cangjie.resolve.scopes.receivers.Qualifier
-import com.huawei.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 
 class CallExpressionResolver(
     private val callResolver: CallResolver,
     private val constantExpressionEvaluator: ConstantExpressionEvaluator,
-//    private val argumentTypeResolver: ArgumentTypeResolver,
+    private val argumentTypeResolver: ArgumentTypeResolver,
     private val dataFlowAnalyzer: DataFlowAnalyzer,
     private val builtIns: CangJieBuiltIns,
     private val qualifiedExpressionResolver: QualifiedExpressionResolver,
-//    private val languageVersionSettings: LanguageVersionSettings,
+    private val languageVersionSettings: LanguageVersionSettings,
     private val dataFlowValueFactory: DataFlowValueFactory,
     private val cangjieTypeRefiner: CangJieTypeRefiner
 ) {
+    /**
+     * Visits a call expression and its arguments.
+     * Determines the result type and data flow information after the call.
+     */
+    private fun getCallExpressionTypeInfoWithoutFinalTypeCheck(
+        callExpression: CjCallExpression, receiver: Receiver?,
+        callOperationNode: ASTNode?, context: ExpressionTypingContext,
+        initialDataFlowInfoForArguments: DataFlowInfo
+    ): CangJieTypeInfo {
+        val call = CallMaker.makeCall(receiver, callOperationNode, callExpression)
 
+        val temporaryForFunction = TemporaryTraceAndCache.create(
+            context, "trace to resolve as function call", callExpression
+        )
+        val (resolveResult, resolvedCall) = getResolvedCallForFunction(
+            call,
+            context.replaceTraceAndCache(temporaryForFunction),
+            CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+            initialDataFlowInfoForArguments
+        )
+        if (resolveResult) {
+            val functionDescriptor = resolvedCall?.resultingDescriptor
+            temporaryForFunction.commit()
+            if (callExpression.valueArgumentList == null && callExpression.lambdaArguments.isEmpty()) {
+                // there are only type arguments
+                val hasValueParameters = functionDescriptor == null || functionDescriptor.valueParameters.size > 0
+                context.trace.report(FUNCTION_CALL_EXPECTED.on(callExpression, callExpression, hasValueParameters))
+            }
+            if (functionDescriptor == null) {
+                return noTypeInfo(context)
+            }
+//            if (functionDescriptor is ConstructorDescriptor) {
+//                val constructedClass = functionDescriptor.constructedClass
+//                if (DescriptorUtils.isAnnotationClass(constructedClass) && !canInstantiateAnnotationClass(
+//                        callExpression,
+//                        context.trace
+//                    )
+//                ) {
+//                    val supported =
+//                        context.languageVersionSettings.supportsFeature(LanguageFeature.InstantiationOfAnnotationClasses)
+//                    if (!supported) context.trace.report(ANNOTATION_CLASS_CONSTRUCTOR_CALL.on(callExpression))
+//                }
+//                if (DescriptorUtils.isEnumClass(constructedClass)) {
+//                    context.trace.report(ENUM_CLASS_CONSTRUCTOR_CALL.on(callExpression))
+//                }
+//                if (DescriptorUtils.isSealedClass(constructedClass)) {
+//                    context.trace.report(SEALED_CLASS_CONSTRUCTOR_CALL.on(callExpression))
+//                }
+//            }
+
+            val type = functionDescriptor.returnType
+            // Extracting jump out possible and jump point flow info from arguments, if any
+            val arguments = callExpression.valueArguments
+            val resultFlowInfo = resolvedCall.dataFlowInfoForArguments.resultInfo
+            var jumpFlowInfo = resultFlowInfo
+            var jumpOutPossible = false
+            for (argument in arguments) {
+                val argTypeInfo =
+                    context.trace.get(BindingContext.EXPRESSION_TYPE_INFO, argument.getArgumentExpression())
+                if (argTypeInfo != null && argTypeInfo.jumpOutPossible) {
+                    jumpOutPossible = true
+                    jumpFlowInfo = argTypeInfo.jumpFlowInfo
+                    break
+                }
+            }
+            return createTypeInfo(type, resultFlowInfo, jumpOutPossible, jumpFlowInfo)
+        }
+
+        val calleeExpression = callExpression.calleeExpression
+        if (calleeExpression is CjSimpleNameExpression && callExpression.typeArgumentList == null) {
+            val temporaryForVariable = TemporaryTraceAndCache.create(
+                context, "trace to resolve as variable with 'invoke' call", callExpression
+            )
+            val (notNothing, type) = getVariableType(
+                calleeExpression, receiver, callOperationNode,
+                context.replaceTraceAndCache(temporaryForVariable)
+            )
+            val qualifier = temporaryForVariable.trace.get(BindingContext.QUALIFIER, calleeExpression)
+            if (notNothing && (qualifier == null || qualifier !is PackageQualifier)) {
+
+                // mark property call as unsuccessful to avoid exceptions
+                callExpression.getResolvedCall(temporaryForVariable.trace.bindingContext).let {
+                    (it as? ResolvedCallImpl)?.addStatus(ResolutionStatus.OTHER_ERROR)
+                }
+
+                temporaryForVariable.commit()
+                context.trace.report(
+                    FUNCTION_EXPECTED.on(
+                        calleeExpression, calleeExpression,
+                        type ?: ErrorUtils.createErrorType(ErrorTypeKind.ERROR_EXPECTED_TYPE)
+                    )
+                )
+                argumentTypeResolver.analyzeArgumentsAndRecordTypes(
+                    BasicCallResolutionContext.create(
+                        context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+                        DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
+                    ),
+                    ResolveArgumentsMode.RESOLVE_FUNCTION_ARGUMENTS
+                )
+                return noTypeInfo(context)
+            }
+        }
+        temporaryForFunction.commit()
+        return noTypeInfo(context)
+    }
+
+    fun getCallExpressionTypeInfo(
+        callExpression: CjCallExpression,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
+        val typeInfo = getCallExpressionTypeInfoWithoutFinalTypeCheck(
+            callExpression, null, null, context, context.dataFlowInfo
+        )
+        if (context.contextDependency == ContextDependency.INDEPENDENT) {
+            dataFlowAnalyzer.checkType(typeInfo.type, callExpression, context)
+        }
+        return typeInfo
+    }
 
     fun getSimpleNameExpressionTypeInfo(
         nameExpression: CjSimpleNameExpression, receiver: Receiver?,
         callOperationNode: ASTNode?, context: ExpressionTypingContext
     ) = getSimpleNameExpressionTypeInfo(nameExpression, receiver, callOperationNode, context, context.dataFlowInfo)
-
 
 
     private fun getVariableType(
@@ -84,6 +206,7 @@ class CallExpressionResolver(
             if (resolutionResult.isSingleResult) resolutionResult.resultingDescriptor.returnType else null
         )
     }
+
     private fun resolveDeferredReceiverInQualifiedExpression(
         qualifier: Qualifier,
         selectorExpression: CjExpression?,
@@ -96,6 +219,7 @@ class CallExpressionResolver(
 
 //        resolveQualifierAsReceiverInExpression(qualifier, selectorDescriptor, context)
     }
+
     private fun getResolvedCallForFunction(
         call: Call,
         context: ResolutionContext<*>,
@@ -112,6 +236,7 @@ class CallExpressionResolver(
         else
             Pair(false, null)
     }
+
     private fun getSimpleNameExpressionTypeInfo(
         nameExpression: CjSimpleNameExpression, receiver: Receiver?,
         callOperationNode: ASTNode?, context: ExpressionTypingContext,

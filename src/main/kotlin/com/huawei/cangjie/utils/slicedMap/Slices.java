@@ -1,6 +1,8 @@
 package com.huawei.cangjie.utils.slicedMap;
 
 import com.huawei.cangjie.psi.CjElement;
+import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstant;
+import com.huawei.cangjie.types.util.TypeUtils;
 import com.huawei.cangjie.utils.PsiUtilsKt;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -10,9 +12,7 @@ import java.util.List;
 
 public class Slices {
 
-    public static <K> WritableSlice<K, Boolean> createCollectiveSetSlice() {
-        return new SetSlice<>(RewritePolicy.DO_NOTHING, true);
-    }
+    private static final Logger LOG = Logger.getInstance(Slices.class);
     public static final RewritePolicy ONLY_REWRITE_TO_EQUAL = new RewritePolicy() {
 
         @Override
@@ -28,11 +28,46 @@ public class Slices {
             return true;
         }
     };
+    // Rewrite is allowed for equal objects and for signed constant values that were converted to unsigned ones
+    // This is needed to avoid making `CompileTimeConstant` mutable
+    public static final RewritePolicy COMPILE_TIME_VALUE_REWRITE_POLICY = new RewritePolicy() {
+        @Override
+        public <K> boolean rewriteProcessingNeeded(K key) {
+            return true;
+        }
+
+        @Override
+        public <K, V> boolean processRewrite(WritableSlice<K, V> slice, K key, V oldValue, V newValue) {
+//            if ((oldValue == null && newValue == null) || (oldValue != null && oldValue.equals(newValue))) return true;
+//
+//                if (oldValue instanceof IntegerValueTypeConstant oldConstant && newValue instanceof IntegerValueTypeConstant newConstant) {
+//
+//                if (oldConstant.getParameters().isPure() && newConstant.getParameters().isUnsignedNumberLiteral()) {
+//                    long oldConstantValue = oldConstant.getValue(TypeUtils.NO_EXPECTED_TYPE).longValue();
+//                    Number newConstantValue = newConstant.getValue(TypeUtils.NO_EXPECTED_TYPE);
+//                    if (oldConstantValue == newConstantValue.longValue() ||
+//                            oldConstantValue == ConstantValueFactoryKt.fromUIntToLong(newConstantValue.intValue()) ||
+//                            oldConstantValue == ConstantValueFactoryKt.fromUByteToLong(newConstantValue.byteValue()) ||
+//                            oldConstantValue == ConstantValueFactoryKt.fromUShortToLong(newConstantValue.shortValue())
+//                    ) {
+//                        return true;
+//                    }
+//                }
+//            }
+
+            logErrorAboutRewritingNonEqualObjects(slice, key, oldValue, newValue);
+
+            return true;
+        }
+    };
+
+    public static <K> WritableSlice<K, Boolean> createCollectiveSetSlice() {
+        return new SetSlice<>(RewritePolicy.DO_NOTHING, true);
+    }
 
     public static <K, V> SliceBuilder<K, V> sliceBuilder() {
         return new SliceBuilder<>(ONLY_REWRITE_TO_EQUAL);
     }
-    private static final Logger LOG = Logger.getInstance(Slices.class);
 
     private static <K, V> void logErrorAboutRewritingNonEqualObjects(WritableSlice<K, V> slice, K key, V oldValue, V newValue) {
         // NOTE: Use BindingTraceContext.TRACK_REWRITES to debug this exception
@@ -48,8 +83,8 @@ public class Slices {
     }
 
     public static class SliceBuilder<K, V> {
-        private List<ReadOnlySlice<K, V>> furtherLookupSlices;
         private final RewritePolicy rewritePolicy;
+        private List<ReadOnlySlice<K, V>> furtherLookupSlices;
         private String debugName;
 
         private SliceBuilder(RewritePolicy rewritePolicy) {

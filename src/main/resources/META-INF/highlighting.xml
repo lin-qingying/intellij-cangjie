@@ -16,6 +16,11 @@
                 serviceInterface="com.huawei.cangjie.ide.highlighter.CangJieQuickFixProvider"
                 serviceImplementation="com.huawei.cangjie.ide.codeinsight.CangJieQuickFixProviderImpl"/>
 
+        <registryKey
+                key="cangjie.resolve.force.full.resolve.on.highlighting"
+                description="Force to perform full resolve on highlighting"
+                defaultValue="true"
+                restartRequired="false"/>
         <projectService
                 serviceInterface="com.huawei.cangjie.ide.base.projectStructure.RootKindMatcher"
                 serviceImplementation="com.huawei.cangjie.ide.base.analysis.RootKindMatcherImpl"/>

@@ -5,8 +5,10 @@ import com.huawei.cangjie.types.*;
 import com.huawei.cangjie.types.checker.CangJieTypeChecker;
 import com.huawei.cangjie.types.checker.CangJieTypePreparator;
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner;
+import kotlin.Pair;
 import kotlin.Unit;
 import kotlin.collections.CollectionsKt;
+import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
 import kotlin.jvm.functions.Function2;
 import org.jetbrains.annotations.NotNull;
@@ -19,21 +21,14 @@ import static com.huawei.cangjie.resolve.OverridingUtil.OverrideCompatibilityInf
 public class OverridingUtil {
 
 
+    public static final OverridingUtil DEFAULT;
     private static final List<ExternalOverridabilityCondition> EXTERNAL_CONDITIONS =
             CollectionsKt.toList(ServiceLoader.load(
                     ExternalOverridabilityCondition.class,
                     ExternalOverridabilityCondition.class.getClassLoader()
             ));
-
-    public static final OverridingUtil DEFAULT;
-
     private static final CangJieTypeChecker.TypeConstructorEquality DEFAULT_TYPE_CONSTRUCTOR_EQUALITY =
-            new CangJieTypeChecker.TypeConstructorEquality() {
-                @Override
-                public boolean equals(@NotNull TypeConstructor a, @NotNull TypeConstructor b) {
-                    return a.equals(b);
-                }
-            };
+            Object::equals;
 
     static {
         DEFAULT = new OverridingUtil(
@@ -42,23 +37,28 @@ public class OverridingUtil {
         );
     }
 
-
-
-    private final CangJieTypeRefiner kotlinTypeRefiner;
-    private final CangJieTypePreparator kotlinTypePreparator;
+    private final CangJieTypeRefiner cangjieTypeRefiner;
+    private final CangJieTypePreparator cangjieTypePreparator;
     private final CangJieTypeChecker.TypeConstructorEquality equalityAxioms;
     private final Function2<CangJieType, CangJieType, Boolean> customSubtype;
-
     private OverridingUtil(
             @NotNull CangJieTypeChecker.TypeConstructorEquality axioms,
-            @NotNull CangJieTypeRefiner kotlinTypeRefiner,
-            @NotNull CangJieTypePreparator kotlinTypePreparator,
+            @NotNull CangJieTypeRefiner cangjieTypeRefiner,
+            @NotNull CangJieTypePreparator cangjieTypePreparator,
             @Nullable Function2<CangJieType, CangJieType, Boolean> customSubtype
     ) {
         equalityAxioms = axioms;
-        this.kotlinTypeRefiner = kotlinTypeRefiner;
-        this.kotlinTypePreparator = kotlinTypePreparator;
+        this.cangjieTypeRefiner = cangjieTypeRefiner;
+        this.cangjieTypePreparator = cangjieTypePreparator;
         this.customSubtype = customSubtype;
+    }
+
+    @NotNull
+    public static OverridingUtil create(
+            @NotNull CangJieTypeRefiner cangjieTypeRefiner,
+            @NotNull CangJieTypeChecker.TypeConstructorEquality equalityAxioms
+    ) {
+        return new OverridingUtil(equalityAxioms, cangjieTypeRefiner, CangJieTypePreparator.Default.INSTANCE, null);
     }
 
     @NotNull
@@ -67,53 +67,82 @@ public class OverridingUtil {
     }
 
 
-    public static class OverrideCompatibilityInfo {
-        public enum Result {
-            OVERRIDABLE,
-            INCOMPATIBLE,
-            CONFLICT,
+    /**
+     * @return whether f overrides g
+     */
+    public static <D extends CallableDescriptor> boolean overrides(
+            @NotNull D f,
+            @NotNull D g,
+            boolean allowDeclarationCopies,
+            boolean distinguishExpectsAndNonExpects
+    ) {
+        // In a multi-module project different "copies" of the same class may be present in different libraries,
+        // that's why we use structural equivalence for members (DescriptorEquivalenceForOverrides).
+
+        // This first check cover the case of duplicate classes in different modules:
+        // when B is defined in modules m1 and m2, and C (indirectly) inherits from both versions,
+        // we'll be getting sets of members that do not override each other, but are structurally equivalent.
+        // As other code relies on no equal descriptors passed here, we guard against f == g, but this may not be necessary
+        // Note that this is needed for the usage of this function in the IDE code
+        if (!f.equals(g)
+                && DescriptorEquivalenceForOverrides.INSTANCE.areEquivalent(
+                f.getOriginal(),
+                g.getOriginal(),
+                allowDeclarationCopies,
+                distinguishExpectsAndNonExpects
+        )
+        ) {
+            return true;
         }
 
-        private static final OverrideCompatibilityInfo SUCCESS = new OverrideCompatibilityInfo(OVERRIDABLE, "SUCCESS");
-
-        @NotNull
-        public static OverrideCompatibilityInfo success() {
-            return SUCCESS;
+        CallableDescriptor originalG = g.getOriginal();
+        for (D overriddenFunction : DescriptorUtils.getAllOverriddenDescriptors(f)) {
+            if (DescriptorEquivalenceForOverrides.INSTANCE.areEquivalent(
+                    originalG,
+                    overriddenFunction,
+                    allowDeclarationCopies,
+                    distinguishExpectsAndNonExpects
+            )) {
+                return true;
+            }
         }
-
-        @NotNull
-        public static OverrideCompatibilityInfo incompatible(@NotNull String debugMessage) {
-            return new OverrideCompatibilityInfo(INCOMPATIBLE, debugMessage);
-        }
-
-        @NotNull
-        public static OverrideCompatibilityInfo conflict(@NotNull String debugMessage) {
-            return new OverrideCompatibilityInfo(CONFLICT, debugMessage);
-        }
-
-        private final Result overridable;
-        private final String debugMessage;
-
-        public OverrideCompatibilityInfo(@NotNull Result success, @NotNull String debugMessage) {
-            this.overridable = success;
-            this.debugMessage = debugMessage;
-        }
-
-        @NotNull
-        public Result getResult() {
-            return overridable;
-        }
-
-        @NotNull
-        public String getDebugMessage() {
-            return debugMessage;
-        }
-
-        @Override
-        public String toString() {
-            return overridable + ": " + debugMessage;
-        }
+        return false;
     }
+
+    @NotNull
+    public static <D> Set<D> filterOverrides(
+            @NotNull Set<D> candidateSet,
+            boolean allowDescriptorCopies,
+            @Nullable Function0<?> cancellationCallback,
+            @NotNull Function2<? super D, ? super D, Pair<CallableDescriptor, CallableDescriptor>> transformFirst
+    ) {
+        if (candidateSet.size() <= 1) return candidateSet;
+
+        Set<D> result = new LinkedHashSet<>();
+        outerLoop:
+        for (D meD : candidateSet) {
+            if (cancellationCallback != null) {
+                cancellationCallback.invoke();
+            }
+            for (Iterator<D> iterator = result.iterator(); iterator.hasNext(); ) {
+                D otherD = iterator.next();
+                Pair<CallableDescriptor, CallableDescriptor> meAndOther = transformFirst.invoke(meD, otherD);
+                CallableDescriptor me = meAndOther.component1();
+                CallableDescriptor other = meAndOther.component2();
+                if (overrides(me, other, allowDescriptorCopies, true)) {
+                    iterator.remove();
+                } else if (overrides(other, me, allowDescriptorCopies, true)) {
+                    continue outerLoop;
+                }
+            }
+            result.add(meD);
+        }
+
+        assert !result.isEmpty() : "All candidates filtered out from " + candidateSet;
+
+        return result;
+    }
+
     private static boolean isVisibilityMoreSpecific(
             @NotNull DeclarationDescriptorWithVisibility a,
             @NotNull DeclarationDescriptorWithVisibility b
@@ -131,6 +160,7 @@ public class OverridingUtil {
     ) {
         return AbstractTypeChecker.INSTANCE.isSubtypeOf(typeCheckerState, aReturnType.unwrap(), bReturnType.unwrap());
     }
+
     public static boolean isMoreSpecific(@NotNull CallableDescriptor a, @NotNull CallableDescriptor b) {
         CangJieType aReturnType = a.getReturnType();
         CangJieType bReturnType = b.getReturnType();
@@ -149,10 +179,9 @@ public class OverridingUtil {
 
             return isReturnTypeMoreSpecific(a, aReturnType, b, bReturnType, checkerState);
         }
-        if (a instanceof VariableDescriptor) {
+        if (a instanceof VariableDescriptor pa) {
             assert b instanceof VariableDescriptor : "b is " + b.getClass();
 
-            VariableDescriptor pa = (VariableDescriptor) a;
             VariableDescriptor pb = (VariableDescriptor) b;
 
 //            if (!isAccessorMoreSpecific(pa.getSetter(), pb.getSetter())) return false;
@@ -160,14 +189,14 @@ public class OverridingUtil {
             if (pa.isVar() && pb.isVar()) {
                 // TODO(dsavvinov): using DEFAULT here looks suspicious
                 return AbstractTypeChecker.INSTANCE.equalTypes(checkerState, aReturnType.unwrap(), bReturnType.unwrap());
-            }
-            else {
+            } else {
                 // both vals or var vs val: val can't be more specific then var
                 return !(!pa.isVar() && pb.isVar()) && isReturnTypeMoreSpecific(a, aReturnType, b, bReturnType, checkerState);
             }
         }
         throw new IllegalArgumentException("Unexpected callable: " + a.getClass());
     }
+
     private static boolean isMoreSpecificThenAllOf(@NotNull CallableDescriptor candidate, @NotNull Collection<CallableDescriptor> descriptors) {
         // NB subtyping relation in CangJie is not transitive in presence of flexible types:
         //  String? <: String! <: String, but not String? <: String
@@ -179,7 +208,7 @@ public class OverridingUtil {
         return true;
     }
 
-//    private static bool isAccessorMoreSpecific(@Nullable PropertyAccessorDescriptor a, @Nullable PropertyAccessorDescriptor b) {
+    //    private static bool isAccessorMoreSpecific(@Nullable PropertyAccessorDescriptor a, @Nullable PropertyAccessorDescriptor b) {
 //        if (a == null || b == null) return true;
 //        return isVisibilityMoreSpecific(a, b);
 //    }
@@ -194,7 +223,7 @@ public class OverridingUtil {
             return CollectionsKt.first(overridables);
         }
 
-        Collection<H> candidates = new ArrayList<H>(2);
+        Collection<H> candidates = new ArrayList<>(2);
         List<CallableDescriptor> callableMemberDescriptors = CollectionsKt.map(overridables, descriptorByHandle);
 
         H transitivelyMostSpecific = CollectionsKt.first(overridables);
@@ -213,8 +242,7 @@ public class OverridingUtil {
 
         if (candidates.isEmpty()) {
             return transitivelyMostSpecific;
-        }
-        else if (candidates.size() == 1) {
+        } else if (candidates.size() == 1) {
             return CollectionsKt.first(candidates);
         }
 
@@ -244,7 +272,7 @@ public class OverridingUtil {
             @NotNull Function1<H, CallableDescriptor> descriptorByHandle,
             @NotNull Function1<H, Unit> onConflict
     ) {
-        Collection<H> overridable = new ArrayList<H>();
+        Collection<H> overridable = new ArrayList<>();
         overridable.add(overrider);
         CallableDescriptor overriderDescriptor = descriptorByHandle.invoke(overrider);
         for (Iterator<H> iterator = extractFrom.iterator(); iterator.hasNext(); ) {
@@ -260,17 +288,17 @@ public class OverridingUtil {
             if (finalResult == OVERRIDABLE) {
                 overridable.add(candidate);
                 iterator.remove();
-            }
-            else if (finalResult == CONFLICT) {
+            } else if (finalResult == CONFLICT) {
                 onConflict.invoke(candidate);
                 iterator.remove();
             }
         }
         return overridable;
     }
+
     private static List<CangJieType> compiledValueParameters(CallableDescriptor callableDescriptor) {
         ReceiverParameterDescriptor receiverParameter = callableDescriptor.getExtensionReceiverParameter();
-        List<CangJieType> parameters = new ArrayList<CangJieType>();
+        List<CangJieType> parameters = new ArrayList<>();
         if (receiverParameter != null) {
             parameters.add(receiverParameter.getType());
         }
@@ -279,7 +307,6 @@ public class OverridingUtil {
         }
         return parameters;
     }
-
 
     @Nullable
     public static OverrideCompatibilityInfo getBasicOverridabilityProblem(
@@ -300,12 +327,7 @@ public class OverridingUtil {
             return OverrideCompatibilityInfo.incompatible("Name mismatch");
         }
 
-        OverrideCompatibilityInfo receiverAndParameterResult = checkReceiverAndParameterCount(superDescriptor, subDescriptor);
-        if (receiverAndParameterResult != null) {
-            return receiverAndParameterResult;
-        }
-
-        return null;
+        return checkReceiverAndParameterCount(superDescriptor, subDescriptor);
     }
 
     @Nullable
@@ -324,6 +346,54 @@ public class OverridingUtil {
         return null;
     }
 
+    private static boolean areTypesEquivalent(
+            @NotNull CangJieType typeInSuper,
+            @NotNull CangJieType typeInSub,
+            @NotNull TypeCheckerState typeCheckerState
+    ) {
+        boolean bothErrors = CangJieTypeKt.isError(typeInSuper) && CangJieTypeKt.isError(typeInSub);
+        if (bothErrors) return true;
+        return AbstractTypeChecker.INSTANCE.equalTypes(typeCheckerState, typeInSuper.unwrap(), typeInSub.unwrap());
+    }
+
+    // See JLS 8, 8.4.4 Generic Methods
+    private static boolean areTypeParametersEquivalent(
+            @NotNull TypeParameterDescriptor superTypeParameter,
+            @NotNull TypeParameterDescriptor subTypeParameter,
+            @NotNull TypeCheckerState typeCheckerState
+    ) {
+        List<CangJieType> superBounds = superTypeParameter.getUpperBounds();
+        List<CangJieType> subBounds = new ArrayList<>(subTypeParameter.getUpperBounds());
+        if (superBounds.size() != subBounds.size()) return false;
+
+        outer:
+        for (CangJieType superBound : superBounds) {
+            ListIterator<CangJieType> it = subBounds.listIterator();
+            while (it.hasNext()) {
+                CangJieType subBound = it.next();
+                if (areTypesEquivalent(superBound, subBound, typeCheckerState)) {
+                    it.remove();
+                    continue outer;
+                }
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    @Nullable
+    public static OverrideCompatibilityInfo.Result getBothWaysOverridability(
+            CallableDescriptor overriderDescriptor,
+            CallableDescriptor candidateDescriptor
+    ) {
+        OverrideCompatibilityInfo.Result result1 = DEFAULT.isOverridableBy(candidateDescriptor, overriderDescriptor, null).getResult();
+        OverrideCompatibilityInfo.Result result2 = DEFAULT.isOverridableBy(overriderDescriptor, candidateDescriptor, null).getResult();
+
+        return result1 == OVERRIDABLE && result2 == OVERRIDABLE
+                ? OVERRIDABLE
+                : ((result1 == CONFLICT || result2 == CONFLICT) ? CONFLICT : INCOMPATIBLE);
+    }
 
     @NotNull
     private TypeCheckerState createTypeCheckerState(
@@ -335,17 +405,17 @@ public class OverridingUtil {
 
         if (firstParameters.isEmpty()) {
             return new OverridingUtilTypeSystemContext(
-                    null, equalityAxioms, kotlinTypeRefiner, kotlinTypePreparator, customSubtype
+                    null, equalityAxioms, cangjieTypeRefiner, cangjieTypePreparator, customSubtype
             ).newTypeCheckerState(true, true);
         }
 
-        Map<TypeConstructor, TypeConstructor> matchingTypeConstructors = new HashMap<TypeConstructor, TypeConstructor>();
+        Map<TypeConstructor, TypeConstructor> matchingTypeConstructors = new HashMap<>();
         for (int i = 0; i < firstParameters.size(); i++) {
             matchingTypeConstructors.put(firstParameters.get(i).getTypeConstructor(), secondParameters.get(i).getTypeConstructor());
         }
 
         return new OverridingUtilTypeSystemContext(
-                matchingTypeConstructors, equalityAxioms, kotlinTypeRefiner, kotlinTypePreparator, customSubtype
+                matchingTypeConstructors, equalityAxioms, cangjieTypeRefiner, cangjieTypePreparator, customSubtype
         ).newTypeCheckerState(true, true);
     }
 
@@ -422,41 +492,6 @@ public class OverridingUtil {
 
         return OverrideCompatibilityInfo.success();
     }
-    private static boolean areTypesEquivalent(
-            @NotNull CangJieType typeInSuper,
-            @NotNull CangJieType typeInSub,
-            @NotNull TypeCheckerState typeCheckerState
-    ) {
-        boolean bothErrors = CangJieTypeKt.isError(typeInSuper) && CangJieTypeKt.isError(typeInSub);
-        if (bothErrors) return true;
-        return AbstractTypeChecker.INSTANCE.equalTypes(typeCheckerState, typeInSuper.unwrap(), typeInSub.unwrap());
-    }
-    // See JLS 8, 8.4.4 Generic Methods
-    private static boolean areTypeParametersEquivalent(
-            @NotNull TypeParameterDescriptor superTypeParameter,
-            @NotNull TypeParameterDescriptor subTypeParameter,
-            @NotNull TypeCheckerState typeCheckerState
-    ) {
-        List<CangJieType> superBounds = superTypeParameter.getUpperBounds();
-        List<CangJieType> subBounds = new ArrayList<CangJieType>(subTypeParameter.getUpperBounds());
-        if (superBounds.size() != subBounds.size()) return false;
-
-        outer:
-        for (CangJieType superBound : superBounds) {
-            ListIterator<CangJieType> it = subBounds.listIterator();
-            while (it.hasNext()) {
-                CangJieType subBound = it.next();
-                if (areTypesEquivalent(superBound, subBound, typeCheckerState)) {
-                    it.remove();
-                    continue outer;
-                }
-            }
-            return false;
-        }
-
-        return true;
-    }
-
 
     @NotNull
     public OverrideCompatibilityInfo isOverridableBy(
@@ -471,7 +506,8 @@ public class OverridingUtil {
         for (ExternalOverridabilityCondition externalCondition : EXTERNAL_CONDITIONS) {
             // Do not run CONFLICTS_ONLY while there was no success
             if (externalCondition.getContract() == ExternalOverridabilityCondition.Contract.CONFLICTS_ONLY) continue;
-            if (wasSuccess && externalCondition.getContract() == ExternalOverridabilityCondition.Contract.SUCCESS_ONLY) continue;
+            if (wasSuccess && externalCondition.getContract() == ExternalOverridabilityCondition.Contract.SUCCESS_ONLY)
+                continue;
 
             ExternalOverridabilityCondition.Result result =
                     externalCondition.isOverridable(superDescriptor, subDescriptor, subClassDescriptor);
@@ -513,6 +549,7 @@ public class OverridingUtil {
 
         return OverrideCompatibilityInfo.success();
     }
+
     @NotNull
     public OverrideCompatibilityInfo isOverridableBy(
             @NotNull CallableDescriptor superDescriptor,
@@ -521,16 +558,51 @@ public class OverridingUtil {
     ) {
         return isOverridableBy(superDescriptor, subDescriptor, subClassDescriptor, false);
     }
-    @Nullable
-    public static OverrideCompatibilityInfo.Result getBothWaysOverridability(
-            CallableDescriptor overriderDescriptor,
-            CallableDescriptor candidateDescriptor
-    ) {
-        OverrideCompatibilityInfo.Result result1 = DEFAULT.isOverridableBy(candidateDescriptor, overriderDescriptor, null).getResult();
-        OverrideCompatibilityInfo.Result result2 = DEFAULT.isOverridableBy(overriderDescriptor, candidateDescriptor, null).getResult();
 
-        return result1 == OVERRIDABLE && result2 == OVERRIDABLE
-                ? OVERRIDABLE
-                : ((result1 == CONFLICT || result2 == CONFLICT) ? CONFLICT : INCOMPATIBLE);
+    public static class OverrideCompatibilityInfo {
+        private static final OverrideCompatibilityInfo SUCCESS = new OverrideCompatibilityInfo(OVERRIDABLE, "SUCCESS");
+        private final Result overridable;
+        private final String debugMessage;
+
+        public OverrideCompatibilityInfo(@NotNull Result success, @NotNull String debugMessage) {
+            this.overridable = success;
+            this.debugMessage = debugMessage;
+        }
+
+        @NotNull
+        public static OverrideCompatibilityInfo success() {
+            return SUCCESS;
+        }
+
+        @NotNull
+        public static OverrideCompatibilityInfo incompatible(@NotNull String debugMessage) {
+            return new OverrideCompatibilityInfo(INCOMPATIBLE, debugMessage);
+        }
+
+        @NotNull
+        public static OverrideCompatibilityInfo conflict(@NotNull String debugMessage) {
+            return new OverrideCompatibilityInfo(CONFLICT, debugMessage);
+        }
+
+        @NotNull
+        public Result getResult() {
+            return overridable;
+        }
+
+        @NotNull
+        public String getDebugMessage() {
+            return debugMessage;
+        }
+
+        @Override
+        public String toString() {
+            return overridable + ": " + debugMessage;
+        }
+
+        public enum Result {
+            OVERRIDABLE,
+            INCOMPATIBLE,
+            CONFLICT,
+        }
     }
 }

@@ -1,15 +1,21 @@
 package com.huawei.cangjie.resolve.calls
 
+import com.huawei.cangjie.config.LanguageFeature
+import com.huawei.cangjie.descriptors.ClassKind
+import com.huawei.cangjie.descriptors.PropertyDescriptor
 import com.huawei.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
+import com.huawei.cangjie.resolve.calls.components.CallableReferenceArgumentResolver
 import com.huawei.cangjie.resolve.calls.components.CangJieCallCompleter
 import com.huawei.cangjie.resolve.calls.components.CangJieResolutionCallbacks
 import com.huawei.cangjie.resolve.calls.components.NewOverloadingConflictResolver
 import com.huawei.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
+import com.huawei.cangjie.resolve.calls.context.CheckArgumentTypesMode
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.model.CangJieCallKind.*
 import com.huawei.cangjie.resolve.calls.tower.*
+import com.huawei.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.huawei.cangjie.types.UnwrappedType
 
@@ -17,10 +23,21 @@ class CangJieCallResolver(
     private val towerResolver: TowerResolver,
     private val cangjieCallCompleter: CangJieCallCompleter,
     private val overloadingConflictResolver: NewOverloadingConflictResolver,
-//    private val callableReferenceArgumentResolver: CallableReferenceArgumentResolver,
+    private val callableReferenceArgumentResolver: CallableReferenceArgumentResolver,
     private val callComponents: CangJieCallComponents
 
 ) {
+    fun resolveCallableReferenceArgument(
+        argument: CallableReferenceCangJieCallArgument,
+        expectedType: UnwrappedType?,
+        baseSystem: ConstraintStorage,
+        resolutionCallbacks: CangJieResolutionCallbacks
+    ): Collection<CallableReferenceResolutionCandidate> {
+        val scopeTower = callComponents.statelessCallbacks.getScopeTowerForCallableReferenceArgument(argument)
+        val factory = createCallableReferenceCallFactory(scopeTower, argument.call, resolutionCallbacks, expectedType, argument, baseSystem)
+
+        return resolveCall(scopeTower, resolutionCallbacks, argument.call, collectAllCandidates = false, factory)
+    }
     private fun createCallableReferenceCallFactory(
         scopeTower: ImplicitScopeTower,
         cangjieCall: CangJieCall,
@@ -81,7 +98,6 @@ class CangJieCallResolver(
 
 //        cangjieCall.checkCallInvariants()
 
-        @Suppress("UNCHECKED_CAST")
         val processor = when (cangjieCall.callKind) {
             VARIABLE -> {
                 createVariableAndObjectProcessor(
@@ -101,9 +117,13 @@ class CangJieCallResolver(
                     cangjieCall.explicitReceiver?.receiver
                 )
             }
-//            CangJieCallKind.CALLABLE_REFERENCE -> {
+
+            CALLABLE_REFERENCE -> {
+                TODO()
+
 //                createCallableReferenceProcessor(candidateFactory as CallableReferencesCandidateFactory) as ScopeTowerProcessor<C>
-//            }
+            }
+
             INVOKE -> {
                 createProcessorWithReceiverValueOrEmpty(cangjieCall.explicitReceiver?.receiver) {
                     createCallTowerProcessorForExplicitInvoke(
@@ -139,56 +159,61 @@ class CangJieCallResolver(
         resolutionCallbacks: CangJieResolutionCallbacks,
         candidates: Collection<ResolutionCandidate>
     ): Set<ResolutionCandidate> {
-//        var refinedCandidates = candidates
+        var refinedCandidates = candidates
 
-//        if (!callComponents.languageVersionSettings.supportsFeature(LanguageFeature.RefinedSamAdaptersPriority) && cangjieCall.callKind != CangJieCallKind.CALLABLE_REFERENCE) {
-//            val nonSynthesized = candidates.filter { !it.resolvedCall.candidateDescriptor.isSynthesized }
-//            if (nonSynthesized.isNotEmpty()) {
-//                refinedCandidates = nonSynthesized
-//            }
-//        }
+        if (!callComponents.languageVersionSettings.supportsFeature(LanguageFeature.RefinedSamAdaptersPriority) && cangjieCall.callKind != CangJieCallKind.CALLABLE_REFERENCE) {
+            val nonSynthesized = candidates.filter { !it.resolvedCall.candidateDescriptor.isSynthesized }
+            if (nonSynthesized.isNotEmpty()) {
+                refinedCandidates = nonSynthesized
+            }
+        }
 
-//        var maximallySpecificCandidates =
-////            if (cangjieCall.callKind == CangJieCallKind.CALLABLE_REFERENCE) {
-////            @Suppress("UNCHECKED_CAST")
-////            callableReferenceArgumentResolver.callableReferenceOverloadConflictResolver.chooseMaximallySpecificCandidates(
-////                refinedCandidates as Collection<CallableReferenceResolutionCandidate>,
-////                CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
-////                discriminateGenerics = false
-////            )
-////        } else {
-//            overloadingConflictResolver.chooseMaximallySpecificCandidates(
-//                refinedCandidates,
-//                CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
-//                discriminateGenerics = true // todo
-//            )
-////        }
-//
-//        if (maximallySpecificCandidates.size > 1) {
-//            if (maximallySpecificCandidates.size == 2) {
-//                val enumEntryCandidate = maximallySpecificCandidates.find {
-//                    val descriptor = it.resolvedCall.candidateDescriptor
-//                    descriptor is FakeCallableDescriptorForObject && descriptor.classDescriptor.kind == ClassKind.ENUM_ENTRY
-//                }
-//                if (enumEntryCandidate != null) {
-//                    val otherCandidate = maximallySpecificCandidates.find {
-//                        val candidateDescriptor = it.resolvedCall.candidateDescriptor
-//                        candidateDescriptor !is FakeCallableDescriptorForObject
-//                    }
-//                    if (otherCandidate != null) {
-//                        val propertyDescriptor = otherCandidate.resolvedCall.candidateDescriptor
-//                        if (propertyDescriptor is PropertyDescriptor) {
-//                            val enumEntryDescriptor =
-//                                (enumEntryCandidate.resolvedCall.candidateDescriptor as FakeCallableDescriptorForObject).classDescriptor
-//                            otherCandidate.addDiagnostic(EnumEntryAmbiguityWarning(propertyDescriptor, enumEntryDescriptor))
-//                            return setOf(otherCandidate)
-//                        }
-//                    }
-//                }
-//            }
+        var maximallySpecificCandidates =
+            if (cangjieCall.callKind == CALLABLE_REFERENCE) {
+                @Suppress("UNCHECKED_CAST")
+                callableReferenceArgumentResolver.callableReferenceOverloadConflictResolver.chooseMaximallySpecificCandidates(
+                    refinedCandidates as Collection<CallableReferenceResolutionCandidate>,
+                    CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+                    discriminateGenerics = false
+                )
+            } else {
+                overloadingConflictResolver.chooseMaximallySpecificCandidates(
+                    refinedCandidates,
+                    CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+                    discriminateGenerics = true // todo
+                )
+            }
+
+        if (maximallySpecificCandidates.size > 1) {
+            if (maximallySpecificCandidates.size == 2) {
+                val enumEntryCandidate = maximallySpecificCandidates.find {
+                    val descriptor = it.resolvedCall.candidateDescriptor
+                    descriptor is FakeCallableDescriptorForObject && descriptor.classDescriptor.kind == ClassKind.ENUM_ENTRY
+                }
+                if (enumEntryCandidate != null) {
+                    val otherCandidate = maximallySpecificCandidates.find {
+                        val candidateDescriptor = it.resolvedCall.candidateDescriptor
+                        candidateDescriptor !is FakeCallableDescriptorForObject
+                    }
+                    if (otherCandidate != null) {
+                        val propertyDescriptor = otherCandidate.resolvedCall.candidateDescriptor
+                        if (propertyDescriptor is PropertyDescriptor) {
+                            val enumEntryDescriptor =
+                                (enumEntryCandidate.resolvedCall.candidateDescriptor as FakeCallableDescriptorForObject).classDescriptor
+                            otherCandidate.addDiagnostic(
+                                EnumEntryAmbiguityWarning(
+                                    propertyDescriptor,
+                                    enumEntryDescriptor
+                                )
+                            )
+                            return setOf(otherCandidate)
+                        }
+                    }
+                }
+            }
 //            if (
-////                callComponents.languageVersionSettings.supportsFeature(LanguageFeature.OverloadResolutionByLambdaReturnType)   &&
-////                cangjieCall.callKind != CangJieCallKind.CALLABLE_REFERENCE &&
+//                callComponents.languageVersionSettings.supportsFeature(LanguageFeature.OverloadResolutionByLambdaReturnType)   &&
+//                cangjieCall.callKind != CangJieCallKind.CALLABLE_REFERENCE &&
 //                candidates.all { it.isSuccessful } &&
 //                candidates.all { resolutionCallbacks.inferenceSession.shouldRunCompletion(it) }
 //            ) {
@@ -214,10 +239,10 @@ class CangJieCallResolver(
 //                    }
 //                }
 //            }
-//        }
+        }
 
-//        return maximallySpecificCandidates
-        return emptySet()
+        return maximallySpecificCandidates
+
     }
 
     fun resolveAndCompleteCall(

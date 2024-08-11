@@ -16,6 +16,6 @@ class TrivialConstraintTypeInferenceOracle private constructor(context: TypeSyst
     fun isSuitableResultedType(
         resultType: CangJieTypeMarker
     ): Boolean {
-        return !resultType.typeConstructor().isNothingConstructor() || (isK2 && resultType.isDynamic())
+        return !resultType.typeConstructor().isNothingConstructor() || (/*isK2 &&*/ resultType.isDynamic())
     }
 }

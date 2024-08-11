@@ -165,3 +165,7 @@ fun CangJieType.replace(
         is SimpleType -> unwrapped.replace(newArguments, newAttributes)
     }
 }
+
+class SubstitutionWithCapturedTypeApproximation(substitution: TypeSubstitution) : DelegatedTypeSubstitution(substitution) {
+    override fun approximateCapturedTypes() = true
+}

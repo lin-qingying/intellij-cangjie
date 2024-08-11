@@ -48,7 +48,10 @@ class CjSimpleNameReference(expression: CjSimpleNameExpression) : CjSimpleRefere
             // Replace Java property with its accessor(s)
             for (descriptor in expression.getReferenceTargets(bindingContext)) {
                 val sizeBefore = size
-
+//                if (descriptor !is JavaPropertyDescriptor) {
+                    add(descriptor)
+//                    continue
+//                }
 
 
 //                val readWriteAccess = expression.readWriteAccess(true)

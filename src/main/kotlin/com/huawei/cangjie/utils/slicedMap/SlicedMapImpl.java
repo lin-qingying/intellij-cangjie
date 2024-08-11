@@ -16,12 +16,18 @@ import java.util.Map;
 public class SlicedMapImpl implements MutableSlicedMap {
 
     private final boolean alwaysAllowRewrite;
+    String debugName = "";
     @Nullable
     private Map<Object, KeyFMap> map = null;
     private Multimap<WritableSlice<?, ?>, Object> collectiveSliceKeys = null;
 
     public SlicedMapImpl(boolean alwaysAllowRewrite) {
         this.alwaysAllowRewrite = alwaysAllowRewrite;
+    }
+
+    public SlicedMapImpl(boolean alwaysAllowRewrite, String name) {
+        this(alwaysAllowRewrite);
+        this.debugName = name;
     }
 
     @Nullable
@@ -57,11 +63,6 @@ public class SlicedMapImpl implements MutableSlicedMap {
             }
         });
     }
-
-
-
-
-
 
 
     @Override

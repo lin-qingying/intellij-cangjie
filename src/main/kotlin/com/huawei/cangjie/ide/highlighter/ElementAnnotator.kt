@@ -123,8 +123,8 @@ internal class ElementAnnotator(
 
     private fun createFixesMap(sameTypeDiagnostics: Collection<Diagnostic>): MultiMap<Diagnostic, IntentionAction> =
         try {
-//            Fe10QuickFixProvider.getInstance(element.project).createQuickFixes(sameTypeDiagnostics)
-            error("a")
+           CangJieQuickFixProvider.getInstance(element.project).createQuickFixes(sameTypeDiagnostics)
+
         } catch (e: Exception) {
             if (e is ControlFlowException) {
                 throw e

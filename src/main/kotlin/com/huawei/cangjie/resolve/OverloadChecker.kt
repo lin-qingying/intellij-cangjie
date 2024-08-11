@@ -1,44 +1,72 @@
 package com.huawei.cangjie.resolve
 
-import com.huawei.cangjie.descriptors.CallableDescriptor
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.resolve.calls.inference.ConstraintSystemBuilderImpl
+import com.huawei.cangjie.resolve.calls.results.*
+import com.huawei.cangjie.types.ErrorUtils
 
-class OverloadChecker {
-//    private fun checkOverloadability(a: CallableDescriptor, b: CallableDescriptor): Boolean {
-//        if (a.hasLowPriorityInOverloadResolution() != b.hasLowPriorityInOverloadResolution()) return true
-//
+class OverloadChecker(val specificityComparator: TypeSpecificityComparator) {
+
+    private fun checkOverloadability(a: CallableDescriptor, b: CallableDescriptor): Boolean {
+
 //        // NB this makes generic and non-generic declarations with equivalent signatures non-conflicting
 //        // E.g., 'fun <T> foo()' and 'fun foo()'.
 //        // They can be disambiguated by providing explicit type parameters.
-//        if (a.typeParameters.isEmpty() != b.typeParameters.isEmpty()) return true
+        if (a.typeParameters.isEmpty() != b.typeParameters.isEmpty()) return true
 //
-//        if (a is FunctionDescriptor && ErrorUtils.containsErrorTypeInParameters(a) ||
-//            b is FunctionDescriptor && ErrorUtils.containsErrorTypeInParameters(b)
-//        ) return true
+        if (a is FunctionDescriptor && ErrorUtils.containsErrorTypeInParameters(a) ||
+            b is FunctionDescriptor && ErrorUtils.containsErrorTypeInParameters(b)
+        ) return true
 //        if (a.varargParameterPosition() != b.varargParameterPosition()) return true
 //
-//        val aSignature = FlatSignature.createFromCallableDescriptor(a)
-//        val bSignature = FlatSignature.createFromCallableDescriptor(b)
+        val aSignature = FlatSignature.createFromCallableDescriptor(a)
+        val bSignature = FlatSignature.createFromCallableDescriptor(b)
 //
-//        val aIsNotLessSpecificThanB = ConstraintSystemBuilderImpl.forSpecificity()
-//            .isSignatureNotLessSpecific(aSignature, bSignature, OverloadabilitySpecificityCallbacks, specificityComparator)
-//        val bIsNotLessSpecificThanA = ConstraintSystemBuilderImpl.forSpecificity()
-//            .isSignatureNotLessSpecific(bSignature, aSignature, OverloadabilitySpecificityCallbacks, specificityComparator)
+        val aIsNotLessSpecificThanB = ConstraintSystemBuilderImpl.forSpecificity()
+            .isSignatureNotLessSpecific(aSignature, bSignature, OverloadabilitySpecificityCallbacks, specificityComparator)
+        val bIsNotLessSpecificThanA = ConstraintSystemBuilderImpl.forSpecificity()
+            .isSignatureNotLessSpecific(bSignature, aSignature, OverloadabilitySpecificityCallbacks, specificityComparator)
 //
-//        return !(aIsNotLessSpecificThanB && bIsNotLessSpecificThanA)
-//    }
+        return !(aIsNotLessSpecificThanB && bIsNotLessSpecificThanA)
 
+    }
+
+    private enum class DeclarationCategory {
+        TYPE_OR_VALUE,
+        FUNCTION,
+        EXTENSION_PROPERTY
+    }
+
+    private fun getDeclarationCategory(a: DeclarationDescriptor): DeclarationCategory =
+        when (a) {
+            is PropertyDescriptor ->
+//                if (a.isExtensionProperty)
+//                    DeclarationCategory.EXTENSION_PROPERTY
+//                else
+                    DeclarationCategory.TYPE_OR_VALUE
+
+            is FunctionDescriptor ->
+                DeclarationCategory.FUNCTION
+
+            is ClassifierDescriptor ->
+                DeclarationCategory.TYPE_OR_VALUE
+
+            else ->
+                error("Unexpected declaration kind: $a")
+        }
 
     /**
      * Does not check names.
      */
-//    fun isOverloadable(a: DeclarationDescriptor, b: DeclarationDescriptor): Boolean {
-//        val aCategory = getDeclarationCategory(a)
-//        val bCategory = getDeclarationCategory(b)
-//
-//        if (aCategory != bCategory) return true
-//        if (a !is CallableDescriptor || b !is CallableDescriptor) return false
-//
-//        return checkOverloadability(a, b)
-//    }
+    fun isOverloadable(a: DeclarationDescriptor, b: DeclarationDescriptor): Boolean {
+        val aCategory = getDeclarationCategory(a)
+        val bCategory = getDeclarationCategory(b)
+
+        if (aCategory != bCategory) return true
+        if (a !is CallableDescriptor || b !is CallableDescriptor) return false
+
+        return checkOverloadability(a, b)
+    }
+
+
 }

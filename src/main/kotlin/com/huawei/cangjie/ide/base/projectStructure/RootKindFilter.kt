@@ -95,6 +95,12 @@ data class RootKindFilter(
         )
     }
 }
+fun RootKindFilter.matches(element: PsiElement): Boolean {
+    return RootKindMatcher.matches(element, this)
+}
+fun RootKindFilter.matches(project: Project, virtualFile: VirtualFile): Boolean {
+    return RootKindMatcher.matches(project, virtualFile, this)
+}
 
 interface RootKindMatcher {
     fun matches(filter: RootKindFilter, virtualFile: VirtualFile): Boolean

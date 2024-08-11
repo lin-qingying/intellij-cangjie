@@ -19,7 +19,7 @@ open class DelegatingBindingTrace(
     protected val map = if (BindingTraceContext.TRACK_REWRITES && !allowSliceRewrite)
         TrackingSlicedMap(BindingTraceContext.TRACK_WITH_STACK_TRACES)
     else
-        SlicedMapImpl(allowSliceRewrite)
+        SlicedMapImpl(allowSliceRewrite,name)
     override val bindingContext = MyBindingContext()
     override fun <K> record(slice: WritableSlice<K, Boolean>, key: K) {
         record(slice, key, true)
@@ -115,12 +115,16 @@ open class DelegatingBindingTrace(
         selfGet(slice, key) ?: parentContext.get(slice, key)
 
 
+
+
+
     override fun report(diagnostic: Diagnostic) {
         if (mutableDiagnostics == null) {
             return
         }
         mutableDiagnostics.report(diagnostic)
     }
+    override fun toString(): String = name
 
 
     override fun wantsDiagnostics(): Boolean = mutableDiagnostics != null

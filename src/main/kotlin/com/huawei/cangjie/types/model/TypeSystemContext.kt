@@ -233,9 +233,13 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
     fun CapturedTypeMarker.typeParameter(): TypeParameterMarker?
     fun CapturedTypeMarker.withNotNullProjection(): CangJieTypeMarker
 
-    /**
-     * Only for K2.
-     */
+
+    fun createTypeWithUpperBoundForIntersectionResult(
+        firstCandidate: CangJieTypeMarker,
+        secondCandidate: CangJieTypeMarker
+    ): CangJieTypeMarker
+
+
     fun CapturedTypeMarker.hasRawSuperType(): Boolean
 
     fun TypeVariableMarker.defaultType(): SimpleTypeMarker
@@ -350,7 +354,7 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
 //    private fun computeEffectiveVariance(parameter: TypeParameterMarker, argument: TypeArgumentMarker): TypeVariance? =
 //        AbstractTypeChecker.effectiveVariance(parameter.getVariance(), argument.getVariance())
 
-    val isK2: Boolean
+
 }
 
 
@@ -447,6 +451,7 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun TypeParameterMarker.hasRecursiveBounds(selfConstructor: TypeConstructorMarker? = null): Boolean
 
     fun areEqualTypeConstructors(c1: TypeConstructorMarker, c2: TypeConstructorMarker): Boolean
+    fun captureFromExpression(type: CangJieTypeMarker): CangJieTypeMarker?
 
     fun TypeConstructorMarker.isDenotable(): Boolean
 

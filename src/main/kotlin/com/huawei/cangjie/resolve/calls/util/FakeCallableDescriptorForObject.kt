@@ -30,6 +30,8 @@ open class FakeCallableDescriptorForObject(
 
     override fun getTypeParameters(): List<TypeParameterDescriptor> = Collections.emptyList()
 
+    override fun hasStableParameterNames() = false
+
     override fun getValueParameters(): List<ValueParameterDescriptor> = Collections.emptyList()
 
     override fun getReturnType(): CangJieType? = type

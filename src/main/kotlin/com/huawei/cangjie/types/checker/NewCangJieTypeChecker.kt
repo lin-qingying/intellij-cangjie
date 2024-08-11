@@ -1,13 +1,8 @@
 package com.huawei.cangjie.types.checker
 
 import com.huawei.cangjie.resolve.OverridingUtil
+import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.AbstractNullabilityChecker.hasNotNullSupertype
-
-import com.huawei.cangjie.types.CangJieType
-import com.huawei.cangjie.types.TypeCheckerState
-import com.huawei.cangjie.types.UnwrappedType
-import com.huawei.cangjie.types.lowerIfFlexible
-import com.huawei.cangjie.types.model.SimpleTypeMarker
 
 object SimpleClassicTypeSystemContext : ClassicTypeSystemContext
 
@@ -21,6 +16,20 @@ interface NewCangJieTypeChecker : CangJieTypeChecker {
     }
 }
 
+object ErrorTypesAreEqualToAnything : CangJieTypeChecker {
+    override fun isSubtypeOf(subtype: CangJieType, supertype: CangJieType): Boolean =
+        NewCangJieTypeChecker.Default.run {
+            createClassicTypeCheckerState(isErrorTypeEqualsToAnything = true).isSubtypeOf(
+                subtype.unwrap(),
+                supertype.unwrap()
+            )
+        }
+
+    override fun equalTypes(a: CangJieType, b: CangJieType): Boolean =
+        NewCangJieTypeChecker.Default.run {
+            createClassicTypeCheckerState(isErrorTypeEqualsToAnything = true).equalTypes(a.unwrap(), b.unwrap())
+        }
+}
 
 class NewCangJieTypeCheckerImpl(
     override val cangjieTypeRefiner: CangJieTypeRefiner,
@@ -33,19 +42,20 @@ class NewCangJieTypeCheckerImpl(
 //            true, cangjieTypeRefiner = cangjieTypeRefiner, cangjieTypePreparator = cangjieTypePreparator
 //        ).isSubtypeOf(subtype.unwrap(), supertype.unwrap()) // todo fix flag errorTypeEqualsToAnything
 
-    override fun equalTypes(a: CangJieType, b: CangJieType): Boolean = true
-//        createClassicTypeCheckerState(
-//            false, cangjieTypeRefiner = cangjieTypeRefiner, cangjieTypePreparator = cangjieTypePreparator
-//        ).equalTypes(a.unwrap(), b.unwrap())
+    override fun equalTypes(a: CangJieType, b: CangJieType): Boolean =
+        createClassicTypeCheckerState(
+            false, cangjieTypeRefiner = cangjieTypeRefiner, cangjieTypePreparator = cangjieTypePreparator
+        ).equalTypes(a.unwrap(), b.unwrap())
 
-//    fun TypeCheckerState.equalTypes(a: UnwrappedType, b: UnwrappedType): Boolean {
-//        return AbstractTypeChecker.equalTypes(this, a, b)
-//    }
-//
-//    fun TypeCheckerState.isSubtypeOf(subType: UnwrappedType, superType: UnwrappedType): Boolean {
-//        return AbstractTypeChecker.isSubtypeOf(this, subType, superType)
-//    }
+    fun TypeCheckerState.equalTypes(a: UnwrappedType, b: UnwrappedType): Boolean {
+        return AbstractTypeChecker.equalTypes(this, a, b)
+    }
+
+    fun TypeCheckerState.isSubtypeOf(subType: UnwrappedType, superType: UnwrappedType): Boolean {
+        return AbstractTypeChecker.isSubtypeOf(this, subType, superType)
+    }
 }
+
 object NullabilityChecker {
     fun isSubtypeOfAny(type: UnwrappedType): Boolean =
         SimpleClassicTypeSystemContext

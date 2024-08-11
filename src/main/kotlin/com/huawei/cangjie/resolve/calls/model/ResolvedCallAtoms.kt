@@ -47,7 +47,9 @@ open class MutableResolvedCallAtom(
     lateinit var argumentToCandidateParameter: Map<CangJieCallArgument, ValueParameterDescriptor>
     private var samAdapterMap: HashMap<CangJieCallArgument, SamConversionDescription>? = null
 
-//
+    override val argumentsWithConversion: Map<CangJieCallArgument, SamConversionDescription>
+        get() = samAdapterMap ?: emptyMap()
+
 //    override val argumentsWithSuspendConversion: Map<CangJieCallArgument, UnwrappedType>
 //        get() = suspendAdapterMap ?: emptyMap()
 

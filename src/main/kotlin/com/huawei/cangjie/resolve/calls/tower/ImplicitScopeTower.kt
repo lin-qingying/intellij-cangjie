@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.calls.tower
 
 import com.huawei.cangjie.descriptors.CallableDescriptor
+import com.huawei.cangjie.descriptors.DeclarationDescriptorWithVisibility
 import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.descriptors.VariableDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
@@ -21,6 +22,14 @@ fun getResultApplicability(diagnostics: Collection<ConstraintSystemError>): Cand
 @JvmName("getResultApplicabilityForCallDiagnostics")
 fun getResultApplicability(diagnostics: Collection<CangJieCallDiagnostic>): CandidateApplicability =
     diagnostics.minByOrNull { it.candidateApplicability }?.candidateApplicability ?: CandidateApplicability.RESOLVED
+// todo error for this access from nested class
+class VisibilityError(val invisibleMember: DeclarationDescriptorWithVisibility) : ResolutionDiagnostic(
+    CandidateApplicability. RUNTIME_ERROR
+) {
+    override fun report(reporter: DiagnosticReporter) {
+        reporter.onCall(this)
+    }
+}
 
 interface ScopeTowerLevel {
     fun getVariables(

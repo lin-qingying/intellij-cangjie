@@ -3,10 +3,13 @@ package com.huawei.cangjie.descriptors.impl;
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
+import com.huawei.cangjie.descriptors.annotations.AnnotationsKt;
 import com.huawei.cangjie.name.Name;
-import com.huawei.cangjie.types.CangJieType;
-import com.huawei.cangjie.types.TypeSubstitution;
-import com.huawei.cangjie.types.TypeSubstitutor;
+import com.huawei.cangjie.resolve.DescriptorFactory;
+import com.huawei.cangjie.resolve.scopes.receivers.ExtensionReceiver;
+import com.huawei.cangjie.resolve.scopes.receivers.ImplicitContextReceiver;
+import com.huawei.cangjie.types.*;
+import com.huawei.cangjie.utils.SmartList;
 import kotlin.collections.CollectionsKt;
 import kotlin.jvm.functions.Function0;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +41,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     // 2. isHiddenForResolutionEverywhereBesideSupercalls propagates to it's overrides descriptors while isHiddenToOvercomeSignatureClash does not
     private boolean isHiddenToOvercomeSignatureClash = false;
     private boolean isHiddenForResolutionEverywhereBesideSupercalls = false;
+    private boolean hasStableParameterNames = true;
 
     private Collection<? extends FunctionDescriptor> overriddenFunctions = null;
     private volatile Function0<Collection<FunctionDescriptor>> lazyOverriddenFunctionsTask = null;
@@ -56,7 +60,13 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         this.original = original == null ? this : original;
         this.kind = kind;
     }
-
+    public void setHasStableParameterNames(boolean hasStableParameterNames) {
+        this.hasStableParameterNames = hasStableParameterNames;
+    }
+    @Override
+    public boolean hasStableParameterNames() {
+        return hasStableParameterNames;
+    }
     @Nullable
     public static List<ValueParameterDescriptor> getSubstitutedValueParameters(
             FunctionDescriptor substitutedDescriptor,
@@ -448,114 +458,114 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     @Nullable
     protected FunctionDescriptor doSubstitute(@NotNull CopyConfiguration configuration) {
         boolean[] wereChanges = new boolean[1];
-        return null;
-//        Annotations resultAnnotations =
-//                configuration.additionalAnnotations != null
-//                        ? AnnotationsKt.composeAnnotations(getAnnotations(), configuration.additionalAnnotations)
-//                        : getAnnotations();
+
+        Annotations resultAnnotations =
+                configuration.additionalAnnotations != null
+                        ? AnnotationsKt.composeAnnotations(getAnnotations(), configuration.additionalAnnotations)
+                        : getAnnotations();
+
+        FunctionDescriptorImpl substitutedDescriptor = createSubstitutedCopy(
+                configuration.newOwner, configuration.original, configuration.kind, configuration.name, resultAnnotations,
+                getSourceToUseForCopy(configuration.preserveSourceElement, configuration.original));
+
+        List<TypeParameterDescriptor> unsubstitutedTypeParameters =
+                configuration.newTypeParameters == null ? getTypeParameters() : configuration.newTypeParameters;
 //
-//        FunctionDescriptorImpl substitutedDescriptor = createSubstitutedCopy(
-//                configuration.newOwner, configuration.original, configuration.kind, configuration.name, resultAnnotations,
-//                getSourceToUseForCopy(configuration.preserveSourceElement, configuration.original));
+        wereChanges[0] |= !unsubstitutedTypeParameters.isEmpty();
 //
-//        List<TypeParameterDescriptor> unsubstitutedTypeParameters =
-//                configuration.newTypeParameters == null ? getTypeParameters() : configuration.newTypeParameters;
+        List<TypeParameterDescriptor> substitutedTypeParameters =
+                new ArrayList<TypeParameterDescriptor>(unsubstitutedTypeParameters.size());
+        final TypeSubstitutor substitutor = DescriptorSubstitutor.substituteTypeParameters(
+                unsubstitutedTypeParameters, configuration.substitution, substitutedDescriptor, substitutedTypeParameters, wereChanges
+        );
+        if (substitutor == null) return null;
 //
-//        wereChanges[0] |= !unsubstitutedTypeParameters.isEmpty();
+        List<ReceiverParameterDescriptor> substitutedContextReceiverParameters = new ArrayList<ReceiverParameterDescriptor>();
+        if (!configuration.newContextReceiverParameters.isEmpty()) {
+            int index = 0;
+            for (ReceiverParameterDescriptor newContextReceiverParameter : configuration.newContextReceiverParameters) {
+                CangJieType substitutedContextReceiverType =
+                        substitutor.substitute(newContextReceiverParameter.getType(), Variance.IN_VARIANCE);
+                if (substitutedContextReceiverType == null) {
+                    return null;
+                }
+                ReceiverParameterDescriptor substitutedContextReceiverParameter =
+                        DescriptorFactory.createContextReceiverParameterForCallable(substitutedDescriptor, substitutedContextReceiverType,
+                                ((ImplicitContextReceiver) newContextReceiverParameter.getValue()).getCustomLabelName(),
+                                newContextReceiverParameter.getAnnotations(),
+                                index++);
+                substitutedContextReceiverParameters.add(substitutedContextReceiverParameter);
+
+                wereChanges[0] |= substitutedContextReceiverType != newContextReceiverParameter.getType();
+            }
+        }
 //
-//        List<TypeParameterDescriptor> substitutedTypeParameters =
-//                new ArrayList<TypeParameterDescriptor>(unsubstitutedTypeParameters.size());
-//        final TypeSubstitutor substitutor = DescriptorSubstitutor.substituteTypeParameters(
-//                unsubstitutedTypeParameters, configuration.substitution, substitutedDescriptor, substitutedTypeParameters, wereChanges
-//        );
-//        if (substitutor == null) return null;
+        ReceiverParameterDescriptor substitutedReceiverParameter = null;
+        if (configuration.newExtensionReceiverParameter != null) {
+            CangJieType substitutedExtensionReceiverType =
+                    substitutor.substitute(configuration.newExtensionReceiverParameter.getType(), Variance.IN_VARIANCE);
+            if (substitutedExtensionReceiverType == null) {
+                return null;
+            }
+            substitutedReceiverParameter = new ReceiverParameterDescriptorImpl(
+                    substitutedDescriptor,
+                    new ExtensionReceiver(
+                            substitutedDescriptor, substitutedExtensionReceiverType, configuration.newExtensionReceiverParameter.getValue()
+                    ),
+                    configuration.newExtensionReceiverParameter.getAnnotations()
+            );
+
+            wereChanges[0] |= substitutedExtensionReceiverType != configuration.newExtensionReceiverParameter.getType();
+        }
 //
-//        List<ReceiverParameterDescriptor> substitutedContextReceiverParameters = new ArrayList<ReceiverParameterDescriptor>();
-//        if (!configuration.newContextReceiverParameters.isEmpty()) {
-//            int index = 0;
-//            for (ReceiverParameterDescriptor newContextReceiverParameter : configuration.newContextReceiverParameters) {
-//                CangJieType substitutedContextReceiverType =
-//                        substitutor.substitute(newContextReceiverParameter.getType(), Variance.IN_VARIANCE);
-//                if (substitutedContextReceiverType == null) {
-//                    return null;
-//                }
-//                ReceiverParameterDescriptor substitutedContextReceiverParameter =
-//                        DescriptorFactory.createContextReceiverParameterForCallable(substitutedDescriptor, substitutedContextReceiverType,
-//                                ((ImplicitContextReceiver) newContextReceiverParameter.getValue()).getCustomLabelName(),
-//                                newContextReceiverParameter.getAnnotations(),
-//                                index++);
-//                substitutedContextReceiverParameters.add(substitutedContextReceiverParameter);
+        ReceiverParameterDescriptor substitutedExpectedThis = null;
+        if (configuration.dispatchReceiverParameter != null) {
+            // When generating fake-overridden member it's dispatch receiver parameter has type of Base, and it's correct.
+            // E.g.
+            // class Base { fun foo() }
+            // class Derived : Base
+            // let x: Base
+            // if (x is Derived) {
+            //    // `x` shouldn't be marked as smart-cast
+            //    // but it would if fake-overridden `foo` had `Derived` as it's dispatch receiver parameter type
+            //    x.foo()
+            // }
+            substitutedExpectedThis = configuration.dispatchReceiverParameter.substitute(substitutor);
+            if (substitutedExpectedThis == null) {
+                return null;
+            }
+
+            wereChanges[0] |= substitutedExpectedThis != configuration.dispatchReceiverParameter;
+        }
 //
-//                wereChanges[0] |= substitutedContextReceiverType != newContextReceiverParameter.getType();
-//            }
-//        }
+        List<ValueParameterDescriptor> substitutedValueParameters = getSubstitutedValueParameters(
+                substitutedDescriptor, configuration.newValueParameterDescriptors, substitutor, configuration.dropOriginalInContainingParts,
+                configuration.preserveSourceElement, wereChanges
+        );
+        if (substitutedValueParameters == null) {
+            return null;
+        }
 //
-//        ReceiverParameterDescriptor substitutedReceiverParameter = null;
-//        if (configuration.newExtensionReceiverParameter != null) {
-//            CangJieType substitutedExtensionReceiverType =
-//                    substitutor.substitute(configuration.newExtensionReceiverParameter.getType(), Variance.IN_VARIANCE);
-//            if (substitutedExtensionReceiverType == null) {
-//                return null;
-//            }
-//            substitutedReceiverParameter = new ReceiverParameterDescriptorImpl(
-//                    substitutedDescriptor,
-//                    new ExtensionReceiver(
-//                            substitutedDescriptor, substitutedExtensionReceiverType, configuration.newExtensionReceiverParameter.getValue()
-//                    ),
-//                    configuration.newExtensionReceiverParameter.getAnnotations()
-//            );
+        CangJieType substitutedReturnType = substitutor.substitute(configuration.newReturnType, Variance.OUT_VARIANCE);
+        if (substitutedReturnType == null) {
+            return null;
+        }
+
+        wereChanges[0] |= substitutedReturnType != configuration.newReturnType;
+
+        if (!wereChanges[0] && configuration.justForTypeSubstitution) {
+            return this;
+        }
 //
-//            wereChanges[0] |= substitutedExtensionReceiverType != configuration.newExtensionReceiverParameter.getType();
-//        }
-//
-//        ReceiverParameterDescriptor substitutedExpectedThis = null;
-//        if (configuration.dispatchReceiverParameter != null) {
-//            // When generating fake-overridden member it's dispatch receiver parameter has type of Base, and it's correct.
-//            // E.g.
-//            // class Base { fun foo() }
-//            // class Derived : Base
-//            // let x: Base
-//            // if (x is Derived) {
-//            //    // `x` shouldn't be marked as smart-cast
-//            //    // but it would if fake-overridden `foo` had `Derived` as it's dispatch receiver parameter type
-//            //    x.foo()
-//            // }
-//            substitutedExpectedThis = configuration.dispatchReceiverParameter.substitute(substitutor);
-//            if (substitutedExpectedThis == null) {
-//                return null;
-//            }
-//
-//            wereChanges[0] |= substitutedExpectedThis != configuration.dispatchReceiverParameter;
-//        }
-//
-//        List<ValueParameterDescriptor> substitutedValueParameters = getSubstitutedValueParameters(
-//                substitutedDescriptor, configuration.newValueParameterDescriptors, substitutor, configuration.dropOriginalInContainingParts,
-//                configuration.preserveSourceElement, wereChanges
-//        );
-//        if (substitutedValueParameters == null) {
-//            return null;
-//        }
-//
-//        CangJieType substitutedReturnType = substitutor.substitute(configuration.newReturnType, Variance.OUT_VARIANCE);
-//        if (substitutedReturnType == null) {
-//            return null;
-//        }
-//
-//        wereChanges[0] |= substitutedReturnType != configuration.newReturnType;
-//
-//        if (!wereChanges[0] && configuration.justForTypeSubstitution) {
-//            return this;
-//        }
-//
-//        substitutedDescriptor.initialize(
-//                substitutedReceiverParameter, substitutedExpectedThis, substitutedContextReceiverParameters,
-//                substitutedTypeParameters,
-//                substitutedValueParameters,
-//                substitutedReturnType,
-//                configuration.newModality,
-//                configuration.newVisibility
-//        );
-//        substitutedDescriptor.setOperator(isOperator);
+        substitutedDescriptor.initialize(
+                substitutedReceiverParameter, substitutedExpectedThis, substitutedContextReceiverParameters,
+                substitutedTypeParameters,
+                substitutedValueParameters,
+                substitutedReturnType,
+                configuration.newModality,
+                configuration.newVisibility
+        );
+        substitutedDescriptor.setOperator(isOperator);
 //        substitutedDescriptor.setInfix(isInfix);
 //        substitutedDescriptor.setExternal(isExternal);
 //        substitutedDescriptor.setInline(isInline);
@@ -563,63 +573,64 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 //        substitutedDescriptor.setSuspend(isSuspend);
 //        substitutedDescriptor.setExpect(isExpect);
 //        substitutedDescriptor.setActual(isActual);
-//        substitutedDescriptor.setHasStableParameterNames(hasStableParameterNames);
-//        substitutedDescriptor.setHiddenToOvercomeSignatureClash(configuration.isHiddenToOvercomeSignatureClash);
-//        substitutedDescriptor.setHiddenForResolutionEverywhereBesideSupercalls(configuration.isHiddenForResolutionEverywhereBesideSupercalls);
+        substitutedDescriptor.setHasStableParameterNames(hasStableParameterNames);
+        substitutedDescriptor.setHiddenToOvercomeSignatureClash(configuration.isHiddenToOvercomeSignatureClash);
+        substitutedDescriptor.setHiddenForResolutionEverywhereBesideSupercalls(configuration.isHiddenForResolutionEverywhereBesideSupercalls);
 //
 //        substitutedDescriptor.setHasSynthesizedParameterNames(
 //                configuration.newHasSynthesizedParameterNames != null ? configuration.newHasSynthesizedParameterNames : hasSynthesizedParameterNames
 //        );
 //
-//        if (!configuration.userDataMap.isEmpty() || userDataMap != null) {
-//            Map<UserDataKey<?>, Object> newMap = configuration.userDataMap;
-//
-//            if (userDataMap != null) {
-//                for (Map.Entry<UserDataKey<?>, Object> entry : userDataMap.entrySet()) {
-//                    if (!newMap.containsKey(entry.getKey())) {
-//                        newMap.put(entry.getKey(), entry.getValue());
-//                    }
-//                }
-//            }
-//
-//            if (newMap.size() == 1) {
-//                substitutedDescriptor.userDataMap =
-//                        Collections.singletonMap(
-//                                newMap.keySet().iterator().next(), newMap.values().iterator().next());
-//            } else {
-//                substitutedDescriptor.userDataMap = newMap;
-//            }
-//        }
-//
-//        if (configuration.signatureChange || getInitialSignatureDescriptor() != null) {
-//            FunctionDescriptor initialSignature = (getInitialSignatureDescriptor() != null ? getInitialSignatureDescriptor() : this);
-//            FunctionDescriptor initialSignatureSubstituted = initialSignature.substitute(substitutor);
-//            substitutedDescriptor.setInitialSignatureDescriptor(initialSignatureSubstituted);
-//        }
-//
-//        if (configuration.copyOverrides && !getOriginal().getOverriddenDescriptors().isEmpty()) {
-//            if (configuration.substitution.isEmpty()) {
-//                Function0<Collection<FunctionDescriptor>> overriddenFunctionsTask = lazyOverriddenFunctionsTask;
-//                if (overriddenFunctionsTask != null) {
-//                    substitutedDescriptor.lazyOverriddenFunctionsTask = overriddenFunctionsTask;
-//                } else {
-//                    substitutedDescriptor.setOverriddenDescriptors(getOverriddenDescriptors());
-//                }
-//            } else {
-//                substitutedDescriptor.lazyOverriddenFunctionsTask = new Function0<Collection<FunctionDescriptor>>() {
-//                    @Override
-//                    public Collection<FunctionDescriptor> invoke() {
-//                        Collection<FunctionDescriptor> result = new SmartList<>();
-//                        for (FunctionDescriptor overriddenFunction : getOverriddenDescriptors()) {
-//                            result.add(overriddenFunction.substitute(substitutor));
-//                        }
-//                        return result;
-//                    }
-//                };
-//            }
-//        }
+        if (!configuration.userDataMap.isEmpty() || userDataMap != null) {
+            Map<UserDataKey<?>, Object> newMap = configuration.userDataMap;
 
-//        return substitutedDescriptor;
+            if (userDataMap != null) {
+                for (Map.Entry<UserDataKey<?>, Object> entry : userDataMap.entrySet()) {
+                    if (!newMap.containsKey(entry.getKey())) {
+                        newMap.put(entry.getKey(), entry.getValue());
+                    }
+                }
+            }
+
+            if (newMap.size() == 1) {
+                substitutedDescriptor.userDataMap =
+                        Collections.singletonMap(
+                                newMap.keySet().iterator().next(), newMap.values().iterator().next());
+            } else {
+                substitutedDescriptor.userDataMap = newMap;
+            }
+        }
+//
+        if (configuration.signatureChange || getInitialSignatureDescriptor() != null) {
+            FunctionDescriptor initialSignature = (getInitialSignatureDescriptor() != null ? getInitialSignatureDescriptor() : this);
+            FunctionDescriptor initialSignatureSubstituted = initialSignature.substitute(substitutor);
+            substitutedDescriptor.setInitialSignatureDescriptor(initialSignatureSubstituted);
+        }
+
+        if (configuration.copyOverrides && !getOriginal().getOverriddenDescriptors().isEmpty()) {
+            if (configuration.substitution.isEmpty()) {
+                Function0<Collection<FunctionDescriptor>> overriddenFunctionsTask = lazyOverriddenFunctionsTask;
+                if (overriddenFunctionsTask != null) {
+                    substitutedDescriptor.lazyOverriddenFunctionsTask = overriddenFunctionsTask;
+                } else {
+                    substitutedDescriptor.setOverriddenDescriptors(getOverriddenDescriptors());
+                }
+            } else {
+                substitutedDescriptor.lazyOverriddenFunctionsTask = new Function0<Collection<FunctionDescriptor>>() {
+                    @Override
+                    public Collection<FunctionDescriptor> invoke() {
+                        Collection<FunctionDescriptor> result = new SmartList<>();
+                        for (FunctionDescriptor overriddenFunction : getOverriddenDescriptors()) {
+                            result.add(overriddenFunction.substitute(substitutor));
+                        }
+                        return result;
+                    }
+                };
+            }
+        }
+
+        return substitutedDescriptor;
+//        return null;
     }
 
     @NotNull

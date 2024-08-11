@@ -6,7 +6,7 @@ import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.resolve.calls.inference.CapturedTypeConstructor
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.types.*
-import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.replaceArguments
+
 import com.huawei.cangjie.types.error.ErrorScopeKind
 import com.huawei.cangjie.types.model.CaptureStatus
 import com.huawei.cangjie.types.model.CapturedTypeMarker
@@ -41,7 +41,7 @@ class NewCapturedTypeConstructor(
     override fun getSupertypes() = _supertypes ?: emptyList()
     override fun getParameters(): List<TypeParameterDescriptor> = emptyList()
 
-//    override fun isFinal() = false
+    //    override fun isFinal() = false
     override fun isDenotable() = false
     override fun getDeclarationDescriptor(): ClassifierDescriptor? = null
     override fun getBuiltIns(): CangJieBuiltIns = projection.type.builtIns
@@ -91,7 +91,10 @@ class NewCapturedType(
     val isProjectionNotNull: Boolean = false
 ) : SimpleType(), CapturedTypeMarker {
     internal constructor(
-        captureStatus: CaptureStatus, lowerType: UnwrappedType?, projection: TypeProjection, typeParameter: TypeParameterDescriptor
+        captureStatus: CaptureStatus,
+        lowerType: UnwrappedType?,
+        projection: TypeProjection,
+        typeParameter: TypeParameterDescriptor
     ) : this(captureStatus, NewCapturedTypeConstructor(projection, typeParameter = typeParameter), lowerType)
 
     override val arguments: List<TypeProjection> get() = listOf()
@@ -106,7 +109,7 @@ class NewCapturedType(
         NewCapturedType(captureStatus, constructor, lowerType, attributes, newNullability)
 
     @TypeRefinement
-    override fun refine(cangjieTypeRefiner:CangJieTypeRefiner) =
+    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) =
         NewCapturedType(
             captureStatus,
             constructor.refine(cangjieTypeRefiner),
@@ -132,7 +135,12 @@ private fun captureArguments(type: UnwrappedType, status: CaptureStatus): List<T
                 null
             }
 
-        NewCapturedType(status, lowerType, projection, parameter).asTypeProjection() // todo optimization: do not create type projection
+        NewCapturedType(
+            status,
+            lowerType,
+            projection,
+            parameter
+        ).asTypeProjection() // todo optimization: do not create type projection
     }
 
     val substitutor = TypeConstructorSubstitution.create(type.constructor, capturedArguments).buildSubstitutor()
@@ -156,14 +164,125 @@ private fun captureArguments(type: UnwrappedType, status: CaptureStatus): List<T
 
     return capturedArguments
 }
+
 // this function suppose that input type is simple classifier type
 internal fun captureFromArguments(type: SimpleType, status: CaptureStatus) =
     captureArguments(type, status)?.let { type.replaceArguments(it) }
 
+private fun UnwrappedType.replaceArguments(arguments: List<TypeProjection>) =
+    CangJieTypeFactory.simpleType(attributes, constructor, arguments, isMarkedNullable)
+
+private fun captureFromArguments(type: UnwrappedType, status: CaptureStatus): UnwrappedType? {
+    val capturedArguments = captureArguments(type, status) ?: return null
+
+    return if (type is FlexibleType) {
+        CangJieTypeFactory.flexibleType(
+            type.lowerBound.replaceArguments(capturedArguments),
+            type.upperBound.replaceArguments(capturedArguments)
+        )
+    } else {
+        type.replaceArguments(capturedArguments)
+    }
+}
+
 // null means that type should be leaved as is
 fun prepareArgumentTypeRegardingCaptureTypes(argumentType: UnwrappedType): UnwrappedType? {
-    return  null
+    return null
 //    return
 //    if (argumentType is NewCapturedType) null else
 //        captureFromExpression(argumentType)
+}
+
+fun captureFromExpression(type: UnwrappedType): UnwrappedType? {
+    val typeConstructor = type.constructor
+
+    if (typeConstructor !is IntersectionTypeConstructor) {
+        return captureFromArguments(type, CaptureStatus.FROM_EXPRESSION)
+    }
+
+    /*
+     * We capture arguments in the intersection types in specific way:
+     *  1) Firstly, we create captured arguments for all type arguments grouped by a type constructor* and a type argument's type.
+     *      It means, that we create only one captured argument for two types `Foo<*>` and `Foo<*>?` within a flexible type, for instance.
+     *      * In addition to grouping by type constructors, we look at possibility locating of two types in different bounds of the same flexible type.
+     *        This is necessary in order to create the same captured arguments,
+     *        for example, for `MutableList` in the lower bound of the flexible type and for `List` in the upper one.
+     *        Example: MutableList<*>..List<*>? -> MutableList<Captured1(*)>..List<Captured2(*)>?, Captured1(*) and Captured2(*) are the same.
+     *  2) Secondly, we replace type arguments with captured arguments by given a type constructor and type arguments.
+     */
+    val capturedArgumentsByComponents = captureArgumentsForIntersectionType(type) ?: return null
+
+    // We reuse `TypeToCapture` for some types, suitability to reuse defines by `isSuitableForType`
+    fun findCorrespondingCapturedArgumentsForType(type: CangJieType) =
+        capturedArgumentsByComponents.find { typeToCapture -> typeToCapture.isSuitableForType(type) }?.capturedArguments
+
+    fun replaceArgumentsWithCapturedArgumentsByIntersectionComponents(typeToReplace: UnwrappedType): List<SimpleType> {
+        return if (typeToReplace.constructor is IntersectionTypeConstructor) {
+            typeToReplace.constructor.supertypes.map { componentType ->
+                val capturedArguments = findCorrespondingCapturedArgumentsForType(componentType)
+                    ?: return@map componentType.asSimpleType()
+                componentType.unwrap().replaceArguments(capturedArguments)
+            }
+        } else {
+            val capturedArguments = findCorrespondingCapturedArgumentsForType(typeToReplace)
+                ?: return listOf(typeToReplace.asSimpleType())
+            listOf(typeToReplace.unwrap().replaceArguments(capturedArguments))
+        }
+    }
+
+    return if (type is FlexibleType) {
+        val lowerIntersectedType =
+            intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type.lowerBound))
+                .makeNullableAsSpecified(type.lowerBound.isMarkedNullable)
+        val upperIntersectedType =
+            intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type.upperBound))
+                .makeNullableAsSpecified(type.upperBound.isMarkedNullable)
+
+        CangJieTypeFactory.flexibleType(lowerIntersectedType, upperIntersectedType)
+    } else {
+        intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type)).makeNullableAsSpecified(type.isMarkedNullable)
+    }
+}
+
+private fun captureArgumentsForIntersectionType(type: CangJieType): List<CapturedArguments>? {
+    // It's possible to have one of the bounds as non-intersection type
+    fun getTypesToCapture(type: CangJieType) =
+        if (type.constructor is IntersectionTypeConstructor) type.constructor.supertypes else listOf(type)
+
+    val filteredTypesToCapture =
+        if (type is FlexibleType) {
+            val typesToCapture = getTypesToCapture(type.lowerBound) + getTypesToCapture(type.upperBound)
+            typesToCapture.distinctBy {
+                (/*FlexibleTypeBoundsChecker.getBaseBoundFqNameByMutability(it) ?: */it.constructor) to it.arguments
+            }
+        } else type.constructor.supertypes
+
+    var changed = false
+
+    val capturedArgumentsByTypes = filteredTypesToCapture.mapNotNull { typeToCapture ->
+        val capturedArguments = captureArguments(typeToCapture.unwrap(), CaptureStatus.FROM_EXPRESSION)
+            ?: return@mapNotNull null
+        changed = true
+        CapturedArguments(capturedArguments, originalType = typeToCapture)
+    }
+
+    if (!changed) return null
+
+    return capturedArgumentsByTypes
+}
+private class CapturedArguments(val capturedArguments: List<TypeProjection>, private val originalType: CangJieType) {
+    fun isSuitableForType(type: CangJieType): Boolean {
+        val areArgumentsMatched = type.arguments.withIndex().all { (i, typeArgumentsType) ->
+            originalType.arguments.size > i && typeArgumentsType == originalType.arguments[i]
+        }
+
+        if (!areArgumentsMatched) return false
+
+        val areConstructorsMatched = originalType.constructor == type.constructor
+//                || areTypesMayBeLowerAndUpperBoundsOfSameFlexibleTypeByMutability(originalType, type)
+
+        if (!areConstructorsMatched) return false
+
+        return true
+    }
 }

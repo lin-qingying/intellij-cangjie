@@ -6,8 +6,11 @@ import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.caches.safeAnalyzeNonSourceRootCode
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
+
+
 
 class CjReferenceResolutionHelperImpl:CjReferenceResolutionHelper {
     override fun partialAnalyze(element: CjElement): BindingContext = element.safeAnalyzeNonSourceRootCode(

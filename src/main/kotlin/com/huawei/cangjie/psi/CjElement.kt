@@ -57,6 +57,8 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
         return file
     }
 
+
+
     override fun delete() {
         this.deleteSemicolon()
         super.delete()

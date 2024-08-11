@@ -8,6 +8,7 @@ import com.huawei.cangjie.context.ModuleContext
 import com.huawei.cangjie.descriptors.CompositePackageFragmentProvider
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.PackageFragmentProvider
+import com.huawei.cangjie.descriptors.impl.ModuleDependencies
 import com.huawei.cangjie.descriptors.impl.ModuleDescriptorImpl
 import com.huawei.cangjie.frontend.createContainerForLazyResolve
 import com.huawei.cangjie.resolve.CodeAnalyzerInitializer
@@ -15,12 +16,14 @@ import com.huawei.cangjie.resolve.caches.ModuleContent
 import com.huawei.cangjie.resolve.lazy.AbsentDescriptorHandler
 import com.huawei.cangjie.resolve.lazy.ResolveSession
 import com.huawei.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService
+import com.huawei.cangjie.storage.StorageManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 
 interface TrackableModuleInfo : ModuleInfo {
     fun createModificationTracker(): ModificationTracker
 }
+
 fun ModuleInfo.flatten(): List<ModuleInfo> = when (this) {
 //    is CombinedModuleInfo -> listOf(this) + containedModules
     else -> listOf(this)
@@ -67,7 +70,8 @@ class EmptyResolverForProject<M : ModuleInfo> : ResolverForProject<M>() {
 
 abstract class ResolverForProject<M : ModuleInfo> {
     abstract val allModules: Collection<M>
-    fun resolverForModule(moduleInfo: M): ResolverForModule = resolverForModuleDescriptor(descriptorForModule(moduleInfo))
+    fun resolverForModule(moduleInfo: M): ResolverForModule =
+        resolverForModuleDescriptor(descriptorForModule(moduleInfo))
 
     abstract val name: String
     abstract fun descriptorForModule(moduleInfo: M): ModuleDescriptor
@@ -88,6 +92,7 @@ interface ResolverForModuleComputationTracker {
             project.getComponent(ResolverForModuleComputationTracker::class.java) ?: null
     }
 }
+
 abstract class ResolverForModuleFactory {
     open fun <M : ModuleInfo> createResolverForModule(
         moduleDescriptor: ModuleDescriptorImpl,
@@ -140,7 +145,7 @@ abstract class ResolverForModuleFactory {
 }
 
 
-class CangJieResolverForModuleFactory:ResolverForModuleFactory(){
+class CangJieResolverForModuleFactory : ResolverForModuleFactory() {
     override fun <M : ModuleInfo> createResolverForModule(
         moduleDescriptor: ModuleDescriptorImpl,
         moduleContext: ModuleContext,
@@ -183,13 +188,14 @@ class CangJieResolverForModuleFactory:ResolverForModuleFactory(){
         val providersForModule = arrayListOf(
             container.get<ResolveSession>().getPackageFragmentProvider(),
 
-        )
+            )
         return ResolverForModule(
             CompositePackageFragmentProvider(providersForModule, "CompositeProvider@JvmResolver for $moduleDescriptor"),
             container
         )
     }
 }
+
 interface LanguageSettingsProvider {
     fun getLanguageVersionSettings(
         moduleInfo: ModuleInfo,
@@ -203,5 +209,62 @@ interface LanguageSettingsProvider {
             project: Project
         ) = LanguageVersionSettingsImpl.DEFAULT
 
-             }
+    }
+}
+
+
+
+class LazyModuleDependencies<M : ModuleInfo>(
+    storageManager: StorageManager,
+    private val module: M,
+    firstDependency: M?,
+    private val resolverForProject: AbstractResolverForProject<M>
+) : ModuleDependencies {
+    companion object {
+        private fun ModuleInfo.assertModuleDependencyIsCorrect(dependency: ModuleDescriptor) {
+            assertModuleDependencyIsCorrect(dependency.getCapability(ModuleInfo.Capability) ?: return)
+        }
+
+        private fun ModuleInfo.assertModuleDependencyIsCorrect(dependency: ModuleInfo) {
+            assert(dependency !is DerivedModuleInfo || this is DerivedModuleInfo) {
+                "Derived module infos may not be referenced from regular ones"
+            }
+        }
+    }
+    private val dependencies = storageManager.createLazyValue {
+        val moduleDescriptors = mutableSetOf<ModuleDescriptorImpl>()
+        firstDependency?.let {
+            module.assertModuleDependencyIsCorrect(it)
+            moduleDescriptors.add(resolverForProject.descriptorForModule(it))
+        }
+        val moduleDescriptor = resolverForProject.descriptorForModule(module)
+        val dependencyOnBuiltIns = module.dependencyOnBuiltIns()
+        if (dependencyOnBuiltIns == ModuleInfo.DependencyOnBuiltIns.AFTER_SDK) {
+            val builtInsModule = moduleDescriptor.builtIns.builtInsModule
+            module.assertModuleDependencyIsCorrect(builtInsModule)
+            moduleDescriptors.add(builtInsModule)
+        }
+        for (dependency in module.dependencies()) {
+            if (dependency == firstDependency) continue
+            module.assertModuleDependencyIsCorrect(dependency)
+
+            @Suppress("UNCHECKED_CAST")
+            moduleDescriptors.add(resolverForProject.descriptorForModule(dependency as M))
+        }
+        if (dependencyOnBuiltIns == ModuleInfo.DependencyOnBuiltIns.LAST) {
+            val builtInsModule = moduleDescriptor.builtIns.builtInsModule
+            module.assertModuleDependencyIsCorrect(builtInsModule)
+            moduleDescriptors.add(builtInsModule)
+        }
+        moduleDescriptors.toList()
+    }
+
+    override val allDependencies: List<ModuleDescriptorImpl>
+        get()  = dependencies()
+    override val modulesWhoseInternalsAreVisible: Set<ModuleDescriptorImpl>
+        get() = emptySet()
+    override val directExpectedByDependencies: List<ModuleDescriptorImpl>
+        get() = emptyList()
+    override val allExpectedByDependencies: Set<ModuleDescriptorImpl>
+        get() = emptySet()
 }

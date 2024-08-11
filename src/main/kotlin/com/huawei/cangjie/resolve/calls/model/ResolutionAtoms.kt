@@ -74,7 +74,7 @@ abstract class ResolvedCallAtom : ResolvedAtom() {
 
     abstract val knownParametersSubstitutor: NewTypeSubstitutor
 
-    //    abstract val argumentsWithConversion: Map<CangJieCallArgument, SamConversionDescription>
+        abstract val argumentsWithConversion: Map<CangJieCallArgument, SamConversionDescription>
 //    abstract val argumentsWithSuspendConversion: Map<CangJieCallArgument, UnwrappedType>
     abstract val argumentsWithUnitConversion: Map<CangJieCallArgument, UnwrappedType>
 

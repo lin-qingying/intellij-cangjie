@@ -7,6 +7,8 @@ import com.huawei.cangjie.types.typesApproximation.CapturedTypeApproximationKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+
 public class TypeSubstitutor implements TypeSubstitutorMarker {
 
     private final @NotNull TypeSubstitution substitution;
@@ -16,6 +18,12 @@ public class TypeSubstitutor implements TypeSubstitutorMarker {
     public static TypeSubstitutor createChainedSubstitutor(@NotNull TypeSubstitution first, @NotNull TypeSubstitution second) {
         return create(DisjointKeysUnionTypeSubstitution.create(first, second));
     }
+
+    @NotNull
+    public static TypeSubstitutor create(@NotNull Map<TypeConstructor, TypeProjection> substitutionContext) {
+        return create(TypeConstructorSubstitution.createByConstructorsMap(substitutionContext));
+    }
+
     @NotNull
     public static Variance combine(@NotNull Variance typeParameterVariance, @NotNull Variance projectionKind) {
         if (typeParameterVariance == Variance.INVARIANT) return projectionKind;

@@ -12,9 +12,12 @@ import com.intellij.util.io.StringRef
 class CangJiePropertyStubImpl(
     parent: StubElement<out PsiElement>?,
     private val name: StringRef?,
-    private val fqName: FqName?
+    private val fqName: FqName?,
+    private val hasReturnTypeRef: Boolean,
+
 ) : CangJieStubBaseImpl<CjProperty>(parent, CjStubElementTypes.PROPERTY), CangJiePropertyStub {
     override fun getFqName(): FqName? = fqName
+    override fun hasReturnTypeRef() = hasReturnTypeRef
 
     override fun getName(): String? = StringRef.toString(name)
 }

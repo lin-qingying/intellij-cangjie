@@ -26,7 +26,7 @@ import com.huawei.cangjie.utils.SmartList
 
 
 class CallableReferencesCandidateFactory(
-    val kotlinCall: CallableReferenceResolutionAtom,
+    val cangjieCall: CallableReferenceResolutionAtom,
     val callComponents: CangJieCallComponents,
     val scopeTower: ImplicitScopeTower,
     val expectedType: UnwrappedType?,
@@ -37,7 +37,7 @@ class CallableReferencesCandidateFactory(
     private fun toCallableReceiver(receiver: ReceiverValueWithSmartCastInfo, isExplicit: Boolean): CallableReceiver {
         if (!isExplicit) return CallableReceiver.ScopeReceiver(receiver)
 
-        return when (val lhsResult = kotlinCall.lhsResult) {
+        return when (val lhsResult = cangjieCall.lhsResult) {
             is LHSResult.Expression -> CallableReceiver.ExplicitValueReceiver(receiver)
             is LHSResult.Type -> {
                 if (lhsResult.qualifier?.classValueReceiver?.type == receiver.receiverValue.type) {
@@ -152,7 +152,7 @@ class CallableReferencesCandidateFactory(
         fun createCallableReferenceCallCandidate(diagnostics: List<CangJieCallDiagnostic>) = CallableReferenceResolutionCandidate(
             candidateDescriptor, dispatchCallableReceiver, extensionCallableReceiver,
             explicitReceiverKind, reflectionCandidateType, callableReferenceAdaptation,
-            kotlinCall, expectedType, callComponents, scopeTower, resolutionCallbacks, baseSystem
+            cangjieCall, expectedType, callComponents, scopeTower, resolutionCallbacks, baseSystem
         ).also { diagnostics.forEach(it::addDiagnostic) }
 
 //        if (callComponents.statelessCallbacks.isHiddenInResolution(candidateDescriptor, cangjieCall.call, resolutionCallbacks)) {

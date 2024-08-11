@@ -8,7 +8,7 @@ import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.DescriptorUtils
-import com.huawei.cangjie.resolve.constants.IntValue
+import com.huawei.cangjie.resolve.constants.Int32Value
 import com.huawei.cangjie.resolve.constants.StringValue
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.util.asTypeProjection
@@ -16,6 +16,14 @@ import com.huawei.cangjie.types.util.replaceAnnotations
 import com.intellij.util.containers.addIfNotNull
 
 
+fun CangJieType.getValueParameterTypesFromCallableReflectionType(isCallableTypeWithExtension: Boolean): List<TypeProjection> {
+//    assert(ReflectionTypes.isCCallableType(this)) { "Not a callable reflection type: $this" }
+    val arguments = arguments
+    val first = if (isCallableTypeWithExtension) 1 else 0
+    val last = arguments.size - 1
+    assert(first <= last) { "Not an exact function type: $this" }
+    return arguments.subList(first, last)
+}
 fun getFunctionTypeArgumentProjections(
     receiverType: CangJieType?,
     contextReceiverTypes: List<CangJieType>,
@@ -81,7 +89,7 @@ fun Annotations.withContextReceiversFunctionAnnotation(builtIns: CangJieBuiltIns
         Annotations.create(
             this + BuiltInAnnotationDescriptor(
                 builtIns, StandardNames.FqNames.contextFunctionTypeParams, mapOf(
-                    StandardNames.CONTEXT_FUNCTION_TYPE_PARAMETER_COUNT_NAME to IntValue(contextReceiversCount)
+                    StandardNames.CONTEXT_FUNCTION_TYPE_PARAMETER_COUNT_NAME to Int32Value(contextReceiversCount)
                 )
             )
         )
@@ -123,7 +131,7 @@ fun CangJieType.contextFunctionTypeParamsCount(): Int {
     val annotationDescriptor = annotations.findAnnotation(StandardNames.FqNames.contextFunctionTypeParams) ?: return 0
     val constantValue =
         annotationDescriptor.allValueArguments.getValue(StandardNames.CONTEXT_FUNCTION_TYPE_PARAMETER_COUNT_NAME)
-    return (constantValue as IntValue).value
+    return (constantValue as Int32Value).value
 
 
 }

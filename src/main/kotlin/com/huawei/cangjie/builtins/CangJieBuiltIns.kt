@@ -1,6 +1,5 @@
 package com.huawei.cangjie.builtins
 
-import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import com.huawei.cangjie.builtins.StandardNames.FqNames.any
 import com.huawei.cangjie.builtins.StandardNames.FqNames.bool
@@ -64,7 +63,7 @@ open class CangJieBuiltIns(
         fun isAnyOrNullableAny(type: CangJieType): Boolean {
             return isConstructedFromGivenClass(type, any)
         }
-
+@JvmStatic
         fun isNothing(type: CangJieType): Boolean {
             return (isNothingOrNullableNothing(type)
                     && !TypeUtils.isNullableType(type))
@@ -92,7 +91,7 @@ open class CangJieBuiltIns(
         fun isUnit(type: CangJieType): Boolean {
             return isNotNullConstructedFromGivenClass(type, StandardNames.FqNames.unit)
         }
-
+@JvmStatic
         fun isNothingOrNullableNothing(type: CangJieType): Boolean {
             return isConstructedFromGivenClass(type, nothing)
         }
@@ -234,7 +233,17 @@ open class CangJieBuiltIns(
         classifier
     }
 
-    private var builtInsModule: ModuleDescriptorImpl? = null
+    var myBuiltInsModule: ModuleDescriptorImpl? = null
+
+    val builtInsModule: ModuleDescriptorImpl
+        get() {
+
+            assert(myBuiltInsModule != null || postponedBuiltInsModule != null) { "Uninitialized built-ins module" }
+            if (myBuiltInsModule == null) {
+                myBuiltInsModule = postponedBuiltInsModule!!.invoke()
+            }
+            return myBuiltInsModule!!
+        }
     private var postponedBuiltInsModule: NotNullLazyValue<ModuleDescriptorImpl>? =
         null
 
@@ -244,7 +253,7 @@ open class CangJieBuiltIns(
 
     fun getBuiltInClassByFqName(fqName: FqName): ClassDescriptor {
         val descriptor: ClassDescriptor =
-            getBuiltInsModule().resolveClassByFqName(
+            builtInsModule.resolveClassByFqName(
                 fqName,
                 NoLookupLocation.FROM_BUILTINS
             )
@@ -262,31 +271,31 @@ open class CangJieBuiltIns(
 
 
     protected fun createBuiltInsModule(isFallback: Boolean) {
-        builtInsModule = ModuleDescriptorImpl(
+        myBuiltInsModule = ModuleDescriptorImpl(
             BUILTINS_MODULE_NAME, storageManager,
             this,
 //            null
         )
-        builtInsModule?.initialize(
+        builtInsModule.initialize(
             BuiltInsLoader.Instance.createPackageFragmentProvider(
                 storageManager,
-                builtInsModule!!,
-//                getClassDescriptorFactories(),
-//                getPlatformDependentDeclarationFilter(),
-//                getAdditionalClassPartsProvider(),
+                builtInsModule,
+                //                getClassDescriptorFactories(),
+                //                getPlatformDependentDeclarationFilter(),
+                //                getAdditionalClassPartsProvider(),
                 isFallback
             )
         )
-        builtInsModule?.setDependencies(builtInsModule!!)
+        builtInsModule.setDependencies(builtInsModule)
     }
 
-    fun getBuiltInsModule(): ModuleDescriptorImpl {
-        assert(builtInsModule != null || postponedBuiltInsModule != null) { "Uninitialized built-ins module" }
-        if (builtInsModule == null) {
-            builtInsModule = postponedBuiltInsModule?.invoke()
-        }
-        return builtInsModule!!
-    }
+//    fun getBuiltInsModule(): ModuleDescriptorImpl {
+//        assert(builtInsModule != null || postponedBuiltInsModule != null) { "Uninitialized built-ins module" }
+//        if (builtInsModule == null) {
+//            builtInsModule = postponedBuiltInsModule?.invoke()
+//        }
+//        return builtInsModule
+//    }
 
     fun setPostponedBuiltinsModuleComputation(computation: () -> ModuleDescriptorImpl) {
         postponedBuiltInsModule = storageManager.createLazyValue(computation)
@@ -294,7 +303,7 @@ open class CangJieBuiltIns(
 
 
     fun getBuiltInsPackageScope(): MemberScope {
-        return getBuiltInsModule().getPackage(BUILT_INS_PACKAGE_FQ_NAME).memberScope
+        return builtInsModule.getPackage(BUILT_INS_PACKAGE_FQ_NAME).memberScope
     }
 
 
@@ -334,13 +343,16 @@ open class CangJieBuiltIns(
     val uint8Type = getPrimitiveCangJieType(PrimitiveType.UINT8)
     val uintNativeType get() = getPrimitiveCangJieType(PrimitiveType.UINTNATIVE)
 
+
+//    float
+    val float64Type get() = getPrimitiveCangJieType(PrimitiveType.FLOAT64)
+    val float32Type get() = getPrimitiveCangJieType(PrimitiveType.FLOAT32)
+    val float16Type get() = getPrimitiveCangJieType(PrimitiveType.FLOAT16)
 }
 
 
+fun createBuiltIns(projectContext: ProjectContext, resolver: IdeaResolverForProject): CangJieBuiltIns {
 
 
-fun  createBuiltIns(projectContext: ProjectContext, resolver: IdeaResolverForProject):CangJieBuiltIns{
-
-
-    return CangJieBuiltIns(projectContext.storageManager )
+    return CangJieBuiltIns(projectContext.storageManager)
 }

@@ -6,7 +6,7 @@ enum class CandidateApplicability {
      * Special applicability for migration warning up to 1.5.
      * Used when resolved to function with SAM conversion and array without spread as vararg.
      */
-    K1_RESOLVED_TO_SAM_WITH_VARARG,
+     RESOLVED_TO_SAM_WITH_VARARG,
 
     /**
      * Candidate is removed from resolve due to SinceCangJie with later version or Deprecation with hidden level.
@@ -21,7 +21,7 @@ enum class CandidateApplicability {
      * Reported for references to local variables in K2.
      * Provokes UNSUPPORTED.
      */
-    K2_UNSUPPORTED,
+     UNSUPPORTED,
 
     /**
      * Candidate could be successful but receiver isn't matched
@@ -41,24 +41,24 @@ enum class CandidateApplicability {
     /**
      * Candidate could be successful but uses some non-object classifier without companion object as a variable.
      */
-    K2_NO_COMPANION_OBJECT,
+     NO_COMPANION_OBJECT,
 
     /**
      * Candidate could be successful but requires access to outer class from nested (non-inner)
      */
-    K1_IMPOSSIBLE_TO_GENERATE,
+     IMPOSSIBLE_TO_GENERATE,
 
-    // TODO: Consider re-assigning this diagnostics (K1_RUNTIME_ERROR)
+    // TODO: Consider re-assigning this diagnostics ( RUNTIME_ERROR)
 
     /**
      * This applicability is used in K1 as a catch-all for all other errors.
      */
-    K1_RUNTIME_ERROR,
+     RUNTIME_ERROR,
 
     /**
      * Candidate isn't visible. Provokes INVISIBLE_REFERENCE.
      */
-    K2_VISIBILITY_ERROR,
+     VISIBILITY_ERROR,
 
     /**
      * Candidate could be successful but receiver (or argument?) nullability doesn't match
@@ -88,7 +88,7 @@ enum class CandidateApplicability {
      * Candidate is successful but uses property of functional type as an operator.
      * Tower resolve proceeds to next levels.
      */
-    K2_PROPERTY_AS_OPERATOR,
+     PROPERTY_AS_OPERATOR,
 
     /**
      * Candidate is successful but uses new features that change resolve.
@@ -103,7 +103,7 @@ enum class CandidateApplicability {
      * Successful but synthetic candidate.
      * Used in K2 for (Java) synthetic discrimination at the same level.
      */
-    K2_SYNTHETIC_RESOLVED,
+     SYNTHETIC_RESOLVED,
 
     /**
      * Candidate has some error, but it is still successful from resolution perspective.
@@ -123,7 +123,7 @@ enum class CandidateApplicability {
  * and should not go to further scope levels. Note that candidate can still have error(s).
  */
 val CandidateApplicability.shouldStopResolve: Boolean
-    get() = this >= CandidateApplicability.K2_SYNTHETIC_RESOLVED
+    get() = this >= CandidateApplicability. SYNTHETIC_RESOLVED
 /**
  * This property determines that the considered candidate is "successful" in terms of having no resolve errors.
  * Note that it does not necessarily mean tower resolve should stop on this candidate.

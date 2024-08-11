@@ -1,8 +1,6 @@
 package com.huawei.cangjie.psi.psiUtil
 
-import com.huawei.cangjie.lexer.CjTokens
-import com.huawei.cangjie.psi.CjFile
-import com.huawei.cangjie.psi.CjModifierList
+import com.huawei.cangjie.psi.*
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project
@@ -10,6 +8,8 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
 import com.intellij.psi.impl.source.tree.LazyParseablePsiElement
 import com.intellij.psi.impl.source.tree.TreeUtil
+import com.intellij.psi.search.PsiSearchScopeUtil
+import com.intellij.psi.search.SearchScope
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtilCore
@@ -18,20 +18,61 @@ inline fun <reified T : PsiElement> PsiElement.getParentOfType(strict: Boolean):
     return PsiTreeUtil.getParentOfType(this, T::class.java, strict)
 }
 
+fun CjExpression.getBinaryWithTypeParent(): CjBinaryExpressionWithTypeRHS? {
+    val callExpression = parent as? CjCallExpression ?: return null
+    val possibleQualifiedExpression = callExpression.parent
+
+    val targetExpression = if (possibleQualifiedExpression is CjQualifiedExpression) {
+        if (possibleQualifiedExpression.selectorExpression != callExpression) return null
+        possibleQualifiedExpression
+    } else {
+        callExpression
+    }
+
+    return targetExpression.topParenthesizedParentOrMe().parent as? CjBinaryExpressionWithTypeRHS
+}
+fun PsiElement?.unwrapParenthesesLabelsAndAnnotations(): PsiElement? {
+    var unwrapped = this
+    while (true) {
+        unwrapped = when (unwrapped) {
+            is CjParenthesizedExpression -> unwrapped.expression
+//            is CjLabeledExpression -> unwrapped.baseExpression
+//            is CjAnnotatedExpression -> unwrapped.baseExpression
+            else -> return unwrapped
+        }
+    }
+}
+inline fun <reified T : PsiElement> PsiElement.anyDescendantOfType(noinline predicate: (T) -> Boolean = { true }): Boolean {
+    return findDescendantOfType(predicate) != null
+}
+
+inline fun <reified T : PsiElement> PsiElement.findDescendantOfType(noinline predicate: (T) -> Boolean = { true }): T? {
+    return findDescendantOfType({ true }, predicate)
+}
+
+fun CjExpression.topParenthesizedParentOrMe(): CjExpression {
+    var result: CjExpression = this
+    while (CjPsiUtil.deparenthesizeOnce(result.parent as? CjExpression) == result) {
+        result = result.parent as? CjExpression ?: break
+    }
+    return result
+}
 
 fun Document.toPsiFile(project: Project): PsiFile? =
     PsiDocumentManager.getInstance(project).getPsiFile(this)
+
 /**
  * Extracts node's element type
  */
 val PsiElement.elementType: IElementType
     get() = elementTypeOrNull!!
 
-
+operator fun SearchScope.contains(element: PsiElement): Boolean = PsiSearchScopeUtil.isInScope(this, element)
 
 val PsiElement.elementTypeOrNull: IElementType?
     // XXX: be careful not to switch to AST
-    get() =   PsiUtilCore.getElementType(this)
+    get() = PsiUtilCore.getElementType(this)
+
 fun PsiElement.siblings(forward: Boolean = true, withItself: Boolean = true): Sequence<PsiElement> {
     return object : Sequence<PsiElement> {
         override fun iterator(): Iterator<PsiElement> {
@@ -60,6 +101,7 @@ fun PsiElement.prevLeaf(filter: (PsiElement) -> Boolean): PsiElement? {
     }
     return leaf
 }
+
 fun PsiElement.prevLeaf(skipEmptyElements: Boolean = false): PsiElement? = PsiTreeUtil.prevLeaf(this, skipEmptyElements)
 
 fun PsiElement.nextLeaf(filter: (PsiElement) -> Boolean): PsiElement? {
@@ -69,6 +111,7 @@ fun PsiElement.nextLeaf(filter: (PsiElement) -> Boolean): PsiElement? {
     }
     return leaf
 }
+
 val PsiElement.endOffset: Int
     get() = textRange.endOffset
 
@@ -87,6 +130,7 @@ fun PsiElement.getPrevSiblingIgnoringWhitespaceAndComments(withItself: Boolean =
     return siblings(withItself = withItself, forward = false).filter { it !is PsiWhiteSpace && it !is PsiComment }
         .firstOrNull()
 }
+
 fun PsiElement.getNextSiblingIgnoringWhitespaceAndComments(withItself: Boolean = false): PsiElement? {
     return siblings(withItself = withItself).filter { it !is PsiWhiteSpace && it !is PsiComment }.firstOrNull()
 }
@@ -118,16 +162,20 @@ fun PsiElement.parentOfType(vararg psiClassNames: String): PsiElement? {
         .filter { it !is PsiFile }
         .firstOrNull { acceptsClass(it::class.java) }
 }
+
 inline fun <T : Any> T?.sure(message: () -> String): T = this ?: throw AssertionError(message())
 inline fun <reified T : PsiElement> PsiElement.getChildrenOfType(): Array<T> {
     return PsiTreeUtil.getChildrenOfType(this, T::class.java) ?: arrayOf()
 }
+
 inline fun <reified T : PsiElement> PsiElement.getChildOfType(): T? {
     return PsiTreeUtil.getChildOfType(this, T::class.java)
 }
+
 inline fun <reified T : PsiElement> PsiElement.getStrictParentOfType(): T? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, true)
 }
+
 fun ASTNode.children() = generateSequence(firstChildNode) { node -> node.treeNext }
 fun ASTNode.siblings(forward: Boolean = true): Sequence<ASTNode> {
     if (forward) {
@@ -136,6 +184,7 @@ fun ASTNode.siblings(forward: Boolean = true): Sequence<ASTNode> {
         return generateSequence(treePrev) { it.treePrev }
     }
 }
+
 fun ASTNode.parents() = generateSequence(treeParent) { node -> node.treeParent }
 fun ASTNode.leaves(forward: Boolean = true): Sequence<ASTNode> {
     if (forward) {
@@ -152,6 +201,7 @@ val PsiElement.startOffsetSkippingComments: Int
             .firstOrNull { it !is PsiWhiteSpace && it !is PsiComment }
         return firstNonCommentChild?.startOffset ?: startOffset
     }
+
 inline fun <reified T : PsiElement> T.nextSiblingOfSameType() = PsiTreeUtil.getNextSiblingOfType(this, T::class.java)
 
 fun PsiElement.startsWithComment(): Boolean = firstChild is PsiComment
@@ -162,12 +212,14 @@ val PsiElement.textRangeWithoutComments: TextRange
 fun PsiElement.getNextSiblingIgnoringWhitespace(withItself: Boolean = false): PsiElement? {
     return siblings(withItself = withItself).filter { it !is PsiWhiteSpace }.firstOrNull()
 }
+
 inline fun <reified T : PsiElement> PsiElement.anyDescendantOfType(
     crossinline canGoInside: (PsiElement) -> Boolean,
     noinline predicate: (T) -> Boolean = { true }
 ): Boolean {
     return findDescendantOfType(canGoInside, predicate) != null
 }
+
 inline fun <reified T : PsiElement> PsiElement.findDescendantOfType(
     crossinline canGoInside: (PsiElement) -> Boolean,
     noinline predicate: (T) -> Boolean = { true }
@@ -189,11 +241,13 @@ inline fun <reified T : PsiElement> PsiElement.findDescendantOfType(
     })
     return result
 }
+
 fun PsiElement.checkDecompiledText() {
     val file = containingFile
     if (file is CjFile && file.isCompiled && file.stub != null) {
         error("Attempt to load decompiled text, please use stubs instead. Decompile process might be slow and should be avoided")
     }
 }
+
 inline fun <reified T : PsiElement> PsiElement.ancestorOrSelf(): T? =
     PsiTreeUtil.getParentOfType(this, T::class.java, /* strict */ false)

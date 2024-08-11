@@ -18,6 +18,8 @@ fun SimpleType.withAbbreviation(abbreviatedType: SimpleType): SimpleType {
 }
 val CangJieType.isDefinitelyNotNullType: Boolean
     get() = unwrap() is DefinitelyNotNullType
+fun CangJieType.getAbbreviation(): SimpleType? = getAbbreviatedType()?.abbreviation
+fun CangJieType.getAbbreviatedType(): AbbreviatedType? = unwrap() as? AbbreviatedType
 
 class AbbreviatedType(override val delegate: SimpleType, val abbreviation: SimpleType) : DelegatingSimpleType() {
     val expandedType: SimpleType get() = delegate

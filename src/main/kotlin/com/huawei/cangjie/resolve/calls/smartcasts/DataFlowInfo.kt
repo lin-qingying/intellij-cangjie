@@ -2,8 +2,8 @@ package com.huawei.cangjie.resolve.calls.smartcasts
 
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.types.CangJieType
-import kotlinx.collections.immutable.ImmutableMap
-import kotlinx.collections.immutable.ImmutableSet
+import com.huawei.cangjie.utils.ImmutableMap
+import com.huawei.cangjie.utils.ImmutableSet
 
 /**
  *此接口用于提供和编辑有关值为空和可能类型的信息。
@@ -12,9 +12,9 @@ import kotlinx.collections.immutable.ImmutableSet
 interface DataFlowInfo {
 
 
-//    val completeNullabilityInfo: ImmutableMap<DataFlowValue, Nullability>
+    val completeNullabilityInfo: ImmutableMap<DataFlowValue, Nullability>
 
-//    val completeTypeInfo: ImmutableMap<DataFlowValue, ImmutableSet<CangJieType>>
+    val completeTypeInfo: ImmutableMap<DataFlowValue, ImmutableSet<CangJieType>>
 
     /**
      * Call this function to add data flow information from other to this and return sum as the result

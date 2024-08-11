@@ -59,6 +59,12 @@ public class CjPsiUtil {
         }
         return expression;
     }
+    @Nullable
+    public static CjExpression deparenthesizeOnce(
+            @Nullable CjExpression expression
+    ) {
+        return deparenthesizeOnce(expression, false);
+    }
 
     @Nullable
     public static CjExpression deparenthesize(@Nullable CjExpression expression) {

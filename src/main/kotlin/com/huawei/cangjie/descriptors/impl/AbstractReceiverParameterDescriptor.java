@@ -32,6 +32,10 @@ public abstract class AbstractReceiverParameterDescriptor extends DeclarationDes
     public <R, D> R accept(DeclarationDescriptorVisitor<R, D> visitor, D data) {
         return visitor.visitReceiverParameterDescriptor(this, data);
     }
+    @Override
+    public boolean hasStableParameterNames() {
+        return false;
+    }
 
     @Nullable
     @Override

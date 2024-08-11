@@ -67,8 +67,8 @@ object CjPolyVariantResolver : ResolveCache.PolyVariantResolver<CjReference> {
 
     override fun resolve(ref: CjReference, incompleteCode: Boolean): Array<ResolveResult> {
         val resolveToPsiElements = resolveToPsiElements(ref)
-//        return resolveToPsiElements.map { CangJieResolveResult(it) }.toTypedArray()
-        return emptyArray()
+        return resolveToPsiElements.map { CangJieResolveResult(it) }.toTypedArray()
+//        return emptyArray()
     }
 
 }

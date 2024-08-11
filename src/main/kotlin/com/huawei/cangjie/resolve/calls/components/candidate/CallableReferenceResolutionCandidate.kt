@@ -56,5 +56,5 @@ class CallableReferenceResolutionCandidate(
     var freshVariablesSubstitutor: FreshVariableNewTypeSubstitutor? = null
         internal set
 
-//    val numDefaults get() = callableReferenceAdaptation?.defaults ?: 0
+    val numDefaults get() = callableReferenceAdaptation?.defaults ?: 0
 }

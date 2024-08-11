@@ -17,11 +17,21 @@
                 defaultValue="true"
                 restartRequired="true"
         />
+        <projectService
+                serviceInterface="com.huawei.cangjie.ide.cache.trackers.ModuleDependencyProviderExtension"
+                serviceImplementation="com.huawei.cangjie.ide.cache.trackers.ResolutionAnchorModuleDependencyProviderExtension"/>
 
         <registryKey key="cangjie.cache.packages.strong.map"
                      description="Hold info about packages using strong references instead of soft ones"
                      defaultValue="true"
                      restartRequired="true"/>
+
+
+        <registryKey key="cangjie.resolve.cache.uses.perfile.cache"
+                     description="Allows ResolveElementCache to reuse analysis results of PerFileCache"
+                     defaultValue="true"
+                     restartRequired="true"/>
+
         <projectService
                 serviceInterface="com.huawei.cangjie.analyzer.LanguageSettingsProvider"
                 serviceImplementation="com.huawei.cangjie.ide.projectStructure.IDELanguageSettingsProvider"/>

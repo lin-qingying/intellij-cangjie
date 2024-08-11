@@ -408,6 +408,7 @@ val cangjie_src_project = project(":") {
 
         implementation(project(":lsp"))
         implementation(project(":utils"))
+        implementation("io.javaslang:javaslang:2.1.0-alpha")
 
 
     }

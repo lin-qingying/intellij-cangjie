@@ -12,7 +12,6 @@ import com.huawei.cangjie.storage.ReenteringLazyValueComputationException;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.ErrorUtils;
 import com.huawei.cangjie.types.error.ErrorTypeKind;
-
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
 import com.huawei.cangjie.utils.CangJieExceptionWithAttachments;
 import com.huawei.cangjie.utils.CangJieFrontEndException;
@@ -33,33 +32,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
     private final ExpressionTypingComponents components;
     @NotNull
     private final AnnotationChecker annotationChecker;
-//    protected final BasicExpressionTypingVisitor basic;
-//    protected final FunctionsTypingVisitor functions;
-//    protected final ControlStructureTypingVisitor controlStructures;
-//    protected final PatternMatchingTypingVisitor patterns;
-//    protected final DeclarationsCheckerBuilder declarationsCheckerBuilder;
-public static class ForBlock extends ExpressionTypingVisitorDispatcher {
 
-    private final ExpressionTypingVisitorForStatements visitorForBlock;
-
-    public ForBlock(
-            @NotNull ExpressionTypingComponents components,
-            @NotNull AnnotationChecker annotationChecker,
-            @NotNull LexicalWritableScope writableScope
-    ) {
-        super(components, annotationChecker);
-        this.visitorForBlock = new ExpressionTypingVisitorForStatements(
-                this, writableScope
-                , basic
-//                , controlStructures, patterns, functions
-        );
-    }
-
-    @Override
-    protected ExpressionTypingVisitorForStatements getStatementVisitor(@NotNull ExpressionTypingContext context) {
-        return visitorForBlock;
-    }
-}
     private ExpressionTypingVisitorDispatcher(
             @NotNull ExpressionTypingComponents components,
             @NotNull AnnotationChecker annotationChecker
@@ -98,7 +71,7 @@ public static class ForBlock extends ExpressionTypingVisitorDispatcher {
                 ExpressionTypingUtils.newWritableScopeImpl(context, LexicalScopeKind.CODE_BLOCK, components.overloadChecker)
                 ,
                 basic
-        /*, controlStructures, patterns, functions*/);
+                /*, controlStructures, patterns, functions*/);
     }
 
     @Override
@@ -148,10 +121,10 @@ public static class ForBlock extends ExpressionTypingVisitorDispatcher {
 //                        result = result.replaceType(((DeferredType) result.getType()).getDelegate());
 //                    }
 
-                    CangJieType refinedType =
-                            result.getType() != null
-                                    ? components.cangjieTypeChecker.getCangjieTypeRefiner().refineType(result.getType())
-                                    : null;
+
+                    CangJieType refinedType = result.getType() != null
+                            ? components.cangjieTypeChecker.getCangjieTypeRefiner().refineType(result.getType())
+                            : null;
 
                     if (refinedType != result.getType()) {
                         result = result.replaceType(refinedType);
@@ -206,15 +179,14 @@ public static class ForBlock extends ExpressionTypingVisitorDispatcher {
 
     }
 
-    public static class ForDeclarations extends ExpressionTypingVisitorDispatcher {
-        public ForDeclarations(@NotNull ExpressionTypingComponents components, @NotNull AnnotationChecker annotationChecker) {
-            super(components, annotationChecker);
-        }
+    @Override
+    public CangJieTypeInfo visitSimpleNameExpression(@NotNull CjSimpleNameExpression expression, ExpressionTypingContext data) {
+        return basic.visitSimpleNameExpression(expression, data);
+    }
 
-        @Override
-        protected ExpressionTypingVisitorForStatements getStatementVisitor(@NotNull ExpressionTypingContext context) {
-            return createStatementVisitor(context);
-        }
+    @Override
+    public CangJieTypeInfo visitParenthesizedExpression(@NotNull CjParenthesizedExpression expression, ExpressionTypingContext data) {
+        return basic.visitParenthesizedExpression(expression, data);
     }
 
 
@@ -293,16 +265,6 @@ public static class ForBlock extends ExpressionTypingVisitorDispatcher {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public CangJieTypeInfo visitSimpleNameExpression(@NotNull CjSimpleNameExpression expression, ExpressionTypingContext data) {
-        return basic.visitSimpleNameExpression(expression, data);
-    }
-
-    @Override
-    public CangJieTypeInfo visitParenthesizedExpression(@NotNull CjParenthesizedExpression expression, ExpressionTypingContext data) {
-        return basic.visitParenthesizedExpression(expression, data);
-    }
-
-    @Override
     public CangJieTypeInfo visitConstantExpression(@NotNull CjConstantExpression expression, ExpressionTypingContext data) {
         return basic.visitConstantExpression(expression, data);
     }
@@ -326,6 +288,16 @@ public static class ForBlock extends ExpressionTypingVisitorDispatcher {
     public CangJieTypeInfo visitBlockExpression(@NotNull CjBlockExpression expression, ExpressionTypingContext data) {
         return basic.visitBlockExpression(expression, data);
     }
+
+    @Override
+    public CangJieTypeInfo visitQualifiedExpression(@NotNull CjQualifiedExpression expression, ExpressionTypingContext data) {
+        return basic.visitQualifiedExpression(expression, data);
+    }
+
+    @Override
+    public CangJieTypeInfo visitCallExpression(@NotNull CjCallExpression expression, ExpressionTypingContext data) {
+        return basic.visitCallExpression(expression, data);
+    }
 //
 //    @Override
 //    public CangJieTypeInfo visitClassLiteralExpression(@NotNull CjClassLiteralExpression expression, ExpressionTypingContext data) {
@@ -343,24 +315,9 @@ public static class ForBlock extends ExpressionTypingVisitorDispatcher {
 //    }
 
     @Override
-    public CangJieTypeInfo visitQualifiedExpression(@NotNull CjQualifiedExpression expression, ExpressionTypingContext data) {
-        return basic.visitQualifiedExpression(expression, data);
-    }
-
-    @Override
-    public CangJieTypeInfo visitCallExpression(@NotNull CjCallExpression expression, ExpressionTypingContext data) {
-        return basic.visitCallExpression(expression, data);
-    }
-
-    @Override
     public CangJieTypeInfo visitUnaryExpression(@NotNull CjUnaryExpression expression, ExpressionTypingContext data) {
         return basic.visitUnaryExpression(expression, data);
     }
-
-//    @Override
-//    public CangJieTypeInfo visitLabeledExpression(@NotNull CjLabeledExpression expression, ExpressionTypingContext data) {
-//        return basic.visitLabeledExpression(expression, data);
-//    }
 
     @Override
     public CangJieTypeInfo visitBinaryExpression(@NotNull CjBinaryExpression expression, ExpressionTypingContext data) {
@@ -372,9 +329,24 @@ public static class ForBlock extends ExpressionTypingVisitorDispatcher {
         return basic.visitArrayAccessExpression(expression, data);
     }
 
+//    @Override
+//    public CangJieTypeInfo visitLabeledExpression(@NotNull CjLabeledExpression expression, ExpressionTypingContext data) {
+//        return basic.visitLabeledExpression(expression, data);
+//    }
+
     @Override
     public CangJieTypeInfo visitDeclaration(@NotNull CjDeclaration dcl, ExpressionTypingContext data) {
         return basic.visitDeclaration(dcl, data);
+    }
+
+    @Override
+    public CangJieTypeInfo visitStringTemplateExpression(@NotNull CjStringTemplateExpression expression, ExpressionTypingContext data) {
+        return basic.visitStringTemplateExpression(expression, data);
+    }
+
+    @Override
+    public CangJieTypeInfo visitCjElement(@NotNull CjElement element, ExpressionTypingContext data) {
+        return element.accept(basic, data);
     }
 
 //    @Override
@@ -387,9 +359,32 @@ public static class ForBlock extends ExpressionTypingVisitorDispatcher {
 //        return basic.visitProperty(property, data);
 //    }
 
-    @Override
-    public CangJieTypeInfo visitStringTemplateExpression(@NotNull CjStringTemplateExpression expression, ExpressionTypingContext data) {
-        return basic.visitStringTemplateExpression(expression, data);
+    //    protected final BasicExpressionTypingVisitor basic;
+//    protected final FunctionsTypingVisitor functions;
+//    protected final ControlStructureTypingVisitor controlStructures;
+//    protected final PatternMatchingTypingVisitor patterns;
+//    protected final DeclarationsCheckerBuilder declarationsCheckerBuilder;
+    public static class ForBlock extends ExpressionTypingVisitorDispatcher {
+
+        private final ExpressionTypingVisitorForStatements visitorForBlock;
+
+        public ForBlock(
+                @NotNull ExpressionTypingComponents components,
+                @NotNull AnnotationChecker annotationChecker,
+                @NotNull LexicalWritableScope writableScope
+        ) {
+            super(components, annotationChecker);
+            this.visitorForBlock = new ExpressionTypingVisitorForStatements(
+                    this, writableScope
+                    , basic
+//                , controlStructures, patterns, functions
+            );
+        }
+
+        @Override
+        protected ExpressionTypingVisitorForStatements getStatementVisitor(@NotNull ExpressionTypingContext context) {
+            return visitorForBlock;
+        }
     }
 
 //    @Override
@@ -397,9 +392,15 @@ public static class ForBlock extends ExpressionTypingVisitorDispatcher {
 //        return basic.visitAnnotatedExpression(expression, data);
 //    }
 
-    @Override
-    public CangJieTypeInfo visitCjElement(@NotNull CjElement element, ExpressionTypingContext data) {
-        return element.accept(basic, data);
+    public static class ForDeclarations extends ExpressionTypingVisitorDispatcher {
+        public ForDeclarations(@NotNull ExpressionTypingComponents components, @NotNull AnnotationChecker annotationChecker) {
+            super(components, annotationChecker);
+        }
+
+        @Override
+        protected ExpressionTypingVisitorForStatements getStatementVisitor(@NotNull ExpressionTypingContext context) {
+            return createStatementVisitor(context);
+        }
     }
 
 }

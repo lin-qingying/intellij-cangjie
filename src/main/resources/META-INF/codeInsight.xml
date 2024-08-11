@@ -4,8 +4,10 @@
 
     <extensions defaultExtensionNs="com.intellij">
 
+<!--        <codeInsight.lineMarkerProvider language="CangJie"-->
+<!--                                        implementationClass="com.huawei.cangjie.ide.codeinsight.CangJieSuspendCallLineMarkerProvider"/>-->
 
-        <codeInsight.inlayProvider language="CangJie" implementationClass="com.huawei.cangjie.ide.codeinsight.hints.type.CjInlayTypeHintsProvider"/>
+        <!--        <codeInsight.inlayProvider language="CangJie" implementationClass="com.huawei.cangjie.ide.codeinsight.hints.type.CjInlayTypeHintsProvider"/>-->
 
     </extensions>
 </idea-plugin>

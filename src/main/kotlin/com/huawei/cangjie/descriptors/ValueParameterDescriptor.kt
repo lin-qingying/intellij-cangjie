@@ -8,6 +8,9 @@ interface ValueParameterDescriptor : VariableDescriptor ,ParameterDescriptor, Va
     override val original: ValueParameterDescriptor
 //    val varargElementType: CangJieType?
 
+    override val containingDeclaration: CallableDescriptor
+
+
     /**
      * Returns the 0-based index of the value parameter in the parameter list of its containing function.
 

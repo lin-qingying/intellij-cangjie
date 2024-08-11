@@ -21,6 +21,7 @@ class CjPropertyElementType(debugName: String) : CjStubElementType<CangJieProper
         dataStream.writeName(stub.getName())
         val fqName = stub.getFqName()
         dataStream.writeName(if (fqName != null) fqName.asString() else null)
+        dataStream.writeBoolean(stub.hasReturnTypeRef())
 
     }
 
@@ -28,9 +29,11 @@ class CjPropertyElementType(debugName: String) : CjStubElementType<CangJieProper
         val name = dataStream.readName()
         val fqNameAsString = dataStream.readName()
         val fqName: FqName? = if (fqNameAsString != null) FqName(fqNameAsString.toString()) else null
+        val hasReturnTypeRef = dataStream.readBoolean()
+
         return CangJiePropertyStubImpl(
             parentStub, name,
-            fqName
+            fqName,hasReturnTypeRef
         )
     }
 
@@ -38,7 +41,7 @@ class CjPropertyElementType(debugName: String) : CjStubElementType<CangJieProper
         return CangJiePropertyStubImpl(
             parentStub, StringRef.fromString(psi.getName()),
             psi.safeFqNameForLazyResolve()
-
+,psi.getTypeReference() != null
         )
     }
 

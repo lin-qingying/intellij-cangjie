@@ -42,6 +42,11 @@
                 serviceInterface="com.huawei.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService"
                 serviceImplementation="com.huawei.cangjie.ide.stubindex.resolve.PluginDeclarationProviderFactoryService"/>
 
+        <applicationService
+                serviceInterface="com.huawei.cangjie.references.CjReferenceResolutionHelper"
+                serviceImplementation="com.huawei.cangjie.references.CjReferenceResolutionHelperImpl"/>
+
+
         <registryKey key="cangjie.indices.nested.access.enabled"
                      defaultValue="false"
                      description="Allows nested indices access" />

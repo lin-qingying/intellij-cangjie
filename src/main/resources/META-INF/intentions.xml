@@ -1,0 +1,12 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+
+<!--        <intentionAction>-->
+<!--            <language>CangJie</language>-->
+<!--            <className>com.huawei.cangjie.ide.intentions.ReplaceExplicitFunctionLiteralParamWithItIntention</className>-->
+<!--            <bundleName>messages.CangJieBundle</bundleName>-->
+<!--            <categoryKey>group.names.cangjie</categoryKey>-->
+<!--        </intentionAction>-->
+
+    </extensions>
+</idea-plugin>

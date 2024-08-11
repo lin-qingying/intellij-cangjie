@@ -1,5 +1,7 @@
 package com.huawei.cangjie.resolve.calls.tower
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor
@@ -8,11 +10,14 @@ import com.huawei.cangjie.resolve.DescriptorToSourceUtils
 import com.huawei.cangjie.resolve.calls.components.CangJieResolutionCallbacks
 import com.huawei.cangjie.resolve.calls.components.CangJieResolutionStatelessCallbacks
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
+import com.huawei.cangjie.resolve.calls.inference.components.ConstraintInjector
+import com.huawei.cangjie.resolve.calls.inference.components.SimpleConstraintSystemImpl
 import com.huawei.cangjie.resolve.calls.inference.isBuilderInferenceCall
 import com.huawei.cangjie.resolve.calls.model.CallableReferenceCangJieCallArgument
 import com.huawei.cangjie.resolve.calls.model.CangJieCall
 import com.huawei.cangjie.resolve.calls.model.CangJieCallArgument
 import com.huawei.cangjie.resolve.calls.model.SimpleCangJieCallArgument
+import com.huawei.cangjie.resolve.calls.results.SimpleConstraintSystem
 import com.huawei.cangjie.resolve.calls.util.isInfixCall
 import com.huawei.cangjie.resolve.calls.util.isSuperOrDelegatingConstructorCall
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
@@ -21,7 +26,7 @@ import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 
 class CangJieResolutionStatelessCallbacksImpl(
     private val deprecationResolver: DeprecationResolver,
-//    private val languageVersionSettings: LanguageVersionSettings,
+    private val languageVersionSettings: LanguageVersionSettings,
     private val CangJieTypeRefiner: CangJieTypeRefiner
 ) : CangJieResolutionStatelessCallbacks {
     override fun isDescriptorFromSource(descriptor: CallableDescriptor) =
@@ -97,9 +102,11 @@ class CangJieResolutionStatelessCallbacksImpl(
 //        return TypeIntersector.intersectTypes(types) == null
     }
 
-//    override fun createConstraintSystemForOverloadResolution(
-//        constraintInjector: ConstraintInjector, builtIns: CangJieBuiltIns
-//    ): SimpleConstraintSystem =
-//        SimpleConstraintSystemImpl(constraintInjector, builtIns, CangJieTypeRefiner, languageVersionSettings)
+
+
+    override fun createConstraintSystemForOverloadResolution(
+        constraintInjector: ConstraintInjector, builtIns: CangJieBuiltIns
+    ): SimpleConstraintSystem =
+        SimpleConstraintSystemImpl(constraintInjector, builtIns, CangJieTypeRefiner, languageVersionSettings)
 
 }

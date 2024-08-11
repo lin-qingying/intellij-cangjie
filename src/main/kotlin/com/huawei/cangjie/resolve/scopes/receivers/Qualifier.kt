@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.scopes.receivers
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.ClassKind
 import com.huawei.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
+import com.huawei.cangjie.descriptors.PackageViewDescriptor
 import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.psi.CjSimpleNameExpression
 import com.huawei.cangjie.psi.psiUtil.getTopmostParentQualifiedExpressionForSelector
@@ -21,6 +22,15 @@ interface ClassifierQualifier : Qualifier {
 val Qualifier.expression: CjExpression
     get() = referenceExpression.getTopmostParentQualifiedExpressionForSelector() ?: referenceExpression
 
+class PackageQualifier(
+    override val referenceExpression: CjSimpleNameExpression,
+    override val descriptor: PackageViewDescriptor
+) : Qualifier {
+    override val classValueReceiver: ReceiverValue? get() = null
+    override val staticScope: MemberScope get() = descriptor.memberScope
+
+    override fun toString() = "Package{$descriptor}"
+}
 class ClassQualifier(
     override val referenceExpression: CjSimpleNameExpression,
     override val descriptor: ClassDescriptor

@@ -1,20 +1,28 @@
 package com.huawei.cangjie.resolve;
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns;
+import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.descriptors.BindingTrace;
 import com.huawei.cangjie.descriptors.FunctionDescriptor;
 import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor;
+import com.huawei.cangjie.descriptors.ValueParameterDescriptor;
 import com.huawei.cangjie.psi.CjDeclarationWithBody;
 import com.huawei.cangjie.psi.CjNamedFunction;
+import com.huawei.cangjie.psi.CjParameter;
+import com.huawei.cangjie.resolve.calls.CallResolver;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.types.expressions.ExpressionTypingContext;
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices;
+import com.huawei.cangjie.types.expressions.PreliminaryDeclarationVisitor;
+import com.huawei.cangjie.utils.PsiUtilsKt;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 
 public class BodyResolver {
@@ -25,13 +33,15 @@ public class BodyResolver {
     @NotNull
     private final BodyResolveCache bodyResolveCache;
     @NotNull
-    private ExpressionTypingServices expressionTypingServices;
+    private final ExpressionTypingServices expressionTypingServices;
+    @NotNull private final CangJieBuiltIns builtIns;
+    @NotNull private final LanguageVersionSettings languageVersionSettings;
 
     public BodyResolver(
             @NotNull Project project,
 //            @NotNull AnnotationResolver annotationResolver,
             @NotNull BodyResolveCache bodyResolveCache,
-//            @NotNull CallResolver callResolver,
+            @NotNull CallResolver callResolver,
 //            @NotNull ControlFlowAnalyzer controlFlowAnalyzer,
 //            @NotNull DeclarationsChecker declarationsChecker,
 //            @NotNull DelegatedPropertyResolver delegatedPropertyResolver,
@@ -40,14 +50,17 @@ public class BodyResolver {
             @NotNull BindingTrace trace,
 //            @NotNull ValueParameterResolver valueParameterResolver,
 //            @NotNull AnnotationChecker annotationChecker,
-//            @NotNull CangJieBuiltIns builtIns,
-            @NotNull OverloadChecker overloadChecker
-//            @NotNull LanguageVersionSettings languageVersionSettings
+            @NotNull CangJieBuiltIns builtIns,
+            @NotNull OverloadChecker overloadChecker,
+            @NotNull LanguageVersionSettings languageVersionSettings
     ) {
         this.bodyResolveCache = bodyResolveCache;
         this.trace = new ObservableBindingTrace(trace);
         this.overloadChecker = overloadChecker;
         this.expressionTypingServices = expressionTypingServices;
+
+        this.builtIns = builtIns;
+        this.languageVersionSettings = languageVersionSettings;
     }
 
     private void resolveBehaviorDeclarationBodies(@NotNull BodiesResolveContext c) {
@@ -63,16 +76,15 @@ public class BodyResolver {
         for (Map.Entry<CjNamedFunction, SimpleFunctionDescriptor> entry : c.getFunctions().entrySet()) {
             CjNamedFunction declaration = entry.getKey();
 
-//            LexicalScope scope = c.getDeclaringScope(declaration);
-//            assert scope != null : "Scope is null: " + PsiUtilsCj.getElementTextWithContext(declaration);
+            LexicalScope scope = c.getDeclaringScope(declaration);
+            assert scope != null : "Scope is null: " + PsiUtilsKt.getElementTextWithContext(declaration);
 
-//            if (!c.getTopDownAnalysisMode().isLocalDeclarations() && !(bodyResolveCache instanceof BodyResolveCache.ThrowException) &&
-//                    expressionTypingServices.getStatementFilter() != StatementFilter.NONE) {
-            bodyResolveCache.resolveFunctionBody(declaration).addOwnDataTo(trace, true);
-//            }
-//            else {
-//                resolveFunctionBody(c.getOuterDataFlowInfo(), trace, declaration, entry.getValue(), scope, c.getLocalContext());
-//            }
+            if (!c.getTopDownAnalysisMode().isLocalDeclarations() && !(bodyResolveCache instanceof BodyResolveCache.ThrowException) &&
+                    expressionTypingServices.getStatementFilter() != StatementFilter.NONE) {
+                bodyResolveCache.resolveFunctionBody(declaration).addOwnDataTo(trace, true);
+            } else {
+                resolveFunctionBody(c.getOuterDataFlowInfo(), trace, declaration, entry.getValue(), scope, c.getLocalContext());
+            }
         }
     }
 
@@ -106,10 +118,10 @@ public class BodyResolver {
     ) {
         ProgressManager.checkCanceled();
 
-//        PreliminaryDeclarationVisitor.Companion.createForDeclaration(function, trace, languageVersionSettings);
+        PreliminaryDeclarationVisitor.Companion.createForDeclaration(function, trace, languageVersionSettings);
         LexicalScope innerScope = FunctionDescriptorUtil.getFunctionInnerScope(scope, functionDescriptor, trace, overloadChecker);
-//        List<CjParameter> valueParameters = function.getValueParameters();
-//        List<ValueParameterDescriptor> valueParameterDescriptors = functionDescriptor.getValueParameters();
+        List<CjParameter> valueParameters = function.getValueParameters();
+        List<ValueParameterDescriptor> valueParameterDescriptors = functionDescriptor.getValueParameters();
 //
         LexicalScope headerScope = headerScopeFactory != null ? headerScopeFactory.invoke(innerScope) : innerScope;
 //        valueParameterResolver.resolveValueParameters(
@@ -150,7 +162,7 @@ public class BodyResolver {
             );
         }
 //TODO 检查返回值
-//        assert functionDescriptor.getReturnType() != null;
+        assert functionDescriptor.getReturnType() != null;
     }
 
     public void resolveBodies(@NotNull BodiesResolveContext c) {

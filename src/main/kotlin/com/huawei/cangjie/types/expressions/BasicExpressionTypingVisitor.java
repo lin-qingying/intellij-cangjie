@@ -73,6 +73,13 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor{
 //        }
     }
 
+    @Override
+    public CangJieTypeInfo visitCallExpression(CjCallExpression cjCallExpression, ExpressionTypingContext data) {
+        CallExpressionResolver callExpressionResolver = components.callExpressionResolver;
+        return callExpressionResolver.getCallExpressionTypeInfo(cjCallExpression, data);
+
+    }
+
     public static boolean isLValue(@NotNull CjSimpleNameExpression expression, @Nullable PsiElement parent) {
         if (!(parent instanceof CjBinaryExpression)) {
             return false;

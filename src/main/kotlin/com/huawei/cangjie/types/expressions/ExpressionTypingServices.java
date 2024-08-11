@@ -67,6 +67,11 @@ public class ExpressionTypingServices {
                 trace, isStatement, expression, ContextDependency.INDEPENDENT
         );
     }
+
+    @NotNull public StatementFilter getStatementFilter() {
+        return statementFilter;
+    }
+
     @NotNull
     public CangJieTypeInfo getTypeInfo(
             @NotNull LexicalScope scope,

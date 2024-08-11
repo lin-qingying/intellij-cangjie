@@ -1,14 +1,17 @@
 package com.huawei.cangjie.resolve.calls.components
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor
 import com.huawei.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.NewConstraintSystem
+import com.huawei.cangjie.resolve.calls.inference.components.ConstraintInjector
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage
 import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableTypeConstructor
 import com.huawei.cangjie.resolve.calls.model.*
+import com.huawei.cangjie.resolve.calls.results.SimpleConstraintSystem
 import com.huawei.cangjie.resolve.calls.tower.CandidateFactoryProviderForInvoke
 import com.huawei.cangjie.resolve.calls.tower.ImplicitScopeTower
 import com.huawei.cangjie.types.CangJieType
@@ -37,9 +40,9 @@ interface CangJieResolutionStatelessCallbacks {
 
     fun isOldIntersectionIsEmpty(types: Collection<CangJieType>): Boolean
 
-//    fun createConstraintSystemForOverloadResolution(
-//        constraintInjector: ConstraintInjector, builtIns: CangJieBuiltIns
-//    ): SimpleConstraintSystem
+    fun createConstraintSystemForOverloadResolution(
+        constraintInjector: ConstraintInjector, builtIns: CangJieBuiltIns
+    ): SimpleConstraintSystem
 }
 
 // This components hold state (trace). Work with this carefully.
@@ -72,7 +75,7 @@ interface CangJieResolutionCallbacks {
 
     fun bindStubResolvedCallForCandidate(candidate: ResolvedCallAtom)
 
-    fun isCompileTimeConstant(resolvedAtom: ResolvedCallAtom, expectedType: UnwrappedType): Boolean
+//    fun isCompileTimeConstant(resolvedAtom: ResolvedCallAtom, expectedType: UnwrappedType): Boolean
 
     val inferenceSession: InferenceSession
 

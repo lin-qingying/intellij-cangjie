@@ -78,7 +78,7 @@ sealed class ResolutionCandidate : Candidate, CangJieDiagnosticsHolder {
     }
 
     override fun toString(): String {
-//        return "带实现"
+
         val descriptor = DescriptorRenderer.COMPACT.render(resolvedCall.candidateDescriptor)
         val okOrFail = if (resultingApplicabilities.minOrNull()?.isSuccess != false) "OK" else "FAIL"
         val step = "$step/$stepCount"
@@ -89,7 +89,7 @@ sealed class ResolutionCandidate : Candidate, CangJieDiagnosticsHolder {
         if (newSystem == null) {
             newSystem = NewConstraintSystemImpl(
                 callComponents.constraintInjector, callComponents.builtIns,
-                callComponents.cangjieTypeRefiner/*, callComponents.languageVersionSettings*/
+                callComponents.cangjieTypeRefiner, callComponents.languageVersionSettings
             )
             if (baseSystem != null) {
                 newSystem!!.addOtherSystem(baseSystem!!)

@@ -4,6 +4,7 @@ package com.huawei.cangjie.resolve.calls.tasks;
 import com.huawei.cangjie.builtins.FunctionTypesKt;
 import com.huawei.cangjie.descriptors.BindingTrace;
 import com.huawei.cangjie.descriptors.CallableDescriptor;
+import com.huawei.cangjie.descriptors.DeclarationDescriptorWithVisibility;
 import com.huawei.cangjie.psi.Call;
 import com.huawei.cangjie.psi.CjExpression;
 import com.huawei.cangjie.psi.CjReferenceExpression;
@@ -70,6 +71,8 @@ public class TracingStrategyForInvoke extends AbstractTracingStrategy {
     ) {
         functionExpectedOrNoReceiverAllowed(trace);
     }
+
+
 
     private void functionExpectedOrNoReceiverAllowed(BindingTrace trace) {
         if (FunctionTypesKt.isNonExtensionFunctionType(calleeType)) {

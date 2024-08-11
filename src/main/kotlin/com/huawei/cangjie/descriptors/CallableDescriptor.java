@@ -44,6 +44,7 @@ public interface CallableDescriptor extends DeclarationDescriptorWithVisibility,
 
     @NotNull
 
+    boolean hasStableParameterNames();
 
     interface UserDataKey<V> {
     }

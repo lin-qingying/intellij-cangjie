@@ -212,6 +212,8 @@ object StandardNames {
 
 
 
+//        @kotlin.jvm.JvmField
+//        val cCallable: FqNameUnsafe = reflect("KCallable")
 
 
 

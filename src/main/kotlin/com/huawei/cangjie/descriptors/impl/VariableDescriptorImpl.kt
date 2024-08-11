@@ -35,6 +35,9 @@ abstract class VariableDescriptorImpl(
         return null
     }
 
+    override fun hasStableParameterNames(): Boolean {
+        return false
+    }
 
 //    fun setType(
 //        _outType: CangJieType,

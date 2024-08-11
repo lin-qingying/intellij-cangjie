@@ -31,15 +31,15 @@ import com.intellij.psi.search.GlobalSearchScope
  */
 fun StorageComponentContainer.configureStandardResolveComponents() {
 ////    useImpl<LazyTopDownAnalyzer>()
-//    useImpl<AnnotationResolverImpl>()
-////    useImpl<ResolveSession>()
+
+
 //
 //    useImpl<SupertypeLoopCheckerImpl>()
 //
 //    useImpl<ResolveElementCache>()
 //
 //    useImpl<CompilerLocalDescriptorResolver>()
-//    useImpl<DeclarationScopeProviderForLocalClassifierAnalyzer>()
+    useImpl<DeclarationScopeProviderForLocalClassifierAnalyzer>()
 
 
     useImpl<ResolveSession>()
@@ -133,55 +133,6 @@ fun StorageComponentContainer.configure(
 
 }
 
-//fun createContainerForLazyLocalClassifierAnalyzer(
-//    moduleContext: ModuleContext,
-//    bindingTrace: BindingTrace,
-//
-//    lookupTracker: LookupTracker,
-//
-////    statementFilter: StatementFilter,
-//    localClassDescriptorHolder: LocalClassDescriptorHolder,
-//    analyzerServices: PlatformDependentAnalyzerServices,
-////    controlFlowInformationProviderFactory: ControlFlowInformationProvider.Factory,
-//    absentDescriptorHandler: AbsentDescriptorHandler?
-//): StorageComponentContainer = createContainer("LocalClassifierAnalyzer", analyzerServices) {
-//    configure(
-//        moduleContext,
-//
-//        analyzerServices,
-//        bindingTrace,
-//
-//
-//        absentDescriptorHandlerClass = null
-//    )
-//
-//    if (absentDescriptorHandler != null) {
-//        useInstance(absentDescriptorHandler)
-//    }
-//    useInstance(localClassDescriptorHolder)
-//    useInstance(lookupTracker)
-//    /*
-//        useInstance(ExpectActualTracker.DoNothing)
-//        useInstance(InlineConstTracker.DoNothing)
-//        useInstance(EnumWhenTracker.DoNothing)
-//    */
-//
-//    useImpl<LazyTopDownAnalyzer>()
-//
-////    useInstance(NoTopLevelDescriptorProvider)
-////
-////    TargetEnvironment.configureCompilerEnvironment(this)
-////    useInstance(controlFlowInformationProviderFactory)
-//
-//
-//    useInstance(FileScopeProvider.ThrowException)
-//    useImpl<AnnotationResolverImpl>()
-//
-//    useImpl<DeclarationScopeProviderForLocalClassifierAnalyzer>()
-//    useImpl<LocalLazyDeclarationResolver>()
-//
-////    useInstance(statementFilter)
-//}
 
 
 fun createContainerForLazyResolve(
@@ -222,7 +173,7 @@ fun createContainerForLazyResolve(
     useInstance(declarationProviderFactory)
     configureStandardResolveComponents()
 ////////////////////////////////////////////////////////
-    useImpl<DeclarationScopeProviderForLocalClassifierAnalyzer>()
+
     useImpl<LocalLazyDeclarationResolver>()
     useImpl<ResolveElementCache>()
 
@@ -260,29 +211,13 @@ fun createContainerForLazyBodyResolve(
     )
 
     useInstanceIfNotNull(absentDescriptorHandler)
-//    useInstance(mainFunctionDetectorFactory)
+
     useInstance(cangjieCodeAnalyzer)
-//    useInstance(cangjieCodeAnalyzer.fileScopeProvider)
+
     useInstance(bodyResolveCache)
-    useImpl<AnnotationResolverImpl>()
+
     useImpl<LazyTopDownAnalyzer>()
-//    useInstance(moduleStructureOracle)
-//    useInstance(controlFlowInformationProviderFactory)
-//    useInstance(InlineConstTracker.DoNothing)
+    useImpl<DeclarationScopeProviderForLocalClassifierAnalyzer>()
+    useImpl<AnnotationResolverImpl>()
 
-    // All containers except common inject ExpectedActualDeclarationChecker, so for common we do that
-    // explicitly.
-    // Note that it is not possible to move this code to [CommonPlatformConfigurator], because during
-    // compilation of common-module to metadata we should skip those checks
-//    if (platform.isCommon()) useImpl<ExpectedActualDeclarationChecker>()
-
-//    if (absentDescriptorHandler != null) {
-//        useInstance(absentDescriptorHandler)
-//    }
-//    useInstance(cangjieCodeAnalyzer)
-//
-//    useInstance(declarationProviderFactory)
-//
-//    useImpl<LazyTopDownAnalyzer>()
-//    useInstance(cangjieCodeAnalyzer.fileScopeProvider)
 }

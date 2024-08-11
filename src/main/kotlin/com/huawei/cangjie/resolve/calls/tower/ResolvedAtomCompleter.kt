@@ -22,6 +22,7 @@ import com.huawei.cangjie.resolve.calls.util.extractCallableReferenceExpression
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
 import com.huawei.cangjie.resolve.scopes.receivers.TransientReceiver
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.TypeApproximator
 import com.huawei.cangjie.types.expressions.DoubleColonExpressionResolver
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices
 import com.huawei.cangjie.types.expressions.typeInfoFactory.createTypeInfo
@@ -37,7 +38,7 @@ class ResolvedAtomCompleter(
     private val deprecationResolver: DeprecationResolver,
     private val moduleDescriptor: ModuleDescriptor,
     private val dataFlowValueFactory: DataFlowValueFactory,
-//    private val typeApproximator: TypeApproximator,
+    private val typeApproximator: TypeApproximator,
     private val missingSupertypesResolver: MissingSupertypesResolver,
     private val callComponents: CangJieCallComponents,
 
@@ -391,12 +392,12 @@ class ResolvedAtomCompleter(
 //        cangjieToResolvedCallTransformer.runCallCheckers(resolvedCall, callCheckerContext)
 //        cangjieToResolvedCallTransformer.runAdditionalReceiversCheckers(resolvedCall, topLevelCallContext)
 //
-//        cangjieToResolvedCallTransformer.reportDiagnostics(
-//            topLevelCallContext,
-//            topLevelTrace,
-//            resolvedCall,
-//            allDiagnostics
-//        )
+        cangjieToResolvedCallTransformer.reportDiagnostics(
+            topLevelCallContext,
+            topLevelTrace,
+            resolvedCall,
+            allDiagnostics
+        )
 
         return resolvedCall
     }

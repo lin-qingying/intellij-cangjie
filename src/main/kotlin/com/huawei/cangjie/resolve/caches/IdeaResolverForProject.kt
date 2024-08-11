@@ -9,7 +9,9 @@ import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.impl.ModuleDescriptorImpl
 
 import com.huawei.cangjie.psi.CjFile
+import com.huawei.cangjie.resolve.IdePackageOracleFactory
 import com.huawei.cangjie.resolve.lazy.IdeaAbsentDescriptorHandler
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.ModificationTracker
@@ -20,6 +22,7 @@ data class ModuleContent<out M : ModuleInfo>(
     val syntheticFiles: Collection<CjFile>,
     val moduleContentScope: GlobalSearchScope
 )
+
 
 class IdeaResolverForProject(
     debugName: String,
@@ -36,6 +39,7 @@ class IdeaResolverForProject(
     modules,
     fallbackModificationTracker,
     delegateResolver,
+    projectContext.project.service<IdePackageOracleFactory>()
 ) {
 
     private val builtInsCache: BuiltInsCache =
@@ -47,6 +51,8 @@ class IdeaResolverForProject(
 
         return CangJieResolverForModuleFactory()
     }
+    override fun modulesContent(module: ModuleInfo): ModuleContent<ModuleInfo> =
+        ModuleContent(module, syntheticFilesByModule[module] ?: emptyList(), module.moduleContentScope)
 
     override fun createResolverForModule(descriptor: ModuleDescriptor, moduleInfo: ModuleInfo): ResolverForModule {
         val moduleContent =

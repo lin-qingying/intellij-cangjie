@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.caches
 
 import com.huawei.cangjie.analyzer.AnalysisResult
 import com.huawei.cangjie.analyzer.ModuleInfo
+import com.huawei.cangjie.analyzer.ResolverForProject
 import com.huawei.cangjie.descriptors.DiagnosticSink
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.psi.CjDeclaration
@@ -11,6 +12,7 @@ import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.FrontendInternals
 import com.huawei.cangjie.resolve.ResolutionFacade
+import com.huawei.cangjie.resolve.findModuleDescriptor
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.utils.CangJieExceptionWithAttachments
 import com.intellij.openapi.diagnostic.ControlFlowException
@@ -25,9 +27,9 @@ private class ResolutionFacadeWithDebugInfo(
     private val delegate: ResolutionFacade,
     private val creationPlace: CreationPlace
 ) : ResolutionFacade, ResolutionFacadeModuleDescriptorProvider {
-//    override fun findModuleDescriptor(ideaModuleInfo: IdeaModuleInfo): ModuleDescriptor {
-//        return delegate.findModuleDescriptor(ideaModuleInfo)
-//    }
+    override fun findModuleDescriptor(ideaModuleInfo:  ModuleInfo): ModuleDescriptor {
+        return delegate.findModuleDescriptor(ideaModuleInfo)
+    }
 
 //    override val project: Project
 //        get() = delegate.project
@@ -68,15 +70,23 @@ private class ResolutionFacadeWithDebugInfo(
         }
     }
 
+
 //    override fun resolveToDescriptor(declaration: CjDeclaration, bodyResolveMode: BodyResolveMode): DeclarationDescriptor {
 //        return wrapExceptions({ ResolvingWhat(declaration, bodyResolveMode = bodyResolveMode) }) {
 //            delegate.resolveToDescriptor(declaration, bodyResolveMode)
 //        }
 //    }
 
-//    override val moduleDescriptor: ModuleDescriptor
-//        get() = delegate.moduleDescriptor
-//
+    override val moduleDescriptor: ModuleDescriptor
+        get() = delegate.moduleDescriptor
+
+    @FrontendInternals
+    override fun <T : Any> getFrontendService(serviceClass: Class<T>): T {
+        return wrapExceptions({ ResolvingWhat(serviceClass = serviceClass) }) {
+            delegate.getFrontendService(serviceClass)
+        }
+    }
+
 //    @FrontendInternals
 //    override fun <T : Any> getFrontendService(serviceClass: Class<T>): T {
 //        return wrapExceptions({ ResolvingWhat(serviceClass = serviceClass) }) {
@@ -96,6 +106,8 @@ private class ResolutionFacadeWithDebugInfo(
             delegate.getFrontendService(element, serviceClass)
         }
     }
+
+
 //
 //    @FrontendInternals
 //    override fun <T : Any> tryGetFrontendService(element: PsiElement, serviceClass: Class<T>): T? {
@@ -104,9 +116,9 @@ private class ResolutionFacadeWithDebugInfo(
 //        }
 //    }
 
-//    override fun getResolverForProject(): ResolverForProject<out ModuleInfo> {
-//        return delegate.getResolverForProject()
-//    }
+    override fun getResolverForProject(): ResolverForProject<out ModuleInfo> {
+        return delegate.getResolverForProject()
+    }
 //
 //    @FrontendInternals
 //    override fun <T : Any> getFrontendService(moduleDescriptor: ModuleDescriptor, serviceClass: Class<T>): T {
@@ -154,20 +166,20 @@ private class CangJieIdeaResolutionException(
 
 private class CreationPlace(
     private val elements: Collection<CjElement>,
-//    private val moduleInfo: ModuleInfo?,
-    private val settings: PlatformAnalysisSettings?
+    private val moduleInfo: ModuleInfo?,
+//    private val settings: PlatformAnalysisSettings?
 ) {
     fun description() = buildString {
         appendLine("Resolver created for:")
         for (element in elements) {
             appendElement(element)
         }
-//        if (moduleInfo != null) {
-//            appendLine("Provided module info: $moduleInfo")
-//        }
-        if (settings != null) {
-            appendLine("Provided settings: $settings")
+        if (moduleInfo != null) {
+            appendLine("Provided module info: $moduleInfo")
         }
+//        if (settings != null) {
+//            appendLine("Provided settings: $settings")
+//        }
     }
 }
 
@@ -249,8 +261,8 @@ private fun <T> ifIndexReady(body: () -> T): IndexResult<T>? = try {
 
 internal fun ResolutionFacade.createdFor(
     files: Collection<CjFile>,
-//    moduleInfo: ModuleInfo?,
-    settings: PlatformAnalysisSettings
+    moduleInfo: ModuleInfo?,
+//    settings: PlatformAnalysisSettings
 ): ResolutionFacade {
-    return ResolutionFacadeWithDebugInfo(this, CreationPlace(files, /*moduleInfo,*/ settings))
+    return ResolutionFacadeWithDebugInfo(this, CreationPlace(files, moduleInfo/*, settings*/))
 }

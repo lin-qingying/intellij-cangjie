@@ -44,6 +44,9 @@ class CjPsiFactory private constructor(
     fun createColon(): PsiElement {
         return createVariable("let x: Int64").findElementAt(5)!!
     }
+    fun createLambdaExpression(@NonNls parameters: String, @NonNls body: String): CjLambdaExpression =
+        (if (parameters.isNotEmpty()) createExpression("{ $parameters -> $body }")
+        else createExpression("{ $body }")) as CjLambdaExpression
 
     fun createExpressionCodeFragment(@NonNls text: String, context: PsiElement?): CjExpressionCodeFragment {
         return CjExpressionCodeFragment(project, "fragment.cj", text, null, context)

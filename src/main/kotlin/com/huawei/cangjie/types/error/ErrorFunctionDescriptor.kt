@@ -120,6 +120,7 @@ class ErrorFunctionDescriptor(containingDeclaration: ClassDescriptor) : SimpleFu
         }
 
 
+
     //    override fun <V> getUserData(key: CallableDescriptor.UserDataKey<V>): V? = null
     override fun setOverriddenDescriptors(overriddenDescriptors: Collection<CallableMemberDescriptor?>) {}
     override fun <V : Any?> getUserData(key: CallableDescriptor.UserDataKey<V>?): V? = null

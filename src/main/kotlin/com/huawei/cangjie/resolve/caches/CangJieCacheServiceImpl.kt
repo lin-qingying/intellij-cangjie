@@ -1,10 +1,19 @@
 package com.huawei.cangjie.resolve.caches
 
+import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.context.GlobalContext
+import com.huawei.cangjie.context.GlobalContextImpl
+import com.huawei.cangjie.ide.base.projectStructure.RootKindFilter
+import com.huawei.cangjie.ide.base.projectStructure.matches
+
+import com.huawei.cangjie.ide.projectStructure.moduleInfo
+import com.huawei.cangjie.psi.CjCodeFragment
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjFile
+import com.huawei.cangjie.psi.psiUtil.contains
+import com.huawei.cangjie.resolve.ModuleResolutionFacadeImpl
 import com.huawei.cangjie.resolve.ResolutionFacade
-import com.huawei.cangjie.resolve.ResolutionFacadeImpl
+
 import com.huawei.cangjie.utils.CangJieExceptionWithAttachments
 import com.intellij.execution.Platform
 import com.intellij.execution.target.TargetPlatform
@@ -31,7 +40,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
             val settings = PlatformAnalysisSettingsImpl(TargetPlatform(Platform.WINDOWS))
 
             CachedValueProvider.Result(
-                getFacadeToAnalyzeFile(file, settings),
+                getFacadeToAnalyzeFile(file , settings ),
 
                 ProjectRootModificationTracker.getInstance(project),
             )
@@ -54,23 +63,26 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
             }
         }
 
-    private val globalFacadesPerPlatformAndSdk: SLRUCache<PlatformAnalysisSettings, GlobalFacade> =
-        SLRUCache.slruCache(2 * 3 * 2, 2 * 3 * 2) { GlobalFacade(it) }
+//    private val globalFacadesPerPlatformAndSdk: SLRUCache<PlatformAnalysisSettings, GlobalFacade> =
+//        SLRUCache.slruCache(2 * 3 * 2, 2 * 3 * 2) { GlobalFacade(it) }
 
-    private fun facadeForModules(settings: PlatformAnalysisSettings) =
-        getOrBuildGlobalFacade(settings).facadeForModules
+    private fun facadeForModules(/*settings: PlatformAnalysisSettings*/) =
+        getOrBuildGlobalFacade(/*settings*/).facadeForModules
 
 
     @Synchronized
-    private fun getOrBuildGlobalFacade(settings: PlatformAnalysisSettings) =
-        globalFacadesPerPlatformAndSdk[settings]
+    private fun getOrBuildGlobalFacade(/*settings: PlatformAnalysisSettings*/) =
+//        globalFacadesPerPlatformAndSdk[settings]
 
-    private inner class GlobalFacade(settings: PlatformAnalysisSettings) {
+        GlobalFacade(/*settings*/)
+
+
+    private inner class GlobalFacade(/*settings: PlatformAnalysisSettings*/) {
         private val context = GlobalContext("sdk")
 //        private val moduleFilters = GlobalFacadeModuleFilters(project)
 
         val facadeForModules = ProjectResolutionFacade(
-            "facadeForModules", "sdk with settings=$settings",
+            "facadeForModules", /*"sdk with settings=$settings"*/"",
             project, context,
             reuseDataFrom = null,
 //            moduleFilter = moduleFilters::sdkFacadeFilter,
@@ -84,17 +96,213 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
     }
 
 
-    private fun getFacadeToAnalyzeFile(file: CjFile, settings: PlatformAnalysisSettings): ResolutionFacade {
+    private fun getFacadeToAnalyzeFile(file: CjFile , settings: PlatformAnalysisSettings ): ResolutionFacade {
 
+        val moduleInfo = file.moduleInfo
 
-        val projectFacade = facadeForModules(settings)
+//        val projectFacade = facadeForModules(settings)
+//
+//        return ResolutionFacadeImpl(projectFacade).createdFor(emptyList(),/* moduleInfo,*/ settings)
 
-        return ResolutionFacadeImpl(projectFacade).createdFor(emptyList(),/* moduleInfo,*/ settings)
+        return getResolutionFacadeByModuleInfoAndSettings(moduleInfo /*, settings*/ ).createdFor(emptyList(), moduleInfo/*, settings*/)
+
+    }
+
+    private fun getResolutionFacadeByModuleInfoAndSettings(
+        moduleInfo: ModuleInfo,
+//        settings: PlatformAnalysisSettings
+    ): ResolutionFacade {
+        val projectFacade =  facadeForModules(/*settings*/)
+
+        return ModuleResolutionFacadeImpl(projectFacade, moduleInfo)
     }
 
     override fun getResolutionFacade(elements: List<CjElement>): ResolutionFacade {
         TODO("Not yet implemented")
+        val files = getFilesForElements(elements)
+        if (files.size == 1) return getResolutionFacade(files.single())
+        return getFacadeToAnalyzeFiles(files/*, settings*/)
+
     }
+    private fun CjCodeFragment.getContextFile(): CjFile? {
+        val contextElement = context ?: return null
+        val contextFile = (contextElement as? CjElement)?.getContainingCjFile()
+            ?: throw AssertionError("Analyzing kotlin code fragment of type ${this::class.java} with java context of type ${contextElement::class.java}")
+        return if (contextFile is CjCodeFragment) contextFile.getContextFile() else contextFile
+    }
+    private fun Collection<CjFile>.filterNotInProjectSource(moduleInfo:  ModuleInfo): Set<CjFile> =
+        mapNotNullTo(mutableSetOf()) { filterNotInProjectSource(it, moduleInfo) }
+    private fun filterNotInProjectSource(file: CjFile, moduleInfo: ModuleInfo): CjFile? {
+        val fileToAnalyze = when (file) {
+            is CjCodeFragment -> file.getContextFile()
+            else -> file
+        }
+
+        if (fileToAnalyze == null) {
+            return null
+        }
+
+        val isInProjectSource = RootKindFilter.projectSources.matches(fileToAnalyze)
+                && moduleInfo.contentScope.contains(fileToAnalyze)
+
+        return if (!isInProjectSource) fileToAnalyze else null
+    }
+    private fun getFacadeToAnalyzeFiles(files: Collection<CjFile>/*, settings: PlatformAnalysisSettings*/): ResolutionFacade {
+        val moduleInfo = files.first().moduleInfo
+//        val specialFiles = files.filterNotInProjectSource(moduleInfo)
+
+
+
+//        if (specialFiles.isNotEmpty()) {
+//            val projectFacade = getFacadeForSpecialFiles(specialFiles, settings)
+//            return ModuleResolutionFacadeImpl(projectFacade, moduleInfo).createdFor(specialFiles, moduleInfo, settings)
+//        }
+
+        return getResolutionFacadeByModuleInfoAndSettings(moduleInfo/*, settings*/).createdFor(emptyList(), moduleInfo/*, settings*/)
+    }
+//    private val specialFilesCacheProvider = CachedValueProvider {
+//        // NOTE: computations inside createFacadeForFilesWithSpecialModuleInfo depend on project root structure
+//        // so we additionally drop the whole slru cache on change
+//        CachedValueProvider.Result(
+//            SLRUCache.slruCache<Pair<Set<CjFile>, PlatformAnalysisSettings>, ProjectResolutionFacade>(2, 3) {
+//                createFacadeForFilesWithSpecialModuleInfo(it.first, it.second)
+//            },
+//
+//            ProjectRootModificationTracker.getInstance(project)
+//        )
+//    }
+    // explicitSettings allows to override the "innate" settings of the files' moduleInfo
+    // This can be useful, if the module is common, but we want to create a facade to
+    // analyze that module from the platform (e.g. JVM) point of view
+//    private fun createFacadeForFilesWithSpecialModuleInfo(
+//        files: Set<CjFile>,
+//        explicitSettings: PlatformAnalysisSettings? = null
+//    ): ProjectResolutionFacade {
+//        // we assume that all files come from the same module
+//        val targetPlatform = files.map { it.platform }.toSet().single()
+//        val specialModuleInfo = files.map { it.moduleInfo }.toSet().single()
+//        val settings = explicitSettings ?: specialModuleInfo.platformSettings(specialModuleInfo.platform)
+//
+//        // Dummy files created e.g. by J2K do not receive events.
+//        val dependencyTrackerForSyntheticFileCache = if (files.all { it.originalFile != it }) {
+//            ModificationTracker { files.sumByLong { it.outOfBlockModificationCount } }
+//        } else ModificationTracker { files.sumByLong { it.modificationStamp } }
+//
+//        val resolverDebugName =
+//            "$resolverForSpecialInfoName $specialModuleInfo for files ${files.joinToString { it.name }} for platform $targetPlatform"
+//
+//        fun makeProjectResolutionFacade(
+//            debugName: String,
+//            globalContext: GlobalContextImpl,
+//            reuseDataFrom: ProjectResolutionFacade? = null,
+//            moduleFilter: ( ModuleInfo) -> Boolean = { true },
+//            allModules: Collection< ModuleInfo>? = null
+//        ): ProjectResolutionFacade {
+//            return ProjectResolutionFacade(
+//                debugName,
+//                resolverDebugName,
+//                project,
+//                globalContext,
+//                settings,
+//                syntheticFiles = files,
+//                reuseDataFrom = reuseDataFrom,
+//                moduleFilter = moduleFilter,
+//                dependencies = listOf(
+//                    dependencyTrackerForSyntheticFileCache,
+//                    ProjectRootModificationTracker.getInstance(project)
+//                ),
+//                invalidateOnOOCB = true,
+//                allModules = allModules
+//            )
+//        }
+//
+//        return when {
+//            specialModuleInfo is ModuleSourceInfo -> {
+//                val dependentModules = specialModuleInfo.getDependentModules()
+//                val modulesFacade = facadeForModules(settings)
+//                val globalContext =
+//                    modulesFacade.globalContext.contextWithCompositeExceptionTracker(
+//                        project,
+//                        "facadeForSpecialModuleInfo (ModuleSourceInfo)"
+//                    )
+//                makeProjectResolutionFacade(
+//                    "facadeForSpecialModuleInfo (ModuleSourceInfo)",
+//                    globalContext,
+//                    reuseDataFrom = modulesFacade,
+//                    moduleFilter = { it in dependentModules }
+//                )
+//            }
+//
+//            specialModuleInfo is ScriptModuleInfo -> {
+//                val facadeForScriptDependencies = createFacadeForScriptDependencies(
+//                    ScriptDependenciesInfo.ForFile(project, specialModuleInfo.scriptFile, specialModuleInfo.scriptDefinition)
+//                )
+//                val globalContext = facadeForScriptDependencies.globalContext.contextWithCompositeExceptionTracker(
+//                    project,
+//                    "facadeForSpecialModuleInfo (ScriptModuleInfo)"
+//                )
+//                makeProjectResolutionFacade(
+//                    "facadeForSpecialModuleInfo (ScriptModuleInfo)",
+//                    globalContext,
+//                    reuseDataFrom = facadeForScriptDependencies,
+//                    allModules = specialModuleInfo.dependencies(),
+//                    moduleFilter = { it == specialModuleInfo }
+//                )
+//            }
+//
+//            specialModuleInfo is ScriptDependenciesInfo -> facadeForScriptDependenciesForProject.value
+//            specialModuleInfo is ScriptDependenciesSourceInfo -> {
+//                val globalContext =
+//                    facadeForScriptDependenciesForProject.value.globalContext.contextWithCompositeExceptionTracker(
+//                        project,
+//                        "facadeForSpecialModuleInfo (ScriptDependenciesSourceInfo)"
+//                    )
+//                makeProjectResolutionFacade(
+//                    "facadeForSpecialModuleInfo (ScriptDependenciesSourceInfo)",
+//                    globalContext,
+//                    reuseDataFrom = facadeForScriptDependenciesForProject.value,
+//                    allModules = specialModuleInfo.dependencies(),
+//                    moduleFilter = { it == specialModuleInfo }
+//                )
+//            }
+//
+//            specialModuleInfo is LibrarySourceInfo || specialModuleInfo is NotUnderContentRootModuleInfo -> {
+//                val librariesFacade = librariesFacade(settings)
+//                val debugName = "facadeForSpecialModuleInfo (LibrarySourceInfo or NotUnderContentRootModuleInfo)"
+//                val globalContext = librariesFacade.globalContext.contextWithCompositeExceptionTracker(project, debugName)
+//                makeProjectResolutionFacade(
+//                    debugName,
+//                    globalContext,
+//                    reuseDataFrom = librariesFacade,
+//                    moduleFilter = { it == specialModuleInfo }
+//                )
+//            }
+//
+//            specialModuleInfo.isLibraryClasses() -> {
+//                //NOTE: this code should not be called for sdk or library classes
+//                // currently the only known scenario is when we cannot determine that file is a library source
+//                // (file under both classes and sources root)
+//                LOG.warn("Creating cache with synthetic files ($files) in classes of library $specialModuleInfo")
+//                val globalContext = GlobalContext("facadeForSpecialModuleInfo for file under both classes and root")
+//                makeProjectResolutionFacade(
+//                    "facadeForSpecialModuleInfo for file under both classes and root",
+//                    globalContext
+//                )
+//            }
+//
+//            else -> throw IllegalStateException("Unknown  ModuleInfo ${specialModuleInfo::class.java}")
+//        }
+//    }
+
+//    private fun getFacadeForSpecialFiles(files: Set<CjFile>, settings: PlatformAnalysisSettings): ProjectResolutionFacade {
+//        val cachedValue: SLRUCache<Pair<Set<CjFile>, PlatformAnalysisSettings>, ProjectResolutionFacade> =
+//            CachedValuesManager.getManager(project).getCachedValue(project, specialFilesCacheProvider)
+//
+//        // In Upsource, we create multiple instances of KotlinCacheService, which all access the same CachedValue instance (UP-8046)
+//        // This is so because class name of provider is used as a key when fetching cached value, see CachedValueManager.getKeyForClass.
+//        // To avoid race conditions, we can't use any local lock to access the cached value contents.
+//        return cachedValue.getOrCreateValue(files to settings)
+//    }
 
     private fun getFilesForElements(elements: List<CjElement>): List<CjFile> {
         return elements.map {

@@ -7,16 +7,40 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-
 import static com.huawei.cangjie.descriptors.Errors.*;
-import static com.huawei.cangjie.diagnostics.rendering.Renderers.ELEMENT_TEXT;
+import static com.huawei.cangjie.diagnostics.rendering.Renderers.*;
+
 
 public class DefaultErrorMessages {
     private static final List<DiagnosticFactoryToRendererMap> RENDERER_MAPS;
-    public interface Extension {
-        @NotNull
-        DiagnosticFactoryToRendererMap getMap();
+    private static final DiagnosticFactoryToRendererMap MAP = new DiagnosticFactoryToRendererMap("Default");
+
+    static {
+        RENDERER_MAPS = List.of(MAP);
+
     }
+
+    static {
+/******************    声明检查************************************************/
+//未定义
+        MAP.put(UNSUPPORTED, "Unsupported [{0}]", STRING);
+//重复定义
+        MAP.put(CONFLICTING_OVERLOADS, "Conflicting overloads: {0}", CommonRenderers.commaSeparated(FQ_NAMES_IN_TYPES));
+
+
+        MAP.put(FUNCTION_CALL_EXPECTED, "Function invocation ''{0}({1})'' expected", ELEMENT_TEXT,
+                (hasValueParameters, context) -> hasValueParameters ? "..." : "");
+//        MAP.put(CONSTANT_EXPECTED_TYPE_MISMATCH, "The {0} literal does not conform to the expected type {1}", CommonRenderers.STRING, RENDER_TYPE);
+        MAP.put(NO_VALUE_FOR_PARAMETER, "No value passed for parameter ''{0}''", NAME);
+
+        MAP.put(UNRESOLVED_REFERENCE, "Unresolved reference: {0}", ELEMENT_TEXT);
+
+
+//        常量检查
+        MAP.put(CONSTANT_EXPECTED_TYPE_MISMATCH, "The {0} literal does not conform to the expected type {1}", STRING, RENDER_TYPE);
+
+    }
+
     @NotNull
     @SuppressWarnings("unchecked")
     public static String render(@NotNull UnboundDiagnostic diagnostic) {
@@ -38,18 +62,9 @@ public class DefaultErrorMessages {
             return diagnostic.getFactory().getDefaultRenderer();
     }
 
-    private static final DiagnosticFactoryToRendererMap MAP = new DiagnosticFactoryToRendererMap("Default");
 
-
-    static {
-        RENDERER_MAPS = List.of(MAP);
-
-    }
-
-
-
-    static {
-
-        MAP.put(UNRESOLVED_REFERENCE, "Unresolved reference: {0}", ELEMENT_TEXT);
+    public interface Extension {
+        @NotNull
+        DiagnosticFactoryToRendererMap getMap();
     }
 }

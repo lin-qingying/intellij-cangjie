@@ -1,11 +1,12 @@
-<idea-plugin allow-bundled-update="true">
+<idea-plugin allow-bundled-update="true" xmlns:xi="http://www.w3.org/2001/XInclude">
 
 
     <resource-bundle>messages.CangJieBaseHighlightingBundle</resource-bundle>
     <resource-bundle>messages.CangJieBundle</resource-bundle>
 
 
-    <!--    <xi:include href="/META-INF/codeInsight.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+    <xi:include href="/META-INF/codeInsight.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/searching.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <extensions defaultExtensionNs="com.intellij">
 
@@ -57,10 +58,10 @@
 
 
         <fileType name="cangjie_declarations" fieldName="INSTANCE" extensions="cjd"
-                  language="CangJie"   implementationClass="com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType"/>
+                  language="CangJie" implementationClass="com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType"/>
 
-<!--        <lang.fileViewProviderFactory language="CangJie"-->
-<!--                                      implementationClass="com.huawei.cangjie.lang.declarations.CangJieDeclarationsFileViewProviderFactory"/>-->
+        <!--        <lang.fileViewProviderFactory language="CangJie"-->
+        <!--                                      implementationClass="com.huawei.cangjie.lang.declarations.CangJieDeclarationsFileViewProviderFactory"/>-->
         <fileType.fileViewProviderFactory filetype="cangjie_declarations"
                                           implementationClass="com.huawei.cangjie.lang.declarations.CangJieDeclarationsFileViewProviderFactory"/>
 
@@ -167,6 +168,10 @@
 
         <!--        <applicationService serviceInterface="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicy"-->
         <!--                        serviceImplementation="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>-->
+        <projectService serviceInterface="com.huawei.cangjie.ide.references.ReadWriteAccessChecker"
+                        serviceImplementation="com.huawei.cangjie.ide.references.ReadWriteAccessCheckerDescriptorsImpl"/>
+
+
         <registryKey
                 key="cangjie.disable.auto.completion.inside.expression"
                 description="Disables auto-completion inside expressions"
@@ -277,7 +282,9 @@
         <!--        <extensionPoint-->
         <!--                qualifiedName="com.huawei.cangjie.completionExtension"-->
         <!--                interface="com.huawei.cangjie.ide.completion.CangJieCompletionExtension" dynamic="true"/>-->
-
+        <extensionPoint qualifiedName="com.huawei.cangjie.diagnosticSuppressor"
+                        interface="com.huawei.cangjie.descriptors.DiagnosticSuppressor"
+                        dynamic="true"/>
         <extensionPoint qualifiedName="com.huawei.cangjie.runConfigurationExtension"
                         interface="com.huawei.cangjie.ide.run.cjpm.runconfig.CjpmCommandConfigurationExtension"
                         dynamic="true"/>

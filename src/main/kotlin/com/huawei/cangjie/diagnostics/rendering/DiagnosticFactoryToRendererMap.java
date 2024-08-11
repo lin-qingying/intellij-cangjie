@@ -2,6 +2,7 @@ package com.huawei.cangjie.diagnostics.rendering;
 
 import com.huawei.cangjie.descriptors.DiagnosticFactory;
 import com.huawei.cangjie.diagnostics.DiagnosticFactory1;
+import com.huawei.cangjie.diagnostics.DiagnosticFactory2;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +35,13 @@ public class DiagnosticFactoryToRendererMap {
         if (immutable) {
             throw new IllegalStateException("factory to renderer map is already immutable");
         }
+    }
+    public <E extends PsiElement, A, B> void put(@NotNull DiagnosticFactory2<E, A, B> factory,
+                                                 @NotNull String message,
+                                                 @Nullable DiagnosticParameterRenderer<? super A> rendererA,
+                                                 @Nullable DiagnosticParameterRenderer<? super B> rendererB) {
+        checkMutability();
+        map.put(factory, new DiagnosticWithParameters2Renderer<A, B>(message, rendererA, rendererB));
     }
     public <E extends PsiElement, A> void put(@NotNull DiagnosticFactory1<E, A> factory, @NotNull String message, @Nullable DiagnosticParameterRenderer<? super A> rendererA) {
         checkMutability();

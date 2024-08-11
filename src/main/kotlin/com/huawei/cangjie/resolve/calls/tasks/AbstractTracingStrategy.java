@@ -3,9 +3,13 @@ package com.huawei.cangjie.resolve.calls.tasks;
 
 import com.huawei.cangjie.descriptors.BindingTrace;
 import com.huawei.cangjie.descriptors.CallableDescriptor;
+import com.huawei.cangjie.descriptors.DeclarationDescriptorWithVisibility;
+import com.huawei.cangjie.descriptors.ValueParameterDescriptor;
 import com.huawei.cangjie.psi.Call;
+import com.huawei.cangjie.psi.CjElement;
 import com.huawei.cangjie.psi.CjExpression;
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
+import com.huawei.cangjie.resolve.calls.util.CallUtilKt;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -27,6 +31,11 @@ public abstract class AbstractTracingStrategy implements TracingStrategy {
     public <D extends CallableDescriptor> void noneApplicable(@NotNull BindingTrace trace, @NotNull Collection<? extends ResolvedCall<D>> descriptors) {
         trace.report(NONE_APPLICABLE.on(reference, descriptors));
     }
+    @Override
+    public void noValueForParameter(@NotNull BindingTrace trace, @NotNull ValueParameterDescriptor valueParameter) {
+        CjElement reportOn = CallUtilKt.getValueArgumentListOrElement(call);
+        trace.report(NO_VALUE_FOR_PARAMETER.on(reportOn, valueParameter));
+    }
 
     @Override
     public <D extends CallableDescriptor> void cannotCompleteResolve(
@@ -34,6 +43,10 @@ public abstract class AbstractTracingStrategy implements TracingStrategy {
             @NotNull Collection<? extends ResolvedCall<D>> descriptors
     ) {
         trace.report(CANNOT_COMPLETE_RESOLVE.on(reference, descriptors));
+    }
+    @Override
+    public void invisibleMember(@NotNull BindingTrace trace, @NotNull DeclarationDescriptorWithVisibility descriptor) {
+        trace.report(INVISIBLE_MEMBER.on(call.getCallElement(), descriptor, descriptor.getVisibility(), descriptor));
     }
 
     @Override

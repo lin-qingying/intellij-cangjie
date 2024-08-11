@@ -2,6 +2,7 @@ package com.huawei.cangjie.diagnostics.rendering
 
 import com.huawei.cangjie.diagnostics.UnboundDiagnostic
 import com.huawei.cangjie.diagnostics.DiagnosticWithParameters1
+import com.huawei.cangjie.diagnostics.DiagnosticWithParameters2
 import java.text.MessageFormat
 
 
@@ -38,5 +39,19 @@ class DiagnosticWithParameters1Renderer<A>(
     override fun renderParameters(diagnostic: DiagnosticWithParameters1<*, A>): Array<out Any?> {
         val context = RenderingContext.of(diagnostic.a)
         return arrayOf(renderParameter(diagnostic.a, rendererForA, context))
+    }
+}
+class DiagnosticWithParameters2Renderer<A, B>(
+    message: String,
+    private val rendererForA: DiagnosticParameterRenderer<A>?,
+    private val rendererForB: DiagnosticParameterRenderer<B>?
+) : AbstractDiagnosticWithParametersRenderer<DiagnosticWithParameters2<*, A, B>>(message) {
+
+    override fun renderParameters(diagnostic: DiagnosticWithParameters2<*, A, B>): Array<out Any?> {
+        val context = RenderingContext.of(diagnostic.a, diagnostic.b)
+        return arrayOf(
+            renderParameter(diagnostic.a, rendererForA, context),
+            renderParameter(diagnostic.b, rendererForB, context)
+        )
     }
 }

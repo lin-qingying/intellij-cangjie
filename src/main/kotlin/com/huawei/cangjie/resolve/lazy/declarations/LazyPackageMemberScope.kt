@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve.lazy.declarations
 
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.PackageFragmentDescriptor
+import com.huawei.cangjie.descriptors.PropertyDescriptor
 import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
@@ -42,7 +43,9 @@ class LazyPackageMemberScope(
     }
 
 
-
+    override fun getNonDeclaredProperties(name: Name, result: MutableSet<PropertyDescriptor>) {
+        // No extra properties
+    }
 
 //    override fun getContributedDescriptors(
 //        kindFilter: DescriptorKindFilter,

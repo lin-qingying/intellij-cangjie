@@ -12,6 +12,9 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.diagnostics.DiagnosticFactoryWithPsiElement
 import com.huawei.cangjie.diagnostics.DiagnosticUtils
 import com.huawei.cangjie.frontend.createContainerForLazyBodyResolve
+import com.huawei.cangjie.ide.cache.trackers.clearInBlockModifications
+import com.huawei.cangjie.ide.cache.trackers.inBlockModifications
+import com.huawei.cangjie.ide.cache.trackers.removeInBlockModifications
 import com.huawei.cangjie.ide.projectStructure.languageVersionSettings
 import com.huawei.cangjie.ide.stubindex.resolve.PluginDeclarationProviderFactory
 import com.huawei.cangjie.psi.*
@@ -442,28 +445,6 @@ object CangJieResolveDataProvider {
 }
 
 
-private val IN_BLOCK_MODIFICATIONS = Key<MutableCollection<CjElement>>("IN_BLOCK_MODIFICATIONS")
-
-val CjFile.inBlockModifications: Collection<CjElement>
-    get() {
-        val collection = getUserData(IN_BLOCK_MODIFICATIONS) ?: return emptyList()
-        return synchronized(collection) {
-            if (collection.isNotEmpty()) {
-                ArrayList(collection)
-            } else {
-                emptyList()
-            }
-        }
-    }
-
-
-fun CjFile.clearInBlockModifications() {
-    getUserData(IN_BLOCK_MODIFICATIONS)?.let { collection ->
-        synchronized(collection) {
-            collection.clear()
-        }
-    }
-}
 
 /**
  * Keep in mind: trace fallbacks to [resolveContext] (is used during resolve) that does not have any
@@ -655,12 +636,3 @@ private class MergedDiagnostics(
 
 }
 
-fun CjFile.removeInBlockModifications(blockModifications: Collection<CjElement>) {
-    if (blockModifications.isEmpty()) return
-
-    getUserData(IN_BLOCK_MODIFICATIONS)?.let { collection ->
-        synchronized(collection) {
-            collection.removeAll(blockModifications.toSet())
-        }
-    }
-}

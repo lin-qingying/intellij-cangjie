@@ -5,3 +5,16 @@ fun CapturedTypeMarker.captureStatus(c: TypeSystemInferenceExtensionContext): Ca
     with(c) {
         captureStatus()
     }
+fun CangJieTypeMarker.dependsOnTypeParameters(c: TypeSystemInferenceExtensionContext, typeParameters: Collection<TypeParameterMarker>): Boolean =
+    with(c) {
+        val typeConstructors = typeParameters.mapTo(mutableSetOf()) { it.getTypeConstructor() }
+        dependsOnTypeConstructor(c, typeConstructors)
+    }
+fun CangJieTypeMarker.dependsOnTypeConstructor(c: TypeSystemInferenceExtensionContext, typeConstructors: Set<TypeConstructorMarker>): Boolean =
+    with(c) {
+        contains { it.typeConstructor() in typeConstructors }
+    }
+fun TypeSubstitutorMarker.safeSubstitute(
+    c: TypeSystemInferenceExtensionContext,
+    type: CangJieTypeMarker
+): CangJieTypeMarker = with(c) { safeSubstitute(type) }

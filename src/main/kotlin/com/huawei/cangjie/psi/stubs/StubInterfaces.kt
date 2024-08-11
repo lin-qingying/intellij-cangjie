@@ -78,7 +78,10 @@ interface CangJieVariableStub : CangJieCallableStubBase<CjVariable> {
     fun hasReturnTypeRef(): Boolean
 }
 
-interface CangJiePropertyStub : CangJieStubWithFqName<CjProperty>
+interface CangJiePropertyStub : CangJieStubWithFqName<CjProperty>{
+    fun hasReturnTypeRef(): Boolean
+
+}
 interface CangJieCallableStubBase<TDeclaration : CjCallableDeclaration> : CangJieStubWithFqName<TDeclaration> {
     fun isTopLevel(): Boolean
     fun isExtension(): Boolean

@@ -40,7 +40,7 @@ class ModuleDescriptorImpl(
         setDependencies(descriptors.toList())
     }
 
-    fun setDependencies(descriptors: List<ModuleDescriptorImpl>) {
+    private fun setDependencies(descriptors: List<ModuleDescriptorImpl>) {
         setDependencies(descriptors, emptySet())
     }
 
@@ -49,7 +49,7 @@ class ModuleDescriptorImpl(
         this.dependencies = dependencies
     }
 
-    fun setDependencies(descriptors: List<ModuleDescriptorImpl>, friends: Set<ModuleDescriptorImpl>) {
+    private fun setDependencies(descriptors: List<ModuleDescriptorImpl>, friends: Set<ModuleDescriptorImpl>) {
         setDependencies(ModuleDependenciesImpl(descriptors, friends, emptyList(), emptySet()))
     }
 

@@ -1,8 +1,6 @@
 package com.huawei.cangjie.ide.references
 
 import com.huawei.cangjie.psi.CjElement
-import com.huawei.cangjie.psi.CjSimpleNameExpression
-import com.huawei.cangjie.psi.CjValueArgument
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
@@ -12,6 +10,7 @@ import com.intellij.util.containers.MultiMap
 interface CangJiePsiReferenceProvider {
     fun getReferencesByElement(element: PsiElement): Array<PsiReference>
 }
+
 interface CangJieReferenceProviderContributor {
     fun registerReferenceProviders(registrar: CangJiePsiReferenceRegistrar)
 
@@ -20,8 +19,6 @@ interface CangJieReferenceProviderContributor {
             project.getService(CangJieReferenceProviderContributor::class.java)
     }
 }
-
-
 
 
 class CangJiePsiReferenceRegistrar {
@@ -33,7 +30,7 @@ class CangJiePsiReferenceRegistrar {
         }
     }
 
-    inline fun <reified E : CjElement>  registerMultiProvider(crossinline factory: (E) -> Array<PsiReference>) {
+    inline fun <reified E : CjElement> registerMultiProvider(crossinline factory: (E) -> Array<PsiReference>) {
         val provider: CangJiePsiReferenceProvider = object : CangJiePsiReferenceProvider {
             override fun getReferencesByElement(element: PsiElement): Array<PsiReference> {
                 return factory(element as E)

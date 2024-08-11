@@ -12,7 +12,11 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 
 
-
+inline fun reportOnDeclaration(trace: BindingTrace, descriptor: DeclarationDescriptor, what: (PsiElement) -> Diagnostic) {
+    DescriptorToSourceUtils.descriptorToDeclaration(descriptor)?.let { psiElement ->
+        trace.report(what(psiElement))
+    }
+}
 
 object DiagnosticUtils {
     fun getLineAndColumnInPsiFile(

@@ -1,12 +1,21 @@
 package com.huawei.cangjie.resolve.scopes
 
-import com.huawei.cangjie.descriptors.ClassifierDescriptor
-import com.huawei.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
-import com.huawei.cangjie.descriptors.PackageViewDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.psi.CjClassBody
+import com.huawei.cangjie.psi.CjElement
+import com.huawei.cangjie.psi.CjFile
+import com.huawei.cangjie.resolve.BindingContext
+import com.huawei.cangjie.resolve.FrontendInternals
+import com.huawei.cangjie.resolve.ResolutionFacade
+import com.huawei.cangjie.resolve.frontendService
+import com.huawei.cangjie.resolve.lazy.FileScopeProvider
+import com.huawei.cangjie.resolve.scopes.util.parentsWithSelf
 import com.huawei.cangjie.utils.Printer
 import com.huawei.cangjie.utils.SmartList
+import com.huawei.cangjie.utils.parentsWithSelf
+import com.intellij.psi.PsiElement
 
 @JvmOverloads
 fun MemberScope.memberScopeAsImportingScope(parentScope: ImportingScope? = null): ImportingScope =
@@ -107,4 +116,60 @@ fun <T> Collection<T>?.concat(collection: Collection<T>): Collection<T>? {
     val result = LinkedHashSet(this)
     result.addAll(collection)
     return result
+}
+
+fun PsiElement.getResolutionScope(
+    bindingContext: BindingContext,
+    resolutionFacade: ResolutionFacade/*TODO: get rid of this parameter*/
+): LexicalScope = getResolutionScope(bindingContext) ?: when (containingFile) {
+    is CjFile -> resolutionFacade.getFileResolutionScope(containingFile as CjFile)
+    else -> error("Not in CjFile")
+}
+@OptIn(FrontendInternals::class)
+fun ResolutionFacade.getFileResolutionScope(file: CjFile): LexicalScope {
+    return frontendService<FileScopeProvider>().getFileResolutionScope(file)
+}
+fun PsiElement.getResolutionScope(bindingContext: BindingContext): LexicalScope? {
+    for (parent in parentsWithSelf) {
+        if (parent is CjElement) {
+            val scope = bindingContext[BindingContext.LEXICAL_SCOPE, parent]
+            if (scope != null) return scope
+        }
+
+        if (parent is CjClassBody) {
+            val classDescriptor =
+                bindingContext[BindingContext.CLASS, parent.getParent()] as? ClassDescriptorWithResolutionScopes
+            if (classDescriptor != null) {
+                return classDescriptor.scopeForMemberDeclarationResolution
+            }
+        }
+        if (parent is CjFile) {
+            break
+        }
+    }
+
+    return null
+}
+fun DeclarationDescriptor.canBeResolvedWithoutDeprecation(
+    scopeForResolution: HierarchicalScope,
+    location: LookupLocation
+): Boolean {
+    for (scope in scopeForResolution.parentsWithSelf) {
+        val hasNonDeprecatedSuitableCandidate = when (this) {
+            // Looking for classifier: fair check via special method in ResolutionScope
+            is ClassifierDescriptor -> scope.getContributedClassifierIncludeDeprecated(name, location)
+                ?.let { it.descriptor == this && !it.isDeprecated }
+
+            // Looking for member: heuristically check only one case, when another descriptor visible through explicit import
+            is VariableDescriptor -> (scope as? ImportingScope)?.getContributedVariables(name, location)?.any { it == this }
+
+            is FunctionDescriptor -> (scope as? ImportingScope)?.getContributedFunctions(name, location)?.any { it == this }
+
+            else -> null
+        }
+
+        if (hasNonDeprecatedSuitableCandidate == true) return true
+    }
+
+    return false
 }

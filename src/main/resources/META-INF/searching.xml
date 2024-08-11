@@ -1,0 +1,16 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+<!--        <fileStructureGroupRuleProvider implementation="com.huawei.cangjie.ide.searching.usages.CangJieDeclarationGroupRuleProvider"/>-->
+<!--        <fileStructureGroupRuleProvider-->
+<!--                implementation="com.huawei.cangjie.ide.searching.usages.CangJieDeclarationSecondLevelGroupRuleProvider"/>-->
+
+<!--        <findUsagesHandlerFactory implementation="com.huawei.cangjie.ide.searching.usages.CangJieFindUsagesHandlerFactory"-->
+<!--                                  id="cangjieFindUsagesHandlerFactory"/>-->
+
+<!--        <importFilteringRule implementation="com.huawei.cangjie.ide.searching.usages.CangJieImportFilteringRule"/>-->
+<!--        <elementDescriptionProvider-->
+<!--                implementation="com.huawei.cangjie.ide.searching.usages.CangJieNonCodeSearchElementDescriptionProvider"/>-->
+
+<!--        <annotatedElementsSearch implementation="com.huawei.cangjie.ide.searching.CangJieAnnotatedElementsSearcher" />-->
+    </extensions>
+</idea-plugin>

@@ -54,7 +54,20 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         require(this is TypeConstructor, this::errorMessage)
         return this is IntegerLiteralTypeConstructor
     }
+    override fun createTypeWithUpperBoundForIntersectionResult(
+        firstCandidate: CangJieTypeMarker,
+        secondCandidate: CangJieTypeMarker,
+    ): CangJieTypeMarker {
+        require(firstCandidate is CangJieType, this::errorMessage)
+        require(secondCandidate is CangJieType, this::errorMessage)
 
+        (firstCandidate.constructor as? IntersectionTypeConstructor)?.let { intersectionConstructor ->
+            val intersectionTypeWithAlternative = intersectionConstructor.setAlternative(secondCandidate).createType()
+            return if (firstCandidate.isMarkedNullable) intersectionTypeWithAlternative.makeNullableAsSpecified(true)
+            else intersectionTypeWithAlternative
+
+        } ?: error("Expected intersection type, found $firstCandidate")
+    }
     override fun TypeConstructorMarker.isIntegerLiteralConstantTypeConstructor(): Boolean {
         return isIntegerLiteralTypeConstructor()
     }
@@ -67,7 +80,9 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         require(this is TypeConstructor, this::errorMessage)
         return declarationDescriptor?.classId?.isLocal == true
     }
-
+    override fun captureFromExpression(type: CangJieTypeMarker): CangJieTypeMarker? {
+        return captureFromExpressionInternal(type as UnwrappedType)
+    }
     override fun TypeConstructorMarker.isAnonymous(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
         return declarationDescriptor?.classId?.shortClassName == SpecialNames.ANONYMOUS
@@ -981,8 +996,6 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return this is UnwrappedType && constructor is NewTypeVariableConstructor
     }
 
-    override val isK2: Boolean
-        get() = false
 
 }
 
@@ -1010,3 +1023,4 @@ fun TypeVariance.convertVariance(): Variance {
         TypeVariance.OUT -> Variance.OUT_VARIANCE
     }
 }
+private fun captureFromExpressionInternal(type: UnwrappedType) = captureFromExpression(type)

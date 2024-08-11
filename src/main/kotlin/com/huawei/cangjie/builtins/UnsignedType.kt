@@ -1,0 +1,34 @@
+package com.huawei.cangjie.builtins
+
+import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.descriptors.PackageFragmentDescriptor
+import com.huawei.cangjie.name.ClassId
+import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.util.TypeUtils
+enum class UnsignedType(val classId: ClassId) {
+    UBYTE(ClassId.fromString("UInt8")),
+    USHORT(ClassId.fromString("UInt16")),
+    UINT(ClassId.fromString("UInt32")),
+    ULONG(ClassId.fromString("UInt64"));
+
+    val typeName = classId.shortClassName
+//    val arrayClassId = ClassId(classId.packageFqName, Name.identifier(typeName.asString() + "Array"))
+}
+object UnsignedTypes{
+
+    private val unsignedTypeNames = enumValues<UnsignedType>().map { it.typeName }.toSet()
+
+    fun isUnsignedClass(descriptor: DeclarationDescriptor): Boolean {
+        val container = descriptor.containingDeclaration
+        return container is PackageFragmentDescriptor &&
+                container.fqName == StandardNames.BUILT_INS_PACKAGE_FQ_NAME &&
+                descriptor.name in UnsignedTypes.unsignedTypeNames
+    }
+    @JvmStatic
+    fun isUnsignedType(type: CangJieType): Boolean {
+        if (TypeUtils.noExpectedType(type)) return false
+
+        val descriptor = type.constructor.declarationDescriptor ?: return false
+        return isUnsignedClass(descriptor)
+    }
+}

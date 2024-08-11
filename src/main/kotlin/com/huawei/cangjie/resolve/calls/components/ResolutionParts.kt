@@ -1,18 +1,16 @@
 package com.huawei.cangjie.resolve.calls.components
 
-import com.huawei.cangjie.descriptors.CallableDescriptor
-import com.huawei.cangjie.descriptors.TypeParameterDescriptor
-import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
+import com.huawei.cangjie.descriptors.ValueParameterDescriptor
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
-import com.huawei.cangjie.resolve.calls.inference.ConstraintSystemOperation
 import com.huawei.cangjie.resolve.calls.inference.components.*
-import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableFromCallableDescriptor
-import com.huawei.cangjie.resolve.calls.model.CangJieCall
-import com.huawei.cangjie.resolve.calls.model.ResolutionPart
-import com.huawei.cangjie.resolve.calls.model.SimpleCangJieCallArgument
-import com.huawei.cangjie.resolve.calls.model.SimpleTypeArgument
-import com.huawei.cangjie.types.*
 import com.huawei.cangjie.resolve.calls.inference.substitute
+import com.huawei.cangjie.resolve.calls.model.CangJieCallArgument
+import com.huawei.cangjie.resolve.calls.model.ResolutionPart
+import com.huawei.cangjie.types.ErrorUtils
+import com.huawei.cangjie.types.TypeConstructor
+import com.huawei.cangjie.types.TypeSubstitutor
+import com.huawei.cangjie.types.UnwrappedType
+import com.huawei.cangjie.utils.compactIfPossible
 
 internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 
@@ -35,13 +33,18 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
             map
         }
 
-        return knownTypeParametersSubstitutor.composeWith(NewTypeSubstitutorByConstructorMap(knownTypeParameterByTypeVariable))
+        return knownTypeParametersSubstitutor.composeWith(
+            NewTypeSubstitutorByConstructorMap(
+                knownTypeParameterByTypeVariable
+            )
+        )
     }
+
     override fun ResolutionCandidate.process(workIndex: Int) {
         val csBuilder = getSystem().getBuilder()
         val toFreshVariables =
 //            if (candidateDescriptor.typeParameters.isEmpty())
-                FreshVariableNewTypeSubstitutor.Empty
+            FreshVariableNewTypeSubstitutor.Empty
 //            else
 //                createToFreshVariableSubstitutorAndAddInitialConstraints(candidateDescriptor, resolvedCall.atom, csBuilder)
 
@@ -139,7 +142,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 //
 //    fun createToFreshVariableSubstitutorAndAddInitialConstraints(
 //        candidateDescriptor: CallableDescriptor,
-//        kotlinCall: CangJieCall,
+//        cangjieCall: CangJieCall,
 //        csBuilder: ConstraintSystemOperation
 //    ): FreshVariableNewTypeSubstitutor {
 //        val typeParameters = candidateDescriptor.typeParameters
@@ -162,7 +165,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 //        for (index in typeParameters.indices) {
 //            val typeParameter = typeParameters[index]
 //            val freshVariable = freshTypeVariables[index]
-//            val position = DeclaredUpperBoundConstraintPositionImpl(typeParameter, kotlinCall)
+//            val position = DeclaredUpperBoundConstraintPositionImpl(typeParameter, cangjieCall)
 //
 //            for (upperBound in typeParameter.upperBounds) {
 //                freshVariable.addSubtypeConstraint(upperBound, position)
@@ -176,14 +179,14 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 //            for (index in typeParameters.indices) {
 //                val typeParameter = typeParameters[index]
 //                val freshVariable = freshTypeVariables[index]
-//                val typeMapping = originalTypes.mapIndexedNotNull { i: Int, kotlinType: CangJieType ->
-//                    if (kotlinType == typeParameter.defaultType) i else null
+//                val typeMapping = originalTypes.mapIndexedNotNull { i: Int, cangjieType: CangJieType ->
+//                    if (cangjieType == typeParameter.defaultType) i else null
 //                }
 //                for (originalIndex in typeMapping) {
 //                    // there can be null in case we already captured type parameter in outer class (in case of inner classes)
 //                    // see test innerClassTypeAliasConstructor.kt
 //                    val originalTypeParameter = originalTypeParameters.getOrNull(originalIndex) ?: continue
-//                    val position = DeclaredUpperBoundConstraintPositionImpl(originalTypeParameter, kotlinCall)
+//                    val position = DeclaredUpperBoundConstraintPositionImpl(originalTypeParameter, cangjieCall)
 //                    for (upperBound in originalTypeParameter.upperBounds) {
 //                        freshVariable.addSubtypeConstraint(upperBound, position)
 //                    }
@@ -192,6 +195,28 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 //        }
 //        return toFreshVariables
 //    }
+}
+
+internal object NoArguments : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+        assert(cangjieCall.argumentsInParenthesis.isEmpty()) {
+            "Variable call cannot has arguments: ${cangjieCall.argumentsInParenthesis}. Call: $cangjieCall"
+        }
+        assert(cangjieCall.externalArgument == null) {
+            "Variable call cannot has external argument: ${cangjieCall.externalArgument}. Call: $cangjieCall"
+        }
+        resolvedCall.argumentMappingByOriginal = emptyMap()
+        resolvedCall.argumentToCandidateParameter = emptyMap()
+    }
+}
+
+internal object MapArguments : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+        val mapping = callComponents.argumentsToParametersMapper.mapArguments(cangjieCall, candidateDescriptor)
+        mapping.diagnostics.forEach(this::addDiagnostic)
+
+        resolvedCall.argumentMappingByOriginal = mapping.parameterToCallArgumentMap
+    }
 }
 
 internal object ErrorDescriptorResolutionPart : ResolutionPart() {
@@ -215,5 +240,18 @@ internal object ErrorDescriptorResolutionPart : ResolutionPart() {
 //        cangjieCall.externalArgument?.let {
 //            resolveCangJieArgument(it, null, ReceiverInfo.notReceiver)
 //        }
+    }
+}
+
+internal object ArgumentsToCandidateParameterDescriptor : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+        val map = hashMapOf<CangJieCallArgument, ValueParameterDescriptor>()
+        for ((originalValueParameter, resolvedCallArgument) in resolvedCall.argumentMappingByOriginal) {
+            val valueParameter = candidateDescriptor.valueParameters.getOrNull(originalValueParameter.index) ?: continue
+            for (argument in resolvedCallArgument.arguments) {
+                map[argument] = valueParameter
+            }
+        }
+        resolvedCall.argumentToCandidateParameter = map.compactIfPossible()
     }
 }

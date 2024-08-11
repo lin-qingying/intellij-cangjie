@@ -17,6 +17,7 @@ import com.huawei.cangjie.utils.SmartList
 import com.intellij.codeInsight.completion.CompletionUtilCore
 import com.intellij.openapi.util.Key
 import com.intellij.psi.impl.source.DummyHolder
+import com.huawei.cangjie.descriptors.Errors.*
 
 
 //private fun resolveQualifierReferenceTarget(
@@ -470,7 +471,7 @@ class QualifiedExpressionResolver {
     ): Qualifier? {
         referenceExpression ?: return null
         if (descriptor == null) {
-            trace.report(Errors.UNRESOLVED_REFERENCE.on(referenceExpression, referenceExpression))
+            trace.report(UNRESOLVED_REFERENCE.on(referenceExpression, referenceExpression))
             return null
         }
 

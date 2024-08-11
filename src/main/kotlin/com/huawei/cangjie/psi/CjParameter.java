@@ -72,7 +72,17 @@ public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> im
         }
         return getDefaultValue() != null;
     }
-
+    /**
+     * For example,
+     *   lambdaConsumer { lambdaParameter ->
+     *     ...
+     *   }
+     *
+     * @return [true] if this [KtParameter] is a parameter of a lambda.
+     */
+    public boolean isLambdaParameter() {
+        return checkParentOfParentType(CjFunctionLiteral.class);
+    }
     @Nullable
     public CjExpression getDefaultValue() {
         CangJieParameterStub stub = getStub();

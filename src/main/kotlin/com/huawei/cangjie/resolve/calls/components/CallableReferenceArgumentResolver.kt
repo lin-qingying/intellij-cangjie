@@ -1,0 +1,3 @@
+package com.huawei.cangjie.resolve.calls.components
+
+class CallableReferenceArgumentResolver(val callableReferenceOverloadConflictResolver: CallableReferenceOverloadConflictResolver)

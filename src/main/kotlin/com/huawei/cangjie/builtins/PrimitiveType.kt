@@ -20,7 +20,9 @@ enum class PrimitiveType(typeName: String) {
     UINTNATIVE("UIntNative"),
 
 
-    FLOAT("Float"),
+    FLOAT64("Float64"),
+    FLOAT32("Float32"),
+    FLOAT16("Float16"),
 
     ;
 
@@ -42,7 +44,7 @@ enum class PrimitiveType(typeName: String) {
 
     companion object {
         @JvmField
-        val NUMBER_TYPES = setOf(CHAR, INT64, INT32, INT16, INT8, FLOAT)
+        val NUMBER_TYPES = setOf(CHAR, INT64, INT32, INT16, INT8, FLOAT64,FLOAT32,FLOAT16)
 
         @JvmStatic
         fun getByShortName(name: String): PrimitiveType? = when (name) {
@@ -57,7 +59,9 @@ enum class PrimitiveType(typeName: String) {
             "Int16" -> INT16
 
             "Int8" -> INT8
-            "Float" -> FLOAT
+            "Float64" -> FLOAT64
+            "Float32" -> FLOAT32
+            "Float16" -> FLOAT16
 
             else -> null
         }

@@ -17,382 +17,387 @@ interface DescriptionAware {
 
 enum class LanguageFeature(
     val sinceVersion: LanguageVersion?,
-    val sinceApiVersion: ApiVersion = ApiVersion.KOTLIN_1_0,
+    val sinceApiVersion: ApiVersion = ApiVersion.CANGJIE_0_53_4,
     val hintUrl: String? = null,
     internal val isEnabledWithWarning: Boolean = false,
     val kind: Kind = OTHER // NB: default value OTHER doesn't force pre-releaseness (see KDoc)
 ) {
     // Note: names of these entries are also used in diagnostic tests and in user-visible messages (see presentableText below)
 
-    // 1.1
 
-    TypeAliases(KOTLIN_1_1),
-    BoundCallableReferences(KOTLIN_1_1, ApiVersion.KOTLIN_1_1),
-    LocalDelegatedProperties(KOTLIN_1_1, ApiVersion.KOTLIN_1_1),
-    TopLevelSealedInheritance(KOTLIN_1_1),
-    AdditionalBuiltInsMembers(KOTLIN_1_1),
-    DataClassInheritance(KOTLIN_1_1),
-    InlineProperties(KOTLIN_1_1),
-    DestructuringLambdaParameters(KOTLIN_1_1),
-    SingleUnderscoreForParameterName(KOTLIN_1_1),
-    DslMarkersSupport(KOTLIN_1_1),
-    UnderscoresInNumericLiterals(KOTLIN_1_1),
-    DivisionByZeroInConstantExpressions(KOTLIN_1_1),
-    InlineConstVals(KOTLIN_1_1),
-    OperatorRem(KOTLIN_1_1),
-    OperatorProvideDelegate(KOTLIN_1_1),
-    ShortSyntaxForPropertyGetters(KOTLIN_1_1),
-    RefinedSamAdaptersPriority(KOTLIN_1_1),
-    SafeCallBoundSmartCasts(KOTLIN_1_1),
-    TypeInferenceOnGenericsForCallableReferences(KOTLIN_1_1),
-    NoDelegationToJavaDefaultInterfaceMembers(KOTLIN_1_1),
-    DefaultImportOfPackageCangJieComparisons(KOTLIN_1_1),
-    Coroutines(
-        KOTLIN_1_1, ApiVersion.KOTLIN_1_1,
-        "https://kotlinlang.org/docs/diagnostics/experimental-coroutines",
-        isEnabledWithWarning = true
-    ),
 
-    // 1.2
+    TypeAliases(CANGJIE_0_53_4),
+    OverloadResolutionByLambdaReturnType(CANGJIE_0_53_4),
+    RefinedSamAdaptersPriority(CANGJIE_0_53_4),
+    ProhibitConstructorCallOnFunctionalSupertype(CANGJIE_0_53_4, kind = BUG_FIX), // KT-46344
 
-    InlineDefaultFunctionalParameters(KOTLIN_1_2),
-    SoundSmartCastsAfterTry(KOTLIN_1_2),
-    DeprecatedFieldForInvisibleCompanionObject(KOTLIN_1_2),
-    NullabilityAssertionOnExtensionReceiver(KOTLIN_1_2),
-    SafeCastCheckBoundSmartCasts(KOTLIN_1_2),
-    CapturedInClosureSmartCasts(KOTLIN_1_2),
-    LateinitTopLevelProperties(KOTLIN_1_2),
-    LateinitLocalVariables(KOTLIN_1_2),
-    InnerClassInEnumEntryClass(KOTLIN_1_2),
-    CallableReferencesToClassMembersWithEmptyLHS(KOTLIN_1_2),
-    ThrowNpeOnExplicitEqualsForBoxedNull(KOTLIN_1_2),
-    JvmPackageName(KOTLIN_1_2),
-    AssigningArraysToVarargsInNamedFormInAnnotations(KOTLIN_1_2),
-    ExpectedTypeFromCast(KOTLIN_1_2),
-    DefaultMethodsCallFromJava6TargetError(KOTLIN_1_2),
+//    BoundCallableReferences(CANGJIE_0_53_4, ApiVersion.CANGJIE_0_53_4),
+//    LocalDelegatedProperties(CANGJIE_0_53_4, ApiVersion.CANGJIE_0_53_4),
+//    TopLevelSealedInheritance(CANGJIE_0_53_4),
+//    AdditionalBuiltInsMembers(CANGJIE_0_53_4),
+//    DataClassInheritance(CANGJIE_0_53_4),
+//    InlineProperties(CANGJIE_0_53_4),
+//    DestructuringLambdaParameters(CANGJIE_0_53_4),
+//    SingleUnderscoreForParameterName(CANGJIE_0_53_4),
+//    DslMarkersSupport(CANGJIE_0_53_4),
+//    UnderscoresInNumericLiterals(CANGJIE_0_53_4),
+//    DivisionByZeroInConstantExpressions(CANGJIE_0_53_4),
+//    InlineConstVals(CANGJIE_0_53_4),
+//    OperatorRem(CANGJIE_0_53_4),
+//    OperatorProvideDelegate(CANGJIE_0_53_4),
+//    ShortSyntaxForPropertyGetters(CANGJIE_0_53_4),
+//    RefinedSamAdaptersPriority(CANGJIE_0_53_4),
+//    SafeCallBoundSmartCasts(CANGJIE_0_53_4),
+//    TypeInferenceOnGenericsForCallableReferences(CANGJIE_0_53_4),
+//    NoDelegationToJavaDefaultInterfaceMembers(CANGJIE_0_53_4),
+    DefaultImportOfPackageCangJieComparisons(CANGJIE_0_53_4),
+//    Coroutines(
+//        CANGJIE_0_53_4, ApiVersion.CANGJIE_0_53_4,
+////        "https://kotlinlang.org/docs/diagnostics/experimental-coroutines",
+//        isEnabledWithWarning = true
+//    ),
+//
+//    // 1.2
+ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER), // KT-64515
 
-    // 1.3
-
-    RestrictionOfValReassignmentViaBackingField(KOTLIN_1_3, kind = BUG_FIX),
-    NestedClassesInEnumEntryShouldBeInner(KOTLIN_1_3, kind = BUG_FIX),
-    ProhibitDataClassesOverridingCopy(KOTLIN_1_3, kind = BUG_FIX),
-    RestrictionOfWrongAnnotationsWithUseSiteTargetsOnTypes(KOTLIN_1_3, kind = BUG_FIX),
-    ProhibitInnerClassesOfGenericClassExtendingThrowable(KOTLIN_1_3, kind = BUG_FIX),
-    ProperForInArrayLoopRangeVariableAssignmentSemantic(KOTLIN_1_3, kind = BUG_FIX),
-    NestedClassesInAnnotations(KOTLIN_1_3),
-    JvmStaticInInterface(KOTLIN_1_3, kind = UNSTABLE_FEATURE),
-    JvmFieldInInterface(KOTLIN_1_3, kind = UNSTABLE_FEATURE),
-    ProhibitVisibilityOfNestedClassifiersFromSupertypesOfCompanion(KOTLIN_1_3, kind = BUG_FIX),
-    ProhibitNonConstValuesAsVarargsInAnnotations(KOTLIN_1_3, kind = BUG_FIX),
-    ReleaseCoroutines(KOTLIN_1_3, kind = UNSTABLE_FEATURE),
-    ReadDeserializedContracts(KOTLIN_1_3),
-    UseReturnsEffect(KOTLIN_1_3),
-    UseCallsInPlaceEffect(KOTLIN_1_3),
-    AllowContractsForCustomFunctions(KOTLIN_1_3),
-    VariableDeclarationInWhenSubject(KOTLIN_1_3),
-    ProhibitLocalAnnotations(KOTLIN_1_3, kind = BUG_FIX),
-    ProhibitSmartcastsOnLocalDelegatedProperty(KOTLIN_1_3, kind = BUG_FIX),
-    ProhibitOperatorMod(KOTLIN_1_3, kind = BUG_FIX),
-    ProhibitAssigningSingleElementsToVarargsInNamedForm(KOTLIN_1_3, kind = BUG_FIX),
-    FunctionTypesWithBigArity(KOTLIN_1_3, sinceApiVersion = ApiVersion.KOTLIN_1_3),
-    RestrictRetentionForExpressionAnnotations(KOTLIN_1_3, kind = BUG_FIX),
-    NormalizeConstructorCalls(KOTLIN_1_3),
-    StrictJavaNullabilityAssertions(KOTLIN_1_3, kind = BUG_FIX),
-    SoundSmartcastForEnumEntries(KOTLIN_1_3, kind = BUG_FIX),
-    ProhibitErroneousExpressionsInAnnotationsWithUseSiteTargets(KOTLIN_1_3, kind = BUG_FIX),
-    NewCapturedReceiverFieldNamingConvention(KOTLIN_1_3, kind = BUG_FIX),
-    ExtendedMainConvention(KOTLIN_1_3),
-    ExperimentalBuilderInference(KOTLIN_1_3),
-    InlineClasses(KOTLIN_1_3, isEnabledWithWarning = true, kind = UNSTABLE_FEATURE),
-
-    // 1.4
-
-    DslMarkerOnFunctionTypeReceiver(KOTLIN_1_4, kind = BUG_FIX),
-    RestrictReturnStatementTarget(KOTLIN_1_4, kind = BUG_FIX),
-    NoConstantValueAttributeForNonConstVals(KOTLIN_1_4, kind = BUG_FIX),
-    WarningOnMainUnusedParameter(KOTLIN_1_4),
-    PolymorphicSignature(KOTLIN_1_4),
-    ProhibitConcurrentHashMapContains(KOTLIN_1_4, kind = BUG_FIX),
-    ProhibitTypeParametersForLocalVariables(KOTLIN_1_4, kind = BUG_FIX),
-    ProhibitJvmOverloadsOnConstructorsOfAnnotationClasses(KOTLIN_1_4, kind = BUG_FIX),
-    ProhibitTypeParametersInAnonymousObjects(KOTLIN_1_4, kind = BUG_FIX),
-    ProperInlineFromHigherPlatformDiagnostic(KOTLIN_1_4, kind = BUG_FIX),
-    ProhibitRepeatedUseSiteTargetAnnotations(KOTLIN_1_4, kind = BUG_FIX),
-    ProhibitUseSiteTargetAnnotationsOnSuperTypes(KOTLIN_1_4, kind = BUG_FIX),
-    ProhibitTypeParametersInClassLiteralsInAnnotationArguments(KOTLIN_1_4, kind = BUG_FIX),
-    ProhibitComparisonOfIncompatibleEnums(KOTLIN_1_4, kind = BUG_FIX),
-    BareArrayClassLiteral(KOTLIN_1_4),
-    ProhibitGenericArrayClassLiteral(KOTLIN_1_4),
-    NonParenthesizedAnnotationsOnFunctionalTypes(KOTLIN_1_4),
-    UseGetterNameForPropertyAnnotationsMethodOnJvm(KOTLIN_1_4),
-    AllowBreakAndContinueInsideWhen(KOTLIN_1_4),
-    MixedNamedArgumentsInTheirOwnPosition(KOTLIN_1_4),
-    ProhibitTailrecOnVirtualMember(KOTLIN_1_4, kind = BUG_FIX),
-    ProperComputationOrderOfTailrecDefaultParameters(KOTLIN_1_4),
-    TrailingCommas(KOTLIN_1_4),
-    ProhibitProtectedCallFromInline(KOTLIN_1_4, kind = BUG_FIX),
-    ProperFinally(KOTLIN_1_4, kind = BUG_FIX),
-    AllowAssigningArrayElementsToVarargsInNamedFormForFunctions(KOTLIN_1_4),
-    AllowNullOperatorsForResult(KOTLIN_1_4),
-    PreferJavaFieldOverload(KOTLIN_1_4),
-    AllowContractsForNonOverridableMembers(KOTLIN_1_4),
-    AllowReifiedGenericsInContracts(KOTLIN_1_4),
-    ProperVisibilityForCompanionObjectInstanceField(KOTLIN_1_4, kind = BUG_FIX),
-    DoNotGenerateThrowsForDelegatedCangJieMembers(KOTLIN_1_4),
-    ProperIeee754Comparisons(KOTLIN_1_4, kind = BUG_FIX),
-    FunctionalInterfaceConversion(KOTLIN_1_4, kind = UNSTABLE_FEATURE),
-    GenerateJvmOverloadsAsFinal(KOTLIN_1_4),
-    MangleClassMembersReturningInlineClasses(KOTLIN_1_4),
-    ImproveReportingDiagnosticsOnProtectedMembersOfBaseClass(KOTLIN_1_4, kind = BUG_FIX),
-
-    NewInference(KOTLIN_1_4),
-
-    // In the next block, features can be enabled only along with new inference
-    // v----------------------------------------------------------------------v
-    SamConversionForCangJieFunctions(KOTLIN_1_4),
-    SamConversionPerArgument(KOTLIN_1_4),
-    FunctionReferenceWithDefaultValueAsOtherType(KOTLIN_1_4),
-    OverloadResolutionByLambdaReturnType(KOTLIN_1_4),
-    ContractsOnCallsWithImplicitReceiver(KOTLIN_1_4),
-    // ^----------------------------------------------------------------------^
-
-    // 1.5
-
-    ProhibitSpreadOnSignaturePolymorphicCall(KOTLIN_1_5, kind = BUG_FIX),
-    ProhibitInvisibleAbstractMethodsInSuperclasses(KOTLIN_1_5, kind = BUG_FIX),
-    ProhibitNonReifiedArraysAsReifiedTypeArguments(KOTLIN_1_5, kind = BUG_FIX),
-    ProhibitVarargAsArrayAfterSamArgument(KOTLIN_1_5, kind = BUG_FIX),
-    CorrectSourceMappingSyntax(KOTLIN_1_5, kind = UNSTABLE_FEATURE),
-    ProperArrayConventionSetterWithDefaultCalls(KOTLIN_1_5, kind = OTHER),
-    AdaptedCallableReferenceAgainstReflectiveType(null),
-    InferenceCompatibility(KOTLIN_1_5, kind = BUG_FIX),
-    RequiredPrimaryConstructorDelegationCallInEnums(KOTLIN_1_5, kind = BUG_FIX),
-    ApproximateAnonymousReturnTypesInPrivateInlineFunctions(KOTLIN_1_5, kind = BUG_FIX),
-    ForbidReferencingToUnderscoreNamedParameterOfCatchBlock(KOTLIN_1_5, kind = BUG_FIX),
-    UseCorrectExecutionOrderForVarargArguments(KOTLIN_1_5, kind = BUG_FIX),
-    JvmRecordSupport(KOTLIN_1_5),
-    AllowNullOperatorsForResultAndResultReturnTypeByDefault(KOTLIN_1_5),
-    AllowSealedInheritorsInDifferentFilesOfSamePackage(KOTLIN_1_5),
-    SealedInterfaces(KOTLIN_1_5),
-    JvmIrEnabledByDefault(KOTLIN_1_5),
-    JvmInlineValueClasses(KOTLIN_1_5, kind = OTHER),
-    SuspendFunctionsInFunInterfaces(KOTLIN_1_5, kind = OTHER),
-    SamWrapperClassesAreSynthetic(KOTLIN_1_5, kind = BUG_FIX),
-    StrictOnlyInputTypesChecks(KOTLIN_1_5),
-
-    // 1.6
-
-    ProhibitJvmFieldOnOverrideFromInterfaceInPrimaryConstructor(KOTLIN_1_6, kind = BUG_FIX),
-    PrivateInFileEffectiveVisibility(KOTLIN_1_6, kind = BUG_FIX),
-    ProhibitSelfCallsInNestedObjects(KOTLIN_1_6, kind = BUG_FIX),
-    ProperCheckAnnotationsTargetInTypeUsePositions(KOTLIN_1_6, kind = BUG_FIX),
-    SuspendFunctionAsSupertype(KOTLIN_1_6),
-    UnrestrictedBuilderInference(KOTLIN_1_6),
-    ClassTypeParameterAnnotations(KOTLIN_1_6),
-    TypeInferenceOnCallsWithSelfTypes(KOTLIN_1_6),
-    WarnAboutNonExhaustiveWhenOnAlgebraicTypes(KOTLIN_1_6, kind = BUG_FIX),
-    InstantiationOfAnnotationClasses(KOTLIN_1_6),
-    OptInContagiousSignatures(KOTLIN_1_6, kind = BUG_FIX),
-    RepeatableAnnotations(KOTLIN_1_6),
-    RepeatableAnnotationContainerConstraints(KOTLIN_1_6, kind = BUG_FIX),
-    UseBuilderInferenceOnlyIfNeeded(KOTLIN_1_6),
-    SuspendConversion(KOTLIN_1_6),
-    ProhibitSuperCallsFromPublicInline(KOTLIN_1_6),
-    ProhibitProtectedConstructorCallFromPublicInline(KOTLIN_1_6),
-
-    // 1.7
-
-    /*
-     * Improvements include the following:
-     *  - taking into account for type enhancement freshly supported type use annotations: KT-11454
-     *  - use annotations in the type parameter position to enhance corresponding types: KT-11454
-     *  - proper support of the type enhancement of the annotated java arrays: KT-24392
-     *  - proper support of the type enhancement of the annotated java varargs' elements: KT-18768
-     *  - type enhancement based on annotated bounds of type parameters
-     *  - type enhancement within type arguments of the base classes and interfaces
-     *  - support type enhancement based on type use annotations on java fields
-     *  - preference of a type use annotation to annotation of another type: KT-24392
-     *      (if @NotNull has TYPE_USE and METHOD target, then `@NotNull Integer []` -> `Array<Int>..Array<out Int>?` instead of `Array<Int>..Array<out Int>`)
-     */
-    TypeEnhancementImprovementsInStrictMode(KOTLIN_1_7),
-    OptInRelease(KOTLIN_1_7),
-    ProhibitNonExhaustiveWhenOnAlgebraicTypes(KOTLIN_1_7, kind = BUG_FIX),
-    UseBuilderInferenceWithoutAnnotation(KOTLIN_1_7),
-    ProhibitSmartcastsOnPropertyFromAlienBaseClass(KOTLIN_1_7, kind = BUG_FIX),
-    ProhibitInvalidCharsInNativeIdentifiers(KOTLIN_1_7, kind = BUG_FIX),
-    DefinitelyNonNullableTypes(KOTLIN_1_7),
-    ProhibitSimplificationOfNonTrivialConstBooleanExpressions(KOTLIN_1_7),
-    SafeCallsAreAlwaysNullable(KOTLIN_1_7),
-    JvmPermittedSubclassesAttributeForSealed(KOTLIN_1_7),
-    ProperTypeInferenceConstraintsProcessing(KOTLIN_1_7, kind = BUG_FIX),
-    ForbidExposingTypesInPrimaryConstructorProperties(KOTLIN_1_7, kind = BUG_FIX),
-    PartiallySpecifiedTypeArguments(KOTLIN_1_7),
-    EliminateAmbiguitiesWithExternalTypeParameters(KOTLIN_1_7),
-    EliminateAmbiguitiesOnInheritedSamInterfaces(KOTLIN_1_7),
-    ConsiderExtensionReceiverFromConstrainsInLambda(KOTLIN_1_7, kind = BUG_FIX), // KT-49832
-    ProperInternalVisibilityCheckInImportingScope(KOTLIN_1_7, kind = BUG_FIX),
-    InlineClassImplementationByDelegation(KOTLIN_1_7),
-    QualifiedSupertypeMayBeExtendedByOtherSupertype(KOTLIN_1_7),
-    YieldIsNoMoreReserved(KOTLIN_1_7),
-    NoDeprecationOnDeprecatedEnumEntries(KOTLIN_1_7), // KT-37975
-    ProhibitQualifiedAccessToUninitializedEnumEntry(KOTLIN_1_7, kind = BUG_FIX), // KT-41124
-    ForbidRecursiveDelegateExpressions(KOTLIN_1_7, kind = BUG_FIX),
-    CangJieFunInterfaceConstructorReference(KOTLIN_1_7),
-    SuspendOnlySamConversions(KOTLIN_1_7),
-
-    // 1.8
-
-    DontLoseDiagnosticsDuringOverloadResolutionByReturnType(KOTLIN_1_8),
-    ProhibitConfusingSyntaxInWhenBranches(KOTLIN_1_8, kind = BUG_FIX), // KT-48385
-    UseConsistentRulesForPrivateConstructorsOfSealedClasses(sinceVersion = KOTLIN_1_8, kind = BUG_FIX), // KT-44866
-    ProgressionsChangingResolve(KOTLIN_1_8), // KT-49276
-    AbstractClassMemberNotImplementedWithIntermediateAbstractClass(KOTLIN_1_8, kind = BUG_FIX), // KT-45508
-    ForbidSuperDelegationToAbstractAnyMethod(KOTLIN_1_8, kind = BUG_FIX), // KT-38078
-    ProperEqualityChecksInBuilderInferenceCalls(KOTLIN_1_8, kind = BUG_FIX),
-    ProhibitNonExhaustiveIfInRhsOfElvis(KOTLIN_1_8, kind = BUG_FIX), // KT-44705
-    ReportMissingUpperBoundsViolatedErrorOnAbbreviationAtSupertypes(KOTLIN_1_8, kind = BUG_FIX), // KT-29168
-    ForbidUsingExtensionPropertyTypeParameterInDelegate(KOTLIN_1_8, kind = BUG_FIX), // KT-24643
-    SynchronizedSuspendError(KOTLIN_1_8, kind = BUG_FIX), // KT-48516
-    ReportNonVarargSpreadOnGenericCalls(KOTLIN_1_8, kind = BUG_FIX), // KT-48162
-    RangeUntilOperator(KOTLIN_1_8), // KT-15613
-    GenericInlineClassParameter(sinceVersion = KOTLIN_1_8, kind = UNSTABLE_FEATURE), // KT-32162
-
-    // 1.9
-
-    ProhibitIllegalValueParameterUsageInDefaultArguments(KOTLIN_1_9, kind = BUG_FIX), // KT-25694
-    ProhibitConstructorCallOnFunctionalSupertype(KOTLIN_1_9, kind = BUG_FIX), // KT-46344
-    ProhibitArrayLiteralsInCompanionOfAnnotation(KOTLIN_1_9, kind = BUG_FIX), // KT-39041
-    ProhibitCyclesInAnnotations(KOTLIN_1_9, kind = BUG_FIX), // KT-47932
-    ForbidExtensionFunctionTypeOnNonFunctionTypes(KOTLIN_1_9, kind = BUG_FIX), // related to KT-43527
-    ProhibitEnumDeclaringClass(KOTLIN_1_9, kind = BUG_FIX), // KT-49653
-    StopPropagatingDeprecationThroughOverrides(KOTLIN_1_9, kind = BUG_FIX), // KT-47902
-    ReportTypeVarianceConflictOnQualifierArguments(KOTLIN_1_9, kind = BUG_FIX), // KT-50947
-    ReportErrorsOnRecursiveTypeInsidePlusAssignment(KOTLIN_1_9, kind = BUG_FIX), // KT-48546
-    ForbidExtensionCallsOnInlineFunctionalParameters(KOTLIN_1_9, kind = BUG_FIX), // KT-52502
-    SkipStandaloneScriptsInSourceRoots(KOTLIN_1_9, kind = OTHER), // KT-52525
-    ModifierNonBuiltinSuspendFunError(KOTLIN_1_9, kind = BUG_FIX), // KT-49264
-    EnumEntries(KOTLIN_1_9, sinceApiVersion = ApiVersion.KOTLIN_1_8, kind = UNSTABLE_FEATURE), // KT-48872
-    ForbidSuperDelegationToAbstractFakeOverride(KOTLIN_1_9, kind = BUG_FIX), // KT-49017
-    DataObjects(KOTLIN_1_9), // KT-4107
-    ProhibitAccessToEnumCompanionMembersInEnumConstructorCall(KOTLIN_1_9, kind = BUG_FIX), // KT-49110
-    RefineTypeCheckingOnAssignmentsToJavaFields(KOTLIN_1_9, kind = BUG_FIX), // KT-46727
-    ValueClassesSecondaryConstructorWithBody(sinceVersion = KOTLIN_1_9, kind = UNSTABLE_FEATURE), // KT-55333
-    NativeJsProhibitLateinitIsInitializedIntrinsicWithoutPrivateAccess(KOTLIN_1_9, kind = BUG_FIX), // KT-27002
-    TakeIntoAccountEffectivelyFinalInMustBeInitializedCheck(KOTLIN_1_9, kind = OTHER), // KT-58587
-    ProhibitUsingNullableTypeParameterAgainstNotNullAnnotated(sinceVersion = KOTLIN_1_9), // KT-36770
-    NoSourceCodeInNotNullAssertionExceptions(
-        KOTLIN_1_9,
-        sinceApiVersion = ApiVersion.KOTLIN_1_4,
-        kind = OTHER
-    ), // KT-57570
-
-    // 1.9.20 KMP stabilization. Unfortunately, we don't have 1.9.20 LV. So LV=1.9 is the best we can do.
-    // At least there won't be false positives for 1.8 users
-    MultiplatformRestrictions(KOTLIN_1_9, kind = BUG_FIX), // KT-61668
-
-    // End of 1.* language features --------------------------------------------------
-
-    // 2.0
-
-    EnhanceNullabilityOfPrimitiveArrays(KOTLIN_2_0, kind = BUG_FIX), // KT-54521
-
-    /**
-     * This feature is highly related to ForbidInferringTypeVariablesIntoEmptyIntersection and while they belong to the same LV,
-     * they might be used interchangeably.
-     *
-     * But there might be the case that we may postpone ForbidInferringTypeVariablesIntoEmptyIntersection but leave AllowEmptyIntersectionsInResultTypeResolver in 2.0.
-     * In that case, we would stick to the simple behavior of just inferring empty intersection (without complicated logic of filtering out expected constraints),
-     * but we would report a warning instead of an error (until ForbidInferringTypeVariablesIntoEmptyIntersection is enabled).
-     */
-    AllowEmptyIntersectionsInResultTypeResolver(KOTLIN_2_0, kind = OTHER), // KT-51221
-    ProhibitSmartcastsOnPropertyFromAlienBaseClassInheritedInInvisibleClass(KOTLIN_2_0, kind = BUG_FIX), // KT-57290
-    ForbidInferringPostponedTypeVariableIntoDeclaredUpperBound(KOTLIN_2_0, kind = BUG_FIX), // KT-47986
-    ProhibitUseSiteGetTargetAnnotations(KOTLIN_2_0, kind = BUG_FIX), // KT-15470
-    KeepNullabilityWhenApproximatingLocalType(KOTLIN_2_0, kind = BUG_FIX), // KT-53982
-    ProhibitAccessToInvisibleSetterFromDerivedClass(KOTLIN_2_0, kind = BUG_FIX), // KT-56662
-    ProhibitOpenValDeferredInitialization(KOTLIN_2_0, kind = BUG_FIX), // KT-57553
-    SupportEffectivelyFinalInExpectActualVisibilityCheck(KOTLIN_2_0, kind = BUG_FIX), // KT-61955
-    ProhibitMissedMustBeInitializedWhenThereIsNoPrimaryConstructor(KOTLIN_2_0, kind = BUG_FIX), // KT-58472
-    MangleCallsToJavaMethodsWithValueClasses(KOTLIN_2_0, kind = OTHER), // KT-55945
-    ForbidInferringTypeVariablesIntoEmptyIntersection(KOTLIN_2_0, kind = BUG_FIX), // KT-51221
-    ProhibitDefaultArgumentsInExpectActualizedByFakeOverride(KOTLIN_2_0, kind = BUG_FIX), // KT-62036
-    DisableCompatibilityModeForNewInference(
-        KOTLIN_2_0,
-        kind = OTHER
-    ), // KT-63558 (umbrella), KT-64306, KT-64307, KT-64308
-    DfaBooleanVariables(KOTLIN_2_0), // KT-25747
-
-    // 2.1
-
-    ReferencesToSyntheticJavaProperties(KOTLIN_2_1), // KT-8575
-    ProhibitImplementingVarByInheritedVal(KOTLIN_2_1, kind = BUG_FIX), // KT-56779
-    PrioritizedEnumEntries(KOTLIN_2_1, kind = UNSTABLE_FEATURE), // KT-58920
-    ProhibitInlineModifierOnPrimaryConstructorParameters(KOTLIN_2_1, kind = BUG_FIX), // KT-59664
-    ProhibitSingleNamedFunctionAsExpression(KOTLIN_2_1, kind = BUG_FIX), // KT-62573
-    ForbidLambdaParameterWithMissingDependencyType(KOTLIN_2_1, kind = BUG_FIX), // KT-64266
-    JsAllowInvalidCharsIdentifiersEscaping(KOTLIN_2_1, kind = OTHER), // KT-31799
-    SupportJavaErrorEnhancementOfArgumentsOfWarningLevelEnhanced(KOTLIN_2_1, kind = BUG_FIX), // KT-63209
-    ProhibitPrivateOperatorCallInInline(KOTLIN_2_1, kind = BUG_FIX), // KT-65494
-
-    // End of 2.* language features --------------------------------------------------
-
-    ExpectActualClasses(sinceVersion = null), // KT-62885
-
-    // Disabled for indefinite time. See KT-53751
-    IgnoreNullabilityForErasedValueParameters(sinceVersion = null, kind = BUG_FIX),
-
-    // Disabled for indefinite time. Disables restrictions of builder inference without annotation
-    // Note: In 1.7.0, builder inference without annotation was introduced.
-    // However, later we encountered various situations when it works incorrectly, and decided to forbid them.
-    // When this feature is disabled, various errors are reported which are related to these incorrect situations.
-    // When this feature is enabled, no such errors are reported.
-    NoBuilderInferenceWithoutAnnotationRestriction(sinceVersion = null, kind = OTHER),
-
-    // Disabled for indefinite time. Forces K2 report errors (instead of warnings) for incompatible
-    // equality & identity operators in cases where K1 would report warnings or would not report anything.
-    ReportErrorsForComparisonOperators(sinceVersion = null, kind = BUG_FIX),
-
-    // Disabled for indefinite time.
-    // Disables reporting of new errors (see KT-55055, KT-55056, KT-55079) in DiagnosticReporterByTrackingStrategy.
-    // All these errors are "lost" errors which existed always, but wasn't reported before 1.9.0.
-    // When this feature is disabled, all these "lost" errors are reported properly.
-    // When this feature is enabled, no such errors are reported.
-    NoAdditionalErrorsInK1DiagnosticReporter(sinceVersion = null, kind = OTHER),
-
-    // top-level script inner classes never made any sense, but used for some time to overcome the capturing logic limitations
-    // Now capturing logic works properly, therefore the warning is reported in K2
-    // this feature will eventually switch this warning to an error
-    ProhibitScriptTopLevelInnerClasses(sinceVersion = null, kind = OTHER),
-
-    // Experimental features
-
-    BreakContinueInInlineLambdas(null), // KT-1436
-    LightweightLambdas(null),
-    JsEnableExtensionFunctionInExternals(null, kind = OTHER),
-    PackagePrivateFileClassesWithAllPrivateMembers(null), // Disabled until the breaking change is approved by the committee, see KT-10884.
-    BooleanElvisBoundSmartCasts(null), // see KT-26357 for details
-    NewDataFlowForTryExpressions(null),
-    AllowResultInReturnType(null),
-    MultiPlatformProjects(sinceVersion = null),
-    ProhibitComparisonOfIncompatibleClasses(sinceVersion = null, kind = BUG_FIX),
-    ProhibitAllMultipleDefaultsInheritedFromSupertypes(sinceVersion = null, kind = BUG_FIX),
-    ExplicitBackingFields(sinceVersion = null, kind = UNSTABLE_FEATURE),
-    FunctionalTypeWithExtensionAsSupertype(sinceVersion = null),
-    JsAllowValueClassesInExternals(sinceVersion = null, kind = OTHER),
+//    InlineDefaultFunctionalParameters(CANGJIE_0_53_4),
+//    SoundSmartCastsAfterTry(CANGJIE_0_53_4),
+//    DeprecatedFieldForInvisibleCompanionObject(CANGJIE_0_53_4),
+//    NullabilityAssertionOnExtensionReceiver(CANGJIE_0_53_4),
+//    SafeCastCheckBoundSmartCasts(CANGJIE_0_53_4),
+//    CapturedInClosureSmartCasts(CANGJIE_0_53_4),
+//    LateinitTopLevelProperties(CANGJIE_0_53_4),
+//    LateinitLocalVariables(CANGJIE_0_53_4),
+//    InnerClassInEnumEntryClass(CANGJIE_0_53_4),
+//    CallableReferencesToClassMembersWithEmptyLHS(CANGJIE_0_53_4),
+//    ThrowNpeOnExplicitEqualsForBoxedNull(CANGJIE_0_53_4),
+//    JvmPackageName(CANGJIE_0_53_4),
+//    AssigningArraysToVarargsInNamedFormInAnnotations(CANGJIE_0_53_4),
+//    ExpectedTypeFromCast(CANGJIE_0_53_4),
+//    DefaultMethodsCallFromJava6TargetError(CANGJIE_0_53_4),
+//
+//    // 1.3
+//
+//    RestrictionOfValReassignmentViaBackingField(CANGJIE_0_53_4, kind = BUG_FIX),
+//    NestedClassesInEnumEntryShouldBeInner(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitDataClassesOverridingCopy(CANGJIE_0_53_4, kind = BUG_FIX),
+//    RestrictionOfWrongAnnotationsWithUseSiteTargetsOnTypes(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitInnerClassesOfGenericClassExtendingThrowable(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProperForInArrayLoopRangeVariableAssignmentSemantic(CANGJIE_0_53_4, kind = BUG_FIX),
+//    NestedClassesInAnnotations(CANGJIE_0_53_4),
+//    JvmStaticInInterface(CANGJIE_0_53_4, kind = UNSTABLE_FEATURE),
+//    JvmFieldInInterface(CANGJIE_0_53_4, kind = UNSTABLE_FEATURE),
+//    ProhibitVisibilityOfNestedClassifiersFromSupertypesOfCompanion(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitNonConstValuesAsVarargsInAnnotations(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ReleaseCoroutines(CANGJIE_0_53_4, kind = UNSTABLE_FEATURE),
+//    ReadDeserializedContracts(CANGJIE_0_53_4),
+//    UseReturnsEffect(CANGJIE_0_53_4),
+//    UseCallsInPlaceEffect(CANGJIE_0_53_4),
+//    AllowContractsForCustomFunctions(CANGJIE_0_53_4),
+//    VariableDeclarationInWhenSubject(CANGJIE_0_53_4),
+//    ProhibitLocalAnnotations(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitSmartcastsOnLocalDelegatedProperty(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitOperatorMod(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitAssigningSingleElementsToVarargsInNamedForm(CANGJIE_0_53_4, kind = BUG_FIX),
+//    FunctionTypesWithBigArity(CANGJIE_0_53_4, sinceApiVersion = ApiVersion.CANGJIE_0_53_4),
+//    RestrictRetentionForExpressionAnnotations(CANGJIE_0_53_4, kind = BUG_FIX),
+//    NormalizeConstructorCalls(CANGJIE_0_53_4),
+//    StrictJavaNullabilityAssertions(CANGJIE_0_53_4, kind = BUG_FIX),
+//    SoundSmartcastForEnumEntries(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitErroneousExpressionsInAnnotationsWithUseSiteTargets(CANGJIE_0_53_4, kind = BUG_FIX),
+//    NewCapturedReceiverFieldNamingConvention(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ExtendedMainConvention(CANGJIE_0_53_4),
+//    ExperimentalBuilderInference(CANGJIE_0_53_4),
+//    InlineClasses(CANGJIE_0_53_4, isEnabledWithWarning = true, kind = UNSTABLE_FEATURE),
+//
+//    // 1.4
+//
+//    DslMarkerOnFunctionTypeReceiver(CANGJIE_0_53_4, kind = BUG_FIX),
+//    RestrictReturnStatementTarget(CANGJIE_0_53_4, kind = BUG_FIX),
+//    NoConstantValueAttributeForNonConstVals(CANGJIE_0_53_4, kind = BUG_FIX),
+//    WarningOnMainUnusedParameter(CANGJIE_0_53_4),
+//    PolymorphicSignature(CANGJIE_0_53_4),
+//    ProhibitConcurrentHashMapContains(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitTypeParametersForLocalVariables(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitJvmOverloadsOnConstructorsOfAnnotationClasses(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitTypeParametersInAnonymousObjects(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProperInlineFromHigherPlatformDiagnostic(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitRepeatedUseSiteTargetAnnotations(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitUseSiteTargetAnnotationsOnSuperTypes(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitTypeParametersInClassLiteralsInAnnotationArguments(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitComparisonOfIncompatibleEnums(CANGJIE_0_53_4, kind = BUG_FIX),
+//    BareArrayClassLiteral(CANGJIE_0_53_4),
+//    ProhibitGenericArrayClassLiteral(CANGJIE_0_53_4),
+//    NonParenthesizedAnnotationsOnFunctionalTypes(CANGJIE_0_53_4),
+//    UseGetterNameForPropertyAnnotationsMethodOnJvm(CANGJIE_0_53_4),
+//    AllowBreakAndContinueInsideWhen(CANGJIE_0_53_4),
+    MixedNamedArgumentsInTheirOwnPosition(CANGJIE_0_53_4),
+//    ProhibitTailrecOnVirtualMember(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProperComputationOrderOfTailrecDefaultParameters(CANGJIE_0_53_4),
+//    TrailingCommas(CANGJIE_0_53_4),
+//    ProhibitProtectedCallFromInline(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProperFinally(CANGJIE_0_53_4, kind = BUG_FIX),
+//    AllowAssigningArrayElementsToVarargsInNamedFormForFunctions(CANGJIE_0_53_4),
+//    AllowNullOperatorsForResult(CANGJIE_0_53_4),
+//    PreferJavaFieldOverload(CANGJIE_0_53_4),
+//    AllowContractsForNonOverridableMembers(CANGJIE_0_53_4),
+//    AllowReifiedGenericsInContracts(CANGJIE_0_53_4),
+//    ProperVisibilityForCompanionObjectInstanceField(CANGJIE_0_53_4, kind = BUG_FIX),
+//    DoNotGenerateThrowsForDelegatedCangJieMembers(CANGJIE_0_53_4),
+//    ProperIeee754Comparisons(CANGJIE_0_53_4, kind = BUG_FIX),
+//    FunctionalInterfaceConversion(CANGJIE_0_53_4, kind = UNSTABLE_FEATURE),
+//    GenerateJvmOverloadsAsFinal(CANGJIE_0_53_4),
+//    MangleClassMembersReturningInlineClasses(CANGJIE_0_53_4),
+//    ImproveReportingDiagnosticsOnProtectedMembersOfBaseClass(CANGJIE_0_53_4, kind = BUG_FIX),
+//
+    NewInference(CANGJIE_0_53_4),
+//
+//    // In the next block, features can be enabled only along with new inference
+//    // v----------------------------------------------------------------------v
+//    SamConversionForCangJieFunctions(CANGJIE_0_53_4),
+//    SamConversionPerArgument(CANGJIE_0_53_4),
+//    FunctionReferenceWithDefaultValueAsOtherType(CANGJIE_0_53_4),
+//    OverloadResolutionByLambdaReturnType(CANGJIE_0_53_4),
+//    ContractsOnCallsWithImplicitReceiver(CANGJIE_0_53_4),
+//    // ^----------------------------------------------------------------------^
+//
+//    // 1.5
+//
+//    ProhibitSpreadOnSignaturePolymorphicCall(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitInvisibleAbstractMethodsInSuperclasses(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitNonReifiedArraysAsReifiedTypeArguments(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitVarargAsArrayAfterSamArgument(CANGJIE_0_53_4, kind = BUG_FIX),
+//    CorrectSourceMappingSyntax(CANGJIE_0_53_4, kind = UNSTABLE_FEATURE),
+//    ProperArrayConventionSetterWithDefaultCalls(CANGJIE_0_53_4, kind = OTHER),
+//    AdaptedCallableReferenceAgainstReflectiveType(null),
+//    InferenceCompatibility(CANGJIE_0_53_4, kind = BUG_FIX),
+    RequiredPrimaryConstructorDelegationCallInEnums(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ApproximateAnonymousReturnTypesInPrivateInlineFunctions(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ForbidReferencingToUnderscoreNamedParameterOfCatchBlock(CANGJIE_0_53_4, kind = BUG_FIX),
+    UseCorrectExecutionOrderForVarargArguments(CANGJIE_0_53_4, kind = BUG_FIX),
+//    JvmRecordSupport(CANGJIE_0_53_4),
+//    AllowNullOperatorsForResultAndResultReturnTypeByDefault(CANGJIE_0_53_4),
+    AllowSealedInheritorsInDifferentFilesOfSamePackage(CANGJIE_0_53_4),
+//    SealedInterfaces(CANGJIE_0_53_4),
+//    JvmIrEnabledByDefault(CANGJIE_0_53_4),
+//    JvmInlineValueClasses(CANGJIE_0_53_4, kind = OTHER),
+//    SuspendFunctionsInFunInterfaces(CANGJIE_0_53_4, kind = OTHER),
+//    SamWrapperClassesAreSynthetic(CANGJIE_0_53_4, kind = BUG_FIX),
+//    StrictOnlyInputTypesChecks(CANGJIE_0_53_4),
+//
+//    // 1.6
+//
+//    ProhibitJvmFieldOnOverrideFromInterfaceInPrimaryConstructor(CANGJIE_0_53_4, kind = BUG_FIX),
+//    PrivateInFileEffectiveVisibility(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitSelfCallsInNestedObjects(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProperCheckAnnotationsTargetInTypeUsePositions(CANGJIE_0_53_4, kind = BUG_FIX),
+//    SuspendFunctionAsSupertype(CANGJIE_0_53_4),
+//    UnrestrictedBuilderInference(CANGJIE_0_53_4),
+//    ClassTypeParameterAnnotations(CANGJIE_0_53_4),
+    TypeInferenceOnCallsWithSelfTypes(CANGJIE_0_53_4),
+//    WarnAboutNonExhaustiveWhenOnAlgebraicTypes(CANGJIE_0_53_4, kind = BUG_FIX),
+//    InstantiationOfAnnotationClasses(CANGJIE_0_53_4),
+//    OptInContagiousSignatures(CANGJIE_0_53_4, kind = BUG_FIX),
+//    RepeatableAnnotations(CANGJIE_0_53_4),
+//    RepeatableAnnotationContainerConstraints(CANGJIE_0_53_4, kind = BUG_FIX),
+//    UseBuilderInferenceOnlyIfNeeded(CANGJIE_0_53_4),
+//    SuspendConversion(CANGJIE_0_53_4),
+//    ProhibitSuperCallsFromPublicInline(CANGJIE_0_53_4),
+//    ProhibitProtectedConstructorCallFromPublicInline(CANGJIE_0_53_4),
+//
+//    // 1.7
+//
+//    /*
+//     * Improvements include the following:
+//     *  - taking into account for type enhancement freshly supported type use annotations: KT-11454
+//     *  - use annotations in the type parameter position to enhance corresponding types: KT-11454
+//     *  - proper support of the type enhancement of the annotated java arrays: KT-24392
+//     *  - proper support of the type enhancement of the annotated java varargs' elements: KT-18768
+//     *  - type enhancement based on annotated bounds of type parameters
+//     *  - type enhancement within type arguments of the base classes and interfaces
+//     *  - support type enhancement based on type use annotations on java fields
+//     *  - preference of a type use annotation to annotation of another type: KT-24392
+//     *      (if @NotNull has TYPE_USE and METHOD target, then `@NotNull Integer []` -> `Array<Int>..Array<out Int>?` instead of `Array<Int>..Array<out Int>`)
+//     */
+//    TypeEnhancementImprovementsInStrictMode(CANGJIE_0_53_4),
+//    OptInRelease(CANGJIE_0_53_4),
+//    ProhibitNonExhaustiveWhenOnAlgebraicTypes(CANGJIE_0_53_4, kind = BUG_FIX),
+//    UseBuilderInferenceWithoutAnnotation(CANGJIE_0_53_4),
+//    ProhibitSmartcastsOnPropertyFromAlienBaseClass(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitInvalidCharsInNativeIdentifiers(CANGJIE_0_53_4, kind = BUG_FIX),
+    DefinitelyNonNullableTypes(CANGJIE_0_53_4),
+//    ProhibitSimplificationOfNonTrivialConstBooleanExpressions(CANGJIE_0_53_4),
+//    SafeCallsAreAlwaysNullable(CANGJIE_0_53_4),
+//    JvmPermittedSubclassesAttributeForSealed(CANGJIE_0_53_4),
+    ProperTypeInferenceConstraintsProcessing(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ForbidExposingTypesInPrimaryConstructorProperties(CANGJIE_0_53_4, kind = BUG_FIX),
+//    PartiallySpecifiedTypeArguments(CANGJIE_0_53_4),
+    EliminateAmbiguitiesWithExternalTypeParameters(CANGJIE_0_53_4),
+    EliminateAmbiguitiesOnInheritedSamInterfaces(CANGJIE_0_53_4),
+//    ConsiderExtensionReceiverFromConstrainsInLambda(CANGJIE_0_53_4, kind = BUG_FIX), // KT-49832
+    ProperInternalVisibilityCheckInImportingScope(CANGJIE_0_53_4, kind = BUG_FIX),
+//    InlineClassImplementationByDelegation(CANGJIE_0_53_4),
+//    QualifiedSupertypeMayBeExtendedByOtherSupertype(CANGJIE_0_53_4),
+    YieldIsNoMoreReserved(CANGJIE_0_53_4),
+//    NoDeprecationOnDeprecatedEnumEntries(CANGJIE_0_53_4), // KT-37975
+//    ProhibitQualifiedAccessToUninitializedEnumEntry(CANGJIE_0_53_4, kind = BUG_FIX), // KT-41124
+//    ForbidRecursiveDelegateExpressions(CANGJIE_0_53_4, kind = BUG_FIX),
+//    CangJieFunInterfaceConstructorReference(CANGJIE_0_53_4),
+//    SuspendOnlySamConversions(CANGJIE_0_53_4),
+//
+//    // 1.8
+//
+//    DontLoseDiagnosticsDuringOverloadResolutionByReturnType(CANGJIE_0_53_4),
+//    ProhibitConfusingSyntaxInWhenBranches(CANGJIE_0_53_4, kind = BUG_FIX), // KT-48385
+    UseConsistentRulesForPrivateConstructorsOfSealedClasses(sinceVersion = CANGJIE_0_53_4, kind = BUG_FIX), // KT-44866
+//    ProgressionsChangingResolve(CANGJIE_0_53_4), // KT-49276
+//    AbstractClassMemberNotImplementedWithIntermediateAbstractClass(CANGJIE_0_53_4, kind = BUG_FIX), // KT-45508
+//    ForbidSuperDelegationToAbstractAnyMethod(CANGJIE_0_53_4, kind = BUG_FIX), // KT-38078
+//    ProperEqualityChecksInBuilderInferenceCalls(CANGJIE_0_53_4, kind = BUG_FIX),
+//    ProhibitNonExhaustiveIfInRhsOfElvis(CANGJIE_0_53_4, kind = BUG_FIX), // KT-44705
+//    ReportMissingUpperBoundsViolatedErrorOnAbbreviationAtSupertypes(CANGJIE_0_53_4, kind = BUG_FIX), // KT-29168
+//    ForbidUsingExtensionPropertyTypeParameterInDelegate(CANGJIE_0_53_4, kind = BUG_FIX), // KT-24643
+//    SynchronizedSuspendError(CANGJIE_0_53_4, kind = BUG_FIX), // KT-48516
+//    ReportNonVarargSpreadOnGenericCalls(CANGJIE_0_53_4, kind = BUG_FIX), // KT-48162
+//    RangeUntilOperator(CANGJIE_0_53_4), // KT-15613
+//    GenericInlineClassParameter(sinceVersion = CANGJIE_0_53_4, kind = UNSTABLE_FEATURE), // KT-32162
+//
+//    // 1.9
+//
+//    ProhibitIllegalValueParameterUsageInDefaultArguments(CANGJIE_0_53_4, kind = BUG_FIX), // KT-25694
+//    ProhibitConstructorCallOnFunctionalSupertype(CANGJIE_0_53_4, kind = BUG_FIX), // KT-46344
+//    ProhibitArrayLiteralsInCompanionOfAnnotation(CANGJIE_0_53_4, kind = BUG_FIX), // KT-39041
+//    ProhibitCyclesInAnnotations(CANGJIE_0_53_4, kind = BUG_FIX), // KT-47932
+//    ForbidExtensionFunctionTypeOnNonFunctionTypes(CANGJIE_0_53_4, kind = BUG_FIX), // related to KT-43527
+//    ProhibitEnumDeclaringClass(CANGJIE_0_53_4, kind = BUG_FIX), // KT-49653
+//    StopPropagatingDeprecationThroughOverrides(CANGJIE_0_53_4, kind = BUG_FIX), // KT-47902
+//    ReportTypeVarianceConflictOnQualifierArguments(CANGJIE_0_53_4, kind = BUG_FIX), // KT-50947
+//    ReportErrorsOnRecursiveTypeInsidePlusAssignment(CANGJIE_0_53_4, kind = BUG_FIX), // KT-48546
+//    ForbidExtensionCallsOnInlineFunctionalParameters(CANGJIE_0_53_4, kind = BUG_FIX), // KT-52502
+//    SkipStandaloneScriptsInSourceRoots(CANGJIE_0_53_4, kind = OTHER), // KT-52525
+//    ModifierNonBuiltinSuspendFunError(CANGJIE_0_53_4, kind = BUG_FIX), // KT-49264
+//    EnumEntries(CANGJIE_0_53_4, sinceApiVersion = ApiVersion.CANGJIE_0_53_4, kind = UNSTABLE_FEATURE), // KT-48872
+//    ForbidSuperDelegationToAbstractFakeOverride(CANGJIE_0_53_4, kind = BUG_FIX), // KT-49017
+//    DataObjects(CANGJIE_0_53_4), // KT-4107
+//    ProhibitAccessToEnumCompanionMembersInEnumConstructorCall(CANGJIE_0_53_4, kind = BUG_FIX), // KT-49110
+//    RefineTypeCheckingOnAssignmentsToJavaFields(CANGJIE_0_53_4, kind = BUG_FIX), // KT-46727
+//    ValueClassesSecondaryConstructorWithBody(sinceVersion = CANGJIE_0_53_4, kind = UNSTABLE_FEATURE), // KT-55333
+//    NativeJsProhibitLateinitIsInitializedIntrinsicWithoutPrivateAccess(CANGJIE_0_53_4, kind = BUG_FIX), // KT-27002
+//    TakeIntoAccountEffectivelyFinalInMustBeInitializedCheck(CANGJIE_0_53_4, kind = OTHER), // KT-58587
+//    ProhibitUsingNullableTypeParameterAgainstNotNullAnnotated(sinceVersion = CANGJIE_0_53_4), // KT-36770
+//    NoSourceCodeInNotNullAssertionExceptions(
+//        CANGJIE_0_53_4,
+//        sinceApiVersion = ApiVersion.CANGJIE_0_53_4,
+//        kind = OTHER
+//    ), // KT-57570
+//
+//    // 1.9.20 KMP stabilization. Unfortunately, we don't have 1.9.20 LV. So LV=1.9 is the best we can do.
+//    // At least there won't be false positives for 1.8 users
+//    MultiplatformRestrictions(CANGJIE_0_53_4, kind = BUG_FIX), // KT-61668
+//
+//    // End of 1.* language features --------------------------------------------------
+//
+//    // 2.0
+//
+//    EnhanceNullabilityOfPrimitiveArrays(CANGJIE_0_53_4, kind = BUG_FIX), // KT-54521
+//
+//    /**
+//     * This feature is highly related to ForbidInferringTypeVariablesIntoEmptyIntersection and while they belong to the same LV,
+//     * they might be used interchangeably.
+//     *
+//     * But there might be the case that we may postpone ForbidInferringTypeVariablesIntoEmptyIntersection but leave AllowEmptyIntersectionsInResultTypeResolver in 2.0.
+//     * In that case, we would stick to the simple behavior of just inferring empty intersection (without complicated logic of filtering out expected constraints),
+//     * but we would report a warning instead of an error (until ForbidInferringTypeVariablesIntoEmptyIntersection is enabled).
+//     */
+    AllowEmptyIntersectionsInResultTypeResolver(CANGJIE_0_53_4, kind = OTHER), // KT-51221
+//    ProhibitSmartcastsOnPropertyFromAlienBaseClassInheritedInInvisibleClass(CANGJIE_0_53_4, kind = BUG_FIX), // KT-57290
+//    ForbidInferringPostponedTypeVariableIntoDeclaredUpperBound(CANGJIE_0_53_4, kind = BUG_FIX), // KT-47986
+//    ProhibitUseSiteGetTargetAnnotations(CANGJIE_0_53_4, kind = BUG_FIX), // KT-15470
+//    KeepNullabilityWhenApproximatingLocalType(CANGJIE_0_53_4, kind = BUG_FIX), // KT-53982
+//    ProhibitAccessToInvisibleSetterFromDerivedClass(CANGJIE_0_53_4, kind = BUG_FIX), // KT-56662
+//    ProhibitOpenValDeferredInitialization(CANGJIE_0_53_4, kind = BUG_FIX), // KT-57553
+//    SupportEffectivelyFinalInExpectActualVisibilityCheck(CANGJIE_0_53_4, kind = BUG_FIX), // KT-61955
+//    ProhibitMissedMustBeInitializedWhenThereIsNoPrimaryConstructor(CANGJIE_0_53_4, kind = BUG_FIX), // KT-58472
+//    MangleCallsToJavaMethodsWithValueClasses(CANGJIE_0_53_4, kind = OTHER), // KT-55945
+//    ForbidInferringTypeVariablesIntoEmptyIntersection(CANGJIE_0_53_4, kind = BUG_FIX), // KT-51221
+//    ProhibitDefaultArgumentsInExpectActualizedByFakeOverride(CANGJIE_0_53_4, kind = BUG_FIX), // KT-62036
+//    DisableCompatibilityModeForNewInference(
+//        CANGJIE_0_53_4,
+//        kind = OTHER
+//    ), // KT-63558 (umbrella), KT-64306, KT-64307, KT-64308
+//    DfaBooleanVariables(CANGJIE_0_53_4), // KT-25747
+//
+//    // 2.1
+//
+//    ReferencesToSyntheticJavaProperties(CANGJIE_0_53_4), // KT-8575
+//    ProhibitImplementingVarByInheritedVal(CANGJIE_0_53_4, kind = BUG_FIX), // KT-56779
+//    PrioritizedEnumEntries(CANGJIE_0_53_4, kind = UNSTABLE_FEATURE), // KT-58920
+//    ProhibitInlineModifierOnPrimaryConstructorParameters(CANGJIE_0_53_4, kind = BUG_FIX), // KT-59664
+//    ProhibitSingleNamedFunctionAsExpression(CANGJIE_0_53_4, kind = BUG_FIX), // KT-62573
+//    ForbidLambdaParameterWithMissingDependencyType(CANGJIE_0_53_4, kind = BUG_FIX), // KT-64266
+//    JsAllowInvalidCharsIdentifiersEscaping(CANGJIE_0_53_4, kind = OTHER), // KT-31799
+//    SupportJavaErrorEnhancementOfArgumentsOfWarningLevelEnhanced(CANGJIE_0_53_4, kind = BUG_FIX), // KT-63209
+//    ProhibitPrivateOperatorCallInInline(CANGJIE_0_53_4, kind = BUG_FIX), // KT-65494
+//
+//    // End of 2.* language features --------------------------------------------------
+//
+//    ExpectActualClasses(sinceVersion = null), // KT-62885
+//
+//    // Disabled for indefinite time. See KT-53751
+//    IgnoreNullabilityForErasedValueParameters(sinceVersion = null, kind = BUG_FIX),
+//
+//    // Disabled for indefinite time. Disables restrictions of builder inference without annotation
+//    // Note: In 1.7.0, builder inference without annotation was introduced.
+//    // However, later we encountered various situations when it works incorrectly, and decided to forbid them.
+//    // When this feature is disabled, various errors are reported which are related to these incorrect situations.
+//    // When this feature is enabled, no such errors are reported.
+//    NoBuilderInferenceWithoutAnnotationRestriction(sinceVersion = null, kind = OTHER),
+//
+//    // Disabled for indefinite time. Forces K2 report errors (instead of warnings) for incompatible
+//    // equality & identity operators in cases where K1 would report warnings or would not report anything.
+//    ReportErrorsForComparisonOperators(sinceVersion = null, kind = BUG_FIX),
+//
+//    // Disabled for indefinite time.
+//    // Disables reporting of new errors (see KT-55055, KT-55056, KT-55079) in DiagnosticReporterByTrackingStrategy.
+//    // All these errors are "lost" errors which existed always, but wasn't reported before 1.9.0.
+//    // When this feature is disabled, all these "lost" errors are reported properly.
+//    // When this feature is enabled, no such errors are reported.
+    NoAdditionalErrorsInDiagnosticReporter(sinceVersion = null, kind = OTHER),
+//
+//    // top-level script inner classes never made any sense, but used for some time to overcome the capturing logic limitations
+//    // Now capturing logic works properly, therefore the warning is reported in K2
+//    // this feature will eventually switch this warning to an error
+//    ProhibitScriptTopLevelInnerClasses(sinceVersion = null, kind = OTHER),
+//
+//    // Experimental features
+//
+//    BreakContinueInInlineLambdas(null), // KT-1436
+//    LightweightLambdas(null),
+//    JsEnableExtensionFunctionInExternals(null, kind = OTHER),
+//    PackagePrivateFileClassesWithAllPrivateMembers(null), // Disabled until the breaking change is approved by the committee, see KT-10884.
+//    BooleanElvisBoundSmartCasts(null), // see KT-26357 for details
+//    NewDataFlowForTryExpressions(null),
+//    AllowResultInReturnType(null),
+//    MultiPlatformProjects(sinceVersion = null),
+//    ProhibitComparisonOfIncompatibleClasses(sinceVersion = null, kind = BUG_FIX),
+//    ProhibitAllMultipleDefaultsInheritedFromSupertypes(sinceVersion = null, kind = BUG_FIX),
+//    ExplicitBackingFields(sinceVersion = null, kind = UNSTABLE_FEATURE),
+//    FunctionalTypeWithExtensionAsSupertype(sinceVersion = null),
+//    JsAllowValueClassesInExternals(sinceVersion = null, kind = OTHER),
     ContextReceivers(sinceVersion = null),
-    ValueClasses(sinceVersion = null, kind = UNSTABLE_FEATURE),
-    JavaSamConversionEqualsHashCode(sinceVersion = null, kind = UNSTABLE_FEATURE),
-    UnitConversionsOnArbitraryExpressions(sinceVersion = null),
-    JsAllowImplementingFunctionInterface(sinceVersion = null, kind = OTHER),
-    CustomEqualsInValueClasses(sinceVersion = null, kind = OTHER), // KT-24874
-    InlineLateinit(sinceVersion = null, kind = OTHER), // KT-23814
-    EnableDfaWarningsInK2(sinceVersion = null, kind = OTHER), // KT-50965
-    ContractSyntaxV2(sinceVersion = null, kind = UNSTABLE_FEATURE), // KT-56127
-    ImplicitSignedToUnsignedIntegerConversion(sinceVersion = null), // KT-56583
-    IntrinsicConstEvaluation(sinceVersion = null, kind = UNSTABLE_FEATURE), // KT-49303
-    DisableCheckingChangedProgressionsResolve(sinceVersion = null, kind = OTHER), // KT-49276
-    ContextSensitiveEnumResolutionInWhen(sinceVersion = null, kind = UNSTABLE_FEATURE), // KT-52774
-    ForbidSyntheticPropertiesWithoutBaseJavaGetter(sinceVersion = null, kind = OTHER), // KT-64358
+//    ValueClasses(sinceVersion = null, kind = UNSTABLE_FEATURE),
+//    JavaSamConversionEqualsHashCode(sinceVersion = null, kind = UNSTABLE_FEATURE),
+//    UnitConversionsOnArbitraryExpressions(sinceVersion = null),
+//    JsAllowImplementingFunctionInterface(sinceVersion = null, kind = OTHER),
+//    CustomEqualsInValueClasses(sinceVersion = null, kind = OTHER), // KT-24874
+//    InlineLateinit(sinceVersion = null, kind = OTHER), // KT-23814
+//    EnableDfaWarningsInK2(sinceVersion = null, kind = OTHER), // KT-50965
+//    ContractSyntaxV2(sinceVersion = null, kind = UNSTABLE_FEATURE), // KT-56127
+//    ImplicitSignedToUnsignedIntegerConversion(sinceVersion = null), // KT-56583
+//    IntrinsicConstEvaluation(sinceVersion = null, kind = UNSTABLE_FEATURE), // KT-49303
+//    DisableCheckingChangedProgressionsResolve(sinceVersion = null, kind = OTHER), // KT-49276
+//    ContextSensitiveEnumResolutionInWhen(sinceVersion = null, kind = UNSTABLE_FEATURE), // KT-52774
+//    ForbidSyntheticPropertiesWithoutBaseJavaGetter(sinceVersion = null, kind = OTHER), // KT-64358
     ;
 
     init {
@@ -482,27 +487,13 @@ enum class LanguageFeature(
     }
 }
 
-enum class LanguageVersion(val major: Int, val minor: Int) : DescriptionAware, LanguageOrApiVersion {
-    KOTLIN_1_0(1, 0),
-    KOTLIN_1_1(1, 1),
-    KOTLIN_1_2(1, 2),
-    KOTLIN_1_3(1, 3),
-    KOTLIN_1_4(1, 4),
-    KOTLIN_1_5(1, 5),
-    KOTLIN_1_6(1, 6),
-    KOTLIN_1_7(1, 7),
-    KOTLIN_1_8(1, 8),
-    KOTLIN_1_9(1, 9),
+enum class LanguageVersion(val major: Int, val minor: Int, val patch: Int) : DescriptionAware, LanguageOrApiVersion {
 
-    KOTLIN_2_0(2, 0),
-    KOTLIN_2_1(2, 1),
+    CANGJIE_0_53_4(0, 53, 4),
     ;
 
     override val isStable: Boolean
         get() = this <= LATEST_STABLE
-
-    val usesK2: Boolean
-        get() = this >= KOTLIN_2_0
 
     override val isDeprecated: Boolean
         get() = FIRST_SUPPORTED <= this && this < FIRST_NON_DEPRECATED
@@ -528,16 +519,16 @@ enum class LanguageVersion(val major: Int, val minor: Int) : DescriptionAware, L
         // API:       UNSUPPORTED --> DEPRECATED ------> STABLE ---> EXPERIMENTAL
 
         @JvmField
-        val FIRST_API_SUPPORTED = KOTLIN_1_4
+        val FIRST_API_SUPPORTED = CANGJIE_0_53_4
 
         @JvmField
-        val FIRST_SUPPORTED = KOTLIN_1_4
+        val FIRST_SUPPORTED = CANGJIE_0_53_4
 
         @JvmField
-        val FIRST_NON_DEPRECATED = KOTLIN_1_7
+        val FIRST_NON_DEPRECATED = CANGJIE_0_53_4
 
         @JvmField
-        val LATEST_STABLE = KOTLIN_2_0
+        val LATEST_STABLE = CANGJIE_0_53_4
     }
 }
 
@@ -558,9 +549,6 @@ interface LanguageOrApiVersion : DescriptionAware {
             else -> versionString
         }
 }
-
-fun LanguageVersion.isStableOrReadyForPreview(): Boolean =
-    isStable || this == KOTLIN_1_9 || this == KOTLIN_2_0
 
 fun LanguageVersion.toCangJieVersion() = CangJieVersion(major, minor)
 
@@ -675,41 +663,9 @@ class ApiVersion private constructor(
     override fun toString() = versionString
 
     companion object {
-        @JvmField
-        val KOTLIN_1_0 = createByLanguageVersion(LanguageVersion.KOTLIN_1_0)
 
         @JvmField
-        val KOTLIN_1_1 = createByLanguageVersion(LanguageVersion.KOTLIN_1_1)
-
-        @JvmField
-        val KOTLIN_1_2 = createByLanguageVersion(LanguageVersion.KOTLIN_1_2)
-
-        @JvmField
-        val KOTLIN_1_3 = createByLanguageVersion(LanguageVersion.KOTLIN_1_3)
-
-        @JvmField
-        val KOTLIN_1_4 = createByLanguageVersion(LanguageVersion.KOTLIN_1_4)
-
-        @JvmField
-        val KOTLIN_1_5 = createByLanguageVersion(LanguageVersion.KOTLIN_1_5)
-
-        @JvmField
-        val KOTLIN_1_6 = createByLanguageVersion(LanguageVersion.KOTLIN_1_6)
-
-        @JvmField
-        val KOTLIN_1_7 = createByLanguageVersion(LanguageVersion.KOTLIN_1_7)
-
-        @JvmField
-        val KOTLIN_1_8 = createByLanguageVersion(LanguageVersion.KOTLIN_1_8)
-
-        @JvmField
-        val KOTLIN_1_9 = createByLanguageVersion(LanguageVersion.KOTLIN_1_9)
-
-        @JvmField
-        val KOTLIN_2_0 = createByLanguageVersion(LanguageVersion.KOTLIN_2_0)
-
-        @JvmField
-        val KOTLIN_2_1 = createByLanguageVersion(LanguageVersion.KOTLIN_2_1)
+        val CANGJIE_0_53_4 = createByLanguageVersion(LanguageVersion.CANGJIE_0_53_4)
 
         @JvmField
         val LATEST: ApiVersion = createByLanguageVersion(LanguageVersion.entries.last())

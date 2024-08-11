@@ -1,6 +1,9 @@
 package com.huawei.cangjie.resolve.calls.model
 
+import com.huawei.cangjie.resolve.calls.components.ArgumentsToCandidateParameterDescriptor
 import com.huawei.cangjie.resolve.calls.components.CreateFreshVariablesSubstitutor
+import com.huawei.cangjie.resolve.calls.components.MapArguments
+import com.huawei.cangjie.resolve.calls.components.NoArguments
 
 
 enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
@@ -8,7 +11,7 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
 //        CheckVisibility,
 //        CheckSuperExpressionCallPart,
 //        NoTypeArguments,
-//        NoArguments,
+        NoArguments,
         CreateFreshVariablesSubstitutor,
 //        CollectionTypeVariableUsagesInfo,
 //        CheckExplicitReceiverKindConsistency,
@@ -23,8 +26,8 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
 //        CheckOperatorResolutionPart,
 //        CheckSuperExpressionCallPart,
 //        MapTypeArguments,
-//        MapArguments,
-//        ArgumentsToCandidateParameterDescriptor,
+        MapArguments,
+        ArgumentsToCandidateParameterDescriptor,
         CreateFreshVariablesSubstitutor,
 //        CollectionTypeVariableUsagesInfo,
 //        CheckExplicitReceiverKindConsistency,
@@ -38,16 +41,16 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
 //        CheckIncompatibleTypeVariableUpperBounds
     ),
     INVOKE(*FUNCTION.resolutionSequence.toTypedArray()),
-//    CALLABLE_REFERENCE(
+    CALLABLE_REFERENCE(
 //        CheckVisibility,
 //        NoTypeArguments,
-//        NoArguments,
-//        CreateFreshVariablesSubstitutor,
+        NoArguments,
+        CreateFreshVariablesSubstitutor,
 //        CollectionTypeVariableUsagesInfo,
 //        CheckReceivers,
 //        CheckCallableReference,
 //        CheckIncompatibleTypeVariableUpperBounds
-//    ),
+    ),
     UNSUPPORTED();
 
     val resolutionSequence = resolutionPart.asList()

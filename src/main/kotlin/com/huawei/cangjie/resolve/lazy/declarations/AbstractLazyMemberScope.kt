@@ -31,6 +31,8 @@ protected constructor(
         storageManager.createMemoizedFunction { getDeclaredFunctions(it) }
     private val typeAliasDescriptors: MemoizedFunctionToNotNull<Name, Collection<TypeAliasDescriptor>> =
         storageManager.createMemoizedFunction({ doGetTypeAliases(it) }, onRecursiveCall = { _, _ -> emptyList() })
+    private val declaredPropertyDescriptors: MemoizedFunctionToNotNull<Name, Collection<PropertyDescriptor>> =
+        storageManager.createMemoizedFunction { getDeclaredProperties(it) }
 
     private fun doGetTypeAliases(name: Name): Collection<TypeAliasDescriptor> {
         mainScope?.typeAliasDescriptors?.invoke(name)?.let { return it }
@@ -45,13 +47,23 @@ protected constructor(
         }.toList()
     }
 
-    private fun doGetProperties(name: Name): Collection<PropertyDescriptor> {
-//        val result = LinkedHashSet(declaredPropertyDescriptors(name))
-//
-//        getNonDeclaredProperties(name, result)
-        TODO()
-//        return result.toList()
+    private fun getDeclaredProperties(
+        name: Name
+    ): Collection<PropertyDescriptor> {
+        return emptyList()
     }
+
+    private fun doGetProperties(name: Name): Collection<PropertyDescriptor> {
+
+//        这里返回变量声明和属性声明
+        val result = LinkedHashSet(declaredPropertyDescriptors(name))
+
+        getNonDeclaredProperties(name, result)
+
+        return result.toList()
+    }
+
+    protected abstract fun getNonDeclaredProperties(name: Name, result: MutableSet<PropertyDescriptor>)
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
         recordLookup(name, location)
@@ -72,10 +84,14 @@ protected constructor(
         return result
     }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard PropertyDescriptor> {
+    override fun getContributedVariables(
+        name: Name,
+        location: LookupLocation
+    ): Collection<@JvmWildcard PropertyDescriptor> {
         recordLookup(name, location)
         return propertyDescriptors(name)
     }
+
     override fun printScopeStructure(p: Printer) {
         p.println(this::class.java.simpleName, " {")
         p.pushIndent()
@@ -85,6 +101,7 @@ protected constructor(
         p.popIndent()
         p.println("}")
     }
+
     protected fun computeDescriptorsFromDeclaredElements(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean,

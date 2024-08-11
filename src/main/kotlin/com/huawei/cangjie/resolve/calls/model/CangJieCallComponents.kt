@@ -2,8 +2,10 @@ package com.huawei.cangjie.resolve.calls.model
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.builtins.ReflectionTypes
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.incremental.components.LookupTracker
+import com.huawei.cangjie.resolve.calls.components.ArgumentsToParametersMapper
 import com.huawei.cangjie.resolve.calls.components.CangJieResolutionStatelessCallbacks
 import com.huawei.cangjie.resolve.calls.inference.components.ConstraintInjector
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
@@ -14,12 +16,12 @@ import com.huawei.cangjie.types.checker.NewCangJieTypeChecker
 
 class CangJieCallComponents(
     val statelessCallbacks: CangJieResolutionStatelessCallbacks,
-//    val argumentsToParametersMapper: ArgumentsToParametersMapper,
+    val argumentsToParametersMapper: ArgumentsToParametersMapper,
 //    val typeArgumentsToParametersMapper: TypeArgumentsToParametersMapper,
     val constraintInjector: ConstraintInjector,
     val reflectionTypes: ReflectionTypes,
     val builtIns: CangJieBuiltIns,
-//    val languageVersionSettings: LanguageVersionSettings,
+    val languageVersionSettings: LanguageVersionSettings,
 //    val samConversionOracle: SamConversionOracle,
 //    val samConversionResolver: SamConversionResolver,
     val cangjieTypeChecker: NewCangJieTypeChecker,

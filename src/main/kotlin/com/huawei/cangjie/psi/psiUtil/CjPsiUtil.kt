@@ -157,13 +157,17 @@ fun CjExpression.getAssignmentByLHS(): CjBinaryExpression? {
 fun CjExpression.getQualifiedExpressionForSelectorOrThis(): CjExpression {
     return getQualifiedExpressionForSelector() ?: this
 }
-
+inline fun <reified T : PsiElement> T.copied(): T {
+    return copy() as T
+}
 fun getTrailingCommaByClosingElement(closingElement: PsiElement?): PsiElement? {
     val elementBeforeClosingElement =
         closingElement?.getPrevSiblingIgnoringWhitespaceAndComments() ?: return null
 
     return elementBeforeClosingElement.run { if (node.elementType == CjTokens.COMMA) this else null }
 }
+val CjQualifiedExpression.callExpression:CjCallExpression?
+    get() = selectorExpression as? CjCallExpression
 
 var CjElement.parentSubstitute: PsiElement? by UserDataProperty(Key.create<PsiElement>("PARENT_SUBSTITUTE"))
 fun String.quoteIfNeeded(): String = if (this.isIdentifier()) this else "`$this`"

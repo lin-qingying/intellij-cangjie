@@ -1,5 +1,6 @@
 package com.huawei.cangjie.resolve.calls.inference.model
 
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.resolve.calls.components.PostponedArgumentsAnalyzerContext
 import com.huawei.cangjie.resolve.calls.inference.*
 import com.huawei.cangjie.resolve.calls.inference.components.*
@@ -13,7 +14,7 @@ import kotlin.math.max
 class NewConstraintSystemImpl(
     private val constraintInjector: ConstraintInjector,
     val typeSystemContext: TypeSystemInferenceExtensionContext,
-//    private val languageVersionSettings: LanguageVersionSettings,
+    private val languageVersionSettings: LanguageVersionSettings,
 ) : ConstraintSystemCompletionContext(),
     TypeSystemInferenceExtensionContext by typeSystemContext,
     NewConstraintSystem,

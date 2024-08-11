@@ -20,6 +20,8 @@ import com.huawei.cangjie.resolve.calls.components.InferenceSession
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
 import com.huawei.cangjie.resolve.calls.context.ContextDependency
+import com.huawei.cangjie.resolve.calls.inference.components.CangJieConstraintSystemCompleter
+import com.huawei.cangjie.resolve.calls.inference.components.ResultTypeResolver
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.results.*
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
@@ -34,7 +36,7 @@ import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.receivers.*
 import com.huawei.cangjie.resolve.source.getPsi
 import com.huawei.cangjie.types.DeferredType
-
+import com.huawei.cangjie.types.TypeApproximator
 import com.huawei.cangjie.types.UnwrappedType
 import com.huawei.cangjie.types.expressions.DoubleColonExpressionResolver
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices
@@ -54,19 +56,19 @@ class PSICallResolver(
     private val callComponents: CangJieCallComponents,
     private val cangjieToResolvedCallTransformer: CangJieToResolvedCallTransformer,
     private val cangjieCallResolver: CangJieCallResolver,
-//    private val typeApproximator: TypeApproximator,
+    private val typeApproximator: TypeApproximator,
     private val implicitsResolutionFilter: ImplicitsExtensionsResolutionFilter,
     private val argumentTypeResolver: ArgumentTypeResolver,
 //    private val effectSystem: EffectSystem,
     private val constantExpressionEvaluator: ConstantExpressionEvaluator,
     private val dataFlowValueFactory: DataFlowValueFactory,
 //    private val postponedArgumentsAnalyzer: PostponedArgumentsAnalyzer,
-//    private val cangjieConstraintSystemCompleter: CangJieConstraintSystemCompleter,
+    private val cangjieConstraintSystemCompleter: CangJieConstraintSystemCompleter,
     private val deprecationResolver: DeprecationResolver,
     private val moduleDescriptor: ModuleDescriptor,
     private val candidateInterceptor: CandidateInterceptor,
     private val missingSupertypesResolver: MissingSupertypesResolver,
-//    private val resultTypeResolver: ResultTypeResolver,
+    private val resultTypeResolver: ResultTypeResolver,
 ) {
     private val callCheckersWithAdditionalResolve = listOf<CallCheckerWithAdditionalResolve>(
         PassingProgressionAsCollectionCallChecker(cangjieCallResolver),
@@ -180,6 +182,7 @@ class PSICallResolver(
             ).prepareReceiverRegardingCaptureTypes()
         }
     }
+
 
     fun <D : CallableDescriptor> convertToOverloadResolutionResults(
         context: BasicCallResolutionContext,
@@ -378,14 +381,14 @@ class PSICallResolver(
     ) =
         CangJieResolutionCallbacksImpl(
             trace,
-            expressionTypingServices, /*typeApproximator,*/
-            argumentTypeResolver,/* languageVersionSettings,*/
+            expressionTypingServices,  typeApproximator,
+            argumentTypeResolver,  languageVersionSettings,
             cangjieToResolvedCallTransformer,
             dataFlowValueFactory,
             inferenceSession,
             constantExpressionEvaluator,
             typeResolver,
-            this,/* postponedArgumentsAnalyzer, cangjieConstraintSystemCompleter,*/
+            this,/* postponedArgumentsAnalyzer,*/ cangjieConstraintSystemCompleter,
             callComponents,
             doubleColonExpressionResolver,
             deprecationResolver,
@@ -393,7 +396,7 @@ class PSICallResolver(
             context,
             missingSupertypesResolver,
             cangjieCallResolver,
-//            resultTypeResolver
+            resultTypeResolver
         )
 
     private fun resolveReceiver(
@@ -685,37 +688,40 @@ class PSICallResolver(
 
         return createSimplePSICallArgument(context, valueArgument, typeInfo) ?: createParseErrorElement()
     }
-//    fun getLhsResult(context: BasicCallResolutionContext, ktExpression: CjCallableReferenceExpression): Pair<DoubleColonLHS?, LHSResult> {
-//        val expressionTypingContext = ExpressionTypingContext.newContext(context)
+//    fun getLhsResult(context: BasicCallResolutionContext, cjExpression: CjCallableReferenceExpression): Pair<DoubleColonLHS?, LHSResult> {
+
+
+    //      return  null to LHSResult.Empty
+    //        val expressionTypingContext = ExpressionTypingContext.newContext(context)
 //
-//        if (ktExpression.isEmptyLHS) return null to LHSResult.Empty
+//        if (cjExpression.isEmptyLHS) return null to LHSResult.Empty
 //
 //        val doubleColonLhs = (context.callPosition as? CallPosition.CallableReferenceRhs)?.lhs
-//            ?: doubleColonExpressionResolver.resolveDoubleColonLHS(ktExpression, expressionTypingContext)
+//            ?: doubleColonExpressionResolver.resolveDoubleColonLHS(cjExpression, expressionTypingContext)
 //            ?: return null to LHSResult.Empty
 //        val lhsResult = when (doubleColonLhs) {
 //            is DoubleColonLHS.Expression -> {
 //                if (doubleColonLhs.isObjectQualifier) {
 //                    val classifier = doubleColonLhs.type.constructor.declarationDescriptor
-//                    val calleeExpression = ktExpression.receiverExpression?.getCalleeExpressionIfAny()
+//                    val calleeExpression = cjExpression.receiverExpression?.getCalleeExpressionIfAny()
 //                    if (calleeExpression is CjSimpleNameExpression && classifier is ClassDescriptor) {
 //                        LHSResult.Object(ClassQualifier(calleeExpression, classifier))
 //                    } else {
 //                        LHSResult.Error
 //                    }
 //                } else {
-//                    val fakeArgument = FakeValueArgumentForLeftCallableReference(ktExpression)
+//                    val fakeArgument = FakeValueArgumentForLeftCallableReference(cjExpression)
 //
 //                    val cangjieCallArgument = createSimplePSICallArgument(context, fakeArgument, doubleColonLhs.typeInfo)
 //                    cangjieCallArgument?.let { LHSResult.Expression(it as SimpleCangJieCallArgument) } ?: LHSResult.Error
 //                }
 //            }
 //            is DoubleColonLHS.Type -> {
-//                val qualifiedExpression = ktExpression.receiverExpression!!
+//                val qualifiedExpression = cjExpression.receiverExpression!!
 //                val qualifier = expressionTypingContext.trace.get(BindingContext.QUALIFIER, qualifiedExpression)
 //                val classifier = doubleColonLhs.type.constructor.declarationDescriptor
 //                if (classifier !is ClassDescriptor) {
-//                    expressionTypingContext.trace.report(Errors.CALLABLE_REFERENCE_LHS_NOT_A_CLASS.on(ktExpression))
+//                    expressionTypingContext.trace.report(Errors.CALLABLE_REFERENCE_LHS_NOT_A_CLASS.on(cjExpression))
 //                    LHSResult.Error
 //                } else {
 //                    LHSResult.Type(qualifier, doubleColonLhs.type.unwrap())
@@ -725,6 +731,8 @@ class PSICallResolver(
 //
 //        return doubleColonLhs to lhsResult
 //    }
+
+
 //    fun createCallableReferenceCangJieCallArgument(
 //        context: BasicCallResolutionContext,
 //        cjExpression: CjCallableReferenceExpression,

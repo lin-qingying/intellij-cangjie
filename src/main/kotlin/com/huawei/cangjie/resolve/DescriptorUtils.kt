@@ -3,7 +3,7 @@ package com.huawei.cangjie.resolve
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.AnnotationDescriptor
-import com.huawei.cangjie.descriptors.annotations.fqNameUnsafe
+import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.ClassId
 import com.huawei.cangjie.name.FqName
@@ -12,12 +12,18 @@ import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.DeferredType
 import com.huawei.cangjie.types.ErrorUtils.isError
 import com.huawei.cangjie.types.TypeConstructor
 import com.huawei.cangjie.types.TypeRefinement
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.checker.REFINER_CAPABILITY
+import com.huawei.cangjie.types.util.contains
 import com.huawei.cangjie.utils.DFS
+
+@OptIn(TypeRefinement::class)
+fun ModuleDescriptor.isTypeRefinementEnabled(): Boolean =
+    getCapability(REFINER_CAPABILITY)?.value?.isEnabled == true
 
 fun ModuleDescriptor.resolveClassByFqName(fqName: FqName, lookupLocation: LookupLocation): ClassDescriptor? {
     if (fqName.isRoot) return null
@@ -46,7 +52,7 @@ val ClassifierDescriptor?.classId: ClassId?
         }
     }
 
-fun ClassDescriptor.getClassObjectReferenceTarget(): ClassDescriptor =  this
+fun ClassDescriptor.getClassObjectReferenceTarget(): ClassDescriptor = this
 fun ClassDescriptor.getSuperClassNotAny(): ClassDescriptor? {
     for (supertype in defaultType.constructor.supertypes) {
         if (!CangJieBuiltIns.isAnyOrNullableAny(supertype)) {
@@ -59,11 +65,14 @@ fun ClassDescriptor.getSuperClassNotAny(): ClassDescriptor? {
     return null
 }
 
+val DeclarationDescriptor.fqNameSafe: FqName
+    get() = DescriptorUtils.getFqNameSafe(this)
+
 fun ClassDescriptor.getSuperClassOrAny(): ClassDescriptor = getSuperClassNotAny() ?: builtIns.any
 
 
 val ClassDescriptor.classValueDescriptor: ClassDescriptor
-    get() =this
+    get() = this
 
 fun ValueParameterDescriptor.declaresOrInheritsDefaultValue(): Boolean {
     return DFS.ifAny(
@@ -72,6 +81,7 @@ fun ValueParameterDescriptor.declaresOrInheritsDefaultValue(): Boolean {
         ValueParameterDescriptor::declaresDefaultValue
     )
 }
+
 val AnnotationDescriptor.annotationClass: ClassDescriptor?
     get() = type.constructor.declarationDescriptor as? ClassDescriptor
 
@@ -83,10 +93,84 @@ object DescriptorUtils {
             descriptor
         )
     }
-@JvmStatic
-fun isTopLevelDeclaration(descriptor: DeclarationDescriptor?): Boolean {
-    return descriptor != null && descriptor.containingDeclaration is  PackageFragmentDescriptor
-}
+//
+//    fun getContainingSourceFile(descriptor:  DeclarationDescriptor):  SourceFile {
+//        var descriptor:  DeclarationDescriptor = descriptor
+//        if (descriptor is  PropertySetterDescriptor) {
+//            descriptor =
+//                (descriptor as  PropertySetterDescriptor).getCorrespondingProperty()
+//        }
+//
+//        if (descriptor is  DeclarationDescriptorWithSource) {
+//            return (descriptor as  DeclarationDescriptorWithSource).getSource()
+//                .getContainingFile()
+//        }
+//
+//        return  SourceFile.NO_SOURCE_FILE
+//    }
+
+    private fun getFqNameUnsafe(descriptor: DeclarationDescriptor): FqNameUnsafe {
+        val containingDeclaration =
+            checkNotNull(descriptor.containingDeclaration) { "Not package/module descriptor doesn't have containing declaration: $descriptor" }
+        return getFqName(containingDeclaration).child(descriptor.name)
+    }
+
+    fun getFqNameSafe(descriptor: DeclarationDescriptor): FqName {
+        return getFqNameSafeIfPossible(descriptor) ?: getFqNameUnsafe(descriptor)
+            .toSafe()
+    }
+
+    private fun isDescriptorWithLocalVisibility(current: DeclarationDescriptor): Boolean {
+        return current is DeclarationDescriptorWithVisibility &&
+                current.getVisibility() === DescriptorVisibilities.LOCAL
+    }
+
+    @JvmStatic
+    private fun <D : CallableDescriptor> collectAllOverriddenDescriptors(
+        current: D,
+        result: MutableSet<D>
+    ) {
+        if (result.contains(current)) return
+        for (callableDescriptor in current.original.getOverriddenDescriptors()) {
+            val descriptor = callableDescriptor.original as D
+            collectAllOverriddenDescriptors(descriptor, result)
+            result.add(descriptor)
+        }
+    }
+
+    /**
+     * @return original (not substituted) descriptors without any duplicates
+     */
+    @JvmStatic
+    fun <D : CallableDescriptor> getAllOverriddenDescriptors(f: D): MutableSet<D> {
+        val result: MutableSet<D> = LinkedHashSet()
+        collectAllOverriddenDescriptors<D>(f.original as D, result)
+        return result
+    }
+
+    /**
+     * Descriptor may be local itself or have a local ancestor
+     */
+    @JvmStatic
+    fun isLocal(descriptor: DeclarationDescriptor): Boolean {
+        var current: DeclarationDescriptor? = descriptor
+        while (current != null) {
+            if (/*isAnonymousObject(current) || */isDescriptorWithLocalVisibility(
+                    current
+                )
+            ) {
+                return true
+            }
+            current = current.containingDeclaration
+        }
+        return false
+    }
+
+    @JvmStatic
+    fun isTopLevelDeclaration(descriptor: DeclarationDescriptor?): Boolean {
+        return descriptor != null && descriptor.containingDeclaration is PackageFragmentDescriptor
+    }
+
     @JvmStatic
 
     fun <D : DeclarationDescriptor?> getParentOfType(
@@ -190,9 +274,13 @@ fun isTopLevelDeclaration(descriptor: DeclarationDescriptor?): Boolean {
 
     @JvmStatic
     private fun getFqNameSafeIfPossible(descriptor: DeclarationDescriptor): FqName? {
-        if ( /*descriptor instanceof ModuleDescriptor || */isError(descriptor)) {
+        if ( descriptor is ModuleDescriptor || isError(descriptor)) {
             return FqName.ROOT
         }
+        if(descriptor is BasicTypeDescriptor){
+            return FqName.ROOT
+        }
+
 
         if (descriptor is PackageViewDescriptor) {
             return descriptor.fqName
@@ -206,7 +294,7 @@ fun isTopLevelDeclaration(descriptor: DeclarationDescriptor?): Boolean {
     @JvmStatic
     fun getFqName(descriptor: DeclarationDescriptor): FqNameUnsafe {
         val safe = getFqNameSafeIfPossible(descriptor)
-        return safe?.toUnsafe() ?: descriptor.fqNameUnsafe
+        return safe?.toUnsafe() ?: getFqNameUnsafe(descriptor)
     }
 
     @JvmStatic
@@ -241,3 +329,16 @@ fun ModuleDescriptor.getCangJieTypeRefiner(): CangJieTypeRefiner =
 //        is TypeRefinementSupport.Enabled -> refinerCapability.typeRefiner
         else -> CangJieTypeRefiner.Default
     }
+
+fun FunctionDescriptor.isFunctionForExpectTypeFromCastFeature(): Boolean {
+    val typeParameter = typeParameters.singleOrNull() ?: return false
+
+    val returnType = returnType ?: return false
+    if (returnType is DeferredType && returnType.isComputing) return false
+
+    if (returnType.constructor != typeParameter.typeConstructor) return false
+
+    fun CangJieType.isBadType() = contains { it.constructor == typeParameter.typeConstructor }
+
+    return !(valueParameters.any { it.type.isBadType() } || extensionReceiverParameter?.type?.isBadType() == true)
+}

@@ -12,10 +12,12 @@ import com.huawei.cangjie.resolve.calls.model.PartialCallContainer;
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValue;
+import com.huawei.cangjie.resolve.constants.CompileTimeConstant;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.resolve.scopes.receivers.Qualifier;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.DeferredType;
+import com.huawei.cangjie.types.expressions.PreliminaryDeclarationVisitor;
 import com.huawei.cangjie.utils.Box;
 import com.huawei.cangjie.utils.ReadOnly;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
@@ -33,6 +35,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.huawei.cangjie.utils.slicedMap.RewritePolicy.DO_NOTHING;
+import static com.huawei.cangjie.utils.slicedMap.Slices.COMPILE_TIME_VALUE_REWRITE_POLICY;
 
 public interface BindingContext {
     BindingContext EMPTY = new BindingContext() {
@@ -78,6 +81,9 @@ public interface BindingContext {
     WritableSlice<CjTypeReference,CangJieType> ABBREVIATED_TYPE = Slices.createSimpleSlice();
     WritableSlice<Call, BasicCallResolutionContext> PARTIAL_CALL_RESOLUTION_CONTEXT = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjExpression, Call> DELEGATE_EXPRESSION_TO_PROVIDE_DELEGATE_CALL = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjDeclaration, PreliminaryDeclarationVisitor> PRELIMINARY_VISITOR = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjSuperExpression, Boolean> SUPER_EXPRESSION_FROM_ANY_MIGRATION = Slices.createSimpleSlice();
+    WritableSlice<CjExpression, CompileTimeConstant<?>> COMPILE_TIME_VALUE = new BasicWritableSlice<>(COMPILE_TIME_VALUE_REWRITE_POLICY);
 
     WritableSlice<CjReferenceExpression, ReceiverParameterDescriptor> THIS_REFERENCE_TARGET = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjElement, Computation> EXPRESSION_EFFECTS = Slices.createSimpleSlice();
@@ -85,17 +91,20 @@ public interface BindingContext {
 
     WritableSlice<CjSuperExpression, CangJieType> THIS_TYPE_FOR_SUPER_EXPRESSION = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<Call, PartialCallContainer> ONLY_RESOLVED_CALL = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<PsiElement, Boolean> DEPRECATED_SHORT_NAME_ACCESS = Slices.createSimpleSlice();
 
     WritableSlice<CjElement, LexicalScope> LEXICAL_SCOPE = Slices.createSimpleSlice();
     WritableSlice<CjExpression, DataFlowInfo> DATA_FLOW_INFO_BEFORE = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjExpression, CangJieType> EXPECTED_EXPRESSION_TYPE = new BasicWritableSlice<>(DO_NOTHING);
 
     WritableSlice<CjExpression, Boolean> PROCESSED = Slices.createSimpleSlice();
+    WritableSlice<CjBinaryExpressionWithTypeRHS, Boolean> CAST_TYPE_USED_AS_EXPECTED_TYPE = Slices.createSimpleSlice();
 
     WritableSlice<CjAnnotationEntry, AnnotationDescriptor> ANNOTATION = Slices.createSimpleSlice();
     WritableSlice<FqName, Collection<CjFile>> PACKAGE_TO_FILES = Slices.createSimpleSlice();
     WritableSlice<PsiElement, SimpleFunctionDescriptor> FUNCTION = Slices.createSimpleSlice();
     WritableSlice<CjExpression, Qualifier> QUALIFIER = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjElement, Boolean> USED_AS_EXPRESSION = new BasicWritableSlice<>(DO_NOTHING);
 
     WritableSlice<CjElement, Call> CALL = new BasicWritableSlice<>(DO_NOTHING);
 

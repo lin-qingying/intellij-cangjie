@@ -5,12 +5,11 @@ import com.huawei.cangjie.psi.CjConstantExpression
 import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.psi.CjPsiUtil
 import com.huawei.cangjie.psi.CjVisitor
-import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.BindingContextUtils
 import com.huawei.cangjie.resolve.StatementFilter
 import com.huawei.cangjie.resolve.constants.CompileTimeConstant
+import com.huawei.cangjie.resolve.constants.ConstantValue
 import com.huawei.cangjie.types.CangJieType
-
 import com.huawei.cangjie.types.util.TypeUtils
 
 //
@@ -52,6 +51,15 @@ class ConstantExpressionEvaluator {
 //            )
 //        }
     }
+
+    fun evaluateToConstantValue(
+        expression: CjExpression,
+        trace: BindingTrace,
+        expectedType: CangJieType
+    ): ConstantValue<*>? {
+        return evaluateExpression(expression, trace, expectedType)?.toConstantValue(expectedType)
+    }
+
     fun evaluateExpression(
         expression: CjExpression,
         trace: BindingTrace,
@@ -64,6 +72,7 @@ class ConstantExpressionEvaluator {
 
         return if (!constant.isError) constant else null
     }
+
     fun updateNumberType(
         numberType: CangJieType,
         expression: CjExpression?,
@@ -98,12 +107,13 @@ class ConstantExpressionEvaluator {
 //        return if (!constant.isError) constant else null
 //    }
 }
+
 //
 private class ConstantExpressionEvaluatorVisitor(
     private val constantExpressionEvaluator: ConstantExpressionEvaluator,
     private val trace: BindingTrace
 ) : CjVisitor<CompileTimeConstant<*>?, CangJieType>() {
-//    private val languageVersionSettings = constantExpressionEvaluator.languageVersionSettings
+    //    private val languageVersionSettings = constantExpressionEvaluator.languageVersionSettings
 //    private val builtIns = constantExpressionEvaluator.module.builtIns
 //    private val inlineConstTracker =
 //        if (constantExpressionEvaluator.inlineConstTracker is InlineConstTracker.DoNothing)
@@ -537,7 +547,7 @@ private class ConstantExpressionEvaluatorVisitor(
 //                val isConvertableConstVal =
 //                    callableDescriptor.isConst &&
 //                            ImplicitIntegerCoercion.isEnabledFor(callableDescriptor, languageVersionSettings) &&
-//                            callableDescriptor.compileTimeInitializer is IntValue
+//                            callableDescriptor.compileTimeInitializer is Int32Value
 //
 //                return callableDescriptor.compileTimeInitializer?.wrap(
 //                    CompileTimeConstant.Parameters(
@@ -833,7 +843,7 @@ private class ConstantExpressionEvaluatorVisitor(
 //            }
 //        } else {
 //            when (value) {
-//                value.toInt().toLong() -> IntValue(value.toInt())
+//                value.toInt().toLong() -> Int32Value(value.toInt())
 //                else -> LongValue(value)
 //            }
 //        }.wrap(parameters)

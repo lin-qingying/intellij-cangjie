@@ -38,7 +38,7 @@ class SimpleCandidateFactory(
         val baseSystem = NewConstraintSystemImpl(
             callComponents.constraintInjector, callComponents.builtIns,
             callComponents.cangjieTypeRefiner
-            /*, callComponents.languageVersionSettings*/
+           , callComponents.languageVersionSettings
         )
         if (!inferenceSession.resolveReceiverIndependently()) {
             baseSystem.addSubsystemFromArgument(cangjieCall.explicitReceiver)

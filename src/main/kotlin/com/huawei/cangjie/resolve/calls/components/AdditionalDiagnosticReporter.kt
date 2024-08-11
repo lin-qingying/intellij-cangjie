@@ -1,5 +1,6 @@
 package com.huawei.cangjie.resolve.calls.components
 
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.ReceiverParameterDescriptor
 import com.huawei.cangjie.resolve.calls.model.*
@@ -12,7 +13,7 @@ import com.huawei.cangjie.types.util.expandIntersectionTypeIfNecessary
 // todo: handle all diagnostic inside DiagnosticReporterByTrackingStrategy
 // move it to frontend module
 class AdditionalDiagnosticReporter(
-//    private val languageVersionSettings: LanguageVersionSettings
+    private val languageVersionSettings: LanguageVersionSettings
 ) {
 
     fun reportAdditionalDiagnostics(
@@ -88,7 +89,7 @@ class AdditionalDiagnosticReporter(
 
         for (parameter in resultingDescriptor.valueParameters) {
             for (argument in candidate.argumentMappingByOriginal[parameter.original]?.arguments ?: continue) {
-                val effectiveExpectedType = argument.getExpectedType(parameter/*, languageVersionSettings*/)
+                val effectiveExpectedType = argument.getExpectedType(parameter, languageVersionSettings)
                 val smartCastDiagnostic = createSmartCastDiagnostic(candidate, argument, effectiveExpectedType) ?: continue
 
                 val thereIsUnstableSmartCastError = diagnostics.filterIsInstance<UnstableSmartCast>().any {
