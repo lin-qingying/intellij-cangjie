@@ -13,7 +13,7 @@ body:
       label: 这个问题是否已经存在？
       options:
         - label: 我已经搜索过现有的问题 (https://gitee.com/Lin_Qing_Ying/intellij-cangjie/issues)
-          required: true
+#          required: true
   - type: textarea
     attributes:
       label: 如何复现
@@ -29,13 +29,13 @@ body:
       label: 预期结果
       description: 请告诉我们你预期会发生什么。
     validations:
-      required: true
+#      required: true
   - type: textarea
     attributes:
       label: 实际结果
       description: 请告诉我们实际发生了什么。
     validations:
-      required: true
+#      required: true
   - type: textarea
     attributes:
       label: 截图或视频
