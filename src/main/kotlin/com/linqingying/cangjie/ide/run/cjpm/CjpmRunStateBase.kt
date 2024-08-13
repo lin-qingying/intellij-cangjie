@@ -1,13 +1,10 @@
 package com.linqingying.cangjie.ide.run.cjpm
 
 
-import com.intellij.execution.ExecutionException
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.CommandLineState
-import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.execution.process.KillableColoredProcessHandler
-import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.target.TargetEnvironmentConfiguration
@@ -23,7 +20,6 @@ import com.linqingying.cangjie.cjpm.toolchain.cjpm
 import com.linqingying.cangjie.cjpm.toolchain.tools.Cjpm
 import com.linqingying.cangjie.ide.run.CangJieRunConfigurationExtensionManager
 import com.linqingying.cangjie.ide.run.cjpm.runconfig.CjLanguageRuntimeConfiguration
-
 import com.linqingying.cangjie.ide.run.createProcessHandler
 import com.linqingying.cangjie.ide.run.startProcess
 
@@ -78,8 +74,6 @@ abstract class CjpmRunStateBase(
     }
 
 
-
-
     fun startProcess(processColors: Boolean): ProcessHandler {
 
 
@@ -92,10 +86,15 @@ abstract class CjpmRunStateBase(
 
             val commandLine = cjpm().toGeneralCommandLine(environment.project, prepareCommandLine())
 
+//            commandLine.charset = Charset.forName("GBK")
 
             LOG.debug("Executing Cjpm command: `${commandLine.commandLineString}`")
 //            val handler = CjProcessHandler(commandLine, processColors)
             val handler = commandLine.createProcessHandler()
+
+
+
+
             ProcessTerminatedListener.attach(handler) // shows exit code upon termination
 
             CangJieRunConfigurationExtensionManager.attachExtensionsToProcess(
@@ -126,6 +125,7 @@ abstract class CjpmRunStateBase(
 
     override fun createConsole(executor: Executor): ConsoleView? {
         val console = super.createConsole(executor) ?: return null
+
         return CangJieRunConfigurationExtensionManager.decorateExecutionConsole(
             configuration,
             runnerSettings, console, executor

@@ -38,10 +38,10 @@ data class CjpmProjectInfo(
 //    仓颉中心仓库依赖
     @JsonProperty("dependencies")
     @JsonDeserialize(using = Dependencie.ListDeserializer::class)
-    var dependencies1: List<Dependencie>? = emptyList(),
+    private   var dependencies1: List<Dependencie>? = emptyList(),
     @JsonProperty("dev-dependencies")
     @JsonDeserialize(using = Require.ListDeserializer::class)
-    var devDependencies1: List<Dependencie>? = emptyList(),
+    private   var devDependencies1: List<Dependencie>? = emptyList(),
 
 //     依赖模块信息配置项，非必须
     @JsonProperty("requires")
@@ -88,15 +88,15 @@ data class CjpmProjectInfo(
 
 //    传给链接器的编译选项，可用于透传安全编译命令，如下所示。注意，这里配置的命令在编译时只会自动透传给动态库和可执行文件对应的包。
     @JsonProperty("link_option")
-    private val link_option1: String? = null,
+        private val link_option1: String? = null,
     @JsonProperty("link-option")
-    private val link_option2: String? = null,
+        private val link_option2: String? = null,
 
 //    按照条件选项透传给 cjc 的命令
     @JsonProperty("condition_option")
-    val condition_option1: Map<String, String>? = mapOf(),
+    private   val condition_option1: Map<String, String>? = mapOf(),
     @JsonProperty("condition-option")
-    val condition_option2: Map<String, String>? = mapOf(),
+    private val condition_option2: Map<String, String>? = mapOf(),
 
 //    单包配置选项，非必须
     @JsonProperty("package_configuration")
@@ -142,7 +142,7 @@ data class CjpmProjectInfo(
     var packageConfiguration: List<PackageConfiguration> = emptyList()
     val outputType: OutPutType
     var crossCompileConfiguration: Map<String, String> = mapOf()
-    var dependencies: List<Dependencie> = emptyList()
+    var dependencies: MutableList<Dependencie> = mutableListOf()
     var sourceDir: String
     var linkOption: String?
     var foreignRequires: List<ForeignRequires> = emptyList()
@@ -209,10 +209,10 @@ data class CjpmProjectInfo(
         }
 
         if (dependencies1 != null) {
-            dependencies += dependencies1!!
+            dependencies.addAll(dependencies1!!)
         }
         if (requires != null) {
-            dependencies += requires
+            dependencies .addAll(requires)
         }
         //  dependencies += requires
         // devDependencies = devDependencies?.plus(devRequires

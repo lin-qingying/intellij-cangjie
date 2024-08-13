@@ -287,7 +287,7 @@ val cangjie_plugin_project = project(":plugin") {
         pluginName.set("intellij-cangjie")
         plugins.set(
             listOf(
-                psiViewerPlugin,
+//                psiViewerPlugin,
                 terminalPlugin, tomlPlugin,
 //                "com.intellij.cidr.base", "com.intellij.clion"
 //"com.intellij.java"
@@ -654,6 +654,9 @@ project(":dap-debugger") {
 
 fun File.isPluginJar(): Boolean {
     if ("buildPlugin" in gradle.startParameter.taskNames) {
+
+
+
         if (pluginDescriptors.contains(name)) {
             return true
         }

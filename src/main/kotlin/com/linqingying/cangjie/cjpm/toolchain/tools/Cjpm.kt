@@ -339,7 +339,7 @@ class Cjpm(
                 parameters,
 //                emulateTerminal,
 //                true,
-                if (parameters.first() == "run") true else emulateTerminal,
+              if (parameters.first() == "run") true else emulateTerminal,
 
                 if (isFeatureEnabled(CjExperiments.BUILD_TOOL_WINDOW)) withSudo else false,
                 http = http

@@ -18,11 +18,13 @@ object CangJieRunConfigurationExtensionManager :
         console: ConsoleView,
         executor: Executor
     ): ConsoleView {
-        var result = console
-        processEnabledExtensions(configuration, runnerSettings) {
-            result = it.decorate(result, configuration, executor)
-        }
-        return result
+//        TODO 插件市场兼容性验证 Internal
+//        var result = console
+//        processEnabledExtensions(configuration, runnerSettings) {
+//            result = it.decorate(result, configuration, executor)
+//        }
+//        return result
+        return console
     }
 
 }

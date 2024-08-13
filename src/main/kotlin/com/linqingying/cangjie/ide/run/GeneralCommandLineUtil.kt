@@ -20,11 +20,22 @@ import com.pty4j.PtyProcess
 import java.nio.charset.Charset
 
 
-
-
 @Throws(ExecutionException::class)
 fun GeneralCommandLine.createProcessHandler(): OSProcessHandler {
-    return KillableColoredProcessHandler.Silent(this)
+    return KillableColoredProcessHandler.Silent(this).apply {
+        addProcessListener(
+            object : ProcessListener {
+                override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
+
+//                    val _text = event.text.toByteArray(charset("ISO-8859-1"))
+//                    val correctString = String(_text, charset("UTF-8")) // 转换为 UTF-8
+
+                    super.onTextAvailable(event, outputType)
+                }
+            }
+        )
+    }
+//    return CjProcessHandler(this)
 }
 
 

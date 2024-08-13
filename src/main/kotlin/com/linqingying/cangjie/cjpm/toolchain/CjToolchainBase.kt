@@ -1,9 +1,5 @@
 package com.linqingying.cangjie.cjpm.toolchain
 
-import com.linqingying.cangjie.cjpm.project.toPath
-import com.linqingying.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor
-import com.linqingying.cangjie.cjpm.toolchain.tools.*
-import com.linqingying.cangjie.cjpm.toolchain.wsl.getHomePathCandidates
 import com.intellij.execution.configuration.EnvironmentVariablesData
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.PtyCommandLine
@@ -14,6 +10,10 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.systemIndependentPath
 import com.intellij.util.net.HttpConfigurable
 import com.intellij.util.text.SemVer
+import com.linqingying.cangjie.cjpm.project.toPath
+import com.linqingying.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor
+import com.linqingying.cangjie.cjpm.toolchain.tools.*
+import com.linqingying.cangjie.cjpm.toolchain.wsl.getHomePathCandidates
 import com.linqingying.utils.Config
 import java.io.File
 import java.net.URI
@@ -48,7 +48,7 @@ fun CjToolchainBase.cjfmt(): CjFmt {
     return this.cjfmt!!
 }
 
-abstract class CjToolchainBase(  var location: Path = "".toPath()) {
+abstract class CjToolchainBase(var location: Path = "".toPath()) {
 
 
     val binPath: Path
@@ -502,9 +502,16 @@ abstract class CjToolchainBase(  var location: Path = "".toPath()) {
         env.configureCommandLine(commandLine, true)
 
         if (emulateTerminal) {
-            commandLine = PtyCommandLine(commandLine)
+            commandLine.exePath = "C:\\Windows\\System32\\chcp.com"
+            commandLine.parametersList.clearAll()
+            commandLine = PtyCommandLine(commandLine).apply {
+                // 设置环境变量以确保使用 UTF-8 编码
+                commandLine.environment["LANG"] = "en_US.UTF-8"
+                commandLine.environment["LC_ALL"] = "en_US.UTF-8"
+            }
                 .withInitialColumns(PtyCommandLine.MAX_COLUMNS)
                 .withConsoleMode(true)
+                .withCharset(Charsets.UTF_8)
         }
         if (patchToRemote) {
             commandLine = patchCommandLine(commandLine)

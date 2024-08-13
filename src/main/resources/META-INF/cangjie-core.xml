@@ -13,6 +13,7 @@
         <!-- 编辑器执行配置 -->
         <runLineMarkerContributor language="CangJie"
                                   implementationClass="com.linqingying.cangjie.ide.run.CjRunLineMarkersProvider"/>
+<!--        <lang.foldingBuilder language="CangJie" implementationClass="com.linqingying.cangjie.ide.editor.folding.CangJieFoldingBuilder"/>-->
 
         <!--        文件索引-->
         <!--        <fileBasedIndex implementation=""></fileBasedIndex>-->
