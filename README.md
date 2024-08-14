@@ -1,6 +1,6 @@
 # Cangjie language plugin for intellij platform
 ## 适用于intellij平台的仓颉语言插件
-
+ **插件市场地址:** [输入链接说明](https://plugins.jetbrains.com/plugin/24984-cangjie)
 ### 安装和使用
 
 ```
