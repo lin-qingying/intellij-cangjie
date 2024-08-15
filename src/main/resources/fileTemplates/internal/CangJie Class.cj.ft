@@ -1,4 +1,4 @@
-package #if (${PACKAGE_NAME} && ${PACKAGE_NAME} != "") ${PROJECT_NAME}.${PACKAGE_NAME} #else ${PROJECT_NAME}
+package#if (${PACKAGE_NAME} && ${PACKAGE_NAME} != "") ${PROJECT_NAME}.${PACKAGE_NAME} #else ${PROJECT_NAME}
 #end
 #parse("File Header.java")
 class ${NAME} {
