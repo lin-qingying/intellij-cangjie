@@ -11,7 +11,7 @@ import com.intellij.psi.PsiFile
 class CangJieStringTemplateBackspaceHandler : BackspaceHandlerDelegate()  {
 
     override fun beforeCharDeleted(c: Char, file: PsiFile, editor: Editor) {
-        if (c != '{' || file.fileType != CangJieFileType || !CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET) return
+        if (c != '{' || file.fileType != CangJieFileType.INSTANCE || !CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET) return
 
         val offset = editor.caretModel.offset
 

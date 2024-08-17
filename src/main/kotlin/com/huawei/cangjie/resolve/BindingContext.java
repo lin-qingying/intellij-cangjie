@@ -87,7 +87,7 @@ public interface BindingContext {
 
     WritableSlice<CjReferenceExpression, ReceiverParameterDescriptor> THIS_REFERENCE_TARGET = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjElement, Computation> EXPRESSION_EFFECTS = Slices.createSimpleSlice();
-    WritableSlice<VariableDescriptor, DataFlowValue> BOUND_INITIALIZER_VALUE = Slices.createSimpleSlice();
+    WritableSlice<VariableDescriptorBase, DataFlowValue> BOUND_INITIALIZER_VALUE = Slices.createSimpleSlice();
 
     WritableSlice<CjSuperExpression, CangJieType> THIS_TYPE_FOR_SUPER_EXPRESSION = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<Call, PartialCallContainer> ONLY_RESOLVED_CALL = new BasicWritableSlice<>(DO_NOTHING);
@@ -113,14 +113,15 @@ public interface BindingContext {
     WritableSlice<CjExpression, Collection<? extends DeclarationDescriptor>> AMBIGUOUS_REFERENCE_TARGET =
             new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<Call, ResolvedCall<?>> RESOLVED_CALL = new BasicWritableSlice<>(DO_NOTHING);
-    WritableSlice<CjExpression, Ref<VariableDescriptor>> NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER = Slices.createSimpleSlice();
+    WritableSlice<CjExpression, Ref<VariableDescriptorBase>> NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER = Slices.createSimpleSlice();
     WritableSlice<CjReferenceExpression, PsiElement> LABEL_TARGET = Slices.createSimpleSlice();
     WritableSlice<CjReferenceExpression, Collection<? extends PsiElement>> AMBIGUOUS_LABEL_TARGET = Slices.createSimpleSlice();
     WritableSlice<PsiElement, ClassDescriptor> CLASS = Slices.createSimpleSlice();
     WritableSlice<CjExpression, CangJieTypeInfo> EXPRESSION_TYPE_INFO = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjTypeParameter, TypeParameterDescriptor> TYPE_PARAMETER = Slices.createSimpleSlice();
-    WritableSlice<PsiElement, VariableDescriptor> VARIABLE = Slices.createSimpleSlice();
-    WritableSlice<CjParameter, VariableDescriptor> VALUE_PARAMETER = Slices.createSimpleSlice();
+    WritableSlice<PsiElement, VariableDescriptorBase> VARIABLE = Slices.createSimpleSlice();
+
+    WritableSlice<CjParameter, VariableDescriptorBase> VALUE_PARAMETER = Slices.createSimpleSlice();
     WritableSlice<PsiElement, TypeAliasDescriptor> TYPE_ALIAS = Slices.createSimpleSlice();
     WritableSlice[] DECLARATIONS_TO_DESCRIPTORS = new WritableSlice[]{
             CLASS

@@ -5,6 +5,7 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -43,13 +44,41 @@ public final class FqNameUnsafe {
         return qualifiedName != null && qualifiedName.indexOf('/') < 0 && qualifiedName.indexOf('*') < 0;
     }
 
+    @NotNull
+    public static FqNameUnsafe topLevel(@NotNull Name shortName) {
+        return new FqNameUnsafe(shortName.asString(), FqName.ROOT.toUnsafe(), shortName);
+    }
+
+    /**
+     * 返回 shortName 的集合，按指定顺序排列。
+     *
+     * @param ascending 如果为 true，则返回正序，否则返回倒序。
+     * @return shortName 的集合。
+     */
+    @NotNull
+    public List<Name> getShortNames(boolean ascending) {
+        List<Name> shortNames = new ArrayList<>();
+
+        // 获取路径段
+        List<Name> segments = pathSegments();
+        for (Name segment : segments) {
+            shortNames.add(segment);
+        }
+
+        // 根据 ascending 参数决定排序顺序
+        if (!ascending) {
+            Collections.reverse(shortNames);
+        }
+
+        return shortNames;
+    }
+
     private void compute() {
         int lastDot = fqName.lastIndexOf('.');
         if (lastDot >= 0) {
             shortName = Name.guessByFirstCharacter(fqName.substring(lastDot + 1));
             parent = new FqNameUnsafe(fqName.substring(0, lastDot));
-        }
-        else {
+        } else {
             shortName = Name.guessByFirstCharacter(fqName);
             parent = FqName.ROOT.toUnsafe();
         }
@@ -98,11 +127,22 @@ public final class FqNameUnsafe {
         String childFqName;
         if (isRoot()) {
             childFqName = name.asString();
-        }
-        else {
+        } else {
             childFqName = fqName + "." + name.asString();
         }
         return new FqNameUnsafe(childFqName, this, name);
+    }
+
+    @NotNull
+    public FqNameUnsafe child(@NotNull FqName fqname) {
+
+        FqNameUnsafe _this = this;
+        for (Name name : fqname.pathSegments()) {
+            _this = _this.child(name);
+        }
+        return _this;
+
+
     }
 
     @NotNull
@@ -124,8 +164,7 @@ public final class FqNameUnsafe {
     public Name shortNameOrSpecial() {
         if (isRoot()) {
             return ROOT_NAME;
-        }
-        else {
+        } else {
             return shortName();
         }
     }
@@ -153,11 +192,6 @@ public final class FqNameUnsafe {
 
         return (thisLength == otherLength || fqName.charAt(otherLength) == '.') &&
                 fqName.regionMatches(0, other.fqName, 0, otherLength);
-    }
-
-    @NotNull
-    public static FqNameUnsafe topLevel(@NotNull Name shortName) {
-        return new FqNameUnsafe(shortName.asString(), FqName.ROOT.toUnsafe(), shortName);
     }
 
     @Override

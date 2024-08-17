@@ -236,6 +236,7 @@ abstract class DescriptorRenderer {
 
             is ClassDescriptor ->
                 when (classifier.kind) {
+                    STRUCT -> "struct"
                     CLASS -> "class"
                     INTERFACE -> "interface"
                     ENUM -> "enum"
@@ -1336,7 +1337,7 @@ internal class DescriptorRendererImpl(
     }
 
     private fun renderValVarPrefix(
-        variable: VariableDescriptor,
+        variable: VariableDescriptorBase,
         builder: StringBuilder,
         isInPrimaryConstructor: Boolean = false
     ) {
@@ -1346,7 +1347,7 @@ internal class DescriptorRendererImpl(
     }
 
     private fun renderVariable(
-        variable: VariableDescriptor,
+        variable: VariableDescriptorBase,
         includeName: Boolean,
         builder: StringBuilder,
         topLevel: Boolean,
@@ -1517,17 +1518,17 @@ internal class DescriptorRendererImpl(
 
     /* STUPID DISPATCH-ONLY VISITOR */
     private inner class RenderDeclarationDescriptorVisitor : DeclarationDescriptorVisitor<Unit, StringBuilder> {
-        override fun visitValueParameterDescriptor(descriptor: ValueParameterDescriptor, builder: StringBuilder) {
-            renderValueParameter(descriptor, true, builder, true)
+        override fun visitValueParameterDescriptor(descriptor: ValueParameterDescriptor, builder: StringBuilder?) {
+            builder?.let { renderValueParameter(descriptor, true, it, true) }
         }
 
         //
-        override fun visitVariableDescriptor(descriptor: VariableDescriptor, builder: StringBuilder) {
-            renderVariable(descriptor, true, builder, true)
+        override fun visitVariableDescriptor(descriptor: VariableDescriptor, builder: StringBuilder?) {
+            builder?.let { renderVariable(descriptor, true, it, true) }
         }
 
         //
-        override fun visitPropertyDescriptor(descriptor: PropertyDescriptor, builder: StringBuilder) {
+        override fun visitPropertyDescriptor(descriptor: PropertyDescriptor, builder: StringBuilder?) {
 //            renderProperty(descriptor, builder)
         }
 //
@@ -1560,12 +1561,12 @@ internal class DescriptorRendererImpl(
 //            }
 //        }
 
-        override fun visitFunctionDescriptor(descriptor: FunctionDescriptor, builder: StringBuilder) {
-            renderFunction(descriptor, builder)
+        override fun visitFunctionDescriptor(descriptor: FunctionDescriptor, builder: StringBuilder?) {
+            builder?.let { renderFunction(descriptor, it) }
         }
 
-        override fun visitReceiverParameterDescriptor(descriptor: ReceiverParameterDescriptor, builder: StringBuilder) {
-            builder.append(descriptor.name) // renders <this>
+        override fun visitReceiverParameterDescriptor(descriptor: ReceiverParameterDescriptor, builder: StringBuilder?) {
+            builder?.append(descriptor.name) // renders <this>
         }
 
 
@@ -1573,27 +1574,32 @@ internal class DescriptorRendererImpl(
 //            renderConstructor(constructorDescriptor, builder)
 //        }
 //
-        override fun visitTypeParameterDescriptor(descriptor: TypeParameterDescriptor, builder: StringBuilder) {
-            renderTypeParameter(descriptor, builder, true)
+        override fun visitTypeParameterDescriptor(descriptor: TypeParameterDescriptor, builder: StringBuilder?) {
+            builder?.let { renderTypeParameter(descriptor, it, true) }
         }
 
-        override fun visitPackageFragmentDescriptor(descriptor: PackageFragmentDescriptor, builder: StringBuilder) {
-            renderPackageFragment(descriptor, builder)
-        }
-
-
-        override fun visitPackageViewDescriptor(descriptor: PackageViewDescriptor, data: StringBuilder) {
-            renderPackageView(descriptor, data)
+        override fun visitPackageFragmentDescriptor(descriptor: PackageFragmentDescriptor, builder: StringBuilder?) {
+            builder?.let { renderPackageFragment(descriptor, it) }
         }
 
 
-        override fun visitModuleDeclaration(descriptor: ModuleDescriptor, builder: StringBuilder) {
-            renderName(descriptor, builder, true)
+        override fun visitPackageViewDescriptor(descriptor: PackageViewDescriptor, builder: StringBuilder?) {
+            builder?.let { renderPackageView(descriptor, it) }
         }
 
 
-        override fun visitClassDescriptor(descriptor: ClassDescriptor, builder: StringBuilder) {
-            renderClass(descriptor, builder)
+        override fun visitModuleDeclaration(descriptor: ModuleDescriptor, builder: StringBuilder?) {
+            builder?.let { renderName(descriptor, it, true) }
+        }
+
+
+        override fun visitClassDescriptor(descriptor: ClassDescriptor, builder: StringBuilder?) {
+            builder?.let { renderClass(descriptor, it) }
+        }
+
+        override fun visitTypeAliasDescriptor(descriptor: TypeAliasDescriptor, builder: StringBuilder?) {
+            builder?.let { renderTypeAlias(descriptor, it) }
+
         }
 //
 //        override fun visitTypeAliasDescriptor(descriptor: TypeAliasDescriptor, builder: StringBuilder) {

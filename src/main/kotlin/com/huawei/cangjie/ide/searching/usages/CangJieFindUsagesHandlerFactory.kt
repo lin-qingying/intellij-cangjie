@@ -22,7 +22,7 @@ class CangJieFindUsagesHandlerFactory(project: Project) : FindUsagesHandlerFacto
     val defaultOptions = FindUsagesOptions(project)
 
     override fun canFindUsages(element: PsiElement): Boolean =
-        element is CjClassOrStruct ||
+        element is CjTypeStatement ||
                 element is CjNamedFunction ||
                 element is CjProperty ||
                 element is CjParameter ||
@@ -38,7 +38,7 @@ class CangJieFindUsagesHandlerFactory(project: Project) : FindUsagesHandlerFacto
             is CjImportAlias -> {
                 return when (val resolvedElement =
                     element.importDirective?.importedReference?.getQualifiedElementSelector()?.mainReference?.resolve()) {
-                    is CjClassOrStruct ->
+                    is CjTypeStatement ->
                         if (!forHighlightUsages) {
                             createFindUsagesHandler(resolvedElement, forHighlightUsages = false)
                         } else NULL_HANDLER
@@ -50,7 +50,7 @@ class CangJieFindUsagesHandlerFactory(project: Project) : FindUsagesHandlerFacto
                 }
             }
 
-//            is CjClassOrStruct ->
+//            is CjTypeStatement ->
 //                return CangJieFindClassUsagesHandler(element, this)
 //
 //            is CjParameter -> return if (!forHighlightUsages) handlerForMultiple(element, listOf(element))

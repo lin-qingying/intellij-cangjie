@@ -6,44 +6,29 @@ import com.huawei.cangjie.descriptors.impl.ClassDescriptorImpl
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.LockBasedStorageManager
-import com.huawei.cangjie.types.ErrorUtils
-import com.huawei.cangjie.types.TypeConstructor
-import com.huawei.cangjie.types.TypeSubstitution
+import com.huawei.cangjie.types.*
+import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 
 class ErrorClassDescriptor(name: Name) : ClassDescriptorImpl(
     ErrorUtils.errorModule, name, Modality.OPEN, ClassKind.CLASS, emptyList(), SourceElement.NO_SOURCE, false, LockBasedStorageManager.NO_LOCKS
 
 ) {
-    override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope {
-        TODO("Not yet implemented")
-    }
+    override fun getMemberScope(typeArguments: List<TypeProjection>, cangjieTypeRefiner: CangJieTypeRefiner): MemberScope =
+        ErrorUtils.createErrorScope(ErrorScopeKind.SCOPE_FOR_ERROR_CLASS, name.toString(), typeArguments.toString())
+
+    override fun getMemberScope(typeSubstitution: TypeSubstitution, cangjieTypeRefiner: CangJieTypeRefiner): MemberScope =
+        ErrorUtils.createErrorScope(ErrorScopeKind.SCOPE_FOR_ERROR_CLASS, name.toString(), typeSubstitution.toString())
 
 
-    override fun getStaticScope(): MemberScope {
-        TODO("Not yet implemented")
-    }
 
-    override fun getConstructors(): MutableCollection<ClassConstructorDescriptor> {
-        TODO("Not yet implemented")
-    }
 
- 
-    override fun getKind(): ClassKind {
-        TODO("Not yet implemented")
-    }
 
-    override fun getTypeConstructor(): TypeConstructor {
-        TODO("Not yet implemented")
-    }
 
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R {
-        TODO("Not yet implemented")
-    }
 
-    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
-        TODO("Not yet implemented")
-    }
 
-    override val annotations: Annotations
-        get() = TODO("Not yet implemented")
+
+
+    override fun substitute(substitutor: TypeSubstitutor): ClassDescriptor = this
+    override fun toString(): String = name.asString()
+
 }

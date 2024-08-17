@@ -81,7 +81,7 @@ class CangJieIdeStubIndexService : StubIndexService() {
         processNames(sink, stub.name, stub.getFqName()/*, stub.isTopLevel()*/)
 
 //        if (stub.isInterface()) {
-//            sink.occurrence<CjClassOrStruct, String>(
+//            sink.occurrence<CjTypeStatement, String>(
 //                CangJieClassShortNameIndex.indexKey,
 //                JvmAbi.DEFAULT_IMPLS_CLASS_NAME
 //            )
@@ -96,7 +96,7 @@ class CangJieIdeStubIndexService : StubIndexService() {
         processNames(sink, stub.name, stub.getFqName()/*, stub.isTopLevel()*/)
 
 //        if (stub.isInterface()) {
-//            sink.occurrence<CjClassOrStruct, String>(
+//            sink.occurrence<CjTypeStatement, String>(
 //                CangJieClassShortNameIndex.indexKey,
 //                JvmAbi.DEFAULT_IMPLS_CLASS_NAME
 //            )
@@ -133,7 +133,7 @@ class CangJieIdeStubIndexService : StubIndexService() {
         }
 
 
-        private fun indexSuperNames(stub: CangJieClassOrStructStub<out CjClassOrStruct>, sink: IndexSink) {
+        private fun indexSuperNames(stub: CangJieTypeStatementStub<out CjTypeStatement>, sink: IndexSink) {
             for (superName in stub.getSuperNames()) {
                 sink.occurrence(CangJieSuperClassIndex.indexKey, superName)
             }

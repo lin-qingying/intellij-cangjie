@@ -58,7 +58,7 @@ abstract class TransformingIterator<T> : Iterator<T> {
         hasNext()
         val v1 = next
         next = null
-        @Suppress("KotlinConstantConditions")
+
         return v1 ?: throw NoSuchElementException()
     }
 

@@ -55,6 +55,12 @@ public class CjVariable extends CjTypeParameterListOwnerStub<CangJieVariableStub
     }
 
     @Override
+    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
+        return visitor.visitVariable(this, data);
+    }
+
+
+    @Override
     public @Nullable CjTypeReference getReceiverTypeReference() {
         return null;
     }
@@ -92,7 +98,7 @@ public class CjVariable extends CjTypeParameterListOwnerStub<CangJieVariableStub
 
     public boolean isMember() {
         PsiElement parent = getParent();
-        return parent instanceof CjClassOrStruct || parent instanceof CjClassBody  ;
+        return parent instanceof CjTypeStatement || parent instanceof CjClassBody  ;
 
     }
 

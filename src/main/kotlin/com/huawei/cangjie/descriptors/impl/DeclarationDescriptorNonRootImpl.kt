@@ -6,19 +6,20 @@ import com.huawei.cangjie.descriptors.DeclarationDescriptorWithSource
 import com.huawei.cangjie.descriptors.SourceElement
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.name.Name
-
-abstract class DeclarationDescriptorNonRootImpl (
-    override val  containingDeclaration: DeclarationDescriptor,
-    annotations: Annotations,
-    name: Name,
-
-  private  val source: SourceElement
-): DeclarationDescriptorImpl(annotations, name), DeclarationDescriptorNonRoot {
-
-    override val original: DeclarationDescriptorWithSource
-        get() =super.original as DeclarationDescriptorWithSource
-    override fun getSource():  SourceElement {
-        return source
-    }
-
-}
+//
+//abstract class DeclarationDescriptorNonRootImpl (
+//    override val  containingDeclaration: DeclarationDescriptor,
+//    annotations: Annotations,
+//    name: Name,
+//
+//  private  val source: SourceElement
+//): DeclarationDescriptorImpl(annotations, name), DeclarationDescriptorNonRoot {
+//
+//    override val original: DeclarationDescriptorWithSource
+//        get() =super.original as DeclarationDescriptorWithSource
+//    @JvmOverloads
+//    override fun getSource():  SourceElement {
+//        return source
+//    }
+//
+//}

@@ -15,7 +15,7 @@ class CjPrimaryConstructor : CjConstructor<CjPrimaryConstructor> {
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?) = visitor.visitPrimaryConstructor(this, data)
 
-    override fun getContainingClassOrStruct() = parent as CjClassOrStruct
+    override fun getContainingClassOrStruct() = parent as CjTypeStatement
 
     private fun getOrCreateConstructorKeyword(): PsiElement {
         return getInitKeyword() ?: addBefore(CjPsiFactory(project).createConstructorKeyword(), valueParameterList!!)

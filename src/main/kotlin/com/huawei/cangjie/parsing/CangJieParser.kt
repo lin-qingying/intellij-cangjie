@@ -77,7 +77,7 @@ class CangJieParser(project: Project) : PsiParser {
                 )
 
             val extension = FileUtilRt.getExtension(psiFile.name)
-            if (extension.isEmpty() || extension == CangJieFileType.EXTENSION || psiFile is CjFile && psiFile.isCompiled) {
+            if (extension.isEmpty() || extension == CangJieFileType.INSTANCE.EXTENSION || psiFile is CjFile && psiFile.isCompiled) {
 
                 cjParsing.setDeclarationsFile(false)
                 cjParsing.parseFile()
@@ -89,7 +89,7 @@ class CangJieParser(project: Project) : PsiParser {
                 cjParsing.parseFile()
 
             }
-            /*if (psiFile.viewProvider is CangJieDeclarationsFileViewProvider) {
+            /*if (psiFile.viewProvider is CangJieFileViewProvider) {
                 cjParsing.parseDeclarationsFile()
 
             }*/ else {

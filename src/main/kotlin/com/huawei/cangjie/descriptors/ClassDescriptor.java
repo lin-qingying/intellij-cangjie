@@ -26,6 +26,9 @@ public interface ClassDescriptor extends ClassifierDescriptorWithTypeParameters,
     MemberScope getMemberScope(@NotNull List<? extends TypeProjection> typeArguments);
     @NotNull
     ReceiverParameterDescriptor getThisAsReceiverParameter();
+    @NotNull
+    @ReadOnly
+    List<ReceiverParameterDescriptor> getContextReceivers();
 
     @NotNull
     MemberScope getMemberScope(@NotNull TypeSubstitution typeSubstitution);

@@ -1,15 +1,13 @@
 package com.huawei.cangjie.resolve;
 
 import com.google.common.collect.Maps;
-import com.huawei.cangjie.descriptors.ClassDescriptorWithResolutionScopes;
-import com.huawei.cangjie.descriptors.PropertyDescriptor;
-import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor;
-import com.huawei.cangjie.descriptors.TypeAliasDescriptor;
+import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.lazy.DeclarationScopeProvider;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.types.expressions.ExpressionTypingContext;
+import kotlin.collections.CollectionsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,16 +17,18 @@ public class TopDownAnalysisContext implements BodiesResolveContext {
     private final Set<CjFile> files = new LinkedHashSet<>();
 
     private final Map<CjNamedFunction, SimpleFunctionDescriptor> functions = Maps.newLinkedHashMap();
+    private final Map<CjVariable, VariableDescriptor> variables = Maps.newLinkedHashMap();
 
     private final Map<CjProperty, PropertyDescriptor> properties = Maps.newLinkedHashMap();
     private final Map<CjParameter, PropertyDescriptor> primaryConstructorParameterProperties = new HashMap<>();
     private final Map<CjTypeAlias, TypeAliasDescriptor> typeAliases = Maps.newLinkedHashMap();
     private final DataFlowInfo outerDataFlowInfo;
-    private final Map<CjClassOrStruct, ClassDescriptorWithResolutionScopes> classes = Maps.newLinkedHashMap();
+    private final Map<CjTypeStatement, ClassDescriptorWithResolutionScopes> classes = Maps.newLinkedHashMap();
 
     private final TopDownAnalysisMode topDownAnalysisMode;
     private final DeclarationScopeProvider declarationScopeProvider;
     private final ExpressionTypingContext localContext;
+    private Map<CjCallableDeclaration, CallableMemberDescriptor> members = null;
 
     public TopDownAnalysisContext(
             @NotNull TopDownAnalysisMode topDownAnalysisMode,
@@ -40,15 +40,7 @@ public class TopDownAnalysisContext implements BodiesResolveContext {
         this.declarationScopeProvider = declarationScopeProvider;
         this.localContext = null;
     }
-    public void addFile(@NotNull CjFile file) {
-        files.add(file);
-    }
 
-    @Nullable
-    @Override
-    public LexicalScope getDeclaringScope(@NotNull CjDeclaration declaration) {
-        return declarationScopeProvider.getResolutionScopeForDeclaration(declaration);
-    }
     public TopDownAnalysisContext(
             @NotNull TopDownAnalysisMode topDownAnalysisMode,
             @NotNull DataFlowInfo outerDataFlowInfo,
@@ -61,12 +53,37 @@ public class TopDownAnalysisContext implements BodiesResolveContext {
         this.localContext = localContext;
     }
 
+    public void addFile(@NotNull CjFile file) {
+        files.add(file);
+    }
+    @NotNull
+    public Map<CjCallableDeclaration, CallableMemberDescriptor> getMembers() {
+        if (members == null) {
+            members = Maps.newLinkedHashMap();
+            members.putAll(functions);
+            members.putAll(properties);
+            members.putAll(primaryConstructorParameterProperties);
+        }
+        return members;
+    }
 
     @Nullable
+    @Override
+    public LexicalScope getDeclaringScope(@NotNull CjDeclaration declaration) {
+        return declarationScopeProvider.getResolutionScopeForDeclaration(declaration);
+    }
+
+@NotNull
     @Override
     public Collection<CjFile> getFiles() {
         return files;
 
+    }
+
+
+    @Override
+    public @NotNull Map<CjVariable, VariableDescriptor> getVariables() {
+        return variables;
     }
 
     @NotNull
@@ -83,6 +100,7 @@ public class TopDownAnalysisContext implements BodiesResolveContext {
         return topDownAnalysisMode;
 
     }
+
     @Override
     @Nullable
     public ExpressionTypingContext getLocalContext() {
@@ -98,7 +116,7 @@ public class TopDownAnalysisContext implements BodiesResolveContext {
 
     @NotNull
     @Override
-    public Map<CjClassOrStruct, ClassDescriptorWithResolutionScopes> getDeclaredClasses() {
+    public Map<CjTypeStatement, ClassDescriptorWithResolutionScopes> getDeclaredClasses() {
         return classes;
 
     }
@@ -109,7 +127,11 @@ public class TopDownAnalysisContext implements BodiesResolveContext {
         return properties;
 
     }
-
+    @NotNull
+    public Collection<ClassDescriptorWithResolutionScopes> getAllClasses() {
+        return getDeclaredClasses().values();
+//        return CollectionsKt.plus(getDeclaredClasses().values(), getScripts().values());
+    }
     @NotNull
     @Override
     public Map<CjTypeAlias, TypeAliasDescriptor> getTypeAliases() {

@@ -1,6 +1,7 @@
 package com.huawei.cangjie.diagnostics.rendering;
 
 import com.huawei.cangjie.descriptors.DiagnosticFactory;
+import com.huawei.cangjie.diagnostics.DiagnosticFactory0;
 import com.huawei.cangjie.diagnostics.DiagnosticFactory1;
 import com.huawei.cangjie.diagnostics.DiagnosticFactory2;
 import com.intellij.psi.PsiElement;
@@ -35,6 +36,10 @@ public class DiagnosticFactoryToRendererMap {
         if (immutable) {
             throw new IllegalStateException("factory to renderer map is already immutable");
         }
+    }
+    public <E extends PsiElement> void put(@NotNull DiagnosticFactory0<E> factory, @NotNull String message) {
+        checkMutability();
+        map.put(factory, new SimpleDiagnosticRenderer(message));
     }
     public <E extends PsiElement, A, B> void put(@NotNull DiagnosticFactory2<E, A, B> factory,
                                                  @NotNull String message,

@@ -1,15 +1,22 @@
 package com.huawei.cangjie.descriptors
 
 import com.huawei.cangjie.diagnostics.PositioningStrategy
+import com.huawei.cangjie.diagnostics.hasSyntaxErrors
 import com.huawei.cangjie.diagnostics.markElement
 import com.huawei.cangjie.diagnostics.markRange
+import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getChildOfType
+import com.huawei.cangjie.psi.psiUtil.getElementTextWithContext
 import com.huawei.cangjie.psi.psiUtil.getStrictParentOfType
 import com.huawei.cangjie.psi.psiUtil.unwrapParenthesesLabelsAndAnnotations
+import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNameIdentifierOwner
+import com.intellij.psi.tree.IElementType
+import com.intellij.psi.tree.TokenSet
 
 object PositioningStrategies {
     open class DeclarationHeader<T : CjDeclaration> : PositioningStrategy<T>() {
@@ -93,6 +100,81 @@ object PositioningStrategies {
     }
 
     @JvmField
+    val VISIBILITY_MODIFIER: PositioningStrategy<CjModifierListOwner> = ModifierSetBasedPositioningStrategy(CjTokens.VISIBILITY_MODIFIERS)
+    @JvmField
+    val PARAMETER_DEFAULT_VALUE: PositioningStrategy<CjParameter> = object : PositioningStrategy<CjParameter>() {
+        override fun mark(element: CjParameter): List<TextRange> {
+            return markNode(element.defaultValue!!.node)
+        }
+    }
+    @JvmField
+    val LET_OR_VAR_NODE: PositioningStrategy<CjDeclaration> = object : PositioningStrategy<CjDeclaration>() {
+        override fun mark(element: CjDeclaration): List<TextRange> {
+            return when (element) {
+                is CjParameter -> markElement(element.letOrVarKeyword ?: element)
+//                is CjProperty -> markElement(element.valOrVarKeyword)
+                is CjVariable -> markElement(element.letOrVarKeyword ?: element)
+                is CjDestructuringDeclaration -> markElement(element.letOrVarKeyword ?: element)
+                else -> error("Declaration is neither a parameter nor a property: " + element.getElementTextWithContext())
+            }
+        }
+    }
+
+    @JvmField
+    val OVERRIDE_MODIFIER: PositioningStrategy<CjModifierListOwner> =
+        ModifierSetBasedPositioningStrategy(CjTokens.OVERRIDE_KEYWORD)
+
+    @JvmField
+    val DECLARATION_RETURN_TYPE: PositioningStrategy<CjDeclaration> = object : PositioningStrategy<CjDeclaration>() {
+        override fun mark(element: CjDeclaration): List<TextRange> {
+            return markElement(getElementToMark(element))
+        }
+
+        override fun isValid(element: CjDeclaration): Boolean {
+            return !hasSyntaxErrors(getElementToMark(element))
+        }
+
+        private fun getElementToMark(declaration: CjDeclaration): PsiElement {
+            val (returnTypeRef, nameIdentifierOrPlaceholder) = when (declaration) {
+                is CjCallableDeclaration -> Pair(declaration.typeReference, declaration.nameIdentifier)
+                is CjPropertyAccessor -> Pair(declaration.returnTypeReference, declaration.namePlaceholder)
+                else -> Pair(null, null)
+            }
+
+            if (returnTypeRef != null) return returnTypeRef
+            if (nameIdentifierOrPlaceholder != null) return nameIdentifierOrPlaceholder
+            return declaration
+        }
+    }
+
+    @JvmField
+    val DECLARATION_NAME: PositioningStrategy<CjNamedDeclaration> = object : DeclarationHeader<CjNamedDeclaration>() {
+        override fun mark(element: CjNamedDeclaration): List<TextRange> {
+            val nameIdentifier = element.nameIdentifier
+            if (nameIdentifier != null) {
+                if (element is CjTypeStatement) {
+                    val startElement =
+                        element.getModifierList()?.getModifier(CjTokens.ENUM_KEYWORD)
+                            ?: element.node.findChildByType(
+                                TokenSet.create(
+                                    CjTokens.CLASS_KEYWORD,
+                                    CjTokens.STRUCT_KEYWORD
+                                )
+                            )?.psi
+                            ?: element
+
+                    return markRange(startElement, nameIdentifier)
+                }
+                return markElement(nameIdentifier)
+            }
+            if (element is CjNamedFunction) {
+                return DECLARATION_SIGNATURE.mark(element)
+            }
+            return DEFAULT.mark(element)
+        }
+    }
+
+    @JvmField
     val VALUE_ARGUMENTS: PositioningStrategy<CjElement> = object : PositioningStrategy<CjElement>() {
         override fun mark(element: CjElement): List<TextRange> {
             if (element is CjBinaryExpression && element.operationToken in CjTokens.ALL_ASSIGNMENTS) {
@@ -102,7 +184,7 @@ object PositioningStrategies {
             }
             val qualifiedAccess = when (element) {
                 is CjQualifiedExpression -> element.selectorExpression ?: element
-                is CjClassOrStruct -> element.getSuperTypeList() ?: element
+                is CjTypeStatement -> element.getSuperTypeList() ?: element
                 else -> element
             }
             val argumentList = qualifiedAccess as? CjValueArgumentList
@@ -162,12 +244,14 @@ object PositioningStrategies {
                 return markElement(element.projectionToken!!)
             }
         }
+
     @JvmField
     val CALL_ELEMENT: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
         override fun mark(element: PsiElement): List<TextRange> {
             return markElement((element as? CjCallElement)?.calleeExpression ?: element)
         }
     }
+
     @JvmField
     val FOR_UNRESOLVED_REFERENCE: PositioningStrategy<CjReferenceExpression> =
         object : PositioningStrategy<CjReferenceExpression>() {
@@ -193,4 +277,42 @@ object PositioningStrategies {
             }
         }
     }
+
+
+    private open class ModifierSetBasedPositioningStrategy(private val modifierSet: TokenSet) :
+        PositioningStrategy<CjModifierListOwner>() {
+        constructor(vararg tokens: IElementType) : this(TokenSet.create(*tokens))
+
+        protected fun markModifier(element: CjModifierListOwner?): List<TextRange>? =
+            modifierSet.types.mapNotNull {
+                element?.modifierList?.getModifier(it as CjModifierKeywordToken)?.textRange
+            }.takeIf { it.isNotEmpty() }
+
+        override fun mark(element: CjModifierListOwner): List<TextRange> {
+            val result = markModifier(element)
+            if (result != null) return result
+
+            // Try to resolve situation when there's no visibility modifiers written before element
+            if (element is PsiNameIdentifierOwner) {
+                val nameIdentifier = element.nameIdentifier
+                if (nameIdentifier != null) {
+                    return markElement(nameIdentifier)
+                }
+            }
+
+            val elementToMark = when (element) {
+//                is CjObjectDeclaration -> element.getObjectKeyword()!!
+                is CjPropertyAccessor -> element.namePlaceholder
+                is CjAnonymousInitializer, is CjPrimaryConstructor -> element
+                else -> throw IllegalArgumentException(
+                    "Can't find text range for element '${element::class.java.canonicalName}' with the text '${element.text}'"
+                )
+            }
+            return markElement(elementToMark)
+        }
+    }
+
+}
+fun markNode(node: ASTNode): List<TextRange> {
+    return markElement(node.psi)
 }

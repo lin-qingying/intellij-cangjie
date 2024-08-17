@@ -70,6 +70,7 @@ class CompositePackageFragmentProvider(// can be modified from outside
         }
         return result
     }
+    override fun toString(): String = debugName
 }
 
 fun PackageFragmentProvider.packageFragments(fqName: FqName): List<PackageFragmentDescriptor> {

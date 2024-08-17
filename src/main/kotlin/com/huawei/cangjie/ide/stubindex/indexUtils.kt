@@ -8,7 +8,14 @@ import com.intellij.psi.stubs.IndexSink
 import com.intellij.psi.stubs.NamedStub
 import com.intellij.psi.stubs.StubElement
 
-
+fun indexTypeAliasExpansion(stub: CangJieTypeAliasStub, sink: IndexSink) {
+    val declaration = stub.psi
+    val typeReference = declaration.getTypeReference() ?: return
+    val typeElement = typeReference.typeElement ?: return
+    typeElement.index(declaration, typeReference) { typeName ->
+        sink.occurrence(CangJieTypeAliasByExpansionShortNameIndex.indexKey, typeName)
+    }
+}
 fun indexInternals(stub: CangJieCallableStubBase<*>, sink: IndexSink) {
     val name = stub.name ?: return
 

@@ -81,5 +81,5 @@ class MissingToolchainNotificationProvider(project: Project) : CjNotificationPro
     }
 }
 
-val VirtualFile.isCangJieFile: Boolean get() = fileType == CangJieFileType
+val VirtualFile.isCangJieFile: Boolean get() = fileType == CangJieFileType.INSTANCE
 val VirtualFile.isCjpmManifestFile: Boolean get() = name in CjpmConstants.MANIFEST_FILE

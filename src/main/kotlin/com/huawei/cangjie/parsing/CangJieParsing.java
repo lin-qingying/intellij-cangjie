@@ -18,7 +18,6 @@ import static com.huawei.cangjie.CjNodeTypes.*;
 import static com.huawei.cangjie.lexer.CjTokens.*;
 import static com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes.CONSTRUCTOR_CALLEE;
 
-
 public class CangJieParsing extends AbstractCangJieParsing {
     public static final TokenSet PARAMETER_NAME_RECOVERY_SET = TokenSet.create(COLON, EQ, COMMA, RPAR);
     private static final TokenSet GT_COMMA_COLON_SET = TokenSet.create(GT, COMMA, COLON);
@@ -196,8 +195,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
 
-
-
     /*
      * block
      *   : "{" (expressions)* "}"
@@ -291,21 +288,23 @@ public class CangJieParsing extends AbstractCangJieParsing {
         PsiBuilder.Marker importList = mark();
 
 
-        while (at(IMPORT_KEYWORD) || atSet(IMPORT_ACCESS_MODIFIER_SET) && (lookahead(1) == IMPORT_KEYWORD))  {
+        while (at(IMPORT_KEYWORD) || atSet(IMPORT_ACCESS_MODIFIER_SET) && (lookahead(1) == IMPORT_KEYWORD)) {
             parseImportDirective();
         }
         importList.done(IMPORT_LIST);
     }
 
     private boolean closeImportWithErrorIfNewline(
-            PsiBuilder.Marker importDirective, @Nullable PsiBuilder.Marker importAlias, String errorMessage
+            @Nullable PsiBuilder.Marker importDirective, @Nullable PsiBuilder.Marker importAlias, String errorMessage
     ) {
         if (myBuilder.newlineBeforeCurrentToken()) {
             if (importAlias != null) {
                 importAlias.done(IMPORT_ALIAS);
             }
             error(errorMessage);
-            importDirective.done(IMPORT_DIRECTIVE_ITEM);
+            if (importDirective != null) {
+                importDirective.done(IMPORT_DIRECTIVE);
+            }
             return true;
         }
         return false;
@@ -317,18 +316,25 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * : "import"
      * : SimpleName{"."} ("." "*" )? | ("as" SimpleName{"."} ("." "*"))? SEMI?
      */
-    private void parseImportDirectiveItem(boolean isTopLevel) {
+    private IElementType parseImportDirectiveItem(boolean isTopLevel, boolean isCreateMark) {
 
 
-        PsiBuilder.Marker importDirectiveItem = mark();
+        PsiBuilder.Marker importDirectiveItem = null;
+        if (isCreateMark) {
+            importDirectiveItem = mark();
+        }
 
 
         if (!at(IDENTIFIER)) {
 
             error("expected a package name after '.' in qualified name, found '" + myBuilder.getTokenText() + "'");
-            importDirectiveItem.done(IMPORT_DIRECTIVE_ITEM);
+
+            if(importDirectiveItem != null){
+                importDirectiveItem.done(IMPORT_DIRECTIVE);
+            }
+
             consumeIf(SEMICOLON);
-            return;
+            return IMPORT_DIRECTIVE;
         }
 
         PsiBuilder.Marker qualifiedName = mark();
@@ -336,6 +342,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         advance(); // IDENTIFIER
         reference.done(REFERENCE_EXPRESSION);
 
+        boolean isMulitImport = false;
         boolean isParseDot = false;
 
         while (at(DOT) && lookahead(1) != MUL) {
@@ -343,10 +350,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 //            同一个包多个导入项
             if (at(LBRACE) && isTopLevel) {
+                isMulitImport = true;
                 advance();
                 do {
                     expect(COMMA);
-                    parseImportDirectiveItem(false);
+                    parseImportDirectiveItem(false, true);
 
                 } while (at(COMMA));
 
@@ -354,10 +362,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
             } else {
+ 
+
                 isParseDot = true;
                 if (closeImportWithErrorIfNewline(importDirectiveItem, null, "Import must be placed on a single line")) {
                     qualifiedName.drop();
-                    return;
+                    return IMPORT_DIRECTIVE;
                 }
 
                 reference = mark();
@@ -376,48 +386,54 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
         qualifiedName.drop();
 
-        if (isTopLevel || !isParseDot) {
+//        if (isTopLevel || !isParseDot) {
 
-            if (at(DOT)) {
-                advance(); // DOT
-                assert _at(MUL);
-                advance(); // MUL
-                if (at(AS_KEYWORD)) {
-                    PsiBuilder.Marker as = mark();
-                    advance(); // AS_KEYWORD
-                    if (closeImportWithErrorIfNewline(importDirectiveItem, null, "Expecting identifier")) {
-                        as.drop();
-                        return;
-                    }
-                    consumeIf(IDENTIFIER);
-//                as.done(IMPORT_ALIAS);
-
-                    if (!match(DOT, MUL)) {
-//                    as.precede().error("The alias name should contain '.*' suffix after import-all");
-
-
-//                    TODO 如果使用了LSP psi会重复报错一次
-                        error("The alias name should contain '.*' suffix after import-all");
-                    }
-//                else {
-                    as.done(IMPORT_ALIAS);
-//                }
-
-                }
-            }
-//            else
+        if (at(DOT)) {
+            advance(); // DOT
+            assert _at(MUL);
+            advance(); // MUL
             if (at(AS_KEYWORD)) {
-                PsiBuilder.Marker alias = mark();
-                advance(); // AS_KEYWORD
-                if (closeImportWithErrorIfNewline(importDirectiveItem, alias, "Expecting identifier")) {
-                    return;
-                }
-                expect(IDENTIFIER, "Expecting identifier", SEMICOLON_SET);
-                alias.done(IMPORT_ALIAS);
+                errorAndAdvance("Aliases are not allowed for all imports");
+//                    PsiBuilder.Marker as = mark();
+//                    advance(); // AS_KEYWORD
+//                    if (closeImportWithErrorIfNewline(importDirectiveItem, null, "Expecting identifier")) {
+//                        as.drop();
+//                        return;
+//                    }
+//                    consumeIf(IDENTIFIER);
+////                as.done(IMPORT_ALIAS);
+//
+//                    if (!match(DOT, MUL)) {
+////                    as.precede().error("The alias name should contain '.*' suffix after import-all");
+//
+//
+////                    TODO 如果使用了LSP psi会重复报错一次
+//                        error("The alias name should contain '.*' suffix after import-all");
+//                    }
+////                else {
+//                    as.done(IMPORT_ALIAS);
+////                }
+//
             }
+        } else if (at(AS_KEYWORD)) {
+            PsiBuilder.Marker alias = mark();
+            advance(); // AS_KEYWORD
+            if (closeImportWithErrorIfNewline(importDirectiveItem, alias, "Expecting identifier")) {
+                return IMPORT_DIRECTIVE;
+            }
+            expect(IDENTIFIER, "Expecting identifier", SEMICOLON_SET);
+            alias.done(IMPORT_ALIAS);
         }
 
-        importDirectiveItem.done(IMPORT_DIRECTIVE_ITEM);
+        if (importDirectiveItem != null) {
+            importDirectiveItem.done(IMPORT_DIRECTIVE);
+        }
+
+        if (isMulitImport) {
+            return MULIT_IMPORT_DIRECTIVE;
+        }
+
+        return IMPORT_DIRECTIVE;
     }
 
     /*
@@ -431,6 +447,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         assert _at(IMPORT_KEYWORD) || _atSet(IMPORT_ACCESS_MODIFIER_SET);
 
+        IElementType doneType = IMPORT_DIRECTIVE;
 
         PsiBuilder.Marker importDirective = mark();
 
@@ -443,7 +460,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (!at(IMPORT_KEYWORD)) {
 
             error("Expecting 'import' keyword");
-            importDirective.done(IMPORT_DIRECTIVE);
+            importDirective.done(doneType);
             return;
         }
 
@@ -453,35 +470,36 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (closeImportWithErrorIfNewline(importDirective, null, "Expecting qualified name")) {
             return;
         }
-        do {
-            if (at(COMMA)) {
-                advance();
-            }
+//        do {
+//            if (at(COMMA)) {
+//                advance();
+//            }
 
-            if (at(LBRACE)) {
-                advance();
-                parseImportDirectiveItem(false);
+        if (at(LBRACE)) {
+            advance();
+            parseImportDirectiveItem(false, true);
 
 //                多个导入语句
 
 
-                while (at(COMMA)) {
-                    advance();
-                    parseImportDirectiveItem(false);
-                }
-
-                expect(RBRACE, "Expecting '}'");
-
-            } else {
-                parseImportDirectiveItem(true);
+            while (at(COMMA)) {
+                advance();
+                parseImportDirectiveItem(false, true);
             }
 
+            expect(RBRACE, "Expecting '}'");
+            doneType = MULIT_IMPORT_DIRECTIVE1;
 
-        } while (at(COMMA));
+        } else {
+            doneType = parseImportDirectiveItem(true, false);
+        }
+
+
+//        } while (at(COMMA));
 
 
         consumeIf(SEMICOLON);
-        importDirective.done(IMPORT_DIRECTIVE);
+        importDirective.done(doneType);
         importDirective.setCustomEdgeTokenBinders(null, TrailingCommentsBinder.INSTANCE);
 
     }
@@ -635,7 +653,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //           应该为注解，加入到修饰符中并重新解析声明
             parseTopLevelDeclaration(true);
 
-        } else*/ if (declType == null) {
+        } else*/
+        if (declType == null) {
 
             errorAndAdvance("Expecting a top level declaration"); //期待一个顶层声明语句
 //            decl.error("Expecting a top level declaration");
@@ -742,7 +761,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 }
 
 
-            } else */if (!tryParseModifier(tokenConsumer, noModifiersBefore, modifierKeywords)) {
+            } else */
+            if (!tryParseModifier(tokenConsumer, noModifiersBefore, modifierKeywords)) {
                 // modifier advanced
                 break;
             }
@@ -1111,7 +1131,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
                     };
 
 
-            case AT_Id ->   myExpressionParsing.parseMacroExpression(true);
+            case AT_Id -> myExpressionParsing.parseMacroExpression(true);
 //                    parseAnnotation(detector);
 
 
@@ -1233,7 +1253,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        return null;
 //    }
 
-      IElementType parseProperty(ModifierDetector classdetector, ModifierDetector detector) {
+    IElementType parseProperty(ModifierDetector classdetector, ModifierDetector detector) {
         return parseProperty(false, classdetector, detector);
     }
 
@@ -1498,20 +1518,22 @@ public class CangJieParsing extends AbstractCangJieParsing {
             errorAndAdvance("Unexpected symbol");
         }
     }
-boolean parseEnumEntry( ){
-   return parseEnumEntry(true);
-}
-      boolean parseEnumEntry(boolean isCreateMark) {
-          PsiBuilder.Marker entry = null;
+
+    boolean parseEnumEntry() {
+        return parseEnumEntry(true);
+    }
+
+    boolean parseEnumEntry(boolean isCreateMark) {
+        PsiBuilder.Marker entry = null;
         if (isCreateMark) {
-             entry = mark();
+            entry = mark();
 
         }
 
         if (!expect(IDENTIFIER, "Expecting enum entry name")) {
-          if(isCreateMark){
-              entry.drop();
-          }
+            if (isCreateMark) {
+                entry.drop();
+            }
             return false;
         }
 
@@ -1531,8 +1553,7 @@ boolean parseEnumEntry( ){
         }
 
 
-
-        if(isCreateMark){
+        if (isCreateMark) {
             entry.done(ENUM_ENTRY);
         }
         return true;
@@ -1542,7 +1563,7 @@ boolean parseEnumEntry( ){
      * typelist
      * : type{","}
      */
-      void parseTypeList() {
+    void parseTypeList() {
         PsiBuilder.Marker list = mark();
 
         while (true) {
@@ -1657,7 +1678,7 @@ boolean parseEnumEntry( ){
      *   : "class" SimpleName (<: delegationSpecifier{"&"}) classBody
      *   ;
      */
-      IElementType parseClass(@NotNull ModifierDetector detector) {
+    IElementType parseClass(@NotNull ModifierDetector detector) {
 
         int tokenid = getTokenId();
 
@@ -1673,7 +1694,7 @@ boolean parseEnumEntry( ){
 
         if (token == EXTEND_KEYWORD) {
 
-            if(at(LT)){
+            if (at(LT)) {
                 parseTypeParameterList(TYPE_PARAMETER_GT_RECOVERY_SET);
             }
 
@@ -1828,7 +1849,8 @@ boolean parseEnumEntry( ){
       /*  if (declType == ANNOTATION_ENTRY) {
             decl.rollbackTo();
             parseMemberDeclaration(tokenId, classdetector, true);
-        } else*/ if (declType == null) {
+        } else*/
+        if (declType == null) {
             errorWithRecovery("Expecting member declaration", TokenSet.EMPTY);
             decl.drop();
         } else {
@@ -1870,7 +1892,7 @@ boolean parseEnumEntry( ){
         return declType;
     }
 
-      void parseMainInitFunc() {
+    void parseMainInitFunc() {
         assert _at(IDENTIFIER);
         advance(); // IDENTIFIER
 
@@ -1897,7 +1919,7 @@ boolean parseEnumEntry( ){
         }
     }
 
-      void parseInitFunc() {
+    void parseInitFunc() {
         assert _at(INIT_KEYWORD);
         advance(); // INIT_KEYWORD
 
@@ -2410,7 +2432,7 @@ boolean parseEnumEntry( ){
      *   : "=" element
      *   ;
      */
-      void parseFunctionBody() {
+    void parseFunctionBody() {
         if (at(LBRACE)) {
             parseBlock();
         } else {
@@ -2433,7 +2455,7 @@ boolean parseEnumEntry( ){
 //    }
 
 
-      void parseInitFuncValueParameterList() {
+    void parseInitFuncValueParameterList() {
         parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET, true);
     }
 

@@ -1,16 +1,14 @@
 package com.huawei.cangjie.resolve.lazy;
 
-import com.huawei.cangjie.psi.CjDeclaration;
-import com.huawei.cangjie.psi.CjFile;
-import com.huawei.cangjie.psi.CjPropertyAccessor;
-import com.huawei.cangjie.psi.CjStubbedPsiUtil;
+import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfoFactory;
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.utils.PsiUtilsKt;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
-
+import com.huawei.cangjie.incremental.components.NoLookupLocation;
 public class DeclarationScopeProviderImpl implements DeclarationScopeProvider {
 
     private final LazyDeclarationResolver lazyDeclarationResolver;
@@ -44,17 +42,16 @@ public class DeclarationScopeProviderImpl implements DeclarationScopeProvider {
         }
 
 
-//        if (parentDeclaration instanceof CjClassOrStruct) {
-//            CjClassOrStruct parentClassOrStruct = (CjClassOrStruct) parentDeclaration;
-//            LazyClassDescriptor parentClassDescriptor = (LazyClassDescriptor) lazyDeclarationResolver.getClassDescriptor(parentClassOrStruct, NoLookupLocation.WHEN_GET_DECLARATION_SCOPE);
+        if (parentDeclaration instanceof CjTypeStatement parentClassOrStruct) {
+            LazyClassDescriptor parentClassDescriptor = (LazyClassDescriptor) lazyDeclarationResolver.getClassDescriptor(parentClassOrStruct, NoLookupLocation.MATCH_GET_DECLARATION_SCOPE);
 
-//            if (cjDeclaration instanceof CjAnonymousInitializer || cjDeclaration instanceof CjProperty) {
-//                return parentClassDescriptor.getScopeForInitializerResolution();
-//            }
+            if (cjDeclaration instanceof CjAnonymousInitializer || cjDeclaration instanceof CjProperty  || cjDeclaration instanceof CjVariable) {
+                return parentClassDescriptor.getScopeForInitializerResolution();
+            }
 
 
-//            return parentClassDescriptor.getScopeForMemberDeclarationResolution();
-//        }
+            return parentClassDescriptor.getScopeForMemberDeclarationResolution();
+        }
         throw new IllegalStateException("Don't call this method for local declarations: " + cjDeclaration + "\n" +
                 PsiUtilsKt.getElementTextWithContext(cjDeclaration));
     }

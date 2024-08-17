@@ -17,6 +17,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.huawei.cangjie.resolve.DescriptorUtilsKt.getBuiltIns;
+
 public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor {
     @Nullable
     private final Function1<CangJieType, Void> reportCycleError;
@@ -46,7 +48,13 @@ public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor
         super(storageManager, containingDeclaration, annotations, name, variance, reified, index, source, supertypeLoopsChecker);
         this.reportCycleError = reportCycleError;
     }
+    public void addDefaultUpperBound() {
+        checkUninitialized();
 
+        if (upperBounds.isEmpty()) {
+            doAddUpperBound(getBuiltIns(getContainingDeclaration()).getDefaultBound());
+        }
+    }
     public static TypeParameterDescriptorImpl createForFurtherModification(
             @NotNull DeclarationDescriptor containingDeclaration,
             @NotNull Annotations annotations,

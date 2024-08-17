@@ -3,10 +3,13 @@ package com.huawei.cangjie.ide.stubindex.resolve
 import com.huawei.cangjie.ide.indices.CangJiePackageIndexUtils
 import com.huawei.cangjie.ide.stubindex.*
 import com.huawei.cangjie.ide.vfilefinder.CangJiePackageSourcesMemberNamesIndex
+import com.huawei.cangjie.ide.vfilefinder.NameIsRoot
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.safeNameForLazyResolve
+import com.huawei.cangjie.resolve.lazy.data.CjClassInfoUtil
+import com.huawei.cangjie.resolve.lazy.data.CjTypeStatementInfo
 import com.huawei.cangjie.resolve.lazy.declarations.PackageMemberDeclarationProvider
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.intellij.openapi.application.ApplicationManager
@@ -14,10 +17,12 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IntellijInternalApi
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.CommonProcessors
 import com.intellij.util.indexing.FileBasedIndex
-import org.jetbrains.annotations.ApiStatus
+
+private val isShortNameFilteringEnabled: Boolean by lazy { Registry.`is`("cangjie.indices.short.names.filtering.enabled") }
 
 class StubBasedPackageMemberDeclarationProvider(
     private val fqName: FqName,
@@ -61,16 +66,44 @@ class StubBasedPackageMemberDeclarationProvider(
         return fqName.child(name.safeNameForLazyResolve()).asString()
     }
 
-    override fun getVariableDeclarations(name: Name): Collection<CjProperty> {
-        TODO("Not yet implemented")
+    override fun getVariableDeclarations(name: Name): Collection<CjVariable> = runReadAction {
+        CangJieTopLevelVariableFqnNameIndex[childName(name), project, searchScope]
+
+    }
+
+    override fun getPropertyDeclarations(name: Name): Collection<CjProperty> = runReadAction {
+//        CangJieTopLevelPropertyFqnNameIndex[childName(name), project, searchScope]
+        emptyList()
     }
 
     override fun getDestructuringDeclarationsEntries(name: Name): Collection<CjDestructuringDeclarationEntry> {
-        TODO("Not yet implemented")
+        return emptyList()
+
+    }
+
+    override fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>> {
+        val childName = childName(name)
+        if (isShortNameFilteringEnabled && !name.isSpecial) {
+            val shortNames = ShortNamesCacheService.getInstance(project).getShortNameCandidates(name.asString())
+            if (childName !in shortNames) {
+                return emptyList()
+            }
+        }
+        val cjTypeStatements = runReadAction {
+            val results = arrayListOf<CjTypeStatementInfo<*>>()
+            CangJieFullClassNameIndex.processElements(childName, project, searchScope) {
+                ProgressManager.checkCanceled()
+                results += CjClassInfoUtil.createTypeStatementInfo(it)
+                true
+            }
+            results
+        }
+        return cjTypeStatements
     }
 
     override fun getTypeAliasDeclarations(name: Name): Collection<CjTypeAlias> {
-        TODO("Not yet implemented")
+        return CangJieTopLevelTypeAliasFqNameIndex[childName(name), project, searchScope]
+
     }
 
     private val _declarationNames: Set<Name> by lazy(LazyThreadSafetyMode.PUBLICATION) {
@@ -106,11 +139,12 @@ class StubBasedPackageMemberDeclarationProvider(
     }
 
     override fun containsFile(file: CjFile): Boolean {
-        TODO("Not yet implemented")
+        return searchScope.contains(file.virtualFile ?: return false)
+
     }
 
     @OptIn(IntellijInternalApi::class)
-    
+
     fun checkClassOrStructDeclarations(name: Name) {
         val childName = childName(name)
         if (CangJieFullClassNameIndex.get(childName, project, searchScope).isEmpty()) {
@@ -136,6 +170,7 @@ class StubBasedPackageMemberDeclarationProvider(
         }
     }
 }
+
 @Suppress("NOTHING_TO_INLINE")
 inline fun isUnitTestMode(): Boolean = ApplicationManager.getApplication().isUnitTestMode
 

@@ -1,9 +1,6 @@
 package com.huawei.cangjie.types
 
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.FunctionDescriptor
-import com.huawei.cangjie.descriptors.ModuleDescriptor
-import com.huawei.cangjie.descriptors.PropertyDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.types.error.*
 import com.huawei.cangjie.types.util.isUnresolvedType
@@ -12,9 +9,13 @@ object ErrorUtils {
     private val errorProperty: PropertyDescriptor = ErrorPropertyDescriptor()
     val errorPropertyGroup: Set<PropertyDescriptor> = setOf(errorProperty)
 
+    private  val errorVariable :VariableDescriptor = ErrorVariableDescriptor()
+    val errorVariableGroup: Set<VariableDescriptor> = setOf(errorVariable)
 
     val errorModule: ModuleDescriptor = ErrorModuleDescriptor
     val errorPropertyType: CangJieType get() = createErrorType(ErrorTypeKind.ERROR_PROPERTY_TYPE)
+    val errorVariableType: CangJieType get() = createErrorType(ErrorTypeKind.ERROR_VARIABLE_TYPE)
+
 
     // Do not move it into AbstractTypeConstructor.Companion because of cycle in initialization(see KT-13264)
     val errorTypeForLoopInSupertypes: CangJieType = createErrorType(ErrorTypeKind.CYCLIC_SUPERTYPES)

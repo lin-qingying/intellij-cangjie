@@ -7,7 +7,7 @@ import com.huawei.cangjie.descriptors.VariableDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.utils.Printer
-import com.huawei.cangjie.utils.SmartList
+import com.intellij.util.SmartList
 
 
 class ChainedMemberScope private constructor(
@@ -16,12 +16,19 @@ class ChainedMemberScope private constructor(
 ) : MemberScope {
     override fun getFunctionNames() = scopes.flatMapTo(mutableSetOf()) { it.getFunctionNames() }
     override fun getVariableNames() = scopes.flatMapTo(mutableSetOf()) { it.getVariableNames() }
+    override fun getPropertyNames()  = scopes.flatMapTo(mutableSetOf()) { it.getPropertyNames() }
     override fun getClassifierNames(): Set<Name>? = scopes.asIterable().flatMapClassifierNamesOrNull()
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
         getFirstClassifierDiscriminateHeaders(scopes) { it.getContributedClassifier(name, location) }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard PropertyDescriptor> =
+    override fun getContributedVariables(
+        name: Name,
+        location: LookupLocation
+    ): Collection<@JvmWildcard VariableDescriptor> =
         getFromAllScopes(scopes) { it.getContributedVariables(name, location) }
+
+    override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
+        getFromAllScopes(scopes) { it.getContributedPropertys(name, location) }
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> =
         getFromAllScopes(scopes) { it.getContributedFunctions(name, location) }
@@ -38,7 +45,8 @@ class ChainedMemberScope private constructor(
     }
 
     override fun toString() = debugName
-//
+
+    //
     override fun printScopeStructure(p: Printer) {
         p.println(this::class.java.simpleName, ": ", debugName, " {")
         p.pushIndent()

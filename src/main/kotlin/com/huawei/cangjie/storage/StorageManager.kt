@@ -10,6 +10,9 @@ interface StorageManager{
 
     fun <K, V : Any> createCacheWithNotNullValues(): CacheWithNotNullValues<K, V>
 
+    fun <T : Any> createRecursionTolerantLazyValue(computable: () -> T, onRecursiveCall: T): NotNullLazyValue<T>
+
+    fun <T : Any> createRecursionTolerantNullableLazyValue(computable: () -> T?, onRecursiveCall: T?): NullableLazyValue<T>
 
     /**
      * @param onRecursiveCall is called if the computation calls itself recursively.

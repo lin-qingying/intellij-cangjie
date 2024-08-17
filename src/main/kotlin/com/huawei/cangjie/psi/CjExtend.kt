@@ -5,7 +5,7 @@ import com.huawei.cangjie.psi.stubs.CangJieExtendStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 
-class CjExtend:CjClassOrStruct {
+class CjExtend:CjTypeStatement {
 
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJieExtendStub) : super(stub, CjStubElementTypes.EXTEND)

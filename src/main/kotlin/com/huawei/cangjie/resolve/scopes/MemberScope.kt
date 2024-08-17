@@ -1,4 +1,4 @@
-package com.huawei.cangjie.resolve.scopes;
+package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
@@ -21,6 +21,11 @@ interface MemberScope : ResolutionScope {
     override fun getContributedVariables(
         name: Name,
         location: LookupLocation
+    ): Collection<@JvmWildcard VariableDescriptor>
+
+    override fun getContributedPropertys(
+        name: Name,
+        location: LookupLocation
     ): Collection<@JvmWildcard PropertyDescriptor>
 
     /**
@@ -29,6 +34,7 @@ interface MemberScope : ResolutionScope {
     fun getFunctionNames(): Set<Name>
     fun getVariableNames(): Set<Name>
     fun getClassifierNames(): Set<Name>?
+    fun getPropertyNames(): Set<Name>
 
     override fun getContributedFunctions(
         name: Name,
@@ -50,6 +56,7 @@ interface MemberScope : ResolutionScope {
         }
 
         override fun definitelyDoesNotContainName(name: Name): Boolean = true
+        override fun getPropertyNames(): Set<Name> = emptySet<Name>()
 
         override fun getFunctionNames() = emptySet<Name>()
         override fun getVariableNames() = emptySet<Name>()
@@ -94,7 +101,11 @@ class DescriptorKindFilter(
 
     fun acceptsKinds(kinds: Int): Boolean = kindMask and kinds != 0
     fun withoutKinds(kinds: Int): DescriptorKindFilter = DescriptorKindFilter(kindMask and kinds.inv(), excludes)
-
+    fun restrictedToKindsOrNull(kinds: Int): DescriptorKindFilter? {
+        val mask = kindMask and kinds
+        if (mask == 0) return null
+        return DescriptorKindFilter(mask, excludes)
+    }
     companion object {
 
         private var nextMaskValue: Int = 0x01
@@ -102,15 +113,20 @@ class DescriptorKindFilter(
         val TYPE_ALIASES_MASK: Int = nextMask()
         val FUNCTIONS_MASK: Int = nextMask()
         val VARIABLES_MASK: Int = nextMask()
-
+        val PROPERTYS_MASK: Int = nextMask()
         val ALL_KINDS_MASK: Int = nextMask() - 1
         val PACKAGES_MASK: Int = nextMask()
+
         @JvmField
         val PACKAGES: DescriptorKindFilter = DescriptorKindFilter(PACKAGES_MASK)
+
         @JvmField
         val FUNCTIONS: DescriptorKindFilter = DescriptorKindFilter(FUNCTIONS_MASK)
+
         @JvmField
         val VARIABLES: DescriptorKindFilter = DescriptorKindFilter(VARIABLES_MASK)
+        @JvmField
+        val PROPERTYS: DescriptorKindFilter = DescriptorKindFilter(PROPERTYS_MASK)
 
         @JvmField
         val ALL: DescriptorKindFilter = DescriptorKindFilter(ALL_KINDS_MASK)
@@ -120,6 +136,7 @@ class DescriptorKindFilter(
         val NON_SINGLETON_CLASSIFIERS_MASK: Int = nextMask()
 
         val CLASSIFIERS_MASK: Int = NON_SINGLETON_CLASSIFIERS_MASK or SINGLETON_CLASSIFIERS_MASK or TYPE_ALIASES_MASK
+        @JvmField val CLASSIFIERS: DescriptorKindFilter = DescriptorKindFilter(CLASSIFIERS_MASK)
 
     }
 }

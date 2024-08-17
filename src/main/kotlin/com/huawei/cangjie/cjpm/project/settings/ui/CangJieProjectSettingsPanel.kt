@@ -127,7 +127,7 @@ class CangJieProjectSettingsPanel(
 
 //                TODO 版本管理工具
 //                val cangjieup = toolchain?.cangjieup
-            val cjcVersion = cjc?.queryVersion()
+            val cjcVersion = cjc?.version
 
 //                val stdlibLocation = cjc?.getStdlibFromSysroot(cjpmProjectDir)?.presentableUrl
             Triple(cjcVersion?.semver, cjcVersion?.type, false)

@@ -2,8 +2,9 @@ package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
+import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
-import com.huawei.cangjie.utils.Printer
+import com.huawei.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
 
 interface ResolutionScope {
     /**
@@ -21,10 +22,14 @@ interface ResolutionScope {
      * Note that implementors are encouraged to provide non-deprecated classifier if it doesn't contradict
      * contract above.
      */
-    fun getContributedClassifierIncludeDeprecated(name: Name, location: LookupLocation): DescriptorWithDeprecation<ClassifierDescriptor>? =
+    fun getContributedClassifierIncludeDeprecated(
+        name: Name,
+        location: LookupLocation
+    ): DescriptorWithDeprecation<ClassifierDescriptor>? =
         getContributedClassifier(name, location)?.let { DescriptorWithDeprecation.createNonDeprecated(it) }
 
     fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor>
+    fun getContributedPropertys(name: Name, location: LookupLocation): Collection<@JvmWildcard PropertyDescriptor>
 
     fun getContributedFunctions(name: Name, location: LookupLocation): Collection<@JvmWildcard FunctionDescriptor>
 
@@ -41,5 +46,17 @@ interface ResolutionScope {
 
     fun recordLookup(name: Name, location: LookupLocation) {
         getContributedFunctions(name, location)
+    }
+
+
+    /**
+     * 通过   [com.huawei.cangjie.name.Name] 查找文件中导入的完限定包名
+     * return [com.huawei.cangjie.name.FqName]
+     */
+    fun getContributedPackageFqName(name: Name/*, location: LookupLocation*/): List<FqName>? {
+        return null
+    }
+    fun getContributedPackageQualifierPart(name: Name/*, location: LookupLocation*/): List<List<QualifierPart>>? {
+        return null
     }
 }

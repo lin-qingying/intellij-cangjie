@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
+import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.utils.Printer
 
@@ -16,6 +17,9 @@ class LexicalWritableScope(
         get() = null
     override val contextReceiversGroup: List<ReceiverParameterDescriptor>
         get() = emptyList()
+
+//    override fun getContributedPackageFqName(name: Name, location: LookupLocation): List<FqName> = emptyList()
+
     private var canWrite: Boolean = true
     private var lastSnapshot: Snapshot? = null
 
@@ -63,7 +67,7 @@ class LexicalWritableScope(
         return lastSnapshot!!
     }
 
-    fun addVariableDescriptor(variableDescriptor: VariableDescriptor) {
+    fun addVariableDescriptor(variableDescriptor: VariableDescriptorBase) {
         checkMayWrite()
         addVariableOrClassDescriptor(variableDescriptor)
     }

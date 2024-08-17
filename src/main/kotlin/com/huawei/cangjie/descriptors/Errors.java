@@ -1,6 +1,9 @@
 package com.huawei.cangjie.descriptors;
 
+import com.huawei.cangjie.config.LanguageFeature;
+import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.diagnostics.*;
+import com.huawei.cangjie.diagnostics.rendering.DeclarationWithDiagnosticComponents;
 import com.huawei.cangjie.diagnostics.rendering.DefaultErrorMessages;
 import com.huawei.cangjie.diagnostics.rendering.DiagnosticFactoryToRendererMap;
 import com.huawei.cangjie.diagnostics.rendering.DiagnosticRenderer;
@@ -13,6 +16,7 @@ import com.huawei.cangjie.resolve.calls.tower.WrongResolutionToClassifier;
 import com.huawei.cangjie.types.CangJieType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
@@ -84,7 +88,14 @@ public interface Errors {
             DiagnosticFactory3.create(ERROR, CALL_ELEMENT);
     DiagnosticFactory2<CjExpression, CangJieType, CangJieType> TYPE_MISMATCH_WARNING = DiagnosticFactory2.create(WARNING);
     DiagnosticFactory2<CjExpression, CangJieType, CangJieType> TYPE_MISMATCH = DiagnosticFactory2.create(ERROR);
-
+    DiagnosticFactory1<CjNamedDeclaration, TypeParameterDescriptor> CONFLICTING_UPPER_BOUNDS =
+            DiagnosticFactory1.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactory1<CjDeclaration, Collection<CangJieType>> AMBIGUOUS_ANONYMOUS_TYPE_INFERRED =
+            DiagnosticFactory1.create(ERROR, DECLARATION_SIGNATURE);
+    DiagnosticFactory1<CjDeclaration, CangJieType> APPROXIMATED_LOCAL_TYPE_WILL_BECOME_FLEXIBLE =
+            DiagnosticFactory1.create(WARNING, DECLARATION_SIGNATURE);
+    DiagnosticFactory1<CjDeclaration, CangJieType> APPROXIMATED_LOCAL_TYPE_WILL_BECOME_NULLABLE =
+            DiagnosticFactory1.create(WARNING, DECLARATION_SIGNATURE);
     DiagnosticFactory1<CjSimpleNameExpression, TypeParameterDescriptor> TYPE_PARAMETER_ON_LHS_OF_DOT = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, Throwable> EXCEPTION_FROM_ANALYZER = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory0<CjParameter> CANNOT_INFER_PARAMETER_TYPE = DiagnosticFactory0.create(ERROR);
@@ -104,14 +115,115 @@ public interface Errors {
             DiagnosticFactory1.create(ERROR, FOR_UNRESOLVED_REFERENCE);
     DiagnosticFactory0<CjExpression> NO_RECEIVER_ALLOWED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory2<CjExpression, CjExpression, CangJieType> FUNCTION_EXPECTED = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory0<CjExpression> NON_CONST_LET_USED_IN_CONSTANT_EXPRESSION = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory1<CjTypeProjection, ClassifierDescriptor> CONFLICTING_PROJECTION =
+            DiagnosticFactory1.create(ERROR, VARIANCE_IN_PROJECTION);
+    DiagnosticFactory1<CjElement, CangJieType> CONFLICTING_PROJECTION_IN_TYPEALIAS_EXPANSION = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<CjElement, ClassifierDescriptor> RECURSIVE_TYPEALIAS_EXPANSION = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory0<CjAnnotationEntry> REPEATED_ANNOTATION = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory2<CjTypeStatement, ClassDescriptor, Collection<CallableMemberDescriptor>> CONFLICTING_INHERITED_MEMBERS_WARNING =
+            DiagnosticFactory2.create(WARNING, DECLARATION_NAME);
+    DiagnosticFactory1<CjElement, String> TYPE_ARGUMENTS_NOT_ALLOWED = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, Pair<LanguageFeature, LanguageVersionSettings>> UNSUPPORTED_FEATURE = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory3<CjElement, CangJieType, CangJieType, ClassifierDescriptor> UPPER_BOUND_VIOLATED_IN_TYPEALIAS_EXPANSION =
+            DiagnosticFactory3.create(ERROR);
+    DiagnosticFactory2<CjTypeReference, CangJieType, CangJieType> UPPER_BOUND_VIOLATED = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory0<CjTypeArgumentList> TYPE_ARGUMENTS_FOR_OUTER_CLASS_WHEN_NESTED_REFERENCED = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory1<CjTypeReference, CangJieType> TYPEALIAS_SHOULD_EXPAND_TO_CLASS = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory2<CjTypeStatement, CallableMemberDescriptor, CallableMemberDescriptor> PROPERTY_TYPE_MISMATCH_BY_DELEGATION =
+            DiagnosticFactory2.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactory2<CjTypeStatement, CjTypeStatement, CallableMemberDescriptor> ABSTRACT_MEMBER_NOT_IMPLEMENTED =
+            DiagnosticFactory2.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactory2<CjTypeStatement, CjTypeStatement, CallableMemberDescriptor> ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED =
+            DiagnosticFactory2.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactory2<CjSimpleNameExpression, CjTypeConstraint, CjTypeParameterListOwner> NAME_IN_CONSTRAINT_IS_NOT_A_TYPE_PARAMETER =
+            DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory0<CjDeclaration> CONSTRUCTOR_IN_INTERFACE = DiagnosticFactory0.create(ERROR, DECLARATION_SIGNATURE);
+    DiagnosticFactory0<CjTypeReference> DYNAMIC_SUPERTYPE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjSimpleNameExpression> PACKAGE_CANNOT_BE_IMPORTED = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjSimpleNameExpression> MODULE_PACKAGE_CANNOT_BE_IMPORTED = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjSuperTypeEntry> SUPERTYPE_NOT_INITIALIZED = DiagnosticFactory0.create(ERROR);
 
+    DiagnosticFactory1<CjSimpleNameExpression, Name> CANNOT_BE_IMPORTED = DiagnosticFactory1.create(ERROR);
 
+    DiagnosticFactory0<CjTypeProjection> PROJECTION_IN_IMMEDIATE_ARGUMENT_TO_SUPERTYPE =
+            DiagnosticFactory0.create(ERROR, VARIANCE_IN_PROJECTION);
+    DiagnosticFactory1<CjTypeElement, CangJieType> EXPANDED_TYPE_CANNOT_BE_INHERITED = DiagnosticFactory1.create(ERROR);
 
-
-
+    DiagnosticFactory2<CjTypeStatement, ClassDescriptor, Collection<CallableMemberDescriptor>> CONFLICTING_INHERITED_MEMBERS =
+            DiagnosticFactory2.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactory0<CjTypeReference> REPEATED_BOUND = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjTypeReference> ONLY_ONE_CLASS_BOUND_ALLOWED = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory2<CjTypeStatement, CallableMemberDescriptor, CallableMemberDescriptor> VAR_TYPE_MISMATCH_ON_INHERITANCE =
+            DiagnosticFactory2.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactory2<CjTypeStatement, CallableMemberDescriptor, CallableMemberDescriptor> RETURN_TYPE_MISMATCH_BY_DELEGATION =
+            DiagnosticFactory2.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactory1<PsiElement, ClassDescriptor> INACCESSIBLE_OUTER_CLASS_EXPRESSION =
+            DiagnosticFactory1.create(ERROR, SECONDARY_CONSTRUCTOR_DELEGATION_CALL);
     DiagnosticFactory2<CjConstantExpression, String, CangJieType> CONSTANT_EXPECTED_TYPE_MISMATCH = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory2<CjTypeStatement, CallableMemberDescriptor, CallableMemberDescriptor> RETURN_TYPE_MISMATCH_ON_INHERITANCE =
+            DiagnosticFactory2.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactory2<CjTypeStatement, CallableMemberDescriptor, CallableMemberDescriptor> PROPERTY_TYPE_MISMATCH_ON_INHERITANCE =
+            DiagnosticFactory2.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactory0<CjTypeReference> BOUND_ON_TYPE_ALIAS_PARAMETER_NOT_ALLOWED = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory2<CjTypeStatement, CjTypeStatement, CallableMemberDescriptor> MANY_IMPL_MEMBER_NOT_IMPLEMENTED =
+            DiagnosticFactory2.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactory2<CjTypeStatement, CjTypeStatement, CallableMemberDescriptor> MANY_INTERFACES_MEMBER_NOT_IMPLEMENTED =
+            DiagnosticFactory2.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactory2<CjNamedDeclaration, CallableMemberDescriptor, DeclarationDescriptor> OVERRIDING_FINAL_MEMBER =
+            DiagnosticFactory2.create(ERROR, OVERRIDE_MODIFIER);
+    DiagnosticFactory2<CjNamedDeclaration, CallableMemberDescriptor, CallableMemberDescriptor> VAR_TYPE_MISMATCH_ON_OVERRIDE =
+            DiagnosticFactory2.create(ERROR, DECLARATION_RETURN_TYPE);
+    DiagnosticFactory2<CjNamedDeclaration, CallableMemberDescriptor, CallableMemberDescriptor> PROPERTY_TYPE_MISMATCH_ON_OVERRIDE =
+            DiagnosticFactory2.create(ERROR, DECLARATION_RETURN_TYPE);
+    DiagnosticFactory3<CjNamedDeclaration, CallableMemberDescriptor, CallableMemberDescriptor, DeclarationDescriptor>
+            VIRTUAL_MEMBER_HIDDEN =
+            DiagnosticFactory3.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactoryForDeprecation2<CjTypeStatement, ClassDescriptor, Collection<CallableMemberDescriptor>>
+            INVISIBLE_ABSTRACT_MEMBER_FROM_SUPER =
+            DiagnosticFactoryForDeprecation2.create(LanguageFeature.ProhibitInvisibleAbstractMethodsInSuperclasses, DECLARATION_NAME);
+    DiagnosticFactory2<CjNamedDeclaration, CallableMemberDescriptor, DeclarationWithDiagnosticComponents> RETURN_TYPE_MISMATCH_ON_OVERRIDE =
+            DiagnosticFactory2.create(ERROR, DECLARATION_RETURN_TYPE);
+    //    DiagnosticFactory2<CjNamedDeclaration, PropertyDescriptor, PropertyDescriptor> VAR_OVERRIDDEN_BY_LET =
+//            DiagnosticFactory2.create(ERROR, LET_OR_VAR_NODE);
+    DiagnosticFactory2<CjNamedDeclaration, VariableDescriptor, VariableDescriptor> VAR_OVERRIDDEN_BY_LET =
+            DiagnosticFactory2.create(ERROR, LET_OR_VAR_NODE);
+    DiagnosticFactory2<CjTypeStatement, CjTypeStatement, CallableMemberDescriptor> ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED_WARNING =
+            DiagnosticFactory2.create(WARNING, DECLARATION_NAME);
+    DiagnosticFactory2<CjTypeStatement, CallableMemberDescriptor, CallableMemberDescriptor> VAR_OVERRIDDEN_BY_LET_BY_DELEGATION =
+            DiagnosticFactory2.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactory2<CjTypeStatement, CjTypeStatement, CallableMemberDescriptor> MANY_INTERFACES_MEMBER_NOT_IMPLEMENTED_WARNING =
+            DiagnosticFactory2.create(WARNING, DECLARATION_NAME);
 
+    DiagnosticFactory2<CjTypeStatement, Collection<? extends CallableMemberDescriptor>, Integer>
+            DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES =
+            DiagnosticFactory2.create(WARNING, DECLARATION_NAME);
+    DiagnosticFactory2<CjTypeStatement, CallableMemberDescriptor, CallableMemberDescriptor> OVERRIDING_FINAL_MEMBER_BY_DELEGATION =
+            DiagnosticFactory2.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactory1<CjTypeStatement, ValueParameterDescriptor> MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_MATCH_NO_EXPLICIT_OVERRIDE =
+            DiagnosticFactory1.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactory1<CjModifierListOwner, CallableMemberDescriptor> NOTHING_TO_OVERRIDE =
+            DiagnosticFactory1.create(ERROR, OVERRIDE_MODIFIER);
+    DiagnosticFactory2<CjModifierListOwner, CallableMemberDescriptor, CallableDescriptor> CANNOT_OVERRIDE_INVISIBLE_MEMBER =
+            DiagnosticFactory2.create(ERROR, OVERRIDE_MODIFIER);
+    DiagnosticFactory3<CjModifierListOwner, DescriptorVisibility, CallableMemberDescriptor, DeclarationDescriptor>
+            CANNOT_CHANGE_ACCESS_PRIVILEGE =
+            DiagnosticFactory3.create(ERROR, VISIBILITY_MODIFIER);
+    DiagnosticFactory1<CjParameter, ValueParameterDescriptor> MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES =
+            DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory0<PsiElement> CYCLIC_SCOPES_WITH_COMPANION = DiagnosticFactory0.create(WARNING);
 
+    DiagnosticFactory1<CjDeclaration, CallableMemberDescriptor> CANNOT_INFER_VISIBILITY =
+            DiagnosticFactory1.create(ERROR, DECLARATION_SIGNATURE_OR_DEFAULT);
+    DiagnosticFactory0<PsiElement> CYCLIC_INHERITANCE_HIERARCHY = DiagnosticFactory0.create(ERROR);
+
+    DiagnosticFactory3<CjModifierListOwner, DescriptorVisibility, CallableMemberDescriptor, DeclarationDescriptor>
+            CANNOT_WEAKEN_ACCESS_PRIVILEGE =
+            DiagnosticFactory3.create(ERROR, VISIBILITY_MODIFIER);
+    DiagnosticFactory0<CjParameter> DEFAULT_VALUE_NOT_ALLOWED_IN_OVERRIDE = DiagnosticFactory0.create(ERROR, PARAMETER_DEFAULT_VALUE);
+
+    DiagnosticFactory2<CjParameter, ClassDescriptor, ValueParameterDescriptor> PARAMETER_NAME_CHANGED_ON_OVERRIDE =
+            DiagnosticFactory2.create(WARNING, DECLARATION_NAME);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     @SuppressWarnings("UnusedDeclaration")

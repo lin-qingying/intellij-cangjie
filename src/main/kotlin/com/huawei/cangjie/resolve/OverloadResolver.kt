@@ -143,8 +143,8 @@ class OverloadResolver(
             (c.functions.values as Collection<DeclarationDescriptor>) + c.declaredClasses.values + c.typeAliases.values,
             overloadFilter
         ) { scope, name ->
-            val functions = scope.getContributedFunctions(name, NoLookupLocation.WHEN_CHECK_DECLARATION_CONFLICTS)
-            val classifier = scope.getContributedClassifier(name, NoLookupLocation.WHEN_CHECK_DECLARATION_CONFLICTS)
+            val functions = scope.getContributedFunctions(name, NoLookupLocation.MATCH_CHECK_DECLARATION_CONFLICTS)
+            val classifier = scope.getContributedClassifier(name, NoLookupLocation.MATCH_CHECK_DECLARATION_CONFLICTS)
             when (classifier) {
                 is ClassDescriptor ->
                     if (!classifier.kind.isSingleton)
@@ -165,8 +165,8 @@ class OverloadResolver(
             c.properties.values,
             overloadFilter
         ) { scope, name ->
-            val variables = scope.getContributedVariables(name, NoLookupLocation.WHEN_CHECK_DECLARATION_CONFLICTS)
-            val classifier = scope.getContributedClassifier(name, NoLookupLocation.WHEN_CHECK_DECLARATION_CONFLICTS)
+            val variables = scope.getContributedVariables(name, NoLookupLocation.MATCH_CHECK_DECLARATION_CONFLICTS)
+            val classifier = scope.getContributedClassifier(name, NoLookupLocation.MATCH_CHECK_DECLARATION_CONFLICTS)
             variables + listOfNotNull(classifier)
         }
 

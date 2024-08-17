@@ -4,37 +4,41 @@ import com.huawei.cangjie.utils.runIf
 
 
 data class ClassId(val packageFqName: FqName, val relativeClassName: FqName, val isLocal: Boolean) {
-    constructor(packageFqName: FqName, topLevelName: Name) : this(packageFqName, FqName.topLevel(topLevelName), isLocal = false)
+    constructor(packageFqName: FqName, topLevelName: Name) : this(
+        packageFqName,
+        FqName.topLevel(topLevelName),
+        isLocal = false
+    )
 
     init {
         assert(!relativeClassName.isRoot) { "Class name must not be root: " + packageFqName + if (isLocal) " (local)" else "" }
     }
 
     val parentClassId: ClassId?
-    get() = runIf(isNestedClass) {
-        ClassId(packageFqName, relativeClassName.parent(), isLocal)
-    }
+        get() = runIf(isNestedClass) {
+            ClassId(packageFqName, relativeClassName.parent(), isLocal)
+        }
 
     val shortClassName: Name
-    get() = relativeClassName.shortName()
+        get() = relativeClassName.shortName()
 
     val outerClassId: ClassId?
-    get() {
-        val parent = relativeClassName.parent()
-        return runIf(!parent.isRoot) { ClassId(packageFqName, parent, isLocal) }
-    }
+        get() {
+            val parent = relativeClassName.parent()
+            return runIf(!parent.isRoot) { ClassId(packageFqName, parent, isLocal) }
+        }
 
     val outermostClassId: ClassId
-    get() {
-        var name = relativeClassName
-        while (!name.parent().isRoot) {
-            name = name.parent()
+        get() {
+            var name = relativeClassName
+            while (!name.parent().isRoot) {
+                name = name.parent()
+            }
+            return ClassId(packageFqName, name, isLocal = false)
         }
-        return ClassId(packageFqName, name, isLocal = false)
-    }
 
     val isNestedClass: Boolean
-    get() = !relativeClassName.parent().isRoot
+        get() = !relativeClassName.parent().isRoot
 
     fun createNestedClassId(name: Name): ClassId {
         return ClassId(packageFqName, relativeClassName.child(name), isLocal)
@@ -61,6 +65,13 @@ data class ClassId(val packageFqName: FqName, val relativeClassName: FqName, val
         }
     }
 
+    override operator fun equals(other: Any?): Boolean {
+
+
+        if (other !is ClassId) return false
+        return other.packageFqName == packageFqName && other.relativeClassName == relativeClassName
+    }
+
     fun asFqNameString(): String {
         return if (packageFqName.isRoot) {
             relativeClassName.asString()
@@ -75,6 +86,12 @@ data class ClassId(val packageFqName: FqName, val relativeClassName: FqName, val
 
     override fun toString(): String {
         return if (packageFqName.isRoot) "/" + asString() else asString()
+    }
+
+    override fun hashCode(): Int {
+        var result = packageFqName.hashCode()
+        result = 31 * result + relativeClassName.hashCode()
+        return result
     }
 
     companion object {

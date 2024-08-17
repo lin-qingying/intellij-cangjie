@@ -24,7 +24,16 @@ import java.nio.file.Path
 //val CjToolchainBase.cjc :Cjc = toolchain::cjc
 
 class Cjc(toolchain: CjToolchainBase) : CangJieComponent(NAME, toolchain) {
-    var version: CjcVersion? = null
+    private var _version: CjcVersion? = null
+    val version: CjcVersion
+        get() {
+            if (_version == null) {
+                queryVersion()
+
+
+            }
+            return _version!!
+        }
 
     init {
         toolchain.cjc = this
@@ -39,8 +48,8 @@ class Cjc(toolchain: CjToolchainBase) : CangJieComponent(NAME, toolchain) {
                 "-v",
                 workingDirectory = workingDirectory
             ).execute(toolchain.executionTimeoutInMilliseconds)?.stdoutLines
-            version = lines?.let { parseCjcVersion(it) }
-            return version
+            _version = lines?.let { parseCjcVersion(it) }
+            return _version
         } catch (e: CjProcessExecutionException) {
 
             return null

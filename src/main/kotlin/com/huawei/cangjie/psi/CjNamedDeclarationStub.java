@@ -117,18 +117,18 @@ public abstract class CjNamedDeclarationStub<T extends CangJieStubWithFqName<?>>
 
 
         if (hasModifier(CjTokens.PRIVATE_KEYWORD)) {
-            CjElement containingClass = PsiTreeUtil.getParentOfType(this, CjClassOrStruct.class);
+            CjElement containingClass = PsiTreeUtil.getParentOfType(this, CjTypeStatement.class);
 
             if (containingClass != null) {
                 return new LocalSearchScope(containingClass);
             }
             CjFile CjFile = getContainingCjFile();
-            if (this instanceof CjClassOrStruct) {
+            if (this instanceof CjTypeStatement) {
 
                 Project project = getProject();
                 GlobalSearchScope CangJieFilesScope = GlobalSearchScope.getScopeRestrictedByFileTypes(
                         GlobalSearchScope.allScope(project),
-                        CangJieFileType.INSTANCE
+                        CangJieFileType.Companion.getINSTANCE()
                 );
 
                 SearchScope fileScope = GlobalSearchScope.fileScope(CjFile);
@@ -142,7 +142,7 @@ public abstract class CjNamedDeclarationStub<T extends CangJieStubWithFqName<?>>
 
         SearchScope scope = super.getUseScope();
 
-        CjClassOrStruct ClassOrStruct = CjPsiUtilKt.getContainingClassOrStruct(this);
+        CjTypeStatement ClassOrStruct = CjPsiUtilKt.getContainingClassOrStruct(this);
         if (ClassOrStruct != null) {
             scope = scope.intersectWith(ClassOrStruct.getUseScope());
         }

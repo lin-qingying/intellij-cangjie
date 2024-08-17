@@ -2,7 +2,7 @@ package com.huawei.cangjie.types.expressions
 
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.psi.CjClassOrStruct
+import com.huawei.cangjie.psi.CjTypeStatement
 import com.huawei.cangjie.psi.CjDeclaration
 import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.psi.psiUtil.getStrictParentOfType
@@ -27,7 +27,7 @@ class PreliminaryDeclarationVisitor(
         }
 
         private fun topMostNonClassDeclaration(declaration: CjDeclaration) =
-            declaration.parentsWithSelf.filterIsInstance<CjDeclaration>().findLast { it !is CjClassOrStruct }
+            declaration.parentsWithSelf.filterIsInstance<CjDeclaration>().findLast { it !is CjTypeStatement }
                 ?: declaration
 
         fun createForDeclaration(

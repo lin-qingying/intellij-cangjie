@@ -37,7 +37,6 @@ import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.findParentInFile
@@ -376,7 +375,7 @@ object CangJieResolveDataProvider {
             is CjTypeConstraint,
             is CjSuperTypeList,
             is CjTypeParameter,
-            is CjParameter -> topmostElement.findParentInFile { it is CjClassOrStruct || it is CjCallableDeclaration } as? CjElement?
+            is CjParameter -> topmostElement.findParentInFile { it is CjTypeStatement || it is CjCallableDeclaration } as? CjElement?
 
             else -> topmostElement
         }
@@ -518,7 +517,7 @@ private class StackedCompositeBindingContextTrace(
                     (this as? PsiElement)?.parentsWithSelf?.contains(body) == true
                 }
 
-                is CjClassOrStruct -> {
+                is CjTypeStatement -> {
                     // Psi elements within anonymous initializers and secondary constructors should have information
                     // only in the reanalysis context.
                     (this as? PsiElement)?.parents(withSelf = false)?.any {

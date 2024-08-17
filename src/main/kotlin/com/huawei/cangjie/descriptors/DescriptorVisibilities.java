@@ -1,8 +1,10 @@
 package com.huawei.cangjie.descriptors;
 
 import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor;
+import com.huawei.cangjie.resolve.DescriptorUtils;
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue;
 import com.huawei.cangjie.types.CangJieType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,18 +36,65 @@ public class DescriptorVisibilities {
         }
     };
     @NotNull
+    public static final DescriptorVisibility INHERITED = new DelegatedDescriptorVisibility(Visibilities.Inherited.INSTANCE) {
+        @Override
+        public boolean isVisible(
+                @Nullable ReceiverValue receiver,
+                @NotNull DeclarationDescriptorWithVisibility what,
+                @NotNull DeclarationDescriptor from,
+                boolean useSpecialRulesForPrivateSealedConstructors
+        ) {
+            throw new IllegalStateException("Visibility is unknown yet"); //This method shouldn't be invoked for INHERITED visibility
+        }
+    };
+    // Note that this method returns false if `from` declaration is `init` initializer
+    // because initializer does not have source element
+    public static boolean inSameFile(@NotNull DeclarationDescriptor what, @NotNull DeclarationDescriptor from) {
+        SourceFile fromContainingFile = DescriptorUtils.getContainingSourceFile(from);
+        if (fromContainingFile != SourceFile.NO_SOURCE_FILE) {
+            return fromContainingFile.equals(DescriptorUtils.getContainingSourceFile(what));
+        }
+        return false;
+    }
+
+    /* Visibility for fake override invisible members (they are created for better error reporting) */
+    @NotNull
+    public static final DescriptorVisibility INVISIBLE_FAKE = new DelegatedDescriptorVisibility(Visibilities.InvisibleFake.INSTANCE) {
+        @Override
+        public boolean isVisible(
+                @Nullable ReceiverValue receiver,
+                @NotNull DeclarationDescriptorWithVisibility what,
+                @NotNull DeclarationDescriptor from,
+                boolean useSpecialRulesForPrivateSealedConstructors
+        ) {
+            return false;
+        }
+    };
+
+    @NotNull
     public static final DescriptorVisibility PROTECTED = new DelegatedDescriptorVisibility(Visibilities.Protected.INSTANCE) {
 
 
-
+        @Override
+        public boolean isVisible(@Nullable ReceiverValue receiver, @NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from, boolean useSpecialRulesForPrivateSealedConstructors) {
+            return false;
+        }
     };
     @NotNull
     public static final DescriptorVisibility PRIVATE = new DelegatedDescriptorVisibility(Visibilities.Private.INSTANCE) {
 
+        @Override
+        public boolean isVisible(@Nullable ReceiverValue receiver, @NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from, boolean useSpecialRulesForPrivateSealedConstructors) {
+            return false;
+        }
     };
     @NotNull
     public static final DescriptorVisibility PUBLIC = new DelegatedDescriptorVisibility(Visibilities.Public.INSTANCE) {
 
+        @Override
+        public boolean isVisible(@Nullable ReceiverValue receiver, @NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from, boolean useSpecialRulesForPrivateSealedConstructors) {
+            return false;
+        }
     };
     public static final DescriptorVisibility DEFAULT_VISIBILITY = PUBLIC;
     /**
@@ -65,9 +114,17 @@ public class DescriptorVisibilities {
     @NotNull
     public static final DescriptorVisibility PRIVATE_TO_THIS = new DelegatedDescriptorVisibility(Visibilities.PrivateToThis.INSTANCE) {
 
+        @Override
+        public boolean isVisible(@Nullable ReceiverValue receiver, @NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from, boolean useSpecialRulesForPrivateSealedConstructors) {
+            return false;
+        }
     };
     @NotNull
     public static final DescriptorVisibility LOCAL = new DelegatedDescriptorVisibility(Visibilities.Local.INSTANCE) {
+        @Override
+        public boolean isVisible(@Nullable ReceiverValue receiver, @NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from, boolean useSpecialRulesForPrivateSealedConstructors) {
+            return false;
+        }
 //        @Override
 //        public bool isVisible(
 //                @Nullable ReceiverValue receiver,
@@ -82,6 +139,10 @@ public class DescriptorVisibilities {
     // It's needed to prevent NPE when requesting non-nullable visibility of descriptor before `initialize` has been called
     @NotNull
     public static final DescriptorVisibility UNKNOWN = new DelegatedDescriptorVisibility(Visibilities.Unknown.INSTANCE) {
+        @Override
+        public boolean isVisible(@Nullable ReceiverValue receiver, @NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from, boolean useSpecialRulesForPrivateSealedConstructors) {
+            return false;
+        }
 //        @Override
 //        public bool isVisible(
 //                @Nullable ReceiverValue receiver, @NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from,

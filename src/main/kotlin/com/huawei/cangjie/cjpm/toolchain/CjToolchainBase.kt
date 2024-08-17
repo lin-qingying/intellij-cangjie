@@ -56,6 +56,10 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
     var cjfmt: CjFmt? = null
     val presentableLocation: String get() = pathToExecutable(Cjpm.NAME).toString()
 
+
+//    标准库位置
+
+
     init {
 
         fun String.toSystemPath(): String {
@@ -217,6 +221,19 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
     companion object {
 
         val MIN_SUPPORTED_TOOLCHAIN = "0.53.4".parseSemVer()
+
+        //        标准库下载地址
+        val STDLIB_DOWNLOAD_URL =
+            "https://gitee.com/Lin_Qing_Ying/intellij-cangjie-stdlib/releases/download/0.53.4/intellij-cangjie-stdlib.zip"
+
+        //        标准库位置
+        val stdlibPath = File(System.getProperty("user.home")).resolve(".cangjie").resolve("stdlib").toPath()
+
+        init {
+            if (!stdlibPath.exists()) {
+                stdlibPath.toFile().mkdirs()
+            }
+        }
 
 
         fun fromSerializedString(serializedString: String): CjToolchainBase? {

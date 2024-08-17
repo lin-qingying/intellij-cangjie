@@ -1,5 +1,6 @@
 package com.huawei.cangjie.psi.stubs
 
+import com.huawei.cangjie.lang.declarations.CjDeclarationsFile
 import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.name.ClassId
 import com.huawei.cangjie.name.FqName
@@ -14,6 +15,7 @@ enum class ConstantValueKind {
     BOOLEAN_CONSTANT,
     FLOAT_CONSTANT,
     RUNE_CONSTANT,
+
     //    CHARACTER_BYTE_LITERAL,
     INTEGER_CONSTANT,
     UNIT_CONSTANT
@@ -33,8 +35,15 @@ interface CangJieConstantExpressionStub : StubElement<CjConstantExpression> {
     fun value(): String
 }
 
-interface CangJieFileStub : PsiFileStub<CjFile> {
+interface CangJieFilesStub{
     fun getPackageFqName(): FqName
+
+}
+//interface CangJieDeclarationsFileStub : PsiFileStub<CjDeclarationsFile > ,CangJieFileStub{
+//
+////    fun findImportsByAlias(alias: String): List<CangJieImportDirectiveStub>
+//}
+interface CangJieFileStub : PsiFileStub<CjFile > ,CangJieFilesStub{
 
 //    fun findImportsByAlias(alias: String): List<CangJieImportDirectiveStub>
 }
@@ -60,13 +69,13 @@ interface CangJieValueArgumentStub<T : CjValueArgument> : CangJiePlaceHolderStub
 
 interface CangJieUserTypeStub : StubElement<CjUserType>
 interface CangJieTupleTypeStub : StubElement<CjTupleType>
-interface CangJieBasicTypeStub : StubElement<CjBasicType>
+//interface CangJieBasicTypeStub : StubElement<CjBasicType>
 
 interface CangJieClassifierStub {
     fun getClassId(): ClassId?
 }
 
-interface CangJieTypeAliasStub : CangJieClassifierStub, CangJieStubWithFqName<CjTypeAlias>{
+interface CangJieTypeAliasStub : CangJieClassifierStub, CangJieStubWithFqName<CjTypeAlias> {
 //    fun isTopLevel(): Boolean
 
 }
@@ -78,10 +87,13 @@ interface CangJieVariableStub : CangJieCallableStubBase<CjVariable> {
     fun hasReturnTypeRef(): Boolean
 }
 
-interface CangJiePropertyStub : CangJieStubWithFqName<CjProperty>{
+interface CangJiePropertyStub : CangJieCallableStubBase<CjProperty> {
     fun hasReturnTypeRef(): Boolean
 
+    override fun isTopLevel(): Boolean = false
+    override fun isExtension(): Boolean = false
 }
+
 interface CangJieCallableStubBase<TDeclaration : CjCallableDeclaration> : CangJieStubWithFqName<TDeclaration> {
     fun isTopLevel(): Boolean
     fun isExtension(): Boolean
@@ -106,19 +118,19 @@ interface CangJieParameterStub : CangJieStubWithFqName<CjParameter> {
     fun hasDefaultValue(): Boolean
 }
 
-interface CangJieClassStub : CangJieClassOrStructStub<CjClass> {
+interface CangJieClassStub : CangJieTypeStatementStub<CjClass> {
 //    fun isInterface(): Boolean
 //    fun isEnumEntry(): Boolean
 }
 
-interface CangJieStructStub : CangJieClassOrStructStub<CjStruct>
+interface CangJieStructStub : CangJieTypeStatementStub<CjStruct>
 
-interface CangJieInterfaceStub : CangJieClassOrStructStub<CjInterface>
+interface CangJieInterfaceStub : CangJieTypeStatementStub<CjInterface>
 
-interface CangJieEnumStub : CangJieClassOrStructStub<CjEnum>
-interface CangJieExtendStub : CangJieClassOrStructStub<CjExtend>
+interface CangJieEnumStub : CangJieTypeStatementStub<CjEnum>
+interface CangJieExtendStub : CangJieTypeStatementStub<CjExtend>
 
-interface CangJieClassOrStructStub<T : CjClassOrStruct> : CangJieClassifierStub, CangJieStubWithFqName<T> {
+interface CangJieTypeStatementStub<T : CjTypeStatement> : CangJieClassifierStub, CangJieStubWithFqName<T> {
     fun isLocal(): Boolean
     fun getSuperNames(): List<String>
 //    fun isTopLevel(): Boolean
@@ -150,16 +162,17 @@ interface CangJieFunctionStub : CangJieCallableStubBase<CjFunctionImpl> {
 
 interface CangJieForeignDirectiveStub : StubElement<CjForeignDirective>
 
-interface CangJieImportDirectiveItemStub : StubElement<CjImportDirectiveItem> {
-//    fun isAllUnder(): Boolean
-//    fun getImportedFqName(): FqName?
-//    fun isValid(): Boolean
-}
+//interface CangJieImportDirectiveItemStub : StubElement<CjImportDirectiveItem> {
+////    fun isAllUnder(): Boolean
+////    fun get_importedFqName(): FqName?
+////    fun isValid(): Boolean
+//}
 
 
 interface CangJieImportDirectiveStub : StubElement<CjImportDirective> {
     fun isAllUnder(): Boolean
     fun getImportedFqName(): FqName?
+//    fun getImportedFqNames(): List<FqName>
     fun isValid(): Boolean
 }
 

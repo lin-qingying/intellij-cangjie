@@ -52,7 +52,7 @@ class CangJieFIleIndexTest : FileBasedIndexExtension<String, String>() {
     override fun getVersion(): Int = 1
 
     override fun getInputFilter(): FileBasedIndex.InputFilter = DefaultFileTypeSpecificInputFilter(
-        CangJieFileType
+        CangJieFileType.INSTANCE
     )
 
     override fun dependsOnFileContent(): Boolean = true

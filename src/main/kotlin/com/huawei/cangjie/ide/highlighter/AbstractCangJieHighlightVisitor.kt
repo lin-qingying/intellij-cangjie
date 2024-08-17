@@ -9,6 +9,7 @@ import com.huawei.cangjie.diagnostics.rendering.RenderingContext
 import com.huawei.cangjie.diagnostics.rendering.parameters
 import com.huawei.cangjie.ide.highlighter.suspender.CangJieHighlightingSuspender
 import com.huawei.cangjie.ide.statistics.compilationError.CangJieCompilationErrorFrequencyStatsCollector
+import com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.psi.CjNameReferenceExpression
 import com.huawei.cangjie.psi.CjParameter
@@ -96,6 +97,10 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
 //            file, file.textRange, file.textRange, Predicates.alwaysTrue(),
 //            CommonProcessors.CollectProcessor(dividedElements)
 //        )
+
+        if(file.fileType is CangJieBuiltInFileType){
+            return
+        }
 
         val elements =
             CollectHighlightsUtil.getElementsInRange(file, file.textRange.startOffset, file.textRange.endOffset)

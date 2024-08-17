@@ -43,7 +43,7 @@ public class AnnotationResolverImpl extends AnnotationResolver{
     @Override
     protected Annotations resolveAnnotationEntries(@NotNull LexicalScope scope, @NotNull List<CjAnnotationEntry> annotationEntryElements, @NotNull BindingTrace trace, boolean shouldResolveArguments) {
 
-        if (annotationEntryElements.isEmpty()) return Annotations.Companion.getEMPTY();
+        if (annotationEntryElements.isEmpty()) return Annotations.EMPTY;
 
         List<AnnotationDescriptor> standard = new ArrayList<>();
         List<AnnotationWithTarget> targeted = new ArrayList<>();

@@ -114,7 +114,7 @@ public class CjPsiUtil {
         }
     }
     @Nullable
-    public static CjClassOrStruct getClassIfParameterIsProperty(@NotNull CjParameter cjParameter) {
+    public static CjTypeStatement getClassIfParameterIsProperty(@NotNull CjParameter cjParameter) {
         if (cjParameter.hasValOrVar()) {
             PsiElement grandParent = null;
             if (cjParameter.getParent() != null) {

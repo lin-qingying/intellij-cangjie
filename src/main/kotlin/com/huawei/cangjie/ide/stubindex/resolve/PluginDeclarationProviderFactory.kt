@@ -4,10 +4,13 @@ import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.ide.cache.PerModulePackageCacheService
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.CjFile
+import com.huawei.cangjie.resolve.lazy.data.CjClassLikeInfo
 import com.huawei.cangjie.resolve.lazy.declarations.AbstractDeclarationProviderFactory
 import com.huawei.cangjie.resolve.lazy.declarations.CombinedPackageMemberDeclarationProvider
 import com.huawei.cangjie.resolve.lazy.declarations.FileBasedDeclarationProviderFactory
 import com.huawei.cangjie.resolve.lazy.declarations.PackageMemberDeclarationProvider
+import com.huawei.cangjie.resolve.lazy.descriptors.ClassMemberDeclarationProvider
+import com.huawei.cangjie.resolve.lazy.descriptors.PsiBasedClassMemberDeclarationProvider
 import com.huawei.cangjie.storage.StorageManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
@@ -67,6 +70,11 @@ class PluginDeclarationProviderFactory(
     private val onCreationDebugInfo = debugInfo()
     override fun diagnoseMissingPackageFragment(fqName: FqName, file: CjFile?) {
 //        TODO("Not yet implemented")
+    }
+
+    override fun getClassMemberDeclarationProvider(classLikeInfo: CjClassLikeInfo): ClassMemberDeclarationProvider {
+        return PsiBasedClassMemberDeclarationProvider(storageManager, classLikeInfo)
+
     }
 
     fun debugToString(): String {

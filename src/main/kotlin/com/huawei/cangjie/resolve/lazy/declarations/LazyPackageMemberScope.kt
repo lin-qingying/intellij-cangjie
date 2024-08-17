@@ -1,9 +1,6 @@
 package com.huawei.cangjie.resolve.lazy.declarations
 
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.PackageFragmentDescriptor
-import com.huawei.cangjie.descriptors.PropertyDescriptor
-import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.incremental.record
@@ -11,6 +8,7 @@ import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjDeclaration
 import com.huawei.cangjie.resolve.lazy.ResolveSession
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
+import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.utils.Printer
 
 
@@ -31,6 +29,11 @@ class LazyPackageMemberScope(
 
     }
 
+    override fun getNonDeclaredClasses(name: Name, result: MutableSet<ClassDescriptor>) {
+//        c.syntheticResolveExtension.generateSyntheticClasses(thisDescriptor, name, c, declarationProvider, result)
+
+    }
+
     override fun recordLookup(name: Name, location: LookupLocation) {
         c.lookupTracker?.record(location, thisDescriptor, name)
     }
@@ -38,9 +41,12 @@ class LazyPackageMemberScope(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> {
-        return computeDescriptorsFromDeclaredElements(kindFilter, nameFilter, NoLookupLocation.WHEN_GET_ALL_DESCRIPTORS)
+        return computeDescriptorsFromDeclaredElements(kindFilter, nameFilter, NoLookupLocation.MATCH_GET_ALL_DESCRIPTORS)
 
     }
+
+    override fun getScopeForInitializerResolution(declaration: CjDeclaration): LexicalScope=
+        getScopeForMemberDeclarationResolution(declaration)
 
 
     override fun getNonDeclaredProperties(name: Name, result: MutableSet<PropertyDescriptor>) {
@@ -51,7 +57,7 @@ class LazyPackageMemberScope(
 //        kindFilter: DescriptorKindFilter,
 //        nameFilter: (Name) -> Boolean
 //    ): Collection<DeclarationDescriptor> {
-//        return computeDescriptorsFromDeclaredElements(kindFilter, nameFilter, NoLookupLocation.WHEN_GET_ALL_DESCRIPTORS)
+//        return computeDescriptorsFromDeclaredElements(kindFilter, nameFilter, NoLookupLocation.MATCH_GET_ALL_DESCRIPTORS)
 //    }
 //
 //    override fun getScopeForMemberDeclarationResolution(declaration: CjDeclaration) =

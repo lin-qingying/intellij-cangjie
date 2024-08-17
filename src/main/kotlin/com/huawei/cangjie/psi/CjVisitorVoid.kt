@@ -1,20 +1,51 @@
 package com.huawei.cangjie.psi
 
 
-
-open class CjVisitorVoid :  CjVisitor<Void?, Void?>() {
+open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
 
     open fun visitCjElement(element: CjElement) {
         super.visitCjElement(element, null)
     }
-    open  fun visitFunctionType(type: CjFunctionType) {
+
+    open fun visitFunctionType(type: CjFunctionType) {
         super.visitFunctionType(type, null)
     }
-    open fun visitDeclaration(dcl:CjDeclaration) {
+
+    open fun visitProperty(property: CjProperty) {
+        super.visitProperty(property, null)
+    }
+
+    open fun visitVariable(variable: CjVariable) {
+        super.visitVariable(variable, null)
+    }
+
+    open fun visitTypeStatement(typeStatement: CjTypeStatement) {
+        super.visitTypeStatement(typeStatement, null)
+    }
+
+    open fun visitClass(cclass: CjClass) {
+        super.visitClass(cclass, null)
+    }
+
+    open fun visitStruct(cstruct: CjStruct) {
+        super.visitStruct(cstruct, null)
+    }
+
+    open fun visitEnum(cenum: CjEnum) {
+        super.visitEnum(cenum, null)
+    }
+
+    open fun visitInterface(cinterface: CjInterface) {
+        super.visitInterface(cinterface, null)
+    }
+
+    open fun visitDeclaration(dcl: CjDeclaration) {
         super.visitDeclaration(dcl, null)
     }
 
-
+    open fun visitTypeAlias(typeAlias: CjTypeAlias) {
+        super.visitTypeAlias(typeAlias, null)
+    }
 
     open fun visitSecondaryConstructor(constructor: CjSecondaryConstructor) {
         super.visitSecondaryConstructor(constructor, null)
@@ -24,18 +55,16 @@ open class CjVisitorVoid :  CjVisitor<Void?, Void?>() {
         super.visitPrimaryConstructor(constructor, null)
     }
 
-    open fun visitNamedFunction(function:CjNamedFunction) {
+    open fun visitNamedFunction(function: CjNamedFunction) {
         super.visitNamedFunction(function, null)
     }
 
 
-
-
-    open fun visitDestructuringDeclaration(destructuringDeclaration:CjDestructuringDeclaration) {
+    open fun visitDestructuringDeclaration(destructuringDeclaration: CjDestructuringDeclaration) {
         super.visitDestructuringDeclaration(destructuringDeclaration, null)
     }
 
-    fun visitDestructuringDeclarationEntry(multiDeclarationEntry:CjDestructuringDeclarationEntry) {
+    fun visitDestructuringDeclarationEntry(multiDeclarationEntry: CjDestructuringDeclarationEntry) {
         super.visitDestructuringDeclarationEntry(multiDeclarationEntry, null)
     }
 
@@ -44,69 +73,65 @@ open class CjVisitorVoid :  CjVisitor<Void?, Void?>() {
     }
 
 
-
-    fun visitImportAlias(importAlias: CjImportAlias) {
+    open fun visitImportAlias(importAlias: CjImportAlias) {
         super.visitImportAlias(importAlias, null)
     }
 
-    fun visitImportDirective(importDirective:CjImportDirective) {
+    open fun visitImportDirective(importDirective: CjImportDirective) {
         super.visitImportDirective(importDirective, null)
     }
 
-    fun visitImportList(importList:CjImportList) {
+    open fun visitImportList(importList: CjImportList) {
         super.visitImportList(importList, null)
     }
 
-    fun visitClassBody(classBody: CjClassBody) {
+    open fun visitClassBody(classBody: CjClassBody) {
         super.visitClassBody(classBody, null)
     }
 
-    fun visitModifierList(list:CjModifierList) {
+    open fun visitModifierList(list: CjModifierList) {
         super.visitModifierList(list, null)
     }
 
 
-
-
-
-    fun visitConstructorCalleeExpression(constructorCalleeExpression:CjConstructorCalleeExpression) {
+    fun visitConstructorCalleeExpression(constructorCalleeExpression: CjConstructorCalleeExpression) {
         super.visitConstructorCalleeExpression(constructorCalleeExpression, null)
     }
 
-    fun visitTypeParameterList(list:CjTypeParameterList) {
+    fun visitTypeParameterList(list: CjTypeParameterList) {
         super.visitTypeParameterList(list, null)
     }
 
-  open  fun visitTypeParameter(parameter:CjTypeParameter) {
+    open fun visitTypeParameter(parameter: CjTypeParameter) {
         super.visitTypeParameter(parameter, null)
     }
 
-    open fun visitEnumEntry(enumEntry:CjEnumEntry) {
+    open fun visitEnumEntry(enumEntry: CjEnumEntry) {
         super.visitEnumEntry(enumEntry, null)
     }
 
-    fun visitParameterList(list:CjParameterList) {
+    open fun visitParameterList(list: CjParameterList) {
         super.visitParameterList(list, null)
     }
 
-    open fun visitParameter(parameter:CjParameter) {
+    open fun visitParameter(parameter: CjParameter) {
         super.visitParameter(parameter, null)
     }
 
-    open fun visitSuperTypeList(list:CjSuperTypeList) {
+    open fun visitSuperTypeList(list: CjSuperTypeList) {
         super.visitSuperTypeList(list, null)
     }
 
-    fun visitSuperTypeListEntry(specifier:CjSuperTypeListEntry) {
+    fun visitSuperTypeListEntry(specifier: CjSuperTypeListEntry) {
         super.visitSuperTypeListEntry(specifier, null)
     }
 
 
-    open fun visitSuperTypeCallEntry(call:CjSuperTypeCallEntry) {
+    open fun visitSuperTypeCallEntry(call: CjSuperTypeCallEntry) {
         super.visitSuperTypeCallEntry(call, null)
     }
 
-    open fun visitSuperTypeEntry(specifier:CjSuperTypeEntry) {
+    open fun visitSuperTypeEntry(specifier: CjSuperTypeEntry) {
         super.visitSuperTypeEntry(specifier, null)
     }
 
@@ -114,31 +139,29 @@ open class CjVisitorVoid :  CjVisitor<Void?, Void?>() {
         super.visitContextReceiverList(contextReceiverList, null)
     }
 
-    open fun visitConstructorDelegationCall(call:CjConstructorDelegationCall) {
+    open fun visitConstructorDelegationCall(call: CjConstructorDelegationCall) {
         super.visitConstructorDelegationCall(call, null)
     }
-
 
 
     fun visitTypeReference(typeReference: CjTypeReference) {
         super.visitTypeReference(typeReference, null)
     }
 
-    fun visitValueArgumentList(list:CjValueArgumentList) {
+    fun visitValueArgumentList(list: CjValueArgumentList) {
         super.visitValueArgumentList(list, null)
     }
 
 
-
-    open fun visitExpression(expression:CjExpression) {
+    open fun visitExpression(expression: CjExpression) {
         super.visitExpression(expression, null)
     }
 
-    fun visitLoopExpression(loopExpression:CjLoopExpression) {
+    fun visitLoopExpression(loopExpression: CjLoopExpression) {
         super.visitLoopExpression(loopExpression, null)
     }
 
-    open fun visitConstantExpression(expression:CjConstantExpression) {
+    open fun visitConstantExpression(expression: CjConstantExpression) {
         super.visitConstantExpression(expression, null)
     }
 
@@ -146,84 +169,81 @@ open class CjVisitorVoid :  CjVisitor<Void?, Void?>() {
         super.visitSimpleNameExpression(expression, null)
     }
 
-    fun visitReferenceExpression(expression:CjReferenceExpression) {
+    fun visitReferenceExpression(expression: CjReferenceExpression) {
         super.visitReferenceExpression(expression, null)
     }
 
 
-    fun visitPrefixExpression(expression:CjPrefixExpression) {
+    fun visitPrefixExpression(expression: CjPrefixExpression) {
         super.visitPrefixExpression(expression, null)
     }
 
-    fun visitPostfixExpression(expression:CjPostfixExpression) {
+    fun visitPostfixExpression(expression: CjPostfixExpression) {
         super.visitPostfixExpression(expression, null)
     }
 
-    open fun visitUnaryExpression(expression:CjUnaryExpression) {
+    open fun visitUnaryExpression(expression: CjUnaryExpression) {
         super.visitUnaryExpression(expression, null)
     }
 
-    open fun visitBinaryExpression(expression:CjBinaryExpression) {
+    open fun visitBinaryExpression(expression: CjBinaryExpression) {
         super.visitBinaryExpression(expression, null)
     }
 
-    open fun visitReturnExpression(expression:CjReturnExpression) {
+    open fun visitReturnExpression(expression: CjReturnExpression) {
         super.visitReturnExpression(expression, null)
     }
 
-   open fun visitExpressionWithLabel(expression: CjExpressionWithLabel) {
+    open fun visitExpressionWithLabel(expression: CjExpressionWithLabel) {
         super.visitExpressionWithLabel(expression, null)
     }
 
-    open fun visitThrowExpression(expression:CjThrowExpression) {
+    open fun visitThrowExpression(expression: CjThrowExpression) {
         super.visitThrowExpression(expression, null)
     }
 
-    open fun visitBreakExpression(expression:CjBreakExpression) {
+    open fun visitBreakExpression(expression: CjBreakExpression) {
         super.visitBreakExpression(expression, null)
     }
 
-    open fun visitContinueExpression(expression:CjContinueExpression) {
+    open fun visitContinueExpression(expression: CjContinueExpression) {
         super.visitContinueExpression(expression, null)
     }
 
-    open fun visitIfExpression(expression:CjIfExpression) {
+    open fun visitIfExpression(expression: CjIfExpression) {
         super.visitIfExpression(expression, null)
     }
 
-    open fun visitMatchExpression(expression:CjMatchExpression) {
+    open fun visitMatchExpression(expression: CjMatchExpression) {
         super.visitMatchExpression(expression, null)
     }
 
-    fun visitCollectionLiteralExpression(expression:CjCollectionLiteralExpression) {
+    fun visitCollectionLiteralExpression(expression: CjCollectionLiteralExpression) {
         super.visitCollectionLiteralExpression(expression, null)
     }
 
-    open fun visitTryExpression(expression:CjTryExpression) {
+    open fun visitTryExpression(expression: CjTryExpression) {
         super.visitTryExpression(expression, null)
     }
 
-    open fun visitForExpression(expression:CjForExpression) {
+    open fun visitForExpression(expression: CjForExpression) {
         super.visitForExpression(expression, null)
     }
 
-    open fun visitWhileExpression(expression:CjWhileExpression) {
+    open fun visitWhileExpression(expression: CjWhileExpression) {
         super.visitWhileExpression(expression, null)
     }
 
-    open fun visitDoWhileExpression(expression:CjDoWhileExpression) {
+    open fun visitDoWhileExpression(expression: CjDoWhileExpression) {
         super.visitDoWhileExpression(expression, null)
     }
 
 
-
-
-
-    open fun visitCallExpression(expression:CjCallExpression) {
+    open fun visitCallExpression(expression: CjCallExpression) {
         super.visitCallExpression(expression, null)
     }
 
-    open fun visitArrayAccessExpression(expression:CjArrayAccessExpression) {
+    open fun visitArrayAccessExpression(expression: CjArrayAccessExpression) {
         super.visitArrayAccessExpression(expression, null)
     }
 
@@ -232,46 +252,38 @@ open class CjVisitorVoid :  CjVisitor<Void?, Void?>() {
     }
 
 
-
-
-
-
     fun visitDotQualifiedExpression(expression: CjDotQualifiedExpression) {
         super.visitDotQualifiedExpression(expression, null)
     }
 
 
-
-
-
-    open fun visitBlockExpression(expression:CjBlockExpression) {
+    open fun visitBlockExpression(expression: CjBlockExpression) {
         super.visitBlockExpression(expression, null)
     }
 
-    fun visitCatchSection(catchClause:CjCatchClause) {
+    fun visitCatchSection(catchClause: CjCatchClause) {
         super.visitCatchSection(catchClause, null)
     }
 
-    fun visitFinallySection(finallySection:CjFinallySection) {
+    fun visitFinallySection(finallySection: CjFinallySection) {
         super.visitFinallySection(finallySection, null)
     }
 
-    fun visitTypeArgumentList(typeArgumentList:CjTypeArgumentList) {
+    fun visitTypeArgumentList(typeArgumentList: CjTypeArgumentList) {
         super.visitTypeArgumentList(typeArgumentList, null)
     }
 
-    open fun visitThisExpression(expression:CjThisExpression) {
+    open fun visitThisExpression(expression: CjThisExpression) {
         super.visitThisExpression(expression, null)
     }
 
-    fun visitSuperExpression(expression:CjSuperExpression) {
+    fun visitSuperExpression(expression: CjSuperExpression) {
         super.visitSuperExpression(expression, null)
     }
 
-    open fun visitParenthesizedExpression(expression:CjParenthesizedExpression) {
+    open fun visitParenthesizedExpression(expression: CjParenthesizedExpression) {
         super.visitParenthesizedExpression(expression, null)
     }
-
 
 
     open fun visitAnonymousInitializer(initializer: CjAnonymousInitializer) {
@@ -284,85 +296,75 @@ open class CjVisitorVoid :  CjVisitor<Void?, Void?>() {
     }
 
 
-
-    fun visitTypeConstraintList(list:CjTypeConstraintList) {
+    fun visitTypeConstraintList(list: CjTypeConstraintList) {
         super.visitTypeConstraintList(list, null)
     }
 
-    fun visitTypeConstraint(constraint:CjTypeConstraint) {
+    fun visitTypeConstraint(constraint: CjTypeConstraint) {
         super.visitTypeConstraint(constraint, null)
     }
 
-    open fun visitUserType(type:CjUserType) {
+    open fun visitUserType(type: CjUserType) {
         super.visitUserType(type, null)
     }
 
-open fun visitBasicType(type:CjBasicType) {
-    super.visitBasicType(type, null)
+    open fun visitBasicType(type: CjBasicType) {
+        super.visitBasicType(type, null)
 
-}
-
-
+    }
 
 
-    open fun visitBinaryWithTypeRHSExpression(expression:CjBinaryExpressionWithTypeRHS) {
+    open fun visitBinaryWithTypeRHSExpression(expression: CjBinaryExpressionWithTypeRHS) {
         super.visitBinaryWithTypeRHSExpression(expression, null)
     }
 
-    open fun visitStringTemplateExpression(expression:CjStringTemplateExpression) {
+    open fun visitStringTemplateExpression(expression: CjStringTemplateExpression) {
         super.visitStringTemplateExpression(expression, null)
     }
 
-   open fun visitNamedDeclaration(declaration:CjNamedDeclaration) {
+    open fun visitNamedDeclaration(declaration: CjNamedDeclaration) {
         super.visitNamedDeclaration(declaration, null)
     }
 
 
-
-
-    open fun visitTypeProjection(typeProjection:CjTypeProjection) {
+    open fun visitTypeProjection(typeProjection: CjTypeProjection) {
         super.visitTypeProjection(typeProjection, null)
     }
 
-    fun visitWhenEntry(CjWhenEntry:CjMatchEntry) {
+    fun visitWhenEntry(CjWhenEntry: CjMatchEntry) {
         super.visitMatchEntry(CjWhenEntry, null)
     }
 
-    open fun visitIsExpression(expression:CjIsExpression) {
+    open fun visitIsExpression(expression: CjIsExpression) {
         super.visitIsExpression(expression, null)
     }
 
 
-
-
-
-
-
-    fun visitStringTemplateEntry(entry:CjStringTemplateEntry) {
+    fun visitStringTemplateEntry(entry: CjStringTemplateEntry) {
         super.visitStringTemplateEntry(entry, null)
     }
 
-    open fun visitStringTemplateEntryWithExpression(entry:CjStringTemplateEntryWithExpression) {
+    open fun visitStringTemplateEntryWithExpression(entry: CjStringTemplateEntryWithExpression) {
         super.visitStringTemplateEntryWithExpression(entry, null)
     }
 
-    fun visitBlockStringTemplateEntry(entry:CjBlockStringTemplateEntry) {
+    fun visitBlockStringTemplateEntry(entry: CjBlockStringTemplateEntry) {
         super.visitBlockStringTemplateEntry(entry, null)
     }
 
-    fun visitSimpleNameStringTemplateEntry(entry:CjSimpleNameStringTemplateEntry) {
+    fun visitSimpleNameStringTemplateEntry(entry: CjSimpleNameStringTemplateEntry) {
         super.visitSimpleNameStringTemplateEntry(entry, null)
     }
 
-    open fun visitLiteralStringTemplateEntry(entry:CjLiteralStringTemplateEntry) {
+    open fun visitLiteralStringTemplateEntry(entry: CjLiteralStringTemplateEntry) {
         super.visitLiteralStringTemplateEntry(entry, null)
     }
 
-    open fun visitEscapeStringTemplateEntry(entry:CjEscapeStringTemplateEntry) {
+    open fun visitEscapeStringTemplateEntry(entry: CjEscapeStringTemplateEntry) {
         super.visitEscapeStringTemplateEntry(entry, null)
     }
 
-    open fun visitPackageDirective(directive:CjPackageDirective) {
+    open fun visitPackageDirective(directive: CjPackageDirective) {
         super.visitPackageDirective(directive, null)
     }
 
@@ -372,14 +374,22 @@ open fun visitBasicType(type:CjBasicType) {
         return null
     }
 
-    override fun visitDeclaration(dcl:CjDeclaration, data: Void?): Void? {
+    override fun visitDeclaration(dcl: CjDeclaration, data: Void?): Void? {
         visitDeclaration(dcl)
         return null
     }
 
 
+    override fun visitProperty(property: CjProperty, data: Void?): Void? {
+        visitProperty(property)
+        return null
+    }
 
+    override fun visitVariable(variable: CjVariable, data: Void?): Void? {
 
+        visitVariable(variable)
+        return null
+    }
 
     override fun visitSecondaryConstructor(constructor: CjSecondaryConstructor, data: Void?): Void? {
         visitSecondaryConstructor(constructor)
@@ -391,15 +401,18 @@ open fun visitBasicType(type:CjBasicType) {
         return null
     }
 
-    override fun visitNamedFunction(function:CjNamedFunction, data: Void?): Void? {
+    override fun visitNamedFunction(function: CjNamedFunction, data: Void?): Void? {
         visitNamedFunction(function)
         return null
     }
 
-
+    override fun visitTypeAlias(typeAlias: CjTypeAlias, data: Void?): Void? {
+        visitTypeAlias(typeAlias)
+        return null
+    }
 
     override fun visitDestructuringDeclaration(
-        multiDeclaration:CjDestructuringDeclaration,
+        multiDeclaration: CjDestructuringDeclaration,
         data: Void?
     ): Void? {
         visitDestructuringDeclaration(multiDeclaration)
@@ -407,7 +420,7 @@ open fun visitBasicType(type:CjBasicType) {
     }
 
     override fun visitDestructuringDeclarationEntry(
-        multiDeclarationEntry:CjDestructuringDeclarationEntry,
+        multiDeclarationEntry: CjDestructuringDeclarationEntry,
         data: Void?
     ): Void? {
         visitDestructuringDeclarationEntry(multiDeclarationEntry)
@@ -420,13 +433,12 @@ open fun visitBasicType(type:CjBasicType) {
     }
 
 
-
-    override fun visitImportDirective(importDirective:CjImportDirective, data: Void?): Void? {
+    override fun visitImportDirective(importDirective: CjImportDirective, data: Void?): Void? {
         visitImportDirective(importDirective)
         return null
     }
 
-    override fun visitImportList(importList:CjImportList, data: Void?): Void? {
+    override fun visitImportList(importList: CjImportList, data: Void?): Void? {
         visitImportList(importList)
         return null
     }
@@ -436,72 +448,68 @@ open fun visitBasicType(type:CjBasicType) {
         return null
     }
 
-    override fun visitModifierList(list:CjModifierList, data: Void?): Void? {
+    override fun visitModifierList(list: CjModifierList, data: Void?): Void? {
         visitModifierList(list)
         return null
     }
 
 
-
-
-
     override fun visitConstructorCalleeExpression(
-        constructorCalleeExpression:CjConstructorCalleeExpression,
+        constructorCalleeExpression: CjConstructorCalleeExpression,
         data: Void?
     ): Void? {
         visitConstructorCalleeExpression(constructorCalleeExpression)
         return null
     }
 
-    override fun visitTypeParameterList(list:CjTypeParameterList, data: Void?): Void? {
+    override fun visitTypeParameterList(list: CjTypeParameterList, data: Void?): Void? {
         visitTypeParameterList(list)
         return null
     }
 
-    override fun visitTypeParameter(parameter:CjTypeParameter, data: Void?): Void? {
+    override fun visitTypeParameter(parameter: CjTypeParameter, data: Void?): Void? {
         visitTypeParameter(parameter)
         return null
     }
 
-    override fun visitEnumEntry(enumEntry:CjEnumEntry, data: Void?): Void? {
+    override fun visitEnumEntry(enumEntry: CjEnumEntry, data: Void?): Void? {
         visitEnumEntry(enumEntry)
         return null
     }
 
-    override fun visitParameterList(list:CjParameterList, data: Void?): Void? {
+    override fun visitParameterList(list: CjParameterList, data: Void?): Void? {
         visitParameterList(list)
         return null
     }
 
-    override fun visitParameter(parameter:CjParameter, data: Void?): Void? {
+    override fun visitParameter(parameter: CjParameter, data: Void?): Void? {
         visitParameter(parameter)
         return null
     }
 
-    override fun visitSuperTypeList(list:CjSuperTypeList, data: Void?): Void? {
+    override fun visitSuperTypeList(list: CjSuperTypeList, data: Void?): Void? {
         visitSuperTypeList(list)
         return null
     }
 
-    override fun visitSuperTypeListEntry(specifier:CjSuperTypeListEntry, data: Void?): Void? {
+    override fun visitSuperTypeListEntry(specifier: CjSuperTypeListEntry, data: Void?): Void? {
         visitSuperTypeListEntry(specifier)
         return null
     }
 
 
-
-    override fun visitSuperTypeCallEntry(call:CjSuperTypeCallEntry, data: Void?): Void? {
+    override fun visitSuperTypeCallEntry(call: CjSuperTypeCallEntry, data: Void?): Void? {
         visitSuperTypeCallEntry(call)
         return null
     }
 
-    override fun visitSuperTypeEntry(specifier:CjSuperTypeEntry, data: Void?): Void? {
+    override fun visitSuperTypeEntry(specifier: CjSuperTypeEntry, data: Void?): Void? {
         visitSuperTypeEntry(specifier)
         return null
     }
 
     override fun visitConstructorDelegationCall(
-        call:CjConstructorDelegationCall,
+        call: CjConstructorDelegationCall,
         data: Void?
     ): Void? {
         visitConstructorDelegationCall(call)
@@ -509,30 +517,28 @@ open fun visitBasicType(type:CjBasicType) {
     }
 
 
-
     override fun visitTypeReference(typeReference: CjTypeReference, data: Void?): Void? {
         visitTypeReference(typeReference)
         return null
     }
 
-    override fun visitValueArgumentList(list:CjValueArgumentList, data: Void?): Void? {
+    override fun visitValueArgumentList(list: CjValueArgumentList, data: Void?): Void? {
         visitValueArgumentList(list)
         return null
     }
 
 
-
-    override fun visitExpression(expression:CjExpression, data: Void?): Void? {
+    override fun visitExpression(expression: CjExpression, data: Void?): Void? {
         visitExpression(expression)
         return null
     }
 
-    override fun visitLoopExpression(loopExpression:CjLoopExpression, data: Void?): Void? {
+    override fun visitLoopExpression(loopExpression: CjLoopExpression, data: Void?): Void? {
         visitLoopExpression(loopExpression)
         return null
     }
 
-    override fun visitConstantExpression(expression:CjConstantExpression, data: Void?): Void? {
+    override fun visitConstantExpression(expression: CjConstantExpression, data: Void?): Void? {
         visitConstantExpression(expression)
         return null
     }
@@ -543,34 +549,34 @@ open fun visitBasicType(type:CjBasicType) {
     }
 
     override fun visitReferenceExpression(
-        expression:CjReferenceExpression,
+        expression: CjReferenceExpression,
         data: Void?
     ): Void? {
         visitReferenceExpression(expression)
         return null
     }
 
-    override fun visitPrefixExpression(expression:CjPrefixExpression, data: Void?): Void? {
+    override fun visitPrefixExpression(expression: CjPrefixExpression, data: Void?): Void? {
         visitPrefixExpression(expression)
         return null
     }
 
-    override fun visitPostfixExpression(expression:CjPostfixExpression, data: Void?): Void? {
+    override fun visitPostfixExpression(expression: CjPostfixExpression, data: Void?): Void? {
         visitPostfixExpression(expression)
         return null
     }
 
-    override fun visitUnaryExpression(expression:CjUnaryExpression, data: Void?): Void? {
+    override fun visitUnaryExpression(expression: CjUnaryExpression, data: Void?): Void? {
         visitUnaryExpression(expression)
         return null
     }
 
-    override fun visitBinaryExpression(expression:CjBinaryExpression, data: Void?): Void? {
+    override fun visitBinaryExpression(expression: CjBinaryExpression, data: Void?): Void? {
         visitBinaryExpression(expression)
         return null
     }
 
-    override fun visitReturnExpression(expression:CjReturnExpression, data: Void?): Void? {
+    override fun visitReturnExpression(expression: CjReturnExpression, data: Void?): Void? {
         visitReturnExpression(expression)
         return null
     }
@@ -580,70 +586,67 @@ open fun visitBasicType(type:CjBasicType) {
         return null
     }
 
-    override fun visitThrowExpression(expression:CjThrowExpression, data: Void?): Void? {
+    override fun visitThrowExpression(expression: CjThrowExpression, data: Void?): Void? {
         visitThrowExpression(expression)
         return null
     }
 
-    override fun visitBreakExpression(expression:CjBreakExpression, data: Void?): Void? {
+    override fun visitBreakExpression(expression: CjBreakExpression, data: Void?): Void? {
         visitBreakExpression(expression)
         return null
     }
 
-    override fun visitContinueExpression(expression:CjContinueExpression, data: Void?): Void? {
+    override fun visitContinueExpression(expression: CjContinueExpression, data: Void?): Void? {
         visitContinueExpression(expression)
         return null
     }
 
-    override fun visitIfExpression(expression:CjIfExpression, data: Void?): Void? {
+    override fun visitIfExpression(expression: CjIfExpression, data: Void?): Void? {
         visitIfExpression(expression)
         return null
     }
 
-    override fun visitMatchExpression(expression:CjMatchExpression, data: Void?): Void? {
+    override fun visitMatchExpression(expression: CjMatchExpression, data: Void?): Void? {
         visitMatchExpression(expression)
         return null
     }
 
     override fun visitCollectionLiteralExpression(
-        expression:CjCollectionLiteralExpression,
+        expression: CjCollectionLiteralExpression,
         data: Void?
     ): Void? {
         visitCollectionLiteralExpression(expression)
         return null
     }
 
-    override fun visitTryExpression(expression:CjTryExpression, data: Void?): Void? {
+    override fun visitTryExpression(expression: CjTryExpression, data: Void?): Void? {
         visitTryExpression(expression)
         return null
     }
 
-    override fun visitForExpression(expression:CjForExpression, data: Void?): Void? {
+    override fun visitForExpression(expression: CjForExpression, data: Void?): Void? {
         visitForExpression(expression)
         return null
     }
 
-    override fun visitWhileExpression(expression:CjWhileExpression, data: Void?): Void? {
+    override fun visitWhileExpression(expression: CjWhileExpression, data: Void?): Void? {
         visitWhileExpression(expression)
         return null
     }
 
-    override fun visitDoWhileExpression(expression:CjDoWhileExpression, data: Void?): Void? {
+    override fun visitDoWhileExpression(expression: CjDoWhileExpression, data: Void?): Void? {
         visitDoWhileExpression(expression)
         return null
     }
 
 
-
-
-
-    override fun visitCallExpression(expression:CjCallExpression, data: Void?): Void? {
+    override fun visitCallExpression(expression: CjCallExpression, data: Void?): Void? {
         visitCallExpression(expression)
         return null
     }
 
     override fun visitArrayAccessExpression(
-        expression:CjArrayAccessExpression,
+        expression: CjArrayAccessExpression,
         data: Void?
     ): Void? {
         visitArrayAccessExpression(expression)
@@ -656,60 +659,52 @@ open fun visitBasicType(type:CjBasicType) {
     }
 
 
-
-
-
-
-
     override fun visitDotQualifiedExpression(expression: CjDotQualifiedExpression, data: Void?): Void? {
         visitDotQualifiedExpression(expression)
         return null
     }
 
 
-
-
-    override fun visitBlockExpression(expression:CjBlockExpression, data: Void?): Void? {
+    override fun visitBlockExpression(expression: CjBlockExpression, data: Void?): Void? {
         visitBlockExpression(expression)
         return null
     }
 
-    override fun visitCatchSection(catchClause:CjCatchClause, data: Void?): Void? {
+    override fun visitCatchSection(catchClause: CjCatchClause, data: Void?): Void? {
         visitCatchSection(catchClause)
         return null
     }
 
-    override fun visitFinallySection(finallySection:CjFinallySection, data: Void?): Void? {
+    override fun visitFinallySection(finallySection: CjFinallySection, data: Void?): Void? {
         visitFinallySection(finallySection)
         return null
     }
 
     override fun visitTypeArgumentList(
-        typeArgumentList:CjTypeArgumentList,
+        typeArgumentList: CjTypeArgumentList,
         data: Void?
     ): Void? {
         visitTypeArgumentList(typeArgumentList)
         return null
     }
 
-    override fun visitThisExpression(expression:CjThisExpression, data: Void?): Void? {
+    override fun visitThisExpression(expression: CjThisExpression, data: Void?): Void? {
         visitThisExpression(expression)
         return null
     }
 
-    override fun visitSuperExpression(expression:CjSuperExpression, data: Void?): Void? {
+    override fun visitSuperExpression(expression: CjSuperExpression, data: Void?): Void? {
         visitSuperExpression(expression)
         return null
     }
 
     override fun visitParenthesizedExpression(
-        expression:CjParenthesizedExpression,
+        expression: CjParenthesizedExpression,
         data: Void?
     ): Void? {
         visitParenthesizedExpression(expression)
         return null
     }
-
 
 
     override fun visitAnonymousInitializer(initializer: CjAnonymousInitializer, data: Void?): Void? {
@@ -718,18 +713,17 @@ open fun visitBasicType(type:CjBasicType) {
     }
 
 
-
-    override fun visitTypeConstraintList(list:CjTypeConstraintList, data: Void?): Void? {
+    override fun visitTypeConstraintList(list: CjTypeConstraintList, data: Void?): Void? {
         visitTypeConstraintList(list)
         return null
     }
 
-    override fun visitTypeConstraint(constraint:CjTypeConstraint, data: Void?): Void? {
+    override fun visitTypeConstraint(constraint: CjTypeConstraint, data: Void?): Void? {
         visitTypeConstraint(constraint)
         return null
     }
 
-    override fun visitUserType(type:CjUserType, data: Void?): Void? {
+    override fun visitUserType(type: CjUserType, data: Void?): Void? {
         visitUserType(type)
         return null
     }
@@ -741,7 +735,7 @@ open fun visitBasicType(type:CjBasicType) {
 
 
     override fun visitBinaryWithTypeRHSExpression(
-        expression:CjBinaryExpressionWithTypeRHS,
+        expression: CjBinaryExpressionWithTypeRHS,
         data: Void?
     ): Void? {
         visitBinaryWithTypeRHSExpression(expression)
@@ -749,49 +743,46 @@ open fun visitBasicType(type:CjBasicType) {
     }
 
     override fun visitStringTemplateExpression(
-        expression:CjStringTemplateExpression,
+        expression: CjStringTemplateExpression,
         data: Void?
     ): Void? {
         visitStringTemplateExpression(expression)
         return null
     }
 
-    override fun visitNamedDeclaration(declaration:CjNamedDeclaration, data: Void?): Void? {
+    override fun visitNamedDeclaration(declaration: CjNamedDeclaration, data: Void?): Void? {
         visitNamedDeclaration(declaration)
         return null
     }
 
 
-
-    override fun visitTypeProjection(typeProjection:CjTypeProjection, data: Void?): Void? {
+    override fun visitTypeProjection(typeProjection: CjTypeProjection, data: Void?): Void? {
         visitTypeProjection(typeProjection)
         return null
     }
+
     fun visitMatchEntry(cjMatchEntry: CjMatchEntry) {
         super.visitMatchEntry(cjMatchEntry, null)
     }
-    override fun visitMatchEntry(cjMatchEntry:CjMatchEntry, data: Void?): Void? {
+
+    override fun visitMatchEntry(cjMatchEntry: CjMatchEntry, data: Void?): Void? {
         visitMatchEntry(cjMatchEntry)
         return null
     }
 
-    override fun visitIsExpression(expression:CjIsExpression, data: Void?): Void? {
+    override fun visitIsExpression(expression: CjIsExpression, data: Void?): Void? {
         visitIsExpression(expression)
         return null
     }
 
 
-
-
-
-
-    override fun visitStringTemplateEntry(entry:CjStringTemplateEntry, data: Void?): Void? {
+    override fun visitStringTemplateEntry(entry: CjStringTemplateEntry, data: Void?): Void? {
         visitStringTemplateEntry(entry)
         return null
     }
 
     override fun visitStringTemplateEntryWithExpression(
-        entry:CjStringTemplateEntryWithExpression,
+        entry: CjStringTemplateEntryWithExpression,
         data: Void?
     ): Void? {
         visitStringTemplateEntryWithExpression(entry)
@@ -799,7 +790,7 @@ open fun visitBasicType(type:CjBasicType) {
     }
 
     override fun visitBlockStringTemplateEntry(
-        entry:CjBlockStringTemplateEntry,
+        entry: CjBlockStringTemplateEntry,
         data: Void?
     ): Void? {
         visitBlockStringTemplateEntry(entry)
@@ -807,7 +798,7 @@ open fun visitBasicType(type:CjBasicType) {
     }
 
     override fun visitSimpleNameStringTemplateEntry(
-        entry:CjSimpleNameStringTemplateEntry,
+        entry: CjSimpleNameStringTemplateEntry,
         data: Void?
     ): Void? {
         visitSimpleNameStringTemplateEntry(entry)
@@ -815,7 +806,7 @@ open fun visitBasicType(type:CjBasicType) {
     }
 
     override fun visitLiteralStringTemplateEntry(
-        entry:CjLiteralStringTemplateEntry,
+        entry: CjLiteralStringTemplateEntry,
         data: Void?
     ): Void? {
         visitLiteralStringTemplateEntry(entry)
@@ -823,19 +814,46 @@ open fun visitBasicType(type:CjBasicType) {
     }
 
     override fun visitEscapeStringTemplateEntry(
-        entry:CjEscapeStringTemplateEntry,
+        entry: CjEscapeStringTemplateEntry,
         data: Void?
     ): Void? {
         visitEscapeStringTemplateEntry(entry)
         return null
     }
 
-    override fun visitPackageDirective(directive:CjPackageDirective, data: Void?): Void? {
+    override fun visitPackageDirective(directive: CjPackageDirective, data: Void?): Void? {
         visitPackageDirective(directive)
         return null
     }
 
+    override fun visitTypeStatement(typeStatement: CjTypeStatement, data: Void?): Void? {
+        visitTypeStatement(typeStatement)
+        return null
+    }
 
+    override fun visitClass(cclass: CjClass, data: Void?): Void? {
+        visitClass(cclass)
+        return null
+
+    }
+
+    override fun visitStruct(cstruct: CjStruct, data: Void?): Void? {
+        visitStruct(cstruct)
+        return null
+
+    }
+
+    override fun visitEnum(cenum: CjEnum, data: Void?): Void? {
+        visitEnum(cenum)
+        return null
+
+    }
+
+    override fun visitInterface(cinterface: CjInterface, data: Void?): Void? {
+        visitInterface(cinterface)
+        return null
+
+    }
 
     override fun visitClassInitializer(initializer: CjClassInitializer, data: Void?): Void? {
         visitClassInitializer(initializer)

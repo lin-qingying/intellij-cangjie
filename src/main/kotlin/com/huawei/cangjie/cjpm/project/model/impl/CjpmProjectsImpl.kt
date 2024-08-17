@@ -56,7 +56,7 @@ data class CjpmProjectImpl(
     override val workspace: CjpmWorkspace? by lazy(LazyThreadSafetyMode.PUBLICATION) {
 
 //        val rawWorkspace = rawWorkspace ?: return@lazy null
-
+//
 //        val stdlib = stdlib ?: return@lazy rawWorkspace
 //        val stdlib = stdlib ?: return@lazy if (!userDisabledFeatures.isEmpty() && isUnitTestMode) {
 //            rawWorkspace.withDisabledFeatures(userDisabledFeatures)
@@ -64,7 +64,15 @@ data class CjpmProjectImpl(
 //            rawWorkspace
 //        }
 //        rawWorkspace.withStdlib(stdlib, cjcInfo)
-        rawWorkspace
+        val rawWorkspace = rawWorkspace ?: return@lazy null
+        val stdlib = stdlib ?: return@lazy rawWorkspace/*if (!userDisabledFeatures.isEmpty() && isUnitTestMode) {
+            rawWorkspace.withDisabledFeatures(userDisabledFeatures)
+        } else {
+            rawWorkspace
+        }*/
+        rawWorkspace.withStdlib(stdlib, cjcInfo)
+//            .withDisabledFeatures(userDisabledFeatures)
+
     }
 
     fun withStdlib(result: TaskResult<StandardLibrary>): CjpmProjectImpl = when (result) {
@@ -72,7 +80,7 @@ data class CjpmProjectImpl(
         is TaskResult.Err -> copy(stdlibStatus = CjpmProject.UpdateStatus.UpdateFailed(result.reason))
     }
 
-//    override val presentableName: String by lazy {
+    //    override val presentableName: String by lazy {
 //        workspace?.packages?.singleOrNull {
 //            it.origin == PackageOrigin.WORKSPACE && it.rootDirectory == workingDirectory
 //        }?.name ?: workingDirectory.fileName.toString()

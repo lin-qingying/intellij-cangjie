@@ -8,11 +8,13 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.int32
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int64
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int8
 import com.huawei.cangjie.builtins.StandardNames.FqNames.nothing
+import com.huawei.cangjie.builtins.StandardNames.STD_CORE_PACKAGE_FQ_NAME
 import com.huawei.cangjie.builtins.StandardNames.getFunctionName
 import com.huawei.cangjie.context.ProjectContext
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.ClassifierDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.impl.ModuleDescriptorImpl
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.incremental.components.NoLookupLocation
@@ -33,6 +35,7 @@ import com.huawei.cangjie.types.util.TypeUtils
 
 open class CangJieBuiltIns(
     val storageManager: StorageManager,
+//    val cangJieModuleInfo: CangJieModuleInfo
 //    val moduleInfo: ModuleInfo? = null
 ) {
     companion object {
@@ -56,6 +59,14 @@ open class CangJieBuiltIns(
             )
         }
 
+        @JvmStatic
+        fun isSpecialClassWithNoSupertypes(descriptor: ClassDescriptor): Boolean {
+            return classFqNameEquals(
+                descriptor,
+                any
+            ) || classFqNameEquals(descriptor, nothing)
+        }
+
         fun isNullableAny(type: CangJieType): Boolean {
             return isAnyOrNullableAny(type) && type.isMarkedNullable
         }
@@ -63,7 +74,21 @@ open class CangJieBuiltIns(
         fun isAnyOrNullableAny(type: CangJieType): Boolean {
             return isConstructedFromGivenClass(type, any)
         }
-@JvmStatic
+
+//        @JvmStatic
+//        fun getEnumType(argument: SimpleType): SimpleType {
+//            val projectionType: Variance = Variance.INVARIANT
+//            val types =
+//                listOf(
+//                    TypeProjectionImpl(
+//                        projectionType,
+//                        argument
+//                    )
+//                )
+//            return simpleNotNullType(TypeAttributes.Empty, getEnum(), types)
+//        }
+
+        @JvmStatic
         fun isNothing(type: CangJieType): Boolean {
             return (isNothingOrNullableNothing(type)
                     && !TypeUtils.isNullableType(type))
@@ -91,7 +116,8 @@ open class CangJieBuiltIns(
         fun isUnit(type: CangJieType): Boolean {
             return isNotNullConstructedFromGivenClass(type, StandardNames.FqNames.unit)
         }
-@JvmStatic
+
+        @JvmStatic
         fun isNothingOrNullableNothing(type: CangJieType): Boolean {
             return isConstructedFromGivenClass(type, nothing)
         }
@@ -196,27 +222,41 @@ open class CangJieBuiltIns(
     }
 
     init {
+
         createBuiltInsModule(true)
     }
 
 
     val defaultBound: SimpleType get() = nullableAnyType
 
-    fun getNumberType(): SimpleType {
-        return number.getDefaultType()
-    }
+//    fun getNumberType(): SimpleType {
+//        return number.getDefaultType()
+//    }
 
     fun getFunction(parameterCount: Int): ClassDescriptor {
         return getBuiltInClassByName(getFunctionName(parameterCount))
     }
 
     val number: ClassDescriptor get() = getBuiltInClassByName("Number")
-
+    val numberType get() = number.getDefaultType()
     val comparable: ClassDescriptor get() = getBuiltInClassByName("Comparable")
 
 
     private fun getPrimitiveClassDescriptor(type: PrimitiveType): ClassDescriptor {
         return getBuiltInClassByName(type.typeName.asString())
+    }
+    private val myStdCoreClassesByName = storageManager.createMemoizedFunction { name: Name ->
+        val classifier = getBuiltInsStdCoreScope().getContributedClassifier(
+            name,
+            NoLookupLocation.FROM_BUILTINS
+        )
+        if (classifier == null) {
+            throw AssertionError("Built-in class " + BUILT_INS_PACKAGE_FQ_NAME.child(name) + " is not found")
+        }
+        if (classifier !is ClassDescriptor) {
+            throw AssertionError("Must be a class descriptor $name, but was $classifier")
+        }
+        classifier
     }
 
     private val myBuiltInClassesByName = storageManager.createMemoizedFunction { name: Name ->
@@ -232,6 +272,9 @@ open class CangJieBuiltIns(
         }
         classifier
     }
+
+
+    var sourcesModuleDescriptor: ModuleDescriptor? = null
 
     var myBuiltInsModule: ModuleDescriptorImpl? = null
 
@@ -275,6 +318,7 @@ open class CangJieBuiltIns(
             BUILTINS_MODULE_NAME, storageManager,
             this,
 //            null
+            isBuiltInsModule = true
         )
         builtInsModule.initialize(
             BuiltInsLoader.Instance.createPackageFragmentProvider(
@@ -304,8 +348,18 @@ open class CangJieBuiltIns(
 
     fun getBuiltInsPackageScope(): MemberScope {
         return builtInsModule.getPackage(BUILT_INS_PACKAGE_FQ_NAME).memberScope
+
+//        return getBuiltInsStdCoreScope()
     }
 
+    fun getBuiltInsStdCoreScope(): MemberScope {
+    return    if (sourcesModuleDescriptor != null){
+            sourcesModuleDescriptor!!.getPackage(STD_CORE_PACKAGE_FQ_NAME).memberScope
+        }else{
+        builtInsModule.getPackage(STD_CORE_PACKAGE_FQ_NAME).memberScope
+        }
+
+    }
 
     fun getBuiltInsBasicTypeScope(): MemberScope {
         TODO()
@@ -313,6 +367,10 @@ open class CangJieBuiltIns(
 
     private fun getBuiltInClassByName(simpleName: String): ClassDescriptor {
         return myBuiltInClassesByName.invoke(Name.identifier(simpleName))
+    }
+
+    private fun getStdCoreClassByName(simpleName: String): ClassDescriptor {
+        return myStdCoreClassesByName.invoke(Name.identifier(simpleName))
     }
 
     fun getBuiltInBasicTypeByName(simpleName: String): BasicTypeDescriptor {
@@ -323,7 +381,12 @@ open class CangJieBuiltIns(
     val unitType: SimpleType get() = unit.getDefaultType()
     val nothing: ClassDescriptor get() = getBuiltInClassByName("Nothing")
 
-    val any get() = getBuiltInClassByName("Unit")
+    val any: ClassDescriptor
+        get() {
+
+
+            return getStdCoreClassByName("Any")
+        }
     val anyType: SimpleType
         get() {
             return any.getDefaultType()
@@ -344,7 +407,7 @@ open class CangJieBuiltIns(
     val uintNativeType get() = getPrimitiveCangJieType(PrimitiveType.UINTNATIVE)
 
 
-//    float
+    //    float
     val float64Type get() = getPrimitiveCangJieType(PrimitiveType.FLOAT64)
     val float32Type get() = getPrimitiveCangJieType(PrimitiveType.FLOAT32)
     val float16Type get() = getPrimitiveCangJieType(PrimitiveType.FLOAT16)

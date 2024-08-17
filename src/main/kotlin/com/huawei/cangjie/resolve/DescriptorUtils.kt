@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.AnnotationDescriptor
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
@@ -8,18 +9,32 @@ import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.ClassId
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
+import com.huawei.cangjie.psi.CjDeclaration
+import com.huawei.cangjie.resolve.DescriptorUtils.getContainingClass
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
-import com.huawei.cangjie.types.CangJieType
-import com.huawei.cangjie.types.DeferredType
+import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.ErrorUtils.isError
-import com.huawei.cangjie.types.TypeConstructor
-import com.huawei.cangjie.types.TypeRefinement
+import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.checker.REFINER_CAPABILITY
+import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.contains
 import com.huawei.cangjie.utils.DFS
+
+inline fun <reified T : CjDeclaration> reportOnDeclarationAs(
+    trace: BindingTrace,
+    descriptor: DeclarationDescriptor,
+    what: (T) -> Diagnostic
+) {
+    DescriptorToSourceUtils.descriptorToDeclaration(descriptor)?.let { psiElement ->
+        (psiElement as? T)?.let {
+            trace.report(what(it))
+        } ?: throw AssertionError("Declaration for $descriptor is expected to be ${T::class.simpleName}, actual declaration: $psiElement")
+    } ?: throw AssertionError("No declaration for $descriptor")
+}
+
 
 @OptIn(TypeRefinement::class)
 fun ModuleDescriptor.isTypeRefinementEnabled(): Boolean =
@@ -69,7 +84,23 @@ val DeclarationDescriptor.fqNameSafe: FqName
     get() = DescriptorUtils.getFqNameSafe(this)
 
 fun ClassDescriptor.getSuperClassOrAny(): ClassDescriptor = getSuperClassNotAny() ?: builtIns.any
+fun MemberDescriptor.isEffectivelyExternal(): Boolean {
+//    if (isExternal) return true
+//
+//    if (this is PropertyAccessorDescriptor) {
+//        val variableDescriptor = correspondingProperty
+//        if (variableDescriptor.isEffectivelyExternal()) return true
+//    }
 
+//    if (this is PropertyDescriptor) {
+//        if (getter?.isExternal == true &&
+//            (!isVar || setter?.isExternal == true)
+//        ) return true
+//    }
+
+    val containingClass = getContainingClass(this)
+    return containingClass != null && containingClass.isEffectivelyExternal()
+}
 
 val ClassDescriptor.classValueDescriptor: ClassDescriptor
     get() = this
@@ -84,6 +115,11 @@ fun ValueParameterDescriptor.declaresOrInheritsDefaultValue(): Boolean {
 
 val AnnotationDescriptor.annotationClass: ClassDescriptor?
     get() = type.constructor.declarationDescriptor as? ClassDescriptor
+val DeclarationDescriptor.parents: Sequence<DeclarationDescriptor>
+    get() = parentsWithSelf.drop(1)
+
+val DeclarationDescriptor.parentsWithSelf: Sequence<DeclarationDescriptor>
+    get() = generateSequence(this, { it.containingDeclaration })
 
 object DescriptorUtils {
     @JvmStatic
@@ -93,21 +129,75 @@ object DescriptorUtils {
             descriptor
         )
     }
-//
-//    fun getContainingSourceFile(descriptor:  DeclarationDescriptor):  SourceFile {
-//        var descriptor:  DeclarationDescriptor = descriptor
+
+    fun getContainingClass(descriptor: DeclarationDescriptor): ClassDescriptor? {
+        var containing = descriptor.containingDeclaration
+        while (containing != null) {
+            if (containing is ClassDescriptor
+            ) {
+                return containing
+            }
+            containing = containing.containingDeclaration
+        }
+        return null
+    }
+
+    fun classCanHaveAbstractFakeOverride(classDescriptor: ClassDescriptor): Boolean {
+        return classCanHaveAbstractDeclaration(classDescriptor) /*|| classDescriptor.isExpect()*/
+    }
+
+    fun isSealedClass(descriptor: DeclarationDescriptor?): Boolean {
+        return (isKindOf(
+            descriptor,
+            ClassKind.CLASS
+        ) || isKindOf(
+            descriptor,
+            ClassKind.INTERFACE
+        )) && (descriptor as ClassDescriptor).getModality() == Modality.SEALED
+    }
+
+    fun classCanHaveAbstractDeclaration(classDescriptor: ClassDescriptor): Boolean {
+        return classDescriptor.getModality() == Modality.ABSTRACT || isSealedClass(
+            classDescriptor
+        ) || classDescriptor.getKind() == ClassKind.ENUM
+    }
+
+    fun shouldRecordInitializerForProperty(
+        variable: VariableDescriptorBase,
+        type: CangJieType
+    ): Boolean {
+        if (variable.isVar || type.isError) return false
+
+        if (TypeUtils.acceptsNullable(type)) return true
+
+        val builtIns: CangJieBuiltIns = variable.builtIns
+        return CangJieBuiltIns.isPrimitiveType(type) ||
+//                CangJieTypeChecker.DEFAULT.equalTypes(
+//                    builtIns.getStringType(),
+//                    type
+//                ) ||
+//                CangJieTypeChecker.DEFAULT.equalTypes(
+//                    builtIns.getNumber().getDefaultType(), type
+//                ) ||
+                CangJieTypeChecker.DEFAULT.equalTypes(builtIns.anyType, type) ||
+                UnsignedTypes.isUnsignedType(type)
+    }
+
+    @JvmStatic
+    fun getContainingSourceFile(descriptor:  DeclarationDescriptor):  SourceFile {
+        var descriptor:  DeclarationDescriptor = descriptor
 //        if (descriptor is  PropertySetterDescriptor) {
 //            descriptor =
 //                (descriptor as  PropertySetterDescriptor).getCorrespondingProperty()
 //        }
-//
-//        if (descriptor is  DeclarationDescriptorWithSource) {
-//            return (descriptor as  DeclarationDescriptorWithSource).getSource()
-//                .getContainingFile()
-//        }
-//
-//        return  SourceFile.NO_SOURCE_FILE
-//    }
+
+        if (descriptor is  DeclarationDescriptorWithSource) {
+            return descriptor.getSource()
+                .getContainingFile()
+        }
+
+        return  SourceFile.NO_SOURCE_FILE
+    }
 
     private fun getFqNameUnsafe(descriptor: DeclarationDescriptor): FqNameUnsafe {
         val containingDeclaration =
@@ -180,6 +270,7 @@ object DescriptorUtils {
         return getParentOfType<D>(descriptor, aClass, true)
     }
 
+    @JvmStatic
     fun <D : DeclarationDescriptor?> getParentOfType(
         descriptor: DeclarationDescriptor?,
         aClass: Class<D>,
@@ -198,6 +289,48 @@ object DescriptorUtils {
         }
         return null
     }
+
+    fun isSubtypeOfClass(
+        type: CangJieType,
+        superClass: DeclarationDescriptor
+    ): Boolean {
+        if (isSameClass(type, superClass)) return true
+        for (superType in type.constructor.getSupertypes()) {
+            if (isSubtypeOfClass(superType, superClass)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun isSameClass(
+        type: CangJieType,
+        other: DeclarationDescriptor
+    ): Boolean {
+        val descriptor =
+            type.constructor.getDeclarationDescriptor()
+        if (descriptor != null) {
+            val originalDescriptor: DeclarationDescriptor = descriptor.original
+            if ((originalDescriptor is ClassifierDescriptor
+                        && other is ClassifierDescriptor) && other.getTypeConstructor() == originalDescriptor.getTypeConstructor()
+            ) {
+                return true
+            }
+        }
+        return false
+    }
+
+    @JvmStatic
+    fun isSubclass(
+        subClass: ClassDescriptor,
+        superClass: ClassDescriptor
+    ): Boolean {
+        return isSubtypeOfClass(
+            subClass.getDefaultType(),
+            superClass.original
+        )
+    }
+
 
     @JvmStatic
 
@@ -274,10 +407,10 @@ object DescriptorUtils {
 
     @JvmStatic
     private fun getFqNameSafeIfPossible(descriptor: DeclarationDescriptor): FqName? {
-        if ( descriptor is ModuleDescriptor || isError(descriptor)) {
+        if (descriptor is ModuleDescriptor || isError(descriptor)) {
             return FqName.ROOT
         }
-        if(descriptor is BasicTypeDescriptor){
+        if (descriptor is BasicTypeDescriptor) {
             return FqName.ROOT
         }
 
@@ -342,3 +475,40 @@ fun FunctionDescriptor.isFunctionForExpectTypeFromCastFeature(): Boolean {
 
     return !(valueParameters.any { it.type.isBadType() } || extensionReceiverParameter?.type?.isBadType() == true)
 }
+/**
+ * When `Inner` is used as type outside of `Outer` class all type arguments should be specified, e.g. `Outer<String, Int>.Inner<Double>`
+ * However, it's not necessary inside Outer's members, only the last one should be specified there.
+ * So this function return a list of arguments that should be used if relevant arguments weren't specified explicitly inside the [scopeOwner].
+ *
+ * Examples:
+ * for `Outer` class the map will contain: Outer -> (X, Y) (i.e. defaultType mapping)
+ * for `Derived` class the map will contain: Derived -> (E), Outer -> (E, String)
+ * for `A.B` class the map will contain: B -> (), Outer -> (Int, CharSequence), A -> ()
+ *
+ * open class Outer<X, Y> {
+ *  inner class Inner<Z>
+ * }
+ *
+ * class Derived<E> : Outer<E, String>()
+ *
+ * class A : Outer<String, Double>() {
+ *   inner class B : Outer<Int, CharSequence>()
+ * }
+ */
+//fun findImplicitOuterClassArguments(scopeOwner: ClassDescriptor, outerClass: ClassDescriptor): List<TypeProjection>? {
+//    for (current in scopeOwner.classesFromInnerToOuter()) {
+//        for (supertype in current.getAllSuperClassesTypesIncludeItself()) {
+//            val classDescriptor = supertype.constructor.declarationDescriptor as ClassDescriptor
+//            if (classDescriptor == outerClass) return supertype.arguments
+//        }
+//    }
+//
+//    return null
+//}
+//private fun ClassDescriptor.classesFromInnerToOuter() = generateSequence(this) {
+//    if (it.isInner)
+//        it.containingDeclaration.original as? ClassDescriptor
+//    else
+//        null
+//}
+object DeserializedDeclarationsFromSupertypeConflictDataKey : CallableDescriptor.UserDataKey<CallableMemberDescriptor>

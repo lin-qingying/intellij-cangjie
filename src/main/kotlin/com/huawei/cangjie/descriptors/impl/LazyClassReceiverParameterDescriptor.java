@@ -14,7 +14,7 @@ public class LazyClassReceiverParameterDescriptor extends AbstractReceiverParame
     private final ImplicitClassReceiver receiverValue;
 
     public LazyClassReceiverParameterDescriptor(@NotNull ClassDescriptor descriptor) {
-        super(Annotations.Companion.getEMPTY());
+        super(Annotations.EMPTY);
         this.descriptor = descriptor;
         this.receiverValue = new ImplicitClassReceiver(descriptor, null);
 

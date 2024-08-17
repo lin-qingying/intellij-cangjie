@@ -46,7 +46,7 @@ public final class CjNamedDeclarationUtil {
         }
 
         else if (namedDeclaration instanceof CjParameter) {
-            CjClassOrStruct constructorClass = CjPsiUtil.getClassIfParameterIsProperty((CjParameter) namedDeclaration);
+            CjTypeStatement constructorClass = CjPsiUtil.getClassIfParameterIsProperty((CjParameter) namedDeclaration);
             if (constructorClass != null) {
                 return getFQName(constructorClass);
             }

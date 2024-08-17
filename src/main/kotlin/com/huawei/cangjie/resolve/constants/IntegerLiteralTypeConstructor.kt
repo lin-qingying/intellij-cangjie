@@ -128,7 +128,7 @@ class IntegerLiteralTypeConstructor : TypeConstructor {
     private val supertypes: List<CangJieType> by lazy {
         val result = mutableListOf(builtIns.comparable.defaultType.replace(listOf(TypeProjectionImpl(Variance.IN_VARIANCE, type))))
         if (!isContainsOnlyUnsignedTypes()) {
-            result += builtIns.getNumberType()
+            result += builtIns.numberType
         }
         result
     }

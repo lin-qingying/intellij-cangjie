@@ -13,6 +13,7 @@ interface CjExpression : CjElement {
 
     companion object {
         val EMPTY_ARRAY = arrayOf<CjExpression>()
+@JvmStatic
         val ARRAY_FACTORY =
             ArrayFactory { count: Int ->
                 if (count == 0) EMPTY_ARRAY else arrayOfNulls<CjExpression>(count)

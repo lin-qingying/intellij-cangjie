@@ -1,28 +1,29 @@
 package com.huawei.cangjie.descriptors
 
-public interface DeclarationDescriptorVisitor<R, D>{
-    fun visitPackageViewDescriptor(descriptor: PackageViewDescriptor, data: D): R
-    fun visitTypeParameterDescriptor(descriptor:  TypeParameterDescriptor, data: D): R
+  interface DeclarationDescriptorVisitor<R, D>{
+    fun visitPackageViewDescriptor(descriptor: PackageViewDescriptor, builder: D?): R
+    fun visitTypeParameterDescriptor(descriptor:  TypeParameterDescriptor, builder: D?): R
 
     fun visitValueParameterDescriptor(
         descriptor: ValueParameterDescriptor,
-        data: D
+        builder: D?
     ): R
-    fun visitPropertyDescriptor(descriptor:  PropertyDescriptor, data: D): R
+    fun visitPropertyDescriptor(descriptor:  PropertyDescriptor, builder: D?): R
 
-    fun visitModuleDeclaration(descriptor: ModuleDescriptor, data: D): R
+    fun visitModuleDeclaration(descriptor: ModuleDescriptor, builder: D?): R
+      fun visitTypeAliasDescriptor(descriptor: TypeAliasDescriptor , builder: D?): R
 
-    fun visitClassDescriptor(descriptor:  ClassDescriptor, data: D): R
+      fun visitClassDescriptor(descriptor:  ClassDescriptor, builder: D?): R
 
-    fun visitVariableDescriptor(descriptor:VariableDescriptor, data: D): R
+    fun visitVariableDescriptor(descriptor:VariableDescriptor, builder: D?): R
     fun visitPackageFragmentDescriptor(
         descriptor: PackageFragmentDescriptor,
-        data: D
+        builder: D?
     ): R
-    fun visitFunctionDescriptor(descriptor: FunctionDescriptor, data: D): R
+    fun visitFunctionDescriptor(descriptor: FunctionDescriptor, builder: D?): R
     fun visitReceiverParameterDescriptor(
         descriptor: ReceiverParameterDescriptor,
-        data: D
+        builder: D?
     ): R
 
 }

@@ -1,7 +1,7 @@
 package com.huawei.cangjie.ide.references
 
 import com.huawei.cangjie.psi.CangJieReferenceProvidersService
-import com.huawei.cangjie.utils.SmartList
+import com.intellij.util.SmartList
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.psi.ContributedReferenceHost

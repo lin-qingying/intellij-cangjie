@@ -4,6 +4,7 @@ import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.resolve.DescriptorUtils;
 import com.huawei.cangjie.resolve.DescriptorUtilsKt;
+import com.huawei.cangjie.resolve.scopes.InnerClassesScopeWrapper;
 import com.huawei.cangjie.resolve.scopes.MemberScope;
 import com.huawei.cangjie.resolve.scopes.SubstitutingScope;
 import com.huawei.cangjie.storage.NotNullLazyValue;
@@ -16,12 +17,13 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractClassDescriptor extends ModuleAwareClassDescriptor {
     protected final NotNullLazyValue<SimpleType> defaultType;
     private final Name name;
-    //    private final NotNullLazyValue<MemberScope> unsubstitutedInnerClassesScope;
+        private final NotNullLazyValue<MemberScope> unsubstitutedInnerClassesScope;
     private final NotNullLazyValue<ReceiverParameterDescriptor> thisAsReceiverParameter;
 
     public AbstractClassDescriptor(@NotNull StorageManager storageManager, @NotNull Name name) {
@@ -61,12 +63,12 @@ public abstract class AbstractClassDescriptor extends ModuleAwareClassDescriptor
                 );
             }
         });
-//        this.unsubstitutedInnerClassesScope = storageManager.createLazyValue(new Function0<MemberScope>() {
-//            @Override
-//            public MemberScope invoke() {
-//                return new InnerClassesScopeWrapper(getUnsubstitutedMemberScope());
-//            }
-//        });
+        this.unsubstitutedInnerClassesScope = storageManager.createLazyValue(new Function0<MemberScope>() {
+            @Override
+            public MemberScope invoke() {
+                return new InnerClassesScopeWrapper(getUnsubstitutedMemberScope());
+            }
+        });
         this.thisAsReceiverParameter = storageManager.createLazyValue(() -> new LazyClassReceiverParameterDescriptor(AbstractClassDescriptor.this));
     }
 
@@ -80,6 +82,11 @@ public abstract class AbstractClassDescriptor extends ModuleAwareClassDescriptor
     @Override
     public Name getName() {
         return name;
+    }
+    @NotNull
+    @Override
+    public List<ReceiverParameterDescriptor> getContextReceivers() {
+        return Collections.emptyList();
     }
 
     @Override
@@ -131,8 +138,8 @@ public abstract class AbstractClassDescriptor extends ModuleAwareClassDescriptor
     @NotNull
     @Override
     public MemberScope getUnsubstitutedInnerClassesScope() {
-        throw new UnsupportedOperationException("Should not be called on " + getClass());
-//        return unsubstitutedInnerClassesScope.invoke();
+//        throw new UnsupportedOperationException("Should not be called on " + getClass());
+        return unsubstitutedInnerClassesScope.invoke();
     }
 
 //    @NotNull

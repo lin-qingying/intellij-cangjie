@@ -18,6 +18,7 @@ class ModuleDescriptorImpl(
 
     capabilities: Map<ModuleCapability<*>, Any?> = emptyMap(),
 
+    isBuiltInsModule:Boolean = false
     ) : DeclarationDescriptorImpl(Annotations.EMPTY, moduleName),
     ModuleDescriptor {
     private val capabilities: Map<ModuleCapability<*>, Any?>
@@ -34,6 +35,11 @@ class ModuleDescriptorImpl(
 
         packageViewDescriptorFactory =
             getCapability(PackageViewDescriptorFactory.CAPABILITY) ?: PackageViewDescriptorFactory.Default
+
+        if (!isBuiltInsModule){
+            builtIns.sourcesModuleDescriptor = this
+        }
+
     }
 
     fun setDependencies(vararg descriptors: ModuleDescriptorImpl) {
@@ -67,7 +73,6 @@ class ModuleDescriptorImpl(
     }
 
 
-
     override var isValid: Boolean = true
 
     private val packages = storageManager.createMemoizedFunction { fqName: FqName ->
@@ -82,7 +87,8 @@ class ModuleDescriptorImpl(
     private val packageFragmentProviderForWholeModuleWithDependencies by lazy {
         test()
     }
-    fun  test(): CompositePackageFragmentProvider {
+
+    fun test(): CompositePackageFragmentProvider {
         val moduleDependencies =
             dependencies.sure { "Dependencies of module $id were not set before querying module content" }
         val dependenciesDescriptors = moduleDependencies.allDependencies
@@ -93,13 +99,14 @@ class ModuleDescriptorImpl(
                 "Dependency module ${dependency.id} was not initialized by the time contents of dependent module ${this.id} were queried"
             }
         }
-      return  CompositePackageFragmentProvider(
+        return CompositePackageFragmentProvider(
             dependenciesDescriptors.map {
                 it.packageFragmentProviderForModuleContent!!
             },
             "CompositeProvider@ModuleDescriptor for $name"
         )
     }
+
     val packageFragmentProvider: PackageFragmentProvider
         get() {
             assertValid()

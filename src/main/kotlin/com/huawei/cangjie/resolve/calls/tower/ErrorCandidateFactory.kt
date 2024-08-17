@@ -7,7 +7,7 @@ import com.huawei.cangjie.resolve.scopes.findClassifier
 import com.huawei.cangjie.resolve.scopes.receivers.DetailedReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.QualifierReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
-import com.huawei.cangjie.utils.SmartList
+import com.intellij.util.SmartList
 
 
 fun collectErrorCandidatesForFunction(

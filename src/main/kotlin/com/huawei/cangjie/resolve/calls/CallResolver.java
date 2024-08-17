@@ -266,7 +266,7 @@ public class CallResolver {
                 parameterTypes.add(NO_EXPECTED_TYPE);
             }
             expectedType = FunctionTypesKt.createFunctionType(
-                    builtIns, Annotations.Companion.getEMPTY(), null, Collections.emptyList(), parameterTypes, null, context.expectedType
+                    builtIns, Annotations.EMPTY, null, Collections.emptyList(), parameterTypes, null, context.expectedType
             );
         }
         CangJieType calleeType = expressionTypingServices.safeGetType(

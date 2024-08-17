@@ -6,6 +6,7 @@ import com.huawei.cangjie.cjpm.project.workspace.CjpmWorkspace
 import com.huawei.cangjie.lang.CangJieFileType
 import com.huawei.cangjie.lang.CangJieLanguage
 import com.huawei.cangjie.name.FqName
+import com.huawei.cangjie.psi.psiUtil.CangJieImportField
 import com.huawei.cangjie.psi.stubs.CangJieFileStub
 import com.huawei.cangjie.psi.stubs.elements.CjPlaceHolderStubElementType
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
@@ -19,14 +20,16 @@ import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ArrayFactory
 
+interface CangJieFile
+
 open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = false) :
     PsiFileBase(viewProvider, CangJieLanguage),
 //    PsiClassOwner,
     PsiNamedElement,
 //    PsiModifiableCodeBlock,
     CjDeclarationContainer,
-    CjElement {
-    override fun getFileType(): FileType = CangJieFileType
+    CjElement,CangJieFile {
+    override fun getFileType(): FileType = CangJieFileType.INSTANCE
 //    override fun getClasses(): Array<PsiClass> {
 //        val fileClassProvider = project.getService(CjFileClassProvider::class.java)
 //        return fileClassProvider?.getFileClasses(this) ?: PsiClass.EMPTY_ARRAY
@@ -67,6 +70,11 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
 
     protected open val importLists: List<CjImportList>
         get() = findChildrenByTypeOrClass(CjStubElementTypes.IMPORT_LIST, CjImportList::class.java).asList()
+//    val importListsField: List<CangJieImportField> = importDirectives.flatMap {
+////        将多个cangJieImportFieldList合成一个
+//        it.cangJieImportFieldList
+//
+//    }
 
     fun hasImportAlias(): Boolean {
         val hasImportAlias = hasImportAlias
@@ -75,6 +83,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
         val newValue = importLists.any(CjImportList::computeHasImportAlias)
         this.hasImportAlias = newValue
         return newValue
+//        TODO()
     }
 
     override fun toString(): String {

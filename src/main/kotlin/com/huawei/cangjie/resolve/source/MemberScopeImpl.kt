@@ -15,12 +15,17 @@ abstract class MemberScopeImpl : MemberScope {
     override fun getContributedVariables(
         name: Name,
         location: LookupLocation
-    ): Collection<@JvmWildcard PropertyDescriptor> =
+    ): Collection<@JvmWildcard VariableDescriptor> =
         emptyList()
+
+    override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
+        return emptyList()
+    }
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
         return emptyList()
     }
+
     abstract override fun printScopeStructure(p: Printer)
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
@@ -28,11 +33,18 @@ abstract class MemberScopeImpl : MemberScope {
         getContributedDescriptors(
             DescriptorKindFilter.FUNCTIONS, alwaysTrue()
         ).filterIsInstanceMapTo<SimpleFunctionDescriptor, Name, MutableSet<Name>>(mutableSetOf()) { it.name }
+
     override fun getVariableNames(): Set<Name> =
         getContributedDescriptors(
             DescriptorKindFilter.VARIABLES, alwaysTrue()
         ).filterIsInstanceMapTo<SimpleFunctionDescriptor, Name, MutableSet<Name>>(mutableSetOf()) { it.name }
+
     override fun getClassifierNames(): Set<Name>? = null
+    override fun getPropertyNames(): Set<Name> {
+        return getContributedDescriptors(
+            DescriptorKindFilter.PROPERTYS, alwaysTrue()
+        ).filterIsInstanceMapTo<SimpleFunctionDescriptor, Name, MutableSet<Name>>(mutableSetOf()) { it.name }
+    }
 
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,

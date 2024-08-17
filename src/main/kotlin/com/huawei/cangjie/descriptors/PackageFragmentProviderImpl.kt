@@ -19,6 +19,7 @@ class PackageFragmentProviderImpl(
 
     }
 
+    @Deprecated("for usages use #packageFragments(FqName) at final point, for impl use #collectPackageFragments(FqName, MutableCollection<PackageFragmentDescriptor>)")
     override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> {
         return packageFragments.filter { it.fqName == fqName }
 

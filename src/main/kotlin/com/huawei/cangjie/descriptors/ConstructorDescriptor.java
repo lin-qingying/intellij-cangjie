@@ -8,7 +8,9 @@ import org.jetbrains.annotations.Nullable;
 public interface ConstructorDescriptor extends FunctionDescriptor{
     boolean isPrimary();
 
-
+    @NotNull
+    @Override
+    CangJieType getReturnType();
     @NotNull
     ClassDescriptor getConstructedClass();
 

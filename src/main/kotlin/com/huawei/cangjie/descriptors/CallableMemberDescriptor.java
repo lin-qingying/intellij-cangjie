@@ -31,10 +31,10 @@ public interface CallableMemberDescriptor extends CallableDescriptor, MemberDesc
     CopyBuilder<? extends CallableMemberDescriptor> newCopyBuilder();
 
     enum Kind {
-        DECLARATION,
-        FAKE_OVERRIDE,
-        DELEGATION,
-        SYNTHESIZED;
+        DECLARATION,  //声明
+        FAKE_OVERRIDE, //伪重写 指在某些情况下并不真正重写父类的方
+        DELEGATION, // 委托
+        SYNTHESIZED;//合成，可能是指编译器或工具自动生成的代码或结构。
 
         public boolean isReal() {
             return this != FAKE_OVERRIDE;

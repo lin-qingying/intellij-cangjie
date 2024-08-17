@@ -1,6 +1,7 @@
 package com.huawei.cangjie.lang.declarations
 
 import com.huawei.cangjie.lang.CangJieLanguage
+import com.huawei.cangjie.psi.CjFile
 import com.intellij.lang.Language
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.FileViewProvider
@@ -8,7 +9,7 @@ import com.intellij.psi.FileViewProviderFactory
 import com.intellij.psi.PsiManager
 import com.intellij.psi.SingleRootFileViewProvider
 
-class CangJieDeclarationsFileViewProviderFactory : FileViewProviderFactory {
+class CangJieFileViewProviderFactory : FileViewProviderFactory {
     override fun createFileViewProvider(
         file: VirtualFile,
         language: Language?,
@@ -17,25 +18,25 @@ class CangJieDeclarationsFileViewProviderFactory : FileViewProviderFactory {
     ): FileViewProvider {
 
 //        return SingleRootFileViewProvider(manager, file)
-        return CangJieDeclarationsFileViewProvider(manager, file, eventSystemEnabled, ::CjDeclarationsFile)
+        return CangJieFileViewProvider(manager, file, eventSystemEnabled, ::CjDeclarationsFile)
     }
 
 
 }
 
 
-class CangJieDeclarationsFileViewProvider(
+class CangJieFileViewProvider(
     manager: PsiManager,
     file: VirtualFile,
     physical: Boolean,
-    private val factory: (CangJieDeclarationsFileViewProvider) -> CjDeclarationsFile?
+    private val factory: (CangJieFileViewProvider) -> CjFile?
 ) : SingleRootFileViewProvider(manager, file, physical, CangJieLanguage) {
 
 //    override fun createFile(project: Project, file: VirtualFile, fileType: FileType): PsiFile? {
 //        return factory(this)
 //    }
 
-    override fun createCopy(copy: VirtualFile) = CangJieDeclarationsFileViewProvider(manager, copy, false, factory)
+    override fun createCopy(copy: VirtualFile) = CangJieFileViewProvider(manager, copy, false, factory)
 
 
 }

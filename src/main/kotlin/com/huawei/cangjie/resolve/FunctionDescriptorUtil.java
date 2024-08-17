@@ -1,9 +1,6 @@
 package com.huawei.cangjie.resolve;
 
-import com.huawei.cangjie.descriptors.BindingTrace;
-import com.huawei.cangjie.descriptors.FunctionDescriptor;
-import com.huawei.cangjie.descriptors.ValueParameterDescriptor;
-import com.huawei.cangjie.descriptors.VariableDescriptor;
+import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.impl.ValueParameterDescriptorImpl;
 import com.huawei.cangjie.resolve.scopes.*;
 import kotlin.Unit;
@@ -29,10 +26,10 @@ public class FunctionDescriptorUtil {
 //                    }
                     for (ValueParameterDescriptor valueParameterDescriptor : descriptor.getValueParameters()) {
                         if (valueParameterDescriptor instanceof ValueParameterDescriptorImpl.WithDestructuringDeclaration) {
-                            List<VariableDescriptor> entries =
+                            List<VariableDescriptorBase> entries =
                                     ((ValueParameterDescriptorImpl.WithDestructuringDeclaration) valueParameterDescriptor)
                                             .getDestructuringVariables();
-                            for (VariableDescriptor entry : entries) {
+                            for (VariableDescriptorBase entry : entries) {
                                 handler.addVariableDescriptor(entry);
                             }
                         } else {

@@ -5,6 +5,7 @@ import com.huawei.cangjie.psi.psiUtil.StubUtils
 import com.huawei.cangjie.psi.psiUtil.safeFqNameForLazyResolve
 import com.huawei.cangjie.psi.stubs.CangJieTypeAliasStub
 import com.huawei.cangjie.psi.stubs.impl.CangJieTypeAliasStubImpl
+import com.intellij.psi.stubs.IndexSink
 import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
@@ -23,6 +24,9 @@ class CjTypeAliasElementType(debugName: String) :
 
     }
 
+    override fun indexStub(stub: CangJieTypeAliasStub, sink: IndexSink) {
+        StubIndexService.getInstance().indexTypeAlias(stub, sink)
+    }
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?): CangJieTypeAliasStub {
         val name = dataStream.readName()
         val fqName = dataStream.readName()

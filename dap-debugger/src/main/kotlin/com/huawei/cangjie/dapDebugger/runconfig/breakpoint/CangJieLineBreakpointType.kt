@@ -23,7 +23,7 @@ import com.intellij.xdebugger.breakpoints.XLineBreakpointType
 //    override fun canPutAt(file: VirtualFile, line: Int, project: Project): Boolean {
 //
 //
-//        return file.extension == "cj" && file.fileType == CangJieFileType
+//        return file.extension == "cj" && file.fileType == CangJieFileType.INSTANCE
 //    }
 //
 //}
@@ -34,7 +34,7 @@ class CangJieLineBreakpointType :
     }
 
     override fun canPutAt(file: VirtualFile, line: Int, project: com.intellij.openapi.project.Project): Boolean {
-        return file.extension == "cj" && file.fileType == CangJieFileType
+        return file.extension == "cj" && file.fileType == CangJieFileType.INSTANCE
     }
 
     companion object {

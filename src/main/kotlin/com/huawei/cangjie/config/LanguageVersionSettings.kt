@@ -87,7 +87,7 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER), // K
 //    NestedClassesInAnnotations(CANGJIE_0_53_4),
 //    JvmStaticInInterface(CANGJIE_0_53_4, kind = UNSTABLE_FEATURE),
 //    JvmFieldInInterface(CANGJIE_0_53_4, kind = UNSTABLE_FEATURE),
-//    ProhibitVisibilityOfNestedClassifiersFromSupertypesOfCompanion(CANGJIE_0_53_4, kind = BUG_FIX),
+    ProhibitVisibilityOfNestedClassifiersFromSupertypes(CANGJIE_0_53_4, kind = BUG_FIX),
 //    ProhibitNonConstValuesAsVarargsInAnnotations(CANGJIE_0_53_4, kind = BUG_FIX),
 //    ReleaseCoroutines(CANGJIE_0_53_4, kind = UNSTABLE_FEATURE),
 //    ReadDeserializedContracts(CANGJIE_0_53_4),
@@ -134,7 +134,7 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER), // K
     MixedNamedArgumentsInTheirOwnPosition(CANGJIE_0_53_4),
 //    ProhibitTailrecOnVirtualMember(CANGJIE_0_53_4, kind = BUG_FIX),
 //    ProperComputationOrderOfTailrecDefaultParameters(CANGJIE_0_53_4),
-//    TrailingCommas(CANGJIE_0_53_4),
+    TrailingCommas(CANGJIE_0_53_4),
 //    ProhibitProtectedCallFromInline(CANGJIE_0_53_4, kind = BUG_FIX),
 //    ProperFinally(CANGJIE_0_53_4, kind = BUG_FIX),
 //    AllowAssigningArrayElementsToVarargsInNamedFormForFunctions(CANGJIE_0_53_4),
@@ -164,7 +164,7 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER), // K
 //    // 1.5
 //
 //    ProhibitSpreadOnSignaturePolymorphicCall(CANGJIE_0_53_4, kind = BUG_FIX),
-//    ProhibitInvisibleAbstractMethodsInSuperclasses(CANGJIE_0_53_4, kind = BUG_FIX),
+    ProhibitInvisibleAbstractMethodsInSuperclasses(CANGJIE_0_53_4, kind = BUG_FIX),
 //    ProhibitNonReifiedArraysAsReifiedTypeArguments(CANGJIE_0_53_4, kind = BUG_FIX),
 //    ProhibitVarargAsArrayAfterSamArgument(CANGJIE_0_53_4, kind = BUG_FIX),
 //    CorrectSourceMappingSyntax(CANGJIE_0_53_4, kind = UNSTABLE_FEATURE),
@@ -251,7 +251,7 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER), // K
 //    ProhibitConfusingSyntaxInWhenBranches(CANGJIE_0_53_4, kind = BUG_FIX), // KT-48385
     UseConsistentRulesForPrivateConstructorsOfSealedClasses(sinceVersion = CANGJIE_0_53_4, kind = BUG_FIX), // KT-44866
 //    ProgressionsChangingResolve(CANGJIE_0_53_4), // KT-49276
-//    AbstractClassMemberNotImplementedWithIntermediateAbstractClass(CANGJIE_0_53_4, kind = BUG_FIX), // KT-45508
+    AbstractClassMemberNotImplementedWithIntermediateAbstractClass(CANGJIE_0_53_4, kind = BUG_FIX), // KT-45508
 //    ForbidSuperDelegationToAbstractAnyMethod(CANGJIE_0_53_4, kind = BUG_FIX), // KT-38078
 //    ProperEqualityChecksInBuilderInferenceCalls(CANGJIE_0_53_4, kind = BUG_FIX),
 //    ProhibitNonExhaustiveIfInRhsOfElvis(CANGJIE_0_53_4, kind = BUG_FIX), // KT-44705

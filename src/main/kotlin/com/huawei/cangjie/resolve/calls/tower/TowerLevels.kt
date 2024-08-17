@@ -7,7 +7,7 @@ import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.ErrorUtils
-import com.huawei.cangjie.utils.SmartList
+import com.intellij.util.SmartList
 import com.intellij.util.containers.addIfNotNull
 internal class ImportingScopeBasedTowerLevel(
     scopeTower: ImplicitScopeTower,

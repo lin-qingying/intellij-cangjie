@@ -6,7 +6,7 @@ import com.huawei.cangjie.resolve.calls.inference.*
 import com.huawei.cangjie.resolve.calls.inference.components.*
 import com.huawei.cangjie.types.AbstractTypeChecker
 import com.huawei.cangjie.types.model.*
-import com.huawei.cangjie.utils.SmartList
+import com.intellij.util.SmartList
 import com.huawei.cangjie.utils.SmartSet
 import com.huawei.cangjie.utils.trimToSize
 import kotlin.math.max

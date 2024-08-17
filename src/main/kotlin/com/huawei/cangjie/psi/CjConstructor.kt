@@ -20,7 +20,7 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
     )
     open fun getConstructorKeyword(): PsiElement? = findChildByType(CjTokens.INIT_KEYWORD)
 
-    abstract fun getContainingClassOrStruct(): CjClassOrStruct
+    abstract fun getContainingClassOrStruct(): CjTypeStatement
 
     override fun isLocal() = false
 

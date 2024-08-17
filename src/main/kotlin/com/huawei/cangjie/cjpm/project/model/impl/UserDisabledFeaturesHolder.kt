@@ -16,7 +16,7 @@ import java.nio.file.Path
         Storage(StoragePathMacros.WORKSPACE_FILE, roamingType = RoamingType.DISABLED)
     ]
 )
-@Service
+@Service(Service.Level.PROJECT)
 class UserDisabledFeaturesHolder(private val project: Project) : PersistentStateComponent<Element> {
     private var loadedUserDisabledFeatures: Map<Path, UserDisabledFeatures> = emptyMap()
 

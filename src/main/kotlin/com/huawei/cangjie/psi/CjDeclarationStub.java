@@ -50,7 +50,7 @@ public abstract class CjDeclarationStub<T extends StubElement<?>> extends CjModi
     public PsiElement getParent() {
         T stub = getStub();
         // we build stubs for local classes/objects too but they have wrong parent
-//        if (stub != null && !(stub instanceof CangJieClassOrStructStub && ((CangJieClassOrStructStub) stub).isLocal())) {
+//        if (stub != null && !(stub instanceof CangJieTypeStatementStub && ((CangJieTypeStatementStub) stub).isLocal())) {
 //            return stub.getParentStub().getPsi();
 //        }
         return super.getParent();

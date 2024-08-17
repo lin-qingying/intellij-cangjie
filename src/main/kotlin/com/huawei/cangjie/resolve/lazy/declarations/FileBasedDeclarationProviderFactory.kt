@@ -4,6 +4,9 @@ import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.Multimap
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.CjFile
+import com.huawei.cangjie.resolve.lazy.data.CjClassLikeInfo
+import com.huawei.cangjie.resolve.lazy.descriptors.ClassMemberDeclarationProvider
+import com.huawei.cangjie.resolve.lazy.descriptors.PsiBasedClassMemberDeclarationProvider
 import com.huawei.cangjie.storage.NotNullLazyValue
 import com.huawei.cangjie.storage.StorageManager
 
@@ -20,16 +23,22 @@ class FileBasedDeclarationProviderFactory(
             HashSet<FqName>()
     }
 
+    /*package*/
+    fun getAllDeclaredSubPackagesOf(parent: FqName): Collection<FqName> {
+        return index.invoke().declaredPackages.filter<FqName> { fqName: FqName -> !fqName.isRoot && fqName.parent() == parent }
+    }
+
     companion object {
         private fun addMeAndParentPackages(
             index: Index,
-            name:  FqName
+            name: FqName
         ) {
             index.declaredPackages.add(name)
-            if (!name.isRoot()) {
+            if (!name.isRoot) {
                 addMeAndParentPackages(index, name.parent())
             }
         }
+
         private fun computeFilesByPackage(files: Collection<CjFile>): Index {
             val index: Index =
                 Index()
@@ -59,6 +68,21 @@ class FileBasedDeclarationProviderFactory(
     }
 
     override fun createPackageMemberDeclarationProvider(name: FqName): PackageMemberDeclarationProvider? {
-        TODO("Not yet implemented")
+        if (packageExists(name)) {
+            return FileBasedPackageMemberDeclarationProvider(
+                storageManager, name, this, index.invoke().filesByPackage[name]
+            )
+        }
+
+        return null
+    }
+
+    override fun getClassMemberDeclarationProvider(classLikeInfo: CjClassLikeInfo): ClassMemberDeclarationProvider {
+        check(index.invoke().filesByPackage.containsKey(classLikeInfo.containingPackageFqName)) { "This factory doesn't know about this class: $classLikeInfo" }
+
+        return PsiBasedClassMemberDeclarationProvider(
+            storageManager,
+            classLikeInfo
+        )
     }
 }

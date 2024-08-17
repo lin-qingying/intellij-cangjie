@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
+import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.utils.Printer
 
@@ -65,6 +66,9 @@ abstract class BaseHierarchicalScope(override val parent: HierarchicalScope?) : 
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
         emptyList()
 
+    override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
+        emptyList()
+
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
         emptyList()
 }
@@ -79,6 +83,8 @@ interface LexicalScope : HierarchicalScope {
     val contextReceiversGroup: List<ReceiverParameterDescriptor>
 
     val kind: LexicalScopeKind
+
+
 
     class Base(
         parent: HierarchicalScope,
@@ -98,6 +104,9 @@ interface LexicalScope : HierarchicalScope {
         override val kind: LexicalScopeKind
             get() = LexicalScopeKind.EMPTY
 
+//        override fun getContributedPackageFqName(name: Name, location: LookupLocation): List<FqName> {
+//            return mutableListOf()
+//        }
 //        override fun definitelyDoesNotContainName(name: Name) = true
 
         override fun printStructure(p: Printer) {
@@ -172,8 +181,6 @@ inline fun <T : Any> HierarchicalScope.findFirstFromMeAndParent(fetch: (Hierarch
     return null
 }
 
-fun HierarchicalScope.findClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
-    findFirstFromMeAndParent { it.getContributedClassifier(name, location) }
 
 class CompositePrioritizedImportingScope(
     private val primaryScope: ImportingScope,
@@ -216,6 +223,12 @@ class CompositePrioritizedImportingScope(
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
         return primaryScope.getContributedVariables(name, location).union(
             secondaryScope.getContributedVariables(name, location)
+        )
+    }
+
+    override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
+        return primaryScope.getContributedPropertys(name, location).union(
+            secondaryScope.getContributedPropertys(name, location)
         )
     }
 

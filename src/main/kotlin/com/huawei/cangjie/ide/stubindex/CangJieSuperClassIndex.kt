@@ -1,13 +1,13 @@
 package com.huawei.cangjie.ide.stubindex
 
-import com.huawei.cangjie.psi.CjClassOrStruct
+import com.huawei.cangjie.psi.CjTypeStatement
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StringStubIndexExtension
 import com.intellij.psi.stubs.StubIndexKey
 
-class CangJieSuperClassIndex internal constructor() : StringStubIndexExtension<CjClassOrStruct>() {
-    companion object Helper : CangJieStringStubIndexHelper<CjClassOrStruct>(CjClassOrStruct::class.java) {
+class CangJieSuperClassIndex internal constructor() : StringStubIndexExtension<CjTypeStatement>() {
+    companion object Helper : CangJieStringStubIndexHelper<CjTypeStatement>(CjTypeStatement::class.java) {
         @JvmStatic
         @Suppress("DeprecatedCallableAddReplaceWith")
         @Deprecated("Use the Helper object instead", level = DeprecationLevel.ERROR)
@@ -15,14 +15,14 @@ class CangJieSuperClassIndex internal constructor() : StringStubIndexExtension<C
             return CangJieSuperClassIndex()
         }
 
-        override val indexKey: StubIndexKey<String, CjClassOrStruct> =
+        override val indexKey: StubIndexKey<String, CjTypeStatement> =
             StubIndexKey.createIndexKey("com.huawei.cnagjie.idea.stubindex.CangJieSuperClassIndex")
     }
 
-    override fun getKey(): StubIndexKey<String, CjClassOrStruct> = indexKey
+    override fun getKey(): StubIndexKey<String, CjTypeStatement> = indexKey
 
     @Deprecated("Base method is deprecated", ReplaceWith("CangJieSuperClassIndex[key, project, scope]"))
-    override fun get(key: String, project: Project, scope: GlobalSearchScope): Collection<CjClassOrStruct> {
+    override fun get(key: String, project: Project, scope: GlobalSearchScope): Collection<CjTypeStatement> {
         return Helper[key, project, scope]
     }
 }

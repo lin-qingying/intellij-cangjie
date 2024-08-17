@@ -9,7 +9,7 @@ import java.util.*
 
 open class FakeCallableDescriptorForObject(
     val classDescriptor: ClassDescriptor,
-) : DeclarationDescriptorWithVisibility by classDescriptor.getClassObjectReferenceTarget(), VariableDescriptor {
+) : DeclarationDescriptorWithVisibility by classDescriptor.getClassObjectReferenceTarget(), VariableDescriptorBase {
     //
 //    init {
 //        assert(classDescriptor.hasClassValueDescriptor) {
@@ -57,6 +57,7 @@ open class FakeCallableDescriptorForObject(
 //    override fun cleanCompileTimeInitializerCache() {}
 
     override fun getSource(): SourceElement = classDescriptor.source
+    override val isConst: Boolean = false
     override val isVar: Boolean = false
 
 //    override fun isConst(): Boolean = false

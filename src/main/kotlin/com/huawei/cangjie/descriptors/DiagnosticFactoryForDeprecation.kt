@@ -42,3 +42,27 @@ class DiagnosticFactoryForDeprecation0<E : PsiElement>(
 
     fun onError(element: E): SimpleDiagnostic<E> = errorFactory.on(element)
 }
+class DiagnosticFactoryForDeprecation2<E : PsiElement, A : Any, B : Any>(
+    featureForError: LanguageFeature,
+    warningFactory: DiagnosticFactory2<E, A, B>,
+    errorFactory: DiagnosticFactory2<E, A, B>
+) : DiagnosticFactoryForDeprecation<E, DiagnosticWithParameters2<E, A, B>, DiagnosticFactory2<E, A, B>>(featureForError, warningFactory, errorFactory) {
+    companion object {
+        @JvmStatic
+        @JvmOverloads
+        fun <E : PsiElement, A : Any, B : Any> create(
+            featureForError: LanguageFeature,
+            positioningStrategy: PositioningStrategy<E> = PositioningStrategies.DEFAULT
+        ): DiagnosticFactoryForDeprecation2<E, A, B> {
+            return DiagnosticFactoryForDeprecation2(
+                featureForError,
+                warningFactory = DiagnosticFactory2.create(Severity.WARNING, positioningStrategy),
+                errorFactory = DiagnosticFactory2.create(Severity.ERROR, positioningStrategy),
+            )
+        }
+    }
+
+    fun on(languageVersionSettings: LanguageVersionSettings, element: E, a: A, b: B): ParametrizedDiagnostic<E> {
+        return languageVersionSettings.chooseFactory().on(element, a, b)
+    }
+}

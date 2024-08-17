@@ -24,7 +24,7 @@ abstract class CjCodeFragment(
 ) : CjFile(
     run {
         val psiManager = PsiManager.getInstance(myProject) as PsiManagerEx
-        psiManager.fileManager.createFileViewProvider(LightVirtualFile(name, CangJieFileType, text), true)
+        psiManager.fileManager.createFileViewProvider(LightVirtualFile(name, CangJieFileType.INSTANCE, text), true)
     }, false
 ), CjCodeFragmentBase {
     private var viewProvider = super.getViewProvider() as SingleRootFileViewProvider
@@ -80,7 +80,7 @@ abstract class CjCodeFragment(
             imports = this@CjCodeFragment.imports
             viewProvider = SingleRootFileViewProvider(
                 PsiManager.getInstance(myProject),
-                LightVirtualFile(name, CangJieFileType, text),
+                LightVirtualFile(name, CangJieFileType.INSTANCE, text),
                 false
             )
             viewProvider.forceCachedPsi(this)

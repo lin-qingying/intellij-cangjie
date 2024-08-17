@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-public interface PropertyDescriptor extends VariableDescriptorWithAccessors, CallableMemberDescriptor, PropertySymbolMarker {
+public interface PropertyDescriptor extends VariableDescriptorWithAccessors, PropertySymbolMarker , CallableMemberDescriptor{
 //    @Override
 //    @Nullable
 //    PropertyGetterDescriptor getGetter();
@@ -27,7 +27,9 @@ public interface PropertyDescriptor extends VariableDescriptorWithAccessors, Cal
      *     }
      */
     boolean isSetterProjectedOut();
-
+//    @Override
+//    @Nullable
+//    PropertySetterDescriptor getSetter();
 //    @NotNull
 //    List<PropertyAccessorDescriptor> getAccessors();
 

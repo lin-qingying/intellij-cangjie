@@ -2,6 +2,7 @@ package com.huawei.cangjie.psi
 
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes.CLASS_BODY
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
@@ -21,7 +22,14 @@ class CjClassBody : CjElementImplStub<CangJiePlaceHolderStub<CjClassBody>>, CjDe
     constructor(stub: CangJiePlaceHolderStub<CjClassBody>) : super(stub, CLASS_BODY)
 
     override fun getParent() = parentByStub
+    internal val secondaryConstructors: List<CjSecondaryConstructor>
+        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.SECONDARY_CONSTRUCTOR)
 
+    /**
+     * @return annotations that do not belong to any declaration due to incomplete code or syntax errors
+     */
+//    val danglingAnnotations: List<CjAnnotationEntry>
+//        get() = danglingModifierLists.flatMap { it.annotationEntries }
 
     override fun toString():String{
         return node.elementType.toString()

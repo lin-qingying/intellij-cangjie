@@ -3,7 +3,7 @@ package com.huawei.cangjie.resolve.calls.inference.model
 import com.huawei.cangjie.resolve.calls.inference.ForkPointData
 import com.huawei.cangjie.resolve.calls.tower.isSuccess
 import com.huawei.cangjie.types.model.*
-import com.huawei.cangjie.utils.SmartList
+import com.intellij.util.SmartList
 import com.huawei.cangjie.utils.trimToSize
 
 private typealias Context = TypeSystemInferenceExtensionContext

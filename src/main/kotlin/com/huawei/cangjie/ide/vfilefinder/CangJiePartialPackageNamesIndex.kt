@@ -23,7 +23,15 @@ import java.io.DataOutput
 private val LOG = logger<CangJiePartialPackageNamesIndex>()
 val NAME: ID<FqName, Name?> = ID.create(CangJiePartialPackageNamesIndex::class.java.canonicalName)
 
+data class NameIsRoot(
+    val name: Name,
+    val isRoot: Boolean
+) {
+    fun asString() = "$name:$isRoot"
+}
+
 class CangJiePartialPackageNamesIndex : FileBasedIndexExtension<FqName, Name?>() {
+
 
     private object NullableNameExternalizer : DataExternalizer<Name?> {
         override fun save(out: DataOutput, value: Name?) {
@@ -35,7 +43,16 @@ class CangJiePartialPackageNamesIndex : FileBasedIndexExtension<FqName, Name?>()
 
         override fun read(input: DataInput): Name? =
             if (input.readBoolean()) null else Name.guessByFirstCharacter(IOUtil.readUTF(input))
+
+
+        fun guessByFirstCharacter(s: String): NameIsRoot {
+            val (name, isRoot) = s.split(":")
+
+            return NameIsRoot(Name.guessByFirstCharacter(name), isRoot.toBoolean())
+
+        }
     }
+
 
     override fun getName() = NAME
 
@@ -48,7 +65,7 @@ class CangJiePartialPackageNamesIndex : FileBasedIndexExtension<FqName, Name?>()
     override fun getInputFilter(): DefaultFileTypeSpecificInputFilter =
         DefaultFileTypeSpecificInputFilter(
 //            JavaClassFileType.INSTANCE,
-            CangJieFileType,
+            CangJieFileType.INSTANCE,
             CangJieBuiltInFileType
 
 //            CangJieJavaScriptMetaFileType,
@@ -56,7 +73,7 @@ class CangJiePartialPackageNamesIndex : FileBasedIndexExtension<FqName, Name?>()
 //            KlibMetaFileType,
         )
 
-    override fun getVersion() = 1
+    override fun getVersion() = 3
 
     override fun traceKeyHashToVirtualFileMapping(): Boolean = true
     private fun FileContent.getBuiltInFilePackage(): FqName? {
@@ -64,14 +81,15 @@ class CangJiePartialPackageNamesIndex : FileBasedIndexExtension<FqName, Name?>()
         val virtualFile =
             FileTypeIndex.getFiles(fileType, GlobalSearchScope.projectScope(project)).firstOrNull()
         val psiFIle = virtualFile?.let { PsiManager.getInstance(project).findFile(it) }
-     return   psiFIle.safeAs<CjDeclarationsFile>()?.packageFqName
+        return psiFIle.safeAs<CjDeclarationsFile>()?.packageFqName
     }
+
     private fun FileContent.toPackageFqName(): FqName? =
         when (this.fileType) {
-            CangJieFileType -> this.psiFile.safeAs<CjFile>()?.packageFqName
+            CangJieFileType.INSTANCE -> this.psiFile.safeAs<CjFile>()?.packageFqName
 
-            CangJieBuiltInFileType ->  this.getBuiltInFilePackage()
-            
+            CangJieBuiltInFileType ->/* this.getBuiltInFilePackage()*/this.psiFile.safeAs<CjDeclarationsFile>()?.packageFqName
+
             else -> null
         }
 
@@ -88,7 +106,15 @@ class CangJiePartialPackageNamesIndex : FileBasedIndexExtension<FqName, Name?>()
                 it.parentOrNull()
             }
             val b = a.filterNot { it.isRoot }
-            val c = b.associateBy({ it.parent() }, { it.shortName() })
+            val c = b.associateBy({ it.parent() }, {
+//                NameIsRoot(
+                it.shortName().apply {
+                    isRoot = it.parent().isRoot
+                }
+//                ,
+//                    it.parent().isRoot
+//                )
+            })
             val d = c + mapOf(packageFqName to null)
             d
 

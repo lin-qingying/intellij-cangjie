@@ -1,15 +1,20 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude" allow-bundled-update="true">
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
-    <id>com.huawei.cangjie</id>
+
+    <id>linqingying.cangjie-analyzer</id>
 
     <!-- Public plugin name should be written in Title Case.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
-    <name>Cangjie</name>
+    <name>Cangjie-analyzer</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor>Huawei</vendor>
+    <vendor email="lin17624294976@outlook.com" url="https://gitee.com/Lin_Qing_Ying">@Lin_Qing_Ying</vendor>
 
-    <version>1.1.4</version>
+    <change-notes><![CDATA[
+    The plugin provides support for CangJie language
+    ]]>
+    </change-notes>
+    <version>2.0.0-deta</version>
     <!--    <depends>com.intellij.modules.platform</depends>-->
     <depends>com.intellij.modules.lang</depends>
     <!--suppress PluginXmlValidity -->

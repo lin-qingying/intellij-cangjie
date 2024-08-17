@@ -14,7 +14,6 @@ import com.huawei.cangjie.cjpm.toolchain.cjc
 import com.huawei.cangjie.cjpm.toolchain.cjpm
 import com.huawei.cangjie.cjpm.toolchain.impl.CjcVersion
 import com.huawei.cangjie.cjpm.toolchain.tools.CjpmCallType
-
 import com.huawei.cangjie.cjpm.toolchain.tools.unwrapOrElse
 import com.huawei.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildAdapterBase
 import com.huawei.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildContextBase
@@ -43,7 +42,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsContexts
 import org.jetbrains.annotations.Nls
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.net.URL
 import java.util.concurrent.CompletableFuture
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 import javax.swing.JComponent
 import kotlin.io.path.exists
 
@@ -97,9 +102,9 @@ class CjpmSyncTask(
                                 .withWorkspace(fetchCjpmWorkspace(context, cjcInfo))
                             CjpmProjectWithStdlib(
                                 cjpmProjectWithCjcInfoAndWorkspace,
-//                                fetchStdlib(context, cjpmProjectWithCjcInfoAndWorkspace, cjcInfo)
+                                fetchStdlib(context, cjpmProjectWithCjcInfoAndWorkspace, cjcInfo)
 
-                                null
+//                                null
                             )
 
                         }
@@ -455,7 +460,98 @@ private fun List<CjpmProjectWithStdlib>.chooseAndAttachStdlib(): List<CjpmProjec
 }
 
 private class CjpmProjectWithExistingStdlib(
-    @Suppress("unused") val cargoProject: CjpmProjectImpl,
+    @Suppress("unused") val cjpmProject: CjpmProjectImpl,
     val cjcVersion: CjcVersion,
     val stdlib: StandardLibrary
 )
+
+private fun fetchStdlib(
+    context: CjpmSyncTask.SyncContext,
+    cjpmProject: CjpmProjectImpl,
+    rustcInfo: CjcInfo?
+): TaskResult<StandardLibrary> {
+    return context.runWithChildProgress(CangJieBundle.message("progress.text.getting.cangjie.stdlib")) { childContext ->
+
+        val workingDirectory = cjpmProject.workingDirectory
+        val toolchain = childContext.toolchain
+        val version = toolchain.cjc().version.semver.rawVersion
+        val stdlibPath = CjToolchainBase.stdlibPath.resolve(version)
+
+        // 验证
+        if (!stdlibPath.exists()) {
+            stdlibPath.toFile().mkdirs()
+
+            // 下载标准库到 stdlibPath
+            return@runWithChildProgress when (val downloadResult = downloadStdlib()) {
+                is DownloadResult.Ok -> {
+                    // 解压标准库到 stdlibPath.resolve(version)
+                    // 假设 downloadResult.value 是下载的文件
+                    val downloadedFile = downloadResult.value
+                    unzip(downloadedFile, stdlibPath.toFile())
+
+
+                    try {
+                        TaskResult.Ok(StandardLibrary.fromFileStdlib(stdlibPath,version))
+
+                    } catch (e: IllegalArgumentException) {
+                        TaskResult.Err(e.toString())
+                    }
+
+                }
+
+                is DownloadResult.Err -> {
+                    TaskResult.Err(downloadResult.error)
+                }
+            }
+        }
+        try {
+            TaskResult.Ok(StandardLibrary.fromFileStdlib(stdlibPath,version))
+
+        } catch (e: IllegalArgumentException) {
+            TaskResult.Err(e.toString())
+        }
+
+    }
+}
+
+// 解压缩文件的辅助方法
+private fun unzip(zipFile: File, destDir: File) {
+    ZipInputStream(FileInputStream(zipFile)).use { zip ->
+        var entry: ZipEntry?
+        while (zip.nextEntry.also { entry = it } != null) {
+            val newFile = File(destDir, entry!!.name)
+            if (entry!!.isDirectory) {
+                newFile.mkdirs()
+            } else {
+                newFile.parentFile.mkdirs()
+                FileOutputStream(newFile).use { output ->
+                    zip.copyTo(output)
+                }
+            }
+            zip.closeEntry()
+        }
+    }
+}
+
+fun downloadStdlib(/*owner: Disposable? = null, listener: ProcessListener? = null*/): DownloadResult<File> {
+    // 假设下载链接为 CjToolchainBase.STDLIB_DOWNLOAD_URL
+    val downloadUrl = CjToolchainBase.STDLIB_DOWNLOAD_URL
+    val targetFile = CjToolchainBase.stdlibPath.resolve("downloaded_stdlib.zip").toFile()
+
+    return try {
+        // 使用 URL 下载文件
+        URL(downloadUrl).openStream().use { input ->
+            FileOutputStream(targetFile).use { output ->
+                input.copyTo(output)
+            }
+        }
+        DownloadResult.Ok(targetFile) // 返回下载的文件
+    } catch (e: Exception) {
+        DownloadResult.Err("下载标准库失败: ${e.message}")
+    }
+}
+
+sealed class DownloadResult<out T> {
+    class Ok<T>(val value: T) : DownloadResult<T>()
+    class Err(@NlsContexts.NotificationContent val error: String) : DownloadResult<Nothing>()
+}

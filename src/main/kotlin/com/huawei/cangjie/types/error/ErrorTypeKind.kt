@@ -94,6 +94,7 @@ enum class ErrorTypeKind(val debugMessage: String, val isUnresolved: Boolean = f
     ERROR_SUPER_TYPE("Error super type"),
     SUPER_TYPE_FOR_ERROR_TYPE("Supertype of error type %s"),
     ERROR_PROPERTY_TYPE("Error property type"),
+    ERROR_VARIABLE_TYPE("Error property type"),
     ERROR_CLASS("Error class"),
     TYPE_FOR_ERROR_TYPE_CONSTRUCTOR("Type for error type constructor (%s)"),
     INTERSECTION_OF_ERROR_TYPES("Intersection of error types %s"),

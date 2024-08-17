@@ -42,7 +42,7 @@ class CangJieRawStringBackspaceHandler : BackspaceHandlerDelegate() {
         if (!CodeInsightSettings.getInstance().AUTOINSERT_PAIR_QUOTE) {
             return
         }
-        if (file.fileType != CangJieFileType) {
+        if (file.fileType != CangJieFileType.INSTANCE) {
             return
         }
 

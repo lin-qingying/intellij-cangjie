@@ -4,7 +4,7 @@ import com.huawei.cangjie.descriptors.SupertypeLoopChecker
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeConstructor
 import com.huawei.cangjie.utils.DFS
-import com.huawei.cangjie.utils.SmartList
+import com.intellij.util.SmartList
 
 
 class SupertypeLoopCheckerImpl : SupertypeLoopChecker {

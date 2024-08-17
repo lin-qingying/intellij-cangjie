@@ -70,6 +70,7 @@ class BasicTypeDescriptor(
 
 
     override fun getDeclaredTypeParameters(): MutableList<TypeParameterDescriptor> = mutableListOf()
+    override fun getContextReceivers(): List<ReceiverParameterDescriptor>  = emptyList()
 
     override fun getStaticScope(): MemberScope {
         return MemberScope.Empty

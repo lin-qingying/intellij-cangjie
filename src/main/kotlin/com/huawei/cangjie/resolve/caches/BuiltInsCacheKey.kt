@@ -8,9 +8,12 @@ interface BuiltInsCacheKey {
 
 class CangJieModuleBuiltInsKey(moduleInfo: ModuleInfo) : BuiltInsCacheKey
 
-
-fun ModuleInfo. getKeyForBuiltIns():BuiltInsCacheKey{
+private var _builtinsKey: CangJieModuleBuiltInsKey? = null
+fun ModuleInfo.getKeyForBuiltIns(): BuiltInsCacheKey {
+//    if (_builtinsKey == null) {
+//        _builtinsKey = CangJieModuleBuiltInsKey(this)
+//    }
+//    return _builtinsKey!!
 
     return CangJieModuleBuiltInsKey(this)
-
 }

@@ -5,7 +5,8 @@ import com.huawei.cangjie.doc.lexer.CDocTokens
 import com.huawei.cangjie.doc.parser.CDocElementType
 import com.huawei.cangjie.doc.psi.impl.CDocLink
 import com.huawei.cangjie.lang.CangJieLanguage
-import com.huawei.cangjie.lang.declarations.CangJieDeclarationsFileViewProvider
+import com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType
+import com.huawei.cangjie.lang.declarations.CangJieFileViewProvider
 import com.huawei.cangjie.lang.declarations.CjDeclarationsFile
 import com.huawei.cangjie.lexer.CangJieLexer
 import com.huawei.cangjie.lexer.CjToken
@@ -25,7 +26,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
-import org.jetbrains.annotations.NotNull
 
 
 class CangJieParserDefinition : ParserDefinition {
@@ -34,9 +34,9 @@ class CangJieParserDefinition : ParserDefinition {
     override fun createParser(project: Project?): PsiParser = CangJieParser(project!!)
 
 
-/**
- *  如果使用bnf 需要把 [com.huawei.cangjie.psi.stubs.elements.CjFileElementType]的[doParseContents]方法注释掉
- */
+    /**
+     *  如果使用bnf 需要把 [com.huawei.cangjie.psi.stubs.elements.CjFileElementType]的[doParseContents]方法注释掉
+     */
 //    override fun createLexer(p0: Project?): Lexer {
 //     return FlexAdapter(_CangJieLexer())
 //    }
@@ -80,18 +80,20 @@ class CangJieParserDefinition : ParserDefinition {
     }
 
 
+    override fun createFile(viewProvider: FileViewProvider): PsiFile {
 
+//        if(viewProvider is CangJieFileViewProvider){
+//
+//            return CjDeclarationsFile(viewProvider)
+//        }
 
-
-
-    override fun createFile(viewProvider: FileViewProvider): PsiFile{
-
-        if(viewProvider is CangJieDeclarationsFileViewProvider){
-
+        if (viewProvider.fileType is CangJieBuiltInFileType) {
             return CjDeclarationsFile(viewProvider)
         }
 
-        return  CjFile(viewProvider, false)
+
+
+        return CjFile(viewProvider, false)
     }
 
 

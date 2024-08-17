@@ -4,6 +4,7 @@ import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.container.*
 import com.huawei.cangjie.context.ModuleContext
 import com.huawei.cangjie.descriptors.BindingTrace
+import com.huawei.cangjie.extensions.TypeAttributeTranslatorExtension
 import com.huawei.cangjie.incremental.components.LookupTracker
 import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.calls.components.ClassicTypeSystemContextForCS
@@ -121,6 +122,7 @@ fun StorageComponentContainer.configure(
     useInstance(context.storageManager)
     useInstance(analyzerServices)
     useImpl<NewCangJieTypeCheckerImpl>()
+    useInstance(TypeAttributeTranslatorExtension.createTranslators(context.project))
 
 //    if (context.module.isTypeRefinementEnabled()) {
 //        useImpl<CangJieTypeRefinerImpl>()

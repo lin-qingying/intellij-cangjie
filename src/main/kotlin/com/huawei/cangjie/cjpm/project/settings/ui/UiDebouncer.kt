@@ -72,7 +72,7 @@ fun pathToRsFileTextField(
 ): TextFieldWithBrowseButton =
     pathTextField(
         FileChooserDescriptorFactory
-            .createSingleFileDescriptor(CangJieFileType )
+            .createSingleFileDescriptor(CangJieFileType.INSTANCE )
             .withRoots(project.guessProjectDir()),
         disposable,
         title,

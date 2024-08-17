@@ -1,20 +1,23 @@
 package com.huawei.cangjie.ide.projectStructure
 
-import com.huawei.cangjie.analyzer.CangJieModuleInfo
+import com.huawei.cangjie.analyzer.LibraryInfo
 import com.huawei.cangjie.analyzer.ModuleInfo
+import com.huawei.cangjie.ide.base.projectStructure.RootKindFilter
+import com.huawei.cangjie.ide.base.projectStructure.matches
+import com.huawei.cangjie.ide.cache.project.LibraryInfoCache
+import com.huawei.cangjie.ide.cache.project.cangjieModuleInfo
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.utils.*
-import com.intellij.ide.scratch.ScratchFileService
-import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.roots.*
+import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
@@ -22,6 +25,7 @@ import com.intellij.psi.PsiFile
 
 @DslMarker
 private annotation class ModuleInfoDsl
+
 @ModuleInfoDsl
 fun SeqScope<Result<ModuleInfo>>.register(moduleInfo: ModuleInfo) = yield { Result.success(moduleInfo) }
 
@@ -86,7 +90,7 @@ class ModuleInfoProvider(private val project: Project) {
 //        }
     }
 
-    private fun SeqScope<Result<ModuleInfo>>.    collectByElement(element: PsiElement, config: Configuration) {
+    private fun SeqScope<Result<ModuleInfo>>.collectByElement(element: PsiElement, config: Configuration) {
         val containingFile = element.containingFile
 //
 //        if (containingFile != null) {
@@ -124,7 +128,8 @@ class ModuleInfoProvider(private val project: Project) {
                 return
             }
 
-            val explicitModuleInfo = containingCjFile.forcedModuleInfo ?: (containingCjFile.originalFile as? CjFile)?.forcedModuleInfo
+            val explicitModuleInfo =
+                containingCjFile.forcedModuleInfo ?: (containingCjFile.originalFile as? CjFile)?.forcedModuleInfo
             if (explicitModuleInfo is ModuleInfo) {
                 register(explicitModuleInfo)
             }
@@ -135,7 +140,8 @@ class ModuleInfoProvider(private val project: Project) {
                     collectByElement(context, config)
                 } else {
                     val message = "Analyzing code fragment of type ${containingCjFile::class.java} with no context"
-                    val error = CangJieExceptionWithAttachments(message).withAttachment("file.kt", containingCjFile.text)
+                    val error =
+                        CangJieExceptionWithAttachments(message).withAttachment("file.kt", containingCjFile.text)
                     reportError(error)
                 }
             }
@@ -151,7 +157,8 @@ class ModuleInfoProvider(private val project: Project) {
                     collectByFile(virtualFile, isLibrarySource = false, config)
                 }
             } else {
-                val message = "Analyzing element of type ${element::class.java} in non-physical file of type ${containingFile::class.java}"
+                val message =
+                    "Analyzing element of type ${element::class.java} in non-physical file of type ${containingFile::class.java}"
                 reportError(CangJieExceptionWithAttachments(message).withAttachment("file.kt", containingFile.text))
             }
         }
@@ -191,7 +198,7 @@ class ModuleInfoProvider(private val project: Project) {
         yieldAll(object : Iterable<Result<ModuleInfo>> {
             override fun iterator(): Iterator<Result<ModuleInfo>> {
 
-                     val modules = seq {
+                val modules = seq {
                     withCallExtensions(
                         config = config,
                         extensionBlock = { findContainingModules(project, virtualFile) },
@@ -208,8 +215,8 @@ class ModuleInfoProvider(private val project: Project) {
 //                    val projectFileIndex = ProjectFileIndex.getInstance(project)
 //                    val sourceRootType: CangJieSourceRootType? = projectFileIndex.getCangJieSourceRootType(virtualFile)
 //                    module.asSourceInfo(sourceRootType)?.let(Result.Companion::success)
-
-                 Result.success(   CangJieModuleInfo(module))
+//module.moduleInfos
+                    Result.success(module.cangjieModuleInfo)
                 }
             }
         })
@@ -218,6 +225,38 @@ class ModuleInfoProvider(private val project: Project) {
 //        if (fileOrigin != null) {
 //            collectSourceRelatedByFile(fileOrigin, config)
 //        }
+    }
+
+    private fun contextByContextualModule(
+        virtualFile: VirtualFile,
+        isLibrarySource: Boolean,
+        visited: HashSet<ModuleInfo>,
+        config: Configuration
+    ): ModuleInfo? {
+        val contextualModuleInfo = config.contextualModuleInfo ?: return null
+
+        val contentScope = when (contextualModuleInfo) {
+            is LibraryInfo -> contextualModuleInfo.contentScope
+//            is LibrarySourceInfo -> contextualModuleInfo.sourceScope()
+            else -> null
+        }
+
+        if (contentScope == null || virtualFile !in contentScope) {
+            return null
+        }
+
+        return when (contextualModuleInfo) {
+            is LibraryInfo -> collectByLibrary(
+                virtualFile,
+                contextualModuleInfo.library,
+                isLibrarySource,
+                visited,
+                config
+            )
+//            is LibrarySourceInfo -> collectByLibrary(virtualFile, contextualModuleInfo.library, isLibrarySource, visited, config)
+//            is SdkInfo -> collectBySdk(contextualModuleInfo.sdk, visited)
+            else -> null
+        }
     }
 
     private fun SeqScope<Result<ModuleInfo>>.collectByFile(
@@ -232,35 +271,95 @@ class ModuleInfoProvider(private val project: Project) {
         ) {
             collectSourceRelatedByFile(virtualFile, config)
 
-//            val visited = hashSetOf<ModuleInfo>()
+            val visited = hashSetOf<ModuleInfo>()
 
-//            yield {
-//                // Several libraries may include the same JAR files.
-//                // Below, we use an index for getting order entries for a file, but entries come in an arbitrary order.
-//                // So if we are already inside a library, we scan it first.
-//
-//                val contextualModuleResult =
-//                    contextByContextualBinaryModule(virtualFile, isLibrarySource, visited, config)
-//                contextualModuleResult?.let(Result.Companion::success)
-//            }
+            yield {
+                // Several libraries may include the same JAR files.
+                // Below, we use an index for getting order entries for a file, but entries come in an arbitrary order.
+                // So if we are already inside a library, we scan it first.
 
-//            yieldAll(object : Iterable<Result<ModuleInfo>> {
-//                override fun iterator(): Iterator<Result<ModuleInfo>> {
-//                    val orderEntries = runReadAction { fileIndex.getOrderEntriesForFile(virtualFile) }
-//                    val iterator = orderEntries.iterator()
-//                    return MappingIterator(iterator) { orderEntry ->
-//                        collectByOrderEntry(
-//                            virtualFile,
-//                            orderEntry,
-//                            isLibrarySource,
-//                            visited,
-//                            config
-//                        )?.let(Result.Companion::success)
-//                    }
-//                }
-//            })
+                val contextualModuleResult =
+                    contextByContextualModule(virtualFile, isLibrarySource, visited, config)
+                contextualModuleResult?.let(Result.Companion::success)
+            }
+
+            yieldAll(object : Iterable<Result<ModuleInfo>> {
+                override fun iterator(): Iterator<Result<ModuleInfo>> {
+                    val orderEntries = runReadAction { fileIndex.getOrderEntriesForFile(virtualFile) }
+                    val iterator = orderEntries.iterator()
+                    return MappingIterator(iterator) { orderEntry ->
+                        collectByOrderEntry(
+                            virtualFile,
+                            orderEntry,
+                            isLibrarySource,
+                            visited,
+                            config
+                        )?.let(Result.Companion::success)
+                    }
+                }
+            })
         }
 
+    }
+
+    private fun collectByOrderEntry(
+        virtualFile: VirtualFile,
+        orderEntry: OrderEntry,
+        isLibrarySource: Boolean,
+        visited: HashSet<ModuleInfo>,
+        config: Configuration,
+    ): ModuleInfo? {
+        if (orderEntry is ModuleOrderEntry) {
+            // Module-related entries are covered in 'collectModuleRelatedModuleInfosByFile()'
+            return null
+        }
+        ProgressManager.checkCanceled()
+
+        if (!orderEntry.isValid) {
+            return null
+        }
+        if (orderEntry is LibraryOrderEntry) {
+            val library = orderEntry.library
+            if (library != null) {
+                return collectByLibrary(virtualFile, library, isLibrarySource, visited, config)
+            }
+        }
+
+
+        return null
+    }
+
+    private val libraryInfoCache by lazy { LibraryInfoCache.getInstance(project) }
+
+    private fun collectByLibrary(
+        virtualFile: VirtualFile,
+        library: Library,
+        isLibrarySource: Boolean,
+        visited: HashSet<ModuleInfo>,
+        config: Configuration,
+    ): ModuleInfo? {
+
+        val sourceContext = config.contextualModuleInfo
+        if (!isLibrarySource && RootKindFilter.libraryClasses.matches(project, virtualFile)) {
+            for (libraryInfo in libraryInfoCache[library]) {
+//                if (visited.add(libraryInfo)) {
+//                    if (libraryInfo.isApplicable(sourceContext)) {
+//                        return libraryInfo
+//                    }
+//                }
+            }
+        } else if (isLibrarySource || RootKindFilter.libraryFiles.matches(project, virtualFile)) {
+            for (libraryInfo in libraryInfoCache[library]) {
+//                val moduleInfo = libraryInfo.sourcesModuleInfo
+//                if (visited.add(moduleInfo)) {
+//                    if (libraryInfo.isApplicable(sourceContext)) {
+//                        return moduleInfo
+//                    }
+//                }
+            }
+        }
+
+        return null
     }
 
     fun collect(element: PsiElement, config: Configuration = Configuration.Default): Sequence<Result<ModuleInfo>> {
@@ -319,6 +418,7 @@ interface ModuleInfoProviderExtension {
 
     fun SeqScope<Module>.findContainingModules(project: Project, virtualFile: VirtualFile)
 }
+
 internal class DefaultModuleInfoProviderExtension : ModuleInfoProviderExtension {
     override fun SeqScope<Result<ModuleInfo>>.collectByElement(
         element: PsiElement,

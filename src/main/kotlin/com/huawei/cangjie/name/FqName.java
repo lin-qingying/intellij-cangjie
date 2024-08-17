@@ -1,7 +1,6 @@
 package com.huawei.cangjie.name;
 
 
-
 import com.huawei.cangjie.utils.StringsKt;
 import org.jetbrains.annotations.NotNull;
 
@@ -9,20 +8,13 @@ import java.util.List;
 
 public final class FqName {
 
-    @NotNull
-    public static FqName fromSegments(@NotNull List<String> names) {
-        return new FqName(StringsKt.join(names, "."));
-    }
-
     public static final FqName ROOT = new FqName("");
-
     @NotNull
     private final FqNameUnsafe fqName;
-
-
     private transient FqName parent;
 
-    public  FqName(@NotNull String fqName) {
+
+    public FqName(@NotNull String fqName) {
         this.fqName = new FqNameUnsafe(fqName, this);
     }
 
@@ -33,6 +25,16 @@ public final class FqName {
     private FqName(@NotNull FqNameUnsafe fqName, FqName parent) {
         this.fqName = fqName;
         this.parent = parent;
+    }
+
+    @NotNull
+    public static FqName fromSegments(@NotNull List<String> names) {
+        return new FqName(StringsKt.join(names, "."));
+    }
+
+    @NotNull
+    public static FqName topLevel(@NotNull Name shortName) {
+        return new FqName(FqNameUnsafe.topLevel(shortName));
     }
 
     @NotNull
@@ -65,8 +67,28 @@ public final class FqName {
         return parent;
     }
 
+    public boolean isModuleName() {
+        return parent.isRoot();
+    }
+
+    public Name getModuleName() {
+
+        FqName _this =  this;
+        while (true) {
+            if (_this.parent().isRoot())
+                return _this.shortName();
+            _this = _this.parent;
+        }
+
+    }
+
     @NotNull
     public FqName child(@NotNull Name name) {
+        return new FqName(fqName.child(name), this);
+    }
+
+    @NotNull
+    public FqName child(@NotNull FqName name) {
         return new FqName(fqName.child(name), this);
     }
 
@@ -91,11 +113,6 @@ public final class FqName {
 
     public boolean startsWith(@NotNull FqName other) {
         return fqName.startsWith(other.fqName);
-    }
-
-    @NotNull
-    public static FqName topLevel(@NotNull Name shortName) {
-        return new FqName(FqNameUnsafe.topLevel(shortName));
     }
 
     @Override

@@ -18,6 +18,7 @@ class ModifiersChecker {
 
     companion object {
 
+        @JvmStatic
         fun resolveVisibilityFromModifiers(
             modifierListOwner: CjModifierListOwner,
             defaultVisibility: DescriptorVisibility
@@ -28,6 +29,7 @@ class ModifiersChecker {
             )
         }
 
+        @JvmStatic
         fun resolveMemberModalityFromModifiers(
             modifierListOwner: CjModifierListOwner?,
             defaultModality: Modality,
@@ -80,7 +82,7 @@ class ModifiersChecker {
             return defaultModality
 
         }
-
+        @JvmStatic
         fun resolveModalityFromModifiers(
             modifierListOwner: CjModifierListOwner?,
             defaultModality: Modality,

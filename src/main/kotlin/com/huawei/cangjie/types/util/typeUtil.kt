@@ -1,9 +1,7 @@
 package com.huawei.cangjie.types.util
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
-import com.huawei.cangjie.descriptors.ClassifierDescriptor
-import com.huawei.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
-import com.huawei.cangjie.descriptors.TypeParameterDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
@@ -12,6 +10,7 @@ import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstructor
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.types.*
+import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.checker.CangJieTypeChecker.DEFAULT
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.error.ErrorType
@@ -30,6 +29,14 @@ fun CangJieType.replaceAnnotations(newAnnotations: Annotations): CangJieType {
 fun CangJieType.makeNullable() = TypeUtils.makeNullable(this)
 fun CangJieType.makeNotNullable() = TypeUtils.makeNotNullable(this)
 
+fun CangJieType.isInterface(): Boolean = (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.INTERFACE
+fun CangJieType.isEnum(): Boolean = (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.ENUM
+
+//fun CangJieType.containsTypeProjectionsInTopLevelArguments(): Boolean {
+//    if (isError) return false
+//    val possiblyInnerType = buildPossiblyInnerType() ?: return false
+//    return possiblyInnerType.arguments.any { it.isStarProjection || it.projectionKind != Variance.INVARIANT }
+//}
 
 fun UnwrappedType.unCapture(): UnwrappedType = when (this) {
 
@@ -118,7 +125,16 @@ fun createBasicType(
 
     return CangJieTypeFactory.basicType(classDescriptor)
 }
-
+fun CangJieType.containsTypeAliasParameters(): Boolean =
+    contains {
+        it.constructor.declarationDescriptor?.isTypeAliasParameter() ?: false
+    }
+fun ClassifierDescriptor.isTypeAliasParameter(): Boolean =
+    this is TypeParameterDescriptor && containingDeclaration is TypeAliasDescriptor
+fun CangJieType.containsTypeAliases(): Boolean =
+    contains {
+        it.constructor.declarationDescriptor is TypeAliasDescriptor
+    }
 @OptIn(ExperimentalContracts::class)
 fun isUnresolvedType(type: CangJieType): Boolean {
     contract {
@@ -131,6 +147,21 @@ object TypeUtils {
 
     val DONT_CARE: SimpleType = ErrorUtils.createErrorType(ErrorTypeKind.DONT_CARE)
 
+    /**
+     * Differs from `isNullableType` only by treating type parameters: acceptsNullable(T) <=> T has nullable lower bound
+     * Semantics should be the same as `isSubtype(Nothing?, T)`
+     * @return true if `null` can be assigned to storage of this type
+     */
+    fun acceptsNullable(type: CangJieType): Boolean {
+        if (type.isMarkedNullable) {
+            return true
+        }
+        if (type.isFlexible() && acceptsNullable(type.asFlexibleType().upperBound)) {
+            return true
+        }
+        return false
+    }
+
     fun createSubstitutedSupertype(
         subType: CangJieType,
         superType: CangJieType,
@@ -139,6 +170,117 @@ object TypeUtils {
         val substitutedType: CangJieType? = substitutor.substitute(superType, Variance.INVARIANT)
         if (substitutedType != null) {
             return makeNullableIfNeeded(substitutedType, subType.isMarkedNullable)
+        }
+        return null
+    }
+
+    private fun lowerThanBound(
+        typeChecker: CangJieTypeChecker,
+        argument: CangJieType,
+        parameterDescriptor: TypeParameterDescriptor
+    ): Boolean {
+        for (bound in parameterDescriptor.getUpperBounds()) {
+            if (typeChecker.isSubtypeOf(argument, bound)) {
+                if (argument.constructor != bound.constructor) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    @JvmStatic
+    fun canHaveSubtypes(
+        typeChecker: CangJieTypeChecker,
+        type: CangJieType
+    ): Boolean {
+        if (type.isMarkedNullable) {
+            return true
+        }
+//        if (!type.constructor.isFinal()) {
+//            return true
+//        }
+
+        val parameters: List<TypeParameterDescriptor> =
+            type.constructor.getParameters()
+        val arguments: List<TypeProjection> = type.arguments
+        var i = 0
+        val parametersSize = parameters.size
+        while (i < parametersSize) {
+            val parameterDescriptor: TypeParameterDescriptor = parameters[i]
+            val typeProjection: TypeProjection = arguments[i]
+            if (typeProjection.isStarProjection()) return true
+
+            val projectionKind: Variance = typeProjection.getProjectionKind()
+            val argument: CangJieType = typeProjection.getType()
+
+            when (parameterDescriptor.getVariance()) {
+                Variance.INVARIANT -> when (projectionKind) {
+                    Variance.INVARIANT -> if (lowerThanBound(
+                            typeChecker,
+                            argument,
+                            parameterDescriptor
+                        ) || canHaveSubtypes(typeChecker, argument)
+                    ) {
+                        return true
+                    }
+
+                    Variance.IN_VARIANCE -> if (lowerThanBound(
+                            typeChecker,
+                            argument,
+                            parameterDescriptor
+                        )
+                    ) {
+                        return true
+                    }
+
+                    Variance.OUT_VARIANCE -> if (canHaveSubtypes(typeChecker, argument)) {
+                        return true
+                    }
+                }
+
+                Variance.IN_VARIANCE -> if (projectionKind != Variance.OUT_VARIANCE) {
+                    if (lowerThanBound(
+                            typeChecker,
+                            argument,
+                            parameterDescriptor
+                        )
+                    ) {
+                        return true
+                    }
+                } else {
+                    if (canHaveSubtypes(typeChecker, argument)) {
+                        return true
+                    }
+                }
+
+                Variance.OUT_VARIANCE -> if (projectionKind != Variance.IN_VARIANCE) {
+                    if (canHaveSubtypes(typeChecker, argument)) {
+                        return true
+                    }
+                } else {
+                    if (lowerThanBound(
+                            typeChecker,
+                            argument,
+                            parameterDescriptor
+                        )
+                    ) {
+                        return true
+                    }
+                }
+            }
+            i++
+        }
+        return false
+    }
+
+
+    @JvmStatic
+    fun getClassDescriptor(type: CangJieType): ClassDescriptor? {
+        val declarationDescriptor =
+            type.constructor.getDeclarationDescriptor()
+        if (declarationDescriptor is ClassDescriptor) {
+            return declarationDescriptor
         }
         return null
     }
@@ -361,7 +503,7 @@ object TypeUtils {
     fun makeUnsubstitutedType(
         typeConstructor: TypeConstructor,
         unsubstitutedMemberScope: MemberScope,
-        refinedTypeFactory: Function1<CangJieTypeRefiner, SimpleType>
+        refinedTypeFactory: Function1<CangJieTypeRefiner, SimpleType?>
     ): SimpleType {
         val arguments: List<TypeProjection> =
             getDefaultTypeProjections(typeConstructor.getParameters())
@@ -380,7 +522,7 @@ object TypeUtils {
     fun makeUnsubstitutedType(
         classifierDescriptor: ClassifierDescriptor,
         unsubstitutedMemberScope: MemberScope,
-        refinedTypeFactory: Function1<CangJieTypeRefiner?, SimpleType>
+        refinedTypeFactory: (CangJieTypeRefiner?) -> SimpleType?
     ): SimpleType {
         if (ErrorUtils.isError(classifierDescriptor)) {
             return ErrorUtils.createErrorType(
@@ -517,7 +659,7 @@ object TypeUtils {
 //            get() = TODO("Not yet implemented")
 
 //        @TypeRefinement
-//        override fun refine(kotlinTypeRefiner:  checker.CangJieTypeRefiner): SpecialType {
+//        override fun refine(CangJieTypeRefiner:  checker.CangJieTypeRefiner): SpecialType {
 //            return this
 //        }
     }

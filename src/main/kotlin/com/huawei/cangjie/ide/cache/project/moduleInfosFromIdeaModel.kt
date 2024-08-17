@@ -2,16 +2,20 @@ package com.huawei.cangjie.ide.cache.project
 
 
 import com.huawei.cangjie.analyzer.CangJieModuleInfo
+import com.huawei.cangjie.analyzer.LibraryInfo
 import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.ide.cache.trackers.CangJieCodeBlockModificationListener
 import com.huawei.cangjie.utils.CangJieExceptionWithAttachments
 import com.intellij.java.workspace.entities.JavaModuleSettingsEntity
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.impl.libraries.LibraryEx
+import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.platform.backend.workspace.WorkspaceModelChangeListener
 import com.intellij.platform.backend.workspace.WorkspaceModelTopics
@@ -26,17 +30,17 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.workspaceModel.ide.impl.legacyBridge.module.findModule
-import org.jetbrains.jps.model.java.JavaSourceRootType
 
 /** null-platform means that we should get all modules */
-fun getModuleInfosFromIdeaModel(project: Project ): List<ModuleInfo> {
+fun getModuleInfosFromIdeaModel(project: Project): List<ModuleInfo> {
     return runReadAction {
         val ideaModelInfosCache = getIdeaModelInfosCache(project)
 
-            ideaModelInfosCache.allModules()
+        ideaModelInfosCache.allModules()
 
     }
 }
+
 fun getIdeaModelInfosCache(project: Project): ModelInfosCache = project.service()
 interface ModelInfosCache {
 //    fun forPlatform(platform: TargetPlatform): List<IdeaModuleInfo>
@@ -48,7 +52,8 @@ interface ModelInfosCache {
 //    fun getSdkInfoForSdk(sdk: Sdk): SdkInfo?
 
 }
-class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosCache, Disposable{
+
+class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosCache, Disposable {
 
     private val modules: CachedValue<List<ModuleInfo>>
     private val moduleCache = ModuleCache()
@@ -66,6 +71,7 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
         }
 
     }
+
     inner class ModuleCache : AbstractCache<Module, List<ModuleInfo>>(
         initializer = {
             project.modules().forEach(it::get)
@@ -74,7 +80,7 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
         override fun calculate(key: Module): List<ModuleInfo> = key.moduleInfos
 
         override fun checkKeyValidity(key: Module) {
-                key.checkValidity()
+            key.checkValidity()
         }
 
         override fun modelChanged(event: VersionedStorageChange) {
@@ -137,6 +143,7 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
         }
 
     }
+
     abstract inner class AbstractCache<Key : Any, Value : Any>(initializer: (AbstractCache<Key, Value>) -> Unit) :
         SynchronizedFineGrainedEntityCache<Key, Value>(project),
         WorkspaceModelChangeListener {
@@ -182,13 +189,15 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
         abstract fun modelChanged(event: VersionedStorageChange)
     }
 
-    override fun allModules(): List<ModuleInfo>   =  (modules.value /*+ libraries.value*/).also {
+    override fun allModules(): List<ModuleInfo> = (modules.value /*+ libraries.value*/).also {
         it.checkValidity { "allModules" }
     }
+
     private fun incModificationCount() {
         modificationTracker.incModificationCount()
-      CangJieCodeBlockModificationListener.getInstance(project).incModificationCount()
+        CangJieCodeBlockModificationListener.getInstance(project).incModificationCount()
     }
+
     override fun dispose() = Unit
 
 
@@ -214,15 +223,66 @@ fun Module.checkValidity() {
         throw AlreadyDisposedException("Module '${name}' is already disposed")
     }
 }
+
 val Module.moduleInfos: List<ModuleInfo>
-    get() = listOfNotNull( cangjieModuleInfo)
-val Module.cangjieModuleInfo: CangJieModuleInfo?
+    get() = listOfNotNull(cangjieModuleInfo)
+
+
+var _cangjieModuleInfo: CangJieModuleInfo? = null
+
+val Module.cangjieModuleInfo: CangJieModuleInfo
     get() {
 //        val hasProductionRoots = hasRootsOfType(setOf(JavaSourceRootType.SOURCE, SourceKotlinRootType))
 //                || (isNewMultiPlatformModule && cangjieSourceRootType == SourceKotlinRootType)
 //
 //        return if (hasProductionRoots) CangJieModuleInfo(this) else null
-        return CangJieModuleInfo(this)
+//        return CangJieModuleInfo(this)
+//
+        if (_cangjieModuleInfo == null) {
+            _cangjieModuleInfo = CangJieModuleInfo(this)
+        }
+        return _cangjieModuleInfo!!
+
     }
+
 inline fun <reified T : WorkspaceEntity> VersionedStorageChange.getChanges(): List<EntityChange<T>> =
     getChanges(T::class.java)
+
+
+@Service(Service.Level.PROJECT)
+class LibraryInfoCache(project: Project) : Disposable {
+    private val libraryInfoCache = LibraryInfoInnerCache(project)
+
+    private class LibraryInfoInnerCache(project: Project) :
+        SynchronizedFineGrainedEntityCache<LibraryEx, List<LibraryInfo>>(project) {
+        override fun calculate(key: LibraryEx): List<LibraryInfo> {
+            TODO("Not yet implemented")
+        }
+
+        override fun subscribe() {
+
+        }
+
+        override fun checkKeyValidity(key: LibraryEx) {
+            TODO("Not yet implemented")
+        }
+
+        override fun checkValueValidity(value: List<LibraryInfo>) {
+
+        }
+    }
+
+    override fun dispose() {
+
+    }
+
+    operator fun get(key: Library): List<LibraryInfo> {
+        require(key is LibraryEx) { "Library '${key.presentableName}' does not implement LibraryEx which is not expected" }
+        return libraryInfoCache[key]
+    }
+
+    companion object {
+        fun getInstance(project: Project): LibraryInfoCache = project.service()
+    }
+
+}

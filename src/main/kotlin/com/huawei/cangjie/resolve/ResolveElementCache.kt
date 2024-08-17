@@ -30,7 +30,7 @@ import com.intellij.util.containers.CollectionFactory
 import com.intellij.util.containers.SLRUCache
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.ConcurrentMap
-
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
 private val FILE_IN_BLOCK_MODIFICATION_COUNT = Key<Long>("FILE_IN_BLOCK_MODIFICATION_COUNT")
 
 val CjFile.inBlockModificationCount: Long by NotNullableUserDataProperty(FILE_IN_BLOCK_MODIFICATION_COUNT, 0)
@@ -80,6 +80,7 @@ class ResolveElementCache(
             },
             false
         )
+
     private class CachedFullResolve(val bindingContext: BindingContext, resolveElement: CjElement) {
         private val modificationStamp: Long? = modificationStamp(resolveElement)
 
@@ -110,6 +111,7 @@ class ResolveElementCache(
             },
             false
         )
+
     private fun findElementOfAdditionalResolve(element: CjElement, bodyResolveMode: BodyResolveMode): CjElement? {
         if (element is CjAnnotationEntry && bodyResolveMode == PARTIAL_NO_ADDITIONAL)
             return element
@@ -190,7 +192,9 @@ class ResolveElementCache(
         return bindingContext
 
     }
-    private val forcedFullResolveOnHighlighting = Registry.`is`("cangjie.resolve.force.full.resolve.on.highlighting", true)
+
+    private val forcedFullResolveOnHighlighting =
+        Registry.`is`("cangjie.resolve.force.full.resolve.on.highlighting", true)
 
     private fun getElementsAdditionalResolve(
         resolveElement: CjElement,
@@ -251,7 +255,7 @@ class ResolveElementCache(
                     } ?: contextElements!!.map { PartialBodyResolveFilter.findStatementToResolve(it, resolveElement) }
                         .distinct()
                 val statementsToResolveByCjFile =
-                    statementsToResolve.groupBy {(it ?: resolveElement).getContainingCjFile() }
+                    statementsToResolve.groupBy { (it ?: resolveElement).getContainingCjFile() }
                 val cachedResults =
                     statementsToResolveByCjFile.flatMap { (file, expressions) ->
                         val partialBodyResolveCacheValue = partialBodyResolveCache.value
@@ -352,6 +356,20 @@ class ResolveElementCache(
                 createStatementFilter(),
                 bodyResolveMode.bindingTraceFilter
             )
+//            is CjTypeAlias -> typealiasAdditionalResolve(resolveSession, resolveElement, bodyResolveMode.bindingTraceFilter)
+            is CjSuperTypeList -> delegationSpecifierAdditionalResolve(
+                resolveSession,
+                resolveElement,
+                resolveElement.getParent() as CjTypeStatement,
+                file,
+                bodyResolveMode.bindingTraceFilter
+            )
+
+            is CjImportList -> {
+                val resolver = resolveSession.fileScopeProvider.getImportResolver(resolveElement.getContainingCjFile())
+                resolver.forceResolveNonDefaultImports()
+                resolveSession.trace
+            }
 
             else -> {
                 if (resolveElement.findParentOfType<CjPackageDirective>(true) != null) {
@@ -393,7 +411,9 @@ class ResolveElementCache(
     }
 
     private fun functionAdditionalResolve(
-        resolveSession: ResolveSession, namedFunction: CjNamedFunction, file: CjFile,
+        resolveSession: ResolveSession,
+        namedFunction: CjNamedFunction,
+        file: CjFile,
         statementFilter: StatementFilter,
         bindingTraceFilter: BindingTraceFilter
     ): BindingTrace {
@@ -407,6 +427,31 @@ class ResolveElementCache(
         bodyResolver.resolveFunctionBody(DataFlowInfo.EMPTY, trace, namedFunction, functionDescriptor, scope, null)
 
 //        forceResolveAnnotationsInside(namedFunction)
+
+        return trace
+    }
+
+    private fun delegationSpecifierAdditionalResolve(
+        resolveSession: ResolveSession, ktElement: CjElement,
+        classOrObject: CjTypeStatement, file: CjFile,
+        bindingTraceFilter: BindingTraceFilter
+    ): BindingTrace {
+        val trace = createDelegatingTrace(ktElement, bindingTraceFilter)
+        val descriptor = resolveSession.resolveToDescriptor(classOrObject) as LazyClassDescriptor
+
+        // Activate resolving of supertypes
+        ForceResolveUtil.forceResolveAllContents(descriptor.typeConstructor.supertypes)
+
+        val bodyResolver = createBodyResolver(resolveSession, trace, file, StatementFilter.NONE)
+        bodyResolver.resolveSuperTypeEntryList(
+            DataFlowInfo.EMPTY,
+            classOrObject,
+            descriptor,
+            descriptor.unsubstitutedPrimaryConstructor,
+            descriptor.scopeForConstructorHeaderResolution,
+            descriptor.scopeForMemberDeclarationResolution,
+            resolveSession.inferenceSession
+        )
 
         return trace
     }

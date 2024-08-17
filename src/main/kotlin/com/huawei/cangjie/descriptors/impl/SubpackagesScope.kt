@@ -24,6 +24,7 @@ open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, priv
         }
         return packageViewDescriptor
     }
+    override fun getClassifierNames(): Set<Name> = emptySet()
 
     override fun getContributedDescriptors(kindFilter: DescriptorKindFilter,
                                            nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> {

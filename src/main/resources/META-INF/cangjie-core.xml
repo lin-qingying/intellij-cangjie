@@ -13,6 +13,9 @@
         <!-- 编辑器执行配置 -->
         <runLineMarkerContributor language="CangJie"
                                   implementationClass="com.huawei.cangjie.ide.run.CjRunLineMarkersProvider"/>
+<!--        editorSmartKeysConfigurable-->
+        <editorSmartKeysConfigurable instance="com.huawei.cangjie.ide.editor.CangJieEditorOptionsConfigurable"/>
+        <lang.foldingBuilder language="CangJie" implementationClass="com.huawei.cangjie.ide.editor.folding.CangJieFoldingBuilder"/>
 
         <!--        文件索引-->
         <!--        <fileBasedIndex implementation=""></fileBasedIndex>-->
@@ -58,17 +61,16 @@
 
 
         <fileType name="cangjie_declarations" fieldName="INSTANCE" extensions="cjd"
-                  language="CangJie" implementationClass="com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType"/>
+                  language="CangJie"
+                  implementationClass="com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType"/>
 
-        <!--        <lang.fileViewProviderFactory language="CangJie"-->
-        <!--                                      implementationClass="com.huawei.cangjie.lang.declarations.CangJieDeclarationsFileViewProviderFactory"/>-->
-        <fileType.fileViewProviderFactory filetype="cangjie_declarations"
-                                          implementationClass="com.huawei.cangjie.lang.declarations.CangJieDeclarationsFileViewProviderFactory"/>
-
-        <internalFileTemplate name="CangJie File"/>
+<!--                <lang.fileViewProviderFactory language="CangJie"-->
+<!--                                              implementationClass="com.huawei.cangjie.lang.declarations.CangJieFileViewProviderFactory"/>-->
+<!--        <fileType.fileViewProviderFactory filetype="cangjie_declarations"-->
+<!--                                       implementationClass="com.huawei.cangjie.lang.declarations.CangJieFileViewProviderFactory     <internalFileTemplate name="CangJie File"/>-->
 
 
-        <!--       PSI解析 -->
+<!--      PSI解析-->
         <lang.parserDefinition language="CangJie"
                                implementationClass="com.huawei.cangjie.parsing.CangJieParserDefinition"/>
 

@@ -90,7 +90,7 @@ abstract class CangJieTemplateContextType(@NlsContexts.Label presentableName: St
                     }
                     continue
                 }
-                if (e is CjVariable || e is CjNamedFunction || e is CjClassOrStruct) {
+                if (e is CjVariable || e is CjNamedFunction || e is CjTypeStatement) {
                     return false
                 }
 
@@ -106,7 +106,7 @@ abstract class CangJieTemplateContextType(@NlsContexts.Label presentableName: St
         override fun isInContext(element: PsiElement): Boolean {
             return getParentClassOrStruct(
                 element,
-                CjClassOrStruct::class.java
+                CjTypeStatement::class.java
             ) != null
         }
     }

@@ -2,6 +2,7 @@ package com.huawei.cangjie.psi.stubs.elements;
 
 import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.psi.CjImportDirective;
+//import com.huawei.cangjie.psi.CjImportDirectiveItem;
 import com.huawei.cangjie.psi.stubs.CangJieImportDirectiveStub;
 import com.huawei.cangjie.psi.stubs.impl.CangJieImportDirectiveStubImpl;
 import com.intellij.psi.stubs.StubElement;
@@ -12,6 +13,9 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 
 

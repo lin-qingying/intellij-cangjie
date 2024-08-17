@@ -134,7 +134,6 @@ class CjpmProjectsServiceImpl(
     init {
         val newProjectModelImportEnabled = isNewProjectModelImportEnabled
         if (newProjectModelImportEnabled) {
-            @Suppress("LeakingThis")
             registerProjectAware(project, this)
         }
 
@@ -284,7 +283,7 @@ class CjpmProjectsServiceImpl(
                     runWriteAction {
                         if (projects.isNotEmpty()) {
                             checkCangjieVersion(projects)
-                            fileTypeManager.associateExtension(CangJieFileType, CangJieFileType.defaultExtension)
+                            fileTypeManager.associateExtension(CangJieFileType.INSTANCE, CangJieFileType.INSTANCE.defaultExtension)
                         }
 
                         directoryIndex.resetIndex()

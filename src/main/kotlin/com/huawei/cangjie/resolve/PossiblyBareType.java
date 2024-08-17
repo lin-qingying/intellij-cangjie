@@ -35,6 +35,12 @@ public class PossiblyBareType {
         this.bareTypeConstructor = bareTypeConstructor;
         this.nullable = nullable;
     }
+
+    @NotNull
+    public static PossiblyBareType bare(@NotNull TypeConstructor bareTypeConstructor, boolean nullable) {
+        return new PossiblyBareType(null, bareTypeConstructor, nullable);
+    }
+
     @NotNull
     public CangJieType getActualType() {
         //noinspection ConstantConditions

@@ -2,6 +2,7 @@ package com.huawei.cangjie.ide.indices
 
 import com.huawei.cangjie.ide.stubindex.CangJieExactPackagesIndex
 import com.huawei.cangjie.ide.vfilefinder.NAME
+
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjFile

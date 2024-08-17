@@ -28,6 +28,15 @@ internal fun PsiElement.reportOnElement() =
         ?.let { getStrictParentOfType<CjSecondaryConstructor>()!! }
         ?: this
 
+fun isOrOverridesSynthesized(descriptor: CallableMemberDescriptor): Boolean {
+    if (descriptor.kind == CallableMemberDescriptor.Kind.SYNTHESIZED) {
+        return true
+    }
+    if (descriptor.kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE) {
+        return descriptor.overriddenDescriptors.all(::isOrOverridesSynthesized)
+    }
+    return false
+}
 private fun CallableDescriptor.hasReturnTypeDependentOnUninferredParams(constraintSystem: ConstraintSystem): Boolean {
     val returnType = returnType ?: return false
     val nestedTypeVariables = constraintSystem.getNestedTypeVariables(returnType)

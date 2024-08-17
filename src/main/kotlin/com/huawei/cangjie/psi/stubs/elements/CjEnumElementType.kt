@@ -7,10 +7,12 @@ import com.huawei.cangjie.psi.psiUtil.StubUtils.serializeClassId
 import com.huawei.cangjie.psi.psiUtil.getSuperNames
 import com.huawei.cangjie.psi.psiUtil.safeFqNameForLazyResolve
 import com.huawei.cangjie.psi.stubs.CangJieEnumStub
+import com.huawei.cangjie.psi.stubs.elements.StubIndexService.Companion.getInstance
 import com.huawei.cangjie.psi.stubs.impl.CangJieEnumStubImpl
 import com.huawei.cangjie.psi.stubs.impl.Utils.wrapStrings
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.IndexSink
 import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
@@ -77,6 +79,11 @@ class CjEnumElementType(debugName:String):CjStubElementType<CangJieEnumStub, CjE
 
     override fun createPsi(stub: CangJieEnumStub): CjEnum {
         return CjEnum(stub)
+    }
+
+    override fun indexStub(stub: CangJieEnumStub, sink: IndexSink) {
+        getInstance().indexEnum(stub, sink)
+
     }
 
     override fun createPsiFromAst(node: ASTNode): CjEnum {

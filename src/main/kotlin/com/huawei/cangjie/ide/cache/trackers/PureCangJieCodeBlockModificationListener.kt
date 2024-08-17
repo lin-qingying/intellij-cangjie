@@ -141,7 +141,7 @@ class PureCangJieCodeBlockModificationListener(val project: Project) : Disposabl
         fun getInsideCodeBlockModificationScope(element: PsiElement): BlockModificationScopeElement? {
             val lambda = element.findTopmostParentOfType<CjLambdaExpression>()
             if (lambda is CjLambdaExpression) {
-                lambda.findTopmostParentOfType<CjSuperTypeCallEntry>()?.findTopmostParentOfType<CjClassOrStruct>()
+                lambda.findTopmostParentOfType<CjSuperTypeCallEntry>()?.findTopmostParentOfType<CjTypeStatement>()
                     ?.let {
                         return BlockModificationScopeElement(it, it)
                     }
@@ -155,12 +155,12 @@ class PureCangJieCodeBlockModificationListener(val project: Project) : Disposabl
             if (CjPsiUtil.isLocal(blockDeclaration))
                 return null
 
-            val directParentClassOrObject = PsiTreeUtil.getParentOfType(blockDeclaration, CjClassOrStruct::class.java)
+            val directParentClassOrObject = PsiTreeUtil.getParentOfType(blockDeclaration, CjTypeStatement::class.java)
             val parentClassOrObject = directParentClassOrObject
 //                ?.takeIf { !it.isTopLevel() && it.hasModifier(CjTokens.INNER_KEYWORD) }?.let {
-//                    var e: CjClassOrStruct? = it
+//                    var e: CjTypeStatement? = it
 //                    while (e != null) {
-//                        e = PsiTreeUtil.getParentOfType(e, CjClassOrStruct::class.java)
+//                        e = PsiTreeUtil.getParentOfType(e, CjTypeStatement::class.java)
 //                        if (e?.hasModifier(CjTokens.INNER_KEYWORD) == false) {
 //                            break
 //                        }
@@ -225,7 +225,7 @@ class PureCangJieCodeBlockModificationListener(val project: Project) : Disposabl
 //
 //                            if (properExpression != null) {
 //                                val declaration =
-//                                    blockDeclaration.findTopmostParentOfType<CjClassOrStruct>() as? CjElement
+//                                    blockDeclaration.findTopmostParentOfType<CjTypeStatement>() as? CjElement
 //
 //                                if (declaration != null) {
 //                                    return if (parentClassOrObject == directParentClassOrObject) {

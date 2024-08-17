@@ -20,16 +20,10 @@ abstract class PlatformDependentAnalyzerServices {
     private val defaultImports = LockBasedStorageManager("TargetPlatform").let { storageManager ->
         storageManager.createMemoizedFunction<DefaultImportsKey, List<ImportPath>> { (includeCangJieComparisons, includeLowPriorityImports) ->
             ArrayList<ImportPath>().apply {
-                listOf<String>()
-//            listOf(
-//                "kotlin.*",
-//                "kotlin.annotation.*",
-//                "kotlin.collections.*",
-//                "kotlin.ranges.*",
-//                "kotlin.sequences.*",
-//                "kotlin.text.*",
-//                "kotlin.io.*"
-//            ).forEach { add(ImportPath.fromString(it)) }
+//emptyList<String>()
+                listOf(
+                    "std.core.*"
+                ).forEach { add(ImportPath.fromString(it)) }
 
 //            if (includeCangJieComparisons) {
 //                add(ImportPath.fromString("kotlin.comparisons.*"))
@@ -65,7 +59,8 @@ abstract class PlatformDependentAnalyzerServices {
 //    abstract fun computePlatformSpecificDefaultImports(storageManager: StorageManager, result: MutableList<ImportPath>)
 //
     open val excludedImports: List<FqName> get() = emptyList()
-//
+
+    //
     open fun dependencyOnBuiltIns(): ModuleInfo.DependencyOnBuiltIns =
         ModuleInfo.DependencyOnBuiltIns.LAST
 }

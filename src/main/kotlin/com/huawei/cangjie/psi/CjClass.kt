@@ -1,14 +1,12 @@
 package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.ClassId
 import com.huawei.cangjie.psi.psiUtil.ClassIdCalculator
 import com.huawei.cangjie.psi.stubs.CangJieClassStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
-import com.intellij.psi.PsiElement
 
-open class CjClass : CjClassOrStruct {
+open class CjClass : CjTypeStatement {
 //    fun isInterface(): Boolean =
 //        _stub?.isInterface() ?: (findChildByType<PsiElement>(CjTokens.INTERFACE_KEYWORD) != null)
 
@@ -29,15 +27,12 @@ open class CjClass : CjClassOrStruct {
     }
 
 
-
-
-    override fun hasExplicitPrimaryConstructor(): Boolean {
-        TODO("Not yet implemented")
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitClass(this, data)
     }
 
-    override fun hasPrimaryConstructor(): Boolean {
-        TODO("Not yet implemented")
-    }
+
+
 
 
 
@@ -45,17 +40,9 @@ open class CjClass : CjClassOrStruct {
         TODO("Not yet implemented")
     }
 
-    override fun getPrimaryConstructorParameters(): MutableList<CjParameter> {
-        TODO("Not yet implemented")
-    }
 
-    override fun getSecondaryConstructors(): MutableList<CjSecondaryConstructor> {
-        TODO("Not yet implemented")
-    }
 
-    override fun getContextReceivers(): MutableList<CjContextReceiver> {
-        TODO("Not yet implemented")
-    }
+
 
     override fun getBody(): CjClassBody?  = getStubOrPsiChild(CjStubElementTypes.CLASS_BODY)
 

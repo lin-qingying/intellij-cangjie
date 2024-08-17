@@ -14,7 +14,7 @@ class CjSecondaryConstructor : CjConstructor<CjSecondaryConstructor> {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?) = visitor.visitSecondaryConstructor(this, data)
     override fun getConstructorKeyword() = notNullChild<PsiElement>(super.getConstructorKeyword())
 
-    override fun getContainingClassOrStruct() = parent?.parent as CjClassOrStruct
+    override fun getContainingClassOrStruct() = parent?.parent as CjTypeStatement
 
     override fun getBodyExpression(): CjBlockExpression? {
         val stub = stub

@@ -7,7 +7,7 @@ import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.name.SpecialNames
 import com.huawei.cangjie.psi.*
-import com.huawei.cangjie.psi.stubs.CangJieClassOrStructStub
+import com.huawei.cangjie.psi.stubs.CangJieTypeStatementStub
 import com.intellij.extapi.psi.StubBasedPsiElementBase
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.TextRange
@@ -16,6 +16,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.codeInsight.CommentUtilCore
 import java.util.*
+
 fun PsiElement.isFunctionalExpression(): Boolean = this is CjNamedFunction && nameIdentifier == null
 
 fun CjSimpleNameExpression.getTopmostParentQualifiedExpressionForSelector(): CjQualifiedExpression? {
@@ -24,6 +25,10 @@ fun CjSimpleNameExpression.getTopmostParentQualifiedExpressionForSelector(): CjQ
         if (parentQualified?.selectorExpression == it) parentQualified else null
     }.last() as? CjQualifiedExpression
 }
+
+fun CjExpression.referenceExpression(): CjReferenceExpression? =
+    (if (this is CjCallExpression) calleeExpression else this) as? CjReferenceExpression
+
 fun CjNamedFunction.isContractPresentPsiCheck(isAllowedOnMembers: Boolean): Boolean {
     val contractAllowedHere =
         (isAllowedOnMembers || isTopLevel) &&
@@ -59,6 +64,7 @@ private fun StubElement<*>.collectAnnotationEntriesFromStubElement(): List<CjAnn
         }
     }
 }
+
 private fun CjAnnotationsContainer.collectAnnotationEntriesFromPsi(): List<CjAnnotationEntry> {
     return children.flatMap { child ->
         when (child) {
@@ -68,14 +74,17 @@ private fun CjAnnotationsContainer.collectAnnotationEntriesFromPsi(): List<CjAnn
         }
     }
 }
+
 fun CjAnnotationsContainer.collectAnnotationEntriesFromStubOrPsi(): List<CjAnnotationEntry> {
     return when (this) {
-        is StubBasedPsiElementBase<*> -> stub?.collectAnnotationEntriesFromStubElement() ?: collectAnnotationEntriesFromPsi()
+        is StubBasedPsiElementBase<*> -> stub?.collectAnnotationEntriesFromStubElement()
+            ?: collectAnnotationEntriesFromPsi()
+
         else -> collectAnnotationEntriesFromPsi()
     }
 }
 
-fun StubBasedPsiElementBase<out CangJieClassOrStructStub<out CjClassOrStruct>>.getSuperNames(): List<String> {
+fun StubBasedPsiElementBase<out CangJieTypeStatementStub<out CjTypeStatement>>.getSuperNames(): List<String> {
     fun addSuperName(result: MutableList<String>, referencedName: String) {
         result.add(referencedName)
 
@@ -94,7 +103,7 @@ fun StubBasedPsiElementBase<out CangJieClassOrStructStub<out CjClassOrStruct>>.g
         }
     }
 
-    require(this is CjClassOrStruct) { "it should be ${CjClassOrStruct::class} but it is a ${this::class.java.name}" }
+    require(this is CjTypeStatement) { "it should be ${CjTypeStatement::class} but it is a ${this::class.java.name}" }
 
     val stub = stub
     if (stub != null) {
@@ -157,16 +166,19 @@ fun CjExpression.getAssignmentByLHS(): CjBinaryExpression? {
 fun CjExpression.getQualifiedExpressionForSelectorOrThis(): CjExpression {
     return getQualifiedExpressionForSelector() ?: this
 }
+
 inline fun <reified T : PsiElement> T.copied(): T {
     return copy() as T
 }
+
 fun getTrailingCommaByClosingElement(closingElement: PsiElement?): PsiElement? {
     val elementBeforeClosingElement =
         closingElement?.getPrevSiblingIgnoringWhitespaceAndComments() ?: return null
 
     return elementBeforeClosingElement.run { if (node.elementType == CjTokens.COMMA) this else null }
 }
-val CjQualifiedExpression.callExpression:CjCallExpression?
+
+val CjQualifiedExpression.callExpression: CjCallExpression?
     get() = selectorExpression as? CjCallExpression
 
 var CjElement.parentSubstitute: PsiElement? by UserDataProperty(Key.create<PsiElement>("PARENT_SUBSTITUTE"))
@@ -201,11 +213,11 @@ fun CjElement.getQualifiedExpressionForSelector(): CjQualifiedExpression? {
     return if (parent is CjQualifiedExpression && parent.selectorExpression == this) parent else null
 }
 
-val CjDeclaration.containingClassOrStruct: CjClassOrStruct?
+val CjDeclaration.containingClassOrStruct: CjTypeStatement?
     get() = parent.let {
         when (it) {
-            is CjClassBody -> it.parent as? CjClassOrStruct
-            is CjClassOrStruct -> it
+            is CjClassBody -> it.parent as? CjTypeStatement
+            is CjTypeStatement -> it
             is CjParameterList -> (it.parent as? CjPrimaryConstructor)?.getContainingClassOrStruct()
             else -> null
         }
@@ -231,4 +243,8 @@ fun CjStringTemplateExpression.isSingleQuoted(): Boolean = node.firstChildNode.t
 fun CjStringTemplateExpression.isPlain() = entries.all { it is CjLiteralStringTemplateEntry }
 
 
-
+fun List<CangJieImportField>.addIf(element: CangJieImportField) {
+    if (!this.contains(element)) {
+        this + element // 如果不存在，则返回新列表
+    }
+}

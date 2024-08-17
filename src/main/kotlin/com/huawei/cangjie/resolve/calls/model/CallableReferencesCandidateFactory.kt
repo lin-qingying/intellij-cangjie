@@ -22,7 +22,7 @@ import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.UnwrappedType
 import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.expressions.CoercionStrategy
-import com.huawei.cangjie.utils.SmartList
+import com.intellij.util.SmartList
 
 
 class CallableReferencesCandidateFactory(

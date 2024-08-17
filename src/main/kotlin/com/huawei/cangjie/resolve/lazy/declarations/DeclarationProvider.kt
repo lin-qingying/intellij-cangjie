@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.lazy.declarations
 
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.resolve.lazy.data.CjTypeStatementInfo
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 
 interface DeclarationProvider {
@@ -10,9 +11,11 @@ interface DeclarationProvider {
 
     fun getFunctionDeclarations(name: Name): Collection<CjNamedFunction>
 
-    fun getVariableDeclarations(name: Name): Collection<CjProperty>
+    fun getVariableDeclarations(name: Name): Collection<CjVariable>
+    fun getPropertyDeclarations(name: Name): Collection<CjProperty>
 
     fun getDestructuringDeclarationsEntries(name: Name): Collection<CjDestructuringDeclarationEntry>
+    fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>>
 
 //    fun getClassOrObjectDeclarations(name: Name): Collection<CjClassOrObjectInfo<*>>
 

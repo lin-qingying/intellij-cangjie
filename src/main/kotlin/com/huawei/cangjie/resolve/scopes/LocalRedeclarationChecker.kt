@@ -13,7 +13,7 @@ abstract class AbstractLocalRedeclarationChecker(val overloadChecker: OverloadCh
 
     override fun checkBeforeAddingToScope(scope: LexicalScope, newDescriptor: DeclarationDescriptor) {
         val name = newDescriptor.name
-        val location = NoLookupLocation.WHEN_CHECK_DECLARATION_CONFLICTS
+        val location = NoLookupLocation.MATCH_CHECK_DECLARATION_CONFLICTS
         when (newDescriptor) {
             is ClassifierDescriptor, is VariableDescriptor -> {
                 val otherDescriptor = scope.getContributedClassifier(name, location)

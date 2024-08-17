@@ -17,6 +17,14 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
 
     }
 
+    public R visitProperty(@NotNull CjProperty property, D data) {
+        return visitNamedDeclaration(property, data);
+    }
+
+    public R visitVariable(@NotNull CjVariable variable, D data) {
+        return visitNamedDeclaration(variable, data);
+    }
+
     public R visitCallableReferenceExpression(@NotNull CjCallableReferenceExpression expression, D data) {
         return visitDoubleColonExpression(expression, data);
     }
@@ -276,6 +284,10 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         return visitExpression(dcl, data);
     }
 
+    public R visitTypeAlias(@NotNull CjTypeAlias typeAlias, D data) {
+        return visitNamedDeclaration(typeAlias, data);
+    }
+
     public R visitNamedDeclaration(@NotNull CjNamedDeclaration declaration, D data) {
         return visitDeclaration(declaration, data);
     }
@@ -378,6 +390,28 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
 
     public R visitPropertyAccessor(@NotNull CjPropertyAccessor accessor, D data) {
         return visitDeclaration(accessor, data);
+    }
+
+    public R visitClass(@NotNull CjClass cclass, D data) {
+        return visitTypeStatement(cclass, data);
+    }
+
+    public R visitEnum(@NotNull CjEnum cenum, D data) {
+        return visitTypeStatement(cenum, data);
+    }
+
+    public R visitStruct(@NotNull CjStruct cstruct, D data) {
+        return visitTypeStatement(cstruct, data);
+    }
+
+    public R visitInterface(@NotNull CjInterface cinterface, D data) {
+        return visitTypeStatement(cinterface, data);
+    }
+
+
+    //    类型声明
+    public R visitTypeStatement(@NotNull CjTypeStatement typeStatement, D data) {
+        return visitNamedDeclaration(typeStatement, data);
     }
 
     public R visitAnnotation(@NotNull CjAnnotation annotation, D data) {

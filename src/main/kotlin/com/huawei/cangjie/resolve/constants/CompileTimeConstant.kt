@@ -16,6 +16,7 @@ interface CompileTimeConstant<out T>{
     val parameters: Parameters
     val moduleDescriptor: ModuleDescriptor
     fun toConstantValue(expectedType: CangJieType): ConstantValue<T>
+    val usesNonConstValAsConstant: Boolean get() = parameters.usesNonConstValAsConstant
 
     data class Parameters(
         val canBeUsedInAnnotation: Boolean,

@@ -38,6 +38,7 @@ interface Annotations : Iterable<AnnotationDescriptor> {
     fun getUseSiteTargetedAnnotations(): List<AnnotationWithTarget> = emptyList()
 
     companion object {
+        @JvmField
         val EMPTY: Annotations = object : Annotations {
             override fun isEmpty() = true
 

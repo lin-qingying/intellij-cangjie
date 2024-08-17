@@ -190,7 +190,7 @@ class CangJieResolverForModuleFactory : ResolverForModuleFactory() {
 
             )
         return ResolverForModule(
-            CompositePackageFragmentProvider(providersForModule, "CompositeProvider@JvmResolver for $moduleDescriptor"),
+            CompositePackageFragmentProvider(providersForModule, "CompositeProvider for $moduleDescriptor"),
             container
         )
     }

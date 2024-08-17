@@ -8,7 +8,7 @@ import java.util.List;
 
 
 
-public interface CjPureClassOrStruct extends CjPureElement, CjDeclarationContainer {
+public interface CjPureTypeStatement extends CjPureElement, CjDeclarationContainer {
     @Nullable
     String getName();
 

@@ -30,8 +30,9 @@ open class LazyDeclarationResolver(
         this.trace = lockBasedLazyResolveStorageManager.createSafeTrace(delegationTrace)
     }
 
-    open fun getClassDescriptor(classOrObject: CjClassOrStruct, location: LookupLocation): ClassDescriptor =
+    open fun getClassDescriptor(classOrObject: CjTypeStatement, location: LookupLocation): ClassDescriptor =
         findClassDescriptor(classOrObject, location)
+
     private fun findClassDescriptorIfAny(
         classObjectOrScript: CjNamedDeclaration,
         location: LookupLocation
@@ -59,23 +60,22 @@ open class LazyDeclarationResolver(
 //    fun resolveToDescriptor(declaration: CjDeclaration): DeclarationDescriptor =
 //        resolveToDescriptor(declaration, /*track =*/true) ?: absentDescriptorHandler.diagnoseDescriptorNotFound(declaration)
 
-    fun resolveToDescriptor(declaration: CjDeclaration): DeclarationDescriptor
-
-    {
+    fun resolveToDescriptor(declaration: CjDeclaration): DeclarationDescriptor {
 
         val a = resolveToDescriptor(declaration, /*track =*/true) ?: absentDescriptorHandler.diagnoseDescriptorNotFound(
             declaration
         )
 
         a.toString()
-      return  a
+        return a
 
     }
+
     private fun resolveToDescriptor(declaration: CjDeclaration, track: Boolean): DeclarationDescriptor? {
         return declaration.accept(object : CjVisitor<DeclarationDescriptor?, Nothing?>() {
             private fun lookupLocationFor(declaration: CjDeclaration, isTopLevel: Boolean): LookupLocation =
                 if (isTopLevel && track) CangJieLookupLocation(declaration)
-                else NoLookupLocation.WHEN_RESOLVE_DECLARATION
+                else NoLookupLocation.MATCH_RESOLVE_DECLARATION
 
             override fun visitNamedFunction(function: CjNamedFunction, data: Nothing?): DeclarationDescriptor? {
                 val location = lookupLocationFor(function, function.isTopLevel)
@@ -85,6 +85,21 @@ open class LazyDeclarationResolver(
             }
 
 
+            //            类型别名
+            override fun visitTypeAlias(typeAlias: CjTypeAlias, data: Nothing?): DeclarationDescriptor? {
+//                类型别名一定是顶层声明的
+                val location = lookupLocationFor(typeAlias, /*typeAlias.isTopLevel()*/ true)
+                val scopeForDeclaration = getMemberScopeDeclaredIn(typeAlias, location)
+                scopeForDeclaration.getContributedClassifier(typeAlias.nameAsSafeName, location)
+                return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, typeAlias)
+            }
+
+            override fun visitVariable(variable: CjVariable, data: Nothing?): DeclarationDescriptor? {
+                val location = lookupLocationFor(variable, variable.isTopLevel)
+                val scopeForDeclaration = getMemberScopeDeclaredIn(variable, location)
+                scopeForDeclaration.getContributedVariables(variable.nameAsSafeName, location)
+                return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, variable)
+            }
 
             override fun visitCjElement(element: CjElement, data: Nothing?): DeclarationDescriptor {
                 throw IllegalArgumentException(
@@ -108,7 +123,7 @@ open class LazyDeclarationResolver(
             return packageDescriptor.getMemberScope()
         } else {
             return when (parentDeclaration) {
-                is CjClassOrStruct -> getClassDescriptor(parentDeclaration, location).unsubstitutedMemberScope
+                is CjTypeStatement -> getClassDescriptor(parentDeclaration, location).unsubstitutedMemberScope
 
                 else -> throw IllegalStateException(
                     "Don't call this method for local declarations: " + declaration + "\n" +

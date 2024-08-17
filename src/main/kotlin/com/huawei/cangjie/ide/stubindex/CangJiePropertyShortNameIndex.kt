@@ -1,0 +1,22 @@
+package com.huawei.cangjie.ide.stubindex
+
+import com.huawei.cangjie.psi.CjNamedDeclaration
+import com.intellij.openapi.project.Project
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.stubs.StringStubIndexExtension
+import com.intellij.psi.stubs.StubIndexKey
+
+
+class CangJiePropertyShortNameIndex internal constructor() : StringStubIndexExtension<CjNamedDeclaration>() {
+    companion object Helper : CangJieStringStubIndexHelper<CjNamedDeclaration>(CjNamedDeclaration::class.java) {
+        override val indexKey: StubIndexKey<String, CjNamedDeclaration> =
+            StubIndexKey.createIndexKey("com.huawei.cangjie.ide.stubindex.CangJiePropertyShortNameIndex")
+    }
+
+    override fun getKey(): StubIndexKey<String, CjNamedDeclaration> = indexKey
+
+    @Deprecated("Base method is deprecated", ReplaceWith("CangJiePropertyShortNameIndex[shortName, project, scope]"))
+    override fun get(shortName: String, project: Project, scope: GlobalSearchScope): Collection<CjNamedDeclaration> {
+        return Helper[shortName, project, scope]
+    }
+}

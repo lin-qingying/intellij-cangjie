@@ -142,7 +142,7 @@ public class ClassDescriptorImpl extends ClassDescriptorBase {
     @NotNull
     @Override
     public Annotations getAnnotations() {
-        return Annotations.Companion.getEMPTY();
+        return Annotations.EMPTY;
     }
 
 

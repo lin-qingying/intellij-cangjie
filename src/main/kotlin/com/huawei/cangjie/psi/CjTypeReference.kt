@@ -54,18 +54,18 @@ class CjTypeReference : CjModifierListOwnerStub<CangJiePlaceHolderStub<CjTypeRef
         return when (typeElement) {
             is CjUserType -> buildString {
                 append(getQualifiedName(typeElement))
-                val args = typeElement.typeArguments
-                if (args.isNotEmpty()) {
-                    append(args.joinToString(", ", "<", ">") {
-                        val projection = when (it.projectionKind) {
-                            CjProjectionKind.IN -> "in "
-
-                            CjProjectionKind.STAR -> "*"
-                            CjProjectionKind.NONE -> ""
-                        }
-                        projection + (getTypeText(it.typeReference?.typeElement) ?: "")
-                    })
-                }
+//                val args = typeElement.typeArguments
+//                if (args.isNotEmpty()) {
+//                    append(args.joinToString(", ", "<", ">") {
+//                        val projection = when (it.projectionKind) {
+//                            CjProjectionKind.IN -> "in "
+//
+//                            CjProjectionKind.STAR -> "*"
+//                            CjProjectionKind.NONE -> ""
+//                        }
+//                        projection + (getTypeText(it.typeReference?.typeElement) ?: "")
+//                    })
+//                }
             }
 
 

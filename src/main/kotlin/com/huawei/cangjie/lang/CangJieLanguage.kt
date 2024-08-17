@@ -4,6 +4,7 @@ import com.intellij.lang.Language
 
 
 object CangJieLanguage : Language("CangJie"){
+    private fun readResolve(): Any = CangJieLanguage
 
 
     val NAME:String = "CangJie"

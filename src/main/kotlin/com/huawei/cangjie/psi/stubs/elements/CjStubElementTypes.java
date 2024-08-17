@@ -215,7 +215,7 @@ public interface CjStubElementTypes {
             new CjPlaceHolderStubElementType<>("TYPE_LIST", CjSuperTypeEntry.class);
 
 
-    CjImportDirectiveItemElementType IMPORT_DIRECTIVE_ITEM = new CjImportDirectiveItemElementType("IMPORT_DIRECTIVE_ITEM");
+//    CjImportDirectiveItemElementType IMPORT_DIRECTIVE_ITEM = new CjImportDirectiveItemElementType("IMPORT_DIRECTIVE_ITEM");
 
 
     CjMainFunctionElementType MAIN_FUNC = new CjMainFunctionElementType("MAIN_FUNC");
@@ -223,7 +223,7 @@ public interface CjStubElementTypes {
     CjClassInitElementType CLASS_MAIN_INIT = new CjClassInitElementType("CLASS_MAIN_INIT");
     CjClassInitElementType CLASS_TILDE_INIT = new CjClassInitElementType("CLASS_TILDE_INIT");
 
-    CjBasicTypeElementType BASIC_TYPE = new CjBasicTypeElementType("BASIC_TYPE");
+//    CjBasicTypeElementType BASIC_TYPE = new CjBasicTypeElementType("BASIC_TYPE");
 
 
 

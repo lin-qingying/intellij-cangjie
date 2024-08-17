@@ -13,6 +13,12 @@ class TypeAliasExpander(
     private val shouldCheckBounds: Boolean
 ){
 
+    fun expandWithoutAbbreviation(typeAliasExpansion: TypeAliasExpansion, attributes: TypeAttributes) =
+        expandRecursively(
+            typeAliasExpansion, attributes,
+            isNullable = false, recursionDepth = 0, withAbbreviatedType = false
+        )
+
     private fun expandNonArgumentTypeProjection(
         originalProjection: TypeProjection,
         typeAliasExpansion: TypeAliasExpansion,
@@ -216,5 +222,10 @@ class TypeAliasExpander(
             typeAliasExpansion, attributes,
             isNullable = false, recursionDepth = 0, withAbbreviatedType = true
         )
+
+    companion object{
+        val NON_REPORTING =
+            TypeAliasExpander(TypeAliasExpansionReportStrategy.DO_NOTHING, false)
+    }
 }
 

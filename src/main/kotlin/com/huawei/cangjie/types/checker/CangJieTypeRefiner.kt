@@ -27,7 +27,16 @@ abstract class CangJieTypeRefiner : AbstractTypeRefiner(){
     abstract override fun refineType(type: CangJieTypeMarker): CangJieType
 
     @TypeRefinement
+    abstract fun refineSupertypes(classDescriptor: ClassDescriptor): Collection<CangJieType>
+
+    @TypeRefinement
     abstract fun refineDescriptor(descriptor: DeclarationDescriptor): ClassifierDescriptor?
+    @TypeRefinement
+    abstract fun isRefinementNeededForModule(moduleDescriptor: ModuleDescriptor): Boolean
+    @TypeRefinement
+    abstract fun isRefinementNeededForTypeConstructor(typeConstructor: TypeConstructor): Boolean
+    @TypeRefinement
+    abstract fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassDescriptor, compute: () -> S): S
 
     object Default : CangJieTypeRefiner() {
         @TypeRefinement
@@ -39,10 +48,10 @@ abstract class CangJieTypeRefiner : AbstractTypeRefiner(){
 
         }
 //
-//        @TypeRefinement
-//        override fun refineSupertypes(classDescriptor: ClassDescriptor): Collection<CangJieType> {
-//            return classDescriptor.typeConstructor.supertypes
-//        }
+        @TypeRefinement
+        override fun refineSupertypes(classDescriptor: ClassDescriptor): Collection<CangJieType> {
+            return classDescriptor.typeConstructor.supertypes
+        }
 //
 //        @TypeRefinement
 //        override fun refineDescriptor(descriptor: DeclarationDescriptor): ClassDescriptor? {
@@ -54,19 +63,19 @@ abstract class CangJieTypeRefiner : AbstractTypeRefiner(){
 //            return null
 //        }
 //
-//        @TypeRefinement
-//        override fun isRefinementNeededForModule(moduleDescriptor: ModuleDescriptor): Boolean {
-//            return false
-//        }
-//
-//        @TypeRefinement
-//        override fun isRefinementNeededForTypeConstructor(typeConstructor: TypeConstructor): Boolean {
-//            return false
-//        }
-//
-//        @TypeRefinement
-//        override fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassDescriptor, compute: () -> S): S {
-//            return compute()
-//        }
+        @TypeRefinement
+        override fun isRefinementNeededForModule(moduleDescriptor: ModuleDescriptor): Boolean {
+            return false
+        }
+
+        @TypeRefinement
+        override fun isRefinementNeededForTypeConstructor(typeConstructor: TypeConstructor): Boolean {
+            return false
+        }
+
+        @TypeRefinement
+        override fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassDescriptor, compute: () -> S): S {
+            return compute()
+        }
     }
 }

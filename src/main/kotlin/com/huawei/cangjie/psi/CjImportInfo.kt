@@ -2,6 +2,52 @@ package com.huawei.cangjie.psi
 
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.QualifiedExpressionResolver.ExpressionQualifierPart
+import com.huawei.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
+import com.huawei.cangjie.types.expressions.isWithoutValueArguments
+import com.intellij.util.SmartList
+
+fun CjImportInfo.ImportContent.asQualifierPartList(): List<QualifierPart> =
+    when (this) {
+        is CjImportInfo.ImportContent.ExpressionBased -> expression.asQualifierPartList()
+        is CjImportInfo.ImportContent.FqNameBased -> fqName.pathSegments().map { QualifierPart(it) }
+    }
+fun CjExpression.asQualifierPartList(doubleColonLHS: Boolean = false): List<ExpressionQualifierPart> {
+    val result = SmartList<ExpressionQualifierPart>()
+
+    fun addQualifierPart(expression: CjExpression?): Boolean {
+        if (expression is CjSimpleNameExpression) {
+            result.add(ExpressionQualifierPart(expression))
+            return true
+        }
+        if (doubleColonLHS && expression is CjCallExpression && expression.isWithoutValueArguments) {
+            val simpleName = expression.calleeExpression
+            if (simpleName is CjSimpleNameExpression) {
+                result.add(
+                    ExpressionQualifierPart(
+                        simpleName.getReferencedNameAsName(),
+                        simpleName,
+                        expression.typeArgumentList
+                    )
+                )
+                return true
+            }
+        }
+        return false
+    }
+
+    var expression: CjExpression? = this
+    while (true) {
+        if (addQualifierPart(expression)) break
+        if (expression !is CjQualifiedExpression) break
+
+        addQualifierPart(expression.selectorExpression)
+
+        expression = expression.receiverExpression
+    }
+
+    return result.asReversed()
+}
 
 
 interface CjImportInfo {
@@ -13,6 +59,7 @@ interface CjImportInfo {
     val isAllUnder: Boolean
     val importContent: ImportContent?
     val importedFqName: FqName?
+//    val importedFqNames: MutableList<FqName>?
     val aliasName: String?
 
 
@@ -23,9 +70,8 @@ interface CjImportInfo {
 
     private fun computeNameAsString(): String? {
         if (isAllUnder) return null
-//        aliasName?.let { return it }
-        val importContent = importContent
-        return when (importContent) {
+        aliasName?.let { return it }
+        return when (val importContent = importContent) {
             is ImportContent.ExpressionBased -> CjPsiUtil.getLastReference(importContent.expression)
                 ?.getReferencedName()
 

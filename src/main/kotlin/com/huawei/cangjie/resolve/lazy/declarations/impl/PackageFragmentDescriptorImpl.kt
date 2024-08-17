@@ -157,11 +157,14 @@ class PackageFragmentDescriptorBasicImpl(
         override fun getContributedVariables(
             name: Name,
             location: LookupLocation
-        ): Collection<@JvmWildcard PropertyDescriptor> = emptyList()
+        ): Collection<@JvmWildcard VariableDescriptor> = emptyList()
+
+        override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =  emptyList()
 
         override fun getFunctionNames(): Set<Name> = emptySet()
 
         override fun getVariableNames(): Set<Name> = emptySet()
+        override fun getPropertyNames(): Set<Name> = emptySet()
 
         override fun getClassifierNames(): Set<Name> = DESCRIPTOR_MAP.map {
             it.key

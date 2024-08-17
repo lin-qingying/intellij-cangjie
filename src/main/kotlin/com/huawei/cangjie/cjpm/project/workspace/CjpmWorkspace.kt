@@ -3,6 +3,7 @@ package com.huawei.cangjie.cjpm.project.workspace
 import CjpmWorkspaceData
 import com.fasterxml.jackson.core.JacksonException
 import com.huawei.cangjie.cjpm.CjpmConstants
+import com.huawei.cangjie.cjpm.project.model.CjcInfo
 import com.huawei.cangjie.cjpm.project.model.CjpmProjectInfo
 import com.huawei.cangjie.cjpm.project.model.Require
 import com.huawei.cangjie.cjpm.project.model.impl.CachedVirtualFile
@@ -43,7 +44,7 @@ interface CjpmWorkspace {
 
 
     val packages: Collection<Package>
-//    fun withStdlib(stdlib: StandardLibrary,  rustcInfo: CjcInfo? = null): CjpmWorkspace
+    fun withStdlib(stdlib: StandardLibrary, rustcInfo: CjcInfo? = null): CjpmWorkspace
 
 
     //    cjpm module.json数据
@@ -159,7 +160,7 @@ class WorkspaceImpl(
 
         try {
 //            Cjpm.JSON_MAPPER.readValue(json, CjpmProjectInfo::class.java)
-            CjpmProjectInfo.deserialize(manifestPath )
+            CjpmProjectInfo.deserialize(manifestPath)
         } catch (e: JacksonException) {
             throw e
             println(e)
@@ -193,7 +194,7 @@ class WorkspaceImpl(
 
             )
         )
-    }
+    }.distinctBy { it.name } // 根据name去重
 //    override val moduleData: CjpmProjectInfo? = ApplicationManager.getApplication().executeOnPooledThread<CjpmProjectInfo> {
 //
 //        manifestPath
@@ -203,73 +204,25 @@ class WorkspaceImpl(
 //    }.get()
 
 
-//    override fun withStdlib(stdlib: StandardLibrary, rustcInfo: CjcInfo?): CjpmWorkspace {
-//
-//        val (newPackagesData, @Suppress("NAME_SHADOWING") stdlib) = if (!stdlib.isPartOfCargoProject) {
-//            Pair(
-//                packages.map { it.asPackageData() } + stdlib.asPackageData(rustcInfo),
-//                stdlib
-//            )
-//        } else {
-//            // In the case of https://github.com/rust-lang/rust project, stdlib
-//            // is already a part of the project, so no need to add extra packages.
-//            val oldPackagesData = packages.map { it.asPackageData() }
-//            val stdCratePackageRoots = stdlib.crates.mapToSet { it.contentRootUrl }
-//            val (stdPackagesData, otherPackagesData) = oldPackagesData.partition { it.contentRootUrl in stdCratePackageRoots }
-//            val stdPackagesByPackageRoot = stdPackagesData.associateBy { it.contentRootUrl }
-//            val pkgIdMapping = stdlib.crates.associate {
-//                it.id to (stdPackagesByPackageRoot[it.contentRootUrl]?.id ?: it.id)
-//            }
-//            val newStdlibCrates = stdlib.crates.map { it.copy(id = pkgIdMapping.getValue(it.id)) }
-//            val newStdlibDependencies = stdlib.workspaceData.dependencies.map { (oldId, dependency) ->
-//                val newDependencies = dependency.mapToSet { it.copy(id = pkgIdMapping.getValue(it.id)) }
-//                pkgIdMapping.getValue(oldId) to newDependencies
-//            }.toMap()
-//
-//            Pair(
-//                otherPackagesData + stdPackagesData.map { it.copy(origin = STDLIB) },
-//                stdlib.copy(
-//                    workspaceData = stdlib.workspaceData.copy(
-//                        packages = newStdlibCrates,
-//                        dependencies = newStdlibDependencies
-//                    )
-//                )
-//            )
-//        }
-//
-//        val stdAll = stdlib.crates.associateBy { it.id }
-//        val stdInternalDeps = stdlib.crates.filter { it.origin == STDLIB_DEPENDENCY }.mapToSet { it.id }
-//
-//
-//        val result = WorkspaceImpl(
-//            manifestPath,
-//            workspaceRootUrl,
-//            newPackagesData,
-//
-//        )
-//
-//        run {
-//            val oldIdToPackage = packages.associateBy { it.id }
-//            val newIdToPackage = result.packages.associateBy { it.id }
-//            val stdlibDependencies = result.packages.filter { it.origin == STDLIB }
-//                .map { DependencyImpl(it, depKinds = listOf(CargoWorkspace.DepKindInfo(CargoWorkspace.DepKind.Stdlib))) }
-//            newIdToPackage.forEach { (id, pkg) ->
-//                val stdCrate = stdAll[id]
-//                if (stdCrate == null) {
-//                    pkg.dependencies.addAll(oldIdToPackage[id]?.dependencies.orEmpty().mapNotNull { dep ->
-//                        val dependencyPackage = newIdToPackage[dep.pkg.id] ?: return@mapNotNull null
-//                        dep.withPackage(dependencyPackage)
-//                    })
-//                    val explicitDeps = pkg.dependencies.map { it.name }.toSet()
-//                    pkg.dependencies.addAll(stdlibDependencies.filter { it.name !in explicitDeps && it.pkg.id !in stdInternalDeps })
-//                } else {
-//                    // `pkg` is a crate from stdlib
-//                    pkg.addDependencies(stdlib.workspaceData, newIdToPackage)
-//                }
-//            }
-//        }
-//        return result
-//    }
+    override fun withStdlib(stdlib: StandardLibrary, rustcInfo: CjcInfo?): CjpmWorkspace {
+//        TODO 添加标准库
+        val (newPackagesData, @Suppress("NAME_SHADOWING") stdlib) =
+            Pair(
+                packages.map { it.asPackageData() } + stdlib.packages,
+                stdlib
+            )
+
+        val result = WorkspaceImpl(
+            manifestPath,
+            workspaceRootUrl,
+            newPackagesData,
+//            cfgOptions,
+//            cargoConfig,
+//            featuresState
+        )
+        return result
+
+    }
 
 
     companion object {

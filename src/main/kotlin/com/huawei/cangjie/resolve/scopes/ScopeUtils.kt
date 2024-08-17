@@ -2,18 +2,22 @@ package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
+import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjClassBody
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.FrontendInternals
+import com.huawei.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
 import com.huawei.cangjie.resolve.ResolutionFacade
 import com.huawei.cangjie.resolve.frontendService
 import com.huawei.cangjie.resolve.lazy.FileScopeProvider
 import com.huawei.cangjie.resolve.scopes.util.parentsWithSelf
+import com.huawei.cangjie.types.error.ErrorClassDescriptor
+import com.huawei.cangjie.types.error.ErrorEntity
 import com.huawei.cangjie.utils.Printer
-import com.huawei.cangjie.utils.SmartList
+import com.intellij.util.SmartList
 import com.huawei.cangjie.utils.parentsWithSelf
 import com.intellij.psi.PsiElement
 
@@ -36,6 +40,8 @@ private class MemberScopeToImportingScopeAdapter(override val parent: ImportingS
 
     override fun getContributedVariables(name: Name, location: LookupLocation) =
         memberScope.getContributedVariables(name, location)
+
+    override fun getContributedPropertys(name: Name, location: LookupLocation) = memberScope.getContributedPropertys(name, location)
 
     override fun getContributedFunctions(name: Name, location: LookupLocation) =
         memberScope.getContributedFunctions(name, location)
@@ -74,6 +80,8 @@ inline fun <Scope, T> getFromAllScopes(scopes: Array<Scope>, callback: (Scope) -
     }
 
 fun listOfNonEmptyScopes(scopes: Iterable<MemberScope?>): SmartList<MemberScope> =
+    scopes.filterTo(SmartList<MemberScope>()) { it != null && it !== MemberScope.Empty }
+fun listOfNonEmptyScopes(vararg scopes: MemberScope?): SmartList<MemberScope> =
     scopes.filterTo(SmartList<MemberScope>()) { it != null && it !== MemberScope.Empty }
 
 inline fun <Scope, T : ClassifierDescriptor> getFirstClassifierDiscriminateHeaders(
@@ -125,10 +133,12 @@ fun PsiElement.getResolutionScope(
     is CjFile -> resolutionFacade.getFileResolutionScope(containingFile as CjFile)
     else -> error("Not in CjFile")
 }
+
 @OptIn(FrontendInternals::class)
 fun ResolutionFacade.getFileResolutionScope(file: CjFile): LexicalScope {
     return frontendService<FileScopeProvider>().getFileResolutionScope(file)
 }
+
 fun PsiElement.getResolutionScope(bindingContext: BindingContext): LexicalScope? {
     for (parent in parentsWithSelf) {
         if (parent is CjElement) {
@@ -150,6 +160,7 @@ fun PsiElement.getResolutionScope(bindingContext: BindingContext): LexicalScope?
 
     return null
 }
+
 fun DeclarationDescriptor.canBeResolvedWithoutDeprecation(
     scopeForResolution: HierarchicalScope,
     location: LookupLocation
@@ -161,9 +172,11 @@ fun DeclarationDescriptor.canBeResolvedWithoutDeprecation(
                 ?.let { it.descriptor == this && !it.isDeprecated }
 
             // Looking for member: heuristically check only one case, when another descriptor visible through explicit import
-            is VariableDescriptor -> (scope as? ImportingScope)?.getContributedVariables(name, location)?.any { it == this }
+            is VariableDescriptor -> (scope as? ImportingScope)?.getContributedVariables(name, location)
+                ?.any { it == this }
 
-            is FunctionDescriptor -> (scope as? ImportingScope)?.getContributedFunctions(name, location)?.any { it == this }
+            is FunctionDescriptor -> (scope as? ImportingScope)?.getContributedFunctions(name, location)
+                ?.any { it == this }
 
             else -> null
         }
@@ -172,4 +185,108 @@ fun DeclarationDescriptor.canBeResolvedWithoutDeprecation(
     }
 
     return false
+}
+
+fun HierarchicalScope.findClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
+    findFirstFromMeAndParent { it.getContributedClassifier(name, location) }
+
+fun HierarchicalScope.findFirstClassifierWithDeprecationStatus(
+    name: Name,
+    location: LookupLocation
+): DescriptorWithDeprecation<ClassifierDescriptor>? {
+    return findFirstFromMeAndParent { it.getContributedClassifierIncludeDeprecated(name, location) }
+}
+fun HierarchicalScope.findPackageFqNames(
+    name: Name,
+//    location: LookupLocation
+): List<FqName>? {
+    return findFirstFromMeAndParent { it.getContributedPackageFqName(name/*, location*/) }
+}
+
+fun HierarchicalScope.findPackageQualifierParts(
+    name: Name,
+//    location: LookupLocation
+): List<List<QualifierPart>>? {
+    return findFirstFromMeAndParent { it.getContributedPackageQualifierPart(name/*, location*/) }
+}
+object ScopeUtils {
+    @JvmStatic
+    fun makeScopeForPropertyInitializer(
+        propertyHeader: LexicalScope,
+        propertyDescriptor: VariableDescriptor
+    ): LexicalScope {
+        return LexicalScopeImpl(
+            propertyHeader,
+            propertyDescriptor,
+            false,
+            null,
+            emptyList(),
+            LexicalScopeKind.PROPERTY_INITIALIZER_OR_DELEGATE
+        )
+    }
+
+}
+class ErrorLexicalScope : LexicalScope {
+    override val parent: HierarchicalScope = object : HierarchicalScope {
+        override val parent: HierarchicalScope? = null
+
+        override fun printStructure(p: Printer) {
+            p.print(ErrorEntity.PARENT_OF_ERROR_SCOPE.debugText)
+        }
+
+        override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
+
+        override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> = emptySet()
+        override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor>  = emptySet()
+
+        override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> = emptySet()
+
+        override fun getContributedDescriptors(
+            kindFilter: DescriptorKindFilter,
+            nameFilter: (Name) -> Boolean
+        ): Collection<DeclarationDescriptor> = emptySet()
+
+//        override fun getContributedPackageFqName(name: Name, location: LookupLocation): List<FqName> = emptyList()
+    }
+
+    override fun printStructure(p: Printer) {
+        p.print(ErrorEntity.ERROR_SCOPE.debugText)
+    }
+
+    override val ownerDescriptor: DeclarationDescriptor =
+        ErrorClassDescriptor(Name.special(ErrorEntity.ERROR_CLASS.debugText.format("unknown")))
+    override val isOwnerDescriptorAccessibleByLabel: Boolean = false
+    override val implicitReceiver: ReceiverParameterDescriptor? = null
+    override val contextReceiversGroup: List<ReceiverParameterDescriptor> = emptyList()
+    override val kind: LexicalScopeKind = LexicalScopeKind.THROWING
+//    override fun getContributedPackageFqName(name: Name, location: LookupLocation): List<FqName> {
+//        return mutableListOf()
+//    }
+
+    override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
+
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> = emptySet()
+    override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor>  = emptySet()
+    override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> = emptySet()
+
+    override fun getContributedDescriptors(
+        kindFilter: DescriptorKindFilter,
+        nameFilter: (Name) -> Boolean
+    ): Collection<DeclarationDescriptor> = emptySet()
+}
+inline fun <Scope> forEachScope(scope1: Scope?, scope2: Scope?, action: (Scope) -> Unit) {
+    if (scope1 != null) action(scope1)
+    if (scope2 != null) action(scope2)
+}
+
+inline fun <Scope, R> flatMapScopes(scope1: Scope?, scope2: Scope?, transform: (Scope) -> Collection<R>): Collection<R> {
+    val results1 = if (scope1 != null) transform(scope1) else emptyList()
+    if (scope2 == null) return results1
+    else {
+        val results2 = transform(scope2)
+        if (results1.isEmpty()) return results2
+        else return results1.toMutableList().also {
+            it.addAll(results2)
+        }
+    }
 }

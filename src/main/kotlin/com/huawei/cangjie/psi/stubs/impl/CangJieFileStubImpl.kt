@@ -3,6 +3,7 @@ package com.huawei.cangjie.psi.stubs.impl
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
+
 import com.huawei.cangjie.psi.stubs.CangJieFileStub
 import com.huawei.cangjie.psi.stubs.elements.CjFileElementType
 
@@ -17,7 +18,7 @@ class CangJieFileStubImpl(
     private val facadeFqNameString: String?,
     val partSimpleName: String?,
     val facadePartSimpleNames: List<String>?,
-) : PsiFileStubImpl<CjFile>(CjFile), CangJieFileStub{
+) : PsiFileStubImpl<CjFile>(CjFile), CangJieFileStub {
 
     constructor(CjFile: CjFile?, packageName: String,  ) : this(
         CjFile,

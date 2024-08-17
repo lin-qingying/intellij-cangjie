@@ -9,6 +9,13 @@ import com.intellij.psi.*
 import com.intellij.psi.util.PsiTreeUtil
 
 import kotlin.math.abs
+val PsiElement.range: TextRange get() = textRange ?: error(if (isPhysical) "No text range for $this" else "No text range is expected for non-physical element $this")
+val TextRange.start: Int get() = startOffset
+val TextRange.end: Int get() = endOffset
+
+fun PsiElement.startLine(doc: Document): Int = doc.getLineNumber(range.start)
+fun PsiElement.endLine(doc: Document): Int = doc.getLineNumber(range.end)
+fun PsiElement?.isWithCaret(caret: Int) = this?.textRange?.contains(caret) == true
 
 fun PsiFile.getLineStartOffset(line: Int): Int? {
     return getLineStartOffset(line, skipWhitespace = true)

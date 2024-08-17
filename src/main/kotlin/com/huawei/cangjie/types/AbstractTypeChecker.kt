@@ -2,7 +2,7 @@ package com.huawei.cangjie.types
 
 import com.huawei.cangjie.types.checker.AbstractTypePreparator
 import com.huawei.cangjie.types.model.*
-import com.huawei.cangjie.utils.SmartList
+import com.intellij.util.SmartList
 import com.huawei.cangjie.utils.SmartSet
 import java.util.*
 

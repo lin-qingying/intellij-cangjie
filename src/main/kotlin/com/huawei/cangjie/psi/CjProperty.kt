@@ -14,7 +14,40 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
         )
 
     }
+//
+//    fun getDelegateExpression():CjExpression? {
+//        val stub: CangJiePropertyStub? = stub
+//        if (stub != null && !stub.hasDelegateExpression()) {
+//            return null
+//        }
+//
+//        val delegate: CjPropertyDelegate = getDelegate()
+//        if (delegate != null) {
+//            return delegate.getExpression()
+//        }
+//
+//        return null
+//    }
+//    fun hasDelegateExpressionOrInitializer(): Boolean {
+//        return hasDelegateExpression() || hasInitializer()
+//    }
 
+    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitProperty(this, data)
+
+    }
+    fun hasBody(): Boolean {
+//        if (hasDelegateExpressionOrInitializer()) return true
+
+        if (getter != null && getter!!.hasBody()) {
+            return true
+        }
+
+        if (setter != null && setter!!.hasBody()) {
+            return true
+        }
+        return false
+    }
     override fun getTypeReference(): CjTypeReference? {
         val stub: CangJiePropertyStub? = stub
         if (stub != null) {
@@ -51,7 +84,12 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
         get() = TODO("Not yet implemented")
 
     override fun hasInitializer(): Boolean {
-        TODO("Not yet implemented")
+        val stub: CangJiePropertyStub? = stub
+//        if (stub != null) {
+//            return stub.hasInitializer()
+//        }
+
+        return initializer != null
     }
 
     override val letOrVarKeyword: PsiElement?
@@ -77,4 +115,28 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
     override fun getReceiverTypeReference(): CjTypeReference? {
         TODO("Not yet implemented")
     }
+
+    val accessors: MutableList<CjPropertyAccessor>
+        get() {
+            return getStubOrPsiChildrenAsList(CjStubElementTypes.PROPERTY_ACCESSOR)
+
+        }
+
+    val getter: CjPropertyAccessor?
+        get() {
+            for (accessor in accessors) {
+                if (accessor.isGetter()) return accessor
+            }
+            return null
+        }
+
+    val setter: CjPropertyAccessor?
+        get() {
+            for (accessor in accessors)
+                if (accessor.isSetter()) return accessor
+            return null
+
+        }
+
+
 }

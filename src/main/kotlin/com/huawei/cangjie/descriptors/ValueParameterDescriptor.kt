@@ -4,7 +4,7 @@ import com.huawei.cangjie.mpp.ValueParameterSymbolMarker
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.types.CangJieType
 
-interface ValueParameterDescriptor : VariableDescriptor ,ParameterDescriptor, ValueParameterSymbolMarker   {
+interface ValueParameterDescriptor : VariableDescriptorBase ,ParameterDescriptor, ValueParameterSymbolMarker   {
     override val original: ValueParameterDescriptor
 //    val varargElementType: CangJieType?
 

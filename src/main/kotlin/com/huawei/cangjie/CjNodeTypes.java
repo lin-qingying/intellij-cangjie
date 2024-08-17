@@ -10,8 +10,7 @@ import com.intellij.psi.tree.TokenSet;
 public interface CjNodeTypes {
 
 
-
-    IElementType NULL               = CjStubElementTypes.NULL;
+    IElementType NULL = CjStubElementTypes.NULL;
 
     IElementType TYPE_REFERENCE = CjStubElementTypes.TYPE_REFERENCE;
     IElementType VALUE_PARAMETER_LIST = CjStubElementTypes.VALUE_PARAMETER_LIST;
@@ -36,7 +35,7 @@ public interface CjNodeTypes {
     IElementType VALUE_ARGUMENT = CjStubElementTypes.VALUE_ARGUMENT;
     IElementType VALUE_ARGUMENT_LIST = CjStubElementTypes.VALUE_ARGUMENT_LIST;
 
-    IElementType OPERATOR = new CjNodeType("OPERATOR", CjOperator.class );
+    IElementType OPERATOR = new CjNodeType("OPERATOR", CjOperator.class);
 
 //    区间表达式
 
@@ -63,14 +62,14 @@ public interface CjNodeTypes {
     IElementType MACRO = CjStubElementTypes.MACRO;
     IElementType FOREIGN = CjStubElementTypes.FOREIGN;
 
-    IElementType LAMBDA_ARGUMENT                    =CjStubElementTypes.LAMBDA_ARGUMENT;
+    IElementType LAMBDA_ARGUMENT = CjStubElementTypes.LAMBDA_ARGUMENT;
 
     IElementType FOREIGN_BODY = CjStubElementTypes.FOREIGN_BODY;
     IElementType FUNC = CjStubElementTypes.FUNCTION;
     IFileElementType CJ_FILE = new IFileElementType(CangJieLanguage.INSTANCE);
     IElementType BLOCK = new BlockExpressionElementType();
 
-    IElementType LAMBDA_EXPRESSION         = new LambdaExpressionElementType();
+    IElementType LAMBDA_EXPRESSION = new LambdaExpressionElementType();
 
     IElementType LABEL = new CjNodeType("LABEL", CjLabelReferenceExpression.class);
     IElementType CLASS_BODY = CjStubElementTypes.CLASS_BODY;
@@ -97,7 +96,8 @@ public interface CjNodeTypes {
 
 
     IElementType TUPLE_TYPE = CjStubElementTypes.TUPLE_TYPE;
-    IElementType BASIC_TYPE = CjStubElementTypes.BASIC_TYPE;
+    //    IElementType BASIC_TYPE = CjStubElementTypes.BASIC_TYPE;
+    IElementType BASIC_TYPE = new CjNodeType("BASIC_TYPE", CjBasicType.class);
     IElementType TYPE_PARAMETER = CjStubElementTypes.TYPE_PARAMETER;
 
     IElementType ENUM = CjStubElementTypes.ENUM;
@@ -113,9 +113,12 @@ public interface CjNodeTypes {
     IElementType DOT_QUALIFIED_EXPRESSION = CjStubElementTypes.DOT_QUALIFIED_EXPRESSION;
 
     IElementType IMPORT_ALIAS = CjStubElementTypes.IMPORT_ALIAS;
+    IElementType MULIT_IMPORT_DIRECTIVE = new CjNodeType("MULTI_IMPORT_DIRECTIVE", CjMultiImportDirective.class);
+    IElementType MULIT_IMPORT_DIRECTIVE1 = new CjNodeType("MULTI_IMPORT_DIRECTIVE1", CjMultiImportDirective1.class);
+
     IElementType IMPORT_DIRECTIVE = CjStubElementTypes.IMPORT_DIRECTIVE;
 
-    IElementType IMPORT_DIRECTIVE_ITEM = CjStubElementTypes.IMPORT_DIRECTIVE_ITEM;
+//    IElementType IMPORT_DIRECTIVE_ITEM = CjStubElementTypes.IMPORT_DIRECTIVE_ITEM;
     IElementType ANNOTATION_ENTRY = CjStubElementTypes.ANNOTATION_ENTRY;
     IElementType MACRO_EXPRESSION = CjStubElementTypes.MACRO_EXPRESSION;
 
@@ -123,7 +126,7 @@ public interface CjNodeTypes {
     IElementType SHORT_STRING_TEMPLATE_ENTRY = CjStubElementTypes.SHORT_STRING_TEMPLATE_ENTRY;
     IElementType FLOAT_CONSTANT = CjStubElementTypes.FLOAT_CONSTANT;
     IElementType RUNE_CONSTANT = CjStubElementTypes.RUNE_CONSTANT;
-        IElementType CHARACTER_BYTE_CONSTANT = CjStubElementTypes.CHARACTER_BYTE_CONSTANT;
+    IElementType CHARACTER_BYTE_CONSTANT = CjStubElementTypes.CHARACTER_BYTE_CONSTANT;
     IElementType INTEGER_CONSTANT = CjStubElementTypes.INTEGER_CONSTANT;
     IElementType BOOLEAN_CONSTANT = CjStubElementTypes.BOOLEAN_CONSTANT;
 
@@ -191,7 +194,6 @@ public interface CjNodeTypes {
     IElementType CONTEXT_RECEIVER_LIST = CjStubElementTypes.CONTEXT_RECEIVER_LIST;
 
 
-
 //    IFileElementType TYPE_CODE_FRAGMENT = CjStubElementTypes.TYPE_CODE_FRAGMENT;
 //    IFileElementType EXPRESSION_CODE_FRAGMENT = CjStubElementTypes.EXPRESSION_CODE_FRAGMENT;
 //    IFileElementType BLOCK_CODE_FRAGMENT = CjStubElementTypes.BLOCK_CODE_FRAGMENT;
@@ -199,7 +201,6 @@ public interface CjNodeTypes {
     CjTypeCodeFragmentType TYPE_CODE_FRAGMENT = new CjTypeCodeFragmentType();
     CjExpressionCodeFragmentType EXPRESSION_CODE_FRAGMENT = new CjExpressionCodeFragmentType();
     CjBlockCodeFragmentType BLOCK_CODE_FRAGMENT = new CjBlockCodeFragmentType();
-
 
 
     TokenSet CONSTANT_EXPRESSIONS_TYPES = TokenSet.create(

@@ -1,5 +1,6 @@
 package com.huawei.cangjie.resolve.lazy;
 
+import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.context.GlobalContext;
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.incremental.components.LookupTracker;
@@ -9,6 +10,7 @@ import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.BindingContext;
 import com.huawei.cangjie.resolve.DescriptorResolver;
 import com.huawei.cangjie.resolve.FunctionDescriptorResolver;
+import com.huawei.cangjie.resolve.TypeResolver;
 import com.huawei.cangjie.resolve.calls.components.InferenceSession;
 import com.huawei.cangjie.resolve.lazy.declarations.DeclarationProviderFactory;
 import com.huawei.cangjie.resolve.lazy.declarations.LazyPackageDescriptor;
@@ -17,6 +19,7 @@ import com.huawei.cangjie.storage.CacheWithNotNullValues;
 import com.huawei.cangjie.storage.ExceptionTracker;
 import com.huawei.cangjie.storage.LazyResolveStorageManager;
 import com.huawei.cangjie.storage.LockBasedLazyResolveStorageManager;
+import com.huawei.cangjie.types.checker.NewCangJieTypeChecker;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
@@ -40,21 +43,23 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     private DeclarationProviderFactory declarationProviderFactory;
     private LazyDeclarationResolver lazyDeclarationResolver;
     private LocalDescriptorResolver localDescriptorResolver;
-    //    private AnnotationResolver annotationResolver;
+    private DelegationFilter delegationFilter;
+
     private DescriptorResolver descriptorResolver;
     private final PackageFragmentProvider packageFragmentProvider;
+    private SupertypeLoopChecker supertypeLoopsResolver;
 
-//    private final MemoizedFunctionToNotNull<CjFile, LazyAnnotations> fileAnnotations;
-//    private final MemoizedFunctionToNotNull<CjFile, LazyAnnotations> danglingAnnotations;
     private FunctionDescriptorResolver functionDescriptorResolver;
-    //    private TypeResolver typeResolver;
-//    private LazyDeclarationResolver lazyDeclarationResolver;
+
     private FileScopeProvider fileScopeProvider;
     private DeclarationScopeProvider declarationScopeProvider;
     private LookupTracker lookupTracker;
     private Project project;
+    private LanguageVersionSettings languageVersionSettings;
 
+    private final NewCangJieTypeChecker cangjieTypeChecker;
 
+    private TypeResolver typeResolver;
 
     public ExceptionTracker getExceptionTracker() {
         return exceptionTracker;
@@ -67,8 +72,8 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
             @NotNull GlobalContext globalContext,
             @NotNull ModuleDescriptor rootDescriptor,
             @NotNull DeclarationProviderFactory declarationProviderFactory,
-            @NotNull BindingTrace delegationTrace
-//            @NotNull NewCangJieTypeChecker kotlinTypeChecker
+            @NotNull BindingTrace delegationTrace,
+            @NotNull NewCangJieTypeChecker cangjieTypeChecker
     ) {
         LockBasedLazyResolveStorageManager lockBasedLazyResolveStorageManager =
                 new LockBasedLazyResolveStorageManager(globalContext.getStorageManager());
@@ -81,6 +86,8 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
         this.packages = storageManager.createCacheWithNotNullValues();
 
         this.declarationProviderFactory = declarationProviderFactory;
+        this.cangjieTypeChecker = cangjieTypeChecker;
+        this.project = project;
 
         this.packageFragmentProvider = new PackageFragmentProviderOptimized() {
             @Override
@@ -130,21 +137,32 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     public BindingTrace getTrace() {
         return trace;
     }
+    @Inject
+    public void setLookupTracker(@NotNull LookupTracker lookupTracker) {
+        this.lookupTracker = lookupTracker;
+    }
 
     public DeclarationProviderFactory getDeclarationProviderFactory() {
         return declarationProviderFactory;
     }
 
-//    @Inject
-//    public void setDeclarationProviderFactory(DeclarationProviderFactory declarationProviderFactory) {
-//        this.declarationProviderFactory = declarationProviderFactory;
-//    }
+    @Inject
+    public void setTypeResolver(TypeResolver typeResolver) {
+        this.typeResolver = typeResolver;
+    }
 
     @Inject
     public void setLocalDescriptorResolver(@NotNull LocalDescriptorResolver localDescriptorResolver) {
         this.localDescriptorResolver = localDescriptorResolver;
     }
-
+    @Inject
+    public void setDescriptorResolver(DescriptorResolver descriptorResolver) {
+        this.descriptorResolver = descriptorResolver;
+    }
+    @Inject
+    public void setSupertypeLoopsResolver(@NotNull SupertypeLoopChecker supertypeLoopsResolver) {
+        this.supertypeLoopsResolver = supertypeLoopsResolver;
+    }
     @NotNull
     @Override
     public ModuleDescriptor getModuleDescriptor() {
@@ -172,20 +190,6 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
         }
         return localDescriptorResolver.resolveLocalDeclaration(declaration);
     }
-//    private LocalDescriptorResolver localDescriptorResolver;
-//    private SupertypeLoopChecker supertypeLoopsResolver;
-//    private LanguageVersionSettings languageVersionSettings;
-//    private DelegationFilter delegationFilter;
-//    private WrappedTypeFactory wrappedTypeFactory;
-//    private PlatformDiagnosticSuppressor platformDiagnosticSuppressor;
-//    private SamConversionResolver samConversionResolver;
-//    private SealedClassInheritorsProvider sealedClassInheritorsProvider;
-//
-//    private AdditionalClassPartsProvider additionalClassPartsProvider;
-//
-//    private final SyntheticResolveExtension syntheticResolveExtension;
-//
-//    private final NewCangJieTypeChecker cangjieTypeChecker;
 
     public FileScopeProvider getFileScopeProvider() {
         return fileScopeProvider;
@@ -202,7 +206,10 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
         return trace.getBindingContext();
 
     }
-
+    @Inject
+    public void setLanguageVersionSettings(@NotNull LanguageVersionSettings languageVersionSettings) {
+        this.languageVersionSettings = languageVersionSettings;
+    }
     @Nullable
     @Override
     public InferenceSession getInferenceSession() {
@@ -283,5 +290,43 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     public void assertValid() {
         module.assertValid();
 
+    }
+
+    @NotNull
+    @Override
+    public NewCangJieTypeChecker getCangjieTypeCheckerOfOwnerModule() {
+        return cangjieTypeChecker;
+
+    }
+
+    @NotNull
+    @Override
+    public LanguageVersionSettings getLanguageVersionSettings() {
+        return languageVersionSettings;
+    }
+
+    @NotNull
+    @Override
+    public DelegationFilter getDelegationFilter() {
+        return delegationFilter;
+
+    }
+
+    @NotNull
+    @Override
+    public TypeResolver getTypeResolver() {
+        return typeResolver;
+
+    }
+
+    @Inject
+    public void setDelegationFilter(@NotNull DelegationFilter delegationFilter) {
+        this.delegationFilter = delegationFilter;
+    }
+
+    @NotNull
+    @Override
+        public SupertypeLoopChecker getSupertypeLoopChecker() {
+        return supertypeLoopsResolver;
     }
 }

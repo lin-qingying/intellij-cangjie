@@ -74,7 +74,7 @@ object ForceResolveUtil {
         doForceResolveAllContents(descriptor)
         return descriptor
     }
-
+@JvmStatic
     fun forceResolveAllContents(annotations: Annotations) {
         doForceResolveAllContents(annotations)
         for (annotation in annotations) {

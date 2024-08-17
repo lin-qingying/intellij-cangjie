@@ -21,12 +21,7 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
     private final Modality modality;
     private final PropertyDescriptor original;
     private final CallableMemberDescriptor.Kind kind;
-//    private final bool lateInit;
-//    private final bool isConst;
-//    private final bool isExpect;
-//    private final bool isActual;
-//    private final bool isExternal;
-    private final boolean isDelegated;
+
     private DescriptorVisibility visibility;
     private Collection<? extends PropertyDescriptor> overriddenProperties = null;
     private List<ReceiverParameterDescriptor> contextReceiverParameters = Collections.emptyList();
@@ -49,13 +44,8 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
             @NotNull Name name,
             @NotNull CallableMemberDescriptor.Kind kind,
             @NotNull SourceElement source
-            ,
-//            bool lateInit,
-//            bool isConst,
-//            bool isExpect,
-//            bool isActual,
-//            bool isExternal,
-            boolean isDelegated
+
+
     ) {
         super(containingDeclaration, annotations, name, null, isVar, source);
         this.modality = modality;
@@ -67,7 +57,7 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
 //        this.isExpect = isExpect;
 //        this.isActual = isActual;
 //        this.isExternal = isExternal;
-        this.isDelegated = isDelegated;
+
     }
 
     @NotNull
@@ -79,19 +69,19 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
             boolean isVar,
             @NotNull Name name,
             @NotNull CallableMemberDescriptor.Kind kind,
-            @NotNull SourceElement source,
+            @NotNull SourceElement source
 //            bool lateInit,
 //            bool isConst,
 //            bool isExpect,
 //            bool isActual,
 //            bool isExternal,
-            boolean isDelegated
+//            boolean isDelegated
     ) {
         return new PropertyDescriptorImpl(containingDeclaration, null, annotations,
                 modality, visibility, isVar, name, kind, source
 //                , lateInit, isConst,
 //                isExpect, isActual, isExternal
-                , isDelegated
+
         );
     }
 
@@ -275,7 +265,7 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
         this.setterProjectedOut = setterProjectedOut;
     }
 
-//    @Override
+    //    @Override
 //    public bool isLateInit() {
 //        return lateInit;
 //    }
@@ -290,10 +280,10 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
 //        return isExternal;
 //    }
 //
-    @Override
-    public boolean isDelegated() {
-        return isDelegated;
-    }
+//    @Override
+//    public boolean isDelegated() {
+//        return isDelegated;
+//    }
 
 //    @Override
 //    @NotNull
@@ -465,9 +455,9 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
     ) {
         return new PropertyDescriptorImpl(
                 newOwner, original, getAnnotations(), newModality, newVisibility, isVar(), newName, kind, source
-//                ,
+//
 //                isLateInit(), isConst(), isExpect(), isActual(), isExternal()
-                , isDelegated()
+//                , isDelegated()
         );
     }
 
@@ -484,7 +474,7 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
 
     @NotNull
     @Override
-    public Kind getKind() {
+    public CallableMemberDescriptor.Kind getKind() {
         return kind;
     }
 

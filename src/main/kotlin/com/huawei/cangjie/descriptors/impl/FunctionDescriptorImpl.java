@@ -1,6 +1,5 @@
 package com.huawei.cangjie.descriptors.impl;
 
-import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.descriptors.annotations.AnnotationsKt;
@@ -9,7 +8,7 @@ import com.huawei.cangjie.resolve.DescriptorFactory;
 import com.huawei.cangjie.resolve.scopes.receivers.ExtensionReceiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ImplicitContextReceiver;
 import com.huawei.cangjie.types.*;
-import com.huawei.cangjie.utils.SmartList;
+import com.intellij.util.SmartList;
 import kotlin.collections.CollectionsKt;
 import kotlin.jvm.functions.Function0;
 import org.jetbrains.annotations.NotNull;
@@ -60,13 +59,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         this.original = original == null ? this : original;
         this.kind = kind;
     }
-    public void setHasStableParameterNames(boolean hasStableParameterNames) {
-        this.hasStableParameterNames = hasStableParameterNames;
-    }
-    @Override
-    public boolean hasStableParameterNames() {
-        return hasStableParameterNames;
-    }
+
     @Nullable
     public static List<ValueParameterDescriptor> getSubstitutedValueParameters(
             FunctionDescriptor substitutedDescriptor,
@@ -99,14 +92,14 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 //                }
 //            }
 
-            Function0<List<VariableDescriptor>> destructuringVariablesAction = null;
+            Function0<List<VariableDescriptorBase>> destructuringVariablesAction = null;
             if (unsubstitutedValueParameter instanceof ValueParameterDescriptorImpl.WithDestructuringDeclaration) {
-                final List<VariableDescriptor> destructuringVariables =
+                final List<VariableDescriptorBase> destructuringVariables =
                         ((ValueParameterDescriptorImpl.WithDestructuringDeclaration) unsubstitutedValueParameter)
                                 .getDestructuringVariables();
-                destructuringVariablesAction = new Function0<List<VariableDescriptor>>() {
+                destructuringVariablesAction = new Function0<List<VariableDescriptorBase>>() {
                     @Override
-                    public List<VariableDescriptor> invoke() {
+                    public List<VariableDescriptorBase> invoke() {
                         return destructuringVariables;
                     }
                 };
@@ -132,12 +125,23 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         return result;
     }
 
+    public void setHasStableParameterNames(boolean hasStableParameterNames) {
+        this.hasStableParameterNames = hasStableParameterNames;
+    }
+
+    @Override
+    public boolean hasStableParameterNames() {
+        return hasStableParameterNames;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public <V> V getUserData(UserDataKey<V> key) {
         if (userDataMap == null) return null;
         return (V) userDataMap.get(key);
     }
+
+
 
     public void setIsOperator(boolean isOperator) {
         this.isOperator = isOperator;
@@ -190,8 +194,10 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         return this;
     }
 
-    public void setOperator(boolean isOperator) {
-        this.isOperator = isOperator;
+    @NotNull
+    @Override
+    public List<ReceiverParameterDescriptor> getContextReceiverParameters() {
+        return contextReceiverParameters;
     }
 
 
@@ -206,16 +212,6 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 //    public void setTailrec(bool isTailrec) {
 //        this.isTailrec = isTailrec;
 //    }
-
-
-
-
-
-    @NotNull
-    @Override
-    public List<ReceiverParameterDescriptor> getContextReceiverParameters() {
-        return contextReceiverParameters;
-    }
 
     //
     @Nullable
@@ -275,6 +271,17 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         this.visibility = visibility;
     }
 
+    @Override
+    public boolean isOperator() {
+        if (isOperator) return true;
+
+        for (FunctionDescriptor descriptor : getOriginal().getOverriddenDescriptors()) {
+            if (descriptor.isOperator()) return true;
+        }
+
+        return false;
+    }
+
 
 //    @Override
 //    public bool isExternal() {
@@ -294,16 +301,9 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 //        this.isExpect = isExpect;
 //    }
 
-//    @Override
-//    public bool isOperator() {
-//        if (isOperator) return true;
-//
-//        for (FunctionDescriptor descriptor : getOriginal().getOverriddenDescriptors()) {
-//            if (descriptor.isOperator()) return true;
-//        }
-//
-//        return false;
-//    }
+    public void setOperator(boolean isOperator) {
+        this.isOperator = isOperator;
+    }
 
 //    @Override
 //    public bool isInfix() {
@@ -387,7 +387,6 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 
     @Override
     public CangJieType getReturnType() {
-
 
 
         return unsubstitutedReturnType;

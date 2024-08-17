@@ -18,7 +18,7 @@ open class ValueParameterDescriptorImpl(
 //    override val isNoinline: Boolean,
 //    override val varargElementType: CangJieType?,
     source: SourceElement
-) : VariableDescriptorImpl(containingDeclaration, annotations, name, outType, source),
+) : AbstractVariableDescriptor(containingDeclaration, annotations, name, outType, source),
     ValueParameterDescriptor {
 
     companion object {
@@ -35,7 +35,7 @@ open class ValueParameterDescriptorImpl(
 //            isNoinline: Boolean,
 //            varargElementType: CangJieType?,
             source: SourceElement,
-            destructuringVariables: (() -> List<VariableDescriptor>)?
+            destructuringVariables: (() -> List<VariableDescriptorBase>)?
         ): ValueParameterDescriptorImpl =
             if (destructuringVariables == null)
                 ValueParameterDescriptorImpl(
@@ -61,7 +61,7 @@ open class ValueParameterDescriptorImpl(
 //        isNoinline: Boolean,
 //       varargElementType: CangJieType?,
         source: SourceElement,
-        destructuringVariables: () -> List<VariableDescriptor>
+        destructuringVariables: () -> List<VariableDescriptorBase>
     ) : ValueParameterDescriptorImpl(
         containingDeclaration, original, index, annotations, name, outType,
         declaresDefaultValue,

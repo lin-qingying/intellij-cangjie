@@ -626,7 +626,7 @@ abstract class CangJieCommonBlock(
                         !node.treeParent.isFirstParameter(),
                     )
 
-                    is CjClassOrStruct -> return getWrappingStrategyForItemList(
+                    is CjTypeStatement -> return getWrappingStrategyForItemList(
                         commonSettings.CLASS_ANNOTATION_WRAP,
                         ANNOTATIONS,
                     )
@@ -650,7 +650,7 @@ abstract class CangJieCommonBlock(
 //                return getWrappingStrategyForItemList(commonSettings.ENUM_CONSTANTS_WRAP, ENUM_ENTRY)
 
             //TODO 别名
-            nodePsi is CjClassOrStruct -> return wrapAfterAnnotation(commonSettings.CLASS_ANNOTATION_WRAP)
+            nodePsi is CjTypeStatement -> return wrapAfterAnnotation(commonSettings.CLASS_ANNOTATION_WRAP)
 
             nodePsi is CjNamedFunction || nodePsi is CjSecondaryConstructor -> return wrap@{ childElement ->
                 getWrapAfterAnnotation(childElement, commonSettings.METHOD_ANNOTATION_WRAP)?.let {

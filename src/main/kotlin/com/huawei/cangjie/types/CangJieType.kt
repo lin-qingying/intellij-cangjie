@@ -98,7 +98,17 @@ class BasicType(
 abstract class SimpleType : UnwrappedType(), SimpleTypeMarker, TypeArgumentListMarker {
     abstract override fun makeNullableAsSpecified(newNullability: Boolean): SimpleType
     abstract override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType
+    override fun toString(): String {
+        return buildString {
+            for (annotation in annotations) {
+                append("[", DescriptorRenderer.DEBUG_TEXT.renderAnnotation(annotation), "] ")
+            }
 
+            append(constructor)
+            if (arguments.isNotEmpty()) arguments.joinTo(this, separator = ", ", prefix = "<", postfix = ">")
+            if (isMarkedNullable) append("?")
+        }
+    }
 }
 
 // lowerBound is a subtype of upperBound

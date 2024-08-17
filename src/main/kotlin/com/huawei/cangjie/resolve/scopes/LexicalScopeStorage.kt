@@ -1,12 +1,9 @@
 package com.huawei.cangjie.resolve.scopes
 
-import com.huawei.cangjie.descriptors.ClassifierDescriptor
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.FunctionDescriptor
-import com.huawei.cangjie.descriptors.VariableDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
-import com.huawei.cangjie.utils.SmartList
+import com.intellij.util.SmartList
 
 interface LocalRedeclarationChecker {
     fun checkBeforeAddingToScope(scope: LexicalScope, newDescriptor: DeclarationDescriptor)
@@ -35,6 +32,10 @@ abstract class LexicalScopeStorage(
 
     override fun getContributedVariables(name: Name, location: LookupLocation) =
         listOfNotNull(variableOrClassDescriptorByName(name) as? VariableDescriptor)
+
+
+    override fun getContributedPropertys(name: Name, location: LookupLocation) =
+        listOfNotNull(variableOrClassDescriptorByName(name) as? PropertyDescriptor)
 
     override fun getContributedFunctions(name: Name, location: LookupLocation) = functionsByName(name)
 

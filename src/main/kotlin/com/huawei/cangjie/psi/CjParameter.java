@@ -127,11 +127,11 @@ public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> im
         if (stub != null && !stub.hasValOrVar()) {
             return null;
         }
-        return findChildByType(VAL_VAR_TOKEN_SET);
+        return findChildByType(LET_VAR_TOKEN_SET);
     }
 
 
-    public static final TokenSet VAL_VAR_TOKEN_SET = TokenSet.create(CjTokens.LET_KEYWORD,CjTokens.CONST_KEYWORD, CjTokens.VAR_KEYWORD);
+    public static final TokenSet LET_VAR_TOKEN_SET = TokenSet.create(CjTokens.LET_KEYWORD,CjTokens.CONST_KEYWORD, CjTokens.VAR_KEYWORD);
 
     @Override
     public ItemPresentation getPresentation() {

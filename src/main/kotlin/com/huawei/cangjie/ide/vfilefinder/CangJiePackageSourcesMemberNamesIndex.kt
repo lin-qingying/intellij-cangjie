@@ -1,6 +1,7 @@
 package com.huawei.cangjie.ide.vfilefinder
 
 import com.huawei.cangjie.lang.CangJieFileType
+import com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType
 import com.huawei.cangjie.psi.CjDeclaration
 import com.huawei.cangjie.psi.CjFile
 import com.intellij.util.indexing.*
@@ -11,7 +12,7 @@ import java.io.DataInput
 import java.io.DataOutput
 
 
-private const val CANGJIE_DOT_FILE_EXTENSION = ".${CangJieFileType.EXTENSION}"
+private   val CANGJIE_DOT_FILE_EXTENSION = ".${CangJieFileType.INSTANCE.EXTENSION}"
 
 
 class CangJiePackageSourcesMemberNamesIndex internal constructor() :
@@ -34,7 +35,9 @@ class CangJiePackageSourcesMemberNamesIndex internal constructor() :
     override fun getValueExternalizer() = StringSetExternalizer
 
     override fun getInputFilter(): FileBasedIndex.InputFilter =
-        FileTypeInputFilterPredicate(CangJieFileType)
+        FileTypeInputFilterPredicate(CangJieFileType.INSTANCE,
+
+        )
 
     override fun getVersion(): Int = 2
 

@@ -198,6 +198,10 @@ class LazySubstitutingClassDescriptor(
         TODO("Not yet implemented")
     }
 
+    override fun getContextReceivers(): List<ReceiverParameterDescriptor> {
+        return emptyList()
+    }
+
     override fun getUnsubstitutedInnerClassesScope(): MemberScope {
         return original.unsubstitutedInnerClassesScope
 

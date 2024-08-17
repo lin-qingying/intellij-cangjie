@@ -7,6 +7,13 @@ data class Name(private val name: String, val isSpecial: Boolean) : Comparable<N
         return name
     }
 
+
+    fun asStringRoot(): String {
+        return "${name}:${isRoot}"
+    }
+
+    var isRoot: Boolean = false
+
     val identifier: String
         get() {
             check(!isSpecial) { "not identifier: $this" }
@@ -78,6 +85,18 @@ data class Name(private val name: String, val isSpecial: Boolean) : Comparable<N
                 special(name)
             } else {
                 identifier(name)
+            }
+        }
+
+        @JvmStatic
+        fun guessByFirstCharacterRoot(name: String): Name {
+            val (_name, isRoot) = name.split(":")
+            return if (_name.startsWith("<")) {
+                special(_name)
+            } else {
+                identifier(_name)
+            }.apply {
+                this.isRoot = isRoot.toBoolean()
             }
         }
 

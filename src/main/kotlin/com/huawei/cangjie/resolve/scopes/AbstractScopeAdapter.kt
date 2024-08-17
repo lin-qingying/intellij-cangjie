@@ -14,6 +14,7 @@ abstract class AbstractScopeAdapter : MemberScope {
     override fun getFunctionNames() = workerScope.getFunctionNames()
     override fun getVariableNames() = workerScope.getVariableNames()
     override fun getClassifierNames() = workerScope.getClassifierNames()
+    override fun getPropertyNames() = workerScope.getPropertyNames()
     fun getActualScope(): MemberScope =
         if (workerScope is AbstractScopeAdapter)
             (workerScope as AbstractScopeAdapter).getActualScope()
@@ -28,10 +29,12 @@ abstract class AbstractScopeAdapter : MemberScope {
         return workerScope.getContributedClassifier(name, location)
     }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard PropertyDescriptor> {
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
         return workerScope.getContributedVariables(name, location)
     }
-
+    override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<@JvmWildcard PropertyDescriptor> {
+        return workerScope.getContributedPropertys(name, location)
+    }
     override fun getContributedDescriptors(kindFilter: DescriptorKindFilter,
                                            nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> {
         return workerScope.getContributedDescriptors(kindFilter, nameFilter)

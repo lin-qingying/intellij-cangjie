@@ -39,7 +39,15 @@ public class DefaultErrorMessages {
 //        常量检查
         MAP.put(CONSTANT_EXPECTED_TYPE_MISMATCH, "The {0} literal does not conform to the expected type {1}", STRING, RENDER_TYPE);
 
+
+
+//        包导入
+
+        MAP.put(PACKAGE_CANNOT_BE_IMPORTED, "Packages cannot be imported");
+        MAP.put(MODULE_PACKAGE_CANNOT_BE_IMPORTED, "Module name cannot be imported");
+
     }
+
 
     @NotNull
     @SuppressWarnings("unchecked")

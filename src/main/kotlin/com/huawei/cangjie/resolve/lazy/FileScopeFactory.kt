@@ -45,6 +45,7 @@ class FileScopeFactory(
         override val aliasName: String? get() = importPath.alias?.asString()
 
         override val importedFqName: FqName get() = importPath.fqName
+//        override val importedFqNames: MutableList<FqName> = mutableListOf(importPath.fqName)
     }
 
     fun createScopesForFile(
@@ -140,9 +141,25 @@ class FileScopeFactory(
         private val packageView: PackageViewDescriptor,
         private val createDefaultImportingScopes: Boolean,
     ) {
-        val imports = file.importDirectives
-        val aliasImportNames = imports.mapNotNull { if (it.aliasName != null) it.importedFqName else null }
 
+        val imports = file.importDirectives
+
+        //        val aliasImportNames = file.importListsField.mapNotNull {
+//
+//            if (it.aliasName != null) {
+//                it.fqName
+//            } else {
+//                null
+//            }
+//        }
+        val aliasImportNames = imports.mapNotNull {
+
+            if (it.aliasName != null) {
+                it.importedFqName
+            } else {
+                null
+            }
+        }
         val explicitImportResolver =
             createImportResolver(
                 makeExplicitImportsIndexed(imports, components.storageManager),
@@ -286,7 +303,7 @@ class FileScopeFactory(
         val excludedNames = aliasImportNames.mapNotNull { if (it.parent() == packageName) it.shortName() else null }
 
         return object : ImportingScope {
-            override val parent: ImportingScope? = parentScope
+            override val parent: ImportingScope = parentScope
 
             override fun getContributedPackage(name: Name): Nothing? = null
 
@@ -301,10 +318,16 @@ class FileScopeFactory(
                 return classifier.takeIf { filteringKind == if (visible) FilteringKind.VISIBLE_CLASSES else FilteringKind.INVISIBLE_CLASSES }
             }
 
-            override fun getContributedVariables(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
+            override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
                 if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
                 if (name in excludedNames) return emptyList()
                 return scope.getContributedVariables(name, location)
+            }
+
+            override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
+                if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
+                if (name in excludedNames) return emptyList()
+                return scope.getContributedPropertys(name, location)
             }
 
             override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> {

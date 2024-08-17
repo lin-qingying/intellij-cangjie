@@ -2,9 +2,12 @@ package com.huawei.cangjie.resolve.lazy.declarations
 
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
+import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.resolve.calls.components.InferenceSession
 import com.huawei.cangjie.resolve.lazy.LazyClassContext
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.resolve.source.MemberScopeImpl
@@ -25,31 +28,101 @@ protected constructor(
         storageManager.createMemoizedFunction { doGetFunctions(it) }
     private val classDescriptors: MemoizedFunctionToNotNull<Name, List<ClassDescriptor>> =
         storageManager.createMemoizedFunction { doGetClasses(it) }
+
     private val propertyDescriptors: MemoizedFunctionToNotNull<Name, Collection<PropertyDescriptor>> =
         storageManager.createMemoizedFunction { doGetProperties(it) }
+
+    private val variableDescriptors: MemoizedFunctionToNotNull<Name, Collection<VariableDescriptor>> =
+        storageManager.createMemoizedFunction { doGetVariables(it) }
+
+
     private val declaredFunctionDescriptors: MemoizedFunctionToNotNull<Name, Collection<SimpleFunctionDescriptor>> =
         storageManager.createMemoizedFunction { getDeclaredFunctions(it) }
     private val typeAliasDescriptors: MemoizedFunctionToNotNull<Name, Collection<TypeAliasDescriptor>> =
         storageManager.createMemoizedFunction({ doGetTypeAliases(it) }, onRecursiveCall = { _, _ -> emptyList() })
     private val declaredPropertyDescriptors: MemoizedFunctionToNotNull<Name, Collection<PropertyDescriptor>> =
         storageManager.createMemoizedFunction { getDeclaredProperties(it) }
+    private val declaredVariableDescriptors: MemoizedFunctionToNotNull<Name, Collection<VariableDescriptor>> =
+        storageManager.createMemoizedFunction { getDeclaredVariables(it) }
 
     private fun doGetTypeAliases(name: Name): Collection<TypeAliasDescriptor> {
         mainScope?.typeAliasDescriptors?.invoke(name)?.let { return it }
 
-        return declarationProvider.getTypeAliasDeclarations(name).map { ktTypeAlias ->
+        return declarationProvider.getTypeAliasDeclarations(name).map { cjTypeAlias ->
             c.descriptorResolver.resolveTypeAliasDescriptor(
                 thisDescriptor,
-                getScopeForMemberDeclarationResolution(ktTypeAlias),
-                ktTypeAlias,
+                getScopeForMemberDeclarationResolution(cjTypeAlias),
+                cjTypeAlias,
                 trace
             )
         }.toList()
     }
 
+    protected abstract fun getScopeForInitializerResolution(declaration: CjDeclaration): LexicalScope
+
+    private fun getDeclaredVariables(
+        name: Name
+    ): Collection<VariableDescriptor> {
+        if (mainScope != null) return mainScope.declaredVariableDescriptors(name).map {
+            it.newCopyBuilder().setPreserveSourceElement().build()!!
+        }
+
+        val result = LinkedHashSet<VariableDescriptor>()
+
+        val declarations = declarationProvider.getVariableDeclarations(name)
+        for (variableDeclaration in declarations) {
+            val variableDescriptor = c.descriptorResolver.resolveVariableDescriptor(
+                thisDescriptor,
+                getScopeForMemberDeclarationResolution(variableDeclaration),
+                getScopeForInitializerResolution(variableDeclaration),
+                variableDeclaration,
+                trace,
+                c.declarationScopeProvider.getOuterDataFlowInfoForDeclaration(variableDeclaration),
+                c.inferenceSession ?: InferenceSession.default
+            )
+            result.add(variableDescriptor)
+        }
+        return result
+
+    }
+
     private fun getDeclaredProperties(
         name: Name
     ): Collection<PropertyDescriptor> {
+
+        // TODO: do we really need to copy descriptors?
+        if (mainScope != null) return mainScope.declaredPropertyDescriptors(name).map {
+            it.newCopyBuilder().setPreserveSourceElement().build()!!
+        }
+        val result = LinkedHashSet<PropertyDescriptor>()
+        val propDeclarations = declarationProvider.getPropertyDeclarations(name)
+        for (propertyDeclaration in propDeclarations) {
+            val propertyDescriptor = c.descriptorResolver.resolvePropertyDescriptor(
+                thisDescriptor,
+                getScopeForMemberDeclarationResolution(propertyDeclaration),
+                getScopeForInitializerResolution(propertyDeclaration),
+                propertyDeclaration,
+                trace,
+                c.declarationScopeProvider.getOuterDataFlowInfoForDeclaration(propertyDeclaration),
+                c.inferenceSession ?: InferenceSession.default
+            )
+            result.add(propertyDescriptor)
+        }
+//        val variableDeclarations = declarationProvider.getVariableDeclarations(name)
+//        for (variableDeclaration in variableDeclarations) {
+//            val propertyDescriptor = c.descriptorResolver.resolvePropertyDescriptor(
+//                thisDescriptor,
+//                getScopeForMemberDeclarationResolution(variableDeclaration),
+//                getScopeForInitializerResolution(variableDeclaration),
+//                variableDeclaration,
+//                trace,
+//                c.declarationScopeProvider.getOuterDataFlowInfoForDeclaration(variableDeclaration),
+//                c.inferenceSession ?: InferenceSession.default
+//            )
+//            result.add(propertyDescriptor)
+//        }
+
+
         return emptyList()
     }
 
@@ -63,28 +136,48 @@ protected constructor(
         return result.toList()
     }
 
+
+    private fun doGetVariables(name: Name): Collection<VariableDescriptor> {
+        val result = LinkedHashSet(declaredVariableDescriptors(name))
+
+//        getNonDeclaredProperties(name, result)
+
+        return result.toList()
+    }
+
+
     protected abstract fun getNonDeclaredProperties(name: Name, result: MutableSet<PropertyDescriptor>)
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
         recordLookup(name, location)
         // NB we should resolve type alias descriptors even if a class descriptor with corresponding name is present
         val classes = classDescriptors(name)
-//        val typeAliases = typeAliasDescriptors(name)
+        val typeAliases = typeAliasDescriptors(name)
         // See getFirstClassifierDiscriminateHeaders()
         var result: ClassifierDescriptor? = null
         for (klass in classes) {
 //            if (!klass.isExpect) return klass
             if (result == null) result = klass
         }
-//        for (typeAlias in typeAliases) {
-//            if (!typeAlias.isExpect) return typeAlias
-//            if (result == null) result = typeAlias
-//        }
+        for (typeAlias in typeAliases) {
 
+            if (result == null) result = typeAlias
+        }
+//        if ((result?.source as? CangJieSourceElement)?.psi?.isValid == false) {
+//            throw AssertionError("PSI is invalidated for contributed classifier ${result.fqNameSafe}")
+//        }
         return result
     }
 
     override fun getContributedVariables(
+        name: Name,
+        location: LookupLocation
+    ): Collection<@JvmWildcard VariableDescriptor> {
+        recordLookup(name, location)
+        return variableDescriptors(name)
+    }
+
+    override fun getContributedPropertys(
         name: Name,
         location: LookupLocation
     ): Collection<@JvmWildcard PropertyDescriptor> {
@@ -111,7 +204,7 @@ protected constructor(
         val result = LinkedHashSet<DeclarationDescriptor>(declarations.size)
         for (declaration in declarations) {
             when (declaration) {
-                is CjClassOrStruct -> {
+                is CjTypeStatement -> {
                     val name = declaration.nameAsSafeName
                     if (nameFilter(name)) {
                         result.addAll(classDescriptors(name))
@@ -222,11 +315,11 @@ protected constructor(
         mainScope?.classDescriptors?.invoke(name)?.let { return it }
 
         val result = linkedSetOf<ClassDescriptor>()
-//        declarationProvider.getClassOrObjectDeclarations(name).mapTo(result) {
-//            val isExternal = it.modifierList?.hasModifier(CjTokens.EXTERNAL_KEYWORD) ?: false
-//            LazyClassDescriptor(c, thisDescriptor, name, it, isExternal)
-//        }
-//        getNonDeclaredClasses(name, result)
+        declarationProvider.getTypeStatementDeclarations(name).mapTo(result) {
+            val isExternal = /*it.modifierList?.hasModifier(CjTokens.EXTERNAL_KEYWORD) ?:*/ false
+            LazyClassDescriptor(c, thisDescriptor, name, it, isExternal)
+        }
+        getNonDeclaredClasses(name, result)
         return result.toList()
     }
 
@@ -234,4 +327,8 @@ protected constructor(
         recordLookup(name, location)
         return functionDescriptors(name)
     }
+
+
+    protected abstract fun getNonDeclaredClasses(name: Name, result: MutableSet<ClassDescriptor>)
+
 }

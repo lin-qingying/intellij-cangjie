@@ -4,58 +4,35 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.types.CangJieType
-import com.huawei.cangjie.types.util.shouldBeUpdated
-
-
-abstract class VariableDescriptorImpl(
-    containingDeclaration: DeclarationDescriptor,
-    annotations: Annotations,
-    name: Name,
-    private var _outType: CangJieType?,
-    source: SourceElement
-
-) : DeclarationDescriptorNonRootImpl(containingDeclaration, annotations, name, source),
-    VariableDescriptor {
-
-    override val original: VariableDescriptor = super.original as VariableDescriptor
-    override fun getContextReceiverParameters(): List<ReceiverParameterDescriptor> {
-        return emptyList()
-    }
-    open fun setOutType(outType:CangJieType) {
-        assert(this._outType == null || this._outType.shouldBeUpdated())
-        this._outType = outType
-    }
-    override fun getVisibility() = DescriptorVisibilities.LOCAL
-
-    override fun getReturnType(): CangJieType {
-        return type
-    }
-
-    override fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? {
-        return null
-    }
-
-    override fun hasStableParameterNames(): Boolean {
-        return false
-    }
-
-//    fun setType(
-//        _outType: CangJieType,
-//        @ReadOnly typeParameters: List<TypeParameterDescriptor?>,
-//        dispatchReceiverParameter: ReceiverParameterDescriptor?,
-//        extensionReceiverParameter: ReceiverParameterDescriptor?,
-//        contextReceiverParameters: List<ReceiverParameterDescriptor?>
-//    ) {
-//        setOutType(_outType)
+import com.huawei.cangjie.types.TypeSubstitutor
+import java.util.*
 //
-//        this.typeParameters = ArrayList<TypeParameterDescriptor>(typeParameters)
+//open class VariableDescriptorImpl(
+//    containingDeclaration: DeclarationDescriptor,
+//    original: VariableDescriptor?,
+//    annotations: Annotations,
+//    modality: Modality,
+//    visibility: DescriptorVisibility,
+//    isVar: Boolean,
+//    name: Name,
+//    kind: CallableMemberDescriptor.Kind,
+//    source: SourceElement
+//) : VariableDescriptorWithInitializerImpl(
+//    containingDeclaration,
+//    annotations,
+//    name,
+//    null,
+//    isVar,
+//    source
+//) {
+//    private var visibility:  DescriptorVisibility? = null
 //
-//        this.extensionReceiverParameter = extensionReceiverParameter
-//        this.dispatchReceiverParameter = dispatchReceiverParameter
-//        this.contextReceiverParameters = contextReceiverParameters
+//    fun setVisibility(visibility:  DescriptorVisibility) {
+//        this.visibility = visibility
 //    }
-
-    companion object {
+//
+//    companion object {
+//        @JvmStatic
 //        fun create(
 //            containingDeclaration: DeclarationDescriptor,
 //            annotations: Annotations,
@@ -64,37 +41,53 @@ abstract class VariableDescriptorImpl(
 //            isVar: Boolean,
 //            name: Name,
 //            kind: CallableMemberDescriptor.Kind,
-//            source: SourceElement,
-//            lateInit: Boolean,
-//            isConst: Boolean,
-//            isExpect: Boolean,
-//            isActual: Boolean,
-//            isExternal: Boolean,
-//            isDelegated: Boolean
+//            source: SourceElement //            bool lateInit,
+//            //            bool isConst,
+//            //            bool isExpect,
+//            //            bool isActual,
+//            //            bool isExternal,
+//            //            boolean isDelegated
 //        ): VariableDescriptorImpl {
 //            return VariableDescriptorImpl(
 //                containingDeclaration, null, annotations,
-//                modality, visibility, isVar, name, kind, source, lateInit, isConst,
-//                isExpect, isActual, isExternal, isDelegated
+//                modality, visibility, isVar, name, kind, source //                , lateInit, isConst,
+//                //                isExpect, isActual, isExternal
+//                //                , isDelegated
 //            )
 //        }
-
-    }
-
-    override fun getType(): CangJieType {
-        return _outType!!
-    }
-
-    override fun getExtensionReceiverParameter(): ReceiverParameterDescriptor? {
-        return null
-    }
-
-    override fun getTypeParameters(): List<TypeParameterDescriptor> {
-        return emptyList<TypeParameterDescriptor>()
-    }
-
-    override fun getValueParameters(): List<ValueParameterDescriptor> {
-        return emptyList()
-    }
-
-}
+//    }
+//
+//
+//    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R {
+//        return visitor.visitVariableDescriptor(this, data)
+//
+//    }
+//
+//    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
+////        TODO("Not yet implemented")
+//        return this
+//    }
+//
+//    fun setType(
+//        outType: CangJieType,
+//        typeParameters: List<TypeParameterDescriptor?>,
+//        dispatchReceiverParameter: ReceiverParameterDescriptor?,
+//        extensionReceiverParameter: ReceiverParameterDescriptor?,
+//        contextReceiverParameters: List<ReceiverParameterDescriptor?>
+//    ) {
+//        setOutType(outType)
+//
+////        this.typeParameters = ArrayList<TypeParameterDescriptor>(typeParameters)
+//
+////        this.extensionReceiverParameter = extensionReceiverParameter
+////        this.dispatchReceiverParameter = dispatchReceiverParameter
+////        this.contextReceiverParameters = contextReceiverParameters
+//    }
+//
+//    override fun getOverriddenDescriptors(): MutableCollection<out CallableDescriptor> {
+////        TODO("Not yet implemented")
+//        return Collections.emptyList()
+//    }
+//
+//
+//}

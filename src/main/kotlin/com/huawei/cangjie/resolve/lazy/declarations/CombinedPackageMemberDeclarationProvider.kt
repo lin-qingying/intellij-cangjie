@@ -15,21 +15,24 @@ class CombinedPackageMemberDeclarationProvider(
     override fun getFunctionDeclarations(name: Name) = providers.flatMap { it.getFunctionDeclarations(name) }
 
 
-
     override fun getVariableDeclarations(name: Name) = providers.flatMap { it.getVariableDeclarations(name) }
+    override fun getPropertyDeclarations(name: Name) = providers.flatMap { it.getPropertyDeclarations(name) }
 
 
     override fun getDestructuringDeclarationsEntries(name: Name): Collection<CjDestructuringDeclarationEntry> {
         return providers.flatMap { it.getDestructuringDeclarationsEntries(name) }
     }
 
+    override fun getTypeStatementDeclarations(name: Name) = providers.flatMap { it.getTypeStatementDeclarations(name) }
+
+
     override fun getTypeAliasDeclarations(name: Name) = providers.flatMap { it.getTypeAliasDeclarations(name) }
 
 
     override fun getDeclarationNames(): Set<Name> = providers.flatMapTo(HashSet()) { it.getDeclarationNames() }
 
-    override fun getAllDeclaredSubPackages(nameFilter: (Name) -> Boolean) = providers.flatMap { it.getAllDeclaredSubPackages(nameFilter) }
-
+    override fun getAllDeclaredSubPackages(nameFilter: (Name) -> Boolean) =
+        providers.flatMap { it.getAllDeclaredSubPackages(nameFilter) }
 
 
     override fun containsFile(file: CjFile) = providers.any { it.containsFile(file) }

@@ -1,6 +1,8 @@
 package com.huawei.cangjie.resolve
 
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.Errors.*
 import com.huawei.cangjie.incremental.CangJieLookupLocation
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
@@ -12,74 +14,21 @@ import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.receivers.*
 import com.huawei.cangjie.resolve.source.CangJieSourceElement
 import com.huawei.cangjie.types.expressions.ExpressionTypingContext
-import com.huawei.cangjie.types.expressions.isWithoutValueArguments
-import com.huawei.cangjie.utils.SmartList
+import com.huawei.cangjie.utils.CallOnceFunction
 import com.intellij.codeInsight.completion.CompletionUtilCore
 import com.intellij.openapi.util.Key
 import com.intellij.psi.impl.source.DummyHolder
-import com.huawei.cangjie.descriptors.Errors.*
+import com.intellij.util.SmartList
 
 
-//private fun resolveQualifierReferenceTarget(
-//    qualifier: Qualifier,
-//    selector: DeclarationDescriptor?,
-//    context: ExpressionTypingContext
-//): DeclarationDescriptor {
-//    if (qualifier is TypeParameterQualifier) {
-//        return qualifier.descriptor
-//    }
-//
-//    val selectorContainer = when (selector) {
-//        is ConstructorDescriptor ->
-//            selector.containingDeclaration.containingDeclaration
-//        else ->
-//            selector?.containingDeclaration
-//    }
-//
-//    if (qualifier is PackageQualifier &&
-//        (selectorContainer is PackageFragmentDescriptor || selectorContainer is PackageViewDescriptor) &&
-//        DescriptorUtils.getFqName(qualifier.descriptor) == DescriptorUtils.getFqName(selectorContainer)
-//    ) {
-//        return qualifier.descriptor
-//    }
-//
-//    // TODO make decisions about short reference to companion object somewhere else
-//    if (qualifier is ClassifierQualifier) {
-//        val classifier = qualifier.descriptor
-//        val selectorIsCallable = selector is CallableDescriptor &&
-//                (selector.dispatchReceiverParameter != null || selector.extensionReceiverParameter != null)
-//        // TODO simplify this code.
-//        // Given a class qualifier in expression position,
-//        // it should provide a proper REFERENCE_TARGET (with type),
-//        // and, in case of implicit companion object reference, SHORT_REFERENCE_TO_COMPANION_OBJECT.
-//        val receiverClassifierDescriptor = classifier.getCallableReceiverDescriptorRetainingTypeAliasReference()
-//        if (selectorIsCallable && receiverClassifierDescriptor != null) {
-//            val classValueTypeDescriptor = classifier.classValueTypeDescriptor!!
-//            context.trace.record(BindingContext.REFERENCE_TARGET, qualifier.referenceExpression, receiverClassifierDescriptor)
-//            context.trace.recordType(qualifier.expression, classValueTypeDescriptor.defaultType)
-//            if (classifier.hasCompanionObject) {
-//                context.trace.record(BindingContext.SHORT_REFERENCE_TO_COMPANION_OBJECT, qualifier.referenceExpression, classifier)
-//            }
-//            return classValueTypeDescriptor
-//        }
-//    }
-//
-//    return qualifier.descriptor
-//}
-
-//fun resolveQualifierAsReceiverInExpression(
-//    qualifier: Qualifier, selector: DeclarationDescriptor?, context: ExpressionTypingContext
-//): DeclarationDescriptor {
-//    val referenceTarget = resolveQualifierReferenceTarget(qualifier, selector, context)
-//
-//    if (referenceTarget is TypeParameterDescriptor) {
-//        context.trace.report(Errors.TYPE_PARAMETER_ON_LHS_OF_DOT.on(qualifier.referenceExpression, referenceTarget))
-//    }
-//
-//    return referenceTarget
-//}
-
-class QualifiedExpressionResolver {
+class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSettings) {
+    data class TypeQualifierResolutionResult(
+        val qualifierParts: List<ExpressionQualifierPart>,
+        val classifierDescriptor: ClassifierDescriptor? = null
+    ) {
+        val allProjections: List<CjTypeProjection>
+            get() = qualifierParts.flatMap { it.typeArguments?.arguments.orEmpty() }
+    }
 
     class ExpressionQualifierPart(
         name: Name,
@@ -91,6 +40,167 @@ class QualifiedExpressionResolver {
         override fun component2() = expression
     }
 
+    private fun LexicalScope.findClassifierAndReportDeprecationIfNeeded(
+        name: Name,
+        lookupLocation: CangJieLookupLocation,
+        reportOn: CjExpression?,
+        trace: BindingTrace
+    ): ClassifierDescriptor? {
+        val (classifier, isDeprecated) = findFirstClassifierWithDeprecationStatus(name, lookupLocation) ?: return null
+
+        if (isDeprecated && reportOn != null) {
+            trace.record(BindingContext.DEPRECATED_SHORT_NAME_ACCESS, reportOn) // For IDE
+
+            // slow-path: we know that closest classifier is imported by the deprecated path, but before reporting
+            // deprecation, we have to recheck if there's some other import path, which isn't deprecated (e.g. explicit import)
+            if (!classifier.canBeResolvedWithoutDeprecation(this, lookupLocation)) {
+                trace.report(DEPRECATED_ACCESS_BY_SHORT_NAME.on(reportOn, classifier))
+            }
+        }
+
+        return classifier
+    }
+
+    private fun CjUserType.asQualifierPartList(): Pair<List<ExpressionQualifierPart>, Boolean> {
+        var hasError = false
+        val result = SmartList<ExpressionQualifierPart>()
+        var userType: CjUserType? = this
+        while (userType != null) {
+            val referenceExpression = userType.referenceExpression
+            if (referenceExpression != null) {
+                result.add(
+                    ExpressionQualifierPart(
+                        referenceExpression.getReferencedNameAsName(),
+                        referenceExpression,
+                        userType.typeArgumentList
+                    )
+                )
+            } else {
+                hasError = true
+            }
+            userType = userType.qualifier
+        }
+        return result.asReversed() to hasError
+    }
+
+    fun resolveDescriptorForType(
+        userType: CjUserType,
+        scope: LexicalScope,
+        trace: BindingTrace,
+        isDebuggerContext: Boolean
+    ): TypeQualifierResolutionResult {
+        val ownerDescriptor = if (!isDebuggerContext) scope.ownerDescriptor else null
+        if (userType.qualifier == null) {
+//      如果没有使用限定名称
+            val descriptor = userType.referenceExpression?.let { expression ->
+                val classifier = scope.findClassifierAndReportDeprecationIfNeeded(
+                    expression.getReferencedNameAsName(),
+                    CangJieLookupLocation(expression),
+                    expression,
+                    trace
+                )
+
+//                checkNotEnumEntry(classifier, trace, expression)
+                storeResult(
+                    trace,
+                    expression,
+                    classifier,
+                    ownerDescriptor,
+                    position = QualifierPosition.TYPE,
+                    isQualifier = false
+                )
+                classifier
+            }
+
+            return TypeQualifierResolutionResult(userType.asQualifierPartList().first, descriptor)
+        }
+//        val a = userType.referenceExpression?.let { expression ->
+//            val classifier = scope.findClassifierAndReportDeprecationIfNeeded(
+//                expression.getReferencedNameAsName(),
+//                CangJieLookupLocation(expression),
+//                expression,
+//                trace
+//            )
+//        }
+
+
+//如果使用了限定名称
+//  1 如果使用了包含模块名称的限定名称 报错 快速修复
+//  2 如果使用了包名限定名称，则查找包
+        val (qualifierPartList, hasError) = userType.asQualifierPartList()
+        if (hasError) {
+            val descriptor = resolveToPackageOrClass(
+                qualifierPartList,
+                scope.ownerDescriptor.module,
+                trace,
+                ownerDescriptor,
+                scope,
+                position = QualifierPosition.TYPE
+            ) as? ClassifierDescriptor
+            return TypeQualifierResolutionResult(qualifierPartList, descriptor)
+        }
+
+        return resolveQualifierPartListForType(qualifierPartList, ownerDescriptor, scope, trace, isQualifier = false)
+    }
+
+    private fun resolveQualifierPartListForType(
+        qualifierPartList: List<ExpressionQualifierPart>,
+        ownerDescriptor: DeclarationDescriptor?,
+        scope: LexicalScope,
+        trace: BindingTrace,
+        isQualifier: Boolean
+    ): TypeQualifierResolutionResult {
+        assert(qualifierPartList.isNotEmpty()) { "Qualifier list should not be empty" }
+
+//     查找包是否声明
+        val qualifier = resolveToPackageOrClass(
+            qualifierPartList.subList(0, qualifierPartList.size - 1),
+            scope.ownerDescriptor.module, trace, ownerDescriptor, scope,
+            position = QualifierPosition.TYPE
+        ) ?: return TypeQualifierResolutionResult(qualifierPartList, null)
+// 该包的模块名
+
+        val lastPart = qualifierPartList.last()
+        val classifier = when (qualifier) {
+            is PackageViewDescriptor -> qualifier.memberScope.getContributedClassifier(lastPart.name, lastPart.location)
+            is ClassDescriptor -> {
+                val descriptor =
+                    qualifier.unsubstitutedInnerClassesScope.getContributedClassifier(lastPart.name, lastPart.location)
+//                checkNotEnumEntry(descriptor, trace, lastPart.expression)
+                descriptor
+            }
+
+            else -> null
+        }
+
+        val moduleName = qualifier.fqNameSafe.moduleName
+        if (classifier != null && qualifierPartList[0].name == moduleName) {
+            trace.report(MODULE_PACKAGE_CANNOT_BE_IMPORTED.on(qualifierPartList[0].expression))
+        }
+
+        storeResult(
+            trace,
+            lastPart.expression,
+            classifier,
+            ownerDescriptor,
+            position = QualifierPosition.TYPE,
+            isQualifier = isQualifier,
+
+            packageView = qualifier
+        )
+        return TypeQualifierResolutionResult(qualifierPartList, classifier)
+    }
+
+
+    //    private fun checkNotEnumEntry(descriptor: DeclarationDescriptor?, trace: BindingTrace, expression: CjSimpleNameExpression?) {
+//        expression ?: return
+//        if (descriptor != null && DescriptorUtils.isEnumEntry(descriptor)) {
+//            val qualifiedParent = expression.getTopmostParentQualifiedExpressionForSelector()
+//            if (qualifiedParent == null || qualifiedParent.parent !is CjDoubleColonExpression) {
+//                trace.report(Errors.ENUM_ENTRY_AS_TYPE.on(expression))
+//            }
+//        }
+//    }
     fun resolvePackageHeader(
         packageDirective: CjPackageDirective,
         module: ModuleDescriptor,
@@ -99,11 +209,16 @@ class QualifiedExpressionResolver {
         val packageNames = packageDirective.packageNames
         for ((index, nameExpression) in packageNames.withIndex()) {
             storeResult(
-                trace, nameExpression, module.getPackage(packageDirective.getFqName(nameExpression)),
-                shouldBeVisibleFrom = null, position = QualifierPosition.PACKAGE_HEADER, isQualifier = index != packageNames.lastIndex
+                trace,
+                nameExpression,
+                module.getPackage(packageDirective.getFqName(nameExpression)),
+                shouldBeVisibleFrom = null,
+                position = QualifierPosition.PACKAGE_HEADER,
+                isQualifier = index != packageNames.lastIndex
             )
         }
     }
+
     open class QualifierPart(
         val name: Name,
         val typeArguments: CjTypeArgumentList? = null,
@@ -116,55 +231,22 @@ class QualifiedExpressionResolver {
         operator fun component3() = typeArguments
     }
 
-    private fun CjImportInfo.ImportContent.asQualifierPartList(): List<QualifierPart> =
+    fun CjImportInfo.ImportContent.asQualifierPartList(): List<QualifierPart> =
         when (this) {
             is CjImportInfo.ImportContent.ExpressionBased -> expression.asQualifierPartList()
             is CjImportInfo.ImportContent.FqNameBased -> fqName.pathSegments().map { QualifierPart(it) }
         }
 
-    private fun CjExpression.asQualifierPartList(doubleColonLHS: Boolean = false): List<ExpressionQualifierPart> {
-        val result = SmartList<ExpressionQualifierPart>()
 
-        fun addQualifierPart(expression: CjExpression?): Boolean {
-            if (expression is CjSimpleNameExpression) {
-                result.add(ExpressionQualifierPart(expression))
-                return true
-            }
-            if (doubleColonLHS && expression is CjCallExpression && expression.isWithoutValueArguments) {
-                val simpleName = expression.calleeExpression
-                if (simpleName is CjSimpleNameExpression) {
-                    result.add(
-                        ExpressionQualifierPart(
-                            simpleName.getReferencedNameAsName(),
-                            simpleName,
-                            expression.typeArgumentList
-                        )
-                    )
-                    return true
-                }
-            }
-            return false
-        }
-
-        var expression: CjExpression? = this
-        while (true) {
-            if (addQualifierPart(expression)) break
-            if (expression !is CjQualifiedExpression) break
-
-            addQualifierPart(expression.selectorExpression)
-
-            expression = expression.receiverExpression
-        }
-
-        return result.asReversed()
-    }
     fun resolveNameExpressionAsQualifierForDiagnostics(
         expression: CjSimpleNameExpression,
         receiver: Receiver?,
         context: ExpressionTypingContext
     ): Qualifier? {
         val name = expression.getReferencedNameAsName()
-        if (!expression.isPhysical && !name.isSpecial && name.asString().endsWith(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)) {
+        if (!expression.isPhysical && !name.isSpecial && name.asString()
+                .endsWith(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
+        ) {
             return null
         }
 
@@ -178,16 +260,24 @@ class QualifiedExpressionResolver {
             is ClassQualifier -> receiver.staticScope.getContributedClassifier(name, location)
             null -> context.scope.findClassifier(name, location)
                 ?: context.scope.ownerDescriptor.module.getPackage(FqName.ROOT.child(name)).takeUnless { it.isEmpty() }
+
             is ReceiverValue -> receiver.type.memberScope.memberScopeAsImportingScope().findClassifier(name, location)
             else -> null
         }
 
         if (qualifierDescriptor != null) {
-            return storeResult(context.trace, expression, qualifierDescriptor, context.scope.ownerDescriptor, QualifierPosition.EXPRESSION)
+            return storeResult(
+                context.trace,
+                expression,
+                qualifierDescriptor,
+                context.scope.ownerDescriptor,
+                QualifierPosition.EXPRESSION
+            )
         }
 
         return null
     }
+
     private fun computePackageFragmentToCheck(
         containingFile: CjFile,
         packageFragmentForVisibilityCheck: PackageFragmentDescriptor?
@@ -233,16 +323,16 @@ class QualifiedExpressionResolver {
 
             if (packageOrClassDescriptor is ClassDescriptor && packageOrClassDescriptor.kind.isSingleton && lastPart.expression != null) {
                 trace.report(
-                    Errors.CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON.on(
+                    CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON.on(
                         lastPart.expression!!,
                         packageOrClassDescriptor
                     )
                 ) // todo report on star
                 return null
             }
-            TODO()
 
-//            return AllUnderImportScope.create(packageOrClassDescriptor, excludedImportNames)
+
+            return AllUnderImportScope.create(packageOrClassDescriptor, excludedImportNames)
         } else {
             return processSingleImport(
                 moduleDescriptor,
@@ -265,7 +355,7 @@ class QualifiedExpressionResolver {
     ): ImportingScope? {
         val aliasName = importDirective.importedName
         if (aliasName == null) {
-            // import kotlin.
+
             resolveToPackageOrClass(
                 path,
                 moduleDescriptor,
@@ -286,34 +376,82 @@ class QualifiedExpressionResolver {
             (resolvedDescriptor as? TypeAliasDescriptor)?.let { it.classDescriptor ?: return null }
                 ?: resolvedDescriptor
 
-        TODO()
-//
-//        return LazyExplicitImportScope(
-//
-//            packageOrClassDescriptor,
-//            packageFragmentForVisibilityCheck,
-//            lastPart.name,
-//            aliasName,
-//            CallOnceFunction(Unit) { candidates ->
-//                if (candidates.isNotEmpty()) {
-//                    storeResult(
-//                        trace,
-//                        lastPart.expression,
-//                        candidates,
-//                        packageFragmentForVisibilityCheck,
-//                        position = QualifierPosition.IMPORT,
-//                        isQualifier = false
-//                    )
-//                } else {
-//                    tryResolveDescriptorsWhichCannotBeImported(
-//                        trace,
-//                        moduleDescriptor,
-//                        packageOrClassDescriptor,
-//                        lastPart
-//                    )
-//                }
-//            }
-//        )
+
+
+        return LazyExplicitImportScope(
+            languageVersionSettings,
+
+            packageOrClassDescriptor,
+            packageFragmentForVisibilityCheck,
+            lastPart.name,
+            aliasName,
+            CallOnceFunction(Unit) { candidates ->
+                if (candidates.isNotEmpty()) {
+                    storeResult(
+                        trace,
+                        lastPart.expression,
+                        candidates,
+                        packageFragmentForVisibilityCheck,
+                        position = QualifierPosition.IMPORT,
+                        isQualifier = false
+                    )
+                } else {
+                    tryResolveDescriptorsWhichCannotBeImported(
+                        trace,
+                        moduleDescriptor,
+                        packageOrClassDescriptor,
+                        lastPart
+                    )
+                }
+            }
+        )
+    }
+
+    private fun tryResolveDescriptorsWhichCannotBeImported(
+        trace: BindingTrace,
+        moduleDescriptor: ModuleDescriptor,
+        packageOrClassDescriptor: DeclarationDescriptor,
+        lastPart: QualifierPart
+    ) {
+        val lastPartExpression = lastPart.expression ?: return
+
+        val descriptors = SmartList<DeclarationDescriptor>()
+        val lastName = lastPart.name
+        when (packageOrClassDescriptor) {
+            is PackageViewDescriptor -> {
+                val packageDescriptor = moduleDescriptor.getPackage(packageOrClassDescriptor.fqName.child(lastName))
+                if (!packageDescriptor.isEmpty()) {
+//                    trace.report(PACKAGE_CANNOT_BE_IMPORTED.on(lastPartExpression))
+//                    descriptors.add(packageOrClassDescriptor)
+//                    不能导入模块名
+                    if (packageDescriptor.fqName.isModuleName) {
+                        trace.report(MODULE_PACKAGE_CANNOT_BE_IMPORTED.on(lastPartExpression))
+                        descriptors.add(packageOrClassDescriptor)
+                    }
+                    return
+
+                }
+            }
+
+            is ClassDescriptor -> {
+                val memberScope = packageOrClassDescriptor.unsubstitutedMemberScope
+                descriptors.addAll(memberScope.getContributedFunctions(lastName, lastPart.location))
+                descriptors.addAll(memberScope.getContributedVariables(lastName, lastPart.location))
+                if (descriptors.isNotEmpty()) {
+                    trace.report(CANNOT_BE_IMPORTED.on(lastPartExpression, lastName))
+                }
+            }
+
+            else -> throw IllegalStateException("Should be class or package: $packageOrClassDescriptor")
+        }
+        storeResult(
+            trace,
+            lastPart.expression,
+            descriptors,
+            shouldBeVisibleFrom = null,
+            position = QualifierPosition.IMPORT,
+            isQualifier = false
+        )
     }
 
     private fun DeclarationDescriptor?.classDescriptorFromTypeAlias(): DeclarationDescriptor? {
@@ -361,12 +499,45 @@ class QualifiedExpressionResolver {
 //        if (classifierDescriptor != null) {
 //            storeResult(trace, firstPart.expression, classifierDescriptor, shouldBeVisibleFrom, position)
 //        }
+        if (classifierDescriptor != null)
+            return Pair(classifierDescriptor, 1)
+//        第一位匹配最后一位
+        val qprts = scopeForFirstPart?.findPackageQualifierParts(path[0].name)
 
-        val (prefixDescriptor, nextIndexAfterPrefix) =
-            if (classifierDescriptor != null)
-                Pair(classifierDescriptor, 1)
-            else
-                moduleDescriptor.quickResolveToPackage(path, trace, position)
+
+        val (prefixDescriptor, nextIndexAfterPrefix) = if (!qprts.isNullOrEmpty()) {
+            var prefixDescriptor: PackageViewDescriptor? = null
+            var nextIndexAfterPrefix: Int? = null
+            for (qprt in qprts) {
+//                合并两个path
+//                去掉path的第一位，将path追加到qprt中
+                val modifiedPath = qprt + path.drop(1)
+                val (_prefixDescriptor, _nextIndexAfterPrefix) = moduleDescriptor.quickResolveToPackage(
+                    modifiedPath,
+                    trace,
+                    position
+                )
+
+                prefixDescriptor = _prefixDescriptor
+                nextIndexAfterPrefix = _nextIndexAfterPrefix
+                if (!_prefixDescriptor.fqName.isRoot) {
+
+                    break
+                }
+            }
+
+            Pair(prefixDescriptor!!, nextIndexAfterPrefix!!)
+        } else {
+
+            moduleDescriptor.quickResolveToPackage(path, trace, position)
+
+        }
+
+//        val (prefixDescriptor, nextIndexAfterPrefix) =
+//            if (classifierDescriptor != null)
+//                Pair(classifierDescriptor, 1)
+//            else
+//                moduleDescriptor.quickResolveToPackage(path, trace, position)
 
         var currentDescriptor: DeclarationDescriptor? = prefixDescriptor
         for (qualifierPartIndex in nextIndexAfterPrefix until path.size) {
@@ -464,16 +635,65 @@ class QualifiedExpressionResolver {
     private fun storeResult(
         trace: BindingTrace,
         referenceExpression: CjSimpleNameExpression?,
-        descriptor: DeclarationDescriptor?,
+        descriptors: Collection<DeclarationDescriptor>,
         shouldBeVisibleFrom: DeclarationDescriptor?,
         position: QualifierPosition,
         isQualifier: Boolean = true
+    ) {
+        referenceExpression ?: return
+        if (descriptors.size > 1) {
+            val visibleDescriptors =
+                descriptors.filter { isVisible(it, shouldBeVisibleFrom, position, languageVersionSettings) }
+            when {
+                visibleDescriptors.isEmpty() -> {
+                    val descriptor = descriptors.first() as DeclarationDescriptorWithVisibility
+                    trace.report(
+                        INVISIBLE_REFERENCE.on(
+                            referenceExpression,
+                            descriptor,
+                            descriptor.visibility,
+                            descriptor
+                        )
+                    )
+                }
+
+                visibleDescriptors.size > 1 -> {
+                    trace.record(BindingContext.AMBIGUOUS_REFERENCE_TARGET, referenceExpression, visibleDescriptors)
+                }
+
+                else -> {
+                    storeResult(trace, referenceExpression, visibleDescriptors.single(), null, position, isQualifier)
+                }
+            }
+        } else {
+            storeResult(
+                trace,
+                referenceExpression,
+                descriptors.singleOrNull(),
+                shouldBeVisibleFrom,
+                position,
+                isQualifier
+            )
+        }
+    }
+
+    private fun storeResult(
+        trace: BindingTrace,
+        referenceExpression: CjSimpleNameExpression?,
+        descriptor: DeclarationDescriptor?,
+        shouldBeVisibleFrom: DeclarationDescriptor?,
+        position: QualifierPosition,
+        isQualifier: Boolean = true,
+        packageView: DeclarationDescriptor? = null
     ): Qualifier? {
         referenceExpression ?: return null
         if (descriptor == null) {
             trace.report(UNRESOLVED_REFERENCE.on(referenceExpression, referenceExpression))
             return null
         }
+
+
+
 
         trace.record(BindingContext.REFERENCE_TARGET, referenceExpression, descriptor)
 
@@ -489,20 +709,21 @@ class QualifiedExpressionResolver {
                 } else {
                     shouldBeVisibleFrom
                 }
-//            if (!isVisible(descriptor, fromToCheck, position, languageVersionSettings)) {
-//                trace.report(
-//                    Errors.INVISIBLE_REFERENCE.on(
-//                        referenceExpression,
-//                        descriptor,
-//                        descriptor.visibility,
-//                        descriptor
-//                    )
-//                )
-//            }
+            if (!isVisible(descriptor, fromToCheck, position, languageVersionSettings)) {
+                trace.report(
+                    INVISIBLE_REFERENCE.on(
+                        referenceExpression,
+                        descriptor,
+                        descriptor.visibility,
+                        descriptor
+                    )
+                )
+            }
         }
 
         return if (isQualifier) storeQualifier(trace, referenceExpression, descriptor) else null
     }
+
     private fun storeQualifier(
         trace: BindingTrace,
         referenceExpression: CjSimpleNameExpression,
@@ -510,7 +731,7 @@ class QualifiedExpressionResolver {
     ): Qualifier? {
         val qualifier =
             when (descriptor) {
-//                is PackageViewDescriptor -> PackageQualifier(referenceExpression, descriptor)
+                is PackageViewDescriptor -> PackageQualifier(referenceExpression, descriptor)
                 is ClassDescriptor -> ClassQualifier(referenceExpression, descriptor)
 //                is TypeParameterDescriptor -> TypeParameterQualifier(referenceExpression, descriptor)
 //                is TypeAliasDescriptor -> {
@@ -524,6 +745,7 @@ class QualifiedExpressionResolver {
 
         return qualifier
     }
+
     private fun resolveToPackageOrClass(
         path: List<QualifierPart>,
         moduleDescriptor: ModuleDescriptor,
@@ -580,7 +802,7 @@ internal enum class QualifierPosition {
     PACKAGE_HEADER, IMPORT, TYPE, EXPRESSION
 }
 
-val SUPPRESS_DIAGNOSTICS_IN_DEBUG_MODE: Key<Boolean> = Key.create<Boolean>("SUPPRESS_DIAGNOSTICS_IN_DEBUG_MODE")
+val SUPPRESS_DIAGNOSTICS_IN_DEBUG_MODE = Key.create<Boolean>("SUPPRESS_DIAGNOSTICS_IN_DEBUG_MODE")
 
 var CjFile.suppressDiagnosticsInDebugMode: Boolean
     get() = when (this) {
@@ -610,4 +832,23 @@ private class PackageFragmentWithCustomSource(
 ) :
     PackageFragmentDescriptor by original {
     override fun getSource(): SourceElement = source
+}
+
+internal fun isVisible(
+    descriptor: DeclarationDescriptor,
+    shouldBeVisibleFrom: DeclarationDescriptor?,
+    position: QualifierPosition,
+    languageVersionSettings: LanguageVersionSettings
+): Boolean {
+    if (descriptor !is DeclarationDescriptorWithVisibility || shouldBeVisibleFrom == null) return true
+
+    val visibility = descriptor.visibility
+    if (position == QualifierPosition.IMPORT) {
+        if (DescriptorVisibilities.isPrivate(visibility)) return DescriptorVisibilities.inSameFile(
+            descriptor,
+            shouldBeVisibleFrom
+        )
+        if (!visibility.mustCheckInImports()) return true
+    }
+    return DescriptorVisibilityUtils.isVisibleIgnoringReceiver(descriptor, shouldBeVisibleFrom, languageVersionSettings)
 }

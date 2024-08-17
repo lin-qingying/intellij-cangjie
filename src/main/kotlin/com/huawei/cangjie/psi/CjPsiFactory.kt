@@ -143,7 +143,7 @@ class CjPsiFactory private constructor(
     private fun doCreateFile(@NonNls fileName: String, @NonNls text: String): CjFile {
         return PsiFileFactory.getInstance(project).createFileFromText(
             fileName,
-            CangJieFileType,
+            CangJieFileType.INSTANCE,
             text,
             LocalTimeCounter.currentTime(),
             eventSystemEnabled,

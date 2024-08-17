@@ -1,11 +1,19 @@
 package com.huawei.cangjie.descriptors
 
-interface VariableDescriptor: ValueDescriptor
-  /*  CallableMemberDescriptor, PropertySymbolMarker*/ {
-
-
-//    override fun newCopyBuilder():  CallableMemberDescriptor.CopyBuilder<out  VariableDescriptor?>
-//    override val original: VariableDescriptor
-
-    val isVar: Boolean
-}
+import com.huawei.cangjie.types.TypeSubstitutor
+//
+//interface VariableDescriptor : CallableMemberDescriptor,VariableDescriptorBase
+//{
+//    override fun substitute(substitutor: TypeSubstitutor): VariableDescriptor?
+//
+//    override fun getOverriddenDescriptors(): Collection<out VariableDescriptor >
+//    override fun newCopyBuilder(): CallableMemberDescriptor.CopyBuilder<out VariableDescriptor?>
+//
+//    //    @Override
+//    //    @Nullable
+//    //    PropertySetterDescriptor getSetter();
+//    //    @NotNull
+//    //    List<PropertyAccessorDescriptor> getAccessors();
+//
+//    override val original:VariableDescriptor
+//}

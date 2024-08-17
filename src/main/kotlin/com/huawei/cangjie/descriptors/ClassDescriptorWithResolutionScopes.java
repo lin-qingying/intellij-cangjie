@@ -12,5 +12,11 @@ public interface ClassDescriptorWithResolutionScopes extends ClassDescriptor{
     @NotNull
     @ReadOnly
     Collection<CallableMemberDescriptor> getDeclaredCallableMembers();
+    @NotNull
+    LexicalScope getScopeForInitializerResolution();
+    @NotNull
+    LexicalScope getScopeForClassHeaderResolution();
+    @NotNull
+    LexicalScope getScopeForConstructorHeaderResolution();
 
 }

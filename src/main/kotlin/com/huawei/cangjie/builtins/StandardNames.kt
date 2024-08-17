@@ -79,11 +79,12 @@ object StandardNames {
             PrimitiveType.entries.mapTo(this) { it.typeName }
         }
 
+
+        @JvmField
+        val core : FqName = FqName.topLevel(Name.identifier("std")).child(Name.identifier("core"))
+
         @JvmField
         val any: FqNameUnsafe = fqNameUnsafe("Any")
-
-
-
 
 
         @JvmField
@@ -99,9 +100,6 @@ object StandardNames {
         val nothing: FqNameUnsafe = fqNameUnsafe("Nothing")
 
 
-
-
-
         /***************************Char***************************/
 
 
@@ -109,12 +107,10 @@ object StandardNames {
         val char: FqNameUnsafe = fqNameUnsafe("Char")
 
 
-
         /***************************Unit***************************/
 
         @JvmField
         val unit = fqNameUnsafe("Unit")
-
 
 
         /***************************Int***************************/
@@ -146,6 +142,7 @@ object StandardNames {
 
         @JvmField
         val uint64: FqNameUnsafe = fqNameUnsafe("UInt64")
+
         @JvmField
         val uint_native: FqNameUnsafe = fqNameUnsafe("UIntNative")
 
@@ -178,14 +175,16 @@ object StandardNames {
         /***************************Float***************************/
         @JvmField
         val float16: FqNameUnsafe = fqNameUnsafe("Float16")
+
         @JvmField
         val float32: FqNameUnsafe = fqNameUnsafe("Float32")
+
         @JvmField
         val float64: FqNameUnsafe = fqNameUnsafe("Float64")
+
         /***************************Bool***************************/
         @JvmField
         val bool: FqNameUnsafe = fqNameUnsafe("Bool")
-
 
 
         @JvmField
@@ -210,12 +209,8 @@ object StandardNames {
         val annotation: FqName = fqName("Annotation")
 
 
-
-
 //        @kotlin.jvm.JvmField
 //        val cCallable: FqNameUnsafe = reflect("KCallable")
-
-
 
 
         private fun fqNameUnsafe(simpleName: String): FqNameUnsafe {
@@ -254,12 +249,13 @@ object StandardNames {
 
 
         set.add(BUILT_INS_PACKAGE_FQ_NAME)
+//        set.add(STD_CORE_PACKAGE_FQ_NAME)
 
 
 //        STDLIB_PACKAGE_FQ_NAMES.map {
 //            set.add(it)
 //
-
+//
 //        }
         return set
 

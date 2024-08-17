@@ -1,7 +1,7 @@
 package com.huawei.cangjie.descriptors
 
 
-interface VariableDescriptorWithAccessors : VariableDescriptor {
+interface VariableDescriptorWithAccessors : VariableDescriptorBase {
 //    val getter: VariableAccessorDescriptor?
 //
 //    val setter: VariableAccessorDescriptor?
@@ -14,7 +14,7 @@ interface VariableDescriptorWithAccessors : VariableDescriptor {
      *
      * This flag is needed for reflection however, that's why it's serialized to metadata and is exposed in this interface.
      */
-    val isDelegated: Boolean
+//    val isDelegated: Boolean
 }
 
 //val VariableDescriptorWithAccessors.accessors: List<VariableAccessorDescriptor>

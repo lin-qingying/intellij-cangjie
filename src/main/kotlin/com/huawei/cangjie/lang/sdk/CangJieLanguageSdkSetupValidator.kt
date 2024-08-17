@@ -1,7 +1,7 @@
 //package com.huawei.cangjie.lang.sdk
 //
 //import com.huawei.cangjie.CangJieBundle
-//import com.huawei.cangjie.lang.CangJieFileType
+//import com.huawei.cangjie.lang.CangJieFileType.INSTANCE
 //import com.huawei.cangjie.lang.CangJieLanguage
 //import com.huawei.cangjie.lang.lsp.CangJieLspServerManager
 //import com.intellij.codeInsight.daemon.ProjectSdkSetupValidator
@@ -29,9 +29,9 @@
 //    }
 //
 //    override fun isApplicableFor(project: Project, file: VirtualFile): Boolean {
-////        return file.fileType == CangJieFileType
+////        return file.fileType == CangJieFileType.INSTANCE
 ////        if (!FileTypeRegistry.getInstance()
-////                .isFileOfType(file, CangJieFileType)
+////                .isFileOfType(file, CangJieFileType.INSTANCE)
 ////        ) {
 //
 //

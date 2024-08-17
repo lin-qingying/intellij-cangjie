@@ -14,7 +14,10 @@ import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjImportDirective
 import com.huawei.cangjie.psi.CjImportInfo
 import com.huawei.cangjie.psi.CjPsiUtil
+import com.huawei.cangjie.psi.asQualifierPartList
+import com.huawei.cangjie.resolve.LazyExplicitImportScope
 import com.huawei.cangjie.resolve.QualifiedExpressionResolver
+import com.huawei.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.ImportingScope
@@ -25,7 +28,7 @@ import com.huawei.cangjie.storage.getValue
 import com.huawei.cangjie.utils.Printer
 import com.huawei.cangjie.utils.flatMapToNullable
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
-import com.huawei.cangjie.storage.getValue
+
 interface ImportForceResolver {
     fun forceResolveNonDefaultImports()
     fun forceResolveImport(importDirective: CjImportDirective)
@@ -41,7 +44,7 @@ class ImportResolutionComponents(
 //    val optimizingOptions: OptimizingOptions,
 )
 
-inline fun <reified I : CjImportInfo> makeAllUnderImportsIndexed(imports: Collection<I>) : IndexedImports<I> =
+inline fun <reified I : CjImportInfo> makeAllUnderImportsIndexed(imports: Collection<I>): IndexedImports<I> =
     IndexedImports(imports.filter { it.isAllUnder }.toTypedArray())
 
 class ExplicitImportsIndexed<I : CjImportInfo>(
@@ -66,10 +69,11 @@ class ExplicitImportsIndexed<I : CjImportInfo>(
 open class IndexedImports<I : CjImportInfo>(val imports: Array<I>) {
     open fun importsForName(name: Name): Iterable<I> = imports.asIterable()
 }
+
 inline fun <reified I : CjImportInfo> makeExplicitImportsIndexed(
     imports: Collection<I>,
     storageManager: StorageManager
-) : IndexedImports<I> =
+): IndexedImports<I> =
     ExplicitImportsIndexed(imports.filter { !it.isAllUnder }.toTypedArray(), storageManager)
 
 open class LazyImportResolver<I : CjImportInfo>(
@@ -106,7 +110,7 @@ open class LazyImportResolver<I : CjImportInfo>(
         // Calculation of all names is undesirable for cases when the scope doesn't live long and is big enough.
         // In such cases we often do the same work twice - first time for computing definitelyDoesNotContainName
         // and second time for resolution itself. Results seem to be not reused.
-        // This optimization is used in Kotlin Notebooks
+        // This optimization is used in CangJie Notebooks
 //        return if (components.optimizingOptions.shouldCalculateAllNamesForLazyImportScopeOptimizing(packageFragment?.containingDeclaration)) {
 //            allNames?.let { name !in it } == true
 //        } else {
@@ -194,10 +198,22 @@ class LazyImportResolverForCjImportDirective(
             }
         }
     }
+    private val forceResolveImportDirective =
+        components.storageManager.createMemoizedFunction { directive: CjImportDirective ->
+            val scope = getImportScope(directive)
+            if (scope is LazyExplicitImportScope) {
+                val allDescriptors = scope.storeReferencesToDescriptors()
+//            PlatformClassesMappedToCangJieChecker.checkPlatformClassesMappedToCangJie(
+//                components.platformToCangJieClassMapper, traceForImportResolve, directive, allDescriptors
+//            )
+            }
+
+            Unit
+        }
 
     override fun forceResolveImport(importDirective: CjImportDirective) {
-        TODO()
-//        forceResolveImportDirective(importDirective)
+//        TODO()
+        forceResolveImportDirective(importDirective)
     }
 }
 
@@ -304,6 +320,20 @@ class LazyImportScope(
             }
     }
 
+
+    override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
+        if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
+        return importResolver.collectFromImports(name) { scope -> scope.getContributedPropertys(name, location) }
+            .ifEmpty {
+                secondaryImportResolver?.collectFromImports(name) { scope ->
+                    scope.getContributedPropertys(
+                        name,
+                        location
+                    )
+                }.orEmpty()
+            }
+    }
+
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> {
         if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
         return importResolver.collectFromImports(name) { scope -> scope.getContributedFunctions(name, location) }
@@ -384,6 +414,28 @@ class LazyImportScope(
     override fun recordLookup(name: Name, location: LookupLocation) {
         importResolver.recordLookup(name, location)
         secondaryImportResolver?.recordLookup(name, location)
+    }
+
+    override fun getContributedPackageQualifierPart(name: Name): List<List<QualifierPart>> {
+        val list = importResolver.indexedImports.importsForName(name).mapNotNull {
+//    it as CjImportDirective
+            it.importContent?.asQualifierPartList()
+        }
+
+
+        return list
+    }
+
+    override fun getContributedPackageFqName(name: Name/*, location: LookupLocation*/): List<FqName>? {
+        val list = importResolver.indexedImports.importsForName(name).mapNotNull {
+            it.importedFqName
+        }
+//        过滤 非模块名的导入
+            .filter {
+                !it.isModuleName
+            }
+        if (list.isEmpty()) return null
+        return list
     }
 
     override fun computeImportedNames(): Set<Name>? =

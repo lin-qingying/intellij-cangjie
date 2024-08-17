@@ -12,7 +12,7 @@ import com.intellij.xdebugger.evaluation.EvaluationMode
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
 
 class CangJieDebuggerEditorsProvider : XDebuggerEditorsProvider() {
-    override fun getFileType(): FileType = CangJieFileType
+    override fun getFileType(): FileType = CangJieFileType.INSTANCE
 
 
     @Deprecated("Deprecated in Java")
