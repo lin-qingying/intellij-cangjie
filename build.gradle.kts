@@ -51,7 +51,7 @@ val buildType = BuildType.fromString(build_type)
 //IDEA版本
 val ideaVersion = "2024.1"
 //插件版本
-val cangjiePluginVersion = "1.1.4"
+val cangjiePluginVersion = "3.0.0-beta"
 
 
 val kotlinVersion = "1.9.21"
@@ -62,7 +62,7 @@ val psiViewerPlugin: String = "PsiViewer:241-SNAPSHOT"
 val indexViewPlugin = "com.jetbrains.hackathon.indices.viewer:1.26"
 val chinesePlugin = "com.intellij.zh:241.230"
 
-val basePluginArchiveName = "intellij-cangjie"
+val basePluginArchiveName = "intellij-cangjie-analyzer"
 
 val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
 

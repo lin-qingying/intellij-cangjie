@@ -17,6 +17,7 @@ class ModuleDescriptorImpl(
     override val builtIns: CangJieBuiltIns,
 
     capabilities: Map<ModuleCapability<*>, Any?> = emptyMap(),
+    override val stableName: Name? = null,
 
     isBuiltInsModule:Boolean = false
     ) : DeclarationDescriptorImpl(Annotations.EMPTY, moduleName),
@@ -120,6 +121,26 @@ class ModuleDescriptorImpl(
 
     override fun assertValid() {
 //        TODO("Not yet implemented")
+    }
+    override val expectedByModules: List<ModuleDescriptor>
+        get() = this.dependencies.sure { "Dependencies of module $id were not set" }.directExpectedByDependencies
+
+    override fun shouldSeeInternalsOf(targetModule: ModuleDescriptor): Boolean {
+        if (this == targetModule) return true
+        if (targetModule in dependencies!!.modulesWhoseInternalsAreVisible) return true
+        if (targetModule in expectedByModules) return true
+        if (this in targetModule.expectedByModules) return true
+
+        return false
+    }
+
+    override fun shouldProtectedsOf(targetModule: ModuleDescriptor): Boolean {
+        if (this == targetModule) return true
+        if (targetModule in dependencies!!.modulesWhoseInternalsAreVisible) return true
+        if (targetModule in expectedByModules) return true
+        if (this in targetModule.expectedByModules) return true
+
+        return false
     }
 
     override fun <T> getCapability(capability: ModuleCapability<T>): T? {

@@ -6,6 +6,7 @@ import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.renderer.ClassifierNamePolicy
 import com.huawei.cangjie.renderer.DescriptorRenderer
+import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.getAbbreviation
 import com.huawei.cangjie.types.util.contains
@@ -25,8 +26,31 @@ object Renderers {
     val FQ_NAMES_IN_TYPES = DescriptorRenderer.FQ_NAMES_IN_TYPES.asRenderer()
     @JvmField
     val STRING = Renderer<String> { it }
+
+    @JvmField
+    val VISIBILITY = Renderer<DescriptorVisibility> {
+        it.externalDisplayName
+    }
+    @JvmField
+    val NAME_OF_CONTAINING_DECLARATION_OR_FILE = Renderer<DeclarationDescriptor> {
+        if (DescriptorUtils.isTopLevelDeclaration(it) && it is DeclarationDescriptorWithVisibility && it.visibility == DescriptorVisibilities.PRIVATE) {
+            "file"
+        } else {
+            val containingDeclaration = it.containingDeclaration
+            if (containingDeclaration is PackageFragmentDescriptor) {
+                containingDeclaration.fqName.asString().wrapIntoQuotes()
+            } else {
+                containingDeclaration!!.name.asString().wrapIntoQuotes()
+            }
+        }
+    }
+
     @JvmField
     val ELEMENT_TEXT = Renderer<PsiElement> { it.text }
+
+
+    private fun String.wrapIntoQuotes(): String = "'$this'"
+
 }
 
 val RenderingContext.adaptiveClassifierPolicy: ClassifierNamePolicy

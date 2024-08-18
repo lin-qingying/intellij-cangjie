@@ -71,6 +71,10 @@ open class LazyDeclarationResolver(
 
     }
 
+    open fun getClassDescriptorIfAny(typeStatement: CjTypeStatement, location: LookupLocation): ClassDescriptor? =
+        findClassDescriptorIfAny(typeStatement, location)
+
+
     private fun resolveToDescriptor(declaration: CjDeclaration, track: Boolean): DeclarationDescriptor? {
         return declaration.accept(object : CjVisitor<DeclarationDescriptor?, Nothing?>() {
             private fun lookupLocationFor(declaration: CjDeclaration, isTopLevel: Boolean): LookupLocation =
@@ -84,6 +88,25 @@ open class LazyDeclarationResolver(
                 return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, function)
             }
 
+
+            override fun visitTypeStatement(typeStatement: CjTypeStatement, data: Nothing?): DeclarationDescriptor? =
+                getClassDescriptorIfAny(typeStatement, lookupLocationFor(typeStatement, true))
+
+            override fun visitClass(cclass: CjClass, data: Nothing?): DeclarationDescriptor? {
+                return visitTypeStatement(cclass, data)
+            }
+
+            override fun visitInterface(cinterface: CjInterface, data: Nothing?): DeclarationDescriptor? {
+                return visitTypeStatement(cinterface, data)
+            }
+
+            override fun visitEnum(cenum: CjEnum, data: Nothing?): DeclarationDescriptor? {
+                return visitTypeStatement(cenum, data)
+            }
+
+            override fun visitStruct(cstruct: CjStruct, data: Nothing?): DeclarationDescriptor? {
+                return visitTypeStatement(cstruct, data)
+            }
 
             //            类型别名
             override fun visitTypeAlias(typeAlias: CjTypeAlias, data: Nothing?): DeclarationDescriptor? {

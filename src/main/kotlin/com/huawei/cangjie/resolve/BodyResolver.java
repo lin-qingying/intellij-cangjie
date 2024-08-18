@@ -9,6 +9,7 @@ import com.huawei.cangjie.resolve.calls.CallResolver;
 import com.huawei.cangjie.resolve.calls.components.InferenceSession;
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
+import com.huawei.cangjie.resolve.check.DeclarationsChecker;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.resolve.scopes.LexicalScopeImpl;
 import com.huawei.cangjie.resolve.scopes.LexicalScopeKind;
@@ -47,6 +48,7 @@ public class BodyResolver {
     private final CangJieBuiltIns builtIns;
     @NotNull
     private final LanguageVersionSettings languageVersionSettings;
+    @NotNull private final DeclarationsChecker declarationsChecker;
 
     public BodyResolver(
             @NotNull Project project,
@@ -54,7 +56,7 @@ public class BodyResolver {
             @NotNull BodyResolveCache bodyResolveCache,
             @NotNull CallResolver callResolver,
 //            @NotNull ControlFlowAnalyzer controlFlowAnalyzer,
-//            @NotNull DeclarationsChecker declarationsChecker,
+            @NotNull DeclarationsChecker declarationsChecker,
 //            @NotNull DelegatedPropertyResolver delegatedPropertyResolver,
             @NotNull ExpressionTypingServices expressionTypingServices,
 //            @NotNull AnalyzerExtensions analyzerExtensions,
@@ -69,6 +71,7 @@ public class BodyResolver {
         this.trace = new ObservableBindingTrace(trace);
         this.overloadChecker = overloadChecker;
         this.expressionTypingServices = expressionTypingServices;
+        this.declarationsChecker = declarationsChecker;
 
         this.builtIns = builtIns;
         this.languageVersionSettings = languageVersionSettings;
@@ -336,7 +339,7 @@ public class BodyResolver {
     public void resolveBodies(@NotNull BodiesResolveContext c) {
         resolveBehaviorDeclarationBodies(c);
 //        controlFlowAnalyzer.process(c);
-//        declarationsChecker.process(c);
+        declarationsChecker.process(c);
 //        analyzerExtensions.process(c);
     }
 }

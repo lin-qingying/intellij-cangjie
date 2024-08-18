@@ -21,7 +21,7 @@ public class DefaultErrorMessages {
     }
 
     static {
-/******************    声明检查************************************************/
+/***************声明检查************************************************/
 //未定义
         MAP.put(UNSUPPORTED, "Unsupported [{0}]", STRING);
 //重复定义
@@ -33,7 +33,8 @@ public class DefaultErrorMessages {
 //        MAP.put(CONSTANT_EXPECTED_TYPE_MISMATCH, "The {0} literal does not conform to the expected type {1}", CommonRenderers.STRING, RENDER_TYPE);
         MAP.put(NO_VALUE_FOR_PARAMETER, "No value passed for parameter ''{0}''", NAME);
 
-        MAP.put(UNRESOLVED_REFERENCE, "Unresolved reference: {0}", ELEMENT_TEXT);
+//        MAP.put(UNRESOLVED_REFERENCE, "Unresolved reference: {0}", ELEMENT_TEXT);
+        MAP.put(UNRESOLVED_REFERENCE, "Reference not found: {0}", ELEMENT_TEXT);
 
 
 //        常量检查
@@ -45,6 +46,11 @@ public class DefaultErrorMessages {
 
         MAP.put(PACKAGE_CANNOT_BE_IMPORTED, "Packages cannot be imported");
         MAP.put(MODULE_PACKAGE_CANNOT_BE_IMPORTED, "Module name cannot be imported");
+
+
+
+//        访问控制
+        MAP.put(INVISIBLE_REFERENCE, "Cannot access ''{0}'': it is {1} in {2}", NAME, VISIBILITY, NAME_OF_CONTAINING_DECLARATION_OR_FILE);
 
     }
 

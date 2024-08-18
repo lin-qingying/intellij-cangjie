@@ -481,6 +481,7 @@ public interface CjTokens {
     CjModifierKeywordToken STATIC_KEYWORD = CjModifierKeywordToken.keywordModifier("static", STATIC_KEYWORD_Id);
     CjModifierKeywordToken INTERNAL_KEYWORD = CjModifierKeywordToken.keywordModifier("internal", INTERNAL_KEYWORD_Id);
     CjModifierKeywordToken PROTECTED_KEYWORD = CjModifierKeywordToken.keywordModifier("protected", PROTECTED_KEYWORD_Id);
+
     //    Class修饰符
     CjKeywordToken[] CLASS_MODIFIER_KEYWORDS_ARRAY = new CjKeywordToken[]{
             OPEN_KEYWORD,
@@ -543,7 +544,7 @@ public interface CjTokens {
 
 
                     IMPORT_KEYWORD,
-                    OVERRIDE_KEYWORD, PRIVATE_KEYWORD, PUBLIC_KEYWORD, PROTECTED_KEYWORD,
+                    OVERRIDE_KEYWORD, PRIVATE_KEYWORD, PUBLIC_KEYWORD, PROTECTED_KEYWORD,INTERNAL_KEYWORD,
                     CATCH_KEYWORD, FINALLY_KEYWORD,
                     INIT_KEYWORD,
                     STATIC_KEYWORD,
@@ -570,7 +571,7 @@ public interface CjTokens {
     CjModifierKeywordToken[] MODIFIER_KEYWORDS_ARRAY =
             new CjModifierKeywordToken[]{
                     ABSTRACT_KEYWORD, OPEN_KEYWORD, OVERRIDE_KEYWORD, PRIVATE_KEYWORD,
-                    PUBLIC_KEYWORD, PROTECTED_KEYWORD,
+                    PUBLIC_KEYWORD, PROTECTED_KEYWORD,INTERNAL_KEYWORD,
                     STATIC_KEYWORD,
                     MUT_KEYWORD,
                     OPERATOR_KEYWORD,

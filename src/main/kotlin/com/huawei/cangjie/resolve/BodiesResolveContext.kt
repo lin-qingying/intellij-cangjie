@@ -9,7 +9,7 @@ import com.huawei.cangjie.types.expressions.ExpressionTypingContext
 interface BodiesResolveContext {
     fun getDeclaringScope(declaration: CjDeclaration): LexicalScope?
 
-    val files: Collection<CjFile>?
+    val files: Collection<CjFile>
 
 
     val declaredClasses: MutableMap<CjTypeStatement, ClassDescriptorWithResolutionScopes>

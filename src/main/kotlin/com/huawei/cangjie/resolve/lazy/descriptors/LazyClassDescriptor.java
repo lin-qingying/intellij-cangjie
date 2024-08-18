@@ -44,6 +44,7 @@ import static com.huawei.cangjie.descriptors.Errors.CYCLIC_INHERITANCE_HIERARCHY
 import static com.huawei.cangjie.descriptors.Errors.CYCLIC_SCOPES_WITH_COMPANION;
 import static com.huawei.cangjie.resolve.BindingContext.TYPE;
 import static com.huawei.cangjie.resolve.ModifiersChecker.resolveModalityFromModifiers;
+import static com.huawei.cangjie.resolve.ModifiersChecker.resolveVisibilityFromModifiers;
 
 public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDescriptorWithResolutionScopes, LazyEntity {
     private static final Function1<CangJieType, Boolean> VALID_SUPERTYPE = type -> {
@@ -60,6 +61,7 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
     private final NotNullLazyValue<LexicalScope> scopeForInitializerResolution;
     private final NotNullLazyValue<Modality> modality;
     private final NotNullLazyValue<List<TypeParameterDescriptor>> parameters;
+    private final DescriptorVisibility visibility;
 
     private final Annotations annotations = Annotations.EMPTY;
     private final ClassResolutionScopesSupport resolutionScopesSupport;
@@ -77,6 +79,7 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
                 , isExternal);
         this.c = c;
 
+
         typeStatement = classLikeInfo.getCorrespondingClass();
         this.declarationProvider = c.getDeclarationProviderFactory().getClassMemberDeclarationProvider(classLikeInfo);
 //
@@ -93,7 +96,7 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
 //
 //        this.isCompanionObject = classLikeInfo instanceof KtObjectInfo && ((KtObjectInfo) classLikeInfo).isCompanionObject();
 //
-//        KtModifierList modifierList = classLikeInfo.getModifierList();
+        CjModifierList modifierList = classLikeInfo.getModifierList();
         if (kind.isSingleton()) {
             this.modality = storageManager.createLazyValue(() -> Modality.FINAL);
         } else {
@@ -103,8 +106,9 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
                             null, /* allowSealed = */ true));
         }
 //
-//        boolean isLocal = typeStatement != null && KtPsiUtil.isLocal(typeStatement);
-//        this.visibility = isLocal ? DescriptorVisibilities.LOCAL : resolveVisibilityFromModifiers(modifierList, DescriptorVisibilities.DEFAULT_VISIBILITY);
+        boolean isLocal = typeStatement != null && CjPsiUtil.isLocal(typeStatement);
+//        默认为INTERNAL
+        this.visibility = isLocal ? DescriptorVisibilities.LOCAL : resolveVisibilityFromModifiers(modifierList, DescriptorVisibilities.INTERNAL);
 //
 //        this.isInner = modifierList != null && modifierList.hasModifier(INNER_KEYWORD) && !isIllegalInner(this);
 //        this.isData = modifierList != null && modifierList.hasModifier(KtTokens.DATA_KEYWORD);
@@ -365,6 +369,12 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
     }
 
     @Override
+    public @NotNull DescriptorVisibility getVisibility() {
+        return visibility;
+
+    }
+
+    @Override
     public @NotNull MemberScope getUnsubstitutedInnerClassesScope() {
         return super.getUnsubstitutedInnerClassesScope();
     }
@@ -613,6 +623,12 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
     @NotNull
     public LexicalScope getScopeForClassHeaderResolution() {
         return resolutionScopesSupport.getScopeForClassHeaderResolution().invoke();
+    }
+
+    @Override
+    public String toString() {
+        // not using DescriptorRenderer to preserve laziness
+        return   typeStatement.toString();
     }
     @NotNull
     protected Collection<CangJieType> computeSupertypes() {

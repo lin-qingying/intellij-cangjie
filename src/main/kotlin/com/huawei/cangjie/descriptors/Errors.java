@@ -7,6 +7,7 @@ import com.huawei.cangjie.diagnostics.rendering.DeclarationWithDiagnosticCompone
 import com.huawei.cangjie.diagnostics.rendering.DefaultErrorMessages;
 import com.huawei.cangjie.diagnostics.rendering.DiagnosticFactoryToRendererMap;
 import com.huawei.cangjie.diagnostics.rendering.DiagnosticRenderer;
+import com.huawei.cangjie.lexer.CjModifierKeywordToken;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintPosition;
@@ -143,9 +144,13 @@ public interface Errors {
     DiagnosticFactory0<CjSimpleNameExpression> PACKAGE_CANNOT_BE_IMPORTED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjSimpleNameExpression> MODULE_PACKAGE_CANNOT_BE_IMPORTED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjSuperTypeEntry> SUPERTYPE_NOT_INITIALIZED = DiagnosticFactory0.create(ERROR);
-
+    DiagnosticFactory2<PsiElement, CjModifierKeywordToken,CjModifierKeywordToken> INCOMPATIBLE_MODIFIERS =
+            DiagnosticFactory2.create(ERROR);
     DiagnosticFactory1<CjSimpleNameExpression, Name> CANNOT_BE_IMPORTED = DiagnosticFactory1.create(ERROR);
-
+    DiagnosticFactory1<PsiElement, CjModifierKeywordToken> REPEATED_MODIFIER = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory2<PsiElement, CjModifierKeywordToken, CjModifierKeywordToken> REDUNDANT_MODIFIER = DiagnosticFactory2.create(WARNING);
+    DiagnosticFactory2<PsiElement, CjModifierKeywordToken, CjModifierKeywordToken> DEPRECATED_MODIFIER_PAIR =
+            DiagnosticFactory2.create(WARNING);
     DiagnosticFactory0<CjTypeProjection> PROJECTION_IN_IMMEDIATE_ARGUMENT_TO_SUPERTYPE =
             DiagnosticFactory0.create(ERROR, VARIANCE_IN_PROJECTION);
     DiagnosticFactory1<CjTypeElement, CangJieType> EXPANDED_TYPE_CANNOT_BE_INHERITED = DiagnosticFactory1.create(ERROR);

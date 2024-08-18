@@ -17,7 +17,7 @@ interface DeclarationDescriptor : Annotated,
 
     //    fun getCorrespondingProperty():  PropertyDescriptor
 
-    fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R
+    fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R?
 
     fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>)
 }

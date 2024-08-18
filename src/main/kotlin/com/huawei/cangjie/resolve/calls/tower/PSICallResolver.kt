@@ -484,7 +484,7 @@ class PSICallResolver(
             if (projection.projectionKind != CjProjectionKind.NONE) {
                 context.trace.report(Errors.PROJECTION_ON_NON_CLASS_TYPE_ARGUMENT.on(projection))
             }
-            ModifierCheckerCore.check(projection, context.trace, null)
+            ModifierCheckerCore.check(projection, context.trace, null,languageVersionSettings)
 
             val typeReference = projection.typeReference ?: return@map TypeArgumentPlaceholder
 

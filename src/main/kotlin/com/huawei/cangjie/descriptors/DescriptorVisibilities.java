@@ -1,17 +1,29 @@
 package com.huawei.cangjie.descriptors;
 
 import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor;
+
 import com.huawei.cangjie.resolve.DescriptorUtils;
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue;
 import com.huawei.cangjie.types.CangJieType;
 
+import com.huawei.cangjie.utils.ModuleVisibilityHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.ServiceLoader;
 
 public class DescriptorVisibilities {
+
+    @NotNull
+    private static final ModuleVisibilityHelper MODULE_VISIBILITY_HELPER;
+
+    static {
+        Iterator<ModuleVisibilityHelper> iterator = ServiceLoader.load(ModuleVisibilityHelper.class, ModuleVisibilityHelper.class.getClassLoader()).iterator();
+        MODULE_VISIBILITY_HELPER = iterator.hasNext() ? iterator.next() : ModuleVisibilityHelper.EMPTY.INSTANCE;
+    }
     /**
      * This value should be used for receiverValue parameter of Visibility.isVisible
      * iff there is intention to determine if member is visible without receiver related checks being performed.
@@ -71,29 +83,112 @@ public class DescriptorVisibilities {
         }
     };
 
+
+    /***********************************************访问修饰符规则***************************************************************/
+    /**************文件****************包 & 子包*******************模块************************所有包*****************************/
+    /**private*****可见******************不可见********************不可见**********************不可见*****************************/
+    /**internal****可见*******************可见********************不可见**********************不可见*****************************/
+    /**private*****可见*******************可见*********************可见**********************不可见*****************************/
+    /**private*****可见*******************可见********************可见**********************可见*****************************/
+
+
+//    当前文件可见
+    @NotNull
+    public static final DescriptorVisibility PRIVATE = new DelegatedDescriptorVisibility(Visibilities.Private.INSTANCE) {
+//        private boolean hasContainingSourceFile(@NotNull DeclarationDescriptor descriptor) {
+//            return DescriptorUtils.getContainingSourceFile(descriptor) != SourceFile.NO_SOURCE_FILE;
+//        }
+        @Override
+        public boolean isVisible(@Nullable ReceiverValue receiver, @NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from, boolean useSpecialRulesForPrivateSealedConstructors) {
+            if (DescriptorUtils.isTopLevelDeclaration(what)/* && hasContainingSourceFile(from)*/) {
+                return inSameFile(what, from);
+            }
+
+            if (what instanceof ConstructorDescriptor) {
+                ClassifierDescriptorWithTypeParameters classDescriptor = ((ConstructorDescriptor) what).getContainingDeclaration();
+                if (useSpecialRulesForPrivateSealedConstructors
+                        && DescriptorUtils.isSealedClass(classDescriptor)
+                        && DescriptorUtils.isTopLevelDeclaration(classDescriptor)
+                        && from instanceof ConstructorDescriptor
+                        && DescriptorUtils.isTopLevelDeclaration(from.getContainingDeclaration())
+                        && inSameFile(what, from)) {
+                    return true;
+                }
+            }
+
+            DeclarationDescriptor parent = what;
+            while (parent != null) {
+                parent = parent.getContainingDeclaration();
+                if ((parent instanceof ClassDescriptor  ) ||
+                        parent instanceof PackageFragmentDescriptor) {
+                    break;
+                }
+            }
+            if (parent == null) {
+                return false;
+            }
+            DeclarationDescriptor fromParent = from;
+            while (fromParent != null) {
+                if (parent == fromParent) {
+                    return true;
+                }
+                if (fromParent instanceof PackageFragmentDescriptor) {
+                    return parent instanceof PackageFragmentDescriptor
+                            && ((PackageFragmentDescriptor) parent).getFqName().equals(((PackageFragmentDescriptor) fromParent).getFqName())
+                            && DescriptorUtils.areInSameModule(fromParent, parent);
+                }
+                fromParent = fromParent.getContainingDeclaration();
+            }
+            return false;
+        }
+    };
+    // 文件  包以及子包可见
+    @NotNull
+    public static final DescriptorVisibility INTERNAL = new DelegatedDescriptorVisibility(Visibilities.Internal.INSTANCE) {
+        @Override
+        public boolean isVisible(
+                @Nullable ReceiverValue receiver,
+                @NotNull DeclarationDescriptorWithVisibility what,
+                @NotNull DeclarationDescriptor from,
+                boolean useSpecialRulesForPrivateSealedConstructors
+        ) {
+            PackageFragmentDescriptor whatModule = DescriptorUtils.getPackageDeclarationDescriptor(what);
+            PackageFragmentDescriptor fromModule = DescriptorUtils.getPackageDeclarationDescriptor(from);
+
+//            判断 fromModule 是不是 whatModule的子包或本包
+//             fromModule 是否可见 whatModule
+
+            if (!fromModule.shouldSeeInternalsOf(whatModule)) return false;
+
+
+            return MODULE_VISIBILITY_HELPER.isInFriendModule(what, from);
+
+        }
+    };
+//    模块内可见
     @NotNull
     public static final DescriptorVisibility PROTECTED = new DelegatedDescriptorVisibility(Visibilities.Protected.INSTANCE) {
 
 
         @Override
         public boolean isVisible(@Nullable ReceiverValue receiver, @NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from, boolean useSpecialRulesForPrivateSealedConstructors) {
-            return false;
-        }
-    };
-    @NotNull
-    public static final DescriptorVisibility PRIVATE = new DelegatedDescriptorVisibility(Visibilities.Private.INSTANCE) {
+            ModuleDescriptor whatModule = DescriptorUtils.getContainingModule(what);
+            ModuleDescriptor fromModule = DescriptorUtils.getContainingModule(from);
 
-        @Override
-        public boolean isVisible(@Nullable ReceiverValue receiver, @NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from, boolean useSpecialRulesForPrivateSealedConstructors) {
-            return false;
+
+            if (!fromModule.shouldProtectedsOf(whatModule)) return false;
+
+
+            return MODULE_VISIBILITY_HELPER.isInFriendModule(what, from);
         }
     };
+//所有可见
     @NotNull
     public static final DescriptorVisibility PUBLIC = new DelegatedDescriptorVisibility(Visibilities.Public.INSTANCE) {
 
         @Override
         public boolean isVisible(@Nullable ReceiverValue receiver, @NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from, boolean useSpecialRulesForPrivateSealedConstructors) {
-            return false;
+            return true;
         }
     };
     public static final DescriptorVisibility DEFAULT_VISIBILITY = PUBLIC;
@@ -223,15 +318,15 @@ public class DescriptorVisibilities {
             @NotNull DeclarationDescriptor from,
             boolean useSpecialRulesForPrivateSealedConstructors
     ) {
-//        DeclarationDescriptorWithVisibility parent = (DeclarationDescriptorWithVisibility) what.getOriginal();
-//        while (parent != null && parent.getVisibility() != LOCAL) {
-//            if (!parent.getVisibility().isVisible(receiver, parent, from, useSpecialRulesForPrivateSealedConstructors)) {
-//                return parent;
-//            }
-//            parent = DescriptorUtils.getParentOfType(parent, DeclarationDescriptorWithVisibility.class);
-//        }
+        DeclarationDescriptorWithVisibility parent = (DeclarationDescriptorWithVisibility) what.getOriginal();
+        while (parent != null && parent.getVisibility() != LOCAL) {
+            if (!parent.getVisibility().isVisible(receiver, parent, from, useSpecialRulesForPrivateSealedConstructors)) {
+                return parent;
+            }
+            parent = DescriptorUtils.getParentOfType(parent, DeclarationDescriptorWithVisibility.class);
+        }
 
-        if (what instanceof TypeAliasConstructorDescriptor) {
+            if (what instanceof TypeAliasConstructorDescriptor) {
             DeclarationDescriptorWithVisibility invisibleUnderlying =
                     findInvisibleMember(
                             receiver,
