@@ -1,5 +1,7 @@
 package com.huawei.cangjie.psi;
 
+import com.huawei.cangjie.descriptors.DescriptorVisibilities;
+import com.huawei.cangjie.descriptors.DescriptorVisibility;
 import com.huawei.cangjie.doc.psi.CDoc;
 import com.huawei.cangjie.lexer.CjModifierKeywordToken;
 import com.huawei.cangjie.psi.psiUtil.AddRemoveModifierKt;
@@ -14,6 +16,8 @@ import com.huawei.cangjie.CjNodeTypes;
 
 import java.util.Collections;
 import java.util.List;
+
+import static com.huawei.cangjie.resolve.ModifiersChecker.resolveVisibilityFromModifiers;
 
 
 public abstract class CjDeclarationImpl extends CjExpressionImpl implements CjDeclaration {
@@ -64,7 +68,11 @@ public abstract class CjDeclarationImpl extends CjExpressionImpl implements CjDe
     }
 
 
-
+    @NotNull
+    @Override
+    public DescriptorVisibility getModifierVisibility() {
+        return resolveVisibilityFromModifiers(this, DescriptorVisibilities.INTERNAL);
+    }
 
 
     @Nullable

@@ -1,6 +1,8 @@
 package com.huawei.cangjie.psi;
 
 
+import com.huawei.cangjie.descriptors.DescriptorVisibilities;
+import com.huawei.cangjie.descriptors.DescriptorVisibility;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.name.Name;
@@ -8,6 +10,7 @@ import com.huawei.cangjie.name.SpecialNames;
 import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
 import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
+import com.huawei.cangjie.psi.stubs.elements.CjTokenSets;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.huawei.cangjie.psi.stubs.elements.CjTokenSets;
+import static com.huawei.cangjie.resolve.ModifiersChecker.resolveVisibilityFromModifiers;
 
 public class CjPackageDirective extends CjModifierListOwnerStub<CangJiePlaceHolderStub<CjPackageDirective>> {
 
@@ -88,6 +91,12 @@ public class CjPackageDirective extends CjModifierListOwnerStub<CangJiePlaceHold
     }
 
     @NotNull
+
+    public DescriptorVisibility getModifierVisibility() {
+        return resolveVisibilityFromModifiers(this, DescriptorVisibilities.PUBLIC);
+    }
+
+    @NotNull
     public Name getNameAsName() {
         PsiElement nameIdentifier = getNameIdentifier();
         return nameIdentifier == null ? SpecialNames.ROOT_PACKAGE : Name.identifier(nameIdentifier.getText());
@@ -101,11 +110,6 @@ public class CjPackageDirective extends CjModifierListOwnerStub<CangJiePlaceHold
     public FqName getFqName() {
         String qualifiedName = getQualifiedName();
         return qualifiedName.isEmpty() ? FqName.ROOT : new FqName(qualifiedName);
-    }
-
-    @NotNull
-    public FqName getFqName(CjSimpleNameExpression nameExpression) {
-        return new FqName(getQualifiedNameOf(nameExpression));
     }
 
     public void setFqName(@NotNull FqName fqName) {
@@ -133,6 +137,11 @@ public class CjPackageDirective extends CjModifierListOwnerStub<CangJiePlaceHold
         }
 
         replace(psiFactory.createPackageDirective(fqName));
+    }
+
+    @NotNull
+    public FqName getFqName(CjSimpleNameExpression nameExpression) {
+        return new FqName(getQualifiedNameOf(nameExpression));
     }
 
     @NotNull

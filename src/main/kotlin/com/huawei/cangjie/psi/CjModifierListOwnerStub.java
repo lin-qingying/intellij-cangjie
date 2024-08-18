@@ -1,5 +1,7 @@
 package com.huawei.cangjie.psi;
 
+import com.huawei.cangjie.descriptors.DescriptorVisibilities;
+import com.huawei.cangjie.descriptors.DescriptorVisibility;
 import com.huawei.cangjie.lexer.CjModifierKeywordToken;
 import com.huawei.cangjie.psi.psiUtil.AddRemoveModifierKt;
 import com.intellij.lang.ASTNode;
@@ -12,6 +14,8 @@ import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 
 import java.util.Collections;
 import java.util.List;
+
+import static com.huawei.cangjie.resolve.ModifiersChecker.resolveVisibilityFromModifiers;
 
 
 public class CjModifierListOwnerStub<T extends StubElement<?>> extends CjElementImplStub<T> implements CjModifierListOwner {
@@ -48,6 +52,12 @@ public class CjModifierListOwnerStub<T extends StubElement<?>> extends CjElement
         CjModifierList modifierList = getModifierList();
         if (modifierList == null) return Collections.emptyList();
         return modifierList.getAnnotationEntries();
+    }
+    @NotNull
+    @Override
+
+    public DescriptorVisibility getModifierVisibility() {
+        return resolveVisibilityFromModifiers(this, DescriptorVisibilities.INTERNAL);
     }
 
     @Override

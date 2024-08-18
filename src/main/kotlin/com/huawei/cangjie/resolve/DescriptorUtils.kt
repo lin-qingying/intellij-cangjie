@@ -31,7 +31,8 @@ inline fun <reified T : CjDeclaration> reportOnDeclarationAs(
     DescriptorToSourceUtils.descriptorToDeclaration(descriptor)?.let { psiElement ->
         (psiElement as? T)?.let {
             trace.report(what(it))
-        } ?: throw AssertionError("Declaration for $descriptor is expected to be ${T::class.simpleName}, actual declaration: $psiElement")
+        }
+            ?: throw AssertionError("Declaration for $descriptor is expected to be ${T::class.simpleName}, actual declaration: $psiElement")
     } ?: throw AssertionError("No declaration for $descriptor")
 }
 
@@ -130,6 +131,18 @@ object DescriptorUtils {
         )
     }
 
+    @JvmStatic
+// WARNING! Don't use this method in JVM backend, use JvmCodegenUtil.isCallInsideSameModuleAsDeclared() instead.
+// The latter handles compilation against compiled part of our module correctly.
+    fun areInSameModule(
+        first: DeclarationDescriptor,
+        second: DeclarationDescriptor
+    ): Boolean {
+        return getContainingModule(first) == getContainingModule(
+            second
+        )
+    }
+
     fun getContainingClass(descriptor: DeclarationDescriptor): ClassDescriptor? {
         var containing = descriptor.containingDeclaration
         while (containing != null) {
@@ -146,6 +159,7 @@ object DescriptorUtils {
         return classCanHaveAbstractDeclaration(classDescriptor) /*|| classDescriptor.isExpect()*/
     }
 
+    @JvmStatic
     fun isSealedClass(descriptor: DeclarationDescriptor?): Boolean {
         return (isKindOf(
             descriptor,
@@ -184,19 +198,19 @@ object DescriptorUtils {
     }
 
     @JvmStatic
-    fun getContainingSourceFile(descriptor:  DeclarationDescriptor):  SourceFile {
-        var descriptor:  DeclarationDescriptor = descriptor
+    fun getContainingSourceFile(descriptor: DeclarationDescriptor): SourceFile {
+        var descriptor: DeclarationDescriptor = descriptor
 //        if (descriptor is  PropertySetterDescriptor) {
 //            descriptor =
 //                (descriptor as  PropertySetterDescriptor).getCorrespondingProperty()
 //        }
 
-        if (descriptor is  DeclarationDescriptorWithSource) {
+        if (descriptor is DeclarationDescriptorWithSource) {
             return descriptor.getSource()
                 .getContainingFile()
         }
 
-        return  SourceFile.NO_SOURCE_FILE
+        return SourceFile.NO_SOURCE_FILE
     }
 
     private fun getFqNameUnsafe(descriptor: DeclarationDescriptor): FqNameUnsafe {
@@ -431,6 +445,18 @@ object DescriptorUtils {
     }
 
     @JvmStatic
+    fun getPackageDeclarationDescriptor(descriptor: DeclarationDescriptor): PackageFragmentDescriptor {
+        return when (descriptor) {
+            is PackageFragmentDescriptor -> descriptor
+            is ClassDescriptor -> getPackageDeclarationDescriptor(descriptor.containingDeclaration)
+
+            else -> getPackageDeclarationDescriptor(descriptor.containingDeclaration!!)
+        }
+
+
+    }
+
+    @JvmStatic
     fun getContainingModule(descriptor: DeclarationDescriptor): ModuleDescriptor {
         val module =
             getContainingModuleOrNull(descriptor)
@@ -475,6 +501,7 @@ fun FunctionDescriptor.isFunctionForExpectTypeFromCastFeature(): Boolean {
 
     return !(valueParameters.any { it.type.isBadType() } || extensionReceiverParameter?.type?.isBadType() == true)
 }
+
 /**
  * When `Inner` is used as type outside of `Outer` class all type arguments should be specified, e.g. `Outer<String, Int>.Inner<Double>`
  * However, it's not necessary inside Outer's members, only the last one should be specified there.

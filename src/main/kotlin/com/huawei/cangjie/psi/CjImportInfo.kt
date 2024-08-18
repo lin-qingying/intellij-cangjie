@@ -1,5 +1,7 @@
 package com.huawei.cangjie.psi
 
+import com.huawei.cangjie.descriptors.DescriptorVisibilities
+import com.huawei.cangjie.descriptors.DescriptorVisibility
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.QualifiedExpressionResolver.ExpressionQualifierPart
@@ -12,6 +14,7 @@ fun CjImportInfo.ImportContent.asQualifierPartList(): List<QualifierPart> =
         is CjImportInfo.ImportContent.ExpressionBased -> expression.asQualifierPartList()
         is CjImportInfo.ImportContent.FqNameBased -> fqName.pathSegments().map { QualifierPart(it) }
     }
+
 fun CjExpression.asQualifierPartList(doubleColonLHS: Boolean = false): List<ExpressionQualifierPart> {
     val result = SmartList<ExpressionQualifierPart>()
 
@@ -59,9 +62,12 @@ interface CjImportInfo {
     val isAllUnder: Boolean
     val importContent: ImportContent?
     val importedFqName: FqName?
-//    val importedFqNames: MutableList<FqName>?
+
+    //    val importedFqNames: MutableList<FqName>?
     val aliasName: String?
 
+    //    修饰符
+    val modifierVisibility: DescriptorVisibility get() = DescriptorVisibilities.PRIVATE
 
     val importedName: Name?
         get() {

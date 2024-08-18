@@ -1,5 +1,9 @@
 package com.huawei.cangjie.psi;
 
+import com.huawei.cangjie.CjNodeTypes;
+import com.huawei.cangjie.descriptors.DescriptorVisibilities;
+import com.huawei.cangjie.descriptors.DescriptorVisibility;
+import com.huawei.cangjie.lexer.CjModifierKeywordToken;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.name.Name;
@@ -13,7 +17,9 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CjImportDirective extends CjElementImplStub<CangJieImportDirectiveStub> implements CjImportInfo {
+import static com.huawei.cangjie.resolve.ModifiersChecker.resolveVisibilityFromModifiers;
+
+public class CjImportDirective extends CjDeclarationStub<CangJieImportDirectiveStub> implements CjImportInfo {
 
     private volatile FqName importedFqName;
 
@@ -167,5 +173,11 @@ public class CjImportDirective extends CjElementImplStub<CangJieImportDirectiveS
     public void subtreeChanged() {
         super.subtreeChanged();
         importedFqName = null;
+    }
+
+    @NotNull
+    @Override
+    public DescriptorVisibility getModifierVisibility() {
+        return resolveVisibilityFromModifiers(this, DescriptorVisibilities.PRIVATE);
     }
 }
