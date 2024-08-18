@@ -27,7 +27,7 @@ fun GeneralCommandLine.createProcessHandler(): OSProcessHandler {
             object : ProcessListener {
                 override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
 
-//                    val _text = event.text.toByteArray(charset("ISO-8859-1"))
+//                    val _text = event.text.toByteArray(charset("gb2312"))
 //                    val correctString = String(_text, charset("UTF-8")) // 转换为 UTF-8
 
                     super.onTextAvailable(event, outputType)
