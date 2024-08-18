@@ -2,6 +2,7 @@ package com.huawei.cangjie.diagnostics.rendering
 
 import com.huawei.cangjie.builtins.fqNameUnsafe
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.renderer.ClassifierNamePolicy
@@ -48,6 +49,10 @@ object Renderers {
     @JvmField
     val ELEMENT_TEXT = Renderer<PsiElement> { it.text }
 
+    @JvmField
+    val FQNAME = Renderer<FqName> {
+        it.asString()
+    }
 
     private fun String.wrapIntoQuotes(): String = "'$this'"
 

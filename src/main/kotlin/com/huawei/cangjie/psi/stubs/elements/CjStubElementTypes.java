@@ -52,8 +52,10 @@ public interface CjStubElementTypes {
 
     CjImportAliasElementType IMPORT_ALIAS = new CjImportAliasElementType("IMPORT_ALIAS");
 
-    CjPlaceHolderStubElementType<CjPackageDirective> PACKAGE_DIRECTIVE =
-            new CjPlaceHolderStubElementType<>("PACKAGE_DIRECTIVE", CjPackageDirective.class);
+//    CjPlaceHolderStubElementType<CjPackageDirective> PACKAGE_DIRECTIVE =
+//            new CjPlaceHolderStubElementType<>("PACKAGE_DIRECTIVE", CjPackageDirective.class);
+CjPackageDirectiveElementType  PACKAGE_DIRECTIVE =
+        new CjPackageDirectiveElementType("PACKAGE_DIRECTIVE" );
 
     CjModifierListElementType<CjDeclarationModifierList> MODIFIER_LIST =
             new CjModifierListElementType<>("MODIFIER_LIST", CjDeclarationModifierList.class);

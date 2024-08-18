@@ -1,7 +1,6 @@
 package com.huawei.cangjie.descriptors
 
 import com.huawei.cangjie.name.FqName
-import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.scopes.MemberScope
 
 
@@ -18,7 +17,13 @@ interface PackageFragmentDescriptor : ClassOrPackageFragmentDescriptor {
 //        val f1 = FqName.topLevel(Name.identifier("a"))
 //        val f2 = f1.child(Name.identifier("b"))
 
-return this.fqName.startsWith(whatPackage.fqName)
+        return this.fqName.startsWith(whatPackage.fqName)
+
+    }
+
+    fun shouldProtectedsOf(whatPackage: PackageFragmentDescriptor): Boolean {
+// 判断模块名是否相同
+        return this.fqName.moduleName == whatPackage.fqName.moduleName
 
     }
 

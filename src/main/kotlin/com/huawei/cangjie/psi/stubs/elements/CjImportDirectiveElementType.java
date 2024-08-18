@@ -1,5 +1,7 @@
 package com.huawei.cangjie.psi.stubs.elements;
 
+import com.huawei.cangjie.descriptors.DescriptorVisibilities;
+import com.huawei.cangjie.descriptors.DescriptorVisibility;
 import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.psi.CjImportDirective;
 //import com.huawei.cangjie.psi.CjImportDirectiveItem;
@@ -29,7 +31,7 @@ public class CjImportDirectiveElementType extends CjStubElementType<CangJieImpor
     public CangJieImportDirectiveStub createStub(@NotNull CjImportDirective psi, StubElement parentStub) {
         FqName importedFqName = psi.getImportedFqName();
         StringRef fqName = StringRef.fromString(importedFqName == null ? null : importedFqName.asString());
-        return new CangJieImportDirectiveStubImpl((StubElement<?>) parentStub, psi.isAllUnder(), fqName, psi.isValidImport());
+        return new CangJieImportDirectiveStubImpl((StubElement<?>) parentStub, psi.isAllUnder(), fqName, psi.isValidImport(),psi.getModifierVisibility());
     }
 
     @Override
@@ -38,6 +40,7 @@ public class CjImportDirectiveElementType extends CjStubElementType<CangJieImpor
         FqName importedFqName = stub.getImportedFqName();
         dataStream.writeName(importedFqName != null ? importedFqName.asString() : null);
         dataStream.writeBoolean(stub.isValid());
+        dataStream.writeName(stub.getModifierVisibility().getName());
     }
 
     @NotNull
@@ -46,6 +49,13 @@ public class CjImportDirectiveElementType extends CjStubElementType<CangJieImpor
         boolean isAllUnder = dataStream.readBoolean();
         StringRef importedName = dataStream.readName();
         boolean isValid = dataStream.readBoolean();
-        return new CangJieImportDirectiveStubImpl((StubElement<?>) parentStub, isAllUnder, importedName, isValid);
+        StringRef modifierVisibility = dataStream.readName();
+        DescriptorVisibility visibility  = null;
+        if (modifierVisibility != null) {
+            visibility = DescriptorVisibilities.formName(modifierVisibility.getString());
+        }else {
+            visibility = DescriptorVisibilities.PRIVATE;
+        }
+        return new CangJieImportDirectiveStubImpl((StubElement<?>) parentStub, isAllUnder, importedName,isValid,visibility);
     }
 }

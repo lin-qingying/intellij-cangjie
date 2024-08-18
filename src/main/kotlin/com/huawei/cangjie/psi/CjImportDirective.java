@@ -1,8 +1,8 @@
 package com.huawei.cangjie.psi;
 
-import com.huawei.cangjie.CjNodeTypes;
 import com.huawei.cangjie.descriptors.DescriptorVisibilities;
 import com.huawei.cangjie.descriptors.DescriptorVisibility;
+import com.huawei.cangjie.lexer.CjKeywordToken;
 import com.huawei.cangjie.lexer.CjModifierKeywordToken;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.name.FqName;
@@ -16,8 +16,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.huawei.cangjie.resolve.ModifiersChecker.resolveVisibilityFromModifiers;
 
 public class CjImportDirective extends CjDeclarationStub<CangJieImportDirectiveStub> implements CjImportInfo {
 
@@ -175,9 +173,32 @@ public class CjImportDirective extends CjDeclarationStub<CangJieImportDirectiveS
         importedFqName = null;
     }
 
+    @Nullable
+    public PsiElement getModifier(@NotNull CjKeywordToken tokenType) {
+        return findChildByType(tokenType);
+    }
+
+    public boolean hasModifier(@NotNull CjModifierKeywordToken tokenType) {
+//        CangJieImportDirectiveStub stub = getStub();
+//        if (stub != null) {
+//            return stub.getModifierVisibility(tokenType);
+//        }
+        return getModifier(tokenType) != null;
+    }
+
     @NotNull
     @Override
     public DescriptorVisibility getModifierVisibility() {
-        return resolveVisibilityFromModifiers(this, DescriptorVisibilities.PRIVATE);
+        CangJieImportDirectiveStub stub = getStub();
+        if (stub != null) {
+            return stub.getModifierVisibility();
+        }
+
+        if (hasModifier(CjTokens.PRIVATE_KEYWORD)) return DescriptorVisibilities.PRIVATE;
+        if (hasModifier(CjTokens.INTERNAL_KEYWORD)) return DescriptorVisibilities.INTERNAL;
+        if (hasModifier(CjTokens.PROTECTED_KEYWORD)) return DescriptorVisibilities.PROTECTED;
+        if (hasModifier(CjTokens.PUBLIC_KEYWORD)) return DescriptorVisibilities.PUBLIC;
+        return DescriptorVisibilities.PRIVATE;
+//        return resolveVisibilityFromModifiers(this, DescriptorVisibilities.PRIVATE);
     }
 }

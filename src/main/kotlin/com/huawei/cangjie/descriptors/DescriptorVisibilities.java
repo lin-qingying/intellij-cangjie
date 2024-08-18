@@ -172,8 +172,10 @@ public class DescriptorVisibilities {
 
         @Override
         public boolean isVisible(@Nullable ReceiverValue receiver, @NotNull DeclarationDescriptorWithVisibility what, @NotNull DeclarationDescriptor from, boolean useSpecialRulesForPrivateSealedConstructors) {
-            ModuleDescriptor whatModule = DescriptorUtils.getContainingModule(what);
-            ModuleDescriptor fromModule = DescriptorUtils.getContainingModule(from);
+//            ModuleDescriptor whatModule = DescriptorUtils.getContainingModule(what);
+//            ModuleDescriptor fromModule = DescriptorUtils.getContainingModule(from);
+            PackageFragmentDescriptor whatModule = DescriptorUtils.getPackageDeclarationDescriptor(what);
+            PackageFragmentDescriptor fromModule = DescriptorUtils.getPackageDeclarationDescriptor(from);
 
 
             if (!fromModule.shouldProtectedsOf(whatModule)) return false;
@@ -191,6 +193,21 @@ public class DescriptorVisibilities {
             return true;
         }
     };
+
+
+    public  static  DescriptorVisibility formName(String name){
+        return switch (name) {
+            case "public" -> PUBLIC;
+            case "protected" -> PROTECTED;
+            case "internal" -> INTERNAL;
+            case "private" -> PRIVATE;
+//            case "private_to_this" -> PRIVATE_TO_THIS;
+//            case "local" -> LOCAL;
+            default -> throw new IllegalArgumentException("unknown visibility name: " + name);
+        };
+
+
+    }
     public static final DescriptorVisibility DEFAULT_VISIBILITY = PUBLIC;
     /**
      * This visibility is needed for the next case:

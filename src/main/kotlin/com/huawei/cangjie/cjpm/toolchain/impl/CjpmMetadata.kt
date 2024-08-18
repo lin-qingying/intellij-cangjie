@@ -152,11 +152,10 @@ object CjpmMetadata {
 
 
         ) {
-
         val manifest_path: String = if (path != null) {
             Paths.get(path).resolve(CjpmConstants.MANIFEST_FILE).systemIndependentPath
         } else if (git != null && commitId != null) {
-            val localPath = Paths.get(System.getProperty("user.home")).resolve("AppData").resolve("Local")
+            val localPath = Paths.get(System.getProperty("user.home"))
             val cjpmPath = localPath.resolve(".cjpm")
             var cjpmPathString = ""
             if (cjpmPath.exists()) {

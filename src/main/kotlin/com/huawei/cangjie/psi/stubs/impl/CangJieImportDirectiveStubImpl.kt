@@ -1,5 +1,7 @@
 package com.huawei.cangjie.psi.stubs.impl
 
+import com.huawei.cangjie.descriptors.DescriptorVisibility
+import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.CjImportDirective
 import com.huawei.cangjie.psi.stubs.CangJieImportDirectiveStub
@@ -13,7 +15,9 @@ class CangJieImportDirectiveStubImpl(
     private val isAllUnder: Boolean,
     private val importedFqName: StringRef? = null,
 //    private val importedFqNames: List<StringRef> = emptyList(),
-    private val isValid: Boolean
+    private val isValid: Boolean,
+    private val visibility:DescriptorVisibility
+
 ) : CangJieStubBaseImpl<CjImportDirective>(parent, CjStubElementTypes.IMPORT_DIRECTIVE), CangJieImportDirectiveStub {
     override fun isAllUnder(): Boolean = isAllUnder
 
@@ -29,4 +33,8 @@ class CangJieImportDirectiveStubImpl(
 //    }
 
     override fun isValid(): Boolean = isValid
+    override fun getModifierVisibility(): DescriptorVisibility {
+     return   visibility
+    }
+
 }

@@ -3,12 +3,14 @@ package com.huawei.cangjie.psi;
 
 import com.huawei.cangjie.descriptors.DescriptorVisibilities;
 import com.huawei.cangjie.descriptors.DescriptorVisibility;
+import com.huawei.cangjie.lexer.CjKeywordToken;
+import com.huawei.cangjie.lexer.CjModifierKeywordToken;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.name.SpecialNames;
 import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
+import com.huawei.cangjie.psi.stubs.CangJiePackageDirectiveStub;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 import com.huawei.cangjie.psi.stubs.elements.CjTokenSets;
 import com.intellij.lang.ASTNode;
@@ -19,10 +21,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
-import static com.huawei.cangjie.resolve.ModifiersChecker.resolveVisibilityFromModifiers;
-
-public class CjPackageDirective extends CjModifierListOwnerStub<CangJiePlaceHolderStub<CjPackageDirective>> {
+//public class CjPackageDirective extends CjModifierListOwnerStub<CangJiePlaceHolderStub<CjPackageDirective>>
+public class CjPackageDirective extends CjDeclarationStub<CangJiePackageDirectiveStub> {
 
     private String qualifiedNameCache = null;
 
@@ -30,7 +32,7 @@ public class CjPackageDirective extends CjModifierListOwnerStub<CangJiePlaceHold
         super(node);
     }
 
-    public CjPackageDirective(@NotNull CangJiePlaceHolderStub<CjPackageDirective> stub) {
+    public CjPackageDirective(@NotNull CangJiePackageDirectiveStub stub) {
         super(stub, CjStubElementTypes.PACKAGE_DIRECTIVE);
     }
 
@@ -90,10 +92,32 @@ public class CjPackageDirective extends CjModifierListOwnerStub<CangJiePlaceHold
         return nameIdentifier == null ? "" : nameIdentifier.getText();
     }
 
-    @NotNull
 
+    @Nullable
+    public PsiElement getModifier(@NotNull CjKeywordToken tokenType) {
+        return findChildByType(tokenType);
+    }
+
+    public boolean hasModifier(@NotNull CjModifierKeywordToken tokenType) {
+//        CangJieImportDirectiveStub stub = getStub();
+//        if (stub != null) {
+//            return stub.getModifierVisibility(tokenType);
+//        }
+        return getModifier(tokenType) != null;
+    }
+
+    @NotNull
     public DescriptorVisibility getModifierVisibility() {
-        return resolveVisibilityFromModifiers(this, DescriptorVisibilities.PUBLIC);
+        CangJiePackageDirectiveStub stub = getStub();
+        if (stub != null) {
+            return stub.getModifierVisibility();
+        }
+
+        if (hasModifier(CjTokens.PRIVATE_KEYWORD)) return DescriptorVisibilities.PRIVATE;
+        if (hasModifier(CjTokens.INTERNAL_KEYWORD)) return DescriptorVisibilities.INTERNAL;
+        if (hasModifier(CjTokens.PROTECTED_KEYWORD)) return DescriptorVisibilities.PROTECTED;
+        if (hasModifier(CjTokens.PUBLIC_KEYWORD)) return DescriptorVisibilities.PUBLIC;
+        return DescriptorVisibilities.PUBLIC;
     }
 
     @NotNull
@@ -103,7 +127,7 @@ public class CjPackageDirective extends CjModifierListOwnerStub<CangJiePlaceHold
     }
 
     public boolean isRoot() {
-        return getName().length() == 0;
+        return getName().isEmpty();
     }
 
     @NotNull
@@ -116,7 +140,7 @@ public class CjPackageDirective extends CjModifierListOwnerStub<CangJiePlaceHold
         if (fqName.isRoot()) {
             if (!getFqName().isRoot()) {
 
-                replace(new CjPsiFactory(getProject()).createFile("").getPackageDirective());
+                replace(Objects.requireNonNull(new CjPsiFactory(getProject()).createFile("").getPackageDirective()));
             }
             return;
         }

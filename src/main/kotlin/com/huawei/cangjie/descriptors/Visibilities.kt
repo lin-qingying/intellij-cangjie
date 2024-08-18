@@ -14,7 +14,7 @@ object Visibilities {
     }
 
     object Protected : Visibility("protected", isPublicAPI = true) {
-        override fun mustCheckInImports(): Boolean = false
+        override fun mustCheckInImports(): Boolean = true
     }
 
     object Internal : Visibility("internal", isPublicAPI = false) {

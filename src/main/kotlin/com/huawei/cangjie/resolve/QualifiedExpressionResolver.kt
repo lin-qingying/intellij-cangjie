@@ -10,6 +10,7 @@ import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.psiUtil.getParentOfType
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.receivers.*
 import com.huawei.cangjie.resolve.source.CangJieSourceElement
@@ -315,6 +316,22 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
             else
                 null
 
+
+//报告不应该导入自己
+        if (packageFragmentForCheck != null) {
+            val packageFqname = importDirective.importedFqName
+
+            if (importDirective is CjImportDirective) {
+                if (packageFqname == packageFragmentForCheck.fqName) {
+
+                    trace.report(SELF_IMPORT_NOT_ALLOWED.on(importDirective, packageFqname))
+
+                    return null
+                }
+            }
+
+        }
+
         if (importDirective.isAllUnder) {
             val packageOrClassDescriptor = resolveToPackageOrClass(
                 path, moduleDescriptor, trace, packageFragmentForCheck,
@@ -353,6 +370,8 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         lastPart: QualifierPart,
         packageFragmentForVisibilityCheck: PackageFragmentDescriptor?
     ): ImportingScope? {
+
+//        importDirective.modifierVisibility
         val aliasName = importDirective.importedName
         if (aliasName == null) {
 
@@ -417,12 +436,32 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
 
         val descriptors = SmartList<DeclarationDescriptor>()
         val lastName = lastPart.name
+
         when (packageOrClassDescriptor) {
             is PackageViewDescriptor -> {
                 val packageDescriptor = moduleDescriptor.getPackage(packageOrClassDescriptor.fqName.child(lastName))
                 if (!packageDescriptor.isEmpty()) {
 //                    trace.report(PACKAGE_CANNOT_BE_IMPORTED.on(lastPartExpression))
 //                    descriptors.add(packageOrClassDescriptor)
+
+//                    不能使用 除private以外的修饰符修饰import语句
+                    val importDirective = lastPartExpression.getParentOfType<CjImportDirective>(true)
+                    if (importDirective != null) {
+                        if (importDirective.modifierVisibility != DescriptorVisibilities.PRIVATE) {
+                            importDirective.importedFqName?.let {
+                                trace.report(
+                                    IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED.on(
+                                        importDirective,
+                                        it,
+                                        importDirective.modifierVisibility
+                                    )
+                                )
+                            }
+
+                        }
+                    }
+
+
 //                    不能导入模块名
                     if (packageDescriptor.fqName.isModuleName) {
                         trace.report(MODULE_PACKAGE_CANNOT_BE_IMPORTED.on(lastPartExpression))

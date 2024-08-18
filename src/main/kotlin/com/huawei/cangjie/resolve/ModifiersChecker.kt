@@ -31,8 +31,8 @@ class ModifiersChecker(
         }
 
         private fun checkIllegalHeader(
-            modifierListOwner:  CjModifierListOwner,
-            descriptor:  DeclarationDescriptor
+            modifierListOwner: CjModifierListOwner,
+            descriptor: DeclarationDescriptor
         ) {
             // Most cases are already handled by ModifierCheckerCore, only check nested classes here
 //            val modifierList:  CjModifierList = modifierListOwner.getModifierList()
@@ -63,6 +63,7 @@ class ModifiersChecker(
 //                }
 //            }
         }
+
         fun checkTypeParametersModifiers(modifierListOwner: CjModifierListOwner) {
             if (modifierListOwner !is CjTypeParameterListOwner) return
             val typeParameters: List<CjTypeParameter> =
@@ -164,6 +165,14 @@ class ModifiersChecker(
 
     companion object {
 
+//        @JvmStatic
+
+//        fun resolveVisibilityFormPackageOrImport(
+//            modifierListOwner: CjModifierListOwner,
+//            defaultVisibility: DescriptorVisibility
+//        ): DescriptorVisibility {
+//
+//        }
 
         @JvmStatic
         fun resolveVisibilityFromModifiers(
@@ -274,6 +283,7 @@ class ModifiersChecker(
 //
             return modality
         }
+
         @JvmStatic
         fun resolveVisibilityFromModifiers(
             modifierList: CjModifierList?,
@@ -283,7 +293,7 @@ class ModifiersChecker(
             if (modifierList.hasModifier(CjTokens.PRIVATE_KEYWORD)) return DescriptorVisibilities.PRIVATE
             if (modifierList.hasModifier(CjTokens.PUBLIC_KEYWORD)) return DescriptorVisibilities.PUBLIC
             if (modifierList.hasModifier(CjTokens.PROTECTED_KEYWORD)) return DescriptorVisibilities.PROTECTED
-            if (modifierList.hasModifier(CjTokens. INTERNAL_KEYWORD)) return DescriptorVisibilities.INTERNAL
+            if (modifierList.hasModifier(CjTokens.INTERNAL_KEYWORD)) return DescriptorVisibilities.INTERNAL
 
             return defaultVisibility
         }

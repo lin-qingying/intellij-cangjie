@@ -1,5 +1,6 @@
 package com.huawei.cangjie.psi.stubs
 
+import com.huawei.cangjie.descriptors.DescriptorVisibility
 import com.huawei.cangjie.lang.declarations.CjDeclarationsFile
 import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.name.ClassId
@@ -167,13 +168,21 @@ interface CangJieForeignDirectiveStub : StubElement<CjForeignDirective>
 ////    fun get_importedFqName(): FqName?
 ////    fun isValid(): Boolean
 //}
+interface CangJiePackageDirectiveStub :  StubElement<CjPackageDirective>{
+    fun getModifierVisibility(): DescriptorVisibility
 
+}
 
 interface CangJieImportDirectiveStub : StubElement<CjImportDirective> {
     fun isAllUnder(): Boolean
     fun getImportedFqName(): FqName?
 //    fun getImportedFqNames(): List<FqName>
     fun isValid(): Boolean
+
+
+    fun getModifierVisibility(): DescriptorVisibility
+
+
 }
 
 interface CangJieTypeProjectionStub : StubElement<CjTypeProjection> {

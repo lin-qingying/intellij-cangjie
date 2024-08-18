@@ -8,6 +8,7 @@ import com.huawei.cangjie.diagnostics.rendering.DefaultErrorMessages;
 import com.huawei.cangjie.diagnostics.rendering.DiagnosticFactoryToRendererMap;
 import com.huawei.cangjie.diagnostics.rendering.DiagnosticRenderer;
 import com.huawei.cangjie.lexer.CjModifierKeywordToken;
+import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintPosition;
@@ -143,6 +144,12 @@ public interface Errors {
     DiagnosticFactory0<CjTypeReference> DYNAMIC_SUPERTYPE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjSimpleNameExpression> PACKAGE_CANNOT_BE_IMPORTED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjSimpleNameExpression> MODULE_PACKAGE_CANNOT_BE_IMPORTED = DiagnosticFactory0.create(ERROR);
+
+
+    DiagnosticFactory1<CjImportDirective, FqName> SELF_IMPORT_NOT_ALLOWED = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory2<CjImportDirective,FqName,DescriptorVisibility> IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED = DiagnosticFactory2.create(ERROR);
+
+
     DiagnosticFactory0<CjSuperTypeEntry> SUPERTYPE_NOT_INITIALIZED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory2<PsiElement, CjModifierKeywordToken,CjModifierKeywordToken> INCOMPATIBLE_MODIFIERS =
             DiagnosticFactory2.create(ERROR);
