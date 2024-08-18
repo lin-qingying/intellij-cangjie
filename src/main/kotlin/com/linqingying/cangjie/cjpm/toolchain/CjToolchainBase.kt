@@ -3,6 +3,7 @@ package com.linqingying.cangjie.cjpm.toolchain
 import com.intellij.execution.configuration.EnvironmentVariablesData
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.PtyCommandLine
+import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.wsl.WslPath
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -502,12 +503,53 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
         env.configureCommandLine(commandLine, true)
 
         if (emulateTerminal) {
-            commandLine.exePath = "C:\\Windows\\System32\\chcp.com"
-            commandLine.parametersList.clearAll()
+//            commandLine.exePath = "C:\\Windows\\System32\\chcp.com"
+//            commandLine.parametersList.clearAll()
+
+//            if (SystemInfo.isWindows) {
+////                commandLine.apply {
+////                    parametersList.clearAll()
+////                    exePath = "cmd"
+////                    addParameter("&&")
+////                    addParameter("chcp")
+////                    addParameter("65001")
+////                    addParameter("&&")
+////                    addParameter(executable.toString()) // 添加要执行的命令
+////                    addParameters(parameters) // 添加其他参数
+////                }
+//
+//                // 创建一个新的命令行来执行 chcp 65001
+//                val ptyCommandLine = PtyCommandLine(listOf("cmd.exe")).apply {
+//                    // 设置环境变量以确保使用 UTF-8 编码
+//                    environment["LANG"] = "en_US.UTF-8"
+//                    environment["LC_ALL"] = "en_US.UTF-8"
+//
+//                    // 添加 chcp 65001 命令
+//                    addParameter("/c")
+//                    addParameter("chcp 65001")
+//                }
+//
+//                // 创建进程处理器
+//                val processHandler = OSProcessHandler(ptyCommandLine)
+//                processHandler.startNotify() // 启动进程
+//
+//                // 等待 chcp 命令执行完成后再执行主命令
+//                processHandler.waitFor() // 等待 chcp 命令完成
+//
+//            }
+
             commandLine = PtyCommandLine(commandLine).apply {
                 // 设置环境变量以确保使用 UTF-8 编码
-                commandLine.environment["LANG"] = "en_US.UTF-8"
-                commandLine.environment["LC_ALL"] = "en_US.UTF-8"
+//                commandLine.environment["LANG"] = "en_US.UTF-8"
+//                commandLine.environment["LC_ALL"] = "en_US.UTF-8"
+
+//                commandLine.addParameter("cmd.exe")
+//                commandLine.addParameter("/c")
+//                commandLine.addParameter("chcp 65001")
+//                commandLine.addParameter("&&")
+//                commandLine.addParameter(executable.toString()) // 添加要执行的命令
+//                commandLine.addParameters(parameters) // 添加其他参数
+
             }
                 .withInitialColumns(PtyCommandLine.MAX_COLUMNS)
                 .withConsoleMode(true)
