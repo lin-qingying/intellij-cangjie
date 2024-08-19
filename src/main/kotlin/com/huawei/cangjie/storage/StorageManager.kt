@@ -2,9 +2,12 @@ package com.huawei.cangjie.storage
 
 
 
+import com.intellij.openapi.project.Project
 import java.util.concurrent.ConcurrentMap
 
 interface StorageManager{
+    val project:Project
+
     fun <K : Any, V : Any> createMemoizedFunction(compute: (K) -> V, onRecursiveCall: (K, Boolean) -> V): MemoizedFunctionToNotNull<K, V>
     fun <T : Any> createNullableLazyValue(computable: () -> T?): NullableLazyValue<T>
 

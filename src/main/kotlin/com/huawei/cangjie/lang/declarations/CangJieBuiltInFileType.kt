@@ -6,7 +6,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import javax.swing.Icon
 
 object CangJieBuiltInFileType : CangJieFileType() {
-    override val EXTENSION: String = "cangjie_declarations"
+      val EXTENSION: String = "cangjie_declarations"
 
     override fun getDisplayName(): String {
         return EXTENSION

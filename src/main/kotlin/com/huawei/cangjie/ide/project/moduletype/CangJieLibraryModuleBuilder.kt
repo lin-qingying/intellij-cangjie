@@ -1,0 +1,48 @@
+package com.huawei.cangjie.ide.project.moduletype
+
+import com.huawei.cangjie.CangJieBundle
+import com.huawei.cangjie.icon.CangJieIcons
+
+import com.huawei.cangjie.ide.project.tools.projectWizard.wizard.CangJieModuleBuilder
+import com.intellij.ide.util.projectWizard.ModuleBuilder
+import com.intellij.openapi.module.ModuleType
+import com.intellij.openapi.module.ModuleTypeManager
+import org.jetbrains.jps.model.module.JpsModuleSourceRootType
+import javax.swing.Icon
+
+class CangJieLibraryModuleBuilder(
+    //    模块名
+//    var moduleName: String? = null,
+
+    //    组织名
+//    var organizationName: String? = null,
+
+    //    项目类型
+//    var projectType: String? = null,
+
+) : ModuleBuilder(){
+    override fun getModuleType(): ModuleType<*> {
+        return CangJieLibraryModuleType()
+    }
+
+}
+class CangJieLibraryModuleType : ModuleType<CangJieModuleBuilder>( ID) {
+    override fun createModuleBuilder(): CangJieModuleBuilder {
+        return CangJieModuleBuilder()
+    }
+
+    override fun getName(): String = CangJieBundle.message("CangJie.module.library")
+    override fun getDescription(): String  = CangJieBundle.message("CangJie.module.library")
+
+    override fun getNodeIcon(isOpened: Boolean): Icon {
+        return CangJieIcons.CANGJIE_16
+    }
+    override fun isSupportedRootType(type: JpsModuleSourceRootType<*>?): Boolean {
+        return super.isSupportedRootType(type)
+    }
+    companion object{
+        val ID = "CANGJIE_LIBRARY_MODULE"
+        val INSTANCE: CangJieLibraryModuleType by lazy { ModuleTypeManager.getInstance().findByID(ID) as CangJieLibraryModuleType }
+
+    }
+}

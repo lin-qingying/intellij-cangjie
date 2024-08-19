@@ -139,7 +139,6 @@ class ProjectResolutionFacade(
                 private val lock = ReentrantLock()
 
                 override fun createValue(file: CjFile): PerFileAnalysisCache {
-//                    TODO()
                     return PerFileAnalysisCache(
                         file,
                         resolverForProject.resolverForModule(file.moduleInfo).componentProvider

@@ -78,7 +78,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
 
 
     private inner class GlobalFacade(/*settings: PlatformAnalysisSettings*/) {
-        private val context = GlobalContext("sdk")
+        private val context = GlobalContext("cjpm",project)
 //        private val moduleFilters = GlobalFacadeModuleFilters(project)
 
         val facadeForModules = ProjectResolutionFacade(

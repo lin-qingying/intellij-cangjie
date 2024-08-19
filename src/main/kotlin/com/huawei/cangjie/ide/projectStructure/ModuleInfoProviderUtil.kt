@@ -5,6 +5,7 @@ import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.ide.projectStructure.moduleInfo.NotUnderContentRootModuleInfo
 import com.huawei.cangjie.psi.CjFile
 import com.intellij.openapi.roots.ProjectRootModificationTracker
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
@@ -21,6 +22,8 @@ val PsiElement.moduleInfoOrNull: ModuleInfo?
             ModuleInfoProvider.getInstance(project).firstOrNull(this)
         }
     }
+fun ModuleInfoProvider.firstOrNull(virtualFile: VirtualFile): ModuleInfo? =
+    collect(virtualFile).unwrap(ModuleInfoProvider.LOG::warn).firstOrNull()
 
 fun ModuleInfoProvider.firstOrNull(
     element: PsiElement,

@@ -15,6 +15,7 @@ interface DeclarationDescriptor : Annotated,
 
     val containingDeclaration: DeclarationDescriptor?
 
+    val visibility: DescriptorVisibility get() = DescriptorVisibilities.PUBLIC
     //    fun getCorrespondingProperty():  PropertyDescriptor
 
     fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R?

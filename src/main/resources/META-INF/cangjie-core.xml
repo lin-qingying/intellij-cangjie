@@ -7,6 +7,7 @@
 
     <xi:include href="/META-INF/codeInsight.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/searching.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/intentions.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <extensions defaultExtensionNs="com.intellij">
 
@@ -95,6 +96,8 @@
         <!--                implementation="com.huawei.cangjie.ide.project.tools.projectWizard.CangJieNewProjectWizard"/>-->
         <moduleBuilder
                 builderClass="com.huawei.cangjie.ide.project.tools.projectWizard.wizard.CangJieModuleBuilder"/>
+        <moduleBuilder
+                builderClass="com.huawei.cangjie.ide.project.moduletype.CangJieLibraryModuleBuilder"/>
 
 
         <!--运行-->

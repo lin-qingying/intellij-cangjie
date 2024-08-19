@@ -371,6 +371,12 @@ class ResolveElementCache(
                 resolveSession.trace
             }
 
+
+            is CjPackageDirective -> {
+                resolveSession.trace
+
+            }
+
             else -> {
                 if (resolveElement.findParentOfType<CjPackageDirective>(true) != null) {
                     packageRefAdditionalResolve(resolveSession, resolveElement, bodyResolveMode.bindingTraceFilter)

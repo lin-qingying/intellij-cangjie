@@ -20,13 +20,10 @@ import javax.swing.Icon
 //
 //}
 
-open class CangJieFileType  : LanguageFileType(CangJieLanguage) {
+open class CangJieFileType : LanguageFileType(CangJieLanguage) {
     override fun getName(): String = CangJieLanguage.displayName
 
     override fun getDescription(): String = name
-
-
-    open  val  EXTENSION: String = "cj"
 
 
     override fun getDefaultExtension(): String = EXTENSION
@@ -34,7 +31,10 @@ open class CangJieFileType  : LanguageFileType(CangJieLanguage) {
     override fun getIcon(): Icon = CangJieIcons.CANGJIE_FILE
 
     companion object {
-        val INSTANCE = CangJieFileType ()
+        val EXTENSION: String = "cj"
+
+        val DOT_DEFAULT_EXTENSION: String = "." + EXTENSION
+        val INSTANCE = CangJieFileType()
     }
 
 }

@@ -12,7 +12,7 @@ import java.io.DataInput
 import java.io.DataOutput
 
 
-private   val CANGJIE_DOT_FILE_EXTENSION = ".${CangJieFileType.INSTANCE.EXTENSION}"
+private   val CANGJIE_DOT_FILE_EXTENSION = ".${CangJieFileType.EXTENSION}"
 
 
 class CangJiePackageSourcesMemberNamesIndex internal constructor() :

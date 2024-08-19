@@ -31,9 +31,11 @@ import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.SimpleType
 import com.huawei.cangjie.types.TypeConstructor
 import com.huawei.cangjie.types.util.TypeUtils
+import com.intellij.openapi.project.Project
 
 
 open class CangJieBuiltIns(
+    val project: Project?=null,
     val storageManager: StorageManager,
 //    val cangJieModuleInfo: CangJieModuleInfo
 //    val moduleInfo: ModuleInfo? = null
@@ -315,6 +317,7 @@ open class CangJieBuiltIns(
 
     protected fun createBuiltInsModule(isFallback: Boolean) {
         myBuiltInsModule = ModuleDescriptorImpl(
+            project,
             BUILTINS_MODULE_NAME, storageManager,
             this,
 //            null
@@ -417,5 +420,5 @@ open class CangJieBuiltIns(
 fun createBuiltIns(projectContext: ProjectContext, resolver: IdeaResolverForProject): CangJieBuiltIns {
 
 
-    return CangJieBuiltIns(projectContext.storageManager)
+    return CangJieBuiltIns(projectContext.project, projectContext.storageManager)
 }

@@ -47,5 +47,19 @@
                 serviceInterface="com.huawei.cangjie.ide.cache.project.ModelInfosCache"
                 serviceImplementation="com.huawei.cangjie.ide.cache.project.FineGrainedIdeaModelInfosCache"/>
 
+
+
+        <psi.treeChangePreprocessor implementation="com.huawei.cangjie.ide.cache.CangJiePackageStatementPsiTreeChangePreprocessor"/>
+
     </extensions>
+
+    <projectListeners>
+
+
+        <listener class="com.huawei.cangjie.ide.cache.PerModulePackageCacheService$PackageCacheBulkFileListener"
+                  topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+
+        <listener class="com.huawei.cangjie.ide.cache.PerModulePackageCacheService$PackageCacheModuleRootListener"
+                  topic="com.intellij.openapi.roots.ModuleRootListener"/>
+    </projectListeners>
 </idea-plugin>

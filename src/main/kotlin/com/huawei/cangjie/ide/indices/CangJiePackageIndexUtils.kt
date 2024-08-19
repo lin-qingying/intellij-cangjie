@@ -47,6 +47,12 @@ object CangJiePackageIndexUtils{
         return result
     }
 
+    /**
+     * Return true if exists package with exact [fqName] OR there are some subpackages of [fqName]
+     */
+    fun packageExists(fqName: FqName, project: Project): Boolean =
+        packageExists(fqName, GlobalSearchScope.allScope(project))
+
 
     /**
      * Return true if package [packageFqName] exists or some subpackages of [packageFqName] exist in [searchScope]

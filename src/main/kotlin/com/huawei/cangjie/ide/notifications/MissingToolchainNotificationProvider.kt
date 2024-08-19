@@ -14,6 +14,7 @@ import com.huawei.cangjie.ide.run.cjpm.toolchain
 import com.huawei.cangjie.lang.CangJieFileType
 import com.intellij.ide.impl.isTrusted
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -83,3 +84,10 @@ class MissingToolchainNotificationProvider(project: Project) : CjNotificationPro
 
 val VirtualFile.isCangJieFile: Boolean get() = fileType == CangJieFileType.INSTANCE
 val VirtualFile.isCjpmManifestFile: Boolean get() = name in CjpmConstants.MANIFEST_FILE
+fun VirtualFile.isCangJieFileType(): Boolean {
+    val nameSequence = nameSequence
+    if (nameSequence.endsWith(CangJieFileType.DOT_DEFAULT_EXTENSION)) return true
+
+
+    return FileTypeRegistry.getInstance().isFileOfType(this, CangJieFileType.INSTANCE)
+}

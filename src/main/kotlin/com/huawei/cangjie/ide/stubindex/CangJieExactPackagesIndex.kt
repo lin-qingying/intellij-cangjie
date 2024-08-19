@@ -18,9 +18,12 @@ class CangJieExactPackagesIndex internal constructor() : StringStubIndexExtensio
 
         @JvmStatic
         @JvmName("getFiles")
-        fun get(fqName: String, project: Project, scope: GlobalSearchScope): Collection<CjFile> {
+        fun get(fqName: String, project: Project, scope: GlobalSearchScope = GlobalSearchScope.allScope(project)): Collection<CjFile> {
             return getByKeyAndMeasure(NAME, LOG) { StubIndex.getElements (NAME, fqName, project, scope, CjFile::class.java) }
         }
+
+
+
     }
 
     override fun getKey(): StubIndexKey<String, CjFile> = NAME

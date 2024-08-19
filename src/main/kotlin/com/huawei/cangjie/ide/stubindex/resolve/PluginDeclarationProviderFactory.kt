@@ -1,7 +1,10 @@
 package com.huawei.cangjie.ide.stubindex.resolve
 
+import com.huawei.cangjie.analyzer.CangJieModuleInfo
 import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.ide.cache.PerModulePackageCacheService
+import com.huawei.cangjie.ide.cache.trackers.CangJieCodeBlockModificationListener
+import com.huawei.cangjie.ide.indices.CangJiePackageIndexUtils
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.resolve.lazy.data.CjClassLikeInfo
@@ -12,6 +15,8 @@ import com.huawei.cangjie.resolve.lazy.declarations.PackageMemberDeclarationProv
 import com.huawei.cangjie.resolve.lazy.descriptors.ClassMemberDeclarationProvider
 import com.huawei.cangjie.resolve.lazy.descriptors.PsiBasedClassMemberDeclarationProvider
 import com.huawei.cangjie.storage.StorageManager
+import com.intellij.openapi.components.service
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 
@@ -36,6 +41,16 @@ class PluginDeclarationProviderFactory(
         return PerModulePackageCacheService.getInstance(project).packageExists(name, moduleInfo)
 
 
+    }
+
+    private fun diagnoseMissingPackageFragmentPartialPackageIndexCorruption(message: String): Nothing {
+        PerModulePackageCacheService.getInstance(project).onTooComplexChange() // force cache clean up
+        throw InconsistencyIndexException("CangJiePartialPackageNamesIndex inconsistency.\n$message")
+    }
+
+    private fun diagnoseMissingPackageFragmentPerModulePackageCacheMiss(message: String): Nothing {
+        PerModulePackageCacheService.getInstance(project).onTooComplexChange() // Postpone cache rebuild
+        throw InconsistencyIndexException("PerModulePackageCache miss.\n$message")
     }
 
     private fun getStubBasedPackageMemberDeclarationProvider(name: FqName): PackageMemberDeclarationProvider {
@@ -67,9 +82,68 @@ class PluginDeclarationProviderFactory(
         }
     }
 
+    private fun diagnoseMissingPackageFragmentUnknownReason(message: String): Nothing {
+        throw IllegalStateException(message)
+    }
+    private fun oldPackageExists(packageFqName: FqName): Boolean =
+       CangJiePackageIndexUtils.packageExists(packageFqName, indexedFilesScope)
+
     private val onCreationDebugInfo = debugInfo()
     override fun diagnoseMissingPackageFragment(fqName: FqName, file: CjFile?) {
-//        TODO("Not yet implemented")
+        val moduleSourceInfo = moduleInfo
+        val packageExists = CangJiePackageIndexUtils.packageExists(fqName, indexedFilesScope)
+        val spiPackageExists = CangJiePackageIndexUtils.packageExists(fqName, project)
+        val oldPackageExists = oldPackageExists(fqName)
+        val cachedPackageExists =
+            moduleSourceInfo.let { project.service<PerModulePackageCacheService>().packageExists(fqName, it) }
+//        val moduleModificationCount = moduleSourceInfo?.createModificationTracker()?.modificationCount
+
+        val common = """
+                packageExists = $packageExists, cachedPackageExists = $cachedPackageExists,
+                oldPackageExists = $oldPackageExists,
+                SPI.packageExists = $spiPackageExists,
+                OOCB count = ${CangJieCodeBlockModificationListener.getInstance(project).cangjieOutOfCodeBlockTracker.modificationCount}
+             
+            """.trimIndent()
+//        moduleModificationCount = $moduleModificationCount
+
+        val message = if (file != null) {
+            val virtualFile = file.virtualFile
+            val inScope = virtualFile in indexedFilesScope
+            val packageFqName = file.packageFqName
+            """
+                |Cannot find package fragment '$fqName' for file ${file.name}, file package = '$packageFqName':
+                |vFile: $virtualFile,
+                |nonIndexedFiles = $nonIndexedFiles, isNonIndexed = ${file in nonIndexedFiles},
+                |scope = $indexedFilesScope, isInScope = $inScope,
+                |$common,
+                |packageFqNameByTree = '${file.packageFqNameByTree}', packageDirectiveText = '${file.packageDirective?.text}'
+            """.trimMargin()
+        } else {
+            """
+                |Cannot find package fragment '$fqName' for unspecified file:
+                |nonIndexedFiles = $nonIndexedFiles,
+                |scope = $indexedFilesScope,
+                |$common
+            """.trimMargin()
+        }
+
+        val scopeNotEmptyAndContainsFile =
+            !GlobalSearchScope.isEmptyScope(indexedFilesScope) && (file == null || file.virtualFile in indexedFilesScope)
+
+        when {
+            scopeNotEmptyAndContainsFile
+                    && !packageExists && !oldPackageExists -> diagnoseMissingPackageFragmentPartialPackageIndexCorruption(
+                message
+            )
+
+            scopeNotEmptyAndContainsFile
+                    && packageExists && cachedPackageExists == false -> diagnoseMissingPackageFragmentPerModulePackageCacheMiss(
+                message
+            )
+
+            else -> diagnoseMissingPackageFragmentUnknownReason(message)
+        }
     }
 
     override fun getClassMemberDeclarationProvider(classLikeInfo: CjClassLikeInfo): ClassMemberDeclarationProvider {
@@ -83,3 +157,5 @@ class PluginDeclarationProviderFactory(
         ).joinToString("\n")
     }
 }
+
+private class InconsistencyIndexException(message: String) : ProcessCanceledException(message)

@@ -226,7 +226,7 @@ object DescriptorUtils {
 
     private fun isDescriptorWithLocalVisibility(current: DeclarationDescriptor): Boolean {
         return current is DeclarationDescriptorWithVisibility &&
-                current.getVisibility() === DescriptorVisibilities.LOCAL
+                current.visibility === DescriptorVisibilities.LOCAL
     }
 
     @JvmStatic
@@ -445,9 +445,10 @@ object DescriptorUtils {
     }
 
     @JvmStatic
-    fun getPackageDeclarationDescriptor(descriptor: DeclarationDescriptor): PackageFragmentDescriptor {
+    fun getPackageDeclarationDescriptor(descriptor: DeclarationDescriptor): PackageData {
         return when (descriptor) {
             is PackageFragmentDescriptor -> descriptor
+            is PackageViewDescriptor -> descriptor
             is ClassDescriptor -> getPackageDeclarationDescriptor(descriptor.containingDeclaration)
 
             else -> getPackageDeclarationDescriptor(descriptor.containingDeclaration!!)

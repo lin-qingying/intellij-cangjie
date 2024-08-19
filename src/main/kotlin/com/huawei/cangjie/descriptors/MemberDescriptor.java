@@ -10,10 +10,11 @@ public interface MemberDescriptor extends DeclarationDescriptorNonRoot, Declarat
     @NotNull
     DescriptorVisibility getVisibility();
 
-  default   boolean isExpect(){
-      return false;
-  };
-//
+    default boolean isExpect() {
+        return false;
+    }
+
+    //
 //    bool isActual();
 //
 //    bool isExternal();

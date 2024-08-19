@@ -2,6 +2,7 @@ package com.huawei.cangjie.storage;
 
 import com.huawei.cangjie.utils.ExceptionUtilsKt;
 import com.huawei.cangjie.utils.WrappedValues;
+import com.intellij.openapi.project.Project;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
@@ -17,7 +18,7 @@ import java.util.concurrent.ConcurrentMap;
 
 
 public class LockBasedStorageManager implements StorageManager {
-    public static final StorageManager NO_LOCKS = new LockBasedStorageManager("NO_LOCKS", ExceptionHandlingStrategy.THROW, EmptySimpleLock.INSTANCE) {
+    public static final StorageManager NO_LOCKS = new LockBasedStorageManager(null, "NO_LOCKS", ExceptionHandlingStrategy.THROW, EmptySimpleLock.INSTANCE) {
         @NotNull
         @Override
         protected <K, V> RecursionDetectedResult<V> recursionDetectedDefault(@NotNull String source, K input) {
@@ -28,37 +29,46 @@ public class LockBasedStorageManager implements StorageManager {
     protected final SimpleLock lock;
     private final ExceptionHandlingStrategy exceptionHandlingStrategy;
     private final String debugText;
+    private final Project project;
 
     private LockBasedStorageManager(
+            Project project,
             @NotNull String debugText,
             @NotNull ExceptionHandlingStrategy exceptionHandlingStrategy,
             @NotNull SimpleLock lock
     ) {
+        this.project = project;
+
         this.lock = lock;
         this.exceptionHandlingStrategy = exceptionHandlingStrategy;
         this.debugText = debugText;
     }
+    public LockBasedStorageManager(  String debugText) {
+        this(null, debugText, (Runnable) null, null);
+    }
 
-    public LockBasedStorageManager(String debugText) {
-        this(debugText, (Runnable) null, null);
+    public LockBasedStorageManager(Project project, String debugText) {
+        this(project, debugText, (Runnable) null, null);
     }
 
     public LockBasedStorageManager(
+            Project project,
             String debugText,
             @Nullable Runnable checkCancelled,
             @Nullable Function1<InterruptedException, Unit> interruptedExceptionHandler
     ) {
-        this(debugText, ExceptionHandlingStrategy.THROW, SimpleLock.Companion.simpleLock(checkCancelled, interruptedExceptionHandler));
+        this(project, debugText, ExceptionHandlingStrategy.THROW, SimpleLock.Companion.simpleLock(checkCancelled, interruptedExceptionHandler));
     }
 
     @NotNull
     public static LockBasedStorageManager createWithExceptionHandling(
+            Project project,
             @NotNull String debugText,
             @NotNull ExceptionHandlingStrategy exceptionHandlingStrategy,
             @Nullable Runnable checkCancelled,
             @Nullable Function1<InterruptedException, Unit> interruptedExceptionHandler
     ) {
-        return new LockBasedStorageManager(debugText, exceptionHandlingStrategy,
+        return new LockBasedStorageManager(project, debugText, exceptionHandlingStrategy,
                 SimpleLock.Companion.simpleLock(checkCancelled, interruptedExceptionHandler));
     }
 
@@ -107,10 +117,11 @@ public class LockBasedStorageManager implements StorageManager {
     public <K, V> CacheWithNotNullValues<K, V> createCacheWithNotNullValues() {
         return new CacheWithNotNullValuesBasedOnMemoizedFunction<>(this, LockBasedStorageManager.createConcurrentHashMap());
     }
+
     @NotNull
     @Override
     public <K, V> MemoizedFunctionToNotNull<K, V> createMemoizedFunction(@NotNull Function1<? super K, ? extends V> compute) {
-        return createMemoizedFunction(compute, LockBasedStorageManager.<K>createConcurrentHashMap());
+        return createMemoizedFunction(compute, LockBasedStorageManager.createConcurrentHashMap());
     }
 
     @NotNull
@@ -119,7 +130,7 @@ public class LockBasedStorageManager implements StorageManager {
             @NotNull Function1<? super K, ? extends V> compute,
             @NotNull Function2<? super K, ? super Boolean, ? extends V> onRecursiveCall
     ) {
-        return createMemoizedFunction(compute, onRecursiveCall, LockBasedStorageManager.<K>createConcurrentHashMap());
+        return createMemoizedFunction(compute, onRecursiveCall, LockBasedStorageManager.createConcurrentHashMap());
     }
 
     @NotNull
@@ -219,6 +230,76 @@ public class LockBasedStorageManager implements StorageManager {
         };
     }
 
+    @NotNull
+    @Override
+    public <T> NotNullLazyValue<T> createLazyValueWithPostCompute(@NotNull Function0<? extends T> computable, @Nullable Function1<? super Boolean, ? extends T> onRecursiveCall, @NotNull Function1<? super T, Unit> postCompute) {
+        return new LockBasedNotNullLazyValueWithPostCompute<T>(this, computable) {
+            @NotNull
+            @Override
+            protected RecursionDetectedResult<T> recursionDetected(boolean firstTime) {
+                if (onRecursiveCall == null) {
+                    return super.recursionDetected(firstTime);
+                }
+                return RecursionDetectedResult.value(onRecursiveCall.invoke(firstTime));
+            }
+
+            @Override
+            protected void doPostCompute(@NotNull T value) {
+                postCompute.invoke(value);
+            }
+
+            @Override
+            protected String presentableName() {
+                return "LockBasedNotNullLazyValueWithPostCompute";
+            }
+        };
+    }
+
+    @Override
+    public <T> T compute(@NotNull Function0<? extends T> computable) {
+        lock.lock();
+        try {
+            return computable.invoke();
+        } catch (Throwable throwable) {
+            throw exceptionHandlingStrategy.handleException(throwable);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @NotNull
+    @Override
+    public Project getProject() {
+        return project;
+    }
+
+    private enum NotValue {
+        NOT_COMPUTED,
+        COMPUTING,
+        RECURSION_WAS_DETECTED
+    }
+
+
+    public interface ExceptionHandlingStrategy {
+        ExceptionHandlingStrategy THROW = new ExceptionHandlingStrategy() {
+            @NotNull
+            @Override
+            public RuntimeException handleException(@NotNull Throwable throwable) {
+                throw ExceptionUtilsKt.rethrow(throwable);
+            }
+        };
+
+        /*
+         * The signature of this method is a trick: it is used as
+         *
+         *     throw strategy.handleException(...)
+         *
+         * most implementations of this method throw exceptions themselves, so it does not matter what they return
+         */
+        @NotNull
+        RuntimeException handleException(@NotNull Throwable throwable);
+    }
+
     /**
      * Computed value has an early publication and accessible from the same thread while executing a post-compute lambda.
      * For other threads value will be accessible only after post-compute lambda is finished (when a real lock is used).
@@ -259,6 +340,7 @@ public class LockBasedStorageManager implements StorageManager {
 
         protected abstract void doPostCompute(T value);
     }
+
     private static abstract class LockBasedNotNullLazyValueWithPostCompute<T> extends LockBasedLazyValueWithPostCompute<T>
             implements NotNullLazyValue<T> {
         public LockBasedNotNullLazyValueWithPostCompute(
@@ -276,31 +358,6 @@ public class LockBasedStorageManager implements StorageManager {
             return result;
         }
     }
-    @NotNull
-    @Override
-    public <T> NotNullLazyValue<T> createLazyValueWithPostCompute(@NotNull Function0<? extends T> computable, @Nullable Function1<? super Boolean, ? extends T> onRecursiveCall, @NotNull Function1<? super T, Unit> postCompute) {
-        return new LockBasedNotNullLazyValueWithPostCompute<T>(this, computable) {
-            @NotNull
-            @Override
-            protected RecursionDetectedResult<T> recursionDetected(boolean firstTime) {
-                if (onRecursiveCall == null) {
-                    return super.recursionDetected(firstTime);
-                }
-                return RecursionDetectedResult.value(onRecursiveCall.invoke(firstTime));
-            }
-
-            @Override
-            protected void doPostCompute(@NotNull T value) {
-                postCompute.invoke(value);
-            }
-
-            @Override
-            protected String presentableName() {
-                return "LockBasedNotNullLazyValueWithPostCompute";
-            }
-        };
-    }
-
 
     private static class MapBasedMemoizedFunctionToNotNull<K, V> extends MapBasedMemoizedFunction<K, V> implements MemoizedFunctionToNotNull<K, V> {
 
@@ -319,43 +376,6 @@ public class LockBasedStorageManager implements StorageManager {
             return result;
         }
     }
-    @Override
-    public <T> T compute(@NotNull Function0<? extends T> computable) {
-        lock.lock();
-        try {
-            return computable.invoke();
-        } catch (Throwable throwable) {
-            throw exceptionHandlingStrategy.handleException(throwable);
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private enum NotValue {
-        NOT_COMPUTED,
-        COMPUTING,
-        RECURSION_WAS_DETECTED
-    }
-
-    public interface ExceptionHandlingStrategy {
-        ExceptionHandlingStrategy THROW = new ExceptionHandlingStrategy() {
-            @NotNull
-            @Override
-            public RuntimeException handleException(@NotNull Throwable throwable) {
-                throw ExceptionUtilsKt.rethrow(throwable);
-            }
-        };
-
-        /*
-         * The signature of this method is a trick: it is used as
-         *
-         *     throw strategy.handleException(...)
-         *
-         * most implementations of this method throw exceptions themselves, so it does not matter what they return
-         */
-        @NotNull
-        RuntimeException handleException(@NotNull Throwable throwable);
-    }
 
     private static class CacheWithNotNullValuesBasedOnMemoizedFunction<K, V> extends CacheWithNullableValuesBasedOnMemoizedFunction<K, V> implements CacheWithNotNullValues<K, V> {
 
@@ -365,7 +385,6 @@ public class LockBasedStorageManager implements StorageManager {
         ) {
             super(storageManager, map);
         }
-
 
 
         @NotNull
@@ -561,6 +580,7 @@ public class LockBasedStorageManager implements StorageManager {
 
 
     }
+
     // equals and hashCode use only key
     private static class KeyWithComputation<K, V> {
         private final K key;
@@ -578,9 +598,7 @@ public class LockBasedStorageManager implements StorageManager {
 
             KeyWithComputation<?, ?> that = (KeyWithComputation<?, ?>) o;
 
-            if (!key.equals(that.key)) return false;
-
-            return true;
+            return key.equals(that.key);
         }
 
         @Override
@@ -588,6 +606,7 @@ public class LockBasedStorageManager implements StorageManager {
             return key.hashCode();
         }
     }
+
     private static class LockBasedLazyValue<T> implements NullableLazyValue<T> {
         private final LockBasedStorageManager storageManager;
         private final Function0<? extends T> computable;

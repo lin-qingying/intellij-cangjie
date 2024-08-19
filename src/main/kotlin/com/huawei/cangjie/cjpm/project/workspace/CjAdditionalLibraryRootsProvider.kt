@@ -5,7 +5,12 @@ import com.huawei.cangjie.cjpm.project.model.cjpmProjects
 import com.huawei.cangjie.cjpm.project.workspace.PackageOrigin.*
 import com.huawei.cangjie.cjpm.toolchain.impl.CjcVersion
 import com.huawei.cangjie.icon.CangJieIcons
+import com.huawei.cangjie.ide.project.moduletype.CangJieLibraryModuleType
 import com.intellij.navigation.ItemPresentation
+import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.ModuleWithNameAlreadyExists
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.AdditionalLibraryRootsProvider
 import com.intellij.openapi.roots.SyntheticLibrary
@@ -19,6 +24,32 @@ class CjAdditionalLibraryRootsProvider : AdditionalLibraryRootsProvider() {
     override fun getRootsToWatch(project: Project): Collection<VirtualFile> =
         getAdditionalProjectLibraries(project).flatMap { it.sourceRoots }
 
+
+    companion object {
+
+        fun findLibrarysByCjFile(project: Project, virtualFile: VirtualFile): List<SyntheticLibrary> {
+
+
+            val librarys = getCjpmLibrarys(project)
+
+            val tempLibrarys = mutableListOf<SyntheticLibrary>()
+
+            librarys.forEach {
+                if (it.contains(virtualFile))
+                    tempLibrarys.add(it)
+            }
+
+
+            return tempLibrarys
+        }
+
+        fun getCjpmLibrarys(project: Project): MutableCollection<SyntheticLibrary> {
+            return EP_NAME.extensionList.filter {
+                it is CjAdditionalLibraryRootsProvider
+            }.first().getAdditionalProjectLibraries(project)
+        }
+
+    }
 }
 
 private fun <U, V> Collection<U>.smartFlatMap(transform: (U) -> Collection<V>): Collection<V> =
@@ -43,9 +74,39 @@ private val CjpmProject.ideaLibraries: Collection<SyntheticLibrary>
         }
 
         return buildList {
-            makeStdlibLibrary(stdlibPackages, cjcInfo?.version)?.let(this::add)
+
+
+            makeStdlibLibrary(stdlibPackages, cjcInfo?.version)
+                ?.apply {
+
+                    invokeLater {
+                        runWriteAction {
+                            try {
+                                ModuleManager.getInstance(project)
+                                    .newModule(sourceRoots.first().path, CangJieLibraryModuleType.ID)
+                            } catch (_: ModuleWithNameAlreadyExists) {
+
+                            }
+                        }
+                    }
+                }
+                ?.let(this::add)
             for (pkg in dependencyPackages) {
-                pkg.toCjpmLibrary()?.let(this::add)
+                pkg.toCjpmLibrary()?.apply {
+
+                    invokeLater {
+                        runWriteAction {
+                            try {
+                                ModuleManager.getInstance(project)
+                                    .newModule(sourceRoots.first().path, CangJieLibraryModuleType.ID)
+                            } catch (_: ModuleWithNameAlreadyExists) {
+
+                            }
+                        }
+                    }
+
+
+                }?.let(this::add)
             }
             GeneratedCodeFakeLibrary.create(this@ideaLibraries)?.let(::add)
         }
@@ -79,7 +140,7 @@ private fun makeStdlibLibrary(packages: List<CjpmWorkspace.Package>, rustcVersio
 
 
 class CjpmLibrary(
-    private val name: String,
+    val name: String,
     private val sourceRoots: Set<VirtualFile>,
     private val excludedRoots: Set<VirtualFile>,
     private val icon: Icon,
@@ -123,7 +184,7 @@ class GeneratedCodeFakeLibrary(private val sourceRoots: Set<VirtualFile>) : Synt
 private fun CjpmWorkspace.Package.toCjpmLibrary(): CjpmLibrary? {
     val root = contentRoot ?: return null
     val sourceRoots = mutableSetOf<VirtualFile>().apply {
-add(root)
+        add(root)
     }
     val excludedRoots = mutableSetOf<VirtualFile>()
 

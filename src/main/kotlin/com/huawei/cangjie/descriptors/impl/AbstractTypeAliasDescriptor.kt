@@ -62,8 +62,8 @@ abstract class AbstractTypeAliasDescriptor(
 
     override fun getModality() = Modality.FINAL
 
-    override fun getVisibility() = visibilityImpl
-
+    override val visibility: DescriptorVisibility
+        get() = visibilityImpl
 //    override fun isExpect(): Boolean = false
 //
 //    override fun isActual(): Boolean = false

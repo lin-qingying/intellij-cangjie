@@ -2,7 +2,6 @@ package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
-import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.utils.Printer
 
@@ -62,6 +61,9 @@ abstract class BaseHierarchicalScope(override val parent: HierarchicalScope?) : 
     ): Collection<DeclarationDescriptor> = emptyList()
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
+    override  fun getContributedPackages(name: Name, location: LookupLocation): Collection< PackageFragmentDescriptor> =
+    emptyList()
+
 
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
         emptyList()
@@ -83,7 +85,6 @@ interface LexicalScope : HierarchicalScope {
     val contextReceiversGroup: List<ReceiverParameterDescriptor>
 
     val kind: LexicalScopeKind
-
 
 
     class Base(
@@ -122,6 +123,8 @@ interface ImportingScope : HierarchicalScope {
 
     fun getContributedPackage(name: Name): PackageViewDescriptor?
 
+
+
     fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter = DescriptorKindFilter.ALL,
         nameFilter: (Name) -> Boolean = MemberScope.ALL_NAME_FILTER,
@@ -153,6 +156,11 @@ abstract class BaseImportingScope(parent: ImportingScope?) : BaseHierarchicalSco
         get() = super.parent as ImportingScope?
 
     override fun getContributedPackage(name: Name): PackageViewDescriptor? = null
+
+    override fun getContributedPackages(name: Name, location: LookupLocation): Collection< PackageFragmentDescriptor> {
+        return emptyList()
+    }
+
 
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
@@ -236,5 +244,9 @@ class CompositePrioritizedImportingScope(
         return primaryScope.getContributedFunctions(name, location).union(
             secondaryScope.getContributedFunctions(name, location)
         )
+    }
+
+    override fun getContributedPackages(name: Name, location: LookupLocation): Collection<PackageFragmentDescriptor> {
+        TODO("Not yet implemented")
     }
 }

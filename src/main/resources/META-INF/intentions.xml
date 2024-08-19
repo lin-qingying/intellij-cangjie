@@ -7,6 +7,13 @@
 <!--            <bundleName>messages.CangJieBundle</bundleName>-->
 <!--            <categoryKey>group.names.cangjie</categoryKey>-->
 <!--        </intentionAction>-->
+        <localInspection implementationClass="com.huawei.cangjie.ide.refactoring.move.changePackage.CangJiePackageDirectoryMismatchInspection"
+                         groupPath="CangJie"
+                         groupBundle="messages.CangJieBundle" groupKey="group.names.cangjie.interop.issues"
+                         enabledByDefault="true"
+                         level="ERROR"
+                         language="CangJie"
+                         key="inspection.package.directory.mismatch.display.name" bundle="messages.CangJieBundle"/>
 
     </extensions>
 </idea-plugin>

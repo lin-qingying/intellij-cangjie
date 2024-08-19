@@ -40,4 +40,4 @@ class ErrorTypeConstructor(val kind: ErrorTypeKind, vararg val formatParams: Str
 }
 
 
-object DefaultBuiltIns : CangJieBuiltIns(LockBasedStorageManager("DefaultBuiltIns"))
+object DefaultBuiltIns : CangJieBuiltIns(null, LockBasedStorageManager("DefaultBuiltIns"))

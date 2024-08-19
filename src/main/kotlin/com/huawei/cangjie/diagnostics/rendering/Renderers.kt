@@ -5,6 +5,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.renderer.ClassifierNamePolicy
 import com.huawei.cangjie.renderer.DescriptorRenderer
 import com.huawei.cangjie.resolve.DescriptorUtils
@@ -38,7 +39,7 @@ object Renderers {
             "file"
         } else {
             val containingDeclaration = it.containingDeclaration
-            if (containingDeclaration is PackageFragmentDescriptor) {
+            if (containingDeclaration is PackageData) {
                 containingDeclaration.fqName.asString().wrapIntoQuotes()
             } else {
                 containingDeclaration!!.name.asString().wrapIntoQuotes()

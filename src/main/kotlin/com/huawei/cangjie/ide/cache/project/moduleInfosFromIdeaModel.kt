@@ -1,9 +1,12 @@
 package com.huawei.cangjie.ide.cache.project
 
 
+import com.huawei.cangjie.analyzer.CangJieLibraryInfo
 import com.huawei.cangjie.analyzer.CangJieModuleInfo
 import com.huawei.cangjie.analyzer.LibraryInfo
 import com.huawei.cangjie.analyzer.ModuleInfo
+import com.huawei.cangjie.cjpm.project.workspace.CjAdditionalLibraryRootsProvider
+import com.huawei.cangjie.cjpm.project.workspace.CjpmLibrary
 import com.huawei.cangjie.ide.cache.trackers.CangJieCodeBlockModificationListener
 import com.huawei.cangjie.utils.CangJieExceptionWithAttachments
 import com.intellij.java.workspace.entities.JavaModuleSettingsEntity
@@ -13,9 +16,11 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.impl.libraries.LibraryEx
 import com.intellij.openapi.roots.libraries.Library
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.platform.backend.workspace.WorkspaceModelChangeListener
 import com.intellij.platform.backend.workspace.WorkspaceModelTopics
@@ -58,7 +63,7 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
     private val modules: CachedValue<List<ModuleInfo>>
     private val moduleCache = ModuleCache()
     private val modificationTracker = SimpleModificationTracker()
-//    private val libraries: CachedValue<Collection<LibraryInfo>>
+    private val libraries: CachedValue<Collection<LibraryInfo>>
 
     init {
         val cachedValuesManager = CachedValuesManager.getManager(project)
@@ -69,7 +74,26 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
             }
             CachedValueProvider.Result.create(ideaModuleInfos, modificationTracker)
         }
+        libraries = cachedValuesManager.createCachedValue {
+            val libraryCache = CjpmLibraryInfoCache.getInstance(project)
+            val collectedLibraries = mutableSetOf<LibraryInfo>()
+            for (module in ModuleManager.getInstance(project).modules) {
+                ProgressManager.checkCanceled()
+                for (entry in CjAdditionalLibraryRootsProvider.getCjpmLibrarys(project)) {
+                    if (entry !is CjpmLibrary) continue
 
+                    collectedLibraries += libraryCache[entry]
+                }
+            }
+
+            collectedLibraries.checkValidity { "libraries calculation" }
+
+            CachedValueProvider.Result.create(
+                collectedLibraries,
+//                libraryCache.removedLibraryInfoTracker(),
+                modificationTracker
+            )
+        }
     }
 
     inner class ModuleCache : AbstractCache<Module, List<ModuleInfo>>(
@@ -189,7 +213,7 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
         abstract fun modelChanged(event: VersionedStorageChange)
     }
 
-    override fun allModules(): List<ModuleInfo> = (modules.value /*+ libraries.value*/).also {
+    override fun allModules(): List<ModuleInfo> = (modules.value + libraries.value).also {
         it.checkValidity { "allModules" }
     }
 
@@ -281,8 +305,131 @@ class LibraryInfoCache(project: Project) : Disposable {
         return libraryInfoCache[key]
     }
 
+
     companion object {
         fun getInstance(project: Project): LibraryInfoCache = project.service()
     }
 
+}
+
+
+@Service(Service.Level.PROJECT)
+class CjpmLibraryInfoCache(project: Project) : Disposable {
+    private class LibraryInfoInnerCache(project: Project) :
+        SynchronizedFineGrainedEntityCache<CjpmLibrary, List<LibraryInfo>>(project) {
+
+        init {
+            initialize()
+        }
+
+        override fun calculate(key: CjpmLibrary): List<LibraryInfo> {
+            return createLibraryInfos(key)
+
+
+        }
+
+        private fun createLibraryInfos(key: CjpmLibrary): List<LibraryInfo> {
+            return listOf(CangJieLibraryInfo(project, key))
+        }
+
+        override fun subscribe() {
+
+        }
+
+        private fun CjpmLibrary.firstRoot() = sourceRoots.first().toString()
+        private val deduplicationCache = hashMapOf<String, MutableList<LibraryEx>>()
+
+//        private fun cachedDeduplicatedValue(
+//            cache: MutableMap<CjpmLibrary, List<LibraryInfo>>,
+//            key: CjpmLibrary,
+//            root: String,
+//        ): List<LibraryInfo>?{
+//            val deduplicatedLibraries = deduplicationCache[root]
+//            if (deduplicatedLibraries.isNullOrEmpty()) return null
+//            val keyUrlsByType = key.urlsByType()
+//
+//
+//            val deduplicatedLibrary = deduplicatedLibraries.find { keyUrlsByType.rootEquals(it) } ?: return null
+//
+//            val cachedValue = cache[deduplicatedLibrary]
+//            return cachedValue
+//        }
+
+        private fun addEntryToCache(
+            cache: MutableMap<CjpmLibrary, List<LibraryInfo>>,
+            key: CjpmLibrary,
+            root: String,
+            value: List<LibraryInfo>,
+        ) {
+            cache[key] = value
+//            deduplicationCache.getOrPut(root) { mutableListOf() } += key
+        }
+
+        /**
+         * @return cached value or null
+         */
+        private fun getCachedOrPutNewValue(key: CjpmLibrary, newValue: List<LibraryInfo>?): List<LibraryInfo>? =
+            useCache { cache ->
+                checkEntitiesIfRequired(cache)
+
+                cache[key]?.let { return@useCache it }
+
+
+                val root = key.firstRoot()
+//                val deduplicatedValue = cachedDeduplicatedValue(cache, key, root)
+                val resultValue = /*deduplicatedValue ?:*/ newValue ?: return@useCache null
+                addEntryToCache(cache, key, root, resultValue)
+//
+//                deduplicatedValue
+
+                resultValue
+            }
+
+        override fun get(key: CjpmLibrary): List<LibraryInfo> {
+            checkKeyAndDisposeIllegalEntry(key)
+            getCachedOrPutNewValue(key, newValue = null)?.let { return it }
+            ProgressManager.checkCanceled()
+
+            val newValue = calculate(key)
+            if (isValidityChecksEnabled) {
+                checkValueValidity(newValue)
+            }
+
+            getCachedOrPutNewValue(key, newValue)?.let { return it }
+
+            postProcessNewValue(key, newValue)
+
+            return newValue
+        }
+
+        override fun checkKeyValidity(key: CjpmLibrary) {
+
+
+        }
+
+        override fun checkValueValidity(value: List<LibraryInfo>) {
+
+        }
+    }
+
+    private val libraryInfoCache = LibraryInfoInnerCache(project)
+
+    init {
+        Disposer.register(this, libraryInfoCache)
+    }
+
+    override fun dispose() {
+
+    }
+
+    fun values(): Collection<List<LibraryInfo>> = libraryInfoCache.values()
+
+    operator fun get(key: CjpmLibrary): List<LibraryInfo> {
+        return libraryInfoCache[key]
+    }
+
+    companion object {
+        fun getInstance(project: Project): CjpmLibraryInfoCache = project.service()
+
+    }
 }

@@ -269,7 +269,7 @@ private fun findOrCreateTarget(
 private fun removeCangJieExtensionIfPresent(name: String): String = when {
     name.endsWith(".$CANGJIE_WORKSHEET_EXTENSION") -> name.removeSuffix(".$CANGJIE_WORKSHEET_EXTENSION")
     name.endsWith(".$STD_SCRIPT_SUFFIX") -> name.removeSuffix(".$STD_SCRIPT_SUFFIX")
-    name.endsWith(".${CangJieFileType.INSTANCE.EXTENSION}") -> name.removeSuffix(".${CangJieFileType.INSTANCE.EXTENSION}")
+    name.endsWith(".${CangJieFileType.EXTENSION}") -> name.removeSuffix(".${CangJieFileType.EXTENSION}")
     else -> name
 }
 

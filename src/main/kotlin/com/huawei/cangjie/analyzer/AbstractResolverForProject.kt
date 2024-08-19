@@ -19,9 +19,10 @@ import com.intellij.openapi.util.ModificationTracker
 fun createModuleDescriptor(projectContext: ProjectContext, project: Project): ModuleDescriptor {
 
     return ModuleDescriptorImpl(
+        projectContext.project,
         Name.identifier(project.currentCjpmProject?.presentableName!!),
         projectContext.storageManager,
-        CangJieBuiltIns(projectContext.storageManager)
+        CangJieBuiltIns(projectContext.project, projectContext.storageManager)
     )
 }
 
@@ -137,6 +138,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
 
     private fun createModuleDescriptor(module: M): ModuleData {
         val moduleDescriptor = ModuleDescriptorImpl(
+            projectContext.project,
             module.name,
             projectContext.storageManager,
             builtInsForModule(module),

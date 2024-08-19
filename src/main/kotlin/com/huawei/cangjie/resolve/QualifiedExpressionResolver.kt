@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.Errors.*
+import com.huawei.cangjie.descriptors.impl.LazyPackageViewDescriptorImpl
 import com.huawei.cangjie.incremental.CangJieLookupLocation
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
@@ -11,6 +12,7 @@ import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getParentOfType
+import com.huawei.cangjie.resolve.QualifierPosition.*
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.receivers.*
 import com.huawei.cangjie.resolve.source.CangJieSourceElement
@@ -107,7 +109,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                     expression,
                     classifier,
                     ownerDescriptor,
-                    position = QualifierPosition.TYPE,
+                    position = TYPE,
                     isQualifier = false
                 )
                 classifier
@@ -136,7 +138,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                 trace,
                 ownerDescriptor,
                 scope,
-                position = QualifierPosition.TYPE
+                position = TYPE
             ) as? ClassifierDescriptor
             return TypeQualifierResolutionResult(qualifierPartList, descriptor)
         }
@@ -157,7 +159,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         val qualifier = resolveToPackageOrClass(
             qualifierPartList.subList(0, qualifierPartList.size - 1),
             scope.ownerDescriptor.module, trace, ownerDescriptor, scope,
-            position = QualifierPosition.TYPE
+            position = TYPE
         ) ?: return TypeQualifierResolutionResult(qualifierPartList, null)
 // 该包的模块名
 
@@ -184,7 +186,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
             lastPart.expression,
             classifier,
             ownerDescriptor,
-            position = QualifierPosition.TYPE,
+            position = TYPE,
             isQualifier = isQualifier,
 
             packageView = qualifier
@@ -214,7 +216,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                 nameExpression,
                 module.getPackage(packageDirective.getFqName(nameExpression)),
                 shouldBeVisibleFrom = null,
-                position = QualifierPosition.PACKAGE_HEADER,
+                position = PACKAGE_HEADER,
                 isQualifier = index != packageNames.lastIndex
             )
         }
@@ -272,7 +274,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                 expression,
                 qualifierDescriptor,
                 context.scope.ownerDescriptor,
-                QualifierPosition.EXPRESSION
+                EXPRESSION
             )
         }
 
@@ -335,7 +337,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         if (importDirective.isAllUnder) {
             val packageOrClassDescriptor = resolveToPackageOrClass(
                 path, moduleDescriptor, trace, packageFragmentForCheck,
-                scopeForFirstPart = null, position = QualifierPosition.IMPORT
+                scopeForFirstPart = null, position = IMPORT
             ).classDescriptorFromTypeAlias() ?: return null
 
             if (packageOrClassDescriptor is ClassDescriptor && packageOrClassDescriptor.kind.isSingleton && lastPart.expression != null) {
@@ -381,14 +383,14 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                 trace,
                 packageFragmentForVisibilityCheck,
                 scopeForFirstPart = null,
-                position = QualifierPosition.IMPORT
+                position = IMPORT
             )
             return null
         }
 
         val resolvedDescriptor = resolveToPackageOrClass(
             path.subList(0, path.size - 1), moduleDescriptor, trace,
-            packageFragmentForVisibilityCheck, scopeForFirstPart = null, position = QualifierPosition.IMPORT
+            packageFragmentForVisibilityCheck, scopeForFirstPart = null, position = IMPORT
         ) ?: return null
 
         val packageOrClassDescriptor =
@@ -411,7 +413,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                         lastPart.expression,
                         candidates,
                         packageFragmentForVisibilityCheck,
-                        position = QualifierPosition.IMPORT,
+                        position = IMPORT,
                         isQualifier = false
                     )
                 } else {
@@ -488,7 +490,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
             lastPart.expression,
             descriptors,
             shouldBeVisibleFrom = null,
-            position = QualifierPosition.IMPORT,
+            position = IMPORT,
             isQualifier = false
         )
     }
@@ -524,7 +526,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
 
         val firstPart = path.first()
 
-        if (position == QualifierPosition.EXPRESSION) {
+        if (position == EXPRESSION) {
             // In expression position, value wins against classifier (and package).
             // If we see a function or variable (possibly ambiguous),
             // tell resolver we have no qualifier and let it perform the context-dependent resolution.
@@ -552,6 +554,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
 //                去掉path的第一位，将path追加到qprt中
                 val modifiedPath = qprt + path.drop(1)
                 val (_prefixDescriptor, _nextIndexAfterPrefix) = moduleDescriptor.quickResolveToPackage(
+                    shouldBeVisibleFrom,
                     modifiedPath,
                     trace,
                     position
@@ -568,7 +571,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
             Pair(prefixDescriptor!!, nextIndexAfterPrefix!!)
         } else {
 
-            moduleDescriptor.quickResolveToPackage(path, trace, position)
+            moduleDescriptor.quickResolveToPackage(shouldBeVisibleFrom, path, trace, position)
 
         }
 
@@ -610,7 +613,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                 }
 
             // If we are in expression, this name can denote a value (not a package or class).
-            if (!(position == QualifierPosition.EXPRESSION && nextPackageOrClassDescriptor == null)) {
+            if (!(position == EXPRESSION && nextPackageOrClassDescriptor == null)) {
                 storeResult(
                     trace,
                     qualifierPart.expression,
@@ -634,6 +637,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         unsubstitutedInnerClassesScope.getContributedClassifier(qualifierPart.name, qualifierPart.location)
 
     private fun ModuleDescriptor.quickResolveToPackage(
+        shouldBeVisibleFrom: DeclarationDescriptor?,
         path: List<QualifierPart>,
         trace: BindingTrace,
         position: QualifierPosition
@@ -646,7 +650,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         while (!fqName.isRoot) {
             val packageDescriptor = getPackage(fqName)
             if (!packageDescriptor.isEmpty()) {
-                recordPackageViews(path.subList(0, prefixSize), packageDescriptor, trace, position)
+                recordPackageViews(shouldBeVisibleFrom, path.subList(0, prefixSize), packageDescriptor, trace, position)
                 return Pair(packageDescriptor, prefixSize)
             }
             fqName = fqName.parent()
@@ -656,13 +660,21 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
     }
 
     private fun recordPackageViews(
+        shouldBeVisibleFrom: DeclarationDescriptor?,
+
         path: List<QualifierPart>,
         packageView: PackageViewDescriptor,
         trace: BindingTrace,
         position: QualifierPosition
     ) {
         path.foldRight(packageView) { qualifierPart, currentView ->
-            storeResult(trace, qualifierPart.expression, currentView, shouldBeVisibleFrom = null, position = position)
+            storeResult(
+                trace,
+                qualifierPart.expression,
+                currentView,
+                shouldBeVisibleFrom = shouldBeVisibleFrom,
+                position = position
+            )
             currentView.containingDeclaration
                 ?: error(
                     "Containing Declaration must be not null for package with fqName: ${currentView.fqName}, " +
@@ -738,28 +750,53 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
 
 //        UnderscoreUsageChecker.checkSimpleNameUsage(descriptor, referenceExpression, trace)
 
-        if (descriptor is DeclarationDescriptorWithVisibility) {
-            val fromToCheck =
-                if (shouldBeVisibleFrom is PackageFragmentDescriptor && shouldBeVisibleFrom.source == SourceElement.NO_SOURCE && referenceExpression.containingFile !is DummyHolder) {
-                    PackageFragmentWithCustomSource(
-                        shouldBeVisibleFrom,
-                        CangJieSourceElement(referenceExpression.getContainingCjFile())
-                    )
-                } else {
-                    shouldBeVisibleFrom
-                }
-            if (!isVisible(descriptor, fromToCheck, position, languageVersionSettings)) {
-                trace.report(
-                    INVISIBLE_REFERENCE.on(
-                        referenceExpression,
-                        descriptor,
-                        descriptor.visibility,
-                        descriptor
-                    )
-                )
-            }
-        }
+//        if (descriptor is DeclarationDescriptorWithVisibility) {
 
+
+        when (position) {
+            PACKAGE_HEADER -> {
+                if (descriptor is LazyPackageViewDescriptorImpl) {
+                    if (descriptor.isReported) {
+//                       报告包名修饰符不一致
+                        descriptor.packageDirectives.forEach {
+                            trace.report(
+                                INCONSISTENT_PACKAGE_MODIFIERS.on(
+                                    it, it.fqName
+                                )
+                            )
+
+                        }
+
+                    }
+                }
+            }
+
+            IMPORT -> {
+                val fromToCheck =
+                    if (shouldBeVisibleFrom is PackageFragmentDescriptor && shouldBeVisibleFrom.source == SourceElement.NO_SOURCE && referenceExpression.containingFile !is DummyHolder) {
+                        PackageFragmentWithCustomSource(
+                            shouldBeVisibleFrom,
+                            CangJieSourceElement(referenceExpression.getContainingCjFile())
+                        )
+                    } else {
+                        shouldBeVisibleFrom
+                    }
+                if (!isVisible(descriptor, fromToCheck, position, languageVersionSettings)) {
+                    trace.report(
+                        INVISIBLE_REFERENCE.on(
+                            referenceExpression,
+                            descriptor,
+                            descriptor.visibility,
+                            descriptor
+                        )
+                    )
+                }
+            }
+
+            TYPE -> TODO()
+            EXPRESSION -> TODO()
+        }
+//        }
         return if (isQualifier) storeQualifier(trace, referenceExpression, descriptor) else null
     }
 
@@ -879,10 +916,10 @@ internal fun isVisible(
     position: QualifierPosition,
     languageVersionSettings: LanguageVersionSettings
 ): Boolean {
-    if (descriptor !is DeclarationDescriptorWithVisibility || shouldBeVisibleFrom == null) return true
+    if (/*descriptor !is DeclarationDescriptorWithVisibility || */shouldBeVisibleFrom == null) return true
 
     val visibility = descriptor.visibility
-    if (position == QualifierPosition.IMPORT) {
+    if (position == IMPORT) {
         if (DescriptorVisibilities.isPrivate(visibility)) return DescriptorVisibilities.inSameFile(
             descriptor,
             shouldBeVisibleFrom

@@ -32,7 +32,7 @@ interface ResolutionScope {
     fun getContributedPropertys(name: Name, location: LookupLocation): Collection<@JvmWildcard PropertyDescriptor>
 
     fun getContributedFunctions(name: Name, location: LookupLocation): Collection<@JvmWildcard FunctionDescriptor>
-
+    fun getContributedPackages(name: Name, location: LookupLocation): Collection<@JvmWildcard PackageFragmentDescriptor> = emptyList()
     /**
      * All visible descriptors from current scope possibly filtered by the given name and kind filters
      * (that means that the implementation is not obliged to use the filters but may do so when it gives any performance advantage).

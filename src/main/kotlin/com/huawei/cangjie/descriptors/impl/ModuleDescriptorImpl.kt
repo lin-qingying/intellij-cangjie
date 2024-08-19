@@ -7,11 +7,13 @@ import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.psiUtil.sure
 import com.huawei.cangjie.storage.StorageManager
+import com.intellij.openapi.project.Project
 
 //
 
 
 class ModuleDescriptorImpl(
+    val project: Project? = null,
     moduleName: Name,
     private val storageManager: StorageManager,
     override val builtIns: CangJieBuiltIns,
@@ -146,6 +148,9 @@ class ModuleDescriptorImpl(
     override fun <T> getCapability(capability: ModuleCapability<T>): T? {
         return capabilities[capability] as? T
     }
+
+    override val visibility: DescriptorVisibility
+        get() = DescriptorVisibilities.PUBLIC
 }
 
 class ModuleDependenciesImpl(

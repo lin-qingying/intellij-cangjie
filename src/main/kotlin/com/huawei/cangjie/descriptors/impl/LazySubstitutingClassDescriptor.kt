@@ -167,10 +167,10 @@ class LazySubstitutingClassDescriptor(
         )
     }
 
-    override fun getVisibility(): DescriptorVisibility {
-        return original.visibility
 
-    }
+
+    override val visibility: DescriptorVisibility
+        get() =original.visibility
 
     override fun getModality(): Modality {
         return original.modality
@@ -221,7 +221,7 @@ class LazySubstitutingClassDescriptor(
             val copy: ClassConstructorDescriptor = constructor.newCopyBuilder()
                 .setOriginal(constructor.original)
                 .setModality(constructor.getModality())
-                .setVisibility(constructor.getVisibility())
+                .setVisibility(constructor.visibility)
                 .setKind(constructor.getKind())
                 .setCopyOverrides(false)
                 .build() as ClassConstructorDescriptor

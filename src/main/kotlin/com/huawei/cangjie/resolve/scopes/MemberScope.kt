@@ -114,9 +114,9 @@ class DescriptorKindFilter(
         val FUNCTIONS_MASK: Int = nextMask()
         val VARIABLES_MASK: Int = nextMask()
         val PROPERTYS_MASK: Int = nextMask()
-        val ALL_KINDS_MASK: Int = nextMask() - 1
-        val PACKAGES_MASK: Int = nextMask()
 
+        val PACKAGES_MASK: Int = nextMask()
+        val ALL_KINDS_MASK: Int = nextMask() - 1
         @JvmField
         val PACKAGES: DescriptorKindFilter = DescriptorKindFilter(PACKAGES_MASK)
 

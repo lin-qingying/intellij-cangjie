@@ -2,6 +2,7 @@ package com.huawei.cangjie.ide.project.tools.projectWizard.wizard
 
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.icon.CangJieIcons
+import com.intellij.ide.util.projectWizard.ModuleBuilder
 import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.module.ModuleTypeManager
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType
@@ -28,3 +29,6 @@ class CangJieModuleType : ModuleType<CangJieModuleBuilder>( ID) {
 
     }
 }
+
+
+

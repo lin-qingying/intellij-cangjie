@@ -26,8 +26,16 @@ class LazyExplicitImportScope(
         if (name != aliasName) return null
 
         return when (packageOrClassDescriptor) {
-            is PackageViewDescriptor -> packageOrClassDescriptor.memberScope.getContributedClassifier(declaredName, location)
-            is ClassDescriptor -> packageOrClassDescriptor.unsubstitutedInnerClassesScope.getContributedClassifier(declaredName, location)
+            is PackageViewDescriptor -> packageOrClassDescriptor.memberScope.getContributedClassifier(
+                declaredName,
+                location
+            )
+
+            is ClassDescriptor -> packageOrClassDescriptor.unsubstitutedInnerClassesScope.getContributedClassifier(
+                declaredName,
+                location
+            )
+
             else -> throw IllegalStateException("Should be class or package: $packageOrClassDescriptor")
         }
     }
@@ -42,6 +50,30 @@ class LazyExplicitImportScope(
         if (name != aliasName) return emptyList()
 
         return collectCallableMemberDescriptors(location, MemberScope::getContributedVariables)
+    }
+
+    override fun getContributedPackage(name: Name): PackageViewDescriptor? {
+
+        return   when (packageOrClassDescriptor) {
+            is PackageViewDescriptor ->  {
+
+                val packageViewDescriptor = packageOrClassDescriptor.module.getPackage(
+                    packageOrClassDescriptor.fqName.child(
+                        aliasName
+                    )
+                )
+                if (!packageViewDescriptor.isEmpty()){
+                    packageViewDescriptor
+                }else{
+                    null
+                }
+
+
+            }
+
+
+            else -> throw IllegalStateException("Should be class or package: $packageOrClassDescriptor")
+        }
     }
 
     override fun getContributedDescriptors(
@@ -60,11 +92,17 @@ class LazyExplicitImportScope(
         if (kindFilter.acceptsKinds(DescriptorKindFilter.VARIABLES_MASK)) {
             descriptors.addAll(getContributedVariables(aliasName, NoLookupLocation.MATCH_GET_ALL_DESCRIPTORS))
         }
+        if (kindFilter.acceptsKinds(DescriptorKindFilter.PACKAGES_MASK)) {
+            getContributedPackage(aliasName)?.let {
+                descriptors.add(it)
+            }
 
+
+//            descriptors.addAll(getContributedPackages(aliasName, NoLookupLocation.MATCH_GET_ALL_DESCRIPTORS)))
+        }
         if (changeNamesForAliased && aliasName != declaredName) {
             for (i in descriptors.indices) {
-                val descriptor = descriptors[i]
-                val newDescriptor: DeclarationDescriptor = when (descriptor) {
+                val newDescriptor: DeclarationDescriptor = when (val descriptor = descriptors[i]) {
                     is ClassDescriptor -> {
                         object : ClassDescriptor by descriptor {
 
@@ -142,7 +180,14 @@ class LazyExplicitImportScope(
 //    }
 
     private fun <D : CallableMemberDescriptor> Collection<D>.choseOnlyVisibleOrAll(): Collection<D> =
-        filter { isVisible(it, packageFragmentForVisibilityCheck, position = QualifierPosition.IMPORT, languageVersionSettings) }
+        filter {
+            isVisible(
+                it,
+                packageFragmentForVisibilityCheck,
+                position = QualifierPosition.IMPORT,
+                languageVersionSettings
+            )
+        }
             .takeIf { it.isNotEmpty() }
             ?: this
 }

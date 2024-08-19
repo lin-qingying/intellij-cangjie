@@ -27,8 +27,9 @@ abstract class AbstractVariableDescriptor(
         this._outType = outType
     }
 
-    override fun getVisibility() = DescriptorVisibilities.LOCAL
 
+    override val visibility: DescriptorVisibility
+        get() = DescriptorVisibilities.LOCAL
     override fun getReturnType(): CangJieType {
         return type
     }
