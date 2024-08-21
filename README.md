@@ -38,3 +38,13 @@ https://plugins.jetbrains.com/plugins/linqingying/list
 <img alt="a9777a62426b943b1a810bf0468ac4d.jpg"   src="img%2Fa9777a62426b943b1a810bf0468ac4d.jpg" width="200"/>
 <br>
 <img alt="1e42688904365c08bfbf4c21f196c01.jpg"   src="img%2F1e42688904365c08bfbf4c21f196c01.jpg" width="200"/>
+<br>
+<b>支持名单</b>
+<br>
+ 
+
+|  ID   | 金额  |
+|  ----  |-----|
+| [@daitougege](https://gitee.com/daitougege)  | 101 |
+ 
+ 
