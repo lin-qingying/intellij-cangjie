@@ -5,7 +5,6 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
-import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.renderer.ClassifierNamePolicy
 import com.huawei.cangjie.renderer.DescriptorRenderer
 import com.huawei.cangjie.resolve.DescriptorUtils
@@ -14,7 +13,7 @@ import com.huawei.cangjie.types.getAbbreviation
 import com.huawei.cangjie.types.util.contains
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
-import java.util.LinkedHashSet
+
 fun DescriptorRenderer.asRenderer() = SmartDescriptorRenderer(this)
 
 object Renderers {
@@ -22,12 +21,15 @@ object Renderers {
 
     @JvmField
     val NAME = Renderer<Named> { it.name.asString() }
+
     @JvmField
     val RENDER_TYPE = SmartTypeRenderer(DescriptorRenderer.FQ_NAMES_IN_TYPES.withOptions {
         parameterNamesInFunctionalTypes = false
     })
+
     @JvmField
     val FQ_NAMES_IN_TYPES = DescriptorRenderer.FQ_NAMES_IN_TYPES.asRenderer()
+
     @JvmField
     val STRING = Renderer<String> { it }
 
@@ -35,6 +37,12 @@ object Renderers {
     val VISIBILITY = Renderer<DescriptorVisibility> {
         it.externalDisplayName
     }
+
+    @JvmField
+    val DECL_FQNAME = Renderer<DeclarationDescriptor> {
+        it.fqNameUnsafe.asString()
+    }
+
     @JvmField
     val NAME_OF_CONTAINING_DECLARATION_OR_FILE = Renderer<DeclarationDescriptor> {
         if (DescriptorUtils.isTopLevelDeclaration(it) && it is DeclarationDescriptorWithVisibility && it.visibility == DescriptorVisibilities.PRIVATE) {
@@ -48,6 +56,7 @@ object Renderers {
             }
         }
     }
+
     @JvmField
     val TO_STRING = Renderer<Any> { element ->
         if (element is DeclarationDescriptor) {
@@ -74,16 +83,22 @@ object Renderers {
 
 val RenderingContext.adaptiveClassifierPolicy: ClassifierNamePolicy
     get() = this[ADAPTIVE_CLASSIFIER_POLICY_KEY]
-private fun collectClassifiersFqNames(objectsToRender: Collection<Any?>): Set<FqNameUnsafe> = LinkedHashSet<FqNameUnsafe>().apply {
-    collectMentionedClassifiersFqNames(objectsToRender, this)
-}
-private val ADAPTIVE_CLASSIFIER_POLICY_KEY = object : RenderingContext.Key<ClassifierNamePolicy>("ADAPTIVE_CLASSIFIER_POLICY") {
-    override fun compute(objectsToRender: Collection<Any?>): ClassifierNamePolicy {
-        val ambiguousNames =
-            collectClassifiersFqNames(objectsToRender).groupBy { it.shortNameOrSpecial() }.filter { it.value.size > 1 }.map { it.key }
-        return AdaptiveClassifierNamePolicy(ambiguousNames)
+
+private fun collectClassifiersFqNames(objectsToRender: Collection<Any?>): Set<FqNameUnsafe> =
+    LinkedHashSet<FqNameUnsafe>().apply {
+        collectMentionedClassifiersFqNames(objectsToRender, this)
     }
-}
+
+private val ADAPTIVE_CLASSIFIER_POLICY_KEY =
+    object : RenderingContext.Key<ClassifierNamePolicy>("ADAPTIVE_CLASSIFIER_POLICY") {
+        override fun compute(objectsToRender: Collection<Any?>): ClassifierNamePolicy {
+            val ambiguousNames =
+                collectClassifiersFqNames(objectsToRender).groupBy { it.shortNameOrSpecial() }
+                    .filter { it.value.size > 1 }.map { it.key }
+            return AdaptiveClassifierNamePolicy(ambiguousNames)
+        }
+    }
+
 class SmartTypeRenderer(private val baseRenderer: DescriptorRenderer) : DiagnosticParameterRenderer<CangJieType> {
     override fun render(obj: CangJieType, renderingContext: RenderingContext): String {
         val adaptiveRenderer = baseRenderer.withOptions {
@@ -92,6 +107,7 @@ class SmartTypeRenderer(private val baseRenderer: DescriptorRenderer) : Diagnost
         return adaptiveRenderer.renderType(obj)
     }
 }
+
 private class AdaptiveClassifierNamePolicy(private val ambiguousNames: List<Name>) : ClassifierNamePolicy {
     private val renderedParameters = mutableMapOf<Name, LinkedHashSet<TypeParameterDescriptor>>()
 
@@ -101,6 +117,7 @@ private class AdaptiveClassifierNamePolicy(private val ambiguousNames: List<Name
             classifier is ClassDescriptor ||
                     classifier is TypeAliasDescriptor ->
                 ClassifierNamePolicy.FULLY_QUALIFIED.renderClassifier(classifier, renderer)
+
             classifier is TypeParameterDescriptor -> {
                 val name = classifier.name
                 val typeParametersWithSameName = renderedParameters.getOrPut(name) { LinkedHashSet() }
@@ -108,6 +125,7 @@ private class AdaptiveClassifierNamePolicy(private val ambiguousNames: List<Name
                 val index = typeParametersWithSameName.indexOf(classifier)
                 renderer.renderAmbiguousTypeParameter(classifier, index + 1, isFirstOccurence)
             }
+
             else -> error("Unexpected classifier: ${classifier::class.java}")
         }
     }
@@ -162,7 +180,8 @@ private fun collectMentionedClassifiersFqNames(contextObjects: Iterable<Any?>, r
     }
 }
 
-class SmartDescriptorRenderer(private val baseRenderer: DescriptorRenderer) : DiagnosticParameterRenderer<DeclarationDescriptor> {
+class SmartDescriptorRenderer(private val baseRenderer: DescriptorRenderer) :
+    DiagnosticParameterRenderer<DeclarationDescriptor> {
     override fun render(obj: DeclarationDescriptor, renderingContext: RenderingContext): String {
         val adaptiveRenderer = baseRenderer.withOptions {
             classifierNamePolicy = renderingContext.adaptiveClassifierPolicy

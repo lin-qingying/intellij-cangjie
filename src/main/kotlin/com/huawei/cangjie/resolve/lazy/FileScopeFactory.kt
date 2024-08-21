@@ -407,7 +407,7 @@ class FileScopeFactory(
 
         //        TODO 没有什么实现思路，导入树结构应该重构
         private val imports: Collection<CjImportDirective> = runReadAction {
-            CangJieImportFqNameForPackageNameIndex.get(
+            CangJieImportFqNameForPackageNameIndex.getReexport(
                 packageFragment.fqName.asString(),
                 project,
                 GlobalSearchScope.allScope(project)

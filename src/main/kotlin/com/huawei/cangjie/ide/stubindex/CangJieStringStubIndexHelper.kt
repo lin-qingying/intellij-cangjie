@@ -16,7 +16,6 @@ import com.intellij.util.Processor
 import com.intellij.util.Processors
 import com.intellij.util.SmartList
 import com.intellij.util.indexing.IdFilter
-import org.jetbrains.annotations.ApiStatus
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
@@ -27,9 +26,18 @@ abstract class CangJieStringStubIndexHelper<Key : NavigatablePsiElement>(private
 
     private val logger = Logger.getInstance(this.javaClass)
     abstract val indexKey: StubIndexKey<String, Key>
-    operator fun get(fqName: String, project: Project, scope: GlobalSearchScope): Collection<Key> {
+    operator fun get(
+        fqName: String,
+        project: Project,
+        scope: GlobalSearchScope = GlobalSearchScope.allScope(project)
+    ): Collection<Key> {
         return getByKeyAndMeasure(indexKey, logger) {
-            StubIndex.getElements(indexKey, fqName, project, scope, valueClass)
+            try {
+                StubIndex.getElements(indexKey, fqName, project, scope, valueClass)
+            } catch (e: Exception) {
+//                logger.error(e)
+                emptyList()
+            }
         }
     }
 

@@ -4,6 +4,9 @@ import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.Errors.CONSTRUCTOR_IN_INTERFACE
+import com.huawei.cangjie.descriptors.Errors.CYCLIC_IMPORT
+
+import com.huawei.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIndex
 import com.huawei.cangjie.incremental.CangJieLookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.*
@@ -14,6 +17,9 @@ import com.huawei.cangjie.resolve.lazy.ForceResolveUtil
 import com.huawei.cangjie.resolve.lazy.LazyDeclarationResolver
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
 import com.huawei.cangjie.types.expressions.ExpressionTypingContext
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.progress.util.BackgroundTaskUtil.executeOnPooledThread
 import com.intellij.psi.PsiElement
 
 class LazyTopDownAnalyzer(
@@ -191,7 +197,52 @@ class LazyTopDownAnalyzer(
     }
 
     fun resolveImportsInFile(file: CjFile) {
+        checkForCycles(file)
         fileScopeProvider.getImportResolver(file).forceResolveNonDefaultImports()
+    }
+
+
+    //    检查循环导入
+    private fun checkForCycles(file: CjFile) {
+//        操作是非常耗时的操作，在后台执行
+        executeOnPooledThread(object : Disposable {
+            override fun dispose() {
+
+            }
+        }) {
+
+
+//            流程
+//            1 获取该包所有导入语句
+//            2 获取被导入语句的包的导入语句
+//            3 检查是否包含该包名称
+            runReadAction {
+                val packageFqname = file.packageFqName
+
+                for (importDirective in file.importDirectives) {
+                    val result =
+                        importDirective.importedFqName?.asString()
+                            ?.let { CangJieImportFqNameForPackageNameIndex.contains(packageFqname, it, file.project) }
+
+
+                    if (result != null) {
+                        if (result.first) {
+
+                            importDirective.importedFqName?.let {
+                                trace.report(CYCLIC_IMPORT.on(importDirective, packageFqname, it))
+                            }
+
+
+                        }
+                    }
+
+
+                }
+            }
+
+
+        }
+
     }
 
     private fun resolveImportsInAllFiles(c: TopDownAnalysisContext) {
@@ -205,6 +256,7 @@ class LazyTopDownAnalyzer(
             (classDescriptor as LazyClassDescriptor).resolveMemberHeaders()
         }
     }
+
     private fun createReexportsDescriptors(
         c: TopDownAnalysisContext,
         topLevelFqNames: Multimap<FqName, CjElement>,
@@ -218,6 +270,7 @@ class LazyTopDownAnalyzer(
 //            registerTopLevelFqName(topLevelFqNames, typeAlias, descriptor)
         }
     }
+
     private fun createTypeAliasDescriptors(
         c: TopDownAnalysisContext,
         topLevelFqNames: Multimap<FqName, CjElement>,

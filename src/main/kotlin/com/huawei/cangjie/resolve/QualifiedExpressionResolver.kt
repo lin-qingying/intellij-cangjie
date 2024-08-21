@@ -4,6 +4,7 @@ import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.Errors.*
 import com.huawei.cangjie.descriptors.impl.LazyPackageViewDescriptorImpl
+import com.huawei.cangjie.descriptors.impl.LazyReexportAgent
 import com.huawei.cangjie.incremental.CangJieLookupLocation
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
@@ -418,12 +419,12 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
 //                        isQualifier = false
 //                    )
 
-                    tryResolveDescriptorsWhichCannotBeImported(
-                        trace,
-                        moduleDescriptor,
-                        packageOrClassDescriptor,
-                        lastPart,candidates,packageFragmentForVisibilityCheck
-                    )
+                tryResolveDescriptorsWhichCannotBeImported(
+                    trace,
+                    moduleDescriptor,
+                    packageOrClassDescriptor,
+                    lastPart, candidates, packageFragmentForVisibilityCheck
+                )
 //                } else {
 //                    tryResolveDescriptorsWhichCannotBeImported(
 //                        trace,
@@ -441,15 +442,15 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         moduleDescriptor: ModuleDescriptor,
         packageOrClassDescriptor: DeclarationDescriptor,
         lastPart: QualifierPart,
-        candidates:Collection<DeclarationDescriptor> = emptyList(),
+        candidates: Collection<DeclarationDescriptor> = emptyList(),
         packageFragmentForVisibilityCheck: PackageFragmentDescriptor?
 
     ) {
         val lastPartExpression = lastPart.expression ?: return
 
-       val descriptors = SmartList<DeclarationDescriptor>().apply {
-           addAll(candidates)
-       }
+        val descriptors = SmartList<DeclarationDescriptor>().apply {
+            addAll(candidates)
+        }
         val lastName = lastPart.name
 
         when (packageOrClassDescriptor) {
@@ -697,7 +698,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         }
     }
 
-    private fun  storeResult(
+    private fun storeResult(
         trace: BindingTrace,
         referenceExpression: CjSimpleNameExpression?,
         descriptors: Collection<DeclarationDescriptor>,
@@ -749,7 +750,8 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         shouldBeVisibleFrom: DeclarationDescriptor?,
         position: QualifierPosition,
         isQualifier: Boolean = true,
-        packageView: DeclarationDescriptor? = null
+        packageView: DeclarationDescriptor? = null,
+        reportReexportError: Boolean = true
     ): Qualifier? {
         referenceExpression ?: return null
         if (descriptor == null) {
@@ -833,16 +835,47 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                     } else {
                         shouldBeVisibleFrom
                     }
-                if (!isVisible(descriptor, fromToCheck, position, languageVersionSettings)) {
-                    trace.report(
-                        INVISIBLE_REFERENCE.on(
-                            referenceExpression,
-                            descriptor,
-                            descriptor.visibility,
-                            descriptor
+
+                if (descriptor is LazyReexportAgent) {
+
+//                    var isReexportError = reportReexportError
+//                    if (reportReexportError) {
+                    if (!isVisible(descriptor, fromToCheck, position, languageVersionSettings)) {
+//                        报告过一次就不报告了
+//                            isReexportError = false
+                        trace.report(
+                            INVISIBLE_REFERENCE_REEXPORT.on(
+                                referenceExpression,
+                                descriptor,
+                                descriptor.visibility,
+                                descriptor.packageFragmentDescriptor.fqName
+                            )
                         )
+                    }
+//                    }
+                    storeResult(
+                        trace,
+                        referenceExpression,
+                        descriptor.proxied,
+                        shouldBeVisibleFrom,
+                        position,
+                        isQualifier,
+                        packageView,
+
                     )
+                } else {
+                    if (!isVisible(descriptor, fromToCheck, position, languageVersionSettings)) {
+                        trace.report(
+                            INVISIBLE_REFERENCE.on(
+                                referenceExpression,
+                                descriptor,
+                                descriptor.visibility,
+                                descriptor
+                            )
+                        )
+                    }
                 }
+
             }
 
 //            TYPE -> TODO()

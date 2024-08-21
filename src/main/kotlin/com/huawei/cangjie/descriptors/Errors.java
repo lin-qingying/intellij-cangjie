@@ -42,6 +42,9 @@ public interface Errors {
     //"INVISIBLE_REFERENCE" is used for invisible classes references and references in import
     DiagnosticFactory3<CjSimpleNameExpression, DeclarationDescriptor, DescriptorVisibility, DeclarationDescriptor> INVISIBLE_REFERENCE =
             DiagnosticFactory3.create(ERROR);
+
+    DiagnosticFactory3<CjSimpleNameExpression, DeclarationDescriptor, DescriptorVisibility, FqName> INVISIBLE_REFERENCE_REEXPORT =
+            DiagnosticFactory3.create(ERROR);
     DiagnosticFactory2<CjExpression, String, Collection<? extends ResolvedCall<?>>> DELEGATE_SPECIAL_FUNCTION_NONE_APPLICABLE =
             DiagnosticFactory2.create(ERROR);
     DiagnosticFactory0<PsiElement> MIXING_NAMED_AND_POSITIONED_ARGUMENTS = DiagnosticFactory0.create(ERROR);
@@ -144,17 +147,17 @@ public interface Errors {
     DiagnosticFactory0<CjTypeReference> DYNAMIC_SUPERTYPE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjSimpleNameExpression> PACKAGE_CANNOT_BE_IMPORTED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjSimpleNameExpression> MODULE_PACKAGE_CANNOT_BE_IMPORTED = DiagnosticFactory0.create(ERROR);
-    DiagnosticFactory0<CjPackageDirective > INCONSISTENT_PACKAGE_MACOR = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjPackageDirective> INCONSISTENT_PACKAGE_MACOR = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactory1<CjPackageDirective, FqName> INCONSISTENT_PACKAGE_MODIFIERS = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory2<PsiElement, CjModifierKeywordToken, String> WRONG_MODIFIER_TARGET = DiagnosticFactory2.create(ERROR);
 
     DiagnosticFactory1<CjImportDirective, FqName> SELF_IMPORT_NOT_ALLOWED = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory2<CjImportDirective,FqName,DescriptorVisibility> IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory2<CjImportDirective, FqName, DescriptorVisibility> IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED = DiagnosticFactory2.create(ERROR);
 
 
     DiagnosticFactory0<CjSuperTypeEntry> SUPERTYPE_NOT_INITIALIZED = DiagnosticFactory0.create(ERROR);
-    DiagnosticFactory2<PsiElement, CjModifierKeywordToken,CjModifierKeywordToken> INCOMPATIBLE_MODIFIERS =
+    DiagnosticFactory2<PsiElement, CjModifierKeywordToken, CjModifierKeywordToken> INCOMPATIBLE_MODIFIERS =
             DiagnosticFactory2.create(ERROR);
     DiagnosticFactory1<CjSimpleNameExpression, Name> CANNOT_BE_IMPORTED = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, CjModifierKeywordToken> REPEATED_MODIFIER = DiagnosticFactory1.create(ERROR);
@@ -236,6 +239,7 @@ public interface Errors {
             CANNOT_WEAKEN_ACCESS_PRIVILEGE =
             DiagnosticFactory3.create(ERROR, VISIBILITY_MODIFIER);
     DiagnosticFactory0<CjParameter> DEFAULT_VALUE_NOT_ALLOWED_IN_OVERRIDE = DiagnosticFactory0.create(ERROR, PARAMETER_DEFAULT_VALUE);
+    DiagnosticFactory2<CjImportDirective, FqName, FqName> CYCLIC_IMPORT = DiagnosticFactory2.create(ERROR);
 
     DiagnosticFactory2<CjParameter, ClassDescriptor, ValueParameterDescriptor> PARAMETER_NAME_CHANGED_ON_OVERRIDE =
             DiagnosticFactory2.create(WARNING, DECLARATION_NAME);

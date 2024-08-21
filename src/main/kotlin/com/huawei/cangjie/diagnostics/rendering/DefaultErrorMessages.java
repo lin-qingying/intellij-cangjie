@@ -43,16 +43,18 @@ public class DefaultErrorMessages {
         MAP.put(WRONG_MODIFIER_TARGET, "Modifier ''{0}'' is not applicable to ''{1}''", TO_STRING, TO_STRING);
 
 
-
 //        包导入
 
         MAP.put(PACKAGE_CANNOT_BE_IMPORTED, "Packages cannot be imported");
         MAP.put(MODULE_PACKAGE_CANNOT_BE_IMPORTED, "Module name cannot be imported");
         MAP.put(SELF_IMPORT_NOT_ALLOWED, "Package ''{0}'' should not import itself", FQNAME);
         MAP.put(IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED, "Imported package name ''{0}'' cannot be modified by ''{1}''", FQNAME, VISIBILITY);
+        MAP.put(CYCLIC_IMPORT, "packages ''{0}'' ''{1}'' are in circular dependencies.", FQNAME, FQNAME);
 
 
 //        访问控制
+        MAP.put(INVISIBLE_REFERENCE_REEXPORT, "Cannot access ''{0}'': it is {1} in {2}", NAME, VISIBILITY, FQNAME);
+
         MAP.put(INVISIBLE_REFERENCE, "Cannot access ''{0}'': it is {1} in {2}", NAME, VISIBILITY, NAME_OF_CONTAINING_DECLARATION_OR_FILE);
         MAP.put(INCONSISTENT_PACKAGE_MODIFIERS, "Inconsistent modifiers for package ''{0}''", FQNAME);
         MAP.put(INCONSISTENT_PACKAGE_MACOR, "Inconsistent macro package declarations");

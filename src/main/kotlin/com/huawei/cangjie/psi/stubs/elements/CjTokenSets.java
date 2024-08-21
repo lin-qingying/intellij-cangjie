@@ -13,7 +13,8 @@ public interface CjTokenSets {
     TokenSet INSIDE_DIRECTIVE_EXPRESSIONS = TokenSet.create(
 
 //            IMPORT_DIRECTIVE_ITEM,
-            REFERENCE_EXPRESSION, DOT_QUALIFIED_EXPRESSION);
+            DOT_QUALIFIED_EXPRESSION,
+            REFERENCE_EXPRESSION );
     TokenSet TYPE_ELEMENT_TYPES = TokenSet.create(USER_TYPE, BASIC_TYPE);
 
 }

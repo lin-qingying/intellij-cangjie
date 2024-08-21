@@ -33,6 +33,17 @@ import com.huawei.cangjie.utils.Printer
 import kotlin.reflect.full.memberProperties
 
 
+class ReexportPackageFragment(
+    module: ModuleDescriptor,
+    fqName: FqName,
+    private val memberScope:MemberScope
+) : PackageFragmentDescriptorImpl(module, fqName) {
+    override fun getMemberScope(): MemberScope {
+       return memberScope
+    }
+
+}
+
 abstract class PackageFragmentDescriptorImpl(
     module: ModuleDescriptor,
     final override val fqName: FqName
@@ -159,7 +170,8 @@ class PackageFragmentDescriptorBasicImpl(
             location: LookupLocation
         ): Collection<@JvmWildcard VariableDescriptor> = emptyList()
 
-        override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =  emptyList()
+        override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
+            emptyList()
 
         override fun getFunctionNames(): Set<Name> = emptySet()
 

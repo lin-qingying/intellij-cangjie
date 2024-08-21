@@ -1,8 +1,11 @@
 package com.huawei.cangjie.descriptors
 
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.name.FqName
+import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.scopes.MemberScope
-interface PackageData: DeclarationDescriptor{
+
+interface PackageData : DeclarationDescriptor {
     val fqName: FqName
 
 
@@ -35,10 +38,21 @@ interface PackageData: DeclarationDescriptor{
 
     }
 }
-interface PackageViewDescriptor :PackageData {
 
+interface PackageViewDescriptor : PackageData {
 
+    fun getContributedDescriptorsByReexportDirective(
+        languageVersionSettings: LanguageVersionSettings,
+        packageFragment: PackageFragmentDescriptor?,
+        declaredName: Name,
 
+        aliasName: Name
+    ): Collection<DeclarationDescriptor> {
+
+        return emptyList()
+    }
+
+    val reexportTop: Boolean get() =  true
     override val containingDeclaration: PackageViewDescriptor?
 
     val memberScope: MemberScope

@@ -293,9 +293,9 @@ public class IdeStubIndexService extends StubIndexService {
     @Override
     public void indexImports(@NotNull CangJieImportDirectiveStub stub, @NotNull IndexSink sink) {
 
-        if (stub.getModifierVisibility() == DescriptorVisibilities.PRIVATE) {
-            return;
-        }
+//        if (stub.getModifierVisibility() == DescriptorVisibilities.PRIVATE) {
+//            return;
+//        }
 
 //        String name = stub.getName();
 //        if (name != null) {

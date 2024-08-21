@@ -90,6 +90,8 @@ open class LazyImportResolver<I : CjImportInfo>(
 
     private val importedScopesProvider = with(components) {
         storageManager.createMemoizedFunctionWithNullableValues { directive: CjImportInfo ->
+
+//            (traceForImportResolve.bindingContext.diagnostics as MutableDiagnosticsWithSuppression).clear()
             qualifiedExpressionResolver.processImportReference(
                 directive, moduleDescriptor, traceForImportResolve, excludedImportNames, packageFragment
             )
