@@ -2,7 +2,7 @@
 ## 适用于intellij平台的仓颉语言插件
 
 
-[插件市场地址](https://plugins.jetbrains.com/plugin/24984-cangjie)
+[从 Jetbrains Marketplace 获取](https://plugins.jetbrains.com/plugin/24984-cangjie)
 ### 安装和使用
 
 ```
