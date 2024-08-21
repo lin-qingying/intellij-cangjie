@@ -70,7 +70,7 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
 
         modules = cachedValuesManager.createCachedValue {
             val ideaModuleInfos = moduleCache.fetchValues().flatten().also {
-                it.checkValidity { "modulesAndSdk: modules calculation" }
+                it.checkValidity { "modules: modules calculation" }
             }
             CachedValueProvider.Result.create(ideaModuleInfos, modificationTracker)
         }

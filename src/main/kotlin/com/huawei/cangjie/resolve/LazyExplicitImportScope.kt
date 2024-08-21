@@ -92,6 +92,9 @@ class LazyExplicitImportScope(
         if (kindFilter.acceptsKinds(DescriptorKindFilter.VARIABLES_MASK)) {
             descriptors.addAll(getContributedVariables(aliasName, NoLookupLocation.MATCH_GET_ALL_DESCRIPTORS))
         }
+        if (kindFilter.acceptsKinds(DescriptorKindFilter.REEXPORT_MASK)){
+
+        }
         if (kindFilter.acceptsKinds(DescriptorKindFilter.PACKAGES_MASK)) {
             getContributedPackage(aliasName)?.let {
                 descriptors.add(it)
@@ -100,6 +103,10 @@ class LazyExplicitImportScope(
 
 //            descriptors.addAll(getContributedPackages(aliasName, NoLookupLocation.MATCH_GET_ALL_DESCRIPTORS)))
         }
+
+
+
+
         if (changeNamesForAliased && aliasName != declaredName) {
             for (i in descriptors.indices) {
                 val newDescriptor: DeclarationDescriptor = when (val descriptor = descriptors[i]) {

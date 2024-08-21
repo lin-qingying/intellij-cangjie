@@ -182,21 +182,21 @@ class LazyImportResolverForCjImportDirective(
 
             checkResolvedImportDirective(importInfo)
         }
-        for ((alias, import) in explicitClassImports.entries()) {
-            if (alias.all { it == '_' }) {
-                TODO()
+//        for ((alias, import) in explicitClassImports.entries()) {
+//            if (alias.all { it == '_' }) {
+//                TODO()
 //                traceForImportResolve.report(Errors.UNDERSCORE_IS_RESERVED.on(import))
-            }
-        }
-        for (alias in explicitClassImports.keySet()) {
-            val imports = explicitClassImports.get(alias)
-            if (imports.size > 1) {
-                imports.forEach {
-                    TODO()
-//                    traceForImportResolve.report(Errors.CONFLICTING_IMPORT.on(it, alias))
-                }
-            }
-        }
+//            }
+//        }
+//        for (alias in explicitClassImports.keySet()) {
+//            val imports = explicitClassImports.get(alias)
+//            if (imports.size > 1) {
+//                imports.forEach {
+//                    TODO()
+////                    traceForImportResolve.report(Errors.CONFLICTING_IMPORT.on(it, alias))
+//                }
+//            }
+//        }
     }
     private val forceResolveImportDirective =
         components.storageManager.createMemoizedFunction { directive: CjImportDirective ->

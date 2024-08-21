@@ -4,6 +4,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.ide.stubindex.CangJieExactPackagesIndex
 import com.huawei.cangjie.name.FqName
+import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjPackageDirective
 import com.huawei.cangjie.resolve.scopes.ChainedMemberScope
 import com.huawei.cangjie.resolve.scopes.LazyScopeAdapter
@@ -11,7 +12,32 @@ import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.storage.getValue
 
-class LazyPackageViewDescriptorImpl(
+class LazyReexportPackage(
+
+    override val fqName: FqName,
+
+    ) : PackageData {
+    val packageProjection: PackageData
+        get() {
+            return this
+
+        }
+    override val original: DeclarationDescriptor = packageProjection.original
+    override val containingDeclaration: DeclarationDescriptor? = packageProjection.containingDeclaration
+
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+        TODO("Not yet implemented")
+    }
+
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+        TODO("Not yet implemented")
+    }
+
+    override val name: Name
+        get() = TODO("Not yet implemented")
+}
+
+open class LazyPackageViewDescriptorImpl(
     override val module: ModuleDescriptorImpl,
     override val fqName: FqName,
     val storageManager: StorageManager
@@ -44,18 +70,40 @@ class LazyPackageViewDescriptorImpl(
 
     }
 
-    fun initVisibility(){
+    //是否报告宏包声明不一致错误
+    var isReportMacroPackage: Boolean = false
+    var isMacroPackage: Boolean = false
+
+    fun initVisibility() {
         if (module.project != null) {
-            val filelist = CangJieExactPackagesIndex.get(fqName.asString(), module.project)
+            val filelist = CangJieExactPackagesIndex.get(fqName.asString(), module.project!!)
             val visibilitys = mutableListOf<DescriptorVisibility>()
+            val macroPackagesIS = mutableListOf<Boolean>()
             filelist.forEach {
                 if (it.packageDirective != null) {
                     packageDirectives.add(it.packageDirective!!)
+
+
+                    macroPackagesIS.add(it.packageDirective!!.isMacroPackage)
 
                     visibilitys.add(it.packageDirective!!.modifierVisibility)
                 }
                 it.packageDirective?.getModifierVisibility()
             }
+
+//            如果macroPackagesIS全部为true 或者其中有true
+            if (macroPackagesIS.all { it } || macroPackagesIS.any { it }) {
+                isMacroPackage = true
+            } else {
+                isMacroPackage = false
+            }
+//            如果macroPackagesIS既有true也有false ，报告错误
+            if (macroPackagesIS.any { it } && macroPackagesIS.any { !it }) {
+                isReportMacroPackage = true
+            }
+
+
+
 
             if (visibilitys.isNotEmpty()) {
                 if (visibilitys.all { it == visibilitys.first() }) {

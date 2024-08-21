@@ -59,10 +59,10 @@ class DeclarationsChecker(
         ModifierCheckerCore.check(packageDirective, trace, descriptor = null, languageVersionSettings = languageVersionSettings)
     }
     fun process(bodiesResolveContext: BodiesResolveContext) {
-//        for (file in bodiesResolveContext.files) {
-//            checkModifiersAndAnnotationsInPackageDirective(file)
+        for (file in bodiesResolveContext.files) {
+            checkModifiersAndAnnotationsInPackageDirective(file)
 //            annotationChecker.check(file, trace, null)
-//        }
+        }
 
         for ((classOrObject, classDescriptor) in bodiesResolveContext.declaredClasses.entries) {
             checkClass(classDescriptor, classOrObject)

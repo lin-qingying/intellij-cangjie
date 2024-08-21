@@ -7,6 +7,7 @@ import com.huawei.cangjie.descriptors.impl.LazyPackageViewDescriptorImpl
 import com.huawei.cangjie.incremental.CangJieLookupLocation
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
+import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
@@ -407,23 +408,30 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
             lastPart.name,
             aliasName,
             CallOnceFunction(Unit) { candidates ->
-                if (candidates.isNotEmpty()) {
-                    storeResult(
-                        trace,
-                        lastPart.expression,
-                        candidates,
-                        packageFragmentForVisibilityCheck,
-                        position = IMPORT,
-                        isQualifier = false
-                    )
-                } else {
+//                if (candidates.isNotEmpty()) {
+//                    storeResult(
+//                        trace,
+//                        lastPart.expression,
+//                        candidates,
+//                        packageFragmentForVisibilityCheck,
+//                        position = IMPORT,
+//                        isQualifier = false
+//                    )
+
                     tryResolveDescriptorsWhichCannotBeImported(
                         trace,
                         moduleDescriptor,
                         packageOrClassDescriptor,
-                        lastPart
+                        lastPart,candidates,packageFragmentForVisibilityCheck
                     )
-                }
+//                } else {
+//                    tryResolveDescriptorsWhichCannotBeImported(
+//                        trace,
+//                        moduleDescriptor,
+//                        packageOrClassDescriptor,
+//                        lastPart
+//                    )
+//                }
             }
         )
     }
@@ -432,11 +440,16 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         trace: BindingTrace,
         moduleDescriptor: ModuleDescriptor,
         packageOrClassDescriptor: DeclarationDescriptor,
-        lastPart: QualifierPart
+        lastPart: QualifierPart,
+        candidates:Collection<DeclarationDescriptor> = emptyList(),
+        packageFragmentForVisibilityCheck: PackageFragmentDescriptor?
+
     ) {
         val lastPartExpression = lastPart.expression ?: return
 
-        val descriptors = SmartList<DeclarationDescriptor>()
+       val descriptors = SmartList<DeclarationDescriptor>().apply {
+           addAll(candidates)
+       }
         val lastName = lastPart.name
 
         when (packageOrClassDescriptor) {
@@ -446,6 +459,8 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
 //                    trace.report(PACKAGE_CANNOT_BE_IMPORTED.on(lastPartExpression))
 //                    descriptors.add(packageOrClassDescriptor)
 
+
+//                    TODO 这里有问题，有时候可能会出现导入的不是包，但是一样报错
 //                    不能使用 除private以外的修饰符修饰import语句
                     val importDirective = lastPartExpression.getParentOfType<CjImportDirective>(true)
                     if (importDirective != null) {
@@ -459,7 +474,6 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                                     )
                                 )
                             }
-
                         }
                     }
 
@@ -469,7 +483,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                         trace.report(MODULE_PACKAGE_CANNOT_BE_IMPORTED.on(lastPartExpression))
                         descriptors.add(packageOrClassDescriptor)
                     }
-                    return
+//                    return
 
                 }
             }
@@ -489,7 +503,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
             trace,
             lastPart.expression,
             descriptors,
-            shouldBeVisibleFrom = null,
+            shouldBeVisibleFrom = packageFragmentForVisibilityCheck,
             position = IMPORT,
             isQualifier = false
         )
@@ -683,7 +697,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         }
     }
 
-    private fun storeResult(
+    private fun  storeResult(
         trace: BindingTrace,
         referenceExpression: CjSimpleNameExpression?,
         descriptors: Collection<DeclarationDescriptor>,
@@ -756,22 +770,60 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         when (position) {
             PACKAGE_HEADER -> {
                 if (descriptor is LazyPackageViewDescriptorImpl) {
-                    if (descriptor.isReported) {
+
+
 //                       报告包名修饰符不一致
-                        descriptor.packageDirectives.forEach {
+                    descriptor.packageDirectives.forEach {
+                        if (it.modifierVisibility == DescriptorVisibilities.PRIVATE) {
+                            trace.report(WRONG_MODIFIER_TARGET.on(it, CjTokens.PRIVATE_KEYWORD, "Package"))
+                        }
+                        if (descriptor.isReportMacroPackage) {
+                            trace.report(
+                                INCONSISTENT_PACKAGE_MACOR.on(
+                                    it
+                                )
+                            )
+                        }
+
+                        if (descriptor.isReported) {
                             trace.report(
                                 INCONSISTENT_PACKAGE_MODIFIERS.on(
                                     it, it.fqName
                                 )
                             )
-
                         }
+
 
                     }
                 }
             }
 
             IMPORT -> {
+
+//                //                不能使用 除private以外的修饰符修饰import语句
+//                val importDirective = referenceExpression.getParentOfType<CjImportDirective>(true)
+//
+//                if (importDirective != null) {
+//                    if (importDirective.modifierVisibility != DescriptorVisibilities.PRIVATE) {
+//                        importDirective.importedFqName?.let {
+//                            trace.report(
+//                                IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED.on(
+//                                    importDirective,
+//                                    it,
+//                                    importDirective.modifierVisibility
+//                                )
+//                            )
+//                        }
+//                    }
+//                }
+
+
+//                    不能导入模块名
+//                if (packageDescriptor.fqName.isModuleName) {
+//                    trace.report(MODULE_PACKAGE_CANNOT_BE_IMPORTED.on(referenceExpression))
+//                    descriptors.add(packageOrClassDescriptor)
+//                }
+
                 val fromToCheck =
                     if (shouldBeVisibleFrom is PackageFragmentDescriptor && shouldBeVisibleFrom.source == SourceElement.NO_SOURCE && referenceExpression.containingFile !is DummyHolder) {
                         PackageFragmentWithCustomSource(
@@ -793,8 +845,11 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                 }
             }
 
-            TYPE -> TODO()
-            EXPRESSION -> TODO()
+//            TYPE -> TODO()
+//            EXPRESSION -> TODO()
+            else -> {
+
+            }
         }
 //        }
         return if (isQualifier) storeQualifier(trace, referenceExpression, descriptor) else null

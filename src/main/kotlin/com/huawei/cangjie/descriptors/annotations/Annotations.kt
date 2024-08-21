@@ -3,7 +3,7 @@ package com.huawei.cangjie.descriptors.annotations
 import com.huawei.cangjie.name.FqName
 
 interface Annotated {
-    val annotations: Annotations
+    val annotations: Annotations get() = Annotations.EMPTY
 }
 
 class CompositeAnnotations(

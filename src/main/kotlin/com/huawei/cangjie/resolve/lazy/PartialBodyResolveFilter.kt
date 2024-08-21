@@ -67,7 +67,11 @@ class PartialBodyResolveFilter(
 
     companion object{
         fun findStatementToResolve(element: CjElement, declaration: CjDeclaration): CjExpression? {
-            return element.parentsWithSelf.takeWhile { it != declaration }.firstOrNull { it.isStatement() } as CjExpression?
+            return element.parentsWithSelf.takeWhile {
+                it != declaration
+            }.firstOrNull {
+                it.isStatement()
+            } as CjExpression?
         }
 
         private fun PsiElement.isStatement() = this is CjExpression && parent is CjBlockExpression

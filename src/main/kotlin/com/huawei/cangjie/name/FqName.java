@@ -68,6 +68,9 @@ public final class FqName {
     }
 
     public boolean isModuleName() {
+        if (parent == null){
+            return true;
+        }
         return parent.isRoot();
     }
 

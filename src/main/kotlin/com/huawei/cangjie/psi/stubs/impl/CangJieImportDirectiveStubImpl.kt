@@ -16,7 +16,7 @@ class CangJieImportDirectiveStubImpl(
     private val importedFqName: StringRef? = null,
 //    private val importedFqNames: List<StringRef> = emptyList(),
     private val isValid: Boolean,
-    private val visibility:DescriptorVisibility
+    private val visibility: DescriptorVisibility
 
 ) : CangJieStubBaseImpl<CjImportDirective>(parent, CjStubElementTypes.IMPORT_DIRECTIVE), CangJieImportDirectiveStub {
     override fun isAllUnder(): Boolean = isAllUnder
@@ -34,7 +34,12 @@ class CangJieImportDirectiveStubImpl(
 
     override fun isValid(): Boolean = isValid
     override fun getModifierVisibility(): DescriptorVisibility {
-     return   visibility
+        return visibility
+    }
+
+    override fun getPackageFqName(): FqName {
+        return psi.getContainingCjFile().packageFqName
+
     }
 
 }

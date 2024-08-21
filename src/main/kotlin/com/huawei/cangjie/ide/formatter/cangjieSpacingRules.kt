@@ -299,7 +299,7 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
             around(TokenSet.create(ANDAND, OROR)).spaceIf(cangjieCommonSettings.SPACE_AROUND_LOGICAL_OPERATORS)
             around(TokenSet.create(EQEQ, EXCLEQ)).spaceIf(cangjieCommonSettings.SPACE_AROUND_EQUALITY_OPERATORS)
             aroundInside(
-                TokenSet.create(LT, GT, LTEQ, GT_EQ), BINARY_EXPRESSION
+                TokenSet.create(LT, GT, LTEQ, GTEQ), BINARY_EXPRESSION
             ).spaceIf(cangjieCommonSettings.SPACE_AROUND_RELATIONAL_OPERATORS)
             aroundInside(TokenSet.create(PLUS, MINUS), BINARY_EXPRESSION).spaceIf(cangjieCommonSettings.SPACE_AROUND_ADDITIVE_OPERATORS)
             aroundInside(

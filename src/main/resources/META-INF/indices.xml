@@ -27,6 +27,7 @@
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieVariableNothingVariableShortNameIndex"/>
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTypeAliasShortNameIndex"/>
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTypeAliasByExpansionShortNameIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIndex"/>
 
         <fileBasedIndex implementation="com.huawei.cangjie.ide.vfilefinder.CangJiePackageSourcesMemberNamesIndex"/>
         <!--        <fileBasedIndex implementation="com.huawei.cangjie.ide.vfilefinder.CangJieFIleIndexTest"/>-->

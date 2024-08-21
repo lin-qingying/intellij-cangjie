@@ -140,7 +140,7 @@ public interface CjTokens {
     int PROTECTED_KEYWORD_Id = 122;
     int CATCH_KEYWORD_Id = 123;
 
-    int MARCO_KEYWORD_Id = 124;
+
     int TYPE_KEYWORD_Id = 125;
 
     int COMPOSITION_Id = 126;
@@ -182,17 +182,17 @@ public interface CjTokens {
 
     int UNDERLINE_Id = 167;
 
-    int OR_EQ_Id = 168;
+    int OREQ_Id = 168;
     int ANDEQ_Id = 169;
     int XOREQ_Id = 170;
     int LTLT_Id = 171;
     int GTGT_Id = 172;
-    int LT_LT_EQ_Id = 173;
+    int LTLTEQ_Id = 173;
     int GTGTEQ_Id = 174;
 
     int MULMUL_Id = 175;
     int MUL_MUL_EQ_Id = 176;
-    int OR_OR_EQ_Id = 177;
+    int OROREQ_Id = 177;
     int ELLIPSIS_Id = 178;
     int BACKSLASH_Id = 179;
     int QUOTESYMBOL_Id = 180;
@@ -312,8 +312,8 @@ public interface CjTokens {
     };
     CjSingleValueToken LTEQ = new CjSingleValueToken("LTEQ", "<=", LTEQ_Id);
     CjSingleValueToken AT = new CjSingleValueToken("AT", "@", AT_Id);
-    CjSingleValueToken GT_EQ = new CjSingleValueToken("GT_EQ", ">=", GTEQ_Id);
-    CjSingleValueToken LT_COLON = new CjSingleValueToken("LT_COLON", "<:", LTCOLON_Id);
+    CjSingleValueToken GTEQ = new CjSingleValueToken("GT_EQ", ">=", GTEQ_Id);
+    CjSingleValueToken LTCOLON = new CjSingleValueToken("LT_COLON", "<:", LTCOLON_Id);
     CjSingleValueToken ARROW = new CjSingleValueToken("ARROW", "->", ARROW_Id);
     CjSingleValueToken COMPOSITION = new CjSingleValueToken("COMPOSITION", "~>", COMPOSITION_Id);
     //反向箭头composition
@@ -350,8 +350,8 @@ public interface CjTokens {
     CjSingleValueToken MINUSEQ = new CjSingleValueToken("MINUSEQ", "-=", MINUSEQ_Id);
     TokenSet ALL_ASSIGNMENTS = TokenSet.create(EQ, PLUSEQ, MINUSEQ, MULTEQ, PERCEQ, DIVEQ);
     CjSingleValueToken ANDANDEQ = new CjSingleValueToken("ANDANDEQ", "&&=", ANDANDEQ_Id);
-    CjSingleValueToken OR_EQ = new CjSingleValueToken("OR_EQ", "|=", OR_EQ_Id);
-    CjSingleValueToken OR_OR_EQ = new CjSingleValueToken("OR_OR_EQ", "||=", OR_OR_EQ_Id);
+    CjSingleValueToken OREQ = new CjSingleValueToken("OREQ", "|=", OREQ_Id);
+    CjSingleValueToken OROREQ = new CjSingleValueToken("OROREQ", "||=", OROREQ_Id);
     CjSingleValueToken ANDEQ = new CjSingleValueToken("ANDEQ", "&=", ANDEQ_Id);
     CjSingleValueToken XOREQ = new CjSingleValueToken("XOREQ", "^=", XOREQ_Id);
     //    CjKeywordToken FILE_KEYWORD = CjKeywordToken.softKeyword("file", FILE_KEYWORD_Id);
@@ -383,7 +383,7 @@ public interface CjTokens {
                     GTGT,
                     LT,
                     LTLT,
-                    GT_EQ,
+                    GTEQ,
                     LTEQ,
                     EQEQ,
                     EXCLEQ,
@@ -392,7 +392,7 @@ public interface CjTokens {
                     XOR,
                     ANDAND,
                     RANGE,
-                    OR_EQ,
+                    OREQ,
                     EXCL
 
             )
@@ -400,16 +400,16 @@ public interface CjTokens {
     IElementType DOC_COMMENT = CDocTokens.CDOC;
     IElementType WHITE_SPACE = TokenType.WHITE_SPACE;
     TokenSet WHITESPACES = TokenSet.create(TokenType.WHITE_SPACE);
-    CjSingleValueToken LT_LT_EQ = new CjSingleValueToken("LT_LT_EQ", "<<=", LT_LT_EQ_Id);
+    CjSingleValueToken LTLTEQ = new CjSingleValueToken("LTLTEQ", "<<=", LTLTEQ_Id);
     CjSingleValueToken GTGTEQ = new CjSingleValueToken("GTGTEQ", ">>=", GTGTEQ_Id);
     TokenSet OPERATIONS = TokenSet.create(AS_KEYWORD, IS_KEYWORD, DOT, PLUSPLUS, MINUSMINUS, MUL, MULMUL, PLUS,
-            MINUS, EXCL, DIV, PERC, LT, GT, LTEQ, GT_EQ, EQEQ, EXCLEQ, ANDAND, OROR, MULMULEQ,
+            MINUS, EXCL, DIV, PERC, LT, GT, LTEQ, GTEQ, EQEQ, EXCLEQ, ANDAND, OROR, MULMULEQ,
 
             RANGE, RANGEEQ, EQ, MULTEQ, DIVEQ, PERCEQ, PLUSEQ, MINUSEQ,
             ELVIS, SAFE_ACCESS,
             AND, OR, XOR,
-            ANDEQ, OR_EQ, XOREQ, ANDANDEQ,
-            LTLT, GTGT, LT_LT_EQ, GTGTEQ,
+            ANDEQ, OREQ, XOREQ, ANDANDEQ,
+            LTLT, GTGT, LTLTEQ, GTGTEQ,
 
             COMPOSITION,PIPELINE
     );
@@ -477,10 +477,10 @@ public interface CjTokens {
     CjModifierKeywordToken OVERRIDE_KEYWORD = CjModifierKeywordToken.keywordModifier("override", OVERRIDE_KEYWORD_Id);
     CjModifierKeywordToken PRIVATE_KEYWORD = CjModifierKeywordToken.keywordModifier("private", PRIVATE_KEYWORD_Id);
     CjModifierKeywordToken PUBLIC_KEYWORD = CjModifierKeywordToken.keywordModifier("public", PUBLIC_KEYWORD_Id);
-    CjModifierKeywordToken MARCO_KEYWORD = CjModifierKeywordToken.keywordModifier("marco", MARCO_KEYWORD_Id);
     CjModifierKeywordToken STATIC_KEYWORD = CjModifierKeywordToken.keywordModifier("static", STATIC_KEYWORD_Id);
     CjModifierKeywordToken INTERNAL_KEYWORD = CjModifierKeywordToken.keywordModifier("internal", INTERNAL_KEYWORD_Id);
     CjModifierKeywordToken PROTECTED_KEYWORD = CjModifierKeywordToken.keywordModifier("protected", PROTECTED_KEYWORD_Id);
+    CjKeywordToken MACRO_KEYWORD = CjKeywordToken.keyword("macro", MACRO_KEYWORD_Id);
 
     //    Class修饰符
     CjKeywordToken[] CLASS_MODIFIER_KEYWORDS_ARRAY = new CjKeywordToken[]{
@@ -527,7 +527,6 @@ public interface CjTokens {
             UNSAFE_KEYWORD,
             CONST_KEYWORD
     };
-    CjKeywordToken MACRO_KEYWORD = CjKeywordToken.keyword("macro", MACRO_KEYWORD_Id);
     CjModifierKeywordToken MUT_KEYWORD = CjModifierKeywordToken.keywordModifier("mut", MUT_KEYWORD_Id);
     CjModifierKeywordToken OPERATOR_KEYWORD = CjModifierKeywordToken.keywordModifier("operator", OPERATOR_KEYWORD_Id);
     TokenSet KEYWORDS = TokenSet.orSet(
@@ -538,7 +537,7 @@ public interface CjTokens {
                     IN_KEYWORD, THROW_KEYWORD, RETURN_KEYWORD, BREAK_KEYWORD, CONTINUE_KEYWORD, IF_KEYWORD,
                     ELSE_KEYWORD, WHILE_KEYWORD, DO_KEYWORD, TRY_KEYWORD, MATCH_KEYWORD, CASE_KEYWORD,
                     TYPEOF_KEYWORD,
-                    MARCO_KEYWORD,
+                    MACRO_KEYWORD,
                     PROP_KEYWORD, ENUM_KEYWORD,
                     WHERE_KEYWORD,
 
@@ -649,6 +648,7 @@ public interface CjTokens {
             CjNodeTypes.INTEGER_CONSTANT,
             CjNodeTypes.CHARACTER_BYTE_CONSTANT
     );
+
 
 }
 

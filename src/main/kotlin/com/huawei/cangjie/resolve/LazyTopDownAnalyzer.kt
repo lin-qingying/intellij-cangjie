@@ -49,6 +49,8 @@ class LazyTopDownAnalyzer(
         val typeAliases = mutableListOf<CjTypeAlias>()
         val destructuringDeclarations = mutableListOf<CjDestructuringDeclaration>()
 
+        val reexports = mutableListOf<CjImportDirective>()
+
         val topLevelFqNames = HashMultimap.create<FqName, CjElement>()
 
         // 填充上下文
@@ -68,8 +70,8 @@ class LazyTopDownAnalyzer(
 
                 override fun visitVariable(variable: CjVariable) {
                     variables.add(variable)
-
                 }
+
 
                 override fun visitTypeAlias(typeAlias: CjTypeAlias) {
                     typeAliases.add(typeAlias)
@@ -81,8 +83,17 @@ class LazyTopDownAnalyzer(
 
                 override fun visitImportDirective(importDirective: CjImportDirective) {
                     val importResolver = fileScopeProvider.getImportResolver(importDirective.getContainingCjFile())
+
+//                    TODO 修改该语句，添加重导出回调，返回包名映射
                     importResolver.forceResolveImport(importDirective)
+
+
+
+                    if (importDirective.modifierVisibility != DescriptorVisibilities.PRIVATE) {
+                        reexports.add(importDirective)
+                    }
                 }
+
                 override fun visitTypeStatement(typeStatement: CjTypeStatement) {
 //                    val location =
 //                        if (typeStatement.isTopLevel()) CangJieLookupLocation(typeStatement) else NoLookupLocation.MATCH_RESOLVE_DECLARATION
@@ -150,6 +161,8 @@ class LazyTopDownAnalyzer(
                 override fun visitPackageDirective(directive: CjPackageDirective) {
                     directive.packageNames.forEach { identifierChecker.checkIdentifier(it, trace) }
                     qualifiedExpressionResolver.resolvePackageHeader(directive, moduleDescriptor, trace)
+
+
                 }
             })
 
@@ -160,6 +173,7 @@ class LazyTopDownAnalyzer(
 
         createVariableDescriptors(c, topLevelFqNames, variables)
         createTypeAliasDescriptors(c, topLevelFqNames, typeAliases)
+        createReexportsDescriptors(c, topLevelFqNames, reexports)
 
 
         resolveAllHeadersInClasses(c)
@@ -175,12 +189,13 @@ class LazyTopDownAnalyzer(
         return c
 
     }
+
     fun resolveImportsInFile(file: CjFile) {
         fileScopeProvider.getImportResolver(file).forceResolveNonDefaultImports()
     }
 
     private fun resolveImportsInAllFiles(c: TopDownAnalysisContext) {
-        for (file in c.files .map { it.getContainingCjFile() }) {
+        for (file in c.files.map { it.getContainingCjFile() }) {
             resolveImportsInFile(file)
         }
     }
@@ -188,6 +203,19 @@ class LazyTopDownAnalyzer(
     private fun resolveAllHeadersInClasses(c: TopDownAnalysisContext) {
         for (classDescriptor in c.allClasses) {
             (classDescriptor as LazyClassDescriptor).resolveMemberHeaders()
+        }
+    }
+    private fun createReexportsDescriptors(
+        c: TopDownAnalysisContext,
+        topLevelFqNames: Multimap<FqName, CjElement>,
+        reexports: List<CjImportDirective>
+    ) {
+        for (reexport in reexports) {
+//            val descriptor = lazyDeclarationResolver.resolveToDescriptor(typeAlias) as TypeAliasDescriptor
+//
+//            c.reexports[typeAlias] = descriptor
+//            ForceResolveUtil.forceResolveAllContents(descriptor.annotations)
+//            registerTopLevelFqName(topLevelFqNames, typeAlias, descriptor)
         }
     }
     private fun createTypeAliasDescriptors(

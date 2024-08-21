@@ -10,7 +10,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 
 
-    class PluginDeclarationProviderFactoryService : DeclarationProviderFactoryService() {
+class PluginDeclarationProviderFactoryService : DeclarationProviderFactoryService() {
     override fun create(
         project: Project,
         storageManager: StorageManager,
@@ -23,7 +23,7 @@ import com.intellij.psi.search.GlobalSearchScope
 
         return PluginDeclarationProviderFactory(
             project,
-           CangJieSourceFilterScope.projectSources(filesScope, project),
+            CangJieSourceFilterScope.projectSources(filesScope, project),
             storageManager,
             syntheticFiles,
             moduleInfo

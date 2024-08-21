@@ -12,11 +12,13 @@ import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.getAbbreviation
 import com.huawei.cangjie.types.util.contains
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
 import java.util.LinkedHashSet
 fun DescriptorRenderer.asRenderer() = SmartDescriptorRenderer(this)
 
 object Renderers {
+    private val LOG = Logger.getInstance(Renderers::class.java)
 
     @JvmField
     val NAME = Renderer<Named> { it.name.asString() }
@@ -45,6 +47,17 @@ object Renderers {
                 containingDeclaration!!.name.asString().wrapIntoQuotes()
             }
         }
+    }
+    @JvmField
+    val TO_STRING = Renderer<Any> { element ->
+        if (element is DeclarationDescriptor) {
+            LOG.warn(
+                "Diagnostic renderer TO_STRING was used to render an instance of DeclarationDescriptor.\n"
+                        + "This is usually a bad idea, because descriptors' toString() includes some debug information, "
+                        + "which should not be seen by the user.\nDescriptor: " + element
+            )
+        }
+        element.toString()
     }
 
     @JvmField

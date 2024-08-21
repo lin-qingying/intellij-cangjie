@@ -94,14 +94,14 @@ open class CangJieExpressionParsing(
             }
         },
 
-        COMPARISON(LT, GT, LTEQ, GT_EQ),
+        COMPARISON(LT, GT, LTEQ, GTEQ),
         EQUALITY(EQEQ, EXCLEQ),
         CONJUNCTION(ANDAND),
         DISJUNCTION(OROR),
 //        COMPOSITION(CjTokens.COMPOSITION),
 
         //位运算
-        BITWISE(AND, OR, XOR, LTLT, GTGT, LT_LT_EQ, GTGTEQ),
+        BITWISE(AND, OR, XOR, LTLT, GTGT, LTLTEQ, GTGTEQ),
 
         //flow
         FLOW(PIPELINE,COMPOSITION),
@@ -115,9 +115,9 @@ open class CangJieExpressionParsing(
             PERCEQ,
             ANDEQ,
             ANDANDEQ,
-            OR_EQ,
+            OREQ,
             XOREQ,
-            LT_LT_EQ,
+            LTLTEQ,
             GTGTEQ,
             MULMULEQ
         );
@@ -1902,7 +1902,7 @@ open class CangJieExpressionParsing(
             AND,
             OR,
             XOREQ,
-            LT_LT_EQ,
+            LTLTEQ,
             GTGTEQ,
             COLON,
             SEMICOLON,
@@ -1914,11 +1914,11 @@ open class CangJieExpressionParsing(
             MINUSEQ,
             PERCEQ,
             ANDEQ,
-            OR_OR_EQ,
+            OROREQ,
             ANDEQ,
-            OR_EQ,
+            OREQ,
             XOREQ,
-            LT_LT_EQ,
+            LTLTEQ,
             GTGTEQ,
             ARROW,
             LEFT_ARROW,
@@ -1929,11 +1929,11 @@ open class CangJieExpressionParsing(
             HASH,
             AT,
             QUEST,
-            LT_COLON,
+            LTCOLON,
             LT,
             GT,
             LTEQ,
-            GT_EQ,
+            GTEQ,
             EXCLEQ,
             EQEQ,
             UNDERLINE,

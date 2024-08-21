@@ -40,6 +40,9 @@ public class DefaultErrorMessages {
 //        常量检查
         MAP.put(CONSTANT_EXPECTED_TYPE_MISMATCH, "The {0} literal does not conform to the expected type {1}", STRING, RENDER_TYPE);
 
+        MAP.put(WRONG_MODIFIER_TARGET, "Modifier ''{0}'' is not applicable to ''{1}''", TO_STRING, TO_STRING);
+
+
 
 //        包导入
 
@@ -52,6 +55,7 @@ public class DefaultErrorMessages {
 //        访问控制
         MAP.put(INVISIBLE_REFERENCE, "Cannot access ''{0}'': it is {1} in {2}", NAME, VISIBILITY, NAME_OF_CONTAINING_DECLARATION_OR_FILE);
         MAP.put(INCONSISTENT_PACKAGE_MODIFIERS, "Inconsistent modifiers for package ''{0}''", FQNAME);
+        MAP.put(INCONSISTENT_PACKAGE_MACOR, "Inconsistent macro package declarations");
     }
 
 

@@ -5,8 +5,10 @@ import com.huawei.cangjie.descriptors.DescriptorVisibility;
 import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.psi.CjImportDirective;
 //import com.huawei.cangjie.psi.CjImportDirectiveItem;
+import com.huawei.cangjie.psi.stubs.CangJieClassStub;
 import com.huawei.cangjie.psi.stubs.CangJieImportDirectiveStub;
 import com.huawei.cangjie.psi.stubs.impl.CangJieImportDirectiveStubImpl;
+import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
 import com.intellij.psi.stubs.StubOutputStream;
@@ -41,6 +43,11 @@ public class CjImportDirectiveElementType extends CjStubElementType<CangJieImpor
         dataStream.writeName(importedFqName != null ? importedFqName.asString() : null);
         dataStream.writeBoolean(stub.isValid());
         dataStream.writeName(stub.getModifierVisibility().getName());
+    }
+
+    @Override
+    public void indexStub(@NotNull CangJieImportDirectiveStub stub, @NotNull IndexSink sink) {
+        StubIndexService.getInstance().indexImports(stub, sink);
     }
 
     @NotNull

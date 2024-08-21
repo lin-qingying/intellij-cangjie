@@ -181,7 +181,7 @@ interface CangJieImportDirectiveStub : StubElement<CjImportDirective> {
 
 
     fun getModifierVisibility(): DescriptorVisibility
-
+fun getPackageFqName(): FqName?
 
 }
 

@@ -35,7 +35,7 @@ private val CDOC_CONTENT = TokenSet.create(CDocTokens.CDOC, CDocElementTypes.CDO
 
 private val CODE_BLOCKS = TokenSet.create(BLOCK, CLASS_BODY, FUNCTION_LITERAL, PROPERTY_BODY)
 
-private val ALIGN_FOR_BINARY_OPERATIONS = TokenSet.create(MUL, DIV, PERC, PLUS, MINUS, LT, GT, LTEQ, GT_EQ, ANDAND, OROR)
+private val ALIGN_FOR_BINARY_OPERATIONS = TokenSet.create(MUL, DIV, PERC, PLUS, MINUS, LT, GT, LTEQ, GTEQ, ANDAND, OROR)
 private val ANNOTATIONS = TokenSet.create()
 
 typealias WrappingStrategy = (childElement: ASTNode) -> Wrap?

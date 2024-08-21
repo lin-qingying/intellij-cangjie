@@ -116,6 +116,9 @@ class DescriptorKindFilter(
         val PROPERTYS_MASK: Int = nextMask()
 
         val PACKAGES_MASK: Int = nextMask()
+
+//        重导出语句
+        val REEXPORT_MASK:Int =   nextMask()
         val ALL_KINDS_MASK: Int = nextMask() - 1
         @JvmField
         val PACKAGES: DescriptorKindFilter = DescriptorKindFilter(PACKAGES_MASK)
@@ -127,6 +130,8 @@ class DescriptorKindFilter(
         val VARIABLES: DescriptorKindFilter = DescriptorKindFilter(VARIABLES_MASK)
         @JvmField
         val PROPERTYS: DescriptorKindFilter = DescriptorKindFilter(PROPERTYS_MASK)
+        @JvmField
+        val   REEXPORT: DescriptorKindFilter = DescriptorKindFilter(REEXPORT_MASK)
 
         @JvmField
         val ALL: DescriptorKindFilter = DescriptorKindFilter(ALL_KINDS_MASK)

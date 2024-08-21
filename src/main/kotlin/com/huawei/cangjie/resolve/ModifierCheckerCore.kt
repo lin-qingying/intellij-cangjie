@@ -173,7 +173,8 @@ object ModifierCheckerCore {
         list: CjModifierList,
         trace: BindingTrace,
         parentDescriptor: DeclarationDescriptor?,
-//        actualTargets: List<KotlinTarget>,
+
+//        actualTargets: List<CangJieTarget>,
         languageVersionSettings: LanguageVersionSettings
     ) {
         if (list.stub != null) return

@@ -32,7 +32,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private static final TokenSet IMPORT_RECOVERY_SET = TokenSet.create(AS_KEYWORD, DOT, EOL_OR_SEMICOLON);
     private static final TokenSet TYPE_REF_FIRST = TokenSet.create(LBRACKET, IDENTIFIER, LPAR, HASH);
     private static final TokenSet LBRACE_RBRACE_TYPE_REF_FIRST_SET = TokenSet.orSet(TokenSet.create(LBRACE, RBRACE), TYPE_REF_FIRST);
-    private static final TokenSet LTCOLON_COMMA_LBRACE_RBRACE_TYPE_REF_FIRST_SET = TokenSet.orSet(TokenSet.create(LT_COLON, COMMA, LBRACE, RBRACE), TYPE_REF_FIRST);
+    private static final TokenSet LTCOLON_COMMA_LBRACE_RBRACE_TYPE_REF_FIRST_SET = TokenSet.orSet(TokenSet.create(LTCOLON, COMMA, LBRACE, RBRACE), TYPE_REF_FIRST);
     private static final TokenSet RECEIVER_TYPE_TERMINATORS = TokenSet.create(DOT);
     private static final TokenSet VALUE_PARAMETER_FIRST = TokenSet.orSet(TokenSet.create(IDENTIFIER, LBRACKET, LET_KEYWORD, CONST_KEYWORD, VAR_KEYWORD), TokenSet.andNot(MODIFIER_KEYWORDS, TokenSet.create(FUNC_KEYWORD)));
     private static final TokenSet LAMBDA_VALUE_PARAMETER_FIRST = TokenSet.orSet(TokenSet.create(IDENTIFIER, LBRACKET), TokenSet.andNot(MODIFIER_KEYWORDS, TokenSet.create(FUNC_KEYWORD)));
@@ -235,11 +235,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 //        是否有修饰符
         boolean istPackageAccessModifier = false;
-        if (atSet(PACKAGE_ACCESS_MODIFIER_SET) && (lookahead(1) == MARCO_KEYWORD || lookahead(1) == PACKAGE_KEYWORD)) {
+        if (atSet(PACKAGE_ACCESS_MODIFIER_SET) && (lookahead(1) == MACRO_KEYWORD || lookahead(1) == PACKAGE_KEYWORD)) {
             advance(); //修饰符
             istPackageAccessModifier = true;
         }
-        if (at(MARCO_KEYWORD)) {
+        if (at(MACRO_KEYWORD)) {
             advance(); // MARCO_KEYWORD 宏声明
             istPackageAccessModifier = true;
 
@@ -362,7 +362,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
             } else {
- 
+
 
                 isParseDot = true;
                 if (closeImportWithErrorIfNewline(importDirectiveItem, null, "Import must be placed on a single line")) {
@@ -1153,7 +1153,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
                     };
 
-            case MARCO_KEYWORD_Id -> parseMacro();
+            case MACRO_KEYWORD_Id -> parseMacro();
 
 //            case ABC_KEYWORD_Id:
 //                return parseAbc();
@@ -1714,7 +1714,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
         // TODO 继承
-        if (at(LT_COLON)) {
+        if (at(LTCOLON)) {
             advance(); // COLON
             parseDelegationSpecifierList();
         }
@@ -1815,7 +1815,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             reference.drop();
         }
 
-        expect(LT_COLON, "Expecting '<:' before the upper bound", LBRACE_RBRACE_TYPE_REF_FIRST_SET);
+        expect(LTCOLON, "Expecting '<:' before the upper bound", LBRACE_RBRACE_TYPE_REF_FIRST_SET);
 
 
         do {
@@ -2151,7 +2151,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
                     } else {
                         error("Expecting ']'");
                     }
-                } else if (operatorToken == GTGT || operatorToken == GT_EQ) {
+                } else if (operatorToken == GTGT || operatorToken == GTEQ) {
                     advanceGtToken(operatorToken);
                 } else {
                     advance();
@@ -2375,7 +2375,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * @return
      */
     private IElementType parseMacro() {
-        assert _at(MARCO_KEYWORD);
+        assert _at(MACRO_KEYWORD);
         advance();
 
         if (at(RBRACE)) {

@@ -120,6 +120,11 @@ public class CjPackageDirective extends CjDeclarationStub<CangJiePackageDirectiv
         return DescriptorVisibilities.PUBLIC;
     }
 
+
+    public boolean isMacroPackage() {
+        return findChildByType(CjTokens.MACRO_KEYWORD) != null;
+    }
+
     @NotNull
     public Name getNameAsName() {
         PsiElement nameIdentifier = getNameIdentifier();

@@ -1,7 +1,6 @@
 package com.huawei.cangjie.references
 
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.PackageViewDescriptor
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjReferenceExpression
 import com.huawei.cangjie.references.util.DescriptorToSourceUtilsIde
@@ -23,7 +22,11 @@ object CjPolyVariantResolver : ResolveCache.PolyVariantResolver<CjReference> {
         ref: CjReference,
         targetDescriptor: DeclarationDescriptor
     ): Collection<PsiElement> {
-      return  DescriptorToSourceUtilsIde.getAllDeclarations(ref.element.project, targetDescriptor, ref.element.resolveScope)
+        return DescriptorToSourceUtilsIde.getAllDeclarations(
+            ref.element.project,
+            targetDescriptor,
+            ref.element.resolveScope
+        )
 
 //     return   if (targetDescriptor is PackageViewDescriptor) {
 //            val psiFacade = JavaPsiFacade.getInstance(ref.element.project)
@@ -33,6 +36,7 @@ object CjPolyVariantResolver : ResolveCache.PolyVariantResolver<CjReference> {
 //            DescriptorToSourceUtilsIde.getAllDeclarations(ref.element.project, targetDescriptor, ref.element.resolveScope)
 //        }
     }
+
     private fun resolveToPsiElements(
         ref: CjReference,
         context: BindingContext,
@@ -49,6 +53,7 @@ object CjPolyVariantResolver : ResolveCache.PolyVariantResolver<CjReference> {
 
         return Collections.emptySet()
     }
+
     private fun getLabelTargets(ref: CjReference, context: BindingContext): Collection<PsiElement>? {
         val reference = ref.element as? CjReferenceExpression ?: return null
         val labelTarget = context[BindingContext.LABEL_TARGET, reference]
@@ -58,9 +63,15 @@ object CjPolyVariantResolver : ResolveCache.PolyVariantResolver<CjReference> {
 
         return context[BindingContext.AMBIGUOUS_LABEL_TARGET, reference]
     }
+
     private fun resolveToPsiElements(ref: CjReference): Collection<PsiElement> {
         require(ref is AbstractCjReference<*>) { "reference should be AbstractCjReference, but was ${ref::class}" }
-        val bindingContext = CjReferenceResolutionHelper.getInstance().partialAnalyze(ref.expression)
+        val bindingContext = try {
+            CjReferenceResolutionHelper.getInstance().partialAnalyze(ref.expression)
+        } catch (e: Exception) {
+//            这里有个异常被抛出，所以直接返回空集合
+            return emptySet()
+        }
         if (bindingContext == BindingContext.EMPTY) return emptySet()
         return resolveToPsiElements(ref, bindingContext, ref.getTargetDescriptors(bindingContext))
     }
