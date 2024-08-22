@@ -48,7 +48,7 @@ https://plugins.jetbrains.com/plugins/linqingying/list
 |  ID   | 金额  |
 |  ----  |-----|
 | [@daitougege](https://gitee.com/daitougege)  | 101 |
- 
+| [@brack_45](https://gitee.com/brack_45)  | 10 |
  
 <br>
 感谢老板的支持
