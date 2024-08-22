@@ -3,8 +3,8 @@ package com.huawei.cangjie.resolve
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.descriptors.Errors.CONSTRUCTOR_IN_INTERFACE
-import com.huawei.cangjie.descriptors.Errors.CYCLIC_IMPORT
+import com.huawei.cangjie.descriptors.Errors.*
+import com.huawei.cangjie.ide.stubindex.CangJieExactPackagesIndex
 
 import com.huawei.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIndex
 import com.huawei.cangjie.incremental.CangJieLookupLocation
@@ -169,6 +169,8 @@ class LazyTopDownAnalyzer(
                     qualifiedExpressionResolver.resolvePackageHeader(directive, moduleDescriptor, trace)
 
 
+
+                    checkPackagelevel(directive)
                 }
             })
 
@@ -196,11 +198,54 @@ class LazyTopDownAnalyzer(
 
     }
 
+
     fun resolveImportsInFile(file: CjFile) {
         checkForCycles(file)
         fileScopeProvider.getImportResolver(file).forceResolveNonDefaultImports()
     }
 
+    /**
+     * 该方法检查包等级，耗时操作
+     */
+    private fun checkPackagelevel(directive: CjPackageDirective) {
+        executeOnPooledThread(object : Disposable {
+            override fun dispose() {
+
+            }
+        }) {
+
+            runReadAction {
+                val currentLevel = toAccessControlLevel(directive.modifierVisibility)
+                if (currentLevel == 0) {
+                    return@runReadAction
+                }
+                if (directive.fqName.isModuleName) {
+                    return@runReadAction
+                }
+//                获取父包索引，检查等级
+                val parentPackageFqName = directive.fqName.parent()
+                CangJieExactPackagesIndex.get(parentPackageFqName.asString(), directive.project).forEach { file ->
+
+                    file.packageDirective?.modifierVisibility?.let {
+                        if (toAccessControlLevel(it) < currentLevel) {
+
+                            trace.report(
+                                PACKAGE_ACCESS_VIOLATION.on(
+                                    directive,
+                                    directive.fqName,
+                                    file.packageFqName
+                                )
+                            )
+                            return@forEach
+                        }
+                    }
+
+
+                }
+
+            }
+        }
+    }
 
     //    检查循环导入
     private fun checkForCycles(file: CjFile) {
@@ -335,4 +380,15 @@ class LazyTopDownAnalyzer(
             }
         }
     }
+}
+
+fun toAccessControlLevel(visiblity: DescriptorVisibility): Int {
+    return when (visiblity) {
+        DescriptorVisibilities.PRIVATE, DescriptorVisibilities.INTERNAL -> 0
+        DescriptorVisibilities.PROTECTED -> 1
+        DescriptorVisibilities.PUBLIC -> 2
+        else -> 0
+
+    }
+
 }

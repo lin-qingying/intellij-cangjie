@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import static com.huawei.cangjie.name.FqName.fromString;
+
 //public class CjPackageDirective extends CjModifierListOwnerStub<CangJiePlaceHolderStub<CjPackageDirective>>
 public class CjPackageDirective extends CjDeclarationStub<CangJiePackageDirectiveStub> {
 
@@ -138,7 +140,7 @@ public class CjPackageDirective extends CjDeclarationStub<CangJiePackageDirectiv
     @NotNull
     public FqName getFqName() {
         String qualifiedName = getQualifiedName();
-        return qualifiedName.isEmpty() ? FqName.ROOT : new FqName(qualifiedName);
+        return qualifiedName.isEmpty() ? FqName.ROOT : fromString(qualifiedName);
     }
 
     public void setFqName(@NotNull FqName fqName) {

@@ -50,6 +50,7 @@ public class DefaultErrorMessages {
         MAP.put(SELF_IMPORT_NOT_ALLOWED, "Package ''{0}'' should not import itself", FQNAME);
         MAP.put(IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED, "Imported package name ''{0}'' cannot be modified by ''{1}''", FQNAME, VISIBILITY);
         MAP.put(CYCLIC_IMPORT, "packages ''{0}'' ''{1}'' are in circular dependencies.", FQNAME, FQNAME);
+        MAP.put(PACKAGE_ACCESS_VIOLATION, "The access level of child package ''{0}'' cannot be higher than that of parent package ''{1}''", FQNAME, FQNAME);
 
 
 //        访问控制

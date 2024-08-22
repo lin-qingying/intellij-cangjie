@@ -38,6 +38,18 @@ public final class FqName {
     }
 
     @NotNull
+    public static FqName fromString(String fqName) {
+        String[] segments = fqName.split("\\.");
+        FqName current = ROOT; // 从根开始构建
+
+        for (String segment : segments) {
+            current = current.child(Name.identifier(segment)); // 创建子 FqName
+        }
+
+        return current; // 返回最终的 FqName
+    }
+
+    @NotNull
     public String asString() {
         return fqName.asString();
     }
@@ -68,7 +80,7 @@ public final class FqName {
     }
 
     public boolean isModuleName() {
-        if (parent == null){
+        if (parent == null) {
             return true;
         }
         return parent.isRoot();
@@ -76,7 +88,7 @@ public final class FqName {
 
     public Name getModuleName() {
 
-        FqName _this =  this;
+        FqName _this = this;
         while (true) {
             if (_this.parent().isRoot())
                 return _this.shortName();
