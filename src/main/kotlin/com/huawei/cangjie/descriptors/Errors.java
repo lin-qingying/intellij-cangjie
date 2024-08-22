@@ -234,6 +234,7 @@ public interface Errors {
     DiagnosticFactory1<CjDeclaration, CallableMemberDescriptor> CANNOT_INFER_VISIBILITY =
             DiagnosticFactory1.create(ERROR, DECLARATION_SIGNATURE_OR_DEFAULT);
     DiagnosticFactory0<PsiElement> CYCLIC_INHERITANCE_HIERARCHY = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory2<CjPackageDirective, FqName,FqName> PACKAGE_ACCESS_VIOLATION = DiagnosticFactory2.create(ERROR);
 
     DiagnosticFactory3<CjModifierListOwner, DescriptorVisibility, CallableMemberDescriptor, DeclarationDescriptor>
             CANNOT_WEAKEN_ACCESS_PRIVILEGE =
