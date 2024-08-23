@@ -6,11 +6,12 @@ import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.analyzer.ResolverForProject
 import com.huawei.cangjie.descriptors.DiagnosticSink
 import com.huawei.cangjie.descriptors.ModuleDescriptor
+import com.huawei.cangjie.ide.FrontendInternals
 import com.huawei.cangjie.psi.CjDeclaration
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.resolve.BindingContext
-import com.huawei.cangjie.resolve.FrontendInternals
+
 import com.huawei.cangjie.resolve.ResolutionFacade
 import com.huawei.cangjie.resolve.findModuleDescriptor
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
@@ -31,8 +32,8 @@ private class ResolutionFacadeWithDebugInfo(
         return delegate.findModuleDescriptor(ideaModuleInfo)
     }
 
-//    override val project: Project
-//        get() = delegate.project
+    override val project: Project
+        get() = delegate.project
 
     override fun analyze(element: CjElement, bodyResolveMode: BodyResolveMode): BindingContext {
         return wrapExceptions({ ResolvingWhat(element, bodyResolveMode = bodyResolveMode) }) {
@@ -61,6 +62,12 @@ private class ResolutionFacadeWithDebugInfo(
     ): AnalysisResult {
         return wrapExceptions({ ResolvingWhat(elements = elements) }) {
             delegate.analyzeWithAllCompilerChecks(elements, callback)
+        }
+    }
+
+    override fun analyze(elements: Collection<CjElement>, bodyResolveMode: BodyResolveMode): BindingContext {
+        return wrapExceptions({ ResolvingWhat(elements = elements, bodyResolveMode = bodyResolveMode) }) {
+            delegate.analyze(elements, bodyResolveMode)
         }
     }
 

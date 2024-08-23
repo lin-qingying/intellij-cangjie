@@ -1,0 +1,18 @@
+<idea-plugin>
+
+
+    <extensions defaultExtensionNs="com.huawei.cangjie">
+        <quickFixContributor implementation="com.huawei.cangjie.ide.quickfix.QuickFixRegistrar"/>
+
+
+    </extensions>
+
+
+    <extensionPoints>
+
+        <extensionPoint
+                qualifiedName="com.huawei.cangjie.quickFixContributor"
+                interface="com.huawei.cangjie.ide.quickfix.QuickFixContributor"
+                dynamic="true"/>
+    </extensionPoints>
+</idea-plugin>

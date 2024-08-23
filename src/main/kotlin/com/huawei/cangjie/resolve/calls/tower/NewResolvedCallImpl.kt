@@ -33,6 +33,7 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
     private var extensionReceiver = resolvedCallAtom.extensionReceiverArgument?.receiver?.receiverValue
     private var smartCastDispatchReceiverType: CangJieType? = null
     private var contextReceivers = resolvedCallAtom.contextReceiversArguments.map { it.receiver.receiverValue }
+//    private var expectedTypeForUnitConvertedArgumentMap: Map<ValueArgument, UnwrappedType>? = null
 
     override fun updateExtensionReceiverType(newType: CangJieType) {
         if (extensionReceiver?.type == newType) return
@@ -47,6 +48,8 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
 
     override fun getExplicitReceiverKind(): ExplicitReceiverKind = resolvedCallAtom.explicitReceiverKind
 
+//    fun getExpectedTypeForUnitConvertedArgument(valueArgument: ValueArgument): UnwrappedType? =
+//        expectedTypeForUnitConvertedArgumentMap?.get(valueArgument)
 
 
     override fun getExtensionReceiver(): ReceiverValue? = extensionReceiver

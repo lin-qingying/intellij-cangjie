@@ -4,6 +4,7 @@ package com.huawei.cangjie.descriptors.impl;
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.name.Name;
+import com.huawei.cangjie.resolve.constants.ConstantValue;
 import com.huawei.cangjie.resolve.scopes.receivers.ContextReceiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ExtensionReceiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ImplicitContextReceiver;
@@ -534,6 +535,8 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
     public <V> V getUserData(UserDataKey<V> key) {
         return null;
     }
+
+
 
 
     public class CopyConfiguration implements PropertyDescriptor.CopyBuilder<PropertyDescriptor> {

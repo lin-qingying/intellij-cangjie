@@ -6,7 +6,6 @@ import com.huawei.cangjie.cjpm.project.workspace.CjpmWorkspace
 import com.huawei.cangjie.lang.CangJieFileType
 import com.huawei.cangjie.lang.CangJieLanguage
 import com.huawei.cangjie.name.FqName
-import com.huawei.cangjie.psi.psiUtil.CangJieImportField
 import com.huawei.cangjie.psi.stubs.CangJieFileStub
 import com.huawei.cangjie.psi.stubs.elements.CjPlaceHolderStubElementType
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
@@ -28,7 +27,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
     PsiNamedElement,
 //    PsiModifiableCodeBlock,
     CjDeclarationContainer,
-    CjElement,CangJieFile {
+    CjElement, CangJieFile {
     override fun getFileType(): FileType = CangJieFileType.INSTANCE
 //    override fun getClasses(): Array<PsiClass> {
 //        val fileClassProvider = project.getService(CjFileClassProvider::class.java)
@@ -183,7 +182,14 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
     override val declarations: List<CjDeclaration>
         get() {
             return stub?.getChildrenByType(FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
-                ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java)
+                ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java).apply {
+                    if (size > 1) {
+                        if (this[0] is CjPackageDirective) {
+
+                            remove(this[0])
+                        }
+                    }
+                }
         }
 
     var packageFqName: FqName

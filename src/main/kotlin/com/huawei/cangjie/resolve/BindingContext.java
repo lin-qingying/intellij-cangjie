@@ -84,6 +84,9 @@ public interface BindingContext {
     WritableSlice<CjDeclaration, PreliminaryDeclarationVisitor> PRELIMINARY_VISITOR = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjSuperExpression, Boolean> SUPER_EXPRESSION_FROM_ANY_MIGRATION = Slices.createSimpleSlice();
     WritableSlice<CjExpression, CompileTimeConstant<?>> COMPILE_TIME_VALUE = new BasicWritableSlice<>(COMPILE_TIME_VALUE_REWRITE_POLICY);
+    WritableSlice<PsiElement, PropertyDescriptor> PRIMARY_CONSTRUCTOR_PARAMETER = Slices.createSimpleSlice();
+    WritableSlice<CjReferenceExpression, ClassifierDescriptorWithTypeParameters> SHORT_REFERENCE_TO_COMPANION_OBJECT =
+            new BasicWritableSlice<>(DO_NOTHING);
 
     WritableSlice<CjReferenceExpression, ReceiverParameterDescriptor> THIS_REFERENCE_TARGET = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjElement, Computation> EXPRESSION_EFFECTS = Slices.createSimpleSlice();

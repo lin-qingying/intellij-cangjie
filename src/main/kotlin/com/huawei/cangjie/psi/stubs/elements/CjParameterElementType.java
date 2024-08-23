@@ -27,7 +27,7 @@ public class CjParameterElementType extends CjStubElementType<CangJieParameterSt
         StringRef fqNameRef = StringRef.fromString(fqName != null ? fqName.asString() : null);
         return new CangJieParameterStubImpl(
                 (StubElement<?>) parentStub, fqNameRef, StringRef.fromString(psi.getName()),
-                psi.isMutable(), psi.hasValOrVar(), psi.hasDefaultValue(), null
+                psi.isMutable(), psi.hasLetOrVar(), psi.hasDefaultValue(), null
         );
     }
 

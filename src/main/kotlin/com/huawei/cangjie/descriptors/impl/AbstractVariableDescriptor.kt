@@ -30,13 +30,16 @@ abstract class AbstractVariableDescriptor(
 
     override val visibility: DescriptorVisibility
         get() = DescriptorVisibilities.LOCAL
+
     override fun getReturnType(): CangJieType {
         return type
     }
 
-    override val isConst:Boolean get() {
-        return false
-    }
+    override val isConst: Boolean
+        get() {
+            return false
+        }
+
     override fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? {
         return null
     }

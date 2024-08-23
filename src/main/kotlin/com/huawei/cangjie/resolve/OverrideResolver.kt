@@ -4,12 +4,14 @@ import com.google.common.collect.Maps
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.descriptors.CallableMemberDescriptor.Kind.*
+import com.huawei.cangjie.descriptors.CallableMemberDescriptor.Kind.DELEGATION
+import com.huawei.cangjie.descriptors.CallableMemberDescriptor.Kind.FAKE_OVERRIDE
 import com.huawei.cangjie.descriptors.DescriptorVisibilityUtils.useSpecialRulesForPrivateSealedConstructors
 import com.huawei.cangjie.descriptors.Errors.*
 import com.huawei.cangjie.diagnostics.DiagnosticFactory2
 import com.huawei.cangjie.diagnostics.DiagnosticFactoryWithPsiElement
 import com.huawei.cangjie.diagnostics.rendering.DeclarationWithDiagnosticComponents
+import com.huawei.cangjie.diagnostics.rendering.PlatformSpecificDiagnosticComponents
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
@@ -29,7 +31,7 @@ class OverrideResolver(
     private val overridesBackwardCompatibilityHelper: OverridesBackwardCompatibilityHelper,
     private val languageVersionSettings: LanguageVersionSettings,
     private val cangjieTypeRefiner: CangJieTypeRefiner,
-//    private val platformSpecificDiagnosticComponents: PlatformSpecificDiagnosticComponents
+    private val platformSpecificDiagnosticComponents: PlatformSpecificDiagnosticComponents
 ) {
 
     fun check(c: TopDownAnalysisContext) {
@@ -350,7 +352,21 @@ class OverrideResolver(
         val hasOverrideNode = modifierList != null && modifierList.hasModifier(CjTokens.OVERRIDE_KEYWORD)
         val overriddenDescriptors = declared.overriddenDescriptors
 
-        if (hasOverrideNode) {
+
+//重写的方法
+        if (!overriddenDescriptors.isEmpty() &&
+            !overridesBackwardCompatibilityHelper.overrideCanBeOmitted(declared)
+        ) {
+
+
+            if (!hasOverrideNode) {
+                //            override 关键字警告
+                val overridden = overriddenDescriptors.first()
+                trace.report(VIRTUAL_MEMBER_HIDDEN.on(member, declared, overridden, overridden.containingDeclaration))
+            } else {
+                declared.modality = Modality.OPEN
+            }
+
             checkOverridesForMemberMarkedOverride(
                 declared, cangjieTypeRefiner, object : CheckOverrideReportForDeclaredMemberStrategy {
                     private var finalOverriddenError = false
@@ -392,7 +408,7 @@ class OverrideResolver(
                                         member, declared,
                                         DeclarationWithDiagnosticComponents(
                                             overridden,
-//                                            platformSpecificDiagnosticComponents
+                                            platformSpecificDiagnosticComponents
                                         )
                                     )
                                 )
@@ -428,12 +444,6 @@ class OverrideResolver(
                     }
                 }, languageVersionSettings
             )
-        } else if (!overriddenDescriptors.isEmpty() && !overridesBackwardCompatibilityHelper.overrideCanBeOmitted(
-                declared
-            )
-        ) {
-            val overridden = overriddenDescriptors.first()
-            trace.report(VIRTUAL_MEMBER_HIDDEN.on(member, declared, overridden, overridden.containingDeclaration))
         }
     }
 
@@ -1062,17 +1072,17 @@ class OverrideResolver(
             superDescriptor: CallableDescriptor,
             subDescriptor: CallableDescriptor
         ): TypeSubstitutor? {
-//            val superTypeParameters = superDescriptor.typeParameters
-//            val subTypeParameters = subDescriptor.typeParameters
-//            if (subTypeParameters.size != superTypeParameters.size) return null
-//
-//            val arguments = ArrayList<TypeProjection>(subTypeParameters.size)
-//            for (i in superTypeParameters.indices) {
-//                arguments.add(TypeProjectionImpl(subTypeParameters[i].defaultType))
-//            }
-//
-//            return IndexedParametersSubstitution(superTypeParameters, arguments).buildSubstitutor()
-            return null
+            val superTypeParameters = superDescriptor.typeParameters
+            val subTypeParameters = subDescriptor.typeParameters
+            if (subTypeParameters.size != superTypeParameters.size) return null
+
+            val arguments = ArrayList<TypeProjection>(subTypeParameters.size)
+            for (i in superTypeParameters.indices) {
+                arguments.add(TypeProjectionImpl(subTypeParameters[i].defaultType))
+            }
+
+            return IndexedParametersSubstitution(superTypeParameters, arguments).buildSubstitutor()
+
         }
 
 //        private fun findDataModifierForDataClass(dataClass: DeclarationDescriptor): PsiElement {

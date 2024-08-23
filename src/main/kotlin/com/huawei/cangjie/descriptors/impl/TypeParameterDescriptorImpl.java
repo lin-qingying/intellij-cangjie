@@ -3,6 +3,7 @@ package com.huawei.cangjie.descriptors.impl;
 import com.huawei.cangjie.descriptors.DeclarationDescriptor;
 import com.huawei.cangjie.descriptors.SourceElement;
 import com.huawei.cangjie.descriptors.SupertypeLoopChecker;
+import com.huawei.cangjie.descriptors.TypeParameterDescriptor;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.resolve.DescriptorUtils;
@@ -54,6 +55,25 @@ public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor
         if (upperBounds.isEmpty()) {
             doAddUpperBound(getBuiltIns(getContainingDeclaration()).getDefaultBound());
         }
+    }
+
+
+    @NotNull
+    public static TypeParameterDescriptor createWithDefaultBound(
+            @NotNull DeclarationDescriptor containingDeclaration,
+            @NotNull Annotations annotations,
+            boolean reified,
+            @NotNull Variance variance,
+            @NotNull Name name,
+            int index,
+            @NotNull StorageManager storageManager
+    ) {
+        TypeParameterDescriptorImpl typeParameterDescriptor = createForFurtherModification(
+                containingDeclaration, annotations, reified, variance, name, index, SourceElement.NO_SOURCE, storageManager
+        );
+        typeParameterDescriptor.addUpperBound(getBuiltIns(containingDeclaration).getDefaultBound());
+        typeParameterDescriptor.setInitialized();
+        return typeParameterDescriptor;
     }
     public static TypeParameterDescriptorImpl createForFurtherModification(
             @NotNull DeclarationDescriptor containingDeclaration,

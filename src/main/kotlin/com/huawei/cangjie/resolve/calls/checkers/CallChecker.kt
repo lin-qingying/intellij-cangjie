@@ -1,7 +1,9 @@
 package com.huawei.cangjie.resolve.calls.checkers
 
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.ModuleDescriptor
+import com.huawei.cangjie.resolve.MissingSupertypesResolver
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext
 import com.huawei.cangjie.resolve.calls.model.CangJieCallComponents
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall
@@ -15,6 +17,7 @@ interface CheckerContext {
     val trace: BindingTrace
 
     val deprecationResolver: DeprecationResolver
+    val languageVersionSettings: LanguageVersionSettings
 
     val moduleDescriptor: ModuleDescriptor
 }
@@ -32,8 +35,8 @@ class CallCheckerContext @JvmOverloads constructor(
     val resolutionContext: ResolutionContext<*>,
     override val deprecationResolver: DeprecationResolver,
     override val moduleDescriptor: ModuleDescriptor,
-//    val missingSupertypesResolver: MissingSupertypesResolver,
-//    val callComponents: CangJieCallComponents,
+    val missingSupertypesResolver: MissingSupertypesResolver,
+    val callComponents: CangJieCallComponents,
     override val trace: BindingTrace = resolutionContext.trace
 ) : CheckerContext {
     val scope: LexicalScope
@@ -44,7 +47,8 @@ class CallCheckerContext @JvmOverloads constructor(
 
     val isAnnotationContext: Boolean
         get() = resolutionContext.isAnnotationContext
-
+    override val languageVersionSettings: LanguageVersionSettings
+        get() = resolutionContext.languageVersionSettings
 //    val dataFlowValueFactory: DataFlowValueFactory
 //        get() = resolutionContext.dataFlowValueFactory
 

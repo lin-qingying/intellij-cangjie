@@ -12,4 +12,6 @@ abstract class ModuleAwareClassDescriptor : ClassDescriptor{
 
     abstract fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner): MemberScope
 
+
+
 }

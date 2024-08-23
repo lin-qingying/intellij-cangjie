@@ -7,11 +7,15 @@ import com.huawei.cangjie.descriptors.ValueParameterDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.scopes.MemberScope
+import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.TypeConstructor
+import com.huawei.cangjie.types.asFlexibleType
+import com.huawei.cangjie.types.isFlexible
 import com.intellij.openapi.progress.ProgressManager
 
 object ForceResolveUtil {
 
-@JvmStatic
+    @JvmStatic
     fun forceResolveAllContents(scope: MemberScope) {
         forceResolveAllContents(
             DescriptorUtils.getAllDescriptors(
@@ -31,41 +35,38 @@ object ForceResolveUtil {
     private fun doForceResolveAllContents(any: Any) {
         ProgressManager.checkCanceled()
 
-        if (any is  LazyEntity) {
-            val lazyEntity:  LazyEntity =
-                any as  LazyEntity
+        if (any is LazyEntity) {
+            val lazyEntity: LazyEntity =
+                any
             lazyEntity.forceResolveAllContents()
         }
 //        else if (any is WithDestructuringDeclaration) {
 //            (any as WithDestructuringDeclaration).destructuringVariables
 //        }
-        else if (any is  CallableDescriptor) {
-            val callableDescriptor:  CallableDescriptor =
-                any
-//            callableDescriptor.getContextReceiverParameters()
-//                .forEach(Consumer< ReceiverParameterDescriptor> { p:  ReceiverParameterDescriptor ->
-//                    forceResolveAllContents(
-//                        p.getType()
-//                    )
-//                })
-//            val parameter: ReceiverParameterDescriptor =
-//                callableDescriptor.getExtensionReceiverParameter()
-//            if (parameter != null) {
-//                forceResolveAllContents(parameter.getType())
-//            }
-            for (parameterDescriptor in callableDescriptor.getValueParameters()) {
+        else if (any is CallableDescriptor) {
+
+
+            any.getContextReceiverParameters()
+                .forEach {
+                    forceResolveAllContents(it.getType())
+                }
+            val parameter = any.getExtensionReceiverParameter()
+            if (parameter != null) {
+                forceResolveAllContents(parameter.getType())
+            }
+            for (parameterDescriptor in any.getValueParameters()) {
                 forceResolveAllContents<ValueParameterDescriptor>(
                     parameterDescriptor
                 )
             }
-            for (typeParameterDescriptor in callableDescriptor.getTypeParameters()) {
+            for (typeParameterDescriptor in any.getTypeParameters()) {
                 forceResolveAllContents(typeParameterDescriptor.getUpperBounds())
             }
-//            forceResolveAllContents(callableDescriptor.getReturnType())
-            forceResolveAllContents(callableDescriptor.annotations)
+            forceResolveAllContents(any.getReturnType())
+            forceResolveAllContents(any.annotations)
         } else if (any is TypeAliasDescriptor) {
-            val typeAliasDescriptor:  TypeAliasDescriptor =
-                any as  TypeAliasDescriptor
+            val typeAliasDescriptor: TypeAliasDescriptor =
+                any
             forceResolveAllContents(typeAliasDescriptor.underlyingType)
         }
     }
@@ -74,7 +75,30 @@ object ForceResolveUtil {
         doForceResolveAllContents(descriptor)
         return descriptor
     }
-@JvmStatic
+
+    fun forceResolveAllContents(typeConstructor: TypeConstructor) {
+        doForceResolveAllContents(typeConstructor)
+    }
+
+    fun forceResolveAllContents(type: CangJieType?): CangJieType? {
+        if (type == null) return null
+
+        forceResolveAllContents(type.annotations)
+        if (type.isFlexible()) {
+            forceResolveAllContents(type.asFlexibleType().lowerBound)
+            forceResolveAllContents(type.asFlexibleType().upperBound)
+        } else {
+            forceResolveAllContents(type.constructor)
+            for (projection in type.arguments) {
+                if (!projection.isStarProjection()) {
+                    forceResolveAllContents(projection.getType())
+                }
+            }
+        }
+        return type
+    }
+
+    @JvmStatic
     fun forceResolveAllContents(annotations: Annotations) {
         doForceResolveAllContents(annotations)
         for (annotation in annotations) {

@@ -1,6 +1,7 @@
 package com.huawei.cangjie.analyzer
 
 import com.huawei.cangjie.descriptors.BindingTrace
+import com.huawei.cangjie.ide.FrontendInternals
 import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.caches.getResolutionFacade

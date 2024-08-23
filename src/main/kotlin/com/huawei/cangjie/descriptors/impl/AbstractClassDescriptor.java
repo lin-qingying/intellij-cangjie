@@ -94,7 +94,11 @@ public abstract class AbstractClassDescriptor extends ModuleAwareClassDescriptor
         return DescriptorVisibilities.PUBLIC;
 
     }
-
+    @NotNull
+    @Override
+    public MemberScope getUnsubstitutedMemberScope() {
+        return getUnsubstitutedMemberScope(DescriptorUtilsKt.getCangJieTypeRefiner(DescriptorUtils.getContainingModule(this)));
+    }
     @NotNull
     @Override
     public MemberScope getMemberScope(@NotNull List<? extends TypeProjection> typeArguments, @NotNull CangJieTypeRefiner kotlinTypeRefiner) {

@@ -252,7 +252,7 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     }
 
 
-    fun visitDotQualifiedExpression(expression: CjDotQualifiedExpression) {
+    open fun visitDotQualifiedExpression(expression: CjDotQualifiedExpression) {
         super.visitDotQualifiedExpression(expression, null)
     }
 

@@ -1,5 +1,6 @@
 package com.huawei.cangjie.psi.psiUtil
 
+import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.editor.Document
@@ -13,10 +14,35 @@ import com.intellij.psi.search.SearchScope
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtilCore
+fun CjBlockStringTemplateEntry.dropCurlyBrackets(): CjSimpleNameStringTemplateEntry {
+    val name = when (expression) {
+        is CjThisExpression -> CjTokens.THIS_KEYWORD.value
+        else -> (expression as CjNameReferenceExpression).getReferencedNameElement().text
+    }
 
+    val newEntry = CjPsiFactory(project).createSimpleNameStringTemplateEntry(name)
+    return replaced(newEntry)
+}
+
+fun CjBlockStringTemplateEntry.canDropCurlyBrackets(): Boolean {
+    val expression = this.expression
+    return (expression is CjNameReferenceExpression || (expression is CjThisExpression && expression.labelQualifier == null))
+            && canPlaceAfterSimpleNameEntry(nextSibling)
+}
+inline fun <reified T : PsiElement> PsiElement.replaced(newElement: T): T {
+    if (this == newElement) {
+        return newElement
+    }
+
+    return when (val result = replace(newElement)) {
+        is T -> result
+        else -> (result as CjParenthesizedExpression).expression as T
+    }
+}
 inline fun <reified T : PsiElement> PsiElement.getParentOfType(strict: Boolean): T? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, strict)
 }
+inline fun <reified T : PsiElement> T.prevSiblingOfSameType() = PsiTreeUtil.getPrevSiblingOfType(this, T::class.java)
 
 fun CjExpression.getBinaryWithTypeParent(): CjBinaryExpressionWithTypeRHS? {
     val callExpression = parent as? CjCallExpression ?: return null
@@ -117,8 +143,6 @@ val PsiElement.endOffset: Int
 
 val PsiElement.startOffset: Int
     get() = textRange.startOffset
-val PsiElement.parentsWithSelf: Sequence<PsiElement>
-    get() = generateSequence(this) { if (it is PsiFile) null else it.parent }
 
 val PsiElement.allChildren: PsiChildRange
     get() {
@@ -251,3 +275,6 @@ fun PsiElement.checkDecompiledText() {
 
 inline fun <reified T : PsiElement> PsiElement.ancestorOrSelf(): T? =
     PsiTreeUtil.getParentOfType(this, T::class.java, /* strict */ false)
+
+
+  fun CjExpression.isEmptyBody(): Boolean = this is CjBlockExpression && statements.isEmpty()

@@ -112,7 +112,7 @@ public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> im
 
 
 
-    public boolean hasValOrVar() {
+    public boolean hasLetOrVar() {
         CangJieParameterStub stub = getStub();
         if (stub != null) {
             return stub.hasValOrVar();
@@ -214,7 +214,7 @@ public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> im
     public SearchScope getUseScope() {
         CjExpression owner = getOwnerFunction();
         if (owner instanceof CjPrimaryConstructor) {
-            if (hasValOrVar()) return super.getUseScope();
+            if (hasLetOrVar()) return super.getUseScope();
             owner = ((CjPrimaryConstructor) owner).getContainingClassOrStruct();
         }
         if (owner == null) {

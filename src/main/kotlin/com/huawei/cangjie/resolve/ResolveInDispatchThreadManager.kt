@@ -8,7 +8,15 @@ private const val RESOLVE_IN_DISPATCH_THREAD_ERROR_MESSAGE = "Resolve is not all
 
 class ResolveInDispatchThreadException(message: String? = null) :
     IllegalThreadStateException(message ?: RESOLVE_IN_DISPATCH_THREAD_ERROR_MESSAGE)
-
+/**
+ * Temporary allow resolve in dispatch thread.
+ *
+ * All resolve should be banned from the UI thread. This method is needed for the transition period to document
+ * places that are not fixed yet.
+ */
+fun <T> allowResolveInDispatchThread(runnable: () -> T): T {
+    return ResolveInDispatchThreadManager.runWithResolveAllowedInDispatchThread(runnable)
+}
 object ResolveInDispatchThreadManager {
     private val LOG = Logger.getInstance(ResolveInDispatchThreadManager::class.java)
 

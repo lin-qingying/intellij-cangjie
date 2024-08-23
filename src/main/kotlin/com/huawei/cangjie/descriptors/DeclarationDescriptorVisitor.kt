@@ -12,6 +12,10 @@ package com.huawei.cangjie.descriptors
 
     fun visitModuleDeclaration(descriptor: ModuleDescriptor, builder: D?): R
       fun visitTypeAliasDescriptor(descriptor: TypeAliasDescriptor , builder: D?): R
+      fun visitConstructorDescriptor(
+          constructorDescriptor:  ConstructorDescriptor ,
+          builder: D?
+      ): R
 
       fun visitClassDescriptor(descriptor:  ClassDescriptor, builder: D?): R
 

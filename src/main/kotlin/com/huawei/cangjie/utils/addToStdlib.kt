@@ -5,6 +5,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 fun <T> sequenceOfLazyValues(vararg elements: () -> T): Sequence<T> = elements.asSequence().map { it() }
+inline fun <T, C : Collection<T>, O> C.ifNotEmpty(body: C.() -> O?): O? = if (isNotEmpty()) this.body() else null
 
 inline fun <T, R : Any> Iterable<T>.firstNotNullResult(transform: (T) -> R?): R? {
     for (element in this) {

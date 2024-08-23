@@ -6,7 +6,6 @@ import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.Errors
 import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.lexer.CjTokens
-import com.huawei.cangjie.lexer.CjTokens.PROTECTED_KEYWORD
 import com.huawei.cangjie.psi.CjDeclarationWithBody
 import com.huawei.cangjie.psi.CjModifierList
 import com.huawei.cangjie.psi.CjModifierListOwner
@@ -58,7 +57,7 @@ object ModifierCheckerCore {
         if (listOwner is CjDeclarationWithBody) {
             // CjFunction or CjPropertyAccessor
             for (parameter in listOwner.valueParameters) {
-                if (!parameter.hasValOrVar()) {
+                if (!parameter.hasLetOrVar()) {
                     check(parameter, trace, trace[BindingContext.VALUE_PARAMETER, parameter], languageVersionSettings)
                 }
             }

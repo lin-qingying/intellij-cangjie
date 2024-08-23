@@ -416,7 +416,7 @@ class CangJieTypedHandler : TypedHandlerDelegate() {
 //            if (!contextMatched) return
 //            val leftElement = PsiTreeUtil.skipWhitespacesAndCommentsBackward(elementOnCaret) as? CjParameter ?: return
 //            val typeReference = leftElement.typeReference ?: return
-//            if (leftElement.hasValOrVar()) return
+//            if (leftElement.hasLetOrVar()) return
 //            if (typeReference.textLength == 0) return
 //            document.insertString(leftElement.textOffset, "val ")
 //        }

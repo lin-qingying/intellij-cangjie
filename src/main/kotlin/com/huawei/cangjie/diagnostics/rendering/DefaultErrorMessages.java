@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.huawei.cangjie.descriptors.Errors.*;
+import static com.huawei.cangjie.diagnostics.rendering.CommonRenderers.THROWABLE;
 import static com.huawei.cangjie.diagnostics.rendering.Renderers.*;
 
 
@@ -59,6 +60,26 @@ public class DefaultErrorMessages {
         MAP.put(INVISIBLE_REFERENCE, "Cannot access ''{0}'': it is {1} in {2}", NAME, VISIBILITY, NAME_OF_CONTAINING_DECLARATION_OR_FILE);
         MAP.put(INCONSISTENT_PACKAGE_MODIFIERS, "Inconsistent modifiers for package ''{0}''", FQNAME);
         MAP.put(INCONSISTENT_PACKAGE_MACOR, "Inconsistent macro package declarations");
+
+
+//        类型检查
+
+        MAP.put(CANNOT_WEAKEN_ACCESS_PRIVILEGE, "Cannot weaken access privilege ''{0}'' for ''{1}'' in ''{2}''", VISIBILITY, NAME, NAME);
+
+        MAP.put(ABSTRACT_MEMBER_NOT_IMPLEMENTED, "{0} is not abstract and does not implement abstract member {1}", RENDER_CLASS ,
+                FQ_NAMES_IN_TYPES);
+        MAP.put(VIRTUAL_MEMBER_HIDDEN, "''{0}'' hides member of supertype ''{2}'' and needs ''override'' modifier", NAME, NAME, NAME);
+        MAP.put(NOTHING_TO_OVERRIDE, "''{0}'' overrides nothing", NAME);
+
+        MAP.put(RETURN_TYPE_MISMATCH_ON_OVERRIDE, "Return type of ''{0}'' is not a subtype of the return type of the overridden member ''{1}''",
+                NAME, FQ_NAMES_IN_TYPES_ANNOTATIONS_WHITELIST);
+
+
+
+//        表达式
+        MAP.put(EXCEPTION_FROM_ANALYZER, "Internal Error occurred while analyzing this expression:\n{0}", THROWABLE);
+        MAP.put(NEW_INFERENCE_UNKNOWN_ERROR, "Unknown error in new inference with applicability ''{0}'' and target ''{1}''", TO_STRING, STRING);
+
     }
 
 

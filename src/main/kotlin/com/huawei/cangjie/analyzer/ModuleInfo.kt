@@ -85,7 +85,16 @@ class CangJieLibraryInfo(override val project: Project, library: CjpmLibrary) : 
 
         }
     override val moduleOrigin: ModuleOrigin = ModuleOrigin.LIBRARY
+    override fun dependencies(): List<ModuleInfo> {
+        return module.cacheByClassInvalidatingOnRootModifications(this::class.java) {
 
+
+            listOf(this)
+//            CangJieModuleDependencyCollector.getInstance(module.project)
+//                .collectModuleDependencies(module, includeExportedDependencies = true)
+//                .toList()
+        }
+    }
     // TODO 依赖
 //    override val contentScope: GlobalSearchScope
 //        get() = GlobalSearchScope.moduleScope(module)
@@ -98,7 +107,7 @@ class CangJieLibraryInfo(override val project: Project, library: CjpmLibrary) : 
 
     //    LibraryWithoutSourceScope(project, library)
     override val analyzerServices: PlatformDependentAnalyzerServices
-        get() = TODO("Not yet implemented")
+        = PlatformDependentAnalyzerServicesImpl
 
 
 }
@@ -146,165 +155,3 @@ data class CangJieModuleInfo(
 }
 
 
-class a : ModuleEx {
-    override fun <T : Any?> getUserData(key: Key<T>): T? {
-        TODO("Not yet implemented")
-    }
-
-    override fun <T : Any?> putUserData(key: Key<T>, value: T?) {
-        TODO("Not yet implemented")
-    }
-
-    override fun dispose() {
-        TODO("Not yet implemented")
-    }
-
-    override fun getExtensionArea(): ExtensionsArea {
-        TODO("Not yet implemented")
-    }
-
-    override fun <T : Any?> getComponent(interfaceClass: Class<T>): T {
-        TODO("Not yet implemented")
-    }
-
-    override fun hasComponent(interfaceClass: Class<*>): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun isInjectionForExtensionSupported(): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun getMessageBus(): MessageBus {
-        TODO("Not yet implemented")
-    }
-
-    override fun isDisposed(): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun getDisposed(): Condition<*> {
-        TODO("Not yet implemented")
-    }
-
-    override fun <T : Any?> getService(serviceClass: Class<T>): T {
-        TODO("Not yet implemented")
-    }
-
-    override fun <T : Any?> instantiateClass(aClass: Class<T>, pluginId: PluginId): T {
-        TODO("Not yet implemented")
-    }
-
-    override fun <T : Any?> instantiateClass(className: String, pluginDescriptor: PluginDescriptor): T & Any {
-        TODO("Not yet implemented")
-    }
-
-    override fun <T : Any?> instantiateClassWithConstructorInjection(
-        aClass: Class<T>,
-        key: Any,
-        pluginId: PluginId
-    ): T {
-        TODO("Not yet implemented")
-    }
-
-    override fun createError(error: Throwable, pluginId: PluginId): RuntimeException {
-        TODO("Not yet implemented")
-    }
-
-    override fun createError(message: String, pluginId: PluginId): RuntimeException {
-        TODO("Not yet implemented")
-    }
-
-    override fun createError(
-        message: String,
-        error: Throwable?,
-        pluginId: PluginId,
-        attachments: MutableMap<String, String>?
-    ): RuntimeException {
-        TODO("Not yet implemented")
-    }
-
-    override fun <T : Any?> loadClass(className: String, pluginDescriptor: PluginDescriptor): Class<T> {
-        TODO("Not yet implemented")
-    }
-
-    override fun getActivityCategory(isExtension: Boolean): ActivityCategory {
-        TODO("Not yet implemented")
-    }
-
-    override fun getModuleFile(): VirtualFile? {
-        TODO("Not yet implemented")
-    }
-
-    override fun getModuleNioFile(): Path {
-        TODO("Not yet implemented")
-    }
-
-    override fun getProject(): Project {
-        TODO("Not yet implemented")
-    }
-
-    override fun getName(): String {
-        TODO("Not yet implemented")
-    }
-
-    override fun isLoaded(): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun setOption(key: String, value: String?) {
-        TODO("Not yet implemented")
-    }
-
-    override fun getOptionValue(key: String): String? {
-        TODO("Not yet implemented")
-    }
-
-    override fun getModuleScope(): GlobalSearchScope {
-        TODO("Not yet implemented")
-    }
-
-    override fun getModuleScope(includeTests: Boolean): GlobalSearchScope {
-        TODO("Not yet implemented")
-    }
-
-    override fun getModuleWithLibrariesScope(): GlobalSearchScope {
-        TODO("Not yet implemented")
-    }
-
-    override fun getModuleWithDependenciesScope(): GlobalSearchScope {
-        TODO("Not yet implemented")
-    }
-
-    override fun getModuleContentScope(): GlobalSearchScope {
-        TODO("Not yet implemented")
-    }
-
-    override fun getModuleContentWithDependenciesScope(): GlobalSearchScope {
-        TODO("Not yet implemented")
-    }
-
-    override fun getModuleWithDependenciesAndLibrariesScope(includeTests: Boolean): GlobalSearchScope {
-        TODO("Not yet implemented")
-    }
-
-    override fun getModuleWithDependentsScope(): GlobalSearchScope {
-        TODO("Not yet implemented")
-    }
-
-    override fun getModuleTestsWithDependentsScope(): GlobalSearchScope {
-        TODO("Not yet implemented")
-    }
-
-    override fun getModuleRuntimeScope(includeTests: Boolean): GlobalSearchScope {
-        TODO("Not yet implemented")
-    }
-
-    override fun clearScopesCache() {
-        TODO("Not yet implemented")
-    }
-
-    override fun getDeprecatedModuleLevelMessageBus(): MessageBus {
-        TODO("Not yet implemented")
-    }
-}

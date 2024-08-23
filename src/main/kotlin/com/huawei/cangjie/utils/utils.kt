@@ -1,5 +1,9 @@
 package com.huawei.cangjie.utils
 
+import com.huawei.cangjie.descriptors.ConstructorDescriptor
+import com.huawei.cangjie.psi.Call
+import com.huawei.cangjie.psi.CjConstructorDelegationCall
+import com.huawei.cangjie.resolve.calls.CallResolver
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.process.ProcessEvent

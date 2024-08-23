@@ -61,6 +61,9 @@ abstract class AbstractTypeAliasDescriptor(
         declaredTypeParametersImpl
 
     override fun getModality() = Modality.FINAL
+    override fun setModality(modality: Modality) {
+
+    }
 
     override val visibility: DescriptorVisibility
         get() = visibilityImpl

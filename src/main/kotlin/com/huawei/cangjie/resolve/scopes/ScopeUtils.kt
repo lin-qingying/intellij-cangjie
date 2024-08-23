@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.ide.FrontendInternals
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
@@ -8,22 +9,59 @@ import com.huawei.cangjie.psi.CjClassBody
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.resolve.BindingContext
-import com.huawei.cangjie.resolve.FrontendInternals
+
 import com.huawei.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
 import com.huawei.cangjie.resolve.ResolutionFacade
+import com.huawei.cangjie.resolve.caches.getResolutionFacade
 import com.huawei.cangjie.resolve.frontendService
+import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.resolve.lazy.FileScopeProvider
 import com.huawei.cangjie.resolve.scopes.util.parentsWithSelf
 import com.huawei.cangjie.types.error.ErrorClassDescriptor
 import com.huawei.cangjie.types.error.ErrorEntity
 import com.huawei.cangjie.utils.Printer
-import com.intellij.util.SmartList
 import com.huawei.cangjie.utils.parentsWithSelf
 import com.intellij.psi.PsiElement
+import com.intellij.util.SmartList
 
 @JvmOverloads
 fun MemberScope.memberScopeAsImportingScope(parentScope: ImportingScope? = null): ImportingScope =
     MemberScopeToImportingScopeAdapter(parentScope, this)
+
+fun HierarchicalScope.findPackage(name: Name): PackageViewDescriptor? =
+    findFirstFromImportingScopes { it.getContributedPackage(name) }
+
+inline fun <T : Any> HierarchicalScope.findFirstFromImportingScopes(fetch: (ImportingScope) -> T?): T? {
+    return findFirstFromMeAndParent { if (it is ImportingScope) fetch(it) else null }
+}
+
+fun CjElement.getResolutionScope(): LexicalScope {
+    val resolutionFacade = getResolutionFacade()
+    val context = resolutionFacade.analyze(this, BodyResolveMode.FULL)
+    return getResolutionScope(context, resolutionFacade)
+}
+
+fun HierarchicalScope.findFunction(
+    name: Name,
+    location: LookupLocation,
+    predicate: (FunctionDescriptor) -> Boolean = { true }
+): FunctionDescriptor? {
+    processForMeAndParent {
+        it.getContributedFunctions(name, location).firstOrNull(predicate)?.let { return it }
+    }
+    return null
+}
+
+fun HierarchicalScope.findVariable(
+    name: Name,
+    location: LookupLocation,
+    predicate: (VariableDescriptor) -> Boolean = { true }
+): VariableDescriptor? {
+    processForMeAndParent {
+        it.getContributedVariables(name, location).firstOrNull(predicate)?.let { return it }
+    }
+    return null
+}
 
 private class MemberScopeToImportingScopeAdapter(override val parent: ImportingScope?, val memberScope: MemberScope) :
     ImportingScope {
@@ -41,7 +79,8 @@ private class MemberScopeToImportingScopeAdapter(override val parent: ImportingS
     override fun getContributedVariables(name: Name, location: LookupLocation) =
         memberScope.getContributedVariables(name, location)
 
-    override fun getContributedPropertys(name: Name, location: LookupLocation) = memberScope.getContributedPropertys(name, location)
+    override fun getContributedPropertys(name: Name, location: LookupLocation) =
+        memberScope.getContributedPropertys(name, location)
 
     override fun getContributedFunctions(name: Name, location: LookupLocation) =
         memberScope.getContributedFunctions(name, location)
@@ -81,6 +120,7 @@ inline fun <Scope, T> getFromAllScopes(scopes: Array<Scope>, callback: (Scope) -
 
 fun listOfNonEmptyScopes(scopes: Iterable<MemberScope?>): SmartList<MemberScope> =
     scopes.filterTo(SmartList<MemberScope>()) { it != null && it !== MemberScope.Empty }
+
 fun listOfNonEmptyScopes(vararg scopes: MemberScope?): SmartList<MemberScope> =
     scopes.filterTo(SmartList<MemberScope>()) { it != null && it !== MemberScope.Empty }
 
@@ -196,6 +236,7 @@ fun HierarchicalScope.findFirstClassifierWithDeprecationStatus(
 ): DescriptorWithDeprecation<ClassifierDescriptor>? {
     return findFirstFromMeAndParent { it.getContributedClassifierIncludeDeprecated(name, location) }
 }
+
 fun HierarchicalScope.findPackageFqNames(
     name: Name,
 //    location: LookupLocation
@@ -209,15 +250,80 @@ fun HierarchicalScope.findPackageQualifierParts(
 ): List<List<QualifierPart>>? {
     return findFirstFromMeAndParent { it.getContributedPackageQualifierPart(name/*, location*/) }
 }
+
+fun LexicalScope.addImportingScope(importScope: ImportingScope): LexicalScope = addImportingScopes(listOf(importScope))
+fun LexicalScope.addImportingScopes(importScopes: List<ImportingScope>): LexicalScope {
+    val lastLexicalScope = parentsWithSelf.last { it is LexicalScope }
+    val firstImporting = lastLexicalScope.parent as ImportingScope
+    val newFirstImporting = chainImportingScopes(importScopes, firstImporting)
+    return replaceImportingScopes(newFirstImporting)
+}
+
+fun LexicalScope.replaceImportingScopes(importingScopeChain: ImportingScope?): LexicalScope {
+    val newImportingScopeChain = importingScopeChain ?: ImportingScope.Empty
+    if (this is LexicalScopeWrapper) {
+        return LexicalScopeWrapper(this.delegate, newImportingScopeChain)
+    }
+    return LexicalScopeWrapper(this, newImportingScopeChain)
+}
+
+
+private class LexicalScopeWrapper(
+    val delegate: LexicalScope,
+    private val newImportingScopeChain: ImportingScope
+) : LexicalScope by delegate {
+    init {
+        assert(delegate !is LexicalScopeWrapper) {
+            "Do not wrap again to avoid performance issues"
+        }
+    }
+
+    override val parent: HierarchicalScope by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        assert(delegate !is ImportingScope)
+
+        val parent = delegate.parent
+        if (parent is LexicalScope) {
+            parent.replaceImportingScopes(newImportingScopeChain)
+        } else {
+            newImportingScopeChain
+        }
+    }
+
+    override fun toString() = kind.toString()
+}
+
+fun chainImportingScopes(scopes: List<ImportingScope>, tail: ImportingScope? = null): ImportingScope? {
+    return scopes.asReversed()
+        .fold(tail) { current, scope ->
+            assert(scope.parent == null)
+            scope.withParent(current)
+        }
+}
+
+fun ImportingScope.withParent(newParent: ImportingScope?): ImportingScope {
+    return object : ImportingScope by this {
+        override val parent: ImportingScope?
+            get() = newParent
+    }
+}
+
 object ScopeUtils {
     @JvmStatic
     fun makeScopeForPropertyInitializer(
         propertyHeader: LexicalScope,
-        propertyDescriptor: VariableDescriptor
+        propertyDescriptor: PropertyDescriptor
+    ): LexicalScope {
+        return makeScopeForVariableBaseInitializer(propertyHeader, propertyDescriptor)
+
+    }
+
+    private fun makeScopeForVariableBaseInitializer(
+        variableHeader: LexicalScope,
+        variableDescriptor: VariableDescriptorBase
     ): LexicalScope {
         return LexicalScopeImpl(
-            propertyHeader,
-            propertyDescriptor,
+            variableHeader,
+            variableDescriptor,
             false,
             null,
             emptyList(),
@@ -225,7 +331,52 @@ object ScopeUtils {
         )
     }
 
+    @JvmStatic
+    fun makeScopeForVariableInitializer(
+        variableHeader: LexicalScope,
+        variableDescriptor: VariableDescriptor
+    ): LexicalScope {
+        return makeScopeForVariableBaseInitializer(variableHeader, variableDescriptor)
+    }
+
+    private fun makeScopeForVariableBaseHeader(
+        parent: LexicalScope,
+        variableDescriptor: VariableDescriptorBase
+    ): LexicalScope {
+        return LexicalScopeImpl(
+            parent,
+            variableDescriptor,
+            false,
+            null,
+            emptyList(),
+            LexicalScopeKind.PROPERTY_HEADER,  // redeclaration on type parameters should be reported early, see: DescriptorResolver.resolvePropertyDescriptor()
+            LocalRedeclarationChecker.DO_NOTHING
+        ) {
+            for (typeParameterDescriptor in variableDescriptor.typeParameters) {
+                addClassifierDescriptor(typeParameterDescriptor)
+            }
+
+        }
+    }
+
+    @JvmStatic
+    fun makeScopeForVariableHeader(
+        parent: LexicalScope,
+        variableDescriptor: VariableDescriptor
+    ): LexicalScope {
+        return makeScopeForVariableBaseHeader(parent, variableDescriptor)
+    }
+
+    @JvmStatic
+    fun makeScopeForPropertyHeader(
+        parent: LexicalScope,
+        propertyDescriptor: PropertyDescriptor
+    ): LexicalScope {
+        return makeScopeForVariableBaseHeader(parent, propertyDescriptor)
+    }
+
 }
+
 class ErrorLexicalScope : LexicalScope {
     override val parent: HierarchicalScope = object : HierarchicalScope {
         override val parent: HierarchicalScope? = null
@@ -236,10 +387,14 @@ class ErrorLexicalScope : LexicalScope {
 
         override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
 
-        override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> = emptySet()
-        override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor>  = emptySet()
+        override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
+            emptySet()
 
-        override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> = emptySet()
+        override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
+            emptySet()
+
+        override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
+            emptySet()
 
         override fun getContributedDescriptors(
             kindFilter: DescriptorKindFilter,
@@ -265,21 +420,31 @@ class ErrorLexicalScope : LexicalScope {
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> = emptySet()
-    override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor>  = emptySet()
-    override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> = emptySet()
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
+        emptySet()
+
+    override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
+        emptySet()
+
+    override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
+        emptySet()
 
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> = emptySet()
 }
+
 inline fun <Scope> forEachScope(scope1: Scope?, scope2: Scope?, action: (Scope) -> Unit) {
     if (scope1 != null) action(scope1)
     if (scope2 != null) action(scope2)
 }
 
-inline fun <Scope, R> flatMapScopes(scope1: Scope?, scope2: Scope?, transform: (Scope) -> Collection<R>): Collection<R> {
+inline fun <Scope, R> flatMapScopes(
+    scope1: Scope?,
+    scope2: Scope?,
+    transform: (Scope) -> Collection<R>
+): Collection<R> {
     val results1 = if (scope1 != null) transform(scope1) else emptyList()
     if (scope2 == null) return results1
     else {

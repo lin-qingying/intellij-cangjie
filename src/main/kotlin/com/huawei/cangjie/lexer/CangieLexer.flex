@@ -3,6 +3,8 @@ import com.intellij.psi.*;
 import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.Stack;
+import com.huawei.cangjie.lexer.CjTokens;
+
 %%
 
 %unicode
@@ -509,7 +511,7 @@ LONELY_BACKTICK=`
 "match"       { return CjTokens.MATCH_KEYWORD ;}
  "case"         { return CjTokens.CASE_KEYWORD ;}
 "true"       { return CjTokens.TRUE_KEYWORD ;}
-//"this"       { return CjTokens.THIS_KEYWORD ;}
+"this"       { return CjTokens.THIS_KEYWORD ;}
 "enum"       { return CjTokens.ENUM_KEYWORD ;}
 
 "else"       { return CjTokens.ELSE_KEYWORD ;}

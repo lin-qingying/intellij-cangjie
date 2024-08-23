@@ -2,7 +2,6 @@ package com.huawei.cangjie.resolve;
 
 import com.google.common.collect.Lists;
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
-import com.huawei.cangjie.builtins.StandardNames;
 import com.huawei.cangjie.config.LanguageFeature;
 import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.descriptors.*;
@@ -183,20 +182,27 @@ public class DescriptorResolver {
     }
 
     public static DescriptorVisibility getDefaultVisibility(CjModifierListOwner modifierListOwner, DeclarationDescriptor containingDescriptor) {
-        DescriptorVisibility defaultVisibility;
-        if (containingDescriptor instanceof ClassDescriptor) {
-            CjModifierList modifierList = modifierListOwner.getModifierList();
-            defaultVisibility =
+//        DescriptorVisibility defaultVisibility;
+//        if (containingDescriptor instanceof ClassDescriptor) {
+//            CjModifierList modifierList = modifierListOwner.getModifierList();
+//            defaultVisibility =
 //                    modifierList != null && modifierList.hasModifier(OVERRIDE_KEYWORD)
 //                    ? DescriptorVisibilities.INHERITED
 //                    :
-                    DescriptorVisibilities.DEFAULT_VISIBILITY;
-        } else if (containingDescriptor instanceof FunctionDescriptor /*|| containingDescriptor instanceof PropertyDescriptor*/) {
-            defaultVisibility = DescriptorVisibilities.LOCAL;
-        } else {
-            defaultVisibility = DescriptorVisibilities.DEFAULT_VISIBILITY;
+//                    DescriptorVisibilities.DEFAULT_VISIBILITY;
+//        } else if (containingDescriptor instanceof FunctionDescriptor /*|| containingDescriptor instanceof PropertyDescriptor*/) {
+//            defaultVisibility = DescriptorVisibilities.LOCAL;
+//        } else {
+//            defaultVisibility = DescriptorVisibilities.DEFAULT_VISIBILITY;
+//        }
+//        return defaultVisibility;
+
+        if (containingDescriptor instanceof ClassDescriptor && ((ClassDescriptor) containingDescriptor).getKind() == ClassKind.INTERFACE) {
+
+            return DescriptorVisibilities.PUBLIC;
         }
-        return defaultVisibility;
+
+        return DescriptorVisibilities.INTERNAL;
     }
 
     public static Modality getDefaultModality(DeclarationDescriptor containingDescriptor, DescriptorVisibility visibility, boolean isBodyPresent) {
@@ -422,7 +428,7 @@ public class DescriptorResolver {
     }
 
     @NotNull
-    private CangJieType getDefaultSupertype(@NotNull ClassDescriptor classDescriptor ) {
+    private CangJieType getDefaultSupertype(@NotNull ClassDescriptor classDescriptor) {
         if (classDescriptor.getKind() == ClassKind.ENUM_ENTRY) {
             return ((ClassDescriptor) classDescriptor.getContainingDeclaration()).getDefaultType();
         }
@@ -447,7 +453,7 @@ public class DescriptorResolver {
             @Nullable CjPureTypeStatement typeStatement,
             BindingTrace trace
     ) {
-        builtIns.setSourcesModuleDescriptor( DescriptorUtilsKt.getModule(scope.getOwnerDescriptor()));
+        builtIns.setSourcesModuleDescriptor(DescriptorUtilsKt.getModule(scope.getOwnerDescriptor()));
 
         List<CangJieType> supertypes = Lists.newArrayList();
         List<CjSuperTypeListEntry> delegationSpecifiers =
@@ -858,7 +864,7 @@ public class DescriptorResolver {
             // The problem with val/var is that when lazy resolve try to find their descriptor, it searches through the member scope
             // of containing class where, it can not find a descriptor with special name.
             // Thus, to preserve behavior, we don't use a special name for val/var.
-            parameterName = !valueParameter.hasValOrVar() && UnderscoreUtilKt.isSingleUnderscore(valueParameter)
+            parameterName = !valueParameter.hasLetOrVar() && UnderscoreUtilKt.isSingleUnderscore(valueParameter)
                     ? SpecialNames.anonymousParameterName(index)
                     : CjPsiUtil.safeName(valueParameter.getName());
         } else {
@@ -906,7 +912,7 @@ public class DescriptorResolver {
         }
 
         Annotations allAnnotations = annotationResolver.resolveAnnotationsWithoutArguments(scope, modifierList, trace);
-        if (!parameter.hasValOrVar()) {
+        if (!parameter.hasLetOrVar()) {
             return new CompositeAnnotations(allAnnotations, additionalAnnotations);
         }
 
@@ -1155,7 +1161,7 @@ public class DescriptorResolver {
             );
         }).toList();
 
-        LexicalScope scopeForInitializer = ScopeUtils.makeScopeForPropertyInitializer(scopeForInitializerResolutionWithTypeParameters, variableDescriptor);
+        LexicalScope scopeForInitializer = ScopeUtils.makeScopeForVariableInitializer(scopeForInitializerResolutionWithTypeParameters, variableDescriptor);
         CangJieType propertyType = variableInfo.getVariableType();
         CangJieType typeIfKnown = propertyType != null ? propertyType : variableTypeAndInitializerResolver.resolveTypeNullable(
                 variableDescriptor, scopeForInitializer,

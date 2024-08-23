@@ -125,7 +125,7 @@ class LazyTopDownAnalyzer(
 // TODO 注册主构造函数
 //                private fun registerPrimaryConstructorParameters(klass: CjClass) {
 //                    for (cjParameter in klass.primaryConstructorParameters) {
-//                        if (cjParameter.hasValOrVar()) {
+//                        if (cjParameter.hasLetOrVar()) {
 //                            c.primaryConstructorParameterProperties.put(
 //                                cjParameter,
 //                                lazyDeclarationResolver.resolveToDescriptor(cjParameter) as PropertyDescriptor

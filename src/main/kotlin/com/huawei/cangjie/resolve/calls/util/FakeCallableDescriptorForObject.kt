@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.calls.util
 
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.resolve.constants.ConstantValue
 import com.huawei.cangjie.resolve.descriptorUtil.classValueType
 import com.huawei.cangjie.resolve.getClassObjectReferenceTarget
 import com.huawei.cangjie.types.CangJieType
@@ -52,9 +53,9 @@ open class FakeCallableDescriptorForObject(
 //
 
 //
-//    override fun getCompileTimeInitializer() = null
-//
-//    override fun cleanCompileTimeInitializerCache() {}
+    override fun getCompileTimeInitializer() = null
+
+    override fun cleanCompileTimeInitializerCache() {}
 
     override fun getSource(): SourceElement = classDescriptor.source
     override val isConst: Boolean = false
@@ -70,6 +71,8 @@ open class FakeCallableDescriptorForObject(
     override fun hashCode() = classDescriptor.hashCode()
     override val containingDeclaration: DeclarationDescriptor
         get() = classDescriptor.getClassObjectReferenceTarget().containingDeclaration
+
+
 
     override fun substitute(substitutor: TypeSubstitutor) = this
 

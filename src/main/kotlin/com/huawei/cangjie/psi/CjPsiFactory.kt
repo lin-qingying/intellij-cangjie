@@ -4,9 +4,11 @@ import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.lang.CangJieFileType
 import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.name.FqName
+import com.huawei.cangjie.resolve.ImportPath
 import com.huawei.cangjie.utils.checkWithAttachment
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
@@ -32,7 +34,9 @@ class CjPsiFactory private constructor(
     private val context: PsiElement?,
     private val eventSystemEnabled: Boolean,
 ) {
-
+    fun createEmptyClassBody(): CjClassBody {
+        return createClass("class A(){}").getBody()!!
+    }
     companion object {
         @JvmStatic
         @JvmOverloads
@@ -40,10 +44,48 @@ class CjPsiFactory private constructor(
             return CjPsiFactory(context.project, markGenerated, context, eventSystemEnabled = false)
         }
     }
-
+    fun createSimpleNameStringTemplateEntry(@NonNls name: String): CjSimpleNameStringTemplateEntry {
+        val stringTemplateExpression = createExpression("\"\$$name\"") as CjStringTemplateExpression
+        return stringTemplateExpression.entries[0] as CjSimpleNameStringTemplateEntry
+    }
     fun createColon(): PsiElement {
         return createVariable("let x: Int64").findElementAt(5)!!
     }
+    fun createPrimaryConstructor(@NonNls text: String = ""): CjPrimaryConstructor {
+        return createClass(if (text.isNotEmpty()) "class A { public A$text{} }" else "class A { public A(){} } ").primaryConstructor!!
+    }
+    fun createParameterList(@NonNls text: String): CjParameterList {
+        return createFunction("fun foo$text{}").valueParameterList!!
+    }
+    fun createImportDirective(importPath: ImportPath): CjImportDirective {
+        if (importPath.fqName.isRoot) {
+            throw IllegalArgumentException("import path must not be empty")
+        }
+
+        val file = createFile(buildString { appendImport(importPath) })
+        return file.importDirectives.first()
+    }
+    private fun StringBuilder.appendImport(importPath: ImportPath) {
+        if (importPath.fqName.isRoot) {
+            throw IllegalArgumentException("import path must not be empty")
+        }
+
+        append("import ")
+        append(importPath.pathStr)
+
+        val alias = importPath.alias
+        if (alias != null) {
+            append(" as ").append(alias.asString())
+        }
+    }
+    fun createComment(@NonNls text: String): PsiComment {
+        val file = createFile(text)
+        val comments = file.children.filterIsInstance<PsiComment>()
+        val comment = comments.single()
+        assert(comment.text == text)
+        return comment
+    }
+
     fun createLambdaExpression(@NonNls parameters: String, @NonNls body: String): CjLambdaExpression =
         (if (parameters.isNotEmpty()) createExpression("{ $parameters -> $body }")
         else createExpression("{ $body }")) as CjLambdaExpression
@@ -54,6 +96,9 @@ class CjPsiFactory private constructor(
 
     fun createSemicolon(): PsiElement {
         return createVariable("let x: Int64;").findElementAt(12)!!
+    }
+    fun createFunction(@NonNls funDecl: String): CjNamedFunction {
+        return createDeclaration(funDecl)
     }
 
 
@@ -224,6 +269,9 @@ class CjPsiFactory private constructor(
         return createWhiteSpace(" ")
     }
 
+    fun createNewLine(lineBreaks: Int): PsiElement {
+        return createWhiteSpace("\n".repeat(lineBreaks))
+    }
     fun createNewLine(): PsiElement {
         return createWhiteSpace("\n ")
     }

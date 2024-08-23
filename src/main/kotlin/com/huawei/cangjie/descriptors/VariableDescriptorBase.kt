@@ -1,14 +1,20 @@
 package com.huawei.cangjie.descriptors
 
+import com.huawei.cangjie.resolve.constants.ConstantValue
 import com.huawei.cangjie.types.TypeSubstitutor
 
-interface VariableDescriptorBase: ValueDescriptor
-    /*  CallableMemberDescriptor, PropertySymbolMarker*/ {
-
-//    override fun getOverriddenDescriptors(): Collection< VariableDescriptor>
+interface VariableDescriptorBase : ValueDescriptor
+/*  CallableMemberDescriptor, PropertySymbolMarker*/ {
 
 
-//    override val original: VariableDescriptorBase
+    fun getCompileTimeInitializer(): ConstantValue<*>?  = null
+
+    /**
+     * ONLY FOR IDE USE! Please don't use the method inside the compiler
+     */
+    fun cleanCompileTimeInitializerCache()  {}
+
+
     /**
      * @return true if iff original declaration has appropriate flags and type, e.g. `const` modifier in CangJie.
      * It completely does not means that if isConst then `getCompileTimeInitializer` is not null
@@ -18,7 +24,7 @@ interface VariableDescriptorBase: ValueDescriptor
     //
     //    @Nullable
     //    FieldDescriptor getDelegateField();
-//      override fun substitute(substitutor: TypeSubstitutor): VariableDescriptorBase?
-    val isConst:Boolean
+    override fun substitute(substitutor: TypeSubstitutor): VariableDescriptorBase?
+    val isConst: Boolean
     val isVar: Boolean
 }

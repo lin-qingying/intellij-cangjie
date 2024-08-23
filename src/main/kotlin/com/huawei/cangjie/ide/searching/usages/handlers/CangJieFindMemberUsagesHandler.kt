@@ -174,7 +174,7 @@ abstract class CangJieFindMemberUsagesHandler<T : CjNamedDeclaration> protected 
 
 //        override fun getPrimaryElements(): Array<PsiElement> {
 //            val element = psiElement as CjNamedDeclaration
-//            if (element is CjParameter && !element.hasValOrVar() && factory.findPropertyOptions.isSearchInOverridingMethods) {
+//            if (element is CjParameter && !element.hasLetOrVar() && factory.findPropertyOptions.isSearchInOverridingMethods) {
 //                return ActionUtil.underModalProgress(project, CangJieBundle.message("find.usages.progress.text.declaration.superMethods")) { getPrimaryElementsUnderProgress(element) }
 //            } else if (factory.findPropertyOptions.isSearchForBaseAccessors) {
 //                val supers = CangJieFindUsagesSupport.getSuperMethods(element, null)

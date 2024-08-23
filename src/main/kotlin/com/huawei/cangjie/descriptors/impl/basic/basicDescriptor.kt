@@ -3,11 +3,14 @@ package com.huawei.cangjie.descriptors.impl.basic
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.impl.AbstractClassDescriptor
+import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorBasicImpl
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.StorageManager
+import com.huawei.cangjie.types.BasicType
 import com.huawei.cangjie.types.ClassTypeConstructorImpl
+import com.huawei.cangjie.types.SimpleType
 import com.huawei.cangjie.types.TypeConstructor
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 
@@ -20,10 +23,15 @@ class BasicTypeDescriptor(
     storageManager, name
 ) {
 
-    private var constructors: Set< ClassConstructorDescriptor>  = mutableSetOf()
+    private var constructors: Set<ClassConstructorDescriptor> = mutableSetOf()
 
+//    override fun getDefaultType(): BasicType {
+//
+//
+//        return basicMemberScope.getContributedClassifier(name, NoLookupLocation.FROM_BUILTINS)
+//    }
 
-    companion object{
+    companion object {
 
         fun create(
             memberScope: PackageFragmentDescriptorBasicImpl.BasicMemberScope,
@@ -40,13 +48,14 @@ class BasicTypeDescriptor(
 
     fun initialize(
 
-        constructors: Set< ClassConstructorDescriptor>,
+        constructors: Set<ClassConstructorDescriptor>,
 
-    ) {
+        ) {
 
         this.constructors = constructors
 
     }
+
     override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner): MemberScope {
 
 
@@ -60,17 +69,21 @@ class BasicTypeDescriptor(
     }
 
     override fun getSource(): SourceElement = SourceElement.NO_SOURCE
-
+    override fun getDefaultType(): BasicType {
+        return BasicType(typeConstructor,basicMemberScope)
+    }
     val typeConstructor = ClassTypeConstructorImpl(this, emptyList(), emptyList(), storageManager)
     override fun getTypeConstructor(): TypeConstructor = typeConstructor
 
 
-
     override fun getModality(): Modality = Modality.FINAL
+    override fun setModality(modality: Modality) {
+
+    }
 
 
     override fun getDeclaredTypeParameters(): MutableList<TypeParameterDescriptor> = mutableListOf()
-    override fun getContextReceivers(): List<ReceiverParameterDescriptor>  = emptyList()
+    override fun getContextReceivers(): List<ReceiverParameterDescriptor> = emptyList()
 
     override fun getStaticScope(): MemberScope {
         return MemberScope.Empty
@@ -80,7 +93,6 @@ class BasicTypeDescriptor(
         return constructors
 
     }
-
 
 
     override fun getKind(): ClassKind = ClassKind.BASIC

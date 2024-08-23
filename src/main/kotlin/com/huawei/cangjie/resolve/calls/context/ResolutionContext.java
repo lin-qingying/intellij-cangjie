@@ -151,6 +151,12 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
             @NotNull DataFlowValueFactory dataFlowValueFactory,
             @NotNull InferenceSession inferenceSession
     );
+    @NotNull
+    public Context replaceCollectAllCandidates(boolean newCollectAllCandidates) {
+        return create(trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
+                newCollectAllCandidates, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                inferenceSession);
+    }
 
     @NotNull
     @SuppressWarnings("unchecked")

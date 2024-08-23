@@ -4,10 +4,10 @@ import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.name.SpecialNames;
-import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue;
+import com.huawei.cangjie.resolve.scopes.receivers.TransientReceiver;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.TypeSubstitutor;
-import com.sun.xml.bind.v2.TODO;
+import com.huawei.cangjie.types.Variance;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,19 +19,22 @@ public abstract class AbstractReceiverParameterDescriptor extends DeclarationDes
     public AbstractReceiverParameterDescriptor(@NotNull Annotations annotations) {
         super(annotations, SpecialNames.THIS);
     }
+
+    public AbstractReceiverParameterDescriptor(@NotNull Annotations annotations, @NotNull Name name) {
+        super(annotations, name);
+    }
+
     @NotNull
     @Override
     public ParameterDescriptor getOriginal() {
         return this;
     }
 
-    public AbstractReceiverParameterDescriptor(@NotNull Annotations annotations, @NotNull Name name) {
-        super(annotations, name);
-    }
     @Override
     public <R, D> R accept(DeclarationDescriptorVisitor<R, D> visitor, D data) {
         return visitor.visitReceiverParameterDescriptor(this, data);
     }
+
     @Override
     public boolean hasStableParameterNames() {
         return false;
@@ -97,10 +100,28 @@ public abstract class AbstractReceiverParameterDescriptor extends DeclarationDes
     }
 
 
-
     @Override
     public @Nullable ReceiverParameterDescriptor substitute(@NotNull TypeSubstitutor substitutor) {
-    throw new UnsupportedOperationException("TODO: auto-generated method stub");
+        if (substitutor.isEmpty()) return this;
+
+        CangJieType substitutedType;
+//        if (getContainingDeclaration() instanceof ClassDescriptor) {
+//            // Due to some reasons we check that receiver value type is a subtype of dispatch parameter
+//            // (although we get members exactly from it's scope)
+//            // So to make receiver with projections be a subtype of parameter's type with captured type arguments,
+//            // we approximate latter to it's upper bound.
+//            // See approximateDispatchReceiver.kt test for clarification
+//            substitutedType = substitutor.substitute(getType(), Variance.OUT_VARIANCE);
+//        }
+//        else {
+        substitutedType = substitutor.substitute(getType(), Variance.INVARIANT);
+//        }
+
+        if (substitutedType == null) return null;
+        if (substitutedType == getType()) return this;
+
+        return new ReceiverParameterDescriptorImpl(getContainingDeclaration(), new TransientReceiver(substitutedType), getAnnotations());
+
     }
 
 

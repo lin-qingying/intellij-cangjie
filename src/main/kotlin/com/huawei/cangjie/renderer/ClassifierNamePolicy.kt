@@ -1,6 +1,7 @@
 package com.huawei.cangjie.renderer
 
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.DescriptorUtils.getFqName
 
@@ -45,6 +46,8 @@ interface ClassifierNamePolicy {
         }
 
         private fun qualifierName(descriptor: DeclarationDescriptor): String? = when (descriptor) {
+            is BasicTypeDescriptor -> null
+
             is ClassDescriptor -> qualifiedNameForSourceCode(descriptor)
             is PackageFragmentDescriptor -> descriptor.fqName.toUnsafe().render()
             else -> null

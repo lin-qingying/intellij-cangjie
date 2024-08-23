@@ -34,6 +34,17 @@ abstract class CjCodeFragment(
         this.getCopyableUserData(FAKE_CONTEXT_FOR_JAVA_FILE)?.invoke()
     }
 
+     fun addImportsFromString(imports: String?) {
+        if (imports == null || imports.isEmpty()) return
+
+        imports.split(IMPORT_SEPARATOR).forEach {
+            addImport(it)
+        }
+
+        // we need this code to force re-highlighting, otherwise it does not work by some reason
+        val tempElement = CjPsiFactory(project).createColon()
+        add(tempElement).delete()
+    }
     init {
         @Suppress("LeakingThis")
         getViewProvider().forceCachedPsi(this)

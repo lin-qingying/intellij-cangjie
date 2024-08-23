@@ -174,7 +174,10 @@ class LazySubstitutingClassDescriptor(
 
     override fun getModality(): Modality {
         return original.modality
+    }
 
+    override fun setModality(modality: Modality) {
+        original.modality = modality
     }
 
     override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters {

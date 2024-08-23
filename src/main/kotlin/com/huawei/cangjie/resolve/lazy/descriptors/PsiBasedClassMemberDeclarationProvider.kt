@@ -24,7 +24,7 @@ class PsiBasedClassMemberDeclarationProvider(
         }
 
         for (parameter in ownerInfo.primaryConstructorParameters) {
-            if (parameter.hasValOrVar()) {
+            if (parameter.hasLetOrVar()) {
                 index.putToIndex(parameter)
             }
         }

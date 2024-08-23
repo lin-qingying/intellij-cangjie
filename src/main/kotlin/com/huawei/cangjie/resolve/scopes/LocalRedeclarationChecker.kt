@@ -15,7 +15,7 @@ abstract class AbstractLocalRedeclarationChecker(val overloadChecker: OverloadCh
         val name = newDescriptor.name
         val location = NoLookupLocation.MATCH_CHECK_DECLARATION_CONFLICTS
         when (newDescriptor) {
-            is ClassifierDescriptor, is VariableDescriptor -> {
+            is ClassifierDescriptor, is VariableDescriptorBase -> {
                 val otherDescriptor = scope.getContributedClassifier(name, location)
                     ?: scope.getContributedVariables(name, location).firstOrNull()
                 if (otherDescriptor != null) {
@@ -31,12 +31,12 @@ abstract class AbstractLocalRedeclarationChecker(val overloadChecker: OverloadCh
                     else
                         otherFunctions
 
-//                for (overloadedDescriptor in potentiallyConflictingOverloads) {
-//                    if (!overloadChecker.isOverloadable(overloadedDescriptor, newDescriptor)) {
-//                        handleConflictingOverloads(newDescriptor, overloadedDescriptor)
-//                        break
-//                    }
-//                }
+                for (overloadedDescriptor in potentiallyConflictingOverloads) {
+                    if (!overloadChecker.isOverloadable(overloadedDescriptor, newDescriptor)) {
+                        handleConflictingOverloads(newDescriptor, overloadedDescriptor)
+                        break
+                    }
+                }
             }
             else -> throw IllegalStateException("Unexpected type of descriptor: ${newDescriptor::class.java.name}, descriptor: $newDescriptor")
         }

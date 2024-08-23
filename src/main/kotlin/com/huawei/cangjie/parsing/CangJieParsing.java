@@ -329,7 +329,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
             error("expected a package name after '.' in qualified name, found '" + myBuilder.getTokenText() + "'");
 
-            if(importDirectiveItem != null){
+            if (importDirectiveItem != null) {
                 importDirectiveItem.done(IMPORT_DIRECTIVE);
             }
 
@@ -2565,7 +2565,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         if (isNamedParameters.contains(true) && isNamedParameters.contains(false)) {
 //            要么全为true 要么全为false
-            parameters.error("in a parameter type list, either all parameters must be named, or none of them; mixed is not allowed");
+            parameters.error("In a parameter type list, either all parameters must be named, or none of them; mixed is not allowed");
         } else {
             parameters.done(VALUE_PARAMETER_LIST);
 
@@ -2662,11 +2662,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
             } else if (typeRequired) {
                 errorWithRecovery("Parameters must have type annotation", PARAMETER_NAME_RECOVERY_SET);
                 noErrors = false;
+            } else {
+                errorWithoutAdvancing("Expecting ':' Missing type declaration");  //应该为':'
+                noErrors = false;
             }
-//            {
-//                errorWithoutAdvancing("Expecting ':' Missing type declaration");  //应该为':'
-//                noErrors = false;
-//            }
 
 
         }

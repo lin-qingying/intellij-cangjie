@@ -26,8 +26,8 @@ import java.lang.reflect.Modifier;
 import java.util.Collection;
 
 import static com.huawei.cangjie.descriptors.PositioningStrategies.*;
-import static com.huawei.cangjie.diagnostics.Severity.ERROR;
-import static com.huawei.cangjie.diagnostics.Severity.WARNING;
+import static com.huawei.cangjie.diagnostics.Severity.*;
+
 
 /**
  * For error messages, see DefaultErrorMessages and IdeErrorMessages.
@@ -151,10 +151,14 @@ public interface Errors {
 
     DiagnosticFactory1<CjPackageDirective, FqName> INCONSISTENT_PACKAGE_MODIFIERS = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory2<PsiElement, CjModifierKeywordToken, String> WRONG_MODIFIER_TARGET = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory1<PsiElement, RenderedDiagnostic<?>> PLUGIN_ERROR = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, RenderedDiagnostic<?>> PLUGIN_WARNING = DiagnosticFactory1.create(WARNING);
+    DiagnosticFactory1<PsiElement, RenderedDiagnostic<?>> PLUGIN_INFO = DiagnosticFactory1.create(INFO);
 
     DiagnosticFactory1<CjImportDirective, FqName> SELF_IMPORT_NOT_ALLOWED = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory2<CjImportDirective, FqName, DescriptorVisibility> IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED = DiagnosticFactory2.create(ERROR);
 
+    DiagnosticFactory2<PsiElement, FqName, FqName> MISSING_DEPENDENCY_SUPERCLASS = DiagnosticFactory2.create(ERROR);
 
     DiagnosticFactory0<CjSuperTypeEntry> SUPERTYPE_NOT_INITIALIZED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory2<PsiElement, CjModifierKeywordToken, CjModifierKeywordToken> INCOMPATIBLE_MODIFIERS =
@@ -194,9 +198,12 @@ public interface Errors {
             DiagnosticFactory2.create(ERROR, DECLARATION_RETURN_TYPE);
     DiagnosticFactory2<CjNamedDeclaration, CallableMemberDescriptor, CallableMemberDescriptor> PROPERTY_TYPE_MISMATCH_ON_OVERRIDE =
             DiagnosticFactory2.create(ERROR, DECLARATION_RETURN_TYPE);
+
+
     DiagnosticFactory3<CjNamedDeclaration, CallableMemberDescriptor, CallableMemberDescriptor, DeclarationDescriptor>
             VIRTUAL_MEMBER_HIDDEN =
-            DiagnosticFactory3.create(ERROR, DECLARATION_NAME);
+            DiagnosticFactory3.create(WARNING, DECLARATION_NAME);
+
     DiagnosticFactoryForDeprecation2<CjTypeStatement, ClassDescriptor, Collection<CallableMemberDescriptor>>
             INVISIBLE_ABSTRACT_MEMBER_FROM_SUPER =
             DiagnosticFactoryForDeprecation2.create(LanguageFeature.ProhibitInvisibleAbstractMethodsInSuperclasses, DECLARATION_NAME);

@@ -28,6 +28,17 @@ abstract class VariableDescriptorWithInitializerImpl(
         setCompileTimeInitializer(null, compileTimeInitializerFactory)
     }
 
+    override fun cleanCompileTimeInitializerCache() {
+        this.compileTimeInitializer = compileTimeInitializerFactory.invoke()
+    }
+
+    override fun getCompileTimeInitializer(): ConstantValue<*>? {
+        if (compileTimeInitializer != null) {
+            return compileTimeInitializer!!.invoke()
+        }
+        return null
+    }
+
     fun setCompileTimeInitializer(
         compileTimeInitializer: NullableLazyValue<ConstantValue<*>>?,
         compileTimeInitializerFactory: () -> NullableLazyValue<ConstantValue<*>>

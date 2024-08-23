@@ -248,8 +248,7 @@ class ModifiersChecker(
             allowSealed: Boolean
         ): Modality {
 //            TODO()
-            val modifierList =
-                if ((modifierListOwner != null)) modifierListOwner.modifierList else null
+            val modifierList =   if ((modifierListOwner != null)) modifierListOwner.modifierList else null
             var modality =
                 resolveModalityFromModifiers(
                     containingDescriptor,

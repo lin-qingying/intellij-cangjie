@@ -6,11 +6,29 @@ import com.huawei.cangjie.resolve.calls.results.ResolutionStatus
 import com.huawei.cangjie.resolve.calls.tower.CandidateApplicability
 import com.huawei.cangjie.resolve.calls.tower.NewAbstractResolvedCall
 import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
+import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
+import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.DefinitelyNotNullType
 import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.StubTypeForBuilderInference
 import com.huawei.cangjie.types.checker.NewCapturedType
 import com.huawei.cangjie.types.util.contains
+fun ResolvedCall<*>.getDispatchReceiverWithSmartCast(): ReceiverValue? =
+    getReceiverValueWithSmartCast(dispatchReceiver, smartCastDispatchReceiverType)
+
+fun getReceiverValueWithSmartCast(
+    receiverArgument: ReceiverValue?,
+    smartCastType: CangJieType?
+) = smartCastType?.let { type -> SmartCastReceiverValue(type, original = null) } ?: receiverArgument
+
+private class SmartCastReceiverValue(private val type: CangJieType, original: SmartCastReceiverValue?) : ReceiverValue {
+    private val original = original ?: this
+
+    override fun getType() = type
+    override fun replaceType(newType: CangJieType) = SmartCastReceiverValue(newType, original)
+    override fun getOriginal() = original
+}
+
 
 fun ResolvedCall<*>.isNewNotCompleted(): Boolean = if (this is NewAbstractResolvedCall) !isCompleted() else false
 fun CallableDescriptor.isNotSimpleCall(): Boolean =

@@ -17,8 +17,6 @@ class CjClassBody : CjElementImplStub<CangJiePlaceHolderStub<CjClassBody>>, CjDe
     constructor(node: ASTNode) : super(node)
 
 
-
-
     constructor(stub: CangJiePlaceHolderStub<CjClassBody>) : super(stub, CLASS_BODY)
 
     override fun getParent() = parentByStub
@@ -31,13 +29,18 @@ class CjClassBody : CjElementImplStub<CangJiePlaceHolderStub<CjClassBody>>, CjDe
 //    val danglingAnnotations: List<CjAnnotationEntry>
 //        get() = danglingModifierLists.flatMap { it.annotationEntries }
 
-    override fun toString():String{
+    override fun toString(): String {
         return node.elementType.toString()
     }
 
+    val properties: List<CjProperty>
+        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.PROPERTY)
+    val variables: List<CjVariable>
+        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.VARIABLE)
+
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?) = visitor.visitClassBody(this, data)
     override val declarations: List<CjDeclaration>
-        get() =stub?.getChildrenByType(CjFile.FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
+        get() = stub?.getChildrenByType(CjFile.FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
             ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java)
 
     val rBrace: PsiElement?

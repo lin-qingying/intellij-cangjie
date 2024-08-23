@@ -2,6 +2,7 @@ package com.huawei.cangjie.psi.psiUtil
 
 import com.huawei.cangjie.CjNodeTypes
 import com.huawei.cangjie.lexer.CangJieLexer
+import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
@@ -14,10 +15,72 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
+import com.intellij.psi.tree.TokenSet
 import com.intellij.util.codeInsight.CommentUtilCore
 import java.util.*
 
+fun CjExpression.getQualifiedExpressionForReceiver(): CjQualifiedExpression? {
+    val parent = parent
+    return if (parent is CjQualifiedExpression && parent.receiverExpression == this) parent else null
+}
+private val BAD_NEIGHBOUR_FOR_SIMPLE_TEMPLATE_ENTRY_PATTERN = Regex("([a-zA-Z0-9_]|[^\\p{ASCII}]).*")
+/**
+ * Returns enclosing qualifying element for given [[CjSimpleNameExpression]]
+ * ([[CjQualifiedExpression]] or [[CjUserType]] or original expression)
+ */
+fun CjSimpleNameExpression.getQualifiedElement(): CjElement {
+    val baseExpression = (parent as? CjCallExpression) ?: this
+    val parent = baseExpression.parent
+    return when (parent) {
+        is CjQualifiedExpression -> if (parent.selectorExpression == baseExpression) parent else baseExpression
+        is CjUserType -> if (parent.referenceExpression == baseExpression) parent else baseExpression
+        else -> baseExpression
+    }
+}
+
+fun canPlaceAfterSimpleNameEntry(element: PsiElement?): Boolean {
+    val entryText = element?.text ?: return true
+    return !BAD_NEIGHBOUR_FOR_SIMPLE_TEMPLATE_ENTRY_PATTERN.matches(entryText)
+}
+
+fun CjSimpleNameExpression.getReceiverExpression(): CjExpression? {
+    val parent = parent
+    when {
+        parent is CjQualifiedExpression -> {
+            val receiverExpression = parent.receiverExpression
+            // Name expression can't be receiver for itself
+            if (receiverExpression != this) {
+                return receiverExpression
+            }
+        }
+        parent is CjCallExpression -> {
+            //This is in case `a().b()`
+            val grandParent = parent.parent
+            if (grandParent is CjQualifiedExpression) {
+                val parentsReceiver = grandParent.receiverExpression
+                if (parentsReceiver != parent) {
+                    return parentsReceiver
+                }
+            }
+        }
+//        parent is CjBinaryExpression && parent.operationReference == this -> {
+//            return if (parent.operationToken in OperatorConventions.IN_OPERATIONS) parent.right else parent.left
+//        }
+        parent is CjUnaryExpression && parent.operationReference == this -> {
+            return parent.baseExpression
+        }
+        parent is CjUserType -> {
+            val qualifier = parent.qualifier
+            if (qualifier != null) {
+                return qualifier.referenceExpression!!
+            }
+        }
+    }
+
+    return null
+}
 fun PsiElement.isFunctionalExpression(): Boolean = this is CjNamedFunction && nameIdentifier == null
+fun CjElement.containingClass(): CjClass? = getStrictParentOfType()
 
 fun CjSimpleNameExpression.getTopmostParentQualifiedExpressionForSelector(): CjQualifiedExpression? {
     return generateSequence<CjExpression>(this) {
@@ -25,6 +88,16 @@ fun CjSimpleNameExpression.getTopmostParentQualifiedExpressionForSelector(): CjQ
         if (parentQualified?.selectorExpression == it) parentQualified else null
     }.last() as? CjQualifiedExpression
 }
+fun CjModifierListOwner.visibilityModifier() = modifierList?.modifierFromTokenSet(CjTokens.VISIBILITY_MODIFIERS)
+private fun CjModifierList.modifierFromTokenSet(set: TokenSet): PsiElement? {
+    return set.types
+        .asSequence()
+        .map { getModifier(it as CjModifierKeywordToken) }
+        .firstOrNull { it != null }
+
+}
+fun CjModifierListOwner.visibilityModifierType(): CjModifierKeywordToken? =
+    visibilityModifier()?.node?.elementType as CjModifierKeywordToken?
 
 fun CjExpression.referenceExpression(): CjReferenceExpression? =
     (if (this is CjCallExpression) calleeExpression else this) as? CjReferenceExpression

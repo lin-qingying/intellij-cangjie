@@ -5,6 +5,7 @@ import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.SpecialNames
 import com.huawei.cangjie.psi.CjClassLikeDeclaration
 import com.huawei.cangjie.psi.CjFile
+import com.huawei.cangjie.utils.parentsWithSelf
 
 
 internal object ClassIdCalculator {

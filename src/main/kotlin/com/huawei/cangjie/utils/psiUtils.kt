@@ -1,9 +1,11 @@
 package com.huawei.cangjie.utils
 
-import com.huawei.cangjie.psi.psiUtil.parentOfType
+import com.huawei.cangjie.psi.psiUtil.*
+import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
 
@@ -44,3 +46,20 @@ val PsiElement.parents: Sequence<PsiElement>
 val PsiElement.parentsWithSelf: Sequence<PsiElement>
     get() = generateSequence(this) { if (it is PsiFile) null else it.parent }
 
+fun PsiElement.getPrevSiblingIgnoringWhitespace(withItself: Boolean = false): PsiElement? {
+    return siblings(withItself = withItself, forward = false).filter { it !is PsiWhiteSpace }.firstOrNull()
+}
+val PsiChildRange.textRange: TextRange?
+    get() {
+        if (isEmpty) return null
+        return TextRange(first!!.startOffset, last!!.endOffset)
+    }
+fun PsiElement.getStartOffsetIn(ancestor: PsiElement): Int {
+    var offset = 0
+    var parent = this
+    while (parent != ancestor) {
+        offset += parent.startOffsetInParent
+        parent = parent.parent
+    }
+    return offset
+}

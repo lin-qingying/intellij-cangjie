@@ -15,9 +15,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 
-
 @SuppressWarnings("deprecation")
-public class VariableDescriptorImpl extends VariableDescriptorWithInitializerImpl implements VariableDescriptor   {
+public class VariableDescriptorImpl extends VariableDescriptorWithInitializerImpl implements VariableDescriptor {
     private final Modality modality;
     private final VariableDescriptor original;
     private final CallableMemberDescriptor.Kind kind;
@@ -131,7 +130,6 @@ public class VariableDescriptorImpl extends VariableDescriptorWithInitializerImp
 //                ? accessorDescriptor.getInitialSignatureDescriptor().substitute(substitutor)
 //                : null;
 //    }
-
 
 
     public void setInType(@NotNull CangJieType inType) {
@@ -251,7 +249,6 @@ public class VariableDescriptorImpl extends VariableDescriptorWithInitializerImp
 //    public PropertySetterDescriptor getSetter() {
 //        return setter;
 //    }
-
 
 
     //    @Override
@@ -514,8 +511,6 @@ public class VariableDescriptorImpl extends VariableDescriptorWithInitializerImp
                 .setCopyOverrides(copyOverrides)
                 .build();
     }
-
-
 
 
     @Nullable

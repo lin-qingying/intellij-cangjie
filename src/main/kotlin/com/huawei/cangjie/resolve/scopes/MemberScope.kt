@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.scopes
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
 import com.huawei.cangjie.resolve.source.MemberScopeImpl
 import com.huawei.cangjie.utils.Printer
 import com.huawei.cangjie.utils.flatMapToNullable
@@ -12,6 +13,16 @@ fun MemberScope.computeAllNames() = getClassifierNames()?.let { classifierNames 
         it.addAll(getVariableNames())
         it.addAll(classifierNames)
     }
+}
+/**
+ * The same as getDescriptors(kindFilter, nameFilter) but the result is guaranteed to be filtered by kind and name.
+ */
+fun MemberScope.getDescriptorsFiltered(
+    kindFilter: DescriptorKindFilter = DescriptorKindFilter.ALL,
+    nameFilter: (Name) -> Boolean = ALL_NAME_FILTER
+): Collection<DeclarationDescriptor> {
+    if (kindFilter.kindMask == 0) return listOf()
+    return getContributedDescriptors(kindFilter, nameFilter).filter { kindFilter.accepts(it) && nameFilter(it.name) }
 }
 
 fun Iterable<MemberScope>.flatMapClassifierNamesOrNull(): MutableSet<Name>? =
@@ -66,19 +77,26 @@ interface MemberScope : ResolutionScope {
 
 
 abstract class DescriptorKindExclude {
+    abstract fun excludes(descriptor: DeclarationDescriptor): Boolean
+
     object TopLevelPackages : DescriptorKindExclude() {
-//        override fun excludes(descriptor: DeclarationDescriptor): Boolean {
-//            val fqName = when (descriptor) {
-//                is PackageFragmentDescriptor -> descriptor.fqName
-//                is PackageViewDescriptor -> descriptor.fqName
-//                else -> return false
-//            }
-//            return fqName.parent().isRoot
-//        }
+        override fun excludes(descriptor: DeclarationDescriptor): Boolean {
+            val fqName = when (descriptor) {
+                is PackageFragmentDescriptor -> descriptor.fqName
+                is PackageViewDescriptor -> descriptor.fqName
+                else -> return false
+            }
+            return fqName.parent().isRoot
+        }
 
         override val fullyExcludedDescriptorKinds: Int get() = 0
     }
+    object EnumEntry : DescriptorKindExclude() {
+        override fun excludes(descriptor: DeclarationDescriptor)
+                = descriptor is ClassDescriptor && descriptor.kind == ClassKind.ENUM_ENTRY
 
+        override val fullyExcludedDescriptorKinds: Int get() = 0
+    }
     /**
      * Bit-mask of descriptor kind's that are fully excluded by this [DescriptorKindExclude].
      * That is, [excludes] returns true for all descriptor of these kinds.
@@ -106,6 +124,22 @@ class DescriptorKindFilter(
         if (mask == 0) return null
         return DescriptorKindFilter(mask, excludes)
     }
+    private fun DeclarationDescriptor.kind(): Int {
+        return when (this) {
+            is ClassDescriptor -> if (this.kind.isSingleton) SINGLETON_CLASSIFIERS_MASK else NON_SINGLETON_CLASSIFIERS_MASK
+            is TypeAliasDescriptor -> TYPE_ALIASES_MASK
+            is ClassifierDescriptor -> NON_SINGLETON_CLASSIFIERS_MASK
+            is PackageFragmentDescriptor, is PackageViewDescriptor -> PACKAGES_MASK
+            is FunctionDescriptor -> FUNCTIONS_MASK
+            is VariableDescriptor -> VARIABLES_MASK
+            else -> 0
+        }
+    }
+    fun accepts(descriptor: DeclarationDescriptor): Boolean
+            = kindMask and descriptor.kind() != 0 && excludes.all { !it.excludes(descriptor) }
+    infix fun exclude(exclude: DescriptorKindExclude): DescriptorKindFilter
+            = DescriptorKindFilter(kindMask, excludes + listOf(exclude))
+
     companion object {
 
         private var nextMaskValue: Int = 0x01

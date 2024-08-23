@@ -27,6 +27,7 @@ import com.huawei.cangjie.resolve.resolveClassByFqName
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.NotNullLazyValue
 import com.huawei.cangjie.storage.StorageManager
+import com.huawei.cangjie.types.BasicType
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.SimpleType
 import com.huawei.cangjie.types.TypeConstructor
@@ -380,8 +381,8 @@ open class CangJieBuiltIns(
         return getBuiltInClassByName(simpleName) as BasicTypeDescriptor
     }
 
-    val unit get() = getBuiltInClassByName("Unit")
-    val unitType: SimpleType get() = unit.getDefaultType()
+    val unit:BasicTypeDescriptor get() = getBuiltInBasicTypeByName("Unit")
+    val unitType: BasicType get() = unit.defaultType
     val nothing: ClassDescriptor get() = getBuiltInClassByName("Nothing")
 
     val any: ClassDescriptor

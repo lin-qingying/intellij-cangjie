@@ -27,7 +27,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     private ReceiverParameterDescriptor extensionReceiverParameter;
     private ReceiverParameterDescriptor dispatchReceiverParameter;
     private Modality modality;
-    private DescriptorVisibility visibility = DescriptorVisibilities.UNKNOWN;
+    private DescriptorVisibility visibility = DescriptorVisibilities.INTERNAL;
     private boolean isOperator = false;
     //    private bool isInfix = false;
 //    private bool isExternal = false;
@@ -261,6 +261,9 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         return modality;
     }
 
+    public void setModality(@NotNull Modality modality) {
+          this.modality  = modality;
+    }
     @NotNull
     @Override
     public DescriptorVisibility getVisibility() {
@@ -470,7 +473,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         List<TypeParameterDescriptor> unsubstitutedTypeParameters =
                 configuration.newTypeParameters == null ? getTypeParameters() : configuration.newTypeParameters;
 //
-        wereChanges[0] |= !unsubstitutedTypeParameters.isEmpty();
+        wereChanges[0] = !unsubstitutedTypeParameters.isEmpty();
 //
         List<TypeParameterDescriptor> substitutedTypeParameters =
                 new ArrayList<TypeParameterDescriptor>(unsubstitutedTypeParameters.size());
@@ -641,13 +644,13 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
             Kind kind,
             boolean copyOverrides
     ) {
-        return newCopyBuilder()
+        return Objects.requireNonNull(newCopyBuilder()
                 .setOwner(newOwner)
                 .setModality(modality)
                 .setVisibility(visibility)
                 .setKind(kind)
                 .setCopyOverrides(copyOverrides)
-                .build();
+                .build());
     }
 
     @NotNull

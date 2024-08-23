@@ -8,6 +8,7 @@
     <xi:include href="/META-INF/codeInsight.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/searching.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/intentions.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/quickfix.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <extensions defaultExtensionNs="com.intellij">
 
@@ -160,7 +161,9 @@
         <!--        <projectService serviceImplementation="com.huawei.cangjie.cjpm.project.settings.CangJieProjectSettingsService"/>-->
         <projectService
                 serviceImplementation="com.huawei.cangjie.cjpm.project.settings.CjExternalLinterProjectSettingsService"/>
-
+        <projectService
+                serviceInterface="com.huawei.cangjie.ide.imports.ImportInsertHelper"
+                serviceImplementation="com.huawei.cangjie.ide.imports.ImportInsertHelperImpl"/>
         <applicationService serviceImplementation="com.huawei.cangjie.ide.newProject.state.CjUserTemplatesState"/>
 
         <!--        <projectService serviceImplementation="com.huawei.cangjie.ide.run.cjpm.back.CangJieProjectSettingsService"/>-->
@@ -313,7 +316,10 @@
                 dynamic="true"/>
         <extensionPoint qualifiedName="com.huawei.cangjie.resolveScopeEnlarger"
                         interface="com.huawei.cangjie.ide.projectStructure.CangJieResolveScopeEnlarger"/>
-
+        <extensionPoint
+                qualifiedName="com.huawei.cangjie.classImportFilter"
+                interface="com.huawei.cangjie.ide.util.ClassImportFilter"
+                dynamic="true"/>
     </extensionPoints>
 
 

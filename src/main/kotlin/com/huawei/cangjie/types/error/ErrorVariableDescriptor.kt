@@ -28,6 +28,6 @@ by (
             CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE,
             /*false, false, false, false, false, false*/
         ).apply {
-//            setType(ErrorUtils.errorVariableType, emptyList(), null, null, emptyList())
+            setType(ErrorUtils.errorVariableType, emptyList(), null, null, emptyList())
         }
         )

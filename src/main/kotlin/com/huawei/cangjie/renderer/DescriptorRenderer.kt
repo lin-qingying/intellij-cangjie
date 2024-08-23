@@ -241,7 +241,7 @@ abstract class DescriptorRenderer {
                     INTERFACE -> "interface"
                     ENUM -> "enum"
 
-//                    ClassKind.ANNOTATION_CLASS -> "annotation class"
+                    ANNOTATION_CLASS -> "annotation class"
                     ENUM_ENTRY -> "enum entry"
                     BASIC -> "basic type"
                 }
@@ -269,24 +269,24 @@ enum class DescriptorRendererModifier(val includeByDefault: Boolean) {
     MODALITY(true),
     OVERRIDE(true),
     ANNOTATIONS(false),
-    INNER(true),
+//    INNER(true),
     MEMBER_KIND(true),
-    DATA(true),
-    INLINE(true),
-    EXPECT(true),
-    ACTUAL(true),
+
+//    INLINE(true),
+//    EXPECT(true),
+//    ACTUAL(true),
     CONST(true),
-    LATEINIT(true),
-    FUN(true),
+//    LATEINIT(true),
+    FUNC(true),
     VALUE(true)
     ;
 
     companion object {
         @JvmField
-        val ALL_EXCEPT_ANNOTATIONS = values().filter { it.includeByDefault }.toSet()
+        val ALL_EXCEPT_ANNOTATIONS = entries.filter { it.includeByDefault }.toSet()
 
         @JvmField
-        val ALL = values().toSet()
+        val ALL = entries.toSet()
     }
 }
 
@@ -648,7 +648,8 @@ internal class DescriptorRendererImpl(
     }
 
     private fun shouldRenderAsPrettyFunctionType(type: CangJieType): Boolean {
-        return type.arguments.none { it.isStarProjection }
+        return type.isBuiltinFunctionalType && type.arguments.none { it.isStarProjection }
+
     }
 
     override fun renderFlexibleType(lowerRendered: String, upperRendered: String, builtIns: CangJieBuiltIns): String {
@@ -1168,6 +1169,7 @@ internal class DescriptorRendererImpl(
                     renderMemberModifiers(function, builder)
                 }
 
+
                 renderOverride(function, builder)
 
                 if (includeAdditionalModifiers) {
@@ -1428,7 +1430,7 @@ internal class DescriptorRendererImpl(
 //            renderModifier(builder, DescriptorRendererModifier.DATA in modifiers && klass.isData, "data")
 //            renderModifier(builder, DescriptorRendererModifier.INLINE in modifiers && klass.isInline, "inline")
             renderModifier(builder, DescriptorRendererModifier.VALUE in modifiers && klass.isValue, "value")
-            renderModifier(builder, DescriptorRendererModifier.FUN in modifiers && klass.isFun, "fun")
+            renderModifier(builder, DescriptorRendererModifier.FUNC in modifiers && klass.isFun, "fun")
             renderClassKindPrefix(klass, builder)
         }
 
@@ -1565,15 +1567,14 @@ internal class DescriptorRendererImpl(
             builder?.let { renderFunction(descriptor, it) }
         }
 
-        override fun visitReceiverParameterDescriptor(descriptor: ReceiverParameterDescriptor, builder: StringBuilder?) {
+        override fun visitReceiverParameterDescriptor(
+            descriptor: ReceiverParameterDescriptor,
+            builder: StringBuilder?
+        ) {
             builder?.append(descriptor.name) // renders <this>
         }
 
 
-        //        override fun visitConstructorDescriptor(constructorDescriptor: ConstructorDescriptor, builder: StringBuilder) {
-//            renderConstructor(constructorDescriptor, builder)
-//        }
-//
         override fun visitTypeParameterDescriptor(descriptor: TypeParameterDescriptor, builder: StringBuilder?) {
             builder?.let { renderTypeParameter(descriptor, it, true) }
         }
@@ -1599,6 +1600,11 @@ internal class DescriptorRendererImpl(
 
         override fun visitTypeAliasDescriptor(descriptor: TypeAliasDescriptor, builder: StringBuilder?) {
             builder?.let { renderTypeAlias(descriptor, it) }
+
+        }
+
+        override fun visitConstructorDescriptor(constructorDescriptor: ConstructorDescriptor, builder: StringBuilder?) {
+//            renderConstructor(constructorDescriptor, builder)
 
         }
 //

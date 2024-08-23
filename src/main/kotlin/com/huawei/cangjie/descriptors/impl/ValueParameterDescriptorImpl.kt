@@ -3,6 +3,7 @@ package com.huawei.cangjie.descriptors.impl
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.constants.ConstantValue
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeSubstitutor
 
@@ -96,6 +97,12 @@ open class ValueParameterDescriptorImpl(
             newOwner, null, newIndex, annotations, newName, type, declaresDefaultValue(),
             /*isCrossinline, isNoinline, varargElementType, */SourceElement.NO_SOURCE
         )
+    }
+
+    override fun getCompileTimeInitializer(): ConstantValue<*>? = null
+
+    override fun cleanCompileTimeInitializerCache() {
+
     }
 
     override fun declaresDefaultValue(): Boolean {

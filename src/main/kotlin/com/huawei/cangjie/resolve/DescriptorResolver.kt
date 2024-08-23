@@ -37,7 +37,7 @@
 //
 //        val allAnnotations =
 //            annotationResolver.resolveAnnotationsWithoutArguments(scope, modifierList, trace)
-//        if (!parameter.hasValOrVar()) {
+//        if (!parameter.hasLetOrVar()) {
 //            return CompositeAnnotations(
 //                allAnnotations,
 //                additionalAnnotations
@@ -90,7 +90,7 @@
 //            // The problem with val/var is that when lazy resolve try to find their descriptor, it searches through the member scope
 //            // of containing class where, it can not find a descriptor with special name.
 //            // Thus, to preserve behavior, we don't use a special name for val/var.
-//            if (!valueParameter.hasValOrVar() && valueParameter.isSingleUnderscore
+//            if (!valueParameter.hasLetOrVar() && valueParameter.isSingleUnderscore
 //            ) anonymousParameterName(index)
 //            else CjPsiUtil.safeName(valueParameter.name)
 //        } else {

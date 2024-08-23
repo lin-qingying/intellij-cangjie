@@ -1,27 +1,32 @@
 package com.huawei.cangjie.resolve.calls.util
 
-import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.descriptors.CallableDescriptor
-import com.huawei.cangjie.descriptors.Diagnostic
-import com.huawei.cangjie.descriptors.Errors
+import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.ide.FrontendInternals
 import com.huawei.cangjie.incremental.CangJieLookupLocation
 import com.huawei.cangjie.psi.*
-import com.huawei.cangjie.resolve.BindingContext
+import com.huawei.cangjie.psi.psiUtil.getQualifiedExpressionForSelectorOrThis
+import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.BindingContext.CALL
 import com.huawei.cangjie.resolve.BindingContext.RESOLVED_CALL
-import com.huawei.cangjie.resolve.ResolutionFacade
-import com.huawei.cangjie.resolve.StatementFilter
 import com.huawei.cangjie.resolve.caches.analyze
 import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver
+import com.huawei.cangjie.resolve.calls.CallResolver
 import com.huawei.cangjie.resolve.calls.CallTransformer
+import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
+import com.huawei.cangjie.resolve.calls.context.CheckArgumentTypesMode
+import com.huawei.cangjie.resolve.calls.context.ContextDependency
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext
 import com.huawei.cangjie.resolve.calls.model.CangJieCall
 import com.huawei.cangjie.resolve.calls.model.MutableResolvedCall
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall
+import com.huawei.cangjie.resolve.calls.results.ResolutionStatus
 import com.huawei.cangjie.resolve.calls.tower.NewResolvedCallImpl
 import com.huawei.cangjie.resolve.calls.tower.psiCangJieCall
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
+import com.huawei.cangjie.resolve.scopes.getResolutionScope
+import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.isError
+import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.utils.returnIfNoDescriptorForDeclarationException
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
@@ -51,6 +56,61 @@ inline fun BindingTrace.reportTrailingLambdaErrorOr(
     }
 }
 
+private fun expectedType(call: Call, bindingContext: BindingContext): CangJieType {
+    return (call.callElement as? CjExpression)?.let {
+        bindingContext[BindingContext.EXPECTED_EXPRESSION_TYPE, it.getQualifiedExpressionForSelectorOrThis()]
+    } ?: TypeUtils.NO_EXPECTED_TYPE
+}
+fun Call.resolveCandidates(
+    bindingContext: BindingContext,
+    resolutionFacade: ResolutionFacade,
+    expectedType: CangJieType = expectedType(this, bindingContext),
+    filterOutWrongReceiver: Boolean = true,
+    filterOutByVisibility: Boolean = true
+): Collection<ResolvedCall<FunctionDescriptor>> {
+    val resolutionScope = callElement.getResolutionScope(bindingContext, resolutionFacade)
+    val inDescriptor = resolutionScope.ownerDescriptor
+
+    val dataFlowInfo = bindingContext.getDataFlowInfoBefore(callElement)
+    val bindingTrace = DelegatingBindingTrace(bindingContext, "Temporary trace")
+    val callResolutionContext = BasicCallResolutionContext.create(
+        bindingTrace, resolutionScope, this, expectedType, dataFlowInfo,
+        ContextDependency.INDEPENDENT, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+        false, resolutionFacade.languageVersionSettings,
+        resolutionFacade.dataFlowValueFactory
+    ).replaceCollectAllCandidates(true)
+
+    @OptIn(FrontendInternals::class)
+    val callResolver = resolutionFacade.frontendService<CallResolver>()
+
+    val results = callResolver.resolveFunctionCall(callResolutionContext)
+
+    var candidates = results.allCandidates!!
+
+    if (callElement is CjConstructorDelegationCall) { // for "this(...)" delegation call exclude caller from candidates
+        inDescriptor as ConstructorDescriptor
+        candidates = candidates.filter { it.resultingDescriptor.original != inDescriptor.original }
+    }
+
+    if (filterOutWrongReceiver) {
+        candidates = candidates.filter {
+            it.status != ResolutionStatus.RECEIVER_TYPE_ERROR && it.status != ResolutionStatus.RECEIVER_PRESENCE_ERROR
+        }
+    }
+
+    if (filterOutByVisibility) {
+        candidates = candidates.filter {
+            DescriptorVisibilityUtils.isVisible(
+                it.getDispatchReceiverWithSmartCast(),
+                it.resultingDescriptor,
+                inDescriptor,
+                resolutionFacade.languageVersionSettings
+            )
+        }
+    }
+
+    return candidates
+}
 
 
 fun Call.hasUnresolvedArguments(bindingContext: BindingContext, statementFilter: StatementFilter): Boolean {

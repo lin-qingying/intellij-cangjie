@@ -8,7 +8,8 @@ enum class ClassKind(val codeRepresentation: String?) {
     INTERFACE("interface"),
     ENUM( "enum"),
     ENUM_ENTRY( null),
-    BASIC(null);
+    BASIC(null),
+    ANNOTATION_CLASS( "annotation class");
 
     val isSingleton: Boolean
         get() =   this == ENUM_ENTRY

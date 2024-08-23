@@ -68,4 +68,7 @@ abstract class DelegatedDescriptorVisibility(override val delegate: Visibility) 
         get() = delegate.externalDisplayName
 //
     override fun normalize(): DescriptorVisibility = DescriptorVisibilities.toDescriptorVisibility(delegate.normalize())
+
+    final override fun toString(): String = delegate.toString()
+
 }

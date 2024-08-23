@@ -23,7 +23,7 @@ abstract class DiagnosticFactoryWithPsiElement<E : PsiElement, D : Diagnostic>(
 
 
 
-    @Deprecated("", ReplaceWith("super.cast(d)")) // ABI-compatibility only (used in Android plugin)
+    
     fun cast(d: Diagnostic): D {
         return super.cast(d)
     }

@@ -65,4 +65,9 @@ abstract class CjTypeStatement :
         return ClassIdCalculator.calculateClassId(this)
     }
 
+    fun isEnum(): Boolean {
+        return this is CjEnum
+
+    }
+
 }

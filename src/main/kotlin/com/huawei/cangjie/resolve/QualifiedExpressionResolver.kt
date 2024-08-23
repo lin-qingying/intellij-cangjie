@@ -27,6 +27,26 @@ import com.intellij.util.SmartList
 
 
 class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSettings) {
+    companion object {
+        /**
+         *  Shouldn't be visible to users.
+         *  Used as prefix for [FqName] from non-root to avoid conflicts when resolving in IDE.
+         *  E.g.:
+         *  ---------
+         *  package a
+         *
+         *  class A
+         *
+         *  fun test(a: Any) {
+         *      a.A() // invalid code -> incorrect import/completion/etc.
+         *      _root_ide_package_.a.A() // OK
+         *  }
+         *  ---------
+         */
+        const val ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE = "_root_ide_package_"
+        const val ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE_WITH_DOT = "$ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE."
+    }
+
     data class TypeQualifierResolutionResult(
         val qualifierParts: List<ExpressionQualifierPart>,
         val classifierDescriptor: ClassifierDescriptor? = null
@@ -768,6 +788,15 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
 
 //        if (descriptor is DeclarationDescriptorWithVisibility) {
 
+        val fromToCheck =
+            if (shouldBeVisibleFrom is PackageFragmentDescriptor && shouldBeVisibleFrom.source == SourceElement.NO_SOURCE && referenceExpression.containingFile !is DummyHolder) {
+                PackageFragmentWithCustomSource(
+                    shouldBeVisibleFrom,
+                    CangJieSourceElement(referenceExpression.getContainingCjFile())
+                )
+            } else {
+                shouldBeVisibleFrom
+            }
 
         when (position) {
             PACKAGE_HEADER -> {
@@ -800,7 +829,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                 }
             }
 
-            IMPORT -> {
+            IMPORT,TYPE -> {
 
 //                //                不能使用 除private以外的修饰符修饰import语句
 //                val importDirective = referenceExpression.getParentOfType<CjImportDirective>(true)
@@ -826,15 +855,6 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
 //                    descriptors.add(packageOrClassDescriptor)
 //                }
 
-                val fromToCheck =
-                    if (shouldBeVisibleFrom is PackageFragmentDescriptor && shouldBeVisibleFrom.source == SourceElement.NO_SOURCE && referenceExpression.containingFile !is DummyHolder) {
-                        PackageFragmentWithCustomSource(
-                            shouldBeVisibleFrom,
-                            CangJieSourceElement(referenceExpression.getContainingCjFile())
-                        )
-                    } else {
-                        shouldBeVisibleFrom
-                    }
 
                 if (descriptor is LazyReexportAgent) {
 
@@ -862,7 +882,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                         isQualifier,
                         packageView,
 
-                    )
+                        )
                 } else {
                     if (!isVisible(descriptor, fromToCheck, position, languageVersionSettings)) {
                         trace.report(
@@ -878,7 +898,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
 
             }
 
-//            TYPE -> TODO()
+
 //            EXPRESSION -> TODO()
             else -> {
 

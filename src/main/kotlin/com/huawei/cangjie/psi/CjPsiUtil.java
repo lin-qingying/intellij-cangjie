@@ -21,6 +21,20 @@ public class CjPsiUtil {
     public static CjExpression safeDeparenthesize(@NotNull CjExpression expression) {
         return safeDeparenthesize(expression, false);
     }
+    public static boolean isSelectorInQualified(@NotNull CjSimpleNameExpression nameExpression) {
+        CjElement qualifiedElement = CjPsiUtilKt.getQualifiedElement(nameExpression);
+        return qualifiedElement instanceof CjQualifiedExpression
+                || ((qualifiedElement instanceof CjUserType) && ((CjUserType) qualifiedElement).getQualifier() != null);
+    }
+    @SuppressWarnings("unused") // used in intellij repo
+    public static boolean areParenthesesUseless(@NotNull CjParenthesizedExpression expression) {
+        CjExpression innerExpression = expression.getExpression();
+        if (innerExpression == null) return true;
+        PsiElement parent = expression.getParent();
+        if (!(parent instanceof CjElement)) return true;
+        return !areParenthesesNecessary(innerExpression, expression, (CjElement) parent);
+    }
+
     @Nullable
     public static CjExpression getLastElementDeparenthesized(
             @Nullable CjExpression expression,
@@ -115,7 +129,7 @@ public class CjPsiUtil {
     }
     @Nullable
     public static CjTypeStatement getClassIfParameterIsProperty(@NotNull CjParameter cjParameter) {
-        if (cjParameter.hasValOrVar()) {
+        if (cjParameter.hasLetOrVar()) {
             PsiElement grandParent = null;
             if (cjParameter.getParent() != null) {
                 grandParent = cjParameter.getParent().getParent();

@@ -5,6 +5,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.renderer.ClassifierNamePolicy
 import com.huawei.cangjie.renderer.DescriptorRenderer
 import com.huawei.cangjie.resolve.DescriptorUtils
@@ -16,6 +17,7 @@ import com.intellij.psi.PsiElement
 
 fun DescriptorRenderer.asRenderer() = SmartDescriptorRenderer(this)
 
+
 object Renderers {
     private val LOG = Logger.getInstance(Renderers::class.java)
 
@@ -26,7 +28,18 @@ object Renderers {
     val RENDER_TYPE = SmartTypeRenderer(DescriptorRenderer.FQ_NAMES_IN_TYPES.withOptions {
         parameterNamesInFunctionalTypes = false
     })
+    @JvmField
+    val RENDER_CLASS  = Renderer { classOrObject: CjTypeStatement ->
+        val name = classOrObject.name?.let { " ${it.wrapIntoQuotes()}" } ?: ""
+        when {
+            classOrObject is CjClass -> "Class$name"
+            classOrObject is CjInterface -> "Interface$name"
+            classOrObject is CjStruct -> "Struct$name"
+            classOrObject is CjEnum -> "Enum$name"
 
+            else -> "Class$name"
+        }
+    }
     @JvmField
     val FQ_NAMES_IN_TYPES = DescriptorRenderer.FQ_NAMES_IN_TYPES.asRenderer()
 
@@ -76,7 +89,8 @@ object Renderers {
     val FQNAME = Renderer<FqName> {
         it.asString()
     }
-
+    @JvmField
+    val FQ_NAMES_IN_TYPES_ANNOTATIONS_WHITELIST = DescriptorRenderer.FQ_NAMES_IN_TYPES_WITH_ANNOTATIONS.withAnnotationsWhitelist()
     private fun String.wrapIntoQuotes(): String = "'$this'"
 
 }

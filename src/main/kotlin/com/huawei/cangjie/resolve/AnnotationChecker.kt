@@ -64,7 +64,7 @@ class AnnotationChecker {
 //        if (annotated is CjDeclarationWithBody) {
 //            // CjFunction or CjPropertyAccessor
 //            for (parameter in annotated.valueParameters) {
-//                if (!parameter.hasValOrVar()) {
+//                if (!parameter.hasLetOrVar()) {
 //                    check(parameter, trace)
 //                    if (annotated is CjFunctionLiteral) {
 //                        parameter.typeReference?.let { check(it, trace) }

@@ -6,11 +6,13 @@ import com.huawei.cangjie.analyzer.ResolverForProject
 import com.huawei.cangjie.container.getService
 import com.huawei.cangjie.descriptors.DiagnosticSink
 import com.huawei.cangjie.descriptors.ModuleDescriptor
+import com.huawei.cangjie.ide.FrontendInternals
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.resolve.caches.ProjectResolutionFacade
 import com.huawei.cangjie.resolve.caches.ResolutionFacadeModuleDescriptorProvider
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.utils.runWithCancellationCheck
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiElement
 
@@ -20,7 +22,8 @@ class ModuleResolutionFacadeImpl(
 ) : ResolutionFacade, ResolutionFacadeModuleDescriptorProvider {
     override val moduleDescriptor: ModuleDescriptor
         get() = findModuleDescriptor(moduleInfo)
-
+    override val project: Project
+        get() = projectFacade.project
     @FrontendInternals
     override fun <T : Any> getFrontendService(serviceClass: Class<T>): T = getFrontendService(moduleInfo, serviceClass)
 
@@ -55,6 +58,25 @@ class ModuleResolutionFacadeImpl(
         }
 
     }
+
+    override fun analyze(elements: Collection<CjElement>, bodyResolveMode: BodyResolveMode): BindingContext {
+        ResolveInDispatchThreadManager.assertNoResolveInDispatchThread()
+
+        if (elements.isEmpty()) return BindingContext.EMPTY
+
+        if (usePerFileAnalysisCache) {
+            elements.singleOrNull()?.let { element ->
+                fetchWithAllCompilerChecks(element)?.takeUnless { it.isError() }?.let { return it.bindingContext }
+            }
+        }
+
+        @OptIn(FrontendInternals::class)
+        val resolveElementCache = getFrontendService(elements.first(), ResolveElementCache::class.java)
+        return runWithCancellationCheck {
+            resolveElementCache.resolveToElements(elements, bodyResolveMode)
+        }
+    }
+
 
     override fun fetchWithAllCompilerChecks(element: CjElement): AnalysisResult? {
         ResolveInDispatchThreadManager.assertNoResolveInDispatchThread()
@@ -103,15 +125,7 @@ class ModuleResolutionFacadeImpl(
 }
 
 
-/**
- * Indicates sensitive frontend API, which should be used with caution to avoid invariant violation.
- * Use sites of this annotation include all methods for direct access to frontend components.
- * Please make sure that components don't receive resolution results (descriptors etc.) from different resolution facade for processing.
- * The simplest way to do so is to explicitly provide the same resolution facade to all related computations.
- * Not following this rule may lead to obscure memory leaks and other potential problems.
- */
-@RequiresOptIn
-annotation class FrontendInternals
+
 
 
 fun ResolutionFacade.findModuleDescriptor(ideaModuleInfo: ModuleInfo): ModuleDescriptor {

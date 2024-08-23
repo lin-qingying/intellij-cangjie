@@ -107,7 +107,7 @@ fun scopeForInitializerResolution(
             val parameterDescriptors = classDescriptor.unsubstitutedPrimaryConstructor!!.valueParameters
             assert(parameterDescriptors.size == primaryConstructorParameters.size)
             for ((parameter, descriptor) in primaryConstructorParameters.zip(parameterDescriptors)) {
-                if (!parameter.hasValOrVar()) {
+                if (!parameter.hasLetOrVar()) {
                     addVariableDescriptor(descriptor)
                 }
             }

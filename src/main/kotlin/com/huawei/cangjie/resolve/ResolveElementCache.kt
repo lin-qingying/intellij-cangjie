@@ -68,6 +68,43 @@ class ResolveElementCache(
             return "{CachedPartialResolve: $mode $modificationStamp}"
         }
     }
+    fun resolveToElements(elements: Collection<CjElement>, bodyResolveMode: BodyResolveMode = FULL): BindingContext {
+        val elementsByAdditionalResolveElement: Map<CjElement?, List<CjElement>> =
+            elements.groupBy { findElementOfAdditionalResolve(it, bodyResolveMode) }
+
+        val bindingContexts = ArrayList<BindingContext>()
+        val declarationsToResolve = ArrayList<CjDeclaration>()
+        var addResolveSessionBindingContext = false
+
+        ensureFileAnnotationsResolved(elements)
+        for ((elementOfAdditionalResolve, contextElements) in elementsByAdditionalResolveElement) {
+            if (elementOfAdditionalResolve != null) {
+                if (elementOfAdditionalResolve is CjParameter) {
+                    throw AssertionError(
+                        "ResolveElementCache: Element of additional resolve should not be CjParameter: " +
+                                "${elementOfAdditionalResolve.text} for context element ${contextElements.firstOrNull()?.text}"
+                    )
+                }
+                val bindingContext = getElementsAdditionalResolve(elementOfAdditionalResolve, contextElements, bodyResolveMode)
+                bindingContexts.add(bindingContext)
+            } else {
+                contextElements
+                    .mapNotNull { it.getNonStrictParentOfType<CjDeclaration>() }
+                    .filterTo(declarationsToResolve) {
+                        it !is CjAnonymousInitializer && it !is CjDestructuringDeclaration && it !is CjDestructuringDeclarationEntry
+                    }
+                addResolveSessionBindingContext = true
+            }
+        }
+
+        declarationsToResolve.forEach { resolveSession.resolveToDescriptor(it) }
+        if (addResolveSessionBindingContext) {
+            bindingContexts.add(resolveSession.bindingContext)
+        }
+
+        //TODO: it can be slow if too many contexts
+        return CompositeBindingContext.create(bindingContexts)
+    }
 
     private val partialBodyResolveCache: CachedValue<SLRUCache<CjFile, ConcurrentMap<CjExpression, CachedPartialResolve>>> =
         CachedValuesManager.getManager(project).createCachedValue(
@@ -163,7 +200,12 @@ class ResolveElementCache(
             else -> return elementOfAdditionalResolve
         }
     }
-
+    private fun ensureFileAnnotationsResolved(elements: Collection<CjElement>) {
+        val filesToBeAnalyzed = elements.map { it.getContainingCjFile() }.toSet()
+        for (file in filesToBeAnalyzed) {
+            ensureFileAnnotationsResolved(file)
+        }
+    }
     private fun ensureFileAnnotationsResolved(file: CjFile) {
 //    val fileLevelAnnotations = resolveSession.getFileAnnotations(file)
 //    doResolveAnnotations(fileLevelAnnotations)
@@ -204,9 +246,9 @@ class ResolveElementCache(
     ): BindingContext {
 
 //        TODO return bindingContext
-//        if (contextElements == null && contextElement == null) {
-//            assert(bodyResolveMode == BodyResolveMode.FULL)
-//        }
+        if (contextElements == null && contextElement == null) {
+            assert(bodyResolveMode == FULL)
+        }
 
         // Force perform FULL analysis to avoid redundant analysis for the current selected files.
         if (bodyResolveMode != FULL &&
@@ -262,7 +304,7 @@ class ResolveElementCache(
                         val expressionsMap = synchronized(partialBodyResolveCacheValue) {
                             partialBodyResolveCacheValue[file]
                         }
-                        expressions.map { expressionsMap[it] }
+                        expressions.map { expressionsMap[it ?: resolveElement] }
                     }
 
                 // a bit of problem here that several threads come to analyze same resolveElement

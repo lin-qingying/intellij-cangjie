@@ -4,6 +4,7 @@ package com.huawei.cangjie.ide.formatter;
 
 import com.huawei.cangjie.lang.CangJieLanguage;
 import com.huawei.cangjie.utils.ReflectionUtil;
+import com.intellij.configurationStore.Property;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;

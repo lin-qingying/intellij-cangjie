@@ -3,9 +3,7 @@ package com.huawei.cangjie.ide.highlighter
 import com.huawei.cangjie.descriptors.Diagnostic
 import com.huawei.cangjie.descriptors.Errors
 import com.huawei.cangjie.diagnostics.Severity
-import com.huawei.cangjie.highlighter.CangJieHighlightingColors
 import com.huawei.cangjie.psi.CjParameter
-import com.huawei.cangjie.psi.CjReferenceExpression
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder
 import com.intellij.codeInsight.intention.IntentionAction
@@ -14,15 +12,13 @@ import com.intellij.openapi.diagnostic.ControlFlowException
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.util.registry.Registry
-import com.intellij.psi.MultiRangeReference
 import com.intellij.psi.PsiElement
 import com.intellij.util.containers.MultiMap
 
 internal class ElementAnnotator(
     private val element: PsiElement,
     private val shouldSuppressUnusedParameter: (CjParameter) -> Boolean
-){
-
+) {
 
 
     companion object {
@@ -35,6 +31,7 @@ internal class ElementAnnotator(
             suppressDeprecatedAnnotation = suppressDeprecatedAnnotationRegistryKey.asBoolean()
         }
     }
+
     private fun presentationInfo(diagnostics: Collection<Diagnostic>): AnnotationPresentationInfo? {
         if (diagnostics.isEmpty() || !diagnostics.any { it.isValid }) return null
 
@@ -116,14 +113,14 @@ internal class ElementAnnotator(
             Severity.INFO -> AnnotationPresentationInfo(ranges, highlightType = ProblemHighlightType.INFORMATION)
 
 
-            else -> AnnotationPresentationInfo(ranges,null,null)
+            else -> AnnotationPresentationInfo(ranges, null, null)
         }
         return presentationInfo
     }
 
     private fun createFixesMap(sameTypeDiagnostics: Collection<Diagnostic>): MultiMap<Diagnostic, IntentionAction> =
         try {
-           CangJieQuickFixProvider.getInstance(element.project).createQuickFixes(sameTypeDiagnostics)
+            CangJieQuickFixProvider.getInstance(element.project).createQuickFixes(sameTypeDiagnostics)
 
         } catch (e: Exception) {
             if (e is ControlFlowException) {
@@ -143,13 +140,19 @@ internal class ElementAnnotator(
             val sameTypeDiagnostics = it.value
             val presentationInfo = presentationInfo(sameTypeDiagnostics)
             if (presentationInfo != null) {
-                val fixesMap =
-//                    if (calculatingInProgress) {
-//                        Fe10QuickFixProvider.getInstance(element.project).createPostponedUnresolvedReferencesQuickFixes(sameTypeDiagnostics)
-//                    } else {
-                        createFixesMap(sameTypeDiagnostics)
-//                    }
-                presentationInfo.processDiagnostics(holder, sameTypeDiagnostics, highlightInfoByDiagnostic, fixesMap, calculatingInProgress)
+                val fixesMap = if (calculatingInProgress) {
+                    CangJieQuickFixProvider.getInstance(element.project)
+                        .createPostponedUnresolvedReferencesQuickFixes(sameTypeDiagnostics)
+                } else {
+                    createFixesMap(sameTypeDiagnostics)
+                }
+                presentationInfo.processDiagnostics(
+                    holder,
+                    sameTypeDiagnostics,
+                    highlightInfoByDiagnostic,
+                    fixesMap,
+                    calculatingInProgress
+                )
             }
         }
 }

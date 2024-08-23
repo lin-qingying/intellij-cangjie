@@ -1,31 +1,25 @@
 package com.huawei.cangjie.resolve.calls.tower
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
-import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.diagnostics.reportDiagnosticOnce
-import com.huawei.cangjie.psi.ValueArgument
+import com.huawei.cangjie.descriptors.BindingTrace
+import com.huawei.cangjie.descriptors.CallableDescriptor
+import com.huawei.cangjie.descriptors.ModuleDescriptor
+import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.MissingSupertypesResolver
+import com.huawei.cangjie.resolve.caches.MissingDependencySupertypeChecker
 import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver
 import com.huawei.cangjie.resolve.calls.checkers.CallCheckerContext
-import com.huawei.cangjie.resolve.calls.components.CallableReferenceAdaptation
-import com.huawei.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
 import com.huawei.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
 import com.huawei.cangjie.resolve.calls.model.*
-import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
-import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
-import com.huawei.cangjie.resolve.calls.tasks.TracingStrategyImpl
-import com.huawei.cangjie.resolve.calls.util.CallMaker
-import com.huawei.cangjie.resolve.calls.util.extractCallableReferenceExpression
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
-import com.huawei.cangjie.resolve.scopes.receivers.TransientReceiver
-import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.TypeApproximator
 import com.huawei.cangjie.types.expressions.DoubleColonExpressionResolver
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices
-import com.huawei.cangjie.types.expressions.typeInfoFactory.createTypeInfo
+import com.huawei.cangjie.types.util.shouldBeUpdated
 
 class ResolvedAtomCompleter(
     private val resultSubstitutor: NewTypeSubstitutor,
@@ -45,8 +39,8 @@ class ResolvedAtomCompleter(
     ) {
     private val topLevelCallCheckerContext = CallCheckerContext(
         topLevelCallContext, deprecationResolver, moduleDescriptor,
-//        missingSupertypesResolver,
-//        callComponents,
+        missingSupertypesResolver,
+        callComponents,
     )
     private val topLevelTrace = topLevelCallCheckerContext.trace
     private fun extractDiagnosticsFromPartiallyResolvedCall(resolvedCallAtom: ResolvedCallAtom): Set<CangJieCallDiagnostic> {
@@ -55,6 +49,7 @@ class ResolvedAtomCompleter(
 
         return partialCallContainer?.result?.diagnostics.orEmpty().toSet()
     }
+
     fun completeAll(resolvedAtom: ResolvedAtom) {
         if (!resolvedAtom.analyzed)
             return
@@ -63,6 +58,7 @@ class ResolvedAtomCompleter(
         }
         complete(resolvedAtom)
     }
+
     private fun complete(resolvedAtom: ResolvedAtom) {
         if (topLevelCallContext.inferenceSession.callCompleted(resolvedAtom)) {
             return
@@ -329,13 +325,13 @@ class ResolvedAtomCompleter(
     fun completeResolvedCall(
         resolvedCallAtom: ResolvedCallAtom,
         diagnostics: Collection<CangJieCallDiagnostic>
-    ): NewAbstractResolvedCall<*> {
+    ): NewAbstractResolvedCall<*>? {
         val diagnosticsFromPartiallyResolvedCall = extractDiagnosticsFromPartiallyResolvedCall(resolvedCallAtom)
 
 //        clearPartiallyResolvedCall(resolvedCallAtom)
 
-//        val atom = resolvedCallAtom.atom
-//        if (atom.psiCangJieCall is PSICangJieCallForVariable) return null
+        val atom = resolvedCallAtom.atom
+        if (atom.psiCangJieCall is PSICangJieCallForVariable) return null
 
         val allDiagnostics = diagnostics + diagnosticsFromPartiallyResolvedCall
 
@@ -347,49 +343,48 @@ class ResolvedAtomCompleter(
         )
 
         //
-//        val lastCall = if (resolvedCall is VariableAsFunctionResolvedCall) {
-//            resolvedCall.functionCall
-//        } else resolvedCall
-//        if (ErrorUtils.isError(resolvedCall.candidateDescriptor)) {
-//            cangjieToResolvedCallTransformer.runArgumentsChecks(topLevelCallContext, lastCall)
-//            checkMissingReceiverSupertypes(resolvedCall, missingSupertypesResolver, topLevelTrace)
-//            return resolvedCall
-//        }
+        val lastCall = if (resolvedCall is VariableAsFunctionResolvedCall) {
+            resolvedCall.functionCall as NewAbstractResolvedCall<*>
+        } else resolvedCall
+        if (ErrorUtils.isError(resolvedCall.candidateDescriptor)) {
+            cangjieToResolvedCallTransformer.runArgumentsChecks(topLevelCallContext, lastCall)
+            checkMissingReceiverSupertypes(resolvedCall, missingSupertypesResolver, topLevelTrace)
+            return resolvedCall
+        }
 //
-//        val psiCallForResolutionContext = when (atom) {
-//            // PARTIAL_CALL_RESOLUTION_CONTEXT has been written for the baseCall
-//            is PSICangJieCallForInvoke -> atom.baseCall.psiCall
-//            else -> atom.psiCangJieCall.psiCall
-//        }
+        val psiCallForResolutionContext = when (atom) {
+            // PARTIAL_CALL_RESOLUTION_CONTEXT has been written for the baseCall
+            is PSICangJieCallForInvoke -> atom.baseCall.psiCall
+            else -> atom.psiCangJieCall.psiCall
+        }
 //
-//        val callElement = psiCallForResolutionContext.callElement
-//        if (callElement is CjExpression) {
-//            val recordedType = topLevelCallContext.trace.getType(callElement)
-//            if (recordedType != null && recordedType.shouldBeUpdated() && resolvedCall.resultingDescriptor.returnType != null) {
-//                topLevelCallContext.trace.recordType(callElement, resolvedCall.resultingDescriptor.returnType)
-//            }
-//        }
+        val callElement = psiCallForResolutionContext.callElement
+        if (callElement is CjExpression) {
+            val recordedType = topLevelCallContext.trace.getType(callElement)
+            if (recordedType != null && recordedType.shouldBeUpdated() && resolvedCall.resultingDescriptor.returnType != null) {
+                topLevelCallContext.trace.recordType(callElement, resolvedCall.resultingDescriptor.returnType)
+            }
+        }
 
 
+        val resolutionContextForPartialCall =
+            topLevelCallContext.trace[BindingContext.PARTIAL_CALL_RESOLUTION_CONTEXT, psiCallForResolutionContext]
 
-//        val resolutionContextForPartialCall =
-//            topLevelCallContext.trace[BindingContext.PARTIAL_CALL_RESOLUTION_CONTEXT, psiCallForResolutionContext]
-//
-//        val callCheckerContext = if (resolutionContextForPartialCall != null)
-//            CallCheckerContext(
-//                resolutionContextForPartialCall.replaceBindingTrace(topLevelTrace),
-//                deprecationResolver,
-//                moduleDescriptor,
-//                missingSupertypesResolver,
-//                callComponents,
-//            )
-//        else
-//            topLevelCallCheckerContext
+        val callCheckerContext = if (resolutionContextForPartialCall != null)
+            CallCheckerContext(
+                resolutionContextForPartialCall.replaceBindingTrace(topLevelTrace),
+                deprecationResolver,
+                moduleDescriptor,
+                missingSupertypesResolver,
+                callComponents,
+            )
+        else
+            topLevelCallCheckerContext
 
         cangjieToResolvedCallTransformer.bind(topLevelTrace, resolvedCall)
 //
-//        cangjieToResolvedCallTransformer.runArgumentsChecks(topLevelCallContext, lastCall)
-//        cangjieToResolvedCallTransformer.runCallCheckers(resolvedCall, callCheckerContext)
+        cangjieToResolvedCallTransformer.runArgumentsChecks(topLevelCallContext, lastCall)
+        cangjieToResolvedCallTransformer.runCallCheckers(resolvedCall, callCheckerContext)
 //        cangjieToResolvedCallTransformer.runAdditionalReceiversCheckers(resolvedCall, topLevelCallContext)
 //
         cangjieToResolvedCallTransformer.reportDiagnostics(
@@ -400,5 +395,21 @@ class ResolvedAtomCompleter(
         )
 
         return resolvedCall
+    }
+
+    private fun checkMissingReceiverSupertypes(
+        resolvedCall: ResolvedCall<CallableDescriptor>,
+        missingSupertypesResolver: MissingSupertypesResolver,
+        trace: BindingTrace
+    ) {
+        val receiverValue = resolvedCall.dispatchReceiver ?: resolvedCall.extensionReceiver
+        receiverValue?.type?.let { receiverType ->
+            MissingDependencySupertypeChecker.checkSupertypes(
+                receiverType,
+                resolvedCall.call.callElement,
+                trace,
+                missingSupertypesResolver
+            )
+        }
     }
 }

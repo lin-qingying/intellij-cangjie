@@ -80,6 +80,13 @@ class BasicType(
         get() = false
 
 
+    override fun equals(other: Any?): Boolean {
+        if (other !is BasicType) return false
+        if (this === other) return true
+
+        return typeName == other.typeName
+    }
+
     val typeName = constructor.declarationDescriptor?.name ?: ""
 
 

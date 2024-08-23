@@ -9,7 +9,7 @@
 //    val CLASS: CjClassElementType = CjClassElementType("CLASS")
 //
 //    @JvmField
-//    val FUNCTION: CjFunctionElementType = CjFunctionElementType("FUN")
+//    val FUNCTION: CjFunctionElementType = CjFunctionElementType("FUNC")
 //
 //    @JvmField
 //    val VARIABLE: CjVariableElementType = CjVariableElementType("VARIABLE")

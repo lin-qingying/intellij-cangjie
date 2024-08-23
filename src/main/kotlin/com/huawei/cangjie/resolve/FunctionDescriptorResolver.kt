@@ -2,10 +2,7 @@ package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.builtins.*
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.descriptors.Errors.CANNOT_INFER_PARAMETER_TYPE
-import com.huawei.cangjie.descriptors.Errors.EXPECTED_PARAMETER_TYPE_MISMATCH
-import com.huawei.cangjie.descriptors.Errors.FUNCTION_DECLARATION_WITH_NO_NAME
-import com.huawei.cangjie.descriptors.Errors.VALUE_PARAMETER_WITH_NO_TYPE_ANNOTATION
+import com.huawei.cangjie.descriptors.Errors.*
 import com.huawei.cangjie.descriptors.annotations.AnnotationSplitter
 import com.huawei.cangjie.descriptors.annotations.AnnotationUseSiteTarget
 import com.huawei.cangjie.descriptors.annotations.Annotations
@@ -16,9 +13,9 @@ import com.huawei.cangjie.psi.CjFunction
 import com.huawei.cangjie.psi.CjFunctionLiteral
 import com.huawei.cangjie.psi.CjNamedFunction
 import com.huawei.cangjie.psi.CjParameter
+import com.huawei.cangjie.psi.psiUtil.isEmptyBody
 import com.huawei.cangjie.resolve.DescriptorResolver.getDefaultModality
 import com.huawei.cangjie.resolve.DescriptorResolver.getDefaultVisibility
-
 import com.huawei.cangjie.resolve.DescriptorUtils.getDispatchReceiverParameterIfNeeded
 import com.huawei.cangjie.resolve.ModifiersChecker.Companion.resolveMemberModalityFromModifiers
 import com.huawei.cangjie.resolve.ModifiersChecker.Companion.resolveVisibilityFromModifiers
@@ -34,10 +31,8 @@ import com.huawei.cangjie.resolve.source.toSourceElement
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.ErrorUtils
-
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.error.ErrorTypeKind
-import com.huawei.cangjie.types.expressions.ExpressionTypingUtils
 import com.huawei.cangjie.types.expressions.ExpressionTypingUtils.isFunctionExpression
 import com.huawei.cangjie.types.expressions.ExpressionTypingUtils.isFunctionLiteral
 import com.huawei.cangjie.types.isError
@@ -47,7 +42,7 @@ import java.util.*
 
 
 class FunctionDescriptorResolver(
-    private val typeResolver: TypeResolver ,
+    private val typeResolver: TypeResolver,
     private val descriptorResolver: DescriptorResolver,
     private val annotationResolver: AnnotationResolver,
     private val builtIns: CangJieBuiltIns,
@@ -188,6 +183,36 @@ class FunctionDescriptorResolver(
             emptyList()
         }
 
+
+    /**
+     * 方法返回值类型推断
+     *    如果没有显示指定类型，从方法块的最后一条语句推断类型，如果没有语句 指定类型为Unit
+     */
+    fun resolveFunctionReturnType(
+        function: CjFunction,
+        trace: BindingTrace,
+        headerScope: LexicalScope,
+    ): CangJieType {
+//        显示指定的类型
+        return if (function.typeReference != null) {
+            typeResolver.resolveType(headerScope, function.typeReference!!, trace, true)
+
+        } else if (function.hasBody()) {
+            val block = function.getBodyBlockExpression()
+            if (block!!.isEmptyBody()) {
+                return builtIns.unitType
+            }
+
+//        TODO 返回值类型推断 暂时返回Unit
+//            return block.returnValueInferred()
+            return builtIns.unitType
+        } else {
+            builtIns.unitType
+
+        }
+
+    }
+
     fun initializeFunctionDescriptorAndExplicitReturnType(
         container: DeclarationDescriptor,
         scope: LexicalScope,
@@ -250,7 +275,9 @@ class FunctionDescriptorResolver(
 
         headerScope.freeze()
 
-        val returnType = function.typeReference?.let { typeResolver.resolveType(headerScope, it, trace, true) }
+
+        val returnType = resolveFunctionReturnType(function, trace, headerScope)
+
 
         val visibility = resolveVisibilityFromModifiers(function, getDefaultVisibility(function, container))
         val modality = resolveMemberModalityFromModifiers(
@@ -339,10 +366,12 @@ class FunctionDescriptorResolver(
         val inferredReturnType = when {
             function.hasBlockBody() ->
                 builtIns.unitType
+
             function.hasBody() ->
                 descriptorResolver.inferReturnTypeFromExpressionBody(
                     trace, scope, dataFlowInfo, function, functionDescriptor, inferenceSession
                 )
+
             else ->
                 ErrorUtils.createErrorType(ErrorTypeKind.RETURN_TYPE, functionDescriptor.name.asString())
         }

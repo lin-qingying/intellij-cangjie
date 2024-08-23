@@ -5,6 +5,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
+import com.huawei.cangjie.psi.CjBlockExpression
 import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstructor
@@ -13,6 +14,8 @@ import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.checker.CangJieTypeChecker.DEFAULT
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
+import com.huawei.cangjie.types.checker.NewTypeVariableConstructor
+import com.huawei.cangjie.types.error.ErrorScopeKind
 import com.huawei.cangjie.types.error.ErrorType
 import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.model.TypeArgumentMarker
@@ -26,10 +29,112 @@ fun CangJieType.replaceAnnotations(newAnnotations: Annotations): CangJieType {
     return unwrap().replaceAttributes(attributes.replaceAnnotations(newAnnotations))
 }
 
+fun CangJieType.unwrapEnhancement(): CangJieType = getEnhancement() ?: this
+fun CangJieType.supertypes(): Collection<CangJieType> = TypeUtils.getAllSupertypes(this)
+
+@JvmOverloads // For binary compatibility
+fun CangJieType.approximateFlexibleTypes(
+    preferNotNull: Boolean = false,
+    preferStarForRaw: Boolean = false,
+    preferUpperBoundsForCollections: Boolean = false,
+): CangJieType {
+    if (isDynamic()) return this
+    if (isDefinitelyNotNullType) return this
+    return unwrapEnhancement().approximateNonDynamicFlexibleTypes(
+        preferNotNull,
+        preferStarForRaw,
+        preferUpperBoundsForCollections
+    )
+}
+
+enum class TypeNullability {
+    NOT_NULL,
+    NULLABLE,
+    FLEXIBLE
+}
+
+fun CangJieType.nullability(): TypeNullability {
+    return when {
+        isNullabilityFlexible() -> TypeNullability.FLEXIBLE
+        TypeUtils.isNullableType(this) -> TypeNullability.NULLABLE
+        else -> TypeNullability.NOT_NULL
+    }
+}
+
+private fun CangJieType.approximateNonDynamicFlexibleTypes(
+    preferNotNull: Boolean = false,
+    preferStarForRaw: Boolean = false,
+    preferUpperBoundsForCollections: Boolean = false,
+): SimpleType {
+    if (this is ErrorType) return this
+
+    if (isFlexible()) {
+        val flexible = asFlexibleType()
+        val lowerBound = flexible.lowerBound
+        val upperBound = flexible.upperBound
+        val lowerClass = lowerBound.constructor.declarationDescriptor as? ClassDescriptor?
+        val isCollection = lowerClass != null
+        // (Mutable)Collection<T>! -> MutableCollection<T>?
+        // Foo<(Mutable)Collection<T>!>! -> Foo<Collection<T>>?
+        // Foo! -> Foo?
+        // Foo<Bar!>! -> Foo<Bar>?
+        var approximation =
+            if (isCollection) {
+                // (Mutable)Collection<T>!
+                val bound = if (preferUpperBoundsForCollections) upperBound else lowerBound
+                if (lowerBound.isMarkedNullable != upperBound.isMarkedNullable)
+                    bound.makeNullableAsSpecified(!preferNotNull)
+                else
+                    bound
+            } else {
+                if (this is RawType && preferStarForRaw)
+                    upperBound.makeNullableAsSpecified(!preferNotNull)
+                else
+                    if (preferNotNull) lowerBound else upperBound
+            }
+
+        approximation = approximation.approximateNonDynamicFlexibleTypes()
+
+        approximation =
+            if (nullability() == TypeNullability.NOT_NULL) approximation.makeNullableAsSpecified(false) else approximation
+
+        if (approximation.isMarkedNullable && !lowerBound
+                .isMarkedNullable && TypeUtils.isTypeParameter(approximation) && TypeUtils.hasNullableSuperType(
+                approximation
+            )
+        ) {
+            approximation = approximation.makeNullableAsSpecified(false)
+        }
+
+        return approximation
+    }
+
+    (unwrap() as? AbbreviatedType)?.let {
+        return AbbreviatedType(it.expandedType, it.abbreviation.approximateNonDynamicFlexibleTypes(preferNotNull))
+    }
+    return CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
+        annotations.toDefaultAttributes(),
+        constructor,
+        arguments.map { it.substitute { type -> type.approximateFlexibleTypes(preferNotNull = true) } },
+        isMarkedNullable,
+        ErrorUtils.createErrorScope(ErrorScopeKind.UNSUPPORTED_TYPE_SCOPE, true, constructor.toString())
+    )
+}
+
+fun CangJieType.isTypeParameter(): Boolean = TypeUtils.isTypeParameter(this)
+
+fun TypeProjection.substitute(doSubstitute: (CangJieType) -> CangJieType): TypeProjection {
+    return if (isStarProjection)
+        this
+    else TypeProjectionImpl(projectionKind, doSubstitute(type))
+}
+
 fun CangJieType.makeNullable() = TypeUtils.makeNullable(this)
 fun CangJieType.makeNotNullable() = TypeUtils.makeNotNullable(this)
 
-fun CangJieType.isInterface(): Boolean = (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.INTERFACE
+fun CangJieType.isInterface(): Boolean =
+    (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.INTERFACE
+
 fun CangJieType.isEnum(): Boolean = (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.ENUM
 
 //fun CangJieType.containsTypeProjectionsInTopLevelArguments(): Boolean {
@@ -125,22 +230,32 @@ fun createBasicType(
 
     return CangJieTypeFactory.basicType(classDescriptor)
 }
+
 fun CangJieType.containsTypeAliasParameters(): Boolean =
     contains {
         it.constructor.declarationDescriptor?.isTypeAliasParameter() ?: false
     }
+
 fun ClassifierDescriptor.isTypeAliasParameter(): Boolean =
     this is TypeParameterDescriptor && containingDeclaration is TypeAliasDescriptor
+
 fun CangJieType.containsTypeAliases(): Boolean =
     contains {
         it.constructor.declarationDescriptor is TypeAliasDescriptor
     }
+
 @OptIn(ExperimentalContracts::class)
 fun isUnresolvedType(type: CangJieType): Boolean {
     contract {
         returns(true) implies (type is ErrorType)
     }
     return type is ErrorType && type.kind.isUnresolved
+}
+
+fun CangJieTypeChecker.equalTypesOrNulls(type1: CangJieType?, type2: CangJieType?): Boolean {
+    if (type1 === type2) return true
+    if (type1 == null || type2 == null) return false
+    return equalTypes(type1, type2)
 }
 
 object TypeUtils {
@@ -160,6 +275,28 @@ object TypeUtils {
             return true
         }
         return false
+    }
+    fun hasNullableSuperType(type:CangJieType): Boolean {
+        if (type.constructor.getDeclarationDescriptor() is  ClassDescriptor) {
+            // A class/trait cannot have a nullable supertype
+            return false
+        }
+
+        for (supertype in  getImmediateSupertypes(type)) {
+            if ( isNullableType(supertype)) return true
+        }
+
+        return false
+    }
+    fun isTypeParameter(type: CangJieType): Boolean {
+        return getTypeParameterDescriptorOrNull(type) != null || type.constructor is NewTypeVariableConstructor
+    }
+
+    fun getTypeParameterDescriptorOrNull(type: CangJieType): TypeParameterDescriptor? {
+        if (type.constructor.getDeclarationDescriptor() is TypeParameterDescriptor) {
+            return type.constructor.getDeclarationDescriptor() as TypeParameterDescriptor
+        }
+        return null
     }
 
     fun createSubstitutedSupertype(
@@ -675,3 +812,14 @@ fun CangJieType.getSupertypeRepresentative(): CangJieType =
 
 fun CangJieType.isDefaultBound(): Boolean = CangJieBuiltIns.isDefaultBound(getSupertypeRepresentative())
 fun List<CangJieType>.defaultProjections(): List<TypeProjection> = map(::TypeProjectionImpl)
+
+
+
+/**
+ * 块返回值类型推断
+ */
+fun CjBlockExpression.returnValueInferred(): CangJieType {
+
+
+    TODO()
+}

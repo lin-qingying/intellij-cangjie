@@ -6,6 +6,10 @@ public interface MemberDescriptor extends DeclarationDescriptorNonRoot, Declarat
     @NotNull
     Modality getModality();
 
+   default void setModality(@NotNull Modality modality){
+
+   }
+
     @Override
     @NotNull
     DescriptorVisibility getVisibility();

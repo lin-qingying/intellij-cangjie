@@ -37,10 +37,10 @@ class NewCangJieTypeCheckerImpl(
 ) : NewCangJieTypeChecker {
     override val overridingUtil: OverridingUtil = OverridingUtil.createWithTypeRefiner(cangjieTypeRefiner)
 
-    override fun isSubtypeOf(subtype: CangJieType, supertype: CangJieType): Boolean = true
-//        createClassicTypeCheckerState(
-//            true, cangjieTypeRefiner = cangjieTypeRefiner, cangjieTypePreparator = cangjieTypePreparator
-//        ).isSubtypeOf(subtype.unwrap(), supertype.unwrap()) // todo fix flag errorTypeEqualsToAnything
+    override fun isSubtypeOf(subtype: CangJieType, supertype: CangJieType): Boolean =
+        createClassicTypeCheckerState(
+            true, cangjieTypeRefiner = cangjieTypeRefiner, cangjieTypePreparator = cangjieTypePreparator
+        ).isSubtypeOf(subtype.unwrap(), supertype.unwrap()) // todo fix flag errorTypeEqualsToAnything
 
     override fun equalTypes(a: CangJieType, b: CangJieType): Boolean =
         createClassicTypeCheckerState(

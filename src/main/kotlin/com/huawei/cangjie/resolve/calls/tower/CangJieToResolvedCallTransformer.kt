@@ -5,6 +5,8 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.extensions.internal.CandidateInterceptor
 import com.huawei.cangjie.psi.Call
 import com.huawei.cangjie.resolve.BindingContext
+import com.huawei.cangjie.resolve.BindingContextUtils
+import com.huawei.cangjie.resolve.BindingContextUtils.updateRecordedType
 import com.huawei.cangjie.resolve.MissingSupertypesResolver
 import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver
 import com.huawei.cangjie.resolve.calls.DiagnosticReporterByTrackingStrategy
@@ -13,6 +15,7 @@ import com.huawei.cangjie.resolve.calls.checkers.CallChecker
 import com.huawei.cangjie.resolve.calls.checkers.CallCheckerContext
 import com.huawei.cangjie.resolve.calls.components.AdditionalDiagnosticReporter
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
+import com.huawei.cangjie.resolve.calls.context.CallPosition
 import com.huawei.cangjie.resolve.calls.inference.buildResultingSubstitutor
 import com.huawei.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
 import com.huawei.cangjie.resolve.calls.model.*
@@ -28,6 +31,7 @@ import com.huawei.cangjie.types.expressions.DataFlowAnalyzer
 import com.huawei.cangjie.types.expressions.DoubleColonExpressionResolver
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices
 import com.huawei.cangjie.types.model.TypeSystemInferenceExtensionContextDelegate
+import com.huawei.cangjie.types.util.TypeUtils
 
 class CangJieToResolvedCallTransformer(
 
@@ -63,6 +67,61 @@ class CangJieToResolvedCallTransformer(
             else
                 psiCangJieCall.psiCall
         }
+    }
+    // todo very beginning code
+    fun runArgumentsChecks(context: BasicCallResolutionContext, resolvedCall: NewAbstractResolvedCall<*>) {
+//        if (resolvedCall !is NewResolvedCallImpl<*>) return
+//
+//        for (valueArgument in resolvedCall.call.valueArguments) {
+//            val argumentMapping = resolvedCall.getArgumentMapping(valueArgument!!)
+//            val parameter: ValueParameterDescriptor?
+//            val (expectedType, callPosition) = when (argumentMapping) {
+//                is ArgumentMatch -> {
+//                    parameter = argumentMapping.valueParameter
+//
+//                    // We should take expected type from the last used conversion
+//                    // TODO: move this logic into ParameterTypeConversion
+//                    val expectedType =
+//                        resolvedCall.getExpectedTypeForUnitConvertedArgument(valueArgument)
+//                            ?: resolvedCall.getExpectedTypeForSuspendConvertedArgument(valueArgument)
+//                            ?: resolvedCall.getExpectedTypeForSamConvertedArgument(valueArgument)
+//                            ?: getEffectiveExpectedType(argumentMapping.valueParameter, valueArgument, context)
+//                    Pair(
+//                        expectedType,
+//                        CallPosition.ValueArgumentPosition(resolvedCall, argumentMapping.valueParameter, valueArgument),
+//                    )
+//                }
+//                else -> {
+//                    parameter = null
+//                    Pair(TypeUtils.NO_EXPECTED_TYPE, CallPosition.Unknown)
+//                }
+//            }
+//            val newContext =
+//                context.replaceDataFlowInfo(resolvedCall.dataFlowInfoForArguments.getInfo(valueArgument))
+//                    .replaceExpectedType(expectedType)
+//                    .replaceCallPosition(callPosition)
+//
+//
+//            val constantConvertedArgument = resolvedCall.getArgumentTypeForConstantConvertedArgument(valueArgument)
+//            val argumentExpression = valueArgument.getArgumentExpression() ?: continue
+//
+//            if (constantConvertedArgument != null) {
+//                context.trace.record(BindingContext.COMPILE_TIME_VALUE, argumentExpression, constantConvertedArgument)
+//                BindingContextUtils.updateRecordedType(
+//                    constantConvertedArgument.unknownIntegerType, argumentExpression, context.trace, false
+//                )
+//            }
+//
+//            if (!valueArgument.isExternal()) {
+//                updateRecordedType(
+//                    argumentExpression,
+//                    parameter,
+//                    newContext,
+//                    constantConvertedArgument?.unknownIntegerType?.unwrap(),
+//                    resolvedCall.isReallySuccess()
+//                )
+//            }
+//        }
     }
 
     fun reportCallDiagnostic(

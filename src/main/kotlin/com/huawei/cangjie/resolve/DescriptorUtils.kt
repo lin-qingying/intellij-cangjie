@@ -1,27 +1,43 @@
 package com.huawei.cangjie.resolve
 
+
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.AnnotationDescriptor
+import com.huawei.cangjie.descriptors.impl.DescriptorDerivedFromTypeAlias
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
+import com.huawei.cangjie.ide.references.mainReference
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.ClassId
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.psi.CjDeclaration
+import com.huawei.cangjie.psi.CjImportDirective
+import com.huawei.cangjie.psi.CjSimpleNameExpression
+import com.huawei.cangjie.psi.doNotAnalyze
+import com.huawei.cangjie.psi.psiUtil.getQualifiedElementSelector
 import com.huawei.cangjie.resolve.DescriptorUtils.getContainingClass
+import com.huawei.cangjie.resolve.OverridingUtil.OverrideCompatibilityInfo.Result.*
+import com.huawei.cangjie.resolve.caches.getResolutionFacade
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.ErrorUtils.isError
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
+import com.huawei.cangjie.types.checker.CangJieTypeCheckerImpl
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.checker.REFINER_CAPABILITY
 import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.contains
+import com.huawei.cangjie.types.util.equalTypesOrNulls
 import com.huawei.cangjie.utils.DFS
+
+
+fun <T : DeclarationDescriptor> T.unwrapIfFakeOverride(): T {
+    return if (this is CallableMemberDescriptor) DescriptorUtils.unwrapFakeOverride(this) else this
+}
 
 inline fun <reified T : CjDeclaration> reportOnDeclarationAs(
     trace: BindingTrace,
@@ -122,6 +138,75 @@ val DeclarationDescriptor.parents: Sequence<DeclarationDescriptor>
 val DeclarationDescriptor.parentsWithSelf: Sequence<DeclarationDescriptor>
     get() = generateSequence(this, { it.containingDeclaration })
 
+fun ClassDescriptor.findCallableMemberBySignature(
+    signature: CallableMemberDescriptor,
+    allowOverridabilityConflicts: Boolean = false
+): CallableMemberDescriptor? {
+    val descriptorKind =
+        if (signature is FunctionDescriptor) DescriptorKindFilter.FUNCTIONS else DescriptorKindFilter.VARIABLES
+    return defaultType.memberScope
+        .getContributedDescriptors(descriptorKind)
+        .filterIsInstance<CallableMemberDescriptor>()
+        .firstOrNull {
+            if (it.containingDeclaration != this) return@firstOrNull false
+            val overridability =
+                OverridingUtil.DEFAULT.isOverridableBy(it as CallableDescriptor, signature, null).result
+            overridability == OVERRIDABLE || (allowOverridabilityConflicts && overridability == CONFLICT)
+        }
+}
+
+fun CjImportDirective.targetDescriptors(resolutionFacade: ResolutionFacade = this.getResolutionFacade()): Collection<DeclarationDescriptor> {
+    // For codeFragments imports are created in dummy file
+    if (this.getContainingCjFile().doNotAnalyze != null) return emptyList()
+    val nameExpression = importedReference?.getQualifiedElementSelector() as? CjSimpleNameExpression ?: return emptyList()
+    return nameExpression.mainReference.resolveToDescriptors(resolutionFacade.analyze(nameExpression))
+}
+fun descriptorsEqualWithSubstitution(
+    descriptor1: DeclarationDescriptor?,
+    descriptor2: DeclarationDescriptor?,
+    checkOriginals: Boolean = true
+): Boolean {
+    if (descriptor1 == descriptor2) return true
+    if (descriptor1 == null || descriptor2 == null) return false
+    if (checkOriginals && descriptor1.original != descriptor2.original) return false
+    if (descriptor1 !is CallableDescriptor) return true
+    descriptor2 as CallableDescriptor
+
+    val typeChecker = CangJieTypeCheckerImpl.withAxioms(object : CangJieTypeChecker.TypeConstructorEquality {
+        override fun equals(a: TypeConstructor, b: TypeConstructor): Boolean {
+            val typeParam1 = a.declarationDescriptor as? TypeParameterDescriptor
+            val typeParam2 = b.declarationDescriptor as? TypeParameterDescriptor
+            if (typeParam1 != null
+                && typeParam2 != null
+                && typeParam1.containingDeclaration == descriptor1
+                && typeParam2.containingDeclaration == descriptor2
+            ) {
+                return typeParam1.index == typeParam2.index
+            }
+
+            return a == b
+        }
+    })
+
+    if (!typeChecker.equalTypesOrNulls(descriptor1.returnType, descriptor2.returnType)) return false
+
+    val parameters1 = descriptor1.valueParameters
+    val parameters2 = descriptor2.valueParameters
+    if (parameters1.size != parameters2.size) return false
+    for ((param1, param2) in parameters1.zip(parameters2)) {
+        if (!typeChecker.equalTypes(param1.type, param2.type)) return false
+    }
+    return true
+}
+
+fun DeclarationDescriptor.getImportableDescriptor(): DeclarationDescriptor =
+    when (this) {
+        is DescriptorDerivedFromTypeAlias -> typeAliasDescriptor
+        is ConstructorDescriptor -> containingDeclaration
+//        is PropertyAccessorDescriptor -> correspondingProperty
+        else -> this
+    }
+
 object DescriptorUtils {
     @JvmStatic
 
@@ -129,6 +214,22 @@ object DescriptorUtils {
         return isClass(descriptor) || isEnum(
             descriptor
         )
+    }
+
+    /**
+     * Given a fake override, finds any declaration of it in the overridden descriptors. Keep in mind that there may be many declarations
+     * of the fake override in the supertypes, this method finds just only one of them.
+     * TODO: probably some call-sites of this method are wrong, they should handle all super-declarations
+     */
+    fun <D : CallableMemberDescriptor> unwrapFakeOverride(descriptor: D): D {
+        var descriptor = descriptor
+        while (descriptor.getKind() == CallableMemberDescriptor.Kind.FAKE_OVERRIDE) {
+            val overridden: Collection<CallableMemberDescriptor?> =
+                descriptor.getOverriddenDescriptors()
+            check(!overridden.isEmpty()) { "Fake override should have at least one overridden descriptor: $descriptor" }
+            descriptor = overridden.iterator().next() as D
+        }
+        return descriptor
     }
 
     @JvmStatic

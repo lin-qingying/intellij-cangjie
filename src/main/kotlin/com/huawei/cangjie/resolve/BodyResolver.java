@@ -10,11 +10,9 @@ import com.huawei.cangjie.resolve.calls.components.InferenceSession;
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.check.DeclarationsChecker;
-import com.huawei.cangjie.resolve.scopes.LexicalScope;
-import com.huawei.cangjie.resolve.scopes.LexicalScopeImpl;
-import com.huawei.cangjie.resolve.scopes.LexicalScopeKind;
-import com.huawei.cangjie.resolve.scopes.TraceBasedLocalRedeclarationChecker;
+import com.huawei.cangjie.resolve.scopes.*;
 import com.huawei.cangjie.types.CangJieType;
+import com.huawei.cangjie.types.DeferredType;
 import com.huawei.cangjie.types.ErrorUtils;
 import com.huawei.cangjie.types.expressions.ExpressionTypingContext;
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices;
@@ -28,12 +26,11 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.huawei.cangjie.descriptors.Errors.SUPERTYPE_NOT_INITIALIZED;
 import static com.huawei.cangjie.resolve.DescriptorUtilsKt.isEffectivelyExternal;
+import static com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;
 
 public class BodyResolver {
     @NotNull
@@ -48,7 +45,8 @@ public class BodyResolver {
     private final CangJieBuiltIns builtIns;
     @NotNull
     private final LanguageVersionSettings languageVersionSettings;
-    @NotNull private final DeclarationsChecker declarationsChecker;
+    @NotNull
+    private final DeclarationsChecker declarationsChecker;
 
     public BodyResolver(
             @NotNull Project project,
@@ -77,7 +75,195 @@ public class BodyResolver {
         this.languageVersionSettings = languageVersionSettings;
     }
 
+    @NotNull
+    private static LexicalScope getScopeForVariable(@NotNull BodiesResolveContext c, @NotNull CjVariable variable) {
+        return getScopeForDeclaration(c, variable);
+    }
+
+    @NotNull
+    private static LexicalScope getScopeForDeclaration(@NotNull BodiesResolveContext c, @NotNull CjDeclaration declaration) {
+        LexicalScope scope = c.getDeclaringScope(declaration);
+        assert scope != null : "Scope for property " + declaration.getText() + " should exists";
+        return scope;
+    }
+
+    @NotNull
+    private static LexicalScope getScopeForProperty(@NotNull BodiesResolveContext c, @NotNull CjProperty property) {
+        return getScopeForDeclaration(c, property);
+    }
+
+    public static void computeDeferredType(CangJieType type) {
+        // handle type inference loop: function or property body contains a reference to itself
+        // fun f() = { f() }
+        // val x = x
+        // type resolution must be started before body resolution
+        if (type instanceof DeferredType deferredType) {
+            if (!deferredType.isComputed()) {
+                deferredType.getDelegate();
+            }
+        }
+    }
+
+    private void resolvePropertyDeclarationBodies(@NotNull BodiesResolveContext c) {
+
+        // Member   veraible
+        Set<CjProperty> processed = new HashSet<>();
+        for (Map.Entry<CjTypeStatement, ClassDescriptorWithResolutionScopes> entry : c.getDeclaredClasses().entrySet()) {
+            if (!(entry.getKey() instanceof CjClass cjClass)) continue;
+            ClassDescriptorWithResolutionScopes classDescriptor = entry.getValue();
+
+            for (CjProperty property : cjClass.getProperties()) {
+                PropertyDescriptor propertyDescriptor = c.getProperties().get(property);
+                assert propertyDescriptor != null;
+
+                resolveProperty(c, property, propertyDescriptor);
+                processed.add(property);
+            }
+        }
+
+//        // Top-level properties & properties of objects
+//        for (Map.Entry<CjVariable, VariableDescriptor> entry : c.getVariables().entrySet()) {
+//            CjVariable variable = entry.getKey();
+//            if (processed.contains(variable)) continue;
+//
+//            VariableDescriptor variableDescriptor = entry.getValue();
+//
+//            resolveVariable(c, variable, variableDescriptor);
+//        }
+    }
+
+    private void resolveVariableDeclarationBodies(@NotNull BodiesResolveContext c) {
+
+        // Member   veraible
+        Set<CjVariable> processed = new HashSet<>();
+        for (Map.Entry<CjTypeStatement, ClassDescriptorWithResolutionScopes> entry : c.getDeclaredClasses().entrySet()) {
+            if (!(entry.getKey() instanceof CjClass cjClass)) continue;
+            ClassDescriptorWithResolutionScopes classDescriptor = entry.getValue();
+
+            for (CjVariable variable : cjClass.getVariables()) {
+                VariableDescriptor variableDescriptor = c.getVariables().get(variable);
+                assert variableDescriptor != null;
+
+                resolveVariable(c, variable, variableDescriptor);
+                processed.add(variable);
+            }
+        }
+
+        // Top-level properties & properties of objects
+        for (Map.Entry<CjVariable, VariableDescriptor> entry : c.getVariables().entrySet()) {
+            CjVariable variable = entry.getKey();
+            if (processed.contains(variable)) continue;
+
+            VariableDescriptor variableDescriptor = entry.getValue();
+
+            resolveVariable(c, variable, variableDescriptor);
+        }
+    }
+
+    private void resolveVariableInitializer(
+            @NotNull DataFlowInfo outerDataFlowInfo,
+            @NotNull CjVariable variable,
+            @NotNull VariableDescriptor variableDescriptor,
+            @NotNull CjExpression initializer,
+            @NotNull LexicalScope propertyHeader,
+            @Nullable InferenceSession inferenceSession
+    ) {
+        LexicalScope propertyDeclarationInnerScope = ScopeUtils.makeScopeForVariableInitializer(propertyHeader, variableDescriptor);
+        CangJieType expectedTypeForInitializer = variable.getTypeReference() != null ? variableDescriptor.getType() : NO_EXPECTED_TYPE;
+        if (variableDescriptor.getCompileTimeInitializer() == null) {
+            expressionTypingServices.getType(
+                    propertyDeclarationInnerScope, initializer, expectedTypeForInitializer,
+                    outerDataFlowInfo, inferenceSession != null ? inferenceSession : InferenceSession.Companion.getDefault(), trace
+            );
+        }
+    }
+
+    private void resolvePropertyInitializer(
+            @NotNull DataFlowInfo outerDataFlowInfo,
+            @NotNull CjProperty property,
+            @NotNull PropertyDescriptor propertyDescriptor,
+            @NotNull CjExpression initializer,
+            @NotNull LexicalScope propertyHeader,
+            @Nullable InferenceSession inferenceSession
+    ) {
+        LexicalScope propertyDeclarationInnerScope = ScopeUtils.makeScopeForPropertyInitializer(propertyHeader, propertyDescriptor);
+        CangJieType expectedTypeForInitializer = property.getTypeReference() != null ? propertyDescriptor.getType() : NO_EXPECTED_TYPE;
+        if (propertyDescriptor.getCompileTimeInitializer() == null) {
+            expressionTypingServices.getType(
+                    propertyDeclarationInnerScope, initializer, expectedTypeForInitializer,
+                    outerDataFlowInfo, inferenceSession != null ? inferenceSession : InferenceSession.Companion.getDefault(), trace
+            );
+        }
+    }
+
+    private void resolveProperty(BodiesResolveContext c, CjProperty property, PropertyDescriptor propertyDescriptor) {
+        computeDeferredType(propertyDescriptor.getReturnType());
+        PreliminaryDeclarationVisitor.Companion.createForDeclaration(property, trace, languageVersionSettings);
+        CjExpression initializer = property.getInitializer();
+        LexicalScope variableHeaderScope = ScopeUtils.makeScopeForPropertyHeader(getScopeForProperty(c, property), propertyDescriptor);
+        ExpressionTypingContext context = c.getLocalContext();
+
+        if (initializer != null) {
+            resolvePropertyInitializer(
+                    c.getOuterDataFlowInfo(), property, propertyDescriptor,
+                    initializer, variableHeaderScope, context != null ? context.inferenceSession : null
+            );
+        }
+//委托 没有
+//        CjExpression delegateExpression = variable.getDelegateExpression();
+//        if (delegateExpression != null) {
+//            assert initializer == null : "Initializer should be null for delegated property : " + variable.getText();
+//            resolveVariableDelegate(
+//                    c.getOuterDataFlowInfo(), variable, variableDescriptor,
+//                    delegateExpression, variableHeaderScope, context != null ? context.inferenceSession : null
+//            );
+//        }
+
+//注解 宏？
+//        ForceResolveUtil.forceResolveAllContents(propertyDescriptor.getAnnotations());
+
+//元数据 没有
+//        FieldDescriptor backingField = variableDescriptor.getBackingField();
+//        if (backingField != null) {
+//            ForceResolveUtil.forceResolveAllContents(backingField.getAnnotations());
+//        }
+    }
+
+    private void resolveVariable(BodiesResolveContext c, CjVariable variable, VariableDescriptor variableDescriptor) {
+        computeDeferredType(variableDescriptor.getReturnType());
+        PreliminaryDeclarationVisitor.Companion.createForDeclaration(variable, trace, languageVersionSettings);
+        CjExpression initializer = variable.getInitializer();
+        LexicalScope variableHeaderScope = ScopeUtils.makeScopeForVariableHeader(getScopeForVariable(c, variable), variableDescriptor);
+        ExpressionTypingContext context = c.getLocalContext();
+
+        if (initializer != null) {
+            resolveVariableInitializer(
+                    c.getOuterDataFlowInfo(), variable, variableDescriptor,
+                    initializer, variableHeaderScope, context != null ? context.inferenceSession : null
+            );
+        }
+//委托 没有
+//        CjExpression delegateExpression = variable.getDelegateExpression();
+//        if (delegateExpression != null) {
+//            assert initializer == null : "Initializer should be null for delegated property : " + variable.getText();
+//            resolveVariableDelegate(
+//                    c.getOuterDataFlowInfo(), variable, variableDescriptor,
+//                    delegateExpression, variableHeaderScope, context != null ? context.inferenceSession : null
+//            );
+//        }
+
+//注解 宏？
+//        ForceResolveUtil.forceResolveAllContents(variableDescriptor.getAnnotations());
+
+//元数据 没有
+//        FieldDescriptor backingField = variableDescriptor.getBackingField();
+//        if (backingField != null) {
+//            ForceResolveUtil.forceResolveAllContents(backingField.getAnnotations());
+//        }
+    }
+
     private void resolveBehaviorDeclarationBodies(@NotNull BodiesResolveContext c) {
+        resolveVariableDeclarationBodies(c);
 
 
         resolveFunctionBodies(c);

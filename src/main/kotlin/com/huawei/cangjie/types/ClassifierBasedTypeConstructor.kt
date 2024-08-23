@@ -4,6 +4,7 @@ import com.huawei.cangjie.descriptors.ClassifierDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.PackageFragmentDescriptor
+import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.resolve.DescriptorUtils
 
 
@@ -61,6 +62,11 @@ abstract class ClassifierBasedTypeConstructor : TypeConstructor {
                 b is ModuleDescriptor -> return false
                 a is PackageFragmentDescriptor -> return b is PackageFragmentDescriptor && a.fqName == b.fqName
                 b is PackageFragmentDescriptor -> return false
+
+                a is BasicTypeDescriptor -> return b is BasicTypeDescriptor && a.name == b.name
+                b is BasicTypeDescriptor -> return false
+
+
                 a.name != b.name -> return false
                 else -> {
                     a = a.containingDeclaration
