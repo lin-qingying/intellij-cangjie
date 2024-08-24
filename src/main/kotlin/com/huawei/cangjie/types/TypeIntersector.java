@@ -38,10 +38,10 @@ public class TypeIntersector {
         for (CangJieType type : types) {
             if (CangJieTypeKt.isError(type)) continue;
 
-            if (CangJieBuiltIns.isNothingOrNullableNothing(type)) {
+            if (CangJieBuiltIns.isNothing (type)) {
                 nothingOrNullableNothing = type;
             }
-            allNullable &= type.isMarkedNullable();
+            allNullable &= type.isMarkedOption();
             nullabilityStripped.add(TypeUtils.makeNotNullable(type));
         }
 

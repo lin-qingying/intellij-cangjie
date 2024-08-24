@@ -10,7 +10,9 @@ interface BodiesResolveContext {
     fun getDeclaringScope(declaration: CjDeclaration): LexicalScope?
 
     val files: Collection<CjFile>
+    val primaryConstructors: MutableMap<CjPrimaryConstructor, ClassConstructorDescriptor>
 
+val secondaryConstructors: MutableMap<CjSecondaryConstructor, ClassConstructorDescriptor>
 
     val declaredClasses: MutableMap<CjTypeStatement, ClassDescriptorWithResolutionScopes>
 
@@ -23,24 +25,25 @@ interface BodiesResolveContext {
 
 
     val properties: MutableMap<CjProperty, PropertyDescriptor>
-    val variables :MutableMap<CjVariable, VariableDescriptor>
+    val variables: MutableMap<CjVariable, VariableDescriptor>
 
 
     val functions: MutableMap<CjNamedFunction, SimpleFunctionDescriptor>
 
 
     val typeAliases: MutableMap<CjTypeAlias, TypeAliasDescriptor>
-//
+
+    //
 //    @get:Mutable
 //    val destructuringDeclarationEntries: Map<Any?, Any?>?
 //
 //    fun getDeclaringScope(declaration: KtDeclaration): LexicalScope?
 //
-  fun getLocalContext(): ExpressionTypingContext?
+    fun getLocalContext(): ExpressionTypingContext?
 
     fun getOuterDataFlowInfo(): DataFlowInfo
 
-    fun     getTopDownAnalysisMode(): TopDownAnalysisMode
+    fun getTopDownAnalysisMode(): TopDownAnalysisMode
 //    val outerDataFlowInfo: DataFlowInfo
 //
 //    val topDownAnalysisMode:  TopDownAnalysisMode

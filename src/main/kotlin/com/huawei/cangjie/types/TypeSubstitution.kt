@@ -3,7 +3,6 @@ package com.huawei.cangjie.types
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.annotations.FilteredAnnotations
-import com.huawei.cangjie.types.error.ErrorType
 
 abstract class TypeSubstitution{
     companion object {
@@ -128,7 +127,7 @@ fun SimpleType.replace(
         newAttributes,
         constructor,
         newArguments,
-        isMarkedNullable
+        isMarkedOption
     )
 }
 

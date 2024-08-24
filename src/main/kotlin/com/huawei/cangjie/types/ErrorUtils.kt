@@ -81,7 +81,7 @@ object ErrorUtils {
         vararg formatParams: String
     ): ErrorType = ErrorType(
         typeConstructor, createErrorScope(ErrorScopeKind.ERROR_TYPE_SCOPE, typeConstructor.toString()),
-        kind, arguments, isMarkedNullable = false, *formatParams
+        kind, arguments, isMarkedOption = false, *formatParams
     )
 
     private fun isErrorClass(candidate: DeclarationDescriptor?): Boolean = candidate is ErrorClassDescriptor

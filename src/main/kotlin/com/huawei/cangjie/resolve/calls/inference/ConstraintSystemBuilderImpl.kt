@@ -7,7 +7,6 @@ import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.resolve.calls.inference.constraintPosition.ConstraintPosition
 import com.huawei.cangjie.resolve.calls.inference.constraintPosition.ConstraintPositionKind
-import com.huawei.cangjie.resolve.calls.inference.model.ConstraintKind
 import com.huawei.cangjie.resolve.calls.results.SimpleConstraintSystem
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext
@@ -87,7 +86,7 @@ open class ConstraintSystemBuilderImpl(private val mode: Mode = Mode.INFERENCE) 
             }
         }
 
-        if (!parameterType.isMarkedNullable || !TypeUtils.isNullableType(newConstrainingType)) {
+        if (!parameterType.isMarkedOption || !TypeUtils.isNullableType(newConstrainingType)) {
             addBound(typeVariable, newConstrainingType, boundKind, constraintContext)
             return
         }
@@ -288,7 +287,7 @@ open class ConstraintSystemBuilderImpl(private val mode: Mode = Mode.INFERENCE) 
                         myTypeVariable,
                         typeProjection,
                         newConstraintContext,
-                        type.isMarkedNullable
+                        type.isMarkedOption
                     )
                     return true
                 }

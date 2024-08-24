@@ -1869,7 +1869,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
             if (at(INIT_KEYWORD)) {
                 parseInitFunc();
-                declType = CLASS_INIT;
+                declType = SECONDARY_CONSTRUCTOR;
             } else if (at(LBRACE)) {
                 error("Expecting member declaration");
                 parseBlock();
@@ -1877,7 +1877,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             } else if (at(IDENTIFIER) && lookahead(1) == LPAR) {
 //                主构造函数
                 parseMainInitFunc();
-                declType = CLASS_MAIN_INIT;
+                declType = PRIMARY_CONSTRUCTOR;
             } else if (at(TILDE) && lookahead(1) == INIT_KEYWORD) {
                 advance(); // TILDE ~
                 parseInitFunc();

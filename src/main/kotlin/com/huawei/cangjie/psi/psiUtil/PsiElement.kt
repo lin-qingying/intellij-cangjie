@@ -14,6 +14,8 @@ import com.intellij.psi.search.SearchScope
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtilCore
+import com.intellij.psi.util.parentOfType
+
 fun CjBlockStringTemplateEntry.dropCurlyBrackets(): CjSimpleNameStringTemplateEntry {
     val name = when (expression) {
         is CjThisExpression -> CjTokens.THIS_KEYWORD.value
@@ -23,12 +25,14 @@ fun CjBlockStringTemplateEntry.dropCurlyBrackets(): CjSimpleNameStringTemplateEn
     val newEntry = CjPsiFactory(project).createSimpleNameStringTemplateEntry(name)
     return replaced(newEntry)
 }
+fun PsiElement.isInsideAnnotationEntryArgumentList(): Boolean = parentOfType<CjValueArgumentList>()?.parent is CjAnnotationEntry
 
 fun CjBlockStringTemplateEntry.canDropCurlyBrackets(): Boolean {
     val expression = this.expression
     return (expression is CjNameReferenceExpression || (expression is CjThisExpression && expression.labelQualifier == null))
             && canPlaceAfterSimpleNameEntry(nextSibling)
 }
+
 inline fun <reified T : PsiElement> PsiElement.replaced(newElement: T): T {
     if (this == newElement) {
         return newElement
@@ -39,9 +43,11 @@ inline fun <reified T : PsiElement> PsiElement.replaced(newElement: T): T {
         else -> (result as CjParenthesizedExpression).expression as T
     }
 }
+
 inline fun <reified T : PsiElement> PsiElement.getParentOfType(strict: Boolean): T? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, strict)
 }
+
 inline fun <reified T : PsiElement> T.prevSiblingOfSameType() = PsiTreeUtil.getPrevSiblingOfType(this, T::class.java)
 
 fun CjExpression.getBinaryWithTypeParent(): CjBinaryExpressionWithTypeRHS? {
@@ -57,6 +63,7 @@ fun CjExpression.getBinaryWithTypeParent(): CjBinaryExpressionWithTypeRHS? {
 
     return targetExpression.topParenthesizedParentOrMe().parent as? CjBinaryExpressionWithTypeRHS
 }
+
 fun PsiElement?.unwrapParenthesesLabelsAndAnnotations(): PsiElement? {
     var unwrapped = this
     while (true) {
@@ -68,6 +75,7 @@ fun PsiElement?.unwrapParenthesesLabelsAndAnnotations(): PsiElement? {
         }
     }
 }
+
 inline fun <reified T : PsiElement> PsiElement.anyDescendantOfType(noinline predicate: (T) -> Boolean = { true }): Boolean {
     return findDescendantOfType(predicate) != null
 }
@@ -171,6 +179,9 @@ fun LazyParseablePsiElement.getContainingCjFile(): CjFile {
 }
 
 fun PsiElement.getElementTextWithContext(): String = com.huawei.cangjie.utils.getElementTextWithContext(this)
+inline fun <reified T : PsiElement> PsiElement.parentOfType(withSelf: Boolean = false): T? {
+    return PsiTreeUtil.getParentOfType(this, T::class.java, !withSelf)
+}
 
 
 fun PsiElement.parentOfType(vararg psiClassNames: String): PsiElement? {
@@ -277,4 +288,4 @@ inline fun <reified T : PsiElement> PsiElement.ancestorOrSelf(): T? =
     PsiTreeUtil.getParentOfType(this, T::class.java, /* strict */ false)
 
 
-  fun CjExpression.isEmptyBody(): Boolean = this is CjBlockExpression && statements.isEmpty()
+fun CjExpression.isEmptyBody(): Boolean = this is CjBlockExpression && statements.isEmpty()

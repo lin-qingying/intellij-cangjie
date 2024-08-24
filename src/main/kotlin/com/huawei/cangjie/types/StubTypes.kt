@@ -10,7 +10,7 @@ import com.huawei.cangjie.types.model.StubTypeMarker
 
 abstract class AbstractStubType(
     val originalTypeVariable: NewTypeVariableConstructor,
-    override val isMarkedNullable: Boolean
+    override val isMarkedOption: Boolean
 ) : SimpleType() {
     override val memberScope: MemberScope =
         ErrorUtils.createErrorScope(ErrorScopeKind.STUB_TYPE_SCOPE, originalTypeVariable.toString())
@@ -24,7 +24,7 @@ abstract class AbstractStubType(
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType = this
 
     override fun makeNullableAsSpecified(newNullability: Boolean): SimpleType {
-        return if (newNullability == isMarkedNullable) this else materialize(newNullability)
+        return if (newNullability == isMarkedOption) this else materialize(newNullability)
     }
 
     @TypeRefinement
@@ -47,7 +47,7 @@ class StubTypeForTypeVariablesInSubtyping(
         StubTypeForTypeVariablesInSubtyping(originalTypeVariable, newNullability, constructor)
 
     override fun toString(): String {
-        return "Stub (subtyping): $originalTypeVariable${if (isMarkedNullable) "?" else ""}"
+        return "Stub (subtyping): $originalTypeVariable${if (isMarkedOption) "?" else ""}"
     }
 }
 
@@ -64,6 +64,6 @@ class StubTypeForBuilderInference(
 
     override fun toString(): String {
         // BI means builder inference
-        return "Stub (BI): $originalTypeVariable${if (isMarkedNullable) "?" else ""}"
+        return "Stub (BI): $originalTypeVariable${if (isMarkedOption) "?" else ""}"
     }
 }

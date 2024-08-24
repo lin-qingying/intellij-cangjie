@@ -18,6 +18,10 @@ inline fun <T, R : Any> Iterable<T>.firstNotNullResult(transform: (T) -> R?): R?
 fun shouldNotBeCalled(message: String = "should not be called"): Nothing {
     error(message)
 }
+inline fun <reified T> Sequence<*>.firstIsInstance(): T {
+    for (element in this) if (element is T) return element
+    throw NoSuchElementException("No element of given type found")
+}
 
 inline fun <reified T> Array<*>.firstIsInstance(): T {
     for (element in this) if (element is T) return element

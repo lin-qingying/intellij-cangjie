@@ -7,7 +7,6 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.lazy.DeclarationScopeProvider;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.types.expressions.ExpressionTypingContext;
-import kotlin.collections.CollectionsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,10 +19,12 @@ public class TopDownAnalysisContext implements BodiesResolveContext {
     private final Map<CjVariable, VariableDescriptor> variables = Maps.newLinkedHashMap();
 
     private final Map<CjProperty, PropertyDescriptor> properties = Maps.newLinkedHashMap();
-    private final Map<CjParameter, PropertyDescriptor> primaryConstructorParameterProperties = new HashMap<>();
+//    private final Map<CjParameter, PropertyDescriptor> primaryConstructorParameterProperties = new HashMap<>();
     private final Map<CjTypeAlias, TypeAliasDescriptor> typeAliases = Maps.newLinkedHashMap();
     private final DataFlowInfo outerDataFlowInfo;
     private final Map<CjTypeStatement, ClassDescriptorWithResolutionScopes> classes = Maps.newLinkedHashMap();
+    private final Map<CjSecondaryConstructor, ClassConstructorDescriptor> secondaryConstructors = Maps.newLinkedHashMap();
+    private final Map<CjPrimaryConstructor, ClassConstructorDescriptor> primaryConstructor = Maps.newLinkedHashMap();
 
     private final TopDownAnalysisMode topDownAnalysisMode;
     private final DeclarationScopeProvider declarationScopeProvider;
@@ -56,13 +57,14 @@ public class TopDownAnalysisContext implements BodiesResolveContext {
     public void addFile(@NotNull CjFile file) {
         files.add(file);
     }
+
     @NotNull
     public Map<CjCallableDeclaration, CallableMemberDescriptor> getMembers() {
         if (members == null) {
             members = Maps.newLinkedHashMap();
             members.putAll(functions);
             members.putAll(properties);
-            members.putAll(primaryConstructorParameterProperties);
+//            members.putAll(primaryConstructorParameterProperties);
         }
         return members;
     }
@@ -72,14 +74,24 @@ public class TopDownAnalysisContext implements BodiesResolveContext {
     public LexicalScope getDeclaringScope(@NotNull CjDeclaration declaration) {
         return declarationScopeProvider.getResolutionScopeForDeclaration(declaration);
     }
+//    public Map<CjParameter, PropertyDescriptor> getPrimaryConstructorParameterProperties() {
+//        return primaryConstructorParameterProperties;
+//    }
 
-@NotNull
+    @NotNull
     @Override
     public Collection<CjFile> getFiles() {
         return files;
 
     }
-
+    @Override
+    public @NotNull Map<CjPrimaryConstructor, ClassConstructorDescriptor> getPrimaryConstructors() {
+        return primaryConstructor;
+    }
+    @Override
+    public @NotNull Map<CjSecondaryConstructor, ClassConstructorDescriptor> getSecondaryConstructors() {
+        return secondaryConstructors;
+    }
 
     @Override
     public @NotNull Map<CjVariable, VariableDescriptor> getVariables() {
@@ -127,11 +139,13 @@ public class TopDownAnalysisContext implements BodiesResolveContext {
         return properties;
 
     }
+
     @NotNull
     public Collection<ClassDescriptorWithResolutionScopes> getAllClasses() {
         return getDeclaredClasses().values();
 //        return CollectionsKt.plus(getDeclaredClasses().values(), getScripts().values());
     }
+
     @NotNull
     @Override
     public Map<CjTypeAlias, TypeAliasDescriptor> getTypeAliases() {

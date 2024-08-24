@@ -109,7 +109,7 @@ class DataFlowValue(
     companion object {
 
         @JvmStatic
-        fun nullValue(builtIns: CangJieBuiltIns) = DataFlowValue(IdentifierInfo.NULL, builtIns.nullableNothingType, Nullability.NULL)
+        fun nullValue(builtIns: CangJieBuiltIns) = DataFlowValue(IdentifierInfo.NULL, builtIns.nothingType, Nullability.NULL)
 
         @JvmField
         val ERROR = DataFlowValue(IdentifierInfo.ERROR, ErrorUtils.createErrorType(ErrorTypeKind.ERROR_DATA_FLOW_TYPE), Nullability.IMPOSSIBLE)

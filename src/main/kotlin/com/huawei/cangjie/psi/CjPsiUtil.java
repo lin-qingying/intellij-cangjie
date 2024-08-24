@@ -135,7 +135,7 @@ public class CjPsiUtil {
                 grandParent = cjParameter.getParent().getParent();
             }
             if (grandParent instanceof CjPrimaryConstructor) {
-                return ((CjPrimaryConstructor) grandParent).getContainingClassOrStruct();
+                return ((CjPrimaryConstructor) grandParent).getContainingTypeStatement();
             }
         }
 

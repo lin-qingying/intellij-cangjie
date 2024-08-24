@@ -735,7 +735,7 @@ internal class DescriptorRendererImpl(
             else -> renderTypeConstructorAndArguments(type)
         }
 
-        if (type.isMarkedNullable) {
+        if (type.isMarkedOption) {
             append("?")
         }
 
@@ -807,7 +807,7 @@ internal class DescriptorRendererImpl(
         val contextReceiversTypes = type.getContextReceiverTypesFromFunctionType()
 
 
-        val isNullable = type.isMarkedNullable
+        val isNullable = type.isMarkedOption
 
         val needParenthesis = isNullable || (hasAnnotations && receiverType != null)
         if (needParenthesis) {
@@ -837,7 +837,7 @@ internal class DescriptorRendererImpl(
 
 
         if (receiverType != null) {
-            val surroundReceiver = shouldRenderAsPrettyFunctionType(receiverType) && !receiverType.isMarkedNullable ||
+            val surroundReceiver = shouldRenderAsPrettyFunctionType(receiverType) && !receiverType.isMarkedOption ||
 //                    receiverType.hasModifiersOrAnnotations() ||
                     receiverType is DefinitelyNotNullType
             if (surroundReceiver) {
@@ -1473,7 +1473,7 @@ internal class DescriptorRendererImpl(
         if (CangJieBuiltIns.isNothing(klass.defaultType)) return
 
         val supertypes = klass.typeConstructor.supertypes
-        if (supertypes.isEmpty() || supertypes.size == 1 && CangJieBuiltIns.isAnyOrNullableAny(
+        if (supertypes.isEmpty() || supertypes.size == 1 && CangJieBuiltIns.isAny(
                 supertypes.iterator().next()
             )
         ) return

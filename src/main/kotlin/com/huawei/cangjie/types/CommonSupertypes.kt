@@ -159,20 +159,20 @@ object CommonSupertypes {
         while (iterator.hasNext()) {
             val type: CangJieType = checkNotNull(iterator.next())
             assert(!type.isFlexible()) { "Flexible type $type passed to commonSuperTypeForInflexible" }
-            if (CangJieBuiltIns.isNothingOrNullableNothing(type)) {
+            if (CangJieBuiltIns.isNothing (type)) {
                 iterator.remove()
             }
             if (type.isError) {
                 return ErrorUtils.createErrorType(ErrorTypeKind.SUPER_TYPE_FOR_ERROR_TYPE, type.toString())
             }
-            nullable = nullable or type.isMarkedNullable
+            nullable = nullable or type.isMarkedOption
         }
 
         // Everything deleted => it's Nothing or Nothing?
         if (typeSet.isEmpty()) {
             // TODO : attributes
             val builtIns = types.iterator().next().constructor.getBuiltIns()
-            return if (nullable) builtIns.nullableNothingType else builtIns.nothingType
+            return /*if (nullable) builtIns.nullableNothingType else */builtIns.nothingType
         }
 
         if (typeSet.size == 1) {
@@ -269,7 +269,7 @@ object CommonSupertypes {
 
         var nullable = false
         for (type in types) {
-            nullable = nullable or type.isMarkedNullable
+            nullable = nullable or type.isMarkedOption
         }
 
         val newScope: MemberScope = when (val classifier: ClassifierDescriptor? = constructor.declarationDescriptor) {

@@ -4,8 +4,8 @@ import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 
 enum class PrimitiveType(typeName: String) {
-    BOOLEAN("Boolean"),
-    CHAR("Char"),
+    BOOL("Bool"),
+    Rune("Rune"),
 
 
     INT64("Int64"),
@@ -44,12 +44,12 @@ enum class PrimitiveType(typeName: String) {
 
     companion object {
         @JvmField
-        val NUMBER_TYPES = setOf(CHAR, INT64, INT32, INT16, INT8, FLOAT64,FLOAT32,FLOAT16)
+        val NUMBER_TYPES = setOf(Rune, INT64, INT32, INT16, INT8, FLOAT64,FLOAT32,FLOAT16)
 
         @JvmStatic
         fun getByShortName(name: String): PrimitiveType? = when (name) {
-            "Boolean" -> BOOLEAN
-            "Char" -> CHAR
+            "Bool" -> BOOL
+            "Rune" -> Rune
 
 
             "Int64" -> INT64

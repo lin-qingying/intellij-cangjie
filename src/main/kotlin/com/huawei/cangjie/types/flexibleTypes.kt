@@ -1,11 +1,8 @@
 package com.huawei.cangjie.types
 
-import com.huawei.cangjie.builtins.StandardNames.FqNames
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
-import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.renderer.DescriptorRenderer
 import com.huawei.cangjie.renderer.DescriptorRendererOptions
-import com.huawei.cangjie.resolve.fqNameSafe
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.util.builtIns
 
@@ -31,7 +28,7 @@ fun CangJieType.asFlexibleType(): FlexibleType = unwrap() as FlexibleType
 
 fun CangJieType.isNullabilityFlexible(): Boolean {
     val flexibility = unwrap() as? FlexibleType ?: return false
-    return flexibility.lowerBound.isMarkedNullable != flexibility.upperBound.isMarkedNullable
+    return flexibility.lowerBound.isMarkedOption != flexibility.upperBound.isMarkedOption
 }
 
 // This function is intended primarily for sets: since CangJieType.equals() represents _syntactical_ equality of types,

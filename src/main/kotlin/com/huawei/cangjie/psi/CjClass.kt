@@ -37,9 +37,7 @@ open class CjClass : CjTypeStatement {
 
 
 
-    override fun getPrimaryConstructorModifierList(): CjModifierList? {
-        TODO("Not yet implemented")
-    }
+
 
 
 

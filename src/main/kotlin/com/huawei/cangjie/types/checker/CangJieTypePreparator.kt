@@ -29,13 +29,13 @@ abstract class CangJiePreparator : AbstractTypePreparator() {
 //                }
 //                return NewCapturedType(
 //                    CaptureStatus.FOR_SUBTYPING, constructor.newTypeConstructor!!,
-//                    lowerType, type.attributes, type.isMarkedNullable
+//                    lowerType, type.attributes, type.isMarkedOption
 //                )
 //            }
 //
 //            is IntegerValueTypeConstructor -> {
 //                val newConstructor =
-//                    IntersectionTypeConstructor(constructor.supertypes.map { TypeUtils.makeNullableAsSpecified(it, type.isMarkedNullable) })
+//                    IntersectionTypeConstructor(constructor.supertypes.map { TypeUtils.makeNullableAsSpecified(it, type.isMarkedOption) })
 //                return CangJieFactory.simpleTypeWithNonTrivialMemberScope(
 //                    type.attributes,
 //                    newConstructor,
@@ -45,7 +45,7 @@ abstract class CangJiePreparator : AbstractTypePreparator() {
 //                )
 //            }
 //
-//            is IntersectionTypeConstructor -> if (type.isMarkedNullable) {
+//            is IntersectionTypeConstructor -> if (type.isMarkedOption) {
 //                val newConstructor = constructor.transformComponents(transform = { it.makeNullable() }) ?: constructor
 //                return newConstructor.createType()
 //
@@ -91,7 +91,7 @@ abstract class CangJieTypePreparator : AbstractTypePreparator() {
 //                }
 //                return NewCapturedType(
 //                    CaptureStatus.FOR_SUBTYPING, constructor.newTypeConstructor!!,
-//                    lowerType, type.attributes, type.isMarkedNullable
+//                    lowerType, type.attributes, type.isMarkedOption
 //                )
 //            }
 //
@@ -100,7 +100,7 @@ abstract class CangJieTypePreparator : AbstractTypePreparator() {
 //                    IntersectionTypeConstructor(constructor.supertypes.map {
 //                        TypeUtils.makeNullableAsSpecified(
 //                            it,
-//                            type.isMarkedNullable
+//                            type.isMarkedOption
 //                        )
 //                    })
 //                return CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
@@ -112,7 +112,7 @@ abstract class CangJieTypePreparator : AbstractTypePreparator() {
 //                )
 //            }
 //
-//            is IntersectionTypeConstructor -> if (type.isMarkedNullable) {
+//            is IntersectionTypeConstructor -> if (type.isMarkedOption) {
 //                val newConstructor = constructor.transformComponents(transform = { it.makeNullable() }) ?: constructor
 //                return newConstructor.createType()
 //

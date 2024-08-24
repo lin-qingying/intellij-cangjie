@@ -21,5 +21,7 @@ class CjPrimaryConstructorElementType(debugName: String) :
         )
     }
 
+
+
     override fun isDelegatedCallToThis(constructor: CjPrimaryConstructor) = false
 }

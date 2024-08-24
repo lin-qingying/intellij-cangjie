@@ -8,7 +8,7 @@ import com.huawei.cangjie.types.model.*
 
 
 interface TypeSystemCommonBackendContext : TypeSystemContext {
-    fun nullableAnyType(): SimpleTypeMarker
+//    fun nullableAnyType(): SimpleTypeMarker
 //    fun arrayType(componentType: CangJieTypeMarker): SimpleTypeMarker
 //    fun CangJieTypeMarker.isArrayOrNullableArray(): Boolean
 //
@@ -62,10 +62,10 @@ interface TypeSystemCommonBackendContextForTypeMapping : TypeSystemCommonBackend
 //        return typeWithArguments(arguments.toList())
 //    }
 
-    fun TypeArgumentMarker.adjustedType(): CangJieTypeMarker {
-        if (this.isStarProjection()) return nullableAnyType()
-        return getType()
-    }
+//    fun TypeArgumentMarker.adjustedType(): CangJieTypeMarker {
+//        if (this.isStarProjection()) return nullableAnyType()
+//        return getType()
+//    }
 
 //    fun TypeParameterMarker.representativeUpperBound(): CangJieTypeMarker
 //

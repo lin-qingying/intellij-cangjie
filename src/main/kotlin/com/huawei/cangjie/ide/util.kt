@@ -24,7 +24,6 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
 import com.intellij.psi.codeStyle.CodeStyleManager
-import org.jetbrains.annotations.ApiStatus
 import kotlin.properties.Delegates
 
 val Project.isInDumbMode: Boolean
@@ -64,10 +63,11 @@ object IdeDescriptorRenderers {
         type.constructor.supertypes.singleOrNull()?.let { return it }
 
         val builtIns = type.builtIns
-        return if (type.isMarkedNullable)
-            builtIns.nullableAnyType
-        else
-            builtIns.anyType
+//        return if (type.isMarkedOption)
+//            builtIns.nullableAnyType
+//        else
+//            builtIns.anyType
+        return builtIns.anyType
     }
     @JvmField
     val SOURCE_CODE: DescriptorRenderer = BASE.withOptions {

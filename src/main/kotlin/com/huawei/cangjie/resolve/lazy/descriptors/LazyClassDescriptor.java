@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.lazy.descriptors;
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
+import com.huawei.cangjie.config.LanguageFeature;
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.descriptors.impl.ClassDescriptorBase;
@@ -33,7 +34,6 @@ import kotlin.collections.CollectionsKt;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.huawei.cangjie.config.LanguageFeature;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -327,10 +327,10 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
         getModality();
         getName();
         getOriginal();
-//    getScopeForClassHeaderResolution();
+        getScopeForClassHeaderResolution();
         getScopeForMemberDeclarationResolution();
         DescriptorUtils.getAllDescriptors(getUnsubstitutedMemberScope());
-//    getScopeForInitializerResolution();
+        getScopeForInitializerResolution();
         getUnsubstitutedInnerClassesScope();
         getTypeConstructor().getSupertypes();
         for (TypeParameterDescriptor typeParameterDescriptor : getTypeConstructor().getParameters()) {
@@ -338,13 +338,15 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
         }
         getUnsubstitutedPrimaryConstructor();
         getVisibility();
-//    getContextReceivers();
+        getContextReceivers();
     }
+
     @Override
     @NotNull
     public LexicalScope getScopeForConstructorHeaderResolution() {
         return resolutionScopesSupport.getScopeForConstructorHeaderResolution().invoke();
     }
+
     @NotNull
     protected ScopesHolderForClass<LazyClassMemberScope> createScopesHolderForClass(
             @NotNull LazyClassContext c,
@@ -516,6 +518,35 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
 //        throw new UnsupportedOperationException();
     }
 
+    @Override
+    @NotNull
+    public LexicalScope getScopeForClassHeaderResolution() {
+        return resolutionScopesSupport.getScopeForClassHeaderResolution().invoke();
+    }
+
+    @Override
+    public String toString() {
+        // not using DescriptorRenderer to preserve laziness
+        return typeStatement.toString();
+    }
+
+    @NotNull
+    protected Collection<CangJieType> computeSupertypes() {
+        if (CangJieBuiltIns.isSpecialClassWithNoSupertypes(this)) {
+            return Collections.emptyList();
+        }
+
+        CjTypeStatement classOrObject = declarationProvider.getOwnerInfo().getCorrespondingClass();
+        if (classOrObject == null) {
+            return Collections.singleton(c.getModuleDescriptor().getBuiltIns().getAnyType());
+        }
+
+        List<CangJieType> allSupertypes =
+                c.getDescriptorResolver().resolveSupertypes(getScopeForClassHeaderResolution(), this, classOrObject, c.getTrace());
+
+        return new ArrayList<>(CollectionsKt.filter(allSupertypes, VALID_SUPERTYPE));
+    }
+
     private class LazyClassTypeConstructor extends AbstractClassTypeConstructor {
         private final NotNullLazyValue<List<TypeParameterDescriptor>> parameters = c.getStorageManager().createLazyValue(
                 () -> TypeParameterUtilsKt.computeConstructorTypeParameters(LazyClassDescriptor.this)
@@ -534,8 +565,7 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
         @Override
         protected void reportSupertypeLoopError(@NotNull CangJieType type) {
             ClassifierDescriptor supertypeDescriptor = type.getConstructor().getDeclarationDescriptor();
-            if (supertypeDescriptor instanceof ClassDescriptor) {
-                ClassDescriptor superclass = (ClassDescriptor) supertypeDescriptor;
+            if (supertypeDescriptor instanceof ClassDescriptor superclass) {
                 reportCyclicInheritanceHierarchyError(c.getTrace(), LazyClassDescriptor.this, superclass);
             }
         }
@@ -543,7 +573,7 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
         @Override
         protected boolean getShouldReportCyclicScopeWithCompanionWarning() {
             return !c.getLanguageVersionSettings()
-                    .supportsFeature(LanguageFeature.ProhibitVisibilityOfNestedClassifiersFromSupertypes );
+                    .supportsFeature(LanguageFeature.ProhibitVisibilityOfNestedClassifiersFromSupertypes);
         }
 
         @Override
@@ -567,8 +597,7 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
             PsiElement psiElement = DescriptorToSourceUtils.getSourceFromDescriptor(classDescriptor);
 
             PsiElement elementToMark = null;
-            if (psiElement instanceof CjTypeStatement) {
-                CjTypeStatement classOrObject = (CjTypeStatement) psiElement;
+            if (psiElement instanceof CjTypeStatement classOrObject) {
                 for (CjSuperTypeListEntry delegationSpecifier : classOrObject.getSuperTypeListEntries()) {
                     CjTypeReference typeReference = delegationSpecifier.getTypeReference();
                     if (typeReference == null) continue;
@@ -578,8 +607,7 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
                     }
                 }
             }
-            if (elementToMark == null && psiElement instanceof PsiNameIdentifierOwner) {
-                PsiNameIdentifierOwner namedElement = (PsiNameIdentifierOwner) psiElement;
+            if (elementToMark == null && psiElement instanceof PsiNameIdentifierOwner namedElement) {
                 PsiElement nameIdentifier = namedElement.getNameIdentifier();
                 if (nameIdentifier != null) {
                     elementToMark = nameIdentifier;
@@ -617,33 +645,5 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
         public String toString() {
             return LazyClassDescriptor.this.getName().toString();
         }
-    }
-
-    @Override
-    @NotNull
-    public LexicalScope getScopeForClassHeaderResolution() {
-        return resolutionScopesSupport.getScopeForClassHeaderResolution().invoke();
-    }
-
-    @Override
-    public String toString() {
-        // not using DescriptorRenderer to preserve laziness
-        return   typeStatement.toString();
-    }
-    @NotNull
-    protected Collection<CangJieType> computeSupertypes() {
-        if (CangJieBuiltIns.isSpecialClassWithNoSupertypes(this)) {
-            return Collections.emptyList();
-        }
-
-        CjTypeStatement classOrObject = declarationProvider.getOwnerInfo().getCorrespondingClass();
-        if (classOrObject == null) {
-            return Collections.singleton(c.getModuleDescriptor().getBuiltIns().getAnyType());
-        }
-
-        List<CangJieType> allSupertypes =
-                c.getDescriptorResolver().resolveSupertypes(getScopeForClassHeaderResolution(), this, classOrObject, c.getTrace());
-
-        return new ArrayList<>(CollectionsKt.filter(allSupertypes, VALID_SUPERTYPE));
     }
 }

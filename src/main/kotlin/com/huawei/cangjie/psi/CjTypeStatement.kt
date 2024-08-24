@@ -18,17 +18,19 @@ abstract class CjTypeStatement :
         stub,
         nodeType
     )
+
     override fun getSuperTypeListEntries(): List<CjSuperTypeListEntry> = getSuperTypeList()?.entries.orEmpty()
 
-    override fun isLocal(): Boolean  = stub?.isLocal() ?: CjPsiUtil.isLocal(this)
+    override fun isLocal(): Boolean = stub?.isLocal() ?: CjPsiUtil.isLocal(this)
     override val declarations: List<CjDeclaration>
-        get() =  getBody()?.declarations.orEmpty()
+        get() = getBody()?.declarations.orEmpty()
 
 //    fun isTopLevel(): Boolean = stub?.isTopLevel() ?: (parent is CjFile)
 
     override fun toString(): String {
         return node.elementType.toString()
     }
+
     fun getSuperTypeList(): CjSuperTypeList? = getStubOrPsiChild(CjStubElementTypes.SUPER_TYPE_LIST)
 
 //    TODO 一定是顶层
@@ -41,14 +43,17 @@ abstract class CjTypeStatement :
 
     override fun hasPrimaryConstructor(): Boolean = hasExplicitPrimaryConstructor() || !hasSecondaryConstructors()
 
-    override fun getPrimaryConstructor(): CjPrimaryConstructor? = getStubOrPsiChild(CjStubElementTypes.PRIMARY_CONSTRUCTOR)
+
+    override fun getPrimaryConstructor(): CjPrimaryConstructor? =
+        body?.getStubOrPsiChild(CjStubElementTypes.PRIMARY_CONSTRUCTOR)
 
     override fun getPrimaryConstructorModifierList(): CjModifierList? = primaryConstructor?.modifierList
 
 
     override fun getPrimaryConstructorParameters(): List<CjParameter> {
-       return getPrimaryConstructorParameterList()?.parameters.orEmpty()
+        return getPrimaryConstructorParameterList()?.parameters.orEmpty()
     }
+
     fun getPrimaryConstructorParameterList(): CjParameterList? = primaryConstructor?.valueParameterList
 
     override fun getSecondaryConstructors(): List<CjSecondaryConstructor> = getBody()?.secondaryConstructors.orEmpty()
@@ -58,9 +63,9 @@ abstract class CjTypeStatement :
     override fun getContextReceivers(): List<CjContextReceiver> =
         getContextReceiverList()?.let { return it.contextReceivers() } ?: emptyList()
 
-    override fun getBody(): CjClassBody?  = getStubOrPsiChild(CjStubElementTypes.CLASS_BODY)
+    override fun getBody(): CjClassBody? = getStubOrPsiChild(CjStubElementTypes.CLASS_BODY)
 
-    override fun getClassId(): ClassId?  {
+    override fun getClassId(): ClassId? {
         stub?.let { return it.getClassId() }
         return ClassIdCalculator.calculateClassId(this)
     }

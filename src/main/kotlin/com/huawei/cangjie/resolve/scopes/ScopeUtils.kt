@@ -1,11 +1,16 @@
 package com.huawei.cangjie.resolve.scopes
 
+import com.huawei.cangjie.analyzer.CangJieModuleInfo
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.ide.FrontendInternals
+import com.huawei.cangjie.ide.base.projectStructure.CangJieSourceFilterScope
+import com.huawei.cangjie.ide.projectStructure.CangJieResolveScopeEnlarger
+import com.huawei.cangjie.ide.projectStructure.moduleInfo
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjClassBody
+import com.huawei.cangjie.psi.CjCodeFragment
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.resolve.BindingContext
@@ -22,6 +27,7 @@ import com.huawei.cangjie.types.error.ErrorEntity
 import com.huawei.cangjie.utils.Printer
 import com.huawei.cangjie.utils.parentsWithSelf
 import com.intellij.psi.PsiElement
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.SmartList
 
 @JvmOverloads
@@ -453,5 +459,30 @@ inline fun <Scope, R> flatMapScopes(
         else return results1.toMutableList().also {
             it.addAll(results2)
         }
+    }
+}
+
+//NOTE: idea default API returns module search scope for file under module but not in source or production source (for example, test data )
+// this scope can't be used to search for kotlin declarations in index in order to resolve in that case
+// see com.intellij.psi.impl.file.impl.ResolveScopeManagerImpl.getInherentResolveScope
+fun getResolveScope(file: CjFile): GlobalSearchScope {
+    if (file is CjCodeFragment) {
+        // Scope should be corrected when KT-6223 is implemented
+        val contextScope = file.getContextContainingFile()?.resolveScope
+        if (contextScope != null) {
+            return when (file.moduleInfo) {
+//                is SourceForBinaryModuleInfo -> CangJieSourceFilterScope.libraryClasses(contextScope, file.project)
+                else -> CangJieSourceFilterScope.projectSourcesAndLibraryClasses(contextScope, file.project)
+            }
+        }
+    }
+
+    return when (file.moduleInfo) {
+        is CangJieModuleInfo -> {
+            val projectScope = CangJieSourceFilterScope.projectFiles(file.resolveScope, file.project)
+            CangJieResolveScopeEnlarger.enlargeScope(projectScope, file)
+        }
+
+        else -> GlobalSearchScope.EMPTY_SCOPE
     }
 }

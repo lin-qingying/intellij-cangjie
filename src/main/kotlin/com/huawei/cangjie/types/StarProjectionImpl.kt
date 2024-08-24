@@ -66,21 +66,21 @@ fun TypeParameterDescriptor.starProjectionType(): CangJieType {
 }
 
 // It should only be used in rare cases when type parameter for the relevant argument is not available
-class StarProjectionForAbsentTypeParameter(
-    CangJieBuiltIns: CangJieBuiltIns
-) : TypeProjectionBase() {
-    private val nullableAnyType: CangJieType = CangJieBuiltIns.nullableAnyType
-
-    override fun isStarProjection() = true
-
-    override fun getProjectionKind() = Variance.OUT_VARIANCE
-
-    override fun getType() = nullableAnyType
-
-    @TypeRefinement
-    override fun refine(CangJieTypeRefiner: CangJieTypeRefiner): TypeProjection = this
-
-    override fun replaceType(type: CangJieType): TypeProjection {
-        throw UnsupportedOperationException("Replacing type for star projection is unsupported")
-    }
-}
+//class StarProjectionForAbsentTypeParameter(
+//    CangJieBuiltIns: CangJieBuiltIns
+//) : TypeProjectionBase() {
+//    private val nullableAnyType: CangJieType = CangJieBuiltIns.nullableAnyType
+//
+//    override fun isStarProjection() = true
+//
+//    override fun getProjectionKind() = Variance.OUT_VARIANCE
+//
+//    override fun getType() = nullableAnyType
+//
+//    @TypeRefinement
+//    override fun refine(CangJieTypeRefiner: CangJieTypeRefiner): TypeProjection = this
+//
+//    override fun replaceType(type: CangJieType): TypeProjection {
+//        throw UnsupportedOperationException("Replacing type for star projection is unsupported")
+//    }
+//}

@@ -79,6 +79,7 @@ class LazyTopDownAnalyzer(
                 }
 
 
+
                 override fun visitTypeAlias(typeAlias: CjTypeAlias) {
                     typeAliases.add(typeAlias)
                 }
@@ -123,8 +124,8 @@ class LazyTopDownAnalyzer(
 //                    registerPrimaryConstructorParameters(cclass)
                 }
 // TODO 注册主构造函数
-//                private fun registerPrimaryConstructorParameters(klass: CjClass) {
-//                    for (cjParameter in klass.primaryConstructorParameters) {
+//                private fun registerPrimaryConstructorParameters(cclass: CjClass) {
+//                    for (cjParameter in cclass.primaryConstructorParameters) {
 //                        if (cjParameter.hasLetOrVar()) {
 //                            c.primaryConstructorParameterProperties.put(
 //                                cjParameter,
@@ -133,6 +134,14 @@ class LazyTopDownAnalyzer(
 //                        }
 //                    }
 //                }
+                override fun visitPrimaryConstructor(constructor: CjPrimaryConstructor) {
+                    c.primaryConstructors[constructor] =
+                        lazyDeclarationResolver.resolveToDescriptor(constructor) as ClassConstructorDescriptor
+                }
+                override fun visitSecondaryConstructor(constructor: CjSecondaryConstructor) {
+                    c.secondaryConstructors[constructor] =
+                        lazyDeclarationResolver.resolveToDescriptor(constructor) as ClassConstructorDescriptor
+                }
 
                 private fun checkTypeStatementDeclarations(
                     typeStatement: CjTypeStatement,

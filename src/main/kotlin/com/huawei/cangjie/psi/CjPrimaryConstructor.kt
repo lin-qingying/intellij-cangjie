@@ -8,20 +8,20 @@ import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
-
+//主构造函数
 class CjPrimaryConstructor : CjConstructor<CjPrimaryConstructor> {
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJieConstructorStub<CjPrimaryConstructor>) : super(stub, CjStubElementTypes.PRIMARY_CONSTRUCTOR)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?) = visitor.visitPrimaryConstructor(this, data)
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R = visitor.visitPrimaryConstructor(this, data)
 
-    override fun getContainingClassOrStruct() = parent as CjTypeStatement
+    override fun getContainingTypeStatement() = parent?.parent as CjTypeStatement
 
     private fun getOrCreateConstructorKeyword(): PsiElement {
         return getInitKeyword() ?: addBefore(CjPsiFactory(project).createConstructorKeyword(), valueParameterList!!)
     }
 
-    fun removeRedundantConstructorKeywordAndSpace() {
+    private fun removeRedundantConstructorKeywordAndSpace() {
         getInitKeyword()?.delete()
         if (prevSibling is PsiWhiteSpace) {
             prevSibling.delete()

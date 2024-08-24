@@ -81,7 +81,7 @@ object StandardNames {
 
 
         @JvmField
-        val core : FqName = FqName.topLevel(Name.identifier("std")).child(Name.identifier("core"))
+        val core: FqName = FqName.topLevel(Name.identifier("std")).child(Name.identifier("core"))
 
         @JvmField
         val any: FqNameUnsafe = fqNameUnsafe("Any")
@@ -93,18 +93,27 @@ object StandardNames {
         @JvmField
         val array: FqNameUnsafe = fqNameUnsafe("Array")
 
+        @JvmField
+        val arrayFqName: FqName = fqName("Array")
+
 
         /***************************Nothing***************************/
 
         @JvmField
         val nothing: FqNameUnsafe = fqNameUnsafe("Nothing")
 
+        @JvmField
+        val nothingFqName: FqName = fqName("Nothing")
+
 
         /***************************Char***************************/
 
 
         @JvmField
-        val char: FqNameUnsafe = fqNameUnsafe("Char")
+        val rune: FqNameUnsafe = fqNameUnsafe("Rune")
+
+        @JvmField
+        val runeFqName: FqName = fqName("Rune")
 
 
         /***************************Unit***************************/
@@ -112,6 +121,8 @@ object StandardNames {
         @JvmField
         val unit = fqNameUnsafe("Unit")
 
+        @JvmField
+        val unitFqName = fqName("Unit")
 
         /***************************Int***************************/
         @JvmField
@@ -146,6 +157,23 @@ object StandardNames {
         @JvmField
         val uint_native: FqNameUnsafe = fqNameUnsafe("UIntNative")
 
+        @JvmField
+        val int_nativeFqName: FqName = fqName("IntNative")
+
+        @JvmField
+        val uint_nativeFqName: FqName = fqName("UIntNative")
+
+        @JvmField
+        val int8FqName: FqName = fqName("Int8")
+
+        @JvmField
+        val int16FqName: FqName = fqName("Int16")
+
+        @JvmField
+        val int32FqName: FqName = fqName("Int32")
+
+        @JvmField
+        val int64FqName: FqName = fqName("Int64")
 
         @JvmField
         val uInt8FqName: FqName = fqName("UInt8")
@@ -182,10 +210,23 @@ object StandardNames {
         @JvmField
         val float64: FqNameUnsafe = fqNameUnsafe("Float64")
 
+
+        @JvmField
+        val float16FqName: FqName = fqName("Float16")
+
+        @JvmField
+        val float32FqName: FqName = fqName("Float32")
+
+        @JvmField
+        val float64FqName: FqName = fqName("Float64")
+
         /***************************Bool***************************/
         @JvmField
         val bool: FqNameUnsafe = fqNameUnsafe("Bool")
 
+        @JvmField
+
+        val boolFqName: FqName = fqName("Bool")
 
         @JvmField
         val enum: FqNameUnsafe = fqNameUnsafe("Enum")
@@ -220,6 +261,31 @@ object StandardNames {
         private fun fqName(simpleName: String): FqName {
             return BUILT_INS_PACKAGE_FQ_NAME.child(Name.identifier(simpleName))
         }
+
+        fun fromByName(name: Name): FqName =
+            when (name) {
+                uInt8FqName.shortName() -> uInt8FqName
+                uInt16FqName.shortName() -> uInt16FqName
+                uInt32FqName.shortName() -> uInt32FqName
+                uInt64FqName.shortName() -> uInt64FqName
+
+                int8FqName.shortName() -> int8FqName
+                int16FqName.shortName() -> int16FqName
+                int32FqName.shortName() -> int32FqName
+                int64FqName.shortName() -> int64FqName
+
+                float16FqName.shortName() -> float16FqName
+                float32FqName.shortName() -> float32FqName
+                float64FqName.shortName() -> float64FqName
+
+                boolFqName.shortName() -> boolFqName
+
+                runeFqName.shortName() -> runeFqName
+
+                arrayFqName.shortName() -> arrayFqName
+                unitFqName.shortName() -> unitFqName
+                else -> throw IllegalArgumentException("Unknown name: $name")
+            }
 
     }
 

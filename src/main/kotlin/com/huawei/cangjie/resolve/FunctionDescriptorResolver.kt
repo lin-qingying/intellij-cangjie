@@ -1,18 +1,18 @@
 package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.builtins.*
+import com.huawei.cangjie.config.LanguageFeature
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.Errors.*
 import com.huawei.cangjie.descriptors.annotations.AnnotationSplitter
 import com.huawei.cangjie.descriptors.annotations.AnnotationUseSiteTarget
 import com.huawei.cangjie.descriptors.annotations.Annotations
+import com.huawei.cangjie.descriptors.impl.ClassConstructorDescriptorImpl
 import com.huawei.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.Name
-import com.huawei.cangjie.psi.CjFunction
-import com.huawei.cangjie.psi.CjFunctionLiteral
-import com.huawei.cangjie.psi.CjNamedFunction
-import com.huawei.cangjie.psi.CjParameter
+import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.isEmptyBody
 import com.huawei.cangjie.resolve.DescriptorResolver.getDefaultModality
 import com.huawei.cangjie.resolve.DescriptorResolver.getDefaultVisibility
@@ -33,11 +33,13 @@ import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.error.ErrorTypeKind
+import com.huawei.cangjie.types.expressions.ExpressionTypingServices
 import com.huawei.cangjie.types.expressions.ExpressionTypingUtils.isFunctionExpression
 import com.huawei.cangjie.types.expressions.ExpressionTypingUtils.isFunctionLiteral
 import com.huawei.cangjie.types.isError
 import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.replaceAnnotations
+import com.intellij.psi.PsiElement
 import java.util.*
 
 
@@ -49,10 +51,34 @@ class FunctionDescriptorResolver(
     private val modifiersChecker: ModifiersChecker,
     private val overloadChecker: OverloadChecker,
 //    private val contractParsingServices: ContractParsingServices,
-//    private val expressionTypingServices: ExpressionTypingServices,
+    private val expressionTypingServices: ExpressionTypingServices,
 
     private val storageManager: StorageManager
 ) {
+
+
+    fun resolvePrimaryConstructorDescriptor(
+        scope: LexicalScope,
+        classDescriptor: ClassDescriptor,
+        classElement: CjPureTypeStatement,
+        trace: BindingTrace,
+        languageVersionSettings: LanguageVersionSettings,
+        inferenceSession: InferenceSession?
+    ): ClassConstructorDescriptorImpl? {
+        if (classDescriptor.kind == ClassKind.ENUM_ENTRY || !classElement.hasPrimaryConstructor()) return null
+        return createConstructorDescriptor(
+            scope,
+            classDescriptor,
+            true,
+            classElement.primaryConstructorModifierList,
+            classElement.primaryConstructor ?: classElement,
+            classElement.primaryConstructorParameters,
+            trace,
+            languageVersionSettings,
+            inferenceSession
+        )
+    }
+
     private fun resolveValueParameters(
         functionDescriptor: FunctionDescriptor,
         parameterScope: LexicalWritableScope,
@@ -130,6 +156,78 @@ class FunctionDescriptorResolver(
         if (functionTypeExpected()) {
             createValueParametersForInvokeInFunctionType(owner, this.getValueParameterTypesFromFunctionType())
         } else null
+
+    fun resolveSecondaryConstructorDescriptor(
+        scope: LexicalScope,
+        classDescriptor: ClassDescriptor,
+        constructor: CjSecondaryConstructor,
+        trace: BindingTrace,
+        languageVersionSettings: LanguageVersionSettings,
+        inferenceSession: InferenceSession?
+    ): ClassConstructorDescriptorImpl {
+        return createConstructorDescriptor(
+            scope,
+            classDescriptor,
+            false,
+            constructor.modifierList,
+            constructor,
+            constructor.valueParameters,
+            trace,
+            languageVersionSettings,
+            inferenceSession
+        )
+    }
+
+
+    private fun createConstructorDescriptor(
+        scope: LexicalScope,
+        classDescriptor: ClassDescriptor,
+        isPrimary: Boolean,
+        modifierList: CjModifierList?,
+        declarationToTrace: CjPureElement,
+        valueParameters: List<CjParameter>,
+        trace: BindingTrace,
+        languageVersionSettings: LanguageVersionSettings,
+        inferenceSession: InferenceSession?
+    ): ClassConstructorDescriptorImpl {
+        val constructorDescriptor = ClassConstructorDescriptorImpl.create(
+            classDescriptor,
+            annotationResolver.resolveAnnotationsWithoutArguments(scope, modifierList, trace),
+            isPrimary,
+            declarationToTrace.toSourceElement()
+        )
+        constructorDescriptor.isExpect = classDescriptor.isExpect
+//        constructorDescriptor.isActual = modifierList?.hasActualModifier() == true ||
+//                // We don't require 'actual' for constructors of actual annotations
+//                classDescriptor.kind == ClassKind.ANNOTATION_CLASS && classDescriptor.isActual
+        val parameterScope = LexicalWritableScope(
+            scope,
+            constructorDescriptor,
+            false,
+            TraceBasedLocalRedeclarationChecker(trace, overloadChecker),
+            LexicalScopeKind.CONSTRUCTOR_HEADER
+        )
+        val constructor = constructorDescriptor.initialize(
+            resolveValueParameters(
+                constructorDescriptor, parameterScope, valueParameters, trace, null, inferenceSession
+            ),
+            resolveVisibilityFromModifiers(
+                modifierList,
+                DescriptorUtils.getDefaultConstructorVisibility(
+                    classDescriptor, languageVersionSettings.supportsFeature(
+                        LanguageFeature.AllowSealedInheritorsInDifferentFilesOfSamePackage
+                    )
+                )
+            )
+        )
+        constructor.returnType = classDescriptor.defaultType
+//        if (DescriptorUtils.isAnnotationClass(classDescriptor)) {
+//            CompileTimeConstantUtils.checkConstructorParametersType(valueParameters, trace)
+//        }
+        if (declarationToTrace is PsiElement)
+            trace.record(BindingContext.CONSTRUCTOR, declarationToTrace, constructorDescriptor)
+        return constructor
+    }
 
     private fun createValueParameterDescriptors(
         function: CjFunction,

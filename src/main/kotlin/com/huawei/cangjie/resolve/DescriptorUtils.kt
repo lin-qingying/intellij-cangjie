@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve
 
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.builtins.StandardNames.FqNames.fromByName
 import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.AnnotationDescriptor
@@ -87,7 +88,7 @@ val ClassifierDescriptor?.classId: ClassId?
 fun ClassDescriptor.getClassObjectReferenceTarget(): ClassDescriptor = this
 fun ClassDescriptor.getSuperClassNotAny(): ClassDescriptor? {
     for (supertype in defaultType.constructor.supertypes) {
-        if (!CangJieBuiltIns.isAnyOrNullableAny(supertype)) {
+        if (!CangJieBuiltIns.isAny(supertype)) {
             val superClassifier = supertype.constructor.declarationDescriptor
             if (DescriptorUtils.isClassOrEnum(superClassifier)) {
                 return superClassifier as ClassDescriptor
@@ -158,9 +159,11 @@ fun ClassDescriptor.findCallableMemberBySignature(
 fun CjImportDirective.targetDescriptors(resolutionFacade: ResolutionFacade = this.getResolutionFacade()): Collection<DeclarationDescriptor> {
     // For codeFragments imports are created in dummy file
     if (this.getContainingCjFile().doNotAnalyze != null) return emptyList()
-    val nameExpression = importedReference?.getQualifiedElementSelector() as? CjSimpleNameExpression ?: return emptyList()
+    val nameExpression =
+        importedReference?.getQualifiedElementSelector() as? CjSimpleNameExpression ?: return emptyList()
     return nameExpression.mainReference.resolveToDescriptors(resolutionFacade.analyze(nameExpression))
 }
+
 fun descriptorsEqualWithSubstitution(
     descriptor1: DeclarationDescriptor?,
     descriptor2: DeclarationDescriptor?,
@@ -214,6 +217,37 @@ object DescriptorUtils {
         return isClass(descriptor) || isEnum(
             descriptor
         )
+    }
+
+    fun canHaveDeclaredConstructors(classDescriptor: ClassDescriptor): Boolean {
+        return !isInterface(
+            classDescriptor
+        )
+    }
+
+    @JvmStatic
+    fun getDefaultConstructorVisibility(
+        classDescriptor: ClassDescriptor,
+        freedomForSealedInterfacesSupported: Boolean
+    ): DescriptorVisibility {
+        val classKind: ClassKind = classDescriptor.getKind()
+        if (classKind == ClassKind.ENUM || classKind.isSingleton) {
+            return DescriptorVisibilities.PRIVATE
+        }
+        if (isSealedClass(classDescriptor)) {
+            return if (freedomForSealedInterfacesSupported) {
+                DescriptorVisibilities.PROTECTED
+            } else {
+                DescriptorVisibilities.PRIVATE
+            }
+        }
+//        if (  isAnonymousObject(classDescriptor)) {
+//            return  DescriptorVisibilities.DEFAULT_VISIBILITY
+//        }
+        assert(classKind == ClassKind.CLASS || classKind == ClassKind.STRUCT || classKind == ClassKind.INTERFACE || classKind == ClassKind.ANNOTATION_CLASS) {
+            "Unexpected class kind: $classKind"
+        }
+        return DescriptorVisibilities.PUBLIC
     }
 
     /**
@@ -526,7 +560,8 @@ object DescriptorUtils {
             return FqName.ROOT
         }
         if (descriptor is BasicTypeDescriptor) {
-            return FqName.ROOT
+
+            return fromByName(descriptor.name)
         }
 
 

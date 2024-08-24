@@ -2,7 +2,7 @@ package com.huawei.cangjie.resolve.lazy.declarations.impl
 
 import com.huawei.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import com.huawei.cangjie.builtins.StandardNames.FqNames.bool
-import com.huawei.cangjie.builtins.StandardNames.FqNames.char
+
 import com.huawei.cangjie.builtins.StandardNames.FqNames.float16
 import com.huawei.cangjie.builtins.StandardNames.FqNames.float32
 import com.huawei.cangjie.builtins.StandardNames.FqNames.float64
@@ -12,6 +12,7 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.int64
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int8
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int_native
 import com.huawei.cangjie.builtins.StandardNames.FqNames.nothing
+import com.huawei.cangjie.builtins.StandardNames.FqNames.rune
 import com.huawei.cangjie.builtins.StandardNames.FqNames.uint16
 import com.huawei.cangjie.builtins.StandardNames.FqNames.uint32
 import com.huawei.cangjie.builtins.StandardNames.FqNames.uint64
@@ -129,7 +130,7 @@ class PackageFragmentDescriptorBasicImpl(
     val UINTNATIVE_DESCRIPTOR = createBasicTypeDescriptor(uint_native)
 
     //    Char
-    val CHAR_DESCRIPTOR = createBasicTypeDescriptor(char)
+    val RUNE_DESCRIPTOR = createBasicTypeDescriptor(rune)
 
     //    Bool
     val BOOL_DESCRIPTOR = createBasicTypeDescriptor(bool)

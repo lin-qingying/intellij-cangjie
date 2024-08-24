@@ -186,7 +186,7 @@ object AbstractTypeChecker {
 //                if (simpleA.argumentsCount() == 0) {
 //                    if (refinedA.hasFlexibleNullability() || refinedB.hasFlexibleNullability()) return true
 //
-//                    return simpleA.isMarkedNullable() == refinedB.lowerBoundIfFlexible().isMarkedNullable()
+//                    return simpleA.isMarkedOption() == refinedB.lowerBoundIfFlexible().isMarkedOption()
 //                }
 //            }
 

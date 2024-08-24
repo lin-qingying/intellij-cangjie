@@ -62,6 +62,16 @@ class CangJieSourceFilterScope private constructor(
                 else -> CangJieSourceFilterScope(delegate, project, filter)
             }
         }
+        @JvmStatic
+        fun libraryClasses(delegate: GlobalSearchScope, project: Project) =
+            create(delegate, project, RootKindFilter.libraryClasses)
+
+        @JvmStatic
+        fun projectFiles(delegate: GlobalSearchScope, project: Project) =
+            create(delegate, project, RootKindFilter.projectFiles.copy(includeScriptsOutsideSourceRoots = true))
+        @JvmStatic
+        fun projectSourcesAndLibraryClasses(delegate: GlobalSearchScope, project: Project) =
+            create(delegate, project, RootKindFilter.projectSourcesAndLibraryClasses.copy(includeScriptsOutsideSourceRoots = true))
 
 
         @JvmStatic

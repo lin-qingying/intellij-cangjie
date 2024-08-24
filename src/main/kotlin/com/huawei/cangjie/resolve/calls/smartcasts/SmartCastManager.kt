@@ -140,7 +140,7 @@ class SmartCastManager(private val argumentTypeResolver: ArgumentTypeResolver) {
 //            }
 //        }
 //
-//        if (!c.dataFlowInfo.getCollectedNullability(dataFlowValue).canBeNull() && !expectedType.isMarkedNullable) {
+//        if (!c.dataFlowInfo.getCollectedNullability(dataFlowValue).canBeNull() && !expectedType.isMarkedOption) {
 //            // Handling cases like:
 //            // fun bar(x: Any) {}
 //            // fun <T : Any?> foo(x: T) {

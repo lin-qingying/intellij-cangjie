@@ -28,11 +28,11 @@ fun createDynamicType(builtIns: CangJieBuiltIns) = DynamicType(builtIns, TypeAtt
 class DynamicType(
     builtIns: CangJieBuiltIns,
     override val attributes: TypeAttributes
-) : FlexibleType(builtIns.nothingType, builtIns.nullableAnyType), DynamicTypeMarker {
+) : FlexibleType(builtIns.nothingType, builtIns.anyType), DynamicTypeMarker {
     override val delegate: SimpleType get() = upperBound
 
 
-    override val isMarkedNullable: Boolean get() = false
+    override val isMarkedOption: Boolean get() = false
 
     override fun replaceAttributes(newAttributes: TypeAttributes): DynamicType =
         DynamicType(delegate.builtIns, newAttributes)

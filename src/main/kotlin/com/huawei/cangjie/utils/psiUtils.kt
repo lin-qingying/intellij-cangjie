@@ -46,6 +46,9 @@ val PsiElement.parents: Sequence<PsiElement>
 val PsiElement.parentsWithSelf: Sequence<PsiElement>
     get() = generateSequence(this) { if (it is PsiFile) null else it.parent }
 
+inline fun <reified T : PsiElement> PsiElement.anyDescendantOfType(noinline predicate: (T) -> Boolean = { true }): Boolean {
+    return findDescendantOfType(predicate) != null
+}
 fun PsiElement.getPrevSiblingIgnoringWhitespace(withItself: Boolean = false): PsiElement? {
     return siblings(withItself = withItself, forward = false).filter { it !is PsiWhiteSpace }.firstOrNull()
 }

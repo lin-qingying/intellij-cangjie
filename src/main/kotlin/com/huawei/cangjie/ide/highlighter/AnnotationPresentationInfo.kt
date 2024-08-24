@@ -3,7 +3,7 @@ package com.huawei.cangjie.ide.highlighter
 import com.huawei.cangjie.descriptors.Diagnostic
 import com.huawei.cangjie.diagnostics.Severity
 import com.huawei.cangjie.diagnostics.rendering.DefaultErrorMessages
-import com.huawei.cangjie.ide.completion.back.CangJieHighlightingBundle
+
 import com.huawei.cangjie.ide.inspections.suppress.CangJieSuppressableWarningProblemGroup
 import com.huawei.cangjie.ide.inspections.suppress.CompilerWarningIntentionAction
 import com.huawei.cangjie.ide.stubindex.resolve.isApplicationInternalMode

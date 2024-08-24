@@ -50,7 +50,7 @@ abstract class DelegatingSimpleType : SimpleType() {
 
     override val constructor: TypeConstructor get() = delegate.constructor
     override val arguments: List<TypeProjection> get() = delegate.arguments
-    override val isMarkedNullable: Boolean get() = delegate.isMarkedNullable
+    override val isMarkedOption: Boolean get() = delegate.isMarkedOption
     override val memberScope: MemberScope get() = delegate.memberScope
     override val attributes: TypeAttributes get() = delegate.attributes
 
@@ -68,7 +68,7 @@ abstract class WrappedType : CangJieType() {
 
     override val constructor: TypeConstructor get() = delegate.constructor
     override val arguments: List<TypeProjection> get() = delegate.arguments
-    override val isMarkedNullable: Boolean get() = delegate.isMarkedNullable
+    override val isMarkedOption: Boolean get() = delegate.isMarkedOption
     override val memberScope: MemberScope get() = delegate.memberScope
     override val attributes: TypeAttributes get() = delegate.attributes
 
@@ -189,7 +189,7 @@ class DefinitelyNotNullType private constructor(
     override val delegate: SimpleType
         get() = original
 
-    override val isMarkedNullable: Boolean
+    override val isMarkedOption: Boolean
         get() = false
 
     override val isTypeParameter: Boolean
@@ -218,7 +218,7 @@ fun SimpleType.makeSimpleTypeDefinitelyNotNullOrNotNull(useCorrectedNullabilityF
         ?: makeNullableAsSpecified(false)
 
 fun NewCapturedType.withNotNullProjection() =
-    NewCapturedType(captureStatus, constructor, lowerType, attributes, isMarkedNullable, isProjectionNotNull = true)
+    NewCapturedType(captureStatus, constructor, lowerType, attributes, isMarkedOption, isProjectionNotNull = true)
 
 fun UnwrappedType.makeDefinitelyNotNullOrNotNull(useCorrectedNullabilityForTypeParameters: Boolean = false): UnwrappedType =
     DefinitelyNotNullType.makeDefinitelyNotNull(this, useCorrectedNullabilityForTypeParameters)

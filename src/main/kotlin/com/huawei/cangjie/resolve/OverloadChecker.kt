@@ -47,6 +47,8 @@ class OverloadChecker(val specificityComparator: TypeSpecificityComparator) {
 
             is FunctionDescriptor ->
                 DeclarationCategory.FUNCTION
+            is VariableDescriptor ->
+                DeclarationCategory.TYPE_OR_VALUE
 
             is ClassifierDescriptor ->
                 DeclarationCategory.TYPE_OR_VALUE

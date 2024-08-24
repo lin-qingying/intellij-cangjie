@@ -291,7 +291,7 @@ val CjDeclaration.containingClassOrStruct: CjTypeStatement?
         when (it) {
             is CjClassBody -> it.parent as? CjTypeStatement
             is CjTypeStatement -> it
-            is CjParameterList -> (it.parent as? CjPrimaryConstructor)?.getContainingClassOrStruct()
+            is CjParameterList -> (it.parent as? CjPrimaryConstructor)?.getContainingTypeStatement()
             else -> null
         }
     }

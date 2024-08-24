@@ -59,12 +59,12 @@ public class TypeCheckingProcedure {
     @NotNull
     private static CangJieType getOutType(@NotNull TypeParameterDescriptor parameter, @NotNull TypeProjection argument) {
         boolean isInProjected = argument.getProjectionKind() == Variance. IN_VARIANCE || parameter.getVariance() == Variance. IN_VARIANCE;
-        return isInProjected ? DescriptorUtilsKt.getBuiltIns(parameter).getNullableAnyType() : argument.getType();
+        return isInProjected ? DescriptorUtilsKt.getBuiltIns(parameter).getAnyType() : argument.getType();
     }
 
     public boolean isSubtypeOf(@NotNull CangJieType subtype, @NotNull CangJieType supertype) {
         if (TypeCapabilitiesKt.sameTypeConstructors(subtype, supertype)) {
-            return !subtype.isMarkedNullable() || supertype.isMarkedNullable();
+            return !subtype.isMarkedOption() || supertype.isMarkedOption();
         }
         CangJieType subtypeRepresentative = TypeCapabilitiesKt.getSubtypeRepresentative(subtype);
         CangJieType supertypeRepresentative = TypeCapabilitiesKt.getSupertypeRepresentative(supertype);
@@ -94,11 +94,11 @@ public class TypeCheckingProcedure {
             return heterogeneousEquivalence(type1, type2);
         }
 
-        if (type1.isMarkedNullable() != type2.isMarkedNullable()) {
+        if (type1.isMarkedOption() != type2.isMarkedOption()) {
             return false;
         }
 
-        if (type1.isMarkedNullable()) {
+        if (type1.isMarkedOption()) {
             // Then type2 is nullable, too (see the previous condition
             return constraints.assertEqualTypes(TypeUtils.makeNotNullable(type1), TypeUtils.makeNotNullable(type2), this);
         }
@@ -162,11 +162,11 @@ public class TypeCheckingProcedure {
             return true;
         }
 
-        if (!supertype.isMarkedNullable() && subtype.isMarkedNullable()) {
+        if (!supertype.isMarkedOption() && subtype.isMarkedOption()) {
             return false;
         }
 
-        if (CangJieBuiltIns.isNothingOrNullableNothing(subtype)) {
+        if (CangJieBuiltIns.isNothing(subtype)) {
             return true;
         }
 
@@ -175,7 +175,7 @@ public class TypeCheckingProcedure {
             return constraints.noCorrespondingSupertype(subtype, supertype); // if this returns true, there still isn't any supertype to continue with
         }
 
-        if (!supertype.isMarkedNullable() && closestSupertype.isMarkedNullable()) {
+        if (!supertype.isMarkedOption() && closestSupertype.isMarkedOption()) {
             return false;
         }
 

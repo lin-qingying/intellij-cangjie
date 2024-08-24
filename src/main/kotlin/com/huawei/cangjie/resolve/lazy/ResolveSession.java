@@ -12,6 +12,7 @@ import com.huawei.cangjie.resolve.DescriptorResolver;
 import com.huawei.cangjie.resolve.FunctionDescriptorResolver;
 import com.huawei.cangjie.resolve.TypeResolver;
 import com.huawei.cangjie.resolve.calls.components.InferenceSession;
+import com.huawei.cangjie.resolve.extensions.SyntheticResolveExtension;
 import com.huawei.cangjie.resolve.lazy.declarations.DeclarationProviderFactory;
 import com.huawei.cangjie.resolve.lazy.declarations.LazyPackageDescriptor;
 import com.huawei.cangjie.resolve.lazy.declarations.PackageMemberDeclarationProvider;
@@ -19,6 +20,7 @@ import com.huawei.cangjie.storage.CacheWithNotNullValues;
 import com.huawei.cangjie.storage.ExceptionTracker;
 import com.huawei.cangjie.storage.LazyResolveStorageManager;
 import com.huawei.cangjie.storage.LockBasedLazyResolveStorageManager;
+import com.huawei.cangjie.types.WrappedTypeFactory;
 import com.huawei.cangjie.types.checker.NewCangJieTypeChecker;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
@@ -42,8 +44,10 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     private final CacheWithNotNullValues<FqName, LazyPackageDescriptor> packages;
     private DeclarationProviderFactory declarationProviderFactory;
     private LazyDeclarationResolver lazyDeclarationResolver;
+    private final SyntheticResolveExtension syntheticResolveExtension;
     private LocalDescriptorResolver localDescriptorResolver;
     private DelegationFilter delegationFilter;
+    private WrappedTypeFactory wrappedTypeFactory;
 
     private DescriptorResolver descriptorResolver;
     private final PackageFragmentProvider packageFragmentProvider;
@@ -124,6 +128,8 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
                 return packageDescriptor.getDeclarationProvider().getAllDeclaredSubPackages(nameFilter);
             }
         };
+        syntheticResolveExtension = SyntheticResolveExtension.Companion.getInstance(project);
+
     }
 
     public static boolean areDescriptorsCreatedForDeclaration(@NotNull CjDeclaration declaration) {
@@ -328,5 +334,24 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     @Override
         public SupertypeLoopChecker getSupertypeLoopChecker() {
         return supertypeLoopsResolver;
+    }
+
+    @NotNull
+    @Override
+    public SyntheticResolveExtension getSyntheticResolveExtension() {
+        return syntheticResolveExtension;
+
+    }
+
+    @Inject
+    public void setWrappedTypeFactory(@NotNull WrappedTypeFactory wrappedTypeFactory) {
+        this.wrappedTypeFactory = wrappedTypeFactory;
+    }
+
+    @NotNull
+    @Override
+    public WrappedTypeFactory getWrappedTypeFactory() {
+        return wrappedTypeFactory;
+
     }
 }

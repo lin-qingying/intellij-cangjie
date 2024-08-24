@@ -87,7 +87,7 @@ class NewCapturedType(
     override val constructor: NewCapturedTypeConstructor,
     val lowerType: UnwrappedType?, // todo check lower type for nullable captured types
     override val attributes: TypeAttributes = TypeAttributes.Empty,
-    override val isMarkedNullable: Boolean = false,
+    override val isMarkedOption: Boolean = false,
     val isProjectionNotNull: Boolean = false
 ) : SimpleType(), CapturedTypeMarker {
     internal constructor(
@@ -103,7 +103,7 @@ class NewCapturedType(
         get() = ErrorUtils.createErrorScope(ErrorScopeKind.CAPTURED_TYPE_SCOPE, throwExceptions = true)
 
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType =
-        NewCapturedType(captureStatus, constructor, lowerType, newAttributes, isMarkedNullable, isProjectionNotNull)
+        NewCapturedType(captureStatus, constructor, lowerType, newAttributes, isMarkedOption, isProjectionNotNull)
 
     override fun makeNullableAsSpecified(newNullability: Boolean) =
         NewCapturedType(captureStatus, constructor, lowerType, attributes, newNullability)
@@ -115,7 +115,7 @@ class NewCapturedType(
             constructor.refine(cangjieTypeRefiner),
             lowerType?.let { cangjieTypeRefiner.refineType(it).unwrap() },
             attributes,
-            isMarkedNullable
+            isMarkedOption
         )
 }
 
@@ -170,7 +170,7 @@ internal fun captureFromArguments(type: SimpleType, status: CaptureStatus) =
     captureArguments(type, status)?.let { type.replaceArguments(it) }
 
 private fun UnwrappedType.replaceArguments(arguments: List<TypeProjection>) =
-    CangJieTypeFactory.simpleType(attributes, constructor, arguments, isMarkedNullable)
+    CangJieTypeFactory.simpleType(attributes, constructor, arguments, isMarkedOption)
 
 private fun captureFromArguments(type: UnwrappedType, status: CaptureStatus): UnwrappedType? {
     val capturedArguments = captureArguments(type, status) ?: return null
@@ -233,14 +233,14 @@ fun captureFromExpression(type: UnwrappedType): UnwrappedType? {
     return if (type is FlexibleType) {
         val lowerIntersectedType =
             intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type.lowerBound))
-                .makeNullableAsSpecified(type.lowerBound.isMarkedNullable)
+                .makeNullableAsSpecified(type.lowerBound.isMarkedOption)
         val upperIntersectedType =
             intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type.upperBound))
-                .makeNullableAsSpecified(type.upperBound.isMarkedNullable)
+                .makeNullableAsSpecified(type.upperBound.isMarkedOption)
 
         CangJieTypeFactory.flexibleType(lowerIntersectedType, upperIntersectedType)
     } else {
-        intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type)).makeNullableAsSpecified(type.isMarkedNullable)
+        intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type)).makeNullableAsSpecified(type.isMarkedOption)
     }
 }
 

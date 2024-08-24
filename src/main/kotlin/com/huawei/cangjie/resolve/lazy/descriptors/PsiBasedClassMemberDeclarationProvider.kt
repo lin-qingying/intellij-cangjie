@@ -10,7 +10,6 @@ import com.huawei.cangjie.resolve.lazy.data.CjTypeStatementInfo
 import com.huawei.cangjie.resolve.lazy.declarations.DeclarationProvider
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.storage.StorageManager
-import java.util.ArrayList
 
 
 class PsiBasedClassMemberDeclarationProvider(
@@ -18,7 +17,7 @@ class PsiBasedClassMemberDeclarationProvider(
     override val ownerInfo: CjClassLikeInfo
 ) : AbstractPsiBasedDeclarationProvider(storageManager), ClassMemberDeclarationProvider {
 
-    override fun doCreateIndex(index: AbstractPsiBasedDeclarationProvider.Index) {
+    override fun doCreateIndex(index: Index) {
         for (declaration in ownerInfo.declarations) {
             index.putToIndex(declaration)
         }
@@ -32,8 +31,8 @@ class PsiBasedClassMemberDeclarationProvider(
 
     override fun toString() = "Declarations for $ownerInfo"
 }
-abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManager) : DeclarationProvider
-{
+
+abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManager) : DeclarationProvider {
 
     protected class Index {
         // This mutable state is only modified under inside the computable
@@ -43,27 +42,34 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
         val variables = ArrayListMultimap.create<Name, CjVariable>()
 
         val classesAndObjects = ArrayListMultimap.create<Name, CjTypeStatementInfo<*>>() // order matters here
-//        val scripts = ArrayListMultimap.create<Name, CjScriptInfo>()
+
+        //        val scripts = ArrayListMultimap.create<Name, CjScriptInfo>()
         val typeAliases = ArrayListMultimap.create<Name, CjTypeAlias>()
         val destructuringDeclarationsEntries = ArrayListMultimap.create<Name, CjDestructuringDeclarationEntry>()
         val names = hashSetOf<Name>()
 
         fun putToIndex(declaration: CjDeclaration) {
-            if (declaration is CjAnonymousInitializer || declaration is CjSecondaryConstructor) return
+            if (declaration is CjAnonymousInitializer || declaration is CjSecondaryConstructor || declaration is CjPrimaryConstructor) return
 
             allDeclarations.add(declaration)
             when (declaration) {
                 is CjNamedFunction ->
                     functions.put(declaration.safeNameForLazyResolve(), declaration)
+
                 is CjProperty ->
                     properties.put(declaration.safeNameForLazyResolve(), declaration)
 
                 is CjVariable ->
                     variables.put(declaration.safeNameForLazyResolve(), declaration)
+
                 is CjTypeAlias ->
                     typeAliases.put(declaration.nameAsName.safeNameForLazyResolve(), declaration)
+
                 is CjTypeStatement ->
-                    classesAndObjects.put(declaration.nameAsName.safeNameForLazyResolve(), CjClassInfoUtil.createTypeStatementInfo(declaration))
+                    classesAndObjects.put(
+                        declaration.nameAsName.safeNameForLazyResolve(),
+                        CjClassInfoUtil.createTypeStatementInfo(declaration)
+                    )
 //                is CjScript ->
 //                    scripts.put(CjScriptInfo(declaration).script.nameAsName!!, CjScriptInfo(declaration))
                 is CjDestructuringDeclaration -> {
@@ -73,9 +79,11 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
                         names.add(name)
                     }
                 }
+
                 is CjParameter -> {
                     // Do nothing, just put it into allDeclarations is enough
                 }
+
                 else -> throw IllegalArgumentException("Unknown declaration: " + declaration)
             }
 
@@ -87,11 +95,12 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
         override fun toString() = "allDeclarations: " + allDeclarations.mapNotNull { it.name }
     }
 
-    private val index = storageManager.createLazyValue<Index> {
+    private val index = storageManager.createLazyValue {
         val index = Index()
         doCreateIndex(index)
         index
     }
+
     internal fun toInfoString() = toString() + ": " + index().toString()
     override fun getDeclarationNames() = index().names
 
@@ -104,13 +113,17 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
         return allDeclarations
     }
 
-    override fun getFunctionDeclarations(name: Name): List<CjNamedFunction> = index().functions[name.safeNameForLazyResolve()].toList()
+    override fun getFunctionDeclarations(name: Name): List<CjNamedFunction> =
+        index().functions[name.safeNameForLazyResolve()].toList()
 
-    override fun getPropertyDeclarations(name: Name): List<CjProperty> = index().properties[name.safeNameForLazyResolve()].toList()
-    override fun getVariableDeclarations(name: Name): Collection<CjVariable> = index().variables[name.safeNameForLazyResolve()].toList()
+    override fun getPropertyDeclarations(name: Name): List<CjProperty> =
+        index().properties[name.safeNameForLazyResolve()].toList()
+
+    override fun getVariableDeclarations(name: Name): Collection<CjVariable> =
+        index().variables[name.safeNameForLazyResolve()].toList()
+
     override fun getDestructuringDeclarationsEntries(name: Name): Collection<CjDestructuringDeclarationEntry> =
         index().destructuringDeclarationsEntries[name.safeNameForLazyResolve()].toList()
-
 
 
     override fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>> =
@@ -118,6 +131,7 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
 //    override fun getScriptDeclarations(name: Name): MutableList<CjScriptInfo> =
 //        index().scripts[name.safeNameForLazyResolve()]
 
-    override fun getTypeAliasDeclarations(name: Name): Collection<CjTypeAlias> = index().typeAliases[name.safeNameForLazyResolve()]
+    override fun getTypeAliasDeclarations(name: Name): Collection<CjTypeAlias> =
+        index().typeAliases[name.safeNameForLazyResolve()]
 
 }

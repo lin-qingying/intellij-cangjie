@@ -6,8 +6,11 @@ import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getReceiverExpression
+import com.huawei.cangjie.resolve.calls.DslMarkerUtils
 import com.huawei.cangjie.resolve.scopes.DescriptorKindExclude
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
+import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
+import com.huawei.cangjie.types.CangJieType
 
 
 @Suppress("ClassName")
@@ -197,4 +200,13 @@ sealed class CallTypeAndReceiver<TReceiver : CjElement?, out TCallType : CallTyp
             }
         }
     }
+}
+data class ReceiverType(
+    val type: CangJieType,
+    val receiverIndex: Int,
+    val implicitValue: ReceiverValue? = null
+) {
+    val implicit: Boolean get() = implicitValue != null
+
+
 }

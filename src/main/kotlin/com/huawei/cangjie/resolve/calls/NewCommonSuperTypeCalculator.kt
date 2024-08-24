@@ -184,7 +184,7 @@ object NewCommonSuperTypeCalculator {
                 areThereAnyNullable -> it.withNullability(true)
                 else -> it
             }
-        } ?: nullableAnyType()
+        } ?: anyType()
     }
 
     /*

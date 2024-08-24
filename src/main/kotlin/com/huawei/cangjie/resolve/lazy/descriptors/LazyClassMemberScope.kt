@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.lazy.descriptors
 
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.impl.ClassConstructorDescriptorImpl
 import com.huawei.cangjie.descriptors.impl.FunctionDescriptorImpl
 import com.huawei.cangjie.diagnostics.reportOnDeclarationOrFail
 import com.huawei.cangjie.incremental.components.LookupLocation
@@ -9,12 +10,9 @@ import com.huawei.cangjie.incremental.record
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjDeclaration
 import com.huawei.cangjie.psi.CjTypeStatement
-import com.huawei.cangjie.resolve.DeserializedDeclarationsFromSupertypeConflictDataKey
-import com.huawei.cangjie.resolve.OverrideResolver
-import com.huawei.cangjie.resolve.OverridingStrategy
+import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.lazy.LazyClassContext
 import com.huawei.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
-import com.huawei.cangjie.resolve.reportOnDeclarationAs
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
@@ -53,6 +51,8 @@ open class LazyClassMemberScope(
         @OptIn(TypeRefinement::class)
         cangjieTypeRefiner.refineSupertypes(thisDescriptor)
     }
+    private val secondaryConstructors: NotNullLazyValue<Collection<ClassConstructorDescriptor>> =
+        c.storageManager.createLazyValue { doGetConstructors() }
 
     private fun doClassifierDescriptors(nameFilter: (Name) -> Boolean): List<DeclarationDescriptor> {
         val result = computeDescriptorsFromDeclaredElements(
@@ -261,42 +261,62 @@ open class LazyClassMemberScope(
 
     }
 
+    private fun resolveSecondaryConstructors(): Collection<ClassConstructorDescriptor> {
+        val classOrObject = declarationProvider.correspondingClassOrObject ?: return emptyList()
+
+        return classOrObject.secondaryConstructors.map { constructor ->
+            val descriptor = c.functionDescriptorResolver.resolveSecondaryConstructorDescriptor(
+                thisDescriptor.scopeForConstructorHeaderResolution, thisDescriptor,
+                constructor, trace, c.languageVersionSettings, c.inferenceSession
+            )
+            setDeferredReturnType(descriptor)
+            descriptor
+        }
+    }
+
+    protected fun setDeferredReturnType(descriptor: ClassConstructorDescriptorImpl) {
+        descriptor.returnType = c.wrappedTypeFactory.createDeferredType(trace, { thisDescriptor.defaultType })
+    }
+
+    private fun addSyntheticSecondaryConstructors(result: MutableCollection<ClassConstructorDescriptor>) {
+        c.syntheticResolveExtension.generateSyntheticSecondaryConstructors(thisDescriptor, trace.bindingContext, result)
+    }
+
     private fun doGetConstructors(): Collection<ClassConstructorDescriptor> {
         val result = mutableListOf<ClassConstructorDescriptor>()
-//        result.addAll(resolveSecondaryConstructors())
-//        addSyntheticSecondaryConstructors(result)
+        result.addAll(resolveSecondaryConstructors())
+        addSyntheticSecondaryConstructors(result)
         return result
     }
 
     private val primaryConstructor: NullableLazyValue<ClassConstructorDescriptor> =
         c.storageManager.createNullableLazyValue { resolvePrimaryConstructor() }
 
-    private val secondaryConstructors: NotNullLazyValue<Collection<ClassConstructorDescriptor>> =
-        c.storageManager.createLazyValue { doGetConstructors() }
 
     protected open fun resolvePrimaryConstructor(): ClassConstructorDescriptor? {
-//        val classOrObject = declarationProvider.correspondingClassOrObject ?: return null
-//
-//        val hasPrimaryConstructor = classOrObject.hasExplicitPrimaryConstructor()
-//        if (!hasPrimaryConstructor) {
-//            if (thisDescriptor.isExpect && !DescriptorUtils.isEnumEntry(thisDescriptor)) return null
-//            if (DescriptorUtils.isInterface(thisDescriptor)) return null
-//        }
-//
-//        if (DescriptorUtils.canHaveDeclaredConstructors(thisDescriptor) || hasPrimaryConstructor) {
-//            val constructor = c.functionDescriptorResolver.resolvePrimaryConstructorDescriptor(
-//                thisDescriptor.scopeForConstructorHeaderResolution, thisDescriptor,
-//                classOrObject, trace, c.languageVersionSettings, c.inferenceSession
-//            )
-//            constructor ?: return null
-//            setDeferredReturnType(constructor)
-//            return constructor
-//        }
-//
-//        val constructor = DescriptorResolver.createAndRecordPrimaryConstructorForObject(classOrObject, thisDescriptor, trace)
-//        setDeferredReturnType(constructor)
-//        return constructor
-        return null
+        val classOrObject = declarationProvider.correspondingClassOrObject ?: return null
+
+        val hasPrimaryConstructor = classOrObject.hasExplicitPrimaryConstructor()
+        if (!hasPrimaryConstructor) {
+            if (thisDescriptor.isExpect && !DescriptorUtils.isEnumEntry(thisDescriptor)) return null
+            if (DescriptorUtils.isInterface(thisDescriptor)) return null
+        }
+
+        if (DescriptorUtils.canHaveDeclaredConstructors(thisDescriptor) || hasPrimaryConstructor) {
+            val constructor = c.functionDescriptorResolver.resolvePrimaryConstructorDescriptor(
+                thisDescriptor.scopeForConstructorHeaderResolution, thisDescriptor,
+                classOrObject, trace, c.languageVersionSettings, c.inferenceSession
+            )
+            constructor ?: return null
+            setDeferredReturnType(constructor)
+            return constructor
+        }
+
+        val constructor =
+            DescriptorResolver.createAndRecordPrimaryConstructorForObject(classOrObject, thisDescriptor, trace)
+        setDeferredReturnType(constructor)
+        return constructor
+
     }
 
     //    主构造函数
@@ -313,6 +333,7 @@ open class LazyClassMemberScope(
     private interface MemberExtractor<out T : CallableMemberDescriptor> {
         fun extract(extractFrom: CangJieType, name: Name): Collection<T>
     }
+
     // Do not add details here, they may compromise the laziness during debugging
     override fun toString() = "lazy scope for class ${thisDescriptor.name}"
 

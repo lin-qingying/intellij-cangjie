@@ -88,6 +88,27 @@ open class LazyDeclarationResolver(
                 return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, function)
             }
 
+            override fun visitSecondaryConstructor(
+                constructor: CjSecondaryConstructor,
+                data: Nothing?
+            ): DeclarationDescriptor? {
+                getClassDescriptorIfAny(
+                    constructor.parent?.parent as CjTypeStatement,
+                    lookupLocationFor(constructor, false)
+                )?.constructors
+                return bindingContext.get(BindingContext.CONSTRUCTOR, constructor)
+            }
+
+            override fun visitPrimaryConstructor(
+                constructor: CjPrimaryConstructor,
+                data: Nothing?
+            ): DeclarationDescriptor? {
+                getClassDescriptorIfAny(
+                    constructor.getContainingTypeStatement(),
+                    lookupLocationFor(constructor, false)
+                )?.constructors
+                return bindingContext.get(BindingContext.CONSTRUCTOR, constructor)
+            }
 
             override fun visitTypeStatement(typeStatement: CjTypeStatement, data: Nothing?): DeclarationDescriptor? =
                 getClassDescriptorIfAny(typeStatement, lookupLocationFor(typeStatement, true))

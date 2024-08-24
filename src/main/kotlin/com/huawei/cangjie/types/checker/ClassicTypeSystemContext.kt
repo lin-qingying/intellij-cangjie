@@ -63,7 +63,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
         (firstCandidate.constructor as? IntersectionTypeConstructor)?.let { intersectionConstructor ->
             val intersectionTypeWithAlternative = intersectionConstructor.setAlternative(secondCandidate).createType()
-            return if (firstCandidate.isMarkedNullable) intersectionTypeWithAlternative.makeNullableAsSpecified(true)
+            return if (firstCandidate.isMarkedOption) intersectionTypeWithAlternative.makeNullableAsSpecified(true)
             else intersectionTypeWithAlternative
 
         } ?: error("Expected intersection type, found $firstCandidate")
@@ -210,7 +210,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun SimpleTypeMarker.isMarkedNullable(): Boolean {
         require(this is SimpleType, this::errorMessage)
-        return this.isMarkedNullable
+        return this.isMarkedOption
     }
 
     override fun SimpleTypeMarker.typeConstructor(): TypeConstructorMarker {
@@ -478,14 +478,14 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
             typeSystemContext = this
         )
     }
+//
+//    override fun nullableNothingType(): SimpleTypeMarker {
+//        return builtIns.nullableNothingType
+//    }
 
-    override fun nullableNothingType(): SimpleTypeMarker {
-        return builtIns.nullableNothingType
-    }
-
-    override fun nullableAnyType(): SimpleTypeMarker {
-        return builtIns.nullableAnyType
-    }
+//    override fun nullableAnyType(): SimpleTypeMarker {
+//        return builtIns.nullableAnyType
+//    }
 
     override fun nothingType(): SimpleTypeMarker {
         return builtIns.nothingType
@@ -548,7 +548,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
             constructor,
             lowerType,
             attributes,
-            isMarkedNullable,
+            isMarkedOption,
             isProjectionNotNull = true
         )
     }
@@ -918,7 +918,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
         (firstCandidate.constructor as? IntersectionTypeConstructor)?.let { intersectionConstructor ->
             val intersectionTypeWithAlternative = intersectionConstructor.setAlternative(secondCandidate).createType()
-            return if (firstCandidate.isMarkedNullable) intersectionTypeWithAlternative.makeNullableAsSpecified(true)
+            return if (firstCandidate.isMarkedOption) intersectionTypeWithAlternative.makeNullableAsSpecified(true)
             else intersectionTypeWithAlternative
 
         } ?: error("Expected intersection type, found $firstCandidate")

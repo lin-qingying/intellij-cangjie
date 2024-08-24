@@ -50,7 +50,7 @@ class ConstraintInjector(
 //        val typeCheckerState = TypeCheckerStateForConstraintInjector(c, IncorporationConstraintPosition(initialConstraint))
 //
 //        // We add constraints like `T? == Foo!` in the old way
-//        if (!typeVariable.isSimpleType() || typeVariable.isMarkedNullable()) {
+//        if (!typeVariable.isSimpleType() || typeVariable.isMarkedOption()) {
 //            addInitialEqualityConstraintThroughSubtyping(typeVariable, equalType, typeCheckerState)
 //            return
 //        }

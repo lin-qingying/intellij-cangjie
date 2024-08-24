@@ -95,7 +95,7 @@ class CapturedTypeConstructorImpl(
 class CapturedType(
     val typeProjection: TypeProjection,
     override val constructor: CapturedTypeConstructor = CapturedTypeConstructorImpl(typeProjection),
-    override val isMarkedNullable: Boolean = false,
+    override val isMarkedOption: Boolean = false,
     override val attributes: TypeAttributes = TypeAttributes.Empty
 ) : SimpleType(), SubtypingRepresentatives, CapturedTypeMarker {
 
@@ -110,10 +110,10 @@ class CapturedType(
 
     @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) =
-        CapturedType(typeProjection.refine(cangjieTypeRefiner), constructor, isMarkedNullable, attributes)
+        CapturedType(typeProjection.refine(cangjieTypeRefiner), constructor, isMarkedOption, attributes)
 
     override val subTypeRepresentative: CangJieType
-        get() = representative(Variance.INVARIANT, builtIns.nullableAnyType)
+        get() = representative(Variance.INVARIANT, builtIns.anyType)
 
     override val superTypeRepresentative: CangJieType
         get() = representative(Variance.INVARIANT, builtIns.nothingType)
@@ -123,17 +123,17 @@ class CapturedType(
 
     override fun sameTypeConstructor(type: CangJieType) = constructor === type.constructor
 
-    override fun toString() = "Captured($typeProjection)" + if (isMarkedNullable) "?" else ""
+    override fun toString() = "Captured($typeProjection)" + if (isMarkedOption) "?" else ""
 
     override fun makeNullableAsSpecified(newNullability: Boolean): CapturedType {
-        if (newNullability == isMarkedNullable) return this
+        if (newNullability == isMarkedOption) return this
         return CapturedType(typeProjection, constructor, newNullability, attributes)
     }
 
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType =
-        CapturedType(typeProjection, constructor, isMarkedNullable, newAttributes)
+        CapturedType(typeProjection, constructor, isMarkedOption, newAttributes)
 
 //    @TypeRefinement
 //    override fun refine(kotlinTypeRefiner: CangJieTypeRefiner) =
-//        CapturedType(typeProjection.refine(kotlinTypeRefiner), constructor, isMarkedNullable, attributes)
+//        CapturedType(typeProjection.refine(kotlinTypeRefiner), constructor, isMarkedOption, attributes)
 }

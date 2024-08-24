@@ -215,7 +215,7 @@ public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> im
         CjExpression owner = getOwnerFunction();
         if (owner instanceof CjPrimaryConstructor) {
             if (hasLetOrVar()) return super.getUseScope();
-            owner = ((CjPrimaryConstructor) owner).getContainingClassOrStruct();
+            owner = ((CjPrimaryConstructor) owner).getContainingTypeStatement();
         }
         if (owner == null) {
             owner = PsiTreeUtil.getParentOfType(this, CjExpression.class);

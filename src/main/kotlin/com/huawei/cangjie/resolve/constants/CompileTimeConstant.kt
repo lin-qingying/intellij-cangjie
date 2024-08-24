@@ -5,8 +5,11 @@ import com.huawei.cangjie.builtins.StandardNames
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.findClassAcrossModuleDependencies
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.CangJieTypeFactory
+import com.huawei.cangjie.types.ErrorUtils
+import com.huawei.cangjie.types.error.ErrorScopeKind
 import com.huawei.cangjie.types.util.TypeUtils
-
+import com.huawei.cangjie.types.TypeAttributes
 fun hasUnsignedTypesInModuleDependencies(module: ModuleDescriptor): Boolean {
     return module.findClassAcrossModuleDependencies(StandardNames.FqNames.uInt32ClassId) != null
 }
@@ -17,6 +20,8 @@ interface CompileTimeConstant<out T>{
     val moduleDescriptor: ModuleDescriptor
     fun toConstantValue(expectedType: CangJieType): ConstantValue<T>
     val usesNonConstValAsConstant: Boolean get() = parameters.usesNonConstValAsConstant
+    val hasIntegerLiteralType: Boolean
+    val usesVariableAsConstant: Boolean get() = parameters.usesVariableAsConstant
 
     data class Parameters(
         val canBeUsedInAnnotation: Boolean,
@@ -70,13 +75,18 @@ class IntegerValueTypeConstant(
         }
     }
 
+    override val hasIntegerLiteralType: Boolean
+        get() = true
     private val typeConstructor =
         if (newInferenceEnabled) {
             IntegerLiteralTypeConstructor(value.toLong(), moduleDescriptor, parameters)
         } else {
             IntegerValueTypeConstructor(value.toLong(), moduleDescriptor, parameters)
         }
-
+    val unknownIntegerType = CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
+        TypeAttributes.Empty, typeConstructor, emptyList(), false,
+        ErrorUtils.createErrorScope(ErrorScopeKind.INTEGER_LITERAL_TYPE_SCOPE, throwExceptions = true, typeConstructor.toString())
+    )
     override fun toConstantValue(expectedType: CangJieType): ConstantValue<Number> {
         val type = getType(expectedType)
 //     TODO   转为常量
@@ -122,6 +132,8 @@ class TypedCompileTimeConstant<out T>(
     override val parameters: CompileTimeConstant.Parameters
 ) : CompileTimeConstant<T> {
 
+    override val hasIntegerLiteralType: Boolean
+        get() = false
     override val isError: Boolean
         get() = constantValue is ErrorValue
 
@@ -146,4 +158,34 @@ class TypedCompileTimeConstant<out T>(
 
 //    override val hasIntegerLiteralType: Boolean
 //        get() = false
+}
+
+fun createIntegerValueTypeConstant(
+    value: Number,
+    module: ModuleDescriptor,
+    parameters: CompileTimeConstant.Parameters,
+    newInferenceEnabled: Boolean
+): CompileTimeConstant<*> {
+    return IntegerValueTypeConstant(value, module, parameters, newInferenceEnabled)
+}
+
+class UnsignedErrorValueTypeConstant(
+    private val value: Number,
+    override val moduleDescriptor: ModuleDescriptor,
+    override val parameters: CompileTimeConstant.Parameters
+) : CompileTimeConstant<Unit> {
+    val errorValue = ErrorValue.ErrorValueWithMessage(
+        "Type cannot be resolved. Please make sure you have the required dependencies for unsigned types in the classpath"
+    )
+
+    override fun toConstantValue(expectedType: CangJieType): ConstantValue<Unit> {
+        return errorValue
+    }
+
+    override fun equals(other: Any?) = other is UnsignedErrorValueTypeConstant && value == other.value
+
+    override fun hashCode() = value.hashCode()
+
+    override val hasIntegerLiteralType: Boolean
+        get() = false
 }

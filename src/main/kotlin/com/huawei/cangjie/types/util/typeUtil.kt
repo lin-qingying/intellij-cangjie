@@ -82,7 +82,7 @@ private fun CangJieType.approximateNonDynamicFlexibleTypes(
             if (isCollection) {
                 // (Mutable)Collection<T>!
                 val bound = if (preferUpperBoundsForCollections) upperBound else lowerBound
-                if (lowerBound.isMarkedNullable != upperBound.isMarkedNullable)
+                if (lowerBound.isMarkedOption != upperBound.isMarkedOption)
                     bound.makeNullableAsSpecified(!preferNotNull)
                 else
                     bound
@@ -98,8 +98,8 @@ private fun CangJieType.approximateNonDynamicFlexibleTypes(
         approximation =
             if (nullability() == TypeNullability.NOT_NULL) approximation.makeNullableAsSpecified(false) else approximation
 
-        if (approximation.isMarkedNullable && !lowerBound
-                .isMarkedNullable && TypeUtils.isTypeParameter(approximation) && TypeUtils.hasNullableSuperType(
+        if (approximation.isMarkedOption && !lowerBound
+                .isMarkedOption && TypeUtils.isTypeParameter(approximation) && TypeUtils.hasNullableSuperType(
                 approximation
             )
         ) {
@@ -116,7 +116,7 @@ private fun CangJieType.approximateNonDynamicFlexibleTypes(
         annotations.toDefaultAttributes(),
         constructor,
         arguments.map { it.substitute { type -> type.approximateFlexibleTypes(preferNotNull = true) } },
-        isMarkedNullable,
+        isMarkedOption,
         ErrorUtils.createErrorScope(ErrorScopeKind.UNSUPPORTED_TYPE_SCOPE, true, constructor.toString())
     )
 }
@@ -154,7 +154,7 @@ fun UnwrappedType.unCapture(): UnwrappedType = when (this) {
 fun CangJieType.expandIntersectionTypeIfNecessary(): Collection<CangJieType> {
     if (constructor !is IntersectionTypeConstructor) return listOf(this)
     val types = constructor.supertypes
-    return if (isMarkedNullable) {
+    return if (isMarkedOption) {
         types.map { it.makeNullable() }
     } else {
         types
@@ -252,11 +252,25 @@ fun isUnresolvedType(type: CangJieType): Boolean {
     return type is ErrorType && type.kind.isUnresolved
 }
 
+fun CangJieType.isGenericArrayOfTypeParameter(): Boolean {
+    if (!CangJieBuiltIns.isArray(this)) return false
+    val argument0 = arguments[0]
+    if (argument0.isStarProjection) return false
+    val argument0type = argument0.type
+    return argument0type.isTypeParameter() ||
+            argument0type.isGenericArrayOfTypeParameter()
+}
+
 fun CangJieTypeChecker.equalTypesOrNulls(type1: CangJieType?, type2: CangJieType?): Boolean {
     if (type1 === type2) return true
     if (type1 == null || type2 == null) return false
     return equalTypes(type1, type2)
 }
+
+fun CangJieType.isPrimitiveNumber(): Boolean =
+    CangJieBuiltIns.isPrimitiveType(this) &&
+            !CangJieBuiltIns.isBoolean(this) &&
+            !CangJieBuiltIns.isRune(this)
 
 object TypeUtils {
 
@@ -268,7 +282,7 @@ object TypeUtils {
      * @return true if `null` can be assigned to storage of this type
      */
     fun acceptsNullable(type: CangJieType): Boolean {
-        if (type.isMarkedNullable) {
+        if (type.isMarkedOption) {
             return true
         }
         if (type.isFlexible() && acceptsNullable(type.asFlexibleType().upperBound)) {
@@ -276,18 +290,20 @@ object TypeUtils {
         }
         return false
     }
-    fun hasNullableSuperType(type:CangJieType): Boolean {
-        if (type.constructor.getDeclarationDescriptor() is  ClassDescriptor) {
+
+    fun hasNullableSuperType(type: CangJieType): Boolean {
+        if (type.constructor.getDeclarationDescriptor() is ClassDescriptor) {
             // A class/trait cannot have a nullable supertype
             return false
         }
 
-        for (supertype in  getImmediateSupertypes(type)) {
-            if ( isNullableType(supertype)) return true
+        for (supertype in getImmediateSupertypes(type)) {
+            if (isNullableType(supertype)) return true
         }
 
         return false
     }
+
     fun isTypeParameter(type: CangJieType): Boolean {
         return getTypeParameterDescriptorOrNull(type) != null || type.constructor is NewTypeVariableConstructor
     }
@@ -306,7 +322,7 @@ object TypeUtils {
     ): CangJieType? {
         val substitutedType: CangJieType? = substitutor.substitute(superType, Variance.INVARIANT)
         if (substitutedType != null) {
-            return makeNullableIfNeeded(substitutedType, subType.isMarkedNullable)
+            return makeNullableIfNeeded(substitutedType, subType.isMarkedOption)
         }
         return null
     }
@@ -331,7 +347,7 @@ object TypeUtils {
         typeChecker: CangJieTypeChecker,
         type: CangJieType
     ): Boolean {
-        if (type.isMarkedNullable) {
+        if (type.isMarkedOption) {
             return true
         }
 //        if (!type.constructor.isFinal()) {
@@ -812,7 +828,6 @@ fun CangJieType.getSupertypeRepresentative(): CangJieType =
 
 fun CangJieType.isDefaultBound(): Boolean = CangJieBuiltIns.isDefaultBound(getSupertypeRepresentative())
 fun List<CangJieType>.defaultProjections(): List<TypeProjection> = map(::TypeProjectionImpl)
-
 
 
 /**

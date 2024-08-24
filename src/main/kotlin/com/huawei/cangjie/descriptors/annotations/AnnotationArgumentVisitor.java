@@ -1,16 +1,36 @@
 package com.huawei.cangjie.descriptors.annotations;
 
 
-import com.huawei.cangjie.resolve.constants.ArrayValue;
-import com.huawei.cangjie.resolve.constants.ErrorValue;
-import com.huawei.cangjie.resolve.constants.Int32Value;
-import com.huawei.cangjie.resolve.constants.StringValue;
+import com.huawei.cangjie.resolve.constants.*;
 
 public interface AnnotationArgumentVisitor<R, D> {
     R visitArrayValue(ArrayValue value, D data);
+
     R visitStringValue(StringValue value, D data);
-    R visitIntValue(Int32Value value, D data);
+
     R visitErrorValue(ErrorValue value, D data);
+
+    R visitInt32Value(Int32Value value, D data);
+
+    R visitInt8Value(Int8Value value, D data);
+
+    R visitInt64Value(Int64Value value, D data);
+
+    R visitRuneValue(RuneValue value, D data);
+
+    R visitInt16Value(Int16Value value, D data);
+
+    R visitFloat64Value(Float64Value value, D data);
+
+    R visitFloat32Value(Float32Value value, D data);
+
+    R visitBoolValue(BoolValue value, D data);
+    R visitUInt32Value(UInt32Value value, D data);
+    R visitUInt64Value(UInt64Value value, D data);
+
+    R visitUInt16Value(UInt16Value value, D data);
+
+    R visitUInt8Value(UInt8Value value, D data);
 
 //    R visitLongValue(@NotNull LongValue value, D data);
 //

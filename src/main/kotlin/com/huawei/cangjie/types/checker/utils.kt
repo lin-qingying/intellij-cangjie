@@ -34,7 +34,7 @@ fun findCorrespondingSupertype(
 
         if (typeCheckingProcedureCallbacks.assertEqualTypeConstructors(constructor, supertypeConstructor)) {
             var substituted = currentSubtype
-            var isAnyMarkedNullable = currentSubtype.isMarkedNullable
+            var isAnyMarkedNullable = currentSubtype.isMarkedOption
 
             var currentPathNode = lastPathNode.previous
 
@@ -52,7 +52,7 @@ fun findCorrespondingSupertype(
                         .safeSubstitute(substituted, Variance.INVARIANT)
                 }
 
-                isAnyMarkedNullable = isAnyMarkedNullable || currentType.isMarkedNullable
+                isAnyMarkedNullable = isAnyMarkedNullable || currentType.isMarkedOption
 
                 currentPathNode = currentPathNode.previous
             }

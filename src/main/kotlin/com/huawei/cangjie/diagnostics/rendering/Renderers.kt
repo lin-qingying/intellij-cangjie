@@ -23,7 +23,8 @@ object Renderers {
 
     @JvmField
     val NAME = Renderer<Named> { it.name.asString() }
-
+    @JvmField
+    val COMPACT_WITHOUT_SUPERTYPES = DescriptorRenderer.COMPACT_WITHOUT_SUPERTYPES.asRenderer()
     @JvmField
     val RENDER_TYPE = SmartTypeRenderer(DescriptorRenderer.FQ_NAMES_IN_TYPES.withOptions {
         parameterNamesInFunctionalTypes = false

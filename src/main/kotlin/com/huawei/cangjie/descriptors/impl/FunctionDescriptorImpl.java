@@ -33,7 +33,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 //    private bool isExternal = false;
 //    private bool isInline = false;
 //    private bool isTailrec = false;
-//    private bool isExpect = false;
+    private boolean isExpect = false;
 //    private bool isActual = false;
     // Difference between these hidden kinds:
     // 1. isHiddenToOvercomeSignatureClash prohibit calling such functions even in super-call context
@@ -58,6 +58,9 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         super(containingDeclaration, annotations, name, source);
         this.original = original == null ? this : original;
         this.kind = kind;
+    }
+    public void setExpect(boolean isExpect) {
+        this.isExpect = isExpect;
     }
 
     @Nullable

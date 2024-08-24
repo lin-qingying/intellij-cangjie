@@ -47,11 +47,12 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
         super.visitTypeAlias(typeAlias, null)
     }
 
+
     open fun visitSecondaryConstructor(constructor: CjSecondaryConstructor) {
         super.visitSecondaryConstructor(constructor, null)
     }
 
-    fun visitPrimaryConstructor(constructor: CjPrimaryConstructor) {
+    open fun visitPrimaryConstructor(constructor: CjPrimaryConstructor) {
         super.visitPrimaryConstructor(constructor, null)
     }
 

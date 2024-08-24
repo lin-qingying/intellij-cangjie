@@ -16,7 +16,7 @@ import com.intellij.util.SmartList
 
 fun ClassDescriptor.getSuperClassNotAny(): ClassDescriptor? {
     for (supertype in defaultType.constructor.supertypes) {
-        if (!CangJieBuiltIns.isAnyOrNullableAny(supertype)) {
+        if (!CangJieBuiltIns.isAny(supertype)) {
             val superClassifier = supertype.constructor.declarationDescriptor
             if (DescriptorUtils.isClassOrEnum (superClassifier)) {
                 return superClassifier as ClassDescriptor

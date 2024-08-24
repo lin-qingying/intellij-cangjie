@@ -20,7 +20,6 @@ import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.utils.CancellationChecker
 import it.unimi.dsi.fastutil.Hash
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet
-import java.util.LinkedHashSet
 
 
 open class OverloadingConflictResolver<C : Any>(
@@ -211,6 +210,7 @@ open class OverloadingConflictResolver<C : Any>(
 
         return true
     }
+
     private inline fun <C : Any> Collection<C>.exactMaxWith(isNotWorse: (C, C) -> Boolean): C? {
         var result: C? = null
         for (candidate in this) {
@@ -224,6 +224,7 @@ open class OverloadingConflictResolver<C : Any>(
         }
         return result
     }
+
     private fun findMaximallySpecificCall(
         candidates: Set<C>,
         discriminateGenerics: Boolean,
@@ -287,6 +288,7 @@ open class OverloadingConflictResolver<C : Any>(
             useOriginalSamTypes
         )
     }
+
     private val SpecificityComparisonWithNumerics = object : SpecificityComparisonCallbacks {
         override fun isNonSubtypeNotLessSpecific(specific: CangJieTypeMarker, general: CangJieTypeMarker): Boolean {
             requireOrDescribe(specific is CangJieType, specific)
@@ -300,12 +302,30 @@ open class OverloadingConflictResolver<C : Any>(
             val isGeneralUnsigned = UnsignedTypes.isUnsignedType(general)
             return when {
                 isSpecificUnsigned && isGeneralUnsigned -> {
-                    val uInt64 = module.findClassAcrossModuleDependencies(StandardNames.FqNames.uInt64ClassId)?.defaultType ?: return false
-                    val uInt32 = module.findClassAcrossModuleDependencies(StandardNames.FqNames.uInt32ClassId)?.defaultType ?: return false
-                    val uInt8 = module.findClassAcrossModuleDependencies(StandardNames.FqNames.uInt8ClassId)?.defaultType ?: return false
-                    val uInt16 = module.findClassAcrossModuleDependencies(StandardNames.FqNames.uInt16ClassId)?.defaultType ?: return false
+                    val uInt64 =
+                        module.findClassAcrossModuleDependencies(StandardNames.FqNames.uInt64ClassId)?.defaultType
+                            ?: return false
+                    val uInt32 =
+                        module.findClassAcrossModuleDependencies(StandardNames.FqNames.uInt32ClassId)?.defaultType
+                            ?: return false
+                    val uInt8 =
+                        module.findClassAcrossModuleDependencies(StandardNames.FqNames.uInt8ClassId)?.defaultType
+                            ?: return false
+                    val uInt16 =
+                        module.findClassAcrossModuleDependencies(StandardNames.FqNames.uInt16ClassId)?.defaultType
+                            ?: return false
 
-                    isNonSubtypeNotLessSpecific(specific, general, float64, float32,float16, uInt64, uInt32, uInt8, uInt16)
+                    isNonSubtypeNotLessSpecific(
+                        specific,
+                        general,
+                        float64,
+                        float32,
+                        float16,
+                        uInt64,
+                        uInt32,
+                        uInt8,
+                        uInt16
+                    )
                 }
 
                 !isSpecificUnsigned && isGeneralUnsigned -> true
@@ -316,7 +336,7 @@ open class OverloadingConflictResolver<C : Any>(
                     val Int8 = builtIns.int8Type
                     val Int16 = builtIns.int16Type
 
-                    isNonSubtypeNotLessSpecific(specific, general, float64, float32,float16, Int64, Int32, Int8, Int16)
+                    isNonSubtypeNotLessSpecific(specific, general, float64, float32, float16, Int64, Int32, Int8, Int16)
                 }
             }
 
@@ -334,7 +354,11 @@ open class OverloadingConflictResolver<C : Any>(
             Int16: CangJieType
         ): Boolean {
             when {
-                TypeUtils.equalTypes(specific, float64) && TypeUtils.equalTypes(general, float32) && TypeUtils.equalTypes(general, float16) -> return true
+                TypeUtils.equalTypes(specific, float64) && TypeUtils.equalTypes(
+                    general,
+                    float32
+                ) && TypeUtils.equalTypes(general, float16) -> return true
+
                 TypeUtils.equalTypes(specific, Int32) -> {
                     when {
                         TypeUtils.equalTypes(general, Int64) -> return true
@@ -342,12 +366,14 @@ open class OverloadingConflictResolver<C : Any>(
                         TypeUtils.equalTypes(general, Int16) -> return true
                     }
                 }
+
                 TypeUtils.equalTypes(specific, Int16) && TypeUtils.equalTypes(general, Int8) -> return true
             }
 
             return false
         }
     }
+
     /**
      * `call1` is not less specific than `call2`
      */

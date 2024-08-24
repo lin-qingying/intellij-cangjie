@@ -9,8 +9,10 @@ import com.huawei.cangjie.resolve.DescriptorResolver
 import com.huawei.cangjie.resolve.FunctionDescriptorResolver
 import com.huawei.cangjie.resolve.TypeResolver
 import com.huawei.cangjie.resolve.calls.components.InferenceSession
+import com.huawei.cangjie.resolve.extensions.SyntheticResolveExtension
 import com.huawei.cangjie.resolve.lazy.declarations.DeclarationProviderFactory
 import com.huawei.cangjie.storage.StorageManager
+import com.huawei.cangjie.types.WrappedTypeFactory
 import com.huawei.cangjie.types.checker.NewCangJieTypeChecker
 
 interface LazyClassContext {
@@ -23,11 +25,12 @@ interface LazyClassContext {
     val delegationFilter: DelegationFilter
     val typeResolver: TypeResolver
 //    val additionalClassPartsProvider: AdditionalClassPartsProvider
+val syntheticResolveExtension: SyntheticResolveExtension
 
-//        val syntheticResolveExtension: SyntheticResolveExtension
     val trace: BindingTrace
     val declarationProviderFactory: DeclarationProviderFactory
     val languageVersionSettings: LanguageVersionSettings
+    val wrappedTypeFactory: WrappedTypeFactory
 
     val storageManager: StorageManager
     val functionDescriptorResolver: FunctionDescriptorResolver

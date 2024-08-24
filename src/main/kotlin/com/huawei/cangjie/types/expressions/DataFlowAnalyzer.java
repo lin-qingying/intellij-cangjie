@@ -5,13 +5,17 @@ import com.huawei.cangjie.descriptors.BindingTrace;
 import com.huawei.cangjie.descriptors.ModuleDescriptor;
 import com.huawei.cangjie.psi.CjConstantExpression;
 import com.huawei.cangjie.psi.CjExpression;
+import com.huawei.cangjie.resolve.calls.context.ContextDependency;
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
+import com.huawei.cangjie.resolve.constants.CompileTimeConstant;
 import com.huawei.cangjie.resolve.constants.ConstantValue;
+import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstant;
+import com.huawei.cangjie.resolve.constants.TypedCompileTimeConstant;
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.checker.CangJieTypeChecker;
-
+import com.huawei.cangjie.resolve.calls.checkers.NewSchemeOfIntegerOperatorResolutionChecker;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.intellij.openapi.util.Ref;
@@ -159,5 +163,29 @@ public class DataFlowAnalyzer {
     ) {
         return checkType(TypeInfoFactoryKt.createTypeInfo(type, context), expression, context);
     }
+    @NotNull
+    public CangJieTypeInfo createCompileTimeConstantTypeInfo(
+            @NotNull CompileTimeConstant<?> value,
+            @NotNull CjExpression expression,
+            @NotNull ExpressionTypingContext context
+    ) {
+        CangJieType expressionType;
+        if (value instanceof IntegerValueTypeConstant) {
+            IntegerValueTypeConstant integerValueTypeConstant = (IntegerValueTypeConstant) value;
+            if (context.contextDependency == ContextDependency. INDEPENDENT) {
+                expressionType = integerValueTypeConstant.getType(context.expectedType);
+                constantExpressionEvaluator.updateNumberType(expressionType, expression, context.statementFilter, context.trace);
+            }
+            else {
+                expressionType = integerValueTypeConstant.getUnknownIntegerType();
+            }
+        }
+        else {
+            expressionType = ((TypedCompileTimeConstant<?>) value).getType();
+        }
 
+        NewSchemeOfIntegerOperatorResolutionChecker.checkArgument(context.expectedType, expression, context.trace, module);
+
+        return createCheckedTypeInfo(expressionType, context, expression);
+    }
 }

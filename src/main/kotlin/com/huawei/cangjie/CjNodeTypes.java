@@ -10,7 +10,7 @@ import com.intellij.psi.tree.TokenSet;
 public interface CjNodeTypes {
 
 
-    IElementType NULL = CjStubElementTypes.NULL;
+//    IElementType NULL = CjStubElementTypes.NULL;
 
     IElementType TYPE_REFERENCE = CjStubElementTypes.TYPE_REFERENCE;
     IElementType VALUE_PARAMETER_LIST = CjStubElementTypes.VALUE_PARAMETER_LIST;
@@ -181,7 +181,7 @@ public interface CjNodeTypes {
 
     IElementType CASE_PATTERN = new CjNodeType("CASE_PATTERN", CjCasePattern.class);
 
-    IElementType CHARACTER_CONSTANT = CjStubElementTypes.CHARACTER_CONSTANT;
+//    IElementType CHARACTER_CONSTANT = CjStubElementTypes.CHARACTER_CONSTANT;
 
     IElementType TYPE_PATTERN = new CjNodeType("TYPE_PATTERN", CjTypePattern.class);
     IElementType ENUM_PATTERN = new CjNodeType("ENUM_PATTERN", CjEnumPattern.class);
@@ -209,7 +209,7 @@ public interface CjNodeTypes {
             FLOAT_CONSTANT,
             RUNE_CONSTANT,
             INTEGER_CONSTANT,
-            CHARACTER_CONSTANT,
+//            CHARACTER_CONSTANT,
 
             REFERENCE_EXPRESSION,
             DOT_QUALIFIED_EXPRESSION,

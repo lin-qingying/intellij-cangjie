@@ -67,11 +67,11 @@ fun approximateCapturedTypes(type: CangJieType): ApproximationBounds<CangJieType
     val typeConstructor = type.constructor
     if (type.isCaptured()) {
         val typeProjection = (typeConstructor as CapturedTypeConstructor).projection
-        fun CangJieType.makeNullableIfNeeded() = TypeUtils.makeNullableIfNeeded(this, type.isMarkedNullable)
+        fun CangJieType.makeNullableIfNeeded() = TypeUtils.makeNullableIfNeeded(this, type.isMarkedOption)
         val bound = typeProjection.type.makeNullableIfNeeded()
 
         return when (typeProjection.projectionKind) {
-            Variance.IN_VARIANCE -> ApproximationBounds(bound, type.builtIns.nullableAnyType)
+            Variance.IN_VARIANCE -> ApproximationBounds(bound, type.builtIns.anyType)
             Variance.OUT_VARIANCE -> ApproximationBounds(type.builtIns.nothingType.makeNullableIfNeeded(), bound)
             else -> throw AssertionError("Only nontrivial projections should have been captured, not: $typeProjection")
         }
@@ -116,7 +116,7 @@ private fun TypeArgument.toTypeProjection(): TypeProjection {
         inProjection == outProjection || typeParameter.variance == Variance.IN_VARIANCE -> TypeProjectionImpl(inProjection)
         CangJieBuiltIns.isNothing(inProjection) && typeParameter.variance != Variance.IN_VARIANCE ->
             TypeProjectionImpl(removeProjectionIfRedundant(Variance.OUT_VARIANCE), outProjection)
-        CangJieBuiltIns.isNullableAny(outProjection) -> TypeProjectionImpl(removeProjectionIfRedundant(Variance.IN_VARIANCE), inProjection)
+        CangJieBuiltIns.isAny(outProjection) -> TypeProjectionImpl(removeProjectionIfRedundant(Variance.IN_VARIANCE), inProjection)
         else -> TypeProjectionImpl(removeProjectionIfRedundant(Variance.OUT_VARIANCE), outProjection)
     }
 }
@@ -146,7 +146,7 @@ private class TypeArgument(
 private fun TypeProjection.toTypeArgument(typeParameter: TypeParameterDescriptor) =
     when (TypeSubstitutor.combine(typeParameter.variance, this)) {
         Variance.INVARIANT -> TypeArgument(typeParameter, type, type)
-        Variance.IN_VARIANCE -> TypeArgument(typeParameter, type, typeParameter.builtIns.nullableAnyType)
+        Variance.IN_VARIANCE -> TypeArgument(typeParameter, type, typeParameter.builtIns.anyType)
         Variance.OUT_VARIANCE -> TypeArgument(typeParameter, typeParameter.builtIns.nothingType, type)
     }
 

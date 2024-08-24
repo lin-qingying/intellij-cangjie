@@ -33,7 +33,9 @@ sealed class CangJieType : Annotated, CangJieTypeMarker {
     abstract val attributes: TypeAttributes
     override val annotations: Annotations
         get() = attributes.annotations
-    abstract val isMarkedNullable: Boolean
+
+    //    Option 枚举语法糖
+    abstract val isMarkedOption: Boolean
     abstract val memberScope: MemberScope
 
     /**
@@ -76,7 +78,7 @@ class BasicType(
         get() = listOf()
     override val attributes: TypeAttributes
         get() = TypeAttributes.Empty
-    override val isMarkedNullable: Boolean
+    override val isMarkedOption: Boolean
         get() = false
 
 
@@ -100,6 +102,12 @@ class BasicType(
     override fun makeNullableAsSpecified(newNullability: Boolean) = this
 
     override fun replaceAttributes(newAttributes: TypeAttributes) = this
+    override fun hashCode(): Int {
+        var result = constructor.hashCode()
+        result = 31 * result + memberScope.hashCode()
+        result = 31 * result + typeName.hashCode()
+        return result
+    }
 }
 
 abstract class SimpleType : UnwrappedType(), SimpleTypeMarker, TypeArgumentListMarker {
@@ -113,7 +121,7 @@ abstract class SimpleType : UnwrappedType(), SimpleTypeMarker, TypeArgumentListM
 
             append(constructor)
             if (arguments.isNotEmpty()) arguments.joinTo(this, separator = ", ", prefix = "<", postfix = ">")
-            if (isMarkedNullable) append("?")
+            if (isMarkedOption) append("?")
         }
     }
 }
@@ -136,7 +144,7 @@ abstract class FlexibleType(val lowerBound: SimpleType, val upperBound: SimpleTy
     override val attributes: TypeAttributes get() = delegate.attributes
     override val constructor: TypeConstructor get() = delegate.constructor
     override val arguments: List<TypeProjection> get() = delegate.arguments
-    override val isMarkedNullable: Boolean get() = delegate.isMarkedNullable
+    override val isMarkedOption: Boolean get() = delegate.isMarkedOption
     override val memberScope: MemberScope get() = delegate.memberScope
 
     override fun toString(): String = DescriptorRenderer.DEBUG_TEXT.renderType(this)

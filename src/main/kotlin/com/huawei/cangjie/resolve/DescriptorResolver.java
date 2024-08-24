@@ -9,10 +9,7 @@ import com.huawei.cangjie.descriptors.annotations.AnnotationSplitter;
 import com.huawei.cangjie.descriptors.annotations.AnnotationUseSiteTarget;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.descriptors.annotations.CompositeAnnotations;
-import com.huawei.cangjie.descriptors.impl.PropertyDescriptorImpl;
-import com.huawei.cangjie.descriptors.impl.TypeParameterDescriptorImpl;
-import com.huawei.cangjie.descriptors.impl.ValueParameterDescriptorImpl;
-import com.huawei.cangjie.descriptors.impl.VariableDescriptorImpl;
+import com.huawei.cangjie.descriptors.impl.*;
 import com.huawei.cangjie.incremental.components.NoLookupLocation;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.name.ClassId;
@@ -46,6 +43,7 @@ import java.util.stream.IntStream;
 
 import static com.huawei.cangjie.descriptors.Errors.*;
 import static com.huawei.cangjie.descriptors.annotations.AnnotationUseSiteTarget.CONSTRUCTOR_PARAMETER;
+import static com.huawei.cangjie.resolve.BindingContext.CONSTRUCTOR;
 import static com.huawei.cangjie.resolve.BindingContext.TYPE_ALIAS;
 import static com.huawei.cangjie.resolve.DescriptorUtils.*;
 import static com.huawei.cangjie.resolve.ModifiersChecker.resolveMemberModalityFromModifiers;
@@ -131,6 +129,20 @@ public class DescriptorResolver {
         return false;
     }
 
+    @NotNull
+    public static ClassConstructorDescriptorImpl createAndRecordPrimaryConstructorForObject(
+            @Nullable CjPureTypeStatement object,
+            @NotNull ClassDescriptor classDescriptor,
+            @NotNull BindingTrace trace
+    ) {
+        ClassConstructorDescriptorImpl constructorDescriptor =
+                DescriptorFactory.createPrimaryConstructorForObject(classDescriptor, CangJieSourceElementKt.toSourceElement(object));
+        if (object instanceof PsiElement) {
+            CjPrimaryConstructor primaryConstructor = object.getPrimaryConstructor();
+            trace.record(CONSTRUCTOR, primaryConstructor != null ? primaryConstructor : (PsiElement)object, constructorDescriptor);
+        }
+        return constructorDescriptor;
+    }
 
     private static boolean isInsideOuterClassOrItsSubclass(@Nullable DeclarationDescriptor nested, @NotNull ClassDescriptor outer) {
         if (nested == null) return false;
@@ -267,8 +279,8 @@ public class DescriptorResolver {
 //                }
 //
 //                UnwrappedType unwrapped = type.unwrap();
-//                boolean lowerNullable = FlexibleTypesKt.lowerIfFlexible(unwrapped).isMarkedNullable();
-//                boolean upperNullable = FlexibleTypesKt.upperIfFlexible(unwrapped).isMarkedNullable();
+//                boolean lowerNullable = FlexibleTypesKt.lowerIfFlexible(unwrapped).isMarkedOption();
+//                boolean upperNullable = FlexibleTypesKt.upperIfFlexible(unwrapped).isMarkedOption();
 //                if (languageVersionSettings.supportsFeature(LanguageFeature.KeepNullabilityWhenApproximatingLocalType)) {
 //                    if (lowerNullable != upperNullable) {
 //                        return CangJieTypeFactory.flexibleType(

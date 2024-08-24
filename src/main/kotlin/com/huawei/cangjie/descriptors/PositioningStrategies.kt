@@ -1,5 +1,6 @@
 package com.huawei.cangjie.descriptors
 
+import com.huawei.cangjie.CjNodeTypes
 import com.huawei.cangjie.diagnostics.PositioningStrategy
 import com.huawei.cangjie.diagnostics.hasSyntaxErrors
 import com.huawei.cangjie.diagnostics.markElement
@@ -56,7 +57,18 @@ object PositioningStrategies {
     val DECLARATION_SIGNATURE: PositioningStrategy<CjDeclaration> = object : DeclarationHeader<CjDeclaration>() {
 
     }
-
+    @JvmField
+    val CUT_CHAR_QUOTES: PositioningStrategy<CjElement> = object : PositioningStrategy<CjElement>() {
+        override fun mark(element: CjElement): List<TextRange> {
+            if (element is CjConstantExpression) {
+                if (element.node.elementType == CjNodeTypes.RUNE_CONSTANT) {
+                    val elementTextRange = element.getTextRange()
+                    return listOf(TextRange.create(elementTextRange.startOffset + 1, elementTextRange.endOffset - 1))
+                }
+            }
+            return markElement(element)
+        }
+    }
     @JvmField
     val DECLARATION_SIGNATURE_OR_DEFAULT: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
         override fun mark(element: PsiElement): List<TextRange> {

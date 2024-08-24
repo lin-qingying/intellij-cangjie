@@ -53,7 +53,7 @@ class ResultTypeResolver(
             getDefaultTypeForSelfType(constraints, typeVariable)?.let { return it }
         }
 
-        return if (direction == TypeVariableDirectionCalculator.ResolveDirection.TO_SUBTYPE) nothingType() else nullableAnyType()
+        return if (direction == TypeVariableDirectionCalculator.ResolveDirection.TO_SUBTYPE) nothingType() else anyType()
     }
 
     fun findResultType(c: Context, variableWithConstraints: VariableWithConstraints, direction: TypeVariableDirectionCalculator.ResolveDirection): CangJieTypeMarker {

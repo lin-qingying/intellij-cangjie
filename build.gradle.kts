@@ -1,5 +1,6 @@
 import Build_gradle.BuildType.*
 import groovy.xml.XmlParser
+import org.gradle.internal.impldep.org.bouncycastle.asn1.iana.IANAObjectIdentifiers.experimental
 import org.jetbrains.intellij.tasks.PatchPluginXmlTask
 import org.jetbrains.intellij.tasks.PublishPluginTask
 import org.jetbrains.intellij.tasks.RunIdeTask
@@ -179,6 +180,7 @@ allprojects {
 //            resources.srcDirs("src/$platformVersion/test/resources")
         }
     }
+
     tasks {
 //        withType<JavaCompile> {
 //            sourceCompatibility = "17"
@@ -186,7 +188,7 @@ allprojects {
 //        }
         withType<KotlinCompile> {
             kotlinOptions.jvmTarget = "17"
-            kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all")
+            kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all","-Xcontext-receivers")
         }
 
         withType<PatchPluginXmlTask> {

@@ -20,7 +20,7 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
     )
     open fun getConstructorKeyword(): PsiElement? = findChildByType(CjTokens.INIT_KEYWORD)
 
-    abstract fun getContainingClassOrStruct(): CjTypeStatement
+    abstract fun getContainingTypeStatement(): CjTypeStatement
 
     override fun isLocal() = false
 
@@ -70,7 +70,7 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
 
     override fun getTypeParameters() = emptyList<CjTypeParameter>()
 
-    override fun getName(): String? = getContainingClassOrStruct().name
+    override fun getName(): String? = getContainingTypeStatement().name
 
 
     override val fqName: FqName?
@@ -103,6 +103,6 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
     }
 
     override fun getUseScope(): SearchScope {
-        return getContainingClassOrStruct().useScope
+        return getContainingTypeStatement().useScope
     }
 }

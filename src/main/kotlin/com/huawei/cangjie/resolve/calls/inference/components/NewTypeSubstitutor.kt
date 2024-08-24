@@ -93,7 +93,7 @@ interface NewTypeSubstitutor : TypeSubstitutorMarker {
                             typeParameter = typeConstructor.typeParameter
                         ).also { it.initializeSupertypes(substitutedSuperTypes) },
                         lowerType = if (capturedType.lowerType != null) substitutedInnerType else null,
-                        isMarkedNullable = type.isMarkedNullable
+                        isMarkedOption = type.isMarkedOption
                     )
                 }
             }
@@ -111,7 +111,7 @@ interface NewTypeSubstitutor : TypeSubstitutorMarker {
 
         if (typeConstructor is IntersectionTypeConstructor) {
             fun updateNullability(substituted: UnwrappedType) =
-                if (type.isMarkedNullable) substituted.makeNullableAsSpecified(true) else substituted
+                if (type.isMarkedOption) substituted.makeNullableAsSpecified(true) else substituted
 
             substituteNotNullTypeWithConstructor(typeConstructor)?.let { return updateNullability(it) }
             var thereAreChanges = false
@@ -130,7 +130,7 @@ interface NewTypeSubstitutor : TypeSubstitutorMarker {
                 replacement.attributes.add(type.attributes)
             )
         }
-        if (type.isMarkedNullable) {
+        if (type.isMarkedOption) {
             replacement = replacement.makeNullableAsSpecified(true)
         }
         if (type.isDefinitelyNotNullType) {

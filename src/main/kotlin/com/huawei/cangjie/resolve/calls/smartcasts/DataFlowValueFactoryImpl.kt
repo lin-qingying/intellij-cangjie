@@ -35,12 +35,10 @@ class DataFlowValueFactoryImpl : DataFlowValueFactory {
         containingDeclarationOrModule: DeclarationDescriptor
     ): DataFlowValue {
         return when {
-            expression is CjConstantExpression && expression.node.elementType === CjNodeTypes.NULL ->
-                DataFlowValue.nullValue(containingDeclarationOrModule.builtIns)
 
             type.isError -> DataFlowValue.ERROR
 
-            CangJieBuiltIns.isNullableNothing(type) ->
+            CangJieBuiltIns.isNothing(type) ->
                 DataFlowValue.nullValue(containingDeclarationOrModule.builtIns) // 'null' is the only inhabitant of 'Nothing?'
 
             // In most cases type of `E!!`-expression is strictly not nullable and we could get proper Nullability

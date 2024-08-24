@@ -174,7 +174,7 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
     }
 
     private fun CangJieType.withNullabilityFromExplicitTypeArgument(typeArgument: SimpleTypeArgument) =
-        (if (typeArgument.type.isMarkedNullable) makeNullable() else makeNotNullable()).unwrap()
+        (if (typeArgument.type.isMarkedOption) makeNullable() else makeNotNullable()).unwrap()
 
     private fun getSubstitutorWithoutFlexibleTypes(
         currentSubstitutor: NewTypeSubstitutor?,

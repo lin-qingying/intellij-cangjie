@@ -2,12 +2,14 @@ package com.huawei.cangjie.builtins
 
 import com.huawei.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import com.huawei.cangjie.builtins.StandardNames.FqNames.any
+import com.huawei.cangjie.builtins.StandardNames.FqNames.array
 import com.huawei.cangjie.builtins.StandardNames.FqNames.bool
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int16
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int32
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int64
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int8
 import com.huawei.cangjie.builtins.StandardNames.FqNames.nothing
+import com.huawei.cangjie.builtins.StandardNames.FqNames.rune
 import com.huawei.cangjie.builtins.StandardNames.STD_CORE_PACKAGE_FQ_NAME
 import com.huawei.cangjie.builtins.StandardNames.getFunctionName
 import com.huawei.cangjie.context.ProjectContext
@@ -31,12 +33,11 @@ import com.huawei.cangjie.types.BasicType
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.SimpleType
 import com.huawei.cangjie.types.TypeConstructor
-import com.huawei.cangjie.types.util.TypeUtils
 import com.intellij.openapi.project.Project
 
 
 open class CangJieBuiltIns(
-    val project: Project?=null,
+    val project: Project? = null,
     val storageManager: StorageManager,
 //    val cangJieModuleInfo: CangJieModuleInfo
 //    val moduleInfo: ModuleInfo? = null
@@ -46,19 +47,37 @@ open class CangJieBuiltIns(
             Name.special("<built-ins module>")
 
         fun isBoolean(type: CangJieType): Boolean {
-            return isConstructedFromGivenClassAndNotNullable(
+            return isConstructedFromGivenClass(
                 type,
                 bool
             )
         }
 
+        fun isRune(type: CangJieType): Boolean {
+            return isConstructedFromGivenClass(type, rune)
+        }
+
+        fun isArray(type: CangJieType): Boolean {
+            return isConstructedFromGivenClass(type, array)
+        }
+
+//        fun isBooleanOrNullableBoolean(type: CangJieType): Boolean {
+//            return isConstructedFromGivenClass(type, bool)
+//        }
+//
+//        fun isRuneOrNullableChar(type: CangJieType): Boolean {
+//            return isConstructedFromGivenClass(type, rune)
+//        }
+
         fun isDefaultBound(type: CangJieType): Boolean {
-            return isNullableAny(type)
+            return isAny(type)
         }
 
         fun isPrimitiveType(type: CangJieType): Boolean {
-            return !type.isMarkedNullable && isPrimitiveTypeOrNullablePrimitiveType(
-                type
+            val descriptor: ClassifierDescriptor? =
+                type.constructor.declarationDescriptor
+            return descriptor is ClassDescriptor && isPrimitiveClass(
+                descriptor
             )
         }
 
@@ -70,11 +89,11 @@ open class CangJieBuiltIns(
             ) || classFqNameEquals(descriptor, nothing)
         }
 
-        fun isNullableAny(type: CangJieType): Boolean {
-            return isAnyOrNullableAny(type) && type.isMarkedNullable
-        }
-
-        fun isAnyOrNullableAny(type: CangJieType): Boolean {
+        //        fun isNullableAny(type: CangJieType): Boolean {
+//            return isAnyOrNullableAny(type) && type.isMarkedOption
+//        }
+//
+        fun isAny(type: CangJieType): Boolean {
             return isConstructedFromGivenClass(type, any)
         }
 
@@ -93,17 +112,16 @@ open class CangJieBuiltIns(
 
         @JvmStatic
         fun isNothing(type: CangJieType): Boolean {
-            return (isNothingOrNullableNothing(type)
-                    && !TypeUtils.isNullableType(type))
+            return isConstructedFromGivenClass(type, nothing)
         }
 
-        fun isPrimitiveTypeOrNullablePrimitiveType(type: CangJieType): Boolean {
-            val descriptor =
-                type.constructor.getDeclarationDescriptor()
-            return descriptor is ClassDescriptor && isPrimitiveClass(
-                descriptor
-            )
-        }
+//        fun isPrimitiveTypeOrNullablePrimitiveType(type: CangJieType): Boolean {
+//            val descriptor =
+//                type.constructor.getDeclarationDescriptor()
+//            return descriptor is ClassDescriptor && isPrimitiveClass(
+//                descriptor
+//            )
+//        }
 
         fun isPrimitiveClass(descriptor: ClassDescriptor): Boolean {
             return getPrimitiveType(descriptor) != null
@@ -120,67 +138,67 @@ open class CangJieBuiltIns(
             return isNotNullConstructedFromGivenClass(type, StandardNames.FqNames.unit)
         }
 
-        @JvmStatic
-        fun isNothingOrNullableNothing(type: CangJieType): Boolean {
-            return isConstructedFromGivenClass(type, nothing)
-        }
+//        @JvmStatic
+//        fun isNothingOrNullableNothing(type: CangJieType): Boolean {
+//            return isConstructedFromGivenClass(type, nothing)
+//        }
 
         fun isInt8(type: CangJieType): Boolean {
-            return isConstructedFromGivenClassAndNotNullable(type, int8)
+            return isConstructedFromGivenClass(type, int8)
         }
 
         fun isInt16(type: CangJieType): Boolean {
-            return isConstructedFromGivenClassAndNotNullable(type, int16)
+            return isConstructedFromGivenClass(type, int16)
         }
 
 
         fun isInt32(type: CangJieType): Boolean {
 
-            return isConstructedFromGivenClassAndNotNullable(type, int32)
+            return isConstructedFromGivenClass(type, int32)
         }
 
         fun isInt64(type: CangJieType): Boolean {
 
-            return isConstructedFromGivenClassAndNotNullable(type, int64)
+            return isConstructedFromGivenClass(type, int64)
         }
 
         fun isUInt8(type: CangJieType): Boolean {
 
-            return isConstructedFromGivenClassAndNotNullable(type, StandardNames.FqNames.uInt8FqName.toUnsafe())
+            return isConstructedFromGivenClass(type, StandardNames.FqNames.uInt8FqName.toUnsafe())
         }
 
         fun isUInt16(type: CangJieType): Boolean {
 
 
-            return isConstructedFromGivenClassAndNotNullable(type, StandardNames.FqNames.uInt16FqName.toUnsafe())
+            return isConstructedFromGivenClass(type, StandardNames.FqNames.uInt16FqName.toUnsafe())
         }
 
         fun isUInt32(type: CangJieType): Boolean {
 
-            return isConstructedFromGivenClassAndNotNullable(type, StandardNames.FqNames.uInt32FqName.toUnsafe())
+            return isConstructedFromGivenClass(type, StandardNames.FqNames.uInt32FqName.toUnsafe())
 
         }
 
 
         fun isUInt64(type: CangJieType): Boolean {
 
-            return isConstructedFromGivenClassAndNotNullable(type, StandardNames.FqNames.uInt64FqName.toUnsafe())
+            return isConstructedFromGivenClass(type, StandardNames.FqNames.uInt64FqName.toUnsafe())
         }
 
-        fun isNullableNothing(type: CangJieType): Boolean {
-            return (isNothingOrNullableNothing(type)
-                    && TypeUtils.isNullableType(type))
-        }
+//        fun isNullableNothing(type: CangJieType): Boolean {
+//            return (isNothingOrNullableNothing(type)
+//                    && TypeUtils.isNullableType(type))
+//        }
 
-        private fun isConstructedFromGivenClassAndNotNullable(
-            type: CangJieType,
-            fqName: FqNameUnsafe
-        ): Boolean {
-            return isConstructedFromGivenClass(
-                type,
-                fqName
-            ) && !type.isMarkedNullable
-        }
+//        private fun isConstructedFromGivenClassAndNotNullable(
+//            type: CangJieType,
+//            fqName: FqNameUnsafe
+//        ): Boolean {
+//            return isConstructedFromGivenClass(
+//                type,
+//                fqName
+//            ) && !type.isMarkedOption
+//        }
 
         private fun isConstructedFromGivenClass(
             type: CangJieType,
@@ -215,7 +233,7 @@ open class CangJieBuiltIns(
             type: CangJieType,
             fqName: FqNameUnsafe
         ): Boolean {
-            return !type.isMarkedNullable && isConstructedFromGivenClass(
+            return isConstructedFromGivenClass(
                 type,
                 fqName
             )
@@ -230,7 +248,7 @@ open class CangJieBuiltIns(
     }
 
 
-    val defaultBound: SimpleType get() = nullableAnyType
+    val defaultBound: SimpleType get() = anyType
 
 //    fun getNumberType(): SimpleType {
 //        return number.getDefaultType()
@@ -243,11 +261,14 @@ open class CangJieBuiltIns(
     val number: ClassDescriptor get() = getBuiltInClassByName("Number")
     val numberType get() = number.getDefaultType()
     val comparable: ClassDescriptor get() = getBuiltInClassByName("Comparable")
-
+    private fun getPrimitiveClassBasicDescriptor(type: PrimitiveType): ClassDescriptor {
+        return getBuiltInBasicTypeByName(type.typeName.asString())
+    }
 
     private fun getPrimitiveClassDescriptor(type: PrimitiveType): ClassDescriptor {
         return getBuiltInClassByName(type.typeName.asString())
     }
+
     private val myStdCoreClassesByName = storageManager.createMemoizedFunction { name: Name ->
         val classifier = getBuiltInsStdCoreScope().getContributedClassifier(
             name,
@@ -293,6 +314,10 @@ open class CangJieBuiltIns(
     private var postponedBuiltInsModule: NotNullLazyValue<ModuleDescriptorImpl>? =
         null
 
+    fun getPrimitiveBasicCangJieType(type: PrimitiveType): SimpleType {
+        return getPrimitiveClassBasicDescriptor(type).getDefaultType()
+    }
+
     fun getPrimitiveCangJieType(type: PrimitiveType): SimpleType {
         return getPrimitiveClassDescriptor(type).getDefaultType()
     }
@@ -308,12 +333,12 @@ open class CangJieBuiltIns(
     }
 
 
-    val nullableNothingType: SimpleType get() = nothingType.makeNullableAsSpecified(true)
+    //    val nullableNothingType: SimpleType get() = nothingType.makeNullableAsSpecified(true)
     val nothingType: SimpleType
         get() = nothing.getDefaultType()
 
-
-    val nullableAnyType: SimpleType get() = anyType.makeNullableAsSpecified(true)
+//
+//    val nullableAnyType: SimpleType get() = anyType.makeNullableAsSpecified(true)
 
 
     protected fun createBuiltInsModule(isFallback: Boolean) {
@@ -357,10 +382,10 @@ open class CangJieBuiltIns(
     }
 
     fun getBuiltInsStdCoreScope(): MemberScope {
-    return    if (sourcesModuleDescriptor != null){
+        return if (sourcesModuleDescriptor != null) {
             sourcesModuleDescriptor!!.getPackage(STD_CORE_PACKAGE_FQ_NAME).memberScope
-        }else{
-        builtInsModule.getPackage(STD_CORE_PACKAGE_FQ_NAME).memberScope
+        } else {
+            builtInsModule.getPackage(STD_CORE_PACKAGE_FQ_NAME).memberScope
         }
 
     }
@@ -381,7 +406,7 @@ open class CangJieBuiltIns(
         return getBuiltInClassByName(simpleName) as BasicTypeDescriptor
     }
 
-    val unit:BasicTypeDescriptor get() = getBuiltInBasicTypeByName("Unit")
+    val unit: BasicTypeDescriptor get() = getBuiltInBasicTypeByName("Unit")
     val unitType: BasicType get() = unit.defaultType
     val nothing: ClassDescriptor get() = getBuiltInClassByName("Nothing")
 
@@ -398,23 +423,26 @@ open class CangJieBuiltIns(
 
 
     //    int
-    val int64Type get() = getPrimitiveCangJieType(PrimitiveType.INT64)
-    val int32Type get() = getPrimitiveCangJieType(PrimitiveType.INT32)
-    val int16Type get() = getPrimitiveCangJieType(PrimitiveType.INT16)
-    val int8Type get() = getPrimitiveCangJieType(PrimitiveType.INT8)
-    val intNativeType get() = getPrimitiveCangJieType(PrimitiveType.INTNATIVE)
+    val int64Type get() = getPrimitiveBasicCangJieType(PrimitiveType.INT64)
+    val int32Type get() = getPrimitiveBasicCangJieType(PrimitiveType.INT32)
+    val int16Type get() = getPrimitiveBasicCangJieType(PrimitiveType.INT16)
+    val int8Type get() = getPrimitiveBasicCangJieType(PrimitiveType.INT8)
+    val intNativeType get() = getPrimitiveBasicCangJieType(PrimitiveType.INTNATIVE)
 
-    val uint64Type = getPrimitiveCangJieType(PrimitiveType.UINT64)
-    val uint32Type = getPrimitiveCangJieType(PrimitiveType.UINT32)
-    val uint16Type = getPrimitiveCangJieType(PrimitiveType.UINT16)
-    val uint8Type = getPrimitiveCangJieType(PrimitiveType.UINT8)
-    val uintNativeType get() = getPrimitiveCangJieType(PrimitiveType.UINTNATIVE)
+    val uint64Type = getPrimitiveBasicCangJieType(PrimitiveType.UINT64)
+    val uint32Type = getPrimitiveBasicCangJieType(PrimitiveType.UINT32)
+    val uint16Type = getPrimitiveBasicCangJieType(PrimitiveType.UINT16)
+    val uint8Type = getPrimitiveBasicCangJieType(PrimitiveType.UINT8)
+    val uintNativeType get() = getPrimitiveBasicCangJieType(PrimitiveType.UINTNATIVE)
 
 
     //    float
-    val float64Type get() = getPrimitiveCangJieType(PrimitiveType.FLOAT64)
-    val float32Type get() = getPrimitiveCangJieType(PrimitiveType.FLOAT32)
-    val float16Type get() = getPrimitiveCangJieType(PrimitiveType.FLOAT16)
+    val float64Type get() = getPrimitiveBasicCangJieType(PrimitiveType.FLOAT64)
+    val float32Type get() = getPrimitiveBasicCangJieType(PrimitiveType.FLOAT32)
+    val float16Type get() = getPrimitiveBasicCangJieType(PrimitiveType.FLOAT16)
+    val runeType get() = getPrimitiveBasicCangJieType(PrimitiveType.Rune)
+
+    val boolType get() = getPrimitiveBasicCangJieType(PrimitiveType.BOOL)
 }
 
 

@@ -10,7 +10,7 @@ class ErrorType @JvmOverloads internal constructor(
     override val memberScope: MemberScope,
     val kind: ErrorTypeKind,
     override val arguments: List<TypeProjection> = emptyList(),
-    override val isMarkedNullable: Boolean = false,
+    override val isMarkedOption: Boolean = false,
     vararg val formatParams: String
 ) : SimpleType() {
     val debugMessage = String.format(kind.debugMessage, *formatParams)
@@ -22,7 +22,7 @@ class ErrorType @JvmOverloads internal constructor(
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType = this
 
 //    fun replaceArguments(newArguments: List<TypeProjection>): ErrorType =
-//        ErrorType(constructor, memberScope, kind, newArguments, isMarkedNullable, *formatParams)
+//        ErrorType(constructor, memberScope, kind, newArguments, isMarkedOption, *formatParams)
 
     override fun makeNullableAsSpecified(newNullability: Boolean): SimpleType =
         ErrorType(constructor, memberScope, kind, arguments, newNullability, *formatParams)

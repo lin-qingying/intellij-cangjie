@@ -3,7 +3,6 @@ package com.huawei.cangjie.types
 import com.huawei.cangjie.descriptors.TypeAliasDescriptor
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.resolve.scopes.MemberScope
-import com.huawei.cangjie.types.error.ErrorType
 import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.util.TypeUtils
 
@@ -62,7 +61,7 @@ class TypeAliasExpander(
 
                 val nestedExpandedType = expandRecursively(
                     nestedExpansion, type.attributes,
-                    isNullable = type.isMarkedNullable,
+                    isNullable = type.isMarkedOption,
                     recursionDepth = recursionDepth + 1,
                     withAbbreviatedType = false
                 )
@@ -94,7 +93,7 @@ class TypeAliasExpander(
             if (projection.isStarProjection) projection
             else TypeProjectionImpl(
                 projection.projectionKind,
-                TypeUtils.makeNullableIfNeeded(projection.type, originalArgument.type.isMarkedNullable)
+                TypeUtils.makeNullableIfNeeded(projection.type, originalArgument.type.isMarkedOption)
             )
         }
 
@@ -162,7 +161,7 @@ class TypeAliasExpander(
         return TypeProjectionImpl(resultingVariance, substitutedType)
     }
     private fun SimpleType.combineNullability(fromType: CangJieType) =
-        TypeUtils.makeNullableIfNeeded(this, fromType.isMarkedNullable)
+        TypeUtils.makeNullableIfNeeded(this, fromType.isMarkedOption)
 
     private fun SimpleType.combineNullabilityAndAnnotations(fromType: CangJieType) =
         combineNullability(fromType).combineAttributes(fromType.attributes)

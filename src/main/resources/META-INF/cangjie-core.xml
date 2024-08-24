@@ -237,6 +237,13 @@
                                 order="first"/>
 
 
+
+<!--        引用搜索-->
+        <projectService
+                serviceInterface="com.huawei.cangjie.psi.CangJieReferenceProvidersService"
+                serviceImplementation="com.huawei.cangjie.ide.references.CjIdeReferenceProviderService"/>
+
+
         <fileIconProvider implementation="com.huawei.cangjie.icon.CjpmIconProvider"/>
 
 
@@ -249,11 +256,24 @@
 
         <projectService serviceInterface="com.huawei.cangjie.ide.references.CangJieReferenceProviderContributor"
                         serviceImplementation="com.huawei.cangjie.references.CangJieReferenceContributor"/>
-        <projectService
-                serviceInterface="com.huawei.cangjie.psi.CangJieReferenceProvidersService"
-                serviceImplementation="com.huawei.cangjie.ide.references.CjIdeReferenceProviderService"/>
 
+<!--        <projectService-->
+<!--                serviceInterface="com.huawei.cangjie.analyzer.lifetime.CjLifetimeTokenProvider"-->
+<!--                serviceImplementation="com.huawei.cangjie.analyzer.lifetime.CjReadActionConfinementLifetimeTokenProvider"/>-->
 
+<!--        <projectService-->
+<!--                serviceInterface="com.huawei.cangjie.analyzer.ProjectStructureProvider"-->
+<!--                serviceImplementation="com.huawei.cangjie.analyzer.ProjectStructureProviderIdeImpl"/>-->
+<!--        <projectService-->
+<!--                serviceInterface="com.huawei.cangjie.analyzer.CjAnalysisFacade"-->
+<!--                serviceImplementation="com.huawei.cangjie.analyzer.IdeCjAnalysisFacade"/>-->
+
+<!--        <projectService-->
+<!--                serviceInterface="com.huawei.cangjie.ide.completion.providers.CangJieResolutionScopeProvider"-->
+<!--                serviceImplementation="com.huawei.cangjie.ide.completion.providers.IdeCangJieByModulesResolutionScopeProvider"/>-->
+<!--        <projectService-->
+<!--                serviceInterface="com.huawei.cangjie.analyzer.session.CjAnalysisSessionProvider"-->
+<!--                serviceImplementation="com.huawei.cangjie.analyzer.session.CjAnalysisSessionProviderImpl"/>-->
     </extensions>
 
     <!--        监听-->

@@ -2,10 +2,8 @@ package com.huawei.cangjie.resolve.caches
 
 import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.context.GlobalContext
-import com.huawei.cangjie.context.GlobalContextImpl
 import com.huawei.cangjie.ide.base.projectStructure.RootKindFilter
 import com.huawei.cangjie.ide.base.projectStructure.matches
-
 import com.huawei.cangjie.ide.projectStructure.moduleInfo
 import com.huawei.cangjie.psi.CjCodeFragment
 import com.huawei.cangjie.psi.CjElement
@@ -13,7 +11,6 @@ import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.psi.psiUtil.contains
 import com.huawei.cangjie.resolve.ModuleResolutionFacadeImpl
 import com.huawei.cangjie.resolve.ResolutionFacade
-
 import com.huawei.cangjie.utils.CangJieExceptionWithAttachments
 import com.intellij.execution.Platform
 import com.intellij.execution.target.TargetPlatform
@@ -40,7 +37,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
             val settings = PlatformAnalysisSettingsImpl(TargetPlatform(Platform.WINDOWS))
 
             CachedValueProvider.Result(
-                getFacadeToAnalyzeFile(file , settings ),
+                getFacadeToAnalyzeFile(file, settings),
 
                 ProjectRootModificationTracker.getInstance(project),
             )
@@ -77,8 +74,8 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
         GlobalFacade(/*settings*/)
 
 
-    private inner class GlobalFacade(/*settings: PlatformAnalysisSettings*/) {
-        private val context = GlobalContext("cjpm",project)
+    private inner class GlobalFacade {
+        private val context = GlobalContext("cjpm", project)
 //        private val moduleFilters = GlobalFacadeModuleFilters(project)
 
         val facadeForModules = ProjectResolutionFacade(
@@ -96,7 +93,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
     }
 
 
-    private fun getFacadeToAnalyzeFile(file: CjFile , settings: PlatformAnalysisSettings ): ResolutionFacade {
+    private fun getFacadeToAnalyzeFile(file: CjFile, settings: PlatformAnalysisSettings): ResolutionFacade {
 
         val moduleInfo = file.moduleInfo
 
@@ -104,7 +101,10 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
 //
 //        return ResolutionFacadeImpl(projectFacade).createdFor(emptyList(),/* moduleInfo,*/ settings)
 
-        return getResolutionFacadeByModuleInfoAndSettings(moduleInfo /*, settings*/ ).createdFor(emptyList(), moduleInfo/*, settings*/)
+        return getResolutionFacadeByModuleInfoAndSettings(moduleInfo /*, settings*/).createdFor(
+            emptyList(),
+            moduleInfo/*, settings*/
+        )
 
     }
 
@@ -112,26 +112,34 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
         moduleInfo: ModuleInfo,
 //        settings: PlatformAnalysisSettings
     ): ResolutionFacade {
-        val projectFacade =  facadeForModules(/*settings*/)
+        val projectFacade = facadeForModules(/*settings*/)
 
         return ModuleResolutionFacadeImpl(projectFacade, moduleInfo)
     }
 
+    override fun getResolutionFacadeByModuleInfo(moduleInfo: ModuleInfo ): ResolutionFacade {
+//        val settings = moduleInfo.platformSettings(platform)
+        return getResolutionFacadeByModuleInfoAndSettings(moduleInfo)
+    }
+
     override fun getResolutionFacade(elements: List<CjElement>): ResolutionFacade {
-        TODO("Not yet implemented")
+
         val files = getFilesForElements(elements)
         if (files.size == 1) return getResolutionFacade(files.single())
         return getFacadeToAnalyzeFiles(files/*, settings*/)
 
     }
+
     private fun CjCodeFragment.getContextFile(): CjFile? {
         val contextElement = context ?: return null
         val contextFile = (contextElement as? CjElement)?.getContainingCjFile()
             ?: throw AssertionError("Analyzing kotlin code fragment of type ${this::class.java} with java context of type ${contextElement::class.java}")
         return if (contextFile is CjCodeFragment) contextFile.getContextFile() else contextFile
     }
-    private fun Collection<CjFile>.filterNotInProjectSource(moduleInfo:  ModuleInfo): Set<CjFile> =
+
+    private fun Collection<CjFile>.filterNotInProjectSource(moduleInfo: ModuleInfo): Set<CjFile> =
         mapNotNullTo(mutableSetOf()) { filterNotInProjectSource(it, moduleInfo) }
+
     private fun filterNotInProjectSource(file: CjFile, moduleInfo: ModuleInfo): CjFile? {
         val fileToAnalyze = when (file) {
             is CjCodeFragment -> file.getContextFile()
@@ -147,10 +155,10 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
 
         return if (!isInProjectSource) fileToAnalyze else null
     }
+
     private fun getFacadeToAnalyzeFiles(files: Collection<CjFile>/*, settings: PlatformAnalysisSettings*/): ResolutionFacade {
         val moduleInfo = files.first().moduleInfo
 //        val specialFiles = files.filterNotInProjectSource(moduleInfo)
-
 
 
 //        if (specialFiles.isNotEmpty()) {
@@ -158,7 +166,10 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
 //            return ModuleResolutionFacadeImpl(projectFacade, moduleInfo).createdFor(specialFiles, moduleInfo, settings)
 //        }
 
-        return getResolutionFacadeByModuleInfoAndSettings(moduleInfo/*, settings*/).createdFor(emptyList(), moduleInfo/*, settings*/)
+        return getResolutionFacadeByModuleInfoAndSettings(moduleInfo/*, settings*/).createdFor(
+            emptyList(),
+            moduleInfo/*, settings*/
+        )
     }
 //    private val specialFilesCacheProvider = CachedValueProvider {
 //        // NOTE: computations inside createFacadeForFilesWithSpecialModuleInfo depend on project root structure

@@ -134,12 +134,15 @@ CjPackageDirectiveElementType  PACKAGE_DIRECTIVE =
     CjPlaceHolderStubElementType<CjContextReceiverList> CONTEXT_RECEIVER_LIST =
             new CjPlaceHolderStubElementType<>("CONTEXT_RECEIVER_LIST", CjContextReceiverList.class);
 
-    CjConstantExpressionElementType NULL                = new CjConstantExpressionElementType("NULL");
+//    CjConstantExpressionElementType NULL                = new CjConstantExpressionElementType("NULL");
     CjConstantExpressionElementType BOOLEAN_CONSTANT    = new CjConstantExpressionElementType("BOOLEAN_CONSTANT");
     CjConstantExpressionElementType FLOAT_CONSTANT      = new CjConstantExpressionElementType("FLOAT_CONSTANT");
-    CjConstantExpressionElementType CHARACTER_CONSTANT  = new CjConstantExpressionElementType("CHARACTER_CONSTANT");
+//    CjConstantExpressionElementType CHARACTER_CONSTANT  = new CjConstantExpressionElementType("CHARACTER_CONSTANT");
     CjConstantExpressionElementType INTEGER_CONSTANT    = new CjConstantExpressionElementType("INTEGER_CONSTANT");
 //    CjClassLiteralExpressionElementType CLASS_LITERAL_EXPRESSION = new CjClassLiteralExpressionElementType("CLASS_LITERAL_EXPRESSION");
+CjConstantExpressionElementType RUNE_CONSTANT = new CjConstantExpressionElementType("RUNE_CONSTANT");
+
+
     CjCollectionLiteralExpressionElementType COLLECTION_LITERAL_EXPRESSION = new CjCollectionLiteralExpressionElementType("COLLECTION_LITERAL_EXPRESSION");
 
     CjPlaceHolderStubElementType<CjStringTemplateExpression> STRING_TEMPLATE =
@@ -171,8 +174,6 @@ CjPackageDirectiveElementType  PACKAGE_DIRECTIVE =
 
     //    CjPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
 //            new CjPlaceHolderStubElementType<>("ANNOTATION", CjAnnotation.class);
-    CjConstantExpressionElementType RUNE_CONSTANT = new CjConstantExpressionElementType("RUNE_CONSTANT");
-
 
     CjConstantExpressionElementType CHARACTER_BYTE_CONSTANT = new CjConstantExpressionElementType("CHARACTER_BYTE_CONSTANT");
 

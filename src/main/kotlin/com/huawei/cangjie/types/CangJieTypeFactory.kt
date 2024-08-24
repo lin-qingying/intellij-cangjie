@@ -194,7 +194,7 @@ abstract class DelegatingSimpleTypeImpl(override val delegate: SimpleType) : Del
             this
 
     override fun makeNullableAsSpecified(newNullability: Boolean): SimpleType {
-//        if (newNullability == isMarkedNullable) return this
+//        if (newNullability == isMarkedOption) return this
         return delegate.makeNullableAsSpecified(newNullability).replaceAttributes(attributes)
     }
 }
@@ -211,12 +211,12 @@ private class SimpleTypeWithAttributes(
 private class SimpleTypeImpl(
     override val constructor: TypeConstructor,
     override val arguments: List<TypeProjection>,
-    override val isMarkedNullable: Boolean,
+    override val isMarkedOption: Boolean,
     override val memberScope: MemberScope,
     private val refinedTypeFactory: RefinedTypeFactory
 ) : SimpleType() {
     override fun makeNullableAsSpecified(newNullability: Boolean) = when {
-        newNullability == isMarkedNullable -> this
+        newNullability == isMarkedOption -> this
         newNullability -> NullableSimpleType(this)
         else -> NotNullSimpleType(this)
     }
@@ -237,7 +237,7 @@ private class SimpleTypeImpl(
 }
 
 private class NullableSimpleType(delegate: SimpleType) : DelegatingSimpleTypeImpl(delegate) {
-    override val isMarkedNullable: Boolean
+    override val isMarkedOption: Boolean
         get() = true
 
     @TypeRefinement
@@ -245,7 +245,7 @@ private class NullableSimpleType(delegate: SimpleType) : DelegatingSimpleTypeImp
 }
 
 private class NotNullSimpleType(delegate: SimpleType) : DelegatingSimpleTypeImpl(delegate) {
-    override val isMarkedNullable: Boolean
+    override val isMarkedOption: Boolean
         get() = false
 
     @TypeRefinement

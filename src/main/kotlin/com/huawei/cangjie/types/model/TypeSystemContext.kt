@@ -67,8 +67,8 @@ interface TypeSystemOptimizationContext {
  * Context that allow type-impl agnostic access to common types
  */
 interface TypeSystemBuiltInsContext {
-    fun nullableNothingType(): SimpleTypeMarker
-    fun nullableAnyType(): SimpleTypeMarker
+//    fun nullableNothingType(): SimpleTypeMarker
+//    fun nullableAnyType(): SimpleTypeMarker
     fun nothingType(): SimpleTypeMarker
     fun anyType(): SimpleTypeMarker
 }

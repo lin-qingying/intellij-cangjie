@@ -306,7 +306,7 @@ abstract class AbstractTypeApproximator(
     ): CangJieTypeMarker? {
         val supertypes = type.typeConstructor().supertypes()
         val baseSuperType = when (supertypes.size) {
-            0 -> nullableAnyType() // Let C = in Int, then superType for C and C? is Any?
+            0 -> anyType() // Let C = in Int, then superType for C and C? is Any?
             1 -> supertypes.single()
 
             // Consider the following example:
@@ -715,8 +715,8 @@ abstract class AbstractTypeApproximator(
         return !notMarkedNullableSubType.isTrivialSub()
     }
 
-    private fun CangJieTypeMarker.defaultResult(toSuper: Boolean) = if (toSuper) nullableAnyType() else {
-        if (this is SimpleTypeMarker && isMarkedNullable()) nullableNothingType() else nothingType()
+    private fun CangJieTypeMarker.defaultResult(toSuper: Boolean) = if (toSuper) anyType() else {
+    nothingType()
     }
 
     // Any? or Any!
