@@ -1,5 +1,6 @@
 package com.huawei.cangjie.ide.base.projectStructure
 
+import com.huawei.cangjie.ide.projectStructure.scope.PoweredLibraryScopeBase
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.DelegatingGlobalSearchScope
@@ -11,7 +12,6 @@ class CangJieSourceFilterScope private constructor(
     private val project: Project,
     private val filter: RootKindFilter
 ) : DelegatingGlobalSearchScope(delegate) {
-
 
 
     override fun contains(file: VirtualFile): Boolean {
@@ -51,7 +51,38 @@ class CangJieSourceFilterScope private constructor(
     companion object {
 
 
-        private fun create(
+        @JvmStatic
+        fun createByType(delegate: GlobalSearchScope, project: Project): GlobalSearchScope {
+
+            return when (delegate) {
+                is PoweredLibraryScopeBase -> {
+//                    不知晓出于何种原因，使用DelegatingGlobalSearchScope 无法找的位于库的索引
+                    delegate
+//                    create(
+//                        delegate, project, RootKindFilter(
+//                            true,
+//
+//                            true,
+//
+//                            true,
+//
+//                            true,
+//
+//                            true,
+//
+//                            true,
+//                        )
+//                    )
+                }
+
+                else -> {
+                    projectSources(delegate, project)
+                }
+            }
+
+        }
+
+        fun create(
             delegate: GlobalSearchScope,
             project: Project,
             filter: RootKindFilter
@@ -62,16 +93,26 @@ class CangJieSourceFilterScope private constructor(
                 else -> CangJieSourceFilterScope(delegate, project, filter)
             }
         }
+
         @JvmStatic
         fun libraryClasses(delegate: GlobalSearchScope, project: Project) =
             create(delegate, project, RootKindFilter.libraryClasses)
 
         @JvmStatic
+        fun libraryFiles(delegate: GlobalSearchScope, project: Project) =
+            create(delegate, project, RootKindFilter.libraryFiles)
+
+        @JvmStatic
         fun projectFiles(delegate: GlobalSearchScope, project: Project) =
             create(delegate, project, RootKindFilter.projectFiles.copy(includeScriptsOutsideSourceRoots = true))
+
         @JvmStatic
         fun projectSourcesAndLibraryClasses(delegate: GlobalSearchScope, project: Project) =
-            create(delegate, project, RootKindFilter.projectSourcesAndLibraryClasses.copy(includeScriptsOutsideSourceRoots = true))
+            create(
+                delegate,
+                project,
+                RootKindFilter.projectSourcesAndLibraryClasses.copy(includeScriptsOutsideSourceRoots = true)
+            )
 
 
         @JvmStatic

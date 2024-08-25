@@ -30,7 +30,6 @@ class NotUnderContentRootModuleInfo(
         get() = ModuleOrigin.OTHER
 
     override val name: Name = Name.special("<special module for files not under source root>")
-    override val module: Module? = null
 
 //    override val displayedName: String
 //        get() = KotlinBaseProjectStructureBundle.message("special.module.for.files.not.under.source.root")

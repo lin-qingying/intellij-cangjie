@@ -38,10 +38,10 @@ class ModuleDescriptorImpl(
 
         packageViewDescriptorFactory =
             getCapability(PackageViewDescriptorFactory.CAPABILITY) ?: PackageViewDescriptorFactory.Default
-
-        if (!isBuiltInsModule){
-            builtIns.sourcesModuleDescriptor = this
-        }
+//
+//        if (!isBuiltInsModule){
+//            builtIns.sourcesModuleDescriptor = this
+//        }
 
     }
 

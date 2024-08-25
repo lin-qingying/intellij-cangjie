@@ -30,6 +30,7 @@ import com.huawei.cangjie.resolve.calls.tasks.TracingStrategy
 import com.huawei.cangjie.resolve.calls.util.*
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
+import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.resolve.descriptorUtil.isUnderscoreNamed
 import com.huawei.cangjie.resolve.lazy.ForceResolveUtil
 import com.huawei.cangjie.resolve.scopes.*

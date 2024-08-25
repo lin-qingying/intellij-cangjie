@@ -1,10 +1,11 @@
 package std.core
 
+
+
 public interface Any{}
 public open class Object <: Any {
     public const init()
 }
-
 
 public interface CharExtension  {}
 
@@ -12,7 +13,7 @@ public interface Hasher {
     func finish(): Int64
     mut func reset(): Unit
     mut func write(value: Bool): Unit
-    mut func write(value: Char): Unit
+    mut func write(value: Rune): Unit
     mut func write(value: Int8): Unit
     mut func write(value: Int16): Unit
     mut func write(value: Int32): Unit
@@ -25,7 +26,7 @@ public interface Hasher {
     mut func write(value: Float32): Unit
     mut func write(value: Float64): Unit
     mut func write(value: String): Unit
- 
+
 }
 func finish(): Int64
 
@@ -33,7 +34,7 @@ mut func reset(): Unit
 
 mut func write(value: Bool): Unit
 
-mut func write(value: Char): Unit
+mut func write(value: Rune): Unit
 
 mut func write(value: Int8): Unit
 
@@ -113,7 +114,7 @@ public class SpawnException <: Exception {
 public open class Error <: ToString {
     public open prop message: String
 
-    public open func toString(): String
+    public   open func toString(): String
     public open func printStackTrace(): Unit
     public func getStackTrace(): Array<StackTraceElement>
 }
@@ -272,7 +273,7 @@ public struct DefaultHasher <: Hasher {
     public mut func reset(): Unit
     public func finish(): Int64
     public mut func write(value: Bool): Unit
-    public mut func write(value: Char): Unit
+    public mut func write(value: Rune): Unit
     public mut func write(value: Int8): Unit
     public mut func write(value: Int16): Unit
     public mut func write(value: Int32): Unit
@@ -280,10 +281,10 @@ public struct DefaultHasher <: Hasher {
     public mut func write(value: UInt8): Unit
     public mut func write(value: UInt16): Unit
     public mut func write(value: UInt32): Unit
-    public mut func write(value: UInt64): Unit
-    public mut func write(value: Float16): Unit
-    public mut func write(value: Float32): Unit
-    public mut func write(value: Float64): Unit
+    public override mut func write(value: UInt64): Unit
+    public override mut func write(value: Float16): Unit
+    public override mut func write(value: Float32): Unit
+    public override mut func write(value: Float64): Unit
 
     public mut func write(value: String): Unit
 
@@ -299,20 +300,20 @@ public struct LibC {
 }
 
 public enum Ordering {
-| LT
-| GT
-| EQ
+    | LT
+    | GT
+    | EQ
 }
 public enum Option<T> {
-| Some(T)
-| None
+    | Some(T)
+    | None
 
 
-public func getOrThrow(): T
-public func getOrThrow(exception: () -> Exception): T
-public func getOrDefault(other: () -> T): T
-public func isNone(): Bool
-public func isSome(): Bool
+    public func getOrThrow(): T
+    public func getOrThrow(exception: () -> Exception): T
+    public func getOrDefault(other: () -> T): T
+    public func isNone(): Bool
+    public func isSome(): Bool
 
 }
 extend Option<T> <: ToString where T <: ToString {
@@ -379,7 +380,7 @@ extend Byte <: ByteExtension {
 
 }
 
-extend Char <: CharExtension {
+extend Rune <: CharExtension {
     public func isAscii(): Bool
     public func isAsciiLetter(): Bool
     public func isAsciiNumber(): Bool
@@ -392,32 +393,32 @@ extend Char <: CharExtension {
     public func isAsciiGraphic(): Bool
     public func isAsciiControl(): Bool
     public func isAsciiNumberOrLetter(): Bool
-    public func toAsciiUpperCase(): Char
+    public func toAsciiUpperCase(): Rune
 
-    public func toAsciiLowerCase(): Char
-    public static func fromUtf8(arr: Array<UInt8>, index: Int64): (Char, Int64)
-    public static func intoUtf8Array(c: Char, arr: Array<UInt8>, index: Int64): Int64
+    public func toAsciiLowerCase(): Rune
+    public static func fromUtf8(arr: Array<UInt8>, index: Int64): (Rune, Int64)
+    public static func intoUtf8Array(c: Rune, arr: Array<UInt8>, index: Int64): Int64
     public static func utf8Size(arr: Array<UInt8>, index: Int64): Int64
-    public static func utf8Size(c: Char): Int64
-    public static func getPreviousFromUtf8(arr: Array<UInt8>, index: Int64): (Char, Int64)
+    public static func utf8Size(c: Rune): Int64
+    public static func getPreviousFromUtf8(arr: Array<UInt8>, index: Int64): (Rune, Int64)
 }
 
-extend Char <: Comparable<Char> {
-    public func compare(rhs: Char): Ordering
+extend Rune <: Comparable<Rune> {
+    public func compare(rhs: Rune): Ordering
 
 }
-extend Char <: ToString {
+extend Rune <: ToString {
     public func toString(): String
 }
 
-extend Char <: Hashable {
+extend Rune <: Hashable {
     public func hashCode(): Int64
 
 }
 
-extend Char <: Countable<Char> {
+extend Rune <: Countable<Rune> {
     public func position(): Int64
-    public func next(right: Int64): Char
+    public func next(right: Int64): Rune
 
 }
 
@@ -762,10 +763,10 @@ public type Int = Int64
 public type UInt = UInt64
 public func print(str: String, flush!: Bool = false): Unit
 public func println(str: String): Unit
-public func println(str: String): Unit
+
 public func println(b: Bool): Unit
-public func print(c: Char, flush!: Bool = false): Unit
-public func println(c: Char): Unit
+public func print(c: Rune, flush!: Bool = false): Unit
+public func println(c: Rune): Unit
 public func print(f: Float16, flush!: Bool = false): Unit
 public func println(f: Float16): Unit
 public func print(f: Float32, flush!: Bool = false): Unit
@@ -921,7 +922,7 @@ public class StringBuilder <: ToString {
     public init()
     public init(str: String)
     public init(r: Rune, n: Int64)
-    public init(value: Array<Char>)
+    public init(value: Array<Rune>)
     public init(capacity: Int64)
     public prop size: Int64
     public prop capacity: Int64
@@ -958,12 +959,12 @@ public class StringBuilder <: ToString {
 
 
 public enum AnnotationKind {
-| Type
-| Parameter
-| Init
-| MemberProperty
-| MemberFunction
-| MemberVariable
+    | Type
+    | Parameter
+    | Init
+    | MemberProperty
+    | MemberFunction
+    | MemberVariable
 }
 
 

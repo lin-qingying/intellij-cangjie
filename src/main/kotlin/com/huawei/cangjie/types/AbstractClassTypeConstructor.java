@@ -4,7 +4,7 @@ package com.huawei.cangjie.types;
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.descriptors.ClassDescriptor;
 import com.huawei.cangjie.descriptors.ClassifierDescriptor;
-import com.huawei.cangjie.resolve.DescriptorUtilsKt;
+import com.huawei.cangjie.resolve.descriptorUtil.DescriptorUtilsKt;
 import com.huawei.cangjie.storage.StorageManager;
 
 import org.jetbrains.annotations.NotNull;

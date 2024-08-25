@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.huawei.cangjie.resolve.DescriptorUtilsKt.getBuiltIns;
+import static com.huawei.cangjie.resolve.descriptorUtil.DescriptorUtilsKt.getBuiltIns;
 
 public class TypeIntersector {
 

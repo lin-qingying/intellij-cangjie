@@ -1529,7 +1529,8 @@ class _JetLexer implements FlexLexer {
           // fall through
           case 204: break;
           case 34:
-            { System.out.println("STRING, RAW_STRING_DOUBLE,RAW_STRING_SINGLE ,HSAH_STRING_DOUBLE,HSAH_STRING_SINGLE");
+            { //           popState();
+//          System.out.println("STRING, RAW_STRING_DOUBLE,RAW_STRING_SINGLE ,HSAH_STRING_DOUBLE,HSAH_STRING_SINGLE");
           return CjTokens.REGULAR_STRING_PART;
             }
           // fall through

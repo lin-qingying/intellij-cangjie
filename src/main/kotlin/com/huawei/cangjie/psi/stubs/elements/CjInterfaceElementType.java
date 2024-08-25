@@ -103,7 +103,6 @@ public class CjInterfaceElementType extends CjStubElementType<CangJieInterfaceSt
         return new CangJieInterfaceStubImpl(
                 CjStubElementTypes.INTERFACE, (StubElement<?>) parentStub, qualifiedName, classId, name, superNames,
                 isLocal
-        ) {
-        };
+        );
     }
 }

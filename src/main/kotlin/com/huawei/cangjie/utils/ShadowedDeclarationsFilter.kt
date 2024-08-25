@@ -11,6 +11,7 @@ import com.huawei.cangjie.resolve.calls.CallResolver
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
 import com.huawei.cangjie.resolve.calls.context.CheckArgumentTypesMode
 import com.huawei.cangjie.resolve.calls.context.ContextDependency
+import com.huawei.cangjie.resolve.descriptorUtil.descriptorsEqualWithSubstitution
 import com.huawei.cangjie.resolve.scopes.ExplicitImportsScope
 import com.huawei.cangjie.resolve.scopes.addImportingScope
 import com.huawei.cangjie.resolve.scopes.getResolutionScope

@@ -23,7 +23,7 @@ class PluginDeclarationProviderFactoryService : DeclarationProviderFactoryServic
 
         return PluginDeclarationProviderFactory(
             project,
-            CangJieSourceFilterScope.projectSources(filesScope, project),
+            CangJieSourceFilterScope.createByType(filesScope, project),
             storageManager,
             syntheticFiles,
             moduleInfo

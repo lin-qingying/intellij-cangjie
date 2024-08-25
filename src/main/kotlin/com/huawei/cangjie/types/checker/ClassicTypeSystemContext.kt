@@ -15,7 +15,7 @@ import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.SpecialNames
 import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.calls.inference.CapturedType
-import com.huawei.cangjie.resolve.classId
+import com.huawei.cangjie.resolve.descriptorUtil.classId
 import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.huawei.cangjie.resolve.scopes.SubstitutingScope
 import com.huawei.cangjie.types.*

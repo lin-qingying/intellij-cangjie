@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.resolve.descriptorUtil.classId
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.util.supertypes
 

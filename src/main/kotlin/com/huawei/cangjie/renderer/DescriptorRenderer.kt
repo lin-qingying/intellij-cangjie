@@ -12,10 +12,10 @@ import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.name.SpecialNames
 import com.huawei.cangjie.resolve.DescriptorUtils
-import com.huawei.cangjie.resolve.annotationClass
+import com.huawei.cangjie.resolve.descriptorUtil.annotationClass
 import com.huawei.cangjie.resolve.constants.ArrayValue
 import com.huawei.cangjie.resolve.constants.ConstantValue
-import com.huawei.cangjie.resolve.declaresOrInheritsDefaultValue
+import com.huawei.cangjie.resolve.descriptorUtil.declaresOrInheritsDefaultValue
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.error.ErrorType
 import com.huawei.cangjie.types.util.TypeUtils
@@ -1092,7 +1092,7 @@ internal class DescriptorRendererImpl(
             builder.append("/*").append(typeParameter.index).append("*/ ")
         }
 
-        renderModifier(builder, typeParameter.isReified, "reified")
+//        renderModifier(builder, typeParameter.isReified, "reified")
         val variance = typeParameter.variance.label
         renderModifier(builder, variance.isNotEmpty(), variance)
 

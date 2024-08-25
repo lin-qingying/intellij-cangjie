@@ -28,7 +28,7 @@ import com.huawei.cangjie.resolve.scopes.findPackage
 import com.huawei.cangjie.resolve.scopes.getResolutionScope
 import com.huawei.cangjie.resolve.scopes.receivers.ImplicitReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
-import com.huawei.cangjie.resolve.unwrapIfFakeOverride
+import com.huawei.cangjie.resolve.descriptorUtil. unwrapIfFakeOverride
 
 import com.huawei.cangjie.utils.ShadowedDeclarationsFilter
 import com.intellij.openapi.application.ex.ApplicationManagerEx
@@ -260,7 +260,7 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                     ShortenQualifiedExpressionsProcessor(file, elementFilter, failedToImportDescriptors),
                     RemoveExplicitCompanionObjectReferenceProcessor(file, companionElementFilter, failedToImportDescriptors)
                 )
-            } 
+            }
 
             // step 1: collect qualified elements to analyze (no resolve at this step)
             val visitors = processors.map { it.collectElementsVisitor }

@@ -29,10 +29,10 @@ class ClassicConstraintSystemUtilContext(
 //        return unCaptureCangJieType().unwrap()
 //    }
 
-    override fun TypeVariableMarker.isReified(): Boolean {
-        if (this !is TypeVariableFromCallableDescriptor) return false
-        return originalTypeParameter.isReified
-    }
+//    override fun TypeVariableMarker.isReified(): Boolean {
+//        if (this !is TypeVariableFromCallableDescriptor) return false
+//        return originalTypeParameter.isReified
+//    }
 
 //    @OptIn(TypeRefinement::class)
 //    override fun CangJieTypeMarker.refineType(): CangJieTypeMarker {

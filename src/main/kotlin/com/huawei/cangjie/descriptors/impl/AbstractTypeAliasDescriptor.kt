@@ -4,7 +4,8 @@ import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.name.Name
-import com.huawei.cangjie.resolve.builtIns
+import com.huawei.cangjie.resolve.descriptorUtil.builtIns
+
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.*

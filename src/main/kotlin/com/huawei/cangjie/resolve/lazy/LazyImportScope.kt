@@ -15,6 +15,7 @@ import com.huawei.cangjie.psi.CjImportDirective
 import com.huawei.cangjie.psi.CjImportInfo
 import com.huawei.cangjie.psi.CjPsiUtil
 import com.huawei.cangjie.psi.asQualifierPartList
+import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.LazyExplicitImportScope
 import com.huawei.cangjie.resolve.QualifiedExpressionResolver
 import com.huawei.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
@@ -157,9 +158,9 @@ class LazyImportResolverForCjImportDirective(
     private fun checkResolvedImportDirective(importDirective: CjImportInfo) {
         if (importDirective !is CjImportDirective) return
         val importedReference = CjPsiUtil.getLastReference(importDirective.importedReference ?: return) ?: return
-//        val importedDescriptor = traceForImportResolve.bindingContext.get(BindingContext.REFERENCE_TARGET, importedReference) ?: return
+        val importedDescriptor = traceForImportResolve.bindingContext.get(BindingContext.REFERENCE_TARGET, importedReference) ?: return
 
-//        val aliasName = importDirective.aliasName
+        val aliasName = importDirective.aliasName
 
 //        if (importedDescriptor is FunctionDescriptor && importedDescriptor.isOperator &&
 //            aliasName != null && OperatorConventions.isConventionName(Name.identifier(aliasName))) {
@@ -242,7 +243,7 @@ class LazyImportScope(
 
         val visibility = (descriptor as DeclarationDescriptorWithVisibility).visibility
         val includeVisible = filteringKind == FilteringKind.VISIBLE_CLASSES
-//        if (!visibility.mustCheckInImports()) return includeVisible
+        if (!visibility.mustCheckInImports()) return includeVisible
         val fromDescriptor =
             if (components.languageVersionSettings.supportsFeature(LanguageFeature.ProperInternalVisibilityCheckInImportingScope)) {
                 packageFragment ?: components.moduleDescriptor

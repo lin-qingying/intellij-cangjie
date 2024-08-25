@@ -45,30 +45,30 @@ class LazyReexportAgent
     override val name: Name = proxied.name
 }
 
-class LazyReexportPackage(
-
-    override val fqName: FqName,
-
-    ) : PackageData {
-    val packageProjection: PackageData
-        get() {
-            return this
-
-        }
-    override val original: DeclarationDescriptor = packageProjection.original
-    override val containingDeclaration: DeclarationDescriptor? = packageProjection.containingDeclaration
-
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
-        TODO("Not yet implemented")
-    }
-
-    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
-        TODO("Not yet implemented")
-    }
-
-    override val name: Name
-        get() = TODO("Not yet implemented")
-}
+//class LazyReexportPackage(
+//
+//    override val fqName: FqName,
+//
+//    ) : PackageData {
+//    val packageProjection: PackageData
+//        get() {
+//            return this
+//
+//        }
+//    override val original: DeclarationDescriptor = packageProjection.original
+//    override val containingDeclaration: DeclarationDescriptor? = packageProjection.containingDeclaration
+//
+//    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+//        TODO("Not yet implemented")
+//    }
+//
+//    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+//        TODO("Not yet implemented")
+//    }
+//
+//    override val name: Name
+//        get() = TODO("Not yet implemented")
+//}
 
 class LazyPackageViewDescriptorImpl(
     override val module: ModuleDescriptorImpl, override val fqName: FqName, val storageManager: StorageManager

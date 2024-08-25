@@ -8,7 +8,7 @@ import com.huawei.cangjie.descriptors.VariableDescriptor
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext
-import com.huawei.cangjie.resolve.builtIns
+import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext
 import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.ImplicitReceiver

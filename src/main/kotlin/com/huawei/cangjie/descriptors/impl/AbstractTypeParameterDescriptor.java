@@ -5,7 +5,7 @@ import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.name.Name;
-import com.huawei.cangjie.resolve.DescriptorUtilsKt;
+import com.huawei.cangjie.resolve.descriptorUtil.DescriptorUtilsKt;
 import com.huawei.cangjie.resolve.scopes.LazyScopeAdapter;
 import com.huawei.cangjie.resolve.scopes.MemberScope;
 import com.huawei.cangjie.resolve.scopes.TypeIntersectionScope;
@@ -23,7 +23,7 @@ import java.util.List;
 
 public abstract class AbstractTypeParameterDescriptor extends DeclarationDescriptorNonRootImpl implements TypeParameterDescriptor {
     private final Variance variance;
-    private final boolean reified;
+//    private final boolean reified;
     private final int index;
     private final NotNullLazyValue<TypeConstructor> typeConstructor;
     private final NotNullLazyValue<SimpleType> defaultType;
@@ -35,14 +35,14 @@ public abstract class AbstractTypeParameterDescriptor extends DeclarationDescrip
             @NotNull Annotations annotations,
             @NotNull final Name name,
             @NotNull Variance variance,
-            boolean isReified,
+//            boolean isReified,
             int index,
             @NotNull SourceElement source,
             @NotNull final SupertypeLoopChecker supertypeLoopChecker
     ) {
         super(containingDeclaration, annotations, name, source);
         this.variance = variance;
-        this.reified = isReified;
+//        this.reified = isReified;
         this.index = index;
 
         this.typeConstructor = storageManager.createLazyValue(new Function0<TypeConstructor>() {
@@ -94,10 +94,10 @@ public abstract class AbstractTypeParameterDescriptor extends DeclarationDescrip
 
     }
 
-    @Override
-    public boolean isReified() {
-        return false;
-    }
+//    @Override
+//    public boolean isReified() {
+//        return false;
+//    }
 
     @Override
     public @NotNull List<CangJieType> getUpperBounds() {

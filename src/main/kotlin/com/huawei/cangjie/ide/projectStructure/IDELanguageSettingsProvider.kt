@@ -14,7 +14,7 @@ internal class IDELanguageSettingsProvider : LanguageSettingsProvider {
         return when (moduleInfo) {
             is CangJieModuleInfo -> moduleInfo.module.languageVersionSettings
 //            is LanguageSettingsOwner -> moduleInfo.languageVersionSettings
-//            is LibraryInfo -> LanguageVersionSettingsProvider.getInstance(project).librarySettings
+//            is CjpmLibraryInfo -> LanguageVersionSettingsProvider.getInstance(project).librarySettings
 //            is PlatformModuleInfo -> moduleInfo.platformModule.module.languageVersionSettings
             else -> project.languageVersionSettings
         }

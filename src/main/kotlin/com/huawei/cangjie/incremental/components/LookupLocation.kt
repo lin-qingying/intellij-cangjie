@@ -22,6 +22,7 @@ data class Position(val line: Int, val column: Int) : Serializable {
 
 
 enum class NoLookupLocation : LookupLocation {
+                                             FROM_LIBRARY,
     FROM_IDE,
     FROM_BACKEND,
     FROM_TEST,

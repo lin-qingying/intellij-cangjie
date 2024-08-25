@@ -1,7 +1,8 @@
 package com.huawei.cangjie.descriptors
 
 import com.huawei.cangjie.psi.psiUtil.firstIsInstanceOrNull
-import com.huawei.cangjie.resolve.parents
+import com.huawei.cangjie.resolve.descriptorUtil.parents
+
 
 fun ClassifierDescriptorWithTypeParameters.computeConstructorTypeParameters(): List<TypeParameterDescriptor> {
     val declaredParameters = declaredTypeParameters

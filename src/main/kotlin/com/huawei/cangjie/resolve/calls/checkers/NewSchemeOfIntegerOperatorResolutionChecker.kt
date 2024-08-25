@@ -16,7 +16,7 @@ import com.huawei.cangjie.resolve.constants.ErrorValue
 import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstant
 import com.huawei.cangjie.resolve.constants.TypedCompileTimeConstant
-import com.huawei.cangjie.resolve.fqNameSafe
+import com.huawei.cangjie.resolve.descriptorUtil.fqNameSafe
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.SimpleType
 import com.huawei.cangjie.types.lowerIfFlexible

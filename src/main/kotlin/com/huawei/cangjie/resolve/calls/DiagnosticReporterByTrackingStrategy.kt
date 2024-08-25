@@ -18,7 +18,7 @@ import com.huawei.cangjie.resolve.calls.tower.*
 import com.huawei.cangjie.resolve.constants.CompileTimeConstantChecker
 import com.huawei.cangjie.resolve.constants.TypedCompileTimeConstant
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
-import com.huawei.cangjie.resolve.module
+import com.huawei.cangjie.resolve.descriptorUtil.module
 import com.huawei.cangjie.types.AbstractTypeChecker
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.model.TypeSystemInferenceExtensionContextDelegate

@@ -80,7 +80,10 @@ abstract class ResolverForProject<M : ModuleInfo> {
     abstract fun diagnoseUnknownModuleInfo(infos: List<ModuleInfo>): Nothing
 
     abstract fun tryGetResolverForModule(moduleInfo: M): ResolverForModule?
+companion object{
+    const val resolverForLibrariesName = "project libraries"
 
+}
 }
 
 interface ResolverForModuleComputationTracker {

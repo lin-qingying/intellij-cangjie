@@ -58,7 +58,7 @@ class VariableFixationFinder(
          */
         val typeVariablesThatAreCountedAsProperTypes: Set<TypeConstructorMarker>?
 
-        fun isReified(variable: TypeVariableMarker): Boolean
+//        fun isReified(variable: TypeVariableMarker): Boolean
     }
 }
 fun TypeSystemInferenceExtensionContext.extractProjectionsForAllCapturedTypes(baseType: CangJieTypeMarker): Set<CangJieTypeMarker> {

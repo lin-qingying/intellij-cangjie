@@ -189,7 +189,10 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
 //
         this.parameters = c.getStorageManager().createLazyValue(() -> {
             CjClassLikeInfo classInfo = declarationProvider.getOwnerInfo();
-            CjTypeParameterList typeParameterList = classInfo.getTypeParameterList();
+            CjTypeParameterList typeParameterList = null;
+            if (classInfo != null) {
+                typeParameterList = classInfo.getTypeParameterList();
+            }
             if (typeParameterList == null) return Collections.emptyList();
 //
 //            boolean isAnonymousObject = (classInfo.getClassKind() == ClassKind.CLASS) && (classInfo.getCorrespondingClassOrObject() instanceof KtObjectDeclaration);
@@ -216,9 +219,9 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
 //            boolean supportClassTypeParameterAnnotations = c.getLanguageVersionSettings().supportsFeature(LanguageFeature.ClassTypeParameterAnnotations);
             List<TypeParameterDescriptor> parameters = new ArrayList<>(typeParameters.size());
 
-//            for (int i = 0; i < typeParameters.size(); i++) {
-//                CjTypeParameter parameter = typeParameters.get(i);
-//                Annotations lazyAnnotations;
+            for (int i = 0; i < typeParameters.size(); i++) {
+                CjTypeParameter parameter = typeParameters.get(i);
+                Annotations lazyAnnotations = Annotations.EMPTY;
 //                if (supportClassTypeParameterAnnotations) {
 //                    lazyAnnotations = new LazyAnnotations(
 //                            new LazyAnnotationsContext(
@@ -237,9 +240,9 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
 //                } else {
 //                    lazyAnnotations = Annotations.EMPTY;
 //                }
-//
-//                parameters.add(new LazyTypeParameterDescriptor(c, this, parameter, lazyAnnotations, i));
-//            }
+
+                parameters.add(new LazyTypeParameterDescriptor(c, this, parameter, lazyAnnotations, i));
+            }
 
             return parameters;
         });

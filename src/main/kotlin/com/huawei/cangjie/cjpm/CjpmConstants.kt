@@ -87,7 +87,7 @@ object CjpmConstants {
     object ProjectLayout {
         val sources = listOf("src", "examples")
         val tests = listOf("tests", "benches")
-        const val target = "build"
+        const val target = "target"
     }
 }
 

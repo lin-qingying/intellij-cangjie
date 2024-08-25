@@ -9,7 +9,7 @@ import com.huawei.cangjie.psi.psiUtil.*
 import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.caches.descriptor
 import com.huawei.cangjie.resolve.caches.resolveToDescriptorIfAny
-import com.huawei.cangjie.resolve.findCallableMemberBySignature
+import com.huawei.cangjie.resolve.descriptorUtil.findCallableMemberBySignature
 import com.huawei.cangjie.resolve.source.getPsi
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.editor.Editor

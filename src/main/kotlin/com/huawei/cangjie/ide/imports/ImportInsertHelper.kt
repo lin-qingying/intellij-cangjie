@@ -11,6 +11,9 @@ import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.caches.getResolutionFacade
+import com.huawei.cangjie.resolve.descriptorUtil.fqNameSafe
+import com.huawei.cangjie.resolve.descriptorUtil.getImportableDescriptor
+import com.huawei.cangjie.resolve.descriptorUtil.targetDescriptors
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.utils.addIfNotNull

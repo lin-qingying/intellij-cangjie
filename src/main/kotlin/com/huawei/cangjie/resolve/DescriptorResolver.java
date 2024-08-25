@@ -21,6 +21,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import com.huawei.cangjie.resolve.calls.util.CallResolverUtilKt;
 import com.huawei.cangjie.resolve.calls.util.UnderscoreUtilKt;
+import com.huawei.cangjie.resolve.descriptorUtil.DescriptorUtilsKt;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyTypeAliasDescriptor;
 import com.huawei.cangjie.resolve.scopes.*;
 import com.huawei.cangjie.resolve.source.CangJieSourceElementKt;
@@ -983,7 +984,7 @@ public class DescriptorResolver {
         TypeParameterDescriptorImpl typeParameterDescriptor = TypeParameterDescriptorImpl.createForFurtherModification(
                 containingDescriptor,
                 annotations,
-                false,   //                typeParameter.hasModifier(CjTokens.REIFIED_KEYWORD),
+                //                typeParameter.hasModifier(CjTokens.REIFIED_KEYWORD),
                 typeParameter.getVariance(),
                 CjPsiUtil.safeName(typeParameter.getName()),
                 index,

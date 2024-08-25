@@ -619,9 +619,9 @@ class NewConstraintSystemImpl(
         get() = storage.outerSystemVariablesPrefixSize
 
     // ResultTypeResolver.Context, VariableFixationFinder.Context
-    override fun isReified(variable: TypeVariableMarker): Boolean {
-        return with(utilContext) { variable.isReified() }
-    }
+//    override fun isReified(variable: TypeVariableMarker): Boolean {
+//        return with(utilContext) { variable.isReified() }
+//    }
 
     override var maxTypeDepthFromInitialConstraints: Int
         get() = storage.maxTypeDepthFromInitialConstraints

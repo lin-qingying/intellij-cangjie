@@ -2,7 +2,7 @@ package com.huawei.cangjie.types.checker;
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor;
-import com.huawei.cangjie.resolve.DescriptorUtilsKt;
+import com.huawei.cangjie.resolve.descriptorUtil.DescriptorUtilsKt;
 import com.huawei.cangjie.types.*;
 import com.huawei.cangjie.types.util.TypeUtils;
 import org.jetbrains.annotations.NotNull;

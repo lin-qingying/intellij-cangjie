@@ -9,7 +9,7 @@ import com.huawei.cangjie.resolve.calls.checkers.CallChecker
 import com.huawei.cangjie.resolve.calls.checkers.CallCheckerContext
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall
 import com.huawei.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
-import com.huawei.cangjie.resolve.fqNameSafe
+import com.huawei.cangjie.resolve.descriptorUtil.fqNameSafe
 import com.huawei.cangjie.types.CangJieType
 import com.intellij.psi.PsiElement
 

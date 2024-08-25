@@ -2,6 +2,7 @@ package com.huawei.cangjie.ide.cache
 
 import com.huawei.cangjie.analyzer.CangJieModuleInfo
 import com.huawei.cangjie.analyzer.ModuleInfo
+import com.huawei.cangjie.analyzer.ModuleSourceInfo
 import com.huawei.cangjie.ide.cache.PerModulePackageCacheService.Companion.DEBUG_LOG_ENABLE_PerModulePackageCache
 import com.huawei.cangjie.ide.indices.CangJiePackageIndexUtils
 import com.huawei.cangjie.ide.notifications.isCangJieFileType
@@ -214,7 +215,7 @@ class PerModulePackageCacheService(private val project: Project) : Disposable {
         }
     }
 
-    private fun invalidateCacheForModuleInfo(moduleSourceInfo: ModuleInfo) {
+    private fun invalidateCacheForModuleInfo(moduleSourceInfo: ModuleSourceInfo) {
         LOG.debugIfEnabled(project) { "Invalidated cache for $moduleSourceInfo" }
         val cache = cacheInstance.get()
         val perSourceInfoData = cache?.get(moduleSourceInfo.module) ?: return
@@ -226,8 +227,7 @@ class PerModulePackageCacheService(private val project: Project) : Disposable {
         checkPendingChanges()
         return implicitPackagePrefixCache.getPrefix(sourceRoot)
     }
-
-    fun packageExists(packageFqName: FqName, moduleInfo: ModuleInfo): Boolean {
+    fun packageExists(packageFqName: FqName, moduleInfo: ModuleSourceInfo): Boolean {
 
 
         val module = moduleInfo.module
@@ -252,6 +252,7 @@ class PerModulePackageCacheService(private val project: Project) : Disposable {
             })
         }
     }
+
 
     private fun clear() {
         synchronized(this) {

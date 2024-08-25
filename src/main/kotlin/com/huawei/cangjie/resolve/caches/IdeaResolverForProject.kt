@@ -108,7 +108,7 @@ class IdeaResolverForProject(
                 }
         }
 
-//        private fun findStdlibForModulesBuiltins(module: ModuleInfo): LibraryInfo? {
+//        private fun findStdlibForModulesBuiltins(module: ModuleInfo): CjpmLibraryInfo? {
 //            return when (IdeBuiltInsLoadingState.state) {
 //                IdeBuiltInsLoadingState.IdeBuiltInsLoading.FROM_CLASSLOADER -> null
 //                IdeBuiltInsLoadingState.IdeBuiltInsLoading.FROM_DEPENDENCIES_JVM -> {

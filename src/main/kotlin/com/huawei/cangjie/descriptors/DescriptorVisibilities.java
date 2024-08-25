@@ -201,6 +201,10 @@ public class DescriptorVisibilities {
                 @NotNull DeclarationDescriptor from,
                 boolean useSpecialRulesForPrivateSealedConstructors
         ) {
+            if (from instanceof  ModuleDescriptor){
+                return true;
+            }
+//            DescriptorUtils.getContainingModule(what);
             PackageData fromModule = DescriptorUtils.getPackageDeclarationDescriptor(from);
 
 //            if (what instanceof  PackageViewDescriptor){
@@ -232,10 +236,10 @@ public class DescriptorVisibilities {
 
         @Override
         public boolean isVisible(@Nullable ReceiverValue receiver, @NotNull DeclarationDescriptor what, @NotNull DeclarationDescriptor from, boolean useSpecialRulesForPrivateSealedConstructors) {
-//            ModuleDescriptor whatModule = DescriptorUtils.getContainingModule(what);
-//            ModuleDescriptor fromModule = DescriptorUtils.getContainingModule(from);
-            PackageData whatModule = DescriptorUtils.getPackageDeclarationDescriptor(what);
-            PackageData fromModule = DescriptorUtils.getPackageDeclarationDescriptor(from);
+            ModuleDescriptor whatModule = DescriptorUtils.getContainingModule(what);
+            ModuleDescriptor fromModule = DescriptorUtils.getContainingModule(from);
+//            PackageData whatModule = DescriptorUtils.getPackageDeclarationDescriptor(what);
+//            PackageData fromModule = DescriptorUtils.getPackageDeclarationDescriptor(from);
 
 
             if (!fromModule.shouldProtectedsOf(whatModule)) return false;

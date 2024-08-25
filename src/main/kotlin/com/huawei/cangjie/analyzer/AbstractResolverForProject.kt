@@ -91,9 +91,8 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
     abstract fun builtInsForModule(module: M): CangJieBuiltIns
 
     override fun diagnoseUnknownModuleInfo(infos: List<ModuleInfo>): Nothing {
-//        DiagnoseUnknownModuleInfoReporter.report(name, infos, allModules)
+        DiagnoseUnknownModuleInfoReporter.report(name, infos, allModules)
 
-        throw RuntimeException("Unknown module info")
     }
 
     private fun checkValid() {
@@ -270,7 +269,7 @@ private object DiagnoseUnknownModuleInfoReporter {
         val message = "$name does not know how to resolve"
         val error = when {
 //            name.contains(ResolverForProject.resolverForSdkName) -> errorInSdkResolver(message)
-//            name.contains(ResolverForProject.resolverForLibrariesName) -> errorInLibrariesResolver(message)
+            name.contains(ResolverForProject.resolverForLibrariesName) -> errorInLibrariesResolver(message)
 //            name.contains(ResolverForProject.resolverForModulesName) -> {
 //                when {
 //                    infos.isEmpty() -> errorInModulesResolverWithEmptyInfos(message)

@@ -3,7 +3,7 @@ package com.huawei.cangjie.resolve.calls.util
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.resolve.constants.ConstantValue
 import com.huawei.cangjie.resolve.descriptorUtil.classValueType
-import com.huawei.cangjie.resolve.getClassObjectReferenceTarget
+import com.huawei.cangjie.resolve.descriptorUtil.getClassObjectReferenceTarget
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeSubstitutor
 import java.util.*

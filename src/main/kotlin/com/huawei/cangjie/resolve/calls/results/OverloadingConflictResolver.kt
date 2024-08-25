@@ -11,7 +11,7 @@ import com.huawei.cangjie.descriptors.synthetic.SyntheticMemberDescriptor
 import com.huawei.cangjie.resolve.DescriptorEquivalenceForOverrides
 import com.huawei.cangjie.resolve.OverridingUtil
 import com.huawei.cangjie.resolve.calls.context.CheckArgumentTypesMode
-import com.huawei.cangjie.resolve.isTypeRefinementEnabled
+import com.huawei.cangjie.resolve.descriptorUtil.isTypeRefinementEnabled
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.model.CangJieTypeMarker

@@ -4,7 +4,7 @@ import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
 import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
-import com.huawei.cangjie.resolve.builtIns
+import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.util.TypeUtils
 

@@ -124,7 +124,12 @@ public class CjPackageDirective extends CjDeclarationStub<CangJiePackageDirectiv
 
 
     public boolean isMacroPackage() {
-        return findChildByType(CjTokens.MACRO_KEYWORD) != null;
+
+//        try {
+            return findChildByType(CjTokens.MACRO_KEYWORD) != null;
+//        } catch (Exception e) {
+//            return false;
+//        }
     }
 
     @NotNull

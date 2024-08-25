@@ -4,7 +4,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.DescriptorUtils
-import com.huawei.cangjie.resolve.getCangJieTypeRefiner
+import com.huawei.cangjie.resolve.descriptorUtil.getCangJieTypeRefiner
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.resolve.scopes.SubstitutingScope
 import com.huawei.cangjie.storage.LockBasedStorageManager

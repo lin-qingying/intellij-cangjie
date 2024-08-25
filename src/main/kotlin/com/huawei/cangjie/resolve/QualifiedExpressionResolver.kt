@@ -15,6 +15,8 @@ import com.huawei.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getParentOfType
 import com.huawei.cangjie.resolve.QualifierPosition.*
+import com.huawei.cangjie.resolve.descriptorUtil.fqNameSafe
+import com.huawei.cangjie.resolve.descriptorUtil.module
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.receivers.*
 import com.huawei.cangjie.resolve.source.CangJieSourceElement

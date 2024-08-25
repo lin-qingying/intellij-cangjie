@@ -27,7 +27,7 @@ import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
-import com.huawei.cangjie.resolve.isFunctionForExpectTypeFromCastFeature
+import com.huawei.cangjie.resolve.descriptorUtil.isFunctionForExpectTypeFromCastFeature
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeApproximator
 import com.huawei.cangjie.types.UnwrappedType
@@ -75,7 +75,8 @@ class CangJieResolutionCallbacksImpl(
         constraintSystem: NewConstraintSystem,
         typeVariable: TypeVariableTypeConstructor
     ): CangJieType? {
-        val variableWithConstraints = constraintSystem.getBuilder().currentStorage().notFixedTypeVariables[typeVariable] ?: return null
+        val variableWithConstraints =
+            constraintSystem.getBuilder().currentStorage().notFixedTypeVariables[typeVariable] ?: return null
         return resultTypeResolver.findResultType(
             constraintSystem.asConstraintSystemCompleterContext(),
             variableWithConstraints,
@@ -84,8 +85,12 @@ class CangJieResolutionCallbacksImpl(
     }
 
     override fun createEmptyConstraintSystem(): NewConstraintSystem = NewConstraintSystemImpl(
-        callComponents.constraintInjector, callComponents.builtIns, callComponents.cangjieTypeRefiner, callComponents.languageVersionSettings
+        callComponents.constraintInjector,
+        callComponents.builtIns,
+        callComponents.cangjieTypeRefiner,
+        callComponents.languageVersionSettings
     )
+
     override fun bindStubResolvedCallForCandidate(candidate: ResolvedCallAtom) {
         cangjieToResolvedCallTransformer.createStubResolvedCallAndWriteItToTrace<CallableDescriptor>(
             candidate, trace, emptyList(), substitutor = null

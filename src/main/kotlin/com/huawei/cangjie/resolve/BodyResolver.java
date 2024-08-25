@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.huawei.cangjie.descriptors.Errors.SUPERTYPE_NOT_INITIALIZED;
-import static com.huawei.cangjie.resolve.DescriptorUtilsKt.isEffectivelyExternal;
+import static com.huawei.cangjie.resolve.descriptorUtil.DescriptorUtilsKt.isEffectivelyExternal;
 import static com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;
 
 public class BodyResolver {

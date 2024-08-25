@@ -8,6 +8,8 @@ import com.huawei.cangjie.psi.psiUtil.getLineCount
 import com.huawei.cangjie.psi.psiUtil.isMultiLine
 import com.huawei.cangjie.psi.psiUtil.nextLeaf
 import com.huawei.cangjie.resolve.*
+import com.huawei.cangjie.resolve.descriptorUtil.fqNameSafe
+import com.huawei.cangjie.resolve.descriptorUtil.getImportableDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiWhiteSpace
 

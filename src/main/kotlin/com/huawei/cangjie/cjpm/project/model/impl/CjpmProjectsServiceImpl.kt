@@ -40,12 +40,15 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
-import com.intellij.openapi.project.impl.ProjectImpl
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleRootModificationUtil
+import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx
+import com.intellij.openapi.roots.libraries.Library
+import com.intellij.openapi.roots.libraries.LibraryTable
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.EmptyRunnable
 import com.intellij.openapi.util.NlsContexts
@@ -283,7 +286,10 @@ class CjpmProjectsServiceImpl(
                     runWriteAction {
                         if (projects.isNotEmpty()) {
                             checkCangjieVersion(projects)
-                            fileTypeManager.associateExtension(CangJieFileType.INSTANCE, CangJieFileType.INSTANCE.defaultExtension)
+                            fileTypeManager.associateExtension(
+                                CangJieFileType.INSTANCE,
+                                CangJieFileType.INSTANCE.defaultExtension
+                            )
                         }
 
                         directoryIndex.resetIndex()
@@ -400,15 +406,18 @@ private fun doRefresh(project: Project, projects: List<CjpmProjectImpl>): Comple
     }
 
     return result.thenApply { updatedProjects ->
+
+
         runWithNonLightProject(project) {
             setupProjectRoots(project, updatedProjects)
+
+
 
             if (Config.isLsp) {
 
 //            TODO 重启lsp服务器
                 CangJieLspServerManager.restartLspServer(project)
             }
-
 
 
         }
@@ -426,28 +435,31 @@ private inline fun runWithNonLightProject(project: Project, action: () -> Unit) 
 
 private fun setupProjectRoots(project: Project, cjpmProjects: List<CjpmProject>) {
     invokeAndWaitIfNeeded {
-        // Initialize services that we use (probably indirectly) in write action below.
-        // Otherwise, they can be initialized in write action that may lead to deadlock
+
         RunManager.getInstance(project)
-        ProjectFileIndex.getInstance(project)
 
         runWriteAction {
             if (project.isDisposed) return@runWriteAction
+
+            addDependencies(project, cjpmProjects)
+
+
+
             ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring {
                 for (cjpmProject in cjpmProjects) {
                     cjpmProject as CjpmProjectImpl
 
-
-                    if(cjpmProject.project.name !=  cjpmProject.workspace?.moduleData?.name){
+//保持与cjpm模块名称一致
+                    if (cjpmProject.project.name != cjpmProject.workspace?.moduleData?.name) {
                         cjpmProject.workspace?.moduleData?.name?.let {
-                            (cjpmProject.project as ProjectImpl).setProjectName(
+                            (cjpmProject.project as ProjectEx).setProjectName(
                                 it
                             )
                         }
                     }
 
 
-
+// 设置生产文件夹
                     cjpmProject.workspaceRootDir?.setupContentRoots(project) { contentRoot ->
                         addExcludeFolder("${contentRoot.url}/${CjpmConstants.ProjectLayout.target}")
                     }
@@ -465,6 +477,59 @@ private fun setupProjectRoots(project: Project, cjpmProjects: List<CjpmProject>)
                 }
             }
         }
+        ProjectFileIndex.getInstance(project)
+
+    }
+}
+
+private val libraryTablesRegistrar = LibraryTablesRegistrar.getInstance()
+
+/**
+ * 添加依赖项
+ */
+private fun addDependencies(project: Project, cjpmProjects: List<CjpmProject>) {
+    val libraryTable = libraryTablesRegistrar.getLibraryTable(project)
+//    删除所有库
+    libraryTable.libraries.forEach {
+        libraryTable.removeLibrary(it)
+
+    }
+    cjpmProjects.forEach { cjpmProject ->
+        cjpmProject.workspace?.packages?.forEach {
+            if (it.origin == PackageOrigin.WORKSPACE) {
+                return@forEach
+            }
+
+
+            val library = it.getOrCreateLibrary(libraryTable)
+            val modifiableModel = library.modifiableModel
+
+            if (it.origin == PackageOrigin.STDLIB) {
+
+
+//                遍历文件夹下节点
+                it.contentRoot?.let { it1 -> modifiableModel.addRoot(it1, OrderRootType.CLASSES) }
+            } else {
+                it.contentRoot?.url?.let { it1 -> modifiableModel.addRoot(it1, OrderRootType.CLASSES) }
+            }
+            modifiableModel.commit()
+        }
+
+    }
+
+
+}
+
+private fun CjpmWorkspace.Package.getOrCreateLibrary(libraryTable: LibraryTable): Library {
+    return if (this.origin == PackageOrigin.STDLIB) {
+        val library = libraryTable.getLibraryByName("stdlib")
+        if (library != null) {
+            library
+        } else {
+            libraryTable.createLibrary("stdlib")
+        }
+    } else {
+        libraryTable.createLibrary()
     }
 }
 
@@ -481,6 +546,9 @@ private fun VirtualFile.setupContentRoots(project: Project, setup: ContentEntryW
 
 private fun VirtualFile.setupContentRoots(packageModule: Module, setup: ContentEntryWrapper.(VirtualFile) -> Unit) {
     ModuleRootModificationUtil.updateModel(packageModule) { rootModel ->
+
+//        rootModel.addInvalidLibrary("stdlib",LibraryTablesRegistrar.PROJECT_LEVEL)
+//        rootModel.commit()
         val contentEntry = rootModel.contentEntries.singleOrNull() ?: return@updateModel
         ContentEntryWrapper(contentEntry).setup(this)
     }

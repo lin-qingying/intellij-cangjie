@@ -26,8 +26,8 @@
         <!--        插件启动初始化-->
         <!--        <applicationService serviceImplementation="com.huawei.cangjie.CangJieStartupActivity" serviceInterface="com.intellij.openapi.startup.StartupActivity"/>-->
         <!--        <postStartupActivity implementation="com.huawei.cangjie.ide.project.CangJieProjectActivity"/>-->
-        <additionalLibraryRootsProvider
-                implementation="com.huawei.cangjie.cjpm.project.workspace.CjAdditionalLibraryRootsProvider"/>
+<!--        <additionalLibraryRootsProvider-->
+<!--                implementation="com.huawei.cangjie.cjpm.project.workspace.CjAdditionalLibraryRootsProvider"/>-->
 
         <!--        编辑器自动插入-->
         <typedHandler implementation="com.huawei.cangjie.ide.editor.CangJieTypedHandler"/>
@@ -180,6 +180,10 @@
                         serviceImplementation="com.huawei.cangjie.ide.references.ReadWriteAccessCheckerDescriptorsImpl"/>
 
 
+
+        <projectService
+                serviceInterface="com.huawei.cangjie.ide.projectStructure.LibraryUsageIndex"
+                serviceImplementation="com.huawei.cangjie.ide.projectStructure.LibraryUsageIndexImpl"/>
         <registryKey
                 key="cangjie.disable.auto.completion.inside.expression"
                 description="Disables auto-completion inside expressions"

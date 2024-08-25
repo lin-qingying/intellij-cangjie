@@ -51,6 +51,7 @@ class CangJieModuleBuilder(
 
     fun createProject(modifiableRootModel: ModifiableRootModel, vcs: String? = null) {
         val root = doAddContentEntry(modifiableRootModel)?.file ?: return
+//        继承sdk
         modifiableRootModel.inheritSdk()
         val toolchain = configurationData?.settings?.toolchain
 

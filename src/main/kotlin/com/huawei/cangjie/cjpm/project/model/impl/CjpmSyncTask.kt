@@ -52,6 +52,7 @@ import java.util.zip.ZipInputStream
 import javax.swing.JComponent
 import kotlin.io.path.exists
 
+
 class CjpmSyncTask(
     project: Project,
     private val cjpmProjects: List<CjpmProjectImpl>,
@@ -214,6 +215,10 @@ class CjpmSyncTask(
             result.completeExceptionally(e)
             throw e
         }
+
+
+
+
         result.complete(refreshedProjects)
         val elapsed = System.currentTimeMillis() - start
         LOG.debug("Finished Cjpm sync task in $elapsed ms")
@@ -491,7 +496,7 @@ private fun fetchStdlib(
 
 
                     try {
-                        TaskResult.Ok(StandardLibrary.fromFileStdlib(stdlibPath,version))
+                        TaskResult.Ok(StandardLibrary.fromFileStdlib(stdlibPath, version))
 
                     } catch (e: IllegalArgumentException) {
                         TaskResult.Err(e.toString())
@@ -505,7 +510,7 @@ private fun fetchStdlib(
             }
         }
         try {
-            TaskResult.Ok(StandardLibrary.fromFileStdlib(stdlibPath,version))
+            TaskResult.Ok(StandardLibrary.fromFileStdlib(stdlibPath, version))
 
         } catch (e: IllegalArgumentException) {
             TaskResult.Err(e.toString())

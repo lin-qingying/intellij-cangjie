@@ -55,6 +55,7 @@ class CompositePackageFragmentProvider(// can be modified from outside
         return providers.all { it.isEmpty(fqName) }
     }
 
+    @Deprecated("for usages use #packageFragments(FqName) at final point, for impl use #collectPackageFragments(FqName, MutableCollection<PackageFragmentDescriptor>)")
     override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> {
         val result = ArrayList<PackageFragmentDescriptor>()
         for (provider in providers) {

@@ -4,7 +4,7 @@ import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.ClassifierDescriptor
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.name.SpecialNames
-import com.huawei.cangjie.resolve.builtIns
+import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.resolve.descriptorUtil.hasOnlyInputTypesAnnotation
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner

@@ -2,11 +2,11 @@ package com.huawei.cangjie.ide.projectStructure
 
 import com.huawei.cangjie.analyzer.LibraryInfo
 import com.huawei.cangjie.analyzer.ModuleInfo
-import com.huawei.cangjie.cjpm.project.workspace.CjAdditionalLibraryRootsProvider
+import com.huawei.cangjie.analyzer.ModuleSourceInfo
 import com.huawei.cangjie.cjpm.project.workspace.CjpmLibrary
 import com.huawei.cangjie.ide.base.projectStructure.RootKindFilter
 import com.huawei.cangjie.ide.base.projectStructure.matches
-import com.huawei.cangjie.ide.cache.project.CjpmLibraryInfoCache
+
 import com.huawei.cangjie.ide.cache.project.LibraryInfoCache
 import com.huawei.cangjie.ide.cache.project.cangjieModuleInfo
 import com.huawei.cangjie.psi.*
@@ -99,13 +99,13 @@ class ModuleInfoProvider(private val project: Project) {
 //    }
     private fun SeqScope<Result<ModuleInfo>>.collectByElement(element: PsiElement, config: Configuration) {
         val containingFile = element.containingFile
-//
-//        if (containingFile != null) {
-//            val moduleInfo = containingFile.forcedModuleInfo
-//            if (moduleInfo is ModuleInfo) {
-//                register(moduleInfo)
-//            }
-//        }
+
+        if (containingFile != null) {
+            val moduleInfo = containingFile.forcedModuleInfo
+            if (moduleInfo is ModuleInfo) {
+                register(moduleInfo)
+            }
+        }
 
 
         if (element is PsiDirectory) {
@@ -161,7 +161,7 @@ class ModuleInfoProvider(private val project: Project) {
                     extensionBlock = { collectByElement(element, containingFile, virtualFile) },
                 ) {
 //                    val isLibrarySource = if (containingCjFile != null) isLibrarySource(containingCjFile, config) else false
-                    collectByFile(virtualFile, isLibrarySource = false, config)
+                    collectByFile(virtualFile, isLibrarySource = true, config)
                 }
             } else {
                 val message =
@@ -245,6 +245,32 @@ class ModuleInfoProvider(private val project: Project) {
     ): ModuleInfo? {
         val contextualModuleInfo = config.contextualModuleInfo ?: return null
 
+//        val contentScope = when (contextualModuleInfo) {
+//            is CjpmLibraryInfo -> contextualModuleInfo.contentScope
+////            is LibrarySourceInfo -> contextualModuleInfo.sourceScope()
+//            else -> null
+//        }
+
+//        if (contentScope == null || virtualFile !in contentScope) {
+//            return null
+//        }
+//
+//        return when (contextualModuleInfo) {
+//            is CjpmLibraryInfo -> contextualModuleInfo.library?.let {
+//                collectByLibrary(
+//                    virtualFile,
+//                    it,
+//                    isLibrarySource,
+//                    visited,
+//                    config
+//                )
+//            }
+////            is LibrarySourceInfo -> collectByLibrary(virtualFile, contextualModuleInfo.library, isLibrarySource, visited, config)
+////            is SdkInfo -> collectBySdk(contextualModuleInfo.sdk, visited)
+//            else -> null
+//        }
+
+
         val contentScope = when (contextualModuleInfo) {
             is LibraryInfo -> contextualModuleInfo.contentScope
 //            is LibrarySourceInfo -> contextualModuleInfo.sourceScope()
@@ -256,15 +282,13 @@ class ModuleInfoProvider(private val project: Project) {
         }
 
         return when (contextualModuleInfo) {
-            is LibraryInfo -> contextualModuleInfo.library?.let {
-                collectByLibrary(
-                    virtualFile,
-                    it,
-                    isLibrarySource,
-                    visited,
-                    config
-                )
-            }
+            is LibraryInfo -> collectByLibrary(
+                virtualFile,
+                contextualModuleInfo.library,
+                isLibrarySource,
+                visited,
+                config
+            )
 //            is LibrarySourceInfo -> collectByLibrary(virtualFile, contextualModuleInfo.library, isLibrarySource, visited, config)
 //            is SdkInfo -> collectBySdk(contextualModuleInfo.sdk, visited)
             else -> null
@@ -298,24 +322,10 @@ class ModuleInfoProvider(private val project: Project) {
             yieldAll(object : Iterable<Result<ModuleInfo>> {
                 override fun iterator(): Iterator<Result<ModuleInfo>> {
 
-                    val librarys =
-                        runReadAction { CjAdditionalLibraryRootsProvider.findLibrarysByCjFile(project, virtualFile) }
-
-                    val iterator = librarys.iterator()
-                    return MappingIterator(iterator) { orderEntry ->
-                        collectByOrderEntry(
-                            virtualFile,
-                            orderEntry,
-                            isLibrarySource,
-                            visited,
-                            config
-                        )?.let(Result.Companion::success)
-                    }
-
-
-////                    TODO 由于并未采用idea方式的依赖库添加，所以这里获取不到
-//                    val orderEntries = runReadAction { fileIndex.getOrderEntriesForFile(virtualFile) }
-//                    val iterator = orderEntries.iterator()
+//                    val librarys =
+//                        runReadAction { CjAdditionalLibraryRootsProvider.findLibrarysByCjFile(project, virtualFile) }
+//
+//                    val iterator = librarys.iterator()
 //                    return MappingIterator(iterator) { orderEntry ->
 //                        collectByOrderEntry(
 //                            virtualFile,
@@ -325,28 +335,42 @@ class ModuleInfoProvider(private val project: Project) {
 //                            config
 //                        )?.let(Result.Companion::success)
 //                    }
+
+
+
+                    val orderEntries = runReadAction { fileIndex.getOrderEntriesForFile(virtualFile) }
+                    val iterator = orderEntries.iterator()
+                    return MappingIterator(iterator) { orderEntry ->
+                        collectByOrderEntry(
+                            virtualFile,
+                            orderEntry,
+                            isLibrarySource,
+                            visited,
+                            config
+                        )?.let(Result.Companion::success)
+                    }
                 }
             })
         }
 
     }
 
-    private fun collectByOrderEntry(
-        virtualFile: VirtualFile,
-        library: SyntheticLibrary,
-        isLibrarySource: Boolean,
-        visited: HashSet<ModuleInfo>,
-        config: Configuration,
-    ): ModuleInfo? {
-        if (library !is CjpmLibrary) {
-            return null
-        }
-        ProgressManager.checkCanceled()
-
-
-        return collectByLibrary(virtualFile, library, isLibrarySource, visited, config)
-
-    }
+//    private fun collectByOrderEntry(
+//        virtualFile: VirtualFile,
+//        library: SyntheticLibrary,
+//        isLibrarySource: Boolean,
+//        visited: HashSet<ModuleInfo>,
+//        config: Configuration,
+//    ): ModuleInfo? {
+//        if (library !is CjpmLibrary) {
+//            return null
+//        }
+//        ProgressManager.checkCanceled()
+//
+//
+//        return collectByLibrary(virtualFile, library, isLibrarySource, visited, config)
+//
+//    }
 
     private fun collectByOrderEntry(
         virtualFile: VirtualFile,
@@ -376,25 +400,25 @@ class ModuleInfoProvider(private val project: Project) {
     }
 
     private val libraryInfoCache by lazy { LibraryInfoCache.getInstance(project) }
-    private val cjpmLibraryInfoCache by lazy { CjpmLibraryInfoCache.getInstance(project) }
+//    private val cjpmLibraryInfoCache by lazy { CjpmLibraryInfoCache.getInstance(project) }
 
 
-    private fun collectByLibrary(
-        virtualFile: VirtualFile,
-        library: CjpmLibrary,
-        isLibrarySource: Boolean,
-        visited: HashSet<ModuleInfo>,
-        config: Configuration,
-    ): ModuleInfo? {
-        for (libraryInfo in cjpmLibraryInfoCache[library]) {
-                if (visited.add(libraryInfo)) {
-//                    if (libraryInfo.isApplicable(sourceContext)) {
-                        return libraryInfo
-//                    }
-                }
-        }
-        return null
-    }
+//    private fun collectByLibrary(
+//        virtualFile: VirtualFile,
+//        library: CjpmLibrary,
+//        isLibrarySource: Boolean,
+//        visited: HashSet<ModuleInfo>,
+//        config: Configuration,
+//    ): ModuleInfo? {
+//        for (libraryInfo in cjpmLibraryInfoCache[library]) {
+//            if (visited.add(libraryInfo)) {
+////                    if (libraryInfo.isApplicable(sourceContext)) {
+//                return libraryInfo
+////                    }
+//            }
+//        }
+//        return null
+//    }
 
     private fun collectByLibrary(
         virtualFile: VirtualFile,
@@ -404,27 +428,37 @@ class ModuleInfoProvider(private val project: Project) {
         config: Configuration,
     ): ModuleInfo? {
 
-        val sourceContext = config.contextualModuleInfo
+        val sourceContext = config.contextualModuleInfo as? ModuleSourceInfo
+
         if (!isLibrarySource && RootKindFilter.libraryClasses.matches(project, virtualFile)) {
             for (libraryInfo in libraryInfoCache[library]) {
-//                if (visited.add(libraryInfo)) {
-//                    if (libraryInfo.isApplicable(sourceContext)) {
-//                        return libraryInfo
-//                    }
-//                }
+                if (visited.add(libraryInfo)) {
+                    if (libraryInfo.isApplicable(sourceContext)) {
+                        return libraryInfo
+                    }
+                }
             }
         } else if (isLibrarySource || RootKindFilter.libraryFiles.matches(project, virtualFile)) {
             for (libraryInfo in libraryInfoCache[library]) {
+
+
 //                val moduleInfo = libraryInfo.sourcesModuleInfo
-//                if (visited.add(moduleInfo)) {
-//                    if (libraryInfo.isApplicable(sourceContext)) {
-//                        return moduleInfo
-//                    }
-//                }
+                if (visited.add(libraryInfo)) {
+                    if (libraryInfo.isApplicable(sourceContext)) {
+                        return libraryInfo
+                    }
+                }
             }
         }
 
         return null
+    }
+
+    private fun LibraryInfo.isApplicable(contextualModuleInfo: ModuleSourceInfo?): Boolean {
+        if (contextualModuleInfo == null) return true
+
+        val service = project.service<LibraryUsageIndex>()
+        return service.hasDependentModule(this, contextualModuleInfo.module)
     }
 
     fun collect(element: PsiElement, config: Configuration = Configuration.Default): Sequence<Result<ModuleInfo>> {

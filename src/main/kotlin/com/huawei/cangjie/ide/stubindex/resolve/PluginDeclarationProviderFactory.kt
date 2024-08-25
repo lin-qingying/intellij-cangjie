@@ -2,6 +2,8 @@ package com.huawei.cangjie.ide.stubindex.resolve
 
 import com.huawei.cangjie.analyzer.CangJieModuleInfo
 import com.huawei.cangjie.analyzer.ModuleInfo
+import com.huawei.cangjie.analyzer.ModuleSourceInfo
+import com.huawei.cangjie.analyzer.projectSourceModules
 import com.huawei.cangjie.ide.cache.PerModulePackageCacheService
 import com.huawei.cangjie.ide.cache.trackers.CangJieCodeBlockModificationListener
 import com.huawei.cangjie.ide.indices.CangJiePackageIndexUtils
@@ -36,10 +38,10 @@ class PluginDeclarationProviderFactory(
         fileBasedDeclarationProviderFactory.packageExists(fqName) || stubBasedPackageExists(fqName)
 
     private fun stubBasedPackageExists(name: FqName): Boolean {
-//return true
-        // We're only looking for source-based declarations
-        return PerModulePackageCacheService.getInstance(project).packageExists(name, moduleInfo)
+//return PerModulePackageCacheService.getInstance(project).packageExists(name, moduleInfo)
 
+        return moduleInfo.projectSourceModules()
+            .any { PerModulePackageCacheService.getInstance(project).packageExists(name, it) }
 
     }
 
@@ -85,17 +87,19 @@ class PluginDeclarationProviderFactory(
     private fun diagnoseMissingPackageFragmentUnknownReason(message: String): Nothing {
         throw IllegalStateException(message)
     }
+
     private fun oldPackageExists(packageFqName: FqName): Boolean =
-       CangJiePackageIndexUtils.packageExists(packageFqName, indexedFilesScope)
+        CangJiePackageIndexUtils.packageExists(packageFqName, indexedFilesScope)
 
     private val onCreationDebugInfo = debugInfo()
     override fun diagnoseMissingPackageFragment(fqName: FqName, file: CjFile?) {
-        val moduleSourceInfo = moduleInfo
+        val moduleSourceInfo = moduleInfo as? ModuleSourceInfo
+
         val packageExists = CangJiePackageIndexUtils.packageExists(fqName, indexedFilesScope)
         val spiPackageExists = CangJiePackageIndexUtils.packageExists(fqName, project)
         val oldPackageExists = oldPackageExists(fqName)
         val cachedPackageExists =
-            moduleSourceInfo.let { project.service<PerModulePackageCacheService>().packageExists(fqName, it) }
+            moduleSourceInfo?.let { project.service<PerModulePackageCacheService>().packageExists(fqName, it) }
 //        val moduleModificationCount = moduleSourceInfo?.createModificationTracker()?.modificationCount
 
         val common = """

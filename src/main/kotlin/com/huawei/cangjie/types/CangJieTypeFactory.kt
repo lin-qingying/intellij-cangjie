@@ -2,12 +2,16 @@ package com.huawei.cangjie.types
 
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.TypeAliasDescriptor
+import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.error.ErrorScopeKind
-
+import com.huawei.cangjie.descriptors.impl.getRefinedMemberScopeIfPossible
+import com.huawei.cangjie.descriptors.impl.getRefinedUnsubstitutedMemberScopeIfPossible
+import com.huawei.cangjie.resolve.descriptorUtil.getCangJieTypeRefiner
+import com.huawei.cangjie.resolve.descriptorUtil. module
 private class ExpandedTypeOrRefinedConstructor(val expandedType: SimpleType?, val refinedConstructor: TypeConstructor?)
 
 object CangJieTypeFactory {
@@ -58,25 +62,25 @@ object CangJieTypeFactory {
         cangjieTypeRefiner: CangJieTypeRefiner? = null
     ): MemberScope {
         return when (val descriptor = constructor.declarationDescriptor) {
-//            is TypeParameterDescriptor -> descriptor.getDefaultType().memberScope
-//            is ClassDescriptor -> {
-//                val refinerToUse = kotlinTypeRefiner ?: descriptor.module.getCangJieTypeRefiner()
-//                if (arguments.isEmpty())
-//                    descriptor.getRefinedUnsubstitutedMemberScopeIfPossible(refinerToUse)
-//                else
-//                // REVIEW
-//                    descriptor.getRefinedMemberScopeIfPossible(
-//                        TypeConstructorSubstitution.create(constructor, arguments),
-//                        refinerToUse
-//                    )
-//            }
-//            is TypeAliasDescriptor -> ErrorUtils.createErrorScope(
-//                ErrorScopeKind.SCOPE_FOR_ABBREVIATION_TYPE, throwExceptions = true, descriptor.name.toString()
-//            )
+            is TypeParameterDescriptor -> descriptor.getDefaultType().memberScope
+            is ClassDescriptor -> {
+                val refinerToUse = cangjieTypeRefiner ?: descriptor.module.getCangJieTypeRefiner()
+                if (arguments.isEmpty())
+                    descriptor.getRefinedUnsubstitutedMemberScopeIfPossible(refinerToUse)
+                else
+                // REVIEW
+                    descriptor.getRefinedMemberScopeIfPossible(
+                        TypeConstructorSubstitution.create(constructor, arguments),
+                        refinerToUse
+                    )
+            }
+            is TypeAliasDescriptor -> ErrorUtils.createErrorScope(
+                ErrorScopeKind.SCOPE_FOR_ABBREVIATION_TYPE, throwExceptions = true, descriptor.name.toString()
+            )
             else -> {
-//                if (constructor is IntersectionTypeConstructor) {
-//                    return constructor.createScopeForCangJieType()
-//                }
+                if (constructor is IntersectionTypeConstructor) {
+                    return constructor.createScopeForCangJieType()
+                }
 
                 throw IllegalStateException("Unsupported classifier: $descriptor for constructor: $constructor")
             }

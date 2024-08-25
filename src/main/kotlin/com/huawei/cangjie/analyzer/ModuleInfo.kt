@@ -1,27 +1,25 @@
 package com.huawei.cangjie.analyzer
 
+import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.cjpm.project.workspace.CjpmLibrary
 import com.huawei.cangjie.descriptors.ModuleCapability
+import com.huawei.cangjie.ide.base.projectStructure.CangJieSourceFilterScope
+import com.huawei.cangjie.ide.base.projectStructure.RootKindFilter
 import com.huawei.cangjie.ide.cache.cacheByClassInvalidatingOnRootModifications
 import com.huawei.cangjie.ide.projectStructure.CangJieModuleDependencyCollector
+import com.huawei.cangjie.ide.projectStructure.CangJieResolveScopeEnlarger
+import com.huawei.cangjie.ide.projectStructure.scope.PoweredLibraryScopeBase
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.PlatformDependentAnalyzerServices
 import com.huawei.cangjie.resolve.PlatformDependentAnalyzerServicesImpl
-import com.intellij.diagnostic.ActivityCategory
-import com.intellij.openapi.extensions.ExtensionsArea
-import com.intellij.openapi.extensions.PluginDescriptor
-import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.impl.ModuleEx
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
+import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.impl.libraries.LibraryEx
-import com.intellij.openapi.util.Condition
-import com.intellij.openapi.util.Key
+import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.util.messages.MessageBus
-import java.nio.file.Path
 
 
 enum class ModuleOrigin {
@@ -34,18 +32,20 @@ interface ModuleInfo {
 
     val name: Name
     val project: Project
-    val module: Module?
+    val contentScope: GlobalSearchScope
+//        get() = GlobalSearchScope.allScope(project)
+
+
+    val moduleContentScope: GlobalSearchScope
+        get() = contentScope
+
+    //    val module: Module
     val displayedName: String get() = name.asString()
 
     val moduleOrigin: ModuleOrigin
 
     //    val contentScope: GlobalSearchScope
-    val contentScope: GlobalSearchScope
-        get() = GlobalSearchScope.allScope(project)
 
-
-    val moduleContentScope: GlobalSearchScope
-        get() = contentScope
 
     fun dependencies(): List<ModuleInfo> {
         return emptyList()
@@ -62,11 +62,79 @@ interface ModuleInfo {
     }
 }
 
+interface ModuleSourceInfo : ModuleInfo {
+    val module: Module
+
+}
+
 abstract class LibraryInfo internal constructor(
     override val project: Project,
+    val library: LibraryEx,
+
+    ) : ModuleSourceInfo {
+
+    override val moduleOrigin: ModuleOrigin get() = ModuleOrigin.LIBRARY
+    override val name: Name = Name.special("<library ${library.name}>")
+    override val displayedName: String
+        get() = CangJieBundle.message("library.0", library.presentableName)
+
+        override val contentScope: GlobalSearchScope
+        get() = LibraryWithoutSourceScope(project, library)
+//    override val contentScope: GlobalSearchScope
+//        get() = CangJieSourceFilterScope.create(LibraryWithoutSourceScope(project, library), project
+//             ,   RootKindFilter(
+//                 true,
+//
+//                true,
+//
+//                true,
+//
+//                true,
+//
+//                true,
+//
+//                true,
+//             )
+//        )
+    override val module: Module
+        get() {
+
+            project.modules.forEach {
+                if (it.name == project.name)
+                    return it
+
+            }
+            return project.modules[0]
+
+        }
+
+    override fun dependencies(): List<ModuleInfo> {
+//        val dependencies = LibraryDependenciesCache.getInstance(project).getLibraryDependencies(this)
+        return buildList {
+            add(this@LibraryInfo)
+//            addAll(dependencies.sdk)
+//            addAll(dependencies.librariesWithoutSelf)
+        }
+    }
+
+    override fun toString() =
+        "${this::class.simpleName}@${Integer.toHexString(System.identityHashCode(this))}($library)"
+
+
+}
+
+
+class CangJieLibrary(override val project: Project, library: LibraryEx) : LibraryInfo(project, library) {
+
+    override val analyzerServices: PlatformDependentAnalyzerServices
+        get() = PlatformDependentAnalyzerServicesImpl
+}
+
+abstract class CjpmLibraryInfo internal constructor(
+    override val project: Project,
     open val cjpmLibrary: CjpmLibrary,
-    open val library: LibraryEx? = null,
-) : ModuleInfo {
+
+    ) : ModuleInfo {
 //    override fun checkValidity() {
 //        if (isDisposed) {
 //            throw AlreadyDisposedException("Library '${name}' is already disposed")
@@ -74,48 +142,53 @@ abstract class LibraryInfo internal constructor(
 //    }
 }
 
-class CangJieLibraryInfo(override val project: Project, library: CjpmLibrary) : LibraryInfo(project, library) {
-    override val name: Name = Name.special("<sources for library ${library.name}>")
-    override val module: Module
-        get() {
-//         TODO   该模块在不依赖此库时并没有卸载
-            return ModuleManager.getInstance(project)
-                .findModuleByName(this.cjpmLibrary.sourceRoots.first().toNioPath().toFile().name)
-                ?: ModuleManager.getInstance(project).modules[0]
-
-        }
-    override val moduleOrigin: ModuleOrigin = ModuleOrigin.LIBRARY
-    override fun dependencies(): List<ModuleInfo> {
-        return module.cacheByClassInvalidatingOnRootModifications(this::class.java) {
-
-
-            listOf(this)
-//            CangJieModuleDependencyCollector.getInstance(module.project)
-//                .collectModuleDependencies(module, includeExportedDependencies = true)
-//                .toList()
-        }
-    }
-    // TODO 依赖
-//    override val contentScope: GlobalSearchScope
-//        get() = GlobalSearchScope.moduleScope(module)
-//    override val contentSc/ope: GlobalSearchScope
-//        get() = CangJieResolveScopeEnlarger.enlargeScope(
-//            module.moduleProductionSourceScope,
-//            module,
-//            isTestScope = false
-//        )
-
-    //    LibraryWithoutSourceScope(project, library)
-    override val analyzerServices: PlatformDependentAnalyzerServices
-        = PlatformDependentAnalyzerServicesImpl
-
-
-}
+//class CangJieCjpmLibraryInfo(override val project: Project, library: CjpmLibrary) : CjpmLibraryInfo(project, library) {
+//    override val name: Name = Name.special("<sources for library ${library.name}>")
+//
+//    //    override val module: Module
+////        get() {
+//////         TODO   该模块在不依赖此库时并没有卸载
+////            return ModuleManager.getInstance(project)
+////                .findModuleByName(this.cjpmLibrary.sourceRoots.first().toNioPath().toFile().name)
+////                ?: ModuleManager.getInstance(project).modules[0]
+////
+////        }
+//    override val moduleOrigin: ModuleOrigin = ModuleOrigin.LIBRARY
+////    override fun dependencies(): List<ModuleInfo> {
+////        return module.cacheByClassInvalidatingOnRootModifications(this::class.java) {
+////
+////
+////            listOf(this)
+//////            CangJieModuleDependencyCollector.getInstance(module.project)
+//////                .collectModuleDependencies(module, includeExportedDependencies = true)
+//////                .toList()
+////        }
+////    }
+//    // TODO 依赖
+////    override val contentScope: GlobalSearchScope
+////        get() = GlobalSearchScope.moduleScope(module)
+////    override val contentSc/ope: GlobalSearchScope
+////        get() = CangJieResolveScopeEnlarger.enlargeScope(
+////            module.moduleProductionSourceScope,
+////            module,
+////            isTestScope = false
+////        )
+//
+//    //    LibraryWithoutSourceScope(project, library)
+//    override val analyzerServices: PlatformDependentAnalyzerServices = PlatformDependentAnalyzerServicesImpl
+//
+////    override val contentScope: GlobalSearchScope
+////        get() = CangJieResolveScopeEnlarger.enlargeScope(
+////            module.moduleProductionSourceScope,
+////            module,
+////            isTestScope = false
+////        )
+//}
 
 data class CangJieModuleInfo(
 
     override val module: Module
-) : ModuleInfo, DerivedModuleInfo {
+) : ModuleSourceInfo, DerivedModuleInfo {
 
 
     override val moduleOrigin: ModuleOrigin
@@ -126,12 +199,12 @@ data class CangJieModuleInfo(
     override val originalModule: ModuleInfo
         get() = this
 
-//    override val contentScope: GlobalSearchScope
-//        get() = CangJieResolveScopeEnlarger.enlargeScope(
-//            module.moduleProductionSourceScope,
-//            module,
-//            isTestScope = false
-//        )
+    override val contentScope: GlobalSearchScope
+        get() = CangJieResolveScopeEnlarger.enlargeScope(
+            module.moduleProductionSourceScope,
+            module,
+            isTestScope = false
+        )
 //override val contentScope: GlobalSearchScope
 //    get() = GlobalSearchScope.moduleScope(module)
 //    override val contentScope: GlobalSearchScope
@@ -139,7 +212,6 @@ data class CangJieModuleInfo(
 
     override fun dependencies(): List<ModuleInfo> {
         return module.cacheByClassInvalidatingOnRootModifications(this::class.java) {
-
             CangJieModuleDependencyCollector.getInstance(module.project)
                 .collectModuleDependencies(module, includeExportedDependencies = true)
                 .toList()
@@ -154,4 +226,35 @@ data class CangJieModuleInfo(
 
 }
 
+@Suppress("EqualsOrHashCode") // DelegatingGlobalSearchScope requires to provide calcHashCode()
+private class LibraryWithoutSourceScope(
+    project: Project,
+    private val library: Library
+) : PoweredLibraryScopeBase(project, library.getFiles(OrderRootType.CLASSES), VirtualFile.EMPTY_ARRAY) {
 
+    override fun getFileRoot(file: VirtualFile): VirtualFile? = myIndex.getClassRootForFile(file)
+
+    override fun equals(other: Any?) = other is LibraryWithoutSourceScope && library == other.library
+    override fun calcHashCode(): Int = library.hashCode()
+    override fun toString() = "LibraryWithoutSourceScope($library)"
+}
+
+fun ModuleInfo.projectSourceModules(): List<ModuleSourceInfo> {
+    return when (this) {
+        is ModuleSourceInfo -> listOf(this)
+//        is PlatformModuleInfo -> containedModules
+        else -> emptyList()
+    }
+}
+
+@Suppress("EqualsOrHashCode") // DelegatingGlobalSearchScope requires to provide 'calcHashCode()'
+private class LibrarySourceScope(
+    project: Project,
+    private val library: Library
+) : PoweredLibraryScopeBase(project, VirtualFile.EMPTY_ARRAY, library.getFiles(OrderRootType.SOURCES)) {
+    override fun getFileRoot(file: VirtualFile): VirtualFile? = myIndex.getSourceRootForFile(file)
+
+    override fun equals(other: Any?) = other is LibrarySourceScope && library == other.library
+    override fun calcHashCode(): Int = library.hashCode()
+    override fun toString() = "LibrarySourceScope($library)"
+}

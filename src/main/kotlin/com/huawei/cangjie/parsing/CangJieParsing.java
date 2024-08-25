@@ -1591,8 +1591,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
             while (true) {
                 if (at(COMMA)) errorAndAdvance("Expecting type parameter declaration");
-//                parseTypeParameter();
-                parseTypeRef(true);
+                parseTypeParameter();
+//                parseTypeRef(true);
 
                 if (!at(COMMA)) break;
                 advance(); // COMMA
@@ -1627,10 +1627,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         expect(IDENTIFIER, "Type parameter name expected", TokenSet.EMPTY);
 
-        if (at(COLON)) {
-            advance(); // COLON
-            parseTypeRef();
-        }
+//        if (at(COLON)) {
+//            advance(); // COLON
+//            parseTypeRef();
+//        }
 
         mark.done(TYPE_PARAMETER);
     }

@@ -25,6 +25,7 @@ import com.huawei.cangjie.resolve.calls.tower.PSICallResolver;
 import com.huawei.cangjie.resolve.calls.util.CallMaker;
 import com.huawei.cangjie.resolve.calls.util.CallResolverUtilKt;
 import com.huawei.cangjie.resolve.calls.util.CallUtilKt;
+import com.huawei.cangjie.resolve.descriptorUtil.DescriptorUtilsKt;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.resolve.scopes.SyntheticScopes;
 import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver;

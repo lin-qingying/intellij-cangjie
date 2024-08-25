@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.huawei.cangjie.resolve.DescriptorUtilsKt.getBuiltIns;
+import static com.huawei.cangjie.resolve.descriptorUtil.DescriptorUtilsKt.getBuiltIns;
 
 public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor {
     @Nullable
@@ -37,7 +37,7 @@ public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor
     private TypeParameterDescriptorImpl(
             @NotNull DeclarationDescriptor containingDeclaration,
             @NotNull Annotations annotations,
-            boolean reified,
+//            boolean reified,
             @NotNull Variance variance,
             @NotNull Name name,
             int index,
@@ -46,7 +46,7 @@ public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor
             @NotNull SupertypeLoopChecker supertypeLoopsChecker,
             @NotNull StorageManager storageManager
     ) {
-        super(storageManager, containingDeclaration, annotations, name, variance, reified, index, source, supertypeLoopsChecker);
+        super(storageManager, containingDeclaration, annotations, name, variance, /*reified,*/ index, source, supertypeLoopsChecker);
         this.reportCycleError = reportCycleError;
     }
     public void addDefaultUpperBound() {
@@ -62,14 +62,14 @@ public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor
     public static TypeParameterDescriptor createWithDefaultBound(
             @NotNull DeclarationDescriptor containingDeclaration,
             @NotNull Annotations annotations,
-            boolean reified,
+//            boolean reified,
             @NotNull Variance variance,
             @NotNull Name name,
             int index,
             @NotNull StorageManager storageManager
     ) {
         TypeParameterDescriptorImpl typeParameterDescriptor = createForFurtherModification(
-                containingDeclaration, annotations, reified, variance, name, index, SourceElement.NO_SOURCE, storageManager
+                containingDeclaration, annotations, /*reified,*/ variance, name, index, SourceElement.NO_SOURCE, storageManager
         );
         typeParameterDescriptor.addUpperBound(getBuiltIns(containingDeclaration).getDefaultBound());
         typeParameterDescriptor.setInitialized();
@@ -78,7 +78,7 @@ public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor
     public static TypeParameterDescriptorImpl createForFurtherModification(
             @NotNull DeclarationDescriptor containingDeclaration,
             @NotNull Annotations annotations,
-            boolean reified,
+//            boolean reified,
             @NotNull Variance variance,
             @NotNull Name name,
             int index,
@@ -86,7 +86,7 @@ public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor
             @NotNull StorageManager storageManager
     ) {
         return createForFurtherModification(
-                containingDeclaration, annotations, reified, variance, name, index, source,
+                containingDeclaration, annotations,/* reified,*/ variance, name, index, source,
                 null, SupertypeLoopChecker.EMPTY.INSTANCE, storageManager
         );
     }
@@ -94,7 +94,7 @@ public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor
     public static TypeParameterDescriptorImpl createForFurtherModification(
             @NotNull DeclarationDescriptor containingDeclaration,
             @NotNull Annotations annotations,
-            boolean reified,
+//            boolean reified,
             @NotNull Variance variance,
             @NotNull Name name,
             int index,
@@ -104,7 +104,7 @@ public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor
             @NotNull StorageManager storageManager
     ) {
         return new TypeParameterDescriptorImpl(
-                containingDeclaration, annotations, reified, variance, name,
+                containingDeclaration, annotations, /*reified,*/ variance, name,
                 index, source, reportCycleError, supertypeLoopsResolver, storageManager
         );
     }

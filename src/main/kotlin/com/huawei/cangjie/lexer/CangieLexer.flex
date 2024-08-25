@@ -205,7 +205,7 @@ SINGLE_QUO = \'
 //双引号
 DOUBLE_QUO = \"
 
-
+REGULAR_STRING_PART=[^\\\"\n\$]+
 REGULAR_STRING_PART_DOUBLE=[^\\\"\n\$]+
 REGULAR_STRING_PART_SINGLE=[^\\\'\n\$]+
 
@@ -346,19 +346,23 @@ LONELY_BACKTICK=`
  {SINGLE_QUO}                  { pushState(STRING_SINGLE); return CjTokens.OPEN_QUOTE; }
 <STRING_SINGLE> \n                 { popState(); yypushback(1); return CjTokens.DANGLING_NEWLINE; }
 <STRING_SINGLE>     {SINGLE_QUO}             { popState(); return CjTokens.CLOSING_QUOTE; }
+<STRING_SINGLE> {ESCAPE_SEQUENCE}  { return CjTokens.ESCAPE_SEQUENCE; }
 
 {DOUBLE_QUO}                  { pushState(STRING_DOUBLE); return CjTokens.OPEN_QUOTE; }
 <STRING_DOUBLE> \n                 { popState(); yypushback(1); return CjTokens.DANGLING_NEWLINE; }
 <STRING_DOUBLE>     {DOUBLE_QUO}             { popState(); return CjTokens.CLOSING_QUOTE; }
+<STRING_DOUBLE> {ESCAPE_SEQUENCE}  { return CjTokens.ESCAPE_SEQUENCE; }
 
 
 <STRING_DOUBLE,STRING_SINGLE> {ESCAPE_SEQUENCE}  { return CjTokens.ESCAPE_SEQUENCE; }
 
 <STRING_SINGLE, RAW_STRING_SINGLE ,HSAH_STRING_SINGLE> {REGULAR_STRING_PART_SINGLE}           {
-          System.out.println("STRING, RAW_STRING_DOUBLE,RAW_STRING_SINGLE ,HSAH_STRING_DOUBLE,HSAH_STRING_SINGLE");
+//           popState();
+//          System.out.println("STRING, RAW_STRING_DOUBLE,RAW_STRING_SINGLE ,HSAH_STRING_DOUBLE,HSAH_STRING_SINGLE");
           return CjTokens.REGULAR_STRING_PART; }
 <STRING_DOUBLE, RAW_STRING_DOUBLE ,HSAH_STRING_DOUBLE> {REGULAR_STRING_PART_DOUBLE}           {
-          System.out.println("STRING, RAW_STRING_DOUBLE,RAW_STRING_SINGLE ,HSAH_STRING_DOUBLE,HSAH_STRING_SINGLE");
+//           popState();
+//          System.out.println("STRING, RAW_STRING_DOUBLE,RAW_STRING_SINGLE ,HSAH_STRING_DOUBLE,HSAH_STRING_SINGLE");
           return CjTokens.REGULAR_STRING_PART; }
 
 <STRING_SINGLE,STRING_DOUBLE, RAW_STRING_DOUBLE,RAW_STRING_SINGLE> {SHORT_TEMPLATE_ENTRY}        {

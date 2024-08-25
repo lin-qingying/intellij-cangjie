@@ -1,5 +1,6 @@
 package com.huawei.cangjie.builtins
 
+import com.huawei.cangjie.builtins.StandardNames.ANY
 import com.huawei.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import com.huawei.cangjie.builtins.StandardNames.FqNames.any
 import com.huawei.cangjie.builtins.StandardNames.FqNames.array
@@ -25,14 +26,11 @@ import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.caches.IdeaResolverForProject
-import com.huawei.cangjie.resolve.resolveClassByFqName
+import com.huawei.cangjie.resolve.descriptorUtil.resolveClassByFqName
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.NotNullLazyValue
 import com.huawei.cangjie.storage.StorageManager
-import com.huawei.cangjie.types.BasicType
-import com.huawei.cangjie.types.CangJieType
-import com.huawei.cangjie.types.SimpleType
-import com.huawei.cangjie.types.TypeConstructor
+import com.huawei.cangjie.types.*
 import com.intellij.openapi.project.Project
 
 
@@ -413,8 +411,8 @@ open class CangJieBuiltIns(
     val any: ClassDescriptor
         get() {
 
-
-            return getStdCoreClassByName("Any")
+            return findClassDescriptorByFqName( storageManager.project,ANY)!!
+//            return getStdCoreClassByName("Any")
         }
     val anyType: SimpleType
         get() {

@@ -11,6 +11,7 @@ import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjDeclaration
 import com.huawei.cangjie.psi.CjTypeStatement
 import com.huawei.cangjie.resolve.*
+import com.huawei.cangjie.resolve.descriptorUtil.reportOnDeclarationAs
 import com.huawei.cangjie.resolve.lazy.LazyClassContext
 import com.huawei.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter

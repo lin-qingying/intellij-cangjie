@@ -2,6 +2,7 @@ package com.huawei.cangjie.ide.projectStructure
 
 import com.huawei.cangjie.analyzer.CangJieModuleInfo
 import com.huawei.cangjie.analyzer.ModuleInfo
+import com.huawei.cangjie.ide.cache.project.LibraryInfoCache
 import com.huawei.cangjie.ide.cache.project.moduleInfos
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -12,7 +13,7 @@ import com.intellij.openapi.roots.*
 
 @Service(Service.Level.PROJECT)
 
-class CangJieModuleDependencyCollector {
+class CangJieModuleDependencyCollector (private val project: Project){
 
     companion object {
         private val LOG = Logger.getInstance(CangJieModuleDependencyCollector::class.java)
@@ -121,10 +122,10 @@ class CangJieModuleDependencyCollector {
 //                }
 //            }
 
-//            is LibraryOrderEntry -> {
-//                val library = orderEntry.library ?: return listOf()
-//                LibraryInfoCache.getInstance(project)[library]
-//            }
+            is LibraryOrderEntry -> {
+                val library = orderEntry.library ?: return listOf()
+                LibraryInfoCache.getInstance(project)[library]
+            }
 
 
             else -> {

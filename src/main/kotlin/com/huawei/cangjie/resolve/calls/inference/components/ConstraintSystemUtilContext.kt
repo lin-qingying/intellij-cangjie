@@ -15,7 +15,7 @@ interface ConstraintSystemUtilContext{
 //    fun TypeVariableMarker.shouldBeFlexible(): Boolean
 //    fun TypeVariableMarker.hasOnlyInputTypesAttribute(): Boolean
 //    fun CangJieTypeMarker.unCapture(): CangJieTypeMarker
-    fun TypeVariableMarker.isReified(): Boolean
+//    fun TypeVariableMarker.isReified(): Boolean
 //    fun CangJieTypeMarker.refineType(): CangJieTypeMarker
 
     // PostponedArgumentInputTypesResolver

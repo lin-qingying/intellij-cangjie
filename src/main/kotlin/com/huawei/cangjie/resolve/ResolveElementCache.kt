@@ -1,7 +1,7 @@
 package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.analyzer.DaemonCodeAnalyzerStatusService
-import com.huawei.cangjie.analyzer.LibraryInfo
+import com.huawei.cangjie.analyzer.CjpmLibraryInfo
 import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.container.get
 import com.huawei.cangjie.context.SimpleGlobalContext
@@ -44,7 +44,7 @@ class ResolveElementCache(
     private val cacheDependencies = listOfNotNull(
         resolveSession.exceptionTracker,
         ProjectRootModificationTracker.getInstance(project),
-        if (resolveSession.moduleDescriptor.getCapability(ModuleInfo.Capability) !is LibraryInfo) {
+        if (resolveSession.moduleDescriptor.getCapability(ModuleInfo.Capability) !is CjpmLibraryInfo) {
             CangJieCodeBlockModificationListener.getInstance(project).cangjieOutOfCodeBlockTracker
         } else null
     ).toTypedArray()

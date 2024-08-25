@@ -4,7 +4,7 @@ import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.renderer.ClassifierNamePolicy
 import com.huawei.cangjie.renderer.DescriptorRenderer
-import com.huawei.cangjie.resolve.builtIns
+import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.resolve.calls.inference.CapturedTypeConstructor
 import com.huawei.cangjie.resolve.calls.inference.isCaptured
 

@@ -6,7 +6,7 @@ import com.huawei.cangjie.descriptors.CallableMemberDescriptor
 import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.descriptors.VariableDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
-import com.huawei.cangjie.resolve.builtIns
+import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.resolve.calls.components.CallableReceiver
 import com.huawei.cangjie.resolve.calls.components.CallableReferenceAdaptation
 import com.huawei.cangjie.resolve.calls.components.CangJieResolutionCallbacks

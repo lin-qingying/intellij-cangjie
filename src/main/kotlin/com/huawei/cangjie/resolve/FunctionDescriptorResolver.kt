@@ -334,13 +334,13 @@ class FunctionDescriptorResolver(
                 function.typeParameters,
                 trace
             )
-//        descriptorResolver.resolveGenericBounds(
-//            function,
-//            functionDescriptor,
-//            headerScope,
-//            typeParameterDescriptors,
-//            trace
-//        )
+        descriptorResolver.resolveGenericBounds(
+            function,
+            functionDescriptor,
+            headerScope,
+            typeParameterDescriptors,
+            trace
+        )
 
         val receiverTypeRef = function.receiverTypeReference
         val receiverType =

@@ -3,7 +3,7 @@ package com.huawei.cangjie.descriptors.impl;
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.resolve.DescriptorUtils;
-import com.huawei.cangjie.resolve.DescriptorUtilsKt;
+import com.huawei.cangjie.resolve.descriptorUtil.DescriptorUtilsKt;
 import com.huawei.cangjie.resolve.scopes.InnerClassesScopeWrapper;
 import com.huawei.cangjie.resolve.scopes.MemberScope;
 import com.huawei.cangjie.resolve.scopes.SubstitutingScope;

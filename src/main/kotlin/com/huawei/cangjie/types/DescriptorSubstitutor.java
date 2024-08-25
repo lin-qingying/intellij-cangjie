@@ -51,7 +51,7 @@ public class DescriptorSubstitutor {
             TypeParameterDescriptorImpl substituted = TypeParameterDescriptorImpl.createForFurtherModification(
                     newContainingDeclaration,
                     descriptor.getAnnotations(),
-                    descriptor.isReified(),
+//                    descriptor.isReified(),
                     descriptor.getVariance(),
                     descriptor.getName(),
                     index++,
