@@ -61,7 +61,8 @@ object StandardNames {
 
     @JvmField
     val STD_CORE_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(Name.identifier("core"))
-
+    @JvmField
+    val OBJECT = STD_CORE_PACKAGE_FQ_NAME.child(Name.identifier("Object"))
 
     @JvmField
     val ANY = STD_CORE_PACKAGE_FQ_NAME.child(Name.identifier("Any"))

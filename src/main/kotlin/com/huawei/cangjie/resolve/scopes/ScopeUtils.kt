@@ -25,7 +25,8 @@ import com.huawei.cangjie.resolve.scopes.util.parentsWithSelf
 import com.huawei.cangjie.types.error.ErrorClassDescriptor
 import com.huawei.cangjie.types.error.ErrorEntity
 import com.huawei.cangjie.utils.Printer
-import com.huawei.cangjie.utils.parentsWithSelf
+import com.huawei.cangjie.psi.psiUtil.parentsWithSelf
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.SmartList
@@ -312,6 +313,7 @@ fun ImportingScope.withParent(newParent: ImportingScope?): ImportingScope {
             get() = newParent
     }
 }
+fun Project.projectScope(): GlobalSearchScope = GlobalSearchScope.projectScope(this)
 
 object ScopeUtils {
     @JvmStatic

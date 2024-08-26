@@ -1,26 +1,13 @@
 package com.huawei.cangjie.ide.searching.usages.handlers
 
-import com.huawei.cangjie.CangJieBundle
-import com.huawei.cangjie.ide.search.isImportUsage
-import com.huawei.cangjie.ide.searching.findUsages.CangJieFindUsagesSupport
 import com.huawei.cangjie.ide.searching.usages.CangJieCallableFindUsagesOptions
 import com.huawei.cangjie.ide.searching.usages.CangJieFindUsagesHandlerFactory
-import com.huawei.cangjie.ide.searching.usages.CangJieFunctionFindUsagesOptions
-import com.huawei.cangjie.ide.stubindex.resolve.isUnitTestMode
 import com.huawei.cangjie.psi.*
-import com.huawei.cangjie.utils.match
-import com.huawei.cangjie.utils.parents
-import com.intellij.codeInsight.highlighting.ReadWriteAccessDetector
 import com.intellij.find.findUsages.AbstractFindUsagesDialog
 import com.intellij.find.findUsages.FindUsagesOptions
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.ex.ActionUtil
-import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
-import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.*
 

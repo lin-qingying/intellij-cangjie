@@ -9,11 +9,19 @@ import com.huawei.cangjie.psi.CjSimpleNameExpression
 import com.huawei.cangjie.psi.psiUtil.startOffset
 import com.huawei.cangjie.resolve.BindingContext
 import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiElement
 import com.intellij.util.SmartList
 
 
 class CjSimpleNameReference(expression: CjSimpleNameExpression) : CjSimpleReference<CjSimpleNameExpression>(expression),
     CjReference {
+    enum class ShorteningMode {
+        NO_SHORTENING,
+        DELAYED_SHORTENING,
+        FORCED_SHORTENING
+    }
+    fun bindToElement(element: PsiElement, shorteningMode: ShorteningMode = ShorteningMode.DELAYED_SHORTENING): PsiElement =
+        getCjReferenceMutateService().bindToElement(this, element, shorteningMode)
 
     override val resolvesByNames: Collection<Name>
         get() {

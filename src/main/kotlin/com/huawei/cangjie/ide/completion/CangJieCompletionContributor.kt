@@ -3,12 +3,11 @@ package com.huawei.cangjie.ide.completion
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.psi.CjNameReferenceExpression
-import com.huawei.cangjie.utils.getNonStrictParentOfType
+import com.huawei.cangjie.psi.psiUtil.getNonStrictParentOfType
 import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.completion.addingPolicy.PolicyController
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher
 import com.intellij.codeInsight.lookup.LookupElement
-import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.patterns.PlatformPatterns.elementType
@@ -17,7 +16,6 @@ import com.intellij.platform.ml.impl.turboComplete.KindCollector
 import com.intellij.platform.ml.impl.turboComplete.KindVariety
 import com.intellij.platform.ml.impl.turboComplete.SuggestionGeneratorExecutor
 import com.intellij.psi.PsiComment
-import com.intellij.util.ProcessingContext
 import com.intellij.util.indexing.DumbModeAccessType
 
 

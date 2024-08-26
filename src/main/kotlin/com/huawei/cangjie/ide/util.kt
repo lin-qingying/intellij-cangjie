@@ -12,10 +12,10 @@ import com.huawei.cangjie.types.checker.NewCapturedTypeConstructor
 import com.huawei.cangjie.types.isDynamic
 import com.huawei.cangjie.types.util.approximateFlexibleTypes
 import com.huawei.cangjie.types.util.builtIns
-import com.huawei.cangjie.utils.getPrevSiblingIgnoringWhitespace
-import com.huawei.cangjie.utils.getStartOffsetIn
-import com.huawei.cangjie.utils.parentsWithSelf
-import com.huawei.cangjie.utils.textRange
+import com.huawei.cangjie.psi.psiUtil.getPrevSiblingIgnoringWhitespace
+import com.huawei.cangjie.psi.psiUtil.getStartOffsetIn
+import com.huawei.cangjie.psi.psiUtil.parentsWithSelf
+import com.huawei.cangjie.psi.psiUtil.textRange
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -63,10 +63,7 @@ object IdeDescriptorRenderers {
         type.constructor.supertypes.singleOrNull()?.let { return it }
 
         val builtIns = type.builtIns
-//        return if (type.isMarkedOption)
-//            builtIns.nullableAnyType
-//        else
-//            builtIns.anyType
+
         return builtIns.anyType
     }
     @JvmField

@@ -5,7 +5,7 @@ import com.huawei.cangjie.lexer.CjTokens
 
 
 enum class CjProjectionKind(token: CjSingleValueToken?) {
-    IN(CjTokens.IN_KEYWORD),
+//    IN(CjTokens.IN_KEYWORD),
 
     STAR(CjTokens.MUL),
     NONE(null);

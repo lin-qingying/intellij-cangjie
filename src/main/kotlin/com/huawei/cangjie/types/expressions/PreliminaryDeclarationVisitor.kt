@@ -8,7 +8,7 @@ import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.psi.psiUtil.getStrictParentOfType
 
 import com.huawei.cangjie.resolve.BindingContext
-import com.huawei.cangjie.utils.parentsWithSelf
+import com.huawei.cangjie.psi.psiUtil.parentsWithSelf
 
 class PreliminaryDeclarationVisitor(
     val declaration: CjDeclaration,

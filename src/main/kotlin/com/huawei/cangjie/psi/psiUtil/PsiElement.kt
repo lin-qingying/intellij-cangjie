@@ -76,9 +76,7 @@ fun PsiElement?.unwrapParenthesesLabelsAndAnnotations(): PsiElement? {
     }
 }
 
-inline fun <reified T : PsiElement> PsiElement.anyDescendantOfType(noinline predicate: (T) -> Boolean = { true }): Boolean {
-    return findDescendantOfType(predicate) != null
-}
+
 
 inline fun <reified T : PsiElement> PsiElement.findDescendantOfType(noinline predicate: (T) -> Boolean = { true }): T? {
     return findDescendantOfType({ true }, predicate)
@@ -178,7 +176,7 @@ fun LazyParseablePsiElement.getContainingCjFile(): CjFile {
     throw IllegalStateException("CjElement not inside CjFile: $file with text \"$fileString\" for element $this of type ${this::class.java} node = ${this.node}")
 }
 
-fun PsiElement.getElementTextWithContext(): String = com.huawei.cangjie.utils.getElementTextWithContext(this)
+fun PsiElement.getElementTextWithContext(): String = getElementTextWithContext(this)
 inline fun <reified T : PsiElement> PsiElement.parentOfType(withSelf: Boolean = false): T? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, !withSelf)
 }

@@ -14,10 +14,10 @@ import com.huawei.cangjie.resolve.getDataFlowInfoBefore
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.resolve.scopes.getResolutionScope
-import com.huawei.cangjie.utils.anyDescendantOfType
+import com.huawei.cangjie.psi.psiUtil.anyDescendantOfType
 import com.huawei.cangjie.utils.firstIsInstance
 import com.huawei.cangjie.utils.firstIsInstanceOrNull
-import com.huawei.cangjie.utils.parentsWithSelf
+import com.huawei.cangjie.psi.psiUtil.parentsWithSelf
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger

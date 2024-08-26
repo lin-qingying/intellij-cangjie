@@ -78,3 +78,4 @@ fun QuickFixFactory.asCangJieIntentionActionsFactory(): CangJieIntentionActionsF
 
     else -> error("Unexpected QuickFixFactory ${this::class}")
 }
+

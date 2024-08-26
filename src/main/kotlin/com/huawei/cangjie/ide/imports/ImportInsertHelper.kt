@@ -11,6 +11,7 @@ import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.caches.getResolutionFacade
+import com.huawei.cangjie.resolve.descriptorUtil.classId
 import com.huawei.cangjie.resolve.descriptorUtil.fqNameSafe
 import com.huawei.cangjie.resolve.descriptorUtil.getImportableDescriptor
 import com.huawei.cangjie.resolve.descriptorUtil.targetDescriptors
@@ -18,6 +19,7 @@ import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.utils.addIfNotNull
 import com.huawei.cangjie.utils.runAction
+import com.huawei.cangjie.utils.safeAs
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -56,8 +58,13 @@ abstract class ImportInsertHelper {
 }
 
 enum class ImportDescriptorResult {
+    //                                  导入失败
     FAIL,
+
+    //                            导入成功
     IMPORT_ADDED,
+
+    //       导入成功，但需要重新格式化
     ALREADY_IMPORTED
 }
 
@@ -82,6 +89,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
         }
 
     }
+
     private fun allowClassImport(classDescriptor: ClassDescriptor, contextFile: CjFile): Boolean {
         val nested = classDescriptor.containingDeclaration !is PackageFragmentDescriptor
         // If nested classes are blanket-prohibited from being imported, don't import any.
@@ -91,7 +99,8 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
             classDescriptor.kind,
             classDescriptor.modality,
             classDescriptor.visibility.delegate,
-            nested)
+            nested
+        )
         return ClassImportFilter.allowClassImport(classInfo, contextFile)
     }
 
@@ -206,7 +215,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
             val name = aliasName ?: target.name
             val topLevelScope = resolutionFacade.getFileResolutionScope(file)
 
-            // check if import is not needed
+            // 检查是否不需要导入
             val targetFqName = target.importableFqName ?: return ImportDescriptorResult.FAIL
 
             val scope = if (element == file) topLevelScope else element.getResolutionScope()
@@ -221,7 +230,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
                 }
             }
 
-            // check there is an explicit import of a class/package with the same name already
+            // 检查是否已显式导入具有相同名称的类/包
 //            when (target) {
 //                is ClassDescriptor -> scope.findClassifier(name, NoLookupLocation.FROM_IDE)
 //                is PackageViewDescriptor -> scope.findPackage(name)
@@ -252,6 +261,20 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
             }
 
             return addExplicitImport(target, aliasName)
+        }
+
+
+        private fun DeclarationDescriptor.comesFromLocalScopes(): Boolean =
+            // local class
+            DescriptorUtils.isLocal(this) ||
+                    // nested class
+                    this.safeAs<ClassifierDescriptor>()?.classId?.isNestedClass == true
+
+        private fun DeclarationDescriptor.explicitlyImported(
+            name: Name,
+            imports: List<CjImportDirective>
+        ) = imports.any {
+            !it.isAllUnder && it.importPath?.fqName == importableFqName && it.importPath?.importedName == name
         }
 
         fun importDescriptorWithStarImport(descriptor: DeclarationDescriptor): ImportDescriptorResult {
@@ -397,6 +420,9 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
         }
 
         private fun addExplicitImport(target: DeclarationDescriptor, aliasName: Name?): ImportDescriptorResult {
+//           导入项是否于包拆分
+            var isPackageSplit = false
+
             if (target is ClassDescriptor || target is PackageViewDescriptor) {
                 val topLevelScope = resolutionFacade.getFileResolutionScope(file)
                 val name = aliasName ?: target.name
@@ -404,13 +430,19 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
                 // check if there is a conflicting class imported with * import
                 // (not with explicit import - explicit imports are checked before this method invocation)
                 val classifier = topLevelScope.findClassifier(name, NoLookupLocation.FROM_IDE)
+                if (classifier?.name == target.name) {
+                    isPackageSplit = true
+                }
                 if (classifier != null && detectNeededImports(listOf(classifier)).isNotEmpty()) {
                     return ImportDescriptorResult.FAIL
                 }
             }
 
-            addImport(target.importableFqName!!, false, aliasName)
-            return ImportDescriptorResult.IMPORT_ADDED
+            addImport(target.importableFqName!!, false, aliasName, isPackageSplit = isPackageSplit)
+//            return if (isPackageSplit)
+//                ImportDescriptorResult.ALREADY_IMPORTED
+//            else
+              return  ImportDescriptorResult.IMPORT_ADDED
         }
 
         private fun dropRedundantExplicitImports(packageFqName: FqName) {
@@ -479,12 +511,17 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
         private fun CjReferenceExpression.resolveTargets(): Collection<DeclarationDescriptor> =
             this.getImportableTargets(resolutionFacade.analyze(this, BodyResolveMode.PARTIAL))
 
-        private fun addImport(fqName: FqName, allUnder: Boolean, aliasName: Name? = null): CjImportDirective {
+        private fun addImport(
+            fqName: FqName,
+            allUnder: Boolean,
+            aliasName: Name? = null,
+            isPackageSplit: Boolean = false
+        ): CjImportDirective {
             return runAction(runImmediately) {
                 if (file.isPhysical) {
-                    runWriteAction { addImport(project, file, fqName, allUnder, aliasName) }
+                    runWriteAction { addImport(project, file, fqName, allUnder, aliasName, isPackageSplit) }
                 } else {
-                    addImport(project, file, fqName, allUnder, aliasName)
+                    addImport(project, file, fqName, allUnder, aliasName, isPackageSplit)
                 }
             }
         }
@@ -506,9 +543,10 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
             file: CjFile,
             fqName: FqName,
             allUnder: Boolean = false,
-            alias: Name? = null
+            alias: Name? = null,
+            isPackageSplit: Boolean = false
         ): CjImportDirective {
-            return file.addImport(fqName, allUnder, alias, project)
+            return file.addImport(fqName, allUnder, alias, project, isPackageSplit)
         }
 
         fun isInDefaultImports(importPath: ImportPath, contextFile: CjFile): Boolean {

@@ -11,7 +11,9 @@ import com.huawei.cangjie.resolve.calls.model.ResolvedCall
 import com.huawei.cangjie.resolve.calls.util.getResolvedCall
 import com.huawei.cangjie.resolve.calls.util.safeAnalyze
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
+import com.huawei.cangjie.resolve.lazy.NoDescriptorForDeclarationException
 import com.huawei.cangjie.utils.actionUnderSafeAnalyzeBlock
+fun CjElement.analyzeWithAllCompilerChecks(): AnalysisResult = getResolutionFacade().analyzeWithAllCompilerChecks(this)
 
 /**
  * **Please, use overload with providing resolutionFacade for stable results of subsequent calls**
@@ -125,3 +127,21 @@ fun CjElement.getResolutionFacade(): ResolutionFacade =
 fun CjElement.safeAnalyzeNonSourceRootCode(
     bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
 ): BindingContext = safeAnalyzeNonSourceRootCode(getResolutionFacade(), bodyResolveMode)
+/**
+ * This function throws exception when resolveToDescriptorIfAny returns null, otherwise works equivalently.
+ *
+ * **Please, use overload with providing resolutionFacade for stable results of subsequent calls**
+ */
+fun CjDeclaration.unsafeResolveToDescriptor(
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
+): DeclarationDescriptor =
+    unsafeResolveToDescriptor(getResolutionFacade(), bodyResolveMode)
+/**
+ * This function throws exception when resolveToDescriptorIfAny returns null, otherwise works equivalently.
+ */
+fun CjDeclaration.unsafeResolveToDescriptor(
+    resolutionFacade: ResolutionFacade,
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
+): DeclarationDescriptor =
+    resolveToDescriptorIfAny(resolutionFacade, bodyResolveMode) ?: throw NoDescriptorForDeclarationException(this)
+

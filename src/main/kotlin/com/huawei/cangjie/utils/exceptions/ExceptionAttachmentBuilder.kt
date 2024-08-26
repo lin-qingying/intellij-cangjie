@@ -1,6 +1,6 @@
 package com.huawei.cangjie.utils.exceptions
 
-import com.huawei.cangjie.utils.getElementTextWithContext
+import com.huawei.cangjie.psi.psiUtil.getElementTextWithContext
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
 

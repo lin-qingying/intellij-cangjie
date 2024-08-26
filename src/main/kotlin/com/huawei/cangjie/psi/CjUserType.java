@@ -68,6 +68,25 @@ public class CjUserType extends  CjElementImplStub<CangJieUserTypeStub> implemen
         return getStubOrPsiChild(CjStubElementTypes.USER_TYPE);
     }
 
+    /**
+     * 保留除该USER_TYPE以外指定数量的psi元素
+     * 例如 USER_TYPE = a.b.c; size = 1
+     * 保留 b.c
+     *
+     * @param size
+     */
+    public void deleteQualifier(int size){
+        if (size <= 0) {
+            deleteQualifier();
+        }
+        CjUserType qualifier = getQualifier();
+
+        if (qualifier != null) {
+            qualifier.deleteQualifier(size -1);
+        }
+
+    }
+
     public void deleteQualifier() {
         CjUserType qualifier = getQualifier();
         assert qualifier != null;

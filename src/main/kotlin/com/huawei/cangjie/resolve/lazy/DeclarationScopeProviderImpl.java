@@ -1,11 +1,11 @@
 package com.huawei.cangjie.resolve.lazy;
 
 import com.huawei.cangjie.psi.*;
+import com.huawei.cangjie.psi.psiUtil.PsiUtilsKt;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfoFactory;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
-import com.huawei.cangjie.utils.PsiUtilsKt;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import com.huawei.cangjie.incremental.components.NoLookupLocation;

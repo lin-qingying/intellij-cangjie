@@ -14,6 +14,10 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
 
+
+
+
+
 open class AddModifierFix(
     element: CjModifierListOwner,
     @SafeFieldForPreview
@@ -46,10 +50,7 @@ open class AddModifierFix(
 
 //                        if (parentClassOrObject is CjEnumEntry) return null
 //                    }
-                    if (modifier == CjTokens.ABSTRACT_KEYWORD
-                        && modifierListOwner is CjClass
-
-                    ) return null
+                    if (modifier == CjTokens.ABSTRACT_KEYWORD  && modifierListOwner !is CjClass ) return null
                 }
 
             }

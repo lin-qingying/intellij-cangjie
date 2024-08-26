@@ -3,6 +3,7 @@ package com.huawei.cangjie.references
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.resolve.BindingContext
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiPolyVariantReferenceBase
 import com.intellij.psi.ResolveResult
@@ -86,6 +87,9 @@ abstract class AbstractCjReference<T : CjElement>(element: T) : PsiPolyVariantRe
     override fun toString() = this::class.java.simpleName + ": " + expression.text
 
     abstract override fun getTargetDescriptors(context: BindingContext): Collection<DeclarationDescriptor>
+    protected fun getCjReferenceMutateService(): CjReferenceMutateService =
+        ApplicationManager.getApplication().getService(CjReferenceMutateService::class.java)
+            ?: throw IllegalStateException("Cannot handle element rename because KtReferenceMutateService is missing")
 
 //    override fun multiResolve(incompleteCode: Boolean): Array<out ResolveResult> {
 //        // 这里是实现多重引用解析的逻辑

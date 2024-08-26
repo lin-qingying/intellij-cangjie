@@ -4,14 +4,15 @@ import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.TypeAliasDescriptor
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
+import com.huawei.cangjie.descriptors.impl.getRefinedMemberScopeIfPossible
+import com.huawei.cangjie.descriptors.impl.getRefinedUnsubstitutedMemberScopeIfPossible
 import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
+import com.huawei.cangjie.resolve.descriptorUtil.getCangJieTypeRefiner
+import com.huawei.cangjie.resolve.descriptorUtil.module
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.error.ErrorScopeKind
-import com.huawei.cangjie.descriptors.impl.getRefinedMemberScopeIfPossible
-import com.huawei.cangjie.descriptors.impl.getRefinedUnsubstitutedMemberScopeIfPossible
-import com.huawei.cangjie.resolve.descriptorUtil.getCangJieTypeRefiner
-import com.huawei.cangjie.resolve.descriptorUtil. module
+
 private class ExpandedTypeOrRefinedConstructor(val expandedType: SimpleType?, val refinedConstructor: TypeConstructor?)
 
 object CangJieTypeFactory {
@@ -74,9 +75,11 @@ object CangJieTypeFactory {
                         refinerToUse
                     )
             }
+
             is TypeAliasDescriptor -> ErrorUtils.createErrorScope(
                 ErrorScopeKind.SCOPE_FOR_ABBREVIATION_TYPE, throwExceptions = true, descriptor.name.toString()
             )
+
             else -> {
                 if (constructor is IntersectionTypeConstructor) {
                     return constructor.createScopeForCangJieType()

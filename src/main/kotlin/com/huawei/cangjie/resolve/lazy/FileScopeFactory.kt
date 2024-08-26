@@ -180,7 +180,8 @@ class FileScopeFactory(
         val lazyImportingScope = object : ImportingScope by ImportingScope.Empty {
             // avoid constructing the scope before we query it
             override val parent: ImportingScope by components.storageManager.createLazyValue {
-                createImportingScope()
+
+                createCurrentFileScope()
             }
         }
 
@@ -216,6 +217,73 @@ class FileScopeFactory(
             }
 
             return createDefaultImportResolvers(extraImports, aliasImportNames)
+        }
+
+        fun createCurrentFileScope(): ImportingScope {
+            return CurrentFileScope(createImportingScope())
+        }
+
+        private inner class CurrentFileScope(override val parent: ImportingScope?) : ImportingScope {
+
+            override fun getContributedPackage(name: Name): PackageViewDescriptor? {
+                return null
+            }
+
+            override fun getContributedDescriptors(
+                kindFilter: DescriptorKindFilter,
+                nameFilter: (Name) -> Boolean,
+                changeNamesForAliased: Boolean
+            ): Collection<DeclarationDescriptor> {
+                return emptyList()
+            }
+
+            override fun computeImportedNames(): Set<Name>? {
+                return null
+            }
+
+            override fun toString() = "Scope for current file ${file.name} "
+
+            override fun printStructure(p: Printer) {
+                p.println(this.toString())
+
+            }
+
+            override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
+
+
+                val element = file.declarations.filter {
+                    it.name === name.asString()
+                }
+                if (element.isEmpty()) return null
+var i = 0
+                var _parent = parent
+                while (_parent !is CurrentPackageScope && i < 15) {
+                    _parent = _parent?.parent
+                    i++
+                }
+//                if (_parent !is CurrentPackageScope) {
+//                    return null
+//                }
+                return _parent?.getContributedClassifier(name, location)
+
+
+            }
+
+            override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
+                return emptyList()
+
+            }
+
+            override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
+                return emptyList()
+
+            }
+
+            override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> {
+
+                return emptyList()
+            }
+
         }
 
         fun createImportingScope(): LazyImportScope {
@@ -330,63 +398,7 @@ class FileScopeFactory(
             parentScope,
             components.languageVersionSettings
         )
-//        return object : ImportingScope {
-//            override val parent: ImportingScope = parentScope
-//
-//            override fun getContributedPackage(name: Name): Nothing? = null
-//
-//            override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
-//                if (name in excludedNames) return null
-//                val classifier = scope.getContributedClassifier(name, location) ?: return null
-//                val visible = DescriptorVisibilityUtils.isVisibleIgnoringReceiver(
-//                    classifier as DeclarationDescriptorWithVisibility,
-//                    fromDescriptor,
-//                    components.languageVersionSettings
-//                )
-//                return classifier.takeIf { filteringKind == if (visible) FilteringKind.VISIBLE_CLASSES else FilteringKind.INVISIBLE_CLASSES }
-//            }
-//
-//            override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
-//                if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
-//                if (name in excludedNames) return emptyList()
-//                return scope.getContributedVariables(name, location)
-//            }
-//
-//            override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
-//                if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
-//                if (name in excludedNames) return emptyList()
-//                return scope.getContributedPropertys(name, location)
-//            }
-//
-//            override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> {
-//                if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
-//                if (name in excludedNames) return emptyList()
-//                return scope.getContributedFunctions(name, location)
-//            }
-//
-//            override fun getContributedDescriptors(
-//                kindFilter: DescriptorKindFilter,
-//                nameFilter: (Name) -> Boolean,
-//                changeNamesForAliased: Boolean
-//            ): Collection<DeclarationDescriptor> {
-//                // we do not perform any filtering by visibility here because all descriptors from both visible/invisible filter scopes are to be added anyway
-//                if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
-//                return scope.getContributedDescriptors(
-//                    kindFilter.withoutKinds(DescriptorKindFilter.PACKAGES_MASK)
-//                ) { name -> name !in excludedNames && nameFilter(name) }
-//                    .filter { it !is PackageViewDescriptor } // subpackages of the current package not accessible by the short name
-//            }
-//
-//            override fun computeImportedNames() = packageView.memberScope.computeAllNames()
-//
-//            override fun definitelyDoesNotContainName(name: Name) = names?.let { name !in it } == true
-//
-//            override fun toString() = "Scope for current package (${filteringKind.name})"
-//
-//            override fun printStructure(p: Printer) {
-//                p.println(this.toString())
-//            }
-//        }
+
     }
 
     inner class CurrentPackageScope(
@@ -532,6 +544,7 @@ class FileScopeFactory(
 
 
     }
+
 
     // we use this dummy implementation of DeclarationDescriptor to check accessibility of symbols from the current package
     class DummyContainerDescriptor(file: CjFile, private val packageFragment: PackageFragmentDescriptor) :

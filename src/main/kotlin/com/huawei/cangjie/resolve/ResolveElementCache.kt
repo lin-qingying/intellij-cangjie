@@ -19,7 +19,7 @@ import com.huawei.cangjie.psi.psiUtil.getElementTextWithContext
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.lazy.*
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode.*
-import com.huawei.cangjie.utils.getNonStrictParentOfType
+import com.huawei.cangjie.psi.psiUtil.getNonStrictParentOfType
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootModificationTracker

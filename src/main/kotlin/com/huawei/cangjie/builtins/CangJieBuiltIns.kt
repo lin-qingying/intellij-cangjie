@@ -11,6 +11,7 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.int64
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int8
 import com.huawei.cangjie.builtins.StandardNames.FqNames.nothing
 import com.huawei.cangjie.builtins.StandardNames.FqNames.rune
+import com.huawei.cangjie.builtins.StandardNames.OBJECT
 import com.huawei.cangjie.builtins.StandardNames.STD_CORE_PACKAGE_FQ_NAME
 import com.huawei.cangjie.builtins.StandardNames.getFunctionName
 import com.huawei.cangjie.context.ProjectContext
@@ -411,7 +412,7 @@ open class CangJieBuiltIns(
     val any: ClassDescriptor
         get() {
 
-            return findClassDescriptorByFqName( storageManager.project,ANY)!!
+            return findClassDescriptorByFqName(storageManager.project, ANY)!!
 //            return getStdCoreClassByName("Any")
         }
     val anyType: SimpleType
@@ -419,6 +420,13 @@ open class CangJieBuiltIns(
             return any.getDefaultType()
         }
 
+    val `object`: ClassDescriptor
+        get() = findClassDescriptorByFqName(storageManager.project, OBJECT)!!
+
+    val objectType: SimpleType
+        get() {
+            return `object`.defaultType
+        }
 
     //    int
     val int64Type get() = getPrimitiveBasicCangJieType(PrimitiveType.INT64)

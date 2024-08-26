@@ -7,7 +7,7 @@ import com.huawei.cangjie.psi.CjExpression
 
 import com.huawei.cangjie.psi.psiUtil.siblings
 import com.huawei.cangjie.resolve.StatementFilter
-import com.huawei.cangjie.utils.parentsWithSelf
+import com.huawei.cangjie.psi.psiUtil.parentsWithSelf
 import com.intellij.psi.PsiElement
 
 class PartialBodyResolveFilter(

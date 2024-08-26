@@ -9,7 +9,7 @@ import com.huawei.cangjie.psi.CjImportDirective
 import com.huawei.cangjie.psi.CjNameReferenceExpression
 import com.huawei.cangjie.psi.CjPackageDirective
 import com.huawei.cangjie.psi.CjUserType
-import com.huawei.cangjie.utils.parents
+import com.huawei.cangjie.psi.psiUtil.parents
 import com.intellij.psi.PsiReference
 
 

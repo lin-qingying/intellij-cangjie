@@ -1,13 +1,10 @@
-package com.huawei.cangjie.utils
+package com.huawei.cangjie.psi.psiUtil
 
-import com.huawei.cangjie.psi.psiUtil.*
 import com.intellij.openapi.util.TextRange
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiElementVisitor
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiWhiteSpace
+import com.intellij.psi.*
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.isAncestor
 
 fun getElementTextWithContext(psiElement: PsiElement): String {
     if (!psiElement.isValid) return "<invalid element $psiElement>"
@@ -48,6 +45,34 @@ val PsiElement.parentsWithSelf: Sequence<PsiElement>
 
 inline fun <reified T : PsiElement> PsiElement.anyDescendantOfType(noinline predicate: (T) -> Boolean = { true }): Boolean {
     return findDescendantOfType(predicate) != null
+}
+inline fun <reified T : PsiElement> PsiElement.forEachDescendantOfType(noinline action: (T) -> Unit) {
+    forEachDescendantOfType({ true }, action)
+}
+inline fun <reified T : PsiElement> PsiElement.forEachDescendantOfType(
+    crossinline canGoInside: (PsiElement) -> Boolean,
+    noinline action: (T) -> Unit
+) {
+    checkDecompiledText()
+    this.accept(object : PsiRecursiveElementVisitor() {
+        override fun visitElement(element: PsiElement) {
+            if (canGoInside(element)) {
+                super.visitElement(element)
+            }
+
+            if (element is T) {
+                action(element)
+            }
+        }
+    })
+}
+inline fun <reified T : PsiElement> PsiElement.getParentOfTypeAndBranch(strict: Boolean = false, noinline branch: T.() -> PsiElement?): T? {
+    return getParentOfType<T>(strict)?.getIfChildIsInBranch(this, branch)
+}
+
+
+fun <T : PsiElement> T.getIfChildIsInBranch(element: PsiElement, branch: T.() -> PsiElement?): T? {
+    return if (branch().isAncestor(element)) this else null
 }
 fun PsiElement.getPrevSiblingIgnoringWhitespace(withItself: Boolean = false): PsiElement? {
     return siblings(withItself = withItself, forward = false).filter { it !is PsiWhiteSpace }.firstOrNull()

@@ -4,6 +4,7 @@ import com.huawei.cangjie.descriptors.ClassDescriptor;
 import com.huawei.cangjie.descriptors.ClassifierDescriptor;
 import com.huawei.cangjie.descriptors.SupertypeLoopChecker;
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor;
+import com.huawei.cangjie.resolve.DescriptorUtils;
 import com.huawei.cangjie.storage.StorageManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +33,11 @@ public class ClassTypeConstructorImpl extends AbstractClassTypeConstructor imple
     @Override
     public boolean isDenotable() {
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return DescriptorUtils.getFqName(classDescriptor).asString();
     }
 
 

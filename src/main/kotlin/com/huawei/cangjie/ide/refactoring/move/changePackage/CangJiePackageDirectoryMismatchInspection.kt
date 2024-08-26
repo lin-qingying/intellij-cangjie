@@ -25,42 +25,48 @@ val PsiFile.isInjectedFragment: Boolean
 
 
 class CangJiePackageDirectoryMismatchInspection : AbstractCangJieInspection() {
-    override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean) = packageDirectiveVisitor(fun(directive: CjPackageDirective) {
-        val file = directive.getContainingCjFile()
-        if (file.textLength == 0 || file.isInjectedFragment || file.packageMatchesDirectoryOrImplicit()) return
+    override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean) =
+        packageDirectiveVisitor(fun(directive: CjPackageDirective) {
+            val file = directive.getContainingCjFile()
+            if (file.textLength == 0 || file.isInjectedFragment || file.packageMatchesDirectoryOrImplicit()) return
 
-        val fixes = mutableListOf<LocalQuickFix>()
-        val qualifiedName = directive.qualifiedName
-        val dirName = if (qualifiedName.isEmpty())
-            CangJieBundle.message("fix.move.file.to.package.dir.name.text")
-        else
-            "'${qualifiedName.replace('.', '/')}'"
+            val fixes = mutableListOf<LocalQuickFix>()
+            val qualifiedName = directive.qualifiedName
+            val dirName = if (qualifiedName.isEmpty())
+                CangJieBundle.message("fix.move.file.to.package.dir.name.text")
+            else
+                "'${qualifiedName.replace('.', '/')}'"
 
-        val singleFileSourcesTracker = SingleFileSourcesTracker.getInstance(file.project)
-        val isSingleFileSource = singleFileSourcesTracker.isSingleFileSource(file.virtualFile)
-        if (!isSingleFileSource) fixes += MoveFileToPackageFix(dirName)
-        val fqNameByDirectory = file.getFqNameByDirectory()
-        when {
-            fqNameByDirectory.isRoot ->
-                fixes += ChangePackageFix(CangJieBundle.message("fix.move.file.to.package.dir.name.text"), fqNameByDirectory)
-            fqNameByDirectory.hasIdentifiersOnly() ->
-                fixes += ChangePackageFix("'${fqNameByDirectory.asString()}'", fqNameByDirectory)
-        }
+            val singleFileSourcesTracker = SingleFileSourcesTracker.getInstance(file.project)
+            val isSingleFileSource = singleFileSourcesTracker.isSingleFileSource(file.virtualFile)
+            if (!isSingleFileSource) fixes += MoveFileToPackageFix(dirName)
+            val fqNameByDirectory = file.getFqNameByDirectory()
+            when {
+                fqNameByDirectory.isRoot ->
+                    fixes += ChangePackageFix(
+                        CangJieBundle.message("fix.move.file.to.package.dir.name.text"),
+                        fqNameByDirectory
+                    )
+
+                fqNameByDirectory.hasIdentifiersOnly() ->
+                    fixes += ChangePackageFix("'${fqNameByDirectory.asString()}'", fqNameByDirectory)
+            }
 //        val fqNameWithImplicitPrefix = file.parent?.getFqNameWithImplicitPrefix()
 //        if (!isSingleFileSource && fqNameWithImplicitPrefix != null && fqNameWithImplicitPrefix != fqNameByDirectory) {
 //            fixes += ChangePackageFix("'${fqNameWithImplicitPrefix.asString()}'", fqNameWithImplicitPrefix)
 //        }
 
-        val textRange = if (directive.textLength != 0) directive.textRange else file.declarations.firstOrNull()?.let {
-            TextRange.from(it.startOffset, 1)
-        }
-        holder.registerProblem(
-            file,
-            textRange,
-            CangJieBundle.message("text.package.directive.dont.match.file.location"),
-            *fixes.toTypedArray()
-        )
-    })
+            val textRange =
+                if (directive.textLength != 0) directive.textRange else file.declarations.firstOrNull()?.let {
+                    TextRange.from(it.startOffset, 1)
+                }
+            holder.registerProblem(
+                file,
+                textRange,
+                CangJieBundle.message("text.package.directive.dont.match.file.location"),
+                *fixes.toTypedArray()
+            )
+        })
 
     private class MoveFileToPackageFix(val dirName: String) : LocalQuickFix {
         override fun getFamilyName() = CangJieBundle.message("fix.move.file.to.package.family")

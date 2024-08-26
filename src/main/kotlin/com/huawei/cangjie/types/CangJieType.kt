@@ -121,7 +121,7 @@ abstract class SimpleType : UnwrappedType(), SimpleTypeMarker, TypeArgumentListM
 
             append(constructor)
             if (arguments.isNotEmpty()) arguments.joinTo(this, separator = ", ", prefix = "<", postfix = ">")
-            if (isMarkedOption) append("?")
+//            if (isMarkedOption) append("?")
         }
     }
 }

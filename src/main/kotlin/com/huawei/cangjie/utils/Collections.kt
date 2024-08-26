@@ -235,3 +235,6 @@ fun <T> MutableList<T>.swapRemoveAt(index: Int) {
         set(index, removeLast())
     }
 }
+fun <K, V> Iterable<K>.keysToMap(value: (K) -> V): Map<K, V> {
+    return associateBy({ it }, value)
+}

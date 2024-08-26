@@ -7,12 +7,12 @@ import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor;
 import com.huawei.cangjie.psi.CjExpression;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfoFactory;
 import com.huawei.cangjie.types.CangJieType;
-import com.huawei.cangjie.types.util.TypeUtils;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
+import com.huawei.cangjie.types.util.TypeUtils;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.huawei.cangjie.utils.slicedMap.MutableSlicedMap;
+import com.huawei.cangjie.utils.slicedMap.ReadOnlySlice;
 import com.intellij.psi.PsiElement;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,6 +34,29 @@ public class BindingContextUtils {
         return type;
     }
 
+    @NotNull
+    public static <K, V> V getNotNull(
+            @NotNull BindingContext bindingContext,
+            @NotNull ReadOnlySlice<K, V> slice,
+            @NotNull K key
+    ) {
+        return getNotNull(bindingContext, slice, key, "Value at " + slice + " must not be null for " + key);
+    }
+
+    @NotNull
+    public static <K, V> V getNotNull(
+            @NotNull BindingContext bindingContext,
+            @NotNull ReadOnlySlice<K, V> slice,
+            @NotNull K key,
+            @NotNull String messageIfNull
+    ) {
+        V value = bindingContext.get(slice, key);
+        if (value == null) {
+            throw new IllegalStateException(messageIfNull);
+        }
+        return value;
+    }
+
     @Nullable
     public static CangJieTypeInfo getRecordedTypeInfo(@NotNull CjExpression expression, @NotNull BindingContext context) {
         // noinspection ConstantConditions
@@ -42,6 +65,7 @@ public class BindingContextUtils {
         CangJieTypeInfo result = context.get(BindingContext.EXPRESSION_TYPE_INFO, expression);
         return result != null ? result : TypeInfoFactoryKt.noTypeInfo(DataFlowInfoFactory.EMPTY);
     }
+
     @SuppressWarnings("unchecked")
     static void addOwnDataTo(
             @NotNull BindingTrace trace, @Nullable TraceEntryFilter filter, boolean commitDiagnostics,

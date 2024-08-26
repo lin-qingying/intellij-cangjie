@@ -11,7 +11,7 @@ import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.types.error.ErrorType
 import com.huawei.cangjie.utils.CopyablePsiUserDataProperty
 import com.huawei.cangjie.utils.match
-import com.huawei.cangjie.utils.parents
+import com.huawei.cangjie.psi.psiUtil.parents
 import com.intellij.codeInsight.completion.PrefixMatcher
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.openapi.util.Key

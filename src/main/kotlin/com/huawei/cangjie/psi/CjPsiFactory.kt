@@ -37,6 +37,7 @@ class CjPsiFactory private constructor(
     fun createEmptyClassBody(): CjClassBody {
         return createClass("class A(){}").getBody()!!
     }
+
     companion object {
         @JvmStatic
         @JvmOverloads
@@ -44,19 +45,24 @@ class CjPsiFactory private constructor(
             return CjPsiFactory(context.project, markGenerated, context, eventSystemEnabled = false)
         }
     }
+
     fun createSimpleNameStringTemplateEntry(@NonNls name: String): CjSimpleNameStringTemplateEntry {
         val stringTemplateExpression = createExpression("\"\$$name\"") as CjStringTemplateExpression
         return stringTemplateExpression.entries[0] as CjSimpleNameStringTemplateEntry
     }
+
     fun createColon(): PsiElement {
         return createVariable("let x: Int64").findElementAt(5)!!
     }
+
     fun createPrimaryConstructor(@NonNls text: String = ""): CjPrimaryConstructor {
         return createClass(if (text.isNotEmpty()) "class A { public A$text{} }" else "class A { public A(){} } ").primaryConstructor!!
     }
+
     fun createParameterList(@NonNls text: String): CjParameterList {
         return createFunction("fun foo$text{}").valueParameterList!!
     }
+
     fun createImportDirective(importPath: ImportPath): CjImportDirective {
         if (importPath.fqName.isRoot) {
             throw IllegalArgumentException("import path must not be empty")
@@ -65,6 +71,7 @@ class CjPsiFactory private constructor(
         val file = createFile(buildString { appendImport(importPath) })
         return file.importDirectives.first()
     }
+
     private fun StringBuilder.appendImport(importPath: ImportPath) {
         if (importPath.fqName.isRoot) {
             throw IllegalArgumentException("import path must not be empty")
@@ -78,6 +85,7 @@ class CjPsiFactory private constructor(
             append(" as ").append(alias.asString())
         }
     }
+
     fun createComment(@NonNls text: String): PsiComment {
         val file = createFile(text)
         val comments = file.children.filterIsInstance<PsiComment>()
@@ -97,6 +105,7 @@ class CjPsiFactory private constructor(
     fun createSemicolon(): PsiElement {
         return createVariable("let x: Int64;").findElementAt(12)!!
     }
+
     fun createFunction(@NonNls funDecl: String): CjNamedFunction {
         return createDeclaration(funDecl)
     }
@@ -131,6 +140,10 @@ class CjPsiFactory private constructor(
     }
 
     fun createClass(@NonNls text: String): CjClass {
+        return createDeclaration(text)
+    }
+
+    fun createTypeStatement(@NonNls text: String): CjTypeStatement {
         return createDeclaration(text)
     }
 
@@ -232,7 +245,7 @@ class CjPsiFactory private constructor(
     }
 
     fun createModifierList(@NonNls text: String): CjModifierList {
-        return createClass("$text interface x").modifierList!!
+        return createClass("$text class x").modifierList!!
     }
 
 
@@ -272,6 +285,7 @@ class CjPsiFactory private constructor(
     fun createNewLine(lineBreaks: Int): PsiElement {
         return createWhiteSpace("\n".repeat(lineBreaks))
     }
+
     fun createNewLine(): PsiElement {
         return createWhiteSpace("\n ")
     }

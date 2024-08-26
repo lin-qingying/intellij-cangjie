@@ -4,7 +4,7 @@ import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.ide.stubindex.resolve.isUnitTestMode
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.psi.CjTypeStatement
-import com.huawei.cangjie.utils.getNonStrictParentOfType
+import com.huawei.cangjie.psi.psiUtil.getNonStrictParentOfType
 import com.intellij.codeInsight.FileModificationService
 import com.intellij.codeInsight.generation.ClassMember
 import com.intellij.codeInsight.hint.HintManager

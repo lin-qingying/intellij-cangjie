@@ -3,7 +3,6 @@ package com.huawei.cangjie.psi.psiUtil
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.renderer.render
-import com.huawei.cangjie.utils.parentsWithSelf
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager

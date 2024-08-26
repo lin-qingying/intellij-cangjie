@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.scopes
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
 import com.huawei.cangjie.resolve.source.MemberScopeImpl
 import com.huawei.cangjie.utils.Printer
@@ -14,6 +15,7 @@ fun MemberScope.computeAllNames() = getClassifierNames()?.let { classifierNames 
         it.addAll(classifierNames)
     }
 }
+
 /**
  * The same as getDescriptors(kindFilter, nameFilter) but the result is guaranteed to be filtered by kind and name.
  */
@@ -91,12 +93,14 @@ abstract class DescriptorKindExclude {
 
         override val fullyExcludedDescriptorKinds: Int get() = 0
     }
+
     object EnumEntry : DescriptorKindExclude() {
-        override fun excludes(descriptor: DeclarationDescriptor)
-                = descriptor is ClassDescriptor && descriptor.kind == ClassKind.ENUM_ENTRY
+        override fun excludes(descriptor: DeclarationDescriptor) =
+            descriptor is ClassDescriptor && descriptor.kind == ClassKind.ENUM_ENTRY
 
         override val fullyExcludedDescriptorKinds: Int get() = 0
     }
+
     /**
      * Bit-mask of descriptor kind's that are fully excluded by this [DescriptorKindExclude].
      * That is, [excludes] returns true for all descriptor of these kinds.
@@ -124,6 +128,7 @@ class DescriptorKindFilter(
         if (mask == 0) return null
         return DescriptorKindFilter(mask, excludes)
     }
+
     private fun DeclarationDescriptor.kind(): Int {
         return when (this) {
             is ClassDescriptor -> if (this.kind.isSingleton) SINGLETON_CLASSIFIERS_MASK else NON_SINGLETON_CLASSIFIERS_MASK
@@ -135,10 +140,12 @@ class DescriptorKindFilter(
             else -> 0
         }
     }
-    fun accepts(descriptor: DeclarationDescriptor): Boolean
-            = kindMask and descriptor.kind() != 0 && excludes.all { !it.excludes(descriptor) }
-    infix fun exclude(exclude: DescriptorKindExclude): DescriptorKindFilter
-            = DescriptorKindFilter(kindMask, excludes + listOf(exclude))
+
+    fun accepts(descriptor: DeclarationDescriptor): Boolean =
+        kindMask and descriptor.kind() != 0 && excludes.all { !it.excludes(descriptor) }
+
+    infix fun exclude(exclude: DescriptorKindExclude): DescriptorKindFilter =
+        DescriptorKindFilter(kindMask, excludes + listOf(exclude))
 
     companion object {
 
@@ -151,9 +158,10 @@ class DescriptorKindFilter(
 
         val PACKAGES_MASK: Int = nextMask()
 
-//        重导出语句
-        val REEXPORT_MASK:Int =   nextMask()
+        //        重导出语句
+        val REEXPORT_MASK: Int = nextMask()
         val ALL_KINDS_MASK: Int = nextMask() - 1
+
         @JvmField
         val PACKAGES: DescriptorKindFilter = DescriptorKindFilter(PACKAGES_MASK)
 
@@ -162,10 +170,12 @@ class DescriptorKindFilter(
 
         @JvmField
         val VARIABLES: DescriptorKindFilter = DescriptorKindFilter(VARIABLES_MASK)
+
         @JvmField
         val PROPERTYS: DescriptorKindFilter = DescriptorKindFilter(PROPERTYS_MASK)
+
         @JvmField
-        val   REEXPORT: DescriptorKindFilter = DescriptorKindFilter(REEXPORT_MASK)
+        val REEXPORT: DescriptorKindFilter = DescriptorKindFilter(REEXPORT_MASK)
 
         @JvmField
         val ALL: DescriptorKindFilter = DescriptorKindFilter(ALL_KINDS_MASK)
@@ -175,7 +185,57 @@ class DescriptorKindFilter(
         val NON_SINGLETON_CLASSIFIERS_MASK: Int = nextMask()
 
         val CLASSIFIERS_MASK: Int = NON_SINGLETON_CLASSIFIERS_MASK or SINGLETON_CLASSIFIERS_MASK or TYPE_ALIASES_MASK
-        @JvmField val CLASSIFIERS: DescriptorKindFilter = DescriptorKindFilter(CLASSIFIERS_MASK)
+        @JvmField
+        val CLASSIFIERS: DescriptorKindFilter = DescriptorKindFilter(CLASSIFIERS_MASK)
 
+    }
+}
+
+fun CjFile.getScope(): FileScope {
+    return FileScope(this)
+}
+
+class FileScope(val file: CjFile) : MemberScope {
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getFunctionNames(): Set<Name> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getVariableNames(): Set<Name> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getClassifierNames(): Set<Name>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun getPropertyNames(): Set<Name> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
+        TODO("Not yet implemented")
+    }
+
+    override fun printScopeStructure(p: Printer) {
+        TODO("Not yet implemented")
+    }
+
+    override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
+        TODO("Not yet implemented")
+    }
+
+    override fun getContributedDescriptors(
+        kindFilter: DescriptorKindFilter,
+        nameFilter: (Name) -> Boolean
+    ): Collection<DeclarationDescriptor> {
+        TODO("Not yet implemented")
     }
 }

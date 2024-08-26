@@ -155,9 +155,9 @@ protected constructor(
         val typeAliases = typeAliasDescriptors(name)
         // See getFirstClassifierDiscriminateHeaders()
         var result: ClassifierDescriptor? = null
-        for (klass in classes) {
-//            if (!klass.isExpect) return klass
-            if (result == null) result = klass
+        for (cclass in classes) {
+//            if (!cclass.isExpect) return cclass
+            if (result == null) result = cclass
         }
         for (typeAlias in typeAliases) {
 

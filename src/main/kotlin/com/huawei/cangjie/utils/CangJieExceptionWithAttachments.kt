@@ -1,5 +1,6 @@
 package com.huawei.cangjie.utils
 
+import com.huawei.cangjie.psi.psiUtil.getElementTextWithContext
 import com.huawei.cangjie.utils.exceptions.CangJieExceptionWithAttachments.Companion.withAttachmentsFrom
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Attachment

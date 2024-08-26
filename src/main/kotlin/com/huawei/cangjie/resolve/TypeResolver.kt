@@ -14,7 +14,9 @@ import com.huawei.cangjie.psi.psiUtil.getPrevSiblingIgnoringWhitespaceAndComment
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.huawei.cangjie.resolve.PossiblyBareType.bare
 import com.huawei.cangjie.resolve.PossiblyBareType.type
-import com.huawei.cangjie.resolve.scopes.*
+import com.huawei.cangjie.resolve.scopes.LazyScopeAdapter
+import com.huawei.cangjie.resolve.scopes.LexicalScope
+import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.resolve.source.CangJieSourceElement
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.TrailingCommaChecker
@@ -57,7 +59,8 @@ class TypeResolver(
 
     fun resolveExpandedTypeForTypeAlias(typeAliasDescriptor: TypeAliasDescriptor): SimpleType {
         val typeAliasExpansion = TypeAliasExpansion.createWithFormalArguments(typeAliasDescriptor)
-        val expandedType = TypeAliasExpander.NON_REPORTING.expandWithoutAbbreviation(typeAliasExpansion, TypeAttributes.Empty)
+        val expandedType =
+            TypeAliasExpander.NON_REPORTING.expandWithoutAbbreviation(typeAliasExpansion, TypeAttributes.Empty)
         return expandedType
     }
 
@@ -162,10 +165,10 @@ class TypeResolver(
     fun resolveDescriptorForType(
         scope: LexicalScope, userType: CjUserType, trace: BindingTrace, isDebuggerContext: Boolean
     ): QualifiedExpressionResolver.TypeQualifierResolutionResult {
-        if (userType.qualifier != null) { // we must resolve all type references in arguments of qualifier type
+        if (userType.qualifier != null) { // 必须解析限定符类型参数中的所有类型引用
             for (typeArgument in userType.qualifier!!.typeArguments) {
                 typeArgument.typeReference?.let {
-                    // in qualified expression, type argument can have bounds only in incorrect code
+                    // 在限定表达中，类型参数只能在不正确的代码中有界限
                     forceResolveTypeContents(resolveType(scope, it, trace, false))
                 }
             }
@@ -186,46 +189,18 @@ class TypeResolver(
         constructor: TypeConstructor,
         argumentElements: List<CjTypeProjection>
     ): List<TypeProjection> {
-//        return argumentElements.mapIndexed { i, argumentElement ->
-//            val projectionKind = argumentElement.projectionKind
-////            ModifierCheckerCore.check(argumentElement, c.trace, null, languageVersionSettings)
-//            if (projectionKind == CjProjectionKind.STAR) {
-//                val parameters = constructor.parameters
-//                if (parameters.size > i) {
-//                    val parameterDescriptor = parameters[i]
-//                    TypeUtils.makeStarProjection(parameterDescriptor)
-//                } else {
-//                    TypeProjectionImpl(Variance.OUT_VARIANCE, ErrorUtils.createErrorType(ErrorTypeKind.ERROR_TYPE_PROJECTION))
-//                }
-//            } else {
-//                val type = resolveType(c.noBareTypes(), argumentElement.typeReference!!)
-//                val kind = resolveProjectionKind(projectionKind)
-//                if (constructor.parameters.size > i) {
-//                    val parameterDescriptor = constructor.parameters[i]
-//                    if (kind != INVARIANT && parameterDescriptor.variance != Variance.INVARIANT) {
-//                        if (kind == parameterDescriptor.variance) {
-//                            c.trace.report(
-//                                REDUNDANT_PROJECTION.on(
-//                                    argumentElement,
-//                                    constructor.declarationDescriptor!!
-//                                )
-//                            )
-//                        } else {
-//                            c.trace.report(
-//                                CONFLICTING_PROJECTION.on(
-//                                    argumentElement,
-//                                    constructor.declarationDescriptor!!
-//                                )
-//                            )
-//                        }
-//                    }
-//                }
-//                TypeProjectionImpl(kind, type)
-//            }
-//
-//        }
+        return argumentElements.mapIndexed { i, argumentElement ->
 
-        return emptyList()
+            ModifierCheckerCore.check(argumentElement, c.trace, null, languageVersionSettings)
+
+            val type = resolveType(c.noBareTypes(), argumentElement.typeReference!!)
+
+
+            TypeProjectionImpl(type)
+
+
+        }
+
     }
 
     private fun resolveTypeElement(
@@ -851,7 +826,7 @@ class TypeResolver(
 
     private fun resolveType(c: TypeResolutionContext, typeReference: CjTypeReference): CangJieType {
         assert(!c.allowBareTypes) { "Use resolvePossiblyBareType() when bare types are allowed" }
-//        TODO()
+
         return resolvePossiblyBareType(c, typeReference).actualType
     }
 

@@ -1,11 +1,15 @@
 package com.huawei.cangjie.psi
 
+import com.huawei.cangjie.ide.quickfix.overrideImplement.getOrCreateBody
 import com.huawei.cangjie.name.ClassId
 import com.huawei.cangjie.psi.psiUtil.ClassIdCalculator
 import com.huawei.cangjie.psi.stubs.CangJieTypeStatementStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiErrorElement
+import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.stubs.IStubElementType
+import com.intellij.psi.util.PsiTreeUtil
 
 
 abstract class CjTypeStatement :
@@ -36,7 +40,15 @@ abstract class CjTypeStatement :
 //    TODO 一定是顶层
 //    fun isTopLevel(): Boolean = stub?.isTopLevel() ?: isCjFile(parent)
 
-
+    inline fun <reified T : CjDeclaration> addDeclaration(declaration: T): T {
+        val body = getOrCreateBody()
+        val anchor = PsiTreeUtil.skipSiblingsBackward(body.rBrace ?: body.lastChild!!, PsiWhiteSpace::class.java)
+        return if (anchor?.nextSibling is PsiErrorElement) {
+            body.addBefore(declaration, anchor)
+        } else {
+            body.addAfter(declaration, anchor)
+        } as T
+    }
     override fun hasExplicitPrimaryConstructor(): Boolean = primaryConstructor != null
 
     fun hasSecondaryConstructors(): Boolean = !secondaryConstructors.isEmpty()

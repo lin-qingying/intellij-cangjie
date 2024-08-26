@@ -9,6 +9,7 @@ import com.huawei.cangjie.ide.imports.canBeReferencedViaImport
 import com.huawei.cangjie.ide.imports.getImportableTargets
 import com.huawei.cangjie.ide.references.mainReference
 import com.huawei.cangjie.incremental.components.NoLookupLocation
+import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.*
 import com.huawei.cangjie.renderer.DescriptorRenderer
@@ -22,27 +23,26 @@ import com.huawei.cangjie.resolve.calls.util.getCall
 import com.huawei.cangjie.resolve.calls.util.getCalleeExpressionIfAny
 import com.huawei.cangjie.resolve.calls.util.getResolvedCall
 import com.huawei.cangjie.resolve.calls.util.resolveCandidates
+import com.huawei.cangjie.resolve.descriptorUtil.fqNameSafe
+import com.huawei.cangjie.resolve.descriptorUtil.unwrapIfFakeOverride
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.resolve.scopes.findFirstClassifierWithDeprecationStatus
 import com.huawei.cangjie.resolve.scopes.findPackage
 import com.huawei.cangjie.resolve.scopes.getResolutionScope
 import com.huawei.cangjie.resolve.scopes.receivers.ImplicitReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
-import com.huawei.cangjie.resolve.descriptorUtil. unwrapIfFakeOverride
-
 import com.huawei.cangjie.utils.ShadowedDeclarationsFilter
+import com.huawei.cangjie.utils.isDispatchThread
+import com.huawei.cangjie.utils.runAction
 import com.intellij.openapi.application.ex.ApplicationManagerEx
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.ControlFlowException
-import com.intellij.openapi.util.Ref
-import com.intellij.psi.PsiElement
-import  com.huawei.cangjie.utils.isDispatchThread
-import com.huawei.cangjie.utils.parents
-import com.huawei.cangjie.utils.runAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Computable
+import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.source.PostprocessReformattingAspect
 import com.intellij.psi.util.PsiTreeUtil
@@ -85,7 +85,9 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
 
                     // for object receiver we should additionally check that it's dispatch receiver (that is the member is inside the object) or not a receiver at all
                     val resolvedCall = element.getResolvedCall(bindingContext)
-                        ?: return element.getQualifiedElementSelector()?.mainReference?.resolveToDescriptors(bindingContext) != null
+                        ?: return element.getQualifiedElementSelector()?.mainReference?.resolveToDescriptors(
+                            bindingContext
+                        ) != null
 
                     val receiverKind = resolvedCall.explicitReceiverKind
                     return receiverKind == ExplicitReceiverKind.DISPATCH_RECEIVER || receiverKind == ExplicitReceiverKind.NO_EXPLICIT_RECEIVER
@@ -115,7 +117,7 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
         return if (isDispatchThread()) {
             val ref = Ref<CjElement>()
             ApplicationManagerEx.getApplicationEx().runWriteActionWithCancellableProgressInDispatchThread(
-              CangJieCodeInsightBundle.message("progress.title.shortening.references"), element.project, null
+                CangJieCodeInsightBundle.message("progress.title.shortening.references"), element.project, null
             ) {
                 ref.set(process(listOf(element), elementFilter, runImmediately).single())
             }
@@ -165,12 +167,14 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                             ?.selectorExpression as? CjCallExpression)
                             ?.calleeExpression
                         if (calleeExpression != null) {
-                            val rangeWithoutParenthesis = TextRange(elementRange.startOffset, calleeExpression.textRange!!.endOffset)
+                            val rangeWithoutParenthesis =
+                                TextRange(elementRange.startOffset, calleeExpression.textRange!!.endOffset)
                             if (range.contains(rangeWithoutParenthesis)) FilterResult.PROCESS else FilterResult.GO_INSIDE
                         } else {
                             FilterResult.GO_INSIDE
                         }
                     }
+
                     else -> FilterResult.SKIP
                 }
             } else {
@@ -198,36 +202,38 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
         elements: Iterable<CjElement>,
         elementFilter: (PsiElement) -> FilterResult = { FilterResult.PROCESS },
         runImmediately: Boolean = true
-    ): Collection<CjElement> = runReadAction { elements.groupBy(CjElement::getContainingCjFile) }.flatMap { (file, elements) ->
-        try {
-            shortenReferencesInFile(file, elements, elementFilter, runImmediately)
-        } catch (e: Throwable) {
-            if (e is ControlFlowException) throw e
+    ): Collection<CjElement> =
+        runReadAction { elements.groupBy(CjElement::getContainingCjFile) }.flatMap { (file, elements) ->
+            try {
+                shortenReferencesInFile(file, elements, elementFilter, runImmediately)
+            } catch (e: Throwable) {
+                if (e is ControlFlowException) throw e
 
-            LOG.warn(e)
-            val processors: List<ShorteningProcessor<*>> = runReadAction {
-                listOf(
-                    ShortenTypesProcessor(file, elementFilter, emptySet()),
-                    ShortenQualifiedExpressionsProcessor(file, elementFilter, emptySet()),
-                )
-            }
+                LOG.warn(e)
+                val processors: List<ShorteningProcessor<*>> = runReadAction {
+                    listOf(
+                        ShortenTypesProcessor(file, elementFilter, emptySet()),
+                        ShortenQualifiedExpressionsProcessor(file, elementFilter, emptySet()),
+                        ShortenPackageProcessor(file, elementFilter, emptySet()),
+                    )
+                }
 
-            val resultElements = elements.toMutableSet()
-            runReadAction {
-                for (processor in processors) {
-                    for (element in resultElements) {
-                        element.accept(processor.collectElementsVisitor)
+                val resultElements = elements.toMutableSet()
+                runReadAction {
+                    for (processor in processors) {
+                        for (element in resultElements) {
+                            element.accept(processor.collectElementsVisitor)
+                        }
                     }
                 }
-            }
 
-            for (processor in processors) {
-                processor.removeRootPrefixes(resultElements)
-            }
+                for (processor in processors) {
+                    processor.removeRootPrefixes(resultElements)
+                }
 
-            resultElements
+                resultElements
+            }
         }
-    }
 
     private fun shortenReferencesInFile(
         file: CjFile,
@@ -258,7 +264,12 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                     ShortenTypesProcessor(file, elementFilter, failedToImportDescriptors),
                     ShortenThisExpressionsProcessor(file, elementFilter, failedToImportDescriptors),
                     ShortenQualifiedExpressionsProcessor(file, elementFilter, failedToImportDescriptors),
-                    RemoveExplicitCompanionObjectReferenceProcessor(file, companionElementFilter, failedToImportDescriptors)
+                    ShortenPackageProcessor(file, elementFilter, failedToImportDescriptors),
+                    RemoveExplicitCompanionObjectReferenceProcessor(
+                        file,
+                        companionElementFilter,
+                        failedToImportDescriptors
+                    )
                 )
             }
 
@@ -274,7 +285,8 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
 
 
                 // step 2: analyze collected elements with resolve and decide which can be shortened now and which need descriptors to be imported before shortening
-                val allElementsToAnalyze = visitors.flatMap { visitor -> visitor.getElementsToAnalyze().map { it.element } }.toSet()
+                val allElementsToAnalyze =
+                    visitors.flatMap { visitor -> visitor.getElementsToAnalyze().map { it.element } }.toSet()
                 val bindingContext = allowResolveInDispatchThread {
                     file.getResolutionFacade().analyze(allElementsToAnalyze, BodyResolveMode.PARTIAL_WITH_CFA)
                 }
@@ -282,7 +294,7 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                 processors.forEach { it.analyzeCollectedElements(bindingContext) }
             }
 
-            // step 3: shorten elements that can be shortened right now
+            // step 3: 缩短现在可以缩短的元素
             runAction(runImmediately) {
                 processors.forEach { it.shortenElements(elementSetToUpdate = elementsToUse, options = options) }
             }
@@ -295,7 +307,10 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                 for (descriptor in descriptorsToImport) {
                     assert(descriptor !in failedToImportDescriptors)
 
+//                    尝试导入并缩短元素
+//                    导入
                     val result = helper.importDescriptor(file, descriptor)
+
                     if (result != ImportDescriptorResult.ALREADY_IMPORTED) {
                         anyChange = true
                     }
@@ -418,14 +433,18 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
         /**
          * This method is invoked for all qualified elements added by [CollectElementsVisitor.addQualifiedElementToAnalyze]
          */
-        protected abstract fun analyzeQualifiedElement(element: TElement, bindingContext: BindingContext): AnalyzeQualifiedElementResult
+        protected abstract fun analyzeQualifiedElement(
+            element: TElement,
+            bindingContext: BindingContext
+        ): AnalyzeQualifiedElementResult
 
         protected sealed class AnalyzeQualifiedElementResult {
             object Skip : AnalyzeQualifiedElementResult()
 
             object ShortenNow : AnalyzeQualifiedElementResult()
 
-            class ImportDescriptors(val descriptors: Collection<DeclarationDescriptor>) : AnalyzeQualifiedElementResult()
+            class ImportDescriptors(val descriptors: Collection<DeclarationDescriptor>) :
+                AnalyzeQualifiedElementResult()
         }
 
         protected abstract fun shortenElement(element: TElement, options: Options): CjElement
@@ -447,10 +466,11 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
 
         fun shortenAndReplace(element: TElement, elementSetToUpdate: MutableSet<CjElement>, options: Options) {
 
-            val newElement = PostprocessReformattingAspect.getInstance(element.project).disablePostprocessFormattingInside(
-                Computable {
-                shortenElement(element, options)
-            })
+            val newElement =
+                PostprocessReformattingAspect.getInstance(element.project).disablePostprocessFormattingInside(
+                    Computable {
+                        shortenElement(element, options)
+                    })
 
             if (element in elementSetToUpdate && newElement != element) {
                 elementSetToUpdate.remove(element)
@@ -459,6 +479,91 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
         }
 
         fun getDescriptorsToImport(): Set<DeclarationDescriptor> = descriptorsToImport
+    }
+
+    private class ShortenPackageProcessor(
+        file: CjFile,
+        elementFilter: (PsiElement) -> FilterResult,
+        failedToImportDescriptors: Set<DeclarationDescriptor>
+    ) : ShorteningProcessor<CjUserType>(file, failedToImportDescriptors) {
+        override val collectElementsVisitor: CollectElementsVisitor<CjUserType> =
+            object : CollectElementsVisitor<CjUserType>(elementFilter) {
+                override fun visitUserType(userType: CjUserType) {
+                    val filterResult = elementFilter(userType)
+                    if (filterResult == FilterResult.SKIP) return
+
+                    userType.typeArgumentList?.accept(this)
+
+                    if (filterResult == FilterResult.PROCESS) {
+                        addQualifiedElementToAnalyze(userType)
+                        nextLevel()
+                    }
+
+                    // elements in qualifier must be under
+                    userType.qualifier?.accept(this)
+                    if (filterResult == FilterResult.PROCESS) {
+                        prevLevel()
+                    }
+                }
+            }
+
+        private val cacheFqNameMap = mutableMapOf<CjUserType, FqName>()
+        override fun analyzeQualifiedElement(
+            element: CjUserType,
+            bindingContext: BindingContext
+        ): AnalyzeQualifiedElementResult {
+            if (element.qualifier == null) return AnalyzeQualifiedElementResult.Skip
+            val referenceExpression = element.referenceExpression ?: return AnalyzeQualifiedElementResult.Skip
+
+            val target = referenceExpression.targets(bindingContext).singleOrNull()
+                ?: return AnalyzeQualifiedElementResult.Skip
+
+
+            val import = file.importList?.imports?.filter {
+                it.importedFqName == target.fqNameSafe.parent()
+            }
+
+//            val scope = element.getResolutionScope(bindingContext, resolutionFacade)
+//            val name = target.name
+//
+//            val targetByName: DeclarationDescriptor?
+//            val isDeprecated: Boolean
+//
+//            if (target is ClassifierDescriptor) {
+//                val classifierWithDeprecation =
+//                    scope.findFirstClassifierWithDeprecationStatus(name, NoLookupLocation.FROM_IDE)
+//                targetByName = classifierWithDeprecation?.descriptor
+//                isDeprecated = classifierWithDeprecation?.isDeprecated ?: false
+//            } else {
+//                targetByName = scope.findPackage(name)
+//                isDeprecated = false
+//            }
+
+            val canShortenNow = !import.isNullOrEmpty()
+            return if (canShortenNow) {
+                AnalyzeQualifiedElementResult.ShortenNow
+            } else {
+                cacheFqNameMap[element] = target.fqNameSafe.parent()
+                AnalyzeQualifiedElementResult.ImportDescriptors(
+                    listOfNotNull(target)
+                )
+            }
+        }
+
+        override fun shortenElement(element: CjUserType, options: Options): CjElement {
+//val fqName = element.fqName
+//            val fqName = cacheFqNameMap[element]?.parent() ?: {
+//                element.deleteQualifier()
+//                element
+//            }
+//
+//            cacheFqNameMap.remove(element)
+
+            element.deleteQualifier(1)
+            return element
+
+
+        }
     }
 
     private class ShortenTypesProcessor(
@@ -488,7 +593,10 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                 }
             }
 
-        override fun analyzeQualifiedElement(element: CjUserType, bindingContext: BindingContext): AnalyzeQualifiedElementResult {
+        override fun analyzeQualifiedElement(
+            element: CjUserType,
+            bindingContext: BindingContext
+        ): AnalyzeQualifiedElementResult {
             if (element.qualifier == null) return AnalyzeQualifiedElementResult.Skip
             val referenceExpression = element.referenceExpression ?: return AnalyzeQualifiedElementResult.Skip
 
@@ -502,7 +610,8 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
             val isDeprecated: Boolean
 
             if (target is ClassifierDescriptor) {
-                val classifierWithDeprecation = scope.findFirstClassifierWithDeprecationStatus(name, NoLookupLocation.FROM_IDE)
+                val classifierWithDeprecation =
+                    scope.findFirstClassifierWithDeprecationStatus(name, NoLookupLocation.FROM_IDE)
                 targetByName = classifierWithDeprecation?.descriptor
                 isDeprecated = classifierWithDeprecation?.isDeprecated ?: false
             } else {
@@ -574,12 +683,17 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
             element: CjDotQualifiedExpression,
             bindingContext: BindingContext
         ): AnalyzeQualifiedElementResult {
-            if (PsiTreeUtil.getParentOfType(element, CjImportDirective::class.java, CjPackageDirective::class.java) != null ||
+            if (PsiTreeUtil.getParentOfType(
+                    element,
+                    CjImportDirective::class.java,
+                    CjPackageDirective::class.java
+                ) != null ||
                 !canBePossibleToDropReceiver(element, bindingContext)
             ) return AnalyzeQualifiedElementResult.Skip
 
             val selector = element.selectorExpression ?: return AnalyzeQualifiedElementResult.Skip
-            val callee = selector.getCalleeExpressionIfAny() as? CjReferenceExpression ?: return AnalyzeQualifiedElementResult.Skip
+            val callee = selector.getCalleeExpressionIfAny() as? CjReferenceExpression
+                ?: return AnalyzeQualifiedElementResult.Skip
 
 
             val targets = callee.targets(bindingContext)
@@ -599,7 +713,8 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                                     resolvedCallsMatch(resolvedCall, resolvedCallWhenShort)))
 
             // Don't shorten references if it will result to call to deprecated classifier by short name
-            val isShortenedReferenceResolvesToDeprecated = newContext[BindingContext.DEPRECATED_SHORT_NAME_ACCESS, newCallee] == true
+            val isShortenedReferenceResolvesToDeprecated =
+                newContext[BindingContext.DEPRECATED_SHORT_NAME_ACCESS, newCallee] == true
             if (isShortenedReferenceResolvesToDeprecated) return AnalyzeQualifiedElementResult.Skip
 
             // If before and after shorten call can be resolved unambiguously, then preform comparing of such calls,
@@ -616,16 +731,23 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
 
                 originalCallDescriptor == shortenedCallDescriptor
             } else {
-                val resolvedCalls = selector.getCall(bindingContext)?.resolveCandidates(bindingContext, resolutionFacade) ?: emptyList()
+                val resolvedCalls =
+                    selector.getCall(bindingContext)?.resolveCandidates(bindingContext, resolutionFacade) ?: emptyList()
                 val callWhenShort = selectorAfterShortening.getCall(newContext)
                 val resolvedCallsWhenShort =
-                    selectorAfterShortening.getCall(newContext)?.resolveCandidates(newContext, resolutionFacade) ?: emptyList()
+                    selectorAfterShortening.getCall(newContext)?.resolveCandidates(newContext, resolutionFacade)
+                        ?: emptyList()
 
                 val descriptorsOfResolvedCallsWhenShort = resolvedCallsWhenShort.map { it.resultingDescriptor.original }
                 val descriptorsOfResolvedCalls = resolvedCalls.mapTo(mutableSetOf()) { it.resultingDescriptor.original }
 
                 val filter =
-                    ShadowedDeclarationsFilter(newContext, resolutionFacade, newCallee, callWhenShort?.explicitReceiver as? ReceiverValue)
+                    ShadowedDeclarationsFilter(
+                        newContext,
+                        resolutionFacade,
+                        newCallee,
+                        callWhenShort?.explicitReceiver as? ReceiverValue
+                    )
                 val availableDescriptorsWhenShort = filter.filter(descriptorsOfResolvedCallsWhenShort)
 
                 availableDescriptorsWhenShort.any { it in descriptorsOfResolvedCalls }
@@ -636,7 +758,8 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
             if (receiver is CjThisExpression) {
                 if (!targetsMatch) return AnalyzeQualifiedElementResult.Skip
                 val originalCall = selector.getResolvedCall(bindingContext) ?: return AnalyzeQualifiedElementResult.Skip
-                val newCall = selectorAfterShortening.getResolvedCall(newContext) ?: return AnalyzeQualifiedElementResult.Skip
+                val newCall =
+                    selectorAfterShortening.getResolvedCall(newContext) ?: return AnalyzeQualifiedElementResult.Skip
                 val receiverKind = originalCall.explicitReceiverKind
                 val newReceiver = when (receiverKind) {
                     ExplicitReceiverKind.BOTH_RECEIVERS, ExplicitReceiverKind.EXTENSION_RECEIVER -> newCall.extensionReceiver
@@ -683,7 +806,11 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                 val doubleColonExpressionCopy = doubleColonExpression.copied()
                 doubleColonExpressionCopy.receiverExpression!!.replace(selector)
                 val newBindingContext =
-                    doubleColonExpressionCopy.analyzeAsReplacement(doubleColonExpression, bindingContext, resolutionFacade)
+                    doubleColonExpressionCopy.analyzeAsReplacement(
+                        doubleColonExpression,
+                        bindingContext,
+                        resolutionFacade
+                    )
                 return newBindingContext to doubleColonExpressionCopy.receiverExpression!!
             }
 
@@ -691,7 +818,8 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
             if (qualifiedAbove != null) {
                 val qualifiedAboveCopy = qualifiedAbove.copied()
                 qualifiedAboveCopy.receiverExpression.replace(selector)
-                val newBindingContext = qualifiedAboveCopy.analyzeAsReplacement(qualifiedAbove, bindingContext, resolutionFacade)
+                val newBindingContext =
+                    qualifiedAboveCopy.analyzeAsReplacement(qualifiedAbove, bindingContext, resolutionFacade)
                 return newBindingContext to qualifiedAboveCopy.receiverExpression
             }
 
@@ -700,7 +828,10 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
             return newBindingContext to copied
         }
 
-        private fun targetsMatch(targets1: Collection<DeclarationDescriptor>, targets2: Collection<DeclarationDescriptor>): Boolean {
+        private fun targetsMatch(
+            targets1: Collection<DeclarationDescriptor>,
+            targets2: Collection<DeclarationDescriptor>
+        ): Boolean {
             if (targets1.size != targets2.size) return false
             return if (targets1.size == 1) {
                 targets1.single().asString() == targets2.single().asString()
@@ -709,7 +840,10 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
             }
         }
 
-        private fun resolvedCallsMatch(rc1: VariableAsFunctionResolvedCall?, rc2: VariableAsFunctionResolvedCall?): Boolean {
+        private fun resolvedCallsMatch(
+            rc1: VariableAsFunctionResolvedCall?,
+            rc2: VariableAsFunctionResolvedCall?
+        ): Boolean {
             return rc1?.variableCall?.candidateDescriptor?.asString() == rc2?.variableCall?.candidateDescriptor?.asString() &&
                     rc1?.functionCall?.candidateDescriptor?.asString() == rc2?.functionCall?.candidateDescriptor?.asString()
         }
@@ -748,8 +882,12 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                 }
             }
 
-        override fun analyzeQualifiedElement(element: CjThisExpression, bindingContext: BindingContext): AnalyzeQualifiedElementResult {
-            val targetBefore = element.instanceReference.targets(bindingContext).singleOrNull() ?: return AnalyzeQualifiedElementResult.Skip
+        override fun analyzeQualifiedElement(
+            element: CjThisExpression,
+            bindingContext: BindingContext
+        ): AnalyzeQualifiedElementResult {
+            val targetBefore = element.instanceReference.targets(bindingContext).singleOrNull()
+                ?: return AnalyzeQualifiedElementResult.Skip
             val newContext = simpleThis.analyzeAsReplacement(element, bindingContext, resolutionFacade)
             val targetAfter = simpleThis.instanceReference.targets(newContext).singleOrNull()
             return if (targetBefore == targetAfter) AnalyzeQualifiedElementResult.ShortenNow else AnalyzeQualifiedElementResult.Skip
@@ -779,20 +917,28 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
 
             val receiver = element.receiverExpression
 
-            if (PsiTreeUtil.getParentOfType(element, CjImportDirective::class.java, CjPackageDirective::class.java) != null) {
+            if (PsiTreeUtil.getParentOfType(
+                    element,
+                    CjImportDirective::class.java,
+                    CjPackageDirective::class.java
+                ) != null
+            ) {
                 return AnalyzeQualifiedElementResult.Skip
             }
 
-            val receiverTarget = receiver.singleTarget(bindingContext) as? ClassDescriptor ?: return AnalyzeQualifiedElementResult.Skip
+            val receiverTarget =
+                receiver.singleTarget(bindingContext) as? ClassDescriptor ?: return AnalyzeQualifiedElementResult.Skip
 
             val selectorExpression = element.selectorExpression ?: return AnalyzeQualifiedElementResult.Skip
-            val selectorTarget = selectorExpression.singleTarget(bindingContext) ?: return AnalyzeQualifiedElementResult.Skip
+            val selectorTarget =
+                selectorExpression.singleTarget(bindingContext) ?: return AnalyzeQualifiedElementResult.Skip
 
 
             val selectorsSelector = (parent as? CjDotQualifiedExpression)?.selectorExpression
                 ?: return AnalyzeQualifiedElementResult.ShortenNow
 
-            val selectorsSelectorTarget = selectorsSelector.singleTarget(bindingContext) ?: return AnalyzeQualifiedElementResult.Skip
+            val selectorsSelectorTarget =
+                selectorsSelector.singleTarget(bindingContext) ?: return AnalyzeQualifiedElementResult.Skip
             if (selectorsSelectorTarget is ClassDescriptor) return AnalyzeQualifiedElementResult.Skip
             // TODO: More generic solution may be possible
 //            if (selectorsSelectorTarget is PropertyDescriptor) {
@@ -812,13 +958,16 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
             return when (receiver) {
                 is CjSimpleNameExpression -> {
                     val identifier = receiver.getIdentifier() ?: return element
-                    (selector.getCalleeExpressionIfAny() as? CjSimpleNameExpression)?.getIdentifier()?.replace(identifier)
+                    (selector.getCalleeExpressionIfAny() as? CjSimpleNameExpression)?.getIdentifier()
+                        ?.replace(identifier)
                     element.replace(selector) as CjExpression
                 }
 
                 is CjQualifiedExpression -> {
-                    val identifier = (receiver.selectorExpression as? CjSimpleNameExpression)?.getIdentifier() ?: return element
-                    (selector.getCalleeExpressionIfAny() as? CjSimpleNameExpression)?.getIdentifier()?.replace(identifier)
+                    val identifier =
+                        (receiver.selectorExpression as? CjSimpleNameExpression)?.getIdentifier() ?: return element
+                    (selector.getCalleeExpressionIfAny() as? CjSimpleNameExpression)?.getIdentifier()
+                        ?.replace(identifier)
                     receiver.selectorExpression?.replace(selector)
                     element.replace(receiver) as CjExpression
                 }
@@ -834,3 +983,5 @@ private fun PsiElement.isRootPrefix(): Boolean = when (this) {
     is CjUserType -> qualifier?.text == ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE
     else -> false
 }
+
+

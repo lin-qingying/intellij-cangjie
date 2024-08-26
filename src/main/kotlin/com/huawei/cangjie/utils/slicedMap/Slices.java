@@ -1,9 +1,7 @@
 package com.huawei.cangjie.utils.slicedMap;
 
 import com.huawei.cangjie.psi.CjElement;
-import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstant;
-import com.huawei.cangjie.types.util.TypeUtils;
-import com.huawei.cangjie.utils.PsiUtilsKt;
+import com.huawei.cangjie.psi.psiUtil.PsiUtilsKt;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 

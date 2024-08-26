@@ -7,9 +7,12 @@ import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getLineCount
 import com.huawei.cangjie.psi.psiUtil.isMultiLine
 import com.huawei.cangjie.psi.psiUtil.nextLeaf
-import com.huawei.cangjie.resolve.*
+import com.huawei.cangjie.resolve.BindingContext
+import com.huawei.cangjie.resolve.DescriptorUtils
+import com.huawei.cangjie.resolve.ImportPath
 import com.huawei.cangjie.resolve.descriptorUtil.fqNameSafe
 import com.huawei.cangjie.resolve.descriptorUtil.getImportableDescriptor
+import com.huawei.cangjie.resolve.getReferenceTargets
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiWhiteSpace
 
@@ -44,13 +47,16 @@ fun CjReferenceExpression.getImportableTargets(bindingContext: BindingContext): 
         ?: getReferenceTargets(bindingContext)
     return targets.map { it.getImportableDescriptor() }.toSet()
 }
+
 fun ImportPath.isImported(imports: Iterable<ImportPath>, excludedFqNames: Iterable<FqName>): Boolean {
     return isImported(imports) && (isAllUnder || this.fqName !in excludedFqNames)
 }
+
 private fun ImportPath.isImported(imports: Iterable<ImportPath>): Boolean = imports.any { isImported(it) }
 fun ImportPath.isImported(alreadyImported: ImportPath): Boolean {
     return if (isAllUnder || hasAlias()) this == alreadyImported else fqName.isImported(alreadyImported)
 }
+
 fun FqName.isImported(importPath: ImportPath, skipAliasedImports: Boolean = true): Boolean {
     return when {
         skipAliasedImports && importPath.hasAlias() -> false
@@ -60,12 +66,17 @@ fun FqName.isImported(importPath: ImportPath, skipAliasedImports: Boolean = true
 }
 
 
-
 /**
  * @return newly added import if it's not present in the file, and already existing import, otherwise.
  */
-fun CjFile.addImport(fqName: FqName, allUnder: Boolean = false, alias: Name? = null, project: Project = this.project): CjImportDirective {
-    val importPath = ImportPath(fqName, allUnder, alias)
+fun CjFile.addImport(
+    fqName: FqName,
+    allUnder: Boolean = false,
+    alias: Name? = null,
+    project: Project = this.project,
+    isPackageSplit: Boolean = false
+): CjImportDirective {
+    val importPath = ImportPath(if (isPackageSplit) fqName.parent() else fqName, allUnder, alias)
 
     val psiFactory = CjPsiFactory(project)
     if (this is CjCodeFragment) {

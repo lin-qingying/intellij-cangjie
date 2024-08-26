@@ -3,8 +3,6 @@ package com.huawei.cangjie.ide.completion
 import com.huawei.cangjie.ide.references.mainReference
 import com.huawei.cangjie.psi.CjCodeFragment
 import com.huawei.cangjie.psi.CjFile
-import com.huawei.cangjie.resolve.caches.getResolutionFacade
-import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionSorter
@@ -15,18 +13,10 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.patterns.PatternCondition
 import com.intellij.patterns.StandardPatterns
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.ProcessingContext
 import com.huawei.cangjie.psi.*
-import com.huawei.cangjie.psi.psiUtil.isInsideAnnotationEntryArgumentList
 import com.huawei.cangjie.utils.match
-import com.huawei.cangjie.utils.parents
-import com.huawei.cangjie.resolve.scopes.getResolutionScope
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.doc.psi.impl.CDocName
-import com.huawei.cangjie.resolve.BindingContext
-import com.huawei.cangjie.resolve.scopes.getResolveScope
-import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
+import com.huawei.cangjie.psi.psiUtil.parents
 import com.huawei.cangjie.utils.CallTypeAndReceiver
 
 

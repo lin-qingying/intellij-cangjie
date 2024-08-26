@@ -140,7 +140,7 @@ public class DescriptorResolver {
                 DescriptorFactory.createPrimaryConstructorForObject(classDescriptor, CangJieSourceElementKt.toSourceElement(object));
         if (object instanceof PsiElement) {
             CjPrimaryConstructor primaryConstructor = object.getPrimaryConstructor();
-            trace.record(CONSTRUCTOR, primaryConstructor != null ? primaryConstructor : (PsiElement)object, constructorDescriptor);
+            trace.record(CONSTRUCTOR, primaryConstructor != null ? primaryConstructor : (PsiElement) object, constructorDescriptor);
         }
         return constructorDescriptor;
     }
@@ -444,20 +444,13 @@ public class DescriptorResolver {
     private CangJieType getDefaultSupertype(@NotNull ClassDescriptor classDescriptor) {
         if (classDescriptor.getKind() == ClassKind.ENUM_ENTRY) {
             return ((ClassDescriptor) classDescriptor.getContainingDeclaration()).getDefaultType();
+        } else if (classDescriptor.getKind() == ClassKind.CLASS) {
+            return builtIns.getObjectType();
         }
-//        else if (classDescriptor.getKind() == ClassKind.ANNOTATION_CLASS) {
-//            return builtIns.getAnnotationType();
-//        }
 
 
-//        moduleDescriptor.getPackage(StandardNames.FqNames.core);
-
-//        获取Any类型
-//   CangJieType anyType =     Objects.requireNonNull(moduleDescriptor.getPackage(StandardNames.FqNames.core).getMemberScope().getContributedClassifier(
-//                Name.identifier("Any"), NoLookupLocation.FROM_BUILTINS
-//        )).getDefaultType();
         return builtIns.getAnyType();
-//        return anyType;
+
     }
 
     public List<CangJieType> resolveSupertypes(
@@ -466,7 +459,7 @@ public class DescriptorResolver {
             @Nullable CjPureTypeStatement typeStatement,
             BindingTrace trace
     ) {
-        builtIns.setSourcesModuleDescriptor(DescriptorUtilsKt.getModule(scope.getOwnerDescriptor()));
+//        builtIns.setSourcesModuleDescriptor(DescriptorUtilsKt.getModule(scope.getOwnerDescriptor()));
 
         List<CangJieType> supertypes = Lists.newArrayList();
         List<CjSuperTypeListEntry> delegationSpecifiers =

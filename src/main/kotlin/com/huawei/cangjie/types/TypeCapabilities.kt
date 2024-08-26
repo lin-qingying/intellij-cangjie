@@ -26,3 +26,4 @@ fun CangJieType.getSubtypeRepresentative(): CangJieType =
     (unwrap() as? SubtypingRepresentatives)?.subTypeRepresentative ?: this
 fun CangJieType.getSupertypeRepresentative(): CangJieType =
     (unwrap() as? SubtypingRepresentatives)?.superTypeRepresentative ?: this
+fun CangJieType.isCustomTypeParameter(): Boolean = (unwrap() as? CustomTypeParameter)?.isTypeParameter ?: false
