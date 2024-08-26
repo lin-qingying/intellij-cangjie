@@ -35,7 +35,7 @@ https://plugins.jetbrains.com/plugins/linqingying/list
 如果您发现任何问题或缺少功能，欢迎您为插件做出贡献。
 
 ### 打赏支持
-如果对您有帮助，请捐赠以表支持，谢谢
+如果对您有帮助，请捐赠以表支持，谢谢,捐赠时请备注
 <br>
 <img alt="a9777a62426b943b1a810bf0468ac4d.jpg"   src="img%2Fa9777a62426b943b1a810bf0468ac4d.jpg" width="200"/>
 <br>
