@@ -1,0 +1,45 @@
+version: '1.0'
+name: pipeline-20240828
+displayName: pipeline-20240828
+triggers:
+  trigger: auto
+  push:
+    branches:
+      prefix:
+        - ''
+  pr:
+    branches:
+      prefix:
+        - ''
+stages:
+  - name: stage-6fa554cb
+    displayName: 未命名
+    strategy: naturally
+    trigger: auto
+    executor: []
+    steps:
+      - step: sc@opensca
+        name: open_sca
+        displayName: OpenSCA 开源组件检测
+        detectPath: ./
+        notify: []
+        strategy:
+          retry: '0'
+      - step: ut@gradle
+        name: unit_test_gradle
+        displayName: Gradle 单元测试
+        jdkVersion: '17'
+        gradleVersion: '4.4'
+        commands:
+          - '# Gradle单元测试默认命令'
+          - chmod +x gradlew
+          - ./gradlew test
+        report:
+          path: build/reports/tests/test
+          index: index.html
+        checkpoints: []
+        caches:
+          - ~/.gradle/caches
+        notify: []
+        strategy:
+          retry: '0'
