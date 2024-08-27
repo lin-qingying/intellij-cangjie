@@ -1,7 +1,7 @@
 package com.huawei.cangjie.resolve
 
-import com.huawei.cangjie.analyzer.DaemonCodeAnalyzerStatusService
 import com.huawei.cangjie.analyzer.CjpmLibraryInfo
+import com.huawei.cangjie.analyzer.DaemonCodeAnalyzerStatusService
 import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.container.get
 import com.huawei.cangjie.context.SimpleGlobalContext
@@ -16,10 +16,12 @@ import com.huawei.cangjie.ide.stubindex.resolve.isUnitTestMode
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getElementTextWithContext
+import com.huawei.cangjie.psi.psiUtil.getNonStrictParentOfType
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.lazy.*
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode.*
-import com.huawei.cangjie.psi.psiUtil.getNonStrictParentOfType
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptorBase
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootModificationTracker
@@ -30,7 +32,7 @@ import com.intellij.util.containers.CollectionFactory
 import com.intellij.util.containers.SLRUCache
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.ConcurrentMap
-import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
+
 private val FILE_IN_BLOCK_MODIFICATION_COUNT = Key<Long>("FILE_IN_BLOCK_MODIFICATION_COUNT")
 
 val CjFile.inBlockModificationCount: Long by NotNullableUserDataProperty(FILE_IN_BLOCK_MODIFICATION_COUNT, 0)
@@ -68,6 +70,7 @@ class ResolveElementCache(
             return "{CachedPartialResolve: $mode $modificationStamp}"
         }
     }
+
     fun resolveToElements(elements: Collection<CjElement>, bodyResolveMode: BodyResolveMode = FULL): BindingContext {
         val elementsByAdditionalResolveElement: Map<CjElement?, List<CjElement>> =
             elements.groupBy { findElementOfAdditionalResolve(it, bodyResolveMode) }
@@ -85,7 +88,8 @@ class ResolveElementCache(
                                 "${elementOfAdditionalResolve.text} for context element ${contextElements.firstOrNull()?.text}"
                     )
                 }
-                val bindingContext = getElementsAdditionalResolve(elementOfAdditionalResolve, contextElements, bodyResolveMode)
+                val bindingContext =
+                    getElementsAdditionalResolve(elementOfAdditionalResolve, contextElements, bodyResolveMode)
                 bindingContexts.add(bindingContext)
             } else {
                 contextElements
@@ -200,12 +204,14 @@ class ResolveElementCache(
             else -> return elementOfAdditionalResolve
         }
     }
+
     private fun ensureFileAnnotationsResolved(elements: Collection<CjElement>) {
         val filesToBeAnalyzed = elements.map { it.getContainingCjFile() }.toSet()
         for (file in filesToBeAnalyzed) {
             ensureFileAnnotationsResolved(file)
         }
     }
+
     private fun ensureFileAnnotationsResolved(file: CjFile) {
 //    val fileLevelAnnotations = resolveSession.getFileAnnotations(file)
 //    doResolveAnnotations(fileLevelAnnotations)
@@ -363,6 +369,17 @@ class ResolveElementCache(
 
     }
 
+    private fun typealiasAdditionalResolve(
+        resolveSession: ResolveSession, typeAlias: CjTypeAlias,
+        bindingTraceFilter: BindingTraceFilter
+    ): BindingTrace {
+        val trace = createDelegatingTrace(typeAlias, bindingTraceFilter)
+        val typeAliasDescriptor = resolveSession.resolveToDescriptor(typeAlias)
+        ForceResolveUtil.forceResolveAllContents(typeAliasDescriptor)
+//        forceResolveAnnotationsInside(typeAlias)
+        return trace
+    }
+
     private fun performElementAdditionalResolve(
         resolveElement: CjElement,
         contextElements: Collection<CjElement>?,
@@ -398,7 +415,13 @@ class ResolveElementCache(
                 createStatementFilter(),
                 bodyResolveMode.bindingTraceFilter
             )
-//            is CjTypeAlias -> typealiasAdditionalResolve(resolveSession, resolveElement, bodyResolveMode.bindingTraceFilter)
+
+            is CjTypeAlias -> typealiasAdditionalResolve(
+                resolveSession,
+                resolveElement,
+                bodyResolveMode.bindingTraceFilter
+            )
+
             is CjSuperTypeList -> delegationSpecifierAdditionalResolve(
                 resolveSession,
                 resolveElement,
@@ -480,14 +503,14 @@ class ResolveElementCache(
     }
 
     private fun delegationSpecifierAdditionalResolve(
-        resolveSession: ResolveSession, ktElement: CjElement,
+        resolveSession: ResolveSession, cjElement: CjElement,
         classOrObject: CjTypeStatement, file: CjFile,
         bindingTraceFilter: BindingTraceFilter
     ): BindingTrace {
-        val trace = createDelegatingTrace(ktElement, bindingTraceFilter)
-        val descriptor = resolveSession.resolveToDescriptor(classOrObject) as LazyClassDescriptor
+        val trace = createDelegatingTrace(cjElement, bindingTraceFilter)
+        val descriptor = resolveSession.resolveToDescriptor(classOrObject) as LazyClassDescriptorBase
 
-        // Activate resolving of supertypes
+        // 激活超类型的解析
         ForceResolveUtil.forceResolveAllContents(descriptor.typeConstructor.supertypes)
 
         val bodyResolver = createBodyResolver(resolveSession, trace, file, StatementFilter.NONE)
@@ -521,19 +544,19 @@ class ResolveElementCache(
     }
 
     private fun packageRefAdditionalResolve(
-        resolveSession: ResolveSession, ktElement: CjElement,
+        resolveSession: ResolveSession, cjElement: CjElement,
         bindingTraceFilter: BindingTraceFilter
     ): BindingTrace {
-        val trace = createDelegatingTrace(ktElement, bindingTraceFilter)
+        val trace = createDelegatingTrace(cjElement, bindingTraceFilter)
 
-        if (ktElement is CjSimpleNameExpression) {
-            val header = ktElement.findParentOfType<CjPackageDirective>(true)!!
+        if (cjElement is CjSimpleNameExpression) {
+            val header = cjElement.findParentOfType<CjPackageDirective>(true)!!
 
-            if (Name.isValidIdentifier(ktElement.getReferencedName())) {
-//                if (trace.bindingContext[BindingContext.REFERENCE_TARGET, ktElement] == null) {
-//                    val fqName = header.getFqName(ktElement)
+            if (Name.isValidIdentifier(cjElement.getReferencedName())) {
+//                if (trace.bindingContext[BindingContext.REFERENCE_TARGET, cjElement] == null) {
+//                    val fqName = header.getFqName(cjElement)
 //                    val packageDescriptor = resolveSession.moduleDescriptor.getPackage(fqName)
-//                    trace.record(BindingContext.REFERENCE_TARGET, ktElement, packageDescriptor)
+//                    trace.record(BindingContext.REFERENCE_TARGET, cjElement, packageDescriptor)
 //                }
             }
         }

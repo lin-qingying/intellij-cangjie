@@ -1,7 +1,7 @@
 package com.huawei.cangjie.ide.refactoring.move
 
 import com.huawei.cangjie.ide.highlighter.unwrapped
-import com.huawei.cangjie.ide.references.mainReference
+import com.huawei.cangjie.references.mainReference
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getNonStrictParentOfType
 import com.huawei.cangjie.psi.psiUtil.getParentOfTypeAndBranch

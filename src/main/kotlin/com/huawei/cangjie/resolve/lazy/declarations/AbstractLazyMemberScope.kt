@@ -6,7 +6,9 @@ import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.calls.components.InferenceSession
 import com.huawei.cangjie.resolve.lazy.LazyClassContext
+import com.huawei.cangjie.resolve.lazy.data.CjClassInfoUtil
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.resolve.source.MemberScopeImpl
@@ -86,13 +88,18 @@ protected constructor(
 
     }
 
-    fun resolveTypeByExtend(declaration: CjExtend): CangJieType? {
+    fun resolveTypeByExtend(declaration: CjExtend): ClassDescriptorWithResolutionScopes? {
         val scope = getScopeForMemberDeclarationResolution(declaration)
         val typeReceiver = declaration.receiverTypeReceiver ?: return null
 //   scope.findFirstClassifierWithDeprecationStatus
         val type = c.typeResolver.resolveType(scope, typeReceiver, trace, false)
 
-        return type
+        val classDescriptor = type.constructor.declarationDescriptor as? LazyClassDescriptor ?: return null
+        val classInfo = CjClassInfoUtil.createClassLikeInfo(declaration)
+        val extendDescriptor = LazyExtendClassDescriptor(
+            classDescriptor, c, classInfo, thisDescriptor, classDescriptor.name
+        )
+        return extendDescriptor
 
 
     }

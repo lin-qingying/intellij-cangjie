@@ -289,4 +289,9 @@ class CjPsiFactory private constructor(
     fun createNewLine(): PsiElement {
         return createWhiteSpace("\n ")
     }
+
+    fun createIdentifier(toString: String): PsiElement? {
+        return createClass("class $toString").nameIdentifier
+
+    }
 }

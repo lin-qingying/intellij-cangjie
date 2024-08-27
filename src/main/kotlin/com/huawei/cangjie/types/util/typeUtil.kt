@@ -30,6 +30,8 @@ fun CangJieType.replaceAnnotations(newAnnotations: Annotations): CangJieType {
 }
 
 fun CangJieType.unwrapEnhancement(): CangJieType = getEnhancement() ?: this
+
+
 fun CangJieType.supertypes(): Collection<CangJieType> = TypeUtils.getAllSupertypes(this)
 
 @JvmOverloads // For binary compatibility
@@ -443,9 +445,11 @@ object TypeUtils {
     }
 
     fun getImmediateSupertypes(type: CangJieType): List<CangJieType> {
+//        TODO 留个笔记，基本数据类型只需要获取扩展的接口，并标记为扩展的接口
+
         val substitutor: TypeSubstitutor = TypeSubstitutor.create(type)
         val originalSupertypes: Collection<CangJieType> = type.constructor.getSupertypes()
-        val result: MutableList<CangJieType> = ArrayList<CangJieType>(originalSupertypes.size)
+        val result = ArrayList<CangJieType>(originalSupertypes.size)
         for (supertype in originalSupertypes) {
             val substitutedType =
                 createSubstitutedSupertype(type, supertype, substitutor)
@@ -465,8 +469,8 @@ object TypeUtils {
     }
 
     fun getAllSupertypes(type: CangJieType): Set<CangJieType> {
-        // 15 is obtained by experimentation: JDK classes like ArrayList tend to have so many supertypes,
-        // the average number is lower
+
+
         val result = LinkedHashSet<CangJieType>(15)
         collectAllSupertypes(type, result)
         return result

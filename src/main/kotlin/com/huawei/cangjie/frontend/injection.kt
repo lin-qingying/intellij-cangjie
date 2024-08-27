@@ -5,7 +5,6 @@ import com.huawei.cangjie.container.*
 import com.huawei.cangjie.context.ModuleContext
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.extensions.TypeAttributeTranslatorExtension
-import com.huawei.cangjie.incremental.components.LookupTracker
 import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.calls.components.ClassicTypeSystemContextForCS
 import com.huawei.cangjie.resolve.calls.inference.components.ClassicConstraintSystemUtilContext
@@ -17,7 +16,6 @@ import com.huawei.cangjie.types.checker.CangJieTypePreparator
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.checker.NewCangJieTypeCheckerImpl
 import com.huawei.cangjie.types.expressions.DeclarationScopeProviderForLocalClassifierAnalyzer
-import com.huawei.cangjie.types.expressions.LocalClassDescriptorHolder
 import com.huawei.cangjie.types.expressions.LocalLazyDeclarationResolver
 import com.huawei.cangjie.utils.ProgressManagerBasedCancellationChecker
 import com.intellij.psi.search.GlobalSearchScope
@@ -136,7 +134,6 @@ fun StorageComponentContainer.configure(
 }
 
 
-
 fun createContainerForLazyResolve(
 
     context: ModuleContext,
@@ -146,9 +143,10 @@ fun createContainerForLazyResolve(
 
     languageVersionSettings: LanguageVersionSettings,
 
-    absentDescriptorHandlerClass: Class<out AbsentDescriptorHandler>? = null
+    absentDescriptorHandlerClass: Class<out AbsentDescriptorHandler>? = null,
+    sealedProvider: SealedClassInheritorsProvider = CliSealedClassInheritorsProvider,
 
-) = createContainer("LazyResolve", PlatformDependentAnalyzerServicesImpl)
+    ) = createContainer("LazyResolve", PlatformDependentAnalyzerServicesImpl)
 {
     configure(
         context,
@@ -158,15 +156,16 @@ fun createContainerForLazyResolve(
 
         absentDescriptorHandlerClass,
 
-    )
+        )
     useInstance(moduleContentScope)
 //    useInstance(VirtualFileFinderFactory.getInstance(context.project).create(moduleContentScope))
+    useInstance(sealedProvider)
 
 //    val builtIns = context.module.builtIns
 //    if (useBuiltInsProvider && builtIns is JvmBuiltIns) {
-        // TODO(dsavvinov): make sure that useBuiltInsProvider == true <=> builtIns is JvmBuiltIns
-        // Currently, that's not the case at least in IDE unit-tests, because they do not set-up
-        // dependency on SDK properly, see KT-43828
+    // TODO(dsavvinov): make sure that useBuiltInsProvider == true <=> builtIns is JvmBuiltIns
+    // Currently, that's not the case at least in IDE unit-tests, because they do not set-up
+    // dependency on SDK properly, see KT-43828
 //        useInstance(builtIns.customizer)
 //        useImpl<JvmBuiltInsPackageFragmentProvider>()
 //    }

@@ -14,6 +14,10 @@ abstract class AbstractTypeConstructor(storageManager: StorageManager) : Classif
     override fun refine(kotlinTypeRefiner: CangJieTypeRefiner): TypeConstructor =
         ModuleViewTypeConstructor(kotlinTypeRefiner)
 
+    override fun getExtendSupertypes(): List<CangJieType> {
+
+        return emptyList()
+    }
 
     @TypeRefinement
     private inner class ModuleViewTypeConstructor(
@@ -37,7 +41,8 @@ abstract class AbstractTypeConstructor(storageManager: StorageManager) : Classif
 
         //
         override fun getSupertypes(): List<CangJieType> = refinedSupertypes
-//
+
+        //
 //        override fun isFinal(): Boolean = this@AbstractTypeConstructor.isFinal
         override fun isDenotable(): Boolean = this@AbstractTypeConstructor.isDenotable
 

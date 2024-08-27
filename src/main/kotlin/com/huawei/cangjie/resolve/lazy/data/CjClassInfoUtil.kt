@@ -20,6 +20,8 @@ object CjClassInfoUtil {
             return CjClassInfo(typeStatement, ClassKind.STRUCT)
         } else if (typeStatement is CjInterface) {
             return CjClassInfo(typeStatement, ClassKind.INTERFACE)
+        }else if(typeStatement is CjExtend){
+            return CjClassInfo(typeStatement, ClassKind.EXTEND)
         }
 
         throw IllegalArgumentException("Unknown declaration type: " + typeStatement + typeStatement.text)

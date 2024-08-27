@@ -2,8 +2,7 @@ package com.huawei.cangjie.ide.editor.folding
 
 import com.huawei.cangjie.CjNodeTypes
 import com.huawei.cangjie.doc.lexer.CDocTokens
-import com.huawei.cangjie.ide.editor.CangJieEditorOptions
-import com.huawei.cangjie.ide.references.mainReference
+import com.huawei.cangjie.references.mainReference
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.*

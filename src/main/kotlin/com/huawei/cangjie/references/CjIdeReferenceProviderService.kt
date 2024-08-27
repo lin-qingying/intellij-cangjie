@@ -1,4 +1,4 @@
-package com.huawei.cangjie.ide.references
+package com.huawei.cangjie.references
 
 import com.huawei.cangjie.psi.CangJieReferenceProvidersService
 import com.intellij.util.SmartList

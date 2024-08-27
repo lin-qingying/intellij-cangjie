@@ -1,4 +1,4 @@
-package com.huawei.cangjie.ide.references
+package com.huawei.cangjie.references
 
 
 enum class ReferenceAccess(

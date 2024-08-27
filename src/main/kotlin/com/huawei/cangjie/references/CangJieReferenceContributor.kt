@@ -1,9 +1,5 @@
 package com.huawei.cangjie.references
 
-import com.huawei.cangjie.ide.references.CangJiePsiReferenceRegistrar
-import com.huawei.cangjie.ide.references.CangJieReferenceProviderContributor
-import com.huawei.cangjie.ide.references.ReferenceAccess
-import com.huawei.cangjie.ide.references.readWriteAccess
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.CjImportDirective
 import com.huawei.cangjie.psi.CjNameReferenceExpression

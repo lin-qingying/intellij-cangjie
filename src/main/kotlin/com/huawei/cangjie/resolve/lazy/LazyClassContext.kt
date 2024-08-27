@@ -5,10 +5,7 @@ import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.SupertypeLoopChecker
 import com.huawei.cangjie.incremental.components.LookupTracker
-import com.huawei.cangjie.resolve.DescriptorResolver
-import com.huawei.cangjie.resolve.ExtendDescriptorResolver
-import com.huawei.cangjie.resolve.FunctionDescriptorResolver
-import com.huawei.cangjie.resolve.TypeResolver
+import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.calls.components.InferenceSession
 import com.huawei.cangjie.resolve.extensions.SyntheticResolveExtension
 import com.huawei.cangjie.resolve.lazy.declarations.DeclarationProviderFactory
@@ -32,6 +29,7 @@ val syntheticResolveExtension: SyntheticResolveExtension
     val declarationProviderFactory: DeclarationProviderFactory
     val languageVersionSettings: LanguageVersionSettings
     val wrappedTypeFactory: WrappedTypeFactory
+    val sealedClassInheritorsProvider: SealedClassInheritorsProvider
 
     val storageManager: StorageManager
     val functionDescriptorResolver: FunctionDescriptorResolver

@@ -240,7 +240,7 @@ abstract class DescriptorRenderer {
                     CLASS -> "class"
                     INTERFACE -> "interface"
                     ENUM -> "enum"
-
+EXTEND -> "extend"
                     ANNOTATION_CLASS -> "annotation class"
                     ENUM_ENTRY -> "enum entry"
                     BASIC -> "basic type"

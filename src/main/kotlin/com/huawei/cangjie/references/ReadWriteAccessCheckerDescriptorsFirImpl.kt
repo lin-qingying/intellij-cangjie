@@ -1,6 +1,5 @@
-package com.huawei.cangjie.ide.references
+package com.huawei.cangjie.references
 
-import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjBinaryExpression
 import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.psi.CjNamedFunction

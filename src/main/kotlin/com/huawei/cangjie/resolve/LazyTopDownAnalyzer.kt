@@ -18,6 +18,7 @@ import com.huawei.cangjie.resolve.lazy.FileScopeProvider
 import com.huawei.cangjie.resolve.lazy.ForceResolveUtil
 import com.huawei.cangjie.resolve.lazy.LazyDeclarationResolver
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.types.expressions.ExpressionTypingContext
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
@@ -89,7 +90,7 @@ class LazyTopDownAnalyzer(
 
                 override fun visitExtend(cjExtend: CjExtend) {
 //                    scope.get
-                    extendDescriptorResolver.test(c, cjExtend)
+                    extendDescriptorResolver.check(c, cjExtend)
 //
 //                    super.visitExtend(cjExtend)
 //                    visitTypeStatement(typeStatement = cjExtend)
@@ -320,7 +321,12 @@ class LazyTopDownAnalyzer(
 
     private fun resolveAllHeadersInClasses(c: TopDownAnalysisContext) {
         for (classDescriptor in c.allClasses) {
-            (classDescriptor as LazyClassDescriptor).resolveMemberHeaders()
+            when(classDescriptor) {
+                is LazyClassDescriptor ->
+                    classDescriptor.resolveMemberHeaders()
+                is LazyExtendClassDescriptor ->
+                    classDescriptor.resolveMemberHeaders()
+            }
         }
     }
 

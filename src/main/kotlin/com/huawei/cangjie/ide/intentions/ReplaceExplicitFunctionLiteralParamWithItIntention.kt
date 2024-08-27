@@ -5,7 +5,7 @@ import com.huawei.cangjie.analyzer.analyzeAsReplacement
 import com.huawei.cangjie.descriptors.ParameterDescriptor
 import com.huawei.cangjie.descriptors.impl.AnonymousFunctionDescriptor
 import com.huawei.cangjie.ide.project.tools.projectWizard.core.safeAs
-import com.huawei.cangjie.ide.references.resolveMainReferenceToDescriptors
+import com.huawei.cangjie.references.resolveMainReferenceToDescriptors
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.*
 import com.huawei.cangjie.resolve.DescriptorToSourceUtils

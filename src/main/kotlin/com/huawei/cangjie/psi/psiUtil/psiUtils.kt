@@ -1,5 +1,8 @@
 package com.huawei.cangjie.psi.psiUtil
 
+import com.huawei.cangjie.ide.highlighter.namedUnwrappedElement
+import com.huawei.cangjie.name.FqName
+import com.huawei.cangjie.psi.CjNamedDeclaration
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
 import com.intellij.psi.impl.source.tree.LeafPsiElement
@@ -91,3 +94,9 @@ fun PsiElement.getStartOffsetIn(ancestor: PsiElement): Int {
     }
     return offset
 }
+val PsiElement.cangjieFqName: FqName?
+    get() = when (val element = namedUnwrappedElement) {
+
+        is CjNamedDeclaration -> element.fqName
+        else -> null
+    }

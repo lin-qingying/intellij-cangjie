@@ -57,6 +57,7 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     private final Project project;
     private LanguageVersionSettings languageVersionSettings;
     private TypeResolver typeResolver;
+    private SealedClassInheritorsProvider sealedClassInheritorsProvider;
 
     // Only calls from injectors expected
     @Deprecated
@@ -349,7 +350,16 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
         return wrappedTypeFactory;
 
     }
+    @NotNull
+    @Override
+    public SealedClassInheritorsProvider getSealedClassInheritorsProvider() {
+        return sealedClassInheritorsProvider;
+    }
 
+    @Inject
+    public void setSealedClassInheritorsProvider(@NotNull SealedClassInheritorsProvider sealedClassInheritorsProvider) {
+        this.sealedClassInheritorsProvider = sealedClassInheritorsProvider;
+    }
     @Inject
     public void setWrappedTypeFactory(@NotNull WrappedTypeFactory wrappedTypeFactory) {
         this.wrappedTypeFactory = wrappedTypeFactory;

@@ -440,6 +440,7 @@ public interface CjTokens {
     CjKeywordToken RUNE_KEYWORD = CjKeywordToken.keyword("Rune", CHAR_Id);
     CjKeywordToken UNIT_KEYWORD = CjKeywordToken.keyword("Unit", UNIT_Id);
     CjKeywordToken VARRAY_KEYWORD = CjKeywordToken.keyword("VArray", VARRAY_Id);
+    TokenSet STRINGS = TokenSet.create(RUNE_LITERAL, REGULAR_STRING_PART);
 
     //基本类型
     TokenSet BASICTYPES = TokenSet.create(

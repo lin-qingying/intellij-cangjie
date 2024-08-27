@@ -1,0 +1,266 @@
+package com.huawei.cangjie.resolve.lazy.descriptors
+
+import com.huawei.cangjie.builtins.CangJieBuiltIns.Companion.isSpecialClassWithNoSupertypes
+import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.ScopesHolderForClass.Companion.create
+import com.huawei.cangjie.descriptors.annotations.Annotations
+import com.huawei.cangjie.descriptors.impl.ClassDescriptorBase
+import com.huawei.cangjie.descriptors.impl.FunctionDescriptorImpl
+import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.name.Name.Companion.special
+import com.huawei.cangjie.resolve.BindingContext
+import com.huawei.cangjie.resolve.DescriptorUtils.getAllDescriptors
+import com.huawei.cangjie.resolve.DescriptorUtils.getContainingModule
+import com.huawei.cangjie.resolve.descriptorUtil.getCangJieTypeRefiner
+import com.huawei.cangjie.resolve.descriptorUtil.getSuperClassNotAny
+import com.huawei.cangjie.resolve.lazy.LazyClassContext
+import com.huawei.cangjie.resolve.lazy.data.CjClassLikeInfo
+import com.huawei.cangjie.resolve.scopes.LexicalScope
+import com.huawei.cangjie.resolve.scopes.MemberScope
+import com.huawei.cangjie.storage.StorageManager
+import com.huawei.cangjie.types.*
+import com.huawei.cangjie.types.checker.CangJieTypeRefiner
+import com.huawei.cangjie.types.util.TypeUtils.getClassDescriptor
+import com.intellij.psi.PsiElement
+
+abstract class LazyClassDescriptorBase
+    (
+    storageManager: StorageManager,
+    containingDec: DeclarationDescriptor,
+    name: Name,
+    source: SourceElement,
+    isExternal: Boolean
+) : ClassDescriptorBase(
+    storageManager, containingDec, name, source, isExternal
+), ClassDescriptorWithResolutionScopes {
+
+}
+
+class LazyExtendClassDescriptor(
+    private val classDescriptor: ClassDescriptor,
+    private val c: LazyClassContext,
+    private val classLikeInfo: CjClassLikeInfo,
+
+    containingDeclaration: DeclarationDescriptor,
+    name: Name
+
+) : LazyClassDescriptorBase(
+    c.storageManager,
+    containingDeclaration, name,
+    SourceElement.NO_SOURCE, false
+) {
+
+    companion object {
+        val VALID_SUPERTYPE: (CangJieType) -> Boolean = { type: CangJieType ->
+            assert(!type.isError) { "Error types must be filtered out in DescriptorResolver" }
+            getClassDescriptor(type) != null
+        }
+    }
+
+    private val storageManager: StorageManager = c.storageManager
+    private val typeConstructor = ExtendTypeConstructor()
+    private val declarationProvider = c.declarationProviderFactory.getClassMemberDeclarationProvider(classLikeInfo)
+
+    private val scopesHolderForClass = createScopesHolderForClass(c, this.declarationProvider)
+    private val scopeForInitializerResolution =
+        storageManager.createLazyValue {
+            scopeForInitializerResolution(
+                this, createInitializerScopeParent(), classLikeInfo.primaryConstructorParameters
+            )
+        }
+  val  typeStatement = classLikeInfo.correspondingClass
+
+    private val resolutionScopesSupport = ClassResolutionScopesSupport(
+        this,
+        storageManager,
+        c.languageVersionSettings,
+    ) { getOuterScope() }
+init {
+
+    if (typeStatement != null) {
+        c.trace.record<PsiElement, ClassDescriptor>(
+            BindingContext.CLASS, typeStatement,
+            this
+        )
+    }
+}
+    @OptIn(TypeRefinement::class)
+    private fun createScopesHolderForClass(
+        c: LazyClassContext,
+        declarationProvider: ClassMemberDeclarationProvider
+    ): ScopesHolderForClass<LazyClassMemberScope> {
+        return create(
+            this,
+            c.storageManager,
+            c.cangjieTypeCheckerOfOwnerModule.cangjieTypeRefiner
+        ) { cangjieTypeRefinerForDependentModule: CangJieTypeRefiner ->
+            val scopeForDeclaredMembers =
+                if (!cangjieTypeRefinerForDependentModule.isRefinementNeededForModule(c.moduleDescriptor)
+                ) null
+                else scopesHolderForClass.getScope(c.cangjieTypeCheckerOfOwnerModule.cangjieTypeRefiner) // essentially, a scope for owner-module
+            LazyClassMemberScope(
+                c, declarationProvider, this, c.trace, cangjieTypeRefinerForDependentModule,
+                scopeForDeclaredMembers
+            )
+        }
+    }
+
+    override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner): MemberScope {
+//        return getUnsubstitutedMemberScope(getContainingModule(this).getCangJieTypeRefiner())
+        return scopesHolderForClass.getScope(cangjieTypeRefiner)
+
+    }
+
+    @OptIn(TypeRefinement::class)
+    override fun getUnsubstitutedMemberScope(): MemberScope {
+        return getUnsubstitutedMemberScope(getContainingModule(this).getCangJieTypeRefiner())
+
+    }
+
+    private inner class ExtendTypeConstructor : AbstractClassTypeConstructor(storageManager) {
+        private val parameters =
+            c.storageManager.createLazyValue { this@LazyExtendClassDescriptor.computeConstructorTypeParameters() }
+
+        override fun computeSupertypes(): Collection<CangJieType> {
+            return this@LazyExtendClassDescriptor.computeSupertypes()
+
+        }
+
+        override fun getDeclarationDescriptor(): ClassDescriptor = this@LazyExtendClassDescriptor
+
+        override fun isDenotable(): Boolean = true
+
+        override fun getParameters(): List<TypeParameterDescriptor> {
+            return parameters()
+        }
+
+        override val supertypeLoopChecker: SupertypeLoopChecker
+            get() = c.supertypeLoopChecker
+
+    }
+
+    private fun computeSupertypes(): List<CangJieType> {
+        if (isSpecialClassWithNoSupertypes(this)) {
+            return emptyList()
+        }
+        val trace: BindingTrace = c.trace
+        val scope: LexicalScope = scopeForClassHeaderResolution
+        val classOrObject = declarationProvider.ownerInfo!!.correspondingClass
+            ?: return listOf(c.moduleDescriptor.builtIns.anyType)
+
+
+        val allSupertypes =
+            c.descriptorResolver.resolveSupertypes(scope, this, classOrObject, trace)
+
+        return ArrayList(allSupertypes.filter(VALID_SUPERTYPE))
+    }
+
+    private fun getOuterScope(): LexicalScope {
+        return c.declarationScopeProvider.getResolutionScopeForDeclaration(declarationProvider.ownerInfo!!.scopeAnchor)
+    }
+
+
+    override fun getTypeConstructor(): TypeConstructor = typeConstructor
+
+    override fun getModality(): Modality {
+        return Modality.FINAL
+    }
+
+    override fun getDeclaredTypeParameters(): MutableList<TypeParameterDescriptor> {
+        return classDescriptor.declaredTypeParameters
+    }
+
+    override fun getStaticScope(): MemberScope {
+        return MemberScope.Empty
+    }
+
+    override fun getConstructors(): Collection<ClassConstructorDescriptor> {
+        return (unsubstitutedMemberScope as LazyClassMemberScope).getConstructors()
+
+    }
+
+    override fun getKind(): ClassKind {
+        return classDescriptor.kind
+    }
+
+    override fun isFun(): Boolean {
+        return false
+    }
+
+    override fun isValue(): Boolean {
+        return false
+    }
+
+    override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? {
+        return null
+    }
+
+    override fun getSealedSubclasses(): MutableCollection<ClassDescriptor> {
+        return classDescriptor.sealedSubclasses
+    }
+
+
+    override fun getScopeForMemberDeclarationResolution(): LexicalScope {
+        return resolutionScopesSupport.scopeForMemberDeclarationResolution.invoke()
+
+    }
+
+    override fun getDeclaredCallableMembers(): List<CallableMemberDescriptor> {
+        return getAllDescriptors(unsubstitutedMemberScope)
+            .filter {
+                it is CallableMemberDescriptor && it.kind != CallableMemberDescriptor.Kind.FAKE_OVERRIDE
+            } as List<CallableMemberDescriptor>
+    }
+
+
+    private fun createInitializerScopeParent(): DeclarationDescriptor {
+        val primaryConstructor: ConstructorDescriptor? = unsubstitutedPrimaryConstructor
+        if (primaryConstructor != null) return primaryConstructor
+
+        return object : FunctionDescriptorImpl(
+            this@LazyExtendClassDescriptor, null, Annotations.EMPTY, special("<init-blocks>"),
+            CallableMemberDescriptor.Kind.SYNTHESIZED, SourceElement.NO_SOURCE
+        ) {
+            init {
+                initialize(
+                    null, null, emptyList(), emptyList(), emptyList(),
+                    null, Modality.FINAL, DescriptorVisibilities.PRIVATE
+                )
+            }
+
+            override fun createSubstitutedCopy(
+                newOwner: DeclarationDescriptor,
+                original: FunctionDescriptor?,
+                kind: CallableMemberDescriptor.Kind,
+                newName: Name?,
+                annotations: Annotations,
+                source: SourceElement
+            ): FunctionDescriptorImpl {
+                throw UnsupportedOperationException()
+            }
+        }
+    }
+
+    override fun getScopeForInitializerResolution(): LexicalScope {
+        return scopeForInitializerResolution()
+
+    }
+
+    override fun getScopeForClassHeaderResolution(): LexicalScope {
+        return resolutionScopesSupport.scopeForClassHeaderResolution.invoke()
+
+    }
+
+    override fun getScopeForConstructorHeaderResolution(): LexicalScope {
+        return resolutionScopesSupport.scopeForConstructorHeaderResolution.invoke()
+
+    }
+
+    fun resolveMemberHeaders() {
+        //    ForceResolveUtil.forceResolveAllContents(getDanglingAnnotations());
+        getSuperClassNotAny()
+//        constructors
+//        containingDeclaration
+//        unsubstitutedMemberScope
+    }
+}

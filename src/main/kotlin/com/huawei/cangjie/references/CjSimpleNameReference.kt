@@ -51,10 +51,10 @@ class CjSimpleNameReference(expression: CjSimpleNameExpression) : CjSimpleRefere
         if (descriptor != null) return listOf(descriptor)
         return context[BindingContext.AMBIGUOUS_REFERENCE_TARGET, this].orEmpty()
     }
-    override fun getTargetDescriptors(bindingContext: BindingContext): Collection<DeclarationDescriptor> {
+    override fun getTargetDescriptors(context: BindingContext): Collection<DeclarationDescriptor> {
         return SmartList<DeclarationDescriptor>().apply {
             // Replace Java property with its accessor(s)
-            for (descriptor in expression.getReferenceTargets(bindingContext)) {
+            for (descriptor in expression.getReferenceTargets(context)) {
                 val sizeBefore = size
 //                if (descriptor !is JavaPropertyDescriptor) {
                     add(descriptor)

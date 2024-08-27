@@ -301,7 +301,7 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
             throw e
         }
 
-        // some diagnostics could be not handled with a callback - send out the rest
+        // 某些诊断无法通过回调处理-发送其余诊断
         callback?.let { c ->
             result.bindingContext.diagnostics.filterNot { it in localDiagnostics }.forEach(c::callback)
         }

@@ -114,3 +114,27 @@ fun scopeForInitializerResolution(
         }
     }
 }
+fun scopeForInitializerResolution(
+    classDescriptor: LazyExtendClassDescriptor,
+    parentDescriptor: DeclarationDescriptor,
+    primaryConstructorParameters: List<CjParameter>
+): LexicalScope {
+    return LexicalScopeImpl(
+        classDescriptor.scopeForMemberDeclarationResolution,
+        parentDescriptor,
+        false,
+        null,
+        emptyList(),
+        LexicalScopeKind.CLASS_INITIALIZER
+    ) {
+        if (primaryConstructorParameters.isNotEmpty()) {
+            val parameterDescriptors = classDescriptor.unsubstitutedPrimaryConstructor!!.valueParameters
+            assert(parameterDescriptors.size == primaryConstructorParameters.size)
+            for ((parameter, descriptor) in primaryConstructorParameters.zip(parameterDescriptors)) {
+                if (!parameter.hasLetOrVar()) {
+                    addVariableDescriptor(descriptor)
+                }
+            }
+        }
+    }
+}

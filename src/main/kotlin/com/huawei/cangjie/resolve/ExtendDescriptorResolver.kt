@@ -5,14 +5,15 @@ import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.ClassDescriptorWithResolutionScopes
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.psi.CjExtend
+import com.huawei.cangjie.resolve.lazy.FileScopeProvider
 import com.huawei.cangjie.resolve.lazy.LazyDeclarationResolver
 import com.huawei.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
 import com.huawei.cangjie.storage.StorageManager
-import com.huawei.cangjie.types.error.ErrorType
 
 class ExtendDescriptorResolver(
     private val trace: BindingTrace,
     private val lazyDeclarationResolver: LazyDeclarationResolver,
+    private val fileScopeProvider: FileScopeProvider,
 
     private val typeResolver: TypeResolver,
 
@@ -22,21 +23,31 @@ class ExtendDescriptorResolver(
     private val storageManager: StorageManager
 
 ) {
-    fun test(c: TopDownAnalysisContext, cjExtend: CjExtend) {
+
+    fun getExtendDescriptor(cjExtend: CjExtend): ClassDescriptorWithResolutionScopes? {
+        //        val receiverTypeReceiver = cjExtend.receiverTypeReceiver ?: return
         val scope = lazyDeclarationResolver.getMemberScopeDeclaredIn(cjExtend, NoLookupLocation.FROM_BUILTINS)
+//        val lexicalScope = fileScopeProvider.getFileResolutionScope(cjExtend.getContainingCjFile())
+
 
         scope as AbstractLazyMemberScope<*, *>
 
 //       第一步，检查被扩展类型并获取
 
         val type = scope.resolveTypeByExtend(cjExtend)
-        if (type is ErrorType) return
+        return type
+    }
+
+    fun check(c: TopDownAnalysisContext, cjExtend: CjExtend) {
+        val type = getExtendDescriptor(cjExtend)
+        c.declaredClasses[cjExtend] = type ?: return
+
+//        val classDescriptor = type.constructor.declarationDescriptor as? LazyClassDescriptor ?: return
 
 
-        val classDescriptor = type?.constructor?.declarationDescriptor as? ClassDescriptorWithResolutionScopes ?: return
-
+//        classDescriptor.setExtendData(cjExtend,trace,lexicalScope)
 //        classDescriptor as LazyClassDescriptor
-        c.declaredClasses[cjExtend] = classDescriptor
+//        c.declaredClasses[cjExtend] = classDescriptor
 
 
 //        第二步，获取被扩展的类型

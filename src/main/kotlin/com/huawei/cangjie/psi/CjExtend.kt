@@ -2,9 +2,11 @@ package com.huawei.cangjie.psi
 
 
 import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.stubs.CangJieExtendStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 
 class CjExtend : CjTypeStatement {
     private val _stub: CangJieExtendStub?
@@ -32,6 +34,14 @@ class CjExtend : CjTypeStatement {
             }
             return getReceiverTypeRefByTree()
         }
+    override val nameAsSafeName: Name
+        get() = Name.identifier("extend_" + receiverTypeReceiver?.text)
+
+    override fun getNameIdentifier(): PsiElement? {
+//        val psiFactory = CjPsiFactory.contextual(this)
+//        return psiFactory.createIdentifier(nameAsSafeName.toString())
+return receiverTypeReceiver
+    }
 
     private fun getReceiverTypeRefByTree(): CjTypeReference? {
         var child = firstChild

@@ -8,15 +8,17 @@
     <xi:include href="/META-INF/codeInsight.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/searching.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/quickfix.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/refactoring.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <extensions defaultExtensionNs="com.intellij">
 
         <!-- 编辑器执行配置 -->
         <runLineMarkerContributor language="CangJie"
                                   implementationClass="com.huawei.cangjie.ide.run.CjRunLineMarkersProvider"/>
-<!--        editorSmartKeysConfigurable-->
+        <!--        editorSmartKeysConfigurable-->
         <editorSmartKeysConfigurable instance="com.huawei.cangjie.ide.editor.CangJieEditorOptionsConfigurable"/>
-        <lang.foldingBuilder language="CangJie" implementationClass="com.huawei.cangjie.ide.editor.folding.CangJieFoldingBuilder"/>
+        <lang.foldingBuilder language="CangJie"
+                             implementationClass="com.huawei.cangjie.ide.editor.folding.CangJieFoldingBuilder"/>
 
         <!--        文件索引-->
         <!--        <fileBasedIndex implementation=""></fileBasedIndex>-->
@@ -25,8 +27,8 @@
         <!--        插件启动初始化-->
         <!--        <applicationService serviceImplementation="com.huawei.cangjie.CangJieStartupActivity" serviceInterface="com.intellij.openapi.startup.StartupActivity"/>-->
         <!--        <postStartupActivity implementation="com.huawei.cangjie.ide.project.CangJieProjectActivity"/>-->
-<!--        <additionalLibraryRootsProvider-->
-<!--                implementation="com.huawei.cangjie.cjpm.project.workspace.CjAdditionalLibraryRootsProvider"/>-->
+        <!--        <additionalLibraryRootsProvider-->
+        <!--                implementation="com.huawei.cangjie.cjpm.project.workspace.CjAdditionalLibraryRootsProvider"/>-->
 
         <!--        编辑器自动插入-->
         <typedHandler implementation="com.huawei.cangjie.ide.editor.CangJieTypedHandler"/>
@@ -65,13 +67,13 @@
                   language="CangJie"
                   implementationClass="com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType"/>
 
-<!--                <lang.fileViewProviderFactory language="CangJie"-->
-<!--                                              implementationClass="com.huawei.cangjie.lang.declarations.CangJieFileViewProviderFactory"/>-->
-<!--        <fileType.fileViewProviderFactory filetype="cangjie_declarations"-->
-<!--                                       implementationClass="com.huawei.cangjie.lang.declarations.CangJieFileViewProviderFactory     <internalFileTemplate name="CangJie File"/>-->
+        <!--                <lang.fileViewProviderFactory language="CangJie"-->
+        <!--                                              implementationClass="com.huawei.cangjie.lang.declarations.CangJieFileViewProviderFactory"/>-->
+        <!--        <fileType.fileViewProviderFactory filetype="cangjie_declarations"-->
+        <!--                                       implementationClass="com.huawei.cangjie.lang.declarations.CangJieFileViewProviderFactory     <internalFileTemplate name="CangJie File"/>-->
 
 
-<!--      PSI解析-->
+        <!--      PSI解析-->
         <lang.parserDefinition language="CangJie"
                                implementationClass="com.huawei.cangjie.parsing.CangJieParserDefinition"/>
 
@@ -175,9 +177,8 @@
 
         <!--        <applicationService serviceInterface="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicy"-->
         <!--                        serviceImplementation="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>-->
-        <projectService serviceInterface="com.huawei.cangjie.ide.references.ReadWriteAccessChecker"
-                        serviceImplementation="com.huawei.cangjie.ide.references.ReadWriteAccessCheckerDescriptorsImpl"/>
-
+        <projectService serviceInterface="com.huawei.cangjie.references.ReadWriteAccessChecker"
+                        serviceImplementation="com.huawei.cangjie.references.ReadWriteAccessCheckerDescriptorsImpl"/>
 
 
         <projectService
@@ -240,11 +241,10 @@
                                 order="first"/>
 
 
-
-<!--        引用搜索-->
+        <!--        引用搜索-->
         <projectService
                 serviceInterface="com.huawei.cangjie.psi.CangJieReferenceProvidersService"
-                serviceImplementation="com.huawei.cangjie.ide.references.CjIdeReferenceProviderService"/>
+                serviceImplementation="com.huawei.cangjie.references.CjIdeReferenceProviderService"/>
 
 
         <fileIconProvider implementation="com.huawei.cangjie.icon.CjpmIconProvider"/>
@@ -257,26 +257,26 @@
 
         <!--        />-->
 
-        <projectService serviceInterface="com.huawei.cangjie.ide.references.CangJieReferenceProviderContributor"
+        <projectService serviceInterface="com.huawei.cangjie.references.CangJieReferenceProviderContributor"
                         serviceImplementation="com.huawei.cangjie.references.CangJieReferenceContributor"/>
 
-<!--        <projectService-->
-<!--                serviceInterface="com.huawei.cangjie.analyzer.lifetime.CjLifetimeTokenProvider"-->
-<!--                serviceImplementation="com.huawei.cangjie.analyzer.lifetime.CjReadActionConfinementLifetimeTokenProvider"/>-->
+        <!--        <projectService-->
+        <!--                serviceInterface="com.huawei.cangjie.analyzer.lifetime.CjLifetimeTokenProvider"-->
+        <!--                serviceImplementation="com.huawei.cangjie.analyzer.lifetime.CjReadActionConfinementLifetimeTokenProvider"/>-->
 
-<!--        <projectService-->
-<!--                serviceInterface="com.huawei.cangjie.analyzer.ProjectStructureProvider"-->
-<!--                serviceImplementation="com.huawei.cangjie.analyzer.ProjectStructureProviderIdeImpl"/>-->
-<!--        <projectService-->
-<!--                serviceInterface="com.huawei.cangjie.analyzer.CjAnalysisFacade"-->
-<!--                serviceImplementation="com.huawei.cangjie.analyzer.IdeCjAnalysisFacade"/>-->
+        <!--        <projectService-->
+        <!--                serviceInterface="com.huawei.cangjie.analyzer.ProjectStructureProvider"-->
+        <!--                serviceImplementation="com.huawei.cangjie.analyzer.ProjectStructureProviderIdeImpl"/>-->
+        <!--        <projectService-->
+        <!--                serviceInterface="com.huawei.cangjie.analyzer.CjAnalysisFacade"-->
+        <!--                serviceImplementation="com.huawei.cangjie.analyzer.IdeCjAnalysisFacade"/>-->
 
-<!--        <projectService-->
-<!--                serviceInterface="com.huawei.cangjie.ide.completion.providers.CangJieResolutionScopeProvider"-->
-<!--                serviceImplementation="com.huawei.cangjie.ide.completion.providers.IdeCangJieByModulesResolutionScopeProvider"/>-->
-<!--        <projectService-->
-<!--                serviceInterface="com.huawei.cangjie.analyzer.session.CjAnalysisSessionProvider"-->
-<!--                serviceImplementation="com.huawei.cangjie.analyzer.session.CjAnalysisSessionProviderImpl"/>-->
+        <!--        <projectService-->
+        <!--                serviceInterface="com.huawei.cangjie.ide.completion.providers.CangJieResolutionScopeProvider"-->
+        <!--                serviceImplementation="com.huawei.cangjie.ide.completion.providers.IdeCangJieByModulesResolutionScopeProvider"/>-->
+        <!--        <projectService-->
+        <!--                serviceInterface="com.huawei.cangjie.analyzer.session.CjAnalysisSessionProvider"-->
+        <!--                serviceImplementation="com.huawei.cangjie.analyzer.session.CjAnalysisSessionProviderImpl"/>-->
     </extensions>
 
     <!--        监听-->

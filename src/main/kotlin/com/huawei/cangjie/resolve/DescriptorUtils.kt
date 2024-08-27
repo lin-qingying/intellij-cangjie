@@ -21,6 +21,18 @@ import com.huawei.cangjie.types.util.TypeUtils
 
 
 object DescriptorUtils {
+@JvmStatic
+    fun isDirectSubclass(
+        subClass:  ClassDescriptor,
+        superClass:  ClassDescriptor
+    ): Boolean {
+        for (superType in subClass.getTypeConstructor().getSupertypes()) {
+            if ( isSameClass(superType, superClass.original)) {
+                return true
+            }
+        }
+        return false
+    }
     @JvmStatic
 
     fun isClassOrEnum(descriptor: DeclarationDescriptor?): Boolean {

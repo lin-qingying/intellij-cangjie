@@ -9,7 +9,7 @@ import com.intellij.find.findUsages.FindUsagesOptions
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.huawei.cangjie.psi.psiUtil.getQualifiedElementSelector
-import com.huawei.cangjie.ide.references.mainReference
+import com.huawei.cangjie.references.mainReference
 import com.huawei.cangjie.ide.searching.usages.handlers.CangJieFindMemberUsagesHandler
 import com.huawei.cangjie.ide.searching.usages.handlers.DelegatingFindMemberUsagesHandler
 

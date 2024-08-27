@@ -4,7 +4,7 @@ import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.ide.imports.importableFqName
 import com.huawei.cangjie.ide.imports.isImported
-import com.huawei.cangjie.ide.references.mainReference
+import com.huawei.cangjie.references.mainReference
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.forEachDescendantOfType
 import com.huawei.cangjie.psi.psiUtil.getParentOfTypeAndBranch
@@ -12,13 +12,10 @@ import com.huawei.cangjie.references.CjSimpleNameReference
 import com.huawei.cangjie.references.util.DescriptorToSourceUtilsIde
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.DescriptorUtils
-import com.huawei.cangjie.resolve.caches.analyze
 import com.huawei.cangjie.resolve.caches.analyzeWithAllCompilerChecks
-import com.huawei.cangjie.resolve.calls.model.VariableAsFunctionResolvedCall
 import com.huawei.cangjie.resolve.calls.util.getResolvedCall
 import com.huawei.cangjie.resolve.descriptorUtil.getImportableDescriptor
 import com.huawei.cangjie.resolve.descriptorUtil.parents
-import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.resolve.scopes.receivers.ImplicitClassReceiver
 import com.huawei.cangjie.resolve.source.getPsi
 import com.huawei.cangjie.utils.addIfNotNull

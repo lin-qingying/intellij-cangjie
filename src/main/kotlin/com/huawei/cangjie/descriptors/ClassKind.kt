@@ -7,6 +7,7 @@ enum class ClassKind(val codeRepresentation: String?) {
     CLASS( "class"),
     INTERFACE("interface"),
     ENUM( "enum"),
+    EXTEND( "extend"),
     ENUM_ENTRY( null),
     BASIC(null),
     ANNOTATION_CLASS( "annotation class");

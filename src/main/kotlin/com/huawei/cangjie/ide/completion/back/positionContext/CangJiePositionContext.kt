@@ -1,6 +1,6 @@
 package com.huawei.cangjie.ide.completion.back.positionContext
 
-import com.huawei.cangjie.ide.references.mainReference
+import com.huawei.cangjie.references.mainReference
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getReceiverExpression

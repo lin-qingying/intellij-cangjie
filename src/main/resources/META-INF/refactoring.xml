@@ -1,0 +1,9 @@
+
+<idea-plugin>
+<extensions defaultExtensionNs="com.intellij">
+
+    <applicationService
+            serviceInterface="com.huawei.cangjie.references.CjReferenceMutateService"
+            serviceImplementation="com.huawei.cangjie.references.rename.CangJieReferenceMutateService"/>
+</extensions>
+</idea-plugin>

@@ -7,10 +7,10 @@ import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.incremental.CangJieLookupLocation
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
-import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getElementTextWithContext
 import com.huawei.cangjie.resolve.BindingContext
+import com.huawei.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.LockBasedLazyResolveStorageManager
 
@@ -35,17 +35,17 @@ open class LazyDeclarationResolver(
         findClassDescriptor(classOrObject, location)
 
     private fun findClassDescriptorIfAny(
-        classObjectOrScript: CjNamedDeclaration,
+        typeStatement: CjNamedDeclaration,
         location: LookupLocation
     ): ClassDescriptor? {
-        val scope = getMemberScopeDeclaredIn(classObjectOrScript, location)
+        val scope = getMemberScopeDeclaredIn(typeStatement, location)
 
         // Why not use the result here. Because it may be that there is a redeclaration:
         //     class A {} class A { fun foo(): A<completion here>}
         // and if we find the class by name only, we may b-not get the right one.
         // This call is only needed to make sure the classes are written to trace
-        scope.getContributedClassifier(classObjectOrScript.nameAsSafeName, location)
-        val descriptor = bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, classObjectOrScript)
+        scope.getContributedClassifier(typeStatement.nameAsSafeName, location)
+        val descriptor = bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, typeStatement)
 
         return descriptor as? ClassDescriptor
     }
@@ -90,13 +90,26 @@ open class LazyDeclarationResolver(
             }
 
             override fun visitExtend(cjExtend: CjExtend, data: Nothing?): DeclarationDescriptor? {
-//                val location = lookupLocationFor(cjExtend, true)
-//
-//                val memberScope = getMemberScopeDeclaredIn(cjExtend, location)
-//
-//                memberScope.getContributedClassifier(Name.identifier("String"), location)
-////                memberScope.getExtendContributedClassifier(cjExtend, location)
-                return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, cjExtend)
+
+                val descriptor = bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, cjExtend)
+
+                if (descriptor == null) {
+                    val scope = getMemberScopeDeclaredIn(cjExtend, NoLookupLocation.FROM_BUILTINS)
+
+
+                    scope as AbstractLazyMemberScope<*, *>
+
+//       第一步，检查被扩展类型并获取
+
+                    val type = scope.resolveTypeByExtend(cjExtend)
+//                    trace.record(BindingContext.DECLARATION_TO_DESCRIPTOR,cjExtend)
+                    return type
+                }
+
+                return descriptor
+
+
+
             }
 
             override fun visitSecondaryConstructor(

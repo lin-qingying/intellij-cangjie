@@ -1,6 +1,6 @@
 package com.huawei.cangjie.ide.completion
 
-import com.huawei.cangjie.ide.references.mainReference
+import com.huawei.cangjie.references.mainReference
 import com.huawei.cangjie.psi.CjCodeFragment
 import com.huawei.cangjie.psi.CjFile
 import com.intellij.codeInsight.completion.CompletionParameters

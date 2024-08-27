@@ -46,14 +46,12 @@ import static com.huawei.cangjie.resolve.BindingContext.TYPE;
 import static com.huawei.cangjie.resolve.ModifiersChecker.resolveModalityFromModifiers;
 import static com.huawei.cangjie.resolve.ModifiersChecker.resolveVisibilityFromModifiers;
 
-public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDescriptorWithResolutionScopes, LazyEntity {
+public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*ClassDescriptorWithResolutionScopes,*/ LazyEntity {
     private static final Function1<CangJieType, Boolean> VALID_SUPERTYPE = type -> {
         assert !CangJieTypeKt.isError(type) : "Error types must be filtered out in DescriptorResolver";
         return TypeUtils.getClassDescriptor(type) != null;
     };
     private final LazyClassContext c;
-    @Nullable
-    private final CjTypeStatement typeStatement;
     private final ClassMemberDeclarationProvider declarationProvider;
     private final ScopesHolderForClass<LazyClassMemberScope> scopesHolderForClass;
     private final MemberScope staticScope;
@@ -62,10 +60,15 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
     private final NotNullLazyValue<Modality> modality;
     private final NotNullLazyValue<List<TypeParameterDescriptor>> parameters;
     private final DescriptorVisibility visibility;
-
     private final Annotations annotations = Annotations.EMPTY;
     private final ClassResolutionScopesSupport resolutionScopesSupport;
     private final LazyClassTypeConstructor typeConstructor;
+    private final NotNullLazyValue<Collection<ClassDescriptor>> sealedSubclasses;
+    @Nullable
+    private CjTypeStatement typeStatement;
+    //    该方法是为扩展提供更改psi节点的，其他情况不要使用
+    private BindingTrace extendTrace = null;
+    private LexicalScope extendScope = null;
 
     public LazyClassDescriptor(
             @NotNull LazyClassContext c,
@@ -253,16 +256,15 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
                 )
         );
 
-//        boolean freedomForSealedInterfacesSupported = c.getLanguageVersionSettings().supportsFeature(LanguageFeature.AllowSealedInheritorsInDifferentFilesOfSamePackage);
-//        this.sealedSubclasses =
-//                storageManager.createLazyValue(() -> {
-//                    if (getModality() == Modality.SEALED) {
-//                        return c.getSealedClassInheritorsProvider().computeSealedSubclasses(this, freedomForSealedInterfacesSupported);
-//                    }
-//                    else {
-//                        return Collections.emptyList();
-//                    }
-//                });
+        boolean freedomForSealedInterfacesSupported = c.getLanguageVersionSettings().supportsFeature(LanguageFeature.AllowSealedInheritorsInDifferentFilesOfSamePackage);
+        this.sealedSubclasses =
+                storageManager.createLazyValue(() -> {
+                    if (getModality() == Modality.SEALED) {
+                        return c.getSealedClassInheritorsProvider().computeSealedSubclasses(this, freedomForSealedInterfacesSupported);
+                    } else {
+                        return Collections.emptyList();
+                    }
+                });
 //        this.contextReceivers = storageManager.createLazyValue(() -> {
 //            if (typeStatement == null) {
 //                return CollectionsKt.emptyList();
@@ -484,13 +486,22 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
 
     @Override
     public @NotNull Collection<ClassDescriptor> getSealedSubclasses() {
-        return null;
+        return sealedSubclasses.invoke();
+
     }
 
     @Override
     public @NotNull TypeConstructor getTypeConstructor() {
         return typeConstructor;
 
+
+    }
+
+    @Deprecated()
+    public void setExtendData(CjTypeStatement typeStatement, BindingTrace extendTrace, LexicalScope extendScope) {
+        this.typeStatement = typeStatement;
+        this.extendTrace = extendTrace;
+        this.extendScope = extendScope;
 
     }
 
@@ -538,14 +549,25 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
         if (CangJieBuiltIns.isSpecialClassWithNoSupertypes(this)) {
             return Collections.emptyList();
         }
-
+        BindingTrace trace = c.getTrace();
+        LexicalScope scope = getScopeForClassHeaderResolution();
         CjTypeStatement classOrObject = declarationProvider.getOwnerInfo().getCorrespondingClass();
+//        if (this.typeStatement instanceof CjExtend) {
+//            if (extendTrace != null) {
+//                trace = extendTrace;
+//            }
+//            if (extendScope != null) {
+//                scope = extendScope;
+//            }
+//            classOrObject = this.typeStatement;
+//        }
         if (classOrObject == null) {
             return Collections.singleton(c.getModuleDescriptor().getBuiltIns().getAnyType());
         }
 
+
         List<CangJieType> allSupertypes =
-                c.getDescriptorResolver().resolveSupertypes(getScopeForClassHeaderResolution(), this, classOrObject, c.getTrace());
+                c.getDescriptorResolver().resolveSupertypes(scope, this, classOrObject, trace);
 
         return new ArrayList<>(CollectionsKt.filter(allSupertypes, VALID_SUPERTYPE));
     }

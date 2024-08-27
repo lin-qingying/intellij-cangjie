@@ -7,7 +7,7 @@ import com.huawei.cangjie.ide.imports.ImportDescriptorResult
 import com.huawei.cangjie.ide.imports.ImportInsertHelper
 import com.huawei.cangjie.ide.imports.canBeReferencedViaImport
 import com.huawei.cangjie.ide.imports.getImportableTargets
-import com.huawei.cangjie.ide.references.mainReference
+import com.huawei.cangjie.references.mainReference
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.*
