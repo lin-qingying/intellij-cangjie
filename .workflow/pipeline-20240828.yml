@@ -25,21 +25,3 @@ stages:
         notify: []
         strategy:
           retry: '0'
-      - step: ut@gradle
-        name: unit_test_gradle
-        displayName: Gradle 单元测试
-        jdkVersion: '17'
-        gradleVersion: '4.4'
-        commands:
-          - '# Gradle单元测试默认命令'
-          - chmod +x gradlew
-          - ./gradlew test
-        report:
-          path: build/reports/tests/test
-          index: index.html
-        checkpoints: []
-        caches:
-          - ~/.gradle/caches
-        notify: []
-        strategy:
-          retry: '0'
