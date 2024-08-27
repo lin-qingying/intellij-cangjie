@@ -82,7 +82,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         List<ValueParameterDescriptor> result = new ArrayList<ValueParameterDescriptor>(unsubstitutedValueParameters.size());
         for (ValueParameterDescriptor unsubstitutedValueParameter : unsubstitutedValueParameters) {
             // TODO : Lazy?
-//            CangJieType substitutedType = substitutor.substitute(unsubstitutedValueParameter.getType(), Variance.IN_VARIANCE);
+            CangJieType substitutedType = substitutor.substitute(unsubstitutedValueParameter.getType(), Variance.INVARIANT);
 //            CangJieType varargElementType = unsubstitutedValueParameter.getVarargElementType();
 //            CangJieType substituteVarargElementType =
 //                    varargElementType == null ? null : substitutor.substitute(varargElementType, Variance.IN_VARIANCE);
@@ -106,22 +106,22 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
                 };
             }
 
-//            result.add(
-//                    ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
-//                            substitutedDescriptor,
-//                            dropOriginal ? null : unsubstitutedValueParameter,
-//                            unsubstitutedValueParameter.getIndex(),
-//                            unsubstitutedValueParameter.getAnnotations(),
-//                            unsubstitutedValueParameter.getName(),
-//                            substitutedType,
-//                            unsubstitutedValueParameter.declaresDefaultValue(),
+            result.add(
+                    ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
+                            substitutedDescriptor,
+                            dropOriginal ? null : unsubstitutedValueParameter,
+                            unsubstitutedValueParameter.getIndex(),
+                            unsubstitutedValueParameter.getAnnotations(),
+                            unsubstitutedValueParameter.getName(),
+                            substitutedType,
+                            unsubstitutedValueParameter.declaresDefaultValue(),
 //                            unsubstitutedValueParameter.isCrossinline(),
 //                            unsubstitutedValueParameter.isNoinline(),
 //                            substituteVarargElementType,
-//                            preserveSourceElement ? unsubstitutedValueParameter.getSource() : SourceElement.NO_SOURCE,
-//                            destructuringVariablesAction
-//                    )
-//            );
+                            preserveSourceElement ? unsubstitutedValueParameter.getSource() : SourceElement.NO_SOURCE,
+                            destructuringVariablesAction
+                    )
+            );
         }
         return result;
     }

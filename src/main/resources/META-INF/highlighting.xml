@@ -15,6 +15,9 @@
         <projectService
                 serviceInterface="com.huawei.cangjie.ide.highlighter.CangJieQuickFixProvider"
                 serviceImplementation="com.huawei.cangjie.ide.codeinsight.CangJieQuickFixProviderImpl"/>
+        <applicationService
+                serviceInterface="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicy"
+                serviceImplementation="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>
 
         <registryKey
                 key="cangjie.resolve.force.full.resolve.on.highlighting"

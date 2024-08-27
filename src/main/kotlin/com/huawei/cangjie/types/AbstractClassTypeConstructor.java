@@ -6,12 +6,7 @@ import com.huawei.cangjie.descriptors.ClassDescriptor;
 import com.huawei.cangjie.descriptors.ClassifierDescriptor;
 import com.huawei.cangjie.resolve.descriptorUtil.DescriptorUtilsKt;
 import com.huawei.cangjie.storage.StorageManager;
-
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Collections;
 
 public abstract class AbstractClassTypeConstructor extends AbstractTypeConstructor implements TypeConstructor {
     public AbstractClassTypeConstructor(@NotNull StorageManager storageManager) {
@@ -22,15 +17,15 @@ public abstract class AbstractClassTypeConstructor extends AbstractTypeConstruct
     @Override
     public abstract ClassDescriptor getDeclarationDescriptor();
 
-//    @Override
+    //    @Override
 //    public final bool isFinal() {
 //        ClassDescriptor descriptor = getDeclarationDescriptor();
 //        return ModalityUtilsKt.isFinalClass(descriptor) && !descriptor.isExpect();
 //    }
-@Override
-protected boolean isSameClassifier(@NotNull ClassifierDescriptor classifier) {
-    return classifier instanceof ClassDescriptor && areFqNamesEqual(getDeclarationDescriptor(), classifier);
-}
+    @Override
+    protected boolean isSameClassifier(@NotNull ClassifierDescriptor classifier) {
+        return classifier instanceof ClassDescriptor && areFqNamesEqual(getDeclarationDescriptor(), classifier);
+    }
 
     @NotNull
     @Override

@@ -20,8 +20,8 @@ import com.huawei.cangjie.types.util.containsTypeAliasParameters
 @DefaultImplementation(impl = UpperBoundChecker::class)
 open class UpperBoundChecker(
     private val typeChecker: CangJieTypeChecker,
-){
-
+) {
+    //检查类型边界  （是不是父子关系）
     protected fun checkBound(
         bound: CangJieType,
         argumentType: CangJieType,
@@ -43,9 +43,10 @@ open class UpperBoundChecker(
 
         return true
     }
+
     open fun checkBounds(
         argumentReference: CjTypeReference?,
-        argumentType:CangJieType,
+        argumentType: CangJieType,
         typeParameterDescriptor: TypeParameterDescriptor,
         substitutor: TypeSubstitutor,
         trace: BindingTrace,
@@ -55,7 +56,12 @@ open class UpperBoundChecker(
         if (typeParameterDescriptor.upperBounds.isEmpty()) return
 
         val diagnosticsReporter =
-            UpperBoundViolatedReporter(trace, argumentType, typeParameterDescriptor, diagnosticForTypeAliases = diagnosticForTypeAliases)
+            UpperBoundViolatedReporter(
+                trace,
+                argumentType,
+                typeParameterDescriptor,
+                diagnosticForTypeAliases = diagnosticForTypeAliases
+            )
 
         for (bound in typeParameterDescriptor.upperBounds) {
             checkBound(bound, argumentType, argumentReference, substitutor, typeAliasUsageElement, diagnosticsReporter)
@@ -63,6 +69,7 @@ open class UpperBoundChecker(
     }
 
 }
+
 class UpperBoundViolatedReporter(
     private val trace: BindingTrace,
     private val argumentType: CangJieType,
@@ -75,6 +82,13 @@ class UpperBoundViolatedReporter(
     }
 
     fun reportForTypeAliasExpansion(callElement: CjElement, substitutedBound: CangJieType) {
-        trace.reportDiagnosticOnce(diagnosticForTypeAliases.on(callElement, substitutedBound, argumentType, typeParameterDescriptor))
+        trace.reportDiagnosticOnce(
+            diagnosticForTypeAliases.on(
+                callElement,
+                substitutedBound,
+                argumentType,
+                typeParameterDescriptor
+            )
+        )
     }
 }

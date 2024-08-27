@@ -2,7 +2,6 @@ package com.huawei.cangjie.resolve.lazy.declarations
 
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
-import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.calls.components.InferenceSession
@@ -13,6 +12,7 @@ import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.resolve.source.MemberScopeImpl
 import com.huawei.cangjie.storage.MemoizedFunctionToNotNull
 import com.huawei.cangjie.storage.StorageManager
+import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.utils.Printer
 
 abstract class AbstractLazyMemberScope<out D : DeclarationDescriptor, out DP : DeclarationProvider>
@@ -86,6 +86,17 @@ protected constructor(
 
     }
 
+    fun resolveTypeByExtend(declaration: CjExtend): CangJieType? {
+        val scope = getScopeForMemberDeclarationResolution(declaration)
+        val typeReceiver = declaration.receiverTypeReceiver ?: return null
+//   scope.findFirstClassifierWithDeprecationStatus
+        val type = c.typeResolver.resolveType(scope, typeReceiver, trace, false)
+
+        return type
+
+
+    }
+
     private fun getDeclaredProperties(
         name: Name
     ): Collection<PropertyDescriptor> {
@@ -147,6 +158,7 @@ protected constructor(
 
 
     protected abstract fun getNonDeclaredProperties(name: Name, result: MutableSet<PropertyDescriptor>)
+
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
         recordLookup(name, location)
@@ -327,7 +339,12 @@ protected constructor(
         recordLookup(name, location)
         return functionDescriptors(name)
     }
-
+//    override fun getExtendContributedClassifier(element: CjExtend, location: LookupLocation) {
+//     c.extendDescriptorResolver
+//
+//
+//        TODO()
+//    }
 
     protected abstract fun getNonDeclaredClasses(name: Name, result: MutableSet<ClassDescriptor>)
 

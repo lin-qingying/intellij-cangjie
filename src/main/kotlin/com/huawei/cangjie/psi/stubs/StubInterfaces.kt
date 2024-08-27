@@ -1,7 +1,6 @@
 package com.huawei.cangjie.psi.stubs
 
 import com.huawei.cangjie.descriptors.DescriptorVisibility
-import com.huawei.cangjie.lang.declarations.CjDeclarationsFile
 import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.name.ClassId
 import com.huawei.cangjie.name.FqName
@@ -36,15 +35,16 @@ interface CangJieConstantExpressionStub : StubElement<CjConstantExpression> {
     fun value(): String
 }
 
-interface CangJieFilesStub{
+interface CangJieFilesStub {
     fun getPackageFqName(): FqName
 
 }
+
 //interface CangJieDeclarationsFileStub : PsiFileStub<CjDeclarationsFile > ,CangJieFileStub{
 //
 ////    fun findImportsByAlias(alias: String): List<CangJieImportDirectiveStub>
 //}
-interface CangJieFileStub : PsiFileStub<CjFile > ,CangJieFilesStub{
+interface CangJieFileStub : PsiFileStub<CjFile>, CangJieFilesStub {
 
 //    fun findImportsByAlias(alias: String): List<CangJieImportDirectiveStub>
 }
@@ -129,8 +129,16 @@ interface CangJieStructStub : CangJieTypeStatementStub<CjStruct>
 interface CangJieInterfaceStub : CangJieTypeStatementStub<CjInterface>
 
 interface CangJieEnumStub : CangJieTypeStatementStub<CjEnum>
-interface CangJieExtendStub : CangJieTypeStatementStub<CjExtend>
+interface CangJieExtendStub : CangJieTypeStatementStub<CjExtend> {
 
+//    fun getClassId(): ClassId?
+}
+
+//interface CangJieExtendStub : StubElement<CjExtend>{
+//    fun getSuperNames(): List<String>
+//    fun getFqName(): FqName?
+////    fun getClassId(): ClassId?
+//}
 interface CangJieTypeStatementStub<T : CjTypeStatement> : CangJieClassifierStub, CangJieStubWithFqName<T> {
     fun isLocal(): Boolean
     fun getSuperNames(): List<String>
@@ -168,7 +176,7 @@ interface CangJieForeignDirectiveStub : StubElement<CjForeignDirective>
 ////    fun get_importedFqName(): FqName?
 ////    fun isValid(): Boolean
 //}
-interface CangJiePackageDirectiveStub :  StubElement<CjPackageDirective>{
+interface CangJiePackageDirectiveStub : StubElement<CjPackageDirective> {
     fun getModifierVisibility(): DescriptorVisibility
 
 }
@@ -176,12 +184,13 @@ interface CangJiePackageDirectiveStub :  StubElement<CjPackageDirective>{
 interface CangJieImportDirectiveStub : StubElement<CjImportDirective> {
     fun isAllUnder(): Boolean
     fun getImportedFqName(): FqName?
-//    fun getImportedFqNames(): List<FqName>
+
+    //    fun getImportedFqNames(): List<FqName>
     fun isValid(): Boolean
 
 
     fun getModifierVisibility(): DescriptorVisibility
-fun getPackageFqName(): FqName?
+    fun getPackageFqName(): FqName?
 
 }
 

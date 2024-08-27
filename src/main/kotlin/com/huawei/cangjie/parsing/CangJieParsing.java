@@ -1699,11 +1699,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
             }
 
 
-            if (atSet(BASICTYPES)) {
-                advance();
-            } else if (at(IDENTIFIER)) {
+            if (atSet(BASICTYPES) || at(IDENTIFIER)) {
+                parseTypeRef();
+
+            }/* else if (at(IDENTIFIER)) {
                 typeParametersDeclared = parseUserType();
-            } else {
+            } */else {
 
                 error("Expecting a type");
             }

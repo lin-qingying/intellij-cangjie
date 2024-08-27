@@ -1,13 +1,9 @@
 package com.huawei.cangjie.psi.stubs.elements
 
-import com.huawei.cangjie.psi.CjEnum
 import com.huawei.cangjie.psi.CjExtend
 import com.huawei.cangjie.psi.psiUtil.StubUtils
 import com.huawei.cangjie.psi.psiUtil.getSuperNames
-import com.huawei.cangjie.psi.psiUtil.safeFqNameForLazyResolve
-import com.huawei.cangjie.psi.stubs.CangJieEnumStub
 import com.huawei.cangjie.psi.stubs.CangJieExtendStub
-import com.huawei.cangjie.psi.stubs.impl.CangJieEnumStubImpl
 import com.huawei.cangjie.psi.stubs.impl.CangJieExtendStubImpl
 import com.huawei.cangjie.psi.stubs.impl.Utils
 import com.intellij.lang.ASTNode
@@ -22,14 +18,13 @@ class CjExtendElementType(debugName:String):CjStubElementType<CangJieExtendStub,
 
 
     override fun serialize(stub: CangJieExtendStub, dataStream: StubOutputStream) {
-        dataStream.writeName(stub.name)
+dataStream.writeName(stub.name)
 
         val fqName = stub.getFqName()
         dataStream.writeName(fqName?.asString())
 
         StubUtils.serializeClassId(dataStream, stub.getClassId())
 
-        dataStream.writeBoolean(stub.isLocal())
 
 
         val superNames = stub.getSuperNames()
@@ -45,7 +40,7 @@ class CjExtendElementType(debugName:String):CjStubElementType<CangJieExtendStub,
 
         val classId = StubUtils.deserializeClassId(dataStream)
 
-        val isLocal = dataStream.readBoolean()
+//        val isLocal = dataStream.readBoolean()
 
 
         val superCount = dataStream.readVarInt()
@@ -55,23 +50,23 @@ class CjExtendElementType(debugName:String):CjStubElementType<CangJieExtendStub,
         }
 
         return CangJieExtendStubImpl(
-            CjStubElementTypes.EXTEND, parentStub, qualifiedName, classId, name, superNames,
-            isLocal
+            CjStubElementTypes.EXTEND, parentStub, qualifiedName, classId, name, superNames
+
         )
     }
 
 
     override fun createStub(psi: CjExtend, parentStub: StubElement<out PsiElement>?): CangJieExtendStub {
-        val fqName = psi.safeFqNameForLazyResolve()
+        val fqName = psi.fqName
 
         val superNames = psi.getSuperNames()
         val classId = StubUtils.createNestedClassId(parentStub!!, psi)
         return CangJieExtendStubImpl(
             CjStubElementTypes.EXTEND, parentStub as StubElement<*>?,
-            StringRef.fromString(fqName?.asString()), classId,
-            StringRef.fromString(psi.getName()),
+            StringRef.fromString(fqName?.asString()),classId,
+            StringRef.fromString(psi.name),
             Utils.wrapStrings(superNames),
-            psi.isLocal()
+
         )
     }
 

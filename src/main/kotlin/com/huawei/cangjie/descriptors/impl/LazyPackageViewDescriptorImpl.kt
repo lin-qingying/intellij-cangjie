@@ -148,7 +148,7 @@ class LazyPackageViewDescriptorImpl(
                     packageDirectives.add(it.packageDirective!!)
 
 
-                    macroPackagesIS.add(it.packageDirective!!.isMacroPackage)
+//                    macroPackagesIS.add(it.packageDirective!!.isMacroPackage)
 
                     visibilitys.add(it.packageDirective!!.modifierVisibility)
                 }

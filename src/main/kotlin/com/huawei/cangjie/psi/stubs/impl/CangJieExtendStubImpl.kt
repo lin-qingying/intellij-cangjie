@@ -20,9 +20,10 @@ open class CangJieExtendStubImpl(
     private val qualifiedName: StringRef?,
     private val classId: ClassId?,
     private val name: StringRef?,
+
     private val superNames: Array<StringRef>,
 
-    private val isLocal: Boolean,
+
 
 ) : CangJieStubBaseImpl<CjExtend>(parent, type), CangJieExtendStub {
 
@@ -31,9 +32,10 @@ open class CangJieExtendStubImpl(
         return FqName(stringRef)
     }
 
+    override fun getName(): String? = StringRef.toString(name)
 
-    override fun isLocal() = isLocal
-    override fun getName() = StringRef.toString(name)
+    override fun isLocal(): Boolean = true
+
 
     override fun getSuperNames(): List<String> {
         val result = ArrayList<String>()
@@ -42,6 +44,8 @@ open class CangJieExtendStubImpl(
         }
         return result
     }
+
+
 
     override fun getClassId(): ClassId? = classId
 

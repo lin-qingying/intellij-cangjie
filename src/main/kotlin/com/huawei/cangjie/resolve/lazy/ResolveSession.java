@@ -7,10 +7,7 @@ import com.huawei.cangjie.incremental.components.LookupTracker;
 import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.psi.*;
-import com.huawei.cangjie.resolve.BindingContext;
-import com.huawei.cangjie.resolve.DescriptorResolver;
-import com.huawei.cangjie.resolve.FunctionDescriptorResolver;
-import com.huawei.cangjie.resolve.TypeResolver;
+import com.huawei.cangjie.resolve.*;
 import com.huawei.cangjie.resolve.calls.components.InferenceSession;
 import com.huawei.cangjie.resolve.extensions.SyntheticResolveExtension;
 import com.huawei.cangjie.resolve.lazy.declarations.DeclarationProviderFactory;
@@ -42,32 +39,24 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
 
     private final BindingTrace trace;
     private final CacheWithNotNullValues<FqName, LazyPackageDescriptor> packages;
-    private DeclarationProviderFactory declarationProviderFactory;
-    private LazyDeclarationResolver lazyDeclarationResolver;
     private final SyntheticResolveExtension syntheticResolveExtension;
+    private final PackageFragmentProvider packageFragmentProvider;
+    private final NewCangJieTypeChecker cangjieTypeChecker;
+    private final DeclarationProviderFactory declarationProviderFactory;
+    private LazyDeclarationResolver lazyDeclarationResolver;
     private LocalDescriptorResolver localDescriptorResolver;
     private DelegationFilter delegationFilter;
     private WrappedTypeFactory wrappedTypeFactory;
-
     private DescriptorResolver descriptorResolver;
-    private final PackageFragmentProvider packageFragmentProvider;
     private SupertypeLoopChecker supertypeLoopsResolver;
-
+    private ExtendDescriptorResolver extendDescriptorResolver;
     private FunctionDescriptorResolver functionDescriptorResolver;
-
     private FileScopeProvider fileScopeProvider;
     private DeclarationScopeProvider declarationScopeProvider;
     private LookupTracker lookupTracker;
-    private Project project;
+    private final Project project;
     private LanguageVersionSettings languageVersionSettings;
-
-    private final NewCangJieTypeChecker cangjieTypeChecker;
-
     private TypeResolver typeResolver;
-
-    public ExceptionTracker getExceptionTracker() {
-        return exceptionTracker;
-    }
 
     // Only calls from injectors expected
     @Deprecated
@@ -135,17 +124,19 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     public static boolean areDescriptorsCreatedForDeclaration(@NotNull CjDeclaration declaration) {
         return !(declaration instanceof CjAnonymousInitializer || declaration instanceof CjDestructuringDeclaration);
     }
+
+    public ExceptionTracker getExceptionTracker() {
+        return exceptionTracker;
+    }
+
     @Override
     @NotNull
     public PackageFragmentProvider getPackageFragmentProvider() {
         return packageFragmentProvider;
     }
+
     public BindingTrace getTrace() {
         return trace;
-    }
-    @Inject
-    public void setLookupTracker(@NotNull LookupTracker lookupTracker) {
-        this.lookupTracker = lookupTracker;
     }
 
     public DeclarationProviderFactory getDeclarationProviderFactory() {
@@ -153,22 +144,15 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     }
 
     @Inject
-    public void setTypeResolver(TypeResolver typeResolver) {
-        this.typeResolver = typeResolver;
-    }
-
-    @Inject
     public void setLocalDescriptorResolver(@NotNull LocalDescriptorResolver localDescriptorResolver) {
         this.localDescriptorResolver = localDescriptorResolver;
     }
-    @Inject
-    public void setDescriptorResolver(DescriptorResolver descriptorResolver) {
-        this.descriptorResolver = descriptorResolver;
-    }
+
     @Inject
     public void setSupertypeLoopsResolver(@NotNull SupertypeLoopChecker supertypeLoopsResolver) {
         this.supertypeLoopsResolver = supertypeLoopsResolver;
     }
+
     @NotNull
     @Override
     public ModuleDescriptor getModuleDescriptor() {
@@ -212,10 +196,7 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
         return trace.getBindingContext();
 
     }
-    @Inject
-    public void setLanguageVersionSettings(@NotNull LanguageVersionSettings languageVersionSettings) {
-        this.languageVersionSettings = languageVersionSettings;
-    }
+
     @Nullable
     @Override
     public InferenceSession getInferenceSession() {
@@ -229,11 +210,21 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
 
     }
 
+    @Inject
+    public void setDescriptorResolver(DescriptorResolver descriptorResolver) {
+        this.descriptorResolver = descriptorResolver;
+    }
+
     @Nullable
     @Override
     public LookupTracker getLookupTracker() {
         return lookupTracker;
 
+    }
+
+    @Inject
+    public void setLookupTracker(@NotNull LookupTracker lookupTracker) {
+        this.lookupTracker = lookupTracker;
     }
 
     @NotNull
@@ -260,7 +251,6 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     public DeclarationScopeProvider getDeclarationScopeProvider() {
         return declarationScopeProvider;
     }
-
 
     @Inject
     public void setDeclarationScopeProvider(DeclarationScopeProvider declarationScopeProvider) {
@@ -311,17 +301,15 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
         return languageVersionSettings;
     }
 
-    @NotNull
-    @Override
-    public DelegationFilter getDelegationFilter() {
-        return delegationFilter;
-
+    @Inject
+    public void setLanguageVersionSettings(@NotNull LanguageVersionSettings languageVersionSettings) {
+        this.languageVersionSettings = languageVersionSettings;
     }
 
     @NotNull
     @Override
-    public TypeResolver getTypeResolver() {
-        return typeResolver;
+    public DelegationFilter getDelegationFilter() {
+        return delegationFilter;
 
     }
 
@@ -332,7 +320,19 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
 
     @NotNull
     @Override
-        public SupertypeLoopChecker getSupertypeLoopChecker() {
+    public TypeResolver getTypeResolver() {
+        return typeResolver;
+
+    }
+
+    @Inject
+    public void setTypeResolver(TypeResolver typeResolver) {
+        this.typeResolver = typeResolver;
+    }
+
+    @NotNull
+    @Override
+    public SupertypeLoopChecker getSupertypeLoopChecker() {
         return supertypeLoopsResolver;
     }
 
@@ -343,6 +343,13 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
 
     }
 
+    @NotNull
+    @Override
+    public WrappedTypeFactory getWrappedTypeFactory() {
+        return wrappedTypeFactory;
+
+    }
+
     @Inject
     public void setWrappedTypeFactory(@NotNull WrappedTypeFactory wrappedTypeFactory) {
         this.wrappedTypeFactory = wrappedTypeFactory;
@@ -350,8 +357,12 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
 
     @NotNull
     @Override
-    public WrappedTypeFactory getWrappedTypeFactory() {
-        return wrappedTypeFactory;
+    public ExtendDescriptorResolver getExtendDescriptorResolver() {
+        return extendDescriptorResolver;
+    }
 
+    @Inject
+    public void setExtendDescriptorResolver(@NotNull ExtendDescriptorResolver extendDescriptorResolver) {
+        this.extendDescriptorResolver = extendDescriptorResolver;
     }
 }

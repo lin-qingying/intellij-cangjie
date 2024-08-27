@@ -185,6 +185,7 @@ class DescriptorKindFilter(
         val NON_SINGLETON_CLASSIFIERS_MASK: Int = nextMask()
 
         val CLASSIFIERS_MASK: Int = NON_SINGLETON_CLASSIFIERS_MASK or SINGLETON_CLASSIFIERS_MASK or TYPE_ALIASES_MASK
+
         @JvmField
         val CLASSIFIERS: DescriptorKindFilter = DescriptorKindFilter(CLASSIFIERS_MASK)
 

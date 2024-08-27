@@ -7,6 +7,7 @@ import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.incremental.CangJieLookupLocation
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
+import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getElementTextWithContext
 import com.huawei.cangjie.resolve.BindingContext
@@ -86,6 +87,16 @@ open class LazyDeclarationResolver(
                 val scopeForDeclaration = getMemberScopeDeclaredIn(function, location)
                 scopeForDeclaration.getContributedFunctions(function.nameAsSafeName, location)
                 return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, function)
+            }
+
+            override fun visitExtend(cjExtend: CjExtend, data: Nothing?): DeclarationDescriptor? {
+//                val location = lookupLocationFor(cjExtend, true)
+//
+//                val memberScope = getMemberScopeDeclaredIn(cjExtend, location)
+//
+//                memberScope.getContributedClassifier(Name.identifier("String"), location)
+////                memberScope.getExtendContributedClassifier(cjExtend, location)
+                return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, cjExtend)
             }
 
             override fun visitSecondaryConstructor(

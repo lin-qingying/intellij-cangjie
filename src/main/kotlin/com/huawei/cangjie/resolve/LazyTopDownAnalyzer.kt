@@ -8,6 +8,8 @@ import com.huawei.cangjie.ide.stubindex.CangJieExactPackagesIndex
 
 import com.huawei.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIndex
 import com.huawei.cangjie.incremental.CangJieLookupLocation
+import com.huawei.cangjie.incremental.components.LookupLocation
+import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
@@ -28,14 +30,15 @@ class LazyTopDownAnalyzer(
     private val overrideResolver: OverrideResolver,
     private val overloadResolver: OverloadResolver,
     private val fileScopeProvider: FileScopeProvider,
-
     private val bodyResolver: BodyResolver,
     private val identifierChecker: IdentifierChecker,
     private val qualifiedExpressionResolver: QualifiedExpressionResolver,
     private val moduleDescriptor: ModuleDescriptor,
 
     private val declarationScopeProvider: DeclarationScopeProvider,
-    private val filePreprocessor: FilePreprocessor
+    private val filePreprocessor: FilePreprocessor   ,
+    private val extendDescriptorResolver: ExtendDescriptorResolver,
+
 ) {
 
 
@@ -84,6 +87,13 @@ class LazyTopDownAnalyzer(
                     typeAliases.add(typeAlias)
                 }
 
+                override fun visitExtend(cjExtend: CjExtend) {
+//                    scope.get
+                    extendDescriptorResolver.test(c, cjExtend)
+//
+//                    super.visitExtend(cjExtend)
+//                    visitTypeStatement(typeStatement = cjExtend)
+                }
                 override fun visitDeclaration(dcl: CjDeclaration) {
                     throw IllegalArgumentException("Unsupported declaration: " + dcl + " " + dcl.text)
                 }
@@ -91,7 +101,7 @@ class LazyTopDownAnalyzer(
                 override fun visitImportDirective(importDirective: CjImportDirective) {
                     val importResolver = fileScopeProvider.getImportResolver(importDirective.getContainingCjFile())
 
-//                    TODO 修改该语句，添加重导出回调，返回包名映射
+//                    xTODO 修改该语句，添加重导出回调，返回包名映射
                     importResolver.forceResolveImport(importDirective)
 
 
@@ -107,7 +117,7 @@ class LazyTopDownAnalyzer(
                     val location = CangJieLookupLocation(typeStatement)
 
                     val descriptor =
-                        lazyDeclarationResolver.getClassDescriptor(
+                         lazyDeclarationResolver.getClassDescriptor(
                             typeStatement,
                             location
                         ) as ClassDescriptorWithResolutionScopes
@@ -118,6 +128,7 @@ class LazyTopDownAnalyzer(
 
                     checkTypeStatementDeclarations(typeStatement, descriptor)
                 }
+
 
                 override fun visitClass(cclass: CjClass) {
                     visitTypeStatement(cclass)
@@ -181,6 +192,8 @@ class LazyTopDownAnalyzer(
 
                     checkPackagelevel(directive)
                 }
+
+
             })
 
             declaration.accept(visitor)

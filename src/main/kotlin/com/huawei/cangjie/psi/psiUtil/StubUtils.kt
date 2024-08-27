@@ -2,6 +2,7 @@ package com.huawei.cangjie.psi.psiUtil
 
 import com.huawei.cangjie.name.ClassId
 import com.huawei.cangjie.psi.CjClassLikeDeclaration
+import com.huawei.cangjie.psi.CjTypeElement
 import com.huawei.cangjie.psi.stubs.CangJieFileStub
 import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.stubs.StubInputStream
@@ -20,7 +21,7 @@ object StubUtils {
     fun serializeClassId(dataStream: StubOutputStream, classId: ClassId?) {
         dataStream.writeName(classId?.asString())
     }
-
+//
     @JvmStatic
     fun createNestedClassId(parentStub: StubElement<*>, currentDeclaration: CjClassLikeDeclaration): ClassId? = when {
         parentStub is CangJieFileStub -> ClassId(parentStub.getPackageFqName(), currentDeclaration.nameAsSafeName)

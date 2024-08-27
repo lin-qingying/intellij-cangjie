@@ -15,6 +15,7 @@ interface PartialCallInfo {
 interface ErrorCallInfo {
     val callResolutionResult: CallResolutionResult
 }
+
 interface CompletedCallInfo {
     val callResolutionResult: CompletedCallResolutionResult
 }

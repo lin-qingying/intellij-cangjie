@@ -268,7 +268,7 @@ class FunctionDescriptorResolver(
             expectedParameterTypes,
             inferenceSession
         )
-//TODO()
+
     }
 
     private fun CangJieType.getReceiverType(): CangJieType? =
@@ -325,7 +325,7 @@ class FunctionDescriptorResolver(
             scope, functionDescriptor, true,
             TraceBasedLocalRedeclarationChecker(trace, overloadChecker), LexicalScopeKind.FUNCTION_HEADER
         )
-//
+
         val typeParameterDescriptors =
             descriptorResolver.resolveTypeParametersForDescriptor(
                 functionDescriptor,
@@ -341,7 +341,7 @@ class FunctionDescriptorResolver(
             typeParameterDescriptors,
             trace
         )
-
+//这是扩展方法
         val receiverTypeRef = function.receiverTypeReference
         val receiverType =
             if (receiverTypeRef != null) {

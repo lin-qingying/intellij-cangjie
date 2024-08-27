@@ -6,6 +6,7 @@ import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.SupertypeLoopChecker
 import com.huawei.cangjie.incremental.components.LookupTracker
 import com.huawei.cangjie.resolve.DescriptorResolver
+import com.huawei.cangjie.resolve.ExtendDescriptorResolver
 import com.huawei.cangjie.resolve.FunctionDescriptorResolver
 import com.huawei.cangjie.resolve.TypeResolver
 import com.huawei.cangjie.resolve.calls.components.InferenceSession
@@ -17,7 +18,7 @@ import com.huawei.cangjie.types.checker.NewCangJieTypeChecker
 
 interface LazyClassContext {
 
-    val inferenceSession: InferenceSession
+    val inferenceSession: InferenceSession?
     val descriptorResolver: DescriptorResolver
     val lookupTracker: LookupTracker
     val moduleDescriptor: ModuleDescriptor
@@ -36,5 +37,5 @@ val syntheticResolveExtension: SyntheticResolveExtension
     val functionDescriptorResolver: FunctionDescriptorResolver
     val declarationScopeProvider: DeclarationScopeProvider
     val cangjieTypeCheckerOfOwnerModule: NewCangJieTypeChecker
-
+val extendDescriptorResolver: ExtendDescriptorResolver
 }

@@ -12,7 +12,7 @@ interface BodiesResolveContext {
     val files: Collection<CjFile>
     val primaryConstructors: MutableMap<CjPrimaryConstructor, ClassConstructorDescriptor>
 
-val secondaryConstructors: MutableMap<CjSecondaryConstructor, ClassConstructorDescriptor>
+    val secondaryConstructors: MutableMap<CjSecondaryConstructor, ClassConstructorDescriptor>
 
     val declaredClasses: MutableMap<CjTypeStatement, ClassDescriptorWithResolutionScopes>
 

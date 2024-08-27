@@ -4,6 +4,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.psi.CjExtend
 import com.huawei.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
 
 interface ResolutionScope {
@@ -13,6 +14,11 @@ interface ResolutionScope {
      * See [getContributedClassifierIncludeDeprecated] to get all classifiers.
      */
     fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor?
+
+
+
+//    fun getExtendContributedClassifier(element: CjExtend, location: LookupLocation){}
+
 
     /**
      * Returns contributed classifier, but discriminates deprecated
