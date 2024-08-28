@@ -39,6 +39,7 @@ class CjTypeReference : CjModifierListOwnerStub<CangJiePlaceHolderStub<CjTypeRef
         return findChildByType<PsiElement>(CjTokens.LPAR) != null && findChildByType<PsiElement>(CjTokens.RPAR) != null
     }
 
+
     fun nameForReceiverLabel() = (typeElement as? CjUserType)?.referencedName
 
     fun getTypeText(): String {

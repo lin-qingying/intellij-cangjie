@@ -39,7 +39,7 @@ abstract class LazyClassDescriptorBase
 ), ClassDescriptorWithResolutionScopes
 
 class LazyExtendClassDescriptor(
-    private val classDescriptor: LazyClassDescriptor,
+    private val classDescriptor: ClassDescriptorWithResolutionScopes,
     c: LazyClassContext,
     classLikeInfo: CjClassLikeInfo,
 
@@ -184,11 +184,15 @@ class LazyExtendClassDescriptor(
     }
 
     fun getSourceClassElement(): CjTypeStatement? {
-        return classDescriptor.classLikeInfo.correspondingClass
+        return (classDescriptor as? LazyClassDescriptor)?.classLikeInfo?.correspondingClass
     }
 
     override fun getKind(): ClassKind {
-        return return ClassKind.EXTEND
+        return ClassKind.EXTEND
+    }
+
+    fun getSourceClassKind(): ClassKind {
+        return classDescriptor.kind
     }
 
     override fun isFun(): Boolean {

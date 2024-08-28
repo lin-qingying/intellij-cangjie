@@ -94,7 +94,7 @@ protected constructor(
 //   scope.findFirstClassifierWithDeprecationStatus
         val type = c.typeResolver.resolveType(scope, typeReceiver, trace, false)
 
-        val classDescriptor = type.constructor.declarationDescriptor as? LazyClassDescriptor ?: return null
+        val classDescriptor = type.constructor.declarationDescriptor as? ClassDescriptorWithResolutionScopes ?: return null
         val classInfo = CjClassInfoUtil.createClassLikeInfo(declaration)
         val extendDescriptor = LazyExtendClassDescriptor(
             classDescriptor, c, classInfo, thisDescriptor, classDescriptor.name

@@ -5,11 +5,8 @@ import com.google.common.collect.Multimap
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.Errors.*
 import com.huawei.cangjie.ide.stubindex.CangJieExactPackagesIndex
-
 import com.huawei.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIndex
 import com.huawei.cangjie.incremental.CangJieLookupLocation
-import com.huawei.cangjie.incremental.components.LookupLocation
-import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
@@ -37,10 +34,10 @@ class LazyTopDownAnalyzer(
     private val moduleDescriptor: ModuleDescriptor,
 
     private val declarationScopeProvider: DeclarationScopeProvider,
-    private val filePreprocessor: FilePreprocessor   ,
+    private val filePreprocessor: FilePreprocessor,
     private val extendDescriptorResolver: ExtendDescriptorResolver,
 
-) {
+    ) {
 
 
     fun analyzeDeclarations(
@@ -83,7 +80,6 @@ class LazyTopDownAnalyzer(
                 }
 
 
-
                 override fun visitTypeAlias(typeAlias: CjTypeAlias) {
                     typeAliases.add(typeAlias)
                 }
@@ -95,6 +91,7 @@ class LazyTopDownAnalyzer(
 //                    super.visitExtend(cjExtend)
 //                    visitTypeStatement(typeStatement = cjExtend)
                 }
+
                 override fun visitDeclaration(dcl: CjDeclaration) {
                     throw IllegalArgumentException("Unsupported declaration: " + dcl + " " + dcl.text)
                 }
@@ -118,7 +115,7 @@ class LazyTopDownAnalyzer(
                     val location = CangJieLookupLocation(typeStatement)
 
                     val descriptor =
-                         lazyDeclarationResolver.getClassDescriptor(
+                        lazyDeclarationResolver.getClassDescriptor(
                             typeStatement,
                             location
                         ) as ClassDescriptorWithResolutionScopes
@@ -135,7 +132,8 @@ class LazyTopDownAnalyzer(
                     visitTypeStatement(cclass)
 //                    registerPrimaryConstructorParameters(cclass)
                 }
-// TODO 注册主构造函数
+
+                // TODO 注册主构造函数
 //                private fun registerPrimaryConstructorParameters(cclass: CjClass) {
 //                    for (cjParameter in cclass.primaryConstructorParameters) {
 //                        if (cjParameter.hasLetOrVar()) {
@@ -150,6 +148,7 @@ class LazyTopDownAnalyzer(
                     c.primaryConstructors[constructor] =
                         lazyDeclarationResolver.resolveToDescriptor(constructor) as ClassConstructorDescriptor
                 }
+
                 override fun visitSecondaryConstructor(constructor: CjSecondaryConstructor) {
                     c.secondaryConstructors[constructor] =
                         lazyDeclarationResolver.resolveToDescriptor(constructor) as ClassConstructorDescriptor
@@ -270,14 +269,16 @@ class LazyTopDownAnalyzer(
         }
     }
 
+    //    由于该操作过于耗时，导致这里还没检查完成，整个文件已经分析完成了，所以先返回了分析结果，导致错误无法被报告
+//    这里应该写一个单独的分析线程，并报告错误，但是现在就先这样吧
     //    检查循环导入
     private fun checkForCycles(file: CjFile) {
 //        操作是非常耗时的操作，在后台执行
-        executeOnPooledThread(object : Disposable {
-            override fun dispose() {
-
-            }
-        }) {
+//        executeOnPooledThread(object : Disposable {
+//            override fun dispose() {
+//
+//            }
+//        }) {
 
 
 //            流程
@@ -289,16 +290,14 @@ class LazyTopDownAnalyzer(
 
                 for (importDirective in file.importDirectives) {
                     val result =
-                        importDirective.importedFqName?.asString()
+                        importDirective.importedFqName
                             ?.let { CangJieImportFqNameForPackageNameIndex.contains(packageFqname, it, file.project) }
 
 
                     if (result != null) {
                         if (result.first) {
 
-                            importDirective.importedFqName?.let {
-                                trace.report(CYCLIC_IMPORT.on(importDirective, packageFqname, it))
-                            }
+                            trace.report(CYCLIC_IMPORT.on(importDirective, packageFqname, result.second))
 
 
                         }
@@ -309,7 +308,7 @@ class LazyTopDownAnalyzer(
             }
 
 
-        }
+//        }
 
     }
 
@@ -321,9 +320,10 @@ class LazyTopDownAnalyzer(
 
     private fun resolveAllHeadersInClasses(c: TopDownAnalysisContext) {
         for (classDescriptor in c.allClasses) {
-            when(classDescriptor) {
+            when (classDescriptor) {
                 is LazyClassDescriptor ->
                     classDescriptor.resolveMemberHeaders()
+
                 is LazyExtendClassDescriptor ->
                     classDescriptor.resolveMemberHeaders()
             }

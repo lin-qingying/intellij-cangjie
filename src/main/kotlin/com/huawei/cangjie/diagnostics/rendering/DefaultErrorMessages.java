@@ -89,11 +89,14 @@ public class DefaultErrorMessages {
         MAP.put(SUPERTYPE_NOT_A_CLASS_OR_INTERFACE, "Only classes and interfaces may serve as supertypes");
         MAP.put(CLASS_IN_SUPERTYPE_FOR_ENUM, "Enum  cannot inherit from classes");
         MAP.put(INTERFACE_WITH_SUPERCLASS, "An interface can only inherit from a interface");
+        MAP.put(EXTEND_WITH_SUPERCLASS, "An extend can only inherit from a interface");
         MAP.put(CYCLIC_INHERITANCE_HIERARCHY, "There's a cycle in the inheritance hierarchy for this type");
         MAP.put(STRUCT_IN_SUPERTYPE, "Cannot inherit from a struct");
         MAP.put(ENUM_IN_SUPERTYPE, "Cannot inherit from a enum");
         MAP.put(FINAL_SUPERTYPE, "super class ''{0}'' is not inheritable",RENDER_TYPE);
+        MAP.put(MANY_CLASSES_IN_SUPERTYPE_LIST, "Only one class may appear in a supertype list");
 
+        MAP.put(EXTEND_CANNOT_INTERFACE,"Extended interfaces are cannot allowed");
 //        表达式
         MAP.put(EXCEPTION_FROM_ANALYZER, "Internal Error occurred while analyzing this expression:\n{0}", THROWABLE);
         MAP.put(NEW_INFERENCE_UNKNOWN_ERROR, "Unknown error in new inference with applicability ''{0}'' and target ''{1}''", TO_STRING, STRING);

@@ -38,6 +38,11 @@ sealed class CangJieType : Annotated, CangJieTypeMarker {
     abstract val isMarkedOption: Boolean
     abstract val memberScope: MemberScope
 
+
+//    是否为扩展类型的原父类型
+    var isExtensionType: Boolean = false
+
+
     /**
      * Returns refined type using passed CangJieTypeRefiner
      *

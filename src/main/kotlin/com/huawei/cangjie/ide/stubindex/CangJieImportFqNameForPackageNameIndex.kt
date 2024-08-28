@@ -27,17 +27,45 @@ class CangJieImportFqNameForPackageNameIndex internal constructor() : StringStub
 
         }
 
+
         fun contains(
-            targetPackageName: FqName, currentPackageName: String, project: Project,
+            targetPackageName: FqName, currentPackageName: FqName, project: Project,
             scope: GlobalSearchScope = GlobalSearchScope.allScope(project)
-        ): Pair<Boolean, CjImportDirective?> {
+        ): Pair<Boolean, FqName> {
+            //        判断一个FqName是否是包
+            fun isPackage(fqName: FqName?): Boolean {
+                fqName ?: return false
+
+                return CangJieExactPackagesIndex.get(fqName.asString(), project, scope).isNotEmpty()
+
+            }
             // 实现逻辑以检查目标包名是否包含在当前包名中
             // 查找当前包名的导入指令
-            val directives = get(currentPackageName, project, scope)
+            val directives = get(currentPackageName.asString(), project, scope).toMutableList().apply {
+                if (isEmpty()) {
+//                    该语句可能导入的不是包使用parent
+                    addAll(get(currentPackageName.parent().asString(), project, scope))
+                }
+            }
+            val fqName: FqName = if (isPackage(currentPackageName)) {
+                currentPackageName
+            } else {
+                currentPackageName.parent()
+            }
             // 查找匹配的导入指令
-            val matchingDirective = directives.find { it.importedFqName == targetPackageName }
+            val matchingDirective =
+                directives.find {
+                    (if (isPackage(it.importedFqName)) {
+
+                        it.importedFqName
+                    } else {
+
+
+                        it.importedFqName?.parent()
+                    }) == targetPackageName
+                }
             // 返回是否找到匹配的导入指令及其引用
-            return Pair(matchingDirective != null, matchingDirective)
+            return Pair(matchingDirective != null, fqName)
         }
 
         @JvmField

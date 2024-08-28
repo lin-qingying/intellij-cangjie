@@ -38,6 +38,11 @@ open class LazyDeclarationResolver(
         typeStatement: CjNamedDeclaration,
         location: LookupLocation
     ): ClassDescriptor? {
+
+        if (typeStatement is CjExtend) {
+            return getExtendClassDescriptor(typeStatement) as? ClassDescriptor
+        }
+
         val scope = getMemberScopeDeclaredIn(typeStatement, location)
 
         // Why not use the result here. Because it may be that there is a redeclaration:
@@ -48,6 +53,28 @@ open class LazyDeclarationResolver(
         val descriptor = bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, typeStatement)
 
         return descriptor as? ClassDescriptor
+    }
+
+    private fun getExtendClassDescriptor(cjExtend: CjExtend): DeclarationDescriptor? {
+
+        val descriptor = bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, cjExtend)
+
+        if (descriptor == null) {
+            val scope = getMemberScopeDeclaredIn(cjExtend, NoLookupLocation.FROM_BUILTINS)
+
+
+            scope as AbstractLazyMemberScope<*, *>
+
+//       第一步，检查被扩展类型并获取
+
+            val type = scope.resolveTypeByExtend(cjExtend)
+//                    trace.record(BindingContext.DECLARATION_TO_DESCRIPTOR,cjExtend)
+            return type
+        }
+
+        return descriptor
+
+
     }
 
     private fun findClassDescriptor(
@@ -91,24 +118,7 @@ open class LazyDeclarationResolver(
 
             override fun visitExtend(cjExtend: CjExtend, data: Nothing?): DeclarationDescriptor? {
 
-                val descriptor = bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, cjExtend)
-
-                if (descriptor == null) {
-                    val scope = getMemberScopeDeclaredIn(cjExtend, NoLookupLocation.FROM_BUILTINS)
-
-
-                    scope as AbstractLazyMemberScope<*, *>
-
-//       第一步，检查被扩展类型并获取
-
-                    val type = scope.resolveTypeByExtend(cjExtend)
-//                    trace.record(BindingContext.DECLARATION_TO_DESCRIPTOR,cjExtend)
-                    return type
-                }
-
-                return descriptor
-
-
+                return getExtendClassDescriptor(cjExtend)
             }
 
             override fun visitSecondaryConstructor(

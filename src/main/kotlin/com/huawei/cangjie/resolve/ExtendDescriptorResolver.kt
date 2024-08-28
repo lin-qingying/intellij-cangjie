@@ -3,11 +3,14 @@ package com.huawei.cangjie.resolve
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.ClassDescriptorWithResolutionScopes
+import com.huawei.cangjie.descriptors.ClassKind
+import com.huawei.cangjie.descriptors.Errors
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.psi.CjExtend
 import com.huawei.cangjie.resolve.lazy.FileScopeProvider
 import com.huawei.cangjie.resolve.lazy.LazyDeclarationResolver
 import com.huawei.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.storage.StorageManager
 
 class ExtendDescriptorResolver(
@@ -32,7 +35,6 @@ class ExtendDescriptorResolver(
 
         scope as AbstractLazyMemberScope<*, *>
 
-//       第一步，检查被扩展类型并获取
 
         val type = scope.resolveTypeByExtend(cjExtend)
         return type
@@ -40,7 +42,15 @@ class ExtendDescriptorResolver(
 
     fun check(c: TopDownAnalysisContext, cjExtend: CjExtend) {
         val type = getExtendDescriptor(cjExtend)
-        c.declaredClasses[cjExtend] = type ?: return
+        type ?: return
+        type as LazyExtendClassDescriptor
+        if (type.getSourceClassKind() == ClassKind.INTERFACE) {
+
+            cjExtend.receiverTypeReceiver?.let { trace.report(Errors.EXTEND_CANNOT_INTERFACE.on(it)) }
+            return
+        }
+
+        c.declaredClasses[cjExtend] = type
 
 //        val classDescriptor = type.constructor.declarationDescriptor as? LazyClassDescriptor ?: return
 

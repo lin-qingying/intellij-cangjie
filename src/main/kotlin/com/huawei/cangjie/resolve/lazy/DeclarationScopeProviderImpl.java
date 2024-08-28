@@ -1,10 +1,12 @@
 package com.huawei.cangjie.resolve.lazy;
 
+import com.huawei.cangjie.descriptors.ClassDescriptorWithResolutionScopes;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.psi.psiUtil.PsiUtilsKt;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfoFactory;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor;
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptorBase;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +45,7 @@ public class DeclarationScopeProviderImpl implements DeclarationScopeProvider {
 
 
         if (parentDeclaration instanceof CjTypeStatement parentClassOrStruct) {
-            LazyClassDescriptor parentClassDescriptor = (LazyClassDescriptor) lazyDeclarationResolver.getClassDescriptor(parentClassOrStruct, NoLookupLocation.MATCH_GET_DECLARATION_SCOPE);
+            ClassDescriptorWithResolutionScopes parentClassDescriptor = (ClassDescriptorWithResolutionScopes) lazyDeclarationResolver.getClassDescriptor(parentClassOrStruct, NoLookupLocation.MATCH_GET_DECLARATION_SCOPE);
 
             if (cjDeclaration instanceof CjAnonymousInitializer || cjDeclaration instanceof CjProperty  || cjDeclaration instanceof CjVariable) {
                 return parentClassDescriptor.getScopeForInitializerResolution();
