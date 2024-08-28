@@ -1,0 +1,27 @@
+version: '1.0'
+name: pipeline-analyze
+displayName: pipeline-analyze
+triggers:
+  trigger: auto
+  push:
+    branches:
+      prefix:
+        - ''
+  pr:
+    branches:
+      prefix:
+        - ''
+stages:
+  - name: stage-99661183
+    displayName: 未命名
+    strategy: naturally
+    trigger: auto
+    executor: []
+    steps:
+      - step: sc@opensca
+        name: open_sca
+        displayName: OpenSCA 开源组件检测
+        detectPath: ./
+        notify: []
+        strategy:
+          retry: '0'
