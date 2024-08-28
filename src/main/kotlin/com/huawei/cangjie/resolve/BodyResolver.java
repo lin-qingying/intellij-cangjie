@@ -579,7 +579,7 @@ public class BodyResolver {
     }
     boolean hasExtendSource = false;
 
-
+//解决扩展的原类污染报错
     Map<CjTypeReference,Boolean> hasExtendSourceMap = Maps.newHashMap();
     public void resolveSuperTypeEntryList(
             @NotNull DataFlowInfo outerDataFlowInfo,

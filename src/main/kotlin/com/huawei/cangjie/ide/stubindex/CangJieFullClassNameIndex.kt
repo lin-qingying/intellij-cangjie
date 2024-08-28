@@ -17,6 +17,7 @@ class CangJieFullClassNameIndex internal constructor() : StringStubIndexExtensio
         @Suppress("DeprecatedCallableAddReplaceWith")
         @Deprecated("Use the Helper object instead", level = DeprecationLevel.ERROR)
         fun getInstance(): CangJieFullClassNameIndex {
+
             return CangJieFullClassNameIndex()
         }
 

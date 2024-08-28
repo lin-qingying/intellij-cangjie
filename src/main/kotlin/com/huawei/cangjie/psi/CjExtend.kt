@@ -40,7 +40,7 @@ class CjExtend : CjTypeStatement {
     override fun getNameIdentifier(): PsiElement? {
 //        val psiFactory = CjPsiFactory.contextual(this)
 //        return psiFactory.createIdentifier(nameAsSafeName.toString())
-return receiverTypeReceiver
+        return receiverTypeReceiver
     }
 
     private fun getReceiverTypeRefByTree(): CjTypeReference? {

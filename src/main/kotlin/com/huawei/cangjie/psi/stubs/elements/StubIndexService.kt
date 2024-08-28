@@ -21,7 +21,9 @@ open class StubIndexService protected constructor() {
     }
     open fun indexClass(stub: CangJieClassStub, sink: IndexSink) {
     }
+open fun indexExtend(stub: CangJieExtendStub, sink: IndexSink) {
 
+}
     open fun indexFunction(stub: CangJieFunctionStub, sink: IndexSink) {
     }
 

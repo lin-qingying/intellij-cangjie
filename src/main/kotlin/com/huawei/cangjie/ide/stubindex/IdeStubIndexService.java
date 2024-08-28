@@ -4,10 +4,7 @@ package com.huawei.cangjie.ide.stubindex;
 import com.huawei.cangjie.descriptors.DescriptorVisibilities;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.name.FqName;
-import com.huawei.cangjie.psi.CangJiePsiHeuristics;
-import com.huawei.cangjie.psi.CjFile;
-import com.huawei.cangjie.psi.CjTypeReference;
-import com.huawei.cangjie.psi.CjTypeStatement;
+import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.psi.stubs.*;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 import com.huawei.cangjie.psi.stubs.elements.StubIndexService;
@@ -271,6 +268,20 @@ public class IdeStubIndexService extends StubIndexService {
         }
 
         IndexUtilsKt.indexInternals(stub, sink);
+
+    }
+
+    @Override
+    public void indexExtend(@NotNull CangJieExtendStub stub, @NotNull IndexSink sink) {
+        FqName fqName = stub.getFqName();
+
+
+        if (fqName != null) {
+            sink.occurrence(CangJieExtendClassNameIndex.Helper.getIndexKey(), fqName.asString());
+        }
+
+        indexSuperNames(stub, sink);
+
 
     }
 
