@@ -7,10 +7,10 @@ enum class Compatibility {
     // modifier pair is compatible: ok (default)
     COMPATIBLE,
 
-    // second is redundant to first: warning
+    // 第二个对第一个来说是多余的：警告
     REDUNDANT,
 
-    // first is redundant to second: warning
+    //第一对第二来说是多余的：警告
     REVERSE_REDUNDANT,
 
     // error
@@ -32,14 +32,12 @@ private fun buildCompatibilityMap(): Map<Pair<CjKeywordToken, CjKeywordToken>, C
 
     // Visibilities: incompatible
     result += incompatibilityRegister(PRIVATE_KEYWORD, PROTECTED_KEYWORD, PUBLIC_KEYWORD, INTERNAL_KEYWORD)
-    // Abstract + open + final + sealed: incompatible
-    result += incompatibilityRegister(ABSTRACT_KEYWORD, OPEN_KEYWORD , SEALED_KEYWORD)
-
 
     // open is redundant to abstract & override
     result += redundantRegister(ABSTRACT_KEYWORD, OPEN_KEYWORD)
-    // abstract is redundant to sealed
-    result += redundantRegister(SEALED_KEYWORD, ABSTRACT_KEYWORD)
+    result += redundantRegister(SEALED_KEYWORD, PUBLIC_KEYWORD)
+    result += redundantRegister(SEALED_KEYWORD, OPEN_KEYWORD)
+
 
     // const is incompatible with abstract, open, override
     result += incompatibilityRegister(CONST_KEYWORD, ABSTRACT_KEYWORD)
@@ -79,11 +77,11 @@ private fun compatibilityRegister(
     }
     return result
 }
-
+//注册不兼容
 private fun incompatibilityRegister(vararg list: CjKeywordToken): Map<Pair<CjKeywordToken, CjKeywordToken>, Compatibility> {
     return compatibilityRegister(Compatibility.INCOMPATIBLE, *list)
 }
-
+//注册多余
 private fun redundantRegister(
     sufficient:CjKeywordToken,
     redundant:CjKeywordToken

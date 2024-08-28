@@ -294,7 +294,7 @@ private fun getConstructorsOfClassifier(classifier: ClassifierDescriptor?): List
     return callableConstructors.filter { it.dispatchReceiverParameter == null }
 }
 private val ClassDescriptor.canHaveCallableConstructors: Boolean
-    get() = !ErrorUtils.isError(this) && !kind.isSingleton
+    get() = !ErrorUtils.isError(this) && !kind.isStruct
 
 private val TypeAliasDescriptor.canHaveCallableConstructors: Boolean
     get() = classDescriptor != null && !ErrorUtils.isError(classDescriptor) && classDescriptor!!.canHaveCallableConstructors

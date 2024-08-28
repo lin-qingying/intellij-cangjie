@@ -1,18 +1,18 @@
 package com.huawei.cangjie.descriptors
 
 
-
 enum class ClassKind(val codeRepresentation: String?) {
     STRUCT("struct"),
-    CLASS( "class"),
+    CLASS("class"),
     INTERFACE("interface"),
-    ENUM( "enum"),
-    EXTEND( "extend"),
-    ENUM_ENTRY( null),
+    ENUM("enum"),
+    EXTEND("extend"),
+    ENUM_ENTRY(null),
     BASIC(null),
-    ANNOTATION_CLASS( "annotation class");
+    ANNOTATION_CLASS("annotation class");
 
-    val isSingleton: Boolean
-        get() =   this == ENUM_ENTRY
-
+    val isStruct: Boolean
+        get() = this == STRUCT
+    val isEnum: Boolean
+        get() = this == ENUM || this == ENUM_ENTRY
 }

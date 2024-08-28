@@ -382,7 +382,7 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER), // K
 //    ProhibitComparisonOfIncompatibleClasses(sinceVersion = null, kind = BUG_FIX),
 //    ProhibitAllMultipleDefaultsInheritedFromSupertypes(sinceVersion = null, kind = BUG_FIX),
 //    ExplicitBackingFields(sinceVersion = null, kind = UNSTABLE_FEATURE),
-//    FunctionalTypeWithExtensionAsSupertype(sinceVersion = null),
+    FunctionalTypeWithExtensionAsSupertype(sinceVersion = null),
 //    JsAllowValueClassesInExternals(sinceVersion = null, kind = OTHER),
     ContextReceivers(sinceVersion = null),
 //    ValueClasses(sinceVersion = null, kind = UNSTABLE_FEATURE),

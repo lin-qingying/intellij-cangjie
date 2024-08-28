@@ -8,6 +8,7 @@ import com.huawei.cangjie.descriptors.impl.ClassDescriptorBase
 import com.huawei.cangjie.descriptors.impl.FunctionDescriptorImpl
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.name.Name.Companion.special
+import com.huawei.cangjie.psi.CjTypeStatement
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.DescriptorUtils.getAllDescriptors
 import com.huawei.cangjie.resolve.DescriptorUtils.getContainingModule
@@ -17,6 +18,7 @@ import com.huawei.cangjie.resolve.lazy.LazyClassContext
 import com.huawei.cangjie.resolve.lazy.data.CjClassLikeInfo
 import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.resolve.scopes.MemberScope
+import com.huawei.cangjie.resolve.source.toSourceElement
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
@@ -25,29 +27,29 @@ import com.intellij.psi.PsiElement
 
 abstract class LazyClassDescriptorBase
     (
-    storageManager: StorageManager,
+    protected val c: LazyClassContext,
+
+
     containingDec: DeclarationDescriptor,
     name: Name,
-    source: SourceElement,
+    val classLikeInfo: CjClassLikeInfo,
     isExternal: Boolean
 ) : ClassDescriptorBase(
-    storageManager, containingDec, name, source, isExternal
-), ClassDescriptorWithResolutionScopes {
-
-}
+    c.storageManager, containingDec, name, classLikeInfo.correspondingClass.toSourceElement(), isExternal
+), ClassDescriptorWithResolutionScopes
 
 class LazyExtendClassDescriptor(
-    private val classDescriptor: ClassDescriptor,
-    private val c: LazyClassContext,
-    private val classLikeInfo: CjClassLikeInfo,
+    private val classDescriptor: LazyClassDescriptor,
+    c: LazyClassContext,
+    classLikeInfo: CjClassLikeInfo,
 
     containingDeclaration: DeclarationDescriptor,
     name: Name
 
 ) : LazyClassDescriptorBase(
-    c.storageManager,
+    c,
     containingDeclaration, name,
-    SourceElement.NO_SOURCE, false
+    classLikeInfo, false
 ) {
 
     companion object {
@@ -68,22 +70,24 @@ class LazyExtendClassDescriptor(
                 this, createInitializerScopeParent(), classLikeInfo.primaryConstructorParameters
             )
         }
-  val  typeStatement = classLikeInfo.correspondingClass
+    val typeStatement = classLikeInfo.correspondingClass
 
     private val resolutionScopesSupport = ClassResolutionScopesSupport(
         this,
         storageManager,
         c.languageVersionSettings,
     ) { getOuterScope() }
-init {
 
-    if (typeStatement != null) {
-        c.trace.record<PsiElement, ClassDescriptor>(
-            BindingContext.CLASS, typeStatement,
-            this
-        )
+    init {
+
+        if (typeStatement != null) {
+            c.trace.record<PsiElement, ClassDescriptor>(
+                BindingContext.CLASS, typeStatement,
+                this
+            )
+        }
     }
-}
+
     @OptIn(TypeRefinement::class)
     private fun createScopesHolderForClass(
         c: LazyClassContext,
@@ -179,8 +183,12 @@ init {
 
     }
 
+    fun getSourceClassElement(): CjTypeStatement? {
+        return classDescriptor.classLikeInfo.correspondingClass
+    }
+
     override fun getKind(): ClassKind {
-        return classDescriptor.kind
+        return return ClassKind.EXTEND
     }
 
     override fun isFun(): Boolean {

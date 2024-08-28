@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
+import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.Errors
 import com.huawei.cangjie.lexer.CjModifierKeywordToken
@@ -62,11 +63,11 @@ object ModifierCheckerCore {
                 }
             }
         }
-//        val actualTargets = AnnotationChecker.getDeclarationSiteActualTargetList(
-//            listOwner, descriptor as? ClassDescriptor, trace.bindingContext
-//        )
+        val actualTargets = AnnotationChecker.getDeclarationSiteActualTargetList(
+            listOwner, descriptor as? ClassDescriptor, trace.bindingContext
+        )
         val list = listOwner.modifierList ?: return
-        checkModifierList(list, trace, descriptor?.containingDeclaration/*, actualTargets*/, languageVersionSettings)
+        checkModifierList(list, trace, descriptor?.containingDeclaration , actualTargets , languageVersionSettings)
     }
 
     private val MODIFIER_KEYWORD_SET = CjTokens.MODIFIER_KEYWORDS
@@ -173,10 +174,15 @@ object ModifierCheckerCore {
         trace: BindingTrace,
         parentDescriptor: DeclarationDescriptor?,
 
-//        actualTargets: List<CangJieTarget>,
+        actualTargets: List<CangJieTarget>,
         languageVersionSettings: LanguageVersionSettings
     ) {
         if (list.stub != null) return
+
+
+//        检查一些前置条件
+//        1 如果是 sealed 则必须有 abstract
+        checkSealed(list, trace)
 
         // It's a list of all nodes with error already reported
         // General strategy: report no more than one error but any number of warnings
@@ -192,10 +198,52 @@ object ModifierCheckerCore {
             }
             if (second !in incorrectNodes) {
                 when {
-//                    !checkTarget(trace, second, actualTargets) -> incorrectNodes += second
+                    !checkTarget(trace, second, actualTargets) -> incorrectNodes += second
                     !checkParent(trace, second, parentDescriptor, languageVersionSettings) -> incorrectNodes += second
 //                    !checkLanguageLevelSupport(trace, second, languageVersionSettings, actualTargets) -> incorrectNodes += second
                 }
+            }
+        }
+    }
+    // Should return false if error is reported, true otherwise
+    private fun checkTarget(trace: BindingTrace, node: ASTNode, actualTargets: List<CangJieTarget>): Boolean {
+        val modifier = node.elementType as CjModifierKeywordToken
+
+        val possibleTargets = possibleTargetMap[modifier] ?: emptySet()
+        if (!actualTargets.any { it in possibleTargets }) {
+            trace.report(Errors.WRONG_MODIFIER_TARGET.on(node.psi, modifier, actualTargets.firstOrNull()?.description ?: "this"))
+            return false
+        }
+
+        val deprecatedTargets = deprecatedTargetMap[modifier] ?: emptySet()
+        val redundantTargets = redundantTargetMap[modifier] ?: emptySet()
+        when {
+
+            actualTargets.any { it in deprecatedTargets } ->
+                trace.report(
+                    Errors.DEPRECATED_MODIFIER_FOR_TARGET.on(
+                        node.psi,
+                        modifier,
+                        actualTargets.firstOrNull()?.description ?: "this"
+                    )
+                )
+            actualTargets.any { it in redundantTargets } ->
+                trace.report(
+                    Errors.REDUNDANT_MODIFIER_FOR_TARGET.on(
+                        node.psi,
+                        modifier,
+                        actualTargets.firstOrNull()?.description ?: "this"
+                    )
+                )
+        }
+        return true
+    }
+    private fun checkSealed(list: CjModifierList, trace: BindingTrace) {
+        if (list.hasModifier(CjTokens.SEALED_KEYWORD)) {
+            if (!list.hasModifier(CjTokens.ABSTRACT_KEYWORD)) {
+                trace.report(Errors.SEALED_ABSTRACT.on(list))
+
+
             }
         }
     }

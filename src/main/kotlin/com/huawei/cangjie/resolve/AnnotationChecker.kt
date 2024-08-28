@@ -2,94 +2,258 @@ package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.ClassDescriptor
+import com.huawei.cangjie.descriptors.ClassKind
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.resolve.CangJieTarget.*
+import com.huawei.cangjie.types.expressions.ExpressionTypingUtils
 
 class AnnotationChecker {
-//    fun getDeclarationSiteActualTargetList(annotated: CjElement, descriptor: ClassDescriptor?, context: BindingContext):
-//            List<CangJieTarget> {
-//        return getActualTargetList(annotated, descriptor, context).defaultTargets
-//    }
+
+
 
     fun check(annotated: CjAnnotated, trace: BindingTrace, descriptor: DeclarationDescriptor? = null) {
-//        val actualTargets = getActualTargetList(annotated, descriptor, trace.bindingContext)
-//        checkEntries(annotated.annotationEntries, actualTargets, trace, annotated)
-//        if (annotated is CjProperty) {
-//            checkPropertyUseSiteTargetAnnotations(annotated, trace)
-//        }
-//        if (annotated is CjClassOrObject) {
-//            checkSuperTypeAnnotations(annotated, trace)
-//        }
-//        if (annotated is CjCallableDeclaration) {
-//            annotated.typeReference?.let { check(it, trace) }
-//            annotated.receiverTypeReference?.let { check(it, trace) }
-//        }
-//        if (annotated is CjTypeAlias) {
-//            annotated.getTypeReference()?.let { check(it, trace) }
-//        }
-//        if (
-//            annotated is CjTypeParameterListOwner &&
-//            (annotated is CjCallableDeclaration || languageVersionSettings.supportsFeature(ProperCheckAnnotationsTargetInTypeUsePositions) ||
-//                    (annotated is CjClass && languageVersionSettings.supportsFeature(ClassTypeParameterAnnotations)))
-//        ) {
-//            if (annotated is CjClass && languageVersionSettings.supportsFeature(ClassTypeParameterAnnotations)) {
-//                (descriptor as? ClassDescriptor)?.declaredTypeParameters?.forEach {
-//                    //force annotation resolve to obtain targets
-//                    ForceResolveUtil.forceResolveAllContents(it.annotations)
-//                }
-//            }
+
+    }
+
+    fun checkExpression(expression: CjExpression, trace: BindingTrace) {
+
+    }
+
+    companion object {
+
+        fun getActualTargetList(
+            annotated: CjElement,
+            descriptor: DeclarationDescriptor?,
+            context: BindingContext
+        ): TargetList {
+            return when (annotated) {
+                is CjTypeStatement -> {
+                    (descriptor as? ClassDescriptor)?.let {
+                        TargetList(
+                            CangJieTarget.classActualTargets(
+                                it.kind,
+
+                                isLocalClass = DescriptorUtils.isLocal(it)
+                            )
+                        )
+                    } ?: TargetLists.T_CLASSIFIER
+                }
+
+//                is CjDestructuringDeclarationEntry -> TargetLists.T_LOCAL_VARIABLE
+//                is CjProperty -> {
+//                    when {
+//                        annotated.isLocal -> TargetLists.T_LOCAL_VARIABLE
+//                        annotated.isMember -> TargetLists.T_MEMBER_PROPERTY(
+//                            descriptor.hasBackingField(context),
+//                            annotated.hasDelegate()
+//                        )
 //
-//            annotated.typeParameters.forEach { check(it, trace) }
-//            for (typeParameter in annotated.typeParameters) {
-//                typeParameter.extendsBound?.let {
-//                    checkTypeReference(
-//                        it,
-//                        trace,
-//                        shouldCheckReferenceItself = true,
-//                        checkWithoutLanguageFeature = annotated is CjCallableDeclaration
-//                    )
-//                }
-//            }
-//            for (typeConstraint in annotated.typeConstraints) {
-//                typeConstraint.boundTypeReference?.let { checkTypeReference(it, trace, shouldCheckReferenceItself = true) }
-//            }
-//        }
-//        if (annotated is CjTypeReference) {
-//            if (languageVersionSettings.supportsFeature(ProperCheckAnnotationsTargetInTypeUsePositions)) {
-//                checkTypeReference(annotated, trace)
-//            } else {
-//                annotated.typeElement?.typeArgumentsAsTypes?.filterNotNull()?.forEach { check(it, trace) }
-//            }
-//        }
-//        if (annotated is CjDeclarationWithBody) {
-//            // CjFunction or CjPropertyAccessor
-//            for (parameter in annotated.valueParameters) {
-//                if (!parameter.hasLetOrVar()) {
-//                    check(parameter, trace)
-//                    if (annotated is CjFunctionLiteral) {
-//                        parameter.typeReference?.let { check(it, trace) }
+//                        else -> TargetLists.T_TOP_LEVEL_PROPERTY(
+//                            descriptor.hasBackingField(context),
+//                            annotated.hasDelegate()
+//                        )
 //                    }
 //                }
-//            }
-//        }
+//                is CjVariable -> {
+//                    when {
+//                        annotated.isLocal -> TargetLists.T_LOCAL_VARIABLE
+//                        annotated.isMember -> TargetLists.T_MEMBER_PROPERTY(
+//                            descriptor.hasBackingField(context),
+//                            annotated.hasDelegate()
+//                        )
+//
+//                        else -> TargetLists.T_TOP_LEVEL_PROPERTY(
+//                            descriptor.hasBackingField(context),
+//                            annotated.hasDelegate()
+//                        )
+//                    }
+//                }
+                is CjParameter -> {
+                    val destructuringDeclaration = annotated.destructuringDeclaration
+                    when {
+                        destructuringDeclaration != null -> TargetLists.T_DESTRUCTURING_DECLARATION
+                        annotated.hasLetOrVar() -> TargetLists.T_VALUE_PARAMETER_WITH_LET
+                        else -> TargetLists.T_VALUE_PARAMETER_WITHOUT_LET
+                    }
+                }
+
+                is CjConstructor<*> -> TargetLists.T_CONSTRUCTOR
+                is CjFunction -> {
+                    when {
+                        ExpressionTypingUtils.isFunctionExpression(descriptor) -> TargetLists.T_FUNCTION_EXPRESSION
+                        annotated.name == null -> TargetLists.T_FUNCTION_EXPRESSION
+                        annotated.isLocal -> TargetLists.T_LOCAL_FUNCTION
+                        annotated.parent is CjTypeStatement || annotated.parent is CjClassBody -> TargetLists.T_MEMBER_FUNCTION
+                        else -> TargetLists.T_TOP_LEVEL_FUNCTION
+                    }
+                }
+
+                is CjTypeAlias -> TargetLists.T_TYPEALIAS
+//                is CjPropertyAccessor -> if (annotated.isGetter) TargetLists.T_PROPERTY_GETTER else TargetLists.T_PROPERTY_SETTER
+                is CjTypeReference -> TargetLists.T_TYPE_REFERENCE
+                is CjFile -> TargetLists.T_FILE
+                is CjTypeParameter -> TargetLists.T_TYPE_PARAMETER
+                is CjTypeProjection ->
+                   TargetLists.T_TYPE_PROJECTION
+
+                is CjAnonymousInitializer -> TargetLists.T_INITIALIZER
+                is CjDestructuringDeclaration -> TargetLists.T_DESTRUCTURING_DECLARATION
+                is CjLambdaExpression -> TargetLists.T_FUNCTION_LITERAL
+
+                is CjExpression -> TargetLists.T_EXPRESSION
+                else -> TargetLists.EMPTY
+            }
+        }
+        fun getDeclarationSiteActualTargetList(annotated: CjElement, descriptor: ClassDescriptor?, context: BindingContext):
+                List<CangJieTarget> {
+            return getActualTargetList(annotated, descriptor, context).defaultTargets
+        }
     }
-    fun checkExpression(expression: CjExpression, trace: BindingTrace) {
-//        checkEntries(
-//            expression.getAnnotationEntries(),
-//            getActualTargetList(expression, null, trace.bindingContext),
-//            trace,
-//            expression.parent as? CjAnnotated
-//        )
-//        if (expression is CjCallElement  ) {
-//            val typeArguments = expression.typeArguments.mapNotNull { it.typeReference }
-//            for (typeArgument in typeArguments) {
-//                checkEntries(typeArgument.annotationEntries, getActualTargetList(typeArgument, null, trace.bindingContext), trace)
-//            }
-//        }
-//        if (expression is CjLambdaExpression) {
-//            for (parameter in expression.valueParameters) {
-//                parameter.typeReference?.let { check(it, trace) }
-//            }
-//        }
+}
+private typealias TargetList = AnnotationTargetList
+private typealias TargetLists = AnnotationTargetLists
+
+class AnnotationTargetList(
+    val defaultTargets: List<CangJieTarget>,
+    val canBeSubstituted: List<CangJieTarget> = emptyList(),
+    val onlyWithUseSiteTarget: List<CangJieTarget> = emptyList()
+)
+
+enum class CangJieTarget(val description: String, val isDefault: Boolean = true) {
+    LOCAL_CLASS("local class", false),
+    CLASS("class"),    EXTEND("extend"),
+    CLASS_ONLY("class", false),
+    STRUCT("struct", false),
+    ENUM ("enum ", false),
+    INTERFACE("interface", false),
+    ENUM_ENTRY("enum entry", false),
+    PROPERTY("property"),                      // includes *_PROPERTY (with and without backing field), PROPERTY_PARAMETER, ENUM_ENTRY
+  VARIABLE("variable"),                      // includes *_PROPERTY (with and without backing field), PROPERTY_PARAMETER, ENUM_ENTRY
+    TYPEALIAS("typealias", false),
+    DESTRUCTURING_DECLARATION("destructuring declaration", false),
+    EXPRESSION("expression", false),           // includes FUNCTION_LITERAL, OBJECT_LITERAL
+    FIELD("field"),                            // includes MEMBER_PROPERTY_WITH_FIELD, TOP_LEVEL_PROPERTY_WITH_FIELD, PROPERTY_PARAMETER, ENUM_ENTRY
+    INITIALIZER("initializer", false),
+    VALUE_PARAMETER("value parameter"),
+    MEMBER_PROPERTY("member property", false), // includes PROPERTY_PARAMETER, with and without field/delegate
+    CONSTRUCTOR("constructor"),
+    PROPERTY_GETTER("getter"),
+    PROPERTY_SETTER("setter"),
+    LAMBDA_EXPRESSION("lambda expression", false),
+    TOP_LEVEL_FUNCTION("top level function", false),
+    TOP_LEVEL_VARIABLE("top level variable", false), // with and without field/delegate
+    BACKING_FIELD("backing field"),
+    TOP_LEVEL_PROPERTY("top level property", false),
+    FILE("file", false),
+    TYPE_PROJECTION("type projection", false),
+    FUNCTION("function"),                      // includes *_FUNCTION and FUNCTION_LITERAL
+    ANONYMOUS_FUNCTION("anonymous function", false),
+    LOCAL_FUNCTION("local function", false),
+    TYPE_PARAMETER("type parameter", false),
+    MEMBER_FUNCTION("member function", false),
+    TYPE("type usage", false),
+
+    ;
+
+   companion object{
+       val LOCAL_CLASS_LIST = listOf(LOCAL_CLASS, CLASS)
+       val CLASS_LIST = listOf(CLASS_ONLY, CLASS)
+       val STRUCT_LIST = listOf(  STRUCT, CLASS)
+       val INTERFACE_LIST = listOf(INTERFACE, CLASS)
+       val ENUM_LIST = listOf(ENUM , CLASS)
+       val ENUM_ENTRY_LIST = listOf(ENUM_ENTRY, PROPERTY, VARIABLE,FIELD)
+       val EXTEND_LIST = listOf(  EXTEND)
+       fun classActualTargets(
+           kind: ClassKind,
+
+           isLocalClass: Boolean
+       ): List<CangJieTarget> = when (kind) {
+           ClassKind.EXTEND ->
+               // inner local classes should be CLASS_ONLY, not LOCAL_CLASS
+
+                   EXTEND_LIST
+
+
+//        ClassKind.ANNOTATION_CLASS -> ANNOTATION_CLASS_LIST
+           ClassKind.CLASS ->
+               // inner local classes should be CLASS_ONLY, not LOCAL_CLASS
+               if (isLocalClass) {
+                   LOCAL_CLASS_LIST
+               } else {
+                   CLASS_LIST
+               }
+
+           ClassKind.STRUCT ->
+
+               STRUCT_LIST
+
+           ClassKind.INTERFACE -> INTERFACE_LIST
+           ClassKind.ENUM  ->
+               if (isLocalClass) {
+                   LOCAL_CLASS_LIST
+               } else {
+                   ENUM_LIST
+               }
+
+           ClassKind.ENUM_ENTRY -> ENUM_ENTRY_LIST
+           else -> TODO()
+       }
+   }
+
+}
+object AnnotationTargetLists {
+    val T_CLASSIFIER = targetList(CLASS)
+    val T_DESTRUCTURING_DECLARATION = targetList(DESTRUCTURING_DECLARATION)
+    val T_INITIALIZER = targetList(INITIALIZER)
+    val T_VALUE_PARAMETER_WITHOUT_LET = targetList(VALUE_PARAMETER)
+
+    val T_TYPEALIAS = targetList(TYPEALIAS)
+    val T_VALUE_PARAMETER_WITH_LET = targetList(VALUE_PARAMETER, VARIABLE, MEMBER_PROPERTY) {
+        extraTargets(FIELD)
+//        onlyWithUseSiteTarget(PROPERTY_GETTER, PROPERTY_SETTER)
+    }
+    val T_CONSTRUCTOR = targetList(CONSTRUCTOR)
+
+    val T_EXPRESSION = targetList(EXPRESSION)
+    val T_FUNCTION_LITERAL = targetList(LAMBDA_EXPRESSION, FUNCTION, EXPRESSION)
+    val T_TYPE_PARAMETER = targetList(TYPE_PARAMETER)
+    val T_TYPE_PROJECTION = targetList(TYPE_PROJECTION)
+    val T_FILE = targetList(FILE)
+    val T_FUNCTION_EXPRESSION = targetList(ANONYMOUS_FUNCTION, FUNCTION, EXPRESSION)
+    val T_LOCAL_FUNCTION = targetList(LOCAL_FUNCTION, FUNCTION) {
+        onlyWithUseSiteTarget(VALUE_PARAMETER)
+    }
+    val T_TOP_LEVEL_FUNCTION = targetList(TOP_LEVEL_FUNCTION, FUNCTION) {
+        onlyWithUseSiteTarget(VALUE_PARAMETER)
+    }
+    val T_MEMBER_FUNCTION = targetList(MEMBER_FUNCTION, FUNCTION) {
+        onlyWithUseSiteTarget(VALUE_PARAMETER)
+    }
+    val T_TYPE_REFERENCE = targetList(TYPE) {
+        onlyWithUseSiteTarget(VALUE_PARAMETER)
+    }
+
+    private fun targetList(vararg target: CangJieTarget, otherTargets: TargetListBuilder.() -> Unit = {}): AnnotationTargetList {
+        val builder = TargetListBuilder(*target)
+        builder.otherTargets()
+        return builder.build()
+    }
+
+    val EMPTY = targetList()
+
+    private class TargetListBuilder(vararg val defaultTargets: CangJieTarget) {
+        private var canBeSubstituted: List<CangJieTarget> = listOf()
+        private var onlyWithUseSiteTarget: List<CangJieTarget> = listOf()
+
+        fun extraTargets(vararg targets: CangJieTarget) {
+            canBeSubstituted = targets.toList()
+        }
+
+        fun onlyWithUseSiteTarget(vararg targets: CangJieTarget) {
+            onlyWithUseSiteTarget = targets.toList()
+        }
+
+        fun build() = AnnotationTargetList(defaultTargets.toList(), canBeSubstituted, onlyWithUseSiteTarget)
     }
 }

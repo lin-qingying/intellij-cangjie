@@ -52,6 +52,7 @@ open class CangJieBuiltIns(
             )
         }
 
+
         fun isRune(type: CangJieType): Boolean {
             return isConstructedFromGivenClass(type, rune)
         }

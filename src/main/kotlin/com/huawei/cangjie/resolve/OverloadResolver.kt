@@ -52,7 +52,7 @@ class OverloadResolver(
         val constructorsByOuterClass = MultiMap.create<ClassDescriptor, FunctionDescriptor>()
 
         for (cclass in c.declaredClasses.values) {
-            if (cclass.kind.isSingleton || cclass.name.isSpecial) {
+            if (cclass.kind.isStruct || cclass.name.isSpecial) {
                 // Constructors of singletons or anonymous object aren't callable from the code, so they shouldn't participate in overload name checking
                 continue
             }
@@ -147,7 +147,7 @@ class OverloadResolver(
             val classifier = scope.getContributedClassifier(name, NoLookupLocation.MATCH_CHECK_DECLARATION_CONFLICTS)
             when (classifier) {
                 is ClassDescriptor ->
-                    if (!classifier.kind.isSingleton)
+                    if (!classifier.kind.isStruct)
                         functions + classifier.constructors
                     else
                         functions

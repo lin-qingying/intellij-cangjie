@@ -37,6 +37,7 @@ fun CjSimpleNameExpression.getQualifiedElement(): CjElement {
         else -> baseExpression
     }
 }
+fun CjModifierListOwner.isPrivate(): Boolean = hasModifier(CjTokens.PRIVATE_KEYWORD)
 
 fun canPlaceAfterSimpleNameEntry(element: PsiElement?): Boolean {
     val entryText = element?.text ?: return true

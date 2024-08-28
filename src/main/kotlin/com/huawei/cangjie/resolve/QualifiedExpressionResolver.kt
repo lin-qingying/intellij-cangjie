@@ -364,7 +364,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                 scopeForFirstPart = null, position = IMPORT
             ).classDescriptorFromTypeAlias() ?: return null
 
-            if (packageOrClassDescriptor is ClassDescriptor && packageOrClassDescriptor.kind.isSingleton && lastPart.expression != null) {
+            if (packageOrClassDescriptor is ClassDescriptor && packageOrClassDescriptor.kind.isStruct && lastPart.expression != null) {
                 trace.report(
                     CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON.on(
                         lastPart.expression!!,

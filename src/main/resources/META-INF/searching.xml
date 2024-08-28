@@ -12,6 +12,7 @@
 <!--                implementation="com.huawei.cangjie.ide.searching.usages.CangJieNonCodeSearchElementDescriptionProvider"/>-->
 
 <!--        <annotatedElementsSearch implementation="com.huawei.cangjie.ide.searching.CangJieAnnotatedElementsSearcher" />-->
+        <referencesSearch implementation="com.huawei.cangjie.ide.search.CangJieReferencesSearcher"/>
 
         <lang.findUsagesProvider language="CangJie" implementationClass="com.huawei.cangjie.ide.searching.usages.CangJieFindUsagesProviderBase"/>
 

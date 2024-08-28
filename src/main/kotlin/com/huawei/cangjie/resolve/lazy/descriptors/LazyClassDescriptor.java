@@ -4,7 +4,6 @@ import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.config.LanguageFeature;
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
-import com.huawei.cangjie.descriptors.impl.ClassDescriptorBase;
 import com.huawei.cangjie.descriptors.impl.FunctionDescriptorImpl;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.psi.*;
@@ -19,7 +18,6 @@ import com.huawei.cangjie.resolve.lazy.data.CjClassLikeInfo;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.resolve.scopes.MemberScope;
 import com.huawei.cangjie.resolve.scopes.StaticScopeForCangJieEnum;
-import com.huawei.cangjie.resolve.source.CangJieSourceElementKt;
 import com.huawei.cangjie.storage.NotNullLazyValue;
 import com.huawei.cangjie.storage.StorageManager;
 import com.huawei.cangjie.types.AbstractClassTypeConstructor;
@@ -77,8 +75,8 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
             @NotNull CjClassLikeInfo classLikeInfo,
             boolean isExternal
     ) {
-        super(c.getStorageManager(), containingDeclaration, name,
-                CangJieSourceElementKt.toSourceElement(classLikeInfo.getCorrespondingClass())
+        super(c , containingDeclaration, name,
+                classLikeInfo
                 , isExternal);
         this.c = c;
 
@@ -100,7 +98,7 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
 //        this.isCompanionObject = classLikeInfo instanceof KtObjectInfo && ((KtObjectInfo) classLikeInfo).isCompanionObject();
 //
         CjModifierList modifierList = classLikeInfo.getModifierList();
-        if (kind.isSingleton()) {
+        if (kind.isStruct()) {
             this.modality = storageManager.createLazyValue(() -> Modality.FINAL);
         } else {
             Modality defaultModality = kind == ClassKind.INTERFACE ? Modality.ABSTRACT : Modality.FINAL;

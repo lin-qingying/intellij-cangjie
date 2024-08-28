@@ -45,6 +45,8 @@ public interface Errors {
     DiagnosticFactory0<CjConstantExpression> ILLEGAL_UNDERSCORE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjConstantExpression> UNSIGNED_LITERAL_WITHOUT_DECLARATIONS_ON_CLASSPATH = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<PsiElement> CYCLIC_GENERIC_UPPER_BOUND = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory2<PsiElement,CjModifierKeywordToken, String> DEPRECATED_MODIFIER_FOR_TARGET = DiagnosticFactory2.create(WARNING);
+    DiagnosticFactory2<PsiElement, CjModifierKeywordToken, String> REDUNDANT_MODIFIER_FOR_TARGET = DiagnosticFactory2.create(WARNING);
 
     DiagnosticFactory3<CjSimpleNameExpression, DeclarationDescriptor, DescriptorVisibility, FqName> INVISIBLE_REFERENCE_REEXPORT =
             DiagnosticFactory3.create(ERROR);
@@ -98,6 +100,7 @@ public interface Errors {
     DiagnosticFactory2<CjExpression, CangJieType, CangJieType> TYPE_MISMATCH = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory1<CjNamedDeclaration, TypeParameterDescriptor> CONFLICTING_UPPER_BOUNDS =
             DiagnosticFactory1.create(ERROR, DECLARATION_NAME);
+
     DiagnosticFactory1<CjDeclaration, Collection<CangJieType>> AMBIGUOUS_ANONYMOUS_TYPE_INFERRED =
             DiagnosticFactory1.create(ERROR, DECLARATION_SIGNATURE);
     DiagnosticFactory1<CjDeclaration, CangJieType> APPROXIMATED_LOCAL_TYPE_WILL_BECOME_FLEXIBLE =
@@ -135,6 +138,15 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, Pair<LanguageFeature, LanguageVersionSettings>> UNSUPPORTED_FEATURE = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory3<CjElement, CangJieType, CangJieType, ClassifierDescriptor> UPPER_BOUND_VIOLATED_IN_TYPEALIAS_EXPANSION =
             DiagnosticFactory3.create(ERROR);
+    DiagnosticFactory0<CjTypeReference> SUPERTYPE_APPEARS_TWICE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjTypeReference> SUPERTYPE_NOT_A_CLASS_OR_INTERFACE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjTypeReference> MANY_CLASSES_IN_SUPERTYPE_LIST = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjTypeReference> STRUCT_IN_SUPERTYPE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjTypeReference> ENUM_IN_SUPERTYPE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<PsiElement> CLASS_IN_SUPERTYPE_FOR_ENUM = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<PsiElement> INTERFACE_WITH_SUPERCLASS = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory1<CjTypeReference, CangJieType> FINAL_SUPERTYPE = DiagnosticFactory1.create(ERROR);
+
     DiagnosticFactory2<CjTypeReference, CangJieType, CangJieType> UPPER_BOUND_VIOLATED = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory0<CjTypeArgumentList> TYPE_ARGUMENTS_FOR_OUTER_CLASS_WHEN_NESTED_REFERENCED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<CjTypeReference, CangJieType> TYPEALIAS_SHOULD_EXPAND_TO_CLASS = DiagnosticFactory1.create(ERROR);
@@ -181,6 +193,9 @@ public interface Errors {
     DiagnosticFactory2<PsiElement, CjModifierKeywordToken, CjModifierKeywordToken> REDUNDANT_MODIFIER = DiagnosticFactory2.create(WARNING);
     DiagnosticFactory2<PsiElement, CjModifierKeywordToken, CjModifierKeywordToken> DEPRECATED_MODIFIER_PAIR =
             DiagnosticFactory2.create(WARNING);
+
+    DiagnosticFactory0<PsiElement> SEALED_ABSTRACT =
+            DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjTypeProjection> PROJECTION_IN_IMMEDIATE_ARGUMENT_TO_SUPERTYPE =
             DiagnosticFactory0.create(ERROR, VARIANCE_IN_PROJECTION);
     DiagnosticFactory1<CjTypeElement, CangJieType> EXPANDED_TYPE_CANNOT_BE_INHERITED = DiagnosticFactory1.create(ERROR);

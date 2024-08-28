@@ -112,7 +112,8 @@ public interface BindingContext {
 
     WritableSlice<CjElement, Call> CALL = new BasicWritableSlice<>(DO_NOTHING);
 
-
+    WritableSlice<ConstructorDescriptor, ResolvedCall<ConstructorDescriptor>> CONSTRUCTOR_RESOLVED_DELEGATION_CALL =
+            Slices.createSimpleSlice();
     WritableSlice<CjReferenceExpression, DeclarationDescriptor> REFERENCE_TARGET = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjExpression, Collection<? extends DeclarationDescriptor>> AMBIGUOUS_REFERENCE_TARGET =
             new BasicWritableSlice<>(DO_NOTHING);

@@ -20,7 +20,6 @@ import com.huawei.cangjie.psi.psiUtil.getNonStrictParentOfType
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.lazy.*
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode.*
-import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptorBase
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
@@ -504,11 +503,11 @@ class ResolveElementCache(
 
     private fun delegationSpecifierAdditionalResolve(
         resolveSession: ResolveSession, cjElement: CjElement,
-        classOrObject: CjTypeStatement, file: CjFile,
+        typeStatement: CjTypeStatement, file: CjFile,
         bindingTraceFilter: BindingTraceFilter
     ): BindingTrace {
         val trace = createDelegatingTrace(cjElement, bindingTraceFilter)
-        val descriptor = resolveSession.resolveToDescriptor(classOrObject) as LazyClassDescriptorBase
+        val descriptor = resolveSession.resolveToDescriptor(typeStatement) as LazyClassDescriptorBase
 
         // 激活超类型的解析
         ForceResolveUtil.forceResolveAllContents(descriptor.typeConstructor.supertypes)
@@ -516,7 +515,7 @@ class ResolveElementCache(
         val bodyResolver = createBodyResolver(resolveSession, trace, file, StatementFilter.NONE)
         bodyResolver.resolveSuperTypeEntryList(
             DataFlowInfo.EMPTY,
-            classOrObject,
+            typeStatement,
             descriptor,
             descriptor.unsubstitutedPrimaryConstructor,
             descriptor.scopeForConstructorHeaderResolution,

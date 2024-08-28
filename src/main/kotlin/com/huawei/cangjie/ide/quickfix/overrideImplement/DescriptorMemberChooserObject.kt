@@ -72,11 +72,9 @@ open class DescriptorMemberChooserObject(
             val isClass =  declaration is CjClass
             val flags = if (isClass) 0 else Iconable.ICON_FLAG_VISIBILITY
             if (declaration is CjDeclaration) {
-                // kotlin declaration
-                // visibility and abstraction better detect by a descriptor
+
                 CangJieDescriptorIconProvider.getIcon(descriptor, declaration, flags)
             } else {
-                // it is better to show java icons for java code
                 declaration.getIcon(flags)
             }
         } else {

@@ -29,7 +29,7 @@ fun resolveQualifierAsStandaloneExpression(
 //    when (referenceTarget) {
 //        is TypeAliasDescriptor -> {
 //            referenceTarget.classDescriptor?.let { classDescriptor ->
-//                if (!classDescriptor.kind.isSingleton) {
+//                if (!classDescriptor.kind.isStruct) {
 //                    context.trace.report(Errors.NO_COMPANION_OBJECT.on(qualifier.referenceExpression, referenceTarget))
 //                }
 //            }
@@ -38,7 +38,7 @@ fun resolveQualifierAsStandaloneExpression(
 //            context.trace.report(Errors.TYPE_PARAMETER_IS_NOT_AN_EXPRESSION.on(qualifier.referenceExpression, referenceTarget))
 //        }
 //        is ClassDescriptor -> {
-//            if (!referenceTarget.kind.isSingleton) {
+//            if (!referenceTarget.kind.isStruct) {
 //                context.trace.report(Errors.NO_COMPANION_OBJECT.on(qualifier.referenceExpression, referenceTarget))
 //            }
 //        }

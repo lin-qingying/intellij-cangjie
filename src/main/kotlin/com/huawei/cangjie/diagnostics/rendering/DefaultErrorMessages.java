@@ -85,10 +85,25 @@ public class DefaultErrorMessages {
 
 
         MAP.put(UPPER_BOUND_VIOLATED, "Type argument is not within its bounds: should be subtype of ''{0}''", RENDER_TYPE, RENDER_TYPE);
+        MAP.put(SUPERTYPE_APPEARS_TWICE, "A supertype appears twice");
+        MAP.put(SUPERTYPE_NOT_A_CLASS_OR_INTERFACE, "Only classes and interfaces may serve as supertypes");
+        MAP.put(CLASS_IN_SUPERTYPE_FOR_ENUM, "Enum  cannot inherit from classes");
+        MAP.put(INTERFACE_WITH_SUPERCLASS, "An interface can only inherit from a interface");
+        MAP.put(CYCLIC_INHERITANCE_HIERARCHY, "There's a cycle in the inheritance hierarchy for this type");
+        MAP.put(STRUCT_IN_SUPERTYPE, "Cannot inherit from a struct");
+        MAP.put(ENUM_IN_SUPERTYPE, "Cannot inherit from a enum");
+        MAP.put(FINAL_SUPERTYPE, "super class ''{0}'' is not inheritable",RENDER_TYPE);
 
 //        表达式
         MAP.put(EXCEPTION_FROM_ANALYZER, "Internal Error occurred while analyzing this expression:\n{0}", THROWABLE);
         MAP.put(NEW_INFERENCE_UNKNOWN_ERROR, "Unknown error in new inference with applicability ''{0}'' and target ''{1}''", TO_STRING, STRING);
+
+
+//        修饰符
+        MAP.put(REDUNDANT_MODIFIER, "Modifier ''{0}'' is redundant because ''{1}'' is present", TO_STRING, TO_STRING);
+        MAP.put(SEALED_ABSTRACT, "'sealed' can only modify abstract class" );
+        MAP.put(INCOMPATIBLE_MODIFIERS, "Modifier ''{0}'' is incompatible with ''{1}''", TO_STRING, TO_STRING);
+        MAP.put(WRONG_MODIFIER_TARGET, "Modifier ''{0}'' is not applicable to ''{1}''", TO_STRING, TO_STRING);
 
     }
 

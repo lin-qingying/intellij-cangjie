@@ -35,7 +35,7 @@ class CjPsiFactory private constructor(
     private val eventSystemEnabled: Boolean,
 ) {
     fun createEmptyClassBody(): CjClassBody {
-        return createClass("class A(){}").getBody()!!
+        return createClass("class A{}").getBody()!!
     }
 
     companion object {

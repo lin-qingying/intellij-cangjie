@@ -11,16 +11,16 @@ import com.huawei.cangjie.resolve.calls.components.InferenceSession;
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.check.DeclarationsChecker;
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor;
 import com.huawei.cangjie.resolve.scopes.*;
-import com.huawei.cangjie.types.CangJieType;
-import com.huawei.cangjie.types.DeferredType;
-import com.huawei.cangjie.types.ErrorUtils;
+import com.huawei.cangjie.types.*;
 import com.huawei.cangjie.types.expressions.ExpressionTypingContext;
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices;
 import com.huawei.cangjie.types.expressions.PreliminaryDeclarationVisitor;
 import com.huawei.cangjie.types.util.TypeUtils;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiElement;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +28,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.huawei.cangjie.descriptors.Errors.SUPERTYPE_NOT_INITIALIZED;
+import static com.huawei.cangjie.descriptors.Errors.*;
+import static com.huawei.cangjie.resolve.BindingContext.CONSTRUCTOR_RESOLVED_DELEGATION_CALL;
 import static com.huawei.cangjie.resolve.descriptorUtil.DescriptorUtilsKt.isEffectivelyExternal;
 import static com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;
 
@@ -100,6 +101,193 @@ public class BodyResolver {
         if (type instanceof DeferredType deferredType) {
             if (!deferredType.isComputed()) {
                 deferredType.getDelegate();
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void recordConstructorDelegationCall(
+            @NotNull BindingTrace trace,
+            @NotNull ConstructorDescriptor constructor,
+            @NotNull ResolvedCall<?> call
+    ) {
+        trace.record(CONSTRUCTOR_RESOLVED_DELEGATION_CALL, constructor, (ResolvedCall<ConstructorDescriptor>) call);
+    }
+
+    // Returns a set of enum or sealed types of which supertypeOwner is an entry or a member
+    @NotNull
+    private Set<TypeConstructor> getAllowedFinalSupertypes(
+            @NotNull ClassDescriptor descriptor,
+            @NotNull Map<CjTypeReference, CangJieType> supertypes,
+            @NotNull CjTypeStatement typeStatement
+    ) {
+        Set<TypeConstructor> parentEnumOrSealed = Collections.emptySet();
+//        if (typeStatement instanceof CjEnumEntry) {
+//            parentEnumOrSealed = Collections.singleton(((ClassDescriptor) descriptor.getContainingDeclaration()).getTypeConstructor());
+//        }
+//        else if (languageVersionSettings.supportsFeature(TopLevelSealedInheritance) && DescriptorUtils.isTopLevelDeclaration(descriptor)) {
+//            // TODO: improve diagnostic when top level sealed inheritance is disabled
+//            for (KotlinType supertype : supertypes.values()) {
+//                ClassifierDescriptor classifierDescriptor = supertype.getConstructor().getDeclarationDescriptor();
+//                if (DescriptorUtils.isSealedClass(classifierDescriptor) && DescriptorUtils.isTopLevelDeclaration(classifierDescriptor)) {
+//                    parentEnumOrSealed = Collections.singleton(classifierDescriptor.getTypeConstructor());
+//                }
+//            }
+//        }
+//        else {
+//            ClassDescriptor currentDescriptor = descriptor;
+//            while (currentDescriptor.getContainingDeclaration() instanceof ClassDescriptor) {
+//                currentDescriptor = (ClassDescriptor) currentDescriptor.getContainingDeclaration();
+//                if (DescriptorUtils.isSealedClass(currentDescriptor)) {
+//                    if (parentEnumOrSealed.isEmpty()) {
+//                        parentEnumOrSealed = new HashSet<>();
+//                    }
+//                    parentEnumOrSealed.add(currentDescriptor.getTypeConstructor());
+//                    if (currentDescriptor.isExpect()) {
+//                        List<MemberDescriptor> actualDescriptors = ExpectedActualResolverKt.findCompatibleActualsForExpected(
+//                                currentDescriptor, DescriptorUtilsKt.getModule( currentDescriptor)
+//                        );
+//                        for (MemberDescriptor actualDescriptor: actualDescriptors) {
+//                            if (actualDescriptor instanceof TypeAliasDescriptor) {
+//                                parentEnumOrSealed.add(((TypeAliasDescriptor) actualDescriptor).getExpandedType().getConstructor());
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+        return parentEnumOrSealed;
+    }
+
+    private void checkSupertypeList(
+            @NotNull ClassDescriptor supertypeOwner,
+            @NotNull Map<CjTypeReference, CangJieType> supertypes,
+            @NotNull CjTypeStatement typeStatement
+    ) {
+        Set<TypeConstructor> allowedFinalSupertypes = getAllowedFinalSupertypes(supertypeOwner, supertypes, typeStatement);
+        Set<TypeConstructor> typeConstructors = new HashSet<>();
+        boolean classAppeared = false;
+        for (Map.Entry<CjTypeReference, CangJieType> entry : supertypes.entrySet()) {
+            CjTypeReference typeReference = entry.getKey();
+            CangJieType supertype = entry.getValue();
+
+            CjTypeElement typeElement = typeReference.getTypeElement();
+            if (typeElement instanceof CjFunctionType) {
+                for (CjParameter parameter : ((CjFunctionType) typeElement).getParameters()) {
+                    PsiElement nameIdentifier = parameter.getNameIdentifier();
+
+                    if (nameIdentifier != null) {
+                        trace.report(Errors.UNSUPPORTED.on(nameIdentifier, "named parameter in function type in supertype position"));
+                    }
+                }
+            }
+
+            boolean addSupertype = true;
+
+            ClassDescriptor classDescriptor = TypeUtils.getClassDescriptor(supertype);
+            if (classDescriptor != null) {
+                if (ErrorUtils.isError(classDescriptor)) continue;
+
+//                if (FunctionTypesKt.isExtensionFunctionType(supertype) &&
+//                        !languageVersionSettings.supportsFeature(LanguageFeature.FunctionalTypeWithExtensionAsSupertype)
+//                ) {
+//                    trace.report(SUPERTYPE_IS_EXTENSION_FUNCTION_TYPE.on(typeReference));
+//                }
+//                else if (FunctionTypesKt.isSuspendExtensionFunctionType(supertype) &&
+//                        !languageVersionSettings.supportsFeature(LanguageFeature.FunctionalTypeWithExtensionAsSupertype) &&
+//                        languageVersionSettings.supportsFeature(LanguageFeature.SuspendFunctionAsSupertype)) {
+//                    trace.report(SUPERTYPE_IS_SUSPEND_EXTENSION_FUNCTION_TYPE.on(typeReference));
+//                }
+//                else if (FunctionTypesKt.isSuspendFunctionType(supertype) &&
+//                        !languageVersionSettings.supportsFeature(LanguageFeature.SuspendFunctionAsSupertype)
+//                ) {
+//                    trace.report(SUPERTYPE_IS_SUSPEND_FUNCTION_TYPE.on(typeReference));
+//                }
+//                else if (FunctionTypesKt.isKSuspendFunctionType(supertype) &&
+//                        !languageVersionSettings.supportsFeature(LanguageFeature.SuspendFunctionAsSupertype)) {
+//                    trace.report(SUPERTYPE_IS_KSUSPEND_FUNCTION_TYPE.on(typeReference));
+//                }
+
+                if (classDescriptor.getKind() != ClassKind.INTERFACE) {
+                    if (supertypeOwner.getKind() == ClassKind.ENUM) {
+                        trace.report(CLASS_IN_SUPERTYPE_FOR_ENUM.on(typeReference));
+                        addSupertype = false;
+                    } else if (supertypeOwner.getKind() == ClassKind.INTERFACE &&
+                            !classAppeared && !DynamicTypesKt.isDynamic(supertype) /* avoid duplicate diagnostics */) {
+                        trace.report(INTERFACE_WITH_SUPERCLASS.on(typeReference));
+                        addSupertype = false;
+                    }
+
+          /*          else if (DescriptorUtils.isSubclass(classDescriptor, builtIns.getThrowable())) {
+                        if (!supertypeOwner.getDeclaredTypeParameters().isEmpty()) {
+                            trace.report(GENERIC_THROWABLE_SUBCLASS.on(typeStatement.getTypeParameterList()));
+                            addSupertype = false;
+                        }
+                        else if (!supertypeOwner.getTypeConstructor().getParameters().isEmpty()) {
+                            if (languageVersionSettings
+                                    .supportsFeature(LanguageFeature.ProhibitInnerClassesOfGenericClassExtendingThrowable)) {
+                                trace.report(INNER_CLASS_OF_GENERIC_THROWABLE_SUBCLASS.on(typeStatement));
+                                addSupertype = false;
+                            }
+                            else {
+                                trace.report(INNER_CLASS_OF_GENERIC_THROWABLE_SUBCLASS_WARNING.on(typeStatement));
+                            }
+                        }
+                    }
+*/
+                    if (classAppeared) {
+                        trace.report(MANY_CLASSES_IN_SUPERTYPE_LIST.on(typeReference));
+                    } else {
+                        classAppeared = true;
+                    }
+                }
+            } else {
+                trace.report(SUPERTYPE_NOT_A_CLASS_OR_INTERFACE.on(typeReference));
+            }
+
+            TypeConstructor constructor = supertype.getConstructor();
+            if (addSupertype && !typeConstructors.add(constructor)) {
+                trace.report(SUPERTYPE_APPEARS_TWICE.on(typeReference));
+            }
+
+            if (classDescriptor == null) return;
+            if (classDescriptor.getKind().isEnum()) {
+                if (!DescriptorUtils.isEnumEntry(classDescriptor)) {
+                    trace.report(ENUM_IN_SUPERTYPE.on(typeReference));
+                }
+            } else if (classDescriptor.getKind().isStruct()) {
+                if (!DescriptorUtils.isEnumEntry(classDescriptor)) {
+                    trace.report(STRUCT_IN_SUPERTYPE.on(typeReference));
+                }
+            } else if (!allowedFinalSupertypes.contains(constructor)) {
+                if (DescriptorUtils.isSealedClass(classDescriptor)) {
+                    DeclarationDescriptor containingDescriptor = supertypeOwner.getContainingDeclaration();
+                    while (containingDescriptor != null && containingDescriptor != classDescriptor) {
+                        containingDescriptor = containingDescriptor.getContainingDeclaration();
+                    }
+//                    if (containingDescriptor == null) {
+//                        if (
+//                                !languageVersionSettings.supportsFeature(AllowSealedInheritorsInDifferentFilesOfSamePackage) ||
+//                                        DescriptorUtils.isLocal(supertypeOwner)
+//                        ) {
+//                            trace.report(SEALED_SUPERTYPE.on(typeReference));
+//                        }
+//                    }
+//                    else {
+//                        String declarationName;
+//                        if (supertypeOwner.getName() == SpecialNames.NO_NAME_PROVIDED) {
+//                            declarationName = "Anonymous object";
+//                        } else {
+//                            declarationName = "Local class";
+//                        }
+//                        trace.report(SEALED_SUPERTYPE_IN_LOCAL_CLASS.on(typeReference, declarationName, classDescriptor.getKind()));
+//                    }
+                } else if (ModalityUtilsKt.isFinalOrEnum(classDescriptor)) {
+                    trace.report(FINAL_SUPERTYPE.on(typeReference, classDescriptor.getDefaultType()));
+                }
+//                else if (CangJieBuiltIns.isEnum(classDescriptor)) {
+//                    trace.report(CLASS_CANNOT_BE_EXTENDED_DIRECTLY.on(typeReference, classDescriptor));
+//                }
             }
         }
     }
@@ -262,7 +450,24 @@ public class BodyResolver {
 //        }
     }
 
+    private void resolveSuperTypeEntryLists(@NotNull BodiesResolveContext c) {
+        // TODO : Make sure the same thing is not initialized twice
+        for (Map.Entry<CjTypeStatement, ClassDescriptorWithResolutionScopes> entry : c.getDeclaredClasses().entrySet()) {
+            CjTypeStatement typeStatement = entry.getKey();
+            ClassDescriptorWithResolutionScopes descriptor = entry.getValue();
+            ExpressionTypingContext localContext = c.getLocalContext();
+
+            resolveSuperTypeEntryList(c.getOuterDataFlowInfo(), typeStatement, descriptor,
+                    descriptor.getUnsubstitutedPrimaryConstructor(),
+                    descriptor.getScopeForConstructorHeaderResolution(),
+                    descriptor.getScopeForMemberDeclarationResolution(),
+                    localContext != null ? localContext.inferenceSession : null);
+        }
+    }
+
     private void resolveBehaviorDeclarationBodies(@NotNull BodiesResolveContext c) {
+        resolveSuperTypeEntryLists(c);
+
         resolveVariableDeclarationBodies(c);
 
 
@@ -386,7 +591,7 @@ public class BodyResolver {
 
     public void resolveSuperTypeEntryList(
             @NotNull DataFlowInfo outerDataFlowInfo,
-            @NotNull CjTypeStatement cjClass,
+            @NotNull CjTypeStatement typeStatement,
             @NotNull ClassDescriptor descriptor,
             @Nullable ConstructorDescriptor primaryConstructor,
             @NotNull LexicalScope scopeForConstructorResolution,
@@ -456,7 +661,7 @@ public class BodyResolver {
 //                if (descriptor.isExpect()) {
 //                    trace.report(SUPERTYPE_INITIALIZED_IN_EXPECTED_CLASS.on(elementToMark));
 //                }
-//                KtTypeReference typeReference = call.getTypeReference();
+//                CjTypeReference typeReference = call.getTypeReference();
 //                if (typeReference == null) return;
 //                if (primaryConstructor == null) {
 //                    if (descriptor.getKind() != ClassKind.INTERFACE) {
@@ -500,7 +705,7 @@ public class BodyResolver {
                 if (supertype == null) return;
                 ClassDescriptor superClass = TypeUtils.getClassDescriptor(supertype);
                 if (superClass == null) return;
-                if (superClass.getKind().isSingleton()) {
+                if (superClass.getKind().isStruct()) {
                     // A "singleton in supertype" diagnostic will be reported later
                     return;
                 }
@@ -519,6 +724,36 @@ public class BodyResolver {
                 throw new UnsupportedOperationException(element.getText() + " : " + element);
             }
         };
+
+
+        //   TODO      如果是扩展，将源类型加上，但是这里还缺少其他扩展
+        if (typeStatement instanceof CjExtend && descriptor instanceof LazyExtendClassDescriptor) {
+
+            CjTypeStatement sourceClassElement = ((LazyExtendClassDescriptor) descriptor).getSourceClassElement();
+
+            if (sourceClassElement != null) {
+                for (CjSuperTypeListEntry delegationSpecifier : sourceClassElement.getSuperTypeListEntries()) {
+                    ProgressManager.checkCanceled();
+
+                    delegationSpecifier.accept(visitor);
+                }
+            }
+        }
+
+
+        for (CjSuperTypeListEntry delegationSpecifier : typeStatement.getSuperTypeListEntries()) {
+            ProgressManager.checkCanceled();
+
+            delegationSpecifier.accept(visitor);
+        }
+
+
+        if (primaryConstructorDelegationCall[0] != null && primaryConstructor != null) {
+            recordConstructorDelegationCall(trace, primaryConstructor, primaryConstructorDelegationCall[0]);
+        }
+
+
+        checkSupertypeList(descriptor, supertypes, typeStatement);
 
     }
 

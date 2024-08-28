@@ -53,7 +53,7 @@ object DescriptorUtils {
         freedomForSealedInterfacesSupported: Boolean
     ): DescriptorVisibility {
         val classKind: ClassKind = classDescriptor.getKind()
-        if (classKind == ClassKind.ENUM || classKind.isSingleton) {
+        if (classKind == ClassKind.ENUM || classKind.isStruct) {
             return DescriptorVisibilities.PRIVATE
         }
         if (isSealedClass(classDescriptor)) {
@@ -130,7 +130,7 @@ object DescriptorUtils {
     fun classCanHaveAbstractDeclaration(classDescriptor: ClassDescriptor): Boolean {
         return classDescriptor.getModality() == Modality.ABSTRACT || isSealedClass(
             classDescriptor
-        ) || classDescriptor.getKind() == ClassKind.ENUM
+        ) /*|| classDescriptor.getKind() == ClassKind.ENUM*/
     }
 
     fun shouldRecordInitializerForProperty(

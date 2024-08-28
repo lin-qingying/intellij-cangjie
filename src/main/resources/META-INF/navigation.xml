@@ -1,0 +1,6 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <navbar id="kotlinNavBar"
+                implementation="com.huawei.cangjie.ide.navigationToolbar.CangJieNavBarModelExtension"/>
+    </extensions>
+</idea-plugin>

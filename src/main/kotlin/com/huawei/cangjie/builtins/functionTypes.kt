@@ -15,6 +15,8 @@ import com.huawei.cangjie.types.util.asTypeProjection
 import com.huawei.cangjie.types.util.replaceAnnotations
 import com.intellij.util.containers.addIfNotNull
 
+val CangJieType.isExtensionFunctionType: Boolean
+    get() = isFunctionType && isTypeAnnotatedWithExtensionFunctionType
 
 fun CangJieType.getValueParameterTypesFromCallableReflectionType(isCallableTypeWithExtension: Boolean): List<TypeProjection> {
 //    assert(ReflectionTypes.isCCallableType(this)) { "Not a callable reflection type: $this" }

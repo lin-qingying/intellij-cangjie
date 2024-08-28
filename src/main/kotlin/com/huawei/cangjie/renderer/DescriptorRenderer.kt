@@ -1421,7 +1421,7 @@ internal class DescriptorRendererImpl(
                 renderVisibility(klass.visibility, builder)
             }
             if (!(klass.kind == INTERFACE && klass.modality == Modality.ABSTRACT ||
-                        klass.kind.isSingleton && klass.modality == Modality.FINAL)
+                        klass.kind.isStruct && klass.modality == Modality.FINAL)
             ) {
                 renderModality(klass.modality, builder, klass.implicitModalityWithoutExtensions())
             }
@@ -1447,7 +1447,7 @@ internal class DescriptorRendererImpl(
         renderTypeParameters(typeParameters, builder, false)
         renderCapturedTypeParametersIfRequired(klass, builder)
 
-        if (!klass.kind.isSingleton && classWithPrimaryConstructor) {
+        if (!klass.kind.isStruct && classWithPrimaryConstructor) {
             val primaryConstructor = klass.unsubstitutedPrimaryConstructor
             if (primaryConstructor != null) {
                 builder.append(" ")
@@ -1485,6 +1485,7 @@ internal class DescriptorRendererImpl(
 
     private fun renderClassKindPrefix(klass: ClassDescriptor, builder: StringBuilder) {
         builder.append(renderKeyword(getClassifierKindPrefix(klass)))
+        builder.append("  ")
     }
 
 

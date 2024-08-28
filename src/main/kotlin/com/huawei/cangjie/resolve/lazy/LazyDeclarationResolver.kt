@@ -109,7 +109,6 @@ open class LazyDeclarationResolver(
                 return descriptor
 
 
-
             }
 
             override fun visitSecondaryConstructor(
