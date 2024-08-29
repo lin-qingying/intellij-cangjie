@@ -46,23 +46,7 @@ enum class BuildType {
 val buildType = BuildType.fromString(build_type)
 
 
-//include("plugin")
-// Configure Gradle Build Cache. It is enabled in `gradle.properties` via `org.gradle.caching`.
-//buildCache {
-//    local {
-//        isEnabled = System.getenv("CI") == null
-//        directory = File(rootDir, "build/build-cache")
-//        removeUnusedEntriesAfterDays = 30
-//    }
-//}
 
-//pluginManagement {
-//    repositories {
-//        maven("https://oss.sonatype.org/content/repositories/snapshots/")
-//        gradlePluginPortal()
-//    }
-//}
-//include("lsp4j")
 include("plugin")
 include("utils")
 //include("gradle-util")
@@ -79,12 +63,6 @@ include("idea")
 
 include("clion")
 
-
-//include("grammar")
-//include("generators")
-//include("metadata")
-//include("build-common")
-//include("protobuf2.6.1")
 
 
 when (buildType) {

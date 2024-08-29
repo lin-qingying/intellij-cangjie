@@ -337,20 +337,7 @@ val cangjie_plugin_project = project(":plugin") {
             dependsOn(mergePluginJarTask)
             enabled = prop("enableBuildSearchableOptions").toBoolean()
         }
-//        withType<PrepareSandboxTask> {
-////            dependsOn(named(compileNativeCodeTaskName))
-//
-//            // Copy native binaries
-//            from("${rootDir}/bin") {
-//                into("${pluginName.get()}/bin")
-//                include("**")
-//            }
-//            // Copy pretty printers
-//            from("$rootDir/prettyPrinters") {
-//                into("${pluginName.get()}/prettyPrinters")
-//                include("**/*.py")
-//            }
-//        }
+
         withType<RunIdeTask> {
             dependsOn(mergePluginJarTask)
             // Default args for IDEA installation
@@ -443,22 +430,7 @@ project(":lsp") {
 }
 
 
-//project(":grammar") {
-//    apply {
-//        plugin("antlr")
-//    }
-//
-//    // Kotlin Gradle support doesn't generate proper extensions if the plugin is not declared in `plugin` block.
-//// But if we do it, `antlr` plugin will be applied to root project as well that we want to avoid.
-//// So, let's define all necessary things manually
-//    val antlr by configurations
-//
-//    dependencies {
-//        implementation("org.antlr:antlr4-intellij-adaptor:0.1")
-//        antlr("org.antlr:antlr4:4.13.1")
-//        implementation("org.antlr:antlr4-runtime:4.13.1")
-//    }
-//}
+
 project(":utils") {
     dependencies {
 
