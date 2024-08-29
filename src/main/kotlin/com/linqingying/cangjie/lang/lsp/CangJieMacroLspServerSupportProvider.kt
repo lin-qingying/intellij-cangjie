@@ -55,7 +55,7 @@ private class CangJieMacroLspServerDescriptor(project: Project) : ProjectWideLsp
 //    override val lsp4jServerClass: Class<out LanguageServer>
 //        get() = CangJieLangServer::class.java
 
-    override fun createCommandLine(): GeneralCommandLine = CangJieLspServerManager.getCommandLine(project,LspServerType.LSPMACROSERVER)
+    override fun createCommandLine(): GeneralCommandLine = CangJieLspServerService.getInstance(project).getCommandLine( LspServerType.LSPMACROSERVER)
 
 
     // 无需使用LSP服务器即可实现引用解析

@@ -1,12 +1,12 @@
 package com.linqingying.cangjie.lang.lsp
 
 
-import com.linqingying.cangjie.cjpm.project.settings.cangjieSettings
-import com.linqingying.cangjie.ide.run.cjpm.toolchain
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.systemIndependentPath
+import com.linqingying.cangjie.cjpm.project.settings.cangjieSettings
+import com.linqingying.cangjie.ide.run.cjpm.toolchain
 import com.linqingying.lsp.impl.LspServerManagerImpl
 import java.nio.file.Files
 import java.nio.file.Path
@@ -17,8 +17,7 @@ enum class LspServerType {
 }
 
 
-val LOG = com.intellij.openapi.diagnostic.Logger.getInstance(CangJieLspServerManager::class.java)
-
+@Deprecated("use CangJieLspServerService")
 object CangJieLspServerManager {
 
     //user  .cangjielspserver

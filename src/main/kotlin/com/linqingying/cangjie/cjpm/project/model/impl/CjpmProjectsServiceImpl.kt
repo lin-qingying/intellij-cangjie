@@ -1,25 +1,5 @@
 package com.linqingying.cangjie.cjpm.project.model.impl
 
-import com.linqingying.cangjie.AsyncValue
-import com.linqingying.cangjie.CangJieBundle
-import com.linqingying.cangjie.cjpm.CjpmConstants
-import com.linqingying.cangjie.cjpm.findChild
-import com.linqingying.cangjie.cjpm.project.model.CjpmProject
-import com.linqingying.cangjie.cjpm.project.model.CjpmProjectsService
-import com.linqingying.cangjie.cjpm.project.model.ContentEntryWrapper
-import com.linqingying.cangjie.cjpm.project.model.setup
-import com.linqingying.cangjie.cjpm.project.pathAsPath
-import com.linqingying.cangjie.cjpm.project.settings.CjProjectSettingsServiceBase
-import com.linqingying.cangjie.cjpm.project.settings.cangjieSettings
-import com.linqingying.cangjie.cjpm.project.workspace.CjpmWorkspace
-import com.linqingying.cangjie.cjpm.project.workspace.PackageOrigin
-import com.linqingying.cangjie.cjpm.project.workspace.additionalRoots
-import com.linqingying.cangjie.cjpm.toolchain.CjToolchainBase
-import com.linqingying.cangjie.ide.notifications.CjNotifications
-import com.linqingying.cangjie.ide.run.cjpm.isUnitTestMode
-import com.linqingying.cangjie.lang.CangJieFileType
-import com.linqingying.cangjie.lang.lsp.CangJieLspServerManager
-import com.linqingying.cangjie.taskQueue
 import com.intellij.execution.RunManager
 import com.intellij.ide.impl.isTrusted
 import com.intellij.notification.NotificationType
@@ -49,6 +29,26 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.indexing.LightDirectoryIndex
 import com.intellij.util.io.systemIndependentPath
+import com.linqingying.cangjie.AsyncValue
+import com.linqingying.cangjie.CangJieBundle
+import com.linqingying.cangjie.cjpm.CjpmConstants
+import com.linqingying.cangjie.cjpm.findChild
+import com.linqingying.cangjie.cjpm.project.model.CjpmProject
+import com.linqingying.cangjie.cjpm.project.model.CjpmProjectsService
+import com.linqingying.cangjie.cjpm.project.model.ContentEntryWrapper
+import com.linqingying.cangjie.cjpm.project.model.setup
+import com.linqingying.cangjie.cjpm.project.pathAsPath
+import com.linqingying.cangjie.cjpm.project.settings.CjProjectSettingsServiceBase
+import com.linqingying.cangjie.cjpm.project.settings.cangjieSettings
+import com.linqingying.cangjie.cjpm.project.workspace.CjpmWorkspace
+import com.linqingying.cangjie.cjpm.project.workspace.PackageOrigin
+import com.linqingying.cangjie.cjpm.project.workspace.additionalRoots
+import com.linqingying.cangjie.cjpm.toolchain.CjToolchainBase
+import com.linqingying.cangjie.ide.notifications.CjNotifications
+import com.linqingying.cangjie.ide.run.cjpm.isUnitTestMode
+import com.linqingying.cangjie.lang.CangJieFileType
+import com.linqingying.cangjie.lang.lsp.CangJieLspServerService
+import com.linqingying.cangjie.taskQueue
 import com.linqingying.utils.Config
 import org.jdom.Element
 import java.nio.file.Path
@@ -400,7 +400,8 @@ private fun doRefresh(project: Project, projects: List<CjpmProjectImpl>): Comple
             if (Config.isLsp) {
 
 //            TODO 重启lsp服务器
-                CangJieLspServerManager.restartLspServer(project)
+                CangJieLspServerService.getInstance(project).restartLspServer()
+
             }
 
 
