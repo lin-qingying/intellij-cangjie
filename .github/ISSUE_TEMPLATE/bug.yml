@@ -50,6 +50,7 @@ body:
       options:
         - 1.1.7
         - 1.1.8
-        - 1.1.9 (最新)
+        - 1.1.9
+        - 1.2.0  (最新)
     validations:
       required: true
