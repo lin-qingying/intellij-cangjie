@@ -6,6 +6,7 @@ import com.intellij.psi.tree.TokenSet;
 public interface CjStubElementTypes {
 
 
+    CjEnumEntryElementType ENUM_ENTRY = new CjEnumEntryElementType("ENUM_ENTRY");
 
     CjClassElementType CLASS = new CjClassElementType("CLASS");
     CjFunctionElementType FUNCTION = new CjFunctionElementType("FUNC");
@@ -16,7 +17,6 @@ public interface CjStubElementTypes {
 //    CjBackingFieldElementType BACKING_FIELD = new CjBackingFieldElementType("BACKING_FIELD");
     CjTypeAliasElementType TYPEALIAS = new CjTypeAliasElementType("TYPEALIAS");
 
-    CjClassElementType ENUM_ENTRY = new CjClassElementType("ENUM_ENTRY");
 //    CjObjectElementType OBJECT_DECLARATION = new CjObjectElementType("OBJECT_DECLARATION");
     CjPlaceHolderStubElementType<CjClassInitializer> CLASS_INITIALIZER =
             new CjPlaceHolderStubElementType<>("CLASS_INITIALIZER", CjClassInitializer.class);

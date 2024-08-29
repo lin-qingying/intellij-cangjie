@@ -9,14 +9,16 @@ import com.huawei.cangjie.psi.psiUtil.PsiUtilsKt;
 import com.huawei.cangjie.resolve.calls.CallResolver;
 import com.huawei.cangjie.resolve.calls.components.InferenceSession;
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
+import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResults;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
-import com.huawei.cangjie.resolve.check.DeclarationsChecker;
+import com.huawei.cangjie.resolve.lazy.ForceResolveUtil;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor;
 import com.huawei.cangjie.resolve.scopes.*;
 import com.huawei.cangjie.types.*;
 import com.huawei.cangjie.types.expressions.ExpressionTypingContext;
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices;
 import com.huawei.cangjie.types.expressions.PreliminaryDeclarationVisitor;
+import com.huawei.cangjie.types.expressions.ValueParameterResolver;
 import com.huawei.cangjie.types.util.TypeUtils;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
@@ -48,6 +50,8 @@ public class BodyResolver {
     private final LanguageVersionSettings languageVersionSettings;
     @NotNull
     private final DeclarationsChecker declarationsChecker;
+    @NotNull private final ValueParameterResolver valueParameterResolver;
+    @NotNull private final CallResolver callResolver;
 
     public BodyResolver(
             @NotNull Project project,
@@ -60,7 +64,7 @@ public class BodyResolver {
             @NotNull ExpressionTypingServices expressionTypingServices,
 //            @NotNull AnalyzerExtensions analyzerExtensions,
             @NotNull BindingTrace trace,
-//            @NotNull ValueParameterResolver valueParameterResolver,
+            @NotNull ValueParameterResolver valueParameterResolver,
 //            @NotNull AnnotationChecker annotationChecker,
             @NotNull CangJieBuiltIns builtIns,
             @NotNull OverloadChecker overloadChecker,
@@ -71,6 +75,8 @@ public class BodyResolver {
         this.overloadChecker = overloadChecker;
         this.expressionTypingServices = expressionTypingServices;
         this.declarationsChecker = declarationsChecker;
+        this.valueParameterResolver = valueParameterResolver;
+        this.callResolver = callResolver;
 
         this.builtIns = builtIns;
         this.languageVersionSettings = languageVersionSettings;
@@ -337,6 +343,55 @@ public class BodyResolver {
         }
     }
 
+    @Nullable
+    private DataFlowInfo resolveSecondaryConstructorDelegationCall(
+            @NotNull DataFlowInfo outerDataFlowInfo,
+            @NotNull BindingTrace trace,
+            @NotNull LexicalScope scope,
+            @NotNull CjSecondaryConstructor constructor,
+            @NotNull ClassConstructorDescriptor descriptor,
+            @Nullable InferenceSession inferenceSession
+    ) {
+        if (descriptor.isExpect() || isEffectivelyExternal(descriptor)) {
+            // For expected and external classes, we do not resolve constructor delegation calls because they are prohibited
+            return DataFlowInfo.Companion.getEMPTY();
+        }
+
+        OverloadResolutionResults<?> results = callResolver.resolveConstructorDelegationCall(
+                trace, scope, outerDataFlowInfo,
+                descriptor, constructor.getDelegationCall(), inferenceSession);
+
+        if (results != null && results.isSingleResult()) {
+            ResolvedCall<? extends CallableDescriptor> resolvedCall = results.getResultingCall();
+            recordConstructorDelegationCall(trace, descriptor, resolvedCall);
+            return resolvedCall.getDataFlowInfoForArguments().getResultInfo();
+        }
+        return null;
+    }
+    public void resolveSecondaryConstructorBody(
+            @NotNull DataFlowInfo outerDataFlowInfo,
+            @NotNull BindingTrace trace,
+            @NotNull CjSecondaryConstructor constructor,
+            @NotNull ClassConstructorDescriptor descriptor,
+            @NotNull LexicalScope declaringScope,
+            @Nullable ExpressionTypingContext localContext
+    ) {
+        ForceResolveUtil.forceResolveAllContents(descriptor.getAnnotations());
+
+        resolveFunctionBody(
+                outerDataFlowInfo, trace, constructor, descriptor, declaringScope,
+                headerInnerScope -> resolveSecondaryConstructorDelegationCall(
+                        outerDataFlowInfo, trace, headerInnerScope, constructor,
+                        descriptor, localContext != null ? localContext.inferenceSession : null
+                ),
+                scope -> new LexicalScopeImpl(
+                        scope, descriptor, scope.isOwnerDescriptorAccessibleByLabel(), scope.getImplicitReceiver(), scope.getContextReceiversGroup(),
+                        LexicalScopeKind.CONSTRUCTOR_HEADER
+                ),
+                localContext
+        );
+    }
+
     private void resolveVariableInitializer(
             @NotNull DataFlowInfo outerDataFlowInfo,
             @NotNull CjVariable variable,
@@ -453,7 +508,34 @@ public class BodyResolver {
                     localContext != null ? localContext.inferenceSession : null);
         }
     }
+    private static LexicalScope getPrimaryConstructorParametersScope(
+            LexicalScope originalScope,
+            ConstructorDescriptor unsubstitutedPrimaryConstructor
+    ) {
+        return new LexicalScopeImpl(originalScope, unsubstitutedPrimaryConstructor, false, null,
+                Collections.emptyList(), LexicalScopeKind.DEFAULT_VALUE, LocalRedeclarationChecker.DO_NOTHING.INSTANCE,
+                handler -> {
+                    for (ValueParameterDescriptor valueParameter : unsubstitutedPrimaryConstructor.getValueParameters()) {
+                        handler.addVariableDescriptor(valueParameter);
+                    }
+                    return Unit.INSTANCE;
+                });
+    }
+    public void resolveConstructorParameterDefaultValues(
+            @NotNull DataFlowInfo outerDataFlowInfo,
+            @NotNull BindingTrace trace,
+            @NotNull CjPrimaryConstructor constructor,
+            @NotNull ConstructorDescriptor constructorDescriptor,
+            @NotNull LexicalScope declaringScope,
+            @Nullable InferenceSession inferenceSession
+    ) {
+        List<CjParameter> valueParameters = constructor.getValueParameters();
+        List<ValueParameterDescriptor> valueParameterDescriptors = constructorDescriptor.getValueParameters();
 
+        LexicalScope scope = getPrimaryConstructorParametersScope(declaringScope, constructorDescriptor);
+
+        valueParameterResolver.resolveValueParameters(valueParameters, valueParameterDescriptors, scope, outerDataFlowInfo, trace, inferenceSession);
+    }
     private void resolveBehaviorDeclarationBodies(@NotNull BodiesResolveContext c) {
         resolveSuperTypeEntryLists(c);
 

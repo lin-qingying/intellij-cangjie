@@ -7,14 +7,14 @@ import com.huawei.cangjie.container.get
 import com.huawei.cangjie.context.SimpleGlobalContext
 import com.huawei.cangjie.context.withModule
 import com.huawei.cangjie.context.withProject
-import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.descriptors.FunctionDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.frontend.createContainerForBodyResolve
 import com.huawei.cangjie.ide.cache.trackers.CangJieCodeBlockModificationListener
 import com.huawei.cangjie.ide.projectStructure.languageVersionSettings
 import com.huawei.cangjie.ide.stubindex.resolve.isUnitTestMode
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.psiUtil.forEachDescendantOfType
 import com.huawei.cangjie.psi.psiUtil.getElementTextWithContext
 import com.huawei.cangjie.psi.psiUtil.getNonStrictParentOfType
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
@@ -378,7 +378,24 @@ class ResolveElementCache(
 //        forceResolveAnnotationsInside(typeAlias)
         return trace
     }
+    private fun secondaryConstructorAdditionalResolve(
+        resolveSession: ResolveSession, constructor: CjSecondaryConstructor,
+        file: CjFile, statementFilter: StatementFilter,
+        bindingTraceFilter: BindingTraceFilter
+    ): BindingTrace {
+        val trace = createDelegatingTrace(constructor, bindingTraceFilter)
 
+        val scope = resolveSession.declarationScopeProvider.getResolutionScopeForDeclaration(constructor)
+        val constructorDescriptor = resolveSession.resolveToDescriptor(constructor) as ClassConstructorDescriptor
+        ForceResolveUtil.forceResolveAllContents(constructorDescriptor)
+
+        val bodyResolver = createBodyResolver(resolveSession, trace, file, statementFilter)
+        bodyResolver.resolveSecondaryConstructorBody(DataFlowInfo.EMPTY, trace, constructor, constructorDescriptor, scope, null)
+
+        forceResolveAnnotationsInside(constructor)
+
+        return trace
+    }
     private fun performElementAdditionalResolve(
         resolveElement: CjElement,
         contextElements: Collection<CjElement>?,
@@ -440,7 +457,21 @@ class ResolveElementCache(
                 resolveSession.trace
 
             }
+            is CjPrimaryConstructor -> constructorAdditionalResolve(
+                resolveSession,
+                resolveElement.parent as CjTypeStatement,
+                file,
+                bodyResolveMode.bindingTraceFilter
+            )
+            is CjTypeConstraint -> typeConstraintAdditionalResolve(resolveSession, resolveElement)
 
+            is CjSecondaryConstructor -> secondaryConstructorAdditionalResolve(
+                resolveSession,
+                resolveElement,
+                file,
+                createStatementFilter(),
+                bodyResolveMode.bindingTraceFilter
+            )
             else -> {
                 if (resolveElement.findParentOfType<CjPackageDirective>(true) != null) {
                     packageRefAdditionalResolve(resolveSession, resolveElement, bodyResolveMode.bindingTraceFilter)
@@ -457,6 +488,60 @@ class ResolveElementCache(
         return Pair(trace.bindingContext, statementFilterUsed)
     }
 
+
+    private fun typeConstraintAdditionalResolve(analyzer: CangJieCodeAnalyzer, typeConstraint: CjTypeConstraint): BindingTrace {
+        val declaration = typeConstraint.findParentOfType<CjDeclaration>(true)!!
+        val descriptor = analyzer.resolveToDescriptor(declaration) as ClassifierDescriptorWithTypeParameters
+
+        for (parameterDescriptor in descriptor.declaredTypeParameters) {
+            ForceResolveUtil.forceResolveAllContents(parameterDescriptor)
+        }
+
+        return resolveSession.trace
+    }
+    private fun constructorAdditionalResolve(
+        resolveSession: ResolveSession,
+        cclass: CjTypeStatement,
+        file:CjFile,
+        filter: BindingTraceFilter
+    ): BindingTrace {
+        val trace = createDelegatingTrace(cclass, filter)
+
+        val classDescriptor = resolveSession.resolveToDescriptor(cclass) as ClassDescriptor
+        val constructorDescriptor = classDescriptor.unsubstitutedPrimaryConstructor
+            ?: error("Can't get primary constructor for descriptor '$classDescriptor' in from class '${cclass.getElementTextWithContext()}'")
+        ForceResolveUtil.forceResolveAllContents(constructorDescriptor)
+
+        val primaryConstructor = cclass.primaryConstructor
+        if (primaryConstructor != null) {
+            val scope = resolveSession.declarationScopeProvider.getResolutionScopeForDeclaration(primaryConstructor)
+            val bodyResolver = createBodyResolver(resolveSession, trace, file, StatementFilter.NONE)
+            bodyResolver.resolveConstructorParameterDefaultValues(
+                DataFlowInfo.EMPTY,
+                trace,
+                primaryConstructor,
+                constructorDescriptor,
+                scope,
+                resolveSession.inferenceSession
+            )
+
+//            forceResolveAnnotationsInside(primaryConstructor)
+        }
+
+        return trace
+    }
+    private fun forceResolveAnnotationsInside(element: CjAnnotated) {
+        val action: (CjAnnotationEntry) -> Unit = { entry ->
+            resolveSession.bindingContext[BindingContext.ANNOTATION, entry]?.let {
+                ForceResolveUtil.forceResolveAllContents(it)
+            }
+        }
+        if (element.getContainingCjFile().isCompiled) {
+            element.annotationEntries.forEach(action)
+        } else {
+            element.forEachDescendantOfType<CjAnnotationEntry>(canGoInside = { it !is CjBlockExpression }, action = action)
+        }
+    }
     private fun createBodyResolver(
         resolveSession: ResolveSession,
         trace: BindingTrace,

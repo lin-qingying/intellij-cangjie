@@ -13,7 +13,9 @@ import java.io.IOException
 open class StubIndexService protected constructor() {
     open fun indexFile(stub: CangJieFileStub, sink: IndexSink) {
     }
+    open fun indexEnumEntry(stub: CangJieEnumEntryStub, sink: IndexSink) {
 
+    }
     open fun indexEnum(stub: CangJieEnumStub, sink: IndexSink) {
 
     }

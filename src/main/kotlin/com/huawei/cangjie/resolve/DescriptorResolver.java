@@ -1190,7 +1190,7 @@ public class DescriptorResolver {
     }
 
 
-    static final class UpperBoundCheckRequest {
+      static final class UpperBoundCheckRequest {
         public final Name typeParameterName;
         public final CjTypeReference upperBound;
         public final CangJieType upperBoundType;

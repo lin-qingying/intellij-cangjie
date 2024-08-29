@@ -129,6 +129,7 @@ interface CangJieStructStub : CangJieTypeStatementStub<CjStruct>
 interface CangJieInterfaceStub : CangJieTypeStatementStub<CjInterface>
 
 interface CangJieEnumStub : CangJieTypeStatementStub<CjEnum>
+interface CangJieEnumEntryStub : CangJieTypeStatementStub<CjEnumEntry>
 interface CangJieExtendStub : CangJieTypeStatementStub<CjExtend> {
 
 //    fun getClassId(): ClassId?

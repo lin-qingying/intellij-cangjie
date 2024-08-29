@@ -19,6 +19,8 @@ class CjExtend : CjTypeStatement {
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJieExtendStub) : super(stub, CjStubElementTypes.EXTEND)
 
+
+    
     //被扩展类型
     val receiverTypeReceiver: CjTypeReference?
         get() {

@@ -327,6 +327,12 @@ public class IdeStubIndexService extends StubIndexService {
     }
 
     @Override
+    public void indexEnumEntry(@NotNull CangJieEnumEntryStub stub, @NotNull IndexSink sink) {
+        indexTypeStatementStub(stub, sink);
+
+    }
+
+    @Override
     public void indexEnum(@NotNull CangJieEnumStub stub, @NotNull IndexSink sink) {
         indexTypeStatementStub(stub, sink);
 
