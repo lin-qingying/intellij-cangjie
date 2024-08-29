@@ -96,7 +96,7 @@ class AttachCjpmProjectAction : CjpmProjectActionBase() {
 
         fun canBeAttached(project: Project, cjpmToml: VirtualFile): Boolean {
             require(cjpmToml.isCjpmManifestFile)
-            if (!ProjectFileIndex.getInstance(project).isInContent(cjpmToml)) return false
+//            if (!ProjectFileIndex.getInstance(project).isInContent(cjpmToml)) return false
 
             val path = cjpmToml.pathAsPath
 

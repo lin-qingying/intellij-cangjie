@@ -1,19 +1,18 @@
 package com.linqingying.cangjie.lang.lsp
 
 
-import com.linqingying.cangjie.cjpm.project.model.Require
-import com.linqingying.cangjie.cjpm.project.model.cjpmProjects
-import com.linqingying.cangjie.cjpm.project.model.currentCjpmProject
-import com.linqingying.cangjie.cjpm.project.settings.cangjieSettings
-import com.linqingying.cangjie.cjpm.project.workspace.PackageOrigin
-import com.linqingying.cangjie.lang.CangJieFileType
-import com.linqingying.cangjie.lang.lsp.CangJieLspServerManager.getCommandLine
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.io.systemIndependentPath
+import com.linqingying.cangjie.cjpm.project.model.Require
+import com.linqingying.cangjie.cjpm.project.model.cjpmProjects
+import com.linqingying.cangjie.cjpm.project.model.currentCjpmProject
+import com.linqingying.cangjie.cjpm.project.settings.cangjieSettings
+import com.linqingying.cangjie.cjpm.project.workspace.PackageOrigin
+import com.linqingying.cangjie.lang.CangJieFileType
 import com.linqingying.lsp.api.LspServerSupportProvider
 import com.linqingying.lsp.api.ProjectWideLspServerDescriptor
 import com.linqingying.utils.Config
@@ -71,7 +70,8 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 //    override val lsp4jServerClass: Class<out LanguageServer>
 //        get() = CangJieLangServer::class.java
 
-    override fun createCommandLine(): GeneralCommandLine = getCommandLine(project, LspServerType.LSPSERVER)
+    override fun createCommandLine(): GeneralCommandLine =
+        CangJieLspServerService.getInstance(project).getCommandLine(LspServerType.LSPSERVER)
 
 
     // 无需使用LSP服务器即可实现引用解析

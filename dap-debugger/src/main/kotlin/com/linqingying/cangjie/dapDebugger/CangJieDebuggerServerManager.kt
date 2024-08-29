@@ -1,4 +1,4 @@
-package com.linqingying.cangjie.dapDebugger.runconfig
+package com.linqingying.cangjie.dapDebugger
 
 import com.linqingying.cangjie.cjpm.project.settings.cangjieSettings
 import com.linqingying.cangjie.utils.getSavePluginVersion
@@ -13,7 +13,7 @@ import com.intellij.util.io.systemIndependentPath
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Paths
-
+@Deprecated("use CangJieDebuggerPluginService")
 object CangJieDebuggerServerManager {
     //user  .cangjielspserver
     val DAPSERVERPATH = System.getProperty("user.home") + "/.cangjie/debugger"
