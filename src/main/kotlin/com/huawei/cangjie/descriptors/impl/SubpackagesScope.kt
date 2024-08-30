@@ -1,9 +1,6 @@
 package com.huawei.cangjie.descriptors.impl
 
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.ModuleDescriptor
-import com.huawei.cangjie.descriptors.PackageFragmentDescriptor
-import com.huawei.cangjie.descriptors.PackageViewDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
@@ -43,6 +40,7 @@ open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, priv
         }
         return result
     }
+
 
     override fun getContributedPackages(name: Name, location: LookupLocation): Collection<PackageFragmentDescriptor> {
         TODO("Not yet implemented")

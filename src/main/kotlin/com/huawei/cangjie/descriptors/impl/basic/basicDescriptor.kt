@@ -9,10 +9,7 @@ import com.huawei.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescript
 import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.StorageManager
-import com.huawei.cangjie.types.BasicType
-import com.huawei.cangjie.types.ClassTypeConstructorImpl
-import com.huawei.cangjie.types.SimpleType
-import com.huawei.cangjie.types.TypeConstructor
+import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 
 
@@ -73,7 +70,8 @@ class BasicTypeDescriptor(
     override fun getDefaultType(): BasicType {
         return BasicType(typeConstructor,basicMemberScope)
     }
-    val typeConstructor = ClassTypeConstructorImpl(this, emptyList(), emptyList(), storageManager)
+//    val typeConstructor = ClassTypeConstructorImpl(this, emptyList(), emptyList(), storageManager)
+    val typeConstructor = BasicTypeConstructor(this,storageManager)
     override fun getTypeConstructor(): TypeConstructor = typeConstructor
 
 

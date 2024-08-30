@@ -29,7 +29,7 @@ abstract class CjNamedDeclarationStub<T : CangJieStubWithFqName<*>> : CjDeclarat
 
     override fun getName(): String? {
         return runReadAction {
-            val stub = getStub()
+            val stub = stub
             if (stub != null) {
                 return@runReadAction stub.name
             }

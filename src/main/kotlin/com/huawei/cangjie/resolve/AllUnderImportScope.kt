@@ -67,6 +67,13 @@ class AllUnderImportScope private constructor(
         return if (classifier1 != null && classifier2 != null) null else (classifier1 ?: classifier2)
     }
 
+    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+        if (name in excludedNames) return emptyList()
+        val classifier1 = scope1.getExtendClass(name)
+        val classifier2 = scope2?.getExtendClass(name)
+        return classifier1 + (classifier2 ?: emptyList())
+    }
+
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
         if (name in excludedNames) return emptyList()
         return flatMapScopes(scope1, scope2) { it.getContributedVariables(name, location) }
@@ -85,6 +92,7 @@ class AllUnderImportScope private constructor(
     override fun printStructure(p: Printer) {
         p.println(this::class.java.simpleName)
     }
+
 
     companion object {
         fun create(descriptor: DeclarationDescriptor, excludedImportNames: Collection<FqName>): ImportingScope {

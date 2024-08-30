@@ -42,6 +42,7 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
         val variables = ArrayListMultimap.create<Name, CjVariable>()
 
         val classesAndObjects = ArrayListMultimap.create<Name, CjTypeStatementInfo<*>>() // order matters here
+        val extends = ArrayListMultimap.create<Name, CjTypeStatementInfo<CjExtend>>()
 
         //        val scripts = ArrayListMultimap.create<Name, CjScriptInfo>()
         val typeAliases = ArrayListMultimap.create<Name, CjTypeAlias>()
@@ -62,8 +63,15 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
                 is CjVariable ->
                     variables.put(declaration.safeNameForLazyResolve(), declaration)
 
+//
                 is CjTypeAlias ->
                     typeAliases.put(declaration.nameAsName.safeNameForLazyResolve(), declaration)
+
+                is CjExtend ->
+                    extends.put(
+                        declaration.nameAsName.safeNameForLazyResolve(),
+                        CjClassInfoUtil.createTypeStatementInfo(declaration) as CjTypeStatementInfo<CjExtend>
+                    )
 
                 is CjTypeStatement ->
                     classesAndObjects.put(
@@ -128,6 +136,10 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
 
     override fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>> =
         index().classesAndObjects[name.safeNameForLazyResolve()]
+
+
+    override fun getExtendTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<CjExtend>> =
+        index().extends[name.safeNameForLazyResolve()]
 //    override fun getScriptDeclarations(name: Name): MutableList<CjScriptInfo> =
 //        index().scripts[name.safeNameForLazyResolve()]
 

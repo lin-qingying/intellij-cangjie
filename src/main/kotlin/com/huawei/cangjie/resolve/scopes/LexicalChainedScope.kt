@@ -34,6 +34,11 @@ class LexicalChainedScope private constructor(
     override fun getContributedClassifier(name: Name, location: LookupLocation) =
         getFirstClassifierDiscriminateHeaders(memberScopes) { it.getContributedClassifier(name, location) }
 
+    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+
+  return  getListClassifierDiscriminateHeaders(memberScopes) { it.getExtendClass(name) }
+    }
+
     override fun getContributedClassifierIncludeDeprecated(
         name: Name,
         location: LookupLocation

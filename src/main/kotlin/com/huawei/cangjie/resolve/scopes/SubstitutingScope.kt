@@ -1,7 +1,7 @@
 package com.huawei.cangjie.resolve.scopes
 
+import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.PropertyDescriptor
 import com.huawei.cangjie.descriptors.Substitutable
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
@@ -9,10 +9,9 @@ import com.huawei.cangjie.psi.psiUtil.sure
 import com.huawei.cangjie.resolve.calls.inference.wrapWithCapturingSubstitution
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeSubstitutor
-import com.huawei.cangjie.utils.newLinkedHashSetWithExpectedSize
-import java.util.HashMap
 import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.safeSubstitute
 import com.huawei.cangjie.utils.Printer
+import com.huawei.cangjie.utils.newLinkedHashSetWithExpectedSize
 
 class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: TypeSubstitutor) : MemberScope {
     val substitutor by lazy { givenSubstitutor.substitution.buildSubstitutor() }
@@ -43,6 +42,7 @@ class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: 
                     "We expect that no conflict should happen while substitution is guaranteed to generate invariant projection, " +
                             "but $descriptor substitution fails"
                 }
+
                 else -> error("Unknown descriptor in scope: $descriptor")
             }
         }
@@ -64,24 +64,35 @@ class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: 
         return result
     }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation) = substitute(workerScope.getContributedVariables(name, location))
-    override fun getContributedPropertys(name: Name, location: LookupLocation)= substitute(workerScope.getContributedPropertys(name, location))
+    override fun getContributedVariables(name: Name, location: LookupLocation) =
+        substitute(workerScope.getContributedVariables(name, location))
+
+    override fun getContributedPropertys(name: Name, location: LookupLocation) =
+        substitute(workerScope.getContributedPropertys(name, location))
 
     override fun getContributedClassifier(name: Name, location: LookupLocation) =
         workerScope.getContributedClassifier(name, location)?.let { substitute(it) }
 
-    override fun getContributedFunctions(name: Name, location: LookupLocation) = substitute(workerScope.getContributedFunctions(name, location))
+    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+        return substitute(workerScope.getExtendClass(name)).toList()
+    }
+
+    override fun getContributedFunctions(name: Name, location: LookupLocation) =
+        substitute(workerScope.getContributedFunctions(name, location))
 
 
-    override fun getContributedDescriptors(kindFilter: DescriptorKindFilter,
-                                           nameFilter: (Name) -> Boolean) = _allDescriptors
+    override fun getContributedDescriptors(
+        kindFilter: DescriptorKindFilter,
+        nameFilter: (Name) -> Boolean
+    ) = _allDescriptors
 
 //    override fun getFunctionNames() = workerScope.getFunctionNames()
 //    override fun getVariableNames() = workerScope.getVariableNames()
 //    override fun getClassifierNames() = workerScope.getClassifierNames()
 
     override fun definitelyDoesNotContainName(name: Name) = workerScope.definitelyDoesNotContainName(name)
-//
+
+    //
     override fun printScopeStructure(p: Printer) {
         p.println(this::class.java.simpleName, " {")
         p.pushIndent()

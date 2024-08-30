@@ -3,7 +3,6 @@ package com.huawei.cangjie.ide.stubindex.resolve
 import com.huawei.cangjie.ide.indices.CangJiePackageIndexUtils
 import com.huawei.cangjie.ide.stubindex.*
 import com.huawei.cangjie.ide.vfilefinder.CangJiePackageSourcesMemberNamesIndex
-import com.huawei.cangjie.ide.vfilefinder.NameIsRoot
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
@@ -79,6 +78,31 @@ class StubBasedPackageMemberDeclarationProvider(
     override fun getDestructuringDeclarationsEntries(name: Name): Collection<CjDestructuringDeclarationEntry> {
         return emptyList()
 
+    }
+
+
+    override fun getExtendTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<CjExtend>> {
+        val childName = childName(name)
+        if (isShortNameFilteringEnabled && !name.isSpecial) {
+            val shortNames = ShortNamesCacheService.getInstance(project).getShortNameCandidates(name.asString())
+            if (childName !in shortNames) {
+                return emptyList()
+            }
+        }
+        val cjTypeStatements = runReadAction {
+            val results = arrayListOf<CjTypeStatementInfo<CjExtend>>()
+            CangJieExtendClassNameIndex.processElements(childName, project, searchScope) {
+                ProgressManager.checkCanceled()
+
+                val classinfo = CjClassInfoUtil.createTypeStatementInfo(it) as CjTypeStatementInfo<CjExtend>
+
+
+                results += classinfo
+                true
+            }
+            results
+        }
+        return cjTypeStatements
     }
 
     override fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>> {

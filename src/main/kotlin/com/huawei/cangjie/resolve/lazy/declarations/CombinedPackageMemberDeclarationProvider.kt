@@ -2,7 +2,9 @@ package com.huawei.cangjie.resolve.lazy.declarations
 
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjDestructuringDeclarationEntry
+import com.huawei.cangjie.psi.CjExtend
 import com.huawei.cangjie.psi.CjFile
+import com.huawei.cangjie.resolve.lazy.data.CjTypeStatementInfo
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 
 class CombinedPackageMemberDeclarationProvider(
@@ -25,6 +27,7 @@ class CombinedPackageMemberDeclarationProvider(
 
     override fun getTypeStatementDeclarations(name: Name) = providers.flatMap { it.getTypeStatementDeclarations(name) }
 
+    override fun getExtendTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<CjExtend>> = providers.flatMap { it.getExtendTypeStatementDeclarations(name) }
 
     override fun getTypeAliasDeclarations(name: Name) = providers.flatMap { it.getTypeAliasDeclarations(name) }
 

@@ -48,6 +48,7 @@ class LexicalScopeImpl @JvmOverloads constructor(
     }
 
 
+
     override fun toString(): String = kind.toString()
 
     inner class InitializeHandler {

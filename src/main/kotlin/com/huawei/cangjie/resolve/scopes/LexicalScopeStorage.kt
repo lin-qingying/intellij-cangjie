@@ -30,6 +30,13 @@ abstract class LexicalScopeStorage(
     override fun getContributedClassifier(name: Name, location: LookupLocation) =
         variableOrClassDescriptorByName(name) as? ClassifierDescriptor
 
+
+    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+
+     return  listOfNotNull(variableOrClassDescriptorByName(name) as? ClassDescriptor)
+    }
+
+
     override fun getContributedVariables(name: Name, location: LookupLocation) =
         listOfNotNull(variableOrClassDescriptorByName(name) as? VariableDescriptor)
 

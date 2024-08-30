@@ -31,6 +31,11 @@ public class CjBasicType extends CjElementImpl implements CjTypeElement {
         return visitor.visitBasicType(this, data);
     }
 
+    @Override
+    public String getName() {
+        return getText();
+    }
+
     //    public CjTypeArgumentList getTypeArgumentList() {
 //        return getStubOrPsiChild(CjStubElementTypes.TYPE_ARGUMENT_LIST);
 //    }

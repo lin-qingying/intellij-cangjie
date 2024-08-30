@@ -6,7 +6,9 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.Errors.*
 import com.huawei.cangjie.descriptors.annotations.AnnotationDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
+import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.debugtext.getDebugText
 import com.huawei.cangjie.psi.psiUtil.getNextSiblingIgnoringWhitespaceAndComments
@@ -14,9 +16,7 @@ import com.huawei.cangjie.psi.psiUtil.getPrevSiblingIgnoringWhitespaceAndComment
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.huawei.cangjie.resolve.PossiblyBareType.bare
 import com.huawei.cangjie.resolve.PossiblyBareType.type
-import com.huawei.cangjie.resolve.scopes.LazyScopeAdapter
-import com.huawei.cangjie.resolve.scopes.LexicalScope
-import com.huawei.cangjie.resolve.scopes.MemberScope
+import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.source.CangJieSourceElement
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.TrailingCommaChecker
@@ -203,6 +203,9 @@ class TypeResolver(
 
     }
 
+    fun String.toName( ): Name {
+        return Name.identifier(this)
+    }
     private fun resolveTypeElement(
         c: TypeResolutionContext,
         annotations: Annotations,
@@ -214,7 +217,7 @@ class TypeResolver(
 
         typeElement?.accept(object : CjVisitorVoid() {
             override fun visitBasicType(type: CjBasicType) {
-
+                type.name?.let { c.scope.getExtendClasss(it.toName(),NoLookupLocation.FROM_BUILTINS) }
                 result = type(createBasicType(moduleDescriptor.builtIns, type.text))
             }
 

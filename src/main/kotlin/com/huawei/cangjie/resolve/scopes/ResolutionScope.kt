@@ -17,9 +17,11 @@ interface ResolutionScope {
 
 
 
-//    fun getExtendContributedClassifier(element: CjExtend, location: LookupLocation){}
 
 
+
+
+    fun getExtendClass(name: Name): List<ClassDescriptor>
     /**
      * Returns contributed classifier, but discriminates deprecated
      *

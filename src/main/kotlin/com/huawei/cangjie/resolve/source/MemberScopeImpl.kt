@@ -25,8 +25,12 @@ abstract class MemberScopeImpl : MemberScope {
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
         return emptyList()
     }
+    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+return emptyList()
+    }
 
     abstract override fun printScopeStructure(p: Printer)
+
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
     override fun getFunctionNames(): Set<Name> =

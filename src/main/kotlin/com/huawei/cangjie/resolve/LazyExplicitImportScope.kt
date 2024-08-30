@@ -40,6 +40,17 @@ class LazyExplicitImportScope(
         }
     }
 
+    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+        return if (packageOrClassDescriptor is PackageViewDescriptor) {
+            packageOrClassDescriptor.memberScope.getExtendClass(
+                declaredName,
+
+                )
+        } else {
+            emptyList()
+        }
+    }
+
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> {
         if (name != aliasName) return emptyList()
 
@@ -155,6 +166,7 @@ class LazyExplicitImportScope(
     override fun printStructure(p: Printer) {
         p.println(this::class.java.simpleName, ": ", aliasName)
     }
+
 
     // should be called only once
     internal fun storeReferencesToDescriptors() = getContributedDescriptors().apply(storeReferences)

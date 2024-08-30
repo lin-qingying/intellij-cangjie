@@ -13,8 +13,8 @@ import com.huawei.cangjie.psi.CjClassBody
 import com.huawei.cangjie.psi.CjCodeFragment
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjFile
+import com.huawei.cangjie.psi.psiUtil.parentsWithSelf
 import com.huawei.cangjie.resolve.BindingContext
-
 import com.huawei.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
 import com.huawei.cangjie.resolve.ResolutionFacade
 import com.huawei.cangjie.resolve.caches.getResolutionFacade
@@ -25,7 +25,6 @@ import com.huawei.cangjie.resolve.scopes.util.parentsWithSelf
 import com.huawei.cangjie.types.error.ErrorClassDescriptor
 import com.huawei.cangjie.types.error.ErrorEntity
 import com.huawei.cangjie.utils.Printer
-import com.huawei.cangjie.psi.psiUtil.parentsWithSelf
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
@@ -83,6 +82,9 @@ private class MemberScopeToImportingScopeAdapter(override val parent: ImportingS
     override fun getContributedClassifier(name: Name, location: LookupLocation) =
         memberScope.getContributedClassifier(name, location)
 
+    override fun getExtendClass(name: Name): List<ClassDescriptor>  =
+        memberScope.getExtendClass(name )
+
     override fun getContributedVariables(name: Name, location: LookupLocation) =
         memberScope.getContributedVariables(name, location)
 
@@ -130,6 +132,20 @@ fun listOfNonEmptyScopes(scopes: Iterable<MemberScope?>): SmartList<MemberScope>
 
 fun listOfNonEmptyScopes(vararg scopes: MemberScope?): SmartList<MemberScope> =
     scopes.filterTo(SmartList<MemberScope>()) { it != null && it !== MemberScope.Empty }
+
+inline fun <Scope, T : ClassifierDescriptor> getListClassifierDiscriminateHeaders(
+    scopes: Array<Scope>,
+    callback: (Scope) -> List<T>
+): List<T> {
+    val result = mutableListOf<T>()
+    for (scope in scopes) {
+        val newResult = callback(scope)
+        if (newResult.isNotEmpty())
+            result.addAll(newResult)
+    }
+    return result
+
+}
 
 inline fun <Scope, T : ClassifierDescriptor> getFirstClassifierDiscriminateHeaders(
     scopes: Array<Scope>,
@@ -244,6 +260,11 @@ fun HierarchicalScope.findFirstClassifierWithDeprecationStatus(
     return findFirstFromMeAndParent { it.getContributedClassifierIncludeDeprecated(name, location) }
 }
 
+
+fun HierarchicalScope.getExtendClasss(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
+    return getListFromMeAndParent { it.getExtendClass(name) }
+}
+
 fun HierarchicalScope.findPackageFqNames(
     name: Name,
 //    location: LookupLocation
@@ -313,6 +334,7 @@ fun ImportingScope.withParent(newParent: ImportingScope?): ImportingScope {
             get() = newParent
     }
 }
+
 fun Project.projectScope(): GlobalSearchScope = GlobalSearchScope.projectScope(this)
 
 object ScopeUtils {
@@ -335,7 +357,7 @@ object ScopeUtils {
             false,
             null,
             emptyList(),
-            LexicalScopeKind.PROPERTY_INITIALIZER_OR_DELEGATE
+            LexicalScopeKind.VARIABLE_INITIALIZER_OR_DELEGATE
         )
     }
 
@@ -394,6 +416,7 @@ class ErrorLexicalScope : LexicalScope {
         }
 
         override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
+        override fun getExtendClass(name: Name): List<ClassDescriptor> = emptyList()
 
         override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
             emptySet()
@@ -427,6 +450,7 @@ class ErrorLexicalScope : LexicalScope {
 //    }
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
+    override fun getExtendClass(name: Name): List<ClassDescriptor> = emptyList()
 
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
         emptySet()

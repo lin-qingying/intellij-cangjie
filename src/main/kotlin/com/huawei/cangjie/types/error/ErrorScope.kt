@@ -15,6 +15,10 @@ open class ErrorScope(val kind: ErrorScopeKind, vararg formatParams: String) : M
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor =
         ErrorClassDescriptor(Name.special(ErrorEntity.ERROR_CLASS.debugText.format(name)))
 
+    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+        return emptyList()
+    }
+
     override fun getContributedClassifierIncludeDeprecated(
         name: Name, location: LookupLocation
     ): DescriptorWithDeprecation<ClassifierDescriptor>? = null

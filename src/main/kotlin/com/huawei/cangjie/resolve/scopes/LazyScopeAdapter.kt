@@ -1,5 +1,7 @@
 package com.huawei.cangjie.resolve.scopes
 
+import com.huawei.cangjie.descriptors.ClassDescriptor
+import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.storage.LockBasedStorageManager
 import com.huawei.cangjie.storage.StorageManager
 
@@ -16,4 +18,6 @@ class LazyScopeAdapter @JvmOverloads constructor(
 
     override val workerScope: MemberScope
         get() = lazyScope()
+
+
 }

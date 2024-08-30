@@ -158,7 +158,8 @@ class LazyImportResolverForCjImportDirective(
     private fun checkResolvedImportDirective(importDirective: CjImportInfo) {
         if (importDirective !is CjImportDirective) return
         val importedReference = CjPsiUtil.getLastReference(importDirective.importedReference ?: return) ?: return
-        val importedDescriptor = traceForImportResolve.bindingContext.get(BindingContext.REFERENCE_TARGET, importedReference) ?: return
+        val importedDescriptor =
+            traceForImportResolve.bindingContext.get(BindingContext.REFERENCE_TARGET, importedReference) ?: return
 
         val aliasName = importDirective.aliasName
 
@@ -259,6 +260,28 @@ class LazyImportScope(
         return importResolver.getClassifier(name, location) ?: secondaryImportResolver?.getClassifier(name, location)
     }
 
+    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+        return importResolver.getExtendClassifier(name) + (secondaryImportResolver?.getExtendClassifier(name)
+            ?: emptySet())
+
+    }
+
+    private fun LazyImportResolver<*>.getExtendClassifier(name: Name): List<ClassDescriptor> {
+        val imports = indexedImports.importsForName(name)
+
+        val target = mutableListOf<ClassDescriptor>()
+        for (directive in imports) {
+            val descriptors = getImportScope(directive).getExtendClass(name)
+            if (descriptors.isNotEmpty()) {
+                target.addAll(descriptors)
+            }
+
+        }
+
+        return target
+    }
+
+
     private fun LazyImportResolver<*>.getClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
         components.storageManager.compute {
             val imports = indexedImports.importsForName(name)
@@ -291,22 +314,6 @@ class LazyImportScope(
             target
         }
 
-//    private fun isCangJieOrJvmThrowsAmbiguity(c1: ClassifierDescriptor, c2: ClassifierDescriptor) =
-//        c1.isCangJieOrJvmThrows() && c2.isCangJieOrJvmThrows()
-
-//    private fun isCangJieOrNativeThrowsAmbiguity(c1: ClassifierDescriptor, c2: ClassifierDescriptor) =
-//        c1.isCangJieOrNativeThrows() && c2.isCangJieOrNativeThrows()
-
-//    private fun ClassifierDescriptor.isCangJieThrows() = fqNameOrNull() == KOTLIN_THROWS_ANNOTATION_FQ_NAME
-//    private fun ClassifierDescriptor.isCangJieOrJvmThrows(): Boolean {
-//        if (name != JVM_THROWS_ANNOTATION_FQ_NAME.shortName()) return false
-//        return isCangJieThrows() || fqNameOrNull() == JVM_THROWS_ANNOTATION_FQ_NAME
-//    }
-
-//    private fun ClassifierDescriptor.isCangJieOrNativeThrows(): Boolean {
-//        if (name != KOTLIN_THROWS_ANNOTATION_FQ_NAME.shortName()) return false
-//        return isCangJieThrows() || fqNameOrNull() == KOTLIN_NATIVE_THROWS_ANNOTATION_FQ_NAME
-//    }
 
     override fun getContributedPackage(name: Name): PackageViewDescriptor? = null
 

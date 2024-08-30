@@ -255,7 +255,7 @@ class FileScopeFactory(
                     it.name === name.asString()
                 }
                 if (element.isEmpty()) return null
-var i = 0
+                var i = 0
                 var _parent = parent
                 while (_parent !is CurrentPackageScope && i < 15) {
                     _parent = _parent?.parent
@@ -267,6 +267,10 @@ var i = 0
                 return _parent?.getContributedClassifier(name, location)
 
 
+            }
+
+            override fun getExtendClass(name: Name): List<ClassDescriptor> {
+                return emptyList()
             }
 
             override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
@@ -499,6 +503,10 @@ var i = 0
                 languageVersionSettings
             )
             return classifier.takeIf { filteringKind == if (visible) FilteringKind.VISIBLE_CLASSES else FilteringKind.INVISIBLE_CLASSES }
+        }
+
+        override fun getExtendClass(name: Name): List<ClassDescriptor> {
+            return scope.getExtendClass(name)
         }
 
         override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {

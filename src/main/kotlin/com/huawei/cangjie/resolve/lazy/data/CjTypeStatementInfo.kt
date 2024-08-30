@@ -10,6 +10,9 @@ abstract class CjTypeStatementInfo<E : CjTypeStatement>(
     override val correspondingClass: CjTypeStatement?
         get() = element
 
+
+    val elementByE get() = element
+
     override val danglingAnnotations: List<CjAnnotationEntry>
         get() {
 //            val body: CjClassBody? = element.body

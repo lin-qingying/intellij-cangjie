@@ -28,7 +28,10 @@ abstract class AbstractScopeAdapter : MemberScope {
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
         return workerScope.getContributedClassifier(name, location)
     }
+    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+        return workerScope.getExtendClass(name)
 
+    }
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
         return workerScope.getContributedVariables(name, location)
     }

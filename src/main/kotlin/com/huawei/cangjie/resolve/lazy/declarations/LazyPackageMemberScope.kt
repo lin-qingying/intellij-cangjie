@@ -35,7 +35,7 @@ class LazyPackageMemberScope(
     }
 
     override fun recordLookup(name: Name, location: LookupLocation) {
-        c.lookupTracker?.record(location, thisDescriptor, name)
+        c.lookupTracker.record(location, thisDescriptor, name)
     }
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,

@@ -17,7 +17,11 @@ interface DeclarationProvider {
     fun getDestructuringDeclarationsEntries(name: Name): Collection<CjDestructuringDeclarationEntry>
     fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>>
 
-//    fun getClassOrObjectDeclarations(name: Name): Collection<CjClassOrObjectInfo<*>>
+    /**
+     * 获取扩展
+     */
+    fun getExtendTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<CjExtend>>
+
 
     fun getTypeAliasDeclarations(name: Name): Collection<CjTypeAlias>
 

@@ -1,9 +1,6 @@
 package com.huawei.cangjie.resolve.scopes
 
-import com.huawei.cangjie.descriptors.ClassifierDescriptor
-import com.huawei.cangjie.descriptors.PropertyDescriptor
-import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor
-import com.huawei.cangjie.descriptors.VariableDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.utils.Printer
@@ -20,6 +17,9 @@ class ChainedMemberScope private constructor(
     override fun getClassifierNames(): Set<Name>? = scopes.asIterable().flatMapClassifierNamesOrNull()
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
         getFirstClassifierDiscriminateHeaders(scopes) { it.getContributedClassifier(name, location) }
+
+    override fun getExtendClass(name: Name): List<ClassDescriptor> =
+        getListClassifierDiscriminateHeaders(scopes) { it.getExtendClass(name ) }
 
     override fun getContributedVariables(
         name: Name,

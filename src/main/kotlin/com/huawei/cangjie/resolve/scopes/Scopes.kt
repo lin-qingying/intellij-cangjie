@@ -25,7 +25,7 @@ enum class LexicalScopeKind(val withLocalDescriptors: Boolean) {
     DEFAULT_VALUE(true),
 
     PROPERTY_HEADER(false),
-    PROPERTY_INITIALIZER_OR_DELEGATE(true),
+    VARIABLE_INITIALIZER_OR_DELEGATE(true),
     PROPERTY_ACCESSOR_BODY(true),
     PROPERTY_DELEGATE_METHOD(false),
 
@@ -61,9 +61,12 @@ abstract class BaseHierarchicalScope(override val parent: HierarchicalScope?) : 
     ): Collection<DeclarationDescriptor> = emptyList()
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
-    override  fun getContributedPackages(name: Name, location: LookupLocation): Collection< PackageFragmentDescriptor> =
-    emptyList()
+    override fun getContributedPackages(name: Name, location: LookupLocation): Collection<PackageFragmentDescriptor> =
+        emptyList()
 
+    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+        return emptyList()
+    }
 
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
         emptyList()
@@ -124,7 +127,6 @@ interface ImportingScope : HierarchicalScope {
     fun getContributedPackage(name: Name): PackageViewDescriptor?
 
 
-
     fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter = DescriptorKindFilter.ALL,
         nameFilter: (Name) -> Boolean = MemberScope.ALL_NAME_FILTER,
@@ -157,7 +159,7 @@ abstract class BaseImportingScope(parent: ImportingScope?) : BaseHierarchicalSco
 
     override fun getContributedPackage(name: Name): PackageViewDescriptor? = null
 
-    override fun getContributedPackages(name: Name, location: LookupLocation): Collection< PackageFragmentDescriptor> {
+    override fun getContributedPackages(name: Name, location: LookupLocation): Collection<PackageFragmentDescriptor> {
         return emptyList()
     }
 
@@ -182,6 +184,13 @@ inline fun HierarchicalScope.processForMeAndParent(process: (HierarchicalScope) 
         process(currentScope)
         currentScope = currentScope.parent ?: break
     }
+}
+
+inline fun <T : Any> HierarchicalScope.getListFromMeAndParent(fetch: (HierarchicalScope) -> List<T>?): List<T> {
+    val result = mutableListOf<T>()
+    processForMeAndParent { fetch(it)?.let { result.addAll(it) } }
+
+    return result
 }
 
 inline fun <T : Any> HierarchicalScope.findFirstFromMeAndParent(fetch: (HierarchicalScope) -> T?): T? {
@@ -209,6 +218,13 @@ class CompositePrioritizedImportingScope(
         return primaryScope.getContributedDescriptors(kindFilter, nameFilter, changeNamesForAliased).union(
             secondaryScope.getContributedDescriptors(kindFilter, nameFilter, changeNamesForAliased)
         )
+    }
+
+    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+        return primaryScope.getExtendClass(name) + (secondaryScope.getExtendClass(
+            name,
+
+            ))
     }
 
     override fun computeImportedNames(): Set<Name>? {

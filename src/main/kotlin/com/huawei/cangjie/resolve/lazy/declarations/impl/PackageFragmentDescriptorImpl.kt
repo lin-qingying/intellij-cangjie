@@ -198,6 +198,10 @@ class PackageFragmentDescriptorBasicImpl(
             return DESCRIPTOR_MAP[name]
         }
 
+        override fun getExtendClass(name: Name): List<ClassDescriptor> {
+            return emptyList()
+        }
+
         override fun getContributedDescriptors(
             kindFilter: DescriptorKindFilter,
             nameFilter: (Name) -> Boolean

@@ -233,6 +233,10 @@ class FileScope(val file: CjFile) : MemberScope {
         TODO("Not yet implemented")
     }
 
+    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+        TODO("Not yet implemented")
+    }
+
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
