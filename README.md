@@ -49,6 +49,6 @@ https://plugins.jetbrains.com/plugins/linqingying/list
 |  ----  |-----|
 | [@daitougege](https://gitee.com/daitougege)  | 101 |
 | [@laditor](https://gitee.com/laditor)  | 10 |
- 
+ |支付宝：*贝  | 50|
 <br>
 感谢老板的支持
