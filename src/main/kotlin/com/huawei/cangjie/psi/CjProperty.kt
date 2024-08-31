@@ -93,27 +93,27 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
     }
 
     override val letOrVarKeyword: PsiElement?
-        get() = TODO("Not yet implemented")
+        get() = null
 
 
     constructor(stub: CangJiePropertyStub) : super(stub, CjStubElementTypes.PROPERTY)
     constructor(node: ASTNode) : super(node)
 
     override val isVar: Boolean
-        get() = TODO("Not yet implemented")
+        get() = false
 
 
     override fun toString(): String = super.toString() + ": " + name
     override fun getValueParameterList(): CjParameterList? {
-        TODO("Not yet implemented")
+       return null
     }
 
     override fun getValueParameters(): MutableList<CjParameter> {
-        TODO("Not yet implemented")
+      return mutableListOf()
     }
 
     override fun getReceiverTypeReference(): CjTypeReference? {
-        TODO("Not yet implemented")
+      return null
     }
 
     val accessors: MutableList<CjPropertyAccessor>

@@ -1,8 +1,10 @@
 package com.huawei.cangjie.psi.stubs.impl
 
 import com.huawei.cangjie.name.ClassId
+import com.huawei.cangjie.psi.CjBasicType
 import com.huawei.cangjie.psi.CjProjectionKind
 import com.huawei.cangjie.psi.CjUserType
+import com.huawei.cangjie.psi.stubs.CangJieBasicTypeStub
 import com.huawei.cangjie.psi.stubs.CangJieUserTypeStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.huawei.cangjie.types.model.CangJieTypeMarker
@@ -12,7 +14,13 @@ import com.huawei.cangjie.types.model.TypeArgumentMarker
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
+class CangJieBasicTypeStubImpl(
+    parent: StubElement<out PsiElement>?,
+    override val basicType: String
+) : CangJieStubBaseImpl<CjBasicType>(parent, CjStubElementTypes.BASIC_TYPE), CangJieBasicTypeStub
+{
 
+}
 
 class CangJieUserTypeStubImpl(
     parent: StubElement<out PsiElement>?, val upperBound: CangJieTypeBean? = null

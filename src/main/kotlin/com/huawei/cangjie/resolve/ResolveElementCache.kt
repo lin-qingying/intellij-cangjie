@@ -21,6 +21,8 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.lazy.*
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode.*
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptorBase
+import com.huawei.cangjie.resolve.scopes.LexicalScope
+import com.huawei.cangjie.types.expressions.ExpressionTypingContext
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootModificationTracker
@@ -431,7 +433,13 @@ class ResolveElementCache(
                 createStatementFilter(),
                 bodyResolveMode.bindingTraceFilter
             )
-
+            is CjProperty -> propertyAdditionalResolve(
+                resolveSession,
+                resolveElement,
+                file,
+                createStatementFilter(),
+                bodyResolveMode.bindingTraceFilter
+            )
             is CjTypeAlias -> typealiasAdditionalResolve(
                 resolveSession,
                 resolveElement,
@@ -488,7 +496,37 @@ class ResolveElementCache(
         return Pair(trace.bindingContext, statementFilterUsed)
     }
 
+    private fun propertyAdditionalResolve(
+        resolveSession: ResolveSession, property: CjProperty,
+        file: CjFile,
+        statementFilter: StatementFilter,
+        bindingTraceFilter: BindingTraceFilter
+    ): BindingTrace {
+        val trace = createDelegatingTrace(property, bindingTraceFilter)
 
+        val bodyResolver = createBodyResolver(resolveSession, trace, file, statementFilter)
+        val descriptor = resolveSession.resolveToDescriptor(property) as PropertyDescriptor
+        ForceResolveUtil.forceResolveAllContents(descriptor)
+
+        val bodyResolveContext = BodyResolveContextForLazy(TopDownAnalysisMode.LocalDeclarations) { declaration ->
+            assert(declaration.parent == property || declaration == property) {
+                "Must be called only for property accessors or for property, but called for $declaration"
+            }
+            resolveSession.declarationScopeProvider.getResolutionScopeForDeclaration(declaration)
+        }
+
+        bodyResolver.resolveProperty(bodyResolveContext, property, descriptor)
+
+        forceResolveAnnotationsInside(property)
+
+//        for (accessor in property.accessors) {
+//            ControlFlowInformationProviderImpl(
+//                accessor, trace, accessor.languageVersionSettings, resolveSession.platformDiagnosticSuppressor
+//            ).checkDeclaration()
+//        }
+
+        return trace
+    }
     private fun typeConstraintAdditionalResolve(analyzer: CangJieCodeAnalyzer, typeConstraint: CjTypeConstraint): BindingTrace {
         val declaration = typeConstraint.findParentOfType<CjDeclaration>(true)!!
         val descriptor = analyzer.resolveToDescriptor(declaration) as ClassifierDescriptorWithTypeParameters
@@ -662,4 +700,32 @@ class ResolveElementCache(
         @set:TestOnly
         var forceFullAnalysisModeInTests: Boolean = false
     }
+
+
+
+    private class BodyResolveContextForLazy(
+        private val topDownAnalysisMode: TopDownAnalysisMode,
+        private val declaringScopes: Function1<CjDeclaration, LexicalScope?>
+    ) : BodiesResolveContext {
+
+        override val files: Collection<CjFile> = setOf()
+        override val primaryConstructors: MutableMap<CjPrimaryConstructor, ClassConstructorDescriptor> =  hashMapOf()
+        override val secondaryConstructors: MutableMap<CjSecondaryConstructor, ClassConstructorDescriptor> =  hashMapOf()
+        override val declaredClasses: MutableMap<CjTypeStatement, ClassDescriptorWithResolutionScopes> =  hashMapOf()
+        override val properties: MutableMap<CjProperty, PropertyDescriptor> =  hashMapOf()
+        override val variables: MutableMap<CjVariable, VariableDescriptor> =  hashMapOf()
+        override val functions: MutableMap<CjNamedFunction, SimpleFunctionDescriptor> =  hashMapOf()
+        override val typeAliases: MutableMap<CjTypeAlias, TypeAliasDescriptor> =  hashMapOf()
+
+
+        override fun getDeclaringScope(declaration: CjDeclaration): LexicalScope? = declaringScopes(declaration)
+
+
+        override fun getOuterDataFlowInfo(): DataFlowInfo = DataFlowInfo.EMPTY
+
+        override fun getTopDownAnalysisMode() = topDownAnalysisMode
+
+        override fun getLocalContext(): ExpressionTypingContext? = null
+    }
+
 }

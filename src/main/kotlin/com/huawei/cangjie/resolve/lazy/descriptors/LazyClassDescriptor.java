@@ -33,10 +33,7 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static com.huawei.cangjie.descriptors.Errors.CYCLIC_INHERITANCE_HIERARCHY;
 import static com.huawei.cangjie.descriptors.Errors.CYCLIC_SCOPES_WITH_COMPANION;
@@ -68,6 +65,9 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
     private BindingTrace extendTrace = null;
     private LexicalScope extendScope = null;
 
+   public Set<LazyExtendClassDescriptor> extendClassDescriptor =new HashSet<>();
+
+
     public LazyClassDescriptor(
             @NotNull LazyClassContext c,
             @NotNull DeclarationDescriptor containingDeclaration,
@@ -75,7 +75,7 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
             @NotNull CjClassLikeInfo classLikeInfo,
             boolean isExternal
     ) {
-        super(c , containingDeclaration, name,
+        super(c, containingDeclaration, name,
                 classLikeInfo
                 , isExternal);
         this.c = c;
@@ -380,6 +380,11 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
     }
 
     @Override
+    public List<CjSuperTypeListEntry> getSuperTypeListEntries() {
+        return typeStatement.getSuperTypeListEntries();
+    }
+
+    @Override
     public @NotNull MemberScope getUnsubstitutedInnerClassesScope() {
         return super.getUnsubstitutedInnerClassesScope();
     }
@@ -542,6 +547,24 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
         return typeStatement.toString();
     }
 
+    protected @NotNull Collection<CangJieType> computeExtendSuperTypes(String extendId) {
+//        val result = mutableListOf<CangJieType>()
+//        classDescriptor.extendClassDescriptor.forEach {
+//            if (it.typeStatement.getExtendId() != extendId) {
+//                result.addAll(it.typeConstructor.supertypes)
+//            }
+//        }
+//        return result
+
+        List<CangJieType> result = new ArrayList<>();
+        extendClassDescriptor.forEach(it -> {
+            if (!it.getTypeStatement().getExtendId().equals(extendId))
+                result.addAll(it.getTypeConstructor().getSupertypes());
+        });
+        return result;
+
+    }
+
     @NotNull
     protected Collection<CangJieType> computeSupertypes() {
         if (CangJieBuiltIns.isSpecialClassWithNoSupertypes(this)) {
@@ -583,6 +606,11 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
         @Override
         protected Collection<CangJieType> computeSupertypes() {
             return LazyClassDescriptor.this.computeSupertypes();
+        }
+
+        @Override
+        protected @NotNull Collection<CangJieType> computeExtendSuperTypes(@Nullable String extendId) {
+            return LazyClassDescriptor.this.computeExtendSuperTypes(extendId);
         }
 
         @Override

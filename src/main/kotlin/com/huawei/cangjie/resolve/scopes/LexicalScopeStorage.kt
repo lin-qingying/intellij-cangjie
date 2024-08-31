@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.scopes
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.intellij.util.SmartList
 
 interface LocalRedeclarationChecker {
@@ -31,9 +32,9 @@ abstract class LexicalScopeStorage(
         variableOrClassDescriptorByName(name) as? ClassifierDescriptor
 
 
-    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
 
-     return  listOfNotNull(variableOrClassDescriptorByName(name) as? ClassDescriptor)
+     return  listOfNotNull(variableOrClassDescriptorByName(name) as? LazyExtendClassDescriptor)
     }
 
 

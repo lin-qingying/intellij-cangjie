@@ -1,9 +1,13 @@
 package com.huawei.cangjie.psi;
 
+import com.huawei.cangjie.psi.psiUtil.PsiUtilsKt;
 import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiTreeUtilKt;
 import com.intellij.util.ArrayFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,6 +27,10 @@ public class CjSuperTypeListEntry extends CjElementImplStub<CangJiePlaceHolderSt
             @NotNull CangJiePlaceHolderStub<? extends CjSuperTypeListEntry> stub,
             @NotNull IStubElementType nodeType) {
         super(stub, nodeType);
+    }
+
+    public PsiElement getParentDeclaration() {
+         return PsiTreeUtil.getParentOfType(this,CjTypeStatement.class);
     }
 
     @Override

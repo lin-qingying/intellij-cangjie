@@ -74,6 +74,7 @@ CjPackageDirectiveElementType  PACKAGE_DIRECTIVE =
 
     CjPlaceHolderStubElementType<CjTypeReference> TYPE_REFERENCE =
             new CjPlaceHolderStubElementType<>("TYPE_REFERENCE", CjTypeReference.class);
+    CjBasicTypeElementType BASIC_TYPE = new CjBasicTypeElementType("BASIC_TYPE");
 
     CjUserTypeElementType USER_TYPE = new CjUserTypeElementType("USER_TYPE");
 //    CjPlaceHolderStubElementType<CjDynamicType> DYNAMIC_TYPE =

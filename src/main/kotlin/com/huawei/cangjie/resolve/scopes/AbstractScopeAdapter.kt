@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.scopes
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.utils.Printer
 
 
@@ -28,7 +29,7 @@ abstract class AbstractScopeAdapter : MemberScope {
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
         return workerScope.getContributedClassifier(name, location)
     }
-    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
         return workerScope.getExtendClass(name)
 
     }

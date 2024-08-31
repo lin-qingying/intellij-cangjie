@@ -20,7 +20,7 @@ public class CjPlaceHolderStubElementType<T extends CjElementImplStub<? extends 
 
 
     @Override
-    public CangJiePlaceHolderStub<T> createStub(@NotNull T psi, StubElement<?> parentStub) {
+    public @NotNull CangJiePlaceHolderStub<T> createStub(@NotNull T psi, StubElement<?> parentStub) {
         return new CangJiePlaceHolderStubImpl<>(parentStub, this);
     }
 

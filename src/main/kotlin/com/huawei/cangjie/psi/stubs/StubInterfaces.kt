@@ -67,7 +67,9 @@ interface CangJieContextReceiverStub : StubElement<CjContextReceiver> {
 interface CangJieValueArgumentStub<T : CjValueArgument> : CangJiePlaceHolderStub<T> {
     fun isSpread(): Boolean
 }
-
+interface CangJieBasicTypeStub : StubElement<CjBasicType>{
+    val basicType : String
+}
 interface CangJieUserTypeStub : StubElement<CjUserType>
 interface CangJieTupleTypeStub : StubElement<CjTupleType>
 //interface CangJieBasicTypeStub : StubElement<CjBasicType>

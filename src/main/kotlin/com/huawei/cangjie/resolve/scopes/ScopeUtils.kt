@@ -21,6 +21,7 @@ import com.huawei.cangjie.resolve.caches.getResolutionFacade
 import com.huawei.cangjie.resolve.frontendService
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.resolve.lazy.FileScopeProvider
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.util.parentsWithSelf
 import com.huawei.cangjie.types.error.ErrorClassDescriptor
 import com.huawei.cangjie.types.error.ErrorEntity
@@ -82,7 +83,7 @@ private class MemberScopeToImportingScopeAdapter(override val parent: ImportingS
     override fun getContributedClassifier(name: Name, location: LookupLocation) =
         memberScope.getContributedClassifier(name, location)
 
-    override fun getExtendClass(name: Name): List<ClassDescriptor>  =
+    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor>  =
         memberScope.getExtendClass(name )
 
     override fun getContributedVariables(name: Name, location: LookupLocation) =
@@ -261,7 +262,7 @@ fun HierarchicalScope.findFirstClassifierWithDeprecationStatus(
 }
 
 
-fun HierarchicalScope.getExtendClasss(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
+fun HierarchicalScope.getExtendClasss(name: Name, location: LookupLocation): List<LazyExtendClassDescriptor> {
     return getListFromMeAndParent { it.getExtendClass(name) }
 }
 
@@ -416,7 +417,7 @@ class ErrorLexicalScope : LexicalScope {
         }
 
         override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
-        override fun getExtendClass(name: Name): List<ClassDescriptor> = emptyList()
+        override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> = emptyList()
 
         override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
             emptySet()
@@ -450,7 +451,7 @@ class ErrorLexicalScope : LexicalScope {
 //    }
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
-    override fun getExtendClass(name: Name): List<ClassDescriptor> = emptyList()
+    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> = emptyList()
 
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
         emptySet()

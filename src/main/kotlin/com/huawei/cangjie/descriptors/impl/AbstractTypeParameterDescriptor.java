@@ -155,7 +155,10 @@ public abstract class AbstractTypeParameterDescriptor extends DeclarationDescrip
         protected Collection<CangJieType> computeSupertypes() {
             return resolveUpperBounds();
         }
-
+        @Override
+        protected @NotNull Collection<CangJieType> computeExtendSuperTypes(@Nullable String extendId) {
+            return List.of();
+        }
         @NotNull
         @Override
         public List<TypeParameterDescriptor> getParameters() {
@@ -221,6 +224,8 @@ public abstract class AbstractTypeParameterDescriptor extends DeclarationDescrip
                             true
                     )*/;
         }
+
+
     }
 
 

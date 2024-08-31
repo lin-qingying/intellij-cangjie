@@ -6,6 +6,7 @@ import com.huawei.cangjie.psi.CjUserType;
 import com.huawei.cangjie.psi.psiUtil.StubUtils;
 import com.huawei.cangjie.psi.stubs.CangJieUserTypeStub;
 import com.huawei.cangjie.psi.stubs.impl.*;
+import com.intellij.lang.ASTNode;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
 import com.intellij.psi.stubs.StubOutputStream;
@@ -29,6 +30,16 @@ public class CjUserTypeElementType extends CjStubElementType<CangJieUserTypeStub
     @Override
     public CangJieUserTypeStub createStub(@NotNull CjUserType psi, StubElement parentStub) {
         return new CangJieUserTypeStubImpl((StubElement<?>) parentStub, null);
+    }
+
+    @Override
+    public @NotNull CjUserType createPsi(@NotNull CangJieUserTypeStub stub) {
+        return new  CjUserType(stub);
+    }
+
+    @Override
+    public @NotNull CjUserType createPsiFromAst(@NotNull ASTNode node) {
+        return new  CjUserType(node);
     }
 
     @Override

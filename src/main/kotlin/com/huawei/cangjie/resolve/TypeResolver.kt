@@ -16,7 +16,11 @@ import com.huawei.cangjie.psi.psiUtil.getPrevSiblingIgnoringWhitespaceAndComment
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.huawei.cangjie.resolve.PossiblyBareType.bare
 import com.huawei.cangjie.resolve.PossiblyBareType.type
-import com.huawei.cangjie.resolve.scopes.*
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
+import com.huawei.cangjie.resolve.scopes.LazyScopeAdapter
+import com.huawei.cangjie.resolve.scopes.LexicalScope
+import com.huawei.cangjie.resolve.scopes.MemberScope
+import com.huawei.cangjie.resolve.scopes.getExtendClasss
 import com.huawei.cangjie.resolve.source.CangJieSourceElement
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.TrailingCommaChecker
@@ -203,27 +207,38 @@ class TypeResolver(
 
     }
 
-    fun String.toName( ): Name {
+    fun String.toName(): Name {
         return Name.identifier(this)
     }
+
     private fun resolveTypeElement(
         c: TypeResolutionContext,
         annotations: Annotations,
         outerModifierList: CjModifierList?,
-        typeElement: CjTypeElement?
+        typeElement: CjTypeElement?,
+//        该参数仅解决出现递归调用
+        isgetExtend: Boolean = true
     ): PossiblyBareType {
         var result: PossiblyBareType? = null
 
 
         typeElement?.accept(object : CjVisitorVoid() {
             override fun visitBasicType(type: CjBasicType) {
-                type.name?.let { c.scope.getExtendClasss(it.toName(),NoLookupLocation.FROM_BUILTINS) }
-                result = type(createBasicType(moduleDescriptor.builtIns, type.text))
+
+                val extendSuper = if (isgetExtend) {
+                    c.scope.getExtendClasss(type.name.toName(), NoLookupLocation.FROM_BUILTINS)
+                } else {
+                    emptyList()
+                }.toSet()
+                result = type(createBasicType(moduleDescriptor.builtIns, type.text, extendSuper))
+
+
             }
 
             override fun visitUserType(type: CjUserType) {
                 val qualifierResolutionResult = resolveDescriptorForType(c.scope, type, c.trace, c.isDebuggerContext)
                 val classifier = qualifierResolutionResult.classifierDescriptor
+
 
                 if (classifier == null) {
                     val arguments = resolveTypeProjections(
@@ -239,6 +254,19 @@ class TypeResolver(
                     result = type(unresolvedType)
                     return
                 }
+                //                获取扩展
+                val extendSuper = if (isgetExtend) {
+                    type.referenceExpression?.let {
+                        c.scope.getExtendClasss(it.getReferencedNameAsName(), NoLookupLocation.FROM_BUILTINS)
+                    } ?: emptyList()
+                } else {
+                    emptyList()
+                }.toSet()
+                if (classifier is LazyClassDescriptor) {
+                    classifier.extendClassDescriptor.addAll(extendSuper)
+
+                }
+
 
                 val referenceExpression = type.referenceExpression ?: return
 
@@ -808,14 +836,19 @@ class TypeResolver(
             )
     }
 
-    fun resolvePossiblyBareType(c: TypeResolutionContext, typeReference: CjTypeReference): PossiblyBareType {
+    fun resolvePossiblyBareType(
+        c: TypeResolutionContext,
+        typeReference: CjTypeReference,
+        isgetExtend: Boolean = true
+    ): PossiblyBareType {
         val cachedType = c.trace.bindingContext.get(BindingContext.TYPE, typeReference)
         if (cachedType != null) return type(cachedType)
 
         val resolvedTypeSlice = if (c.abbreviated) BindingContext.ABBREVIATED_TYPE else BindingContext.TYPE
 
         val annotations = resolveTypeAnnotations(c.trace, c.scope, typeReference)
-        val type = resolveTypeElement(c, annotations, typeReference.modifierList, typeReference.typeElement)
+        val type =
+            resolveTypeElement(c, annotations, typeReference.modifierList, typeReference.typeElement, isgetExtend)
         c.trace.recordScope(c.scope, typeReference)
 
         if (!type.isBare) {
@@ -827,17 +860,44 @@ class TypeResolver(
         return type
     }
 
-    private fun resolveType(c: TypeResolutionContext, typeReference: CjTypeReference): CangJieType {
+    private fun resolveType(
+        c: TypeResolutionContext,
+        typeReference: CjTypeReference,
+        isgetExtend: Boolean = true
+    ): CangJieType {
         assert(!c.allowBareTypes) { "Use resolvePossiblyBareType() when bare types are allowed" }
 
-        return resolvePossiblyBareType(c, typeReference).actualType
+        return resolvePossiblyBareType(c, typeReference, isgetExtend).actualType
     }
 
     fun resolveType(
         scope: LexicalScope,
         typeReference: CjTypeReference,
         trace: BindingTrace,
-        checkBounds: Boolean
+        checkBounds: Boolean,
+
+        ): CangJieType {
+        // bare types are not allowed
+        return resolveType(
+            TypeResolutionContext(
+                scope,
+                trace,
+                checkBounds,
+                false,
+                typeReference.suppressDiagnosticsInDebugMode(),
+                false
+            ),
+            typeReference,
+            true
+        )
+    }
+
+    fun resolveType(
+        scope: LexicalScope,
+        typeReference: CjTypeReference,
+        trace: BindingTrace,
+        checkBounds: Boolean,
+        isgetExtend: Boolean = true
     ): CangJieType {
         // bare types are not allowed
         return resolveType(
@@ -849,7 +909,8 @@ class TypeResolver(
                 typeReference.suppressDiagnosticsInDebugMode(),
                 false
             ),
-            typeReference
+            typeReference,
+            isgetExtend
         )
     }
 }

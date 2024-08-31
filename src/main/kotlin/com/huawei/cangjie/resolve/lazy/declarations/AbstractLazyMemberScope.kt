@@ -30,7 +30,7 @@ protected constructor(
     private val classDescriptors: MemoizedFunctionToNotNull<Name, List<ClassDescriptor>> =
         storageManager.createMemoizedFunction { doGetClasses(it) }
 
-    private val extendclassDescriptors: MemoizedFunctionToNotNull<Name, List<ClassDescriptor>> =
+    private val extendclassDescriptors: MemoizedFunctionToNotNull<Name, List<LazyExtendClassDescriptor>> =
         storageManager.createMemoizedFunction { doGetExtendClasses(it) }
 
     private val propertyDescriptors: MemoizedFunctionToNotNull<Name, Collection<PropertyDescriptor>> =
@@ -90,11 +90,11 @@ protected constructor(
 
     }
 
-    fun resolveTypeByExtend(declaration: CjExtend): ClassDescriptorWithResolutionScopes? {
+    fun resolveTypeByExtend(declaration: CjExtend,isgetExtend:Boolean = true): ClassDescriptorWithResolutionScopes? {
         val scope = getScopeForMemberDeclarationResolution(declaration)
         val typeReceiver = declaration.receiverTypeReceiver ?: return null
-//   scope.findFirstClassifierWithDeprecationStatus
-        val type = c.typeResolver.resolveType(scope, typeReceiver, trace, false)
+
+        val type = c.typeResolver.resolveType(scope, typeReceiver, trace, false,isgetExtend)
 
         val classDescriptor =
             type.constructor.declarationDescriptor as? ClassDescriptorWithResolutionScopes ?: return null
@@ -346,19 +346,21 @@ protected constructor(
     }
 
 
-    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
         return extendclassDescriptors(name)
     }
 
-    private fun doGetExtendClasses(name: Name): List<ClassDescriptor> {
+    private fun doGetExtendClasses(name: Name): List<LazyExtendClassDescriptor> {
         mainScope?.extendclassDescriptors?.invoke(name)?.let { return it }
 
-        val result = linkedSetOf<ClassDescriptor>()
+        val result = linkedSetOf<LazyExtendClassDescriptor>()
         declarationProvider.getExtendTypeStatementDeclarations(name).mapTo(result) {
 //            val isExternal = /*it.modifierList?.hasModifier(CjTokens.EXTERNAL_KEYWORD) ?:*/ false
 //            LazyClassDescriptor(c, thisDescriptor, name, it, isExternal)
 
-            resolveTypeByExtend(it.scopeAnchor as CjExtend) as ClassDescriptor
+
+
+            resolveTypeByExtend(it.scopeAnchor as CjExtend,false) as LazyExtendClassDescriptor
         }
 //        getNonDeclaredClasses(name, result)
         return result.toList()

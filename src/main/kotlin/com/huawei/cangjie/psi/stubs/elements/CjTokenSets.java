@@ -14,7 +14,7 @@ public interface CjTokenSets {
 
 //            IMPORT_DIRECTIVE_ITEM,
             DOT_QUALIFIED_EXPRESSION,
-            REFERENCE_EXPRESSION );
-    TokenSet TYPE_ELEMENT_TYPES = TokenSet.create(USER_TYPE, BASIC_TYPE);
+            REFERENCE_EXPRESSION);
+    TokenSet TYPE_ELEMENT_TYPES = TokenSet.create(USER_TYPE, BASIC_TYPE/*, FUNCTION_TYPE*/);
 
 }

@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.scopes
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.utils.Printer
 import com.intellij.util.SmartList
 
@@ -18,7 +19,7 @@ class ChainedMemberScope private constructor(
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
         getFirstClassifierDiscriminateHeaders(scopes) { it.getContributedClassifier(name, location) }
 
-    override fun getExtendClass(name: Name): List<ClassDescriptor> =
+    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> =
         getListClassifierDiscriminateHeaders(scopes) { it.getExtendClass(name ) }
 
     override fun getContributedVariables(

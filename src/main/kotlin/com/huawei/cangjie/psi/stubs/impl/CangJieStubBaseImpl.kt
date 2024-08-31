@@ -1,6 +1,8 @@
 package com.huawei.cangjie.psi.stubs.impl
 
 import com.huawei.cangjie.psi.CjElementImplStub
+import com.huawei.cangjie.psi.stubs.CangJieClassifierStub
+import com.huawei.cangjie.psi.stubs.CangJieTypeStatementStub
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.stubs.IStubElementType
 import com.intellij.psi.stubs.NamedStub
@@ -17,8 +19,8 @@ open class CangJieStubBaseImpl<T : CjElementImplStub<*>>(parent: StubElement<*>?
         private val LOGGER: Logger = Logger.getInstance(CangJieStubBaseImpl::class.java)
         private val BASE_STUB_INTERFACES = listOf(
 //                CangJieStubWithFqName::class.java,
-//                CangJieClassifierStub::class.java,
-//                CangJieClassOrObjectStub::class.java,
+                CangJieClassifierStub::class.java,
+                CangJieTypeStatementStub::class.java,
             NamedStub::class.java,
 //                CangJieCallableStubBase::class.java
         )

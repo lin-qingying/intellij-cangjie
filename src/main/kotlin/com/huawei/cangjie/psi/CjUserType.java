@@ -59,8 +59,7 @@ public class CjUserType extends  CjElementImplStub<CangJieUserTypeStub> implemen
 
     @Nullable @IfNotParsed
     public CjSimpleNameExpression getReferenceExpression() {
-        CjNameReferenceExpression nameRefExpr = getStubOrPsiChild(CjStubElementTypes.REFERENCE_EXPRESSION);
-        return  nameRefExpr  ;
+        return getStubOrPsiChild(CjStubElementTypes.REFERENCE_EXPRESSION);
     }
 
     @Nullable

@@ -15,10 +15,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
-public class CjElementImplStub <T extends StubElement<?>> extends StubBasedPsiElementBase<T>
-        implements CjElement, StubBasedPsiElement<T>{
+public class CjElementImplStub<T extends StubElement<?>> extends StubBasedPsiElementBase<T>
+        implements CjElement, StubBasedPsiElement<T> {
     public CjElementImplStub(@NotNull T stub, @NotNull IStubElementType nodeType) {
         super(stub, nodeType);
+    }
+
+    public CjElementImplStub(@NotNull T stub, @NotNull IStubElementType nodeType, ASTNode node) {
+        super(stub, nodeType, node);
     }
 
     public CjElementImplStub(@NotNull ASTNode node) {
@@ -60,8 +64,7 @@ public class CjElementImplStub <T extends StubElement<?>> extends StubBasedPsiEl
             if (file.isValid()) {
                 try {
                     fileString = " " + file.getText();
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
 
                 }
             }
@@ -86,8 +89,7 @@ public class CjElementImplStub <T extends StubElement<?>> extends StubBasedPsiEl
     public void accept(@NotNull PsiElementVisitor visitor) {
         if (visitor instanceof CjVisitor) {
             accept((CjVisitor) visitor, null);
-        }
-        else {
+        } else {
             visitor.visitElement(this);
         }
     }

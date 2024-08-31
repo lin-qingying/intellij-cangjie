@@ -14,10 +14,7 @@ abstract class AbstractTypeConstructor(storageManager: StorageManager) : Classif
     override fun refine(kotlinTypeRefiner: CangJieTypeRefiner): TypeConstructor =
         ModuleViewTypeConstructor(kotlinTypeRefiner)
 
-    override fun getExtendSupertypes(): List<CangJieType> {
-
-        return emptyList()
-    }
+    override fun getExtendSupertypes(extendId: String?): Collection<CangJieType> = computeExtendSuperTypes(extendId)
 
     @TypeRefinement
     private inner class ModuleViewTypeConstructor(
@@ -108,6 +105,7 @@ abstract class AbstractTypeConstructor(storageManager: StorageManager) : Classif
         } ?: supertypes
 
     protected abstract fun computeSupertypes(): Collection<CangJieType>
+    protected abstract fun computeExtendSuperTypes(extendId:String?): Collection<CangJieType>
     protected abstract val supertypeLoopChecker: SupertypeLoopChecker
     protected open fun reportSupertypeLoopError(type: CangJieType) {}
 

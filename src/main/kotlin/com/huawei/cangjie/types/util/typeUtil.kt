@@ -9,6 +9,7 @@ import com.huawei.cangjie.psi.CjBlockExpression
 import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstructor
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
@@ -225,10 +226,11 @@ inline fun SimpleType.replaceArgumentsByExistingArgumentsWith(replacement: (Type
 
 fun createBasicType(
     builtIns: CangJieBuiltIns,
-    name: String
+    name: String,
+    extendTypesDescriptor: Set<LazyExtendClassDescriptor> = emptySet ()
 ): BasicType {
     val classDescriptor = builtIns.getBuiltInBasicTypeByName(name)
-
+classDescriptor.extendClassDescriptor.addAll(extendTypesDescriptor)
 
     return CangJieTypeFactory.basicType(classDescriptor)
 }

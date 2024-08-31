@@ -7,6 +7,8 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.findParentInFile
+import com.intellij.psi.util.findParentOfType
 import com.intellij.psi.util.isAncestor
 
 fun getElementTextWithContext(psiElement: PsiElement): String {
@@ -52,6 +54,11 @@ inline fun <reified T : PsiElement> PsiElement.anyDescendantOfType(noinline pred
 inline fun <reified T : PsiElement> PsiElement.forEachDescendantOfType(noinline action: (T) -> Unit) {
     forEachDescendantOfType({ true }, action)
 }
+
+inline fun <reified T : PsiElement> PsiElement.findParentOfType(strict: Boolean = true): T? {
+    return findParentInFile(!strict) { it is T } as? T
+}
+
 inline fun <reified T : PsiElement> PsiElement.forEachDescendantOfType(
     crossinline canGoInside: (PsiElement) -> Boolean,
     noinline action: (T) -> Unit

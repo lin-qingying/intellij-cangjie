@@ -1,5 +1,6 @@
 package com.huawei.cangjie.descriptors;
 
+import com.huawei.cangjie.psi.CjTypeStatement;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.utils.ReadOnly;
 import org.jetbrains.annotations.NotNull;
@@ -18,5 +19,9 @@ public interface ClassDescriptorWithResolutionScopes extends ClassDescriptor{
     LexicalScope getScopeForClassHeaderResolution();
     @NotNull
     LexicalScope getScopeForConstructorHeaderResolution();
+
+
+
+
 
 }

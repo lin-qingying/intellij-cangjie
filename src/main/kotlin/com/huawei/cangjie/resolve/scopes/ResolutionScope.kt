@@ -6,6 +6,7 @@ import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjExtend
 import com.huawei.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 
 interface ResolutionScope {
     /**
@@ -21,7 +22,7 @@ interface ResolutionScope {
 
 
 
-    fun getExtendClass(name: Name): List<ClassDescriptor>
+    fun getExtendClass(name: Name): List<LazyExtendClassDescriptor>
     /**
      * Returns contributed classifier, but discriminates deprecated
      *

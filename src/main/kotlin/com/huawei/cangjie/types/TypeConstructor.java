@@ -19,10 +19,10 @@ public interface TypeConstructor extends TypeConstructorMarker {
     @ReadOnly
     Collection<CangJieType> getSupertypes();
 
-    //    扩展的父类型
+    //    扩展的父类型 需要一个排除的扩展id
     @NotNull
     @ReadOnly
-    default Collection<CangJieType> getExtendSupertypes() {
+    default Collection<CangJieType> getExtendSupertypes(@Nullable String extendId) {
         return Collections.emptyList();
     }
 

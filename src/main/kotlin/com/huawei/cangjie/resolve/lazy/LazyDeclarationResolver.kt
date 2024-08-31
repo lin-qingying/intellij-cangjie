@@ -178,6 +178,13 @@ open class LazyDeclarationResolver(
                 return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, variable)
             }
 
+            override fun visitProperty(property: CjProperty, data: Nothing?): DeclarationDescriptor? {
+                val location = lookupLocationFor(property, false)
+                val scopeForDeclaration = getMemberScopeDeclaredIn(property, location)
+                scopeForDeclaration.getContributedPropertys(property.nameAsSafeName, location)
+                return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, property)
+            }
+
             override fun visitCjElement(element: CjElement, data: Nothing?): DeclarationDescriptor {
                 throw IllegalArgumentException(
                     "Unsupported declaration type: " + element + " " +

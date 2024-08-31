@@ -4,6 +4,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjFile
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
 import com.huawei.cangjie.resolve.source.MemberScopeImpl
 import com.huawei.cangjie.utils.Printer
@@ -233,7 +234,7 @@ class FileScope(val file: CjFile) : MemberScope {
         TODO("Not yet implemented")
     }
 
-    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
         TODO("Not yet implemented")
     }
 

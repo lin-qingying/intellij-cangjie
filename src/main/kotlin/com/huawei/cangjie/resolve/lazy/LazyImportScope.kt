@@ -20,6 +20,7 @@ import com.huawei.cangjie.resolve.LazyExplicitImportScope
 import com.huawei.cangjie.resolve.QualifiedExpressionResolver
 import com.huawei.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.ImportingScope
 import com.huawei.cangjie.resolve.scopes.concat
@@ -260,16 +261,16 @@ class LazyImportScope(
         return importResolver.getClassifier(name, location) ?: secondaryImportResolver?.getClassifier(name, location)
     }
 
-    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
         return importResolver.getExtendClassifier(name) + (secondaryImportResolver?.getExtendClassifier(name)
             ?: emptySet())
 
     }
 
-    private fun LazyImportResolver<*>.getExtendClassifier(name: Name): List<ClassDescriptor> {
+    private fun LazyImportResolver<*>.getExtendClassifier(name: Name): List<LazyExtendClassDescriptor> {
         val imports = indexedImports.importsForName(name)
 
-        val target = mutableListOf<ClassDescriptor>()
+        val target = mutableListOf<LazyExtendClassDescriptor>()
         for (directive in imports) {
             val descriptors = getImportScope(directive).getExtendClass(name)
             if (descriptors.isNotEmpty()) {

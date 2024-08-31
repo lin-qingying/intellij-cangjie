@@ -4,6 +4,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.utils.Printer
 import com.intellij.util.SmartList
@@ -67,7 +68,7 @@ class AllUnderImportScope private constructor(
         return if (classifier1 != null && classifier2 != null) null else (classifier1 ?: classifier2)
     }
 
-    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
         if (name in excludedNames) return emptyList()
         val classifier1 = scope1.getExtendClass(name)
         val classifier2 = scope2?.getExtendClass(name)

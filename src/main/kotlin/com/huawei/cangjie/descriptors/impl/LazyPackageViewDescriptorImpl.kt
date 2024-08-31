@@ -139,7 +139,7 @@ class LazyPackageViewDescriptorImpl(
         }
 
 
-        if (module.project != null) {
+        if (module.project != null && !fqName.isRoot) {
             val filelist = CangJieExactPackagesIndex.get(fqName.asString(), module.project)
             val visibilitys = mutableListOf<DescriptorVisibility>()
             val macroPackagesIS = mutableListOf<Boolean>()

@@ -21,7 +21,9 @@ class CjTypeAlias : CjTypeParameterListOwnerStub<CangJieTypeAliasStub>, CjNamedD
         return ClassIdCalculator.calculateClassId(this)
     }
 
-
+    override fun toString(): String {
+        return super.toString()
+    }
     override fun getPresentation() = ItemPresentationProviders.getItemPresentation(this)
 
     @IfNotParsed
@@ -31,6 +33,7 @@ class CjTypeAlias : CjTypeParameterListOwnerStub<CangJieTypeAliasStub>, CjNamedD
     override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitTypeAlias(this, data)
     }
+
 
     @IfNotParsed
     fun getTypeReference(): CjTypeReference? {

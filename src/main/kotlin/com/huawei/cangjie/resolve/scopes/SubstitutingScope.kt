@@ -7,6 +7,7 @@ import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.psiUtil.sure
 import com.huawei.cangjie.resolve.calls.inference.wrapWithCapturingSubstitution
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeSubstitutor
 import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.safeSubstitute
@@ -73,7 +74,7 @@ class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: 
     override fun getContributedClassifier(name: Name, location: LookupLocation) =
         workerScope.getContributedClassifier(name, location)?.let { substitute(it) }
 
-    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
         return substitute(workerScope.getExtendClass(name)).toList()
     }
 

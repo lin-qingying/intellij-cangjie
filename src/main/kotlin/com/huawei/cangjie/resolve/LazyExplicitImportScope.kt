@@ -5,6 +5,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.BaseImportingScope
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.MemberScope
@@ -40,7 +41,7 @@ class LazyExplicitImportScope(
         }
     }
 
-    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
         return if (packageOrClassDescriptor is PackageViewDescriptor) {
             packageOrClassDescriptor.memberScope.getExtendClass(
                 declaredName,

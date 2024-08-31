@@ -96,8 +96,8 @@ public interface CjNodeTypes {
 
 
     IElementType TUPLE_TYPE = CjStubElementTypes.TUPLE_TYPE;
-    //    IElementType BASIC_TYPE = CjStubElementTypes.BASIC_TYPE;
-    IElementType BASIC_TYPE = new CjNodeType("BASIC_TYPE", CjBasicType.class);
+        IElementType BASIC_TYPE = CjStubElementTypes.BASIC_TYPE;
+//    IElementType BASIC_TYPE = new CjNodeType("BASIC_TYPE", CjBasicType.class);
     IElementType TYPE_PARAMETER = CjStubElementTypes.TYPE_PARAMETER;
 
     IElementType ENUM = CjStubElementTypes.ENUM;

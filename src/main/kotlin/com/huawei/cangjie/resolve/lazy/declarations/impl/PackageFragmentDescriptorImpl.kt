@@ -27,6 +27,7 @@ import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.StorageManager
@@ -198,7 +199,7 @@ class PackageFragmentDescriptorBasicImpl(
             return DESCRIPTOR_MAP[name]
         }
 
-        override fun getExtendClass(name: Name): List<ClassDescriptor> {
+        override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
             return emptyList()
         }
 

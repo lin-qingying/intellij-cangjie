@@ -15,6 +15,7 @@ import com.huawei.cangjie.resolve.ImportPath
 import com.huawei.cangjie.resolve.PlatformDependentAnalyzerServices
 import com.huawei.cangjie.resolve.TemporaryBindingTrace
 import com.huawei.cangjie.resolve.extensions.ExtraImportsProviderExtension
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.source.CangJieSourceElement
 import com.huawei.cangjie.storage.getValue
@@ -269,7 +270,7 @@ class FileScopeFactory(
 
             }
 
-            override fun getExtendClass(name: Name): List<ClassDescriptor> {
+            override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
                 return emptyList()
             }
 
@@ -505,7 +506,7 @@ class FileScopeFactory(
             return classifier.takeIf { filteringKind == if (visible) FilteringKind.VISIBLE_CLASSES else FilteringKind.INVISIBLE_CLASSES }
         }
 
-        override fun getExtendClass(name: Name): List<ClassDescriptor> {
+        override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
             return scope.getExtendClass(name)
         }
 

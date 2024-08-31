@@ -1,9 +1,10 @@
 package com.huawei.cangjie.psi
 
 
+import com.huawei.cangjie.CjNodeTypes
 import com.huawei.cangjie.lexer.CjTokens
-import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.psi.psiUtil.getChildrenOfType
 import com.huawei.cangjie.psi.stubs.CangJieExtendStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
@@ -28,7 +29,7 @@ class CjExtend : CjTypeStatement {
 
 
 
-        return name?.let { name.split('.').last()  }
+        return name?.let { name.split('.').last() }
     }
 
 //    override val nameAsName: Name?
@@ -56,6 +57,32 @@ class CjExtend : CjTypeStatement {
 //        val psiFactory = CjPsiFactory.contextual(this)
 //        return psiFactory.createIdentifier(nameAsSafeName.toString())
         return receiverTypeReceiver
+    }
+
+    //    扩展id ，需要具有唯一性  ，通过被扩展名，父类，包名，行号
+    fun getExtendId(): String {
+        val sb = StringBuilder()
+
+        sb.append(name)
+        sb.append(getSupernames())
+
+        sb.append(fqName)
+
+        sb.append(textOffset)
+        sb.append(textRange)
+        sb.append(text)
+
+        return sb.toString()
+    }
+
+    private fun getSupernames(): String {
+        val list = findChildByType<CjSuperTypeList>(CjNodeTypes.SUPER_TYPE_LIST) ?: return "null"
+
+        val names = list.getChildrenOfType<CjSuperTypeEntry>().map {
+            it.children[0].text
+        }
+        return names.joinToString()
+
     }
 
     private fun getReceiverTypeRefByTree(): CjTypeReference? {

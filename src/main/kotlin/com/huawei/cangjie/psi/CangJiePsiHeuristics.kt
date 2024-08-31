@@ -5,15 +5,15 @@ import com.huawei.cangjie.psi.stubs.containingCangJieFileStub
 
 object CangJiePsiHeuristics {
     @JvmStatic
-    fun isProbablyNothing(type: CjUserType): Boolean {
-        val referencedName = type.referencedName
+    fun isProbablyNothing(type: CjBasicType): Boolean {
+        val referencedName = type.text
 
         if (referencedName == "Nothing") {
             return true
         }
 
         // TODO: why don't use PSI-less stub for calculating aliases?
-        val file = type.containingCangJieFileStub?.psi as? CjFile ?: return false
+        val file = type.getContainingCjFile()
 
         // TODO: support type aliases
         if (!file.hasImportAlias()) return false
@@ -21,7 +21,8 @@ object CangJiePsiHeuristics {
     }
     @JvmStatic
     fun isProbablyNothing(typeReference: CjTypeReference): Boolean {
-        val userType = typeReference.typeElement as? CjUserType ?: return false
+        return false
+        val userType = typeReference.typeElement as? CjBasicType ?: return false
         return isProbablyNothing(userType)
     }
 

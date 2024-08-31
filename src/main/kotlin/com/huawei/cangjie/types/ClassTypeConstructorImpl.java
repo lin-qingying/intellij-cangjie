@@ -7,6 +7,7 @@ import com.huawei.cangjie.descriptors.TypeParameterDescriptor;
 import com.huawei.cangjie.resolve.DescriptorUtils;
 import com.huawei.cangjie.storage.StorageManager;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,7 +58,11 @@ public class ClassTypeConstructorImpl extends AbstractClassTypeConstructor imple
     @Override
     protected Collection<CangJieType> computeSupertypes() {
         return supertypes;
+    }
 
+    @Override
+    protected @NotNull Collection<CangJieType> computeExtendSuperTypes(@Nullable String extendId) {
+        return List.of();
     }
 
     @NotNull

@@ -3,6 +3,7 @@ package com.huawei.cangjie.types.error
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.types.ErrorUtils
@@ -15,7 +16,7 @@ open class ErrorScope(val kind: ErrorScopeKind, vararg formatParams: String) : M
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor =
         ErrorClassDescriptor(Name.special(ErrorEntity.ERROR_CLASS.debugText.format(name)))
 
-    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
         return emptyList()
     }
 

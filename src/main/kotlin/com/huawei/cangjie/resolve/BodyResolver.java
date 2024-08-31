@@ -9,7 +9,6 @@ import com.huawei.cangjie.psi.psiUtil.PsiUtilsKt;
 import com.huawei.cangjie.resolve.calls.CallResolver;
 import com.huawei.cangjie.resolve.calls.components.InferenceSession;
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
-import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResults;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.lazy.ForceResolveUtil;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor;
@@ -50,8 +49,13 @@ public class BodyResolver {
     private final LanguageVersionSettings languageVersionSettings;
     @NotNull
     private final DeclarationsChecker declarationsChecker;
-    @NotNull private final ValueParameterResolver valueParameterResolver;
-    @NotNull private final CallResolver callResolver;
+    @NotNull
+    private final ValueParameterResolver valueParameterResolver;
+    @NotNull
+    private final CallResolver callResolver;
+    boolean hasExtendSource = false;
+    //解决扩展的原类污染报错
+    Map<CjTypeReference, Boolean> hasExtendSourceMap = Maps.newHashMap();
 
     public BodyResolver(
             @NotNull Project project,
@@ -120,6 +124,20 @@ public class BodyResolver {
         trace.record(CONSTRUCTOR_RESOLVED_DELEGATION_CALL, constructor, (ResolvedCall<ConstructorDescriptor>) call);
     }
 
+    private static LexicalScope getPrimaryConstructorParametersScope(
+            LexicalScope originalScope,
+            ConstructorDescriptor unsubstitutedPrimaryConstructor
+    ) {
+        return new LexicalScopeImpl(originalScope, unsubstitutedPrimaryConstructor, false, null,
+                Collections.emptyList(), LexicalScopeKind.DEFAULT_VALUE, LocalRedeclarationChecker.DO_NOTHING.INSTANCE,
+                handler -> {
+                    for (ValueParameterDescriptor valueParameter : unsubstitutedPrimaryConstructor.getValueParameters()) {
+                        handler.addVariableDescriptor(valueParameter);
+                    }
+                    return Unit.INSTANCE;
+                });
+    }
+
     // Returns a set of enum or sealed types of which supertypeOwner is an entry or a member
     @NotNull
     private Set<TypeConstructor> getAllowedFinalSupertypes(
@@ -168,7 +186,8 @@ public class BodyResolver {
     private void checkSupertypeList(
             @NotNull ClassDescriptor supertypeOwner,
             @NotNull Map<CjTypeReference, CangJieType> supertypes,
-            @NotNull CjTypeStatement typeStatement
+            @NotNull CjTypeStatement typeStatement,
+            @NotNull Set<CangJieType> sourceSuperClass
     ) {
         Set<TypeConstructor> allowedFinalSupertypes = getAllowedFinalSupertypes(supertypeOwner, supertypes, typeStatement);
         Set<TypeConstructor> typeConstructors = new HashSet<>();
@@ -223,7 +242,7 @@ public class BodyResolver {
                         trace.report(INTERFACE_WITH_SUPERCLASS.on(typeReference));
                         addSupertype = false;
                     } else if (supertypeOwner.getKind() == ClassKind.EXTEND &&
-                            !hasExtendSourceMap.get(typeReference)       &&  !DynamicTypesKt.isDynamic(supertype) /* avoid duplicate diagnostics */) {
+                            !hasExtendSourceMap.get(typeReference) && !DynamicTypesKt.isDynamic(supertype) /* avoid duplicate diagnostics */) {
                         trace.report(EXTEND_WITH_SUPERCLASS.on(typeReference));
                         addSupertype = false;
                         return;
@@ -243,6 +262,13 @@ public class BodyResolver {
             TypeConstructor constructor = supertype.getConstructor();
             if (addSupertype && !typeConstructors.add(constructor)) {
                 trace.report(SUPERTYPE_APPEARS_TWICE.on(typeReference));
+            }
+//            验证原类超类型
+            for (CangJieType _supertype : sourceSuperClass) {
+                TypeConstructor _constructor = _supertype.getConstructor();
+                if (addSupertype && !typeConstructors.add(_constructor) && _constructor == constructor) {
+                    trace.report(SUPERTYPE_APPEARS_TWICE.on(typeReference));
+                }
             }
 
             if (classDescriptor == null) return;
@@ -343,6 +369,7 @@ public class BodyResolver {
         }
     }
 
+    //构造函数重载
     @Nullable
     private DataFlowInfo resolveSecondaryConstructorDelegationCall(
             @NotNull DataFlowInfo outerDataFlowInfo,
@@ -352,22 +379,23 @@ public class BodyResolver {
             @NotNull ClassConstructorDescriptor descriptor,
             @Nullable InferenceSession inferenceSession
     ) {
-        if (descriptor.isExpect() || isEffectivelyExternal(descriptor)) {
-            // For expected and external classes, we do not resolve constructor delegation calls because they are prohibited
-            return DataFlowInfo.Companion.getEMPTY();
-        }
-
-        OverloadResolutionResults<?> results = callResolver.resolveConstructorDelegationCall(
-                trace, scope, outerDataFlowInfo,
-                descriptor, constructor.getDelegationCall(), inferenceSession);
-
-        if (results != null && results.isSingleResult()) {
-            ResolvedCall<? extends CallableDescriptor> resolvedCall = results.getResultingCall();
-            recordConstructorDelegationCall(trace, descriptor, resolvedCall);
-            return resolvedCall.getDataFlowInfoForArguments().getResultInfo();
-        }
+//        if (descriptor.isExpect() || isEffectivelyExternal(descriptor)) {
+//            // For expected and external classes, we do not resolve constructor delegation calls because they are prohibited
+//            return DataFlowInfo.Companion.getEMPTY();
+//        }
+//
+//        OverloadResolutionResults<?> results = callResolver.resolveConstructorDelegationCall(
+//                trace, scope, outerDataFlowInfo,
+//                descriptor, constructor.getDelegationCall(), inferenceSession);
+//
+//        if (results != null && results.isSingleResult()) {
+//            ResolvedCall<? extends CallableDescriptor> resolvedCall = results.getResultingCall();
+//            recordConstructorDelegationCall(trace, descriptor, resolvedCall);
+//            return resolvedCall.getDataFlowInfoForArguments().getResultInfo();
+//        }
         return null;
     }
+
     public void resolveSecondaryConstructorBody(
             @NotNull DataFlowInfo outerDataFlowInfo,
             @NotNull BindingTrace trace,
@@ -428,7 +456,7 @@ public class BodyResolver {
         }
     }
 
-    private void resolveProperty(BodiesResolveContext c, CjProperty property, PropertyDescriptor propertyDescriptor) {
+    void resolveProperty(BodiesResolveContext c, CjProperty property, PropertyDescriptor propertyDescriptor) {
         computeDeferredType(propertyDescriptor.getReturnType());
         PreliminaryDeclarationVisitor.Companion.createForDeclaration(property, trace, languageVersionSettings);
         CjExpression initializer = property.getInitializer();
@@ -508,19 +536,7 @@ public class BodyResolver {
                     localContext != null ? localContext.inferenceSession : null);
         }
     }
-    private static LexicalScope getPrimaryConstructorParametersScope(
-            LexicalScope originalScope,
-            ConstructorDescriptor unsubstitutedPrimaryConstructor
-    ) {
-        return new LexicalScopeImpl(originalScope, unsubstitutedPrimaryConstructor, false, null,
-                Collections.emptyList(), LexicalScopeKind.DEFAULT_VALUE, LocalRedeclarationChecker.DO_NOTHING.INSTANCE,
-                handler -> {
-                    for (ValueParameterDescriptor valueParameter : unsubstitutedPrimaryConstructor.getValueParameters()) {
-                        handler.addVariableDescriptor(valueParameter);
-                    }
-                    return Unit.INSTANCE;
-                });
-    }
+
     public void resolveConstructorParameterDefaultValues(
             @NotNull DataFlowInfo outerDataFlowInfo,
             @NotNull BindingTrace trace,
@@ -536,6 +552,7 @@ public class BodyResolver {
 
         valueParameterResolver.resolveValueParameters(valueParameters, valueParameterDescriptors, scope, outerDataFlowInfo, trace, inferenceSession);
     }
+
     private void resolveBehaviorDeclarationBodies(@NotNull BodiesResolveContext c) {
         resolveSuperTypeEntryLists(c);
 
@@ -659,10 +676,7 @@ public class BodyResolver {
                     }
                 });
     }
-    boolean hasExtendSource = false;
 
-//解决扩展的原类污染报错
-    Map<CjTypeReference,Boolean> hasExtendSourceMap = Maps.newHashMap();
     public void resolveSuperTypeEntryList(
             @NotNull DataFlowInfo outerDataFlowInfo,
             @NotNull CjTypeStatement typeStatement,
@@ -686,13 +700,12 @@ public class BodyResolver {
         ResolvedCall<?>[] primaryConstructorDelegationCall = new ResolvedCall[1];
 
 
-
         CjVisitorVoid visitor = new CjVisitorVoid() {
             private void recordSupertype(CjTypeReference typeReference, CangJieType supertype) {
                 if (supertype == null) return;
 
 
-                hasExtendSourceMap.put(typeReference,hasExtendSource);
+                hasExtendSourceMap.put(typeReference, hasExtendSource);
                 supertypes.put(typeReference, supertype);
             }
 
@@ -724,22 +737,34 @@ public class BodyResolver {
             }
         };
 
-
+        Set<CangJieType> sourceSuperClass = new HashSet<>();
         //   TODO      如果是扩展，将源类型加上，但是这里还缺少其他扩展
         if (typeStatement instanceof CjExtend && descriptor instanceof LazyExtendClassDescriptor) {
+            sourceSuperClass.addAll(((LazyExtendClassDescriptor) descriptor).getClassDescriptor().getTypeConstructor().getSupertypes());
+            sourceSuperClass.addAll(((LazyExtendClassDescriptor) descriptor).getClassDescriptor().getTypeConstructor().getExtendSupertypes(((LazyExtendClassDescriptor) descriptor).getTypeStatement().getExtendId()));
 
-            CjTypeStatement sourceClassElement = ((LazyExtendClassDescriptor) descriptor).getSourceClassElement();
-
-            if (sourceClassElement != null) {
-                hasExtendSource = true;
-                for (CjSuperTypeListEntry delegationSpecifier : sourceClassElement.getSuperTypeListEntries()) {
-                    ProgressManager.checkCanceled();
-
-                    delegationSpecifier.accept(visitor);
-                }
-                hasExtendSource = false;
-
-            }
+//            List<CjSuperTypeListEntry> superTypeListEntries = descriptor.getSuperTypeListEntries();
+//            CjTypeStatement sourceClassElement = ((LazyExtendClassDescriptor) descriptor).getSourceClassElement();
+//
+//            if (sourceClassElement != null) {
+//                hasExtendSource = true;
+//                for (CjSuperTypeListEntry delegationSpecifier : sourceClassElement.getSuperTypeListEntries()) {
+//
+//
+//                    ProgressManager.checkCanceled();
+//
+////                    if (delegationSpecifier.getParentDeclaration() != null && delegationSpecifier.getParentDeclaration() instanceof CjExtend) {
+//////                    判断扩展id是否一致，如果一致则不解析
+////                        if (((CjExtend) delegationSpecifier.getParentDeclaration()).getExtendId().equals(((LazyExtendClassDescriptor) descriptor).getTypeStatement().getExtendId())) {
+////                            continue;
+////                        }
+////                    }
+//
+//                    delegationSpecifier.accept(visitor);
+//                }
+//                hasExtendSource = false;
+//
+//            }
         }
 
 
@@ -755,7 +780,7 @@ public class BodyResolver {
         }
 
 
-        checkSupertypeList(descriptor, supertypes, typeStatement);
+        checkSupertypeList(descriptor, supertypes, typeStatement, sourceSuperClass);
 
     }
 

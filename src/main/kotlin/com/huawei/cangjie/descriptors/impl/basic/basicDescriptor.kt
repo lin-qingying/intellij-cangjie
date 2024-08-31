@@ -3,13 +3,16 @@ package com.huawei.cangjie.descriptors.impl.basic
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.impl.AbstractClassDescriptor
-import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.psi.CjSuperTypeListEntry
 import com.huawei.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorBasicImpl
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.StorageManager
-import com.huawei.cangjie.types.*
+import com.huawei.cangjie.types.BasicType
+import com.huawei.cangjie.types.BasicTypeConstructor
+import com.huawei.cangjie.types.TypeConstructor
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 
 
@@ -19,15 +22,26 @@ class BasicTypeDescriptor(
     override val name: Name
 ) : AbstractClassDescriptor(
     storageManager, name
-) ,ClassDescriptorWithResolutionScopes{
+), ClassDescriptorWithResolutionScopes {
+
+    val extendClassDescriptor = mutableSetOf<LazyExtendClassDescriptor>()
 
     private var constructors: Set<ClassConstructorDescriptor> = mutableSetOf()
 
-//    override fun getDefaultType(): BasicType {
+    //    override fun getDefaultType(): BasicType {
 //
 //
 //        return basicMemberScope.getContributedClassifier(name, NoLookupLocation.FROM_BUILTINS)
 //    }
+//    基本类型返回扩展
+    override fun getSuperTypeListEntries(): List<CjSuperTypeListEntry> {
+        val result = mutableListOf<CjSuperTypeListEntry>()
+        extendClassDescriptor.forEach {
+            result.addAll(it.typeStatement.superTypeListEntries)
+        }
+
+        return result
+    }
 
     companion object {
 
@@ -68,10 +82,11 @@ class BasicTypeDescriptor(
 
     override fun getSource(): SourceElement = SourceElement.NO_SOURCE
     override fun getDefaultType(): BasicType {
-        return BasicType(typeConstructor,basicMemberScope)
+        return BasicType(typeConstructor, basicMemberScope)
     }
-//    val typeConstructor = ClassTypeConstructorImpl(this, emptyList(), emptyList(), storageManager)
-    val typeConstructor = BasicTypeConstructor(this,storageManager)
+
+    //    val typeConstructor = ClassTypeConstructorImpl(this, emptyList(), emptyList(), storageManager)
+    val typeConstructor = BasicTypeConstructor(this, storageManager)
     override fun getTypeConstructor(): TypeConstructor = typeConstructor
 
 
@@ -103,7 +118,7 @@ class BasicTypeDescriptor(
     }
 
     override fun getSealedSubclasses(): List<ClassDescriptor> {
-     return emptyList()
+        return emptyList()
     }
 
     override fun getScopeForMemberDeclarationResolution(): LexicalScope {
@@ -111,7 +126,7 @@ class BasicTypeDescriptor(
     }
 
     override fun getDeclaredCallableMembers(): List<CallableMemberDescriptor> {
-   return emptyList ()
+        return emptyList()
     }
 
     override fun getScopeForInitializerResolution(): LexicalScope {

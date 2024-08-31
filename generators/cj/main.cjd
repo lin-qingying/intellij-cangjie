@@ -81,30 +81,7 @@ public class Box<T> where T <: Hashable {
 }
 
 
-extend Box<T> <: Hashable where T <: Hashable {
-    public func hashCode(): Int64
 
-}
-extend Box<T> <: Comparable<Box<T>> where T <: Comparable<T> {
-    public operator func >(that: Box<T>): Bool
-
-    public operator func <(that: Box<T>): Bool
-
-    public operator func >=(that: Box<T>): Bool
-
-    public operator func <=(that: Box<T>): Bool
-    public operator func == (that: Box<T>): Bool
-    public operator func != (that: Box<T>): Bool
-
-    public func compare(that: Box<T>): Ordering
-
-}
-
-extend Box<T> <: ToString where T <: ToString {
-
-
-    public func toString(): String
-}
 
 public class SpawnException <: Exception {
     public init()
@@ -256,11 +233,11 @@ public struct Array<T> {
     public func slice(start: Int64, len: Int64): Array<T>
     public func get(index: Int64): Option<T>
     public func set(index: Int64, element: T): Unit
-    public operator func [](index: Int64): T
-    public operator func [](index: Int64, value!: T): Unit
-    public operator func [](range: Range<Int64>): Array<T>
-    public operator func [](range: Range<Int64>, value!: T): Unit
-    public operator func [](range: Range<Int64>, value!: Array<T>): Unit
+    public// operator func [](index: Int64): T
+    public// operator func [](index: Int64, value!: T): Unit
+    public// operator func [](range: Range<Int64>): Array<T>
+    public// operator func [](range: Range<Int64>, value!: T): Unit
+    public// operator func [](range: Range<Int64>, value!: Array<T>): Unit
     public func reverse(): Unit
     public func clone(): Array<T>
     public func clone(range: Range<Int64>): Array<T>
@@ -316,409 +293,26 @@ public enum Option<T> {
     public func isSome(): Bool
 
 }
-extend Option<T> <: ToString where T <: ToString {
 
-    public func toString(): String
+public open class Exception <: ToString {
+    public open prop message: String
+    public init()
+    public init(message: String)
+    protected open func getClassName(): String
+    public func getStackTrace(): Array<StackTraceElement>
+    public func printStackTrace(): Unit
+    public open func toString(): String
 }
 
-extend Option<T> <: Equatable<Option<T>> where T <: Equatable<T> {
-
-    public operator func == (that: Option<T>): Bool
-    public operator func != (that: Option<T>): Bool
-
-}
 
 
-extend Option<T> <: Hashable where T <: Hashable {
 
-    public func hashCode(): Int64
-
-}
-extend Array<T> <: ToString where T <: ToString {
-
-    public func toString(): String
-}
-
-extend Array<T> <: Equatable<Array<T>> where T <: Equatable<T> {
-    public const operator func == (that: Array<T>): Bool
-    public const operator func != (that: Array<T>): Bool
-    public func contains(element: T): Bool
-
-}
-
-extend Array<T> <: Collection<T> {
-    public func iterator(): Iterator<T>
-    public prop size: Int64
-
-    public func isEmpty(): Bool
-    public func toArray(): Array<T>
-
-}
 
 public struct CPointerHandle<T> where T <: CType {
     public let pointer: CPointer<T>
     public let array: Array<T>
     public init()
     public init(ptr: CPointer<T>, arr: Array<T>)
-}
-extend Byte <: ByteExtension {
-
-    public func isAscii(): Bool
-    public func isAsciiLetter(): Bool
-    public func isAsciiNumber(): Bool
-    public func isAsciiLowerCase(): Bool
-    public func isAsciiUpperCase(): Bool
-    public func isAsciiWhiteSpace(): Bool
-    public func isAsciiHex(): Bool
-    public func isAsciiOct(): Bool
-    public func isAsciiPunctuation(): Bool
-    public func isAsciiGraphic(): Bool
-    public func isAsciiControl(): Bool
-    public func isAsciiNumberOrLetter(): Bool
-    public func toAsciiUpperCase(): Byte
-    public func toAsciiLowerCase(): Byte
-
-}
-
-extend Rune <: CharExtension {
-    public func isAscii(): Bool
-    public func isAsciiLetter(): Bool
-    public func isAsciiNumber(): Bool
-    public func isAsciiLowerCase(): Bool
-    public func isAsciiUpperCase(): Bool
-    public func isAsciiWhiteSpace(): Bool
-    public func isAsciiHex(): Bool
-    public func isAsciiOct(): Bool
-    public func isAsciiPunctuation(): Bool
-    public func isAsciiGraphic(): Bool
-    public func isAsciiControl(): Bool
-    public func isAsciiNumberOrLetter(): Bool
-    public func toAsciiUpperCase(): Rune
-
-    public func toAsciiLowerCase(): Rune
-    public static func fromUtf8(arr: Array<UInt8>, index: Int64): (Rune, Int64)
-    public static func intoUtf8Array(c: Rune, arr: Array<UInt8>, index: Int64): Int64
-    public static func utf8Size(arr: Array<UInt8>, index: Int64): Int64
-    public static func utf8Size(c: Rune): Int64
-    public static func getPreviousFromUtf8(arr: Array<UInt8>, index: Int64): (Rune, Int64)
-}
-
-extend Rune <: Comparable<Rune> {
-    public func compare(rhs: Rune): Ordering
-
-}
-extend Rune <: ToString {
-    public func toString(): String
-}
-
-extend Rune <: Hashable {
-    public func hashCode(): Int64
-
-}
-
-extend Rune <: Countable<Rune> {
-    public func position(): Int64
-    public func next(right: Int64): Rune
-
-}
-
-extend Int64 <: ToString {
-    public func toString(): String
-
-}
-extend Int64 <: Comparable<Int64> {
-    public func compare(rhs: Int64): Ordering
-
-}
-extend Int64 <: Hashable {
-    public func hashCode(): Int64
-}
-
-extend Int64 <: Countable<Int64> {
-    public func position(): Int64
-    public func next(right: Int64): Int64
-
-}
-extend Int32 <: ToString {
-    public func toString(): String
-}
-extend Int32 <: Comparable<Int32> {
-    public func compare(rhs: Int32): Ordering
-}
-extend Int32 <: Hashable {
-    public func hashCode(): Int64
-
-}
-
-extend Int32 <: Countable<Int32> {
-    public func position(): Int64
-    public func next(right: Int64): Int32
-
-}
-
-extend Int16 <: ToString {
-    public func toString(): String
-}
-extend Int16 <: Comparable<Int16> {
-    public func compare(rhs: Int16): Ordering
-}
-extend Int16 <: Hashable {
-    public func hashCode(): Int64
-}
-
-extend Int16 <: Countable<Int16> {
-    public func position(): Int64
-    public func next(right: Int64): Int16
-
-}
-extend Int8 <: ToString {
-    public func toString(): String
-
-}
-extend Int8 <: Comparable<Int8> {
-    public func compare(rhs: Int8): Ordering
-
-}
-extend Int8 <: Hashable {
-    public func hashCode(): Int64
-
-}
-
-extend Int8 <: Countable<Int8> {
-    public func position(): Int64
-    public func next(right: Int64): Int8
-
-}
-
-extend IntNative <: ToString {
-    public func toString(): String
-
-}
-
-extend IntNative <: Comparable<IntNative> {
-    public func compare(rhs: IntNative): Ordering
-
-}
-extend IntNative <: Hashable {
-    public func hashCode(): Int64
-
-}
-
-extend IntNative <: Countable<IntNative> {
-    public func position(): Int64
-    public func next(right: Int64): IntNative
-
-}
-
-extend UInt64 <: ToString {
-    public func toString(): String
-
-}
-
-extend UInt64 <: Comparable<UInt64> {
-    public func compare(rhs: UInt64): Ordering
-
-}
-
-extend UInt64 <: Hashable {
-    public func hashCode(): Int64
-
-}
-
-extend UInt64 <: Countable<UInt64> {
-    public func position(): Int64
-    public func next(right: Int64): UInt64
-
-}
-
-extend UInt32 <: ToString {
-    public func toString(): String
-}
-extend UInt32 <: Comparable<UInt32> {
-    public func compare(rhs: UInt32): Ordering
-
-}
-
-extend UInt32 <: Hashable {
-    public func hashCode(): Int64
-
-}
-
-extend UInt32 <: Countable<UInt32> {
-    public func position(): Int64
-    public func next(right: Int64): UInt32
-
-}
-
-
-extend UInt16 <: ToString {
-    public func toString(): String
-
-}
-
-extend UInt16 <: Comparable<UInt16> {
-    public func compare(rhs: UInt16): Ordering
-
-}
-
-extend UInt16 <: Hashable {
-    public func hashCode(): Int64
-
-}
-
-extend UInt16 <: Countable<UInt16> {
-    public func position(): Int64
-    public func next(right: Int64): UInt16
-
-}
-
-extend UInt8 <: ToString {
-    public func toString(): String
-
-}
-
-extend UInt8 <: Comparable<UInt8> {
-    public func compare(rhs: UInt8): Ordering
-
-}
-
-extend UInt8 <: Hashable {
-    public func hashCode(): Int64
-
-}
-
-extend UInt8 <: Countable<UInt8> {
-    public func position(): Int64
-    public func next(right: Int64): UInt8
-
-}
-
-extend UIntNative <: ToString {
-    public func toString(): String
-
-}
-
-extend UIntNative <: Comparable<UIntNative> {
-    public func compare(rhs: UIntNative): Ordering
-
-}
-
-extend UIntNative <: Hashable {
-    public func hashCode(): Int64
-
-}
-extend UIntNative <: Countable<UIntNative> {
-    public func position(): Int64
-    public func next(right: Int64): UIntNative
-
-}
-extend Float64 <: ToString {
-    public func toString(): String
-
-}
-extend Float64 <: Comparable<Float64> {
-    public func compare(rhs: Float64): Ordering
-
-}
-
-extend Float64 <: Hashable {
-    public func hashCode(): Int64
-
-}
-extend Float16 <: ToString {
-    public func toString(): String
-
-}
-extend Float16 <: Comparable<Float16> {
-    public func compare(rhs: Float16): Ordering
-
-}
-
-extend Float16 <: Hashable {
-    public func hashCode(): Int64
-
-}
-extend Float32 <: ToString {
-    public func toString(): String
-
-}
-extend Float32 <: Comparable<Float32> {
-    public func compare(rhs: Float32): Ordering
-
-}
-
-extend Float32 <: Hashable {
-    public func hashCode(): Int64
-
-}
-
-extend Ordering <: ToString {
-    public func toString(): String
-
-}
-
-extend Ordering <: Comparable<Ordering> {
-    public func compare(that: Ordering): Ordering
-    public operator func == (that: Ordering): Bool
-    public operator func != (that: Ordering): Bool
-    public operator func != (that: Ordering): Bool
-    public operator func <=(that: Ordering): Bool
-    public operator func >=(that: Ordering): Bool
-    public operator func >(that: Ordering): Bool
-
-}
-extend Ordering <: Hashable {
-    public func hashCode(): Int64
-
-}
-
-extend Range<T> <: Hashable where T <: Hashable & Countable<T> & Comparable<T> & Equatable<T> {
-    public func hashCode(): Int64
-
-}
-
-extend Range<T> <: Equatable<Range<T>> where T <: Countable<T> & Comparable<T> & Equatable<T> {
-    public operator func == (that: Range<T>): Bool
-    public operator func != (that: Range<T>): Bool
-
-}
-
-
-extend Bool <: ToString {
-    public func toString(): String
-
-}
-
-extend Bool <: Hashable {
-    public func hashCode(): Int64
-
-}
-
-extend Bool <: Equatable<Bool>{
-}
-
-extend Unit <: ToString {
-    public func toString(): String
-
-}
-
-extend Unit <: Hashable {
-    public func hashCode(): Int64
-
-}
-
-extend CPointer<T> {
-    public func isNull(): Bool
-    public func isNotNull(): Bool
-    public func toUIntNative(): UIntNative
-    public unsafe func read(): T
-    public unsafe func write(value: T): Unit
-    public unsafe func read(idx: Int64): T
-    public unsafe func write(idx: Int64, value: T): Unit
-    public unsafe operator func+(offset: Int64): CPointer<T>
-    public unsafe operator func-(offset: Int64): CPointer<T>
-    public func asResource(): CPointerResource<T>
-
 }
 
 public struct CPointerResource<T> <: Resource where T <: CType {
@@ -727,29 +321,6 @@ public struct CPointerResource<T> <: Resource where T <: CType {
     public func close(): Unit
 
 }
-extend CString {
-    public init(p: CPointer<UInt8>)
-
-}
-
-extend CString <: ToString {
-    public func getChars(): CPointer<UInt8>
-    public func isNull(): Bool
-    public func size(): Int64
-    public func isNotEmpty(): Bool
-    public func isEmpty(): Bool
-    public func startsWith(prefix: CString): Bool
-    public func endsWith(suffix: CString): Bool
-    public func equals(rhs: CString): Bool
-    public func equalsLower(rhs: CString): Bool
-    public func subCString(beginIndex: UIntNative): CString
-    public func subCString(beginIndex: UIntNative, subLen: UIntNative): CString
-    public func compare(str: CString): Int32
-    public func toString(): String
-    public func asResource(): CStringResource
-
-}
-
 public struct CStringResource <: Resource {
     public let value: CString
     public func isClosed(): Bool
@@ -813,26 +384,34 @@ public interface Collection<T> <: Iterable<T> {
     func isEmpty(): Bool
     func toArray(): Array<T>
 }
+
+
+
+
 public interface Less<T> {
-    operator func <(rhs: T): Bool
+//   // operator func <(rhs: T): Bool
 }
 public interface Greater<T> {
-    operator func >(rhs: T): Bool
+//   // operator func >(rhs: T): Bool
 }
 public interface LessOrEqual<T> {
-    operator func <=(rhs: T): Bool
+   // operator func <=(rhs: T): Bool
 }
 public interface GreaterOrEqual<T> {
-    operator func >=(rhs: T): Bool
+   // operator func >=(rhs: T): Bool
+}
+extend Int64 <: ToString{
+    func toString(): String
+
 }
 public interface Comparable<T> <: Equatable<T> & Less<T> & Greater<T> & LessOrEqual<T> & GreaterOrEqual<T> {
     func compare(that: T): Ordering
 }
 public interface Equal<T> {
-    operator func == (rhs: T): Bool
+   // operator func == (rhs: T): Bool
 }
 public interface NotEqual<T> {
-    operator func != (rhs: T): Bool
+   // operator func != (rhs: T): Bool
 }
 public interface Equatable<T> <: Equal<T> & NotEqual<T>{}
 public interface Hashable {
@@ -900,16 +479,18 @@ public struct String <: Collection<Byte> & Equatable<String> & Comparable<String
     public func endsWith(suffix: String): Bool
     public func padLeft(totalWidth: Int64, padding!: String = " "): String
     public func padRight(totalWidth: Int64, padding!: String = " "): String
-    public const operator func == (right: String): Bool
-    public const operator func >(right: String): Bool
-    public const operator func != (right: String): Bool
-    public const operator func >=(right: String): Bool
-    public const operator func <(right: String): Bool
-    public const operator func <=(right: String): Bool
-    public const operator func+(right: String): String
-    public const operator func *(count: Int64): String
-    public const operator func [](index: Int64): Byte
-    public const operator func [](range: Range<Int64>): String
+    public func compare(that: String): Ordering
+
+//    public const// operator func == (right: String): Bool
+//    public const// operator func >(right: String): Bool
+//    public const// operator func != (right: String): Bool
+//    public const// operator func >=(right: String): Bool
+//    public const// operator func <(right: String): Bool
+//    public const// operator func <=(right: String): Bool
+//    public const// operator func+(right: String): String
+//    public const// operator func *(count: Int64): String
+//    public const// operator func [](index: Int64): Byte
+//    public const// operator func [](range: Range<Int64>): String
     public static func join(strArray: Array<String>, delimiter!: String = String.empty): String
     public unsafe func rawData(): Array<Byte>
     public static func fromUtf8(utf8Data: Array<UInt8>): String

@@ -16,6 +16,7 @@ fun indexTypeAliasExpansion(stub: CangJieTypeAliasStub, sink: IndexSink) {
         sink.occurrence(CangJieTypeAliasByExpansionShortNameIndex.indexKey, typeName)
     }
 }
+
 fun indexInternals(stub: CangJieCallableStubBase<*>, sink: IndexSink) {
     val name = stub.name ?: return
 
@@ -86,6 +87,10 @@ private fun CjTypeElement.index(
 
             }
 
+            is CjBasicType -> {
+                occurrence(this.name)
+
+            }
 
             else -> error("Unsupported type: $this")
         }

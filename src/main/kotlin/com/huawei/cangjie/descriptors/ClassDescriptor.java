@@ -3,12 +3,12 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
- package com.huawei.cangjie.descriptors;
+package com.huawei.cangjie.descriptors;
 
 
 import com.huawei.cangjie.mpp.RegularClassSymbolMarker;
+import com.huawei.cangjie.psi.CjSuperTypeListEntry;
 import com.huawei.cangjie.resolve.scopes.MemberScope;
-
 import com.huawei.cangjie.types.SimpleType;
 import com.huawei.cangjie.types.TypeProjection;
 import com.huawei.cangjie.types.TypeSubstitution;
@@ -16,16 +16,18 @@ import com.huawei.cangjie.utils.ReadOnly;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public interface ClassDescriptor extends ClassifierDescriptorWithTypeParameters, ClassOrPackageFragmentDescriptor,
         RegularClassSymbolMarker {
     @NotNull
     MemberScope getMemberScope(@NotNull List<? extends TypeProjection> typeArguments);
+
     @NotNull
     ReceiverParameterDescriptor getThisAsReceiverParameter();
+
     @NotNull
     @ReadOnly
     List<ReceiverParameterDescriptor> getContextReceivers();
@@ -83,13 +85,13 @@ public interface ClassDescriptor extends ClassifierDescriptorWithTypeParameters,
     boolean isValue();
 
 
-
     @Nullable
     ClassConstructorDescriptor getUnsubstitutedPrimaryConstructor();
 
     /**
      * It may differ from 'typeConstructor.parameters' in current class is inner, 'typeConstructor.parameters' contains
      * captured parameters from outer declaration.
+     *
      * @return list of type parameters actually declared type parameters in current class
      */
     @Override
@@ -117,4 +119,13 @@ public interface ClassDescriptor extends ClassifierDescriptorWithTypeParameters,
      * But it should work much faster than the exact check.
      */
     boolean isDefinitelyNotSamInterface();
+
+    /**
+     * 获取所有SuperTypeListEntry 包含扩展
+     */
+    default List<CjSuperTypeListEntry> getSuperTypeListEntries() {
+
+        return Collections.emptyList();
+    }
+
 }

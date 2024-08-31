@@ -4,6 +4,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.utils.Printer
 
 
@@ -34,7 +35,7 @@ class LexicalChainedScope private constructor(
     override fun getContributedClassifier(name: Name, location: LookupLocation) =
         getFirstClassifierDiscriminateHeaders(memberScopes) { it.getContributedClassifier(name, location) }
 
-    override fun getExtendClass(name: Name): List<ClassDescriptor> {
+    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
 
   return  getListClassifierDiscriminateHeaders(memberScopes) { it.getExtendClass(name) }
     }

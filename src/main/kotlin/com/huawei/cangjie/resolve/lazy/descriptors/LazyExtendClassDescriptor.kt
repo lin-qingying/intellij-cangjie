@@ -8,6 +8,8 @@ import com.huawei.cangjie.descriptors.impl.ClassDescriptorBase
 import com.huawei.cangjie.descriptors.impl.FunctionDescriptorImpl
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.name.Name.Companion.special
+import com.huawei.cangjie.psi.CjExtend
+import com.huawei.cangjie.psi.CjSuperTypeListEntry
 import com.huawei.cangjie.psi.CjTypeStatement
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.DescriptorUtils.getAllDescriptors
@@ -39,7 +41,7 @@ abstract class LazyClassDescriptorBase
 ), ClassDescriptorWithResolutionScopes
 
 class LazyExtendClassDescriptor(
-    private val classDescriptor: ClassDescriptorWithResolutionScopes,
+      val classDescriptor: ClassDescriptorWithResolutionScopes,
     c: LazyClassContext,
     classLikeInfo: CjClassLikeInfo,
 
@@ -70,7 +72,7 @@ class LazyExtendClassDescriptor(
                 this, createInitializerScopeParent(), classLikeInfo.primaryConstructorParameters
             )
         }
-    val typeStatement = classLikeInfo.correspondingClass
+    val typeStatement: CjExtend = classLikeInfo.correspondingClass as CjExtend
 
     private val resolutionScopesSupport = ClassResolutionScopesSupport(
         this,
@@ -78,14 +80,34 @@ class LazyExtendClassDescriptor(
         c.languageVersionSettings,
     ) { getOuterScope() }
 
+
     init {
 
-        if (typeStatement != null) {
-            c.trace.record<PsiElement, ClassDescriptor>(
-                BindingContext.CLASS, typeStatement,
-                this
-            )
-        }
+        c.trace.record<PsiElement, ClassDescriptor>(
+            BindingContext.CLASS, typeStatement,
+            this
+        )
+    }
+
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is LazyExtendClassDescriptor) return false
+        if (!super.equals(other)) return false
+
+        if (typeStatement.getExtendId() != other.typeStatement.getExtendId()) return false
+
+        return true
+    }
+//
+//    override fun hashCode(): Int {
+//        var result = super.hashCode()
+//        result = 31 * result + classDescriptor.hashCode()
+//        return result
+//    }
+
+    override fun toString(): String {
+        return "extend $classDescriptor"
     }
 
     @OptIn(TypeRefinement::class)
@@ -124,6 +146,10 @@ class LazyExtendClassDescriptor(
     private inner class ExtendTypeConstructor : AbstractClassTypeConstructor(storageManager) {
         private val parameters =
             c.storageManager.createLazyValue { this@LazyExtendClassDescriptor.computeConstructorTypeParameters() }
+
+        override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
+       return emptyList()
+        }
 
         override fun computeSupertypes(): Collection<CangJieType> {
             return this@LazyExtendClassDescriptor.computeSupertypes()
@@ -268,11 +294,27 @@ class LazyExtendClassDescriptor(
 
     }
 
+
+    override fun getSuperTypeListEntries(): MutableList<CjSuperTypeListEntry> {
+        return classDescriptor.superTypeListEntries
+    }
     fun resolveMemberHeaders() {
         //    ForceResolveUtil.forceResolveAllContents(getDanglingAnnotations());
         getSuperClassNotAny()
 //        constructors
 //        containingDeclaration
 //        unsubstitutedMemberScope
+    }
+
+    override fun hashCode(): Int {
+        var result = classDescriptor.hashCode()
+        result = 31 * result + storageManager.hashCode()
+        result = 31 * result + typeConstructor.hashCode()
+        result = 31 * result + declarationProvider.hashCode()
+        result = 31 * result + scopesHolderForClass.hashCode()
+        result = 31 * result + scopeForInitializerResolution.hashCode()
+        result = 31 * result + typeStatement.hashCode()
+        result = 31 * result + resolutionScopesSupport.hashCode()
+        return result
     }
 }

@@ -83,12 +83,12 @@ class StubBasedPackageMemberDeclarationProvider(
 
     override fun getExtendTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<CjExtend>> {
         val childName = childName(name)
-        if (isShortNameFilteringEnabled && !name.isSpecial) {
-            val shortNames = ShortNamesCacheService.getInstance(project).getShortNameCandidates(name.asString())
-            if (childName !in shortNames) {
-                return emptyList()
-            }
-        }
+//        if (isShortNameFilteringEnabled && !name.isSpecial) {
+//            val shortNames = ShortNamesCacheService.getInstance(project).getShortNameCandidates(name.asString())
+//            if (childName !in shortNames) {
+//                return emptyList()
+//            }
+//        }
         val cjTypeStatements = runReadAction {
             val results = arrayListOf<CjTypeStatementInfo<CjExtend>>()
             CangJieExtendClassNameIndex.processElements(childName, project, searchScope) {
