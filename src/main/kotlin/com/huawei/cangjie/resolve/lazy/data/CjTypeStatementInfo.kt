@@ -7,7 +7,7 @@ import com.intellij.psi.PsiElement
 abstract class CjTypeStatementInfo<E : CjTypeStatement>(
     protected val element: E
 ) : CjClassLikeInfo {
-    override val correspondingClass: CjTypeStatement?
+    override val correspondingClass: CjTypeStatement
         get() = element
 
 

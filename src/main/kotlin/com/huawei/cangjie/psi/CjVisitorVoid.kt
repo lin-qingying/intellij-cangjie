@@ -36,6 +36,15 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
         super.visitExtend(cjExtend, null)
     }
 
+    override fun visitMainFunction(cjMainFunction: CjMainFunction, data: Void?): Void? {
+        visitMainFunction(cjMainFunction)
+        return null
+    }
+
+    open fun visitMainFunction(cjMainFunction: CjMainFunction) {
+
+    }
+
     open fun visitStruct(cstruct: CjStruct) {
         super.visitStruct(cstruct, null)
     }

@@ -27,6 +27,7 @@ public class DefaultErrorMessages {
         MAP.put(UNSUPPORTED, "Unsupported [{0}]", STRING);
 //重复定义
         MAP.put(CONFLICTING_OVERLOADS, "Conflicting overloads: {0}", CommonRenderers.commaSeparated(FQ_NAMES_IN_TYPES));
+        MAP.put(PACKAGE_OR_CLASSIFIER_REDECLARATION, "Redeclaration: {0}", STRING);
 
 
         MAP.put(FUNCTION_CALL_EXPECTED, "Function invocation ''{0}({1})'' expected", ELEMENT_TEXT,

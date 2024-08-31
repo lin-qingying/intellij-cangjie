@@ -10,10 +10,7 @@ import com.huawei.cangjie.incremental.CangJieLookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
-import com.huawei.cangjie.resolve.lazy.DeclarationScopeProvider
-import com.huawei.cangjie.resolve.lazy.FileScopeProvider
-import com.huawei.cangjie.resolve.lazy.ForceResolveUtil
-import com.huawei.cangjie.resolve.lazy.LazyDeclarationResolver
+import com.huawei.cangjie.resolve.lazy.*
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.types.expressions.ExpressionTypingContext
@@ -25,6 +22,8 @@ import com.intellij.psi.PsiElement
 class LazyTopDownAnalyzer(
     private val trace: BindingTrace,
     private val lazyDeclarationResolver: LazyDeclarationResolver,
+    private val declarationResolver: DeclarationResolver,
+
     private val overrideResolver: OverrideResolver,
     private val overloadResolver: OverloadResolver,
     private val fileScopeProvider: FileScopeProvider,
@@ -32,6 +31,7 @@ class LazyTopDownAnalyzer(
     private val identifierChecker: IdentifierChecker,
     private val qualifiedExpressionResolver: QualifiedExpressionResolver,
     private val moduleDescriptor: ModuleDescriptor,
+    private val topLevelDescriptorProvider: TopLevelDescriptorProvider,
 
     private val declarationScopeProvider: DeclarationScopeProvider,
     private val filePreprocessor: FilePreprocessor,
@@ -90,6 +90,11 @@ class LazyTopDownAnalyzer(
 //
 //                    super.visitExtend(cjExtend)
 //                    visitTypeStatement(typeStatement = cjExtend)
+                }
+
+
+                override fun visitMainFunction(cjMainFunction: CjMainFunction) {
+
                 }
 
                 override fun visitDeclaration(dcl: CjDeclaration) {
@@ -207,6 +212,9 @@ class LazyTopDownAnalyzer(
 
 
         resolveAllHeadersInClasses(c)
+        declarationResolver.checkRedeclarationsInPackages(topLevelDescriptorProvider, topLevelFqNames)
+        declarationResolver.checkRedeclarations(c)
+//        declarationResolver.resolveAnnotationsOnFiles(c, fileScopeProvider)
 
         overrideResolver.check(c)
 
@@ -285,27 +293,27 @@ class LazyTopDownAnalyzer(
 //            1 获取该包所有导入语句
 //            2 获取被导入语句的包的导入语句
 //            3 检查是否包含该包名称
-            runReadAction {
-                val packageFqname = file.packageFqName
+        runReadAction {
+            val packageFqname = file.packageFqName
 
-                for (importDirective in file.importDirectives) {
-                    val result =
-                        importDirective.importedFqName
-                            ?.let { CangJieImportFqNameForPackageNameIndex.contains(packageFqname, it, file.project) }
-
-
-                    if (result != null) {
-                        if (result.first) {
-
-                            trace.report(CYCLIC_IMPORT.on(importDirective, packageFqname, result.second))
+            for (importDirective in file.importDirectives) {
+                val result =
+                    importDirective.importedFqName
+                        ?.let { CangJieImportFqNameForPackageNameIndex.contains(packageFqname, it, file.project) }
 
 
-                        }
+                if (result != null) {
+                    if (result.first) {
+
+                        trace.report(CYCLIC_IMPORT.on(importDirective, packageFqname, result.second))
+
+
                     }
-
-
                 }
+
+
             }
+        }
 
 
 //        }

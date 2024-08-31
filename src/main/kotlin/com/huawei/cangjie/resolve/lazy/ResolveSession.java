@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.lazy;
 import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.context.GlobalContext;
 import com.huawei.cangjie.descriptors.*;
+import com.huawei.cangjie.incremental.components.LookupLocation;
 import com.huawei.cangjie.incremental.components.LookupTracker;
 import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.name.Name;
@@ -21,6 +22,7 @@ import com.huawei.cangjie.types.WrappedTypeFactory;
 import com.huawei.cangjie.types.checker.NewCangJieTypeChecker;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
 import jakarta.inject.Inject;
 import kotlin.jvm.functions.Function1;
@@ -43,6 +45,7 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     private final PackageFragmentProvider packageFragmentProvider;
     private final NewCangJieTypeChecker cangjieTypeChecker;
     private final DeclarationProviderFactory declarationProviderFactory;
+    private final Project project;
     private LazyDeclarationResolver lazyDeclarationResolver;
     private LocalDescriptorResolver localDescriptorResolver;
     private DelegationFilter delegationFilter;
@@ -54,7 +57,6 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     private FileScopeProvider fileScopeProvider;
     private DeclarationScopeProvider declarationScopeProvider;
     private LookupTracker lookupTracker;
-    private final Project project;
     private LanguageVersionSettings languageVersionSettings;
     private TypeResolver typeResolver;
     private SealedClassInheritorsProvider sealedClassInheritorsProvider;
@@ -350,6 +352,12 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
         return wrappedTypeFactory;
 
     }
+
+    @Inject
+    public void setWrappedTypeFactory(@NotNull WrappedTypeFactory wrappedTypeFactory) {
+        this.wrappedTypeFactory = wrappedTypeFactory;
+    }
+
     @NotNull
     @Override
     public SealedClassInheritorsProvider getSealedClassInheritorsProvider() {
@@ -359,10 +367,6 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     @Inject
     public void setSealedClassInheritorsProvider(@NotNull SealedClassInheritorsProvider sealedClassInheritorsProvider) {
         this.sealedClassInheritorsProvider = sealedClassInheritorsProvider;
-    }
-    @Inject
-    public void setWrappedTypeFactory(@NotNull WrappedTypeFactory wrappedTypeFactory) {
-        this.wrappedTypeFactory = wrappedTypeFactory;
     }
 
     @NotNull
@@ -374,5 +378,38 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     @Inject
     public void setExtendDescriptorResolver(@NotNull ExtendDescriptorResolver extendDescriptorResolver) {
         this.extendDescriptorResolver = extendDescriptorResolver;
+    }
+
+    @Override
+    @NotNull
+    public ClassDescriptor getClassDescriptor(@NotNull CjTypeStatement classOrObject, @NotNull LookupLocation location) {
+        return lazyDeclarationResolver.getClassDescriptor(classOrObject, location);
+    }
+
+    @Override
+    public @NotNull Collection<ClassifierDescriptor> getTopLevelClassifierDescriptors(@NotNull FqName fqName, @NotNull LookupLocation location) {
+        if (fqName.isRoot()) return Collections.emptyList();
+
+        PackageMemberDeclarationProvider provider = declarationProviderFactory.getPackageMemberDeclarationProvider(fqName.parent());
+        if (provider == null) return Collections.emptyList();
+
+        Collection<ClassifierDescriptor> result = new SmartList<>();
+
+        result.addAll(ContainerUtil.mapNotNull(
+                provider.getTypeStatementDeclarations(fqName.shortName()),
+                classOrObjectInfo -> getClassDescriptor(classOrObjectInfo.getCorrespondingClass(), location)
+        ));
+
+//        result.addAll(ContainerUtil.mapNotNull(
+//                provider.getScriptDeclarations(fqName.shortName()),
+//                scriptInfo -> getScriptDescriptor(scriptInfo.getScript())
+//        ));
+
+        result.addAll(ContainerUtil.map(
+                provider.getTypeAliasDeclarations(fqName.shortName()),
+                alias -> (ClassifierDescriptor) lazyDeclarationResolver.resolveToDescriptor(alias)
+        ));
+
+        return result;
     }
 }
