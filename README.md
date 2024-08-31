@@ -35,7 +35,7 @@ https://plugins.jetbrains.com/plugins/linqingying/list
 如果您发现任何问题或缺少功能，欢迎您为插件做出贡献。
 
 ### 打赏支持
-如果对您有帮助，请捐赠以表支持，谢谢,捐赠时请备注
+如果对您有帮助，请捐赠以表支持，谢谢,捐赠时请备注,并留下id或姓名，我会添加到下方捐赠列表中
 <br>
 <img alt="a9777a62426b943b1a810bf0468ac4d.jpg"   src="img%2Fa9777a62426b943b1a810bf0468ac4d.jpg" width="200"/>
 <br>
@@ -49,6 +49,6 @@ https://plugins.jetbrains.com/plugins/linqingying/list
 |  ----  |-----|
 | [@daitougege](https://gitee.com/daitougege)  | 101 |
 | [@laditor](https://gitee.com/laditor)  | 10 |
- |支付宝：*贝  | 50|
+ |[@brack_45](https://gitee.com/brack_45) | 50|
 <br>
-感谢老板的支持
+感谢您的支持
