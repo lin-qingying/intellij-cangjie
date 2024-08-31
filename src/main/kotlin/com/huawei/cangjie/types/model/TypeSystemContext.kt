@@ -430,6 +430,9 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun TypeConstructorMarker.getParameter(index: Int): TypeParameterMarker
     fun TypeConstructorMarker.getParameters(): List<TypeParameterMarker>
     fun TypeConstructorMarker.supertypes(): Collection<CangJieTypeMarker>
+    fun TypeConstructorMarker.extendSupertypes(): Collection<CangJieTypeMarker>
+    fun TypeConstructorMarker.supertypesAndExtend(): Collection<CangJieTypeMarker>
+
     fun TypeConstructorMarker.isIntersection(): Boolean
     fun TypeConstructorMarker.isClassTypeConstructor(): Boolean
     fun TypeConstructorMarker.isInterface(): Boolean

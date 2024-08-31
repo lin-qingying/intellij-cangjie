@@ -41,4 +41,7 @@ class BasicTypeConstructor(
     override val supertypeLoopChecker: SupertypeLoopChecker
         get() = SupertypeLoopChecker.EMPTY
 
+    override fun toString(): String {
+        return "Basic:"+classDescriptor.name
+    }
 }

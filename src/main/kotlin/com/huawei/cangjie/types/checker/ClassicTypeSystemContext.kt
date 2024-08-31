@@ -15,8 +15,8 @@ import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.SpecialNames
 import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.calls.inference.CapturedType
-import com.huawei.cangjie.resolve.descriptorUtil.classId
 import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
+import com.huawei.cangjie.resolve.descriptorUtil.classId
 import com.huawei.cangjie.resolve.scopes.SubstitutingScope
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.error.ErrorTypeKind
@@ -54,6 +54,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         require(this is TypeConstructor, this::errorMessage)
         return this is IntegerLiteralTypeConstructor
     }
+
     override fun createTypeWithUpperBoundForIntersectionResult(
         firstCandidate: CangJieTypeMarker,
         secondCandidate: CangJieTypeMarker,
@@ -68,6 +69,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
         } ?: error("Expected intersection type, found $firstCandidate")
     }
+
     override fun TypeConstructorMarker.isIntegerLiteralConstantTypeConstructor(): Boolean {
         return isIntegerLiteralTypeConstructor()
     }
@@ -80,9 +82,11 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         require(this is TypeConstructor, this::errorMessage)
         return declarationDescriptor?.classId?.isLocal == true
     }
+
     override fun captureFromExpression(type: CangJieTypeMarker): CangJieTypeMarker? {
         return captureFromExpressionInternal(type as UnwrappedType)
     }
+
     override fun TypeConstructorMarker.isAnonymous(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
         return declarationDescriptor?.classId?.shortClassName == SpecialNames.ANONYMOUS
@@ -283,6 +287,16 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     override fun TypeConstructorMarker.supertypes(): Collection<CangJieTypeMarker> {
         require(this is TypeConstructor, this::errorMessage)
         return this.supertypes
+    }
+
+    override fun TypeConstructorMarker.extendSupertypes(): Collection<CangJieTypeMarker> {
+        require(this is TypeConstructor, this::errorMessage)
+        return this.getExtendSupertypes(null)
+
+    }
+
+    override fun TypeConstructorMarker.supertypesAndExtend(): Collection<CangJieTypeMarker> {
+        return supertypes() + extendSupertypes()
     }
 
     override fun TypeParameterMarker.getVariance(): TypeVariance {
@@ -718,16 +732,12 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun unionTypeAttributes(types: List<CangJieTypeMarker>): List<AnnotationMarker> {
         @Suppress("UNCHECKED_CAST")
-        return    (types as List<CangJieType>).map {
+        return (types as List<CangJieType>).map {
             it.unwrap().attributes
 
         }.reduce { x, y ->
             x.union(y)
         }.toList()
-
-
-
-
 
 
     }
@@ -1023,4 +1033,5 @@ fun TypeVariance.convertVariance(): Variance {
         TypeVariance.OUT -> Variance.OUT_VARIANCE
     }
 }
+
 private fun captureFromExpressionInternal(type: UnwrappedType) = captureFromExpression(type)

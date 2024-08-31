@@ -276,7 +276,9 @@ object AbstractTypeChecker {
 //                mapTo(mutableSetOf()) { state.prepareType(it).asSimpleType() ?: it }
 //            } else {
 
-            map { state.prepareType(it).asSimpleType() ?: it }
+            map {
+                state.prepareType(it).asSimpleType() ?: it
+            }
 //            }
         }
         when (supertypesWithSameConstructor.size) {
@@ -612,7 +614,7 @@ open class TypeCheckerState(
             if (!visitedSupertypes.add(current)) continue
 
             val policy = supertypesPolicy(current).takeIf { it != SupertypesPolicy.None } ?: continue
-            val supertypes = with(typeSystemContext) { current.typeConstructor().supertypes() }
+            val supertypes = with(typeSystemContext) { current.typeConstructor().supertypesAndExtend() }
             for (supertype in supertypes) {
                 val newType = policy.transformType(this, supertype)
                 if (predicate(newType)) {
