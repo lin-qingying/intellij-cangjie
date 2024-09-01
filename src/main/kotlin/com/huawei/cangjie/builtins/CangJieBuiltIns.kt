@@ -363,12 +363,12 @@ open class CangJieBuiltIns(
     }
 
 
-    //    val nullableNothingType: SimpleType get() = nothingType.makeNullableAsSpecified(true)
+    //    val nullableNothingType: SimpleType get() = nothingType.makeOptionalAsSpecified(true)
     val nothingType: SimpleType
         get() = nothing.getDefaultType()
 
 //
-//    val nullableAnyType: SimpleType get() = anyType.makeNullableAsSpecified(true)
+//    val nullableAnyType: SimpleType get() = anyType.makeOptionalAsSpecified(true)
 
 
     protected fun createBuiltInsModule(isFallback: Boolean) {

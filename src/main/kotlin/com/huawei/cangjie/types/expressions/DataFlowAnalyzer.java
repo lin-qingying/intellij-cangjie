@@ -14,6 +14,7 @@ import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstant;
 import com.huawei.cangjie.resolve.constants.TypedCompileTimeConstant;
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator;
 import com.huawei.cangjie.types.CangJieType;
+import com.huawei.cangjie.types.CangJieTypeKt;
 import com.huawei.cangjie.types.checker.CangJieTypeChecker;
 import com.huawei.cangjie.resolve.calls.checkers.NewSchemeOfIntegerOperatorResolutionChecker;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
@@ -26,6 +27,7 @@ import com.huawei.cangjie.psi.CjPsiUtil;
 
 import com.huawei.cangjie.resolve.BindingContext;
 
+import static com.huawei.cangjie.descriptors.Errors.EXPECTED_TYPE_MISMATCH;
 import static com.huawei.cangjie.types.util.TypeUtils.*;
 
 public class DataFlowAnalyzer {
@@ -154,7 +156,15 @@ public class DataFlowAnalyzer {
     public CangJieType  checkType(@Nullable CangJieType expressionType, @NotNull CjExpression expression, @NotNull ResolutionContext context) {
         return checkType(expressionType, expression, context, null, true);
     }
-
+    @Nullable
+    public CangJieType checkStatementType(@NotNull CjExpression expression, @NotNull ResolutionContext context) {
+        if (!noExpectedType(context.expectedType) && !CangJieBuiltIns.isUnit(context.expectedType) &&
+                !CangJieTypeKt.isError(context.expectedType)) {
+            context.trace.report(EXPECTED_TYPE_MISMATCH.on(expression, context.expectedType));
+            return null;
+        }
+        return builtIns.getUnitType();
+    }
     @NotNull
     public CangJieTypeInfo createCheckedTypeInfo(
             @Nullable CangJieType type,

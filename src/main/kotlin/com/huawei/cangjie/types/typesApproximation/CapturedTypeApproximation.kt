@@ -67,7 +67,7 @@ fun approximateCapturedTypes(type: CangJieType): ApproximationBounds<CangJieType
     val typeConstructor = type.constructor
     if (type.isCaptured()) {
         val typeProjection = (typeConstructor as CapturedTypeConstructor).projection
-        fun CangJieType.makeNullableIfNeeded() = TypeUtils.makeNullableIfNeeded(this, type.isMarkedOption)
+        fun CangJieType.makeNullableIfNeeded() = TypeUtils.makeOptionalIfNeeded(this, type.isMarkedOption)
         val bound = typeProjection.type.makeNullableIfNeeded()
 
         return when (typeProjection.projectionKind) {

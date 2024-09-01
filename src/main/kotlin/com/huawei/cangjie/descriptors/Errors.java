@@ -122,6 +122,11 @@ public interface Errors {
     DiagnosticFactory1<CjSimpleNameExpression, ClassDescriptor> CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, Collection<? extends ResolvedCall<?>>> UNRESOLVED_REFERENCE_WRONG_RECEIVER =
             DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory0<CjVariableDeclaration> VARIABLE_WITH_NO_TYPE_NO_INITIALIZER = DiagnosticFactory0.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactory0<CjTypeReference> LOCAL_EXTENSION_VARIABLE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory1<CjExpression, CangJieType> EXPECTED_TYPE_MISMATCH = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, String> NAME_SHADOWING = DiagnosticFactory1.create(WARNING, PositioningStrategies.FOR_REDECLARATION);
+
     DiagnosticFactory1<CjReferenceExpression, CjReferenceExpression> UNRESOLVED_REFERENCE =
             DiagnosticFactory1.create(ERROR, FOR_UNRESOLVED_REFERENCE);
     DiagnosticFactory0<CjExpression> NO_RECEIVER_ALLOWED = DiagnosticFactory0.create(ERROR);
@@ -140,6 +145,8 @@ public interface Errors {
             DiagnosticFactory3.create(ERROR);
     DiagnosticFactory3<CjSuperTypeList, TypeParameterDescriptor, ClassDescriptor, Collection<CangJieType>>
             INCONSISTENT_TYPE_PARAMETER_VALUES = DiagnosticFactory3.create(ERROR);
+    DiagnosticFactory0<CjOptionType> NULLABLE_ON_DEFINITELY_NOT_OPTIONAL = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjOptionType> REDUNDANT_OPTIONAL = DiagnosticFactory0.create(WARNING, OPTIONAL_TYPE);
 
     DiagnosticFactory3<CjTypeParameter, TypeParameterDescriptor, ClassDescriptor, Collection<CangJieType>>
             INCONSISTENT_TYPE_PARAMETER_BOUNDS = DiagnosticFactory3.create(ERROR);

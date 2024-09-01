@@ -3,6 +3,7 @@ package com.huawei.cangjie.types.expressions;
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.descriptors.ModuleDescriptor;
+import com.huawei.cangjie.resolve.LocalVariableResolver;
 import com.huawei.cangjie.resolve.OverloadChecker;
 import com.huawei.cangjie.resolve.calls.CallExpressionResolver;
 import com.huawei.cangjie.resolve.calls.model.CangJieCallComponents;
@@ -18,6 +19,7 @@ public class ExpressionTypingComponents {
     public LanguageVersionSettings languageVersionSettings;
     public ModuleDescriptor moduleDescriptor;
 
+    public LocalVariableResolver localVariableResolver;
 
     public CangJieBuiltIns builtIns;
     public DataFlowValueFactory dataFlowValueFactory;
@@ -37,6 +39,10 @@ public class ExpressionTypingComponents {
     @Inject
     public void setModuleDescriptor(@NotNull ModuleDescriptor moduleDescriptor) {
         this.moduleDescriptor = moduleDescriptor;
+    }
+    @Inject
+    public void setLocalVariableResolver(@NotNull LocalVariableResolver localVariableResolver) {
+        this.localVariableResolver = localVariableResolver;
     }
 
     @Inject

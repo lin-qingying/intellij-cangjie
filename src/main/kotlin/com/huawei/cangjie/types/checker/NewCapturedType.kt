@@ -105,7 +105,7 @@ class NewCapturedType(
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType =
         NewCapturedType(captureStatus, constructor, lowerType, newAttributes, isMarkedOption, isProjectionNotNull)
 
-    override fun makeNullableAsSpecified(newNullability: Boolean) =
+    override fun makeOptionalAsSpecified(newNullability: Boolean) =
         NewCapturedType(captureStatus, constructor, lowerType, attributes, newNullability)
 
     @TypeRefinement
@@ -233,14 +233,14 @@ fun captureFromExpression(type: UnwrappedType): UnwrappedType? {
     return if (type is FlexibleType) {
         val lowerIntersectedType =
             intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type.lowerBound))
-                .makeNullableAsSpecified(type.lowerBound.isMarkedOption)
+                .makeOptionalAsSpecified(type.lowerBound.isMarkedOption)
         val upperIntersectedType =
             intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type.upperBound))
-                .makeNullableAsSpecified(type.upperBound.isMarkedOption)
+                .makeOptionalAsSpecified(type.upperBound.isMarkedOption)
 
         CangJieTypeFactory.flexibleType(lowerIntersectedType, upperIntersectedType)
     } else {
-        intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type)).makeNullableAsSpecified(type.isMarkedOption)
+        intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type)).makeOptionalAsSpecified(type.isMarkedOption)
     }
 }
 

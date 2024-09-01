@@ -24,7 +24,7 @@ class ErrorType @JvmOverloads internal constructor(
 //    fun replaceArguments(newArguments: List<TypeProjection>): ErrorType =
 //        ErrorType(constructor, memberScope, kind, newArguments, isMarkedOption, *formatParams)
 
-    override fun makeNullableAsSpecified(newNullability: Boolean): SimpleType =
+    override fun makeOptionalAsSpecified(newNullability: Boolean): SimpleType =
         ErrorType(constructor, memberScope, kind, arguments, newNullability, *formatParams)
 
     @TypeRefinement

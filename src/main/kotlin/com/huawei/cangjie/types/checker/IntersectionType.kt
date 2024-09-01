@@ -74,7 +74,7 @@ object TypeIntersector {
         }
 
         if (nothingOrNullableNothing != null) {
-            return TypeUtils.makeNullableAsSpecified(nothingOrNullableNothing, allNullable)
+            return TypeUtils.makeOptionalAsSpecified(nothingOrNullableNothing, allNullable)
         }
 
         if (nullabilityStripped.isEmpty()) {
@@ -102,7 +102,7 @@ object TypeIntersector {
 //                        break
 //                    }
 //                }
-//                if (relativeToAll) return TypeUtils.makeNullableAsSpecified(type, allNullable)
+//                if (relativeToAll) return TypeUtils.makeOptionalAsSpecified(type, allNullable)
 //            }
             for (other in nullabilityStripped) {
                 if (!type.equals(other) && typeChecker.isSubtypeOf(other, type)) {
@@ -134,11 +134,11 @@ object TypeIntersector {
             if (bestRepresentative == null) {
                 return null
             }
-            return TypeUtils.makeNullableAsSpecified(bestRepresentative, allNullable)
+            return TypeUtils.makeOptionalAsSpecified(bestRepresentative, allNullable)
         }
 
         if (resultingTypes.size == 1) {
-            return TypeUtils.makeNullableAsSpecified(resultingTypes[0], allNullable)
+            return TypeUtils.makeOptionalAsSpecified(resultingTypes[0], allNullable)
         }
 
         return IntersectionTypeConstructor(resultingTypes).createType()
@@ -152,7 +152,7 @@ object TypeIntersector {
         for (type in types) {
             if (type.constructor is IntersectionTypeConstructor) {
                 inputTypes.addAll(type.constructor.supertypes.map {
-                    it.upperIfFlexible().let { if (type.isMarkedOption) it.makeNullableAsSpecified(true) else it }
+                    it.upperIfFlexible().let { if (type.isMarkedOption) it.makeOptionalAsSpecified(true) else it }
                 })
             } else {
                 inputTypes.add(type)

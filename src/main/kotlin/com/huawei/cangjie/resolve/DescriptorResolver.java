@@ -21,7 +21,6 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import com.huawei.cangjie.resolve.calls.util.CallResolverUtilKt;
 import com.huawei.cangjie.resolve.calls.util.UnderscoreUtilKt;
-import com.huawei.cangjie.resolve.descriptorUtil.DescriptorUtilsKt;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyTypeAliasDescriptor;
 import com.huawei.cangjie.resolve.scopes.*;
@@ -287,9 +286,9 @@ public class DescriptorResolver {
 //                    if (lowerNullable != upperNullable) {
 //                        return CangJieTypeFactory.flexibleType(
 //                                FlexibleTypesKt.lowerIfFlexible(substitutedSuperType),
-//                                FlexibleTypesKt.upperIfFlexible(substitutedSuperType).makeNullableAsSpecified(true));
+//                                FlexibleTypesKt.upperIfFlexible(substitutedSuperType).makeOptionalAsSpecified(true));
 //                    }
-//                    return TypeUtils.makeNullableIfNeeded(substitutedSuperType, upperNullable);
+//                    return TypeUtils.makeOptionalIfNeeded(substitutedSuperType, upperNullable);
 //                } else if (upperNullable) {
 //                    if (lowerNullable) {
 //                        trace.report(APPROXIMATED_LOCAL_TYPE_WILL_BECOME_NULLABLE.on(declaration, substitutedSuperType));
@@ -623,7 +622,7 @@ public class DescriptorResolver {
 //
 //        LexicalScope scopeForInitializer = ScopeUtils.makeScopeForPropertyInitializer(scopeForInitializerResolutionWithTypeParameters, propertyDescriptor);
 //        CangJieType propertyType = propertyInfo.getVariableType();
-//        CangJieType typeIfKnown = propertyType != null ? propertyType : variableTypeAndInitializerResolver.resolveTypeNullable(
+//        CangJieType typeIfKnown = propertyType != null ? propertyType : variableTypeAndInitializerResolver.resolveTypeOptional(
 //                propertyDescriptor, scopeForInitializer,
 //                variableDeclaration, dataFlowInfo, inferenceSession,
 //                trace, /* local = */ false
@@ -1170,7 +1169,7 @@ public class DescriptorResolver {
 
         LexicalScope scopeForInitializer = ScopeUtils.makeScopeForVariableInitializer(scopeForInitializerResolutionWithTypeParameters, variableDescriptor);
         CangJieType propertyType = variableInfo.getVariableType();
-        CangJieType typeIfKnown = propertyType != null ? propertyType : variableTypeAndInitializerResolver.resolveTypeNullable(
+        CangJieType typeIfKnown = propertyType != null ? propertyType : variableTypeAndInitializerResolver.resolveTypeOptional(
                 variableDescriptor, scopeForInitializer,
                 variableDeclaration, dataFlowInfo, inferenceSession,
                 trace, /* local = */ false

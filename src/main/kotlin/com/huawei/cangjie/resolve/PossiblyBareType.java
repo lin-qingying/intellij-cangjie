@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve;
 
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.TypeConstructor;
+import com.huawei.cangjie.types.util.TypeUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,19 +29,38 @@ import org.jetbrains.annotations.Nullable;
 public class PossiblyBareType {
     private final CangJieType actualType;
     private final TypeConstructor bareTypeConstructor;
-    private final boolean nullable;
+    private final boolean optional;
 
-    private PossiblyBareType(@Nullable CangJieType actualType, @Nullable TypeConstructor bareTypeConstructor, boolean nullable) {
+    private PossiblyBareType(@Nullable CangJieType actualType, @Nullable TypeConstructor bareTypeConstructor, boolean optional) {
         this.actualType = actualType;
         this.bareTypeConstructor = bareTypeConstructor;
-        this.nullable = nullable;
+        this.optional = optional;
+    }
+    private boolean isBareTypeNullable() {
+        return optional;
+    }
+    public boolean isOptional() {
+        if (isBare()) return isBareTypeNullable();
+        return getActualType().isMarkedOption();
+    }
+    @NotNull
+    public static PossiblyBareType bare(@NotNull TypeConstructor bareTypeConstructor, boolean optional) {
+        return new PossiblyBareType(null, bareTypeConstructor, optional);
+    }
+
+    public PossiblyBareType makeOptional() {
+        if (isBare()) {
+            return isBareTypeNullable() ? this : bare(getBareTypeConstructor(), true);
+        }
+
+        return type(TypeUtils.makeOptional(getActualType()));
     }
 
     @NotNull
-    public static PossiblyBareType bare(@NotNull TypeConstructor bareTypeConstructor, boolean nullable) {
-        return new PossiblyBareType(null, bareTypeConstructor, nullable);
+    public TypeConstructor getBareTypeConstructor() {
+        //noinspection ConstantConditions
+        return bareTypeConstructor;
     }
-
     @NotNull
     public CangJieType getActualType() {
         //noinspection ConstantConditions

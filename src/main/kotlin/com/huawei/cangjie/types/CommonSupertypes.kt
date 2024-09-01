@@ -176,7 +176,7 @@ object CommonSupertypes {
         }
 
         if (typeSet.size == 1) {
-            return TypeUtils.makeNullableIfNeeded(typeSet.iterator().next(), nullable)
+            return TypeUtils.makeOptionalIfNeeded(typeSet.iterator().next(), nullable)
         }
 
         // constructor of the supertype -> all of its instantiations occurring as supertypes
@@ -214,7 +214,7 @@ object CommonSupertypes {
         // Reconstructing type arguments if possible
         val result: SimpleType =
             computeSupertypeProjections(entry.key, entry.value, recursionDepth, maxDepth)
-        return TypeUtils.makeNullableIfNeeded(result, nullable)
+        return TypeUtils.makeOptionalIfNeeded(result, nullable)
     }
 
     private fun renderTypeFully(type: CangJieType): String {

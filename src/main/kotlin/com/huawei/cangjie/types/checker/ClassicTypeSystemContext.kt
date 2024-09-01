@@ -64,7 +64,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
         (firstCandidate.constructor as? IntersectionTypeConstructor)?.let { intersectionConstructor ->
             val intersectionTypeWithAlternative = intersectionConstructor.setAlternative(secondCandidate).createType()
-            return if (firstCandidate.isMarkedOption) intersectionTypeWithAlternative.makeNullableAsSpecified(true)
+            return if (firstCandidate.isMarkedOption) intersectionTypeWithAlternative.makeOptionalAsSpecified(true)
             else intersectionTypeWithAlternative
 
         } ?: error("Expected intersection type, found $firstCandidate")
@@ -106,7 +106,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun SimpleTypeMarker.withNullability(nullable: Boolean): SimpleTypeMarker {
         require(this is SimpleType, this::errorMessage)
-        return this.makeNullableAsSpecified(nullable)
+        return this.makeOptionalAsSpecified(nullable)
     }
 
     override fun CangJieTypeMarker.isError(): Boolean {
@@ -928,7 +928,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
         (firstCandidate.constructor as? IntersectionTypeConstructor)?.let { intersectionConstructor ->
             val intersectionTypeWithAlternative = intersectionConstructor.setAlternative(secondCandidate).createType()
-            return if (firstCandidate.isMarkedOption) intersectionTypeWithAlternative.makeNullableAsSpecified(true)
+            return if (firstCandidate.isMarkedOption) intersectionTypeWithAlternative.makeOptionalAsSpecified(true)
             else intersectionTypeWithAlternative
 
         } ?: error("Expected intersection type, found $firstCandidate")

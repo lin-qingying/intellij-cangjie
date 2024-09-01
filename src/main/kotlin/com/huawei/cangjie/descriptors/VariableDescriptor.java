@@ -14,6 +14,9 @@ public interface VariableDescriptor extends CallableMemberDescriptor, VariableDe
     VariableDescriptor substitute(@NotNull TypeSubstitutor substitutor);
 
     @Override
+    void setOverriddenDescriptors(@NotNull Collection<? extends CallableMemberDescriptor> overriddenDescriptors);
+
+    @Override
     @NotNull
     VariableDescriptor getOriginal();
 

@@ -35,7 +35,7 @@ abstract class CangJiePreparator : AbstractTypePreparator() {
 //
 //            is IntegerValueTypeConstructor -> {
 //                val newConstructor =
-//                    IntersectionTypeConstructor(constructor.supertypes.map { TypeUtils.makeNullableAsSpecified(it, type.isMarkedOption) })
+//                    IntersectionTypeConstructor(constructor.supertypes.map { TypeUtils.makeOptionalAsSpecified(it, type.isMarkedOption) })
 //                return CangJieFactory.simpleTypeWithNonTrivialMemberScope(
 //                    type.attributes,
 //                    newConstructor,
@@ -46,7 +46,7 @@ abstract class CangJiePreparator : AbstractTypePreparator() {
 //            }
 //
 //            is IntersectionTypeConstructor -> if (type.isMarkedOption) {
-//                val newConstructor = constructor.transformComponents(transform = { it.makeNullable() }) ?: constructor
+//                val newConstructor = constructor.transformComponents(transform = { it.makeOptional() }) ?: constructor
 //                return newConstructor.createType()
 //
 //            }
@@ -98,7 +98,7 @@ abstract class CangJieTypePreparator : AbstractTypePreparator() {
 //            is IntegerValueTypeConstructor -> {
 //                val newConstructor =
 //                    IntersectionTypeConstructor(constructor.supertypes.map {
-//                        TypeUtils.makeNullableAsSpecified(
+//                        TypeUtils.makeOptionalAsSpecified(
 //                            it,
 //                            type.isMarkedOption
 //                        )
@@ -113,7 +113,7 @@ abstract class CangJieTypePreparator : AbstractTypePreparator() {
 //            }
 //
 //            is IntersectionTypeConstructor -> if (type.isMarkedOption) {
-//                val newConstructor = constructor.transformComponents(transform = { it.makeNullable() }) ?: constructor
+//                val newConstructor = constructor.transformComponents(transform = { it.makeOptional() }) ?: constructor
 //                return newConstructor.createType()
 //
 //            }

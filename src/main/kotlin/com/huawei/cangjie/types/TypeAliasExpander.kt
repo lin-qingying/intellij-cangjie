@@ -93,7 +93,7 @@ class TypeAliasExpander(
             if (projection.isStarProjection) projection
             else TypeProjectionImpl(
                 projection.projectionKind,
-                TypeUtils.makeNullableIfNeeded(projection.type, originalArgument.type.isMarkedOption)
+                TypeUtils.makeOptionalIfNeeded(projection.type, originalArgument.type.isMarkedOption)
             )
         }
 
@@ -161,7 +161,7 @@ class TypeAliasExpander(
         return TypeProjectionImpl(resultingVariance, substitutedType)
     }
     private fun SimpleType.combineNullability(fromType: CangJieType) =
-        TypeUtils.makeNullableIfNeeded(this, fromType.isMarkedOption)
+        TypeUtils.makeOptionalIfNeeded(this, fromType.isMarkedOption)
 
     private fun SimpleType.combineNullabilityAndAnnotations(fromType: CangJieType) =
         combineNullability(fromType).combineAttributes(fromType.attributes)
@@ -199,7 +199,7 @@ class TypeAliasExpander(
 
 //        checkRepeatedAnnotations(expandedType.annotations, attributes.annotations)
         val expandedTypeWithExtraAnnotations =
-            expandedType.combineAttributes(attributes).let { TypeUtils.makeNullableIfNeeded(it, isNullable) }
+            expandedType.combineAttributes(attributes).let { TypeUtils.makeOptionalIfNeeded(it, isNullable) }
 
         return if (withAbbreviatedType)
             expandedTypeWithExtraAnnotations.withAbbreviation(typeAliasExpansion.createAbbreviation(attributes, isNullable))

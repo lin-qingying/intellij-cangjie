@@ -86,12 +86,12 @@ private fun CangJieType.approximateNonDynamicFlexibleTypes(
                 // (Mutable)Collection<T>!
                 val bound = if (preferUpperBoundsForCollections) upperBound else lowerBound
                 if (lowerBound.isMarkedOption != upperBound.isMarkedOption)
-                    bound.makeNullableAsSpecified(!preferNotNull)
+                    bound.makeOptionalAsSpecified(!preferNotNull)
                 else
                     bound
             } else {
                 if (this is RawType && preferStarForRaw)
-                    upperBound.makeNullableAsSpecified(!preferNotNull)
+                    upperBound.makeOptionalAsSpecified(!preferNotNull)
                 else
                     if (preferNotNull) lowerBound else upperBound
             }
@@ -99,14 +99,14 @@ private fun CangJieType.approximateNonDynamicFlexibleTypes(
         approximation = approximation.approximateNonDynamicFlexibleTypes()
 
         approximation =
-            if (nullability() == TypeNullability.NOT_NULL) approximation.makeNullableAsSpecified(false) else approximation
+            if (nullability() == TypeNullability.NOT_NULL) approximation.makeOptionalAsSpecified(false) else approximation
 
         if (approximation.isMarkedOption && !lowerBound
                 .isMarkedOption && TypeUtils.isTypeParameter(approximation) && TypeUtils.hasNullableSuperType(
                 approximation
             )
         ) {
-            approximation = approximation.makeNullableAsSpecified(false)
+            approximation = approximation.makeOptionalAsSpecified(false)
         }
 
         return approximation
@@ -132,7 +132,7 @@ fun TypeProjection.substitute(doSubstitute: (CangJieType) -> CangJieType): TypeP
     else TypeProjectionImpl(projectionKind, doSubstitute(type))
 }
 
-fun CangJieType.makeNullable() = TypeUtils.makeNullable(this)
+fun CangJieType.makeOptional() = TypeUtils.makeOptional(this)
 fun CangJieType.makeNotNullable() = TypeUtils.makeNotNullable(this)
 
 fun CangJieType.isInterface(): Boolean =
@@ -158,7 +158,7 @@ fun CangJieType.expandIntersectionTypeIfNecessary(): Collection<CangJieType> {
     if (constructor !is IntersectionTypeConstructor) return listOf(this)
     val types = constructor.supertypes
     return if (isMarkedOption) {
-        types.map { it.makeNullable() }
+        types.map { it.makeOptional() }
     } else {
         types
     }
@@ -319,6 +319,21 @@ object TypeUtils {
         return null
     }
 
+
+    /**
+     * 将other添加到stub的泛型参数中
+     */
+    fun addTypeParameterToStub(stub: CangJieType, vararg other: CangJieType): CangJieType {
+
+        if (stub.constructor.parameters.size != other.size) return stub
+        val arguments = mutableListOf<TypeProjection>()
+        other.forEach {
+            arguments.add(TypeProjectionImpl(it))
+        }
+        return CangJieTypeFactory.simpleType(stub.attributes, stub.constructor, arguments, false, null)
+
+    }
+
     fun createSubstitutedSupertype(
         subType: CangJieType,
         superType: CangJieType,
@@ -326,7 +341,7 @@ object TypeUtils {
     ): CangJieType? {
         val substitutedType: CangJieType? = substitutor.substitute(superType, Variance.INVARIANT)
         if (substitutedType != null) {
-            return makeNullableIfNeeded(substitutedType, subType.isMarkedOption)
+            return makeOptionalIfNeeded(substitutedType, subType.isMarkedOption)
         }
         return null
     }
@@ -596,13 +611,13 @@ object TypeUtils {
     }
 
     @JvmStatic
-    fun makeNullable(type: CangJieType): CangJieType {
-        return makeNullableAsSpecified(type, true)
+    fun makeOptional(type: CangJieType): CangJieType {
+        return makeOptionalAsSpecified(type, true)
     }
 
     @JvmStatic
     fun makeNotNullable(type: CangJieType): CangJieType {
-        return makeNullableAsSpecified(type, false)
+        return makeOptionalAsSpecified(type, false)
     }
 
     @JvmStatic
@@ -611,31 +626,31 @@ object TypeUtils {
     }
 
     @JvmStatic
-    fun makeNullableAsSpecified(
+    fun makeOptionalAsSpecified(
         type: CangJieType,
-        nullable: Boolean
+        optional: Boolean
     ): CangJieType {
-        return type.unwrap().makeNullableAsSpecified(nullable)
+        return type.unwrap().makeOptionalAsSpecified(optional)
     }
 
     @JvmStatic
-    fun makeNullableIfNeeded(
+    fun makeOptionalIfNeeded(
         type: CangJieType,
-        nullable: Boolean
+        optional: Boolean
     ): CangJieType {
-        if (nullable) {
-            return makeNullable(type)
+        if (optional) {
+            return makeOptional(type)
         }
         return type
     }
 
     @JvmStatic
-    fun makeNullableIfNeeded(
+    fun makeOptionalIfNeeded(
         type: SimpleType,
-        nullable: Boolean
+        optional: Boolean
     ): SimpleType {
-        if (nullable) {
-            return type.makeNullableAsSpecified(true)
+        if (optional) {
+            return type.makeOptionalAsSpecified(true)
         }
         return type
     }
@@ -793,7 +808,7 @@ object TypeUtils {
 //            throw IllegalStateException(name)
 //        }
 //
-        override fun makeNullableAsSpecified(newNullability: Boolean): SimpleType {
+        override fun makeOptionalAsSpecified(newNullability: Boolean): SimpleType {
             throw IllegalStateException(name)
         }
 

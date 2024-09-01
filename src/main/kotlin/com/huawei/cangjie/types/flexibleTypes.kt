@@ -119,7 +119,7 @@ class FlexibleTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : Flexibl
         val unwrapped = replacement.unwrap()
         return when (unwrapped) {
             is FlexibleType -> unwrapped
-            is SimpleType -> CangJieTypeFactory.flexibleType(unwrapped, unwrapped.makeNullableAsSpecified(true))
+            is SimpleType -> CangJieTypeFactory.flexibleType(unwrapped, unwrapped.makeOptionalAsSpecified(true))
         }.inheritEnhancement(unwrapped)
     }
 
@@ -135,9 +135,9 @@ class FlexibleTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : Flexibl
 
     override fun toString() = "($lowerBound..$upperBound)"
 
-    override fun makeNullableAsSpecified(newNullability: Boolean): UnwrappedType = CangJieTypeFactory.flexibleType(
-        lowerBound.makeNullableAsSpecified(newNullability),
-        upperBound.makeNullableAsSpecified(newNullability)
+    override fun makeOptionalAsSpecified(newNullability: Boolean): UnwrappedType = CangJieTypeFactory.flexibleType(
+        lowerBound.makeOptionalAsSpecified(newNullability),
+        upperBound.makeOptionalAsSpecified(newNullability)
     )
 
     @TypeRefinement

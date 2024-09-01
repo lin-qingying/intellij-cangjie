@@ -46,7 +46,7 @@ public class TypeIntersector {
         }
 
         if (nothingOrNullableNothing != null) {
-            return TypeUtils.makeNullableAsSpecified(nothingOrNullableNothing, allNullable);
+            return TypeUtils.makeOptionalAsSpecified(nothingOrNullableNothing, allNullable);
         }
 
         if (nullabilityStripped.isEmpty()) {
@@ -74,7 +74,7 @@ public class TypeIntersector {
                         break;
                     }
                 }
-                if (relativeToAll) return TypeUtils.makeNullableAsSpecified(type, allNullable);
+                if (relativeToAll) return TypeUtils.makeOptionalAsSpecified(type, allNullable);
             }
             for (CangJieType other : nullabilityStripped) {
                 if (!type.equals(other) && typeChecker.isSubtypeOf(other, type)) {
@@ -106,11 +106,11 @@ public class TypeIntersector {
             if (bestRepresentative == null) {
                 return null;
             }
-            return TypeUtils.makeNullableAsSpecified(bestRepresentative, allNullable);
+            return TypeUtils.makeOptionalAsSpecified(bestRepresentative, allNullable);
         }
 
         if (resultingTypes.size() == 1) {
-            return TypeUtils.makeNullableAsSpecified(resultingTypes.get(0), allNullable);
+            return TypeUtils.makeOptionalAsSpecified(resultingTypes.get(0), allNullable);
         }
 
         return new IntersectionTypeConstructor(resultingTypes).createType();

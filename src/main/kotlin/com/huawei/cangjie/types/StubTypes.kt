@@ -23,7 +23,7 @@ abstract class AbstractStubType(
 
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType = this
 
-    override fun makeNullableAsSpecified(newNullability: Boolean): SimpleType {
+    override fun makeOptionalAsSpecified(newNullability: Boolean): SimpleType {
         return if (newNullability == isMarkedOption) this else materialize(newNullability)
     }
 

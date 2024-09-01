@@ -158,7 +158,12 @@ object PositioningStrategies {
             return declaration
         }
     }
-
+    @JvmField
+    val OPTIONAL_TYPE: PositioningStrategy<CjOptionType> = object : PositioningStrategy<CjOptionType>() {
+        override fun mark(element: CjOptionType): List<TextRange> {
+            return markNode(element.getQuestionMarkNode())
+        }
+    }
     @JvmField
     val DECLARATION_NAME: PositioningStrategy<CjNamedDeclaration> = object : DeclarationHeader<CjNamedDeclaration>() {
         override fun mark(element: CjNamedDeclaration): List<TextRange> {

@@ -111,7 +111,7 @@ interface NewTypeSubstitutor : TypeSubstitutorMarker {
 
         if (typeConstructor is IntersectionTypeConstructor) {
             fun updateNullability(substituted: UnwrappedType) =
-                if (type.isMarkedOption) substituted.makeNullableAsSpecified(true) else substituted
+                if (type.isMarkedOption) substituted.makeOptionalAsSpecified(true) else substituted
 
             substituteNotNullTypeWithConstructor(typeConstructor)?.let { return updateNullability(it) }
             var thereAreChanges = false
@@ -131,7 +131,7 @@ interface NewTypeSubstitutor : TypeSubstitutorMarker {
             )
         }
         if (type.isMarkedOption) {
-            replacement = replacement.makeNullableAsSpecified(true)
+            replacement = replacement.makeOptionalAsSpecified(true)
         }
         if (type.isDefinitelyNotNullType) {
             replacement = replacement.makeDefinitelyNotNullOrNotNull()

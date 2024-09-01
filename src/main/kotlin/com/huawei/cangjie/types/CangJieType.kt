@@ -67,7 +67,7 @@ sealed class CangJieType : Annotated, CangJieTypeMarker {
 sealed class UnwrappedType : CangJieType() {
     final override fun unwrap(): UnwrappedType = this
     abstract fun replaceAttributes(newAttributes: TypeAttributes): UnwrappedType
-    abstract fun makeNullableAsSpecified(newNullability: Boolean): UnwrappedType
+    abstract fun makeOptionalAsSpecified(newNullability: Boolean): UnwrappedType
 
     @TypeRefinement
     abstract override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType
@@ -104,7 +104,7 @@ class BasicType(
     @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType = this
 
-    override fun makeNullableAsSpecified(newNullability: Boolean) = this
+    override fun makeOptionalAsSpecified(newNullability: Boolean) = this
 
     override fun replaceAttributes(newAttributes: TypeAttributes) = this
     override fun hashCode(): Int {
@@ -116,7 +116,7 @@ class BasicType(
 }
 
 abstract class SimpleType : UnwrappedType(), SimpleTypeMarker, TypeArgumentListMarker {
-    abstract override fun makeNullableAsSpecified(newNullability: Boolean): SimpleType
+    abstract override fun makeOptionalAsSpecified(newNullability: Boolean): SimpleType
     abstract override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType
     override fun toString(): String {
         return buildString {

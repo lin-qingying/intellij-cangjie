@@ -39,7 +39,7 @@ class DynamicType(
 
 
     // Nullability has no effect on dynamics
-    override fun makeNullableAsSpecified(newNullability: Boolean): DynamicType = this
+    override fun makeOptionalAsSpecified(newNullability: Boolean): DynamicType = this
 
 
     override fun render(renderer: DescriptorRenderer, options: DescriptorRendererOptions): String = "dynamic"

@@ -65,7 +65,7 @@ fun findCorrespondingSupertype(
                         typeCheckingProcedureCallbacks.assertEqualTypeConstructors(substitutedConstructor, supertypeConstructor))
             }
 
-            return TypeUtils.makeNullableAsSpecified(substituted, isAnyMarkedNullable)
+            return TypeUtils.makeOptionalAsSpecified(substituted, isAnyMarkedNullable)
         }
 
         for (immediateSupertype in constructor.supertypes) {

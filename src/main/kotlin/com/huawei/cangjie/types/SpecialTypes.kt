@@ -27,10 +27,10 @@ class AbbreviatedType(override val delegate: SimpleType, val abbreviation: Simpl
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType =
         AbbreviatedType(delegate.replaceAttributes(newAttributes), abbreviation)
 
-    override fun makeNullableAsSpecified(newNullability: Boolean) =
+    override fun makeOptionalAsSpecified(newNullability: Boolean) =
         AbbreviatedType(
-            delegate.makeNullableAsSpecified(newNullability),
-            abbreviation.makeNullableAsSpecified(newNullability)
+            delegate.makeOptionalAsSpecified(newNullability),
+            abbreviation.makeOptionalAsSpecified(newNullability)
         )
 
     @TypeRefinement
@@ -141,7 +141,7 @@ class DefinitelyNotNullType private constructor(
 
 
                     DefinitelyNotNullType(
-                        type.lowerIfFlexible().makeNullableAsSpecified(false),
+                        type.lowerIfFlexible().makeOptionalAsSpecified(false),
                         useCorrectedNullabilityForTypeParameters
                     )
                 }
@@ -202,8 +202,8 @@ class DefinitelyNotNullType private constructor(
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType =
         DefinitelyNotNullType(delegate.replaceAttributes(newAttributes), useCorrectedNullabilityForTypeParameters)
 
-    override fun makeNullableAsSpecified(newNullability: Boolean): SimpleType =
-        if (newNullability) delegate.makeNullableAsSpecified(newNullability) else this
+    override fun makeOptionalAsSpecified(newNullability: Boolean): SimpleType =
+        if (newNullability) delegate.makeOptionalAsSpecified(newNullability) else this
 
     override fun toString(): String = "$delegate & Any"
 
@@ -215,7 +215,7 @@ class DefinitelyNotNullType private constructor(
 fun SimpleType.makeSimpleTypeDefinitelyNotNullOrNotNull(useCorrectedNullabilityForTypeParameters: Boolean = false): SimpleType =
     DefinitelyNotNullType.makeDefinitelyNotNull(this, useCorrectedNullabilityForTypeParameters)
         ?: makeIntersectionTypeDefinitelyNotNullOrNotNull()
-        ?: makeNullableAsSpecified(false)
+        ?: makeOptionalAsSpecified(false)
 
 fun NewCapturedType.withNotNullProjection() =
     NewCapturedType(captureStatus, constructor, lowerType, attributes, isMarkedOption, isProjectionNotNull = true)
@@ -223,7 +223,7 @@ fun NewCapturedType.withNotNullProjection() =
 fun UnwrappedType.makeDefinitelyNotNullOrNotNull(useCorrectedNullabilityForTypeParameters: Boolean = false): UnwrappedType =
     DefinitelyNotNullType.makeDefinitelyNotNull(this, useCorrectedNullabilityForTypeParameters)
         ?: makeIntersectionTypeDefinitelyNotNullOrNotNull()
-        ?: makeNullableAsSpecified(false)
+        ?: makeOptionalAsSpecified(false)
 
 private fun IntersectionTypeConstructor.makeDefinitelyNotNullOrNotNull(): IntersectionTypeConstructor? {
     return transformComponents({ TypeUtils.isNullableType(it) }, { it.unwrap().makeDefinitelyNotNullOrNotNull() })

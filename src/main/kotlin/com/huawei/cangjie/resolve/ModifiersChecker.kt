@@ -29,7 +29,12 @@ class ModifiersChecker(
             checkModifierListCommon(modifierListOwner, descriptor)
             checkIllegalHeader(modifierListOwner, descriptor)
         }
-
+        fun checkModifiersForLocalDeclaration(
+            modifierListOwner: CjDeclaration,
+            descriptor:  DeclarationDescriptor
+        ) {
+            checkModifierListCommon(modifierListOwner, descriptor)
+        }
         private fun checkIllegalHeader(
             modifierListOwner: CjModifierListOwner,
             descriptor: DeclarationDescriptor

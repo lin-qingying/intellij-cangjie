@@ -1,5 +1,6 @@
 package com.huawei.cangjie.descriptors.impl
 
+import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.SourceElement
 import com.huawei.cangjie.descriptors.annotations.Annotations
@@ -38,6 +39,8 @@ abstract class VariableDescriptorWithInitializerImpl(
         }
         return null
     }
+
+
 
     fun setCompileTimeInitializer(
         compileTimeInitializer: NullableLazyValue<ConstantValue<*>>?,

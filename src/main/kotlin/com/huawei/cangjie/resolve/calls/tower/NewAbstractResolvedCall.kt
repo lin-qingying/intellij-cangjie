@@ -19,7 +19,7 @@ import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeApproximator
 import com.huawei.cangjie.types.isFlexible
 import com.huawei.cangjie.types.util.makeNotNullable
-import com.huawei.cangjie.types.util.makeNullable
+import com.huawei.cangjie.types.util.makeOptional
 import com.huawei.cangjie.utils.compactIfPossible
 
 
@@ -174,7 +174,7 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
     }
 
     private fun CangJieType.withNullabilityFromExplicitTypeArgument(typeArgument: SimpleTypeArgument) =
-        (if (typeArgument.type.isMarkedOption) makeNullable() else makeNotNullable()).unwrap()
+        (if (typeArgument.type.isMarkedOption) makeOptional() else makeNotNullable()).unwrap()
 
     private fun getSubstitutorWithoutFlexibleTypes(
         currentSubstitutor: NewTypeSubstitutor?,

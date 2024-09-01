@@ -48,7 +48,7 @@ class AdditionalDiagnosticReporter(
         diagnostics: Collection<CangJieCallDiagnostic>
     ): SmartCastDiagnostic? {
         if (receiver == null || parameter == null) return null
-        val expectedType = parameter.type.unwrap().let { if (receiver.isSafeCall) it.makeNullableAsSpecified(true) else it }
+        val expectedType = parameter.type.unwrap().let { if (receiver.isSafeCall) it.makeOptionalAsSpecified(true) else it }
 
         val smartCastDiagnostic = createSmartCastDiagnostic(candidate, receiver, expectedType) ?: return null
 

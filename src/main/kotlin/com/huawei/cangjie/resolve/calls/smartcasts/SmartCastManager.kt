@@ -63,7 +63,7 @@ class SmartCastManager(private val argumentTypeResolver: ArgumentTypeResolver) {
 //            return it
 //        }
 //
-//        val nullableParameterType = TypeUtils.makeNullable(receiverParameterType)
+//        val nullableParameterType = TypeUtils.makeOptional(receiverParameterType)
 //        return when {
 //            getSmartCastReceiverResultWithGivenNullability(receiverArgument, nullableParameterType, context) == null -> null
 //            else -> ReceiverSmartCastResult.SMARTCAST_NEEDED_OR_NOT_NULL_EXPECTED
@@ -155,7 +155,7 @@ class SmartCastManager(private val argumentTypeResolver: ArgumentTypeResolver) {
 //            // E.g. in case x!! when x has type of T where T is type parameter with nullable upper bounds
 //            // x!! is immanently not null (see DataFlowValueFactory.createDataFlowValue for expression)
 //            val immanentlyNotNull = !dataFlowValue.immanentNullability.canBeNull()
-//            val nullableExpectedType = TypeUtils.makeNullable(expectedType)
+//            val nullableExpectedType = TypeUtils.makeOptional(expectedType)
 //
 //            if (argumentTypeResolver.isSubtypeOfForArgumentType(dataFlowValue.type, nullableExpectedType) &&
 //                (additionalPredicate == null || additionalPredicate(dataFlowValue.type))

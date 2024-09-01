@@ -71,6 +71,8 @@ CjPackageDirectiveElementType  PACKAGE_DIRECTIVE =
 
 //    CjPlaceHolderStubElementType<CjIntersectionType> INTERSECTION_TYPE =
 //            new CjPlaceHolderStubElementType<>("INTERSECTION_TYPE", CjIntersectionType.class);
+CjPlaceHolderStubElementType<CjOptionType> OPTIONAL_TYPE =
+        new CjPlaceHolderStubElementType<>("OPTIONAL_TYPE", CjOptionType.class);
 
     CjPlaceHolderStubElementType<CjTypeReference> TYPE_REFERENCE =
             new CjPlaceHolderStubElementType<>("TYPE_REFERENCE", CjTypeReference.class);

@@ -2,9 +2,12 @@ package com.huawei.cangjie.resolve.calls.smartcasts
 
 import com.huawei.cangjie.CjNodeTypes
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.ModuleDescriptor
+import com.huawei.cangjie.descriptors.PropertyDescriptor
 import com.huawei.cangjie.descriptors.VariableDescriptor
+import com.huawei.cangjie.descriptors.VariableDescriptorBase
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext
@@ -20,7 +23,7 @@ import com.huawei.cangjie.types.isError
 
 
 // Please, avoid using this implementation explicitly. If you need DataFlowValueFactory, use injection.
-class DataFlowValueFactoryImpl : DataFlowValueFactory {
+class DataFlowValueFactoryImpl (/*private val languageVersionSettings: LanguageVersionSettings*/): DataFlowValueFactory {
     override fun createDataFlowValue(
         expression: CjExpression,
         type: CangJieType,
@@ -92,13 +95,31 @@ class DataFlowValueFactoryImpl : DataFlowValueFactory {
 
     override fun createDataFlowValueForStableReceiver(receiver: ReceiverValue) =
         DataFlowValue(IdentifierInfo.Receiver(receiver), receiver.type)
-
-    override fun createDataFlowValueForProperty(
-        property: CjVariable,
+    override fun createDataFlowValueForVariable(
+        variable: CjVariable,
         variableDescriptor: VariableDescriptor,
         bindingContext: BindingContext,
         usageContainingModule: ModuleDescriptor?
     ): DataFlowValue {
-        TODO("Not yet implemented")
+        val identifierInfo = IdentifierInfo.Variable(
+            variableDescriptor,
+            variableDescriptor.variableKind(usageContainingModule, bindingContext, variable/*, languageVersionSettings*/),
+            bindingContext[BindingContext.BOUND_INITIALIZER_VALUE, variableDescriptor]
+        )
+        return DataFlowValue(identifierInfo, variableDescriptor.type)
+    }
+
+    override fun createDataFlowValueForProperty(
+        property: CjProperty,
+        variableDescriptor: PropertyDescriptor,
+        bindingContext: BindingContext,
+        usageContainingModule: ModuleDescriptor?
+    ): DataFlowValue {
+        val identifierInfo = IdentifierInfo.Variable(
+            variableDescriptor,
+            variableDescriptor.variableKind(usageContainingModule, bindingContext, property/*, languageVersionSettings*/),
+            bindingContext[BindingContext.BOUND_INITIALIZER_VALUE, variableDescriptor]
+        )
+        return DataFlowValue(identifierInfo, variableDescriptor.type)
     }
 }

@@ -99,9 +99,11 @@ abstract class AbstractVariableDescriptor(
     }
 
     override fun getTypeParameters(): List<TypeParameterDescriptor> {
-        return emptyList<TypeParameterDescriptor>()
+        return emptyList()
     }
-
+//    override fun getOverriddenDescriptors(): Collection<CallableDescriptor> {
+//        return emptySet ()
+//    }
     override fun getValueParameters(): List<ValueParameterDescriptor> {
         return emptyList()
     }

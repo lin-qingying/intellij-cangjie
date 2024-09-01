@@ -7,6 +7,7 @@ import com.huawei.cangjie.ide.base.projectStructure.CangJieSourceFilterScope
 import com.huawei.cangjie.ide.projectStructure.CangJieResolveScopeEnlarger
 import com.huawei.cangjie.ide.projectStructure.moduleInfo
 import com.huawei.cangjie.incremental.components.LookupLocation
+import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjClassBody
@@ -261,6 +262,26 @@ fun HierarchicalScope.findFirstClassifierWithDeprecationStatus(
     return findFirstFromMeAndParent { it.getContributedClassifierIncludeDeprecated(name, location) }
 }
 
+@Deprecated("Use getContributedProperties instead")
+fun LexicalScope.findLocalVariable(name: Name): VariableDescriptor? {
+    return findFirstFromMeAndParent { originalScope ->
+        // Unpacking LexicalScopeWrapper may be important to check that it is not ImportingScope
+        val possiblyUnpackedScope = when (originalScope) {
+            is LexicalScopeWrapper -> originalScope.delegate
+            else -> originalScope
+        }
+
+        when {
+            possiblyUnpackedScope !is ImportingScope && possiblyUnpackedScope !is LexicalChainedScope ->
+                possiblyUnpackedScope.getContributedVariables(
+                    name,
+                    NoLookupLocation.MATCH_GET_LOCAL_VARIABLE
+                ).singleOrNull() /* todo check this*/
+
+            else -> null
+        }
+    }
+}
 
 fun HierarchicalScope.getExtendClasss(name: Name, location: LookupLocation): List<LazyExtendClassDescriptor> {
     return getListFromMeAndParent { it.getExtendClass(name) }

@@ -6,10 +6,12 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.Errors.*
 import com.huawei.cangjie.descriptors.annotations.AnnotationDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
+import com.huawei.cangjie.descriptors.annotations.composeAnnotations
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.name.SpecialNames.OPTION
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.debugtext.getDebugText
 import com.huawei.cangjie.psi.psiUtil.getNextSiblingIgnoringWhitespaceAndComments
@@ -18,10 +20,7 @@ import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.huawei.cangjie.resolve.PossiblyBareType.bare
 import com.huawei.cangjie.resolve.PossiblyBareType.type
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
-import com.huawei.cangjie.resolve.scopes.LazyScopeAdapter
-import com.huawei.cangjie.resolve.scopes.LexicalScope
-import com.huawei.cangjie.resolve.scopes.MemberScope
-import com.huawei.cangjie.resolve.scopes.getExtendClasss
+import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.source.CangJieSourceElement
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.TrailingCommaChecker
@@ -30,6 +29,7 @@ import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.error.ThrowingScope
 import com.huawei.cangjie.types.expressions.TypeAttributeTranslators
 import com.huawei.cangjie.types.util.TypeUtils
+import com.huawei.cangjie.types.util.TypeUtils.addTypeParameterToStub
 import com.huawei.cangjie.types.util.containsTypeAliasParameters
 import com.huawei.cangjie.types.util.containsTypeAliases
 import com.huawei.cangjie.types.util.createBasicType
@@ -220,6 +220,16 @@ class TypeResolver(
 //        该参数仅解决出现递归调用
         isgetExtend: Boolean = true
     ): PossiblyBareType {
+
+        fun resolveOptionType(): CangJieType {
+            val classifier = c.scope.findFirstClassifierWithDeprecationStatus(
+                OPTION,
+                NoLookupLocation.FROM_BUILTINS
+            ) ?: throw IllegalStateException("Option type not found")
+            return classifier.descriptor.defaultType
+
+        }
+
         var result: PossiblyBareType? = null
 
 
@@ -266,7 +276,7 @@ class TypeResolver(
                 if (classifier is LazyClassDescriptor) {
                     classifier.extendClassDescriptor.addAll(extendSuper)
 
-                }else if(classifier is BasicTypeDescriptor){
+                } else if (classifier is BasicTypeDescriptor) {
                     classifier.extendClassDescriptor.addAll(extendSuper)
 
                 }
@@ -286,6 +296,39 @@ class TypeResolver(
 //                return super.visitFunctionType(type)
             }
 
+            override fun visitOptionType(optionType: CjOptionType) {
+                val innerType = optionType.getInnerType()
+
+                val baseType = createTypeFromInner(optionType, optionType.getModifierList(), innerType)
+
+                if (!baseType.isBare && baseType.actualType is DefinitelyNotNullType) {
+                    c.trace.report(NULLABLE_ON_DEFINITELY_NOT_OPTIONAL.on(optionType))
+                }
+
+                if (baseType.isOptional || innerType is CjOptionType/* || innerType is CjDynamicType*/) {
+                    c.trace.report(REDUNDANT_OPTIONAL.on(optionType))
+                }
+
+                result = type(addTypeParameterToStub(resolveOptionType(), baseType.actualType))
+            }
+
+            private fun createTypeFromInner(
+                typeElement: CjTypeElement,
+                innerModifierList: CjModifierList?,
+                innerType: CjTypeElement?
+            ): PossiblyBareType {
+                if (innerModifierList != null && outerModifierList != null) {
+                    c.trace.report(MODIFIER_LIST_NOT_ALLOWED.on(innerModifierList))
+                }
+
+                val innerAnnotations = composeAnnotations(
+                    annotations,
+                    resolveTypeAnnotations(c.trace, c.scope, typeElement as CjElementImplStub<*>)
+                )
+
+                return resolveTypeElement(c, innerAnnotations, outerModifierList ?: innerModifierList, innerType)
+            }
+
             override fun visitCjElement(element: CjElement) {
                 c.trace.report(UNSUPPORTED.on(element, "Self-types are not supported yet"))
             }
@@ -299,6 +342,7 @@ class TypeResolver(
         )
 
     }
+
 
     private fun resolveTypeProjectionsWithErrorConstructor(
         c: TypeResolutionContext,
@@ -410,7 +454,7 @@ class TypeResolver(
         qualifierParts: List<QualifiedExpressionResolver.ExpressionQualifierPart>
     ): Pair<List<CjTypeProjection>, List<TypeProjection>?>? {
         val classifierDescriptorChain = classifierDescriptor.classifierDescriptorsFromInnerToOuter()
-        val reversedQualifierParts =     qualifierParts.asReversed()
+        val reversedQualifierParts = qualifierParts.asReversed()
 
         var wasStatic = false
         val result = SmartList<CjTypeProjection>()

@@ -1705,7 +1705,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
             }/* else if (at(IDENTIFIER)) {
                 typeParametersDeclared = parseUserType();
-            } */else {
+            } */ else {
 
                 error("Expecting a type");
             }
@@ -3023,12 +3023,13 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         PsiBuilder.Marker typeRefMarker = mark();
         //先解析基本类型，如果不是基本类型，则解析类型引用
+        PsiBuilder.Marker optionTypeMarker = null;
 
-
-        if (!isConstraint) {
-            expect(QUEST);
-        }
+//        if (!isConstraint) {
+//            expect(QUEST);
+//        }
         if (at(QUEST)) {
+            optionTypeMarker = mark();
             if (!isConstraint) {
                 advance();
             } else {
@@ -3038,12 +3039,16 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
         if (!parseBasicType()) {
+
             if (!isConstraint) {
                 parseUserType();
             } else {
                 parseIdentifier();
             }
 
+        }
+        if(optionTypeMarker != null){
+            optionTypeMarker.done(OPTIONAL_TYPE);
         }
         typeRefMarker.done(TYPE_REFERENCE);
 

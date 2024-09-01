@@ -125,7 +125,7 @@ class CapturedType(
 
     override fun toString() = "Captured($typeProjection)" + if (isMarkedOption) "?" else ""
 
-    override fun makeNullableAsSpecified(newNullability: Boolean): CapturedType {
+    override fun makeOptionalAsSpecified(newNullability: Boolean): CapturedType {
         if (newNullability == isMarkedOption) return this
         return CapturedType(typeProjection, constructor, newNullability, attributes)
     }

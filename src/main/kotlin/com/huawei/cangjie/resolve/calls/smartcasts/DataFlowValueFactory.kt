@@ -1,9 +1,8 @@
 package com.huawei.cangjie.resolve.calls.smartcasts
 
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.ModuleDescriptor
-import com.huawei.cangjie.descriptors.VariableDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.psi.CjExpression
+import com.huawei.cangjie.psi.CjProperty
 import com.huawei.cangjie.psi.CjVariable
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext
@@ -42,7 +41,13 @@ interface DataFlowValueFactory {
     ): DataFlowValue
 
     fun createDataFlowValueForProperty(
-        property: CjVariable,
+        property: CjProperty,
+        variableDescriptor: PropertyDescriptor,
+        bindingContext: BindingContext,
+        usageContainingModule: ModuleDescriptor?
+    ): DataFlowValue
+    fun createDataFlowValueForVariable(
+        variable: CjVariable,
         variableDescriptor: VariableDescriptor,
         bindingContext: BindingContext,
         usageContainingModule: ModuleDescriptor?

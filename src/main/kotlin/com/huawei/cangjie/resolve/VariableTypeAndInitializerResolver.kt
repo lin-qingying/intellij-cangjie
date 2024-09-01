@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.Errors
+import com.huawei.cangjie.descriptors.Errors.VARIABLE_WITH_NO_TYPE_NO_INITIALIZER
 import com.huawei.cangjie.descriptors.impl.VariableDescriptorWithInitializerImpl
 import com.huawei.cangjie.psi.CjVariableDeclaration
 import com.huawei.cangjie.resolve.calls.components.InferenceSession
@@ -10,10 +11,10 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.storage.StorageManager
-import com.huawei.cangjie.types.CangJieType
-import com.huawei.cangjie.types.TypeApproximator
-import com.huawei.cangjie.types.UnwrappedType
+import com.huawei.cangjie.types.*
+import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices
+import com.huawei.cangjie.types.expressions.PreliminaryDeclarationVisitor
 
 class VariableTypeAndInitializerResolver(
 
@@ -29,7 +30,30 @@ class VariableTypeAndInitializerResolver(
 //    private val anonymousTypeTransformers: Iterable<DeclarationSignatureAnonymousTypeTransformer>
 
 ) {
+    companion object {
+        @JvmStatic
+        fun getTypeForVariableWithoutReturnType(property: String): SimpleType =
+            ErrorUtils.createErrorType(ErrorTypeKind.RETURN_TYPE_FOR_VARIABLE, property)
+    }
+    fun resolveType(
+        variableDescriptor: VariableDescriptorWithInitializerImpl,
+        scopeForInitializer: LexicalScope,
+        variable: CjVariableDeclaration,
+        dataFlowInfo: DataFlowInfo,
+        inferenceSession: InferenceSession,
+        trace: BindingTrace,
+        local: Boolean
+    ): CangJieType {
+        resolveTypeOptional(
+            variableDescriptor, scopeForInitializer, variable, dataFlowInfo, inferenceSession, trace, local
+        )?.let { return it }
 
+        if (local) {
+            trace.report(VARIABLE_WITH_NO_TYPE_NO_INITIALIZER.on(variable))
+        }
+
+        return getTypeForVariableWithoutReturnType(variableDescriptor.name.asString())
+    }
     fun setConstantForVariableIfNeeded(
         variableDescriptor: VariableDescriptorWithInitializerImpl,
         scope: LexicalScope,
@@ -92,7 +116,7 @@ class VariableTypeAndInitializerResolver(
 //    }
 
 
-    fun resolveTypeNullable(
+    fun resolveTypeOptional(
         variableDescriptor: VariableDescriptorWithInitializerImpl,
         scopeForInitializer: LexicalScope,
         variable: CjVariableDeclaration,

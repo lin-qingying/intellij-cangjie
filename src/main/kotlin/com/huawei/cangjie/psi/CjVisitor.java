@@ -16,6 +16,10 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
 
 
     }
+    public R visitOptionType(@NotNull CjOptionType optionType, D data) {
+        return visitTypeElement(optionType, data);
+    }
+
 
     public R visitProperty(@NotNull CjProperty property, D data) {
         return visitNamedDeclaration(property, data);

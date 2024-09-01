@@ -362,14 +362,14 @@ class DiagnosticReporterByTrackingStrategy(
 //            is BuilderInferenceExpectedTypeConstraintPosition -> {
 //                val inferredType =
 //                    if (!error.lowerCangJieType.isNullableNothing()) error.lowerCangJieType
-//                    else error.upperCangJieType.makeNullable()
+//                    else error.upperCangJieType.makeOptional()
 //                trace.report(TYPE_MISMATCH.on(position.topLevelCall, error.upperCangJieType, inferredType))
 //            }
 //            is ExpectedTypeConstraintPosition<*> -> {
 //                val call = (position.topLevelCall as? CangJieCall)?.psiCangJieCall?.psiCall?.callElement as? CjExpression
 //                val inferredType =
 //                    if (!error.lowerCangJieType.isNullableNothing()) error.lowerCangJieType
-//                    else error.upperCangJieType.makeNullable()
+//                    else error.upperCangJieType.makeOptional()
 //                if (call != null) {
 //                    report(typeMismatchDiagnostic.on(call, error.upperCangJieType, inferredType))
 //                }

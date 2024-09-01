@@ -67,6 +67,7 @@ class DataFlowValue(
 
         override fun toString() = str
     }
+    val canBeBound get() = identifierInfo.canBeBound
 
     /**
      * Stable means here we do not expect some sudden change of their values,

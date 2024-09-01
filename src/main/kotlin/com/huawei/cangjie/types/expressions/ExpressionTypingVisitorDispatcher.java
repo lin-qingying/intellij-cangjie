@@ -10,6 +10,7 @@ import com.huawei.cangjie.resolve.scopes.LexicalScopeKind;
 import com.huawei.cangjie.resolve.scopes.LexicalWritableScope;
 import com.huawei.cangjie.storage.ReenteringLazyValueComputationException;
 import com.huawei.cangjie.types.CangJieType;
+import com.huawei.cangjie.types.DeferredType;
 import com.huawei.cangjie.types.ErrorUtils;
 import com.huawei.cangjie.types.error.ErrorTypeKind;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
@@ -117,9 +118,9 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
                         return result.replaceType(type);
                     }
 //
-//                    if (result.getType() instanceof DeferredType) {
-//                        result = result.replaceType(((DeferredType) result.getType()).getDelegate());
-//                    }
+                    if (result.getType() instanceof DeferredType) {
+                        result = result.replaceType(((DeferredType) result.getType()).getDelegate());
+                    }
 
 
                     CangJieType refinedType = result.getType() != null

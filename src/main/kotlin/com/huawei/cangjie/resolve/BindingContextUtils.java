@@ -27,7 +27,7 @@ public class BindingContextUtils {
     ) {
         if (type == null) return null;
         if (shouldBeMadeNullable) {
-            type = TypeUtils.makeNullable(type);
+            type = TypeUtils.makeOptional(type);
 
         }
         trace.recordType(expression, type);

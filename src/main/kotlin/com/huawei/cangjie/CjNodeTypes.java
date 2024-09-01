@@ -16,6 +16,7 @@ public interface CjNodeTypes {
     IElementType VALUE_PARAMETER_LIST = CjStubElementTypes.VALUE_PARAMETER_LIST;
     IElementType VALUE_PARAMETER = CjStubElementTypes.VALUE_PARAMETER;
     IElementType CLASS = CjStubElementTypes.CLASS;
+    IElementType OPTIONAL_TYPE            = CjStubElementTypes.OPTIONAL_TYPE;
 
 
     IElementType INVALID_DECLARATION = new IElementType("INVALID_DECLARATION", CangJieLanguage.INSTANCE);

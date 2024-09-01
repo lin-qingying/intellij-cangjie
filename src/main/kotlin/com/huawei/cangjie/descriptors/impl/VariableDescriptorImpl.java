@@ -15,14 +15,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 
-@SuppressWarnings("deprecation")
 public class VariableDescriptorImpl extends VariableDescriptorWithInitializerImpl implements VariableDescriptor {
     private final Modality modality;
     private final VariableDescriptor original;
     private final CallableMemberDescriptor.Kind kind;
 
     private DescriptorVisibility visibility;
-    private Collection<? extends VariableDescriptor> overriddenProperties = null;
+    private Collection<? extends  VariableDescriptor> overriddenProperties = null;
     private List<ReceiverParameterDescriptor> contextReceiverParameters = Collections.emptyList();
     private ReceiverParameterDescriptor dispatchReceiverParameter;
     private ReceiverParameterDescriptor extensionReceiverParameter;
@@ -33,6 +32,32 @@ public class VariableDescriptorImpl extends VariableDescriptorWithInitializerImp
 //    private FieldDescriptor backingField;
 //    private FieldDescriptor delegateField;
 
+    protected VariableDescriptorImpl(
+            @NotNull DeclarationDescriptor containingDeclaration,
+            @Nullable VariableDescriptor original,
+            @NotNull Annotations annotations,
+            @NotNull Modality modality,
+            @NotNull DescriptorVisibility visibility,
+            boolean isVar,
+            @NotNull Name name,
+            @NotNull CallableMemberDescriptor.Kind kind,
+            @Nullable CangJieType outType,
+            @NotNull SourceElement source
+
+
+    ) {
+        super(containingDeclaration, annotations, name, outType, isVar, source);
+        this.modality = modality;
+        this.visibility = visibility;
+        this.original = original == null ? this : original;
+        this.kind = kind;
+//        this.lateInit = lateInit;
+//        this.isConst = isConst;
+//        this.isExpect = isExpect;
+//        this.isActual = isActual;
+//        this.isExternal = isExternal;
+
+    }
     protected VariableDescriptorImpl(
             @NotNull DeclarationDescriptor containingDeclaration,
             @Nullable VariableDescriptor original,
@@ -58,7 +83,6 @@ public class VariableDescriptorImpl extends VariableDescriptorWithInitializerImp
 //        this.isExternal = isExternal;
 
     }
-
     @NotNull
     public static VariableDescriptorImpl create(
             @NotNull DeclarationDescriptor containingDeclaration,
@@ -464,6 +488,8 @@ public class VariableDescriptorImpl extends VariableDescriptorWithInitializerImp
         return kind;
     }
 
+
+
 //    @Override
 //    public bool isExpect() {
 //        return isExpect;
@@ -486,11 +512,13 @@ public class VariableDescriptorImpl extends VariableDescriptorWithInitializerImp
 //        return delegateField;
 //    }
 
-    @NotNull
-    @Override
-    public Collection<? extends VariableDescriptor> getOverriddenDescriptors() {
-        return overriddenProperties != null ? overriddenProperties : Collections.emptyList();
+@Override
+
+    public @NotNull Collection<? extends VariableDescriptor> getOverriddenDescriptors() {
+        return overriddenProperties != null ? (Collection<VariableDescriptor>) overriddenProperties : Collections.emptyList();
     }
+//
+
 
     @Override
     @SuppressWarnings("unchecked")

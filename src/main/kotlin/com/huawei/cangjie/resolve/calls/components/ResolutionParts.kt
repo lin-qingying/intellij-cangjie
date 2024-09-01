@@ -109,7 +109,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 //        typeVariable: TypeVariableFromCallableDescriptor
 //    ): CangJieType {
 //        fun createFlexibleType() =
-//            CangJieTypeFactory.flexibleType(type.makeNotNullable().lowerIfFlexible(), type.makeNullable().upperIfFlexible())
+//            CangJieTypeFactory.flexibleType(type.makeNotNullable().lowerIfFlexible(), type.makeOptional().upperIfFlexible())
 //
 //        return when {
 //            typeVariable.originalTypeParameter.shouldBeFlexible { it is FlexibleTypeWithEnhancement } ->
