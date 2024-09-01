@@ -227,10 +227,10 @@ inline fun SimpleType.replaceArgumentsByExistingArgumentsWith(replacement: (Type
 fun createBasicType(
     builtIns: CangJieBuiltIns,
     name: String,
-    extendTypesDescriptor: Set<LazyExtendClassDescriptor> = emptySet ()
+    extendTypesDescriptor: Set<LazyExtendClassDescriptor> = emptySet()
 ): BasicType {
     val classDescriptor = builtIns.getBuiltInBasicTypeByName(name)
-classDescriptor.extendClassDescriptor.addAll(extendTypesDescriptor)
+    classDescriptor.extendClassDescriptor.addAll(extendTypesDescriptor)
 
     return CangJieTypeFactory.basicType(classDescriptor)
 }

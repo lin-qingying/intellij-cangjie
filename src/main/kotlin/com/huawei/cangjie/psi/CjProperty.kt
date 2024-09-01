@@ -81,7 +81,7 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
     }
 
     override val initializer: CjExpression?
-        get() = TODO("Not yet implemented")
+        get() = null
 
     override fun hasInitializer(): Boolean {
         val stub: CangJiePropertyStub? = stub

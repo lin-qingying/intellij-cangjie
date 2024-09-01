@@ -1,8 +1,8 @@
 package com.huawei.cangjie.types
 
 import com.huawei.cangjie.descriptors.ClassDescriptor
-import com.huawei.cangjie.descriptors.ClassifierDescriptor
 import com.huawei.cangjie.descriptors.ModuleDescriptor
+import com.huawei.cangjie.descriptors.PackageViewDescriptor
 import com.huawei.cangjie.ide.projectStructure.moduleInfo
 import com.huawei.cangjie.ide.stubindex.CangJieExactPackagesIndex
 import com.huawei.cangjie.incremental.components.NoLookupLocation
@@ -27,15 +27,34 @@ fun findClassDescriptorByFqName(project: Project, fqName: FqName): ClassDescript
     return classDescriptor as? ClassDescriptor
 }
 
+fun findCangJieTypeByFqName(project: Project, fqName: FqName): CangJieType? {
+
+    return findClassDescriptorByFqName(project, fqName)?.defaultType
+}
+
 fun getMemberScope(module: ModuleDescriptor, fqName: FqName): MemberScope {
 
     return module.getPackage(fqName.parent()).memberScope
 }
 
-private fun getModuleDescriptorByFqName(project: Project, fqName: FqName): ModuleDescriptor? {
+fun getPackageView(project: Project, fqName: FqName): PackageViewDescriptor? {
+    return getModuleDescriptorByFqName(project, fqName, true)?.getPackage(fqName)
+}
+
+private fun getModuleDescriptorByFqName(
+    project: Project,
+    fqName: FqName,
+    isPackage: Boolean = false
+): ModuleDescriptor? {
     val cache = CangJieCacheService.getInstance(project)
 
-    val file = findCjFileByFqName(project, fqName.parent()) ?: return null
+    val file = findCjFileByFqName(
+        project, if (isPackage) {
+            fqName
+        } else {
+            fqName.parent()
+        }
+    ) ?: return null
 
 
     return cache.getResolutionFacadeByModuleInfo(file.moduleInfo).moduleDescriptor

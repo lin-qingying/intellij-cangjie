@@ -21,6 +21,7 @@ import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.impl.ModuleDescriptorImpl
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
+import com.huawei.cangjie.descriptors.impl.basic.BuiltInTypeDescriptor
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
@@ -42,6 +43,20 @@ open class CangJieBuiltIns(
 //    val moduleInfo: ModuleInfo? = null
 ) {
     companion object {
+
+        //    内置类型名称
+        enum class BuiltCangJieTypeName(private val _typeName: String) {
+            CPOINTER("CPointer"),
+            CSTRING("CString");
+
+            val typeName: Name
+                get() {
+                    return Name.identifier(_typeName)
+
+                }
+        }
+
+
         val BUILTINS_MODULE_NAME: Name =
             Name.special("<built-ins module>")
 
@@ -318,6 +333,21 @@ open class CangJieBuiltIns(
         return getPrimitiveClassBasicDescriptor(type).getDefaultType()
     }
 
+    //    获取内置类型
+    fun getPrimitiveBuiltInCangJieType(name: Name): SimpleType {
+        return getPrimitiveClassBuiltInDescriptor(name).getDefaultType()
+
+    }
+
+    fun getPrimitiveClassBuiltInDescriptor(type: Name): BuiltInTypeDescriptor {
+        return getBuiltInTypeByName(type.asString())
+    }
+
+    private fun getBuiltInTypeByName(name: String): BuiltInTypeDescriptor {
+        return getBuiltInClassByName(name) as BuiltInTypeDescriptor
+
+    }
+
     fun getPrimitiveCangJieType(type: PrimitiveType): SimpleType {
         return getPrimitiveClassDescriptor(type).getDefaultType()
     }
@@ -390,9 +420,6 @@ open class CangJieBuiltIns(
 
     }
 
-    fun getBuiltInsBasicTypeScope(): MemberScope {
-        TODO()
-    }
 
     private fun getBuiltInClassByName(simpleName: String): ClassDescriptor {
         return myBuiltInClassesByName.invoke(Name.identifier(simpleName))
@@ -450,6 +477,14 @@ open class CangJieBuiltIns(
     val runeType get() = getPrimitiveBasicCangJieType(PrimitiveType.Rune)
 
     val boolType get() = getPrimitiveBasicCangJieType(PrimitiveType.BOOL)
+
+
+
+
+    //    内置类型
+//    这两个内置类型是std.core包中的，如果有必要，需要加上包名，现在没有加
+    val CPointerType get() = getPrimitiveBuiltInCangJieType(BuiltCangJieTypeName.CPOINTER.typeName)
+    val CStringType get() = getPrimitiveBuiltInCangJieType(BuiltCangJieTypeName.CSTRING.typeName)
 }
 
 

@@ -6,6 +6,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.Errors.*
 import com.huawei.cangjie.descriptors.annotations.AnnotationDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
+import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.Name
@@ -265,6 +266,9 @@ class TypeResolver(
                 if (classifier is LazyClassDescriptor) {
                     classifier.extendClassDescriptor.addAll(extendSuper)
 
+                }else if(classifier is BasicTypeDescriptor){
+                    classifier.extendClassDescriptor.addAll(extendSuper)
+
                 }
 
 
@@ -406,7 +410,7 @@ class TypeResolver(
         qualifierParts: List<QualifiedExpressionResolver.ExpressionQualifierPart>
     ): Pair<List<CjTypeProjection>, List<TypeProjection>?>? {
         val classifierDescriptorChain = classifierDescriptor.classifierDescriptorsFromInnerToOuter()
-        val reversedQualifierParts = qualifierParts.asReversed()
+        val reversedQualifierParts =     qualifierParts.asReversed()
 
         var wasStatic = false
         val result = SmartList<CjTypeProjection>()

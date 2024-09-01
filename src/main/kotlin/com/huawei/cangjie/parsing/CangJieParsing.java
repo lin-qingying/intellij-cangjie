@@ -1696,6 +1696,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
             if (at(LT)) {
                 parseTypeParameterList(TYPE_PARAMETER_GT_RECOVERY_SET);
+                typeParametersDeclared = true;
             }
 
 

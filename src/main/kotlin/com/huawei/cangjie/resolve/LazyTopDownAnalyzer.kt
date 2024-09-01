@@ -85,11 +85,9 @@ class LazyTopDownAnalyzer(
                 }
 
                 override fun visitExtend(cjExtend: CjExtend) {
-//                    scope.get
+
                     extendDescriptorResolver.check(c, cjExtend)
-//
-//                    super.visitExtend(cjExtend)
-//                    visitTypeStatement(typeStatement = cjExtend)
+
                 }
 
 

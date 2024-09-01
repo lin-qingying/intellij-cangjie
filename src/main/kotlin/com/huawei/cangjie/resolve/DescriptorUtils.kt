@@ -6,6 +6,7 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.fromByName
 import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
+import com.huawei.cangjie.descriptors.impl.basic.BuiltInTypeDescriptor
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.resolve.descriptorUtil.builtIns
@@ -248,6 +249,7 @@ object DescriptorUtils {
         aClass: Class<D>,
         strict: Boolean
     ): D? {
+//        if(descriptor is  BasicTypeDescriptor) return null
         if (descriptor == null) return null
         var descriptor = descriptor
         if (strict) {

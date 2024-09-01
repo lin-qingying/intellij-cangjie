@@ -82,6 +82,7 @@ abstract class ResolverForProject<M : ModuleInfo> {
     abstract fun tryGetResolverForModule(moduleInfo: M): ResolverForModule?
 companion object{
     const val resolverForLibrariesName = "project libraries"
+    const val resolverForModulesName = "project source roots and libraries"
 
 }
 }

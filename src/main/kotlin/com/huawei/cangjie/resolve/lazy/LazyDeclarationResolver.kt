@@ -90,12 +90,10 @@ open class LazyDeclarationResolver(
 
     fun resolveToDescriptor(declaration: CjDeclaration): DeclarationDescriptor {
 
-        val a = resolveToDescriptor(declaration, /*track =*/true) ?: absentDescriptorHandler.diagnoseDescriptorNotFound(
+      return resolveToDescriptor(declaration, /*track =*/true) ?: absentDescriptorHandler.diagnoseDescriptorNotFound(
             declaration
         )
 
-        a.toString()
-        return a
 
     }
 

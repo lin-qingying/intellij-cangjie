@@ -2,6 +2,9 @@ package com.huawei.cangjie.resolve.lazy.declarations.impl
 
 import com.huawei.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import com.huawei.cangjie.builtins.StandardNames.FqNames.bool
+import com.huawei.cangjie.builtins.StandardNames.FqNames.cpointer
+import com.huawei.cangjie.builtins.StandardNames.FqNames.cstring
+import com.huawei.cangjie.builtins.StandardNames.FqNames.ctypeFqName
 
 import com.huawei.cangjie.builtins.StandardNames.FqNames.float16
 import com.huawei.cangjie.builtins.StandardNames.FqNames.float32
@@ -22,7 +25,9 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.unit
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.impl.DeclarationDescriptorNonRootImpl
+import com.huawei.cangjie.descriptors.impl.TypeParameterDescriptorImpl
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
+import com.huawei.cangjie.descriptors.impl.basic.BuiltInTypeDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
@@ -31,6 +36,9 @@ import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.StorageManager
+import com.huawei.cangjie.types.Variance
+import com.huawei.cangjie.types.findCangJieTypeByFqName
+import com.huawei.cangjie.types.findClassDescriptorByFqName
 import com.huawei.cangjie.utils.Printer
 import kotlin.reflect.full.memberProperties
 
@@ -38,10 +46,10 @@ import kotlin.reflect.full.memberProperties
 class ReexportPackageFragment(
     module: ModuleDescriptor,
     fqName: FqName,
-    private val memberScope:MemberScope
+    private val memberScope: MemberScope
 ) : PackageFragmentDescriptorImpl(module, fqName) {
     override fun getMemberScope(): MemberScope {
-       return memberScope
+        return memberScope
     }
 
 }
@@ -112,6 +120,12 @@ class PackageFragmentDescriptorBasicImpl(
     private fun createBasicTypeDescriptor(name: FqNameUnsafe): BasicTypeDescriptor =
         BasicTypeDescriptor.create(basicMemberScope, storageManager, name.shortName())
 
+    private fun createBuiltInTypeDescriptor(
+        name: FqNameUnsafe,
+        parameters: List<TypeParameterDescriptor> = emptyList()
+    ): BuiltInTypeDescriptor =
+        BuiltInTypeDescriptor.create(basicMemberScope, storageManager, name.shortName(), parameters)
+
 
     //Unit
     val UNIT_DESCRIPTOR = createBasicTypeDescriptor(unit)
@@ -143,6 +157,23 @@ class PackageFragmentDescriptorBasicImpl(
     val FLOAT16_DESCRIPTOR = createBasicTypeDescriptor(float16)
     val FLOAT32_DESCRIPTOR = createBasicTypeDescriptor(float32)
     val FLOAT64_DESCRIPTOR = createBasicTypeDescriptor(float64)
+
+    val CSTRING = createBuiltInTypeDescriptor(cstring, emptyList())
+    val CPOINTER = createBuiltInTypeDescriptor(
+        cpointer
+    ).apply {
+        addParameter(
+            TypeParameterDescriptorImpl.createForFurtherModification(
+                this, Annotations.EMPTY, Variance.INVARIANT, Name.identifier("T"), 0, SourceElement.NO_SOURCE,
+                null, SupertypeLoopChecker.EMPTY, storageManager
+
+
+            ).apply {
+
+
+            }
+        )
+    }
 
 
     val DESCRIPTOR_MAP = mutableMapOf<Name, BasicTypeDescriptor>(
@@ -194,7 +225,7 @@ class PackageFragmentDescriptorBasicImpl(
             p.println("Basic member scope")
         }
 
-        override fun  getContributedClassifier(name: Name, location: LookupLocation): BasicTypeDescriptor? {
+        override fun getContributedClassifier(name: Name, location: LookupLocation): BasicTypeDescriptor? {
 
             return DESCRIPTOR_MAP[name]
         }

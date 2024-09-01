@@ -4,10 +4,31 @@ import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.SupertypeLoopChecker
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
+import com.huawei.cangjie.descriptors.impl.basic.BuiltInTypeDescriptor
 import com.huawei.cangjie.storage.StorageManager
 
-class BasicTypeConstructor(
-    val classDescriptor: BasicTypeDescriptor,
+class BuiltInTypeConstructor(
+
+    override val classDescriptor: BuiltInTypeDescriptor,
+    storageManager: StorageManager,
+    private val parameters: MutableList<TypeParameterDescriptor> = mutableListOf()
+) : BasicTypeConstructor(classDescriptor, storageManager) {
+
+    fun addParameter(typeParameterDescriptor: TypeParameterDescriptor) {
+        parameters.add(typeParameterDescriptor)
+    }
+    override fun getParameters(): List<TypeParameterDescriptor> = parameters
+    override fun toString(): String {
+        return "BuiltInType:" + classDescriptor.name
+    }
+
+    override fun isDenotable(): Boolean {
+        return true
+    }
+}
+
+open class BasicTypeConstructor(
+    open val classDescriptor: BasicTypeDescriptor,
     storageManager: StorageManager
 ) : AbstractClassTypeConstructor(storageManager), TypeConstructor {
 
@@ -42,6 +63,6 @@ class BasicTypeConstructor(
         get() = SupertypeLoopChecker.EMPTY
 
     override fun toString(): String {
-        return "Basic:"+classDescriptor.name
+        return "Basic:" + classDescriptor.name
     }
 }

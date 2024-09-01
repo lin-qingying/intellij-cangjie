@@ -22,6 +22,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import com.huawei.cangjie.resolve.calls.util.CallResolverUtilKt;
 import com.huawei.cangjie.resolve.calls.util.UnderscoreUtilKt;
 import com.huawei.cangjie.resolve.descriptorUtil.DescriptorUtilsKt;
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyTypeAliasDescriptor;
 import com.huawei.cangjie.resolve.scopes.*;
 import com.huawei.cangjie.resolve.source.CangJieSourceElementKt;
@@ -949,7 +950,7 @@ public class DescriptorResolver {
     ) {
         assert containingDescriptor instanceof FunctionDescriptor ||
 //                containingDescriptor instanceof PropertyDescriptor ||
-                containingDescriptor instanceof TypeAliasDescriptor
+                containingDescriptor instanceof TypeAliasDescriptor|| containingDescriptor instanceof LazyExtendClassDescriptor
                 : "This method should be called for functions, properties, or type aliases, got " + containingDescriptor;
 
         List<TypeParameterDescriptorImpl> result = new ArrayList<>();

@@ -24,7 +24,7 @@ interface LazyClassContext {
     val typeResolver: TypeResolver
 //    val additionalClassPartsProvider: AdditionalClassPartsProvider
 val syntheticResolveExtension: SyntheticResolveExtension
-
+    val overloadChecker: OverloadChecker
     val trace: BindingTrace
     val declarationProviderFactory: DeclarationProviderFactory
     val languageVersionSettings: LanguageVersionSettings

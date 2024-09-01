@@ -16,7 +16,7 @@ import com.huawei.cangjie.types.isError
 
 class LazyTypeParameterDescriptor(
     val c: LazyClassContext,
-    containingDeclaration: LazyClassDescriptor,
+    containingDeclaration: LazyClassDescriptorBase,
     val typeParameter: CjTypeParameter,
     annotations: Annotations = Annotations.EMPTY,
     index: Int
@@ -44,13 +44,13 @@ class LazyTypeParameterDescriptor(
     private fun getUpperBoundsFromWhereClause(): Collection<CjTypeReference> {
         val result: MutableCollection<CjTypeReference> = mutableListOf()
 
-        val classOrObject =
+        val typeStatement =
             CjStubbedPsiUtil.getPsiOrStubParent(
                 typeParameter,
                 CjTypeStatement::class.java, true
             )
-        if (classOrObject is CjClass) {
-            for (typeConstraint in classOrObject.getTypeConstraints()) {
+        if (typeStatement is CjClass || typeStatement is CjInterface || typeStatement is CjEnum || typeStatement is CjStruct || typeStatement is CjExtend) {
+            for (typeConstraint in typeStatement.getTypeConstraints()) {
                 val constrainedParameterName = typeConstraint.subjectTypeParameterName
                 if (constrainedParameterName != null) {
                     if (name == constrainedParameterName.getReferencedNameAsName()) {
@@ -84,8 +84,8 @@ class LazyTypeParameterDescriptor(
     }
 
 
-    override val containingDeclaration: LazyClassDescriptor
-        get() = super.containingDeclaration as LazyClassDescriptor
+    override val containingDeclaration: LazyClassDescriptorBase
+        get() = super.containingDeclaration as LazyClassDescriptorBase
 
     override fun reportSupertypeLoopError(type: CangJieType) {
         for (typeReference in getAllUpperBounds()) {

@@ -1,8 +1,11 @@
 package com.huawei.cangjie.descriptors.impl.basic
 
+import com.huawei.cangjie.builtins.StandardNames.FqNames.core
+import com.huawei.cangjie.builtins.StandardNames.FqNames.ctypeFqName
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.impl.AbstractClassDescriptor
+import com.huawei.cangjie.descriptors.impl.TypeParameterDescriptorImpl
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjSuperTypeListEntry
 import com.huawei.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorBasicImpl
@@ -10,13 +13,86 @@ import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.StorageManager
-import com.huawei.cangjie.types.BasicType
-import com.huawei.cangjie.types.BasicTypeConstructor
-import com.huawei.cangjie.types.TypeConstructor
+import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 
+class BuiltInTypeDescriptor(
+    basicMemberScope: PackageFragmentDescriptorBasicImpl.BasicMemberScope,
+    storageManager: StorageManager,
+    name: Name,
+    private val parameters: List<TypeParameterDescriptor> = emptyList(),
+//    如果后期有其他内置类型有泛型，可以在这里添加回调函数，目前只有CPointer有泛型，所以不做更改
+) : BasicTypeDescriptor(basicMemberScope, storageManager, name) {
 
-class BasicTypeDescriptor(
+
+    override val typeConstructor = BuiltInTypeConstructor(this, storageManager, parameters.toMutableList())
+
+
+    override fun getDeclaredTypeParameters(): MutableList<TypeParameterDescriptor> {
+
+        return typeConstructor.parameters.map {
+            it.apply {
+                this as TypeParameterDescriptorImpl
+                if( !isInitialized()) {
+                    findCangJieTypeByFqName(storageManager.project, ctypeFqName)?.let { addUpperBound(it) }
+                    setInitialized()
+                }
+
+            }
+        }.toMutableList()
+    }
+
+    fun addParameter(parameters: TypeParameterDescriptor) {
+
+        typeConstructor.addParameter(parameters)
+    }
+
+//    override val visibility: DescriptorVisibility
+//        get() = DescriptorVisibilities.LOCAL
+
+    val packageView = EmptyDeclarationDescriptor()
+
+    inner class EmptyDeclarationDescriptor : DeclarationDescriptor {
+        override val original: DeclarationDescriptor
+            get() = this
+
+        override val containingDeclaration: DeclarationDescriptor?
+            get() = getPackageView(storageManager.project, core)
+
+        override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+            return null
+        }
+
+        override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+
+        }
+
+        override val name: Name = Name.identifier("EmptyDeclarationDescriptor")
+
+    }
+
+    override val containingDeclaration: DeclarationDescriptor
+        get() = packageView
+
+    companion object {
+
+        fun create(
+            memberScope: PackageFragmentDescriptorBasicImpl.BasicMemberScope,
+            storageManager: StorageManager,
+            name: Name,
+            parameters: List<TypeParameterDescriptor> = emptyList()
+        ): BuiltInTypeDescriptor {
+            return BuiltInTypeDescriptor(
+                memberScope,
+                storageManager,
+                name,
+                parameters.toMutableList()
+            )
+        }
+    }
+}
+
+open class BasicTypeDescriptor(
     val basicMemberScope: PackageFragmentDescriptorBasicImpl.BasicMemberScope,
     val storageManager: StorageManager,
     override val name: Name
@@ -86,7 +162,7 @@ class BasicTypeDescriptor(
     }
 
     //    val typeConstructor = ClassTypeConstructorImpl(this, emptyList(), emptyList(), storageManager)
-    val typeConstructor = BasicTypeConstructor(this, storageManager)
+    open val typeConstructor = BasicTypeConstructor(this, storageManager)
     override fun getTypeConstructor(): TypeConstructor = typeConstructor
 
 

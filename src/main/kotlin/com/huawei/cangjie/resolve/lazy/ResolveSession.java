@@ -60,6 +60,7 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     private LanguageVersionSettings languageVersionSettings;
     private TypeResolver typeResolver;
     private SealedClassInheritorsProvider sealedClassInheritorsProvider;
+    private OverloadChecker overloadChecker;
 
     // Only calls from injectors expected
     @Deprecated
@@ -411,5 +412,15 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
         ));
 
         return result;
+    }
+
+    @Override
+    public @NotNull OverloadChecker getOverloadChecker() {
+        return overloadChecker;
+    }
+
+    @Inject
+    public void setOverloadChecker(@NotNull OverloadChecker overloadChecker) {
+        this.overloadChecker = overloadChecker;
     }
 }

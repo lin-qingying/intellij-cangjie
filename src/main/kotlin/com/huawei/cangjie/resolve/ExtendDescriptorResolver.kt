@@ -11,12 +11,16 @@ import com.huawei.cangjie.resolve.lazy.FileScopeProvider
 import com.huawei.cangjie.resolve.lazy.LazyDeclarationResolver
 import com.huawei.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
+import com.huawei.cangjie.resolve.scopes.LexicalScopeKind
+import com.huawei.cangjie.resolve.scopes.LexicalWritableScope
+import com.huawei.cangjie.resolve.scopes.TraceBasedLocalRedeclarationChecker
 import com.huawei.cangjie.storage.StorageManager
 
 class ExtendDescriptorResolver(
     private val trace: BindingTrace,
     private val lazyDeclarationResolver: LazyDeclarationResolver,
     private val fileScopeProvider: FileScopeProvider,
+    private val descriptorResolver: DescriptorResolver,
 
     private val typeResolver: TypeResolver,
 
@@ -36,7 +40,8 @@ class ExtendDescriptorResolver(
         scope as AbstractLazyMemberScope<*, *>
 
 
-        val type = scope.resolveTypeByExtend(cjExtend)
+        val type  = scope.resolveTypeByExtend(cjExtend)
+
         return type
     }
 

@@ -31,9 +31,8 @@ public class ReceiverParameterDescriptorImpl extends AbstractReceiverParameterDe
         this.containingDeclaration = containingDeclaration;
         this.value = value;
     }
-    @Nullable
     @Override
-    public DeclarationDescriptor getContainingDeclaration() {
+    public @NotNull DeclarationDescriptor getContainingDeclaration() {
         return containingDeclaration;
 
     }

@@ -61,11 +61,13 @@ object StandardNames {
 
     @JvmField
     val STD_CORE_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(Name.identifier("core"))
+
     @JvmField
     val OBJECT = STD_CORE_PACKAGE_FQ_NAME.child(Name.identifier("Object"))
 
     @JvmField
     val ANY = STD_CORE_PACKAGE_FQ_NAME.child(Name.identifier("Any"))
+
     @JvmField
     val BUILT_INS_PACKAGE_FQ_NAME = FqName("")
 
@@ -228,6 +230,16 @@ object StandardNames {
         @JvmField
         val bool: FqNameUnsafe = fqNameUnsafe("Bool")
 
+        /***************************内置类型***************************/
+        @JvmField
+        val cpointer: FqNameUnsafe = fqNameUnsafe("CPointer")
+        val cpointerFqName = core.child(Name.identifier("CPointer"))
+
+        @JvmField
+        val cstring: FqNameUnsafe = fqNameUnsafe("CString")
+        val cstringFqName = core.child(Name.identifier("CString"))
+        val ctypeFqName = core.child(Name.identifier("CType"))
+
         @JvmField
 
         val boolFqName: FqName = fqName("Bool")
@@ -288,6 +300,13 @@ object StandardNames {
 
                 arrayFqName.shortName() -> arrayFqName
                 unitFqName.shortName() -> unitFqName
+
+                int_nativeFqName.shortName() -> int_nativeFqName
+                uint_nativeFqName.shortName() -> uint_nativeFqName
+
+                cpointerFqName.shortName() -> cpointerFqName
+                cstringFqName.shortName() -> cstringFqName
+
                 else -> throw IllegalArgumentException("Unknown name: $name")
             }
 

@@ -50,6 +50,7 @@ public interface ClassDescriptor extends ClassifierDescriptorWithTypeParameters,
 
     @Override
     @NotNull
+
     DeclarationDescriptor getContainingDeclaration();
 
     /**

@@ -59,7 +59,11 @@ public class LockBasedStorageManager implements StorageManager {
     ) {
         this(project, debugText, ExceptionHandlingStrategy.THROW, SimpleLock.Companion.simpleLock(checkCancelled, interruptedExceptionHandler));
     }
-
+    public LockBasedStorageManager replaceExceptionHandling(  Project project,
+            @NotNull String debugText, @NotNull ExceptionHandlingStrategy exceptionHandlingStrategy
+    ) {
+        return new LockBasedStorageManager(project, debugText, exceptionHandlingStrategy, lock);
+    }
     @NotNull
     public static LockBasedStorageManager createWithExceptionHandling(
             Project project,

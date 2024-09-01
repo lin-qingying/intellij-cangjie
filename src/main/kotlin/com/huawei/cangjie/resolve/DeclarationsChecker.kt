@@ -31,12 +31,13 @@ class DeclarationsChecker(
         checkTypesInClassHeader(typeStatement)
 
         when (typeStatement) {
-            is CjClass -> {
-//                checkClassButNotObject(classOrObject, classDescriptor)
+            is CjClass, is CjInterface, is CjStruct, is CjExtend,is CjEnum -> {
+//
                 descriptorResolver.checkNamesInConstraints(
                     typeStatement, classDescriptor, classDescriptor.scopeForClassHeaderResolution, trace
                 )
             }
+
 
         }
 

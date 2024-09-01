@@ -4,14 +4,12 @@ import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor;
 import com.huawei.cangjie.resolve.DescriptorUtils;
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue;
 import com.huawei.cangjie.types.CangJieType;
+import com.huawei.cangjie.utils.CollectionsKt;
 import com.huawei.cangjie.utils.ModuleVisibilityHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.ServiceLoader;
+import java.util.*;
 
 public class DescriptorVisibilities {
 
@@ -412,7 +410,17 @@ public class DescriptorVisibilities {
 
         return null;
     }
+    private static final Map<DescriptorVisibility, Integer> ORDERED_VISIBILITIES;
 
+    static {
+        Map<DescriptorVisibility, Integer> visibilities = CollectionsKt.newHashMapWithExpectedSize(4);
+        visibilities.put(PRIVATE_TO_THIS, 0);
+        visibilities.put(PRIVATE, 0);
+        visibilities.put(INTERNAL, 1);
+        visibilities.put(PROTECTED, 1);
+        visibilities.put(PUBLIC, 2);
+        ORDERED_VISIBILITIES = Collections.unmodifiableMap(visibilities);
+    }
     public static boolean isPrivate(@NotNull DescriptorVisibility visibility) {
         return visibility == PRIVATE || visibility == PRIVATE_TO_THIS;
     }

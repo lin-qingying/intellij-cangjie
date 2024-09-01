@@ -1,21 +1,28 @@
 package com.huawei.cangjie.resolve.caches
 
 import com.huawei.cangjie.analyzer.ModuleInfo
+import com.huawei.cangjie.analyzer.ResolverForProject.Companion.resolverForLibrariesName
+import com.huawei.cangjie.analyzer.ResolverForProject.Companion.resolverForModulesName
 import com.huawei.cangjie.context.GlobalContext
+import com.huawei.cangjie.context.GlobalContextImpl
 import com.huawei.cangjie.ide.base.projectStructure.RootKindFilter
 import com.huawei.cangjie.ide.base.projectStructure.matches
 import com.huawei.cangjie.ide.projectStructure.moduleInfo
+import com.huawei.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import com.huawei.cangjie.psi.CjCodeFragment
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.psi.psiUtil.contains
 import com.huawei.cangjie.resolve.ModuleResolutionFacadeImpl
 import com.huawei.cangjie.resolve.ResolutionFacade
+import com.huawei.cangjie.storage.ExceptionTracker
+import com.huawei.cangjie.storage.LockBasedStorageManager
 import com.huawei.cangjie.utils.CangJieExceptionWithAttachments
 import com.intellij.execution.Platform
 import com.intellij.execution.target.TargetPlatform
 import com.intellij.openapi.diagnostic.ControlFlowException
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.psi.util.CachedValueProvider
@@ -60,8 +67,8 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
             }
         }
 
-//    private val globalFacadesPerPlatformAndSdk: SLRUCache<PlatformAnalysisSettings, GlobalFacade> =
-//        SLRUCache.slruCache(2 * 3 * 2, 2 * 3 * 2) { GlobalFacade(it) }
+    private val globalFacadesPerPlatformAndSdk: SLRUCache<String, GlobalFacade> =
+        SLRUCache.slruCache(2 * 3 * 2, 2 * 3 * 2) { GlobalFacade() }
 
     private fun facadeForModules(/*settings: PlatformAnalysisSettings*/) =
         getOrBuildGlobalFacade(/*settings*/).facadeForModules
@@ -69,19 +76,33 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
 
     @Synchronized
     private fun getOrBuildGlobalFacade(/*settings: PlatformAnalysisSettings*/) =
-//        globalFacadesPerPlatformAndSdk[settings]
-
-        GlobalFacade(/*settings*/)
+        globalFacadesPerPlatformAndSdk["CangJie"]
 
 
     private inner class GlobalFacade {
         private val context = GlobalContext("cjpm", project)
-//        private val moduleFilters = GlobalFacadeModuleFilters(project)
+
+        //        private val moduleFilters = GlobalFacadeModuleFilters(project)
+        private val librariesContext = context.contextWithCompositeExceptionTracker(project, resolverForLibrariesName)
+
+        val facadeForLibraries = ProjectResolutionFacade(
+            "facadeForLibraries", "",
+            project, context,
+            reuseDataFrom = null,
+            moduleFilter = { true },
+            invalidateOnOOCB = false,
+            dependencies = listOf(
+
+                ProjectRootModificationTracker.getInstance(project)
+            )
+        )
+        private val modulesContext =
+            librariesContext.contextWithCompositeExceptionTracker(project, resolverForModulesName)
 
         val facadeForModules = ProjectResolutionFacade(
             "facadeForModules", /*"sdk with settings=$settings"*/"",
-            project, context,
-            reuseDataFrom = null,
+            project, modulesContext,
+            reuseDataFrom = facadeForLibraries,
 //            moduleFilter = moduleFilters::sdkFacadeFilter,
             moduleFilter = {
                 true
@@ -117,7 +138,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
         return ModuleResolutionFacadeImpl(projectFacade, moduleInfo)
     }
 
-    override fun getResolutionFacadeByModuleInfo(moduleInfo: ModuleInfo ): ResolutionFacade {
+    override fun getResolutionFacadeByModuleInfo(moduleInfo: ModuleInfo): ResolutionFacade {
 //        val settings = moduleInfo.platformSettings(platform)
         return getResolutionFacadeByModuleInfoAndSettings(moduleInfo)
     }
@@ -334,3 +355,49 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
             .withAttachment("original", e.message)
     }
 }
+
+private fun GlobalContextImpl.contextWithCompositeExceptionTracker(debugName: String): GlobalContextImpl {
+    val newExceptionTracker = CompositeExceptionTracker(this.exceptionTracker)
+    return GlobalContextImpl(
+        storageManager.replaceExceptionHandling(this.storageManager.project, debugName, newExceptionTracker),
+        newExceptionTracker
+    )
+}
+
+internal fun GlobalContextImpl.contextWithCompositeExceptionTracker(
+    project: Project,
+    debugName: String
+): GlobalContextImpl =
+//    if (project.useCompositeAnalysis || project.useLibraryToSourceAnalysis) {
+//        this.contextWithCompositeExceptionTracker(debugName)
+//    } else {
+    this.contextWithNewLockAndCompositeExceptionTracker(debugName)
+//    }
+
+private fun GlobalContextImpl.contextWithNewLockAndCompositeExceptionTracker(debugName: String): GlobalContextImpl {
+    val newExceptionTracker = CompositeExceptionTracker(this.exceptionTracker)
+    return GlobalContextImpl(
+        LockBasedStorageManager.createWithExceptionHandling(
+            this.storageManager.project,
+            debugName,
+            newExceptionTracker,
+            {
+                ProgressIndicatorAndCompilationCanceledStatus.checkCanceled()
+            },
+            { throw ProcessCanceledException(it) }),
+        newExceptionTracker
+    )
+}
+
+private class CompositeExceptionTracker(val delegate: ExceptionTracker) : ExceptionTracker() {
+    override fun getModificationCount(): Long {
+        return super.getModificationCount() + delegate.modificationCount
+    }
+}
+
+/**
+ * Note that Kotlin Resolution can work in a mode, when some operations are performed in COMPOSITE mode, and some in SEPARATE.
+ * This specific property only shows global project-wide setting, so use it with a lot of caution.
+ */
+//val Project.useCompositeAnalysis: Boolean
+//    get() = CangJieMultiplatformAnalysisModeComponent.getMode(this) == CangJieMultiplatformAnalysisModeComponent.Mode.COMPOSITE

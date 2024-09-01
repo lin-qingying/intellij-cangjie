@@ -10,6 +10,7 @@ import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.name.Name.Companion.special
 import com.huawei.cangjie.psi.CjExtend
 import com.huawei.cangjie.psi.CjSuperTypeListEntry
+import com.huawei.cangjie.psi.CjTypeParameterList
 import com.huawei.cangjie.psi.CjTypeStatement
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.DescriptorUtils.getAllDescriptors
@@ -18,9 +19,9 @@ import com.huawei.cangjie.resolve.descriptorUtil.getCangJieTypeRefiner
 import com.huawei.cangjie.resolve.descriptorUtil.getSuperClassNotAny
 import com.huawei.cangjie.resolve.lazy.LazyClassContext
 import com.huawei.cangjie.resolve.lazy.data.CjClassLikeInfo
-import com.huawei.cangjie.resolve.scopes.LexicalScope
-import com.huawei.cangjie.resolve.scopes.MemberScope
+import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.source.toSourceElement
+import com.huawei.cangjie.storage.NotNullLazyValue
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
@@ -41,12 +42,13 @@ abstract class LazyClassDescriptorBase
 ), ClassDescriptorWithResolutionScopes
 
 class LazyExtendClassDescriptor(
-      val classDescriptor: ClassDescriptorWithResolutionScopes,
     c: LazyClassContext,
     classLikeInfo: CjClassLikeInfo,
 
     containingDeclaration: DeclarationDescriptor,
-    name: Name
+    name: Name,
+    isgetExtend: Boolean = true,
+    searchscope: LexicalScope
 
 ) : LazyClassDescriptorBase(
     c,
@@ -60,6 +62,12 @@ class LazyExtendClassDescriptor(
             getClassDescriptor(type) != null
         }
     }
+
+    private val typeParameterDescriptors: List<TypeParameterDescriptor>
+    val classDescriptor: ClassDescriptor
+
+    //    val typeParameters: List<TypeParameterDescriptor>
+    private var parameters: NotNullLazyValue<List<TypeParameterDescriptor>>
 
     private val storageManager: StorageManager = c.storageManager
     private val typeConstructor = ExtendTypeConstructor()
@@ -87,6 +95,91 @@ class LazyExtendClassDescriptor(
             BindingContext.CLASS, typeStatement,
             this
         )
+
+
+        val typeReceiver = typeStatement.receiverTypeReceiver
+        assert(typeReceiver != null) { "type receiver is not supported for class: $name" }
+
+        val headerScope = LexicalWritableScope(
+            searchscope, this, true,
+            TraceBasedLocalRedeclarationChecker(c.trace, c.overloadChecker), LexicalScopeKind.CLASS_HEADER
+        )
+        this.typeParameterDescriptors = c.descriptorResolver.resolveTypeParametersForDescriptor(
+            this,
+            headerScope,
+            searchscope,
+            typeStatement.typeParameters,
+            c.trace
+        )
+        this.parameters = c.storageManager.createLazyValue {
+            val classInfo = declarationProvider.ownerInfo
+            var typeParameterList: CjTypeParameterList? = null
+            if (classInfo != null) {
+                typeParameterList = classInfo.typeParameterList
+            }
+            if (typeParameterList == null) return@createLazyValue emptyList<TypeParameterDescriptor>()
+//
+//            boolean isAnonymousObject = (classInfo.getClassKind() == ClassKind.CLASS) && (classInfo.getCorrespondingClassOrObject() instanceof KtObjectDeclaration);
+//
+//            if (classInfo.getClassKind() == ClassKind.ENUM ) {
+//                c.getTrace().report(TYPE_PARAMETERS_IN_ENUM.on(typeParameterList));
+//            }
+//            if (classInfo.getClassKind() == ClassKind.OBJECT) {
+//                c.getTrace().report(TYPE_PARAMETERS_IN_OBJECT.on(typeParameterList));
+//            }
+//            if (isAnonymousObject) {
+//                DiagnosticFactory0<CjTypeParameterList> diagnosticFactory;
+//                if (c.getLanguageVersionSettings().supportsFeature(LanguageFeature.ProhibitTypeParametersInAnonymousObjects)) {
+//                    diagnosticFactory = TYPE_PARAMETERS_IN_OBJECT;
+//                } else {
+//                    diagnosticFactory = TYPE_PARAMETERS_IN_ANONYMOUS_OBJECT;
+//                }
+//                c.getTrace().report(diagnosticFactory.on(typeParameterList));
+//            }
+//
+            val typeParameters = typeParameterList.parameters
+            if (typeParameters.isEmpty()) return@createLazyValue emptyList<TypeParameterDescriptor>()
+//
+//            boolean supportClassTypeParameterAnnotations = c.getLanguageVersionSettings().supportsFeature(LanguageFeature.ClassTypeParameterAnnotations);
+            val parameters: MutableList<TypeParameterDescriptor> = ArrayList(typeParameters.size)
+
+            for (i in typeParameters.indices) {
+                val parameter = typeParameters[i]
+                val lazyAnnotations = Annotations.EMPTY
+
+                //                if (supportClassTypeParameterAnnotations) {
+//                    lazyAnnotations = new LazyAnnotations(
+//                            new LazyAnnotationsContext(
+//                                    c.getAnnotationResolver(),
+//                                    storageManager,
+//                                    c.getTrace()
+//                            ) {
+//                                @NotNull
+//                                @Override
+//                                public LexicalScope getScope() {
+//                                    return getOuterScope();
+//                                }
+//                            },
+//                            parameter.getAnnotationEntries()
+//                    );
+//                } else {
+//                    lazyAnnotations = Annotations.EMPTY;
+//                }
+                parameters.add(
+                    LazyTypeParameterDescriptor(
+                        c,
+                        this, parameter, lazyAnnotations, i
+                    )
+                )
+            }
+            parameters
+        }
+
+        val type = c.typeResolver.resolveType(headerScope, typeReceiver!!, c.trace, false, isgetExtend)
+
+        this.classDescriptor = type.constructor.declarationDescriptor as ClassDescriptor
+
+
     }
 
 
@@ -99,12 +192,7 @@ class LazyExtendClassDescriptor(
 
         return true
     }
-//
-//    override fun hashCode(): Int {
-//        var result = super.hashCode()
-//        result = 31 * result + classDescriptor.hashCode()
-//        return result
-//    }
+
 
     override fun toString(): String {
         return "extend $classDescriptor"
@@ -148,7 +236,7 @@ class LazyExtendClassDescriptor(
             c.storageManager.createLazyValue { this@LazyExtendClassDescriptor.computeConstructorTypeParameters() }
 
         override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
-       return emptyList()
+            return emptyList()
         }
 
         override fun computeSupertypes(): Collection<CangJieType> {
@@ -196,8 +284,8 @@ class LazyExtendClassDescriptor(
         return Modality.FINAL
     }
 
-    override fun getDeclaredTypeParameters(): MutableList<TypeParameterDescriptor> {
-        return classDescriptor.declaredTypeParameters
+    override fun getDeclaredTypeParameters(): List<TypeParameterDescriptor> {
+        return parameters()
     }
 
     override fun getStaticScope(): MemberScope {
@@ -217,7 +305,7 @@ class LazyExtendClassDescriptor(
         return ClassKind.EXTEND
     }
 
-    fun getSourceClassKind(): ClassKind {
+    fun getSourceClassKind(): ClassKind? {
         return classDescriptor.kind
     }
 
@@ -233,7 +321,7 @@ class LazyExtendClassDescriptor(
         return null
     }
 
-    override fun getSealedSubclasses(): MutableCollection<ClassDescriptor> {
+    override fun getSealedSubclasses(): Collection<ClassDescriptor> {
         return classDescriptor.sealedSubclasses
     }
 
@@ -295,9 +383,10 @@ class LazyExtendClassDescriptor(
     }
 
 
-    override fun getSuperTypeListEntries(): MutableList<CjSuperTypeListEntry> {
-        return classDescriptor.superTypeListEntries
+    override fun getSuperTypeListEntries(): List<CjSuperTypeListEntry> {
+        return classDescriptor.superTypeListEntries ?: emptyList()
     }
+
     fun resolveMemberHeaders() {
         //    ForceResolveUtil.forceResolveAllContents(getDanglingAnnotations());
         getSuperClassNotAny()
@@ -317,4 +406,6 @@ class LazyExtendClassDescriptor(
         result = 31 * result + resolutionScopesSupport.hashCode()
         return result
     }
+
+
 }

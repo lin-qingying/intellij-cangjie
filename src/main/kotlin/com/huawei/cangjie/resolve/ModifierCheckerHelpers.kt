@@ -43,7 +43,7 @@ val possibleTargetMap = mapOf(
 //        CangJieTarget.MEMBER_PROPERTY,
 //        CangJieTarget.MEMBER_FUNCTION
 //    ),
-    SEALED_KEYWORD to EnumSet.of(CangJieTarget.CLASS_ONLY/*, CangJieTarget.INTERFACE*/),
+    SEALED_KEYWORD to EnumSet.of(CangJieTarget.CLASS_ONLY, CangJieTarget.INTERFACE ),
 //    INNER_KEYWORD to EnumSet.of(CangJieTarget.CLASS_ONLY),
     OVERRIDE_KEYWORD to EnumSet.of(CangJieTarget.MEMBER_PROPERTY, CangJieTarget.MEMBER_FUNCTION),
     PRIVATE_KEYWORD to defaultVisibilityTargets + CangJieTarget.BACKING_FIELD,

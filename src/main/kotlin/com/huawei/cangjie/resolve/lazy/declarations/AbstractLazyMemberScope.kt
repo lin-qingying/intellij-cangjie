@@ -1,10 +1,13 @@
 package com.huawei.cangjie.resolve.lazy.declarations
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.builtins.StandardNames.FqNames.core
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.calls.components.InferenceSession
+import com.huawei.cangjie.resolve.descriptorUtil.fqNameSafe
 import com.huawei.cangjie.resolve.lazy.LazyClassContext
 import com.huawei.cangjie.resolve.lazy.data.CjClassInfoUtil
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
@@ -90,18 +93,17 @@ protected constructor(
 
     }
 
-    fun resolveTypeByExtend(declaration: CjExtend,isgetExtend:Boolean = true): ClassDescriptorWithResolutionScopes? {
+    fun resolveTypeByExtend(declaration: CjExtend, isgetExtend: Boolean = true): ClassDescriptorWithResolutionScopes {
         val scope = getScopeForMemberDeclarationResolution(declaration)
-        val typeReceiver = declaration.receiverTypeReceiver ?: return null
 
-        val type = c.typeResolver.resolveType(scope, typeReceiver, trace, false,isgetExtend)
-
-        val classDescriptor =
-            type.constructor.declarationDescriptor as? ClassDescriptorWithResolutionScopes ?: return null
         val classInfo = CjClassInfoUtil.createClassLikeInfo(declaration)
+
         val extendDescriptor = LazyExtendClassDescriptor(
-            classDescriptor, c, classInfo, thisDescriptor, classDescriptor.name
+            c, classInfo, thisDescriptor, declaration.nameAsName, isgetExtend, scope
         )
+
+
+
         return extendDescriptor
 
 
@@ -295,7 +297,7 @@ protected constructor(
         return typeAliasDescriptors(name)
     }
 
-    protected abstract fun getScopeForMemberDeclarationResolution(declaration: CjDeclaration): LexicalScope
+    abstract fun getScopeForMemberDeclarationResolution(declaration: CjDeclaration): LexicalScope
 
     private fun getDeclaredFunctions(
         name: Name
@@ -342,6 +344,24 @@ protected constructor(
             LazyClassDescriptor(c, thisDescriptor, name, it, isExternal)
         }
         getNonDeclaredClasses(name, result)
+
+
+//        为std.core添加内置类型
+        if (this.thisDescriptor.fqNameSafe == core) {
+            try{
+                CangJieBuiltIns.Companion.BuiltCangJieTypeName.entries.filter {
+                    it.typeName == name
+                }.forEach { _ ->
+                    result.add(c.moduleDescriptor.builtIns.getPrimitiveClassBuiltInDescriptor(name))
+
+                }
+
+            }catch (_:AssertionError){
+
+            }
+        }
+
+
         return result.toList()
     }
 
@@ -359,8 +379,7 @@ protected constructor(
 //            LazyClassDescriptor(c, thisDescriptor, name, it, isExternal)
 
 
-
-            resolveTypeByExtend(it.scopeAnchor as CjExtend,false) as LazyExtendClassDescriptor
+            resolveTypeByExtend(it.scopeAnchor as CjExtend, false) as LazyExtendClassDescriptor
         }
 //        getNonDeclaredClasses(name, result)
         return result.toList()
