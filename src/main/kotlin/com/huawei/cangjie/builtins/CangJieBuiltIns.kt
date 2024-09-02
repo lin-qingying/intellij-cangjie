@@ -10,9 +10,11 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.int32
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int64
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int8
 import com.huawei.cangjie.builtins.StandardNames.FqNames.nothing
+import com.huawei.cangjie.builtins.StandardNames.FqNames.option
 import com.huawei.cangjie.builtins.StandardNames.FqNames.rune
 import com.huawei.cangjie.builtins.StandardNames.OBJECT
 import com.huawei.cangjie.builtins.StandardNames.STD_CORE_PACKAGE_FQ_NAME
+import com.huawei.cangjie.builtins.StandardNames.STRING
 import com.huawei.cangjie.builtins.StandardNames.getFunctionName
 import com.huawei.cangjie.context.ProjectContext
 import com.huawei.cangjie.descriptors.ClassDescriptor
@@ -67,6 +69,9 @@ open class CangJieBuiltIns(
             )
         }
 
+        fun isOptionType(type: CangJieType): Boolean {
+            return isConstructedFromGivenClass(type, option)
+        }
 
         fun isRune(type: CangJieType): Boolean {
             return isConstructedFromGivenClass(type, rune)
@@ -194,10 +199,31 @@ open class CangJieBuiltIns(
 
         }
 
+        fun isUnsignedNumber(type: CangJieType): Boolean {
+            return isUInt8(type)
+                    || isUInt16(type)
+                    || isUInt32(type)
+                    || isUInt64(type)
+        }
 
+        @JvmStatic
         fun isUInt64(type: CangJieType): Boolean {
 
             return isConstructedFromGivenClass(type, StandardNames.FqNames.uInt64FqName.toUnsafe())
+        }
+
+        @JvmStatic
+        fun isNumber(type: CangJieType): Boolean {
+
+            return isInt8(type)
+                    || isInt16(type)
+                    || isInt32(type)
+                    || isInt64(type)
+                    || isUInt8(type)
+                    || isUInt16(type)
+                    || isUInt32(type)
+                    || isUInt64(type)
+
         }
 
 //        fun isNullableNothing(type: CangJieType): Boolean {
@@ -219,7 +245,14 @@ open class CangJieBuiltIns(
             type: CangJieType,
             fqName: FqNameUnsafe
         ): Boolean {
-            return isTypeConstructorForGivenClass(type.constructor, fqName)
+            return if (isTypeConstructorForGivenClass(type.constructor, fqName)) {
+                true
+            } else if (type.constructor.declarationDescriptor is ClassDescriptor && DescriptorUtils.getFqName(type.constructor.declarationDescriptor!!) == option) {
+
+                isConstructedFromGivenClass(type.arguments[0].type, fqName)
+            } else {
+                false
+            }
         }
 
         fun isTypeConstructorForGivenClass(
@@ -238,10 +271,22 @@ open class CangJieBuiltIns(
             descriptor: ClassifierDescriptor,
             fqName: FqNameUnsafe
         ): Boolean {
+
             // Quick check to avoid creation of full FqName instance
             return descriptor.name == fqName.shortName() && fqName == DescriptorUtils.getFqName(
                 descriptor
             )
+//            return if (descriptor.name == fqName.shortName() && fqName == DescriptorUtils.getFqName(
+//                    descriptor
+//                )
+//            ) {
+//                true
+//            } else {
+//                //
+//                DescriptorUtils.getFqName(
+//                    descriptor
+//                ) == option && fqName != option
+//            }
         }
 
         private fun isNotNullConstructedFromGivenClass(
@@ -335,7 +380,7 @@ open class CangJieBuiltIns(
 
     //    获取内置类型
     fun getPrimitiveBuiltInCangJieType(name: Name): SimpleType {
-        return getPrimitiveClassBuiltInDescriptor(name).getDefaultType()
+        return getPrimitiveClassBuiltInDescriptor(name).defaultType
 
     }
 
@@ -437,16 +482,6 @@ open class CangJieBuiltIns(
     val unitType: BasicType get() = unit.defaultType
     val nothing: ClassDescriptor get() = getBuiltInClassByName("Nothing")
 
-    val any: ClassDescriptor
-        get() {
-
-            return findClassDescriptorByFqName(storageManager.project, ANY)!!
-//            return getStdCoreClassByName("Any")
-        }
-    val anyType: SimpleType
-        get() {
-            return any.getDefaultType()
-        }
 
     val `object`: ClassDescriptor
         get() = findClassDescriptorByFqName(storageManager.project, OBJECT)!!
@@ -479,12 +514,33 @@ open class CangJieBuiltIns(
     val boolType get() = getPrimitiveBasicCangJieType(PrimitiveType.BOOL)
 
 
-
-
     //    内置类型
 //    这两个内置类型是std.core包中的，如果有必要，需要加上包名，现在没有加
     val CPointerType get() = getPrimitiveBuiltInCangJieType(BuiltCangJieTypeName.CPOINTER.typeName)
     val CStringType get() = getPrimitiveBuiltInCangJieType(BuiltCangJieTypeName.CSTRING.typeName)
+
+
+    //    标准库
+    val any: ClassDescriptor
+        get() {
+
+            return findClassDescriptorByFqName(storageManager.project, ANY)!!
+//            return getStdCoreClassByName("Any")
+        }
+    val anyType: SimpleType
+        get() {
+            return any.getDefaultType()
+        }
+
+
+    val string: ClassDescriptor
+        get() = findClassDescriptorByFqName(storageManager.project, STRING)!!
+
+    val stringType: SimpleType
+        get() {
+            return string.getDefaultType()
+        }
+
 }
 
 

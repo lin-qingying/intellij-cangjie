@@ -7,6 +7,7 @@ public interface AnnotationArgumentVisitor<R, D> {
     R visitArrayValue(ArrayValue value, D data);
 
     R visitStringValue(StringValue value, D data);
+    R visitUnitValue(UnitValue value, D data);
 
     R visitErrorValue(ErrorValue value, D data);
 

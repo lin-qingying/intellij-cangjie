@@ -1,12 +1,14 @@
 package com.huawei.cangjie.resolve.calls.util
 
 import com.huawei.cangjie.config.LanguageFeature
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
 import com.huawei.cangjie.lexer.CjToken
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getStrictParentOfType
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
+import com.huawei.cangjie.resolve.calls.context.ResolutionContext
 import com.huawei.cangjie.resolve.calls.inference.ConstraintSystem
 import com.huawei.cangjie.resolve.calls.inference.constraintPosition.ConstraintPositionKind
 import com.huawei.cangjie.resolve.calls.inference.getNestedTypeVariables
@@ -27,7 +29,37 @@ internal fun PsiElement.reportOnElement() =
         ?.takeIf { isImplicit }
         ?.let { getStrictParentOfType<CjSecondaryConstructor>()!! }
         ?: this
+fun getEffectiveExpectedType(
+    parameterDescriptor: ValueParameterDescriptor,
+    argument: ValueArgument,
+    context: ResolutionContext<*>
+): CangJieType {
+    return getEffectiveExpectedTypeForSingleArgument(parameterDescriptor, argument, context.languageVersionSettings, context.trace)
+}
+fun getEffectiveExpectedTypeForSingleArgument(
+    parameterDescriptor: ValueParameterDescriptor,
+    argument: ValueArgument,
+    languageVersionSettings: LanguageVersionSettings,
+    trace: BindingTrace
+): CangJieType {
+    if (argument.getSpreadElement() != null) {
+        // Spread argument passed to a non-vararg parameter, an error is already reported by ValueArgumentsToParametersMapper
+        return /*if (parameterDescriptor.varargElementType == null) DONT_CARE else */parameterDescriptor.type
+    }
 
+//    if (
+//        arrayAssignmentToVarargInNamedFormInAnnotation(parameterDescriptor, argument, languageVersionSettings, trace) ||
+//        arrayAssignmentToVarargInNamedFormInFunction(parameterDescriptor, argument, languageVersionSettings, trace)
+//    ) {
+//        return parameterDescriptor.type
+//    }
+
+    return getExpectedType(parameterDescriptor)
+}
+
+private fun getExpectedType(parameterDescriptor: ValueParameterDescriptor): CangJieType {
+    return /*parameterDescriptor.varargElementType ?: */parameterDescriptor.type
+}
 fun isOrOverridesSynthesized(descriptor: CallableMemberDescriptor): Boolean {
     if (descriptor.kind == CallableMemberDescriptor.Kind.SYNTHESIZED) {
         return true

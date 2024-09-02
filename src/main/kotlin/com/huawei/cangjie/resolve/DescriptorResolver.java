@@ -1189,7 +1189,67 @@ public class DescriptorResolver {
         return variableDescriptor;
     }
 
+    @NotNull
+    /*package*/ static CangJieType transformAnonymousTypeIfNeeded(
+            @NotNull DeclarationDescriptorWithVisibility descriptor,
+            @NotNull CjDeclaration declaration,
+            @NotNull CangJieType type,
+            @NotNull BindingTrace trace,
+            @NotNull Iterable<DeclarationSignatureAnonymousTypeTransformer> anonymousTypeTransformers,
+            @NotNull LanguageVersionSettings languageVersionSettings
+    ) {
+        for (DeclarationSignatureAnonymousTypeTransformer transformer : anonymousTypeTransformers) {
+            CangJieType transformedType = transformer.transformAnonymousType(descriptor, type);
+            if (transformedType != null) {
+                return transformedType;
+            }
+        }
 
+        ClassifierDescriptor classifier = type.getConstructor().getDeclarationDescriptor();
+        if (classifier == null  || DescriptorUtils.isLocal(descriptor)) {
+            return type;
+        }
+
+        boolean isPrivate = DescriptorVisibilities.isPrivate(descriptor.getVisibility());
+
+        if (!isPrivate  ) {
+            if (type.getConstructor().getSupertypes().size() == 1) {
+                CangJieType approximatingSuperType = type.getConstructor().getSupertypes().iterator().next();
+                CangJieType substitutedSuperType;
+                MemberScope memberScope = type.getMemberScope();
+
+                if (memberScope instanceof SubstitutingScope) {
+                    substitutedSuperType = ((SubstitutingScope) memberScope).substitute(approximatingSuperType);
+                } else {
+                    substitutedSuperType = approximatingSuperType;
+                }
+
+//                UnwrappedType unwrapped = type.unwrap();
+//                boolean lowerNullable = FlexibleTypesKt.lowerIfFlexible(unwrapped).isMarkedNullable();
+//                boolean upperNullable = FlexibleTypesKt.upperIfFlexible(unwrapped).isMarkedNullable();
+//                if (languageVersionSettings.supportsFeature(LanguageFeature.KeepNullabilityWhenApproximatingLocalType)) {
+//                    if (lowerNullable != upperNullable) {
+//                        return CangJieTypeFactory.flexibleType(
+//                                FlexibleTypesKt.lowerIfFlexible(substitutedSuperType),
+//                                FlexibleTypesKt.upperIfFlexible(substitutedSuperType).makeNullableAsSpecified(true));
+//                    }
+//                    return TypeUtils.makeOptionalIfNeeded(substitutedSuperType, upperNullable);
+//                } else if (upperNullable) {
+//                    if (lowerNullable) {
+//                        trace.report(APPROXIMATED_LOCAL_TYPE_WILL_BECOME_NULLABLE.on(declaration, substitutedSuperType));
+//                    } else {
+//                        trace.report(APPROXIMATED_LOCAL_TYPE_WILL_BECOME_FLEXIBLE.on(declaration, substitutedSuperType));
+//                    }
+//                }
+                return substitutedSuperType;
+            }
+            else {
+                trace.report(AMBIGUOUS_ANONYMOUS_TYPE_INFERRED.on(declaration, type.getConstructor().getSupertypes()));
+            }
+        }
+
+        return type;
+    }
       static final class UpperBoundCheckRequest {
         public final Name typeParameterName;
         public final CjTypeReference upperBound;

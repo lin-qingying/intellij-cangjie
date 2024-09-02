@@ -66,3 +66,77 @@ class DiagnosticFactoryForDeprecation2<E : PsiElement, A : Any, B : Any>(
         return languageVersionSettings.chooseFactory().on(element, a, b)
     }
 }
+
+class DiagnosticFactoryForDeprecation1<E : PsiElement, A : Any>(
+    featureForError: LanguageFeature,
+    warningFactory: DiagnosticFactory1<E, A>,
+    errorFactory: DiagnosticFactory1<E, A>
+) : DiagnosticFactoryForDeprecation<E, DiagnosticWithParameters1<E, A>, DiagnosticFactory1<E, A>>(featureForError, warningFactory, errorFactory) {
+    companion object {
+        @JvmStatic
+        @JvmOverloads
+        fun <E : PsiElement, A : Any> create(
+            featureForError: LanguageFeature,
+            positioningStrategy: PositioningStrategy<E> = PositioningStrategies.DEFAULT
+        ): DiagnosticFactoryForDeprecation1<E, A> {
+            return DiagnosticFactoryForDeprecation1(
+                featureForError,
+                warningFactory = DiagnosticFactory1.create(Severity.WARNING, positioningStrategy),
+                errorFactory = DiagnosticFactory1.create(Severity.ERROR, positioningStrategy),
+            )
+        }
+    }
+
+    fun on(languageVersionSettings: LanguageVersionSettings, element: E, a: A): ParametrizedDiagnostic<E> {
+        return languageVersionSettings.chooseFactory().on(element, a)
+    }
+}
+
+class DiagnosticFactoryForDeprecation3<E : PsiElement, A : Any, B : Any, C : Any>(
+    featureForError: LanguageFeature,
+    warningFactory: DiagnosticFactory3<E, A, B, C>,
+    errorFactory: DiagnosticFactory3<E, A, B, C>
+) : DiagnosticFactoryForDeprecation<E, DiagnosticWithParameters3<E, A, B, C>, DiagnosticFactory3<E, A, B, C>>(featureForError, warningFactory, errorFactory) {
+    companion object {
+        @JvmStatic
+        @JvmOverloads
+        fun <E : PsiElement, A : Any, B : Any, C : Any> create(
+            featureForError: LanguageFeature,
+            positioningStrategy: PositioningStrategy<E> = PositioningStrategies.DEFAULT
+        ): DiagnosticFactoryForDeprecation3<E, A, B, C> {
+            return DiagnosticFactoryForDeprecation3(
+                featureForError,
+                warningFactory = DiagnosticFactory3.create(Severity.WARNING, positioningStrategy),
+                errorFactory = DiagnosticFactory3.create(Severity.ERROR, positioningStrategy),
+            )
+        }
+    }
+
+    fun on(languageVersionSettings: LanguageVersionSettings, element: E, a: A, b: B, c: C): ParametrizedDiagnostic<E> {
+        return languageVersionSettings.chooseFactory().on(element, a, b, c)
+    }
+}
+class DiagnosticFactoryForDeprecation4<E : PsiElement, A : Any, B : Any, C : Any, D : Any>(
+    featureForError: LanguageFeature,
+    warningFactory: DiagnosticFactory4<E, A, B, C, D>,
+    errorFactory: DiagnosticFactory4<E, A, B, C, D>
+) : DiagnosticFactoryForDeprecation<E, DiagnosticWithParameters4<E, A, B, C, D>, DiagnosticFactory4<E, A, B, C, D>>(featureForError, warningFactory, errorFactory) {
+    companion object {
+        @JvmStatic
+        @JvmOverloads
+        fun <E : PsiElement, A : Any, B : Any, C : Any, D : Any> create(
+            featureForError: LanguageFeature,
+            positioningStrategy: PositioningStrategy<E> = PositioningStrategies.DEFAULT
+        ): DiagnosticFactoryForDeprecation4<E, A, B, C, D> {
+            return DiagnosticFactoryForDeprecation4(
+                featureForError,
+                warningFactory = DiagnosticFactory4.create(Severity.WARNING, positioningStrategy),
+                errorFactory = DiagnosticFactory4.create(Severity.ERROR, positioningStrategy),
+            )
+        }
+    }
+
+    fun on(languageVersionSettings: LanguageVersionSettings, element: E, a: A, b: B, c: C, d: D): ParametrizedDiagnostic<E> {
+        return languageVersionSettings.chooseFactory().on(element, a, b, c, d)
+    }
+}

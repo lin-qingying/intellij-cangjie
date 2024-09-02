@@ -48,7 +48,7 @@ public class DefaultErrorMessages {
         MAP.put(INCORRECT_CHARACTER_LITERAL, "Incorrect character literal");
         MAP.put(EMPTY_CHARACTER_LITERAL, "Empty character literal");
         MAP.put(TOO_MANY_CHARACTERS_IN_CHARACTER_LITERAL, "Too many characters in a character literal ''{0}''", TO_STRING);
-        MAP.put(INT_LITERAL_OUT_OF_RANGE_BY_TYPE, "the number ''{0}'' exceeds the value range of type ''{1}''",TO_STRING,RENDER_TYPE);
+        MAP.put(INT_LITERAL_OUT_OF_RANGE_BY_TYPE, "the number ''{0}'' exceeds the value range of type ''{1}''", TO_STRING, RENDER_TYPE);
 
 
 //        包导入
@@ -73,7 +73,7 @@ public class DefaultErrorMessages {
 
         MAP.put(CANNOT_WEAKEN_ACCESS_PRIVILEGE, "Cannot weaken access privilege ''{0}'' for ''{1}'' in ''{2}''", VISIBILITY, NAME, NAME);
 
-        MAP.put(ABSTRACT_MEMBER_NOT_IMPLEMENTED, "{0} is not abstract and does not implement abstract member {1}", RENDER_CLASS ,
+        MAP.put(ABSTRACT_MEMBER_NOT_IMPLEMENTED, "{0} is not abstract and does not implement abstract member {1}", RENDER_CLASS,
                 FQ_NAMES_IN_TYPES);
         MAP.put(VIRTUAL_MEMBER_HIDDEN, "''{0}'' hides member of supertype ''{2}'' and needs ''override'' modifier", NAME, NAME, NAME);
         MAP.put(NOTHING_TO_OVERRIDE, "''{0}'' overrides nothing", NAME);
@@ -83,7 +83,18 @@ public class DefaultErrorMessages {
         String wrongNumberOfTypeArguments = "{0,choice,0#No type arguments|1#One type argument|1<{0,number,integer} type arguments} expected";
 
         MAP.put(WRONG_NUMBER_OF_TYPE_ARGUMENTS, wrongNumberOfTypeArguments + " for {1}", null, COMPACT_WITHOUT_SUPERTYPES);
-
+        MAP.put(MEMBER_PROJECTED, "type ''{1}'' prohibits the use of ''{0}''", FQ_NAMES_IN_TYPES, RENDER_TYPE);
+        MAP.put(TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS,
+                "Type mismatch: inferred type is {1} but {0} was expected. Projected type {2} restricts use of {3}",
+                object -> {
+                    RenderingContext context =  RenderingContext.of(object.getExpectedType(), object.getExpressionType(), object.getReceiverType(), object.getCallableDescriptor());
+                    return new String[]{
+                            RENDER_TYPE.render(object.getExpectedType(), context),
+                            RENDER_TYPE.render(object.getExpressionType(), context),
+                            RENDER_TYPE.render(object.getReceiverType(), context),
+                            FQ_NAMES_IN_TYPES.render(object.getCallableDescriptor(), context)
+                    };
+                });
 
         MAP.put(UPPER_BOUND_VIOLATED, "Type argument is not within its bounds: should be subtype of ''{0}''", RENDER_TYPE, RENDER_TYPE);
         MAP.put(SUPERTYPE_APPEARS_TWICE, "A supertype appears twice");
@@ -94,17 +105,18 @@ public class DefaultErrorMessages {
         MAP.put(CYCLIC_INHERITANCE_HIERARCHY, "There's a cycle in the inheritance hierarchy for this type");
         MAP.put(STRUCT_IN_SUPERTYPE, "Cannot inherit from a struct");
         MAP.put(ENUM_IN_SUPERTYPE, "Cannot inherit from a enum");
-        MAP.put(FINAL_SUPERTYPE, "super class ''{0}'' is not inheritable",RENDER_TYPE);
+        MAP.put(FINAL_SUPERTYPE, "super class ''{0}'' is not inheritable", RENDER_TYPE);
         MAP.put(MANY_CLASSES_IN_SUPERTYPE_LIST, "Only one class may appear in a supertype list");
 
-        MAP.put(EXTEND_CANNOT_INTERFACE,"Extended interfaces are cannot allowed");
+        MAP.put(EXTEND_CANNOT_INTERFACE, "Extended interfaces are cannot allowed");
 //        表达式
-               MAP.put(NEW_INFERENCE_UNKNOWN_ERROR, "Unknown error in new inference with applicability ''{0}'' and target ''{1}''", TO_STRING, STRING);
+        MAP.put(NEW_INFERENCE_UNKNOWN_ERROR, "Unknown error in new inference with applicability ''{0}'' and target ''{1}''", TO_STRING, STRING);
+        MAP.put(TYPE_MISMATCH, "Type mismatch: inferred type is {1} but {0} was expected", RENDER_TYPE, RENDER_TYPE);
 
 
 //        修饰符
         MAP.put(REDUNDANT_MODIFIER, "Modifier ''{0}'' is redundant because ''{1}'' is present", TO_STRING, TO_STRING);
-        MAP.put(SEALED_ABSTRACT, "'sealed' can only modify abstract class" );
+        MAP.put(SEALED_ABSTRACT, "'sealed' can only modify abstract class");
         MAP.put(INCOMPATIBLE_MODIFIERS, "Modifier ''{0}'' is incompatible with ''{1}''", TO_STRING, TO_STRING);
         MAP.put(WRONG_MODIFIER_TARGET, "Modifier ''{0}'' is not applicable to ''{1}''", TO_STRING, TO_STRING);
 
@@ -113,6 +125,7 @@ public class DefaultErrorMessages {
 
 
         MAP.put(EXCEPTION_FROM_ANALYZER, "Internal Error occurred while analyzing this expression:\n{0}", THROWABLE);
+        MAP.put(REDUNDANT_OPTIONAL, "Redundant '?'");
 
     }
 

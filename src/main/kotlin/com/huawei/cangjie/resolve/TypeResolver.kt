@@ -292,7 +292,12 @@ class TypeResolver(
                 result = resolveTypeForClassifier(c, classifier, qualifierResolutionResult, type, annotations)
             }
 
+            override fun visitParenthesizedType(cjParenthesizedType: CjParenthesizedType) {
+                result = resolveTypeElement(c, Annotations.EMPTY, null, cjParenthesizedType.getType())
+            }
+
             override fun visitFunctionType(type: CjFunctionType) {
+                TODO()
 //                return super.visitFunctionType(type)
             }
 

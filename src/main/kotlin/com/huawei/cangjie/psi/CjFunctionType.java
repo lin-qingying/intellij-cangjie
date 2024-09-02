@@ -39,8 +39,8 @@ public class CjFunctionType extends CjElementImplStub<CangJiePlaceHolderStub<CjF
         if (receiverTypeRef != null) {
             result.add(receiverTypeRef);
         }
-        for (CjParameter ktParameter : getParameters()) {
-            result.add(ktParameter.getTypeReference());
+        for (CjParameter cjParameter : getParameters()) {
+            result.add(cjParameter.getTypeReference());
         }
         CjTypeReference returnTypeRef = getReturnTypeReference();
         if (returnTypeRef != null) {

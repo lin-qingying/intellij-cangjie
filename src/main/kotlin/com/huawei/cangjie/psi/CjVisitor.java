@@ -383,7 +383,9 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         return visitCjElement(cjTupleType, data);
     }
 
-
+    public R visitParenthesizedType(@NotNull CjParenthesizedType cjParenthesizedType, D data) {
+        return visitCjElement(cjParenthesizedType, data);
+    }
     public R visitFunctionType(@NotNull CjFunctionType type, D data) {
         return visitTypeElement(type, data);
     }

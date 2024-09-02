@@ -42,7 +42,7 @@ class CjTypeReference : CjModifierListOwnerStub<CangJiePlaceHolderStub<CjTypeRef
                 }
         }
 
-    override fun toString(): String = getTypeText()
+
 
     fun hasParentheses(): Boolean {
         return findChildByType<PsiElement>(CjTokens.LPAR) != null && findChildByType<PsiElement>(CjTokens.RPAR) != null

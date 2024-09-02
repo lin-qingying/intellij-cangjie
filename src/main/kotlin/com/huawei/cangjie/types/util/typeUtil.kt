@@ -265,6 +265,18 @@ fun CangJieType.isGenericArrayOfTypeParameter(): Boolean {
             argument0type.isGenericArrayOfTypeParameter()
 }
 
+/**
+ * 如果是Option类型，获取原类型
+ */
+fun CangJieType.getOriginalType(): CangJieType {
+
+    if (CangJieBuiltIns.isOptionType(this)) {
+        return arguments[0].type
+
+    }
+    return this
+}
+
 fun CangJieTypeChecker.equalTypesOrNulls(type1: CangJieType?, type2: CangJieType?): Boolean {
     if (type1 === type2) return true
     if (type1 == null || type2 == null) return false
@@ -275,6 +287,8 @@ fun CangJieType.isPrimitiveNumber(): Boolean =
     CangJieBuiltIns.isPrimitiveType(this) &&
             !CangJieBuiltIns.isBoolean(this) &&
             !CangJieBuiltIns.isRune(this)
+
+fun CangJieType.isAny(): Boolean = CangJieBuiltIns.isAny(this)
 
 object TypeUtils {
 
@@ -330,7 +344,15 @@ object TypeUtils {
         other.forEach {
             arguments.add(TypeProjectionImpl(it))
         }
-        return CangJieTypeFactory.simpleType(stub.attributes, stub.constructor, arguments, false, null)
+        return CangJieTypeFactory.optionType(
+            CangJieTypeFactory.simpleType(
+                stub.attributes,
+                stub.constructor,
+                arguments,
+                true,
+                null
+            )
+        )
 
     }
 

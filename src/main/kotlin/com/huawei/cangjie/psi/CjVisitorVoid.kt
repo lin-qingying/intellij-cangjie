@@ -11,6 +11,19 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
         super.visitFunctionType(type, null)
     }
 
+    override fun visitFunctionType(type: CjFunctionType, data: Void?): Void? {
+        visitFunctionType(type)
+        return null
+    }
+    override fun visitParenthesizedType(cjParenthesizedType: CjParenthesizedType, data: Void?): Void? {
+        visitParenthesizedType(cjParenthesizedType)
+        return null
+    }
+
+    open fun visitParenthesizedType(cjParenthesizedType: CjParenthesizedType) {
+        super.visitParenthesizedType(cjParenthesizedType, null)
+    }
+
     override fun visitOptionType(optionType: CjOptionType, data: Void?): Void? {
         visitOptionType(optionType)
         return null

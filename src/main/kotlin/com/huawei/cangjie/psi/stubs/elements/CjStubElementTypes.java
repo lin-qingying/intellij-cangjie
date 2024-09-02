@@ -203,6 +203,7 @@ CjConstantExpressionElementType RUNE_CONSTANT = new CjConstantExpressionElementT
 
     //    CjTupleTypeElementType TUPLE_TYPE = new CjTupleTypeElementType("TUPLE_TYPE");
     CjPlaceHolderStubElementType<CjTupleType> TUPLE_TYPE = new CjPlaceHolderStubElementType<>("TUPLE_TYPE", CjTupleType.class);
+    CjPlaceHolderStubElementType<CjParenthesizedType> PARENTHESIZED_TYPE = new CjPlaceHolderStubElementType<>("PARENTHESIZED_TYPE", CjParenthesizedType.class);
 
 
     CjPlaceHolderStubElementType<CjEnumBody> ENUM_BODY =

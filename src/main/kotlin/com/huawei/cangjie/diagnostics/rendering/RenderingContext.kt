@@ -9,7 +9,11 @@ sealed class RenderingContext {
         abstract fun compute(objectsToRender: Collection<Any?>): T
     }
 
-
+    object Empty : RenderingContext() {
+        override fun <T> get(key: Key<T>): T {
+            return key.compute(emptyList())
+        }
+    }
     class Impl(private val objectsToRender: Collection<Any?>) : RenderingContext() {
         private val data = linkedMapOf<Key<*>, Any?>()
 

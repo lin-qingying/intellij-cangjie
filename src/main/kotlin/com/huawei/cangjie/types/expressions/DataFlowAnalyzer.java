@@ -3,6 +3,7 @@ package com.huawei.cangjie.types.expressions;
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.descriptors.BindingTrace;
 import com.huawei.cangjie.descriptors.ModuleDescriptor;
+import com.huawei.cangjie.diagnostics.DiagnosticUtilsKt;
 import com.huawei.cangjie.psi.CjConstantExpression;
 import com.huawei.cangjie.psi.CjExpression;
 import com.huawei.cangjie.resolve.calls.context.ContextDependency;
@@ -28,6 +29,7 @@ import com.huawei.cangjie.psi.CjPsiUtil;
 import com.huawei.cangjie.resolve.BindingContext;
 
 import static com.huawei.cangjie.descriptors.Errors.EXPECTED_TYPE_MISMATCH;
+import static com.huawei.cangjie.descriptors.Errors.TYPE_MISMATCH;
 import static com.huawei.cangjie.types.util.TypeUtils.*;
 
 public class DataFlowAnalyzer {
@@ -120,10 +122,10 @@ public class DataFlowAnalyzer {
 //                ((BuilderInferenceSession) c.inferenceSession).addExpectedTypeConstraint(expression, expressionType, c.expectedType);
 //            }
 //        }
-//        if (noExpectedType(c.expectedType) || !c.expectedType.getConstructor().isDenotable() ||
-//                cangjieTypeChecker.isSubtypeOf(expressionType, c.expectedType)) {
-//            return expressionType;
-//        }
+        if (noExpectedType(c.expectedType) || !c.expectedType.getConstructor().isDenotable() ||
+                cangjieTypeChecker.isSubtypeOf(expressionType, c.expectedType)) {
+            return expressionType;
+        }
 //
 //        if (expression instanceof CjConstantExpression && reportErrorForTypeMismatch) {
 //            ConstantValue<?> constantValue = constantExpressionEvaluator.evaluateToConstantValue(expression, c.trace, c.expectedType);
@@ -144,12 +146,12 @@ public class DataFlowAnalyzer {
 //        SmartCastResult castResult = checkPossibleCast(expressionType, expression, c);
 //        if (castResult != null) return castResult.getResultType();
 //
-//        if (reportErrorForTypeMismatch &&
-//                !DiagnosticUtilsKt.reportTypeMismatchDueToTypeProjection(c, expression, c.expectedType, expressionType) &&
-//                !DiagnosticUtilsKt.reportTypeMismatchDueToScalaLikeNamedFunctionSyntax(c, expression, c.expectedType, expressionType)) {
-//            c.trace.report(TYPE_MISMATCH.on(expression, c.expectedType, expressionType));
-//        }
-//        hasError.set(true);
+        if (reportErrorForTypeMismatch &&
+                !DiagnosticUtilsKt.reportTypeMismatchDueToTypeProjection(c, expression, c.expectedType, expressionType) &&
+                !DiagnosticUtilsKt.reportTypeMismatchDueToScalaLikeNamedFunctionSyntax(c, expression, c.expectedType, expressionType)) {
+            c.trace.report(TYPE_MISMATCH.on(expression, c.expectedType, expressionType));
+        }
+        hasError.set(true);
         return expressionType;
     }
     @Nullable

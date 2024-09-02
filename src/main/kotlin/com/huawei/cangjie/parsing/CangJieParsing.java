@@ -2762,18 +2762,22 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return functionType;
     }
 
-    private void parseTupleType() {
+    //返回元组的类型数量
+    private int parseTupleType() {
         assert _at(LPAR);
+        int count = 0;
 
-//        PsiBuilder.Marker tupleType = mark();
 
         advance(); // LPAR
 
         if (!at(RPAR)) {
             while (true) {
+
                 parseTypeRef();
+                count++;
                 if (!at(COMMA)) break;
                 advance(); // COMMA
+
             }
         } else {
             error("Expecting type");
@@ -2781,8 +2785,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         expect(RPAR, "Expecting ')'");
 
-
-//        tupleType.done(TUPLE_TYPE);
+        return count;
     }
 
     /*
@@ -2802,48 +2805,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
         PsiBuilder.Marker userType = mark();
 
 
-//      myExpressionParsing.parseTupleLiteralExpression();
-
-
-//
-//        if (at(LPAR)) {
-//            parseTupleType();
-//        } else if (expect(IDENTIFIER, "Expecting type name",
-//                TokenSet.orSet(CangJieExpressionParsing.Companion.getEXPRESSION_FIRST(), CangJieExpressionParsing.Companion.getEXPRESSION_FOLLOW(),
-//                        DECLARATION_FIRST))) {
-//            parseTypeArgumentList();
-//        } else {
-//            error("Expecting type name");
-//        }
-
-
-        if (at(LPAR)) {
-
-
-            PsiBuilder.Marker oType = mark();
-
-
-            parseTupleType();
-
-
-            if (at(ARROW) || at(COLON)) {
-//                advance(); // ARROW
-//                parseTypeRef();
-                oType.rollbackTo();
-                oType = mark();
-                parseFunctionType(oType);
-//                oType.done(FUNCTION_TYPE);
-
-            } else {
-                oType.done(TUPLE_TYPE);
-
-            }
-
-
-            userType.done(USER_TYPE);
-
-            return false;
-        }
         PsiBuilder.Marker reference = mark();
 
         while (true) {
@@ -3028,6 +2989,26 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        if (!isConstraint) {
 //            expect(QUEST);
 //        }
+        if (at(SAFE_CALL)) {
+            // 重新映射为QUEST
+
+
+            optionTypeMarker = mark();
+            if (!isConstraint) {
+                myBuilder.remapCurrentToken(LPAR);
+
+                parseTupleOrFunctionType();
+            } else {
+                error("Expecting a generic type name after '<' in generic, found '?'");
+            }
+
+            optionTypeMarker.done(OPTIONAL_TYPE);
+
+            typeRefMarker.done(TYPE_REFERENCE);
+            return;
+        }
+
+
         if (at(QUEST)) {
             optionTypeMarker = mark();
             if (!isConstraint) {
@@ -3041,16 +3022,54 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (!parseBasicType()) {
 
             if (!isConstraint) {
-                parseUserType();
+                parseTypeRefContents();
             } else {
                 parseIdentifier();
             }
 
         }
-        if(optionTypeMarker != null){
+        if (optionTypeMarker != null) {
             optionTypeMarker.done(OPTIONAL_TYPE);
         }
         typeRefMarker.done(TYPE_REFERENCE);
+
+    }
+
+    private void parseTupleOrFunctionType() {
+        PsiBuilder.Marker oType = mark();
+
+
+        int count = parseTupleType();
+
+
+        if (at(ARROW) || at(COLON)) {
+
+            oType.rollbackTo();
+            oType = mark();
+            parseFunctionType(oType);
+
+
+        } else {
+            if (count <= 1) {
+                oType.done(PARENTHESIZED_TYPE);
+
+            } else {
+                oType.done(TUPLE_TYPE);
+
+            }
+
+        }
+    }
+
+    private void parseTypeRefContents() {
+        if (at(IDENTIFIER)) {
+            parseUserType();
+        } else if (at(LPAR)) {
+//            元组，方法或括号类型
+            parseTupleOrFunctionType();
+
+
+        }
 
     }
 

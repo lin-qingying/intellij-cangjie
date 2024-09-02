@@ -18,6 +18,7 @@ import com.huawei.cangjie.ide.cache.trackers.removeInBlockModifications
 import com.huawei.cangjie.ide.projectStructure.languageVersionSettings
 import com.huawei.cangjie.ide.stubindex.resolve.PluginDeclarationProviderFactory
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.psiUtil.parentsWithSelf
 import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.lazy.IdeaAbsentDescriptorHandler
 import com.huawei.cangjie.resolve.lazy.ResolveSession
@@ -27,7 +28,6 @@ import com.huawei.cangjie.storage.guarded
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.utils.CodeFragmentUtils
 import com.huawei.cangjie.utils.checkWithAttachment
-import com.huawei.cangjie.psi.psiUtil.parentsWithSelf
 import com.huawei.cangjie.utils.safeAs
 import com.huawei.cangjie.utils.slicedMap.ReadOnlySlice
 import com.huawei.cangjie.utils.slicedMap.WritableSlice
@@ -442,7 +442,6 @@ object CangJieResolveDataProvider {
     }
 
 }
-
 
 
 /**

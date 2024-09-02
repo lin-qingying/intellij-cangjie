@@ -92,16 +92,16 @@ class IntegerValueTypeConstant(
 //     TODO   转为常量
         return when {
             CangJieBuiltIns.isInt32(type) -> Int32Value(value.toInt())
-//            CangJieBuiltIns.isByte(type) -> ByteValue(value.toByte())
-//            CangJieBuiltIns.isShort(type) -> ShortValue(value.toShort())
-//            CangJieBuiltIns.isLong(type) -> LongValue(value.toLong())
+            CangJieBuiltIns.isInt8(type) -> Int8Value(value.toByte())
+            CangJieBuiltIns.isInt16(type) -> Int16Value(value.toShort())
+            CangJieBuiltIns.isInt64(type) -> Int64Value(value.toLong())
 
-//            CangJieBuiltIns.isUInt(type) -> UIntValue(value.toInt())
-//            CangJieBuiltIns.isUByte(type) -> UByteValue(value.toByte())
-//            CangJieBuiltIns.isUShort(type) -> UShortValue(value.toShort())
-//            CangJieBuiltIns.isULong(type) -> ULongValue(value.toLong())
+            CangJieBuiltIns.isUInt32(type) -> UInt32Value(value.toInt())
+            CangJieBuiltIns.isUInt8(type) -> UInt8Value(value.toByte())
+            CangJieBuiltIns.isUInt16(type) -> UInt16Value(value.toShort())
+            CangJieBuiltIns.isUInt64(type) -> UInt64Value(value.toLong())
 
-            else -> Int32Value(value.toInt())
+            else -> Int64Value(value.toLong())
         }
     }
 //

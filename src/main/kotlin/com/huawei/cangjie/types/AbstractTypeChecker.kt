@@ -1,6 +1,8 @@
 package com.huawei.cangjie.types
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.types.checker.AbstractTypePreparator
+import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.areEqualTypeConstructors
 import com.huawei.cangjie.types.model.*
 import com.huawei.cangjie.utils.SmartSet
 import com.intellij.util.SmartList
@@ -232,6 +234,32 @@ object AbstractTypeChecker {
             }
         }
 
+    private fun checkOptionType(
+        state: TypeCheckerState,
+        subType: SimpleTypeMarker,
+        superType: SimpleTypeMarker
+    ): Boolean = with(state.typeSystemContext){
+
+        if (!CangJieBuiltIns.isOptionType(superType as CangJieType)) return false
+
+//        验证Option的泛型参数
+        if (superType.arguments.size != 1) return false
+
+//        TODO 修复出现套娃的情况
+        if(CangJieBuiltIns.isOptionType(superType.arguments[0].type)) return checkOptionType(state, subType, superType.arguments[0].type as SimpleTypeMarker)
+
+
+
+        val superConstructor = superType.arguments[0].type.constructor
+
+
+
+        return areEqualTypeConstructors(
+            subType.typeConstructor(),
+            superConstructor
+        )
+    }
+
     private fun isSubtypeOfForSingleClassifierType(
         state: TypeCheckerState,
         subType: SimpleTypeMarker,
@@ -281,6 +309,15 @@ object AbstractTypeChecker {
             }
 //            }
         }
+
+
+//        为Option进行特殊处理
+        if (checkOptionType(
+                state, subType, superType
+            )
+        ) return true
+
+
         when (supertypesWithSameConstructor.size) {
             0 -> return hasNothingSupertype(state, subType) // todo Nothing & Array<Number> <: Array<String>
             1 -> return state.isSubtypeForSameConstructor(

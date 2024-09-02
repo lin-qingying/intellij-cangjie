@@ -178,6 +178,7 @@ public class CompileTimeConstantChecker {
             @NotNull CangJieType expectedType,
             @NotNull CjConstantExpression expression
     ) {
+
         if (value == null) {
             return reportError(INT_LITERAL_OUT_OF_RANGE.on(expression));
         }
@@ -187,15 +188,19 @@ public class CompileTimeConstantChecker {
 //        }
 
 
-        long maxValue = PrimitiveTypeUtilKt.maxValue(expectedType);
+//UInt64通过value是否为空来判断是否越界
 
-        try {
-            if (Long.parseLong(value.getValue().toString()) > maxValue) {
-                reportError(INT_LITERAL_OUT_OF_RANGE_BY_TYPE.on(expression,Long.parseLong(value.getValue().toString()), expectedType));
+        if (!CangJieBuiltIns.isUInt64(expectedType) && CangJieBuiltIns.isNumber(expectedType)) {
+            long maxValue = PrimitiveTypeUtilKt.maxValue(expectedType);
+
+            try {
+                if (Long.parseLong(value.getValue().toString()) > maxValue) {
+                    reportError(INT_LITERAL_OUT_OF_RANGE_BY_TYPE.on(expression, Long.parseLong(value.getValue().toString()), expectedType));
+                }
+
+            } catch (Exception ignored) {
+
             }
-
-        } catch (Exception ignored) {
-
         }
         if (!noExpectedTypeOrError(expectedType)) {
             CangJieType valueType = value.getType(module);

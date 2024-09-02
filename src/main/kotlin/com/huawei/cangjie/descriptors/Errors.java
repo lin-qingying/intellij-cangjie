@@ -100,6 +100,7 @@ public interface Errors {
     DiagnosticFactory2<CjExpression, CangJieType, CangJieType> TYPE_MISMATCH = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory1<CjNamedDeclaration, TypeParameterDescriptor> CONFLICTING_UPPER_BOUNDS =
             DiagnosticFactory1.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactory1<CjElement, CangJieType> TYPE_MISMATCH_DUE_TO_EQUALS_LAMBDA_IN_FUN = DiagnosticFactory1.create(ERROR);
 
     DiagnosticFactory1<CjDeclaration, Collection<CangJieType>> AMBIGUOUS_ANONYMOUS_TYPE_INFERRED =
             DiagnosticFactory1.create(ERROR, DECLARATION_SIGNATURE);
@@ -126,7 +127,9 @@ public interface Errors {
     DiagnosticFactory0<CjTypeReference> LOCAL_EXTENSION_VARIABLE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<CjExpression, CangJieType> EXPECTED_TYPE_MISMATCH = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> NAME_SHADOWING = DiagnosticFactory1.create(WARNING, PositioningStrategies.FOR_REDECLARATION);
-
+    DiagnosticFactory2<CjElement, CallableDescriptor, CangJieType> MEMBER_PROJECTED  = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory1<CjElement, TypeMismatchDueToTypeProjectionsData> TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS =
+            DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<CjReferenceExpression, CjReferenceExpression> UNRESOLVED_REFERENCE =
             DiagnosticFactory1.create(ERROR, FOR_UNRESOLVED_REFERENCE);
     DiagnosticFactory0<CjExpression> NO_RECEIVER_ALLOWED = DiagnosticFactory0.create(ERROR);

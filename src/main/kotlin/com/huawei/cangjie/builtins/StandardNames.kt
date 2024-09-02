@@ -69,6 +69,9 @@ object StandardNames {
     val ANY = STD_CORE_PACKAGE_FQ_NAME.child(Name.identifier("Any"))
 
     @JvmField
+    val STRING = STD_CORE_PACKAGE_FQ_NAME.child(Name.identifier("String"))
+
+    @JvmField
     val BUILT_INS_PACKAGE_FQ_NAME = FqName("")
 
     object FqNames {
@@ -90,17 +93,20 @@ object StandardNames {
         val core: FqName = FqName.topLevel(Name.identifier("std")).child(Name.identifier("core"))
 
         @JvmField
-        val any: FqNameUnsafe = fqNameUnsafe("Any")
+        val any: FqNameUnsafe = core.child(Name.identifier("Any")).toUnsafe()
+
+        @JvmField
+        val option: FqNameUnsafe = core.child(Name.identifier("Option")).toUnsafe()
 
 
         @JvmField
-        val string: FqNameUnsafe = fqNameUnsafe("String")
+        val string: FqNameUnsafe = core.child(Name.identifier("String")).toUnsafe()
 
         @JvmField
-        val array: FqNameUnsafe = fqNameUnsafe("Array")
+        val array: FqNameUnsafe = core.child(Name.identifier("Array")).toUnsafe()
 
         @JvmField
-        val arrayFqName: FqName = fqName("Array")
+        val arrayFqName: FqName = core.child(Name.identifier("Array"))
 
 
         /***************************Nothing***************************/

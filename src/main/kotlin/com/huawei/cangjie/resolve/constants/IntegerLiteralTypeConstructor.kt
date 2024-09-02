@@ -134,10 +134,10 @@ class IntegerLiteralTypeConstructor : TypeConstructor {
     }
 
     fun getApproximatedType(): CangJieType = when {
-        builtIns.int32Type in possibleTypes -> builtIns.int32Type
         builtIns.int64Type in possibleTypes -> builtIns.int64Type
-        builtIns.int8Type in possibleTypes -> builtIns.int8Type
+        builtIns.int32Type in possibleTypes -> builtIns.int32Type
         builtIns.int16Type in possibleTypes -> builtIns.int16Type
+        builtIns.int8Type in possibleTypes -> builtIns.int8Type
 
         module.uInt32Type in possibleTypes -> module.uInt32Type
         module.uInt64Type in possibleTypes -> module.uInt64Type

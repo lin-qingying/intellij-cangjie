@@ -42,10 +42,17 @@ open class ArrayValue(
 
     override fun <R, D> accept(visitor: AnnotationArgumentVisitor<R, D>, data: D) = visitor.visitArrayValue(this, data)
 }
-
-class StringValue(value: String) : ConstantValue<String>(value) {
+object UnitValue  : ConstantValue<Unit>(Unit) {
     //    override fun getType(module: ModuleDescriptor) = module.builtIns.stringType
     override fun getType(module: ModuleDescriptor) = module.builtIns.unitType
+
+    override fun <R, D> accept(visitor: AnnotationArgumentVisitor<R, D>, data: D) = visitor.visitUnitValue(this, data)
+
+    override fun toString() = "\"$value\""
+}
+class StringValue(value: String) : ConstantValue<String>(value) {
+    //    override fun getType(module: ModuleDescriptor) = module.builtIns.stringType
+    override fun getType(module: ModuleDescriptor) = module.builtIns.stringType
 
     override fun <R, D> accept(visitor: AnnotationArgumentVisitor<R, D>, data: D) = visitor.visitStringValue(this, data)
 

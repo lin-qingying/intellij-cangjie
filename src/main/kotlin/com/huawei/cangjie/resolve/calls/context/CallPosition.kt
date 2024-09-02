@@ -17,7 +17,7 @@ sealed class CallPosition {
         val valueArgument: ValueArgument
     ) : CallPosition()
 
-    class PropertyAssignment(val leftPart: CjExpression?, val isLeft: Boolean) : CallPosition()
+//    class PropertyAssignment(val leftPart: CjExpression?, val isLeft: Boolean) : CallPosition()
 
 //    class CallableReferenceRhs(val lhs: DoubleColonLHS?) : CallPosition()
 }

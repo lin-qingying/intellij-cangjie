@@ -131,6 +131,35 @@ abstract class SimpleType : UnwrappedType(), SimpleTypeMarker, TypeArgumentListM
     }
 }
 
+
+class OptionType(val type:SimpleType): SimpleType() {
+    override fun makeOptionalAsSpecified(newNullability: Boolean): SimpleType {
+        return  type.makeOptionalAsSpecified(newNullability)
+
+    }
+
+    override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType {
+        return  type.replaceAttributes(newAttributes)
+
+    }
+
+    @TypeRefinement
+    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType {
+     return  type.refine(cangjieTypeRefiner)
+    }
+
+    override val constructor: TypeConstructor
+        get() = type.constructor
+    override val arguments: List<TypeProjection>
+        get() = type.arguments
+    override val attributes: TypeAttributes
+        get() =  type.attributes
+    override val isMarkedOption: Boolean
+        get() = true
+    override val memberScope: MemberScope
+        get() = type.memberScope
+
+}
 // lowerBound is a subtype of upperBound
 abstract class FlexibleType(val lowerBound: SimpleType, val upperBound: SimpleType) :
     UnwrappedType(), SubtypingRepresentatives, FlexibleTypeMarker {

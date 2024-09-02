@@ -149,9 +149,16 @@ private fun parseInt64(text: String): Long? {
         if (isUnsigned) {
             java.lang.Long.parseUnsignedLong(number, radix)
         } else {
-            java.lang.Long.parseLong(number, radix)
+            try {
+                java.lang.Long.parseLong(number, radix)
+            } catch (e: NumberFormatException) {
+                java.lang.Long.parseUnsignedLong(number, radix)
+            }
         }
     } catch (e: NumberFormatException) {
+//        重新处理为无符号数
+
+
         null
     }
 }

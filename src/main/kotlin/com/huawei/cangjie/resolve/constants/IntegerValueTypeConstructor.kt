@@ -55,9 +55,9 @@ class IntegerValueTypeConstructor(
         supertypes.add(module.unsignedType(StandardNames.FqNames.uInt64ClassId))
     }
 
-    private fun checkBoundsAndAddSuperType(value: Long, kotlinType: CangJieType) {
-        if (value in kotlinType.minValue()..kotlinType.maxValue()) {
-            supertypes.add(kotlinType)
+    private fun checkBoundsAndAddSuperType(value: Long, cangjieType: CangJieType) {
+        if (value in cangjieType.minValue()..cangjieType.maxValue()) {
+            supertypes.add(cangjieType)
         }
     }
 
@@ -78,7 +78,7 @@ class IntegerValueTypeConstructor(
     }
 
     @TypeRefinement
-    override fun refine(kotlinTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
+    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
 
     override fun toString() = "IntegerValueType($value)"
 }

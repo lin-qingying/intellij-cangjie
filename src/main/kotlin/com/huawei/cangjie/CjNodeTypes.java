@@ -95,7 +95,7 @@ public interface CjNodeTypes {
     IElementType USER_TYPE = CjStubElementTypes.USER_TYPE;
     IElementType FUNCTION_TYPE = CjStubElementTypes.FUNCTION_TYPE;
 
-
+    IElementType PARENTHESIZED_TYPE = CjStubElementTypes.PARENTHESIZED_TYPE;
     IElementType TUPLE_TYPE = CjStubElementTypes.TUPLE_TYPE;
         IElementType BASIC_TYPE = CjStubElementTypes.BASIC_TYPE;
 //    IElementType BASIC_TYPE = new CjNodeType("BASIC_TYPE", CjBasicType.class);

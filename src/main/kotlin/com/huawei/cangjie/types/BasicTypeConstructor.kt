@@ -48,7 +48,7 @@ open class BasicTypeConstructor(
     }
 
     override fun isDenotable(): Boolean {
-        return false
+        return true
     }
 
     override fun getDeclarationDescriptor(): ClassDescriptor {

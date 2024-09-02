@@ -1,5 +1,6 @@
 package com.huawei.cangjie.psi
 
+import com.huawei.cangjie.lexer.CjTokens.LPAR
 import com.huawei.cangjie.lexer.CjTokens.QUEST
 import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
@@ -14,7 +15,7 @@ class CjOptionType : CjElementImplStub<CangJiePlaceHolderStub<CjOptionType>>, Cj
 
 
     fun getQuestionMarkNode(): ASTNode {
-        return node.findChildByType(QUEST)!!
+        return node.findChildByType(QUEST) ?: this.children[0].node.findChildByType(LPAR) ?: this.node
     }
 
     override fun getTypeArgumentsAsTypes(): List<CjTypeReference> {

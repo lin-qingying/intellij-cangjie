@@ -2,6 +2,7 @@ package com.huawei.cangjie.builtins
 
 import com.huawei.cangjie.builtins.functions.AllowedToUsedOnlyInK1
 import com.huawei.cangjie.builtins.functions.FunctionTypeKind
+import com.huawei.cangjie.builtins.functions.FunctionTypeKindExtractor
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
@@ -117,8 +118,8 @@ fun DeclarationDescriptor.getFunctionTypeKind(): FunctionTypeKind? {
 @OptIn(AllowedToUsedOnlyInK1::class)
 private fun FqNameUnsafe.getFunctionTypeKind(): FunctionTypeKind? {
     if (!isSafe || isRoot) return null
-    TODO()
-//    return FunctionTypeKindExtractor.Default.getFunctionalClassKind(toSafe().parent(), shortName().asString())
+
+    return FunctionTypeKindExtractor.Default.getFunctionalClassKind(toSafe().parent(), shortName().asString())
 }
 
 val DeclarationDescriptor.isBuiltinFunctionalClassDescriptor: Boolean

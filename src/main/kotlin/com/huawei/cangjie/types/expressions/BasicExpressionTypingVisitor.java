@@ -2,13 +2,16 @@ package com.huawei.cangjie.types.expressions;
 
 import com.huawei.cangjie.CjNodeTypes;
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
+import com.huawei.cangjie.descriptors.Diagnostic;
 import com.huawei.cangjie.descriptors.Errors;
 import com.huawei.cangjie.lexer.CjKeywordToken;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.parsing.ParseUtilsKt;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.calls.CallExpressionResolver;
+import com.huawei.cangjie.resolve.calls.context.ContextDependency;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
+import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValue;
 import com.huawei.cangjie.resolve.constants.*;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
@@ -194,6 +197,46 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         }
     }
 
+    @Override
+    public CangJieTypeInfo visitStringTemplateExpression(@NotNull CjStringTemplateExpression expression, ExpressionTypingContext contextWithExpectedType) {
+        ExpressionTypingContext context = contextWithExpectedType
+                .replaceExpectedType(NO_EXPECTED_TYPE)
+                .replaceContextDependency(ContextDependency.INDEPENDENT);
+
+        checkLiteralPrefixAndSuffix(expression, context);
+
+        class StringTemplateVisitor extends CjVisitorVoid {
+            private CangJieTypeInfo typeInfo = TypeInfoFactoryKt.noTypeInfo(context);
+
+            @Override
+            public void visitStringTemplateEntryWithExpression(@NotNull CjStringTemplateEntryWithExpression entry) {
+                CjExpression entryExpression = entry.getExpression();
+                if (entryExpression != null) {
+                    typeInfo = facade.getTypeInfo(entryExpression, context.replaceDataFlowInfo(typeInfo.getDataFlowInfo()));
+                }
+            }
+
+            @Override
+            public void visitEscapeStringTemplateEntry(@NotNull CjEscapeStringTemplateEntry entry) {
+                CompileTimeConstantChecker.CharacterWithDiagnostic value =
+                        CompileTimeConstantChecker.escapedStringToCharacter(entry.getText(), entry);
+                Diagnostic diagnostic = value.getDiagnostic();
+                if (diagnostic != null) {
+                    context.trace.report(diagnostic);
+                }
+            }
+        }
+        StringTemplateVisitor visitor = new StringTemplateVisitor();
+        for (CjStringTemplateEntry entry : expression.getEntries()) {
+            entry.accept(visitor);
+        }
+        components.constantExpressionEvaluator.evaluateExpression(expression, context.trace, contextWithExpectedType.expectedType);
+        return components.dataFlowAnalyzer.checkType(visitor.typeInfo.replaceType(components.builtIns.getStringType()),
+                expression,
+
+                contextWithExpectedType);
+    }
+
     //    根据字面量返回类型信息
     @Override
     public CangJieTypeInfo visitConstantExpression(@NotNull CjConstantExpression expression, ExpressionTypingContext context) {
@@ -235,6 +278,23 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
                         expression.getText();
         return components.dataFlowAnalyzer.createCompileTimeConstantTypeInfo(compileTimeConstant, expression, context);
 
+    }
+
+    @Override
+    public CangJieTypeInfo visitParenthesizedExpression(@NotNull CjParenthesizedExpression expression, ExpressionTypingContext context) {
+        CjExpression innerExpression = expression.getExpression();
+        if (innerExpression == null) {
+            return TypeInfoFactoryKt.noTypeInfo(context);
+        }
+        CangJieTypeInfo result = facade.getTypeInfo(innerExpression, context);
+        CangJieType resultType = result.getType();
+        if (resultType != null) {
+            DataFlowValue innerValue = components.dataFlowValueFactory.createDataFlowValue(innerExpression, resultType, context);
+            DataFlowValue resultValue = components.dataFlowValueFactory.createDataFlowValue(expression, resultType, context);
+            result = result.replaceDataFlowInfo(result.getDataFlowInfo().assign(resultValue, innerValue
+                    /*,             components.languageVersionSettings*/));
+        }
+        return result;
     }
 
     @Override

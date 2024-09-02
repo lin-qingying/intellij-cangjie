@@ -21,7 +21,7 @@ object CangJieTypeFactory {
         attributes: TypeAttributes,
         descriptor: ClassDescriptor,
         arguments: List<TypeProjection>
-    ): SimpleType = simpleType(attributes, descriptor.typeConstructor, arguments, nullable = false)
+    ): SimpleType = simpleType(attributes, descriptor.typeConstructor, arguments, option = false)
 
     @JvmStatic
 
@@ -93,20 +93,29 @@ object CangJieTypeFactory {
     @JvmStatic
     @JvmOverloads
     @OptIn(TypeRefinement::class)
+    fun optionType(
+        type: SimpleType,
+    ): SimpleType {
+        return OptionType(type)
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    @OptIn(TypeRefinement::class)
     fun simpleType(
         attributes: TypeAttributes,
         constructor: TypeConstructor,
         arguments: List<TypeProjection>,
-        nullable: Boolean,
+        option: Boolean,
         cangjieTypeRefiner: CangJieTypeRefiner? = null
     ): SimpleType {
-        if (attributes.isEmpty() && arguments.isEmpty() && !nullable && constructor.declarationDescriptor != null) {
+        if (attributes.isEmpty() && arguments.isEmpty() && !option && constructor.declarationDescriptor != null) {
             return constructor.declarationDescriptor!!.defaultType
         }
 
         return simpleTypeWithNonTrivialMemberScope(
             attributes, constructor, arguments,
-            nullable,
+            option,
             computeMemberScope(constructor, arguments, cangjieTypeRefiner)
         ) f@{ refiner ->
             val expandedTypeOrRefinedConstructor = refineConstructor(constructor, refiner, arguments) ?: return@f null
@@ -115,7 +124,7 @@ object CangJieTypeFactory {
             simpleType(
                 attributes,
                 expandedTypeOrRefinedConstructor.refinedConstructor!!,
-                arguments, nullable,
+                arguments, option,
                 refiner
             )
         }

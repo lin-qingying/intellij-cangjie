@@ -40,6 +40,8 @@ object ConstantValueFactory {
             is Float64 -> Float64Value(value)
             is Bool -> BoolValue(value)
             is String -> StringValue(value)
+
+            is Unit -> UnitValue
 //            is ByteArray -> createArrayValue(value.toList(), module, PrimitiveType.BYTE)
 //            is ShortArray -> createArrayValue(value.toList(), module, PrimitiveType.SHORT)
 //            is IntArray -> createArrayValue(value.toList(), module, PrimitiveType.INT)

@@ -22,17 +22,17 @@ internal fun CangJieType.minValue(): Long {
 
 }
 
-internal fun CangJieType.maxValue(): Long {
+internal fun CangJieType.maxValue(): Long{
     return when {
         CangJieBuiltIns.isInt8(this) -> Byte.MAX_VALUE.toLong()
         CangJieBuiltIns.isInt16(this) -> Short.MAX_VALUE.toLong()
         CangJieBuiltIns.isInt32(this) -> Int.MAX_VALUE.toLong()
-//        CangJieBuiltIns.isInt64(this) -> Long.MAX_VALUE
+        CangJieBuiltIns.isInt64(this) -> Long.MAX_VALUE
 
-        CangJieBuiltIns.isUInt8(this) -> UByte.MAX_VALUE.toLong()
-        CangJieBuiltIns.isUInt16(this) -> UShort.MAX_VALUE.toLong()
-        CangJieBuiltIns.isUInt32(this) -> UInt.MAX_VALUE.toLong()
-//        CangJieBuiltIns.isUInt64(this) -> ULong.MAX_VALUE.toLong()
+        CangJieBuiltIns.isUInt8(this) ->255
+        CangJieBuiltIns.isUInt16(this) -> 65535
+        CangJieBuiltIns.isUInt32(this) -> 4294967295
+//        CangJieBuiltIns.isUInt64(this) -> 18446744073709551615
 
         else -> error("Can't get max value for type: $this")
     }
