@@ -317,6 +317,23 @@ public interface Errors {
     DiagnosticFactory2<CjParameter, ClassDescriptor, ValueParameterDescriptor> PARAMETER_NAME_CHANGED_ON_OVERRIDE =
             DiagnosticFactory2.create(WARNING, DECLARATION_NAME);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*************恶搞警告***********************/
+DiagnosticFactory0<CjOptionType> NESTING_DOLL_OPTINOTYPE = DiagnosticFactory0.create(WARNING, OPTIONAL_TYPE);
+    /************************************/
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     @SuppressWarnings("UnusedDeclaration")
     Initializer __initializer = Initializer.INSTANCE;

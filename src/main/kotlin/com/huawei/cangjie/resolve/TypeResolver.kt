@@ -467,6 +467,8 @@ class TypeResolver(
 
                 if (baseType.isOptional || innerType is CjOptionType/* || innerType is CjDynamicType*/) {
                     c.trace.report(REDUNDANT_OPTIONAL.on(optionType))
+
+                    c.trace.report(NESTING_DOLL_OPTINOTYPE.on(optionType))
                 }
 
                 result = type(addTypeParameterToStub(resolveOptionType(), baseType.actualType))

@@ -334,7 +334,7 @@ public interface CjTokens {
     CjSingleValueToken OROR = new CjSingleValueToken("OROR", "||", OROR_Id);
     CjSingleValueToken OR = new CjSingleValueToken("OR", "|", OR_Id);
     CjSingleValueToken QUEST = new CjSingleValueToken("QUEST", "?", QUEST_Id);
-    //    CjSingleValueToken QUESTQUEST = new CjSingleValueToken("QUEST", "??", ELVIS_Id);
+
     CjSingleValueToken ELVIS = new CjSingleValueToken("ELVIS", "??", ELVIS_Id);
     CjSingleValueToken COLON = new CjSingleValueToken("COLON", ":", COLON_Id);
     CjSingleValueToken SEMICOLON = new CjSingleValueToken("SEMICOLON", ";", SEMICOLON_Id);

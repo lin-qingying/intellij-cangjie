@@ -5,7 +5,9 @@ import com.huawei.cangjie.utils.AddToStdlibKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import static com.huawei.cangjie.descriptors.Errors.*;
 import static com.huawei.cangjie.diagnostics.rendering.CommonRenderers.THROWABLE;
@@ -87,7 +89,7 @@ public class DefaultErrorMessages {
         MAP.put(TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS,
                 "Type mismatch: inferred type is {1} but {0} was expected. Projected type {2} restricts use of {3}",
                 object -> {
-                    RenderingContext context =  RenderingContext.of(object.getExpectedType(), object.getExpressionType(), object.getReceiverType(), object.getCallableDescriptor());
+                    RenderingContext context = RenderingContext.of(object.getExpectedType(), object.getExpressionType(), object.getReceiverType(), object.getCallableDescriptor());
                     return new String[]{
                             RENDER_TYPE.render(object.getExpectedType(), context),
                             RENDER_TYPE.render(object.getExpressionType(), context),
@@ -131,6 +133,19 @@ public class DefaultErrorMessages {
 
         MAP.put(EXCEPTION_FROM_ANALYZER, "Internal Error occurred while analyzing this expression:\n{0}", THROWABLE);
         MAP.put(REDUNDANT_OPTIONAL, "Redundant '?'");
+
+
+        MAP.put(NESTING_DOLL_OPTINOTYPE, () -> {
+            Random random = new Random();
+
+            List<String> messages = new ArrayList<>();
+            messages.add("套娃套的好，编码没烦恼");
+            messages.add("别套了，再套地球都让你套进去了");
+
+            // 计算或构造你的值
+            return messages.get(random.nextInt(messages.size()));
+        });
+
 
     }
 

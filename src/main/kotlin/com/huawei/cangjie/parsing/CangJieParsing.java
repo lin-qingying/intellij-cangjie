@@ -2976,6 +2976,44 @@ public class CangJieParsing extends AbstractCangJieParsing {
         parseTypeRef(extraRecoverySet, false);
     }
 
+
+    void parseOptionType() {
+        assert _at(QUEST);
+
+
+        PsiBuilder.Marker optionTypeMarker = mark();
+
+//        if (at(SAFE_CALL)) {
+//            // 重新映射为QUEST
+//
+//
+////            if (!isConstraint) {
+////                myBuilder.remapCurrentToken(LPAR);
+////
+////                parseTupleOrFunctionType();
+////            } else {
+////                error("Expecting a generic type name after '<' in generic, found '?'");
+////            }
+//
+//            myBuilder.remapCurrentToken(LPAR);
+//
+//            parseTupleOrFunctionType();
+//
+//            optionTypeMarker.done(OPTIONAL_TYPE);
+//
+//
+//            return;
+//        }
+
+        advance();
+
+        parseTypeRefContents();
+
+
+        optionTypeMarker.done(OPTIONAL_TYPE);
+
+    }
+
     /**
      * @param extraRecoverySet
      * @param isConstraint     是否为约束，约束没有问号,不解析userType
@@ -2984,53 +3022,29 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         PsiBuilder.Marker typeRefMarker = mark();
         //先解析基本类型，如果不是基本类型，则解析类型引用
-        PsiBuilder.Marker optionTypeMarker = null;
 
 //        if (!isConstraint) {
 //            expect(QUEST);
 //        }
-        if (at(SAFE_CALL)) {
-            // 重新映射为QUEST
 
 
-            optionTypeMarker = mark();
-            if (!isConstraint) {
-                myBuilder.remapCurrentToken(LPAR);
+//        if (at(QUEST)) {
+//
+//            if (!isConstraint) {
+//                advance();
+//            } else {
+//                error("Expecting a generic type name after '<' in generic, found '?'");
+//            }
+//        }
 
-                parseTupleOrFunctionType();
-            } else {
-                error("Expecting a generic type name after '<' in generic, found '?'");
-            }
 
-            optionTypeMarker.done(OPTIONAL_TYPE);
-
-            typeRefMarker.done(TYPE_REFERENCE);
-            return;
+        if (!isConstraint) {
+            parseTypeRefContents();
+        } else {
+            parseIdentifier();
         }
 
 
-        if (at(QUEST)) {
-            optionTypeMarker = mark();
-            if (!isConstraint) {
-                advance();
-            } else {
-                error("Expecting a generic type name after '<' in generic, found '?'");
-            }
-        }
-
-
-        if (!parseBasicType()) {
-
-            if (!isConstraint) {
-                parseTypeRefContents();
-            } else {
-                parseIdentifier();
-            }
-
-        }
-        if (optionTypeMarker != null) {
-            optionTypeMarker.done(OPTIONAL_TYPE);
-        }
         typeRefMarker.done(TYPE_REFERENCE);
 
     }
@@ -3062,12 +3076,16 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     private void parseTypeRefContents() {
+        if (parseBasicType()) return;
         if (at(IDENTIFIER)) {
             parseUserType();
         } else if (at(LPAR)) {
 //            元组，方法或括号类型
             parseTupleOrFunctionType();
 
+        } else if (at(QUEST) || at(SAFE_CALL)) {
+//            OPTION类型可嵌套
+            parseOptionType();
 
         } else {
             error("Expecting a type name, found '" + myBuilder.getTokenText() + "'");

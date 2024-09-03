@@ -610,11 +610,11 @@ LONELY_BACKTICK=`
 ">"          { return CjTokens.GT        ; }
 
 "@"          { return CjTokens.AT; }
-"??"          { return CjTokens.ELVIS     ; }
+//"??"          { return CjTokens.ELVIS     ; }
 "?"           { return CjTokens.QUEST     ; }
 "?."          { return CjTokens.SAFE_ACCESS     ; }
 "?["          { return CjTokens.SAFE_INDEXEX     ; }
-"?("          { return CjTokens.SAFE_CALL    ; }
+//"?("          { return CjTokens.SAFE_CALL    ; }
 "?{"          { return CjTokens.SAFE_LAMBDA    ; }
 
 

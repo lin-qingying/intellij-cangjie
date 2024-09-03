@@ -104,7 +104,7 @@ open class CangJieExpressionParsing(
         BITWISE(AND, OR, XOR, LTLT, GTGT, LTLTEQ, GTGTEQ),
 
         //flow
-        FLOW(PIPELINE,COMPOSITION),
+        FLOW(PIPELINE, COMPOSITION),
 
         ASSIGNMENT(
             EQ,
@@ -292,7 +292,7 @@ open class CangJieExpressionParsing(
         val sturctEnd = struct.second
 
         myBuilder.disableNewlines()
-        if (expect(sturctStart, "Expecting an argument list", EXPRESSION_FOLLOW)) {
+        if (expectSafeCall(sturctStart, "Expecting an argument list", EXPRESSION_FOLLOW)) {
             if (!at(sturctEnd)) {
                 while (true) {
                     while (at(COMMA)) errorAndAdvance("Expecting an argument")
@@ -327,10 +327,11 @@ open class CangJieExpressionParsing(
      *   ;
      */
     private fun parseCallSuffix(): Boolean {
+        val tokenType = safeTokenType
 
         if (parseCallWithClosure()) {
             // do nothing
-        } else if (at(LPAR) || at(SAFE_CALL)) {
+        } else if (at(LPAR) || tokenType == SAFE_CALL) {
             parseValueArgumentList()
 
         } else if (at(LT)) {
@@ -2195,11 +2196,11 @@ open class CangJieExpressionParsing(
                         }
 
 
-                    declType = CLASS_MAIN_INIT
+                        declType = CLASS_MAIN_INIT
 
                     } else if ((lookahead(1) == IDENTIFIER && lookahead(2) === COMMA) || (lookahead(1) == IDENTIFIER && lookahead(
                             2
-                        ) === LT) ||  (lookahead(1) == IDENTIFIER && lookahead(2) === RPAR)
+                        ) === LT) || (lookahead(1) == IDENTIFIER && lookahead(2) === RPAR)
                     ) {
                         advance() // LPAR
                         cangJieParsing.parseTypeList()
@@ -2443,10 +2444,10 @@ open class CangJieExpressionParsing(
         precedence.parseHigherPrecedence(this)
 
 
+        val operation = getGtTokenType()
+        while (!interruptedWithNewLine() && precedence.getOperations().contains(operation)) {
 
-        while (!interruptedWithNewLine() && atSet(precedence.getOperations())) {
 
-            val operation = getGtTokenType()
             parseOperationReference()
             val resultType: IElementType = precedence.parseRightHandSide(operation, this)
             expression.done(resultType)

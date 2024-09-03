@@ -42,13 +42,6 @@ public abstract class AbstractCangJieParsing {
     protected final boolean isLazy;
     protected boolean isDeclarationsFile = false;
 
-    public void setDeclarationsFile(boolean isDeclarationsFile) {
-        this.isDeclarationsFile = isDeclarationsFile;
-
-
-
-    }
-
     public AbstractCangJieParsing(SemanticWhitespaceAwarePsiBuilder builder) {
         this(builder, true);
     }
@@ -56,6 +49,40 @@ public abstract class AbstractCangJieParsing {
     public AbstractCangJieParsing(SemanticWhitespaceAwarePsiBuilder builder, boolean isLazy) {
         this.myBuilder = builder;
         this.isLazy = isLazy;
+    }
+
+    /**
+     * 在满足指定条件时报告解析错误
+     *
+     * @param marker
+     * @param condition
+     * @param message
+     */
+    protected static void errorIf(PsiBuilder.Marker marker, boolean condition, String message) {
+        if (condition) {
+            marker.error(message);
+        } else {
+            marker.drop();
+        }
+    }
+
+    /**
+     * 关闭声明并绑定注释
+     *
+     * @param marker
+     * @param elementType
+     * @param precedingNonDocComments
+     */
+    protected static void closeDeclarationWithCommentBinders(@NotNull PsiBuilder.Marker marker, @NotNull IElementType elementType, boolean precedingNonDocComments) {
+        marker.done(elementType);
+        marker.setCustomEdgeTokenBinders(precedingNonDocComments ? PrecedingCommentsBinder.INSTANCE : PrecedingDocCommentsBinder.INSTANCE,
+                TrailingCommentsBinder.INSTANCE);
+    }
+
+    public void setDeclarationsFile(boolean isDeclarationsFile) {
+        this.isDeclarationsFile = isDeclarationsFile;
+
+
     }
 
     /**
@@ -72,8 +99,36 @@ public abstract class AbstractCangJieParsing {
         return myBuilder.rawLookup(-i);
     }
 
+    protected IElementType getSafeTokenType() {
+        IElementType tokenType = tt();
+        if (tokenType != QUEST) return tokenType;
+        if (rawLookup(1) == QUEST) {
+
+            tokenType = ELVIS;
+
+        } else if (rawLookup(1) == LPAR) {
+            tokenType = SAFE_CALL;
+        }
+        return tokenType;
+    }
+
+    protected void advanceSafeToken(IElementType type) {
+        PsiBuilder.Marker safeToken = mark();
+        if (type == ELVIS || type == SAFE_CALL) {
+            PsiBuilderUtil.advance(myBuilder, 2);
+        } else {
+            safeToken.drop();
+            advance();
+            return;
+        }
+        safeToken.collapse(type);
+    }
+
     protected IElementType getGtTokenType() {
         IElementType tokenType = tt();
+
+        if (tokenType == QUEST && rawLookup(1) == QUEST) return ELVIS;
+
         if (tokenType != GT) return tokenType;
         if (rawLookup(1) == GT) {
             if (rawLookup(2) == EQ) {
@@ -89,22 +144,20 @@ public abstract class AbstractCangJieParsing {
 
     protected void advanceGtToken(IElementType type) {
         PsiBuilder.Marker gtToken = mark();
+
+        if (type == ELVIS) {
+            PsiBuilderUtil.advance(myBuilder, 2);
+
+        }else
         if (type == GTGTEQ) {
             PsiBuilderUtil.advance(myBuilder, 3);
         } else if (type == GTGT || type == GTEQ) {
             PsiBuilderUtil.advance(myBuilder, 2);
         } else {
             gtToken.drop();
-//            myBuilder.advanceLexer();
             advance();
             return;
-
-//            gtToken.collapse(type);
-
-//
         }
-
-//        gtToken.done(type);
         gtToken.collapse(type);
     }
 
@@ -127,7 +180,6 @@ public abstract class AbstractCangJieParsing {
     protected PsiBuilder.Marker mark() {
         return myBuilder.mark();
     }
-
 
     //    获取上一个标记类型
     protected @Nullable LighterASTNode getLatestMarker() {
@@ -175,6 +227,20 @@ public abstract class AbstractCangJieParsing {
 
         return false;
     }
+
+    protected boolean expectSafeCall(TokenSet expectationSet, String message, TokenSet recoverySet) {
+
+        IElementType tokenType = getSafeTokenType();
+        if (expectationSet.contains(tokenType)) {
+            advanceSafeToken(tokenType);
+            return true;
+        }
+
+        errorWithRecovery(message, recoverySet);
+
+        return false;
+    }
+
     protected boolean expect(TokenSet expectationSet, String message, TokenSet recoverySet) {
         if (expect(expectationSet)) {
             return true;
@@ -184,8 +250,6 @@ public abstract class AbstractCangJieParsing {
 
         return false;
     }
-
-
 
     /**
      * 检查当前标记是否为指定的 CjToken 类型，并在标记不匹配时报告错误
@@ -205,6 +269,7 @@ public abstract class AbstractCangJieParsing {
 
         return false;
     }
+
     protected boolean expect(TokenSet expectationSet) {
         if (atSet(expectationSet)) {
             advance();
@@ -272,14 +337,12 @@ public abstract class AbstractCangJieParsing {
         err.error(message);
     }
 
-
     /**
      * 报告错误，但不消耗标记
      */
     protected void errorWithoutAdvancing(String message) {
         mark().error(message);
     }
-
 
     /**
      * 是否到文件结尾
@@ -329,7 +392,6 @@ public abstract class AbstractCangJieParsing {
         return (elementType instanceof CjToken) ? ((CjToken) elementType).getTokenId() : INVALID_Id;
     }
 
-
     /**
      * 获取当前标记的类型
      *
@@ -338,7 +400,6 @@ public abstract class AbstractCangJieParsing {
     protected IElementType tt() {
         return myBuilder.getTokenType();
     }
-
 
     protected IElementType rawLookup(int steps) {
         return myBuilder.rawLookup(steps);
@@ -498,7 +559,6 @@ public abstract class AbstractCangJieParsing {
         }
     }
 
-
     protected void errorUntil(String message, TokenSet tokenSet) {
         assert tokenSet.contains(LBRACE) : "Cannot include LBRACE into error element!";
         assert tokenSet.contains(RBRACE) : "Cannot include RBRACE into error element!";
@@ -506,71 +566,6 @@ public abstract class AbstractCangJieParsing {
         skipUntil(tokenSet);
         error.error(message);
 
-    }
-
-    /**
-     * 在满足指定条件时报告解析错误
-     *
-     * @param marker
-     * @param condition
-     * @param message
-     */
-    protected static void errorIf(PsiBuilder.Marker marker, boolean condition, String message) {
-        if (condition) {
-            marker.error(message);
-        } else {
-            marker.drop();
-        }
-    }
-
-    /**
-     * 表示一个可选的标记
-     */
-    protected class OptionalMarker {
-        private final PsiBuilder.Marker marker;
-        private final int offset;
-
-        /**
-         * 创建一个可选的标记
-         *
-         * @param actuallyMark
-         */
-        public OptionalMarker(boolean actuallyMark) {
-            marker = actuallyMark ? mark() : null;
-            offset = myBuilder.getCurrentOffset();
-        }
-
-        /**
-         * 标记可选的语法单元已经解析完成，并将其转换为指定类型的语法单元
-         *
-         * @param elementType
-         */
-        public void done(IElementType elementType) {
-            if (marker == null) return;
-            marker.done(elementType);
-        }
-
-        /**
-         * 报告解析错误
-         *
-         * @param message
-         */
-        public void error(String message) {
-            if (marker == null) return;
-            if (offset == myBuilder.getCurrentOffset()) {
-                marker.drop(); // 没有空错误
-            } else {
-                marker.error(message);
-            }
-        }
-
-        /**
-         * 用于删除当前位置的标记
-         */
-        public void drop() {
-            if (marker == null) return;
-            marker.drop();
-        }
     }
 
     /**
@@ -645,23 +640,71 @@ public abstract class AbstractCangJieParsing {
         return myBuilder.newlineBeforeCurrentToken() || eof();
     }
 
-    /**
-     * 关闭声明并绑定注释
-     *
-     * @param marker
-     * @param elementType
-     * @param precedingNonDocComments
-     */
-    protected static void closeDeclarationWithCommentBinders(@NotNull PsiBuilder.Marker marker, @NotNull IElementType elementType, boolean precedingNonDocComments) {
-        marker.done(elementType);
-        marker.setCustomEdgeTokenBinders(precedingNonDocComments ? PrecedingCommentsBinder.INSTANCE : PrecedingDocCommentsBinder.INSTANCE,
-                TrailingCommentsBinder.INSTANCE);
-    }
-
     protected abstract CangJieParsing create(SemanticWhitespaceAwarePsiBuilder builder);
 
     protected CangJieParsing createTruncatedBuilder(int eofPosition) {
         return create(new TruncatedSemanticWhitespaceAwarePsiBuilder(myBuilder, eofPosition));
+    }
+
+    /**
+     * 获取当前解析上下文的字符串表示
+     *
+     * @return
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    @TestOnly
+    public String currentContext() {
+        return StringsKt.substringWithContext(myBuilder.getOriginalText(), myBuilder.getCurrentOffset(), myBuilder.getCurrentOffset(), 20);
+    }
+
+    /**
+     * 表示一个可选的标记
+     */
+    protected class OptionalMarker {
+        private final PsiBuilder.Marker marker;
+        private final int offset;
+
+        /**
+         * 创建一个可选的标记
+         *
+         * @param actuallyMark
+         */
+        public OptionalMarker(boolean actuallyMark) {
+            marker = actuallyMark ? mark() : null;
+            offset = myBuilder.getCurrentOffset();
+        }
+
+        /**
+         * 标记可选的语法单元已经解析完成，并将其转换为指定类型的语法单元
+         *
+         * @param elementType
+         */
+        public void done(IElementType elementType) {
+            if (marker == null) return;
+            marker.done(elementType);
+        }
+
+        /**
+         * 报告解析错误
+         *
+         * @param message
+         */
+        public void error(String message) {
+            if (marker == null) return;
+            if (offset == myBuilder.getCurrentOffset()) {
+                marker.drop(); // 没有空错误
+            } else {
+                marker.error(message);
+            }
+        }
+
+        /**
+         * 用于删除当前位置的标记
+         */
+        public void drop() {
+            if (marker == null) return;
+            marker.drop();
+        }
     }
 
     protected class At extends AbstractTokenStreamPredicate {
@@ -702,16 +745,5 @@ public abstract class AbstractCangJieParsing {
         public boolean matching(boolean topLevel) {
             return (topLevel || !atSet(topLevelOnly)) && atSet(lookFor);
         }
-    }
-
-    /**
-     * 获取当前解析上下文的字符串表示
-     *
-     * @return
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    @TestOnly
-    public String currentContext() {
-        return StringsKt.substringWithContext(myBuilder.getOriginalText(), myBuilder.getCurrentOffset(), myBuilder.getCurrentOffset(), 20);
     }
 }

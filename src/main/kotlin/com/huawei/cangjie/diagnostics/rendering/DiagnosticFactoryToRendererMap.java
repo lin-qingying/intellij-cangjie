@@ -4,6 +4,7 @@ import com.huawei.cangjie.config.LanguageVersion;
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.diagnostics.*;
 import com.intellij.psi.PsiElement;
+import kotlin. jvm. functions. Function0;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +52,10 @@ public final class DiagnosticFactoryToRendererMap {
         checkMutability();
         map.put(factory, new SimpleDiagnosticRenderer(message));
     }
-
+    public <E extends PsiElement> void put(@NotNull DiagnosticFactory0<E> factory, @NotNull Function0<String> message) {
+        checkMutability();
+        map.put(factory, new SimpleDiagnosticRendererByFunction(message));
+    }
     public <E extends PsiElement, A> void put(@NotNull DiagnosticFactory1<E, A> factory, @NotNull String message, @Nullable DiagnosticParameterRenderer<? super A> rendererA) {
         checkMutability();
         map.put(factory, new DiagnosticWithParameters1Renderer<A>(message, rendererA));

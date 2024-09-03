@@ -2,8 +2,7 @@ package com.huawei.cangjie.ide.quickfix
 
 import com.huawei.cangjie.descriptors.DiagnosticFactory
 import com.huawei.cangjie.descriptors.DiagnosticFactoryForDeprecation
-import com.huawei.cangjie.descriptors.Errors.ABSTRACT_MEMBER_NOT_IMPLEMENTED
-import com.huawei.cangjie.descriptors.Errors.NOTHING_TO_OVERRIDE
+import com.huawei.cangjie.descriptors.Errors.*
 import com.huawei.cangjie.ide.quickfix.overrideImplement.ImplementMembersHandler
 import com.huawei.cangjie.lexer.CjTokens.ABSTRACT_KEYWORD
 import com.huawei.cangjie.lexer.CjTokens.OVERRIDE_KEYWORD
@@ -43,5 +42,12 @@ class QuickFixRegistrar : QuickFixContributor {
             AddFunctionToSupertypeFix,
 //            AddPropertyToSupertypeFix
         )
+
+
+
+
+        REDUNDANT_OPTIONAL.registerFactory(RemoveOptionalFix.removeForRedundant)
+        NESTING_DOLL_OPTINOTYPE.registerFactory(RemoveOptionalFix.removeForRedundantDoll)
+
     }
 }

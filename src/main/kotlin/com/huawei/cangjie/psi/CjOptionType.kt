@@ -15,7 +15,7 @@ class CjOptionType : CjElementImplStub<CangJiePlaceHolderStub<CjOptionType>>, Cj
 
 
     fun getQuestionMarkNode(): ASTNode {
-        return node.findChildByType(QUEST) ?: this.children[0].node.findChildByType(LPAR) ?: this.node
+        return node.findChildByType(QUEST) !!
     }
 
     override fun getTypeArgumentsAsTypes(): List<CjTypeReference> {

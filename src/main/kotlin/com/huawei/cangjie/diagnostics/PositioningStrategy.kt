@@ -48,9 +48,7 @@ private fun getEndOffset(element: PsiElement): Int {
             return getEndOffset(child)
         }
     }
-    if (element.text == "?("){
-        return element.endOffset-1
-    }
+
     return element.endOffset
 }
 private fun getStartOffset(element: PsiElement): Int {
