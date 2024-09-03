@@ -352,6 +352,81 @@ class OverrideResolver(
         val hasOverrideNode = modifierList != null && modifierList.hasModifier(CjTokens.OVERRIDE_KEYWORD)
         val overriddenDescriptors = declared.overriddenDescriptors
 
+        val reportError =  object : CheckOverrideReportForDeclaredMemberStrategy {
+            private var finalOverriddenError = false
+            private var typeMismatchError = false
+            private var kindMismatchError = false
+
+            override fun overridingFinalMember(
+                overriding: CallableMemberDescriptor,
+                overridden: CallableMemberDescriptor
+            ) {
+                if (!finalOverriddenError) {
+                    finalOverriddenError = true
+                    trace.report(
+                        OVERRIDING_FINAL_MEMBER.on(
+                            member,
+                            overridden,
+                            overridden.containingDeclaration
+                        )
+                    )
+                }
+            }
+
+            override fun returnTypeMismatchOnOverride(
+                overriding: CallableMemberDescriptor,
+                overridden: CallableMemberDescriptor
+            ) {
+                if (!typeMismatchError) {
+                    typeMismatchError = true
+
+                    when {
+                        overridden is PropertyDescriptor && overridden.isVar ->
+                            trace.report(VAR_TYPE_MISMATCH_ON_OVERRIDE.on(member, declared, overridden))
+
+                        overridden is PropertyDescriptor && !overridden.isVar ->
+                            trace.report(PROPERTY_TYPE_MISMATCH_ON_OVERRIDE.on(member, declared, overridden))
+
+                        else -> trace.report(
+                            RETURN_TYPE_MISMATCH_ON_OVERRIDE.on(
+                                member, declared,
+                                DeclarationWithDiagnosticComponents(
+                                    overridden,
+                                    platformSpecificDiagnosticComponents
+                                )
+                            )
+                        )
+                    }
+                }
+            }
+
+            override fun varOverriddenByLet(
+                overriding: CallableMemberDescriptor,
+                overridden: CallableMemberDescriptor
+            ) {
+                if (!kindMismatchError) {
+                    kindMismatchError = true
+                    trace.report(
+                        VAR_OVERRIDDEN_BY_LET.on(
+                            member,
+                            declared as VariableDescriptor,
+                            overridden as VariableDescriptor
+                        )
+                    )
+                }
+            }
+
+            override fun cannotOverrideInvisibleMember(
+                overriding: CallableMemberDescriptor,
+                invisibleOverridden: CallableMemberDescriptor
+            ) {
+                trace.report(CANNOT_OVERRIDE_INVISIBLE_MEMBER.on(member, declared, invisibleOverridden))
+            }
+
+            override fun nothingToOverride(overriding: CallableMemberDescriptor) {
+                trace.report(NOTHING_TO_OVERRIDE.on(member, declared))
+            }
+        }
 
 //重写的方法
         if (!overriddenDescriptors.isEmpty() &&
@@ -368,81 +443,11 @@ class OverrideResolver(
             }
 
             checkOverridesForMemberMarkedOverride(
-                declared, cangjieTypeRefiner, object : CheckOverrideReportForDeclaredMemberStrategy {
-                    private var finalOverriddenError = false
-                    private var typeMismatchError = false
-                    private var kindMismatchError = false
-
-                    override fun overridingFinalMember(
-                        overriding: CallableMemberDescriptor,
-                        overridden: CallableMemberDescriptor
-                    ) {
-                        if (!finalOverriddenError) {
-                            finalOverriddenError = true
-                            trace.report(
-                                OVERRIDING_FINAL_MEMBER.on(
-                                    member,
-                                    overridden,
-                                    overridden.containingDeclaration
-                                )
-                            )
-                        }
-                    }
-
-                    override fun returnTypeMismatchOnOverride(
-                        overriding: CallableMemberDescriptor,
-                        overridden: CallableMemberDescriptor
-                    ) {
-                        if (!typeMismatchError) {
-                            typeMismatchError = true
-
-                            when {
-                                overridden is PropertyDescriptor && overridden.isVar ->
-                                    trace.report(VAR_TYPE_MISMATCH_ON_OVERRIDE.on(member, declared, overridden))
-
-                                overridden is PropertyDescriptor && !overridden.isVar ->
-                                    trace.report(PROPERTY_TYPE_MISMATCH_ON_OVERRIDE.on(member, declared, overridden))
-
-                                else -> trace.report(
-                                    RETURN_TYPE_MISMATCH_ON_OVERRIDE.on(
-                                        member, declared,
-                                        DeclarationWithDiagnosticComponents(
-                                            overridden,
-                                            platformSpecificDiagnosticComponents
-                                        )
-                                    )
-                                )
-                            }
-                        }
-                    }
-
-                    override fun varOverriddenByLet(
-                        overriding: CallableMemberDescriptor,
-                        overridden: CallableMemberDescriptor
-                    ) {
-                        if (!kindMismatchError) {
-                            kindMismatchError = true
-                            trace.report(
-                                VAR_OVERRIDDEN_BY_LET.on(
-                                    member,
-                                    declared as VariableDescriptor,
-                                    overridden as VariableDescriptor
-                                )
-                            )
-                        }
-                    }
-
-                    override fun cannotOverrideInvisibleMember(
-                        overriding: CallableMemberDescriptor,
-                        invisibleOverridden: CallableMemberDescriptor
-                    ) {
-                        trace.report(CANNOT_OVERRIDE_INVISIBLE_MEMBER.on(member, declared, invisibleOverridden))
-                    }
-
-                    override fun nothingToOverride(overriding: CallableMemberDescriptor) {
-                        trace.report(NOTHING_TO_OVERRIDE.on(member, declared))
-                    }
-                }, languageVersionSettings
+                declared, cangjieTypeRefiner,reportError, languageVersionSettings
+            )
+        }else if(hasOverrideNode){
+            checkOverridesForMemberMarkedOverride(
+                declared, cangjieTypeRefiner,reportError, languageVersionSettings
             )
         }
     }
@@ -1059,7 +1064,7 @@ class OverrideResolver(
 
             val subReturnType = subDescriptor.returnType!!
 
-            val substitutedSuperReturnType = typeSubstitutor.substitute(superReturnType, Variance.OUT_VARIANCE)!!
+            val substitutedSuperReturnType = typeSubstitutor.substitute(superReturnType, Variance.INVARIANT)!!
 
             val typeChecker = NewCangJieTypeCheckerImpl(cangjieTypeRefiner)
             return if (superDescriptor is PropertyDescriptor && superDescriptor.isVar)

@@ -1,5 +1,6 @@
 package com.huawei.cangjie.descriptors;
 
+import com.google.common.collect.ImmutableSet;
 import com.huawei.cangjie.config.LanguageFeature;
 import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.diagnostics.*;
@@ -192,6 +193,21 @@ public interface Errors {
     DiagnosticFactory0<CjConstantExpression> EMPTY_CHARACTER_LITERAL = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<CjConstantExpression, String> TOO_MANY_CHARACTERS_IN_CHARACTER_LITERAL = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<CjElement, CjElement> ILLEGAL_ESCAPE = DiagnosticFactory1.create(ERROR, CUT_CHAR_QUOTES);
+    DiagnosticFactory1<CjParameter, VariableDescriptor> UNUSED_PARAMETER = DiagnosticFactory1.create(WARNING, DECLARATION_NAME);
+    DiagnosticFactory2<PsiElement, DeclarationDescriptor, String> DEPRECATION = DiagnosticFactory2.create(WARNING);
+    DiagnosticFactory0<CjParameter> DUPLICATE_PARAMETER_NAME_IN_FUNCTION_TYPE = DiagnosticFactory0.create(ERROR, DECLARATION_NAME);
+    DiagnosticFactory0<CjElement> SUBTYPING_BETWEEN_CONTEXT_RECEIVERS = DiagnosticFactory0.create(ERROR);
+
+    DiagnosticFactory1<CjParameter, VariableDescriptorBase> UNUSED_ANONYMOUS_PARAMETER = DiagnosticFactory1.create(WARNING, DECLARATION_NAME);
+    ImmutableSet<? extends DiagnosticFactory<?>> UNUSED_ELEMENT_DIAGNOSTICS = ImmutableSet.of(
+            UNUSED_PARAMETER/*, UNUSED_VARIABLE,  ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE, VARIABLE_WITH_REDUNDANT_INITIALIZER,
+            UNUSED_LAMBDA_EXPRESSION, USELESS_CAST, UNUSED_VALUE, USELESS_ELVIS, UNNECESSARY_LATEINIT, REDUNDANT_ELSE_IN_WHEN*/);
+    DiagnosticFactory1<CjDestructuringDeclarationEntry, VariableDescriptor> UNUSED_DESTRUCTURED_PARAMETER_ENTRY =
+            DiagnosticFactory1.create(WARNING, DECLARATION_NAME);
+    // Error sets
+    ImmutableSet<? extends DiagnosticFactory<?>> UNRESOLVED_REFERENCE_DIAGNOSTICS = ImmutableSet.of(
+            UNRESOLVED_REFERENCE, NAMED_PARAMETER_NOT_FOUND, UNRESOLVED_REFERENCE_WRONG_RECEIVER);
+
 
     DiagnosticFactory1<CjPackageDirective, FqName> INCONSISTENT_PACKAGE_MODIFIERS = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory2<PsiElement, CjModifierKeywordToken, String> WRONG_MODIFIER_TARGET = DiagnosticFactory2.create(ERROR);

@@ -16,6 +16,13 @@ import com.huawei.cangjie.types.util.asTypeProjection
 import com.huawei.cangjie.types.util.replaceAnnotations
 import com.intellij.util.containers.addIfNotNull
 
+
+/**
+ * 函数类型作为内置类型实现
+ */
+
+
+
 val CangJieType.isExtensionFunctionType: Boolean
     get() = isFunctionType && isTypeAnnotatedWithExtensionFunctionType
 
@@ -27,6 +34,7 @@ fun CangJieType.getValueParameterTypesFromCallableReflectionType(isCallableTypeW
     assert(first <= last) { "Not an exact function type: $this" }
     return arguments.subList(first, last)
 }
+
 fun getFunctionTypeArgumentProjections(
     receiverType: CangJieType?,
     contextReceiverTypes: List<CangJieType>,
@@ -35,7 +43,8 @@ fun getFunctionTypeArgumentProjections(
     returnType: CangJieType,
     builtIns: CangJieBuiltIns
 ): List<TypeProjection> {
-    val arguments = ArrayList<TypeProjection>(parameterTypes.size + contextReceiverTypes.size + (if (receiverType != null) 1 else 0) + 1)
+    val arguments =
+        ArrayList<TypeProjection>(parameterTypes.size + contextReceiverTypes.size + (if (receiverType != null) 1 else 0) + 1)
 
     arguments.addAll(contextReceiverTypes.map { it.asTypeProjection() })
     arguments.addIfNotNull(receiverType?.asTypeProjection())
@@ -49,8 +58,7 @@ fun getFunctionTypeArgumentProjections(
                 mapOf(StandardNames.NAME to StringValue(name.asString()))
             )
             type.replaceAnnotations(Annotations.create(type.annotations + parameterNameAnnotation))
-        }
-        else {
+        } else {
             type
         }
         typeToUse.asTypeProjection()
@@ -60,8 +68,11 @@ fun getFunctionTypeArgumentProjections(
 
     return arguments
 }
+
 @JvmOverloads
 fun createFunctionType(
+//    memberScope: MemberScope,
+
     builtIns: CangJieBuiltIns,
     annotations: Annotations,
     receiverType: CangJieType?,
@@ -69,12 +80,21 @@ fun createFunctionType(
     parameterTypes: List<CangJieType>,
     parameterNames: List<Name>?,
     returnType: CangJieType,
-    suspendFunction: Boolean = false
-): SimpleType {
+
+    ): SimpleType {
     val arguments =
-        getFunctionTypeArgumentProjections(receiverType, contextReceiverTypes, parameterTypes, parameterNames, returnType, builtIns)
+        getFunctionTypeArgumentProjections(
+            receiverType,
+            contextReceiverTypes,
+            parameterTypes,
+            parameterNames,
+            returnType,
+            builtIns
+        )
     val parameterCount = parameterTypes.size + contextReceiverTypes.size + if (receiverType == null) 0 else 1
-    val classDescriptor = getFunctionDescriptor(builtIns, parameterCount, suspendFunction)
+    val classDescriptor = getFunctionDescriptor(builtIns, parameterCount)
+//    val classDescriptor = c.scope.getFunctionClassDescriptor(parameterCount)!!
+
 
     // TODO: preserve laziness of given annotations
     var typeAnnotations = annotations
@@ -97,16 +117,27 @@ fun Annotations.withContextReceiversFunctionAnnotation(builtIns: CangJieBuiltIns
             )
         )
     }
+
 fun Annotations.withExtensionFunctionAnnotation(builtIns: CangJieBuiltIns) =
     if (hasAnnotation(StandardNames.FqNames.extensionFunctionType)) {
         this
     } else {
-        Annotations.create(this + BuiltInAnnotationDescriptor(builtIns, StandardNames.FqNames.extensionFunctionType, emptyMap()))
+        Annotations.create(
+            this + BuiltInAnnotationDescriptor(
+                builtIns,
+                StandardNames.FqNames.extensionFunctionType,
+                emptyMap()
+            )
+        )
     }
+
 val DeclarationDescriptor.fqNameUnsafe: FqNameUnsafe
     get() = DescriptorUtils.getFqName(this)
-fun getFunctionDescriptor(builtIns: CangJieBuiltIns, parameterCount: Int, isSuspendFunction: Boolean = false) =
- /*   if (isSuspendFunction) builtIns.getSuspendFunction(parameterCount) else*/ builtIns.getFunction(parameterCount)
+//fun getFunctionDescriptor( builtIns: CangJieBuiltIns,parameterCount: Int) =
+// FunctionClassDescriptor.create(builtIns ,parameterCount )
+
+fun getFunctionDescriptor(builtIns: CangJieBuiltIns, parameterCount: Int) =
+    /*   if (isSuspendFunction) builtIns.getSuspendFunction(parameterCount) else*/ builtIns.getFunction(parameterCount)
 
 fun DeclarationDescriptor.getFunctionTypeKind(): FunctionTypeKind? {
     if (this !is ClassDescriptor) return null
@@ -124,10 +155,9 @@ private fun FqNameUnsafe.getFunctionTypeKind(): FunctionTypeKind? {
 
 val DeclarationDescriptor.isBuiltinFunctionalClassDescriptor: Boolean
     get() {
-        return false
-//        val functionalClassKind = getFunctionTypeKind()
-//        return functionalClassKind == FunctionTypeKind.Function ||
-//                functionalClassKind == FunctionTypeKind.SuspendFunction
+
+        val functionalClassKind = getFunctionTypeKind()
+        return functionalClassKind == FunctionTypeKind.Function
     }
 
 fun CangJieType.contextFunctionTypeParamsCount(): Int {
@@ -148,6 +178,7 @@ fun CangJieType.getContextReceiverTypesFromFunctionType(): List<CangJieType> {
         arguments.subList(0, contextReceiversCount).map { it.type }
     }
 }
+
 fun CangJieType.getValueParameterTypesFromFunctionType(): List<TypeProjection> {
     assert(isBuiltinFunctionalType) { "Not a function type: $this" }
     val arguments = arguments
@@ -173,10 +204,12 @@ fun CangJieType.getReceiverTypeFromFunctionType(): CangJieType? {
     val index = contextFunctionTypeParamsCount()
     return arguments[index].type
 }
+
 fun CangJieType.getReturnTypeFromFunctionType(): CangJieType {
     assert(isBuiltinFunctionalType) { "Not a function type: $this" }
     return arguments.last().type
 }
+
 val CangJieType.functionTypeKind: FunctionTypeKind?
     get() = constructor.declarationDescriptor?.getFunctionTypeKind()
 
@@ -185,6 +218,7 @@ val CangJieType.isFunctionType: Boolean
 
 val CangJieType.isNonExtensionFunctionType: Boolean
     get() = isFunctionType && !isTypeAnnotatedWithExtensionFunctionType
+
 fun CangJieType.extractParameterNameFromFunctionTypeArgument(): Name? {
     val annotation = annotations.findAnnotation(StandardNames.FqNames.parameterName) ?: return null
     val name = (annotation.allValueArguments.values.singleOrNull() as? StringValue)
@@ -193,3 +227,4 @@ fun CangJieType.extractParameterNameFromFunctionTypeArgument(): Name? {
         ?: return null
     return Name.identifier(name)
 }
+

@@ -322,3 +322,5 @@ fun List<CangJieImportField>.addIf(element: CangJieImportField) {
         this + element // 如果不存在，则返回新列表
     }
 }
+fun CjDeclaration.modalityModifier() = modifierFromTokenSet(CjTokens.MODALITY_MODIFIERS)
+private fun CjModifierListOwner.modifierFromTokenSet(set: TokenSet) = modifierList?.modifierFromTokenSet(set)

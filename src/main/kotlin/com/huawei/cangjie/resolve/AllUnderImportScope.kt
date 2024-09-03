@@ -15,8 +15,8 @@ class AllUnderImportScope private constructor(
     private val scope1: MemberScope,
     private val scope2: MemberScope?
 ) : BaseImportingScope(null) {
-    private val excludedNames: Set<Name> = if (excludedImportNames.isEmpty()) { // optimization
-        emptySet<Name>()
+    private val excludedNames = if (excludedImportNames.isEmpty()) { // optimization
+        emptySet()
     } else {
         val fqName = DescriptorUtils.getFqNameSafe(descriptor)
         // toSet() is used here instead mapNotNullTo(hashSetOf()) because it results in not keeping empty sets as separate instances

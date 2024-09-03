@@ -109,6 +109,11 @@ public class DefaultErrorMessages {
         MAP.put(MANY_CLASSES_IN_SUPERTYPE_LIST, "Only one class may appear in a supertype list");
 
         MAP.put(EXTEND_CANNOT_INTERFACE, "Extended interfaces are cannot allowed");
+
+
+        MAP.put(PARAMETER_NAME_CHANGED_ON_OVERRIDE, "The corresponding parameter in the supertype ''{0}'' is named ''{1}''. " +
+                "This may cause problems when calling this function with named arguments.", NAME, NAME);
+
 //        表达式
         MAP.put(NEW_INFERENCE_UNKNOWN_ERROR, "Unknown error in new inference with applicability ''{0}'' and target ''{1}''", TO_STRING, STRING);
         MAP.put(TYPE_MISMATCH, "Type mismatch: inferred type is {1} but {0} was expected", RENDER_TYPE, RENDER_TYPE);

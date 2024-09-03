@@ -42,6 +42,8 @@ open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, priv
     }
 
 
+
+
     override fun getContributedPackages(name: Name, location: LookupLocation): Collection<PackageFragmentDescriptor> {
         TODO("Not yet implemented")
     }

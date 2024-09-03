@@ -13,6 +13,7 @@ import com.huawei.cangjie.resolve.calls.util.safeAnalyze
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.resolve.lazy.NoDescriptorForDeclarationException
 import com.huawei.cangjie.utils.actionUnderSafeAnalyzeBlock
+
 fun CjElement.analyzeWithAllCompilerChecks(): AnalysisResult = getResolutionFacade().analyzeWithAllCompilerChecks(this)
 
 /**
@@ -51,8 +52,9 @@ fun CjTypeStatement.resolveToDescriptorIfAny(
     resolutionFacade: ResolutionFacade,
     bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL
 ): ClassDescriptor? {
-    return (this as CjDeclaration).resolveToDescriptorIfAny(resolutionFacade, bodyResolveMode)  as? ClassDescriptor
+    return (this as CjDeclaration).resolveToDescriptorIfAny(resolutionFacade, bodyResolveMode) as? ClassDescriptor
 }
+
 /**
  * This function first uses declaration resolvers to resolve this declaration and/or additional declarations (e.g. its parent),
  * and then takes the relevant descriptor from binding context.
@@ -64,6 +66,12 @@ fun CjDeclaration.resolveToDescriptorIfAny(
     bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL
 ): DeclarationDescriptor? =
     resolveToDescriptorIfAny(getResolutionFacade(), bodyResolveMode)
+/**
+ * **Please, use overload with providing resolutionFacade for stable results of subsequent calls**
+ */
+fun CjNamedFunction.resolveToDescriptorIfAny(bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL) =
+    resolveToDescriptorIfAny(getResolutionFacade(), bodyResolveMode)
+
 val CjDeclaration.descriptor: DeclarationDescriptor?
     get() = if (this is CjParameter) this.descriptor else this.resolveToDescriptorIfAny(BodyResolveMode.FULL)
 val CjParameter.descriptor: ValueParameterDescriptor?
@@ -74,6 +82,7 @@ val CjParameter.descriptor: ValueParameterDescriptor?
  */
 fun CjParameter.resolveToParameterDescriptorIfAny(bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL) =
     resolveToParameterDescriptorIfAny(getResolutionFacade(), bodyResolveMode)
+
 fun CjParameter.resolveToParameterDescriptorIfAny(
     resolutionFacade: ResolutionFacade,
     bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL
@@ -102,7 +111,12 @@ fun CjDeclaration.resolveToDescriptorIfAny(
         context.get(BindingContext.DECLARATION_TO_DESCRIPTOR, this)
     }
 }
-
+fun CjNamedFunction.resolveToDescriptorIfAny(
+    resolutionFacade: ResolutionFacade,
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL
+): FunctionDescriptor? {
+    return (this as CjDeclaration).resolveToDescriptorIfAny(resolutionFacade, bodyResolveMode) as? FunctionDescriptor
+}
 @JvmOverloads
 fun CjElement.analyze(
     resolutionFacade: ResolutionFacade,
@@ -127,6 +141,7 @@ fun CjElement.getResolutionFacade(): ResolutionFacade =
 fun CjElement.safeAnalyzeNonSourceRootCode(
     bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
 ): BindingContext = safeAnalyzeNonSourceRootCode(getResolutionFacade(), bodyResolveMode)
+
 /**
  * This function throws exception when resolveToDescriptorIfAny returns null, otherwise works equivalently.
  *
@@ -136,6 +151,7 @@ fun CjDeclaration.unsafeResolveToDescriptor(
     bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
 ): DeclarationDescriptor =
     unsafeResolveToDescriptor(getResolutionFacade(), bodyResolveMode)
+
 /**
  * This function throws exception when resolveToDescriptorIfAny returns null, otherwise works equivalently.
  */

@@ -1,5 +1,7 @@
 package com.huawei.cangjie.resolve
 
+import com.huawei.cangjie.builtins.createFunctionType
+import com.huawei.cangjie.builtins.createTupleType
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
@@ -7,6 +9,7 @@ import com.huawei.cangjie.descriptors.Errors.*
 import com.huawei.cangjie.descriptors.annotations.AnnotationDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.annotations.composeAnnotations
+import com.huawei.cangjie.descriptors.impl.AbstractVariableDescriptor
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.lexer.CjTokens
@@ -22,6 +25,8 @@ import com.huawei.cangjie.resolve.PossiblyBareType.type
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.source.CangJieSourceElement
+import com.huawei.cangjie.resolve.source.getPsi
+import com.huawei.cangjie.resolve.source.toSourceElement
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.TrailingCommaChecker
 import com.huawei.cangjie.types.error.ErrorScope
@@ -39,6 +44,8 @@ import kotlin.math.min
 class TypeResolver(
     private val annotationResolver: AnnotationResolver,
     private val moduleDescriptor: ModuleDescriptor,
+    private val identifierChecker: IdentifierChecker,
+
     private val languageVersionSettings: LanguageVersionSettings,
     private val qualifiedExpressionResolver: QualifiedExpressionResolver,
     private val typeAttributeTranslators: TypeAttributeTranslators,
@@ -296,9 +303,157 @@ class TypeResolver(
                 result = resolveTypeElement(c, Annotations.EMPTY, null, cjParenthesizedType.getType())
             }
 
+            private fun resolveParametersOfFunctionType(parameters: List<CjParameter>): List<VariableDescriptorBase> {
+
+                class ParameterOfFunctionTypeDescriptor(
+                    containingDeclaration: DeclarationDescriptor,
+                    annotations: Annotations,
+                    name: Name,
+                    type: CangJieType,
+                    source: SourceElement
+                ) : AbstractVariableDescriptor(containingDeclaration, annotations, name, type, source) {
+
+                    override val visibility: DescriptorVisibility = DescriptorVisibilities.LOCAL
+                    override fun substitute(substitutor: TypeSubstitutor): VariableDescriptorBase? {
+                        throw UnsupportedOperationException("Should not be called for descriptor of type ${this::class.java}")
+                    }
+
+                    override val isVar: Boolean = false
+                    override fun getOverriddenDescriptors(): List<CallableDescriptor> {
+                        return emptyList()
+                    }
+
+
+                    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+                        return visitor.visitVariableDescriptorBase(this, data)
+                    }
+
+                    override fun getCompileTimeInitializer() = null
+
+                    override fun cleanCompileTimeInitializerCache() {}
+
+
+                }
+
+                parameters.forEach {
+                    identifierChecker.checkDeclaration(it, c.trace)
+                    checkParameterInFunctionType(it)
+                }
+                return parameters.map { parameter ->
+                    val parameterType = resolveType(c.noBareTypes(), parameter.typeReference!!)
+                    val descriptor = ParameterOfFunctionTypeDescriptor(
+                        c.scope.ownerDescriptor,
+                        annotationResolver.resolveAnnotationsWithoutArguments(c.scope, parameter.modifierList, c.trace),
+                        parameter.nameAsSafeName,
+                        parameterType,
+                        parameter.toSourceElement()
+                    )
+                    c.trace.record(BindingContext.VALUE_PARAMETER, parameter, descriptor)
+                    descriptor
+                }
+            }
+
+            private fun checkParameterInFunctionType(param: CjParameter) {
+                if (param.hasDefaultValue()) {
+                    c.trace.report(
+                        UNSUPPORTED.on(
+                            param.defaultValue!!,
+                            "default value of parameter in function type"
+                        )
+                    )
+                }
+
+                if (param.name != null) {
+                    for (annotationEntry in param.annotationEntries) {
+                        c.trace.report(
+                            UNSUPPORTED.on(
+                                annotationEntry,
+                                "annotation on parameter in function type"
+                            )
+                        )
+                    }
+                }
+
+                val modifierList = param.modifierList
+                if (modifierList != null) {
+                    CjTokens.MODIFIER_KEYWORDS_ARRAY
+                        .mapNotNull { modifierList.getModifier(it) }
+                        .forEach {
+                            c.trace.report(UNSUPPORTED.on(it, "modifier on parameter in function type"))
+                        }
+                }
+
+                param.letOrVarKeyword?.let {
+                    c.trace.report(UNSUPPORTED.on(it, "let or var on parameter in function type"))
+                }
+            }
+
+            private fun checkParametersOfFunctionType(parameterDescriptors: List<VariableDescriptorBase>) {
+                val parametersByName = parameterDescriptors.filter { !it.name.isSpecial }.groupBy { it.name }
+                for (parametersGroup in parametersByName.values) {
+                    if (parametersGroup.size < 2) continue
+                    for (parameter in parametersGroup) {
+                        val ktParameter = (parameter.source.getPsi() as? CjParameter) ?: continue
+                        c.trace.report(DUPLICATE_PARAMETER_NAME_IN_FUNCTION_TYPE.on(ktParameter))
+                    }
+                }
+            }
+
+
+            private fun resoleTypeFoTupleType(types: List<CjTypeReference>): List<CangJieType> {
+                return types.map { resolveType(c.noBareTypes(), it) }
+            }
+
+            override fun visitTupleType(type: CjTupleType) {
+
+                val parameterTypes: List<CangJieType> = resoleTypeFoTupleType(type.typeArgumentsAsTypes)
+                result = type(
+                    createTupleType(
+                        moduleDescriptor.builtIns, annotations,
+                        parameterTypes
+
+                    )
+                )
+
+
+            }
+
+
             override fun visitFunctionType(type: CjFunctionType) {
-                TODO()
-//                return super.visitFunctionType(type)
+                val receiverTypeRef = type.receiverTypeReference
+                val receiverType = if (receiverTypeRef == null) null else resolveType(c.noBareTypes(), receiverTypeRef)
+
+                val contextReceiverList = type.contextReceiverList
+                val contextReceiversTypes = if (contextReceiverList != null) {
+                    checkContextReceiversAreEnabled(c.trace, languageVersionSettings, contextReceiverList)
+                    val types = contextReceiverList.typeReferences().map { typeRef ->
+                        resolveType(c.noBareTypes(), typeRef)
+                    }
+                    checkSubtypingBetweenContextReceivers(c.trace, contextReceiverList, types)
+                    types
+                } else emptyList()
+
+                val parameterDescriptors = resolveParametersOfFunctionType(type.parameters)
+                checkParametersOfFunctionType(parameterDescriptors)
+
+                val returnTypeRef = type.returnTypeReference
+                val returnType = if (returnTypeRef != null) resolveType(c.noBareTypes(), returnTypeRef)
+                else moduleDescriptor.builtIns.unitType
+
+                val parameterList = type.parameterList
+                if (parameterList?.stub == null) {
+                    TrailingCommaChecker.check(parameterList?.trailingComma, c.trace, languageVersionSettings)
+                }
+
+                result = type(
+                    createFunctionType(
+                        moduleDescriptor.builtIns, annotations, receiverType, contextReceiversTypes,
+                        parameterDescriptors.map { it.type },
+                        parameterDescriptors.map { it.name },
+                        returnType,
+
+                        )
+                )
             }
 
             override fun visitOptionType(optionType: CjOptionType) {

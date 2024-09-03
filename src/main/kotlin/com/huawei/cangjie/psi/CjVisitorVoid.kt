@@ -6,11 +6,16 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     open fun visitCjElement(element: CjElement) {
         super.visitCjElement(element, null)
     }
-
+    open fun visitTupleType(type: CjTupleType) {
+        super.visitTupleType(type, null)
+    }
     open fun visitFunctionType(type: CjFunctionType) {
         super.visitFunctionType(type, null)
     }
-
+    override fun visitTupleType(cjTupleType: CjTupleType, data: Void?): Void? {
+        visitTupleType(cjTupleType)
+       return null
+    }
     override fun visitFunctionType(type: CjFunctionType, data: Void?): Void? {
         visitFunctionType(type)
         return null

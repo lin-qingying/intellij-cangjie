@@ -12,19 +12,19 @@ enum class Variance(
     OUT_VARIANCE("out", false, true, +1);
     ;
 
-    fun allowsPosition(position: Variance): Boolean
-            = when (position) {
-        IN_VARIANCE -> allowsInPosition
-        OUT_VARIANCE -> allowsOutPosition
-
-        INVARIANT -> allowsInPosition && allowsOutPosition
-    }
+//    fun allowsPosition(position: Variance): Boolean
+//            = when (position) {
+//        IN_VARIANCE -> allowsInPosition
+//        OUT_VARIANCE -> allowsOutPosition
+//
+//        INVARIANT -> allowsInPosition && allowsOutPosition
+//    }
 
     fun superpose(other: Variance): Variance {
         val r = this.superpositionFactor * other.superpositionFactor
         return when (r) {
             0 -> INVARIANT
-            -1 -> IN_VARIANCE
+//            -1 -> IN_VARIANCE
 
             else -> throw IllegalStateException("Illegal factor: $r")
         }

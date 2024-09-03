@@ -162,12 +162,14 @@ class DescriptorKindFilter(
         //        重导出语句
         val REEXPORT_MASK: Int = nextMask()
         val ALL_KINDS_MASK: Int = nextMask() - 1
+        val CALLABLES_MASK: Int = FUNCTIONS_MASK or VARIABLES_MASK
 
         @JvmField
         val PACKAGES: DescriptorKindFilter = DescriptorKindFilter(PACKAGES_MASK)
 
         @JvmField
         val FUNCTIONS: DescriptorKindFilter = DescriptorKindFilter(FUNCTIONS_MASK)
+        @JvmField val CALLABLES: DescriptorKindFilter = DescriptorKindFilter(CALLABLES_MASK)
 
         @JvmField
         val VARIABLES: DescriptorKindFilter = DescriptorKindFilter(VARIABLES_MASK)

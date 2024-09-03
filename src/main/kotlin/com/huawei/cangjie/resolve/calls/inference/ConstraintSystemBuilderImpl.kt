@@ -36,7 +36,7 @@ open class ConstraintSystemBuilderImpl(private val mode: Mode = Mode.INFERENCE) 
         EQUAL(TypeBounds.BoundKind.EXACT_BOUND)
     }
 
-    internal val errors = java.util.ArrayList<ConstraintError>()
+    internal val errors = ArrayList<ConstraintError>()
 
     internal val allTypeParameterBounds = LinkedHashMap<TypeVariable, TypeBoundsImpl>()
 
@@ -44,7 +44,7 @@ open class ConstraintSystemBuilderImpl(private val mode: Mode = Mode.INFERENCE) 
         val kind: ConstraintKind, val subtype: CangJieType, val superType: CangJieType, val position: ConstraintPosition
     )
 
-    internal val initialConstraints = java.util.ArrayList<Constraint>()
+    internal val initialConstraints = ArrayList<Constraint>()
 
     internal val usedInBounds = HashMap<TypeVariable, MutableList<TypeBounds.Bound>>()
 
@@ -212,7 +212,7 @@ open class ConstraintSystemBuilderImpl(private val mode: Mode = Mode.INFERENCE) 
         isTypeMarkedNullable: Boolean
     ) {
         if (!typeVariable.originalTypeParameter.upperBounds.let { it.size == 1 && it.single().isDefaultBound() } &&
-            constrainingTypeProjection.projectionKind == Variance.IN_VARIANCE) {
+            constrainingTypeProjection.projectionKind == Variance.INVARIANT) {
             errors.add(CannotCapture(constraintContext.position, typeVariable))
         }
         val typeProjection = if (isTypeMarkedNullable) {

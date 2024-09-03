@@ -353,6 +353,13 @@ object TypeUtils {
                 null
             )
         )
+//        return CangJieTypeFactory.simpleType(
+//            stub.attributes,
+//            stub.constructor,
+//            arguments,
+//            true,
+//            null
+//        )
 
     }
 

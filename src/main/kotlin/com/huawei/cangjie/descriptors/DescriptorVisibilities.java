@@ -2,6 +2,7 @@ package com.huawei.cangjie.descriptors;
 
 import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor;
 import com.huawei.cangjie.resolve.DescriptorUtils;
+import com.huawei.cangjie.resolve.DescriptorUtilsKt;
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.utils.CollectionsKt;
@@ -199,7 +200,7 @@ public class DescriptorVisibilities {
                 @NotNull DeclarationDescriptor from,
                 boolean useSpecialRulesForPrivateSealedConstructors
         ) {
-            if (from instanceof  ModuleDescriptor){
+            if (from instanceof ModuleDescriptor) {
                 return true;
             }
 //            DescriptorUtils.getContainingModule(what);
@@ -234,14 +235,11 @@ public class DescriptorVisibilities {
 
         @Override
         public boolean isVisible(@Nullable ReceiverValue receiver, @NotNull DeclarationDescriptor what, @NotNull DeclarationDescriptor from, boolean useSpecialRulesForPrivateSealedConstructors) {
-            ModuleDescriptor whatModule = DescriptorUtils.getContainingModule(what);
-            ModuleDescriptor fromModule = DescriptorUtils.getContainingModule(from);
-//            PackageData whatModule = DescriptorUtils.getPackageDeclarationDescriptor(what);
-//            PackageData fromModule = DescriptorUtils.getPackageDeclarationDescriptor(from);
 
 
-            if (!fromModule.shouldProtectedsOf(whatModule)) return false;
-
+            if (DescriptorUtilsKt.isSameModule(what, from)) {
+                return true;
+            }
 
             return MODULE_VISIBILITY_HELPER.isInFriendModule(what, from);
         }
@@ -270,11 +268,38 @@ public class DescriptorVisibilities {
         }
     };
     @NotNull
-    private static final Map<Visibility, DescriptorVisibility> visibilitiesMapping = new HashMap<Visibility, DescriptorVisibility>();
+    private static final Map<Visibility, DescriptorVisibility> visibilitiesMapping = new HashMap<>();
+    private static final Map<DescriptorVisibility, Integer> ORDERED_VISIBILITIES;
+
+    static {
+        recordVisibilityMapping(PRIVATE);
+        recordVisibilityMapping(PRIVATE_TO_THIS);
+        recordVisibilityMapping(PROTECTED);
+        recordVisibilityMapping(INTERNAL);
+        recordVisibilityMapping(PUBLIC);
+        recordVisibilityMapping(LOCAL);
+        recordVisibilityMapping(INHERITED);
+        recordVisibilityMapping(INVISIBLE_FAKE);
+        recordVisibilityMapping(UNKNOWN);
+    }
 
     static {
         Iterator<ModuleVisibilityHelper> iterator = ServiceLoader.load(ModuleVisibilityHelper.class, ModuleVisibilityHelper.class.getClassLoader()).iterator();
         MODULE_VISIBILITY_HELPER = iterator.hasNext() ? iterator.next() : ModuleVisibilityHelper.EMPTY.INSTANCE;
+    }
+
+    static {
+        Map<DescriptorVisibility, Integer> visibilities = CollectionsKt.newHashMapWithExpectedSize(4);
+        visibilities.put(PRIVATE_TO_THIS, 0);
+        visibilities.put(PRIVATE, 0);
+        visibilities.put(INTERNAL, 1);
+        visibilities.put(PROTECTED, 1);
+        visibilities.put(PUBLIC, 2);
+        ORDERED_VISIBILITIES = Collections.unmodifiableMap(visibilities);
+    }
+
+    private static void recordVisibilityMapping(DescriptorVisibility visibility) {
+        visibilitiesMapping.put(visibility.getDelegate(), visibility);
     }
 
     // Note that this method returns false if `from` declaration is `init` initializer
@@ -300,6 +325,21 @@ public class DescriptorVisibilities {
 
 
     }
+//    public static boolean isVisibleIgnoringReceiver(
+//            @NotNull DeclarationDescriptorWithVisibility what,
+//            @NotNull DeclarationDescriptor from,
+//            boolean useSpecialRulesForPrivateSealedConstructors
+//    ) {
+//        return findInvisibleMember(ALWAYS_SUITABLE_RECEIVER, what, from, useSpecialRulesForPrivateSealedConstructors) == null;
+//    }
+//
+//    public static boolean isVisibleWithAnyReceiver(
+//            @NotNull DeclarationDescriptorWithVisibility what,
+//            @NotNull DeclarationDescriptor from,
+//            boolean useSpecialRulesForPrivateSealedConstructors
+//    ) {
+//        return findInvisibleMember(IRRELEVANT_RECEIVER, what, from, useSpecialRulesForPrivateSealedConstructors) == null;
+//    }
 
     @Nullable
     public static Integer compare(@NotNull DescriptorVisibility first, @NotNull DescriptorVisibility second) {
@@ -321,21 +361,6 @@ public class DescriptorVisibilities {
     ) {
         return findInvisibleMember(ALWAYS_SUITABLE_RECEIVER, what, from, useSpecialRulesForPrivateSealedConstructors) == null;
     }
-//    public static boolean isVisibleIgnoringReceiver(
-//            @NotNull DeclarationDescriptorWithVisibility what,
-//            @NotNull DeclarationDescriptor from,
-//            boolean useSpecialRulesForPrivateSealedConstructors
-//    ) {
-//        return findInvisibleMember(ALWAYS_SUITABLE_RECEIVER, what, from, useSpecialRulesForPrivateSealedConstructors) == null;
-//    }
-//
-//    public static boolean isVisibleWithAnyReceiver(
-//            @NotNull DeclarationDescriptorWithVisibility what,
-//            @NotNull DeclarationDescriptor from,
-//            boolean useSpecialRulesForPrivateSealedConstructors
-//    ) {
-//        return findInvisibleMember(IRRELEVANT_RECEIVER, what, from, useSpecialRulesForPrivateSealedConstructors) == null;
-//    }
 
     public static boolean isVisibleWithAnyReceiver(
             @NotNull DeclarationDescriptor what,
@@ -410,17 +435,7 @@ public class DescriptorVisibilities {
 
         return null;
     }
-    private static final Map<DescriptorVisibility, Integer> ORDERED_VISIBILITIES;
 
-    static {
-        Map<DescriptorVisibility, Integer> visibilities = CollectionsKt.newHashMapWithExpectedSize(4);
-        visibilities.put(PRIVATE_TO_THIS, 0);
-        visibilities.put(PRIVATE, 0);
-        visibilities.put(INTERNAL, 1);
-        visibilities.put(PROTECTED, 1);
-        visibilities.put(PUBLIC, 2);
-        ORDERED_VISIBILITIES = Collections.unmodifiableMap(visibilities);
-    }
     public static boolean isPrivate(@NotNull DescriptorVisibility visibility) {
         return visibility == PRIVATE || visibility == PRIVATE_TO_THIS;
     }

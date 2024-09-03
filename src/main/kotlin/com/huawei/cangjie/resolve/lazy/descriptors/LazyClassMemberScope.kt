@@ -91,7 +91,7 @@ open class LazyClassMemberScope(
 
             else ->
                 if (nameFilter == ALL_NAME_FILTER || allDescriptors.isComputed() || allDescriptors.isComputing()) {
-                    allDescriptors()
+                  allDescriptors()
                 } else {
                     storageManager.compute {
                         doDescriptors(nameFilter)

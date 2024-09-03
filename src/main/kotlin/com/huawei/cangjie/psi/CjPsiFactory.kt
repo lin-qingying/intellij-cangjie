@@ -58,11 +58,19 @@ class CjPsiFactory private constructor(
     fun createPrimaryConstructor(@NonNls text: String = ""): CjPrimaryConstructor {
         return createClass(if (text.isNotEmpty()) "class A { public A$text{} }" else "class A { public A(){} } ").primaryConstructor!!
     }
-
-    fun createParameterList(@NonNls text: String): CjParameterList {
-        return createFunction("fun foo$text{}").valueParameterList!!
+    fun createCallArguments(@NonNls text: String): CjValueArgumentList {
+        val property = createVariable("let x = foo $text")
+        return (property.initializer as CjCallExpression).valueArgumentList!!
     }
-
+    fun createDot(): PsiElement {
+        return createType("T.(X)").findElementAt(1)!!
+    }
+    fun createParameterList(@NonNls text: String): CjParameterList {
+        return createFunction("func foo$text{}").valueParameterList!!
+    }
+    fun createFunctionTypeReceiver(typeReference: CjTypeReference): CjFunctionTypeReceiver {
+        return (createType("() -> B").typeElement as CjFunctionType).receiver!!.apply { this.typeReference.replace(typeReference) }
+    }
     fun createImportDirective(importPath: ImportPath): CjImportDirective {
         if (importPath.fqName.isRoot) {
             throw IllegalArgumentException("import path must not be empty")

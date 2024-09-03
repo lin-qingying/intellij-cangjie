@@ -2,7 +2,9 @@ package com.huawei.cangjie.resolve.lazy.declarations
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.builtins.StandardNames.FqNames.core
+import com.huawei.cangjie.builtins.functions.FunctionTypeKind
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.impl.FunctionClassDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
@@ -348,7 +350,7 @@ protected constructor(
 
 //        为std.core添加内置类型
         if (this.thisDescriptor.fqNameSafe == core) {
-            try{
+            try {
                 CangJieBuiltIns.Companion.BuiltCangJieTypeName.entries.filter {
                     it.typeName == name
                 }.forEach { _ ->
@@ -356,7 +358,7 @@ protected constructor(
 
                 }
 
-            }catch (_:AssertionError){
+            } catch (_: AssertionError) {
 
             }
         }
@@ -369,6 +371,12 @@ protected constructor(
     override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
         return extendclassDescriptors(name)
     }
+
+
+//    override fun getFunctionClassDescriptor(parameterCount: Int): FunctionClassDescriptor {
+//
+//        return FunctionClassDescriptor.create(storageManager, thisDescriptor, FunctionTypeKind.Function, parameterCount)
+//    }
 
     private fun doGetExtendClasses(name: Name): List<LazyExtendClassDescriptor> {
         mainScope?.extendclassDescriptors?.invoke(name)?.let { return it }

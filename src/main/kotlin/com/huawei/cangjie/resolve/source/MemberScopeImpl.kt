@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.source
 
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.impl.FunctionClassDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
@@ -32,7 +33,7 @@ return emptyList()
 
     abstract override fun printScopeStructure(p: Printer)
 
-
+//    override fun getFunctionClassDescriptor(parameterCount: Int): FunctionClassDescriptor?  = null
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
     override fun getFunctionNames(): Set<Name> =
         getContributedDescriptors(

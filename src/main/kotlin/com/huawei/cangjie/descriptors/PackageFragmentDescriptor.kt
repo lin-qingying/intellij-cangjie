@@ -12,7 +12,8 @@ interface PackageFragmentDescriptor :PackageData, ClassOrPackageFragmentDescript
     fun getMemberScope(): MemberScope
 
 
-    override val containingDeclaration: DeclarationDescriptor
+
+    override val containingDeclaration: ModuleDescriptor
 
 
 

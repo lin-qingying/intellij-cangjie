@@ -729,7 +729,7 @@ public class OverridingUtil {
             @NotNull ClassDescriptor current,
             @NotNull OverridingStrategy strategy
     ) {
-        Collection<CallableMemberDescriptor> bound = new ArrayList<CallableMemberDescriptor>(descriptorsFromSuper.size());
+        Collection<CallableMemberDescriptor> bound = new ArrayList<>(descriptorsFromSuper.size());
         Collection<CallableMemberDescriptor> overridden = SmartSet.create();
         for (CallableMemberDescriptor fromSupertype : descriptorsFromSuper) {
             OverrideCompatibilityInfo.Result result = isOverridableBy(fromSupertype, fromCurrent, current).getResult();

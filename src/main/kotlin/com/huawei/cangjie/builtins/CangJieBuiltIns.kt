@@ -15,13 +15,15 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.rune
 import com.huawei.cangjie.builtins.StandardNames.OBJECT
 import com.huawei.cangjie.builtins.StandardNames.STD_CORE_PACKAGE_FQ_NAME
 import com.huawei.cangjie.builtins.StandardNames.STRING
-import com.huawei.cangjie.builtins.StandardNames.getFunctionName
+import com.huawei.cangjie.builtins.functions.FunctionTypeKind
 import com.huawei.cangjie.context.ProjectContext
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.ClassifierDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.ModuleDescriptor
+import com.huawei.cangjie.descriptors.impl.FunctionClassDescriptor
 import com.huawei.cangjie.descriptors.impl.ModuleDescriptorImpl
+import com.huawei.cangjie.descriptors.impl.TupleClassDescriptor
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.descriptors.impl.basic.BuiltInTypeDescriptor
 import com.huawei.cangjie.incremental.components.NoLookupLocation
@@ -310,12 +312,17 @@ open class CangJieBuiltIns(
 
     val defaultBound: SimpleType get() = anyType
 
-//    fun getNumberType(): SimpleType {
+    //    fun getNumberType(): SimpleType {
 //        return number.getDefaultType()
 //    }
+    fun getTuple(parameterCount: Int): ClassDescriptor {
+        return TupleClassDescriptor.create(storageManager, builtInsModule, parameterCount)
+//        return getBuiltInClassByName(getFunctionName(parameterCount))
+    }
 
     fun getFunction(parameterCount: Int): ClassDescriptor {
-        return getBuiltInClassByName(getFunctionName(parameterCount))
+        return FunctionClassDescriptor.create(storageManager, builtInsModule, FunctionTypeKind.Function, parameterCount)
+//        return getBuiltInClassByName(getFunctionName(parameterCount))
     }
 
     val number: ClassDescriptor get() = getBuiltInClassByName("Number")

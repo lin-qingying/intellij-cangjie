@@ -12,9 +12,9 @@ import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.name.SpecialNames
 import com.huawei.cangjie.resolve.DescriptorUtils
-import com.huawei.cangjie.resolve.descriptorUtil.annotationClass
 import com.huawei.cangjie.resolve.constants.ArrayValue
 import com.huawei.cangjie.resolve.constants.ConstantValue
+import com.huawei.cangjie.resolve.descriptorUtil.annotationClass
 import com.huawei.cangjie.resolve.descriptorUtil.declaresOrInheritsDefaultValue
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.error.ErrorType
@@ -240,7 +240,7 @@ abstract class DescriptorRenderer {
                     CLASS -> "class"
                     INTERFACE -> "interface"
                     ENUM -> "enum"
-EXTEND -> "extend"
+                    EXTEND -> "extend"
                     ANNOTATION_CLASS -> "annotation class"
                     ENUM_ENTRY -> "enum entry"
                     BASIC -> "basic type"
@@ -269,14 +269,16 @@ enum class DescriptorRendererModifier(val includeByDefault: Boolean) {
     MODALITY(true),
     OVERRIDE(true),
     ANNOTATIONS(false),
-//    INNER(true),
+
+    //    INNER(true),
     MEMBER_KIND(true),
 
-//    INLINE(true),
+    //    INLINE(true),
 //    EXPECT(true),
 //    ACTUAL(true),
     CONST(true),
-//    LATEINIT(true),
+
+    //    LATEINIT(true),
     FUNC(true),
     VALUE(true)
     ;
@@ -545,10 +547,10 @@ internal class DescriptorRendererImpl(
     private fun renderFqName(pathSegments: List<Name>) =
         escape(com.huawei.cangjie.renderer.renderFqName(pathSegments))
 
-    override fun renderClassifierName(klass: ClassifierDescriptor): String = if (ErrorUtils.isError(klass)) {
-        klass.typeConstructor.toString()
+    override fun renderClassifierName(cclass: ClassifierDescriptor): String = if (ErrorUtils.isError(cclass)) {
+        cclass.typeConstructor.toString()
     } else
-        classifierNamePolicy.renderClassifier(klass, this)
+        classifierNamePolicy.renderClassifier(cclass, this)
 
     /* TYPES RENDERING */
     override fun renderType(type: CangJieType): String = buildString {
@@ -642,13 +644,20 @@ internal class DescriptorRendererImpl(
         }
         if (shouldRenderAsPrettyFunctionType(type)) {
             renderFunctionType(type)
+        } else if (shouldRenderAsPrettyTupleType(type)) {
+            renderTupleType(type)
         } else {
             renderDefaultType(type)
         }
     }
 
+    private fun shouldRenderAsPrettyTupleType(type: CangJieType): Boolean {
+        return type.isBuiltinTupleType
+
+    }
+
     private fun shouldRenderAsPrettyFunctionType(type: CangJieType): Boolean {
-        return type.isBuiltinFunctionalType && type.arguments.none { it.isStarProjection }
+        return type.isBuiltinFunctionalType /*&& type.arguments.none { it.isStarProjection }*/
 
     }
 
@@ -711,7 +720,14 @@ internal class DescriptorRendererImpl(
 
         val originalTypeOfDefNotNullType = (type as? DefinitelyNotNullType)?.original
 
+        if (type.isMarkedOption) {
+            append("?")
+        }
+
         when {
+            type is OptionType -> renderSimpleType(type.getType() as SimpleType)
+            type.isMarkedOption -> renderSimpleType(type.arguments[0].type as SimpleType)
+
             type.isError -> {
                 if (isUnresolvedType(type) && presentableUnresolvedTypes) {
                     append(renderError(ErrorUtils.unresolvedTypeAsItIs(type)))
@@ -735,9 +751,7 @@ internal class DescriptorRendererImpl(
             else -> renderTypeConstructorAndArguments(type)
         }
 
-        if (type.isMarkedOption) {
-            append("?")
-        }
+
 
         if (type.isDefinitelyNotNullType) {
             append(" & Any")
@@ -748,16 +762,29 @@ internal class DescriptorRendererImpl(
         type: CangJieType,
         typeConstructor: TypeConstructor = type.constructor
     ) {
-//        val possiblyInnerType = type.buildPossiblyInnerType()
-//        if (possiblyInnerType == null) {
+//        if (type.isMarkedOption) {
+//            renderTypeConstructorAndArguments(type.arguments[0].type)
+//        } else {
         append(renderTypeConstructor(typeConstructor))
         append(renderTypeArguments(type.arguments))
-        return
+//        }
+//        val possiblyInnerType = type.buildPossiblyInnerType()
+//        if (possiblyInnerType == null) {
+
+//        return
 //        }
 
 //        renderPossiblyInnerType(possiblyInnerType)
     }
-
+//    private fun StringBuilder.renderPossiblyInnerType(possiblyInnerType: PossiblyInnerType) {
+//        possiblyInnerType.outerType?.let {
+//            renderPossiblyInnerType(it)
+//            append('.')
+//            append(renderName(possiblyInnerType.classifierDescriptor.name, false))
+//        } ?: append(renderTypeConstructor(possiblyInnerType.classifierDescriptor.typeConstructor))
+//
+//        append(renderTypeArguments(possiblyInnerType.arguments))
+//    }
     /*    private fun StringBuilder.renderPossiblyInnerType(possiblyInnerType: PossiblyInnerType) {
             possiblyInnerType.outerType?.let {
                 renderPossiblyInnerType(it)
@@ -793,6 +820,12 @@ internal class DescriptorRendererImpl(
                 if (it.projectionKind == Variance.INVARIANT) type else "${it.projectionKind} $type"
             }
         }
+    }
+
+    private fun StringBuilder.renderTupleType(type: CangJieType) {
+        append("(")
+        appendTypeProjections(type.arguments)
+        append(")")
     }
 
     private fun StringBuilder.renderFunctionType(type: CangJieType) {
@@ -1527,7 +1560,12 @@ internal class DescriptorRendererImpl(
 
         //
         override fun visitVariableDescriptor(descriptor: VariableDescriptor, builder: StringBuilder?) {
+            visitVariableDescriptorBase(descriptor, builder)
+        }
+
+        override fun visitVariableDescriptorBase(descriptor: VariableDescriptorBase, builder: StringBuilder?) {
             builder?.let { renderVariable(descriptor, true, it, true) }
+
         }
 
         //
@@ -1598,6 +1636,7 @@ internal class DescriptorRendererImpl(
         override fun visitClassDescriptor(descriptor: ClassDescriptor, builder: StringBuilder?) {
             builder?.let { renderClass(descriptor, it) }
         }
+
 
         override fun visitTypeAliasDescriptor(descriptor: TypeAliasDescriptor, builder: StringBuilder?) {
             builder?.let { renderTypeAlias(descriptor, it) }

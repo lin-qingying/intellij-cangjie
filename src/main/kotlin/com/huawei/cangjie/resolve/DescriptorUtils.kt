@@ -6,9 +6,9 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.fromByName
 import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
-import com.huawei.cangjie.descriptors.impl.basic.BuiltInTypeDescriptor
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
+import com.huawei.cangjie.resolve.DescriptorUtils.getContainingModule
 import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.MemberScope
@@ -22,18 +22,19 @@ import com.huawei.cangjie.types.util.TypeUtils
 
 
 object DescriptorUtils {
-@JvmStatic
+    @JvmStatic
     fun isDirectSubclass(
-        subClass:  ClassDescriptor,
-        superClass:  ClassDescriptor
+        subClass: ClassDescriptor,
+        superClass: ClassDescriptor
     ): Boolean {
         for (superType in subClass.getTypeConstructor().getSupertypes()) {
-            if ( isSameClass(superType, superClass.original)) {
+            if (isSameClass(superType, superClass.original)) {
                 return true
             }
         }
         return false
     }
+
     @JvmStatic
 
     fun isClassOrEnum(descriptor: DeclarationDescriptor?): Boolean {
@@ -444,3 +445,22 @@ object DescriptorUtils {
 }
 
 object DeserializedDeclarationsFromSupertypeConflictDataKey : CallableDescriptor.UserDataKey<CallableMemberDescriptor>
+
+fun CallableMemberDescriptor.setSingleOverridden(overridden: CallableMemberDescriptor) {
+    overriddenDescriptors = listOf(overridden)
+}
+
+
+/**
+ * 判断两个声明是否来自同一模块
+ */
+fun DeclarationDescriptor.isSameModule(other: DeclarationDescriptor): Boolean {
+    val whatModule = getContainingModule(this)
+    val fromModule = getContainingModule(other)
+
+
+    //            PackageData whatModule = DescriptorUtils.getPackageDeclarationDescriptor(what);
+//            PackageData fromModule = DescriptorUtils.getPackageDeclarationDescriptor(from);
+    return fromModule.shouldProtectedsOf(whatModule)
+
+}

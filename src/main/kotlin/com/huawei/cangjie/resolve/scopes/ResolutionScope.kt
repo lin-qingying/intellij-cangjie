@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.impl.FunctionClassDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
@@ -19,7 +20,7 @@ interface ResolutionScope {
 
 
 
-
+//    fun getFunctionClassDescriptor(parameterCount:Int):FunctionClassDescriptor?
 
 
     fun getExtendClass(name: Name): List<LazyExtendClassDescriptor>

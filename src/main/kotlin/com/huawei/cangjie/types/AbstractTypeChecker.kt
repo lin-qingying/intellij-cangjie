@@ -712,9 +712,13 @@ object AbstractNullabilityChecker {
                     "Not singleClassifierType superType: $superType"
                 }
             }
+//            subType is OptionType without examination
+            if (subType is OptionType) return true
+
 
             // superType is actually nullable
             if (superType.isMarkedNullable()) return true
+
 
             // i.e. subType is definitely not null
             @OptIn(ObsoleteTypeKind::class)

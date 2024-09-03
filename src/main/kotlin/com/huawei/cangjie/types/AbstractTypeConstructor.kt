@@ -11,8 +11,8 @@ abstract class AbstractTypeConstructor(storageManager: StorageManager) : Classif
     override fun getSupertypes() = supertypes().supertypesWithoutCycles
 
     @TypeRefinement
-    override fun refine(kotlinTypeRefiner: CangJieTypeRefiner): TypeConstructor =
-        ModuleViewTypeConstructor(kotlinTypeRefiner)
+    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor =
+        ModuleViewTypeConstructor(cangjieTypeRefiner)
 
     override fun getExtendSupertypes(extendId: String?): Collection<CangJieType> = computeExtendSuperTypes(extendId)
 
@@ -47,8 +47,8 @@ abstract class AbstractTypeConstructor(storageManager: StorageManager) : Classif
 
         override fun getBuiltIns(): CangJieBuiltIns = this@AbstractTypeConstructor.builtIns
 
-        override fun refine(kotlinTypeRefiner: CangJieTypeRefiner): TypeConstructor =
-            this@AbstractTypeConstructor.refine(kotlinTypeRefiner)
+        override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor =
+            this@AbstractTypeConstructor.refine(cangjieTypeRefiner)
 
         override fun equals(other: Any?) = this@AbstractTypeConstructor.equals(other)
         override fun hashCode() = this@AbstractTypeConstructor.hashCode()

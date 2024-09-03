@@ -39,7 +39,7 @@ sealed class CangJieType : Annotated, CangJieTypeMarker {
     abstract val memberScope: MemberScope
 
 
-//    是否为扩展类型的原父类型
+    //    是否为扩展类型的原父类型
     var isExtensionType: Boolean = false
 
 
@@ -132,34 +132,39 @@ abstract class SimpleType : UnwrappedType(), SimpleTypeMarker, TypeArgumentListM
 }
 
 
-class OptionType(val type:SimpleType): SimpleType() {
+class OptionType(private val otype: SimpleType) : SimpleType() {
     override fun makeOptionalAsSpecified(newNullability: Boolean): SimpleType {
-        return  type.makeOptionalAsSpecified(newNullability)
+        return otype.makeOptionalAsSpecified(newNullability)
 
     }
 
+    fun getType(): CangJieType {
+        return otype.arguments[0].type
+    }
+
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType {
-        return  type.replaceAttributes(newAttributes)
+        return otype.replaceAttributes(newAttributes)
 
     }
 
     @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType {
-     return  type.refine(cangjieTypeRefiner)
+        return otype.refine(cangjieTypeRefiner)
     }
 
     override val constructor: TypeConstructor
-        get() = type.constructor
+        get() = otype.constructor
     override val arguments: List<TypeProjection>
-        get() = type.arguments
+        get() = otype.arguments
     override val attributes: TypeAttributes
-        get() =  type.attributes
+        get() = otype.attributes
     override val isMarkedOption: Boolean
         get() = true
     override val memberScope: MemberScope
-        get() = type.memberScope
+        get() = otype.memberScope
 
 }
+
 // lowerBound is a subtype of upperBound
 abstract class FlexibleType(val lowerBound: SimpleType, val upperBound: SimpleType) :
     UnwrappedType(), SubtypingRepresentatives, FlexibleTypeMarker {

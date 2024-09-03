@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.impl.FunctionClassDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
@@ -61,6 +62,9 @@ abstract class BaseHierarchicalScope(override val parent: HierarchicalScope?) : 
         nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> = emptyList()
 
+//    override fun getFunctionClassDescriptor(parameterCount: Int): FunctionClassDescriptor? {
+//        return null
+//    }
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
     override fun getContributedPackages(name: Name, location: LookupLocation): Collection<PackageFragmentDescriptor> =
         emptyList()
@@ -210,7 +214,10 @@ class CompositePrioritizedImportingScope(
     override fun getContributedPackage(name: Name): PackageViewDescriptor? {
         return primaryScope.getContributedPackage(name) ?: secondaryScope.getContributedPackage(name)
     }
-
+//
+//    override fun getFunctionClassDescriptor(parameterCount: Int): FunctionClassDescriptor? {
+//return null
+//    }
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean,

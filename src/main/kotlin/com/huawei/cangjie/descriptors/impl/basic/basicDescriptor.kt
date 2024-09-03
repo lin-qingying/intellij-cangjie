@@ -33,7 +33,7 @@ class BuiltInTypeDescriptor(
         return typeConstructor.parameters.map {
             it.apply {
                 this as TypeParameterDescriptorImpl
-                if( !isInitialized()) {
+                if (!isInitialized) {
                     findCangJieTypeByFqName(storageManager.project, ctypeFqName)?.let { addUpperBound(it) }
                     setInitialized()
                 }
@@ -50,26 +50,10 @@ class BuiltInTypeDescriptor(
 //    override val visibility: DescriptorVisibility
 //        get() = DescriptorVisibilities.LOCAL
 
-    val packageView = EmptyDeclarationDescriptor()
-
-    inner class EmptyDeclarationDescriptor : DeclarationDescriptor {
-        override val original: DeclarationDescriptor
-            get() = this
-
-        override val containingDeclaration: DeclarationDescriptor?
-            get() = getPackageView(storageManager.project, core)
-
-        override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
-            return null
-        }
-
-        override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
-
-        }
-
-        override val name: Name = Name.identifier("EmptyDeclarationDescriptor")
-
+    val packageView = EmptyDeclarationDescriptor {
+        getPackageView(storageManager.project, core)
     }
+
 
     override val containingDeclaration: DeclarationDescriptor
         get() = packageView
@@ -90,6 +74,26 @@ class BuiltInTypeDescriptor(
             )
         }
     }
+}
+
+class EmptyDeclarationDescriptor(val getContainingDeclaration: (() -> DeclarationDescriptor?)?) :
+    DeclarationDescriptor {
+    override val original: DeclarationDescriptor
+        get() = this
+    override val containingDeclaration: DeclarationDescriptor?
+        get() = getContainingDeclaration?.let { it() }
+
+
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+        return null
+    }
+
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+
+    }
+
+    override val name: Name = Name.identifier("EmptyDeclarationDescriptor")
+
 }
 
 open class BasicTypeDescriptor(
@@ -219,7 +223,7 @@ open class BasicTypeDescriptor(
 
 
     override val containingDeclaration: DeclarationDescriptor
-        get() = this
+        get() = EmptyDeclarationDescriptor(null)
     override val annotations: Annotations
         get() = Annotations.EMPTY
 

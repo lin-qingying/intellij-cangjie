@@ -3069,6 +3069,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
             parseTupleOrFunctionType();
 
 
+        } else {
+            error("Expecting a type name, found '" + myBuilder.getTokenText() + "'");
         }
 
     }
