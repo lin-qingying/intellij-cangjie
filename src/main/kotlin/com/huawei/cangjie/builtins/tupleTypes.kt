@@ -9,7 +9,7 @@ import com.huawei.cangjie.types.util.asTypeProjection
 fun createTupleType(
 
     builtIns: CangJieBuiltIns,
-    annotations: Annotations,
+    annotations: Annotations ,
 
     parameterTypes: List<CangJieType>,
 

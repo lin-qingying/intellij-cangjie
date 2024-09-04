@@ -124,6 +124,9 @@ class TupleClassDescriptor(
 
     override fun getDeclaredTypeParameters() = parameters
 
+    override fun toString(): String {
+        return "Tuple$arity"
+    }
 
     override fun isFun() = false
     override fun isValue() = false

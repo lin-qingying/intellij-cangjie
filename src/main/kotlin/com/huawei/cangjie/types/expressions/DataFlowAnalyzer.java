@@ -122,6 +122,7 @@ public class DataFlowAnalyzer {
 //                ((BuilderInferenceSession) c.inferenceSession).addExpectedTypeConstraint(expression, expressionType, c.expectedType);
 //            }
 //        }
+
         if (noExpectedType(c.expectedType) || !c.expectedType.getConstructor().isDenotable() ||
                 cangjieTypeChecker.isSubtypeOf(expressionType, c.expectedType)) {
             return expressionType;

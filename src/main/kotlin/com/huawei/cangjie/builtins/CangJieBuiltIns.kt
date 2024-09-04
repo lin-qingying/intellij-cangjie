@@ -35,7 +35,10 @@ import com.huawei.cangjie.resolve.descriptorUtil.resolveClassByFqName
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.NotNullLazyValue
 import com.huawei.cangjie.storage.StorageManager
-import com.huawei.cangjie.types.*
+import com.huawei.cangjie.types.BasicType
+import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.SimpleType
+import com.huawei.cangjie.types.findClassDescriptorByFqName
 import com.huawei.cangjie.types.util.classFqNameEquals
 import com.huawei.cangjie.types.util.isConstructedFromGivenClass
 import com.huawei.cangjie.types.util.isNotNullConstructedFromGivenClass
@@ -62,7 +65,7 @@ open class CangJieBuiltIns(
                 }
         }
 
-//        fun isNotNullOrNullableFunctionSupertype(type:CangJieType): Boolean {
+        //        fun isNotNullOrNullableFunctionSupertype(type:CangJieType): Boolean {
 //            return  isConstructedFromGivenClass(type, functionSupertype)
 //        }
         val BUILTINS_MODULE_NAME: Name =
@@ -81,6 +84,10 @@ open class CangJieBuiltIns(
 
         fun isRune(type: CangJieType): Boolean {
             return isConstructedFromGivenClass(type, rune)
+        }
+
+        fun isTuple(type: CangJieType): Boolean {
+            return type.constructor.declarationDescriptor is TupleClassDescriptor
         }
 
         fun isArray(type: CangJieType): Boolean {
@@ -246,9 +253,6 @@ open class CangJieBuiltIns(
 //                fqName
 //            ) && !type.isMarkedOption
 //        }
-
-
-
 
 
     }

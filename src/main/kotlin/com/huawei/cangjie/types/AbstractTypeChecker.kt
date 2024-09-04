@@ -234,7 +234,7 @@ object AbstractTypeChecker {
             }
         }
 
-    private fun checkOptionType(
+      fun checkOptionType(
         state: TypeCheckerState,
         subType: SimpleTypeMarker,
         superType: SimpleTypeMarker
