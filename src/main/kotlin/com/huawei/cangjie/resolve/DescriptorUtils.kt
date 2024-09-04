@@ -8,6 +8,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
+import com.huawei.cangjie.name.SpecialNames
 import com.huawei.cangjie.resolve.DescriptorUtils.getContainingModule
 import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
@@ -42,7 +43,11 @@ object DescriptorUtils {
             descriptor
         )
     }
-
+//    匿名对象
+    @JvmStatic
+    fun isAnonymousObject(descriptor:  DeclarationDescriptor): Boolean {
+        return  isClass(descriptor) && descriptor.name == SpecialNames.NO_NAME_PROVIDED
+    }
     fun canHaveDeclaredConstructors(classDescriptor: ClassDescriptor): Boolean {
         return !isInterface(
             classDescriptor
@@ -219,7 +224,7 @@ object DescriptorUtils {
     fun isLocal(descriptor: DeclarationDescriptor): Boolean {
         var current: DeclarationDescriptor? = descriptor
         while (current != null) {
-            if (/*isAnonymousObject(current) || */isDescriptorWithLocalVisibility(
+            if (isAnonymousObject(current) || isDescriptorWithLocalVisibility(
                     current
                 )
             ) {
@@ -241,7 +246,7 @@ object DescriptorUtils {
         descriptor: DeclarationDescriptor?,
         aClass: Class<D>
     ): D? {
-        return getParentOfType<D>(descriptor, aClass, true)
+        return getParentOfType(descriptor, aClass, true)
     }
 
     @JvmStatic

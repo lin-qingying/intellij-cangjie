@@ -34,6 +34,17 @@ object PositioningStrategies {
             return super.isValid(element)
         }
     }
+    @JvmField
+    val RETURN_WITH_LABEL: PositioningStrategy<CjReturnExpression> = object : PositioningStrategy<CjReturnExpression>() {
+        override fun mark(element: CjReturnExpression): List<TextRange> {
+            val labeledExpression = element.labeledExpression
+            if (labeledExpression != null) {
+                return markRange(element, labeledExpression)
+            }
+
+            return markElement(element.returnKeyword)
+        }
+    }
 
     @JvmStatic
     fun projectionPosition(): PositioningStrategy<CjModifierListOwner> {

@@ -4,6 +4,7 @@ import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.resolve.calls.inference.constraintPosition.ConstraintPosition
 import com.huawei.cangjie.resolve.calls.inference.constraintPosition.ConstraintPositionKind
 import com.huawei.cangjie.resolve.calls.inference.constraintPosition.derivedFrom
+import com.huawei.cangjie.resolve.calls.inference.model.TypeVariable
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.error.ErrorTypeKind

@@ -256,3 +256,4 @@ object TypeIntersector {
             }
     }
 }
+fun intersectWrappedTypes(types: Collection<CangJieType>) = intersectTypes(types.map { it.unwrap() })

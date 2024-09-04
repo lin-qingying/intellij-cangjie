@@ -7,6 +7,7 @@ import com.huawei.cangjie.descriptors.VariableDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintSystemError
+import com.huawei.cangjie.resolve.calls.model.CangJieCallArgument
 import com.huawei.cangjie.resolve.calls.model.CangJieCallDiagnostic
 import com.huawei.cangjie.resolve.calls.model.DiagnosticReporter
 import com.huawei.cangjie.resolve.scopes.LexicalScope
@@ -97,3 +98,11 @@ class ResolvedUsingDeprecatedVisibility(val baseSourceScope: ResolutionScope, va
     ResolutionDiagnostic(
         CandidateApplicability.RESOLVED
     )
+class VisibilityErrorOnArgument(
+    val argument: CangJieCallArgument,
+    val invisibleMember: DeclarationDescriptorWithVisibility
+) : ResolutionDiagnostic(CandidateApplicability.RUNTIME_ERROR) {
+    override fun report(reporter: DiagnosticReporter) {
+        reporter.onCallArgument(argument, this)
+    }
+}

@@ -4,8 +4,11 @@ import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.descriptors.VariableDescriptor
+import com.huawei.cangjie.descriptors.impl.AnonymousFunctionDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.psi.CjElement
+import com.huawei.cangjie.psi.CjLambdaExpression
 import com.huawei.cangjie.resolve.calls.CallResolver
 import com.huawei.cangjie.resolve.calls.CandidateResolver
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
@@ -18,6 +21,8 @@ import com.huawei.cangjie.resolve.calls.tower.NewResolutionOldInference
 import com.huawei.cangjie.resolve.calls.tower.PSICallResolver
 import com.huawei.cangjie.resolve.scopes.ResolutionScope
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
+import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.expressions.ExpressionTypingContext
 
 /**
  * This is marker for non-stable experimental extension points.
@@ -27,6 +32,22 @@ import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInf
 @RequiresOptIn(level = RequiresOptIn.Level.ERROR)
 @Retention(AnnotationRetention.BINARY)
 annotation class InternalNonStableExtensionPoints
+
+@InternalNonStableExtensionPoints
+interface TypeResolutionInterceptorExtension {
+    fun interceptFunctionLiteralDescriptor(
+        expression: CjLambdaExpression,
+        context: ExpressionTypingContext,
+        descriptor: AnonymousFunctionDescriptor
+    ): AnonymousFunctionDescriptor = descriptor
+
+    fun interceptType(
+        element: CjElement,
+        context: ExpressionTypingContext,
+        resultType: CangJieType
+    ): CangJieType = resultType
+}
+
 
 @InternalNonStableExtensionPoints
 interface CallResolutionInterceptorExtension {

@@ -9,7 +9,7 @@ import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/*package*/ interface ExpressionTypingInternals extends ExpressionTypingFacade {
+/*package*/ public interface ExpressionTypingInternals extends ExpressionTypingFacade {
     @NotNull
     CangJieTypeInfo checkInExpression(
             @NotNull CjElement callElement,

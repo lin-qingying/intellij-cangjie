@@ -1206,13 +1206,14 @@ public class DescriptorResolver {
         }
 
         ClassifierDescriptor classifier = type.getConstructor().getDeclarationDescriptor();
-        if (classifier == null  || DescriptorUtils.isLocal(descriptor)) {
+        if (classifier == null  || !DescriptorUtils.isAnonymousObject(classifier) || DescriptorUtils.isLocal(descriptor)) {
             return type;
         }
 
         boolean isPrivate = DescriptorVisibilities.isPrivate(descriptor.getVisibility());
 
         if (!isPrivate  ) {
+//            if(type instanceof  BasicType) return type;
             if (type.getConstructor().getSupertypes().size() == 1) {
                 CangJieType approximatingSuperType = type.getConstructor().getSupertypes().iterator().next();
                 CangJieType substitutedSuperType;

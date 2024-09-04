@@ -12,6 +12,7 @@ import com.huawei.cangjie.resolve.calls.context.ContextDependency;
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValue;
+import com.huawei.cangjie.resolve.calls.tower.CangJieResolutionCallbacksImpl;
 import com.huawei.cangjie.resolve.scopes.*;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.ErrorUtils;
@@ -70,6 +71,17 @@ public class ExpressionTypingServices {
 
     @NotNull public StatementFilter getStatementFilter() {
         return statementFilter;
+    }
+
+    @Nullable
+    public static CangJieResolutionCallbacksImpl.LambdaInfo getNewInferenceLambdaInfo(
+            @NotNull ExpressionTypingContext context,
+            @NotNull CjElement function
+    ) {
+        if (function instanceof CjFunction) {
+            return context.trace.get(BindingContext.NEW_INFERENCE_LAMBDA_INFO, (CjFunction) function);
+        }
+        return null;
     }
 
     @NotNull

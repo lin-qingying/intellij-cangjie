@@ -19,6 +19,9 @@ open class CjToken : IElementType {
         tokenId = tokenid
     }
 
+    override fun toString(): String {
+        return "Cj:$debugName"
+    }
 
 }
 

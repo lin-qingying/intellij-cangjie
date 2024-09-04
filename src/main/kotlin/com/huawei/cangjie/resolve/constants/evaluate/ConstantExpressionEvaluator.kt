@@ -303,6 +303,7 @@ private class ConstantExpressionEvaluatorVisitor(
             }
         } else {
             when (value) {
+                value -> Int64Value(value)
                 value.toInt().toLong() -> Int32Value(value.toInt())
                 value.toShort().toLong() -> Int16Value(value.toShort())
                 value.toByte().toLong() -> Int8Value(value.toByte())

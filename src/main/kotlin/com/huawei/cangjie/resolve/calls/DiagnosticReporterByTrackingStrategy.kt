@@ -15,6 +15,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import com.huawei.cangjie.resolve.calls.smartcasts.SmartCastManager
 import com.huawei.cangjie.resolve.calls.tasks.TracingStrategy
 import com.huawei.cangjie.resolve.calls.tower.*
+import com.huawei.cangjie.resolve.calls.util.extractCallableReferenceExpression
 import com.huawei.cangjie.resolve.constants.CompileTimeConstantChecker
 import com.huawei.cangjie.resolve.constants.TypedCompileTimeConstant
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
@@ -320,17 +321,24 @@ class DiagnosticReporterByTrackingStrategy(
         }
         return false
     }
+
+    private fun reportCallableReferenceConstraintError(
+        error: NewConstraintMismatch,
+        rhsExpression: CjSimpleNameExpression
+    ) {
+        trace.report(TYPE_MISMATCH.on(rhsExpression, error.lowerCangJieType, error.upperCangJieType))
+    }
     private fun reportConstraintErrorByPosition(error: NewConstraintMismatch, position: ConstraintPosition) {
-//        if (position is CallableReferenceConstraintPositionImpl) {
-//            val callableReferenceExpression = position.callableReferenceCall.call.extractCallableReferenceExpression()
-//
-//            require(callableReferenceExpression != null) {
-//                "There should be the corresponding callable reference expression for `CallableReferenceConstraintPositionImpl`"
-//            }
-//
-//            reportCallableReferenceConstraintError(error, callableReferenceExpression.callableReference)
-//            return
-//        }
+        if (position is CallableReferenceConstraintPositionImpl) {
+            val callableReferenceExpression = position.callableReferenceCall.call.extractCallableReferenceExpression()
+
+            require(callableReferenceExpression != null) {
+                "There should be the corresponding callable reference expression for `CallableReferenceConstraintPositionImpl`"
+            }
+
+            reportCallableReferenceConstraintError(error, callableReferenceExpression.callableReference)
+            return
+        }
 
         val isWarning = error is NewConstraintWarning
         val typeMismatchDiagnostic = if (isWarning) TYPE_MISMATCH_WARNING else TYPE_MISMATCH
@@ -374,14 +382,14 @@ class DiagnosticReporterByTrackingStrategy(
 //                    report(typeMismatchDiagnostic.on(call, error.upperCangJieType, inferredType))
 //                }
 //            }
-//            is BuilderInferenceSubstitutionConstraintPosition<*> -> {
-//                reportConstraintErrorByPosition(error, position.initialConstraint.position)
-//            }
-//            is ExplicitTypeParameterConstraintPosition<*> -> {
-//                val typeArgumentReference = (position.typeArgument as SimpleTypeArgumentImpl).typeProjection.typeReference ?: return
-//                val diagnosticFactory = if (isWarning) UPPER_BOUND_VIOLATED_WARNING else UPPER_BOUND_VIOLATED
-//                report(diagnosticFactory.on(typeArgumentReference, error.upperCangJieType, error.lowerCangJieType))
-//            }
+            is BuilderInferenceSubstitutionConstraintPosition<*> -> {
+                reportConstraintErrorByPosition(error, position.initialConstraint.position)
+            }
+            is ExplicitTypeParameterConstraintPosition<*> -> {
+                val typeArgumentReference = (position.typeArgument as SimpleTypeArgumentImpl).typeProjection.typeReference ?: return
+                val diagnosticFactory = if (isWarning) UPPER_BOUND_VIOLATED_WARNING else UPPER_BOUND_VIOLATED
+                report(diagnosticFactory.on(typeArgumentReference, error.upperCangJieType, error.lowerCangJieType))
+            }
             is FixVariableConstraintPosition<*> -> {
                 val morePreciseDiagnosticExists = allDiagnostics.any { other ->
                     val otherError = other.constraintSystemError ?: return@any false
@@ -425,7 +433,7 @@ class DiagnosticReporterByTrackingStrategy(
 //            is KnownTypeParameterConstraintPosition<*> -> {
 //                // UPPER_BOUND_VIOLATED, reported later?
 //            }
-//            is CallableReferenceConstraintPosition<*>,
+            is CallableReferenceConstraintPosition<*>,
             is IncorporationConstraintPosition,
 //            is InjectedAnotherStubTypeConstraintPosition<*>,
             is /*LHSArgumentConstraintPosition<*, *>,*/ SimpleConstraintSystemConstraintPosition/*, ProvideDelegateFixationPosition*/
@@ -443,6 +451,10 @@ class DiagnosticReporterByTrackingStrategy(
                     )
                 }
             }
+
+
+
+
         }
     }
 
@@ -467,19 +479,19 @@ class DiagnosticReporterByTrackingStrategy(
 //                }
 //            }
 //
-//            is InferredIntoDeclaredUpperBounds -> {
-//                val psiCall = psiCangJieCall.psiCall
-//                val expression = if (psiCall is CallTransformer.CallForImplicitInvoke) {
-//                    psiCall.outerCall.calleeExpression
-//                } else {
-//                    psiCall.calleeExpression?.takeIf { it.isPhysical } ?: psiCall.callElement
-//                } ?: return
-//                val typeVariable = error.typeVariable as? TypeVariableFromCallableDescriptor ?: return
-//
-//                trace.reportDiagnosticOnce(
-//                    INFERRED_INTO_DECLARED_UPPER_BOUNDS.on(expression, typeVariable.originalTypeParameter.name.asString())
-//                )
-//            }
+            is InferredIntoDeclaredUpperBounds -> {
+                val psiCall = psiCangJieCall.psiCall
+                val expression = if (psiCall is CallTransformer.CallForImplicitInvoke) {
+                    psiCall.outerCall.calleeExpression
+                } else {
+                    psiCall.calleeExpression?.takeIf { it.isPhysical } ?: psiCall.callElement
+                } ?: return
+                val typeVariable = error.typeVariable as? TypeVariableFromCallableDescriptor ?: return
+
+                trace.reportDiagnosticOnce(
+                    INFERRED_INTO_DECLARED_UPPER_BOUNDS.on(expression, typeVariable.originalTypeParameter.name.asString())
+                )
+            }
 //
 //            is NotEnoughInformationForTypeParameterImpl -> {
 //                val resolvedAtom = error.resolvedAtom
@@ -577,9 +589,9 @@ class DiagnosticReporterByTrackingStrategy(
 
 //            is  MultiLambdaBuilderInferenceRestriction<*> -> shouldNotBeCalled()
 //            // NotEnoughInformationForTypeParameterImpl is already considered above
-//            is NotEnoughInformationForTypeParameter<*> -> {
-//                throw AssertionError("constraintError should not be called with ${error::class.java}")
-//            }
+            is NotEnoughInformationForTypeParameter<*> -> {
+                throw AssertionError("constraintError should not be called with ${error::class.java}")
+            }
 
 
         }

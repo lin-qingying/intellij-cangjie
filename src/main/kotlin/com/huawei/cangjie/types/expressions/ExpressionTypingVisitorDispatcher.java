@@ -6,6 +6,7 @@ import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.AnnotationChecker;
 import com.huawei.cangjie.resolve.BindingContext;
 import com.huawei.cangjie.resolve.BindingContextUtils;
+import com.huawei.cangjie.resolve.calls.context.CallPosition;
 import com.huawei.cangjie.resolve.scopes.LexicalScopeKind;
 import com.huawei.cangjie.resolve.scopes.LexicalWritableScope;
 import com.huawei.cangjie.storage.ReenteringLazyValueComputationException;
@@ -30,6 +31,9 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
     public static final PerformanceCounter typeInfoPerfCounter = PerformanceCounter.Companion.create("Type info", true);
     private static final Logger LOG = Logger.getInstance(ExpressionTypingVisitor.class);
     protected final BasicExpressionTypingVisitor basic;
+    protected final FunctionsTypingVisitor functions;
+    protected final TuplesTypingVisitor tuples;
+    protected final ControlStructureTypingVisitor controlStructures;
     private final ExpressionTypingComponents components;
     @NotNull
     private final AnnotationChecker annotationChecker;
@@ -41,9 +45,10 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
         this.components = components;
         this.annotationChecker = annotationChecker;
         this.basic = new BasicExpressionTypingVisitor(this);
-//        this.controlStructures = new ControlStructureTypingVisitor(this);
+        this.controlStructures = new ControlStructureTypingVisitor(this);
 //        this.patterns = new PatternMatchingTypingVisitor(this);
-//        this.functions = new FunctionsTypingVisitor(this);
+        this.functions = new FunctionsTypingVisitor(this);
+        this.tuples = new TuplesTypingVisitor(this);
 //        this.declarationsCheckerBuilder = components.declarationsCheckerBuilder;
     }
 
@@ -190,14 +195,18 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
         return basic.visitParenthesizedExpression(expression, data);
     }
 
+    @Override
+    public CangJieTypeInfo visitTupleExpression(@NotNull CjTupleExpression expression, ExpressionTypingContext data) {
+        return tuples.visitTupleExpression(expression, data);
+    }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 
-//    @Override
-//    public CangJieTypeInfo visitLambdaExpression(@NotNull CjLambdaExpression expression, ExpressionTypingContext data) {
-//        // Erasing call position to unknown is necessary to prevent wrong call positions when type checking lambda's body
-//        return functions.visitLambdaExpression(expression, data.replaceCallPosition(CallPosition.Unknown.INSTANCE));
-//    }
+    @Override
+    public CangJieTypeInfo visitLambdaExpression(@NotNull CjLambdaExpression expression, ExpressionTypingContext data) {
+        // Erasing call position to unknown is necessary to prevent wrong call positions when type checking lambda's body
+        return functions.visitLambdaExpression(expression, data.replaceCallPosition(CallPosition.Unknown.INSTANCE));
+    }
 //
 //    @Override
 //    public CangJieTypeInfo visitNamedFunction(@NotNull CjNamedFunction function, ExpressionTypingContext data) {
@@ -206,15 +215,15 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-//    @Override
+    //    @Override
 //    public CangJieTypeInfo visitThrowExpression(@NotNull CjThrowExpression expression, ExpressionTypingContext data) {
 //        return controlStructures.visitThrowExpression(expression, data);
 //    }
 //
-//    @Override
-//    public CangJieTypeInfo visitReturnExpression(@NotNull CjReturnExpression expression, ExpressionTypingContext data) {
-//        return controlStructures.visitReturnExpression(expression, data);
-//    }
+    @Override
+    public CangJieTypeInfo visitReturnExpression(@NotNull CjReturnExpression expression, ExpressionTypingContext data) {
+        return controlStructures.visitReturnExpression(expression, data);
+    }
 //
 //    @Override
 //    public CangJieTypeInfo visitContinueExpression(@NotNull CjContinueExpression expression, ExpressionTypingContext data) {

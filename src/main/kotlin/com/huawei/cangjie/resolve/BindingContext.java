@@ -1,5 +1,7 @@
 package com.huawei.cangjie.resolve;
 
+import com.huawei.cangjie.resolve.calls.tower.CangJieResolutionCallbacksImpl;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.huawei.cangjie.contracts.model.Computation;
@@ -87,11 +89,13 @@ public interface BindingContext {
     WritableSlice<PsiElement, PropertyDescriptor> PRIMARY_CONSTRUCTOR_PARAMETER = Slices.createSimpleSlice();
     WritableSlice<CjReferenceExpression, ClassifierDescriptorWithTypeParameters> SHORT_REFERENCE_TO_COMPANION_OBJECT =
             new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjFunction, CangJieType> EXPECTED_RETURN_TYPE = new BasicWritableSlice<>(DO_NOTHING);
 
     WritableSlice<CjReferenceExpression, ReceiverParameterDescriptor> THIS_REFERENCE_TARGET = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjElement, Computation> EXPRESSION_EFFECTS = Slices.createSimpleSlice();
     WritableSlice<VariableDescriptorBase, DataFlowValue> BOUND_INITIALIZER_VALUE = Slices.createSimpleSlice();
     WritableSlice<PsiElement, ConstructorDescriptor> CONSTRUCTOR = Slices.createSimpleSlice();
+    WritableSlice<CjFunction, CangJieResolutionCallbacksImpl.LambdaInfo> NEW_INFERENCE_LAMBDA_INFO = new BasicWritableSlice<>(DO_NOTHING);
 
     WritableSlice<CjSuperExpression, CangJieType> THIS_TYPE_FOR_SUPER_EXPRESSION = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<Call, PartialCallContainer> ONLY_RESOLVED_CALL = new BasicWritableSlice<>(DO_NOTHING);

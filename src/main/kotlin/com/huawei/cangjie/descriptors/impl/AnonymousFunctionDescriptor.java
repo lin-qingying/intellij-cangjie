@@ -12,16 +12,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AnonymousFunctionDescriptor extends SimpleFunctionDescriptorImpl {
-    private final boolean isSuspend;
 
     public AnonymousFunctionDescriptor(
             @NotNull DeclarationDescriptor containingDeclaration,
             @NotNull Annotations annotations,
             @NotNull Kind kind,
-            @NotNull SourceElement source,
-            boolean isSuspend
+            @NotNull SourceElement source
+
     ) {
-        this(containingDeclaration, null, annotations, SpecialNames.ANONYMOUS, kind, source, isSuspend);
+        this(containingDeclaration, null, annotations, SpecialNames.ANONYMOUS, kind, source );
     }
 
     private AnonymousFunctionDescriptor(
@@ -30,11 +29,11 @@ public class AnonymousFunctionDescriptor extends SimpleFunctionDescriptorImpl {
             @NotNull Annotations annotations,
             @NotNull Name name,
             @NotNull Kind kind,
-            @NotNull SourceElement source,
-            boolean isSuspend
+            @NotNull SourceElement source
+
     ) {
         super(declarationDescriptor, original, annotations, name, kind, source);
-        this.isSuspend = isSuspend;
+
     }
 
     @NotNull
@@ -53,8 +52,8 @@ public class AnonymousFunctionDescriptor extends SimpleFunctionDescriptorImpl {
                 annotations,
                 newName != null ? newName : getName(),
                 kind,
-                source,
-                isSuspend
+                source
+
         );
     }
 

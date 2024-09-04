@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.calls.inference
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.resolve.calls.inference.constraintPosition.ConstraintPositionKind
 import com.huawei.cangjie.resolve.calls.inference.constraintPosition.derivedFrom
+import com.huawei.cangjie.resolve.calls.inference.model.TypeVariable
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeProjection
 import com.huawei.cangjie.types.TypeProjectionImpl

@@ -258,7 +258,7 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
 
     // ------------- functional type utils -------------
 
-//    fun CangJieTypeMarker.isFunctionOrKFunctionWithAnySuspendability(): Boolean
+    fun CangJieTypeMarker.isFunctionWithAny(): Boolean
 
     fun CangJieTypeMarker.functionTypeKind(): FunctionTypeKind?
 
@@ -378,6 +378,7 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
 
     fun FlexibleTypeMarker.lowerBound(): SimpleTypeMarker
     fun SimpleTypeMarker.asCapturedType(): CapturedTypeMarker?
+    fun CangJieTypeMarker.extractArgumentsForFunctionTypeOrSubtype(): List<CangJieTypeMarker>
 
     fun CangJieTypeMarker.isCapturedType() = asSimpleType()?.asCapturedType() != null
 

@@ -14,6 +14,15 @@ fun <C : Candidate> C.forceResolution(): C {
     return this
 }
 
+private val INAPPLICABLE_STATUSES = setOf(
+    CandidateApplicability.INAPPLICABLE,
+    CandidateApplicability.INAPPLICABLE_ARGUMENTS_MAPPING_ERROR,
+    CandidateApplicability.INAPPLICABLE_WRONG_RECEIVER
+)
+
+val CandidateApplicability.isInapplicable: Boolean
+    get() = this in INAPPLICABLE_STATUSES
+
 val CallableDescriptor.isSynthesized: Boolean
     get() = (this is CallableMemberDescriptor && kind == CallableMemberDescriptor.Kind.SYNTHESIZED)
 

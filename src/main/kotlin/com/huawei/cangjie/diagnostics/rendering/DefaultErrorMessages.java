@@ -112,7 +112,8 @@ public class DefaultErrorMessages {
         MAP.put(MANY_CLASSES_IN_SUPERTYPE_LIST, "Only one class may appear in a supertype list");
 
         MAP.put(EXTEND_CANNOT_INTERFACE, "Extended interfaces are cannot allowed");
-
+        MAP.put(ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED, "{0} is not abstract and does not implement abstract base class member {1}",
+                RENDER_CLASS_OR_STRUCT, FQ_NAMES_IN_TYPES);
 
         MAP.put(PARAMETER_NAME_CHANGED_ON_OVERRIDE, "The corresponding parameter in the supertype ''{0}'' is named ''{1}''. " +
                 "This may cause problems when calling this function with named arguments.", NAME, NAME);
@@ -120,7 +121,9 @@ public class DefaultErrorMessages {
 //        表达式
         MAP.put(NEW_INFERENCE_UNKNOWN_ERROR, "Unknown error in new inference with applicability ''{0}'' and target ''{1}''", TO_STRING, STRING);
         MAP.put(TYPE_MISMATCH, "Type mismatch: inferred type is {1} but {0} was expected", RENDER_TYPE, RENDER_TYPE);
+        MAP.put(AMBIGUOUS_ANONYMOUS_TYPE_INFERRED, "Right-hand side has anonymous type. Please specify type explicitly", TO_STRING);
 
+        MAP.put(RETURN_NOT_ALLOWED, "'return' is not allowed here");
 
 //        修饰符
         MAP.put(REDUNDANT_MODIFIER, "Modifier ''{0}'' is redundant because ''{1}'' is present", TO_STRING, TO_STRING);

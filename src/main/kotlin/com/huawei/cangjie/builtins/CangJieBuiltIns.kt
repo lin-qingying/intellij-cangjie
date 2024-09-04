@@ -28,7 +28,6 @@ import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.descriptors.impl.basic.BuiltInTypeDescriptor
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.FqName
-import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.caches.IdeaResolverForProject
@@ -37,6 +36,9 @@ import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.NotNullLazyValue
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.*
+import com.huawei.cangjie.types.util.classFqNameEquals
+import com.huawei.cangjie.types.util.isConstructedFromGivenClass
+import com.huawei.cangjie.types.util.isNotNullConstructedFromGivenClass
 import com.intellij.openapi.project.Project
 
 
@@ -60,7 +62,9 @@ open class CangJieBuiltIns(
                 }
         }
 
-
+//        fun isNotNullOrNullableFunctionSupertype(type:CangJieType): Boolean {
+//            return  isConstructedFromGivenClass(type, functionSupertype)
+//        }
         val BUILTINS_MODULE_NAME: Name =
             Name.special("<built-ins module>")
 
@@ -243,63 +247,8 @@ open class CangJieBuiltIns(
 //            ) && !type.isMarkedOption
 //        }
 
-        private fun isConstructedFromGivenClass(
-            type: CangJieType,
-            fqName: FqNameUnsafe
-        ): Boolean {
-            return if (isTypeConstructorForGivenClass(type.constructor, fqName)) {
-                true
-            } else if (type.constructor.declarationDescriptor is ClassDescriptor && DescriptorUtils.getFqName(type.constructor.declarationDescriptor!!) == option) {
 
-                isConstructedFromGivenClass(type.arguments[0].type, fqName)
-            } else {
-                false
-            }
-        }
 
-        fun isTypeConstructorForGivenClass(
-            typeConstructor: TypeConstructor,
-            fqName: FqNameUnsafe
-        ): Boolean {
-            val descriptor =
-                typeConstructor.getDeclarationDescriptor()
-            return descriptor is ClassDescriptor && classFqNameEquals(
-                descriptor,
-                fqName
-            )
-        }
-
-        private fun classFqNameEquals(
-            descriptor: ClassifierDescriptor,
-            fqName: FqNameUnsafe
-        ): Boolean {
-
-            // Quick check to avoid creation of full FqName instance
-            return descriptor.name == fqName.shortName() && fqName == DescriptorUtils.getFqName(
-                descriptor
-            )
-//            return if (descriptor.name == fqName.shortName() && fqName == DescriptorUtils.getFqName(
-//                    descriptor
-//                )
-//            ) {
-//                true
-//            } else {
-//                //
-//                DescriptorUtils.getFqName(
-//                    descriptor
-//                ) == option && fqName != option
-//            }
-        }
-
-        private fun isNotNullConstructedFromGivenClass(
-            type: CangJieType,
-            fqName: FqNameUnsafe
-        ): Boolean {
-            return isConstructedFromGivenClass(
-                type,
-                fqName
-            )
-        }
 
 
     }

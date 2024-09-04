@@ -38,7 +38,7 @@ enum class LanguageFeature(
 //    DataClassInheritance(CANGJIE_0_53_4),
 //    InlineProperties(CANGJIE_0_53_4),
 //    DestructuringLambdaParameters(CANGJIE_0_53_4),
-//    SingleUnderscoreForParameterName(CANGJIE_0_53_4),
+    SingleUnderscoreForParameterName(CANGJIE_0_53_4),
 //    DslMarkersSupport(CANGJIE_0_53_4),
 //    UnderscoresInNumericLiterals(CANGJIE_0_53_4),
 //    DivisionByZeroInConstantExpressions(CANGJIE_0_53_4),

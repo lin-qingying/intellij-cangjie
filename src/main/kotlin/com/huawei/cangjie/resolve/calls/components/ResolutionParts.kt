@@ -1,20 +1,78 @@
 package com.huawei.cangjie.resolve.calls.components
 
+import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor
+import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
+import com.huawei.cangjie.resolve.calls.inference.ConstraintSystemOperation
 import com.huawei.cangjie.resolve.calls.inference.components.*
+import com.huawei.cangjie.resolve.calls.inference.model.DeclaredUpperBoundConstraintPositionImpl
+import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableFromCallableDescriptor
 import com.huawei.cangjie.resolve.calls.inference.substitute
+import com.huawei.cangjie.resolve.calls.model.CangJieCall
 import com.huawei.cangjie.resolve.calls.model.CangJieCallArgument
 import com.huawei.cangjie.resolve.calls.model.ResolutionPart
-import com.huawei.cangjie.types.ErrorUtils
-import com.huawei.cangjie.types.TypeConstructor
-import com.huawei.cangjie.types.TypeSubstitutor
-import com.huawei.cangjie.types.UnwrappedType
+import com.huawei.cangjie.types.*
 import com.huawei.cangjie.utils.compactIfPossible
 
 internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 
 
+    fun createToFreshVariableSubstitutorAndAddInitialConstraints(
+        candidateDescriptor: CallableDescriptor,
+        kotlinCall: CangJieCall,
+        csBuilder: ConstraintSystemOperation
+    ): FreshVariableNewTypeSubstitutor {
+        val typeParameters = candidateDescriptor.typeParameters
+
+        val freshTypeVariables = typeParameters.map { TypeVariableFromCallableDescriptor(it) }
+
+        val toFreshVariables = FreshVariableNewTypeSubstitutor(freshTypeVariables)
+
+        for (freshVariable in freshTypeVariables) {
+            csBuilder.registerVariable(freshVariable)
+        }
+
+        fun TypeVariableFromCallableDescriptor.addSubtypeConstraint(
+            upperBound: CangJieType,
+            position: DeclaredUpperBoundConstraintPositionImpl
+        ) {
+            csBuilder.addSubtypeConstraint(defaultType, toFreshVariables.safeSubstitute(upperBound.unwrap()), position)
+        }
+
+        for (index in typeParameters.indices) {
+            val typeParameter = typeParameters[index]
+            val freshVariable = freshTypeVariables[index]
+            val position = DeclaredUpperBoundConstraintPositionImpl(typeParameter, kotlinCall)
+
+            for (upperBound in typeParameter.upperBounds) {
+                freshVariable.addSubtypeConstraint(upperBound, position)
+            }
+        }
+
+        if (candidateDescriptor is TypeAliasConstructorDescriptor) {
+            val typeAliasDescriptor = candidateDescriptor.typeAliasDescriptor
+            val originalTypes = typeAliasDescriptor.underlyingType.arguments.map { it.type }
+            val originalTypeParameters = candidateDescriptor.underlyingConstructorDescriptor.typeParameters
+            for (index in typeParameters.indices) {
+                val typeParameter = typeParameters[index]
+                val freshVariable = freshTypeVariables[index]
+                val typeMapping = originalTypes.mapIndexedNotNull { i: Int, kotlinType: CangJieType ->
+                    if (kotlinType == typeParameter.defaultType) i else null
+                }
+                for (originalIndex in typeMapping) {
+                    // there can be null in case we already captured type parameter in outer class (in case of inner classes)
+                    // see test innerClassTypeAliasConstructor.kt
+                    val originalTypeParameter = originalTypeParameters.getOrNull(originalIndex) ?: continue
+                    val position = DeclaredUpperBoundConstraintPositionImpl(originalTypeParameter, kotlinCall)
+                    for (upperBound in originalTypeParameter.upperBounds) {
+                        freshVariable.addSubtypeConstraint(upperBound, position)
+                    }
+                }
+            }
+        }
+        return toFreshVariables
+    }
     private fun createKnownParametersFromFreshVariablesSubstitutor(
         freshVariableSubstitutor: FreshVariableNewTypeSubstitutor,
         knownTypeParametersSubstitutor: TypeSubstitutor,

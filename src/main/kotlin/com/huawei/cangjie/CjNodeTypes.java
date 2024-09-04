@@ -74,6 +74,7 @@ public interface CjNodeTypes {
 
     IElementType LABEL = new CjNodeType("LABEL", CjLabelReferenceExpression.class);
     IElementType CLASS_BODY = CjStubElementTypes.CLASS_BODY;
+    IElementType TUPLE_EXPRESSION =new CjNodeType("TUPLE_EXPRESSION", CjTupleExpression.class);
 
     IElementType FUNCTION_LITERAL = new CjNodeType("FUNCTION_LITERAL", CjFunctionLiteral.class);
     IElementType LABEL_QUALIFIER = new CjNodeType("LABEL_QUALIFIER", CjContainerNode.class);
@@ -144,7 +145,6 @@ public interface CjNodeTypes {
     IElementType COLLECTION_LITERAL_EXPRESSION = CjStubElementTypes.COLLECTION_LITERAL_EXPRESSION;
 
 
-    IElementType TUPLE_LITERAL_EXPRESSION = CjStubElementTypes.TUPLE_LITERAL_EXPRESSION;
     IElementType PARENTHESIZED = new CjNodeType("PARENTHESIZED", CjParenthesizedExpression.class);
 
     IElementType CONTINUE = new CjNodeType("CONTINUE", CjContinueExpression.class);

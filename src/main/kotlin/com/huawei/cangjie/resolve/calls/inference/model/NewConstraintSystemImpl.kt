@@ -386,6 +386,7 @@ class NewConstraintSystemImpl(
     }
 
     override fun getBuilder() = apply { checkState(State.BUILDING, State.COMPLETION, State.TRANSACTION) }
+    override fun asPostponedArgumentsAnalyzerContext() = apply { checkState(State.BUILDING) }
 
 
     private fun checkMissedConstraints() {

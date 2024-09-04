@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve.calls.inference
 
 import com.huawei.cangjie.resolve.calls.inference.constraintPosition.CompoundConstraintPosition
 import com.huawei.cangjie.resolve.calls.inference.constraintPosition.ConstraintPosition
+import com.huawei.cangjie.resolve.calls.inference.model.TypeVariable
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeProjectionImpl
 import com.huawei.cangjie.types.TypeSubstitutor

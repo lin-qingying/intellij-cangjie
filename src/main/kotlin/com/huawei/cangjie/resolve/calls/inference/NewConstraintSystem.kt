@@ -1,5 +1,6 @@
 package com.huawei.cangjie.resolve.calls.inference
 
+import com.huawei.cangjie.resolve.calls.components.PostponedArgumentsAnalyzerContext
 import com.huawei.cangjie.resolve.calls.inference.components.ConstraintSystemCompletionContext
 import com.huawei.cangjie.resolve.calls.inference.model.Constraint
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage
@@ -10,21 +11,14 @@ interface NewConstraintSystem {
         val hasContradiction: Boolean
     val errors: List<ConstraintSystemError>
 
-    //
+
     fun asConstraintSystemCompleterContext(): ConstraintSystemCompletionContext
     // after this method we shouldn't mutate system via ConstraintSystemBuilder
     fun asReadOnlyStorage(): ConstraintStorage
 
     fun getBuilder(): ConstraintSystemBuilder
-//
-//    // after this method we shouldn't mutate system via ConstraintSystemBuilder
-//    fun asReadOnlyStorage(): ConstraintStorage
-//
-//    fun asConstraintSystemCompleterContext(): ConstraintSystemCompletionContext
-//    fun asPostponedArgumentsAnalyzerContext(): PostponedArgumentsAnalyzerContext
-//    fun resolveForkPointsConstraints()
-//
-//    fun getEmptyIntersectionTypeKind(types: Collection<CangJieTypeMarker>): EmptyIntersectionTypeInfo?
+    fun asPostponedArgumentsAnalyzerContext(): PostponedArgumentsAnalyzerContext
+
 }
 
 

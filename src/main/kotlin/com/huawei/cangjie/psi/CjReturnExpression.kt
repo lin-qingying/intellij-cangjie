@@ -15,8 +15,8 @@ class CjReturnExpression(node: ASTNode) : CjExpressionWithLabel(node), CjStateme
 
     val returnedExpression: CjExpression?
         get() = findChildByClass(CjExpression::class.java)
-    val returnKeyword: PsiElement?
-        get() = findChildByType(CjTokens.RETURN_KEYWORD)
+    val returnKeyword: PsiElement
+        get() = findChildByType(CjTokens.RETURN_KEYWORD)!!
     val labeledExpression: PsiElement?
         get() = findChildByType(CjNodeTypes.LABEL_QUALIFIER)
 }

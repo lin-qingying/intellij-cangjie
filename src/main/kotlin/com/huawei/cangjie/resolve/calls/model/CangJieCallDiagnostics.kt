@@ -4,6 +4,7 @@ import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.PropertyDescriptor
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor
+import com.huawei.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintSystemError
 import com.huawei.cangjie.resolve.calls.inference.model.NewConstraintError
@@ -43,7 +44,7 @@ fun Collection<ConstraintSystemError>.asDiagnostics(): List<CangJieConstraintSys
 class SmartCastDiagnostic(
     val argument: ExpressionCangJieCallArgument,
     val smartCastType: UnwrappedType,
-    val kotlinCall: CangJieCall?
+    valCangJieCall: CangJieCall?
 ) : CangJieCallDiagnostic(CandidateApplicability.RESOLVED) {
     override fun report(reporter: DiagnosticReporter) = reporter.onCallArgument(argument, this)
 }
@@ -152,4 +153,42 @@ class WrongCountOfTypeArguments(
     val currentCount: Int
 ) : CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
     override fun report(reporter: DiagnosticReporter) = reporter.onTypeArguments(this)
+}
+class CallableReferenceCallCandidatesAmbiguity(
+    val argument: CallableReferenceCangJieCallArgument,
+    val candidates: Collection<CallableReferenceResolutionCandidate>
+) : CallableReferenceInapplicableDiagnostic(argument)
+abstract class CallableReferenceInapplicableDiagnostic(
+    private val argument: CallableReferenceResolutionAtom,
+    applicability: CandidateApplicability = CandidateApplicability.INAPPLICABLE
+) : CangJieCallDiagnostic(applicability) {
+    override fun report(reporter: DiagnosticReporter) {
+        when (argument) {
+            is CallableReferenceCangJieCall -> reporter.onCall(this)
+            is CallableReferenceCangJieCallArgument -> reporter.onCallArgument(argument, this)
+        }
+    }
+}
+class CompatibilityWarning(val candidate: CallableDescriptor) : CangJieCallDiagnostic(CandidateApplicability.RESOLVED) {
+    override fun report(reporter: DiagnosticReporter) {
+        reporter.onCall(this)
+    }
+}
+class CompatibilityWarningOnArgument(
+    val argument:CangJieCallArgument,
+    val candidate: CallableDescriptor
+) :CangJieCallDiagnostic(CandidateApplicability.RESOLVED) {
+    override fun report(reporter: DiagnosticReporter) {
+        reporter.onCallArgument(argument, this)
+    }
+}
+class NoneCallableReferenceCallCandidates(val argument: CallableReferenceCangJieCallArgument) :
+    CallableReferenceInapplicableDiagnostic(argument)
+class NotEnoughInformationForLambdaParameter(
+    val lambdaArgument: LambdaCangJieCallArgument,
+    val parameterIndex: Int
+) : CangJieCallDiagnostic(CandidateApplicability.RESOLVED_WITH_ERROR) {
+    override fun report(reporter: DiagnosticReporter) {
+        reporter.onCallArgument(lambdaArgument, this)
+    }
 }

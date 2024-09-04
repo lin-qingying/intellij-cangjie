@@ -1,6 +1,8 @@
 package com.huawei.cangjie.resolve.calls.inference.components
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.resolve.calls.inference.model.FixVariableConstraintPosition
+import com.huawei.cangjie.resolve.calls.inference.model.FixVariableConstraintPositionImpl
 import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableFromCallableDescriptor
 import com.huawei.cangjie.resolve.calls.model.FunctionExpression
 import com.huawei.cangjie.resolve.calls.model.LambdaCangJieCallArgument
@@ -81,42 +83,10 @@ class ClassicConstraintSystemUtilContext(
         return atom is LambdaCangJieCallArgument && atom !is FunctionExpression
     }
 
-//    override fun createTypeVariableForLambdaReturnType(): TypeVariableMarker {
-//        return TypeVariableForLambdaReturnType(
-//            builtIns,
-//            TYPE_VARIABLE_NAME_FOR_LAMBDA_RETURN_TYPE
-//        )
-//    }
-//
-//    override fun createTypeVariableForLambdaParameterType(
-//        argument: PostponedAtomWithRevisableExpectedType,
-//        index: Int
-//    ): TypeVariableMarker {
-//        require(argument is ResolvedAtom)
-//        val atom = argument.atom as PostponableCangJieCallArgument
-//        return TypeVariableForLambdaParameterType(
-//            atom,
-//            index,
-//            builtIns,
-//            TYPE_VARIABLE_NAME_PREFIX_FOR_LAMBDA_PARAMETER_TYPE + (index + 1)
-//        )
-//    }
-
-//    override fun createTypeVariableForCallableReferenceParameterType(
-//        argument: PostponedAtomWithRevisableExpectedType,
-//        index: Int
-//    ): TypeVariableMarker {
-//        return TypeVariableForCallableReferenceParameterType(
-//            builtIns,
-//            TYPE_VARIABLE_NAME_PREFIX_FOR_CR_PARAMETER_TYPE + (index + 1)
-//        )
-//    }
-//
-//    override fun createTypeVariableForCallableReferenceReturnType(): TypeVariableMarker {
-//        return TypeVariableForCallableReferenceReturnType(
-//            builtIns,
-//            TYPE_VARIABLE_NAME_FOR_CR_RETURN_TYPE
-//        )
-//    }
+    override fun <T> createFixVariableConstraintPosition(variable: TypeVariableMarker, atom: T): FixVariableConstraintPosition<T> {
+        require(atom is ResolvedAtom)
+        @Suppress("UNCHECKED_CAST")
+        return FixVariableConstraintPositionImpl(variable, atom) as FixVariableConstraintPosition<T>
+    }
 }
 

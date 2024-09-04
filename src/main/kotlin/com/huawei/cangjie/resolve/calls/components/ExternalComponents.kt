@@ -89,3 +89,13 @@ interface CangJieResolutionCallbacks {
 
 //    fun recordInlinabilityOfLambda(atom: Set<Map.Entry<SimpleResolutionCandidate, ResolvedLambdaAtom>>)
 }
+data class ReturnArgumentsInfo(
+    val nonErrorArguments: List<CangJieCallArgument>,
+    val lastExpression: CangJieCallArgument?,
+    val lastExpressionCoercedToUnit: Boolean,
+    val returnArgumentsExist: Boolean
+) {
+    companion object {
+        val empty = ReturnArgumentsInfo(emptyList(), null, lastExpressionCoercedToUnit = false, returnArgumentsExist = false)
+    }
+}

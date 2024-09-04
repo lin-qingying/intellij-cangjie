@@ -3,18 +3,24 @@ package com.huawei.cangjie.resolve.calls.model
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.calls.components.ReturnArgumentsInfo
 import com.huawei.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
+import com.huawei.cangjie.resolve.calls.components.extractInputOutputTypesFromCallableReferenceExpectedType
 import com.huawei.cangjie.resolve.calls.inference.NewConstraintSystem
 import com.huawei.cangjie.resolve.calls.inference.components.FreshVariableNewTypeSubstitutor
 import com.huawei.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
 import com.huawei.cangjie.resolve.calls.inference.model.NewConstraintError
 import com.huawei.cangjie.resolve.calls.inference.model.NewConstraintMismatch
 import com.huawei.cangjie.resolve.calls.inference.model.NewConstraintWarning
+import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableForLambdaReturnType
 import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.TypeConstructor
 import com.huawei.cangjie.types.UnwrappedType
+import com.huawei.cangjie.types.model.CangJieTypeMarker
 import com.huawei.cangjie.types.util.unCapture
+import com.huawei.cangjie.utils.addIfNotNull
 
 
 /**
@@ -195,3 +201,118 @@ val ResolvedCallAtom.freshReturnType: UnwrappedType?
 
 fun CallResolutionResult.resultCallAtom(): ResolvedCallAtom? =
     if (this is SingleCallResolutionResult) resultCallAtom else null
+/*
+ * Used only for delegated properties with one good candidate and one for bad
+ * e.g. in case `var x by lazy { "" }
+ */
+class StubResolvedAtom(val typeVariable: TypeConstructor) : ResolvedAtom() {
+    override val atom: ResolutionAtom? get() = null
+}
+class ResolvedExpressionAtom(override val atom: ExpressionCangJieCallArgument) : ResolvedAtom() {
+    init {
+        setAnalyzedResults(listOf())
+    }
+}
+class ResolvedLambdaAtom(
+    override val atom: LambdaCangJieCallArgument,
+
+    val receiver: UnwrappedType?,
+    val contextReceivers: List<UnwrappedType>,
+    val parameters: List<UnwrappedType>,
+    val returnType: UnwrappedType,
+    val typeVariableForLambdaReturnType: TypeVariableForLambdaReturnType?,
+    override val expectedType: UnwrappedType?
+) : PostponedResolvedAtom() {
+    /**
+     * [resultArgumentsInfo] can be null only if lambda was analyzed in process of resolve
+     *   ambiguity by lambda return type
+     * There is a contract that [resultArgumentsInfo] will be not null for unwrapped lambda atom
+     *   (see [unwrap])
+     */
+    var resultArgumentsInfo: ReturnArgumentsInfo? = null
+        private set
+
+    fun setAnalyzedResults(
+        resultArguments: ReturnArgumentsInfo?,
+        subResolvedAtoms: List<ResolvedAtom>
+    ) {
+        this.resultArgumentsInfo = resultArguments
+        setAnalyzedResults(subResolvedAtoms)
+    }
+
+    override val inputTypes: Collection<UnwrappedType>
+        get() {
+            if (receiver == null && contextReceivers.isEmpty()) return parameters
+            return ArrayList<UnwrappedType>(parameters.size + contextReceivers.size + (if (receiver != null) 1 else 0)).apply {
+                addAll(parameters)
+                addIfNotNull(receiver)
+                addAll(contextReceivers)
+            }
+        }
+
+    override val outputType: UnwrappedType get() = returnType
+}
+
+sealed class AbstractPostponedCallableReferenceAtom(
+    atom: CallableReferenceCangJieCallArgument,
+    expectedType: UnwrappedType?
+) : ResolvedCallableReferenceArgumentAtom(atom, expectedType) {
+    override val inputTypes: Collection<UnwrappedType>
+        get() = extractInputOutputTypesFromCallableReferenceExpectedType(expectedType)?.inputTypes ?: listOfNotNull(expectedType)
+
+    override val outputType: UnwrappedType?
+            get() = extractInputOutputTypesFromCallableReferenceExpectedType(expectedType)?.outputType
+}
+class EagerCallableReferenceAtom(
+    atom: CallableReferenceCangJieCallArgument,
+    expectedType: UnwrappedType?
+) : ResolvedCallableReferenceArgumentAtom(atom, expectedType) {
+    override val inputTypes: Collection<UnwrappedType> get() = emptyList()
+    override val outputType: UnwrappedType? get() = null
+
+    fun transformToPostponed(): PostponedCallableReferenceAtom = PostponedCallableReferenceAtom(this)
+}
+class PostponedCallableReferenceAtom(
+    eagerCallableReferenceAtom: EagerCallableReferenceAtom
+) : AbstractPostponedCallableReferenceAtom(eagerCallableReferenceAtom.atom, eagerCallableReferenceAtom.expectedType),
+    PostponedCallableReferenceMarker {
+    override var revisedExpectedType: UnwrappedType? = null
+        private set
+
+    override fun reviseExpectedType(expectedType: CangJieTypeMarker) {
+        require(expectedType is UnwrappedType)
+        revisedExpectedType = expectedType
+    }
+}
+class CallableReferenceWithRevisedExpectedTypeAtom(
+    atom: CallableReferenceCangJieCallArgument,
+    expectedType: UnwrappedType?,
+) : AbstractPostponedCallableReferenceAtom(atom, expectedType)
+class LambdaWithTypeVariableAsExpectedTypeAtom(
+    override val atom: LambdaCangJieCallArgument,
+    override val expectedType: UnwrappedType
+) : PostponedResolvedAtom(), LambdaWithTypeVariableAsExpectedTypeMarker {
+    override val inputTypes: Collection<UnwrappedType> get() = listOf(expectedType)
+    override val outputType: UnwrappedType? get() = null
+
+    override var revisedExpectedType: UnwrappedType? = null
+        private set
+
+    override var parameterTypesFromDeclaration: List<UnwrappedType?>? = null
+        private set
+
+    override fun updateParameterTypesFromDeclaration(types: List<CangJieTypeMarker?>?) {
+        @Suppress("UNCHECKED_CAST")
+        types as List<UnwrappedType?>?
+        parameterTypesFromDeclaration = types
+    }
+
+    override fun reviseExpectedType(expectedType: CangJieTypeMarker) {
+        require(expectedType is UnwrappedType)
+        revisedExpectedType = expectedType
+    }
+
+    fun setAnalyzed(resolvedLambdaAtom: ResolvedLambdaAtom) {
+        setAnalyzedResults(listOf(resolvedLambdaAtom))
+    }
+}

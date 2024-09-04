@@ -1,11 +1,8 @@
 package com.huawei.cangjie.types.checker
 
-import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.builtins.*
 import com.huawei.cangjie.builtins.StandardNames.FqNames
-import com.huawei.cangjie.builtins.functionTypeKind
 import com.huawei.cangjie.builtins.functions.FunctionTypeKind
-import com.huawei.cangjie.builtins.getFunctionDescriptor
-import com.huawei.cangjie.builtins.isBuiltinExtensionFunctionalType
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.TypeAliasDescriptor
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
@@ -53,6 +50,10 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     override fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
         return this is IntegerLiteralTypeConstructor
+    }
+    override fun CangJieTypeMarker.extractArgumentsForFunctionTypeOrSubtype(): List<CangJieTypeMarker> {
+        require(this is CangJieType, this::errorMessage)
+        return this.getPureArgumentsForFunctionalTypeOrSubtype()
     }
 
     override fun createTypeWithUpperBoundForIntersectionResult(
@@ -379,17 +380,17 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun TypeConstructorMarker.isAnyConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
-        return CangJieBuiltIns.isTypeConstructorForGivenClass(this, FqNames.any)
+        return  isTypeConstructorForGivenClass(this, FqNames.any)
     }
 
     override fun TypeConstructorMarker.isNothingConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
-        return CangJieBuiltIns.isTypeConstructorForGivenClass(this, FqNames.nothing)
+        return  isTypeConstructorForGivenClass(this, FqNames.nothing)
     }
 
     override fun TypeConstructorMarker.isArrayConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
-        return CangJieBuiltIns.isTypeConstructorForGivenClass(this, FqNames.array)
+        return  isTypeConstructorForGivenClass(this, FqNames.array)
     }
 
     override fun CangJieTypeMarker.asTypeArgument(): TypeArgumentMarker {
@@ -399,7 +400,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun TypeConstructorMarker.isUnitTypeConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
-        return CangJieBuiltIns.isTypeConstructorForGivenClass(this, FqNames.unit)
+        return  isTypeConstructorForGivenClass(this, FqNames.unit)
     }
 
     /**
@@ -957,6 +958,10 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     override fun CangJieTypeMarker.functionTypeKind(): FunctionTypeKind? {
         require(this is CangJieType)
         return this.functionTypeKind
+    }
+    override fun CangJieTypeMarker.isFunctionWithAny(): Boolean {
+        require(this is CangJieType, this::errorMessage)
+        return this.isFunctionType
     }
 
     override fun getNonReflectFunctionTypeConstructor(

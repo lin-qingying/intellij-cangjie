@@ -1,6 +1,8 @@
 package com.huawei.cangjie.types.util
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.builtins.StandardNames.FqNames.option
+
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.name.FqName
@@ -21,6 +23,7 @@ import com.huawei.cangjie.types.error.ErrorType
 import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.model.TypeArgumentMarker
 import com.huawei.cangjie.types.model.TypeVariableTypeConstructorMarker
+import com.huawei.cangjie.types.util.TypeUtils.isSpecialType
 import com.huawei.cangjie.utils.SmartSet
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -293,6 +296,10 @@ fun CangJieType.isAny(): Boolean = CangJieBuiltIns.isAny(this)
 object TypeUtils {
 
     val DONT_CARE: SimpleType = ErrorUtils.createErrorType(ErrorTypeKind.DONT_CARE)
+
+    fun isSpecialType(type: CangJieType): Boolean {
+        return type is SpecialType
+    }
 
     /**
      * Differs from `isNullableType` only by treating type parameters: acceptsNullable(T) <=> T has nullable lower bound
@@ -887,4 +894,53 @@ fun CjBlockExpression.returnValueInferred(): CangJieType {
 
 
     TODO()
+}
+
+fun isTypeConstructorForGivenClass(
+    typeConstructor: TypeConstructor,
+    fqName: FqNameUnsafe
+): Boolean {
+
+    val descriptor =
+        typeConstructor.getDeclarationDescriptor()
+    return descriptor is ClassDescriptor && classFqNameEquals(
+        descriptor,
+        fqName
+    )
+}
+
+
+fun isNotNullConstructedFromGivenClass(
+    type: CangJieType,
+    fqName: FqNameUnsafe
+): Boolean {
+    if (isSpecialType(type)) return false
+
+    return isTypeConstructorForGivenClass(type.constructor, fqName)
+}
+
+fun isConstructedFromGivenClass(
+    type: CangJieType,
+    fqName: FqNameUnsafe
+): Boolean {
+    if (isSpecialType(type)) return false
+    return if (isTypeConstructorForGivenClass(type.constructor, fqName)) {
+        true
+    } else if (type.constructor.declarationDescriptor is ClassDescriptor && DescriptorUtils.getFqName(type.constructor.declarationDescriptor!!) == option) {
+
+        isConstructedFromGivenClass(type.arguments[0].type, fqName)
+    } else {
+        false
+    }
+}
+
+fun classFqNameEquals(
+    descriptor: ClassifierDescriptor,
+    fqName: FqNameUnsafe
+): Boolean {
+
+    return descriptor.name == fqName.shortName() && fqName == DescriptorUtils.getFqName(
+        descriptor
+    )
+
 }

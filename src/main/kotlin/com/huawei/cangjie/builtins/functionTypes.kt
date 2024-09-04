@@ -14,6 +14,8 @@ import com.huawei.cangjie.resolve.constants.StringValue
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.util.asTypeProjection
 import com.huawei.cangjie.types.util.replaceAnnotations
+import com.huawei.cangjie.types.util.supertypes
+import com.huawei.cangjie.utils.DFS
 import com.intellij.util.containers.addIfNotNull
 
 
@@ -205,9 +207,39 @@ fun CangJieType.getReceiverTypeFromFunctionType(): CangJieType? {
     return arguments[index].type
 }
 
+private fun CangJieType.isTypeOrSubtypeOf(predicate: (CangJieType) -> Boolean): Boolean =
+    predicate(this) ||
+            DFS.dfsFromNode(
+                this,
+                DFS.Neighbors { it.constructor.supertypes },
+                DFS.VisitedWithSet(),
+                object : DFS.AbstractNodeHandler<CangJieType, Boolean>() {
+                    private var result = false
+
+                    override fun beforeChildren(current: CangJieType): Boolean {
+                        if (predicate(current)) {
+                            result = true
+                        }
+                        return !result
+                    }
+
+                    override fun result() = result
+                }
+            )
+val CangJieType.isBuiltinFunctionalTypeOrSubtype: Boolean
+    get() = isTypeOrSubtypeOf { it.isBuiltinFunctionalType }
+
 fun CangJieType.getReturnTypeFromFunctionType(): CangJieType {
     assert(isBuiltinFunctionalType) { "Not a function type: $this" }
     return arguments.last().type
+}
+fun CangJieType.getPureArgumentsForFunctionalTypeOrSubtype(): List<CangJieType> {
+    assert(isBuiltinFunctionalTypeOrSubtype) { "Not a function type or subtype: $this" }
+    return extractFunctionalTypeFromSupertypes().arguments.dropLast(1).map { it.type }
+}
+fun CangJieType.extractFunctionalTypeFromSupertypes(): CangJieType {
+    assert(isBuiltinFunctionalTypeOrSubtype) { "Not a function type or subtype: $this" }
+    return if (isBuiltinFunctionalType) this else supertypes().first { it.isBuiltinFunctionalType }
 }
 
 val CangJieType.functionTypeKind: FunctionTypeKind?

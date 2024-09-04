@@ -7,6 +7,7 @@ import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.resolve.calls.inference.constraintPosition.ConstraintPosition
 import com.huawei.cangjie.resolve.calls.inference.constraintPosition.ConstraintPositionKind
+import com.huawei.cangjie.resolve.calls.inference.model.TypeVariable
 import com.huawei.cangjie.resolve.calls.results.SimpleConstraintSystem
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext

@@ -1,5 +1,6 @@
 package com.huawei.cangjie.resolve.calls.inference
 
+import com.huawei.cangjie.resolve.calls.inference.model.TypeVariable
 import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstructor
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.CommonSupertypes

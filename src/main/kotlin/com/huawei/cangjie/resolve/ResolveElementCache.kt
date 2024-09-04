@@ -164,6 +164,7 @@ class ResolveElementCache(
                     it is CjPrimaryConstructor ||
                     it is CjSecondaryConstructor ||
                     it is CjProperty ||
+                    it is CjVariable ||
                     it is CjSuperTypeList ||
 
                     it is CjImportList ||
@@ -380,6 +381,7 @@ class ResolveElementCache(
 //        forceResolveAnnotationsInside(typeAlias)
         return trace
     }
+
     private fun secondaryConstructorAdditionalResolve(
         resolveSession: ResolveSession, constructor: CjSecondaryConstructor,
         file: CjFile, statementFilter: StatementFilter,
@@ -392,12 +394,20 @@ class ResolveElementCache(
         ForceResolveUtil.forceResolveAllContents(constructorDescriptor)
 
         val bodyResolver = createBodyResolver(resolveSession, trace, file, statementFilter)
-        bodyResolver.resolveSecondaryConstructorBody(DataFlowInfo.EMPTY, trace, constructor, constructorDescriptor, scope, null)
+        bodyResolver.resolveSecondaryConstructorBody(
+            DataFlowInfo.EMPTY,
+            trace,
+            constructor,
+            constructorDescriptor,
+            scope,
+            null
+        )
 
         forceResolveAnnotationsInside(constructor)
 
         return trace
     }
+
     private fun performElementAdditionalResolve(
         resolveElement: CjElement,
         contextElements: Collection<CjElement>?,
@@ -433,6 +443,15 @@ class ResolveElementCache(
                 createStatementFilter(),
                 bodyResolveMode.bindingTraceFilter
             )
+
+            is CjVariable -> variableAdditionalResolve(
+                resolveSession,
+                resolveElement,
+                file,
+                createStatementFilter(),
+                bodyResolveMode.bindingTraceFilter
+            )
+
             is CjProperty -> propertyAdditionalResolve(
                 resolveSession,
                 resolveElement,
@@ -440,6 +459,7 @@ class ResolveElementCache(
                 createStatementFilter(),
                 bodyResolveMode.bindingTraceFilter
             )
+
             is CjTypeAlias -> typealiasAdditionalResolve(
                 resolveSession,
                 resolveElement,
@@ -465,12 +485,14 @@ class ResolveElementCache(
                 resolveSession.trace
 
             }
+
             is CjPrimaryConstructor -> constructorAdditionalResolve(
                 resolveSession,
                 resolveElement.parent as CjTypeStatement,
                 file,
                 bodyResolveMode.bindingTraceFilter
             )
+
             is CjTypeConstraint -> typeConstraintAdditionalResolve(resolveSession, resolveElement)
 
             is CjSecondaryConstructor -> secondaryConstructorAdditionalResolve(
@@ -480,6 +502,7 @@ class ResolveElementCache(
                 createStatementFilter(),
                 bodyResolveMode.bindingTraceFilter
             )
+
             else -> {
                 if (resolveElement.findParentOfType<CjPackageDirective>(true) != null) {
                     packageRefAdditionalResolve(resolveSession, resolveElement, bodyResolveMode.bindingTraceFilter)
@@ -494,6 +517,38 @@ class ResolveElementCache(
 //        }
 
         return Pair(trace.bindingContext, statementFilterUsed)
+    }
+
+    private fun variableAdditionalResolve(
+        resolveSession: ResolveSession, variable: CjVariable,
+        file: CjFile,
+        statementFilter: StatementFilter,
+        bindingTraceFilter: BindingTraceFilter
+    ): BindingTrace {
+        val trace = createDelegatingTrace(variable, bindingTraceFilter)
+
+        val bodyResolver = createBodyResolver(resolveSession, trace, file, statementFilter)
+        val descriptor = resolveSession.resolveToDescriptor(variable) as VariableDescriptor
+        ForceResolveUtil.forceResolveAllContents(descriptor)
+
+        val bodyResolveContext = BodyResolveContextForLazy(TopDownAnalysisMode.LocalDeclarations) { declaration ->
+            assert(declaration.parent == variable || declaration == variable) {
+                "Must be called only for property accessors or for property, but called for $declaration"
+            }
+            resolveSession.declarationScopeProvider.getResolutionScopeForDeclaration(declaration)
+        }
+
+        bodyResolver.resolveVariable(bodyResolveContext, variable, descriptor)
+
+        forceResolveAnnotationsInside(variable)
+
+//        for (accessor in property.accessors) {
+//            ControlFlowInformationProviderImpl(
+//                accessor, trace, accessor.languageVersionSettings, resolveSession.platformDiagnosticSuppressor
+//            ).checkDeclaration()
+//        }
+
+        return trace
     }
 
     private fun propertyAdditionalResolve(
@@ -527,7 +582,11 @@ class ResolveElementCache(
 
         return trace
     }
-    private fun typeConstraintAdditionalResolve(analyzer: CangJieCodeAnalyzer, typeConstraint: CjTypeConstraint): BindingTrace {
+
+    private fun typeConstraintAdditionalResolve(
+        analyzer: CangJieCodeAnalyzer,
+        typeConstraint: CjTypeConstraint
+    ): BindingTrace {
         val declaration = typeConstraint.findParentOfType<CjDeclaration>(true)!!
         val descriptor = analyzer.resolveToDescriptor(declaration) as ClassifierDescriptorWithTypeParameters
 
@@ -537,10 +596,11 @@ class ResolveElementCache(
 
         return resolveSession.trace
     }
+
     private fun constructorAdditionalResolve(
         resolveSession: ResolveSession,
         cclass: CjTypeStatement,
-        file:CjFile,
+        file: CjFile,
         filter: BindingTraceFilter
     ): BindingTrace {
         val trace = createDelegatingTrace(cclass, filter)
@@ -568,6 +628,7 @@ class ResolveElementCache(
 
         return trace
     }
+
     private fun forceResolveAnnotationsInside(element: CjAnnotated) {
         val action: (CjAnnotationEntry) -> Unit = { entry ->
             resolveSession.bindingContext[BindingContext.ANNOTATION, entry]?.let {
@@ -577,9 +638,13 @@ class ResolveElementCache(
         if (element.getContainingCjFile().isCompiled) {
             element.annotationEntries.forEach(action)
         } else {
-            element.forEachDescendantOfType<CjAnnotationEntry>(canGoInside = { it !is CjBlockExpression }, action = action)
+            element.forEachDescendantOfType<CjAnnotationEntry>(
+                canGoInside = { it !is CjBlockExpression },
+                action = action
+            )
         }
     }
+
     private fun createBodyResolver(
         resolveSession: ResolveSession,
         trace: BindingTrace,
@@ -702,20 +767,19 @@ class ResolveElementCache(
     }
 
 
-
     private class BodyResolveContextForLazy(
         private val topDownAnalysisMode: TopDownAnalysisMode,
         private val declaringScopes: Function1<CjDeclaration, LexicalScope?>
     ) : BodiesResolveContext {
 
         override val files: Collection<CjFile> = setOf()
-        override val primaryConstructors: MutableMap<CjPrimaryConstructor, ClassConstructorDescriptor> =  hashMapOf()
-        override val secondaryConstructors: MutableMap<CjSecondaryConstructor, ClassConstructorDescriptor> =  hashMapOf()
-        override val declaredClasses: MutableMap<CjTypeStatement, ClassDescriptorWithResolutionScopes> =  hashMapOf()
-        override val properties: MutableMap<CjProperty, PropertyDescriptor> =  hashMapOf()
-        override val variables: MutableMap<CjVariable, VariableDescriptor> =  hashMapOf()
-        override val functions: MutableMap<CjNamedFunction, SimpleFunctionDescriptor> =  hashMapOf()
-        override val typeAliases: MutableMap<CjTypeAlias, TypeAliasDescriptor> =  hashMapOf()
+        override val primaryConstructors: MutableMap<CjPrimaryConstructor, ClassConstructorDescriptor> = hashMapOf()
+        override val secondaryConstructors: MutableMap<CjSecondaryConstructor, ClassConstructorDescriptor> = hashMapOf()
+        override val declaredClasses: MutableMap<CjTypeStatement, ClassDescriptorWithResolutionScopes> = hashMapOf()
+        override val properties: MutableMap<CjProperty, PropertyDescriptor> = hashMapOf()
+        override val variables: MutableMap<CjVariable, VariableDescriptor> = hashMapOf()
+        override val functions: MutableMap<CjNamedFunction, SimpleFunctionDescriptor> = hashMapOf()
+        override val typeAliases: MutableMap<CjTypeAlias, TypeAliasDescriptor> = hashMapOf()
 
 
         override fun getDeclaringScope(declaration: CjDeclaration): LexicalScope? = declaringScopes(declaration)

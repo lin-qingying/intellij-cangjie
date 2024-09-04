@@ -3,7 +3,10 @@ package com.huawei.cangjie.resolve.calls.inference.model
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.ClassifierDescriptor
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
+import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.name.SpecialNames
+import com.huawei.cangjie.resolve.calls.inference.CallHandle
+import com.huawei.cangjie.resolve.calls.model.PostponableCangJieCallArgument
 import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.resolve.descriptorUtil.hasOnlyInputTypesAnnotation
 import com.huawei.cangjie.types.*
@@ -65,4 +68,32 @@ sealed class NewTypeVariable(
     abstract fun hasOnlyInputTypesAnnotation(): Boolean
 
     override fun toString() = freshTypeConstructor.toString()
+}
+class TypeVariable(
+    val call: CallHandle,
+    internal val freshTypeParameter: TypeParameterDescriptor,
+    val originalTypeParameter: TypeParameterDescriptor,
+    val isExternal: Boolean
+) {
+    val name: Name get() = originalTypeParameter.name
+
+    val type: CangJieType get() = freshTypeParameter.defaultType
+
+    fun hasOnlyInputTypesAnnotation(): Boolean =
+        originalTypeParameter.hasOnlyInputTypesAnnotation()
+}
+
+class TypeVariableForLambdaReturnType(
+    builtIns: CangJieBuiltIns,
+    name: String
+) : NewTypeVariable(builtIns, name) {
+    override fun hasOnlyInputTypesAnnotation(): Boolean = false
+}
+class TypeVariableForLambdaParameterType(
+    val atom: PostponableCangJieCallArgument,
+    val index: Int,
+    builtIns: CangJieBuiltIns,
+    name: String
+) : NewTypeVariable(builtIns, name) {
+    override fun hasOnlyInputTypesAnnotation(): Boolean = false
 }

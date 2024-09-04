@@ -13,3 +13,9 @@ interface PostponedAtomWithRevisableExpectedType : PostponedResolvedAtomMarker {
 
     fun reviseExpectedType(expectedType: CangJieTypeMarker)
 }
+interface PostponedCallableReferenceMarker : PostponedAtomWithRevisableExpectedType
+interface LambdaWithTypeVariableAsExpectedTypeMarker : PostponedAtomWithRevisableExpectedType {
+    val parameterTypesFromDeclaration: List<CangJieTypeMarker?>?
+
+    fun updateParameterTypesFromDeclaration(types: List<CangJieTypeMarker?>?)
+}

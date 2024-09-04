@@ -157,6 +157,12 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
                 newCollectAllCandidates, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
                 inferenceSession);
     }
+    @NotNull
+    public Context replaceCallPosition(@NotNull CallPosition callPosition) {
+        return create(trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
+                collectAllCandidates, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                inferenceSession);
+    }
 
     @NotNull
     @SuppressWarnings("unchecked")

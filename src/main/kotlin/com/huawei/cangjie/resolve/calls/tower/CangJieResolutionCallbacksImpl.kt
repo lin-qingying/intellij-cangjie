@@ -6,6 +6,7 @@ import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.CjReturnExpression
 import com.huawei.cangjie.psi.psiUtil.getBinaryWithTypeParent
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.MissingSupertypesResolver
@@ -17,6 +18,7 @@ import com.huawei.cangjie.resolve.calls.components.InferenceSession
 import com.huawei.cangjie.resolve.calls.components.NewConstraintSystemImpl
 import com.huawei.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
+import com.huawei.cangjie.resolve.calls.context.ContextDependency
 import com.huawei.cangjie.resolve.calls.inference.NewConstraintSystem
 import com.huawei.cangjie.resolve.calls.inference.components.CangJieConstraintSystemCompleter
 import com.huawei.cangjie.resolve.calls.inference.components.ResultTypeResolver
@@ -24,16 +26,26 @@ import com.huawei.cangjie.resolve.calls.inference.components.TypeVariableDirecti
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage
 import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableTypeConstructor
 import com.huawei.cangjie.resolve.calls.model.*
+import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
 import com.huawei.cangjie.resolve.descriptorUtil.isFunctionForExpectTypeFromCastFeature
+import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeApproximator
 import com.huawei.cangjie.types.UnwrappedType
 import com.huawei.cangjie.types.expressions.DoubleColonExpressionResolver
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices
+import com.huawei.cangjie.types.util.TypeUtils
+import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo
 
+data class LambdaContextInfo(
+    var typeInfo: CangJieTypeInfo? = null,
+    var dataFlowInfoAfter: DataFlowInfo? = null,
+    var lexicalScope: LexicalScope? = null,
+    var trace: BindingTrace? = null
+)
 
 class CangJieResolutionCallbacksImpl(
     val trace: BindingTrace,
@@ -64,7 +76,14 @@ class CangJieResolutionCallbacksImpl(
         baseSystem: ConstraintStorage
     ): Collection<CallableReferenceResolutionCandidate> =
         cangjieCallResolver.resolveCallableReferenceArgument(argument, expectedType, baseSystem, this)
+    class LambdaInfo(val expectedType: UnwrappedType, val contextDependency: ContextDependency) {
+        val returnStatements = ArrayList<Pair<CjReturnExpression, LambdaContextInfo?>>()
+        val lastExpressionInfo = LambdaContextInfo()
 
+        companion object {
+            val STUB_EMPTY = LambdaInfo(TypeUtils.NO_EXPECTED_TYPE, ContextDependency.INDEPENDENT)
+        }
+    }
     override fun getCandidateFactoryForInvoke(
         scopeTower: ImplicitScopeTower,
         cangjieCall: CangJieCall

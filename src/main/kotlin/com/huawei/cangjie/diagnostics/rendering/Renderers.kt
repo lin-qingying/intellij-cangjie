@@ -43,7 +43,17 @@ object Renderers {
     }
     @JvmField
     val FQ_NAMES_IN_TYPES = DescriptorRenderer.FQ_NAMES_IN_TYPES.asRenderer()
+    @JvmField
+    val RENDER_CLASS_OR_STRUCT = Renderer { classOrObject: CjTypeStatement ->
+        val name = classOrObject.name?.let { " ${it.wrapIntoQuotes()}" } ?: ""
+        when {
+            classOrObject  is CjClass -> "Class$name"
+            classOrObject  is CjInterface -> "Interface$name"
+            classOrObject  is CjStruct -> "Struct$name"
 
+            else -> "Class$name"
+        }
+    }
     @JvmField
     val STRING = Renderer<String> { it }
 

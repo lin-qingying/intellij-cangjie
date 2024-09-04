@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.calls.inference
 
 import com.huawei.cangjie.resolve.calls.inference.constraintPosition.ConstraintPosition
+import com.huawei.cangjie.resolve.calls.inference.model.TypeVariable
 
 open class ConstraintError(val constraintPosition: ConstraintPosition)
 class ParameterConstraintError(constraintPosition: ConstraintPosition) : ConstraintError(constraintPosition)

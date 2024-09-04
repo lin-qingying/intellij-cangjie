@@ -19,24 +19,35 @@ import com.intellij.psi.tree.TokenSet
 import com.intellij.util.codeInsight.CommentUtilCore
 import java.util.*
 
+// Annotations on labeled expression lies on it's base expression
+fun CjExpression.getAnnotationEntries(): List<CjAnnotationEntry> {
+    return when (val parent = parent) {
+//        is CjAnnotatedExpression -> parent.annotationEntries
+//        is CjLabeledExpression -> parent.getAnnotationEntries()
+        else -> emptyList()
+    }
+}
+
 fun CjExpression.getQualifiedExpressionForReceiver(): CjQualifiedExpression? {
     val parent = parent
     return if (parent is CjQualifiedExpression && parent.receiverExpression == this) parent else null
 }
+
 private val BAD_NEIGHBOUR_FOR_SIMPLE_TEMPLATE_ENTRY_PATTERN = Regex("([a-zA-Z0-9_]|[^\\p{ASCII}]).*")
+
 /**
  * Returns enclosing qualifying element for given [[CjSimpleNameExpression]]
  * ([[CjQualifiedExpression]] or [[CjUserType]] or original expression)
  */
 fun CjSimpleNameExpression.getQualifiedElement(): CjElement {
     val baseExpression = (parent as? CjCallExpression) ?: this
-    val parent = baseExpression.parent
-    return when (parent) {
+    return when (val parent = baseExpression.parent) {
         is CjQualifiedExpression -> if (parent.selectorExpression == baseExpression) parent else baseExpression
         is CjUserType -> if (parent.referenceExpression == baseExpression) parent else baseExpression
         else -> baseExpression
     }
 }
+
 fun CjModifierListOwner.isPrivate(): Boolean = hasModifier(CjTokens.PRIVATE_KEYWORD)
 
 fun canPlaceAfterSimpleNameEntry(element: PsiElement?): Boolean {
@@ -54,6 +65,7 @@ fun CjSimpleNameExpression.getReceiverExpression(): CjExpression? {
                 return receiverExpression
             }
         }
+
         parent is CjCallExpression -> {
             //This is in case `a().b()`
             val grandParent = parent.parent
@@ -70,6 +82,7 @@ fun CjSimpleNameExpression.getReceiverExpression(): CjExpression? {
         parent is CjUnaryExpression && parent.operationReference == this -> {
             return parent.baseExpression
         }
+
         parent is CjUserType -> {
             val qualifier = parent.qualifier
             if (qualifier != null) {
@@ -80,6 +93,7 @@ fun CjSimpleNameExpression.getReceiverExpression(): CjExpression? {
 
     return null
 }
+
 fun PsiElement.isFunctionalExpression(): Boolean = this is CjNamedFunction && nameIdentifier == null
 fun CjElement.containingClass(): CjClass? = getStrictParentOfType()
 
@@ -89,6 +103,7 @@ fun CjSimpleNameExpression.getTopmostParentQualifiedExpressionForSelector(): CjQ
         if (parentQualified?.selectorExpression == it) parentQualified else null
     }.last() as? CjQualifiedExpression
 }
+
 fun CjModifierListOwner.visibilityModifier() = modifierList?.modifierFromTokenSet(CjTokens.VISIBILITY_MODIFIERS)
 private fun CjModifierList.modifierFromTokenSet(set: TokenSet): PsiElement? {
     return set.types
@@ -97,6 +112,7 @@ private fun CjModifierList.modifierFromTokenSet(set: TokenSet): PsiElement? {
         .firstOrNull { it != null }
 
 }
+
 fun CjModifierListOwner.visibilityModifierType(): CjModifierKeywordToken? =
     visibilityModifier()?.node?.elementType as CjModifierKeywordToken?
 
@@ -322,5 +338,6 @@ fun List<CangJieImportField>.addIf(element: CangJieImportField) {
         this + element // 如果不存在，则返回新列表
     }
 }
+
 fun CjDeclaration.modalityModifier() = modifierFromTokenSet(CjTokens.MODALITY_MODIFIERS)
 private fun CjModifierListOwner.modifierFromTokenSet(set: TokenSet) = modifierList?.modifierFromTokenSet(set)

@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.calls.inference.components
 import com.huawei.cangjie.resolve.calls.inference.ForkPointData
 import com.huawei.cangjie.resolve.calls.inference.model.IncorporationConstraintPosition
 import com.huawei.cangjie.resolve.calls.inference.model.VariableWithConstraints
+import com.huawei.cangjie.resolve.calls.model.PostponedResolvedAtomMarker
 import com.huawei.cangjie.types.model.*
 /**
  * Returns `false` for fixed type variables types even if `isProper(type) == true`
@@ -60,6 +61,91 @@ class VariableFixationFinder(
 
 //        fun isReified(variable: TypeVariableMarker): Boolean
     }
+
+
+    class VariableForFixation(
+        val variable: TypeConstructorMarker,
+        private val hasProperConstraint: Boolean,
+        private val hasDependencyOnOuterTypeVariable: Boolean = false,
+    ) {
+        val isReady: Boolean get() = hasProperConstraint && !hasDependencyOnOuterTypeVariable
+    }
+    fun findFirstVariableForFixation(
+        c: Context,
+        allTypeVariables: List<TypeConstructorMarker>,
+        postponedKtPrimitives: List<PostponedResolvedAtomMarker>,
+        completionMode: ConstraintSystemCompletionMode,
+        topLevelType: CangJieTypeMarker,
+    ): VariableForFixation? =
+        c.findTypeVariableForFixation(allTypeVariables, postponedKtPrimitives, completionMode, topLevelType)
+
+    enum class TypeVariableFixationReadiness {
+        FORBIDDEN,
+        WITHOUT_PROPER_ARGUMENT_CONSTRAINT, // proper constraint from arguments -- not from upper bound for type parameters
+        OUTER_TYPE_VARIABLE_DEPENDENCY,
+        READY_FOR_FIXATION_DECLARED_UPPER_BOUND_WITH_SELF_TYPES,
+        WITH_COMPLEX_DEPENDENCY, // if type variable T has constraint with non fixed type variable inside (non-top-level): T <: Foo<S>
+        ALL_CONSTRAINTS_TRIVIAL_OR_NON_PROPER, // proper trivial constraint from arguments, Nothing <: T
+        RELATED_TO_ANY_OUTPUT_TYPE,
+        FROM_INCORPORATION_OF_DECLARED_UPPER_BOUND,
+        READY_FOR_FIXATION_UPPER,
+        READY_FOR_FIXATION_LOWER,
+        READY_FOR_FIXATION,
+        READY_FOR_FIXATION_REIFIED,
+    }
+
+    private fun Context.getTypeVariableReadiness(
+        variable: TypeConstructorMarker,
+        dependencyProvider: TypeVariableDependencyInformationProvider,
+    ): TypeVariableFixationReadiness = when {
+//        !notFixedTypeVariables.contains(variable) || dependencyProvider.isVariableRelatedToTopLevelType(variable) ||
+//                variableHasUnprocessedConstraintsInForks(variable) ->
+//            TypeVariableFixationReadiness.FORBIDDEN
+//        isTypeInferenceForSelfTypesSupported && areAllProperConstraintsSelfTypeBased(variable) ->
+//            TypeVariableFixationReadiness.READY_FOR_FIXATION_DECLARED_UPPER_BOUND_WITH_SELF_TYPES
+//        !variableHasProperArgumentConstraints(variable) -> TypeVariableFixationReadiness.WITHOUT_PROPER_ARGUMENT_CONSTRAINT
+//        dependencyProvider.isRelatedToOuterTypeVariable(variable) -> TypeVariableFixationReadiness.OUTER_TYPE_VARIABLE_DEPENDENCY
+//        hasDependencyToOtherTypeVariables(variable) -> TypeVariableFixationReadiness.WITH_COMPLEX_DEPENDENCY
+//        // TODO: Consider removing this kind of readiness, see KT-63032
+//        allConstraintsTrivialOrNonProper(variable) -> TypeVariableFixationReadiness.ALL_CONSTRAINTS_TRIVIAL_OR_NON_PROPER
+//        dependencyProvider.isVariableRelatedToAnyOutputType(variable) -> TypeVariableFixationReadiness.RELATED_TO_ANY_OUTPUT_TYPE
+//        variableHasOnlyIncorporatedConstraintsFromDeclaredUpperBound(variable) ->
+//            TypeVariableFixationReadiness.FROM_INCORPORATION_OF_DECLARED_UPPER_BOUND
+//        isReified(variable) -> TypeVariableFixationReadiness.READY_FOR_FIXATION_REIFIED
+//        inferenceCompatibilityModeEnabled -> {
+//            when {
+//                variableHasLowerNonNothingProperConstraint(variable) -> TypeVariableFixationReadiness.READY_FOR_FIXATION_LOWER
+//                else -> TypeVariableFixationReadiness.READY_FOR_FIXATION_UPPER
+//            }
+//        }
+        else -> TypeVariableFixationReadiness.READY_FOR_FIXATION
+    }
+
+    private fun Context.findTypeVariableForFixation(
+        allTypeVariables: List<TypeConstructorMarker>,
+        postponedArguments: List<PostponedResolvedAtomMarker>,
+        completionMode: ConstraintSystemCompletionMode,
+        topLevelType: CangJieTypeMarker,
+    ): VariableForFixation? {
+        if (allTypeVariables.isEmpty()) return null
+
+        val dependencyProvider = TypeVariableDependencyInformationProvider(
+            notFixedTypeVariables, postponedArguments, topLevelType.takeIf { completionMode == ConstraintSystemCompletionMode.PARTIAL }, this,
+        )
+
+        val candidate =
+            allTypeVariables.maxByOrNull { getTypeVariableReadiness(it, dependencyProvider) } ?: return null
+
+        return when (getTypeVariableReadiness(candidate, dependencyProvider)) {
+            TypeVariableFixationReadiness.FORBIDDEN -> null
+            TypeVariableFixationReadiness.WITHOUT_PROPER_ARGUMENT_CONSTRAINT -> VariableForFixation(candidate, false)
+            TypeVariableFixationReadiness.OUTER_TYPE_VARIABLE_DEPENDENCY ->
+                VariableForFixation(candidate, hasProperConstraint = true, hasDependencyOnOuterTypeVariable = true)
+
+            else -> VariableForFixation(candidate, true)
+        }
+    }
+
 }
 fun TypeSystemInferenceExtensionContext.extractProjectionsForAllCapturedTypes(baseType: CangJieTypeMarker): Set<CangJieTypeMarker> {
 //    if (baseType.isFlexible()) {

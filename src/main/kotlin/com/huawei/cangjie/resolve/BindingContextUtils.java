@@ -1,10 +1,8 @@
 package com.huawei.cangjie.resolve;
 
-import com.huawei.cangjie.descriptors.BindingTrace;
-import com.huawei.cangjie.descriptors.Diagnostic;
-import com.huawei.cangjie.descriptors.MutableDiagnosticsWithSuppression;
-import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor;
+import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.psi.CjExpression;
+import com.huawei.cangjie.psi.CjFunctionLiteral;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfoFactory;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
@@ -12,6 +10,7 @@ import com.huawei.cangjie.types.util.TypeUtils;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.huawei.cangjie.utils.slicedMap.MutableSlicedMap;
 import com.huawei.cangjie.utils.slicedMap.ReadOnlySlice;
+import com.intellij.openapi.util.Pair;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +31,21 @@ public class BindingContextUtils {
         }
         trace.recordType(expression, type);
         return type;
+    }
+    @NotNull
+    public static Pair<FunctionDescriptor, PsiElement> getContainingFunctionSkipFunctionLiterals(
+            @Nullable DeclarationDescriptor startDescriptor,
+            boolean strict
+    ) {
+        FunctionDescriptor containingFunctionDescriptor = DescriptorUtils.getParentOfType(startDescriptor, FunctionDescriptor.class, strict);
+        PsiElement containingFunction = containingFunctionDescriptor != null ? DescriptorToSourceUtils.getSourceFromDescriptor(containingFunctionDescriptor) : null;
+//        while (containingFunction instanceof CjFunctionLiteral) {
+//            containingFunctionDescriptor = DescriptorUtils.getParentOfType(containingFunctionDescriptor, FunctionDescriptor.class);
+//            containingFunction = containingFunctionDescriptor != null ? DescriptorToSourceUtils
+//                    .getSourceFromDescriptor(containingFunctionDescriptor) : null;
+//        }
+
+        return new Pair<>(containingFunctionDescriptor, containingFunction);
     }
 
     @NotNull

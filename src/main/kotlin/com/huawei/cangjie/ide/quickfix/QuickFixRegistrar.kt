@@ -34,6 +34,7 @@ class QuickFixRegistrar : QuickFixContributor {
         val implementMembersHandler = ImplementMembersHandler()
 //        val implementMembersAsParametersHandler = ImplementAsConstructorParameter()
         ABSTRACT_MEMBER_NOT_IMPLEMENTED.registerActions(implementMembersHandler/*, implementMembersAsParametersHandler*/)
+        ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED.registerActions(implementMembersHandler/*, implementMembersAsParametersHandler*/)
 
 
         NOTHING_TO_OVERRIDE.registerFactory(

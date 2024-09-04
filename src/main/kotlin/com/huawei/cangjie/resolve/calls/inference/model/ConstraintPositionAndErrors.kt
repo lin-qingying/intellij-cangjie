@@ -1,9 +1,7 @@
 package com.huawei.cangjie.resolve.calls.inference.model
 
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
-import com.huawei.cangjie.resolve.calls.model.CangJieCall
-import com.huawei.cangjie.resolve.calls.model.CangJieCallArgument
-import com.huawei.cangjie.resolve.calls.model.ResolvedAtom
+import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.tower.CandidateApplicability
 import com.huawei.cangjie.types.model.CangJieTypeMarker
 import com.huawei.cangjie.types.model.TypeVariableMarker
@@ -39,8 +37,16 @@ abstract class ArgumentConstraintPosition<out T>(val argument: T) : ConstraintPo
     override fun toString(): String = "Argument $argument"
 }
 
+abstract class CallableReferenceConstraintPosition<out T>(val call: T) : ConstraintPosition(),
+    OnlyInputTypeConstraintPosition {
+    override fun toString(): String = "Callable reference $call"
+}
+
 class ArgumentConstraintPositionImpl(argument: CangJieCallArgument) :
     ArgumentConstraintPosition<CangJieCallArgument>(argument)
+
+class CallableReferenceConstraintPositionImpl(val callableReferenceCall: CallableReferenceCangJieCall) :
+    CallableReferenceConstraintPosition<CallableReferenceResolutionAtom>(callableReferenceCall)
 
 abstract class ReceiverConstraintPosition<T>(val argument: T) : ConstraintPosition(), OnlyInputTypeConstraintPosition {
     override fun toString(): String = "Receiver $argument"
@@ -69,6 +75,7 @@ class DeclaredUpperBoundConstraintPositionImpl(
 ) : DeclaredUpperBoundConstraintPosition<TypeParameterDescriptor>(typeParameter) {
     override fun toString() = "DeclaredUpperBound ${typeParameter.name} from ${typeParameter.containingDeclaration}"
 }
+
 class ReceiverConstraintPositionImpl(
     argument: CangJieCallArgument,
     val selectorCall: CangJieCall?
@@ -89,3 +96,33 @@ class FixVariableConstraintPositionImpl(
     variable: TypeVariableMarker,
     resolvedAtom: ResolvedAtom?
 ) : FixVariableConstraintPosition<ResolvedAtom?>(variable, resolvedAtom)
+
+class NotEnoughInformationForTypeParameterImpl(
+    typeVariable: TypeVariableMarker,
+    resolvedAtom: ResolvedAtom,
+    couldBeResolvedWithUnrestrictedBuilderInference: Boolean
+) : NotEnoughInformationForTypeParameter<ResolvedAtom>(
+    typeVariable,
+    resolvedAtom,
+    couldBeResolvedWithUnrestrictedBuilderInference
+)
+
+open class NotEnoughInformationForTypeParameter<T>(
+    val typeVariable: TypeVariableMarker,
+    val resolvedAtom: T,
+    val couldBeResolvedWithUnrestrictedBuilderInference: Boolean
+) : ConstraintSystemError(CandidateApplicability.INAPPLICABLE)
+class InferredIntoDeclaredUpperBounds(val typeVariable: TypeVariableMarker) : ConstraintSystemError(
+    CandidateApplicability.RESOLVED
+)
+abstract class BuilderInferenceSubstitutionConstraintPosition<L>(
+    private val builderInferenceLambda: L,
+    val initialConstraint: InitialConstraint,
+    val isFromNotSubstitutedDeclaredUpperBound: Boolean = false
+) : ConstraintPosition(), OnlyInputTypeConstraintPosition {
+    override fun toString(): String = "Incorporated builder inference constraint $initialConstraint " +
+            "into $builderInferenceLambda call"
+}
+abstract class ExplicitTypeParameterConstraintPosition<T>(val typeArgument: T) : ConstraintPosition(), OnlyInputTypeConstraintPosition {
+    override fun toString(): String = "TypeParameter $typeArgument"
+}

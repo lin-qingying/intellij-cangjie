@@ -608,7 +608,7 @@ open class CangJieExpressionParsing(
             }
             expect(RPAR, "Expecting ')'")
         }
-        tuple.done(TUPLE_LITERAL_EXPRESSION)
+        tuple.done(TUPLE_EXPRESSION)
 
     }
 
@@ -869,7 +869,7 @@ open class CangJieExpressionParsing(
 
                 when {
                     isUnit -> mark.done(UNIT_CONSTANT)
-                    isTuple -> mark.done(TUPLE_LITERAL_EXPRESSION)
+                    isTuple -> mark.done(TUPLE_EXPRESSION)
 
                     else -> mark.drop()
                 }
@@ -1541,7 +1541,7 @@ open class CangJieExpressionParsing(
 
         when {
             isUnit -> mark.done(UNIT_CONSTANT)
-            isTuple -> mark.done(TUPLE_LITERAL_EXPRESSION)
+            isTuple -> mark.done(TUPLE_EXPRESSION)
 
             else -> mark.done(PARENTHESIZED)
         }

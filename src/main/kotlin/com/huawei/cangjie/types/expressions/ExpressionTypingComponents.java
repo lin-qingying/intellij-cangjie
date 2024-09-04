@@ -3,6 +3,9 @@ package com.huawei.cangjie.types.expressions;
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.descriptors.ModuleDescriptor;
+import com.huawei.cangjie.extensions.TypeResolutionInterceptor;
+import com.huawei.cangjie.resolve.FunctionDescriptorResolver;
+import com.huawei.cangjie.resolve.IdentifierChecker;
 import com.huawei.cangjie.resolve.LocalVariableResolver;
 import com.huawei.cangjie.resolve.OverloadChecker;
 import com.huawei.cangjie.resolve.calls.CallExpressionResolver;
@@ -18,8 +21,11 @@ public class ExpressionTypingComponents {
     public ConstantExpressionEvaluator constantExpressionEvaluator;
     public LanguageVersionSettings languageVersionSettings;
     public ModuleDescriptor moduleDescriptor;
+    public FunctionDescriptorResolver functionDescriptorResolver;
 
     public LocalVariableResolver localVariableResolver;
+    public TypeResolutionInterceptor typeResolutionInterceptor;
+    public IdentifierChecker identifierChecker;
 
     public CangJieBuiltIns builtIns;
     public DataFlowValueFactory dataFlowValueFactory;
@@ -45,6 +51,10 @@ public class ExpressionTypingComponents {
         this.localVariableResolver = localVariableResolver;
     }
 
+    @Inject
+    public void setTypeResolutionInterceptor(@NotNull TypeResolutionInterceptor typeResolutionInterceptor) {
+        this.typeResolutionInterceptor = typeResolutionInterceptor;
+    }
     @Inject
     public void setConstantExpressionEvaluator(@NotNull ConstantExpressionEvaluator constantExpressionEvaluator) {
         this.constantExpressionEvaluator = constantExpressionEvaluator;
@@ -88,6 +98,11 @@ public class ExpressionTypingComponents {
     @Inject
     public void setCallComponents(@NotNull CangJieCallComponents callComponents) {
         this.callComponents = callComponents;
+    }
+
+    @Inject
+    public void setFunctionDescriptorResolver(FunctionDescriptorResolver functionDescriptorResolver) {
+        this.functionDescriptorResolver = functionDescriptorResolver;
     }
 
 }

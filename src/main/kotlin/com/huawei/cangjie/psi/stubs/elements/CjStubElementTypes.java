@@ -166,10 +166,6 @@ CjConstantExpressionElementType RUNE_CONSTANT = new CjConstantExpressionElementT
 
 
 
-    CjCollectionLiteralExpressionElementType TUPLE_LITERAL_EXPRESSION =
-            new CjCollectionLiteralExpressionElementType("TUPLE_LITERAL_EXPRESSION");
-
-
 
     CjConstantExpressionElementType UNIT_CONSTANT = new CjConstantExpressionElementType("UNIT_CONSTANT");
     CjAnnotationEntryElementType MACRO_EXPRESSION = new CjAnnotationEntryElementType("MACRO_EXPRESSION");

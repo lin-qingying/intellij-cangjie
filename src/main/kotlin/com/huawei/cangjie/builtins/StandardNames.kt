@@ -312,6 +312,7 @@ object StandardNames {
 
                 cpointerFqName.shortName() -> cpointerFqName
                 cstringFqName.shortName() -> cstringFqName
+                nothingFqName.shortName() -> nothingFqName
 
                 else -> throw IllegalArgumentException("Unknown name: $name")
             }

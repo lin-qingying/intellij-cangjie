@@ -489,7 +489,7 @@ public class BodyResolver {
 //        }
     }
 
-    private void resolveVariable(BodiesResolveContext c, CjVariable variable, VariableDescriptor variableDescriptor) {
+      void resolveVariable(BodiesResolveContext c, CjVariable variable, VariableDescriptor variableDescriptor) {
         computeDeferredType(variableDescriptor.getReturnType());
         PreliminaryDeclarationVisitor.Companion.createForDeclaration(variable, trace, languageVersionSettings);
         CjExpression initializer = variable.getInitializer();
