@@ -2,6 +2,7 @@ package com.huawei.cangjie.diagnostics.rendering;
 
 import com.huawei.cangjie.diagnostics.UnboundDiagnostic;
 import com.huawei.cangjie.utils.AddToStdlibKt;
+import com.linqingying.utils.AstMsgType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -132,7 +133,13 @@ public class DefaultErrorMessages {
 
 
         MAP.put(EXCEPTION_FROM_ANALYZER, "Internal Error occurred while analyzing this expression:\n{0}", THROWABLE);
-        MAP.put(REDUNDANT_OPTIONAL, "Redundant '?'");
+        MAP.put(REDUNDANT_OPTIONAL,"Redundant '?'");
+//        MAP.put(REDUNDANT_OPTIONAL, AstMsgData.create(
+//                new AstMsgData.AstMsgModule(AstMsgType.NORMAL, "Redundant '?'"),
+//
+//                new AstMsgData.AstMsgModule(AstMsgType.FUNNY, "套娃套的好，编码没烦恼"),
+//                new AstMsgData.AstMsgModule(AstMsgType.FUNNY, "别套了，再套地球都让你套进去了")
+//        ));
 
 
         MAP.put(NESTING_DOLL_OPTINOTYPE, () -> {
