@@ -79,7 +79,7 @@ object ForceResolveUtil {
     fun forceResolveAllContents(typeConstructor: TypeConstructor) {
         doForceResolveAllContents(typeConstructor)
     }
-
+@JvmStatic
     fun forceResolveAllContents(type: CangJieType?): CangJieType? {
         if (type == null) return null
 

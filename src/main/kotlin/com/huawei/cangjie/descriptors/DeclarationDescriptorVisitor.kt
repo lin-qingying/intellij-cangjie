@@ -18,9 +18,10 @@ package com.huawei.cangjie.descriptors
       ): R
 
       fun visitClassDescriptor(descriptor:  ClassDescriptor, builder: D?): R
-      fun visitVariableDescriptorBase(descriptor:VariableDescriptorBase , builder: D?): R
+      fun visitVariableDescriptorBase(descriptor:VariableDescriptor, builder: D?): R
+      fun visitVariableDescriptor(descriptor: VariableDescriptor, builder: D?): R
 
-    fun visitVariableDescriptor(descriptor:VariableDescriptor , builder: D?): R
+//    fun visitVariableDescriptor(descriptor: VariableDescriptor, builder: D?): R
     fun visitPackageFragmentDescriptor(
         descriptor: PackageFragmentDescriptor,
         builder: D?

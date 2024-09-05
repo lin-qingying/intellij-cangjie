@@ -87,7 +87,7 @@ private class MemberScopeToImportingScopeAdapter(override val parent: ImportingS
     override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor>  =
         memberScope.getExtendClass(name )
 
-    override fun getContributedVariables(name: Name, location: LookupLocation) =
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> =
         memberScope.getContributedVariables(name, location)
 
     override fun getContributedPropertys(name: Name, location: LookupLocation) =
@@ -371,7 +371,7 @@ object ScopeUtils {
 
     private fun makeScopeForVariableBaseInitializer(
         variableHeader: LexicalScope,
-        variableDescriptor: VariableDescriptorBase
+        variableDescriptor: VariableDescriptor
     ): LexicalScope {
         return LexicalScopeImpl(
             variableHeader,
@@ -382,7 +382,6 @@ object ScopeUtils {
             LexicalScopeKind.VARIABLE_INITIALIZER_OR_DELEGATE
         )
     }
-
     @JvmStatic
     fun makeScopeForVariableInitializer(
         variableHeader: LexicalScope,
@@ -391,9 +390,17 @@ object ScopeUtils {
         return makeScopeForVariableBaseInitializer(variableHeader, variableDescriptor)
     }
 
+//    @JvmStatic
+//    fun makeScopeForVariableInitializer(
+//        variableHeader: LexicalScope,
+//        variableDescriptor: VariableCallableDescriptor
+//    ): LexicalScope {
+//        return makeScopeForVariableBaseInitializer(variableHeader, variableDescriptor)
+//    }
+
     private fun makeScopeForVariableBaseHeader(
         parent: LexicalScope,
-        variableDescriptor: VariableDescriptorBase
+        variableDescriptor: VariableDescriptor
     ): LexicalScope {
         return LexicalScopeImpl(
             parent,
@@ -440,7 +447,7 @@ class ErrorLexicalScope : LexicalScope {
         override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
         override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> = emptyList()
 
-        override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
+        override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> =
             emptySet()
 
         override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
@@ -474,7 +481,7 @@ class ErrorLexicalScope : LexicalScope {
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
     override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> = emptyList()
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> =
         emptySet()
 
     override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =

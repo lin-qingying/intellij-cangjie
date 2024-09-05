@@ -8,7 +8,6 @@ import com.huawei.cangjie.types.TypeProjectionImpl
 import com.huawei.cangjie.types.TypeSubstitutor
 import com.huawei.cangjie.types.Variance
 import com.huawei.cangjie.types.typesApproximation.approximateCapturedTypes
-
 data class ConstraintContext(
     val position: ConstraintPosition,
     // see TypeBounds.Bound.derivedFrom
@@ -16,6 +15,7 @@ data class ConstraintContext(
     val initial: Boolean = false,
     val initialReduction: Boolean = false
 )
+
 fun ConstraintSystemBuilderImpl.incorporateBound(newBound: TypeBounds.Bound) {
     val typeVariable = newBound.typeVariable
     val typeBounds = getTypeBounds(typeVariable)

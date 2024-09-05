@@ -2,6 +2,9 @@ package com.huawei.cangjie.utils.slicedMap;
 
 import com.huawei.cangjie.psi.CjElement;
 import com.huawei.cangjie.psi.psiUtil.PsiUtilsKt;
+import com.huawei.cangjie.resolve.constants.ConstantValueFactoryKt;
+import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstant;
+import com.huawei.cangjie.types.util.TypeUtils;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,22 +39,22 @@ public class Slices {
 
         @Override
         public <K, V> boolean processRewrite(WritableSlice<K, V> slice, K key, V oldValue, V newValue) {
-//            if ((oldValue == null && newValue == null) || (oldValue != null && oldValue.equals(newValue))) return true;
-//
-//                if (oldValue instanceof IntegerValueTypeConstant oldConstant && newValue instanceof IntegerValueTypeConstant newConstant) {
-//
-//                if (oldConstant.getParameters().isPure() && newConstant.getParameters().isUnsignedNumberLiteral()) {
-//                    long oldConstantValue = oldConstant.getValue(TypeUtils.NO_EXPECTED_TYPE).longValue();
-//                    Number newConstantValue = newConstant.getValue(TypeUtils.NO_EXPECTED_TYPE);
-//                    if (oldConstantValue == newConstantValue.longValue() ||
-//                            oldConstantValue == ConstantValueFactoryKt.fromUIntToLong(newConstantValue.intValue()) ||
-//                            oldConstantValue == ConstantValueFactoryKt.fromUByteToLong(newConstantValue.byteValue()) ||
-//                            oldConstantValue == ConstantValueFactoryKt.fromUShortToLong(newConstantValue.shortValue())
-//                    ) {
-//                        return true;
-//                    }
-//                }
-//            }
+            if ((oldValue == null && newValue == null) || (oldValue != null && oldValue.equals(newValue))) return true;
+
+                if (oldValue instanceof IntegerValueTypeConstant oldConstant && newValue instanceof IntegerValueTypeConstant newConstant) {
+
+                if (oldConstant.getParameters().isPure() && newConstant.getParameters().isUnsignedNumberLiteral()) {
+                    long oldConstantValue = oldConstant.getValue(TypeUtils.NO_EXPECTED_TYPE).longValue();
+                    Number newConstantValue = newConstant.getValue(TypeUtils.NO_EXPECTED_TYPE);
+                    if (oldConstantValue == newConstantValue.longValue() ||
+                            oldConstantValue == ConstantValueFactoryKt.fromUInt32ToLong(newConstantValue.intValue()) ||
+                            oldConstantValue == ConstantValueFactoryKt.fromUInt8ToLong(newConstantValue.byteValue()) ||
+                            oldConstantValue == ConstantValueFactoryKt.fromUInt16ToLong(newConstantValue.shortValue())
+                    ) {
+                        return true;
+                    }
+                }
+            }
 
             logErrorAboutRewritingNonEqualObjects(slice, key, oldValue, newValue);
 

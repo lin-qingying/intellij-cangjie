@@ -142,7 +142,7 @@ interface IdentifierInfo {
     val kind: DataFlowValue.Kind get() = DataFlowValue.Kind.OTHER
 
     class Variable(
-        val variable: VariableDescriptorBase,
+        val variable: VariableDescriptor,
         override val kind: DataFlowValue.Kind,
         val bound: DataFlowValue?
     ) : IdentifierInfo {

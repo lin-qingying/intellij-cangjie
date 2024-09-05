@@ -38,7 +38,7 @@ abstract class LexicalScopeStorage(
     }
 
 
-    override fun getContributedVariables(name: Name, location: LookupLocation) =
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> =
         listOfNotNull(variableOrClassDescriptorByName(name) as? VariableDescriptor)
 
 
@@ -77,7 +77,7 @@ abstract class LexicalScopeStorage(
         name: Name,
         descriptorLimit: Int = addedDescriptors.size
     ): DeclarationDescriptor? {
-        if (descriptorLimit == 0) return null
+       if (descriptorLimit == 0) return null
 
         var list = variablesAndClassifiersByName?.get(name)
         while (list != null) {

@@ -78,12 +78,7 @@ public class OverridingUtil {
         if (notOverridden.size() < 2) return true;
 
         final DeclarationDescriptor containingDeclaration = notOverridden.iterator().next().getContainingDeclaration();
-        return CollectionsKt.all(notOverridden, new Function1<CallableMemberDescriptor, Boolean>() {
-            @Override
-            public Boolean invoke(CallableMemberDescriptor descriptor) {
-                return descriptor.getContainingDeclaration() == containingDeclaration;
-            }
-        });
+        return CollectionsKt.all(notOverridden, descriptor -> descriptor.getContainingDeclaration() == containingDeclaration);
     }
 
     @NotNull
@@ -104,7 +99,7 @@ public class OverridingUtil {
             return;
         }
 
-        Queue<CallableMemberDescriptor> fromSuperQueue = new LinkedList<CallableMemberDescriptor>(notOverridden);
+        Queue<CallableMemberDescriptor> fromSuperQueue = new LinkedList<>(notOverridden);
         while (!fromSuperQueue.isEmpty()) {
             CallableMemberDescriptor notOverriddenFromSuper = VisibilityUtilKt.findMemberWithMaxVisibility(fromSuperQueue);
             Collection<CallableMemberDescriptor> overridables =
@@ -121,18 +116,10 @@ public class OverridingUtil {
     ) {
         return extractMembersOverridableInBothWays(overrider, extractFrom,
                 // ID
-                new Function1<CallableMemberDescriptor, CallableDescriptor>() {
-                    @Override
-                    public CallableDescriptor invoke(CallableMemberDescriptor descriptor) {
-                        return descriptor;
-                    }
-                },
-                new Function1<CallableMemberDescriptor, Unit>() {
-                    @Override
-                    public Unit invoke(CallableMemberDescriptor descriptor) {
-                        strategy.inheritanceConflict(overrider, descriptor);
-                        return Unit.INSTANCE;
-                    }
+                descriptor -> descriptor,
+                descriptor -> {
+                    strategy.inheritanceConflict(overrider, descriptor);
+                    return Unit.INSTANCE;
                 });
     }
 
@@ -173,7 +160,7 @@ public class OverridingUtil {
             return transformAbstractToClassModality ? current.getModality() : Modality.ABSTRACT;
         }
 
-        Set<CallableMemberDescriptor> allOverriddenDeclarations = new HashSet<CallableMemberDescriptor>();
+        Set<CallableMemberDescriptor> allOverriddenDeclarations = new HashSet<>();
         for (CallableMemberDescriptor descriptor : descriptors) {
             allOverriddenDeclarations.addAll(getOverriddenDeclarations(descriptor));
         }
@@ -203,13 +190,10 @@ public class OverridingUtil {
             @NotNull final ClassDescriptor current,
             @NotNull Collection<CallableMemberDescriptor> toFilter
     ) {
-        return CollectionsKt.filter(toFilter, new Function1<CallableMemberDescriptor, Boolean>() {
-            @Override
-            public Boolean invoke(CallableMemberDescriptor descriptor) {
-                //nested class could capture private member, so check for private visibility added
-                return !DescriptorVisibilities.isPrivate(descriptor.getVisibility()) &&
-                        DescriptorVisibilities.isVisibleIgnoringReceiver(descriptor, current, false);
-            }
+        return CollectionsKt.filter(toFilter, descriptor -> {
+            //nested class could capture private member, so check for private visibility added
+            return !DescriptorVisibilities.isPrivate(descriptor.getVisibility()) &&
+                    DescriptorVisibilities.isVisibleIgnoringReceiver(descriptor, current, false);
         });
     }
     private static void createAndBindFakeOverride(
@@ -233,12 +217,7 @@ public class OverridingUtil {
         // Should be 'foo(s: String): String'.
         CallableMemberDescriptor mostSpecific =
                 selectMostSpecificMember(effectiveOverridden,
-                        new Function1<CallableMemberDescriptor, CallableDescriptor>() {
-                            @Override
-                            public CallableMemberDescriptor invoke(CallableMemberDescriptor descriptor) {
-                                return descriptor;
-                            }
-                        });
+                        descriptor -> descriptor);
         CallableMemberDescriptor fakeOverride =
                 mostSpecific.copy(current, modality, visibility, CallableMemberDescriptor.Kind.FAKE_OVERRIDE, false);
         strategy.setOverriddenDescriptors(fakeOverride, effectiveOverridden);
@@ -253,7 +232,7 @@ public class OverridingUtil {
      */
     @NotNull
     public static Set<CallableMemberDescriptor> getOverriddenDeclarations(@NotNull CallableMemberDescriptor descriptor) {
-        Set<CallableMemberDescriptor> result = new LinkedHashSet<CallableMemberDescriptor>();
+        Set<CallableMemberDescriptor> result = new LinkedHashSet<>();
         collectOverriddenDeclarations(descriptor, result);
         return result;
     }
@@ -767,7 +746,7 @@ public class OverridingUtil {
             @NotNull ClassDescriptor current,
             @NotNull OverridingStrategy strategy
     ) {
-        Collection<CallableMemberDescriptor> notOverridden = new LinkedHashSet<CallableMemberDescriptor>(membersFromSupertypes);
+        Collection<CallableMemberDescriptor> notOverridden = new LinkedHashSet<>(membersFromSupertypes);
 
         for (CallableMemberDescriptor fromCurrent : membersFromCurrent) {
             Collection<CallableMemberDescriptor> bound =

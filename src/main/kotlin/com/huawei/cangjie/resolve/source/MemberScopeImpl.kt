@@ -1,7 +1,6 @@
 package com.huawei.cangjie.resolve.source
 
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.descriptors.impl.FunctionClassDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor

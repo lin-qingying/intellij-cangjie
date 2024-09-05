@@ -47,7 +47,7 @@ class StaticScopeForCangJieEnum(
         properties.filterTo(SmartList()) { it.name == name }
 
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> =
         variables.filterTo(SmartList()) { it.name == name }
 
     override fun printScopeStructure(p: Printer) {

@@ -279,6 +279,12 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         return components.dataFlowAnalyzer.createCompileTimeConstantTypeInfo(compileTimeConstant, expression, context);
 
     }
+    @Override
+    public CangJieTypeInfo visitCollectionLiteralExpression(
+            @NotNull CjCollectionLiteralExpression expression, ExpressionTypingContext context
+    ) {
+        return components.collectionLiteralResolver.resolveCollectionLiteral(expression, context);
+    }
 
     @Override
     public CangJieTypeInfo visitParenthesizedExpression(@NotNull CjParenthesizedExpression expression, ExpressionTypingContext context) {

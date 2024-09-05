@@ -97,7 +97,7 @@ class ShadowedDeclarationsFilter(
 
     private fun signature(descriptor: DeclarationDescriptor): Any = when (descriptor) {
         is SimpleFunctionDescriptor -> FunctionSignature(descriptor)
-        is VariableDescriptorBase -> descriptor.name
+        is VariableDescriptor -> descriptor.name
         is ClassDescriptor -> descriptor.importableFqName ?: descriptor
         else -> descriptor
     }
@@ -223,9 +223,12 @@ class ShadowedDeclarationsFilter(
         @OptIn(FrontendInternals::class)
         val callResolver = resolutionFacade.frontendService<CallResolver>()
         val results =
-            if (isFunction) callResolver.resolveFunctionCall(context) else callResolver.resolveSimpleProperty(context)
+            if (isFunction) callResolver.resolveFunctionCall(context) else callResolver.resolveSimpleVariable(context)
         val resultingDescriptors = results.resultingCalls.map { it.resultingDescriptor }
-        val resultingOriginals = resultingDescriptors.mapTo(HashSet<DeclarationDescriptor>()) { it.original }
+        val resultingOriginals = resultingDescriptors.mapTo(HashSet<DeclarationDescriptor>()) {
+            it.original
+
+        }
         val filtered = descriptors.filter { candidateDescriptor ->
             candidateDescriptor.original in resultingOriginals /* optimization */ && resultingDescriptors.any {
                 descriptorsEqualWithSubstitution(

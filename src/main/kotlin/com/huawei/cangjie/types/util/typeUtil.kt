@@ -14,10 +14,8 @@ import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstructor
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.types.*
-import com.huawei.cangjie.types.checker.CangJieTypeChecker
+import com.huawei.cangjie.types.checker.*
 import com.huawei.cangjie.types.checker.CangJieTypeChecker.DEFAULT
-import com.huawei.cangjie.types.checker.CangJieTypeRefiner
-import com.huawei.cangjie.types.checker.NewTypeVariableConstructor
 import com.huawei.cangjie.types.error.ErrorScopeKind
 import com.huawei.cangjie.types.error.ErrorType
 import com.huawei.cangjie.types.error.ErrorTypeKind
@@ -155,6 +153,50 @@ fun UnwrappedType.unCapture(): UnwrappedType = when (this) {
     is SimpleType -> unCapture()
     is FlexibleType -> unCapture()
 
+}
+fun FlexibleType.unCapture(): FlexibleType {
+    val unCapturedLowerBound = when (val unCaptured = lowerBound.unCapture()) {
+        is SimpleType -> unCaptured
+        is FlexibleType -> unCaptured.lowerBound
+    }
+
+    val unCapturedUpperBound = when (val unCaptured = upperBound.unCapture()) {
+        is SimpleType -> unCaptured
+        is FlexibleType -> unCaptured.upperBound
+    }
+
+    return FlexibleTypeImpl(unCapturedLowerBound, unCapturedUpperBound)
+}
+fun unCaptureProjection(projection: TypeProjection): TypeProjection {
+    val unCapturedProjection = (projection.type.constructor as? NewCapturedTypeConstructor)?.projection ?: projection
+    if (unCapturedProjection.isStarProjection || unCapturedProjection.type is ErrorType) return unCapturedProjection
+
+    val newArguments = unCapturedProjection.type.arguments.map(::unCaptureProjection)
+    return TypeProjectionImpl(
+        unCapturedProjection.projectionKind,
+        unCapturedProjection.type.replace(newArguments)
+    )
+}
+fun SimpleType.unCapture(): UnwrappedType {
+    if (this is ErrorType) return this
+    if (this is NewCapturedType)
+        return unCaptureTopLevelType()
+
+    val newArguments = arguments.map(::unCaptureProjection)
+    return replace(newArguments).unwrap()
+}
+private fun NewCapturedType.unCaptureTopLevelType(): UnwrappedType {
+    if (lowerType != null) return lowerType
+
+    val supertypes = constructor.supertypes
+    if (supertypes.isNotEmpty()) return intersectTypes(supertypes)
+
+    return constructor.projection.type.unwrap()
+}
+
+fun AbbreviatedType.unCapture(): SimpleType {
+    val newType = expandedType.unCapture()
+    return AbbreviatedType(newType as? SimpleType ?: expandedType, abbreviation)
 }
 
 fun CangJieType.expandIntersectionTypeIfNecessary(): Collection<CangJieType> {

@@ -17,6 +17,7 @@ import com.huawei.cangjie.resolve.calls.util.ResolveArgumentsMode;
 import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor;
 import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstructor;
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator;
+import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.TypeConstructor;
 import com.huawei.cangjie.types.checker.CangJieTypeChecker;
@@ -68,6 +69,18 @@ public class ArgumentTypeResolver {
 
     private static boolean isCollectionLiteralInsideAnnotation(CjExpression expression, CallResolutionContext<?> context) {
         return expression instanceof CjCollectionLiteralExpression && context.call.getCallElement() instanceof CjAnnotationEntry;
+    }
+    @Nullable
+    public CangJieType resolveTypeRefWithDefault(
+            @Nullable CjTypeReference returnTypeRef,
+            @NotNull LexicalScope scope,
+            @NotNull BindingTrace trace,
+            @Nullable CangJieType defaultValue
+    ) {
+        if (returnTypeRef != null) {
+            return typeResolver.resolveType(scope, returnTypeRef, trace, true);
+        }
+        return defaultValue;
     }
 
     private static boolean isCallableReferenceArgument(

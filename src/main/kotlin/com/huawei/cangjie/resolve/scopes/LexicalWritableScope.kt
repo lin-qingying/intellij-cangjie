@@ -2,7 +2,6 @@ package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
-import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.utils.Printer
 
@@ -45,7 +44,7 @@ class LexicalWritableScope(
                 ?.let { DescriptorWithDeprecation.createNonDeprecated(it) }
         }
 
-        override fun getContributedVariables(name: Name, location: LookupLocation) =
+        override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> =
             listOfNotNull(variableOrClassDescriptorByName(name, descriptorLimit) as? VariableDescriptor)
 
         override fun getContributedFunctions(name: Name, location: LookupLocation) =
@@ -67,7 +66,7 @@ class LexicalWritableScope(
         return lastSnapshot!!
     }
 
-    fun addVariableDescriptor(variableDescriptor: VariableDescriptorBase) {
+    fun addVariableDescriptor(variableDescriptor: VariableDescriptor) {
         checkMayWrite()
         addVariableOrClassDescriptor(variableDescriptor)
     }

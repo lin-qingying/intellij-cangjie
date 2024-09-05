@@ -1,13 +1,18 @@
 package com.huawei.cangjie.resolve.calls.components
 
+import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.descriptors.CallableDescriptor
+import com.huawei.cangjie.descriptors.ParameterDescriptor
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor
 import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.ConstraintSystemOperation
 import com.huawei.cangjie.resolve.calls.inference.components.*
+import com.huawei.cangjie.resolve.calls.inference.model.ConstraintKind
 import com.huawei.cangjie.resolve.calls.inference.model.DeclaredUpperBoundConstraintPositionImpl
+import com.huawei.cangjie.resolve.calls.inference.model.ExplicitTypeParameterConstraintPositionImpl
 import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableFromCallableDescriptor
+import com.huawei.cangjie.resolve.calls.inference.runTransaction
 import com.huawei.cangjie.resolve.calls.inference.substitute
 import com.huawei.cangjie.resolve.calls.model.CangJieCall
 import com.huawei.cangjie.resolve.calls.model.CangJieCallArgument
@@ -275,6 +280,150 @@ internal object MapArguments : ResolutionPart() {
 
         resolvedCall.argumentMappingByOriginal = mapping.parameterToCallArgumentMap
     }
+}
+
+class ReceiverInfo(
+    val isReceiver: Boolean,
+    val shouldReportUnsafeCall: Boolean, // should not report if unsafe implicit invoke has been reported already
+    val reportUnsafeCallAsUnsafeImplicitInvoke: Boolean,
+    val selectorCall: CangJieCall? = null,
+) {
+    init {
+        assert(!reportUnsafeCallAsUnsafeImplicitInvoke || shouldReportUnsafeCall) { "Inconsistent receiver info" }
+    }
+
+    companion object {
+        val notReceiver = ReceiverInfo(isReceiver = false, shouldReportUnsafeCall = true, reportUnsafeCallAsUnsafeImplicitInvoke = false)
+    }
+}
+internal object CheckArgumentsInParenthesis : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+        val argument = cangjieCall.argumentsInParenthesis[workIndex]
+        resolveCangJieArgument(argument, resolvedCall.argumentToCandidateParameter[argument], ReceiverInfo.notReceiver)
+    }
+
+    override fun ResolutionCandidate.workCount() = cangjieCall.argumentsInParenthesis.size
+}
+private fun ResolutionCandidate.resolveCangJieArgument(
+    argument: CangJieCallArgument,
+    candidateParameter: ParameterDescriptor?,
+    receiverInfo: ReceiverInfo
+) {
+    val csBuilder = getSystem().getBuilder()
+    val candidateExpectedType = candidateParameter?.let { argument.getExpectedType(it, callComponents.languageVersionSettings) }
+
+    val isReceiver = receiverInfo.isReceiver
+    val conversionDataBeforeSubtyping =
+        if (isReceiver || candidateParameter == null || candidateExpectedType == null) {
+            null
+        } else {
+            TypeConversions.performCompositeConversionBeforeSubtyping(
+                this, argument, candidateParameter, candidateExpectedType
+            )
+        }
+
+    val convertedExpectedType = conversionDataBeforeSubtyping?.convertedType
+    val unsubstitutedExpectedType = conversionDataBeforeSubtyping?.convertedType ?: candidateExpectedType
+    val expectedType = unsubstitutedExpectedType?.let { prepareExpectedType(it) }
+
+    val convertedArgument = if (expectedType != null && !isReceiver && shouldRunConversionForConstants(expectedType)) {
+        val convertedConstant = resolutionCallbacks.convertSignedConstantToUnsigned(argument)
+        if (convertedConstant != null) {
+            resolvedCall.registerArgumentWithConstantConversion(argument, convertedConstant)
+        }
+
+        convertedConstant
+    } else null
+
+
+    val inferenceSession = resolutionCallbacks.inferenceSession
+    if (candidateExpectedType == null || // Nothing to convert
+        convertedExpectedType != null || // Type is already converted
+        isReceiver || // Receivers don't participate in conversions
+        conversionDataBeforeSubtyping?.wasConversion == true || // We tried to convert type but failed
+        conversionDataBeforeSubtyping?.conversionDefinitelyNotNeeded == true ||
+        csBuilder.hasContradiction
+    ) {
+        val resolvedAtom = resolveCjPrimitive(
+            csBuilder,
+            argument,
+            expectedType,
+            this,
+            receiverInfo,
+            convertedArgument?.unknownIntegerType?.unwrap(),
+            inferenceSession,
+            selectorCall = receiverInfo.selectorCall
+        )
+
+        addResolvedCjPrimitive(resolvedAtom)
+    } else {
+        var convertedTypeAfterSubtyping: UnwrappedType? = null
+        csBuilder.runTransaction {
+            val resolvedAtom = resolveCjPrimitive(
+                csBuilder,
+                argument,
+                expectedType,
+                this@resolveCangJieArgument,
+                receiverInfo,
+                convertedArgument?.unknownIntegerType?.unwrap(),
+                inferenceSession
+            )
+
+            if (!hasContradiction) {
+                addResolvedCjPrimitive(resolvedAtom)
+                return@runTransaction true
+            }
+
+            convertedTypeAfterSubtyping =
+                TypeConversions.performCompositeConversionAfterSubtyping(
+                    this@resolveCangJieArgument,
+                    argument,
+                    candidateParameter,
+                    candidateExpectedType
+                )?.let { prepareExpectedType(it) }
+
+            if (convertedTypeAfterSubtyping == null) {
+                addResolvedCjPrimitive(resolvedAtom)
+                return@runTransaction true
+            }
+
+            false
+        }
+
+        if (convertedTypeAfterSubtyping != null) {
+            val resolvedAtom = resolveCjPrimitive(
+                csBuilder,
+                argument,
+                convertedTypeAfterSubtyping,
+                this@resolveCangJieArgument,
+                receiverInfo,
+                convertedArgument?.unknownIntegerType?.unwrap(),
+                inferenceSession
+            )
+            addResolvedCjPrimitive(resolvedAtom)
+        }
+
+    }
+}
+private fun ResolutionCandidate.shouldRunConversionForConstants(expectedType: UnwrappedType): Boolean {
+    if (UnsignedTypes.isUnsignedType(expectedType)) return true
+    val csBuilder = getSystem().getBuilder()
+    if (csBuilder.isTypeVariable(expectedType)) {
+        val variableWithConstraints = csBuilder.currentStorage().notFixedTypeVariables[expectedType.constructor] ?: return false
+        return variableWithConstraints.constraints.any {
+            it.kind == ConstraintKind.EQUALITY &&
+                    it.position.from is ExplicitTypeParameterConstraintPositionImpl &&
+                    UnsignedTypes.isUnsignedType(it.type as UnwrappedType)
+
+        }
+    }
+
+    return false
+}
+
+private fun ResolutionCandidate.prepareExpectedType(expectedType: UnwrappedType): UnwrappedType {
+    val resultType = resolvedCall.freshVariablesSubstitutor.safeSubstitute(expectedType)
+    return resolvedCall.knownParametersSubstitutor.safeSubstitute(resultType)
 }
 
 internal object ErrorDescriptorResolutionPart : ResolutionPart() {

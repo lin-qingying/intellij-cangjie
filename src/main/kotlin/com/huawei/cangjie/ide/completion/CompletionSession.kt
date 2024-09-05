@@ -505,7 +505,7 @@ abstract class CompletionSession(
 //            if (descriptor !is CallableDescriptor) return true
 //
 //            return when (descriptor) {
-//                is VariableDescriptor -> descriptor.isConst
+//                is VariableCallableDescriptor -> descriptor.isConst
 //                is FunctionDescriptor -> {
 //                    if (descriptor.fqNameOrNull() !in ArrayFqNames.ARRAY_CALL_FQ_NAMES) return false
 //

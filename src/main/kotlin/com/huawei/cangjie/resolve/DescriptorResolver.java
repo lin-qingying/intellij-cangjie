@@ -833,7 +833,7 @@ public class DescriptorResolver {
 
         CjDestructuringDeclaration destructuringDeclaration = valueParameter.getDestructuringDeclaration();
 
-        Function0<List<VariableDescriptorBase>> destructuringVariables;
+        Function0<List<VariableDescriptor>> destructuringVariables;
         if (destructuringDeclaration != null) {
 //            if (!languageVersionSettings.supportsFeature(LanguageFeature.DestructuringLambdaParameters)) {
 //                trace.report(Errors.UNSUPPORTED_FEATURE.on(valueParameter,
@@ -846,7 +846,7 @@ public class DescriptorResolver {
             //                LexicalScope scopeForDestructuring =
             //                        ScopeUtilsCj.createScopeForDestructuring(scope, owner.getExtensionReceiverParameter());
             //
-            //                List<VariableDescriptor> result =
+            //                List<VariableCallableDescriptor> result =
             //                        destructuringDeclarationResolver.resolveLocalVariablesFromDestructuringDeclaration(
             //                                scope,
             //                                destructuringDeclaration, new TransientReceiver(type), /* initializer = */ null,
@@ -1073,12 +1073,12 @@ public class DescriptorResolver {
 
     @NotNull
     public VariableDescriptor resolveVariableDescriptor(DeclarationDescriptor container,
-                                                        @NotNull LexicalScope scopeForDeclarationResolution,
-                                                        @NotNull LexicalScope scopeForInitializerResolution,
-                                                        @NotNull CjVariable variableDeclaration,
-                                                        @NotNull BindingTrace trace,
-                                                        @NotNull DataFlowInfo dataFlowInfo,
-                                                        @NotNull InferenceSession inferenceSession) {
+                                                                @NotNull LexicalScope scopeForDeclarationResolution,
+                                                                @NotNull LexicalScope scopeForInitializerResolution,
+                                                                @NotNull CjVariable variableDeclaration,
+                                                                @NotNull BindingTrace trace,
+                                                                @NotNull DataFlowInfo dataFlowInfo,
+                                                                @NotNull InferenceSession inferenceSession) {
         VariableAsPropertyInfo variableInfo = VariableAsPropertyInfo.createFromProperty(variableDeclaration);
 
         CjModifierList modifierList = variableDeclaration.getModifierList();
@@ -1093,15 +1093,15 @@ public class DescriptorResolver {
                 : Modality.FINAL;
 //暂时使用EMPTY
         Annotations variableAnnotations = Annotations.EMPTY;
-
         VariableDescriptorImpl variableDescriptor = VariableDescriptorImpl.create(
                 container,
-                variableAnnotations,
-                modality,
+                CjPsiUtil.safeName(variableDeclaration.getName()),
+
+
                 visibility,
                 isVar,
-                CjPsiUtil.safeName(variableDeclaration.getName()),
-                CallableMemberDescriptor.Kind.DECLARATION,
+
+
                 CangJieSourceElementKt.toSourceElement(variableDeclaration)
 //                modifierList != null && modifierList.hasModifier(CjTokens.LATEINIT_KEYWORD),
 //                modifierList != null && modifierList.hasModifier(CjTokens.CONST_KEYWORD),
@@ -1111,6 +1111,23 @@ public class DescriptorResolver {
 //                modifierList != null && modifierList.hasModifier(CjTokens.EXTERNAL_KEYWORD),
 //                propertyInfo.getHasDelegate()
         );
+//        VariableDescriptorImpl variableDescriptor = VariableDescriptorImpl.create(
+//                container,
+//                variableAnnotations,
+//                modality,
+//                visibility,
+//                isVar,
+//                CjPsiUtil.safeName(variableDeclaration.getName()),
+//                CallableMemberDescriptor.Kind.DECLARATION,
+//                CangJieSourceElementKt.toSourceElement(variableDeclaration)
+////                modifierList != null && modifierList.hasModifier(CjTokens.LATEINIT_KEYWORD),
+////                modifierList != null && modifierList.hasModifier(CjTokens.CONST_KEYWORD),
+////                modifierList != null && PsiUtilsKt.hasExpectModifier(modifierList) && container instanceof PackageFragmentDescriptor ||
+////                        container instanceof ClassDescriptor && ((ClassDescriptor) container).isExpect(),
+////                modifierList != null && PsiUtilsKt.hasActualModifier(modifierList),
+////                modifierList != null && modifierList.hasModifier(CjTokens.EXTERNAL_KEYWORD),
+////                propertyInfo.getHasDelegate()
+//        );
         List<TypeParameterDescriptorImpl> typeParameterDescriptors;
         LexicalScope scopeForDeclarationResolutionWithTypeParameters;
         LexicalScope scopeForInitializerResolutionWithTypeParameters;

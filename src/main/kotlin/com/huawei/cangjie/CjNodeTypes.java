@@ -80,6 +80,7 @@ public interface CjNodeTypes {
     IElementType LABEL_QUALIFIER = new CjNodeType("LABEL_QUALIFIER", CjContainerNode.class);
     IElementType PACKAGE_DIRECTIVE = CjStubElementTypes.PACKAGE_DIRECTIVE;
 
+    IElementType SAFE_ACCESS_EXPRESSION    = new CjNodeType("SAFE_ACCESS_EXPRESSION", CjSafeQualifiedExpression.class);
 
     IElementType SUPER_TYPE_ENTRY = CjStubElementTypes.SUPER_TYPE_ENTRY;
     IElementType MODIFIER_LIST = CjStubElementTypes.MODIFIER_LIST;
@@ -204,23 +205,24 @@ public interface CjNodeTypes {
     CjBlockCodeFragmentType BLOCK_CODE_FRAGMENT = new CjBlockCodeFragmentType();
 
 
+
     TokenSet CONSTANT_EXPRESSIONS_TYPES = TokenSet.create(
 
             BOOLEAN_CONSTANT,
             FLOAT_CONSTANT,
             RUNE_CONSTANT,
             INTEGER_CONSTANT,
-//            CHARACTER_CONSTANT,
 
             REFERENCE_EXPRESSION,
             DOT_QUALIFIED_EXPRESSION,
 
             STRING_TEMPLATE,
 
-//            CLASS_LITERAL_EXPRESSION,
+
 
             COLLECTION_LITERAL_EXPRESSION
     );
+
 
 }
 

@@ -4,7 +4,6 @@ import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.descriptors.VariableDescriptor
-import com.huawei.cangjie.extensions.DeclarationAttributeAltererExtension.Companion.getInstances
 import com.huawei.cangjie.extensions.ProjectExtensionDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name

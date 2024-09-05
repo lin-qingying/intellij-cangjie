@@ -292,7 +292,7 @@ LONELY_BACKTICK=`
       }
 
 
-{THREE_QUO_SINGLE} \n                      { pushState(RAW_STRING_SINGLE); return CjTokens.OPEN_QUOTE; }
+{THREE_QUO_SINGLE} /*\n*/                      { pushState(RAW_STRING_SINGLE); return CjTokens.OPEN_QUOTE; }
 <RAW_STRING_SINGLE> \n                  {
                System.out.println("RAW_STRING_SINGLE1");
 
@@ -316,7 +316,7 @@ LONELY_BACKTICK=`
                                     }
                                  }
 
-{THREE_QUO_DOUBLE} \n                      { pushState(RAW_STRING_DOUBLE); return CjTokens.OPEN_QUOTE; }
+{THREE_QUO_DOUBLE}  /*\n*/                     { pushState(RAW_STRING_DOUBLE); return CjTokens.OPEN_QUOTE; }
 <RAW_STRING_DOUBLE> \n                  {
           System.out.println("RAW_STRING_DOUBLE1");
 

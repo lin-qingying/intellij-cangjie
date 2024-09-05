@@ -9,6 +9,8 @@ import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.renderer.ClassifierNamePolicy
 import com.huawei.cangjie.renderer.DescriptorRenderer
 import com.huawei.cangjie.resolve.DescriptorUtils
+import com.huawei.cangjie.resolve.MemberComparator
+import com.huawei.cangjie.resolve.calls.model.ResolvedCall
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.getAbbreviation
 import com.huawei.cangjie.types.util.contains
@@ -30,30 +32,21 @@ object Renderers {
         parameterNamesInFunctionalTypes = false
     })
     @JvmField
-    val RENDER_CLASS  = Renderer { classOrObject: CjTypeStatement ->
+    val RENDER_TYPE_STATMENT  = Renderer { classOrObject: CjTypeStatement ->
         val name = classOrObject.name?.let { " ${it.wrapIntoQuotes()}" } ?: ""
-        when {
-            classOrObject is CjClass -> "Class$name"
-            classOrObject is CjInterface -> "Interface$name"
-            classOrObject is CjStruct -> "Struct$name"
-            classOrObject is CjEnum -> "Enum$name"
-
+        when (classOrObject) {
+            is CjClass -> "Class$name"
+            is CjInterface -> "Interface$name"
+            is CjStruct -> "Struct$name"
+            is CjEnum -> "Enum$name"
             else -> "Class$name"
         }
     }
     @JvmField
     val FQ_NAMES_IN_TYPES = DescriptorRenderer.FQ_NAMES_IN_TYPES.asRenderer()
     @JvmField
-    val RENDER_CLASS_OR_STRUCT = Renderer { classOrObject: CjTypeStatement ->
-        val name = classOrObject.name?.let { " ${it.wrapIntoQuotes()}" } ?: ""
-        when {
-            classOrObject  is CjClass -> "Class$name"
-            classOrObject  is CjInterface -> "Interface$name"
-            classOrObject  is CjStruct -> "Struct$name"
+    val COMPACT_WITH_MODIFIERS = DescriptorRenderer.COMPACT_WITH_MODIFIERS.asRenderer()
 
-            else -> "Class$name"
-        }
-    }
     @JvmField
     val STRING = Renderer<String> { it }
 
@@ -80,7 +73,19 @@ object Renderers {
             }
         }
     }
-
+    private fun renderAmbiguousDescriptors(descriptors: Collection<CallableDescriptor>): String {
+        val context = RenderingContext.Impl(descriptors)
+        return descriptors
+            .sortedWith(MemberComparator)
+            .joinToString(separator = "\n", prefix = "\n") {
+                FQ_NAMES_IN_TYPES.render(it, context)
+            }
+    }
+    @JvmField
+    val AMBIGUOUS_CALLS = Renderer { calls: Collection<ResolvedCall<*>> ->
+        val descriptors = calls.map { it.resultingDescriptor }
+        renderAmbiguousDescriptors(descriptors)
+    }
     @JvmField
     val TO_STRING = Renderer<Any> { element ->
         if (element is DeclarationDescriptor) {

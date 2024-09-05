@@ -150,7 +150,7 @@ public class TracingStrategyImpl extends AbstractTracingStrategy {
 //
 //    @Override
 //    public <D extends CallableDescriptor> void unresolvedReferenceWrongReceiver(@NotNull BindingTrace trace, @NotNull Collection<? extends ResolvedCall<D>> candidates) {
-//        VariableDescriptor variableDescriptor = isFunctionExpectedError(candidates);
+//        VariableCallableDescriptor variableDescriptor = isFunctionExpectedError(candidates);
 //        if (variableDescriptor != null) {
 //            trace.report(Errors.FUNCTION_EXPECTED.on(reference, reference, variableDescriptor.getType()));
 //        }
@@ -160,21 +160,21 @@ public class TracingStrategyImpl extends AbstractTracingStrategy {
 //    }
 //
 //    @Nullable
-//    private static <D extends CallableDescriptor> VariableDescriptor isFunctionExpectedError(
+//    private static <D extends CallableDescriptor> VariableCallableDescriptor isFunctionExpectedError(
 //            @NotNull Collection<? extends ResolvedCall<D>> candidates
 //    ) {
-//        List<VariableDescriptor> variables = CollectionsKt.map(candidates, TracingStrategyImpl::variableIfFunctionExpectedError);
-//        List<VariableDescriptor> distinctVariables = CollectionsKt.distinct(variables);
+//        List<VariableCallableDescriptor> variables = CollectionsKt.map(candidates, TracingStrategyImpl::variableIfFunctionExpectedError);
+//        List<VariableCallableDescriptor> distinctVariables = CollectionsKt.distinct(variables);
 //        return CollectionsKt.singleOrNull(distinctVariables);
 //    }
 //
 //    @Nullable
-//    private static <D extends CallableDescriptor> VariableDescriptor variableIfFunctionExpectedError(
+//    private static <D extends CallableDescriptor> VariableCallableDescriptor variableIfFunctionExpectedError(
 //            @NotNull ResolvedCall<D> candidate
 //    ) {
 //        if (!(candidate instanceof VariableAsFunctionResolvedCall)) return null;
 //
-//        ResolvedCall<VariableDescriptor> variableCall = ((VariableAsFunctionResolvedCall) candidate).getVariableCall();
+//        ResolvedCall<VariableCallableDescriptor> variableCall = ((VariableAsFunctionResolvedCall) candidate).getVariableCall();
 //        ResolvedCall<FunctionDescriptor> functionCall = ((VariableAsFunctionResolvedCall) candidate).getFunctionCall();
 //
 //        CangJieType type = variableCall.getCandidateDescriptor().getType();

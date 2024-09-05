@@ -1,19 +1,32 @@
 package com.huawei.cangjie.descriptors
 
+import com.huawei.cangjie.mpp.PropertySymbolMarker
+import com.huawei.cangjie.mpp.VariableSymbolMarker
+import com.huawei.cangjie.resolve.constants.ConstantValue
 import com.huawei.cangjie.types.TypeSubstitutor
-//
-//interface VariableDescriptor : CallableMemberDescriptor,VariableDescriptorBase
-//{
-//    override fun substitute(substitutor: TypeSubstitutor): VariableDescriptor?
-//
-//    override fun getOverriddenDescriptors(): Collection<out VariableDescriptor >
-//    override fun newCopyBuilder(): CallableMemberDescriptor.CopyBuilder<out VariableDescriptor?>
-//
-//    //    @Override
-//    //    @Nullable
-//    //    PropertySetterDescriptor getSetter();
-//    //    @NotNull
-//    //    List<PropertyAccessorDescriptor> getAccessors();
-//
-//    override val original:VariableDescriptor
-//}
+
+interface VariableDescriptor : ValueDescriptor/*,
+   CallableMemberDescriptor, VariableSymbolMarker*/ {
+
+
+    fun getCompileTimeInitializer(): ConstantValue<*>?  = null
+
+    /**
+     * ONLY FOR IDE USE! Please don't use the method inside the compiler
+     */
+    fun cleanCompileTimeInitializerCache()  {}
+
+
+    /**
+     * @return true if iff original declaration has appropriate flags and type, e.g. `const` modifier in CangJie.
+     * It completely does not means that if isConst then `getCompileTimeInitializer` is not null
+     */
+    //    @Nullable
+    //    FieldDescriptor getBackingField();
+    //
+    //    @Nullable
+    //    FieldDescriptor getDelegateField();
+    override fun substitute(substitutor: TypeSubstitutor): VariableDescriptor?
+    val isConst: Boolean
+    val isVar: Boolean
+}

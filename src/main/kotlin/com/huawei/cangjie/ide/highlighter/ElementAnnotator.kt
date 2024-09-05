@@ -71,7 +71,7 @@ internal class ElementAnnotator(
                     )
 
                     Errors.REDECLARATION -> AnnotationPresentationInfo(
-                        ranges = listOf(diagnostic.textRanges.first()), nonDefaultMessage = ""
+                        ranges = listOf(diagnostic.textRanges.first())
                     )
 
                     else -> {

@@ -15,7 +15,18 @@ import static com.huawei.cangjie.descriptors.CallableMemberDescriptor.Kind.DECLA
 
 public class LocalVariableDescriptor  extends VariableDescriptorImpl    {
 
-
+//    public LocalVariableDescriptor(
+//            @NotNull DeclarationDescriptor containingDeclaration,
+//            @NotNull Annotations annotations,
+//            @NotNull Name name,
+//            @Nullable CangJieType type,
+//            boolean mutable,
+//
+//            @NotNull SourceElement source
+//    ) {
+//        super(containingDeclaration, null,annotations,Modality.FINAL, DescriptorVisibilities.LOCAL, mutable,   name,DECLARATION, type,source);
+//
+//    }
     public LocalVariableDescriptor(
             @NotNull DeclarationDescriptor containingDeclaration,
             @NotNull Annotations annotations,
@@ -25,7 +36,7 @@ public class LocalVariableDescriptor  extends VariableDescriptorImpl    {
 
             @NotNull SourceElement source
     ) {
-        super(containingDeclaration, null,annotations,Modality.FINAL, DescriptorVisibilities.LOCAL, mutable,   name,DECLARATION, type,source);
+        super( containingDeclaration,    name, type, mutable, source,DescriptorVisibilities.LOCAL);
 
     }
 

@@ -318,7 +318,7 @@ class LazyImportScope(
 
     override fun getContributedPackage(name: Name): PackageViewDescriptor? = null
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
         if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
         return importResolver.collectFromImports(name) { scope -> scope.getContributedVariables(name, location) }
             .ifEmpty {

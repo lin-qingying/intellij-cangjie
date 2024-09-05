@@ -1,8 +1,8 @@
 package com.huawei.cangjie.resolve.scopes
 
-import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.Substitutable
+import com.huawei.cangjie.descriptors.VariableDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.psiUtil.sure
@@ -65,7 +65,7 @@ class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: 
         return result
     }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation) =
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> =
         substitute(workerScope.getContributedVariables(name, location))
 
     override fun getContributedPropertys(name: Name, location: LookupLocation) =

@@ -1,6 +1,8 @@
 package com.huawei.cangjie.resolve.calls.model
 
+import com.huawei.cangjie.resolve.calls.components.*
 import com.huawei.cangjie.resolve.calls.components.ArgumentsToCandidateParameterDescriptor
+import com.huawei.cangjie.resolve.calls.components.CheckArgumentsInParenthesis
 import com.huawei.cangjie.resolve.calls.components.CreateFreshVariablesSubstitutor
 import com.huawei.cangjie.resolve.calls.components.MapArguments
 import com.huawei.cangjie.resolve.calls.components.NoArguments
@@ -32,7 +34,7 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
 //        CollectionTypeVariableUsagesInfo,
 //        CheckExplicitReceiverKindConsistency,
 //        CheckReceivers,
-//        CheckArgumentsInParenthesis,
+        CheckArgumentsInParenthesis,
 //        CheckExternalArgument,
 //        EagerResolveOfCallableReferences,
 //        CompatibilityOfPartiallyApplicableSamConversion,

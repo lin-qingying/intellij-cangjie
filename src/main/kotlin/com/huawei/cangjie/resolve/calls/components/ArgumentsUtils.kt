@@ -12,6 +12,7 @@ import com.huawei.cangjie.types.checker.intersectWrappedTypes
 import com.huawei.cangjie.types.checker.prepareArgumentTypeRegardingCaptureTypes
 import com.huawei.cangjie.utils.DFS
 
+val ValueParameterDescriptor.isVararg: Boolean get() = varargElementType != null
 
 internal fun CangJieCallArgument.getExpectedType(parameter: ParameterDescriptor, languageVersionSettings: LanguageVersionSettings) =
     if (
@@ -21,7 +22,7 @@ internal fun CangJieCallArgument.getExpectedType(parameter: ParameterDescriptor,
     ) {
         parameter.type.unwrap()
     } else {
-        /*(parameter as? ValueParameterDescriptor)?.varargElementType?.unwrap() ?: */parameter.type.unwrap()
+        (parameter as? ValueParameterDescriptor)?.varargElementType?.unwrap() ?:  parameter.type.unwrap()
     }
 /**
  * @return `true` iff the parameter has a default value, i.e. declares it, inherits it by overriding a parameter which has a default value,
@@ -79,3 +80,12 @@ val ReceiverValueWithSmartCastInfo.stableType: UnwrappedType
     }
 internal fun unexpectedArgument(argument: CangJieCallArgument): Nothing =
     error("Unexpected argument type: $argument, ${argument.javaClass.canonicalName}.")
+internal val ReceiverValueWithSmartCastInfo.unstableType: UnwrappedType?
+    get() {
+        if (isStable || !hasTypesFromSmartCasts())
+            return if (isStable) null else receiverValue.type.unwrap()
+
+        val intersectionType = intersectWrappedTypes(allOriginalTypes)
+
+        return prepareArgumentTypeRegardingCaptureTypes(intersectionType) ?: intersectionType
+    }

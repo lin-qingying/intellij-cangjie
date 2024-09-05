@@ -22,6 +22,7 @@ interface CompileTimeConstant<out T>{
     val usesNonConstValAsConstant: Boolean get() = parameters.usesNonConstValAsConstant
     val hasIntegerLiteralType: Boolean
     val usesVariableAsConstant: Boolean get() = parameters.usesVariableAsConstant
+    fun getValue(expectedType: CangJieType): T = toConstantValue(expectedType).value
 
     data class Parameters(
         val canBeUsedInAnnotation: Boolean,

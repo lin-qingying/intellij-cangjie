@@ -38,6 +38,41 @@ class CangJieCallResolver(
 
         return resolveCall(scopeTower, resolutionCallbacks, argument.call, collectAllCandidates = false, factory)
     }
+
+    fun resolveAndCompleteGivenCandidates(
+        scopeTower: ImplicitScopeTower,
+        resolutionCallbacks: CangJieResolutionCallbacks,
+        cangjieCall: CangJieCall,
+        expectedType: UnwrappedType?,
+        givenCandidates: Collection<GivenCandidate>,
+        collectAllCandidates: Boolean
+    ): CallResolutionResult {
+        ProgressIndicatorAndCompilationCanceledStatus.checkCanceled()
+
+        cangjieCall.checkCallInvariants()
+
+        val candidateFactory = SimpleCandidateFactory(callComponents, scopeTower, cangjieCall, resolutionCallbacks)
+        val resolutionCandidates = givenCandidates.map { candidateFactory.createCandidate(it).forceResolution() }
+
+        if (collectAllCandidates) {
+            val allCandidates = towerResolver.runWithEmptyTowerData(
+                KnownResultProcessor(resolutionCandidates),
+                TowerResolver.AllCandidatesCollector(),
+                useOrder = false
+            )
+            return cangjieCallCompleter.createAllCandidatesResult(allCandidates, expectedType, resolutionCallbacks)
+
+        }
+
+        val candidates = towerResolver.runWithEmptyTowerData(
+            KnownResultProcessor(resolutionCandidates),
+            TowerResolver.SuccessfulResultCollector(),
+            useOrder = true
+        )
+        val mostSpecificCandidates = choseMostSpecific(cangjieCall, resolutionCallbacks, candidates)
+
+        return cangjieCallCompleter.runCompletion(candidateFactory, mostSpecificCandidates, expectedType, resolutionCallbacks)
+    }
     private fun createCallableReferenceCallFactory(
         scopeTower: ImplicitScopeTower,
         cangjieCall: CangJieCall,

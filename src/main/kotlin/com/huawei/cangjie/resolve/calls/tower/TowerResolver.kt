@@ -12,6 +12,7 @@ import com.huawei.cangjie.resolve.scopes.util.parentsWithSelf
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.isDynamic
 import com.huawei.cangjie.utils.OperatorNameConventions
+import java.util.ArrayList
 
 interface Candidate {
     // this operation should be very fast
@@ -105,12 +106,32 @@ internal class SyntheticScopeBasedTowerLevel(
     }
 }
 class TowerResolver {
+
+    class AllCandidatesCollector<C : Candidate> : ResultCollector<C>() {
+        private val allCandidates = ArrayList<C>()
+
+        override fun getSuccessfulCandidates(): Collection<C>? = null
+
+        override fun getFinalCandidates(): Collection<C> = allCandidates
+
+        override fun pushCandidates(candidates: Collection<C>) {
+            candidates.filterNotTo(allCandidates) {
+                it.resultingApplicability == CandidateApplicability.HIDDEN
+            }
+        }
+    }
+
     private fun <C : Candidate> ImplicitScopeTower.run(
         processor: ScopeTowerProcessor<C>,
         resultCollector: ResultCollector<C>,
         useOrder: Boolean,
         name: Name
     ): Collection<C> = Task(this, processor, resultCollector, useOrder, name).run()
+    fun <C : Candidate> runWithEmptyTowerData(
+        processor: ScopeTowerProcessor<C>,
+        resultCollector: ResultCollector<C>,
+        useOrder: Boolean
+    ): Collection<C> = processTowerData(processor, resultCollector, useOrder, TowerData.Empty) ?: resultCollector.getFinalCandidates()
 
     fun <C : Candidate> runResolve(
         scopeTower: ImplicitScopeTower,

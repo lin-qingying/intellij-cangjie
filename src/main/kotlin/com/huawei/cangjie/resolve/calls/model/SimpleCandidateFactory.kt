@@ -177,7 +177,19 @@ class SimpleCandidateFactory(
 
         return candidate
     }
+    fun createCandidate(givenCandidate: GivenCandidate): SimpleResolutionCandidate {
+        val isSafeCall = (cangjieCall.explicitReceiver as? SimpleCangJieCallArgument)?.isSafeCall ?: false
 
+        val explicitReceiverKind =
+            if (givenCandidate.dispatchReceiver == null) ExplicitReceiverKind.NO_EXPLICIT_RECEIVER else ExplicitReceiverKind.DISPATCH_RECEIVER
+        val dispatchArgumentReceiver = givenCandidate.dispatchReceiver?.let {
+            ReceiverExpressionCangJieCallArgument(it, isSafeCall)
+        }
+        return createCandidate(
+            givenCandidate.descriptor, explicitReceiverKind, dispatchArgumentReceiver, null, null,
+            listOf(), givenCandidate.knownTypeParametersResultingSubstitutor
+        )
+    }
     override fun createCandidate(
         towerCandidate: CandidateWithBoundDispatchReceiver,
         explicitReceiverKind: ExplicitReceiverKind,

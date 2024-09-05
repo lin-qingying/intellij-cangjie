@@ -1,7 +1,7 @@
 package com.huawei.cangjie.descriptors
 
 
-interface VariableDescriptorWithAccessors : VariableDescriptorBase {
+interface VariableDescriptorWithAccessors : VariableDescriptor {
 //    val getter: VariableAccessorDescriptor?
 //
 //    val setter: VariableAccessorDescriptor?

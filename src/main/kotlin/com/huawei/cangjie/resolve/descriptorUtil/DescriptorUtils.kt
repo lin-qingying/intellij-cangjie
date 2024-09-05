@@ -55,7 +55,7 @@ fun ModuleDescriptor.getCangJieTypeRefiner(): CangJieTypeRefiner =
         else -> CangJieTypeRefiner.Default
     }
 
-val VariableDescriptorBase.isUnderscoreNamed
+val VariableDescriptor.isUnderscoreNamed
     get() = !name.isSpecial && name.identifier == "_"
 
 val ClassifierDescriptorWithTypeParameters.denotedClassDescriptor: ClassDescriptor?

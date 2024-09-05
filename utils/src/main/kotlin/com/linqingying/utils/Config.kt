@@ -4,6 +4,7 @@ package com.linqingying.utils
 object Config {
     val isLsp: Boolean = false
     val astMsgType: AstMsgType = AstMsgType.FUNNY
+
 }
 
 

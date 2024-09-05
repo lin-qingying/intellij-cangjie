@@ -1,41 +1,52 @@
 package com.huawei.cangjie.resolve.calls.tower
 
+import com.huawei.cangjie.builtins.createFunctionType
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.descriptors.ModuleDescriptor
+import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.CjCallableReferenceExpression
+import com.huawei.cangjie.psi.CjExpression
+import com.huawei.cangjie.psi.CjPsiUtil
 import com.huawei.cangjie.psi.CjReturnExpression
 import com.huawei.cangjie.psi.psiUtil.getBinaryWithTypeParent
+import com.huawei.cangjie.psi.psiUtil.lastBlockStatementOrThis
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.MissingSupertypesResolver
+import com.huawei.cangjie.resolve.TemporaryBindingTrace
 import com.huawei.cangjie.resolve.TypeResolver
 import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver
 import com.huawei.cangjie.resolve.calls.CangJieCallResolver
-import com.huawei.cangjie.resolve.calls.components.CangJieResolutionCallbacks
-import com.huawei.cangjie.resolve.calls.components.InferenceSession
-import com.huawei.cangjie.resolve.calls.components.NewConstraintSystemImpl
+import com.huawei.cangjie.resolve.calls.components.*
 import com.huawei.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
 import com.huawei.cangjie.resolve.calls.context.ContextDependency
+import com.huawei.cangjie.resolve.calls.inference.BuilderInferenceSession
 import com.huawei.cangjie.resolve.calls.inference.NewConstraintSystem
 import com.huawei.cangjie.resolve.calls.inference.components.CangJieConstraintSystemCompleter
 import com.huawei.cangjie.resolve.calls.inference.components.ResultTypeResolver
 import com.huawei.cangjie.resolve.calls.inference.components.TypeVariableDirectionCalculator
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage
+import com.huawei.cangjie.resolve.calls.inference.model.NewTypeVariable
 import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableTypeConstructor
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
+import com.huawei.cangjie.resolve.calls.tasks.TracingStrategyImpl
+import com.huawei.cangjie.resolve.calls.util.CallMaker
+import com.huawei.cangjie.resolve.constants.CompileTimeConstant
+import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstant
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
+import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.resolve.descriptorUtil.isFunctionForExpectTypeFromCastFeature
 import com.huawei.cangjie.resolve.scopes.LexicalScope
-import com.huawei.cangjie.types.CangJieType
-import com.huawei.cangjie.types.TypeApproximator
-import com.huawei.cangjie.types.UnwrappedType
-import com.huawei.cangjie.types.expressions.DoubleColonExpressionResolver
+import com.huawei.cangjie.types.*
+import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.isUnit
+
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices
 import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo
@@ -59,10 +70,10 @@ class CangJieResolutionCallbacksImpl(
     private val constantExpressionEvaluator: ConstantExpressionEvaluator,
     private val typeResolver: TypeResolver,
     private val psiCallResolver: PSICallResolver,
-//    private val postponedArgumentsAnalyzer: PostponedArgumentsAnalyzer,
+    private val postponedArgumentsAnalyzer: PostponedArgumentsAnalyzer,
     private val cangjieConstraintSystemCompleter: CangJieConstraintSystemCompleter,
     private val callComponents: CangJieCallComponents,
-    private val doubleColonExpressionResolver: DoubleColonExpressionResolver,
+
     private val deprecationResolver: DeprecationResolver,
     private val moduleDescriptor: ModuleDescriptor,
     private val topLevelCallContext: BasicCallResolutionContext,
@@ -84,6 +95,181 @@ class CangJieResolutionCallbacksImpl(
             val STUB_EMPTY = LambdaInfo(TypeUtils.NO_EXPECTED_TYPE, ContextDependency.INDEPENDENT)
         }
     }
+
+    override fun analyzeAndGetLambdaReturnArguments(
+        lambdaArgument: LambdaCangJieCallArgument,
+        receiverType: UnwrappedType?,
+        contextReceiversTypes: List<UnwrappedType>,
+        parameters: List<UnwrappedType>,
+        expectedReturnType: UnwrappedType?,
+        annotations: Annotations,
+        stubsForPostponedVariables: Map<NewTypeVariable, StubTypeForBuilderInference>
+    ): ReturnArgumentsAnalysisResult {
+        val psiCallArgument = lambdaArgument.psiCallArgument as PSIFunctionCangJieCallArgument
+        val outerCallContext = psiCallArgument.outerCallContext
+
+        fun createCallArgument(
+            cjExpression: CjExpression,
+            typeInfo: CangJieTypeInfo,
+            scope: LexicalScope?,
+            newTrace: BindingTrace?
+        ): PSICangJieCallArgument? {
+            var newContext = outerCallContext
+            if (scope != null) newContext = newContext.replaceScope(scope)
+            if (newTrace != null) newContext = newContext.replaceBindingTrace(newTrace)
+
+            processFunctionalExpression(
+                newContext, cjExpression, typeInfo.dataFlowInfo, CallMaker.makeExternalValueArgument(cjExpression),
+                null, outerCallContext.scope.ownerDescriptor.builtIns, typeResolver
+            )?.let {
+                it.setResultDataFlowInfoIfRelevant(typeInfo.dataFlowInfo)
+                return it
+            }
+
+            val deparenthesizedExpression = CjPsiUtil.deparenthesize(cjExpression) ?: cjExpression
+
+            return if (deparenthesizedExpression is CjCallableReferenceExpression) {
+                psiCallResolver.createCallableReferenceCangJieCallArgument(
+                    newContext, deparenthesizedExpression, DataFlowInfo.EMPTY,
+                    CallMaker.makeExternalValueArgument(deparenthesizedExpression),
+                    argumentName = null,
+                    outerCallContext,
+                    tracingStrategy = TracingStrategyImpl.create(deparenthesizedExpression.callableReference, newContext.call)
+                )
+            } else {
+                createSimplePSICallArgument(
+                    trace.bindingContext, outerCallContext.statementFilter, outerCallContext.scope.ownerDescriptor,
+                    CallMaker.makeExternalValueArgument(cjExpression), DataFlowInfo.EMPTY, typeInfo, languageVersionSettings,
+                    dataFlowValueFactory, outerCallContext.call
+                )
+            }
+        }
+
+        val lambdaInfo = LambdaInfo(
+            expectedReturnType ?: TypeUtils.NO_EXPECTED_TYPE,
+            if (expectedReturnType == null) ContextDependency.DEPENDENT else ContextDependency.INDEPENDENT
+        )
+
+        val builtIns = outerCallContext.scope.ownerDescriptor.builtIns
+
+        // We have to refine receiverType because resolve inside lambda needs proper scope from receiver,
+        // and for implicit receivers there are no expression which type would've been refined in ExpTypingVisitor
+        // Relevant test: multiplatformTypeRefinement/lambdas
+        //
+        // It doesn't happen in similar cases with other implicit receivers (e.g., with scope of extension receiver
+        // inside extension function) because during resolution of types we correctly discriminate headers
+        //
+        // Also note that refining the whole type might be undesired because sometimes it contains NO_EXPECTED_TYPE
+        // which throws exceptions on attempt to call equals
+        val refinedReceiverType = receiverType?.let {
+            @OptIn(TypeRefinement::class) callComponents.cangjieTypeChecker.cangjieTypeRefiner.refineType(it)
+        }
+        val refinedContextReceiverTypes = contextReceiversTypes.map {
+            @OptIn(TypeRefinement::class) callComponents.cangjieTypeChecker.cangjieTypeRefiner.refineType(it)
+        }
+
+        val expectedType = createFunctionType(
+            builtIns, annotations, refinedReceiverType, refinedContextReceiverTypes, parameters, null,
+            lambdaInfo.expectedType
+        )
+
+        val approximatesExpectedType =
+            typeApproximator.approximateToSubType(expectedType, TypeApproximatorConfiguration.LocalDeclaration) ?: expectedType
+
+        val builderInferenceSession =
+            if (stubsForPostponedVariables.isNotEmpty()) {
+                BuilderInferenceSession(
+                    psiCallResolver, postponedArgumentsAnalyzer, cangjieConstraintSystemCompleter,
+                    callComponents, builtIns, topLevelCallContext, stubsForPostponedVariables, trace,
+                    cangjieToResolvedCallTransformer, expressionTypingServices, argumentTypeResolver,
+                  deprecationResolver, moduleDescriptor, typeApproximator,
+                    missingSupertypesResolver, lambdaArgument
+                ).apply { lambdaArgument.builderInferenceSession = this }
+            } else {
+                null
+            }
+
+        val temporaryTrace = if (builderInferenceSession != null)
+            TemporaryBindingTrace.create(trace, "Trace to resolve builder inference lambda: $lambdaArgument")
+        else
+            null
+
+        (temporaryTrace ?: trace).record(BindingContext.NEW_INFERENCE_LAMBDA_INFO, psiCallArgument.cjFunction, lambdaInfo)
+
+        val actualContext = outerCallContext
+            .replaceBindingTrace(temporaryTrace ?: trace)
+            .replaceContextDependency(lambdaInfo.contextDependency)
+            .replaceExpectedType(approximatesExpectedType)
+            .replaceDataFlowInfo(psiCallArgument.dataFlowInfoBeforeThisArgument).let {
+          if (builderInferenceSession != null) it.replaceInferenceSession(builderInferenceSession) else  it
+            }
+
+        val functionTypeInfo = expressionTypingServices.getTypeInfo(psiCallArgument.expression, actualContext)
+        (temporaryTrace ?: trace).record(BindingContext.NEW_INFERENCE_LAMBDA_INFO, psiCallArgument.cjFunction, LambdaInfo.STUB_EMPTY)
+
+        if (builderInferenceSession?.hasInapplicableCall() == true) {
+            return ReturnArgumentsAnalysisResult(
+                ReturnArgumentsInfo.empty, builderInferenceSession, hasInapplicableCallForBuilderInference = true
+            )
+        } else {
+            temporaryTrace?.commit()
+        }
+
+        var hasReturnWithoutExpression = false
+        var returnArgumentFound = false
+        val returnArguments = lambdaInfo.returnStatements.mapNotNullTo(ArrayList()) { (expression, contextInfo) ->
+            returnArgumentFound = true
+            val returnedExpression = expression.returnedExpression
+            if (returnedExpression != null) {
+                createCallArgument(
+                    returnedExpression,
+                    contextInfo?.typeInfo ?: throw AssertionError("typeInfo should be non-null for return with expression"),
+                    contextInfo.lexicalScope,
+                    contextInfo.trace
+                )
+            } else {
+                hasReturnWithoutExpression = true
+                EmptyLabeledReturn(expression, builtIns)
+            }
+        }
+
+        val lastExpressionArgument = getLastDeparentesizedExpression(psiCallArgument)?.let { lastExpression ->
+            if (lambdaInfo.returnStatements.any { (expression, _) -> expression == lastExpression }) {
+                return@let null
+            }
+
+            val lastExpressionType = trace.getType(lastExpression)
+            val contextInfo = lambdaInfo.lastExpressionInfo
+            val lastExpressionTypeInfo = CangJieTypeInfo(lastExpressionType, contextInfo.dataFlowInfoAfter ?: functionTypeInfo.dataFlowInfo)
+            createCallArgument(lastExpression, lastExpressionTypeInfo, contextInfo.lexicalScope, contextInfo.trace)
+        }
+
+        val lastExpressionCoercedToUnit = expectedReturnType?.isUnit() == true || hasReturnWithoutExpression
+        if (!lastExpressionCoercedToUnit && lastExpressionArgument != null) {
+            returnArgumentFound = true
+            returnArguments += lastExpressionArgument
+        }
+
+        return ReturnArgumentsAnalysisResult(
+            ReturnArgumentsInfo(
+                returnArguments,
+                lastExpressionArgument,
+                lastExpressionCoercedToUnit,
+                returnArgumentFound
+            ),
+            builderInferenceSession,
+        )
+    }
+    private fun getLastDeparentesizedExpression(psiCallArgument: PSICangJieCallArgument): CjExpression? {
+        val lastExpression = if (psiCallArgument is LambdaCangJieCallArgumentImpl) {
+            psiCallArgument.cjLambdaExpression.bodyExpression?.statements?.lastOrNull()
+        } else {
+            (psiCallArgument as FunctionExpressionImpl).cjFunction.bodyExpression?.lastBlockStatementOrThis()
+        }
+
+        return CjPsiUtil.deparenthesize(lastExpression)
+    }
+
     override fun getCandidateFactoryForInvoke(
         scopeTower: ImplicitScopeTower,
         cangjieCall: CangJieCall
@@ -116,6 +302,21 @@ class CangJieResolutionCallbacksImpl(
         )
     }
 
+    override fun convertSignedConstantToUnsigned(argument: CangJieCallArgument): IntegerValueTypeConstant? {
+        val argumentExpression = argument.psiExpression ?: return null
+        return convertSignedConstantToUnsigned(argumentExpression)
+    }
+    private fun constantCanBeConvertedToUnsigned(constant: CompileTimeConstant<*>): Boolean {
+        return !constant.isError && constant.parameters.isPure
+    }
+    private fun convertSignedConstantToUnsigned(expression: CjExpression): IntegerValueTypeConstant? {
+        val constant = trace[BindingContext.COMPILE_TIME_VALUE, expression]
+        if (constant !is IntegerValueTypeConstant || !constantCanBeConvertedToUnsigned(constant)) return null
+
+        return with(IntegerValueTypeConstant) {
+            constant.convertToUnsignedConstant(moduleDescriptor)
+        }
+    }
 //    override fun isCompileTimeConstant(resolvedAtom: ResolvedCallAtom, expectedType: UnwrappedType): Boolean {
 //        TODO("Not yet implemented")
 //    }

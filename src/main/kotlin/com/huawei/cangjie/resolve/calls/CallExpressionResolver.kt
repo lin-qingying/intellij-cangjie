@@ -186,7 +186,7 @@ class CallExpressionResolver(
             context.replaceTraceAndCache(temporaryForVariable),
             call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS
         )
-        val resolutionResult = callResolver.resolveSimpleProperty(contextForVariable)
+        val resolutionResult = callResolver.resolveSimpleVariable(contextForVariable)
 
         // if the expression is a receiver in a qualified expression, it should be resolved after the selector is resolved
 //        val isLHSOfDot = CjPsiUtil.isLHSOfDot(nameExpression)

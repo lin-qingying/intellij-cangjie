@@ -5,6 +5,7 @@ import com.huawei.cangjie.builtins.createFunctionType
 import com.huawei.cangjie.builtins.isBuiltinExtensionFunctionalType
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
+ 
 import com.huawei.cangjie.resolve.calls.inference.constraintPosition.ConstraintPosition
 import com.huawei.cangjie.resolve.calls.inference.constraintPosition.ConstraintPositionKind
 import com.huawei.cangjie.resolve.calls.inference.model.TypeVariable

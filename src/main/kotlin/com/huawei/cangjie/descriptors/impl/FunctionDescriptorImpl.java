@@ -93,14 +93,14 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 //                }
 //            }
 
-            Function0<List<VariableDescriptorBase>> destructuringVariablesAction = null;
+            Function0<List<VariableDescriptor>> destructuringVariablesAction = null;
             if (unsubstitutedValueParameter instanceof ValueParameterDescriptorImpl.WithDestructuringDeclaration) {
-                final List<VariableDescriptorBase> destructuringVariables =
+                final List<VariableDescriptor> destructuringVariables =
                         ((ValueParameterDescriptorImpl.WithDestructuringDeclaration) unsubstitutedValueParameter)
                                 .getDestructuringVariables();
-                destructuringVariablesAction = new Function0<List<VariableDescriptorBase>>() {
+                destructuringVariablesAction = new Function0<List<VariableDescriptor>>() {
                     @Override
-                    public List<VariableDescriptorBase> invoke() {
+                    public List<VariableDescriptor> invoke() {
                         return destructuringVariables;
                     }
                 };

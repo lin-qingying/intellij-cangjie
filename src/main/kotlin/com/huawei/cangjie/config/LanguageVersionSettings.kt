@@ -154,8 +154,8 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER), // K
 //
 //    // In the next block, features can be enabled only along with new inference
 //    // v----------------------------------------------------------------------v
-//    SamConversionForCangJieFunctions(CANGJIE_0_53_4),
-//    SamConversionPerArgument(CANGJIE_0_53_4),
+    SamConversionForCangJieFunctions(CANGJIE_0_53_4),
+    SamConversionPerArgument(CANGJIE_0_53_4),
 //    FunctionReferenceWithDefaultValueAsOtherType(CANGJIE_0_53_4),
 //    OverloadResolutionByLambdaReturnType(CANGJIE_0_53_4),
 //    ContractsOnCallsWithImplicitReceiver(CANGJIE_0_53_4),
@@ -222,7 +222,7 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER), // K
 //    TypeEnhancementImprovementsInStrictMode(CANGJIE_0_53_4),
 //    OptInRelease(CANGJIE_0_53_4),
 //    ProhibitNonExhaustiveWhenOnAlgebraicTypes(CANGJIE_0_53_4, kind = BUG_FIX),
-//    UseBuilderInferenceWithoutAnnotation(CANGJIE_0_53_4),
+    UseBuilderInferenceWithoutAnnotation(CANGJIE_0_53_4),
 //    ProhibitSmartcastsOnPropertyFromAlienBaseClass(CANGJIE_0_53_4, kind = BUG_FIX),
 //    ProhibitInvalidCharsInNativeIdentifiers(CANGJIE_0_53_4, kind = BUG_FIX),
     DefinitelyNonNullableTypes(CANGJIE_0_53_4),
@@ -243,7 +243,7 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER), // K
 //    ProhibitQualifiedAccessToUninitializedEnumEntry(CANGJIE_0_53_4, kind = BUG_FIX), // KT-41124
 //    ForbidRecursiveDelegateExpressions(CANGJIE_0_53_4, kind = BUG_FIX),
 //    CangJieFunInterfaceConstructorReference(CANGJIE_0_53_4),
-//    SuspendOnlySamConversions(CANGJIE_0_53_4),
+    SuspendOnlySamConversions(CANGJIE_0_53_4),
 //
 //    // 1.8
 //
@@ -324,7 +324,7 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER), // K
 //    DisableCompatibilityModeForNewInference(
 //        CANGJIE_0_53_4,
 //        kind = OTHER
-//    ), // KT-63558 (umbrella), KT-64306, KT-64307, KT-64308
+//    ),
 //    DfaBooleanVariables(CANGJIE_0_53_4), // KT-25747
 //
 //    // 2.1
@@ -393,7 +393,7 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER), // K
 //    InlineLateinit(sinceVersion = null, kind = OTHER), // KT-23814
 //    EnableDfaWarningsInK2(sinceVersion = null, kind = OTHER), // KT-50965
 //    ContractSyntaxV2(sinceVersion = null, kind = UNSTABLE_FEATURE), // KT-56127
-//    ImplicitSignedToUnsignedIntegerConversion(sinceVersion = null), // KT-56583
+    ImplicitSignedToUnsignedIntegerConversion(sinceVersion = null), // KT-56583
 //    IntrinsicConstEvaluation(sinceVersion = null, kind = UNSTABLE_FEATURE), // KT-49303
 //    DisableCheckingChangedProgressionsResolve(sinceVersion = null, kind = OTHER), // KT-49276
 //    ContextSensitiveEnumResolutionInWhen(sinceVersion = null, kind = UNSTABLE_FEATURE), // KT-52774

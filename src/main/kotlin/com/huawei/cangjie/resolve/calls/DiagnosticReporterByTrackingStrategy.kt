@@ -1,27 +1,34 @@
 package com.huawei.cangjie.resolve.calls
 
 import com.huawei.cangjie.builtins.UnsignedTypes
+import com.huawei.cangjie.builtins.isExtensionFunctionType
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.descriptors.Diagnostic
 import com.huawei.cangjie.descriptors.Errors.*
 import com.huawei.cangjie.diagnostics.DiagnosticFactory2
 import com.huawei.cangjie.diagnostics.reportDiagnosticOnce
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.psiUtil.lastBlockStatementOrThis
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
 import com.huawei.cangjie.resolve.calls.inference.model.*
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
+import com.huawei.cangjie.resolve.calls.smartcasts.SingleSmartCast
 import com.huawei.cangjie.resolve.calls.smartcasts.SmartCastManager
 import com.huawei.cangjie.resolve.calls.tasks.TracingStrategy
 import com.huawei.cangjie.resolve.calls.tower.*
 import com.huawei.cangjie.resolve.calls.util.extractCallableReferenceExpression
+import com.huawei.cangjie.resolve.calls.util.getResolvedCall
+import com.huawei.cangjie.resolve.calls.util.reportTrailingLambdaErrorOr
 import com.huawei.cangjie.resolve.constants.CompileTimeConstantChecker
 import com.huawei.cangjie.resolve.constants.TypedCompileTimeConstant
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import com.huawei.cangjie.resolve.descriptorUtil.module
+import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver
 import com.huawei.cangjie.types.AbstractTypeChecker
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.checker.intersectWrappedTypes
 import com.huawei.cangjie.types.model.TypeSystemInferenceExtensionContextDelegate
 import com.huawei.cangjie.utils.shouldNotBeCalled
 import io.github.classgraph.TypeArgument
@@ -186,19 +193,267 @@ class DiagnosticReporterByTrackingStrategy(
     }
 
     override fun onCallName(diagnostic: CangJieCallDiagnostic) {
-//        TODO("Not yet implemented")
+
     }
 
     override fun onTypeArgument(typeArgument: TypeArgument, diagnostic: CangJieCallDiagnostic) {
-        TODO("Not yet implemented")
+
     }
 
     override fun onCallReceiver(callReceiver: SimpleCangJieCallArgument, diagnostic: CangJieCallDiagnostic) {
-//        TODO("Not yet implemented")
+        when (diagnostic) {
+            is UnsafeCallError -> {
+                val isForImplicitInvoke = when (callReceiver) {
+                    is ReceiverExpressionCangJieCallArgument -> callReceiver.isForImplicitInvoke
+                    else -> diagnostic.isForImplicitInvoke
+                            || callReceiver.receiver.receiverValue.type.isExtensionFunctionType
+                }
+
+                tracingStrategy.unsafeCall(trace, callReceiver.receiver.receiverValue.type, isForImplicitInvoke)
+            }
+
+//            is SuperAsExtensionReceiver -> {
+//                val psiExpression = callReceiver.psiExpression
+//                if (psiExpression is KtSuperExpression) {
+//                    trace.report(SUPER_CANT_BE_EXTENSION_RECEIVER.on(psiExpression, psiExpression.text))
+//                }
+//            }
+//
+//            is StubBuilderInferenceReceiver -> {
+//                val stubType = callReceiver.receiver.receiverValue.type as? StubTypeForBuilderInference
+//                val originalTypeParameter = stubType?.originalTypeVariable?.originalTypeParameter
+//
+//                trace.report(
+//                    BUILDER_INFERENCE_STUB_RECEIVER.on(
+//                        callReceiver.psiExpression ?: call.callElement,
+//                        originalTypeParameter?.name ?: SpecialNames.NO_NAME_PROVIDED,
+//                        originalTypeParameter?.containingDeclaration?.name ?: SpecialNames.NO_NAME_PROVIDED
+//                    )
+//                )
+//            }
+            else -> {
+                unknownError(diagnostic, "onCallReceiver")
+            }
+        }
+    }
+
+    private fun reportSmartCast(smartCastDiagnostic: SmartCastDiagnostic) {
+        val expressionArgument = smartCastDiagnostic.argument
+        val smartCastResult = when (expressionArgument) {
+            is ExpressionCangJieCallArgumentImpl -> {
+                trace.markAsReported()
+                val context = context.replaceDataFlowInfo(expressionArgument.dataFlowInfoBeforeThisArgument)
+                val argumentExpression = CjPsiUtil.getLastElementDeparenthesized(
+                    expressionArgument.valueArgument.getArgumentExpression(),
+                    context.statementFilter
+                )
+                val dataFlowValue =
+                    dataFlowValueFactory.createDataFlowValue(expressionArgument.receiver.receiverValue, context)
+                val call = if (call.callElement is CjBinaryExpression) null else call
+                if (!expressionArgument.valueArgument.isExternal()) {
+                    smartCastManager.checkAndRecordPossibleCast(
+                        dataFlowValue, smartCastDiagnostic.smartCastType, argumentExpression, context, call,
+                        recordExpressionType = false
+                    )
+                } else null
+            }
+
+            is ReceiverExpressionCangJieCallArgument -> {
+                trace.markAsReported()
+                val receiverValue = expressionArgument.receiver.receiverValue
+                val dataFlowValue = dataFlowValueFactory.createDataFlowValue(receiverValue, context)
+                smartCastManager.checkAndRecordPossibleCast(
+                    dataFlowValue,
+                    smartCastDiagnostic.smartCastType,
+                    (receiverValue as? ExpressionReceiver)?.expression,
+                    context,
+                    call,
+                    recordExpressionType = true
+                )
+            }
+
+            else -> null
+        }
+        val resolvedCall =
+            smartCastDiagnostic.cangjieCall?.psiCangJieCall?.psiCall?.getResolvedCall(trace.bindingContext) as? NewResolvedCallImpl<*>
+        if (resolvedCall != null && smartCastResult != null) {
+            if (resolvedCall.extensionReceiver == expressionArgument.receiver.receiverValue) {
+                resolvedCall.updateExtensionReceiverWithSmartCastIfNeeded(smartCastResult.resultType)
+            }
+            if (resolvedCall.dispatchReceiver == expressionArgument.receiver.receiverValue) {
+                resolvedCall.setSmartCastDispatchReceiverType(smartCastResult.resultType)
+            }
+        }
+    }
+
+    private fun reportUnstableSmartCast(unstableSmartCast: UnstableSmartCast) {
+        val dataFlowValue =
+            dataFlowValueFactory.createDataFlowValue(unstableSmartCast.argument.receiver.receiverValue, context)
+        val possibleTypes = unstableSmartCast.argument.receiver.typesFromSmartCasts
+        val argumentExpression = unstableSmartCast.argument.psiExpression ?: return
+
+        require(possibleTypes.isNotEmpty()) { "Receiver for unstable smart cast without possible types" }
+        val intersectWrappedTypes = intersectWrappedTypes(possibleTypes)
+        trace.record(
+            BindingContext.UNSTABLE_SMARTCAST,
+            argumentExpression,
+            SingleSmartCast(null, intersectWrappedTypes)
+        )
+        trace.report(
+            SMARTCAST_IMPOSSIBLE.on(
+                argumentExpression,
+                intersectWrappedTypes,
+                argumentExpression.text,
+                dataFlowValue.kind.description
+            )
+        )
     }
 
     override fun onCallArgument(callArgument: CangJieCallArgument, diagnostic: CangJieCallDiagnostic) {
-        TODO("Not yet implemented")
+        when (diagnostic) {
+            is SmartCastDiagnostic -> reportSmartCast(diagnostic)
+            is UnstableSmartCast -> reportUnstableSmartCast(diagnostic)
+            is VisibilityErrorOnArgument -> {
+                val invisibleMember = diagnostic.invisibleMember
+                val argumentExpression =
+                    diagnostic.argument.psiCallArgument.valueArgument.getArgumentExpression()
+                        ?.lastBlockStatementOrThis()
+
+                if (argumentExpression != null) {
+                    trace.report(
+                        INVISIBLE_MEMBER.on(
+                            argumentExpression,
+                            invisibleMember,
+                            invisibleMember.visibility,
+                            invisibleMember
+                        )
+                    )
+                }
+            }
+
+            is TooManyArguments -> {
+                trace.reportTrailingLambdaErrorOr(callArgument.psiExpression) { expr ->
+                    TOO_MANY_ARGUMENTS.on(expr, diagnostic.descriptor)
+                }
+
+                trace.markAsReported()
+            }
+
+            is VarargArgumentOutsideParentheses -> trace.reportTrailingLambdaErrorOr(callArgument.psiExpression) { expr ->
+                VARARG_OUTSIDE_PARENTHESES.on(expr)
+            }
+
+            is MixingNamedAndPositionArguments -> {
+                trace.report(MIXING_NAMED_AND_POSITIONED_ARGUMENTS.on(callArgument.psiCallArgument.valueArgument.asElement()))
+            }
+
+            is NoneCallableReferenceCallCandidates -> {
+                val argument = diagnostic.argument
+                val expression = (argument as? CallableReferenceCangJieCallArgumentImpl)?.cjCallableReferenceExpression
+                if (expression != null) {
+                    trace.report(UNRESOLVED_REFERENCE.on(expression.callableReference, expression.callableReference))
+                }
+            }
+
+            is CallableReferenceCallCandidatesAmbiguity -> {
+                val expression = when (val psiExpression = diagnostic.argument.psiExpression) {
+                    is CjPsiUtil.CjExpressionWrapper -> psiExpression.baseExpression
+                    else -> psiExpression
+                } as? CjCallableReferenceExpression
+
+                val candidates = diagnostic.candidates.map { it.candidate }
+                if (expression != null) {
+                    trace.reportDiagnosticOnce(
+                        CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY.on(
+                            expression.callableReference,
+                            candidates
+                        )
+                    )
+                    trace.record(BindingContext.AMBIGUOUS_REFERENCE_TARGET, expression.callableReference, candidates)
+                }
+            }
+
+//            is ArgumentNullabilityErrorDiagnostic -> reportNullabilityMismatchDiagnostic(callArgument, diagnostic)
+//
+//            is ArgumentNullabilityWarningDiagnostic -> reportNullabilityMismatchDiagnostic(callArgument, diagnostic)
+//
+//            is CallableReferencesDefaultArgumentUsed -> {
+//                val callableReferenceExpression = diagnostic.argument.call.extractCallableReferenceExpression()
+//
+//                require(callableReferenceExpression != null) {
+//                    "A call element must be callable reference for `CallableReferencesDefaultArgumentUsed`"
+//                }
+//
+//                trace.report(
+//                    UNSUPPORTED_FEATURE.on(
+//                        callableReferenceExpression,
+//                        LanguageFeature.FunctionReferenceWithDefaultValueAsOtherType to context.languageVersionSettings
+//                    )
+//                )
+//            }
+
+//            is ResolvedToSamWithVarargDiagnostic -> {
+//                trace.report(TYPE_INFERENCE_CANDIDATE_WITH_SAM_AND_VARARG.on(callArgument.psiCallArgument.valueArgument.asElement()))
+//            }
+
+            is NotEnoughInformationForLambdaParameter -> {
+                val lambdaArgument = diagnostic.lambdaArgument
+                val parameterIndex = diagnostic.parameterIndex
+
+                val valueArgument = lambdaArgument.psiCallArgument.valueArgument
+
+                val valueParameters =
+                    when (val argumentExpression = CjPsiUtil.deparenthesize(valueArgument.getArgumentExpression())) {
+                        is CjLambdaExpression -> argumentExpression.valueParameters
+                        is CjNamedFunction -> argumentExpression.valueParameters // for anonymous functions
+                        else -> return
+                    }
+
+                val parameter = valueParameters.getOrNull(parameterIndex)
+                if (parameter != null) {
+                    trace.report(CANNOT_INFER_PARAMETER_TYPE.on(parameter))
+                }
+            }
+
+            is CompatibilityWarningOnArgument -> {
+                trace.report(
+                    COMPATIBILITY_WARNING.on(
+                        callArgument.psiCallArgument.valueArgument.asElement(),
+                        diagnostic.candidate
+                    )
+                )
+            }
+
+//            is AdaptedCallableReferenceIsUsedWithReflection -> {
+//                trace.report(
+//                    ADAPTED_CALLABLE_REFERENCE_AGAINST_REFLECTION_TYPE.on(
+//                        callArgument.psiCallArgument.valueArgument.asElement()
+//                    )
+//                )
+//            }
+//
+//            is MultiLambdaBuilderInferenceRestriction -> {
+//                val typeParameter = diagnostic.typeParameter as? TypeParameterDescriptor
+//
+//                trace.reportDiagnosticOnce(
+//                    BUILDER_INFERENCE_MULTI_LAMBDA_RESTRICTION.on(
+//                        callArgument.psiCallArgument.valueArgument.asElement(),
+//                        typeParameter?.name ?: SpecialNames.NO_NAME_PROVIDED,
+//                        typeParameter?.containingDeclaration?.name ?: SpecialNames.NO_NAME_PROVIDED,
+//                    )
+//                )
+//            }
+//
+//            is NotCallableMemberReference, is NotCallableExpectedType -> {
+//                // NotCallableMemberReference -> UNSUPPORTED is reported in DoubleColonExpressionResolver
+//                // NotCallableExpectedType -> TYPE_MISMATCH is reported in reportConstraintErrorByPosition
+//                return
+//            }
+
+            else -> {
+                unknownError(diagnostic, "onCallArgument")
+            }
+        }
     }
 
     override fun onCallArgumentName(callArgument: CangJieCallArgument, diagnostic: CangJieCallDiagnostic) {
@@ -254,6 +509,7 @@ class DiagnosticReporterByTrackingStrategy(
 //        }
 
     }
+
     private fun reportArgumentConstraintErrorByPosition(
         error: NewConstraintMismatch,
         argument: CangJieCallArgument,
@@ -279,8 +535,7 @@ class DiagnosticReporterByTrackingStrategy(
 
         val expression = argument.psiExpression ?: run {
             val psiCall = (selectorCall as? PSICangJieCall)?.psiCall ?: psiCangJieCall.psiCall
-            // Note: we don't report RECEIVER_TYPE_MISMATCH w/out ProperTypeInferenceConstraintsProcessing
-            // See KT-57854. This is needed for intellij.go.tests (recursive generics case) compilation with K1
+
             if (context.languageVersionSettings.supportsFeature(LanguageFeature.ProperTypeInferenceConstraintsProcessing) &&
                 reportAdditionalErrors
             ) {
@@ -302,9 +557,7 @@ class DiagnosticReporterByTrackingStrategy(
             if (expressionType != null &&
                 !UnsignedTypes.isUnsignedType(compileTimeConstant.type) && UnsignedTypes.isUnsignedType(expressionType)
             ) {
-                // This is a special "hack" to prevent TYPE_MISMATCH
-                // in case of a compile-time constant with signed VS unsigned type
-                // See conversionOfSignedToUnsigned.kt diagnostic test
+
                 return
             }
         }
@@ -314,7 +567,8 @@ class DiagnosticReporterByTrackingStrategy(
     private fun reportConstantTypeMismatch(constraintError: NewConstraintMismatch, expression: CjExpression): Boolean {
         if (expression is CjConstantExpression) {
             val module = context.scope.ownerDescriptor.module
-            val constantValue = constantExpressionEvaluator.evaluateToConstantValue(expression, trace, context.expectedType)
+            val constantValue =
+                constantExpressionEvaluator.evaluateToConstantValue(expression, trace, context.expectedType)
             val hasConstantTypeError = CompileTimeConstantChecker(context, module, true)
                 .checkConstantExpressionType(constantValue, expression, constraintError.upperCangJieType)
             if (hasConstantTypeError) return true
@@ -328,6 +582,7 @@ class DiagnosticReporterByTrackingStrategy(
     ) {
         trace.report(TYPE_MISMATCH.on(rhsExpression, error.lowerCangJieType, error.upperCangJieType))
     }
+
     private fun reportConstraintErrorByPosition(error: NewConstraintMismatch, position: ConstraintPosition) {
         if (position is CallableReferenceConstraintPositionImpl) {
             val callableReferenceExpression = position.callableReferenceCall.call.extractCallableReferenceExpression()
@@ -385,11 +640,14 @@ class DiagnosticReporterByTrackingStrategy(
             is BuilderInferenceSubstitutionConstraintPosition<*> -> {
                 reportConstraintErrorByPosition(error, position.initialConstraint.position)
             }
+
             is ExplicitTypeParameterConstraintPosition<*> -> {
-                val typeArgumentReference = (position.typeArgument as SimpleTypeArgumentImpl).typeProjection.typeReference ?: return
+                val typeArgumentReference =
+                    (position.typeArgument as SimpleTypeArgumentImpl).typeProjection.typeReference ?: return
                 val diagnosticFactory = if (isWarning) UPPER_BOUND_VIOLATED_WARNING else UPPER_BOUND_VIOLATED
                 report(diagnosticFactory.on(typeArgumentReference, error.upperCangJieType, error.lowerCangJieType))
             }
+
             is FixVariableConstraintPosition<*> -> {
                 val morePreciseDiagnosticExists = allDiagnostics.any { other ->
                     val otherError = other.constraintSystemError ?: return@any false
@@ -437,7 +695,7 @@ class DiagnosticReporterByTrackingStrategy(
             is IncorporationConstraintPosition,
 //            is InjectedAnotherStubTypeConstraintPosition<*>,
             is /*LHSArgumentConstraintPosition<*, *>,*/ SimpleConstraintSystemConstraintPosition/*, ProvideDelegateFixationPosition*/
-            -> {
+                -> {
                 if (AbstractTypeChecker.RUN_SLOW_ASSERTIONS) {
                     throw AssertionError("Constraint error in unexpected position: $position")
                 } else if (reportAdditionalErrors) {
@@ -451,8 +709,6 @@ class DiagnosticReporterByTrackingStrategy(
                     )
                 }
             }
-
-
 
 
         }
@@ -489,7 +745,10 @@ class DiagnosticReporterByTrackingStrategy(
                 val typeVariable = error.typeVariable as? TypeVariableFromCallableDescriptor ?: return
 
                 trace.reportDiagnosticOnce(
-                    INFERRED_INTO_DECLARED_UPPER_BOUNDS.on(expression, typeVariable.originalTypeParameter.name.asString())
+                    INFERRED_INTO_DECLARED_UPPER_BOUNDS.on(
+                        expression,
+                        typeVariable.originalTypeParameter.name.asString()
+                    )
                 )
             }
 //
@@ -598,5 +857,6 @@ class DiagnosticReporterByTrackingStrategy(
 
     }
 }
+
 val NewConstraintMismatch.upperCangJieType get() = upperType as CangJieType
 val NewConstraintMismatch.lowerCangJieType get() = lowerType as CangJieType

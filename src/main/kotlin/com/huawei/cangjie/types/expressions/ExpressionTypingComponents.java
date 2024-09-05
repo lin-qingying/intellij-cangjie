@@ -4,10 +4,7 @@ import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.descriptors.ModuleDescriptor;
 import com.huawei.cangjie.extensions.TypeResolutionInterceptor;
-import com.huawei.cangjie.resolve.FunctionDescriptorResolver;
-import com.huawei.cangjie.resolve.IdentifierChecker;
-import com.huawei.cangjie.resolve.LocalVariableResolver;
-import com.huawei.cangjie.resolve.OverloadChecker;
+import com.huawei.cangjie.resolve.*;
 import com.huawei.cangjie.resolve.calls.CallExpressionResolver;
 import com.huawei.cangjie.resolve.calls.model.CangJieCallComponents;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
@@ -22,6 +19,7 @@ public class ExpressionTypingComponents {
     public LanguageVersionSettings languageVersionSettings;
     public ModuleDescriptor moduleDescriptor;
     public FunctionDescriptorResolver functionDescriptorResolver;
+    public CollectionLiteralResolver collectionLiteralResolver;
 
     public LocalVariableResolver localVariableResolver;
     public TypeResolutionInterceptor typeResolutionInterceptor;
@@ -42,6 +40,11 @@ public class ExpressionTypingComponents {
     public void setDataFlowAnalyzer(@NotNull DataFlowAnalyzer dataFlowAnalyzer) {
         this.dataFlowAnalyzer = dataFlowAnalyzer;
     }
+    @Inject
+    public void setCollectionLiteralResolver(CollectionLiteralResolver collectionLiteralResolver) {
+        this.collectionLiteralResolver = collectionLiteralResolver;
+    }
+
     @Inject
     public void setModuleDescriptor(@NotNull ModuleDescriptor moduleDescriptor) {
         this.moduleDescriptor = moduleDescriptor;

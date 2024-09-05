@@ -16,7 +16,7 @@ class ExplicitImportsScope(private val descriptors: Collection<DeclarationDescri
         return descriptors.filter { it.name == name }.firstIsInstanceOrNull<PackageViewDescriptor>()
     }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): List<VariableDescriptor> {
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
         return descriptors.filter { it.name == name }.filterIsInstance<VariableDescriptor>()
     }
 

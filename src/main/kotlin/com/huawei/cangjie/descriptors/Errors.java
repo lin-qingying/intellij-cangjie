@@ -53,6 +53,7 @@ public interface Errors {
     DiagnosticFactory2<CjTypeReference, CangJieType, CangJieType> UPPER_BOUND_VIOLATED_WARNING = DiagnosticFactory2.create(WARNING);
     DiagnosticFactory1<PsiElement, String> INFERRED_INTO_DECLARED_UPPER_BOUNDS = DiagnosticFactory1.create(WARNING);
     DiagnosticFactory0<CjReturnExpression> RETURN_NOT_ALLOWED = DiagnosticFactory0.create(ERROR, PositioningStrategies.RETURN_WITH_LABEL);
+    DiagnosticFactory0<CjExpression> SIGNED_CONSTANT_CONVERTED_TO_UNSIGNED = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactory3<CjSimpleNameExpression, DeclarationDescriptor, DescriptorVisibility, FqName> INVISIBLE_REFERENCE_REEXPORT =
             DiagnosticFactory3.create(ERROR);
@@ -71,6 +72,14 @@ public interface Errors {
     DiagnosticFactory0<CjReferenceExpression> NAME_FOR_AMBIGUOUS_PARAMETER = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<CjReferenceExpression, CjReferenceExpression> NAMED_PARAMETER_NOT_FOUND =
             DiagnosticFactory1.create(ERROR, FOR_UNRESOLVED_REFERENCE);
+    DiagnosticFactory0<CjExpression> VARARG_OUTSIDE_PARENTHESES = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory3<CjExpression, CangJieType, String, String> SMARTCAST_IMPOSSIBLE = DiagnosticFactory3.create(ERROR);
+    DiagnosticFactory1<PsiElement, Collection<? extends CallableDescriptor>> CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY =
+            DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<CjElement, CallableDescriptor> COMPATIBILITY_WARNING = DiagnosticFactory1.create(WARNING);
+    DiagnosticFactory1<PsiElement, CangJieType> UNSAFE_CALL = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, CangJieType> UNSAFE_IMPLICIT_INVOKE_CALL = DiagnosticFactory1.create(ERROR);
+
     DiagnosticFactory2<CjExpression, CjExpression, Boolean> FUNCTION_CALL_EXPECTED = DiagnosticFactory2.create(ERROR, CALL_EXPRESSION);
     DiagnosticFactory3<CjReferenceExpression, ClassifierDescriptor, WrongResolutionToClassifier, String> RESOLUTION_TO_CLASSIFIER =
             DiagnosticFactory3.create(ERROR);
@@ -107,6 +116,7 @@ public interface Errors {
     DiagnosticFactory1<CjNamedDeclaration, TypeParameterDescriptor> CONFLICTING_UPPER_BOUNDS =
             DiagnosticFactory1.create(ERROR, DECLARATION_NAME);
     DiagnosticFactory1<CjElement, CangJieType> TYPE_MISMATCH_DUE_TO_EQUALS_LAMBDA_IN_FUN = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, String> MISSING_STDLIB = DiagnosticFactory1.create(ERROR);
 
     DiagnosticFactory1<CjDeclaration, Collection<CangJieType>> AMBIGUOUS_ANONYMOUS_TYPE_INFERRED =
             DiagnosticFactory1.create(ERROR, DECLARATION_SIGNATURE);
@@ -203,7 +213,7 @@ public interface Errors {
     DiagnosticFactory0<CjParameter> DUPLICATE_PARAMETER_NAME_IN_FUNCTION_TYPE = DiagnosticFactory0.create(ERROR, DECLARATION_NAME);
     DiagnosticFactory0<CjElement> SUBTYPING_BETWEEN_CONTEXT_RECEIVERS = DiagnosticFactory0.create(ERROR);
 
-    DiagnosticFactory1<CjParameter, VariableDescriptorBase> UNUSED_ANONYMOUS_PARAMETER = DiagnosticFactory1.create(WARNING, DECLARATION_NAME);
+    DiagnosticFactory1<CjParameter, VariableDescriptor> UNUSED_ANONYMOUS_PARAMETER = DiagnosticFactory1.create(WARNING, DECLARATION_NAME);
     ImmutableSet<? extends DiagnosticFactory<?>> UNUSED_ELEMENT_DIAGNOSTICS = ImmutableSet.of(
             UNUSED_PARAMETER/*, UNUSED_VARIABLE,  ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE, VARIABLE_WITH_REDUNDANT_INITIALIZER,
             UNUSED_LAMBDA_EXPRESSION, USELESS_CAST, UNUSED_VALUE, USELESS_ELVIS, UNNECESSARY_LATEINIT, REDUNDANT_ELSE_IN_WHEN*/);

@@ -8,6 +8,7 @@ import com.huawei.cangjie.incremental.components.LookupTracker
 import com.huawei.cangjie.resolve.calls.components.ArgumentsToParametersMapper
 import com.huawei.cangjie.resolve.calls.components.CangJieResolutionStatelessCallbacks
 import com.huawei.cangjie.resolve.calls.inference.components.ConstraintInjector
+
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.huawei.cangjie.types.TypeSubstitutor
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner

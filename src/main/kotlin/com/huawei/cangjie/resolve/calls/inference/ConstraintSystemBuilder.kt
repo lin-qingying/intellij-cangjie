@@ -1,5 +1,6 @@
 package com.huawei.cangjie.resolve.calls.inference
 
+import com.huawei.cangjie.resolve.calls.inference.model.ConstraintKind
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintPosition
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintSystemError
@@ -73,4 +74,24 @@ interface ConstraintSystemBuilder : ConstraintSystemOperation {
     fun buildCurrentSubstitutor(): TypeSubstitutorMarker
 
     fun currentStorage(): ConstraintStorage
+}
+fun ConstraintSystemBuilder.addSubtypeConstraintIfCompatible(
+    lowerType: CangJieTypeMarker,
+    upperType: CangJieTypeMarker,
+    position: ConstraintPosition
+): Boolean = addConstraintIfCompatible(lowerType, upperType, position, ConstraintKind.LOWER)
+private fun ConstraintSystemBuilder.addConstraintIfCompatible(
+    lowerType: CangJieTypeMarker,
+    upperType: CangJieTypeMarker,
+    position: ConstraintPosition,
+    kind: ConstraintKind
+): Boolean = runTransaction {
+    if (!hasContradiction) {
+        when (kind) {
+            ConstraintKind.LOWER -> addSubtypeConstraint(lowerType, upperType, position)
+            ConstraintKind.UPPER -> addSubtypeConstraint(upperType, lowerType, position)
+            ConstraintKind.EQUALITY -> addEqualityConstraint(lowerType, upperType, position)
+        }
+    }
+    !hasContradiction
 }

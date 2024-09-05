@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.descriptors.VariableDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.selectMostSpecificInEachOverridableGroup
@@ -13,7 +14,7 @@ class TypeIntersectionScope private constructor(private val debugName: String, o
     override fun getContributedFunctions(name: Name, location: LookupLocation) =
         super.getContributedFunctions(name, location).selectMostSpecificInEachOverridableGroup { this }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation) =
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> =
         super.getContributedVariables(name, location).selectMostSpecificInEachOverridableGroup { this }
 
     override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> {

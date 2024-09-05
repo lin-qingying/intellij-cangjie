@@ -19,6 +19,9 @@ import com.intellij.psi.tree.TokenSet
 import com.intellij.util.codeInsight.CommentUtilCore
 import java.util.*
 
+fun CjExpression.lastBlockStatementOrThis(): CjExpression =
+    (this as? CjBlockExpression)?.statements?.lastOrNull() ?: this
+
 // Annotations on labeled expression lies on it's base expression
 fun CjExpression.getAnnotationEntries(): List<CjAnnotationEntry> {
     return when (val parent = parent) {

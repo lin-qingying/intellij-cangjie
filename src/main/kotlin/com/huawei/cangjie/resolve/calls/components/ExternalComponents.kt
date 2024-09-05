@@ -4,17 +4,21 @@ import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor
+import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.NewConstraintSystem
 import com.huawei.cangjie.resolve.calls.inference.components.ConstraintInjector
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage
+import com.huawei.cangjie.resolve.calls.inference.model.NewTypeVariable
 import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableTypeConstructor
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.results.SimpleConstraintSystem
 import com.huawei.cangjie.resolve.calls.tower.CandidateFactoryProviderForInvoke
 import com.huawei.cangjie.resolve.calls.tower.ImplicitScopeTower
+import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstant
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.StubTypeForBuilderInference
 import com.huawei.cangjie.types.UnwrappedType
 
 interface CangJieResolutionStatelessCallbacks {
@@ -47,16 +51,16 @@ interface CangJieResolutionStatelessCallbacks {
 
 // This components hold state (trace). Work with this carefully.
 interface CangJieResolutionCallbacks {
-//    fun analyzeAndGetLambdaReturnArguments(
-//        lambdaArgument: LambdaCangJieCallArgument,
-//        isSuspend: Boolean,
-//        receiverType: UnwrappedType?,
-//        contextReceiversTypes: List<UnwrappedType>,
-//        parameters: List<UnwrappedType>,
-//        expectedReturnType: UnwrappedType?, // null means, that return type is not proper i.e. it depends on some type variables
-//        annotations: Annotations,
-//        stubsForPostponedVariables: Map<NewTypeVariable, StubTypeForBuilderInference>,
-//    ): ReturnArgumentsAnalysisResult
+    fun analyzeAndGetLambdaReturnArguments(
+        lambdaArgument: LambdaCangJieCallArgument,
+
+        receiverType: UnwrappedType?,
+        contextReceiversTypes: List<UnwrappedType>,
+        parameters: List<UnwrappedType>,
+        expectedReturnType: UnwrappedType?, // null means, that return type is not proper i.e. it depends on some type variables
+        annotations: Annotations,
+        stubsForPostponedVariables: Map<NewTypeVariable, StubTypeForBuilderInference>,
+    ): ReturnArgumentsAnalysisResult
 
     fun getCandidateFactoryForInvoke(
         scopeTower: ImplicitScopeTower,
@@ -75,7 +79,7 @@ interface CangJieResolutionCallbacks {
 
     fun bindStubResolvedCallForCandidate(candidate: ResolvedCallAtom)
 
-//    fun isCompileTimeConstant(resolvedAtom: ResolvedCallAtom, expectedType: UnwrappedType): Boolean
+    fun convertSignedConstantToUnsigned(argument: CangJieCallArgument): IntegerValueTypeConstant?
 
     val inferenceSession: InferenceSession
 
@@ -99,3 +103,8 @@ data class ReturnArgumentsInfo(
         val empty = ReturnArgumentsInfo(emptyList(), null, lastExpressionCoercedToUnit = false, returnArgumentsExist = false)
     }
 }
+data class ReturnArgumentsAnalysisResult(
+    val returnArgumentsInfo: ReturnArgumentsInfo,
+    val inferenceSession: InferenceSession?,
+    val hasInapplicableCallForBuilderInference: Boolean = false
+)

@@ -55,7 +55,14 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         require(this is CangJieType, this::errorMessage)
         return this.getPureArgumentsForFunctionalTypeOrSubtype()
     }
-
+    override fun CangJieTypeMarker.getCustomAttributes(): List<AnnotationMarker> {
+        require(this is CangJieType, this::errorMessage)
+        return this.attributes.filterNot { it is AnnotationsTypeAttribute }
+    }
+    override fun CangJieTypeMarker.hasCustomAttributes(): Boolean {
+        require(this is CangJieType, this::errorMessage)
+        return !this.attributes.isEmpty() && this.getCustomAttributes().size > 0
+    }
     override fun createTypeWithUpperBoundForIntersectionResult(
         firstCandidate: CangJieTypeMarker,
         secondCandidate: CangJieTypeMarker,

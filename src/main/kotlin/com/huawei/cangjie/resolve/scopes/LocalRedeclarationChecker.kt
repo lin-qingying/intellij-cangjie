@@ -15,7 +15,7 @@ abstract class AbstractLocalRedeclarationChecker(val overloadChecker: OverloadCh
         val name = newDescriptor.name
         val location = NoLookupLocation.MATCH_CHECK_DECLARATION_CONFLICTS
         when (newDescriptor) {
-            is ClassifierDescriptor, is VariableDescriptorBase -> {
+            is ClassifierDescriptor, is VariableDescriptor -> {
                 val otherDescriptor = scope.getContributedClassifier(name, location)
                     ?: scope.getContributedVariables(name, location).firstOrNull()
                 if (otherDescriptor != null) {

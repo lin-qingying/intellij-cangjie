@@ -4,7 +4,6 @@ import com.huawei.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import com.huawei.cangjie.builtins.StandardNames.FqNames.bool
 import com.huawei.cangjie.builtins.StandardNames.FqNames.cpointer
 import com.huawei.cangjie.builtins.StandardNames.FqNames.cstring
-import com.huawei.cangjie.builtins.StandardNames.FqNames.ctypeFqName
 
 import com.huawei.cangjie.builtins.StandardNames.FqNames.float16
 import com.huawei.cangjie.builtins.StandardNames.FqNames.float32
@@ -37,8 +36,6 @@ import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.Variance
-import com.huawei.cangjie.types.findCangJieTypeByFqName
-import com.huawei.cangjie.types.findClassDescriptorByFqName
 import com.huawei.cangjie.utils.Printer
 import kotlin.reflect.full.memberProperties
 

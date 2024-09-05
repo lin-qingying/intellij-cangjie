@@ -274,7 +274,7 @@ class FileScopeFactory(
                 return emptyList()
             }
 
-            override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
+            override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
                 return emptyList()
 
             }
@@ -510,7 +510,7 @@ class FileScopeFactory(
             return scope.getExtendClass(name)
         }
 
-        override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
+        override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
             if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
             if (name in excludedNames) return emptyList()
             return scope.getContributedVariables(name, location)

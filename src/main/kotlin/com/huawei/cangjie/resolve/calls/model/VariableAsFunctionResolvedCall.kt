@@ -2,9 +2,8 @@ package com.huawei.cangjie.resolve.calls.model
 
 import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.descriptors.VariableDescriptor
-import com.huawei.cangjie.psi.ValueArgument
+
 import com.huawei.cangjie.resolve.DelegatingBindingTrace
-import com.huawei.cangjie.resolve.calls.inference.model.ResolvedValueArgument
 import com.huawei.cangjie.resolve.calls.results.ResolutionStatus
 
 interface VariableAsFunctionResolvedCall {

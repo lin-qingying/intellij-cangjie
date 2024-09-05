@@ -17,8 +17,9 @@ open class ValueParameterDescriptorImpl(
     private val declaresDefaultValue: Boolean,
 //    override val isCrossinline: Boolean,
 //    override val isNoinline: Boolean,
-//    override val varargElementType: CangJieType?,
-    source: SourceElement
+
+    source: SourceElement,
+
 ) : AbstractVariableDescriptor(containingDeclaration, annotations, name, outType, source),
     ValueParameterDescriptor {
 
@@ -36,7 +37,7 @@ open class ValueParameterDescriptorImpl(
 //            isNoinline: Boolean,
 //            varargElementType: CangJieType?,
             source: SourceElement,
-            destructuringVariables: (() -> List<VariableDescriptorBase>)?
+            destructuringVariables: (() -> List<VariableDescriptor>)?
         ): ValueParameterDescriptorImpl =
             if (destructuringVariables == null)
                 ValueParameterDescriptorImpl(
@@ -62,7 +63,7 @@ open class ValueParameterDescriptorImpl(
 //        isNoinline: Boolean,
 //       varargElementType: CangJieType?,
         source: SourceElement,
-        destructuringVariables: () -> List<VariableDescriptorBase>
+        destructuringVariables: () -> List<VariableDescriptor>
     ) : ValueParameterDescriptorImpl(
         containingDeclaration, original, index, annotations, name, outType,
         declaresDefaultValue,
@@ -83,7 +84,7 @@ open class ValueParameterDescriptorImpl(
             ) { destructuringVariables }
         }
     }
-
+    override val varargElementType: CangJieType? = null
     private val myOriginal: ValueParameterDescriptor = original ?: this
 
     override val original
@@ -115,13 +116,11 @@ open class ValueParameterDescriptorImpl(
     }
 
 
-
     override fun getOverriddenDescriptors(): Collection<ValueParameterDescriptor> {
         return containingDeclaration.overriddenDescriptors.map {
             it.valueParameters[index]
         }
     }
-
 
 
     override val containingDeclaration

@@ -2,11 +2,6 @@ package com.huawei.cangjie.resolve.calls.model
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.CallableDescriptor
-import com.huawei.cangjie.descriptors.CallableMemberDescriptor
-import com.huawei.cangjie.descriptors.FunctionDescriptor
-import com.huawei.cangjie.descriptors.VariableDescriptor
-import com.huawei.cangjie.descriptors.annotations.Annotations
-import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.resolve.calls.components.CallableReceiver
 import com.huawei.cangjie.resolve.calls.components.CallableReferenceAdaptation
 import com.huawei.cangjie.resolve.calls.components.CangJieResolutionCallbacks
@@ -21,7 +16,6 @@ import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.UnwrappedType
 import com.huawei.cangjie.types.error.ErrorTypeKind
-import com.huawei.cangjie.types.expressions.CoercionStrategy
 import com.intellij.util.SmartList
 
 
@@ -73,7 +67,7 @@ class CallableReferencesCandidateFactory(
             ?: ErrorUtils.createErrorType(ErrorTypeKind.RETURN_TYPE, descriptor.toString())
 
         return when (descriptor) {
-//            is VariableDescriptor -> {
+//            is VariableCallableDescriptor -> {
 //                val mutable = descriptor.isVar
 ////                        && run {
 ////                    val setter = descriptor.setter

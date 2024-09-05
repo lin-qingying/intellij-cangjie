@@ -200,7 +200,7 @@ fun CjFile.getScope(): FileScope {
 }
 
 class FileScope(val file: CjFile) : MemberScope {
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
         TODO("Not yet implemented")
     }
 

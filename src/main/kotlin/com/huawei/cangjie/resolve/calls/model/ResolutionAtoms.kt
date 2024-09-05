@@ -15,6 +15,7 @@ import com.huawei.cangjie.resolve.calls.inference.model.NewConstraintMismatch
 import com.huawei.cangjie.resolve.calls.inference.model.NewConstraintWarning
 import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableForLambdaReturnType
 import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
+import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstant
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeConstructor
 import com.huawei.cangjie.types.UnwrappedType
@@ -74,17 +75,18 @@ abstract class ResolvedCallAtom : ResolvedAtom() {
     abstract val extensionReceiverArgumentCandidates: List<SimpleCangJieCallArgument>?
     abstract var contextReceiversArguments: List<SimpleCangJieCallArgument>
 
-    //    abstract val typeArgumentMappingByOriginal: TypeArgumentsToParametersMapper.TypeArgumentsMapping
     abstract val argumentMappingByOriginal: Map<ValueParameterDescriptor, ResolvedCallArgument>
     abstract val freshVariablesSubstitutor: FreshVariableNewTypeSubstitutor
+    abstract val argumentsWithSuspendConversion: Map<CangJieCallArgument, UnwrappedType>
 
     abstract val knownParametersSubstitutor: NewTypeSubstitutor
 
         abstract val argumentsWithConversion: Map<CangJieCallArgument, SamConversionDescription>
-//    abstract val argumentsWithSuspendConversion: Map<CangJieCallArgument, UnwrappedType>
+
     abstract val argumentsWithUnitConversion: Map<CangJieCallArgument, UnwrappedType>
 
-    //    abstract val argumentsWithConstantConversion: Map<CangJieCallArgument, IntegerValueTypeConstant>
+    abstract val argumentsWithConstantConversion: Map<CangJieCallArgument, IntegerValueTypeConstant>
+
     abstract fun setCandidateDescriptor(newCandidateDescriptor: CallableDescriptor)
 }
 
@@ -100,6 +102,9 @@ sealed class CallResolutionResult(
     val constraintSystem: NewConstraintSystem
 ) : ResolvedAtom() {
     override val atom: ResolutionAtom? get() = null
+
+    override fun toString(): String = "diagnostics: (${diagnostics.joinToString()})"
+
     fun completedDiagnostic(substitutor: NewTypeSubstitutor): List<CangJieCallDiagnostic> {
         return diagnostics.map {
             val error = it.constraintSystemError ?: return@map it
@@ -314,5 +319,21 @@ class LambdaWithTypeVariableAsExpectedTypeAtom(
 
     fun setAnalyzed(resolvedLambdaAtom: ResolvedLambdaAtom) {
         setAnalyzedResults(listOf(resolvedLambdaAtom))
+    }
+}
+class ResolvedCollectionLiteralAtom(
+    override val atom: CollectionLiteralCangJieCallArgument,
+    val expectedType: UnwrappedType?
+) : ResolvedAtom() {
+    init {
+        setAnalyzedResults(listOf())
+    }
+}
+class ResolvedSubCallArgument(override val atom: SubCangJieCallArgument, resolveIndependently: Boolean) : ResolvedAtom() {
+    init {
+        if (resolveIndependently)
+            setAnalyzedResults(listOf())
+        else
+            setAnalyzedResults(listOf(atom.callResult))
     }
 }

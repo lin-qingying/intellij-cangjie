@@ -35,6 +35,7 @@ class AnnotationPresentationInfo(
     companion object {
         private const val CANGJIE_COMPILER_WARNING_ID = "CangJieCompilerWarningOptions"
     }
+
     private fun getDefaultMessage(diagnostic: Diagnostic): String {
         val message = DefaultErrorMessages.render(diagnostic)
         return if (isApplicationInternalMode() || isUnitTestMode()) {
@@ -86,7 +87,7 @@ class AnnotationPresentationInfo(
         range: TextRange,
         group: CangJieSuppressableWarningProblemGroup?
     ): HighlightInfo.Builder {
-        val message = nonDefaultMessage ?: getDefaultMessage(diagnostic)
+        val message = if(nonDefaultMessage.isNullOrEmpty()) getDefaultMessage(diagnostic) else nonDefaultMessage
         val textAttributesToApply = if (textAttributes != null) {
             textAttributes
         } else {

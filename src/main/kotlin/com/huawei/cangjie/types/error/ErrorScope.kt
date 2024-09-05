@@ -24,7 +24,7 @@ open class ErrorScope(val kind: ErrorScopeKind, vararg formatParams: String) : M
         name: Name, location: LookupLocation
     ): DescriptorWithDeprecation<ClassifierDescriptor>? = null
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Set<VariableDescriptor> =
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> =
         ErrorUtils.errorVariableGroup
 
     override fun getContributedPropertys (name: Name, location: LookupLocation): Set<PropertyDescriptor> =

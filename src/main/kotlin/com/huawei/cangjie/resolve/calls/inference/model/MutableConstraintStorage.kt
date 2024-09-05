@@ -90,6 +90,92 @@ class MutableVariableWithConstraints private constructor(
 
         return usefulConstraints
     }
+    private fun newConstraintIsUseless(old: Constraint, new: Constraint): Boolean {
+        // Constraints from declared upper bound are quite special -- they aren't considered as a proper ones
+        // In other words, user-defined constraints have "higher" priority and here we're trying not to loose them
+        if (old.position.from is DeclaredUpperBoundConstraintPosition<*> && new.position.from !is DeclaredUpperBoundConstraintPosition<*>)
+            return false
+
+        /*
+         * We discriminate upper expected type constraints during finding a result type to fix variable (see ResultTypeResolver.kt):
+         * namely, we don't intersect the expected type with other upper constraints' types to prevent cases like this:
+         *  fun <T : String> materialize(): T = null as T
+         *  val bar: Int = materialize() // T is inferred into String & Int without discriminating upper expected type constraints
+         * So here we shouldn't lose upper non-expected type constraints.
+         */
+//        if (old.position.from is ExpectedTypeConstraintPosition<*> && new.position.from !is ExpectedTypeConstraintPosition<*> && old.kind.isUpper() && new.kind.isUpper())
+//            return false
+
+        return when (old.kind) {
+            ConstraintKind.EQUALITY -> true
+            ConstraintKind.LOWER -> new.kind.isLower()
+            ConstraintKind.UPPER -> new.kind.isUpper()
+        }
+    }
+    fun addConstraint(constraint: Constraint): Pair<Constraint, Boolean> {
+        val isLowerAndFlexibleTypeWithDefNotNullLowerBound = constraint.isLowerAndFlexibleTypeWithDefNotNullLowerBound()
+
+        for (previousConstraint in constraints) {
+            if (previousConstraint.typeHashCode == constraint.typeHashCode
+                && previousConstraint.type == constraint.type
+                && previousConstraint.isNullabilityConstraint == constraint.isNullabilityConstraint
+            ) {
+                val noNewCustomAttributes = with(context) {
+                    val previousType = previousConstraint.type
+                    val type = constraint.type
+                    (!previousType.hasCustomAttributes() && !type.hasCustomAttributes()) ||
+                            (previousType.getCustomAttributes() == type.getCustomAttributes())
+                }
+
+                if (newConstraintIsUseless(previousConstraint, constraint)) {
+                    // Preserve constraints with different custom type attributes.
+                    // This allows us to union type attributes in NewCommonSuperTypeCalculator.kt
+                    if (noNewCustomAttributes) {
+                        return previousConstraint to false
+                    }
+                }
+
+                val isMatchingForSimplification = when (previousConstraint.kind) {
+                    ConstraintKind.LOWER -> constraint.kind.isUpper()
+                    ConstraintKind.UPPER -> constraint.kind.isLower()
+                    ConstraintKind.EQUALITY -> true
+                }
+                if (isMatchingForSimplification && noNewCustomAttributes) {
+                    val actualConstraint = if (constraint.kind != ConstraintKind.EQUALITY) {
+                        Constraint(
+                            ConstraintKind.EQUALITY,
+                            constraint.type,
+                            constraint.position.takeIf { it.from !is DeclaredUpperBoundConstraintPosition<*> }
+                                ?: previousConstraint.position,
+                            constraint.typeHashCode,
+                            derivedFrom = constraint.derivedFrom,
+                            isNullabilityConstraint = false
+                        )
+                    } else constraint
+                    mutableConstraints.add(actualConstraint)
+                    simplifiedConstraints = null
+                    return actualConstraint to true
+                }
+            }
+
+            if (isLowerAndFlexibleTypeWithDefNotNullLowerBound &&
+                previousConstraint.isStrongerThanLowerAndFlexibleTypeWithDefNotNullLowerBound(constraint)
+            ) {
+                return previousConstraint to false
+            }
+        }
+
+        mutableConstraints.add(constraint)
+        if (simplifiedConstraints != null && simplifiedConstraints !== mutableConstraints) {
+            simplifiedConstraints!!.add(constraint)
+        }
+
+        if (simplifiedConstraints != null && isLowerAndFlexibleTypeWithDefNotNullLowerBound) {
+            simplifiedConstraints = null
+        }
+
+        return constraint to true
+    }
 
     private fun Constraint.isStrongerThanLowerAndFlexibleTypeWithDefNotNullLowerBound(other: Constraint): Boolean {
         if (this === other) return false

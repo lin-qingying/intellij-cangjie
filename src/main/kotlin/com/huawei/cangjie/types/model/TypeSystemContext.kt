@@ -366,11 +366,13 @@ class ArgumentList(initialSize: Int) : ArrayList<TypeArgumentMarker>(initialSize
 interface TypeSystemContext : TypeSystemOptimizationContext {
     fun CangJieTypeMarker.asSimpleType(): SimpleTypeMarker?
     fun CangJieTypeMarker.asFlexibleType(): FlexibleTypeMarker?
+    fun CangJieTypeMarker.getCustomAttributes(): List<AnnotationMarker>
 
     fun CangJieTypeMarker.isError(): Boolean
     fun TypeConstructorMarker.isError(): Boolean
     fun CangJieTypeMarker.isUninferredParameter(): Boolean
     fun FlexibleTypeMarker.asDynamicType(): DynamicTypeMarker?
+    fun CangJieTypeMarker.hasCustomAttributes(): Boolean
 
     fun CangJieTypeMarker.isRawType(): Boolean
 

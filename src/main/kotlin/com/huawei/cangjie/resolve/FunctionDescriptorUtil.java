@@ -26,10 +26,10 @@ public class FunctionDescriptorUtil {
 //                    }
                     for (ValueParameterDescriptor valueParameterDescriptor : descriptor.getValueParameters()) {
                         if (valueParameterDescriptor instanceof ValueParameterDescriptorImpl.WithDestructuringDeclaration) {
-                            List<VariableDescriptorBase> entries =
+                            List<VariableDescriptor> entries =
                                     ((ValueParameterDescriptorImpl.WithDestructuringDeclaration) valueParameterDescriptor)
                                             .getDestructuringVariables();
-                            for (VariableDescriptorBase entry : entries) {
+                            for (VariableDescriptor entry : entries) {
                                 handler.addVariableDescriptor(entry);
                             }
                         } else {

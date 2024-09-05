@@ -4,6 +4,7 @@ import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.psi.debugtext.DebugTextUtilKt;
 import com.huawei.cangjie.resolve.scopes.receivers.Receiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue;
+
 import com.huawei.cangjie.utils.slicedMap.BasicWritableSlice;
 import com.huawei.cangjie.utils.slicedMap.WritableSlice;
 import com.intellij.lang.ASTNode;
@@ -20,6 +21,16 @@ public class CallMaker {
     @NotNull
     public static ValueArgument makeExternalValueArgument(@NotNull CjExpression expression) {
         return new ExpressionValueArgument(expression, expression, true);
+    }
+
+    public static Call makeCallForCollectionLiteral(@NotNull CjCollectionLiteralExpression collectionLiteralExpression) {
+        return makeCallWithExpressions(
+                collectionLiteralExpression,
+                null,
+                null,
+                collectionLiteralExpression,
+                collectionLiteralExpression.getInnerExpressions(),
+                Call.CallType.DEFAULT);
     }
 
     @NotNull
@@ -152,7 +163,13 @@ public class CallMaker {
     ) {
         return new CallImpl(callElement, explicitReceiver, callOperationNode, calleeExpression, arguments, callType, isSemanticallyEquivalentToSafeCall);
     }
-
+    @NotNull
+    public static Call makeCallWithExpressions(@NotNull CjElement callElement, @Nullable Receiver explicitReceiver,
+                                               @Nullable ASTNode callOperationNode, @NotNull CjExpression calleeExpression,
+                                               @NotNull List<CjExpression> argumentExpressions, @NotNull Call.CallType callType) {
+        return makeCallWithExpressions(callElement, explicitReceiver, callOperationNode, calleeExpression, argumentExpressions, callType,
+                false);
+    }
     @NotNull
     public static Call makeCallWithExpressions(@NotNull CjElement callElement, @Nullable Receiver explicitReceiver,
                                                @Nullable ASTNode callOperationNode, @NotNull CjExpression calleeExpression,

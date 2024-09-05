@@ -69,6 +69,10 @@ class NewConstraintError(
     }
 }
 
+class ExplicitTypeParameterConstraintPositionImpl(
+    typeArgument: SimpleTypeArgument
+) : ExplicitTypeParameterConstraintPosition<SimpleTypeArgument>(typeArgument)
+
 class DeclaredUpperBoundConstraintPositionImpl(
     typeParameter: TypeParameterDescriptor,
     val cangjieCall: CangJieCall

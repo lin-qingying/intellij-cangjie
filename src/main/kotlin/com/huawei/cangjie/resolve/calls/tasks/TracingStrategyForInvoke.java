@@ -74,6 +74,7 @@ public class TracingStrategyForInvoke extends AbstractTracingStrategy {
 
 
 
+
     private void functionExpectedOrNoReceiverAllowed(BindingTrace trace) {
         if (FunctionTypesKt.isNonExtensionFunctionType(calleeType)) {
             trace.report(NO_RECEIVER_ALLOWED.on(reference));

@@ -1,9 +1,11 @@
 package com.huawei.cangjie.builtins
 
 import com.huawei.cangjie.builtins.StandardNames.ANY
+import com.huawei.cangjie.builtins.StandardNames.ARRAY
 import com.huawei.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import com.huawei.cangjie.builtins.StandardNames.FqNames.any
 import com.huawei.cangjie.builtins.StandardNames.FqNames.array
+import com.huawei.cangjie.builtins.StandardNames.FqNames.arrayClassFqNameToPrimitiveType
 import com.huawei.cangjie.builtins.StandardNames.FqNames.bool
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int16
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int32
@@ -11,6 +13,7 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.int64
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int8
 import com.huawei.cangjie.builtins.StandardNames.FqNames.nothing
 import com.huawei.cangjie.builtins.StandardNames.FqNames.option
+import com.huawei.cangjie.builtins.StandardNames.FqNames.primitiveArrayTypeShortNames
 import com.huawei.cangjie.builtins.StandardNames.FqNames.rune
 import com.huawei.cangjie.builtins.StandardNames.OBJECT
 import com.huawei.cangjie.builtins.StandardNames.STD_CORE_PACKAGE_FQ_NAME
@@ -65,6 +68,32 @@ open class CangJieBuiltIns(
                 }
         }
 
+        fun getPrimitiveArrayType(descriptor: DeclarationDescriptor): PrimitiveType? {
+            return if (primitiveArrayTypeShortNames.contains(descriptor.name))
+                arrayClassFqNameToPrimitiveType.get(DescriptorUtils.getFqName(descriptor))
+            else
+                null
+        }
+
+        fun isPrimitiveArray(type: CangJieType): Boolean {
+            val descriptor =
+                type.constructor.getDeclarationDescriptor()
+            return descriptor != null && getPrimitiveArrayType(descriptor) != null
+        }
+
+        //        fun isUByteArray(type: CangJieType): Boolean {
+//            return  isConstructedFromGivenClass (
+//                type,
+//                uByteArrayFqName.toUnsafe()
+//            )
+//        }
+//        fun isUnsignedArrayType(type: CangJieType): Boolean {
+//            return  isUInt8Array(type) ||  isUInt16Array(
+//                type
+//            ) ||  isUInt32Array(type) ||  isUInt64Array(
+//                type
+//            )
+//        }
         //        fun isNotNullOrNullableFunctionSupertype(type:CangJieType): Boolean {
 //            return  isConstructedFromGivenClass(type, functionSupertype)
 //        }
@@ -130,6 +159,9 @@ open class CangJieBuiltIns(
             return isConstructedFromGivenClass(type, any)
         }
 
+        fun isAny(descriptor: ClassDescriptor): Boolean {
+            return classFqNameEquals(descriptor, any)
+        }
 //        @JvmStatic
 //        fun getEnumType(argument: SimpleType): SimpleType {
 //            val projectionType: Variance = Variance.INVARIANT
@@ -262,7 +294,6 @@ open class CangJieBuiltIns(
         createBuiltInsModule(true)
     }
 
-
     val defaultBound: SimpleType get() = anyType
 
     //    fun getNumberType(): SimpleType {
@@ -278,9 +309,9 @@ open class CangJieBuiltIns(
 //        return getBuiltInClassByName(getFunctionName(parameterCount))
     }
 
-    val number: ClassDescriptor get() = getBuiltInClassByName("Number")
-    val numberType get() = number.getDefaultType()
-    val comparable: ClassDescriptor get() = getBuiltInClassByName("Comparable")
+//    val number: ClassDescriptor get() = getBuiltInClassByName("Number")
+//    val numberType get() = number.getDefaultType()
+//    val comparable: ClassDescriptor get() = getBuiltInClassByName("Comparable")
     private fun getPrimitiveClassBasicDescriptor(type: PrimitiveType): ClassDescriptor {
         return getBuiltInBasicTypeByName(type.typeName.asString())
     }
@@ -495,7 +526,12 @@ open class CangJieBuiltIns(
 
     val string: ClassDescriptor
         get() = findClassDescriptorByFqName(storageManager.project, STRING)!!
-
+    val array: ClassDescriptor
+        get() = findClassDescriptorByFqName(storageManager.project, ARRAY)!!
+    val arrayType: SimpleType
+        get() {
+            return array.getDefaultType()
+        }
     val stringType: SimpleType
         get() {
             return string.getDefaultType()

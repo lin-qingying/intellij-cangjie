@@ -3,17 +3,16 @@ package com.huawei.cangjie.types.expressions;
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.impl.AnonymousFunctionDescriptor;
 import com.huawei.cangjie.descriptors.impl.FunctionExpressionDescriptor;
-import com.huawei.cangjie.psi.CjDestructuringDeclarationEntry;
-import com.huawei.cangjie.psi.CjExpression;
-import com.huawei.cangjie.psi.CjParameter;
-import com.huawei.cangjie.psi.CjUnaryExpression;
+import com.huawei.cangjie.lexer.CjTokens;
+import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.DescriptorToSourceUtils;
 import com.huawei.cangjie.resolve.OverloadChecker;
 import com.huawei.cangjie.resolve.scopes.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
+import com.huawei.cangjie.utils.exceptions.OperatorConventions;
 public class ExpressionTypingUtils {
 
     public static boolean isExclExclExpression(@Nullable CjExpression expression) {
@@ -29,6 +28,31 @@ public class ExpressionTypingUtils {
         return new LexicalWritableScope(context.scope, context.scope.getOwnerDescriptor(), false,
                 new TraceBasedLocalRedeclarationChecker(context.trace, overloadChecker), scopeKind);
     }
+    public static boolean dependsOnExpectedType(@Nullable CjExpression expression) {
+        CjExpression expr = CjPsiUtil.deparenthesize(expression);
+        if (expr == null) return false;
+
+        if (expr instanceof CjBinaryExpressionWithTypeRHS) {
+            return false;
+        }
+        if (expr instanceof CjBinaryExpression) {
+            return isBinaryExpressionDependentOnExpectedType((CjBinaryExpression) expr);
+        }
+//        if (expr instanceof CjUnaryExpression) {
+//            return isUnaryExpressionDependentOnExpectedType((CjUnaryExpression) expr);
+//        }
+        return true;
+    }
+    @SuppressWarnings("SuspiciousMethodCalls")
+    public static boolean isBinaryExpressionDependentOnExpectedType(@NotNull CjBinaryExpression expression) {
+        IElementType operationType = expression.getOperationReference().getReferencedNameElementType();
+        return (operationType == CjTokens.IDENTIFIER || OperatorConventions.BINARY_OPERATION_NAMES.containsKey(operationType)
+                || operationType == CjTokens.ELVIS);
+    }
+
+//    public static boolean isUnaryExpressionDependentOnExpectedType(@NotNull CjUnaryExpression expression) {
+//        return expression.getOperationReference().getReferencedNameElementType() == CjTokens.EXCLEXCL;
+//    }
 
     /**
      * The primary case for local extensions is the following:
@@ -65,9 +89,9 @@ public class ExpressionTypingUtils {
     public static void checkVariableShadowing(
             @NotNull LexicalScope scope,
             @NotNull BindingTrace trace,
-            @NotNull VariableDescriptorBase variableDescriptor
+            @NotNull VariableDescriptor variableDescriptor
     ) {
-        VariableDescriptorBase oldDescriptor = ScopeUtilsKt.findLocalVariable(scope, variableDescriptor.getName());
+        VariableDescriptor oldDescriptor = ScopeUtilsKt.findLocalVariable(scope, variableDescriptor.getName());
         if (oldDescriptor == null) return;
 
         DeclarationDescriptor variableContainingDeclaration = variableDescriptor.getContainingDeclaration();

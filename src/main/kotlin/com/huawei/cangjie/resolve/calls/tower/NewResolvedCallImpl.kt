@@ -2,8 +2,10 @@ package com.huawei.cangjie.resolve.calls.tower
 
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.CallableDescriptor
+import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor
+import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.psi.ValueArgument
 import com.huawei.cangjie.resolve.calls.inference.components.FreshVariableNewTypeSubstitutor
 import com.huawei.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
@@ -13,6 +15,8 @@ import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.results.ResolutionStatus
 import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.huawei.cangjie.resolve.calls.util.toResolutionStatus
+import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstant
+import com.huawei.cangjie.resolve.scopes.receivers.ImplicitClassReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeApproximator
@@ -33,7 +37,10 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
     private var extensionReceiver = resolvedCallAtom.extensionReceiverArgument?.receiver?.receiverValue
     private var smartCastDispatchReceiverType: CangJieType? = null
     private var contextReceivers = resolvedCallAtom.contextReceiversArguments.map { it.receiver.receiverValue }
-//    private var expectedTypeForUnitConvertedArgumentMap: Map<ValueArgument, UnwrappedType>? = null
+    private var expectedTypeForUnitConvertedArgumentMap: Map<ValueArgument, UnwrappedType>? = null
+    private var expectedTypeForSuspendConvertedArgumentMap: Map<ValueArgument, UnwrappedType>? = null
+    private var expectedTypeForSamConvertedArgumentMap: Map<ValueArgument, UnwrappedType>? = null
+    private var argumentTypeForConstantConvertedMap: Map<CjExpression, IntegerValueTypeConstant>? = null
 
     override fun updateExtensionReceiverType(newType: CangJieType) {
         if (extensionReceiver?.type == newType) return
@@ -44,12 +51,41 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
     @Suppress("UNCHECKED_CAST")
     override fun getCandidateDescriptor(): D = resolvedCallAtom.candidateDescriptor as D
     override fun getSmartCastDispatchReceiverType(): CangJieType? = smartCastDispatchReceiverType
+    private fun calculateExpectedTypeForUnitConvertedArgumentMap(substitutor: NewTypeSubstitutor?) {
+        expectedTypeForUnitConvertedArgumentMap = calculateExpectedTypeForConvertedArguments(
+            resolvedCallAtom.argumentsWithUnitConversion, substitutor
+        )
+    }
+    private fun calculateExpectedTypeForConvertedArguments(
+        arguments: Map<CangJieCallArgument, UnwrappedType>,
+        substitutor: NewTypeSubstitutor?,
+    ): Map<ValueArgument, UnwrappedType>? {
+        if (arguments.isEmpty()) return null
 
+        val expectedTypeForConvertedArguments = hashMapOf<ValueArgument, UnwrappedType>()
+        for ((argument, convertedType) in arguments) {
+            val typeWithFreshVariables = resolvedCallAtom.freshVariablesSubstitutor.safeSubstitute(convertedType)
+            val expectedType = substitutor?.safeSubstitute(typeWithFreshVariables) ?: typeWithFreshVariables
+            expectedTypeForConvertedArguments[argument.psiCallArgument.valueArgument] = expectedType
+        }
 
+        return expectedTypeForConvertedArguments
+    }
+    fun updateExtensionReceiverWithSmartCastIfNeeded(smartCastExtensionReceiverType: CangJieType) {
+        if (extensionReceiver is ImplicitClassReceiver) {
+            extensionReceiver = CastImplicitClassReceiver(
+                (extensionReceiver as ImplicitClassReceiver).classDescriptor,
+                smartCastExtensionReceiverType,
+            )
+        }
+    }
+    fun setSmartCastDispatchReceiverType(smartCastDispatchReceiverType: CangJieType) {
+        this.smartCastDispatchReceiverType = smartCastDispatchReceiverType
+    }
     override fun getExplicitReceiverKind(): ExplicitReceiverKind = resolvedCallAtom.explicitReceiverKind
 
-//    fun getExpectedTypeForUnitConvertedArgument(valueArgument: ValueArgument): UnwrappedType? =
-//        expectedTypeForUnitConvertedArgumentMap?.get(valueArgument)
+    fun getExpectedTypeForUnitConvertedArgument(valueArgument: ValueArgument): UnwrappedType? =
+        expectedTypeForUnitConvertedArgumentMap?.get(valueArgument)
 
 
     override fun getExtensionReceiver(): ReceiverValue? = extensionReceiver
@@ -60,6 +96,8 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
 
 
 
+    fun getExpectedTypeForSamConvertedArgument(valueArgument: ValueArgument): UnwrappedType? =
+        expectedTypeForSamConvertedArgumentMap?.get(valueArgument)
 
     override fun getTypeArguments(): Map<TypeParameterDescriptor, CangJieType> {
         val typeParameters = candidateDescriptor.typeParameters.takeIf { it.isNotEmpty() } ?: return emptyMap()
@@ -82,7 +120,12 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
     fun updateDiagnostics(completedDiagnostics: Collection<CangJieCallDiagnostic>) {
         diagnostics = completedDiagnostics
     }
-
+    fun getExpectedTypeForSuspendConvertedArgument(valueArgument: ValueArgument): UnwrappedType? =
+        expectedTypeForSuspendConvertedArgumentMap?.get(valueArgument)
+    fun getArgumentTypeForConstantConvertedArgument(valueArgument: ValueArgument): IntegerValueTypeConstant? {
+        val expression = valueArgument.getArgumentExpression() ?: return null
+        return argumentTypeForConstantConvertedMap?.get(expression)
+    }
     override fun setResultingSubstitutor(substitutor: NewTypeSubstitutor?) {
         //clear cached values
 //        updateArgumentsMapping(null)
@@ -100,11 +143,36 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
 //                ?: substituted
 //        }
 //
-//        calculateExpectedTypeForSamConvertedArgumentMap(substitutor)
-//        calculateExpectedTypeForSuspendConvertedArgumentMap(substitutor)
-//        calculateExpectedTypeForUnitConvertedArgumentMap(substitutor)
-//        calculateExpectedTypeForConstantConvertedArgumentMap()
+        calculateExpectedTypeForSamConvertedArgumentMap(substitutor)
+        calculateExpectedTypeForSuspendConvertedArgumentMap(substitutor)
+        calculateExpectedTypeForUnitConvertedArgumentMap(substitutor)
+        calculateExpectedTypeForConstantConvertedArgumentMap()
     }
+    private fun calculateExpectedTypeForSamConvertedArgumentMap(substitutor: NewTypeSubstitutor?) {
+        expectedTypeForSamConvertedArgumentMap = calculateExpectedTypeForConvertedArguments(
+            resolvedCallAtom.argumentsWithConversion.mapValues { it.value.convertedTypeByCandidateParameter },
+            substitutor
+        )
+    }
+    private fun calculateExpectedTypeForConstantConvertedArgumentMap() {
+        if (resolvedCallAtom.argumentsWithConstantConversion.isEmpty()) return
+
+        val expectedTypeForConvertedArguments = hashMapOf<CjExpression, IntegerValueTypeConstant>()
+
+        for ((argument, convertedConstant) in resolvedCallAtom.argumentsWithConstantConversion) {
+            val expression = argument.psiExpression ?: continue
+            expectedTypeForConvertedArguments[expression] = convertedConstant
+        }
+
+        argumentTypeForConstantConvertedMap = expectedTypeForConvertedArguments
+    }
+
+    private fun calculateExpectedTypeForSuspendConvertedArgumentMap(substitutor: NewTypeSubstitutor?) {
+        expectedTypeForSuspendConvertedArgumentMap = calculateExpectedTypeForConvertedArguments(
+            resolvedCallAtom.argumentsWithSuspendConversion, substitutor
+        )
+    }
+
 
     override fun updateDispatchReceiverType(newType: CangJieType) {
         if (dispatchReceiver?.type == newType) return
@@ -157,3 +225,4 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
         setResultingSubstitutor(substitutor)
     }
 }
+class CastImplicitClassReceiver(originalDescriptor: ClassDescriptor, val targetType: CangJieType) : ImplicitClassReceiver(originalDescriptor)

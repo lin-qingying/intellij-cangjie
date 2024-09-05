@@ -1,9 +1,6 @@
 package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.incremental.components.LookupLocation
-import com.huawei.cangjie.name.FqName
-import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.utils.Printer
 
 class LexicalScopeImpl @JvmOverloads constructor(
@@ -53,7 +50,7 @@ class LexicalScopeImpl @JvmOverloads constructor(
 
     inner class InitializeHandler {
 
-        fun addVariableDescriptor(variableDescriptor: VariableDescriptorBase): Unit =
+        fun addVariableDescriptor(variableDescriptor: VariableDescriptor): Unit =
             this@LexicalScopeImpl.addVariableOrClassDescriptor(variableDescriptor)
 
         fun addFunctionDescriptor(functionDescriptor: FunctionDescriptor): Unit =

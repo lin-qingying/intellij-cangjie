@@ -303,7 +303,7 @@ class TypeResolver(
                 result = resolveTypeElement(c, Annotations.EMPTY, null, cjParenthesizedType.getType())
             }
 
-            private fun resolveParametersOfFunctionType(parameters: List<CjParameter>): List<VariableDescriptorBase> {
+            private fun resolveParametersOfFunctionType(parameters: List<CjParameter>): List<VariableDescriptor> {
 
                 class ParameterOfFunctionTypeDescriptor(
                     containingDeclaration: DeclarationDescriptor,
@@ -314,7 +314,7 @@ class TypeResolver(
                 ) : AbstractVariableDescriptor(containingDeclaration, annotations, name, type, source) {
 
                     override val visibility: DescriptorVisibility = DescriptorVisibilities.LOCAL
-                    override fun substitute(substitutor: TypeSubstitutor): VariableDescriptorBase? {
+                    override fun substitute(substitutor: TypeSubstitutor): VariableDescriptor? {
                         throw UnsupportedOperationException("Should not be called for descriptor of type ${this::class.java}")
                     }
 
@@ -388,7 +388,7 @@ class TypeResolver(
                 }
             }
 
-            private fun checkParametersOfFunctionType(parameterDescriptors: List<VariableDescriptorBase>) {
+            private fun checkParametersOfFunctionType(parameterDescriptors: List<VariableDescriptor>) {
                 val parametersByName = parameterDescriptors.filter { !it.name.isSpecial }.groupBy { it.name }
                 for (parametersGroup in parametersByName.values) {
                     if (parametersGroup.size < 2) continue

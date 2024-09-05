@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.calls.util
 
 import com.huawei.cangjie.descriptors.CallableDescriptor
+import com.huawei.cangjie.resolve.calls.context.CallResolutionContext
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall
 import com.huawei.cangjie.resolve.calls.results.ResolutionStatus
 import com.huawei.cangjie.resolve.calls.tower.CandidateApplicability
@@ -12,6 +13,7 @@ import com.huawei.cangjie.types.DefinitelyNotNullType
 import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.StubTypeForBuilderInference
 import com.huawei.cangjie.types.checker.NewCapturedType
+import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.contains
 fun ResolvedCall<*>.getDispatchReceiverWithSmartCast(): ReceiverValue? =
     getReceiverValueWithSmartCast(dispatchReceiver, smartCastDispatchReceiverType)

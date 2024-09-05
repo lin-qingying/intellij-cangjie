@@ -11,6 +11,7 @@ import com.huawei.cangjie.resolve.calls.inference.model.NewConstraintError
 import com.huawei.cangjie.resolve.calls.inference.model.NewConstraintWarning
 import com.huawei.cangjie.resolve.calls.inference.model.transformToWarning
 import com.huawei.cangjie.resolve.calls.tower.CandidateApplicability
+import com.huawei.cangjie.types.TypeConstructor
 import com.huawei.cangjie.types.UnwrappedType
 
 
@@ -44,11 +45,15 @@ fun Collection<ConstraintSystemError>.asDiagnostics(): List<CangJieConstraintSys
 class SmartCastDiagnostic(
     val argument: ExpressionCangJieCallArgument,
     val smartCastType: UnwrappedType,
-    valCangJieCall: CangJieCall?
+    val cangjieCall: CangJieCall?
 ) : CangJieCallDiagnostic(CandidateApplicability.RESOLVED) {
     override fun report(reporter: DiagnosticReporter) = reporter.onCallArgument(argument, this)
 }
-
+class NotCallableExpectedType(
+    val argument: CallableReferenceCangJieCallArgument,
+    val expectedType: UnwrappedType,
+    val notCallableTypeConstructor: TypeConstructor
+) : CallableReferenceInapplicableDiagnostic(argument)
 
 class UnsafeCallError(
     val receiver: SimpleCangJieCallArgument,
@@ -190,5 +195,38 @@ class NotEnoughInformationForLambdaParameter(
 ) : CangJieCallDiagnostic(CandidateApplicability.RESOLVED_WITH_ERROR) {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCallArgument(lambdaArgument, this)
+    }
+}
+
+class NonVarargSpread(val argument: CangJieCallArgument) : CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
+    override fun report(reporter: DiagnosticReporter) = reporter.onCallArgumentSpread(argument, this)
+}
+sealed interface ArgumentNullabilityMismatchDiagnostic {
+    val expectedType: UnwrappedType
+    val actualType: UnwrappedType
+    val expressionArgument: ExpressionCangJieCallArgument
+}
+object TypeCheckerHasRanIntoRecursion : CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
+    override fun report(reporter: DiagnosticReporter) = reporter.onCall(this)
+}
+
+class ArgumentNullabilityErrorDiagnostic(
+    override val expectedType: UnwrappedType,
+    override val actualType: UnwrappedType,
+    override val expressionArgument: ExpressionCangJieCallArgument
+) : CangJieCallDiagnostic(CandidateApplicability.UNSAFE_CALL), TransformableToWarning<ArgumentNullabilityWarningDiagnostic>, ArgumentNullabilityMismatchDiagnostic {
+    override fun report(reporter: DiagnosticReporter) {
+        reporter.onCallArgument(expressionArgument, this)
+    }
+
+    override fun transformToWarning() = ArgumentNullabilityWarningDiagnostic(expectedType, actualType, expressionArgument)
+}
+class ArgumentNullabilityWarningDiagnostic(
+    override val expectedType: UnwrappedType,
+    override val actualType: UnwrappedType,
+    override val expressionArgument: ExpressionCangJieCallArgument
+) : CangJieCallDiagnostic(CandidateApplicability.RESOLVED), ArgumentNullabilityMismatchDiagnostic {
+    override fun report(reporter: DiagnosticReporter) {
+        reporter.onCallArgument(expressionArgument, this)
     }
 }

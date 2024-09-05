@@ -58,7 +58,7 @@ class LazyExplicitImportScope(
         return collectCallableMemberDescriptors(location, MemberScope::getContributedFunctions)
     }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
         if (name != aliasName) return emptyList()
 
         return collectCallableMemberDescriptors(location, MemberScope::getContributedVariables)
@@ -172,7 +172,8 @@ class LazyExplicitImportScope(
     // should be called only once
     internal fun storeReferencesToDescriptors() = getContributedDescriptors().apply(storeReferences)
 
-    private fun <D : CallableMemberDescriptor> collectCallableMemberDescriptors(
+//    CallableMemberDescriptor
+    private fun <D : /*CallableMemberDescriptor*/CallableDescriptor> collectCallableMemberDescriptors(
         location: LookupLocation,
         getDescriptors: MemberScope.(Name, LookupLocation) -> Collection<D>
     ): Collection<D> {
@@ -209,7 +210,7 @@ class LazyExplicitImportScope(
 //        else -> null
 //    }
 
-    private fun <D : CallableMemberDescriptor> Collection<D>.choseOnlyVisibleOrAll(): Collection<D> =
+    private fun <D : CallableDescriptor> Collection<D>.choseOnlyVisibleOrAll(): Collection<D> =
         filter {
             isVisible(
                 it,

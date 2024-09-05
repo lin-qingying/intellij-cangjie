@@ -1,7 +1,6 @@
 package com.huawei.cangjie.resolve.calls.util
 
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.resolve.constants.ConstantValue
 import com.huawei.cangjie.resolve.descriptorUtil.classValueType
 import com.huawei.cangjie.resolve.descriptorUtil.getClassObjectReferenceTarget
 import com.huawei.cangjie.types.CangJieType
@@ -10,7 +9,7 @@ import java.util.*
 
 open class FakeCallableDescriptorForObject(
     val classDescriptor: ClassDescriptor,
-) : DeclarationDescriptorWithVisibility by classDescriptor.getClassObjectReferenceTarget(), VariableDescriptorBase {
+) : DeclarationDescriptorWithVisibility by classDescriptor.getClassObjectReferenceTarget(), VariableDescriptor {
     //
 //    init {
 //        assert(classDescriptor.hasClassValueDescriptor) {

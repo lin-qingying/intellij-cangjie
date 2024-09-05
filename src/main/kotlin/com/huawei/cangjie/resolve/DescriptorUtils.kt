@@ -141,7 +141,7 @@ object DescriptorUtils {
     }
 
     fun shouldRecordInitializerForProperty(
-        variable: VariableDescriptorBase,
+        variable: VariableDescriptor,
         type: CangJieType
     ): Boolean {
         if (variable.isVar || type.isError) return false

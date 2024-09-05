@@ -1,21 +1,30 @@
 package com.huawei.cangjie.resolve.calls.components
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.components.candidate.SimpleResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.NewConstraintSystem
+import com.huawei.cangjie.resolve.calls.inference.components.CangJieConstraintSystemCompleter
 import com.huawei.cangjie.resolve.calls.inference.components.ConstraintSystemCompletionMode
 import com.huawei.cangjie.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import com.huawei.cangjie.resolve.calls.inference.components.TrivialConstraintTypeInferenceOracle
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage.Empty.hasContradiction
+import com.huawei.cangjie.resolve.calls.inference.model.NewConstraintSystemImpl
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.tower.CandidateFactory
 import com.huawei.cangjie.resolve.calls.tower.forceResolution
 import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.UnwrappedType
+import com.huawei.cangjie.types.error.ErrorType
+import com.huawei.cangjie.types.error.ErrorTypeKind
+
+internal val NewConstraintSystem.builtIns: CangJieBuiltIns get() = ((this as NewConstraintSystemImpl).typeSystemContext as BuiltInsProvider).builtIns
 
 class CangJieCallCompleter(
     private val trivialConstraintTypeInferenceOracle: TrivialConstraintTypeInferenceOracle,
+    private val cangjieConstraintSystemCompleter: CangJieConstraintSystemCompleter,
+    private val postponedArgumentsAnalyzer: PostponedArgumentsAnalyzer,
 
     ) {
 
@@ -103,7 +112,32 @@ class CangJieCallCompleter(
         resolutionCallbacks: CangJieResolutionCallbacks,
         collectAllCandidatesMode: Boolean = false
     ) {
+        val returnType = resolvedCallAtom.freshReturnType ?: constraintSystem.builtIns.unitType
+        cangjieConstraintSystemCompleter.runCompletion(
+            constraintSystem.asConstraintSystemCompleterContext(),
+            completionMode,
+            listOf(resolvedCallAtom),
+            returnType,
+            diagnosticsHolder
+        ) {
+            if (collectAllCandidatesMode) {
+                it.setEmptyAnalyzedResults()
+            } else {
+                postponedArgumentsAnalyzer.analyze(
+                    constraintSystem.asPostponedArgumentsAnalyzerContext(),
+                    resolutionCallbacks,
+                    it,
+                    completionMode,
+                    diagnosticsHolder
+                )
+            }
+        }
 
+        constraintSystem.errors.forEach(diagnosticsHolder::addError)
+
+        if (returnType is ErrorType && returnType.kind == ErrorTypeKind.RECURSIVE_TYPE) {
+            diagnosticsHolder.addDiagnostic(TypeCheckerHasRanIntoRecursion)
+        }
     }
 
     private fun ResolutionCandidate.runCompletion(
@@ -148,7 +182,7 @@ class CangJieCallCompleter(
         val candidate = prepareCandidateForCompletion(factory, candidates, resolutionCallbacks)
         val resultType = when (candidate) {
             is SimpleResolutionCandidate -> {
-//                candidate.checkSamWithVararg(diagnosticHolder)
+                candidate.checkSamWithVararg(diagnosticHolder)
                 candidate.substitutedReturnType().also {
 //                    candidate.addExpectedTypeConstraint(it, expectedType)
 //                    candidate.addExpectedTypeFromCastConstraint(it, resolutionCallbacks)

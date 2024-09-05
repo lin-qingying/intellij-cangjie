@@ -2,7 +2,6 @@ package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
-import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.utils.Printer
@@ -61,7 +60,7 @@ class LexicalChainedScope private constructor(
         return DescriptorWithDeprecation.createDeprecated(firstClassifier)
     }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation) =
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> =
         getFromAllScopes(memberScopes) { it.getContributedVariables(name, location) }
 
     override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =

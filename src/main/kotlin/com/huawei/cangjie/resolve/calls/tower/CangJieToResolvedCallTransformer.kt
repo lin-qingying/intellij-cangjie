@@ -1,13 +1,14 @@
 package com.huawei.cangjie.resolve.calls.tower
 
+//import com.huawei.cangjie.resolve.calls.smartcasts.SmartCastManager
+
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.extensions.internal.CandidateInterceptor
-import com.huawei.cangjie.psi.Call
-import com.huawei.cangjie.resolve.BindingContext
-import com.huawei.cangjie.resolve.BindingContextUtils
+import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.BindingContextUtils.updateRecordedType
-import com.huawei.cangjie.resolve.MissingSupertypesResolver
+import com.huawei.cangjie.resolve.ImplicitIntegerCoercion.isEnabledFor
 import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver
 import com.huawei.cangjie.resolve.calls.DiagnosticReporterByTrackingStrategy
 import com.huawei.cangjie.resolve.calls.checkers.AdditionalTypeChecker
@@ -21,15 +22,20 @@ import com.huawei.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import com.huawei.cangjie.resolve.calls.smartcasts.SmartCastManager
-//import com.huawei.cangjie.resolve.calls.smartcasts.SmartCastManager
 import com.huawei.cangjie.resolve.calls.tasks.TracingStrategy
+import com.huawei.cangjie.resolve.calls.util.getEffectiveExpectedType
+import com.huawei.cangjie.resolve.calls.util.getResolvedCall
 import com.huawei.cangjie.resolve.calls.util.isFakeElement
+
+import com.huawei.cangjie.resolve.constants.CompileTimeConstant
+import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
-import com.huawei.cangjie.types.TypeApproximator
+import com.huawei.cangjie.types.*
+import com.huawei.cangjie.types.error.ErrorScopeKind
 import com.huawei.cangjie.types.expressions.DataFlowAnalyzer
-import com.huawei.cangjie.types.expressions.DoubleColonExpressionResolver
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices
+import com.huawei.cangjie.types.expressions.ExpressionTypingUtils
 import com.huawei.cangjie.types.model.TypeSystemInferenceExtensionContextDelegate
 import com.huawei.cangjie.types.util.TypeUtils
 
@@ -43,7 +49,7 @@ class CangJieToResolvedCallTransformer(
     private val constantExpressionEvaluator: ConstantExpressionEvaluator,
     private val deprecationResolver: DeprecationResolver,
     private val expressionTypingServices: ExpressionTypingServices,
-    private val doubleColonExpressionResolver: DoubleColonExpressionResolver,
+
     private val additionalDiagnosticReporter: AdditionalDiagnosticReporter,
     private val moduleDescriptor: ModuleDescriptor,
     private val dataFlowValueFactory: DataFlowValueFactory,
@@ -68,60 +74,183 @@ class CangJieToResolvedCallTransformer(
                 psiCangJieCall.psiCall
         }
     }
+
     // todo very beginning code
     fun runArgumentsChecks(context: BasicCallResolutionContext, resolvedCall: NewAbstractResolvedCall<*>) {
-//        if (resolvedCall !is NewResolvedCallImpl<*>) return
-//
-//        for (valueArgument in resolvedCall.call.valueArguments) {
-//            val argumentMapping = resolvedCall.getArgumentMapping(valueArgument!!)
-//            val parameter: ValueParameterDescriptor?
-//            val (expectedType, callPosition) = when (argumentMapping) {
-//                is ArgumentMatch -> {
-//                    parameter = argumentMapping.valueParameter
-//
-//                    // We should take expected type from the last used conversion
-//                    // TODO: move this logic into ParameterTypeConversion
-//                    val expectedType =
-//                        resolvedCall.getExpectedTypeForUnitConvertedArgument(valueArgument)
-//                            ?: resolvedCall.getExpectedTypeForSuspendConvertedArgument(valueArgument)
-//                            ?: resolvedCall.getExpectedTypeForSamConvertedArgument(valueArgument)
-//                            ?: getEffectiveExpectedType(argumentMapping.valueParameter, valueArgument, context)
-//                    Pair(
-//                        expectedType,
-//                        CallPosition.ValueArgumentPosition(resolvedCall, argumentMapping.valueParameter, valueArgument),
-//                    )
-//                }
-//                else -> {
-//                    parameter = null
-//                    Pair(TypeUtils.NO_EXPECTED_TYPE, CallPosition.Unknown)
-//                }
-//            }
-//            val newContext =
-//                context.replaceDataFlowInfo(resolvedCall.dataFlowInfoForArguments.getInfo(valueArgument))
-//                    .replaceExpectedType(expectedType)
-//                    .replaceCallPosition(callPosition)
-//
-//
-//            val constantConvertedArgument = resolvedCall.getArgumentTypeForConstantConvertedArgument(valueArgument)
-//            val argumentExpression = valueArgument.getArgumentExpression() ?: continue
-//
-//            if (constantConvertedArgument != null) {
-//                context.trace.record(BindingContext.COMPILE_TIME_VALUE, argumentExpression, constantConvertedArgument)
-//                BindingContextUtils.updateRecordedType(
-//                    constantConvertedArgument.unknownIntegerType, argumentExpression, context.trace, false
-//                )
-//            }
-//
-//            if (!valueArgument.isExternal()) {
-//                updateRecordedType(
-//                    argumentExpression,
-//                    parameter,
-//                    newContext,
-//                    constantConvertedArgument?.unknownIntegerType?.unwrap(),
-//                    resolvedCall.isReallySuccess()
-//                )
-//            }
-//        }
+        if (resolvedCall !is NewResolvedCallImpl<*>) return
+
+        for (valueArgument in resolvedCall.call.valueArguments) {
+            val argumentMapping = resolvedCall.getArgumentMapping(valueArgument!!)
+            val parameter: ValueParameterDescriptor?
+            val (expectedType, callPosition) = when (argumentMapping) {
+                is ArgumentMatch -> {
+                    parameter = argumentMapping.valueParameter
+
+                    // We should take expected type from the last used conversion
+                    // TODO: move this logic into ParameterTypeConversion
+                    val expectedType =
+                        resolvedCall.getExpectedTypeForUnitConvertedArgument(valueArgument)
+                            ?: resolvedCall.getExpectedTypeForSuspendConvertedArgument(valueArgument)
+                            ?: resolvedCall.getExpectedTypeForSamConvertedArgument(valueArgument)
+                            ?: getEffectiveExpectedType(argumentMapping.valueParameter, valueArgument, context)
+                    Pair(
+                        expectedType,
+                        CallPosition.ValueArgumentPosition(resolvedCall, argumentMapping.valueParameter, valueArgument),
+                    )
+                }
+
+                else -> {
+                    parameter = null
+                    Pair(TypeUtils.NO_EXPECTED_TYPE, CallPosition.Unknown)
+                }
+            }
+            val newContext =
+                context.replaceDataFlowInfo(resolvedCall.dataFlowInfoForArguments.getInfo(valueArgument))
+                    .replaceExpectedType(expectedType)
+                    .replaceCallPosition(callPosition)
+
+
+            val constantConvertedArgument = resolvedCall.getArgumentTypeForConstantConvertedArgument(valueArgument)
+            val argumentExpression = valueArgument.getArgumentExpression() ?: continue
+
+            if (constantConvertedArgument != null) {
+                context.trace.record(BindingContext.COMPILE_TIME_VALUE, argumentExpression, constantConvertedArgument)
+                updateRecordedType(
+                    constantConvertedArgument.unknownIntegerType, argumentExpression, context.trace, false
+                )
+            }
+
+            if (!valueArgument.isExternal()) {
+                updateRecordedType(
+                    argumentExpression,
+                    parameter,
+                    newContext,
+                    constantConvertedArgument?.unknownIntegerType?.unwrap(),
+                    resolvedCall.isReallySuccess()
+                )
+            }
+        }
+    }
+    fun getResolvedCallForArgumentExpression(expression: CjExpression, context: BasicCallResolutionContext) =
+        if (!ExpressionTypingUtils.dependsOnExpectedType(expression))
+            null
+        else
+            expression.getResolvedCall(context.trace.bindingContext) as? NewAbstractResolvedCall<*>
+
+    fun updateRecordedType(
+        expression: CjExpression,
+        parameter: ValueParameterDescriptor?,
+        context: BasicCallResolutionContext,
+        convertedArgumentType: UnwrappedType?,
+        reportErrorForTypeMismatch: Boolean,
+    ): CangJieType? {
+        val deparenthesized = expression.let {
+            CjPsiUtil.getLastElementDeparenthesized(it, context.statementFilter)
+        } ?: return null
+
+        val recordedType = context.trace.getType(deparenthesized)
+        val recordedTypeForParenthesized = context.trace.getType(expression)
+
+        var updatedType = convertedArgumentType ?: getResolvedCallForArgumentExpression(deparenthesized, context)?.run {
+            resultingDescriptor.returnType
+        }
+
+        // For the cases like 'foo(1)' the type of '1' depends on expected type (it can be Int, Byte, etc.),
+        // so while the expected type is not known, it's IntegerValueType(1), and should be updated when the expected type is known.
+        if (recordedType != null && !recordedType.constructor.isDenotable) {
+            updatedType =
+                argumentTypeResolver.updateResultArgumentTypeIfNotDenotable(context, deparenthesized) ?: updatedType
+        }
+
+        var reportErrorDuringTypeCheck = reportErrorForTypeMismatch
+
+        if (parameter != null /*&& isEnabledFor(parameter, context.languageVersionSettings)*/) {
+            val argumentCompileTimeValue = context.trace[BindingContext.COMPILE_TIME_VALUE, deparenthesized]
+            if (argumentCompileTimeValue != null && argumentCompileTimeValue.parameters.isConvertableConstVal) {
+                val generalNumberType = createTypeForConvertableConstant(argumentCompileTimeValue)
+                if (generalNumberType != null) {
+                    updatedType = argumentTypeResolver.updateResultArgumentTypeIfNotDenotable(
+                        context.trace, context.statementFilter, context.expectedType, generalNumberType, expression,
+                    )
+                    reportErrorDuringTypeCheck = true
+                }
+
+            }
+        } else if (convertedArgumentType != null) {
+            context.trace.report(Errors.SIGNED_CONSTANT_CONVERTED_TO_UNSIGNED.on(deparenthesized))
+        }
+
+        updatedType =
+            updateRecordedTypeForArgument(updatedType, recordedType, recordedTypeForParenthesized, expression, context)
+
+        dataFlowAnalyzer.checkType(updatedType, deparenthesized, context, reportErrorDuringTypeCheck)
+
+        return updatedType
+    }
+
+
+
+
+    // See CallCompleter#updateRecordedTypeForArgument
+    private fun updateRecordedTypeForArgument(
+        updatedType: CangJieType?,
+        recordedType: CangJieType?,
+        recordedTypeForParenthesized: CangJieType?,
+        argumentExpression: CjExpression,
+        context: BasicCallResolutionContext,
+    ): CangJieType? {
+        if ((!ErrorUtils.containsErrorType(recordedType) && recordedType == updatedType && recordedType == recordedTypeForParenthesized) || updatedType == null)
+            return updatedType
+
+        val expressions = ArrayList<CjExpression>().also { expressions ->
+            var expression: CjExpression? = argumentExpression
+            while (expression != null) {
+                expressions.add(expression)
+                expression = deparenthesizeOrGetSelector(expression, context.statementFilter)
+            }
+            expressions.reverse()
+        }
+
+        var shouldBeMadeNullable: Boolean = false
+        for (expression in expressions) {
+            if (!(expression is CjParenthesizedExpression  )) {
+                shouldBeMadeNullable = hasNecessarySafeCall(expression, context.trace)
+            }
+            BindingContextUtils.updateRecordedType(updatedType, expression, context.trace, shouldBeMadeNullable)
+        }
+
+        return context.trace.getType(argumentExpression)
+    }
+    private fun hasNecessarySafeCall(expression: CjExpression, trace: BindingTrace): Boolean {
+        // We are interested in type of the last call:
+        // 'a.b?.foo()' is safe call, but 'a?.b.foo()' is not.
+        // Since receiver is 'a.b' and selector is 'foo()',
+        // we can only check if an expression is safe call.
+        if (expression !is CjSafeQualifiedExpression) return false
+
+        //If a receiver type is not null, then this safe expression is useless, and we don't need to make the result type nullable.
+        val expressionType = trace.getType(expression.receiverExpression)
+        return expressionType != null && TypeUtils.isNullableType(expressionType)
+    }
+
+    private fun deparenthesizeOrGetSelector(expression: CjExpression, statementFilter: StatementFilter): CjExpression? {
+        val deparenthesized = CjPsiUtil.deparenthesizeOnce(expression)
+        if (deparenthesized != expression) return deparenthesized
+
+        return when (expression) {
+            is CjBlockExpression -> statementFilter.getLastStatementInABlock(expression)
+            is CjQualifiedExpression -> expression.selectorExpression
+            else -> null
+        }
+    }
+
+    private fun createTypeForConvertableConstant(constant: CompileTimeConstant<*>): SimpleType? {
+        val value = (constant.getValue(TypeUtils.NO_EXPECTED_TYPE) as? Number)?.toLong() ?: return null
+        val typeConstructor = IntegerLiteralTypeConstructor(value, moduleDescriptor, constant.parameters)
+        return CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
+            TypeAttributes.Empty, typeConstructor, emptyList(), false,
+            ErrorUtils.createErrorScope(ErrorScopeKind.INTEGER_LITERAL_TYPE_SCOPE, throwExceptions = true, typeConstructor.toString()),
+        )
     }
 
     fun reportCallDiagnostic(
@@ -409,7 +538,7 @@ class CangJieToResolvedCallTransformer(
                     this,
                     expressionTypingServices,
                     argumentTypeResolver,
-                    doubleColonExpressionResolver,
+
                     builtIns,
                     deprecationResolver,
                     moduleDescriptor,

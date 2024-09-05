@@ -67,12 +67,12 @@ class ArgumentsToParametersMapper(
                 return false
             }
 
-//            if (!parameter.isVararg) {
-//                currentPositionedParameterIndex++
-//
-//                result.put(parameter.original, ResolvedCallArgument.SimpleArgument(argument))
-//                return false
-//            }
+            if (!parameter.isVararg) {
+                currentPositionedParameterIndex++
+
+                result[parameter.original] = ResolvedCallArgument.SimpleArgument(argument)
+                return false
+            }
             // all position arguments will be mapped to current vararg parameter
             else {
 //                addVarargArgument(argument)
@@ -198,25 +198,25 @@ class ArgumentsToParametersMapper(
         }
 
         fun processDefaultsAndRunChecks() {
-//            for ((parameter, resolvedArgument) in result) {
-//                if (!parameter.isVararg) {
-//                    if (resolvedArgument !is ResolvedCallArgument.SimpleArgument) {
-//                        error("Incorrect resolved argument for parameter $parameter :$resolvedArgument")
-//                    } else {
-//                        if (resolvedArgument.callArgument.isSpread) {
-//                            addDiagnostic(NonVarargSpread(resolvedArgument.callArgument))
-//                        }
-//                    }
-//                }
-//            }
+            for ((parameter, resolvedArgument) in result) {
+                if (!parameter.isVararg) {
+                    if (resolvedArgument !is ResolvedCallArgument.SimpleArgument) {
+                        error("Incorrect resolved argument for parameter $parameter :$resolvedArgument")
+                    } else {
+                        if (resolvedArgument.callArgument.isSpread) {
+                            addDiagnostic(NonVarargSpread(resolvedArgument.callArgument))
+                        }
+                    }
+                }
+            }
 
             for (parameter in parameters) {
                 if (!result.containsKey(parameter.original)) {
                     if (parameter.hasDefaultValue()) {
                         result[parameter.original] = ResolvedCallArgument.DefaultArgument
-                    } /*else if (parameter.isVararg) {
+                    } else if (parameter.isVararg) {
                         result[parameter.original] = ResolvedCallArgument.VarargArgument(emptyList())
-                    }*/ else {
+                    } else {
                         addDiagnostic(NoValueForParameter(parameter, descriptor))
                     }
                 }

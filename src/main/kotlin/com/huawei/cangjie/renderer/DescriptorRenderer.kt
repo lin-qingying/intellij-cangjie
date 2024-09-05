@@ -1372,7 +1372,7 @@ internal class DescriptorRendererImpl(
     }
 
     private fun renderValVarPrefix(
-        variable: VariableDescriptorBase,
+        variable: VariableDescriptor,
         builder: StringBuilder,
         isInPrimaryConstructor: Boolean = false
     ) {
@@ -1382,7 +1382,7 @@ internal class DescriptorRendererImpl(
     }
 
     private fun renderVariable(
-        variable: VariableDescriptorBase,
+        variable: VariableDescriptor,
         includeName: Boolean,
         builder: StringBuilder,
         topLevel: Boolean,
@@ -1563,7 +1563,7 @@ internal class DescriptorRendererImpl(
             visitVariableDescriptorBase(descriptor, builder)
         }
 
-        override fun visitVariableDescriptorBase(descriptor: VariableDescriptorBase, builder: StringBuilder?) {
+        override fun visitVariableDescriptorBase(descriptor: VariableDescriptor, builder: StringBuilder?) {
             builder?.let { renderVariable(descriptor, true, it, true) }
 
         }

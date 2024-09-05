@@ -1,11 +1,9 @@
 package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.descriptors.impl.FunctionClassDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
-import com.huawei.cangjie.psi.CjExtend
 import com.huawei.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 

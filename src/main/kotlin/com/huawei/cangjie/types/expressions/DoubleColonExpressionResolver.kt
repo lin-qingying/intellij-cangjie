@@ -7,5 +7,3 @@ import com.huawei.cangjie.psi.CjCallExpression
 internal val CjCallExpression.isWithoutValueArguments: Boolean
     get() = valueArgumentList == null && lambdaArguments.isEmpty()
 
-class DoubleColonExpressionResolver {
-}

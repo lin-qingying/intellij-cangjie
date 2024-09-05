@@ -6,6 +6,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.synthetic.SyntheticMemberDescriptor
 import com.huawei.cangjie.psi.Call
 import com.huawei.cangjie.psi.ValueArgument
+import com.huawei.cangjie.resolve.calls.components.isVararg
 import com.huawei.cangjie.resolve.calls.inference.components.FreshVariableNewTypeSubstitutor
 import com.huawei.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
 import com.huawei.cangjie.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
@@ -21,6 +22,7 @@ import com.huawei.cangjie.types.isFlexible
 import com.huawei.cangjie.types.util.makeNotNullable
 import com.huawei.cangjie.types.util.makeOptional
 import com.huawei.cangjie.utils.compactIfPossible
+import com.intellij.util.SmartList
 
 
 sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
@@ -68,9 +70,7 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
             return psiCangJieCall.dataFlowInfoForArguments.getInfo(valueArgument)
         }
     }
-    //    protected fun updateArgumentsMapping(newMapping: Map<ValueArgument, ArgumentMatchImpl>?) {
-//        argumentToParameterMap = newMapping
-//    }
+
     private fun CallableDescriptor.substituteInferredVariablesAndApproximate(
         substitutor: NewTypeSubstitutor?,
         shouldApproximate: Boolean = true
@@ -110,23 +110,23 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
 
                     is ResolvedCallArgument.SimpleArgument -> {
                         val valueArgument = resolvedCallArgument.callArgument.psiCallArgument.valueArgument
-//                        if (resultingParameter.isVararg) {
-//                            if (needToUseCorrectExecutionOrderForVarargArguments) {
-//                                VarargValueArgument().apply { addArgument(valueArgument) }
-//                            } else {
-//                                val vararg = VarargValueArgument().apply { addArgument(valueArgument) }
-//                                if (varargMappings == null) varargMappings = SmartList()
-//                                varargMappings.add(resultingParameter to vararg)
-//                                continue
-//                            }
-//                        } else {
+                        if (resultingParameter.isVararg) {
+                            if (needToUseCorrectExecutionOrderForVarargArguments) {
+                                VarargValueArgument().apply { addArgument(valueArgument) }
+                            } else {
+                                val vararg = VarargValueArgument().apply { addArgument(valueArgument) }
+                                if (varargMappings == null) varargMappings = SmartList()
+                                varargMappings.add(resultingParameter to vararg)
+                                continue
+                            }
+                        } else {
                         ExpressionValueArgument(valueArgument)
-//                        }
+                        }
                     }
-//                    is ResolvedCallArgument.VarargArgument ->
-//                        VarargValueArgument().apply {
-//                            resolvedCallArgument.arguments.map { it.psiCallArgument.valueArgument }.forEach { addArgument(it) }
-//                        }
+                    is ResolvedCallArgument.VarargArgument ->
+                        VarargValueArgument().apply {
+                            resolvedCallArgument.arguments.map { it.psiCallArgument.valueArgument }.forEach { addArgument(it) }
+                        }
                 }
             }
 

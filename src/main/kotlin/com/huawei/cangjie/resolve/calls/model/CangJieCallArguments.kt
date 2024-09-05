@@ -104,7 +104,7 @@ interface SimpleCangJieArgument : CangJieCallArgument, ReceiverCangJieCallArgume
 interface TypeArgument
 // Used as a stub or underscored type argument
 object TypeArgumentPlaceholder : TypeArgument
-interface SubCangJieCallArgument : SimpleCangJieArgument, ResolutionAtom {
+interface SubCangJieCallArgument : SimpleCangJieCallArgument, ResolutionAtom {
     val callResult: PartialCallResolutionResult
 }
 class QualifierReceiverCangJieCallArgument(override val receiver: QualifierReceiver) : ReceiverCangJieCallArgument {

@@ -1,9 +1,6 @@
 package com.huawei.cangjie.resolve.scopes
 
-import com.huawei.cangjie.descriptors.ClassifierDescriptor
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.ModuleDescriptor
-import com.huawei.cangjie.descriptors.PackageViewDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.SubpackagesScope
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.FqName
@@ -21,7 +18,7 @@ class SubpackagesImportingScope(
 
     override fun printStructure(p: Printer) = printScopeStructure(p)
 
-    override fun getContributedVariables(name: Name, location: LookupLocation) = super.getContributedVariables(name, location)
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> = super.getContributedVariables(name, location)
     override fun getContributedFunctions(name: Name, location: LookupLocation) = super.getContributedFunctions(name, location)
 
     //TODO: kept old behavior, but it seems very strange (super call seems more applicable)

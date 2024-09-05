@@ -25,6 +25,10 @@ open class DelegatingBindingTrace(
         record(slice, key, true)
 
     }
+    fun moveAllMyDataTo(trace: BindingTrace) {
+        addOwnDataTo(trace, null, true)
+        clear()
+    }
 
     @JvmOverloads
     fun addOwnDataTo(trace: BindingTrace, filter: TraceEntryFilter? = null, commitDiagnostics: Boolean = true) {

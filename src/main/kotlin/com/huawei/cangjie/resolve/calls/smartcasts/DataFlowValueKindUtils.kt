@@ -1,16 +1,12 @@
 package com.huawei.cangjie.resolve.calls.smartcasts
 
 import com.huawei.cangjie.descriptors.ModuleDescriptor
-import com.huawei.cangjie.descriptors.ParameterDescriptor
 import com.huawei.cangjie.descriptors.VariableDescriptor
-import com.huawei.cangjie.descriptors.VariableDescriptorBase
-import com.huawei.cangjie.descriptors.impl.SyntheticFieldDescriptor
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.resolve.BindingContext
-import java.beans.PropertyDescriptor
 
 
-internal fun VariableDescriptorBase.variableKind(
+internal fun VariableDescriptor.variableKind(
     usageModule: ModuleDescriptor?,
     bindingContext: BindingContext,
     accessElement: CjElement,

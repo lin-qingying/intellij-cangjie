@@ -96,7 +96,7 @@
 //        } else {
 //            Name.special("<name for destructuring parameter $index>")
 //        }
-//        val destructuringVariables: Function0<List<VariableDescriptor>>?
+//        val destructuringVariables: Function0<List<VariableCallableDescriptor>>?
 //        if (destructuringDeclaration != null) {
 ////
 //
@@ -106,7 +106,7 @@
 //                listOf()
 ////                val scopeForDestructuring = ScopeUtils.createScopeForDestructuring(scope, owner.extensionReceiverParameter)
 ////
-////                val result: List<VariableDescriptor> =
+////                val result: List<VariableCallableDescriptor> =
 ////                    destructuringDeclarationResolver.resolveLocalVariablesFromDestructuringDeclaration(
 ////                        scope,
 ////                        destructuringDeclaration,

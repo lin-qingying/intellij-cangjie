@@ -1,5 +1,6 @@
 package com.huawei.cangjie.builtins
 
+import com.huawei.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.NotFoundClasses
@@ -12,16 +13,17 @@ class ReflectionTypes(module: ModuleDescriptor, private val notFoundClasses: Not
 {
 
   companion object{
-//      fun isCCallableType(type: CangJieType): Boolean =
-//          hasCCallableTypeFqName(type) || type.constructor.supertypes.any { isCCallableType(it) }
-//      fun hasCCallableTypeFqName(type: CangJieType): Boolean =
-//          hasFqName(type.constructor, StandardNames.FqNames.cCallable)
-//      private fun hasFqName(typeConstructor: TypeConstructor, fqName: FqNameUnsafe): Boolean {
-//          val descriptor = typeConstructor.declarationDescriptor
-//          return descriptor is ClassDescriptor && hasFqName(descriptor, fqName)
-//      }
-//      private fun hasFqName(descriptor: ClassDescriptor, fqName: FqNameUnsafe): Boolean {
-//          return descriptor.name == fqName.shortName() && DescriptorUtils.getFqName(descriptor) == fqName
-//      }
+    fun isPossibleExpectedCallableType(typeConstructor: TypeConstructor): Boolean {
+      val descriptor = typeConstructor.declarationDescriptor as? ClassDescriptor ?: return false
+      if (CangJieBuiltIns.isAny(descriptor)) return true
+
+      val fqName = DescriptorUtils.getFqName(descriptor)
+      if (fqName.isRoot) return false
+
+
+
+
+      return false
+    }
   }
 }

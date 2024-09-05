@@ -48,7 +48,11 @@ class IntegerLiteralTypeConstructor : TypeConstructor {
             }
         }
 
-        private fun fold(left: IntegerLiteralTypeConstructor, right: IntegerLiteralTypeConstructor, mode: Mode): SimpleType? {
+        private fun fold(
+            left: IntegerLiteralTypeConstructor,
+            right: IntegerLiteralTypeConstructor,
+            mode: Mode
+        ): SimpleType {
             val possibleTypes = when (mode) {
                 Mode.COMMON_SUPER_TYPE -> left.possibleTypes intersect right.possibleTypes
                 Mode.INTERSECTION_TYPE -> left.possibleTypes union right.possibleTypes
@@ -126,11 +130,9 @@ class IntegerLiteralTypeConstructor : TypeConstructor {
     private fun isContainsOnlyUnsignedTypes(): Boolean = module.allSignedLiteralTypes.all { it !in possibleTypes }
 
     private val supertypes: List<CangJieType> by lazy {
-        val result = mutableListOf(builtIns.comparable.defaultType.replace(listOf(TypeProjectionImpl(Variance.IN_VARIANCE, type))))
-        if (!isContainsOnlyUnsignedTypes()) {
-            result += builtIns.numberType
-        }
-        result
+//        根据标准库std.core中声明的扩展，所以基本类型一定有Any类型
+        listOf(builtIns.anyType)
+
     }
 
     fun getApproximatedType(): CangJieType = when {

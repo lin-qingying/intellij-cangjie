@@ -35,5 +35,6 @@ public interface TracingStrategy {
     void invisibleMember(@NotNull BindingTrace trace, @NotNull DeclarationDescriptorWithVisibility descriptor);
 
     void noValueForParameter(@NotNull BindingTrace trace, @NotNull ValueParameterDescriptor valueParameter);
+    void unsafeCall(@NotNull BindingTrace trace, @NotNull CangJieType type, boolean isCallForImplicitInvoke);
 
 }

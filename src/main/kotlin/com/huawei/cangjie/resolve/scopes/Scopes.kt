@@ -1,7 +1,6 @@
 package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.descriptors.impl.FunctionClassDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
@@ -73,7 +72,7 @@ abstract class BaseHierarchicalScope(override val parent: HierarchicalScope?) : 
         return emptyList()
     }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> =
         emptyList()
 
     override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
@@ -252,7 +251,7 @@ class CompositePrioritizedImportingScope(
         )
     }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
         return primaryScope.getContributedVariables(name, location).union(
             secondaryScope.getContributedVariables(name, location)
         )

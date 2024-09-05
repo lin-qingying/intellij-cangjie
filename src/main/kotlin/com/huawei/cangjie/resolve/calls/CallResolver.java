@@ -25,12 +25,15 @@ import com.huawei.cangjie.resolve.calls.tower.PSICallResolver;
 import com.huawei.cangjie.resolve.calls.util.CallMaker;
 import com.huawei.cangjie.resolve.calls.util.CallResolverUtilKt;
 import com.huawei.cangjie.resolve.calls.util.CallUtilKt;
+import com.huawei.cangjie.resolve.calls.util.ResolveArgumentsMode;
 import com.huawei.cangjie.resolve.descriptorUtil.DescriptorUtilsKt;
+import com.huawei.cangjie.resolve.lazy.ForceResolveUtil;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.resolve.scopes.SyntheticScopes;
 import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.CangJieTypeKt;
+import com.huawei.cangjie.types.expressions.ExpressionTypingContext;
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices;
 import com.huawei.cangjie.types.expressions.ExpressionTypingVisitorDispatcher;
 import com.huawei.cangjie.utils.OperatorNameConventions;
@@ -39,6 +42,7 @@ import com.intellij.psi.PsiElement;
 import jakarta.inject.Inject;
 
 import kotlin.Pair;
+import kotlin.collections.CollectionsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -101,7 +105,25 @@ public class CallResolver {
         argumentTypeResolver.checkTypesWithNoCallee(context);
         return OverloadResolutionResultsImpl.nameNotFound();
     }
+    @NotNull
+    public OverloadResolutionResults<FunctionDescriptor> resolveCollectionLiteralCallWithGivenDescriptor(
+            @NotNull ExpressionTypingContext context,
+            @NotNull CjCollectionLiteralExpression expression,
+            @NotNull Call call,
+            @NotNull Collection<FunctionDescriptor> functionDescriptors
+    ) {
+        BasicCallResolutionContext callResolutionContext = BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS);
+        List<OldResolutionCandidate<FunctionDescriptor>> candidates = CollectionsKt.map(functionDescriptors, descriptor ->
+                OldResolutionCandidate.create(
+                        call,
+                        descriptor,
+                        null,
+                        ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
+                        null));
 
+        return computeTasksFromCandidatesAndResolvedCall(
+                callResolutionContext, candidates, TracingStrategyImpl.create(expression, call));
+    }
     // component dependency cycle
     @Inject
     public void setExpressionTypingServices(@NotNull ExpressionTypingServices expressionTypingServices) {
@@ -414,7 +436,7 @@ public class CallResolver {
         tracing.bindCall(context.trace, call);
 
 
-//        bool newInferenceEnabled = languageVersionSettings.supportsFeature(LanguageFeature.NewInference);
+        boolean newInferenceEnabled = languageVersionSettings.supportsFeature(LanguageFeature.NewInference);
         NewResolutionOldInference.ResolutionKind resolutionKind = resolutionTask.resolutionKind;
         if (
 //                newInferenceEnabled &&
@@ -423,7 +445,11 @@ public class CallResolver {
             BindingContextUtilsKt.recordScope(context.trace, context.scope, context.call.getCalleeExpression());
             return PSICallResolver.runResolutionAndInference(context, resolutionTask.name, resolutionKind, tracing);
         }
-
+        if (newInferenceEnabled && resolutionKind instanceof NewResolutionOldInference.ResolutionKind.GivenCandidates) {
+            assert resolutionTask.givenCandidates != null;
+            BindingContextUtilsKt.recordScope(context.trace, context.scope, context.call.getCalleeExpression());
+            return PSICallResolver.runResolutionAndInferenceForGivenCandidates(context, resolutionTask.givenCandidates, tracing);
+        }
         TemporaryBindingTrace traceToResolveCall = TemporaryBindingTrace.create(context.trace, "trace to resolve call", call);
 
         BasicCallResolutionContext newContext = context.replaceBindingTrace(traceToResolveCall);
@@ -446,34 +472,34 @@ public class CallResolver {
             @NotNull ResolutionTask<D> resolutionTask,
             @NotNull TracingStrategy tracing
     ) {
-//        DataFlowInfo initialInfo = context.dataFlowInfoForArguments.getResultInfo();
-//        if (context.checkArguments == CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS) {
-//            argumentTypeResolver.analyzeArgumentsAndRecordTypes(context, ResolveArgumentsMode.SHAPE_FUNCTION_ARGUMENTS);
-//        }
+        DataFlowInfo initialInfo = context.dataFlowInfoForArguments.getResultInfo();
+        if (context.checkArguments == CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS) {
+            argumentTypeResolver.analyzeArgumentsAndRecordTypes(context, ResolveArgumentsMode.SHAPE_FUNCTION_ARGUMENTS);
+        }
 
-//        List<CjTypeProjection> typeArguments = context.call.getTypeArguments();
-//        for (CjTypeProjection projection : typeArguments) {
-//            if (projection.getProjectionKind() != CjProjectionKind.NONE) {
-//                context.trace.report(PROJECTION_ON_NON_CLASS_TYPE_ARGUMENT.on(projection));
-//                ModifierCheckerCore.INSTANCE.check(projection, context.trace, null, languageVersionSettings);
-//            }
-//            CangJieType type = argumentTypeResolver.resolveTypeRefWithDefault(
-//                    projection.getTypeReference(), context.scope, context.trace,
-//                    null);
-//            if (type != null) {
-//                ForceResolveUtil.forceResolveAllContents(type);
-//            }
-//        }
+        List<CjTypeProjection> typeArguments = context.call.getTypeArguments();
+        for (CjTypeProjection projection : typeArguments) {
+            if (projection.getProjectionKind() != CjProjectionKind.NONE) {
+                context.trace.report(PROJECTION_ON_NON_CLASS_TYPE_ARGUMENT.on(projection));
+                ModifierCheckerCore.INSTANCE.check(projection, context.trace, null, languageVersionSettings);
+            }
+            CangJieType type = argumentTypeResolver.resolveTypeRefWithDefault(
+                    projection.getTypeReference(), context.scope, context.trace,
+                    null);
+            if (type != null) {
+                ForceResolveUtil.forceResolveAllContents(type);
+            }
+        }
 
         OverloadResolutionResultsImpl<D> result;
-//        if (!(resolutionTask.resolutionKind instanceof NewResolutionOldInference.ResolutionKind.GivenCandidates)) {
-//            assert resolutionTask.name != null;
+        if (!(resolutionTask.resolutionKind instanceof NewResolutionOldInference.ResolutionKind.GivenCandidates)) {
+            assert resolutionTask.name != null;
         result = newResolutionOldInference.runResolution(context, resolutionTask.name, resolutionTask.resolutionKind, tracing);
-//        }
-//        else {
-//            assert resolutionTask.givenCandidates != null;
-//            result = newResolutionOldInference.runResolutionForGivenCandidates(context, tracing, resolutionTask.givenCandidates);
-//        }
+        }
+        else {
+            assert resolutionTask.givenCandidates != null;
+            result = newResolutionOldInference.runResolutionForGivenCandidates(context, tracing, resolutionTask.givenCandidates);
+        }
 
         // in code like
         //   assert(a!!.isEmpty())
@@ -492,9 +518,14 @@ public class CallResolver {
 //        }
         return result;
     }
+    // component dependency cycle
+    @Inject
+    public void setArgumentTypeResolver(@NotNull ArgumentTypeResolver argumentTypeResolver) {
+        this.argumentTypeResolver = argumentTypeResolver;
+    }
 
     @NotNull
-    public OverloadResolutionResults<VariableDescriptor> resolveSimpleProperty(@NotNull BasicCallResolutionContext context) {
+    public OverloadResolutionResults<VariableDescriptor> resolveSimpleVariable(@NotNull BasicCallResolutionContext context) {
         CjExpression calleeExpression = context.call.getCalleeExpression();
         assert calleeExpression instanceof CjSimpleNameExpression;
         CjSimpleNameExpression nameExpression = (CjSimpleNameExpression) calleeExpression;

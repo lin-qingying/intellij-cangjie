@@ -12,6 +12,8 @@ interface CjExpression : CjElement {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R
 
     companion object {
+        @JvmStatic
+
         val EMPTY_ARRAY = arrayOf<CjExpression>()
 @JvmStatic
         val ARRAY_FACTORY =

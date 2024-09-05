@@ -1,13 +1,10 @@
 package com.huawei.cangjie.resolve.calls.smartcasts
 
-import com.huawei.cangjie.CjNodeTypes
 import com.huawei.cangjie.builtins.CangJieBuiltIns
-import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.PropertyDescriptor
 import com.huawei.cangjie.descriptors.VariableDescriptor
-import com.huawei.cangjie.descriptors.VariableDescriptorBase
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext

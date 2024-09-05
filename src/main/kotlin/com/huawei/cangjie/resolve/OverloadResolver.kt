@@ -162,7 +162,7 @@ class OverloadResolver(
 
         collectModulePackageMembersWithSameName(
             packageMembersByName,
-            c.properties.values,
+            c.variables.values,
             overloadFilter
         ) { scope, name ->
             val variables = scope.getContributedVariables(name, NoLookupLocation.MATCH_CHECK_DECLARATION_CONFLICTS)
@@ -256,6 +256,7 @@ class OverloadResolver(
         for (memberDescriptor in redeclarations) {
             when (memberDescriptor) {
                 is PropertyDescriptor,
+                is VariableDescriptor,
                 is ClassifierDescriptor ->
                     reportOnDeclaration(trace, memberDescriptor) { Errors.REDECLARATION.on(it, redeclarations) }
                 is FunctionDescriptor ->

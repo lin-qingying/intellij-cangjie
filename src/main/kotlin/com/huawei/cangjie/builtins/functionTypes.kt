@@ -260,3 +260,7 @@ fun CangJieType.extractParameterNameFromFunctionTypeArgument(): Name? {
     return Name.identifier(name)
 }
 
+val CangJieType.isFunctionTypeOrSubtype: Boolean
+    get() = isTypeOrSubtypeOf { it.isFunctionType }
+fun CangJieType.isFunctionTypeOrSubtype(predicate: (CangJieType) -> Boolean): Boolean =
+    isTypeOrSubtypeOf { it.isFunctionType && predicate(it) }

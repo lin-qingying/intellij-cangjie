@@ -32,6 +32,7 @@ public class DefaultErrorMessages {
         MAP.put(CONFLICTING_OVERLOADS, "Conflicting overloads: {0}", CommonRenderers.commaSeparated(FQ_NAMES_IN_TYPES));
         MAP.put(PACKAGE_OR_CLASSIFIER_REDECLARATION, "Redeclaration: {0}", STRING);
 
+        MAP.put(REDECLARATION, "Conflicting declarations: {0}", CommonRenderers.commaSeparated(COMPACT_WITH_MODIFIERS));
 
         MAP.put(FUNCTION_CALL_EXPECTED, "Function invocation ''{0}({1})'' expected", ELEMENT_TEXT,
                 (hasValueParameters, context) -> hasValueParameters ? "..." : "");
@@ -76,7 +77,7 @@ public class DefaultErrorMessages {
 
         MAP.put(CANNOT_WEAKEN_ACCESS_PRIVILEGE, "Cannot weaken access privilege ''{0}'' for ''{1}'' in ''{2}''", VISIBILITY, NAME, NAME);
 
-        MAP.put(ABSTRACT_MEMBER_NOT_IMPLEMENTED, "{0} is not abstract and does not implement abstract member {1}", RENDER_CLASS,
+        MAP.put(ABSTRACT_MEMBER_NOT_IMPLEMENTED, "{0} is not abstract and does not implement abstract member {1}", RENDER_TYPE_STATMENT,
                 FQ_NAMES_IN_TYPES);
         MAP.put(VIRTUAL_MEMBER_HIDDEN, "''{0}'' hides member of supertype ''{2}'' and needs ''override'' modifier", NAME, NAME, NAME);
         MAP.put(NOTHING_TO_OVERRIDE, "''{0}'' overrides nothing", NAME);
@@ -113,7 +114,7 @@ public class DefaultErrorMessages {
 
         MAP.put(EXTEND_CANNOT_INTERFACE, "Extended interfaces are cannot allowed");
         MAP.put(ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED, "{0} is not abstract and does not implement abstract base class member {1}",
-                RENDER_CLASS_OR_STRUCT, FQ_NAMES_IN_TYPES);
+                RENDER_TYPE_STATMENT, FQ_NAMES_IN_TYPES);
 
         MAP.put(PARAMETER_NAME_CHANGED_ON_OVERRIDE, "The corresponding parameter in the supertype ''{0}'' is named ''{1}''. " +
                 "This may cause problems when calling this function with named arguments.", NAME, NAME);
@@ -124,6 +125,7 @@ public class DefaultErrorMessages {
         MAP.put(AMBIGUOUS_ANONYMOUS_TYPE_INFERRED, "Right-hand side has anonymous type. Please specify type explicitly", TO_STRING);
 
         MAP.put(RETURN_NOT_ALLOWED, "'return' is not allowed here");
+        MAP.put(NONE_APPLICABLE, "None of the following functions can be called with the arguments supplied: {0}", AMBIGUOUS_CALLS);
 
 //        修饰符
         MAP.put(REDUNDANT_MODIFIER, "Modifier ''{0}'' is redundant because ''{1}'' is present", TO_STRING, TO_STRING);

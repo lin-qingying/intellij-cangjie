@@ -8,7 +8,6 @@ import com.huawei.cangjie.descriptors.VariableDescriptor
 import com.huawei.cangjie.descriptors.synthetic.SyntheticMemberDescriptor
 import com.huawei.cangjie.types.AbstractTypeChecker
 import com.huawei.cangjie.types.UnwrappedType
-import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.safeSubstitute
 import com.huawei.cangjie.types.model.*
 
 interface SpecificityComparisonCallbacks {

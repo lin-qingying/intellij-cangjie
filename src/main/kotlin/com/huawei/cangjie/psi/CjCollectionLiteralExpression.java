@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.huawei.cangjie.CjNodeTypes.CONSTANT_EXPRESSIONS_TYPES;
 import static com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt.getTrailingCommaByClosingElement;
 
 
@@ -37,6 +38,7 @@ public class CjCollectionLiteralExpression extends CjElementImplStub<CangJieColl
 
     @Nullable
     public PsiElement getRightBracket() {
+
         ASTNode astNode = getNode().findChildByType(CjTokens.RBRACKET);
         return astNode != null ? astNode.getPsi() : null;
     }
@@ -47,12 +49,12 @@ public class CjCollectionLiteralExpression extends CjElementImplStub<CangJieColl
         return getTrailingCommaByClosingElement(rightBracket);
     }
 
-//    public List<CjExpression> getInnerExpressions() {
-//        CangJieCollectionLiteralExpressionStub stub = getStub();
-//        if (stub != null) {
-//
-//            return Arrays.asList(stub.getChildrenByType(CjStubElementTypes.CONSTANT_EXPRESSIONS_TYPES, CjExpression.EMPTY_ARRAY));
-//        }
-//        return PsiTreeUtil.getChildrenOfTypeAsList(this, CjExpression.class);
-//    }
+    public List<CjExpression> getInnerExpressions() {
+        CangJieCollectionLiteralExpressionStub stub = getStub();
+        if (stub != null) {
+
+            return Arrays.asList(stub.getChildrenByType( CONSTANT_EXPRESSIONS_TYPES, CjExpression.getEMPTY_ARRAY()));
+        }
+        return PsiTreeUtil.getChildrenOfTypeAsList(this, CjExpression.class);
+    }
 }

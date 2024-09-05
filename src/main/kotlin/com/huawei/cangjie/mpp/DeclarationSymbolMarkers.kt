@@ -10,6 +10,8 @@ interface FunctionSymbolMarker : CallableSymbolMarker
 interface ConstructorSymbolMarker : FunctionSymbolMarker
 interface SimpleFunctionSymbolMarker : FunctionSymbolMarker
 interface PropertySymbolMarker : CallableSymbolMarker
+interface VariableSymbolMarker : CallableSymbolMarker
+
 interface ValueParameterSymbolMarker : CallableSymbolMarker
 interface FieldSymbolMarker : CallableSymbolMarker
 interface EnumEntrySymbolMarker : CallableSymbolMarker
@@ -19,4 +21,4 @@ interface TypeParameterSymbolMarker : ClassifierSymbolMarker
 interface ClassLikeSymbolMarker : ClassifierSymbolMarker
 interface RegularClassSymbolMarker : ClassLikeSymbolMarker
 interface TypeAliasSymbolMarker : ClassLikeSymbolMarker
-interface K1SyntheticClassifierSymbolMarker : ClassifierSymbolMarker
+interface  SyntheticClassifierSymbolMarker : ClassifierSymbolMarker

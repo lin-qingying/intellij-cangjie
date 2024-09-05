@@ -5,6 +5,7 @@ import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.util.shouldBeUpdated
+import com.huawei.cangjie.utils.ReadOnly
 
 
 abstract class AbstractVariableDescriptor(
@@ -15,24 +16,51 @@ abstract class AbstractVariableDescriptor(
     source: SourceElement
 
 ) : DeclarationDescriptorNonRootImpl(containingDeclaration, annotations, name, source),
-    VariableDescriptorBase {
+    VariableDescriptor {
+    private var _typeParameters: List<TypeParameterDescriptor> = emptyList()
+    protected var _contextReceiverParameters: List<ReceiverParameterDescriptor> = emptyList()
+    private var _dispatchReceiverParameter: ReceiverParameterDescriptor? = null
+    private var _extensionReceiverParameter: ReceiverParameterDescriptor? = null
+    override val original: VariableDescriptor = super.original as VariableDescriptor
 
-    override val original: VariableDescriptorBase = super.original as VariableDescriptorBase
-    override fun getContextReceiverParameters(): List<ReceiverParameterDescriptor> {
-        return emptyList()
-    }
 
     open fun setOutType(outType: CangJieType) {
         assert(this._outType == null || this._outType.shouldBeUpdated())
         this._outType = outType
     }
 
+    open fun setType(
+        outType: CangJieType,
+        @ReadOnly typeParameters: List<TypeParameterDescriptor>,
+        dispatchReceiverParameter: ReceiverParameterDescriptor?,
+        extensionReceiverParameter: ReceiverParameterDescriptor?,
+        contextReceiverParameters: List<ReceiverParameterDescriptor>
+    ) {
+        setOutType(outType)
 
-    override val visibility: DescriptorVisibility
-        get() = DescriptorVisibilities.LOCAL
+        this._typeParameters = typeParameters
+
+        this._extensionReceiverParameter = extensionReceiverParameter
+        this._dispatchReceiverParameter = dispatchReceiverParameter
+        this._contextReceiverParameters = contextReceiverParameters
+    }
+
+    override fun getContextReceiverParameters(): List<ReceiverParameterDescriptor> {
+        return _contextReceiverParameters
+    }
+
+    override var visibility: DescriptorVisibility = DescriptorVisibilities.LOCAL
 
     override fun getReturnType(): CangJieType {
         return type
+    }
+
+    override fun getExtensionReceiverParameter(): ReceiverParameterDescriptor? {
+        return _extensionReceiverParameter
+    }
+
+    override fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? {
+        return _dispatchReceiverParameter
     }
 
     override val isConst: Boolean
@@ -40,9 +68,6 @@ abstract class AbstractVariableDescriptor(
             return false
         }
 
-    override fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? {
-        return null
-    }
 
     override fun hasStableParameterNames(): Boolean {
         return false
@@ -53,7 +78,7 @@ abstract class AbstractVariableDescriptor(
 //        @ReadOnly typeParameters: List<TypeParameterDescriptor?>,
 //        dispatchReceiverParameter: ReceiverParameterDescriptor?,
 //        extensionReceiverParameter: ReceiverParameterDescriptor?,
-//        contextReceiverParameters: List<ReceiverParameterDescriptor?>
+//        _contextReceiverParameters: List<ReceiverParameterDescriptor?>
 //    ) {
 //        setOutType(_outType)
 //
@@ -61,7 +86,7 @@ abstract class AbstractVariableDescriptor(
 //
 //        this.extensionReceiverParameter = extensionReceiverParameter
 //        this.dispatchReceiverParameter = dispatchReceiverParameter
-//        this.contextReceiverParameters = contextReceiverParameters
+//        this._contextReceiverParameters = _contextReceiverParameters
 //    }
 
     companion object {
@@ -94,14 +119,12 @@ abstract class AbstractVariableDescriptor(
         return _outType!!
     }
 
-    override fun getExtensionReceiverParameter(): ReceiverParameterDescriptor? {
-        return null
-    }
 
     override fun getTypeParameters(): List<TypeParameterDescriptor> {
-        return emptyList()
+        return _typeParameters
     }
-//    override fun getOverriddenDescriptors(): Collection<CallableDescriptor> {
+
+    //    override fun getOverriddenDescriptors(): Collection<CallableDescriptor> {
 //        return emptySet ()
 //    }
     override fun getValueParameters(): List<ValueParameterDescriptor> {

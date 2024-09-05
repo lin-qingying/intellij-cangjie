@@ -22,11 +22,18 @@ by (
 
 class ErrorVariableDescriptor : VariableDescriptor
 by (
+//        VariableDescriptorImpl.create(
+//            ErrorUtils.errorClass, Annotations.EMPTY, Modality.OPEN,
+//            DescriptorVisibilities.PUBLIC, true, Name.special(ErrorEntity.ERROR_VARIABLE.debugText),
+//            CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE,
+//            /*false, false, false, false, false, false*/
+//        ).apply {
+//            setType(ErrorUtils.errorVariableType, emptyList(), null, null, emptyList())
+//        }
+
         VariableDescriptorImpl.create(
-            ErrorUtils.errorClass, Annotations.EMPTY, Modality.OPEN,
-            DescriptorVisibilities.PUBLIC, true, Name.special(ErrorEntity.ERROR_VARIABLE.debugText),
-            CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE,
-            /*false, false, false, false, false, false*/
+            ErrorUtils.errorClass,   Name.special(ErrorEntity.ERROR_VARIABLE.debugText),DescriptorVisibilities.PUBLIC, false,
+            SourceElement.NO_SOURCE,
         ).apply {
             setType(ErrorUtils.errorVariableType, emptyList(), null, null, emptyList())
         }

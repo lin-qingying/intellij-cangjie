@@ -14,6 +14,7 @@ inline fun <T, R : Any> Iterable<T>.firstNotNullResult(transform: (T) -> R?): R?
     }
     return null
 }
+fun <E> MutableList<E>.popLast(): E = removeAt(lastIndex)
 
 fun shouldNotBeCalled(message: String = "should not be called"): Nothing {
     error(message)

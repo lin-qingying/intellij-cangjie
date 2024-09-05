@@ -16,5 +16,5 @@ sealed class ResolvedCallArgument {
 
     }
 
-//    class VarargArgument(override val arguments: List<CangJieCallArgument>) : ResolvedCallArgument()
+    class VarargArgument(override val arguments: List<CangJieCallArgument>) : ResolvedCallArgument()
 }

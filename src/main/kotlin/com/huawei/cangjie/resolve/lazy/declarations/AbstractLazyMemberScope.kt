@@ -2,9 +2,7 @@ package com.huawei.cangjie.resolve.lazy.declarations
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.builtins.StandardNames.FqNames.core
-import com.huawei.cangjie.builtins.functions.FunctionTypeKind
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.descriptors.impl.FunctionClassDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
@@ -73,7 +71,8 @@ protected constructor(
         name: Name
     ): Collection<VariableDescriptor> {
         if (mainScope != null) return mainScope.declaredVariableDescriptors(name).map {
-            it.newCopyBuilder().setPreserveSourceElement().build()!!
+//            it.newCopyBuilder().setPreserveSourceElement().build()!!
+            it
         }
 
         val result = LinkedHashSet<VariableDescriptor>()

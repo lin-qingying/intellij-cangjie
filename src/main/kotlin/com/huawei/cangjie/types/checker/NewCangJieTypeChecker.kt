@@ -5,6 +5,11 @@ import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.AbstractNullabilityChecker.hasNotNullSupertype
 
 object SimpleClassicTypeSystemContext : ClassicTypeSystemContext
+fun UnwrappedType.hasSupertypeWithGivenTypeConstructor(typeConstructor: TypeConstructor) =
+    createClassicTypeCheckerState(isErrorTypeEqualsToAnything = false).anySupertype(lowerIfFlexible(), {
+        require(it is SimpleType)
+        it.constructor == typeConstructor
+    }, { TypeCheckerState.SupertypesPolicy.LowerIfFlexible })
 
 interface NewCangJieTypeChecker : CangJieTypeChecker {
     val cangjieTypeRefiner: CangJieTypeRefiner

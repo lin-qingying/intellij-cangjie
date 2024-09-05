@@ -4,7 +4,6 @@ package com.huawei.cangjie.descriptors.impl;
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.name.Name;
-import com.huawei.cangjie.resolve.constants.ConstantValue;
 import com.huawei.cangjie.resolve.scopes.receivers.ContextReceiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ExtensionReceiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ImplicitContextReceiver;
@@ -25,10 +24,10 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
 
     private DescriptorVisibility visibility;
     private Collection<? extends PropertyDescriptor> overriddenProperties = null;
-    private List<ReceiverParameterDescriptor> contextReceiverParameters = Collections.emptyList();
-    private ReceiverParameterDescriptor dispatchReceiverParameter;
-    private ReceiverParameterDescriptor extensionReceiverParameter;
-    private List<TypeParameterDescriptor> typeParameters;
+//    private List<ReceiverParameterDescriptor> _contextReceiverParameters = Collections.emptyList();
+//    private ReceiverParameterDescriptor dispatchReceiverParameter;
+//    private ReceiverParameterDescriptor extensionReceiverParameter;
+//    private List<TypeParameterDescriptor> typeParameters;
     //    private PropertyGetterDescriptorImpl getter;
 //    private PropertySetterDescriptor setter;
     private boolean setterProjectedOut;
@@ -154,21 +153,21 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
                 Collections.emptyList());
     }
 
-    public void setType(
-            @NotNull CangJieType outType,
-            @ReadOnly @NotNull List<? extends TypeParameterDescriptor> typeParameters,
-            @Nullable ReceiverParameterDescriptor dispatchReceiverParameter,
-            @Nullable ReceiverParameterDescriptor extensionReceiverParameter,
-            @NotNull List<ReceiverParameterDescriptor> contextReceiverParameters
-    ) {
-        setOutType(outType);
-
-        this.typeParameters = new ArrayList<TypeParameterDescriptor>(typeParameters);
-
-        this.extensionReceiverParameter = extensionReceiverParameter;
-        this.dispatchReceiverParameter = dispatchReceiverParameter;
-        this.contextReceiverParameters = contextReceiverParameters;
-    }
+//    public void setType(
+//            @NotNull CangJieType outType,
+//            @ReadOnly @NotNull List<? extends TypeParameterDescriptor> typeParameters,
+//            @Nullable ReceiverParameterDescriptor dispatchReceiverParameter,
+//            @Nullable ReceiverParameterDescriptor extensionReceiverParameter,
+//            List<? extends ReceiverParameterDescriptor> _contextReceiverParameters
+//    ) {
+//        setOutType(outType);
+//
+//        this.typeParameters = new ArrayList<TypeParameterDescriptor>(typeParameters);
+//
+//        this.extensionReceiverParameter = extensionReceiverParameter;
+//        this.dispatchReceiverParameter = dispatchReceiverParameter;
+//        this._contextReceiverParameters =  _contextReceiverParameters;
+//    }
 
 //    public void initialize(
 //            @Nullable PropertyGetterDescriptorImpl getter,
@@ -192,7 +191,7 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
     @NotNull
     @Override
     public List<TypeParameterDescriptor> getTypeParameters() {
-        List<TypeParameterDescriptor> parameters = typeParameters;
+        List<TypeParameterDescriptor> parameters = super.getTypeParameters();
         // Diagnostics for EA-212070
         if (parameters == null) {
             throw new IllegalStateException("typeParameters == null for " + this);
@@ -200,28 +199,12 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
         return parameters;
     }
 
+
     @Override
     public void validate() {
         getTypeParameters();
     }
 
-    @Override
-    @NotNull
-    public List<ReceiverParameterDescriptor> getContextReceiverParameters() {
-        return contextReceiverParameters;
-    }
-
-    @Override
-    @Nullable
-    public ReceiverParameterDescriptor getExtensionReceiverParameter() {
-        return extensionReceiverParameter;
-    }
-
-    @Nullable
-    @Override
-    public ReceiverParameterDescriptor getDispatchReceiverParameter() {
-        return dispatchReceiverParameter;
-    }
 
     @NotNull
     @Override
@@ -360,14 +343,14 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
         }
 
         ReceiverParameterDescriptor substitutedExtensionReceiver;
-        if (extensionReceiverParameter != null) {
-            substitutedExtensionReceiver = substituteParameterDescriptor(substitutor, substitutedDescriptor, extensionReceiverParameter);
+        if (getExtensionReceiverParameter() != null) {
+            substitutedExtensionReceiver = substituteParameterDescriptor(substitutor, substitutedDescriptor, getExtensionReceiverParameter());
         } else {
             substitutedExtensionReceiver = null;
         }
 
         List<ReceiverParameterDescriptor> substitutedContextReceivers = new ArrayList<ReceiverParameterDescriptor>();
-        for (ReceiverParameterDescriptor contextReceiverParameter : contextReceiverParameters) {
+        for (ReceiverParameterDescriptor contextReceiverParameter : getContextReceiverParameters()) {
             ReceiverParameterDescriptor substitutedContextReceiver = substituteContextParameterDescriptor(substitutor, substitutedDescriptor,
                     contextReceiverParameter);
             if (substitutedContextReceiver != null) {
@@ -548,7 +531,7 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
         private Kind kind = getKind();
         private TypeSubstitution substitution = TypeSubstitution.EMPTY;
         private boolean copyOverrides = true;
-        private ReceiverParameterDescriptor dispatchReceiverParameter = PropertyDescriptorImpl.this.dispatchReceiverParameter;
+        private ReceiverParameterDescriptor dispatchReceiverParameter = PropertyDescriptorImpl.this.getDispatchReceiverParameter();
         private List<TypeParameterDescriptor> newTypeParameters = null;
         private Name name = getName();
         private CangJieType returnType = getType();

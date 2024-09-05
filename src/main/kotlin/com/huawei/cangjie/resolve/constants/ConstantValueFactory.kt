@@ -64,14 +64,14 @@ object ConstantValueFactory {
         return if (isUnsigned) {
             when {
                 CangJieBuiltIns.isUInt8(expectedType) && value == value.toByte()
-                    .fromUByteToLong() -> UInt8Value(value.toByte())
+                    .fromUInt8ToLong() -> UInt8Value(value.toByte())
 
-                CangJieBuiltIns.isUInt16(expectedType) && value == value.toShort().fromUShortToLong() -> UInt16Value(
+                CangJieBuiltIns.isUInt16(expectedType) && value == value.toShort().fromUInt16ToLong() -> UInt16Value(
                     value.toShort()
                 )
 
                 CangJieBuiltIns.isUInt32(expectedType) && value == value.toInt()
-                    .fromUIntToLong() -> UInt32Value(value.toInt())
+                    .fromUInt32ToLong() -> UInt32Value(value.toInt())
 
                 CangJieBuiltIns.isUInt64(expectedType) -> UInt64Value(value)
                 else -> null
@@ -91,6 +91,6 @@ object ConstantValueFactory {
     }
 }
 
-fun Byte.fromUByteToLong(): Long = this.toLong() and 0xFF
-fun Short.fromUShortToLong(): Long = this.toLong() and 0xFFFF
-fun Int.fromUIntToLong(): Long = this.toLong() and 0xFFFF_FFFF
+fun Byte.fromUInt8ToLong(): Long = this.toLong() and 0xFF
+fun Short.fromUInt16ToLong(): Long = this.toLong() and 0xFFFF
+fun Int.fromUInt32ToLong(): Long = this.toLong() and 0xFFFF_FFFF

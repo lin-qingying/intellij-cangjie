@@ -11,6 +11,7 @@ import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.UnwrappedType
 import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.util.builtIns
+import com.intellij.testFramework.requireIs
 
 fun LambdaWithTypeVariableAsExpectedTypeAtom.transformToResolvedLambda(
     csBuilder: ConstraintSystemBuilder,
@@ -188,3 +189,60 @@ private fun extraLambdaInfo(
     )
 }
 internal val ConstraintSystemBuilder.builtIns: CangJieBuiltIns get() = ((this as NewConstraintSystemImpl).typeSystemContext as BuiltInsProvider).builtIns
+fun resolveCjPrimitive(
+    csBuilder: ConstraintSystemBuilder,
+    argument: CangJieCallArgument,
+    expectedType: UnwrappedType?,
+    diagnosticsHolder: CangJieDiagnosticsHolder,
+    receiverInfo: ReceiverInfo,
+    convertedType: UnwrappedType?,
+    inferenceSession: InferenceSession?,
+    selectorCall: CangJieCall? = null,
+): ResolvedAtom = when (argument) {
+    is SimpleCangJieCallArgument -> checkSimpleArgument(
+        csBuilder, argument, expectedType, diagnosticsHolder, receiverInfo, convertedType, inferenceSession, selectorCall
+    )
+
+    is LambdaCangJieCallArgument ->
+        preprocessLambdaArgument(csBuilder, argument, expectedType, diagnosticsHolder)
+
+    is CallableReferenceCangJieCallArgument ->
+        preprocessCallableReference(csBuilder, argument, expectedType, diagnosticsHolder)
+
+    is CollectionLiteralCangJieCallArgument ->
+        preprocessCollectionLiteralArgument(argument, expectedType)
+
+    else -> unexpectedArgument(argument)
+}
+private fun preprocessCallableReference(
+    csBuilder: ConstraintSystemBuilder,
+    argument: CallableReferenceCangJieCallArgument,
+    expectedType: UnwrappedType?,
+    diagnosticsHolder: CangJieDiagnosticsHolder
+): ResolvedAtom {
+    val result = EagerCallableReferenceAtom(argument, expectedType)
+
+    if (expectedType == null) return result
+
+    val notCallableTypeConstructor =
+        csBuilder.getProperSuperTypeConstructors(expectedType)
+            .firstOrNull { !ReflectionTypes.isPossibleExpectedCallableType(it.requireIs()) }
+
+    if (notCallableTypeConstructor != null) {
+        diagnosticsHolder.addDiagnostic(
+            NotCallableExpectedType(
+                argument,
+                expectedType,
+                notCallableTypeConstructor.requireIs()
+            )
+        )
+    }
+    return result
+}
+private fun preprocessCollectionLiteralArgument(
+    collectionLiteralArgument: CollectionLiteralCangJieCallArgument,
+    expectedType: UnwrappedType?
+): ResolvedAtom {
+    // todo add some checks about expected type
+    return ResolvedCollectionLiteralAtom(collectionLiteralArgument, expectedType)
+}

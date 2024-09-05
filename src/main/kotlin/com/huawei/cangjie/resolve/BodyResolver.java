@@ -624,7 +624,7 @@ public class BodyResolver {
 
         // Synthetic "field" creation
 //        if (functionDescriptor instanceof PropertyAccessorDescriptor && functionDescriptor.getExtensionReceiverParameter() == null
-//                && functionDescriptor.getContextReceiverParameters().isEmpty()) {
+//                && functionDescriptor.get_contextReceiverParameters().isEmpty()) {
 //            PropertyAccessorDescriptor accessorDescriptor = (PropertyAccessorDescriptor) functionDescriptor;
 //            CjProperty property = (CjProperty) function.getParent();
 //            SourceElement propertySourceElement = CangJieSourceElementCj.toSourceElement(property);

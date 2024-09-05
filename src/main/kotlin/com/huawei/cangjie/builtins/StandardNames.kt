@@ -17,6 +17,9 @@ object StandardNames {
     @kotlin.jvm.JvmField
     val NAME = Name.identifier("name")
 
+
+    val arrayOfName = Name.identifier("arrayOf")
+
     @JvmStatic
     fun getFunctionName(parameterCount: Int): String {
         return "Function$parameterCount"
@@ -67,6 +70,8 @@ object StandardNames {
 
     @JvmField
     val ANY = STD_CORE_PACKAGE_FQ_NAME.child(Name.identifier("Any"))
+    @JvmField
+    val ARRAY = STD_CORE_PACKAGE_FQ_NAME.child(Name.identifier("Array"))
 
     @JvmField
     val STRING = STD_CORE_PACKAGE_FQ_NAME.child(Name.identifier("String"))
@@ -82,12 +87,23 @@ object StandardNames {
                     this[fqNameUnsafe(primitiveType.typeName.asString())] = primitiveType
                 }
             }
+        @kotlin.jvm.JvmField
+        val primitiveArrayTypeShortNames: Set<Name> = newHashSetWithExpectedSize<Name>(PrimitiveType.entries.size).apply {
+            PrimitiveType.entries.mapTo(this) { it.arrayTypeName }
+        }
 
         @JvmField
         val primitiveTypeShortNames: Set<Name> = newHashSetWithExpectedSize<Name>(PrimitiveType.entries.size).apply {
             PrimitiveType.entries.mapTo(this) { it.typeName }
         }
 
+        @kotlin.jvm.JvmField
+        val arrayClassFqNameToPrimitiveType: MutableMap<FqNameUnsafe, PrimitiveType> =
+            newHashMapWithExpectedSize<FqNameUnsafe, PrimitiveType>(PrimitiveType.entries.size).apply {
+                for (primitiveType in PrimitiveType.entries) {
+                    this[fqNameUnsafe(primitiveType.arrayTypeName.asString())] = primitiveType
+                }
+            }
 
         @JvmField
         val core: FqName = FqName.topLevel(Name.identifier("std")).child(Name.identifier("core"))

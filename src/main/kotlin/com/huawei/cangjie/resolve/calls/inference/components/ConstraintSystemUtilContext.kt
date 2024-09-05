@@ -17,5 +17,6 @@ interface ConstraintSystemUtilContext{
     fun PostponedAtomWithRevisableExpectedType.isFunctionExpressionWithReceiver(): Boolean
     fun PostponedAtomWithRevisableExpectedType.isLambda(): Boolean
     fun <T> createFixVariableConstraintPosition(variable: TypeVariableMarker, atom: T): FixVariableConstraintPosition<T>
+    val isForcedAllowForkingInferenceSystem get() = false
 
 }

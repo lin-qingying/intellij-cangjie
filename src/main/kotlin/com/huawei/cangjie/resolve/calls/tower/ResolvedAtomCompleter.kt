@@ -17,7 +17,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
 import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.TypeApproximator
-import com.huawei.cangjie.types.expressions.DoubleColonExpressionResolver
+
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices
 import com.huawei.cangjie.types.util.shouldBeUpdated
 
@@ -27,7 +27,7 @@ class ResolvedAtomCompleter(
     private val cangjieToResolvedCallTransformer: CangJieToResolvedCallTransformer,
     private val expressionTypingServices: ExpressionTypingServices,
     private val argumentTypeResolver: ArgumentTypeResolver,
-    private val doubleColonExpressionResolver: DoubleColonExpressionResolver,
+
     private val builtIns: CangJieBuiltIns,
     private val deprecationResolver: DeprecationResolver,
     private val moduleDescriptor: ModuleDescriptor,
@@ -86,7 +86,7 @@ class ResolvedAtomCompleter(
 //                psiCallArgument.cjCallableReferenceExpression
 //            )
 //
-//            is VariableDescriptor -> topLevelCallContext.trace.get(
+//            is VariableCallableDescriptor -> topLevelCallContext.trace.get(
 //                BindingContext.VARIABLE,
 //                psiCallArgument.cjCallableReferenceExpression
 //            )

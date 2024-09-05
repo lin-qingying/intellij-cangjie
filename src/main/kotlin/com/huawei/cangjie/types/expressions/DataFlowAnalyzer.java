@@ -78,6 +78,17 @@ public class DataFlowAnalyzer {
             trace.record(BindingContext.EXPECTED_EXPRESSION_TYPE, expression, normalizeExpectedType);
         }
     }
+
+    @Nullable
+    public CangJieType checkType(
+            @Nullable CangJieType expressionType,
+            @NotNull CjExpression expression,
+            @NotNull ResolutionContext context,
+            boolean reportErrorForTypeMismatch
+    ) {
+        return checkType(expressionType, expression, context, null, reportErrorForTypeMismatch);
+    }
+
     @Nullable
     public CangJieType checkType(
             @Nullable CangJieType expressionType,

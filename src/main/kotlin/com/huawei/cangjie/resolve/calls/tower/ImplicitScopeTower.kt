@@ -31,6 +31,7 @@ class VisibilityError(val invisibleMember: DeclarationDescriptorWithVisibility) 
         reporter.onCall(this)
     }
 }
+object HiddenDescriptor : ResolutionDiagnostic(CandidateApplicability.HIDDEN)
 
 interface ScopeTowerLevel {
     fun getVariables(

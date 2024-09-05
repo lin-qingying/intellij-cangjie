@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.calls.tower
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.Errors
 import com.huawei.cangjie.name.Name
@@ -11,6 +12,7 @@ import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.StatementFilter
 import com.huawei.cangjie.resolve.TypeResolver
 import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver
+import com.huawei.cangjie.resolve.calls.components.InferenceSession
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
@@ -120,7 +122,7 @@ internal fun createSimplePSICallArgument(
     contextForArgument.trace.bindingContext, contextForArgument.statementFilter,
     contextForArgument.scope.ownerDescriptor, valueArgument,
     contextForArgument.dataFlowInfo, typeInfoForArgument,
-//    contextForArgument.languageVersionSettings,
+    contextForArgument.languageVersionSettings,
     contextForArgument.dataFlowValueFactory,
     contextForArgument.call,
 )
@@ -132,7 +134,7 @@ internal fun createSimplePSICallArgument(
     valueArgument: ValueArgument,
     dataFlowInfoBeforeThisArgument: DataFlowInfo,
     typeInfoForArgument: CangJieTypeInfo,
-//    languageVersionSettings: LanguageVersionSettings,
+    languageVersionSettings: LanguageVersionSettings,
     dataFlowValueFactory: DataFlowValueFactory,
     call: Call
 ): SimplePSICangJieCallArgument? {
@@ -346,4 +348,28 @@ fun checkNoSpread(context: BasicCallResolutionContext, valueArgument: ValueArgum
     valueArgument.getSpreadElement()?.let {
         context.trace.report(Errors.SPREAD_OF_LAMBDA_OR_CALLABLE_REFERENCE.on(it))
     }
+}
+class LambdaCangJieCallArgumentImpl(
+    outerCallContext: BasicCallResolutionContext,
+    valueArgument: ValueArgument,
+    dataFlowInfoBeforeThisArgument: DataFlowInfo,
+    argumentName: Name?,
+    val cjLambdaExpression: CjLambdaExpression,
+    val containingBlockForLambda: CjExpression,
+    override val parametersTypes: Array<UnwrappedType?>?
+) : PSIFunctionCangJieCallArgument(outerCallContext, valueArgument, dataFlowInfoBeforeThisArgument, argumentName) {
+    override val cjFunction get() = cjLambdaExpression.functionLiteral
+    override val expression get() = containingBlockForLambda
+
+    override var hasBuilderInferenceAnnotation = false
+        set(value) {
+            assert(!field)
+            field = value
+        }
+
+    override var builderInferenceSession: InferenceSession? = null
+        set(value) {
+            assert(field == null)
+            field = value
+        }
 }

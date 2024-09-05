@@ -4,12 +4,13 @@ import com.huawei.cangjie.mpp.ValueParameterSymbolMarker
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.types.CangJieType
 
-interface ValueParameterDescriptor : VariableDescriptorBase ,ParameterDescriptor, ValueParameterSymbolMarker   {
+interface ValueParameterDescriptor : VariableDescriptor ,ParameterDescriptor, ValueParameterSymbolMarker   {
     override val original: ValueParameterDescriptor
 //    val varargElementType: CangJieType?
 
     override val containingDeclaration: CallableDescriptor
 
+    val varargElementType: CangJieType? get() = null
 
     /**
      * Returns the 0-based index of the value parameter in the parameter list of its containing function.

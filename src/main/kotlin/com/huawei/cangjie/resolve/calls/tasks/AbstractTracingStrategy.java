@@ -5,11 +5,14 @@ import com.huawei.cangjie.descriptors.BindingTrace;
 import com.huawei.cangjie.descriptors.CallableDescriptor;
 import com.huawei.cangjie.descriptors.DeclarationDescriptorWithVisibility;
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor;
-import com.huawei.cangjie.psi.Call;
-import com.huawei.cangjie.psi.CjElement;
-import com.huawei.cangjie.psi.CjExpression;
+import com.huawei.cangjie.lexer.CjTokens;
+import com.huawei.cangjie.name.Name;
+import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
 import com.huawei.cangjie.resolve.calls.util.CallUtilKt;
+import com.huawei.cangjie.types.CangJieType;
+import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -27,6 +30,49 @@ public abstract class AbstractTracingStrategy implements TracingStrategy {
         this.call = call;
     }
 
+
+    private void reportUnsafeCallOnBinaryExpression(@NotNull BindingTrace trace, @NotNull CjBinaryExpression binaryExpression) {
+//        CjSimpleNameExpression operationReference = binaryExpression.getOperationReference();
+//        boolean isInfixCall = operationReference.getReferencedNameElementType() == CjTokens.IDENTIFIER;
+//        Name operationString = isInfixCall ?
+//                Name.identifier(operationReference.getText()) :
+//                OperatorConventions.getNameForOperationSymbol((CjTokens) operationReference.getReferencedNameElementType());
+//
+//        if (operationString == null) return;
+//
+//        CjExpression left = binaryExpression.getLeft();
+//        CjExpression right = binaryExpression.getRight();
+//        if (left == null || right == null) return;
+//
+//        if (isInfixCall) {
+//            trace.report(UNSAFE_INFIX_CALL.on(reference, left, operationString.asString(), right));
+//        }
+//        else {
+//            boolean inOperation = CjPsiUtil.isInOrNotInOperation(binaryExpression);
+//            CjExpression receiver = inOperation ? right : left;
+//            CjExpression argument = inOperation ? left : right;
+//            trace.report(UNSAFE_OPERATOR_CALL.on(reference, receiver, operationString.asString(), argument));
+//        }
+    }
+    @Override
+    public void unsafeCall(@NotNull BindingTrace trace, @NotNull CangJieType type, boolean isCallForImplicitInvoke) {
+        ASTNode callOperationNode = call.getCallOperationNode();
+        if (callOperationNode != null && !isCallForImplicitInvoke) {
+            trace.report(UNSAFE_CALL.on(callOperationNode.getPsi(), type));
+        }
+        else {
+            PsiElement callElement = call.getCallElement();
+            if (callElement instanceof CjBinaryExpression) {
+                reportUnsafeCallOnBinaryExpression(trace, (CjBinaryExpression) callElement);
+            }
+            else if (isCallForImplicitInvoke) {
+                trace.report(UNSAFE_IMPLICIT_INVOKE_CALL.on(reference, type));
+            }
+            else {
+                trace.report(UNSAFE_CALL.on(reference, type));
+            }
+        }
+    }
     @Override
     public <D extends CallableDescriptor> void noneApplicable(@NotNull BindingTrace trace, @NotNull Collection<? extends ResolvedCall<D>> descriptors) {
         trace.report(NONE_APPLICABLE.on(reference, descriptors));

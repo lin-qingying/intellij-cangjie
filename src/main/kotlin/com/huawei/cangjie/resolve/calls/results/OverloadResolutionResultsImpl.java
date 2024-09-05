@@ -17,10 +17,27 @@ public class OverloadResolutionResultsImpl <D extends CallableDescriptor> implem
         this.results = results;
         this.resultCode = resultCode;
     }
+    public static <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> incompleteTypeInference(MutableResolvedCall<D> candidate) {
+        return incompleteTypeInference(Collections.singleton(candidate));
+    }
+
+    public static <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> incompleteTypeInference(Collection<MutableResolvedCall<D>> candidates) {
+        return new OverloadResolutionResultsImpl<>(Code.INCOMPLETE_TYPE_INFERENCE, candidates);
+    }
     private Collection<ResolvedCall<D>> allCandidates;
     public static <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> ambiguity(Collection<MutableResolvedCall<D>> candidates) {
         return new OverloadResolutionResultsImpl<>(Code.AMBIGUITY, candidates);
     }
+    public static <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> candidatesWithWrongReceiver(Collection<MutableResolvedCall<D>> failedCandidates) {
+        return new OverloadResolutionResultsImpl<>(Code.CANDIDATES_WITH_WRONG_RECEIVER, failedCandidates);
+    }
+    public static <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> singleFailedCandidate(MutableResolvedCall<D> candidate) {
+        return new OverloadResolutionResultsImpl<>(Code.SINGLE_CANDIDATE_ARGUMENT_MISMATCH, Collections.singleton(candidate));
+    }
+    public static <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> manyFailedCandidates(Collection<MutableResolvedCall<D>> failedCandidates) {
+        return new OverloadResolutionResultsImpl<>(Code.MANY_FAILED_CANDIDATES, failedCandidates);
+    }
+
     public static <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> nameNotFound() {
         OverloadResolutionResultsImpl<D> results = new OverloadResolutionResultsImpl<>(
                 Code.NAME_NOT_FOUND, Collections.<MutableResolvedCall<D>>emptyList());
@@ -40,14 +57,15 @@ public class OverloadResolutionResultsImpl <D extends CallableDescriptor> implem
     }
 
     @Override
-    public @NotNull Collection<? extends ResolvedCall<D>> getResultingCalls() {
+    @NotNull
+    public Collection<MutableResolvedCall<D>> getResultingCalls() {
         return results;
-
     }
 
     @Override
-    public @NotNull ResolvedCall<D> getResultingCall() {
-//        assert isSingleResult();
+    @NotNull
+    public MutableResolvedCall<D> getResultingCall() {
+        assert isSingleResult();
         return results.iterator().next();
     }
 

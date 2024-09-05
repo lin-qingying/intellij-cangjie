@@ -298,7 +298,7 @@ private class ConstantExpressionEvaluatorVisitor(
         val value = this
         return if (parameters.isUnsignedNumberLiteral) {
             when (value) {
-                value.toInt().fromUIntToLong() -> UInt32Value(value.toInt())
+                value.toInt().fromUInt32ToLong() -> UInt32Value(value.toInt())
                 else -> UInt64Value(value)
             }
         } else {

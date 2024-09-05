@@ -1,5 +1,6 @@
 package com.huawei.cangjie.psi;
 
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
 import com.huawei.cangjie.psi.stubs.CangJieValueArgumentStub;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
@@ -7,6 +8,9 @@ import com.intellij.psi.stubs.IStubElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
+
+import static com.huawei.cangjie.CjNodeTypes.CONSTANT_EXPRESSIONS_TYPES;
+
 public class CjValueArgument extends CjElementImplStub<CangJieValueArgumentStub<? extends CjValueArgument>> implements ValueArgument {
     public CjValueArgument(@NotNull ASTNode node) {
         super(node);
@@ -25,7 +29,15 @@ public class CjValueArgument extends CjElementImplStub<CangJieValueArgumentStub<
     @Nullable
     @Override
     public CjExpression getArgumentExpression() {
-        return null;
+        CangJiePlaceHolderStub<? extends CjValueArgument> stub = getStub();
+        if (stub != null) {
+            CjExpression[] constantExpressions = stub.getChildrenByType(CONSTANT_EXPRESSIONS_TYPES, CjExpression.getEMPTY_ARRAY());
+            if (constantExpressions.length != 0) {
+                return constantExpressions[0];
+            }
+        }
+
+        return findChildByClass(CjExpression.class);
     }
 
     @Nullable

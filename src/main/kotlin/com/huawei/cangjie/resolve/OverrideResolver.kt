@@ -1117,12 +1117,13 @@ class OverrideResolver(
                         NoLookupLocation.MATCH_CHECK_OVERRIDES
                     )
                 )
-                all.addAll(
-                    supertype.memberScope.getContributedVariables(
-                        declared.name,
-                        NoLookupLocation.MATCH_CHECK_OVERRIDES
-                    )
-                )
+//                不可以重写变量
+//                all.addAll(
+//                    supertype.memberScope.getContributedVariables(
+//                        declared.name,
+//                        NoLookupLocation.MATCH_CHECK_OVERRIDES
+//                    )
+//                )
                 for (fromSuper in all) {
                     if (OverridingUtil.DEFAULT.isOverridableBy(
                             fromSuper,

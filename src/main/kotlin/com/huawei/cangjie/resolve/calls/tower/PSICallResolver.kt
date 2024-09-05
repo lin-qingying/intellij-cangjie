@@ -12,11 +12,13 @@ import com.huawei.cangjie.resolve.BindingContext.NEW_INFERENCE_CATCH_EXCEPTION_P
 import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver
 import com.huawei.cangjie.resolve.calls.CallTransformer
 import com.huawei.cangjie.resolve.calls.CangJieCallResolver
+import com.huawei.cangjie.resolve.calls.SPECIAL_FUNCTION_NAMES
 import com.huawei.cangjie.resolve.calls.checkers.CallCheckerWithAdditionalResolve
 import com.huawei.cangjie.resolve.calls.checkers.PassingProgressionAsCollectionCallChecker
 import com.huawei.cangjie.resolve.calls.checkers.ResolutionWithStubTypesChecker
 import com.huawei.cangjie.resolve.calls.components.CangJieResolutionCallbacks
 import com.huawei.cangjie.resolve.calls.components.InferenceSession
+import com.huawei.cangjie.resolve.calls.components.PostponedArgumentsAnalyzer
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
 import com.huawei.cangjie.resolve.calls.context.ContextDependency
@@ -26,6 +28,7 @@ import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.results.*
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
+import com.huawei.cangjie.resolve.calls.tasks.OldResolutionCandidate
 import com.huawei.cangjie.resolve.calls.tasks.TracingStrategy
 import com.huawei.cangjie.resolve.calls.util.*
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
@@ -39,7 +42,7 @@ import com.huawei.cangjie.resolve.source.getPsi
 import com.huawei.cangjie.types.DeferredType
 import com.huawei.cangjie.types.TypeApproximator
 import com.huawei.cangjie.types.UnwrappedType
-import com.huawei.cangjie.types.expressions.DoubleColonExpressionResolver
+
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices
 import com.huawei.cangjie.types.isError
 import com.huawei.cangjie.types.util.TypeUtils
@@ -50,7 +53,7 @@ import com.huawei.cangjie.utils.firstIsInstanceOrNull
 class PSICallResolver(
     private val typeResolver: TypeResolver,
     private val expressionTypingServices: ExpressionTypingServices,
-    private val doubleColonExpressionResolver: DoubleColonExpressionResolver,
+
     private val languageVersionSettings: LanguageVersionSettings,
 //    private val dynamicCallableDescriptors: DynamicCallableDescriptors,
     private val syntheticScopes: SyntheticScopes,
@@ -63,7 +66,7 @@ class PSICallResolver(
 //    private val effectSystem: EffectSystem,
     private val constantExpressionEvaluator: ConstantExpressionEvaluator,
     private val dataFlowValueFactory: DataFlowValueFactory,
-//    private val postponedArgumentsAnalyzer: PostponedArgumentsAnalyzer,
+    private val postponedArgumentsAnalyzer: PostponedArgumentsAnalyzer,
     private val cangjieConstraintSystemCompleter: CangJieConstraintSystemCompleter,
     private val deprecationResolver: DeprecationResolver,
     private val moduleDescriptor: ModuleDescriptor,
@@ -81,6 +84,38 @@ class PSICallResolver(
         NewResolutionOldInference.ResolutionKind.Invoke,
 //        NewResolutionOldInference.ResolutionKind.CallableReference
     )
+
+    fun createCallableReferenceCangJieCallArgument(
+        context: BasicCallResolutionContext,
+        cjExpression: CjCallableReferenceExpression,
+        startDataFlowInfo: DataFlowInfo,
+        valueArgument: ValueArgument,
+        argumentName: Name?,
+        outerCallContext: BasicCallResolutionContext,
+        tracingStrategy: TracingStrategy
+    ): CallableReferenceCangJieCallArgumentImpl {
+        checkNoSpread(outerCallContext, valueArgument)
+
+        val lhsResult = getLhsResult(context, cjExpression)
+        val newDataFlowInfo =/* (doubleColonLhs as? DoubleColonLHS.Expression)?.dataFlowInfo ?: */startDataFlowInfo
+        val rhsExpression = cjExpression.callableReference
+        val rhsName = rhsExpression.getReferencedNameAsName()
+        val call = outerCallContext.trace[BindingContext.CALL, rhsExpression]
+            ?: CallMaker.makeCall(rhsExpression, null, null, rhsExpression, emptyList())
+        val cangjieCall = toCangJieCall(
+            context,
+            CangJieCallKind.CALLABLE_REFERENCE,
+            call,
+            rhsName,
+            tracingStrategy,
+            isSpecialFunction = false
+        )
+
+        return CallableReferenceCangJieCallArgumentImpl(
+            ASTScopeTower(context, rhsExpression), valueArgument, startDataFlowInfo,
+            newDataFlowInfo, cjExpression, argumentName, lhsResult, rhsName, cangjieCall
+        )
+    }
 
     inner class FactoryProviderForInvoke(
         val context: BasicCallResolutionContext,
@@ -218,6 +253,50 @@ class PSICallResolver(
 //        resolvedCall.recordEffects(trace)
 
         return SingleOverloadResolutionResult(resolvedCall)
+    }
+
+    private val givenCandidatesName = Name.special("<given candidates>")
+
+    fun <D : CallableDescriptor> runResolutionAndInferenceForGivenCandidates(
+        context: BasicCallResolutionContext,
+        resolutionCandidates: Collection<OldResolutionCandidate<D>>,
+        tracingStrategy: TracingStrategy
+    ): OverloadResolutionResults<D> {
+        val dispatchReceiver = resolutionCandidates.firstNotNullOfOrNull { it.dispatchReceiver }
+
+        val isSpecialFunction = resolutionCandidates.any { it.descriptor.name in SPECIAL_FUNCTION_NAMES }
+        val cangjieCall = toCangJieCall(
+            context,
+            CangJieCallKind.FUNCTION,
+            context.call,
+            givenCandidatesName,
+            tracingStrategy,
+            isSpecialFunction,
+            dispatchReceiver
+        )
+        val scopeTower = ASTScopeTower(context)
+        val resolutionCallbacks = createResolutionCallbacks(context)
+
+        val givenCandidates = resolutionCandidates.map {
+            GivenCandidate(
+                it.descriptor as FunctionDescriptor,
+                it.dispatchReceiver?.let { context.transformToReceiverWithSmartCastInfo(it) },
+                it.knownTypeParametersResultingSubstitutor
+            )
+        }
+
+        val result = cangjieCallResolver.resolveAndCompleteGivenCandidates(
+            scopeTower,
+            resolutionCallbacks,
+            cangjieCall,
+            calculateExpectedType(context),
+            givenCandidates,
+            context.collectAllCandidates
+        )
+        val overloadResolutionResults = convertToOverloadResolutionResults<D>(context, result, tracingStrategy)
+        return overloadResolutionResults.also {
+            clearCacheForApproximationResults()
+        }
     }
 
     private fun <D : CallableDescriptor> handleErrorResolutionResult(
@@ -381,22 +460,11 @@ class PSICallResolver(
         context: BasicCallResolutionContext
     ) =
         CangJieResolutionCallbacksImpl(
-            trace,
-            expressionTypingServices,  typeApproximator,
-            argumentTypeResolver,  languageVersionSettings,
-            cangjieToResolvedCallTransformer,
-            dataFlowValueFactory,
-            inferenceSession,
-            constantExpressionEvaluator,
-            typeResolver,
-            this,/* postponedArgumentsAnalyzer,*/ cangjieConstraintSystemCompleter,
-            callComponents,
-            doubleColonExpressionResolver,
-            deprecationResolver,
-            moduleDescriptor,
-            context,
-            missingSupertypesResolver,
-            cangjieCallResolver,
+            trace, expressionTypingServices, typeApproximator,
+            argumentTypeResolver, languageVersionSettings, cangjieToResolvedCallTransformer,
+            dataFlowValueFactory, inferenceSession, constantExpressionEvaluator, typeResolver,
+            this, postponedArgumentsAnalyzer, cangjieConstraintSystemCompleter, callComponents,
+            deprecationResolver, moduleDescriptor, context, missingSupertypesResolver, cangjieCallResolver,
             resultTypeResolver
         )
 
@@ -485,7 +553,7 @@ class PSICallResolver(
             if (projection.projectionKind != CjProjectionKind.NONE) {
                 context.trace.report(Errors.PROJECTION_ON_NON_CLASS_TYPE_ARGUMENT.on(projection))
             }
-            ModifierCheckerCore.check(projection, context.trace, null,languageVersionSettings)
+            ModifierCheckerCore.check(projection, context.trace, null, languageVersionSettings)
 
             val typeReference = projection.typeReference ?: return@map TypeArgumentPlaceholder
 
@@ -689,75 +757,13 @@ class PSICallResolver(
 
         return createSimplePSICallArgument(context, valueArgument, typeInfo) ?: createParseErrorElement()
     }
-//    fun getLhsResult(context: BasicCallResolutionContext, cjExpression: CjCallableReferenceExpression): Pair<DoubleColonLHS?, LHSResult> {
+
+    fun getLhsResult(context: BasicCallResolutionContext, cjExpression: CjCallableReferenceExpression): LHSResult {
 
 
-    //      return  null to LHSResult.Empty
-    //        val expressionTypingContext = ExpressionTypingContext.newContext(context)
-//
-//        if (cjExpression.isEmptyLHS) return null to LHSResult.Empty
-//
-//        val doubleColonLhs = (context.callPosition as? CallPosition.CallableReferenceRhs)?.lhs
-//            ?: doubleColonExpressionResolver.resolveDoubleColonLHS(cjExpression, expressionTypingContext)
-//            ?: return null to LHSResult.Empty
-//        val lhsResult = when (doubleColonLhs) {
-//            is DoubleColonLHS.Expression -> {
-//                if (doubleColonLhs.isObjectQualifier) {
-//                    val classifier = doubleColonLhs.type.constructor.declarationDescriptor
-//                    val calleeExpression = cjExpression.receiverExpression?.getCalleeExpressionIfAny()
-//                    if (calleeExpression is CjSimpleNameExpression && classifier is ClassDescriptor) {
-//                        LHSResult.Object(ClassQualifier(calleeExpression, classifier))
-//                    } else {
-//                        LHSResult.Error
-//                    }
-//                } else {
-//                    val fakeArgument = FakeValueArgumentForLeftCallableReference(cjExpression)
-//
-//                    val cangjieCallArgument = createSimplePSICallArgument(context, fakeArgument, doubleColonLhs.typeInfo)
-//                    cangjieCallArgument?.let { LHSResult.Expression(it as SimpleCangJieCallArgument) } ?: LHSResult.Error
-//                }
-//            }
-//            is DoubleColonLHS.Type -> {
-//                val qualifiedExpression = cjExpression.receiverExpression!!
-//                val qualifier = expressionTypingContext.trace.get(BindingContext.QUALIFIER, qualifiedExpression)
-//                val classifier = doubleColonLhs.type.constructor.declarationDescriptor
-//                if (classifier !is ClassDescriptor) {
-//                    expressionTypingContext.trace.report(Errors.CALLABLE_REFERENCE_LHS_NOT_A_CLASS.on(cjExpression))
-//                    LHSResult.Error
-//                } else {
-//                    LHSResult.Type(qualifier, doubleColonLhs.type.unwrap())
-//                }
-//            }
-//        }
-//
-//        return doubleColonLhs to lhsResult
-//    }
+        return LHSResult.Empty
+    }
 
-
-//    fun createCallableReferenceCangJieCallArgument(
-//        context: BasicCallResolutionContext,
-//        cjExpression: CjCallableReferenceExpression,
-//        startDataFlowInfo: DataFlowInfo,
-//        valueArgument: ValueArgument,
-//        argumentName: Name?,
-//        outerCallContext: BasicCallResolutionContext,
-//        tracingStrategy: TracingStrategy
-//    ): CallableReferenceCangJieCallArgumentImpl {
-//        checkNoSpread(outerCallContext, valueArgument)
-//
-//        val (doubleColonLhs, lhsResult) = getLhsResult(context, cjExpression)
-//        val newDataFlowInfo = (doubleColonLhs as? DoubleColonLHS.Expression)?.dataFlowInfo ?: startDataFlowInfo
-//        val rhsExpression = cjExpression.callableReference
-//        val rhsName = rhsExpression.getReferencedNameAsName()
-//        val call = outerCallContext.trace[BindingContext.CALL, rhsExpression]
-//            ?: CallMaker.makeCall(rhsExpression, null, null, rhsExpression, emptyList())
-//        val cangjieCall = toCangJieCall(context, CangJieCallKind.CALLABLE_REFERENCE, call, rhsName, tracingStrategy, isSpecialFunction = false)
-//
-//        return CallableReferenceCangJieCallArgumentImpl(
-//            ASTScopeTower(context, rhsExpression), valueArgument, startDataFlowInfo,
-//            newDataFlowInfo, cjExpression, argumentName, lhsResult, rhsName, cangjieCall
-//        )
-//    }
 
     private fun NewResolutionOldInference.ResolutionKind.toCangJieCallKind(): CangJieCallKind =
         when (this) {
@@ -826,9 +832,9 @@ class PSICallResolver(
         ) {
             return OverloadResolutionResultsImpl.nameNotFound()
         }
-////
+
         val overloadResolutionResults = convertToOverloadResolutionResults<D>(context, result, tracingStrategy)
-////
+
         return overloadResolutionResults.also {
             clearCacheForApproximationResults()
             checkCallWithAdditionalResolve(it, scopeTower, resolutionCallbacks, expectedType, context)

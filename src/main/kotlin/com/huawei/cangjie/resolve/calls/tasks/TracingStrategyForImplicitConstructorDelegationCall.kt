@@ -59,6 +59,12 @@ class TracingStrategyForImplicitConstructorDelegationCall(
     override fun noValueForParameter(trace: BindingTrace, valueParameter: ValueParameterDescriptor) {
         reportError(trace)
     }
+
+    override fun unsafeCall(trace: BindingTrace, type: CangJieType, isCallForImplicitInvoke: Boolean) {
+        unexpectedError("unsafeCall")
+
+    }
+
     private fun reportError(trace: BindingTrace) {
         val reportOn = delegationCall.reportOnElement()
         if (!trace.bindingContext.diagnostics.forElement(reportOn).any { it.factory == Errors.EXPLICIT_DELEGATION_CALL_REQUIRED }) {

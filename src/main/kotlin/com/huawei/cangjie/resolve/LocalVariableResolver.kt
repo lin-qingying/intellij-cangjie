@@ -4,7 +4,7 @@ import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.Errors.LOCAL_EXTENSION_VARIABLE
 import com.huawei.cangjie.descriptors.VariableDescriptor
-import com.huawei.cangjie.descriptors.VariableDescriptorBase
+
 import com.huawei.cangjie.descriptors.impl.LocalVariableDescriptor
 import com.huawei.cangjie.descriptors.impl.VariableDescriptorImpl
 import com.huawei.cangjie.descriptors.impl.VariableDescriptorWithInitializerImpl
@@ -139,7 +139,7 @@ class LocalVariableResolver(
 
     private fun checkLocalVariableDeclaration(
         context: ExpressionTypingContext,
-        descriptor: VariableDescriptorBase,
+        descriptor: VariableDescriptor,
         ktVariable: CjVariable
     ) {
         ExpressionTypingUtils.checkVariableShadowing(context.scope, context.trace, descriptor)

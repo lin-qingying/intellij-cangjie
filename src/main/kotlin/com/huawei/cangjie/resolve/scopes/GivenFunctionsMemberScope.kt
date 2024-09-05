@@ -39,7 +39,7 @@ abstract class GivenFunctionsMemberScope(
         return allDescriptors.filterIsInstanceAnd { it.name == name }
     }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
         return allDescriptors.filterIsInstanceAnd { it.name == name }
     }
 
