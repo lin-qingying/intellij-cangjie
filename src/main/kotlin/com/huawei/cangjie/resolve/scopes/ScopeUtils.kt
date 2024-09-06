@@ -27,7 +27,9 @@ import com.huawei.cangjie.resolve.scopes.util.parentsWithSelf
 import com.huawei.cangjie.types.error.ErrorClassDescriptor
 import com.huawei.cangjie.types.error.ErrorEntity
 import com.huawei.cangjie.utils.Printer
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.SmartList
@@ -198,6 +200,13 @@ fun PsiElement.getResolutionScope(
     is CjFile -> resolutionFacade.getFileResolutionScope(containingFile as CjFile)
     else -> error("Not in CjFile")
 }
+
+val CjFile.scope:LexicalScope  get() {
+   return runReadAction {
+       this.getResolutionScope()
+   }
+}
+
 
 @OptIn(FrontendInternals::class)
 fun ResolutionFacade.getFileResolutionScope(file: CjFile): LexicalScope {

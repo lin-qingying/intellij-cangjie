@@ -5,10 +5,12 @@ import com.huawei.cangjie.builtins.functions.FunctionTypeKind
 import com.huawei.cangjie.builtins.functions.FunctionTypeKindExtractor
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.DescriptorUtils
+import com.huawei.cangjie.resolve.DescriptorUtils.getContainingModule
 import com.huawei.cangjie.resolve.constants.Int32Value
 import com.huawei.cangjie.resolve.constants.StringValue
 import com.huawei.cangjie.types.*
@@ -22,7 +24,6 @@ import com.intellij.util.containers.addIfNotNull
 /**
  * 函数类型作为内置类型实现
  */
-
 
 
 val CangJieType.isExtensionFunctionType: Boolean
@@ -226,6 +227,7 @@ private fun CangJieType.isTypeOrSubtypeOf(predicate: (CangJieType) -> Boolean): 
                     override fun result() = result
                 }
             )
+
 val CangJieType.isBuiltinFunctionalTypeOrSubtype: Boolean
     get() = isTypeOrSubtypeOf { it.isBuiltinFunctionalType }
 
@@ -233,10 +235,12 @@ fun CangJieType.getReturnTypeFromFunctionType(): CangJieType {
     assert(isBuiltinFunctionalType) { "Not a function type: $this" }
     return arguments.last().type
 }
+
 fun CangJieType.getPureArgumentsForFunctionalTypeOrSubtype(): List<CangJieType> {
     assert(isBuiltinFunctionalTypeOrSubtype) { "Not a function type or subtype: $this" }
     return extractFunctionalTypeFromSupertypes().arguments.dropLast(1).map { it.type }
 }
+
 fun CangJieType.extractFunctionalTypeFromSupertypes(): CangJieType {
     assert(isBuiltinFunctionalTypeOrSubtype) { "Not a function type or subtype: $this" }
     return if (isBuiltinFunctionalType) this else supertypes().first { it.isBuiltinFunctionalType }
@@ -262,5 +266,22 @@ fun CangJieType.extractParameterNameFromFunctionTypeArgument(): Name? {
 
 val CangJieType.isFunctionTypeOrSubtype: Boolean
     get() = isTypeOrSubtypeOf { it.isFunctionType }
+
 fun CangJieType.isFunctionTypeOrSubtype(predicate: (CangJieType) -> Boolean): Boolean =
     isTypeOrSubtypeOf { it.isFunctionType && predicate(it) }
+
+
+fun FunctionDescriptor.toFunctionType(): CangJieType  {
+    this.returnType ?: this
+
+    val valueTypes = this.valueParameters
+
+    val parameterTypes = valueTypes.map { it.type }
+    val parameterNames = valueTypes.map { it.name }
+
+    return createFunctionType(
+        getContainingModule(this).builtIns,
+        this.annotations, null,
+        emptyList(), parameterTypes, parameterNames, this.returnType!!
+    )
+}

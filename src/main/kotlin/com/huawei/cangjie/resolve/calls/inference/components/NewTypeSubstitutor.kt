@@ -173,8 +173,7 @@ interface NewTypeSubstitutor : TypeSubstitutorMarker {
                 continue
             }
 
-            val substitutedArgumentType =
-                substitute(argument.type.unwrap(), keepAnnotation, runCapturedChecks) ?: continue
+            val substitutedArgumentType =  substitute(argument.type.unwrap(), keepAnnotation, runCapturedChecks) ?: continue
 
             newArguments[index] = TypeProjectionImpl(argument.projectionKind, substitutedArgumentType)
         }

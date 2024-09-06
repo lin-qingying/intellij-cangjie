@@ -17,6 +17,7 @@ class BuiltInTypeConstructor(
     fun addParameter(typeParameterDescriptor: TypeParameterDescriptor) {
         parameters.add(typeParameterDescriptor)
     }
+
     override fun getParameters(): List<TypeParameterDescriptor> = parameters
     override fun toString(): String {
         return "BuiltInType:" + classDescriptor.name
@@ -34,7 +35,8 @@ open class BasicTypeConstructor(
 
     override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
         val result = mutableListOf<CangJieType>()
-        classDescriptor.extendClassDescriptor.forEach {
+
+        classDescriptor.extendClass.forEach {
             if (it.typeStatement.getExtendId() != extendId) {
                 result.addAll(it.typeConstructor.supertypes)
             }

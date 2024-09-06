@@ -288,8 +288,7 @@ class CangJieCallResolver(
         collectAllCandidates: Boolean,
     ): CallResolutionResult {
         val candidateFactory = createFactory(scopeTower, cangjieCall, resolutionCallbacks, expectedType)
-        val candidates =
-            resolveCall(scopeTower, resolutionCallbacks, cangjieCall, collectAllCandidates, candidateFactory)
+        val candidates =   resolveCall(scopeTower, resolutionCallbacks, cangjieCall, collectAllCandidates, candidateFactory)
 
         if (collectAllCandidates) {
             return cangjieCallCompleter.createAllCandidatesResult(candidates, expectedType, resolutionCallbacks)

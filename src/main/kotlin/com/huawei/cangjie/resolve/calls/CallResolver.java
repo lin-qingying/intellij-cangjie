@@ -439,7 +439,7 @@ public class CallResolver {
         boolean newInferenceEnabled = languageVersionSettings.supportsFeature(LanguageFeature.NewInference);
         NewResolutionOldInference.ResolutionKind resolutionKind = resolutionTask.resolutionKind;
         if (
-//                newInferenceEnabled &&
+                newInferenceEnabled &&
                 PSICallResolver.getDefaultResolutionKinds().contains(resolutionKind)) {
             assert resolutionTask.name != null;
             BindingContextUtilsKt.recordScope(context.trace, context.scope, context.call.getCalleeExpression());

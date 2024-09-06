@@ -73,21 +73,7 @@ abstract class AbstractVariableDescriptor(
         return false
     }
 
-//    fun setType(
-//        _outType: CangJieType,
-//        @ReadOnly typeParameters: List<TypeParameterDescriptor?>,
-//        dispatchReceiverParameter: ReceiverParameterDescriptor?,
-//        extensionReceiverParameter: ReceiverParameterDescriptor?,
-//        _contextReceiverParameters: List<ReceiverParameterDescriptor?>
-//    ) {
-//        setOutType(_outType)
-//
-//        this.typeParameters = ArrayList<TypeParameterDescriptor>(typeParameters)
-//
-//        this.extensionReceiverParameter = extensionReceiverParameter
-//        this.dispatchReceiverParameter = dispatchReceiverParameter
-//        this._contextReceiverParameters = _contextReceiverParameters
-//    }
+
 
     companion object {
 //        fun create(

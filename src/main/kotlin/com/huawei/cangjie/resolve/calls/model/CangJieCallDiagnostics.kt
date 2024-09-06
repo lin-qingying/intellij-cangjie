@@ -146,6 +146,8 @@ class VarargArgumentOutsideParentheses(
     override val argument:CangJieCallArgument,
     val parameterDescriptor: ValueParameterDescriptor
 ) : InapplicableArgumentDiagnostic()
+
+
 class NoValueForParameter(
     val parameterDescriptor: ValueParameterDescriptor,
     val descriptor: CallableDescriptor
@@ -228,5 +230,20 @@ class ArgumentNullabilityWarningDiagnostic(
 ) : CangJieCallDiagnostic(CandidateApplicability.RESOLVED), ArgumentNullabilityMismatchDiagnostic {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCallArgument(expressionArgument, this)
+    }
+}
+class SuperAsExtensionReceiver(val receiver: SimpleCangJieCallArgument) : CangJieCallDiagnostic(CandidateApplicability.RUNTIME_ERROR) {
+    override fun report(reporter: DiagnosticReporter) {
+        reporter.onCallReceiver(receiver, this)
+    }
+}
+object AbstractFakeOverrideSuperCall : CangJieCallDiagnostic(CandidateApplicability.RUNTIME_ERROR) {
+    override fun report(reporter: DiagnosticReporter) {
+        reporter.onCall(this)
+    }
+}
+class AbstractSuperCall(val receiver: SimpleCangJieCallArgument) : CangJieCallDiagnostic( CandidateApplicability.RUNTIME_ERROR) {
+    override fun report(reporter: DiagnosticReporter) {
+        reporter.onCall(this)
     }
 }

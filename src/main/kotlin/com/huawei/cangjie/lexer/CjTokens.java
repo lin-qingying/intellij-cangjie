@@ -652,7 +652,7 @@ public interface CjTokens {
             CjNodeTypes.CHARACTER_BYTE_CONSTANT
     );
 
-
+    TokenSet AUGMENTED_ASSIGNMENTS = TokenSet.create(PLUSEQ, MINUSEQ, MULTEQ, PERCEQ, DIVEQ);
 }
 
 

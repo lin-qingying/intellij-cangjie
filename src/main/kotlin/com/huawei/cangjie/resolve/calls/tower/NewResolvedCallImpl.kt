@@ -20,6 +20,7 @@ import com.huawei.cangjie.resolve.scopes.receivers.ImplicitClassReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeApproximator
+import com.huawei.cangjie.types.TypeApproximatorConfiguration
 import com.huawei.cangjie.types.UnwrappedType
 
 
@@ -128,20 +129,20 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
     }
     override fun setResultingSubstitutor(substitutor: NewTypeSubstitutor?) {
         //clear cached values
-//        updateArgumentsMapping(null)
-//        updateValueArguments(null)
+        updateArgumentsMapping(null)
+        updateValueArguments(null)
 
         substituteReceivers(substitutor)
 
         @Suppress("UNCHECKED_CAST")
         resultingDescriptor = substitutedResultingDescriptor(substitutor) as D
 
-//        typeArguments = freshSubstitutor.freshVariables.map {
-//            val substituted = (substitutor ?: FreshVariableNewTypeSubstitutor.Empty).safeSubstitute(it.defaultType)
-//            typeApproximator
-//                .approximateToSuperType(substituted, TypeApproximatorConfiguration.IntegerLiteralsTypesApproximation)
-//                ?: substituted
-//        }
+        typeArguments = freshSubstitutor.freshVariables.map {
+            val substituted = (substitutor ?: FreshVariableNewTypeSubstitutor.Empty).safeSubstitute(it.defaultType)
+            typeApproximator
+                .approximateToSuperType(substituted, TypeApproximatorConfiguration.IntegerLiteralsTypesApproximation)
+                ?: substituted
+        }
 //
         calculateExpectedTypeForSamConvertedArgumentMap(substitutor)
         calculateExpectedTypeForSuspendConvertedArgumentMap(substitutor)

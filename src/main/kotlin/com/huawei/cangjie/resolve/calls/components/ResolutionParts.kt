@@ -1,10 +1,10 @@
 package com.huawei.cangjie.resolve.calls.components
 
 import com.huawei.cangjie.builtins.UnsignedTypes
-import com.huawei.cangjie.descriptors.CallableDescriptor
-import com.huawei.cangjie.descriptors.ParameterDescriptor
-import com.huawei.cangjie.descriptors.ValueParameterDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
+import com.huawei.cangjie.psi.CjCallExpression
+import com.huawei.cangjie.psi.CjCollectionLiteralExpression
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.ConstraintSystemOperation
 import com.huawei.cangjie.resolve.calls.inference.components.*
@@ -14,14 +14,94 @@ import com.huawei.cangjie.resolve.calls.inference.model.ExplicitTypeParameterCon
 import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableFromCallableDescriptor
 import com.huawei.cangjie.resolve.calls.inference.runTransaction
 import com.huawei.cangjie.resolve.calls.inference.substitute
-import com.huawei.cangjie.resolve.calls.model.CangJieCall
-import com.huawei.cangjie.resolve.calls.model.CangJieCallArgument
-import com.huawei.cangjie.resolve.calls.model.ResolutionPart
+import com.huawei.cangjie.resolve.calls.model.*
+import com.huawei.cangjie.resolve.calls.tower.VisibilityError
+import com.huawei.cangjie.resolve.calls.tower.psiCangJieCall
+import com.huawei.cangjie.resolve.calls.util.getReceiverValueWithSmartCast
+import com.huawei.cangjie.resolve.isInsideInterface
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.utils.compactIfPossible
 
-internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 
+
+internal object CheckSuperExpressionCallPart : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+        val candidateDescriptor = resolvedCall.candidateDescriptor
+
+        if (callComponents.statelessCallbacks.isSuperExpression(resolvedCall.dispatchReceiverArgument)) {
+            if (candidateDescriptor is CallableMemberDescriptor) {
+                checkSuperCandidateDescriptor(candidateDescriptor)
+            }
+        }
+
+        val extensionReceiver = resolvedCall.extensionReceiverArgument
+        if (extensionReceiver != null && callComponents.statelessCallbacks.isSuperExpression(extensionReceiver)) {
+            addDiagnostic(SuperAsExtensionReceiver(extensionReceiver))
+        }
+    }
+
+    private fun ResolutionCandidate.checkSuperCandidateDescriptor(candidateDescriptor: CallableMemberDescriptor) {
+        if (candidateDescriptor.modality == Modality.ABSTRACT) {
+            addDiagnostic(AbstractSuperCall(resolvedCall.dispatchReceiverArgument!!))
+        } else if (candidateDescriptor.kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE) {
+            var intersectionFakeOverrideDescriptor = candidateDescriptor
+            while (intersectionFakeOverrideDescriptor.overriddenDescriptors.size == 1) {
+                intersectionFakeOverrideDescriptor = intersectionFakeOverrideDescriptor.overriddenDescriptors.first()
+                if (intersectionFakeOverrideDescriptor.kind != CallableMemberDescriptor.Kind.FAKE_OVERRIDE) {
+                    return
+                }
+            }
+            if (intersectionFakeOverrideDescriptor.overriddenDescriptors.size > 1) {
+                if (intersectionFakeOverrideDescriptor.overriddenDescriptors.firstOrNull {
+                        !it.isInsideInterface
+                    }?.modality == Modality.ABSTRACT
+                ) {
+                    addDiagnostic(AbstractFakeOverrideSuperCall)
+                }
+            }
+        }
+    }
+}
+internal object CheckVisibility : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+        val containingDescriptor = scopeTower.lexicalScope.ownerDescriptor
+        val dispatchReceiverArgument = resolvedCall.dispatchReceiverArgument
+
+        val receiverValue = dispatchReceiverArgument?.receiver?.receiverValue ?: DescriptorVisibilities.ALWAYS_SUITABLE_RECEIVER
+        val invisibleMember =
+            DescriptorVisibilityUtils.findInvisibleMember(
+                receiverValue,
+                resolvedCall.candidateDescriptor,
+                containingDescriptor,
+                callComponents.languageVersionSettings
+            ) ?: return
+
+        if (dispatchReceiverArgument is ExpressionCangJieCallArgument) {
+            val smartCastReceiver = getReceiverValueWithSmartCast(receiverValue, dispatchReceiverArgument.receiver.stableType)
+            if (DescriptorVisibilityUtils.findInvisibleMember(smartCastReceiver, candidateDescriptor, containingDescriptor, callComponents.languageVersionSettings) == null) {
+                addDiagnostic(
+                    SmartCastDiagnostic(
+                        dispatchReceiverArgument,
+                        dispatchReceiverArgument.receiver.stableType,
+                        resolvedCall.atom
+                    )
+                )
+                return
+            }
+        }
+
+        if(invisibleMember is DeclarationDescriptorWithVisibility ){
+            addDiagnostic(VisibilityError(invisibleMember  ))
+
+        }
+    }
+}
+internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
+    fun TypeParameterDescriptor.shouldBeFlexible(flexibleCheck: (CangJieType) -> Boolean = { it.isFlexible() }): Boolean {
+        return upperBounds.any {
+            flexibleCheck(it) || ((it.constructor.declarationDescriptor as? TypeParameterDescriptor)?.run { shouldBeFlexible() } ?: false)
+        }
+    }
 
     fun createToFreshVariableSubstitutorAndAddInitialConstraints(
         candidateDescriptor: CallableDescriptor,
@@ -106,10 +186,10 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {
         val csBuilder = getSystem().getBuilder()
         val toFreshVariables =
-//            if (candidateDescriptor.typeParameters.isEmpty())
+            if (candidateDescriptor.typeParameters.isEmpty())
             FreshVariableNewTypeSubstitutor.Empty
-//            else
-//                createToFreshVariableSubstitutorAndAddInitialConstraints(candidateDescriptor, resolvedCall.atom, csBuilder)
+            else
+                createToFreshVariableSubstitutorAndAddInitialConstraints(candidateDescriptor, resolvedCall.atom, csBuilder)
 
         val knownTypeParametersSubstitutor = knownTypeParametersResultingSubstitutor?.let {
             createKnownParametersFromFreshVariablesSubstitutor(toFreshVariables, it)
@@ -275,6 +355,13 @@ internal object NoArguments : ResolutionPart() {
 
 internal object MapArguments : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {
+
+
+//        TODO 当没有使用()调用时，它是一个函数类型，不检查参数
+        if(cangjieCall.psiCangJieCall.psiCall.callElement !is CjCallExpression && cangjieCall.psiCangJieCall.psiCall.callElement !is CjCollectionLiteralExpression){
+            resolvedCall.argumentMappingByOriginal = emptyMap()
+            return
+        }
         val mapping = callComponents.argumentsToParametersMapper.mapArguments(cangjieCall, candidateDescriptor)
         mapping.diagnostics.forEach(this::addDiagnostic)
 

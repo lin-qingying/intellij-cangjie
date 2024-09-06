@@ -20,6 +20,8 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 
 object PositioningStrategies {
+
+
     open class DeclarationHeader<T : CjDeclaration> : PositioningStrategy<T>() {
         override fun isValid(element: T): Boolean {
             if (element is CjNamedDeclaration &&
@@ -34,17 +36,19 @@ object PositioningStrategies {
             return super.isValid(element)
         }
     }
-    @JvmField
-    val RETURN_WITH_LABEL: PositioningStrategy<CjReturnExpression> = object : PositioningStrategy<CjReturnExpression>() {
-        override fun mark(element: CjReturnExpression): List<TextRange> {
-            val labeledExpression = element.labeledExpression
-            if (labeledExpression != null) {
-                return markRange(element, labeledExpression)
-            }
 
-            return markElement(element.returnKeyword)
+    @JvmField
+    val RETURN_WITH_LABEL: PositioningStrategy<CjReturnExpression> =
+        object : PositioningStrategy<CjReturnExpression>() {
+            override fun mark(element: CjReturnExpression): List<TextRange> {
+                val labeledExpression = element.labeledExpression
+                if (labeledExpression != null) {
+                    return markRange(element, labeledExpression)
+                }
+
+                return markElement(element.returnKeyword)
+            }
         }
-    }
 
     @JvmStatic
     fun projectionPosition(): PositioningStrategy<CjModifierListOwner> {
@@ -68,6 +72,7 @@ object PositioningStrategies {
     val DECLARATION_SIGNATURE: PositioningStrategy<CjDeclaration> = object : DeclarationHeader<CjDeclaration>() {
 
     }
+
     @JvmField
     val CUT_CHAR_QUOTES: PositioningStrategy<CjElement> = object : PositioningStrategy<CjElement>() {
         override fun mark(element: CjElement): List<TextRange> {
@@ -80,6 +85,62 @@ object PositioningStrategies {
             return markElement(element)
         }
     }
+
+    @JvmField
+    val SAFE_ACCESS: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
+        override fun mark(element: PsiElement): List<TextRange> {
+            return markElement(element.node.findChildByType(CjTokens.SAFE_ACCESS)?.psi ?: element)
+        }
+    }
+    val SELECTOR_BY_QUALIFIED: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
+        override fun mark(element: PsiElement): List<TextRange> {
+            if (element is CjBinaryExpression && element.operationToken in CjTokens.ALL_ASSIGNMENTS) {
+                element.left?.let { return mark(it) }
+            }
+            if (element is CjQualifiedExpression) {
+                when (val selectorExpression = element.selectorExpression) {
+                    is CjElement -> return mark(selectorExpression)
+                }
+            }
+            if (element is CjImportDirective) {
+                element.alias?.nameIdentifier?.let { return mark(it) }
+                element.importedReference?.let { return mark(it) }
+            }
+            if (element is CjTypeReference) {
+                element.typeElement?.getReferencedTypeExpression()?.let { return mark(it) }
+            }
+            return super.mark(element)
+        }
+    }
+
+    private fun CjTypeElement.getReferencedTypeExpression(): CjElement? {
+        return when (this) {
+            is CjUserType -> referenceExpression
+            is CjOptionType -> getInnerType()?.getReferencedTypeExpression()
+            else -> null
+        }
+    }
+
+    @JvmField
+    val CALL_ELEMENT_WITH_DOT: PositioningStrategy<CjQualifiedExpression> =
+        object : PositioningStrategy<CjQualifiedExpression>() {
+            override fun mark(element: CjQualifiedExpression): List<TextRange> {
+                val callElementRanges = SELECTOR_BY_QUALIFIED.mark(element)
+                val callElementRange = when (callElementRanges.size) {
+                    1 -> callElementRanges.first()
+                    else -> return callElementRanges
+                }
+
+                val dotRanges = SAFE_ACCESS.mark(element)
+                val dotRange = when (dotRanges.size) {
+                    1 -> dotRanges.first()
+                    else -> return dotRanges
+                }
+
+                return listOf(TextRange(dotRange.startOffset, callElementRange.endOffset))
+            }
+        }
+
     @JvmField
     val DECLARATION_SIGNATURE_OR_DEFAULT: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
         override fun mark(element: PsiElement): List<TextRange> {
@@ -123,13 +184,16 @@ object PositioningStrategies {
     }
 
     @JvmField
-    val VISIBILITY_MODIFIER: PositioningStrategy<CjModifierListOwner> = ModifierSetBasedPositioningStrategy(CjTokens.VISIBILITY_MODIFIERS)
+    val VISIBILITY_MODIFIER: PositioningStrategy<CjModifierListOwner> =
+        ModifierSetBasedPositioningStrategy(CjTokens.VISIBILITY_MODIFIERS)
+
     @JvmField
     val PARAMETER_DEFAULT_VALUE: PositioningStrategy<CjParameter> = object : PositioningStrategy<CjParameter>() {
         override fun mark(element: CjParameter): List<TextRange> {
             return markNode(element.defaultValue!!.node)
         }
     }
+
     @JvmField
     val LET_OR_VAR_NODE: PositioningStrategy<CjDeclaration> = object : PositioningStrategy<CjDeclaration>() {
         override fun mark(element: CjDeclaration): List<TextRange> {
@@ -169,12 +233,14 @@ object PositioningStrategies {
             return declaration
         }
     }
+
     @JvmField
     val OPTIONAL_TYPE: PositioningStrategy<CjOptionType> = object : PositioningStrategy<CjOptionType>() {
         override fun mark(element: CjOptionType): List<TextRange> {
             return markNode(element.getQuestionMarkNode())
         }
     }
+
     @JvmField
     val DECLARATION_NAME: PositioningStrategy<CjNamedDeclaration> = object : DeclarationHeader<CjNamedDeclaration>() {
         override fun mark(element: CjNamedDeclaration): List<TextRange> {
@@ -341,6 +407,7 @@ object PositioningStrategies {
     }
 
 }
+
 fun markNode(node: ASTNode): List<TextRange> {
     return markElement(node.psi)
 }

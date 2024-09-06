@@ -126,7 +126,7 @@ internal open class ScopeBasedTowerLevel protected constructor(
     }
 }
 
-private fun ResolutionScope.getContributedVariablesAndIntercept(
+fun ResolutionScope.getContributedVariablesAndIntercept(
     name: Name,
     location: LookupLocation,
     dispatchReceiver: ReceiverValueWithSmartCastInfo?,

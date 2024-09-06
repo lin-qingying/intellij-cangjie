@@ -63,11 +63,11 @@ internal class ExplicitReceiverScopeTowerProcessor<C : Candidate>(
 ) : AbstractSimpleScopeTowerProcessor<C>(context) {
     override fun simpleProcess(data: TowerData): Collection<C> {
         return when (data) {
-//            TowerData.Empty -> createCandidates(
-//                MemberScopeTowerLevel(scopeTower, explicitReceiver).collectCandidates(null),
-//                ExplicitReceiverKind.DISPATCH_RECEIVER,
-//                null
-//            )
+            TowerData.Empty -> createCandidates(
+                MemberScopeTowerLevel(scopeTower, explicitReceiver).collectCandidates(null),
+                ExplicitReceiverKind.DISPATCH_RECEIVER,
+                null
+            )
 
             is TowerData.TowerLevel -> createCandidates(
                 data.level.collectCandidates(explicitReceiver),

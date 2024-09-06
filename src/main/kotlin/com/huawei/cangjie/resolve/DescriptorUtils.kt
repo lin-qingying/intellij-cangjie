@@ -469,3 +469,8 @@ fun DeclarationDescriptor.isSameModule(other: DeclarationDescriptor): Boolean {
     return fromModule.shouldProtectedsOf(whatModule)
 
 }
+val DeclarationDescriptor.isInsideInterface: Boolean
+    get() {
+        val parent = containingDeclaration as? ClassDescriptor
+        return parent != null && parent.kind.isInterface
+    }

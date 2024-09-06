@@ -387,17 +387,17 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun TypeConstructorMarker.isAnyConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
-        return  isTypeConstructorForGivenClass(this, FqNames.any)
+        return  isTypeConstructorForGivenClass(this, FqNames.anyUFqName)
     }
 
     override fun TypeConstructorMarker.isNothingConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
-        return  isTypeConstructorForGivenClass(this, FqNames.nothing)
+        return  isTypeConstructorForGivenClass(this, FqNames.nothingUFqName)
     }
 
     override fun TypeConstructorMarker.isArrayConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
-        return  isTypeConstructorForGivenClass(this, FqNames.array)
+        return  isTypeConstructorForGivenClass(this, FqNames.arrayUFqName)
     }
 
     override fun CangJieTypeMarker.asTypeArgument(): TypeArgumentMarker {
@@ -407,7 +407,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun TypeConstructorMarker.isUnitTypeConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
-        return  isTypeConstructorForGivenClass(this, FqNames.unit)
+        return  isTypeConstructorForGivenClass(this, FqNames.unitUFqName)
     }
 
     /**

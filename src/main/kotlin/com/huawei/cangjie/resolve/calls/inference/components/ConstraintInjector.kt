@@ -8,6 +8,7 @@ import com.huawei.cangjie.resolve.calls.inference.ForkPointData
 import com.huawei.cangjie.resolve.calls.inference.model.*
 import com.huawei.cangjie.types.AbstractTypeApproximator
 import com.huawei.cangjie.types.AbstractTypeChecker
+import com.huawei.cangjie.types.TypeApproximatorConfiguration
 import com.huawei.cangjie.types.TypeCheckerState
 import com.huawei.cangjie.types.model.*
 import com.huawei.cangjie.utils.addIfNotNull
@@ -42,17 +43,17 @@ class ConstraintInjector(
         position: IncorporationConstraintPosition,
         missedConstraints: List<Pair<TypeVariableMarker, Constraint>>
     ) {
-//        val properConstraintsProcessingEnabled =
-//            languageVersionSettings.supportsFeature(LanguageFeature.ProperTypeInferenceConstraintsProcessing)
-//
-//        // If proper constraints processing is enabled, then we don't have missed constraints
-//        if (properConstraintsProcessingEnabled) return
-//
-//        val typeCheckerState = TypeCheckerStateForConstraintInjector(c, position)
-//        for ((variable, constraint) in missedConstraints) {
-//            typeCheckerState.addPossibleNewConstraint(variable, constraint)
-//        }
-//        processConstraints(c, typeCheckerState, skipProperEqualityConstraints = false)
+        val properConstraintsProcessingEnabled =
+            languageVersionSettings.supportsFeature(LanguageFeature.ProperTypeInferenceConstraintsProcessing)
+
+        // If proper constraints processing is enabled, then we don't have missed constraints
+        if (properConstraintsProcessingEnabled) return
+
+        val typeCheckerState = TypeCheckerStateForConstraintInjector(c, position)
+        for ((variable, constraint) in missedConstraints) {
+            typeCheckerState.addPossibleNewConstraint(variable, constraint)
+        }
+        processConstraints(c, typeCheckerState, skipProperEqualityConstraints = false)
     }
 
     fun addInitialEqualityConstraint(
@@ -294,6 +295,20 @@ class ConstraintInjector(
             possibleNewConstraints!!.add(variable to constraint)
         }
 
+        override fun addLowerConstraint(
+            typeVariable: TypeConstructorMarker,
+            subType: CangJieTypeMarker,
+            isFromNullabilityConstraint: Boolean
+        )= addConstraint(typeVariable, subType,ConstraintKind. LOWER, isFromNullabilityConstraint)
+
+        override val isInferenceCompatibilityEnabled = languageVersionSettings.supportsFeature(LanguageFeature.InferenceCompatibility)
+
+        override fun addUpperConstraint(typeVariable: TypeConstructorMarker, superType: CangJieTypeMarker)   =
+        addConstraint(typeVariable, superType,ConstraintKind. UPPER)
+
+        override fun isMyTypeVariable(type: SimpleTypeMarker): Boolean  =
+            c.allTypeVariables.containsKey(type.typeConstructor().unwrapStubTypeVariableConstructor())
+
         override fun runForkingPoint(block: ForkPointContext.() -> Unit): Boolean {
             if (!allowForking) {
                 return super.runForkingPoint(block)
@@ -461,60 +476,60 @@ class ConstraintInjector(
             type: CangJieTypeMarker,
             constraintContext: ConstraintContext
         ) {
-//            val (kind, derivedFrom, inputTypePosition, isNullabilityConstraint) = constraintContext
-//
-//            var targetType = type
-//            if (targetType.isUninferredParameter()) {
-//                // there already should be an error, so there is no point in reporting one more
-//                return
-//            }
-//
-//            if (targetType.isError()) {
-//                c.addError(ConstrainingTypeIsError(typeVariable, targetType, position))
-//                return
-//            }
-//
-//            if (type.contains(this::isCapturedTypeFromSubtyping)) {
-//                // TypeVariable <: type -> if TypeVariable <: subType => TypeVariable <: type
-//                if (kind == UPPER) {
-//                    val subType =
-//                        typeApproximator.approximateToSubType(
-//                            type,
-//                            TypeApproximatorConfiguration.SubtypeCapturedTypesApproximation
-//                        )
-//                    if (subType != null) {
-//                        targetType = subType
-//                    }
-//                }
-//
-//                if (kind == LOWER) {
-//                    val superType =
-//                        typeApproximator.approximateToSuperType(
-//                            type,
-//                            TypeApproximatorConfiguration.SubtypeCapturedTypesApproximation
-//                        )
-//                    if (superType != null) { // todo rethink error reporting for Any cases
-//                        targetType = superType
-//                    }
-//                }
-//
-//                if (targetType === type) {
-//                    c.addError(CapturedTypeFromSubtyping(typeVariable, type, position))
-//                    return
-//                }
-//            }
-//
-//            val position =
-//                if (isIncorporatingConstraintFromDeclaredUpperBound) position.copy(isFromDeclaredUpperBound = true) else position
-//
-//            val newConstraint = Constraint(
-//                kind, targetType, position,
-//                derivedFrom = derivedFrom,
-//                isNullabilityConstraint = isNullabilityConstraint,
-//                inputTypePositionBeforeIncorporation = inputTypePosition
-//            )
-//
-//            addPossibleNewConstraint(typeVariable, newConstraint)
+            val (kind, derivedFrom, inputTypePosition, isNullabilityConstraint) = constraintContext
+
+            var targetType = type
+            if (targetType.isUninferredParameter()) {
+                // there already should be an error, so there is no point in reporting one more
+                return
+            }
+
+            if (targetType.isError()) {
+                c.addError(ConstrainingTypeIsError(typeVariable, targetType, position))
+                return
+            }
+
+            if (type.contains(this::isCapturedTypeFromSubtyping)) {
+                // TypeVariable <: type -> if TypeVariable <: subType => TypeVariable <: type
+                if (kind == ConstraintKind.UPPER) {
+                    val subType =
+                        typeApproximator.approximateToSubType(
+                            type,
+                            TypeApproximatorConfiguration.SubtypeCapturedTypesApproximation
+                        )
+                    if (subType != null) {
+                        targetType = subType
+                    }
+                }
+
+                if (kind == ConstraintKind.LOWER) {
+                    val superType =
+                        typeApproximator.approximateToSuperType(
+                            type,
+                            TypeApproximatorConfiguration.SubtypeCapturedTypesApproximation
+                        )
+                    if (superType != null) { // todo rethink error reporting for Any cases
+                        targetType = superType
+                    }
+                }
+
+                if (targetType === type) {
+                    c.addError(CapturedTypeFromSubtyping(typeVariable, type, position))
+                    return
+                }
+            }
+
+            val position =
+                if (isIncorporatingConstraintFromDeclaredUpperBound) position.copy(isFromDeclaredUpperBound = true) else position
+
+            val newConstraint = Constraint(
+                kind, targetType, position,
+                derivedFrom = derivedFrom,
+                isNullabilityConstraint = isNullabilityConstraint,
+                inputTypePositionBeforeIncorporation = inputTypePosition
+            )
+
+            addPossibleNewConstraint(typeVariable, newConstraint)
         }
 
         override val allTypeVariablesWithConstraints: Collection<VariableWithConstraints>

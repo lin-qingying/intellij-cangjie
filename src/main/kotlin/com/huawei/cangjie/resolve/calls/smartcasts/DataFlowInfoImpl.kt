@@ -2,12 +2,16 @@ package com.huawei.cangjie.resolve.calls.smartcasts
 
 import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.SetMultimap
+import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.checker.NewCapturedTypeConstructor
 import com.huawei.cangjie.types.util.contains
+import com.huawei.cangjie.types.util.isSubtypeOf
 import com.huawei.cangjie.utils.*
 import javaslang.Tuple2
+import java.util.LinkedHashSet
+
 private typealias ImmutableMultimap<K, V> = ImmutableMap<K, ImmutableSet<V>>
 
 
@@ -29,6 +33,127 @@ internal class DataFlowInfoImpl(
     override fun getCollectedTypes(key: DataFlowValue, languageVersionSettings: LanguageVersionSettings) =
         getCollectedTypes(key, true, languageVersionSettings)
 
+    override fun disequate(
+        a: DataFlowValue, b: DataFlowValue, languageVersionSettings: LanguageVersionSettings
+    ): DataFlowInfo = equateOrDisequate(a, b, languageVersionSettings, identityEquals = false, isEquate = false)
+    private fun putNullabilityAndTypeInfo(
+        map: MutableMap<DataFlowValue, Nullability>,
+        value: DataFlowValue,
+        nullability: Nullability,
+        languageVersionSettings: LanguageVersionSettings,
+        newTypeInfoBuilder: SetMultimap<DataFlowValue, CangJieType>? = null,
+        // XXX: set to false only as a workaround for OI, see KT-26357 for details (in NI everything works automagically)
+        recordUnstable: Boolean = true
+    ) {
+        if (value.isStable || recordUnstable) {
+            map[value] = nullability
+        }
+
+        val identifierInfo = value.identifierInfo
+        if (!nullability.canBeNull() && languageVersionSettings.supportsFeature(LanguageFeature.SafeCallBoundSmartCasts)) {
+            when (identifierInfo) {
+                is IdentifierInfo.Qualified -> {
+                    val receiverType = identifierInfo.receiverType
+                    if (identifierInfo.safe && receiverType != null) {
+                        val receiverValue = DataFlowValue(identifierInfo.receiverInfo, receiverType)
+                        putNullabilityAndTypeInfo(
+                            map, receiverValue, nullability,
+                            languageVersionSettings, newTypeInfoBuilder, recordUnstable = recordUnstable
+                        )
+                    }
+                }
+                is IdentifierInfo.SafeCast -> {
+                    val targetType = identifierInfo.targetType
+                    val subjectType = identifierInfo.subjectType
+                    if (targetType != null && subjectType != null &&
+                        languageVersionSettings.supportsFeature(LanguageFeature.SafeCastCheckBoundSmartCasts)) {
+
+                        val subjectValue = DataFlowValue(identifierInfo.subjectInfo, subjectType)
+                        putNullabilityAndTypeInfo(
+                            map, subjectValue, nullability,
+                            languageVersionSettings, newTypeInfoBuilder, recordUnstable = false
+                        )
+                        if (subjectValue.isStable) {
+                            newTypeInfoBuilder?.put(subjectValue, targetType)
+                        }
+                    }
+                }
+                is IdentifierInfo.Variable -> identifierInfo.bound?.let {
+                    putNullabilityAndTypeInfo(
+                        map, it, nullability,
+                        languageVersionSettings, newTypeInfoBuilder, recordUnstable = recordUnstable
+                    )
+                }
+            }
+        }
+    }
+
+    private fun equateOrDisequate(
+        a: DataFlowValue,
+        b: DataFlowValue,
+        languageVersionSettings: LanguageVersionSettings,
+        identityEquals: Boolean,
+        isEquate: Boolean
+    ): DataFlowInfo {
+        val resultNullabilityInfo = hashMapOf<DataFlowValue, Nullability>()
+        val newTypeInfoBuilder = newTypeInfoBuilder()
+
+        val nullabilityOfA = getStableNullability(a)
+        val nullabilityOfB = getStableNullability(b)
+        val newANullability = nullabilityOfA.refine(if (isEquate) nullabilityOfB else nullabilityOfB.invert())
+        val newBNullability = nullabilityOfB.refine(if (isEquate) nullabilityOfA else nullabilityOfA.invert())
+
+        putNullabilityAndTypeInfo(
+            resultNullabilityInfo,
+            a,
+            newANullability,
+            languageVersionSettings,
+            newTypeInfoBuilder
+        )
+
+        putNullabilityAndTypeInfo(
+            resultNullabilityInfo,
+            b,
+            newBNullability,
+            languageVersionSettings,
+            newTypeInfoBuilder
+        )
+
+        var changed = getCollectedNullability(a) != newANullability || getCollectedNullability(b) != newBNullability
+
+        // NB: == has no guarantees of type equality, see KT-11280 for the example
+        if (isEquate && (identityEquals || !nullabilityOfA.canBeNonNull() || !nullabilityOfB.canBeNonNull())) {
+            newTypeInfoBuilder.putAll(a, getStableTypes(b, false, languageVersionSettings))
+            newTypeInfoBuilder.putAll(b, getStableTypes(a, false, languageVersionSettings))
+            if (a.type != b.type) {
+                // To avoid recording base types of own type
+                if (!a.type.isSubtypeOf(b.type)) {
+                    newTypeInfoBuilder.put(a, b.type)
+                }
+                if (!b.type.isSubtypeOf(a.type)) {
+                    newTypeInfoBuilder.put(b, a.type)
+                }
+            }
+            changed = changed or !newTypeInfoBuilder.isEmpty
+        }
+
+        return if (changed) create(this, resultNullabilityInfo, newTypeInfoBuilder) else this
+    }
+    override fun getStableTypes(key: DataFlowValue, languageVersionSettings: LanguageVersionSettings) =
+        getStableTypes(key, true, languageVersionSettings)
+
+    private fun getStableTypes(key: DataFlowValue, enrichWithNotNull: Boolean, languageVersionSettings: LanguageVersionSettings) =
+        if (!key.isStable) LinkedHashSet() else getCollectedTypes(key, enrichWithNotNull, languageVersionSettings)
+
+    override fun getStableNullability(key: DataFlowValue): Nullability = getNullability(key, true)
+    override fun getCollectedNullability(key: DataFlowValue) = getNullability(key, false)
+
+    private fun getNullability(key: DataFlowValue, stableOnly: Boolean): Nullability =
+        if (stableOnly && !key.isStable) {
+            key.immanentNullability
+        } else {
+            completeNullabilityInfo[key].getOrElse(key.immanentNullability)
+        }
 
     override fun getCollectedTypes(key: DataFlowValue/*, languageVersionSettings: LanguageVersionSettings*/) =
         getCollectedTypes(key, true/*, languageVersionSettings*/)

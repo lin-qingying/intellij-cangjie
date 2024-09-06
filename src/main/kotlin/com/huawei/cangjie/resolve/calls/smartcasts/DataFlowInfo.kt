@@ -33,6 +33,30 @@ interface DataFlowInfo {
     fun getCollectedTypes(key: DataFlowValue
                          , languageVersionSettings: LanguageVersionSettings
     ): Set<CangJieType>
+    /**
+     * Call this function when it's known than a != b
+     */
+    fun disequate(a: DataFlowValue, b: DataFlowValue, languageVersionSettings: LanguageVersionSettings): DataFlowInfo
+
+    /**
+     * Returns possible types for the given value if it's stable.
+     * Otherwise, basic value type is returned.
+     *
+     * IMPORTANT: by default, the original (native) type for this value
+     * are NOT included. So it's quite possible to get an empty set here.
+     * Also, type order in the result set MAKES SENSE so keep it stable and do not change without reason
+     */
+    fun getStableTypes(key: DataFlowValue, languageVersionSettings: LanguageVersionSettings): Set<CangJieType>
+
+    /**
+     * Returns collected nullability for the given value if it's stable.
+     * Otherwise basic value nullability is returned
+     */
+    fun getStableNullability(key: DataFlowValue): Nullability
+    /**
+     * Returns collected nullability for the given value, NOT taking its stability into account.
+     */
+    fun getCollectedNullability(key: DataFlowValue): Nullability
 
     /**
      * Call this function when b is assigned to a

@@ -4,7 +4,9 @@ import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.utils.SmartSet
 import java.util.*
 
-
+/**
+ * @param <H> is something that handles CallableDescriptor inside
+ */
 fun <H : Any> Collection<H>.selectMostSpecificInEachOverridableGroup(
     descriptorByHandle: H.() -> CallableDescriptor
 ): Collection<H> {

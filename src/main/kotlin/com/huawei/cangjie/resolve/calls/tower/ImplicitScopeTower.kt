@@ -11,10 +11,12 @@ import com.huawei.cangjie.resolve.calls.model.CangJieCallArgument
 import com.huawei.cangjie.resolve.calls.model.CangJieCallDiagnostic
 import com.huawei.cangjie.resolve.calls.model.DiagnosticReporter
 import com.huawei.cangjie.resolve.scopes.LexicalScope
+import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.resolve.scopes.ResolutionScope
 import com.huawei.cangjie.resolve.scopes.SyntheticScopes
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.huawei.cangjie.resolve.scopes.util.parentsWithSelf
+import com.huawei.cangjie.types.TypeApproximator
 
 @JvmName("getResultApplicabilityForConstraintErrors")
 fun getResultApplicability(diagnostics: Collection<ConstraintSystemError>): CandidateApplicability =
@@ -23,6 +25,9 @@ fun getResultApplicability(diagnostics: Collection<ConstraintSystemError>): Cand
 @JvmName("getResultApplicabilityForCallDiagnostics")
 fun getResultApplicability(diagnostics: Collection<CangJieCallDiagnostic>): CandidateApplicability =
     diagnostics.minByOrNull { it.candidateApplicability }?.candidateApplicability ?: CandidateApplicability.RESOLVED
+
+
+
 // todo error for this access from nested class
 class VisibilityError(val invisibleMember: DeclarationDescriptorWithVisibility) : ResolutionDiagnostic(
     CandidateApplicability. RUNTIME_ERROR
@@ -48,11 +53,17 @@ interface ScopeTowerLevel {
 
     fun recordLookup(name: Name)
 }
+object UnstableSmartCastDiagnostic : ResolutionDiagnostic(CandidateApplicability.UNSTABLE_SMARTCAST)
 
 interface ImplicitScopeTower {
     val lexicalScope: LexicalScope
     val areContextReceiversEnabled: Boolean
     val syntheticScopes: SyntheticScopes
+    val dynamicScope: MemberScope
+
+    val typeApproximator: TypeApproximator
+    val isNewInferenceEnabled: Boolean
+
     fun interceptVariableCandidates(
         resolutionScope: ResolutionScope,
         name: Name,
@@ -94,6 +105,7 @@ class CandidateWithBoundDispatchReceiver(
     val diagnostics: List<ResolutionDiagnostic>
 )
 object ErrorDescriptorDiagnostic : ResolutionDiagnostic(CandidateApplicability.RESOLVED) // todo discuss and change to INAPPLICABLE
+object DynamicDescriptorDiagnostic : ResolutionDiagnostic(CandidateApplicability.RESOLVED_LOW_PRIORITY)
 
 class ResolvedUsingDeprecatedVisibility(val baseSourceScope: ResolutionScope, val lookupLocation: LookupLocation) :
     ResolutionDiagnostic(

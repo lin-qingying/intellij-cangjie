@@ -15,6 +15,8 @@ import com.huawei.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getParentOfType
 import com.huawei.cangjie.resolve.QualifierPosition.*
+import com.huawei.cangjie.resolve.calls.CallExpressionElement
+import com.huawei.cangjie.resolve.calls.unrollToLeftMostQualifiedExpression
 import com.huawei.cangjie.resolve.descriptorUtil.fqNameSafe
 import com.huawei.cangjie.resolve.descriptorUtil.module
 import com.huawei.cangjie.resolve.scopes.*
@@ -86,6 +88,65 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         }
 
         return classifier
+    }
+
+
+    private fun mapToQualifierParts(
+        qualifiedExpressions: List<CjQualifiedExpression>,
+        skipLast: Int
+    ): List<QualifierPart> {
+        if (qualifiedExpressions.isEmpty()) return emptyList()
+
+        val first = qualifiedExpressions.first()
+        if (first !is CjDotQualifiedExpression) return emptyList()
+        val firstReceiver = first.receiverExpression
+        if (firstReceiver !is CjSimpleNameExpression) return emptyList()
+
+        // Qualifier parts are receiver name for the leftmost expression
+        //  and selector names for all but the rightmost qualified expressions
+        //  (since rightmost selector should denote a value in expression position,
+        //  and thus can't be a qualifier part).
+        // E.g.:
+        //  qualified expression 'a.b': qualifier parts == ['a']
+        //  qualified expression 'a.b.c.d': qualifier parts == ['a', 'b', 'c']
+
+        val qualifierParts = arrayListOf<QualifierPart>()
+        qualifierParts.add(ExpressionQualifierPart(firstReceiver))
+
+        for (qualifiedExpression in qualifiedExpressions.dropLast(skipLast)) {
+            if (qualifiedExpression !is CjDotQualifiedExpression) break
+            val selector = qualifiedExpression.selectorExpression
+            if (selector !is CjSimpleNameExpression) break
+            qualifierParts.add(ExpressionQualifierPart(selector))
+        }
+
+        return qualifierParts
+    }
+
+    fun resolveQualifierInExpressionAndUnroll(
+        expression: CjQualifiedExpression,
+        context: ExpressionTypingContext,
+        isValue: (CjSimpleNameExpression) -> Boolean
+    ): List<CallExpressionElement> {
+        val qualifiedExpressions = unrollToLeftMostQualifiedExpression(expression)
+        val maxPossibleQualifierPrefix = mapToQualifierParts(qualifiedExpressions, 1)
+
+        val nextIndexAfterPrefix = resolveToPackageOrClassPrefix(
+            path = maxPossibleQualifierPrefix,
+            moduleDescriptor = context.scope.ownerDescriptor.module,
+            trace = context.trace,
+            shouldBeVisibleFrom = context.scope.ownerDescriptor,
+            scopeForFirstPart = context.scope,
+            position = EXPRESSION,
+            isValue = isValue
+        ).second
+
+        val nextExpressionIndexAfterQualifier =
+            if (nextIndexAfterPrefix == 0) 0 else nextIndexAfterPrefix - 1
+
+        return qualifiedExpressions
+            .subList(nextExpressionIndexAfterQualifier, qualifiedExpressions.size)
+            .map(::CallExpressionElement)
     }
 
     private fun CjUserType.asQualifierPartList(): Pair<List<ExpressionQualifierPart>, Boolean> {
@@ -831,7 +892,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                 }
             }
 
-            IMPORT,TYPE -> {
+            IMPORT, TYPE -> {
 
 //                //                不能使用 除private以外的修饰符修饰import语句
 //                val importDirective = referenceExpression.getParentOfType<CjImportDirective>(true)

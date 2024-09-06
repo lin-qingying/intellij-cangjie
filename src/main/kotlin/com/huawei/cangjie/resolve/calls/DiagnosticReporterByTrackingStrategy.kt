@@ -1,5 +1,6 @@
 package com.huawei.cangjie.resolve.calls
 
+
 import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.builtins.isExtensionFunctionType
 import com.huawei.cangjie.config.LanguageFeature
@@ -28,17 +29,27 @@ import com.huawei.cangjie.resolve.descriptorUtil.module
 import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver
 import com.huawei.cangjie.types.AbstractTypeChecker
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.ErrorUtils
+import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.isNothing
 import com.huawei.cangjie.types.checker.intersectWrappedTypes
+import com.huawei.cangjie.types.expressions.ControlStructureTypingUtils
 import com.huawei.cangjie.types.model.TypeSystemInferenceExtensionContextDelegate
+import com.huawei.cangjie.types.model.TypeVariableMarker
+import com.huawei.cangjie.types.model.freshTypeConstructor
+import com.huawei.cangjie.types.util.TypeUtils
+import com.huawei.cangjie.types.util.contains
+import com.huawei.cangjie.types.util.makeOptional
 import com.huawei.cangjie.utils.shouldNotBeCalled
 import io.github.classgraph.TypeArgument
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 class DiagnosticReporterByTrackingStrategy(
     val constantExpressionEvaluator: ConstantExpressionEvaluator,
     val context: BasicCallResolutionContext,
     val psiCangJieCall: PSICangJieCall,
     val dataFlowValueFactory: DataFlowValueFactory,
-    val allDiagnostics: List<CangJieCallDiagnostic>,
+    private val allDiagnostics: List<CangJieCallDiagnostic>,
     private val smartCastManager: SmartCastManager,
     private val typeSystemContext: TypeSystemInferenceExtensionContextDelegate
 ) : DiagnosticReporter {
@@ -628,15 +639,15 @@ class DiagnosticReporterByTrackingStrategy(
 //                    else error.upperCangJieType.makeOptional()
 //                trace.report(TYPE_MISMATCH.on(position.topLevelCall, error.upperCangJieType, inferredType))
 //            }
-//            is ExpectedTypeConstraintPosition<*> -> {
-//                val call = (position.topLevelCall as? CangJieCall)?.psiCangJieCall?.psiCall?.callElement as? CjExpression
-//                val inferredType =
-//                    if (!error.lowerCangJieType.isNullableNothing()) error.lowerCangJieType
-//                    else error.upperCangJieType.makeOptional()
-//                if (call != null) {
-//                    report(typeMismatchDiagnostic.on(call, error.upperCangJieType, inferredType))
-//                }
-//            }
+            is ExpectedTypeConstraintPosition<*> -> {
+                val call = (position.topLevelCall as? CangJieCall)?.psiCangJieCall?.psiCall?.callElement as? CjExpression
+                val inferredType =
+                    if (!error.lowerCangJieType.isNothing()) error.lowerCangJieType
+                    else error.upperCangJieType.makeOptional()
+                if (call != null) {
+                    report(typeMismatchDiagnostic.on(call, error.upperCangJieType, inferredType))
+                }
+            }
             is BuilderInferenceSubstitutionConstraintPosition<*> -> {
                 reportConstraintErrorByPosition(error, position.initialConstraint.position)
             }
@@ -714,26 +725,107 @@ class DiagnosticReporterByTrackingStrategy(
         }
     }
 
+    private fun CangJieType.containsUninferredTypeParameter(uninferredTypeVariable: TypeVariableMarker) = contains {
+        ErrorUtils.isUninferredTypeVariable(it) || it == TypeUtils.DONT_CARE
+                || it.constructor == uninferredTypeVariable.freshTypeConstructor(typeSystemContext)
+    }
+
+    private fun getSubResolvedAtomsOfSpecialCallToReportUninferredTypeParameter(
+        resolvedAtom: ResolvedAtom,
+        uninferredTypeVariable: TypeVariableMarker
+    ): Set<ResolvedAtom> =
+        buildSet {
+            for (subResolvedAtom in resolvedAtom.subResolvedAtoms ?: return@buildSet) {
+                val atom = subResolvedAtom.atom
+                val typeToCheck = when {
+                    subResolvedAtom is PostponedResolvedAtom -> subResolvedAtom.expectedType ?: return@buildSet
+                    atom is SimpleCangJieCallArgument -> atom.receiver.receiverValue.type
+                    else -> return@buildSet
+                }
+
+                if (typeToCheck.containsUninferredTypeParameter(uninferredTypeVariable)) {
+                    add(subResolvedAtom)
+                }
+
+                if (!subResolvedAtom.subResolvedAtoms.isNullOrEmpty()) {
+                    addAll(
+                        getSubResolvedAtomsOfSpecialCallToReportUninferredTypeParameter(
+                            subResolvedAtom,
+                            uninferredTypeVariable
+                        )
+                    )
+                }
+            }
+        }
+
+
+    private fun getArgumentsExpressionOrLastExpressionInBlock(atom: PSICangJieCallArgument): CjExpression? {
+        val valueArgumentExpression = atom.valueArgument.getArgumentExpression()
+
+        return if (valueArgumentExpression is CjBlockExpression) valueArgumentExpression.statements.lastOrNull() else valueArgumentExpression
+    }
+
+    private fun reportNotEnoughInformationForTypeParameterForSpecialCall(
+        resolvedAtom: ResolvedCallAtom,
+        error: NotEnoughInformationForTypeParameterImpl
+    ) {
+        val subResolvedAtomsToReportError =
+            getSubResolvedAtomsOfSpecialCallToReportUninferredTypeParameter(resolvedAtom, error.typeVariable)
+
+        if (subResolvedAtomsToReportError.isEmpty()) return
+
+        for (subResolvedAtom in subResolvedAtomsToReportError) {
+            val atom = subResolvedAtom.atom as? PSICangJieCallArgument ?: continue
+            val argumentsExpression = getArgumentsExpressionOrLastExpressionInBlock(atom)
+
+            if (argumentsExpression != null) {
+                val specialFunctionName = requireNotNull(
+                    ControlStructureTypingUtils.ResolveConstruct.entries.find { specialFunction ->
+                        specialFunction.specialFunctionName == resolvedAtom.candidateDescriptor.name
+                    }
+                ) { "Unsupported special construct: ${resolvedAtom.candidateDescriptor.name} not found in special construct names" }
+
+                trace.reportDiagnosticOnce(
+                    NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER.on(
+                        argumentsExpression, " for subcalls of ${specialFunctionName.name} expression"
+                    )
+                )
+            }
+        }
+    }
+
+    @OptIn(ExperimentalContracts::class)
+    private fun isSpecialFunction(atom: ResolvedAtom): Boolean {
+        contract {
+            returns(true) implies (atom is ResolvedCallAtom)
+        }
+        if (atom !is ResolvedCallAtom) return false
+
+        return ControlStructureTypingUtils.ResolveConstruct.entries.any { specialFunction ->
+            specialFunction.specialFunctionName == atom.candidateDescriptor.name
+        }
+    }
+
     override fun constraintError(error: ConstraintSystemError) {
         when (error) {
             is NewConstraintMismatch -> reportConstraintErrorByPosition(error, error.position.from)
 
-//            is CapturedTypeFromSubtyping -> {
-//                val position = error.position
-//                val argumentPosition: ArgumentConstraintPositionImpl? =
-//                    position as? ArgumentConstraintPositionImpl
-//                        ?: (position as? IncorporationConstraintPosition)?.from as? ArgumentConstraintPositionImpl
-//
-//                argumentPosition?.let {
-//                    val expression = it.argument.psiExpression ?: return
-//                    trace.reportDiagnosticOnce(
-//                        NEW_INFERENCE_ERROR.on(
-//                            expression,
-//                            "Capture type from subtyping ${error.constraintType} for variable ${error.typeVariable}"
-//                        )
-//                    )
-//                }
-//            }
+            is CapturedTypeFromSubtyping -> {
+                val position = error.position
+                val argumentPosition: ArgumentConstraintPositionImpl? =
+                    position as? ArgumentConstraintPositionImpl
+                        ?: (position as? IncorporationConstraintPosition)?.from as? ArgumentConstraintPositionImpl
+
+                argumentPosition?.let {
+                    val expression = it.argument.psiExpression ?: return
+                    trace.reportDiagnosticOnce(
+                        NEW_INFERENCE_ERROR.on(
+                            expression,
+                            "Capture type from subtyping ${error.constraintType} for variable ${error.typeVariable}"
+                        )
+                    )
+                }
+            }
 //
             is InferredIntoDeclaredUpperBounds -> {
                 val psiCall = psiCangJieCall.psiCall
@@ -751,66 +843,78 @@ class DiagnosticReporterByTrackingStrategy(
                     )
                 )
             }
-//
-//            is NotEnoughInformationForTypeParameterImpl -> {
-//                val resolvedAtom = error.resolvedAtom
-//                val isDiagnosticRedundant = !isSpecialFunction(resolvedAtom) && allDiagnostics.any {
-//                    when (it) {
-//                        is WrongCountOfTypeArguments -> true
-//                        is CangJieConstraintSystemDiagnostic -> {
-//                            val otherError = it.error
-//                            (otherError is ConstrainingTypeIsError && otherError.typeVariable == error.typeVariable)
-//                                    || otherError is NewConstraintError
-//                        }
-//                        else -> false
-//                    }
-//                }
-//
-//                if (isDiagnosticRedundant) return
-//                val expression = when (val atom = error.resolvedAtom.atom) {
-//                    is PSICangJieCall -> {
-//                        val psiCall = atom.psiCall
-//                        if (psiCall is CallTransformer.CallForImplicitInvoke) {
-//                            psiCall.outerCall.calleeExpression
-//                        } else {
-//                            psiCall.calleeExpression
-//                        }
-//                    }
-//                    is PSICangJieCallArgument -> atom.valueArgument.getArgumentExpression()
-//                    else -> call.calleeExpression
-//                } ?: return
-//
-//                if (isSpecialFunction(resolvedAtom)) {
-//                    // We locally report errors on some arguments of special calls, on which the error may not be reported directly
-//                    reportNotEnoughInformationForTypeParameterForSpecialCall(resolvedAtom, error)
-//                } else {
-//                    val typeVariableName = when (val typeVariable = error.typeVariable) {
-//                        is TypeVariableFromCallableDescriptor -> typeVariable.originalTypeParameter.name.asString()
-//                        is TypeVariableForLambdaReturnType -> "return type of lambda"
-//                        else -> error("Unsupported type variable: $typeVariable")
-//                    }
-//                    val unwrappedExpression = if (expression is CjBlockExpression) {
-//                        expression.statements.lastOrNull() ?: expression
-//                    } else expression
-//
-//                    val diagnostic = if (error.couldBeResolvedWithUnrestrictedBuilderInference) {
-//                        COULD_BE_INFERRED_ONLY_WITH_UNRESTRICTED_BUILDER_INFERENCE
-//                    } else {
-//                        NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER
-//                    }
-//
-//                    trace.reportDiagnosticOnce(diagnostic.on(unwrappedExpression, typeVariableName))
-//                }
-//            }
-//
-//            is OnlyInputTypesDiagnostic -> {
-//                val typeVariable = error.typeVariable as? TypeVariableFromCallableDescriptor ?: return
-//                psiCangJieCall.psiCall.calleeExpression?.let {
-//                    trace.report(
-//                        TYPE_INFERENCE_ONLY_INPUT_TYPES.on(context.languageVersionSettings, it, typeVariable.originalTypeParameter)
-//                    )
-//                }
-//            }
+
+            is NotEnoughInformationForTypeParameterImpl -> {
+                val resolvedAtom = error.resolvedAtom
+                val isDiagnosticRedundant = !isSpecialFunction(resolvedAtom) && allDiagnostics.any {
+                    when (it) {
+                        is WrongCountOfTypeArguments -> true
+                        is CangJieConstraintSystemDiagnostic -> {
+                            val otherError = it.error
+                            (otherError is ConstrainingTypeIsError && otherError.typeVariable == error.typeVariable)
+                                    || otherError is NewConstraintError
+                        }
+
+                        else -> false
+                    }
+                }
+
+                if (isDiagnosticRedundant) return
+                val expression = when (val atom = error.resolvedAtom.atom) {
+                    is PSICangJieCall -> {
+                        val psiCall = atom.psiCall
+                        if (psiCall is CallTransformer.CallForImplicitInvoke) {
+                            psiCall.outerCall.calleeExpression
+                        } else {
+                            psiCall.calleeExpression
+                        }
+                    }
+
+                    is PSICangJieCallArgument -> atom.valueArgument.getArgumentExpression()
+                    else -> call.calleeExpression
+                } ?: return
+
+                if (isSpecialFunction(resolvedAtom)) {
+                    // We locally report errors on some arguments of special calls, on which the error may not be reported directly
+                    reportNotEnoughInformationForTypeParameterForSpecialCall(resolvedAtom, error)
+                } else {
+                    val typeVariableName = when (val typeVariable = error.typeVariable) {
+                        is TypeVariableFromCallableDescriptor -> typeVariable.originalTypeParameter.name.asString()
+                        is TypeVariableForLambdaReturnType -> "return type of lambda"
+                        else -> error("Unsupported type variable: $typeVariable")
+                    }
+                    val unwrappedExpression = if (expression is CjBlockExpression) {
+                        expression.statements.lastOrNull() ?: expression
+                    } else expression
+
+                    val diagnostic = if (error.couldBeResolvedWithUnrestrictedBuilderInference) {
+                        COULD_BE_INFERRED_ONLY_WITH_UNRESTRICTED_BUILDER_INFERENCE
+                    } else {
+                        NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER
+                    }
+
+                    if (unwrappedExpression is CjCollectionLiteralExpression && diagnostic == NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER) {
+//                        数组字面量 替换为ARRAY_LITERAL_TYPE_INFERENCE_FAILED
+                        trace.reportDiagnosticOnce(
+                            ARRAY_LITERAL_TYPE_INFERENCE_FAILED.on(
+                                unwrappedExpression
+                            )
+                        )
+                    } else {
+                        trace.reportDiagnosticOnce(diagnostic.on(unwrappedExpression, typeVariableName))
+
+                    }
+                }
+            }
+
+            is OnlyInputTypesDiagnostic -> {
+                val typeVariable = error.typeVariable as? TypeVariableFromCallableDescriptor ?: return
+                psiCangJieCall.psiCall.calleeExpression?.let {
+                    trace.report(
+                        TYPE_INFERENCE_ONLY_INPUT_TYPES.on(context.languageVersionSettings, it, typeVariable.originalTypeParameter)
+                    )
+                }
+            }
 //
 //            is InferredEmptyIntersectionError, is InferredEmptyIntersectionWarning -> {
 //                val typeVariable = (error as InferredEmptyIntersection).typeVariable
@@ -840,7 +944,7 @@ class DiagnosticReporterByTrackingStrategy(
 //                }
 //            }
 //            // ConstrainingTypeIsError means that some type isError, so it's reported somewhere else
-//            is ConstrainingTypeIsError -> {}
+            is ConstrainingTypeIsError -> {}
 //            // LowerPriorityToPreserveCompatibility is not expected to report something
             is LowerPriorityToPreserveCompatibility -> {}
 

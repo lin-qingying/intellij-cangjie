@@ -1,15 +1,18 @@
 package com.huawei.cangjie.resolve.calls.components
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.components.candidate.SimpleResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.NewConstraintSystem
+import com.huawei.cangjie.resolve.calls.inference.addEqualityConstraintIfCompatible
 import com.huawei.cangjie.resolve.calls.inference.components.CangJieConstraintSystemCompleter
 import com.huawei.cangjie.resolve.calls.inference.components.ConstraintSystemCompletionMode
 import com.huawei.cangjie.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import com.huawei.cangjie.resolve.calls.inference.components.TrivialConstraintTypeInferenceOracle
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage.Empty.hasContradiction
+import com.huawei.cangjie.resolve.calls.inference.model.ExpectedTypeConstraintPositionImpl
 import com.huawei.cangjie.resolve.calls.inference.model.NewConstraintSystemImpl
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.tower.CandidateFactory
@@ -18,6 +21,7 @@ import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.UnwrappedType
 import com.huawei.cangjie.types.error.ErrorType
 import com.huawei.cangjie.types.error.ErrorTypeKind
+import com.huawei.cangjie.types.util.TypeUtils
 
 internal val NewConstraintSystem.builtIns: CangJieBuiltIns get() = ((this as NewConstraintSystemImpl).typeSystemContext as BuiltInsProvider).builtIns
 
@@ -112,6 +116,7 @@ class CangJieCallCompleter(
         resolutionCallbacks: CangJieResolutionCallbacks,
         collectAllCandidatesMode: Boolean = false
     ) {
+
         val returnType = resolvedCallAtom.freshReturnType ?: constraintSystem.builtIns.unitType
         cangjieConstraintSystemCompleter.runCompletion(
             constraintSystem.asConstraintSystemCompleterContext(),
@@ -167,6 +172,48 @@ class CangJieCallCompleter(
         }
     }
 
+    private fun ResolutionCandidate.addExpectedTypeConstraint(
+        returnType: UnwrappedType?,
+        expectedType: UnwrappedType?
+    ) {
+        if (returnType == null) return
+        if (expectedType == null || (TypeUtils.noExpectedType(expectedType) && expectedType !== TypeUtils.UNIT_EXPECTED_TYPE)) return
+
+        val csBuilder = getSystem().getBuilder()
+
+        when {
+            csBuilder.currentStorage().notFixedTypeVariables.isEmpty() -> {
+                // This is needed to avoid multiple mismatch errors as we type check resulting type against expected one later
+                // Plus, it helps with IDE-tests where it's important to have particular diagnostics.
+                // Note that it aligns with the old inference, see CallCompleter.completeResolvedCallAndArguments
+
+                // Another point is to avoid adding constraint from expected type for constant expressions like `1 + 1` because of
+                // type coercion for numbers:
+                // val a: Long = 1 + 1, result type of "1 + 1" will be Int and adding constraint with Long will produce type mismatch
+                return
+            }
+
+            expectedType === TypeUtils.UNIT_EXPECTED_TYPE ->
+                csBuilder.addEqualityConstraintIfCompatible(
+                        returnType, csBuilder.builtIns.unitType, ExpectedTypeConstraintPositionImpl(resolvedCall.atom)
+                )
+
+            else ->
+                csBuilder.addSubtypeConstraint(returnType, expectedType, ExpectedTypeConstraintPositionImpl(resolvedCall.atom))
+        }
+    }
+    private fun ResolutionCandidate.addExpectedTypeFromCastConstraint(
+        returnType: UnwrappedType?,
+        resolutionCallbacks: CangJieResolutionCallbacks
+    ) {
+        if (!callComponents.languageVersionSettings.supportsFeature(LanguageFeature.ExpectedTypeFromCast)) return
+        if (returnType == null) return
+
+        val expectedType = resolutionCallbacks.getExpectedTypeFromAsExpressionAndRecordItInTrace(resolvedCall) ?: return
+        val csBuilder = getSystem().getBuilder()
+
+        csBuilder.addSubtypeConstraint(returnType, expectedType, ExpectedTypeConstraintPositionImpl(resolvedCall.atom))
+    }
     fun runCompletion(
         factory: CandidateFactory<ResolutionCandidate>,
         candidates: Collection<ResolutionCandidate>,
@@ -184,8 +231,8 @@ class CangJieCallCompleter(
             is SimpleResolutionCandidate -> {
                 candidate.checkSamWithVararg(diagnosticHolder)
                 candidate.substitutedReturnType().also {
-//                    candidate.addExpectedTypeConstraint(it, expectedType)
-//                    candidate.addExpectedTypeFromCastConstraint(it, resolutionCallbacks)
+                    candidate.addExpectedTypeConstraint(it, expectedType)
+                    candidate.addExpectedTypeFromCastConstraint(it, resolutionCallbacks)
                 }
 
             }

@@ -91,6 +91,7 @@ open class MutableResolvedCallAtom(
 
         samAdapterMap!![argument] = samConversionDescription
     }
+    override fun toString(): String = "$atom, candidate = $candidateDescriptor"
 
 
     fun registerArgumentWithUnitConversion(argument: CangJieCallArgument, convertedType: UnwrappedType) {

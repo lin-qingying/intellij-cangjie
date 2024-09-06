@@ -10,10 +10,16 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.regex.Pattern;
+
 
 public class CjStringTemplateExpression extends CjElementImplStub<CangJiePlaceHolderStub<CjStringTemplateExpression>>
         implements CjExpression, PsiLanguageInjectionHost, ContributedReferenceHost {
     private static final TokenSet CLOSE_QUOTE_TOKEN_SET = TokenSet.create(CjTokens.CLOSING_QUOTE);
+    private static final TokenSet STRING_ENTRIES_TYPES = TokenSet.create(
+            CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY
+
+    );
 
     public CjStringTemplateExpression(@NotNull ASTNode node) {
         super(node);
@@ -33,10 +39,52 @@ public class CjStringTemplateExpression extends CjElementImplStub<CangJiePlaceHo
         return visitor.visitStringTemplateExpression(this, data);
     }
 
-    private static final TokenSet STRING_ENTRIES_TYPES = TokenSet.create(
-            CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY
+    /**
+     * 是否双引号
+     */
+    public boolean isDoubleQuote() {
+        return getNode().getFirstChildNode().getText().startsWith("\"");
+    }
 
-    );
+    /**
+     * 是否是多行字符串
+     */
+    public boolean isMultiLine() {
+        return getNode().getFirstChildNode().getText().equals("\"\"\"") || getNode().getFirstChildNode().getText().equals("'''");
+    }
+
+    /**
+     * 是否为原始字符串
+     *
+     * @return
+     */
+    public boolean isRawString() {
+        return Pattern.matches("^#+[\"']", getNode().getFirstChildNode().getText());
+    }
+
+    /**
+     * 获取字符串内容
+     *
+     * @return
+     */
+    public String getStringContent() {
+        ASTNode node = getNode();
+        ASTNode firstChild = node.getFirstChildNode();
+        ASTNode lastChild = node.getLastChildNode();
+
+        if (firstChild == null || firstChild == lastChild) {
+            return "";
+        }
+
+        StringBuilder content = new StringBuilder();
+        ASTNode current = firstChild.getTreeNext();
+        while (current != null && current != lastChild) {
+            content.append(current.getText());
+            current = current.getTreeNext();
+        }
+
+        return content.toString();
+    }
 
     @NotNull
     public CjStringTemplateEntry[] getEntries() {
@@ -51,7 +99,8 @@ public class CjStringTemplateExpression extends CjElementImplStub<CangJiePlaceHo
     @Override
     public PsiLanguageInjectionHost updateText(@NotNull String text) {
         CjExpression newExpression = new CjPsiFactory(getProject()).createExpressionIfPossible(text);
-        if (newExpression instanceof CjStringTemplateExpression) return (CjStringTemplateExpression) replace(newExpression);
+        if (newExpression instanceof CjStringTemplateExpression)
+            return (CjStringTemplateExpression) replace(newExpression);
         return ElementManipulators.handleContentChange(this, text);
     }
 

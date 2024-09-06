@@ -22,6 +22,7 @@ data class Position(val line: Int, val column: Int) : Serializable {
 
 
 enum class NoLookupLocation : LookupLocation {
+    FROM_PACKAGE,
                                              FROM_LIBRARY,
     FROM_IDE,
     FROM_BACKEND,
@@ -29,7 +30,7 @@ enum class NoLookupLocation : LookupLocation {
     FROM_BUILTINS,
     MATCH_CHECK_DECLARATION_CONFLICTS,
     MATCH_CHECK_OVERRIDES,
-    FOR_SCRIPT,
+
     FROM_REFLECTION,
     MATCH_RESOLVE_DECLARATION,
     MATCH_GET_DECLARATION_SCOPE,
@@ -42,7 +43,7 @@ enum class NoLookupLocation : LookupLocation {
     FOR_NON_TRACKED_SCOPE,
     FROM_SYNTHETIC_SCOPE,
     FROM_DESERIALIZATION,
-    FROM_JAVA_LOADER,
+
     MATCH_GET_LOCAL_VARIABLE,
     MATCH_FIND_BY_FQNAME,
     MATCH_GET_COMPANION_OBJECT,

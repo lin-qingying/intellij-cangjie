@@ -16,7 +16,8 @@ import com.huawei.cangjie.resolve.StatementFilter
 import com.huawei.cangjie.resolve.constants.*
 import com.huawei.cangjie.types.BasicType
 import com.huawei.cangjie.types.CangJieType
-import com.huawei.cangjie.types.error.ErrorModuleDescriptor.builtIns
+
+
 import com.huawei.cangjie.types.isError
 import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.isGenericArrayOfTypeParameter
@@ -29,6 +30,7 @@ class ConstantExpressionEvaluator(
     project: Project,
 //    internal val inlineConstTracker: InlineConstTracker = InlineConstTracker.DoNothing
 ) {
+
     companion object {
         @JvmStatic
         fun getPossiblyErrorConstant(
@@ -128,12 +130,13 @@ class ConstantExpressionEvaluator(
 //    }
 }
 
-//
+
 private class ConstantExpressionEvaluatorVisitor(
     private val constantExpressionEvaluator: ConstantExpressionEvaluator,
     private val trace: BindingTrace
 ) : CjVisitor<CompileTimeConstant<*>?, CangJieType>() {
     private val languageVersionSettings = constantExpressionEvaluator.languageVersionSettings
+    private val builtIns = constantExpressionEvaluator.module.builtIns
 
 
     fun evaluate(expression: CjExpression, expectedType: CangJieType?): CompileTimeConstant<*>? {
@@ -406,6 +409,26 @@ private class ConstantExpressionEvaluatorVisitor(
         expression: CjStringTemplateExpression,
         expectedType: CangJieType?
     ): CompileTimeConstant<*>? {
+
+        if (expression.isMultiLine) {
+            if (!expression.stringContent.startsWith("\n")) {
+                expression.findElementAt(3)?.let {
+                    trace.report(Errors.NO_MULTILINE_NEWLINE.on(it))
+                }
+            }
+
+            when (expression.isDoubleQuote) {
+                true -> if(expression.stringContent.endsWith("\"")){
+                        trace.report(Errors.COMPILER_AFFECTED_SYNTAX_ERROR.on(expression.lastChild.prevSibling))
+                }
+                false -> if(expression.stringContent.endsWith("'")){
+                        trace.report(Errors.COMPILER_AFFECTED_SYNTAX_ERROR.on(expression.lastChild.prevSibling))
+                }
+            }
+
+        }
+
+
         val sb = StringBuilder()
         var interupted = false
         var canBeUsedInAnnotation = true

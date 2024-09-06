@@ -117,6 +117,14 @@ public interface Errors {
             DiagnosticFactory1.create(ERROR, DECLARATION_NAME);
     DiagnosticFactory1<CjElement, CangJieType> TYPE_MISMATCH_DUE_TO_EQUALS_LAMBDA_IN_FUN = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> MISSING_STDLIB = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, String> NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory0<PsiElement > ARRAY_LITERAL_TYPE_INFERENCE_FAILED = DiagnosticFactory0.create(ERROR);
+
+    DiagnosticFactoryForDeprecation1<PsiElement, TypeParameterDescriptor> TYPE_INFERENCE_ONLY_INPUT_TYPES =
+            DiagnosticFactoryForDeprecation1.create(LanguageFeature.StrictOnlyInputTypesChecks);
+
+
+    DiagnosticFactory1<PsiElement, String> COULD_BE_INFERRED_ONLY_WITH_UNRESTRICTED_BUILDER_INFERENCE = DiagnosticFactory1.create(ERROR);
 
     DiagnosticFactory1<CjDeclaration, Collection<CangJieType>> AMBIGUOUS_ANONYMOUS_TYPE_INFERRED =
             DiagnosticFactory1.create(ERROR, DECLARATION_SIGNATURE);
@@ -182,7 +190,20 @@ public interface Errors {
     DiagnosticFactory0<PsiElement> EXTEND_WITH_SUPERCLASS = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<CjTypeReference, CangJieType> FINAL_SUPERTYPE = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory0<CjTypeReference> EXTEND_CANNOT_INTERFACE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<PsiElement> NO_MULTILINE_NEWLINE = DiagnosticFactory0.create(ERROR);
 
+    DiagnosticFactory0<CjSimpleNameExpression> EXPRESSION_EXPECTED_PACKAGE_FOUND = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory1<CjExpression, ClassifierDescriptorWithTypeParameters> NESTED_CLASS_ACCESSED_VIA_INSTANCE_REFERENCE =
+            DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory0<PsiElement> UNEXPECTED_SAFE_CALL = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory1<PsiElement, CangJieType> UNNECESSARY_SAFE_CALL = DiagnosticFactory1.create(WARNING);
+    DiagnosticFactory0<CjExpression> ILLEGAL_SELECTOR = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjQualifiedExpression> SAFE_CALL_WILL_CHANGE_NULLABILITY = DiagnosticFactory0.create(WARNING, PositioningStrategies.CALL_ELEMENT_WITH_DOT);
+
+    DiagnosticFactory0<PsiElement> COMPILER_AFFECTED_SYNTAX_ERROR = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory1<CjSimpleNameExpression, TypeParameterDescriptor> TYPE_PARAMETER_IS_NOT_AN_EXPRESSION =
+            DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<CjSimpleNameExpression, ClassifierDescriptor> EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory2<CjTypeReference, CangJieType, CangJieType> UPPER_BOUND_VIOLATED = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory0<CjTypeArgumentList> TYPE_ARGUMENTS_FOR_OUTER_CLASS_WHEN_NESTED_REFERENCED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<CjTypeReference, CangJieType> TYPEALIAS_SHOULD_EXPAND_TO_CLASS = DiagnosticFactory1.create(ERROR);

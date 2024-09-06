@@ -10,8 +10,8 @@ import com.huawei.cangjie.resolve.calls.components.NoArguments
 
 enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
     VARIABLE(
-//        CheckVisibility,
-//        CheckSuperExpressionCallPart,
+        CheckVisibility,
+        CheckSuperExpressionCallPart,
 //        NoTypeArguments,
         NoArguments,
         CreateFreshVariablesSubstitutor,
@@ -23,10 +23,10 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
 //        CheckIncompatibleTypeVariableUpperBounds
     ),
     FUNCTION(
-//        CheckVisibility,
+        CheckVisibility,
 //        CheckInfixResolutionPart,
 //        CheckOperatorResolutionPart,
-//        CheckSuperExpressionCallPart,
+        CheckSuperExpressionCallPart,
 //        MapTypeArguments,
         MapArguments,
         ArgumentsToCandidateParameterDescriptor,
@@ -44,7 +44,7 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
     ),
     INVOKE(*FUNCTION.resolutionSequence.toTypedArray()),
     CALLABLE_REFERENCE(
-//        CheckVisibility,
+        CheckVisibility,
 //        NoTypeArguments,
         NoArguments,
         CreateFreshVariablesSubstitutor,

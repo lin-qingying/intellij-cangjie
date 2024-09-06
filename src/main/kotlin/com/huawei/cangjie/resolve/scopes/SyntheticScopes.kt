@@ -100,3 +100,5 @@ fun SyntheticScopes.collectSyntheticStaticFunctions(
 ) = scopes.flatMap {
     it.getSyntheticStaticFunctions(contributedFunctions, location)
 }
+fun SyntheticScopes.collectSyntheticMemberFunctions(receiverTypes: Collection<CangJieType>, name: Name, location: LookupLocation)
+        = scopes.flatMap { it.getSyntheticMemberFunctions(receiverTypes, name, location) }

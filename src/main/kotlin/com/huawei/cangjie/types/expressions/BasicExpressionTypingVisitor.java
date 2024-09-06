@@ -2,8 +2,12 @@ package com.huawei.cangjie.types.expressions;
 
 import com.huawei.cangjie.CjNodeTypes;
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
+import com.huawei.cangjie.builtins.StandardNames;
+import com.huawei.cangjie.descriptors.ClassifierDescriptor;
+import com.huawei.cangjie.descriptors.DescriptorWithDeprecation;
 import com.huawei.cangjie.descriptors.Diagnostic;
 import com.huawei.cangjie.descriptors.Errors;
+import com.huawei.cangjie.incremental.components.NoLookupLocation;
 import com.huawei.cangjie.lexer.CjKeywordToken;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.parsing.ParseUtilsKt;
@@ -13,6 +17,7 @@ import com.huawei.cangjie.resolve.calls.context.ContextDependency;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValue;
 import com.huawei.cangjie.resolve.constants.*;
+import com.huawei.cangjie.resolve.scopes.ScopeUtilsKt;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
@@ -212,7 +217,19 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
             public void visitStringTemplateEntryWithExpression(@NotNull CjStringTemplateEntryWithExpression entry) {
                 CjExpression entryExpression = entry.getExpression();
                 if (entryExpression != null) {
-                    typeInfo = facade.getTypeInfo(entryExpression, context.replaceDataFlowInfo(typeInfo.getDataFlowInfo()));
+
+                    DescriptorWithDeprecation<ClassifierDescriptor> toString = ScopeUtilsKt.findFirstClassifierWithDeprecationStatus(context.scope, StandardNames.TOSTRING, NoLookupLocation.FROM_BUILTINS);
+
+                    if (toString != null) {
+                        //                  约束toString类型
+                        typeInfo = facade.getTypeInfo(entryExpression, context.replaceExpectedType(toString.getDescriptor().getDefaultType()).replaceDataFlowInfo(typeInfo.getDataFlowInfo()));
+
+                    } else {
+                        typeInfo = facade.getTypeInfo(entryExpression, context.replaceDataFlowInfo(typeInfo.getDataFlowInfo()));
+
+                    }
+
+
                 }
             }
 
@@ -279,11 +296,17 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         return components.dataFlowAnalyzer.createCompileTimeConstantTypeInfo(compileTimeConstant, expression, context);
 
     }
+
     @Override
     public CangJieTypeInfo visitCollectionLiteralExpression(
             @NotNull CjCollectionLiteralExpression expression, ExpressionTypingContext context
     ) {
         return components.collectionLiteralResolver.resolveCollectionLiteral(expression, context);
+    }
+    @Override
+    public CangJieTypeInfo visitQualifiedExpression(@NotNull CjQualifiedExpression expression, ExpressionTypingContext context) {
+        CallExpressionResolver callExpressionResolver = components.callExpressionResolver;
+        return callExpressionResolver.getQualifiedExpressionTypeInfo(expression, context);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.huawei.cangjie.descriptors.impl
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.name.Name
@@ -20,7 +21,7 @@ open class ValueParameterDescriptorImpl(
 
     source: SourceElement,
 
-) : AbstractVariableDescriptor(containingDeclaration, annotations, name, outType, source),
+    ) : AbstractVariableDescriptor(containingDeclaration, annotations, name, outType, source),
     ValueParameterDescriptor {
 
     companion object {
@@ -84,7 +85,15 @@ open class ValueParameterDescriptorImpl(
             ) { destructuringVariables }
         }
     }
-    override val varargElementType: CangJieType? = null
+
+    override val varargElementType: CangJieType?
+        get() {
+            return if (CangJieBuiltIns.isArray(this.type)) {
+                type.arguments[0].type
+            } else {
+                null
+            }
+        }
     private val myOriginal: ValueParameterDescriptor = original ?: this
 
     override val original

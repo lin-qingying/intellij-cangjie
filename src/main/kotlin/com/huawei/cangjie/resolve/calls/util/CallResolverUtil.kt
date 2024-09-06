@@ -7,6 +7,7 @@ import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
 import com.huawei.cangjie.lexer.CjToken
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getStrictParentOfType
+import com.huawei.cangjie.resolve.calls.CallTransformer
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext
 import com.huawei.cangjie.resolve.calls.inference.ConstraintSystem
@@ -35,6 +36,14 @@ fun getEffectiveExpectedType(
     context: ResolutionContext<*>
 ): CangJieType {
     return getEffectiveExpectedTypeForSingleArgument(parameterDescriptor, argument, context.languageVersionSettings, context.trace)
+}
+
+fun isConventionCall(call: Call): Boolean {
+    if (call is CallTransformer.CallForImplicitInvoke) return true
+    val callElement = call.callElement
+    if (callElement is CjArrayAccessExpression || callElement is CjDestructuringDeclarationEntry) return true
+    val calleeExpression = call.calleeExpression as? CjOperationReferenceExpression ?: return false
+    return calleeExpression.isConventionOperator()
 }
 fun getEffectiveExpectedTypeForSingleArgument(
     parameterDescriptor: ValueParameterDescriptor,

@@ -20,7 +20,7 @@ abstract class DeclarationDescriptorImpl(
     fun toString(descriptor: DeclarationDescriptor): String {
         return try {
         DescriptorRenderer.  DEBUG_TEXT.render(descriptor) +
-                    "[" + descriptor.javaClass.getSimpleName() + "@" + Integer.toHexString(
+                    "[" + descriptor.javaClass.simpleName + "@" + Integer.toHexString(
                 System.identityHashCode(
                     descriptor
                 )

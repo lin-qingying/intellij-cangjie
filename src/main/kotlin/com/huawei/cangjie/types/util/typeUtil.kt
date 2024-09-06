@@ -1,7 +1,7 @@
 package com.huawei.cangjie.types.util
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
-import com.huawei.cangjie.builtins.StandardNames.FqNames.option
+import com.huawei.cangjie.builtins.StandardNames.FqNames.optionUFqName
 
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
@@ -30,6 +30,7 @@ fun CangJieType.replaceAnnotations(newAnnotations: Annotations): CangJieType {
     if (annotations.isEmpty() && newAnnotations.isEmpty()) return this
     return unwrap().replaceAttributes(attributes.replaceAnnotations(newAnnotations))
 }
+fun CangJieType.unCapture(): CangJieType = unwrap().unCapture()
 
 fun CangJieType.unwrapEnhancement(): CangJieType = getEnhancement() ?: this
 
@@ -154,6 +155,7 @@ fun UnwrappedType.unCapture(): UnwrappedType = when (this) {
     is FlexibleType -> unCapture()
 
 }
+
 fun FlexibleType.unCapture(): FlexibleType {
     val unCapturedLowerBound = when (val unCaptured = lowerBound.unCapture()) {
         is SimpleType -> unCaptured
@@ -167,6 +169,7 @@ fun FlexibleType.unCapture(): FlexibleType {
 
     return FlexibleTypeImpl(unCapturedLowerBound, unCapturedUpperBound)
 }
+
 fun unCaptureProjection(projection: TypeProjection): TypeProjection {
     val unCapturedProjection = (projection.type.constructor as? NewCapturedTypeConstructor)?.projection ?: projection
     if (unCapturedProjection.isStarProjection || unCapturedProjection.type is ErrorType) return unCapturedProjection
@@ -177,6 +180,7 @@ fun unCaptureProjection(projection: TypeProjection): TypeProjection {
         unCapturedProjection.type.replace(newArguments)
     )
 }
+
 fun SimpleType.unCapture(): UnwrappedType {
     if (this is ErrorType) return this
     if (this is NewCapturedType)
@@ -185,6 +189,7 @@ fun SimpleType.unCapture(): UnwrappedType {
     val newArguments = arguments.map(::unCaptureProjection)
     return replace(newArguments).unwrap()
 }
+
 private fun NewCapturedType.unCaptureTopLevelType(): UnwrappedType {
     if (lowerType != null) return lowerType
 
@@ -870,9 +875,35 @@ object TypeUtils {
      * @return true if a value of this type can be null
      */
     fun isNullableType(type: CangJieType): Boolean {
+        if (type.isMarkedOption) {
+            return true
+        }
+        if (type.isFlexible() && isNullableType(type.asFlexibleType().upperBound)) {
+            return true
+        }
+        if (type.isDefinitelyNotNullType) {
+            return false
+        }
+        if (isTypeParameter(type)) {
+            return hasNullableSuperType(type)
+        }
+        if (type is AbstractStubType) {
+            val typeVariableConstructor: NewTypeVariableConstructor =
+                type.originalTypeVariable
+            val typeParameter =
+                typeVariableConstructor.originalTypeParameter
+            return typeParameter == null || hasNullableSuperType(typeParameter.getDefaultType())
+        }
+        val constructor: TypeConstructor = type.constructor
+        if (constructor is IntersectionTypeConstructor) {
+            for (supertype in constructor.getSupertypes()) {
+                if (isNullableType(supertype)) return true
+            }
+        }
+
+        return CangJieBuiltIns.isOptionType(type)
 
 
-        return false
     }
 
     open class SpecialType(private val name: String) : DelegatingSimpleType() {
@@ -968,7 +999,7 @@ fun isConstructedFromGivenClass(
     if (isSpecialType(type)) return false
     return if (isTypeConstructorForGivenClass(type.constructor, fqName)) {
         true
-    } else if (type.constructor.declarationDescriptor is ClassDescriptor && DescriptorUtils.getFqName(type.constructor.declarationDescriptor!!) == option) {
+    } else if (type.constructor.declarationDescriptor is ClassDescriptor && DescriptorUtils.getFqName(type.constructor.declarationDescriptor!!) == optionUFqName) {
 
         isConstructedFromGivenClass(type.arguments[0].type, fqName)
     } else {
@@ -986,3 +1017,4 @@ fun classFqNameEquals(
     )
 
 }
+fun CangJieType.isSubtypeOf(superType: CangJieType): Boolean = CangJieTypeChecker.DEFAULT.isSubtypeOf(this, superType)

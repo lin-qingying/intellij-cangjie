@@ -40,7 +40,7 @@ class ArgumentsToParametersMapper(
 
         private var diagnostics: MutableList<CangJieCallDiagnostic>? = null
         private var nameToParameter: Map<Name, ValueParameterDescriptor>? = null
-//        private var varargArguments: MutableList<CangJieCallArgument>? = null
+        private var varargArguments: MutableList<CangJieCallArgument>? = null
         private fun addDiagnostic(diagnostic: CangJieCallDiagnostic) {
             if (diagnostics == null) {
                 diagnostics = ArrayList()
@@ -75,15 +75,21 @@ class ArgumentsToParametersMapper(
             }
             // all position arguments will be mapped to current vararg parameter
             else {
-//                addVarargArgument(argument)
+                addVarargArgument(argument)
                 return true
             }
+        }
+        private fun addVarargArgument(argument: CangJieCallArgument) {
+            if (varargArguments == null) {
+                varargArguments = ArrayList()
+            }
+            varargArguments!!.add(argument)
         }
 
         private fun completeVarargPositionArguments() {
             assert(state == State.VARARG_POSITION) { "Incorrect state: $state" }
-//            val parameter = parameters[currentPositionedParameterIndex]
-//            result[parameter.original] = ResolvedCallArgument.VarargArgument(varargArguments!!)
+            val parameter = parameters[currentPositionedParameterIndex]
+            result[parameter.original] = ResolvedCallArgument.VarargArgument(varargArguments!!)
         }
 
         fun processArgumentsInParenthesis(arguments: List<CangJieCallArgument>) {
@@ -182,10 +188,10 @@ class ArgumentsToParametersMapper(
                 return
             }
 
-//            if (lastParameter.isVararg) {
-//                addDiagnostic(VarargArgumentOutsideParentheses(externalArgument, lastParameter))
-//                return
-//            }
+            if (lastParameter.isVararg) {
+                addDiagnostic(VarargArgumentOutsideParentheses(externalArgument, lastParameter))
+                return
+            }
 
             val previousOccurrence = result[lastParameter.original]
             if (previousOccurrence != null) {

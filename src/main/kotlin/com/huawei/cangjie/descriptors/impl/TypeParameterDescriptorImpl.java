@@ -24,7 +24,7 @@ public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor
     @Nullable
     private final Function1<CangJieType, Void> reportCycleError;
     private boolean initialized = false;
-    private final List<CangJieType> upperBounds = new ArrayList<CangJieType>(1);
+    private final List<CangJieType> upperBounds = new ArrayList<>(1);
 
     public void addUpperBound(@NotNull CangJieType bound) {
         checkUninitialized();

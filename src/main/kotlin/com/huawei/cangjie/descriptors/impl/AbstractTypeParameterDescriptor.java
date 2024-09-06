@@ -45,12 +45,7 @@ public abstract class AbstractTypeParameterDescriptor extends DeclarationDescrip
 //        this.reified = isReified;
         this.index = index;
 
-        this.typeConstructor = storageManager.createLazyValue(new Function0<TypeConstructor>() {
-            @Override
-            public TypeConstructor invoke() {
-                return new TypeParameterTypeConstructor(storageManager, supertypeLoopChecker);
-            }
-        });
+        this.typeConstructor = storageManager.createLazyValue(() -> new TypeParameterTypeConstructor(storageManager, supertypeLoopChecker));
         this.defaultType = storageManager.createLazyValue(new Function0<SimpleType>() {
             @Override
             public SimpleType invoke() {

@@ -12,11 +12,15 @@ import com.huawei.cangjie.types.model.TypeVariableMarker
  *   but we need access classes from :compiler:resolution for this function implementation
  */
 interface ConstraintSystemUtilContext{
+    fun TypeVariableMarker.shouldBeFlexible(): Boolean
+
      fun extractLambdaParameterTypesFromDeclaration(declaration: PostponedAtomWithRevisableExpectedType): List<CangJieTypeMarker?>?
     fun PostponedAtomWithRevisableExpectedType.isFunctionExpression(): Boolean
     fun PostponedAtomWithRevisableExpectedType.isFunctionExpressionWithReceiver(): Boolean
     fun PostponedAtomWithRevisableExpectedType.isLambda(): Boolean
     fun <T> createFixVariableConstraintPosition(variable: TypeVariableMarker, atom: T): FixVariableConstraintPosition<T>
     val isForcedAllowForkingInferenceSystem get() = false
+    fun CangJieTypeMarker.unCapture(): CangJieTypeMarker
+    fun TypeVariableMarker.hasOnlyInputTypesAttribute(): Boolean
 
 }

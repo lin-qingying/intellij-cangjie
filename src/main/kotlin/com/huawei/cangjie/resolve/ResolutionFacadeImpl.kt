@@ -103,9 +103,9 @@ class ModuleResolutionFacadeImpl(
             fetchWithAllCompilerChecks(element)?.takeUnless { it.isError() }?.let {
 
 
-                val a = it.bindingContext
+                return   it.bindingContext
 
-                return a
+
             }
         }
 

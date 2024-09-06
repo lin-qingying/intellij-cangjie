@@ -59,13 +59,12 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
     private final ClassResolutionScopesSupport resolutionScopesSupport;
     private final LazyClassTypeConstructor typeConstructor;
     private final NotNullLazyValue<Collection<ClassDescriptor>> sealedSubclasses;
+    public Set<LazyExtendClassDescriptor> extendClassDescriptor = new HashSet<>();
     @Nullable
     private CjTypeStatement typeStatement;
     //    该方法是为扩展提供更改psi节点的，其他情况不要使用
     private BindingTrace extendTrace = null;
     private LexicalScope extendScope = null;
-
-   public Set<LazyExtendClassDescriptor> extendClassDescriptor =new HashSet<>();
 
 
     public LazyClassDescriptor(
@@ -557,7 +556,7 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
 //        return result
 
         List<CangJieType> result = new ArrayList<>();
-        extendClassDescriptor.forEach(it -> {
+        getExtendClass().forEach(it -> {
             if (!it.getTypeStatement().getExtendId().equals(extendId))
                 result.addAll(it.getTypeConstructor().getSupertypes());
         });

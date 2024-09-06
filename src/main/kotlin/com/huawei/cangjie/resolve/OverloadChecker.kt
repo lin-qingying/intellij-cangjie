@@ -64,9 +64,10 @@ class OverloadChecker(val specificityComparator: TypeSpecificityComparator) {
         val aCategory = getDeclarationCategory(a)
         val bCategory = getDeclarationCategory(b)
 
-        if (aCategory != bCategory) return true
+        if (aCategory != bCategory) return false
         if (a !is CallableDescriptor || b !is CallableDescriptor) return false
 
+        if(aCategory != DeclarationCategory.FUNCTION) return false
         return checkOverloadability(a, b)
     }
 

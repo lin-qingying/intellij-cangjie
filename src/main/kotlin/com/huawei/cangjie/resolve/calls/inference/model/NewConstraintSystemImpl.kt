@@ -4,7 +4,9 @@ import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.resolve.calls.components.PostponedArgumentsAnalyzerContext
 import com.huawei.cangjie.resolve.calls.inference.*
 import com.huawei.cangjie.resolve.calls.inference.components.*
+import com.huawei.cangjie.types.AbstractTypeApproximator
 import com.huawei.cangjie.types.AbstractTypeChecker
+import com.huawei.cangjie.types.TypeApproximatorConfiguration
 import com.huawei.cangjie.types.model.*
 import com.intellij.util.SmartList
 import com.huawei.cangjie.utils.SmartSet
@@ -463,11 +465,49 @@ class NewConstraintSystemImpl(
         variableWithConstraints: MutableVariableWithConstraints?,
         resultType: CangJieTypeMarker,
     ) {
-//        if (variableWithConstraints != null && variableWithConstraints.typeVariable.hasOnlyInputTypesAttribute()) {
-//            postponedComputationsAfterAllVariablesAreFixed.add { checkOnlyInputTypesAnnotation(variableWithConstraints, resultType) }
-//        }
+        if (variableWithConstraints != null && variableWithConstraints.typeVariable.hasOnlyInputTypesAttribute()) {
+            postponedComputationsAfterAllVariablesAreFixed.add { checkOnlyInputTypesAnnotation(variableWithConstraints, resultType) }
+        }
+    }
+    private fun CangJieTypeMarker.substituteAndApproximateIfNecessary(
+        substitutor: TypeSubstitutorMarker,
+        approximator: AbstractTypeApproximator,
+        constraintKind: ConstraintKind,
+    ): CangJieTypeMarker {
+        val doesInputTypeContainsOtherVariables = this.contains { it.typeConstructor() is TypeVariableTypeConstructorMarker }
+        val substitutedType = if (doesInputTypeContainsOtherVariables) substitutor.safeSubstitute(this) else this
+        // Appoximation here is the same as ResultTypeResolver do
+        val approximatedType = when (constraintKind) {
+            ConstraintKind.LOWER ->
+                approximator.approximateToSuperType(substitutedType, TypeApproximatorConfiguration.InternalTypesApproximation)
+            ConstraintKind.UPPER ->
+                approximator.approximateToSubType(substitutedType, TypeApproximatorConfiguration.InternalTypesApproximation)
+            ConstraintKind.EQUALITY -> substitutedType
+        } ?: substitutedType
+
+        return approximatedType
     }
 
+    private fun checkOnlyInputTypesAnnotation(variableWithConstraints: MutableVariableWithConstraints, resultType: CangJieTypeMarker) {
+        val substitutor = buildCurrentSubstitutor()
+        val approximator = constraintInjector.typeApproximator
+        val isResultTypeEqualSomeInputType =
+            variableWithConstraints.getProjectedInputCallTypes(utilContext).any { (inputType, constraintKind) ->
+                val inputTypeConstructor = inputType.typeConstructor()
+                val otherResultType = inputType.substituteAndApproximateIfNecessary(substitutor, approximator, constraintKind)
+
+                if (AbstractTypeChecker.equalTypes(this, resultType, otherResultType)) return@any true
+                if (!inputTypeConstructor.isIntersection()) return@any false
+
+                inputTypeConstructor.supertypes().any {
+                    val intersectionComponentResultType = it.substituteAndApproximateIfNecessary(substitutor, approximator, constraintKind)
+                    AbstractTypeChecker.equalTypes(this, resultType, intersectionComponentResultType)
+                }
+            }
+        if (!isResultTypeEqualSomeInputType) {
+            addError(OnlyInputTypesDiagnostic(variableWithConstraints.typeVariable))
+        }
+    }
     private fun substituteMissedConstraints() {
         val substitutor = buildCurrentSubstitutor()
         for ((_, constraints) in storage.missedConstraints) {

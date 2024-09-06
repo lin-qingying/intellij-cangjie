@@ -313,7 +313,7 @@ class TypeResolver(
                     source: SourceElement
                 ) : AbstractVariableDescriptor(containingDeclaration, annotations, name, type, source) {
 
-                    override val visibility: DescriptorVisibility = DescriptorVisibilities.LOCAL
+                    override var visibility: DescriptorVisibility = DescriptorVisibilities.LOCAL
                     override fun substitute(substitutor: TypeSubstitutor): VariableDescriptor? {
                         throw UnsupportedOperationException("Should not be called for descriptor of type ${this::class.java}")
                     }

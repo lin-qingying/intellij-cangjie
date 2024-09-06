@@ -47,7 +47,7 @@ enum class LanguageFeature(
 //    OperatorProvideDelegate(CANGJIE_0_53_4),
 //    ShortSyntaxForPropertyGetters(CANGJIE_0_53_4),
 //    RefinedSamAdaptersPriority(CANGJIE_0_53_4),
-//    SafeCallBoundSmartCasts(CANGJIE_0_53_4),
+    SafeCallBoundSmartCasts(CANGJIE_0_53_4),
 //    TypeInferenceOnGenericsForCallableReferences(CANGJIE_0_53_4),
 //    NoDelegationToJavaDefaultInterfaceMembers(CANGJIE_0_53_4),
     DefaultImportOfPackageCangJieComparisons(CANGJIE_0_53_4),
@@ -64,7 +64,7 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER), // K
 //    SoundSmartCastsAfterTry(CANGJIE_0_53_4),
 //    DeprecatedFieldForInvisibleCompanionObject(CANGJIE_0_53_4),
 //    NullabilityAssertionOnExtensionReceiver(CANGJIE_0_53_4),
-//    SafeCastCheckBoundSmartCasts(CANGJIE_0_53_4),
+    SafeCastCheckBoundSmartCasts(CANGJIE_0_53_4),
 //    CapturedInClosureSmartCasts(CANGJIE_0_53_4),
 //    LateinitTopLevelProperties(CANGJIE_0_53_4),
 //    LateinitLocalVariables(CANGJIE_0_53_4),
@@ -73,7 +73,7 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER), // K
 //    ThrowNpeOnExplicitEqualsForBoxedNull(CANGJIE_0_53_4),
 //    JvmPackageName(CANGJIE_0_53_4),
 //    AssigningArraysToVarargsInNamedFormInAnnotations(CANGJIE_0_53_4),
-//    ExpectedTypeFromCast(CANGJIE_0_53_4),
+    ExpectedTypeFromCast(CANGJIE_0_53_4),
 //    DefaultMethodsCallFromJava6TargetError(CANGJIE_0_53_4),
 //
 //    // 1.3
@@ -170,7 +170,7 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER), // K
 //    CorrectSourceMappingSyntax(CANGJIE_0_53_4, kind = UNSTABLE_FEATURE),
 //    ProperArrayConventionSetterWithDefaultCalls(CANGJIE_0_53_4, kind = OTHER),
 //    AdaptedCallableReferenceAgainstReflectiveType(null),
-//    InferenceCompatibility(CANGJIE_0_53_4, kind = BUG_FIX),
+    InferenceCompatibility(CANGJIE_0_53_4, kind = BUG_FIX),
     RequiredPrimaryConstructorDelegationCallInEnums(CANGJIE_0_53_4, kind = BUG_FIX),
 //    ApproximateAnonymousReturnTypesInPrivateInlineFunctions(CANGJIE_0_53_4, kind = BUG_FIX),
 //    ForbidReferencingToUnderscoreNamedParameterOfCatchBlock(CANGJIE_0_53_4, kind = BUG_FIX),
@@ -183,7 +183,7 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER), // K
 //    JvmInlineValueClasses(CANGJIE_0_53_4, kind = OTHER),
 //    SuspendFunctionsInFunInterfaces(CANGJIE_0_53_4, kind = OTHER),
 //    SamWrapperClassesAreSynthetic(CANGJIE_0_53_4, kind = BUG_FIX),
-//    StrictOnlyInputTypesChecks(CANGJIE_0_53_4),
+    StrictOnlyInputTypesChecks(CANGJIE_0_53_4),
 //
 //    // 1.6
 //
@@ -227,7 +227,7 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER), // K
 //    ProhibitInvalidCharsInNativeIdentifiers(CANGJIE_0_53_4, kind = BUG_FIX),
     DefinitelyNonNullableTypes(CANGJIE_0_53_4),
 //    ProhibitSimplificationOfNonTrivialConstBooleanExpressions(CANGJIE_0_53_4),
-//    SafeCallsAreAlwaysNullable(CANGJIE_0_53_4),
+    SafeCallsAreAlwaysNullable(CANGJIE_0_53_4),
 //    JvmPermittedSubclassesAttributeForSealed(CANGJIE_0_53_4),
     ProperTypeInferenceConstraintsProcessing(CANGJIE_0_53_4, kind = BUG_FIX),
 //    ForbidExposingTypesInPrimaryConstructorProperties(CANGJIE_0_53_4, kind = BUG_FIX),

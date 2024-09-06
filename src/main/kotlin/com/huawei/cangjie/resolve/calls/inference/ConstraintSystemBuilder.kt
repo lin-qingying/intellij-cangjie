@@ -95,3 +95,8 @@ private fun ConstraintSystemBuilder.addConstraintIfCompatible(
     }
     !hasContradiction
 }
+fun ConstraintSystemBuilder.addEqualityConstraintIfCompatible(
+    lowerType: CangJieTypeMarker,
+    upperType: CangJieTypeMarker,
+    position: ConstraintPosition
+): Boolean = addConstraintIfCompatible(lowerType, upperType, position, ConstraintKind.EQUALITY)

@@ -1,26 +1,11 @@
 package com.huawei.cangjie.resolve.lazy.declarations.impl
 
+import com.huawei.cangjie.builtins.StandardNames
 import com.huawei.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
-import com.huawei.cangjie.builtins.StandardNames.FqNames.bool
-import com.huawei.cangjie.builtins.StandardNames.FqNames.cpointer
-import com.huawei.cangjie.builtins.StandardNames.FqNames.cstring
+import com.huawei.cangjie.builtins.StandardNames.FqNames.cpointerUFqName
+import com.huawei.cangjie.builtins.StandardNames.FqNames.unitUFqName
+import com.huawei.cangjie.builtins.StandardNames.FqNames.int8UFqName
 
-import com.huawei.cangjie.builtins.StandardNames.FqNames.float16
-import com.huawei.cangjie.builtins.StandardNames.FqNames.float32
-import com.huawei.cangjie.builtins.StandardNames.FqNames.float64
-import com.huawei.cangjie.builtins.StandardNames.FqNames.int16
-import com.huawei.cangjie.builtins.StandardNames.FqNames.int32
-import com.huawei.cangjie.builtins.StandardNames.FqNames.int64
-import com.huawei.cangjie.builtins.StandardNames.FqNames.int8
-import com.huawei.cangjie.builtins.StandardNames.FqNames.int_native
-import com.huawei.cangjie.builtins.StandardNames.FqNames.nothing
-import com.huawei.cangjie.builtins.StandardNames.FqNames.rune
-import com.huawei.cangjie.builtins.StandardNames.FqNames.uint16
-import com.huawei.cangjie.builtins.StandardNames.FqNames.uint32
-import com.huawei.cangjie.builtins.StandardNames.FqNames.uint64
-import com.huawei.cangjie.builtins.StandardNames.FqNames.uint8
-import com.huawei.cangjie.builtins.StandardNames.FqNames.uint_native
-import com.huawei.cangjie.builtins.StandardNames.FqNames.unit
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.impl.DeclarationDescriptorNonRootImpl
@@ -126,39 +111,39 @@ class PackageFragmentDescriptorBasicImpl(
 
 
     //Unit
-    val UNIT_DESCRIPTOR = createBasicTypeDescriptor(unit)
+    val UNIT_DESCRIPTOR = createBasicTypeDescriptor(unitUFqName)
 
     //    Int
-    val INT8_DESCRIPTOR = createBasicTypeDescriptor(int8)
-    val INT16_DESCRIPTOR = createBasicTypeDescriptor(int16)
-    val INT32_DESCRIPTOR = createBasicTypeDescriptor(int32)
-    val INT64_DESCRIPTOR = createBasicTypeDescriptor(int64)
-    val INTNATIVE_DESCRIPTOR = createBasicTypeDescriptor(int_native)
+    val INT8_DESCRIPTOR = createBasicTypeDescriptor(int8UFqName)
+    val INT16_DESCRIPTOR = createBasicTypeDescriptor( StandardNames.FqNames.int16UFqName)
+    val INT32_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.int32UFqName)
+    val INT64_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.int64UFqName)
+    val INTNATIVE_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.int_nativeUFqName)
 
     //    UInt
-    val UINT8_DESCRIPTOR = createBasicTypeDescriptor(uint8)
-    val UINT16_DESCRIPTOR = createBasicTypeDescriptor(uint16)
-    val UINT32_DESCRIPTOR = createBasicTypeDescriptor(uint32)
-    val UINT64_DESCRIPTOR = createBasicTypeDescriptor(uint64)
-    val UINTNATIVE_DESCRIPTOR = createBasicTypeDescriptor(uint_native)
+    val UINT8_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.uint8UFqName)
+    val UINT16_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.uint16UFqName)
+    val UINT32_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.uint32UFqName)
+    val UINT64_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.uint64UFqName)
+    val UINTNATIVE_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.uint_nativeUFqName)
 
     //    Char
-    val RUNE_DESCRIPTOR = createBasicTypeDescriptor(rune)
+    val RUNE_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.runeUFqName)
 
     //    Bool
-    val BOOL_DESCRIPTOR = createBasicTypeDescriptor(bool)
+    val BOOL_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.boolUFqName)
 
     //Nothing
-    val NOTHING_DESCRIPTOR = createBasicTypeDescriptor(nothing)
+    val NOTHING_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.nothingUFqName)
 
     //    Float
-    val FLOAT16_DESCRIPTOR = createBasicTypeDescriptor(float16)
-    val FLOAT32_DESCRIPTOR = createBasicTypeDescriptor(float32)
-    val FLOAT64_DESCRIPTOR = createBasicTypeDescriptor(float64)
+    val FLOAT16_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.float16UFqName)
+    val FLOAT32_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.float32UFqName)
+    val FLOAT64_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.float64UFqName)
 
-    val CSTRING = createBuiltInTypeDescriptor(cstring, emptyList())
+    val CSTRING = createBuiltInTypeDescriptor(StandardNames.FqNames.cstringUFqName, emptyList())
     val CPOINTER = createBuiltInTypeDescriptor(
-        cpointer
+        cpointerUFqName
     ).apply {
         addParameter(
             TypeParameterDescriptorImpl.createForFurtherModification(

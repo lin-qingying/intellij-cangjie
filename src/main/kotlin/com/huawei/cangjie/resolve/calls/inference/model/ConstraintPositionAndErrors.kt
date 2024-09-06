@@ -15,6 +15,12 @@ abstract class FixVariableConstraintPosition<T>(val variable: TypeVariableMarker
     override fun toString(): String = "Fix variable $variable"
 }
 
+class ConstrainingTypeIsError(
+    val typeVariable: TypeVariableMarker,
+    val constraintType: CangJieTypeMarker,
+    val position: IncorporationConstraintPosition
+) : ConstraintSystemError(CandidateApplicability.INAPPLICABLE)
+
 class NoSuccessfulFork(val position: IncorporationConstraintPosition) :
     ConstraintSystemError(CandidateApplicability.INAPPLICABLE)
 
@@ -110,6 +116,12 @@ class NotEnoughInformationForTypeParameterImpl(
     resolvedAtom,
     couldBeResolvedWithUnrestrictedBuilderInference
 )
+class OnlyInputTypesDiagnostic(val typeVariable: TypeVariableMarker) : ConstraintSystemError(CandidateApplicability.INAPPLICABLE)
+class CapturedTypeFromSubtyping(
+    val typeVariable: TypeVariableMarker,
+    val constraintType: CangJieTypeMarker,
+    val position: ConstraintPosition
+) : ConstraintSystemError(CandidateApplicability.INAPPLICABLE)
 
 open class NotEnoughInformationForTypeParameter<T>(
     val typeVariable: TypeVariableMarker,
@@ -129,4 +141,8 @@ abstract class BuilderInferenceSubstitutionConstraintPosition<L>(
 }
 abstract class ExplicitTypeParameterConstraintPosition<T>(val typeArgument: T) : ConstraintPosition(), OnlyInputTypeConstraintPosition {
     override fun toString(): String = "TypeParameter $typeArgument"
+}
+class ExpectedTypeConstraintPositionImpl(topLevelCall: CangJieCall) : ExpectedTypeConstraintPosition<CangJieCall>(topLevelCall)
+abstract class ExpectedTypeConstraintPosition<T>(val topLevelCall: T) : ConstraintPosition(), OnlyInputTypeConstraintPosition {
+    override fun toString(): String = "ExpectedType for call $topLevelCall"
 }

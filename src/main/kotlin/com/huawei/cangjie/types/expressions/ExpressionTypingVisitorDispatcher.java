@@ -116,8 +116,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
                 CangJieTypeInfo result;
                 try {
                     result = expression.accept(visitor, context);
-                    // Some recursive definitions (object expressions) must put their types in the cache manually:
-                    //noinspection ConstantConditions
+
                     if (context.trace.get(BindingContext.PROCESSED, expression) == Boolean.TRUE) {
                         CangJieType type = context.trace.getBindingContext().getType(expression);
                         return result.replaceType(type);

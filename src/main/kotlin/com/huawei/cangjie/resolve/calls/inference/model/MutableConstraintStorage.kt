@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.calls.inference.model
 
 import com.huawei.cangjie.resolve.calls.inference.ForkPointData
+import com.huawei.cangjie.resolve.calls.inference.components.ConstraintSystemUtilContext
 import com.huawei.cangjie.resolve.calls.tower.isSuccess
 import com.huawei.cangjie.types.model.*
 import com.intellij.util.SmartList
@@ -30,7 +31,17 @@ class MutableVariableWithConstraints private constructor(
     private var simplifiedConstraints: SmartList<Constraint>? = mutableConstraints
     private fun SmartList<Constraint>.simplifyConstraints(): SmartList<Constraint> =
         simplifyLowerConstraints().simplifyEqualityConstraints()
-
+    // see @OnlyInputTypes annotation
+    fun getProjectedInputCallTypes(utilContext: ConstraintSystemUtilContext): Collection<Pair<CangJieTypeMarker, ConstraintKind>> {
+        return with(utilContext) {
+            mutableConstraints
+                .mapNotNullTo(SmartList()) {
+                    if (it.position.from is OnlyInputTypeConstraintPosition || it.inputTypePositionBeforeIncorporation != null)
+                        it.type.unCapture() to it.kind
+                    else null
+                }
+        }
+    }
     private fun SmartList<Constraint>.simplifyEqualityConstraints(): SmartList<Constraint> {
         val equalityConstraints = filter { it.kind == ConstraintKind.EQUALITY }.groupBy { it.typeHashCode }
         return when {
@@ -67,6 +78,14 @@ class MutableVariableWithConstraints private constructor(
             simplifiedConstraints = null
         }
     }
+    fun runConstraintsSimplification() {
+        val currentState = constraints.toList()
+        mutableConstraints.apply {
+            clear()
+            addAll(currentState)
+        }
+    }
+
 
     private fun SmartList<Constraint>.simplifyLowerConstraints(): SmartList<Constraint> {
         val usefulConstraints = SmartList<Constraint>()
@@ -200,7 +219,9 @@ class MutableVariableWithConstraints private constructor(
             }
             return simplifiedConstraints!!
         }
-
+    override fun toString(): String {
+        return "Constraints for $typeVariable"
+    }
 }
 
 internal class MutableConstraintStorage : ConstraintStorage {

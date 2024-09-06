@@ -28,6 +28,7 @@ import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.results.*
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
+import com.huawei.cangjie.resolve.calls.tasks.DynamicCallableDescriptors
 import com.huawei.cangjie.resolve.calls.tasks.OldResolutionCandidate
 import com.huawei.cangjie.resolve.calls.tasks.TracingStrategy
 import com.huawei.cangjie.resolve.calls.util.*
@@ -55,7 +56,7 @@ class PSICallResolver(
     private val expressionTypingServices: ExpressionTypingServices,
 
     private val languageVersionSettings: LanguageVersionSettings,
-//    private val dynamicCallableDescriptors: DynamicCallableDescriptors,
+    private val dynamicCallableDescriptors: DynamicCallableDescriptors,
     private val syntheticScopes: SyntheticScopes,
     private val callComponents: CangJieCallComponents,
     private val cangjieToResolvedCallTransformer: CangJieToResolvedCallTransformer,
@@ -395,6 +396,14 @@ class PSICallResolver(
                 LanguageFeature.ContextReceivers
             )
         override val syntheticScopes: SyntheticScopes get() = this@PSICallResolver.syntheticScopes
+        override val dynamicScope: MemberScope =
+            dynamicCallableDescriptors.createDynamicDescriptorScope(context.call, context.scope.ownerDescriptor)
+
+        override val typeApproximator: TypeApproximator get() = this@PSICallResolver.typeApproximator
+
+        override val isNewInferenceEnabled: Boolean get() = context.languageVersionSettings.supportsFeature(LanguageFeature.NewInference)
+
+
         override fun interceptVariableCandidates(
             resolutionScope: ResolutionScope,
             name: Name,

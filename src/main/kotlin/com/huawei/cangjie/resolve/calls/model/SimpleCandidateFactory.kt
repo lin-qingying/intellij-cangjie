@@ -133,7 +133,7 @@ class SimpleCandidateFactory(
         initialDiagnostics: Collection<CangJieCallDiagnostic>,
         knownSubstitutor: TypeSubstitutor?
     ): SimpleResolutionCandidate {
-        val resolvedKtCall = MutableResolvedCallAtom(
+        val resolvedCjCall = MutableResolvedCallAtom(
             cangjieCall, descriptor, explicitReceiverKind,
             dispatchArgumentReceiver, extensionArgumentReceiver, extensionArgumentReceiverCandidates
         )
@@ -144,7 +144,7 @@ class SimpleCandidateFactory(
                 resolutionCallbacks,
                 scopeTower,
                 baseSystem,
-                resolvedKtCall
+                resolvedCjCall
             )
         }
 
@@ -154,7 +154,7 @@ class SimpleCandidateFactory(
                 resolutionCallbacks,
                 scopeTower,
                 baseSystem,
-                resolvedKtCall,
+                resolvedCjCall,
                 knownSubstitutor
             )
 

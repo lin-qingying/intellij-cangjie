@@ -338,7 +338,7 @@ class CangJieConstraintSystemCompleter(
             )
         }
 
-        val resultErrorType = when {
+        val resultErrorType = when  {
             typeVariable is TypeVariableFromCallableDescriptor -> {
                 ErrorUtils.createErrorType(ErrorTypeKind.UNINFERRED_TYPE_VARIABLE, typeVariable.originalTypeParameter.name.asString())
             }
@@ -385,7 +385,9 @@ class CangJieConstraintSystemCompleter(
                 else -> emptyList()
             }
 
+
             typeVariables.mapNotNullTo(result) {
+
                 it.takeIf { notFixedTypeVariables.containsKey(it) }
             }
 

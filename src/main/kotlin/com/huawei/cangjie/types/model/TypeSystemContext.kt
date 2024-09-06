@@ -157,6 +157,8 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
     fun CangJieTypeMarker.contains(predicate: (CangJieTypeMarker) -> Boolean): Boolean
 
     fun TypeConstructorMarker.isUnitTypeConstructor(): Boolean
+    fun CangJieTypeMarker.hasExactAnnotation(): Boolean = false
+    fun CangJieTypeMarker.hasNoInferAnnotation(): Boolean = false
 
     fun TypeConstructorMarker.getApproximatedIntegerLiteralType(): CangJieTypeMarker
 

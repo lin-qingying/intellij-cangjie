@@ -1,5 +1,8 @@
 package com.huawei.cangjie.resolve.calls.tower
 
+import com.huawei.cangjie.descriptors.CallableDescriptor
+import com.huawei.cangjie.descriptors.FunctionDescriptor
+import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
@@ -7,12 +10,14 @@ import com.huawei.cangjie.resolve.calls.inference.model.LowerPriorityToPreserveC
 import com.huawei.cangjie.resolve.calls.model.constraintSystemError
 import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.huawei.cangjie.resolve.scopes.*
+import com.huawei.cangjie.resolve.scopes.receivers.ImplicitClassReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.huawei.cangjie.resolve.scopes.util.parentsWithSelf
-import com.huawei.cangjie.types.CangJieType
-import com.huawei.cangjie.types.isDynamic
+import com.huawei.cangjie.resolve.selectMostSpecificInEachOverridableGroup
+import com.huawei.cangjie.types.*
+import com.huawei.cangjie.types.error.ErrorScope
+import com.huawei.cangjie.types.error.ThrowingScope
 import com.huawei.cangjie.utils.OperatorNameConventions
-import java.util.ArrayList
 
 interface Candidate {
     // this operation should be very fast
@@ -64,6 +69,7 @@ interface ScopeTowerProcessor<out C> {
 
     fun recordLookups(skippedData: Collection<TowerData>, name: Name)
 }
+
 interface CandidateFactoryProviderForInvoke<C : Candidate> {
 
     // variable here is resolved, invoke -- only chosen
@@ -73,8 +79,12 @@ interface CandidateFactoryProviderForInvoke<C : Candidate> {
 
     // foo() -> ReceiverValue(foo), context for invoke
     // null means that there is no invoke on variable
-    fun factoryForInvoke(variable: C, useExplicitReceiver: Boolean): Pair<ReceiverValueWithSmartCastInfo, CandidateFactory<C>>?
+    fun factoryForInvoke(
+        variable: C,
+        useExplicitReceiver: Boolean
+    ): Pair<ReceiverValueWithSmartCastInfo, CandidateFactory<C>>?
 }
+
 internal class SyntheticScopeBasedTowerLevel(
     scopeTower: ImplicitScopeTower,
     private val syntheticScopes: SyntheticScopes
@@ -85,9 +95,10 @@ internal class SyntheticScopeBasedTowerLevel(
     ): Collection<CandidateWithBoundDispatchReceiver> {
         if (extensionReceiver == null) return emptyList()
 
-        return syntheticScopes.collectSyntheticExtensionProperties(extensionReceiver.allOriginalTypes, name, location).map {
-            createCandidateDescriptor(it, dispatchReceiver = null)
-        }
+        return syntheticScopes.collectSyntheticExtensionProperties(extensionReceiver.allOriginalTypes, name, location)
+            .map {
+                createCandidateDescriptor(it, dispatchReceiver = null)
+            }
     }
 
 //    override fun getObjects(
@@ -105,6 +116,7 @@ internal class SyntheticScopeBasedTowerLevel(
 
     }
 }
+
 class TowerResolver {
 
     class AllCandidatesCollector<C : Candidate> : ResultCollector<C>() {
@@ -127,11 +139,13 @@ class TowerResolver {
         useOrder: Boolean,
         name: Name
     ): Collection<C> = Task(this, processor, resultCollector, useOrder, name).run()
+
     fun <C : Candidate> runWithEmptyTowerData(
         processor: ScopeTowerProcessor<C>,
         resultCollector: ResultCollector<C>,
         useOrder: Boolean
-    ): Collection<C> = processTowerData(processor, resultCollector, useOrder, TowerData.Empty) ?: resultCollector.getFinalCandidates()
+    ): Collection<C> =
+        processTowerData(processor, resultCollector, useOrder, TowerData.Empty) ?: resultCollector.getFinalCandidates()
 
     fun <C : Candidate> runResolve(
         scopeTower: ImplicitScopeTower,
@@ -251,7 +265,7 @@ class TowerResolver {
         private val useOrder: Boolean,
         private val name: Name
     ) {
-//        private val isNameForHidesMember =
+        //        private val isNameForHidesMember =
 //            name in HIDES_MEMBERS_NAME_LIST ||
 //                    implicitScopeTower.getNameForGivenImportAlias(name) in HIDES_MEMBERS_NAME_LIST
         private val skippedDataForLookup = mutableListOf<TowerData>()
@@ -348,6 +362,7 @@ class TowerResolver {
             }
             return process()
         }
+
         val syntheticLevel = SyntheticScopeBasedTowerLevel(implicitScopeTower, implicitScopeTower.syntheticScopes)
 
         fun run(): Collection<C> {
@@ -453,7 +468,8 @@ class TowerResolver {
 
             return resultCollector.getFinalCandidates()
         }
-//
+
+        //
         private fun processImplicitReceiver(
             implicitReceiver: ReceiverValueWithSmartCastInfo,
             resolveExtensions: Boolean
@@ -511,4 +527,155 @@ class TowerResolver {
     }
 
 
+}
+
+
+// todo add static methods & fields with error
+internal class MemberScopeTowerLevel(
+    scopeTower: ImplicitScopeTower,
+    val dispatchReceiver: ReceiverValueWithSmartCastInfo
+) : AbstractScopeTowerLevel(scopeTower) {
+
+    private val syntheticScopes = scopeTower.syntheticScopes
+    private val isNewInferenceEnabled = scopeTower.isNewInferenceEnabled
+    private val typeApproximator = scopeTower.typeApproximator
+
+    private fun collectMembers(
+        getMembers: ResolutionScope.(CangJieType?) -> Collection<CallableDescriptor>
+    ): Collection<CandidateWithBoundDispatchReceiver> {
+        val receiverValue = dispatchReceiver.receiverValue
+        val memberScope = receiverValue.type.memberScope
+
+        if (receiverValue.type is AbstractStubType && memberScope is ErrorScope && memberScope !is ThrowingScope) {
+            return arrayListOf()
+        }
+
+        val result = ArrayList<CandidateWithBoundDispatchReceiver>(0)
+
+        receiverValue.type.memberScope.getMembers(receiverValue.type).mapTo(result) {
+            createCandidateDescriptor(it, dispatchReceiver)
+        }
+
+        val unstableError = if (dispatchReceiver.isStable) null else UnstableSmartCastDiagnostic
+        val unstableCandidates = if (unstableError != null) ArrayList<CandidateWithBoundDispatchReceiver>(0) else null
+
+        for (possibleType in dispatchReceiver.typesFromSmartCasts) {
+            possibleType.memberScope.getMembers(possibleType).mapTo(unstableCandidates ?: result) {
+                createCandidateDescriptor(
+                    it,
+                    dispatchReceiver.smartCastReceiver(possibleType),
+                    unstableError, dispatchReceiverSmartCastType = possibleType
+                )
+            }
+        }
+
+        if (dispatchReceiver.hasTypesFromSmartCasts()) {
+            if (unstableCandidates == null) {
+                result.retainAll(result.selectMostSpecificInEachOverridableGroup {
+                    descriptor.approximateCapturedTypes(
+                        typeApproximator
+                    )
+                })
+            } else {
+                result.addAll(
+                    unstableCandidates.selectMostSpecificInEachOverridableGroup {
+                        descriptor.approximateCapturedTypes(
+                            typeApproximator
+                        )
+                    }
+                )
+            }
+        }
+
+        if (receiverValue.type.isDynamic()) {
+            scopeTower.dynamicScope.getMembers(null).mapTo(result) {
+                createCandidateDescriptor(it, dispatchReceiver, DynamicDescriptorDiagnostic)
+            }
+        }
+
+        return result
+    }
+
+    /**
+     * this is bad hack for test like BlackBoxCodegenTestGenerated.Reflection.Properties#testGetPropertiesMutableVsReadonly (see last get call)
+     * Main reason for this hack: when we have List<*> we do capturing and transform receiver type to List<Capture(*)>.
+     * So method get has signature get(Int): Capture(*). If we also have smartcast to MutableList<String>, then there is also method get(Int): String.
+     * And we should chose get(Int): String.
+     */
+    private fun CallableDescriptor.approximateCapturedTypes(approximator: TypeApproximator): CallableDescriptor {
+        if (!isNewInferenceEnabled) return this
+
+        val wrappedSubstitution = object : TypeSubstitution() {
+            override fun get(key: CangJieType): TypeProjection? = null
+            override fun prepareTopLevelType(topLevelType: CangJieType, position: Variance) = when (position) {
+                Variance.INVARIANT -> null
+                Variance.OUT_VARIANCE -> approximator.approximateToSuperType(
+                    topLevelType.unwrap(),
+                    TypeApproximatorConfiguration.InternalTypesApproximation
+                )
+
+                Variance.IN_VARIANCE -> approximator.approximateToSubType(
+                    topLevelType.unwrap(),
+                    TypeApproximatorConfiguration.InternalTypesApproximation
+                )
+            } ?: topLevelType
+        }
+        return substitute(TypeSubstitutor.create(wrappedSubstitution))
+    }
+
+    private fun ReceiverValueWithSmartCastInfo.smartCastReceiver(targetType: CangJieType): ReceiverValueWithSmartCastInfo {
+        if (receiverValue !is ImplicitClassReceiver) return this
+
+        val newReceiverValue = CastImplicitClassReceiver(receiverValue.classDescriptor, targetType)
+        return ReceiverValueWithSmartCastInfo(newReceiverValue, typesFromSmartCasts, isStable)
+    }
+
+    override fun getVariables(
+        name: Name,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): Collection<CandidateWithBoundDispatchReceiver> {
+        return collectMembers {
+            getContributedVariablesAndIntercept(
+                name,
+                location,
+                dispatchReceiver,
+                extensionReceiver,
+                scopeTower
+            )
+        }
+    }
+
+
+    override fun getFunctions(
+        name: Name,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): Collection<CandidateWithBoundDispatchReceiver> {
+        return collectMembers {
+            getContributedFunctionsAndIntercept(
+                name,
+                location,
+                dispatchReceiver,
+                extensionReceiver,
+                scopeTower
+            ) + syntheticScopes.collectSyntheticMemberFunctions(listOfNotNull(it), name, location)
+        }
+    }
+
+    override fun recordLookup(name: Name) {
+        for (type in dispatchReceiver.allOriginalTypes) {
+            type.memberScope.recordLookup(name, location)
+        }
+    }
+}
+
+private fun ResolutionScope.getContributedFunctionsAndIntercept(
+    name: Name,
+    location: LookupLocation,
+    dispatchReceiver: ReceiverValueWithSmartCastInfo?,
+    extensionReceiver: ReceiverValueWithSmartCastInfo?,
+    scopeTower: ImplicitScopeTower
+): Collection<FunctionDescriptor> {
+    val result = getContributedFunctions(name, location)
+
+    return scopeTower.interceptFunctionCandidates(this, name, result, location, dispatchReceiver, extensionReceiver)
 }

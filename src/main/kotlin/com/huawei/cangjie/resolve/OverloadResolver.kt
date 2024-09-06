@@ -257,10 +257,11 @@ class OverloadResolver(
             when (memberDescriptor) {
                 is PropertyDescriptor,
                 is VariableDescriptor,
-                is ClassifierDescriptor ->
-                    reportOnDeclaration(trace, memberDescriptor) { Errors.REDECLARATION.on(it, redeclarations) }
+                is ClassifierDescriptor,
                 is FunctionDescriptor ->
-                    reportOnDeclaration(trace, memberDescriptor) { Errors.CONFLICTING_OVERLOADS.on(it, redeclarations) }
+                    reportOnDeclaration(trace, memberDescriptor) { Errors.REDECLARATION.on(it, redeclarations) }
+//                is FunctionDescriptor ->
+//                    reportOnDeclaration(trace, memberDescriptor) { Errors.CONFLICTING_OVERLOADS.on(it, redeclarations) }
             }
         }
     }

@@ -1,7 +1,9 @@
 package com.huawei.cangjie.diagnostics.rendering;
 
 import com.huawei.cangjie.diagnostics.UnboundDiagnostic;
+import com.huawei.cangjie.types.CangJieTypeKt;
 import com.huawei.cangjie.utils.AddToStdlibKt;
+import com.huawei.cangjie.utils.OperatorNameConventions;
 import com.linqingying.utils.AstMsgType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,6 +27,11 @@ public class DefaultErrorMessages {
     }
 
     static {
+
+        MAP.put(COMPILER_AFFECTED_SYNTAX_ERROR, "Affected by the compiler, this writing will report an error" );
+
+
+
 /***************声明检查************************************************/
 //未定义
         MAP.put(UNSUPPORTED, "Unsupported [{0}]", STRING);
@@ -123,15 +130,32 @@ public class DefaultErrorMessages {
         MAP.put(NEW_INFERENCE_UNKNOWN_ERROR, "Unknown error in new inference with applicability ''{0}'' and target ''{1}''", TO_STRING, STRING);
         MAP.put(TYPE_MISMATCH, "Type mismatch: inferred type is {1} but {0} was expected", RENDER_TYPE, RENDER_TYPE);
         MAP.put(AMBIGUOUS_ANONYMOUS_TYPE_INFERRED, "Right-hand side has anonymous type. Please specify type explicitly", TO_STRING);
+        MAP.put(NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER, "Not enough information to infer type variable {0}", STRING);
+        MAP.put(ARRAY_LITERAL_TYPE_INFERENCE_FAILED, "array literal type cannot be inferred");
+        MAP.put(UPPER_BOUND_VIOLATION_IN_CONSTRAINT, "Upper bound violation for generic parameter `{0}` of `{1}`: {3} is not a subtype of {2}", TO_STRING, TO_STRING, RENDER_TYPE, RENDER_TYPE);
 
         MAP.put(RETURN_NOT_ALLOWED, "'return' is not allowed here");
         MAP.put(NONE_APPLICABLE, "None of the following functions can be called with the arguments supplied: {0}", AMBIGUOUS_CALLS);
+        MAP.put(EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE, "Expected member name or constructor call after ''{0}'' type name", NAME);
+        MAP.put(TYPE_PARAMETER_IS_NOT_AN_EXPRESSION, "Type parameter ''{0}'' is not an expression", NAME);
+        MAP.put(EXPRESSION_EXPECTED_PACKAGE_FOUND, "Expression expected, but a package name found");
+
+        MAP.put(FUNCTION_EXPECTED, "Expression ''{0}''{1} cannot be invoked as a function. " +
+                        "No matching function for operator '()' function call",
+                ELEMENT_TEXT, (type, context) -> {
+                    if (CangJieTypeKt.isError(type)) return "";
+                    return " of type '" + RENDER_TYPE.render(type, context) + "'";
+                });
+
+
+        MAP.put(INVISIBLE_MEMBER, "Cannot access ''{0}'': it is {1} in {2}", NAME, VISIBILITY, NAME_OF_CONTAINING_DECLARATION_OR_FILE);
 
 //        修饰符
         MAP.put(REDUNDANT_MODIFIER, "Modifier ''{0}'' is redundant because ''{1}'' is present", TO_STRING, TO_STRING);
         MAP.put(SEALED_ABSTRACT, "'sealed' can only modify abstract class");
         MAP.put(INCOMPATIBLE_MODIFIERS, "Modifier ''{0}'' is incompatible with ''{1}''", TO_STRING, TO_STRING);
         MAP.put(WRONG_MODIFIER_TARGET, "Modifier ''{0}'' is not applicable to ''{1}''", TO_STRING, TO_STRING);
+        MAP.put(NO_MULTILINE_NEWLINE, "Multiline strings need to start with newline characters" );
 
 
         MAP.put(VARIABLE_WITH_NO_TYPE_NO_INITIALIZER, "This variable must either have a type annotation or be initialized");

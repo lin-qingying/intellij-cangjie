@@ -70,7 +70,9 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
             return psiCangJieCall.dataFlowInfoForArguments.getInfo(valueArgument)
         }
     }
-
+    fun updateValueArguments(newValueArguments: Map<ValueParameterDescriptor, ResolvedValueArgument>?) {
+        valueArguments = newValueArguments
+    }
     private fun CallableDescriptor.substituteInferredVariablesAndApproximate(
         substitutor: NewTypeSubstitutor?,
         shouldApproximate: Boolean = true

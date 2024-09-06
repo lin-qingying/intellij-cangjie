@@ -26,26 +26,26 @@ fun resolveQualifierAsStandaloneExpression(
 ): DeclarationDescriptor {
     val referenceTarget = resolveQualifierReferenceTarget(qualifier, null, context)
 
-//    when (referenceTarget) {
-//        is TypeAliasDescriptor -> {
-//            referenceTarget.classDescriptor?.let { classDescriptor ->
-//                if (!classDescriptor.kind.isStruct) {
-//                    context.trace.report(Errors.NO_COMPANION_OBJECT.on(qualifier.referenceExpression, referenceTarget))
-//                }
-//            }
-//        }
-//        is TypeParameterDescriptor -> {
-//            context.trace.report(Errors.TYPE_PARAMETER_IS_NOT_AN_EXPRESSION.on(qualifier.referenceExpression, referenceTarget))
-//        }
-//        is ClassDescriptor -> {
-//            if (!referenceTarget.kind.isStruct) {
-//                context.trace.report(Errors.NO_COMPANION_OBJECT.on(qualifier.referenceExpression, referenceTarget))
-//            }
-//        }
-//        is PackageViewDescriptor -> {
-//            context.trace.report(Errors.EXPRESSION_EXPECTED_PACKAGE_FOUND.on(qualifier.referenceExpression))
-//        }
-//    }
+    when (referenceTarget) {
+        is TypeAliasDescriptor -> {
+            referenceTarget.classDescriptor?.let { classDescriptor ->
+                if (!classDescriptor.kind.isStruct) {
+                    context.trace.report(Errors.EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(qualifier.referenceExpression, referenceTarget))
+                }
+            }
+        }
+        is TypeParameterDescriptor -> {
+            context.trace.report(Errors.TYPE_PARAMETER_IS_NOT_AN_EXPRESSION.on(qualifier.referenceExpression, referenceTarget))
+        }
+        is ClassDescriptor -> {
+            if (!referenceTarget.kind.isStruct) {
+                context.trace.report(Errors.EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(qualifier.referenceExpression, referenceTarget))
+            }
+        }
+        is PackageViewDescriptor -> {
+            context.trace.report(Errors.EXPRESSION_EXPECTED_PACKAGE_FOUND.on(qualifier.referenceExpression))
+        }
+    }
 
     return referenceTarget
 }

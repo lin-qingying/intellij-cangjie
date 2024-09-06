@@ -1,12 +1,13 @@
 package com.huawei.cangjie.resolve
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.builtins.StandardNames
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.DescriptorVisibilities.PUBLIC
 import com.huawei.cangjie.descriptors.annotations.Annotations
+import com.huawei.cangjie.descriptors.impl.AbstractTypeParameterDescriptor
 import com.huawei.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
-import com.huawei.cangjie.descriptors.impl.TypeParameterDescriptorImpl
 import com.huawei.cangjie.descriptors.impl.ValueParameterDescriptorImpl
 import com.huawei.cangjie.diagnostics.DiagnosticFactory1
 import com.huawei.cangjie.incremental.CangJieLookupLocation
@@ -15,7 +16,13 @@ import com.huawei.cangjie.psi.CjCollectionLiteralExpression
 import com.huawei.cangjie.resolve.BindingContext.COLLECTION_LITERAL_CALL
 import com.huawei.cangjie.resolve.calls.CallResolver
 import com.huawei.cangjie.resolve.calls.util.CallMaker
+import com.huawei.cangjie.resolve.descriptorUtil.builtIns
+import com.huawei.cangjie.storage.StorageManager
+import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.TypeConstructor
+import com.huawei.cangjie.types.TypeRefinement
 import com.huawei.cangjie.types.Variance
+import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.expressions.ExpressionTypingContext
 import com.huawei.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.huawei.cangjie.types.expressions.typeInfoFactory.noTypeInfo
@@ -68,13 +75,14 @@ class CollectionLiteralResolver(
 
         val functionDescriptors = getArrayOfFunctionDescriptors()
 
-        val resolutionResults =    callResolver.resolveCollectionLiteralCallWithGivenDescriptor(context, expression, call, functionDescriptors)
+        val resolutionResults =
+            callResolver.resolveCollectionLiteralCallWithGivenDescriptor(context, expression, call, functionDescriptors)
         if (!resolutionResults.isSingleResult) {
             return noTypeInfo(context)
         }
 
 
-                context.trace.record(COLLECTION_LITERAL_CALL, expression, resolutionResults.resultingCall)
+        context.trace.record(COLLECTION_LITERAL_CALL, expression, resolutionResults.resultingCall)
         return createTypeInfo(resolutionResults.resultingDescriptor.returnType, context)
 
 //        val callName = getArrayFunctionCallName(context.expectedType)
@@ -89,30 +97,149 @@ class CollectionLiteralResolver(
 //        }
 
 
-
 //        val resolutionResults =
 //            callResolver.resolveCollectionLiteralCallWithGivenDescriptor(context, expression, call, functionDescriptors)
 //
 
 //
 
-        return noTypeInfo(context)
+//        return noTypeInfo(context)
 
     }
+
+    private class ArrayOfTypeParameterDescriptor(
+        containingDeclaration: DeclarationDescriptor,
+        annotations: Annotations,
+
+        name: Name,
+        index: Int,
+        storageManager: StorageManager
+    ) : AbstractTypeParameterDescriptor(
+        storageManager,
+        containingDeclaration,
+        annotations,
+
+        name,
+        Variance.INVARIANT,
+        index,
+        SourceElement.NO_SOURCE,
+
+        SupertypeLoopChecker.EMPTY,
+
+        ) {
+        private val upperBounds: List<CangJieType> = ArrayList<CangJieType>(1).apply {
+            add(containingDeclaration.builtIns.defaultBound)
+        }
+
+
+        override fun reportSupertypeLoopError(type: CangJieType) {
+
+        }
+
+        override fun getTypeConstructor(): TypeConstructor {
+            return object : TypeConstructor {
+                override fun getSupertypes(): List<CangJieType> {
+                    return emptyList()
+                }
+
+                override fun equals(other: Any?): Boolean {
+                    return this.hashCode() == other.hashCode()
+                }
+                override fun hashCode(): Int {
+                    return -728150917
+                }
+
+                override fun getBuiltIns(): CangJieBuiltIns {
+                    return containingDeclaration.builtIns
+                }
+
+                override fun isDenotable(): Boolean {
+                    return false
+                }
+
+                override fun toString(): String {
+                    return "arrayOf"
+                }
+
+                override fun getDeclarationDescriptor(): ClassifierDescriptor? {
+                    return null
+                }
+
+//                override fun isSameClassifier(classifier: ClassifierDescriptor): Boolean {
+//                    return false
+//                }
+
+                @TypeRefinement
+                override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor {
+                    return this
+                }
+
+                override fun getParameters(): List<TypeParameterDescriptor> {
+                    return emptyList()
+                }
+
+            }
+        }
+
+        override fun getUpperBounds(): List<CangJieType> {
+            return upperBounds
+        }
+
+        override fun resolveUpperBounds(): List<CangJieType> {
+            return upperBounds
+        }
+
+
+        companion object {
+            fun createWithDefaultBound(
+                containingDeclaration: DeclarationDescriptor,
+                annotations: Annotations,  //            boolean reified,
+                variance: Variance,
+                name: Name,
+                index: Int,
+                storageManager: StorageManager
+            ): TypeParameterDescriptor {
+                val typeParameterDescriptor = ArrayOfTypeParameterDescriptor(
+                    containingDeclaration,
+                    annotations,
+
+                    name,
+                    index,
+
+                    storageManager
+                )
+//                typeParameterDescriptor.addUpperBound(containingDeclaration.builtIns.defaultBound)
+//                typeParameterDescriptor.setInitialized()
+                return typeParameterDescriptor
+            }
+        }
+
+    }
+
     //        使用调用函数的方式解析数组字面量
 //        func arrayOf<T>(elements:Array<T>):Array<T>
     private inner class ArrayOfFunctionDescriptor : SimpleFunctionDescriptorImpl(
         module, null, Annotations.EMPTY, StandardNames.arrayOfName,
         CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE
     ) {
+
+
+
+
         init {
             val arrayType = module.builtIns.arrayType
 
+            arrayType.arguments
             initialize(
                 null, null, listOf(), listOf(
-                    TypeParameterDescriptorImpl.createForFurtherModification(
-                        this, Annotations.EMPTY, Variance.INVARIANT, Name.identifier("T"), 0, SourceElement.NO_SOURCE,
-                        null, SupertypeLoopChecker.EMPTY, module.builtIns.storageManager
+                    ArrayOfTypeParameterDescriptor.createWithDefaultBound(
+                        this,
+                        Annotations.EMPTY,
+                        Variance.INVARIANT,
+                        Name.identifier("T"),
+                        0,
+
+                        module.builtIns.storageManager
                     )
                 ), listOf(ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
                     this,
@@ -124,7 +251,9 @@ class CollectionLiteralResolver(
                     false,
                     SourceElement.NO_SOURCE,
                     { emptyList() }
-                )), arrayType, Modality.FINAL, PUBLIC
+                )), arrayType,
+                Modality.FINAL,
+                PUBLIC
 
             )
         }

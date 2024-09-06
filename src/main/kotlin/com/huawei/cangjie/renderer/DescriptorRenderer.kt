@@ -1133,7 +1133,7 @@ internal class DescriptorRendererImpl(
 
         renderName(typeParameter, builder, topLevel)
         val upperBoundsCount = typeParameter.upperBounds.size
-        if ((upperBoundsCount > 1 && !topLevel) || upperBoundsCount == 1) {
+        if ((upperBoundsCount > 1 && !topLevel)  || upperBoundsCount == 1) {
             val upperBound = typeParameter.upperBounds.iterator().next()
             if (!CangJieBuiltIns.isDefaultBound(upperBound)) {
                 builder.append(" : ").append(renderType(upperBound))

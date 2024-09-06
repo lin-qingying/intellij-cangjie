@@ -15,6 +15,7 @@ import com.huawei.cangjie.resolve.calls.checkers.AdditionalTypeChecker
 import com.huawei.cangjie.resolve.calls.checkers.CallChecker
 import com.huawei.cangjie.resolve.calls.checkers.CallCheckerContext
 import com.huawei.cangjie.resolve.calls.components.AdditionalDiagnosticReporter
+import com.huawei.cangjie.resolve.calls.components.isVararg
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
 import com.huawei.cangjie.resolve.calls.context.CallPosition
 import com.huawei.cangjie.resolve.calls.inference.buildResultingSubstitutor
@@ -38,6 +39,7 @@ import com.huawei.cangjie.types.expressions.ExpressionTypingServices
 import com.huawei.cangjie.types.expressions.ExpressionTypingUtils
 import com.huawei.cangjie.types.model.TypeSystemInferenceExtensionContextDelegate
 import com.huawei.cangjie.types.util.TypeUtils
+import com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 
 class CangJieToResolvedCallTransformer(
 
@@ -106,8 +108,25 @@ class CangJieToResolvedCallTransformer(
             }
             val newContext =
                 context.replaceDataFlowInfo(resolvedCall.dataFlowInfoForArguments.getInfo(valueArgument))
-                    .replaceExpectedType(expectedType)
+
                     .replaceCallPosition(callPosition)
+                    .replaceExpectedType(
+                        if(context.expectedType != NO_EXPECTED_TYPE){
+                            if(CangJieBuiltIns.isArray(context.expectedType) ){
+                               context.expectedType.arguments[0].type
+
+                            }else{
+                                expectedType
+                            }
+                        }else
+
+                        if(parameter?.isVararg == true){
+                            parameter.varargElementType
+
+                        }else{
+                            expectedType
+                        }
+                    )
 
 
             val constantConvertedArgument = resolvedCall.getArgumentTypeForConstantConvertedArgument(valueArgument)

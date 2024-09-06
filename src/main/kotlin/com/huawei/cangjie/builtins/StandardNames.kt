@@ -1,6 +1,5 @@
 package com.huawei.cangjie.builtins
 
-import com.huawei.cangjie.builtins.StandardNames.FqNames.unit
 import com.huawei.cangjie.name.ClassId
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
@@ -27,6 +26,9 @@ object StandardNames {
 
 
     val STD_PACKAGE_NAME = Name.identifier("std")
+    val CORE_PACKAGE_NAME = Name.identifier("core")
+
+
     val COMPRESS_PACKAGE_NAME = Name.identifier("compress")
 
     val CRYPTO_PACKAGE_NAME = Name.identifier("crypto")
@@ -65,16 +67,85 @@ object StandardNames {
     @JvmField
     val STD_CORE_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(Name.identifier("core"))
 
-    @JvmField
-    val OBJECT = STD_CORE_PACKAGE_FQ_NAME.child(Name.identifier("Object"))
 
     @JvmField
-    val ANY = STD_CORE_PACKAGE_FQ_NAME.child(Name.identifier("Any"))
-    @JvmField
-    val ARRAY = STD_CORE_PACKAGE_FQ_NAME.child(Name.identifier("Array"))
+    val NOTHING = Name.identifier("Nothing")
 
     @JvmField
-    val STRING = STD_CORE_PACKAGE_FQ_NAME.child(Name.identifier("String"))
+    val RUNE = Name.identifier("Rune")
+
+    @JvmField
+    val UNIT = Name.identifier("Unit")
+
+    @JvmField
+    val INT8 = Name.identifier("Int8")
+
+    @JvmField
+    val INT16 = Name.identifier("Int16")
+
+    @JvmField
+    val INT32 = Name.identifier("Int32")
+
+    @JvmField
+    val INT64 = Name.identifier("Int64")
+
+    @JvmField
+    val INT_NATIVE = Name.identifier("IntNative")
+
+    @JvmField
+    val UINT8 = Name.identifier("UInt8")
+
+    @JvmField
+    val UINT16 = Name.identifier("UInt16")
+
+    @JvmField
+    val UINT32 = Name.identifier("UInt32")
+
+    @JvmField
+    val UINT64 = Name.identifier("UInt64")
+
+    @JvmField
+    val UINT_NATIVE = Name.identifier("UIntNative")
+
+    @JvmField
+    val FLOAT16 = Name.identifier("Float16")
+
+    @JvmField
+    val FLOAT32 = Name.identifier("Float32")
+
+    @JvmField
+    val FLOAT64 = Name.identifier("Float64")
+
+    @JvmField
+    val BOOL = Name.identifier("Bool")
+
+    @JvmField
+    val OBJECT = Name.identifier("Object")
+
+    @JvmField
+    val ANY = Name.identifier("Any")
+
+    @JvmField
+    val ARRAY = Name.identifier("Array")
+
+    @JvmField
+    val STRING = Name.identifier("String")
+
+    @JvmField
+    val OPTION = Name.identifier("Option")
+
+
+    @JvmField
+    val CPOINTER = Name.identifier("CPointer")
+
+    @JvmField
+    val CSTRING = Name.identifier("CString")
+
+    @JvmField
+    val CTYPE = Name.identifier("CType")
+
+    @JvmField
+    val TOSTRING = Name.identifier("ToString")
 
     @JvmField
     val BUILT_INS_PACKAGE_FQ_NAME = FqName("")
@@ -87,17 +158,19 @@ object StandardNames {
                     this[fqNameUnsafe(primitiveType.typeName.asString())] = primitiveType
                 }
             }
-        @kotlin.jvm.JvmField
-        val primitiveArrayTypeShortNames: Set<Name> = newHashSetWithExpectedSize<Name>(PrimitiveType.entries.size).apply {
-            PrimitiveType.entries.mapTo(this) { it.arrayTypeName }
-        }
+
+        @JvmField
+        val primitiveArrayTypeShortNames: Set<Name> =
+            newHashSetWithExpectedSize<Name>(PrimitiveType.entries.size).apply {
+                PrimitiveType.entries.mapTo(this) { it.arrayTypeName }
+            }
 
         @JvmField
         val primitiveTypeShortNames: Set<Name> = newHashSetWithExpectedSize<Name>(PrimitiveType.entries.size).apply {
             PrimitiveType.entries.mapTo(this) { it.typeName }
         }
 
-        @kotlin.jvm.JvmField
+        @JvmField
         val arrayClassFqNameToPrimitiveType: MutableMap<FqNameUnsafe, PrimitiveType> =
             newHashMapWithExpectedSize<FqNameUnsafe, PrimitiveType>(PrimitiveType.entries.size).apply {
                 for (primitiveType in PrimitiveType.entries) {
@@ -106,172 +179,187 @@ object StandardNames {
             }
 
         @JvmField
-        val core: FqName = FqName.topLevel(Name.identifier("std")).child(Name.identifier("core"))
+        val core: FqName = FqName.topLevel(STD_PACKAGE_NAME).child(CORE_PACKAGE_NAME)
 
         @JvmField
-        val any: FqNameUnsafe = core.child(Name.identifier("Any")).toUnsafe()
+        val anyFqName: FqName = core.child(ANY)
 
         @JvmField
-        val option: FqNameUnsafe = core.child(Name.identifier("Option")).toUnsafe()
+        val anyUFqName: FqNameUnsafe = anyFqName.toUnsafe()
+
+        @JvmField
+        val objectFqName: FqName = core.child(OBJECT)
+
+        @JvmField
+        val objectUFqName: FqNameUnsafe = objectFqName.toUnsafe()
+
+        @JvmField
+        val optionFqName: FqName = core.child(OPTION)
+
+        @JvmField
+        val optionUFqName: FqNameUnsafe = optionFqName.toUnsafe()
+
+        @JvmField
+        val stringFqName: FqName = core.child(STRING)
+
+        @JvmField
+        val stringUFqName: FqNameUnsafe = stringFqName.toUnsafe()
+
+        @JvmField
+        val arrayFqName: FqName = core.child(ARRAY)
+
+        @JvmField
+        val arrayUFqName: FqNameUnsafe = arrayFqName.toUnsafe()
+
+        @JvmField
+        val nothingFqName: FqName = fqName(NOTHING)
+        @JvmField
+        val nothingUFqName: FqNameUnsafe = nothingFqName.toUnsafe()
 
 
         @JvmField
-        val string: FqNameUnsafe = core.child(Name.identifier("String")).toUnsafe()
+        val toStringFqName: FqName = fqName(TOSTRING)
 
         @JvmField
-        val array: FqNameUnsafe = core.child(Name.identifier("Array")).toUnsafe()
-
-        @JvmField
-        val arrayFqName: FqName = core.child(Name.identifier("Array"))
-
-
-        /***************************Nothing***************************/
-
-        @JvmField
-        val nothing: FqNameUnsafe = fqNameUnsafe("Nothing")
-
-        @JvmField
-        val nothingFqName: FqName = fqName("Nothing")
-
-
-        /***************************Char***************************/
+        val toStringUFqName: FqNameUnsafe = nothingFqName.toUnsafe()
 
 
         @JvmField
-        val rune: FqNameUnsafe = fqNameUnsafe("Rune")
+        val runeFqName: FqName = fqName(RUNE)
 
         @JvmField
-        val runeFqName: FqName = fqName("Rune")
-
-
-        /***************************Unit***************************/
+        val runeUFqName: FqNameUnsafe = runeFqName.toUnsafe()
 
         @JvmField
-        val unit = fqNameUnsafe("Unit")
+        val unitFqName = fqName(UNIT)
 
         @JvmField
-        val unitFqName = fqName("Unit")
+        val unitUFqName = unitFqName.toUnsafe()
 
         /***************************Int***************************/
         @JvmField
-        val int8: FqNameUnsafe = fqNameUnsafe("Int8")
+        val int8FqName: FqName = fqName(INT8)
 
         @JvmField
-        val int16: FqNameUnsafe = fqNameUnsafe("Int16")
+        val int8UFqName: FqNameUnsafe = int8FqName.toUnsafe()
 
         @JvmField
-        val int32: FqNameUnsafe = fqNameUnsafe("Int32")
+        val int16FqName: FqName = fqName(INT16)
 
         @JvmField
-        val int64: FqNameUnsafe = fqNameUnsafe("Int64")
+        val int16UFqName: FqNameUnsafe = int16FqName.toUnsafe()
 
         @JvmField
-        val int_native: FqNameUnsafe = fqNameUnsafe("IntNative")
+        val int32FqName: FqName = fqName(INT32)
+
+        @JvmField
+        val int32UFqName: FqNameUnsafe = int32FqName.toUnsafe()
+
+        @JvmField
+        val int64FqName: FqName = fqName(INT64)
+
+        @JvmField
+        val int64UFqName: FqNameUnsafe = int64FqName.toUnsafe()
+
+        @JvmField
+        val int_nativeFqName: FqName = fqName(INT_NATIVE)
+
+        @JvmField
+        val int_nativeUFqName: FqNameUnsafe = int_nativeFqName.toUnsafe()
 
         /***************************UInt***************************/
+        @JvmField
+        val uint8FqName: FqName = fqName(UINT8)
 
         @JvmField
-        val uint8: FqNameUnsafe = fqNameUnsafe("UInt8")
+        val uint8UFqName: FqNameUnsafe = uint8FqName.toUnsafe()
 
         @JvmField
-        val uint16: FqNameUnsafe = fqNameUnsafe("UInt16")
+        val uint16FqName: FqName = fqName(UINT16)
 
         @JvmField
-        val uint32: FqNameUnsafe = fqNameUnsafe("UInt32")
+        val uint16UFqName: FqNameUnsafe = uint16FqName.toUnsafe()
 
         @JvmField
-        val uint64: FqNameUnsafe = fqNameUnsafe("UInt64")
+        val uint32FqName: FqName = fqName(UINT32)
 
         @JvmField
-        val uint_native: FqNameUnsafe = fqNameUnsafe("UIntNative")
+        val uint32UFqName: FqNameUnsafe = uint32FqName.toUnsafe()
 
         @JvmField
-        val int_nativeFqName: FqName = fqName("IntNative")
+        val uint64FqName: FqName = fqName(UINT64)
 
         @JvmField
-        val uint_nativeFqName: FqName = fqName("UIntNative")
+        val uint64UFqName: FqNameUnsafe = uint64FqName.toUnsafe()
 
         @JvmField
-        val int8FqName: FqName = fqName("Int8")
+        val uint_nativeFqName: FqName = fqName(UINT_NATIVE)
 
         @JvmField
-        val int16FqName: FqName = fqName("Int16")
+        val uint_nativeUFqName: FqNameUnsafe = uint_nativeFqName.toUnsafe()
 
-        @JvmField
-        val int32FqName: FqName = fqName("Int32")
-
-        @JvmField
-        val int64FqName: FqName = fqName("Int64")
-
-        @JvmField
-        val uInt8FqName: FqName = fqName("UInt8")
-
-        @JvmField
-        val uInt16FqName: FqName = fqName("UInt16")
-
-        @JvmField
-        val uInt32FqName: FqName = fqName("UInt32")
-
-        @JvmField
-        val uInt64FqName: FqName = fqName("UInt64")
-
-        @JvmField
-        val uInt8ClassId: ClassId = ClassId.topLevel(uInt8FqName)
-
-        @JvmField
-        val uInt16ClassId: ClassId = ClassId.topLevel(uInt16FqName)
-
-        @JvmField
-        val uInt32ClassId: ClassId = ClassId.topLevel(uInt32FqName)
-
-        @JvmField
-        val uInt64ClassId: ClassId = ClassId.topLevel(uInt64FqName)
-
-
-        /***************************Float***************************/
-        @JvmField
-        val float16: FqNameUnsafe = fqNameUnsafe("Float16")
-
-        @JvmField
-        val float32: FqNameUnsafe = fqNameUnsafe("Float32")
-
-        @JvmField
-        val float64: FqNameUnsafe = fqNameUnsafe("Float64")
-
-
-        @JvmField
-        val float16FqName: FqName = fqName("Float16")
-
-        @JvmField
-        val float32FqName: FqName = fqName("Float32")
-
-        @JvmField
-        val float64FqName: FqName = fqName("Float64")
 
         /***************************Bool***************************/
         @JvmField
-        val bool: FqNameUnsafe = fqNameUnsafe("Bool")
+        val boolFqName: FqName = fqName(BOOL)
+
+        @JvmField
+        val boolUFqName: FqNameUnsafe = boolFqName.toUnsafe()
+
+
+        /***************************Float***************************/
+
+        @JvmField
+        val float16FqName: FqName = fqName(FLOAT16)
+
+        @JvmField
+        val float16UFqName: FqNameUnsafe = float16FqName.toUnsafe()
+
+        @JvmField
+        val float32FqName: FqName = fqName(FLOAT32)
+
+        @JvmField
+        val float32UFqName: FqNameUnsafe = float32FqName.toUnsafe()
+
+        @JvmField
+        val float64FqName: FqName = fqName(FLOAT64)
+
+        @JvmField
+        val float64UFqName: FqNameUnsafe = float64FqName.toUnsafe()
+
 
         /***************************内置类型***************************/
         @JvmField
-        val cpointer: FqNameUnsafe = fqNameUnsafe("CPointer")
-        val cpointerFqName = core.child(Name.identifier("CPointer"))
+        val cpointerFqName = core.child(CPOINTER)
 
         @JvmField
-        val cstring: FqNameUnsafe = fqNameUnsafe("CString")
-        val cstringFqName = core.child(Name.identifier("CString"))
-        val ctypeFqName = core.child(Name.identifier("CType"))
-
-        @JvmField
-
-        val boolFqName: FqName = fqName("Bool")
-
-        @JvmField
-        val enum: FqNameUnsafe = fqNameUnsafe("Enum")
+        val cpointerUFqName: FqNameUnsafe = cpointerFqName.toUnsafe()
 
 
         @JvmField
-        val throwable: FqName = fqName("Throwable")
+        val cstringFqName: FqName = core.child(CSTRING)
+
+        @JvmField
+        val cstringUFqName: FqNameUnsafe = cstringFqName.toUnsafe()
+
+        @JvmField
+        val ctypeFqName: FqName = core.child(CTYPE)
+
+        @JvmField
+        val ctypeUFqName: FqNameUnsafe = ctypeFqName.toUnsafe()
+
+
+        @JvmField
+        val uInt8ClassId: ClassId = ClassId.topLevel(uint8FqName)
+
+        @JvmField
+        val uInt16ClassId: ClassId = ClassId.topLevel(uint16FqName)
+
+        @JvmField
+        val uInt32ClassId: ClassId = ClassId.topLevel(uint32FqName)
+
+        @JvmField
+        val uInt64ClassId: ClassId = ClassId.topLevel(uint64FqName)
 
 
         @JvmField
@@ -296,39 +384,45 @@ object StandardNames {
             return fqName(simpleName).toUnsafe()
         }
 
+        private fun fqName(name: Name): FqName {
+            return BUILT_INS_PACKAGE_FQ_NAME.child(name)
+        }
+
         private fun fqName(simpleName: String): FqName {
-            return BUILT_INS_PACKAGE_FQ_NAME.child(Name.identifier(simpleName))
+            return fqName(Name.identifier(simpleName))
         }
 
         fun fromByName(name: Name): FqName =
             when (name) {
-                uInt8FqName.shortName() -> uInt8FqName
-                uInt16FqName.shortName() -> uInt16FqName
-                uInt32FqName.shortName() -> uInt32FqName
-                uInt64FqName.shortName() -> uInt64FqName
+                NOTHING -> nothingFqName
 
-                int8FqName.shortName() -> int8FqName
-                int16FqName.shortName() -> int16FqName
-                int32FqName.shortName() -> int32FqName
-                int64FqName.shortName() -> int64FqName
 
-                float16FqName.shortName() -> float16FqName
-                float32FqName.shortName() -> float32FqName
-                float64FqName.shortName() -> float64FqName
+                UINT8 -> uint8FqName
+                UINT16 -> uint16FqName
+                UINT32 -> uint32FqName
+                UINT64 -> uint64FqName
+                UINT_NATIVE -> uint_nativeFqName
 
-                boolFqName.shortName() -> boolFqName
+                INT8 -> int8FqName
+                INT16 -> int16FqName
+                INT32 -> int32FqName
+                INT64 -> int64FqName
+                INT_NATIVE -> int_nativeFqName
 
-                runeFqName.shortName() -> runeFqName
+                FLOAT16 -> float16FqName
+                FLOAT32 -> float32FqName
+                FLOAT64 -> float64FqName
 
-                arrayFqName.shortName() -> arrayFqName
-                unitFqName.shortName() -> unitFqName
+                BOOL -> boolFqName
 
-                int_nativeFqName.shortName() -> int_nativeFqName
-                uint_nativeFqName.shortName() -> uint_nativeFqName
+                RUNE -> runeFqName
 
-                cpointerFqName.shortName() -> cpointerFqName
-                cstringFqName.shortName() -> cstringFqName
-                nothingFqName.shortName() -> nothingFqName
+                ARRAY -> arrayFqName
+                UNIT -> unitFqName
+
+
+              CPOINTER -> cpointerFqName
+               CSTRING -> cstringFqName
 
                 else -> throw IllegalArgumentException("Unknown name: $name")
             }
@@ -338,7 +432,7 @@ object StandardNames {
 
     @JvmField
     val BASIC_TYPE_NAMES = setOf(
-        unit
+        UNIT
     )
 
 

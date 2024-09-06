@@ -6,6 +6,7 @@ import com.huawei.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import com.huawei.cangjie.resolve.UpperBoundChecker
 import com.huawei.cangjie.resolve.calls.checkers.AdditionalTypeChecker
 import com.huawei.cangjie.resolve.calls.context.CallCandidateResolutionContext
+import com.huawei.cangjie.resolve.calls.context.CandidateResolveMode
 import com.huawei.cangjie.resolve.calls.context.CheckArgumentTypesMode
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import com.huawei.cangjie.resolve.calls.smartcasts.SmartCastManager
@@ -20,7 +21,23 @@ class CandidateResolver(
     private val dataFlowValueFactory: DataFlowValueFactory,
     private val upperBoundChecker: UpperBoundChecker
 ){
+    private fun <D : CallableDescriptor> CallCandidateResolutionContext<D>.shouldContinue() =
+        candidateResolveMode == CandidateResolveMode.FULLY || candidateCall.status.possibleTransformToSuccess()
 
+    private inline fun <D : CallableDescriptor> CallCandidateResolutionContext<D>.check(
+        crossinline checker: CallCandidateResolutionContext<D>.() -> Unit
+    ) {
+        if (shouldContinue()) checker() else candidateCall.addRemainingTasks { checker() }
+    }
+
+    private fun <D : CallableDescriptor> CallCandidateResolutionContext<D>.mapArguments() = check {
+        val argumentMappingStatus = ValueArgumentsToParametersMapper.mapValueArgumentsToParameters(
+            call, tracing, candidateCall, languageVersionSettings
+        )
+        if (!argumentMappingStatus.isSuccess) {
+            candidateCall.addStatus(ARGUMENTS_MAPPING_ERROR)
+        }
+    }
     private val CallCandidateResolutionContext<*>.candidateDescriptor: CallableDescriptor
         get() = candidateCall.candidateDescriptor
     fun <D : CallableDescriptor> performResolutionForCandidateCall(
@@ -43,13 +60,13 @@ class CandidateResolver(
 //            checkVisibilityWithoutReceiver()
 //        }
 //
-//        when (checkArguments) {
-//            CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS ->
-//                mapArguments()
-//            CheckArgumentTypesMode.CHECK_CALLABLE_TYPE ->
+        when (checkArguments) {
+            CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS ->
+                mapArguments()
+            CheckArgumentTypesMode.CHECK_CALLABLE_TYPE -> TODO()
 //                checkExpectedCallableType()
-//        }
-//
+        }
+
 //        checkReceiverTypeError()
 //        checkExtensionReceiver()
 //        checkDispatchReceiver()
