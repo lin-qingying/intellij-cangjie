@@ -23,7 +23,7 @@ fun TypeSystemInferenceExtensionContext.extractTypeForGivenRecursiveTypeParamete
     typeParameter: TypeParameterMarker
 ): CangJieTypeMarker? {
     for (argument in type.getArguments()) {
-        if (argument.isStarProjection()) continue
+
         val typeConstructor = argument.getType().typeConstructor()
         if (typeConstructor is TypeVariableTypeConstructorMarker
             && typeConstructor.typeParameter == typeParameter

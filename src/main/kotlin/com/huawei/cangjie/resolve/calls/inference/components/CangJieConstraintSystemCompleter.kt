@@ -8,6 +8,7 @@ import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.TypeConstructor
 import com.huawei.cangjie.types.UnwrappedType
 import com.huawei.cangjie.types.error.ErrorTypeKind
+import com.huawei.cangjie.types.error.MultipleSupertypeTypeInferenceFailure
 import com.huawei.cangjie.types.model.CangJieTypeMarker
 import com.huawei.cangjie.types.model.TypeConstructorMarker
 import com.huawei.cangjie.types.model.TypeVariableMarker
@@ -19,8 +20,7 @@ class CangJieConstraintSystemCompleter(
     val variableFixationFinder: VariableFixationFinder,
     private val postponedArgumentsInputTypesResolver: PostponedArgumentInputTypesResolver,
 //    private val languageVersionSettings: LanguageVersionSettings
-)
-{
+) {
 
     fun runCompletion(
         c: ConstraintSystemCompletionContext,
@@ -39,6 +39,7 @@ class CangJieConstraintSystemCompleter(
             analyze = analyze
         )
     }
+
     private fun ConstraintSystemCompletionContext.runCompletion(
         completionMode: ConstraintSystemCompletionMode,
         topLevelAtoms: List<ResolvedAtom>,
@@ -81,13 +82,14 @@ class CangJieConstraintSystemCompleter(
                 TypeVariableDependencyInformationProvider(notFixedTypeVariables, postponedArguments, topLevelType, this)
 
             // Stage 2: collect parameter types for postponed arguments
-            val wasBuiltNewExpectedTypeForSomeArgument = postponedArgumentsInputTypesResolver.collectParameterTypesAndBuildNewExpectedTypes(
-                this,
-                postponedArgumentsWithRevisableType,
-                completionMode,
-                dependencyProvider,
-                topLevelTypeVariables
-            )
+            val wasBuiltNewExpectedTypeForSomeArgument =
+                postponedArgumentsInputTypesResolver.collectParameterTypesAndBuildNewExpectedTypes(
+                    this,
+                    postponedArgumentsWithRevisableType,
+                    completionMode,
+                    dependencyProvider,
+                    topLevelTypeVariables
+                )
 
             if (wasBuiltNewExpectedTypeForSomeArgument)
                 continue
@@ -95,15 +97,16 @@ class CangJieConstraintSystemCompleter(
             if (completionMode == ConstraintSystemCompletionMode.FULL) {
                 // Stage 3: fix variables for parameter types of all postponed arguments
                 for (argument in postponedArguments) {
-                    val variableWasFixed = postponedArgumentsInputTypesResolver.fixNextReadyVariableForParameterTypeIfNeeded(
-                        this,
-                        argument,
-                        postponedArguments,
-                        topLevelType,
-                        dependencyProvider,
-                    ) {
-                        findResolvedAtomBy(it, topLevelAtoms) ?: topLevelAtoms.firstOrNull()
-                    }
+                    val variableWasFixed =
+                        postponedArgumentsInputTypesResolver.fixNextReadyVariableForParameterTypeIfNeeded(
+                            this,
+                            argument,
+                            postponedArguments,
+                            topLevelType,
+                            dependencyProvider,
+                        ) {
+                            findResolvedAtomBy(it, topLevelAtoms) ?: topLevelAtoms.firstOrNull()
+                        }
 
                     if (variableWasFixed)
                         continue@completion
@@ -121,19 +124,34 @@ class CangJieConstraintSystemCompleter(
             }
 
             // Stage 5: analyze the next ready postponed argument
-            if (analyzeNextReadyPostponedArgument(/*languageVersionSettings,*/ postponedArguments, completionMode, analyze))
+            if (analyzeNextReadyPostponedArgument(/*languageVersionSettings,*/ postponedArguments,
+                    completionMode,
+                    analyze
+                )
+            )
                 continue
 
             // Stage 6: fix next ready type variable with proper constraints
             if (
                 fixNextReadyVariable(
-                    completionMode, topLevelAtoms, topLevelType, collectVariablesFromContext, postponedArguments, diagnosticsHolder
+                    completionMode,
+                    topLevelAtoms,
+                    topLevelType,
+                    collectVariablesFromContext,
+                    postponedArguments,
+                    diagnosticsHolder
                 )
             ) continue
 
             // Stage 7: try to complete call with the builder inference if there are uninferred type variables
             val areThereAppearedProperConstraintsForSomeVariable = tryToCompleteWithBuilderInference(
-                completionMode, topLevelAtoms, topLevelType, postponedArguments, collectVariablesFromContext, diagnosticsHolder, analyze
+                completionMode,
+                topLevelAtoms,
+                topLevelType,
+                postponedArguments,
+                collectVariablesFromContext,
+                diagnosticsHolder,
+                analyze
             )
 
             if (areThereAppearedProperConstraintsForSomeVariable)
@@ -141,7 +159,12 @@ class CangJieConstraintSystemCompleter(
 
             // Stage 8: report "not enough information" for uninferred type variables
             reportNotEnoughTypeInformation(
-                completionMode, topLevelAtoms, topLevelType, collectVariablesFromContext, postponedArguments, diagnosticsHolder
+                completionMode,
+                topLevelAtoms,
+                topLevelType,
+                collectVariablesFromContext,
+                postponedArguments,
+                diagnosticsHolder
             )
 
             // Stage 9: force analysis of remaining not analyzed postponed arguments and rerun stages if there are
@@ -153,6 +176,7 @@ class CangJieConstraintSystemCompleter(
             break
         }
     }
+
     private fun ConstraintSystemCompletionContext.tryToCompleteWithBuilderInference(
         completionMode: ConstraintSystemCompletionMode,
         topLevelAtoms: List<ResolvedAtom>,
@@ -165,19 +189,19 @@ class CangJieConstraintSystemCompleter(
         if (completionMode != ConstraintSystemCompletionMode.FULL) return false
 
 
-        val lambdaArguments = postponedArguments.filterIsInstance<ResolvedLambdaAtom>().takeIf { it.isNotEmpty() } ?: return false
+        val lambdaArguments =
+            postponedArguments.filterIsInstance<ResolvedLambdaAtom>().takeIf { it.isNotEmpty() } ?: return false
 
         fun ResolvedLambdaAtom.notFixedInputTypeVariables(): List<TypeVariableTypeConstructorMarker> =
             inputTypes.flatMap { it.extractTypeVariables() }.filter { it !in fixedTypeVariables }
 
 
-       val dangerousBuilderInferenceWithoutAnnotation =
+        val dangerousBuilderInferenceWithoutAnnotation =
             lambdaArguments.size >= 2 && lambdaArguments.count { it.notFixedInputTypeVariables().isNotEmpty() } >= 2
 
         val builder = getBuilder()
         for (argument in lambdaArguments) {
             val reallyHasBuilderInferenceAnnotation = argument.atom.hasBuilderInferenceAnnotation
-
 
 
             // Imitate having builder inference annotation. TODO: Remove after getting rid of @BuilderInference
@@ -199,7 +223,11 @@ class CangJieConstraintSystemCompleter(
         }
 
         val variableForFixation = variableFixationFinder.findFirstVariableForFixation(
-            this, getOrderedAllTypeVariables(collectVariablesFromContext, topLevelAtoms), postponedArguments, completionMode, topLevelType
+            this,
+            getOrderedAllTypeVariables(collectVariablesFromContext, topLevelAtoms),
+            postponedArguments,
+            completionMode,
+            topLevelType
         )
 
         // continue completion (rerun stages) only if ready for fixation variables with proper constraints have appeared
@@ -207,6 +235,7 @@ class CangJieConstraintSystemCompleter(
         // otherwise we don't continue and report "not enough type information" error
         return variableForFixation?.isReady == true
     }
+
     private fun transformToAtomWithNewFunctionalExpectedType(
         c: ConstraintSystemCompletionContext,
         argument: PostponedAtomWithRevisableExpectedType,
@@ -220,13 +249,16 @@ class CangJieConstraintSystemCompleter(
                 CallableReferenceWithRevisedExpectedTypeAtom(argument.atom, revisedExpectedType).also {
                     argument.setAnalyzedResults(null, listOf(it))
                 }
+
             is LambdaWithTypeVariableAsExpectedTypeAtom ->
                 argument.transformToResolvedLambda(c.getBuilder(), diagnosticsHolder, revisedExpectedType)
+
             else -> throw IllegalStateException("Unsupported postponed argument type of $argument")
         }
 
         return true
     }
+
     private fun ConstraintSystemCompletionContext.fixNextReadyVariable(
         completionMode: ConstraintSystemCompletionMode,
         topLevelAtoms: List<ResolvedAtom>,
@@ -245,7 +277,12 @@ class CangJieConstraintSystemCompleter(
 
         if (!variableForFixation.isReady) return false
 
-        fixVariable(this, notFixedTypeVariables.getValue(variableForFixation.variable), topLevelAtoms, diagnosticsHolder)
+        fixVariable(
+            this,
+            notFixedTypeVariables.getValue(variableForFixation.variable),
+            topLevelAtoms,
+            diagnosticsHolder
+        )
 
         return true
     }
@@ -256,8 +293,15 @@ class CangJieConstraintSystemCompleter(
         topLevelAtoms: List<ResolvedAtom>,
         diagnosticsHolder: CangJieDiagnosticsHolder
     ) {
-        fixVariable(c, variableWithConstraints, TypeVariableDirectionCalculator.ResolveDirection.UNKNOWN, topLevelAtoms, diagnosticsHolder)
+        fixVariable(
+            c,
+            variableWithConstraints,
+            TypeVariableDirectionCalculator.ResolveDirection.UNKNOWN,
+            topLevelAtoms,
+            diagnosticsHolder
+        )
     }
+
     private fun reportWarningIfFixedIntoDeclaredUpperBounds(
         diagnosticsHolder: CangJieDiagnosticsHolder,
         variableWithConstraints: VariableWithConstraints,
@@ -275,7 +319,17 @@ class CangJieConstraintSystemCompleter(
                 false
             }
         }
+        if (resultType is MultipleSupertypeTypeInferenceFailure) {
+            diagnosticsHolder.addDiagnostic(
+                CangJieConstraintSystemDiagnostic(
+                    MultipleMinimalCommonSupertypes(
+                        variableWithConstraints.typeVariable,
+                        resultType.intersectedTypes
+                    )
+                )
+            )
 
+        }
         if (constraintFromDeclaredUpperBoundExists && upperBoundType == resultType) {
             diagnosticsHolder.addDiagnostic(
                 CangJieConstraintSystemDiagnostic(InferredIntoDeclaredUpperBounds(variableWithConstraints.typeVariable))
@@ -291,6 +345,7 @@ class CangJieConstraintSystemCompleter(
         diagnosticsHolder: CangJieDiagnosticsHolder
     ) {
         val resultType = resultTypeResolver.findResultType(c, variableWithConstraints, direction)
+
         val variable = variableWithConstraints.typeVariable
         val resolvedAtom = findResolvedAtomBy(variable, topLevelAtoms) ?: topLevelAtoms.firstOrNull()
 
@@ -334,20 +389,29 @@ class CangJieConstraintSystemCompleter(
 
         if (resolvedAtom != null) {
             addError(
-                NotEnoughInformationForTypeParameterImpl(typeVariable, resolvedAtom, couldBeResolvedWithUnrestrictedBuilderInference())
+                NotEnoughInformationForTypeParameterImpl(
+                    typeVariable,
+                    resolvedAtom,
+                    couldBeResolvedWithUnrestrictedBuilderInference()
+                )
             )
         }
 
-        val resultErrorType = when  {
+        val resultErrorType = when {
             typeVariable is TypeVariableFromCallableDescriptor -> {
-                ErrorUtils.createErrorType(ErrorTypeKind.UNINFERRED_TYPE_VARIABLE, typeVariable.originalTypeParameter.name.asString())
+                ErrorUtils.createErrorType(
+                    ErrorTypeKind.UNINFERRED_TYPE_VARIABLE,
+                    typeVariable.originalTypeParameter.name.asString()
+                )
             }
+
             typeVariable is TypeVariableForLambdaParameterType && typeVariable.atom is LambdaCangJieCallArgument -> {
                 diagnosticsHolder.addDiagnostic(
                     NotEnoughInformationForLambdaParameter(typeVariable.atom, typeVariable.index)
                 )
                 ErrorUtils.createErrorType(ErrorTypeKind.UNINFERRED_LAMBDA_PARAMETER_TYPE)
             }
+
             else -> ErrorUtils.createErrorType(ErrorTypeKind.UNINFERRED_TYPE_VARIABLE, typeVariable.toString())
         }
 
@@ -378,10 +442,14 @@ class CangJieConstraintSystemCompleter(
 //                }
                 is PostponedCallableReferenceAtom -> {
                     getVariablesFromRevisedExpectedType(revisedExpectedType).orEmpty() +
-                            candidate?.freshVariablesSubstitutor?.freshVariables?.map { it.freshTypeConstructor }.orEmpty()
+                            candidate?.freshVariablesSubstitutor?.freshVariables?.map { it.freshTypeConstructor }
+                                .orEmpty()
                 }
+
                 is ResolvedCallAtom -> freshVariablesSubstitutor.freshVariables.map { it.freshTypeConstructor }
-                is ResolvedCallableReferenceArgumentAtom -> candidate?.freshVariablesSubstitutor?.freshVariables?.map { it.freshTypeConstructor }.orEmpty()
+                is ResolvedCallableReferenceArgumentAtom -> candidate?.freshVariablesSubstitutor?.freshVariables?.map { it.freshTypeConstructor }
+                    .orEmpty()
+
                 else -> emptyList()
             }
 
@@ -415,12 +483,14 @@ class CangJieConstraintSystemCompleter(
         return result.toList()
     }
 
-    companion object{
+    companion object {
         fun findResolvedAtomBy(typeVariable: TypeVariableMarker, topLevelAtoms: List<ResolvedAtom>): ResolvedAtom? {
             fun ResolvedAtom.check(): ResolvedAtom? {
                 val suitableCall = when (this) {
                     is ResolvedCallAtom -> typeVariable in freshVariablesSubstitutor.freshVariables
-                    is ResolvedCallableReferenceArgumentAtom -> candidate?.freshVariablesSubstitutor?.freshVariables?.let { typeVariable in it } ?: false
+                    is ResolvedCallableReferenceArgumentAtom -> candidate?.freshVariablesSubstitutor?.freshVariables?.let { typeVariable in it }
+                        ?: false
+
                     is ResolvedLambdaAtom -> typeVariable == typeVariableForLambdaReturnType
                     else -> false
                 }

@@ -609,15 +609,7 @@ internal class MemberScopeTowerLevel(
             override fun get(key: CangJieType): TypeProjection? = null
             override fun prepareTopLevelType(topLevelType: CangJieType, position: Variance) = when (position) {
                 Variance.INVARIANT -> null
-                Variance.OUT_VARIANCE -> approximator.approximateToSuperType(
-                    topLevelType.unwrap(),
-                    TypeApproximatorConfiguration.InternalTypesApproximation
-                )
 
-                Variance.IN_VARIANCE -> approximator.approximateToSubType(
-                    topLevelType.unwrap(),
-                    TypeApproximatorConfiguration.InternalTypesApproximation
-                )
             } ?: topLevelType
         }
         return substitute(TypeSubstitutor.create(wrappedSubstitution))

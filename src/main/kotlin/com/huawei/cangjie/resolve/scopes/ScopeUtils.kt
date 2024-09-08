@@ -61,6 +61,28 @@ fun HierarchicalScope.findFunction(
     }
     return null
 }
+private inline fun <T : Any> HierarchicalScope.collectFromMeAndParent(
+    collect: (HierarchicalScope) -> T?
+): List<T> {
+    var result: MutableList<T>? = null
+    processForMeAndParent {
+        val element = collect(it)
+        if (element != null) {
+            if (result == null) {
+                result = SmartList()
+            }
+            result!!.add(element)
+        }
+    }
+    return result ?: emptyList()
+}
+
+/**
+ * Adds receivers to the list in order of locality, so that the closest (the most local) receiver goes first
+ */
+fun LexicalScope.getImplicitReceiversHierarchy(): List<ReceiverParameterDescriptor> = collectFromMeAndParent {
+    if (it is LexicalScope) listOfNotNull(it.implicitReceiver) + it.contextReceiversGroup else null
+}.flatten()
 
 fun HierarchicalScope.findVariable(
     name: Name,

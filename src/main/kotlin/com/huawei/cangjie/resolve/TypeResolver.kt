@@ -167,9 +167,9 @@ class TypeResolver(
 //        } else {
         type.constructor // force read type constructor
         for (projection in type.arguments) {
-            if (!projection.isStarProjection) {
+
                 forceResolveTypeContents(projection.type)
-            }
+
         }
 //        }
     }
@@ -571,7 +571,7 @@ class TypeResolver(
 
         val usedTypeParameters = linkedSetOf<TypeParameterDescriptor>()
         for (argument in expandedType.arguments) {
-            if (argument.isStarProjection) continue
+
 
 //            if (argument.projectionKind != INVARIANT) return false
 

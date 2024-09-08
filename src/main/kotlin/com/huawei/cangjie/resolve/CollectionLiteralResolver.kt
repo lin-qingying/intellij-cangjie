@@ -85,25 +85,6 @@ class CollectionLiteralResolver(
         context.trace.record(COLLECTION_LITERAL_CALL, expression, resolutionResults.resultingCall)
         return createTypeInfo(resolutionResults.resultingDescriptor.returnType, context)
 
-//        val callName = getArrayFunctionCallName(context.expectedType)
-//        val functionDescriptors = getFunctionDescriptorForCollectionLiteral(expression, callName)
-//        if (functionDescriptors.isEmpty()) {
-//            context.trace.report(
-//                MISSING_STDLIB.on(
-//                    expression, "Collection literal call '$callName()' is unresolved"
-//                )
-//            )
-//            return noTypeInfo(context)
-//        }
-
-
-//        val resolutionResults =
-//            callResolver.resolveCollectionLiteralCallWithGivenDescriptor(context, expression, call, functionDescriptors)
-//
-
-//
-
-//        return noTypeInfo(context)
 
     }
 

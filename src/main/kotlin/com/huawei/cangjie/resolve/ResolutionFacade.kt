@@ -4,9 +4,11 @@ import com.huawei.cangjie.analyzer.AnalysisResult
 import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.analyzer.ResolverForProject
 import com.huawei.cangjie.config.LanguageVersionSettings
+import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.DiagnosticSink
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.ide.FrontendInternals
+import com.huawei.cangjie.psi.CjDeclaration
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
@@ -26,6 +28,7 @@ interface ResolutionFacade{
     fun analyzeWithAllCompilerChecks(element: CjElement, callback: DiagnosticSink.DiagnosticsCallback? = null): AnalysisResult
             = analyzeWithAllCompilerChecks(listOf(element), callback)
     fun analyze(elements: Collection<CjElement>, bodyResolveMode: BodyResolveMode): BindingContext
+    fun resolveToDescriptor(declaration: CjDeclaration, bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL): DeclarationDescriptor
 
     fun analyzeWithAllCompilerChecks(elements: Collection<CjElement>, callback: DiagnosticSink.DiagnosticsCallback? = null): AnalysisResult
     fun analyze(element: CjElement, bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL): BindingContext

@@ -4,6 +4,7 @@ package com.huawei.cangjie.resolve.caches
 import com.huawei.cangjie.analyzer.AnalysisResult
 import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.analyzer.ResolverForProject
+import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.DiagnosticSink
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.ide.FrontendInternals
@@ -41,11 +42,16 @@ private class ResolutionFacadeWithDebugInfo(
         }
     }
 
-//    override fun analyze(elements: Collection<CjElement>, bodyResolveMode: BodyResolveMode): BindingContext {
-//        return wrapExceptions({ ResolvingWhat(elements = elements, bodyResolveMode = bodyResolveMode) }) {
-//            delegate.analyze(elements, bodyResolveMode)
-//        }
-//    }
+    override fun resolveToDescriptor(
+        declaration: CjDeclaration,
+        bodyResolveMode: BodyResolveMode
+    ): DeclarationDescriptor {
+        return wrapExceptions({ ResolvingWhat(declaration, bodyResolveMode = bodyResolveMode) }) {
+            delegate.resolveToDescriptor(declaration, bodyResolveMode)
+        }
+    }
+
+
 
     override fun analyzeWithAllCompilerChecks(
         element: CjElement,

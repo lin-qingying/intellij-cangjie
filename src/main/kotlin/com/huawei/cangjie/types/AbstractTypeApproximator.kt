@@ -328,8 +328,8 @@ abstract class AbstractTypeApproximator(
 
             else -> {
                 val projection = type.typeConstructorProjection()
-                if (projection.isStarProjection()) intersectTypes(supertypes.toList())
-                else projection.getType()
+
+                  projection.getType()
             }
         }
         val baseSubType = type.lowerType() ?: nothingType()
@@ -469,12 +469,6 @@ abstract class AbstractTypeApproximator(
         }
     }
 
-    private fun isApproximateDirectionToSuper(effectiveVariance: TypeVariance, toSuper: Boolean) =
-        when (effectiveVariance) {
-            TypeVariance.OUT -> toSuper
-            TypeVariance.IN -> !toSuper
-            TypeVariance.INV -> throw AssertionError("Incorrect variance $effectiveVariance")
-        }
 
     private fun approximateParametrizedType(
         type: SimpleTypeMarker,
@@ -498,7 +492,7 @@ abstract class AbstractTypeApproximator(
             val parameter = typeConstructor.getParameter(index)
             val argument = type.getArgument(index)
 
-            if (argument.isStarProjection()) continue
+
 
             val effectiveVariance =
                 AbstractTypeChecker.effectiveVariance(parameter.getVariance(), argument.getVariance())
@@ -520,17 +514,8 @@ abstract class AbstractTypeApproximator(
                 continue@loop
             }
 
-            val capturedStarProjectionOrNull =
-                capturedType?.typeConstructorProjection()?.takeIf { it.isStarProjection() }
 
-            if (capturedStarProjectionOrNull != null &&
-                (effectiveVariance == TypeVariance.OUT || effectiveVariance == TypeVariance.INV) &&
-                toSuper &&
-                capturedType.typeParameter() == parameter
-            ) {
-                newArguments[index] = capturedStarProjectionOrNull
-                continue@loop
-            }
+
 
             when (effectiveVariance) {
                 null -> {
@@ -543,79 +528,6 @@ abstract class AbstractTypeApproximator(
                     } else type.defaultResult(toSuper)
                 }
 
-                TypeVariance.OUT, TypeVariance.IN -> {
-                    if (
-                        conf.intersectionTypesInContravariantPositions &&
-                        effectiveVariance == TypeVariance.IN &&
-                        argumentType.typeConstructor().isIntersection()
-                    ) {
-                        val argumentTypeConstructor = argumentType.typeConstructor()
-                        if (argumentTypeConstructor.isIntersection() && isIntersectionTypeEffectivelyNothing(
-                                argumentTypeConstructor as IntersectionTypeConstructorMarker
-                            )
-                        ) {
-                            newArguments[index] = createStarProjection(parameter)
-                            continue@loop
-                        }
-                    }
-
-                    /**
-                     * Out<Foo> <: Out<superType(Foo)>
-                     * Inv<out Foo> <: Inv<out superType(Foo)>
-
-                     * In<Foo> <: In<subType(Foo)>
-                     * Inv<in Foo> <: Inv<in subType(Foo)>
-                     */
-                    val approximatedArgument = if (isApproximateDirectionToSuper(effectiveVariance, toSuper)) {
-                        val approximatedType = approximateToSuperType(argumentType, conf, depth)
-                        if (conf.intersection == TypeApproximatorConfiguration.IntersectionStrategy.TO_UPPER_BOUND_IF_SUPERTYPE
-                            && argumentType.typeConstructor().isIntersection()
-                            && parameter.getUpperBounds().all { AbstractTypeChecker.isSubtypeOf(ctx, argumentType, it) }
-                        ) {
-                            val intersectedUpperBounds = intersectTypes(parameter.getUpperBounds())
-                            if (approximatedType == null
-                                || !AbstractTypeChecker.isSubtypeOf(ctx, approximatedType, intersectedUpperBounds)
-                            ) {
-                                intersectedUpperBounds
-                            } else {
-                                approximatedType
-                            }
-                        } else {
-                            approximatedType ?: continue@loop
-                        }
-                    } else {
-                        approximateToSubType(argumentType, conf, depth) ?: continue@loop
-                    }
-
-                    if (
-                        conf.intersection != TypeApproximatorConfiguration.IntersectionStrategy.ALLOWED &&
-                        effectiveVariance == TypeVariance.OUT &&
-                        argumentType.typeConstructor().isIntersection()
-                    ) {
-                        var shouldReplaceWithStar = false
-                        for (upperBoundIndex in 0 until parameter.upperBoundCount()) {
-                            if (!AbstractTypeChecker.isSubtypeOf(
-                                    ctx,
-                                    approximatedArgument,
-                                    parameter.getUpperBound(upperBoundIndex)
-                                )
-                            ) {
-                                shouldReplaceWithStar = true
-                                break
-                            }
-                        }
-                        if (shouldReplaceWithStar) {
-                            newArguments[index] = createStarProjection(parameter)
-                            continue@loop
-                        }
-                    }
-
-                    if (parameter.getVariance() == TypeVariance.INV) {
-                        newArguments[index] = createTypeArgument(approximatedArgument, effectiveVariance)
-                    } else {
-                        newArguments[index] = approximatedArgument.asTypeArgument()
-                    }
-                }
 
                 TypeVariance.INV -> {
                     if (!toSuper) {
@@ -645,7 +557,7 @@ abstract class AbstractTypeApproximator(
                     if (argumentType.typeConstructor().isCapturedTypeConstructor()) {
                         val subType = approximateToSubType(argumentType, conf, depth) ?: continue@loop
                         if (shouldUseSubTypeForCapturedArgument(subType, argumentType, conf, depth)) {
-                            newArguments[index] = createTypeArgument(subType, TypeVariance.IN)
+                            newArguments[index] = createTypeArgument(subType, TypeVariance.INV)
                             continue@loop
                         }
                     }
@@ -664,7 +576,7 @@ abstract class AbstractTypeApproximator(
                             approximateToSubType(argumentType, conf, depth)
                                 ?: continue@loop // seems like this is never null
                         if (!approximatedSubType.isTrivialSub()) {
-                            newArguments[index] = createTypeArgument(approximatedSubType, TypeVariance.IN)
+                            newArguments[index] = createTypeArgument(approximatedSubType, TypeVariance.INV)
                             continue@loop
                         }
                     }
@@ -672,7 +584,7 @@ abstract class AbstractTypeApproximator(
                     if (AbstractTypeChecker.equalTypes(this, argumentType, approximatedSuperType)) {
                         newArguments[index] = approximatedSuperType.asTypeArgument()
                     } else {
-                        newArguments[index] = createTypeArgument(approximatedSuperType, TypeVariance.OUT)
+                        newArguments[index] = createTypeArgument(approximatedSuperType, TypeVariance.INV)
                     }
                 }
             }

@@ -28,7 +28,7 @@ fun CallableDescriptor.substituteAndApproximateTypes(
                 typeApproximator?.approximateTo(
                     substitutedType,
                     TypeApproximatorConfiguration.FinalApproximationAfterResolutionAndInference,
-                    position != Variance.IN_VARIANCE || !positionDependentApproximation
+                      !positionDependentApproximation
                 ) ?: substitutedType
             }
     }

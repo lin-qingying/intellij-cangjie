@@ -17,15 +17,11 @@ public abstract class TypeProjectionBase implements TypeProjection {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof TypeProjection)) return false;
+        if (!(o instanceof TypeProjection that)) return false;
 
-        TypeProjection that = (TypeProjection) o;
 
-        if (isStarProjection() != that.isStarProjection()) return false;
         if (getProjectionKind() != that.getProjectionKind()) return false;
-        if (!getType().equals(that.getType())) return false;
-
-        return true;
+        return getType().equals(that.getType());
     }
 
     @Override
@@ -34,7 +30,7 @@ public abstract class TypeProjectionBase implements TypeProjection {
         if (TypeUtils.noExpectedType(getType())) {
             result = 31 * result +19;
         } else {
-            result = 31 * result + (isStarProjection() ? 17 : getType().hashCode());
+            result = 31 * result + ( getType().hashCode());
         }
         return result;
     }

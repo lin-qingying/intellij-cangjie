@@ -97,7 +97,7 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
             PropertyDescriptor substitutedPropertyDescriptor,
             ReceiverParameterDescriptor receiverParameterDescriptor
     ) {
-        CangJieType substitutedType = substitutor.substitute(receiverParameterDescriptor.getType(), Variance.IN_VARIANCE);
+        CangJieType substitutedType = substitutor.substitute(receiverParameterDescriptor.getType(), Variance.INVARIANT);
         if (substitutedType == null) return null;
         return new ReceiverParameterDescriptorImpl(
                 substitutedPropertyDescriptor,
@@ -111,7 +111,7 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
             PropertyDescriptor substitutedPropertyDescriptor,
             ReceiverParameterDescriptor receiverParameterDescriptor
     ) {
-        CangJieType substitutedType = substitutor.substitute(receiverParameterDescriptor.getType(), Variance.IN_VARIANCE);
+        CangJieType substitutedType = substitutor.substitute(receiverParameterDescriptor.getType(), Variance.INVARIANT);
         if (substitutedType == null) return null;
         return new ReceiverParameterDescriptorImpl(
                 substitutedPropertyDescriptor,
@@ -322,15 +322,9 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
         );
 
         CangJieType originalOutType = copyConfiguration.returnType;
-        CangJieType outType = substitutor.substitute(originalOutType, Variance.OUT_VARIANCE);
+        CangJieType outType = substitutor.substitute(originalOutType, Variance.INVARIANT);
         if (outType == null) {
             return null; // TODO : tell the user that the property was projected out
-        }
-
-        CangJieType inType = substitutor.substitute(originalOutType, Variance.IN_VARIANCE);
-
-        if (inType != null) {
-            substitutedDescriptor.setInType(inType);
         }
 
         ReceiverParameterDescriptor substitutedDispatchReceiver;

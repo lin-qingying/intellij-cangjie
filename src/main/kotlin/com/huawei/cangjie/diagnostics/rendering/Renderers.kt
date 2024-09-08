@@ -31,6 +31,17 @@ object Renderers {
     val RENDER_TYPE = SmartTypeRenderer(DescriptorRenderer.FQ_NAMES_IN_TYPES.withOptions {
         parameterNamesInFunctionalTypes = false
     })
+
+    @JvmField
+    val RENDER_COLLECTION_OF_TYPES =     Renderer  { types :List<CangJieType>->
+
+        types.joinToString(", ", "{ ", " }") { type ->
+
+            RENDER_TYPE.render(type,            RenderingContext.of(type))
+        }
+
+
+    }
     @JvmField
     val RENDER_TYPE_STATMENT  = Renderer { classOrObject: CjTypeStatement ->
         val name = classOrObject.name?.let { " ${it.wrapIntoQuotes()}" } ?: ""

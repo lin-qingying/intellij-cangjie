@@ -30,6 +30,7 @@ fun CangJieType.replaceAnnotations(newAnnotations: Annotations): CangJieType {
     if (annotations.isEmpty() && newAnnotations.isEmpty()) return this
     return unwrap().replaceAttributes(attributes.replaceAnnotations(newAnnotations))
 }
+
 fun CangJieType.unCapture(): CangJieType = unwrap().unCapture()
 
 fun CangJieType.unwrapEnhancement(): CangJieType = getEnhancement() ?: this
@@ -129,9 +130,8 @@ private fun CangJieType.approximateNonDynamicFlexibleTypes(
 fun CangJieType.isTypeParameter(): Boolean = TypeUtils.isTypeParameter(this)
 
 fun TypeProjection.substitute(doSubstitute: (CangJieType) -> CangJieType): TypeProjection {
-    return if (isStarProjection)
-        this
-    else TypeProjectionImpl(projectionKind, doSubstitute(type))
+
+     return TypeProjectionImpl(projectionKind, doSubstitute(type))
 }
 
 fun CangJieType.makeOptional() = TypeUtils.makeOptional(this)
@@ -172,7 +172,7 @@ fun FlexibleType.unCapture(): FlexibleType {
 
 fun unCaptureProjection(projection: TypeProjection): TypeProjection {
     val unCapturedProjection = (projection.type.constructor as? NewCapturedTypeConstructor)?.projection ?: projection
-    if (unCapturedProjection.isStarProjection || unCapturedProjection.type is ErrorType) return unCapturedProjection
+    if (  unCapturedProjection.type is ErrorType) return unCapturedProjection
 
     val newArguments = unCapturedProjection.type.arguments.map(::unCaptureProjection)
     return TypeProjectionImpl(
@@ -263,7 +263,7 @@ private fun CangJieType.containsSelfTypeParameter(
         val typeParameter = typeParameters?.getOrNull(i)
         val isTypeParameterVisited =
             typeParameter != null && visitedTypeParameters != null && typeParameter in visitedTypeParameters
-        if (isTypeParameterVisited || argument.isStarProjection) return@any false
+        if (isTypeParameterVisited  ) return@any false
         argument.type.containsSelfTypeParameter(baseConstructor, visitedTypeParameters)
     }
 }
@@ -309,7 +309,7 @@ fun isUnresolvedType(type: CangJieType): Boolean {
 fun CangJieType.isGenericArrayOfTypeParameter(): Boolean {
     if (!CangJieBuiltIns.isArray(this)) return false
     val argument0 = arguments[0]
-    if (argument0.isStarProjection) return false
+
     val argument0type = argument0.type
     return argument0type.isTypeParameter() ||
             argument0type.isGenericArrayOfTypeParameter()
@@ -464,7 +464,7 @@ object TypeUtils {
         while (i < parametersSize) {
             val parameterDescriptor: TypeParameterDescriptor = parameters[i]
             val typeProjection: TypeProjection = arguments[i]
-            if (typeProjection.isStarProjection()) return true
+
 
             val projectionKind: Variance = typeProjection.getProjectionKind()
             val argument: CangJieType = typeProjection.getType()
@@ -480,49 +480,10 @@ object TypeUtils {
                         return true
                     }
 
-                    Variance.IN_VARIANCE -> if (lowerThanBound(
-                            typeChecker,
-                            argument,
-                            parameterDescriptor
-                        )
-                    ) {
-                        return true
-                    }
 
-                    Variance.OUT_VARIANCE -> if (canHaveSubtypes(typeChecker, argument)) {
-                        return true
-                    }
                 }
 
-                Variance.IN_VARIANCE -> if (projectionKind != Variance.OUT_VARIANCE) {
-                    if (lowerThanBound(
-                            typeChecker,
-                            argument,
-                            parameterDescriptor
-                        )
-                    ) {
-                        return true
-                    }
-                } else {
-                    if (canHaveSubtypes(typeChecker, argument)) {
-                        return true
-                    }
-                }
 
-                Variance.OUT_VARIANCE -> if (projectionKind != Variance.IN_VARIANCE) {
-                    if (canHaveSubtypes(typeChecker, argument)) {
-                        return true
-                    }
-                } else {
-                    if (lowerThanBound(
-                            typeChecker,
-                            argument,
-                            parameterDescriptor
-                        )
-                    ) {
-                        return true
-                    }
-                }
             }
             i++
         }
@@ -703,10 +664,6 @@ object TypeUtils {
         return makeOptionalAsSpecified(type, false)
     }
 
-    @JvmStatic
-    fun makeStarProjection(parameterDescriptor: TypeParameterDescriptor): TypeProjection {
-        return StarProjectionImpl(parameterDescriptor)
-    }
 
     @JvmStatic
     fun makeOptionalAsSpecified(
@@ -844,7 +801,7 @@ object TypeUtils {
 //        }
 
         for (projection in type.arguments) {
-            if (projection.isStarProjection()) continue
+
             if (contains(projection.getType(), isSpecialType, visited)) return true
         }
         return false
@@ -1017,4 +974,16 @@ fun classFqNameEquals(
     )
 
 }
-fun CangJieType.isSubtypeOf(superType: CangJieType): Boolean = CangJieTypeChecker.DEFAULT.isSubtypeOf(this, superType)
+
+fun CangJieType.isSubtypeOf(superType: CangJieType): Boolean = DEFAULT.isSubtypeOf(this, superType)
+
+
+//获取类型的classkind
+val CangJieType.classKind: ClassKind
+    get() {
+        return when (val descriptor = this.constructor.declarationDescriptor) {
+            is ClassDescriptor -> descriptor.kind
+            else -> error("not a class: $this")
+        }
+
+    }

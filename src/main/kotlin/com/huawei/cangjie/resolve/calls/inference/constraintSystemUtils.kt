@@ -30,7 +30,7 @@ internal fun CangJieType.getNestedArguments(): List<TypeProjection> {
 
     while (!stack.isEmpty()) {
         val typeProjection = stack.pop()
-        if (typeProjection.isStarProjection) continue
+
 
         result.add(typeProjection)
 

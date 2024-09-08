@@ -83,17 +83,19 @@ class IntegerLiteralTypeConstructor : TypeConstructor {
         }
 
         fun addSignedPossibleTypes() {
-            checkBoundsAndAddPossibleType(value, builtIns.int32Type)
             possibleTypes.add(builtIns.int64Type)
-            checkBoundsAndAddPossibleType(value, builtIns.int8Type)
+            checkBoundsAndAddPossibleType(value, builtIns.int32Type)
             checkBoundsAndAddPossibleType(value, builtIns.int16Type)
+            checkBoundsAndAddPossibleType(value, builtIns.int8Type)
         }
 
         fun addUnsignedPossibleTypes() {
-            checkBoundsAndAddPossibleType(value, module.uInt32Type)
             possibleTypes.add(module.uInt64Type)
-            checkBoundsAndAddPossibleType(value, module.uInt8Type)
+            checkBoundsAndAddPossibleType(value, module.uInt32Type)
+
             checkBoundsAndAddPossibleType(value, module.uInt16Type)
+            checkBoundsAndAddPossibleType(value, module.uInt8Type)
+
         }
 
         val isUnsigned = parameters.isUnsignedNumberLiteral
@@ -131,8 +133,8 @@ class IntegerLiteralTypeConstructor : TypeConstructor {
 
     private val supertypes: List<CangJieType> by lazy {
 //        根据标准库std.core中声明的扩展，所以基本类型一定有Any类型
-        listOf(builtIns.anyType)
-
+//        listOf(builtIns.anyType)
+        emptyList()
     }
 
     fun getApproximatedType(): CangJieType = when {
@@ -153,8 +155,13 @@ class IntegerLiteralTypeConstructor : TypeConstructor {
     override fun getParameters(): List<TypeParameterDescriptor> = emptyList()
 
     override fun getSupertypes(): Collection<CangJieType> = supertypes
+    override fun getExtendSupertypes(extendId: String?): Collection<CangJieType> {
+        return getApproximatedType().extendSupertypes
+    }
 
-//    override fun isFinal(): Boolean = true
+    private val CangJieType.extendSupertypes: Collection<CangJieType>
+        get() = constructor.getExtendSupertypes(null)
+    override fun isFinal(): Boolean = true
 
     override fun isDenotable(): Boolean = false
 

@@ -813,12 +813,10 @@ internal class DescriptorRendererImpl(
 
     private fun StringBuilder.appendTypeProjections(typeProjections: List<TypeProjection>) {
         typeProjections.joinTo(this, ", ") {
-            if (it.isStarProjection) {
-                "*"
-            } else {
+
                 val type = renderType(it.type)
                 if (it.projectionKind == Variance.INVARIANT) type else "${it.projectionKind} $type"
-            }
+
         }
     }
 

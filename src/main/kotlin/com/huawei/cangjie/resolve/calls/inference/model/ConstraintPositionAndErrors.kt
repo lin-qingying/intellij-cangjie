@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.calls.inference.model
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.tower.CandidateApplicability
+import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.model.CangJieTypeMarker
 import com.huawei.cangjie.types.model.TypeVariableMarker
 
@@ -128,9 +129,20 @@ open class NotEnoughInformationForTypeParameter<T>(
     val resolvedAtom: T,
     val couldBeResolvedWithUnrestrictedBuilderInference: Boolean
 ) : ConstraintSystemError(CandidateApplicability.INAPPLICABLE)
+
+class MultipleMinimalCommonSupertypes(
+    val typeVariable: TypeVariableMarker,
+    val candidates: List<CangJieType>
+) : ConstraintSystemError(CandidateApplicability.INAPPLICABLE) {
+
+    override fun toString(): String {
+        return "Multiple minimal common supertypes found for $typeVariable: ${candidates.joinToString(", ")}"
+    }
+}
 class InferredIntoDeclaredUpperBounds(val typeVariable: TypeVariableMarker) : ConstraintSystemError(
     CandidateApplicability.RESOLVED
 )
+
 abstract class BuilderInferenceSubstitutionConstraintPosition<L>(
     private val builderInferenceLambda: L,
     val initialConstraint: InitialConstraint,

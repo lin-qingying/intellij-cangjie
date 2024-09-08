@@ -78,6 +78,7 @@ abstract class ResolverForProject<M : ModuleInfo> {
     abstract fun resolverForModuleDescriptor(descriptor: ModuleDescriptor): ResolverForModule
 
     abstract fun diagnoseUnknownModuleInfo(infos: List<ModuleInfo>): Nothing
+    override fun toString() = name
 
     abstract fun tryGetResolverForModule(moduleInfo: M): ResolverForModule?
 companion object{

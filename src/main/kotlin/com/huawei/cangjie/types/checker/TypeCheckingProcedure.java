@@ -51,15 +51,10 @@ public class TypeCheckingProcedure {
         return getEffectiveProjectionKind(typeParameter.getVariance(), typeArgument.getProjectionKind());
     }
 
-    @NotNull
-    private static CangJieType getInType(@NotNull TypeParameterDescriptor parameter, @NotNull TypeProjection argument) {
-        boolean isOutProjected = argument.getProjectionKind() ==Variance. OUT_VARIANCE || parameter.getVariance() ==Variance.  OUT_VARIANCE;
-        return isOutProjected ? DescriptorUtilsKt.getBuiltIns(parameter).getNothingType() : argument.getType();
-    }
+
     @NotNull
     private static CangJieType getOutType(@NotNull TypeParameterDescriptor parameter, @NotNull TypeProjection argument) {
-        boolean isInProjected = argument.getProjectionKind() == Variance. IN_VARIANCE || parameter.getVariance() == Variance. IN_VARIANCE;
-        return isInProjected ? DescriptorUtilsKt.getBuiltIns(parameter).getAnyType() : argument.getType();
+               return   DescriptorUtilsKt.getBuiltIns(parameter).getAnyType()  ;
     }
 
     public boolean isSubtypeOf(@NotNull CangJieType subtype, @NotNull CangJieType supertype) {
@@ -119,9 +114,7 @@ public class TypeCheckingProcedure {
         for (int i = 0; i < type1Arguments.size(); i++) {
             TypeProjection typeProjection1 = type1Arguments.get(i);
             TypeProjection typeProjection2 = type2Arguments.get(i);
-            if (typeProjection1.isStarProjection() && typeProjection2.isStarProjection()) {
-                continue;
-            }
+
             TypeParameterDescriptor typeParameter1 = constructor1.getParameters().get(i);
             TypeParameterDescriptor typeParameter2 = constructor2.getParameters().get(i);
 
@@ -199,7 +192,7 @@ public class TypeCheckingProcedure {
             TypeProjection superArgument = superArguments.get(i);
             TypeProjection subArgument = subArguments.get(i);
 
-            if (superArgument.isStarProjection()) continue;
+
 
             if (capture(subArgument, superArgument, parameter)) continue;
 
@@ -214,14 +207,8 @@ public class TypeCheckingProcedure {
             CangJieType subOut = getOutType(parameter, subArgument);
             if (!constraints.assertSubtype(subOut, superOut, this)) return false;
 
-            CangJieType superIn = getInType(parameter, superArgument);
-            CangJieType subIn = getInType(parameter, subArgument);
 
-            if (superArgument.getProjectionKind() != Variance.OUT_VARIANCE) {
-                if (!constraints.assertSubtype(superIn, subIn, this)) return false;
-            } else {
-                assert CangJieBuiltIns.isNothing(superIn) : "In component must be Nothing for out-projection";
-            }
+
         }
         return true;
     }

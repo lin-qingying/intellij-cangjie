@@ -826,7 +826,23 @@ class DiagnosticReporterByTrackingStrategy(
                     )
                 }
             }
-//
+
+
+            is MultipleMinimalCommonSupertypes -> {
+                val psiCall = psiCangJieCall.psiCall
+                val expression = if (psiCall is CallTransformer.CallForImplicitInvoke) {
+                    psiCall.outerCall.calleeExpression
+                } else {
+                    psiCall.calleeExpression?.takeIf { it.isPhysical } ?: psiCall.callElement
+                } ?: return
+
+                trace.reportDiagnosticOnce(
+                    TYPE_MISMATCH_MULTIPLE_SUPERTYPES.on(
+                        expression,
+                        error.candidates
+                    )
+                )
+            }
             is InferredIntoDeclaredUpperBounds -> {
                 val psiCall = psiCangJieCall.psiCall
                 val expression = if (psiCall is CallTransformer.CallForImplicitInvoke) {

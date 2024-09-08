@@ -13,6 +13,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
 import  com.huawei.cangjie.lexer.CjTokens;
+
+import java.util.List;
+
 public class CjPsiUtil {
     public interface CjExpressionWrapper {
         CjExpression getBaseExpression();
@@ -33,6 +36,12 @@ public class CjPsiUtil {
         PsiElement parent = expression.getParent();
         if (!(parent instanceof CjElement)) return true;
         return !areParenthesesNecessary(innerExpression, expression, (CjElement) parent);
+    }
+    @Nullable
+    public static CjExpression getLastStatementInABlock(@Nullable CjBlockExpression blockExpression) {
+        if (blockExpression == null) return null;
+        List<CjExpression> statements = blockExpression.getStatements();
+        return statements.isEmpty() ? null : statements.get(statements.size() - 1);
     }
 
     @Nullable

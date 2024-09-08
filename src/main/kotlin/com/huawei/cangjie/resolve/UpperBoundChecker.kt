@@ -114,7 +114,7 @@ open class UpperBoundChecker(
                 UPPER_BOUND_VIOLATED_IN_TYPEALIAS_EXPANSION
 
         for (i in arguments.indices) {
-            if (arguments[i].isStarProjection) continue
+
             val argumentType = arguments[i].type
 
             checkBoundsForAbbreviatedSupertype(argumentType, trace, typeReference, reportWarning)

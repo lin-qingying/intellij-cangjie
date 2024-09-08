@@ -2,6 +2,7 @@ package com.huawei.cangjie.psi
 
 
 import com.huawei.cangjie.lang.CangJieLanguage
+import com.huawei.cangjie.psi.psiUtil.deleteSemicolon
 import com.huawei.cangjie.psi.psiUtil.parentSubstitute
 import com.intellij.extapi.psi.ASTWrapperPsiElement
 import com.intellij.lang.ASTNode

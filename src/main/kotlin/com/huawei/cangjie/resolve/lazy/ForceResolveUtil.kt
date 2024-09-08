@@ -90,9 +90,9 @@ object ForceResolveUtil {
         } else {
             forceResolveAllContents(type.constructor)
             for (projection in type.arguments) {
-                if (!projection.isStarProjection()) {
+
                     forceResolveAllContents(projection.getType())
-                }
+
             }
         }
         return type

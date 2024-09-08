@@ -344,6 +344,9 @@
                 qualifiedName="com.huawei.cangjie.classImportFilter"
                 interface="com.huawei.cangjie.ide.util.ClassImportFilter"
                 dynamic="true"/>
+        <extensionPoint qualifiedName="com.huawei.cangjie.simpleNameReferenceExtension"
+                        interface="com.huawei.cangjie.references.SimpleNameReferenceExtension"
+                        area="IDEA_PROJECT" dynamic="true"/>
     </extensionPoints>
 
 

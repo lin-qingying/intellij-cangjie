@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
+import java.util.List;
 
 import static com.huawei.cangjie.descriptors.PositioningStrategies.*;
 import static com.huawei.cangjie.diagnostics.Severity.*;
@@ -113,6 +114,7 @@ public interface Errors {
             DiagnosticFactory3.create(ERROR, CALL_ELEMENT);
     DiagnosticFactory2<CjExpression, CangJieType, CangJieType> TYPE_MISMATCH_WARNING = DiagnosticFactory2.create(WARNING);
     DiagnosticFactory2<CjExpression, CangJieType, CangJieType> TYPE_MISMATCH = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory1<PsiElement, List<CangJieType>> TYPE_MISMATCH_MULTIPLE_SUPERTYPES = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<CjNamedDeclaration, TypeParameterDescriptor> CONFLICTING_UPPER_BOUNDS =
             DiagnosticFactory1.create(ERROR, DECLARATION_NAME);
     DiagnosticFactory1<CjElement, CangJieType> TYPE_MISMATCH_DUE_TO_EQUALS_LAMBDA_IN_FUN = DiagnosticFactory1.create(ERROR);

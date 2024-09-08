@@ -2,12 +2,16 @@ package com.huawei.cangjie.resolve.calls.smartcasts
 
 import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.SetMultimap
+import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.DefinitelyNotNullType
 import com.huawei.cangjie.types.checker.NewCapturedTypeConstructor
+import com.huawei.cangjie.types.isDefinitelyNotNullType
 import com.huawei.cangjie.types.util.contains
 import com.huawei.cangjie.types.util.isSubtypeOf
+import com.huawei.cangjie.types.util.makeNotNullable
 import com.huawei.cangjie.utils.*
 import javaslang.Tuple2
 import java.util.LinkedHashSet
@@ -180,6 +184,70 @@ internal class DataFlowInfoImpl(
 //        return enrichedTypes
     }
 
+    override fun equate(
+        a: DataFlowValue,
+        b: DataFlowValue,
+        identityEquals: Boolean,
+        languageVersionSettings: LanguageVersionSettings
+    ): DataFlowInfo= equateOrDisequate(a, b, languageVersionSettings, identityEquals, isEquate = true)
+
+    override fun or(other: DataFlowInfo): DataFlowInfo {
+        if (other === DataFlowInfo.EMPTY) return DataFlowInfo.EMPTY
+        if (this === DataFlowInfo.EMPTY) return DataFlowInfo.EMPTY
+        if (this === other) return this
+
+        assert(other is DataFlowInfoImpl) { "Unknown DataFlowInfo type: " + other }
+
+        val resultNullabilityInfo = hashMapOf<DataFlowValue, Nullability>()
+        for ((key, otherFlags) in other.completeNullabilityInfo) {
+            val thisFlags = getCollectedNullability(key)
+            resultNullabilityInfo.put(key, thisFlags.or(otherFlags))
+        }
+
+        val myTypeInfo = completeTypeInfo
+        val otherTypeInfo = other.completeTypeInfo
+        val newTypeInfoBuilder = newTypeInfoBuilder()
+
+        for (key in myTypeInfo.keySet()) {
+            if (key in otherTypeInfo.keySet()) {
+                newTypeInfoBuilder.putAll(
+                    key,
+                    myTypeInfo[key].getOrNull().intersectConsideringNothing(otherTypeInfo[key].getOrNull())
+                        ?: ImmutableLinkedHashSet.empty()
+                )
+            }
+        }
+        return create(null, resultNullabilityInfo, newTypeInfoBuilder)
+    }
+    private fun ImmutableSet<CangJieType>?.containsNothing() = this?.any { CangJieBuiltIns.isNothing(it) } ?: false
+
+    private fun ImmutableSet<CangJieType>?.intersectConsideringNothing(other: ImmutableSet<CangJieType>?) =
+        when {
+            other.containsNothing() -> this
+            this.containsNothing() -> other
+            else -> this.intersect(other)
+        }
+    private fun ImmutableSet<CangJieType>?.intersect(other: ImmutableSet<CangJieType>?): ImmutableSet<CangJieType> =
+        when {
+            this == null -> other ?: ImmutableLinkedHashSet.empty()
+            other == null -> this
+            else -> {
+                // Here we cover the case when "this" has T?!! type and "other" has T
+                val thisApproximated = approximateDefinitelyNotNullableTypes(this)
+                val otherApproximated = approximateDefinitelyNotNullableTypes(other)
+                if (thisApproximated == null && otherApproximated == null ||
+                    thisApproximated != null && otherApproximated != null
+                ) {
+                    this.intersect(other)
+                } else {
+                    (thisApproximated ?: this).intersect(otherApproximated ?: other)
+                }
+            }
+        }
+    private fun approximateDefinitelyNotNullableTypes(set: ImmutableSet<CangJieType>): ImmutableSet<CangJieType>? {
+        if (!set.any { it.isDefinitelyNotNullType }) return null
+        return set.map { if (it is DefinitelyNotNullType) it.original.makeNotNullable() else it }
+    }
     override fun and(other: DataFlowInfo): DataFlowInfo {
         if (other === DataFlowInfo.EMPTY) return this
         if (this === DataFlowInfo.EMPTY) return other

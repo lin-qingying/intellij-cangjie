@@ -159,7 +159,7 @@ object CommonSupertypes {
         while (iterator.hasNext()) {
             val type: CangJieType = checkNotNull(iterator.next())
             assert(!type.isFlexible()) { "Flexible type $type passed to commonSuperTypeForInflexible" }
-            if (CangJieBuiltIns.isNothing (type)) {
+            if (CangJieBuiltIns.isNothing(type)) {
                 iterator.remove()
             }
             if (type.isError) {
@@ -296,10 +296,7 @@ object CommonSupertypes {
 
     private fun depth(type: CangJieType): Int {
         return 1 + maxDepth(type.arguments.map { projection ->
-            if (projection.isStarProjection()) {
-                // any type is good enough for depth here
-                return@map type.constructor.getBuiltIns().anyType
-            }
+
             projection.getType()
         })
     }
@@ -314,46 +311,28 @@ object CommonSupertypes {
             return singleBestProjection
         }
 
-        if (recursionDepth >= maxDepth) {
-            // If recursion is too deep, we cut it by taking <out Any?> as an ultimate supertype argument
-            // Example: class A : Base<A>; class B : Base<B>, commonSuperType(A, B) = Base<*>
-            return TypeUtils.makeStarProjection(parameterDescriptor)
-        }
 
 //        var ins: MutableSet<CangJieType?>? = LinkedHashSet<CangJieType?>()
-//        var outs: MutableSet<CangJieType?>? = LinkedHashSet<CangJieType?>()
+        var outs: MutableSet<CangJieType> = LinkedHashSet<CangJieType>()
 //
-//        val variance = parameterDescriptor.variance
-//        when (variance) {
-//            INVARIANT -> {}
-//            IN_VARIANCE -> outs = null
-//            OUT_VARIANCE -> ins = null
-//        }
-//        for (projection in typeProjections) {
-//            val projectionKind = projection.projectionKind
-//            if (projectionKind.allowsInPosition) {
-//                ins?.add(projection.type)
-//            } else {
-//                ins = null
-//            }
-//
-//            if (projectionKind.allowsOutPosition) {
-//                outs?.add(projection.type)
-//            } else {
-//                outs = null
-//            }
-//        }
+        val variance = parameterDescriptor.variance
+        when (variance) {
+            Variance.INVARIANT -> {}
+
+        }
+        for (projection in typeProjections) {
+
+
+            outs.add(projection.type)
+
+        }
 //
 //        if (outs != null) {
 //            assert(!outs.isEmpty()) { "Out projections is empty for parameter $parameterDescriptor, type projections $typeProjections" }
-//            val projectionKind = if (variance === OUT_VARIANCE) Variance.INVARIANT else OUT_VARIANCE
-//            val superType: CangJieType = findCommonSupertype(outs, recursionDepth + 1, maxDepth)
-//            for (upperBound in parameterDescriptor.upperBounds) {
-//                if (!TypeUtilsKt.isSubtypeOf(superType, upperBound)) {
-//                    return StarProjectionImpl(parameterDescriptor)
-//                }
-//            }
-//            return TypeProjectionImpl(projectionKind, superType)
+        val projectionKind = Variance.INVARIANT
+        val superType: CangJieType = findCommonSupertype(outs, recursionDepth + 1, maxDepth)
+
+        return TypeProjectionImpl(projectionKind, superType)
 //        }
 //        if (ins != null) {
 //            assert(!ins.isEmpty()) { "In projections is empty for parameter $parameterDescriptor, type projections $typeProjections" }
@@ -365,7 +344,6 @@ object CommonSupertypes {
 //            return TypeUtils.makeStarProjection(parameterDescriptor)
 //        }
 
-        return TypeUtils.makeStarProjection(parameterDescriptor)
 
     }
 

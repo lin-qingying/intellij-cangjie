@@ -6,7 +6,7 @@ enum class ErrorTypeKind(val debugMessage: String, val isUnresolved: Boolean = f
     UNRESOLVED_TYPE("Unresolved type for %s", true),
     UNRESOLVED_TYPE_PARAMETER_TYPE("Unresolved type parameter type", true),
     UNRESOLVED_CLASS_TYPE("Unresolved class %s", true),
-    UNRESOLVED_JAVA_CLASS("Unresolved java class %s", true),
+
     UNRESOLVED_DECLARATION("Unresolved declaration %s", true),
     UNRESOLVED_KCLASS_CONSTANT_VALUE("Unresolved type for %s (arrayDimensions=%s)", true),
     UNRESOLVED_TYPE_ALIAS("Unresolved type alias %s"),
@@ -114,5 +114,8 @@ enum class ErrorTypeKind(val debugMessage: String, val isUnresolved: Boolean = f
 
     /* Other error types */
     TYPE_FOR_GENERATED_ERROR_EXPRESSION("Type for generated error expression"),
+
+
+    MULIT_SMALL_COMMON_SUPERTYPES("Error type for multiple small common supertype "),
     ;
 }

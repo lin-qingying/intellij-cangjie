@@ -12,12 +12,12 @@ interface CjReferenceMutateService {
     /**
      * See [com.intellij.psi.PsiReference.handleElementRename].
      */
-    fun handleElementRename(ktReference: CjReference, newElementName: String): PsiElement?
+    fun handleElementRename(cjReference: CjReference, newElementName: String): PsiElement?
 
     /**
      * See [com.intellij.psi.PsiReference.bindToElement].
      */
-    fun bindToElement(ktReference: CjReference, element: PsiElement): PsiElement
+    fun bindToElement(cjReference: CjReference, element: PsiElement): PsiElement
 
     fun bindToElement(simpleNameReference: CjSimpleNameReference, element: PsiElement, shorteningMode: CjSimpleNameReference.ShorteningMode): PsiElement
 

@@ -1,6 +1,7 @@
 package com.huawei.cangjie.references
 
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.psi.CjLabelReferenceExpression
@@ -22,6 +23,12 @@ class CjSimpleNameReference(expression: CjSimpleNameExpression) : CjSimpleRefere
     }
     fun bindToElement(element: PsiElement, shorteningMode: ShorteningMode = ShorteningMode.DELAYED_SHORTENING): PsiElement =
         getCjReferenceMutateService().bindToElement(this, element, shorteningMode)
+    fun bindToFqName(
+        fqName: FqName,
+        shorteningMode: ShorteningMode = ShorteningMode.DELAYED_SHORTENING,
+        targetElement: PsiElement? = null
+    ): PsiElement =
+        getCjReferenceMutateService().bindToFqName(this, fqName, shorteningMode, targetElement)
 
     override val resolvesByNames: Collection<Name>
         get() {

@@ -160,10 +160,10 @@ public abstract class AbstractTypeParameterDescriptor extends DeclarationDescrip
             return Collections.emptyList();
         }
 
-//        @Override
-//        public bool isFinal() {
-//            return false;
-//        }
+        @Override
+        public boolean isFinal() {
+            return false;
+        }
 
         @Override
         public boolean isDenotable() {

@@ -327,11 +327,9 @@ object AbstractTypeChecker {
 
             else -> { // at least 2 supertypes with same constructors. Such case is rare
                 val newArguments = ArgumentList(superConstructor.parametersCount())
-                var anyNonOutParameter = false
+
                 for (index in 0 until superConstructor.parametersCount()) {
-                    anyNonOutParameter =
-                        anyNonOutParameter || superConstructor.getParameter(index).getVariance() != TypeVariance.OUT
-                    if (anyNonOutParameter) continue
+
                     val allProjections = supertypesWithSameConstructor.map {
                         it.getArgumentOrNull(index)?.takeIf { it.getVariance() == TypeVariance.INV }?.getType()
                             ?: error("Incorrect type: $it, subType: $subType, superType: $superType")
@@ -342,7 +340,7 @@ object AbstractTypeChecker {
                     newArguments.add(intersection)
                 }
 
-                if (!anyNonOutParameter && state.isSubtypeForSameConstructor(newArguments, superType)) return true
+                if ( state.isSubtypeForSameConstructor(newArguments, superType)) return true
 
                 return state.runForkingPoint {
                     for (subTypeArguments in supertypesWithSameConstructor) {
@@ -374,7 +372,6 @@ object AbstractTypeChecker {
         for (index in 0 until parametersCount) {
             val superProjection = superType.getArgument(index) // todo error index
 
-            if (superProjection.isStarProjection()) continue // A<B> <: A<*>
 
             val superArgumentType = superProjection.getType()
             val subArgumentType = capturedSubArguments[index].let {
@@ -412,8 +409,7 @@ object AbstractTypeChecker {
             val correctArgument = runWithArgumentsSettings(subArgumentType) {
                 when (variance) {
                     TypeVariance.INV -> equalTypes(this, subArgumentType, superArgumentType)
-                    TypeVariance.OUT -> isSubtypeOf(this, subArgumentType, superArgumentType)
-                    TypeVariance.IN -> isSubtypeOf(this, superArgumentType, subArgumentType)
+
                 }
             }
             if (!correctArgument) return false
@@ -451,7 +447,7 @@ object AbstractTypeChecker {
         fun isCapturedIntegerLiteralType(type: SimpleTypeMarker): Boolean {
             if (type !is CapturedTypeMarker) return false
             val projection = type.typeConstructor().projection()
-            return !projection.isStarProjection() && projection.getType().upperBoundIfFlexible().isIntegerLiteralType()
+            return  projection.getType().upperBoundIfFlexible().isIntegerLiteralType()
         }
 
         fun isIntegerLiteralTypeOrCapturedOne(type: SimpleTypeMarker) =
@@ -488,7 +484,7 @@ object AbstractTypeChecker {
         val simpleSubArgumentType = subArgumentType.asSimpleType()
 
         if (simpleSubArgumentType !is CapturedTypeMarker || simpleSubArgumentType.isOldCapturedType()
-            || !simpleSubArgumentType.typeConstructor().projection().isStarProjection()
+
         ) return false
         // Only 'for subtyping' captured types are approximated before adding constraints (see ConstraintInjector.addNewIncorporatedConstraint)
         // that can lead to adding problematic constraints like UPPER(Nothing) given by CapturedType(*) <: TypeVariable(A)
@@ -810,7 +806,7 @@ object AbstractFlexibilityChecker {
 
         for (i in 0 until types.first().argumentsCount()) {
             val typeArgumentForOtherTypes = types.mapNotNull {
-                if (it.argumentsCount() > i && !it.getArgument(i).isStarProjection()) it.getArgument(i)
+                if (it.argumentsCount() > i  ) it.getArgument(i)
                     .getType() else null
             }
 

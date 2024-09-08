@@ -265,26 +265,9 @@ abstract class TypeCheckerStateForConstraintSystem(
             val typeMarker = subType.asSimpleType()?.asCapturedType() ?: return null
 
             val projection = typeMarker.typeConstructorProjection()
-            if (projection.isStarProjection()) return null
-            if (projection.getVariance() == TypeVariance.IN) {
-                val type = projection.getType().asSimpleType() ?: return null
-                if (isMyTypeVariable(type)) {
-                    simplifyLowerConstraint(type, superType)
-                    if (isMyTypeVariable(superType.asSimpleType() ?: return null)) {
-                        addLowerConstraint(superType.typeConstructor(), anyType())
-                    }
-                }
-                return null
-            }
 
-            return if (projection.getVariance() == TypeVariance.OUT) {
-                val type = projection.getType()
-                when {
-                    type is SimpleTypeMarker && isMyTypeVariable(type) -> type.asSimpleType()
-                    type is FlexibleTypeMarker && isMyTypeVariable(type.lowerBound()) -> type.asFlexibleType()?.lowerBound()
-                    else -> null
-                }
-            } else null
+return null
+
         }
 
     /**

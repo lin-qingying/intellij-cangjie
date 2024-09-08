@@ -54,9 +54,6 @@ object PositioningStrategies {
     fun projectionPosition(): PositioningStrategy<CjModifierListOwner> {
         return object : PositioningStrategy<CjModifierListOwner>() {
             override fun mark(element: CjModifierListOwner): List<TextRange> {
-                if (element is CjTypeProjection && element.projectionKind == CjProjectionKind.STAR) {
-                    return markElement(element)
-                }
 
 
 

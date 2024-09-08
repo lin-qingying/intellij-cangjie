@@ -224,6 +224,7 @@ private class SimpleTypeWithAttributes(
 
 }
 
+
 private class SimpleTypeImpl(
     override val constructor: TypeConstructor,
     override val arguments: List<TypeProjection>,

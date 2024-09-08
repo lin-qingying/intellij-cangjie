@@ -4,23 +4,63 @@ package com.huawei.cangjie.resolve
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.builtins.StandardNames.FqNames.fromByName
 import com.huawei.cangjie.builtins.UnsignedTypes
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.SpecialNames
+import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.resolve.DescriptorUtils.getContainingModule
 import com.huawei.cangjie.resolve.descriptorUtil.builtIns
-import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
-import com.huawei.cangjie.resolve.scopes.MemberScope
+import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
+import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.ErrorUtils.isError
 import com.huawei.cangjie.types.TypeConstructor
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.isError
 import com.huawei.cangjie.types.util.TypeUtils
+import com.intellij.psi.PsiElement
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
+val DeclarationDescriptor.isExtension: Boolean
+    get() = this is CallableDescriptor && extensionReceiverParameter != null
+fun DeclarationDescriptorWithVisibility.isVisible(
+    context: PsiElement,
+    receiverExpression: CjExpression?,
+    bindingContext: BindingContext,
+    resolutionFacade: ResolutionFacade
+): Boolean {
+    val resolutionScope = context.getResolutionScope(bindingContext, resolutionFacade)
+    val from = resolutionScope.ownerDescriptor
+    return isVisible(from, receiverExpression, bindingContext, resolutionScope, resolutionFacade.languageVersionSettings)
+}
+
+private fun DeclarationDescriptorWithVisibility.isVisible(
+    from: DeclarationDescriptor,
+    receiverExpression: CjExpression?,
+    bindingContext: BindingContext? = null,
+    resolutionScope: LexicalScope? = null,
+    languageVersionSettings: LanguageVersionSettings
+): Boolean {
+    if (DescriptorVisibilityUtils.isVisibleWithAnyReceiver(this, from, languageVersionSettings)) return true
+
+    if (bindingContext == null || resolutionScope == null) return false
+
+    // for extension, it makes no sense to check explicit receiver because we need dispatch receiver which is implicit in this case
+    if (receiverExpression != null && !isExtension) {
+        val receiverType = bindingContext.getType(receiverExpression) ?: return false
+        val explicitReceiver = ExpressionReceiver.create(receiverExpression, receiverType, bindingContext)
+        return DescriptorVisibilityUtils.isVisible(explicitReceiver, this, from, languageVersionSettings)
+    } else {
+        return resolutionScope.getImplicitReceiversHierarchy().any {
+            DescriptorVisibilityUtils.isVisible(it.value, this, from, languageVersionSettings)
+        }
+    }
+}
 
 object DescriptorUtils {
     @JvmStatic
@@ -474,3 +514,10 @@ val DeclarationDescriptor.isInsideInterface: Boolean
         val parent = containingDeclaration as? ClassDescriptor
         return parent != null && parent.kind.isInterface
     }
+@OptIn(ExperimentalContracts::class)
+fun DeclarationDescriptor.isSealed(): Boolean {
+    contract {
+        returns(true) implies (this@isSealed is ClassDescriptor)
+    }
+    return DescriptorUtils.isSealedClass(this)
+}

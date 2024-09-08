@@ -117,6 +117,7 @@ class FunctionClassDescriptor(
         override fun getDeclarationDescriptor() = this@FunctionClassDescriptor
         override fun isDenotable() = true
 
+
         override fun toString() = declarationDescriptor.toString()
 
         override val supertypeLoopChecker: SupertypeLoopChecker

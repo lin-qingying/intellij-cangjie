@@ -8,7 +8,8 @@ import com.intellij.psi.PsiElement
 abstract class CangJieSingleIntentionActionFactory : CangJieIntentionActionsFactory() {
     protected abstract fun createAction(diagnostic: Diagnostic): IntentionAction?
 
-    final override fun doCreateActions(diagnostic: Diagnostic): List<IntentionAction> = listOfNotNull(createAction(diagnostic))
+    final override fun doCreateActions(diagnostic: Diagnostic): List<IntentionAction> =
+        listOfNotNull(createAction(diagnostic))
 
     companion object {
         inline fun <reified PSI : PsiElement> createFromQuickFixesPsiBasedFactory(

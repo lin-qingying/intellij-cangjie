@@ -596,6 +596,8 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
     private fun DeclarationDescriptor?.classDescriptorFromTypeAlias(): DeclarationDescriptor? {
         return if (this is TypeAliasDescriptor) classDescriptor else this
     }
+    private fun resolveInIDEMode(path: List<QualifierPart>): Boolean =
+        path.size > 1 && path.first().name.asString() == ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE
 
     private fun resolveToPackageOrClassPrefix(
         path: List<QualifierPart>,
@@ -606,17 +608,17 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         position: QualifierPosition,
         isValue: ((CjSimpleNameExpression) -> Boolean)? = null
     ): Pair<DeclarationDescriptor?, Int> {
-//        if (resolveInIDEMode(path)) {
-//            return resolveToPackageOrClassPrefix(
-//                path.subList(1, path.size),
-//                moduleDescriptor,
-//                trace,
-//                shouldBeVisibleFrom,
-//                scopeForFirstPart = null,
-//                position = position,
-//                isValue = null
-//            ).let { it.first to it.second + 1 }
-//        }
+        if (resolveInIDEMode(path)) {
+            return resolveToPackageOrClassPrefix(
+                path.subList(1, path.size),
+                moduleDescriptor,
+                trace,
+                shouldBeVisibleFrom,
+                scopeForFirstPart = null,
+                position = position,
+                isValue = null
+            ).let { it.first to it.second + 1 }
+        }
 
         if (path.isEmpty()) {
             return Pair(moduleDescriptor.getPackage(FqName.ROOT), 0)

@@ -284,7 +284,7 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                 }
 
 
-                // step 2: analyze collected elements with resolve and decide which can be shortened now and which need descriptors to be imported before shortening
+                // step 2:分析收集的元素,决定哪些可以立即缩短，哪些需要在缩短之前导入描述符
                 val allElementsToAnalyze =
                     visitors.flatMap { visitor -> visitor.getElementsToAnalyze().map { it.element } }.toSet()
                 val bindingContext = allowResolveInDispatchThread {
@@ -299,7 +299,7 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                 processors.forEach { it.shortenElements(elementSetToUpdate = elementsToUse, options = options) }
             }
             var anyChange = false
-            // step 4: try to import descriptors needed to shorten other elements
+            // step 4: 尝试导入缩短其他元素所需的描述符
             val descriptorsToImport = runReadAction {
                 processors.flatMap { it.getDescriptorsToImport() }.toSet()
             }
@@ -574,19 +574,19 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
 
         override val collectElementsVisitor: CollectElementsVisitor<CjUserType> =
             object : CollectElementsVisitor<CjUserType>(elementFilter) {
-                override fun visitUserType(userType: CjUserType) {
-                    val filterResult = elementFilter(userType)
+                override fun visitUserType(type: CjUserType) {
+                    val filterResult = elementFilter(type)
                     if (filterResult == FilterResult.SKIP) return
 
-                    userType.typeArgumentList?.accept(this)
+                    type.typeArgumentList?.accept(this)
 
                     if (filterResult == FilterResult.PROCESS) {
-                        addQualifiedElementToAnalyze(userType)
+                        addQualifiedElementToAnalyze(type)
                         nextLevel()
                     }
 
                     // elements in qualifier must be under
-                    userType.qualifier?.accept(this)
+                    type.qualifier?.accept(this)
                     if (filterResult == FilterResult.PROCESS) {
                         prevLevel()
                     }

@@ -4,15 +4,13 @@ import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.resolve.calls.NewCommonSuperTypeCalculator
 import com.huawei.cangjie.resolve.calls.inference.ConstraintSystemBuilder
-import com.huawei.cangjie.resolve.calls.inference.extractTypeForGivenRecursiveTypeParameter
 import com.huawei.cangjie.resolve.calls.inference.model.*
 import com.huawei.cangjie.resolve.calls.inference.runTransaction
 import com.huawei.cangjie.types.AbstractTypeApproximator
 import com.huawei.cangjie.types.AbstractTypeChecker
 import com.huawei.cangjie.types.TypeApproximatorConfiguration
-
+import com.huawei.cangjie.types.error.ErrorType
 import com.huawei.cangjie.types.model.*
-
 
 
 class ResultTypeResolver(
@@ -29,41 +27,48 @@ class ResultTypeResolver(
 
     private val isTypeInferenceForSelfTypesSupported: Boolean
         get() = languageVersionSettings.supportsFeature(LanguageFeature.TypeInferenceOnCallsWithSelfTypes)
-
-    private fun Context.getDefaultTypeForSelfType(
-        constraints: List<Constraint>,
-        typeVariable: TypeVariableMarker
-    ): CangJieTypeMarker? {
-        val typeVariableConstructor = typeVariable.freshTypeConstructor() as TypeVariableTypeConstructorMarker
-        val typesForRecursiveTypeParameters = constraints.mapNotNull { constraint ->
-            if (constraint.position.from !is DeclaredUpperBoundConstraintPosition<*>) return@mapNotNull null
-            val typeParameter = typeVariableConstructor.typeParameter ?: return@mapNotNull null
-            extractTypeForGivenRecursiveTypeParameter(constraint.type, typeParameter)
-        }.takeIf { it.isNotEmpty() } ?: return null
-
-        return createCapturedStarProjectionForSelfType(typeVariableConstructor, typesForRecursiveTypeParameters)
-    }
+//
+//    private fun Context.getDefaultTypeForSelfType(
+//        constraints: List<Constraint>,
+//        typeVariable: TypeVariableMarker
+//    ): CangJieTypeMarker? {
+//        val typeVariableConstructor = typeVariable.freshTypeConstructor() as TypeVariableTypeConstructorMarker
+//        val typesForRecursiveTypeParameters = constraints.mapNotNull { constraint ->
+//            if (constraint.position.from !is DeclaredUpperBoundConstraintPosition<*>) return@mapNotNull null
+//            val typeParameter = typeVariableConstructor.typeParameter ?: return@mapNotNull null
+//            extractTypeForGivenRecursiveTypeParameter(constraint.type, typeParameter)
+//        }.takeIf { it.isNotEmpty() } ?: return null
+//
+//        return createCapturedStarProjectionForSelfType(typeVariableConstructor, typesForRecursiveTypeParameters)
+//    }
 
     private fun Context.getDefaultType(
         direction: TypeVariableDirectionCalculator.ResolveDirection,
         constraints: List<Constraint>,
         typeVariable: TypeVariableMarker
     ): CangJieTypeMarker {
-        if (isTypeInferenceForSelfTypesSupported) {
-            getDefaultTypeForSelfType(constraints, typeVariable)?.let { return it }
-        }
+//        if (isTypeInferenceForSelfTypesSupported) {
+//            getDefaultTypeForSelfType(constraints, typeVariable)?.let { return it }
+//        }
 
         return if (direction == TypeVariableDirectionCalculator.ResolveDirection.TO_SUBTYPE) nothingType() else anyType()
     }
 
-    fun findResultType(c: Context, variableWithConstraints: VariableWithConstraints, direction: TypeVariableDirectionCalculator.ResolveDirection): CangJieTypeMarker {
+    fun findResultType(
+        c: Context,
+        variableWithConstraints: VariableWithConstraints,
+        direction: TypeVariableDirectionCalculator.ResolveDirection
+    ): CangJieTypeMarker {
         findResultTypeOrNull(c, variableWithConstraints, direction)?.let { return it }
 
         // no proper constraints
         return c.getDefaultType(direction, variableWithConstraints.constraints, variableWithConstraints.typeVariable)
     }
 
-    private fun CangJieTypeMarker.approximateToSuperTypeOrSelf(c: Context, superTypeCandidate: CangJieTypeMarker?): CangJieTypeMarker {
+    private fun CangJieTypeMarker.approximateToSuperTypeOrSelf(
+        c: Context,
+        superTypeCandidate: CangJieTypeMarker?
+    ): CangJieTypeMarker {
         // In case we have an ILT as the subtype, we approximate it using the upper type as the expected type.
         // This is more precise than always approximating it to Int or UInt.
         // Note, we shouldn't have nested ILTs because they can only appear as a constraint on a type variable
@@ -75,11 +80,13 @@ class ResultTypeResolver(
             ) ?: this
         }
 
-        return typeApproximator.approximateToSuperType(this, TypeApproximatorConfiguration.InternalTypesApproximation) ?: this
+        return typeApproximator.approximateToSuperType(this, TypeApproximatorConfiguration.InternalTypesApproximation)
+            ?: this
     }
 
     private fun CangJieTypeMarker.approximateToSubTypeOrSelf(): CangJieTypeMarker {
-        return typeApproximator.approximateToSubType(this, TypeApproximatorConfiguration.InternalTypesApproximation) ?: this
+        return typeApproximator.approximateToSubType(this, TypeApproximatorConfiguration.InternalTypesApproximation)
+            ?: this
     }
 
     private val useImprovedCapturedTypeApproximation: Boolean =
@@ -93,7 +100,7 @@ class ResultTypeResolver(
         val resultTypeFromEqualConstraint = findResultIfThereIsEqualsConstraint(c, variableWithConstraints)
         if (resultTypeFromEqualConstraint != null) {
             with(c) {
-                if ( !resultTypeFromEqualConstraint.contains { type ->
+                if (!resultTypeFromEqualConstraint.contains { type ->
                         type.typeConstructor().isIntegerLiteralConstantTypeConstructor()
                     }
                 ) {
@@ -106,14 +113,19 @@ class ResultTypeResolver(
         val subType = c.findSubType(variableWithConstraints)
         val superType = c.findSuperType(variableWithConstraints)
 
-        val (preparedSubType, preparedSuperType) =    c.prepareSubAndSuperTypesLegacy(subType, superType, variableWithConstraints)
+        val (preparedSubType, preparedSuperType) = c.prepareSubAndSuperTypesLegacy(
+            subType,
+            superType,
+            variableWithConstraints
+        )
 
 
-        val resultTypeFromDirection = if (direction == TypeVariableDirectionCalculator.ResolveDirection.TO_SUBTYPE || direction == TypeVariableDirectionCalculator.ResolveDirection.UNKNOWN) {
-            c.resultType(preparedSubType, preparedSuperType, variableWithConstraints)
-        } else {
-            c.resultType(preparedSuperType, preparedSubType, variableWithConstraints)
-        }
+        val resultTypeFromDirection =
+            if (direction == TypeVariableDirectionCalculator.ResolveDirection.TO_SUBTYPE || direction == TypeVariableDirectionCalculator.ResolveDirection.UNKNOWN) {
+                c.resultType(preparedSubType, preparedSuperType, variableWithConstraints)
+            } else {
+                c.resultType(preparedSuperType, preparedSubType, variableWithConstraints)
+            }
 
         // In the general case, we can have here two types, one from EQUAL constraint which must be ILT-based,
         // and the second one from UPPER/LOWER constraints (subType/superType based)
@@ -125,7 +137,12 @@ class ResultTypeResolver(
             resultTypeFromEqualConstraint == null -> resultTypeFromDirection
             resultTypeFromDirection == null -> resultTypeFromEqualConstraint
             with(c) { !resultTypeFromDirection.typeConstructor().isNothingConstructor() } &&
-                    AbstractTypeChecker.isSubtypeOf(c, resultTypeFromDirection, resultTypeFromEqualConstraint) -> resultTypeFromDirection
+                    AbstractTypeChecker.isSubtypeOf(
+                        c,
+                        resultTypeFromDirection,
+                        resultTypeFromEqualConstraint
+                    ) -> resultTypeFromDirection
+
             else -> resultTypeFromEqualConstraint
         }
     }
@@ -161,7 +178,12 @@ class ResultTypeResolver(
 
         val preparedSuperType = when {
             approximatedSuperType == null -> null
-            shouldBeUsedWithoutApproximation(superType, approximatedSuperType, variableWithConstraints, this) -> superType
+            shouldBeUsedWithoutApproximation(
+                superType,
+                approximatedSuperType,
+                variableWithConstraints,
+                this
+            ) -> superType
 //            hasRecursiveTypeParametersWithGivenSelfType(superType.typeConstructor(this)) -> superType
             else -> approximatedSuperType
             // Super type should be the most flexible, sub type should be the least one
@@ -213,13 +235,19 @@ class ResultTypeResolver(
         val preparedSubType = when {
             subType == null -> null
 
-            else -> typeApproximator.approximateToSuperType(subType, TypeApproximatorConfiguration.InternalTypesApproximation) ?: subType
+            else -> typeApproximator.approximateToSuperType(
+                subType,
+                TypeApproximatorConfiguration.InternalTypesApproximation
+            ) ?: subType
         }
 
         val preparedSuperType = when {
             superType == null -> null
 
-                 else -> typeApproximator.approximateToSubType(superType, TypeApproximatorConfiguration.InternalTypesApproximation) ?: superType
+            else -> typeApproximator.approximateToSubType(
+                superType,
+                TypeApproximatorConfiguration.InternalTypesApproximation
+            ) ?: superType
             // Super type should be the most flexible, sub type should be the least one
         }.makeFlexibleIfNecessary(this, variableWithConstraints.constraints)
 
@@ -231,13 +259,18 @@ class ResultTypeResolver(
      *
      * Becomes obsolete after [LanguageFeature.ImprovedCapturedTypeApproximationInInference] is enabled.
      */
-    private fun Context.similarOrCloselyBoundCapturedTypes(subType: CangJieTypeMarker?, superType: CangJieTypeMarker?): Boolean {
+    private fun Context.similarOrCloselyBoundCapturedTypes(
+        subType: CangJieTypeMarker?,
+        superType: CangJieTypeMarker?
+    ): Boolean {
         if (subType == null) return false
         if (superType == null) return false
         val subTypeLowerConstructor = subType.lowerBoundIfFlexible().typeConstructor()
         if (!subTypeLowerConstructor.isCapturedTypeConstructor()) return false
 
-        if (superType in subTypeLowerConstructor.supertypes() && superType.contains { it.typeConstructor().isCapturedTypeConstructor() }) {
+        if (superType in subTypeLowerConstructor.supertypes() && superType.contains {
+                it.typeConstructor().isCapturedTypeConstructor()
+            }) {
             return true
         }
 
@@ -262,10 +295,13 @@ class ResultTypeResolver(
     private fun CangJieTypeMarker?.makeFlexibleIfNecessary(c: Context, constraints: List<Constraint>) = with(c) {
         when (val type = this@makeFlexibleIfNecessary) {
             is SimpleTypeMarker -> {
-                if (constraints.any { it.type.typeConstructor().isTypeVariable() && it.type.hasFlexibleNullability() }) {
+                if (constraints.any {
+                        it.type.typeConstructor().isTypeVariable() && it.type.hasFlexibleNullability()
+                    }) {
                     createFlexibleType(type.makeSimpleTypeDefinitelyNotNullOrNotNull(), type.withNullability(true))
                 } else type
             }
+
             else -> type
         }
     }
@@ -276,7 +312,7 @@ class ResultTypeResolver(
         variableWithConstraints: VariableWithConstraints
     ): CangJieTypeMarker? {
         if (firstCandidate == null || secondCandidate == null) return firstCandidate ?: secondCandidate
-
+        if (firstCandidate is ErrorType) return firstCandidate
         specialResultForIntersectionType(firstCandidate, secondCandidate)?.let { intersectionWithAlternative ->
             return intersectionWithAlternative
         }
@@ -304,9 +340,15 @@ class ResultTypeResolver(
     }
 
     private fun CangJieTypeMarker.toPublicType(): CangJieTypeMarker =
-        typeApproximator.approximateToSuperType(this, TypeApproximatorConfiguration.PublicDeclaration.SaveAnonymousTypes) ?: this
+        typeApproximator.approximateToSuperType(
+            this,
+            TypeApproximatorConfiguration.PublicDeclaration.SaveAnonymousTypes
+        ) ?: this
 
-    private fun Context.isSuitableType(resultType: CangJieTypeMarker, variableWithConstraints: VariableWithConstraints): Boolean {
+    private fun Context.isSuitableType(
+        resultType: CangJieTypeMarker,
+        variableWithConstraints: VariableWithConstraints
+    ): Boolean {
         val filteredConstraints = variableWithConstraints.constraints.filter { isProperTypeForFixation(it.type) }
 
 
@@ -326,10 +368,11 @@ class ResultTypeResolver(
         return isNullableNothingMayBeConsideredAsSuitableResultType(filteredConstraints)
     }
 
-    private fun Context.isNullableNothingMayBeConsideredAsSuitableResultType(constraints: List<Constraint>): Boolean = when {
+    private fun Context.isNullableNothingMayBeConsideredAsSuitableResultType(constraints: List<Constraint>): Boolean =
+        when {
 
-        else -> !isThereSingleLowerNullabilityConstraint(constraints)
-    }
+            else -> !isThereSingleLowerNullabilityConstraint(constraints)
+        }
 
     private fun allUpperConstraintsAreFromBounds(constraints: List<Constraint>): Boolean =
         constraints.all {
@@ -345,6 +388,7 @@ class ResultTypeResolver(
         return constraints.singleOrNull { it.kind.isLower() }?.isNullabilityConstraint ?: false
     }
 
+    //    推导类型
     @OptIn(COnly::class)
     private fun Context.findSubType(variableWithConstraints: VariableWithConstraints): CangJieTypeMarker? {
         val lowerConstraintTypes = prepareLowerConstraints(variableWithConstraints.constraints)
@@ -369,7 +413,8 @@ class ResultTypeResolver(
                     outerSystemVariablesPrefixSize > 0 -> {
                         // outerSystemVariablesPrefixSize > 0 only for PCLA (K2)
 
-                        commonSuperType = createSubstitutionFromSubtypingStubTypesToTypeVariables().safeSubstitute(commonSuperType)
+                        commonSuperType =
+                            createSubstitutionFromSubtypingStubTypesToTypeVariables().safeSubstitute(commonSuperType)
                     }
                 }
             }
@@ -416,7 +461,11 @@ class ResultTypeResolver(
 
         val notFixedToStubTypesSubstitutor = buildNotFixedVariablesToStubTypesSubstitutor()
 
-        return lowerConstraintTypes.map { if (isProperTypeForFixation(it)) it else notFixedToStubTypesSubstitutor.safeSubstitute(it) }
+        return lowerConstraintTypes.map {
+            if (isProperTypeForFixation(it)) it else notFixedToStubTypesSubstitutor.safeSubstitute(
+                it
+            )
+        }
     }
 
     private fun Context.sinkIntegerLiteralTypes(types: List<CangJieTypeMarker>): List<CangJieTypeMarker> {
@@ -456,12 +505,17 @@ class ResultTypeResolver(
 //            } else intersectionUpperType
 //            upperType
 
-            intersectionUpperType}
+            intersectionUpperType
+        }
     }
 
     private fun Context.findSuperType(variableWithConstraints: VariableWithConstraints): CangJieTypeMarker? {
         val upperConstraints =
-            variableWithConstraints.constraints.filter { it.kind == ConstraintKind.UPPER && this@findSuperType.isProperTypeForFixation(it.type) }
+            variableWithConstraints.constraints.filter {
+                it.kind == ConstraintKind.UPPER && this@findSuperType.isProperTypeForFixation(
+                    it.type
+                )
+            }
 
         if (upperConstraints.isNotEmpty()) {
             return computeUpperType(upperConstraints)
@@ -473,7 +527,10 @@ class ResultTypeResolver(
     private fun Context.isProperTypeForFixation(type: CangJieTypeMarker): Boolean =
         isProperTypeForFixation(type, notFixedTypeVariables.keys) { isProperType(it) }
 
-    private fun findResultIfThereIsEqualsConstraint(c: Context, variableWithConstraints: VariableWithConstraints): CangJieTypeMarker? =
+    private fun findResultIfThereIsEqualsConstraint(
+        c: Context,
+        variableWithConstraints: VariableWithConstraints
+    ): CangJieTypeMarker? =
         with(c) {
             val properEqualityConstraints = variableWithConstraints.constraints.filter {
                 it.kind == ConstraintKind.EQUALITY && c.isProperTypeForFixation(it.type)

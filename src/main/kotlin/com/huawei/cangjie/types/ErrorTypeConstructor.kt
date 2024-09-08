@@ -17,7 +17,7 @@ class ErrorTypeConstructor(val kind: ErrorTypeKind, vararg val formatParams: Str
 
 
     override fun getSupertypes(): Collection<CangJieType> = emptyList()
-//    override fun isFinal(): Boolean = false
+    override fun isFinal(): Boolean = false
     override fun isDenotable(): Boolean = false
     override fun getDeclarationDescriptor(): ClassifierDescriptor = ErrorUtils.errorClass
 

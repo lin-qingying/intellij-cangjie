@@ -15,7 +15,15 @@ interface DataFlowInfo {
     val completeNullabilityInfo: ImmutableMap<DataFlowValue, Nullability>
 
     val completeTypeInfo: ImmutableMap<DataFlowValue, ImmutableSet<CangJieType>>
+    /**
+     * Call this function when it's known than a == b.
+     */
+    fun equate(a: DataFlowValue, b: DataFlowValue, identityEquals: Boolean, languageVersionSettings: LanguageVersionSettings): DataFlowInfo
 
+    /**
+     * Call this function to choose data flow information common for this and other and return it as the result
+     */
+    fun or(other: DataFlowInfo): DataFlowInfo
     /**
      * Call this function to add data flow information from other to this and return sum as the result
      */

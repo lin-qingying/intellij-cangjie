@@ -26,6 +26,7 @@ object ErrorCodes {
         map[INVISIBLE_MEMBER] = ErrorCode("166")
         map[ARRAY_LITERAL_TYPE_INFERENCE_FAILED] = ErrorCode("112")
         map[NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER] = ErrorCode("693")
+        map[TYPE_MISMATCH_MULTIPLE_SUPERTYPES] = ErrorCode("113")
 
     }
 

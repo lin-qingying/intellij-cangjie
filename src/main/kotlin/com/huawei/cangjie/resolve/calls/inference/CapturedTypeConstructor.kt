@@ -34,11 +34,7 @@ private fun TypeProjection.createCapturedIfNeeded(typeParameterDescriptor: TypeP
     // Treat consistent projections as invariant
     if (typeParameterDescriptor.variance == projectionKind) {
         // TODO: Make star projection type lazy
-        return if (isStarProjection)
-            TypeProjectionImpl(LazyWrappedType(LockBasedStorageManager.NO_LOCKS) {
-                this@createCapturedIfNeeded.type
-            })
-        else
+
             TypeProjectionImpl(this@createCapturedIfNeeded.type)
     }
 
@@ -76,7 +72,7 @@ class CapturedTypeConstructorImpl(
         return listOf(superType)
     }
 
-//    override fun isFinal() = true
+    override fun isFinal() = true
 //
     override fun isDenotable() = false
 

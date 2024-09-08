@@ -1,5 +1,6 @@
 package com.huawei.cangjie.resolve.calls.inference
 
+import com.huawei.cangjie.resolve.calls.inference.constraintPosition.ConstraintPosition
 import com.huawei.cangjie.resolve.calls.inference.model.TypeVariable
 import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstructor
 import com.huawei.cangjie.types.CangJieType
@@ -26,6 +27,11 @@ class TypeBoundsImpl(override val typeVariable: TypeVariable) : TypeBounds {
             "$bound is added for incorrect type variable ${bound.typeVariable.name}. Expected: ${typeVariable.name}"
         }
         bounds.add(bound)
+    }
+    fun filter(condition: (ConstraintPosition) -> Boolean): TypeBoundsImpl {
+        val result = TypeBoundsImpl(typeVariable)
+        result.bounds.addAll(bounds.filter { condition(it.position) })
+        return result
     }
     private fun filterBounds(
         bounds: Collection<TypeBounds.Bound>,

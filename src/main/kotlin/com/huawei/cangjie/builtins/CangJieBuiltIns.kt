@@ -17,6 +17,7 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.optionUFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.primitiveArrayTypeShortNames
 import com.huawei.cangjie.builtins.StandardNames.FqNames.runeUFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.stringFqName
+import com.huawei.cangjie.builtins.StandardNames.FqNames.stringUFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.uint16UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.uint32UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.uint8UFqName
@@ -69,8 +70,13 @@ open class CangJieBuiltIns(
                 }
         }
 
-
-
+@JvmStatic
+        fun isString(type:CangJieType?): Boolean {
+            return type != null &&  isNotNullConstructedFromGivenClass(
+                type,
+                stringUFqName
+            )
+        }
         fun getPrimitiveArrayType(descriptor: DeclarationDescriptor): PrimitiveType? {
             return if (primitiveArrayTypeShortNames.contains(descriptor.name))
                 arrayClassFqNameToPrimitiveType.get(DescriptorUtils.getFqName(descriptor))
@@ -102,7 +108,7 @@ open class CangJieBuiltIns(
 //        }
         val BUILTINS_MODULE_NAME: Name =
             Name.special("<built-ins module>")
-
+@JvmStatic
         fun isBoolean(type: CangJieType): Boolean {
             return isConstructedFromGivenClass(
                 type,
@@ -157,7 +163,7 @@ open class CangJieBuiltIns(
         //        fun isNullableAny(type: CangJieType): Boolean {
 //            return isAnyOrNullableAny(type) && type.isMarkedOption
 //        }
-//
+@JvmStatic
         fun isAny(type: CangJieType): Boolean {
             return isConstructedFromGivenClass(type, anyUFqName)
         }

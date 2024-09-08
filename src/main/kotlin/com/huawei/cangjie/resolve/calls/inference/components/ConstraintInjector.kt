@@ -31,11 +31,11 @@ class ConstraintInjector(
         constraintSet: Collection<Pair<TypeVariableMarker, Constraint>>,
         position: IncorporationConstraintPosition
     ) {
-//        processGivenConstraints(
-//            c,
-//            TypeCheckerStateForConstraintInjector(c, position),
-//            constraintSet,
-//        )
+        processGivenConstraints(
+            c,
+            TypeCheckerStateForConstraintInjector(c, position),
+            constraintSet,
+        )
     }
 
     fun processMissedConstraints(

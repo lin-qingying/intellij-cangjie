@@ -229,10 +229,10 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
 //        return controlStructures.visitContinueExpression(expression, data);
 //    }
 //
-//    @Override
-//    public CangJieTypeInfo visitIfExpression(@NotNull CjIfExpression expression, ExpressionTypingContext data) {
-//        return controlStructures.visitIfExpression(expression, data);
-//    }
+    @Override
+    public CangJieTypeInfo visitIfExpression(@NotNull CjIfExpression expression, ExpressionTypingContext data) {
+        return controlStructures.visitIfExpression(expression, data);
+    }
 //
 //    @Override
 //    public CangJieTypeInfo visitTryExpression(@NotNull CjTryExpression expression, ExpressionTypingContext data) {

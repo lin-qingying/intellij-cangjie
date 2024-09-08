@@ -8,8 +8,7 @@ enum class EnrichedProjectionKind {
         fun fromVariance(variance: Variance): EnrichedProjectionKind {
             return when (variance) {
                 Variance.INVARIANT -> INV
-                Variance.IN_VARIANCE -> IN
-                Variance.OUT_VARIANCE -> OUT
+
             }
         }
 
@@ -39,13 +38,8 @@ enum class EnrichedProjectionKind {
                 b = t
             }
 
-            // Opposites yield STAR
-            if (a === Variance.IN_VARIANCE && b === Variance.OUT_VARIANCE) {
-                return STAR
-            }
-            return if (a === Variance.OUT_VARIANCE && b === Variance.IN_VARIANCE) {
-                STAR
-            } else fromVariance(b)
+
+           return fromVariance(b)
 
             // If they are not opposite, return b, because b is either equal to a or b is in/out and a is inv
         }

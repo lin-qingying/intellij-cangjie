@@ -3,14 +3,20 @@ package com.huawei.cangjie.resolve
 import com.huawei.cangjie.analyzer.AnalysisResult
 import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.analyzer.ResolverForProject
+import com.huawei.cangjie.container.get
 import com.huawei.cangjie.container.getService
+import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.DiagnosticSink
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.ide.FrontendInternals
+import com.huawei.cangjie.psi.CjDeclaration
 import com.huawei.cangjie.psi.CjElement
+import com.huawei.cangjie.psi.CjPsiUtil
 import com.huawei.cangjie.resolve.caches.ProjectResolutionFacade
 import com.huawei.cangjie.resolve.caches.ResolutionFacadeModuleDescriptorProvider
+import com.huawei.cangjie.resolve.lazy.AbsentDescriptorHandler
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
+import com.huawei.cangjie.resolve.lazy.ResolveSession
 import com.huawei.cangjie.utils.runWithCancellationCheck
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
@@ -58,7 +64,19 @@ class ModuleResolutionFacadeImpl(
         }
 
     }
+    override fun resolveToDescriptor(declaration: CjDeclaration, bodyResolveMode: BodyResolveMode): DeclarationDescriptor =
+        runWithCancellationCheck {
+            if (CjPsiUtil.isLocal(declaration)) {
+                val bindingContext = analyze(declaration, bodyResolveMode)
+                bindingContext[BindingContext.DECLARATION_TO_DESCRIPTOR, declaration]
+                    ?: getFrontendService(moduleInfo, AbsentDescriptorHandler::class.java).diagnoseDescriptorNotFound(declaration)
+            } else {
+                ResolveInDispatchThreadManager.assertNoResolveInDispatchThread()
 
+                val resolveSession = projectFacade.resolverForElement(declaration).componentProvider.get<ResolveSession>()
+                resolveSession.resolveToDescriptor(declaration)
+            }
+        }
     override fun analyze(elements: Collection<CjElement>, bodyResolveMode: BodyResolveMode): BindingContext {
         ResolveInDispatchThreadManager.assertNoResolveInDispatchThread()
 

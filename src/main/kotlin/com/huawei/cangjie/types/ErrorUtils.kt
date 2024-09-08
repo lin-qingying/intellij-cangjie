@@ -3,6 +3,7 @@ package com.huawei.cangjie.types
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.types.error.*
+import com.huawei.cangjie.types.util.contains
 import com.huawei.cangjie.types.util.isUnresolvedType
 
 object ErrorUtils {
@@ -16,6 +17,7 @@ object ErrorUtils {
     val errorPropertyType: CangJieType get() = createErrorType(ErrorTypeKind.ERROR_PROPERTY_TYPE)
     val errorVariableType: CangJieType get() = createErrorType(ErrorTypeKind.ERROR_VARIABLE_TYPE)
 
+    fun containsUninferredTypeVariable(type: CangJieType): Boolean = type.contains(::isUninferredTypeVariable)
 
     // Do not move it into AbstractTypeConstructor.Companion because of cycle in initialization(see KT-13264)
     val errorTypeForLoopInSupertypes: CangJieType = createErrorType(ErrorTypeKind.CYCLIC_SUPERTYPES)
@@ -40,7 +42,7 @@ object ErrorUtils {
         if (type == null) return false
         if (type.isError) return true
         for (projection in type.arguments) {
-            if (!projection.isStarProjection && containsErrorType(projection.type))
+
                 return true
         }
         return false

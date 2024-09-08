@@ -3,13 +3,19 @@ package com.huawei.cangjie.utils.exceptions
 import com.google.common.collect.ImmutableBiMap
 import com.huawei.cangjie.lexer.CjSingleValueToken
 import com.huawei.cangjie.lexer.CjToken
+import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.Name
 
 object OperatorConventions {
     fun getNameForOperationSymbol(token: CjToken): Name? {
         return getNameForOperationSymbol(token, true, true)
     }
-
+@JvmField
+    val BOOLEAN_OPERATIONS: ImmutableBiMap< CjSingleValueToken, Name> =
+        ImmutableBiMap.builder< CjSingleValueToken, Name>()
+//            .put( CjTokens.ANDAND, AND)
+//            .put( CjTokens.OROR, OR)
+            .build()
     fun getNameForOperationSymbol(
         token: CjToken,
         unaryOperations: Boolean,

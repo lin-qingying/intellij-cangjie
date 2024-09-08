@@ -305,7 +305,7 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
         if (typeStatement != null) {
             this.c.getTrace().record(BindingContext.CLASS, typeStatement, this);
         }
-//        this.c.getTrace().record(BindingContext.FQNAME_TO_CLASS_DESCRIPTOR, DescriptorUtils.getFqName(this), this);
+        this.c.getTrace().record(BindingContext.FQNAME_TO_CLASS_DESCRIPTOR, DescriptorUtils.getFqName(this), this);
 
     }
 

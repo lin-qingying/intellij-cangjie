@@ -4,10 +4,9 @@ import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.renderer.ClassifierNamePolicy
 import com.huawei.cangjie.renderer.DescriptorRenderer
-import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.resolve.calls.inference.CapturedTypeConstructor
 import com.huawei.cangjie.resolve.calls.inference.isCaptured
-
+import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.util.TypeUtils
@@ -24,18 +23,13 @@ fun approximateCapturedTypesIfNecessary(
     approximateContravariant: Boolean
 ): TypeProjection? {
     if (typeProjection == null) return null
-    if (typeProjection.isStarProjection) return typeProjection
 
     val type = typeProjection.type
     if (!TypeUtils.contains(type, { it.isCaptured() })) {
         return typeProjection
     }
     val howThisTypeIsUsed = typeProjection.projectionKind
-    if (howThisTypeIsUsed == Variance.OUT_VARIANCE) {
-        // only 'return' type containing captured types should be over-approximated
-        val approximation = approximateCapturedTypes(type)
-        return TypeProjectionImpl(howThisTypeIsUsed, approximation.upper)
-    }
+
 
     if (approximateContravariant) {
         // TODO: assert that howThisTypeIsUsed is always IN
@@ -65,17 +59,15 @@ fun approximateCapturedTypes(type: CangJieType): ApproximationBounds<CangJieType
     }
 
     val typeConstructor = type.constructor
-    if (type.isCaptured()) {
-        val typeProjection = (typeConstructor as CapturedTypeConstructor).projection
-        fun CangJieType.makeNullableIfNeeded() = TypeUtils.makeOptionalIfNeeded(this, type.isMarkedOption)
-        val bound = typeProjection.type.makeNullableIfNeeded()
-
-        return when (typeProjection.projectionKind) {
-            Variance.IN_VARIANCE -> ApproximationBounds(bound, type.builtIns.anyType)
-            Variance.OUT_VARIANCE -> ApproximationBounds(type.builtIns.nothingType.makeNullableIfNeeded(), bound)
-            else -> throw AssertionError("Only nontrivial projections should have been captured, not: $typeProjection")
-        }
-    }
+//    if (type.isCaptured()) {
+//        val typeProjection = (typeConstructor as CapturedTypeConstructor).projection
+//        fun CangJieType.makeNullableIfNeeded() = TypeUtils.makeOptionalIfNeeded(this, type.isMarkedOption)
+//
+//        return when (typeProjection.projectionKind) {
+//
+//            else -> throw AssertionError("Only nontrivial projections should have been captured, not: $typeProjection")
+//        }
+//    }
     if (type.arguments.isEmpty() || type.arguments.size != typeConstructor.parameters.size) {
         return ApproximationBounds(type, type)
     }
@@ -85,14 +77,11 @@ fun approximateCapturedTypes(type: CangJieType): ApproximationBounds<CangJieType
         val typeArgument = typeProjection.toTypeArgument(typeParameter)
 
         // Protection from infinite recursion caused by star projection
-        if (typeProjection.isStarProjection) {
-            lowerBoundArguments.add(typeArgument)
-            upperBoundArguments.add(typeArgument)
-        } else {
-            val (lower, upper) = approximateProjection(typeArgument)
-            lowerBoundArguments.add(lower)
-            upperBoundArguments.add(upper)
-        }
+
+        val (lower, upper) = approximateProjection(typeArgument)
+        lowerBoundArguments.add(lower)
+        upperBoundArguments.add(upper)
+
     }
     val lowerBoundIsTrivial = lowerBoundArguments.any { !it.isConsistent }
     return ApproximationBounds(
@@ -100,26 +89,39 @@ fun approximateCapturedTypes(type: CangJieType): ApproximationBounds<CangJieType
         type.replaceTypeArguments(upperBoundArguments)
     )
 }
+
 private fun TypeArgument.toTypeProjection(): TypeProjection {
     assert(isConsistent) {
         val descriptorRenderer = DescriptorRenderer.withOptions {
             classifierNamePolicy = ClassifierNamePolicy.FULLY_QUALIFIED
         }
         "Only consistent enhanced type projection can be converted to type projection, but " +
-                "[${descriptorRenderer.render(typeParameter)}: <${descriptorRenderer.renderType(inProjection)}, ${descriptorRenderer.renderType(
-                    outProjection
-                )}>]" +
+                "[${descriptorRenderer.render(typeParameter)}: <${descriptorRenderer.renderType(inProjection)}, ${
+                    descriptorRenderer.renderType(
+                        outProjection
+                    )
+                }>]" +
                 " was found"
     }
-    fun removeProjectionIfRedundant(variance: Variance) = if (variance == typeParameter.variance) Variance.INVARIANT else variance
+    fun removeProjectionIfRedundant(variance: Variance) =
+        if (variance == typeParameter.variance) Variance.INVARIANT else variance
     return when {
-        inProjection == outProjection || typeParameter.variance == Variance.IN_VARIANCE -> TypeProjectionImpl(inProjection)
-        CangJieBuiltIns.isNothing(inProjection) && typeParameter.variance != Variance.IN_VARIANCE ->
-            TypeProjectionImpl(removeProjectionIfRedundant(Variance.OUT_VARIANCE), outProjection)
-        CangJieBuiltIns.isAny(outProjection) -> TypeProjectionImpl(removeProjectionIfRedundant(Variance.IN_VARIANCE), inProjection)
-        else -> TypeProjectionImpl(removeProjectionIfRedundant(Variance.OUT_VARIANCE), outProjection)
+        inProjection == outProjection  -> TypeProjectionImpl(
+            inProjection
+        )
+
+        CangJieBuiltIns.isNothing(inProjection) && typeParameter.variance != Variance.INVARIANT ->
+            TypeProjectionImpl(removeProjectionIfRedundant(Variance.INVARIANT), outProjection)
+
+        CangJieBuiltIns.isAny(outProjection) -> TypeProjectionImpl(
+            removeProjectionIfRedundant(Variance.INVARIANT),
+            inProjection
+        )
+
+        else -> TypeProjectionImpl(removeProjectionIfRedundant(Variance.INVARIANT), outProjection)
     }
 }
+
 private fun CangJieType.replaceTypeArguments(newTypeArguments: List<TypeArgument>): CangJieType {
     assert(arguments.size == newTypeArguments.size) { "Incorrect type arguments $newTypeArguments" }
     return replace(newTypeArguments.map { it.toTypeProjection() })
@@ -146,17 +148,14 @@ private class TypeArgument(
 private fun TypeProjection.toTypeArgument(typeParameter: TypeParameterDescriptor) =
     when (TypeSubstitutor.combine(typeParameter.variance, this)) {
         Variance.INVARIANT -> TypeArgument(typeParameter, type, type)
-        Variance.IN_VARIANCE -> TypeArgument(typeParameter, type, typeParameter.builtIns.anyType)
-        Variance.OUT_VARIANCE -> TypeArgument(typeParameter, typeParameter.builtIns.nothingType, type)
+
     }
 
 private fun substituteCapturedTypesWithProjections(typeProjection: TypeProjection): TypeProjection? {
     val typeSubstitutor = TypeSubstitutor.create(object : TypeConstructorSubstitution() {
         override fun get(key: TypeConstructor): TypeProjection? {
             val capturedTypeConstructor = key as? CapturedTypeConstructor ?: return null
-            if (capturedTypeConstructor.projection.isStarProjection) {
-                return TypeProjectionImpl(Variance.OUT_VARIANCE, capturedTypeConstructor.projection.type)
-            }
+
             return capturedTypeConstructor.projection
         }
     })

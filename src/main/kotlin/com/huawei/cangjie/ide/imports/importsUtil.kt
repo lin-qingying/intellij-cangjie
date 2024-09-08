@@ -15,7 +15,11 @@ import com.huawei.cangjie.resolve.descriptorUtil.getImportableDescriptor
 import com.huawei.cangjie.resolve.getReferenceTargets
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiWhiteSpace
-
+fun ClassifierDescriptor.getConstructors(): Collection<ConstructorDescriptor> = when (this) {
+    is ClassDescriptor -> constructors
+    is TypeAliasDescriptor -> constructors
+    else -> emptyList()
+}
 
 val DeclarationDescriptor.importableFqName: FqName?
     get() {

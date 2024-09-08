@@ -8,6 +8,7 @@ import com.huawei.cangjie.types.DisjointKeysUnionTypeSubstitution.Companion.crea
 import com.huawei.cangjie.types.ErrorUtils.createErrorType
 import com.huawei.cangjie.types.TypeConstructorSubstitution.Companion.create
 import com.huawei.cangjie.types.TypeConstructorSubstitution.Companion.createByConstructorsMap
+
 import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.model.TypeSubstitutorMarker
 import com.huawei.cangjie.types.typesApproximation.approximateCapturedTypesIfNecessary
@@ -36,7 +37,7 @@ class TypeSubstitutor(val substitution: TypeSubstitution) : TypeSubstitutorMarke
         )
     }
 
-    fun substitute(type: CangJieType, howThisTypeIsUsed: Variance ): CangJieType? {
+    fun substitute(type: CangJieType, howThisTypeIsUsed: Variance): CangJieType? {
         val projection =
             substitute(TypeProjectionImpl(howThisTypeIsUsed, substitution.prepareTopLevelType(type, howThisTypeIsUsed)))
         return projection?.type
@@ -56,8 +57,6 @@ class TypeSubstitutor(val substitution: TypeSubstitution) : TypeSubstitutorMarke
             substitution
         )
 
-        if (originalProjection.isStarProjection) return originalProjection
-
 
         // The type is within the substitution range, i.e. T or T?
         val type: CangJieType = originalProjection.type
@@ -72,7 +71,6 @@ class TypeSubstitutor(val substitution: TypeSubstitution) : TypeSubstitutorMarke
                 typeParameter,
                 recursionDepth + 1
             )
-            if (substitution.isStarProjection()) return substitution
 
             val substitutedEnhancement: CangJieType? =
                 substitute(enhancement, originalProjection.projectionKind)
@@ -138,9 +136,7 @@ class TypeSubstitutor(val substitution: TypeSubstitution) : TypeSubstitutorMarke
 
 
             val customTypeParameter = type.getCustomTypeParameter()
-            val substitutedType: CangJieType = if (replacement.isStarProjection()) {
-                return replacement
-            } else customTypeParameter?.substitutionResult(replacement.getType())
+            val substitutedType: CangJieType = customTypeParameter?.substitutionResult(replacement.getType())
                 ?: replacement.getType()
 
             // substitutionType.annotations = replacement.annotations ++ type.annotations
@@ -235,7 +231,7 @@ class TypeSubstitutor(val substitution: TypeSubstitution) : TypeSubstitutorMarke
             when (conflictType(typeParameter.variance, substitutedTypeArgument.projectionKind)) {
                 VarianceConflictType.NO_CONFLICT -> {
                     // if the corresponding type parameter is already co/contra-variant, there's no need for an explicit projection
-                    if (typeParameter.variance != Variance.INVARIANT && !substitutedTypeArgument.isStarProjection) {
+                    if (typeParameter.variance != Variance.INVARIANT) {
                         substitutedTypeArgument = TypeProjectionImpl(Variance.INVARIANT, substitutedTypeArgument.type)
                     }
                 }
@@ -303,7 +299,7 @@ class TypeSubstitutor(val substitution: TypeSubstitution) : TypeSubstitutorMarke
         @JvmStatic
 
         fun combine(typeParameterVariance: Variance, typeProjection: TypeProjection): Variance {
-            if (typeProjection.isStarProjection) return Variance.OUT_VARIANCE
+
 
             return combine(typeParameterVariance, typeProjection.projectionKind)
         }
@@ -359,7 +355,8 @@ class TypeSubstitutor(val substitution: TypeSubstitution) : TypeSubstitutorMarke
 
             return VarianceConflictType.NO_CONFLICT
         }
-@JvmStatic
+
+        @JvmStatic
         fun create(substitution: TypeSubstitution): TypeSubstitutor {
             return TypeSubstitutor(substitution)
         }

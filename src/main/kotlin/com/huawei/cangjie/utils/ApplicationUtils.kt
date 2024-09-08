@@ -1,11 +1,14 @@
 package com.huawei.cangjie.utils
 
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ex.ApplicationEx
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.progress.impl.CancellationCheck
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsContexts
+import org.jetbrains.annotations.Nls
 
 fun <T> runWithCancellationCheck(block: () -> T): T = CancellationCheck.runWithCancellationCheck(block)
 @Suppress("NOTHING_TO_INLINE")
@@ -35,4 +38,20 @@ fun Project.executeWriteCommand(@NlsContexts.Command name: String, command: () -
 
 fun <T> Project.executeWriteCommand(@NlsContexts.Command name: String, groupId: Any? = null, command: () -> T): T {
     return executeCommand(name, groupId) { runWriteAction(command) }
+}
+fun <T: Any> underModalProgressOrUnderWriteActionWithNonCancellableProgressInDispatchThread(
+    project: Project,
+    @Nls progressTitle: String,
+    computable: () -> T
+): T {
+    return if (CommandProcessor.getInstance().currentCommandName != null) {
+        lateinit var result: T
+        val application = ApplicationManager.getApplication() as ApplicationEx
+        application.runWriteActionWithNonCancellableProgressInDispatchThread(progressTitle, project, null) {
+            result = computable()
+        }
+        result
+    } else {
+        ActionUtil.underModalProgress(project, progressTitle, computable)
+    }
 }

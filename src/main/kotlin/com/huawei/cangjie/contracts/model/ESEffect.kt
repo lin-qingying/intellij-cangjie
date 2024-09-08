@@ -9,3 +9,9 @@ sealed class ESEffect {
      */
     abstract fun isImplies(other: ESEffect): Boolean?
 }
+/**
+ * Abstraction of some side-effect of a computation.
+ *
+ * SimpleEffect alone means that this effect will definitely be fired.
+ */
+abstract class SimpleEffect : ESEffect()

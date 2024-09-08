@@ -140,8 +140,7 @@ class CompletionModeCalculator {
                     val argument = type.getArgument(position)
                     val parameter = typeConstructor.getParameter(position)
 
-                    if (argument.isStarProjection())
-                        continue
+
 
                     collectRequiredDirectionsForVariables(
                         argument.getType(),
@@ -164,14 +163,14 @@ class CompletionModeCalculator {
                     ?: TypeVariance.INV // conflicting variance
             return when (outerVariance) {
                 TypeVariance.INV -> TypeVariance.INV
-                TypeVariance.OUT -> effectiveArgumentVariance
-                TypeVariance.IN -> effectiveArgumentVariance.reversed()
+//                TypeVariance.OUT -> effectiveArgumentVariance
+//                TypeVariance.IN -> effectiveArgumentVariance.reversed()
             }
         }
 
         private fun TypeVariance.reversed(): TypeVariance = when (this) {
-            TypeVariance.IN -> TypeVariance.OUT
-            TypeVariance.OUT -> TypeVariance.IN
+//            TypeVariance.IN -> TypeVariance.OUT
+//            TypeVariance.OUT -> TypeVariance.IN
             TypeVariance.INV -> TypeVariance.INV
         }
 
@@ -181,8 +180,8 @@ class CompletionModeCalculator {
         ) {
             val variableWithConstraints = notFixedTypeVariables[type.typeConstructor()] ?: return
             val direction = when (compositeVariance) {
-                TypeVariance.IN -> FixationDirection.EQUALITY // Assuming that variables in contravariant positions are fixed to subtype
-                TypeVariance.OUT -> FixationDirection.TO_SUBTYPE
+//                TypeVariance.IN -> FixationDirection.EQUALITY // Assuming that variables in contravariant positions are fixed to subtype
+//                TypeVariance.OUT -> FixationDirection.TO_SUBTYPE
                 TypeVariance.INV -> FixationDirection.EQUALITY
             }
             val requirement = FixationDirectionForVariable(variableWithConstraints, direction)

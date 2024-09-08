@@ -19,7 +19,10 @@ import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ArrayFactory
 
-interface CangJieFile
+interface CangJieFile{
+
+
+}
 
 open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = false) :
     PsiFileBase(viewProvider, CangJieLanguage),
@@ -54,7 +57,13 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
                 pathCached = it
             }
         }
+    fun findAliasByFqName(fqName: FqName): CjImportAlias? {
+        if (!hasImportAlias()) return null
 
+        return importDirectives.firstOrNull {
+            it.alias != null && fqName == it.importedFqName
+        }?.alias
+    }
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R =
         visitor.visitCjFile(this, data)
 

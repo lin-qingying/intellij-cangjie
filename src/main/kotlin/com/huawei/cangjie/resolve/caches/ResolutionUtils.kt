@@ -4,9 +4,10 @@ package com.huawei.cangjie.resolve.caches
 
 import com.huawei.cangjie.analyzer.AnalysisResult
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.ide.FrontendInternals
+import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.*
-import com.huawei.cangjie.resolve.BindingContext
-import com.huawei.cangjie.resolve.ResolutionFacade
+import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall
 import com.huawei.cangjie.resolve.calls.util.getResolvedCall
 import com.huawei.cangjie.resolve.calls.util.safeAnalyze
@@ -15,6 +16,31 @@ import com.huawei.cangjie.resolve.lazy.NoDescriptorForDeclarationException
 import com.huawei.cangjie.utils.actionUnderSafeAnalyzeBlock
 
 fun CjElement.analyzeWithAllCompilerChecks(): AnalysisResult = getResolutionFacade().analyzeWithAllCompilerChecks(this)
+@JvmOverloads
+fun CjElement.safeAnalyze(
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
+): BindingContext = safeAnalyze(getResolutionFacade(), bodyResolveMode)
+
+fun CjFile.resolveImportReference(fqName: FqName): Collection<DeclarationDescriptor> {
+    val facade = getResolutionFacade()
+    return facade.resolveImportReference(facade.moduleDescriptor, fqName)
+}
+// this method don't check visibility and collect all descriptors with given fqName
+@OptIn(FrontendInternals::class)
+fun ResolutionFacade.resolveImportReference(
+    moduleDescriptor: ModuleDescriptor,
+    fqName: FqName
+): Collection<DeclarationDescriptor> {
+    val importDirective = CjPsiFactory(project).createImportDirective(ImportPath(fqName, false))
+    val qualifiedExpressionResolver = this.getFrontendService(QualifiedExpressionResolver::class.java)
+    return qualifiedExpressionResolver.processImportReference(
+        importDirective,
+        moduleDescriptor,
+        BindingTraceContext(),
+        excludedImportNames = emptyList(),
+        packageFragmentForVisibilityCheck = null
+    )?.getContributedDescriptors() ?: emptyList()
+}
 
 /**
  * **Please, use overload with providing resolutionFacade for stable results of subsequent calls**

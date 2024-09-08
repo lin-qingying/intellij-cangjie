@@ -29,6 +29,7 @@ import com.huawei.cangjie.storage.StorageManager;
 import com.huawei.cangjie.types.*;
 import com.huawei.cangjie.types.error.ErrorTypeKind;
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices;
+import com.huawei.cangjie.types.util.TypeUtilKt;
 import com.huawei.cangjie.types.util.TypeUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -441,15 +442,102 @@ public class DescriptorResolver {
     }
 
     @NotNull
-    private CangJieType getDefaultSupertype(@NotNull ClassDescriptor classDescriptor) {
-        if (classDescriptor.getKind() == ClassKind.ENUM_ENTRY) {
-            return ((ClassDescriptor) classDescriptor.getContainingDeclaration()).getDefaultType();
-        } else if (classDescriptor.getKind() == ClassKind.CLASS) {
+    /*package*/ static CangJieType transformAnonymousTypeIfNeeded(
+            @NotNull DeclarationDescriptorWithVisibility descriptor,
+            @NotNull CjDeclaration declaration,
+            @NotNull CangJieType type,
+            @NotNull BindingTrace trace,
+            @NotNull Iterable<DeclarationSignatureAnonymousTypeTransformer> anonymousTypeTransformers,
+            @NotNull LanguageVersionSettings languageVersionSettings
+    ) {
+        for (DeclarationSignatureAnonymousTypeTransformer transformer : anonymousTypeTransformers) {
+            CangJieType transformedType = transformer.transformAnonymousType(descriptor, type);
+            if (transformedType != null) {
+                return transformedType;
+            }
+        }
+
+        ClassifierDescriptor classifier = type.getConstructor().getDeclarationDescriptor();
+        if (classifier == null || !DescriptorUtils.isAnonymousObject(classifier) || DescriptorUtils.isLocal(descriptor)) {
+            return type;
+        }
+
+        boolean isPrivate = DescriptorVisibilities.isPrivate(descriptor.getVisibility());
+
+        if (!isPrivate) {
+//            if(type instanceof  BasicType) return type;
+            if (type.getConstructor().getSupertypes().size() == 1) {
+                CangJieType approximatingSuperType = type.getConstructor().getSupertypes().iterator().next();
+                CangJieType substitutedSuperType;
+                MemberScope memberScope = type.getMemberScope();
+
+                if (memberScope instanceof SubstitutingScope) {
+                    substitutedSuperType = ((SubstitutingScope) memberScope).substitute(approximatingSuperType);
+                } else {
+                    substitutedSuperType = approximatingSuperType;
+                }
+
+//                UnwrappedType unwrapped = type.unwrap();
+//                boolean lowerNullable = FlexibleTypesKt.lowerIfFlexible(unwrapped).isMarkedNullable();
+//                boolean upperNullable = FlexibleTypesKt.upperIfFlexible(unwrapped).isMarkedNullable();
+//                if (languageVersionSettings.supportsFeature(LanguageFeature.KeepNullabilityWhenApproximatingLocalType)) {
+//                    if (lowerNullable != upperNullable) {
+//                        return CangJieTypeFactory.flexibleType(
+//                                FlexibleTypesKt.lowerIfFlexible(substitutedSuperType),
+//                                FlexibleTypesKt.upperIfFlexible(substitutedSuperType).makeNullableAsSpecified(true));
+//                    }
+//                    return TypeUtils.makeOptionalIfNeeded(substitutedSuperType, upperNullable);
+//                } else if (upperNullable) {
+//                    if (lowerNullable) {
+//                        trace.report(APPROXIMATED_LOCAL_TYPE_WILL_BECOME_NULLABLE.on(declaration, substitutedSuperType));
+//                    } else {
+//                        trace.report(APPROXIMATED_LOCAL_TYPE_WILL_BECOME_FLEXIBLE.on(declaration, substitutedSuperType));
+//                    }
+//                }
+                return substitutedSuperType;
+            } else {
+                trace.report(AMBIGUOUS_ANONYMOUS_TYPE_INFERRED.on(declaration, type.getConstructor().getSupertypes()));
+            }
+        }
+
+        return type;
+    }
+
+    @Nullable
+    private CangJieType getDefaultSupertype(@NotNull ClassDescriptor classDescriptor, @NotNull List<CangJieType> supertypes, @Nullable ClassId classId) {
+        //        根据仓颉继承规则，做如下配置
+//        1. 如果类型为Class且没有类型为class的父类，则默认继承为Object
+//        2. 如果类型为Interface,Struct,enum且没有类型为interface的父类，则默认继承为Any
+
+        if (classDescriptor.getKind() == ClassKind.CLASS) {
+            if (ClassId.fromString("std/core/Object").equals(classId)) {
+                return builtIns.getAnyType();
+
+            }
+            if (supertypes.isEmpty()) {
+                return builtIns.getObjectType();
+            }
+
+            for (CangJieType supertype : supertypes) {
+                if (TypeUtilKt.getClassKind(supertype) == ClassKind.CLASS) {
+                    return null;
+                }
+            }
             return builtIns.getObjectType();
         }
 
+//        if (classDescriptor.getKind() == ClassKind.ENUM_ENTRY) {
+//            return ((ClassDescriptor) classDescriptor.getContainingDeclaration()).getDefaultType();
+//        } else if (classDescriptor.getKind() == ClassKind.CLASS) {
+//            return builtIns.getObjectType();
+//        }
 
-        return builtIns.getAnyType();
+//当没有父类时，返回any接口
+// TODO 注：当获取超类型时，并且为可扩展的类型，考虑到扩展接口，需按情况去除any接口，以保证类型推导正常
+        if (supertypes.isEmpty()) {
+            return builtIns.getAnyType();
+        }
+        return null;
 
     }
 
@@ -472,19 +560,18 @@ public class DescriptorResolver {
         for (CangJieType declaredSupertype : declaredSupertypes) {
             addValidSupertype(supertypes, declaredSupertype);
         }
-//
-//        if (classDescriptor.getKind() == ClassKind.ENUM && !containsClass(supertypes)) {
-//            supertypes.add(0, builtIns.getEnumType(classDescriptor.getDefaultType()));
-//        }
-//
-//        syntheticResolveExtension.addSyntheticSupertypes(classDescriptor, supertypes);
-//        supertypes.addAll(additionalClassPartsProvider.getAdditionalSupertypes(classDescriptor, supertypes));
 
 
         ClassId classId = ((CjClassLikeDeclaration) typeStatement).getClassId();
 
-        if (supertypes.isEmpty() && !ClassId.fromString("std/core/Any").equals(classId)) {
-            addValidSupertype(supertypes, getDefaultSupertype(classDescriptor));
+
+//不为Any类型默认继承
+        if (!ClassId.fromString("std/core/Any").equals(classId)) {
+            CangJieType defualtType = getDefaultSupertype(classDescriptor, supertypes, classId);
+            if (defualtType != null) {
+                addValidSupertype(supertypes, defualtType);
+
+            }
         }
 
 
@@ -811,6 +898,15 @@ public class DescriptorResolver {
 //    });
     }
 
+//    @NotNull
+//    private CangJieType getVarargParameterType(@NotNull CangJieType elementType) {
+//        CangJieType primitiveArrayType = builtIns.getPrimitiveArrayCangJieTypeByPrimitiveCangJieType(elementType);
+//        if (primitiveArrayType != null) {
+//            return primitiveArrayType;
+//        }
+//        return builtIns.getArrayType(Variance.OUT_VARIANCE, elementType);
+//    }
+
     @NotNull
     public ValueParameterDescriptorImpl resolveValueParameterDescriptor(
             @NotNull LexicalScope scope,
@@ -896,15 +992,6 @@ public class DescriptorResolver {
         return valueParameterDescriptor;
     }
 
-//    @NotNull
-//    private CangJieType getVarargParameterType(@NotNull CangJieType elementType) {
-//        CangJieType primitiveArrayType = builtIns.getPrimitiveArrayCangJieTypeByPrimitiveCangJieType(elementType);
-//        if (primitiveArrayType != null) {
-//            return primitiveArrayType;
-//        }
-//        return builtIns.getArrayType(Variance.OUT_VARIANCE, elementType);
-//    }
-
     @NotNull
     private Annotations resolveValueParameterAnnotations(
             @NotNull LexicalScope scope,
@@ -949,7 +1036,7 @@ public class DescriptorResolver {
     ) {
         assert containingDescriptor instanceof FunctionDescriptor ||
 //                containingDescriptor instanceof PropertyDescriptor ||
-                containingDescriptor instanceof TypeAliasDescriptor|| containingDescriptor instanceof LazyExtendClassDescriptor
+                containingDescriptor instanceof TypeAliasDescriptor || containingDescriptor instanceof LazyExtendClassDescriptor
                 : "This method should be called for functions, properties, or type aliases, got " + containingDescriptor;
 
         List<TypeParameterDescriptorImpl> result = new ArrayList<>();
@@ -1073,12 +1160,12 @@ public class DescriptorResolver {
 
     @NotNull
     public VariableDescriptor resolveVariableDescriptor(DeclarationDescriptor container,
-                                                                @NotNull LexicalScope scopeForDeclarationResolution,
-                                                                @NotNull LexicalScope scopeForInitializerResolution,
-                                                                @NotNull CjVariable variableDeclaration,
-                                                                @NotNull BindingTrace trace,
-                                                                @NotNull DataFlowInfo dataFlowInfo,
-                                                                @NotNull InferenceSession inferenceSession) {
+                                                        @NotNull LexicalScope scopeForDeclarationResolution,
+                                                        @NotNull LexicalScope scopeForInitializerResolution,
+                                                        @NotNull CjVariable variableDeclaration,
+                                                        @NotNull BindingTrace trace,
+                                                        @NotNull DataFlowInfo dataFlowInfo,
+                                                        @NotNull InferenceSession inferenceSession) {
         VariableAsPropertyInfo variableInfo = VariableAsPropertyInfo.createFromProperty(variableDeclaration);
 
         CjModifierList modifierList = variableDeclaration.getModifierList();
@@ -1206,69 +1293,7 @@ public class DescriptorResolver {
         return variableDescriptor;
     }
 
-    @NotNull
-    /*package*/ static CangJieType transformAnonymousTypeIfNeeded(
-            @NotNull DeclarationDescriptorWithVisibility descriptor,
-            @NotNull CjDeclaration declaration,
-            @NotNull CangJieType type,
-            @NotNull BindingTrace trace,
-            @NotNull Iterable<DeclarationSignatureAnonymousTypeTransformer> anonymousTypeTransformers,
-            @NotNull LanguageVersionSettings languageVersionSettings
-    ) {
-        for (DeclarationSignatureAnonymousTypeTransformer transformer : anonymousTypeTransformers) {
-            CangJieType transformedType = transformer.transformAnonymousType(descriptor, type);
-            if (transformedType != null) {
-                return transformedType;
-            }
-        }
-
-        ClassifierDescriptor classifier = type.getConstructor().getDeclarationDescriptor();
-        if (classifier == null  || !DescriptorUtils.isAnonymousObject(classifier) || DescriptorUtils.isLocal(descriptor)) {
-            return type;
-        }
-
-        boolean isPrivate = DescriptorVisibilities.isPrivate(descriptor.getVisibility());
-
-        if (!isPrivate  ) {
-//            if(type instanceof  BasicType) return type;
-            if (type.getConstructor().getSupertypes().size() == 1) {
-                CangJieType approximatingSuperType = type.getConstructor().getSupertypes().iterator().next();
-                CangJieType substitutedSuperType;
-                MemberScope memberScope = type.getMemberScope();
-
-                if (memberScope instanceof SubstitutingScope) {
-                    substitutedSuperType = ((SubstitutingScope) memberScope).substitute(approximatingSuperType);
-                } else {
-                    substitutedSuperType = approximatingSuperType;
-                }
-
-//                UnwrappedType unwrapped = type.unwrap();
-//                boolean lowerNullable = FlexibleTypesKt.lowerIfFlexible(unwrapped).isMarkedNullable();
-//                boolean upperNullable = FlexibleTypesKt.upperIfFlexible(unwrapped).isMarkedNullable();
-//                if (languageVersionSettings.supportsFeature(LanguageFeature.KeepNullabilityWhenApproximatingLocalType)) {
-//                    if (lowerNullable != upperNullable) {
-//                        return CangJieTypeFactory.flexibleType(
-//                                FlexibleTypesKt.lowerIfFlexible(substitutedSuperType),
-//                                FlexibleTypesKt.upperIfFlexible(substitutedSuperType).makeNullableAsSpecified(true));
-//                    }
-//                    return TypeUtils.makeOptionalIfNeeded(substitutedSuperType, upperNullable);
-//                } else if (upperNullable) {
-//                    if (lowerNullable) {
-//                        trace.report(APPROXIMATED_LOCAL_TYPE_WILL_BECOME_NULLABLE.on(declaration, substitutedSuperType));
-//                    } else {
-//                        trace.report(APPROXIMATED_LOCAL_TYPE_WILL_BECOME_FLEXIBLE.on(declaration, substitutedSuperType));
-//                    }
-//                }
-                return substitutedSuperType;
-            }
-            else {
-                trace.report(AMBIGUOUS_ANONYMOUS_TYPE_INFERRED.on(declaration, type.getConstructor().getSupertypes()));
-            }
-        }
-
-        return type;
-    }
-      static final class UpperBoundCheckRequest {
+    static final class UpperBoundCheckRequest {
         public final Name typeParameterName;
         public final CjTypeReference upperBound;
         public final CangJieType upperBoundType;

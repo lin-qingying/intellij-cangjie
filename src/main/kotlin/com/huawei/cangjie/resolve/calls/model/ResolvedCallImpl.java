@@ -197,11 +197,11 @@ public class ResolvedCallImpl<D extends CallableDescriptor> implements MutableRe
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> substitutor.safeSubstitute(e.getValue(), e.getKey().getVariance())));
 
         if (dispatchReceiver instanceof ExpressionReceiver) {
-            dispatchReceiver = dispatchReceiver.replaceType(substitutor.safeSubstitute(dispatchReceiver.getType(), Variance.IN_VARIANCE));
+            dispatchReceiver = dispatchReceiver.replaceType(substitutor.safeSubstitute(dispatchReceiver.getType(), Variance.INVARIANT));
         }
         if (extensionReceiver instanceof ExtensionReceiver) {
             extensionReceiver =
-                    extensionReceiver.replaceType(substitutor.safeSubstitute(extensionReceiver.getType(), Variance.IN_VARIANCE));
+                    extensionReceiver.replaceType(substitutor.safeSubstitute(extensionReceiver.getType(), Variance.INVARIANT));
         }
 
         if (candidateDescriptor.getValueParameters().isEmpty()) return;

@@ -65,7 +65,7 @@ class IntegerValueTypeConstructor(
 
     override fun getParameters(): List<TypeParameterDescriptor> = emptyList()
 
-//    override fun isFinal() = false
+    override fun isFinal() = false
 
     override fun isDenotable() = false
 

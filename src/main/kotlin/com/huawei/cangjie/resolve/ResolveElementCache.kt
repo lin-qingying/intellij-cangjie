@@ -213,10 +213,10 @@ class ResolveElementCache(
             ensureFileAnnotationsResolved(file)
         }
     }
-
+//
     private fun ensureFileAnnotationsResolved(file: CjFile) {
-//    val fileLevelAnnotations = resolveSession.getFileAnnotations(file)
-//    doResolveAnnotations(fileLevelAnnotations)
+//        val fileLevelAnnotations = resolveSession.getFileAnnotations(file)
+//        doResolveAnnotations(fileLevelAnnotations)
     }
 
     fun resolveToElement(element: CjElement, bodyResolveMode: BodyResolveMode = FULL): BindingContext {

@@ -34,6 +34,16 @@ class CjPsiFactory private constructor(
     private val context: PsiElement?,
     private val eventSystemEnabled: Boolean,
 ) {
+    @JvmOverloads
+    constructor(project: Project, markGenerated: Boolean = true) :
+            this(project, markGenerated, context = null, eventSystemEnabled = false)
+
+    constructor(project: Project, markGenerated: Boolean = true, eventSystemEnabled: Boolean) :
+            this(project, markGenerated, context = null, eventSystemEnabled = eventSystemEnabled)
+
+    @JvmOverloads
+        constructor(element: CjElement, markGenerated: Boolean = true) : this(element.project, markGenerated, context = null, eventSystemEnabled = false)
+
     fun createEmptyClassBody(): CjClassBody {
         return createClass("class A{}").getBody()!!
     }
@@ -44,6 +54,46 @@ class CjPsiFactory private constructor(
         fun contextual(context: PsiElement, markGenerated: Boolean = true): CjPsiFactory {
             return CjPsiFactory(context.project, markGenerated, context, eventSystemEnabled = false)
         }
+    }
+
+    fun createProperty(
+        @NonNls name: String,
+        @NonNls type: String?,
+        isMut: Boolean,
+        @NonNls initializer: String?
+    ): CjProperty {
+        return createProperty(null, name, type, isMut, initializer)
+    }
+
+    fun createProperty(@NonNls name: String, @NonNls type: String?, isMut: Boolean): CjProperty {
+        return createProperty(name, type, isMut, null)
+    }
+
+    fun createProperty(
+        @NonNls modifiers: String?,
+        @NonNls name: String,
+        @NonNls type: String?,
+        @NonNls isMut: Boolean,
+        @NonNls initializer: String?
+    ): CjProperty {
+        val text = modifiers.let { "$it " } +
+
+                (if (isMut) " mut " else "") + "prop" + name +
+                (if (type != null) ":$type" else "") +
+                "{" +
+                "get(){}" +
+                if (isMut) "set(value){}" else "" +
+                        "}"
+        return createProperty(text)
+    }
+
+    fun createProperty(@NonNls text: String): CjProperty {
+        return createDeclaration(text)
+    }
+
+    fun createSimpleName(@NonNls name: String): CjSimpleNameExpression {
+        return createVariable(name, null, false, name).initializer as CjSimpleNameExpression
+
     }
 
     fun createSimpleNameStringTemplateEntry(@NonNls name: String): CjSimpleNameStringTemplateEntry {
@@ -58,19 +108,28 @@ class CjPsiFactory private constructor(
     fun createPrimaryConstructor(@NonNls text: String = ""): CjPrimaryConstructor {
         return createClass(if (text.isNotEmpty()) "class A { public A$text{} }" else "class A { public A(){} } ").primaryConstructor!!
     }
+
     fun createCallArguments(@NonNls text: String): CjValueArgumentList {
         val property = createVariable("let x = foo $text")
         return (property.initializer as CjCallExpression).valueArgumentList!!
     }
+
     fun createDot(): PsiElement {
         return createType("T.(X)").findElementAt(1)!!
     }
+
     fun createParameterList(@NonNls text: String): CjParameterList {
         return createFunction("func foo$text{}").valueParameterList!!
     }
+
     fun createFunctionTypeReceiver(typeReference: CjTypeReference): CjFunctionTypeReceiver {
-        return (createType("() -> B").typeElement as CjFunctionType).receiver!!.apply { this.typeReference.replace(typeReference) }
+        return (createType("() -> B").typeElement as CjFunctionType).receiver!!.apply {
+            this.typeReference.replace(
+                typeReference
+            )
+        }
     }
+
     fun createImportDirective(importPath: ImportPath): CjImportDirective {
         if (importPath.fqName.isRoot) {
             throw IllegalArgumentException("import path must not be empty")
@@ -143,7 +202,7 @@ class CjPsiFactory private constructor(
 
     fun creareDelegatedSuperTypeEntry(@NonNls text: String): CjConstructorDelegationCall {
         val colonOrEmpty = if (text.isEmpty()) "" else ": "
-        return createClass("class A { constructor()$colonOrEmpty$text {}").secondaryConstructors.first()
+        return createClass("class A { init()$colonOrEmpty$text {}").secondaryConstructors.first()
             .getDelegationCall()
     }
 
@@ -176,12 +235,6 @@ class CjPsiFactory private constructor(
         return createFile("package ${fqName.asString()}").packageDirective!!
     }
 
-    @JvmOverloads
-    constructor(project: Project, markGenerated: Boolean = true) :
-            this(project, markGenerated, context = null, eventSystemEnabled = false)
-
-    constructor(project: Project, markGenerated: Boolean = true, eventSystemEnabled: Boolean) :
-            this(project, markGenerated, context = null, eventSystemEnabled = eventSystemEnabled)
 
     private fun doCreateExpression(@NonNls text: String): CjExpression? {
         //注意：下面的‘\n’很重要--如果没有它，会出现一些奇怪的代码缩进问题
@@ -262,7 +315,7 @@ class CjPsiFactory private constructor(
     }
 
     fun createTypeIfPossible(@NonNls type: String): CjTypeReference? {
-        val typeReference = createVariable("val x : $type").typeReference
+        val typeReference = createVariable("let x : $type").typeReference
         return if (typeReference?.text == type) typeReference else null
     }
 

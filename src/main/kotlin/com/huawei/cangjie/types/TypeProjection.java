@@ -11,7 +11,7 @@ public interface TypeProjection extends TypeArgumentMarker {
     @NotNull
    CangJieType getType();
 
-    boolean isStarProjection();
+//    boolean isStarProjection();
 
     @NotNull
     @TypeRefinement

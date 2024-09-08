@@ -170,7 +170,7 @@ public class TypeIntersector {
                 }
             }
             for (TypeProjection projection : type.getArguments()) {
-                if (projection.isStarProjection()) continue;
+
                 processAllTypeParameters(projection.getType(), projection.getProjectionKind(), result, containsParameter);
             }
         }

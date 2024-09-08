@@ -25,6 +25,12 @@ class QuickFixRegistrar : QuickFixContributor {
             quickFixes.register(this, *action)
         }
 
+
+
+        UNRESOLVED_REFERENCE.registerFactory(ImportFix)
+        UNRESOLVED_REFERENCE.registerFactory(ImportConstructorReferenceFix)
+
+
 //        添加 ABSTRACT_KEYWORD
         val addAbstractModifierFactory = AddModifierFix.createFactory(ABSTRACT_KEYWORD)
         ABSTRACT_MEMBER_NOT_IMPLEMENTED.registerFactory(addAbstractModifierFactory)

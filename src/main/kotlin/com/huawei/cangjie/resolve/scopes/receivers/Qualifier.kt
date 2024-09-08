@@ -1,16 +1,19 @@
 package com.huawei.cangjie.resolve.scopes.receivers
 
-import com.huawei.cangjie.descriptors.ClassDescriptor
-import com.huawei.cangjie.descriptors.ClassKind
-import com.huawei.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
-import com.huawei.cangjie.descriptors.PackageViewDescriptor
+import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.incremental.components.LookupLocation
+import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.psi.CjSimpleNameExpression
 import com.huawei.cangjie.psi.psiUtil.getTopmostParentQualifiedExpressionForSelector
+import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.descriptorUtil.classValueType
 import com.huawei.cangjie.resolve.scopes.ChainedMemberScope
+import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.MemberScope
+import com.huawei.cangjie.resolve.source.MemberScopeImpl
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.utils.Printer
 
 interface Qualifier : QualifierReceiver {
     val referenceExpression: CjSimpleNameExpression
@@ -69,3 +72,56 @@ class ClassValueReceiver @JvmOverloads constructor(
     override fun getOriginal() = original
 }
 
+class TypeAliasQualifier(
+    override val referenceExpression: CjSimpleNameExpression,
+    override val descriptor: TypeAliasDescriptor,
+    val classDescriptor: ClassDescriptor
+) : ClassifierQualifier {
+    override val classValueReceiver: ClassValueReceiver?
+        get() = classDescriptor.classValueType?.let {
+            ClassValueReceiver(this, it)
+        }
+
+    override val staticScope: MemberScope
+        get() = when {
+            DescriptorUtils.isEnum (classDescriptor) ->
+                ChainedMemberScope.create(
+                    "Static scope for typealias ${descriptor.name}",
+                    classDescriptor.staticScope,
+                    EnumEntriesScope()
+                )
+            else ->
+                classDescriptor.staticScope
+        }
+
+    /**
+     * We cannot use [org.jetbrains.kotlin.descriptors.ClassDescriptor.getUnsubstitutedMemberScope] directly,
+     * because we do not allow complete resolve through type aliases yet (see KT-15298).
+     *
+     * However, we want to allow to resolve and autocomplete enum constants even through type aliases;
+     * that's why we use [org.jetbrains.kotlin.descriptors.ClassDescriptor.getUnsubstitutedMemberScope],
+     * but filter only enum entries.
+     */
+    private inner class EnumEntriesScope : MemberScopeImpl() {
+        override fun getContributedDescriptors(
+            kindFilter: DescriptorKindFilter,
+            nameFilter: (Name) -> Boolean
+        ): Collection<DeclarationDescriptor> =
+            classDescriptor.unsubstitutedInnerClassesScope
+                .getContributedDescriptors(kindFilter, nameFilter)
+                .filter { DescriptorUtils.isEnumEntry(it) }
+
+        override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
+            classDescriptor.unsubstitutedInnerClassesScope
+                .getContributedClassifier(name, location)
+                ?.takeIf { DescriptorUtils.isEnumEntry(it) }
+
+        override fun printScopeStructure(p: Printer) {
+            p.println(this::class.java.simpleName, " {")
+            p.pushIndent()
+            p.println("descriptor = ", descriptor)
+            p.popIndent()
+            p.println("}")
+        }
+    }
+}

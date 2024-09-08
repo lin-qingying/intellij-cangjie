@@ -24,10 +24,8 @@ import com.intellij.util.containers.MultiMap
 import java.lang.reflect.*
 import java.util.*
 
-class CangJieQuickFixProviderImpl: CangJieQuickFixProvider {
-    override fun createQuickFixes(sameTypeDiagnostics: Collection<Diagnostic>): MultiMap<Diagnostic, IntentionAction>
-
-            =
+class CangJieQuickFixProviderImpl : CangJieQuickFixProvider {
+    override fun createQuickFixes(sameTypeDiagnostics: Collection<Diagnostic>): MultiMap<Diagnostic, IntentionAction> =
         createQuickFixes(sameTypeDiagnostics, true, false) { factory: DiagnosticFactory<*> ->
             QuickFixes.getInstance().getActionFactories(factory)
         }
@@ -86,6 +84,7 @@ class CangJieQuickFixProviderImpl: CangJieQuickFixProvider {
 
         return actions
     }
+
     private fun createQuickFixes(
         diagnostics: Collection<Diagnostic>,
         replaceUnresolvedReferenceQuickFix: Boolean,
@@ -106,16 +105,16 @@ class CangJieQuickFixProviderImpl: CangJieQuickFixProvider {
 
     override fun createPostponedUnresolvedReferencesQuickFixes(sameTypeDiagnostics: Collection<Diagnostic>): MultiMap<Diagnostic, IntentionAction> {
 
-       return createQuickFixes(sameTypeDiagnostics, true, true) { factory: DiagnosticFactory<*> ->
+        return createQuickFixes(sameTypeDiagnostics, true, true) { factory: DiagnosticFactory<*> ->
             QuickFixes.getInstance().getActionFactories(factory)
         }
 
     }
 
     override fun createUnresolvedReferenceQuickFixes(sameTypeDiagnostics: Collection<Diagnostic>): MultiMap<Diagnostic, IntentionAction> =
-    createQuickFixes(sameTypeDiagnostics, false, false) { factory: DiagnosticFactory<*> ->
-        QuickFixes.getInstance().getUnresolvedReferenceActionFactories(factory)
-    }
+        createQuickFixes(sameTypeDiagnostics, false, false) { factory: DiagnosticFactory<*> ->
+            QuickFixes.getInstance().getUnresolvedReferenceActionFactories(factory)
+        }
 
     private fun collectDiagnosticsForElement(element: CjElement, severity: Severity): List<Diagnostic> {
         val file = element.containingFile
@@ -144,9 +143,9 @@ class CangJieQuickFixProviderImpl: CangJieQuickFixProvider {
         return CangJieSuppressIntentionAction(element, suppressionKey, hostKind)
 
 
-
     }
 }
+
 private object NoDeclarationDescriptorsChecker {
     private val LOG = Logger.getInstance(NoDeclarationDescriptorsChecker::class.java)
 

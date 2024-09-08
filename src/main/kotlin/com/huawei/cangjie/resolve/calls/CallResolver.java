@@ -191,7 +191,7 @@ public class CallResolver {
             @NotNull Collection<OldResolutionCandidate<D>> candidates,
             @NotNull TracingStrategy tracing
     ) {
-        return callResolvePerfCounter.<OverloadResolutionResults<D>>time(() -> {
+        return callResolvePerfCounter.time(() -> {
             ResolutionTask<D> resolutionTask = new ResolutionTask<>(
                     new NewResolutionOldInference.ResolutionKind.GivenCandidates(), null, candidates
             );

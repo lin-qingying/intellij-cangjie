@@ -255,11 +255,6 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return this.arguments
     }
 
-    override fun TypeArgumentMarker.isStarProjection(): Boolean {
-        require(this is TypeProjection, this::errorMessage)
-        return this.isStarProjection
-    }
-
     override fun TypeArgumentMarker.getVariance(): TypeVariance {
         require(this is TypeProjection, this::errorMessage)
         return this.projectionKind.convertVariance()
@@ -440,7 +435,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         if (this is TypeUtils.SpecialType) return 0
 
         val maxInArguments = arguments.maxOfOrNull {
-            if (it.isStarProjection) 1 else it.type.unwrap().typeDepth()
+            it.type.unwrap().typeDepth()
         } ?: 0
 
         return maxInArguments + 1
@@ -641,10 +636,6 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return TypeProjectionImpl(variance.convertVariance(), type)
     }
 
-    override fun createStarProjection(typeParameter: TypeParameterMarker): TypeArgumentMarker {
-        require(typeParameter is TypeParameterDescriptor, typeParameter::errorMessage)
-        return StarProjectionImpl(typeParameter)
-    }
 
     override fun CangJieTypeMarker.canHaveUndefinedNullability(): Boolean {
         require(this is UnwrappedType, this::errorMessage)
@@ -1041,8 +1032,7 @@ private fun containsInternal(type: CangJieType, predicate: (CangJieTypeMarker) -
 fun TypeVariance.convertVariance(): Variance {
     return when (this) {
         TypeVariance.INV -> Variance.INVARIANT
-        TypeVariance.IN -> Variance.IN_VARIANCE
-        TypeVariance.OUT -> Variance.OUT_VARIANCE
+
     }
 }
 

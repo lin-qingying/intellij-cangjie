@@ -31,6 +31,18 @@ fun CjExpression.getAnnotationEntries(): List<CjAnnotationEntry> {
     }
 }
 
+fun CjSimpleNameExpression.isImportDirectiveExpression(): Boolean {
+    val parent = parent
+    return parent is CjImportDirective || parent!!.parent is CjImportDirective
+}
+
+fun CjSimpleNameExpression.getQualifiedElementOrCallableRef(): CjElement {
+    val parent = parent
+    if (parent is CjCallableReferenceExpression && parent.callableReference == this) return parent
+
+    return getQualifiedElement()
+}
+
 fun CjExpression.getQualifiedExpressionForReceiver(): CjQualifiedExpression? {
     val parent = parent
     return if (parent is CjQualifiedExpression && parent.receiverExpression == this) parent else null

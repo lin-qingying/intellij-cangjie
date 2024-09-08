@@ -22,7 +22,7 @@ public interface TypeConstructor extends TypeConstructorMarker {
     //    扩展的父类型 需要一个排除的扩展id
     @NotNull
     @ReadOnly
-    default Collection<CangJieType> getExtendSupertypes(@Nullable String extendId) {
+    default Collection<CangJieType> getExtendSupertypes(@Nullable String extendId ) {
         return Collections.emptyList();
     }
 
@@ -61,6 +61,10 @@ public interface TypeConstructor extends TypeConstructorMarker {
     @NotNull
     TypeConstructor refine(@NotNull CangJieTypeRefiner cangjieTypeRefiner);
 
+    /**
+     * Cannot have subtypes.
+     */
+    boolean isFinal();
     /**
      * It may differ from ClassDescriptor.declaredParameters if the class is inner, in such case
      * it also contains additional parameters from outer declarations.

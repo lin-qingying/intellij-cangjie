@@ -11,8 +11,8 @@ abstract class CangJieQuickFixAction<out T : PsiElement>(element: T) : QuickFixA
     protected open fun isAvailable(project: Project, editor: Editor?, file: CjFile) = true
 
     override fun isAvailableImpl(project: Project, editor: Editor?, file: PsiFile): Boolean {
-        val ktFile = file as? CjFile ?: return false
-        return isAvailable(project, editor, ktFile)
+        val cjFile = file as? CjFile ?: return false
+        return isAvailable(project, editor, cjFile)
     }
 
     final override fun invoke(project: Project, editor: Editor?, file: PsiFile) {

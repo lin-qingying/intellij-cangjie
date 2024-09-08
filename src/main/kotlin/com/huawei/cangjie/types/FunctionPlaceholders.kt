@@ -21,6 +21,9 @@ class FunctionPlaceholderTypeConstructor(
     override fun getParameters(): List<TypeParameterDescriptor> {
         return errorTypeConstructor.parameters
     }
+    override fun isFinal(): Boolean {
+        return errorTypeConstructor.isFinal
+    }
 
     override fun getSupertypes(): Collection<CangJieType> {
         return errorTypeConstructor.supertypes

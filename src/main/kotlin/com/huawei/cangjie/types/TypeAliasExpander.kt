@@ -90,8 +90,8 @@ class TypeAliasExpander(
             val projection = expandTypeProjection(
                 originalArgument, typeAliasExpansion, typeConstructor.parameters[i], recursionDepth + 1
             )
-            if (projection.isStarProjection) projection
-            else TypeProjectionImpl(
+
+              TypeProjectionImpl(
                 projection.projectionKind,
                 TypeUtils.makeOptionalIfNeeded(projection.type, originalArgument.type.isMarkedOption)
             )

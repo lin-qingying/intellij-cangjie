@@ -32,6 +32,9 @@ fun CjBlockStringTemplateEntry.canDropCurlyBrackets(): Boolean {
     return (expression is CjNameReferenceExpression || (expression is CjThisExpression && expression.labelQualifier == null))
             && canPlaceAfterSimpleNameEntry(nextSibling)
 }
+inline fun <reified T : PsiElement, reified V : PsiElement> PsiElement.getParentOfTypes2(): PsiElement? {
+    return PsiTreeUtil.getParentOfType(this, T::class.java, V::class.java)
+}
 
 inline fun <reified T : PsiElement> PsiElement.replaced(newElement: T): T {
     if (this == newElement) {

@@ -1,5 +1,6 @@
 package com.huawei.cangjie.psi.psiUtil
 
+import com.huawei.cangjie.psi.CjPsiUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.codeStyle.CodeEditUtil
 
@@ -13,3 +14,4 @@ import com.intellij.psi.impl.source.codeStyle.CodeEditUtil
 fun PsiElement.deleteSingle() {
     CodeEditUtil.removeChild(parent?.node ?: return, node ?: return)
 }
+fun String.unquoteCangJieIdentifier(): String = CjPsiUtil.unquoteIdentifier(this)

@@ -82,9 +82,9 @@ class PostponedArgumentInputTypesResolver(
             }
             type.argumentsCount() > 0 -> {
                 for (typeArgument in type.lowerBoundIfFlexible().asArgumentList()) {
-                    if (!typeArgument.isStarProjection()) {
+
                         getAllDeeplyRelatedTypeVariables(typeArgument.getType(), variableDependencyProvider, typeVariableCollector)
-                    }
+
                 }
             }
         }

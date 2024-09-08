@@ -78,7 +78,7 @@ public class DescriptorSubstitutor {
                         ? substitutor
                         : nonApproximatingSubstitutor;
 
-                CangJieType substitutedBound = boundSubstitutor.substitute(upperBound, Variance.OUT_VARIANCE);
+                CangJieType substitutedBound = boundSubstitutor.substitute(upperBound, Variance.INVARIANT);
                 if (substitutedBound == null) return null;
 
                 if (substitutedBound != upperBound && wereChanges != null) {

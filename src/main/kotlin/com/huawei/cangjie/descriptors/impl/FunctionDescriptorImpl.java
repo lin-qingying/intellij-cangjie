@@ -83,15 +83,15 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         for (ValueParameterDescriptor unsubstitutedValueParameter : unsubstitutedValueParameters) {
             // TODO : Lazy?
             CangJieType substitutedType = substitutor.substitute(unsubstitutedValueParameter.getType(), Variance.INVARIANT);
-//            CangJieType varargElementType = unsubstitutedValueParameter.getVarargElementType();
-//            CangJieType substituteVarargElementType =
-//                    varargElementType == null ? null : substitutor.substitute(varargElementType, Variance.IN_VARIANCE);
-//            if (substitutedType == null) return null;
-//            if (substitutedType != unsubstitutedValueParameter.getType() || varargElementType != substituteVarargElementType) {
-//                if (wereChanges != null) {
-//                    wereChanges[0] = true;
-//                }
-//            }
+            CangJieType varargElementType = unsubstitutedValueParameter.getVarargElementType();
+            CangJieType substituteVarargElementType =
+                    varargElementType == null ? null : substitutor.substitute(varargElementType, Variance.INVARIANT);
+            if (substitutedType == null) return null;
+            if (substitutedType != unsubstitutedValueParameter.getType() || varargElementType != substituteVarargElementType) {
+                if (wereChanges != null) {
+                    wereChanges[0] = true;
+                }
+            }
 
             Function0<List<VariableDescriptor>> destructuringVariablesAction = null;
             if (unsubstitutedValueParameter instanceof ValueParameterDescriptorImpl.WithDestructuringDeclaration) {
@@ -491,7 +491,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
             int index = 0;
             for (ReceiverParameterDescriptor newContextReceiverParameter : configuration.newContextReceiverParameters) {
                 CangJieType substitutedContextReceiverType =
-                        substitutor.substitute(newContextReceiverParameter.getType(), Variance.IN_VARIANCE);
+                        substitutor.substitute(newContextReceiverParameter.getType(), Variance.INVARIANT);
                 if (substitutedContextReceiverType == null) {
                     return null;
                 }
@@ -509,7 +509,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         ReceiverParameterDescriptor substitutedReceiverParameter = null;
         if (configuration.newExtensionReceiverParameter != null) {
             CangJieType substitutedExtensionReceiverType =
-                    substitutor.substitute(configuration.newExtensionReceiverParameter.getType(), Variance.IN_VARIANCE);
+                    substitutor.substitute(configuration.newExtensionReceiverParameter.getType(), Variance.INVARIANT);
             if (substitutedExtensionReceiverType == null) {
                 return null;
             }

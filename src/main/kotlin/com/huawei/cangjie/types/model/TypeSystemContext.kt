@@ -8,8 +8,12 @@ package com.huawei.cangjie.types.model
 //import com.huawei.cangjie.resolve.checkers.EmptyIntersectionTypeChecker
 //import com.huawei.cangjie.resolve.checkers.EmptyIntersectionTypeInfo
 import com.huawei.cangjie.builtins.functions.FunctionTypeKind
+import com.huawei.cangjie.psi.CjProjectionKind
+import com.huawei.cangjie.psi.stubs.impl.CangJieTypeArgumentBean
 import com.huawei.cangjie.types.TypeCheckerState
+import com.huawei.cangjie.types.TypeProjectionImpl
 import com.huawei.cangjie.types.Variance
+
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -41,8 +45,8 @@ interface TypeSubstitutorMarker
 interface AnnotationMarker
 
 enum class TypeVariance(val presentation: String) {
-    IN("in"),
-    OUT("out"),
+//    IN("in"),
+//    OUT("out"),
     INV("");
 
     override fun toString(): String = presentation
@@ -87,7 +91,6 @@ interface TypeSystemTypeFactoryContext : TypeSystemBuiltInsContext {
     ): SimpleTypeMarker
 
     fun createTypeArgument(type: CangJieTypeMarker, variance: TypeVariance): TypeArgumentMarker
-    fun createStarProjection(typeParameter: TypeParameterMarker): TypeArgumentMarker
 
     fun createErrorType(debugName: String, delegatedType: SimpleTypeMarker?): SimpleTypeMarker
     fun createUninferredType(constructor: TypeConstructorMarker): CangJieTypeMarker
@@ -201,7 +204,6 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
 
     fun SimpleTypeMarker.replaceArgumentsDeeply(replacement: (TypeArgumentMarker) -> TypeArgumentMarker): SimpleTypeMarker {
         return replaceArguments {
-            if (it.isStarProjection()) return@replaceArguments it
 
             val type = it.getType()
             val newProjection = if (type.argumentsCount() > 0) {
@@ -282,7 +284,6 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
         for (i in 0 until argumentsCount()) {
             val argument = getArgument(i)
 
-            if (argument.isStarProjection()) continue
 
             val argumentType = argument.getType()
             val argumentTypeConstructor = argumentType.typeConstructor()
@@ -330,23 +331,23 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
     @COnly
     fun createSubstitutionFromSubtypingStubTypesToTypeVariables(): TypeSubstitutorMarker
 
-    fun createCapturedStarProjectionForSelfType(
-        typeVariable: TypeVariableTypeConstructorMarker,
-        typesForRecursiveTypeParameters: List<CangJieTypeMarker>,
-    ): SimpleTypeMarker? {
-        val typeParameter = typeVariable.typeParameter ?: return null
-        val starProjection = createStarProjection(typeParameter)
-        val superType = intersectTypes(
-            typesForRecursiveTypeParameters.map { type ->
-                type.replaceArgumentsDeeply {
-                    val constructor = it.getType().typeConstructor()
-                    if (constructor is TypeVariableTypeConstructorMarker && constructor == typeVariable) starProjection else it
-                }
-            }
-        )
-
-        return createCapturedType(starProjection, listOf(superType), lowerType = null, CaptureStatus.FROM_EXPRESSION)
-    }
+//    fun createCapturedStarProjectionForSelfType(
+//        typeVariable: TypeVariableTypeConstructorMarker,
+//        typesForRecursiveTypeParameters: List<CangJieTypeMarker>,
+//    ): SimpleTypeMarker? {
+//        val typeParameter = typeVariable.typeParameter ?: return null
+//
+//        val superType = intersectTypes(
+//            typesForRecursiveTypeParameters.map { type ->
+//                type.replaceArgumentsDeeply {
+//                    val constructor = it.getType().typeConstructor()
+//                    if (constructor is TypeVariableTypeConstructorMarker && constructor == typeVariable) starProjection else it
+//                }
+//            }
+//        )
+//
+//        return createCapturedType(TypeProjectionImpl, listOf(superType), lowerType = null, CaptureStatus.FROM_EXPRESSION)
+//    }
 
     fun createSubstitutorForSuperTypes(baseType: CangJieTypeMarker): TypeSubstitutorMarker?
 
@@ -426,7 +427,7 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
 
     fun CapturedTypeMarker.lowerType(): CangJieTypeMarker?
 
-    fun TypeArgumentMarker.isStarProjection(): Boolean
+
     fun TypeArgumentMarker.getVariance(): TypeVariance
     fun TypeArgumentMarker.getType(): CangJieTypeMarker
     fun TypeArgumentMarker.replaceType(newType: CangJieTypeMarker): TypeArgumentMarker
@@ -475,7 +476,7 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
 
     fun CangJieTypeMarker.isDynamic(): Boolean = asFlexibleType()?.asDynamicType() != null
     fun CangJieTypeMarker.isCapturedDynamic(): Boolean =
-        asSimpleType()?.asCapturedType()?.typeConstructor()?.projection()?.takeUnless { it.isStarProjection() }
+        asSimpleType()?.asCapturedType()?.typeConstructor()?.projection()
             ?.getType()?.isDynamic() == true
 
     fun CangJieTypeMarker.isDefinitelyNotNullType(): Boolean = asSimpleType()?.asDefinitelyNotNullType() != null
@@ -626,7 +627,7 @@ annotation class COnly
 fun Variance.convertVariance(): TypeVariance {
     return when (this) {
         Variance.INVARIANT -> TypeVariance.INV
-        Variance.IN_VARIANCE -> TypeVariance.IN
-        Variance.OUT_VARIANCE -> TypeVariance.OUT
+//        Variance.IN_VARIANCE -> TypeVariance.IN
+//        Variance.OUT_VARIANCE -> TypeVariance.OUT
     }
 }

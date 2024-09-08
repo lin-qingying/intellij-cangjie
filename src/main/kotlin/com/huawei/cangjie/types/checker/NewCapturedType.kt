@@ -41,7 +41,7 @@ class NewCapturedTypeConstructor(
     override fun getSupertypes() = _supertypes ?: emptyList()
     override fun getParameters(): List<TypeParameterDescriptor> = emptyList()
 
-    //    override fun isFinal() = false
+        override fun isFinal() = false
     override fun isDenotable() = false
     override fun getDeclarationDescriptor(): ClassifierDescriptor? = null
     override fun getBuiltIns(): CangJieBuiltIns = projection.type.builtIns
@@ -128,12 +128,12 @@ private fun captureArguments(type: UnwrappedType, status: CaptureStatus): List<T
     val capturedArguments = arguments.zip(type.constructor.parameters).map { (projection, parameter) ->
         if (projection.projectionKind == Variance.INVARIANT) return@map projection
 
-        val lowerType =
-            if (!projection.isStarProjection && projection.projectionKind == Variance.IN_VARIANCE) {
-                projection.type.unwrap()
-            } else {
-                null
-            }
+        val lowerType = null
+//            if (!projection.isStarProjection && projection.projectionKind == Variance.IN_VARIANCE) {
+//                projection.type.unwrap()
+//            } else {
+//                null
+//            }
 
         NewCapturedType(
             status,

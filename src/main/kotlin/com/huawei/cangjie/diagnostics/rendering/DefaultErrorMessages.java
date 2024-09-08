@@ -3,8 +3,6 @@ package com.huawei.cangjie.diagnostics.rendering;
 import com.huawei.cangjie.diagnostics.UnboundDiagnostic;
 import com.huawei.cangjie.types.CangJieTypeKt;
 import com.huawei.cangjie.utils.AddToStdlibKt;
-import com.huawei.cangjie.utils.OperatorNameConventions;
-import com.linqingying.utils.AstMsgType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,8 +26,7 @@ public class DefaultErrorMessages {
 
     static {
 
-        MAP.put(COMPILER_AFFECTED_SYNTAX_ERROR, "Affected by the compiler, this writing will report an error" );
-
+        MAP.put(COMPILER_AFFECTED_SYNTAX_ERROR, "Affected by the compiler, this writing will report an error");
 
 
 /***************声明检查************************************************/
@@ -95,17 +92,6 @@ public class DefaultErrorMessages {
 
         MAP.put(WRONG_NUMBER_OF_TYPE_ARGUMENTS, wrongNumberOfTypeArguments + " for {1}", null, COMPACT_WITHOUT_SUPERTYPES);
         MAP.put(MEMBER_PROJECTED, "type ''{1}'' prohibits the use of ''{0}''", FQ_NAMES_IN_TYPES, RENDER_TYPE);
-        MAP.put(TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS,
-                "Type mismatch: inferred type is {1} but {0} was expected. Projected type {2} restricts use of {3}",
-                object -> {
-                    RenderingContext context = RenderingContext.of(object.getExpectedType(), object.getExpressionType(), object.getReceiverType(), object.getCallableDescriptor());
-                    return new String[]{
-                            RENDER_TYPE.render(object.getExpectedType(), context),
-                            RENDER_TYPE.render(object.getExpressionType(), context),
-                            RENDER_TYPE.render(object.getReceiverType(), context),
-                            FQ_NAMES_IN_TYPES.render(object.getCallableDescriptor(), context)
-                    };
-                });
 
         MAP.put(UPPER_BOUND_VIOLATED, "Type argument is not within its bounds: should be subtype of ''{0}''", RENDER_TYPE, RENDER_TYPE);
         MAP.put(SUPERTYPE_APPEARS_TWICE, "A supertype appears twice");
@@ -125,10 +111,27 @@ public class DefaultErrorMessages {
 
         MAP.put(PARAMETER_NAME_CHANGED_ON_OVERRIDE, "The corresponding parameter in the supertype ''{0}'' is named ''{1}''. " +
                 "This may cause problems when calling this function with named arguments.", NAME, NAME);
+//类型系统
+        MAP.put(TYPE_MISMATCH_MULTIPLE_SUPERTYPES, "Type inference failed: multiple smallest common supertypes found {0}", RENDER_COLLECTION_OF_TYPES);
+        MAP.put(TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS,
+                "Type mismatch: inferred type is {1} but {0} was expected. Projected type {2} restricts use of {3}",
+                object -> {
+                    RenderingContext context = RenderingContext.of(object.getExpectedType(), object.getExpressionType(), object.getReceiverType(), object.getCallableDescriptor());
+                    return new String[]{
+                            RENDER_TYPE.render(object.getExpectedType(), context),
+                            RENDER_TYPE.render(object.getExpressionType(), context),
+                            RENDER_TYPE.render(object.getReceiverType(), context),
+                            FQ_NAMES_IN_TYPES.render(object.getCallableDescriptor(), context)
+                    };
+                });
+
+        MAP.put(TYPE_MISMATCH, "Type mismatch: inferred type is {1} but {0} was expected", RENDER_TYPE, RENDER_TYPE);
+// 调用
+
+        MAP.put(TOO_MANY_ARGUMENTS, "Too many arguments for {0}", FQ_NAMES_IN_TYPES);
 
 //        表达式
         MAP.put(NEW_INFERENCE_UNKNOWN_ERROR, "Unknown error in new inference with applicability ''{0}'' and target ''{1}''", TO_STRING, STRING);
-        MAP.put(TYPE_MISMATCH, "Type mismatch: inferred type is {1} but {0} was expected", RENDER_TYPE, RENDER_TYPE);
         MAP.put(AMBIGUOUS_ANONYMOUS_TYPE_INFERRED, "Right-hand side has anonymous type. Please specify type explicitly", TO_STRING);
         MAP.put(NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER, "Not enough information to infer type variable {0}", STRING);
         MAP.put(ARRAY_LITERAL_TYPE_INFERENCE_FAILED, "array literal type cannot be inferred");
@@ -155,14 +158,14 @@ public class DefaultErrorMessages {
         MAP.put(SEALED_ABSTRACT, "'sealed' can only modify abstract class");
         MAP.put(INCOMPATIBLE_MODIFIERS, "Modifier ''{0}'' is incompatible with ''{1}''", TO_STRING, TO_STRING);
         MAP.put(WRONG_MODIFIER_TARGET, "Modifier ''{0}'' is not applicable to ''{1}''", TO_STRING, TO_STRING);
-        MAP.put(NO_MULTILINE_NEWLINE, "Multiline strings need to start with newline characters" );
+        MAP.put(NO_MULTILINE_NEWLINE, "Multiline strings need to start with newline characters");
 
 
         MAP.put(VARIABLE_WITH_NO_TYPE_NO_INITIALIZER, "This variable must either have a type annotation or be initialized");
 
 
         MAP.put(EXCEPTION_FROM_ANALYZER, "Internal Error occurred while analyzing this expression:\n{0}", THROWABLE);
-        MAP.put(REDUNDANT_OPTIONAL,"Redundant '?'");
+        MAP.put(REDUNDANT_OPTIONAL, "Redundant '?'");
 //        MAP.put(REDUNDANT_OPTIONAL, AstMsgData.create(
 //                new AstMsgData.AstMsgModule(AstMsgType.NORMAL, "Redundant '?'"),
 //

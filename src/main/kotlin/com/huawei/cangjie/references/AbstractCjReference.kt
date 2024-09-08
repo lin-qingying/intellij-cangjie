@@ -93,6 +93,11 @@ abstract class AbstractCjReference<T : CjElement>(element: T) : PsiPolyVariantRe
 
     protected open fun canBeReferenceTo(candidateTarget: PsiElement): Boolean = true
 
+    override fun handleElementRename(newElementName: String): PsiElement? =
+        if (canRename())
+            getCjReferenceMutateService().handleElementRename(this, newElementName)
+        else
+            null
 
     val expression: T
         get() = element

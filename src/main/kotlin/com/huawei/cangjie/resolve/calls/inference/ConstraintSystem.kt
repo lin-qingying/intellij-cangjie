@@ -17,7 +17,16 @@ interface ConstraintSystem {
     val status: ConstraintSystemStatus
     val typeVariables: Set<TypeVariable>
     fun toBuilder(filterConstraintPosition: (ConstraintPosition) -> Boolean = { true }): Builder
-
+    /**
+     * Returns the result of solving the constraint system (mapping from the type variable to the resulting type projection).
+     * In the resulting substitution the following should be of concern:
+     * - type constraints
+     * - variance of the type variable  // not implemented yet
+     * - type parameter bounds (that can bind type variables with each other) // not implemented yet
+     * If the addition of the 'expected type' constraint made the system fail,
+     * this constraint is not included in the resulting substitution.
+     */
+    val resultingSubstitutor: TypeSubstitutor
     /**
      * Returns the resulting type constraints of solving the constraint system for specific type parameter descriptor.
      * Throws IllegalArgumentException if the type parameter descriptor is not known to the system.
@@ -208,8 +217,24 @@ internal class ConstraintSystemImpl(
         get() = allTypeParameterBounds.keys
 
     override fun toBuilder(filterConstraintPosition: (ConstraintPosition) -> Boolean): ConstraintSystem.Builder {
-        TODO("Not yet implemented")
+        val result = ConstraintSystemBuilderImpl()
+        for ((typeParameter, typeBounds) in allTypeParameterBounds) {
+            result.allTypeParameterBounds.put(typeParameter, typeBounds.filter(filterConstraintPosition))
+        }
+        result.usedInBounds.putAll(usedInBounds.map {
+            val (variable, bounds) = it
+            variable to bounds.filterTo(arrayListOf<TypeBounds.Bound>()) { filterConstraintPosition(it.position) }
+        }.toMap())
+        result.errors.addAll(errors.filter { filterConstraintPosition(it.constraintPosition) })
+
+        result.initialConstraints.addAll(initialConstraints.filter { filterConstraintPosition(it.position) })
+        result.typeVariableSubstitutors.putAll(typeVariableSubstitutors)
+
+        return result
     }
+
+    override val resultingSubstitutor: TypeSubstitutor
+        get() = TODO("Not yet implemented")
 
     override fun getTypeBounds(typeVariable: TypeVariable): TypeBoundsImpl {
         return allTypeParameterBounds[typeVariable]

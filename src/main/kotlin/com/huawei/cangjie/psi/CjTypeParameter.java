@@ -35,18 +35,18 @@ public class CjTypeParameter extends CjNamedDeclarationStub<CangJieTypeParameter
 
     @NotNull
     public Variance getVariance() {
-        CangJieTypeParameterStub stub = getStub();
-        if (stub != null) {
+//        CangJieTypeParameterStub stub = getStub();
+//        if (stub != null) {
+//
+////            if (stub.isInVariance()) return Variance.IN_VARIANCE;
+//            return Variance.INVARIANT;
+//        }
+//
+//        CjModifierList modifierList = getModifierList();
+//        if (modifierList == null) return Variance.INVARIANT;
 
-//            if (stub.isInVariance()) return Variance.IN_VARIANCE;
-            return Variance.INVARIANT;
-        }
-
-        CjModifierList modifierList = getModifierList();
-        if (modifierList == null) return Variance.INVARIANT;
 
 
-        if (modifierList.hasModifier(CjTokens.IN_KEYWORD)) return Variance.IN_VARIANCE;
         return Variance.INVARIANT;
     }
 

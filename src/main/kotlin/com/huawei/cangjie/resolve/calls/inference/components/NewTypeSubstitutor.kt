@@ -165,7 +165,7 @@ interface NewTypeSubstitutor : TypeSubstitutorMarker {
         for (index in arguments.indices) {
             val argument = arguments[index]
 
-            if (argument.isStarProjection) continue
+
 
             val specialProjectionSubstitution = substituteArgumentProjection(argument)
             if (specialProjectionSubstitution != null) {
@@ -262,9 +262,6 @@ fun createCompositeSubstitutor(appliedFirst: TypeSubstitutor, appliedLast: NewTy
             if (substitutedProjection == null || substitutedProjection === argument) {
                 return null
             }
-
-            if (substitutedProjection.isStarProjection)
-                return substitutedProjection
 
             val resultingType = appliedLast.safeSubstitute(substitutedProjection.type.unwrap())
             return TypeProjectionImpl(substitutedProjection.projectionKind, resultingType)

@@ -14,6 +14,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.refactoring.suggested.createSmartPointer
 import java.util.ArrayList
@@ -35,6 +36,14 @@ fun addDelayedImportRequest(elementToImport: PsiElement, file: CjFile) {
     assert(ApplicationManager.getApplication()!!.isWriteAccessAllowed) { "Write access needed" }
     file.project.getOrCreateRefactoringRequests() += ImportRequest(elementToImport.createSmartPointer(), file.createSmartPointer())
 }
+
+fun CjElement.addToShorteningWaitSet(options: ShortenReferences.Options = ShortenReferences.Options.DEFAULT) {
+    assert(ApplicationManager.getApplication()!!.isWriteAccessAllowed) { "Write access needed" }
+    val project = project
+    val elementPointer = SmartPointerManager.getInstance(project).createSmartPsiElementPointer(this)
+    project.getOrCreateRefactoringRequests().add(ShorteningRequest(elementPointer, options))
+}
+
 private fun Project.getOrCreateRefactoringRequests(): MutableSet<DelayedRefactoringRequest> {
     var requests = delayedRefactoringRequests
     if (requests == null) {

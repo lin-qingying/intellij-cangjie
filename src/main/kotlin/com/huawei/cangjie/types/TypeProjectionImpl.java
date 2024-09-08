@@ -26,10 +26,6 @@ public class TypeProjectionImpl extends TypeProjectionBase{
         return type;
     }
 
-    @Override
-    public boolean isStarProjection() {
-        return false;
-    }
 
     @NotNull
     @Override

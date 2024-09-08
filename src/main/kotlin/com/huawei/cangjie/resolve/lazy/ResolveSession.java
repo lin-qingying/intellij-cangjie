@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.lazy;
 import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.context.GlobalContext;
 import com.huawei.cangjie.descriptors.*;
+import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.incremental.components.LookupLocation;
 import com.huawei.cangjie.incremental.components.LookupTracker;
 import com.huawei.cangjie.name.FqName;
@@ -14,10 +15,10 @@ import com.huawei.cangjie.resolve.extensions.SyntheticResolveExtension;
 import com.huawei.cangjie.resolve.lazy.declarations.DeclarationProviderFactory;
 import com.huawei.cangjie.resolve.lazy.declarations.LazyPackageDescriptor;
 import com.huawei.cangjie.resolve.lazy.declarations.PackageMemberDeclarationProvider;
-import com.huawei.cangjie.storage.CacheWithNotNullValues;
-import com.huawei.cangjie.storage.ExceptionTracker;
-import com.huawei.cangjie.storage.LazyResolveStorageManager;
-import com.huawei.cangjie.storage.LockBasedLazyResolveStorageManager;
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyAnnotations;
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyAnnotationsContextImpl;
+import com.huawei.cangjie.resolve.scopes.LexicalScope;
+import com.huawei.cangjie.storage.*;
 import com.huawei.cangjie.types.WrappedTypeFactory;
 import com.huawei.cangjie.types.checker.NewCangJieTypeChecker;
 import com.intellij.openapi.application.ReadAction;
@@ -38,6 +39,7 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     private final ExceptionTracker exceptionTracker;
 
     private final ModuleDescriptor module;
+    private final MemoizedFunctionToNotNull<CjFile, LazyAnnotations> fileAnnotations;
 
     private final BindingTrace trace;
     private final CacheWithNotNullValues<FqName, LazyPackageDescriptor> packages;
@@ -61,6 +63,7 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     private TypeResolver typeResolver;
     private SealedClassInheritorsProvider sealedClassInheritorsProvider;
     private OverloadChecker overloadChecker;
+    private AnnotationResolver annotationResolver;
 
     // Only calls from injectors expected
     @Deprecated
@@ -85,6 +88,7 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
         this.declarationProviderFactory = declarationProviderFactory;
         this.cangjieTypeChecker = cangjieTypeChecker;
         this.project = project;
+        fileAnnotations = storageManager.createMemoizedFunction(file -> createAnnotations(file, Collections.emptyList()));
 
         this.packageFragmentProvider = new PackageFragmentProviderOptimized() {
             @Override
@@ -143,8 +147,18 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
         return trace;
     }
 
+    @Inject
+    public void setAnnotationResolve(AnnotationResolver annotationResolver) {
+        this.annotationResolver = annotationResolver;
+    }
+
     public DeclarationProviderFactory getDeclarationProviderFactory() {
         return declarationProviderFactory;
+    }
+
+    @NotNull
+    public Annotations getFileAnnotations(@NotNull CjFile file) {
+        return fileAnnotations.invoke(file);
     }
 
     @Inject
@@ -155,6 +169,13 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     @Inject
     public void setSupertypeLoopsResolver(@NotNull SupertypeLoopChecker supertypeLoopsResolver) {
         this.supertypeLoopsResolver = supertypeLoopsResolver;
+    }
+
+    private LazyAnnotations createAnnotations(CjFile file, List<CjAnnotationEntry> annotationEntries) {
+        LexicalScope scope = fileScopeProvider.getFileResolutionScope(file);
+        LazyAnnotationsContextImpl lazyAnnotationContext =
+                new LazyAnnotationsContextImpl(annotationResolver, storageManager, trace, scope);
+        return new LazyAnnotations(lazyAnnotationContext, annotationEntries);
     }
 
     @NotNull

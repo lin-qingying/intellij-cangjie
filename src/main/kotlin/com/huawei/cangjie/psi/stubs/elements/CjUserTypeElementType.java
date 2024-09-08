@@ -68,9 +68,9 @@ public class CjUserTypeElementType extends CjStubElementType<CangJieUserTypeStub
             for (CangJieTypeArgumentBean argument : arguments) {
                 CjProjectionKind kind = argument.getProjectionKind();
                 dataStream.writeInt(kind.ordinal());
-                if (kind != CjProjectionKind.STAR) {
+
                     serializeType(dataStream, argument.getType());
-                }
+
             }
         }
         else if (type instanceof CangJieTypeParameterTypeBean) {
@@ -102,12 +102,9 @@ public class CjUserTypeElementType extends CjStubElementType<CangJieUserTypeStub
                 for (int i = 0; i < count; i++) {
                     int kind = dataStream.readInt();
                     CangJieTypeArgumentBean argument;
-                    if (kind != CjProjectionKind.STAR.ordinal()) {
+                   
                         argument = new CangJieTypeArgumentBean(CjProjectionKind.values()[kind], deserializeType(dataStream));
-                    }
-                    else {
-                        argument = new CangJieTypeArgumentBean(CjProjectionKind.STAR, null);
-                    }
+
                     arguments.add(argument);
                 }
                 return new CangJieClassTypeBean(classId, arguments, isNullable);

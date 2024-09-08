@@ -1,15 +1,46 @@
 package com.huawei.cangjie.resolve.calls.smartcasts
 
 import com.huawei.cangjie.config.LanguageFeature
+import com.huawei.cangjie.config.LanguageVersionSettings
+import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.psi.Call
 import com.huawei.cangjie.psi.CjExpression
+import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext
+import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.util.expandIntersectionTypeIfNecessary
 
 
 class SmartCastManager(private val argumentTypeResolver: ArgumentTypeResolver) {
+    fun getSmartCastVariants(
+        receiverToCast: ReceiverValue,
+        bindingContext: BindingContext,
+        containingDeclarationOrModule: DeclarationDescriptor,
+        dataFlowInfo: DataFlowInfo,
+        languageVersionSettings: LanguageVersionSettings,
+        dataFlowValueFactory: DataFlowValueFactory
+    ): List<CangJieType> {
+        val variants = getSmartCastVariantsExcludingReceiver(
+            bindingContext, containingDeclarationOrModule, dataFlowInfo, receiverToCast, languageVersionSettings, dataFlowValueFactory
+        )
+        val result = ArrayList<CangJieType>(variants.size + 1)
+        result.add(receiverToCast.type)
+        result.addAll(variants)
+        return result
+    }
+    private fun getSmartCastVariantsExcludingReceiver(
+        bindingContext: BindingContext,
+        containingDeclarationOrModule: DeclarationDescriptor,
+        dataFlowInfo: DataFlowInfo,
+        receiverToCast: ReceiverValue,
+        languageVersionSettings: LanguageVersionSettings,
+        dataFlowValueFactory: DataFlowValueFactory
+    ): Collection<CangJieType> {
+        val dataFlowValue = dataFlowValueFactory.createDataFlowValue(receiverToCast, bindingContext, containingDeclarationOrModule)
+        return dataFlowInfo.getCollectedTypes(dataFlowValue, languageVersionSettings)
+    }
 
     fun checkAndRecordPossibleCast(
         dataFlowValue: DataFlowValue,

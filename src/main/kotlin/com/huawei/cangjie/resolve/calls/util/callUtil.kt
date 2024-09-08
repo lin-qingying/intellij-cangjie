@@ -1,10 +1,14 @@
 package com.huawei.cangjie.resolve.calls.util
 
+import com.huawei.cangjie.config.LanguageFeature
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.ide.FrontendInternals
+import com.huawei.cangjie.ide.refactoring.getLastLambdaExpression
 import com.huawei.cangjie.incremental.CangJieLookupLocation
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getQualifiedExpressionForSelectorOrThis
+import com.huawei.cangjie.psi.psiUtil.unpackFunctionLiteral
 import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.BindingContext.CALL
 import com.huawei.cangjie.resolve.BindingContext.RESOLVED_CALL
@@ -19,17 +23,41 @@ import com.huawei.cangjie.resolve.calls.context.ResolutionContext
 import com.huawei.cangjie.resolve.calls.model.CangJieCall
 import com.huawei.cangjie.resolve.calls.model.MutableResolvedCall
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall
+import com.huawei.cangjie.resolve.calls.model.VariableAsFunctionResolvedCall
 import com.huawei.cangjie.resolve.calls.results.ResolutionStatus
+import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
+import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
+import com.huawei.cangjie.resolve.calls.smartcasts.SmartCastManager
 import com.huawei.cangjie.resolve.calls.tower.NewResolvedCallImpl
 import com.huawei.cangjie.resolve.calls.tower.psiCangJieCall
+import com.huawei.cangjie.resolve.descriptorUtil.classValueType
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.resolve.scopes.getResolutionScope
+import com.huawei.cangjie.resolve.scopes.receivers.ClassQualifier
+import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver
+import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
+import com.huawei.cangjie.resolve.scopes.receivers.TypeAliasQualifier
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.FlexibleType
+import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.isError
 import com.huawei.cangjie.types.util.TypeUtils
+import com.huawei.cangjie.utils.CallTypeAndReceiver
+import com.huawei.cangjie.utils.ReceiverType
+import com.huawei.cangjie.utils.getImplicitReceiversWithInstance
 import com.huawei.cangjie.utils.returnIfNoDescriptorForDeclarationException
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
+
+fun CjExpression.getType(context: BindingContext): CangJieType? {
+    val type = context.getType(this)
+    if (type != null) return type
+    val resolvedCall = this.getResolvedCall(context)
+    if (resolvedCall is VariableAsFunctionResolvedCall) {
+        return resolvedCall.variableCall.resultingDescriptor.type
+    }
+    return null
+}
 
 fun Call.getValueArgumentListOrElement(): CjElement =
     if (this is CallTransformer.CallForImplicitInvoke) {
@@ -61,6 +89,7 @@ private fun expectedType(call: Call, bindingContext: BindingContext): CangJieTyp
         bindingContext[BindingContext.EXPECTED_EXPRESSION_TYPE, it.getQualifiedExpressionForSelectorOrThis()]
     } ?: TypeUtils.NO_EXPECTED_TYPE
 }
+
 fun Call.resolveCandidates(
     bindingContext: BindingContext,
     resolutionFacade: ResolutionFacade,
@@ -218,6 +247,133 @@ fun CjElement.safeAnalyze(
 fun CjElement?.getResolvedCall(context: BindingContext): ResolvedCall<out CallableDescriptor>? {
     return this?.getCall(context)?.getResolvedCall(context)
 }
+fun CallTypeAndReceiver<*, *>.receiverTypes(
+    bindingContext: BindingContext,
+    contextElement: PsiElement,
+    moduleDescriptor: ModuleDescriptor,
+    resolutionFacade: ResolutionFacade,
+    stableSmartCastsOnly: Boolean
+): List<CangJieType>? {
+    return receiverTypesWithIndex(bindingContext, contextElement, moduleDescriptor, resolutionFacade, stableSmartCastsOnly)?.map { it.type }
+}
+fun CallableDescriptor.receiverType(): CangJieType? = (dispatchReceiverParameter ?: extensionReceiverParameter)?.type
+fun CallTypeAndReceiver<*, *>.receiverTypesWithIndex(
+    bindingContext: BindingContext,
+    contextElement: PsiElement,
+    moduleDescriptor: ModuleDescriptor,
+    resolutionFacade: ResolutionFacade,
+    stableSmartCastsOnly: Boolean,
+    withImplicitReceiversWhenExplicitPresent: Boolean = false
+): List<ReceiverType>? {
+    val languageVersionSettings = resolutionFacade.languageVersionSettings
+
+    val receiverExpression: CjExpression?
+    when (this) {
+//        is CallTypeAndReceiver.CALLABLE_REFERENCE -> {
+//            if (receiver != null) {
+//                return when (val lhs =
+//                    bindingContext[BindingContext.DOUBLE_COLON_LHS, receiver] ?: return emptyList()) {
+//                    is DoubleColonLHS.Type -> listOf(ReceiverType(lhs.type, 0))
+//
+//                    is DoubleColonLHS.Expression -> {
+//                        val receiverValue = ExpressionReceiver.create(receiver, lhs.type, bindingContext)
+//                        receiverValueTypes(
+//                            receiverValue, lhs.dataFlowInfo, bindingContext,
+//                            moduleDescriptor, stableSmartCastsOnly,
+//                            resolutionFacade
+//                        ).map { ReceiverType(it, 0) }
+//                    }
+//                }
+//            } else {
+//                return emptyList()
+//            }
+//        }
+
+        is CallTypeAndReceiver.DEFAULT -> receiverExpression = null
+
+        is CallTypeAndReceiver.DOT -> receiverExpression = receiver
+        is CallTypeAndReceiver.SAFE -> receiverExpression = receiver
+
+        is CallTypeAndReceiver.OPERATOR -> receiverExpression = receiver
+
+//        is CallTypeAndReceiver.SUPER_MEMBERS -> {
+//            val qualifier = receiver.superTypeQualifier
+//            return if (qualifier != null) {
+//                listOfNotNull(bindingContext.getType(receiver)).map { ReceiverType(it, 0) }
+//            } else {
+//                val resolutionScope = contextElement.getResolutionScope(bindingContext, resolutionFacade)
+//                val classDescriptor =
+//                    resolutionScope.ownerDescriptor.parentsWithSelf.firstIsInstanceOrNull<ClassDescriptor>()
+//                        ?: return emptyList()
+//                classDescriptor.typeConstructor.supertypesWithAny().map { ReceiverType(it, 0) }
+//            }
+//        }
+
+        is CallTypeAndReceiver.IMPORT_DIRECTIVE,
+        is CallTypeAndReceiver.PACKAGE_DIRECTIVE,
+        is CallTypeAndReceiver.TYPE,
+//        is CallTypeAndReceiver.ANNOTATION,
+        is CallTypeAndReceiver.UNKNOWN ->
+            return null
+    }
+
+    val resolutionScope = contextElement.getResolutionScope(bindingContext, resolutionFacade)
+
+    fun extractReceiverTypeFrom(descriptor: ClassDescriptor): CangJieType? = descriptor.classValueType
+
+    fun tryExtractReceiver(context: BindingContext) = context.get(BindingContext.QUALIFIER, receiverExpression)
+
+    fun tryExtractClassDescriptor(context: BindingContext): ClassDescriptor? =
+        (tryExtractReceiver(context) as? ClassQualifier)?.descriptor
+
+    fun tryExtractClassDescriptorFromAlias(context: BindingContext): ClassDescriptor? =
+        (tryExtractReceiver(context) as? TypeAliasQualifier)?.classDescriptor
+
+    fun extractReceiverTypeFrom(context: BindingContext, receiverExpression: CjExpression): CangJieType? {
+        return context.getType(receiverExpression) ?: tryExtractClassDescriptor(context)?.let {
+            extractReceiverTypeFrom(
+                it
+            )
+        }
+        ?: tryExtractClassDescriptorFromAlias(context)?.let { extractReceiverTypeFrom(it) }
+    }
+
+    val expressionReceiver = receiverExpression?.let {
+        val receiverType = extractReceiverTypeFrom(bindingContext, receiverExpression) ?: return emptyList()
+        ExpressionReceiver.create(receiverExpression, receiverType, bindingContext)
+    }
+
+    val implicitReceiverValues = resolutionScope.getImplicitReceiversWithInstance(
+
+    ).map { it.value }
+
+    val dataFlowInfo = bindingContext.getDataFlowInfoBefore(contextElement)
+
+    val result = ArrayList<ReceiverType>()
+
+    var receiverIndex = 0
+
+    fun addReceiverType(receiverValue: ReceiverValue, implicit: Boolean) {
+        val types = receiverValueTypes(
+            receiverValue, dataFlowInfo, bindingContext, moduleDescriptor, stableSmartCastsOnly,
+            resolutionFacade
+        )
+
+        types.mapTo(result) { type -> ReceiverType(type, receiverIndex, receiverValue.takeIf { implicit }) }
+
+        receiverIndex++
+    }
+    if (withImplicitReceiversWhenExplicitPresent || expressionReceiver == null) {
+        implicitReceiverValues.forEach { addReceiverType(it, true) }
+    }
+    if (expressionReceiver != null) {
+        addReceiverType(expressionReceiver, false)
+    }
+    return result
+}
+fun CjCallExpression.singleLambdaArgumentExpression(): CjLambdaExpression? {
+    return lambdaArguments.singleOrNull()?.getArgumentExpression()?.unpackFunctionLiteral() ?: getLastLambdaExpression()
+}
 
 fun PsiElement.isCallableReference(): Boolean =
     this is CjNameReferenceExpression && (parent as? CjCallableReferenceExpression)?.callableReference == this
@@ -245,6 +401,7 @@ fun Call.createLookupLocation(): CangJieLookupLocation {
         else callElement
     return CangJieLookupLocation(element)
 }
+
 fun Call.getValueArgumentsInParentheses(): List<ValueArgument> = valueArguments.filterArgsInParentheses()
 private fun List<ValueArgument?>.filterArgsInParentheses() = filter { it !is CjLambdaArgument } as List<ValueArgument>
 
@@ -262,3 +419,66 @@ val CjLambdaExpression.isTrailingLambdaOnNewLIne
 
         return false
     }
+@OptIn(FrontendInternals::class)
+private fun receiverValueTypes(
+    receiverValue: ReceiverValue,
+    dataFlowInfo: DataFlowInfo,
+    bindingContext: BindingContext,
+    moduleDescriptor: ModuleDescriptor,
+    stableSmartCastsOnly: Boolean,
+    resolutionFacade: ResolutionFacade
+): List<CangJieType> {
+    val languageVersionSettings = resolutionFacade.languageVersionSettings
+    val dataFlowValueFactory = resolutionFacade.dataFlowValueFactory
+    val smartCastManager = resolutionFacade.frontendService<SmartCastManager>()
+    val dataFlowValue = dataFlowValueFactory.createDataFlowValue(receiverValue, bindingContext, moduleDescriptor)
+    return if (dataFlowValue.isStable || !stableSmartCastsOnly) { // we don't include smart cast receiver types for "unstable" receiver value to mark members grayed
+        smartCastManager.getSmartCastVariantsWithLessSpecificExcluded(
+            receiverValue,
+            bindingContext,
+            moduleDescriptor,
+            dataFlowInfo,
+            languageVersionSettings,
+            dataFlowValueFactory
+        )
+    } else {
+        listOf(receiverValue.type)
+    }
+}
+fun SmartCastManager.getSmartCastVariantsWithLessSpecificExcluded(
+    receiverToCast: ReceiverValue,
+    bindingContext: BindingContext,
+    containingDeclarationOrModule: DeclarationDescriptor,
+    dataFlowInfo: DataFlowInfo,
+    languageVersionSettings: LanguageVersionSettings,
+    dataFlowValueFactory: DataFlowValueFactory
+): List<CangJieType> {
+    val variants = getSmartCastVariants(
+        receiverToCast,
+        bindingContext,
+        containingDeclarationOrModule,
+        dataFlowInfo,
+        languageVersionSettings,
+        dataFlowValueFactory
+    )
+    return variants.filter { type ->
+        variants.all { another -> another === type || chooseMoreSpecific(type, another).let { it == null || it === type } }
+    }
+}
+private fun chooseMoreSpecific(type1: CangJieType, type2: CangJieType): CangJieType? {
+    val type1IsSubtype = CangJieTypeChecker.DEFAULT.isSubtypeOf(type1, type2)
+    val type2IsSubtype = CangJieTypeChecker.DEFAULT.isSubtypeOf(type2, type1)
+
+    if (type1IsSubtype && type2IsSubtype) {
+        val flexible1 = type1.unwrap() as? FlexibleType
+        val flexible2 = type2.unwrap() as? FlexibleType
+        return when {
+            flexible1 != null && flexible2 == null -> type2
+            flexible2 != null && flexible1 == null -> type1
+            else -> null //TODO?
+        }
+    }
+
+    return type1.takeIf { type1IsSubtype }
+        ?: type2.takeIf { type2IsSubtype }
+}

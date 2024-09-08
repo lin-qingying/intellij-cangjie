@@ -274,14 +274,8 @@ class NewConstraintSystemImpl(
         !type.contains {
             val capturedType = it.asSimpleType()?.asCapturedType()
 
-            val typeToCheck =
-                if (capturedType is CapturedTypeMarker && capturedType.captureStatus() == CaptureStatus.FROM_EXPRESSION)
-                    capturedType.typeConstructorProjection().takeUnless { projection -> projection.isStarProjection() }
-                        ?.getType()
-                else
-                    it
+            val typeToCheck =   it
 
-            if (typeToCheck == null) return@contains false
             if (typeVariablesThatAreCountedAsProperTypes?.contains(typeToCheck.typeConstructor()) == true) {
                 return@contains false
             }

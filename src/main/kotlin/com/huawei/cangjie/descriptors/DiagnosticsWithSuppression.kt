@@ -2,9 +2,11 @@ package com.huawei.cangjie.descriptors
 
 import com.intellij.psi.PsiElement
 
-class DiagnosticsWithSuppression(val suppressCache: CangJieSuppressCache, val diagnostics: Collection<Diagnostic>) :
-    Diagnostics {
+class DiagnosticsWithSuppression(val suppressCache: CangJieSuppressCache, val diagnostics: Collection<Diagnostic>
 
+) :
+    Diagnostics {
+    val elementsCache =  DiagnosticsElementsCache(this, suppressCache.filter)
 
     //    val elementsCache = DiagnosticsElementsCache(this, suppressCache.filter)
     override fun all(): Collection<Diagnostic> {
@@ -16,8 +18,8 @@ class DiagnosticsWithSuppression(val suppressCache: CangJieSuppressCache, val di
     }
 
     override fun forElement(psiElement: PsiElement): Collection<Diagnostic> {
-//        return elementsCache.getDiagnostics(psiElement)
-        TODO()
+        return elementsCache.getDiagnostics(psiElement)
+
 
     }
 
