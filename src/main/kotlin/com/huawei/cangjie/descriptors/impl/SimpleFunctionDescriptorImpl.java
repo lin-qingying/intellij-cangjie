@@ -126,10 +126,7 @@ public class SimpleFunctionDescriptorImpl extends FunctionDescriptorImpl impleme
         return (SimpleFunctionDescriptor) super.copy(newOwner, modality, visibility, kind, copyOverrides);
     }
 
-    @Override
-    public boolean isOperator() {
-        return false;
-    }
+
 
 
 

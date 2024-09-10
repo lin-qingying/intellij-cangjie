@@ -40,13 +40,5 @@ class CangJieEditorOptionsConfigurable : BeanConfigurable<CangJieEditorOptions>(
     CodeFoldingOptionsProvider {
 
 
-//    init {
-//        checkBox(cbConvertPastedJavaToKotlin)
-//        checkBox(cbDontShowJavaToKotlinConversionDialog)
-//        checkBox(cbAutoAddValKeywordToCtorParameters)
-//    }
-//
-//    private fun checkBox(checkboxDescriptor: CheckboxDescriptor) {
-//        checkBox(checkboxDescriptor.name, checkboxDescriptor.getter, checkboxDescriptor.setter)
-//    }
+
 }

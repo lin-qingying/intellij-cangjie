@@ -13,7 +13,7 @@ abstract class DeprecationInfo : Comparable<DeprecationInfo> {
     }
 }
 /**
- * This corresponds to [DeprecationLevel] in Kotlin standard library. A symbol annotated with [java.lang.Deprecated] is considered a
+ * This corresponds to [DeprecationLevel] in CangJie standard library. A symbol annotated with [java.lang.Deprecated] is considered a
  * warning.
  */
 enum class DeprecationLevelValue {

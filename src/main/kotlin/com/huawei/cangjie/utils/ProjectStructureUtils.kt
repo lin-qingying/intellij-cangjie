@@ -16,7 +16,7 @@ fun PsiElement.isUnderCangJieSourceRootTypes(): Boolean {
 }
 //fun Module.asSourceInfo(sourceRootType: CangJieSourceRootType?): ModuleSourceInfoWithExpectedBy? =
 //    when (sourceRootType) {
-//        SourceKotlinRootType -> ModuleProductionSourceInfo(this)
-//        TestSourceKotlinRootType -> ModuleTestSourceInfo(this)
+//        SourceCangJieRootType -> ModuleProductionSourceInfo(this)
+//        TestSourceCangJieRootType -> ModuleTestSourceInfo(this)
 //        else -> null
 //    }

@@ -261,7 +261,7 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
         fun getAfterAnalysisVisitor(holder: HighlightInfoHolder, bindingContext: BindingContext) =
             arrayOf<AfterAnalysisHighlightingVisitor>(
 //            PropertiesHighlightingVisitor(holder, bindingContext),
-//            FunctionsHighlightingVisitor(holder, bindingContext),
+            FunctionsHighlightingVisitor(holder, bindingContext),
 //            VariablesHighlightingVisitor(holder, bindingContext),
 //            TypeKindHighlightingVisitor(holder, bindingContext)
             )

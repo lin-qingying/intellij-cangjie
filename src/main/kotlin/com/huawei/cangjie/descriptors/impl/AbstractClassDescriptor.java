@@ -22,8 +22,10 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public abstract class AbstractClassDescriptor extends ModuleAwareClassDescriptor {
     protected final NotNullLazyValue<SimpleType> defaultType;
@@ -32,6 +34,7 @@ public abstract class AbstractClassDescriptor extends ModuleAwareClassDescriptor
     private final NotNullLazyValue<ReceiverParameterDescriptor> thisAsReceiverParameter;
 
     private final StorageManager storageManager;
+    private Set<LazyExtendClassDescriptor> extendClassDescriptor = null;
 
 
     public AbstractClassDescriptor(@NotNull StorageManager storageManager, @NotNull Name name) {
@@ -113,15 +116,22 @@ public abstract class AbstractClassDescriptor extends ModuleAwareClassDescriptor
         return getUnsubstitutedMemberScope(DescriptorUtilsKt.getCangJieTypeRefiner(DescriptorUtils.getContainingModule(this)));
     }
 
+    public Set<LazyExtendClassDescriptor> getExtendClassDescriptors() {
+        if (extendClassDescriptor == null) {
+            getExtendClass();
+        }
+        return extendClassDescriptor;
+    }
+
     /**
      * 获取扩展类型  （权宜之计）
      *
      * @return
      */
     public Set<LazyExtendClassDescriptor> getExtendClass() {
-        return new HashSet<>(ScopeUtilsKt.getExtendClasss(getCurrentEditorScope(), name, NoLookupLocation.FROM_PACKAGE));
+        extendClassDescriptor = new HashSet<>(ScopeUtilsKt.getExtendClasss(getCurrentEditorScope(), name, NoLookupLocation.FROM_PACKAGE));
 
-
+        return extendClassDescriptor;
     }
 
     /**

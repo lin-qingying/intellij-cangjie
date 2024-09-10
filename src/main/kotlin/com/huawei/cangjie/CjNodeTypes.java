@@ -58,6 +58,9 @@ public interface CjNodeTypes {
     IElementType BINARY_EXPRESSION = new CjNodeType("BINARY_EXPRESSION", CjBinaryExpression.class);
     IElementType PREFIX_EXPRESSION = new CjNodeType("PREFIX_EXPRESSION", CjPrefixExpression.class);
     IElementType OPERATION_REFERENCE = new CjNodeType("OPERATION_REFERENCE", CjOperationReferenceExpression.class);
+
+    IElementType OPERATION_NAME = new CjNodeType("OPERATION_NAME", CjOperationName.class);
+
     IElementType VARIABLE = CjStubElementTypes.VARIABLE;
     IElementType MAIN_FUNC = CjStubElementTypes.MAIN_FUNC;
     IElementType MACRO = CjStubElementTypes.MACRO;

@@ -1,6 +1,11 @@
 <idea-plugin>
 
-
+    <extensionPoints>
+        <extensionPoint
+                qualifiedName="com.huawei.cangjie.highlighterExtension"
+                interface="com.huawei.cangjie.ide.highlighter.CangJieHighlightingVisitorExtension"
+                dynamic="true"/>
+    </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
         <highlightVisitor implementation="com.huawei.cangjie.ide.highlighter.CangJieHighlightVisitor"/>

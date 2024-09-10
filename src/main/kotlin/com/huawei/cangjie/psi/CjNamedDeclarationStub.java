@@ -142,7 +142,7 @@
 //
 //        SearchScope scope = super.getUseScope();
 //
-//        CjTypeStatement ClassOrStruct = CjPsiUtilKt.getContainingClassOrStruct(this);
+//        CjTypeStatement ClassOrStruct = CjPsiUtilKt.getContainingTypeStatement(this);
 //        if (ClassOrStruct != null) {
 //            scope = scope.intersectWith(ClassOrStruct.getUseScope());
 //        }

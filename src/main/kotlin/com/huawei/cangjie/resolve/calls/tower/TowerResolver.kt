@@ -575,7 +575,7 @@ internal class MemberScopeTowerLevel(
                     descriptor.approximateCapturedTypes(
                         typeApproximator
                     )
-                })
+                }.toSet())
             } else {
                 result.addAll(
                     unstableCandidates.selectMostSpecificInEachOverridableGroup {

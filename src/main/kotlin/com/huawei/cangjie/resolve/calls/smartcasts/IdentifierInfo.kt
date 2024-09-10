@@ -252,7 +252,7 @@ private fun getIdForSimpleNameExpression(
             val resolvedCall = simpleNameExpression.getResolvedCall(bindingContext)
 
             // todo uncomment assert
-            // KT-4113
+
             // for now it fails for resolving 'invoke' convention, return it after 'invoke' algorithm changes
             // assert resolvedCall != null : "Cannot create right identifier info if the resolved call is not known yet for
             val usageModuleDescriptor = DescriptorUtils.getContainingModuleOrNull(containingDeclarationOrModule)

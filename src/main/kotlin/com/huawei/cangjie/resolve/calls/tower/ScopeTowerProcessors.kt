@@ -240,14 +240,14 @@ fun <C : Candidate> createFunctionProcessor(
     val simpleFunction = createSimpleFunctionProcessor(scopeTower, name, simpleContext, explicitReceiver)
 
     // a.foo() -- property a.foo + foo.invoke()
-//    val invokeProcessor = InvokeTowerProcessor(scopeTower, name, factoryProviderForInvoke, explicitReceiver)
+    val invokeProcessor = InvokeTowerProcessor(scopeTower, name, factoryProviderForInvoke, explicitReceiver)
 
     // a.foo() -- property foo is extension function with receiver a -- a.invoke()
 //    val invokeExtensionProcessor = createProcessorWithReceiverValueOrEmpty(explicitReceiver) {
 //        InvokeExtensionTowerProcessor(scopeTower, name, factoryProviderForInvoke, it)
 //    }
 
-    return PrioritizedCompositeScopeTowerProcessor(simpleFunction/* invokeProcessor,invokeExtensionProcessor*/)
+    return PrioritizedCompositeScopeTowerProcessor(simpleFunction, invokeProcessor,/*invokeExtensionProcessor*/)
 }
 
 fun <C : Candidate> createVariableProcessor(

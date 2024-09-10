@@ -9,6 +9,7 @@ import com.huawei.cangjie.diagnostics.rendering.DefaultErrorMessages;
 import com.huawei.cangjie.diagnostics.rendering.DiagnosticFactoryToRendererMap;
 import com.huawei.cangjie.diagnostics.rendering.DiagnosticRenderer;
 import com.huawei.cangjie.lexer.CjModifierKeywordToken;
+import com.huawei.cangjie.lexer.CjToken;
 import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.psi.*;
@@ -80,6 +81,7 @@ public interface Errors {
     DiagnosticFactory1<CjElement, CallableDescriptor> COMPATIBILITY_WARNING = DiagnosticFactory1.create(WARNING);
     DiagnosticFactory1<PsiElement, CangJieType> UNSAFE_CALL = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, CangJieType> UNSAFE_IMPLICIT_INVOKE_CALL = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, InvalidBinaryData> INVALID_BINARY_OPERATOR = DiagnosticFactory1.create(ERROR);
 
     DiagnosticFactory2<CjExpression, CjExpression, Boolean> FUNCTION_CALL_EXPECTED = DiagnosticFactory2.create(ERROR, CALL_EXPRESSION);
     DiagnosticFactory3<CjReferenceExpression, ClassifierDescriptor, WrongResolutionToClassifier, String> RESOLUTION_TO_CLASSIFIER =
@@ -179,6 +181,7 @@ public interface Errors {
 
     DiagnosticFactory3<CjTypeParameter, TypeParameterDescriptor, ClassDescriptor, Collection<CangJieType>>
             INCONSISTENT_TYPE_PARAMETER_BOUNDS = DiagnosticFactory3.create(ERROR);
+    DiagnosticFactory0<CjBinaryExpression> ASSIGNMENT_IN_EXPRESSION_CONTEXT = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactory3<CjElement, CangJieType, CangJieType, ClassifierDescriptor> UPPER_BOUND_VIOLATED_IN_TYPEALIAS_EXPANSION_WARNING =
             DiagnosticFactory3.create(WARNING);

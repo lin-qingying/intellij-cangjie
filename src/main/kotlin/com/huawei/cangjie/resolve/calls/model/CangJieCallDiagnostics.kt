@@ -11,6 +11,7 @@ import com.huawei.cangjie.resolve.calls.inference.model.NewConstraintError
 import com.huawei.cangjie.resolve.calls.inference.model.NewConstraintWarning
 import com.huawei.cangjie.resolve.calls.inference.model.transformToWarning
 import com.huawei.cangjie.resolve.calls.tower.CandidateApplicability
+import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeConstructor
 import com.huawei.cangjie.types.UnwrappedType
 
@@ -107,6 +108,11 @@ class NamedArgumentNotAllowed(val argument:CangJieCallArgument, val descriptor: 
 }
 // candidates result
 class NoneCandidatesCallDiagnostic : CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
+    override fun report(reporter: DiagnosticReporter) {
+        reporter.onCall(this)
+    }
+}
+class NoneOperatorCallDiagnostic(val left:CangJieType,val right:CangJieType) : CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCall(this)
     }

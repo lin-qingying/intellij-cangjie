@@ -131,7 +131,7 @@ class CangJieCallResolver(
     ): Collection<C> {
         ProgressIndicatorAndCompilationCanceledStatus.checkCanceled()
 
-//        cangjieCall.checkCallInvariants()
+        cangjieCall.checkCallInvariants()
 
         val processor = when (cangjieCall.callKind) {
             VARIABLE -> {

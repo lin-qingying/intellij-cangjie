@@ -19,7 +19,7 @@ class DelegatingFindMemberUsagesHandler(
     private val elementsToSearch: Collection<PsiElement>,
     val factory: CangJieFindUsagesHandlerFactory
 ) : FindUsagesHandler(declaration) {
-    private val kotlinHandler = CangJieFindMemberUsagesHandler.getInstance(declaration, elementsToSearch, factory)
+    private val cangjieHandler = CangJieFindMemberUsagesHandler.getInstance(declaration, elementsToSearch, factory)
 
     private data class HandlerAndOptions(
         val handler: FindUsagesHandler,
@@ -43,15 +43,15 @@ class DelegatingFindMemberUsagesHandler(
     }
 
     override fun getPrimaryElements(): Array<PsiElement> {
-        return kotlinHandler.primaryElements
+        return cangjieHandler.primaryElements
     }
 
     override fun getSecondaryElements(): Array<out PsiElement> {
-        return kotlinHandler.secondaryElements
+        return cangjieHandler.secondaryElements
     }
 
     override fun getFindUsagesOptions(dataContext: DataContext?): FindUsagesOptions {
-        return kotlinHandler.getFindUsagesOptions(dataContext)
+        return cangjieHandler.getFindUsagesOptions(dataContext)
     }
 
     override fun processElementUsages(

@@ -53,8 +53,7 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
     data class Options(
         val removeThisLabels: Boolean = false,
         val removeThis: Boolean = false,
-        // TODO: remove this option and all related stuff (RETAIN_COMPANION etc.) after KT-13934 fixed
-        val removeExplicitCompanion: Boolean = true,
+               val removeExplicitCompanion: Boolean = true,
         val dropBracesInStringTemplates: Boolean = true
     ) {
         companion object {

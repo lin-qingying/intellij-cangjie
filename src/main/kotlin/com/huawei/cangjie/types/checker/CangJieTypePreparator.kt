@@ -18,7 +18,7 @@ abstract class AbstractTypePreparator {
 abstract class CangJiePreparator : AbstractTypePreparator() {
     private fun transformToNewType(type: SimpleType): SimpleType {
 //        when (val constructor = type.constructor) {
-        // Type itself can be just SimpleTypeImpl, not CapturedType. see KT-16147
+        // Type itself can be just SimpleTypeImpl, not CapturedType.
 //            is CapturedTypeConstructorImpl -> {
 //                val lowerType = constructor.projection.takeIf { it.projectionKind == Variance.IN_VARIANCE }?.type?.unwrap()
 //
@@ -79,7 +79,7 @@ abstract class CangJiePreparator : AbstractTypePreparator() {
 abstract class CangJieTypePreparator : AbstractTypePreparator() {
     private fun transformToNewType(type: SimpleType): SimpleType {
 //        when (val constructor = type.constructor) {
-            // Type itself can be just SimpleTypeImpl, not CapturedType. see KT-16147
+            // Type itself can be just SimpleTypeImpl, not CapturedType.
 //            is CapturedTypeConstructorImpl -> {
 //                val lowerType =
 //                    constructor.projection.takeIf { it.projectionKind == Variance.IN_VARIANCE }?.type?.unwrap()

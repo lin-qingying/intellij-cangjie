@@ -15,7 +15,6 @@ import kotlin.collections.CollectionsKt;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
 import kotlin.jvm.functions.Function2;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +45,7 @@ public class OverridingUtil {
     private final CangJieTypePreparator cangjieTypePreparator;
     private final CangJieTypeChecker.TypeConstructorEquality equalityAxioms;
     private final Function2<CangJieType, CangJieType, Boolean> customSubtype;
+
     private OverridingUtil(
             @NotNull CangJieTypeChecker.TypeConstructorEquality axioms,
             @NotNull CangJieTypeRefiner cangjieTypeRefiner,
@@ -74,6 +74,7 @@ public class OverridingUtil {
     ) {
         return new OverridingUtil(equalityAxioms, cangjieTypeRefiner, CangJieTypePreparator.Default.INSTANCE, null);
     }
+
     private static boolean allHasSameContainingDeclaration(@NotNull Collection<CallableMemberDescriptor> notOverridden) {
         if (notOverridden.size() < 2) return true;
 
@@ -85,6 +86,7 @@ public class OverridingUtil {
     public static OverridingUtil createWithTypeRefiner(@NotNull CangJieTypeRefiner cangjieTypeRefiner) {
         return new OverridingUtil(DEFAULT_TYPE_CONSTRUCTOR_EQUALITY, cangjieTypeRefiner, CangJieTypePreparator.Default.INSTANCE, null);
     }
+
     private static void createAndBindFakeOverrides(
             @NotNull ClassDescriptor current,
             @NotNull Collection<CallableMemberDescriptor> notOverridden,
@@ -166,6 +168,7 @@ public class OverridingUtil {
         }
         return getMinimalModality(filterOutOverridden(allOverriddenDeclarations), transformAbstractToClassModality, current.getModality());
     }
+
     @NotNull
     private static Modality getMinimalModality(
             @NotNull Collection<CallableMemberDescriptor> descriptors,
@@ -196,6 +199,7 @@ public class OverridingUtil {
                     DescriptorVisibilities.isVisibleIgnoringReceiver(descriptor, current, false);
         });
     }
+
     private static void createAndBindFakeOverride(
             @NotNull Collection<CallableMemberDescriptor> overridables,
             @NotNull ClassDescriptor current,
@@ -738,15 +742,28 @@ public class OverridingUtil {
         return bound;
     }
 
-    public void generateOverridesInFunctionGroup(
+    public <T extends CallableMemberDescriptor> void generateOverridesInFunctionGroup(
             @SuppressWarnings("UnusedParameters")
             @NotNull Name name, //DO NOT DELETE THIS PARAMETER: needed to make sure all descriptors have the same name
-            @NotNull Collection<? extends CallableMemberDescriptor> membersFromSupertypes,
-            @NotNull Collection<? extends CallableMemberDescriptor> membersFromCurrent,
+            @NotNull Collection<T> membersFromSupertypes,
+            @NotNull Collection<T> membersFromCurrent,
             @NotNull ClassDescriptor current,
             @NotNull OverridingStrategy strategy
     ) {
         Collection<CallableMemberDescriptor> notOverridden = new LinkedHashSet<>(membersFromSupertypes);
+
+//        排除来自扩展的方法
+        for (CallableMemberDescriptor member : notOverridden) {
+            if (member instanceof FunctionDescriptor) {
+                {
+                    if (((FunctionDescriptor) member).getIsExtend()) {
+                        membersFromCurrent.add((T) member);
+                    }
+                }
+            }
+
+        }
+
 
         for (CallableMemberDescriptor fromCurrent : membersFromCurrent) {
             Collection<CallableMemberDescriptor> bound =

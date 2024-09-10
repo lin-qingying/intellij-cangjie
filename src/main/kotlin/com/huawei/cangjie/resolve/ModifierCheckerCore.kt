@@ -124,17 +124,17 @@ object ModifierCheckerCore {
         return false
 //        val modifier = node.elementType as CjModifierKeywordToken
 //
-//        val actualParents: List<KotlinTarget> = when (parentDescriptor) {
-//            is ClassDescriptor -> KotlinTarget.classActualTargets(
+//        val actualParents: List<CangJieTarget> = when (parentDescriptor) {
+//            is ClassDescriptor -> CangJieTarget.classActualTargets(
 //                parentDescriptor.kind,
 //                isInnerClass = parentDescriptor.isInner,
 //                isCompanionObject = parentDescriptor.isCompanionObject,
 //                isLocalClass = DescriptorUtils.isLocal(parentDescriptor)
 //            )
-//            is PropertySetterDescriptor -> KotlinTarget.PROPERTY_SETTER_LIST
-//            is PropertyGetterDescriptor -> KotlinTarget.PROPERTY_GETTER_LIST
-//            is FunctionDescriptor -> KotlinTarget.FUNCTION_LIST
-//            else -> KotlinTarget.FILE_LIST
+//            is PropertySetterDescriptor -> CangJieTarget.PROPERTY_SETTER_LIST
+//            is PropertyGetterDescriptor -> CangJieTarget.PROPERTY_GETTER_LIST
+//            is FunctionDescriptor -> CangJieTarget.FUNCTION_LIST
+//            else -> CangJieTarget.FILE_LIST
 //        }
 //        val deprecatedParents = deprecatedParentTargetMap[modifier]
 //        if (deprecatedParents != null && actualParents.any { it in deprecatedParents }) {

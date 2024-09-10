@@ -5,6 +5,7 @@ import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.descriptors.annotations.AnnotationsKt;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.resolve.DescriptorFactory;
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor;
 import com.huawei.cangjie.resolve.scopes.receivers.ExtensionReceiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ImplicitContextReceiver;
 import com.huawei.cangjie.types.*;
@@ -43,7 +44,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     private boolean hasStableParameterNames = true;
     private boolean hasSynthesizedParameterNames = false;
 
-    private Collection<? extends FunctionDescriptor> overriddenFunctions = null;
+    private Collection<FunctionDescriptor> overriddenFunctions = null;
     private volatile Function0<Collection<FunctionDescriptor>> lazyOverriddenFunctionsTask = null;
     @Nullable
     private FunctionDescriptor initialSignatureDescriptor = null;
@@ -198,6 +199,12 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         return this;
     }
 
+    @Override
+    public boolean getIsExtend() {
+        return dispatchReceiverParameter.getContainingDeclaration() instanceof LazyExtendClassDescriptor;
+
+    }
+
     @NotNull
     @Override
     public List<ReceiverParameterDescriptor> getContextReceiverParameters() {
@@ -238,12 +245,17 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     @Override
     @SuppressWarnings("unchecked")
     public void setOverriddenDescriptors(@NotNull Collection<? extends CallableMemberDescriptor> overriddenDescriptors) {
-        overriddenFunctions = (Collection<? extends FunctionDescriptor>) overriddenDescriptors;
-        for (FunctionDescriptor function : overriddenFunctions) {
-            if (function.isHiddenForResolutionEverywhereBesideSupercalls()) {
-                isHiddenForResolutionEverywhereBesideSupercalls = true;
-                break;
+        this.overriddenFunctions = new ArrayList<>();
+
+        for (FunctionDescriptor function : (Collection<? extends FunctionDescriptor>) overriddenDescriptors) {
+            if (!function.getIsExtend()) {
+                this.overriddenFunctions.add(function);
+                if (function.isHiddenForResolutionEverywhereBesideSupercalls()) {
+                    isHiddenForResolutionEverywhereBesideSupercalls = true;
+                    break;
+                }
             }
+
         }
     }
 

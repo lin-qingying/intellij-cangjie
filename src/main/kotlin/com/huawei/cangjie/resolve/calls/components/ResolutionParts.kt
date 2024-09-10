@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.calls.components
 import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
+import com.huawei.cangjie.psi.CjBinaryExpression
 import com.huawei.cangjie.psi.CjCallExpression
 import com.huawei.cangjie.psi.CjCollectionLiteralExpression
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
@@ -21,7 +22,6 @@ import com.huawei.cangjie.resolve.calls.util.getReceiverValueWithSmartCast
 import com.huawei.cangjie.resolve.isInsideInterface
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.utils.compactIfPossible
-
 
 
 internal object CheckSuperExpressionCallPart : ResolutionPart() {
@@ -62,12 +62,14 @@ internal object CheckSuperExpressionCallPart : ResolutionPart() {
         }
     }
 }
+
 internal object CheckVisibility : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {
         val containingDescriptor = scopeTower.lexicalScope.ownerDescriptor
         val dispatchReceiverArgument = resolvedCall.dispatchReceiverArgument
 
-        val receiverValue = dispatchReceiverArgument?.receiver?.receiverValue ?: DescriptorVisibilities.ALWAYS_SUITABLE_RECEIVER
+        val receiverValue =
+            dispatchReceiverArgument?.receiver?.receiverValue ?: DescriptorVisibilities.ALWAYS_SUITABLE_RECEIVER
         val invisibleMember =
             DescriptorVisibilityUtils.findInvisibleMember(
                 receiverValue,
@@ -77,8 +79,15 @@ internal object CheckVisibility : ResolutionPart() {
             ) ?: return
 
         if (dispatchReceiverArgument is ExpressionCangJieCallArgument) {
-            val smartCastReceiver = getReceiverValueWithSmartCast(receiverValue, dispatchReceiverArgument.receiver.stableType)
-            if (DescriptorVisibilityUtils.findInvisibleMember(smartCastReceiver, candidateDescriptor, containingDescriptor, callComponents.languageVersionSettings) == null) {
+            val smartCastReceiver =
+                getReceiverValueWithSmartCast(receiverValue, dispatchReceiverArgument.receiver.stableType)
+            if (DescriptorVisibilityUtils.findInvisibleMember(
+                    smartCastReceiver,
+                    candidateDescriptor,
+                    containingDescriptor,
+                    callComponents.languageVersionSettings
+                ) == null
+            ) {
                 addDiagnostic(
                     SmartCastDiagnostic(
                         dispatchReceiverArgument,
@@ -90,16 +99,18 @@ internal object CheckVisibility : ResolutionPart() {
             }
         }
 
-        if(invisibleMember is DeclarationDescriptorWithVisibility ){
-            addDiagnostic(VisibilityError(invisibleMember  ))
+        if (invisibleMember is DeclarationDescriptorWithVisibility) {
+            addDiagnostic(VisibilityError(invisibleMember))
 
         }
     }
 }
+
 internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
     fun TypeParameterDescriptor.shouldBeFlexible(flexibleCheck: (CangJieType) -> Boolean = { it.isFlexible() }): Boolean {
         return upperBounds.any {
-            flexibleCheck(it) || ((it.constructor.declarationDescriptor as? TypeParameterDescriptor)?.run { shouldBeFlexible() } ?: false)
+            flexibleCheck(it) || ((it.constructor.declarationDescriptor as? TypeParameterDescriptor)?.run { shouldBeFlexible() }
+                ?: false)
         }
     }
 
@@ -158,6 +169,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
         }
         return toFreshVariables
     }
+
     private fun createKnownParametersFromFreshVariablesSubstitutor(
         freshVariableSubstitutor: FreshVariableNewTypeSubstitutor,
         knownTypeParametersSubstitutor: TypeSubstitutor,
@@ -187,9 +199,13 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
         val csBuilder = getSystem().getBuilder()
         val toFreshVariables =
             if (candidateDescriptor.typeParameters.isEmpty())
-            FreshVariableNewTypeSubstitutor.Empty
+                FreshVariableNewTypeSubstitutor.Empty
             else
-                createToFreshVariableSubstitutorAndAddInitialConstraints(candidateDescriptor, resolvedCall.atom, csBuilder)
+                createToFreshVariableSubstitutorAndAddInitialConstraints(
+                    candidateDescriptor,
+                    resolvedCall.atom,
+                    csBuilder
+                )
 
         val knownTypeParametersSubstitutor = knownTypeParametersResultingSubstitutor?.let {
             createKnownParametersFromFreshVariablesSubstitutor(toFreshVariables, it)
@@ -353,12 +369,42 @@ internal object NoArguments : ResolutionPart() {
     }
 }
 
+//internal object PostponedVariablesInitializerResolutionPart : ResolutionPart() {
+//    override fun ResolutionCandidate.process(workIndex: Int) {
+//        val csBuilder = getSystem().getBuilder()
+//        for ((argument, parameter) in resolvedCall.argumentToCandidateParameter) {
+//            if (!callComponents.statelessCallbacks.isBuilderInferenceCall(argument, parameter)) continue
+//            val receiverType = parameter.type.getReceiverTypeFromFunctionType() ?: continue
+//            val dontUseBuilderInferenceIfPossible =
+//                callComponents.languageVersionSettings.supportsFeature(LanguageFeature.UseBuilderInferenceOnlyIfNeeded)
+//
+//            if (argument is LambdaCangJieCallArgument && !argument.hasBuilderInferenceAnnotation) {
+//                argument.hasBuilderInferenceAnnotation = true
+//            }
+//
+//            if (dontUseBuilderInferenceIfPossible) continue
+//
+//            for (freshVariable in resolvedCall.freshVariablesSubstitutor.freshVariables) {
+//                if (resolvedCall.typeArgumentMappingByOriginal.getTypeArgument(freshVariable.originalTypeParameter) is SimpleTypeArgument)
+//                    continue
+//
+//                if (csBuilder.isPostponedTypeVariable(freshVariable)) continue
+//                if (receiverType.contains { it.constructor == freshVariable.originalTypeParameter.typeConstructor }) {
+//                    csBuilder.markPostponedVariable(freshVariable)
+//                }
+//            }
+//        }
+//    }
+//}
 internal object MapArguments : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {
 
 
 //        TODO 当没有使用()调用时，它是一个函数类型，不检查参数
-        if(cangjieCall.psiCangJieCall.psiCall.callElement !is CjCallExpression && cangjieCall.psiCangJieCall.psiCall.callElement !is CjCollectionLiteralExpression){
+        if (cangjieCall.psiCangJieCall.psiCall.callElement !is CjCallExpression
+            && cangjieCall.psiCangJieCall.psiCall.callElement !is CjBinaryExpression
+            && cangjieCall.psiCangJieCall.psiCall.callElement !is CjCollectionLiteralExpression
+        ) {
             resolvedCall.argumentMappingByOriginal = emptyMap()
             return
         }
@@ -380,9 +426,14 @@ class ReceiverInfo(
     }
 
     companion object {
-        val notReceiver = ReceiverInfo(isReceiver = false, shouldReportUnsafeCall = true, reportUnsafeCallAsUnsafeImplicitInvoke = false)
+        val notReceiver = ReceiverInfo(
+            isReceiver = false,
+            shouldReportUnsafeCall = true,
+            reportUnsafeCallAsUnsafeImplicitInvoke = false
+        )
     }
 }
+
 internal object CheckArgumentsInParenthesis : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {
         val argument = cangjieCall.argumentsInParenthesis[workIndex]
@@ -391,13 +442,15 @@ internal object CheckArgumentsInParenthesis : ResolutionPart() {
 
     override fun ResolutionCandidate.workCount() = cangjieCall.argumentsInParenthesis.size
 }
+
 private fun ResolutionCandidate.resolveCangJieArgument(
     argument: CangJieCallArgument,
     candidateParameter: ParameterDescriptor?,
     receiverInfo: ReceiverInfo
 ) {
     val csBuilder = getSystem().getBuilder()
-    val candidateExpectedType = candidateParameter?.let { argument.getExpectedType(it, callComponents.languageVersionSettings) }
+    val candidateExpectedType =
+        candidateParameter?.let { argument.getExpectedType(it, callComponents.languageVersionSettings) }
 
     val isReceiver = receiverInfo.isReceiver
     val conversionDataBeforeSubtyping =
@@ -492,11 +545,13 @@ private fun ResolutionCandidate.resolveCangJieArgument(
 
     }
 }
+
 private fun ResolutionCandidate.shouldRunConversionForConstants(expectedType: UnwrappedType): Boolean {
     if (UnsignedTypes.isUnsignedType(expectedType)) return true
     val csBuilder = getSystem().getBuilder()
     if (csBuilder.isTypeVariable(expectedType)) {
-        val variableWithConstraints = csBuilder.currentStorage().notFixedTypeVariables[expectedType.constructor] ?: return false
+        val variableWithConstraints =
+            csBuilder.currentStorage().notFixedTypeVariables[expectedType.constructor] ?: return false
         return variableWithConstraints.constraints.any {
             it.kind == ConstraintKind.EQUALITY &&
                     it.position.from is ExplicitTypeParameterConstraintPositionImpl &&

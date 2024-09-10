@@ -22,8 +22,9 @@ interface LazyClassContext {
     val supertypeLoopChecker: SupertypeLoopChecker
     val delegationFilter: DelegationFilter
     val typeResolver: TypeResolver
-//    val additionalClassPartsProvider: AdditionalClassPartsProvider
-val syntheticResolveExtension: SyntheticResolveExtension
+
+    //    val additionalClassPartsProvider: AdditionalClassPartsProvider
+    val syntheticResolveExtension: SyntheticResolveExtension
     val overloadChecker: OverloadChecker
     val trace: BindingTrace
     val declarationProviderFactory: DeclarationProviderFactory
@@ -35,5 +36,5 @@ val syntheticResolveExtension: SyntheticResolveExtension
     val functionDescriptorResolver: FunctionDescriptorResolver
     val declarationScopeProvider: DeclarationScopeProvider
     val cangjieTypeCheckerOfOwnerModule: NewCangJieTypeChecker
-val extendDescriptorResolver: ExtendDescriptorResolver
+    val extendDescriptorResolver: ExtendDescriptorResolver
 }

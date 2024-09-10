@@ -1,9 +1,24 @@
 package com.huawei.cangjie.psi
 
 import com.google.common.collect.HashMultimap
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.stubs.containingCangJieFileStub
+import com.huawei.cangjie.utils.exceptions.OperatorConventions
 
 object CangJiePsiHeuristics {
+    @JvmStatic
+    fun isPossibleOperator(declaration: CjNamedFunction): Boolean {
+        if (declaration.hasModifier(CjTokens.OPERATOR_KEYWORD)) {
+            return true
+        } else if (!declaration.hasModifier(CjTokens.OVERRIDE_KEYWORD)) {
+            // Operator modifier could be omitted only for overridden function
+            return false
+        }
+
+        val name = declaration.name ?: return false
+        return OperatorConventions.isConventionName(Name.identifier(name))
+    }
     @JvmStatic
     fun isProbablyNothing(type: CjBasicType): Boolean {
         val referencedName = type.text

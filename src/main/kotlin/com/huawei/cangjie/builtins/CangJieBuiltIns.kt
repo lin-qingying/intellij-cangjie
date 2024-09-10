@@ -7,6 +7,9 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.arrayClassFqNameToPrimi
 import com.huawei.cangjie.builtins.StandardNames.FqNames.arrayFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.arrayUFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.boolUFqName
+import com.huawei.cangjie.builtins.StandardNames.FqNames.float16UFqName
+import com.huawei.cangjie.builtins.StandardNames.FqNames.float32UFqName
+import com.huawei.cangjie.builtins.StandardNames.FqNames.float64UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int16UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int32UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int64UFqName
@@ -35,10 +38,13 @@ import com.huawei.cangjie.descriptors.impl.TupleClassDescriptor
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.descriptors.impl.basic.BuiltInTypeDescriptor
 import com.huawei.cangjie.incremental.components.NoLookupLocation
+import com.huawei.cangjie.lexer.CjToken
+import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.caches.IdeaResolverForProject
+import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.huawei.cangjie.resolve.descriptorUtil.resolveClassByFqName
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.NotNullLazyValue
@@ -70,13 +76,14 @@ open class CangJieBuiltIns(
                 }
         }
 
-@JvmStatic
-        fun isString(type:CangJieType?): Boolean {
-            return type != null &&  isNotNullConstructedFromGivenClass(
+        @JvmStatic
+        fun isString(type: CangJieType?): Boolean {
+            return type != null && isNotNullConstructedFromGivenClass(
                 type,
                 stringUFqName
             )
         }
+
         fun getPrimitiveArrayType(descriptor: DeclarationDescriptor): PrimitiveType? {
             return if (primitiveArrayTypeShortNames.contains(descriptor.name))
                 arrayClassFqNameToPrimitiveType.get(DescriptorUtils.getFqName(descriptor))
@@ -108,7 +115,8 @@ open class CangJieBuiltIns(
 //        }
         val BUILTINS_MODULE_NAME: Name =
             Name.special("<built-ins module>")
-@JvmStatic
+
+        @JvmStatic
         fun isBoolean(type: CangJieType): Boolean {
             return isConstructedFromGivenClass(
                 type,
@@ -163,7 +171,7 @@ open class CangJieBuiltIns(
         //        fun isNullableAny(type: CangJieType): Boolean {
 //            return isAnyOrNullableAny(type) && type.isMarkedOption
 //        }
-@JvmStatic
+        @JvmStatic
         fun isAny(type: CangJieType): Boolean {
             return isConstructedFromGivenClass(type, anyUFqName)
         }
@@ -221,6 +229,18 @@ open class CangJieBuiltIns(
             return isConstructedFromGivenClass(type, int8UFqName)
         }
 
+        fun isFloat16(type: CangJieType): Boolean {
+            return isConstructedFromGivenClass(type, float16UFqName)
+        }
+
+        fun isFloat32(type: CangJieType): Boolean {
+            return isConstructedFromGivenClass(type, float32UFqName)
+        }
+
+        fun isFloat64(type: CangJieType): Boolean {
+            return isConstructedFromGivenClass(type, float64UFqName)
+        }
+
         fun isInt16(type: CangJieType): Boolean {
             return isConstructedFromGivenClass(type, int16UFqName)
         }
@@ -267,6 +287,21 @@ open class CangJieBuiltIns(
         }
 
         @JvmStatic
+        fun isFloat(type: CangJieType): Boolean {
+
+            return isFloat16(type)
+                    || isFloat32(type)
+                    || isFloat64(type)
+
+
+        }
+
+        @JvmStatic
+        fun isIntOrFloat(type: CangJieType): Boolean {
+            return isNumber(type) || isFloat(type)
+        }
+
+        @JvmStatic
         fun isNumber(type: CangJieType): Boolean {
 
             return isInt8(type)
@@ -279,6 +314,7 @@ open class CangJieBuiltIns(
                     || isUInt64(type)
 
         }
+
 
 //        fun isNullableNothing(type: CangJieType): Boolean {
 //            return (isNothingOrNullableNothing(type)
@@ -324,6 +360,7 @@ open class CangJieBuiltIns(
     private fun getPrimitiveClassBasicDescriptor(type: PrimitiveType): ClassDescriptor {
         return getBuiltInBasicTypeByName(type.typeName.asString())
     }
+
     fun getArrayType(
         projectionType: Variance,
         argument: CangJieType,
@@ -353,6 +390,7 @@ open class CangJieBuiltIns(
             Annotations.EMPTY
         )
     }
+
     private fun getPrimitiveClassDescriptor(type: PrimitiveType): ClassDescriptor {
         return getBuiltInClassByName(type.typeName.asString())
     }
@@ -574,8 +612,140 @@ open class CangJieBuiltIns(
             return string.getDefaultType()
         }
 
+
+    //    二进制运算规则
+    val binaryOperatorRules: MutableMap<CjToken, List<BinaryOperatorRule>> = mutableMapOf()
+
+    //    匹配规则
+    fun matchBinaryOperatorRule(token: CjToken, leftType: CangJieType?, rightType: CangJieType?): BinaryOperatorRule {
+        if (leftType == null || rightType == null) {
+            return BinaryOperatorRule(leftType, rightType, BinaryOperatorRuleResultType.ERROR)
+        }
+
+        if (binaryOperatorRules.isEmpty()) {
+            fillBinaryOperatorRules()
+        }
+
+        val leftType = if (leftType.constructor is IntersectionTypeConstructor) {
+            (leftType.constructor as IntersectionTypeConstructor).getAlternativeType()
+        } else {
+            leftType
+        }
+        val rightType = if (rightType.constructor is IntegerLiteralTypeConstructor) {
+            (rightType.constructor as IntegerLiteralTypeConstructor).getApproximatedType()
+        } else {
+            rightType
+        }
+
+//        查询规则
+        val rule = binaryOperatorRules[token]
+            ?: return BinaryOperatorRule(leftType, rightType, BinaryOperatorRuleResultType.ERROR)
+//根据类型匹配
+        for (r in rule) {
+            if (r.leftType == leftType && r.rightType == rightType) {
+                return r
+            }
+        }
+
+        return BinaryOperatorRule(leftType, rightType, BinaryOperatorRuleResultType.ERROR)
+    }
+
+    //    填充规则
+    private fun fillBinaryOperatorRules() {
+
+        binaryOperatorRules[CjTokens.PLUS] = listOf(
+            BinaryOperatorRule(int64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int32Type, int32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int16Type, int16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int8Type, int8Type, BinaryOperatorRuleResultType.LEFT),
+
+
+            BinaryOperatorRule(float16Type, float16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float32Type, float32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float64Type, float64Type, BinaryOperatorRuleResultType.LEFT),
+        )
+        binaryOperatorRules[CjTokens.MINUS] = listOf(
+            BinaryOperatorRule(int64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int32Type, int32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int16Type, int16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int8Type, int8Type, BinaryOperatorRuleResultType.LEFT),
+
+
+            BinaryOperatorRule(float16Type, float16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float32Type, float32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float64Type, float64Type, BinaryOperatorRuleResultType.LEFT),
+        )
+        binaryOperatorRules[CjTokens.MUL] = listOf(
+            BinaryOperatorRule(int64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int32Type, int32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int16Type, int16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int8Type, int8Type, BinaryOperatorRuleResultType.LEFT),
+
+
+            BinaryOperatorRule(float16Type, float16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float32Type, float32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float64Type, float64Type, BinaryOperatorRuleResultType.LEFT),
+        )
+        binaryOperatorRules[CjTokens.DIV] = listOf(
+            BinaryOperatorRule(int64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int32Type, int32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int16Type, int16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int8Type, int8Type, BinaryOperatorRuleResultType.LEFT),
+
+
+            BinaryOperatorRule(float16Type, float16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float32Type, float32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float64Type, float64Type, BinaryOperatorRuleResultType.LEFT),
+        )
+        binaryOperatorRules[CjTokens.MULMUL] = listOf(
+            BinaryOperatorRule(int64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int32Type, int32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int16Type, int16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int8Type, int8Type, BinaryOperatorRuleResultType.LEFT),
+
+            BinaryOperatorRule(float64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float16Type, float16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float32Type, float32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float64Type, float64Type, BinaryOperatorRuleResultType.LEFT),
+        )
+        binaryOperatorRules[CjTokens.PERC] = listOf(
+            BinaryOperatorRule(int64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int32Type, int32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int16Type, int16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int8Type, int8Type, BinaryOperatorRuleResultType.LEFT),
+
+
+            BinaryOperatorRule(float16Type, float16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float32Type, float32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float64Type, float64Type, BinaryOperatorRuleResultType.LEFT),
+        )
+        binaryOperatorRules[CjTokens.GT] = listOf(
+            BinaryOperatorRule(boolType, boolType, BinaryOperatorRuleResultType.LEFT),
+        )
+
+        binaryOperatorRules[CjTokens.GTEQ] = listOf(
+            BinaryOperatorRule(boolType, boolType, BinaryOperatorRuleResultType.LEFT),
+        )
+        binaryOperatorRules[CjTokens.LT] = listOf(
+            BinaryOperatorRule(boolType, boolType, BinaryOperatorRuleResultType.LEFT),
+        )
+        binaryOperatorRules[CjTokens.LTEQ] = listOf(
+            BinaryOperatorRule(boolType, boolType, BinaryOperatorRuleResultType.LEFT),
+        )
+    }
+
+
 }
 
+enum class BinaryOperatorRuleResultType {
+    LEFT, RIGHT, ERROR
+}
+
+data class BinaryOperatorRule(
+    val leftType: CangJieType?,
+    val rightType: CangJieType?,
+    val resultType: BinaryOperatorRuleResultType
+)
 
 fun createBuiltIns(projectContext: ProjectContext, resolver: IdeaResolverForProject): CangJieBuiltIns {
 

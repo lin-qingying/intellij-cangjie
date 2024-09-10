@@ -2,7 +2,7 @@ package com.huawei.cangjie.psi.psiUtil
 
 import com.huawei.cangjie.ide.highlighter.namedUnwrappedElement
 import com.huawei.cangjie.name.FqName
-import com.huawei.cangjie.psi.CjNamedDeclaration
+import com.huawei.cangjie.psi.*
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
 import com.intellij.psi.impl.source.tree.LeafPsiElement
@@ -10,7 +10,15 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.findParentInFile
 import com.intellij.psi.util.findParentOfType
 import com.intellij.psi.util.isAncestor
+fun PsiElement.isExtensionDeclaration(): Boolean {
+    val callable: CjCallableDeclaration? = when (this) {
+        is CjNamedFunction, is CjProperty , is CjVariable -> this as CjCallableDeclaration
+        is CjPropertyAccessor -> getNonStrictParentOfType<CjProperty>()
+        else -> null
+    }
 
+    return callable?.receiverTypeReference != null
+}
 fun getElementTextWithContext(psiElement: PsiElement): String {
     if (!psiElement.isValid) return "<invalid element $psiElement>"
 

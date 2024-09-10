@@ -48,7 +48,7 @@ class CangJieProjectSettingsPanel(
                 )
         }
         set(value) {
-            // https://youtrack.jetbrains.com/issue/KT-16367
+
             pathToToolchainComboBox.selectedPath = value.toolchain?.location
 //            pathToStdlibField.text = value.explicitPathToStdlib ?: ""
             update()

@@ -165,7 +165,7 @@ fun createContainerForLazyResolve(
 //    if (useBuiltInsProvider && builtIns is JvmBuiltIns) {
     // TODO(dsavvinov): make sure that useBuiltInsProvider == true <=> builtIns is JvmBuiltIns
     // Currently, that's not the case at least in IDE unit-tests, because they do not set-up
-    // dependency on SDK properly, see KT-43828
+    // dependency on SDK properly
 //        useInstance(builtIns.customizer)
 //        useImpl<JvmBuiltInsPackageFragmentProvider>()
 //    }

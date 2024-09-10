@@ -8,6 +8,10 @@ import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.DescriptorToSourceUtils;
 import com.huawei.cangjie.resolve.OverloadChecker;
 import com.huawei.cangjie.resolve.scopes.*;
+import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver;
+import com.huawei.cangjie.types.CangJieType;
+import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
+import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
@@ -18,6 +22,17 @@ public class ExpressionTypingUtils {
     public static boolean isExclExclExpression(@Nullable CjExpression expression) {
         return expression instanceof CjUnaryExpression;
 //                && ((CjUnaryExpression) expression).getOperationReference().getReferencedNameElementType() == CjTokens.EXCLEXCL;
+    }
+
+    @NotNull
+    public static CangJieTypeInfo getTypeInfoOrNullType(
+            @Nullable CjExpression expression,
+            @NotNull ExpressionTypingContext context,
+            @NotNull ExpressionTypingInternals facade
+    ) {
+        return expression != null
+                ? facade.getTypeInfo(expression, context)
+                : TypeInfoFactoryKt.noTypeInfo(context);
     }
     @NotNull
     public static LexicalWritableScope newWritableScopeImpl(
@@ -49,7 +64,21 @@ public class ExpressionTypingUtils {
         return (operationType == CjTokens.IDENTIFIER || OperatorConventions.BINARY_OPERATION_NAMES.containsKey(operationType)
                 || operationType == CjTokens.ELVIS);
     }
-
+    @NotNull
+    public static CangJieType safeGetType(@NotNull CangJieTypeInfo typeInfo) {
+        CangJieType type = typeInfo.getType();
+        assert type != null : "safeGetType should be invoked on safe KotlinTypeInfo; safeGetTypeInfo should return @NotNull type";
+        return type;
+    }
+    @NotNull
+    public static ExpressionReceiver safeGetExpressionReceiver(
+            @NotNull ExpressionTypingFacade facade,
+            @NotNull CjExpression expression,
+            ExpressionTypingContext context
+    ) {
+        CangJieType type = safeGetType(facade.safeGetTypeInfo(expression, context));
+        return ExpressionReceiver.Companion.create(expression, type, context.trace.getBindingContext());
+    }
 //    public static boolean isUnaryExpressionDependentOnExpectedType(@NotNull CjUnaryExpression expression) {
 //        return expression.getOperationReference().getReferencedNameElementType() == CjTokens.EXCLEXCL;
 //    }

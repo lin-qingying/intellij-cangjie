@@ -5,11 +5,11 @@ import com.huawei.cangjie.lang.CangJieFileType.Companion.INSTANCE
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
-import com.huawei.cangjie.name.Name.Companion.identifier
 import com.huawei.cangjie.psi.psiUtil.astReplace
-import com.huawei.cangjie.psi.psiUtil.containingClassOrStruct
+import com.huawei.cangjie.psi.psiUtil.containingTypeStatement
 import com.huawei.cangjie.psi.psiUtil.quoteIfNeeded
 import com.huawei.cangjie.psi.stubs.CangJieStubWithFqName
+import com.huawei.cangjie.utils.OperatorNameConventions.asOperatorName
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiElement
@@ -36,13 +36,15 @@ abstract class CjNamedDeclarationStub<T : CangJieStubWithFqName<*>> : CjDeclarat
 
             val identifier = nameIdentifier
             if (identifier != null) {
-                val text = identifier.text
-                return@runReadAction if (text != null) CjPsiUtil.unquoteIdentifier(text) else null
-            }
-            val operation = operatorReference
 
-            if (operation != null) {
-                return@runReadAction operation.text
+                val text = identifier.text
+//                val text = if(identifier is CjOperationName){
+//                    identifier.name
+//
+//                }else{
+//                    identifier.text
+//                }
+                return@runReadAction if (text != null) CjPsiUtil.unquoteIdentifier(text) else null
             }
 
             return@runReadAction null
@@ -52,18 +54,18 @@ abstract class CjNamedDeclarationStub<T : CangJieStubWithFqName<*>> : CjDeclarat
     override val nameAsName: Name?
         get() {
             val name = name
-            return if (name != null) identifier(name) else null
+            return if (name != null) name.asOperatorName() else null
         }
 
     override val nameAsSafeName: Name
         get() = CjPsiUtil.safeName(name)
 
     override fun getNameIdentifier(): PsiElement? {
-        return findChildByType(CjTokens.IDENTIFIER)
+        return findChildByType(CjTokens.IDENTIFIER) ?: findChildByType(CjNodeTypes.OPERATION_NAME)
     }
 
-    private val operatorReference: PsiElement?
-        get() = findChildByType(CjNodeTypes.OPERATION_REFERENCE)
+    val operatorName: CjOperationName?
+        get() = findChildByType(CjNodeTypes.OPERATION_NAME)
 
 
     @Throws(IncorrectOperationException::class)
@@ -130,7 +132,7 @@ abstract class CjNamedDeclarationStub<T : CangJieStubWithFqName<*>> : CjDeclarat
 
         var scope = super.getUseScope()
 
-        val cjTypeStatement = this.containingClassOrStruct
+        val cjTypeStatement = this.containingTypeStatement
         if (cjTypeStatement != null) {
             scope = scope.intersectWith(cjTypeStatement.useScope)
         }

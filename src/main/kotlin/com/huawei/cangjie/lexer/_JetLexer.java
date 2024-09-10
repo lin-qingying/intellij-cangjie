@@ -1664,7 +1664,7 @@ class _JetLexer implements FlexLexer {
           // fall through
           case 225: break;
           case 57:
-            { return CjTokens.MULTEQ    ;
+            { return CjTokens.MULEQ    ;
             }
           // fall through
           case 226: break;

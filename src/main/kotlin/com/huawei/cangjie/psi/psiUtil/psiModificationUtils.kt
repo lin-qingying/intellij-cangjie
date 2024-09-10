@@ -19,7 +19,7 @@ private fun CjDeclaration.predictImplicitModality(): CjModifierKeywordToken? {
         if (this is CjInterface) return CjTokens.ABSTRACT_KEYWORD
         return null
     }
-    val cclass = containingClassOrStruct ?: return null
+    val cclass = containingTypeStatement ?: return null
     if (hasModifier(CjTokens.OVERRIDE_KEYWORD)) {
         if (cclass.hasModifier(CjTokens.ABSTRACT_KEYWORD) ||
             cclass.hasModifier(CjTokens.OPEN_KEYWORD) ||

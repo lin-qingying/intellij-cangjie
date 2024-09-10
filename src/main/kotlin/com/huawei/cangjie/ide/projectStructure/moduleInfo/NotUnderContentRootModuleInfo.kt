@@ -32,7 +32,7 @@ class NotUnderContentRootModuleInfo(
     override val name: Name = Name.special("<special module for files not under source root>")
 
 //    override val displayedName: String
-//        get() = KotlinBaseProjectStructureBundle.message("special.module.for.files.not.under.source.root")
+//        get() = CangJieBaseProjectStructureBundle.message("special.module.for.files.not.under.source.root")
 //
     override val contentScope: GlobalSearchScope
         get() = file?.let(GlobalSearchScope::fileScope) ?: GlobalSearchScope.EMPTY_SCOPE

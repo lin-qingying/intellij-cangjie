@@ -390,8 +390,7 @@ object NewCommonSuperTypeCalculator {
      * From point of view of this function we have here something like `Some<CapturedType>` in [originalTypesForCst],
      * and the captured type in argument has the same `Some<CapturedType>` as its constructor supertype.
      *
-     * See also the test 'multirecursion.kt' and comment to the fix of [KT-38544](https://youtrack.jetbrains.com/issue/KT-38544):
-     * for single super type constructor create star projection argument when types for that argument are equal to the original types.
+          * for single super type constructor create star projection argument when types for that argument are equal to the original types.
      * Captured star projections are replaced with their corresponding supertypes during this check.
      * The check is skipped for contravariant parameters, for which recursive cst calculation never happens.
      */

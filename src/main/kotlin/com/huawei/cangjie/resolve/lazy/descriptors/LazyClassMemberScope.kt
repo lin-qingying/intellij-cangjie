@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.lazy.descriptors
 
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.impl.AbstractClassDescriptor
 import com.huawei.cangjie.descriptors.impl.ClassConstructorDescriptorImpl
 import com.huawei.cangjie.descriptors.impl.FunctionDescriptorImpl
 import com.huawei.cangjie.diagnostics.reportOnDeclarationOrFail
@@ -55,6 +56,17 @@ open class LazyClassMemberScope(
     private val secondaryConstructors: NotNullLazyValue<Collection<ClassConstructorDescriptor>> =
         c.storageManager.createLazyValue { doGetConstructors() }
 
+
+    val extendClassDescriptors: List<LazyExtendClassDescriptor>
+        get() {
+            return (thisDescriptor as AbstractClassDescriptor).extendClass.toList()
+        }
+
+    val extendDeclarationProvider: List<ClassMemberDeclarationProvider>
+        get() = extendClassDescriptors.map {
+            it.declarationProvider
+        }
+
     private fun doClassifierDescriptors(nameFilter: (Name) -> Boolean): List<DeclarationDescriptor> {
         val result = computeDescriptorsFromDeclaredElements(
             DescriptorKindFilter.CLASSIFIERS,
@@ -91,7 +103,7 @@ open class LazyClassMemberScope(
 
             else ->
                 if (nameFilter == ALL_NAME_FILTER || allDescriptors.isComputed() || allDescriptors.isComputing()) {
-                  allDescriptors()
+                    allDescriptors()
                 } else {
                     storageManager.compute {
                         doDescriptors(nameFilter)
@@ -148,6 +160,17 @@ open class LazyClassMemberScope(
         for (supertype in supertypes) {
             fromSupertypes.addAll(supertype.memberScope.getContributedFunctions(name, location))
         }
+
+
+//        扩展
+
+     if(thisDescriptor !is LazyExtendClassDescriptor){
+         for (extend in extendClassDescriptors) {
+             result.addAll(extend.unsubstitutedMemberScope.getContributedFunctions(name, location))
+         }
+     }
+
+
 //
 //        result.addAll(generateDelegatingDescriptors(name, EXTRACT_FUNCTIONS, result))
 // //数据类

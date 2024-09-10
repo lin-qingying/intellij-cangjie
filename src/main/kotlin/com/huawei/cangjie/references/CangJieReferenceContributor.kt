@@ -13,6 +13,7 @@ class CangJieReferenceContributor : CangJieReferenceProviderContributor {
     override fun registerReferenceProviders(registrar: CangJiePsiReferenceRegistrar) {
         with(registrar) {
             registerProvider(factory = ::CjSimpleNameReference)
+            registerProvider(factory = ::CjInvokeFunctionReference)
 
             registerMultiProvider<CjNameReferenceExpression> { nameReferenceExpression ->
 

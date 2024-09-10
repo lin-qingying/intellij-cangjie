@@ -99,7 +99,7 @@ enum class ErrorTypeKind(val debugMessage: String, val isUnresolved: Boolean = f
     TYPE_FOR_ERROR_TYPE_CONSTRUCTOR("Type for error type constructor (%s)"),
     INTERSECTION_OF_ERROR_TYPES("Intersection of error types %s"),
     CANNOT_COMPUTE_ERASED_BOUND("Cannot compute erased upper bound of a type parameter %s"),
-
+   INVALID_TYPE("Invalid Type"),
     /* Couldn't load a type */
     NOT_FOUND_UNSIGNED_TYPE("Unsigned type %s not found"),
     ERROR_ENUM_TYPE("Not found the corresponding enum class for given enum entry %s.%s"),

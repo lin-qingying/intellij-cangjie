@@ -73,7 +73,7 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
 
     override fun getReferences(): Array<PsiReference> {
 
-//        return arrayOf()
+
         return CangJieReferenceProvidersService.getReferencesFromProviders(this)
     }
 

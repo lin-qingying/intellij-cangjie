@@ -553,7 +553,7 @@ inline fun <Scope, R> flatMapScopes(
 // see com.intellij.psi.impl.file.impl.ResolveScopeManagerImpl.getInherentResolveScope
 fun getResolveScope(file: CjFile): GlobalSearchScope {
     if (file is CjCodeFragment) {
-        // Scope should be corrected when KT-6223 is implemented
+
         val contextScope = file.getContextContainingFile()?.resolveScope
         if (contextScope != null) {
             return when (file.moduleInfo) {

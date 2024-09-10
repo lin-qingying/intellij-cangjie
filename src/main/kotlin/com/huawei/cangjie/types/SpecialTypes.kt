@@ -162,19 +162,14 @@ class DefinitelyNotNullType private constructor(
                 return true
             }
 
-            // Replacing `useCorrectedNullabilityForFlexibleTypeParameters` with true for all call-sites seems to be correct
-            // But it seems that it should be a new feature: KT-28785 would be automatically fixed then
-            // (see the tests org.jetbrains.kotlin.spec.checkers.DiagnosticsTestSpecGenerated.NotLinked.Dfa.Pos.test12/13)
-            // So it should be a language feature, but it's hard correctly identify language version settings for all call sites
-            // Thus, we have non-trivial value at org.jetbrains.kotlin.load.java.typeEnhancement.JavaTypeEnhancement.notNullTypeParameter
-            // that run under related language-feature only
+
             if (useCorrectedNullabilityForFlexibleTypeParameters && type.constructor.declarationDescriptor is TypeParameterDescriptor) {
                 // Effectively checks if the type is flexible or has nullable bound
                 return TypeUtils.isNullableType(type)
             }
 
             // Actually, this code should work for type parameters as well, but it breaks some cases
-            // See KT-40114
+
             return !NullabilityChecker.isSubtypeOfAny(type)
         }
 

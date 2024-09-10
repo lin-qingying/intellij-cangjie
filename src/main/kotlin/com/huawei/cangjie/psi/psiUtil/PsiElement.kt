@@ -15,6 +15,7 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtilCore
 import com.intellij.psi.util.parentOfType
+import java.util.ArrayList
 
 fun CjBlockStringTemplateEntry.dropCurlyBrackets(): CjSimpleNameStringTemplateEntry {
     val name = when (expression) {
@@ -34,6 +35,26 @@ fun CjBlockStringTemplateEntry.canDropCurlyBrackets(): Boolean {
 }
 inline fun <reified T : PsiElement, reified V : PsiElement> PsiElement.getParentOfTypes2(): PsiElement? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, V::class.java)
+}
+inline fun <reified T : PsiElement> PsiElement.collectDescendantsOfType(noinline predicate: (T) -> Boolean = { true }): List<T> {
+    return collectDescendantsOfType({ true }, predicate)
+}
+
+inline fun <reified T : PsiElement> PsiElement.collectDescendantsOfType(
+    crossinline canGoInside: (PsiElement) -> Boolean,
+    noinline predicate: (T) -> Boolean = { true }
+): List<T> = collectDescendantsOfTypeTo(ArrayList(), canGoInside, predicate)
+inline fun <reified T : PsiElement, C : MutableCollection<T>> PsiElement.collectDescendantsOfTypeTo(
+    to: C,
+    crossinline canGoInside: (PsiElement) -> Boolean,
+    noinline predicate: (T) -> Boolean = { true }
+): C {
+    forEachDescendantOfType<T>(canGoInside) {
+        if (predicate(it)) {
+            to.add(it)
+        }
+    }
+    return to
 }
 
 inline fun <reified T : PsiElement> PsiElement.replaced(newElement: T): T {

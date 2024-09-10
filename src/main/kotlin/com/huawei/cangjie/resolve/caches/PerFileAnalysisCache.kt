@@ -55,7 +55,7 @@ private fun Throwable.asInvalidModuleException(): InvalidModuleException? {
     return when (this) {
         is InvalidModuleException -> this
         is AssertionError ->
-            // temporary workaround till 1.6.0 / KT-48977
+
             if (message?.contains("contained in his own dependencies, this is probably a misconfiguration") == true)
                 InvalidModuleException(message!!)
             else null
@@ -506,7 +506,7 @@ private class StackedCompositeBindingContextTrace(
         // have a result in the reanalysis context. We should not look such elements up in the
         // parent context when there is no information for it in the current context. Because of mutations
         // to PsiElements, that could result in incorrect information
-        // (see https://youtrack.jetbrains.com/issue/KTIJ-26856).
+
         private fun <K : Any?> K.containedInReanalyzedElement(): Boolean {
             return when (element) {
                 is CjDeclarationWithBody -> {

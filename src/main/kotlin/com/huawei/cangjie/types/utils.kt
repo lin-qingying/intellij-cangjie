@@ -10,7 +10,6 @@ import com.huawei.cangjie.types.checker.ErrorTypesAreEqualToAnything
  *  - returned type is subtype of all [types].
  *
  * But it is hack, because it can give unstable result, but it better than exception.
- * See KT-11266.
  */
 internal fun hackForTypeIntersector(types: Collection<CangJieType>): CangJieType? {
     if (types.size < 2) return types.firstOrNull()

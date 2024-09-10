@@ -1,20 +1,44 @@
 package com.huawei.cangjie.descriptors.impl.basic
 
+import com.huawei.cangjie.builtins.StandardNames
 import com.huawei.cangjie.builtins.StandardNames.FqNames.core
 import com.huawei.cangjie.builtins.StandardNames.FqNames.ctypeFqName
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.DescriptorVisibilities.PUBLIC
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.impl.AbstractClassDescriptor
+import com.huawei.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
 import com.huawei.cangjie.descriptors.impl.TypeParameterDescriptorImpl
+import com.huawei.cangjie.descriptors.impl.ValueParameterDescriptorImpl
+import com.huawei.cangjie.incremental.components.LookupLocation
+import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjSuperTypeListEntry
 import com.huawei.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorBasicImpl
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
+import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
+import com.huawei.cangjie.utils.OperatorNameConventions.AND
+import com.huawei.cangjie.utils.OperatorNameConventions.COMPARE_GT
+import com.huawei.cangjie.utils.OperatorNameConventions.COMPARE_LT
+import com.huawei.cangjie.utils.OperatorNameConventions.COMPARE_LTEQ
+import com.huawei.cangjie.utils.OperatorNameConventions.DIV
+import com.huawei.cangjie.utils.OperatorNameConventions.EQUALS
+import com.huawei.cangjie.utils.OperatorNameConventions.EXPONENTIATION
+import com.huawei.cangjie.utils.OperatorNameConventions.LEFT_SHIFT
+import com.huawei.cangjie.utils.OperatorNameConventions.MINUS
+import com.huawei.cangjie.utils.OperatorNameConventions.NOT
+import com.huawei.cangjie.utils.OperatorNameConventions.NOT_EQUALS
+import com.huawei.cangjie.utils.OperatorNameConventions.OR
+import com.huawei.cangjie.utils.OperatorNameConventions.PLUS
+import com.huawei.cangjie.utils.OperatorNameConventions.REM
+import com.huawei.cangjie.utils.OperatorNameConventions.RIGHT_SHIFT
+import com.huawei.cangjie.utils.OperatorNameConventions.XOR
+import com.huawei.cangjie.utils.Printer
 
 class BuiltInTypeDescriptor(
     basicMemberScope: PackageFragmentDescriptorBasicImpl.BasicMemberScope,
@@ -103,20 +127,449 @@ open class BasicTypeDescriptor(
 ) : AbstractClassDescriptor(
     storageManager, name
 ), ClassDescriptorWithResolutionScopes {
+    private inner class OperatorFunctionDescriptor(
+        functionName: Name,
+        rightType: CangJieType?,
+        returnType: CangJieType?
+    ) : SimpleFunctionDescriptorImpl(
+        this, null, Annotations.EMPTY, functionName,
+        CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE
+    ) {
+        init {
 
-    val extendClassDescriptor = mutableSetOf<LazyExtendClassDescriptor>()
+            initialize(
+                null, null, listOf(), listOf(
+
+                ), listOfNotNull(
+                    rightType?.let {
+                        ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
+                            this,
+                            null,
+                            0,
+                            Annotations.EMPTY,
+                            Name.identifier("right"),
+                            rightType,
+                            false,
+                            SourceElement.NO_SOURCE,
+                            { emptyList() }
+                        )
+                    }
+                ), returnType,
+                Modality.FINAL,
+                PUBLIC
+
+            )
+        }
+
+        override fun isOperator(): Boolean {
+            return true
+        }
+    }
+
+    private val operatorFunctions = mutableMapOf<Name, Collection<OperatorFunctionDescriptor>>()
+
+    inner class BasicTypeMemberScope : MemberScope {
+        override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
+            return emptyList()
+        }
+
+        override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
+            return emptyList()
+
+        }
+
+        override fun getFunctionNames(): Set<Name> {
+            return emptySet()
+
+        }
+
+        override fun getVariableNames(): Set<Name> {
+            return emptySet()
+
+        }
+
+        override fun getClassifierNames(): Set<Name>? {
+            return null
+
+        }
+
+        override fun getPropertyNames(): Set<Name> {
+            return emptySet()
+        }
+
+        private fun fillOperatorFunctions() {
+            fun createOperatorFunction(name: Name, rightType: Name? = null, returnType: Name? = null): OperatorFunctionDescriptor {
+                return OperatorFunctionDescriptor(
+                    name, rightType?.let {
+
+                        basicMemberScope.getContributedClassifier(
+                            rightType, NoLookupLocation.FROM_BUILTINS
+                        )!!.getDefaultType()
+                    }, returnType?.let {
+                        basicMemberScope.getContributedClassifier(
+                            it, NoLookupLocation.FROM_BUILTINS
+                        )!!.getDefaultType()
+                    }
+                )
+            }
+
+            when (name.asString()) {
+                "Int64" -> {
+
+                    operatorFunctions[PLUS] =
+                        listOf(createOperatorFunction(PLUS, StandardNames.INT64, StandardNames.INT64))
+                    operatorFunctions[DIV] =
+                        listOf(createOperatorFunction(DIV, StandardNames.INT64, StandardNames.INT64))
+                    operatorFunctions[MINUS] =
+                        listOf(createOperatorFunction(MINUS, StandardNames.INT64, StandardNames.INT64))
+                    operatorFunctions[MINUS] =
+                        listOf(createOperatorFunction(MINUS, StandardNames.INT64, StandardNames.INT64))
+                    operatorFunctions[REM] =
+                        listOf(createOperatorFunction(REM, StandardNames.INT64, StandardNames.INT64))
+
+                    operatorFunctions[EXPONENTIATION] =
+                        listOf(createOperatorFunction(EXPONENTIATION, StandardNames.INT64, StandardNames.INT64))
+
+                    operatorFunctions[AND] =
+                        listOf(createOperatorFunction(AND, StandardNames.INT64, StandardNames.INT64))
+                    operatorFunctions[XOR] =
+                        listOf(createOperatorFunction(XOR, StandardNames.INT64, StandardNames.INT64))
+                    operatorFunctions[OR] =
+                        listOf(createOperatorFunction(OR, StandardNames.INT64, StandardNames.INT64))
+
+                    operatorFunctions[LEFT_SHIFT] =
+                        listOf(createOperatorFunction(LEFT_SHIFT, StandardNames.INT64, StandardNames.INT64))
+                    operatorFunctions[RIGHT_SHIFT] =
+                        listOf(createOperatorFunction(RIGHT_SHIFT, StandardNames.INT64, StandardNames.INT64))
+
+//                    operatorFunctions[COMPARE_LTEQ] =
+//                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.INT64, StandardNames.BOOL))
+//                    operatorFunctions[COMPARE_LT] =
+//                        listOf(createOperatorFunction(COMPARE_LT, StandardNames.INT64, StandardNames.BOOL))
+////                    operatorFunctions[COMPARE_GT] =
+////                        listOf(createOperatorFunction(COMPARE_GT, StandardNames.INT64, StandardNames.BOOL))
+//                    operatorFunctions[COMPARE_LTEQ] =
+//                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.INT64, StandardNames.BOOL))
+//
+//                    operatorFunctions[EQUALS] =
+//                        listOf(createOperatorFunction(EQUALS, StandardNames.INT64, StandardNames.BOOL))
+//                    operatorFunctions[NOT_EQUALS] =
+//                        listOf(createOperatorFunction(NOT_EQUALS, StandardNames.INT64, StandardNames.BOOL))
+//
+//
+//                    operatorFunctions[NOT] =
+//                        listOf(createOperatorFunction(NOT ))
+
+                }
+
+                "Int32" -> {
+                    operatorFunctions[PLUS] = listOf(
+                        createOperatorFunction(PLUS, StandardNames.INT32, StandardNames.INT32),
+
+                        )
+                    operatorFunctions[DIV] =
+                        listOf(createOperatorFunction(DIV, StandardNames.INT32, StandardNames.INT32))
+                    operatorFunctions[MINUS] =
+                        listOf(createOperatorFunction(MINUS, StandardNames.INT32, StandardNames.INT32))
+                    operatorFunctions[MINUS] =
+                        listOf(createOperatorFunction(MINUS, StandardNames.INT32, StandardNames.INT32))
+                    operatorFunctions[REM] =
+                        listOf(createOperatorFunction(REM, StandardNames.INT32, StandardNames.INT32))
+
+                    operatorFunctions[EXPONENTIATION] =
+                        listOf(createOperatorFunction(EXPONENTIATION, StandardNames.INT32, StandardNames.INT32))
+
+
+
+                    operatorFunctions[AND] =
+                        listOf(createOperatorFunction(AND, StandardNames.INT32, StandardNames.INT32))
+                    operatorFunctions[XOR] =
+                        listOf(createOperatorFunction(XOR, StandardNames.INT32, StandardNames.INT32))
+                    operatorFunctions[OR] =
+                        listOf(createOperatorFunction(OR, StandardNames.INT32, StandardNames.INT32))
+
+                    operatorFunctions[LEFT_SHIFT] =
+                        listOf(createOperatorFunction(LEFT_SHIFT, StandardNames.INT32, StandardNames.INT32))
+                    operatorFunctions[RIGHT_SHIFT] =
+                        listOf(createOperatorFunction(RIGHT_SHIFT, StandardNames.INT32, StandardNames.INT32))
+
+//                    operatorFunctions[COMPARE_LTEQ] =
+//                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.INT32, StandardNames.BOOL))
+//                    operatorFunctions[COMPARE_LT] =
+//                        listOf(createOperatorFunction(COMPARE_LT, StandardNames.INT32, StandardNames.BOOL))
+////                    operatorFunctions[COMPARE_GT] =
+////                        listOf(createOperatorFunction(COMPARE_GT, StandardNames.INT32, StandardNames.BOOL))
+//                    operatorFunctions[COMPARE_LTEQ] =
+//                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.INT32, StandardNames.BOOL))
+//
+//                    operatorFunctions[EQUALS] =
+//                        listOf(createOperatorFunction(EQUALS, StandardNames.INT32, StandardNames.BOOL))
+//                    operatorFunctions[NOT_EQUALS] =
+//                        listOf(createOperatorFunction(NOT_EQUALS, StandardNames.INT32, StandardNames.BOOL))
+//                    operatorFunctions[NOT] =
+//                        listOf(createOperatorFunction(NOT ))
+                }
+
+                "Int8" -> {
+                    operatorFunctions[PLUS] = listOf(
+                        createOperatorFunction(PLUS, StandardNames.INT8, StandardNames.INT8),
+
+                        )
+
+                    operatorFunctions[DIV] =
+                        listOf(createOperatorFunction(DIV, StandardNames.INT8, StandardNames.INT8))
+                    operatorFunctions[MINUS] =
+                        listOf(createOperatorFunction(MINUS, StandardNames.INT8, StandardNames.INT8))
+                    operatorFunctions[MINUS] =
+                        listOf(createOperatorFunction(MINUS, StandardNames.INT8, StandardNames.INT8))
+                    operatorFunctions[REM] =
+                        listOf(createOperatorFunction(REM, StandardNames.INT8, StandardNames.INT8))
+
+                    operatorFunctions[EXPONENTIATION] =
+                        listOf(createOperatorFunction(EXPONENTIATION, StandardNames.INT8, StandardNames.INT8))
+
+
+
+                    operatorFunctions[AND] =
+                        listOf(createOperatorFunction(AND, StandardNames.INT8, StandardNames.INT8))
+                    operatorFunctions[XOR] =
+                        listOf(createOperatorFunction(XOR, StandardNames.INT8, StandardNames.INT8))
+                    operatorFunctions[OR] =
+                        listOf(createOperatorFunction(OR, StandardNames.INT8, StandardNames.INT8))
+
+                    operatorFunctions[LEFT_SHIFT] =
+                        listOf(createOperatorFunction(LEFT_SHIFT, StandardNames.INT8, StandardNames.INT8))
+                    operatorFunctions[RIGHT_SHIFT] =
+                        listOf(createOperatorFunction(RIGHT_SHIFT, StandardNames.INT8, StandardNames.INT8))
+
+//                    operatorFunctions[COMPARE_LTEQ] =
+//                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.INT8, StandardNames.BOOL))
+//                    operatorFunctions[COMPARE_LT] =
+//                        listOf(createOperatorFunction(COMPARE_LT, StandardNames.INT8, StandardNames.BOOL))
+////                    operatorFunctions[COMPARE_GT] =
+////                        listOf(createOperatorFunction(COMPARE_GT, StandardNames.INT8, StandardNames.BOOL))
+//                    operatorFunctions[COMPARE_LTEQ] =
+//                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.INT8, StandardNames.BOOL))
+//
+//                    operatorFunctions[EQUALS] =
+//                        listOf(createOperatorFunction(EQUALS, StandardNames.INT8, StandardNames.BOOL))
+//                    operatorFunctions[NOT_EQUALS] =
+//                        listOf(createOperatorFunction(NOT_EQUALS, StandardNames.INT8, StandardNames.BOOL))
+//                    operatorFunctions[NOT] =
+//                        listOf(createOperatorFunction(NOT ))
+                }
+
+                "Int16" -> {
+                    operatorFunctions[PLUS] = listOf(
+                        createOperatorFunction(PLUS, StandardNames.INT16, StandardNames.INT16),
+
+                        )
+                    operatorFunctions[DIV] =
+                        listOf(createOperatorFunction(DIV, StandardNames.INT16, StandardNames.INT16))
+                    operatorFunctions[MINUS] =
+                        listOf(createOperatorFunction(MINUS, StandardNames.INT16, StandardNames.INT16))
+                    operatorFunctions[MINUS] =
+                        listOf(createOperatorFunction(MINUS, StandardNames.INT16, StandardNames.INT16))
+                    operatorFunctions[REM] =
+                        listOf(createOperatorFunction(REM, StandardNames.INT16, StandardNames.INT16))
+
+                    operatorFunctions[EXPONENTIATION] =
+                        listOf(createOperatorFunction(EXPONENTIATION, StandardNames.INT16, StandardNames.INT16))
+
+
+
+                    operatorFunctions[AND] =
+                        listOf(createOperatorFunction(AND, StandardNames.INT16, StandardNames.INT16))
+                    operatorFunctions[XOR] =
+                        listOf(createOperatorFunction(XOR, StandardNames.INT16, StandardNames.INT16))
+                    operatorFunctions[OR] =
+                        listOf(createOperatorFunction(OR, StandardNames.INT16, StandardNames.INT16))
+
+                    operatorFunctions[LEFT_SHIFT] =
+                        listOf(createOperatorFunction(LEFT_SHIFT, StandardNames.INT16, StandardNames.INT16))
+                    operatorFunctions[RIGHT_SHIFT] =
+                        listOf(createOperatorFunction(RIGHT_SHIFT, StandardNames.INT16, StandardNames.INT16))
+
+//                    operatorFunctions[COMPARE_LTEQ] =
+//                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.INT16, StandardNames.BOOL))
+//                    operatorFunctions[COMPARE_LT] =
+//                        listOf(createOperatorFunction(COMPARE_LT, StandardNames.INT16, StandardNames.BOOL))
+////                    operatorFunctions[COMPARE_GT] =
+////                        listOf(createOperatorFunction(COMPARE_GT, StandardNames.INT16, StandardNames.BOOL))
+//                    operatorFunctions[COMPARE_LTEQ] =
+//                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.INT16, StandardNames.BOOL))
+//
+//                    operatorFunctions[EQUALS] =
+//                        listOf(createOperatorFunction(EQUALS, StandardNames.INT16, StandardNames.BOOL))
+//                    operatorFunctions[NOT_EQUALS] =
+//                        listOf(createOperatorFunction(NOT_EQUALS, StandardNames.INT16, StandardNames.BOOL))
+//                    operatorFunctions[NOT] =
+//                        listOf(createOperatorFunction(NOT ))
+                }
+
+
+                "Float16" -> {
+                    operatorFunctions[PLUS] = listOf(
+                        createOperatorFunction(PLUS, StandardNames.FLOAT16, StandardNames.FLOAT16),
+
+                        )
+                    operatorFunctions[DIV] =
+                        listOf(createOperatorFunction(DIV, StandardNames.FLOAT16, StandardNames.FLOAT16))
+                    operatorFunctions[MINUS] =
+                        listOf(createOperatorFunction(MINUS, StandardNames.FLOAT16, StandardNames.FLOAT16))
+                    operatorFunctions[MINUS] =
+                        listOf(createOperatorFunction(MINUS, StandardNames.FLOAT16, StandardNames.FLOAT16))
+                    operatorFunctions[REM] =
+                        listOf(createOperatorFunction(REM, StandardNames.FLOAT16, StandardNames.FLOAT16))
+
+                    operatorFunctions[EXPONENTIATION] =
+                        listOf(createOperatorFunction(EXPONENTIATION, StandardNames.FLOAT16, StandardNames.INT64))
+
+
+
+
+//                    operatorFunctions[COMPARE_LTEQ] =
+//                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.FLOAT16, StandardNames.BOOL))
+//                    operatorFunctions[COMPARE_LT] =
+//                        listOf(createOperatorFunction(COMPARE_LT, StandardNames.FLOAT16, StandardNames.BOOL))
+////                    operatorFunctions[COMPARE_GT] =
+////                        listOf(createOperatorFunction(COMPARE_GT, StandardNames.FLOAT16, StandardNames.BOOL))
+//                    operatorFunctions[COMPARE_LTEQ] =
+//                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.FLOAT16, StandardNames.BOOL))
+//
+//                    operatorFunctions[EQUALS] =
+//                        listOf(createOperatorFunction(EQUALS, StandardNames.FLOAT16, StandardNames.BOOL))
+//                    operatorFunctions[NOT_EQUALS] =
+//                        listOf(createOperatorFunction(NOT_EQUALS, StandardNames.FLOAT16, StandardNames.BOOL))
+
+                }
+
+                "Float32" -> {
+                    operatorFunctions[PLUS] = listOf(
+                        createOperatorFunction(PLUS, StandardNames.FLOAT32, StandardNames.FLOAT32),
+
+                        )
+                    operatorFunctions[DIV] =
+                        listOf(createOperatorFunction(DIV, StandardNames.FLOAT32, StandardNames.FLOAT32))
+                    operatorFunctions[MINUS] =
+                        listOf(createOperatorFunction(MINUS, StandardNames.FLOAT32, StandardNames.FLOAT32))
+                    operatorFunctions[MINUS] =
+                        listOf(createOperatorFunction(MINUS, StandardNames.FLOAT32, StandardNames.FLOAT32))
+                    operatorFunctions[REM] =
+                        listOf(createOperatorFunction(REM, StandardNames.FLOAT32, StandardNames.FLOAT32))
+
+                    operatorFunctions[EXPONENTIATION] =
+                        listOf(createOperatorFunction(EXPONENTIATION, StandardNames.FLOAT32, StandardNames.INT64))
+
+
+
+
+//                    operatorFunctions[COMPARE_LTEQ] =
+//                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.FLOAT32, StandardNames.BOOL))
+//                    operatorFunctions[COMPARE_LT] =
+//                        listOf(createOperatorFunction(COMPARE_LT, StandardNames.FLOAT32, StandardNames.BOOL))
+////                    operatorFunctions[COMPARE_GT] =
+////                        listOf(createOperatorFunction(COMPARE_GT, StandardNames.FLOAT32, StandardNames.BOOL))
+//                    operatorFunctions[COMPARE_LTEQ] =
+//                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.FLOAT32, StandardNames.BOOL))
+//
+//                    operatorFunctions[EQUALS] =
+//                        listOf(createOperatorFunction(EQUALS, StandardNames.FLOAT32, StandardNames.BOOL))
+//                    operatorFunctions[NOT_EQUALS] =
+//                        listOf(createOperatorFunction(NOT_EQUALS, StandardNames.FLOAT32, StandardNames.BOOL))
+
+                }
+
+                "Float64" -> {
+                    operatorFunctions[PLUS] = listOf(
+                        createOperatorFunction(PLUS, StandardNames.FLOAT64, StandardNames.FLOAT64),
+
+                        )
+                    operatorFunctions[DIV] =
+                        listOf(createOperatorFunction(DIV, StandardNames.FLOAT64, StandardNames.FLOAT64))
+                    operatorFunctions[MINUS] =
+                        listOf(createOperatorFunction(MINUS, StandardNames.FLOAT64, StandardNames.FLOAT64))
+                    operatorFunctions[MINUS] =
+                        listOf(createOperatorFunction(MINUS, StandardNames.FLOAT64, StandardNames.FLOAT64))
+                    operatorFunctions[REM] =
+                        listOf(createOperatorFunction(REM, StandardNames.FLOAT64, StandardNames.FLOAT64))
+
+                    operatorFunctions[EXPONENTIATION] =
+                        listOf(createOperatorFunction(EXPONENTIATION, StandardNames.FLOAT64, StandardNames.INT64))
+
+
+
+
+//                    operatorFunctions[COMPARE_LTEQ] =
+//                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.FLOAT64, StandardNames.BOOL))
+//                    operatorFunctions[COMPARE_LT] =
+//                        listOf(createOperatorFunction(COMPARE_LT, StandardNames.FLOAT64, StandardNames.BOOL))
+//                    operatorFunctions[COMPARE_GT] =
+//                        listOf(createOperatorFunction(COMPARE_GT, StandardNames.FLOAT64, StandardNames.BOOL))
+//                    operatorFunctions[COMPARE_LTEQ] =
+//                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.FLOAT64, StandardNames.BOOL))
+//
+//                    operatorFunctions[EQUALS] =
+//                        listOf(createOperatorFunction(EQUALS, StandardNames.FLOAT64, StandardNames.BOOL))
+//                    operatorFunctions[NOT_EQUALS] =
+//                        listOf(createOperatorFunction(NOT_EQUALS, StandardNames.FLOAT64, StandardNames.BOOL))
+
+                }
+            }
+
+
+        }
+
+        override fun getContributedFunctions(
+            name: Name,
+            location: LookupLocation
+        ): Collection<SimpleFunctionDescriptor> {
+            val result = mutableListOf<SimpleFunctionDescriptor>()
+
+            if (operatorFunctions.isEmpty()) {
+                fillOperatorFunctions()
+            }
+            result.addAll(operatorFunctions[name] ?: emptyList())
+
+            this@BasicTypeDescriptor.extendClassDescriptors.forEach {
+                result.addAll(it.unsubstitutedMemberScope.getContributedFunctions(name, location))
+            }
+            return result
+
+        }
+
+        override fun printScopeStructure(p: Printer) {
+
+        }
+
+        override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
+            return null
+        }
+
+        override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
+            return emptyList()
+        }
+
+        override fun getContributedDescriptors(
+            kindFilter: DescriptorKindFilter,
+            nameFilter: (Name) -> Boolean
+        ): Collection<DeclarationDescriptor> {
+            return emptyList()
+
+        }
+
+    }
+
+//    val extendClassDescriptor = mutableSetOf<LazyExtendClassDescriptor>()
 
     private var constructors: Set<ClassConstructorDescriptor> = mutableSetOf()
 
-    //    override fun getDefaultType(): BasicType {
-//
-//
-//        return basicMemberScope.getContributedClassifier(name, NoLookupLocation.FROM_BUILTINS)
-//    }
-//    基本类型返回扩展
+    val basicTypeMemberScope = BasicTypeMemberScope()
+
+    //    基本类型返回扩展
     override fun getSuperTypeListEntries(): List<CjSuperTypeListEntry> {
         val result = mutableListOf<CjSuperTypeListEntry>()
-        extendClassDescriptor.forEach {
+        extendClassDescriptors.forEach {
             result.addAll(it.typeStatement.superTypeListEntries)
         }
 
@@ -151,18 +604,19 @@ open class BasicTypeDescriptor(
     override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner): MemberScope {
 
 
-        return basicMemberScope
+        return basicTypeMemberScope
     }
+
 
     override fun getUnsubstitutedMemberScope(): MemberScope {
 
 
-        return basicMemberScope
+        return basicTypeMemberScope
     }
 
     override fun getSource(): SourceElement = SourceElement.NO_SOURCE
     override fun getDefaultType(): BasicType {
-        return BasicType(typeConstructor, basicMemberScope)
+        return BasicType(typeConstructor, basicTypeMemberScope)
     }
 
     //    val typeConstructor = ClassTypeConstructorImpl(this, emptyList(), emptyList(), storageManager)

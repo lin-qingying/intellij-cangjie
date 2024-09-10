@@ -35,8 +35,8 @@ class CjLambdaExpression(text: CharSequence?) :
     val leftCurlyBrace: ASTNode
         get() = functionLiteral.node.findChildByType( LBRACE)!!
 
-    val rightCurlyBrace: ASTNode
-        get() = functionLiteral.node.findChildByType( RBRACE)!!
+    val rightCurlyBrace: ASTNode?
+        get() = functionLiteral.node.findChildByType( RBRACE)
 
 
     override fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D) {

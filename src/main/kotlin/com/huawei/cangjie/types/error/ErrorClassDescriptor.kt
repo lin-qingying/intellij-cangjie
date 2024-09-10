@@ -2,6 +2,7 @@ package com.huawei.cangjie.types.error
 
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
+import com.huawei.cangjie.descriptors.impl.ClassConstructorDescriptorImpl
 import com.huawei.cangjie.descriptors.impl.ClassDescriptorImpl
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.scopes.MemberScope
@@ -24,7 +25,22 @@ class ErrorClassDescriptor(name: Name) : ClassDescriptorImpl(
 
 
 
-
+    init {
+        val errorConstructor = ClassConstructorDescriptorImpl.create(this, Annotations.EMPTY, true, SourceElement.NO_SOURCE)
+            .apply {
+                initialize(
+                    emptyList(),
+                    DescriptorVisibilities.INTERNAL
+                )
+            }
+        val memberScope = ErrorUtils.createErrorScope(ErrorScopeKind.SCOPE_FOR_ERROR_CLASS, errorConstructor.name.toString(), "")
+        errorConstructor.returnType = ErrorType(
+            ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.ERROR_CLASS),
+            memberScope,
+            ErrorTypeKind.ERROR_CLASS
+        )
+        initialize(memberScope, setOf(errorConstructor), errorConstructor)
+    }
 
 
 

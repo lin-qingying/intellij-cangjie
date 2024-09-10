@@ -89,7 +89,7 @@ class FlexibleTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : Flexibl
     // Unfortunately isSubtypeOf is running resolve for lazy types.
     // Because of this we can't run these assertions when we are creating this type. See EA-74904
     //
-    // Also isSubtypeOf is not a very fast operation, so we are running assertions only if ASSERTIONS_ENABLED. See KT-7540
+    // Also isSubtypeOf is not a very fast operation, so we are running assertions only if ASSERTIONS_ENABLED.
     private var assertionsDone = false
 
     private fun runAssertions() {
@@ -98,7 +98,7 @@ class FlexibleTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : Flexibl
 
         assert(!lowerBound.isFlexible()) { "Lower bound of a flexible type can not be flexible: $lowerBound" }
         assert(!upperBound.isFlexible()) { "Upper bound of a flexible type can not be flexible: $upperBound" }
-        // TODO: https://youtrack.jetbrains.com/issue/KT-54198 (two captured types)
+
         assert(lowerBound != upperBound) { "Lower and upper bounds are equal: $lowerBound == $upperBound" }
 //        assert(CangJieTypeChecker.DEFAULT.isSubtypeOf(lowerBound, upperBound)) {
 //            "Lower bound $lowerBound of a flexible type must be a subtype of the upper bound $upperBound"

@@ -21,6 +21,7 @@ import com.huawei.cangjie.types.error.ErrorType
 import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.TypeUtils.CANNOT_INFER_FUNCTION_PARAM_TYPE
 import com.huawei.cangjie.types.util.isUnresolvedType
+import com.huawei.cangjie.utils.OperatorNameConventions.asOperatorString
 import com.huawei.cangjie.utils.toLowerCaseAsciiOnly
 import java.lang.reflect.Modifier
 import kotlin.jvm.internal.PropertyReference1Impl
@@ -521,7 +522,14 @@ internal class DescriptorRendererImpl(
     }
 
     private fun renderName(descriptor: DeclarationDescriptor, builder: StringBuilder, rootRenderedElement: Boolean) {
-        builder.append(renderName(descriptor.name, rootRenderedElement))
+
+        if(descriptor is FunctionDescriptor && descriptor.isOperator){
+            builder.append( descriptor.name.asOperatorString())
+
+        }else{
+            builder.append(renderName(descriptor.name, rootRenderedElement))
+
+        }
     }
 
     private fun renderCompanionObjectName(descriptor: DeclarationDescriptor, builder: StringBuilder) {
@@ -1018,6 +1026,7 @@ internal class DescriptorRendererImpl(
 
     private fun renderVisibility(visibility: DescriptorVisibility, builder: StringBuilder): Boolean {
         @Suppress("NAME_SHADOWING")
+
         var visibility = visibility
         if (DescriptorRendererModifier.VISIBILITY !in modifiers) return false
         if (normalizedVisibilities) {
@@ -1029,6 +1038,7 @@ internal class DescriptorRendererImpl(
     }
 
     private fun renderModality(modality: Modality, builder: StringBuilder, defaultModality: Modality) {
+        if(modality == Modality.FINAL) return
         if (!renderDefaultModality && modality == defaultModality) return
         renderModifier(builder, DescriptorRendererModifier.MODALITY in modifiers, modality.name.toLowerCaseAsciiOnly())
     }
@@ -1092,8 +1102,7 @@ internal class DescriptorRendererImpl(
     }
 
     private fun renderAdditionalModifiers(functionDescriptor: FunctionDescriptor, builder: StringBuilder) {
-        val isOperator =
-            functionDescriptor.isOperator && (functionDescriptor.overriddenDescriptors.none { it.isOperator } || alwaysRenderModifiers)
+        val isOperator =   functionDescriptor.isOperator && (functionDescriptor.overriddenDescriptors.none { it.isOperator } || alwaysRenderModifiers)
 
 
 

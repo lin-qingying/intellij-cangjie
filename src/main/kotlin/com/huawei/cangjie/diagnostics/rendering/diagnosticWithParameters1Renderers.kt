@@ -16,7 +16,7 @@ interface ContextIndependentParameterRenderer<in O> : DiagnosticParameterRendere
 fun <P> renderParameter(parameter: P, renderer: DiagnosticParameterRenderer<P>?, context: RenderingContext): Any? =
     renderer?.render(parameter, context) ?: parameter
 
-fun <O> Renderer(block: (O) -> String) = object : ContextIndependentParameterRenderer<O> {
+fun <O> renderer(block: (O) -> String) = object : ContextIndependentParameterRenderer<O> {
     override fun render(obj: O): String = block(obj)
 }
 abstract class AbstractDiagnosticWithParametersRenderer<in D : UnboundDiagnostic> protected constructor(message: String) :

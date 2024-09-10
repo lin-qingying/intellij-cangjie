@@ -4,8 +4,84 @@ import com.huawei.cangjie.builtins.isBuiltinExtensionFunctionalType
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.huawei.cangjie.resolve.calls.tasks.createSynthesizedInvokes
+import com.huawei.cangjie.resolve.scopes.receivers.DetailedReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.huawei.cangjie.utils.OperatorNameConventions
+import java.util.ArrayList
+
+
+abstract class AbstractInvokeTowerProcessor<C : Candidate>(
+    protected val factoryProviderForInvoke: CandidateFactoryProviderForInvoke<C>,
+    protected val variableProcessor: ScopeTowerProcessor<C>
+) : ScopeTowerProcessor<C> {
+    // todo optimize it
+    private val previousData = ArrayList<TowerData>()
+    private val invokeProcessors: MutableList<Collection<VariableInvokeProcessor>> = ArrayList()
+
+    protected fun hasInvokeProcessors() = invokeProcessors.isNotEmpty()
+
+    private inner class VariableInvokeProcessor(
+        var variableCandidate: C,
+        val invokeProcessor: ScopeTowerProcessor<C>
+    ) : ScopeTowerProcessor<C> {
+
+        override fun process(data: TowerData) = invokeProcessor.process(data).map { candidateGroup ->
+            candidateGroup.map {
+
+
+                factoryProviderForInvoke.transformCandidate(variableCandidate, it) }
+        }
+
+        override fun recordLookups(skippedData: Collection<TowerData>, name: Name) {
+            invokeProcessor.recordLookups(skippedData, name)
+        }
+    }
+
+    private fun createVariableInvokeProcessor(variableCandidate: C): VariableInvokeProcessor? =
+        createInvokeProcessor(variableCandidate)?.let { VariableInvokeProcessor(variableCandidate, it) }
+
+    protected abstract fun createInvokeProcessor(variableCandidate: C): ScopeTowerProcessor<C>?
+
+    protected abstract fun mayDataBeApplicable(data: TowerData): Boolean
+
+    override fun process(data: TowerData): List<Collection<C>> {
+
+        val candidateGroups = ArrayList<Collection<C>>(0)
+
+        if (mayDataBeApplicable(data)) {
+            previousData.add(data)
+            for (processorsGroup in invokeProcessors) {
+                candidateGroups.addAll(processorsGroup.processVariableGroup(data))
+            }
+        }
+
+        for (variableCandidates in variableProcessor.process(data)) {
+            val variableProcessors = variableCandidates.mapNotNull {
+                if (it.isSuccessful) createVariableInvokeProcessor(it) else null
+            }
+
+            if (variableProcessors.isNotEmpty()) {
+                invokeProcessors.add(variableProcessors)
+                for (oldData in previousData) {
+                    candidateGroups.addAll(variableProcessors.processVariableGroup(oldData))
+                }
+            }
+        }
+
+        return candidateGroups
+    }
+
+    private fun Collection<VariableInvokeProcessor>.processVariableGroup(data: TowerData): List<Collection<C>> {
+        return when (size) {
+            0 -> emptyList()
+            1 -> single().process(data)
+
+            else -> listOf(this.flatMap { it.process(data).flatten() })
+        }
+    }
+
+}
+
 
 private class InvokeExtensionScopeTowerProcessor<C : Candidate>(
     context: CandidateFactory<C>,
@@ -91,4 +167,44 @@ fun <C : Candidate> createCallTowerProcessorForExplicitInvoke(
         }
     }
 
+}
+class InvokeTowerProcessor<C : Candidate>(
+    val scopeTower: ImplicitScopeTower,
+    val name: Name,
+    factoryProviderForInvoke: CandidateFactoryProviderForInvoke<C>,
+    explicitReceiver: DetailedReceiver?
+) : AbstractInvokeTowerProcessor<C>(
+    factoryProviderForInvoke,
+    createVariableAndObjectProcessor(
+        scopeTower,
+        name,
+        factoryProviderForInvoke.factoryForVariable(stripExplicitReceiver = false),
+        explicitReceiver
+    )
+) {
+
+    // todo filter by operator
+    override fun createInvokeProcessor(variableCandidate: C): ScopeTowerProcessor<C>? {
+        val (variableReceiver, invokeContext) = factoryProviderForInvoke.factoryForInvoke(variableCandidate, useExplicitReceiver = false)
+            ?: return null
+        return ExplicitReceiverScopeTowerProcessor(
+            scopeTower,
+            invokeContext,
+            variableReceiver
+        ) { getFunctions(OperatorNameConventions.INVOKE, it) }
+    }
+
+    override fun mayDataBeApplicable(data: TowerData) =
+        data == TowerData.Empty || data is TowerData.TowerLevel
+
+    override fun recordLookups(skippedData: Collection<TowerData>, name: Name) {
+        variableProcessor.recordLookups(skippedData, name)
+        if (!hasInvokeProcessors()) return
+
+        skippedData.forEach {
+            if (it is TowerData.TowerLevel) {
+                it.level.recordLookup(OperatorNameConventions.INVOKE)
+            }
+        }
+    }
 }

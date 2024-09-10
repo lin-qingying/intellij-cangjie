@@ -3,6 +3,7 @@ package com.huawei.cangjie.types.expressions.typeInfoFactory
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.error.ErrorType
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo
 
 fun noTypeInfo(context: ResolutionContext<*>): CangJieTypeInfo = noTypeInfo(context.dataFlowInfo)
@@ -27,3 +28,7 @@ fun createTypeInfo(type: CangJieType?, context: ResolutionContext<*>): CangJieTy
     createTypeInfo(type, context.dataFlowInfo)
 
 fun noTypeInfo(dataFlowInfo: DataFlowInfo): CangJieTypeInfo = createTypeInfo(null, dataFlowInfo)
+fun errorTypeInfo(type: ErrorType, context: ResolutionContext<*>): CangJieTypeInfo =
+    createTypeInfo(type, context.dataFlowInfo)
+
+fun errorTypeInfo(type: ErrorType, dataFlowInfo: DataFlowInfo): CangJieTypeInfo = createTypeInfo(type, dataFlowInfo)

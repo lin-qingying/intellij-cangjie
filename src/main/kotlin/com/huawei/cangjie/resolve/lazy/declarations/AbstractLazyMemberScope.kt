@@ -4,6 +4,7 @@ import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.builtins.StandardNames.FqNames.core
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
+import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.calls.components.InferenceSession
@@ -11,6 +12,7 @@ import com.huawei.cangjie.resolve.descriptorUtil.fqNameSafe
 import com.huawei.cangjie.resolve.lazy.LazyClassContext
 import com.huawei.cangjie.resolve.lazy.data.CjClassInfoUtil
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassMemberScope
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.LexicalScope
@@ -309,7 +311,14 @@ protected constructor(
         }
 
         val result = linkedSetOf<SimpleFunctionDescriptor>()
-        val declarations = declarationProvider.getFunctionDeclarations(name)
+        val declarations = declarationProvider.getFunctionDeclarations(name).toMutableList().apply {
+//            搜索扩展
+//            if (this@AbstractLazyMemberScope is LazyClassMemberScope) {
+//                extendDeclarationProvider.forEach {
+//                    addAll(it.getFunctionDeclarations(name))
+//                }
+//            }
+        }
         for (functionDeclaration in declarations) {
             result.add(
                 c.functionDescriptorResolver.resolveFunctionDescriptor(
@@ -380,6 +389,7 @@ protected constructor(
     private fun doGetExtendClasses(name: Name): List<LazyExtendClassDescriptor> {
         mainScope?.extendclassDescriptors?.invoke(name)?.let { return it }
 
+
         val result = linkedSetOf<LazyExtendClassDescriptor>()
         declarationProvider.getExtendTypeStatementDeclarations(name).mapTo(result) {
 //            val isExternal = /*it.modifierList?.hasModifier(CjTokens.EXTERNAL_KEYWORD) ?:*/ false
@@ -388,7 +398,7 @@ protected constructor(
 
             resolveTypeByExtend(it.scopeAnchor as CjExtend, false) as LazyExtendClassDescriptor
         }
-//        getNonDeclaredClasses(name, result)
+
         return result.toList()
     }
 

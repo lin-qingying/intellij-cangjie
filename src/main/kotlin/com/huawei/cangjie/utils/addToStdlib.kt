@@ -15,7 +15,8 @@ inline fun <T, R : Any> Iterable<T>.firstNotNullResult(transform: (T) -> R?): R?
     return null
 }
 fun <E> MutableList<E>.popLast(): E = removeAt(lastIndex)
-
+inline fun <T> Boolean.ifTrue(body: () -> T?): T? =
+    if (this) body() else null
 fun shouldNotBeCalled(message: String = "should not be called"): Nothing {
     error(message)
 }

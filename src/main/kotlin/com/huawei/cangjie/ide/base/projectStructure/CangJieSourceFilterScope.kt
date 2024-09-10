@@ -49,6 +49,9 @@ class CangJieSourceFilterScope private constructor(
 
 
     companion object {
+        @JvmStatic
+        fun everything(delegate: GlobalSearchScope, project: Project) =
+            create(delegate, project, RootKindFilter.everything.copy(includeScriptsOutsideSourceRoots = true))
 
 
         @JvmStatic

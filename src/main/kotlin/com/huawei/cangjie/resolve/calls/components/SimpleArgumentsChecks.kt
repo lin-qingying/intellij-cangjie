@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve.calls.components
 
 import com.huawei.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
+import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.ConstraintSystemBuilder
 import com.huawei.cangjie.resolve.calls.inference.addSubtypeConstraintIfCompatible
 import com.huawei.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
@@ -14,6 +15,7 @@ import com.huawei.cangjie.types.checker.captureFromExpression
 import com.huawei.cangjie.types.checker.hasSupertypeWithGivenTypeConstructor
 import com.huawei.cangjie.types.util.makeNotNullable
 import com.huawei.cangjie.types.util.supertypes
+import com.huawei.cangjie.utils.exceptions.OperatorConventions
 
 fun checkSimpleArgument(
     csBuilder: ConstraintSystemBuilder,
@@ -115,6 +117,14 @@ private fun checkExpressionArgument(
     fun unstableSmartCastOrSubtypeError(
         unstableType: UnwrappedType?, actualExpectedType: UnwrappedType, position: ConstraintPosition
     ): CangJieCallDiagnostic? {
+
+//        if (diagnosticsHolder is ResolutionCandidate) {
+//            if (OperatorConventions.isConventionName(diagnosticsHolder.resolvedCall.candidateDescriptor.name)) {
+////              可以为重载的运算符 并且找的了重载函数，但是参数类型不正确 报告可能需要的重载函数
+//                return NoneOperatorCallDiagnostic(actualExpectedType, argumentType)
+//            }
+//        }
+
         if (unstableType != null) {
             if (csBuilder.addSubtypeConstraintIfCompatible(unstableType, actualExpectedType, position)) {
                 return UnstableSmartCast(expressionArgument, unstableType, isReceiver)
@@ -134,6 +144,8 @@ private fun checkExpressionArgument(
         }
 
         csBuilder.addSubtypeConstraint(argumentType, actualExpectedType, position)
+
+
         return null
     }
 
@@ -175,6 +187,7 @@ private fun checkExpressionArgument(
                     position
                 )
             )
+
             return resolvedExpression
         }
 

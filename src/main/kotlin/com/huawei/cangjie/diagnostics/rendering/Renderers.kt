@@ -24,7 +24,7 @@ object Renderers {
     private val LOG = Logger.getInstance(Renderers::class.java)
 
     @JvmField
-    val NAME = Renderer<Named> { it.name.asString() }
+    val NAME = renderer<Named> { it.name.asString() }
     @JvmField
     val COMPACT_WITHOUT_SUPERTYPES = DescriptorRenderer.COMPACT_WITHOUT_SUPERTYPES.asRenderer()
     @JvmField
@@ -33,7 +33,7 @@ object Renderers {
     })
 
     @JvmField
-    val RENDER_COLLECTION_OF_TYPES =     Renderer  { types :List<CangJieType>->
+    val RENDER_COLLECTION_OF_TYPES =     renderer  { types :List<CangJieType>->
 
         types.joinToString(", ", "{ ", " }") { type ->
 
@@ -43,7 +43,7 @@ object Renderers {
 
     }
     @JvmField
-    val RENDER_TYPE_STATMENT  = Renderer { classOrObject: CjTypeStatement ->
+    val RENDER_TYPE_STATMENT  = renderer { classOrObject: CjTypeStatement ->
         val name = classOrObject.name?.let { " ${it.wrapIntoQuotes()}" } ?: ""
         when (classOrObject) {
             is CjClass -> "Class$name"
@@ -59,20 +59,20 @@ object Renderers {
     val COMPACT_WITH_MODIFIERS = DescriptorRenderer.COMPACT_WITH_MODIFIERS.asRenderer()
 
     @JvmField
-    val STRING = Renderer<String> { it }
+    val STRING = renderer<String> { it }
 
     @JvmField
-    val VISIBILITY = Renderer<DescriptorVisibility> {
+    val VISIBILITY = renderer<DescriptorVisibility> {
         it.externalDisplayName
     }
 
     @JvmField
-    val DECL_FQNAME = Renderer<DeclarationDescriptor> {
+    val DECL_FQNAME = renderer<DeclarationDescriptor> {
         it.fqNameUnsafe.asString()
     }
 
     @JvmField
-    val NAME_OF_CONTAINING_DECLARATION_OR_FILE = Renderer<DeclarationDescriptor> {
+    val NAME_OF_CONTAINING_DECLARATION_OR_FILE = renderer<DeclarationDescriptor> {
         if (DescriptorUtils.isTopLevelDeclaration(it) && it is DeclarationDescriptorWithVisibility && it.visibility == DescriptorVisibilities.PRIVATE) {
             "file"
         } else {
@@ -93,12 +93,12 @@ object Renderers {
             }
     }
     @JvmField
-    val AMBIGUOUS_CALLS = Renderer { calls: Collection<ResolvedCall<*>> ->
+    val AMBIGUOUS_CALLS = renderer { calls: Collection<ResolvedCall<*>> ->
         val descriptors = calls.map { it.resultingDescriptor }
         renderAmbiguousDescriptors(descriptors)
     }
     @JvmField
-    val TO_STRING = Renderer<Any> { element ->
+    val TO_STRING = renderer<Any> { element ->
         if (element is DeclarationDescriptor) {
             LOG.warn(
                 "Diagnostic renderer TO_STRING was used to render an instance of DeclarationDescriptor.\n"
@@ -110,10 +110,12 @@ object Renderers {
     }
 
     @JvmField
-    val ELEMENT_TEXT = Renderer<PsiElement> { it.text }
+    val ELEMENT_TEXT = renderer<PsiElement> {
+        it.text
+    }
 
     @JvmField
-    val FQNAME = Renderer<FqName> {
+    val FQNAME = renderer<FqName> {
         it.asString()
     }
     @JvmField

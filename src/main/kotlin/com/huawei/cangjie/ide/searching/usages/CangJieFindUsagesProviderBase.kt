@@ -1,25 +1,30 @@
 package com.huawei.cangjie.ide.searching.usages
 
-import com.huawei.cangjie.psi.*
-import com.intellij.lang.cacheBuilder.WordsScanner
-import com.intellij.lang.findUsages.FindUsagesProvider
-import com.intellij.psi.PsiDirectory
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiNamedElement
-
- import com.huawei.cangjie.CangJieBundle
+import com.huawei.cangjie.CangJieBundle
+import com.huawei.cangjie.CjNodeTypes
 import com.huawei.cangjie.lexer.CangJieLexer
 import com.huawei.cangjie.lexer.CjTokens.*
+import com.huawei.cangjie.psi.*
 import com.intellij.lang.cacheBuilder.DefaultWordsScanner
+import com.intellij.lang.cacheBuilder.WordsScanner
+import com.intellij.lang.findUsages.FindUsagesProvider
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.tree.TokenSet
 
 class CangJieWordsScanner : DefaultWordsScanner(
     CangJieLexer(),
-    TokenSet.create(IDENTIFIER).also { KEYWORDS },
+    TokenSet.create(IDENTIFIER, CjNodeTypes.OPERATION_NAME).also { KEYWORDS },
     COMMENTS,
-    TokenSet.create(INTEGER_LITERAL, /*CHARACTER_LITERAL, */FLOAT_LITERAL, /*NULL_KEYWORD,*/ TRUE_KEYWORD, FALSE_KEYWORD).also { STRINGS }
+    TokenSet.create(
+        INTEGER_LITERAL,
+        RUNE_LITERAL,
+        FLOAT_LITERAL,
+        TRUE_KEYWORD,
+        FALSE_KEYWORD
+    ).also { STRINGS }
 )
+
 open class CangJieFindUsagesProviderBase : FindUsagesProvider {
 
 
@@ -39,6 +44,7 @@ open class CangJieFindUsagesProviderBase : FindUsagesProvider {
                 CangJieBundle.message("find.usages.variable")
             else
                 CangJieBundle.message("find.usages.property")
+
             is CjDestructuringDeclarationEntry -> CangJieBundle.message("find.usages.variable")
             is CjTypeParameter -> CangJieBundle.message("find.usages.type.parameter")
             is CjSecondaryConstructor -> CangJieBundle.message("find.usages.constructor")
@@ -53,7 +59,7 @@ open class CangJieFindUsagesProviderBase : FindUsagesProvider {
             (parent as? CjFile)?.parent?.let { return getDescriptiveName(it) }
             return null
         }
-
+//获取要搜索的名称
     override fun getDescriptiveName(element: PsiElement): String {
         return when (element) {
 
@@ -64,14 +70,28 @@ open class CangJieFindUsagesProviderBase : FindUsagesProvider {
                     element.fqName?.asString()
                 } ?: element.name ?: CangJieBundle.message("usage.provider.text.unnamed")
             }
-            /*is CjProperty ,*/is CjVariable  -> {
+            /*is CjProperty ,*/is CjVariable -> {
                 val name = element.name ?: ""
-                element.containerDescription?.let { CangJieBundle.message("usage.provider.text.property.of.0", name, it) } ?: name
+                element.containerDescription?.let {
+                    CangJieBundle.message(
+                        "usage.provider.text.property.of.0",
+                        name,
+                        it
+                    )
+                } ?: name
             }
+
             is CjFunction -> {
                 //TODO: Correct FIR implementation
                 @Suppress("HardCodedStringLiteral")
-                return element.name?.let { "$it(...)" } ?: ""
+
+                return  if(element.isOperator){
+                   ( element as CjNamedDeclarationStub<*>).operatorName?.text?.let { "operator  $it(...)" } ?: ""
+
+                }else{
+                    element.name?.let { "$it(...)" } ?: ""
+
+                }
             }
 //            is CjLabeledExpression -> {
 //                @Suppress("HardCodedStringLiteral")
@@ -84,9 +104,10 @@ open class CangJieFindUsagesProviderBase : FindUsagesProvider {
 //                    val name = element.name ?: ""
 //                    element.containerDescription?.let { CangJieBundle.message("usage.provider.text.property.of.0", name, it) } ?: name
 //                } else {
-                    element.name ?: ""
+                element.name ?: ""
 //                }
             }
+
             is PsiNamedElement -> element.name ?: ""
             else -> ""
         }

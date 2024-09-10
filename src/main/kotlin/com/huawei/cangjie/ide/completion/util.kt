@@ -124,7 +124,7 @@ private fun CjCallExpression.requiresTypeParams(): Boolean {
 
     return resolvedCall.typeArguments.values.any { type -> type is ErrorType }
 }
-var UserDataHolder.argList: TypeArgsWithOffset? by UserDataProperty(Key("KotlinInsertTypeArgument.ARG_LIST"))
+var UserDataHolder.argList: TypeArgsWithOffset? by UserDataProperty(Key("CangJieInsertTypeArgument.ARG_LIST"))
 data class TypeArgsWithOffset(val args: CjTypeArgumentList, val offset: Int)
 private fun CjExpression.findLastCallExpression() =
     ((this as? CjQualifiedExpression)?.selectorExpression ?: this) as? CjCallExpression

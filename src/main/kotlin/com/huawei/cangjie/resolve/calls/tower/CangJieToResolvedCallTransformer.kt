@@ -6,9 +6,10 @@ import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.extensions.internal.CandidateInterceptor
 import com.huawei.cangjie.psi.*
-import com.huawei.cangjie.resolve.*
+import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.BindingContextUtils.updateRecordedType
-import com.huawei.cangjie.resolve.ImplicitIntegerCoercion.isEnabledFor
+import com.huawei.cangjie.resolve.MissingSupertypesResolver
+import com.huawei.cangjie.resolve.StatementFilter
 import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver
 import com.huawei.cangjie.resolve.calls.DiagnosticReporterByTrackingStrategy
 import com.huawei.cangjie.resolve.calls.checkers.AdditionalTypeChecker
@@ -27,11 +28,11 @@ import com.huawei.cangjie.resolve.calls.tasks.TracingStrategy
 import com.huawei.cangjie.resolve.calls.util.getEffectiveExpectedType
 import com.huawei.cangjie.resolve.calls.util.getResolvedCall
 import com.huawei.cangjie.resolve.calls.util.isFakeElement
-
 import com.huawei.cangjie.resolve.constants.CompileTimeConstant
 import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
+import com.huawei.cangjie.resolve.getLastStatementInABlock
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.error.ErrorScopeKind
 import com.huawei.cangjie.types.expressions.DataFlowAnalyzer
@@ -103,7 +104,7 @@ class CangJieToResolvedCallTransformer(
 
                 else -> {
                     parameter = null
-                    Pair(TypeUtils.NO_EXPECTED_TYPE, CallPosition.Unknown)
+                    Pair(NO_EXPECTED_TYPE, CallPosition.Unknown)
                 }
             }
             val newContext =
@@ -111,21 +112,21 @@ class CangJieToResolvedCallTransformer(
 
                     .replaceCallPosition(callPosition)
                     .replaceExpectedType(
-                        if(context.expectedType != NO_EXPECTED_TYPE){
-                            if(CangJieBuiltIns.isArray(context.expectedType) ){
-                               context.expectedType.arguments[0].type
+                        if (context.expectedType != NO_EXPECTED_TYPE) {
+                            if (CangJieBuiltIns.isArray(context.expectedType)) {
+                                context.expectedType.arguments[0].type
 
-                            }else{
+                            } else {
                                 expectedType
                             }
-                        }else
+                        } else
 
-                        if(parameter?.isVararg == true){
-                            parameter.varargElementType
+                            if (parameter?.isVararg == true) {
+                                parameter.varargElementType
 
-                        }else{
-                            expectedType
-                        }
+                            } else {
+                                expectedType
+                            }
                     )
 
 
@@ -150,6 +151,7 @@ class CangJieToResolvedCallTransformer(
             }
         }
     }
+
     fun getResolvedCallForArgumentExpression(expression: CjExpression, context: BasicCallResolutionContext) =
         if (!ExpressionTypingUtils.dependsOnExpectedType(expression))
             null
@@ -208,8 +210,6 @@ class CangJieToResolvedCallTransformer(
     }
 
 
-
-
     // See CallCompleter#updateRecordedTypeForArgument
     private fun updateRecordedTypeForArgument(
         updatedType: CangJieType?,
@@ -232,14 +232,15 @@ class CangJieToResolvedCallTransformer(
 
         var shouldBeMadeNullable: Boolean = false
         for (expression in expressions) {
-            if (!(expression is CjParenthesizedExpression  )) {
+            if (!(expression is CjParenthesizedExpression)) {
                 shouldBeMadeNullable = hasNecessarySafeCall(expression, context.trace)
             }
-            BindingContextUtils.updateRecordedType(updatedType, expression, context.trace, shouldBeMadeNullable)
+            updateRecordedType(updatedType, expression, context.trace, shouldBeMadeNullable)
         }
 
         return context.trace.getType(argumentExpression)
     }
+
     private fun hasNecessarySafeCall(expression: CjExpression, trace: BindingTrace): Boolean {
         // We are interested in type of the last call:
         // 'a.b?.foo()' is safe call, but 'a?.b.foo()' is not.
@@ -264,11 +265,15 @@ class CangJieToResolvedCallTransformer(
     }
 
     private fun createTypeForConvertableConstant(constant: CompileTimeConstant<*>): SimpleType? {
-        val value = (constant.getValue(TypeUtils.NO_EXPECTED_TYPE) as? Number)?.toLong() ?: return null
+        val value = (constant.getValue(NO_EXPECTED_TYPE) as? Number)?.toLong() ?: return null
         val typeConstructor = IntegerLiteralTypeConstructor(value, moduleDescriptor, constant.parameters)
         return CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
             TypeAttributes.Empty, typeConstructor, emptyList(), false,
-            ErrorUtils.createErrorScope(ErrorScopeKind.INTEGER_LITERAL_TYPE_SCOPE, throwExceptions = true, typeConstructor.toString()),
+            ErrorUtils.createErrorScope(
+                ErrorScopeKind.INTEGER_LITERAL_TYPE_SCOPE,
+                throwExceptions = true,
+                typeConstructor.toString()
+            ),
         )
     }
 
@@ -369,6 +374,16 @@ class CangJieToResolvedCallTransformer(
 
         tracing.bindReference(trace, simpleResolvedCall)
         tracing.bindResolvedCall(trace, simpleResolvedCall)
+    }
+
+    private fun bind(trace: BindingTrace, variableAsFunction: NewVariableAsFunctionResolvedCallImpl) {
+        val outerTracingStrategy = variableAsFunction.baseCall.tracingStrategy
+        val variableCall = variableAsFunction.variableCall
+        val functionCall = variableAsFunction.functionCall
+
+        outerTracingStrategy.bindReference(trace, variableCall)
+        outerTracingStrategy.bindResolvedCall(trace, variableAsFunction)
+        functionCall.psiCangJieCall.tracingStrategy.bindReference(trace, functionCall)
     }
 
     internal fun bind(trace: BindingTrace, resolvedCall: ResolvedCall<*>) {
@@ -531,7 +546,7 @@ class CangJieToResolvedCallTransformer(
             }
 
             is CompletedCallResolutionResult, is ErrorCallResolutionResult -> {
-                // K2 warning suppression, TODO: KT-62472
+
                 val candidate = (baseResolvedCall as SingleCallResolutionResult).resultCallAtom
 
                 val resultSubstitutor =

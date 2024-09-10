@@ -28,7 +28,7 @@ object CangJieTypeFactory {
     fun basicType(descriptor: BasicTypeDescriptor): BasicType {
         return BasicType(
             descriptor.typeConstructor,
-            descriptor.basicMemberScope
+            descriptor.basicTypeMemberScope
 
         )
     }

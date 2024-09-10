@@ -22,6 +22,7 @@ import com.huawei.cangjie.types.UnwrappedType
 import com.huawei.cangjie.types.error.ErrorType
 import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.util.TypeUtils
+import com.huawei.cangjie.utils.exceptions.OperatorConventions.isConventionName
 
 internal val NewConstraintSystem.builtIns: CangJieBuiltIns get() = ((this as NewConstraintSystemImpl).typeSystemContext as BuiltInsProvider).builtIns
 
@@ -61,18 +62,18 @@ class CangJieCallCompleter(
         val completedCandidates = candidates.map { candidate ->
             val diagnosticsHolder = CangJieDiagnosticsHolder.SimpleHolder()
 
-//            candidate.addExpectedTypeConstraint(
-//                candidate.substitutedReturnType(), expectedType
-//            )
+            candidate.addExpectedTypeConstraint(
+                candidate.substitutedReturnType(), expectedType
+            )
 
-//            runCompletion(
-//                candidate.resolvedCall,
-//                ConstraintSystemCompletionMode.FULL,
-//                diagnosticsHolder,
-//                candidate.getSystem(),
-//                resolutionCallbacks,
-//                collectAllCandidatesMode = true
-//            )
+            runCompletion(
+                candidate.resolvedCall,
+                ConstraintSystemCompletionMode.FULL,
+                diagnosticsHolder,
+                candidate.getSystem(),
+                resolutionCallbacks,
+                collectAllCandidatesMode = true
+            )
 
             CandidateWithDiagnostics(candidate, diagnosticsHolder.getDiagnostics() + candidate.diagnostics)
         }
@@ -195,13 +196,18 @@ class CangJieCallCompleter(
 
             expectedType === TypeUtils.UNIT_EXPECTED_TYPE ->
                 csBuilder.addEqualityConstraintIfCompatible(
-                        returnType, csBuilder.builtIns.unitType, ExpectedTypeConstraintPositionImpl(resolvedCall.atom)
+                    returnType, csBuilder.builtIns.unitType, ExpectedTypeConstraintPositionImpl(resolvedCall.atom)
                 )
 
             else ->
-                csBuilder.addSubtypeConstraint(returnType, expectedType, ExpectedTypeConstraintPositionImpl(resolvedCall.atom))
+                csBuilder.addSubtypeConstraint(
+                    returnType,
+                    expectedType,
+                    ExpectedTypeConstraintPositionImpl(resolvedCall.atom)
+                )
         }
     }
+
     private fun ResolutionCandidate.addExpectedTypeFromCastConstraint(
         returnType: UnwrappedType?,
         resolutionCallbacks: CangJieResolutionCallbacks
@@ -214,6 +220,7 @@ class CangJieCallCompleter(
 
         csBuilder.addSubtypeConstraint(returnType, expectedType, ExpectedTypeConstraintPositionImpl(resolvedCall.atom))
     }
+
     fun runCompletion(
         factory: CandidateFactory<ResolutionCandidate>,
         candidates: Collection<ResolutionCandidate>,
@@ -222,8 +229,11 @@ class CangJieCallCompleter(
     ): CallResolutionResult {
         val diagnosticHolder = CangJieDiagnosticsHolder.SimpleHolder()
         when {
+
+
             candidates.isEmpty() -> diagnosticHolder.addDiagnostic(NoneCandidatesCallDiagnostic())
             candidates.size > 1 -> diagnosticHolder.addDiagnostic(ManyCandidatesCallDiagnostic(candidates))
+
         }
 
         val candidate = prepareCandidateForCompletion(factory, candidates, resolutionCallbacks)
@@ -247,7 +257,7 @@ class CangJieCallCompleter(
             trivialConstraintTypeInferenceOracle,
             resolutionCallbacks.inferenceSession
         )
-//
+
 
         return when (completionMode) {
             ConstraintSystemCompletionMode.FULL -> {

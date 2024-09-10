@@ -90,7 +90,7 @@ class FilteredAnnotations(
 
     override fun isEmpty(): Boolean {
         val condition = delegate.any(this::shouldBeReturned)
-        // fixing KT-32189 && KT-32138 for the new inference only
+
         return if (isDefinitelyNewInference) !condition else condition
     }
 

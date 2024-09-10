@@ -59,10 +59,9 @@ open class UpperBoundChecker(
 
         val cjTypeArguments = typeElement.typeArgumentsAsTypes
 
-        // A type reference from Kotlin code can yield a flexible type only if it's `ft<T1, T2>`, whose bounds should not be checked
-        if (type.isFlexible() && !type.isDynamic()) {
+           if (type.isFlexible() && !type.isDynamic()) {
             assert(cjTypeArguments.size == 2) {
-                ("Flexible type cannot be denoted in Kotlin otherwise than as ft<T1, T2>, but was: "
+                ("Flexible type cannot be denoted in CangJie otherwise than as ft<T1, T2>, but was: "
                         + typeReference.getElementTextWithContext())
             }
             // it's really ft<Foo, Bar>

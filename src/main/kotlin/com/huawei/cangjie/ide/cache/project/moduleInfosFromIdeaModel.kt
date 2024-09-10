@@ -277,8 +277,8 @@ var _cangjieModuleInfo: CangJieModuleInfo? = null
 
 val Module.cangjieModuleInfo: CangJieModuleInfo
     get() {
-//        val hasProductionRoots = hasRootsOfType(setOf(JavaSourceRootType.SOURCE, SourceKotlinRootType))
-//                || (isNewMultiPlatformModule && cangjieSourceRootType == SourceKotlinRootType)
+//        val hasProductionRoots = hasRootsOfType(setOf(JavaSourceRootType.SOURCE, SourceCangJieRootType))
+//                || (isNewMultiPlatformModule && cangjieSourceRootType == SourceCangJieRootType)
 //
 //        return if (hasProductionRoots) CangJieModuleInfo(this) else null
 //        return CangJieModuleInfo(this)

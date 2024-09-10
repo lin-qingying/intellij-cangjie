@@ -155,6 +155,10 @@ class CollectionLiteralResolver(
                     return this
                 }
 
+                override fun isFinal(): Boolean {
+                    return true
+                }
+
                 override fun getParameters(): List<TypeParameterDescriptor> {
                     return emptyList()
                 }

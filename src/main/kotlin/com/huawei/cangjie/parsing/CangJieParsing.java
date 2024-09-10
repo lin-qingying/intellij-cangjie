@@ -2134,31 +2134,15 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
             //运算符重载
 
-            IElementType operatorToken = getGtTokenType();
+            IElementType operatorToken = getOperationTokenType();
 
             if (OPERATIONS_CAN_BE_OVERLOADED.contains(operatorToken)) {
                 PsiBuilder.Marker operator = mark();
 
-                if (at(LPAR)) {
-                    advance();
-                    if (at(RPAR)) {
-                        advance();
-                    } else {
-                        error("Expecting ')'");
-                    }
-                } else if (at(LBRACKET)) {
-                    advance();
-                    if (at(RBRACKET)) {
-                        advance();
-                    } else {
-                        error("Expecting ']'");
-                    }
-                } else if (operatorToken == GTGT || operatorToken == GTEQ) {
-                    advanceGtToken(operatorToken);
-                } else {
-                    advance();
-                }
-                operator.done(OPERATION_REFERENCE);
+
+                advanceOperationToken(operatorToken);
+
+                operator.done(OPERATION_NAME);
             } else {
 
                 PsiBuilder.Marker mark = mark();

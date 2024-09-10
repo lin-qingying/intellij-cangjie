@@ -562,7 +562,7 @@ class CommentSaver(originalElements: PsiChildRange, private val saveLineBreaks: 
     private val nonSpaceAndNonEmptyFilter = { element: PsiElement -> element !is PsiWhiteSpace && element.textLength > 0 }
 
     companion object {
-        //TODO: making it private causes error on runtime (KT-7874?)
+
         val PsiElement.tokenType: CjToken?
             get() = node.elementType as? CjToken
     }

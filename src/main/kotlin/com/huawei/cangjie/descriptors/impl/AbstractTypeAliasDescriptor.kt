@@ -104,8 +104,8 @@ abstract class AbstractTypeAliasDescriptor(
         override fun getSupertypes(): Collection<CangJieType> =
             declarationDescriptor.underlyingType.constructor.supertypes
 
-//        override fun isFinal(): Boolean =
-//            declarationDescriptor.underlyingType.constructor.isFinal
+        override fun isFinal(): Boolean =
+            declarationDescriptor.underlyingType.constructor.isFinal
 
         override fun isDenotable(): Boolean =
             true
@@ -116,7 +116,7 @@ abstract class AbstractTypeAliasDescriptor(
         override fun toString(): String = "[typealias ${declarationDescriptor.name.asString()}]"
 
         // There must be @TypeRefinement, but there is a bug with anonymous objects and experimental annotations
-        // See KT-31728
+
         @OptIn(TypeRefinement::class)
         override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
     }

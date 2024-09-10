@@ -46,6 +46,8 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
 
         //        val scripts = ArrayListMultimap.create<Name, CjScriptInfo>()
         val typeAliases = ArrayListMultimap.create<Name, CjTypeAlias>()
+
+        val originalTypeAliases = ArrayListMultimap.create<Name, CjTypeAlias>()
         val destructuringDeclarationsEntries = ArrayListMultimap.create<Name, CjDestructuringDeclarationEntry>()
         val names = hashSetOf<Name>()
 
@@ -140,6 +142,11 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
 
     override fun getExtendTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<CjExtend>> =
         index().extends[name.safeNameForLazyResolve()]
+
+    override fun getAliasTypeStatementDeclarations(name: Name): Collection<CjTypeAlias> =
+        index().originalTypeAliases[name.safeNameForLazyResolve()]
+
+
 //    override fun getScriptDeclarations(name: Name): MutableList<CjScriptInfo> =
 //        index().scripts[name.safeNameForLazyResolve()]
 

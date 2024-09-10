@@ -6,7 +6,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
 
 
-// Returns original declaration if given PsiElement is a Kotlin light element, and element itself otherwise
+// Returns original declaration if given PsiElement is a CangJie light element, and element itself otherwise
 val PsiElement.unwrapped: PsiElement?
     get() = when (this) {
 //        is PsiElementWithOrigin<*> -> origin
@@ -33,7 +33,20 @@ val PsiElement.namedUnwrappedElement: PsiNamedElement?
 //    is CjFile -> listOfNotNull(findFacadeClass())
 //    else -> listOf()
 //}
-/**
- * Can be null in scripts and for elements from non-jvm modules.
- */
-//fun CjTypeStatement.toLightClass(): CjLightClass? = KotlinAsJavaSupport.getInstance(project).getLightClass(this)
+//
+//fun CjElement.toLightElements(): List<PsiNamedElement> = when (this) {
+//    is CjClassOrObject -> listOfNotNull(toLightClass())
+//    is CjNamedFunction,
+//    is CjConstructor<*> -> LightClassUtil.getLightClassMethods(this as CjFunction)
+//    is CjProperty -> LightClassUtil.getLightClassPropertyMethods(this).allDeclarations
+//    is CjPropertyAccessor -> listOfNotNull(LightClassUtil.getLightClassAccessorMethod(this))
+//    is CjParameter -> mutableListOf<PsiNamedElement>().also { elements ->
+//        toPsiParameters().toCollection(elements)
+//        LightClassUtil.getLightClassPropertyMethods(this).toCollection(elements)
+//        toAnnotationLightMethod()?.let(elements::add)
+//    }
+//
+//    is CjTypeParameter -> toPsiTypeParameters()
+//    is CjFile -> listOfNotNull(findFacadeClass())
+//    else -> listOf()
+//}

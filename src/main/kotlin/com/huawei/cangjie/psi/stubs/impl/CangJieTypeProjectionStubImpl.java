@@ -20,6 +20,6 @@ public class CangJieTypeProjectionStubImpl extends CangJieStubBaseImpl<CjTypePro
     @NotNull
     @Override
     public CjProjectionKind getProjectionKind() {
-        return CjProjectionKind.values()[projectionKindOrdinal];
+        return CjProjectionKind.getEntries().get(projectionKindOrdinal);
     }
 }

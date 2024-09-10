@@ -318,7 +318,7 @@ fun CjElement.getQualifiedExpressionForSelector(): CjQualifiedExpression? {
     return if (parent is CjQualifiedExpression && parent.selectorExpression == this) parent else null
 }
 
-val CjDeclaration.containingClassOrStruct: CjTypeStatement?
+val CjDeclaration.containingTypeStatement: CjTypeStatement?
     get() = parent.let {
         when (it) {
             is CjClassBody -> it.parent as? CjTypeStatement

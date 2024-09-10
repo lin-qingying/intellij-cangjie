@@ -202,7 +202,10 @@ class PackageFragmentDescriptorBasicImpl(
         override fun getContributedFunctions(
             name: Name,
             location: LookupLocation
-        ): Collection<SimpleFunctionDescriptor> = emptyList()
+        ): Collection<SimpleFunctionDescriptor> {
+
+            return   emptyList()
+        }
 
         override fun printScopeStructure(p: Printer) {
             p.println("Basic member scope")

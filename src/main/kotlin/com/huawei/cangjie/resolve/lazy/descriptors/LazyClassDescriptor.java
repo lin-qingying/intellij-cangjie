@@ -33,7 +33,10 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import static com.huawei.cangjie.descriptors.Errors.CYCLIC_INHERITANCE_HIERARCHY;
 import static com.huawei.cangjie.descriptors.Errors.CYCLIC_SCOPES_WITH_COMPANION;
@@ -59,7 +62,6 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
     private final ClassResolutionScopesSupport resolutionScopesSupport;
     private final LazyClassTypeConstructor typeConstructor;
     private final NotNullLazyValue<Collection<ClassDescriptor>> sealedSubclasses;
-    public Set<LazyExtendClassDescriptor> extendClassDescriptor = new HashSet<>();
     @Nullable
     private CjTypeStatement typeStatement;
     //    该方法是为扩展提供更改psi节点的，其他情况不要使用
@@ -83,6 +85,7 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
         typeStatement = classLikeInfo.getCorrespondingClass();
         this.declarationProvider = c.getDeclarationProviderFactory().getClassMemberDeclarationProvider(classLikeInfo);
 //
+
         StorageManager storageManager = c.getStorageManager();
 //
         this.scopesHolderForClass = createScopesHolderForClass(c, this.declarationProvider);
@@ -421,8 +424,20 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
     @Override
     @SuppressWarnings("unchecked")
     public Collection<CallableMemberDescriptor> getDeclaredCallableMembers() {
+
+        Collection<DeclarationDescriptor> list = new ArrayList<>(DescriptorUtils.getAllDescriptors(getUnsubstitutedMemberScope()));
+
+        getExtendClassDescriptors().forEach(
+                it -> {
+                    list.addAll(DescriptorUtils.getAllDescriptors(it.getUnsubstitutedMemberScope()));
+                }
+        );
+
         return (Collection) CollectionsKt.filter(
-                DescriptorUtils.getAllDescriptors(getUnsubstitutedMemberScope()),
+
+                list
+
+                ,
                 descriptor -> descriptor instanceof CallableMemberDescriptor
                         && ((CallableMemberDescriptor) descriptor).getKind() != CallableMemberDescriptor.Kind.FAKE_OVERRIDE
         );
@@ -556,7 +571,8 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
 //        return result
 
         List<CangJieType> result = new ArrayList<>();
-        getExtendClass().forEach(it -> {
+        getExtendClassDescriptors().forEach(it -> {
+
             if (!it.getTypeStatement().getExtendId().equals(extendId))
                 result.addAll(it.getTypeConstructor().getSupertypes());
         });

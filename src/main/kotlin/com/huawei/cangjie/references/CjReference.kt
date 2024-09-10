@@ -54,7 +54,7 @@ fun CjReference.resolveToDescriptors(bindingContext: BindingContext): Collection
 ////                    listOfNotNull(descriptor)
 ////                }
 ////
-////                is PsiMember -> listOfNotNull(declaration.getJavaOrKotlinMemberDescriptor())
+////                is PsiMember -> listOfNotNull(declaration.getJavaOrCangJieMemberDescriptor())
 ////                else -> emptyList()
 ////            }
 ////        }

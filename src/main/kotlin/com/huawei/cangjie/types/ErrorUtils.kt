@@ -16,11 +16,11 @@ object ErrorUtils {
     val errorModule: ModuleDescriptor = ErrorModuleDescriptor
     val errorPropertyType: CangJieType get() = createErrorType(ErrorTypeKind.ERROR_PROPERTY_TYPE)
     val errorVariableType: CangJieType get() = createErrorType(ErrorTypeKind.ERROR_VARIABLE_TYPE)
-
+@JvmStatic
+    val invalidType :ErrorType get() = createErrorType(ErrorTypeKind.INVALID_TYPE)
     fun containsUninferredTypeVariable(type: CangJieType): Boolean = type.contains(::isUninferredTypeVariable)
 
-    // Do not move it into AbstractTypeConstructor.Companion because of cycle in initialization(see KT-13264)
-    val errorTypeForLoopInSupertypes: CangJieType = createErrorType(ErrorTypeKind.CYCLIC_SUPERTYPES)
+        val errorTypeForLoopInSupertypes: CangJieType = createErrorType(ErrorTypeKind.CYCLIC_SUPERTYPES)
 
     val errorClass: ErrorClassDescriptor
         get() =

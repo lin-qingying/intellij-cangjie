@@ -243,12 +243,12 @@ class TypeResolver(
         typeElement?.accept(object : CjVisitorVoid() {
             override fun visitBasicType(type: CjBasicType) {
 
-                val extendSuper = if (isgetExtend) {
-                    c.scope.getExtendClasss(type.name.toName(), NoLookupLocation.FROM_BUILTINS)
-                } else {
-                    emptyList()
-                }.toSet()
-                result = type(createBasicType(moduleDescriptor.builtIns, type.text, extendSuper))
+//                val extendSuper = if (isgetExtend) {
+//                    c.scope.getExtendClasss(type.name.toName(), NoLookupLocation.FROM_BUILTINS)
+//                } else {
+//                    emptyList()
+//                }.toSet()
+                result = type(createBasicType(moduleDescriptor.builtIns, type.text, /*extendSuper*/))
 
 
             }
@@ -273,20 +273,20 @@ class TypeResolver(
                     return
                 }
                 //                获取扩展
-                val extendSuper = if (isgetExtend) {
-                    type.referenceExpression?.let {
-                        c.scope.getExtendClasss(it.getReferencedNameAsName(), NoLookupLocation.FROM_BUILTINS)
-                    } ?: emptyList()
-                } else {
-                    emptyList()
-                }.toSet()
-                if (classifier is LazyClassDescriptor) {
-                    classifier.extendClassDescriptor.addAll(extendSuper)
-
-                } else if (classifier is BasicTypeDescriptor) {
-                    classifier.extendClassDescriptor.addAll(extendSuper)
-
-                }
+//                val extendSuper = if (isgetExtend) {
+//                    type.referenceExpression?.let {
+//                        c.scope.getExtendClasss(it.getReferencedNameAsName(), NoLookupLocation.FROM_BUILTINS)
+//                    } ?: emptyList()
+//                } else {
+//                    emptyList()
+//                }.toSet()
+//                if (classifier is LazyClassDescriptor) {
+//                    classifier.extendClassDescriptor.addAll(extendSuper)
+//
+//                } else if (classifier is BasicTypeDescriptor) {
+//                    classifier.extendClassDescriptor.addAll(extendSuper)
+//
+//                }
 
 
                 val referenceExpression = type.referenceExpression ?: return

@@ -16,7 +16,7 @@ abstract class ProjectStructureProvider {
      *
      * #### Outsider Modules
      *
-     * Normally, every Kotlin source file either belongs to some module (e.g. a source module, or a library module), or is self-contained
+     * Normally, every CangJie source file either belongs to some module (e.g. a source module, or a library module), or is self-contained
      * (a script file, or a file outside content roots). However, in certain cases there might be special modules that include both
      * existing source files, and also some additional files.
      *

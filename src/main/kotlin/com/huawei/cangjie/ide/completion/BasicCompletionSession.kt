@@ -310,6 +310,6 @@ class BasicCompletionSession(
 }
 
 var LookupElement.suppressItemSelectionByCharsOnTyping: Boolean by NotNullableUserDataProperty(
-    Key("KOTLIN_SUPPRESS_ITEM_SELECTION_BY_CHARS_ON_TYPING"),
+    Key("CANGJIE_SUPPRESS_ITEM_SELECTION_BY_CHARS_ON_TYPING"),
     defaultValue = false,
 )

@@ -131,7 +131,7 @@ fun CangJieType.isTypeParameter(): Boolean = TypeUtils.isTypeParameter(this)
 
 fun TypeProjection.substitute(doSubstitute: (CangJieType) -> CangJieType): TypeProjection {
 
-     return TypeProjectionImpl(projectionKind, doSubstitute(type))
+    return TypeProjectionImpl(projectionKind, doSubstitute(type))
 }
 
 fun CangJieType.makeOptional() = TypeUtils.makeOptional(this)
@@ -172,7 +172,7 @@ fun FlexibleType.unCapture(): FlexibleType {
 
 fun unCaptureProjection(projection: TypeProjection): TypeProjection {
     val unCapturedProjection = (projection.type.constructor as? NewCapturedTypeConstructor)?.projection ?: projection
-    if (  unCapturedProjection.type is ErrorType) return unCapturedProjection
+    if (unCapturedProjection.type is ErrorType) return unCapturedProjection
 
     val newArguments = unCapturedProjection.type.arguments.map(::unCaptureProjection)
     return TypeProjectionImpl(
@@ -263,7 +263,7 @@ private fun CangJieType.containsSelfTypeParameter(
         val typeParameter = typeParameters?.getOrNull(i)
         val isTypeParameterVisited =
             typeParameter != null && visitedTypeParameters != null && typeParameter in visitedTypeParameters
-        if (isTypeParameterVisited  ) return@any false
+        if (isTypeParameterVisited) return@any false
         argument.type.containsSelfTypeParameter(baseConstructor, visitedTypeParameters)
     }
 }
@@ -280,7 +280,7 @@ fun createBasicType(
     extendTypesDescriptor: Set<LazyExtendClassDescriptor> = emptySet()
 ): BasicType {
     val classDescriptor = builtIns.getBuiltInBasicTypeByName(name)
-    classDescriptor.extendClassDescriptor.addAll(extendTypesDescriptor)
+//    classDescriptor.extendClassDescriptor.addAll(extendTypesDescriptor)
 
     return CangJieTypeFactory.basicType(classDescriptor)
 }
@@ -831,6 +831,7 @@ object TypeUtils {
      * Semantics should be the same as `!isSubtype(T, Any)`
      * @return true if a value of this type can be null
      */
+    @JvmStatic
     fun isNullableType(type: CangJieType): Boolean {
         if (type.isMarkedOption) {
             return true
@@ -976,6 +977,11 @@ fun classFqNameEquals(
 }
 
 fun CangJieType.isSubtypeOf(superType: CangJieType): Boolean = DEFAULT.isSubtypeOf(this, superType)
+@JvmName("isSubtypeOfNull")
+fun CangJieType?.isSubtypeOf(superType: CangJieType?): Boolean {
+    if (this == null || superType == null) return false
+    return DEFAULT.isSubtypeOf(this, superType)
+}
 
 
 //获取类型的classkind

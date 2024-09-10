@@ -131,7 +131,7 @@ public class CjNamedFunction extends CjFunctionImpl {
         if (stub != null) {
             return stub.hasBody();
         }
-        return getBodyExpression() != null;
+        return getBodyBlockExpression() != null;
     }
 
     @Override

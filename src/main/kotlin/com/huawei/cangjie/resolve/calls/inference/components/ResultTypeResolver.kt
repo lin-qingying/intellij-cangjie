@@ -208,9 +208,7 @@ class ResultTypeResolver(
     ): Boolean {
         if (resultType === approximatedResultType || c.hasContradiction) return false
 
-        // TODO(related to KT-64802) This if shouldn't be necessary but removing it breaks
-        // compiler/testData/diagnostics/tests/unsignedTypes/conversions/inferenceForSignedAndUnsignedTypes.kt
-        if (resultType.typeConstructor(c).isIntegerLiteralTypeConstructor(c)) return false
+            if (resultType.typeConstructor(c).isIntegerLiteralTypeConstructor(c)) return false
 
         var createsContradiction = false
         c.runTransaction {
@@ -287,7 +285,7 @@ class ResultTypeResolver(
      *      UPPER(Foo?)
      *  Result type = makeFlexibleIfNecessary(Foo?) = Foo!
      *
-     * We don't propagate nullness flexibility in depth as it's non-determined for now (see KT-35534):
+     * We don't propagate nullness flexibility in depth as it's non-determined for now  :
      *  CST(Bar<Foo>, Bar<Foo!>) = Bar<Foo!>
      *  CST(Bar<Foo!>, Bar<Foo>) = Bar<Foo>
      * But: CST(Foo, Foo!) = CST(Foo!, Foo) = Foo!

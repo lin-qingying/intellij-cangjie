@@ -151,7 +151,7 @@ public class BodyResolver {
 //        }
 //        else if (languageVersionSettings.supportsFeature(TopLevelSealedInheritance) && DescriptorUtils.isTopLevelDeclaration(descriptor)) {
 //            // TODO: improve diagnostic when top level sealed inheritance is disabled
-//            for (KotlinType supertype : supertypes.values()) {
+//            for (CangJieType supertype : supertypes.values()) {
 //                ClassifierDescriptor classifierDescriptor = supertype.getConstructor().getDeclarationDescriptor();
 //                if (DescriptorUtils.isSealedClass(classifierDescriptor) && DescriptorUtils.isTopLevelDeclaration(classifierDescriptor)) {
 //                    parentEnumOrSealed = Collections.singleton(classifierDescriptor.getTypeConstructor());
@@ -489,7 +489,7 @@ public class BodyResolver {
 //        }
     }
 
-      void resolveVariable(BodiesResolveContext c, CjVariable variable, VariableDescriptor variableDescriptor) {
+    void resolveVariable(BodiesResolveContext c, CjVariable variable, VariableDescriptor variableDescriptor) {
         computeDeferredType(variableDescriptor.getReturnType());
         PreliminaryDeclarationVisitor.Companion.createForDeclaration(variable, trace, languageVersionSettings);
         CjExpression initializer = variable.getInitializer();

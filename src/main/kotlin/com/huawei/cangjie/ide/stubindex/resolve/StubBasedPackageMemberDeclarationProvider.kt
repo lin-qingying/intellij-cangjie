@@ -91,18 +91,39 @@ class StubBasedPackageMemberDeclarationProvider(
 //        }
         val cjTypeStatements = runReadAction {
             val results = arrayListOf<CjTypeStatementInfo<CjExtend>>()
-            CangJieExtendClassNameIndex.processElements(childName, project, searchScope) {
-                ProgressManager.checkCanceled()
+            val typeAliass = getAliasTypeStatementDeclarations(name).map {
+                childName(it.nameAsSafeName)
 
-                val classinfo = CjClassInfoUtil.createTypeStatementInfo(it) as CjTypeStatementInfo<CjExtend>
-
-
-                results += classinfo
-                true
+            }.toMutableSet().apply {
+                add(childName)
             }
+
+
+            typeAliass.forEach {
+                CangJieExtendClassNameIndex.processElements(it, project, searchScope) {
+                    ProgressManager.checkCanceled()
+
+                    val classinfo = CjClassInfoUtil.createTypeStatementInfo(it) as CjTypeStatementInfo<CjExtend>
+
+
+                    results += classinfo
+                    true
+                }
+            }
+
             results
         }
         return cjTypeStatements
+    }
+
+    override fun getAliasTypeStatementDeclarations(name: Name): Collection<CjTypeAlias> {
+
+        return runReadAction {
+
+            CangJieTypeAliasByExpansionShortNameIndex[name.asString(), project, searchScope]
+
+        }
+
     }
 
     override fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>> {

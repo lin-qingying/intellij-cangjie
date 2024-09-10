@@ -1,5 +1,6 @@
 package com.huawei.cangjie.psi;
 
+import com.huawei.cangjie.CjNodeTypes;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
 import com.huawei.cangjie.psi.stubs.CangJieFunctionStub;
@@ -202,6 +203,10 @@ public abstract class CjFunctionImpl extends CjTypeParameterListOwnerStub<CangJi
         return !(parent instanceof CjFile || parent instanceof CjClassBody);
     }
 
+    @Override
+    public boolean isOperator() {
+        return hasModifier(CjTokens.OPERATOR_KEYWORD);
+    }
 //    public bool mayHaveContract() {
 //        return mayHaveContract(true);
 //    }

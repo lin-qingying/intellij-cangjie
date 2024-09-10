@@ -6,14 +6,14 @@ import java.io.StringWriter
 
 object CommonRenderers {
     @JvmField
-    val EMPTY = Renderer<Any> { "" }
+    val EMPTY = renderer<Any> { "" }
 
     @JvmField
-    val STRING = Renderer<String> { it }
+    val STRING = renderer<String> { it }
 
 
     @JvmField
-    val THROWABLE = Renderer<Throwable> {
+    val THROWABLE = renderer<Throwable> {
         val writer = StringWriter()
         it.printStackTrace(PrintWriter(writer))
         StringUtil.first(writer.toString(), 2048, true)

@@ -21,7 +21,7 @@ interface ModuleDescriptor : DeclarationDescriptor{
     }
     val expectedByModules: List<ModuleDescriptor>
     /**
-     * Stable name of *Kotlin* module. Can be used for ABI (e.g. for mangling of declarations)
+     * Stable name of *CangJie* module. Can be used for ABI (e.g. for mangling of declarations)
      */
     val stableName: Name?
     fun assertValid()

@@ -96,7 +96,7 @@ class TypeAliasQualifier(
 
     /**
      * We cannot use [org.jetbrains.kotlin.descriptors.ClassDescriptor.getUnsubstitutedMemberScope] directly,
-     * because we do not allow complete resolve through type aliases yet (see KT-15298).
+     * because we do not allow complete resolve through type aliases yet .
      *
      * However, we want to allow to resolve and autocomplete enum constants even through type aliases;
      * that's why we use [org.jetbrains.kotlin.descriptors.ClassDescriptor.getUnsubstitutedMemberScope],

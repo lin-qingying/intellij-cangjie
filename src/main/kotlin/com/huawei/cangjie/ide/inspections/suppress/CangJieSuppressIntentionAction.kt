@@ -25,7 +25,7 @@ class CangJieSuppressIntentionAction(
     }
     override fun isAvailable(project: Project, editor: Editor?, element: PsiElement): Boolean {
         if (isLambdaParameter(element)) {
-            // Lambda parameters can't be annotated: KT-13900
+
             return false
         }
 

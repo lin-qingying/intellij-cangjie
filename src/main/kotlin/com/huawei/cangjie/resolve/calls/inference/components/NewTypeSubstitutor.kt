@@ -70,7 +70,7 @@ interface NewTypeSubstitutor : TypeSubstitutorMarker {
             if (!runCapturedChecks) return null
 
             assert(type is NewCapturedType || (type is DefinitelyNotNullType && type.original is NewCapturedType)) {
-                // KT-16147
+
                 "Type is inconsistent -- somewhere we create type with typeConstructor = $typeConstructor " +
                         "and class: ${type::class.java.canonicalName}. type.toString() = $type"
             }

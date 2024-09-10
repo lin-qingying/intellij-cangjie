@@ -160,118 +160,118 @@ public class DataFlowAnalyzer {
         return result;
     }
 
-//    @NotNull
-//    public DataFlowInfo extractDataFlowInfoFromCondition(
-//            @Nullable CjExpression condition,
-//            boolean conditionValue,
-//            ExpressionTypingContext context
-//    ) {
-//        if (condition == null) return context.dataFlowInfo;
-//        Ref<DataFlowInfo> result = new Ref<>(null);
-//        condition.accept(new CjVisitorVoid() {
-//            @Override
-//            public void visitIsExpression(@NotNull CjIsExpression expression) {
-//                if (conditionValue) {
-//                    result.set(context.trace.get(BindingContext.DATAFLOW_INFO_AFTER_CONDITION, expression));
-//                }
-//            }
-//
-//            @Override
-//            public void visitBinaryExpression(@NotNull CjBinaryExpression expression) {
-//                IElementType operationToken = expression.getOperationToken();
-//                if (OperatorConventions.BOOLEAN_OPERATIONS.containsKey(operationToken)) {
-//                    DataFlowInfo dataFlowInfo = extractDataFlowInfoFromCondition(expression.getLeft(), conditionValue, context);
-//                    CjExpression expressionRight = expression.getRight();
-//                    if (expressionRight != null) {
-//                        boolean and = operationToken == CjTokens.ANDAND;
-//                        DataFlowInfo rightInfo = extractDataFlowInfoFromCondition(
-//                                expressionRight, conditionValue,
-//                                and == conditionValue ? context.replaceDataFlowInfo(dataFlowInfo) : context
-//                        );
-//                        if (and == conditionValue) { // this means: and && conditionValue || !and && !conditionValue
-//                            dataFlowInfo = dataFlowInfo.and(rightInfo);
-//                        } else {
-//                            dataFlowInfo = dataFlowInfo.or(rightInfo);
-//                        }
-//                    }
-//                    result.set(dataFlowInfo);
-//                } else {
-//                    DataFlowInfo expressionFlowInfo = facade.getTypeInfo(expression, context).getDataFlowInfo();
-//                    CjExpression left = expression.getLeft();
-//                    if (left == null) return;
-//                    CjExpression right = expression.getRight();
-//                    if (right == null) return;
-//
-//                    CangJieType lhsType = context.trace.getBindingContext().getType(left);
-//                    if (lhsType == null) return;
-//                    CangJieType rhsType = context.trace.getBindingContext().getType(right);
-//                    if (rhsType == null) return;
-//
-//                    DataFlowValue leftValue = dataFlowValueFactory.createDataFlowValue(left, lhsType, context);
-//                    DataFlowValue rightValue = dataFlowValueFactory.createDataFlowValue(right, rhsType, context);
-//
-//                    Boolean equals = null;
-//                    if (operationToken == CjTokens.EQEQ) {
-//                        equals = true;
-//                    } else if (operationToken == CjTokens.EXCLEQ) {
-//                        equals = false;
-//                    }
-//                    if (equals != null) {
-//                        if (equals == conditionValue) { // this means: equals && conditionValue || !equals && !conditionValue
-//                            boolean identityEquals =
-//                                    typeHasEqualsFromAny(lhsType, condition);
-//                            result.set(context.dataFlowInfo
-//                                    .equate(leftValue, rightValue, identityEquals, languageVersionSettings)
-//                                    .and(expressionFlowInfo));
-//                        } else {
-//                            result.set(context.dataFlowInfo
-//                                    .disequate(leftValue, rightValue, languageVersionSettings)
-//                                    .and(expressionFlowInfo));
-//                        }
-//                    } else {
-//                        result.set(expressionFlowInfo);
-//                    }
-//                }
-//            }
-//
-//            @Override
-//            public void visitUnaryExpression(@NotNull CjUnaryExpression expression) {
-//                IElementType operationTokenType = expression.getOperationReference().getReferencedNameElementType();
-//                if (operationTokenType == CjTokens.EXCL) {
-//                    CjExpression baseExpression = expression.getBaseExpression();
-//                    if (baseExpression != null) {
-//                        result.set(extractDataFlowInfoFromCondition(baseExpression, !conditionValue, context));
-//                    }
-//                } else {
-//                    visitExpression(expression);
-//                }
-//            }
-//
-//            @Override
-//            public void visitExpression(@NotNull CjExpression expression) {
-//                // In fact, everything is taken from trace here
-//                result.set(facade.getTypeInfo(expression, context).getDataFlowInfo());
-//            }
-//
-//            @Override
-//            public void visitParenthesizedExpression(@NotNull CjParenthesizedExpression expression) {
-//                CjExpression body = expression.getExpression();
-//                if (body != null) {
-//                    body.accept(this);
-//                }
-//            }
-//        });
-//
-//        DataFlowInfo infoFromEffectSystem = effectSystem.extractDataFlowInfoFromCondition(
-//                condition, conditionValue, context.trace, DescriptorUtils.getContainingModule(context.scope.getOwnerDescriptor())
-//        );
-//
-//        if (result.get() == null) {
-//            return context.dataFlowInfo.and(infoFromEffectSystem);
-//        }
-//
-//        return context.dataFlowInfo.and(result.get()).and(infoFromEffectSystem);
-//    }
+    @NotNull
+    public DataFlowInfo extractDataFlowInfoFromCondition(
+            @Nullable CjExpression condition,
+            boolean conditionValue,
+            ExpressionTypingContext context
+    ) {
+        if (condition == null) return context.dataFlowInfo;
+        Ref<DataFlowInfo> result = new Ref<>(null);
+        condition.accept(new CjVisitorVoid() {
+            @Override
+            public void visitIsExpression(@NotNull CjIsExpression expression) {
+                if (conditionValue) {
+                    result.set(context.trace.get(BindingContext.DATAFLOW_INFO_AFTER_CONDITION, expression));
+                }
+            }
+
+            @Override
+            public void visitBinaryExpression(@NotNull CjBinaryExpression expression) {
+                IElementType operationToken = expression.getOperationToken();
+                if (OperatorConventions.BOOLEAN_OPERATIONS.containsKey(operationToken)) {
+                    DataFlowInfo dataFlowInfo = extractDataFlowInfoFromCondition(expression.getLeft(), conditionValue, context);
+                    CjExpression expressionRight = expression.getRight();
+                    if (expressionRight != null) {
+                        boolean and = operationToken == CjTokens.ANDAND;
+                        DataFlowInfo rightInfo = extractDataFlowInfoFromCondition(
+                                expressionRight, conditionValue,
+                                and == conditionValue ? context.replaceDataFlowInfo(dataFlowInfo) : context
+                        );
+                        if (and == conditionValue) { // this means: and && conditionValue || !and && !conditionValue
+                            dataFlowInfo = dataFlowInfo.and(rightInfo);
+                        } else {
+                            dataFlowInfo = dataFlowInfo.or(rightInfo);
+                        }
+                    }
+                    result.set(dataFlowInfo);
+                } else {
+                    DataFlowInfo expressionFlowInfo = facade.getTypeInfo(expression, context).getDataFlowInfo();
+                    CjExpression left = expression.getLeft();
+                    if (left == null) return;
+                    CjExpression right = expression.getRight();
+                    if (right == null) return;
+
+                    CangJieType lhsType = context.trace.getBindingContext().getType(left);
+                    if (lhsType == null) return;
+                    CangJieType rhsType = context.trace.getBindingContext().getType(right);
+                    if (rhsType == null) return;
+
+                    DataFlowValue leftValue = dataFlowValueFactory.createDataFlowValue(left, lhsType, context);
+                    DataFlowValue rightValue = dataFlowValueFactory.createDataFlowValue(right, rhsType, context);
+
+                    Boolean equals = null;
+                    if (operationToken == CjTokens.EQEQ) {
+                        equals = true;
+                    } else if (operationToken == CjTokens.EXCLEQ) {
+                        equals = false;
+                    }
+                    if (equals != null) {
+                        if (equals == conditionValue) { // this means: equals && conditionValue || !equals && !conditionValue
+                            boolean identityEquals =
+                                    typeHasEqualsFromAny(lhsType, condition);
+                            result.set(context.dataFlowInfo
+                                    .equate(leftValue, rightValue, identityEquals, languageVersionSettings)
+                                    .and(expressionFlowInfo));
+                        } else {
+                            result.set(context.dataFlowInfo
+                                    .disequate(leftValue, rightValue, languageVersionSettings)
+                                    .and(expressionFlowInfo));
+                        }
+                    } else {
+                        result.set(expressionFlowInfo);
+                    }
+                }
+            }
+
+            @Override
+            public void visitUnaryExpression(@NotNull CjUnaryExpression expression) {
+                IElementType operationTokenType = expression.getOperationReference().getReferencedNameElementType();
+                if (operationTokenType == CjTokens.EXCL) {
+                    CjExpression baseExpression = expression.getBaseExpression();
+                    if (baseExpression != null) {
+                        result.set(extractDataFlowInfoFromCondition(baseExpression, !conditionValue, context));
+                    }
+                } else {
+                    visitExpression(expression);
+                }
+            }
+
+            @Override
+            public void visitExpression(@NotNull CjExpression expression) {
+                // In fact, everything is taken from trace here
+                result.set(facade.getTypeInfo(expression, context).getDataFlowInfo());
+            }
+
+            @Override
+            public void visitParenthesizedExpression(@NotNull CjParenthesizedExpression expression) {
+                CjExpression body = expression.getExpression();
+                if (body != null) {
+                    body.accept(this);
+                }
+            }
+        });
+
+        DataFlowInfo infoFromEffectSystem = effectSystem.extractDataFlowInfoFromCondition(
+                condition, conditionValue, context.trace, DescriptorUtils.getContainingModule(context.scope.getOwnerDescriptor())
+        );
+
+        if (result.get() == null) {
+            return context.dataFlowInfo.and(infoFromEffectSystem);
+        }
+
+        return context.dataFlowInfo.and(result.get()).and(infoFromEffectSystem);
+    }
 
     @NotNull
     private CangJieType checkTypeInternal(

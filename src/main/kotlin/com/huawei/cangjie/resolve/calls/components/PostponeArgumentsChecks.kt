@@ -34,6 +34,7 @@ fun LambdaWithTypeVariableAsExpectedTypeAtom.transformToResolvedLambda(
 
     return resolvedLambdaAtom
 }
+
 private fun preprocessLambdaArgument(
     csBuilder: ConstraintSystemBuilder,
     argument: LambdaCangJieCallArgument,
@@ -45,7 +46,8 @@ private fun preprocessLambdaArgument(
 
     if (expectedType != null && !forceResolution) {
         // postpone lambda processing if expected type is a type variable that could be fixed into something non-trivial
-        val expectedTypeVariableWithConstraints = csBuilder.currentStorage().notFixedTypeVariables[expectedType.constructor]
+        val expectedTypeVariableWithConstraints =
+            csBuilder.currentStorage().notFixedTypeVariables[expectedType.constructor]
 
         if (expectedTypeVariableWithConstraints != null) {
             val explicitTypeArgument = expectedTypeVariableWithConstraints.constraints.find {
@@ -81,7 +83,8 @@ private fun extractLambdaInfoFromFunctionalType(
     val parametersTypes = argument.parametersTypes
     val expectedParameters = expectedType.getValueParameterTypesFromFunctionType()
     val expectedReceiver = expectedType.getReceiverTypeFromFunctionType()?.unwrap()
-    val expectedContextReceivers = expectedType.getContextReceiverTypesFromFunctionType().map { it.unwrap() }.toTypedArray()
+    val expectedContextReceivers =
+        expectedType.getContextReceiverTypesFromFunctionType().map { it.unwrap() }.toTypedArray()
     val argumentAsFunctionExpression = argument as? FunctionExpression
 
     val receiverFromExpected = argumentAsFunctionExpression?.receiverType == null && expectedReceiver != null
@@ -122,7 +125,8 @@ private fun extractLambdaInfoFromFunctionalType(
                 type.orExpected(index)
             } ?: expectedParameters.map { it.type.unwrap() }) to (if (receiverFromExpected) expectedReceiver else null)
     }
-    val contextReceivers = (argumentAsFunctionExpression?.contextReceiversTypes ?: expectedContextReceivers).filterNotNull()
+    val contextReceivers =
+        (argumentAsFunctionExpression?.contextReceiversTypes ?: expectedContextReceivers).filterNotNull()
 
     val returnType = argumentAsFunctionExpression?.returnType ?: expectedType.getReturnTypeFromFunctionType().unwrap()
 
@@ -147,24 +151,27 @@ private fun extraLambdaInfo(
     val builtIns = csBuilder.builtIns
 
 
-    val isFunctionSupertype = expectedType != null/* && CangJieBuiltIns.isNotNullOrNullableFunctionSupertype(expectedType)*/
+    val isFunctionSupertype =
+        expectedType != null/* && CangJieBuiltIns.isNotNullOrNullableFunctionSupertype(expectedType)*/
     val argumentAsFunctionExpression = argument as? FunctionExpression
 
     val typeVariable = TypeVariableForLambdaReturnType(builtIns, "_L")
 
     val receiverType = argumentAsFunctionExpression?.receiverType
     val returnType =
-        argumentAsFunctionExpression?.returnType ?: expectedType?.arguments?.singleOrNull()?.type?.unwrap()?.takeIf { isFunctionSupertype }
+        argumentAsFunctionExpression?.returnType ?: expectedType?.arguments?.singleOrNull()?.type?.unwrap()
+            ?.takeIf { isFunctionSupertype }
         ?: typeVariable.defaultType
 
-    val contextReceiversTypes = argumentAsFunctionExpression?.contextReceiversTypes?.mapIndexed { index, contextReceiverType ->
-        if (contextReceiverType != null) {
-            contextReceiverType
-        } else {
-            diagnosticsHolder.addDiagnostic(NotEnoughInformationForLambdaParameter(argument, index))
-            ErrorUtils.createErrorType(ErrorTypeKind.UNINFERRED_LAMBDA_CONTEXT_RECEIVER_TYPE)
-        }
-    } ?: emptyList()
+    val contextReceiversTypes =
+        argumentAsFunctionExpression?.contextReceiversTypes?.mapIndexed { index, contextReceiverType ->
+            if (contextReceiverType != null) {
+                contextReceiverType
+            } else {
+                diagnosticsHolder.addDiagnostic(NotEnoughInformationForLambdaParameter(argument, index))
+                ErrorUtils.createErrorType(ErrorTypeKind.UNINFERRED_LAMBDA_CONTEXT_RECEIVER_TYPE)
+            }
+        } ?: emptyList()
     val parameters = argument.parametersTypes?.mapIndexed { index, parameterType ->
         if (parameterType != null) {
             parameterType
@@ -188,6 +195,7 @@ private fun extraLambdaInfo(
         expectedType
     )
 }
+
 internal val ConstraintSystemBuilder.builtIns: CangJieBuiltIns get() = ((this as NewConstraintSystemImpl).typeSystemContext as BuiltInsProvider).builtIns
 fun resolveCjPrimitive(
     csBuilder: ConstraintSystemBuilder,
@@ -200,7 +208,14 @@ fun resolveCjPrimitive(
     selectorCall: CangJieCall? = null,
 ): ResolvedAtom = when (argument) {
     is SimpleCangJieCallArgument -> checkSimpleArgument(
-        csBuilder, argument, expectedType, diagnosticsHolder, receiverInfo, convertedType, inferenceSession, selectorCall
+        csBuilder,
+        argument,
+        expectedType,
+        diagnosticsHolder,
+        receiverInfo,
+        convertedType,
+        inferenceSession,
+        selectorCall
     )
 
     is LambdaCangJieCallArgument ->
@@ -214,6 +229,7 @@ fun resolveCjPrimitive(
 
     else -> unexpectedArgument(argument)
 }
+
 private fun preprocessCallableReference(
     csBuilder: ConstraintSystemBuilder,
     argument: CallableReferenceCangJieCallArgument,
@@ -239,6 +255,7 @@ private fun preprocessCallableReference(
     }
     return result
 }
+
 private fun preprocessCollectionLiteralArgument(
     collectionLiteralArgument: CollectionLiteralCangJieCallArgument,
     expectedType: UnwrappedType?

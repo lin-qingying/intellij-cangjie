@@ -34,7 +34,7 @@ class ImportableFqNameClassifier(private val file: CjFile, private val isImporte
         allUnderImport,
         siblingImported,
         notImported,
-        notToBeUsedInKotlin
+        notToBeUsedInCangJie
     }
 
     fun classify(fqName: FqName, isPackage: Boolean): Classification {

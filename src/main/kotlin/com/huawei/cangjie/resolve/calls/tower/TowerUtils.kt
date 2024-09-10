@@ -55,16 +55,30 @@ internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qual
     override fun getVariables(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
-    ): Collection<CandidateWithBoundDispatchReceiver> {
-        TODO("Not yet implemented")
-    }
+    ): Collection<CandidateWithBoundDispatchReceiver> = qualifier.staticScope
+        .getContributedVariablesAndIntercept(
+            name,
+            location,
+            qualifier.classValueReceiverWithSmartCastInfo,
+            extensionReceiver,
+            scopeTower
+        ).map {
+            createCandidateDescriptor(it, dispatchReceiver = null)
+        }
 
     override fun getFunctions(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
-    ): Collection<CandidateWithBoundDispatchReceiver> {
-        TODO("Not yet implemented")
-    }
+    ): Collection<CandidateWithBoundDispatchReceiver>  = qualifier.staticScope
+        .getContributedFunctionsAndConstructors(
+            name,
+            location,
+            qualifier.classValueReceiverWithSmartCastInfo,
+            extensionReceiver,
+            scopeTower
+        ).map {
+            createCandidateDescriptor(it, dispatchReceiver = null)
+        }
 
 
     //    override fun getFunctions(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?) = qualifier.staticScope
@@ -78,6 +92,6 @@ internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qual
 //            createCandidateDescriptor(it, dispatchReceiver = null)
 //        }
     override fun recordLookup(name: Name) {
-        TODO("Not yet implemented")
+
     }
 }

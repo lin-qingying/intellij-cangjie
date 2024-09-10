@@ -63,6 +63,10 @@ public class CallMaker {
     public static ValueArgument makeValueArgument(@Nullable CjExpression expression, @NotNull CjElement reportErrorsOn) {
         return new ExpressionValueArgument(expression, reportErrorsOn, false);
     }
+    @NotNull
+    public static Call makeCall(@NotNull ReceiverValue leftAsReceiver, CjBinaryExpression expression) {
+        return makeCallWithExpressions(expression, leftAsReceiver, null, expression.getOperationReference(), Collections.singletonList(expression.getRight()));
+    }
 
     @NotNull
     public static Call makeCall(CjElement callElement, @Nullable Receiver explicitReceiver, @Nullable ASTNode callOperationNode, CjExpression calleeExpression, List<? extends ValueArgument> arguments) {

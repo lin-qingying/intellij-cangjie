@@ -46,6 +46,21 @@ public class DefaultErrorMessages {
 //        MAP.put(UNRESOLVED_REFERENCE, "Unresolved reference: {0}", ELEMENT_TEXT);
         MAP.put(UNRESOLVED_REFERENCE, "Reference not found: {0}", ELEMENT_TEXT);
 
+//函数
+        MAP.put(OVERLOAD_RESOLUTION_AMBIGUITY, "Overload resolution ambiguity: {0}", AMBIGUOUS_CALLS);
+
+// 二进制重载
+        MAP.put(INVALID_BINARY_OPERATOR, "Invalid binary operator ''{0}'' on type ''{1}'' and ''{2}'', you may want to implement 'operator func '{3}'(right: '{4}')' for type ''{5}''", object -> {
+            RenderingContext context = RenderingContext.of(object.getOperatorString(), object.getLeftType(), object.getRightType(), object.getOperatorString(), object.getRightType(), object.getLeftType());
+            return new String[]{
+                    STRING.render(object.getOperatorString(), context),
+                    RENDER_TYPE.render(object.getLeftType(), context),
+                    RENDER_TYPE.render(object.getRightType(), context),
+                    STRING.render(object.getOperatorString(), context),
+                    RENDER_TYPE.render(object.getRightType(), context),
+                    RENDER_TYPE.render(object.getLeftType(), context)
+            };
+        });
 
 //        常量检查
         MAP.put(CONSTANT_EXPECTED_TYPE_MISMATCH, "The {0} literal does not conform to the expected type {1}", STRING, RENDER_TYPE);
@@ -76,6 +91,7 @@ public class DefaultErrorMessages {
         MAP.put(INCONSISTENT_PACKAGE_MODIFIERS, "Inconsistent modifiers for package ''{0}''", FQNAME);
         MAP.put(INCONSISTENT_PACKAGE_MACOR, "Inconsistent macro package declarations");
 
+        MAP.put(OVERRIDING_FINAL_MEMBER, "''{0}'' in ''{1}'' is final and cannot be overridden", NAME, NAME);
 
 //        类型检查
 
@@ -184,6 +200,10 @@ public class DefaultErrorMessages {
             // 计算或构造你的值
             return messages.get(random.nextInt(messages.size()));
         });
+
+
+//        声明
+        MAP.put(FUNCTION_DECLARATION_WITH_NO_NAME, "Function declaration must have a name");
 
 
     }

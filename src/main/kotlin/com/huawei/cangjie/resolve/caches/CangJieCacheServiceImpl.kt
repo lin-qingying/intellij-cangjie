@@ -330,7 +330,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
 //        val cachedValue: SLRUCache<Pair<Set<CjFile>, PlatformAnalysisSettings>, ProjectResolutionFacade> =
 //            CachedValuesManager.getManager(project).getCachedValue(project, specialFilesCacheProvider)
 //
-//        // In Upsource, we create multiple instances of KotlinCacheService, which all access the same CachedValue instance (UP-8046)
+//        // In Upsource, we create multiple instances of CangJieCacheService, which all access the same CachedValue instance (UP-8046)
 //        // This is so because class name of provider is used as a key when fetching cached value, see CachedValueManager.getKeyForClass.
 //        // To avoid race conditions, we can't use any local lock to access the cached value contents.
 //        return cachedValue.getOrCreateValue(files to settings)
@@ -396,7 +396,7 @@ private class CompositeExceptionTracker(val delegate: ExceptionTracker) : Except
 }
 
 /**
- * Note that Kotlin Resolution can work in a mode, when some operations are performed in COMPOSITE mode, and some in SEPARATE.
+ * Note that CangJie Resolution can work in a mode, when some operations are performed in COMPOSITE mode, and some in SEPARATE.
  * This specific property only shows global project-wide setting, so use it with a lot of caution.
  */
 //val Project.useCompositeAnalysis: Boolean

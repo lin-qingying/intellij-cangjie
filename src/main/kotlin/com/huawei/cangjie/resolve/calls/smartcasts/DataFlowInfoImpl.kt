@@ -46,7 +46,7 @@ internal class DataFlowInfoImpl(
         nullability: Nullability,
         languageVersionSettings: LanguageVersionSettings,
         newTypeInfoBuilder: SetMultimap<DataFlowValue, CangJieType>? = null,
-        // XXX: set to false only as a workaround for OI, see KT-26357 for details (in NI everything works automagically)
+        // XXX: set to false only as a workaround for OI,   for details (in NI everything works automagically)
         recordUnstable: Boolean = true
     ) {
         if (value.isStable || recordUnstable) {
@@ -125,7 +125,7 @@ internal class DataFlowInfoImpl(
 
         var changed = getCollectedNullability(a) != newANullability || getCollectedNullability(b) != newBNullability
 
-        // NB: == has no guarantees of type equality, see KT-11280 for the example
+        // NB: == has no guarantees of type equality,
         if (isEquate && (identityEquals || !nullabilityOfA.canBeNonNull() || !nullabilityOfB.canBeNonNull())) {
             newTypeInfoBuilder.putAll(a, getStableTypes(b, false, languageVersionSettings))
             newTypeInfoBuilder.putAll(b, getStableTypes(a, false, languageVersionSettings))

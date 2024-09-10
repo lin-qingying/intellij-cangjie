@@ -61,7 +61,7 @@ private fun DeclarationDescriptorWithVisibility.isVisible(
         }
     }
 }
-
+ 
 object DescriptorUtils {
     @JvmStatic
     fun isDirectSubclass(

@@ -245,8 +245,7 @@ abstract class CompletionSession(
     }
 
     private fun _complete(): Boolean {
-        // we restart completion when prefix becomes "get" or "set" to ensure that properties get lower priority comparing to get/set functions (see KT-12299)
-        val prefixPattern = StandardPatterns.string().with(object : PatternCondition<String>("get or set prefix") {
+             val prefixPattern = StandardPatterns.string().with(object : PatternCondition<String>("get or set prefix") {
             override fun accepts(prefix: String, context: ProcessingContext?) = prefix == "get" || prefix == "set"
         })
 //        collector.restartCompletionOnPrefixChange(prefixPattern)

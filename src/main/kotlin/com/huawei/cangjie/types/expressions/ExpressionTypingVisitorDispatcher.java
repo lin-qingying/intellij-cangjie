@@ -189,6 +189,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
         return basic.visitSimpleNameExpression(expression, data);
     }
 
+
     @Override
     public CangJieTypeInfo visitParenthesizedExpression(@NotNull CjParenthesizedExpression expression, ExpressionTypingContext data) {
         return basic.visitParenthesizedExpression(expression, data);

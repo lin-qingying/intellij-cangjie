@@ -18,7 +18,8 @@ public class CjSingleValueToken extends CjToken {
         myValue = value;
     }
 
-    @NotNull @NonNls
+    @NotNull
+    @NonNls
     public String getValue() {
         return myValue;
     }

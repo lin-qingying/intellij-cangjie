@@ -71,7 +71,7 @@ class LazyExtendClassDescriptor(
 
     private val storageManager: StorageManager = c.storageManager
     private val typeConstructor = ExtendTypeConstructor()
-    private val declarationProvider = c.declarationProviderFactory.getClassMemberDeclarationProvider(classLikeInfo)
+      val declarationProvider = c.declarationProviderFactory.getClassMemberDeclarationProvider(classLikeInfo)
 
     private val scopesHolderForClass = createScopesHolderForClass(c, this.declarationProvider)
     private val scopeForInitializerResolution =

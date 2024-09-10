@@ -64,7 +64,7 @@ open class SingletonTypeComponentDescriptor(container: ComponentContainer, val k
         val constructorParameters = classInfo.constructorInfo?.parameters.orEmpty()
         val setterInfos = classInfo.setterInfos
 
-        // In most cases, setterInfos is empty (KT-52756)
+
         return if (setterInfos.isEmpty())
             constructorParameters
         else

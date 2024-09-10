@@ -22,8 +22,15 @@ interface DeclarationProvider {
      */
     fun getExtendTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<CjExtend>>
 
+    /**
+     * 通过原类型名获取别名，需要验证其正确性
+     */
+    fun getAliasTypeStatementDeclarations(name: Name): Collection< CjTypeAlias >
 
+
+//    通过别名获取别名
     fun getTypeAliasDeclarations(name: Name): Collection<CjTypeAlias>
+
 
     fun getDeclarationNames(): Set<Name>
 }

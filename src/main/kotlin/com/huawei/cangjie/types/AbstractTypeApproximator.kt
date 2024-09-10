@@ -329,7 +329,7 @@ abstract class AbstractTypeApproximator(
             else -> {
                 val projection = type.typeConstructorProjection()
 
-                  projection.getType()
+                projection.getType()
             }
         }
         val baseSubType = type.lowerType() ?: nothingType()
@@ -350,7 +350,6 @@ abstract class AbstractTypeApproximator(
              * And we cannot create new capture type, because meaning of new captured type is not clear.
              * So, we will just approximate such types
              *
-             * TODO remove workaround when we can create captured types with external identity KT-65228.
              * todo handle flexible types
              */
             if (approximatedSuperType == null && approximatedSubType == null) {
@@ -371,7 +370,6 @@ abstract class AbstractTypeApproximator(
                 // if they contain a captured types with RAW supertype would be approximated to a regular non-raw flexible type
                 // See CapturedTypeApproximationKt.approximateCapturedTypes and especially the comment
                 // "// tod*: approximateDynamic & raw type?" before it :)
-                // If we don't repeat that behavior, we would stumble upon KT-56616 with hardly having any workarounds.
                 conf.convertToNonRawVersionAfterApproximation && it.isRawType() -> {
                     it.convertToNonRaw()
                 }
@@ -407,7 +405,7 @@ abstract class AbstractTypeApproximator(
         if (typeConstructor.isCapturedTypeConstructor()) {
             val capturedType = type.asCapturedType()
             require(capturedType != null) {
-                // KT-16147
+
                 "Type is inconsistent -- somewhere we create type with typeConstructor = $typeConstructor " +
                         "and class: ${type::class.java.canonicalName}. type.toString() = $type"
             }
@@ -493,7 +491,6 @@ abstract class AbstractTypeApproximator(
             val argument = type.getArgument(index)
 
 
-
             val effectiveVariance =
                 AbstractTypeChecker.effectiveVariance(parameter.getVariance(), argument.getVariance())
 
@@ -505,7 +502,7 @@ abstract class AbstractTypeApproximator(
             // In approximateCapturedType, we check if the super/subtypes of captured types need approximation even if captured types
             // themselves don't need approximation, and will land here.
             // To support this case, we also don't want to approximate captured types here if the configuration says so.
-            // TODO rework captured types approximation KT-65228
+            // TODO rework captured types approximation
             if (capturedType != null &&
 
                 !conf.capturedType(ctx, capturedType) /*&&
@@ -628,7 +625,7 @@ abstract class AbstractTypeApproximator(
     }
 
     private fun CangJieTypeMarker.defaultResult(toSuper: Boolean) = if (toSuper) anyType() else {
-    nothingType()
+        nothingType()
     }
 
     // Any? or Any!

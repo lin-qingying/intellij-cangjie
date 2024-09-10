@@ -32,7 +32,7 @@ abstract class ClassifierBasedTypeConstructor : TypeConstructor {
         if (other !is TypeConstructor) return false
 
         // performance optimization: getFqName is slow method
-        // Cast to Any is needed as a workaround for KT-45008.
+        // Cast to Any is needed as a workaround
         if ((other as Any).hashCode() != hashCode()) return false
 
         // Sometimes we can get two classes from different modules with different counts of type parameters.

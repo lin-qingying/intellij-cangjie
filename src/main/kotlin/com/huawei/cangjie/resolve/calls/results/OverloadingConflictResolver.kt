@@ -78,7 +78,7 @@ open class OverloadingConflictResolver<C : Any>(
     private val CallableDescriptor.originalIfTypeRefinementEnabled get() = if (isTypeRefinementEnabled) original else this
 
     // Sometimes we should compare "copies" from sources and from binary files.
-    // But we cannot compare return types for such copies, because it may lead us to recursive problem (see KT-11995).
+    // But we cannot compare return types for such copies, because it may lead us to recursive problem  .
     // Because of this we compare them without return type and choose descriptor from source if we found duplicate.
     fun filterOutEquivalentCalls(candidates: Collection<C>): Set<C> {
         candidates.setIfOneOrEmpty()?.let { return it }

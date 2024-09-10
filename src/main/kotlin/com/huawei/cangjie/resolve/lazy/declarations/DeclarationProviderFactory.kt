@@ -5,10 +5,10 @@ import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.resolve.lazy.data.CjClassLikeInfo
 import com.huawei.cangjie.resolve.lazy.descriptors.ClassMemberDeclarationProvider
 
-interface DeclarationProviderFactory{
+interface DeclarationProviderFactory {
 
     fun diagnoseMissingPackageFragment(fqName: FqName, file: CjFile?)
-    fun getPackageMemberDeclarationProvider(packageFqName:  FqName):  PackageMemberDeclarationProvider?
-      fun getClassMemberDeclarationProvider(classLikeInfo: CjClassLikeInfo): ClassMemberDeclarationProvider
+    fun getPackageMemberDeclarationProvider(packageFqName: FqName): PackageMemberDeclarationProvider?
+    fun getClassMemberDeclarationProvider(classLikeInfo: CjClassLikeInfo): ClassMemberDeclarationProvider
 
 }

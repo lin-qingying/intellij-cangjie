@@ -62,7 +62,7 @@ open class TypeApproximatorConfiguration {
         override val integerLiteralConstantType: Boolean get() = true
         override val intersectionTypesInContravariantPositions: Boolean get() = true
 
-        // Probably, it's worth thinking of returning true only for delegated property accessors, see KT-61090
+        // Probably, it's worth thinking of returning true only for delegated property accessors
         override fun shouldKeepTypeVariableBasedType(marker: TypeVariableTypeConstructorMarker): Boolean = false
     }
     class TopLevelIntegerLiteralTypeApproximationWithExpectedType(
@@ -81,7 +81,7 @@ open class TypeApproximatorConfiguration {
         override val integerLiteralConstantType: Boolean get() = true
         override val intersectionTypesInContravariantPositions: Boolean get() = true
 
-        // Probably, it's worth thinking of returning true only for delegated property accessors, see KT-61090
+        // Probably, it's worth thinking of returning true only for delegated property accessors
         override fun shouldKeepTypeVariableBasedType(marker: TypeVariableTypeConstructorMarker): Boolean = false
 
         object SaveAnonymousTypes : PublicDeclaration(localTypes = false, anonymous = false)

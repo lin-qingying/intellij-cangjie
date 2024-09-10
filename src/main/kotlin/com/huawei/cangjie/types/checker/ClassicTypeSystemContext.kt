@@ -157,8 +157,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     }
 
     override fun CapturedTypeMarker.lowerType(): CangJieTypeMarker? {
-        // TODO: https://youtrack.jetbrains.com/issue/KT-54196 (old captured type here)
-        require(this is NewCapturedType, this::errorMessage)
+             require(this is NewCapturedType, this::errorMessage)
         return this.lowerType
     }
 

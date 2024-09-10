@@ -110,7 +110,7 @@ open class CangJieExpressionParsing(
             EQ,
             PLUSEQ,
             MINUSEQ,
-            MULTEQ,
+            MULEQ,
             DIVEQ,
             PERCEQ,
             ANDEQ,
@@ -440,8 +440,8 @@ open class CangJieExpressionParsing(
                 parseSelectorCallExpression()
                 try {
                     expression.done(expressionType)
-                } catch (ass: Throwable) {
-                    println()
+                } catch (_: Throwable) {
+
 
                 }
             } else if (atSet(Precedence.POSTFIX.getOperations())) {
@@ -1910,7 +1910,7 @@ open class CangJieExpressionParsing(
             EQ,
             PLUSEQ,
             MINUSEQ,
-            MULTEQ,
+            MULEQ,
             PLUS,
             MINUSEQ,
             PERCEQ,
@@ -2361,36 +2361,6 @@ open class CangJieExpressionParsing(
         parseBinaryExpression(Precedence.ASSIGNMENT)
     }
 
-//      fun getGtTokenType(): IElementType {
-//        var tokenType = tt()
-//        if (tokenType !== GT) return tokenType
-//
-//        if (rawLookup(1) === GT) {
-//            tokenType = if (rawLookup(2) === EQ) {
-//                GTGTEQ
-//            } else {
-//                GTGT
-//            }
-//        } else if (rawLookup(1) === EQ) {
-//            tokenType = GT_EQ
-//        }
-//        return tokenType
-//    }
-
-//      fun advanceGtToken(type: IElementType) {
-//        val gtToken = mark()
-//        if (type === GTGTEQ) {
-//            PsiBuilderUtil.advance(myBuilder, 3)
-//        } else if (type === GTGT || type === GT_EQ) {
-//            PsiBuilderUtil.advance(myBuilder, 2)
-//        } else {
-//            gtToken.drop()
-//            myBuilder.advanceLexer()
-//            return
-//        }
-//        gtToken.collapse(type)
-//    }
-
 
     /*
      * annotatedLambda
@@ -2444,11 +2414,15 @@ open class CangJieExpressionParsing(
         precedence.parseHigherPrecedence(this)
 
 
-        val operation = getGtTokenType()
-        while (!interruptedWithNewLine() && precedence.getOperations().contains(operation)) {
 
 
-            parseOperationReference()
+        while (!interruptedWithNewLine() && /*atSet(precedence.getOperations())*/ precedence.getOperations()
+                .contains(gtTokenType)
+        ) {
+//            val operation = tt()
+            val operation = getGtTokenType()
+
+            parseOperationReference(operation)
             val resultType: IElementType = precedence.parseRightHandSide(operation, this)
             expression.done(resultType)
             expression = expression.precede()
@@ -2461,6 +2435,13 @@ open class CangJieExpressionParsing(
 //        var b = myBuilder.newlineBeforeCurrentToken()
 //return a && b
         return !ALLOW_NEWLINE_OPERATIONS.contains(tt()) && myBuilder.newlineBeforeCurrentToken()
+    }
+
+    private fun parseOperationReference(type: IElementType) {
+        val operationReference = mark()
+//        advance() // operation
+        advanceGtToken(gtTokenType)
+        operationReference.done(OPERATION_REFERENCE)
     }
 
     private fun parseOperationReference() {
@@ -2667,7 +2648,7 @@ open class CangJieExpressionParsing(
             RANGE,
 
             EQ,
-            MULTEQ,
+            MULEQ,
             DIVEQ,
             PERCEQ,
             PLUSEQ,

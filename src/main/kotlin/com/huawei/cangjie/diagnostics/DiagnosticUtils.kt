@@ -194,3 +194,10 @@ class TypeMismatchDueToTypeProjectionsData(
     val receiverType: CangJieType,
     val callableDescriptor: CallableDescriptor
 )
+
+
+  class   InvalidBinaryData(
+    val operatorString :String,
+    val leftType:CangJieType,
+    val rightType:CangJieType
+)

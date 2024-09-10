@@ -15,6 +15,7 @@ import com.huawei.cangjie.resolve.calls.components.InferenceSession;
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext;
 import com.huawei.cangjie.resolve.calls.context.CheckArgumentTypesMode;
 import com.huawei.cangjie.resolve.calls.context.ContextDependency;
+import com.huawei.cangjie.resolve.calls.context.ResolutionContext;
 import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResults;
 import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResultsImpl;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
@@ -104,6 +105,54 @@ public class CallResolver {
     private <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> checkArgumentTypesAndFail(BasicCallResolutionContext context) {
         argumentTypeResolver.checkTypesWithNoCallee(context);
         return OverloadResolutionResultsImpl.nameNotFound();
+    }
+    @NotNull
+    public OverloadResolutionResults<FunctionDescriptor> resolveCallWithGivenName(
+            @NotNull ResolutionContext<?> context,
+            @NotNull Call call,
+            @NotNull CjReferenceExpression functionReference,
+            @NotNull Name name
+    ) {
+        BasicCallResolutionContext callResolutionContext = BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS);
+        return computeTasksAndResolveCall(
+                callResolutionContext, name, functionReference,
+                NewResolutionOldInference.ResolutionKind.Function.INSTANCE);
+    }
+
+    @NotNull
+    public OverloadResolutionResults<FunctionDescriptor> resolveBinaryCall(
+            ExpressionTypingContext context,
+            ExpressionReceiver receiver,
+            CjBinaryExpression binaryExpression,
+            Name name
+    ) {
+        return resolveCallWithGivenName(
+                context,
+                CallMaker.makeCall(receiver, binaryExpression),
+                binaryExpression.getOperationReference(),
+                name
+        );
+    }
+
+    @NotNull
+    public OverloadResolutionResults<FunctionDescriptor> resolveBinaryCall(
+            ExpressionTypingContext context,
+            ExpressionReceiver receiver,
+            CjBinaryExpression binaryExpression,
+            @NotNull Collection<FunctionDescriptor> functionDescriptors
+    ) {
+        Call call =  CallMaker.makeCall(receiver, binaryExpression);
+        BasicCallResolutionContext callResolutionContext = BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS);
+        List<OldResolutionCandidate<FunctionDescriptor>> candidates = CollectionsKt.map(functionDescriptors, descriptor ->
+                OldResolutionCandidate.create(
+                        call,
+                        descriptor,
+                        null,
+                        ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
+                        null));
+
+        return computeTasksFromCandidatesAndResolvedCall(
+                callResolutionContext, candidates, TracingStrategyImpl.create(binaryExpression.getOperationReference(), call));
     }
     @NotNull
     public OverloadResolutionResults<FunctionDescriptor> resolveCollectionLiteralCallWithGivenDescriptor(

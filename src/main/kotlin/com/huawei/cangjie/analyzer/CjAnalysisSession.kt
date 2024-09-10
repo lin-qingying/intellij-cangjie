@@ -256,13 +256,13 @@ internal class IdeCjAnalysisFacade(private val project: Project) : CjAnalysisFac
         }
 
 
-        // The following logic is taken from 'KotlinCacheServiceImpl.filterNotInProjectSource()'
+        // The following logic is taken from 'CangJieCacheServiceImpl.filterNotInProjectSource()'
         val moduleInfo = files.first().moduleInfo
         val specialFiles = files
             .filterNot { RootKindFilter.projectSources.matches(it) && moduleInfo.contentScope.contains(it.virtualFile) }
 
         if (specialFiles.isNotEmpty()) {
-            // 'KotlinCacheServiceImpl' is bad in getting a resolution facade for multiple files outside the so-called 'main' module root.
+            // 'CangJieCacheServiceImpl' is bad in getting a resolution facade for multiple files outside the so-called 'main' module root.
             // Here we artificially choose the facade for the first element. It's not quite correct, still it's better than nothing.
             return cangjieCacheService.getResolutionFacade(specialFiles.first())
         }
@@ -277,7 +277,7 @@ internal class IdeCjAnalysisFacade(private val project: Project) : CjAnalysisFac
             return resolutionFacade.analyzeWithAllCompilerChecks(elements).bindingContext
         }
 
-        @Suppress("KotlinConstantConditions")
+        @Suppress("CangJieConstantConditions")
         val bodyResolveMode = when (mode) {
             CjAnalysisFacade.AnalysisMode.FULL -> BodyResolveMode.FULL
             CjAnalysisFacade.AnalysisMode.PARTIAL_WITH_DIAGNOSTICS -> BodyResolveMode.PARTIAL_WITH_DIAGNOSTICS

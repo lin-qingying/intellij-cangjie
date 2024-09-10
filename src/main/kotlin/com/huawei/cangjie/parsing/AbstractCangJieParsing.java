@@ -142,14 +142,102 @@ public abstract class AbstractCangJieParsing {
         return tokenType;
     }
 
+    //    获取可以呗重载的操作符标记 OPERATIONS
+    protected IElementType getOperationTokenType() {
+        IElementType tokenType = getGtTokenType();
+
+//        invoke
+        if (tokenType == LPAR) {
+            if (rawLookup(1) == RPAR) {
+                tokenType = OPERATION_INVOKE;
+            }
+
+        }
+        if (tokenType == LBRACKET) {
+            if (rawLookup(1) == RBRACKET) {
+                tokenType = OPERATION_GET;
+            }
+        }
+        if (tokenType == EXCL) {
+            tokenType = OPERATION_NOT;
+        }
+        if (tokenType == EXCLEQ) {
+            tokenType = OPERATION_NOT_EQUALS;
+        }
+        if (tokenType == MULMUL) {
+            tokenType = OPERATION_EXPONENTIATION;
+        }
+        if (tokenType == EQEQ) {
+            tokenType = OPERATION_EQUALS;
+        }
+        if (tokenType == MUL) {
+            tokenType = OPERATION_TIMES;
+        }
+        if (tokenType == DIV) {
+            tokenType = OPERATION_DIV;
+        }
+        if (tokenType == PERC) {
+            tokenType = OPERATION_REM;
+        }
+
+        if (tokenType == MINUS) {
+            tokenType = OPERATION_MINUS;
+        }
+        if (tokenType == PLUS) {
+            tokenType = OPERATION_PLUS;
+        }
+        if (tokenType == LTLT) {
+            tokenType = OPERATION_LEFT_SHIFT;
+        }
+        if (tokenType == GTGT) {
+            tokenType = OPERATION_RIGHT_SHIFT;
+        }
+        if (tokenType == GT) {
+            tokenType = OPERATION_COMPARE_GT;
+        }
+        if (tokenType == LT) {
+            tokenType = OPERATION_COMPARE_LT;
+        }
+        if (tokenType == LTEQ) {
+            tokenType = OPERATION_COMPARE_LTEQ;
+        }
+        if (tokenType == GTEQ) {
+            tokenType = OPERATION_COMPARE_GTEQ;
+        }
+
+        if (tokenType == AND) {
+            tokenType = OPERATION_AND;
+        }
+        if (tokenType == XOR) {
+            tokenType = OPERATION_XOR;
+        }
+        if (tokenType == OR) {
+            tokenType = OPERATION_OR;
+        }
+        return tokenType;
+    }
+
+    protected void advanceOperationToken(IElementType type) {
+        PsiBuilder.Marker gtToken = mark();
+
+        if (type == OPERATION_INVOKE || type == OPERATION_GET || OPERATION_COMPARE_GTEQ == type || OPERATION_RIGHT_SHIFT == type) {
+            PsiBuilderUtil.advance(myBuilder, 2);
+        } else {
+            gtToken.drop();
+            advance();
+            return;
+        }
+        gtToken.collapse(type);
+
+    }
+
     protected void advanceGtToken(IElementType type) {
         PsiBuilder.Marker gtToken = mark();
 
         if (type == ELVIS) {
             PsiBuilderUtil.advance(myBuilder, 2);
 
-        }else
-        if (type == GTGTEQ) {
+        } else if (type == GTGTEQ) {
             PsiBuilderUtil.advance(myBuilder, 3);
         } else if (type == GTGT || type == GTEQ) {
             PsiBuilderUtil.advance(myBuilder, 2);
@@ -357,7 +445,7 @@ public abstract class AbstractCangJieParsing {
      * 推进标记流并返回下一个标记
      */
     protected void advance() {
-        // TODO: 如何在错误字符上报告错误(除突出显示外)
+
         myBuilder.advanceLexer();
     }
 

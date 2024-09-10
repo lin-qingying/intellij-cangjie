@@ -141,26 +141,6 @@ object ValueArgumentsToParametersMapper {
                 if (!languageVersionSettings.supportsFeature(LanguageFeature.YieldIsNoMoreReserved)) {
                     checkReservedYield(nameReference, candidateCall.trace)
                 }
-//                if (nameReference != null) {
-//                    if (candidate is MemberDescriptor && (candidate as MemberDescriptor).isExpect() &&
-//                        candidate.containingDeclaration is ClassDescriptor
-//                    ) {
-//                        // We do not allow named arguments for members of expected classes until we're able to use both
-//                        // expected and actual definitions when compiling platform code
-//                        report(NAMED_ARGUMENTS_NOT_ALLOWED.on(nameReference, EXPECTED_CLASS_MEMBER))
-//                    } else if (!candidate!!.hasStableParameterNames()) {
-//                        val badNamedArgumentsTarget: BadNamedArgumentsTarget
-//                        if (candidate is FunctionInvokeDescriptor) {
-//                            badNamedArgumentsTarget = INVOKE_ON_FUNCTION_TYPE
-//                        } else if (candidate is DeserializedCallableMemberDescriptor) {
-//                            badNamedArgumentsTarget = INTEROP_FUNCTION
-//                        } else {
-//                            badNamedArgumentsTarget = NON_KOTLIN_FUNCTION
-//                        }
-//
-//                        report(NAMED_ARGUMENTS_NOT_ALLOWED.on(nameReference, badNamedArgumentsTarget))
-//                    }
-//                }
 
                 if (candidate!!.hasStableParameterNames() && nameReference != null &&
                     candidate is CallableMemberDescriptor && (candidate as CallableMemberDescriptor).getKind() === CallableMemberDescriptor.Kind.FAKE_OVERRIDE

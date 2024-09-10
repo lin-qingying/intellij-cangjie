@@ -14,6 +14,9 @@ import java.util.List;
 
 
 public interface FunctionDescriptor extends CallableMemberDescriptor, FunctionSymbolMarker {
+    @NotNull
+    boolean getIsExtend();
+
     @Override
     @NotNull
     DeclarationDescriptor getContainingDeclaration();

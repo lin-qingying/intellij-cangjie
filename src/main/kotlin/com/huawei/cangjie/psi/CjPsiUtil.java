@@ -5,6 +5,7 @@ import com.huawei.cangjie.name.SpecialNames;
 import com.huawei.cangjie.parsing.CangJieExpressionParsing;
 import com.huawei.cangjie.resolve.StatementFilter;
 import com.huawei.cangjie.resolve.StatementFilterKt;
+import com.huawei.cangjie.utils.OperatorNameConventions;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IElementType;
@@ -153,7 +154,7 @@ public class CjPsiUtil {
 
     @NotNull
     public static Name safeName(@Nullable String name) {
-        return name == null ? SpecialNames.NO_NAME_PROVIDED : Name.identifier(name);
+        return name == null ? SpecialNames.NO_NAME_PROVIDED : OperatorNameConventions.INSTANCE.asOperatorName(name);
     }
     @Nullable
     public static CjSimpleNameExpression getLastReference(@NotNull CjExpression importedReference) {

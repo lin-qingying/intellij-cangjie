@@ -343,7 +343,7 @@ class Cjpm(
             .registerKotlinModule()
 
         //        val TOML_MAPPER: ObjectMapper = TomlMapper().configure(TomlReadFeature.PARSE_JAVA_TIME, false)
-//            .registerKotlinModule()
+//            .registerCangJieModule()
         const val NAME: String = "tools/bin/cjpm"
 
         @JvmStatic

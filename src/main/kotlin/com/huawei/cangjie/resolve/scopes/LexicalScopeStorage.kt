@@ -58,7 +58,7 @@ abstract class LexicalScopeStorage(
         if (variablesAndClassifiersByName == null) {
             variablesAndClassifiersByName = HashMap()
         }
-        //TODO: could not use += because of KT-8050
+
         variablesAndClassifiersByName!![name] = variablesAndClassifiersByName!![name] + descriptorIndex
 
     }
@@ -69,7 +69,7 @@ abstract class LexicalScopeStorage(
         if (functionsByName == null) {
             functionsByName = HashMap(1)
         }
-        //TODO: could not use += because of KT-8050
+
         functionsByName!![name] = functionsByName!![name] + descriptorIndex
     }
 

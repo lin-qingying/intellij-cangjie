@@ -172,7 +172,7 @@ private object NoDeclarationDescriptorsChecker {
                     LOG.error(
                         "QuickFix class ${field.declaringClass.name} contains field ${field.name} that holds ${type.simpleName}. "
                                 + "This leads to holding too much memory through this quick-fix instance. "
-                                + "Possible solution can be wrapping it using KotlinIntentionActionFactoryWithDelegate."
+                                + "Possible solution can be wrapping it using CangJieIntentionActionFactoryWithDelegate."
                     )
                 }
 

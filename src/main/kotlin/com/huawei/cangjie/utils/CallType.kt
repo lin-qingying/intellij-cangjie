@@ -62,8 +62,8 @@ sealed class CallType<TReceiver : CjElement?>(val descriptorKindFilter: Descript
     }
 
 //    private class LocalsAndSyntheticExclude(private val settings: LanguageVersionSettings) : DescriptorKindExclude() {
-//        // Currently, Kotlin doesn't support references to local variables
-//        // References to Java synthetic properties are supported only since Kotlin 1.9
+//        // Currently, CangJie doesn't support references to local variables
+//        // References to Java synthetic properties are supported only since CangJie 1.9
 //        override fun excludes(descriptor: DeclarationDescriptor): Boolean  =
 //            descriptor !is CallableMemberDescriptor || descriptor.kind == CallableMemberDescriptor.Kind.SYNTHESIZED &&
 //                    !settings.supportsFeature(LanguageFeature.ReferencesToSyntheticJavaProperties)

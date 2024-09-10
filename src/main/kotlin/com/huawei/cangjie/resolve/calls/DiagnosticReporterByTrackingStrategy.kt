@@ -7,6 +7,7 @@ import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.descriptors.Diagnostic
 import com.huawei.cangjie.descriptors.Errors.*
 import com.huawei.cangjie.diagnostics.DiagnosticFactory2
+import com.huawei.cangjie.diagnostics.InvalidBinaryData
 import com.huawei.cangjie.diagnostics.reportDiagnosticOnce
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.lastBlockStatementOrThis
@@ -32,6 +33,7 @@ import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.isNothing
 import com.huawei.cangjie.types.checker.intersectWrappedTypes
+import com.huawei.cangjie.types.error.ErrorType
 import com.huawei.cangjie.types.expressions.ControlStructureTypingUtils
 import com.huawei.cangjie.types.model.TypeSystemInferenceExtensionContextDelegate
 import com.huawei.cangjie.types.model.TypeVariableMarker
@@ -39,6 +41,7 @@ import com.huawei.cangjie.types.model.freshTypeConstructor
 import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.contains
 import com.huawei.cangjie.types.util.makeOptional
+import com.huawei.cangjie.utils.OperatorNameConventions.asOperatorString
 import com.huawei.cangjie.utils.shouldNotBeCalled
 import io.github.classgraph.TypeArgument
 import kotlin.contracts.ExperimentalContracts
@@ -66,6 +69,23 @@ class DiagnosticReporterByTrackingStrategy(
 
     override fun onCall(diagnostic: CangJieCallDiagnostic) {
         when (diagnostic) {
+
+//            is NoneOperatorCallDiagnostic -> {
+//             if(diagnostic.left !is ErrorType && diagnostic.right !is ErrorType){
+//                 call.calleeExpression?.let{
+//                     trace.report(
+//                         INVALID_BINARY_OPERATOR.on(
+//                             it, InvalidBinaryData(
+//                                 psiCangJieCall.name.asOperatorString(), diagnostic.left, diagnostic.right
+//                             )
+//                         )
+//                     )
+//                 }
+//             }
+//
+//
+//            }
+
             is VisibilityError -> tracingStrategy.invisibleMember(trace, diagnostic.invisibleMember)
             is NoValueForParameter -> tracingStrategy.noValueForParameter(trace, diagnostic.parameterDescriptor)
 //            is TypeCheckerHasRanIntoRecursion -> {
@@ -640,7 +660,8 @@ class DiagnosticReporterByTrackingStrategy(
 //                trace.report(TYPE_MISMATCH.on(position.topLevelCall, error.upperCangJieType, inferredType))
 //            }
             is ExpectedTypeConstraintPosition<*> -> {
-                val call = (position.topLevelCall as? CangJieCall)?.psiCangJieCall?.psiCall?.callElement as? CjExpression
+                val call =
+                    (position.topLevelCall as? CangJieCall)?.psiCangJieCall?.psiCall?.callElement as? CjExpression
                 val inferredType =
                     if (!error.lowerCangJieType.isNothing()) error.lowerCangJieType
                     else error.upperCangJieType.makeOptional()
@@ -648,6 +669,7 @@ class DiagnosticReporterByTrackingStrategy(
                     report(typeMismatchDiagnostic.on(call, error.upperCangJieType, inferredType))
                 }
             }
+
             is BuilderInferenceSubstitutionConstraintPosition<*> -> {
                 reportConstraintErrorByPosition(error, position.initialConstraint.position)
             }
@@ -843,6 +865,7 @@ class DiagnosticReporterByTrackingStrategy(
                     )
                 )
             }
+
             is InferredIntoDeclaredUpperBounds -> {
                 val psiCall = psiCangJieCall.psiCall
                 val expression = if (psiCall is CallTransformer.CallForImplicitInvoke) {
@@ -927,7 +950,11 @@ class DiagnosticReporterByTrackingStrategy(
                 val typeVariable = error.typeVariable as? TypeVariableFromCallableDescriptor ?: return
                 psiCangJieCall.psiCall.calleeExpression?.let {
                     trace.report(
-                        TYPE_INFERENCE_ONLY_INPUT_TYPES.on(context.languageVersionSettings, it, typeVariable.originalTypeParameter)
+                        TYPE_INFERENCE_ONLY_INPUT_TYPES.on(
+                            context.languageVersionSettings,
+                            it,
+                            typeVariable.originalTypeParameter
+                        )
                     )
                 }
             }

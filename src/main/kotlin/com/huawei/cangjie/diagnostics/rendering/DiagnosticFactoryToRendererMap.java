@@ -30,7 +30,7 @@ public final class DiagnosticFactoryToRendererMap {
         StringBuilder builder = new StringBuilder();
         builder.append(errorMessage).append(". This will become an error");
         if (sinceVersion != null) {
-            builder.append(" in Kotlin ").append(sinceVersion.getVersionString());
+            builder.append(" in CangJie ").append(sinceVersion.getVersionString());
         } else {
             builder.append(" in a future release");
         }

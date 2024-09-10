@@ -27,10 +27,7 @@ class DeprecationResolver(
 //            return emptyList()
 //        }
 //
-//        // This is a temporary workaround before @DeprecatedSinceKotlin is introduced, see KT-23575
-//        if (shouldSkipDeprecationOnKotlinIoReadBytes(this, languageVersionSettings)) {
-//            return emptyList()
-//        }
+
 //
 //        val result = SmartList<DescriptorBasedDeprecationInfo>()
 //
@@ -58,39 +55,7 @@ class DeprecationResolver(
         val deprecations = descriptor.getOwnDeprecations()
         return when {
             deprecations.isNotEmpty() -> DeprecationInfo(deprecations, hasInheritedDeprecations = false)
-//            descriptor is PropertyAccessorDescriptor && descriptor.correspondingProperty is SyntheticPropertyDescriptor -> {
-//                val syntheticProperty = descriptor.correspondingProperty as SyntheticPropertyDescriptor
-//                val originalMethod =
-//                    if (descriptor is PropertyGetterDescriptor) syntheticProperty.getMethod else syntheticProperty.setMethod
-//
-//                @Suppress("FoldInitializerAndIfToElvis") // Wait until KTIJ-26450 is fixed
-//                if (originalMethod == null) return DeprecationInfo.EMPTY
-//                val originalMethodDeprecationInfo = deprecations(originalMethod)
-//
-//                // Limiting these new (they didn't exist before 1.9.10) deprecations only to WARNING and forcePropagationToOverrides
-//                // (i.e., for overrides of NOT_CONSIDERED JDK members)
-//                // is deliberate once we would like to reduce the scope of affected usages because otherwise
-//                // it might be a big unexpected breaking change for users who are enabled -Werror flag.
-//                val filteredDeprecations =
-//                    originalMethodDeprecationInfo.deprecations.filter {
-//                        it.deprecationLevel == DeprecationLevelValue.WARNING && it.forcePropagationToOverrides
-//                    }
-//                return originalMethodDeprecationInfo.copy(deprecations = filteredDeprecations)
-//            }
-//            descriptor is CallableMemberDescriptor -> {
-//                val inheritedDeprecations = listOfNotNull(deprecationByOverridden(descriptor))
-//                when (inheritedDeprecations.isNotEmpty()) {
-//                    true -> when (languageVersionSettings.supportsFeature(LanguageFeature.StopPropagatingDeprecationThroughOverrides)) {
-//                        true -> DeprecationInfo(
-//                            inheritedDeprecations.filter { it.forcePropagationToOverrides },
-//                            hasInheritedDeprecations = true,
-//                            inheritedDeprecations
-//                        )
-//                        false -> DeprecationInfo(inheritedDeprecations, hasInheritedDeprecations = true)
-//                    }
-//                    false -> DeprecationInfo.EMPTY
-//                }
-//            }
+
             else -> DeprecationInfo.EMPTY
         }
     }

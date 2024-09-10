@@ -6,6 +6,7 @@ import com.huawei.cangjie.descriptors.ModuleDescriptor;
 import com.huawei.cangjie.extensions.TypeResolutionInterceptor;
 import com.huawei.cangjie.resolve.*;
 import com.huawei.cangjie.resolve.calls.CallExpressionResolver;
+import com.huawei.cangjie.resolve.calls.CallResolver;
 import com.huawei.cangjie.resolve.calls.model.CangJieCallComponents;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator;
@@ -20,6 +21,7 @@ public class ExpressionTypingComponents {
     public ModuleDescriptor moduleDescriptor;
     public FunctionDescriptorResolver functionDescriptorResolver;
     public CollectionLiteralResolver collectionLiteralResolver;
+    public CallResolver callResolver;
 
     public LocalVariableResolver localVariableResolver;
     public TypeResolutionInterceptor typeResolutionInterceptor;
@@ -43,6 +45,10 @@ public class ExpressionTypingComponents {
     @Inject
     public void setCollectionLiteralResolver(CollectionLiteralResolver collectionLiteralResolver) {
         this.collectionLiteralResolver = collectionLiteralResolver;
+    }
+    @Inject
+    public void setCallResolver(@NotNull CallResolver callResolver) {
+        this.callResolver = callResolver;
     }
 
     @Inject

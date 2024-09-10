@@ -2,6 +2,7 @@ package com.huawei.cangjie.references
 
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.psi.CjElement
+import com.huawei.cangjie.psi.CjImportAlias
 import com.huawei.cangjie.resolve.BindingContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
@@ -92,6 +93,7 @@ abstract class AbstractCjReference<T : CjElement>(element: T) : PsiPolyVariantRe
             ?: throw IllegalStateException("Cannot handle element rename because KtReferenceMutateService is missing")
 
     protected open fun canBeReferenceTo(candidateTarget: PsiElement): Boolean = true
+    protected open fun isReferenceToImportAlias(alias: CjImportAlias): Boolean = false
 
     override fun handleElementRename(newElementName: String): PsiElement? =
         if (canRename())
