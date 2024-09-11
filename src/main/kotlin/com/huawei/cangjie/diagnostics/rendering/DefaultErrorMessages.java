@@ -213,6 +213,11 @@ public class DefaultErrorMessages {
         MAP.put(LET_REASSIGNMENT, "Val cannot be reassigned", NAME);
         MAP.put(USELESS_ELVIS, "Elvis operator (??) always returns the left operand of non-option type {0}", RENDER_TYPE);
         MAP.put(USELESS_ELVIS_RIGHT_IS_NULL, "Right operand of elvis operator (??) is useless if it is Option");
+        MAP.put(EXPRESSION_EXPECTED, "{0} is not an expression, and only expressions are allowed here", (expression, context) -> {
+            String expressionType = expression.toString();
+            return expressionType.charAt(0) +
+                    expressionType.substring(1).toLowerCase();
+        });
 
 
     }

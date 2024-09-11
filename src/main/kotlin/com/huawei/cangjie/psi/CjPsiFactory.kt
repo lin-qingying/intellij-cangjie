@@ -55,7 +55,16 @@ class CjPsiFactory private constructor(
             return CjPsiFactory(context.project, markGenerated, context, eventSystemEnabled = false)
         }
     }
-
+    // special hack used in ControlStructureTypingVisitor
+    // TODO: get rid of it
+    fun wrapInABlockWrapper(expression: CjExpression): CjBlockExpression {
+        if (expression is CjBlockExpression) {
+            return expression
+        }
+        val function = createFunction("func f() { ${expression.text} }")
+        val block = function.bodyExpression as CjBlockExpression
+        return BlockWrapper(block, expression)
+    }
     fun createProperty(
         @NonNls name: String,
         @NonNls type: String?,
@@ -108,7 +117,25 @@ class CjPsiFactory private constructor(
     fun createPrimaryConstructor(@NonNls text: String = ""): CjPrimaryConstructor {
         return createClass(if (text.isNotEmpty()) "class A { public A$text{} }" else "class A { public A(){} } ").primaryConstructor!!
     }
+    private class BlockWrapper(fakeBlockExpression: CjBlockExpression, private val expression: CjExpression) :
+        CjBlockExpression(fakeBlockExpression.text), CjPsiUtil.CjExpressionWrapper {
 
+        override fun getStatements(): List<CjExpression> {
+            return listOf(expression)
+        }
+
+        override fun getBaseExpression(): CjExpression {
+            return expression
+        }
+
+        override fun getParent(): PsiElement = expression.parent
+
+        override fun getPsiOrParent(): CjElement = expression.psiOrParent
+
+        override fun getContainingCjFile() = expression.getContainingCjFile()
+
+        override fun getContainingFile(): PsiFile = expression.containingFile
+    }
     fun createCallArguments(@NonNls text: String): CjValueArgumentList {
         val property = createVariable("let x = foo $text")
         return (property.initializer as CjCallExpression).valueArgumentList!!

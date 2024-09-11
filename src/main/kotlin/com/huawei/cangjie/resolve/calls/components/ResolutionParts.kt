@@ -6,6 +6,7 @@ import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
 import com.huawei.cangjie.psi.CjBinaryExpression
 import com.huawei.cangjie.psi.CjCallExpression
 import com.huawei.cangjie.psi.CjCollectionLiteralExpression
+import com.huawei.cangjie.psi.CjNameReferenceExpression
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.ConstraintSystemOperation
 import com.huawei.cangjie.resolve.calls.inference.components.*
@@ -401,9 +402,10 @@ internal object MapArguments : ResolutionPart() {
 
 
 //        TODO 当没有使用()调用时，它是一个函数类型，不检查参数
-        if (cangjieCall.psiCangJieCall.psiCall.callElement !is CjCallExpression
+        if (/*cangjieCall.psiCangJieCall.psiCall.callElement !is CjCallExpression
             && cangjieCall.psiCangJieCall.psiCall.callElement !is CjBinaryExpression
-            && cangjieCall.psiCangJieCall.psiCall.callElement !is CjCollectionLiteralExpression
+            && cangjieCall.psiCangJieCall.psiCall.callElement !is CjCollectionLiteralExpression*/
+            cangjieCall.psiCangJieCall.psiCall.callElement  is CjNameReferenceExpression
         ) {
             resolvedCall.argumentMappingByOriginal = emptyMap()
             return

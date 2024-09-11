@@ -9,7 +9,9 @@ import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.BindingContext;
 import com.huawei.cangjie.resolve.calls.checkers.NewSchemeOfIntegerOperatorResolutionChecker;
-import com.huawei.cangjie.resolve.calls.context.ContextDependency;
+
+import static com.huawei.cangjie.descriptors.Errors.*;
+import static com.huawei.cangjie.resolve.calls.context.ContextDependency.INDEPENDENT;
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValue;
@@ -23,6 +25,7 @@ import com.huawei.cangjie.types.CangJieTypeKt;
 import com.huawei.cangjie.types.TypeConstructor;
 import com.huawei.cangjie.types.checker.CangJieTypeChecker;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
+import com.huawei.cangjie.types.util.TypeUtils;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.huawei.cangjie.utils.exceptions.OperatorConventions;
 import com.intellij.openapi.util.Ref;
@@ -30,8 +33,6 @@ import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.huawei.cangjie.descriptors.Errors.EXPECTED_TYPE_MISMATCH;
-import static com.huawei.cangjie.descriptors.Errors.TYPE_MISMATCH;
 import static com.huawei.cangjie.types.util.TypeUtils.*;
 
 public class DataFlowAnalyzer {
@@ -78,6 +79,15 @@ public class DataFlowAnalyzer {
     @NotNull
     public CangJieTypeInfo checkType(@NotNull CangJieTypeInfo typeInfo, @NotNull CjExpression expression, @NotNull ResolutionContext context) {
         return typeInfo.replaceType(checkType(typeInfo.getType(), expression, context));
+    }
+    @NotNull
+    public CangJieTypeInfo illegalStatementType(@NotNull CjExpression expression, @NotNull ExpressionTypingContext context, @NotNull ExpressionTypingInternals facade) {
+        facade.checkStatementType(
+                expression, context.replaceExpectedType(TypeUtils.NO_EXPECTED_TYPE).replaceContextDependency( INDEPENDENT));
+        if (!context.isDebuggerContext) {
+            context.trace.report(EXPRESSION_EXPECTED.on(expression, expression));
+        }
+        return TypeInfoFactoryKt.noTypeInfo(context);
     }
 
     public void recordExpectedType(@NotNull BindingTrace trace, @NotNull CjExpression expression, @NotNull CangJieType expectedType) {
@@ -352,7 +362,7 @@ public class DataFlowAnalyzer {
     ) {
         CangJieType expressionType;
         if (value instanceof IntegerValueTypeConstant integerValueTypeConstant) {
-            if (context.contextDependency == ContextDependency.INDEPENDENT) {
+            if (context.contextDependency ==  INDEPENDENT) {
                 expressionType = integerValueTypeConstant.getType(context.expectedType);
                 constantExpressionEvaluator.updateNumberType(expressionType, expression, context.statementFilter, context.trace);
             } else {

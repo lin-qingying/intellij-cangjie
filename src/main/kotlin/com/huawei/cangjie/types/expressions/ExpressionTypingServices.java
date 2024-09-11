@@ -28,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Iterator;
 import java.util.List;
 
-
 import static com.huawei.cangjie.types.expressions.CoercionStrategy.COERCION_TO_UNIT;
 import static com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;
 import static com.huawei.cangjie.types.util.TypeUtils.UNIT_EXPECTED_TYPE;
@@ -53,6 +52,18 @@ public class ExpressionTypingServices {
         this.statementFilter = statementFilter;
         this.expressionTypingFacade = facade;
     }
+
+    @Nullable
+    public static CangJieResolutionCallbacksImpl.LambdaInfo getNewInferenceLambdaInfo(
+            @NotNull ExpressionTypingContext context,
+            @NotNull CjElement function
+    ) {
+        if (function instanceof CjFunction) {
+            return context.trace.get(BindingContext.NEW_INFERENCE_LAMBDA_INFO, (CjFunction) function);
+        }
+        return null;
+    }
+
     @NotNull
     public CangJieTypeInfo getTypeInfo(
             @NotNull LexicalScope scope,
@@ -69,19 +80,9 @@ public class ExpressionTypingServices {
         );
     }
 
-    @NotNull public StatementFilter getStatementFilter() {
+    @NotNull
+    public StatementFilter getStatementFilter() {
         return statementFilter;
-    }
-
-    @Nullable
-    public static CangJieResolutionCallbacksImpl.LambdaInfo getNewInferenceLambdaInfo(
-            @NotNull ExpressionTypingContext context,
-            @NotNull CjElement function
-    ) {
-        if (function instanceof CjFunction) {
-            return context.trace.get(BindingContext.NEW_INFERENCE_LAMBDA_INFO, (CjFunction) function);
-        }
-        return null;
     }
 
     @NotNull
@@ -105,6 +106,7 @@ public class ExpressionTypingServices {
         }
         return expressionTypingFacade.getTypeInfo(expression, context, isStatement);
     }
+
     @Nullable
     public CangJieType getType(
             @NotNull LexicalScope scope,
@@ -116,6 +118,7 @@ public class ExpressionTypingServices {
     ) {
         return getTypeInfo(scope, expression, expectedType, dataFlowInfo, inferenceSession, trace, false).getType();
     }
+
     @NotNull
     public CangJieType safeGetType(
             @NotNull LexicalScope scope,
@@ -134,9 +137,11 @@ public class ExpressionTypingServices {
     public CangJieTypeInfo getTypeInfo(@NotNull CjExpression expression, @NotNull ResolutionContext resolutionContext) {
         return expressionTypingFacade.getTypeInfo(expression, ExpressionTypingContext.newContext(resolutionContext));
     }
+
     public LocalRedeclarationChecker createLocalRedeclarationChecker(BindingTrace trace) {
         return new TraceBasedLocalRedeclarationChecker(trace, expressionTypingComponents.overloadChecker);
     }
+
     private CangJieTypeInfo getTypeOfLastExpressionInBlock(
             @NotNull CjExpression statementExpression,
             @NotNull ExpressionTypingContext context,
@@ -144,15 +149,13 @@ public class ExpressionTypingServices {
             @NotNull ExpressionTypingInternals blockLevelVisitor
     ) {
         boolean isUnitExpectedType = context.expectedType != NO_EXPECTED_TYPE &&
-                (
-                        context.expectedType == UNIT_EXPECTED_TYPE ||
+                (   context.expectedType == UNIT_EXPECTED_TYPE ||
                                 //the first check is necessary to avoid invocation 'isUnit(UNIT_EXPECTED_TYPE)'
                                 (
                                         coercionStrategyForLastExpression == COERCION_TO_UNIT &&
                                                 CangJieBuiltIns.isUnit(context.expectedType)
                                 )
                 );
-
 
 
         if (context.expectedType != NO_EXPECTED_TYPE) {
@@ -216,7 +219,7 @@ public class ExpressionTypingServices {
         ExpressionTypingContext newContext = context.replaceScope(scope).replaceExpectedType(NO_EXPECTED_TYPE);
 
         CangJieTypeInfo result = TypeInfoFactoryKt.noTypeInfo(context);
-        // Jump point data flow info
+
         DataFlowInfo beforeJumpInfo = newContext.dataFlowInfo;
         boolean jumpOutPossible = false;
 
@@ -340,16 +343,18 @@ public class ExpressionTypingServices {
         ExpressionTypingContext context = ExpressionTypingContext.newContext(
                 trace,
                 functionInnerScope, dataFlowInfo, expectedReturnType != null ? expectedReturnType : NO_EXPECTED_TYPE,
-               getLanguageVersionSettings(), expressionTypingComponents.dataFlowValueFactory,
+                getLanguageVersionSettings(), expressionTypingComponents.dataFlowValueFactory,
                 localContext != null ? localContext.inferenceSession : InferenceSession.Companion.getDefault()
         );
 
         checkFunctionReturnType(function, context);
     }
+
     @NotNull
     public LanguageVersionSettings getLanguageVersionSettings() {
         return expressionTypingComponents.languageVersionSettings;
     }
+
     private static class EffectsFilteringTrace extends AbstractFilteringTrace {
         public EffectsFilteringTrace(BindingTrace parentTrace) {
             super(parentTrace, "Effects filtering trace");

@@ -38,7 +38,7 @@ object NewSchemeOfIntegerOperatorResolutionChecker : CallChecker{
     ) {
         val bindingContext = trace.bindingContext
         val callForArgument = argumentExpression.getResolvedCall(bindingContext) ?: return
-        if (!callForArgument.isIntOperator()) return
+//        if (!callForArgument.isIntOperator()) return
         val callElement = callForArgument.call.callElement as? CjExpression ?: return
         val deparenthesizedElement = CjPsiUtil.deparenthesize(callElement)!!
         if (deparenthesizedElement is CjConstantExpression) return
@@ -95,7 +95,7 @@ object NewSchemeOfIntegerOperatorResolutionChecker : CallChecker{
     private val literalOperatorsFqNames: Set<FqName> = listOf(
         "plus", "minus", "times", "div", "rem", "plus", "minus",
         "times", "div", "rem", "shl", "shr", "ushr", "and", "or",
-        "xor", "unaryPlus", "unaryMinus", "inv",
+        "xor" , "unaryMinus", "inv",
     ).mapTo(mutableSetOf()) { FqName.fromSegments(listOf("kotlin", "Int", it)) }
     override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
         for ((valueParameter, arguments) in resolvedCall.valueArguments) {

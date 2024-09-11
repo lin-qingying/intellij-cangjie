@@ -28,6 +28,7 @@ public class ExpressionTypingComponents {
     public MissingSupertypesResolver missingSupertypesResolver;
     public ModifiersChecker modifiersChecker;
     public ControlStructureTypingUtils controlStructureTypingUtils;
+    public ForLoopConventionsChecker forLoopConventionsChecker;
 
     public LocalVariableResolver localVariableResolver;
     public TypeResolutionInterceptor typeResolutionInterceptor;
@@ -53,6 +54,10 @@ public class ExpressionTypingComponents {
 //    public void setDeclarationsCheckerBuilder(@NotNull DeclarationsCheckerBuilder declarationsCheckerBuilder) {
 //        this.declarationsCheckerBuilder = declarationsCheckerBuilder;
 //    }
+@Inject
+public void setForLoopConventionsChecker(@NotNull ForLoopConventionsChecker forLoopConventionsChecker) {
+    this.forLoopConventionsChecker = forLoopConventionsChecker;
+}
 
     @Inject
     public void setValueParameterResolver(ValueParameterResolver valueParameterResolver) {

@@ -1159,8 +1159,17 @@ open class CangJieExpressionParsing(
 //        }
 
         if (at(LBRACE)) {
-            parseFunctionLiteral()
-            return
+
+            val body = mark()
+            advance()
+            parseStatements()
+
+            expect(RBRACE, "Expecting '}'")
+
+
+            
+            body.done(BLOCK)
+
         } else {
 //            parseBlockLevelExpression()
             error("Expecting '{'")

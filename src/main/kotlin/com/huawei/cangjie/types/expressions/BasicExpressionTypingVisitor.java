@@ -214,7 +214,10 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         }
         return TypeInfoFactoryKt.noTypeInfo(context);
     }
-
+    @Override
+    public CangJieTypeInfo visitBlockExpression(@NotNull CjBlockExpression expression, ExpressionTypingContext context) {
+        return components.expressionTypingServices.getBlockReturnedType(expression, context, false);
+    }
     @NotNull
     private CangJieTypeInfo visitAssignment(CjBinaryExpression expression, ExpressionTypingContext context) {
         return assignmentIsNotAnExpressionError(expression, context);

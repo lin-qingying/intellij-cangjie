@@ -27,6 +27,17 @@ public class ExpressionTypingUtils {
         return expression instanceof CjUnaryExpression;
 //                && ((CjUnaryExpression) expression).getOperationReference().getReferencedNameElementType() == CjTokens.EXCLEXCL;
     }
+    @Nullable
+    public static ExpressionReceiver getExpressionReceiver(
+            @NotNull ExpressionTypingFacade facade,
+            @NotNull CjExpression expression,
+            ExpressionTypingContext context
+    ) {
+        CangJieType type = facade.getTypeInfo(expression, context).getType();
+        if (type == null) return null;
+        return ExpressionReceiver.Companion.create(expression, type, context.trace.getBindingContext());
+    }
+
     public static CjExpression createFakeExpressionOfType(
             @NotNull Project project,
             @NotNull BindingTrace trace,

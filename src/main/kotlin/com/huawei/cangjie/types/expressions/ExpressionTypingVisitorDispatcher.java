@@ -144,7 +144,6 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
 
                 context.trace.record(BindingContext.PROCESSED, expression);
 
-                // todo save scope before analyze and fix debugger: see CodeFragmentAnalyzer.correctContextForExpression
                 BindingContextUtilsKt.recordScope(context.trace, context.scope, expression);
                 BindingContextUtilsKt.recordDataFlowInfo(context.replaceDataFlowInfo(result.getDataFlowInfo()), expression);
 //                try {
@@ -176,7 +175,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
     @Override
     public @NotNull CangJieTypeInfo getTypeInfo(@NotNull CjExpression expression, ExpressionTypingContext context, boolean isStatement) {
         ExpressionTypingContext newContext = context;
-//        if (CodeFragmentUtilCj.suppressDiagnosticsInDebugMode(expression)) {
+//        if (CodeFragmentUtilKt.suppressDiagnosticsInDebugMode(expression)) {
 //            newContext = ExpressionTypingContext.newContext(context, true);
 //        }
         if (!isStatement) return getTypeInfo(expression, newContext);
@@ -240,7 +239,8 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
     public CangJieTypeInfo visitReturnExpression(@NotNull CjReturnExpression expression, ExpressionTypingContext data) {
         return controlStructures.visitReturnExpression(expression, data);
     }
-//
+
+    //
 //    @Override
 //    public CangJieTypeInfo visitContinueExpression(@NotNull CjContinueExpression expression, ExpressionTypingContext data) {
 //        return controlStructures.visitContinueExpression(expression, data);
@@ -260,12 +260,12 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
 //    public CangJieTypeInfo visitForExpression(@NotNull CjForExpression expression, ExpressionTypingContext data) {
 //        return controlStructures.visitForExpression(expression, data);
 //    }
-//
-//    @Override
-//    public CangJieTypeInfo visitWhileExpression(@NotNull CjWhileExpression expression, ExpressionTypingContext data) {
-//        return controlStructures.visitWhileExpression(expression, data);
-//    }
-//
+
+    @Override
+    public CangJieTypeInfo visitWhileExpression(@NotNull CjWhileExpression expression, ExpressionTypingContext data) {
+        return controlStructures.visitWhileExpression(expression, data);
+    }
+
 //    @Override
 //    public CangJieTypeInfo visitDoWhileExpression(@NotNull CjDoWhileExpression expression, ExpressionTypingContext data) {
 //        return controlStructures.visitDoWhileExpression(expression, data);
@@ -403,7 +403,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
             this.visitorForBlock = new ExpressionTypingVisitorForStatements(
                     this, writableScope
                     , basic
-              , controlStructures,/* patterns,*/ functions
+                    , controlStructures,/* patterns,*/ functions
             );
         }
 

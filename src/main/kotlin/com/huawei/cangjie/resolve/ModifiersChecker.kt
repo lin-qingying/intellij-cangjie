@@ -5,6 +5,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.extensions.DeclarationAttributeAltererExtension
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.resolve.check.UnderscoreChecker
 import com.intellij.psi.PsiElement
 
 class ModifiersChecker(
@@ -20,6 +21,22 @@ class ModifiersChecker(
 
 
     inner class ModifiersCheckingProcedure(val trace: BindingTrace) {
+
+
+        fun checkModifiersForDestructuringDeclaration(multiDeclaration:  CjDestructuringDeclaration) {
+//            annotationChecker.check(multiDeclaration, trace, null)
+            ModifierCheckerCore.check(multiDeclaration, trace, null, languageVersionSettings)
+            for (multiEntry in multiDeclaration.entries) {
+//                annotationChecker.check(multiEntry, trace, null)
+                ModifierCheckerCore.check(multiEntry, trace, null, languageVersionSettings)
+                UnderscoreChecker.checkNamed(
+                    multiEntry,
+                    trace,
+                    languageVersionSettings,  /* allowSingleUnderscore = */
+                    true
+                )
+            }
+        }
         fun checkModifiersForDeclaration(
             modifierListOwner: CjDeclaration,
             descriptor: MemberDescriptor

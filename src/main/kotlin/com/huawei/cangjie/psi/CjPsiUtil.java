@@ -1,5 +1,6 @@
 package com.huawei.cangjie.psi;
 
+import com.huawei.cangjie.CjNodeTypes;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.name.SpecialNames;
 import com.huawei.cangjie.parsing.CangJieExpressionParsing;
@@ -25,8 +26,13 @@ public class CjPsiUtil {
     public static CjExpression safeDeparenthesize(@NotNull CjExpression expression) {
         return safeDeparenthesize(expression, false);
     }
+    public static boolean isBooleanConstant(@Nullable CjExpression condition) {
+        return condition != null && condition.getNode().getElementType() == CjNodeTypes.BOOLEAN_CONSTANT;
+    }
 
-
+    public static boolean isTrueConstant(@Nullable CjExpression condition) {
+        return isBooleanConstant(condition) && condition.getNode().findChildByType(CjTokens.TRUE_KEYWORD) != null;
+    }
     public static boolean isSelectorInQualified(@NotNull CjSimpleNameExpression nameExpression) {
         CjElement qualifiedElement = CjPsiUtilKt.getQualifiedElement(nameExpression);
         return qualifiedElement instanceof CjQualifiedExpression

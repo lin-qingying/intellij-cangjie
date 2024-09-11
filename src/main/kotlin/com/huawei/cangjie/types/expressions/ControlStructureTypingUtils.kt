@@ -17,10 +17,10 @@ import com.huawei.cangjie.resolve.BindingContextUtils
 import com.huawei.cangjie.resolve.calls.CallResolver
 import com.huawei.cangjie.resolve.calls.model.MutableDataFlowInfoForArguments
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall
+import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.calls.tasks.OldResolutionCandidate
 import com.huawei.cangjie.resolve.calls.tasks.TracingStrategy
 import com.huawei.cangjie.resolve.calls.util.CallMaker
-import com.huawei.cangjie.resolve.scopes.receivers.Receiver
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.*
@@ -39,22 +39,58 @@ class ControlStructureTypingUtils(
     val storageManager: StorageManager
 ) {
     companion object {
+// The Java class can be rewritten in Kotlin as follows:
+
 
         val LOG: Logger = Logger.getInstance(
             ControlStructureTypingUtils::class.java
         )
-@JvmStatic
+        class ControlStructureDataFlowInfo(initialDataFlowInfo: DataFlowInfo, val dataFlowInfoForArgumentsMap: MutableMap<ValueArgument, DataFlowInfo>) : MutableDataFlowInfoForArguments(initialDataFlowInfo) {
+
+            override fun updateInfo(valueArgument: ValueArgument, dataFlowInfo: DataFlowInfo) {
+                dataFlowInfoForArgumentsMap[valueArgument] = dataFlowInfo
+            }
+
+            override fun updateResultInfo(dataFlowInfo: DataFlowInfo) { }
+
+            override fun getInfo(valueArgument: ValueArgument): DataFlowInfo {
+                return dataFlowInfoForArgumentsMap[valueArgument] ?: error("DataFlowInfo not found for ValueArgument")
+            }
+        }
+        private fun createIndependentDataFlowInfoForArgumentsForCall(
+            initialDataFlowInfo: DataFlowInfo,
+            dataFlowInfoForArgumentsMap: MutableMap<ValueArgument, DataFlowInfo>
+        ): MutableDataFlowInfoForArguments {
+            return  ControlStructureDataFlowInfo(
+                initialDataFlowInfo,
+                dataFlowInfoForArgumentsMap
+            )
+        }
+
+        fun createDataFlowInfoForArgumentsForIfCall(
+            callForIf: Call,
+            conditionInfo: DataFlowInfo,
+            thenInfo: DataFlowInfo,
+            elseInfo: DataFlowInfo
+        ): MutableDataFlowInfoForArguments {
+            val dataFlowInfoForArgumentsMap = hashMapOf<ValueArgument, DataFlowInfo>()
+            dataFlowInfoForArgumentsMap[callForIf.valueArguments[0]] = thenInfo
+            dataFlowInfoForArgumentsMap[callForIf.valueArguments[1]] = elseInfo
+            return createIndependentDataFlowInfoForArgumentsForCall(conditionInfo, dataFlowInfoForArgumentsMap)
+        }
+
+        @JvmStatic
         fun createCallForSpecialConstruction(
             expression: CjExpression,
             calleeExpression: CjExpression,
-            arguments: List<CjExpression >
+            arguments: List<CjExpression>
         ): Call {
             val valueArguments: MutableList<ValueArgument> =
                 Lists.newArrayList()
             for (argument in arguments) {
                 valueArguments.add(CallMaker.makeValueArgument(argument))
             }
-            return object : Call  {
+            return object : Call {
                 override fun getCallOperationNode(): ASTNode? {
                     return expression.node
                 }
@@ -75,11 +111,11 @@ class ControlStructureTypingUtils(
                     return null
                 }
 
-                override fun getValueArguments(): List<  ValueArgument> {
+                override fun getValueArguments(): List<ValueArgument> {
                     return valueArguments
                 }
 
-                override fun getFunctionLiteralArguments(): List<  LambdaArgument> {
+                override fun getFunctionLiteralArguments(): List<LambdaArgument> {
                     return emptyList()
                 }
 

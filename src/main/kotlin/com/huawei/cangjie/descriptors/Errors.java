@@ -82,6 +82,7 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, CangJieType> UNSAFE_CALL = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, CangJieType> UNSAFE_IMPLICIT_INVOKE_CALL = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, InvalidBinaryData> INVALID_BINARY_OPERATOR = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<CjExpression, CjExpression> EXPRESSION_EXPECTED = DiagnosticFactory1.create(ERROR);
 
     DiagnosticFactory2<CjExpression, CjExpression, Boolean> FUNCTION_CALL_EXPECTED = DiagnosticFactory2.create(ERROR, CALL_EXPRESSION);
     DiagnosticFactory3<CjReferenceExpression, ClassifierDescriptor, WrongResolutionToClassifier, String> RESOLUTION_TO_CLASSIFIER =

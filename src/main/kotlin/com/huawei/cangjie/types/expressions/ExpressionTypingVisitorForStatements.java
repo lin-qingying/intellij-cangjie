@@ -50,8 +50,6 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.huawei.cangjie.descriptors.Errors.*;
-import static com.huawei.cangjie.lexer.CjTokens.ANDAND;
-import static com.huawei.cangjie.lexer.CjTokens.OROR;
 import static com.huawei.cangjie.psi.CjPsiUtil.deparenthesize;
 import static com.huawei.cangjie.resolve.BindingContext.AMBIGUOUS_REFERENCE_TARGET;
 import static com.huawei.cangjie.resolve.BindingContext.VARIABLE_REASSIGNMENT;
@@ -139,6 +137,11 @@ public class ExpressionTypingVisitorForStatements extends ExpressionTypingVisito
     @Override
     public CangJieTypeInfo visitDeclaration(@NotNull CjDeclaration dcl, ExpressionTypingContext context) {
         return TypeInfoFactoryKt.createTypeInfo(components.dataFlowAnalyzer.checkStatementType(dcl, context), context);
+    }
+
+    @Override
+    public CangJieTypeInfo visitIfExpression(@NotNull CjIfExpression expression, ExpressionTypingContext context) {
+        return controlStructures.visitIfExpression(expression, context);
     }
 
     @Override
@@ -474,6 +477,21 @@ public class ExpressionTypingVisitorForStatements extends ExpressionTypingVisito
 
 
         return !hasErrorsOnTypeChecking.get() ? rightInfo : null;
+    }
+
+    @Override
+    public CangJieTypeInfo visitWhileExpression(@NotNull CjWhileExpression expression, ExpressionTypingContext context) {
+        return controlStructures.visitWhileExpression(expression, context, true);
+    }
+
+    @Override
+    public CangJieTypeInfo visitDoWhileExpression(@NotNull CjDoWhileExpression expression, ExpressionTypingContext context) {
+        return controlStructures.visitDoWhileExpression(expression, context, true);
+    }
+
+    @Override
+    public CangJieTypeInfo visitForExpression(@NotNull CjForExpression expression, ExpressionTypingContext context) {
+        return controlStructures.visitForExpression(expression, context, true);
     }
 
     @Override

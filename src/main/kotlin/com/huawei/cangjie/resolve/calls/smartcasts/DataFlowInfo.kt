@@ -23,7 +23,14 @@ interface DataFlowInfo {
     /**
      * Call this function to choose data flow information common for this and other and return it as the result
      */
-    fun or(other: DataFlowInfo): DataFlowInfo
+    infix fun or(other: DataFlowInfo): DataFlowInfo
+
+    /**
+     * Call this function to clear all data flow information about
+     * the given data flow value. Useful when we are not sure how this value can be changed, e.g. in a loop.
+     */
+    fun clearValueInfo(value: DataFlowValue, languageVersionSettings: LanguageVersionSettings): DataFlowInfo
+
     /**
      * Call this function to add data flow information from other to this and return sum as the result
      */

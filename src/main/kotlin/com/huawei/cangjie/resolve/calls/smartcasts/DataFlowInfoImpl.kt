@@ -219,6 +219,14 @@ internal class DataFlowInfoImpl(
         }
         return create(null, resultNullabilityInfo, newTypeInfoBuilder)
     }
+
+    override fun clearValueInfo(value: DataFlowValue, languageVersionSettings: LanguageVersionSettings): DataFlowInfo {
+        val resultNullabilityInfo = hashMapOf<DataFlowValue, Nullability>()
+        putNullabilityAndTypeInfo(resultNullabilityInfo, value, value.immanentNullability, languageVersionSettings)
+        return create(this, resultNullabilityInfo, EMPTY_TYPE_INFO, value)
+
+    }
+
     private fun ImmutableSet<CangJieType>?.containsNothing() = this?.any { CangJieBuiltIns.isNothing(it) } ?: false
 
     private fun ImmutableSet<CangJieType>?.intersectConsideringNothing(other: ImmutableSet<CangJieType>?) =
