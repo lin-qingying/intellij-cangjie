@@ -8,15 +8,13 @@ import com.huawei.cangjie.builtins.isBuiltinFunctionalType
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.CallableMemberDescriptor
-import com.huawei.cangjie.descriptors.Errors.RETURN_TYPE_MISMATCH
+import com.huawei.cangjie.descriptors.Errors.*
+import com.huawei.cangjie.descriptors.PsiDiagnosticUtils
 import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.impl.AnonymousFunctionDescriptor
 import com.huawei.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
-import com.huawei.cangjie.psi.CjFunctionLiteral
-import com.huawei.cangjie.psi.CjLambdaExpression
-import com.huawei.cangjie.psi.CjReturnExpression
-import com.huawei.cangjie.psi.CjTreeVisitor
+import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.BindingContext.EXPECTED_RETURN_TYPE
 import com.huawei.cangjie.resolve.BindingContextUtils
@@ -25,6 +23,7 @@ import com.huawei.cangjie.resolve.calls.context.ContextDependency
 import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableTypeConstructor
 import com.huawei.cangjie.resolve.check.UnderscoreChecker
 import com.huawei.cangjie.resolve.lazy.ForceResolveUtil
+import com.huawei.cangjie.resolve.scopes.LexicalWritableScope
 import com.huawei.cangjie.resolve.source.toSourceElement
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.CommonSupertypes
@@ -38,6 +37,106 @@ import com.huawei.cangjie.utils.addIfNotNull
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo
 
 internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypingVisitor(facade) {
+
+    fun visitNamedFunction(
+        function: CjNamedFunction,
+        context: ExpressionTypingContext,
+        isDeclaration: Boolean,
+        statementScope: LexicalWritableScope? // must be not null if isDeclaration
+    ): CangJieTypeInfo {
+        if (!isDeclaration) {
+            // function expression
+            if (!function.typeParameters.isEmpty()) {
+                context.trace.report(TYPE_PARAMETERS_NOT_ALLOWED.on(function))
+            }
+
+            if (function.name != null) {
+                context.trace.report(ANONYMOUS_FUNCTION_WITH_NAME.on(function.nameIdentifier!!))
+            }
+
+            for (parameter in function.valueParameters) {
+                if (parameter.hasDefaultValue()) {
+                    context.trace.report(ANONYMOUS_FUNCTION_PARAMETER_WITH_DEFAULT_VALUE.on(parameter))
+                }
+//                if (parameter.isVarArg) {
+//                    context.trace.report(USELESS_VARARG_ON_PARAMETER.on(parameter))
+//                }
+            }
+        }
+
+        val functionDescriptor: SimpleFunctionDescriptor
+        if (isDeclaration) {
+            functionDescriptor = components.functionDescriptorResolver.resolveFunctionDescriptor(
+                context.scope.ownerDescriptor, context.scope, function, context.trace, context.dataFlowInfo, context.inferenceSession
+            )
+            assert(statementScope != null) {
+                "statementScope must be not null for function: " + function.name + " at location " + PsiDiagnosticUtils.atLocation(
+                    function
+                )
+            }
+            statementScope!!.addFunctionDescriptor(functionDescriptor)
+        } else {
+            functionDescriptor = components.functionDescriptorResolver.resolveFunctionExpressionDescriptor(
+                context.scope.ownerDescriptor, context.scope, function,
+                context.trace, context.dataFlowInfo, context.expectedType, context.inferenceSession
+            )
+        }
+        // Necessary for local functions
+        ForceResolveUtil.forceResolveAllContents(functionDescriptor.annotations)
+
+        val functionInnerScope =
+            FunctionDescriptorUtil.getFunctionInnerScope(context.scope, functionDescriptor, context.trace, components.overloadChecker)
+        if (!function.hasDeclaredReturnType() && !function.hasBlockBody()) {
+            ForceResolveUtil.forceResolveAllContents(functionDescriptor.returnType)
+        } else {
+            components.expressionTypingServices.checkFunctionReturnType(
+                functionInnerScope, function, functionDescriptor, context.dataFlowInfo, null, context.trace, context
+            )
+        }
+
+        components.valueParameterResolver.resolveValueParameters(
+            function.valueParameters, functionDescriptor.valueParameters, functionInnerScope,
+            context.dataFlowInfo, context.trace, context.inferenceSession
+        )
+
+        components.modifiersChecker.withTrace(context.trace).checkModifiersForLocalDeclaration(function, functionDescriptor)
+        components.identifierChecker.checkDeclaration(function, context.trace)
+//        components.declarationsCheckerBuilder.withTrace(context.trace).checkFunction(function, functionDescriptor)
+
+        return if (isDeclaration) {
+            createTypeInfo(components.dataFlowAnalyzer.checkStatementType(function, context), context)
+        } else {
+            val newInferenceEnabled = components.languageVersionSettings.supportsFeature(LanguageFeature.NewInference)
+
+            // We forbid anonymous function expressions to suspend type coercion for now, until `suspend fun` syntax is supported
+            val resultType = functionDescriptor.createFunctionType(
+                components.builtIns,
+
+            )
+
+            if (newInferenceEnabled) {
+                // We should avoid type checking for types containing `NO_EXPECTED_TYPE`, the error will be report later if needed
+                if (!context.expectedType.contains { it === NO_EXPECTED_TYPE }) {
+                    /*
+                     * We do type checking without converted vararg type as the new inference create expected type with raw vararg type (see CangJieResolutionCallbacksImpl.kt)
+                     * Example:
+                     *      fun foo(x: Any?) {}
+                     *      val x = foo(fun(vararg p: Int) {})
+                     *      In NI, context.expectedType = `Function1<Int, Unit>`
+                     */
+                    val typeToTypeCheck = functionDescriptor.createFunctionType(
+                        components.builtIns,
+//                        suspendFunction = false,
+//                        shouldUseVarargType = true
+                    )
+                    components.dataFlowAnalyzer.checkType(typeToTypeCheck, function, context)
+                }
+                createTypeInfo(resultType, context)
+            } else {
+                components.dataFlowAnalyzer.createCheckedTypeInfo(resultType, context, function)
+            }
+        }
+    }
 
 
     private fun createFunctionLiteralDescriptor(

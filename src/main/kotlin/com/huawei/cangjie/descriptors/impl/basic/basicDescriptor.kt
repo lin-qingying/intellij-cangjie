@@ -23,20 +23,21 @@ import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.utils.OperatorNameConventions.AND
-import com.huawei.cangjie.utils.OperatorNameConventions.COMPARE_GT
-import com.huawei.cangjie.utils.OperatorNameConventions.COMPARE_LT
-import com.huawei.cangjie.utils.OperatorNameConventions.COMPARE_LTEQ
+import com.huawei.cangjie.utils.OperatorNameConventions.ANDAND
+import com.huawei.cangjie.utils.OperatorNameConventions.DEC
 import com.huawei.cangjie.utils.OperatorNameConventions.DIV
-import com.huawei.cangjie.utils.OperatorNameConventions.EQUALS
 import com.huawei.cangjie.utils.OperatorNameConventions.EXPONENTIATION
+import com.huawei.cangjie.utils.OperatorNameConventions.INC
 import com.huawei.cangjie.utils.OperatorNameConventions.LEFT_SHIFT
 import com.huawei.cangjie.utils.OperatorNameConventions.MINUS
 import com.huawei.cangjie.utils.OperatorNameConventions.NOT
-import com.huawei.cangjie.utils.OperatorNameConventions.NOT_EQUALS
 import com.huawei.cangjie.utils.OperatorNameConventions.OR
+import com.huawei.cangjie.utils.OperatorNameConventions.OROR
 import com.huawei.cangjie.utils.OperatorNameConventions.PLUS
 import com.huawei.cangjie.utils.OperatorNameConventions.REM
 import com.huawei.cangjie.utils.OperatorNameConventions.RIGHT_SHIFT
+import com.huawei.cangjie.utils.OperatorNameConventions.TIMES
+import com.huawei.cangjie.utils.OperatorNameConventions.UNARY_MINUS
 import com.huawei.cangjie.utils.OperatorNameConventions.XOR
 import com.huawei.cangjie.utils.Printer
 
@@ -198,7 +199,11 @@ open class BasicTypeDescriptor(
         }
 
         private fun fillOperatorFunctions() {
-            fun createOperatorFunction(name: Name, rightType: Name? = null, returnType: Name? = null): OperatorFunctionDescriptor {
+            fun createOperatorFunction(
+                name: Name,
+                rightType: Name? = null,
+                returnType: Name? = null
+            ): OperatorFunctionDescriptor {
                 return OperatorFunctionDescriptor(
                     name, rightType?.let {
 
@@ -242,6 +247,17 @@ open class BasicTypeDescriptor(
                     operatorFunctions[RIGHT_SHIFT] =
                         listOf(createOperatorFunction(RIGHT_SHIFT, StandardNames.INT64, StandardNames.INT64))
 
+
+//                    自增自减
+                    operatorFunctions[INC] =
+                        listOf(createOperatorFunction(INC, null, StandardNames.INT64))
+
+                    operatorFunctions[DEC] =
+                        listOf(createOperatorFunction(DEC, null, StandardNames.INT64))
+//                    负号
+                    operatorFunctions[UNARY_MINUS] =
+                        listOf(createOperatorFunction(UNARY_MINUS, null, StandardNames.INT64))
+
 //                    operatorFunctions[COMPARE_LTEQ] =
 //                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.INT64, StandardNames.BOOL))
 //                    operatorFunctions[COMPARE_LT] =
@@ -257,8 +273,9 @@ open class BasicTypeDescriptor(
 //                        listOf(createOperatorFunction(NOT_EQUALS, StandardNames.INT64, StandardNames.BOOL))
 //
 //
-//                    operatorFunctions[NOT] =
-//                        listOf(createOperatorFunction(NOT ))
+                    operatorFunctions[NOT] =
+                        listOf(createOperatorFunction(NOT))
+
 
                 }
 
@@ -279,6 +296,9 @@ open class BasicTypeDescriptor(
                     operatorFunctions[EXPONENTIATION] =
                         listOf(createOperatorFunction(EXPONENTIATION, StandardNames.INT32, StandardNames.INT32))
 
+                    operatorFunctions[TIMES] =
+                        listOf(createOperatorFunction(TIMES, StandardNames.INT32, StandardNames.INT32))
+
 
 
                     operatorFunctions[AND] =
@@ -293,6 +313,17 @@ open class BasicTypeDescriptor(
                     operatorFunctions[RIGHT_SHIFT] =
                         listOf(createOperatorFunction(RIGHT_SHIFT, StandardNames.INT32, StandardNames.INT32))
 
+
+                    //                    自增自减
+                    operatorFunctions[INC] =
+                        listOf(createOperatorFunction(INC, null, StandardNames.INT32))
+
+                    operatorFunctions[DEC] =
+                        listOf(createOperatorFunction(DEC, null, StandardNames.INT32))
+//                    负号
+                    operatorFunctions[UNARY_MINUS] =
+                        listOf(createOperatorFunction(UNARY_MINUS, null, StandardNames.INT32))
+
 //                    operatorFunctions[COMPARE_LTEQ] =
 //                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.INT32, StandardNames.BOOL))
 //                    operatorFunctions[COMPARE_LT] =
@@ -306,8 +337,8 @@ open class BasicTypeDescriptor(
 //                        listOf(createOperatorFunction(EQUALS, StandardNames.INT32, StandardNames.BOOL))
 //                    operatorFunctions[NOT_EQUALS] =
 //                        listOf(createOperatorFunction(NOT_EQUALS, StandardNames.INT32, StandardNames.BOOL))
-//                    operatorFunctions[NOT] =
-//                        listOf(createOperatorFunction(NOT ))
+                    operatorFunctions[NOT] =
+                        listOf(createOperatorFunction(NOT))
                 }
 
                 "Int8" -> {
@@ -328,6 +359,8 @@ open class BasicTypeDescriptor(
                     operatorFunctions[EXPONENTIATION] =
                         listOf(createOperatorFunction(EXPONENTIATION, StandardNames.INT8, StandardNames.INT8))
 
+                    operatorFunctions[TIMES] =
+                        listOf(createOperatorFunction(TIMES, StandardNames.INT8, StandardNames.INT8))
 
 
                     operatorFunctions[AND] =
@@ -341,6 +374,15 @@ open class BasicTypeDescriptor(
                         listOf(createOperatorFunction(LEFT_SHIFT, StandardNames.INT8, StandardNames.INT8))
                     operatorFunctions[RIGHT_SHIFT] =
                         listOf(createOperatorFunction(RIGHT_SHIFT, StandardNames.INT8, StandardNames.INT8))
+//                    自增自减
+                    operatorFunctions[INC] =
+                        listOf(createOperatorFunction(INC, null, StandardNames.INT8))
+
+                    operatorFunctions[DEC] =
+                        listOf(createOperatorFunction(DEC, null, StandardNames.INT8))
+//                    负号
+                    operatorFunctions[UNARY_MINUS] =
+                        listOf(createOperatorFunction(UNARY_MINUS, null, StandardNames.INT8))
 
 //                    operatorFunctions[COMPARE_LTEQ] =
 //                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.INT8, StandardNames.BOOL))
@@ -355,8 +397,8 @@ open class BasicTypeDescriptor(
 //                        listOf(createOperatorFunction(EQUALS, StandardNames.INT8, StandardNames.BOOL))
 //                    operatorFunctions[NOT_EQUALS] =
 //                        listOf(createOperatorFunction(NOT_EQUALS, StandardNames.INT8, StandardNames.BOOL))
-//                    operatorFunctions[NOT] =
-//                        listOf(createOperatorFunction(NOT ))
+                    operatorFunctions[NOT] =
+                        listOf(createOperatorFunction(NOT))
                 }
 
                 "Int16" -> {
@@ -377,6 +419,8 @@ open class BasicTypeDescriptor(
                         listOf(createOperatorFunction(EXPONENTIATION, StandardNames.INT16, StandardNames.INT16))
 
 
+                    operatorFunctions[TIMES] =
+                        listOf(createOperatorFunction(TIMES, StandardNames.INT16, StandardNames.INT16))
 
                     operatorFunctions[AND] =
                         listOf(createOperatorFunction(AND, StandardNames.INT16, StandardNames.INT16))
@@ -389,6 +433,15 @@ open class BasicTypeDescriptor(
                         listOf(createOperatorFunction(LEFT_SHIFT, StandardNames.INT16, StandardNames.INT16))
                     operatorFunctions[RIGHT_SHIFT] =
                         listOf(createOperatorFunction(RIGHT_SHIFT, StandardNames.INT16, StandardNames.INT16))
+//                    自增自减
+                    operatorFunctions[INC] =
+                        listOf(createOperatorFunction(INC, null, StandardNames.INT16))
+
+                    operatorFunctions[DEC] =
+                        listOf(createOperatorFunction(DEC, null, StandardNames.INT16))
+//                    负号
+                    operatorFunctions[UNARY_MINUS] =
+                        listOf(createOperatorFunction(UNARY_MINUS, null, StandardNames.INT16))
 
 //                    operatorFunctions[COMPARE_LTEQ] =
 //                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.INT16, StandardNames.BOOL))
@@ -403,8 +456,8 @@ open class BasicTypeDescriptor(
 //                        listOf(createOperatorFunction(EQUALS, StandardNames.INT16, StandardNames.BOOL))
 //                    operatorFunctions[NOT_EQUALS] =
 //                        listOf(createOperatorFunction(NOT_EQUALS, StandardNames.INT16, StandardNames.BOOL))
-//                    operatorFunctions[NOT] =
-//                        listOf(createOperatorFunction(NOT ))
+                    operatorFunctions[NOT] =
+                        listOf(createOperatorFunction(NOT))
                 }
 
 
@@ -425,8 +478,12 @@ open class BasicTypeDescriptor(
                     operatorFunctions[EXPONENTIATION] =
                         listOf(createOperatorFunction(EXPONENTIATION, StandardNames.FLOAT16, StandardNames.INT64))
 
+                    operatorFunctions[TIMES] =
+                        listOf(createOperatorFunction(TIMES, StandardNames.FLOAT16, StandardNames.FLOAT16))
 
-
+//                    负号
+                    operatorFunctions[UNARY_MINUS] =
+                        listOf(createOperatorFunction(UNARY_MINUS, null, StandardNames.FLOAT16))
 
 //                    operatorFunctions[COMPARE_LTEQ] =
 //                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.FLOAT16, StandardNames.BOOL))
@@ -461,9 +518,8 @@ open class BasicTypeDescriptor(
                     operatorFunctions[EXPONENTIATION] =
                         listOf(createOperatorFunction(EXPONENTIATION, StandardNames.FLOAT32, StandardNames.INT64))
 
-
-
-
+                    operatorFunctions[TIMES] =
+                        listOf(createOperatorFunction(TIMES, StandardNames.FLOAT32, StandardNames.FLOAT32))
 //                    operatorFunctions[COMPARE_LTEQ] =
 //                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.FLOAT32, StandardNames.BOOL))
 //                    operatorFunctions[COMPARE_LT] =
@@ -477,10 +533,15 @@ open class BasicTypeDescriptor(
 //                        listOf(createOperatorFunction(EQUALS, StandardNames.FLOAT32, StandardNames.BOOL))
 //                    operatorFunctions[NOT_EQUALS] =
 //                        listOf(createOperatorFunction(NOT_EQUALS, StandardNames.FLOAT32, StandardNames.BOOL))
+//                    负号
+                    operatorFunctions[UNARY_MINUS] =
+                        listOf(createOperatorFunction(UNARY_MINUS, null, StandardNames.FLOAT32))
 
                 }
 
                 "Float64" -> {
+                    operatorFunctions[TIMES] =
+                        listOf(createOperatorFunction(TIMES, StandardNames.FLOAT64, StandardNames.FLOAT64))
                     operatorFunctions[PLUS] = listOf(
                         createOperatorFunction(PLUS, StandardNames.FLOAT64, StandardNames.FLOAT64),
 
@@ -498,8 +559,6 @@ open class BasicTypeDescriptor(
                         listOf(createOperatorFunction(EXPONENTIATION, StandardNames.FLOAT64, StandardNames.INT64))
 
 
-
-
 //                    operatorFunctions[COMPARE_LTEQ] =
 //                        listOf(createOperatorFunction(COMPARE_LTEQ, StandardNames.FLOAT64, StandardNames.BOOL))
 //                    operatorFunctions[COMPARE_LT] =
@@ -513,7 +572,19 @@ open class BasicTypeDescriptor(
 //                        listOf(createOperatorFunction(EQUALS, StandardNames.FLOAT64, StandardNames.BOOL))
 //                    operatorFunctions[NOT_EQUALS] =
 //                        listOf(createOperatorFunction(NOT_EQUALS, StandardNames.FLOAT64, StandardNames.BOOL))
+//                    负号
+                    operatorFunctions[UNARY_MINUS] =
+                        listOf(createOperatorFunction(UNARY_MINUS, null, StandardNames.FLOAT64))
 
+                }
+
+                "Bool" -> {
+                    operatorFunctions[NOT] =
+                        listOf(createOperatorFunction(NOT, null, StandardNames.BOOL))
+                    operatorFunctions[ANDAND] =
+                        listOf(createOperatorFunction(ANDAND, null, StandardNames.BOOL))
+                    operatorFunctions[OROR] =
+                        listOf(createOperatorFunction(OROR, null, StandardNames.BOOL))
                 }
             }
 

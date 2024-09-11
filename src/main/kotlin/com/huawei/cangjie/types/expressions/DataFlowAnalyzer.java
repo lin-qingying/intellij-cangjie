@@ -8,7 +8,6 @@ import com.huawei.cangjie.diagnostics.DiagnosticUtilsKt;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.BindingContext;
-import com.huawei.cangjie.resolve.DescriptorUtils;
 import com.huawei.cangjie.resolve.calls.checkers.NewSchemeOfIntegerOperatorResolutionChecker;
 import com.huawei.cangjie.resolve.calls.context.ContextDependency;
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext;
@@ -179,7 +178,7 @@ public class DataFlowAnalyzer {
             @Override
             public void visitBinaryExpression(@NotNull CjBinaryExpression expression) {
                 IElementType operationToken = expression.getOperationToken();
-                if (OperatorConventions.BOOLEAN_OPERATIONS.containsKey(operationToken)) {
+                if (OperatorConventions.BOOLEAN_OPERATIONS_NAMES.containsKey(operationToken)) {
                     DataFlowInfo dataFlowInfo = extractDataFlowInfoFromCondition(expression.getLeft(), conditionValue, context);
                     CjExpression expressionRight = expression.getRight();
                     if (expressionRight != null) {
@@ -262,15 +261,15 @@ public class DataFlowAnalyzer {
             }
         });
 
-        DataFlowInfo infoFromEffectSystem = effectSystem.extractDataFlowInfoFromCondition(
-                condition, conditionValue, context.trace, DescriptorUtils.getContainingModule(context.scope.getOwnerDescriptor())
-        );
+//        DataFlowInfo infoFromEffectSystem = effectSystem.extractDataFlowInfoFromCondition(
+//                condition, conditionValue, context.trace, DescriptorUtils.getContainingModule(context.scope.getOwnerDescriptor())
+//        );
+//
+//        if (result.get() == null) {
+//            return context.dataFlowInfo.and(infoFromEffectSystem);
+//        }
 
-        if (result.get() == null) {
-            return context.dataFlowInfo.and(infoFromEffectSystem);
-        }
-
-        return context.dataFlowInfo.and(result.get()).and(infoFromEffectSystem);
+        return context.dataFlowInfo.and(result.get())/*.and(infoFromEffectSystem)*/;
     }
 
     @NotNull

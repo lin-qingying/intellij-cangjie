@@ -174,10 +174,34 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, Pair<LanguageFeature, LanguageVersionSettings>> UNSUPPORTED_FEATURE = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory3<CjElement, CangJieType, CangJieType, ClassifierDescriptor> UPPER_BOUND_VIOLATED_IN_TYPEALIAS_EXPANSION =
             DiagnosticFactory3.create(ERROR);
+    DiagnosticFactory0<CjDeclaration> TYPE_PARAMETERS_NOT_ALLOWED
+            = DiagnosticFactory0.create(ERROR, TYPE_PARAMETERS_OR_DECLARATION_SIGNATURE);
+    DiagnosticFactory0<PsiElement> ANONYMOUS_FUNCTION_WITH_NAME = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjParameter>
+            ANONYMOUS_FUNCTION_PARAMETER_WITH_DEFAULT_VALUE = DiagnosticFactory0.create(ERROR, PARAMETER_DEFAULT_VALUE);
+    DiagnosticFactory0<CjParameter> USELESS_VARARG_ON_PARAMETER = DiagnosticFactory0.create(WARNING);
+
+    DiagnosticFactory1<CjBinaryExpression, CangJieType> USELESS_ELVIS =
+            DiagnosticFactory1.create(WARNING, PositioningStrategies.USELESS_ELVIS);
+
+    DiagnosticFactory0<CjBinaryExpression> USELESS_ELVIS_RIGHT_IS_NULL =
+            DiagnosticFactory0.create(WARNING, PositioningStrategies.USELESS_ELVIS);
+
+
+
+    DiagnosticFactory2<CjSimpleNameExpression, DeclarationDescriptor, CjSimpleNameExpression> ASSIGNMENT_OPERATOR_SHOULD_RETURN_UNIT =
+            DiagnosticFactory2.create(ERROR);
     DiagnosticFactory3<CjSuperTypeList, TypeParameterDescriptor, ClassDescriptor, Collection<CangJieType>>
             INCONSISTENT_TYPE_PARAMETER_VALUES = DiagnosticFactory3.create(ERROR);
     DiagnosticFactory0<CjOptionType> NULLABLE_ON_DEFINITELY_NOT_OPTIONAL = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjOptionType> REDUNDANT_OPTIONAL = DiagnosticFactory0.create(WARNING, OPTIONAL_TYPE);
+    DiagnosticFactory0<CjSimpleNameExpression> INC_DEC_SHOULD_NOT_RETURN_UNIT = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory3<CjExpression, String, CangJieType, CangJieType> RESULT_TYPE_MISMATCH = DiagnosticFactory3.create(ERROR);
+    DiagnosticFactory0<CjExpression> VARIABLE_EXPECTED = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory1<CjBinaryExpression, CangJieType> ASSIGNMENT_TYPE_MISMATCH = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, Collection<? extends ResolvedCall<?>>>
+            ASSIGN_OPERATOR_AMBIGUITY = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<CjExpression, DeclarationDescriptor> LET_REASSIGNMENT = DiagnosticFactory1.create(ERROR);
 
     DiagnosticFactory3<CjTypeParameter, TypeParameterDescriptor, ClassDescriptor, Collection<CangJieType>>
             INCONSISTENT_TYPE_PARAMETER_BOUNDS = DiagnosticFactory3.create(ERROR);

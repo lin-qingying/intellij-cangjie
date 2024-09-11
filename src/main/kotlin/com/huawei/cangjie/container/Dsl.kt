@@ -14,6 +14,9 @@ fun composeContainer(
 inline fun <reified T : Any> StorageComponentContainer.useImpl() {
     registerSingleton(T::class.java)
 }
+fun StorageComponentContainer.useClashResolver(clashResolver: PlatformExtensionsClashResolver<*>) {
+    registerClashResolvers(listOf(clashResolver))
+}
 
 
 fun StorageComponentContainer.useInstance(instance: Any) {

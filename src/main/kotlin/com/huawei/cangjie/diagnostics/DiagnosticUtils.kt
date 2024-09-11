@@ -13,6 +13,7 @@ import com.huawei.cangjie.resolve.calls.inference.isCaptured
 import com.huawei.cangjie.resolve.calls.inference.wrapWithCapturingSubstitution
 import com.huawei.cangjie.resolve.calls.model.VariableAsFunctionResolvedCall
 import com.huawei.cangjie.resolve.calls.util.getEffectiveExpectedType
+import com.huawei.cangjie.resolve.calls.util.getResolvedCall
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeConstructorSubstitution
 import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.isNothing
@@ -104,6 +105,11 @@ fun ResolutionContext<*>.reportTypeMismatchDueToTypeProjection(
         is CallPosition.ExtensionReceiverPosition ->
             callPosition.resolvedCall to { f: CallableDescriptor -> f.extensionReceiverParameter?.type }
 
+        is CallPosition.VariableAssignment -> {
+            if (callPosition.isLeft) return false
+            val resolvedCall = callPosition.leftPart.getResolvedCall(trace.bindingContext) ?: return false
+            resolvedCall to { f: CallableDescriptor ->  null}
+        }
 //        is CallPosition.PropertyAssignment -> {
 //            if (callPosition.isLeft) return false
 //            val resolvedCall = callPosition.leftPart.getResolvedCall(trace.bindingContext) ?: return false
@@ -196,8 +202,8 @@ class TypeMismatchDueToTypeProjectionsData(
 )
 
 
-  class   InvalidBinaryData(
-    val operatorString :String,
-    val leftType:CangJieType,
-    val rightType:CangJieType
+class InvalidBinaryData(
+    val operatorString: String,
+    val leftType: CangJieType,
+    val rightType: CangJieType
 )

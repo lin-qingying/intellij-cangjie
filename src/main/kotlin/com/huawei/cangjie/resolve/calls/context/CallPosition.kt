@@ -16,6 +16,7 @@ sealed class CallPosition {
         val valueParameter: ValueParameterDescriptor,
         val valueArgument: ValueArgument
     ) : CallPosition()
+    class VariableAssignment(val leftPart: CjExpression?, val isLeft: Boolean) : CallPosition()
 
 //    class PropertyAssignment(val leftPart: CjExpression?, val isLeft: Boolean) : CallPosition()
 

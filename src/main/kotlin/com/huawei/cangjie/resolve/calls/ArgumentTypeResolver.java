@@ -70,6 +70,9 @@ public class ArgumentTypeResolver {
     private static boolean isCollectionLiteralInsideAnnotation(CjExpression expression, CallResolutionContext<?> context) {
         return expression instanceof CjCollectionLiteralExpression && context.call.getCallElement() instanceof CjAnnotationEntry;
     }
+    public static boolean isCollectionLiteralArgument(@NotNull CjExpression expression) {
+        return expression instanceof CjCollectionLiteralExpression;
+    }
     @Nullable
     public CangJieType resolveTypeRefWithDefault(
             @Nullable CjTypeReference returnTypeRef,
@@ -83,12 +86,16 @@ public class ArgumentTypeResolver {
         return defaultValue;
     }
 
-    private static boolean isCallableReferenceArgument(
+    public static boolean isCallableReferenceArgument(
             @NotNull CjExpression expression, @NotNull StatementFilter statementFilter
     ) {
         return getCallableReferenceExpressionIfAny(expression, statementFilter) != null;
     }
-
+    public static boolean isCallableReferenceArgument(
+            @NotNull CjExpression expression, @NotNull ResolutionContext context
+    ) {
+        return isCallableReferenceArgument(expression, context.statementFilter);
+    }
     private static boolean isFunctionLiteralArgument(
             @NotNull CjExpression expression, @NotNull StatementFilter statementFilter
     ) {
@@ -100,7 +107,11 @@ public class ArgumentTypeResolver {
     ) {
         return isFunctionLiteralArgument(expression, statementFilter) || isCallableReferenceArgument(expression, statementFilter);
     }
-
+    public static boolean isFunctionLiteralOrCallableReference(
+            @NotNull CjExpression expression, @NotNull ResolutionContext context
+    ) {
+        return isFunctionLiteralOrCallableReference(expression, context.statementFilter);
+    }
     public static boolean isFunctionLiteralArgument(
             @NotNull CjExpression expression, @NotNull ResolutionContext context
     ) {

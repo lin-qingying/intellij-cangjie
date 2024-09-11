@@ -1,9 +1,10 @@
 package com.huawei.cangjie.resolve;
 
 import com.huawei.cangjie.descriptors.*;
-import com.huawei.cangjie.psi.CjExpression;
-import com.huawei.cangjie.psi.CjFunctionLiteral;
+import com.huawei.cangjie.psi.*;
+import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfoFactory;
+import com.huawei.cangjie.resolve.calls.util.CallUtilKt;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
 import com.huawei.cangjie.types.util.TypeUtils;
@@ -16,7 +17,38 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BindingContextUtils {
+    @Nullable
+    public static VariableDescriptor extractVariableDescriptorFromReference(
+            @NotNull BindingContext bindingContext,
+            @Nullable CjElement element
+    ) {
+        if (element instanceof CjSimpleNameExpression) {
+            return variableDescriptorForDeclaration(bindingContext.get(BindingContext.REFERENCE_TARGET, (CjSimpleNameExpression) element));
+        }
+        else if (element instanceof CjQualifiedExpression) {
+            return extractVariableDescriptorFromReference(bindingContext, ((CjQualifiedExpression) element).getSelectorExpression());
+        }
+        return null;
+    }
 
+    @Nullable
+    public static VariableDescriptor variableDescriptorForDeclaration(@Nullable DeclarationDescriptor descriptor) {
+        if (descriptor instanceof VariableDescriptor)
+            return (VariableDescriptor) descriptor;
+//        if (descriptor instanceof ClassDescriptor) {
+//            return TowerLevelsKt.getFakeDescriptorForObject((ClassDescriptor) descriptor);
+//        }
+        return null;
+    }
+    @Nullable
+    public static VariableDescriptor extractVariableFromResolvedCall(
+            @NotNull BindingContext bindingContext,
+            @Nullable CjElement callElement
+    ) {
+        ResolvedCall<? extends CallableDescriptor> resolvedCall = CallUtilKt.getResolvedCall(callElement, bindingContext);
+        if (resolvedCall == null || !(resolvedCall.getResultingDescriptor() instanceof VariableDescriptor)) return null;
+        return (VariableDescriptor) resolvedCall.getResultingDescriptor();
+    }
     @Nullable
     public static CangJieType updateRecordedType(
             @Nullable CangJieType type,

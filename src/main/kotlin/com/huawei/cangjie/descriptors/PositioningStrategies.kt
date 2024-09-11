@@ -8,10 +8,7 @@ import com.huawei.cangjie.diagnostics.markRange
 import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
-import com.huawei.cangjie.psi.psiUtil.getChildOfType
-import com.huawei.cangjie.psi.psiUtil.getElementTextWithContext
-import com.huawei.cangjie.psi.psiUtil.getStrictParentOfType
-import com.huawei.cangjie.psi.psiUtil.unwrapParenthesesLabelsAndAnnotations
+import com.huawei.cangjie.psi.psiUtil.*
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
@@ -35,7 +32,13 @@ object PositioningStrategies {
             }
             return super.isValid(element)
         }
-    }
+    }   @JvmField
+    val USELESS_ELVIS: PositioningStrategy<CjBinaryExpression> = object : PositioningStrategy<CjBinaryExpression>() {
+            override fun mark(element: CjBinaryExpression): List<TextRange> {
+                return listOf(TextRange(element.operationReference.startOffset, element.endOffset))
+            }
+        }
+
 
     @JvmField
     val RETURN_WITH_LABEL: PositioningStrategy<CjReturnExpression> =
@@ -237,7 +240,18 @@ object PositioningStrategies {
             return markNode(element.getQuestionMarkNode())
         }
     }
-
+    @JvmField
+    val TYPE_PARAMETERS_OR_DECLARATION_SIGNATURE: PositioningStrategy<CjDeclaration> = object : PositioningStrategy<CjDeclaration>() {
+        override fun mark(element: CjDeclaration): List<TextRange> {
+            if (element is CjTypeParameterListOwner) {
+                val ktTypeParameterList = element.typeParameterList
+                if (ktTypeParameterList != null) {
+                    return markElement(ktTypeParameterList)
+                }
+            }
+            return DECLARATION_SIGNATURE.mark(element)
+        }
+    }
     @JvmField
     val DECLARATION_NAME: PositioningStrategy<CjNamedDeclaration> = object : DeclarationHeader<CjNamedDeclaration>() {
         override fun mark(element: CjNamedDeclaration): List<TextRange> {

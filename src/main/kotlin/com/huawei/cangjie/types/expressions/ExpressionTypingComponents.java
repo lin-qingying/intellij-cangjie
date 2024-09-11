@@ -7,9 +7,11 @@ import com.huawei.cangjie.extensions.TypeResolutionInterceptor;
 import com.huawei.cangjie.resolve.*;
 import com.huawei.cangjie.resolve.calls.CallExpressionResolver;
 import com.huawei.cangjie.resolve.calls.CallResolver;
+import com.huawei.cangjie.resolve.calls.checkers.AssignmentChecker;
 import com.huawei.cangjie.resolve.calls.model.CangJieCallComponents;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator;
+import com.huawei.cangjie.resolve.deprecation.DeprecationResolver;
 import com.huawei.cangjie.types.checker.NewCangJieTypeChecker;
 import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +24,10 @@ public class ExpressionTypingComponents {
     public FunctionDescriptorResolver functionDescriptorResolver;
     public CollectionLiteralResolver collectionLiteralResolver;
     public CallResolver callResolver;
+    public Iterable<AssignmentChecker> assignmentCheckers;
+    public MissingSupertypesResolver missingSupertypesResolver;
+    public ModifiersChecker modifiersChecker;
+    public ControlStructureTypingUtils controlStructureTypingUtils;
 
     public LocalVariableResolver localVariableResolver;
     public TypeResolutionInterceptor typeResolutionInterceptor;
@@ -29,14 +35,41 @@ public class ExpressionTypingComponents {
 
     public CangJieBuiltIns builtIns;
     public DataFlowValueFactory dataFlowValueFactory;
+    public DeprecationResolver deprecationResolver;
 
     public ExpressionTypingServices expressionTypingServices;
     public DataFlowAnalyzer dataFlowAnalyzer;
 
     public NewCangJieTypeChecker cangjieTypeChecker;
     public CangJieCallComponents callComponents;
+    public ValueParameterResolver valueParameterResolver;
 
     public OverloadChecker overloadChecker;
+    @Inject
+    public void setMissingSupertypesResolver(@NotNull MissingSupertypesResolver missingSupertypesResolver) {
+        this.missingSupertypesResolver = missingSupertypesResolver;
+    }
+//    @Inject
+//    public void setDeclarationsCheckerBuilder(@NotNull DeclarationsCheckerBuilder declarationsCheckerBuilder) {
+//        this.declarationsCheckerBuilder = declarationsCheckerBuilder;
+//    }
+
+    @Inject
+    public void setValueParameterResolver(ValueParameterResolver valueParameterResolver) {
+        this.valueParameterResolver = valueParameterResolver;
+    }
+    @Inject
+    public void setControlStructureTypingUtils(@NotNull ControlStructureTypingUtils controlStructureTypingUtils) {
+        this.controlStructureTypingUtils = controlStructureTypingUtils;
+    }
+    @Inject
+    public void setDeprecationResolver(DeprecationResolver deprecationResolver) {
+        this.deprecationResolver = deprecationResolver;
+    }
+    @Inject
+    public void setModifiersChecker(@NotNull ModifiersChecker modifiersChecker) {
+        this.modifiersChecker = modifiersChecker;
+    }
 
     @Inject
     public void setDataFlowAnalyzer(@NotNull DataFlowAnalyzer dataFlowAnalyzer) {
@@ -88,7 +121,10 @@ public class ExpressionTypingComponents {
     public void setDataFlowValueFactory(@NotNull DataFlowValueFactory dataFlowValueFactory) {
         this.dataFlowValueFactory = dataFlowValueFactory;
     }
-
+    @Inject
+    public void setAssignmentCheckers(@NotNull Iterable<AssignmentChecker> assignmentCheckers) {
+        this.assignmentCheckers = assignmentCheckers;
+    }
     @Inject
     public void setBuiltIns(@NotNull CangJieBuiltIns builtIns) {
         this.builtIns = builtIns;

@@ -16,6 +16,7 @@ import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext;
 import com.huawei.cangjie.resolve.calls.context.CheckArgumentTypesMode;
 import com.huawei.cangjie.resolve.calls.context.ContextDependency;
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext;
+import com.huawei.cangjie.resolve.calls.model.MutableDataFlowInfoForArguments;
 import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResults;
 import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResultsImpl;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
@@ -47,10 +48,7 @@ import kotlin.collections.CollectionsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static com.huawei.cangjie.descriptors.Errors.*;
 import static com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;
@@ -117,6 +115,26 @@ public class CallResolver {
         return computeTasksAndResolveCall(
                 callResolutionContext, name, functionReference,
                 NewResolutionOldInference.ResolutionKind.Function.INSTANCE);
+    }
+    public OverloadResolutionResults<FunctionDescriptor> resolveCallWithKnownCandidate(
+            @NotNull Call call,
+            @NotNull TracingStrategy tracing,
+            @NotNull ResolutionContext<?> context,
+            @NotNull OldResolutionCandidate<FunctionDescriptor> candidate,
+            @Nullable MutableDataFlowInfoForArguments dataFlowInfoForArguments
+    ) {
+        return callResolvePerfCounter.<OverloadResolutionResults<FunctionDescriptor>>time(() -> {
+            BasicCallResolutionContext basicCallResolutionContext =
+                    BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, dataFlowInfoForArguments);
+
+            Set<OldResolutionCandidate<FunctionDescriptor>> candidates = Collections.singleton(candidate);
+
+            ResolutionTask<FunctionDescriptor> resolutionTask = new ResolutionTask<>(
+                    new NewResolutionOldInference.ResolutionKind.GivenCandidates(), null, candidates
+            );
+
+            return doResolveCallOrGetCachedResults(basicCallResolutionContext, resolutionTask, tracing);
+        });
     }
 
     @NotNull

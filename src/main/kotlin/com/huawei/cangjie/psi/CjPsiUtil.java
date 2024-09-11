@@ -25,6 +25,8 @@ public class CjPsiUtil {
     public static CjExpression safeDeparenthesize(@NotNull CjExpression expression) {
         return safeDeparenthesize(expression, false);
     }
+
+
     public static boolean isSelectorInQualified(@NotNull CjSimpleNameExpression nameExpression) {
         CjElement qualifiedElement = CjPsiUtilKt.getQualifiedElement(nameExpression);
         return qualifiedElement instanceof CjQualifiedExpression

@@ -206,6 +206,15 @@ public class DefaultErrorMessages {
         MAP.put(FUNCTION_DECLARATION_WITH_NO_NAME, "Function declaration must have a name");
 
 
+
+
+        MAP.put(ASSIGNMENT_IN_EXPRESSION_CONTEXT, "Assignments are not expressions, and only expressions are allowed in this context");
+        MAP.put(VARIABLE_EXPECTED, "Variable expected");
+        MAP.put(LET_REASSIGNMENT, "Val cannot be reassigned", NAME);
+        MAP.put(USELESS_ELVIS, "Elvis operator (??) always returns the left operand of non-option type {0}", RENDER_TYPE);
+        MAP.put(USELESS_ELVIS_RIGHT_IS_NULL, "Right operand of elvis operator (??) is useless if it is Option");
+
+
     }
 
 

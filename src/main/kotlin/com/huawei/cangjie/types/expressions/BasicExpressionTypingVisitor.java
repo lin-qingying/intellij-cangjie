@@ -1,5 +1,6 @@
 package com.huawei.cangjie.types.expressions;
 
+import com.google.common.collect.Lists;
 import com.huawei.cangjie.CjNodeTypes;
 import com.huawei.cangjie.builtins.BinaryOperatorRule;
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
@@ -14,22 +15,31 @@ import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.parsing.ParseUtilsKt;
 import com.huawei.cangjie.psi.*;
+import com.huawei.cangjie.resolve.BindingContext;
+import com.huawei.cangjie.resolve.BindingContextUtils;
+import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver;
 import com.huawei.cangjie.resolve.calls.CallExpressionResolver;
 import com.huawei.cangjie.resolve.calls.context.ContextDependency;
+import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
 import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResults;
 import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResultsImpl;
 import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResultsUtil;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValue;
+import com.huawei.cangjie.resolve.calls.util.CallMaker;
 import com.huawei.cangjie.resolve.constants.*;
 import com.huawei.cangjie.resolve.scopes.LexicalScopeKind;
 import com.huawei.cangjie.resolve.scopes.LexicalWritableScope;
 import com.huawei.cangjie.resolve.scopes.ScopeUtilsKt;
 import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver;
+import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.ErrorUtils;
+import com.huawei.cangjie.types.checker.CangJieTypeChecker;
 import com.huawei.cangjie.types.error.ErrorType;
+import com.huawei.cangjie.types.error.ErrorTypeKind;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
+import com.huawei.cangjie.types.util.TypeUtils;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.huawei.cangjie.utils.exceptions.OperatorConventions;
 import com.intellij.psi.PsiElement;
@@ -41,6 +51,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.huawei.cangjie.descriptors.Errors.*;
 import static com.huawei.cangjie.lexer.CjTokens.*;
+import static com.huawei.cangjie.types.expressions.ControlStructureTypingUtils.createCallForSpecialConstruction;
 import static com.huawei.cangjie.types.expressions.ExpressionTypingUtils.*;
 import static com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;
 import static com.huawei.cangjie.utils.exceptions.OperatorConventions.isConventionType;
@@ -220,57 +231,57 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         return result;
     }
 
-    //    @NotNull
-//    private CangJieTypeInfo visitElvisExpression(
-//            @NotNull CjBinaryExpression expression,
-//            @NotNull ExpressionTypingContext contextWithExpectedType
-//    ) {
-//        ExpressionTypingContext context = contextWithExpectedType.replaceExpectedType(NO_EXPECTED_TYPE);
-//        CjExpression left = expression.getLeft();
-//        CjExpression right = expression.getRight();
-//
-//        if (left == null || right == null) {
-//            getTypeInfoOrNullType(left, context, facade);
-//            return TypeInfoFactoryKt.noTypeInfo(context);
-//        }
-//
-//        Call call = createCallForSpecialConstruction(expression, expression.getOperationReference(), Lists.newArrayList(left, right));
-//        ResolvedCall<FunctionDescriptor> resolvedCall = components.controlStructureTypingUtils.resolveSpecialConstructionAsCall(
-//                call, ControlStructureTypingUtils.ResolveConstruct.ELVIS, Lists.newArrayList("left", "right"),
-//                Lists.newArrayList(true, false), contextWithExpectedType, null);
-//        CangJieTypeInfo leftTypeInfo = BindingContextUtils.getRecordedTypeInfo(left, context.trace.getBindingContext());
-//        boolean isLeftFunctionLiteral = ArgumentTypeResolver.isFunctionLiteralArgument(left, context);
-//        boolean isLeftCallableReference = ArgumentTypeResolver.isCallableReferenceArgument(left, context);
-//        boolean isLeftCollectionLiteral = ArgumentTypeResolver.isCollectionLiteralArgument(left);
-//        if (leftTypeInfo == null && (isLeftFunctionLiteral || isLeftCallableReference || isLeftCollectionLiteral)) {
-//            return TypeInfoFactoryKt.noTypeInfo(context);
-//        }
-//        assert leftTypeInfo != null : "Left expression was not processed: " + expression;
-//        CangJieType leftType = leftTypeInfo.getType();
-//        CangJieTypeInfo rightTypeInfo = BindingContextUtils.getRecordedTypeInfo(right, context.trace.getBindingContext());
-//        if (rightTypeInfo == null && ArgumentTypeResolver.isFunctionLiteralOrCallableReference(right, context)) {
-//            // the type is computed later in call completer according to the '?:' semantics as a function
-//            return TypeInfoFactoryKt.noTypeInfo(context);
-//        }
-//        assert rightTypeInfo != null : "Right expression was not processed: " + expression;
-//        boolean loopBreakContinuePossible = leftTypeInfo.getJumpOutPossible() || rightTypeInfo.getJumpOutPossible();
-//        CangJieType rightType = rightTypeInfo.getType();
-//
-//        // Only left argument DFA is taken into account here: we cannot be sure that right argument is joined
-//        // (we merge it with right DFA if right argument contains no jump outside)
-//        DataFlowInfo dataFlowInfo = resolvedCall.getDataFlowInfoForArguments().getInfo(call.getValueArguments().get(1));
-//
-//        CangJieType type = resolvedCall.getResultingDescriptor().getReturnType();
-//        if (type == null ||
-//                rightType == null ||
-//                leftType == null && CangJieBuiltIns.isNothing(rightType)) return TypeInfoFactoryKt.noTypeInfo(dataFlowInfo);
-//
-//        if (leftType != null) {
-//            DataFlowValue leftValue = components.dataFlowValueFactory.createDataFlowValue(left, leftType, context);
-//            DataFlowInfo rightDataFlowInfo = resolvedCall.getDataFlowInfoForArguments().getResultInfo();
-//            boolean jumpInRight = CangJieBuiltIns.isNothing(rightType);
-//            DataFlowValue nullValue = DataFlowValue.nullValue(components.builtIns);
-//            // left argument is considered not-null if it's not-null also in right part or if we have jump in right part
+        @NotNull
+    private CangJieTypeInfo visitElvisExpression(
+            @NotNull CjBinaryExpression expression,
+            @NotNull ExpressionTypingContext contextWithExpectedType
+    ) {
+        ExpressionTypingContext context = contextWithExpectedType.replaceExpectedType(NO_EXPECTED_TYPE);
+        CjExpression left = expression.getLeft();
+        CjExpression right = expression.getRight();
+
+        if (left == null || right == null) {
+            getTypeInfoOrNullType(left, context, facade);
+            return TypeInfoFactoryKt.noTypeInfo(context);
+        }
+
+        Call call = createCallForSpecialConstruction(expression, expression.getOperationReference(), Lists.newArrayList(left, right));
+        ResolvedCall<FunctionDescriptor> resolvedCall = components.controlStructureTypingUtils.resolveSpecialConstructionAsCall(
+                call, ControlStructureTypingUtils.ResolveConstruct.ELVIS, Lists.newArrayList("left", "right"),
+                Lists.newArrayList(true, false), contextWithExpectedType, null);
+        CangJieTypeInfo leftTypeInfo = BindingContextUtils.getRecordedTypeInfo(left, context.trace.getBindingContext());
+        boolean isLeftFunctionLiteral = ArgumentTypeResolver.isFunctionLiteralArgument(left, context);
+        boolean isLeftCallableReference = ArgumentTypeResolver.isCallableReferenceArgument(left, context);
+        boolean isLeftCollectionLiteral = ArgumentTypeResolver.isCollectionLiteralArgument(left);
+        if (leftTypeInfo == null && (isLeftFunctionLiteral || isLeftCallableReference || isLeftCollectionLiteral)) {
+            return TypeInfoFactoryKt.noTypeInfo(context);
+        }
+        assert leftTypeInfo != null : "Left expression was not processed: " + expression;
+        CangJieType leftType = leftTypeInfo.getType();
+        CangJieTypeInfo rightTypeInfo = BindingContextUtils.getRecordedTypeInfo(right, context.trace.getBindingContext());
+        if (rightTypeInfo == null && ArgumentTypeResolver.isFunctionLiteralOrCallableReference(right, context)) {
+            // the type is computed later in call completer according to the '?:' semantics as a function
+            return TypeInfoFactoryKt.noTypeInfo(context);
+        }
+        assert rightTypeInfo != null : "Right expression was not processed: " + expression;
+        boolean loopBreakContinuePossible = leftTypeInfo.getJumpOutPossible() || rightTypeInfo.getJumpOutPossible();
+        CangJieType rightType = rightTypeInfo.getType();
+
+        // Only left argument DFA is taken into account here: we cannot be sure that right argument is joined
+        // (we merge it with right DFA if right argument contains no jump outside)
+        DataFlowInfo dataFlowInfo = resolvedCall.getDataFlowInfoForArguments().getInfo(call.getValueArguments().get(1));
+
+        CangJieType type = resolvedCall.getResultingDescriptor().getReturnType();
+        if (type == null ||
+                rightType == null ||
+                leftType == null && CangJieBuiltIns.isNothing(rightType)) return TypeInfoFactoryKt.noTypeInfo(dataFlowInfo);
+
+        if (leftType != null) {
+            DataFlowValue leftValue = components.dataFlowValueFactory.createDataFlowValue(left, leftType, context);
+            DataFlowInfo rightDataFlowInfo = resolvedCall.getDataFlowInfoForArguments().getResultInfo();
+            boolean jumpInRight = CangJieBuiltIns.isNothing(rightType);
+            DataFlowValue nullValue = DataFlowValue.nullValue(components.builtIns);
+            // left argument is considered not-null if it's not-null also in right part or if we have jump in right part
 //            if (jumpInRight || !rightDataFlowInfo.getStableNullability(leftValue).canBeNull()) {
 //                dataFlowInfo = dataFlowInfo.disequate(leftValue, nullValue, components.languageVersionSettings);
 //                if (left instanceof CjBinaryExpressionWithTypeRHS) {
@@ -278,32 +289,32 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
 //                            components.languageVersionSettings);
 //                }
 //            }
-//            DataFlowValue resultValue = components.dataFlowValueFactory.createDataFlowValue(expression, type, context);
-//            dataFlowInfo =
-//                    dataFlowInfo.assign(resultValue, leftValue, components.languageVersionSettings)
-//                            .disequate(resultValue, nullValue, components.languageVersionSettings);
-//            if (!jumpInRight) {
-//                DataFlowValue rightValue = components.dataFlowValueFactory.createDataFlowValue(right, rightType, context);
-//                rightDataFlowInfo = rightDataFlowInfo.assign(resultValue, rightValue, components.languageVersionSettings);
-//                dataFlowInfo = dataFlowInfo.or(rightDataFlowInfo);
-//            }
-//        }
-//
-//        // Sometimes return type for special call for elvis operator might be nullable,
-//        // but result is not nullable if the right type is not nullable
-//        if (!TypeUtils.isNullableType(rightType) && TypeUtils.isNullableType(type)) {
-//            type = TypeUtils.makeNotNullable(type);
-//        }
-//        if (context.contextDependency == DEPENDENT) {
-//            return TypeInfoFactoryKt.createTypeInfo(type, dataFlowInfo);
-//        }
-//
-//        // If break or continue was possible, take condition check info as the jump info
-//        return TypeInfoFactoryKt.createTypeInfo(components.dataFlowAnalyzer.checkType(type, expression, contextWithExpectedType),
-//                dataFlowInfo,
-//                loopBreakContinuePossible,
-//                context.dataFlowInfo);
-//    }
+            DataFlowValue resultValue = components.dataFlowValueFactory.createDataFlowValue(expression, type, context);
+            dataFlowInfo =
+                    dataFlowInfo.assign(resultValue, leftValue/*, components.languageVersionSettings*/)
+                            .disequate(resultValue, nullValue, components.languageVersionSettings);
+            if (!jumpInRight) {
+                DataFlowValue rightValue = components.dataFlowValueFactory.createDataFlowValue(right, rightType, context);
+                rightDataFlowInfo = rightDataFlowInfo.assign(resultValue, rightValue/*, components.languageVersionSettings*/);
+                dataFlowInfo = dataFlowInfo.or(rightDataFlowInfo);
+            }
+        }
+
+        // Sometimes return type for special call for elvis operator might be nullable,
+        // but result is not nullable if the right type is not nullable
+        if (!TypeUtils.isNullableType(rightType) && TypeUtils.isNullableType(type)) {
+            type = TypeUtils.makeNotNullable(type);
+        }
+        if (context.contextDependency ==ContextDependency. DEPENDENT) {
+            return TypeInfoFactoryKt.createTypeInfo(type, dataFlowInfo);
+        }
+
+        // If break or continue was possible, take condition check info as the jump info
+        return TypeInfoFactoryKt.createTypeInfo(components.dataFlowAnalyzer.checkType(type, expression, contextWithExpectedType),
+                dataFlowInfo,
+                loopBreakContinuePossible,
+                context.dataFlowInfo);
+    }
     @NotNull
     private CangJieTypeInfo visitComparison(
             @NotNull CjBinaryExpression expression,
@@ -317,31 +328,32 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         return getTypeInfoForBinaryCall(referencedName, context, expression);
 
     }
-//    @NotNull
-//    private CangJieTypeInfo visitBooleanOperationExpression(
-//            @Nullable IElementType operationType,
-//            @Nullable CjExpression left,
-//            @Nullable CjExpression right,
-//            @NotNull ExpressionTypingContext context
-//    ) {
-//        CangJieType booleanType = components.builtIns.getBoolType();
-//        CangJieTypeInfo leftTypeInfo = getTypeInfoOrNullType(left, context.replaceExpectedType(booleanType), facade);
-//        DataFlowInfo dataFlowInfo = leftTypeInfo.getDataFlowInfo();
-//
-//        LexicalWritableScope leftScope = newWritableScopeImpl(context, LexicalScopeKind.LEFT_BOOLEAN_EXPRESSION, facade.getComponents().overloadChecker);
-//        // TODO: This gets computed twice: here and in extractDataFlowInfoFromCondition() for the whole condition
-//        boolean isAnd = operationType == CjTokens.ANDAND;
-//        DataFlowInfo flowInfoLeft = components.dataFlowAnalyzer.extractDataFlowInfoFromCondition(left, isAnd, context).and(dataFlowInfo);
-//        LexicalWritableScope rightScope = isAnd ? leftScope : newWritableScopeImpl(context, LexicalScopeKind.RIGHT_BOOLEAN_EXPRESSION,
-//                facade.getComponents().overloadChecker);
-//
-//        ExpressionTypingContext contextForRightExpr =
-//                context.replaceDataFlowInfo(flowInfoLeft).replaceScope(rightScope).replaceExpectedType(booleanType);
-//        if (right != null) {
-//            facade.getTypeInfo(right, contextForRightExpr);
-//        }
-//        return leftTypeInfo.replaceType(booleanType);
-//    }
+
+    @NotNull
+    public CangJieTypeInfo visitBooleanOperationExpression(
+            @Nullable IElementType operationType,
+            @Nullable CjExpression left,
+            @Nullable CjExpression right,
+            @NotNull ExpressionTypingContext context
+    ) {
+        CangJieType booleanType = components.builtIns.getBoolType();
+        CangJieTypeInfo leftTypeInfo = getTypeInfoOrNullType(left, context.replaceExpectedType(booleanType), facade);
+        DataFlowInfo dataFlowInfo = leftTypeInfo.getDataFlowInfo();
+
+        LexicalWritableScope leftScope = newWritableScopeImpl(context, LexicalScopeKind.LEFT_BOOLEAN_EXPRESSION, facade.getComponents().overloadChecker);
+        // TODO: This gets computed twice: here and in extractDataFlowInfoFromCondition() for the whole condition
+        boolean isAnd = operationType == CjTokens.ANDAND;
+        DataFlowInfo flowInfoLeft = components.dataFlowAnalyzer.extractDataFlowInfoFromCondition(left, isAnd, context).and(dataFlowInfo);
+        LexicalWritableScope rightScope = isAnd ? leftScope : newWritableScopeImpl(context, LexicalScopeKind.RIGHT_BOOLEAN_EXPRESSION,
+                facade.getComponents().overloadChecker);
+
+        ExpressionTypingContext contextForRightExpr =
+                context.replaceDataFlowInfo(flowInfoLeft).replaceScope(rightScope).replaceExpectedType(booleanType);
+        if (right != null) {
+            facade.getTypeInfo(right, contextForRightExpr);
+        }
+        return leftTypeInfo.replaceType(booleanType);
+    }
 
     @Override
     public CangJieTypeInfo visitBinaryExpression(@NotNull CjBinaryExpression expression, ExpressionTypingContext contextWithExpectedType) {
@@ -360,16 +372,19 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         if (OperatorConventions.BINARY_OPERATION_NAMES.containsKey(operationType)) {
             Name referencedName = OperatorConventions.BINARY_OPERATION_NAMES.get(operationType);
             result = getTypeInfoForBinaryCall(referencedName, context, expression);
-        }   /*else if (operationType == CjTokens.ELVIS) {
+        }   else if (operationType == CjTokens.ELVIS) {
             //base expression of elvis operator is checked for 'type mismatch', so the whole expression shouldn't be checked
             return visitElvisExpression(expression, context);
-        }*/ else if (OperatorConventions.COMPARISON_OPERATIONS_NAMES.containsKey(operationType)) {
+        } else if (OperatorConventions.COMPARISON_OPERATIONS_NAMES.containsKey(operationType)) {
             result = visitComparison(expression, context, operationSign);
         } else if (operationType == CjTokens.EQ) {
             result = visitAssignment(expression, context);
-        }   /* else if (OperatorConventions.BOOLEAN_OPERATIONS.containsKey(operationType)) {
+        } else if (OperatorConventions.ASSIGNMENT_OPERATIONS.containsKey(operationType)) {
+            result = visitAssignmentOperation(expression, context);
+        }
+        else if (OperatorConventions.BOOLEAN_OPERATIONS_NAMES.containsKey(operationType)) {
             result = visitBooleanOperationExpression(operationType, left, right, context);
-        }*/else {
+        } else {
             context.trace.report(UNSUPPORTED.on(operationSign, "Unknown operation"));
             result = TypeInfoFactoryKt.noTypeInfo(context);
         }
@@ -383,6 +398,10 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         return components.dataFlowAnalyzer.checkType(result, expression, contextWithExpectedType);
     }
 
+    @NotNull
+    private CangJieTypeInfo visitAssignmentOperation(CjBinaryExpression expression, ExpressionTypingContext context) {
+        return assignmentIsNotAnExpressionError(expression, context);
+    }
     private CangJieTypeInfo checkOperatorByType(CangJieTypeInfo leftTypeInfo, CangJieTypeInfo rightTypeInfo,
                                                 CjSimpleNameExpression operationSign, ExpressionTypingContext context) {
         IElementType operationType = operationSign.getReferencedNameElementType();
@@ -625,4 +644,258 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         );
         return components.dataFlowAnalyzer.checkType(typeInfo, expression, context); // TODO : Extensions to this
     }
+
+
+    @Override
+    public CangJieTypeInfo visitUnaryExpression(@NotNull CjUnaryExpression expression, ExpressionTypingContext contextWithExpectedType) {
+        ExpressionTypingContext context = contextWithExpectedType.replaceContextDependency(ContextDependency.INDEPENDENT)
+                .replaceExpectedType(NO_EXPECTED_TYPE);
+
+        CjExpression baseExpression = expression.getBaseExpression();
+        if (baseExpression == null) return TypeInfoFactoryKt.noTypeInfo(context);
+
+        CjSimpleNameExpression operationSign = expression.getOperationReference();
+
+        IElementType operationType = operationSign.getReferencedNameElementType();
+
+
+        // Type check the base expression
+        CangJieTypeInfo typeInfo = facade.safeGetTypeInfo(baseExpression, context);
+        CangJieType type = ExpressionTypingUtils.safeGetType(typeInfo);
+        ExpressionReceiver receiver = ExpressionReceiver.Companion.create(baseExpression, type, context.trace.getBindingContext());
+
+        Call call = CallMaker.makeCall(receiver, expression);
+
+        // Conventions for unary operations
+        Name name = OperatorConventions.UNARY_OPERATION_NAMES.get(operationType);
+        if (name == null) {
+            context.trace.report(UNSUPPORTED.on(operationSign, "visitUnaryExpression"));
+            return typeInfo.clearType();
+        }
+
+        CjExpression deparenthesizedBaseExpression = CjPsiUtil.deparenthesize(baseExpression);
+
+        // a[i]++/-- takes special treatment because it is actually let j = i, arr = a in arr.set(j, a.get(j).inc())
+//        if ((operationType == CjTokens.PLUSPLUS || operationType == CjTokens.MINUSMINUS) &&
+//                deparenthesizedBaseExpression instanceof CjArrayAccessExpression) {
+//            CjExpression stubExpression = ExpressionTypingUtils.createFakeExpressionOfType(
+//                    baseExpression.getProject(), context.trace, "e", type);
+//            TemporaryBindingTrace temporaryBindingTrace = TemporaryBindingTrace.create(
+//                    context.trace, "trace to resolve array access set method for unary expression", expression);
+//            ExpressionTypingContext newContext = context.replaceBindingTrace(temporaryBindingTrace);
+//            resolveImplicitArrayAccessSetMethod(
+//                    (CjArrayAccessExpression) deparenthesizedBaseExpression,
+//                    stubExpression,
+//                    newContext,
+//                    context.trace
+//            );
+//        }
+
+        // Resolve the operation reference
+        OverloadResolutionResults<FunctionDescriptor> resolutionResults = components.callResolver.resolveCallWithGivenName(
+                context, call, expression.getOperationReference(), name);
+
+        if (!resolutionResults.isSuccess()) {
+            return typeInfo.clearType();
+        }
+
+        // Computing the return type
+        CangJieType returnType = resolutionResults.getResultingDescriptor().getReturnType();
+        CangJieType result;
+        if (operationType == CjTokens.PLUSPLUS || operationType == CjTokens.MINUSMINUS) {
+            assert returnType != null : "returnType is null for " + resolutionResults.getResultingDescriptor();
+            if (CangJieBuiltIns.isUnit(returnType)) {
+                result = ErrorUtils.createErrorType(ErrorTypeKind.UNIT_RETURN_TYPE_FOR_INC_DEC);
+                context.trace.report(INC_DEC_SHOULD_NOT_RETURN_UNIT.on(operationSign));
+            } else {
+                CangJieType receiverType = receiver.getType();
+                if (!CangJieTypeChecker.DEFAULT.isSubtypeOf(returnType, receiverType)) {
+                    context.trace.report(RESULT_TYPE_MISMATCH.on(operationSign, name.asString(), receiverType, returnType));
+                } else {
+                    context.trace.record(BindingContext.VARIABLE_REASSIGNMENT, expression);
+                    CjExpression stubExpression = ExpressionTypingUtils.createFakeExpressionOfType(
+                            baseExpression.getProject(), context.trace, "e", type);
+                    checkLValue(context.trace, context, baseExpression, stubExpression, expression, false);
+                }
+                // x++ type is x type, but ++x type is x.inc() type
+                DataFlowValue receiverValue = components.dataFlowValueFactory.createDataFlowValue(
+                        (ReceiverValue) call.getExplicitReceiver(), contextWithExpectedType);
+                if (expression instanceof CjPrefixExpression) {
+                    result = returnType;
+                } else {
+                    result = receiverType;
+                    // Also record data flow information for x++ value (= x)
+                    DataFlowValue returnValue = components.dataFlowValueFactory.createDataFlowValue(expression, receiverType, contextWithExpectedType);
+                    typeInfo = typeInfo.replaceDataFlowInfo(typeInfo.getDataFlowInfo().assign(returnValue, receiverValue
+                      /*      ,
+                            components.languageVersionSettings*/));
+                }
+            }
+        } else {
+            result = returnType;
+        }
+
+        CompileTimeConstant<?> value = components.constantExpressionEvaluator.evaluateExpression(
+                expression, contextWithExpectedType.trace, contextWithExpectedType.expectedType
+        );
+        if (value != null) {
+            return components.dataFlowAnalyzer.createCompileTimeConstantTypeInfo(value, expression, contextWithExpectedType);
+        }
+
+        return components.dataFlowAnalyzer.checkType(typeInfo.replaceType(result),
+                expression,
+                contextWithExpectedType.replaceDataFlowInfo(typeInfo.getDataFlowInfo()));
+    }
+
+    /**
+     * @return {@code true} iff expression can be assigned to
+     */
+    public boolean checkLValue(
+            @NotNull BindingTrace trace,
+            @NotNull ExpressionTypingContext context,
+            @NotNull CjExpression expressionWithParenthesis,
+            @Nullable CjExpression rightHandSide,
+            @NotNull CjOperationExpression operationExpression,
+            boolean arraySetMethodAlreadyResolved
+    ) {
+        CjExpression expression = CjPsiUtil.deparenthesize(expressionWithParenthesis);
+//        if (expression instanceof CjArrayAccessExpression) {
+//            CjArrayAccessExpression arrayAccessExpression = (CjArrayAccessExpression) expression;
+//            CjExpression arrayExpression = arrayAccessExpression.getArrayExpression();
+//            if (arrayExpression == null || rightHandSide == null) return false;
+//
+//            BindingTrace traceWithIndexedLValue;
+//            boolean methodSetIsResolved;
+//            if (!arraySetMethodAlreadyResolved) {
+//                TemporaryBindingTrace ignoreReportsTrace = TemporaryBindingTrace.create(trace, "Trace for checking set function");
+//                ExpressionTypingContext findSetterContext = context.replaceBindingTrace(ignoreReportsTrace);
+//                CangJieTypeInfo info = resolveArrayAccessSetMethod(arrayAccessExpression, rightHandSide, findSetterContext, ignoreReportsTrace);
+//
+//                traceWithIndexedLValue = ignoreReportsTrace;
+//                methodSetIsResolved = info.getType() != null;
+//            } else {
+//                traceWithIndexedLValue = trace;
+//                methodSetIsResolved = true;
+//            }
+//
+//            IElementType operationType = operationExpression.getOperationReference().getReferencedNameElementType();
+//            if (CjTokens.AUGMENTED_ASSIGNMENTS.contains(operationType)
+//                    || operationType == CjTokens.PLUSPLUS || operationType == CjTokens.MINUSMINUS) {
+//                ResolvedCall<FunctionDescriptor> resolvedCall = traceWithIndexedLValue.get(INDEXED_LVALUE_SET, expression);
+//                if (resolvedCall != null && trace.wantsDiagnostics()) {
+//                    // Call must be validated with the actual, not temporary trace in order to report operator diagnostic
+//                    // Only unary assignment expressions (++, --) and +=/... must be checked, normal assignments have the proper trace
+//                    CallCheckerContext callCheckerContext =
+//                            new CallCheckerContext(
+//                                    context,
+//                                    components.deprecationResolver,
+//                                    components.moduleDescriptor,
+//                                    components.missingSupertypesResolver,
+//                                    components.callComponents,
+//                                    trace
+//                            );
+//                    for (CallChecker checker : components.callCheckers) {
+//                        checker.check(resolvedCall, expression, callCheckerContext);
+//                    }
+//                    // Should make sure resolved call for 'set' operator is recorded, see KT-36956.
+//                    if (trace.get(INDEXED_LVALUE_SET, expression) == null) {
+//                        trace.record(INDEXED_LVALUE_SET, expression, resolvedCall);
+//                    }
+//                }
+//            }
+//
+//            return methodSetIsResolved;
+//        }
+
+        VariableDescriptor variable = BindingContextUtils.extractVariableDescriptorFromReference(trace.getBindingContext(), expression);
+
+        boolean result = true;
+        CjExpression reportOn = expression != null ? expression : expressionWithParenthesis;
+        if (reportOn instanceof CjQualifiedExpression) {
+            CjExpression selector = ((CjQualifiedExpression) reportOn).getSelectorExpression();
+            if (selector != null)
+                reportOn = selector;
+        }
+
+//        if (variable instanceof PropertyDescriptor) {
+//            PropertyDescriptor propertyDescriptor = (PropertyDescriptor) variable;
+//            PropertySetterDescriptor setter = propertyDescriptor.getSetter();
+//            if (propertyDescriptor.isSetterProjectedOut()) {
+//                trace.report(SETTER_PROJECTED_OUT.on(reportOn, propertyDescriptor));
+//                result = false;
+//            }
+//            else if (setter != null) {
+//                ResolvedCall<?> resolvedCall = CallUtilKt.getResolvedCall(expressionWithParenthesis, context.trace.getBindingContext());
+//                assert resolvedCall != null
+//                        : "Call is not resolved for property setter: " + PsiUtilsKt.getElementTextWithContext(expressionWithParenthesis);
+//                checkPropertySetterCall(context.replaceBindingTrace(trace), setter, resolvedCall, reportOn);
+//            }
+//        }
+
+        if (variable == null) {
+            trace.report(VARIABLE_EXPECTED.on(reportOn));
+            result = false;
+        } else if (!variable.isVar()) {
+            result = false;
+        }
+
+        return result;
+    }
+
+//    @NotNull
+//        /*package*/ CangJieTypeInfo resolveImplicitArrayAccessSetMethod(
+//            @NotNull CjArrayAccessExpression arrayAccessExpression,
+//            @NotNull CjExpression rightHandSide,
+//            @NotNull ExpressionTypingContext context,
+//            @NotNull BindingTrace traceForResolveResult
+//    ) {
+//        return resolveArrayAccessSpecialMethod(arrayAccessExpression, rightHandSide, context, traceForResolveResult, false, true);
+//    }
+//
+//
+//    @NotNull
+//    private CangJieTypeInfo resolveArrayAccessSpecialMethod(
+//            @NotNull CjArrayAccessExpression arrayAccessExpression,
+//            @Nullable CjExpression rightHandSide, //only for 'set' method
+//            @NotNull ExpressionTypingContext oldContext,
+//            @NotNull BindingTrace traceForResolveResult,
+//            boolean isGet,
+//            boolean isImplicit
+//    ) {
+//       CjExpression arrayExpression = arrayAccessExpression.getArrayExpression();
+//        if (arrayExpression == null) return TypeInfoFactoryKt.noTypeInfo(oldContext);
+//
+//
+//        CangJieTypeInfo arrayTypeInfo = facade.safeGetTypeInfo(arrayExpression, oldContext.replaceExpectedType(NO_EXPECTED_TYPE)
+//                .replaceContextDependency(ContextDependency.INDEPENDENT));
+//        CangJieType arrayType = ExpressionTypingUtils.safeGetType(arrayTypeInfo);
+//
+//        ExpressionTypingContext context = oldContext.replaceDataFlowInfo(arrayTypeInfo.getDataFlowInfo());
+//        ExpressionReceiver receiver = ExpressionReceiver.Companion.create(arrayExpression, arrayType, context.trace.getBindingContext());
+//        if (!isGet) assert rightHandSide != null;
+//
+//        Call call = isGet
+//                ? CallMaker.makeArrayGetCall(receiver, arrayAccessExpression, Call.CallType.ARRAY_GET_METHOD)
+//                : CallMaker.makeArraySetCall(receiver, arrayAccessExpression, rightHandSide, Call.CallType.ARRAY_SET_METHOD);
+//        OverloadResolutionResults<FunctionDescriptor> functionResults = components.callResolver.resolveCallWithGivenName(
+//                context, call, arrayAccessExpression, isGet ? OperatorNameConventions.GET : OperatorNameConventions.SET);
+//
+//        List<CjExpression> indices = arrayAccessExpression.getIndexExpressions();
+//
+//      CangJieTypeInfo resultTypeInfo =
+//                computeAccumulatedInfoForArrayAccessExpression(arrayTypeInfo, indices, rightHandSide, isGet, context, facade);
+//
+//        if ((isImplicit && !functionResults.isSuccess()) || !functionResults.isSingleResult()) {
+//            traceForResolveResult.report(isGet ? NO_GET_METHOD.on(arrayAccessExpression) : NO_SET_METHOD.on(arrayAccessExpression));
+//            return resultTypeInfo.clearType();
+//        }
+//
+//        if (isGet) {
+//            traceForResolveResult.record(INDEXED_LVALUE_GET, arrayAccessExpression, functionResults.getResultingCall());
+//        } else {
+//            traceForResolveResult.record(INDEXED_LVALUE_SET, arrayAccessExpression, functionResults.getResultingCall());
+//        }
+//
+//        return resultTypeInfo.replaceType(functionResults.getResultingDescriptor().getReturnType());
+//    }
 }

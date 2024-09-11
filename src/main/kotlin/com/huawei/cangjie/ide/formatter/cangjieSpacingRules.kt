@@ -294,7 +294,7 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
             beforeInside(EQ, FUNC).spacing(spacesAroundAssignment, spacesAroundAssignment, 0, false, 0)
 
             around(
-                TokenSet.create(EQ, MULEQ, DIVEQ, PLUSEQ, MINUSEQ, PERCEQ)
+                TokenSet.create(EQ, MULTEQ, DIVEQ, PLUSEQ, MINUSEQ, PERCEQ)
             ).spaceIf(cangjieCommonSettings.SPACE_AROUND_ASSIGNMENT_OPERATORS)
             around(TokenSet.create(ANDAND, OROR)).spaceIf(cangjieCommonSettings.SPACE_AROUND_LOGICAL_OPERATORS)
             around(TokenSet.create(EQEQ, EXCLEQ)).spaceIf(cangjieCommonSettings.SPACE_AROUND_EQUALITY_OPERATORS)

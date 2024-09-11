@@ -27,6 +27,9 @@ class ComponentStorage(private val myId: String, parent: ComponentStorage?) : Va
             clashResolvers.addAll(it.clashResolvers)
         }
     }
+    internal fun registerClashResolvers(resolvers: List<PlatformExtensionsClashResolver<*>>) {
+        clashResolvers.addAll(resolvers)
+    }
 
 
     private fun disposeDescriptor(descriptor: ComponentDescriptor) {

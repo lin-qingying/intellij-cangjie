@@ -51,6 +51,11 @@ class StorageComponentContainer(
             return unknownContext
         return ComponentResolveContext(this, requestingDescriptor)
     }
+
+    internal fun registerClashResolvers(resolvers: List<PlatformExtensionsClashResolver<*>>): StorageComponentContainer {
+        componentStorage.registerClashResolvers(resolvers)
+        return this
+    }
     internal fun registerDescriptors(descriptors: List<ComponentDescriptor>): StorageComponentContainer {
         componentStorage.registerDescriptors(unknownContext, descriptors)
         return this

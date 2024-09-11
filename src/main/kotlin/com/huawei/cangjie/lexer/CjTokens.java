@@ -367,7 +367,7 @@ public interface CjTokens {
     CjSingleValueToken ELLIPSIS = new CjSingleValueToken("ELLIPSIS", "...", ELLIPSIS_Id);
     CjSingleValueToken RANGEEQ = new CjSingleValueToken("RANGEEQ", "..=", RANGEEQ_Id);
     CjSingleValueToken EQ = new CjSingleValueToken("EQ", "=", EQ_Id);
-    CjSingleValueToken MULEQ = new CjSingleValueToken("MULTEQ", "*=", MULTEQ_Id);
+    CjSingleValueToken MULTEQ = new CjSingleValueToken("MULTEQ", "*=", MULTEQ_Id);
     CjSingleValueToken DIVEQ = new CjSingleValueToken("DIVEQ", "/=", DIVEQ_Id);
     CjSingleValueToken PERCEQ = new CjSingleValueToken("PERCEQ", "%=", PERCEQ_Id);
     CjSingleValueToken PLUSEQ = new CjSingleValueToken("PLUSEQ", "+=", PLUSEQ_Id);
@@ -648,10 +648,10 @@ public interface CjTokens {
     TokenSet OPERATIONS = TokenSet.create(AS_KEYWORD, IS_KEYWORD, DOT, PLUSPLUS, MINUSMINUS, MUL, MULMUL, PLUS,
             MINUS, EXCL, DIV, PERC, LT, GT, LTEQ, GTEQ, EQEQ, EXCLEQ, ANDAND, OROR, MULMULEQ,
 
-            RANGE, RANGEEQ, EQ, MULEQ, DIVEQ, PERCEQ, PLUSEQ, MINUSEQ,
+            RANGE, RANGEEQ, EQ, MULTEQ, DIVEQ, PERCEQ, PLUSEQ, MINUSEQ,
             ELVIS, SAFE_ACCESS,
             AND, OR, XOR,
-            ANDEQ, OREQ, XOREQ, ANDANDEQ,
+            ANDEQ, OREQ, XOREQ, ANDANDEQ,OROREQ,
             LTLT, GTGT, LTLTEQ, GTGTEQ,
 
             COMPOSITION, PIPELINE
@@ -709,9 +709,9 @@ TokenSet FLOAT_SUPPORT_OPERATOR = TokenSet.create(
     );
 
 //    赋值运算符
-    TokenSet ALL_ASSIGNMENTS = TokenSet.create(EQ, PLUSEQ, MINUSEQ, MULEQ, PERCEQ, DIVEQ);
+    TokenSet ALL_ASSIGNMENTS = TokenSet.create(EQ, PLUSEQ, MINUSEQ, MULTEQ, PERCEQ, DIVEQ);
 //复合赋值
-    TokenSet AUGMENTED_ASSIGNMENTS = TokenSet.create(PLUSEQ, MINUSEQ, MULEQ, PERCEQ, DIVEQ);
+    TokenSet AUGMENTED_ASSIGNMENTS = TokenSet.create(PLUSEQ, MINUSEQ, MULTEQ, PERCEQ, DIVEQ);
 
     TokenSet STRINGS = TokenSet.create(RUNE_LITERAL, REGULAR_STRING_PART);
     TokenSet COMMENTS = TokenSet.create(EOL_COMMENT, BLOCK_COMMENT, DOC_COMMENT, SHEBANG_COMMENT);

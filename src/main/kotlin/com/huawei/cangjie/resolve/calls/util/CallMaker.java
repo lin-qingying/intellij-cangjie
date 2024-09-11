@@ -1,9 +1,11 @@
 package com.huawei.cangjie.resolve.calls.util;
 
+import com.google.common.collect.Lists;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.psi.debugtext.DebugTextUtilKt;
 import com.huawei.cangjie.resolve.scopes.receivers.Receiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue;
+
 
 import com.huawei.cangjie.utils.slicedMap.BasicWritableSlice;
 import com.huawei.cangjie.utils.slicedMap.WritableSlice;
@@ -32,7 +34,19 @@ public class CallMaker {
                 collectionLiteralExpression.getInnerExpressions(),
                 Call.CallType.DEFAULT);
     }
+    @NotNull
+    public static Call makeArrayGetCall(@NotNull ReceiverValue arrayAsReceiver, @NotNull CjArrayAccessExpression arrayAccessExpression,
+                                        @NotNull Call.CallType callType) {
+        return makeCallWithExpressions(arrayAccessExpression, arrayAsReceiver, null, arrayAccessExpression, arrayAccessExpression.getIndexExpressions(), callType);
+    }
 
+    @NotNull
+    public static Call makeArraySetCall(@NotNull ReceiverValue arrayAsReceiver, @NotNull CjArrayAccessExpression arrayAccessExpression,
+                                        @NotNull CjExpression rightHandSide, @NotNull Call.CallType callType) {
+        List<CjExpression> arguments = Lists.newArrayList(arrayAccessExpression.getIndexExpressions());
+        arguments.add(rightHandSide);
+        return makeCallWithExpressions(arrayAccessExpression, arrayAsReceiver, null, arrayAccessExpression, arguments, callType);
+    }
     @NotNull
     public static Call makeCallWithExpressions(
             @NotNull CjElement callElement, @Nullable Receiver explicitReceiver,
@@ -66,6 +80,10 @@ public class CallMaker {
     @NotNull
     public static Call makeCall(@NotNull ReceiverValue leftAsReceiver, CjBinaryExpression expression) {
         return makeCallWithExpressions(expression, leftAsReceiver, null, expression.getOperationReference(), Collections.singletonList(expression.getRight()));
+    }
+    @NotNull
+    public static Call makeCall(@NotNull ReceiverValue baseAsReceiver, CjUnaryExpression expression) {
+        return makeCall(expression, baseAsReceiver, null, expression.getOperationReference(), Collections.emptyList());
     }
 
     @NotNull

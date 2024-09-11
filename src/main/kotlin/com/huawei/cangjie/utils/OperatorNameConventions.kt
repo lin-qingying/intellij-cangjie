@@ -1,7 +1,6 @@
 package com.huawei.cangjie.utils
 
 import com.huawei.cangjie.name.Name
-import com.huawei.cangjie.utils.OperatorNameConventions.asOperatorString
 
 
 object OperatorNameConventions {
@@ -78,13 +77,57 @@ object OperatorNameConventions {
 
     @JvmField
     val XOR = Name.identifier("*operator_xor")//^
+
     @JvmField
     val OR = Name.identifier("*operator_or")//|
 
 
+    //    不可被重载  只用于检查
+    @JvmField
+    val TIMES_ASSIGN = Name.identifier("*operator_timesAssign") //-=
+    @JvmField
+    val DIV_ASSIGN = Name.identifier("*operator_divAssign") // /=
+    @JvmField
+    val EXPONENTIATION_ASSIGN = Name.identifier("*operator_exponentiationAssign") // /=
 
-    @JvmField val ANDAND = Name.identifier("*operator_and2")
-    @JvmField val OROR = Name.identifier("*operator_or2")
+    @JvmField
+    val OROREQ_ASSIGN = Name.identifier("*operator_or2Assign") // /=
+
+    @JvmField
+    val ANDANDEQ_ASSIGN = Name.identifier("*operator_and2Assign") // /=
+    @JvmField
+    val OREQ_ASSIGN = Name.identifier("*operator_orAssign") // /=
+    @JvmField
+    val ANDEQ_ASSIGN = Name.identifier("*operator_andAssign") // /=
+    @JvmField
+    val XOREQ_ASSIGN = Name.identifier("*operator_xorAssign") // /=
+    @JvmField
+    val GTGTEQ_ASSIGN = Name.identifier("*operator_rightShiftAssign") // /=
+    @JvmField
+    val LTLTEQ_ASSIGN = Name.identifier("*operator_leftShiftAssign") // /=
+
+
+
+
+
+
+    @JvmField
+    val REM_ASSIGN = Name.identifier("*operator_remAssign")
+    @JvmField
+    val PLUS_ASSIGN = Name.identifier("*operator_plusAssign")
+    @JvmField
+    val MINUS_ASSIGN = Name.identifier("*operator_minusAssign")
+
+    @JvmField
+    val ANDAND = Name.identifier("*operator_and2")
+    @JvmField
+    val OROR = Name.identifier("*operator_or2")
+
+
+    @JvmField val INC = Name.identifier("*operator_inc")
+    @JvmField val DEC = Name.identifier("*operator_dec")
+    @JvmField val UNARY_MINUS = Name.identifier("*operator_unaryMinus")
+    @JvmField val UNARY_PLUS = Name.identifier("*operator_unaryPlus")
 
     fun Name.asOperatorString(): String {
         return when (this) {
@@ -108,6 +151,16 @@ object OperatorNameConventions {
             AND -> "&"
             XOR -> "^"
             OR -> "|"
+
+            TIMES_ASSIGN -> "*="
+            DIV_ASSIGN -> "/="
+            EXPONENTIATION_ASSIGN -> "**="
+            REM_ASSIGN -> "%="
+            PLUS_ASSIGN -> "+="
+            MINUS_ASSIGN -> "-="
+            ANDAND -> "&&"
+            OROR -> "||"
+
             else -> this.asString()
         }
     }
@@ -134,6 +187,16 @@ object OperatorNameConventions {
             "&" -> AND
             "^" -> XOR
             "|" -> OR
+
+            "*=" -> TIMES_ASSIGN
+            "/=" -> DIV_ASSIGN
+  "**=" -> EXPONENTIATION_ASSIGN
+            "%=" -> REM_ASSIGN
+            "+=" -> PLUS_ASSIGN
+            "-=" -> MINUS_ASSIGN
+            "&&" -> ANDAND
+            "||" -> OROR
+
             else -> Name.identifier(this)
         }
     }

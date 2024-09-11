@@ -592,6 +592,7 @@ LONELY_BACKTICK=`
 "..="         { return CjTokens.RANGEEQ     ; }
 "**="        { return CjTokens.MULMULEQ  ; }
 "&&="        { return CjTokens.ANDANDEQ  ; }
+ "||="        { return CjTokens.OROREQ  ; }
 "["          { return CjTokens.LBRACKET  ; }
 "]"          { return CjTokens.RBRACKET  ; }
 "{"          { return CjTokens.LBRACE    ; }

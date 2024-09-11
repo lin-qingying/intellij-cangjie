@@ -8,6 +8,7 @@ import com.huawei.cangjie.resolve.calls.context.ResolutionContext
 import com.huawei.cangjie.resolve.calls.model.CangJieCallComponents
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
+import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
 import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.intellij.psi.PsiElement
@@ -49,8 +50,8 @@ class CallCheckerContext @JvmOverloads constructor(
         get() = resolutionContext.isAnnotationContext
     override val languageVersionSettings: LanguageVersionSettings
         get() = resolutionContext.languageVersionSettings
-//    val dataFlowValueFactory: DataFlowValueFactory
-//        get() = resolutionContext.dataFlowValueFactory
+    val dataFlowValueFactory: DataFlowValueFactory
+        get() = resolutionContext.dataFlowValueFactory
 
 
 }

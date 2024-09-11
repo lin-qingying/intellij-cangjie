@@ -110,11 +110,12 @@ open class CangJieExpressionParsing(
             EQ,
             PLUSEQ,
             MINUSEQ,
-            MULEQ,
+            MULTEQ,
             DIVEQ,
             PERCEQ,
             ANDEQ,
             ANDANDEQ,
+            OROREQ,
             OREQ,
             XOREQ,
             LTLTEQ,
@@ -1795,6 +1796,10 @@ open class CangJieExpressionParsing(
             parsePrefixExpression()
             expression.done(PREFIX_EXPRESSION)
         } else {
+
+            if (at(MINUSMINUS) || at(PLUSPLUS)) {
+                errorAndAdvance("expected expression or declaration, found '${myBuilder.tokenText}'")
+            }
             myBuilder.restoreJoiningComplexTokensState()
             parsePostfixExpression()
         }
@@ -1910,7 +1915,7 @@ open class CangJieExpressionParsing(
             EQ,
             PLUSEQ,
             MINUSEQ,
-            MULEQ,
+            MULTEQ,
             PLUS,
             MINUSEQ,
             PERCEQ,
@@ -2648,7 +2653,7 @@ open class CangJieExpressionParsing(
             RANGE,
 
             EQ,
-            MULEQ,
+            MULTEQ,
             DIVEQ,
             PERCEQ,
             PLUSEQ,

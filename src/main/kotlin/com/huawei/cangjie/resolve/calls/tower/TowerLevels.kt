@@ -3,6 +3,8 @@ package com.huawei.cangjie.resolve.calls.tower
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
+import com.huawei.cangjie.resolve.descriptorUtil.classValueDescriptor
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.huawei.cangjie.types.CangJieType

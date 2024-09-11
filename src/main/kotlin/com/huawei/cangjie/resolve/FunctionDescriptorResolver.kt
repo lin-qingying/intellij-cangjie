@@ -9,6 +9,7 @@ import com.huawei.cangjie.descriptors.annotations.AnnotationSplitter
 import com.huawei.cangjie.descriptors.annotations.AnnotationUseSiteTarget
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.impl.ClassConstructorDescriptorImpl
+import com.huawei.cangjie.descriptors.impl.FunctionExpressionDescriptor
 import com.huawei.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.Name
@@ -56,7 +57,17 @@ class FunctionDescriptorResolver(
     private val storageManager: StorageManager
 ) {
 
-
+    fun resolveFunctionExpressionDescriptor(
+        containingDescriptor: DeclarationDescriptor,
+        scope: LexicalScope,
+        function: CjNamedFunction,
+        trace: BindingTrace,
+        dataFlowInfo: DataFlowInfo,
+        expectedFunctionType: CangJieType,
+        inferenceSession: InferenceSession?
+    ): SimpleFunctionDescriptor = resolveFunctionDescriptor(
+        ::FunctionExpressionDescriptor, containingDescriptor, scope, function, trace, dataFlowInfo, expectedFunctionType, inferenceSession
+    )
     fun resolvePrimaryConstructorDescriptor(
         scope: LexicalScope,
         classDescriptor: ClassDescriptor,

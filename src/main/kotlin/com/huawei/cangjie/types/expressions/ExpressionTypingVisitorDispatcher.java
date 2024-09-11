@@ -6,6 +6,7 @@ import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.AnnotationChecker;
 import com.huawei.cangjie.resolve.BindingContext;
 import com.huawei.cangjie.resolve.BindingContextUtils;
+import com.huawei.cangjie.resolve.BindingContextUtilsKt;
 import com.huawei.cangjie.resolve.calls.context.CallPosition;
 import com.huawei.cangjie.resolve.scopes.LexicalScopeKind;
 import com.huawei.cangjie.resolve.scopes.LexicalWritableScope;
@@ -77,7 +78,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
                 ExpressionTypingUtils.newWritableScopeImpl(context, LexicalScopeKind.CODE_BLOCK, components.overloadChecker)
                 ,
                 basic
-                /*, controlStructures, patterns, functions*/);
+                , controlStructures, /*patterns,*/ functions);
     }
 
     @Override
@@ -140,6 +141,21 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
 //                    context.trace.report(TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM.onError(expression));
                     result = TypeInfoFactoryKt.noTypeInfo(context);
                 }
+
+                context.trace.record(BindingContext.PROCESSED, expression);
+
+                // todo save scope before analyze and fix debugger: see CodeFragmentAnalyzer.correctContextForExpression
+                BindingContextUtilsKt.recordScope(context.trace, context.scope, expression);
+                BindingContextUtilsKt.recordDataFlowInfo(context.replaceDataFlowInfo(result.getDataFlowInfo()), expression);
+//                try {
+//                    // Here we have to resolve some types, so the following exception is possible
+//                    // Example: val a = ::a, fun foo() = ::foo
+//                    recordTypeInfo(expression, result);
+//                }
+//                catch (ReenteringLazyValueComputationException e) {
+//                    context.trace.report(TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM.onError(expression));
+//                    return TypeInfoFactoryKt.noTypeInfo(context);
+//                }
                 return result;
 
             } catch (ProcessCanceledException | CangJieFrontEndException | IndexNotReadyException e) {
@@ -387,7 +403,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
             this.visitorForBlock = new ExpressionTypingVisitorForStatements(
                     this, writableScope
                     , basic
-//                , controlStructures, patterns, functions
+              , controlStructures,/* patterns,*/ functions
             );
         }
 

@@ -12,16 +12,31 @@ import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.huawei.cangjie.utils.exceptions.OperatorConventions;
+
+import static com.huawei.cangjie.resolve.BindingContext.PROCESSED;
+
 public class ExpressionTypingUtils {
 
     public static boolean isExclExclExpression(@Nullable CjExpression expression) {
         return expression instanceof CjUnaryExpression;
 //                && ((CjUnaryExpression) expression).getOperationReference().getReferencedNameElementType() == CjTokens.EXCLEXCL;
+    }
+    public static CjExpression createFakeExpressionOfType(
+            @NotNull Project project,
+            @NotNull BindingTrace trace,
+            @NotNull String argumentName,
+            @NotNull CangJieType argumentType
+    ) {
+       CjExpression fakeExpression = new CjPsiFactory(project, false).createExpression(argumentName);
+        trace.recordType(fakeExpression, argumentType);
+        trace.record(PROCESSED, fakeExpression);
+        return fakeExpression;
     }
 
     @NotNull
