@@ -177,14 +177,14 @@ public class ExpressionTypingServices {
 //            if (typeInfo != null) return typeInfo;
 //        }
 
-        if (  !(statementExpression instanceof  CjReturnExpression)) {
+        if (!(statementExpression instanceof CjReturnExpression)) {
             var parentDeclaration =
                     context.trace.getBindingContext().get(BindingContext.FUNCTION, context.getContextParentOfType(
                             statementExpression,
                             CjDeclaration.class
                     ));
-            if(parentDeclaration instanceof FunctionDescriptorImpl){
-                context =       context.replaceExpectedType(parentDeclaration.getReturnType());
+            if (parentDeclaration instanceof FunctionDescriptorImpl) {
+                context = context.replaceExpectedType(parentDeclaration.getReturnType());
             }
         }
         CangJieTypeInfo result = blockLevelVisitor.getTypeInfo(statementExpression, context, true);

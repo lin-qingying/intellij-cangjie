@@ -195,6 +195,9 @@ class FunctionReturnResolver(
         context: ExpressionTypingContext,
     ): CangJieType {
         val returns = blockExpression.getStatementsWithoutReturnKeyword()
+        if(returns.isEmpty()){
+            return module.builtIns.unitType
+        }
         val call = CallMaker.makeCallForBlock(blockExpression)
 
         val functionDescriptors = listOf(ReturnOfFunctionDescriptor())
