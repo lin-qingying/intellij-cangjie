@@ -1,10 +1,10 @@
 package com.huawei.cangjie.psi;
 
 
-
 import com.huawei.cangjie.CjNodeTypes;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.psi.stubs.CangJieParameterStub;
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.ItemPresentationProviders;
@@ -15,13 +15,14 @@ import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 
 import java.util.Collections;
 import java.util.List;
 
 public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> implements CjCallableDeclaration, CjLetVarKeywordOwner {
 
+
+    public static final TokenSet LET_VAR_TOKEN_SET = TokenSet.create(CjTokens.LET_KEYWORD, CjTokens.CONST_KEYWORD, CjTokens.VAR_KEYWORD);
 
     public CjParameter(@NotNull ASTNode node) {
         super(node);
@@ -47,6 +48,7 @@ public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> im
     public CjTypeReference setTypeReference(@Nullable CjTypeReference typeRef) {
         return TypeRefHelpersKt.setTypeReference(this, getNameIdentifier(), typeRef);
     }
+
     @Nullable
     public CjDestructuringDeclaration getDestructuringDeclaration() {
 
@@ -54,10 +56,19 @@ public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> im
 
         return findChildByType(CjNodeTypes.DESTRUCTURING_DECLARATION);
     }
+
     @Nullable
     @Override
     public PsiElement getColon() {
         return findChildByType(CjTokens.COLON);
+    }
+
+    public boolean isNamed() {
+        if (getColon() != null) {
+            return getColon().getNode().getTreeNext() == CjTokens.EXCL;
+        }
+
+        return false;
     }
 
     @Nullable
@@ -72,17 +83,19 @@ public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> im
         }
         return getDefaultValue() != null;
     }
+
     /**
      * For example,
-     *   lambdaConsumer { lambdaParameter ->
-     *     ...
-     *   }
+     * lambdaConsumer { lambdaParameter ->
+     * ...
+     * }
      *
      * @return [true] if this [KtParameter] is a parameter of a lambda.
      */
     public boolean isLambdaParameter() {
         return checkParentOfParentType(CjFunctionLiteral.class);
     }
+
     @Nullable
     public CjExpression getDefaultValue() {
         CangJieParameterStub stub = getStub();
@@ -110,8 +123,6 @@ public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> im
         return findChildByType(CjTokens.VAR_KEYWORD) != null;
     }
 
-
-
     public boolean hasLetOrVar() {
         CangJieParameterStub stub = getStub();
         if (stub != null) {
@@ -129,9 +140,6 @@ public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> im
         }
         return findChildByType(LET_VAR_TOKEN_SET);
     }
-
-
-    public static final TokenSet LET_VAR_TOKEN_SET = TokenSet.create(CjTokens.LET_KEYWORD,CjTokens.CONST_KEYWORD, CjTokens.VAR_KEYWORD);
 
     @Override
     public ItemPresentation getPresentation() {
@@ -151,8 +159,6 @@ public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> im
     public boolean isCatchParameter() {
         return checkParentOfParentType(CjCatchClause.class);
     }
-
-
 
 
     @Nullable
@@ -209,6 +215,7 @@ public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> im
         if (!(parent instanceof CjParameterList)) return null;
         return ((CjParameterList) parent).getOwnerFunction();
     }
+
     @NotNull
     @Override
     public SearchScope getUseScope() {

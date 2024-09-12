@@ -14,6 +14,7 @@ open class ValueParameterDescriptorImpl(
     override val index: Int,
     annotations: Annotations,
     name: Name,
+    override val isNamed: Boolean,
     outType: CangJieType,
     private val declaresDefaultValue: Boolean,
 //    override val isCrossinline: Boolean,
@@ -32,6 +33,7 @@ open class ValueParameterDescriptorImpl(
             index: Int,
             annotations: Annotations,
             name: Name,
+            isNamed: Boolean,
             outType: CangJieType,
             declaresDefaultValue: Boolean,
 //            isCrossinline: Boolean,
@@ -42,12 +44,12 @@ open class ValueParameterDescriptorImpl(
         ): ValueParameterDescriptorImpl =
             if (destructuringVariables == null)
                 ValueParameterDescriptorImpl(
-                    containingDeclaration, original, index, annotations, name, outType,
+                    containingDeclaration, original, index, annotations, name, isNamed,outType,
                     declaresDefaultValue, /*isCrossinline, isNoinline, varargElementType,*/ source
                 )
             else
                 WithDestructuringDeclaration(
-                    containingDeclaration, original, index, annotations, name, outType,
+                    containingDeclaration, original, index, annotations, name,isNamed, outType,
                     declaresDefaultValue,/* isCrossinline, isNoinline, varargElementType,*/ source,
                     destructuringVariables
                 )
@@ -57,7 +59,10 @@ open class ValueParameterDescriptorImpl(
         containingDeclaration: CallableDescriptor,
         original: ValueParameterDescriptor?,
         index: Int,
-        annotations: Annotations, name: Name,
+
+        annotations: Annotations,
+        name: Name,
+        isNamed:Boolean,
         outType: CangJieType,
         declaresDefaultValue: Boolean,
 //        isCrossinline: Boolean,
@@ -66,7 +71,7 @@ open class ValueParameterDescriptorImpl(
         source: SourceElement,
         destructuringVariables: () -> List<VariableDescriptor>
     ) : ValueParameterDescriptorImpl(
-        containingDeclaration, original, index, annotations, name, outType,
+        containingDeclaration, original, index, annotations, name,isNamed, outType,
         declaresDefaultValue,
 //        isCrossinline,
 //        isNoinline,
@@ -80,7 +85,7 @@ open class ValueParameterDescriptorImpl(
 
         override fun copy(newOwner: CallableDescriptor, newName: Name, newIndex: Int): ValueParameterDescriptor {
             return WithDestructuringDeclaration(
-                newOwner, null, newIndex, annotations, newName, type, declaresDefaultValue(),
+                newOwner, null, newIndex, annotations, newName,isNamed, type, declaresDefaultValue(),
                 /*       isCrossinline, isNoinline,  varargElementType,*/ SourceElement.NO_SOURCE
             ) { destructuringVariables }
         }
@@ -104,7 +109,7 @@ open class ValueParameterDescriptorImpl(
 
     override fun copy(newOwner: CallableDescriptor, newName: Name, newIndex: Int): ValueParameterDescriptor {
         return ValueParameterDescriptorImpl(
-            newOwner, null, newIndex, annotations, newName, type, declaresDefaultValue(),
+            newOwner, null, newIndex, annotations, newName,isNamed, type, declaresDefaultValue(),
             /*isCrossinline, isNoinline, varargElementType, */SourceElement.NO_SOURCE
         )
     }

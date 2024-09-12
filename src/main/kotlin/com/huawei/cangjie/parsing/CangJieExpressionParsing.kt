@@ -1004,8 +1004,8 @@ open class CangJieExpressionParsing(
     private fun parseLoopBody() {
         val body = mark()
         if (!at(SEMICOLON)) {
-//            parseControlStructureBody()
-            parseBlockLevelExpression()
+            parseControlStructureBody()
+//            parseBlockLevelExpression()
         }
         body.done(BODY)
     }
@@ -1167,7 +1167,7 @@ open class CangJieExpressionParsing(
             expect(RBRACE, "Expecting '}'")
 
 
-            
+
             body.done(BLOCK)
 
         } else {

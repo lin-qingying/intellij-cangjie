@@ -82,6 +82,8 @@ public class SimpleFunctionDescriptorImpl extends FunctionDescriptorImpl impleme
         if (userData != null && !userData.isEmpty()) {
             userDataMap = new LinkedHashMap<UserDataKey<?>, Object>(userData);
         }
+//        internal func <T : std.core.Countable<T>> a(a: T, b: T, c: std.core.Int /* = Int64 */): std.core.Range<T> where T : std.core.Comparable<T>, T : std.core.Equatable<T> defined in untitled3 in file ab.cj[SimpleFunctionDescriptorImpl@1eddf18d]
+//        public func <T : std.core.Countable<T>> rangeOf(start: T, end: T, step: Int64): std.core.Range<T> where T : std.core.Comparable<T>, T : std.core.Equatable<T>[RangeOfFunctionDescriptor@2e666b6b]
 
         return this;
     }

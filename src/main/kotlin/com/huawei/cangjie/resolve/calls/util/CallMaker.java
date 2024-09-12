@@ -25,6 +25,16 @@ public class CallMaker {
         return new ExpressionValueArgument(expression, expression, true);
     }
 
+    public static Call makeCallForRangeLiteral(@NotNull CjRangeExpression rangeExpression) {
+        return makeCallWithExpressions(
+                rangeExpression,
+                null,
+                null,
+                rangeExpression,
+                rangeExpression.getInnerExpressions(),
+                Call.CallType.DEFAULT);
+    }
+
     public static Call makeCallForCollectionLiteral(@NotNull CjCollectionLiteralExpression collectionLiteralExpression) {
         return makeCallWithExpressions(
                 collectionLiteralExpression,

@@ -23,12 +23,15 @@ public class ExpressionTypingComponents {
     public ModuleDescriptor moduleDescriptor;
     public FunctionDescriptorResolver functionDescriptorResolver;
     public CollectionLiteralResolver collectionLiteralResolver;
+
+    public RangeLiteralResolver rangeLiteralResolver;
     public CallResolver callResolver;
     public Iterable<AssignmentChecker> assignmentCheckers;
     public MissingSupertypesResolver missingSupertypesResolver;
     public ModifiersChecker modifiersChecker;
     public ControlStructureTypingUtils controlStructureTypingUtils;
     public ForLoopConventionsChecker forLoopConventionsChecker;
+    public DescriptorResolver descriptorResolver;
 
     public LocalVariableResolver localVariableResolver;
     public TypeResolutionInterceptor typeResolutionInterceptor;
@@ -81,12 +84,20 @@ public void setForLoopConventionsChecker(@NotNull ForLoopConventionsChecker forL
         this.dataFlowAnalyzer = dataFlowAnalyzer;
     }
     @Inject
+    public void setRangeLiteralResolver(RangeLiteralResolver rangeLiteralResolver) {
+        this.rangeLiteralResolver = rangeLiteralResolver;
+    }
+    @Inject
     public void setCollectionLiteralResolver(CollectionLiteralResolver collectionLiteralResolver) {
         this.collectionLiteralResolver = collectionLiteralResolver;
     }
     @Inject
     public void setCallResolver(@NotNull CallResolver callResolver) {
         this.callResolver = callResolver;
+    }
+    @Inject
+    public void setDescriptorResolver(DescriptorResolver descriptorResolver) {
+        this.descriptorResolver = descriptorResolver;
     }
 
     @Inject

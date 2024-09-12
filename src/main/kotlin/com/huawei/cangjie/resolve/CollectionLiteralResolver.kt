@@ -213,8 +213,8 @@ class CollectionLiteralResolver(
 
         init {
             val arrayType = module.builtIns.arrayType
-
-            arrayType.arguments
+//
+//            arrayType.arguments
             initialize(
                 null, null, listOf(), listOf(
                     ArrayOfTypeParameterDescriptor.createWithDefaultBound(
@@ -232,6 +232,7 @@ class CollectionLiteralResolver(
                     0,
                     Annotations.EMPTY,
                     Name.identifier("elements"),
+                    false,
                     arrayType,
                     false,
                     SourceElement.NO_SOURCE,

@@ -1,21 +1,19 @@
 package com.huawei.cangjie.resolve.calls;
 
 
-import com.huawei.cangjie.psi.*;
+import com.huawei.cangjie.psi.Call;
+import com.huawei.cangjie.psi.CjElement;
+import com.huawei.cangjie.psi.CjExpression;
 import com.huawei.cangjie.resolve.calls.util.DelegatingCall;
 import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver;
 import com.huawei.cangjie.resolve.scopes.receivers.Receiver;
-import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue;
 import com.intellij.lang.ASTNode;
-import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-
 public class CallTransformer {
-    private CallTransformer() {}
+    private CallTransformer() {
+    }
 
     public static Call stripCallArguments(@NotNull Call call) {
         return new DelegatingCall(call) {
@@ -75,11 +73,11 @@ public class CallTransformer {
     }
 
     public static class CallForImplicitInvoke extends DelegatingCall {
+        //        private final CjSimpleNameExpression fakeInvokeExpression;
+        public final boolean itIsVariableAsFunctionCall;
         private final Call outerCall;
         private final Receiver explicitExtensionReceiver;
         private final ExpressionReceiver calleeExpressionAsDispatchReceiver;
-//        private final CjSimpleNameExpression fakeInvokeExpression;
-        public final boolean itIsVariableAsFunctionCall;
 
         public CallForImplicitInvoke(
                 @Nullable Receiver explicitExtensionReceiver,
@@ -97,37 +95,38 @@ public class CallTransformer {
             itIsVariableAsFunctionCall = functionCall;
         }
 
-//        @Nullable
-//        @Override
-//        public ASTNode getCallOperationNode() {
-//            // if an explicit receiver corresponds to the implicit invoke, there is a corresponding call operation node:
-//            // a.b() or a?.b() (where b has an extension function type);
-//            // otherwise it's implicit
-//            return explicitExtensionReceiver != null ? super.getCallOperationNode() : null;
-//        }
-//
-//        @Nullable
-//        @Override
-//        public Receiver getExplicitReceiver() {
-//            return explicitExtensionReceiver;
-//        }
-//
-//        @NotNull
-//        @Override
-//        public ExpressionReceiver getDispatchReceiver() {
-//            return calleeExpressionAsDispatchReceiver;
-//        }
+        @Nullable
+        @Override
+        public ASTNode getCallOperationNode() {
+            // if an explicit receiver corresponds to the implicit invoke, there is a corresponding call operation node:
+            // a.b() or a?.b() (where b has an extension function type);
+            // otherwise it's implicit
+            return explicitExtensionReceiver != null ? super.getCallOperationNode() : null;
+        }
+
+        @Nullable
+        @Override
+        public Receiver getExplicitReceiver() {
+            return explicitExtensionReceiver;
+        }
+
+        //
+        @NotNull
+        @Override
+        public ExpressionReceiver getDispatchReceiver() {
+            return calleeExpressionAsDispatchReceiver;
+        }
 
 //        @Override
 //        public CjExpression getCalleeExpression() {
 //            return fakeInvokeExpression;
 //        }
-//
-//        @NotNull
-//        @Override
-//        public IndyInterface.CallType getCallType() {
-//            return CallType.INVOKE;
-//        }
+
+        @NotNull
+        @Override
+        public CallType getCallType() {
+            return CallType.INVOKE;
+        }
 
         @NotNull
         public Call getOuterCall() {

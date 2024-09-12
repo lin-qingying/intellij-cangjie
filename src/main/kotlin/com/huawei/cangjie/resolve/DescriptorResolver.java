@@ -21,6 +21,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import com.huawei.cangjie.resolve.calls.util.CallResolverUtilKt;
 import com.huawei.cangjie.resolve.calls.util.UnderscoreUtilKt;
+import com.huawei.cangjie.resolve.lazy.ForceResolveUtil;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyTypeAliasDescriptor;
 import com.huawei.cangjie.resolve.scopes.*;
@@ -503,6 +504,52 @@ public class DescriptorResolver {
         return type;
     }
 
+    public VariableDescriptor resolveLocalVariableDescriptor(
+            @NotNull CjParameter parameter,
+            @NotNull CangJieType type,
+            BindingTrace trace,
+            @NotNull LexicalScope scope
+    ) {
+        UnwrappedType approximatedType = typeApproximator.approximateDeclarationType(type, true);
+        VariableDescriptor variableDescriptor = new LocalVariableDescriptor(
+                scope.getOwnerDescriptor(),
+                annotationResolver.resolveAnnotationsWithArguments(scope, parameter.getModifierList(), trace),
+                CjPsiUtil.safeName(parameter.getName()),
+                approximatedType,
+                false,
+                CangJieSourceElementKt.toSourceElement(parameter)
+        );
+        trace.record(BindingContext.VALUE_PARAMETER, parameter, variableDescriptor);
+        // Type annotations also should be resolved
+        ForceResolveUtil.forceResolveAllContents(type.getAnnotations());
+        return variableDescriptor;
+    }
+
+    @NotNull
+    public VariableDescriptor resolveLocalVariableDescriptor(
+            @NotNull LexicalScope scope,
+            @NotNull CjParameter parameter,
+            BindingTrace trace
+    ) {
+        CangJieType type = resolveParameterType(scope, parameter, trace);
+        return resolveLocalVariableDescriptor(parameter, type, trace, scope);
+    }
+
+    private CangJieType resolveParameterType(LexicalScope scope, CjParameter parameter, BindingTrace trace) {
+        CjTypeReference typeReference = parameter.getTypeReference();
+        CangJieType type;
+        if (typeReference != null) {
+            type = typeResolver.resolveType(scope, typeReference, trace, true);
+        } else {
+            // Error is reported by the parser
+            type = ErrorUtils.createErrorType(ErrorTypeKind.NO_TYPE_SPECIFIED, parameter.getText());
+        }
+//        if (parameter.hasModifier(VARARG_KEYWORD)) {
+//            return getVarargParameterType(type);
+//        }
+        return type;
+    }
+
     @Nullable
     private CangJieType getDefaultSupertype(@NotNull ClassDescriptor classDescriptor, @NotNull List<CangJieType> supertypes, @Nullable ClassId classId) {
         //        根据仓颉继承规则，做如下配置
@@ -810,19 +857,39 @@ public class DescriptorResolver {
             }
             Name referencedName = subjectTypeParameterName.getReferencedNameAsName();
             TypeParameterDescriptorImpl typeParameterDescriptor = parameterByName.get(referencedName);
-            CjTypeReference boundTypeReference = constraint.getBoundTypeReference();
-            CangJieType bound = null;
-            if (boundTypeReference != null) {
-                bound = typeResolver.resolveType(scope, boundTypeReference, trace, false);
-                upperBoundCheckRequests.add(new UpperBoundCheckRequest(referencedName, boundTypeReference, bound));
-            }
 
-            if (typeParameterDescriptor != null) {
-                trace.record(BindingContext.REFERENCE_TARGET, subjectTypeParameterName, typeParameterDescriptor);
-                if (bound != null) {
-                    typeParameterDescriptor.addUpperBound(bound);
+
+
+//            CjTypeReference boundTypeReference = constraint.getBoundTypeReference();
+//            CangJieType bound = null;
+//            if (boundTypeReference != null) {
+//                bound = typeResolver.resolveType(scope, boundTypeReference, trace, false);
+//                upperBoundCheckRequests.add(new UpperBoundCheckRequest(referencedName, boundTypeReference, bound));
+//            }
+//
+//            if (typeParameterDescriptor != null) {
+//                trace.record(BindingContext.REFERENCE_TARGET, subjectTypeParameterName, typeParameterDescriptor);
+//                if (bound != null) {
+//                    typeParameterDescriptor.addUpperBound(bound);
+//                }
+//            }
+
+            List<CjTypeReference> boundTypeReferences = constraint.getBoundTypeReferences();
+            for (CjTypeReference boundTypeReference : boundTypeReferences) {
+                CangJieType bound = null;
+                if (boundTypeReference != null) {
+                    bound = typeResolver.resolveType(scope, boundTypeReference, trace, false);
+                    upperBoundCheckRequests.add(new UpperBoundCheckRequest(referencedName, boundTypeReference, bound));
+                }
+
+                if (typeParameterDescriptor != null) {
+                    trace.record(BindingContext.REFERENCE_TARGET, subjectTypeParameterName, typeParameterDescriptor);
+                    if (bound != null) {
+                        typeParameterDescriptor.addUpperBound(bound);
+                    }
                 }
             }
+
         }
 
         for (TypeParameterDescriptorImpl parameter : parameters) {
@@ -979,6 +1046,7 @@ public class DescriptorResolver {
                 index,
                 valueParameterAnnotations,
                 parameterName,
+                valueParameter.isNamed(),
                 variableType,
                 valueParameter.hasDefaultValue(),
 //                valueParameter.hasModifier(CROSSINLINE_KEYWORD),

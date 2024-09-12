@@ -80,6 +80,8 @@ public interface BindingContext {
     };
     WritableSlice<Box<DeferredType>, Boolean> DEFERRED_TYPE = Slices.createCollectiveSetSlice();
     WritableSlice<CjCollectionLiteralExpression, ResolvedCall<FunctionDescriptor>> COLLECTION_LITERAL_CALL = Slices.createSimpleSlice();
+    WritableSlice<CjRangeExpression, ResolvedCall<FunctionDescriptor>> RANGE_LITERAL_CALL = Slices.createSimpleSlice();
+
     WritableSlice<CjExpression, ExplicitSmartCasts> UNSTABLE_SMARTCAST = new BasicWritableSlice<>( DO_NOTHING);
     WritableSlice<CjExpression, DataFlowInfo> DATAFLOW_INFO_AFTER_CONDITION = Slices.createSimpleSlice();
     WritableSlice<CjExpression, Boolean> VARIABLE_REASSIGNMENT =  new BasicWritableSlice<>(DO_NOTHING);

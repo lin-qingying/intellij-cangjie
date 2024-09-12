@@ -2,10 +2,13 @@ package com.huawei.cangjie.types.expressions
 
 import com.google.common.collect.Lists
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.BindingContextUtils
+import com.huawei.cangjie.resolve.ModifierCheckerCore
+import com.huawei.cangjie.resolve.ModifiersChecker
 import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver
 import com.huawei.cangjie.resolve.calls.context.ContextDependency
 import com.huawei.cangjie.resolve.calls.model.MutableDataFlowInfoForArguments
@@ -16,12 +19,13 @@ import com.huawei.cangjie.resolve.calls.tower.LambdaContextInfo
 import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.resolve.scopes.LexicalScopeKind
 import com.huawei.cangjie.resolve.scopes.LexicalWritableScope
-import com.huawei.cangjie.resolve.scopes.receivers.TransientReceiver
 import com.huawei.cangjie.types.CangJieType
-import com.huawei.cangjie.types.ErrorUtils
+import com.huawei.cangjie.types.CommonSupertypes
 import com.huawei.cangjie.types.ErrorUtils.createErrorType
+import com.huawei.cangjie.types.checker.TrailingCommaChecker
 import com.huawei.cangjie.types.error.ErrorTypeKind
-import com.huawei.cangjie.types.expressions.ExpressionTypingUtils.getExpressionReceiver
+import com.huawei.cangjie.types.expressions.ControlStructureTypingUtils.Companion.createCallForSpecialConstruction
+import com.huawei.cangjie.types.expressions.ControlStructureTypingUtils.Companion.createDataFlowInfoForArgumentsOfTryCall
 import com.huawei.cangjie.types.expressions.ExpressionTypingUtils.newWritableScopeImpl
 import com.huawei.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.huawei.cangjie.types.expressions.typeInfoFactory.noTypeInfo
@@ -45,6 +49,262 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
             return components.dataFlowAnalyzer.checkType(typeInfo, condition, conditionContext).dataFlowInfo
         }
         return context.dataFlowInfo
+    }
+
+    private fun resolveTryExpressionWithNewInference(
+        tryExpression: CjTryExpression,
+        tryInputContext: ExpressionTypingContext
+    ): CangJieTypeInfo {
+        val tryBlock = tryExpression.tryBlock
+        val catchClauses = tryExpression.catchClauses
+        val finallySection = tryExpression.finallyBlock
+
+        val dataFlowInfoBeforeTry = tryInputContext.dataFlowInfo
+
+        val tryVisitor = PreliminaryLoopVisitor.visitTryBlock(tryExpression)
+        val tryOutputContext = tryInputContext.replaceDataFlowInfo(
+            tryVisitor.clearDataFlowInfoForAssignedLocalVariables(
+                dataFlowInfoBeforeTry,
+                components.languageVersionSettings
+            )
+        )
+        val dataFlowInfoAfterTry = tryOutputContext.dataFlowInfo
+
+        val catchBlocks = mutableListOf<CjExpression>()
+        val catchClausesBlocksAndParameters = mutableListOf<Pair<CjExpression, VariableDescriptor>>()
+
+        for (catchClause in catchClauses) {
+            val catchParameter = catchClause.catchParameter
+            val catchBody = catchClause.catchBody
+            if (catchParameter != null) {
+                val variableDescriptor = resolveAndCheckCatchParameter(catchParameter, tryInputContext)
+                if (catchBody != null) {
+                    catchBlocks.add(catchBody)
+                    catchClausesBlocksAndParameters.add(Pair(catchBody, variableDescriptor))
+                }
+            }
+        }
+
+        val finallyBlock = finallySection?.finalExpression
+
+        val arguments = mutableListOf<CjExpression>(tryBlock)
+        arguments.addAll(catchBlocks)
+
+        val callForTry = createCallForSpecialConstruction(tryExpression, tryExpression, arguments)
+
+        val dataFlowInfoForArguments =
+            createDataFlowInfoForArgumentsOfTryCall(callForTry, dataFlowInfoBeforeTry, dataFlowInfoBeforeTry)
+
+        val resolvedCall = components.controlStructureTypingUtils.resolveTryAsCall(
+            callForTry,
+            catchClausesBlocksAndParameters,
+            tryInputContext,
+            dataFlowInfoForArguments
+        )
+        val resultType = resolvedCall.resultingDescriptor.returnType
+
+        val bindingContext = tryInputContext.trace.bindingContext
+
+        return processTryBranches(
+            tryExpression,
+            tryBlock,
+            tryInputContext,
+            catchBlocks,
+            finallyBlock,
+            bindingContext,
+            resultType
+        )
+
+    }
+
+    private fun processTryBranches(
+        tryExpression: CjTryExpression,
+        tryBlock: CjBlockExpression,
+        context: ExpressionTypingContext,
+        catchBlocks: List<CjExpression>,
+        finallyBlock: CjBlockExpression?,
+        bindingContext: BindingContext,
+        resultType: CangJieType?
+    ): CangJieTypeInfo {
+        val tryInfo = BindingContextUtils.getRecordedTypeInfo(tryBlock, bindingContext)
+        val dataFlowInfoAfterTry = tryInfo?.dataFlowInfo ?: DataFlowInfo.EMPTY
+        val nothingInAllCatchBranches = isCatchBranchesReturnsNothing(catchBlocks, bindingContext)
+
+        val tryOutputContext =
+            getCleanedContextFromTryWithAssignmentsToVar(tryExpression, nothingInAllCatchBranches, context)
+                .replaceExpectedType(NO_EXPECTED_TYPE)
+                .replaceContextDependency(ContextDependency.INDEPENDENT)
+
+        val result = createTypeInfo(resultType, tryOutputContext)
+
+        return if (finallyBlock != null) {
+            facade.getTypeInfo(finallyBlock, tryOutputContext).replaceType(resultType)
+        } else if (!nothingInAllCatchBranches || tryInfo == null) {
+            result
+        } else {
+            createTypeInfo(
+                components.dataFlowAnalyzer.checkType(resultType, tryExpression, tryOutputContext),
+                dataFlowInfoAfterTry
+            )
+        }
+    }
+
+
+    override fun visitTryExpression(
+        expression: CjTryExpression,
+        typingContext: ExpressionTypingContext
+    ): CangJieTypeInfo {
+        expression.catchClauses.forEach { catchClause ->
+            val parameters = catchClause.parameterList
+            if (parameters != null && parameters.stub == null) {
+                TrailingCommaChecker.check(
+                    parameters.trailingComma,
+                    typingContext.trace,
+                    typingContext.languageVersionSettings
+                )
+            }
+        }
+
+        if (typingContext.languageVersionSettings.supportsFeature(LanguageFeature.NewInference)) {
+            return resolveTryExpressionWithNewInference(expression, typingContext)
+        }
+        val context = typingContext.replaceContextDependency(ContextDependency.INDEPENDENT)
+        val tryBlock = expression.tryBlock
+        val catchClauses = expression.catchClauses
+        val finallyBlock = expression.finallyBlock
+        val types = mutableListOf<CangJieType>()
+        var nothingInAllCatchBranches = true
+        for (catchClause in catchClauses) {
+            val catchParameter = catchClause.catchParameter
+            val catchBody = catchClause.catchBody
+            var nothingInCatchBranch = false
+            if (catchParameter != null) {
+                val variableDescriptor = resolveAndCheckCatchParameter(catchParameter, context)
+
+                if (catchBody != null) {
+                    val catchScope = newWritableScopeImpl(context, LexicalScopeKind.CATCH, components.overloadChecker)
+                    catchScope.addVariableDescriptor(variableDescriptor)
+                    val type = facade.getTypeInfo(catchBody, context.replaceScope(catchScope)).type
+                    if (type != null) {
+                        types.add(type)
+                        if (CangJieBuiltIns.isNothing(type)) {
+                            nothingInCatchBranch = true
+                        }
+                    }
+                }
+            }
+            if (!nothingInCatchBranch) {
+                nothingInAllCatchBranches = false
+            }
+        }
+
+        val tryResult = facade.getTypeInfo(tryBlock, context)
+        val tryOutputContext =
+            getCleanedContextFromTryWithAssignmentsToVar(expression, nothingInAllCatchBranches, context)
+
+        var result = noTypeInfo(tryOutputContext)
+        if (finallyBlock != null) {
+            result = facade.getTypeInfo(finallyBlock.finalExpression!!, tryOutputContext)
+        } else if (nothingInAllCatchBranches) {
+            result = tryResult
+        }
+
+        val type = tryResult.type
+        if (type != null) {
+            types.add(type)
+        }
+        return if (types.isEmpty()) {
+            result.clearType()
+        } else {
+            result.replaceType(CommonSupertypes.commonSupertype(types))
+        }
+    }
+
+    private fun checkCatchParameterDeclaration(
+        catchParameter: CjParameter,
+        context: ExpressionTypingContext
+    ) {
+        components.identifierChecker.checkDeclaration(catchParameter, context.trace)
+        val modifiersChecking: ModifiersChecker.ModifiersCheckingProcedure =
+            components.modifiersChecker.withTrace(context.trace)
+        modifiersChecking.checkParameterHasNoLetOrVar(
+            catchParameter,
+            Errors.LET_OR_VAR_ON_CATCH_PARAMETER
+        )
+        ModifierCheckerCore.check(
+            catchParameter,
+            context.trace,
+            null,
+            components.languageVersionSettings
+        )
+
+        if (catchParameter.hasDefaultValue()) {
+            context.trace.report(
+                Errors.CATCH_PARAMETER_WITH_DEFAULT_VALUE.on(
+                    catchParameter
+                )
+            )
+        }
+    }
+
+    private fun resolveAndCheckCatchParameter(
+        catchParameter: CjParameter,
+        context: ExpressionTypingContext
+    ): VariableDescriptor {
+        checkCatchParameterDeclaration(catchParameter, context)
+
+        val variableDescriptor = components.descriptorResolver
+            .resolveLocalVariableDescriptor(context.scope, catchParameter, context.trace)
+        val catchParameterType = variableDescriptor.type
+        checkCatchParameterType(catchParameter, catchParameterType, context)
+        val throwableType = components.builtIns.throwable.defaultType
+        components.dataFlowAnalyzer.checkType(
+            catchParameterType,
+            catchParameter,
+            context.replaceExpectedType(throwableType)
+        )
+        return variableDescriptor
+    }
+
+    override fun visitThrowExpression(
+        expression: CjThrowExpression,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
+        val thrownExpression = expression.thrownExpression
+        if (thrownExpression != null) {
+            val throwableType =
+                components.builtIns.throwableType
+            facade.getTypeInfo(
+                thrownExpression,
+                context.replaceExpectedType(throwableType)
+                    .replaceContextDependency(ContextDependency.INDEPENDENT)
+            )
+        }
+        return components.dataFlowAnalyzer.createCheckedTypeInfo(
+            components.builtIns.nothingType,
+            context,
+            expression
+        )
+    }
+
+    private fun getCleanedContextFromTryWithAssignmentsToVar(
+        tryExpression: CjTryExpression,
+        nothingInAllCatchBranches: Boolean,
+        context: ExpressionTypingContext
+    ): ExpressionTypingContext {
+        var context = context
+        context = context.replaceExpectedType(NO_EXPECTED_TYPE)
+//        if (!nothingInAllCatchBranches && facade.components.languageVersionSettings.supportsFeature(LanguageFeature.SoundSmartCastsAfterTry)) {
+//            val tryVisitor: PreliminaryLoopVisitor =
+//                PreliminaryLoopVisitor.visitTryBlock(tryExpression)
+//            context = context.replaceDataFlowInfo(
+//                tryVisitor.clearDataFlowInfoForAssignedLocalVariables(
+//                    context.dataFlowInfo,
+//                    components.languageVersionSettings
+//                )
+//            )
+//        }
+        return context
     }
 
     override fun visitIfExpression(expression: CjIfExpression, context: ExpressionTypingContext): CangJieTypeInfo {
@@ -97,7 +357,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         val thenBlock: CjBlockExpression = psiFactory.wrapInABlockWrapper(thenBranch)
         val elseBlock: CjBlockExpression = psiFactory.wrapInABlockWrapper(elseBranch)
         val callForIf: Call =
-            ControlStructureTypingUtils.createCallForSpecialConstruction(
+            createCallForSpecialConstruction(
                 expression,
                 expression,
                 Lists.newArrayList<CjBlockExpression>(thenBlock, elseBlock)
@@ -124,29 +384,47 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
             loopBreakContinuePossibleInCondition, elseBranch, thenBranch, resolvedCall
         )
     }
-    override fun visitDoWhileExpression(expression: CjDoWhileExpression, context: ExpressionTypingContext): CangJieTypeInfo {
+
+    override fun visitDoWhileExpression(
+        expression: CjDoWhileExpression,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
         return visitDoWhileExpression(expression, context, false)
     }
 
-    fun visitDoWhileExpression(expression: CjDoWhileExpression, contextWithExpectedType: ExpressionTypingContext, isStatement: Boolean): CangJieTypeInfo {
-        if (!isStatement) return components.dataFlowAnalyzer.illegalStatementType(expression, contextWithExpectedType, facade)
+    fun visitDoWhileExpression(
+        expression: CjDoWhileExpression,
+        contextWithExpectedType: ExpressionTypingContext,
+        isStatement: Boolean
+    ): CangJieTypeInfo {
+        if (!isStatement) return components.dataFlowAnalyzer.illegalStatementType(
+            expression,
+            contextWithExpectedType,
+            facade
+        )
 
         var context = contextWithExpectedType.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(
             ContextDependency.INDEPENDENT
         )
         var conditionScope = context.scope
         val loopVisitor = PreliminaryLoopVisitor.visitLoop(expression)
-        context = context.replaceDataFlowInfo(loopVisitor.clearDataFlowInfoForAssignedLocalVariables(context.dataFlowInfo, components.languageVersionSettings))
+        context = context.replaceDataFlowInfo(
+            loopVisitor.clearDataFlowInfoForAssignedLocalVariables(
+                context.dataFlowInfo,
+                components.languageVersionSettings
+            )
+        )
 
         var bodyTypeInfo: CangJieTypeInfo
         val body = expression.body
         if (body is CjLambdaExpression) {
             bodyTypeInfo = facade.getTypeInfo(body, context)
         } else if (body != null) {
-            val writableScope = newWritableScopeImpl(context, LexicalScopeKind.DO_WHILE_BODY, components.overloadChecker)
+            val writableScope =
+                newWritableScopeImpl(context, LexicalScopeKind.DO_WHILE_BODY, components.overloadChecker)
             conditionScope = writableScope
             val block = if (body is CjBlockExpression) {
-                (body as CjBlockExpression).statements
+                body.statements
             } else {
                 listOf(body)
             }
@@ -161,19 +439,26 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         val conditionDataFlowInfo = checkCondition(condition, context.replaceScope(conditionScope))
         var dataFlowInfo: DataFlowInfo
         if (!containsJumpOutOfLoop(expression, context)) {
-            dataFlowInfo = components.dataFlowAnalyzer.extractDataFlowInfoFromCondition(condition, false, context).and(conditionDataFlowInfo)
+            dataFlowInfo = components.dataFlowAnalyzer.extractDataFlowInfoFromCondition(condition, false, context)
+                .and(conditionDataFlowInfo)
         } else {
             dataFlowInfo = context.dataFlowInfo
         }
 
         if (body != null) {
-            dataFlowInfo = dataFlowInfo.and(loopVisitor.clearDataFlowInfoForAssignedLocalVariables(bodyTypeInfo.jumpFlowInfo, components.languageVersionSettings))
+            dataFlowInfo = dataFlowInfo.and(
+                loopVisitor.clearDataFlowInfoForAssignedLocalVariables(
+                    bodyTypeInfo.jumpFlowInfo,
+                    components.languageVersionSettings
+                )
+            )
         }
 
         return components.dataFlowAnalyzer
             .checkType(bodyTypeInfo.replaceType(components.builtIns.unitType), expression, contextWithExpectedType)
             .replaceDataFlowInfo(dataFlowInfo)
     }
+
     override fun visitWhileExpression(
         expression: CjWhileExpression,
         context: ExpressionTypingContext
@@ -377,6 +662,15 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         return result[0]
     }
 
+    override fun visitBreakExpression(
+        expression: CjBreakExpression,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
+
+        return components.dataFlowAnalyzer.createCheckedTypeInfo(components.builtIns.nothingType, context, expression)
+            .replaceJumpOutPossible(true)
+    }
+
     override fun visitReturnExpression(
         expression: CjReturnExpression,
         context: ExpressionTypingContext
@@ -520,13 +814,16 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         }
         return components.dataFlowAnalyzer.createCheckedTypeInfo(resultType, context, expression)
     }
-// The Java method can be rewritten in CangJie as follows:
 
     override fun visitForExpression(expression: CjForExpression, context: ExpressionTypingContext): CangJieTypeInfo {
         return visitForExpression(expression, context, false)
     }
 
-    fun visitForExpression(expression: CjForExpression, contextWithExpectedType: ExpressionTypingContext, isStatement: Boolean): CangJieTypeInfo {
+    fun visitForExpression(
+        expression: CjForExpression,
+        contextWithExpectedType: ExpressionTypingContext,
+        isStatement: Boolean
+    ): CangJieTypeInfo {
 //        if (!isStatement) return components.dataFlowAnalyzer.illegalStatementType(expression, contextWithExpectedType, facade)
 //
 //        var context = contextWithExpectedType.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(
@@ -582,11 +879,23 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
 //        return components.dataFlowAnalyzer
 //            .checkType(bodyTypeInfo.replaceType(components.builtIns.unitType), expression, contextWithExpectedType)
 //            .replaceDataFlowInfo(loopRangeInfo.dataFlowInfo)
-   TODO()
+        TODO()
     }
 
+    override fun visitContinueExpression(
+        expression: CjContinueExpression,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
 
-    private fun createLoopParameterDescriptor(loopParameter: CjParameter, expectedParameterType: CangJieType, context: ExpressionTypingContext): VariableDescriptor {
+        return components.dataFlowAnalyzer.createCheckedTypeInfo(components.builtIns.nothingType, context, expression)
+            .replaceJumpOutPossible(true)
+    }
+
+    private fun createLoopParameterDescriptor(
+        loopParameter: CjParameter,
+        expectedParameterType: CangJieType,
+        context: ExpressionTypingContext
+    ): VariableDescriptor {
 //        components.modifiersChecker.withTrace(context.trace).checkParameterHasNoValOrVar(loopParameter, LET_OR_VAR_ON_LOOP_PARAMETER)
 //
 //        val typeReference = loopParameter.typeReference
@@ -610,10 +919,49 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
 //        return variableDescriptor
         TODO()
     }
+
     companion object {
 
         private fun isClassInitializer(containingFunInfo: com.intellij.openapi.util.Pair<FunctionDescriptor, PsiElement>): Boolean {
             return containingFunInfo.getFirst() is ConstructorDescriptor && containingFunInfo.getSecond() !is CjSecondaryConstructor
+        }
+
+        private fun checkCatchParameterType(
+            catchParameter: CjParameter,
+            catchParameterType: CangJieType,
+            context: ExpressionTypingContext
+        ) {
+            val typeParameterDescriptor =
+                TypeUtils.getTypeParameterDescriptorOrNull(catchParameterType)
+            if (typeParameterDescriptor != null) {
+
+                context.trace.report(
+                    Errors.TYPE_PARAMETER_IN_CATCH_CLAUSE.on(
+                        catchParameter
+                    )
+                )
+
+            }
+        }
+
+        private fun isCatchBranchesReturnsNothing(
+            catchBlocks: List<CjExpression>,
+            bindingContext: BindingContext
+        ): Boolean {
+            return whichCatchBranchesReturnNothing(catchBlocks, bindingContext).all { it }
+        }
+
+        private fun whichCatchBranchesReturnNothing(
+            catchBlocks: List<CjExpression>,
+            bindingContext: BindingContext
+        ): List<Boolean> {
+            return catchBlocks.map { catchBlock ->
+                val catchTypeInfo = BindingContextUtils.getRecordedTypeInfo(catchBlock, bindingContext)
+                catchTypeInfo?.let {
+                    val catchType = catchTypeInfo.type
+                    catchType == null || CangJieBuiltIns.isNothing(catchType)
+                } ?: true
+            }
         }
 
         private fun getFunctionExpectedReturnType(

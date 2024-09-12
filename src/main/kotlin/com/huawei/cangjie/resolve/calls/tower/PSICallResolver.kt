@@ -549,8 +549,8 @@ class PSICallResolver(
         cangjieCallKind: CangJieCallKind,
         oldCall: Call
     ): ReceiverCangJieCallArgument? {
-        return null
-//        if (cangjieCallKind != CangJieCallKind.INVOKE) return null
+
+        if (cangjieCallKind != CangJieCallKind.INVOKE) return null
 
         require(oldCall is CallTransformer.CallForImplicitInvoke) { "Call should be CallForImplicitInvoke, but it is: $oldCall" }
 
@@ -758,11 +758,11 @@ class PSICallResolver(
                 }
             }
 
-//        if (cjExpression is CjCallableReferenceExpression) {
-//            return createCallableReferenceCangJieCallArgument(
-//                context, cjExpression, startDataFlowInfo, valueArgument, argumentName, outerCallContext, tracingStrategy
-//            )
-//        }
+        if (cjExpression is CjCallableReferenceExpression) {
+            return createCallableReferenceCangJieCallArgument(
+                context, cjExpression, startDataFlowInfo, valueArgument, argumentName, outerCallContext, tracingStrategy
+            )
+        }
 
         // argumentExpression instead of cjExpression is hack -- type info should be stored also for parenthesized expression
         val typeInfo = expressionTypingServices.getTypeInfo(argumentExpression, context)
@@ -826,7 +826,7 @@ class PSICallResolver(
         val resolutionCallbacks = createResolutionCallbacks(context)
 //
         val expectedType = calculateExpectedType(context)
-        var result = cangjieCallResolver.resolveAndCompleteCall(
+        val result = cangjieCallResolver.resolveAndCompleteCall(
             scopeTower, resolutionCallbacks, cangjieCall, expectedType, context.collectAllCandidates
         )
 

@@ -149,6 +149,7 @@ open class BasicTypeDescriptor(
                             0,
                             Annotations.EMPTY,
                             Name.identifier("right"),
+                            false,
                             rightType,
                             false,
                             SourceElement.NO_SOURCE,

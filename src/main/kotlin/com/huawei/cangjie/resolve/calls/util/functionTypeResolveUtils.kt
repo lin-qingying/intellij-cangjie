@@ -18,7 +18,7 @@ fun createValueParametersForInvokeInFunctionType(
     return parameterTypes.mapIndexed { i, typeProjection ->
         ValueParameterDescriptorImpl(
             functionDescriptor, null, i, Annotations.EMPTY,
-            Name.identifier("p${i + 1}"), typeProjection.type,
+            Name.identifier("p${i + 1}"), false, typeProjection.type,
             /* declaresDefaultValue = */ false,
             /* isCrossinline = */
 //            false,

@@ -2,7 +2,9 @@ package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.diagnostics.DiagnosticFactory1
 import com.huawei.cangjie.extensions.DeclarationAttributeAltererExtension
+import com.huawei.cangjie.lexer.CjKeywordToken
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.check.UnderscoreChecker
@@ -22,8 +24,22 @@ class ModifiersChecker(
 
     inner class ModifiersCheckingProcedure(val trace: BindingTrace) {
 
+        fun checkParameterHasNoLetOrVar(
+            parameter: CjLetVarKeywordOwner,
+            diagnosticFactory: DiagnosticFactory1<PsiElement, CjKeywordToken>
+        ) {
+            val valOrVar = parameter.letOrVarKeyword
+            if (valOrVar != null) {
+                trace.report(
+                    diagnosticFactory.on(
+                        valOrVar,
+                        (valOrVar.node.elementType as CjKeywordToken)
+                    )
+                )
+            }
+        }
 
-        fun checkModifiersForDestructuringDeclaration(multiDeclaration:  CjDestructuringDeclaration) {
+        fun checkModifiersForDestructuringDeclaration(multiDeclaration: CjDestructuringDeclaration) {
 //            annotationChecker.check(multiDeclaration, trace, null)
             ModifierCheckerCore.check(multiDeclaration, trace, null, languageVersionSettings)
             for (multiEntry in multiDeclaration.entries) {
@@ -37,6 +53,7 @@ class ModifiersChecker(
                 )
             }
         }
+
         fun checkModifiersForDeclaration(
             modifierListOwner: CjDeclaration,
             descriptor: MemberDescriptor
@@ -46,12 +63,14 @@ class ModifiersChecker(
             checkModifierListCommon(modifierListOwner, descriptor)
             checkIllegalHeader(modifierListOwner, descriptor)
         }
+
         fun checkModifiersForLocalDeclaration(
             modifierListOwner: CjDeclaration,
-            descriptor:  DeclarationDescriptor
+            descriptor: DeclarationDescriptor
         ) {
             checkModifierListCommon(modifierListOwner, descriptor)
         }
+
         private fun checkIllegalHeader(
             modifierListOwner: CjModifierListOwner,
             descriptor: DeclarationDescriptor
@@ -270,7 +289,7 @@ class ModifiersChecker(
             allowSealed: Boolean
         ): Modality {
 //            TODO()
-            val modifierList =   if ((modifierListOwner != null)) modifierListOwner.modifierList else null
+            val modifierList = if ((modifierListOwner != null)) modifierListOwner.modifierList else null
             var modality =
                 resolveModalityFromModifiers(
                     containingDescriptor,

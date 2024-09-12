@@ -64,9 +64,6 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
     private final NotNullLazyValue<Collection<ClassDescriptor>> sealedSubclasses;
     @Nullable
     private CjTypeStatement typeStatement;
-    //    该方法是为扩展提供更改psi节点的，其他情况不要使用
-    private BindingTrace extendTrace = null;
-    private LexicalScope extendScope = null;
 
 
     public LazyClassDescriptor(
@@ -517,8 +514,7 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
     @Deprecated()
     public void setExtendData(CjTypeStatement typeStatement, BindingTrace extendTrace, LexicalScope extendScope) {
         this.typeStatement = typeStatement;
-        this.extendTrace = extendTrace;
-        this.extendScope = extendScope;
+
 
     }
 

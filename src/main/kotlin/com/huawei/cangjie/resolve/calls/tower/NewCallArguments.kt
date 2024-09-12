@@ -252,11 +252,11 @@ fun processFunctionalExpression(
         if (expression is CjFunctionLiteral) expression.getParentOfType<CjLambdaExpression>(true) else expression
 
     val lambdaArgument: PSICangJieCallArgument = when (postponedExpression) {
-//        is CjLambdaExpression ->
-//            LambdaCangJieCallArgumentImpl(
-//                outerCallContext, valueArgument, startDataFlowInfo, argumentName, postponedExpression, argumentExpression,
-//                resolveParametersTypes(outerCallContext, postponedExpression.functionLiteral, typeResolver)
-//            )
+        is CjLambdaExpression ->
+            LambdaCangJieCallArgumentImpl(
+                outerCallContext, valueArgument, startDataFlowInfo, argumentName, postponedExpression, argumentExpression,
+                resolveParametersTypes(outerCallContext, postponedExpression.functionLiteral, typeResolver)
+            )
 
         is CjNamedFunction -> {
             // if function is a not anonymous function, resolve it as simple expression

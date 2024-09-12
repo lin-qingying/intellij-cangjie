@@ -7,6 +7,10 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.arrayClassFqNameToPrimi
 import com.huawei.cangjie.builtins.StandardNames.FqNames.arrayFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.arrayUFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.boolUFqName
+import com.huawei.cangjie.builtins.StandardNames.FqNames.comparableFqName
+import com.huawei.cangjie.builtins.StandardNames.FqNames.countableFqName
+import com.huawei.cangjie.builtins.StandardNames.FqNames.equatableFqName
+import com.huawei.cangjie.builtins.StandardNames.FqNames.exceptionFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.float16UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.float32UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.float64UFqName
@@ -18,6 +22,7 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.nothingUFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.objectFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.optionUFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.primitiveArrayTypeShortNames
+import com.huawei.cangjie.builtins.StandardNames.FqNames.rangeFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.runeUFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.stringFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.stringUFqName
@@ -549,10 +554,14 @@ open class CangJieBuiltIns(
     val nothing: ClassDescriptor get() = getBuiltInClassByName("Nothing")
 
 
+    val throwable: ClassDescriptor
+        get() = findClassDescriptorByFqName(storageManager.project, exceptionFqName)!!
+    val throwableType: CangJieType
+        get() = throwable.defaultType
     val `object`: ClassDescriptor
         get() = findClassDescriptorByFqName(storageManager.project, objectFqName)!!
 
-    val objectType: SimpleType
+    val objectType: CangJieType
         get() {
             return `object`.defaultType
         }
@@ -597,8 +606,31 @@ open class CangJieBuiltIns(
         get() {
             return any.getDefaultType()
         }
+    val countable: ClassDescriptor
+        get() = findClassDescriptorByFqName(storageManager.project, countableFqName)!!
+    val countableType: SimpleType
+        get() {
+            return countable.getDefaultType()
+        }
+    val equatable: ClassDescriptor
+        get() = findClassDescriptorByFqName(storageManager.project, equatableFqName)!!
+    val equatableType: SimpleType
+        get() {
+            return equatable.getDefaultType()
+        }
 
-
+    val comparable: ClassDescriptor
+        get() = findClassDescriptorByFqName(storageManager.project, comparableFqName)!!
+    val ccomparableType: SimpleType
+        get() {
+            return comparable.getDefaultType()
+        }
+    val range: ClassDescriptor
+        get() = findClassDescriptorByFqName(storageManager.project, rangeFqName)!!
+    val rangeType: SimpleType
+        get() {
+            return range.getDefaultType()
+        }
     val string: ClassDescriptor
         get() = findClassDescriptorByFqName(storageManager.project, stringFqName)!!
     val array: ClassDescriptor

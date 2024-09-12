@@ -191,6 +191,7 @@ class ChangeMemberFunctionSignatureFix private constructor(
                     index,
                     parameter.annotations,
                     parameter.name,
+                    parameter.isNamed,
                     parameter.returnType!!,
                     parameter.declaresDefaultValue(),
                     /*   parameter.isCrossinline, parameter.isNoinline, parameter.varargElementType, */

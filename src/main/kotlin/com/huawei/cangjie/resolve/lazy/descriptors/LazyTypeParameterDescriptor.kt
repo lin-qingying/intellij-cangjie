@@ -59,10 +59,14 @@ class LazyTypeParameterDescriptor(
                             this
                         )
 
-                        val boundTypeReference = typeConstraint.boundTypeReference
-                        if (boundTypeReference != null) {
-                            result.add(boundTypeReference)
-                        }
+
+//                        单边界
+//                        val boundTypeReference = typeConstraint.boundTypeReference
+//                        if (boundTypeReference != null) {
+//                            result.add(boundTypeReference)
+//                        }
+//                        多边界
+                        result.addAll(typeConstraint.boundTypeReferences)
                     }
                 }
             }
@@ -72,7 +76,9 @@ class LazyTypeParameterDescriptor(
     }
 
     private fun getAllUpperBounds(): Collection<CjTypeReference> {
-        return listOfNotNull(typeParameter.extendsBound)
+//        return listOfNotNull(typeParameter.extendsBound)
+//            .plus(getUpperBoundsFromWhereClause())
+        return typeParameter.extendsBounds
             .plus(getUpperBoundsFromWhereClause())
     }
 

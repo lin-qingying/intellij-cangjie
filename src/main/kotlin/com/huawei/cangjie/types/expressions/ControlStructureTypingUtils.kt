@@ -45,23 +45,28 @@ class ControlStructureTypingUtils(
         val LOG: Logger = Logger.getInstance(
             ControlStructureTypingUtils::class.java
         )
-        class ControlStructureDataFlowInfo(initialDataFlowInfo: DataFlowInfo, val dataFlowInfoForArgumentsMap: MutableMap<ValueArgument, DataFlowInfo>) : MutableDataFlowInfoForArguments(initialDataFlowInfo) {
+
+        class ControlStructureDataFlowInfo(
+            initialDataFlowInfo: DataFlowInfo,
+            val dataFlowInfoForArgumentsMap: MutableMap<ValueArgument, DataFlowInfo>
+        ) : MutableDataFlowInfoForArguments(initialDataFlowInfo) {
 
             override fun updateInfo(valueArgument: ValueArgument, dataFlowInfo: DataFlowInfo) {
                 dataFlowInfoForArgumentsMap[valueArgument] = dataFlowInfo
             }
 
-            override fun updateResultInfo(dataFlowInfo: DataFlowInfo) { }
+            override fun updateResultInfo(dataFlowInfo: DataFlowInfo) {}
 
             override fun getInfo(valueArgument: ValueArgument): DataFlowInfo {
                 return dataFlowInfoForArgumentsMap[valueArgument] ?: error("DataFlowInfo not found for ValueArgument")
             }
         }
+
         private fun createIndependentDataFlowInfoForArgumentsForCall(
             initialDataFlowInfo: DataFlowInfo,
             dataFlowInfoForArgumentsMap: MutableMap<ValueArgument, DataFlowInfo>
         ): MutableDataFlowInfoForArguments {
-            return  ControlStructureDataFlowInfo(
+            return ControlStructureDataFlowInfo(
                 initialDataFlowInfo,
                 dataFlowInfoForArgumentsMap
             )
@@ -77,6 +82,25 @@ class ControlStructureTypingUtils(
             dataFlowInfoForArgumentsMap[callForIf.valueArguments[0]] = thenInfo
             dataFlowInfoForArgumentsMap[callForIf.valueArguments[1]] = elseInfo
             return createIndependentDataFlowInfoForArgumentsForCall(conditionInfo, dataFlowInfoForArgumentsMap)
+        }
+
+        @JvmStatic
+        fun createDataFlowInfoForArgumentsOfTryCall(
+            callForTry: Call,
+            dataFlowInfoBeforeTry: DataFlowInfo,
+            dataFlowInfoAfterTry: DataFlowInfo
+        ): MutableDataFlowInfoForArguments {
+            val dataFlowInfoForArgumentsMap: MutableMap<ValueArgument, DataFlowInfo> =
+                HashMap<ValueArgument, DataFlowInfo>()
+            val valueArguments: List<ValueArgument> = callForTry.getValueArguments()
+            dataFlowInfoForArgumentsMap[valueArguments[0]] = dataFlowInfoBeforeTry
+            for (i in 1 until valueArguments.size) {
+                dataFlowInfoForArgumentsMap[valueArguments[i]] = dataFlowInfoAfterTry
+            }
+            return createIndependentDataFlowInfoForArgumentsForCall(
+                dataFlowInfoBeforeTry,
+                dataFlowInfoForArgumentsMap
+            )
         }
 
         @JvmStatic
@@ -191,7 +215,7 @@ class ControlStructureTypingUtils(
             for (i in argumentNames.indices) {
                 val argumentType = if (isArgumentNullable[i]) nullableType else type
                 val valueParameter = ValueParameterDescriptorImpl(
-                    function, null, i, Annotations.EMPTY, Name.identifier(argumentNames[i]),
+                    function, null, i, Annotations.EMPTY, Name.identifier(argumentNames[i]),false,
                     argumentType,
                     /* declaresDefaultValue = */ false,
 
@@ -257,6 +281,35 @@ class ControlStructureTypingUtils(
         )
         require(results.isSingleResult) { "Not single result after resolving one known candidate" }
         return results.resultingCall
+    }
+
+    internal fun resolveTryAsCall(
+        call: Call,
+        catchedExceptions: List<Pair<CjExpression, VariableDescriptor>>,
+        context: ExpressionTypingContext,
+        dataFlowInfoForArguments: MutableDataFlowInfoForArguments?
+    ): ResolvedCall<FunctionDescriptor> {
+        val argumentNames = mutableListOf("tryBlock")
+        val argumentsNullability = mutableListOf(false)
+
+        var counter = 0
+        for ((catchBlock, catchedExceptionDescriptor) in catchedExceptions) {
+            argumentNames.add("catchBlock$counter")
+            argumentsNullability.add(false)
+
+            context.trace.record(
+                BindingContext.NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER,
+                catchBlock,
+                Ref.create(catchedExceptionDescriptor)
+            )
+
+            counter++
+        }
+
+        val function =
+            createFunctionDescriptorForSpecialConstruction(ResolveConstruct.TRY, argumentNames, argumentsNullability)
+
+        return resolveSpecialConstructionAsCall(call, function, ResolveConstruct.TRY, context, dataFlowInfoForArguments)
     }
 
     private fun createFunctionDescriptorForSpecialConstruction(

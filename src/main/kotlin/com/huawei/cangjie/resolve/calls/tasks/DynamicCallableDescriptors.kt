@@ -185,6 +185,8 @@ class DynamicCallableDescriptors(private val storageManager: StorageManager, bui
                     index,
                     Annotations.EMPTY,
                     arg.getArgumentName()?.asName ?: Name.identifier("p$index"),
+                    arg.isNamed(),
+
                     outType,
                     /* declaresDefaultValue = */ false,
 //                    /* isCrossinline = */ false,

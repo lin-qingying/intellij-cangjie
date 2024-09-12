@@ -16,7 +16,7 @@ object StandardNames {
     @kotlin.jvm.JvmField
     val NAME = Name.identifier("name")
 
-
+    val rangeOfName = Name.identifier("rangeOf")
     val arrayOfName = Name.identifier("arrayOf")
 
     @JvmStatic
@@ -118,6 +118,8 @@ object StandardNames {
 
     @JvmField
     val BOOL = Name.identifier("Bool")
+    @JvmField
+    val EXCEPTION = Name.identifier("Exception")
 
     @JvmField
     val OBJECT = Name.identifier("Object")
@@ -127,6 +129,14 @@ object StandardNames {
 
     @JvmField
     val ARRAY = Name.identifier("Array")
+    @JvmField
+    val RANGE = Name.identifier("Range")
+    @JvmField
+    val COUNTABLE = Name.identifier("Countable")
+    @JvmField
+    val EQUATABLE = Name.identifier("Equatable")
+    @JvmField
+    val COMPARABLE = Name.identifier("Comparable")
 
     @JvmField
     val STRING = Name.identifier("String")
@@ -186,6 +196,8 @@ object StandardNames {
 
         @JvmField
         val anyUFqName: FqNameUnsafe = anyFqName.toUnsafe()
+        @JvmField
+        val exceptionFqName: FqName = core.child(  EXCEPTION)
 
         @JvmField
         val objectFqName: FqName = core.child(OBJECT)
@@ -198,6 +210,19 @@ object StandardNames {
 
         @JvmField
         val optionUFqName: FqNameUnsafe = optionFqName.toUnsafe()
+
+
+
+        @JvmField
+        val countableFqName: FqName = core.child(COUNTABLE)
+        @JvmField
+        val equatableFqName: FqName = core.child(EQUATABLE)
+
+        @JvmField
+        val comparableFqName: FqName = core.child(COMPARABLE)
+
+        @JvmField
+        val rangeFqName: FqName = core.child(RANGE)
 
         @JvmField
         val stringFqName: FqName = core.child(STRING)

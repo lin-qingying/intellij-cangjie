@@ -114,6 +114,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
                             unsubstitutedValueParameter.getIndex(),
                             unsubstitutedValueParameter.getAnnotations(),
                             unsubstitutedValueParameter.getName(),
+                            unsubstitutedValueParameter.isNamed(),
                             substitutedType,
                             unsubstitutedValueParameter.declaresDefaultValue(),
 //                            unsubstitutedValueParameter.isCrossinline(),
@@ -201,6 +202,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 
     @Override
     public boolean getIsExtend() {
+        if (dispatchReceiverParameter == null) return false;
         return dispatchReceiverParameter.getContainingDeclaration() instanceof LazyExtendClassDescriptor;
 
     }
@@ -492,7 +494,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         wereChanges[0] |= !unsubstitutedTypeParameters.isEmpty();
 
         List<TypeParameterDescriptor> substitutedTypeParameters =
-                new ArrayList<TypeParameterDescriptor>(unsubstitutedTypeParameters.size());
+                new ArrayList<>(unsubstitutedTypeParameters.size());
         final TypeSubstitutor substitutor = DescriptorSubstitutor.substituteTypeParameters(
                 unsubstitutedTypeParameters, configuration.substitution, substitutedDescriptor, substitutedTypeParameters, wereChanges
         );

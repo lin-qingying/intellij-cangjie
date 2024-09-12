@@ -357,6 +357,12 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         }
         return leftTypeInfo.replaceType(booleanType);
     }
+    @Override
+    public CangJieTypeInfo visitRangeExpression(@NotNull CjRangeExpression expression, ExpressionTypingContext data) {
+        return components.rangeLiteralResolver.resolveRangeLiteral(expression, data);
+
+    }
+
 
     @Override
     public CangJieTypeInfo visitBinaryExpression(@NotNull CjBinaryExpression expression, ExpressionTypingContext contextWithExpectedType) {

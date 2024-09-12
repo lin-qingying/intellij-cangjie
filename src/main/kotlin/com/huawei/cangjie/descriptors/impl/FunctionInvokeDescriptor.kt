@@ -120,6 +120,7 @@ class FunctionInvokeDescriptor private constructor(
                 containingDeclaration, null, index,
                 Annotations.EMPTY,
                 Name.identifier(name),
+                false,
                 typeParameter.defaultType,
                 declaresDefaultValue = false,
 

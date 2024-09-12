@@ -12,6 +12,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 
+import java.util.List;
+
 public class CjTypeParameter extends CjNamedDeclarationStub<CangJieTypeParameterStub> {
 
     public CjTypeParameter(@NotNull ASTNode node) {
@@ -75,7 +77,10 @@ public class CjTypeParameter extends CjNamedDeclarationStub<CangJieTypeParameter
     public CjTypeReference getExtendsBound() {
         return getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE);
     }
-
+    @NotNull
+    public List<CjTypeReference> getExtendsBounds() {
+        return getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_REFERENCE);
+    }
     @NotNull
     @Override
     public SearchScope getUseScope() {

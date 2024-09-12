@@ -6,9 +6,11 @@ import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 
 public class CjTypeConstraint extends CjElementImplStub<CangJiePlaceHolderStub<CjTypeConstraint>>
-        implements  CjElement{
+        implements CjElement {
     public CjTypeConstraint(@NotNull ASTNode node) {
         super(node);
     }
@@ -33,11 +35,19 @@ public class CjTypeConstraint extends CjElementImplStub<CangJiePlaceHolderStub<C
         return getStubOrPsiChild(CjStubElementTypes.REFERENCE_EXPRESSION);
     }
 
-    @Nullable @IfNotParsed
+    @Nullable
+    @IfNotParsed
     public CjTypeReference getBoundTypeReference() {
         return getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE);
     }
 
+    @NotNull
+    @IfNotParsed
+    public List<CjTypeReference> getBoundTypeReferences() {
+
+
+        return getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_REFERENCE);
+    }
 
 
 }
