@@ -1,6 +1,6 @@
 package com.huawei.cangjie.ide.quickfix
 
-import com.huawei.cangjie.descriptors.Diagnostic
+import com.huawei.cangjie.diagnostics.Diagnostic
 import com.huawei.cangjie.psi.CjCallExpression
 import com.huawei.cangjie.psi.CjSimpleNameExpression
 import com.intellij.openapi.util.IntellijInternalApi

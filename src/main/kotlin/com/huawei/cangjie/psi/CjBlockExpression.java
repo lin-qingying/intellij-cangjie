@@ -18,9 +18,7 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static com.huawei.cangjie.CjNodeTypes.BLOCK;
 
@@ -118,11 +116,64 @@ public class CjBlockExpression extends LazyParseablePsiElement implements CjElem
         return findChildByClass(CjExpression.class);
     }
 
+    @Nullable
+    public CjExpression getLastStatement() {
+        List<CjExpression> statement = getStatements();
+
+        if (!statement.isEmpty()) {
+
+            return statement.get(statement.size() - 1);
+        }
+
+        return null;
+    }
+
     @ReadOnly
     @NotNull
     public List<CjExpression> getStatements() {
         return Arrays.asList(findChildrenByClass(CjExpression.class));
     }
+
+    /**
+     * 没有return关键字的语句
+     *
+     * @return
+     */
+    @ReadOnly
+    @NotNull
+    public Set<CjExpression> getStatementsWithoutReturnKeyword() {
+        CjReturnExpression[] returns = findChildrenByClass(CjReturnExpression.class);
+
+
+        Set<CjExpression> result = new HashSet<>();
+
+        for (CjReturnExpression statement : returns) {
+            result.add(statement.getReturnedExpression());
+        }
+
+        CjExpression lastStatement = getLastStatement();
+
+        if (lastStatement != null) {
+            if(!(lastStatement instanceof  CjReturnExpression)){
+                result.add(lastStatement);
+
+            }
+        }
+        return result;
+    }
+
+    @ReadOnly
+    @NotNull
+    public Set<CjExpression> getReturnStatements() {
+        Set<CjExpression> returns = new HashSet<>(List.of(findChildrenByClass(CjReturnExpression.class)));
+
+        CjExpression lastStatement = getLastStatement();
+        if (lastStatement != null) {
+            returns.add(lastStatement);
+        }
+        return returns;
+    }
+
 
     @Nullable
     public TextRange getLastBracketRange() {

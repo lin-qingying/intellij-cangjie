@@ -1,8 +1,9 @@
 package com.huawei.cangjie.resolve.calls.util
 
-import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.diagnostics.Diagnostic
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.ide.FrontendInternals
 import com.huawei.cangjie.ide.refactoring.getLastLambdaExpression
 import com.huawei.cangjie.incremental.CangJieLookupLocation

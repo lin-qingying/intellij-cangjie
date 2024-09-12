@@ -7,7 +7,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.CallableMemberDescriptor.Kind.DELEGATION
 import com.huawei.cangjie.descriptors.CallableMemberDescriptor.Kind.FAKE_OVERRIDE
 import com.huawei.cangjie.descriptors.DescriptorVisibilityUtils.useSpecialRulesForPrivateSealedConstructors
-import com.huawei.cangjie.descriptors.Errors.*
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.diagnostics.DiagnosticFactory2
 import com.huawei.cangjie.diagnostics.DiagnosticFactoryWithPsiElement
 import com.huawei.cangjie.diagnostics.rendering.DeclarationWithDiagnosticComponents

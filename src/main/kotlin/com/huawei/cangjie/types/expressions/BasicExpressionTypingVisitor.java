@@ -6,6 +6,8 @@ import com.huawei.cangjie.builtins.BinaryOperatorRule;
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.builtins.StandardNames;
 import com.huawei.cangjie.descriptors.*;
+import com.huawei.cangjie.diagnostics.Diagnostic;
+import com.huawei.cangjie.diagnostics.Errors;
 import com.huawei.cangjie.diagnostics.InvalidBinaryData;
 import com.huawei.cangjie.incremental.components.NoLookupLocation;
 import com.huawei.cangjie.lexer.CjKeywordToken;
@@ -49,7 +51,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.huawei.cangjie.descriptors.Errors.*;
+import static com.huawei.cangjie.diagnostics.Errors.*;
 import static com.huawei.cangjie.lexer.CjTokens.*;
 import static com.huawei.cangjie.types.expressions.ControlStructureTypingUtils.createCallForSpecialConstruction;
 import static com.huawei.cangjie.types.expressions.ExpressionTypingUtils.*;

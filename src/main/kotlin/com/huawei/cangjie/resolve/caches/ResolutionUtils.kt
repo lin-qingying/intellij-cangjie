@@ -4,6 +4,7 @@ package com.huawei.cangjie.resolve.caches
 
 import com.huawei.cangjie.analyzer.AnalysisResult
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.diagnostics.Diagnostic
 import com.huawei.cangjie.ide.FrontendInternals
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.*

@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.caches
 
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.psi.CjDeclaration
 import com.huawei.cangjie.psi.CjTypeParameterListOwner
 import com.huawei.cangjie.resolve.BindingContext

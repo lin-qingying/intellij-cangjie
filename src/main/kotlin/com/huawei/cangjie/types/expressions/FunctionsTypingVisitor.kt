@@ -8,7 +8,7 @@ import com.huawei.cangjie.builtins.isBuiltinFunctionalType
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.CallableMemberDescriptor
-import com.huawei.cangjie.descriptors.Errors.*
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.descriptors.PsiDiagnosticUtils
 import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations

@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static com.huawei.cangjie.descriptors.Errors.*;
-import static com.huawei.cangjie.diagnostics.rendering.CommonRenderers.THROWABLE;
+import static com.huawei.cangjie.diagnostics.Errors.*;
+import static com.huawei.cangjie.diagnostics.rendering.CommonRenderers.*;
 import static com.huawei.cangjie.diagnostics.rendering.Renderers.*;
 
 
@@ -206,6 +206,9 @@ public class DefaultErrorMessages {
         MAP.put(FUNCTION_DECLARATION_WITH_NO_NAME, "Function declaration must have a name");
 
 
+        MAP.put(ITERATOR_MISSING, "For-loop range must have an 'iterator()' method");
+        MAP.put(NAME_SHADOWING, "Name shadowed: {0}", STRING);
+        MAP.put(ACCESSOR_PARAMETER_NAME_SHADOWING, "Accessor parameter name 'field' is shadowed by backing field variable");
 
 
         MAP.put(ASSIGNMENT_IN_EXPRESSION_CONTEXT, "Assignments are not expressions, and only expressions are allowed in this context");
@@ -218,6 +221,7 @@ public class DefaultErrorMessages {
             return expressionType.charAt(0) +
                     expressionType.substring(1).toLowerCase();
         });
+        MAP.put(UNREACHABLE_CODE, "Unreachable code",CommonRenderers. EMPTY,CommonRenderers. EMPTY);
 
 
     }

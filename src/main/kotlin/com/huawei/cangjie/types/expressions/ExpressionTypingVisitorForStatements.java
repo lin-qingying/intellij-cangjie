@@ -49,7 +49,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
-import static com.huawei.cangjie.descriptors.Errors.*;
+import static com.huawei.cangjie.diagnostics.Errors.*;
 import static com.huawei.cangjie.psi.CjPsiUtil.deparenthesize;
 import static com.huawei.cangjie.resolve.BindingContext.AMBIGUOUS_REFERENCE_TARGET;
 import static com.huawei.cangjie.resolve.BindingContext.VARIABLE_REASSIGNMENT;

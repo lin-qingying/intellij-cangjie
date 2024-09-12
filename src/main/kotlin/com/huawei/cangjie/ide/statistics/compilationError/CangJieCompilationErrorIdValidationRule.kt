@@ -1,6 +1,6 @@
 package com.huawei.cangjie.ide.statistics.compilationError
 
-import com.huawei.cangjie.descriptors.Errors
+import com.huawei.cangjie.diagnostics.Errors
 import com.intellij.internal.statistic.eventLog.validator.ValidationResultType
 import com.intellij.internal.statistic.eventLog.validator.rules.EventContext
 import com.intellij.internal.statistic.eventLog.validator.rules.impl.CustomValidationRule

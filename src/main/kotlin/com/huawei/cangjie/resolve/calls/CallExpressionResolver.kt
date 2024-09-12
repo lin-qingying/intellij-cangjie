@@ -8,7 +8,7 @@ import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.ConstructorDescriptor
-import com.huawei.cangjie.descriptors.Errors.*
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.descriptors.VariableDescriptor
 import com.huawei.cangjie.psi.*

@@ -3,7 +3,7 @@ package com.huawei.cangjie.resolve.calls.tower
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.Errors
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getParentOfType

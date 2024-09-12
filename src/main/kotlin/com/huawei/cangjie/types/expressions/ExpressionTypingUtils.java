@@ -3,6 +3,7 @@ package com.huawei.cangjie.types.expressions;
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.impl.AnonymousFunctionDescriptor;
 import com.huawei.cangjie.descriptors.impl.FunctionExpressionDescriptor;
+import com.huawei.cangjie.diagnostics.Errors;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.DescriptorToSourceUtils;

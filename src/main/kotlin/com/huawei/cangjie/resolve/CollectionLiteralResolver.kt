@@ -207,10 +207,6 @@ class CollectionLiteralResolver(
         module, null, Annotations.EMPTY, StandardNames.arrayOfName,
         CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE
     ) {
-
-
-
-
         init {
             val arrayType = module.builtIns.arrayType
 //

@@ -4,6 +4,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.AbstractClassDescriptor
 import com.huawei.cangjie.descriptors.impl.ClassConstructorDescriptorImpl
 import com.huawei.cangjie.descriptors.impl.FunctionDescriptorImpl
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.diagnostics.reportOnDeclarationOrFail
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation

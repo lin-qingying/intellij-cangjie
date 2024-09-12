@@ -58,8 +58,7 @@ object Renderers {
     @JvmField
     val COMPACT_WITH_MODIFIERS = DescriptorRenderer.COMPACT_WITH_MODIFIERS.asRenderer()
 
-    @JvmField
-    val STRING = renderer<String> { it }
+
 
     @JvmField
     val VISIBILITY = renderer<DescriptorVisibility> {

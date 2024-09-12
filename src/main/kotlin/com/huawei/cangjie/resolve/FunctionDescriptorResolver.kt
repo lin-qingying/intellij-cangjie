@@ -4,7 +4,7 @@ import com.huawei.cangjie.builtins.*
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.descriptors.Errors.*
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.descriptors.annotations.AnnotationSplitter
 import com.huawei.cangjie.descriptors.annotations.AnnotationUseSiteTarget
 import com.huawei.cangjie.descriptors.annotations.Annotations
@@ -34,11 +34,13 @@ import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.error.ErrorTypeKind
+import com.huawei.cangjie.types.expressions.ExpressionTypingContext
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices
 import com.huawei.cangjie.types.expressions.ExpressionTypingUtils.isFunctionExpression
 import com.huawei.cangjie.types.expressions.ExpressionTypingUtils.isFunctionLiteral
 import com.huawei.cangjie.types.isError
 import com.huawei.cangjie.types.util.TypeUtils
+import com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.huawei.cangjie.types.util.replaceAnnotations
 import com.intellij.psi.PsiElement
 import java.util.*
@@ -51,6 +53,7 @@ class FunctionDescriptorResolver(
     private val builtIns: CangJieBuiltIns,
     private val modifiersChecker: ModifiersChecker,
     private val overloadChecker: OverloadChecker,
+    private val functionReturnResolver: FunctionReturnResolver,
 //    private val contractParsingServices: ContractParsingServices,
     private val expressionTypingServices: ExpressionTypingServices,
 
@@ -66,8 +69,16 @@ class FunctionDescriptorResolver(
         expectedFunctionType: CangJieType,
         inferenceSession: InferenceSession?
     ): SimpleFunctionDescriptor = resolveFunctionDescriptor(
-        ::FunctionExpressionDescriptor, containingDescriptor, scope, function, trace, dataFlowInfo, expectedFunctionType, inferenceSession
+        ::FunctionExpressionDescriptor,
+        containingDescriptor,
+        scope,
+        function,
+        trace,
+        dataFlowInfo,
+        expectedFunctionType,
+        inferenceSession
     )
+
     fun resolvePrimaryConstructorDescriptor(
         scope: LexicalScope,
         classDescriptor: ClassDescriptor,
@@ -299,12 +310,11 @@ class FunctionDescriptorResolver(
      */
     fun resolveFunctionReturnType(
         function: CjFunction,
-        trace: BindingTrace,
-        headerScope: LexicalScope,
-    ): CangJieType {
+        context: ExpressionTypingContext,
+    ): CangJieType ?{
 //        显示指定的类型
         return if (function.typeReference != null) {
-            typeResolver.resolveType(headerScope, function.typeReference!!, trace, true)
+            typeResolver.resolveType(context.scope, function.typeReference!!, context.trace, true)
 
         } else if (function.hasBody()) {
             val block = function.getBodyBlockExpression()
@@ -314,7 +324,10 @@ class FunctionDescriptorResolver(
 
 //        TODO 返回值类型推断 暂时返回Unit
 //            return block.returnValueInferred()
-            return builtIns.unitType
+//            return builtIns.unitType
+//            return null
+            return functionReturnResolver.resolveFunctionReturn(function, context)
+//            return NO_EXPECTED_TYPE
         } else {
             builtIns.unitType
 
@@ -385,7 +398,13 @@ class FunctionDescriptorResolver(
         headerScope.freeze()
 
 
-        val returnType = resolveFunctionReturnType(function, trace, headerScope)
+        val context = expressionTypingServices.createContext(
+            headerScope,
+            dataFlowInfo, NO_EXPECTED_TYPE,
+            trace
+        )
+//val returnType = expressionTypingServices.resolveFunctionReturnType(headerScope,function,functionDescriptor,dataFlowInfo,null,trace,null).type
+        val returnType = resolveFunctionReturnType(function, context)
 
 
         val visibility = resolveVisibilityFromModifiers(function, getDefaultVisibility(function, container))
@@ -542,7 +561,7 @@ class FunctionDescriptorResolver(
 
         return resolveFunctionDescriptor(
             SimpleFunctionDescriptorImpl::create, containingDescriptor, scope,
-            function, trace, dataFlowInfo, TypeUtils.NO_EXPECTED_TYPE, inferenceSession
+            function, trace, dataFlowInfo, NO_EXPECTED_TYPE, inferenceSession
         )
     }
 }

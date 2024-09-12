@@ -1,6 +1,6 @@
 //package com.huawei.cangjie.descriptors.rendering
 //
-//import com.huawei.cangjie.descriptors.Errors.UNRESOLVED_REFERENCE
+//import com.huawei.cangjie.diagnostics.Errors.UNRESOLVED_REFERENCE
 //import com.huawei.cangjie.diagnostics.UnboundDiagnostic
 //import com.huawei.cangjie.descriptors.rendering.Renderers.ELEMENT_TEXT
 //import com.huawei.cangjie.psi.CjReferenceExpression

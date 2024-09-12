@@ -1,5 +1,9 @@
 package com.huawei.cangjie.descriptors
 
+import com.huawei.cangjie.diagnostics.Diagnostic
+import com.huawei.cangjie.diagnostics.DiagnosticSink
+import com.huawei.cangjie.diagnostics.Diagnostics
+import com.huawei.cangjie.diagnostics.DiagnosticsWithSuppression
 import com.intellij.openapi.util.CompositeModificationTracker
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValueProvider

@@ -1,6 +1,6 @@
 package com.huawei.cangjie.types.expressions;
 
-import com.huawei.cangjie.descriptors.Errors;
+import com.huawei.cangjie.diagnostics.Errors;
 import com.huawei.cangjie.descriptors.PsiDiagnosticUtils;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.AnnotationChecker;

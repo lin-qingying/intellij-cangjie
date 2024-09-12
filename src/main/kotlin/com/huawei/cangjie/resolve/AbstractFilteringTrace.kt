@@ -1,7 +1,7 @@
 package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.descriptors.Diagnostic
+import com.huawei.cangjie.diagnostics.Diagnostic
 import com.huawei.cangjie.utils.slicedMap.WritableSlice
 
 

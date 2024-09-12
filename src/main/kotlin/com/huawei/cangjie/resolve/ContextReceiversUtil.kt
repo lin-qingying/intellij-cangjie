@@ -3,7 +3,7 @@ package com.huawei.cangjie.resolve
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.descriptors.Errors
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.psi.CjContextReceiverList
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.checker.NewCangJieTypeChecker

@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.descriptors.*;
+import com.huawei.cangjie.diagnostics.Errors;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.psi.psiUtil.PsiUtilsKt;
 import com.huawei.cangjie.resolve.calls.CallResolver;
@@ -29,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.huawei.cangjie.descriptors.Errors.*;
+import static com.huawei.cangjie.diagnostics.Errors.*;
 import static com.huawei.cangjie.resolve.BindingContext.CONSTRUCTOR_RESOLVED_DELEGATION_CALL;
 import static com.huawei.cangjie.resolve.descriptorUtil.DescriptorUtilsKt.isEffectivelyExternal;
 import static com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;

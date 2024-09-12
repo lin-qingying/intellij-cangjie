@@ -1,7 +1,7 @@
 package com.huawei.cangjie.resolve.lazy.descriptors
 
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.Errors
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.impl.AbstractLazyTypeParameterDescriptor

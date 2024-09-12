@@ -25,6 +25,9 @@ public class ExpressionTypingComponents {
     public CollectionLiteralResolver collectionLiteralResolver;
 
     public RangeLiteralResolver rangeLiteralResolver;
+
+
+    public FunctionReturnResolver functionReturnResolver;
     public CallResolver callResolver;
     public Iterable<AssignmentChecker> assignmentCheckers;
     public MissingSupertypesResolver missingSupertypesResolver;
@@ -49,6 +52,11 @@ public class ExpressionTypingComponents {
     public ValueParameterResolver valueParameterResolver;
 
     public OverloadChecker overloadChecker;
+
+    @Inject
+    public void setFunctionReturnResolver(@NotNull FunctionReturnResolver functionReturnResolver) {
+        this.functionReturnResolver = functionReturnResolver;
+    }
     @Inject
     public void setMissingSupertypesResolver(@NotNull MissingSupertypesResolver missingSupertypesResolver) {
         this.missingSupertypesResolver = missingSupertypesResolver;
@@ -61,6 +69,10 @@ public class ExpressionTypingComponents {
 public void setForLoopConventionsChecker(@NotNull ForLoopConventionsChecker forLoopConventionsChecker) {
     this.forLoopConventionsChecker = forLoopConventionsChecker;
 }
+    @Inject
+    public void setIdentifierChecker(@NotNull IdentifierChecker identifierChecker) {
+        this.identifierChecker = identifierChecker;
+    }
 
     @Inject
     public void setValueParameterResolver(ValueParameterResolver valueParameterResolver) {

@@ -5,7 +5,7 @@ import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.analyzer.ResolverForProject
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.DiagnosticSink
+import com.huawei.cangjie.diagnostics.DiagnosticSink
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.ide.FrontendInternals
 import com.huawei.cangjie.psi.CjDeclaration

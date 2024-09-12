@@ -1,8 +1,8 @@
 package com.huawei.cangjie.storage
 
 import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.descriptors.Diagnostic
-import com.huawei.cangjie.descriptors.Diagnostics
+import com.huawei.cangjie.diagnostics.Diagnostic
+import com.huawei.cangjie.diagnostics.Diagnostics
 import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.types.CangJieType

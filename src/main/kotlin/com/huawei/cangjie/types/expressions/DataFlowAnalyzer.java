@@ -10,7 +10,7 @@ import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.BindingContext;
 import com.huawei.cangjie.resolve.calls.checkers.NewSchemeOfIntegerOperatorResolutionChecker;
 
-import static com.huawei.cangjie.descriptors.Errors.*;
+import static com.huawei.cangjie.diagnostics.Errors.*;
 import static com.huawei.cangjie.resolve.calls.context.ContextDependency.INDEPENDENT;
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;

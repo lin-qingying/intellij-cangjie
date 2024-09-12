@@ -3,6 +3,7 @@ package com.huawei.cangjie.ide.quickfix
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.diagnostics.Diagnostic
 import com.huawei.cangjie.ide.IdeDescriptorRenderers
 import com.huawei.cangjie.ide.ShortenReferences
 import com.huawei.cangjie.ide.TemplateKind

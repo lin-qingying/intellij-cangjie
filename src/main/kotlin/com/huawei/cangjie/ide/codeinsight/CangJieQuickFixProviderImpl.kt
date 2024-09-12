@@ -1,9 +1,9 @@
 package com.huawei.cangjie.ide.codeinsight
 
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.Diagnostic
-import com.huawei.cangjie.descriptors.DiagnosticFactory
-import com.huawei.cangjie.descriptors.Errors
+import com.huawei.cangjie.diagnostics.Diagnostic
+import com.huawei.cangjie.diagnostics.DiagnosticFactory
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.diagnostics.Severity
 import com.huawei.cangjie.ide.highlighter.CangJieQuickFixProvider
 import com.huawei.cangjie.ide.highlighter.RegisterQuickFixesLaterIntentionAction

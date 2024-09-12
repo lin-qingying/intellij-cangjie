@@ -1,8 +1,8 @@
 package com.huawei.cangjie.ide.quickfix
 
-import com.huawei.cangjie.descriptors.DiagnosticFactory
-import com.huawei.cangjie.descriptors.DiagnosticFactoryForDeprecation
-import com.huawei.cangjie.descriptors.Errors.*
+import com.huawei.cangjie.diagnostics.DiagnosticFactory
+import com.huawei.cangjie.diagnostics.DiagnosticFactoryForDeprecation
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.ide.quickfix.overrideImplement.ImplementMembersHandler
 import com.huawei.cangjie.lexer.CjTokens.ABSTRACT_KEYWORD
 import com.huawei.cangjie.lexer.CjTokens.OVERRIDE_KEYWORD

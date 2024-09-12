@@ -1,9 +1,10 @@
-package com.huawei.cangjie.descriptors
+package com.huawei.cangjie.diagnostics
 
+import com.huawei.cangjie.descriptors.GenericDiagnostics
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiElement
 
-interface Diagnostics: GenericDiagnostics<Diagnostic>  {
+interface Diagnostics: GenericDiagnostics<Diagnostic> {
     val modificationTracker: ModificationTracker
         get() = throw IllegalStateException("Trying to obtain modification tracker for Diagnostics object of class ${this::class.java}")
 

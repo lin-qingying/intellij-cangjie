@@ -5,7 +5,7 @@ import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.container.DefaultImplementation
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.ClassifierDescriptor
-import com.huawei.cangjie.descriptors.Errors.*
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.diagnostics.DiagnosticFactory2
 import com.huawei.cangjie.diagnostics.DiagnosticFactory3

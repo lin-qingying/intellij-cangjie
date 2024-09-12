@@ -1,17 +1,14 @@
 package com.huawei.cangjie.ide.highlighter
 
-import com.huawei.cangjie.analyzer.CangJieModuleInfo
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.Diagnostic
-import com.huawei.cangjie.descriptors.Errors
+import com.huawei.cangjie.diagnostics.Diagnostic
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.descriptors.InvalidModuleException
 import com.huawei.cangjie.diagnostics.Severity
 import com.huawei.cangjie.diagnostics.rendering.RenderingContext
 import com.huawei.cangjie.diagnostics.rendering.parameters
 import com.huawei.cangjie.ide.highlighter.suspender.CangJieHighlightingSuspender
-import com.huawei.cangjie.ide.projectStructure.moduleInfo
 import com.huawei.cangjie.ide.statistics.compilationError.CangJieCompilationErrorFrequencyStatsCollector
-import com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.psi.CjNameReferenceExpression
 import com.huawei.cangjie.psi.CjParameter

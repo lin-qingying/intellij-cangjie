@@ -12,12 +12,13 @@ import com.huawei.cangjie.resolve.lazy.LazyEntity
 import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.AbbreviatedType
-import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.storage.getValue
 import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.util.replaceAnnotations
 import com.huawei.cangjie.descriptors.annotations.FilteredByPredicateAnnotations
+import com.huawei.cangjie.diagnostics.Errors
+
 abstract class LazyAnnotationsContext(
     val annotationResolver: AnnotationResolver,
     val storageManager: StorageManager,

@@ -4,7 +4,7 @@ import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.Errors
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.CjDeclarationWithBody

@@ -3,7 +3,6 @@ package com.huawei.cangjie.resolve.calls.checkers
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.ConstructorDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.Errors
 import com.huawei.cangjie.psi.CjCallExpression
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjSimpleNameExpression

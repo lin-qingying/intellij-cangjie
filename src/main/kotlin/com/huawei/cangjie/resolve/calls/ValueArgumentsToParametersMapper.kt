@@ -4,8 +4,8 @@ import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.CallableMemberDescriptor
-import com.huawei.cangjie.descriptors.Diagnostic
-import com.huawei.cangjie.descriptors.Errors.*
+import com.huawei.cangjie.diagnostics.Diagnostic
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.Call

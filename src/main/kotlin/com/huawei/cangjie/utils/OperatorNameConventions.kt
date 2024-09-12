@@ -129,6 +129,12 @@ object OperatorNameConventions {
     @JvmField val UNARY_MINUS = Name.identifier("*operator_unaryMinus")
     @JvmField val UNARY_PLUS = Name.identifier("*operator_unaryPlus")
 
+
+
+//迭代器对象中的方法
+    @JvmField
+    val ITERATOR = Name.identifier("iterator")
+
     fun Name.asOperatorString(): String {
         return when (this) {
             INVOKE -> "()"

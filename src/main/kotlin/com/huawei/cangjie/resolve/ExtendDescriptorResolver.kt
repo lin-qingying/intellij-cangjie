@@ -4,16 +4,13 @@ import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.ClassDescriptorWithResolutionScopes
 import com.huawei.cangjie.descriptors.ClassKind
-import com.huawei.cangjie.descriptors.Errors
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.psi.CjExtend
 import com.huawei.cangjie.resolve.lazy.FileScopeProvider
 import com.huawei.cangjie.resolve.lazy.LazyDeclarationResolver
 import com.huawei.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
-import com.huawei.cangjie.resolve.scopes.LexicalScopeKind
-import com.huawei.cangjie.resolve.scopes.LexicalWritableScope
-import com.huawei.cangjie.resolve.scopes.TraceBasedLocalRedeclarationChecker
 import com.huawei.cangjie.storage.StorageManager
 
 class ExtendDescriptorResolver(

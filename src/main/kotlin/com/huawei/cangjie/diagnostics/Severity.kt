@@ -1,7 +1,6 @@
 package com.huawei.cangjie.diagnostics
 
-import com.huawei.cangjie.descriptors.DiagnosticFactory
-import com.huawei.cangjie.descriptors.Errors.*
+import com.huawei.cangjie.diagnostics.Errors.*
 
 enum class Severity {
     INFO,

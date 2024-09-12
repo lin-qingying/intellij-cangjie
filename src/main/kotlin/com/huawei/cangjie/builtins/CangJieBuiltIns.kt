@@ -55,6 +55,7 @@ import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.NotNullLazyValue
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.*
+import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.util.classFqNameEquals
 import com.huawei.cangjie.types.util.isConstructedFromGivenClass
 import com.huawei.cangjie.types.util.isNotNullConstructedFromGivenClass
@@ -536,7 +537,9 @@ open class CangJieBuiltIns(
 
     }
 
-
+    fun isBooleanOrSubtype(type: CangJieType): Boolean {
+        return CangJieTypeChecker.DEFAULT.isSubtypeOf(type, boolType)
+    }
     private fun getBuiltInClassByName(simpleName: String): ClassDescriptor {
         return myBuiltInClassesByName.invoke(Name.identifier(simpleName))
     }

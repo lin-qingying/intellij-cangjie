@@ -1,7 +1,7 @@
 package com.huawei.cangjie.resolve.calls.tower
 
 import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.descriptors.Diagnostic
+import com.huawei.cangjie.diagnostics.Diagnostic
 
 
 class TrackingBindingTrace(val trace: BindingTrace) : BindingTrace by trace {

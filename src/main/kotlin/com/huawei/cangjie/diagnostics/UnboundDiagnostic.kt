@@ -1,6 +1,5 @@
 package com.huawei.cangjie.diagnostics
 
-import com.huawei.cangjie.descriptors.DiagnosticFactory
 import com.intellij.openapi.util.TextRange
 
 

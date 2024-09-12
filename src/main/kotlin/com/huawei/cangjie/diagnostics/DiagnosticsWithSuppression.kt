@@ -1,5 +1,7 @@
-package com.huawei.cangjie.descriptors
+package com.huawei.cangjie.diagnostics
 
+import com.huawei.cangjie.descriptors.CangJieSuppressCache
+import com.huawei.cangjie.descriptors.SimpleDiagnostics
 import com.intellij.psi.PsiElement
 
 class DiagnosticsWithSuppression(val suppressCache: CangJieSuppressCache, val diagnostics: Collection<Diagnostic>

@@ -1,7 +1,6 @@
 package com.huawei.cangjie.diagnostics.rendering;
 
 import com.huawei.cangjie.config.LanguageVersion;
-import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.diagnostics.*;
 import com.intellij.psi.PsiElement;
 import kotlin. jvm. functions. Function0;

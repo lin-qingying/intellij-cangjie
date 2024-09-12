@@ -3,7 +3,8 @@ package com.huawei.cangjie.resolve
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.descriptors.Errors.REDECLARATION
+import com.huawei.cangjie.diagnostics.Errors
+import com.huawei.cangjie.diagnostics.Errors.REDECLARATION
 import com.huawei.cangjie.diagnostics.reportOnDeclaration
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation

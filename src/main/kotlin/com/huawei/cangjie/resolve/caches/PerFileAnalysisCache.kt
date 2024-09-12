@@ -9,8 +9,7 @@ import com.huawei.cangjie.context.ModuleContext
 import com.huawei.cangjie.context.withModule
 import com.huawei.cangjie.context.withProject
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.diagnostics.DiagnosticFactoryWithPsiElement
-import com.huawei.cangjie.diagnostics.DiagnosticUtils
+import com.huawei.cangjie.diagnostics.*
 import com.huawei.cangjie.frontend.createContainerForLazyBodyResolve
 import com.huawei.cangjie.ide.cache.trackers.clearInBlockModifications
 import com.huawei.cangjie.ide.cache.trackers.inBlockModifications

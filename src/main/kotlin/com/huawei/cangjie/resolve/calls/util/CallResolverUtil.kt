@@ -4,6 +4,7 @@ import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.lexer.CjToken
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getStrictParentOfType

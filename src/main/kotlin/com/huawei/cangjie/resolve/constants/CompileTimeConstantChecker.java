@@ -4,8 +4,8 @@ import com.google.common.collect.Sets;
 import com.huawei.cangjie.CjNodeTypes;
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.descriptors.BindingTrace;
-import com.huawei.cangjie.descriptors.Diagnostic;
-import com.huawei.cangjie.descriptors.DiagnosticFactory;
+import com.huawei.cangjie.diagnostics.Diagnostic;
+import com.huawei.cangjie.diagnostics.DiagnosticFactory;
 import com.huawei.cangjie.descriptors.ModuleDescriptor;
 import com.huawei.cangjie.psi.CjConstantExpression;
 import com.huawei.cangjie.psi.CjElement;
@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
-import static com.huawei.cangjie.descriptors.Errors.*;
+import static com.huawei.cangjie.diagnostics.Errors.*;
 
 
 /**

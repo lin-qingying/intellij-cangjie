@@ -34,7 +34,15 @@ public class CallMaker {
                 rangeExpression.getInnerExpressions(),
                 Call.CallType.DEFAULT);
     }
-
+    public static Call makeCallForBlock(@NotNull CjBlockExpression blockExpression) {
+        return makeCallWithExpressions(
+                blockExpression,
+                null,
+                null,
+                blockExpression,
+                blockExpression.getStatementsWithoutReturnKeyword().stream().toList(),
+                Call.CallType.DEFAULT);
+    }
     public static Call makeCallForCollectionLiteral(@NotNull CjCollectionLiteralExpression collectionLiteralExpression) {
         return makeCallWithExpressions(
                 collectionLiteralExpression,

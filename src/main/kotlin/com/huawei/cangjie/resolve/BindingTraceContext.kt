@@ -2,6 +2,8 @@ package com.huawei.cangjie.resolve
 
 import com.google.common.collect.ImmutableMap
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.diagnostics.Diagnostic
+import com.huawei.cangjie.diagnostics.Diagnostics
 import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.resolve.BindingContext.EXPRESSION_TYPE_INFO
 import com.huawei.cangjie.types.CangJieType

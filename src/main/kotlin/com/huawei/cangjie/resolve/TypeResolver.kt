@@ -5,12 +5,11 @@ import com.huawei.cangjie.builtins.createTupleType
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.descriptors.Errors.*
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.descriptors.annotations.AnnotationDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.annotations.composeAnnotations
 import com.huawei.cangjie.descriptors.impl.AbstractVariableDescriptor
-import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.Name
@@ -22,7 +21,6 @@ import com.huawei.cangjie.psi.psiUtil.getPrevSiblingIgnoringWhitespaceAndComment
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.huawei.cangjie.resolve.PossiblyBareType.bare
 import com.huawei.cangjie.resolve.PossiblyBareType.type
-import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.source.CangJieSourceElement
 import com.huawei.cangjie.resolve.source.getPsi

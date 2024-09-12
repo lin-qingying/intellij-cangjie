@@ -2,7 +2,7 @@ package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.descriptors.Errors.LOCAL_EXTENSION_VARIABLE
+import com.huawei.cangjie.diagnostics.Errors.LOCAL_EXTENSION_VARIABLE
 import com.huawei.cangjie.descriptors.VariableDescriptor
 
 import com.huawei.cangjie.descriptors.impl.LocalVariableDescriptor

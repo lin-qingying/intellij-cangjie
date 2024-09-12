@@ -3,8 +3,8 @@ package com.huawei.cangjie.resolve.check
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.DiagnosticSink
-import com.huawei.cangjie.descriptors.Errors
+import com.huawei.cangjie.diagnostics.DiagnosticSink
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.descriptors.VariableDescriptor
 import com.huawei.cangjie.descriptors.impl.FunctionExpressionDescriptor
 import com.huawei.cangjie.psi.*

@@ -1,15 +1,14 @@
 package com.huawei.cangjie.resolve.calls.tasks
 
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.descriptors.Errors.UNRESOLVED_REFERENCE
-import com.huawei.cangjie.descriptors.Errors.UNRESOLVED_REFERENCE_WRONG_RECEIVER
+import com.huawei.cangjie.diagnostics.Errors
+import com.huawei.cangjie.diagnostics.Errors.UNRESOLVED_REFERENCE
+import com.huawei.cangjie.diagnostics.Errors.UNRESOLVED_REFERENCE_WRONG_RECEIVER
 import com.huawei.cangjie.psi.Call
 import com.huawei.cangjie.psi.CjConstructorDelegationCall
 import com.huawei.cangjie.resolve.BindingContext.*
-import com.huawei.cangjie.resolve.calls.context.ResolutionContext
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall
 import com.huawei.cangjie.resolve.calls.util.reportOnElement
-import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.ErrorUtils
 

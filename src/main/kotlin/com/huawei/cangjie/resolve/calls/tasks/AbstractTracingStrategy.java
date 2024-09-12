@@ -5,8 +5,6 @@ import com.huawei.cangjie.descriptors.BindingTrace;
 import com.huawei.cangjie.descriptors.CallableDescriptor;
 import com.huawei.cangjie.descriptors.DeclarationDescriptorWithVisibility;
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor;
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
 import com.huawei.cangjie.resolve.calls.util.CallUtilKt;
@@ -18,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.HashSet;
 
-import static com.huawei.cangjie.descriptors.Errors.*;
+import static com.huawei.cangjie.diagnostics.Errors.*;
 import static com.huawei.cangjie.resolve.BindingContext.AMBIGUOUS_REFERENCE_TARGET;
 
 public abstract class AbstractTracingStrategy implements TracingStrategy {

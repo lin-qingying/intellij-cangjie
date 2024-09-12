@@ -1,5 +1,7 @@
 package com.huawei.cangjie.descriptors
 
+import com.huawei.cangjie.diagnostics.Diagnostic
+import com.huawei.cangjie.diagnostics.DiagnosticFactory
 import com.huawei.cangjie.diagnostics.rendering.DiagnosticRenderer
 
 class RenderedDiagnostic<D : Diagnostic>(

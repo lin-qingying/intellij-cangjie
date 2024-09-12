@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.resolve.descriptorUtil.classValueDescriptor
 import com.huawei.cangjie.resolve.descriptorUtil.classValueTypeDescriptor
 import com.huawei.cangjie.resolve.scopes.receivers.ClassifierQualifier

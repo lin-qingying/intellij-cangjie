@@ -3,7 +3,7 @@ package com.huawei.cangjie.resolve
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.descriptors.Errors.*
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.ide.stubindex.CangJieExactPackagesIndex
 import com.huawei.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIndex
 import com.huawei.cangjie.incremental.CangJieLookupLocation

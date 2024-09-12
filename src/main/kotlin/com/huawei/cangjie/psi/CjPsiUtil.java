@@ -16,7 +16,10 @@ import org.jetbrains.annotations.Nullable;
 import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
 import  com.huawei.cangjie.lexer.CjTokens;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class CjPsiUtil {
     public interface CjExpressionWrapper {
@@ -30,6 +33,28 @@ public class CjPsiUtil {
         return condition != null && condition.getNode().getElementType() == CjNodeTypes.BOOLEAN_CONSTANT;
     }
 
+    @NotNull
+    public static Set<CjElement> findRootExpressions(@NotNull Collection<CjElement> unreachableElements) {
+        Set<CjElement> rootElements = new HashSet<>();
+        Set<CjElement> shadowedElements = new HashSet<>();
+        CjVisitorVoid shadowAllChildren = new CjVisitorVoid() {
+            @Override
+            public void visitCjElement(@NotNull CjElement element) {
+                if (shadowedElements.add(element)) {
+                    element.acceptChildren(this);
+                }
+            }
+        };
+
+        for (CjElement element : unreachableElements) {
+            if (shadowedElements.contains(element)) continue;
+            element.acceptChildren(shadowAllChildren);
+
+            rootElements.removeAll(shadowedElements);
+            rootElements.add(element);
+        }
+        return rootElements;
+    }
     public static boolean isTrueConstant(@Nullable CjExpression condition) {
         return isBooleanConstant(condition) && condition.getNode().findChildByType(CjTokens.TRUE_KEYWORD) != null;
     }

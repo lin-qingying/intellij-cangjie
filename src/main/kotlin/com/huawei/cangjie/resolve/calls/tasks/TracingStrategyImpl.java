@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve.calls.tasks;
 
 import com.huawei.cangjie.builtins.FunctionTypesKt;
 import com.huawei.cangjie.descriptors.*;
+import com.huawei.cangjie.diagnostics.Errors;
 import com.huawei.cangjie.psi.Call;
 import com.huawei.cangjie.psi.CjReferenceExpression;
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
@@ -17,8 +18,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-import static com.huawei.cangjie.descriptors.Errors.UNRESOLVED_REFERENCE;
-import static com.huawei.cangjie.descriptors.Errors.UNRESOLVED_REFERENCE_WRONG_RECEIVER;
+import static com.huawei.cangjie.diagnostics.Errors.UNRESOLVED_REFERENCE;
+import static com.huawei.cangjie.diagnostics.Errors.UNRESOLVED_REFERENCE_WRONG_RECEIVER;
 import static com.huawei.cangjie.resolve.BindingContext.*;
 
 public class TracingStrategyImpl extends AbstractTracingStrategy {
@@ -33,6 +34,7 @@ public class TracingStrategyImpl extends AbstractTracingStrategy {
     public static TracingStrategy create(@NotNull CjReferenceExpression reference, @NotNull Call call) {
         return new TracingStrategyImpl(reference, call);
     }
+
 
     @Override
     public void bindCall(@NotNull BindingTrace trace, @NotNull Call call) {

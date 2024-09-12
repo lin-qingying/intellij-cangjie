@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.diagnostics.reportOnDeclarationOrFail
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.resolve.OverloadChecker

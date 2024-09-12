@@ -1,6 +1,5 @@
 package com.huawei.cangjie.diagnostics
 
-import com.huawei.cangjie.descriptors.*
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 
@@ -23,7 +22,7 @@ abstract class DiagnosticFactoryWithPsiElement<E : PsiElement, D : Diagnostic>(
 
 
 
-    
+
     fun cast(d: Diagnostic): D {
         return super.cast(d)
     }

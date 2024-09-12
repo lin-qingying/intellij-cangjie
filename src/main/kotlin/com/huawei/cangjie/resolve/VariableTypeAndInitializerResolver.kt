@@ -2,8 +2,8 @@ package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.descriptors.Errors
-import com.huawei.cangjie.descriptors.Errors.VARIABLE_WITH_NO_TYPE_NO_INITIALIZER
+import com.huawei.cangjie.diagnostics.Errors
+import com.huawei.cangjie.diagnostics.Errors.VARIABLE_WITH_NO_TYPE_NO_INITIALIZER
 import com.huawei.cangjie.descriptors.impl.VariableDescriptorWithInitializerImpl
 import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.psi.CjVariableDeclaration

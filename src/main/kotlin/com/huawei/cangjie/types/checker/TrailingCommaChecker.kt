@@ -1,9 +1,7 @@
 package com.huawei.cangjie.types.checker
 
-import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.descriptors.Errors
 import com.intellij.psi.PsiElement
 
 

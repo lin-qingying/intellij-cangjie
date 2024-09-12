@@ -4,7 +4,6 @@ package com.huawei.cangjie.resolve.calls.tasks;
 import com.huawei.cangjie.builtins.FunctionTypesKt;
 import com.huawei.cangjie.descriptors.BindingTrace;
 import com.huawei.cangjie.descriptors.CallableDescriptor;
-import com.huawei.cangjie.descriptors.DeclarationDescriptorWithVisibility;
 import com.huawei.cangjie.psi.Call;
 import com.huawei.cangjie.psi.CjExpression;
 import com.huawei.cangjie.psi.CjReferenceExpression;
@@ -17,8 +16,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-import static com.huawei.cangjie.descriptors.Errors.FUNCTION_EXPECTED;
-import static com.huawei.cangjie.descriptors.Errors.NO_RECEIVER_ALLOWED;
+import static com.huawei.cangjie.diagnostics.Errors.FUNCTION_EXPECTED;
+import static com.huawei.cangjie.diagnostics.Errors.NO_RECEIVER_ALLOWED;
 import static com.huawei.cangjie.resolve.BindingContext.CALL;
 import static com.huawei.cangjie.resolve.BindingContext.RESOLVED_CALL;
 

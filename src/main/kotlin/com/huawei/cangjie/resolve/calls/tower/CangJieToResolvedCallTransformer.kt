@@ -4,6 +4,7 @@ package com.huawei.cangjie.resolve.calls.tower
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.extensions.internal.CandidateInterceptor
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext

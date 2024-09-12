@@ -4,6 +4,7 @@ import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.container.DefaultImplementation
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.diagnostics.DiagnosticFactory1
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.diagnostics.reportOnDeclaration
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.FqNameUnsafe

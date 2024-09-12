@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.IntStream;
 
-import static com.huawei.cangjie.descriptors.Errors.*;
+import static com.huawei.cangjie.diagnostics.Errors.*;
 import static com.huawei.cangjie.descriptors.annotations.AnnotationUseSiteTarget.CONSTRUCTOR_PARAMETER;
 import static com.huawei.cangjie.resolve.BindingContext.CONSTRUCTOR;
 import static com.huawei.cangjie.resolve.BindingContext.TYPE_ALIAS;

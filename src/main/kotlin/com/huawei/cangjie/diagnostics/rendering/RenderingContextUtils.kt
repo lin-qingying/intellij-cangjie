@@ -1,6 +1,6 @@
 package com.huawei.cangjie.diagnostics.rendering
 
-import com.huawei.cangjie.descriptors.Diagnostic
+import com.huawei.cangjie.diagnostics.Diagnostic
 import com.huawei.cangjie.diagnostics.*
 fun RenderingContext.Companion.fromDiagnostic(d: Diagnostic): RenderingContext = RenderingContext.Impl(parameters(d))
 

@@ -7,12 +7,10 @@ import java.util.*
 
 abstract class AbstractDiagnostic<E : PsiElement>(
     override val psiElement: E,
-    factory: DiagnosticFactoryWithPsiElement<E, *>,
-    severity: Severity
+    override val factory: DiagnosticFactoryWithPsiElement<E, *>,
+    override val severity: Severity
 ) :
     ParametrizedDiagnostic<E> {
-    override val factory: DiagnosticFactoryWithPsiElement<E, *> = factory
-    override val severity: Severity = severity
 
 
     override val psiFile: PsiFile

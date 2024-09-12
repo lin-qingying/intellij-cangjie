@@ -3,7 +3,8 @@ package com.huawei.cangjie.cfg
 import com.huawei.cangjie.cfg.pseudocode.Pseudocode
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.psi.CjElement
+import com.huawei.cangjie.diagnostics.Errors
+import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.types.CangJieType
 
 interface ControlFlowInformationProvider {
@@ -73,7 +74,7 @@ class ControlFlowInformationProviderImpl private constructor(
     private fun markUninitializedVariables() {
 //        val varWithUninitializedErrorGenerated = hashSetOf<VariableDescriptor>()
 //        val varWithValReassignErrorGenerated = hashSetOf<VariableDescriptor>()
-//        val processClassOrObject = subroutine is KtClassOrObject || subroutine is KtSecondaryConstructor
+//        val processClassOrObject = subroutine is CjClassOrObject || subroutine is CjSecondaryConstructor
 //
 //        val initializers = pseudocodeVariablesData.variableInitializers
 //        val declaredVariables = pseudocodeVariablesData.getDeclaredVariables(pseudocode, true)
@@ -98,7 +99,7 @@ class ControlFlowInformationProviderImpl private constructor(
 //                return@traverse
 //            }
 //            if (instruction !is WriteValueInstruction) return@traverse
-//            val element = instruction.lValue as? KtExpression ?: return@traverse
+//            val element = instruction.lValue as? CjExpression ?: return@traverse
 //            var error = checkValReassignment(
 //                ctxt, element, instruction,
 //                varWithValReassignErrorGenerated
@@ -111,8 +112,42 @@ class ControlFlowInformationProviderImpl private constructor(
 //            }
 //        }
     }
-
+    private fun reportUnreachableCode(unreachableCode: UnreachableCode) {
+        for (element in unreachableCode.elements) {
+            trace.report(Errors.UNREACHABLE_CODE.on(element, unreachableCode.reachableElements, unreachableCode.unreachableElements))
+        }
+    }
+    private fun collectUnreachableCode(): UnreachableCode {
+        val reachableElements = hashSetOf<CjElement>()
+        val unreachableElements = hashSetOf<CjElement>()
+//        for (instruction in pseudocode.instructionsIncludingDeadCode) {
+//            if (instruction !is CjElementInstruction
+//                || instruction is LoadUnitValueInstruction
+//                || instruction is MergeInstruction
+//                || instruction is MagicInstruction && instruction.synthetic
+//            )
+//                continue
+//
+//            val element = instruction.element
+//
+//            if (instruction is JumpInstruction) {
+//                val isJumpElement = element is CjBreakExpression
+//                        || element is CjContinueExpression
+//                        || element is CjReturnExpression
+//                        || element is CjThrowExpression
+//                if (!isJumpElement) continue
+//            }
+//
+//            if (instruction.dead) {
+//                unreachableElements.add(element)
+//            } else {
+//                reachableElements.add(element)
+//            }
+//        }
+        return UnreachableCodeImpl(reachableElements, unreachableElements)
+    }
     override fun checkFunction(expectedReturnType: CangJieType?) {
-//        TODO("Not yet implemented")
+        val unreachableCode = collectUnreachableCode()
+        reportUnreachableCode(unreachableCode)
     }
 }

@@ -1,8 +1,12 @@
 package com.huawei.cangjie.descriptors
 
+import com.huawei.cangjie.diagnostics.Diagnostic
+import com.huawei.cangjie.diagnostics.Diagnostics
+import com.huawei.cangjie.diagnostics.DiagnosticsElementsCache
 import com.intellij.psi.PsiElement
 
-class SimpleDiagnostics(diagnostics: Collection<Diagnostic>) : SimpleGenericDiagnostics<Diagnostic>(diagnostics), Diagnostics {
+class SimpleDiagnostics(diagnostics: Collection<Diagnostic>) : SimpleGenericDiagnostics<Diagnostic>(diagnostics),
+    Diagnostics {
     //copy to prevent external change
     private val diagnostics = ArrayList(diagnostics)
 

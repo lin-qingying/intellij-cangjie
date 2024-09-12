@@ -50,7 +50,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.huawei.cangjie.descriptors.Errors.*;
+import static com.huawei.cangjie.diagnostics.Errors.*;
 import static com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;
 
 
@@ -115,6 +115,17 @@ public class CallResolver {
         return computeTasksAndResolveCall(
                 callResolutionContext, name, functionReference,
                 NewResolutionOldInference.ResolutionKind.Function.INSTANCE);
+    }
+
+    @NotNull
+    public OverloadResolutionResults<FunctionDescriptor> resolveCallWithGivenName(
+            @NotNull ResolutionContext<?> context,
+            @NotNull Call call,
+            @NotNull Name name,
+            @NotNull TracingStrategy tracing
+    ) {
+        BasicCallResolutionContext callResolutionContext = BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS);
+        return computeTasksAndResolveCall(callResolutionContext, name, tracing, NewResolutionOldInference.ResolutionKind.Function.INSTANCE);
     }
     public OverloadResolutionResults<FunctionDescriptor> resolveCallWithKnownCandidate(
             @NotNull Call call,
@@ -190,6 +201,25 @@ public class CallResolver {
 
         return computeTasksFromCandidatesAndResolvedCall(
                 callResolutionContext, candidates, TracingStrategyImpl.create(expression, call));
+    }
+    @NotNull
+    public OverloadResolutionResults<FunctionDescriptor> resolveBloackReturnCallWithGivenDescriptor(
+            @NotNull ExpressionTypingContext context,
+            @NotNull CjBlockExpression expression,
+            @NotNull Call call,
+            @NotNull Collection<FunctionDescriptor> functionDescriptors
+    ) {
+        BasicCallResolutionContext callResolutionContext = BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS);
+        List<OldResolutionCandidate<FunctionDescriptor>> candidates = CollectionsKt.map(functionDescriptors, descriptor ->
+                OldResolutionCandidate.create(
+                        call,
+                        descriptor,
+                        null,
+                        ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
+                        null));
+
+        return computeTasksFromCandidatesAndResolvedCall(
+                callResolutionContext, candidates, new TracingStrategyBlockExpression(expression, call));
     }
     @NotNull
     public OverloadResolutionResults<FunctionDescriptor> resolveCollectionLiteralCallWithGivenDescriptor(

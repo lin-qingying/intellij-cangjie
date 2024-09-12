@@ -2,8 +2,7 @@ package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.container.DefaultImplementation
 import com.huawei.cangjie.container.PlatformSpecificExtension
-import com.huawei.cangjie.descriptors.DiagnosticSink
-import com.huawei.cangjie.descriptors.Errors
+import com.huawei.cangjie.diagnostics.DiagnosticSink
 import com.huawei.cangjie.psi.*
 import com.intellij.psi.PsiElement
 

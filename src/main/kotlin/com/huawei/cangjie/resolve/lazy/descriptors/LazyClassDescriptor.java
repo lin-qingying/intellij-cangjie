@@ -38,8 +38,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.huawei.cangjie.descriptors.Errors.CYCLIC_INHERITANCE_HIERARCHY;
-import static com.huawei.cangjie.descriptors.Errors.CYCLIC_SCOPES_WITH_COMPANION;
+import static com.huawei.cangjie.diagnostics.Errors.CYCLIC_INHERITANCE_HIERARCHY;
+import static com.huawei.cangjie.diagnostics.Errors.CYCLIC_SCOPES_WITH_COMPANION;
 import static com.huawei.cangjie.resolve.BindingContext.TYPE;
 import static com.huawei.cangjie.resolve.ModifiersChecker.resolveModalityFromModifiers;
 import static com.huawei.cangjie.resolve.ModifiersChecker.resolveVisibilityFromModifiers;

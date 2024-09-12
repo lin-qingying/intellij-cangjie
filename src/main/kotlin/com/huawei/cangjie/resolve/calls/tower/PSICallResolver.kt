@@ -3,8 +3,7 @@ package com.huawei.cangjie.resolve.calls.tower
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.descriptors.Errors.INVALID_BINARY_OPERATOR
-import com.huawei.cangjie.diagnostics.InvalidBinaryData
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.extensions.internal.CandidateInterceptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name

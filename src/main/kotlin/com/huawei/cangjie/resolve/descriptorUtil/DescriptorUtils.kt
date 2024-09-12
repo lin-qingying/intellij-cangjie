@@ -5,6 +5,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.ClassKind.ENUM_ENTRY
 import com.huawei.cangjie.descriptors.annotations.AnnotationDescriptor
 import com.huawei.cangjie.descriptors.impl.DescriptorDerivedFromTypeAlias
+import com.huawei.cangjie.diagnostics.Diagnostic
 import com.huawei.cangjie.references.mainReference
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.ClassId

@@ -1,6 +1,6 @@
 package com.huawei.cangjie.resolve.calls.checkers
 
-import com.huawei.cangjie.descriptors.Errors
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.diagnostics.reportDiagnosticOnce
 import com.huawei.cangjie.psi.CjBinaryExpression
 import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableTypeConstructor
@@ -11,8 +11,7 @@ import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.contains
 import com.intellij.psi.PsiElement
 import com.huawei.cangjie.resolve.calls.smartcasts.Nullability
-import com.huawei.cangjie.psi.CjPsiUtil
-import com.huawei.cangjie.types.isNullabilityFlexible
+
 class UselessElvisCallChecker : CallChecker {
     override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
         if (resolvedCall.resultingDescriptor.name != ControlStructureTypingUtils.ResolveConstruct.ELVIS.specialFunctionName) return

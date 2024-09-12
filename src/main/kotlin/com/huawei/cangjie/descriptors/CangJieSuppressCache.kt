@@ -2,6 +2,7 @@ package com.huawei.cangjie.descriptors
 
 import com.google.common.collect.ImmutableSet
 import com.huawei.cangjie.descriptors.annotations.AnnotationDescriptor
+import com.huawei.cangjie.diagnostics.Diagnostic
 import com.huawei.cangjie.diagnostics.Severity
 import com.huawei.cangjie.psi.CjAnnotated
 import com.huawei.cangjie.psi.CjFile

@@ -1,7 +1,5 @@
-package com.huawei.cangjie.descriptors
+package com.huawei.cangjie.diagnostics
 
-import com.huawei.cangjie.diagnostics.DiagnosticMarker
-import com.huawei.cangjie.diagnostics.UnboundDiagnostic
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 

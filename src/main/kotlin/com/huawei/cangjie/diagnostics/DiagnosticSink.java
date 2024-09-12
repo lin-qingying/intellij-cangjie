@@ -1,6 +1,6 @@
-package com.huawei.cangjie.descriptors;
+package com.huawei.cangjie.diagnostics;
 
-import com.huawei.cangjie.diagnostics.Severity;
+import com.huawei.cangjie.descriptors.PsiDiagnosticUtils;
 import com.huawei.cangjie.diagnostics.rendering.DefaultErrorMessages;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;

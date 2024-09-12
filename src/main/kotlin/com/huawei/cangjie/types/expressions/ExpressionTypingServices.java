@@ -5,6 +5,7 @@ import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.descriptors.BindingTrace;
 import com.huawei.cangjie.descriptors.DeclarationDescriptor;
 import com.huawei.cangjie.descriptors.FunctionDescriptor;
+import com.huawei.cangjie.descriptors.impl.FunctionDescriptorImpl;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.*;
 import com.huawei.cangjie.resolve.calls.components.InferenceSession;
@@ -21,6 +22,7 @@ import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.huawei.cangjie.utils.slicedMap.WritableSlice;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -149,12 +151,12 @@ public class ExpressionTypingServices {
             @NotNull ExpressionTypingInternals blockLevelVisitor
     ) {
         boolean isUnitExpectedType = context.expectedType != NO_EXPECTED_TYPE &&
-                (   context.expectedType == UNIT_EXPECTED_TYPE ||
-                                //the first check is necessary to avoid invocation 'isUnit(UNIT_EXPECTED_TYPE)'
-                                (
-                                        coercionStrategyForLastExpression == COERCION_TO_UNIT &&
-                                                CangJieBuiltIns.isUnit(context.expectedType)
-                                )
+                (context.expectedType == UNIT_EXPECTED_TYPE ||
+                        //the first check is necessary to avoid invocation 'isUnit(UNIT_EXPECTED_TYPE)'
+                        (
+                                coercionStrategyForLastExpression == COERCION_TO_UNIT &&
+                                        CangJieBuiltIns.isUnit(context.expectedType)
+                        )
                 );
 
 
@@ -169,11 +171,22 @@ public class ExpressionTypingServices {
             return blockLevelVisitor.getTypeInfo(statementExpression, context.replaceExpectedType(expectedType), true);
         }
 
+
 //        if (CjPsiUtil.deparenthesize(statementExpression) instanceof CjLambdaExpression && context.contextDependency == ContextDependency.DEPENDENT) {
 //            CangJieTypeInfo typeInfo = createDontCareTypeInfoForNILambda(statementExpression, context);
 //            if (typeInfo != null) return typeInfo;
 //        }
 
+        if (  !(statementExpression instanceof  CjReturnExpression)) {
+            var parentDeclaration =
+                    context.trace.getBindingContext().get(BindingContext.FUNCTION, context.getContextParentOfType(
+                            statementExpression,
+                            CjDeclaration.class
+                    ));
+            if(parentDeclaration instanceof FunctionDescriptorImpl){
+                context =       context.replaceExpectedType(parentDeclaration.getReturnType());
+            }
+        }
         CangJieTypeInfo result = blockLevelVisitor.getTypeInfo(statementExpression, context, true);
         if (coercionStrategyForLastExpression == COERCION_TO_UNIT) {
             boolean mightBeUnit = false;
@@ -237,6 +250,7 @@ public class ExpressionTypingServices {
                 continue;
             }
             if (!iterator.hasNext()) {
+//                最后一条语句也需要检查类型，虽然在前面如果有return语句而无法到达，但是检查类型是必要的
                 result = getTypeOfLastExpressionInBlock(
                         statementExpression, newContext.replaceExpectedType(context.expectedType), coercionStrategyForLastExpression,
                         blockLevelVisitor);
@@ -280,6 +294,16 @@ public class ExpressionTypingServices {
 
     @NotNull
     public CangJieTypeInfo getBlockReturnedType(CjBlockExpression expression, ExpressionTypingContext context, boolean isStatement) {
+//如方法没有显示指定返回值，推断返回值并更改
+        PsiElement blockParent = expression.getParent();
+        if (blockParent instanceof CjFunction && ((CjFunction) blockParent).getTypeReference() == null) {
+            CangJieType returnType = expressionTypingComponents.functionReturnResolver.resolveFunctionReturn(expression, context);
+            FunctionDescriptor functionDescriptor = context.trace.getBindingContext().get(BindingContext.FUNCTION, blockParent);
+            if (functionDescriptor instanceof FunctionDescriptorImpl) {
+                ((FunctionDescriptorImpl) functionDescriptor).setReturnType(returnType);
+            }
+        }
+
         return getBlockReturnedType(expression, isStatement ? COERCION_TO_UNIT : CoercionStrategy.NO_COERCION, context);
     }
 
@@ -322,6 +346,42 @@ public class ExpressionTypingServices {
                         : context;
 
         expressionTypingFacade.getTypeInfo(bodyExpression, newContext, blockBody);
+    }
+
+    public ExpressionTypingContext createContext(
+            @NotNull LexicalScope functionInnerScope,
+
+            @NotNull DataFlowInfo dataFlowInfo,
+            @Nullable CangJieType expectedReturnType,
+            BindingTrace trace
+
+    ) {
+
+        return ExpressionTypingContext.newContext(
+                trace,
+                functionInnerScope, dataFlowInfo, expectedReturnType != null ? expectedReturnType : NO_EXPECTED_TYPE,
+                getLanguageVersionSettings(), expressionTypingComponents.dataFlowValueFactory,
+                InferenceSession.Companion.getDefault()
+        );
+    }
+
+    public CangJieTypeInfo resolveFunctionReturnType(
+            @NotNull LexicalScope functionInnerScope,
+            @NotNull CjDeclarationWithBody function,
+            @NotNull FunctionDescriptor functionDescriptor,
+            @NotNull DataFlowInfo dataFlowInfo,
+            @Nullable CangJieType expectedReturnType,
+            BindingTrace trace,
+            @Nullable ExpressionTypingContext localContext
+    ) {
+
+        ExpressionTypingContext context = ExpressionTypingContext.newContext(
+                trace,
+                functionInnerScope, dataFlowInfo, expectedReturnType != null ? expectedReturnType : NO_EXPECTED_TYPE,
+                getLanguageVersionSettings(), expressionTypingComponents.dataFlowValueFactory,
+                localContext != null ? localContext.inferenceSession : InferenceSession.Companion.getDefault()
+        );
+        return getBlockReturnedType(function.getBodyBlockExpression(), context, false);
     }
 
     public void checkFunctionReturnType(

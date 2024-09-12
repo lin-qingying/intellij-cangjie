@@ -1,7 +1,7 @@
 package com.huawei.cangjie.psi.psiUtil
 
-import com.huawei.cangjie.descriptors.DiagnosticSink
-import com.huawei.cangjie.descriptors.Errors
+import com.huawei.cangjie.diagnostics.DiagnosticSink
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.CjSimpleNameExpression
 

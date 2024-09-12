@@ -3,7 +3,7 @@ package com.huawei.cangjie.resolve.calls;
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.builtins.ReflectionTypes;
 import com.huawei.cangjie.descriptors.BindingTrace;
-import com.huawei.cangjie.descriptors.Errors;
+import com.huawei.cangjie.diagnostics.Errors;
 import com.huawei.cangjie.descriptors.ModuleDescriptor;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.StatementFilter;

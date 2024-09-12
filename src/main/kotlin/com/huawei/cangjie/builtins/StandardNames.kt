@@ -18,6 +18,7 @@ object StandardNames {
 
     val rangeOfName = Name.identifier("rangeOf")
     val arrayOfName = Name.identifier("arrayOf")
+    val returnOfName = Name.identifier("returnOf")
 
     @JvmStatic
     fun getFunctionName(parameterCount: Int): String {

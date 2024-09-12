@@ -2,7 +2,7 @@ package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.descriptors.Errors.*
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.descriptors.impl.LazyPackageViewDescriptorImpl
 import com.huawei.cangjie.descriptors.impl.LazyReexportAgent
 import com.huawei.cangjie.incremental.CangJieLookupLocation

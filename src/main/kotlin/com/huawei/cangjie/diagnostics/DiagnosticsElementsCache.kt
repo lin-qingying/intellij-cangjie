@@ -1,4 +1,4 @@
-package com.huawei.cangjie.descriptors
+package com.huawei.cangjie.diagnostics
 
 import com.intellij.openapi.util.NotNullLazyValue
 import com.intellij.psi.PsiElement

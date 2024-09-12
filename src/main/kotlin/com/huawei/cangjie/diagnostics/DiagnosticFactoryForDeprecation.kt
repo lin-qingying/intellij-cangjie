@@ -1,8 +1,8 @@
-package com.huawei.cangjie.descriptors
+package com.huawei.cangjie.diagnostics
 
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
-import com.huawei.cangjie.diagnostics.*
+import com.huawei.cangjie.descriptors.PositioningStrategies
 import com.intellij.psi.PsiElement
 
 sealed class DiagnosticFactoryForDeprecation<E : PsiElement, D : Diagnostic, F : DiagnosticFactoryWithPsiElement<E, D>>(

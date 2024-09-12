@@ -1,16 +1,15 @@
-package com.huawei.cangjie.descriptors;
+package com.huawei.cangjie.diagnostics;
 
 import com.google.common.collect.ImmutableSet;
 import com.huawei.cangjie.config.LanguageFeature;
 import com.huawei.cangjie.config.LanguageVersionSettings;
-import com.huawei.cangjie.diagnostics.*;
+import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.diagnostics.rendering.DeclarationWithDiagnosticComponents;
 import com.huawei.cangjie.diagnostics.rendering.DefaultErrorMessages;
 import com.huawei.cangjie.diagnostics.rendering.DiagnosticFactoryToRendererMap;
 import com.huawei.cangjie.diagnostics.rendering.DiagnosticRenderer;
 import com.huawei.cangjie.lexer.CjKeywordToken;
 import com.huawei.cangjie.lexer.CjModifierKeywordToken;
-import com.huawei.cangjie.lexer.CjToken;
 import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.psi.*;
@@ -28,6 +27,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import static com.huawei.cangjie.descriptors.PositioningStrategies.*;
 import static com.huawei.cangjie.diagnostics.Severity.*;
@@ -59,6 +59,17 @@ public interface Errors {
     DiagnosticFactory0<CjExpression> SIGNED_CONSTANT_CONVERTED_TO_UNSIGNED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjParameter> TYPE_PARAMETER_IN_CATCH_CLAUSE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<PsiElement, CjKeywordToken> LET_OR_VAR_ON_CATCH_PARAMETER = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory2<CjTypeReference, CangJieType, CangJieType> TYPE_MISMATCH_IN_FOR_LOOP = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory1<PsiElement, CjKeywordToken> LET_OR_VAR_ON_LOOP_PARAMETER = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory0<CjExpression> ITERATOR_MISSING = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory2<CjExpression, Name, CangJieType> COMPONENT_FUNCTION_MISSING = DiagnosticFactory2.create(ERROR, DEFAULT);
+    DiagnosticFactory1<PsiElement, Collection<? extends ResolvedCall<?>>> ITERATOR_AMBIGUITY = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory0<CjExpression> ITERATOR_ON_NULLABLE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory2<CjExpression, Name, Collection<? extends ResolvedCall<?>>> COMPONENT_FUNCTION_AMBIGUITY =
+            DiagnosticFactory2.create(ERROR, DEFAULT);
+    DiagnosticFactory1<CjExpression, Name> COMPONENT_FUNCTION_ON_NULLABLE = DiagnosticFactory1.create(ERROR, DEFAULT);
+
+
 
     DiagnosticFactory3<CjSimpleNameExpression, DeclarationDescriptor, DescriptorVisibility, FqName> INVISIBLE_REFERENCE_REEXPORT =
             DiagnosticFactory3.create(ERROR);
@@ -131,6 +142,8 @@ public interface Errors {
 
     DiagnosticFactoryForDeprecation1<PsiElement, TypeParameterDescriptor> TYPE_INFERENCE_ONLY_INPUT_TYPES =
             DiagnosticFactoryForDeprecation1.create(LanguageFeature.StrictOnlyInputTypesChecks);
+    DiagnosticFactory2<CjElement, Set<CjElement>, Set<CjElement>> UNREACHABLE_CODE = DiagnosticFactory2.create(
+                WARNING, ClassicPositioningStrategies.UNREACHABLE_CODE);
 
 
     DiagnosticFactory1<PsiElement, String> COULD_BE_INFERRED_ONLY_WITH_UNRESTRICTED_BUILDER_INFERENCE = DiagnosticFactory1.create(ERROR);

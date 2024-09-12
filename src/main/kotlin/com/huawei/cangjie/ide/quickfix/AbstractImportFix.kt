@@ -3,6 +3,8 @@ package com.huawei.cangjie.ide.quickfix
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
+import com.huawei.cangjie.diagnostics.Diagnostic
+import com.huawei.cangjie.diagnostics.DiagnosticFactory
 import com.huawei.cangjie.ide.CangJieIndicesHelper
 import com.huawei.cangjie.ide.actions.ExpressionWeigher
 import com.huawei.cangjie.ide.imports.*

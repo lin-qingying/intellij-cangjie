@@ -2,8 +2,8 @@ package com.huawei.cangjie.ide.quickfix
 
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
-import com.huawei.cangjie.descriptors.Diagnostic
-import com.huawei.cangjie.descriptors.DiagnosticFactory
+import com.huawei.cangjie.diagnostics.Diagnostic
+import com.huawei.cangjie.diagnostics.DiagnosticFactory
 import com.huawei.cangjie.utils.ifNotEmpty
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.components.Service

@@ -1,6 +1,6 @@
 package com.huawei.cangjie.ide.highlighter
 
-import com.huawei.cangjie.descriptors.Diagnostic
+import com.huawei.cangjie.diagnostics.Diagnostic
 import com.huawei.cangjie.diagnostics.Severity
 import com.huawei.cangjie.diagnostics.rendering.DefaultErrorMessages
 

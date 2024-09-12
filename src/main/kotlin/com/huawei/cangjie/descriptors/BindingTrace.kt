@@ -1,5 +1,6 @@
 package com.huawei.cangjie.descriptors
 
+import com.huawei.cangjie.diagnostics.DiagnosticSink
 import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.types.CangJieType

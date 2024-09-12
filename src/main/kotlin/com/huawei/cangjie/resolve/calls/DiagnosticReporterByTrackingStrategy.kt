@@ -4,10 +4,9 @@ package com.huawei.cangjie.resolve.calls
 import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.builtins.isExtensionFunctionType
 import com.huawei.cangjie.config.LanguageFeature
-import com.huawei.cangjie.descriptors.Diagnostic
-import com.huawei.cangjie.descriptors.Errors.*
+import com.huawei.cangjie.diagnostics.Diagnostic
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.diagnostics.DiagnosticFactory2
-import com.huawei.cangjie.diagnostics.InvalidBinaryData
 import com.huawei.cangjie.diagnostics.reportDiagnosticOnce
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.lastBlockStatementOrThis
@@ -33,7 +32,6 @@ import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.isNothing
 import com.huawei.cangjie.types.checker.intersectWrappedTypes
-import com.huawei.cangjie.types.error.ErrorType
 import com.huawei.cangjie.types.expressions.ControlStructureTypingUtils
 import com.huawei.cangjie.types.model.TypeSystemInferenceExtensionContextDelegate
 import com.huawei.cangjie.types.model.TypeVariableMarker
@@ -41,7 +39,6 @@ import com.huawei.cangjie.types.model.freshTypeConstructor
 import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.contains
 import com.huawei.cangjie.types.util.makeOptional
-import com.huawei.cangjie.utils.OperatorNameConventions.asOperatorString
 import com.huawei.cangjie.utils.shouldNotBeCalled
 import io.github.classgraph.TypeArgument
 import kotlin.contracts.ExperimentalContracts

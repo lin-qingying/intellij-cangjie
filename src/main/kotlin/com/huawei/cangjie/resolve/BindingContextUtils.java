@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve;
 
 import com.huawei.cangjie.descriptors.*;
+import com.huawei.cangjie.diagnostics.Diagnostic;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfoFactory;
