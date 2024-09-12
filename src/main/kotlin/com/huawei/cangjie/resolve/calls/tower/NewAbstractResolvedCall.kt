@@ -224,6 +224,13 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
                     candidateDescriptor
                 }
             }
+            is VariableDescriptor -> {
+                if (candidateDescriptor.isNotSimpleCall()) {
+                    candidateDescriptor.substituteInferredVariablesAndApproximate(substitutor)
+                } else {
+                    candidateDescriptor
+                }
+            }
 
             else -> candidateDescriptor
         }

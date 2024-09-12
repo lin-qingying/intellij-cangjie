@@ -415,10 +415,10 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     }
 
     public void setReturnType(@NotNull CangJieType unsubstitutedReturnType) {
-        if (this.unsubstitutedReturnType != null) {
+//        if (this.unsubstitutedReturnType != null) {
             // TODO: uncomment and fix tests
             //throw new IllegalStateException("returnType already set");
-        }
+//        }
         this.unsubstitutedReturnType = unsubstitutedReturnType;
     }
 

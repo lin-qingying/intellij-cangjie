@@ -1,11 +1,16 @@
 package com.huawei.cangjie.cfg
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.cfg.pseudocode.Pseudocode
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.diagnostics.Errors
+import com.huawei.cangjie.descriptors.FunctionDescriptor
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.resolve.BindingContext.DECLARATION_TO_DESCRIPTOR
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
+import com.huawei.cangjie.types.util.TypeUtils.noExpectedType
 
 interface ControlFlowInformationProvider {
     fun checkForLocalClassOrObjectMode()
@@ -51,6 +56,119 @@ class ControlFlowInformationProviderImpl private constructor(
 //        diagnosticSuppressor,
 //        enumWhenTracker
 //    )
+
+    private data class ReturnedExpressionsInfo(val returnedExpressions: Collection<CjElement>, val hasReturnsInInlinedLambda: Boolean)
+    private fun collectReturnExpressions(): ReturnedExpressionsInfo {
+//        val instructions = pseudocode.instructions.toHashSet()
+//        val exitInstruction = pseudocode.exitInstruction
+//
+//        val returnedExpressions = arrayListOf<KtElement>()
+//        var hasReturnsInInlinedLambda = false
+//
+//        for (previousInstruction in exitInstruction.previousInstructions) {
+//            previousInstruction.accept(object : InstructionVisitor() {
+//                override fun visitReturnValue(instruction: ReturnValueInstruction) {
+//                    if (instructions.contains(instruction)) { //exclude non-local return expressions
+//                        returnedExpressions.add(instruction.element)
+//                    }
+//
+//                    if (instruction.owner.isInlined) {
+//                        hasReturnsInInlinedLambda = true
+//                    }
+//                }
+//
+//                override fun visitReturnNoValue(instruction: ReturnNoValueInstruction) {
+//                    if (instructions.contains(instruction)) {
+//                        returnedExpressions.add(instruction.element)
+//                    }
+//
+//                    if (instruction.owner.isInlined) {
+//                        hasReturnsInInlinedLambda = true
+//                    }
+//                }
+//
+//                override fun visitUnconditionalJump(instruction: UnconditionalJumpInstruction) {
+//                    redirectToPrevInstructions(instruction)
+//                }
+//
+//                override fun visitConditionalJump(instruction: ConditionalJumpInstruction) {
+//                    redirectToPrevInstructions(instruction)
+//                }
+//
+//                // Note that there's no need to overload `visitThrowException`, because
+//                // it can never be a predecessor of EXIT (throwing always leads to ERROR)
+//
+//                private fun redirectToPrevInstructions(instruction: Instruction) {
+//                    for (redirectInstruction in instruction.previousInstructions) {
+//                        redirectInstruction.accept(this)
+//                    }
+//                }
+//
+//                override fun visitNondeterministicJump(instruction: NondeterministicJumpInstruction) {
+//                    redirectToPrevInstructions(instruction)
+//                }
+//
+//                override fun visitMarkInstruction(instruction: MarkInstruction) {
+//                    redirectToPrevInstructions(instruction)
+//                }
+//
+//                override fun visitInstruction(instruction: Instruction) {
+//                    if (instruction is KtElementInstruction) {
+//                        // Caveats:
+//                        // - for empty block-bodies, read(Unit) is emitted and will be processed here
+//                        // - for Unit-coerced blocks, last expression will be processed here
+//                        returnedExpressions.add(instruction.element)
+//                    } else {
+//                        throw IllegalStateException("$instruction precedes the exit point")
+//                    }
+//                }
+//            })
+//        }
+
+//        return ReturnedExpressionsInfo(returnedExpressions, hasReturnsInInlinedLambda)
+        TODO()
+    }
+
+    private fun checkDefiniteReturn(expectedReturnType: CangJieType, unreachableCode: UnreachableCode) {
+        val function = subroutine as? CjDeclarationWithBody
+            ?: throw AssertionError("checkDefiniteReturn is called for ${subroutine.text} which is not CjDeclarationWithBody")
+
+        if (!function.hasBody()) return
+
+        val (returnedExpressions, hasReturnsInInlinedLambdas) = collectReturnExpressions()
+
+        val blockBody = function.hasBlockBody()
+
+        var noReturnError = false
+        for (returnedExpression in returnedExpressions) {
+            returnedExpression.accept(object : CjVisitorVoid() {
+                override fun visitReturnExpression(expression: CjReturnExpression) {
+                    if (!blockBody) {
+                        trace.report(RETURN_IN_FUNCTION_WITH_EXPRESSION_BODY.on(expression))
+                    }
+                }
+
+                override fun visitCjElement(element: CjElement) {
+                    if (!(element is CjExpression || element is CjMatchCondition)) return
+
+                    if (blockBody && !noExpectedType(expectedReturnType)
+                        && !CangJieBuiltIns.isUnit(expectedReturnType)
+                        && !unreachableCode.elements.contains(element)
+                    ) {
+                        noReturnError = true
+                    }
+                }
+            })
+        }
+
+        if (noReturnError) {
+            if (hasReturnsInInlinedLambdas) {
+                trace.report(NO_RETURN_IN_FUNCTION_WITH_BLOCK_BODY_MIGRATION.on(function))
+            } else {
+                trace.report(NO_RETURN_IN_FUNCTION_WITH_BLOCK_BODY.on(function))
+            }
+        }
+    }
 
     override fun checkForLocalClassOrObjectMode() {
 //        recordInitializedVariables()
@@ -112,11 +230,19 @@ class ControlFlowInformationProviderImpl private constructor(
 //            }
 //        }
     }
+
     private fun reportUnreachableCode(unreachableCode: UnreachableCode) {
         for (element in unreachableCode.elements) {
-            trace.report(Errors.UNREACHABLE_CODE.on(element, unreachableCode.reachableElements, unreachableCode.unreachableElements))
+            trace.report(
+                UNREACHABLE_CODE.on(
+                    element,
+                    unreachableCode.reachableElements,
+                    unreachableCode.unreachableElements
+                )
+            )
         }
     }
+
     private fun collectUnreachableCode(): UnreachableCode {
         val reachableElements = hashSetOf<CjElement>()
         val unreachableElements = hashSetOf<CjElement>()
@@ -146,8 +272,26 @@ class ControlFlowInformationProviderImpl private constructor(
 //        }
         return UnreachableCodeImpl(reachableElements, unreachableElements)
     }
+
     override fun checkFunction(expectedReturnType: CangJieType?) {
         val unreachableCode = collectUnreachableCode()
         reportUnreachableCode(unreachableCode)
+
+
+        if (subroutine is CjFunctionLiteral) return
+
+        checkDefiniteReturn(expectedReturnType ?: NO_EXPECTED_TYPE, unreachableCode)
+
+        markAndCheckTailCalls()
     }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Tail calls
+
+    private fun markAndCheckTailCalls() {
+        val subroutineDescriptor = trace.get(DECLARATION_TO_DESCRIPTOR, subroutine) as? FunctionDescriptor ?: return
+
+//        markAndCheckRecursiveTailCalls(subroutineDescriptor)
+    }
+
 }

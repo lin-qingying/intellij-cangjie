@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.calls.tower
 //import com.huawei.cangjie.resolve.calls.smartcasts.SmartCastManager
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.builtins.toFunctionType
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.extensions.internal.CandidateInterceptor
@@ -174,7 +175,14 @@ class CangJieToResolvedCallTransformer(
         val recordedTypeForParenthesized = context.trace.getType(expression)
 
         var updatedType = convertedArgumentType ?: getResolvedCallForArgumentExpression(deparenthesized, context)?.run {
-            resultingDescriptor.returnType
+            when {
+                resultingDescriptor is FunctionDescriptor
+                        && deparenthesized is CjNameReferenceExpression -> (resultingDescriptor as FunctionDescriptor).toFunctionType()
+
+                else -> resultingDescriptor.returnType
+            }
+
+//            resultingDescriptor.returnType
         }
 
         // For the cases like 'foo(1)' the type of '1' depends on expected type (it can be Int, Byte, etc.),

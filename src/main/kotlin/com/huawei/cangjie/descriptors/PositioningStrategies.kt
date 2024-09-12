@@ -32,12 +32,14 @@ object PositioningStrategies {
             }
             return super.isValid(element)
         }
-    }   @JvmField
+    }
+
+    @JvmField
     val USELESS_ELVIS: PositioningStrategy<CjBinaryExpression> = object : PositioningStrategy<CjBinaryExpression>() {
-            override fun mark(element: CjBinaryExpression): List<TextRange> {
-                return listOf(TextRange(element.operationReference.startOffset, element.endOffset))
-            }
+        override fun mark(element: CjBinaryExpression): List<TextRange> {
+            return listOf(TextRange(element.operationReference.startOffset, element.endOffset))
         }
+    }
 
 
     @JvmField
@@ -57,7 +59,6 @@ object PositioningStrategies {
     fun projectionPosition(): PositioningStrategy<CjModifierListOwner> {
         return object : PositioningStrategy<CjModifierListOwner>() {
             override fun mark(element: CjModifierListOwner): List<TextRange> {
-
 
 
                 throw IllegalStateException("None of the modifiers is found: in, out")
@@ -240,18 +241,37 @@ object PositioningStrategies {
             return markNode(element.getQuestionMarkNode())
         }
     }
+
     @JvmField
-    val TYPE_PARAMETERS_OR_DECLARATION_SIGNATURE: PositioningStrategy<CjDeclaration> = object : PositioningStrategy<CjDeclaration>() {
-        override fun mark(element: CjDeclaration): List<TextRange> {
-            if (element is CjTypeParameterListOwner) {
-                val ktTypeParameterList = element.typeParameterList
-                if (ktTypeParameterList != null) {
-                    return markElement(ktTypeParameterList)
+    val TYPE_PARAMETERS_OR_DECLARATION_SIGNATURE: PositioningStrategy<CjDeclaration> =
+        object : PositioningStrategy<CjDeclaration>() {
+            override fun mark(element: CjDeclaration): List<TextRange> {
+                if (element is CjTypeParameterListOwner) {
+                    val ktTypeParameterList = element.typeParameterList
+                    if (ktTypeParameterList != null) {
+                        return markElement(ktTypeParameterList)
+                    }
                 }
+                return DECLARATION_SIGNATURE.mark(element)
             }
-            return DECLARATION_SIGNATURE.mark(element)
+        }
+
+
+    @JvmField
+    val DECLARATION_WITH_BODY: PositioningStrategy<CjDeclarationWithBody> = object : PositioningStrategy<CjDeclarationWithBody>() {
+        override fun mark(element: CjDeclarationWithBody): List<TextRange> {
+            val lastBracketRange = element.bodyBlockExpression?.lastBracketRange
+            return if (lastBracketRange != null)
+                markRange(lastBracketRange)
+            else
+                markElement(element)
+        }
+
+        override fun isValid(element: CjDeclarationWithBody): Boolean {
+            return super.isValid(element) && element.bodyBlockExpression?.lastBracketRange != null
         }
     }
+
     @JvmField
     val DECLARATION_NAME: PositioningStrategy<CjNamedDeclaration> = object : DeclarationHeader<CjNamedDeclaration>() {
         override fun mark(element: CjNamedDeclaration): List<TextRange> {

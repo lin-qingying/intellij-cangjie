@@ -68,7 +68,8 @@ public interface Errors {
     DiagnosticFactory2<CjExpression, Name, Collection<? extends ResolvedCall<?>>> COMPONENT_FUNCTION_AMBIGUITY =
             DiagnosticFactory2.create(ERROR, DEFAULT);
     DiagnosticFactory1<CjExpression, Name> COMPONENT_FUNCTION_ON_NULLABLE = DiagnosticFactory1.create(ERROR, DEFAULT);
-
+    DiagnosticFactory0<CjDeclarationWithBody>
+            NO_RETURN_IN_FUNCTION_WITH_BLOCK_BODY = DiagnosticFactory0.create(ERROR, DECLARATION_WITH_BODY);
 
 
     DiagnosticFactory3<CjSimpleNameExpression, DeclarationDescriptor, DescriptorVisibility, FqName> INVISIBLE_REFERENCE_REEXPORT =
@@ -270,6 +271,11 @@ public interface Errors {
     DiagnosticFactory0<CjConstantExpression> INT_LITERAL_OUT_OF_RANGE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<PsiElement, String> PACKAGE_OR_CLASSIFIER_REDECLARATION =
             DiagnosticFactory1.create(ERROR, FOR_REDECLARATION);
+    DiagnosticFactory0<CjDeclarationWithBody>
+            NO_RETURN_IN_FUNCTION_WITH_BLOCK_BODY_MIGRATION = DiagnosticFactory0.create(ERROR, DECLARATION_WITH_BODY);
+
+    DiagnosticFactory0<CjReturnExpression> RETURN_IN_FUNCTION_WITH_EXPRESSION_BODY =
+            DiagnosticFactory0.create(ERROR, PositioningStrategies.RETURN_WITH_LABEL);
     DiagnosticFactory2<CjConstantExpression, Long, CangJieType> INT_LITERAL_OUT_OF_RANGE_BY_TYPE = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory0<CjConstantExpression> FLOAT_LITERAL_OUT_OF_RANGE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjConstantExpression> INCORRECT_CHARACTER_LITERAL = DiagnosticFactory0.create(ERROR);

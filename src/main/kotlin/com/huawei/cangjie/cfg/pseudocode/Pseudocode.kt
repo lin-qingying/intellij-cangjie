@@ -40,3 +40,29 @@ interface Pseudocode {
 
 //    fun instructionForElement(element: CjElement): CjElementInstruction?
 }
+class PseudocodeImpl(override val correspondingElement: CjElement, override val isInlined: Boolean) : Pseudocode {
+    override var parent: Pseudocode? = null
+        private set
+    override var containsDoWhile: Boolean = false
+        internal set
+
+    override val rootPseudocode: Pseudocode
+        get() {
+            var parent = parent
+            while (parent != null) {
+                if (parent.parent == null) return parent
+                parent = parent.parent
+            }
+            return this
+        }
+
+    private fun repeatWhole(originalPseudocode: PseudocodeImpl) {
+//        repeatInternal(originalPseudocode, null, null, 0)
+        parent = originalPseudocode.parent
+    }
+    override fun copy(): PseudocodeImpl {
+        val result = PseudocodeImpl(correspondingElement, isInlined)
+        result.repeatWhole(this)
+        return result
+    }
+}

@@ -187,13 +187,13 @@ class FunctionReturnResolver(
     fun resolveFunctionReturn(
         function: CjFunction,
         context: ExpressionTypingContext,
-    ): CangJieType{
+    ): CangJieType?{
         return resolveFunctionReturn(function.bodyBlockExpression!!,context)
     }
     fun resolveFunctionReturn(
         blockExpression: CjBlockExpression,
         context: ExpressionTypingContext,
-    ): CangJieType {
+    ): CangJieType ?{
         val returns = blockExpression.getStatementsWithoutReturnKeyword()
         if(returns.isEmpty()){
             return module.builtIns.unitType
@@ -214,8 +214,7 @@ class FunctionReturnResolver(
 
 
 //        context.trace.record(COLLECTION_LITERAL_CALL, expression, resolutionResults.resultingCall)
-       return createTypeInfo(resolutionResults.resultingDescriptor.returnType, context).type!!
-//        TODO()
+       return createTypeInfo(resolutionResults.resultingDescriptor.returnType, context).type
 
     }
 }
