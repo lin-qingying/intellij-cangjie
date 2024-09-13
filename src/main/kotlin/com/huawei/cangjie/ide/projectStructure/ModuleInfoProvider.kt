@@ -116,7 +116,7 @@ class ModuleInfoProvider(private val project: Project) {
 
         if (containingFile == null) {
             val message = "Analyzing element of type ${element::class.java} with no containing file"
-            reportError(CangJieExceptionWithAttachments(message).withAttachment("element.kt", element.text))
+            reportError(CangJieExceptionWithAttachments(message).withAttachment("element.cj", element.text))
         }
 
         val containingCjFile = containingFile as? CjFile
@@ -148,7 +148,7 @@ class ModuleInfoProvider(private val project: Project) {
                 } else {
                     val message = "Analyzing code fragment of type ${containingCjFile::class.java} with no context"
                     val error =
-                        CangJieExceptionWithAttachments(message).withAttachment("file.kt", containingCjFile.text)
+                        CangJieExceptionWithAttachments(message).withAttachment("file.cj", containingCjFile.text)
                     reportError(error)
                 }
             }
@@ -166,7 +166,7 @@ class ModuleInfoProvider(private val project: Project) {
             } else {
                 val message =
                     "Analyzing element of type ${element::class.java} in non-physical file of type ${containingFile::class.java}"
-                reportError(CangJieExceptionWithAttachments(message).withAttachment("file.kt", containingFile.text))
+                reportError(CangJieExceptionWithAttachments(message).withAttachment("file.cj", containingFile.text))
             }
         }
     }

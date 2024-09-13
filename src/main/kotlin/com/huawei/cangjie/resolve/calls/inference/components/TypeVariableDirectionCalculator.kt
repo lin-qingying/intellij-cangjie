@@ -5,7 +5,7 @@ import com.huawei.cangjie.types.model.CangJieTypeMarker
 
 class TypeVariableDirectionCalculator(
     private val c: VariableFixationFinder.Context,
-    private val postponedKtPrimitives: List<PostponedResolvedAtomMarker>,
+    private val postponedCjPrimitives: List<PostponedResolvedAtomMarker>,
     topLevelType: CangJieTypeMarker
 ) {
     enum class ResolveDirection {

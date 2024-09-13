@@ -237,7 +237,6 @@ class CommentSaver(originalElements: PsiChildRange, private val saveLineBreaks: 
         set(value) = putCopyableUserData(SAVED_TREE_KEY, value)
 
     private var isFinished = false
-        private set
 
     private fun deleteCommentsInside(element: PsiElement) {
         assert(!isFinished)

@@ -7,7 +7,7 @@ import com.huawei.cangjie.types.model.TypeConstructorMarker
 
 class TypeVariableDependencyInformationProvider(
     private val notFixedTypeVariables: Map<TypeConstructorMarker, VariableWithConstraints>,
-    private val postponedKtPrimitives: List<PostponedResolvedAtomMarker>,
+    private val postponedCjPrimitives: List<PostponedResolvedAtomMarker>,
     private val topLevelType: CangJieTypeMarker?,
     private val typeSystemContext: VariableFixationFinder.Context
 )
@@ -43,7 +43,7 @@ class TypeVariableDependencyInformationProvider(
         return myDependent.any { it in outerTypeVariables }
     }
     private fun computeRelatedToAllOutputTypes() {
-        for (argument in postponedKtPrimitives) {
+        for (argument in postponedCjPrimitives) {
             if (argument.analyzed) continue
             (argument.outputType ?: continue).forAllMyTypeVariables {
                 addAllRelatedNodes(relatedToAllOutputTypes, it, includePostponedEdges = false)

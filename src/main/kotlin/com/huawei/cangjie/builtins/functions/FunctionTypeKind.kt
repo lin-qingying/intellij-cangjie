@@ -31,11 +31,11 @@ abstract class FunctionTypeKind internal constructor(
 
     /**
      * Specifies the first language version for which to serialize custom function types
-     * into kotlin metadata. Until that version, custom function types will be serialized
+     * into cangjie metadata. Until that version, custom function types will be serialized
      * with the legacy scheme: as a FunctionN/KFunctionN with the annotation used for the
      * custom function type.
      *
-     * If no version is specified, custom function types are serialized to kotlin metadata.
+     * If no version is specified, custom function types are serialized to cangjie metadata.
      *
      * Serialization using the legacy format allows libraries compiled with K2 with a
      * K2 plugin that uses custom function types to be used by clients using a K1 compiler

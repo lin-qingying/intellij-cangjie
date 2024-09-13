@@ -32,7 +32,7 @@ abstract class CjTypeStatementInfo<E : CjTypeStatement>(
 
                 return file.packageFqName
             }
-            throw IllegalArgumentException("Not in a KtFile: $element")
+            throw IllegalArgumentException("Not in a CjFile: $element")
         }
     override val modifierList: CjModifierList?
         get() = element.modifierList

@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve.caches
 
 import com.google.common.collect.ImmutableMap
 import com.huawei.cangjie.analyzer.AnalysisResult
+import com.huawei.cangjie.resolve.controlFlow.ControlFlowInformationProviderImpl
 import com.huawei.cangjie.container.ComponentProvider
 import com.huawei.cangjie.container.get
 import com.huawei.cangjie.context.GlobalContext
@@ -141,8 +142,6 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
                 return@guarded handleResult(it, callback)
             }
 
-            // cache does not contain AnalysisResult per each kt/psi element
-            // instead it looks up analysis for its parents - see lookUp(analyzableElement)
 
             // step 2: return result if it is cached
             lookUp(analyzableParent)?.let {
@@ -182,8 +181,7 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
 
         if (inBlockModifications.isNotEmpty()) {
             try {
-                // IF there is a cached result for ktFile and there are inBlockModifications
-                fileResult = fileResult?.let { result ->
+                   fileResult = fileResult?.let { result ->
                     var analysisResult = result
                     // Force full analysis when existed is erroneous
                     if (analysisResult.isError()) return@let null
@@ -276,9 +274,9 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
         checkWithAttachment(element.containingFile == file, {
             "Expected $file, but was ${element.containingFile} for ${if (element.isValid) "valid" else "invalid"} $element "
         }) {
-            it.withPsiAttachment("element.kt", element)
-            it.withPsiAttachment("file.kt", element.containingFile)
-            it.withPsiAttachment("original.kt", file)
+            it.withPsiAttachment("element.cj", element)
+            it.withPsiAttachment("file.cj", element.containingFile)
+            it.withPsiAttachment("original.cj", file)
         }
     }
 
@@ -423,7 +421,7 @@ object CangJieResolveDataProvider {
 //                IdeaModuleStructureOracle(),
 //                IdeMainFunctionDetectorFactory(),
 //                IdeSealedClassInheritorsProvider,
-//                ControlFlowInformationProviderImpl.Factory,
+                ControlFlowInformationProviderImpl.Factory,
                 absentDescriptorHandler = IdeaAbsentDescriptorHandler(pluginDeclarationProviderFactory),
 //                optimizingOptions = null
             ).get<LazyTopDownAnalyzer>()
@@ -452,7 +450,7 @@ object CangJieResolveDataProvider {
  * and for the rest elements it falls back to [parentContext].
  */
 private class StackedCompositeBindingContextTrace(
-    val depth: Int, // depth of stack over original ktFile bindingContext
+    val depth: Int, // depth of stack over original cjFile bindingContext
     val element: CjElement,
     val resolveContext: BindingContext,
     val parentContext: BindingContext

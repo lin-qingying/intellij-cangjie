@@ -84,8 +84,7 @@ public class CjPsiUtil {
             @NotNull StatementFilter statementFilter
     ) {
         CjExpression deparenthesizedExpression = deparenthesize(expression);
-        if (deparenthesizedExpression instanceof CjBlockExpression) {
-            CjBlockExpression blockExpression = (CjBlockExpression) deparenthesizedExpression;
+        if (deparenthesizedExpression instanceof CjBlockExpression blockExpression) {
             // todo
             // This case is a temporary hack for 'if' branches.
             // The right way to implement this logic is to interpret 'if' branches as function literals with explicitly-typed signatures
@@ -266,7 +265,7 @@ public class CjPsiUtil {
 
 
 
-        if (parentElement instanceof CjCallExpression parentCall && currentInner == ((CjCallExpression) parentElement).getCalleeExpression()) {
+        if (parentElement instanceof CjCallExpression parentCall && currentInner == parentCall.getCalleeExpression()) {
             CjExpression targetInnerExpression = innerExpression;
             if (targetInnerExpression instanceof CjDotQualifiedExpression) {
                 CjExpression selector = ((CjDotQualifiedExpression) targetInnerExpression).getSelectorExpression();

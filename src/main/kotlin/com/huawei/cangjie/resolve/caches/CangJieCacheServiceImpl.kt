@@ -154,7 +154,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
     private fun CjCodeFragment.getContextFile(): CjFile? {
         val contextElement = context ?: return null
         val contextFile = (contextElement as? CjElement)?.getContainingCjFile()
-            ?: throw AssertionError("Analyzing kotlin code fragment of type ${this::class.java} with java context of type ${contextElement::class.java}")
+            ?: throw AssertionError("Analyzing cangjie code fragment of type ${this::class.java} with java context of type ${contextElement::class.java}")
         return if (contextFile is CjCodeFragment) contextFile.getContextFile() else contextFile
     }
 
@@ -344,12 +344,12 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
 
 
     private fun CjElement.fileForElement() = try {
-        // in theory `containingKtFile` is `@NotNull` but in practice EA-114080
+
         @Suppress("USELESS_ELVIS")
-        getContainingCjFile() ?: throw IllegalStateException("containingKtFile was null for $this of ${this.javaClass}")
+        getContainingCjFile() ?: throw IllegalStateException("containingCjFile was null for $this of ${this.javaClass}")
     } catch (e: Exception) {
         if (e is ControlFlowException) throw e
-        throw CangJieExceptionWithAttachments("Couldn't get containingKtFile for ktElement", e)
+        throw CangJieExceptionWithAttachments("Couldn't get containingCjFile for cjElement", e)
             .withPsiAttachment("element", this)
             .withPsiAttachment("file", this.containingFile)
             .withAttachment("original", e.message)

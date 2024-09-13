@@ -28,7 +28,7 @@ abstract class PlatformConfiguratorBase (
     private val additionalClashResolvers: List<PlatformExtensionsClashResolver<*>> = emptyList(),
     private val identifierChecker: IdentifierChecker? = null,
     private val overloadFilter: OverloadFilter? = null,
-//    private val platformToKotlinClassMapper: PlatformToCangJieClassMapper? = null,
+//    private val platformToCangJieClassMapper: PlatformToCangJieClassMapper? = null,
 //    private val platformSpecificCastChecker: PlatformSpecificCastChecker? = null,
     private val delegationFilter: DelegationFilter? = null,
     private val overridesBackwardCompatibilityHelper: OverridesBackwardCompatibilityHelper? = null,

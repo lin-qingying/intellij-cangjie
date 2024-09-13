@@ -194,6 +194,7 @@ class FunctionReturnResolver(
         blockExpression: CjBlockExpression,
         context: ExpressionTypingContext,
     ): CangJieType ?{
+
         val returns = blockExpression.getStatementsWithoutReturnKeyword()
         if(returns.isEmpty()){
             return module.builtIns.unitType
@@ -214,7 +215,7 @@ class FunctionReturnResolver(
 
 
 //        context.trace.record(COLLECTION_LITERAL_CALL, expression, resolutionResults.resultingCall)
-       return createTypeInfo(resolutionResults.resultingDescriptor.returnType, context).type
+       return resolutionResults.resultingDescriptor.returnType
 
     }
 }

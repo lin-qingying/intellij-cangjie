@@ -7,7 +7,7 @@ import com.intellij.psi.search.GlobalSearchScope
 
 
 abstract class CangJieResolutionScopeProvider {
-    public abstract fun getResolutionScope( module: CjModule): GlobalSearchScope
+    abstract fun getResolutionScope( module: CjModule): GlobalSearchScope
 //    public abstract fun getResolutionScope(file:CjFile): GlobalSearchScope
 
     companion object {

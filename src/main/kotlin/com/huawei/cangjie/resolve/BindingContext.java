@@ -1,5 +1,6 @@
 package com.huawei.cangjie.resolve;
 
+import com.huawei.cangjie.contracts.description.EventOccurrencesRange;
 import com.huawei.cangjie.diagnostics.Diagnostics;
 import com.huawei.cangjie.name.FqNameUnsafe;
 import com.huawei.cangjie.resolve.calls.smartcasts.ExplicitSmartCasts;
@@ -87,6 +88,10 @@ public interface BindingContext {
     WritableSlice<CjExpression, DataFlowInfo> DATAFLOW_INFO_AFTER_CONDITION = Slices.createSimpleSlice();
     WritableSlice<CjExpression, Boolean> VARIABLE_REASSIGNMENT =  new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjExpression, ResolvedCall<FunctionDescriptor>> LOOP_RANGE_ITERATOR_RESOLVED_CALL = Slices.createSimpleSlice();
+    WritableSlice<CjExpression, ResolvedCall<FunctionDescriptor>> LOOP_RANGE_HAS_NEXT_RESOLVED_CALL = Slices.createSimpleSlice();
+    WritableSlice<CjExpression, ResolvedCall<FunctionDescriptor>> LOOP_RANGE_NEXT_RESOLVED_CALL = Slices.createSimpleSlice();
+    WritableSlice<CjDestructuringDeclarationEntry, ResolvedCall<FunctionDescriptor>> COMPONENT_RESOLVED_CALL = Slices.createSimpleSlice();
+    WritableSlice<CjLambdaExpression, EventOccurrencesRange> LAMBDA_INVOCATIONS = Slices.createSimpleSlice();
 
     WritableSlice<CjTypeReference, CangJieType> TYPE = Slices.createSimpleSlice();
     WritableSlice<DeclarationDescriptor, Multimap<String, ReceiverParameterDescriptor>> DESCRIPTOR_TO_CONTEXT_RECEIVER_MAP = Slices.createSimpleSlice();

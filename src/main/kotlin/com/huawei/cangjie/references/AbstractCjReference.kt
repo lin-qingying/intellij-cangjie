@@ -90,7 +90,7 @@ abstract class AbstractCjReference<T : CjElement>(element: T) : PsiPolyVariantRe
     abstract override fun getTargetDescriptors(context: BindingContext): Collection<DeclarationDescriptor>
     protected fun getCjReferenceMutateService(): CjReferenceMutateService =
         ApplicationManager.getApplication().getService(CjReferenceMutateService::class.java)
-            ?: throw IllegalStateException("Cannot handle element rename because KtReferenceMutateService is missing")
+            ?: throw IllegalStateException("Cannot handle element rename because CjReferenceMutateService is missing")
 
     protected open fun canBeReferenceTo(candidateTarget: PsiElement): Boolean = true
     protected open fun isReferenceToImportAlias(alias: CjImportAlias): Boolean = false

@@ -40,7 +40,6 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
 
     private final ModuleDescriptor module;
     private final MemoizedFunctionToNotNull<CjFile, LazyAnnotations> fileAnnotations;
-
     private final BindingTrace trace;
     private final CacheWithNotNullValues<FqName, LazyPackageDescriptor> packages;
     private final SyntheticResolveExtension syntheticResolveExtension;
@@ -48,6 +47,7 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     private final NewCangJieTypeChecker cangjieTypeChecker;
     private final DeclarationProviderFactory declarationProviderFactory;
     private final Project project;
+    private ControlFlowAnalyzer controlFlowAnalyzer;
     private LazyDeclarationResolver lazyDeclarationResolver;
     private LocalDescriptorResolver localDescriptorResolver;
     private DelegationFilter delegationFilter;
@@ -145,6 +145,16 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
 
     public BindingTrace getTrace() {
         return trace;
+    }
+
+    @Nullable
+    public ControlFlowAnalyzer getControlFlowAnalyzer() {
+        return this.controlFlowAnalyzer;
+    }
+
+    @Inject
+    public void setControlFlowAnalyzer(ControlFlowAnalyzer controlFlowAnalyzer) {
+        this.controlFlowAnalyzer = controlFlowAnalyzer;
     }
 
     @Inject

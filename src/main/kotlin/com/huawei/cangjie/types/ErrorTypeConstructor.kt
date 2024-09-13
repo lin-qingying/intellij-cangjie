@@ -35,9 +35,7 @@ class ErrorTypeConstructor(val kind: ErrorTypeKind, vararg val formatParams: Str
         return DefaultBuiltIns
 
     }
-//    @TypeRefinement
-//    override fun refine(kotlinTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
-}
+ }
 
 
 object DefaultBuiltIns : CangJieBuiltIns(null, LockBasedStorageManager("DefaultBuiltIns"))

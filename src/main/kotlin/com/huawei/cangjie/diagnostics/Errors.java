@@ -70,7 +70,12 @@ public interface Errors {
     DiagnosticFactory1<CjExpression, Name> COMPONENT_FUNCTION_ON_NULLABLE = DiagnosticFactory1.create(ERROR, DEFAULT);
     DiagnosticFactory0<CjDeclarationWithBody>
             NO_RETURN_IN_FUNCTION_WITH_BLOCK_BODY = DiagnosticFactory0.create(ERROR, DECLARATION_WITH_BODY);
+    DiagnosticFactory0<CjTypeReference> OPTIONAL_TYPE_OF_ANNOTATION_MEMBER = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory1<CjExpressionWithLabel, String> NOT_A_LOOP_LABEL = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory0<CjExpressionWithLabel> BREAK_OR_CONTINUE_OUTSIDE_A_LOOP = DiagnosticFactory0.create(ERROR);
+        DiagnosticFactory0<CjExpressionWithLabel> BREAK_OR_CONTINUE_IN_WHEN = DiagnosticFactory0.create(ERROR);
 
+    DiagnosticFactory0<CjTypeReference> INVALID_TYPE_OF_ANNOTATION_MEMBER = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactory3<CjSimpleNameExpression, DeclarationDescriptor, DescriptorVisibility, FqName> INVISIBLE_REFERENCE_REEXPORT =
             DiagnosticFactory3.create(ERROR);
@@ -99,7 +104,8 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, InvalidBinaryData> INVALID_BINARY_OPERATOR = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<CjExpression, CjExpression> EXPRESSION_EXPECTED = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory0<CjParameter> CATCH_PARAMETER_WITH_DEFAULT_VALUE = DiagnosticFactory0.create(ERROR);
-
+    DiagnosticFactory1<CjElement  , Set<Name>> NAMED_PARAMETER_PREFIX_MISSING =
+            DiagnosticFactory1.create(ERROR);
     DiagnosticFactory2<CjExpression, CjExpression, Boolean> FUNCTION_CALL_EXPECTED = DiagnosticFactory2.create(ERROR, CALL_EXPRESSION);
     DiagnosticFactory3<CjReferenceExpression, ClassifierDescriptor, WrongResolutionToClassifier, String> RESOLUTION_TO_CLASSIFIER =
             DiagnosticFactory3.create(ERROR);
@@ -140,6 +146,8 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, String> MISSING_STDLIB = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory0<PsiElement > ARRAY_LITERAL_TYPE_INFERENCE_FAILED = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjParameter > NON_NAMED_PARAMETER_AFTER_NAMED_PARAMETER = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjElement > POSITIONAL_ARGUMENT_AFTER_NAMED_ARGUMENT = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactoryForDeprecation1<PsiElement, TypeParameterDescriptor> TYPE_INFERENCE_ONLY_INPUT_TYPES =
             DiagnosticFactoryForDeprecation1.create(LanguageFeature.StrictOnlyInputTypesChecks);

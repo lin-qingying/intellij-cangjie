@@ -228,23 +228,23 @@ class CangJieIndicesHelper(
     private fun CjNamedDeclaration.resolveToDescriptorsWithHack(
         psiFilter: (CjDeclaration) -> Boolean
     ): Collection<DeclarationDescriptor> {
-        val ktFile = containingFile
-        if (ktFile !is CjFile) {
+        val cjFile = containingFile
+        if (cjFile !is CjFile) {
             // https://ea.jetbrains.com/browser/ea_problems/219256
             LOG.error(
-                CangJieExceptionWithAttachments("CjElement not inside CjFile ($ktFile, is valid: ${ktFile.isValid})")
-                    .withAttachment("file", ktFile)
+                CangJieExceptionWithAttachments("CjElement not inside CjFile ($cjFile, is valid: ${cjFile.isValid})")
+                    .withAttachment("file", cjFile)
                     .withAttachment("virtualFile", containingFile.virtualFile)
 
                     .withAttachment("element", this)
                     .withAttachment("type", javaClass)
-                    .withPsiAttachment("file.kt", ktFile)
+                    .withPsiAttachment("file.cj", cjFile)
             )
 
             return emptyList()
         }
 
-        if (ktFile.isCompiled) { //TODO: it's temporary while resolveToDescriptor does not work for compiled declarations
+        if (cjFile.isCompiled) { //TODO: it's temporary while resolveToDescriptor does not work for compiled declarations
             val fqName = fqName ?: return emptyList()
             return resolutionFacade.resolveImportReference(moduleDescriptor, fqName)
         } else {

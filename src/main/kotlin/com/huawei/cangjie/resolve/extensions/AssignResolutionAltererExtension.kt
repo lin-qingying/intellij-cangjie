@@ -14,7 +14,7 @@ import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo
 @InternalNonStableExtensionPoints
 interface AssignResolutionAltererExtension : AnnotationBasedExtension {
     companion object : ProjectExtensionDescriptor<AssignResolutionAltererExtension>(
-        "org.jetbrains.kotlin.assignResolutionAltererExtension",
+        "com.huawei.cangjie.assignResolutionAltererExtension",
         AssignResolutionAltererExtension::class.java
     )
 

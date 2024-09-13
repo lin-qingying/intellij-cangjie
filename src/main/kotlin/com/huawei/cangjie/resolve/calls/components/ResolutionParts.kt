@@ -117,7 +117,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 
     fun createToFreshVariableSubstitutorAndAddInitialConstraints(
         candidateDescriptor: CallableDescriptor,
-        kotlinCall: CangJieCall,
+        cangjieCall: CangJieCall,
         csBuilder: ConstraintSystemOperation
     ): FreshVariableNewTypeSubstitutor {
         val typeParameters = candidateDescriptor.typeParameters
@@ -140,7 +140,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
         for (index in typeParameters.indices) {
             val typeParameter = typeParameters[index]
             val freshVariable = freshTypeVariables[index]
-            val position = DeclaredUpperBoundConstraintPositionImpl(typeParameter, kotlinCall)
+            val position = DeclaredUpperBoundConstraintPositionImpl(typeParameter, cangjieCall)
 
             for (upperBound in typeParameter.upperBounds) {
                 freshVariable.addSubtypeConstraint(upperBound, position)
@@ -154,14 +154,14 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
             for (index in typeParameters.indices) {
                 val typeParameter = typeParameters[index]
                 val freshVariable = freshTypeVariables[index]
-                val typeMapping = originalTypes.mapIndexedNotNull { i: Int, kotlinType: CangJieType ->
-                    if (kotlinType == typeParameter.defaultType) i else null
+                val typeMapping = originalTypes.mapIndexedNotNull { i: Int, cangjieType: CangJieType ->
+                    if (cangjieType == typeParameter.defaultType) i else null
                 }
                 for (originalIndex in typeMapping) {
                     // there can be null in case we already captured type parameter in outer class (in case of inner classes)
-                    // see test innerClassTypeAliasConstructor.kt
+                    // see test innerClassTypeAliasConstructor.cj
                     val originalTypeParameter = originalTypeParameters.getOrNull(originalIndex) ?: continue
-                    val position = DeclaredUpperBoundConstraintPositionImpl(originalTypeParameter, kotlinCall)
+                    val position = DeclaredUpperBoundConstraintPositionImpl(originalTypeParameter, cangjieCall)
                     for (upperBound in originalTypeParameter.upperBounds) {
                         freshVariable.addSubtypeConstraint(upperBound, position)
                     }
@@ -344,7 +344,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 //                }
 //                for (originalIndex in typeMapping) {
 //                    // there can be null in case we already captured type parameter in outer class (in case of inner classes)
-//                    // see test innerClassTypeAliasConstructor.kt
+//                    // see test innerClassTypeAliasConstructor.cj
 //                    val originalTypeParameter = originalTypeParameters.getOrNull(originalIndex) ?: continue
 //                    val position = DeclaredUpperBoundConstraintPositionImpl(originalTypeParameter, cangjieCall)
 //                    for (upperBound in originalTypeParameter.upperBounds) {

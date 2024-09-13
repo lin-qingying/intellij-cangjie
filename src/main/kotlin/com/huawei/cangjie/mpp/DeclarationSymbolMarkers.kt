@@ -2,7 +2,7 @@ package com.huawei.cangjie.mpp
 /*
  * Those markers are needed for implementation of common algorithm of expect/actual
  *   compatibility checking, implemented in
- *   org.jetbrains.kotlin.resolve.calls.mpp.AbstractExpectActualCompatibilityChecker
+ *   com.huawei.cangjie.resolve.calls.mpp.AbstractExpectActualCompatibilityChecker
  */
 interface DeclarationSymbolMarker
 interface CallableSymbolMarker : DeclarationSymbolMarker

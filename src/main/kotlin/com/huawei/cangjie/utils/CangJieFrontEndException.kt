@@ -31,6 +31,6 @@ class CangJieFrontEndException(message: String, cause: Throwable) : CangJieExcep
         cause: Throwable,
         element: PsiElement
     ) : this(getExceptionMessage("Front-end", message, cause, PsiDiagnosticUtils.atLocation(element)), cause) {
-        withPsiAttachment("element.kt", element)
+        withPsiAttachment("element.cj", element)
     }
 }

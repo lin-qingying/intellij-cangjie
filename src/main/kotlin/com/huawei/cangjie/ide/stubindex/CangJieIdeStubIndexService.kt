@@ -49,9 +49,6 @@ class CangJieIdeStubIndexService : StubIndexService() {
         if (name != null) {
             sink.occurrence(CangJieFunctionShortNameIndex.indexKey, name)
 
-            //            if (IndexUtilsKt.isDeclaredInStruct(stub)) {
-//                IndexUtilsKt.indexExtensionInStruct(stub, sink);
-//            }
             val typeReference = stub.psi.typeReference
             if (typeReference != null && isProbablyNothing(typeReference)) {
                 sink.occurrence(CangJieProbablyNothingFunctionShortNameIndex.indexKey, name)

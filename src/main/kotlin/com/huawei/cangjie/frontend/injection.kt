@@ -1,5 +1,7 @@
 package com.huawei.cangjie.frontend
 
+import com.huawei.cangjie.resolve.controlFlow.ControlFlowInformationProvider
+import com.huawei.cangjie.resolve.controlFlow.ControlFlowInformationProviderImpl
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.container.*
 import com.huawei.cangjie.context.ModuleContext
@@ -75,7 +77,7 @@ fun createContainerForBodyResolve(
     languageVersionSettings: LanguageVersionSettings,
 //    moduleStructureOracle: ModuleStructureOracle,
 //    sealedProvider: SealedClassInheritorsProvider,
-//    controlFlowInformationProviderFactory: ControlFlowInformationProvider.Factory,
+    controlFlowInformationProviderFactory: ControlFlowInformationProvider.Factory,
     absentDescriptorHandler: AbsentDescriptorHandler?
 ): StorageComponentContainer = createContainer("BodyResolve", analyzerServices) {
     configure(
@@ -92,7 +94,7 @@ fun createContainerForBodyResolve(
 
     useImpl<BodyResolver>()
 //    useInstance(moduleStructureOracle)
-//    useInstance(controlFlowInformationProviderFactory)
+    useInstance(controlFlowInformationProviderFactory)
 //    useInstance(InlineConstTracker.DoNothing)
 }
 
@@ -179,6 +181,7 @@ fun createContainerForLazyResolve(
     useImpl<ResolveElementCache>()
 
     useImpl<CompilerLocalDescriptorResolver>()
+    useInstance(ControlFlowInformationProviderImpl.Factory )
 }
 
 
@@ -197,7 +200,7 @@ fun createContainerForLazyBodyResolve(
 //    moduleStructureOracle: ModuleStructureOracle,
 //    mainFunctionDetectorFactory: MainFunctionDetector.Factory,
 //    sealedProvider: SealedClassInheritorsProvider,
-//    controlFlowInformationProviderFactory: ControlFlowInformationProvider.Factory,
+    controlFlowInformationProviderFactory: ControlFlowInformationProvider.Factory,
 //    optimizingOptions: OptimizingOptions?,
     absentDescriptorHandler: AbsentDescriptorHandler?,
 ): StorageComponentContainer = createContainer("LazyBodyResolve", analyzerServices) {
@@ -220,5 +223,5 @@ fun createContainerForLazyBodyResolve(
     useImpl<LazyTopDownAnalyzer>()
     useImpl<DeclarationScopeProviderForLocalClassifierAnalyzer>()
     useImpl<AnnotationResolverImpl>()
-
+useInstance(controlFlowInformationProviderFactory)
 }

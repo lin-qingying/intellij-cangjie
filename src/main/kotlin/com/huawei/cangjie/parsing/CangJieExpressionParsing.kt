@@ -1274,7 +1274,7 @@ open class CangJieExpressionParsing(
     /**
      * If it has no ->, it's a block, otherwise a function literal
      *
-     * Please update {@link org.jetbrains.kotlin.BlockExpressionElementType#isParsable(ASTNode, CharSequence, Language, Project)} if any changes occurs!
+     * Please update {@link com.huawei.cangjie.BlockExpressionElementType#isParsable(ASTNode, CharSequence, Language, Project)} if any changes occurs!
      *
      *
      * 函数式

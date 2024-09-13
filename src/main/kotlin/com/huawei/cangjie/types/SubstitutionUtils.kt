@@ -53,7 +53,7 @@ object SubstitutionUtils {
         val typeSubstitutor: TypeSubstitutor =
             TypeSubstitutor.create(substitution)
         // we use the mutability of the map here
-        SubstitutionUtils.fillInDeepSubstitutor(
+        fillInDeepSubstitutor(
             type,
             typeSubstitutor,
             substitution,

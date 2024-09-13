@@ -37,8 +37,4 @@ class CangJieEditorOptions : PersistentStateComponent<CangJieEditorOptions> {
 }
 
 class CangJieEditorOptionsConfigurable : BeanConfigurable<CangJieEditorOptions>(editorOptions, message(ID)) ,
-    CodeFoldingOptionsProvider {
-
-
-
-}
+    CodeFoldingOptionsProvider

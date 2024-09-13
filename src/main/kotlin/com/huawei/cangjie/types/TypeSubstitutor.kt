@@ -145,7 +145,7 @@ class TypeSubstitutor(val substitution: TypeSubstitution) : TypeSubstitutorMarke
 //                    TypeSubstitutor.filterOutUnsafeVariance(
 //                        substitution.filterAnnotations(type.annotations)
 //                    )
-//                substitutedType = TypeUtilsKt.replaceAnnotations(
+//                substitutedType = TypeUtilsCj.replaceAnnotations(
 //                    substitutedType,
 //                     CompositeAnnotations(
 //                        substitutedType.annotations,

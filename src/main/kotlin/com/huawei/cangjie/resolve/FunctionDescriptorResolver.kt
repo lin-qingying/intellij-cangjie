@@ -110,9 +110,19 @@ class FunctionDescriptorResolver(
         inferenceSession: InferenceSession?
     ): List<ValueParameterDescriptor> {
         val result = ArrayList<ValueParameterDescriptor>()
-//
+
+        var isNamed = false
+
         for (i in valueParameters.indices) {
             val valueParameter = valueParameters[i]
+
+
+            if(valueParameter.isNamed){
+                isNamed = true
+            }else if(isNamed){
+                trace.report(NON_NAMED_PARAMETER_AFTER_NAMED_PARAMETER.on(valueParameter))
+            }
+
             val typeReference = valueParameter.typeReference
             val expectedType = expectedParameterTypes?.let { if (i < it.size) it[i] else null }
                 ?.takeUnless { TypeUtils.noExpectedType(it) }

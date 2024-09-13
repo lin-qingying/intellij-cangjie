@@ -13,8 +13,7 @@ public class BasicWritableSlice<K, V> extends AbstractWritableSlice<K, V> {
             if (!Modifier.isStatic(field.getModifiers())) continue;
             try {
                 Object value = field.get(null);
-                if (value instanceof BasicWritableSlice) {
-                    BasicWritableSlice slice = (BasicWritableSlice) value;
+                if (value instanceof BasicWritableSlice slice) {
                     slice.debugName = field.getName();
                 }
             } catch (IllegalAccessException e) {
@@ -54,7 +53,7 @@ public class BasicWritableSlice<K, V> extends AbstractWritableSlice<K, V> {
 
     @Override
     public V computeValue(SlicedMap map, K key, V value, boolean valueNotFound) {
-        if (valueNotFound) assert value == null;
+        assert !valueNotFound || value == null;
         return value;
     }
 
@@ -85,7 +84,7 @@ public class BasicWritableSlice<K, V> extends AbstractWritableSlice<K, V> {
         return new DelegatingSlice<K, V>(this) {
             @Override
             public V computeValue(SlicedMap map, K key, V value, boolean valueNotFound) {
-                if (valueNotFound) assert value == null;
+                assert !valueNotFound || value == null;
                 return value;
             }
         };

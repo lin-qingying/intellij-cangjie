@@ -62,7 +62,7 @@ fun CjExpression.readWriteAccess(useResolveForReadWrite: Boolean): ReferenceAcce
 }
 
 //class ReadWriteAccessCheckerDescriptorsImpl : ReadWriteAccessChecker {
-//    override fun readWriteAccessWithFullExpressionByResolve(assignment: CjBinaryExpression): Pair<ReferenceAccess, KtExpression>? {
+//    override fun readWriteAccessWithFullExpressionByResolve(assignment: CjBinaryExpression): Pair<ReferenceAccess, CjExpression>? {
 //        val resolvedCall = assignment.resolveToCall() ?: return null
 //        if (!resolvedCall.isReallySuccess()) return null
 //        return if (resolvedCall.resultingDescriptor.name in OperatorConventions.ASSIGNMENT_OPERATIONS.values)

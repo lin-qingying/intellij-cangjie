@@ -69,15 +69,15 @@ class IntersectionTypeConstructor(typesToIntersect: Collection<CangJieType>) : T
     fun createType(): SimpleType =
         CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
             TypeAttributes.Empty, this, listOf(), false, this.createScopeForCangJieType()
-        ) { kotlinTypeRefiner ->
-            this.refine(kotlinTypeRefiner).createType()
+        ) { cangjieTypeRefiner ->
+            this.refine(cangjieTypeRefiner).createType()
         }
 
     override fun hashCode(): Int = hashCode
 
     @TypeRefinement
-    override fun refine(kotlinTypeRefiner: CangJieTypeRefiner) =
-        transformComponents { it.refine(kotlinTypeRefiner) } ?: this
+    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) =
+        transformComponents { it.refine(cangjieTypeRefiner) } ?: this
 
     fun setAlternative(alternative: CangJieType?): IntersectionTypeConstructor {
         return IntersectionTypeConstructor(intersectedTypes, alternative)

@@ -178,7 +178,7 @@ public class TypeCheckingProcedure {
     private boolean checkSubtypeForTheSameConstructor(@NotNull CangJieType subtype, @NotNull CangJieType supertype) {
         TypeConstructor constructor = subtype.getConstructor();
 
-        // this assert was moved to checker/utils.kt
+        // this assert was moved to checker/utils.cj
         //assert constraints.assertEqualTypeConstructors(constructor, supertype.getConstructor()) : constructor + " is not " + supertype.getConstructor();
 
         List<TypeProjection> subArguments = subtype.getArguments();

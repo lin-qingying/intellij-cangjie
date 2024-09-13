@@ -856,7 +856,7 @@ class OverrideResolver(
                         // Fake override in a class in fact can mean an interface member
                         // We will process it at the end
                         // Note: with expect containing class, the situation is unclear, so we miss this case
-                        // See extendExpectedClassWithAbstractMember.kt (BaseA, BaseAImpl, DerivedA1)
+                        // See extendExpectedClassWithAbstractMember.cj (BaseA, BaseAImpl, DerivedA1)
                         fakeOverrideInBaseClass = overridden
                     }
                     overridesClassMember = true

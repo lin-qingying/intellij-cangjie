@@ -13,7 +13,7 @@ val CangJieType?.isFunctionPlaceholder: Boolean
 class FunctionPlaceholderTypeConstructor(
     val argumentTypes: List<CangJieType>,
     val hasDeclaredArguments: Boolean,
-    private val kotlinBuiltIns: CangJieBuiltIns
+    private val cangjieBuiltIns: CangJieBuiltIns
 ) : TypeConstructor {
     private val errorTypeConstructor: TypeConstructor =
         ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.FUNCTION_PLACEHOLDER_TYPE, argumentTypes.toString())
@@ -43,9 +43,9 @@ class FunctionPlaceholderTypeConstructor(
     }
 
     override fun getBuiltIns(): CangJieBuiltIns {
-        return kotlinBuiltIns
+        return cangjieBuiltIns
     }
 
     @TypeRefinement
-    override fun refine(kotlinTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
+    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
 }

@@ -17,7 +17,7 @@ object CangJieCompilationErrorFrequencyStatsCollector: CounterUsagesCollector() 
 
     private const val CODE_IS_TOTALLY_BROKEN_NUMBER_OF_COMPILATION_ERRORS_IN_FILE_LOWER_BOUND = 21
 
-    private val group = EventLogGroup("kotlin.compilation.error", 2)
+    private val group = EventLogGroup("cangjie.compilation.error", 2)
 
     private val compilationErrorIdField =
         EventFields.StringValidatedByCustomRule("error_id", CangJieCompilationErrorIdValidationRule::class.java)

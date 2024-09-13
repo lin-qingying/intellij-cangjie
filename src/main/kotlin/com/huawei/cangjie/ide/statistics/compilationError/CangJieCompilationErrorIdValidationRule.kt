@@ -8,7 +8,7 @@ import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
 class CangJieCompilationErrorIdValidationRule : CustomValidationRule() {
-    override fun getRuleId(): String = "kotlin.compilation.error.id"
+    override fun getRuleId(): String = "cangjie.compilation.error.id"
     override fun doValidate(data: String, context: EventContext): ValidationResultType =
         if (allowedCompilationErrorsIds.contains(data)) ValidationResultType.ACCEPTED else ValidationResultType.REJECTED
 }

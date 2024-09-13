@@ -55,7 +55,7 @@ open class LazyDeclarationResolver(
         return descriptor as? ClassDescriptor
     }
 
-    private fun getExtendClassDescriptor(cjExtend: CjExtend): DeclarationDescriptor? {
+    private fun getExtendClassDescriptor(cjExtend: CjExtend): DeclarationDescriptor {
 
         val descriptor = bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, cjExtend)
 

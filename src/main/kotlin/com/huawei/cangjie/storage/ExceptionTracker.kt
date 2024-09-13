@@ -18,7 +18,7 @@ fun Throwable.isProcessCanceledException(): Boolean {
 }
 
 object CacheResetOnProcessCanceled {
-    private const val PROPERTY = "kotlin.internal.cacheResetOnProcessCanceled"
+    private const val PROPERTY = "cangjie.internal.cacheResetOnProcessCanceled"
     private const val DEFAULT_VALUE = false
 
     var enabled: Boolean

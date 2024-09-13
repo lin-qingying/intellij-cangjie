@@ -8,6 +8,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsSafe
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.Gray
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import kotlin.math.roundToInt
@@ -134,22 +135,22 @@ class CjAnsiEscapeDecoder: AnsiEscapeDecoder() {
         }
 
         private enum class Ansi4BitColor(val value: Color) {
-            BLACK(Color(0, 0, 0)),
+            BLACK(Gray._0),
             RED(Color(128, 0, 0)),
             GREEN(Color(0, 128, 0)),
             YELLOW(Color(128, 128, 0)),
             BLUE(Color(0, 0, 128)),
             MAGENTA(Color(128, 0, 128)),
             CYAN(Color(0, 128, 128)),
-            WHITE(Color(192, 192, 192)),
-            BRIGHT_BLACK(Color(128, 128, 128)),
+            WHITE(Gray._192),
+            BRIGHT_BLACK(Gray._128),
             BRIGHT_RED(Color(255, 0, 0)),
             BRIGHT_GREEN(Color(0, 255, 0)),
             BRIGHT_YELLOW(Color(255, 255, 0)),
             BRIGHT_BLUE(Color(0, 0, 255)),
             BRIGHT_MAGENTA(Color(255, 0, 255)),
             BRIGHT_CYAN(Color(0, 255, 255)),
-            BRIGHT_WHITE(Color(255, 255, 255));
+            BRIGHT_WHITE(Gray._255);
 
             val index: Int get() = values().indexOf(this)
 

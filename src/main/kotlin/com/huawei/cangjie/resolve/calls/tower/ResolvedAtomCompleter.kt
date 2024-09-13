@@ -53,8 +53,8 @@ class ResolvedAtomCompleter(
     fun completeAll(resolvedAtom: ResolvedAtom) {
         if (!resolvedAtom.analyzed)
             return
-        resolvedAtom.subResolvedAtoms?.forEach { subKtPrimitive ->
-            completeAll(subKtPrimitive)
+        resolvedAtom.subResolvedAtoms?.forEach { subCjPrimitive ->
+            completeAll(subCjPrimitive)
         }
         complete(resolvedAtom)
     }
@@ -129,7 +129,7 @@ class ResolvedAtomCompleter(
 //
 //    private fun updateCallableReferenceResultType(callableCandidate: CallableReferenceResolutionCandidate): CallableReferenceResultTypeInfo? {
 //        val callableReferenceExpression =
-//            callableCandidate.resolvedCall.atom.psiCangJieCall.psiCall.callElement.parent as? KtCallableReferenceExpression
+//            callableCandidate.resolvedCall.atom.psiCangJieCall.psiCall.callElement.parent as? CjCallableReferenceExpression
 //                ?: return null
 //        val freshSubstitutor = callableCandidate.freshVariablesSubstitutor ?: return null
 //        val resultTypeParameters =

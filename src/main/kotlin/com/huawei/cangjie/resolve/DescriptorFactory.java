@@ -28,7 +28,7 @@ public class DescriptorFactory {
                 boolean freedomForSealedInterfacesSupported
         ) {
             super(containingClass, null, Annotations.EMPTY, true, Kind.DECLARATION, source);
-            initialize(Collections.<ValueParameterDescriptor>emptyList(),
+            initialize(Collections.emptyList(),
                     getDefaultConstructorVisibility(containingClass, freedomForSealedInterfacesSupported));
         }
     }

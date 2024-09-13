@@ -94,7 +94,7 @@ public class ExpressionTypingUtils {
     @NotNull
     public static CangJieType safeGetType(@NotNull CangJieTypeInfo typeInfo) {
         CangJieType type = typeInfo.getType();
-        assert type != null : "safeGetType should be invoked on safe KotlinTypeInfo; safeGetTypeInfo should return @NotNull type";
+        assert type != null : "safeGetType should be invoked on safe CangJieTypeInfo; safeGetTypeInfo should return @NotNull type";
         return type;
     }
     @NotNull
@@ -127,10 +127,9 @@ public class ExpressionTypingUtils {
             return true;
         }
         DeclarationDescriptor parent = candidate.getContainingDeclaration();
-        if (!(parent instanceof FunctionDescriptor)) {
+        if (!(parent instanceof FunctionDescriptor functionDescriptor)) {
             return false;
         }
-        FunctionDescriptor functionDescriptor = (FunctionDescriptor) parent;
         DeclarationDescriptor current = containerOfTheCurrentLocality;
         while (current != null) {
             if (current == functionDescriptor) {

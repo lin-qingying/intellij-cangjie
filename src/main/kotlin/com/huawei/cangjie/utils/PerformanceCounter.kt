@@ -115,11 +115,11 @@ abstract class PerformanceCounter protected constructor(val name: String) {
 
 private class SimpleCounter(name: String) : PerformanceCounter(name) {
     override fun <T> countTime(block: () -> T): T {
-        val startTime = PerformanceCounter.currentTime()
+        val startTime = currentTime()
         try {
             return block()
         } finally {
-            incrementTime(PerformanceCounter.currentTime() - startTime)
+            incrementTime(currentTime() - startTime)
         }
     }
 }
@@ -128,7 +128,7 @@ private class ReenterableCounter(name: String) : PerformanceCounter(name) {
     companion object {
         private val enteredCounters = ThreadLocal<MutableSet<ReenterableCounter>>()
 
-        private fun enterCounter(counter: ReenterableCounter) = PerformanceCounter.getOrPut(enteredCounters) { HashSet() }.add(counter)
+        private fun enterCounter(counter: ReenterableCounter) = getOrPut(enteredCounters) { HashSet() }.add(counter)
 
         private fun leaveCounter(counter: ReenterableCounter) {
             enteredCounters.get()?.remove(counter)
@@ -136,13 +136,13 @@ private class ReenterableCounter(name: String) : PerformanceCounter(name) {
     }
 
     override fun <T> countTime(block: () -> T): T {
-        val startTime = PerformanceCounter.currentTime()
+        val startTime = currentTime()
         val needTime = enterCounter(this)
         try {
             return block()
         } finally {
             if (needTime) {
-                incrementTime(PerformanceCounter.currentTime() - startTime)
+                incrementTime(currentTime() - startTime)
                 leaveCounter(this)
             }
         }
@@ -160,7 +160,7 @@ internal class CounterWithExclude(name: String, vararg excludedCounters: Perform
         private val counterToCallStackMapThreadLocal = ThreadLocal<MutableMap<CounterWithExclude, CallStackWithTime>>()
 
         private fun getCallStack(counter: CounterWithExclude) =
-            PerformanceCounter.getOrPut(counterToCallStackMapThreadLocal) { HashMap() }.getOrPut(counter) { CallStackWithTime() }
+            getOrPut(counterToCallStackMapThreadLocal) { HashMap() }.getOrPut(counter) { CallStackWithTime() }
     }
 
     init {
@@ -194,10 +194,10 @@ internal class CounterWithExclude(name: String, vararg excludedCounters: Perform
         fun Stack<Boolean>.peekOrFalse() = if (isEmpty()) false else peek()
 
         private fun intervalUsefulTime(callStackUpdate: Stack<Boolean>.() -> Unit): Long {
-            val delta = if (callStack.peekOrFalse()) PerformanceCounter.currentTime() - intervalStartTime else 0
+            val delta = if (callStack.peekOrFalse()) currentTime() - intervalStartTime else 0
             callStack.callStackUpdate()
 
-            intervalStartTime = PerformanceCounter.currentTime()
+            intervalStartTime = currentTime()
             return delta
         }
 

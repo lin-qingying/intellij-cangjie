@@ -92,8 +92,8 @@ class CangJieModuleOutOfCodeBlockModificationTracker(private val module: Module)
 
         internal fun hasPerModuleModificationCounts() = perModuleChangesHighWatermark != null
 
-        internal fun onCangJiePhysicalFileOutOfBlockChange(ktFile: CjFile, immediateUpdatesProcess: Boolean) {
-            lastAffectedModule = ModuleUtil.findModuleForPsiElement(ktFile)
+        internal fun onCangJiePhysicalFileOutOfBlockChange(cjFile: CjFile, immediateUpdatesProcess: Boolean) {
+            lastAffectedModule = ModuleUtil.findModuleForPsiElement(cjFile)
             lastAffectedModuleModCount = cangjieOfOfCodeBlockTracker.modificationCount
 
             if (immediateUpdatesProcess) {

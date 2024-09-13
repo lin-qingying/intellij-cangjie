@@ -105,17 +105,9 @@ public abstract class AbstractReceiverParameterDescriptor extends DeclarationDes
         if (substitutor.isEmpty()) return this;
 
         CangJieType substitutedType;
-//        if (getContainingDeclaration() instanceof ClassDescriptor) {
-//            // Due to some reasons we check that receiver value type is a subtype of dispatch parameter
-//            // (although we get members exactly from it's scope)
-//            // So to make receiver with projections be a subtype of parameter's type with captured type arguments,
-//            // we approximate latter to it's upper bound.
-//            // See approximateDispatchReceiver.kt test for clarification
-//            substitutedType = substitutor.substitute(getType(), Variance.OUT_VARIANCE);
-//        }
-//        else {
+
         substitutedType = substitutor.substitute(getType(), Variance.INVARIANT);
-//        }
+
 
         if (substitutedType == null) return null;
         if (substitutedType == getType()) return this;

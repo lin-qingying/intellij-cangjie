@@ -33,10 +33,10 @@ public class ResolutionResultsHandler {
             @NotNull TypeSpecificityComparator specificityComparator,
             @NotNull PlatformOverloadsSpecificityComparator platformOverloadsSpecificityComparator,
             @NotNull CancellationChecker cancellationChecker,
-            @NotNull CangJieTypeRefiner kotlinTypeRefiner
+            @NotNull CangJieTypeRefiner cangjieTypeRefiner
     ) {
         overloadingConflictResolver = createOverloadingConflictResolver(
-                builtIns, module, specificityComparator, platformOverloadsSpecificityComparator, cancellationChecker, kotlinTypeRefiner
+                builtIns, module, specificityComparator, platformOverloadsSpecificityComparator, cancellationChecker, cangjieTypeRefiner
         );
     }
 

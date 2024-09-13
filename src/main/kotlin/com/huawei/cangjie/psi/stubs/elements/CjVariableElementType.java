@@ -59,9 +59,7 @@ public class CjVariableElementType extends CjStubElementType<CangJieVariableStub
         FqName fqName = stub.getFqName();
         dataStream.writeName(fqName != null ? fqName.asString() : null);
 
-        if (stub instanceof CangJieVariableStubImpl) {
-            CangJieVariableStubImpl stubImpl = (CangJieVariableStubImpl) stub;
-
+        if (stub instanceof CangJieVariableStubImpl stubImpl) {
 
 
             CangJieStubOrigin.serialize(stubImpl.getOrigin(), dataStream);

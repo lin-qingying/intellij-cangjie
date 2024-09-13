@@ -5,8 +5,8 @@ import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.builtins.isExtensionFunctionType
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.diagnostics.Diagnostic
-import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.diagnostics.DiagnosticFactory2
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.diagnostics.reportDiagnosticOnce
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.lastBlockStatementOrThis
@@ -242,7 +242,7 @@ class DiagnosticReporterByTrackingStrategy(
 
 //            is SuperAsExtensionReceiver -> {
 //                val psiExpression = callReceiver.psiExpression
-//                if (psiExpression is KtSuperExpression) {
+//                if (psiExpression is CjSuperExpression) {
 //                    trace.report(SUPER_CANT_BE_EXTENSION_RECEIVER.on(psiExpression, psiExpression.text))
 //                }
 //            }
@@ -371,6 +371,19 @@ class DiagnosticReporterByTrackingStrategy(
                 VARARG_OUTSIDE_PARENTHESES.on(expr)
             }
 
+            is MissingNamedArgumentPrefix -> {
+                trace.report(
+                    NAMED_PARAMETER_PREFIX_MISSING.on(
+                        callArgument.psiCallArgument.valueArgument.asElement(),
+                        diagnostic.names
+                    )
+                )
+            }
+
+            is PositionalAfierNamedArgument -> {
+                trace.report(POSITIONAL_ARGUMENT_AFTER_NAMED_ARGUMENT.on(callArgument.psiCallArgument.valueArgument.asElement()))
+            }
+
             is MixingNamedAndPositionArguments -> {
                 trace.report(MIXING_NAMED_AND_POSITIONED_ARGUMENTS.on(callArgument.psiCallArgument.valueArgument.asElement()))
             }
@@ -491,6 +504,7 @@ class DiagnosticReporterByTrackingStrategy(
                 trace.record(BindingContext.REFERENCE_TARGET, nameReference, diagnostic.parameterDescriptor)
                 trace.markAsReported()
             }
+
 
             is NameForAmbiguousParameter -> trace.report(NAME_FOR_AMBIGUOUS_PARAMETER.on(nameReference))
             is NameNotFound -> trace.report(NAMED_PARAMETER_NOT_FOUND.on(nameReference, nameReference))

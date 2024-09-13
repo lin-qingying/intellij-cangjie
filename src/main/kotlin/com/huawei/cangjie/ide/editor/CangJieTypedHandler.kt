@@ -275,7 +275,7 @@ class CangJieTypedHandler : TypedHandlerDelegate() {
                     val identifier = file.findElementAt(offset)
                         ?.safeAs<LeafPsiElement>()
                         ?.takeIf { it.elementType == CjTokens.IDENTIFIER }
-                        ?: kotlin.run {
+                        ?:  run {
                             editor.document.insertString(offset, "}")
                             return Result.STOP
                         }

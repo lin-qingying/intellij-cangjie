@@ -754,7 +754,7 @@ object AbstractNullabilityChecker {
             state.hasNotNullSupertype(type.lowerBoundIfFlexible(), TypeCheckerState.SupertypesPolicy.LowerIfFlexible)
         }
     fun isSubtypeOfAny(context: TypeCheckerProviderContext, type: CangJieTypeMarker): Boolean =
-        AbstractNullabilityChecker.isSubtypeOfAny(
+        isSubtypeOfAny(
             context.newTypeCheckerState(
                 errorTypesEqualToAnything = false,
                 stubTypesEqualToAnything = true

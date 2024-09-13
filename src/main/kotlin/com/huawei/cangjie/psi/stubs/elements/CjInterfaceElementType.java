@@ -54,7 +54,7 @@ public class CjInterfaceElementType extends CjStubElementType<CangJieInterfaceSt
         List<String> superNames = CjPsiUtilKt.getSuperNames(psi);
         ClassId classId = StubUtils.createNestedClassId(parentStub, psi);
         return new CangJieInterfaceStubImpl(
-                CjStubElementTypes.INTERFACE, (StubElement<?>) parentStub,
+                CjStubElementTypes.INTERFACE, parentStub,
                 StringRef.fromString(fqName != null ? fqName.asString() : null), classId,
                 StringRef.fromString(psi.getName()),
                 Utils.INSTANCE.wrapStrings(superNames),

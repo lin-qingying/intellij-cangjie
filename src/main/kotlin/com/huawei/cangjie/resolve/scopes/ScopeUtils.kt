@@ -548,9 +548,7 @@ inline fun <Scope, R> flatMapScopes(
     }
 }
 
-//NOTE: idea default API returns module search scope for file under module but not in source or production source (for example, test data )
-// this scope can't be used to search for kotlin declarations in index in order to resolve in that case
-// see com.intellij.psi.impl.file.impl.ResolveScopeManagerImpl.getInherentResolveScope
+
 fun getResolveScope(file: CjFile): GlobalSearchScope {
     if (file is CjCodeFragment) {
 

@@ -16,25 +16,25 @@ abstract class ModuleAwareClassDescriptor : ClassDescriptor{
 
     companion object {
         internal fun ClassDescriptor.getRefinedUnsubstitutedMemberScopeIfPossible(
-            kotlinTypeRefiner: CangJieTypeRefiner
+            cangjieTypeRefiner: CangJieTypeRefiner
         ): MemberScope =
-            (this as? ModuleAwareClassDescriptor)?.getUnsubstitutedMemberScope(kotlinTypeRefiner) ?: this.unsubstitutedMemberScope
+            (this as? ModuleAwareClassDescriptor)?.getUnsubstitutedMemberScope(cangjieTypeRefiner) ?: this.unsubstitutedMemberScope
 
         internal fun ClassDescriptor.getRefinedMemberScopeIfPossible(
             typeSubstitution: TypeSubstitution,
-            kotlinTypeRefiner: CangJieTypeRefiner
+            cangjieTypeRefiner: CangJieTypeRefiner
         ): MemberScope =
-            (this as? ModuleAwareClassDescriptor)?.getMemberScope(typeSubstitution, kotlinTypeRefiner) ?: this.getMemberScope(
+            (this as? ModuleAwareClassDescriptor)?.getMemberScope(typeSubstitution, cangjieTypeRefiner) ?: this.getMemberScope(
                 typeSubstitution
             )
     }
 
 }
 fun ClassDescriptor.getRefinedUnsubstitutedMemberScopeIfPossible(
-    kotlinTypeRefiner: CangJieTypeRefiner
-): MemberScope = getRefinedUnsubstitutedMemberScopeIfPossible(kotlinTypeRefiner)
+    cangjieTypeRefiner: CangJieTypeRefiner
+): MemberScope = getRefinedUnsubstitutedMemberScopeIfPossible(cangjieTypeRefiner)
 
 fun ClassDescriptor.getRefinedMemberScopeIfPossible(
     typeSubstitution: TypeSubstitution,
-    kotlinTypeRefiner: CangJieTypeRefiner
-): MemberScope = getRefinedMemberScopeIfPossible(typeSubstitution, kotlinTypeRefiner)
+    cangjieTypeRefiner: CangJieTypeRefiner
+): MemberScope = getRefinedMemberScopeIfPossible(typeSubstitution, cangjieTypeRefiner)

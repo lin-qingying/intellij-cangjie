@@ -50,9 +50,6 @@ abstract class CjpmRunStateBase(
         commandLinePatches.addAll(environment.cjpmPatches)
     }
 
-    override fun getConsoleBuilder(): TextConsoleBuilder {
-        return super.getConsoleBuilder()
-    }
     fun cjpm(): Cjpm = toolchain.    cjpm()
 
 

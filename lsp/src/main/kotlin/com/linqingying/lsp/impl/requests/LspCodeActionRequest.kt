@@ -10,11 +10,11 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either
 import java.util.concurrent.CompletableFuture
 
 internal class LspCodeActionRequest private constructor(
-    lspServer: com.linqingying.lsp.api.LspServer,
+    lspServer: LspServer,
     val codeActionParams: CodeActionParams
 ) : LspRequest<List<Either<Command, CodeAction>>, List<CodeAction>>(lspServer) {
     constructor(
-        lspServer: com.linqingying.lsp.api.LspServer,
+        lspServer: LspServer,
         file: VirtualFile,
         diagnostic: Diagnostic
     ) : this(
@@ -30,7 +30,7 @@ internal class LspCodeActionRequest private constructor(
     )
 
     constructor(
-        lspServer: com.linqingying.lsp.api.LspServer,
+        lspServer: LspServer,
         file: VirtualFile,
         document: Document,
         startOffset: Int,

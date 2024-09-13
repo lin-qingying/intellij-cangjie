@@ -46,7 +46,7 @@ enum class ErrorTypeKind(val debugMessage: String, val isUnresolved: Boolean = f
     TYPE_FOR_COMPILER_EXCEPTION("Error type for a compiler exception while analyzing %s"),
 
     /* Inconsistent types */
-    ERROR_FLEXIBLE_TYPE("Error java flexible type with id %s. (%s..%s)"),
+    ERROR_FLEXIBLE_TYPE("Error Cangjie flexible type with id %s. (%s..%s)"),
     ERROR_RAW_TYPE("Error raw type %s"),
     TYPE_WITH_MISMATCHED_TYPE_ARGUMENTS_AND_PARAMETERS("Inconsistent type %s (parameters.size = %s, arguments.size = %s)"),
     ILLEGAL_TYPE_RANGE_FOR_DYNAMIC("Illegal type range for dynamic type %s..%s"),
@@ -104,16 +104,6 @@ enum class ErrorTypeKind(val debugMessage: String, val isUnresolved: Boolean = f
     NOT_FOUND_UNSIGNED_TYPE("Unsigned type %s not found"),
     ERROR_ENUM_TYPE("Not found the corresponding enum class for given enum entry %s.%s"),
     NO_RECORDED_TYPE("Not found recorded type for %s"),
-    NOT_FOUND_DESCRIPTOR_FOR_FUNCTION("Descriptor not found for function %s"),
-    NOT_FOUND_DESCRIPTOR_FOR_CLASS("Cannot build class type, descriptor not found for builder %s"),
-    NOT_FOUND_DESCRIPTOR_FOR_TYPE_PARAMETER("Cannot build type parameter type, descriptor not found for builder %s"),
-    UNMAPPED_ANNOTATION_TARGET_TYPE("Type for unmapped Java annotation target to CangJie one"), // java.lang.annotation.Target -> kotlin.annotation.Target
-    UNKNOWN_ARRAY_ELEMENT_TYPE_OF_ANNOTATION_ARGUMENT("Unknown type for an array element of a java annotation argument"),
-    NOT_FOUND_FQNAME_FOR_JAVA_ANNOTATION("No fqName for annotation %s"),
-    NOT_FOUND_FQNAME("No fqName for %s"),
-
-    /* Other error types */
-    TYPE_FOR_GENERATED_ERROR_EXPRESSION("Type for generated error expression"),
 
 
     MULIT_SMALL_COMMON_SUPERTYPES("Error type for multiple small common supertype "),

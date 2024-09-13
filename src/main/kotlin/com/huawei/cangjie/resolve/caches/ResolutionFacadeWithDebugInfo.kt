@@ -167,9 +167,9 @@ private class CangJieIdeaResolutionException(
             append(creationPlace.description())
         })
         for (element in resolvingWhat.elements.withIndex()) {
-            withPsiAttachment("element${element.index}.kt", element.value)
+            withPsiAttachment("element${element.index}.cj", element.value)
             withPsiAttachment(
-                "file${element.index}.kt",
+                "file${element.index}.cj",
                 element.value.containingFile
             )
         }

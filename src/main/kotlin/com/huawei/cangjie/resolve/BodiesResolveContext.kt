@@ -37,7 +37,7 @@ interface BodiesResolveContext {
 //    @get:Mutable
 //    val destructuringDeclarationEntries: Map<Any?, Any?>?
 //
-//    fun getDeclaringScope(declaration: KtDeclaration): LexicalScope?
+//    fun getDeclaringScope(declaration: CjDeclaration): LexicalScope?
 //
     fun getLocalContext(): ExpressionTypingContext?
 

@@ -1,232 +1,193 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
+
+import com.huawei.cangjie.CjNodeTypes
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.CjExpression
+import com.huawei.cangjie.psi.stubs.CangJieParameterStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.navigation.ItemPresentation
+import com.intellij.navigation.ItemPresentationProviders
+import com.intellij.psi.PsiElement
+import com.intellij.psi.search.LocalSearchScope
+import com.intellij.psi.search.SearchScope
+import com.intellij.psi.tree.TokenSet
+import com.intellij.psi.util.PsiTreeUtil
 
 
-import com.huawei.cangjie.CjNodeTypes;
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.psi.stubs.CangJieParameterStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import com.intellij.navigation.ItemPresentation;
-import com.intellij.navigation.ItemPresentationProviders;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.search.LocalSearchScope;
-import com.intellij.psi.search.SearchScope;
-import com.intellij.psi.tree.TokenSet;
-import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>, CjCallableDeclaration, CjLetVarKeywordOwner {
+    constructor(node: ASTNode) : super(node)
 
-import java.util.Collections;
-import java.util.List;
+    constructor(stub: CangJieParameterStub) : super(stub, CjStubElementTypes.VALUE_PARAMETER)
 
-public class CjParameter extends CjNamedDeclarationStub<CangJieParameterStub> implements CjCallableDeclaration, CjLetVarKeywordOwner {
-
-
-    public static final TokenSet LET_VAR_TOKEN_SET = TokenSet.create(CjTokens.LET_KEYWORD, CjTokens.CONST_KEYWORD, CjTokens.VAR_KEYWORD);
-
-    public CjParameter(@NotNull ASTNode node) {
-        super(node);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitParameter(this, data)
     }
 
-    public CjParameter(@NotNull CangJieParameterStub stub) {
-        super(stub, CjStubElementTypes.VALUE_PARAMETER);
+    override fun getTypeReference(): CjTypeReference? {
+        return getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)
     }
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitParameter(this, data);
+    override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? {
+        return setTypeReference(this, nameIdentifier, typeRef)
     }
 
-    @Override
-    @Nullable
-    public CjTypeReference getTypeReference() {
-        return getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE);
-    }
+    val destructuringDeclaration: CjDestructuringDeclaration?
+        get() {
+            if (stub != null) return null
 
-    @Override
-    @Nullable
-    public CjTypeReference setTypeReference(@Nullable CjTypeReference typeRef) {
-        return TypeRefHelpersKt.setTypeReference(this, getNameIdentifier(), typeRef);
-    }
-
-    @Nullable
-    public CjDestructuringDeclaration getDestructuringDeclaration() {
-
-        if (getStub() != null) return null;
-
-        return findChildByType(CjNodeTypes.DESTRUCTURING_DECLARATION);
-    }
-
-    @Nullable
-    @Override
-    public PsiElement getColon() {
-        return findChildByType(CjTokens.COLON);
-    }
-
-    public boolean isNamed() {
-        if (getColon() != null) {
-            return getColon().getNode().getTreeNext() == CjTokens.EXCL;
+            return findChildByType(CjNodeTypes.DESTRUCTURING_DECLARATION)
         }
 
-        return false;
+    override fun getColon(): PsiElement? {
+        return findChildByType(CjTokens.COLON)
     }
 
-    @Nullable
-    public PsiElement getEqualsToken() {
-        return findChildByType(CjTokens.EQ);
-    }
+    val isNamed: Boolean
+        get() {
+//            if (colon != null) {
+//                return colon!!.node.treePrev.elementType === CjTokens.EXCL
+//            }
 
-    public boolean hasDefaultValue() {
-        CangJieParameterStub stub = getStub();
-        if (stub != null) {
-            return stub.hasDefaultValue();
+
+            return findChildByType<PsiElement>(CjTokens.EXCL) != null
         }
-        return getDefaultValue() != null;
-    }
 
-    /**
-     * For example,
-     * lambdaConsumer { lambdaParameter ->
-     * ...
-     * }
-     *
-     * @return [true] if this [KtParameter] is a parameter of a lambda.
-     */
-    public boolean isLambdaParameter() {
-        return checkParentOfParentType(CjFunctionLiteral.class);
-    }
+    val equalsToken: PsiElement?
+        get() = findChildByType(CjTokens.EQ)
 
-    @Nullable
-    public CjExpression getDefaultValue() {
-        CangJieParameterStub stub = getStub();
+    fun hasDefaultValue(): Boolean {
+        val stub = stub
         if (stub != null) {
-            if (!stub.hasDefaultValue()) {
-                return null;
+            return stub.hasDefaultValue()
+        }
+        return defaultValue != null
+    }
+
+    val isLambdaParameter: Boolean
+        /**
+         * For example,
+         * lambdaConsumer { lambdaParameter ->
+         * ...
+         * }
+         *
+         * @return [true] if this [CjParameter] is a parameter of a lambda.
+         */
+        get() = checkParentOfParentType(CjFunctionLiteral::class.java)
+
+    val defaultValue: CjExpression?
+        get() {
+            val stub = stub
+            if (stub != null) {
+                if (!stub.hasDefaultValue()) {
+                    return null
+                }
+
+                if (containingCjFile.isCompiled) {
+                    return null
+                }
             }
 
-            if (getContainingCjFile().isCompiled()) {
+            val equalsToken = equalsToken
+            return if (equalsToken != null) PsiTreeUtil.getNextSiblingOfType(
+                equalsToken,
+                CjExpression::class.java
+            ) else null
+        }
 
-                return null;
+    val isMutable: Boolean
+        get() {
+            val stub = stub
+            if (stub != null) {
+                return stub.isMutable()
             }
+
+            return findChildByType<PsiElement?>(CjTokens.VAR_KEYWORD) != null
         }
 
-        PsiElement equalsToken = getEqualsToken();
-        return equalsToken != null ? PsiTreeUtil.getNextSiblingOfType(equalsToken, CjExpression.class) : null;
-    }
-
-    public boolean isMutable() {
-        CangJieParameterStub stub = getStub();
+    fun hasLetOrVar(): Boolean {
+        val stub = stub
         if (stub != null) {
-            return stub.isMutable();
+            return stub.hasValOrVar()
+        }
+        return letOrVarKeyword != null
+    }
+
+    override val letOrVarKeyword: PsiElement?
+        get() {
+            val stub = stub
+            if (stub != null && !stub.hasValOrVar()) {
+                return null
+            }
+            return findChildByType(LET_VAR_TOKEN_SET)
         }
 
-        return findChildByType(CjTokens.VAR_KEYWORD) != null;
+    override fun getPresentation(): ItemPresentation? {
+        return ItemPresentationProviders.getItemPresentation(this)
     }
 
-    public boolean hasLetOrVar() {
-        CangJieParameterStub stub = getStub();
-        if (stub != null) {
-            return stub.hasValOrVar();
+
+    private fun <T : PsiElement?> checkParentOfParentType(klass: Class<T>): Boolean {
+        val parent = parent ?: return false
+        return klass.isInstance(parent.parent)
+    }
+
+    val isCatchParameter: Boolean
+        get() = checkParentOfParentType(CjCatchClause::class.java)
+
+
+    override fun getValueParameterList(): CjParameterList? {
+        return null
+    }
+
+    override fun getValueParameters(): List<CjParameter> {
+        return emptyList()
+    }
+
+    override fun getReceiverTypeReference(): CjTypeReference? {
+        return null
+    }
+
+    override fun getContextReceivers(): List<CjContextReceiver> {
+        return emptyList()
+    }
+
+    override fun getTypeParameterList(): CjTypeParameterList? {
+        return null
+    }
+
+    override fun getTypeConstraintList(): CjTypeConstraintList? {
+        return null
+    }
+
+    override fun getTypeConstraints(): List<CjTypeConstraint> {
+        return emptyList()
+    }
+
+    override fun getTypeParameters(): List<CjTypeParameter> {
+        return emptyList()
+    }
+
+    val ownerFunction: CjDeclarationWithBody?
+        get() {
+            val parent = parentByStub as? CjParameterList ?: return null
+            return parent.ownerFunction
         }
-        return getLetOrVarKeyword() != null;
-    }
 
-    @Override
-    @Nullable
-    public PsiElement getLetOrVarKeyword() {
-        CangJieParameterStub stub = getStub();
-        if (stub != null && !stub.hasValOrVar()) {
-            return null;
-        }
-        return findChildByType(LET_VAR_TOKEN_SET);
-    }
-
-    @Override
-    public ItemPresentation getPresentation() {
-        return ItemPresentationProviders.getItemPresentation(this);
-    }
-
-
-    private <T extends PsiElement> boolean checkParentOfParentType(Class<T> klass) {
-
-        PsiElement parent = getParent();
-        if (parent == null) {
-            return false;
-        }
-        return klass.isInstance(parent.getParent());
-    }
-
-    public boolean isCatchParameter() {
-        return checkParentOfParentType(CjCatchClause.class);
-    }
-
-
-    @Nullable
-    @Override
-    public CjParameterList getValueParameterList() {
-        return null;
-    }
-
-    @NotNull
-    @Override
-    public List<CjParameter> getValueParameters() {
-        return Collections.emptyList();
-    }
-
-    @Nullable
-    @Override
-    public CjTypeReference getReceiverTypeReference() {
-        return null;
-    }
-
-    @NotNull
-    @Override
-    public List<CjContextReceiver> getContextReceivers() {
-        return Collections.emptyList();
-    }
-
-    @Nullable
-    @Override
-    public CjTypeParameterList getTypeParameterList() {
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public CjTypeConstraintList getTypeConstraintList() {
-        return null;
-    }
-
-    @NotNull
-    @Override
-    public List<CjTypeConstraint> getTypeConstraints() {
-        return Collections.emptyList();
-    }
-
-    @NotNull
-    @Override
-    public List<CjTypeParameter> getTypeParameters() {
-        return Collections.emptyList();
-    }
-
-    @Nullable
-    public CjDeclarationWithBody getOwnerFunction() {
-        PsiElement parent = getParentByStub();
-        if (!(parent instanceof CjParameterList)) return null;
-        return ((CjParameterList) parent).getOwnerFunction();
-    }
-
-    @NotNull
-    @Override
-    public SearchScope getUseScope() {
-        CjExpression owner = getOwnerFunction();
-        if (owner instanceof CjPrimaryConstructor) {
-            if (hasLetOrVar()) return super.getUseScope();
-            owner = ((CjPrimaryConstructor) owner).getContainingTypeStatement();
+    override fun getUseScope(): SearchScope {
+        var owner: CjExpression? = ownerFunction
+        if (owner is CjPrimaryConstructor) {
+            if (hasLetOrVar()) return super.getUseScope()
+            owner = owner.getContainingTypeStatement()
         }
         if (owner == null) {
-            owner = PsiTreeUtil.getParentOfType(this, CjExpression.class);
+            owner = PsiTreeUtil.getParentOfType(this, CjExpression::class.java)
         }
-        return new LocalSearchScope(owner != null ? owner : this);
+        return LocalSearchScope(owner ?: this)
+    }
+
+    companion object {
+        val LET_VAR_TOKEN_SET: TokenSet =
+            TokenSet.create(CjTokens.LET_KEYWORD, CjTokens.CONST_KEYWORD, CjTokens.VAR_KEYWORD)
     }
 }

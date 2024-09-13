@@ -27,7 +27,7 @@ interface PlatformSpecificExtension<S : PlatformSpecificExtension<S>>
  * discriminated (see respective KDoc).
  * Use [PlatformExtensionsClashResolver] only for cases when you need more invloved logic.
  *
- * Example: [org.jetbrains.kotlin.resolve.IdentifierChecker]. It is used in platform-agnostic code,
+ * Example: [com.huawei.cangjie.resolve.IdentifierChecker]. It is used in platform-agnostic code,
  * which resolves and checks identifiers for correctness. Each platform has it's own rules
  * regarding identifier correctness. In MPP modules we can't choose only one IdentifierChecker;
  * instead, we have to provide a "composite" IdentifierChecker which will launch checks of *each*

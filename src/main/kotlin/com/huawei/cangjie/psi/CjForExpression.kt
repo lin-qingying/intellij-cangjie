@@ -18,7 +18,7 @@ class CjForExpression(node: ASTNode) : CjLoopExpression(node) {
     val destructuringDeclaration: CjDestructuringDeclaration?
         get() {
             val loopParameter: CjParameter = loopParameter ?: return null
-            return loopParameter.getDestructuringDeclaration()
+            return loopParameter.destructuringDeclaration
         }
 
     @get: IfNotParsed

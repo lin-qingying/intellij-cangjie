@@ -73,7 +73,7 @@ class LazyAnnotationDescriptor(
         override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R = error()
         override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void> ) = error()
 
-        override fun toString(): String = "${name.asString()} declared in LazyAnnotations.kt"
+        override fun toString(): String = "${name.asString()} declared in LazyAnnotations.cj"
     }
     private val scope = (c.scope.ownerDescriptor as? PackageFragmentDescriptor)?.let {
         LexicalScope.Base(c.scope, FileDescriptorForVisibilityChecks(source, it))

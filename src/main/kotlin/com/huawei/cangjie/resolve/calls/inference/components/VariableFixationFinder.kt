@@ -42,7 +42,7 @@ class VariableFixationFinder(
         val allTypeVariables: Map<TypeConstructorMarker, TypeVariableMarker>
 
         /**
-         * See [org.jetbrains.kotlin.resolve.calls.inference.model.ConstraintStorage.outerSystemVariablesPrefixSize]
+         * See [com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage.outerSystemVariablesPrefixSize]
          */
         val outerSystemVariablesPrefixSize: Int
 
@@ -61,7 +61,7 @@ class VariableFixationFinder(
          * By default, if that property is null, we assume all `allTypeVariables` as not proper.
          *
          * Currently, that is only used for `provideDelegate` resolution, see
-         * [org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.fixInnerVariablesForProvideDelegateIfNeeded]
+         * [com.huawei.cangjie.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.fixInnerVariablesForProvideDelegateIfNeeded]
          */
         val typeVariablesThatAreCountedAsProperTypes: Set<TypeConstructorMarker>?
 
@@ -79,11 +79,11 @@ class VariableFixationFinder(
     fun findFirstVariableForFixation(
         c: Context,
         allTypeVariables: List<TypeConstructorMarker>,
-        postponedKtPrimitives: List<PostponedResolvedAtomMarker>,
+        postponedCjPrimitives: List<PostponedResolvedAtomMarker>,
         completionMode: ConstraintSystemCompletionMode,
         topLevelType: CangJieTypeMarker,
     ): VariableForFixation? =
-        c.findTypeVariableForFixation(allTypeVariables, postponedKtPrimitives, completionMode, topLevelType)
+        c.findTypeVariableForFixation(allTypeVariables, postponedCjPrimitives, completionMode, topLevelType)
 
     enum class TypeVariableFixationReadiness {
         FORBIDDEN,

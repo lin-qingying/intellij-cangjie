@@ -278,11 +278,6 @@ class LanguageVersionSettingsImpl @JvmOverloads constructor(
     }
 }
 
-fun LanguageVersion.isPreRelease(): Boolean {
-    if (!isStable) return true
-
-    return CangJieCompilerVersion.isPreRelease && this == LanguageVersion.LATEST_STABLE
-}
 
 fun LanguageFeature.forcesPreReleaseBinariesIfEnabled(): Boolean {
     val isFeatureNotReleasedYet = sinceVersion?.isStable != true
@@ -399,17 +394,6 @@ object CangJieCompilerVersion {
     // Change this value before and after every major release
     private const val IS_PRE_RELEASE = true
 
-    const val TEST_IS_PRE_RELEASE_SYSTEM_PROPERTY: String = "kotlin.test.is.pre.release"
-
-    val isPreRelease: Boolean
-        get() {
-            val overridden = System.getProperty(TEST_IS_PRE_RELEASE_SYSTEM_PROPERTY)
-            if (overridden != null) {
-                return overridden.toBoolean()
-            }
-
-            return IS_PRE_RELEASE
-        }
 
     val version: String?
         /**

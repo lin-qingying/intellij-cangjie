@@ -149,7 +149,7 @@ public class CangJieCommonCodeStyleSettings extends CommonCodeStyleSettings {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof CangJieCommonCodeStyleSettings)) {
+        if (!(obj instanceof CangJieCommonCodeStyleSettings other)) {
             return false;
         }
 
@@ -157,7 +157,6 @@ public class CangJieCommonCodeStyleSettings extends CommonCodeStyleSettings {
             return false;
         }
 
-        CommonCodeStyleSettings other = (CommonCodeStyleSettings) obj;
         if (!getSoftMargins().equals(other.getSoftMargins())) {
             return false;
         }

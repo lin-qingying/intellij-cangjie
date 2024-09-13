@@ -118,25 +118,7 @@ class LazyExtendClassDescriptor(
                 typeParameterList = classInfo.typeParameterList
             }
             if (typeParameterList == null) return@createLazyValue emptyList<TypeParameterDescriptor>()
-//
-//            boolean isAnonymousObject = (classInfo.getClassKind() == ClassKind.CLASS) && (classInfo.getCorrespondingClassOrObject() instanceof KtObjectDeclaration);
-//
-//            if (classInfo.getClassKind() == ClassKind.ENUM ) {
-//                c.getTrace().report(TYPE_PARAMETERS_IN_ENUM.on(typeParameterList));
-//            }
-//            if (classInfo.getClassKind() == ClassKind.OBJECT) {
-//                c.getTrace().report(TYPE_PARAMETERS_IN_OBJECT.on(typeParameterList));
-//            }
-//            if (isAnonymousObject) {
-//                DiagnosticFactory0<CjTypeParameterList> diagnosticFactory;
-//                if (c.getLanguageVersionSettings().supportsFeature(LanguageFeature.ProhibitTypeParametersInAnonymousObjects)) {
-//                    diagnosticFactory = TYPE_PARAMETERS_IN_OBJECT;
-//                } else {
-//                    diagnosticFactory = TYPE_PARAMETERS_IN_ANONYMOUS_OBJECT;
-//                }
-//                c.getTrace().report(diagnosticFactory.on(typeParameterList));
-//            }
-//
+
             val typeParameters = typeParameterList.parameters
             if (typeParameters.isEmpty()) return@createLazyValue emptyList<TypeParameterDescriptor>()
 //
@@ -305,7 +287,7 @@ class LazyExtendClassDescriptor(
         return ClassKind.EXTEND
     }
 
-    fun getSourceClassKind(): ClassKind? {
+    fun getSourceClassKind(): ClassKind {
         return classDescriptor.kind
     }
 

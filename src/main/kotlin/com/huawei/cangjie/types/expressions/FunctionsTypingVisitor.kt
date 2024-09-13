@@ -46,7 +46,7 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
     ): CangJieTypeInfo {
         if (!isDeclaration) {
             // function expression
-            if (!function.typeParameters.isEmpty()) {
+            if (function.typeParameters.isNotEmpty()) {
                 context.trace.report(TYPE_PARAMETERS_NOT_ALLOWED.on(function))
             }
 
@@ -118,7 +118,7 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
                 // We should avoid type checking for types containing `NO_EXPECTED_TYPE`, the error will be report later if needed
                 if (!context.expectedType.contains { it === NO_EXPECTED_TYPE }) {
                     /*
-                     * We do type checking without converted vararg type as the new inference create expected type with raw vararg type (see CangJieResolutionCallbacksImpl.kt)
+                     * We do type checking without converted vararg type as the new inference create expected type with raw vararg type (see CangJieResolutionCallbacksImpl.cj)
                      * Example:
                      *      fun foo(x: Any?) {}
                      *      val x = foo(fun(vararg p: Int) {})

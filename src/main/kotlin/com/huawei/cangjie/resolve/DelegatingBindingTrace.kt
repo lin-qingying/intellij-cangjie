@@ -19,6 +19,20 @@ open class DelegatingBindingTrace(
     allowSliceRewrite: Boolean = false,
     customSuppressCache: CangJieSuppressCache? = null,
 ) : BindingTrace {
+
+    constructor(
+        parentContext: BindingContext,
+        debugName: String,
+        resolutionSubjectForMessage: Any?,
+        filter: BindingTraceFilter = BindingTraceFilter.ACCEPT_ALL,
+        allowSliceRewrite: Boolean = false
+    ) : this(
+        parentContext,
+        AnalyzingUtils.formDebugNameForBindingTrace(debugName, resolutionSubjectForMessage),
+        filter = filter,
+        allowSliceRewrite = allowSliceRewrite
+    )
+
     protected val map = if (BindingTraceContext.TRACK_REWRITES && !allowSliceRewrite)
         TrackingSlicedMap(BindingTraceContext.TRACK_WITH_STACK_TRACES)
     else

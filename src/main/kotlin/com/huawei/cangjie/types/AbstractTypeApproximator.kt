@@ -368,7 +368,7 @@ abstract class AbstractTypeApproximator(
             when {
                 // This is just a hack that is necessary to preserve compatibility with K1 where return type of the calls
                 // if they contain a captured types with RAW supertype would be approximated to a regular non-raw flexible type
-                // See CapturedTypeApproximationKt.approximateCapturedTypes and especially the comment
+                // See CapturedTypeApproximationCj.approximateCapturedTypes and especially the comment
                 // "// tod*: approximateDynamic & raw type?" before it :)
                 conf.convertToNonRawVersionAfterApproximation && it.isRawType() -> {
                     it.convertToNonRaw()

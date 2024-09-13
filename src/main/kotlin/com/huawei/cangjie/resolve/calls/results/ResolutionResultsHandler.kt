@@ -241,7 +241,7 @@
 //            // This check is needed for the following case:
 //            //    x.foo(unresolved) -- if there are multiple foo's, we'd report an ambiguity, and it does not make sense here
 //            if (context.checkArguments != CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS ||
-//                !CallUtilKt.hasUnresolvedArguments(context.call, context)
+//                !CallUtilCj.hasUnresolvedArguments(context.call, context)
 //            ) {
 //                if (allCandidatesIncomplete) {
 //                    tracing.cannotCompleteResolve<D>(context.trace, results.resultingCalls)

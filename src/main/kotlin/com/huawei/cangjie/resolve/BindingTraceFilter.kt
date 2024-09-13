@@ -9,9 +9,6 @@ class BindingTraceFilter(val ignoreDiagnostics: Boolean) {
     }
 
     fun includesEverythingIn(otherFilter: BindingTraceFilter): Boolean {
-        if (ignoreDiagnostics && !otherFilter.ignoreDiagnostics) {
-            return false
-        }
-        return true
+        return !(ignoreDiagnostics && !otherFilter.ignoreDiagnostics)
     }
 }

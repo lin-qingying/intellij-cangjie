@@ -90,7 +90,7 @@ abstract class LspServerDescriptor protected constructor(
     @Throws(ExecutionException::class)
     open fun startServerProcess(): OSProcessHandler {
         val startingCommandLine = createCommandLine()
-        com.linqingying.lsp.api.LspServerDescriptor.Companion.LOG.info("$this: starting LSP server: $startingCommandLine")
+        LOG.info("$this: starting LSP server: $startingCommandLine")
         return LspProcessHandler(startingCommandLine)
     }
 
@@ -133,17 +133,17 @@ abstract class LspServerDescriptor protected constructor(
         return try {
             val uri = URI(fixedFileUri)
             if (URLUtil.FILE_PROTOCOL != uri.scheme) {
-                com.linqingying.lsp.api.LspServerDescriptor.Companion.LOG.warn("Unexpected URI scheme: $fileUri")
+                LOG.warn("Unexpected URI scheme: $fileUri")
                 return null
             }
             val path = uri.path
             if (path == null) {
-                com.linqingying.lsp.api.LspServerDescriptor.Companion.LOG.warn("Unexpected URI (no path): $fileUri")
+                LOG.warn("Unexpected URI (no path): $fileUri")
                 return null
             }
             findLocalFileByPath(path)
         } catch (e: URISyntaxException) {
-            com.linqingying.lsp.api.LspServerDescriptor.Companion.LOG.warn("Malformed URI: " + fileUri + "; " + e.message)
+            LOG.warn("Malformed URI: " + fileUri + "; " + e.message)
             null
         }
     }
@@ -254,8 +254,8 @@ abstract class LspServerDescriptor protected constructor(
      * and return their subclass of the [Lsp4jClient] class.
      * See [Lsp4jClient] class documentation for more information.
      */
-    open fun createLsp4jClient(handler: com.linqingying.lsp.api.LspServerNotificationsHandler): com.linqingying.lsp.api.Lsp4jClient =
-        com.linqingying.lsp.api.Lsp4jClient(handler)
+    open fun createLsp4jClient(handler: LspServerNotificationsHandler): Lsp4jClient =
+        Lsp4jClient(handler)
 
     /**
      * Returns a class that should be used as a [org.eclipse.lsp4j.services.LanguageServer] for this [LspServer].
@@ -269,7 +269,7 @@ abstract class LspServerDescriptor protected constructor(
     /**
      * Plugins may provide their listeners to get notified about [LspServer] events.
      */
-    open val lspServerListener: com.linqingying.lsp.api.LspServerListener? = null
+    open val lspServerListener: LspServerListener? = null
 
     /**
      * Tells whether IntelliJ's `Navigate -> Declaration` action should use data from the LSP server by sending the
@@ -295,7 +295,7 @@ abstract class LspServerDescriptor protected constructor(
     open val lspDiagnosticsSupport: LspDiagnosticsSupport? = LspDiagnosticsSupport()
 
     open val lspCodeActionsSupport: LspCodeActionsSupport? = LspCodeActionsSupport()
-    public open val lspHoverSupport: kotlin.Boolean = true
+    open val lspHoverSupport: Boolean = true
 
     /**
      * Handles [Command](https://microsoft.github.io/language-server-protocol/specification#command) objects received from the LSP server.
@@ -319,14 +319,14 @@ abstract class LspServerDescriptor protected constructor(
 
     companion object {
         @JvmField
-        val LOG: Logger = Logger.getInstance(com.linqingying.lsp.api.LspServerDescriptor::class.java)
+        val LOG: Logger = Logger.getInstance(LspServerDescriptor::class.java)
 
         fun getLanguageId(file: VirtualFile): String {
             val nameLowercased = StringUtil.toLowerCase(file.name)
-            com.linqingying.lsp.api.LspServerDescriptor.Companion.FILE_NAME_ENDING_TO_LANGUAGE_ID.find { nameLowercased.endsWith(it.first) }
+            FILE_NAME_ENDING_TO_LANGUAGE_ID.find { nameLowercased.endsWith(it.first) }
                 ?.let { return it.second }
             return StringUtil.toLowerCase(file.extension)
-                ?.let { com.linqingying.lsp.api.LspServerDescriptor.Companion.FILE_EXTENSION_TO_LANGUAGE_ID[it] ?: it } ?: ""
+                ?.let { FILE_EXTENSION_TO_LANGUAGE_ID[it] ?: it } ?: ""
         }
 
         private val FILE_NAME_ENDING_TO_LANGUAGE_ID: List<Pair<String, String>> = listOf(

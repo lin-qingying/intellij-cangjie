@@ -19,12 +19,12 @@ import com.huawei.cangjie.types.util.asTypeProjection
 class SimpleConstraintSystemImpl(
     constraintInjector: ConstraintInjector,
     builtIns: CangJieBuiltIns,
-    kotlinTypeRefiner: CangJieTypeRefiner,
+    cangjieTypeRefiner: CangJieTypeRefiner,
     languageVersionSettings: LanguageVersionSettings
 ) : SimpleConstraintSystem {
 
     val system = NewConstraintSystemImpl(
-        constraintInjector, ClassicTypeSystemContextForCS(builtIns, kotlinTypeRefiner), languageVersionSettings
+        constraintInjector, ClassicTypeSystemContextForCS(builtIns, cangjieTypeRefiner), languageVersionSettings
     )
     val csBuilder: ConstraintSystemBuilder =
         system.getBuilder()

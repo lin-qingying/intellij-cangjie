@@ -28,7 +28,7 @@ public class ObservableBindingTrace implements BindingTrace  {
 
     private final BindingTrace originalTrace;
 
-    private SmartFMap<WritableSlice, RecordHandler> handlers = SmartFMap.emptyMap();
+    private final SmartFMap<WritableSlice, RecordHandler> handlers = SmartFMap.emptyMap();
 
     public ObservableBindingTrace(BindingTrace originalTrace) {
         this.originalTrace = originalTrace;

@@ -53,9 +53,9 @@ class IdeaAbsentDescriptorHandler(
                 declarationException.withAttachment("declarationProviderFactory", factory.debugToString())
             } ?: NoDescriptorForDeclarationException(declaration, declarationProviderFactory.toString())
         throw exceptionWithAttachments
-            .withPsiAttachment("KtDeclaration.kt", declaration)
+            .withPsiAttachment("CjDeclaration.cj", declaration)
             .withAttachment(
-                "KtDeclaration location",
+                "CjDeclaration location",
                 kotlin.runCatching { declaration.containingFile.virtualFile }.getOrNull()
             )
     }

@@ -151,10 +151,7 @@ interface IdentifierInfo {
 
         override fun equals(other: Any?) =
             other is Variable
-//                    &&
-//                    DescriptorEquivalenceForOverrides.areCallableDescriptorsEquivalent(
-//                        variable, other.variable, allowCopiesFromTheSameDeclaration = true, kotlinTypeRefiner = CangJieTypeRefiner.Default
-//                    )
+//
 
         override fun hashCode() = variable.name.hashCode() * 31 + variable.containingDeclaration.original.hashCode()
 

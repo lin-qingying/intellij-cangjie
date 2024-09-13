@@ -32,7 +32,7 @@ interface LspServerManager {
         fun getInstance(project: Project): LspServerManager = project.service()
     }
 
-    fun getServersForProvider(providerClass: Class<out LspServerSupportProvider>): Collection<com.linqingying.lsp.api.LspServer>
+    fun getServersForProvider(providerClass: Class<out LspServerSupportProvider>): Collection<LspServer>
 
     /**
      * This function is designed for the cases like "a user has enabled some framework support in Settings." It notifies the `providerClass`
@@ -61,7 +61,7 @@ interface LspServerManager {
     fun stopAndRestartIfNeeded(providerClass: Class<out LspServerSupportProvider>)
 
     @TestOnly
-    
+
     fun addLspServerManagerListener(listener: LspServerManagerListener, parentDisposable: Disposable)
 }
 

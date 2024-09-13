@@ -131,7 +131,7 @@ open class OverloadingConflictResolver<C : Any>(
         ) { a, b ->
             val aDescriptor = a.resultingDescriptor
             val bDescriptor = b.resultingDescriptor
-            // Here we'd like to handle situation when we have two synthetic descriptors as in syntheticSAMExtensions.kt
+            // Here we'd like to handle situation when we have two synthetic descriptors as in syntheticSAMExtensions.cj
 
             // Without this, we'll pick all synthetic descriptors as they don't have overridden descriptors and
             // then report ambiguity, which isn't very convenient

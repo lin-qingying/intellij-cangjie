@@ -231,6 +231,11 @@ public class ExpressionTypingServices {
                 expressionTypingComponents, annotationChecker, scope);
         ExpressionTypingContext newContext = context.replaceScope(scope).replaceExpectedType(NO_EXPECTED_TYPE);
 
+
+
+
+
+
         CangJieTypeInfo result = TypeInfoFactoryKt.noTypeInfo(context);
 
         DataFlowInfo beforeJumpInfo = newContext.dataFlowInfo;
@@ -295,14 +300,17 @@ public class ExpressionTypingServices {
     @NotNull
     public CangJieTypeInfo getBlockReturnedType(CjBlockExpression expression, ExpressionTypingContext context, boolean isStatement) {
 //如方法没有显示指定返回值，推断返回值并更改
-        PsiElement blockParent = expression.getParent();
-        if (blockParent instanceof CjFunction && ((CjFunction) blockParent).getTypeReference() == null) {
-            CangJieType returnType = expressionTypingComponents.functionReturnResolver.resolveFunctionReturn(expression, context);
-            FunctionDescriptor functionDescriptor = context.trace.getBindingContext().get(BindingContext.FUNCTION, blockParent);
-            if (functionDescriptor instanceof FunctionDescriptorImpl) {
-                ((FunctionDescriptorImpl) functionDescriptor).setReturnType(returnType);
-            }
-        }
+//        PsiElement blockParent = expression.getParent();
+//        if (blockParent instanceof CjFunction && ((CjFunction) blockParent).getTypeReference() == null) {
+//            CangJieType returnType = expressionTypingComponents.functionReturnResolver.resolveFunctionReturn(expression, context);
+//            FunctionDescriptor functionDescriptor = context.trace.getBindingContext().get(BindingContext.FUNCTION, blockParent);
+//            if (functionDescriptor instanceof FunctionDescriptorImpl) {
+//                if (returnType != null) {
+//                    ((FunctionDescriptorImpl) functionDescriptor).setReturnType(returnType);
+//                    return TypeInfoFactoryKt.createTypeInfo(returnType);
+//                }
+//            }
+//        }
 
         return getBlockReturnedType(expression, isStatement ? COERCION_TO_UNIT : CoercionStrategy.NO_COERCION, context);
     }
@@ -321,11 +329,15 @@ public class ExpressionTypingServices {
         LexicalWritableScope scope = new LexicalWritableScope(context.scope, containingDescriptor, false, redeclarationChecker,
                 LexicalScopeKind.CODE_BLOCK);
 
+
+
         CangJieTypeInfo r;
         if (block.isEmpty()) {
             r = expressionTypingComponents.dataFlowAnalyzer
                     .createCheckedTypeInfo(expressionTypingComponents.builtIns.getUnitType(), context, expression);
         } else {
+
+
             r = getBlockReturnedTypeWithWritableScope(scope, block, coercionStrategyForLastExpression,
                     context.replaceStatementFilter(statementFilter));
         }

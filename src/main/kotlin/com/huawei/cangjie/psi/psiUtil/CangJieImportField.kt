@@ -10,6 +10,4 @@ data class CangJieImportField(
     override val isAllUnder: Boolean,
     override val importContent: CjImportInfo.ImportContent?,
 //    override val importedFqNames: MutableList<FqName>?
-): CjImportInfo{
-
-}
+): CjImportInfo

@@ -19,10 +19,7 @@ import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ArrayFactory
 
-interface CangJieFile{
-
-
-}
+interface CangJieFile
 
 open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = false) :
     PsiFileBase(viewProvider, CangJieLanguage),

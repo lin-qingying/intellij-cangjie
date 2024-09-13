@@ -23,7 +23,7 @@ abstract class CjTypeStatement :
         nodeType
     )
 
-    override fun getSuperTypeListEntries(): List<CjSuperTypeListEntry> = getSuperTypeList()?.entries.orEmpty() ?: emptyList()
+    override fun getSuperTypeListEntries(): List<CjSuperTypeListEntry> = getSuperTypeList()?.entries.orEmpty()
 
     override fun isLocal(): Boolean = stub?.isLocal() ?: CjPsiUtil.isLocal(this)
     override val declarations: List<CjDeclaration>

@@ -391,8 +391,8 @@ class TypeResolver(
                 for (parametersGroup in parametersByName.values) {
                     if (parametersGroup.size < 2) continue
                     for (parameter in parametersGroup) {
-                        val ktParameter = (parameter.source.getPsi() as? CjParameter) ?: continue
-                        c.trace.report(DUPLICATE_PARAMETER_NAME_IN_FUNCTION_TYPE.on(ktParameter))
+                        val cjParameter = (parameter.source.getPsi() as? CjParameter) ?: continue
+                        c.trace.report(DUPLICATE_PARAMETER_NAME_IN_FUNCTION_TYPE.on(cjParameter))
                     }
                 }
             }

@@ -129,8 +129,8 @@ abstract class ImportFixBase<T : CjExpression> protected constructor(
         val descriptors =
             suggestionDescriptors.mapTo(hashSetOf()) { it.original }.takeIf { it.isNotEmpty() } ?: return ""
 
-        val ktFile = element?.getContainingCjFile() ?: return CangJieBundle.message("fix.import")
-        val prioritizer = createPrioritizerForFile(ktFile)
+        val cjFile = element?.getContainingCjFile() ?: return CangJieBundle.message("fix.import")
+        val prioritizer = createPrioritizerForFile(cjFile)
         val expressionWeigher = ExpressionWeigher.createWeigher(element)
 
         val importInfos = descriptors.mapNotNull { descriptor ->
@@ -395,9 +395,9 @@ abstract class OrdinaryImportFixBase<T : CjExpression>(expression: T, factory: F
             ) { it == name }
         )
 
-        val ktFile = element?.getContainingCjFile() ?: return emptyList()
-        val importedFqNamesAsAlias = getImportedFqNamesAsAlias(ktFile)
-        val (defaultImports, excludedImports) = ImportInsertHelperImpl.computeDefaultAndExcludedImports(ktFile)
+        val cjFile = element?.getContainingCjFile() ?: return emptyList()
+        val importedFqNamesAsAlias = getImportedFqNamesAsAlias(cjFile)
+        val (defaultImports, excludedImports) = ImportInsertHelperImpl.computeDefaultAndExcludedImports(cjFile)
         return result.filter {
             val descriptor =
                 it.takeUnless { expression.parent is CjCallExpression && it.isSealed() } ?: return@filter false
@@ -431,8 +431,8 @@ abstract class OrdinaryImportFixBase<T : CjExpression>(expression: T, factory: F
         return bindingContext.getType(lastStatement)
     }
 
-    private fun getImportedFqNamesAsAlias(ktFile: CjFile) =
-        ktFile.importDirectives
+    private fun getImportedFqNamesAsAlias(cjFile: CjFile) =
+        cjFile.importDirectives
             .filter { it.alias != null }
             .mapNotNull { it.importedFqName }
 }

@@ -27,13 +27,13 @@ import com.huawei.cangjie.types.expressions.ExpressionTypingServices
 class BuilderInferenceSession(
     psiCallResolver: PSICallResolver,
     postponedArgumentsAnalyzer: PostponedArgumentsAnalyzer,
-    kotlinConstraintSystemCompleter: CangJieConstraintSystemCompleter,
+    cangjieConstraintSystemCompleter: CangJieConstraintSystemCompleter,
     callComponents: CangJieCallComponents,
     builtIns: CangJieBuiltIns,
     private val topLevelCallContext: BasicCallResolutionContext,
     private val stubsForPostponedVariables: Map<NewTypeVariable, StubTypeForBuilderInference>,
     private val trace: BindingTrace,
-    private val kotlinToResolvedCallTransformer: CangJieToResolvedCallTransformer,
+    private val cangjieToResolvedCallTransformer: CangJieToResolvedCallTransformer,
     private val expressionTypingServices: ExpressionTypingServices,
     private val argumentTypeResolver: ArgumentTypeResolver,
 
@@ -43,7 +43,7 @@ class BuilderInferenceSession(
     private val missingSupertypesResolver: MissingSupertypesResolver,
     private val lambdaArgument: LambdaCangJieCallArgument
 ) : StubTypesBasedInferenceSession<CallableDescriptor>(
-    psiCallResolver, postponedArgumentsAnalyzer, kotlinConstraintSystemCompleter, callComponents, builtIns
+    psiCallResolver, postponedArgumentsAnalyzer, cangjieConstraintSystemCompleter, callComponents, builtIns
 ) {
     private val commonSystem = NewConstraintSystemImpl(
         callComponents.constraintInjector,

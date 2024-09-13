@@ -101,10 +101,7 @@ class AttachCjpmProjectAction : CjpmProjectActionBase() {
             val path = cjpmToml.pathAsPath
 
 
-            if (project.cjpmProjects.allProjects.any { it.manifest == path }) return false
-
-
-            return true
+            return !project.cjpmProjects.allProjects.any { it.manifest == path }
         }
 
 

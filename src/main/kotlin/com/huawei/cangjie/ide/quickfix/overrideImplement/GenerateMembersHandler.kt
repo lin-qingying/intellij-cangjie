@@ -326,6 +326,6 @@ fun CjTypeStatement.getOrCreateBody(): CjClassBody {
     getBody()?.let { return it }
 
     val newBody = CjPsiFactory(project).createEmptyClassBody()
-//    if (this is CjEnumEntry) return addAfter(newBody, initializerList ?: nameIdentifier) as KtClassBody
+//    if (this is CjEnumEntry) return addAfter(newBody, initializerList ?: nameIdentifier) as CjClassBody
     return add(newBody) as CjClassBody
 }

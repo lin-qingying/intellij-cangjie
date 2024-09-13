@@ -27,8 +27,7 @@
 //    @JvmField
 //    val ENUM_ENTRY: CjClassElementType = CjClassElementType("ENUM_ENTRY")
 //
-//    //    CjObjectElementType OBJECT_DECLARATION = new CjObjectElementType("OBJECT_DECLARATION");
-//    @JvmField
+ //    @JvmField
 //    val CLASS_INITIALIZER: CjPlaceHolderStubElementType<CjClassInitializer> = CjPlaceHolderStubElementType(
 //        "CLASS_INITIALIZER",
 //        CjClassInitializer::class.java

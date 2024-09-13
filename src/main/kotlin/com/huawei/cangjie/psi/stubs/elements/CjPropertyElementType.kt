@@ -18,7 +18,7 @@ class CjPropertyElementType(debugName: String) : CjStubElementType<CangJieProper
     CangJiePropertyStub::class.java
 ) {
     override fun serialize(stub: CangJiePropertyStub, dataStream: StubOutputStream) {
-        dataStream.writeName(stub.getName())
+        dataStream.writeName(stub.name)
         val fqName = stub.getFqName()
         dataStream.writeName(if (fqName != null) fqName.asString() else null)
         dataStream.writeBoolean(stub.hasReturnTypeRef())
@@ -39,7 +39,7 @@ class CjPropertyElementType(debugName: String) : CjStubElementType<CangJieProper
 
     override fun createStub(psi: CjProperty, parentStub: StubElement<out PsiElement>?): CangJiePropertyStub {
         return CangJiePropertyStubImpl(
-            parentStub, StringRef.fromString(psi.getName()),
+            parentStub, StringRef.fromString(psi.name),
             psi.safeFqNameForLazyResolve()
 ,psi.getTypeReference() != null
         )

@@ -77,10 +77,7 @@ object NewSchemeOfIntegerOperatorResolutionChecker : CallChecker{
 //        }
     }
 
-    private fun ResolvedCall<*>.isIntOperator(): Boolean {
-        val descriptor = resultingDescriptor as? SimpleFunctionDescriptor ?: return false
-        return descriptor.fqNameSafe in literalOperatorsFqNames
-    }
+
     @JvmStatic
     fun checkArgument(
         expectedType: CangJieType,
@@ -92,11 +89,7 @@ object NewSchemeOfIntegerOperatorResolutionChecker : CallChecker{
             checkArgumentImpl(expectedType.lowerIfFlexible(), CjPsiUtil.deparenthesize(argument)!!, trace, moduleDescriptor)
         }
     }
-    private val literalOperatorsFqNames: Set<FqName> = listOf(
-        "plus", "minus", "times", "div", "rem", "plus", "minus",
-        "times", "div", "rem", "shl", "shr", "ushr", "and", "or",
-        "xor" , "unaryMinus", "inv",
-    ).mapTo(mutableSetOf()) { FqName.fromSegments(listOf("kotlin", "Int", it)) }
+
     override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
         for ((valueParameter, arguments) in resolvedCall.valueArguments) {
             val expectedType =/* if (valueParameter.isVararg) {

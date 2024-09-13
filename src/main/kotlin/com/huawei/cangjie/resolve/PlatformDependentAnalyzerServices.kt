@@ -25,9 +25,7 @@ abstract class PlatformDependentAnalyzerServices {
                     "std.core.*"
                 ).forEach { add(ImportPath.fromString(it)) }
 
-//            if (includeCangJieComparisons) {
-//                add(ImportPath.fromString("kotlin.comparisons.*"))
-//            }
+
 
 //            computePlatformSpecificDefaultImports(storageManager, this)
 

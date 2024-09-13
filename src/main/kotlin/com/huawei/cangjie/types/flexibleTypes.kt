@@ -149,39 +149,3 @@ class FlexibleTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : Flexibl
         )
     }
 }
-
-//object FlexibleTypeBoundsChecker {
-//    fun areTypesMayBeLowerAndUpperBoundsOfSameFlexibleTypeByMutability(a: CangJieType, b: CangJieType): Boolean {
-//        val fqName = a.constructor.declarationDescriptor?.fqNameSafe ?: return false
-//        val possiblePairBound = (CommonFlexibleTypeBoundsChecker.baseTypesToMutableEquivalent[fqName]
-//            ?: CommonFlexibleTypeBoundsChecker.mutableToBaseMap[fqName])
-//            ?: return false
-//
-//        return possiblePairBound == b.constructor.declarationDescriptor?.fqNameSafe
-//    }
-//
-//    // We consider base bounds as readonly collection interfaces (e.g. kotlin.collections.Iterable).
-//    fun getBaseBoundFqNameByMutability(type: CangJieType): FqName? =
-//        type.constructor.declarationDescriptor?.fqNameSafe?.let(::getBaseBoundFqNameByMutability)
-//
-//    fun getBaseBoundFqNameByMutability(fqName: FqName): FqName? {
-//        return CommonFlexibleTypeBoundsChecker.getBaseBoundFqNameByMutability(fqName)
-//    }
-//}
-//object CommonFlexibleTypeBoundsChecker {
-//    val baseTypesToMutableEquivalent = mapOf(
-//        FqNames.iterable to  FqNames.mutableIterable,
-//        FqNames.iterator to FqNames.mutableIterator,
-//        FqNames.listIterator to FqNames.mutableListIterator,
-//        FqNames.list to FqNames.mutableList,
-//        FqNames.collection to FqNames.mutableCollection,
-//        FqNames.set to FqNames.mutableSet,
-//        FqNames.map to FqNames.mutableMap,
-//        FqNames.mapEntry to FqNames.mutableMapEntry
-//    )
-//    val mutableToBaseMap = baseTypesToMutableEquivalent.entries.associateBy({ it.value }) { it.key }
-//
-//    fun getBaseBoundFqNameByMutability(fqName: FqName): FqName? =
-//        if (fqName in baseTypesToMutableEquivalent) fqName
-//        else mutableToBaseMap[fqName]
-//}

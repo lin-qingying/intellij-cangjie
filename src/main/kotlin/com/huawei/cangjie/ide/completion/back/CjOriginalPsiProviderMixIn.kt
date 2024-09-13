@@ -32,7 +32,7 @@ interface CjOriginalPsiProviderMixIn : CjAnalysisSessionMixIn {
     /**
      * Records [file] as an original file for [this].
      */
-    public fun CjFile.recordOriginalCjFile(file: CjFile) {
+    fun CjFile.recordOriginalCjFile(file: CjFile) {
         withValidityAssertion { analysisSession.originalPsiProvider.recordOriginalCjFile(this, file) }
     }
     /**

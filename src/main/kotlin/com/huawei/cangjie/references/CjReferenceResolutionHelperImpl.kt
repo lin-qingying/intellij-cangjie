@@ -35,7 +35,7 @@ class CjReferenceResolutionHelperImpl:CjReferenceResolutionHelper {
 //        referencedDescriptor: DeclarationDescriptor,
 //        builtInsSearchScope: GlobalSearchScope?
 //    ): CjDeclaration? =
-//        org.jetbrains.kotlin.idea.decompiler.navigation.findDecompiledDeclaration(project, referencedDescriptor, builtInsSearchScope)
+//        com.huawei.cangjie.idea.decompiler.navigation.findDecompiledDeclaration(project, referencedDescriptor, builtInsSearchScope)
 //
 
 }

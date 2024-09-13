@@ -10,7 +10,7 @@ import org.eclipse.lsp4j.TextEdit
 import java.util.concurrent.CompletableFuture
 
 internal class LspFormattingRequest(
-    lspServer: com.linqingying.lsp.api.LspServer,
+    lspServer: LspServer,
     file: VirtualFile,
     codeStyleSettings: CodeStyleSettings
 ) : LspRequest<List<TextEdit>, List<TextEdit>>(lspServer) {

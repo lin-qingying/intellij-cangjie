@@ -32,7 +32,7 @@ open class DescriptorMemberChooserObject(
     override fun getParentNodeDelegate(): MemberChooserObject {
         val parent = descriptor.containingDeclaration ?: error("No parent for $descriptor")
 
-        val declaration = if (psiElement is CjDeclaration) { // kotlin
+        val declaration = if (psiElement is CjDeclaration) {
             PsiTreeUtil.getStubOrPsiParentOfType(psiElement, CjNamedDeclaration::class.java)
                 ?: PsiTreeUtil.getStubOrPsiParentOfType(psiElement, CjFile::class.java)
         } else {

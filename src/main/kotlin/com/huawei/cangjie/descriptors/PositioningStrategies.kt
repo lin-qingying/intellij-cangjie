@@ -168,7 +168,6 @@ object PositioningStrategies {
                 else -> null
             }
 
-//            if (nameIdentifier == null && element is CjObjectDeclaration) return DEFAULT.mark(element)
 
             return markElement(nameIdentifier ?: element)
         }
@@ -247,9 +246,9 @@ object PositioningStrategies {
         object : PositioningStrategy<CjDeclaration>() {
             override fun mark(element: CjDeclaration): List<TextRange> {
                 if (element is CjTypeParameterListOwner) {
-                    val ktTypeParameterList = element.typeParameterList
-                    if (ktTypeParameterList != null) {
-                        return markElement(ktTypeParameterList)
+                    val cjTypeParameterList = element.typeParameterList
+                    if (cjTypeParameterList != null) {
+                        return markElement(cjTypeParameterList)
                     }
                 }
                 return DECLARATION_SIGNATURE.mark(element)
@@ -426,7 +425,7 @@ object PositioningStrategies {
             }
 
             val elementToMark = when (element) {
-//                is CjObjectDeclaration -> element.getObjectKeyword()!!
+
                 is CjPropertyAccessor -> element.namePlaceholder
                 is CjAnonymousInitializer, is CjPrimaryConstructor -> element
                 else -> throw IllegalArgumentException(

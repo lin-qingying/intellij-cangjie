@@ -18,9 +18,6 @@ class CangJieBasicTypeStubImpl(
     parent: StubElement<out PsiElement>?,
     override val basicType: String
 ) : CangJieStubBaseImpl<CjBasicType>(parent, CjStubElementTypes.BASIC_TYPE), CangJieBasicTypeStub
-{
-
-}
 
 class CangJieUserTypeStubImpl(
     parent: StubElement<out PsiElement>?, val upperBound: CangJieTypeBean? = null

@@ -26,7 +26,7 @@ class MutableVariableWithConstraints private constructor(
      *
      * The reason is that the list might be mutated while it's being iterated.
      * For this reason, we use an index loop in
-     * [org.jetbrains.kotlin.resolve.calls.inference.components.ConstraintIncorporator.forEachConstraint].
+     * [com.huawei.cangjie.resolve.calls.inference.components.ConstraintIncorporator.forEachConstraint].
      */
     private var simplifiedConstraints: SmartList<Constraint>? = mutableConstraints
     private fun SmartList<Constraint>.simplifyConstraints(): SmartList<Constraint> =
@@ -116,7 +116,7 @@ class MutableVariableWithConstraints private constructor(
             return false
 
         /*
-         * We discriminate upper expected type constraints during finding a result type to fix variable (see ResultTypeResolver.kt):
+         * We discriminate upper expected type constraints during finding a result type to fix variable (see ResultTypeResolver.cj):
          * namely, we don't intersect the expected type with other upper constraints' types to prevent cases like this:
          *  fun <T : String> materialize(): T = null as T
          *  val bar: Int = materialize() // T is inferred into String & Int without discriminating upper expected type constraints
@@ -148,7 +148,7 @@ class MutableVariableWithConstraints private constructor(
 
                 if (newConstraintIsUseless(previousConstraint, constraint)) {
                     // Preserve constraints with different custom type attributes.
-                    // This allows us to union type attributes in NewCommonSuperTypeCalculator.kt
+                    // This allows us to union type attributes in NewCommonSuperTypeCalculator.cj
                     if (noNewCustomAttributes) {
                         return previousConstraint to false
                     }

@@ -1,4 +1,4 @@
-package com.huawei.cangjie.cfg
+package com.huawei.cangjie.resolve.controlFlow
 
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.CjElement

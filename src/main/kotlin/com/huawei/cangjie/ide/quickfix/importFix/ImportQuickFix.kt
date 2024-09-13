@@ -101,7 +101,7 @@
 //    /**
 //     * This is a safe-guard against showing hint after the quickfix have been applied.
 //     *
-//     * Inspired by the org.jetbrains.kotlin.idea.quickfix.ImportFixBase.isOutdated
+//     * Inspired by the com.huawei.cangjie.idea.quickfix.ImportFixBase.isOutdated
 //     */
 //    private fun isOutdated(project: Project): Boolean {
 //        return modificationCountOnCreate != PsiModificationTracker.getInstance(project).modificationCount
@@ -163,7 +163,7 @@
 //        val invisibleReferenceFactory = diagnosticFixFactory(CjFirDiagnostic.InvisibleReference::class) { getFixes(it.psi) }
 //
 //        // this factory is used only for importing references on the fly; in all other cases import fixes for unresolved references
-//        // are created by [org.jetbrains.kotlin.idea.codeInsight.CangJieFirUnresolvedReferenceQuickFixProvider]
+//        // are created by [com.huawei.cangjie.idea.codeInsight.CangJieFirUnresolvedReferenceQuickFixProvider]
 //        val unresolvedReferenceFactory = diagnosticFixFactory(CjFirDiagnostic.UnresolvedReference::class) { getFixes(it.psi) }
 //
 //        context(CjAnalysisSession)

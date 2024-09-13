@@ -43,7 +43,8 @@ public class CjValueArgument extends CjElementImplStub<CangJieValueArgumentStub<
     @Nullable
     @Override
     public ValueArgumentName getArgumentName() {
-        return null;
+        return getStubOrPsiChild(CjStubElementTypes.VALUE_ARGUMENT_NAME);
+
     }
 
     @Override
@@ -53,8 +54,8 @@ public class CjValueArgument extends CjElementImplStub<CangJieValueArgumentStub<
 
     @NotNull
     @Override
-    public CjElement asElement() {
-        return null;
+    public CjValueArgument asElement() {
+        return this;
     }
 
     @Nullable

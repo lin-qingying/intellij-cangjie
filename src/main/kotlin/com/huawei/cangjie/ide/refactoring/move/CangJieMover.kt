@@ -24,16 +24,9 @@ interface CangJieMover : (CjNamedDeclaration, CjElement) -> CjNamedDeclaration {
                 else -> throw CangJieExceptionWithAttachments("Unexpected element")
                     .withAttachment("context", targetContainer.getElementTextWithContext())
             }.apply {
-//                val container = originalElement.containingClassOrObject
-//                if (container is CjObjectDeclaration
-//                    && container.isCompanion()
-//                    && container.declarations.singleOrNull() == originalElement
-//                    && ReferencesSearch.search(container, LocalSearchScope(container.containingFile)).findAll().isEmpty()
-//                ) {
-//                    container.deleteSingle()
-//                } else {
+
                     originalElement.deleteSingle()
-//                }
+
 
             }
         }

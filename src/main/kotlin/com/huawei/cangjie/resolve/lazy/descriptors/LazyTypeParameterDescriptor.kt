@@ -25,7 +25,7 @@ class LazyTypeParameterDescriptor(
     containingDeclaration,
     annotations,
     typeParameter.nameAsSafeName,
-    typeParameter.getVariance(),
+    typeParameter.variance,
 //    typeParameter.hasModifier(CjTokens.REIFIED_KEYWORD),
     index,
     typeParameter.toSourceElement(),

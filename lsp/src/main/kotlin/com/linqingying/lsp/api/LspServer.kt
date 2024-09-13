@@ -21,7 +21,7 @@ interface LspServer {
      * An [LspServerDescriptor] that is used to start and control the behavior of this [LspServer].
      * The returned object is exactly the one that the plugin passed to [LspServerSupportProvider.LspServerStarter.ensureServerStarted].
      */
-    val descriptor: com.linqingying.lsp.api.LspServerDescriptor
+    val descriptor: LspServerDescriptor
 
     /**
      * The instance of the [LspServerDescriptor.lsp4jServerClass], which is used for communication with the LSP server.
@@ -42,5 +42,5 @@ interface LspServer {
      * The internal implementation of the [LspServerNotificationsHandler] interface handles all standard
      * (documented in the official LSP specification) requests and notifications that the LSP server sends to the IDE.
      */
-    val serverNotificationsHandler: com.linqingying.lsp.api.LspServerNotificationsHandler
+    val serverNotificationsHandler: LspServerNotificationsHandler
 }

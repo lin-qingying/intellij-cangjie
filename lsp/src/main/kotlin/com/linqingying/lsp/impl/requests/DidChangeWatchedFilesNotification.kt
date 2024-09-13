@@ -6,7 +6,7 @@ import org.eclipse.lsp4j.DidChangeWatchedFilesParams
 import org.eclipse.lsp4j.FileEvent
 
 
-class DidChangeWatchedFilesNotification(override val lspServer: com.linqingying.lsp.api.LspServer, val lsp4jFileEvents: List<FileEvent?>) :
+class DidChangeWatchedFilesNotification(override val lspServer: LspServer, val lsp4jFileEvents: List<FileEvent?>) :
     LspClientNotification(lspServer) {
 
 

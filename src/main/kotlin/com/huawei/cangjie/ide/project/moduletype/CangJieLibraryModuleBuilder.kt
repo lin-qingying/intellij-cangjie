@@ -10,17 +10,7 @@ import com.intellij.openapi.module.ModuleTypeManager
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType
 import javax.swing.Icon
 
-class CangJieLibraryModuleBuilder(
-    //    模块名
-//    var moduleName: String? = null,
-
-    //    组织名
-//    var organizationName: String? = null,
-
-    //    项目类型
-//    var projectType: String? = null,
-
-) : ModuleBuilder(){
+class CangJieLibraryModuleBuilder : ModuleBuilder(){
     override fun getModuleType(): ModuleType<*> {
         return CangJieLibraryModuleType()
     }

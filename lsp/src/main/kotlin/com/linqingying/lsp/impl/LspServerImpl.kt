@@ -36,10 +36,10 @@ import java.util.concurrent.atomic.AtomicReference
 
 class LspServerImpl(
     val pluginClass: Class<out LspServerSupportProvider>,
-    override val descriptor: com.linqingying.lsp.api.LspServerDescriptor,
+    override val descriptor: LspServerDescriptor,
     private val listenersAdapter: LspServerManagerListener
 
-) : com.linqingying.lsp.api.LspServer {
+) : LspServer {
 
     enum class State {
         CREATED,

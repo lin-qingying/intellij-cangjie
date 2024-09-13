@@ -96,21 +96,7 @@ abstract class CangJieFindMemberUsagesHandler<T : CjNamedDeclaration> protected 
 //                if (supers.contains(psiElement)) supers.toTypedArray() else (supers + psiElement).toTypedArray()
 //            } else super.getPrimaryElements()
 
-        override fun getFindUsagesDialog(
-            isSingleFile: Boolean,
-            toShowInNewTab: Boolean,
-            mustOpenInNewTab: Boolean
-        ): AbstractFindUsagesDialog {
-//            val options = factory.findFunctionOptions
-//            val lightMethod = getElement().toLightMethods().firstOrNull()
-//            if (lightMethod != null) {
-//                return CangJieFindFunctionUsagesDialog(lightMethod, project, options, toShowInNewTab, mustOpenInNewTab, isSingleFile, this)
-//            }
-
-            return super.getFindUsagesDialog(isSingleFile, toShowInNewTab, mustOpenInNewTab)
-        }
-
-//        override fun createCangJieReferencesSearchOptions(options: FindUsagesOptions, forHighlight: Boolean): CangJieReferencesSearchOptions {
+        //        override fun createCangJieReferencesSearchOptions(options: FindUsagesOptions, forHighlight: Boolean): CangJieReferencesSearchOptions {
 //            val cangjieOptions = options as CangJieFunctionFindUsagesOptions
 //            return CangJieReferencesSearchOptions(
 //                acceptCallableOverrides = true,

@@ -79,6 +79,7 @@ class ArgumentsToParametersMapper(
                 return true
             }
         }
+
         private fun addVarargArgument(argument: CangJieCallArgument) {
             if (varargArguments == null) {
                 varargArguments = ArrayList()
@@ -93,17 +94,59 @@ class ArgumentsToParametersMapper(
         }
 
         fun processArgumentsInParenthesis(arguments: List<CangJieCallArgument>) {
-            for (argument in arguments) {
+            //            查找出所有命名参数
+            fun findNameToParameterMap(): Map<Name, ValueParameterDescriptor> {
+//                根据isNamed查找
+                val parameters = parameters.filter { it.isNamed }.associateBy { it.name }
+
+//                查找已经传递的
+                val passedArguments = result.filter { it.key.isNamed }
+//    清除与passedArguments相同的项
+                val filteredParameters = parameters.filter  { it.value !in  passedArguments .keys    }
+
+                return filteredParameters
+
+
+            }
+
+//            若处理过命名参数，但是又处理位置参数，应报错
+            var isNamed = false
+//            是否报告过前缀错误
+            var isReportedPrefix = false
+            for (argument in arguments ) {
+
                 val argumentName = argument.argumentName
+
 
                 // process position argument
                 if (argumentName == null) {
+
+
+//                    if (argument is PSICangJieCallArgument && argument.valueArgument.isNamed()) {
+////                        缺少命名参数前缀
+////                        addDiagnostic(MissingNamedArgumentPrefix(argument.valueArgument))
+//                        TODO()
+//                    }
+                    if (currentPositionedParameterIndex < parameters.size && parameters[currentPositionedParameterIndex].isNamed && !isReportedPrefix) {
+//                        缺少命名参数前缀
+                        val names = findNameToParameterMap().keys
+
+                        addDiagnostic(MissingNamedArgumentPrefix(argument, names))
+                        isReportedPrefix = true
+                    }
+                    if (isNamed) {
+//                        POSITIONAL_ARGUMENT_AFTER_NAMED_ARGUMENT
+                        addDiagnostic(PositionalAfierNamedArgument(argument))
+                    }
+
+
                     if (processPositionArgument(argument)) {
                         state = State.VARARG_POSITION
                     }
                 }
                 // process named argument
                 else {
+                    isNamed = true
                     if (state == State.VARARG_POSITION) {
                         completeVarargPositionArguments()
                     }
@@ -149,7 +192,7 @@ class ArgumentsToParametersMapper(
                 }
             }
 
-            if (parameter == null) addDiagnostic(NameNotFound(argument, descriptor))
+            if (parameter == null || !parameter.isNamed) addDiagnostic(NameNotFound(argument, descriptor))
 
             return parameter
         }

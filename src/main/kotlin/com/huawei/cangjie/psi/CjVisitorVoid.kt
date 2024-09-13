@@ -296,7 +296,13 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     open fun visitQualifiedExpression(expression: CjQualifiedExpression) {
         super.visitQualifiedExpression(expression, null)
     }
-
+    open fun visitLambdaExpression(lambdaExpression: CjLambdaExpression) {
+        super.visitLambdaExpression(lambdaExpression, null)
+    }
+    override fun visitLambdaExpression(expression:CjLambdaExpression, data: Void?): Void? {
+        visitLambdaExpression(expression)
+        return null
+    }
 
     open fun visitDotQualifiedExpression(expression: CjDotQualifiedExpression) {
         super.visitDotQualifiedExpression(expression, null)

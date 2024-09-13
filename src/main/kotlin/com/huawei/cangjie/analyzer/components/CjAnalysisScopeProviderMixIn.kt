@@ -55,15 +55,14 @@ class CjAnalysisScopeProviderImpl(
 interface CjAnalysisScopeProviderMixIn : CjAnalysisSessionMixIn {
     /**
      * Return [GlobalSearchScope] represent a scope code in which can be analysed by current [CjAnalysisSession].
-     * That means [org.jetbrains.kotlin.analysis.api.symbols.CjSymbol] can be built for the declarations from this scope.
-     */
+       */
     val analysisScope: GlobalSearchScope
         get() = withValidityAssertion { analysisSession.analysisScopeProvider.getAnalysisScope() }
 
 
     /**
      * Checks if [PsiElement] is inside analysis scope.
-     * That means [org.jetbrains.kotlin.analysis.api.symbols.CjSymbol] can be built by this [PsiElement]
+     * That means [com.huawei.cangjie.analysis.api.symbols.CjSymbol] can be built by this [PsiElement]
      *
      * @see analysisScope
      */

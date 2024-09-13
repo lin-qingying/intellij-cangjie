@@ -5,8 +5,8 @@ import com.huawei.cangjie.psi.*
 
 
 object CjClassInfoUtil {
-    //    @Deprecated(message = "Use createClassOrObjectInfo(KtClassOrObject) instead", level = DeprecationLevel.ERROR)
-//    @Deprecated("use {@link #createClassOrObjectInfo(KtClassOrObject)} instead.")
+    //    @Deprecated(message = "Use createClassOrObjectInfo(CjClassOrObject) instead", level = DeprecationLevel.ERROR)
+//    @Deprecated("use {@link #createClassOrObjectInfo(CjClassOrObject)} instead.")
     fun createClassLikeInfo(typeStatement: CjTypeStatement): CjClassLikeInfo {
         return createTypeStatementInfo(typeStatement)
     }

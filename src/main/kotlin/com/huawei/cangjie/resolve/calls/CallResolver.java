@@ -134,7 +134,7 @@ public class CallResolver {
             @NotNull OldResolutionCandidate<FunctionDescriptor> candidate,
             @Nullable MutableDataFlowInfoForArguments dataFlowInfoForArguments
     ) {
-        return callResolvePerfCounter.<OverloadResolutionResults<FunctionDescriptor>>time(() -> {
+        return callResolvePerfCounter.time(() -> {
             BasicCallResolutionContext basicCallResolutionContext =
                     BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, dataFlowInfoForArguments);
 
@@ -331,7 +331,7 @@ public class CallResolver {
             @NotNull SyntheticScopes syntheticScopes
     ) {
         if (!(superType.getConstructor().getDeclarationDescriptor() instanceof ClassDescriptor)) {
-            return new Pair<>(Collections.<OldResolutionCandidate<ConstructorDescriptor>>emptyList(), context);
+            return new Pair<>(Collections.emptyList(), context);
         }
 
         // If any constructor has type parameter (currently it only can be true for ones from Java), try to infer arguments for them

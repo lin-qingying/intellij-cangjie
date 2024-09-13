@@ -11,8 +11,8 @@ interface ExtraImportsProviderExtension {
     ) {
 
         private class CompoundExtraImportsProviderExtension(val instances: List<ExtraImportsProviderExtension>) : ExtraImportsProviderExtension {
-            override fun getExtraImports(ktFile: CjFile): Collection<CjImportInfo> = instances.flatMap {
-                withLinkageErrorLogger(it) { getExtraImports(ktFile) }
+            override fun getExtraImports(cjFile: CjFile): Collection<CjImportInfo> = instances.flatMap {
+                withLinkageErrorLogger(it) { getExtraImports(cjFile) }
             }
         }
 
@@ -22,5 +22,5 @@ interface ExtraImportsProviderExtension {
         }
     }
 
-    fun getExtraImports(ktFile: CjFile): Collection<CjImportInfo>
+    fun getExtraImports(cjFile: CjFile): Collection<CjImportInfo>
 }

@@ -39,7 +39,6 @@ class ControlStructureTypingUtils(
     val storageManager: StorageManager
 ) {
     companion object {
-// The Java class can be rewritten in Kotlin as follows:
 
 
         val LOG: Logger = Logger.getInstance(

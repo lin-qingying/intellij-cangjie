@@ -89,8 +89,7 @@ public class LockBasedStorageManager implements StorageManager {
 
         int firstNonStorage = -1;
         for (int i = 0; i < size; i++) {
-            // Skip everything (memoized functions and lazy values) from package org.jetbrains.kotlin.storage
-            if (!stackTrace[i].getClassName().startsWith(PACKAGE_NAME)) {
+                    if (!stackTrace[i].getClassName().startsWith(PACKAGE_NAME)) {
                 firstNonStorage = i;
                 break;
             }

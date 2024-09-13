@@ -95,11 +95,11 @@ class TypeAliasQualifier(
         }
 
     /**
-     * We cannot use [org.jetbrains.kotlin.descriptors.ClassDescriptor.getUnsubstitutedMemberScope] directly,
+     * We cannot use [com.huawei.cangjie.descriptors.ClassDescriptor.getUnsubstitutedMemberScope] directly,
      * because we do not allow complete resolve through type aliases yet .
      *
      * However, we want to allow to resolve and autocomplete enum constants even through type aliases;
-     * that's why we use [org.jetbrains.kotlin.descriptors.ClassDescriptor.getUnsubstitutedMemberScope],
+     * that's why we use [com.huawei.cangjie.descriptors.ClassDescriptor.getUnsubstitutedMemberScope],
      * but filter only enum entries.
      */
     private inner class EnumEntriesScope : MemberScopeImpl() {

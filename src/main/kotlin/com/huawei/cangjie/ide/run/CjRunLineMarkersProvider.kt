@@ -37,12 +37,8 @@ class CjRunLineMarkersProvider : RunLineMarkerContributor(), DumbAware {
     }
 
     private fun hasTestAnnotation(element: CjAnnotated): Boolean {
-        if (element.annotationEntries.any {
-                it.text == "@Test" || it.text == "@TestCase"
-            }) {
-            return true
-        } else {
-            return false
+        return element.annotationEntries.any {
+            it.text == "@Test" || it.text == "@TestCase"
         }
     }
 

@@ -6,7 +6,7 @@ import com.intellij.execution.process.OSProcessHandler
 import java.io.InputStream
 import java.io.OutputStream
 
-class Lsp4jServerConnectorStdio(lspServer: com.linqingying.lsp.api.LspServer) : Lsp4jServerConnector(lspServer) {
+class Lsp4jServerConnectorStdio(lspServer: LspServer) : Lsp4jServerConnector(lspServer) {
 
     private val processHandler: OSProcessHandler = lspServer.descriptor.startServerProcess()
     private val processListener: LspServerProcessListener = LspServerProcessListener(processHandler)

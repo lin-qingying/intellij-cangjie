@@ -1011,15 +1011,7 @@ internal class DescriptorRendererImpl(
         options.propertyConstantRenderer?.let { return it.invoke(value) }
         return when (value) {
             is ArrayValue -> value.value.mapNotNull { renderConstant(it) }.joinToString(", ", "{", "}")
-//            is AnnotationValue -> renderAnnotation(value.value).removePrefix("@")
-//            is KClassValue -> when (val classValue = value.value) {
-//                is KClassValue.Value.LocalClass -> "${classValue.type}::class"
-//                is KClassValue.Value.NormalClass -> {
-//                    var type = classValue.classId.asSingleFqName().asString()
-//                    repeat(classValue.arrayDimensions) { type = "kotlin.Array<$type>" }
-//                    "$type::class"
-//                }
-//            }
+
             else -> value.toString()
         }
     }

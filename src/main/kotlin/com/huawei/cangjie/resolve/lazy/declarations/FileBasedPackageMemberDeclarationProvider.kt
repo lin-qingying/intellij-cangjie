@@ -18,7 +18,7 @@ class FileBasedPackageMemberDeclarationProvider(
         factory.getAllDeclaredSubPackagesOf(fqName)
     }
 
-    override fun doCreateIndex(index: AbstractPsiBasedDeclarationProvider.Index) {
+    override fun doCreateIndex(index: Index) {
         for (file in packageFiles) {
             for (declaration in file.declarations) {
                 assert(fqName == file.packageFqName) { "Files declaration utils contains file with invalid package" }

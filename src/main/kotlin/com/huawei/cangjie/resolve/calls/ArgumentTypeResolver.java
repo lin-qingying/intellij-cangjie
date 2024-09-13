@@ -46,7 +46,7 @@ public class ArgumentTypeResolver {
     @NotNull
     private final ModuleDescriptor moduleDescriptor;
     @NotNull
-    private final CangJieTypeChecker kotlinTypeChecker;
+    private final CangJieTypeChecker cangjieTypeChecker;
     private ExpressionTypingServices expressionTypingServices;
 
     public ArgumentTypeResolver(
@@ -56,7 +56,7 @@ public class ArgumentTypeResolver {
             @NotNull ConstantExpressionEvaluator constantExpressionEvaluator,
 //            @NotNull FunctionPlaceholders functionPlaceholders,
             @NotNull ModuleDescriptor moduleDescriptor,
-            @NotNull CangJieTypeChecker kotlinTypeChecker
+            @NotNull CangJieTypeChecker cangjieTypeChecker
     ) {
         this.typeResolver = typeResolver;
         this.builtIns = builtIns;
@@ -64,7 +64,7 @@ public class ArgumentTypeResolver {
         this.constantExpressionEvaluator = constantExpressionEvaluator;
 //        this.functionPlaceholders = functionPlaceholders;
         this.moduleDescriptor = moduleDescriptor;
-        this.kotlinTypeChecker = kotlinTypeChecker;
+        this.cangjieTypeChecker = cangjieTypeChecker;
     }
 
     private static boolean isCollectionLiteralInsideAnnotation(CjExpression expression, CallResolutionContext<?> context) {

@@ -17,7 +17,6 @@ import org.jetbrains.annotations.TestOnly
  * Provides [CjAnalysisSession]s by use-site [CjElement]s or [CjModule]s.
  *
  * This provider should not be used directly.
- * Please use [analyze][org.jetbrains.kotlin.analysis.api.analyze] or [analyzeCopy][org.jetbrains.kotlin.analysis.api.analyzeCopy] instead.
  */
 abstract class CjAnalysisSessionProvider(val project: Project) : Disposable {
     val tokenFactory: CjLifetimeTokenFactory by lazy(LazyThreadSafetyMode.PUBLICATION) {

@@ -28,11 +28,11 @@ object MissingDependencySupertypeChecker {
             }
 
             if (declaration is CjTypeParameterListOwner) {
-                for (ktTypeParameter in declaration.typeParameters) {
+                for (cjTypeParameter in declaration.typeParameters) {
                     val typeParameterDescriptor =
-                        trace.bindingContext.get(BindingContext.TYPE_PARAMETER, ktTypeParameter) ?: continue
+                        trace.bindingContext.get(BindingContext.TYPE_PARAMETER, cjTypeParameter) ?: continue
                     for (upperBound in typeParameterDescriptor.upperBounds) {
-                        checkSupertypes(upperBound, ktTypeParameter, trace, context.missingSupertypesResolver)
+                        checkSupertypes(upperBound, cjTypeParameter, trace, context.missingSupertypesResolver)
                     }
                 }
             }

@@ -1,6 +1,6 @@
 package com.huawei.cangjie.diagnostics
 
-import com.huawei.cangjie.cfg.UnreachableCode
+import com.huawei.cangjie.resolve.controlFlow.UnreachableCode
 import com.huawei.cangjie.psi.CjElement
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement

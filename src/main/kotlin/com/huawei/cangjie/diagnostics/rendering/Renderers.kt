@@ -22,16 +22,26 @@ fun DescriptorRenderer.asRenderer() = SmartDescriptorRenderer(this)
 
 object Renderers {
     private val LOG = Logger.getInstance(Renderers::class.java)
-
     @JvmField
-    val NAME = renderer<Named> { it.name.asString() }
+    val NAME = renderer<Name> { it.asString()  }
+    @JvmField
+    val NAMED = renderer<Named> {
+        NAME.render( it.name)
+    }
     @JvmField
     val COMPACT_WITHOUT_SUPERTYPES = DescriptorRenderer.COMPACT_WITHOUT_SUPERTYPES.asRenderer()
     @JvmField
     val RENDER_TYPE = SmartTypeRenderer(DescriptorRenderer.FQ_NAMES_IN_TYPES.withOptions {
         parameterNamesInFunctionalTypes = false
     })
+    @JvmField
+    val NAMES_TO_STRING =  renderer{ names:Collection<Name> ->
+        names.joinToString(", ", "{", "}") { type ->
 
+           NAME.render(type)
+        }
+
+    }
     @JvmField
     val RENDER_COLLECTION_OF_TYPES =     renderer  { types :List<CangJieType>->
 

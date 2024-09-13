@@ -219,9 +219,9 @@ class UInt8Value(intValue: Int8) : UnsignedValueConstant<Int8>(intValue) {
 
 data class ClassLiteralValue(val classId: ClassId, val arrayNestedness: Int) {
     override fun toString(): String = buildString {
-//        repeat(arrayNestedness) { append("kotlin/Array<") }
+
         append(classId)
-//        repeat(arrayNestedness) { append(">") }
+
     }
 }
 

@@ -4,9 +4,7 @@ import com.huawei.cangjie.cjpm.CjpmConstants
 import com.intellij.openapi.roots.ContentEntry
 import com.intellij.openapi.roots.OrderEntry
 import com.intellij.openapi.vfs.VirtualFile
-class OrderEntryWrapper(private val orderEntry: OrderEntry){
-
-}
+class OrderEntryWrapper(private val orderEntry: OrderEntry)
 class ContentEntryWrapper(private val contentEntry: ContentEntry) {
     private val knownFolders: Set<String> = contentEntry.knownFolders()
 

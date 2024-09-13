@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture
  *    fun fooBar(fooBar: FooBarNotification) { ... }
  */
 @ApiStatus.OverrideOnly
-open class Lsp4jClient(private val serverNotificationsHandler: com.linqingying.lsp.api.LspServerNotificationsHandler) : LanguageClient {
+open class Lsp4jClient(private val serverNotificationsHandler: LspServerNotificationsHandler) : LanguageClient {
     final override fun applyEdit(params: ApplyWorkspaceEditParams) = serverNotificationsHandler.applyEdit(params)
     final override fun registerCapability(params: RegistrationParams) =
         serverNotificationsHandler.registerCapability(params)

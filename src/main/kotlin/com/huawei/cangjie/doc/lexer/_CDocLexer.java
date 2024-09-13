@@ -37,7 +37,7 @@ class _CDocLexer implements FlexLexer {
    *                  at the beginning of a line
    * l is of the form l = 2*k, k a non negative integer
    */
-  private static final int ZZ_LEXSTATE[] = {
+  private static final int[] ZZ_LEXSTATE = {
      0,  0,  1,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6,  6,  7,  7,
      8,  8,  6, 6
   };
@@ -448,7 +448,7 @@ class _CDocLexer implements FlexLexer {
   }
 
   /** the reader device */
-  private java.io.Reader zzReader;
+  private final java.io.Reader zzReader;
 
   /** the current myState of the DFA */
   private int zzState;
@@ -497,7 +497,7 @@ class _CDocLexer implements FlexLexer {
 
   /* user code: */
   public _CDocLexer() {
-    this((java.io.Reader)null);
+    this(null);
   }
 
   private boolean isLastToken() {
@@ -675,7 +675,6 @@ class _CDocLexer implements FlexLexer {
     if (!zzEOFDone) {
       zzEOFDone = true;
 
-  return;
     }
   }
 

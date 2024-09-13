@@ -10,4 +10,4 @@ import com.intellij.openapi.util.NlsSafe
  * So, it uses all [BaseProjectDirectories.getBaseDirectories] as LSP server roots.
  */
 abstract class ProjectWideLspServerDescriptor(project: Project, @NlsSafe presentableName: String) :
-    com.linqingying.lsp.api.LspServerDescriptor(project, presentableName, *project.getBaseDirectories().toTypedArray())
+    LspServerDescriptor(project, presentableName, *project.getBaseDirectories().toTypedArray())

@@ -60,9 +60,6 @@ class CjExtend : CjTypeStatement {
         return receiverTypeReceiver
     }
 
-    override fun getTypeParameterList(): CjTypeParameterList? {
-        return super.getTypeParameterList()
-    }
     //    扩展id ，需要具有唯一性  ，通过被扩展名，父类，包名，行号
     fun getExtendId(): String {
         val sb = StringBuilder()

@@ -74,13 +74,7 @@ abstract class TypeRegistry<K : Any, V : Any> {
         return idPerType.customComputeIfAbsent(keyQualifiedName) { idCounter.getAndIncrement() }
     }
 
-    /*
-     * This function is needed for compatibility with JDK 6
-     * ArrayMap and other infrastructure is used in CangJieType, declared in :core:descriptors module, which is
-     *   compiled against JDK 6 (because it's used in kotlin-reflect, which is still compatible with Java 6)
-     * So the problem is that JDK 6 does not have thread-safe computeIfAbsent for ConcurrentHashMap,
-     *   and we need this method to add ability to provide thread-safe implementation by hand
-     */
+
     abstract fun ConcurrentHashMap<String, Int>.customComputeIfAbsent(
         key: String,
         compute: (String) -> Int

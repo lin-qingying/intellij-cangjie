@@ -58,12 +58,12 @@ class CallableReferenceArgumentResolver(val callableReferenceOverloadConflictRes
         }
 
         // todo -- create this inside CallableReferencesCandidateFactory
-        val subKtArguments = listOfNotNull(buildResolvedKtArgument(argument.lhsResult))
+        val subCjArguments = listOfNotNull(buildResolvedCjArgument(argument.lhsResult))
 
-        resolvedAtom.setAnalyzedResults(chosenCandidate, subKtArguments)
+        resolvedAtom.setAnalyzedResults(chosenCandidate, subCjArguments)
     }
 
-    private fun buildResolvedKtArgument(lhsResult: LHSResult): ResolvedAtom? {
+    private fun buildResolvedCjArgument(lhsResult: LHSResult): ResolvedAtom? {
         if (lhsResult !is LHSResult.Expression) return null
         return when (val lshCallArgument = lhsResult.lshCallArgument) {
             is SubCangJieCallArgument -> lshCallArgument.callResult

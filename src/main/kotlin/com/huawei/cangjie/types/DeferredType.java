@@ -51,7 +51,7 @@ public class DeferredType extends WrappedType {
 
     @NotNull
     @Override
-    public CangJieType refine(@NotNull CangJieTypeRefiner kotlinTypeRefiner) {
+    public CangJieType refine(@NotNull CangJieTypeRefiner cangjieTypeRefiner) {
         return new DeferredType(new NotNullLazyValue<CangJieType>() {
             @NotNull
             @Override
@@ -72,7 +72,7 @@ public class DeferredType extends WrappedType {
             @Override
             @TypeRefinement
             public CangJieType invoke() {
-                return kotlinTypeRefiner.refineType(lazyValue.invoke());
+                return cangjieTypeRefiner.refineType(lazyValue.invoke());
             }
         });
     }

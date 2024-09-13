@@ -682,10 +682,7 @@ private fun excludeLambdas(parent: ASTBlock): List<TextRange> {
 //            rangesToExclude.add(lambdaExpression.textRange)
 //        }
 //
-//        override fun visitObjectLiteralExpression(expression: CjObjectLiteralExpression) {
-//            super.visitObjectLiteralExpression(expression)
-//            rangesToExclude.add(expression.textRange)
-//        }
+
 //
 //        override fun visitNamedFunction(function: CjNamedFunction) {
 //            super.visitNamedFunction(function)

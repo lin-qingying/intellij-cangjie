@@ -7,8 +7,8 @@ import com.intellij.application.options.codeStyle.properties.ValueListPropertyAc
 
 import java.lang.reflect.Field
 
-class CangJiePackageEntryTableAccessor(kotlinCodeStyle: CangJieCodeStyleSettings, field: Field) :
-    ValueListPropertyAccessor<CangJiePackageEntryTable>(kotlinCodeStyle, field) {
+class CangJiePackageEntryTableAccessor(cangjieCodeStyle: CangJieCodeStyleSettings, field: Field) :
+    ValueListPropertyAccessor<CangJiePackageEntryTable>(cangjieCodeStyle, field) {
     override fun valueToString(value: List<String>): String = CodeStylePropertiesUtil.toCommaSeparatedString(value)
 
     override fun fromExternal(extVal: List<String>): CangJiePackageEntryTable = CangJiePackageEntryTable(

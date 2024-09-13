@@ -83,8 +83,8 @@ class CapturedTypeConstructorImpl(
     override fun getBuiltIns(): CangJieBuiltIns = projection.type.constructor.builtIns
 
     @TypeRefinement
-    override fun refine(kotlinTypeRefiner: CangJieTypeRefiner) =
-        CapturedTypeConstructorImpl(projection.refine(kotlinTypeRefiner))
+    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) =
+        CapturedTypeConstructorImpl(projection.refine(cangjieTypeRefiner))
 }
 
 
@@ -129,7 +129,5 @@ class CapturedType(
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType =
         CapturedType(typeProjection, constructor, isMarkedOption, newAttributes)
 
-//    @TypeRefinement
-//    override fun refine(kotlinTypeRefiner: CangJieTypeRefiner) =
-//        CapturedType(typeProjection.refine(kotlinTypeRefiner), constructor, isMarkedOption, attributes)
+
 }

@@ -24,13 +24,13 @@ public class CjIsExpression extends CjExpressionImpl implements CjOperationExpre
     @Nullable
     @IfNotParsed
     public CjTypeReference getTypeReference() {
-        return (CjTypeReference) findChildByType(CjNodeTypes.TYPE_REFERENCE);
+        return findChildByType(CjNodeTypes.TYPE_REFERENCE);
     }
 
     @Override
     @NotNull
     public CjSimpleNameExpression getOperationReference() {
-        return (CjSimpleNameExpression) findChildByType(CjNodeTypes.OPERATION_REFERENCE);
+        return findChildByType(CjNodeTypes.OPERATION_REFERENCE);
     }
 
 

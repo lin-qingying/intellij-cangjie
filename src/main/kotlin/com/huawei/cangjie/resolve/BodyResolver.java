@@ -57,13 +57,14 @@ public class BodyResolver {
     boolean hasExtendSource = false;
     //解决扩展的原类污染报错
     Map<CjTypeReference, Boolean> hasExtendSourceMap = Maps.newHashMap();
+    @NotNull private final ControlFlowAnalyzer controlFlowAnalyzer;
 
     public BodyResolver(
             @NotNull Project project,
 //            @NotNull AnnotationResolver annotationResolver,
             @NotNull BodyResolveCache bodyResolveCache,
             @NotNull CallResolver callResolver,
-//            @NotNull ControlFlowAnalyzer controlFlowAnalyzer,
+            @NotNull ControlFlowAnalyzer controlFlowAnalyzer,
             @NotNull DeclarationsChecker declarationsChecker,
 //            @NotNull DelegatedPropertyResolver delegatedPropertyResolver,
             @NotNull ExpressionTypingServices expressionTypingServices,
@@ -82,6 +83,7 @@ public class BodyResolver {
         this.declarationsChecker = declarationsChecker;
         this.valueParameterResolver = valueParameterResolver;
         this.callResolver = callResolver;
+        this.controlFlowAnalyzer = controlFlowAnalyzer;
 
         this.builtIns = builtIns;
         this.languageVersionSettings = languageVersionSettings;
@@ -638,7 +640,7 @@ public class BodyResolver {
 //            });
 //            // Check parameter name shadowing
 //            for (CjParameter parameter : function.getValueParameters()) {
-//                if (SyntheticFieldDescriptor.NAME.equals(parameter.getNameAsName())) {
+//                if (SyntheticFieldDescriptor.NAMED.equals(parameter.getNameAsName())) {
 //                    trace.report(Errors.getACCESSOR_PARAMETER_NAME_SHADOWING().on(parameter));
 //                }
 //            }
@@ -787,7 +789,7 @@ public class BodyResolver {
 
     public void resolveBodies(@NotNull BodiesResolveContext c) {
         resolveBehaviorDeclarationBodies(c);
-//        controlFlowAnalyzer.process(c);
+        controlFlowAnalyzer.process(c);
         declarationsChecker.process(c);
 //        analyzerExtensions.process(c);
     }

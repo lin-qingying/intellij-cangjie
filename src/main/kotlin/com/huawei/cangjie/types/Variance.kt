@@ -21,8 +21,7 @@ enum class Variance(
 //    }
 
     fun superpose(other: Variance): Variance {
-        val r = this.superpositionFactor * other.superpositionFactor
-        return when (r) {
+        return when (val r = this.superpositionFactor * other.superpositionFactor) {
             0 -> INVARIANT
 //            -1 -> IN_VARIANCE
 

@@ -4,6 +4,7 @@ import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.PropertyDescriptor
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor
+import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintSystemError
@@ -19,13 +20,16 @@ import com.huawei.cangjie.types.UnwrappedType
 interface TransformableToWarning<T : CangJieCallDiagnostic> {
     fun transformToWarning(): T?
 }
-class EnumEntryAmbiguityWarning(val property: PropertyDescriptor, val enumEntry: ClassDescriptor) :CangJieCallDiagnostic(
-    CandidateApplicability.RESOLVED
-) {
+
+class EnumEntryAmbiguityWarning(val property: PropertyDescriptor, val enumEntry: ClassDescriptor) :
+    CangJieCallDiagnostic(
+        CandidateApplicability.RESOLVED
+    ) {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCall(this)
     }
 }
+
 class CangJieConstraintSystemDiagnostic(
     val error: ConstraintSystemError
 ) : CangJieCallDiagnostic(error.applicability), TransformableToWarning<CangJieConstraintSystemDiagnostic> {
@@ -50,6 +54,7 @@ class SmartCastDiagnostic(
 ) : CangJieCallDiagnostic(CandidateApplicability.RESOLVED) {
     override fun report(reporter: DiagnosticReporter) = reporter.onCallArgument(argument, this)
 }
+
 class NotCallableExpectedType(
     val argument: CallableReferenceCangJieCallArgument,
     val expectedType: UnwrappedType,
@@ -86,12 +91,22 @@ sealed class UnstableSmartCast(
         }
     }
 }
+
 class ArgumentPassedTwice(
     val argument: CangJieCallArgument,
     val parameterDescriptor: ValueParameterDescriptor,
     val firstOccurrence: ResolvedCallArgument
 ) : CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
     override fun report(reporter: DiagnosticReporter) = reporter.onCallArgumentName(argument, this)
+}
+
+class MissingNamedArgumentPrefix(
+    val argument: CangJieCallArgument,
+    val names: Set<Name>
+
+) : CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
+    override fun report(reporter: DiagnosticReporter) = reporter.onCallArgument (argument, this)
+
 }
 
 class ManyCandidatesCallDiagnostic(val candidates: Collection<ResolutionCandidate>) : CangJieCallDiagnostic(
@@ -101,46 +116,61 @@ class ManyCandidatesCallDiagnostic(val candidates: Collection<ResolutionCandidat
         reporter.onCall(this)
     }
 }
-class NamedArgumentNotAllowed(val argument:CangJieCallArgument, val descriptor: CallableDescriptor) : CangJieCallDiagnostic(
-    CandidateApplicability.INAPPLICABLE
-) {
+
+class NamedArgumentNotAllowed(val argument: CangJieCallArgument, val descriptor: CallableDescriptor) :
+    CangJieCallDiagnostic(
+        CandidateApplicability.INAPPLICABLE
+    ) {
     override fun report(reporter: DiagnosticReporter) = reporter.onCallArgumentName(argument, this)
 }
+
 // candidates result
 class NoneCandidatesCallDiagnostic : CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCall(this)
     }
 }
-class NoneOperatorCallDiagnostic(val left:CangJieType,val right:CangJieType) : CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
+
+class NoneOperatorCallDiagnostic(val left: CangJieType, val right: CangJieType) :
+    CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCall(this)
     }
 }
+
 fun List<CangJieCallDiagnostic>.filterErrorDiagnostics() =
     filter { it !is CangJieConstraintSystemDiagnostic || it.error !is NewConstraintWarning }
+
 // ArgumentsToParameterMapper
 class TooManyArguments(val argument: CangJieCallArgument, val descriptor: CallableDescriptor) :
     CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE_ARGUMENTS_MAPPING_ERROR) {
     override fun report(reporter: DiagnosticReporter) = reporter.onCallArgument(argument, this)
 }
+
 class NamedArgumentReference(
     val argument: CangJieCallArgument,
     val parameterDescriptor: ValueParameterDescriptor
 ) : CangJieCallDiagnostic(CandidateApplicability.RESOLVED) {
     override fun report(reporter: DiagnosticReporter) = reporter.onCallArgumentName(argument, this)
 }
+
 class MixingNamedAndPositionArguments(override val argument: CangJieCallArgument) : InapplicableArgumentDiagnostic()
-abstract class InapplicableArgumentDiagnostic :CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
+
+class PositionalAfierNamedArgument(override val argument: CangJieCallArgument) : InapplicableArgumentDiagnostic()
+
+
+abstract class InapplicableArgumentDiagnostic : CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
     abstract val argument: CangJieCallArgument
 
     override fun report(reporter: DiagnosticReporter) = reporter.onCallArgument(argument, this)
 }
+
 class NameNotFound(val argument: CangJieCallArgument, val descriptor: CallableDescriptor) : CangJieCallDiagnostic(
     CandidateApplicability.INAPPLICABLE
 ) {
     override fun report(reporter: DiagnosticReporter) = reporter.onCallArgumentName(argument, this)
 }
+
 class NameForAmbiguousParameter(
     val argument: CangJieCallArgument,
     val parameterDescriptor: ValueParameterDescriptor,
@@ -148,8 +178,9 @@ class NameForAmbiguousParameter(
 ) : CangJieCallDiagnostic(CandidateApplicability.CONVENTION_ERROR) {
     override fun report(reporter: DiagnosticReporter) = reporter.onCallArgumentName(argument, this)
 }
+
 class VarargArgumentOutsideParentheses(
-    override val argument:CangJieCallArgument,
+    override val argument: CangJieCallArgument,
     val parameterDescriptor: ValueParameterDescriptor
 ) : InapplicableArgumentDiagnostic()
 
@@ -160,6 +191,7 @@ class NoValueForParameter(
 ) : CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE_ARGUMENTS_MAPPING_ERROR) {
     override fun report(reporter: DiagnosticReporter) = reporter.onCall(this)
 }
+
 // TypeArgumentsToParameterMapper
 class WrongCountOfTypeArguments(
     val descriptor: CallableDescriptor,
@@ -167,10 +199,12 @@ class WrongCountOfTypeArguments(
 ) : CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
     override fun report(reporter: DiagnosticReporter) = reporter.onTypeArguments(this)
 }
+
 class CallableReferenceCallCandidatesAmbiguity(
     val argument: CallableReferenceCangJieCallArgument,
     val candidates: Collection<CallableReferenceResolutionCandidate>
 ) : CallableReferenceInapplicableDiagnostic(argument)
+
 abstract class CallableReferenceInapplicableDiagnostic(
     private val argument: CallableReferenceResolutionAtom,
     applicability: CandidateApplicability = CandidateApplicability.INAPPLICABLE
@@ -182,21 +216,25 @@ abstract class CallableReferenceInapplicableDiagnostic(
         }
     }
 }
+
 class CompatibilityWarning(val candidate: CallableDescriptor) : CangJieCallDiagnostic(CandidateApplicability.RESOLVED) {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCall(this)
     }
 }
+
 class CompatibilityWarningOnArgument(
-    val argument:CangJieCallArgument,
+    val argument: CangJieCallArgument,
     val candidate: CallableDescriptor
-) :CangJieCallDiagnostic(CandidateApplicability.RESOLVED) {
+) : CangJieCallDiagnostic(CandidateApplicability.RESOLVED) {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCallArgument(argument, this)
     }
 }
+
 class NoneCallableReferenceCallCandidates(val argument: CallableReferenceCangJieCallArgument) :
     CallableReferenceInapplicableDiagnostic(argument)
+
 class NotEnoughInformationForLambdaParameter(
     val lambdaArgument: LambdaCangJieCallArgument,
     val parameterIndex: Int
@@ -209,11 +247,13 @@ class NotEnoughInformationForLambdaParameter(
 class NonVarargSpread(val argument: CangJieCallArgument) : CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
     override fun report(reporter: DiagnosticReporter) = reporter.onCallArgumentSpread(argument, this)
 }
+
 sealed interface ArgumentNullabilityMismatchDiagnostic {
     val expectedType: UnwrappedType
     val actualType: UnwrappedType
     val expressionArgument: ExpressionCangJieCallArgument
 }
+
 object TypeCheckerHasRanIntoRecursion : CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
     override fun report(reporter: DiagnosticReporter) = reporter.onCall(this)
 }
@@ -222,13 +262,16 @@ class ArgumentNullabilityErrorDiagnostic(
     override val expectedType: UnwrappedType,
     override val actualType: UnwrappedType,
     override val expressionArgument: ExpressionCangJieCallArgument
-) : CangJieCallDiagnostic(CandidateApplicability.UNSAFE_CALL), TransformableToWarning<ArgumentNullabilityWarningDiagnostic>, ArgumentNullabilityMismatchDiagnostic {
+) : CangJieCallDiagnostic(CandidateApplicability.UNSAFE_CALL),
+    TransformableToWarning<ArgumentNullabilityWarningDiagnostic>, ArgumentNullabilityMismatchDiagnostic {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCallArgument(expressionArgument, this)
     }
 
-    override fun transformToWarning() = ArgumentNullabilityWarningDiagnostic(expectedType, actualType, expressionArgument)
+    override fun transformToWarning() =
+        ArgumentNullabilityWarningDiagnostic(expectedType, actualType, expressionArgument)
 }
+
 class ArgumentNullabilityWarningDiagnostic(
     override val expectedType: UnwrappedType,
     override val actualType: UnwrappedType,
@@ -238,17 +281,22 @@ class ArgumentNullabilityWarningDiagnostic(
         reporter.onCallArgument(expressionArgument, this)
     }
 }
-class SuperAsExtensionReceiver(val receiver: SimpleCangJieCallArgument) : CangJieCallDiagnostic(CandidateApplicability.RUNTIME_ERROR) {
+
+class SuperAsExtensionReceiver(val receiver: SimpleCangJieCallArgument) :
+    CangJieCallDiagnostic(CandidateApplicability.RUNTIME_ERROR) {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCallReceiver(receiver, this)
     }
 }
+
 object AbstractFakeOverrideSuperCall : CangJieCallDiagnostic(CandidateApplicability.RUNTIME_ERROR) {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCall(this)
     }
 }
-class AbstractSuperCall(val receiver: SimpleCangJieCallArgument) : CangJieCallDiagnostic( CandidateApplicability.RUNTIME_ERROR) {
+
+class AbstractSuperCall(val receiver: SimpleCangJieCallArgument) :
+    CangJieCallDiagnostic(CandidateApplicability.RUNTIME_ERROR) {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCall(this)
     }

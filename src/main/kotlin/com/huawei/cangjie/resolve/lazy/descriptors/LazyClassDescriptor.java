@@ -150,8 +150,8 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
 //            this.annotations = Annotations.Companion.getEMPTY();
 //        }
 //
-//        List<KtAnnotationEntry> ktDanglingAnnotations = classLikeInfo.getDanglingAnnotations();
-//        if (ktDanglingAnnotations.isEmpty()) {
+//        List<KtAnnotationEntry> cjDanglingAnnotations = classLikeInfo.getDanglingAnnotations();
+//        if (cjDanglingAnnotations.isEmpty()) {
 //            this.danglingAnnotations = Annotations.Companion.getEMPTY();
 //        }
 //        else {
@@ -167,7 +167,7 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
 //                            return getScopeForMemberDeclarationResolution();
 //                        }
 //                    },
-//                    ktDanglingAnnotations
+//                    cjDanglingAnnotations
 //            );
 //        }
 //

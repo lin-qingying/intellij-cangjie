@@ -64,7 +64,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
             // This trows AssertionError in CLI and reports the error in the IDE
             LOG.error(
                     new CangJieExceptionWithAttachments("Exception while analyzing expression" + location, e)
-                            .withPsiAttachment("expression.kt", expression)
+                            .withPsiAttachment("expression.cj", expression)
             );
         } catch (AssertionError errorFromLogger) {
             // If we ended up here, we are in CLI, and the initial exception needs to be rethrown,
@@ -222,11 +222,11 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
         // Erasing call position to unknown is necessary to prevent wrong call positions when type checking lambda's body
         return functions.visitLambdaExpression(expression, data.replaceCallPosition(CallPosition.Unknown.INSTANCE));
     }
-//
-//    @Override
-//    public CangJieTypeInfo visitNamedFunction(@NotNull CjNamedFunction function, ExpressionTypingContext data) {
-//        return functions.visitNamedFunction(function, data);
-//    }
+
+    @Override
+    public CangJieTypeInfo visitNamedFunction(@NotNull CjNamedFunction function, ExpressionTypingContext data) {
+        return functions.visitNamedFunction(function, data);
+    }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 

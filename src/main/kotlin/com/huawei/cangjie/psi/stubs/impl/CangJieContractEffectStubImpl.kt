@@ -87,8 +87,7 @@ import com.intellij.psi.stubs.StubOutputStream
 //        const val IGNORE_REFERENCE_PARAMETER_NAME = "<ignore>"
 //    }
 //}
-class CangJieContractEffectStubImpl {
-}
+class CangJieContractEffectStubImpl
 
 class CangJieContractSerializationVisitor(val dataStream: StubOutputStream) :
     CjContractDescriptionVisitor<Unit, Nothing?, CangJieTypeBean, Nothing?>() {

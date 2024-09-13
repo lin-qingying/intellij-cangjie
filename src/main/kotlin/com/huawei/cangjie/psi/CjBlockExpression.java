@@ -154,7 +154,7 @@ public class CjBlockExpression extends LazyParseablePsiElement implements CjElem
         CjExpression lastStatement = getLastStatement();
 
         if (lastStatement != null) {
-            if(!(lastStatement instanceof  CjReturnExpression)){
+            if(!(lastStatement instanceof  CjReturnExpression || lastStatement instanceof CjFunction)){
                 result.add(lastStatement);
 
             }

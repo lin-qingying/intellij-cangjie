@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve
 import com.huawei.cangjie.analyzer.CjpmLibraryInfo
 import com.huawei.cangjie.analyzer.DaemonCodeAnalyzerStatusService
 import com.huawei.cangjie.analyzer.ModuleInfo
+import com.huawei.cangjie.resolve.controlFlow.ControlFlowInformationProviderImpl
 import com.huawei.cangjie.container.get
 import com.huawei.cangjie.context.SimpleGlobalContext
 import com.huawei.cangjie.context.withModule
@@ -17,6 +18,7 @@ import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.forEachDescendantOfType
 import com.huawei.cangjie.psi.psiUtil.getElementTextWithContext
 import com.huawei.cangjie.psi.psiUtil.getNonStrictParentOfType
+import com.huawei.cangjie.resolve.caches.analyzeControlFlow
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.lazy.*
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode.*
@@ -38,7 +40,7 @@ private val FILE_IN_BLOCK_MODIFICATION_COUNT = Key<Long>("FILE_IN_BLOCK_MODIFICA
 
 val CjFile.inBlockModificationCount: Long by NotNullableUserDataProperty(FILE_IN_BLOCK_MODIFICATION_COUNT, 0)
 
-class ResolveElementCache(
+class   ResolveElementCache(
     private val resolveSession: ResolveSession,
     private val project: Project,
 
@@ -512,9 +514,9 @@ class ResolveElementCache(
             }
         }
 
-//        if (bodyResolveMode.doControlFlowAnalysis) {
-//            analyzeControlFlow(resolveSession, resolveElement, trace)
-//        }
+        if (bodyResolveMode.doControlFlowAnalysis) {
+            analyzeControlFlow(resolveSession, resolveElement, trace)
+        }
 
         return Pair(trace.bindingContext, statementFilterUsed)
     }
@@ -663,7 +665,7 @@ class ResolveElementCache(
             file.languageVersionSettings,
 //            IdeaModuleStructureOracle(),
 //            IdeSealedClassInheritorsProvider,
-//            ControlFlowInformationProviderImpl.Factory,
+            ControlFlowInformationProviderImpl.Factory,
             IdeaAbsentDescriptorHandler(resolveSession.declarationProviderFactory)
         ).get()
     }

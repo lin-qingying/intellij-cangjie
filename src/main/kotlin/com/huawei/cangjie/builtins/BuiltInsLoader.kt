@@ -1,11 +1,6 @@
 package com.huawei.cangjie.builtins
 
-//import com.huawei.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorBasicImpl
-//import com.huawei.cangjie.resolve.lazy.declarations.impl.craetePackageFragmentDescriptor
 
-//import org.jetbrains.kotlin.protobuf.ExtensionRegistryLite
-import com.google.protobuf.ExtensionRegistry
-//import com.google.protobuf.util.JsonFormat
 import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.descriptors.PackageFragmentDescriptor
 import com.huawei.cangjie.descriptors.PackageFragmentProvider
@@ -73,25 +68,6 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
         isFallback: Boolean,
         loadResource: (String) -> InputStream?
     ): PackageFragmentProvider {
-//        val resourcePath =
-//            "kotlin/kotlin.kotlin_builtins"
-////            "kotlin/collections/collections.kotlin_builtins"
-//        val inputStream =
-//            loadResource(resourcePath) ?: throw IllegalStateException("Resource not found in classpath: $resourcePath")
-//
-//
-//        println(inputStream)
-//
-//        val (proto, version) = inputStream.readBuiltinsPackageFragment()
-
-
-//        val packageFragments:List<PackageFragmentDescriptor> = packageFqNames.map { fqName ->
-//            craetePackageFragmentDescriptor(storageManager,module, fqName)
-////            val resourcePath = BuiltInSerializerProtocol.getBuiltInsFilePath(fqName)
-//
-////            val inputStream = loadResource(resourcePath) ?: throw IllegalStateException("Resource not found in classpath: $resourcePath")
-////            BuiltInsPackageFragmentImpl.create(fqName, storageManager, module, inputStream, isFallback)
-//        }
 
         val packageFragments: List<PackageFragmentDescriptor> = packageFqNames.map { fqName ->
             craetePackageFragmentDescriptor(storageManager, module, fqName)
@@ -153,10 +129,7 @@ class BuiltInsResourceLoader {
     fun loadResource(path: String): InputStream? {
         val classLoader = this::class.java.classLoader ?: return ClassLoader.getSystemResourceAsStream(path)
 
-        // Do not use getResourceAsStream because URLClassLoader's implementation creates InputStream instances which refer to
-        // a globally cached JarFile instance, which is closed as soon as URLClassLoader is closed, which instantly invalidates all
-        // input streams referring to that JarFile and breaks kotlin-reflect in case it's used from different class loaders.
-        val resource = classLoader.getResource(path) ?: return null
+               val resource = classLoader.getResource(path) ?: return null
         return resource.openConnection().apply { useCaches = false }.getInputStream()
     }
 }

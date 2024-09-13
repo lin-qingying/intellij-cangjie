@@ -35,7 +35,7 @@ object CangJieIcons {
 
     private fun load(path: String, cacheKey: Int, flags: Int): Icon {
         return IconManager.getInstance()
-            .loadRasterizedIcon(path, CangJieIcons::class.java.getClassLoader(), cacheKey, flags)
+            .loadRasterizedIcon(path, CangJieIcons::class.java.classLoader, cacheKey, flags)
     }
 
 }

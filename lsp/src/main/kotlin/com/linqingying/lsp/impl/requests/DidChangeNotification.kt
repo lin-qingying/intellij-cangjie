@@ -15,7 +15,7 @@ import org.eclipse.lsp4j.VersionedTextDocumentIdentifier
 import kotlin.jvm.internal.DefaultConstructorMarker
 
 class DidChangeNotification(
-    override val lspServer: com.linqingying.lsp.api.LspServer,
+    override val lspServer: LspServer,
     documentIdentifier: VersionedTextDocumentIdentifier,
     changeEvent: TextDocumentContentChangeEvent
 ) :
@@ -34,7 +34,7 @@ class DidChangeNotification(
 
         @JvmStatic
         @RequiresReadLock
-        fun createFull(lspServer: com.linqingying.lsp.api.LspServer, document: Document, virtualFile: VirtualFile): DidChangeNotification {
+        fun createFull(lspServer: LspServer, document: Document, virtualFile: VirtualFile): DidChangeNotification {
 
             return DidChangeNotification(
                 lspServer,
@@ -48,7 +48,7 @@ class DidChangeNotification(
         @JvmStatic
         @RequiresEdt
         fun createIncrementalNotificationBeforeRealDocumentChange(
-            lspServer: com.linqingying.lsp.api.LspServer,
+            lspServer: LspServer,
             documentEvent: DocumentEvent,
             virtualFile: VirtualFile
         ): DidChangeNotification {
@@ -67,7 +67,7 @@ class DidChangeNotification(
         }
 
         private fun getVersionedTextDocumentIdentifier(
-            lspServer: com.linqingying.lsp.api.LspServer,
+            lspServer: LspServer,
             document: Document,
             virtualFile: VirtualFile
         ): VersionedTextDocumentIdentifier {

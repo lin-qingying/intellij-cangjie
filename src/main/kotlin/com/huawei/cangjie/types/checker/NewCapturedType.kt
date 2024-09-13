@@ -281,8 +281,6 @@ private class CapturedArguments(val capturedArguments: List<TypeProjection>, pri
         val areConstructorsMatched = originalType.constructor == type.constructor
 //                || areTypesMayBeLowerAndUpperBoundsOfSameFlexibleTypeByMutability(originalType, type)
 
-        if (!areConstructorsMatched) return false
-
-        return true
+        return areConstructorsMatched
     }
 }

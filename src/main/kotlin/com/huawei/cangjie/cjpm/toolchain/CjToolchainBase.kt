@@ -123,7 +123,7 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
         return map
     }
 
-    //    val presentableLocation: String get() = pathToExecutable(CJPM.NAME).toString()
+    //    val presentableLocation: String get() = pathToExecutable(CJPM.NAMED).toString()
     abstract fun pathToExecutable(toolName: String): Path
     abstract val fileSeparator: String
     abstract val executionTimeoutInMilliseconds: Int

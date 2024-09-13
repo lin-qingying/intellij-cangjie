@@ -36,9 +36,9 @@ class MyStreamMessageProducer(
     }
 }
 
-abstract class Lsp4jServerConnector(lspServer: com.linqingying.lsp.api.LspServer) {
-    private val serverDescriptor: com.linqingying.lsp.api.LspServerDescriptor = lspServer.descriptor
-    private val lsp4jClient: com.linqingying.lsp.api.Lsp4jClient = serverDescriptor.createLsp4jClient(lspServer.serverNotificationsHandler)
+abstract class Lsp4jServerConnector(lspServer: LspServer) {
+    private val serverDescriptor: LspServerDescriptor = lspServer.descriptor
+    private val lsp4jClient: Lsp4jClient = serverDescriptor.createLsp4jClient(lspServer.serverNotificationsHandler)
     private var initializeResult: InitializeResult? = null
     var lsp4jServer: LanguageServer? = null
 

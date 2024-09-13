@@ -7,7 +7,7 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
-fun CangJieMoveTarget.getTargetModule(project: Project) = targetFileOrDir?.let { com.intellij.openapi.module.ModuleUtilCore.findModuleForFile(it, project) }
+fun CangJieMoveTarget.getTargetModule(project: Project) = targetFileOrDir?.let { ModuleUtilCore.findModuleForFile(it, project) }
 
 
 sealed interface CangJieMoveTarget{

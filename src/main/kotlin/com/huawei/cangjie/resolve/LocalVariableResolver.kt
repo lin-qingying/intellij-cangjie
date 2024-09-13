@@ -140,16 +140,16 @@ class LocalVariableResolver(
     private fun checkLocalVariableDeclaration(
         context: ExpressionTypingContext,
         descriptor: VariableDescriptor,
-        ktVariable: CjVariable
+        cjVariable: CjVariable
     ) {
         ExpressionTypingUtils.checkVariableShadowing(context.scope, context.trace, descriptor)
 
-        modifiersChecker.withTrace(context.trace).checkModifiersForLocalDeclaration(ktVariable, descriptor)
-        identifierChecker.checkDeclaration(ktVariable, context.trace)
+        modifiersChecker.withTrace(context.trace).checkModifiersForLocalDeclaration(cjVariable, descriptor)
+        identifierChecker.checkDeclaration(cjVariable, context.trace)
 //
 //        LateinitModifierApplicabilityChecker.checkLateinitModifierApplicability(
 //            context.trace,
-//            ktVariable,
+//            cjVariable,
 //            descriptor,
 //            languageVersionSettings
 //        )

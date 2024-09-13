@@ -17,7 +17,7 @@ import com.huawei.cangjie.types.model.TypeVariableMarker
 import com.huawei.cangjie.types.util.unCapture as unCaptureCangJieType
 
 class ClassicConstraintSystemUtilContext(
-    val kotlinTypeRefiner: CangJieTypeRefiner,
+    val cangjieTypeRefiner: CangJieTypeRefiner,
     val builtIns: CangJieBuiltIns,
 ) : ConstraintSystemUtilContext {
 //    override fun TypeVariableMarker.shouldBeFlexible(): Boolean {
@@ -34,27 +34,7 @@ class ClassicConstraintSystemUtilContext(
         return unCaptureCangJieType().unwrap()
     }
 
-//    override fun TypeVariableMarker.isReified(): Boolean {
-//        if (this !is TypeVariableFromCallableDescriptor) return false
-//        return originalTypeParameter.isReified
-//    }
 
-//    @OptIn(TypeRefinement::class)
-//    override fun CangJieTypeMarker.refineType(): CangJieTypeMarker {
-//        require(this is CangJieType)
-//        return kotlinTypeRefiner.refineType(this)
-//    }
-//
-//    override fun createArgumentConstraintPosition(argument: PostponedAtomWithRevisableExpectedType): ArgumentConstraintPosition<*> {
-//        require(argument is ResolvedAtom)
-//        return ArgumentConstraintPositionImpl(argument.atom as CangJieCallArgument)
-//    }
-
-//    override fun <T> createFixVariableConstraintPosition(variable: TypeVariableMarker, atom: T): FixVariableConstraintPosition<T> {
-//        require(atom is ResolvedAtom)
-//        @Suppress("UNCHECKED_CAST")
-//        return FixVariableConstraintPositionImpl(variable, atom) as FixVariableConstraintPosition<T>
-//    }
 override fun TypeVariableMarker.shouldBeFlexible(): Boolean {
     return this is TypeVariableFromCallableDescriptor && this.originalTypeParameter.shouldBeFlexible()
 }
