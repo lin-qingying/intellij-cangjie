@@ -1,28 +1,29 @@
-package com.huawei.cangjie.diagnostics;
+package com.huawei.cangjie.diagnostics
+
+import com.huawei.cangjie.descriptors.PositioningStrategies
+import com.intellij.psi.PsiElement
 
 
-import com.huawei.cangjie.descriptors.PositioningStrategies;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-
-public class DiagnosticFactory3<E extends PsiElement, A, B, C> extends DiagnosticFactoryWithPsiElement<E, DiagnosticWithParameters3<E, A, B, C>> {
-
-    protected DiagnosticFactory3(Severity severity, PositioningStrategy<? super E> positioningStrategy) {
-        super(severity, positioningStrategy);
+class DiagnosticFactory3<E : PsiElement, A:Any, B:Any, C:Any> protected constructor(
+    severity: Severity,
+    positioningStrategy: PositioningStrategy<E>
+) :
+    DiagnosticFactoryWithPsiElement<E, DiagnosticWithParameters3<E, A, B, C> >(severity, positioningStrategy) {
+    fun on(element: E, a: A, b: B, c: C): ParametrizedDiagnostic<E> {
+        return DiagnosticWithParameters3(element, a, b, c, this, severity)
     }
 
-    @NotNull
-    public static <T extends PsiElement, A, B, C> DiagnosticFactory3<T, A, B, C> create(Severity severity) {
-        return create(severity, PositioningStrategies.DEFAULT);
-    }
-
-    @NotNull
-    public static <T extends PsiElement, A, B, C> DiagnosticFactory3<T, A, B, C> create(Severity severity, PositioningStrategy<? super T> positioningStrategy) {
-        return new DiagnosticFactory3<>(severity, positioningStrategy);
-    }
-
-    @NotNull
-    public ParametrizedDiagnostic<E> on(@NotNull E element, @NotNull A a, @NotNull B b, @NotNull C c) {
-        return new DiagnosticWithParameters3<>(element, a, b, c, this, getSeverity());
+    companion object {
+        @JvmStatic
+        fun <T : PsiElement, A:Any, B:Any, C:Any> create(severity: Severity): DiagnosticFactory3<T, A, B, C> {
+            return create(severity, PositioningStrategies.DEFAULT)
+        }
+        @JvmStatic
+        fun <T : PsiElement, A:Any, B:Any, C:Any> create(
+            severity: Severity,
+            positioningStrategy: PositioningStrategy<T>
+        ): DiagnosticFactory3<T, A, B, C> {
+            return DiagnosticFactory3(severity, positioningStrategy)
+        }
     }
 }

@@ -1,53 +1,32 @@
-package com.huawei.cangjie.diagnostics;
+package com.huawei.cangjie.diagnostics
+
+import com.intellij.psi.PsiElement
+import java.util.*
 
 
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
+class DiagnosticWithParameters1<E : PsiElement , A:Any>(
+    psiElement: E,
+    override val a: A,
+    factory: DiagnosticFactory1<E, A>,
+    severity: Severity
+) : AbstractDiagnostic<E>(psiElement, factory, severity),
+    DiagnosticWithParameters1Marker<A> {
+    override val factory: DiagnosticFactory1<E, A>
+        get() = super.factory as DiagnosticFactory1<E, A>
 
-import java.util.Objects;
-
-public class DiagnosticWithParameters1<E extends PsiElement, A> extends AbstractDiagnostic<E> implements DiagnosticWithParameters1Marker<A> {
-    private final A a;
-
-    public DiagnosticWithParameters1(
-            @NotNull E psiElement,
-            @NotNull A a,
-            @NotNull DiagnosticFactory1<E, A> factory,
-            @NotNull Severity severity
-    ) {
-        super(psiElement, factory, severity);
-        this.a = a;
+    override fun toString(): String {
+        return "$factory(a = $a)"
     }
 
-    @SuppressWarnings("unchecked")
-    @NotNull
-    @Override
-    public DiagnosticFactory1<E, A> getFactory() {
-        return (DiagnosticFactory1<E, A>) super.getFactory();
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || javaClass != other.javaClass) return false
+        if (!super.equals(other)) return false
+        val that = other as DiagnosticWithParameters1<*, *>
+        return a == that.a
     }
 
-    @NotNull
-    @Override
-    public A getA() {
-        return a;
-    }
-
-    @Override
-    public String toString() {
-        return getFactory() + "(a = " + a + ")";
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        DiagnosticWithParameters1<?, ?> that = (DiagnosticWithParameters1<?, ?>) o;
-        return Objects.equals(a, that.a);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), a);
+    override fun hashCode(): Int {
+        return Objects.hash(super.hashCode(), a)
     }
 }

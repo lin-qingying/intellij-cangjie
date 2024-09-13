@@ -1,27 +1,29 @@
+package com.huawei.cangjie.diagnostics
 
-package com.huawei.cangjie.diagnostics;
+import com.huawei.cangjie.descriptors.PositioningStrategies
+import com.intellij.psi.PsiElement
 
-import com.huawei.cangjie.descriptors.PositioningStrategies;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-
-public class DiagnosticFactory1<E extends PsiElement, A> extends DiagnosticFactoryWithPsiElement<E, DiagnosticWithParameters1<E, A>> {
-    @NotNull
-    public ParametrizedDiagnostic<E> on(@NotNull E element, @NotNull A argument) {
-        return new DiagnosticWithParameters1<>(element, argument, this, getSeverity());
+class DiagnosticFactory1<E : PsiElement , A:Any> protected constructor(
+    severity: Severity,
+    positioningStrategy: PositioningStrategy<E>
+) :
+    DiagnosticFactoryWithPsiElement<E, DiagnosticWithParameters1<E, A> >(severity, positioningStrategy) {
+    fun on(element: E, argument: A): ParametrizedDiagnostic<E> {
+        return DiagnosticWithParameters1(element, argument, this, severity)
     }
 
-    protected DiagnosticFactory1(Severity severity, PositioningStrategy<? super E> positioningStrategy) {
-        super(severity, positioningStrategy);
-    }
+    companion object {
+        @JvmStatic
+        fun <T : PsiElement , A:Any> create(
+            severity: Severity,
+            positioningStrategy: PositioningStrategy<T>
+        ): DiagnosticFactory1<T, A> {
+            return DiagnosticFactory1(severity, positioningStrategy)
+        }
 
-    @NotNull
-    public static <T extends PsiElement, A> DiagnosticFactory1<T, A> create(Severity severity, PositioningStrategy<? super T> positioningStrategy) {
-        return new DiagnosticFactory1<>(severity, positioningStrategy);
-    }
-
-    @NotNull
-    public static <T extends PsiElement, A> DiagnosticFactory1<T, A> create(Severity severity) {
-        return create(severity, PositioningStrategies.DEFAULT);
+        @JvmStatic
+        fun <T : PsiElement , A:Any> create(severity: Severity): DiagnosticFactory1<T, A> {
+            return create(severity, PositioningStrategies.DEFAULT)
+        }
     }
 }

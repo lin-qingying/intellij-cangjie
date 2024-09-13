@@ -1,150 +1,134 @@
-package com.huawei.cangjie.name;
+package com.huawei.cangjie.name
+
+import com.huawei.cangjie.name.Name.Companion.identifier
+import com.huawei.cangjie.utils.join
 
 
-import com.huawei.cangjie.utils.StringsKt;
-import org.jetbrains.annotations.NotNull;
+class FqName {
+    private val fqName: FqNameUnsafe
 
-import java.util.List;
-
-public final class FqName {
-
-    public static final FqName ROOT = new FqName("");
-    @NotNull
-    private final FqNameUnsafe fqName;
-    private transient FqName parent;
+    @Transient
+    private var parent: FqName? = null
 
 
-    public FqName(@NotNull String fqName) {
-        this.fqName = new FqNameUnsafe(fqName, this);
+    constructor(fqName: String) {
+        this.fqName = FqNameUnsafe(fqName, this)
     }
 
-    public FqName(@NotNull FqNameUnsafe fqName) {
-        this.fqName = fqName;
+    constructor(fqName: FqNameUnsafe) {
+        this.fqName = fqName
     }
 
-    private FqName(@NotNull FqNameUnsafe fqName, FqName parent) {
-        this.fqName = fqName;
-        this.parent = parent;
+    private constructor(fqName: FqNameUnsafe, parent: FqName) {
+        this.fqName = fqName
+        this.parent = parent
     }
 
-    @NotNull
-    public static FqName fromSegments(@NotNull List<String> names) {
-        return new FqName(StringsKt.join(names, "."));
+    fun asString(): String {
+        return fqName.asString()
     }
 
-    @NotNull
-    public static FqName topLevel(@NotNull Name shortName) {
-        return new FqName(FqNameUnsafe.topLevel(shortName));
+    fun toUnsafe(): FqNameUnsafe {
+        return fqName
     }
 
-    @NotNull
-    public static FqName fromString(String fqName) {
-        String[] segments = fqName.split("\\.");
-        FqName current = ROOT; // 从根开始构建
+    val isRoot: Boolean
+        get() = fqName.isRoot
+    //        return parent == null;
 
-        for (String segment : segments) {
-            current = current.child(Name.identifier(segment)); // 创建子 FqName
-        }
-
-        return current; // 返回最终的 FqName
-    }
-
-    @NotNull
-    public String asString() {
-        return fqName.asString();
-    }
-
-    @NotNull
-    public FqNameUnsafe toUnsafe() {
-        return fqName;
-    }
-
-    public boolean isRoot() {
-        return fqName.isRoot();
-//        return parent == null;
-    }
-
-    @NotNull
-    public FqName parent() {
+    fun parent(): FqName {
         if (parent != null) {
-            return parent;
+            return parent!!
         }
 
-        if (isRoot()) {
-            throw new IllegalStateException("root");
-        }
+        check(!isRoot) { "root" }
 
-        parent = new FqName(fqName.parent());
+        parent = FqName(fqName.parent())
 
-        return parent;
+        return parent!!
     }
 
-    public boolean isModuleName() {
-        if (parent == null) {
-            return true;
+    val isModuleName: Boolean
+        get() {
+            if (parent == null) {
+                return true
+            }
+            return parent!!.isRoot
         }
-        return parent.isRoot();
-    }
 
-    public Name getModuleName() {
-
-        FqName _this = this;
+    val moduleName : Name get()   {
+        var _this: FqName? = this
         while (true) {
-            if (_this.parent().isRoot())
-                return _this.shortName();
-            _this = _this.parent;
+            if (_this!!.parent().isRoot) return _this.shortName()
+            _this = _this.parent
+        }
+    }
+
+    fun child(name: Name): FqName {
+        return FqName(fqName.child(name), this)
+    }
+
+    fun child(name: FqName): FqName {
+        return FqName(fqName.child(name), this)
+    }
+
+    fun shortName(): Name {
+        return fqName.shortName()
+    }
+
+    fun shortNameOrSpecial(): Name {
+        return fqName.shortNameOrSpecial()
+    }
+
+    fun pathSegments(): List<Name> {
+        return fqName.pathSegments()
+    }
+
+    fun startsWith(segment: Name): Boolean {
+        return fqName.startsWith(segment)
+    }
+
+    fun startsWith(other: FqName): Boolean {
+        return fqName.startsWith(other.fqName)
+    }
+
+    override fun toString(): String {
+        return fqName.toString()
+    }
+
+    override fun equals(o: Any?): Boolean {
+        if (this === o) return true
+        if (o !is FqName) return false
+
+        return fqName == o.fqName
+    }
+
+    override fun hashCode(): Int {
+        return fqName.hashCode()
+    }
+
+    companion object {
+        @JvmField
+        val ROOT: FqName = FqName("")
+        fun fromSegments(names: List<String >): FqName {
+            return FqName(join(names, "."))
         }
 
-    }
+        @JvmStatic
+        fun topLevel(shortName: Name): FqName {
+            return FqName(FqNameUnsafe.topLevel(shortName))
+        }
 
-    @NotNull
-    public FqName child(@NotNull Name name) {
-        return new FqName(fqName.child(name), this);
-    }
+        @JvmStatic
+        fun fromString(fqName: String): FqName {
+            val segments = fqName.split("\\.".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            var current = ROOT // 从根开始构建
 
-    @NotNull
-    public FqName child(@NotNull FqName name) {
-        return new FqName(fqName.child(name), this);
-    }
+            for (segment in segments) {
+                current = current.child(identifier(segment)) // 创建子 FqName
+            }
 
-    @NotNull
-    public Name shortName() {
-        return fqName.shortName();
-    }
-
-    @NotNull
-    public Name shortNameOrSpecial() {
-        return fqName.shortNameOrSpecial();
-    }
-
-    @NotNull
-    public List<Name> pathSegments() {
-        return fqName.pathSegments();
-    }
-
-    public boolean startsWith(@NotNull Name segment) {
-        return fqName.startsWith(segment);
-    }
-
-    public boolean startsWith(@NotNull FqName other) {
-        return fqName.startsWith(other.fqName);
-    }
-
-    @Override
-    public String toString() {
-        return fqName.toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof FqName otherFqName)) return false;
-
-        return fqName.equals(otherFqName.fqName);
-    }
-
-    @Override
-    public int hashCode() {
-        return fqName.hashCode();
+            return current // 返回最终的 FqName
+        }
     }
 }

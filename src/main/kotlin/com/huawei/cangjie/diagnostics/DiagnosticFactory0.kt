@@ -1,28 +1,29 @@
-package com.huawei.cangjie.diagnostics;
+package com.huawei.cangjie.diagnostics
+
+import com.huawei.cangjie.descriptors.PositioningStrategies
+import com.intellij.psi.PsiElement
 
 
-import com.huawei.cangjie.descriptors.PositioningStrategies;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-
-public class DiagnosticFactory0<E extends PsiElement> extends DiagnosticFactoryWithPsiElement<E, SimpleDiagnostic<E>> {
-
-    protected DiagnosticFactory0(Severity severity, PositioningStrategy<? super E> positioningStrategy) {
-        super(severity, positioningStrategy);
+class DiagnosticFactory0<E : PsiElement>(
+    severity: Severity,
+    positioningStrategy: PositioningStrategy<E>
+) :
+    DiagnosticFactoryWithPsiElement<E, SimpleDiagnostic<E>>(severity, positioningStrategy) {
+    fun on(element: E): SimpleDiagnostic<E> {
+        return SimpleDiagnostic(element, this, severity)
     }
 
-    @NotNull
-    public static <T extends PsiElement> DiagnosticFactory0<T> create(Severity severity) {
-        return create(severity, PositioningStrategies.DEFAULT);
-    }
-
-    @NotNull
-    public static <T extends PsiElement> DiagnosticFactory0<T> create(Severity severity, PositioningStrategy<? super T> positioningStrategy) {
-        return new DiagnosticFactory0<>(severity, positioningStrategy);
-    }
-
-    @NotNull
-    public SimpleDiagnostic<E> on(@NotNull E element) {
-        return new SimpleDiagnostic<>(element, this, getSeverity());
+    companion object {
+        @JvmStatic
+        fun <T : PsiElement> create(severity: Severity): DiagnosticFactory0<T> {
+            return create(severity, PositioningStrategies.DEFAULT)
+        }
+        @JvmStatic
+        fun <T : PsiElement> create(
+            severity: Severity,
+            positioningStrategy: PositioningStrategy<T>
+        ): DiagnosticFactory0<T> {
+            return DiagnosticFactory0(severity, positioningStrategy)
+        }
     }
 }

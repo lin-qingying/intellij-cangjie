@@ -1,14 +1,17 @@
-package com.huawei.cangjie.icon;
+package com.huawei.cangjie.icon
 
-import com.intellij.ui.IconManager;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.ui.IconManager
 
-import javax.swing.*;
+import javax.swing.Icon
 
-public final class CangJieResourcesIcons {
-    private static @NotNull Icon load(@NotNull String path, int cacheKey, int flags) {
-        return IconManager.getInstance().loadRasterizedIcon(path, CangJieResourcesIcons.class.getClassLoader(), cacheKey, flags);
+object CangJieResourcesIcons {
+    private fun load(path: String, cacheKey: Int, flags: Int): Icon {
+        return IconManager.  getInstance().loadRasterizedIcon(
+            path,
+            CangJieResourcesIcons::class.java.classLoader, cacheKey, flags
+        )
     }
-    /** 16x16 */ public static final @NotNull Icon CangJie_file = load("/icons/cangjie_file.svg", 486618922, 0);
 
+    /** 16x16  */
+    val CangJie_file: Icon = load("/icons/cangjie_file.svg", 486618922, 0)
 }

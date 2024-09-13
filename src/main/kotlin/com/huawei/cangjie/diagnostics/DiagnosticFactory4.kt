@@ -1,27 +1,28 @@
-package com.huawei.cangjie.diagnostics;
+package com.huawei.cangjie.diagnostics
 
-import com.huawei.cangjie.descriptors.PositioningStrategies;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
+import com.huawei.cangjie.descriptors.PositioningStrategies
+import com.intellij.psi.PsiElement
 
-public class DiagnosticFactory4<E extends PsiElement, A, B, C, D> extends DiagnosticFactoryWithPsiElement<E, DiagnosticWithParameters4<E, A, B, C, D>> {
-
-    protected DiagnosticFactory4(Severity severity, PositioningStrategy<? super E> positioningStrategy) {
-        super(severity, positioningStrategy);
+class DiagnosticFactory4<E : PsiElement , A:Any, B:Any, C:Any, D:Any> protected constructor(
+    severity: Severity,
+    positioningStrategy: PositioningStrategy<E>
+) :
+    DiagnosticFactoryWithPsiElement<E, DiagnosticWithParameters4<E, A, B, C, D> >(severity, positioningStrategy) {
+    fun on(element: E, a: A, b: B, c: C, d: D): ParametrizedDiagnostic<E> {
+        return DiagnosticWithParameters4(element, a, b, c, d, this, severity)
     }
 
-    @NotNull
-    public static <T extends PsiElement, A, B, C, D> DiagnosticFactory4<T, A, B, C, D> create(Severity severity) {
-        return create(severity, PositioningStrategies.DEFAULT);
-    }
-
-    @NotNull
-    public static <T extends PsiElement, A, B, C, D> DiagnosticFactory4<T, A, B, C, D> create(Severity severity, PositioningStrategy<? super T> positioningStrategy) {
-        return new DiagnosticFactory4<>(severity, positioningStrategy);
-    }
-
-    @NotNull
-    public ParametrizedDiagnostic<E> on(@NotNull E element, @NotNull A a, @NotNull B b, @NotNull C c, @NotNull D d) {
-        return new DiagnosticWithParameters4<>(element, a, b, c, d,this, getSeverity());
+    companion object {
+        @JvmStatic
+        fun <T : PsiElement , A:Any, B:Any, C:Any, D:Any> create(severity: Severity): DiagnosticFactory4<T, A, B, C, D> {
+            return create(severity, PositioningStrategies.DEFAULT)
+        }
+        @JvmStatic
+        fun <T : PsiElement , A:Any, B:Any, C:Any, D:Any> create(
+            severity: Severity,
+            positioningStrategy: PositioningStrategy<T>
+        ): DiagnosticFactory4<T, A, B, C, D> {
+            return DiagnosticFactory4(severity, positioningStrategy)
+        }
     }
 }

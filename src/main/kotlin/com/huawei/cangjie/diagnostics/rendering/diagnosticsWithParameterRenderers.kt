@@ -3,7 +3,7 @@ package com.huawei.cangjie.diagnostics.rendering
 import com.huawei.cangjie.diagnostics.DiagnosticWithParameters1
 import com.huawei.cangjie.diagnostics.DiagnosticWithParameters4
 
-class DiagnosticWithParametersMultiRenderer<A>(
+class DiagnosticWithParametersMultiRenderer<A:Any>(
     message: String,
     private val renderer: MultiRenderer<A>
 ) : AbstractDiagnosticWithParametersRenderer<DiagnosticWithParameters1<*, A>>(message) {
@@ -12,12 +12,12 @@ class DiagnosticWithParametersMultiRenderer<A>(
         return renderer.render(diagnostic.a)
     }
 }
-class DiagnosticWithParameters4Renderer<A : Any, B : Any, C : Any, D : Any>(
+class DiagnosticWithParameters4Renderer<A :Any , B :Any , C :Any, D :Any>(
     message: String,
-    private val rendererForA: DiagnosticParameterRenderer<A>?,
-    private val rendererForB: DiagnosticParameterRenderer<B>?,
-    private val rendererForC: DiagnosticParameterRenderer<C>?,
-    private val rendererForD: DiagnosticParameterRenderer<D>?,
+    private val rendererForA: DiagnosticParameterRenderer<A> ?,
+    private val rendererForB: DiagnosticParameterRenderer<B> ?,
+    private val rendererForC: DiagnosticParameterRenderer<C> ?,
+    private val rendererForD: DiagnosticParameterRenderer<D> ?,
 ) : AbstractDiagnosticWithParametersRenderer<DiagnosticWithParameters4<*, A, B, C, D>>(message) {
 
     override fun renderParameters(diagnostic: DiagnosticWithParameters4<*, A, B, C, D>): Array<out Any?> {

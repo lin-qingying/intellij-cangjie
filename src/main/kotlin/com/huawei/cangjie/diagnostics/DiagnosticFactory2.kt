@@ -1,30 +1,30 @@
-package com.huawei.cangjie.diagnostics;
+package com.huawei.cangjie.diagnostics
+
+import com.huawei.cangjie.descriptors.PositioningStrategies
+import com.intellij.psi.PsiElement
 
 
-
-import com.huawei.cangjie.descriptors.PositioningStrategies;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-
-public class DiagnosticFactory2<E extends PsiElement, A, B> extends DiagnosticFactoryWithPsiElement<E, DiagnosticWithParameters2<E, A, B>> {
-
-    @NotNull
-    public ParametrizedDiagnostic<E> on(@NotNull E element, @NotNull A a, @NotNull B b) {
-        return new DiagnosticWithParameters2<>(element, a, b, this, getSeverity());
+class DiagnosticFactory2<E : PsiElement , A:Any, B:Any> private constructor(
+    severity: Severity,
+    positioningStrategy: PositioningStrategy<E>
+) :
+    DiagnosticFactoryWithPsiElement<E, DiagnosticWithParameters2<E, A, B> >(severity, positioningStrategy) {
+    fun on(element: E, a: A, b: B): ParametrizedDiagnostic<E> {
+        return DiagnosticWithParameters2(element, a, b, this, severity)
     }
 
-    private DiagnosticFactory2(Severity severity, PositioningStrategy<? super E> positioningStrategy) {
-        super(severity, positioningStrategy);
-    }
+    companion object {
+        @JvmStatic
+        fun <T : PsiElement , A:Any, B:Any> create(
+            severity: Severity,
+            positioningStrategy: PositioningStrategy<T>
+        ): DiagnosticFactory2<T, A, B> {
+            return DiagnosticFactory2(severity, positioningStrategy)
+        }
 
-    @NotNull
-    public static <T extends PsiElement, A, B> DiagnosticFactory2<T, A, B> create(Severity severity, PositioningStrategy<? super T> positioningStrategy) {
-        return new DiagnosticFactory2<>(severity, positioningStrategy);
+        @JvmStatic
+        fun <T : PsiElement , A:Any, B:Any> create(severity: Severity): DiagnosticFactory2<T, A, B> {
+            return DiagnosticFactory2(severity, PositioningStrategies.DEFAULT)
+        }
     }
-
-    @NotNull
-    public static <T extends PsiElement, A, B> DiagnosticFactory2<T, A, B> create(Severity severity) {
-        return new DiagnosticFactory2<>(severity, PositioningStrategies.DEFAULT);
-    }
-
 }

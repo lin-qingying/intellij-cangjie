@@ -1,24 +1,14 @@
-package com.huawei.cangjie.diagnostics.rendering;
+package com.huawei.cangjie.diagnostics.rendering
 
-import com.huawei.cangjie.diagnostics.Diagnostic;
-import org.jetbrains.annotations.NotNull;
+import com.huawei.cangjie.diagnostics.Diagnostic
 
-public class SimpleDiagnosticRenderer implements DiagnosticRenderer<Diagnostic> {
-    private final String message;
-
-    public SimpleDiagnosticRenderer(@NotNull String message) {
-        this.message = message;
+class SimpleDiagnosticRenderer(private val message: String) :
+    DiagnosticRenderer<Diagnostic > {
+    override fun render(diagnostic: Diagnostic): String {
+        return message
     }
 
-    @NotNull
-    @Override
-    public String render(@NotNull Diagnostic diagnostic) {
-        return message;
-    }
-
-    @NotNull
-    @Override
-    public Object[] renderParameters(@NotNull Diagnostic diagnostic) {
-        return new Object[0];
+    override fun renderParameters(diagnostic: Diagnostic): Array<Any?> {
+        return arrayOfNulls(0)
     }
 }
