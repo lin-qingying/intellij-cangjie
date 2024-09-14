@@ -29,4 +29,9 @@ interface BindingTrace : DiagnosticSink {
      */
     fun recordType(expression: CjExpression, type: CangJieType?)
     operator fun <K, V> get(slice: ReadOnlySlice<K, V>, key: K): V?
+
+//    fun clear() {
+//
+//
+//    }
 }

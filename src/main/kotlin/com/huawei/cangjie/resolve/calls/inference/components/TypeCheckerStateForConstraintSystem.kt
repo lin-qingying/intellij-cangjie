@@ -28,6 +28,7 @@ abstract class TypeCheckerStateForConstraintSystem(
     abstract val isInferenceCompatibilityEnabled: Boolean
     // super and sub type isSingleClassifierType
     abstract fun addUpperConstraint(typeVariable: TypeConstructorMarker, superType: CangJieTypeMarker)
+    abstract fun addEqualityConstraint(typeVariable: TypeConstructorMarker, type: CangJieTypeMarker)
 
     abstract fun isMyTypeVariable(type: SimpleTypeMarker): Boolean
 

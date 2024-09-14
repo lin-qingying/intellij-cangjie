@@ -15,6 +15,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValue;
 import com.huawei.cangjie.resolve.calls.tower.CangJieResolutionCallbacksImpl;
 import com.huawei.cangjie.resolve.scopes.*;
+import com.huawei.cangjie.resolve.source.PsiSourceElement;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.ErrorUtils;
 import com.huawei.cangjie.types.error.ErrorTypeKind;
@@ -22,7 +23,6 @@ import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.huawei.cangjie.utils.slicedMap.WritableSlice;
 import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,8 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.huawei.cangjie.types.expressions.CoercionStrategy.COERCION_TO_UNIT;
-import static com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;
-import static com.huawei.cangjie.types.util.TypeUtils.UNIT_EXPECTED_TYPE;
+import static com.huawei.cangjie.types.util.TypeUtils.*;
 
 public class ExpressionTypingServices {
     private final ExpressionTypingFacade expressionTypingFacade;
@@ -135,8 +134,9 @@ public class ExpressionTypingServices {
         return type != null ? type : ErrorUtils.createErrorType(ErrorTypeKind.NO_RECORDED_TYPE, expression.getText());
     }
 
+
     @NotNull
-    public CangJieTypeInfo getTypeInfo(@NotNull CjExpression expression, @NotNull ResolutionContext resolutionContext) {
+    public CangJieTypeInfo getTypeInfo(@NotNull CjExpression expression, @NotNull ResolutionContext resolutionContext ) {
         return expressionTypingFacade.getTypeInfo(expression, ExpressionTypingContext.newContext(resolutionContext));
     }
 
@@ -160,7 +160,7 @@ public class ExpressionTypingServices {
                 );
 
 
-        if (context.expectedType != NO_EXPECTED_TYPE) {
+        if (context.expectedType != NO_EXPECTED_TYPE && context.expectedType != EXPRESSION_TYPE) {
             CangJieType expectedType;
             if (isUnitExpectedType) {
                 expectedType = UNIT_EXPECTED_TYPE;
@@ -176,6 +176,7 @@ public class ExpressionTypingServices {
 //            CangJieTypeInfo typeInfo = createDontCareTypeInfoForNILambda(statementExpression, context);
 //            if (typeInfo != null) return typeInfo;
 //        }
+        context = context.replaceExpectedType(NO_EXPECTED_TYPE);
 
         if (!(statementExpression instanceof CjReturnExpression)) {
             var parentDeclaration =
@@ -184,7 +185,18 @@ public class ExpressionTypingServices {
                             CjDeclaration.class
                     ));
             if (parentDeclaration instanceof FunctionDescriptorImpl) {
-                context = context.replaceExpectedType(parentDeclaration.getReturnType());
+                if (parentDeclaration.getReturnType() != null && !CangJieBuiltIns.isUnit(parentDeclaration.getReturnType())) {
+//                    context = context.replaceExpectedType(parentDeclaration.getReturnType());
+//fix 修复对于该语句执行时，方法返回值还为推断时出现的类型一致
+                    if (parentDeclaration.getSource() instanceof PsiSourceElement && ((PsiSourceElement) parentDeclaration.getSource()).getPsi() instanceof CjFunction) {
+
+                        if (!(((CjFunction) ((PsiSourceElement) parentDeclaration.getSource()).getPsi()).getTypeReference() == null
+                        )) {
+                            context = context.replaceExpectedType(parentDeclaration.getReturnType());
+
+                        }
+                    }
+                }
             }
         }
         CangJieTypeInfo result = blockLevelVisitor.getTypeInfo(statementExpression, context, true);
@@ -229,11 +241,8 @@ public class ExpressionTypingServices {
 
         ExpressionTypingInternals blockLevelVisitor = new ExpressionTypingVisitorDispatcher.ForBlock(
                 expressionTypingComponents, annotationChecker, scope);
-        ExpressionTypingContext newContext = context.replaceScope(scope).replaceExpectedType(NO_EXPECTED_TYPE);
-
-
-
-
+//        ExpressionTypingContext newContext = context.replaceScope(scope).replaceExpectedType(NO_EXPECTED_TYPE);
+        ExpressionTypingContext newContext = context.replaceScope(scope).replaceExpectedType(EXPRESSION_TYPE);
 
 
         CangJieTypeInfo result = TypeInfoFactoryKt.noTypeInfo(context);
@@ -255,7 +264,7 @@ public class ExpressionTypingServices {
                 continue;
             }
             if (!iterator.hasNext()) {
-//                最后一条语句也需要检查类型，虽然在前面如果有return语句而无法到达，但是检查类型是必要的
+//                最后一条语句也需要检查类型，虽然在前面如果有return语句而无法到达，但是检查类型是必要的  该分支一定会执行
                 result = getTypeOfLastExpressionInBlock(
                         statementExpression, newContext.replaceExpectedType(context.expectedType), coercionStrategyForLastExpression,
                         blockLevelVisitor);
@@ -268,8 +277,10 @@ public class ExpressionTypingServices {
                             expressionTypingComponents.languageVersionSettings*/));
                 }
             } else {
+
                 result = blockLevelVisitor
                         .getTypeInfo(statementExpression, newContext.replaceContextDependency(ContextDependency.INDEPENDENT), true);
+
             }
 
             DataFlowInfo newDataFlowInfo = result.getDataFlowInfo();
@@ -330,7 +341,6 @@ public class ExpressionTypingServices {
                 LexicalScopeKind.CODE_BLOCK);
 
 
-
         CangJieTypeInfo r;
         if (block.isEmpty()) {
             r = expressionTypingComponents.dataFlowAnalyzer
@@ -354,7 +364,8 @@ public class ExpressionTypingServices {
         boolean blockBody = function.hasBlockBody();
         ExpressionTypingContext newContext =
                 blockBody
-                        ? context.replaceExpectedType(NO_EXPECTED_TYPE)
+//                        ? context.replaceExpectedType(NO_EXPECTED_TYPE)
+                        ? context.replaceExpectedType(EXPRESSION_TYPE)
                         : context;
 
         expressionTypingFacade.getTypeInfo(bodyExpression, newContext, blockBody);

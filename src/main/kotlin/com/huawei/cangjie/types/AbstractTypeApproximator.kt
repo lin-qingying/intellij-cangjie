@@ -292,6 +292,7 @@ abstract class AbstractTypeApproximator(
                 if (!toSuper) return type.defaultResult(toSuper = false)
                 val resultType = commonSuperType(newTypes)
                 approximateToSuperType(resultType, conf) ?: resultType
+//                type
             }
         }
 

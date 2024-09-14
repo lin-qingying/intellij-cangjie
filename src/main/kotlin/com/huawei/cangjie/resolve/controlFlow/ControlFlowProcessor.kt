@@ -899,7 +899,7 @@ class ControlFlowProcessor(
                 when (current) {
                     jumpTarget -> return false
                     is CjTryExpression -> return true
-                    else -> current = current.parent
+                    else -> current = current?.parent
                 }
             }
         }

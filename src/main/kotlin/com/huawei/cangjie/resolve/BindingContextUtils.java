@@ -140,4 +140,15 @@ public class BindingContextUtils {
                                                              @NotNull PsiElement psiElement, @NotNull SimpleFunctionDescriptor function) {
         trace.record(BindingContext.FUNCTION, psiElement, function);
     }
+    public static <K,V> void removeBySlice( ReadOnlySlice<K,V> slice,K key,  @NotNull BindingTrace trace) {
+        if(trace instanceof DelegatingBindingTrace){
+            ((DelegatingBindingTrace) trace).removeBySlice(slice,key);
+        }
+    }
+
+    public static void remove(CjElement key,@NotNull BindingTrace trace){
+        if(trace instanceof DelegatingBindingTrace){
+           ((DelegatingBindingTrace) trace).remove(key);
+        }
+    }
 }

@@ -1070,7 +1070,7 @@ private fun ASTNode.suppressBinaryExpressionIndent(): Boolean {
         psi = psi.parent as CjBinaryExpression
     }
 
-    return psi.parent.node?.elementType == CONDITION
+    return psi.parent?.node?.elementType == CONDITION
 }
 
 private fun getAlignmentForChildInParenthesis(

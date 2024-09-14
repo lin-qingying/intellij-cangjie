@@ -19,7 +19,7 @@ import com.intellij.psi.util.PsiTreeUtil
 
 fun BindingTrace.recordScope(scope: LexicalScope, element: CjElement?) {
     if (element != null) {
-//        TODO()
+
         record(LEXICAL_SCOPE, element, scope.takeSnapshot() as LexicalScope)
     }
 }

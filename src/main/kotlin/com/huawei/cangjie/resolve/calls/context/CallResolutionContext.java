@@ -40,6 +40,7 @@ public abstract class CallResolutionContext<Context extends CallResolutionContex
             boolean isAnnotationContext,
             boolean isDebuggerContext,
             boolean collectAllCandidates,
+            boolean isSaveTypeInfo,
             @NotNull CallPosition callPosition,
             @NotNull Function1<CjExpression, CjExpression> expressionContextProvider,
             @NotNull LanguageVersionSettings languageVersionSettings,
@@ -47,7 +48,7 @@ public abstract class CallResolutionContext<Context extends CallResolutionContex
             @NotNull InferenceSession inferenceSession
     ) {
         super(trace, scope, expectedType, dataFlowInfo, contextDependency, resolutionResultsCache,
-                statementFilter, isAnnotationContext, isDebuggerContext, collectAllCandidates, callPosition, expressionContextProvider,
+                statementFilter, isAnnotationContext, isDebuggerContext, collectAllCandidates,isSaveTypeInfo, callPosition, expressionContextProvider,
                 languageVersionSettings,
                 dataFlowValueFactory, inferenceSession);
         this.call = call;

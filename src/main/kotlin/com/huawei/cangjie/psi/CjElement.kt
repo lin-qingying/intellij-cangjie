@@ -77,7 +77,7 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
         return CangJieReferenceProvidersService.getReferencesFromProviders(this)
     }
 
-    override fun getParent(): PsiElement {
+    override fun getParent(): PsiElement? {
         val substitute: PsiElement? = this.parentSubstitute
         return substitute ?: super.getParent()
     }

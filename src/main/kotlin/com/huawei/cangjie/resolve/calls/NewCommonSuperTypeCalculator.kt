@@ -5,17 +5,22 @@ package com.huawei.cangjie.resolve.calls
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.AbstractFlexibilityChecker.hasDifferentFlexibilityAtDepth
 import com.huawei.cangjie.types.AbstractTypeChecker.hasPathByNotMarkedNullableNodes
+import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.error.MultipleSupertypeTypeInferenceFailure
+
 import com.huawei.cangjie.types.model.*
 
 //检索最小公共父类
 object NewCommonSuperTypeCalculator {
+//    fun commonSuperType(types: List<CangJieTypeMarker>): CangJieTypeMarker{
+//        return commonSuperType(types)
+//    }
     fun TypeSystemCommonSuperTypesContext.commonSuperType(types: List<CangJieTypeMarker>): CangJieTypeMarker {
 
         val type = commonSuperType(types, true)
 
         if( type is CangJieType  && type .constructor is IntersectionTypeConstructor){
-            return MultipleSupertypeTypeInferenceFailure(type)
+            return MultipleSupertypeTypeInferenceFailure (type)
         }
         return type.replaceCustomAttributes(unionTypeAttributes(types))
     }

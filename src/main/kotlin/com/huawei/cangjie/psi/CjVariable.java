@@ -1,5 +1,6 @@
 package com.huawei.cangjie.psi;
 
+import com.huawei.cangjie.CjNodeTypes;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.psi.stubs.CangJieVariableStub;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
@@ -7,6 +8,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
 
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -62,8 +64,34 @@ public class CjVariable extends CjTypeParameterListOwnerStub<CangJieVariableStub
 
     @Override
     public @Nullable CjTypeReference getReceiverTypeReference() {
+        CangJieVariableStub stub = getStub();
+        if (stub != null) {
+            if (!stub.isExtension()) {
+                return null;
+            }
+            else {
+                return getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE);
+            }
+        }
+        return getReceiverTypeRefByTree();
+    }
+
+    @Nullable
+    private CjTypeReference getReceiverTypeRefByTree() {
+        ASTNode node = getNode().getFirstChildNode();
+        while (node != null) {
+            IElementType tt = node.getElementType();
+            if (tt == CjTokens.COLON) break;
+
+            if (tt == CjNodeTypes.TYPE_REFERENCE) {
+                return (CjTypeReference) node.getPsi();
+            }
+            node = node.getTreeNext();
+        }
+
         return null;
     }
+
     public boolean isTopLevel() {
         CangJieVariableStub stub = getStub();
         if (stub != null) {

@@ -94,18 +94,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
                 }
             }
 
-            Function0<List<VariableDescriptor>> destructuringVariablesAction = null;
-            if (unsubstitutedValueParameter instanceof ValueParameterDescriptorImpl.WithDestructuringDeclaration) {
-                final List<VariableDescriptor> destructuringVariables =
-                        ((ValueParameterDescriptorImpl.WithDestructuringDeclaration) unsubstitutedValueParameter)
-                                .getDestructuringVariables();
-                destructuringVariablesAction = new Function0<List<VariableDescriptor>>() {
-                    @Override
-                    public List<VariableDescriptor> invoke() {
-                        return destructuringVariables;
-                    }
-                };
-            }
+            Function0<List<VariableDescriptor>> destructuringVariablesAction = getDestructuringVariablesAction(unsubstitutedValueParameter);
 
             result.add(
                     ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
@@ -126,6 +115,17 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
             );
         }
         return result;
+    }
+
+    private static @Nullable Function0<List<VariableDescriptor>> getDestructuringVariablesAction(ValueParameterDescriptor unsubstitutedValueParameter) {
+        Function0<List<VariableDescriptor>> destructuringVariablesAction = null;
+        if (unsubstitutedValueParameter instanceof ValueParameterDescriptorImpl.WithDestructuringDeclaration) {
+            final List<VariableDescriptor> destructuringVariables =
+                    ((ValueParameterDescriptorImpl.WithDestructuringDeclaration) unsubstitutedValueParameter)
+                            .getDestructuringVariables();
+            destructuringVariablesAction = () -> destructuringVariables;
+        }
+        return destructuringVariablesAction;
     }
 
     public void setExpect(boolean isExpect) {

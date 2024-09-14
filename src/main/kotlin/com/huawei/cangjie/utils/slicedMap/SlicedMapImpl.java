@@ -30,6 +30,11 @@ public class SlicedMapImpl implements MutableSlicedMap {
         this.debugName = name;
     }
 
+    @Override
+    public String toString() {
+        return debugName;
+    }
+
     @Nullable
     @Override
     public <K, V> V get(@NotNull ReadOnlySlice<K, V> slice, K key) {
@@ -126,5 +131,26 @@ public class SlicedMapImpl implements MutableSlicedMap {
         });
 
         return builder.build();
+    }
+
+    /**
+     * 删除某个ReadOnlySlice
+     */
+    public <K, V> void removeBySlice(@NotNull ReadOnlySlice<K, V> slice, K key ){
+        if(map != null){
+            KeyFMap holder = map.get(key);
+            if (holder == null) {
+                holder = KeyFMap.EMPTY_MAP;
+            }
+
+
+            System.out.println();
+        }
+    }
+
+
+    @Override
+    public <K> void remove(K key) {
+        map.remove(key);
     }
 }

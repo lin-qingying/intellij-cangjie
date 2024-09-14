@@ -620,7 +620,11 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         CallExpressionResolver callExpressionResolver = components.callExpressionResolver;
         return callExpressionResolver.getQualifiedExpressionTypeInfo(expression, context);
     }
-
+    @Override
+    public CangJieTypeInfo visitVariable(@NotNull CjVariable variable, ExpressionTypingContext context) {
+        components.localVariableResolver.process(variable, context, context.scope, facade);
+        return declarationInIllegalContext(variable, context);
+    }
     @Override
     public CangJieTypeInfo visitParenthesizedExpression(@NotNull CjParenthesizedExpression expression, ExpressionTypingContext context) {
         CjExpression innerExpression = expression.getExpression();
@@ -853,6 +857,19 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         return result;
     }
 
+    @NotNull
+    private static CangJieTypeInfo declarationInIllegalContext(
+            @NotNull CjDeclaration declaration,
+            @NotNull ExpressionTypingContext context
+    ) {
+        context.trace.report(DECLARATION_IN_ILLEGAL_CONTEXT.on(declaration));
+        return TypeInfoFactoryKt.noTypeInfo(context);
+    }
+
+    @Override
+    public CangJieTypeInfo visitDeclaration(@NotNull CjDeclaration dcl, ExpressionTypingContext context) {
+        return declarationInIllegalContext(dcl, context);
+    }
 //    @NotNull
 //        /*package*/ CangJieTypeInfo resolveImplicitArrayAccessSetMethod(
 //            @NotNull CjArrayAccessExpression arrayAccessExpression,

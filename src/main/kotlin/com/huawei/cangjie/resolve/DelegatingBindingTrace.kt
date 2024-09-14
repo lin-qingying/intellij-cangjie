@@ -1,7 +1,10 @@
 package com.huawei.cangjie.resolve
 
 import com.google.common.collect.ImmutableMap
-import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.BindingContextSuppressCache
+import com.huawei.cangjie.descriptors.BindingTrace
+import com.huawei.cangjie.descriptors.CangJieSuppressCache
+import com.huawei.cangjie.descriptors.MutableDiagnosticsWithSuppression
 import com.huawei.cangjie.diagnostics.Diagnostic
 import com.huawei.cangjie.diagnostics.DiagnosticSink
 import com.huawei.cangjie.diagnostics.Diagnostics
@@ -9,6 +12,7 @@ import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.huawei.cangjie.utils.slicedMap.*
+import com.intellij.util.keyFMap.KeyFMap
 import org.jetbrains.annotations.TestOnly
 
 open class DelegatingBindingTrace(
@@ -38,10 +42,7 @@ open class DelegatingBindingTrace(
     else
         SlicedMapImpl(allowSliceRewrite,name)
     override val bindingContext = MyBindingContext()
-    override fun <K> record(slice: WritableSlice<K, Boolean>, key: K) {
-        record(slice, key, true)
 
-    }
     fun moveAllMyDataTo(trace: BindingTrace) {
         addOwnDataTo(trace, null, true)
         clear()
@@ -80,11 +81,21 @@ open class DelegatingBindingTrace(
         }
     }
 
+    /**
+     * 删除某个ReadOnlySlice
+     */
+    fun <K, V> removeBySlice(slice: ReadOnlySlice<K, V>, key: K) {
+        map.removeBySlice(slice, key)
+    }
+
     open fun clear() {
         map.clear()
         mutableDiagnostics?.clear()
     }
 
+    open fun <K> remove(key:K){
+        map.remove(key)
+    }
     override fun recordType(expression: CjExpression, type: CangJieType?) {
         var typeInfo = get(BindingContext.EXPRESSION_TYPE_INFO, expression)
         if (typeInfo == null) {
@@ -131,7 +142,9 @@ open class DelegatingBindingTrace(
     override fun <K, V> record(slice: WritableSlice<K, V>, key: K, value: V) {
         map.put(slice, key, value)
     }
-
+    override fun <K> record(slice: WritableSlice<K, Boolean>, key: K) {
+        record(slice, key, true)
+    }
     override fun <K, V> get(slice: ReadOnlySlice<K, V>, key: K): V? =
         selfGet(slice, key) ?: parentContext.get(slice, key)
 

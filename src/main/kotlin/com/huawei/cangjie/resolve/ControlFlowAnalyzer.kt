@@ -141,7 +141,11 @@ class ControlFlowAnalyzer(
                 trace
             )
             functionReturnResolver.resolveFunctionReturn(function, context)?.let {
-                functionDescriptor.setReturnType(it)
+
+                if(it != functionDescriptor.returnType){
+                    functionDescriptor.setReturnType(it)
+
+                }
             }
 
 

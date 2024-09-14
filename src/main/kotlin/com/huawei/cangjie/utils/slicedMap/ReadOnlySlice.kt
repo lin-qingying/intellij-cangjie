@@ -102,6 +102,7 @@ interface MutableSlicedMap : SlicedMap {
 
     fun clear()
 
+    fun <K> remove(key: K)
     @TestOnly
     fun <K, V> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V>
 }

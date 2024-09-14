@@ -56,28 +56,59 @@ class ConstraintInjector(
         processConstraints(c, typeCheckerState, skipProperEqualityConstraints = false)
     }
 
+    private fun Context.addInitialEqualityConstraintThroughSubtyping(
+        a: CangJieTypeMarker,
+        b: CangJieTypeMarker,
+        typeCheckerState: TypeCheckerStateForConstraintInjector
+    ) {
+        updateAllowedTypeDepth(this, a)
+        updateAllowedTypeDepth(this, b)
+        addSubTypeConstraintAndIncorporateIt(this, a, b, typeCheckerState)
+        addSubTypeConstraintAndIncorporateIt(this, b, a, typeCheckerState)
+    }
+
     fun addInitialEqualityConstraint(
         c: Context,
         a: CangJieTypeMarker,
         b: CangJieTypeMarker,
         position: ConstraintPosition
     ) = with(c) {
-//        val (typeVariable, equalType) = when {
-//            a.typeConstructor(c) is TypeVariableTypeConstructorMarker -> a to b
-//            b.typeConstructor(c) is TypeVariableTypeConstructorMarker -> b to a
-//            else -> return
-//        }
-//        val initialConstraint = InitialConstraint(typeVariable, equalType, EQUALITY, position).also { c.addInitialConstraint(it) }
-//        val typeCheckerState = TypeCheckerStateForConstraintInjector(c, IncorporationConstraintPosition(initialConstraint))
-//
-//        // We add constraints like `T? == Foo!` in the old way
-//        if (!typeVariable.isSimpleType() || typeVariable.isMarkedOption()) {
-//            addInitialEqualityConstraintThroughSubtyping(typeVariable, equalType, typeCheckerState)
-//            return
-//        }
-//
-//        updateAllowedTypeDepth(c, equalType)
-//        addEqualityConstraintAndIncorporateIt(c, typeVariable, equalType, typeCheckerState)
+        val (typeVariable, equalType) = when {
+            a.typeConstructor(c) is TypeVariableTypeConstructorMarker -> a to b
+            b.typeConstructor(c) is TypeVariableTypeConstructorMarker -> b to a
+            else -> return
+        }
+        val initialConstraint = InitialConstraint(typeVariable, equalType, ConstraintKind.EQUALITY, position).also {
+            c.addInitialConstraint(it)
+        }
+        val typeCheckerState =
+            TypeCheckerStateForConstraintInjector(c, IncorporationConstraintPosition(initialConstraint))
+
+        // We add constraints like `T? == Foo!` in the old way
+        if (!typeVariable.isSimpleType() || typeVariable.isNullableType()) {
+            addInitialEqualityConstraintThroughSubtyping(typeVariable, equalType, typeCheckerState)
+            return
+        }
+
+        updateAllowedTypeDepth(c, equalType)
+        addEqualityConstraintAndIncorporateIt(c, typeVariable, equalType, typeCheckerState)
+    }
+
+    private fun addEqualityConstraintAndIncorporateIt(
+        c: Context,
+        typeVariable: CangJieTypeMarker,
+        equalType: CangJieTypeMarker,
+        typeCheckerState: TypeCheckerStateForConstraintInjector
+    ) {
+        typeCheckerState.setConstrainingTypesToPrintDebugInfo(typeVariable, equalType)
+        typeCheckerState.addEqualityConstraint(typeVariable.typeConstructor(c), equalType)
+
+        // Missed constraints are constraints which we skipped in the constraints processor by mistake (incorrect optimization)
+        val missedConstraints = processConstraints(c, typeCheckerState)
+
+        if (missedConstraints != null) {
+            c.addMissedConstraints(typeCheckerState.position, missedConstraints)
+        }
     }
 
     private fun updateAllowedTypeDepth(c: Context, initialType: CangJieTypeMarker) = with(c) {
@@ -299,14 +330,18 @@ class ConstraintInjector(
             typeVariable: TypeConstructorMarker,
             subType: CangJieTypeMarker,
             isFromNullabilityConstraint: Boolean
-        )= addConstraint(typeVariable, subType,ConstraintKind. LOWER, isFromNullabilityConstraint)
+        ) = addConstraint(typeVariable, subType, ConstraintKind.LOWER, isFromNullabilityConstraint)
 
-        override val isInferenceCompatibilityEnabled = languageVersionSettings.supportsFeature(LanguageFeature.InferenceCompatibility)
+        override fun addEqualityConstraint(typeVariable: TypeConstructorMarker, type: CangJieTypeMarker) =
+            addConstraint(typeVariable, type, ConstraintKind.EQUALITY, false)
 
-        override fun addUpperConstraint(typeVariable: TypeConstructorMarker, superType: CangJieTypeMarker)   =
-        addConstraint(typeVariable, superType,ConstraintKind. UPPER)
+        override val isInferenceCompatibilityEnabled =
+            languageVersionSettings.supportsFeature(LanguageFeature.InferenceCompatibility)
 
-        override fun isMyTypeVariable(type: SimpleTypeMarker): Boolean  =
+        override fun addUpperConstraint(typeVariable: TypeConstructorMarker, superType: CangJieTypeMarker) =
+            addConstraint(typeVariable, superType, ConstraintKind.UPPER)
+
+        override fun isMyTypeVariable(type: SimpleTypeMarker): Boolean =
             c.allTypeVariables.containsKey(type.typeConstructor().unwrapStubTypeVariableConstructor())
 
         override fun runForkingPoint(block: ForkPointContext.() -> Unit): Boolean {
@@ -523,7 +558,9 @@ class ConstraintInjector(
                 if (isIncorporatingConstraintFromDeclaredUpperBound) position.copy(isFromDeclaredUpperBound = true) else position
 
             val newConstraint = Constraint(
-                kind, targetType, position,
+                if (position.from is ExpectedTypeConstraintPosition<*>) ConstraintKind.EQUALITY else kind,
+                targetType,
+                position,
                 derivedFrom = derivedFrom,
                 isNullabilityConstraint = isNullabilityConstraint,
                 inputTypePositionBeforeIncorporation = inputTypePosition

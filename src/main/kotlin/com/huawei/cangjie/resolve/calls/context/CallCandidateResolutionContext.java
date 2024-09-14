@@ -44,6 +44,7 @@ public final class CallCandidateResolutionContext<D extends CallableDescriptor> 
             boolean isAnnotationContext,
             boolean isDebuggerContext,
             boolean collectAllCandidates,
+            boolean isSaveTypeInfo,
             @NotNull CallPosition callPosition,
             @NotNull Function1<CjExpression, CjExpression> expressionContextProvider,
             @NotNull LanguageVersionSettings languageVersionSettings,
@@ -52,7 +53,7 @@ public final class CallCandidateResolutionContext<D extends CallableDescriptor> 
     ) {
         super(trace, scope, call, expectedType, dataFlowInfo, contextDependency, checkArguments, resolutionResultsCache,
                 dataFlowInfoForArguments, statementFilter, isAnnotationContext, isDebuggerContext,
-                collectAllCandidates, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                collectAllCandidates,isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
                 inferenceSession);
         this.candidateCall = candidateCall;
         this.tracing = tracing;
@@ -70,7 +71,7 @@ public final class CallCandidateResolutionContext<D extends CallableDescriptor> 
                 context.resolutionResultsCache, context.dataFlowInfoForArguments,
                 context.statementFilter,
                 candidateResolveMode, context.isAnnotationContext, context.isDebuggerContext, context.collectAllCandidates,
-                context.callPosition, context.expressionContextProvider, context.languageVersionSettings, context.dataFlowValueFactory,
+                context.isSaveTypeInfo,       context.callPosition, context.expressionContextProvider, context.languageVersionSettings, context.dataFlowValueFactory,
                 context.inferenceSession);
     }
 
@@ -83,7 +84,7 @@ public final class CallCandidateResolutionContext<D extends CallableDescriptor> 
                 context.dataFlowInfo, context.contextDependency, context.checkArguments, context.resolutionResultsCache,
                 context.dataFlowInfoForArguments, context.statementFilter,
                 CandidateResolveMode.FULLY, context.isAnnotationContext, context.isDebuggerContext, context.collectAllCandidates,
-                context.callPosition, context.expressionContextProvider, context.languageVersionSettings, context.dataFlowValueFactory,
+             context.isSaveTypeInfo,   context.callPosition, context.expressionContextProvider, context.languageVersionSettings, context.dataFlowValueFactory,
                 context.inferenceSession);
     }
 
@@ -97,6 +98,7 @@ public final class CallCandidateResolutionContext<D extends CallableDescriptor> 
             @NotNull ResolutionResultsCache resolutionResultsCache,
             @NotNull StatementFilter statementFilter,
             boolean collectAllCandidates,
+            boolean isSaveTypeInfo,
             @NotNull CallPosition callPosition,
             @NotNull Function1<CjExpression, CjExpression> expressionContextProvider,
             @NotNull LanguageVersionSettings languageVersionSettings,
@@ -106,7 +108,7 @@ public final class CallCandidateResolutionContext<D extends CallableDescriptor> 
         return new CallCandidateResolutionContext<>(
                 candidateCall, tracing, trace, scope, call, expectedType, dataFlowInfo, contextDependency, checkArguments,
                 resolutionResultsCache, dataFlowInfoForArguments, statementFilter,
-                candidateResolveMode, isAnnotationContext, isDebuggerContext, collectAllCandidates, callPosition, expressionContextProvider,
+                candidateResolveMode, isAnnotationContext, isDebuggerContext, collectAllCandidates,isSaveTypeInfo, callPosition, expressionContextProvider,
                 languageVersionSettings, dataFlowValueFactory, inferenceSession);
     }
 }

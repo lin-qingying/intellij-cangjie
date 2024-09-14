@@ -16,13 +16,13 @@ import org.jetbrains.annotations.TestOnly
 class BindingTraceContext(
     val map: MutableSlicedMap,
     filter: BindingTraceFilter,
-    val isValidationEnabled: Boolean
+    private val isValidationEnabled: Boolean
 ) : BindingTrace {
 
     companion object {
         private val VALIDATION = System.getProperty("cangjie.bindingTrace.validation").toBoolean()
-        val TRACK_REWRITES = false
-        val TRACK_WITH_STACK_TRACES = true
+        const val TRACK_REWRITES = false
+        const val TRACK_WITH_STACK_TRACES = true
     }
 
 
@@ -61,12 +61,12 @@ class BindingTraceContext(
 
 
         override fun <K, V> get(slice: ReadOnlySlice<K, V>, key: K): V? {
-            return this@BindingTraceContext.get(slice, key)
+            return this@BindingTraceContext[slice, key]
 
         }
 
         override fun <K, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
-            return this@BindingTraceContext.getKeys<K, V>(slice)
+            return this@BindingTraceContext.getKeys(slice)
 
         }
 
@@ -148,7 +148,7 @@ class BindingTraceContext(
                 EXPRESSION_TYPE_INFO,
                 expression
             )
-        typeInfo = if (typeInfo != null) typeInfo.replaceType(type) else createTypeInfo(type)
+        typeInfo = typeInfo?.replaceType(type) ?: createTypeInfo(type)
         record<CjExpression, CangJieTypeInfo?>(
             EXPRESSION_TYPE_INFO,
             expression,
@@ -160,4 +160,6 @@ class BindingTraceContext(
         return map.get(slice, key)
 
     }
+
+
 }

@@ -55,7 +55,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         return context.dataFlowInfo
     }
 
-    private fun resolveTryExpressionWithNewInference(
+    private fun  resolveTryExpressionWithNewInference(
         tryExpression: CjTryExpression,
         tryInputContext: ExpressionTypingContext
     ): CangJieTypeInfo {
@@ -72,7 +72,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                 components.languageVersionSettings
             )
         )
-        val dataFlowInfoAfterTry = tryOutputContext.dataFlowInfo
+//        val dataFlowInfoAfterTry = tryOutputContext.dataFlowInfo
 
         val catchBlocks = mutableListOf<CjExpression>()
         val catchClausesBlocksAndParameters = mutableListOf<Pair<CjExpression, VariableDescriptor>>()

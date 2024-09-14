@@ -1,8 +1,9 @@
 package com.huawei.cangjie.types.expressions;
 
-import com.huawei.cangjie.diagnostics.Errors;
 import com.huawei.cangjie.descriptors.PsiDiagnosticUtils;
+import com.huawei.cangjie.diagnostics.Errors;
 import com.huawei.cangjie.psi.*;
+import com.huawei.cangjie.psi.codeFragmentUtil.CodeFragmentUtilKt;
 import com.huawei.cangjie.resolve.AnnotationChecker;
 import com.huawei.cangjie.resolve.BindingContext;
 import com.huawei.cangjie.resolve.BindingContextUtils;
@@ -26,6 +27,8 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.IndexNotReadyException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.huawei.cangjie.types.util.TypeUtils.EXPRESSION_TYPE;
 
 public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJieTypeInfo, ExpressionTypingContext>
         implements ExpressionTypingInternals {
@@ -94,12 +97,22 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
 
     @Override
     public @NotNull CangJieTypeInfo getTypeInfo(@NotNull CjExpression expression, ExpressionTypingContext context) {
+
+
+        if (context.expectedType == EXPRESSION_TYPE) {
+            context = context.replaceExpectedType(components.builtIns.getAnyType());
+        }
         CangJieTypeInfo result = getTypeInfo(expression, context, this);
         annotationChecker.checkExpression(expression, context.trace);
         return result;
     }
 
     protected abstract ExpressionTypingVisitorForStatements getStatementVisitor(@NotNull ExpressionTypingContext context);
+
+    @Override
+    public CangJieTypeInfo visitVariable(@NotNull CjVariable variable, ExpressionTypingContext data) {
+        return basic.visitVariable(variable, data);
+    }
 
     @NotNull
     private CangJieTypeInfo getTypeInfo(@NotNull CjExpression expression, ExpressionTypingContext context, CjVisitor<CangJieTypeInfo, ExpressionTypingContext> visitor) {
@@ -135,17 +148,23 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
                     if (refinedType != result.getType()) {
                         result = result.replaceType(refinedType);
                     }
-
+//                    if (context.isSaveTypeInfo) {
                     context.trace.record(BindingContext.EXPRESSION_TYPE_INFO, expression, result);
+
+//                    }
                 } catch (ReenteringLazyValueComputationException e) {
 //                    context.trace.report(TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM.onError(expression));
                     result = TypeInfoFactoryKt.noTypeInfo(context);
                 }
+                if (context.isSaveTypeInfo) {
 
-                context.trace.record(BindingContext.PROCESSED, expression);
-
+                    context.trace.record(BindingContext.PROCESSED, expression);
+                }
                 BindingContextUtilsKt.recordScope(context.trace, context.scope, expression);
+//                if (context.isSaveTypeInfo) {
                 BindingContextUtilsKt.recordDataFlowInfo(context.replaceDataFlowInfo(result.getDataFlowInfo()), expression);
+
+//                }
 //                try {
 //                    // Here we have to resolve some types, so the following exception is possible
 //                    // Example: val a = ::a, fun foo() = ::foo
@@ -175,9 +194,9 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
     @Override
     public @NotNull CangJieTypeInfo getTypeInfo(@NotNull CjExpression expression, ExpressionTypingContext context, boolean isStatement) {
         ExpressionTypingContext newContext = context;
-//        if (CodeFragmentUtilKt.suppressDiagnosticsInDebugMode(expression)) {
-//            newContext = ExpressionTypingContext.newContext(context, true);
-//        }
+        if (CodeFragmentUtilKt.suppressDiagnosticsInDebugMode(expression)) {
+            newContext = ExpressionTypingContext.newContext(context, true);
+        }
         if (!isStatement) return getTypeInfo(expression, newContext);
         return getTypeInfo(expression, newContext, getStatementVisitor(newContext));
     }
@@ -230,11 +249,11 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-    //    @Override
-//    public CangJieTypeInfo visitThrowExpression(@NotNull CjThrowExpression expression, ExpressionTypingContext data) {
-//        return controlStructures.visitThrowExpression(expression, data);
-//    }
-//
+        @Override
+    public CangJieTypeInfo visitThrowExpression(@NotNull CjThrowExpression expression, ExpressionTypingContext data) {
+        return controlStructures.visitThrowExpression(expression, data);
+    }
+
     @Override
     public CangJieTypeInfo visitReturnExpression(@NotNull CjReturnExpression expression, ExpressionTypingContext data) {
         return controlStructures.visitReturnExpression(expression, data);

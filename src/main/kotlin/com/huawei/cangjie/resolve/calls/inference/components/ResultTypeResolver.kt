@@ -104,7 +104,7 @@ class ResultTypeResolver(
                         type.typeConstructor().isIntegerLiteralConstantTypeConstructor()
                     }
                 ) {
-                    // In K2, we don't return here ILT-based types immediately
+
                     return resultTypeFromEqualConstraint
                 }
             }

@@ -3,8 +3,51 @@ package com.huawei.cangjie.types.error
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
+import com.huawei.cangjie.types.util.replaceAnnotations
 import com.huawei.cangjie.types.util.supertypes
 
+
+//class MultipleSupertypeTypeInferenceFailure (
+//    private val type: CangJieType
+//
+//) : SimpleType()
+//{
+//    val intersectedTypes:List<CangJieType> get() {
+//        return type.constructor.supertypes.toList()
+//    }
+//
+//    override fun makeOptionalAsSpecified(newNullability: Boolean): SimpleType {
+//        return  this
+//    }
+//
+//    override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType {
+//   return  this
+//    }
+//
+//    @TypeRefinement
+//    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType {
+//        return  this
+//    }
+//
+//    override val constructor: TypeConstructor
+//        get() = type.constructor
+//    override val arguments: List<TypeProjection>
+//        get() = type.arguments
+//    override val attributes: TypeAttributes
+//        get() = type.attributes
+//    override val isMarkedOption: Boolean
+//        get() =type.isMarkedOption
+//    override val memberScope: MemberScope
+//        get() = type.memberScope
+//
+//    override fun equals(other: Any?): Boolean {
+//        return other == this.type
+//    }
+//
+//    override fun hashCode(): Int {
+//        return type.hashCode()
+//    }
+//}
 //当具有多个超类型时，推导类型失败使用该类
 class MultipleSupertypeTypeInferenceFailure(
     private val type: CangJieType
@@ -13,6 +56,14 @@ class MultipleSupertypeTypeInferenceFailure(
 {
     val intersectedTypes:List<CangJieType> get() {
         return type.constructor.supertypes.toList()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other == this.type
+    }
+
+    override fun hashCode(): Int {
+        return type.hashCode()
     }
 }
 open class ErrorType @JvmOverloads internal constructor(
