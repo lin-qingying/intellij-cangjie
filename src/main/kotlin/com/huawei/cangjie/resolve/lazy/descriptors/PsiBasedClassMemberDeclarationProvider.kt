@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.lazy.descriptors
 
 import com.google.common.collect.ArrayListMultimap
+import com.huawei.cangjie.builtins.StandardNames.MAIN
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.safeNameForLazyResolve
@@ -38,6 +39,7 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
         // This mutable state is only modified under inside the computable
         val allDeclarations = ArrayList<CjDeclaration>()
         val functions = ArrayListMultimap.create<Name, CjNamedFunction>()
+        val mainFunctions = ArrayListMultimap.create<Name, CjMainFunction>()
         val properties = ArrayListMultimap.create<Name, CjProperty>()
         val variables = ArrayListMultimap.create<Name, CjVariable>()
 
@@ -58,7 +60,8 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
             when (declaration) {
                 is CjNamedFunction ->
                     functions.put(declaration.safeNameForLazyResolve(), declaration)
-
+is CjMainFunction ->
+                    mainFunctions.put(MAIN, declaration)
                 is CjProperty ->
                     properties.put(declaration.safeNameForLazyResolve(), declaration)
 
@@ -126,6 +129,8 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
     override fun getFunctionDeclarations(name: Name): List<CjNamedFunction> =
         index().functions[name.safeNameForLazyResolve()].toList()
 
+    override fun getMainFunctionDeclarations(): Collection<CjMainFunction> =
+        index().mainFunctions[MAIN].toList()
     override fun getPropertyDeclarations(name: Name): List<CjProperty> =
         index().properties[name.safeNameForLazyResolve()].toList()
 

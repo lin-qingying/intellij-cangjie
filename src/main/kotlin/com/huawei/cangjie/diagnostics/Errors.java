@@ -316,6 +316,10 @@ public interface Errors {
     DiagnosticFactory2<CjImportDirective, FqName, DescriptorVisibility> IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory0<CjConstantExpression> FLOAT_LITERAL_CONFORMS_INFINITY = DiagnosticFactory0.create(WARNING);
     DiagnosticFactory0<CjConstantExpression> FLOAT_LITERAL_CONFORMS_ZERO = DiagnosticFactory0.create(WARNING);
+    DiagnosticFactory0<PsiElement> MAIN_FUNCTION_RETURN_TYPE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjParameterList> MAIN_FUNCTION_PARAMETER_COUNT = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjParameter> MAIN_FUNCTION_PARAMETER_TYPE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjMainFunction> MAIN_FUNCTION_NUMBER_ERROR = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactory2<PsiElement, FqName, FqName> MISSING_DEPENDENCY_SUPERCLASS = DiagnosticFactory2.create(ERROR);
 

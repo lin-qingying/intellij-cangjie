@@ -489,7 +489,7 @@ class FunctionDescriptorResolver(
 
     private fun initializeFunctionReturnTypeBasedOnFunctionBody(
         scope: LexicalScope,
-        function: CjNamedFunction,
+        function: CjFunction,
         functionDescriptor: SimpleFunctionDescriptorImpl,
         trace: BindingTrace,
         dataFlowInfo: DataFlowInfo,
@@ -521,7 +521,7 @@ class FunctionDescriptorResolver(
         functionConstructor: (DeclarationDescriptor, Annotations, Name, CallableMemberDescriptor.Kind, SourceElement) -> SimpleFunctionDescriptorImpl,
         containingDescriptor: DeclarationDescriptor,
         scope: LexicalScope,
-        function: CjNamedFunction,
+        function: CjFunction,
         trace: BindingTrace,
         dataFlowInfo: DataFlowInfo,
         expectedFunctionType: CangJieType,
@@ -562,7 +562,7 @@ class FunctionDescriptorResolver(
 
         containingDescriptor: DeclarationDescriptor,
         scope: LexicalScope,
-        function: CjNamedFunction,
+        function: CjFunction,
         trace: BindingTrace,
         dataFlowInfo: DataFlowInfo,
         inferenceSession: InferenceSession?

@@ -1,14 +1,6 @@
 package com.huawei.cangjie.resolve.controlFlow
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
-import com.huawei.cangjie.resolve.controlFlow.pseudocode.Pseudocode
-import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.CjElementInstruction
-import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.Instruction
-import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.InstructionVisitor
-import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.eval.LoadUnitValueInstruction
-import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.eval.MagicInstruction
-import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.eval.MergeInstruction
-import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.special.MarkInstruction
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.CallableDescriptor
@@ -16,7 +8,15 @@ import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext.DECLARATION_TO_DESCRIPTOR
+import com.huawei.cangjie.resolve.controlFlow.pseudocode.Pseudocode
+import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.CjElementInstruction
+import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.Instruction
+import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.InstructionVisitor
+import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.eval.LoadUnitValueInstruction
+import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.eval.MagicInstruction
+import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.eval.MergeInstruction
 import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.jumps.*
+import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.special.MarkInstruction
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.huawei.cangjie.types.util.TypeUtils.noExpectedType
@@ -50,8 +50,6 @@ class ControlFlowInformationProviderImpl private constructor(
     //    private val pseudocodeVariablesData by lazy {
 //        PseudocodeVariablesData(pseudocode, trace.bindingContext)
 //    }
-
-
 
 
     object Factory : ControlFlowInformationProvider.Factory {
@@ -263,11 +261,15 @@ class ControlFlowInformationProviderImpl private constructor(
         }
     }
 
+    private fun checkMainFunction() {
+
+    }
+
     override fun checkDeclaration() {
 //        recordInitializedVariables()
 
         checkLocalFunctions()
-
+        checkMainFunction()
         markUninitializedVariables()
 
 //        if (trace.wantsDiagnostics()) {

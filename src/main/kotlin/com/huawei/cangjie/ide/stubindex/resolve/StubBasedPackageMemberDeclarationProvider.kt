@@ -1,5 +1,6 @@
 package com.huawei.cangjie.ide.stubindex.resolve
 
+import com.huawei.cangjie.builtins.StandardNames.MAIN
 import com.huawei.cangjie.ide.indices.CangJiePackageIndexUtils
 import com.huawei.cangjie.ide.stubindex.*
 import com.huawei.cangjie.ide.vfilefinder.CangJiePackageSourcesMemberNamesIndex
@@ -59,6 +60,15 @@ class StubBasedPackageMemberDeclarationProvider(
 
     override fun getFunctionDeclarations(name: Name): Collection<CjNamedFunction> = runReadAction {
         CangJieTopLevelFunctionFqnNameIndex[childName(name), project, searchScope]
+    }
+
+    override fun getMainFunctionDeclarations(): Collection<CjMainFunction> = runReadAction {
+        CangJieMainFunctionFqnNameIndex[moduleChildName(MAIN), project, searchScope]
+
+    }
+
+    private fun moduleChildName(name: Name): String {
+        return FqName(fqName.moduleName.asString()).child(name.safeNameForLazyResolve()).asString()
     }
 
     private fun childName(name: Name): String {

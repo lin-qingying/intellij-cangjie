@@ -9,6 +9,7 @@ import com.huawei.cangjie.psi.stubs.CangJieFunctionStub;
 import com.huawei.cangjie.psi.stubs.impl.CangJieFunctionStubImpl;
 import com.huawei.cangjie.psi.stubs.impl.CangJieStubOrigin;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
 import com.intellij.psi.stubs.StubOutputStream;
@@ -16,6 +17,8 @@ import com.intellij.util.io.StringRef;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+
+import static com.huawei.cangjie.builtins.StandardNames.MAIN;
 
 
 public class CjMainFunctionElementType extends CjStubElementType<CangJieFunctionStub, CjMainFunction> {
@@ -36,6 +39,9 @@ public class CjMainFunctionElementType extends CjStubElementType<CangJieFunction
         boolean isTopLevel = psi.getParent() instanceof CjFile;
         boolean isExtension = psi.getReceiverTypeReference() != null;
         FqName fqName = CjPsiUtilKt.safeFqNameForLazyResolve(psi);
+        if (fqName != null) {
+            fqName = new FqName(fqName.getModuleName().asString()).child(MAIN);
+        }
         boolean hasBlockBody = psi.hasBlockBody();
         boolean hasBody = psi.hasBody();
         return new CangJieFunctionStubImpl(
@@ -69,7 +75,10 @@ null,
             CangJieStubOrigin.serialize(stubImpl.getOrigin(), dataStream);
         }
     }
-
+    @Override
+    public void indexStub(@NotNull CangJieFunctionStub stub, @NotNull IndexSink sink) {
+        StubIndexService.getInstance().indexMainFunction(stub, sink);
+    }
     @Override
     public @NotNull CangJieFunctionStubImpl deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
         StringRef name = dataStream.readName();

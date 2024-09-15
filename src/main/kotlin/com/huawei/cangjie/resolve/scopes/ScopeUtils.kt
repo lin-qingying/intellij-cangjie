@@ -29,7 +29,6 @@ import com.huawei.cangjie.types.error.ErrorEntity
 import com.huawei.cangjie.utils.Printer
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.SmartList
@@ -61,6 +60,7 @@ fun HierarchicalScope.findFunction(
     }
     return null
 }
+
 private inline fun <T : Any> HierarchicalScope.collectFromMeAndParent(
     collect: (HierarchicalScope) -> T?
 ): List<T> {
@@ -108,10 +108,13 @@ private class MemberScopeToImportingScopeAdapter(override val parent: ImportingS
     override fun getContributedClassifier(name: Name, location: LookupLocation) =
         memberScope.getContributedClassifier(name, location)
 
-    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor>  =
-        memberScope.getExtendClass(name )
+    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> =
+        memberScope.getExtendClass(name)
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> =
+    override fun getContributedVariables(
+        name: Name,
+        location: LookupLocation
+    ): Collection<@JvmWildcard VariableDescriptor> =
         memberScope.getContributedVariables(name, location)
 
     override fun getContributedPropertys(name: Name, location: LookupLocation) =
@@ -223,11 +226,12 @@ fun PsiElement.getResolutionScope(
     else -> error("Not in CjFile")
 }
 
-val CjFile.scope:LexicalScope  get() {
-   return runReadAction {
-       this.getResolutionScope()
-   }
-}
+val CjFile.scope: LexicalScope
+    get() {
+        return runReadAction {
+            this.getResolutionScope()
+        }
+    }
 
 
 @OptIn(FrontendInternals::class)
@@ -314,8 +318,9 @@ fun LexicalScope.findLocalVariable(name: Name): VariableDescriptor? {
     }
 }
 
-fun HierarchicalScope.getExtendClasss(name: Name, location: LookupLocation): List<LazyExtendClassDescriptor> {
-    return getListFromMeAndParent { it.getExtendClass(name) }
+fun HierarchicalScope?.getExtendClasss(name: Name, location: LookupLocation): List<LazyExtendClassDescriptor> {
+
+    return this?.getListFromMeAndParent { it.getExtendClass(name) } ?:  emptyList()
 }
 
 fun HierarchicalScope.findPackageFqNames(
@@ -413,6 +418,7 @@ object ScopeUtils {
             LexicalScopeKind.VARIABLE_INITIALIZER_OR_DELEGATE
         )
     }
+
     @JvmStatic
     fun makeScopeForVariableInitializer(
         variableHeader: LexicalScope,
@@ -478,7 +484,10 @@ class ErrorLexicalScope : LexicalScope {
         override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
         override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> = emptyList()
 
-        override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> =
+        override fun getContributedVariables(
+            name: Name,
+            location: LookupLocation
+        ): Collection<@JvmWildcard VariableDescriptor> =
             emptySet()
 
         override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
@@ -512,7 +521,10 @@ class ErrorLexicalScope : LexicalScope {
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
     override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> = emptyList()
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> =
+    override fun getContributedVariables(
+        name: Name,
+        location: LookupLocation
+    ): Collection<@JvmWildcard VariableDescriptor> =
         emptySet()
 
     override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =

@@ -6,20 +6,25 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     open fun visitCjElement(element: CjElement) {
         super.visitCjElement(element, null)
     }
+
     open fun visitTupleType(type: CjTupleType) {
         super.visitTupleType(type, null)
     }
+
     open fun visitFunctionType(type: CjFunctionType) {
         super.visitFunctionType(type, null)
     }
+
     override fun visitTupleType(cjTupleType: CjTupleType, data: Void?): Void? {
         visitTupleType(cjTupleType)
-       return null
+        return null
     }
+
     override fun visitFunctionType(type: CjFunctionType, data: Void?): Void? {
         visitFunctionType(type)
         return null
     }
+
     override fun visitParenthesizedType(cjParenthesizedType: CjParenthesizedType, data: Void?): Void? {
         visitParenthesizedType(cjParenthesizedType)
         return null
@@ -69,7 +74,7 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     }
 
     open fun visitMainFunction(cjMainFunction: CjMainFunction) {
-
+        super.visitMainFunction(cjMainFunction, null)
     }
 
     open fun visitStruct(cstruct: CjStruct) {
@@ -296,10 +301,12 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     open fun visitQualifiedExpression(expression: CjQualifiedExpression) {
         super.visitQualifiedExpression(expression, null)
     }
+
     open fun visitLambdaExpression(lambdaExpression: CjLambdaExpression) {
         super.visitLambdaExpression(lambdaExpression, null)
     }
-    override fun visitLambdaExpression(expression:CjLambdaExpression, data: Void?): Void? {
+
+    override fun visitLambdaExpression(expression: CjLambdaExpression, data: Void?): Void? {
         visitLambdaExpression(expression)
         return null
     }

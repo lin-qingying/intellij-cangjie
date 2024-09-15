@@ -27,6 +27,7 @@ interface BodiesResolveContext {
     val properties: MutableMap<CjProperty, PropertyDescriptor>
     val variables: MutableMap<CjVariable, VariableDescriptor>
 
+    val mainFunctions: MutableMap<CjMainFunction, SimpleFunctionDescriptor>
 
     val functions: MutableMap<CjNamedFunction, SimpleFunctionDescriptor>
 

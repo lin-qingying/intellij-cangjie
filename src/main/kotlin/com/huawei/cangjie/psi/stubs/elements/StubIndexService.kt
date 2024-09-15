@@ -13,20 +13,29 @@ import java.io.IOException
 open class StubIndexService protected constructor() {
     open fun indexFile(stub: CangJieFileStub, sink: IndexSink) {
     }
+
     open fun indexEnumEntry(stub: CangJieEnumEntryStub, sink: IndexSink) {
 
     }
+
     open fun indexEnum(stub: CangJieEnumStub, sink: IndexSink) {
 
     }
+
     open fun indexImports(stub: CangJieImportDirectiveStub, sink: IndexSink) {
     }
+
     open fun indexClass(stub: CangJieClassStub, sink: IndexSink) {
     }
-open fun indexExtend(stub: CangJieExtendStub, sink: IndexSink) {
 
-}
+    open fun indexExtend(stub: CangJieExtendStub, sink: IndexSink) {
+
+    }
+
     open fun indexFunction(stub: CangJieFunctionStub, sink: IndexSink) {
+    }
+
+    open fun indexMainFunction(stub: CangJieFunctionStub, sink: IndexSink) {
     }
 
     open fun indexTypeAlias(stub: CangJieTypeAliasStub, sink: IndexSink) {

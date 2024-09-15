@@ -14,6 +14,7 @@ import java.util.*;
 
 public class TopDownAnalysisContext implements BodiesResolveContext {
     private final Set<CjFile> files = new LinkedHashSet<>();
+    private final Map<CjMainFunction, SimpleFunctionDescriptor> mainFunctions = Maps.newLinkedHashMap();
 
     private final Map<CjNamedFunction, SimpleFunctionDescriptor> functions = Maps.newLinkedHashMap();
     private final Map<CjVariable, VariableDescriptor> variables = Maps.newLinkedHashMap();
@@ -102,7 +103,11 @@ public class TopDownAnalysisContext implements BodiesResolveContext {
     @Override
     public Map<CjNamedFunction, SimpleFunctionDescriptor> getFunctions() {
         return functions;
-
+    }
+    @NotNull
+    @Override
+    public Map<CjMainFunction, SimpleFunctionDescriptor> getMainFunctions() {
+        return mainFunctions;
     }
 
 

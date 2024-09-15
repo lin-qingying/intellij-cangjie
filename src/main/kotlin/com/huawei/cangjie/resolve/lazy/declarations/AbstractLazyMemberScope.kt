@@ -2,9 +2,9 @@ package com.huawei.cangjie.resolve.lazy.declarations
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.builtins.StandardNames.FqNames.core
+import com.huawei.cangjie.builtins.StandardNames.MAIN
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
-import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.calls.components.InferenceSession
@@ -12,7 +12,6 @@ import com.huawei.cangjie.resolve.descriptorUtil.fqNameSafe
 import com.huawei.cangjie.resolve.lazy.LazyClassContext
 import com.huawei.cangjie.resolve.lazy.data.CjClassInfoUtil
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
-import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassMemberScope
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.LexicalScope
@@ -32,6 +31,8 @@ protected constructor(
     protected val storageManager: StorageManager = c.storageManager
     private val functionDescriptors: MemoizedFunctionToNotNull<Name, Collection<SimpleFunctionDescriptor>> =
         storageManager.createMemoizedFunction { doGetFunctions(it) }
+    private val mainFunctionDescriptors: MemoizedFunctionToNotNull<Name, Collection<SimpleFunctionDescriptor>> =
+        storageManager.createMemoizedFunction { doGetMainFunctions() }
     private val classDescriptors: MemoizedFunctionToNotNull<Name, List<ClassDescriptor>> =
         storageManager.createMemoizedFunction { doGetClasses(it) }
 
@@ -44,7 +45,8 @@ protected constructor(
     private val variableDescriptors: MemoizedFunctionToNotNull<Name, Collection<VariableDescriptor>> =
         storageManager.createMemoizedFunction { doGetVariables(it) }
 
-
+    private val declaredMainFunctionDescriptors: MemoizedFunctionToNotNull<Name, Collection<SimpleFunctionDescriptor>> =
+        storageManager.createMemoizedFunction { getMainDeclaredFunctions() }
     private val declaredFunctionDescriptors: MemoizedFunctionToNotNull<Name, Collection<SimpleFunctionDescriptor>> =
         storageManager.createMemoizedFunction { getDeclaredFunctions(it) }
     private val typeAliasDescriptors: MemoizedFunctionToNotNull<Name, Collection<TypeAliasDescriptor>> =
@@ -301,6 +303,30 @@ protected constructor(
     }
 
     abstract fun getScopeForMemberDeclarationResolution(declaration: CjDeclaration): LexicalScope
+    private fun getMainDeclaredFunctions(
+
+    ): Collection<SimpleFunctionDescriptor> {
+        if (mainScope != null) return mainScope.declaredMainFunctionDescriptors(MAIN).map {
+            it.newCopyBuilder().setPreserveSourceElement().build()!!
+        }
+        val result = linkedSetOf<SimpleFunctionDescriptor>()
+
+        val declarations = declarationProvider.getMainFunctionDeclarations( )
+        for (functionDeclaration in declarations) {
+            result.add(
+                c.functionDescriptorResolver.resolveFunctionDescriptor(
+                    thisDescriptor,
+                    getScopeForMemberDeclarationResolution(functionDeclaration),
+                    functionDeclaration,
+                    trace,
+                    c.declarationScopeProvider.getOuterDataFlowInfoForDeclaration(functionDeclaration),
+                    c.inferenceSession
+                )
+            )
+        }
+
+        return result
+    }
 
     private fun getDeclaredFunctions(
         name: Name
@@ -333,6 +359,10 @@ protected constructor(
         }
 
         return result
+    }
+
+    private fun doGetMainFunctions(): Collection<SimpleFunctionDescriptor> {
+        return LinkedHashSet(declaredMainFunctionDescriptors.invoke(MAIN))
     }
 
     private fun doGetFunctions(name: Name): Collection<SimpleFunctionDescriptor> {
@@ -404,7 +434,13 @@ protected constructor(
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
         recordLookup(name, location)
-        return functionDescriptors(name)
+
+        return if (name == MAIN) {
+            mainFunctionDescriptors(MAIN)
+        } else {
+            functionDescriptors(name)
+        }
+
     }
 //    override fun getExtendContributedClassifier(element: CjExtend, location: LookupLocation) {
 //     c.extendDescriptorResolver

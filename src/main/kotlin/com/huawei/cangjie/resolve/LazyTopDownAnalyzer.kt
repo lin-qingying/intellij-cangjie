@@ -6,6 +6,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.ide.stubindex.CangJieExactPackagesIndex
 import com.huawei.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIndex
+import com.huawei.cangjie.ide.stubindex.CangJieMainFunctionFqnNameIndex
 import com.huawei.cangjie.incremental.CangJieLookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.*
@@ -32,6 +33,7 @@ class LazyTopDownAnalyzer(
     private val qualifiedExpressionResolver: QualifiedExpressionResolver,
     private val moduleDescriptor: ModuleDescriptor,
     private val topLevelDescriptorProvider: TopLevelDescriptorProvider,
+    private val mainFunctionResolver: MainFunctionResolver,
 
     private val declarationScopeProvider: DeclarationScopeProvider,
     private val filePreprocessor: FilePreprocessor,
@@ -53,6 +55,7 @@ class LazyTopDownAnalyzer(
         val properties = mutableListOf<CjProperty>()
         val variables = mutableListOf<CjVariable>()
         val functions = mutableListOf<CjNamedFunction>()
+        val mainFunctions = mutableListOf<CjMainFunction>()
         val typeAliases = mutableListOf<CjTypeAlias>()
         val destructuringDeclarations = mutableListOf<CjDestructuringDeclaration>()
 
@@ -90,10 +93,6 @@ class LazyTopDownAnalyzer(
 
                 }
 
-
-                override fun visitMainFunction(cjMainFunction: CjMainFunction) {
-
-                }
 
                 override fun visitDeclaration(dcl: CjDeclaration) {
                     throw IllegalArgumentException("Unsupported declaration: " + dcl + " " + dcl.text)
@@ -185,6 +184,13 @@ class LazyTopDownAnalyzer(
 
                 override fun visitNamedFunction(function: CjNamedFunction) {
                     functions.add(function)
+
+
+                }
+
+                override fun visitMainFunction(cjMainFunction: CjMainFunction) {
+                    mainFunctions.add(cjMainFunction)
+
                 }
 
                 override fun visitPackageDirective(directive: CjPackageDirective) {
@@ -202,6 +208,8 @@ class LazyTopDownAnalyzer(
             declaration.accept(visitor)
         }
         createFunctionDescriptors(c, functions)
+        createMainFunctionDescriptors(c, mainFunctions)
+
 //        createPropertyDescriptors(c, topLevelFqNames, properties)
 
         createVariableDescriptors(c, topLevelFqNames, variables)
@@ -220,6 +228,8 @@ class LazyTopDownAnalyzer(
         overloadResolver.checkOverloads(c)
 
         bodyResolver.resolveBodies(c)
+
+        mainFunctionResolver.check(c)
         resolveImportsInAllFiles(c)
 
         return c
@@ -231,6 +241,7 @@ class LazyTopDownAnalyzer(
         checkForCycles(file)
         fileScopeProvider.getImportResolver(file).forceResolveNonDefaultImports()
     }
+
 
     /**
      * 该方法检查包等级，耗时操作
@@ -399,6 +410,18 @@ class LazyTopDownAnalyzer(
             val fqName = declaration.fqName
             if (fqName != null) {
                 topLevelFqNames.put(fqName, declaration)
+            }
+        }
+    }
+
+    private fun createMainFunctionDescriptors(c: TopDownAnalysisContext, mainfunctions: List<CjMainFunction>) {
+        for (function in mainfunctions) {
+            val simpleFunctionDescriptor =
+                lazyDeclarationResolver.resolveToDescriptor(function) as SimpleFunctionDescriptor
+            c.mainFunctions[function] = simpleFunctionDescriptor
+            ForceResolveUtil.forceResolveAllContents(simpleFunctionDescriptor.annotations)
+            for (parameterDescriptor in simpleFunctionDescriptor.valueParameters) {
+                ForceResolveUtil.forceResolveAllContents(parameterDescriptor.annotations)
             }
         }
     }

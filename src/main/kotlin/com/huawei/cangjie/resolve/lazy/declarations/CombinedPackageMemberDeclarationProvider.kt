@@ -1,10 +1,7 @@
 package com.huawei.cangjie.resolve.lazy.declarations
 
 import com.huawei.cangjie.name.Name
-import com.huawei.cangjie.psi.CjDestructuringDeclarationEntry
-import com.huawei.cangjie.psi.CjExtend
-import com.huawei.cangjie.psi.CjFile
-import com.huawei.cangjie.psi.CjTypeAlias
+import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.lazy.data.CjTypeStatementInfo
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 
@@ -16,6 +13,7 @@ class CombinedPackageMemberDeclarationProvider(
 
     override fun getPackageFiles() = providers.flatMap { it.getPackageFiles() }
     override fun getFunctionDeclarations(name: Name) = providers.flatMap { it.getFunctionDeclarations(name) }
+    override fun getMainFunctionDeclarations(): Collection<CjMainFunction> = providers.flatMap { it.getMainFunctionDeclarations( ) }
 
 
     override fun getVariableDeclarations(name: Name) = providers.flatMap { it.getVariableDeclarations(name) }

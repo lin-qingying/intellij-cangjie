@@ -10,6 +10,7 @@ interface DeclarationProvider {
     fun getDeclarations(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): List<CjDeclaration>
 
     fun getFunctionDeclarations(name: Name): Collection<CjNamedFunction>
+    fun getMainFunctionDeclarations( ): Collection<CjMainFunction>
 
     fun getVariableDeclarations(name: Name): Collection<CjVariable>
     fun getPropertyDeclarations(name: Name): Collection<CjProperty>

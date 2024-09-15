@@ -236,6 +236,21 @@ public class IdeStubIndexService extends StubIndexService {
     }
 
     @Override
+    public void indexMainFunction(@NotNull CangJieFunctionStub stub, @NotNull IndexSink sink) {
+        if (stub.isTopLevel()) {
+            // can have special fq name in case of syntactically incorrect function with no name
+            FqName fqName = stub.getFqName();
+            if (fqName != null) {
+                sink.occurrence(CangJieMainFunctionFqnNameIndex.Helper.getIndexKey(), fqName.asString());
+//                sink.occurrence(CangJieTopLevelFunctionByPackageIndex.Helper.getIndexKey(), fqName.parent().asString());
+                IndexUtilsKt.indexTopLevelExtension(stub, sink);
+            }
+        }
+
+        IndexUtilsKt.indexInternals(stub, sink);
+    }
+
+    @Override
     public void indexFunction(@NotNull CangJieFunctionStub stub, @NotNull IndexSink sink) {
         String name = stub.getName();
         if (name != null) {

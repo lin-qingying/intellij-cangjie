@@ -3,7 +3,6 @@ package com.huawei.cangjie.resolve
 import com.huawei.cangjie.analyzer.CjpmLibraryInfo
 import com.huawei.cangjie.analyzer.DaemonCodeAnalyzerStatusService
 import com.huawei.cangjie.analyzer.ModuleInfo
-import com.huawei.cangjie.resolve.controlFlow.ControlFlowInformationProviderImpl
 import com.huawei.cangjie.container.get
 import com.huawei.cangjie.context.SimpleGlobalContext
 import com.huawei.cangjie.context.withModule
@@ -20,6 +19,7 @@ import com.huawei.cangjie.psi.psiUtil.getElementTextWithContext
 import com.huawei.cangjie.psi.psiUtil.getNonStrictParentOfType
 import com.huawei.cangjie.resolve.caches.analyzeControlFlow
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
+import com.huawei.cangjie.resolve.controlFlow.ControlFlowInformationProviderImpl
 import com.huawei.cangjie.resolve.lazy.*
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode.*
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptorBase
@@ -40,7 +40,7 @@ private val FILE_IN_BLOCK_MODIFICATION_COUNT = Key<Long>("FILE_IN_BLOCK_MODIFICA
 
 val CjFile.inBlockModificationCount: Long by NotNullableUserDataProperty(FILE_IN_BLOCK_MODIFICATION_COUNT, 0)
 
-class   ResolveElementCache(
+class ResolveElementCache(
     private val resolveSession: ResolveSession,
     private val project: Project,
 
@@ -215,7 +215,8 @@ class   ResolveElementCache(
             ensureFileAnnotationsResolved(file)
         }
     }
-//
+
+    //
     private fun ensureFileAnnotationsResolved(file: CjFile) {
 //        val fileLevelAnnotations = resolveSession.getFileAnnotations(file)
 //        doResolveAnnotations(fileLevelAnnotations)
@@ -437,7 +438,13 @@ class   ResolveElementCache(
 
 
         val trace: BindingTrace = when (resolveElement) {
-
+            is CjMainFunction -> functionAdditionalResolve(
+                resolveSession,
+                resolveElement,
+                file,
+                createStatementFilter(),
+                bodyResolveMode.bindingTraceFilter
+            )
             is CjNamedFunction -> functionAdditionalResolve(
                 resolveSession,
                 resolveElement,
@@ -672,7 +679,7 @@ class   ResolveElementCache(
 
     private fun functionAdditionalResolve(
         resolveSession: ResolveSession,
-        namedFunction: CjNamedFunction,
+        namedFunction: CjFunction,
         file: CjFile,
         statementFilter: StatementFilter,
         bindingTraceFilter: BindingTraceFilter
@@ -759,6 +766,10 @@ class   ResolveElementCache(
         bodyResolveMode: BodyResolveMode
     ): BindingContext = getElementsAdditionalResolve(resolveElement, null, contextElements, bodyResolveMode)
 
+    override fun resolveMainFunctionBody(function: CjMainFunction): BindingContext {
+        return getElementsAdditionalResolve(function, null, FULL)
+    }
+
     override fun resolveFunctionBody(function: CjNamedFunction): BindingContext {
         return getElementsAdditionalResolve(function, null, FULL)
     }
@@ -781,6 +792,7 @@ class   ResolveElementCache(
         override val properties: MutableMap<CjProperty, PropertyDescriptor> = hashMapOf()
         override val variables: MutableMap<CjVariable, VariableDescriptor> = hashMapOf()
         override val functions: MutableMap<CjNamedFunction, SimpleFunctionDescriptor> = hashMapOf()
+        override val mainFunctions: MutableMap<CjMainFunction, SimpleFunctionDescriptor> = hashMapOf()
         override val typeAliases: MutableMap<CjTypeAlias, TypeAliasDescriptor> = hashMapOf()
 
 

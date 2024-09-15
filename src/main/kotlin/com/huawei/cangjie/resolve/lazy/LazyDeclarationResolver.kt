@@ -1,9 +1,7 @@
 package com.huawei.cangjie.resolve.lazy
 
 import com.huawei.cangjie.context.GlobalContext
-import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.descriptors.ClassDescriptor
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.CangJieLookupLocation
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
@@ -90,7 +88,7 @@ open class LazyDeclarationResolver(
 
     fun resolveToDescriptor(declaration: CjDeclaration): DeclarationDescriptor {
 
-      return resolveToDescriptor(declaration, /*track =*/true) ?: absentDescriptorHandler.diagnoseDescriptorNotFound(
+        return resolveToDescriptor(declaration, /*track =*/true) ?: absentDescriptorHandler.diagnoseDescriptorNotFound(
             declaration
         )
 
@@ -114,7 +112,69 @@ open class LazyDeclarationResolver(
                 return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, function)
             }
 
-            override fun visitExtend(cjExtend: CjExtend, data: Nothing?): DeclarationDescriptor? {
+            override fun visitParameter(parameter: CjParameter, data: Nothing?): DeclarationDescriptor? {
+                when (val grandFather = parameter.parent.parent) {
+                    is CjPrimaryConstructor -> {
+                        val ktClassOrObject = grandFather.getContainingTypeStatement()
+                        // This is a primary constructor parameter
+                        val classDescriptor =
+                            getClassDescriptorIfAny(ktClassOrObject, lookupLocationFor(ktClassOrObject, false))
+                        return when {
+                            classDescriptor == null -> null
+                            parameter.hasLetOrVar() -> {
+                                classDescriptor.defaultType.memberScope.getContributedVariables(
+                                    parameter.nameAsSafeName, lookupLocationFor(parameter, false)
+                                )
+                                bindingContext.get(BindingContext.PRIMARY_CONSTRUCTOR_PARAMETER, parameter)
+                            }
+
+                            else -> {
+                                val constructor = classDescriptor.unsubstitutedPrimaryConstructor
+                                    ?: error("There are constructor parameters found, so a constructor should also exist")
+                                constructor.valueParameters
+                                bindingContext.get(BindingContext.VALUE_PARAMETER, parameter)
+                            }
+                        }
+                    }
+
+                    is CjMainFunction -> {
+
+                        val function = visitMainFunction(grandFather, data) as? FunctionDescriptor
+                        function?.valueParameters
+                        return bindingContext.get(BindingContext.VALUE_PARAMETER, parameter)
+
+                    }
+
+                    is CjNamedFunction -> {
+                        val function = visitNamedFunction(grandFather, data) as? FunctionDescriptor
+                        function?.valueParameters
+                        return bindingContext.get(BindingContext.VALUE_PARAMETER, parameter)
+                    }
+
+                    is CjSecondaryConstructor -> {
+                        val constructorDescriptor = visitSecondaryConstructor(
+                            grandFather, data
+                        ) as? ConstructorDescriptor
+                        constructorDescriptor?.valueParameters
+                        return bindingContext.get(BindingContext.VALUE_PARAMETER, parameter)
+                    }
+
+                    else -> //TODO: support parameters in accessors and other places(?)
+                        return super.visitParameter(parameter, data)
+                }
+            }
+
+            override fun visitMainFunction(cjMainFunction: CjMainFunction, data: Nothing?): DeclarationDescriptor? {
+                val location = lookupLocationFor(cjMainFunction, true)
+                val scopeForDeclaration = getMemberScopeDeclaredIn(cjMainFunction, location)
+
+                scopeForDeclaration.getContributedFunctions(cjMainFunction.nameAsSafeName, location)
+                return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, cjMainFunction)
+
+
+            }
+
+            override fun visitExtend(cjExtend: CjExtend, data: Nothing?): DeclarationDescriptor {
 
                 return getExtendClassDescriptor(cjExtend)
             }

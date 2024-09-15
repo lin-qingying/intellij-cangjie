@@ -563,10 +563,25 @@ public class BodyResolver {
 
 
         resolveFunctionBodies(c);
-
+        resolveMainFunctionBodies(c);
 
     }
+    private void resolveMainFunctionBodies(BodiesResolveContext c) {
 
+        for (Map.Entry<CjMainFunction, SimpleFunctionDescriptor> entry : c.getMainFunctions().entrySet()) {
+            CjMainFunction declaration = entry.getKey();
+
+            LexicalScope scope = c.getDeclaringScope(declaration);
+            assert scope != null : "Scope is null: " + PsiUtilsKt.getElementTextWithContext(declaration);
+
+            if (!c.getTopDownAnalysisMode().isLocalDeclarations() && !(bodyResolveCache instanceof BodyResolveCache.ThrowException) &&
+                    expressionTypingServices.getStatementFilter() != StatementFilter.NONE) {
+                bodyResolveCache.resolveMainFunctionBody(declaration).addOwnDataTo(trace, true);
+            } else {
+                resolveFunctionBody(c.getOuterDataFlowInfo(), trace, declaration, entry.getValue(), scope, c.getLocalContext());
+            }
+        }
+    }
     private void resolveFunctionBodies(BodiesResolveContext c) {
 
         for (Map.Entry<CjNamedFunction, SimpleFunctionDescriptor> entry : c.getFunctions().entrySet()) {

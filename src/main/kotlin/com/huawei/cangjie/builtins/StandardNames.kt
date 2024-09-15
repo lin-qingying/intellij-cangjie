@@ -41,8 +41,8 @@ object StandardNames {
     val NET_PACKAGE_NAME = Name.identifier("net")
 
     val SERIALIZATION_PACKAGE_NAME = Name.identifier("serialization")
-
-
+@JvmField
+val MAIN = Name.identifier("main")
     @JvmField
     val STD_PACKAGE_FQ_NAME = FqName.topLevel(STD_PACKAGE_NAME)
 

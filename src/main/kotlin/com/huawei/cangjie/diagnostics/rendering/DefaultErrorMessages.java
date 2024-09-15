@@ -232,6 +232,11 @@ public class DefaultErrorMessages {
         MAP.put(NO_RETURN_IN_FUNCTION_WITH_BLOCK_BODY, "A 'return' expression required in a function with a block body ('{...}')");
         MAP.put(EXPECTED_TYPE_MISMATCH, "Expected a value of type {0}", RENDER_TYPE);
         MAP.put(DECLARATION_IN_ILLEGAL_CONTEXT, "Declarations are not allowed in this position");
+        MAP.put(MAIN_FUNCTION_RETURN_TYPE, "return type of 'main' is not 'Integer' or 'Unit'");
+        MAP.put(MAIN_FUNCTION_PARAMETER_COUNT, "'main' method has too many parameters");
+        MAP.put(MAIN_FUNCTION_PARAMETER_TYPE, "'main' cannot be defined with parameter whose type is not 'Array<String>'");
+
+        MAP.put(MAIN_FUNCTION_NUMBER_ERROR, "Multiple 'main' methods are defined in the module");
 
     }
 

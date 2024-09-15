@@ -22,4 +22,8 @@ public class CjMainFunction extends CjFunctionImpl {
         return visitor.visitMainFunction(this, data);
     }
 
+    @Override
+    public @Nullable String getName() {
+        return "main";
+    }
 }
