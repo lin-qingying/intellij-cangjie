@@ -232,7 +232,7 @@ class CallExpressionResolver(
             context.trace[BindingContext.REFERENCE_TARGET, it]
         }
 
-//        resolveQualifierAsReceiverInExpression(qualifier, selectorDescriptor, context)
+        resolveQualifierAsReceiverInExpression(qualifier, selectorDescriptor, context)
     }
 
     private fun getResolvedCallForFunction(

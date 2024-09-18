@@ -132,7 +132,7 @@ class DescriptorKindFilter(
 
     private fun DeclarationDescriptor.kind(): Int {
         return when (this) {
-            is ClassDescriptor -> if (this.kind.isStruct) SINGLETON_CLASSIFIERS_MASK else NON_SINGLETON_CLASSIFIERS_MASK
+            is ClassDescriptor -> if (this.kind.isObject) SINGLETON_CLASSIFIERS_MASK else NON_SINGLETON_CLASSIFIERS_MASK
             is TypeAliasDescriptor -> TYPE_ALIASES_MASK
             is ClassifierDescriptor -> NON_SINGLETON_CLASSIFIERS_MASK
             is PackageFragmentDescriptor, is PackageViewDescriptor -> PACKAGES_MASK

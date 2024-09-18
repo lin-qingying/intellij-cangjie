@@ -61,7 +61,7 @@ private fun DeclarationDescriptorWithVisibility.isVisible(
         }
     }
 }
- 
+
 object DescriptorUtils {
     @JvmStatic
     fun isDirectSubclass(
@@ -100,7 +100,7 @@ object DescriptorUtils {
         freedomForSealedInterfacesSupported: Boolean
     ): DescriptorVisibility {
         val classKind: ClassKind = classDescriptor.getKind()
-        if (classKind == ClassKind.ENUM || classKind.isStruct) {
+        if (classKind == ClassKind.ENUM || classKind.isObject) {
             return DescriptorVisibilities.PRIVATE
         }
         if (isSealedClass(classDescriptor)) {
@@ -520,4 +520,12 @@ fun DeclarationDescriptor.isSealed(): Boolean {
         returns(true) implies (this@isSealed is ClassDescriptor)
     }
     return DescriptorUtils.isSealedClass(this)
+}
+fun DeclarationDescriptor.isStatic(): Boolean {
+     return when(this){
+
+         is FunctionDescriptor -> isStatic
+         else -> false
+     }
+
 }

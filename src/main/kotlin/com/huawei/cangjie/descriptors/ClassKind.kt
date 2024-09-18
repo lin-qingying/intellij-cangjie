@@ -13,6 +13,10 @@ enum class ClassKind(val codeRepresentation: String?) {
 
     val isStruct: Boolean
         get() = this == STRUCT
+    val isEnumEntry: Boolean
+        get() = this == ENUM_ENTRY
+    val isObject: Boolean
+        get() =  isEnumEntry || isStruct
     val isEnum: Boolean
         get() = this == ENUM || this == ENUM_ENTRY
 }

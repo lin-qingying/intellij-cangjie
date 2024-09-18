@@ -10,6 +10,7 @@ import com.huawei.cangjie.resolve.calls.components.NoArguments
 
 enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
     VARIABLE(
+        CheckStaticCall,
         CheckVisibility,
         CheckSuperExpressionCallPart,
 //        NoTypeArguments,
@@ -23,6 +24,8 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
 //        CheckIncompatibleTypeVariableUpperBounds
     ),
     FUNCTION(
+        CheckStaticCall,
+
         CheckVisibility,
 //        CheckInfixResolutionPart,
 //        CheckOperatorResolutionPart,

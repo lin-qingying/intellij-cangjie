@@ -17,6 +17,7 @@ import com.huawei.cangjie.resolve.calls.CallResolver
 import com.huawei.cangjie.resolve.calls.NewCommonSuperTypeCalculator.commonSuperType
 import com.huawei.cangjie.resolve.calls.util.CallMaker
 import com.huawei.cangjie.resolve.descriptorUtil.builtIns
+import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeConstructor
@@ -206,6 +207,7 @@ class FunctionReturnResolver(
         context: ExpressionTypingContext,
     ): CangJieType? {
 
+
         val returns = blockExpression.getStatementsWithoutReturnKeyword()
         if (returns.isEmpty()) {
             return module.builtIns.unitType
@@ -213,16 +215,16 @@ class FunctionReturnResolver(
 
         val typeInfos = mutableListOf<CangJieTypeInfo>()
 
-    val context = context.replaceIsSaveTypeInfo(false)
+        val context = context.replaceIsSaveTypeInfo(false)
+
+//        清除缓存
+//         TODO 如果其他方法使用了该方法作为返回，但是由于该方法更新了返回值，其其他方法没有更新，所以出现检查没有执行
+//        TODO 这里重构还是写一种更新检查的线程
+        (context.trace as? DelegatingBindingTrace)?.clear()
         returns.forEach {
 
             val typeInfo = expressionTypingServices.getTypeInfo(it, context)
 
-//        清除本次分析数据
-//            BindingContextUtils.clear(context.trace)
-//            不留存类型数据
-//BindingContextUtils.updateRecordedType(noTypeInfo(context.dataFlowInfo),it,context.trace,false)
-//            BindingContextUtils.removeBySlice(BindingContext.EXPRESSION_TYPE_INFO, it,context.trace)
 
             if (typeInfo.type is ErrorType) {
 //                typeInfo.type.intersectedTypes.forEach {
@@ -237,11 +239,15 @@ class FunctionReturnResolver(
         }
 
 
-        val resultType = SimpleClassicTypeSystemContext.commonSuperType(
-            typeInfos.mapNotNull {
-                it.type
-            }
-        )
+        val resultType = typeInfos.mapNotNull {
+            it.type
+        }.let {
+            if (it.isEmpty()) return null
+
+            SimpleClassicTypeSystemContext.commonSuperType(
+                it
+            )
+        }
         if (resultType is MultipleSupertypeTypeInferenceFailure) {
             context.trace.report(TYPE_MISMATCH_MULTIPLE_SUPERTYPES.on(blockExpression, resultType.intersectedTypes))
         }

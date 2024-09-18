@@ -3,7 +3,7 @@ package com.huawei.cangjie.diagnostics
 import com.huawei.cangjie.descriptors.PositioningStrategies
 import com.intellij.psi.PsiElement
 
-class DiagnosticFactory1<E : PsiElement , A:Any> protected constructor(
+class DiagnosticFactory1<E : PsiElement , A:Any>    (
     severity: Severity,
     positioningStrategy: PositioningStrategy<E>
 ) :

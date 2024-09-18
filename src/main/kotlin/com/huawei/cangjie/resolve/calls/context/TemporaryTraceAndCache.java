@@ -17,7 +17,10 @@ public class TemporaryTraceAndCache {
     }
 
     public void commit() {
+
         trace.commit();
         cache.commit();
     }
+
+
 }

@@ -12,6 +12,7 @@ import com.huawei.cangjie.resolve.descriptorUtil.fqNameSafe
 import com.huawei.cangjie.resolve.lazy.LazyClassContext
 import com.huawei.cangjie.resolve.lazy.data.CjClassInfoUtil
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.LexicalScope
@@ -311,7 +312,7 @@ protected constructor(
         }
         val result = linkedSetOf<SimpleFunctionDescriptor>()
 
-        val declarations = declarationProvider.getMainFunctionDeclarations( )
+        val declarations = declarationProvider.getMainFunctionDeclarations()
         for (functionDeclaration in declarations) {
             result.add(
                 c.functionDescriptorResolver.resolveFunctionDescriptor(
@@ -381,7 +382,17 @@ protected constructor(
         val result = linkedSetOf<ClassDescriptor>()
         declarationProvider.getTypeStatementDeclarations(name).mapTo(result) {
             val isExternal = /*it.modifierList?.hasModifier(CjTokens.EXTERNAL_KEYWORD) ?:*/ false
-            LazyClassDescriptor(c, thisDescriptor, name, it, isExternal)
+
+            if (it.classKind.isEnumEntry) {
+                c.enumDescriptorResolver.resolveEnumEntryDescriptor(
+                    c, thisDescriptor, name, it, isExternal
+                )
+
+            } else {
+                LazyClassDescriptor(c, thisDescriptor, name, it, isExternal)
+
+            }
+
         }
         getNonDeclaredClasses(name, result)
 
@@ -438,6 +449,7 @@ protected constructor(
         return if (name == MAIN) {
             mainFunctionDescriptors(MAIN)
         } else {
+// TODO 如果在推断方法返回值类型时，方法返回了自己，那么这里会报出递归错误
             functionDescriptors(name)
         }
 

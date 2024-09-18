@@ -4,11 +4,14 @@ import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.descriptors.annotations.AnnotationsKt;
 import com.huawei.cangjie.name.Name;
+import com.huawei.cangjie.psi.CjFunction;
 import com.huawei.cangjie.resolve.DescriptorFactory;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor;
 import com.huawei.cangjie.resolve.scopes.receivers.ExtensionReceiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ImplicitContextReceiver;
+import com.huawei.cangjie.resolve.source.PsiSourceElementKt;
 import com.huawei.cangjie.types.*;
+import com.intellij.psi.PsiElement;
 import com.intellij.util.SmartList;
 import kotlin.collections.CollectionsKt;
 import kotlin.jvm.functions.Function0;
@@ -30,6 +33,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     private Modality modality;
     private DescriptorVisibility visibility = DescriptorVisibilities.INTERNAL;
     private boolean isOperator = false;
+    private boolean isStatic = false;
     //    private bool isInfix = false;
 //    private bool isExternal = false;
 //    private bool isInline = false;
@@ -148,6 +152,9 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         return (V) userDataMap.get(key);
     }
 
+    public void setIsStatic(boolean isStatic) {
+        this.isStatic = isStatic;
+    }
 
     public void setIsOperator(boolean isOperator) {
         this.isOperator = isOperator;
@@ -210,6 +217,9 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     @NotNull
     @Override
     public List<ReceiverParameterDescriptor> getContextReceiverParameters() {
+        if (contextReceiverParameters == null) {
+            return Collections.emptyList();
+        }
         return contextReceiverParameters;
     }
 
@@ -291,6 +301,18 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 
     public void setVisibility(@NotNull DescriptorVisibility visibility) {
         this.visibility = visibility;
+    }
+
+    @Override
+    public boolean isStatic() {
+
+
+        PsiElement element = PsiSourceElementKt.getPsi(getSource());
+        if (element instanceof CjFunction) {
+            isStatic = ((CjFunction) element).isStatic();
+        }
+        return isStatic;
+
     }
 
     @Override
@@ -416,8 +438,8 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 
     public void setReturnType(@NotNull CangJieType unsubstitutedReturnType) {
 //        if (this.unsubstitutedReturnType != null) {
-            // TODO: uncomment and fix tests
-            //throw new IllegalStateException("returnType already set");
+        // TODO: uncomment and fix tests
+        //throw new IllegalStateException("returnType already set");
 //        }
         this.unsubstitutedReturnType = unsubstitutedReturnType;
     }

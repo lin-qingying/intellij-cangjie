@@ -340,11 +340,11 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
 
         val location = CangJieLookupLocation(expression)
         val qualifierDescriptor = when (receiver) {
-//            is PackageQualifier -> {
-//                val childPackageFQN = receiver.descriptor.fqName.child(name)
-//                receiver.descriptor.module.getPackage(childPackageFQN).takeUnless { it.isEmpty() }
-//                    ?: receiver.descriptor.memberScope.getContributedClassifier(name, location)
-//            }
+            is PackageQualifier -> {
+                val childPackageFQN = receiver.descriptor.fqName.child(name)
+                receiver.descriptor.module.getPackage(childPackageFQN).takeUnless { it.isEmpty() }
+                    ?: receiver.descriptor.memberScope.getContributedClassifier(name, location)
+            }
             is ClassQualifier -> receiver.staticScope.getContributedClassifier(name, location)
             null -> context.scope.findClassifier(name, location)
                 ?: context.scope.ownerDescriptor.module.getPackage(FqName.ROOT.child(name)).takeUnless { it.isEmpty() }
@@ -425,7 +425,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                 scopeForFirstPart = null, position = IMPORT
             ).classDescriptorFromTypeAlias() ?: return null
 
-            if (packageOrClassDescriptor is ClassDescriptor && packageOrClassDescriptor.kind.isStruct && lastPart.expression != null) {
+            if (packageOrClassDescriptor is ClassDescriptor && packageOrClassDescriptor.kind.isObject && lastPart.expression != null) {
                 trace.report(
                     CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON.on(
                         lastPart.expression!!,
@@ -637,11 +637,12 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
 
         val classifierDescriptor = scopeForFirstPart?.findClassifier(firstPart.name, firstPart.location)
 
-//        if (classifierDescriptor != null) {
-//            storeResult(trace, firstPart.expression, classifierDescriptor, shouldBeVisibleFrom, position)
-//        }
-        if (classifierDescriptor != null)
+        if (classifierDescriptor != null) {
+            storeResult(trace, firstPart.expression, classifierDescriptor, shouldBeVisibleFrom, position)
             return Pair(classifierDescriptor, 1)
+        }
+//        if (classifierDescriptor != null)
+
 //        第一位匹配最后一位
         val qprts = scopeForFirstPart?.findPackageQualifierParts(path[0].name)
 
@@ -982,11 +983,11 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
             when (descriptor) {
                 is PackageViewDescriptor -> PackageQualifier(referenceExpression, descriptor)
                 is ClassDescriptor -> ClassQualifier(referenceExpression, descriptor)
-//                is TypeParameterDescriptor -> TypeParameterQualifier(referenceExpression, descriptor)
-//                is TypeAliasDescriptor -> {
-//                    val classDescriptor = descriptor.classDescriptor ?: return null
-//                    TypeAliasQualifier(referenceExpression, descriptor, classDescriptor)
-//                }
+                is TypeParameterDescriptor -> TypeParameterQualifier(referenceExpression, descriptor)
+                is TypeAliasDescriptor -> {
+                    val classDescriptor = descriptor.classDescriptor ?: return null
+                    TypeAliasQualifier(referenceExpression, descriptor, classDescriptor)
+                }
                 else -> return null
             }
 

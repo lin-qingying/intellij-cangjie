@@ -3,8 +3,6 @@ package com.huawei.cangjie.resolve.calls.tower
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
-import com.huawei.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
-import com.huawei.cangjie.resolve.descriptorUtil.classValueDescriptor
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.huawei.cangjie.types.CangJieType
@@ -66,7 +64,7 @@ internal open class ScopeBasedTowerLevel protected constructor(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver> {
-//        return emptyList()
+
        return resolutionScope.getContributedVariablesAndIntercept(
             name,
             location,
@@ -173,7 +171,7 @@ private fun getConstructorsOfClassifier(classifier: ClassifierDescriptor?): List
     return callableConstructors.filter { it.dispatchReceiverParameter == null }
 }
 private val ClassDescriptor.canHaveCallableConstructors: Boolean
-    get() = !ErrorUtils.isError(this) && !kind.isStruct
+    get() = !ErrorUtils.isError(this) && !kind.isObject
 
 private val TypeAliasDescriptor.canHaveCallableConstructors: Boolean
     get() = classDescriptor != null && !ErrorUtils.isError(classDescriptor) && classDescriptor!!.canHaveCallableConstructors

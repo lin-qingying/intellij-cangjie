@@ -71,6 +71,15 @@ class ClassValueReceiver @JvmOverloads constructor(
 
     override fun getOriginal() = original
 }
+class TypeParameterQualifier(
+    override val referenceExpression: CjSimpleNameExpression,
+    override val descriptor: TypeParameterDescriptor
+) : Qualifier {
+    override val classValueReceiver: ReceiverValue? get() = null
+    override val staticScope: MemberScope get() = MemberScope.Empty
+
+    override fun toString() = "TypeParameter{$descriptor}"
+}
 
 class TypeAliasQualifier(
     override val referenceExpression: CjSimpleNameExpression,

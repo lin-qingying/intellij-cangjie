@@ -279,9 +279,9 @@ public class BodyResolver {
                 if (!DescriptorUtils.isEnumEntry(classDescriptor)) {
                     trace.report(ENUM_IN_SUPERTYPE.on(typeReference));
                 }
-            } else if (classDescriptor.getKind().isStruct()) {
+            } else if (classDescriptor.getKind().isObject()) {
                 if (!DescriptorUtils.isEnumEntry(classDescriptor)) {
-                    trace.report(STRUCT_IN_SUPERTYPE.on(typeReference));
+                    trace.report(OBJECT_IN_SUPERTYPE.on(typeReference));
                 }
             } else if (!allowedFinalSupertypes.contains(constructor)) {
                 if (DescriptorUtils.isSealedClass(classDescriptor)) {
@@ -735,7 +735,7 @@ public class BodyResolver {
                 if (supertype == null) return;
                 ClassDescriptor superClass = TypeUtils.getClassDescriptor(supertype);
                 if (superClass == null) return;
-                if (superClass.getKind().isStruct()) {
+                if (superClass.getKind().isObject()) {
                     // A "singleton in supertype" diagnostic will be reported later
                     return;
                 }

@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve.calls.components
 
 import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.impl.FunctionDescriptorImpl
 import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
 import com.huawei.cangjie.psi.CjBinaryExpression
 import com.huawei.cangjie.psi.CjCallExpression
@@ -21,6 +22,9 @@ import com.huawei.cangjie.resolve.calls.tower.VisibilityError
 import com.huawei.cangjie.resolve.calls.tower.psiCangJieCall
 import com.huawei.cangjie.resolve.calls.util.getReceiverValueWithSmartCast
 import com.huawei.cangjie.resolve.isInsideInterface
+import com.huawei.cangjie.resolve.isSealed
+import com.huawei.cangjie.resolve.isStatic
+import com.huawei.cangjie.resolve.source.getPsi
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.utils.compactIfPossible
 
@@ -64,6 +68,15 @@ internal object CheckSuperExpressionCallPart : ResolutionPart() {
     }
 }
 
+
+internal object CheckStaticCall  : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+//        if(invisibleMember.isStatic()){
+//            TODO()
+//        }
+    }
+
+}
 internal object CheckVisibility : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {
         val containingDescriptor = scopeTower.lexicalScope.ownerDescriptor
@@ -99,6 +112,7 @@ internal object CheckVisibility : ResolutionPart() {
                 return
             }
         }
+
 
         if (invisibleMember is DeclarationDescriptorWithVisibility) {
             addDiagnostic(VisibilityError(invisibleMember))

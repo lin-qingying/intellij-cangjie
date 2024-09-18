@@ -93,11 +93,9 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
                 ) : MemberScope.Empty.INSTANCE;
 
         this.typeConstructor = new LazyClassTypeConstructor();
-//
-//        this.isCompanionObject = classLikeInfo instanceof KtObjectInfo && ((KtObjectInfo) classLikeInfo).isCompanionObject();
-//
+
         CjModifierList modifierList = classLikeInfo.getModifierList();
-        if (kind.isStruct()) {
+        if (kind.isObject()) {
             this.modality = storageManager.createLazyValue(() -> Modality.FINAL);
         } else {
             Modality defaultModality = kind == ClassKind.INTERFACE ? Modality.ABSTRACT : Modality.FINAL;

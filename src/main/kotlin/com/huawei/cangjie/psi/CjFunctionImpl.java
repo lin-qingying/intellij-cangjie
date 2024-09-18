@@ -202,7 +202,10 @@ public abstract class CjFunctionImpl extends CjTypeParameterListOwnerStub<CangJi
         PsiElement parent = getParent();
         return !(parent instanceof CjFile || parent instanceof CjClassBody);
     }
-
+    @Override
+    public boolean isStatic() {
+        return hasModifier(CjTokens.STATIC_KEYWORD);
+    }
     @Override
     public boolean isOperator() {
         return hasModifier(CjTokens.OPERATOR_KEYWORD);

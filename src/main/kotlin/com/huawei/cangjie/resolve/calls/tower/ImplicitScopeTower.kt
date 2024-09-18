@@ -27,15 +27,15 @@ fun getResultApplicability(diagnostics: Collection<CangJieCallDiagnostic>): Cand
     diagnostics.minByOrNull { it.candidateApplicability }?.candidateApplicability ?: CandidateApplicability.RESOLVED
 
 
-
 // todo error for this access from nested class
 class VisibilityError(val invisibleMember: DeclarationDescriptorWithVisibility) : ResolutionDiagnostic(
-    CandidateApplicability. RUNTIME_ERROR
+    CandidateApplicability.RUNTIME_ERROR
 ) {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCall(this)
     }
 }
+
 object HiddenDescriptor : ResolutionDiagnostic(CandidateApplicability.HIDDEN)
 
 interface ScopeTowerLevel {
@@ -53,6 +53,7 @@ interface ScopeTowerLevel {
 
     fun recordLookup(name: Name)
 }
+
 object UnstableSmartCastDiagnostic : ResolutionDiagnostic(CandidateApplicability.UNSTABLE_SMARTCAST)
 
 interface ImplicitScopeTower {
@@ -104,13 +105,17 @@ class CandidateWithBoundDispatchReceiver(
     val descriptor: CallableDescriptor,
     val diagnostics: List<ResolutionDiagnostic>
 )
-object ErrorDescriptorDiagnostic : ResolutionDiagnostic(CandidateApplicability.RESOLVED) // todo discuss and change to INAPPLICABLE
+
+object ErrorDescriptorDiagnostic :
+    ResolutionDiagnostic(CandidateApplicability.RESOLVED) // todo discuss and change to INAPPLICABLE
+
 object DynamicDescriptorDiagnostic : ResolutionDiagnostic(CandidateApplicability.RESOLVED_LOW_PRIORITY)
 
 class ResolvedUsingDeprecatedVisibility(val baseSourceScope: ResolutionScope, val lookupLocation: LookupLocation) :
     ResolutionDiagnostic(
         CandidateApplicability.RESOLVED
     )
+
 class VisibilityErrorOnArgument(
     val argument: CangJieCallArgument,
     val invisibleMember: DeclarationDescriptorWithVisibility

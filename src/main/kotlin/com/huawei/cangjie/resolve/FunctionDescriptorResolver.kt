@@ -4,13 +4,13 @@ import com.huawei.cangjie.builtins.*
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.descriptors.annotations.AnnotationSplitter
 import com.huawei.cangjie.descriptors.annotations.AnnotationUseSiteTarget
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.impl.ClassConstructorDescriptorImpl
 import com.huawei.cangjie.descriptors.impl.FunctionExpressionDescriptor
 import com.huawei.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
@@ -24,10 +24,7 @@ import com.huawei.cangjie.resolve.calls.DslMarkerUtils
 import com.huawei.cangjie.resolve.calls.components.InferenceSession
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.calls.util.createValueParametersForInvokeInFunctionType
-import com.huawei.cangjie.resolve.scopes.LexicalScope
-import com.huawei.cangjie.resolve.scopes.LexicalScopeKind
-import com.huawei.cangjie.resolve.scopes.LexicalWritableScope
-import com.huawei.cangjie.resolve.scopes.TraceBasedLocalRedeclarationChecker
+import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.source.toSourceElement
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.CangJieType
@@ -335,8 +332,8 @@ class FunctionDescriptorResolver(
 //        TODO 返回值类型推断 暂时返回Unit
 //            return block.returnValueInferred()
 //            return builtIns.unitType
-//            return null
-            return functionReturnResolver.resolveFunctionReturn(function, context)
+            return null
+//            return functionReturnResolver.resolveFunctionReturn(function, context)
 //            return NO_EXPECTED_TYPE
         } else {
             builtIns.unitType
@@ -407,6 +404,20 @@ class FunctionDescriptorResolver(
 
         headerScope.freeze()
 
+
+
+        val innerScope: LexicalScope =
+            FunctionDescriptorUtil.getFunctionInnerScope(
+                headerScope,
+                functionDescriptor,
+                trace,
+                overloadChecker
+            )
+        val codeBlockscope  =
+          LexicalWritableScope(
+              innerScope, functionDescriptor, false, LocalRedeclarationChecker.DO_NOTHING,
+              LexicalScopeKind.CODE_BLOCK
+            )
 
         val context = expressionTypingServices.createContext(
             headerScope,

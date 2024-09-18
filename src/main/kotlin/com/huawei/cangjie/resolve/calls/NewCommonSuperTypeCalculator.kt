@@ -30,7 +30,9 @@ object NewCommonSuperTypeCalculator {
 
         isTopLevelType: Boolean = false
     ): CangJieTypeMarker {
-        if (types.isEmpty()) throw IllegalStateException("Empty collection for input")
+        if (types.isEmpty()) {
+            throw IllegalStateException("Empty collection for input")
+        }
 
         types.singleOrNull()?.let { return it }
 
