@@ -1,17 +1,31 @@
 package com.huawei.cangjie.resolve.lazy.data
 
 import com.huawei.cangjie.descriptors.ClassKind
-import com.huawei.cangjie.psi.CjClass
+import com.huawei.cangjie.psi.CjEnumEntry
 import com.huawei.cangjie.psi.CjTypeParameterList
+import com.huawei.cangjie.psi.CjTypeReference
 import com.huawei.cangjie.psi.CjTypeStatement
 
-class CjClassInfo<T : CjTypeStatement>(
+class CjEnmuEntryInfo(
+    override val element: CjEnumEntry,
+
+    ) : CjClassInfo<CjEnumEntry>(
+    element
+) {
+    override val classKind: ClassKind
+        get() = ClassKind.ENUM_ENTRY
+
+
+
+    val typeReferences:List<CjTypeReference> = element.typeReferences
+}
+
+open class CjClassInfo<T : CjTypeStatement>(
     element: T,
     override val classKind: ClassKind = ClassKind.CLASS
 ) : CjTypeStatementInfo<T>(element) {
     override val typeParameterList: CjTypeParameterList?
         get() = element.typeParameterList
-
 
 }
 //public class CjClassInfo extends CjClassOrObjectInfo<CjClass> {

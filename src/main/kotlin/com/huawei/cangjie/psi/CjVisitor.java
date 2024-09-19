@@ -376,7 +376,8 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     }
 
     public R visitEnumEntry(CjEnumEntry cjEnumEntry, D data) {
-        return visitCjElement(cjEnumEntry, data);
+        return visitTypeStatement(cjEnumEntry, data);
+
     }
 
     public R visitMatchEntry(CjMatchEntry cjMatchEntry, D data) {

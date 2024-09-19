@@ -214,8 +214,8 @@ CjConstantExpressionElementType RUNE_CONSTANT = new CjConstantExpressionElementT
             new CjPlaceHolderStubElementType<>("PROPERTY_SET", CjPropertySet.class);
 
 
-    CjPlaceHolderStubElementType<CjSuperTypeEntry> TYPE_LIST =
-            new CjPlaceHolderStubElementType<>("TYPE_LIST", CjSuperTypeEntry.class);
+    CjPlaceHolderStubElementType<CjEnumEntryTypeEntry> TYPE_LIST =
+            new CjPlaceHolderStubElementType<>("TYPE_LIST", CjEnumEntryTypeEntry.class);
 
 
 //    CjImportDirectiveItemElementType IMPORT_DIRECTIVE_ITEM = new CjImportDirectiveItemElementType("IMPORT_DIRECTIVE_ITEM");

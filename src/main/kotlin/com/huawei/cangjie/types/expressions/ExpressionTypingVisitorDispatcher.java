@@ -148,10 +148,9 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
                     if (refinedType != result.getType()) {
                         result = result.replaceType(refinedType);
                     }
-//                    if (context.isSaveTypeInfo) {
+
                     context.trace.record(BindingContext.EXPRESSION_TYPE_INFO, expression, result);
 
-//                    }
                 } catch (ReenteringLazyValueComputationException e) {
 //                    context.trace.report(TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM.onError(expression));
                     result = TypeInfoFactoryKt.noTypeInfo(context);

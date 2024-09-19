@@ -486,8 +486,9 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
     }
 
     @Override
-    public @Nullable ClassConstructorDescriptor getUnsubstitutedPrimaryConstructor() {
-        return null;
+    public   ClassConstructorDescriptor getUnsubstitutedPrimaryConstructor() {
+        return ((LazyClassMemberScope) getUnsubstitutedMemberScope()).getPrimaryConstructor();
+
     }
 
     @Override

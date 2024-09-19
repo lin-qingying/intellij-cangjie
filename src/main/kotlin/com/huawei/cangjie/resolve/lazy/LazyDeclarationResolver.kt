@@ -208,6 +208,10 @@ open class LazyDeclarationResolver(
                 return visitTypeStatement(cclass, data)
             }
 
+            override fun visitEnumEntry(cjEnumEntry: CjEnumEntry , data: Nothing?): DeclarationDescriptor? {
+                return visitTypeStatement(cjEnumEntry, data)
+
+            }
             override fun visitInterface(cinterface: CjInterface, data: Nothing?): DeclarationDescriptor? {
                 return visitTypeStatement(cinterface, data)
             }

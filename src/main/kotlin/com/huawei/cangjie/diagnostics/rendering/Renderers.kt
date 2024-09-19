@@ -29,6 +29,9 @@ object Renderers {
         NAME.render( it.name)
     }
     @JvmField
+    val RENDER_CLASS_OR_OBJECT_NAME = renderer<ClassifierDescriptorWithTypeParameters> { it.renderKindWithName() }
+
+    @JvmField
     val COMPACT_WITHOUT_SUPERTYPES = DescriptorRenderer.COMPACT_WITHOUT_SUPERTYPES.asRenderer()
     @JvmField
     val RENDER_TYPE = SmartTypeRenderer(DescriptorRenderer.FQ_NAMES_IN_TYPES.withOptions {

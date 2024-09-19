@@ -101,10 +101,12 @@ internal class SyntheticScopeBasedTowerLevel(
             }
     }
 
-//    override fun getObjects(
-//        name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?
-//    ): Collection<CandidateWithBoundDispatchReceiver> =
-//        emptyList()
+
+
+    override fun getObjects(
+        name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): Collection<CandidateWithBoundDispatchReceiver> =
+        emptyList()
 
     override fun getFunctions(
         name: Name,
@@ -635,6 +637,12 @@ internal class MemberScopeTowerLevel(
                 scopeTower
             )
         }
+    }
+    override fun getObjects(
+        name: Name,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): Collection<CandidateWithBoundDispatchReceiver> {
+        return emptyList()
     }
 
 

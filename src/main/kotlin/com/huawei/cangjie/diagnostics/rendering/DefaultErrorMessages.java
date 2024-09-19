@@ -235,6 +235,7 @@ public class DefaultErrorMessages {
         MAP.put(MAIN_FUNCTION_RETURN_TYPE, "return type of 'main' is not 'Integer' or 'Unit'");
         MAP.put(MAIN_FUNCTION_PARAMETER_COUNT, "'main' method has too many parameters");
         MAP.put(MAIN_FUNCTION_PARAMETER_TYPE, "'main' cannot be defined with parameter whose type is not 'Array<String>'");
+        MAP.put(NESTED_CLASS_ACCESSED_VIA_INSTANCE_REFERENCE, "Nested {0} accessed via instance reference", RENDER_CLASS_OR_OBJECT_NAME);
 
         MAP.put(MAIN_FUNCTION_NUMBER_ERROR, "Multiple 'main' methods are defined in the module");
 

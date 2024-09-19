@@ -23,7 +23,7 @@ object CjClassInfoUtil {
         }else if(typeStatement is CjExtend){
             return CjClassInfo(typeStatement, ClassKind.EXTEND)
         }else if(typeStatement is CjEnumEntry){
-            return CjClassInfo(typeStatement, ClassKind.ENUM_ENTRY)
+            return CjEnmuEntryInfo(typeStatement )
         }
 
         throw IllegalArgumentException("Unknown declaration type: " + typeStatement + typeStatement.text)

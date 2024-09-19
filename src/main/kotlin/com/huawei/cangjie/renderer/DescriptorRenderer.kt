@@ -1443,44 +1443,41 @@ internal class DescriptorRendererImpl(
     }
 
     /* CLASSES */
-    private fun renderClass(klass: ClassDescriptor, builder: StringBuilder) {
-        val isEnumEntry = klass.kind == ENUM_ENTRY
+    private fun renderClass(cclass: ClassDescriptor, builder: StringBuilder) {
+        val isEnumEntry = cclass.kind == ENUM_ENTRY
 
         if (!startFromName) {
-//            renderContextReceivers(klass.contextReceivers, builder)
-            builder.renderAnnotations(klass)
+//            renderContextReceivers(cclass.contextReceivers, builder)
+            builder.renderAnnotations(cclass)
             if (!isEnumEntry) {
-                renderVisibility(klass.visibility, builder)
+                renderVisibility(cclass.visibility, builder)
             }
-            if (!(klass.kind == INTERFACE && klass.modality == Modality.ABSTRACT ||
-                        klass.kind.isObject && klass.modality == Modality.FINAL)
+            if (!(cclass.kind == INTERFACE && cclass.modality == Modality.ABSTRACT ||
+                        cclass.kind.isObject && cclass.modality == Modality.FINAL)
             ) {
-                renderModality(klass.modality, builder, klass.implicitModalityWithoutExtensions())
+                renderModality(cclass.modality, builder, cclass.implicitModalityWithoutExtensions())
             }
-            renderMemberModifiers(klass, builder)
-//            renderModifier(builder, DescriptorRendererModifier.INNER in modifiers && klass.isInner, "inner")
-//            renderModifier(builder, DescriptorRendererModifier.DATA in modifiers && klass.isData, "data")
-//            renderModifier(builder, DescriptorRendererModifier.INLINE in modifiers && klass.isInline, "inline")
-            renderModifier(builder, DescriptorRendererModifier.VALUE in modifiers && klass.isValue, "value")
-            renderModifier(builder, DescriptorRendererModifier.FUNC in modifiers && klass.isFun, "fun")
-            renderClassKindPrefix(klass, builder)
+            renderMemberModifiers(cclass, builder)
+            renderModifier(builder, DescriptorRendererModifier.VALUE in modifiers && cclass.isValue, "value")
+            renderModifier(builder, DescriptorRendererModifier.FUNC in modifiers && cclass.isFun, "fun")
+            renderClassKindPrefix(cclass, builder)
         }
 
-//        if (!isCompanionObject(klass)) {
+//        if (!isCompanionObject(cclass)) {
 //            if (!startFromName) renderSpaceIfNeeded(builder)
-        renderName(klass, builder, true)
+        renderName(cclass, builder, true)
 //        } else {
-//            renderCompanionObjectName(klass, builder)
+//            renderCompanionObjectName(cclass, builder)
 //        }
 
         if (isEnumEntry) return
 
-        val typeParameters = klass.declaredTypeParameters
+        val typeParameters = cclass.declaredTypeParameters
         renderTypeParameters(typeParameters, builder, false)
-        renderCapturedTypeParametersIfRequired(klass, builder)
+        renderCapturedTypeParametersIfRequired(cclass, builder)
 
-        if (!klass.kind.isObject && classWithPrimaryConstructor) {
-            val primaryConstructor = klass.unsubstitutedPrimaryConstructor
+        if (!cclass.kind.isObject && classWithPrimaryConstructor) {
+            val primaryConstructor = cclass.unsubstitutedPrimaryConstructor
             if (primaryConstructor != null) {
                 builder.append(" ")
                 builder.renderAnnotations(primaryConstructor)
@@ -1495,7 +1492,7 @@ internal class DescriptorRendererImpl(
             }
         }
 
-        renderSuperTypes(klass, builder)
+        renderSuperTypes(cclass, builder)
         renderWhereSuffix(typeParameters, builder)
     }
 

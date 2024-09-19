@@ -11,6 +11,7 @@ import com.huawei.cangjie.resolve.calls.components.InferenceSession
 import com.huawei.cangjie.resolve.descriptorUtil.fqNameSafe
 import com.huawei.cangjie.resolve.lazy.LazyClassContext
 import com.huawei.cangjie.resolve.lazy.data.CjClassInfoUtil
+import com.huawei.cangjie.resolve.lazy.data.CjEnmuEntryInfo
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
@@ -385,7 +386,7 @@ protected constructor(
 
             if (it.classKind.isEnumEntry) {
                 c.enumDescriptorResolver.resolveEnumEntryDescriptor(
-                    c, thisDescriptor, name, it, isExternal
+                    c, thisDescriptor, name, it as CjEnmuEntryInfo, isExternal
                 )
 
             } else {

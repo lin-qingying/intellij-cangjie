@@ -3,6 +3,8 @@ package com.huawei.cangjie.resolve.calls.tower
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
+import com.huawei.cangjie.resolve.hasClassValueDescriptor
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.huawei.cangjie.types.CangJieType
@@ -80,17 +82,17 @@ internal open class ScopeBasedTowerLevel protected constructor(
         }
     }
 
-//    override fun getObjects(
-//        name: Name,
-//        extensionReceiver: ReceiverValueWithSmartCastInfo?
-//    ): Collection<CandidateWithBoundDispatchReceiver> =
-//        resolutionScope.getContributedObjectVariablesIncludeDeprecated(name, location).map { (classifier, isDeprecated) ->
-//            createCandidateDescriptor(
-//                classifier,
-//                dispatchReceiver = null,
-//                specialError = if (isDeprecated) ResolvedUsingDeprecatedVisibility(resolutionScope, location) else null
-//            )
-//        }
+    override fun getObjects(
+        name: Name,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): Collection<CandidateWithBoundDispatchReceiver> =
+        resolutionScope.getContributedObjectVariablesIncludeDeprecated(name, location).map { (classifier, isDeprecated) ->
+            createCandidateDescriptor(
+                classifier,
+                dispatchReceiver = null,
+                specialError = if (isDeprecated) ResolvedUsingDeprecatedVisibility(resolutionScope, location) else null
+            )
+        }
 
     override fun getFunctions(
         name: Name,
@@ -171,7 +173,31 @@ private fun getConstructorsOfClassifier(classifier: ClassifierDescriptor?): List
     return callableConstructors.filter { it.dispatchReceiverParameter == null }
 }
 private val ClassDescriptor.canHaveCallableConstructors: Boolean
-    get() = !ErrorUtils.isError(this) && !kind.isObject
+    get() = !ErrorUtils.isError(this) && !hasClassValueDescriptor
 
 private val TypeAliasDescriptor.canHaveCallableConstructors: Boolean
     get() = classDescriptor != null && !ErrorUtils.isError(classDescriptor) && classDescriptor!!.canHaveCallableConstructors
+fun getFakeDescriptorForObject(classifier: ClassifierDescriptor?): FakeCallableDescriptorForObject? =
+    when (classifier) {
+//        is TypeAliasDescriptor ->
+//            classifier.classDescriptor?.let { classDescriptor ->
+//                if (classDescriptor.hasClassValueDescriptor)
+//                    FakeCallableDescriptorForTypeAliasObject(classifier)
+//                else
+//                    null
+//            }
+        is ClassDescriptor ->
+            if (classifier.hasClassValueDescriptor)
+                FakeCallableDescriptorForObject(classifier)
+            else
+                null
+        else -> null
+    }
+private fun ResolutionScope.getContributedObjectVariablesIncludeDeprecated(
+    name: Name,
+    location: LookupLocation
+): Collection<DescriptorWithDeprecation<VariableDescriptor>> {
+    val (classifier, isOwnerDeprecated) = getContributedClassifierIncludeDeprecated(name, location) ?: return emptyList()
+    val objectDescriptor = getFakeDescriptorForObject(classifier) ?: return emptyList()
+    return listOf(DescriptorWithDeprecation(objectDescriptor, isOwnerDeprecated))
+}

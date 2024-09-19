@@ -13,6 +13,7 @@ import com.huawei.cangjie.name.SpecialNames
 import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.resolve.DescriptorUtils.getContainingModule
 import com.huawei.cangjie.resolve.descriptorUtil.builtIns
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
 import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver
@@ -28,6 +29,7 @@ import kotlin.contracts.contract
 
 val DeclarationDescriptor.isExtension: Boolean
     get() = this is CallableDescriptor && extensionReceiverParameter != null
+
 fun DeclarationDescriptorWithVisibility.isVisible(
     context: PsiElement,
     receiverExpression: CjExpression?,
@@ -36,7 +38,13 @@ fun DeclarationDescriptorWithVisibility.isVisible(
 ): Boolean {
     val resolutionScope = context.getResolutionScope(bindingContext, resolutionFacade)
     val from = resolutionScope.ownerDescriptor
-    return isVisible(from, receiverExpression, bindingContext, resolutionScope, resolutionFacade.languageVersionSettings)
+    return isVisible(
+        from,
+        receiverExpression,
+        bindingContext,
+        resolutionScope,
+        resolutionFacade.languageVersionSettings
+    )
 }
 
 private fun DeclarationDescriptorWithVisibility.isVisible(
@@ -62,6 +70,14 @@ private fun DeclarationDescriptorWithVisibility.isVisible(
     }
 }
 
+val ClassDescriptor.hasClassValueDescriptor: Boolean get() = classValueDescriptor != null
+val ClassDescriptor.classValueDescriptor: ClassDescriptor?
+    get() =
+        if (kind.isSingleton && this is LazyEnumEntryDescriptor && this.types.isEmpty())
+            this
+        else
+            null
+
 object DescriptorUtils {
     @JvmStatic
     fun isDirectSubclass(
@@ -83,11 +99,13 @@ object DescriptorUtils {
             descriptor
         )
     }
-//    匿名对象
+
+    //    匿名对象
     @JvmStatic
-    fun isAnonymousObject(descriptor:  DeclarationDescriptor): Boolean {
-        return  isClass(descriptor) && descriptor.name == SpecialNames.NO_NAME_PROVIDED
+    fun isAnonymousObject(descriptor: DeclarationDescriptor): Boolean {
+        return isClass(descriptor) && descriptor.name == SpecialNames.NO_NAME_PROVIDED
     }
+
     fun canHaveDeclaredConstructors(classDescriptor: ClassDescriptor): Boolean {
         return !isInterface(
             classDescriptor
@@ -509,11 +527,13 @@ fun DeclarationDescriptor.isSameModule(other: DeclarationDescriptor): Boolean {
     return fromModule.shouldProtectedsOf(whatModule)
 
 }
+
 val DeclarationDescriptor.isInsideInterface: Boolean
     get() {
         val parent = containingDeclaration as? ClassDescriptor
         return parent != null && parent.kind.isInterface
     }
+
 @OptIn(ExperimentalContracts::class)
 fun DeclarationDescriptor.isSealed(): Boolean {
     contract {
@@ -521,11 +541,12 @@ fun DeclarationDescriptor.isSealed(): Boolean {
     }
     return DescriptorUtils.isSealedClass(this)
 }
-fun DeclarationDescriptor.isStatic(): Boolean {
-     return when(this){
 
-         is FunctionDescriptor -> isStatic
-         else -> false
-     }
+fun DeclarationDescriptor.isStatic(): Boolean {
+    return when (this) {
+
+        is FunctionDescriptor -> isStatic
+        else -> false
+    }
 
 }

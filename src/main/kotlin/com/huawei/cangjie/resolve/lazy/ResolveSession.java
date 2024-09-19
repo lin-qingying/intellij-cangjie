@@ -64,7 +64,7 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     private SealedClassInheritorsProvider sealedClassInheritorsProvider;
     private OverloadChecker overloadChecker;
     private AnnotationResolver annotationResolver;
-
+    private EnumDescriptorResolver enumDescriptorResolver;
     // Only calls from injectors expected
     @Deprecated
     public ResolveSession(
@@ -449,9 +449,17 @@ public class ResolveSession implements CangJieCodeAnalyzer, LazyClassContext {
     public @NotNull OverloadChecker getOverloadChecker() {
         return overloadChecker;
     }
-
+    @Inject
+    public void setEnumDescriptorResolver(@NotNull EnumDescriptorResolver enumDescriptorResolver) {
+        this.enumDescriptorResolver = enumDescriptorResolver;
+    }
     @Inject
     public void setOverloadChecker(@NotNull OverloadChecker overloadChecker) {
         this.overloadChecker = overloadChecker;
+    }
+
+    @Override
+    public @NotNull EnumDescriptorResolver getEnumDescriptorResolver() {
+        return  enumDescriptorResolver;
     }
 }

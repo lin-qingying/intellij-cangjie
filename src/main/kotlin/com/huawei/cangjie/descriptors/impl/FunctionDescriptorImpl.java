@@ -34,16 +34,9 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     private DescriptorVisibility visibility = DescriptorVisibilities.INTERNAL;
     private boolean isOperator = false;
     private boolean isStatic = false;
-    //    private bool isInfix = false;
-//    private bool isExternal = false;
-//    private bool isInline = false;
-//    private bool isTailrec = false;
+
     private boolean isExpect = false;
-    //    private bool isActual = false;
-    // Difference between these hidden kinds:
-    // 1. isHiddenToOvercomeSignatureClash prohibit calling such functions even in super-call context
-    // 2. isHiddenForResolutionEverywhereBesideSupercalls propagates to it's overrides descriptors while isHiddenToOvercomeSignatureClash does not
-    private boolean isHiddenToOvercomeSignatureClash = false;
+       private boolean isHiddenToOvercomeSignatureClash = false;
     private boolean isHiddenForResolutionEverywhereBesideSupercalls = false;
     private boolean hasStableParameterNames = true;
     private boolean hasSynthesizedParameterNames = false;

@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.calls.tower
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.CallableMemberDescriptor
 import com.huawei.cangjie.descriptors.FunctionDescriptor
+import com.huawei.cangjie.descriptors.VariableDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.scopes.ResolutionScope
@@ -79,19 +80,18 @@ internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qual
         ).map {
             createCandidateDescriptor(it, dispatchReceiver = null)
         }
+    override fun getObjects(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?) = qualifier.staticScope
+        .getContributedObjectVariables(name, location).map {
+            createCandidateDescriptor(it, dispatchReceiver = null)
+        }
 
 
-    //    override fun getFunctions(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?) = qualifier.staticScope
-//        .getContributedFunctionsAndConstructors(
-//            name,
-//            location,
-//            qualifier.classValueReceiverWithSmartCastInfo,
-//            extensionReceiver,
-//            scopeTower
-//        ).map {
-//            createCandidateDescriptor(it, dispatchReceiver = null)
-//        }
+
     override fun recordLookup(name: Name) {
 
     }
+}
+private fun ResolutionScope.getContributedObjectVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
+    val objectDescriptor = getFakeDescriptorForObject(getContributedClassifier(name, location))
+    return listOfNotNull(objectDescriptor)
 }

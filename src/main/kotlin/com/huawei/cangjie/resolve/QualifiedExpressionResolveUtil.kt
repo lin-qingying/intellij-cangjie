@@ -39,7 +39,7 @@ fun resolveQualifierAsStandaloneExpression(
             context.trace.report(Errors.TYPE_PARAMETER_IS_NOT_AN_EXPRESSION.on(qualifier.referenceExpression, referenceTarget))
         }
         is ClassDescriptor -> {
-            if (!referenceTarget.kind.isObject) {
+            if (!referenceTarget.hasClassValueDescriptor) {
                 context.trace.report(Errors.EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(qualifier.referenceExpression, referenceTarget))
             }
         }

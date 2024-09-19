@@ -165,11 +165,11 @@ open class LazyClassMemberScope(
 
 //        扩展
 
-     if(thisDescriptor !is LazyExtendClassDescriptor){
-         for (extend in extendClassDescriptors) {
-             result.addAll(extend.unsubstitutedMemberScope.getContributedFunctions(name, location))
-         }
-     }
+        if (thisDescriptor !is LazyExtendClassDescriptor) {
+            for (extend in extendClassDescriptors) {
+                result.addAll(extend.unsubstitutedMemberScope.getContributedFunctions(name, location))
+            }
+        }
 
 
 //

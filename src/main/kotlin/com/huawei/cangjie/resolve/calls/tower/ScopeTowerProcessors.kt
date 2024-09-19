@@ -260,41 +260,43 @@ fun <C : Candidate> createVariableAndObjectProcessor(
     context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
 ) = VariableAndObjectScopeTowerProcessor(
     createVariableProcessor(scopeTower, name, context, explicitReceiver),
-//    createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getObjects(name, it) }
+    createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getObjects(name, it) }
 )
+
+
 
 class VariableAndObjectScopeTowerProcessor<out C : Candidate>(
     private val variableProcessor: ScopeTowerProcessor<C>,
-//    private val objectProcessor: ScopeTowerProcessor<C>
+    private val objectProcessor: ScopeTowerProcessor<C>
 ) : ScopeTowerProcessor<C> {
     override fun process(data: TowerData): List<Collection<C>> {
         val variablesResult = variableProcessor.process(data)
-//        val objectResult = objectProcessor.process(data)
-//        if (objectResult.isEmpty()) return variablesResult
-//        if (objectResult.none { level ->
-//                level.any {
-//                    it.isEnumEntryCandidate()
-//                }
-//            }
-//        )
-//        return variablesResult + objectResult
+        val objectResult = objectProcessor.process(data)
+        if (objectResult.isEmpty()) return variablesResult
+        if (objectResult.none { level ->
+                level.any {
+                    it.isEnumEntryCandidate()
+                }
+            }
+        )
+        return variablesResult + objectResult
         val result = mutableListOf<List<C>>()
         result.addAll(variablesResult.map { it.toMutableList() })
-//        for ((index, objectLevel) in objectResult.withIndex()) {
-//            val enumEntryLevel = objectLevel.filter { it.isEnumEntryCandidate() }
-//            if (enumEntryLevel.isEmpty()) continue
-//            if (index < variablesResult.size) {
-//                // It's guaranteed this element is a mutable list
-//                (result[index] as MutableList).addAll(enumEntryLevel)
-//            } else {
-//                result.add(enumEntryLevel)
-//            }
-//        }
-//        for (objectLevel in objectResult) {
-//            val nonEnumEntryLevel = objectLevel.filter { !it.isEnumEntryCandidate() }
-//            if (nonEnumEntryLevel.isEmpty()) continue
-//            result.add(nonEnumEntryLevel)
-//        }
+        for ((index, objectLevel) in objectResult.withIndex()) {
+            val enumEntryLevel = objectLevel.filter { it.isEnumEntryCandidate() }
+            if (enumEntryLevel.isEmpty()) continue
+            if (index < variablesResult.size) {
+                // It's guaranteed this element is a mutable list
+                (result[index] as MutableList).addAll(enumEntryLevel)
+            } else {
+                result.add(enumEntryLevel)
+            }
+        }
+        for (objectLevel in objectResult) {
+            val nonEnumEntryLevel = objectLevel.filter { !it.isEnumEntryCandidate() }
+            if (nonEnumEntryLevel.isEmpty()) continue
+            result.add(nonEnumEntryLevel)
+        }
         return result
     }
 
