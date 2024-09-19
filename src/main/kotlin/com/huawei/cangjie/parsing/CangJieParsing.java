@@ -1238,7 +1238,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return TYPEALIAS;
     }
 
-    private IElementType parseProperty(boolean isInterface) {
+      IElementType parseProperty(boolean isInterface) {
         return parseProperty(isInterface, null, null);
     }
 

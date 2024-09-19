@@ -629,8 +629,28 @@ open class CangJieExpressionParsing(
 
 
         myBuilder.disableNewlines()
+        var isExpression = true
+        if (at( LPAR)) {
 
+
+//            val atWhenStart = mark()
+//            cangJieParsing.parseAnnotationsList(  EQ_RPAR_SET)
+//            if (at( LET_KEYWORD) || at( VAR_KEYWORD)) {
+//                val declType: IElementType =
+//                    cangJieParsing.parseVariable( DeclarationParsingMode.LOCAL)
+//
+//                atWhenStart.done(declType)
+//                atWhenStart.setCustomEdgeTokenBinders(
+//                     PrecedingDocCommentsBinder,
+//                     TrailingCommentsBinder
+//                )
+//            } else {
+//                atWhenStart.drop()
+//                parseExpression()
+//            }
         parseCondition()
+            isExpression = false
+        }
 
 
         myBuilder.restoreNewlinesState()
@@ -649,7 +669,7 @@ open class CangJieExpressionParsing(
                     errorAndAdvance("Expecting 'case'")
 //                    break
                 } else {
-                    parseMatchEntry()
+                    parseMatchEntry(isExpression)
 
                 }
 
@@ -705,16 +725,16 @@ open class CangJieExpressionParsing(
      *   : case caseCondition{|} "=>" caseBody
      *   ;
      */
-    private fun parseMatchEntry() {
+    private fun parseMatchEntry(isExpression:Boolean = false) {
         val entry = mark()
 
         if (at(CASE_KEYWORD)) {
             advance() // CASE_KEYWORD
 
-            parseCasePattern()
+            parseCasePattern(isExpression)
             while (at(OR)) {
                 advance() // OR
-                parseCasePattern()
+                parseCasePattern(isExpression)
             }
             expect(DOUBLE_ARROW, "Expecting '=>'")
             parseCaseBody()
@@ -726,163 +746,180 @@ open class CangJieExpressionParsing(
         entry.done(MATCH_ENTRY)
 
     }
+  inner  class CasePattern  {
+        /**
+         * 绑定模式(id) | 类型模式(id:type) | 枚举模式(id(expression{,})?)
+         */
+        fun parseSimpleNameExpression() {
+            assert(_at(IDENTIFIER))
+            val mark = mark()
+            var type = 1
 
-    /**
-     * case condition
-     * (常量 | 通配符(_) | 绑定模式(SimpleName) | Tuple模式( (p1,p2,...,pn) ) | 类型模式(SimpleName : type) | Enum模式(SimpleName(SimpleName)? | Tuple与Enum嵌套  )  )
-     */
-    private fun parseCasePattern() {
-        val condition = mark()
+            if (lookahead(1) == DOT) {
+                cangJieParsing.parseTypeRef()
 
+                type = 3
 
-        class CasePattern {
-            /**
-             * 绑定模式(id) | 类型模式(id:type) | 枚举模式(id(expression{,})?)
-             */
-            fun parseSimpleNameExpression() {
-                assert(_at(IDENTIFIER))
-                val mark = mark()
-                var type = 1
-
-                if (lookahead(1) == DOT) {
-                    cangJieParsing.parseTypeRef()
-
+                if (at(LPAR)) {
+                    //枚举模式
+                    advance() // LPAR
                     type = 3
-
-                    if (at(LPAR)) {
-                        //枚举模式
-                        advance() // LPAR
-                        type = 3
-                        parseExpression()
-                        while (at(COMMA)) {
-                            advance() // COMMA
-                            parseExpression()
-                        }
-                        expect(RPAR, "Expecting ')'")
-                    }
-                } else {
-                    advance() // IDENTIFIER
-
-                    //1.绑定模式
-                    //2.类型模式
-                    //3.枚举模式
-                    if (at(COLON)) {
-                        advance() // COLON
-                        type = 2
-                        cangJieParsing.parseTypeRef()
-
-                    } else if (at(LPAR)) {
-                        //枚举模式
-                        advance() // LPAR
-                        type = 3
-                        parseExpression()
-                        while (at(COMMA)) {
-                            advance() // COMMA
-                            parseExpression()
-                        }
-                        expect(RPAR, "Expecting ')'")
-                    }
-                }
-
-
-                when (type) {
-                    1 -> mark.done(REFERENCE_EXPRESSION)
-                    2 -> mark.done(TYPE_PATTERN)
-                    3 -> mark.done(ENUM_PATTERN)
-                }
-
-
-            }
-
-
-            fun parseUnderline() {
-                assert(_at(UNDERLINE))
-                advance()
-
-
-                if (at(COLON)) {
-                    advance() // COLON
-                    //处理类型
-                    cangJieParsing.parseTypeRef()
-                }
-
-
-            }
-
-            fun parseExpression() {
-                when (tokenId) {
-
-                    UNDERLINE_Id -> parseUnderline()
-                    LPAR_Id -> parseParenthesizedExpression()
-                    INTEGER_LITERAL_Id -> parseOneTokenExpression(INTEGER_CONSTANT)
-                    RUNE_LITERAL_Id -> parseOneTokenExpression(RUNE_CONSTANT)
-                    CHARACTER_BYTE_LITERAL_Id -> parseOneTokenExpression(CHARACTER_BYTE_CONSTANT)
-                    TRUE_KEYWORD_Id, FALSE_KEYWORD_Id -> parseOneTokenExpression(BOOLEAN_CONSTANT)
-                    FLOAT_LITERAL_Id -> parseOneTokenExpression(FLOAT_CONSTANT)
-                    OPEN_QUOTE_Id -> parseStringTemplate()
-                    IDENTIFIER_Id -> parseSimpleNameExpression()
-                    else -> error("Expecting a pattern expression")
-
-                }
-            }
-
-            fun parseTupleExpression() {
-                parseExpression()
-                if (at(COMMA)) {
-                    advance() // COMMA
                     parseExpression()
                     while (at(COMMA)) {
                         advance() // COMMA
                         parseExpression()
                     }
-                } else {
-                    error("Expecting Tuple expression")
+                    expect(RPAR, "Expecting ')'")
                 }
+            } else {
+                advance() // IDENTIFIER
 
+                //1.绑定模式
+                //2.类型模式
+                //3.枚举模式
+                if (at(COLON)) {
+                    advance() // COLON
+                    type = 2
+                    cangJieParsing.parseTypeRef()
 
+                } else if (at(LPAR)) {
+                    //枚举模式
+                    advance() // LPAR
+                    type = 3
+                    parseExpression()
+                    while (at(COMMA)) {
+                        advance() // COMMA
+                        parseExpression()
+                    }
+                    expect(RPAR, "Expecting ')'")
+                }
             }
 
-            fun parseParenthesizedExpression() {
-                assert(_at(LPAR))
 
-
-                var isUnit = false
-                var isTuple = false
-
-                val mark = mark()
-                myBuilder.disableNewlines()
-                advance() // LPAR
-
-
-                if (at(RPAR)) {
-                    isUnit = true
-//                    mark.done(UNIT_CONSTANT)
-//                    return
-                } else {
-//                    元组
-                    isTuple = true
-                    parseTupleExpression()
-
-                }
-                expect(RPAR, "Expecting ')'")
-
-
-
-                when {
-                    isUnit -> mark.done(UNIT_CONSTANT)
-                    isTuple -> mark.done(TUPLE_EXPRESSION)
-
-                    else -> mark.drop()
-                }
-
+            when (type) {
+                1 -> mark.done(REFERENCE_EXPRESSION)
+                2 -> mark.done(TYPE_PATTERN)
+                3 -> mark.done(ENUM_PATTERN)
             }
+
 
         }
 
 
-        val casePattern = CasePattern()
+        fun parseUnderline() {
+            assert(_at(UNDERLINE))
+            advance()
 
-        casePattern.parseExpression()
+
+            if (at(COLON)) {
+                advance() // COLON
+                //处理类型
+                cangJieParsing.parseTypeRef()
+            }
+
+
+        }
+
+        fun parseExpression() {
+            when (tokenId) {
+
+                UNDERLINE_Id -> parseUnderline()
+                LPAR_Id -> parseParenthesizedExpression()
+                INTEGER_LITERAL_Id -> parseOneTokenExpression(INTEGER_CONSTANT)
+                RUNE_LITERAL_Id -> parseOneTokenExpression(RUNE_CONSTANT)
+                CHARACTER_BYTE_LITERAL_Id -> parseOneTokenExpression(CHARACTER_BYTE_CONSTANT)
+                TRUE_KEYWORD_Id, FALSE_KEYWORD_Id -> parseOneTokenExpression(BOOLEAN_CONSTANT)
+                FLOAT_LITERAL_Id -> parseOneTokenExpression(FLOAT_CONSTANT)
+                OPEN_QUOTE_Id -> parseStringTemplate()
+                IDENTIFIER_Id -> parseSimpleNameExpression()
+                else -> error("Expecting a pattern expression")
+
+            }
+        }
+
+        fun parseTupleExpression() {
+            parseExpression()
+            if (at(COMMA)) {
+                advance() // COMMA
+                parseExpression()
+                while (at(COMMA)) {
+                    advance() // COMMA
+                    parseExpression()
+                }
+            } else {
+                error("Expecting Tuple expression")
+            }
+
+
+        }
+
+        fun parseParenthesizedExpression() {
+            assert(_at(LPAR))
+
+
+            var isUnit = false
+            var isTuple = false
+
+            val mark = mark()
+            myBuilder.disableNewlines()
+            advance() // LPAR
+
+
+            if (at(RPAR)) {
+                isUnit = true
+//                    mark.done(UNIT_CONSTANT)
+//                    return
+            } else {
+//                    元组
+                isTuple = true
+                parseTupleExpression()
+
+            }
+            expect(RPAR, "Expecting ')'")
+
+
+
+            when {
+                isUnit -> mark.done(UNIT_CONSTANT)
+                isTuple -> mark.done(TUPLE_EXPRESSION)
+
+                else -> mark.drop()
+            }
+
+        }
+
+    }
+
+    /**
+     * case condition
+     * (常量 | 通配符(_)
+     * | 绑定模式(SimpleName)
+     * | Tuple模式( (p1,p2,...,pn) )
+     * | 类型模式(SimpleName : type)
+     * | Enum模式(SimpleName(SimpleName)?
+     * | Tuple与Enum嵌套  )
+     * | 逻辑表达式
+     * )
+     */
+    private fun parseCasePattern(isExpression:Boolean = false) {
+        val condition = mark()
+
+
+
+
+        val casePattern = CasePattern()
+        if(isExpression ){
+            if(at(UNDERLINE)){
+                casePattern.parseUnderline()
+            }else{
+                parseExpression()
+            }
+
+        }else{
+            casePattern.parseExpression()
+
+        }
+
 
 
 
