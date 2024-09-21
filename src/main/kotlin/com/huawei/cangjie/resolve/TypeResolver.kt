@@ -5,11 +5,11 @@ import com.huawei.cangjie.builtins.createTupleType
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.descriptors.annotations.AnnotationDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.annotations.composeAnnotations
 import com.huawei.cangjie.descriptors.impl.AbstractVariableDescriptor
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.Name
@@ -26,6 +26,7 @@ import com.huawei.cangjie.resolve.source.CangJieSourceElement
 import com.huawei.cangjie.resolve.source.getPsi
 import com.huawei.cangjie.resolve.source.toSourceElement
 import com.huawei.cangjie.types.*
+import com.huawei.cangjie.types.ErrorUtils.invalidType
 import com.huawei.cangjie.types.checker.TrailingCommaChecker
 import com.huawei.cangjie.types.error.ErrorScope
 import com.huawei.cangjie.types.error.ErrorTypeKind
@@ -66,6 +67,10 @@ class TypeResolver(
             else -> error("Unexpected type: $resolvedType")
         }
     }
+
+    fun resolveClass(
+        scope: LexicalScope, userType: CjUserType, trace: BindingTrace, isDebuggerContext: Boolean
+    ): ClassifierDescriptor? = resolveDescriptorForType(scope, userType, trace, isDebuggerContext).classifierDescriptor
 
     fun resolveExpandedTypeForTypeAlias(typeAliasDescriptor: TypeAliasDescriptor): SimpleType {
         val typeAliasExpansion = TypeAliasExpansion.createWithFormalArguments(typeAliasDescriptor)
@@ -166,7 +171,7 @@ class TypeResolver(
         type.constructor // force read type constructor
         for (projection in type.arguments) {
 
-                forceResolveTypeContents(projection.type)
+            forceResolveTypeContents(projection.type)
 
         }
 //        }
@@ -239,6 +244,31 @@ class TypeResolver(
 
 
         typeElement?.accept(object : CjVisitorVoid() {
+            fun checkThisTypeForClass(): CangJieType {
+                var parent: LexicalScope = c.scope.parent as? LexicalScope ?: return invalidType
+
+                if (parent.kind == LexicalScopeKind.CLASS_MEMBER_SCOPE) {
+
+                            return ThisType((parent.ownerDescriptor as ClassDescriptor).defaultType)
+
+
+
+                }
+                c.trace.report(
+                    INVALID_THIS_TYPE.on(
+                        typeElement as CjThisType,
+                    )
+                )
+                return invalidType
+            }
+
+            override fun visitThisType(type: CjThisType) {
+                checkThisTypeForClass().let {
+                    result = type(it)
+                }
+
+            }
+
             override fun visitBasicType(type: CjBasicType) {
 
 //                val extendSuper = if (isgetExtend) {
@@ -246,7 +276,7 @@ class TypeResolver(
 //                } else {
 //                    emptyList()
 //                }.toSet()
-                result = type(createBasicType(moduleDescriptor.builtIns, type.text, /*extendSuper*/))
+                result = type(createBasicType(moduleDescriptor.builtIns, type.text /*extendSuper*/))
 
 
             }

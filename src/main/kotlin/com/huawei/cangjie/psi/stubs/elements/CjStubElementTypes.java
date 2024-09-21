@@ -78,6 +78,9 @@ CjPlaceHolderStubElementType<CjOptionType> OPTIONAL_TYPE =
             new CjPlaceHolderStubElementType<>("TYPE_REFERENCE", CjTypeReference.class);
     CjBasicTypeElementType BASIC_TYPE = new CjBasicTypeElementType("BASIC_TYPE");
 
+    CjPlaceHolderStubElementType<CjThisType> THIS_TYPE =
+            new CjPlaceHolderStubElementType<>("THIS_TYPE", CjThisType.class);
+
     CjUserTypeElementType USER_TYPE = new CjUserTypeElementType("USER_TYPE");
 //    CjPlaceHolderStubElementType<CjDynamicType> DYNAMIC_TYPE =
 //            new CjPlaceHolderStubElementType<>("DYNAMIC_TYPE", CjDynamicType.class);

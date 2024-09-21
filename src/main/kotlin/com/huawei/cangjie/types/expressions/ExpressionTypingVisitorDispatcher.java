@@ -41,6 +41,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
     private final ExpressionTypingComponents components;
     @NotNull
     private final AnnotationChecker annotationChecker;
+    protected final PatternMatchingTypingVisitor patterns;
 
     private ExpressionTypingVisitorDispatcher(
             @NotNull ExpressionTypingComponents components,
@@ -50,7 +51,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
         this.annotationChecker = annotationChecker;
         this.basic = new BasicExpressionTypingVisitor(this);
         this.controlStructures = new ControlStructureTypingVisitor(this);
-//        this.patterns = new PatternMatchingTypingVisitor(this);
+        this.patterns = new PatternMatchingTypingVisitor(this);
         this.functions = new FunctionsTypingVisitor(this);
         this.tuples = new TuplesTypingVisitor(this);
 //        this.declarationsCheckerBuilder = components.declarationsCheckerBuilder;
@@ -236,6 +237,14 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
 //////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
+    public CangJieTypeInfo visitConstructorDelegationCall(CjConstructorDelegationCall cjConstructorDelegationCall, ExpressionTypingContext data) {
+        return super.visitConstructorDelegationCall(cjConstructorDelegationCall, data);
+    }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+    @Override
     public CangJieTypeInfo visitLambdaExpression(@NotNull CjLambdaExpression expression, ExpressionTypingContext data) {
         // Erasing call position to unknown is necessary to prevent wrong call positions when type checking lambda's body
         return functions.visitLambdaExpression(expression, data.replaceCallPosition(CallPosition.Unknown.INSTANCE));
@@ -296,15 +305,15 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-//    @Override
-//    public CangJieTypeInfo visitIsExpression(@NotNull CjIsExpression expression, ExpressionTypingContext data) {
-//        return patterns.visitIsExpression(expression, data);
-//    }
-//
-//    @Override
-//    public CangJieTypeInfo visitWhenExpression(@NotNull CjWhenExpression expression, ExpressionTypingContext data) {
-//        return patterns.visitWhenExpression(expression, data);
-//    }
+    @Override
+    public CangJieTypeInfo visitIsExpression(@NotNull CjIsExpression expression, ExpressionTypingContext data) {
+        return patterns.visitIsExpression(expression, data);
+    }
+
+    @Override
+    public CangJieTypeInfo visitMatchExpression(@NotNull CjMatchExpression expression, ExpressionTypingContext data) {
+        return patterns.visitMatchExpression(expression, data);
+    }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 

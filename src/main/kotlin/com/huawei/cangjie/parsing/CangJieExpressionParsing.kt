@@ -275,6 +275,10 @@ open class CangJieExpressionParsing(
         parseExpression()
         argument.done(VALUE_ARGUMENT)
     }
+    fun parseValueArgumentList( ) {
+
+        parseValueArgumentList(LPAR, RPAR )
+    }
 
     /*
      * valueArguments

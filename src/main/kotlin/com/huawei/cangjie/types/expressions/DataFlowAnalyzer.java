@@ -1,5 +1,6 @@
 package com.huawei.cangjie.types.expressions;
 
+import com.google.common.collect.Sets;
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.descriptors.BindingTrace;
@@ -32,6 +33,8 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 import static com.huawei.cangjie.types.util.TypeUtils.*;
 
@@ -75,7 +78,17 @@ public class DataFlowAnalyzer {
 //        this.smartCastManager = smartCastManager;
         this.cangjieTypeChecker = cangjieTypeChecker;
     }
-
+    @NotNull
+    public static Collection<CangJieType> getAllPossibleTypes(
+            @NotNull CangJieType type,
+            @NotNull ResolutionContext c,
+            @NotNull DataFlowValue dataFlowValue,
+            @NotNull LanguageVersionSettings languageVersionSettings
+    ) {
+        Collection<CangJieType> possibleTypes = Sets.newHashSet(type);
+        possibleTypes.addAll(c.dataFlowInfo.getStableTypes(dataFlowValue, languageVersionSettings));
+        return possibleTypes;
+    }
     @NotNull
     public CangJieTypeInfo checkType(@NotNull CangJieTypeInfo typeInfo, @NotNull CjExpression expression, @NotNull ResolutionContext context) {
         return typeInfo.replaceType(checkType(typeInfo.getType(), expression, context));

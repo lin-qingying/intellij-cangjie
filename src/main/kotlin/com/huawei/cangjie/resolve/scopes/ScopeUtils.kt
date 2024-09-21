@@ -394,6 +394,21 @@ fun ImportingScope.withParent(newParent: ImportingScope?): ImportingScope {
 }
 
 fun Project.projectScope(): GlobalSearchScope = GlobalSearchScope.projectScope(this)
+fun LexicalScope.getDeclarationsByLabel(labelName: Name): Collection<DeclarationDescriptor> = collectAllFromMeAndParent {
+    if (it is LexicalScope && it.isOwnerDescriptorAccessibleByLabel && it.ownerDescriptor.name == labelName) {
+        listOf(it.ownerDescriptor)
+    } else {
+        listOf()
+    }
+}
+
+inline fun <T : Any> HierarchicalScope.collectAllFromMeAndParent(
+    collect: (HierarchicalScope) -> Collection<T>
+): Collection<T> {
+    var result: Collection<T>? = null
+    processForMeAndParent { result = result.concat(collect(it)) }
+    return result ?: emptySet()
+}
 
 object ScopeUtils {
     @JvmStatic

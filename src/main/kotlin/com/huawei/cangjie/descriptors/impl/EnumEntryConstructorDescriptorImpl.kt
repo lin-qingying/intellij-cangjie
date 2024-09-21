@@ -69,6 +69,10 @@ class EnumEntryConstructorDescriptor(
         return getEnumType()
     }
 
+    override fun hasSynthesizedParameterNames(): Boolean {
+        return false
+    }
+
     override fun getValueParameters(): List<ValueParameterDescriptor> {
         if (values == null) {
             fillValues()

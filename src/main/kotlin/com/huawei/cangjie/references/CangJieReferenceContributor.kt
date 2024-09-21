@@ -14,6 +14,7 @@ class CangJieReferenceContributor : CangJieReferenceProviderContributor {
         with(registrar) {
             registerProvider(factory = ::CjSimpleNameReference)
             registerProvider(factory = ::CjInvokeFunctionReference)
+            registerProvider(factory = ::CjConstructorDelegationReference)
 
             registerMultiProvider<CjNameReferenceExpression> { nameReferenceExpression ->
 

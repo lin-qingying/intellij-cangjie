@@ -1638,9 +1638,46 @@ internal class DescriptorRendererImpl(
             builder?.let { renderTypeAlias(descriptor, it) }
 
         }
+        private fun renderConstructor(constructor: ConstructorDescriptor, builder: StringBuilder) {
+            builder.renderAnnotations(constructor)
+            val visibilityRendered = (options.renderDefaultVisibility || constructor.constructedClass.modality != Modality.SEALED)
+                    && renderVisibility(constructor.visibility, builder)
+            renderMemberKind(constructor, builder)
 
+            val constructorKeywordRendered = renderConstructorKeyword || !constructor.isPrimary || visibilityRendered
+            if (constructorKeywordRendered) {
+                builder.append(renderKeyword("constructor"))
+            }
+            val classDescriptor = constructor.containingDeclaration
+            if (secondaryConstructorsAsPrimary) {
+                if (constructorKeywordRendered) {
+                    builder.append(" ")
+                }
+                renderName(classDescriptor, builder, true)
+                renderTypeParameters(constructor.typeParameters, builder, false)
+            }
+
+            renderValueParameters(constructor.valueParameters, constructor.hasSynthesizedParameterNames(), builder)
+
+            if (renderConstructorDelegation && !constructor.isPrimary && classDescriptor is ClassDescriptor) {
+                val primaryConstructor = classDescriptor.unsubstitutedPrimaryConstructor
+                if (primaryConstructor != null) {
+                    val parametersWithoutDefault = primaryConstructor.valueParameters.filter {
+                        !it.declaresDefaultValue() && it.varargElementType == null
+                    }
+                    if (parametersWithoutDefault.isNotEmpty()) {
+                        builder.append(" : ").append(renderKeyword("this"))
+                        builder.append(parametersWithoutDefault.joinToString(prefix = "(", postfix = ")", separator = ", ") { "" })
+                    }
+                }
+            }
+
+            if (secondaryConstructorsAsPrimary) {
+                renderWhereSuffix(constructor.typeParameters, builder)
+            }
+        }
         override fun visitConstructorDescriptor(constructorDescriptor: ConstructorDescriptor, builder: StringBuilder?) {
-//            renderConstructor(constructorDescriptor, builder)
+            builder?.let { renderConstructor(constructorDescriptor, it) }
 
         }
 //

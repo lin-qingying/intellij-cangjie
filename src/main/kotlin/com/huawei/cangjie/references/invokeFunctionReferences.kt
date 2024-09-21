@@ -28,28 +28,7 @@ abstract class CangJieAbstractInvokeFunctionReference(expression: CjCallExpressi
         return element.textRange.shiftRight(-element.textOffset)
     }
 
-    override fun isReferenceToImportAlias(alias: CjImportAlias): Boolean {
-        val importDirective = alias.importDirective ?: return false
-        val importedFqName = importDirective.importedFqName ?: return false
-        val helper = CjReferenceResolutionHelper.getInstance()
-        val importedDescriptors = helper.resolveImportReference(importDirective.getContainingCjFile(), importedFqName)
-        val importableTargets = unwrappedTargets.mapNotNull {
-            when {
-                it is CjConstructor<*> -> it.containingTypeStatement
 
-                else -> it
-            }
-        }
-
-        val project = element.project
-        val resolveScope = element.resolveScope
-
-        return importedDescriptors.any {
-            helper.findPsiDeclarations(it, project, resolveScope).any { declaration ->
-                declaration in importableTargets
-            }
-        }
-    }
 
     override fun getRanges(): List<TextRange> {
         val list = ArrayList<TextRange>()

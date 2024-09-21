@@ -4,14 +4,12 @@ import com.huawei.cangjie.lang.CangJieFileType
 import com.huawei.cangjie.lang.declarations.CjDeclarationsFile
 import com.huawei.cangjie.parsing.CangJieParsing.createForTopLevel
 import com.huawei.cangjie.psi.CjFile
-import com.huawei.cangjie.psi.dummpholder.CangJieDummyHolderFactory
 import com.intellij.lang.ASTNode
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.PsiParser
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.psi.PsiFile
-import com.intellij.psi.impl.source.DummyHolderFactory
 import com.intellij.psi.tree.IElementType
 import org.jetbrains.annotations.NotNull
 
@@ -98,6 +96,20 @@ class CangJieParser(project: Project) : PsiParser {
 
 
             return psiBuilder.treeBuilt
+        }
+
+        @JvmStatic
+        fun parseInitFunctionBlockExpression(psiBuilder: PsiBuilder): ASTNode {
+
+            psiBuilder.setDebugMode(true)
+            val cjParsing: CangJieParsing =
+                createForTopLevel(
+                    SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder)
+                )
+            cjParsing.parseInitFunctionBody()
+
+            return psiBuilder.treeBuilt
+
         }
 
         @JvmStatic

@@ -554,7 +554,7 @@ LONELY_BACKTICK=`
 "Unit"       { return CjTokens.UNIT_KEYWORD ;}
 "Rune"       { return CjTokens.RUNE_KEYWORD ;}
 "Nothing"    { return CjTokens.NOTHING_KEYWORD; }
-
+"This"    { return CjTokens.THIS_KEYWORD_UPPER; }
 
 "_"            { return CjTokens.UNDERLINE ;}
 

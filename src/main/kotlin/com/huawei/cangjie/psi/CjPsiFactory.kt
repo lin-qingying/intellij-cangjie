@@ -228,8 +228,8 @@ class CjPsiFactory private constructor(
     }
 
     fun creareDelegatedSuperTypeEntry(@NonNls text: String): CjConstructorDelegationCall {
-        val colonOrEmpty = if (text.isEmpty()) "" else ": "
-        return createClass("class A { init()$colonOrEmpty$text {}").secondaryConstructors.first()
+
+        return createClass("class A { init() { $text}").secondaryConstructors.first()
             .getDelegationCall()
     }
 
@@ -373,7 +373,12 @@ class CjPsiFactory private constructor(
     fun createNewLine(lineBreaks: Int): PsiElement {
         return createWhiteSpace("\n".repeat(lineBreaks))
     }
-
+    fun createIndent(): PsiElement {
+        return createWhiteSpace("    ")
+    }
+    fun createNewLineAndIndent(length:Int = 4): PsiElement {
+        return createWhiteSpace("\n" + " ".repeat(length))
+    }
     fun createNewLine(): PsiElement {
         return createWhiteSpace("\n ")
     }

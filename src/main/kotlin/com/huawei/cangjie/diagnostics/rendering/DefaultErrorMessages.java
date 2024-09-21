@@ -40,7 +40,7 @@ public class DefaultErrorMessages {
 
         MAP.put(FUNCTION_CALL_EXPECTED, "Function invocation ''{0}({1})'' expected", ELEMENT_TEXT,
                 (hasValueParameters, context) -> hasValueParameters ? "..." : "");
-//        MAP.put(CONSTANT_EXPECTED_TYPE_MISMATCH, "The {0} literal does not conform to the expected type {1}", CommonRenderers.STRING, RENDER_TYPE);
+
         MAP.put(NO_VALUE_FOR_PARAMETER, "No value passed for parameter ''{0}''", NAMED);
 
 //        MAP.put(UNRESOLVED_REFERENCE, "Unresolved reference: {0}", ELEMENT_TEXT);
@@ -128,6 +128,7 @@ public class DefaultErrorMessages {
         MAP.put(PARAMETER_NAME_CHANGED_ON_OVERRIDE, "The corresponding parameter in the supertype ''{0}'' is named ''{1}''. " +
                 "This may cause problems when calling this function with named arguments.", NAMED, NAMED);
 //类型系统
+        MAP.put(INVALID_THIS_TYPE, "'This' type is not allowed, 'This' type can only be used as the return type of an instance member function in class"  );
         MAP.put(TYPE_MISMATCH_MULTIPLE_SUPERTYPES, "Type inference failed: multiple smallest common supertypes found {0}", RENDER_COLLECTION_OF_TYPES);
         MAP.put(TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS,
                 "Type mismatch: inferred type is {1} but {0} was expected. Projected type {2} restricts use of {3}",
@@ -238,6 +239,13 @@ public class DefaultErrorMessages {
         MAP.put(NESTED_CLASS_ACCESSED_VIA_INSTANCE_REFERENCE, "Nested {0} accessed via instance reference", RENDER_CLASS_OR_OBJECT_NAME);
 
         MAP.put(MAIN_FUNCTION_NUMBER_ERROR, "Multiple 'main' methods are defined in the module");
+        MAP.put(USELESS_IS_CHECK, "Check for instance is always ''{0}''", TO_STRING);
+        MAP.put(INCOMPATIBLE_TYPES, "Incompatible types: {0} and {1}", RENDER_TYPE, RENDER_TYPE);
+        MAP.put(SUPERTYPE_NOT_INITIALIZED, "There is no parameterless constructor available in ''{0}''", RENDER_TYPE);
+        MAP.put(EXPLICIT_DELEGATION_CALL_REQUIRED,
+                "Explicit 'this' or 'super' call is required. There is no constructor in superclass that can be called without arguments");
+        MAP.put(CYCLIC_CONSTRUCTOR_DELEGATION_CALL, "There's a cycle in the init calls chain");
+        MAP.put(NO_THIS, "'this' is not defined in this context");
 
     }
 

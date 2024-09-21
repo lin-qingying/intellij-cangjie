@@ -60,6 +60,8 @@ public interface CjNodeTypes {
     IElementType OPERATION_REFERENCE = new CjNodeType("OPERATION_REFERENCE", CjOperationReferenceExpression.class);
 
     IElementType OPERATION_NAME = new CjNodeType("OPERATION_NAME", CjOperationName.class);
+    IElementType CONSTRUCTOR_DELEGATION_CALL = new CjNodeType.CjLeftBoundNodeType("CONSTRUCTOR_DELEGATION_CALL", CjConstructorDelegationCall.class);
+    IElementType CONSTRUCTOR_DELEGATION_REFERENCE = new CjNodeType.CjLeftBoundNodeType("CONSTRUCTOR_DELEGATION_REFERENCE", CjConstructorDelegationReferenceExpression.class);
 
     IElementType VARIABLE = CjStubElementTypes.VARIABLE;
     IElementType MAIN_FUNC = CjStubElementTypes.MAIN_FUNC;
@@ -72,6 +74,7 @@ public interface CjNodeTypes {
     IElementType FUNC = CjStubElementTypes.FUNCTION;
     IFileElementType CJ_FILE = new IFileElementType(CangJieLanguage.INSTANCE);
     IElementType BLOCK = new BlockExpressionElementType();
+    IElementType INIT_BLOCK = new InitBlockExpressionElementType();
 
     IElementType LAMBDA_EXPRESSION = new LambdaExpressionElementType();
 
@@ -103,6 +106,7 @@ public interface CjNodeTypes {
     IElementType PARENTHESIZED_TYPE = CjStubElementTypes.PARENTHESIZED_TYPE;
     IElementType TUPLE_TYPE = CjStubElementTypes.TUPLE_TYPE;
         IElementType BASIC_TYPE = CjStubElementTypes.BASIC_TYPE;
+        IElementType THIS_TYPE = CjStubElementTypes.THIS_TYPE;
 //    IElementType BASIC_TYPE = new CjNodeType("BASIC_TYPE", CjBasicType.class);
     IElementType TYPE_PARAMETER = CjStubElementTypes.TYPE_PARAMETER;
 

@@ -37,7 +37,11 @@ public interface CallableDescriptor extends DeclarationDescriptorWithVisibility,
 
     @Nullable
     ReceiverParameterDescriptor getDispatchReceiverParameter();
-
+    /**
+     * Sometimes parameter names are not available at all .
+     * In this case, getName() returns synthetic names such as "p0", "p1" etc.
+     */
+    boolean hasSynthesizedParameterNames();
     @NotNull
     @ReadOnly
     List<TypeParameterDescriptor> getTypeParameters();

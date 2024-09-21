@@ -267,7 +267,7 @@ class TowerResolver {
         private val useOrder: Boolean,
         private val name: Name
     ) {
-        //        private val isNameForHidesMember =
+//                private val isNameForHidesMember =
 //            name in HIDES_MEMBERS_NAME_LIST ||
 //                    implicitScopeTower.getNameForGivenImportAlias(name) in HIDES_MEMBERS_NAME_LIST
         private val skippedDataForLookup = mutableListOf<TowerData>()
@@ -482,12 +482,12 @@ class TowerResolver {
 //                    ?.let { return it }
 //            }
 
-            // members of implicit receiver or member extension for explicit receiver
-//            TowerData.TowerLevel(MemberScopeTowerLevel(implicitScopeTower, implicitReceiver))
-//                .process(implicitReceiver.mayFitForName(name))?.let { return it }
+//             members of implicit receiver or member extension for explicit receiver
+            TowerData.TowerLevel(MemberScopeTowerLevel(implicitScopeTower, implicitReceiver))
+                .process(implicitReceiver.mayFitForName(name))?.let { return it }
 
-            // synthetic properties
-//            TowerData.BothTowerLevelAndImplicitReceiver(syntheticLevel, implicitReceiver).process()?.let { return it }
+//             synthetic properties
+            TowerData.BothTowerLevelAndImplicitReceiver(syntheticLevel, implicitReceiver).process()?.let { return it }
 
             if (resolveExtensions) {
                 // invokeExtension on local variable

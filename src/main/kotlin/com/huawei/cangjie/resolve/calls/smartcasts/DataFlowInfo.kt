@@ -19,6 +19,7 @@ interface DataFlowInfo {
      * Call this function when it's known than a == b.
      */
     fun equate(a: DataFlowValue, b: DataFlowValue, identityEquals: Boolean, languageVersionSettings: LanguageVersionSettings): DataFlowInfo
+    fun establishSubtyping(value: DataFlowValue, type: CangJieType, languageVersionSettings: LanguageVersionSettings): DataFlowInfo
 
     /**
      * Call this function to choose data flow information common for this and other and return it as the result

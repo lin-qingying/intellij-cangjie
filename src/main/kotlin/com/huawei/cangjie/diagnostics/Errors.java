@@ -68,12 +68,35 @@ public interface Errors {
     DiagnosticFactory2<CjExpression, Name, Collection<? extends ResolvedCall<?>>> COMPONENT_FUNCTION_AMBIGUITY =
             DiagnosticFactory2.create(ERROR, DEFAULT);
     DiagnosticFactory1<CjExpression, Name> COMPONENT_FUNCTION_ON_NULLABLE = DiagnosticFactory1.create(ERROR, DEFAULT);
-    DiagnosticFactory0<CjDeclarationWithBody>
-            NO_RETURN_IN_FUNCTION_WITH_BLOCK_BODY = DiagnosticFactory0.create(ERROR, DECLARATION_WITH_BODY);
+    DiagnosticFactory0<CjDeclarationWithBody>   NO_RETURN_IN_FUNCTION_WITH_BLOCK_BODY = DiagnosticFactory0.create(ERROR, DECLARATION_WITH_BODY);
+    DiagnosticFactory2<CjSimpleNameExpression, String, String> LABEL_RESOLVE_WILL_CHANGE = DiagnosticFactory2.create(WARNING);
+    DiagnosticFactory0<CjSimpleNameExpression> AMBIGUOUS_LABEL = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjSimpleNameExpression> LABEL_NAME_CLASH = DiagnosticFactory0.create(WARNING);
+    DiagnosticFactory1<CjSuperExpression, String> SUPER_IS_NOT_AN_EXPRESSION = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory0<CjSuperExpression> SUPER_NOT_AVAILABLE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjTypeReference> NOT_A_SUPERTYPE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<PsiElement> TYPE_ARGUMENTS_REDUNDANT_IN_SUPER_QUALIFIER = DiagnosticFactory0.create(WARNING);
+    DiagnosticFactory1<CjTypeReference, CangJieType> QUALIFIED_SUPERTYPE_EXTENDED_BY_OTHER_SUPERTYPE = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory0<CjSuperExpression> AMBIGUOUS_SUPER = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjSuperExpression> SUPERCLASS_NOT_ACCESSIBLE_FROM_INTERFACE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjThisExpression> NO_THIS = DiagnosticFactory0.create(ERROR);
+
+    DiagnosticFactory2<CjElement, CangJieType, CangJieType> INCOMPATIBLE_ENUM_COMPARISON =
+            DiagnosticFactory2.create(WARNING);
+    DiagnosticFactory2<CjElement, CangJieType, CangJieType> INCOMPATIBLE_ENUM_COMPARISON_ERROR =
+            DiagnosticFactory2.create(ERROR);
     DiagnosticFactory0<CjTypeReference> OPTIONAL_TYPE_OF_ANNOTATION_MEMBER = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<CjExpressionWithLabel, String> NOT_A_LOOP_LABEL = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory0<CjExpressionWithLabel> BREAK_OR_CONTINUE_OUTSIDE_A_LOOP = DiagnosticFactory0.create(ERROR);
         DiagnosticFactory0<CjExpressionWithLabel> BREAK_OR_CONTINUE_IN_WHEN = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory2<CjTypeReference, Integer, String> NO_TYPE_ARGUMENTS_ON_RHS = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory0<CjTypeReference> IS_ENUM_ENTRY = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjTypeReference> DYNAMIC_NOT_ALLOWED = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjOptionType> USELESS_NULLABLE_CHECK = DiagnosticFactory0.create(WARNING, OPTIONAL_TYPE);
+    DiagnosticFactory1<CjElement, Boolean> USELESS_IS_CHECK = DiagnosticFactory1.create(WARNING);
+    DiagnosticFactory1<CjElement, CangJieType> CANNOT_CHECK_FOR_ERASED = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory0<CjElement> SENSELESS_NULL_IN_MATCH = DiagnosticFactory0.create(WARNING);
+    DiagnosticFactory2<CjElement, CangJieType, CangJieType> INCOMPATIBLE_TYPES = DiagnosticFactory2.create(ERROR);
 
     DiagnosticFactory0<CjTypeReference> INVALID_TYPE_OF_ANNOTATION_MEMBER = DiagnosticFactory0.create(ERROR);
 
@@ -197,6 +220,9 @@ public interface Errors {
     DiagnosticFactory0<CjAnnotationEntry> REPEATED_ANNOTATION = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory2<CjTypeStatement, ClassDescriptor, Collection<CallableMemberDescriptor>> CONFLICTING_INHERITED_MEMBERS_WARNING =
             DiagnosticFactory2.create(WARNING, DECLARATION_NAME);
+
+    DiagnosticFactory0<CjThisType> INVALID_THIS_TYPE = DiagnosticFactory0.create(ERROR);
+
     DiagnosticFactory1<CjElement, String> TYPE_ARGUMENTS_NOT_ALLOWED = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, Pair<LanguageFeature, LanguageVersionSettings>> UNSUPPORTED_FEATURE = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory3<CjElement, CangJieType, CangJieType, ClassifierDescriptor> UPPER_BOUND_VIOLATED_IN_TYPEALIAS_EXPANSION =
@@ -323,7 +349,7 @@ public interface Errors {
 
     DiagnosticFactory2<PsiElement, FqName, FqName> MISSING_DEPENDENCY_SUPERCLASS = DiagnosticFactory2.create(ERROR);
 
-    DiagnosticFactory0<CjSuperTypeEntry> SUPERTYPE_NOT_INITIALIZED = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory1<CjSuperTypeEntry,CangJieType> SUPERTYPE_NOT_INITIALIZED = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory2<PsiElement, CjModifierKeywordToken, CjModifierKeywordToken> INCOMPATIBLE_MODIFIERS =
             DiagnosticFactory2.create(ERROR);
     DiagnosticFactory1<CjSimpleNameExpression, Name> CANNOT_BE_IMPORTED = DiagnosticFactory1.create(ERROR);
@@ -364,6 +390,7 @@ public interface Errors {
             DiagnosticFactory2.create(ERROR, DECLARATION_RETURN_TYPE);
     DiagnosticFactory2<CjNamedDeclaration, CallableMemberDescriptor, CallableMemberDescriptor> PROPERTY_TYPE_MISMATCH_ON_OVERRIDE =
             DiagnosticFactory2.create(ERROR, DECLARATION_RETURN_TYPE);
+    DiagnosticFactory0<CjConstructorDelegationReferenceExpression> CYCLIC_CONSTRUCTOR_DELEGATION_CALL = DiagnosticFactory0.create(ERROR);
 
 
     DiagnosticFactory3<CjNamedDeclaration, CallableMemberDescriptor, CallableMemberDescriptor, DeclarationDescriptor>

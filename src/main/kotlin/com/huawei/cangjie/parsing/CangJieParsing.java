@@ -169,6 +169,47 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
     }
 
+    private void parseThisOrSuper() {
+        assert _at(THIS_KEYWORD) || _at(SUPER_KEYWORD);
+        PsiBuilder.Marker mark = mark();
+
+        advance(); // THIS_KEYWORD | SUPER_KEYWORD
+
+        mark.done(CONSTRUCTOR_DELEGATION_REFERENCE);
+    }
+
+    private void parseInitFunctionBlock() {
+        PsiBuilder.Marker lazyBlock = mark();
+
+        myBuilder.enableNewlines();
+
+//        恢复  init() xxxxxxx {}
+
+        expect(LBRACE, "Expecting '{'  ");
+
+        PsiBuilder.Marker delegationCall = mark();
+        if ((at(THIS_KEYWORD) || at(SUPER_KEYWORD)) && rawLookup(1) == LPAR) {
+            parseThisOrSuper();
+            myExpressionParsing.parseValueArgumentList();
+            delegationCall.done(CONSTRUCTOR_DELEGATION_CALL);
+
+        } else {
+            mark().done(CONSTRUCTOR_DELEGATION_REFERENCE);
+            delegationCall.done(CONSTRUCTOR_DELEGATION_CALL);
+        }
+
+
+        myExpressionParsing.parseStatements();
+        expect(RBRACE, "Expecting '}'");
+
+
+        myBuilder.restoreNewlinesState();
+
+
+        lazyBlock.done(INIT_BLOCK);
+
+    }
+
     private void parseBlock(boolean collapse) {
         PsiBuilder.Marker lazyBlock = mark();
 
@@ -932,8 +973,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private IElementType parseClassCommonDeclaration(Integer tokenId, ModifierDetector classdetector, ModifierDetector detector) {
         //init func let|var prop
 
-        //判断是否是abstract class
-
 
         return switch (getTokenId()) {
             case AT_Id -> myExpressionParsing.parseMacroExpression(true);
@@ -1238,7 +1277,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return TYPEALIAS;
     }
 
-      IElementType parseProperty(boolean isInterface) {
+    IElementType parseProperty(boolean isInterface) {
         return parseProperty(isInterface, null, null);
     }
 
@@ -1914,11 +1953,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         }
 
-        if (at(LBRACE)) {
-            parseFunctionBody();
-        } else {
-            error("Expecting '{' ");  //应该为'{'
-        }
+
+//        if (at(LBRACE)) {
+        parseInitFunctionBody();
+//        } else {
+//            error("Expecting '{' ");  //应该为'{'
+//        }
     }
 
     void parseInitFunc() {
@@ -1957,11 +1997,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
 
 
-        if (at(LBRACE)) {
-            parseFunctionBody();
-        } else {
-            error("Expecting '{' ");  //应该为'{'
-        }
+//        if (at(LBRACE)) {
+        parseInitFunctionBody();
+//        } else {
+//            error("Expecting '{' ");  //应该为'{'
+//        }
     }
 
     /**
@@ -2415,6 +2455,27 @@ public class CangJieParsing extends AbstractCangJieParsing {
     /*
      * functionBody
      *   : block
+
+     *   ;
+     */
+    void parseInitFunctionBody() {
+        //        恢复  init() : xxxx {}
+        if (at(COLON)) {
+            PsiBuilder.Marker error = mark();
+            while (!at(LBRACE)) advance();
+
+            error.error("Expecting '{' ");
+        }
+        if (at(LBRACE)) {
+            parseInitFunctionBlock();
+        } else {
+            error("Expecting function body"); //应该为函数体
+        }
+    }
+
+    /*
+     * functionBody
+     *   : block
      *   : "=" element
      *   ;
      */
@@ -2833,7 +2894,24 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         return typeRefMarker;
     }
+    /**
+     * 解析This类型
+     */
+    private boolean parseThisType() {
 
+
+        if (at(THIS_KEYWORD_UPPER)) {
+            PsiBuilder.Marker typeRefMarker = mark();
+            advance();
+            typeRefMarker.done(THIS_TYPE);
+            return true;
+        }
+
+
+        return false;
+
+
+    }
     /**
      * 解析基本类型
      */
@@ -3060,6 +3138,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     private void parseTypeRefContents() {
+        if(parseThisType()) return;
         if (parseBasicType()) return;
         if (at(IDENTIFIER)) {
             parseUserType();

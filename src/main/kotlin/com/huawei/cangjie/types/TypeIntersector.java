@@ -21,7 +21,9 @@ import static com.huawei.cangjie.resolve.descriptorUtil.DescriptorUtilsKt.getBui
 
 public class TypeIntersector {
 
-
+    public static boolean isIntersectionEmpty(@NotNull CangJieType typeA, @NotNull CangJieType typeB) {
+        return intersectTypes(new LinkedHashSet<>(Arrays.asList(typeA, typeB))) == null;
+    }
     @Nullable
     public static CangJieType intersectTypes(@NotNull Collection<CangJieType> types) {
         assert !types.isEmpty() : "Attempting to intersect empty collection of types, this case should be dealt with on the call site.";

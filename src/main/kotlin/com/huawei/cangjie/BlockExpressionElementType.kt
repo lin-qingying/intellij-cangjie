@@ -5,24 +5,40 @@ import com.huawei.cangjie.lexer.CangJieLexer
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.parsing.CangJieParser
 import com.huawei.cangjie.psi.CjBlockExpression
-import com.huawei.cangjie.psi.dummpholder.CangJieDummyHolderFactory
+import com.huawei.cangjie.psi.CjInitBlockExpression
 import com.intellij.lang.ASTNode
 import com.intellij.lang.Language
 import com.intellij.lang.PsiBuilderFactory
 import com.intellij.openapi.project.Project
-import com.intellij.psi.impl.source.DummyHolderFactory
 import com.intellij.psi.tree.ICompositeElementType
 import com.intellij.psi.tree.IErrorCounterReparseableElementType
 
+class InitBlockExpressionElementType : BlockExpressionElementType("INIT_BLOCK") {
+    override fun parseContents(chameleon: ASTNode): ASTNode {
+        val project = chameleon.psi.project
+        val builder = PsiBuilderFactory.getInstance().createBuilder(
+            project, chameleon, null, CangJieLanguage, chameleon.chars
+        )
 
-class BlockExpressionElementType : IErrorCounterReparseableElementType("BLOCK", CangJieLanguage),
+        return CangJieParser.parseInitFunctionBlockExpression(builder).firstChildNode
+    }
+
+    override fun createCompositeNode() = CjInitBlockExpression(null)
+
+    override fun createNode(text: CharSequence?) = CjInitBlockExpression(text)
+
+}
+
+open class BlockExpressionElementType(debugName: String = "BLOCK") :
+    IErrorCounterReparseableElementType(debugName, CangJieLanguage),
     ICompositeElementType {
 
 
-        init {
+    init {
 //            DummyHolderFactory.setFactory(CangJieDummyHolderFactory())
 
-        }
+    }
+
     override fun createCompositeNode() = CjBlockExpression(null)
 
     override fun createNode(text: CharSequence?) = CjBlockExpression(text)
@@ -50,7 +66,6 @@ class BlockExpressionElementType : IErrorCounterReparseableElementType("BLOCK", 
 
         private fun isAllowedParentNode(node: ASTNode?) =
             node != null
-
 
 
         fun isReparseableBlock(blockText: CharSequence): Boolean {

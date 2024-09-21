@@ -339,13 +339,31 @@ fun CangJieType.isPrimitiveNumber(): Boolean =
             !CangJieBuiltIns.isRune(this)
 
 fun CangJieType.isAny(): Boolean = CangJieBuiltIns.isAny(this)
+fun CangJieType.containsError() = ErrorUtils.containsErrorType(this)
+val TypeParameterDescriptor.representativeUpperBound: CangJieType
+    get() {
+        assert(upperBounds.isNotEmpty()) { "Upper bounds should not be empty: $this" }
 
+        return upperBounds.firstOrNull {
+            val classDescriptor = it.constructor.declarationDescriptor as? ClassDescriptor ?: return@firstOrNull false
+            classDescriptor.kind != ClassKind.INTERFACE && classDescriptor.kind != ClassKind.ANNOTATION_CLASS
+        } ?: upperBounds.first()
+    }
 object TypeUtils {
 
     val DONT_CARE: SimpleType = ErrorUtils.createErrorType(ErrorTypeKind.DONT_CARE)
+    fun isNonReifiedTypeParameter(type: CangJieType): Boolean {
+        val typeParameterDescriptor =
+            getTypeParameterDescriptorOrNull(type)
+        return typeParameterDescriptor != null
+    }
 
     fun isSpecialType(type: CangJieType): Boolean {
         return type is SpecialType
+    }
+
+    fun makeProjection(parameterDescriptor: TypeParameterDescriptor): TypeProjection {
+        return TypeProjectionImpl(parameterDescriptor.defaultType)
     }
 
     /**
@@ -506,7 +524,6 @@ object TypeUtils {
     }
 
     fun getImmediateSupertypes(type: CangJieType): List<CangJieType> {
-//        TODO 留个笔记，基本数据类型只需要获取扩展的接口，并标记为扩展的接口
 
         val substitutor: TypeSubstitutor = TypeSubstitutor.create(type)
         val originalSupertypes: Collection<CangJieType> = type.constructor.getSupertypes()
@@ -864,6 +881,20 @@ object TypeUtils {
 
     }
 
+    /**
+     * 检查构造方法是否有参数
+     */
+    @JvmStatic
+    fun checkConstructorsNotParameter(classDescriptor:  ClassDescriptor): Boolean {
+        val constructors = classDescriptor.constructors
+
+
+        for (constructor in constructors) {
+            if (constructor.valueParameters.isNotEmpty()) return true
+        }
+        return false
+    }
+
     open class SpecialType(private val name: String) : DelegatingSimpleType() {
         override val delegate: SimpleType
             get() {
@@ -904,11 +935,13 @@ object TypeUtils {
 //            return this
 //        }
     }
-//    表示不需要返回值的地方，一般用于if  try 之类的多结果表达式
+
+    //    表示不需要返回值的地方，一般用于if  try 之类的多结果表达式
     @JvmField
     val EXPRESSION_TYPE: SimpleType =
         SpecialType("EXPRESSION_TYPE")
-//    表示没有指定类型，需要推断，用于需要返回值的地方
+
+    //    表示没有指定类型，需要推断，用于需要返回值的地方
     @JvmField
     val NO_EXPECTED_TYPE: SimpleType =
         SpecialType("NO_EXPECTED_TYPE")
@@ -981,6 +1014,7 @@ fun classFqNameEquals(
 }
 
 fun CangJieType.isSubtypeOf(superType: CangJieType): Boolean = DEFAULT.isSubtypeOf(this, superType)
+
 @JvmName("isSubtypeOfNull")
 fun CangJieType?.isSubtypeOf(superType: CangJieType?): Boolean {
     if (this == null || superType == null) return false

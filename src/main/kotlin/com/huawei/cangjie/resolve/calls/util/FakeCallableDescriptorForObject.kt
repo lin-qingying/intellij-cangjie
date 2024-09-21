@@ -27,6 +27,8 @@ open class FakeCallableDescriptorForObject(
     override fun getExtensionReceiverParameter(): ReceiverParameterDescriptor? = null
 
     override fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? = null
+    override fun hasSynthesizedParameterNames() = false
+
 
     override fun getTypeParameters(): List<TypeParameterDescriptor> = Collections.emptyList()
 

@@ -1,5 +1,6 @@
 package com.huawei.cangjie.resolve;
 
+import com.google.common.collect.Lists;
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.diagnostics.Diagnostic;
 import com.huawei.cangjie.psi.*;
@@ -17,6 +18,11 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
+
+import static com.huawei.cangjie.diagnostics.Errors.AMBIGUOUS_LABEL;
+import static com.huawei.cangjie.resolve.BindingContext.AMBIGUOUS_LABEL_TARGET;
+
 public class BindingContextUtils {
     @Nullable
     public static VariableDescriptor extractVariableDescriptorFromReference(
@@ -31,7 +37,22 @@ public class BindingContextUtils {
         }
         return null;
     }
-
+    public static void reportAmbiguousLabel(
+            @NotNull BindingTrace trace,
+            @NotNull CjSimpleNameExpression targetLabel,
+            @NotNull Collection<DeclarationDescriptor> declarationsByLabel
+    ) {
+        Collection<PsiElement> targets = Lists.newArrayList();
+        for (DeclarationDescriptor descriptor : declarationsByLabel) {
+            PsiElement element = DescriptorToSourceUtils.descriptorToDeclaration(descriptor);
+            assert element != null : "Label can only point to something in the same lexical scope";
+            targets.add(element);
+        }
+        if (!targets.isEmpty()) {
+            trace.record(AMBIGUOUS_LABEL_TARGET, targetLabel, targets);
+        }
+        trace.report(AMBIGUOUS_LABEL.on(targetLabel));
+    }
     @Nullable
     public static VariableDescriptor variableDescriptorForDeclaration(@Nullable DeclarationDescriptor descriptor) {
         if (descriptor instanceof VariableDescriptor)

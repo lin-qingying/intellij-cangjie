@@ -1,8 +1,11 @@
 package com.huawei.cangjie.references
 
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.psi.CjConstructor
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjImportAlias
+import com.huawei.cangjie.psi.psiUtil.containingTypeStatement
+import com.huawei.cangjie.references.util.unwrappedTargets
 import com.huawei.cangjie.resolve.BindingContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
@@ -93,7 +96,28 @@ abstract class AbstractCjReference<T : CjElement>(element: T) : PsiPolyVariantRe
             ?: throw IllegalStateException("Cannot handle element rename because CjReferenceMutateService is missing")
 
     protected open fun canBeReferenceTo(candidateTarget: PsiElement): Boolean = true
-    protected open fun isReferenceToImportAlias(alias: CjImportAlias): Boolean = false
+    protected open fun isReferenceToImportAlias(alias: CjImportAlias): Boolean {
+        val importDirective = alias.importDirective ?: return false
+        val importedFqName = importDirective.importedFqName ?: return false
+        val helper = CjReferenceResolutionHelper.getInstance()
+        val importedDescriptors = helper.resolveImportReference(importDirective.getContainingCjFile(), importedFqName)
+        val importableTargets = unwrappedTargets.mapNotNull {
+            when {
+                it is CjConstructor<*> -> it.containingTypeStatement
+
+                else -> it
+            }
+        }
+
+        val project = element.project
+        val resolveScope = element.resolveScope
+
+        return importedDescriptors.any {
+            helper.findPsiDeclarations(it, project, resolveScope).any { declaration ->
+                declaration in importableTargets
+            }
+        }
+    }
 
     override fun handleElementRename(newElementName: String): PsiElement? =
         if (canRename())

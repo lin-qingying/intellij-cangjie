@@ -10,6 +10,7 @@ import com.huawei.cangjie.psi.psiUtil.PsiUtilsKt;
 import com.huawei.cangjie.resolve.calls.CallResolver;
 import com.huawei.cangjie.resolve.calls.components.InferenceSession;
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
+import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResults;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.lazy.ForceResolveUtil;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor;
@@ -54,10 +55,11 @@ public class BodyResolver {
     private final ValueParameterResolver valueParameterResolver;
     @NotNull
     private final CallResolver callResolver;
+    @NotNull
+    private final ControlFlowAnalyzer controlFlowAnalyzer;
     boolean hasExtendSource = false;
     //解决扩展的原类污染报错
     Map<CjTypeReference, Boolean> hasExtendSourceMap = Maps.newHashMap();
-    @NotNull private final ControlFlowAnalyzer controlFlowAnalyzer;
 
     public BodyResolver(
             @NotNull Project project,
@@ -382,20 +384,24 @@ public class BodyResolver {
             @NotNull ClassConstructorDescriptor descriptor,
             @Nullable InferenceSession inferenceSession
     ) {
-//        if (descriptor.isExpect() || isEffectivelyExternal(descriptor)) {
-//            // For expected and external classes, we do not resolve constructor delegation calls because they are prohibited
-//            return DataFlowInfo.Companion.getEMPTY();
-//        }
-//
-//        OverloadResolutionResults<?> results = callResolver.resolveConstructorDelegationCall(
-//                trace, scope, outerDataFlowInfo,
-//                descriptor, constructor.getDelegationCall(), inferenceSession);
-//
-//        if (results != null && results.isSingleResult()) {
-//            ResolvedCall<? extends CallableDescriptor> resolvedCall = results.getResultingCall();
-//            recordConstructorDelegationCall(trace, descriptor, resolvedCall);
-//            return resolvedCall.getDataFlowInfoForArguments().getResultInfo();
-//        }
+        if (descriptor.isExpect() || isEffectivelyExternal(descriptor)) {
+            // For expected and external classes, we do not resolve constructor delegation calls because they are prohibited
+            return DataFlowInfo.Companion.getEMPTY();
+        }
+
+        try {
+            OverloadResolutionResults<?> results = callResolver.resolveConstructorDelegationCall(
+                    trace, scope, outerDataFlowInfo,
+                    descriptor, constructor.getDelegationCall(), inferenceSession);
+
+            if (results != null && results.isSingleResult()) {
+                ResolvedCall<? extends CallableDescriptor> resolvedCall = results.getResultingCall();
+                recordConstructorDelegationCall(trace, descriptor, resolvedCall);
+                return resolvedCall.getDataFlowInfoForArguments().getResultInfo();
+            }
+        } catch (NullPointerException nullPointerException) {
+            return null;
+        }
         return null;
     }
 
@@ -556,16 +562,97 @@ public class BodyResolver {
         valueParameterResolver.resolveValueParameters(valueParameters, valueParameterDescriptors, scope, outerDataFlowInfo, trace, inferenceSession);
     }
 
+    //    与从构造函数行为一致，但是不能有this()
+    private void resolvePrimaryConstructorParameters(@NotNull BodiesResolveContext c) {
+
+    }
+
+    private void resolveSecondaryConstructors(@NotNull BodiesResolveContext c) {
+        for (Map.Entry<CjSecondaryConstructor, ClassConstructorDescriptor> entry : c.getSecondaryConstructors().entrySet()) {
+            LexicalScope declaringScope = c.getDeclaringScope(entry.getKey());
+            assert declaringScope != null : "Declaring scope should be registered before body resolve";
+            resolveSecondaryConstructorBody(c.getOuterDataFlowInfo(), trace, entry.getKey(), entry.getValue(), declaringScope, c.getLocalContext());
+        }
+        if (c.getSecondaryConstructors().isEmpty()) return;
+        Set<ConstructorDescriptor> visitedConstructors = new HashSet<>();
+        for (Map.Entry<CjSecondaryConstructor, ClassConstructorDescriptor> entry : c.getSecondaryConstructors().entrySet()) {
+            checkCyclicConstructorDelegationCall(entry.getValue(), visitedConstructors);
+        }
+    }
+
+    @Nullable
+    private ConstructorDescriptor getDelegatedConstructor(@NotNull ConstructorDescriptor constructor) {
+        ResolvedCall<ConstructorDescriptor> call = trace.get(CONSTRUCTOR_RESOLVED_DELEGATION_CALL, constructor);
+        return call == null || !call.getStatus().isSuccess() ? null : call.getResultingDescriptor().getOriginal();
+    }
+
+    private void reportEachConstructorOnCycle(@NotNull ConstructorDescriptor startConstructor) {
+        ConstructorDescriptor currentConstructor = startConstructor;
+        do {
+            PsiElement constructorToReport = DescriptorToSourceUtils.descriptorToDeclaration(currentConstructor);
+            if (constructorToReport != null) {
+                CjConstructorDelegationCall call = ((CjSecondaryConstructor) constructorToReport).getDelegationCall();
+                assert call.getCalleeExpression() != null
+                        : "Callee expression of delegation call should not be null on cycle as there should be explicit 'this' calls";
+                trace.report(CYCLIC_CONSTRUCTOR_DELEGATION_CALL.on(call.getCalleeExpression()));
+            }
+
+            currentConstructor = getDelegatedConstructor(currentConstructor);
+            assert currentConstructor != null : "Delegated constructor should not be null in cycle";
+        }
+        while (startConstructor != currentConstructor);
+    }
+
+    private void checkCyclicConstructorDelegationCall(
+            @NotNull ConstructorDescriptor constructorDescriptor,
+            @NotNull Set<ConstructorDescriptor> visitedConstructors
+    ) {
+        if (visitedConstructors.contains(constructorDescriptor)) return;
+
+        // if visit constructor that is already in current chain
+        // such constructor is on cycle
+        Set<ConstructorDescriptor> visitedInCurrentChain = new HashSet<>();
+        ConstructorDescriptor currentConstructorDescriptor = constructorDescriptor;
+        while (true) {
+            ProgressManager.checkCanceled();
+
+            visitedInCurrentChain.add(currentConstructorDescriptor);
+            ConstructorDescriptor delegatedConstructorDescriptor = getDelegatedConstructor(currentConstructorDescriptor);
+            if (delegatedConstructorDescriptor == null) break;
+
+            // if next delegation call is super or primary constructor or already visited
+            if (!constructorDescriptor.getContainingDeclaration().equals(delegatedConstructorDescriptor.getContainingDeclaration()) ||
+                    delegatedConstructorDescriptor.isPrimary() ||
+                    visitedConstructors.contains(delegatedConstructorDescriptor)) {
+                break;
+            }
+
+            if (visitedInCurrentChain.contains(delegatedConstructorDescriptor)) {
+                reportEachConstructorOnCycle(delegatedConstructorDescriptor);
+                break;
+            }
+            currentConstructorDescriptor = delegatedConstructorDescriptor;
+        }
+        visitedConstructors.addAll(visitedInCurrentChain);
+    }
+
+
     private void resolveBehaviorDeclarationBodies(@NotNull BodiesResolveContext c) {
         resolveSuperTypeEntryLists(c);
 
         resolveVariableDeclarationBodies(c);
 
-
-        resolveFunctionBodies(c);
+//TODO 析构函数
+        resolvePrimaryConstructorParameters(c);
+        resolveSecondaryConstructors(c);
         resolveMainFunctionBodies(c);
 
+
+        resolveFunctionBodies(c);
+
+
     }
+
     private void resolveMainFunctionBodies(BodiesResolveContext c) {
 
         for (Map.Entry<CjMainFunction, SimpleFunctionDescriptor> entry : c.getMainFunctions().entrySet()) {
@@ -582,6 +669,7 @@ public class BodyResolver {
             }
         }
     }
+
     private void resolveFunctionBodies(BodiesResolveContext c) {
 
         for (Map.Entry<CjNamedFunction, SimpleFunctionDescriptor> entry : c.getFunctions().entrySet()) {
@@ -736,16 +824,16 @@ public class BodyResolver {
                 ClassDescriptor superClass = TypeUtils.getClassDescriptor(supertype);
                 if (superClass == null) return;
                 if (superClass.getKind().isObject()) {
-                    // A "singleton in supertype" diagnostic will be reported later
+//                     A "singleton in supertype" diagnostic will be reported later
                     return;
                 }
                 if (descriptor.getKind() != ClassKind.INTERFACE &&
                         descriptor.getUnsubstitutedPrimaryConstructor() != null &&
                         superClass.getKind() != ClassKind.INTERFACE &&
                         !descriptor.isExpect() && !isEffectivelyExternal(descriptor) &&
-                        !ErrorUtils.isError(superClass)
+                        !ErrorUtils.isError(superClass) && TypeUtils.checkConstructorsNotParameter(superClass)
                 ) {
-                    trace.report(SUPERTYPE_NOT_INITIALIZED.on(specifier));
+                    trace.report(SUPERTYPE_NOT_INITIALIZED.on(specifier, supertype));
                 }
             }
 

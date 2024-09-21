@@ -217,19 +217,9 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     }
 
 
-//    public void setInfix(bool isInfix) {
-//        this.isInfix = isInfix;
-//    }
-//
-//    public void setInline(bool isInline) {
-//        this.isInline = isInline;
-//    }
-//
-//    public void setTailrec(bool isTailrec) {
-//        this.isTailrec = isTailrec;
-//    }
 
-    //
+
+
     @Nullable
     @Override
     public ReceiverParameterDescriptor getExtensionReceiverParameter() {
@@ -320,62 +310,11 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     }
 
 
-//    @Override
-//    public bool isExternal() {
-//        return isExternal;
-//    }
-
-//    public void setExternal(bool isExternal) {
-//        this.isExternal = isExternal;
-//    }
-
-//    @Override
-//    public bool isExpect() {
-//        return isExpect;
-//    }
-
-//    public void setExpect(bool isExpect) {
-//        this.isExpect = isExpect;
-//    }
 
     public void setOperator(boolean isOperator) {
         this.isOperator = isOperator;
     }
 
-//    @Override
-//    public bool isInfix() {
-//        if (isInfix) return true;
-//
-//        for (FunctionDescriptor descriptor : getOriginal().getOverriddenDescriptors()) {
-//            if (descriptor.isInfix()) return true;
-//        }
-//
-//        return false;
-//    }
-
-//    @Override
-//    public bool isActual() {
-//        return isActual;
-//    }
-
-//    @Override
-//    public bool isInline() {
-//        return isInline;
-//    }
-//
-//    @Override
-//    public bool isTailrec() {
-//        return isTailrec;
-//    }
-//
-//    @Override
-//    public bool isSuspend() {
-//        return isSuspend;
-//    }
-
-//    public void setActual(bool isActual) {
-//        this.isActual = isActual;
-//    }
 
     @Override
     public boolean isHiddenToOvercomeSignatureClash() {
@@ -386,18 +325,11 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     private void setHiddenToOvercomeSignatureClash(boolean hiddenToOvercomeSignatureClash) {
         isHiddenToOvercomeSignatureClash = hiddenToOvercomeSignatureClash;
     }
-//
-//    @Override
-//    @SuppressWarnings("unchecked")
-//    public void setOverriddenDescriptors(@NotNull Collection<? extends CallableMemberDescriptor> overriddenDescriptors) {
-//        overriddenFunctions = (Collection<? extends FunctionDescriptor>) overriddenDescriptors;
-//        for (FunctionDescriptor function : overriddenFunctions) {
-//            if (function.isHiddenForResolutionEverywhereBesideSupercalls()) {
-//                isHiddenForResolutionEverywhereBesideSupercalls = true;
-//                break;
-//            }
-//        }
-//    }
+
+    @Override
+    public boolean hasSynthesizedParameterNames() {
+        return hasSynthesizedParameterNames;
+    }
 
     @Override
     @NotNull

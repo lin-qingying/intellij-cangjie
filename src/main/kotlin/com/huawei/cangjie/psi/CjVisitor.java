@@ -13,15 +13,20 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitSafeQualifiedExpression(@NotNull CjSafeQualifiedExpression expression, D data) {
         return visitQualifiedExpression(expression, data);
     }
+
     public R visitQuoteExpression(@NotNull CjQuoteExpression element, D data) {
         return visitExpression(element, data);
 
 
     }
+
     public R visitOptionType(@NotNull CjOptionType optionType, D data) {
         return visitTypeElement(optionType, data);
     }
 
+    public R visitThisType(@NotNull CjThisType optionType, D data) {
+        return visitTypeElement(optionType, data);
+    }
 
     public R visitProperty(@NotNull CjProperty property, D data) {
         return visitNamedDeclaration(property, data);
@@ -51,9 +56,11 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitUnsafeExpression(@NotNull CjUnsafeExpression expression, D data) {
         return visitExpression(expression, data);
     }
+
     public R visitTupleExpression(@NotNull CjTupleExpression expression, D data) {
         return visitExpression(expression, data);
     }
+
     public R visitTryExpression(@NotNull CjTryExpression expression, D data) {
         return visitExpression(expression, data);
     }
@@ -391,6 +398,7 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitParenthesizedType(@NotNull CjParenthesizedType cjParenthesizedType, D data) {
         return visitCjElement(cjParenthesizedType, data);
     }
+
     public R visitFunctionType(@NotNull CjFunctionType type, D data) {
         return visitTypeElement(type, data);
     }
@@ -402,9 +410,11 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitPropertyAccessor(@NotNull CjPropertyAccessor accessor, D data) {
         return visitDeclaration(accessor, data);
     }
+
     public R visitExtend(@NotNull CjExtend cjExtend, D data) {
         return visitCjElement(cjExtend, data);
     }
+
     public R visitClass(@NotNull CjClass cclass, D data) {
         return visitTypeStatement(cclass, data);
     }

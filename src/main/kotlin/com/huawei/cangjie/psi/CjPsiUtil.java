@@ -32,7 +32,12 @@ public class CjPsiUtil {
     public static boolean isBooleanConstant(@Nullable CjExpression condition) {
         return condition != null && condition.getNode().getElementType() == CjNodeTypes.BOOLEAN_CONSTANT;
     }
-
+    public static boolean isLHSOfDot(@NotNull CjExpression expression) {
+        PsiElement parent = expression.getParent();
+        if (!(parent instanceof CjQualifiedExpression)) return false;
+        CjQualifiedExpression qualifiedParent = (CjQualifiedExpression) parent;
+        return qualifiedParent.getReceiverExpression() == expression || isLHSOfDot(qualifiedParent);
+    }
     @NotNull
     public static Set<CjElement> findRootExpressions(@NotNull Collection<CjElement> unreachableElements) {
         Set<CjElement> rootElements = new HashSet<>();

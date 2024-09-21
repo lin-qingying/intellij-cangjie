@@ -10,14 +10,17 @@ import com.intellij.psi.PsiElement
 class CjSecondaryConstructor : CjConstructor<CjSecondaryConstructor> {
 
     constructor(node: ASTNode) : super(node)
-    constructor(stub: CangJieConstructorStub<CjSecondaryConstructor>) : super(stub, CjStubElementTypes.SECONDARY_CONSTRUCTOR)
+    constructor(stub: CangJieConstructorStub<CjSecondaryConstructor>) : super(
+        stub,
+        CjStubElementTypes.SECONDARY_CONSTRUCTOR
+    )
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R = visitor.visitSecondaryConstructor(this, data)
     override fun getConstructorKeyword() = notNullChild<PsiElement>(super.getConstructorKeyword())
 
     override fun getContainingTypeStatement() = parent?.parent as CjTypeStatement
 
-    override fun getBodyExpression(): CjBlockExpression? {
+    override fun getBodyExpression(): CjInitBlockExpression? {
         val stub = stub
         if (stub != null) {
             if (stub.hasBody() == false) {
@@ -27,28 +30,18 @@ class CjSecondaryConstructor : CjConstructor<CjSecondaryConstructor> {
                 return null
             }
         }
-        return findChildByClass(CjBlockExpression::class.java)
+        return findChildByClass(CjInitBlockExpression::class.java)
     }
 
     override fun getInitKeyword() = notNullChild<PsiElement>(super.getInitKeyword())
 
-    fun getDelegationCall(): CjConstructorDelegationCall = findNotNullChildByClass(CjConstructorDelegationCall::class.java)
+    fun getDelegationCall(): CjConstructorDelegationCall = bodyExpression!!.getDelegationCall()
 
-    fun getDelegationCallOrNull(): CjConstructorDelegationCall? = findChildByClass(CjConstructorDelegationCall::class.java)
+    fun getDelegationCallOrNull(): CjConstructorDelegationCall? = bodyExpression?.getDelegationCallOrNull()
 
     fun hasImplicitDelegationCall(): Boolean = getDelegationCall().isImplicit
 
     fun replaceImplicitDelegationCallWithExplicit(isThis: Boolean): CjConstructorDelegationCall {
-        val psiFactory = CjPsiFactory(project)
-        val current = getDelegationCall()
-
-        assert(current.isImplicit) { "Method should not be called with explicit delegation call: " + text }
-        current.delete()
-
-        val colon = addAfter(psiFactory.createColon(), valueParameterList)
-
-        val delegationName = if (isThis) "this" else "super"
-
-        return addAfter(psiFactory.creareDelegatedSuperTypeEntry(delegationName + "()"), colon) as CjConstructorDelegationCall
+     return bodyExpression!!.replaceImplicitDelegationCallWithExplicit(isThis)
     }
 }

@@ -44,4 +44,5 @@ public class LazyClassReceiverParameterDescriptor extends AbstractReceiverParame
     }
 
 
+
 }

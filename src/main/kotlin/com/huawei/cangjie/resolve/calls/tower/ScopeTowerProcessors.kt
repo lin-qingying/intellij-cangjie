@@ -209,6 +209,7 @@ fun <C : Candidate> createSimpleFunctionProcessor(
     scopeTower: ImplicitScopeTower, name: Name,
     context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
 ) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getFunctions(name, it) }
+
 fun <C : Candidate> createProcessorWithReceiverValueOrEmpty(
     explicitReceiver: DetailedReceiver?,
     create: (ReceiverValueWithSmartCastInfo?) -> ScopeTowerProcessor<C>
@@ -220,10 +221,12 @@ fun <C : Candidate> createProcessorWithReceiverValueOrEmpty(
         create(explicitReceiver as ReceiverValueWithSmartCastInfo?)
     }
 }
+
 class KnownResultProcessor<out C>(
     val result: Collection<C>
 ) : ScopeTowerProcessor<C> {
-    override fun process(data: TowerData) = if (data == TowerData.Empty) listOfNotNull(result.takeIf { it.isNotEmpty() }) else emptyList()
+    override fun process(data: TowerData) =
+        if (data == TowerData.Empty) listOfNotNull(result.takeIf { it.isNotEmpty() }) else emptyList()
 
     override fun recordLookups(skippedData: Collection<TowerData>, name: Name) {}
 }
@@ -247,7 +250,7 @@ fun <C : Candidate> createFunctionProcessor(
 //        InvokeExtensionTowerProcessor(scopeTower, name, factoryProviderForInvoke, it)
 //    }
 
-    return PrioritizedCompositeScopeTowerProcessor(simpleFunction, invokeProcessor,/*invokeExtensionProcessor*/)
+    return PrioritizedCompositeScopeTowerProcessor(simpleFunction, invokeProcessor/*invokeExtensionProcessor*/)
 }
 
 fun <C : Candidate> createVariableProcessor(
@@ -264,7 +267,6 @@ fun <C : Candidate> createVariableAndObjectProcessor(
 )
 
 
-
 class VariableAndObjectScopeTowerProcessor<out C : Candidate>(
     private val variableProcessor: ScopeTowerProcessor<C>,
     private val objectProcessor: ScopeTowerProcessor<C>
@@ -279,7 +281,7 @@ class VariableAndObjectScopeTowerProcessor<out C : Candidate>(
                 }
             }
         )
-        return variablesResult + objectResult
+            return variablesResult + objectResult
         val result = mutableListOf<List<C>>()
         result.addAll(variablesResult.map { it.toMutableList() })
         for ((index, objectLevel) in objectResult.withIndex()) {

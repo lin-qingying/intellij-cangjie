@@ -13,16 +13,13 @@ import com.huawei.cangjie.diagnostics.Errors.TYPE_MISMATCH_MULTIPLE_SUPERTYPES
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjBlockExpression
 import com.huawei.cangjie.psi.CjFunction
+import com.huawei.cangjie.psi.CjThisExpression
 import com.huawei.cangjie.resolve.calls.CallResolver
 import com.huawei.cangjie.resolve.calls.NewCommonSuperTypeCalculator.commonSuperType
 import com.huawei.cangjie.resolve.calls.util.CallMaker
 import com.huawei.cangjie.resolve.descriptorUtil.builtIns
-import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.storage.StorageManager
-import com.huawei.cangjie.types.CangJieType
-import com.huawei.cangjie.types.TypeConstructor
-import com.huawei.cangjie.types.TypeRefinement
-import com.huawei.cangjie.types.Variance
+import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext
 import com.huawei.cangjie.types.error.ErrorType
@@ -223,18 +220,21 @@ class FunctionReturnResolver(
         (context.trace as? DelegatingBindingTrace)?.clear()
         returns.forEach {
 
-            val typeInfo = expressionTypingServices.getTypeInfo(it, context)
+
+            it?.let {
+                val typeInfo = expressionTypingServices.getTypeInfo(it, context)
 
 
-            if (typeInfo.type is ErrorType) {
+                if (typeInfo.type is ErrorType) {
 //                typeInfo.type.intersectedTypes.forEach {
 //                    typeInfos.add(createTypeInfo(it))
 //                }
 //                已经报告过错误
-                return typeInfo.type
-            } else {
-                typeInfos.add(typeInfo)
+                    return typeInfo.type
+                } else {
+                    typeInfos.add(typeInfo)
 
+                }
             }
         }
 
@@ -250,6 +250,21 @@ class FunctionReturnResolver(
         }
         if (resultType is MultipleSupertypeTypeInferenceFailure) {
             context.trace.report(TYPE_MISMATCH_MULTIPLE_SUPERTYPES.on(blockExpression, resultType.intersectedTypes))
+        }
+        //        语句中是否只有this表达式
+        fun isOnlyThisExpression(): Boolean {
+            returns.forEach {
+                if (it !is CjThisExpression) {
+                    return false
+                }
+            }
+            return true
+        }
+
+        if (isOnlyThisExpression()) {
+            (resultType as? CangJieType)?.let {
+                return ThisType(it as SimpleType)
+            }
         }
         return resultType as? CangJieType
         val call = CallMaker.makeCallForBlock(blockExpression)

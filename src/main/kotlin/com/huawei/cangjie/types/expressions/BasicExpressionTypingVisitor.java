@@ -17,30 +17,37 @@ import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.parsing.ParseUtilsKt;
 import com.huawei.cangjie.psi.*;
-import com.huawei.cangjie.resolve.BindingContext;
-import com.huawei.cangjie.resolve.BindingContextUtils;
+import com.huawei.cangjie.resolve.*;
 import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver;
 import com.huawei.cangjie.resolve.calls.CallExpressionResolver;
+import com.huawei.cangjie.resolve.calls.checkers.CallChecker;
+import com.huawei.cangjie.resolve.calls.checkers.CallCheckerContext;
 import com.huawei.cangjie.resolve.calls.context.ContextDependency;
+import com.huawei.cangjie.resolve.calls.model.DataFlowInfoForArgumentsImpl;
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
+import com.huawei.cangjie.resolve.calls.model.ResolvedCallImpl;
 import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResults;
 import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResultsImpl;
 import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResultsUtil;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValue;
+import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind;
+import com.huawei.cangjie.resolve.calls.tasks.OldResolutionCandidate;
+import com.huawei.cangjie.resolve.calls.tasks.TracingStrategy;
 import com.huawei.cangjie.resolve.calls.util.CallMaker;
 import com.huawei.cangjie.resolve.constants.*;
 import com.huawei.cangjie.resolve.scopes.LexicalScopeKind;
 import com.huawei.cangjie.resolve.scopes.LexicalWritableScope;
 import com.huawei.cangjie.resolve.scopes.ScopeUtilsKt;
+import com.huawei.cangjie.resolve.scopes.receivers.ContextReceiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue;
-import com.huawei.cangjie.types.CangJieType;
-import com.huawei.cangjie.types.ErrorUtils;
+import com.huawei.cangjie.types.*;
 import com.huawei.cangjie.types.checker.CangJieTypeChecker;
 import com.huawei.cangjie.types.error.ErrorType;
 import com.huawei.cangjie.types.error.ErrorTypeKind;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
+import com.huawei.cangjie.types.expressions.unqualifiedSuper.UnqualifiedSuperKt;
 import com.huawei.cangjie.types.util.TypeUtils;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.huawei.cangjie.utils.exceptions.OperatorConventions;
@@ -48,11 +55,17 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.StubBasedPsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 import static com.huawei.cangjie.diagnostics.Errors.*;
 import static com.huawei.cangjie.lexer.CjTokens.*;
+import static com.huawei.cangjie.resolve.BindingContext.*;
 import static com.huawei.cangjie.types.expressions.ControlStructureTypingUtils.createCallForSpecialConstruction;
 import static com.huawei.cangjie.types.expressions.ExpressionTypingUtils.*;
 import static com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;
@@ -113,6 +126,40 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
                 elementType == INTEGER_LITERAL ||
                 elementType == FLOAT_LITERAL ||
                 elementType instanceof CjKeywordToken;
+    }
+
+    @NotNull
+    private static CangJieTypeInfo declarationInIllegalContext(
+            @NotNull CjDeclaration declaration,
+            @NotNull ExpressionTypingContext context
+    ) {
+        context.trace.report(DECLARATION_IN_ILLEGAL_CONTEXT.on(declaration));
+        return TypeInfoFactoryKt.noTypeInfo(context);
+    }
+
+    private static boolean isDeclaredInClass(ReceiverParameterDescriptor receiver) {
+        return receiver.getContainingDeclaration() instanceof ClassDescriptor;
+    }
+
+    private static void checkResolvedExplicitlyQualifiedSupertype(
+            @NotNull BindingTrace trace,
+            @NotNull CangJieType result,
+            @NotNull Collection<CangJieType> supertypes,
+            @NotNull CjTypeReference superTypeQualifier
+    ) {
+        if (supertypes.size() > 1) {
+            ClassifierDescriptor resultClassifierDescriptor = result.getConstructor().getDeclarationDescriptor();
+            for (CangJieType otherSupertype : supertypes) {
+                ClassifierDescriptor otherSupertypeClassifierDescriptor = otherSupertype.getConstructor().getDeclarationDescriptor();
+                if (otherSupertypeClassifierDescriptor == resultClassifierDescriptor) {
+                    continue;
+                }
+                if (CangJieTypeChecker.DEFAULT.isSubtypeOf(otherSupertype, result)) {
+                    trace.report(QUALIFIED_SUPERTYPE_EXTENDED_BY_OTHER_SUPERTYPE.on(superTypeQualifier, otherSupertype));
+                    break;
+                }
+            }
+        }
     }
 
     @NotNull
@@ -216,10 +263,12 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         }
         return TypeInfoFactoryKt.noTypeInfo(context);
     }
+
     @Override
     public CangJieTypeInfo visitBlockExpression(@NotNull CjBlockExpression expression, ExpressionTypingContext context) {
         return components.expressionTypingServices.getBlockReturnedType(expression, context, false);
     }
+
     @NotNull
     private CangJieTypeInfo visitAssignment(CjBinaryExpression expression, ExpressionTypingContext context) {
         return assignmentIsNotAnExpressionError(expression, context);
@@ -236,7 +285,7 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         return result;
     }
 
-        @NotNull
+    @NotNull
     private CangJieTypeInfo visitElvisExpression(
             @NotNull CjBinaryExpression expression,
             @NotNull ExpressionTypingContext contextWithExpectedType
@@ -279,7 +328,8 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         CangJieType type = resolvedCall.getResultingDescriptor().getReturnType();
         if (type == null ||
                 rightType == null ||
-                leftType == null && CangJieBuiltIns.isNothing(rightType)) return TypeInfoFactoryKt.noTypeInfo(dataFlowInfo);
+                leftType == null && CangJieBuiltIns.isNothing(rightType))
+            return TypeInfoFactoryKt.noTypeInfo(dataFlowInfo);
 
         if (leftType != null) {
             DataFlowValue leftValue = components.dataFlowValueFactory.createDataFlowValue(left, leftType, context);
@@ -310,7 +360,7 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         if (!TypeUtils.isNullableType(rightType) && TypeUtils.isNullableType(type)) {
             type = TypeUtils.makeNotNullable(type);
         }
-        if (context.contextDependency ==ContextDependency. DEPENDENT) {
+        if (context.contextDependency == ContextDependency.DEPENDENT) {
             return TypeInfoFactoryKt.createTypeInfo(type, dataFlowInfo);
         }
 
@@ -320,6 +370,7 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
                 loopBreakContinuePossible,
                 context.dataFlowInfo);
     }
+
     @NotNull
     private CangJieTypeInfo visitComparison(
             @NotNull CjBinaryExpression expression,
@@ -359,12 +410,12 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         }
         return leftTypeInfo.replaceType(booleanType);
     }
+
     @Override
     public CangJieTypeInfo visitRangeExpression(@NotNull CjRangeExpression expression, ExpressionTypingContext data) {
         return components.rangeLiteralResolver.resolveRangeLiteral(expression, data);
 
     }
-
 
     @Override
     public CangJieTypeInfo visitBinaryExpression(@NotNull CjBinaryExpression expression, ExpressionTypingContext contextWithExpectedType) {
@@ -383,7 +434,7 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         if (OperatorConventions.BINARY_OPERATION_NAMES.containsKey(operationType)) {
             Name referencedName = OperatorConventions.BINARY_OPERATION_NAMES.get(operationType);
             result = getTypeInfoForBinaryCall(referencedName, context, expression);
-        }   else if (operationType == CjTokens.ELVIS) {
+        } else if (operationType == CjTokens.ELVIS) {
             //base expression of elvis operator is checked for 'type mismatch', so the whole expression shouldn't be checked
             return visitElvisExpression(expression, context);
         } else if (OperatorConventions.COMPARISON_OPERATIONS_NAMES.containsKey(operationType)) {
@@ -392,8 +443,7 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
             result = visitAssignment(expression, context);
         } else if (OperatorConventions.ASSIGNMENT_OPERATIONS.containsKey(operationType)) {
             result = visitAssignmentOperation(expression, context);
-        }
-        else if (OperatorConventions.BOOLEAN_OPERATIONS_NAMES.containsKey(operationType)) {
+        } else if (OperatorConventions.BOOLEAN_OPERATIONS_NAMES.containsKey(operationType)) {
             result = visitBooleanOperationExpression(operationType, left, right, context);
         } else {
             context.trace.report(UNSUPPORTED.on(operationSign, "Unknown operation"));
@@ -413,6 +463,7 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
     private CangJieTypeInfo visitAssignmentOperation(CjBinaryExpression expression, ExpressionTypingContext context) {
         return assignmentIsNotAnExpressionError(expression, context);
     }
+
     private CangJieTypeInfo checkOperatorByType(CangJieTypeInfo leftTypeInfo, CangJieTypeInfo rightTypeInfo,
                                                 CjSimpleNameExpression operationSign, ExpressionTypingContext context) {
         IElementType operationType = operationSign.getReferencedNameElementType();
@@ -620,11 +671,13 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         CallExpressionResolver callExpressionResolver = components.callExpressionResolver;
         return callExpressionResolver.getQualifiedExpressionTypeInfo(expression, context);
     }
+
     @Override
     public CangJieTypeInfo visitVariable(@NotNull CjVariable variable, ExpressionTypingContext context) {
         components.localVariableResolver.process(variable, context, context.scope, facade);
         return declarationInIllegalContext(variable, context);
     }
+
     @Override
     public CangJieTypeInfo visitParenthesizedExpression(@NotNull CjParenthesizedExpression expression, ExpressionTypingContext context) {
         CjExpression innerExpression = expression.getExpression();
@@ -659,7 +712,6 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         );
         return components.dataFlowAnalyzer.checkType(typeInfo, expression, context); // TODO : Extensions to this
     }
-
 
     @Override
     public CangJieTypeInfo visitUnaryExpression(@NotNull CjUnaryExpression expression, ExpressionTypingContext contextWithExpectedType) {
@@ -857,12 +909,248 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
         return result;
     }
 
-    @NotNull
-    private static CangJieTypeInfo declarationInIllegalContext(
-            @NotNull CjDeclaration declaration,
-            @NotNull ExpressionTypingContext context
+    private void recordThisOrSuperCallInTraceAndCallExtension(
+            ExpressionTypingContext context,
+            ReceiverParameterDescriptor descriptor,
+            CjExpression expression
     ) {
-        context.trace.report(DECLARATION_IN_ILLEGAL_CONTEXT.on(declaration));
+        BindingTrace trace = context.trace;
+        Call call = CallMaker.makeCall(expression, null, null, expression, Collections.emptyList());
+        OldResolutionCandidate<ReceiverParameterDescriptor> resolutionCandidate =
+                OldResolutionCandidate.create(
+                        call, descriptor, null, ExplicitReceiverKind.NO_EXPLICIT_RECEIVER, null);
+
+        ResolvedCallImpl<ReceiverParameterDescriptor> resolvedCall =
+                ResolvedCallImpl.create(resolutionCandidate,
+                        TemporaryBindingTrace.create(trace, "Fake trace for fake 'this' or 'super' resolved call"),
+                        TracingStrategy.EMPTY,
+                        new DataFlowInfoForArgumentsImpl(context.dataFlowInfo, call));
+        resolvedCall.markCallAsCompleted();
+
+        trace.record(RESOLVED_CALL, call, resolvedCall);
+        trace.record(CALL, expression, call);
+
+        if (context.trace.wantsDiagnostics()) {
+            CallCheckerContext callCheckerContext =
+                    createCallCheckerContext(context);
+            for (CallChecker checker : components.callCheckers) {
+                checker.check(resolvedCall, expression, callCheckerContext);
+            }
+        }
+    }
+
+    @NotNull
+    private CallCheckerContext createCallCheckerContext(@NotNull ExpressionTypingContext context) {
+        return new CallCheckerContext(
+                context,
+                components.deprecationResolver,
+                components.moduleDescriptor,
+                components.missingSupertypesResolver,
+                components.callComponents
+        );
+    }
+
+    @NotNull // No class receivers
+    private LabelResolver.LabeledReceiverResolutionResult resolveToReceiver(
+            CjInstanceExpressionWithLabel expression,
+            ExpressionTypingContext context,
+            boolean onlyClassReceivers
+    ) {
+        Name labelName = expression.getLabelNameAsName();
+        if (labelName != null) {
+            LabelResolver.LabeledReceiverResolutionResult resolutionResult =
+                    LabelResolver.INSTANCE.resolveThisOrSuperLabel(expression, context, labelName);
+            if (resolutionResult.success()) {
+                ReceiverParameterDescriptor receiverParameterDescriptor = resolutionResult.getReceiverParameterDescriptor();
+                recordThisOrSuperCallInTraceAndCallExtension(context, receiverParameterDescriptor, expression);
+                if (onlyClassReceivers && !isDeclaredInClass(receiverParameterDescriptor)) {
+                    return LabelResolver.LabeledReceiverResolutionResult.Companion.labelResolutionSuccess(null);
+                }
+            }
+            return resolutionResult;
+        } else {
+            ReceiverParameterDescriptor result = null;
+            List<ReceiverParameterDescriptor> receivers = ScopeUtilsKt.getImplicitReceiversHierarchy(context.scope);
+            if (onlyClassReceivers) {
+                for (ReceiverParameterDescriptor receiver : receivers) {
+                    if (isDeclaredInClass(receiver)) {
+                        result = receiver;
+                        break;
+                    }
+                }
+            } else if (!receivers.isEmpty()) {
+                // `this` cannot point to context receiver
+                for (ReceiverParameterDescriptor receiver : receivers) {
+                    if (!(receiver.getValue() instanceof ContextReceiver)) {
+                        result = receiver;
+                        break;
+                    }
+                }
+            }
+            if (result != null) {
+                context.trace.record(REFERENCE_TARGET, expression.getInstanceReference(), result.getContainingDeclaration());
+                recordThisOrSuperCallInTraceAndCallExtension(context, result, expression);
+            }
+            return LabelResolver.LabeledReceiverResolutionResult.Companion.labelResolutionSuccess(result);
+        }
+    }
+
+    private CangJieType checkPossiblyQualifiedSuper(
+            CjSuperExpression expression,
+            ExpressionTypingContext context,
+            ReceiverParameterDescriptor thisReceiver
+    ) {
+        CangJieType result = null;
+        CangJieType thisType = thisReceiver.getType();
+        Collection<CangJieType> supertypes = thisType.getConstructor().getSupertypes();
+        TypeSubstitutor substitutor = TypeSubstitutor.create(thisType);
+
+        CjTypeReference superTypeQualifier = expression.getSuperTypeQualifier();
+        if (superTypeQualifier != null) {
+            CjTypeElement typeElement = superTypeQualifier.getTypeElement();
+
+            DeclarationDescriptor classifierCandidate = null;
+            CangJieType supertype = null;
+            PsiElement redundantTypeArguments = null;
+            if (typeElement instanceof CjUserType userType) {
+                // This may be just a superclass name even if the superclass is generic
+                if (userType.getTypeArguments().isEmpty()) {
+                    classifierCandidate = components.typeResolver.resolveClass(context.scope, userType, context.trace, context.isDebuggerContext);
+                } else {
+                    supertype = components.typeResolver.resolveType(context.scope, superTypeQualifier, context.trace, true);
+                    redundantTypeArguments = userType.getTypeArgumentList();
+                }
+            } else {
+                supertype = components.typeResolver.resolveType(context.scope, superTypeQualifier, context.trace, true);
+            }
+
+            if (classifierCandidate instanceof TypeAliasDescriptor) {
+                classifierCandidate = ((TypeAliasDescriptor) classifierCandidate).getClassDescriptor();
+            }
+
+            if (supertype != null) {
+                if (supertypes.contains(supertype)) {
+                    result = supertype;
+                }
+            } else if (classifierCandidate instanceof ClassDescriptor superclass) {
+
+                for (CangJieType declaredSupertype : supertypes) {
+                    if (declaredSupertype.getConstructor().equals(superclass.getTypeConstructor())) {
+                        result = substitutor.safeSubstitute(declaredSupertype, Variance.INVARIANT);
+                        break;
+                    }
+                }
+            }
+
+            boolean validClassifier = classifierCandidate != null && !ErrorUtils.isError(classifierCandidate);
+            boolean validType = supertype != null && !CangJieTypeKt.isError(supertype);
+            if (result == null && (validClassifier || validType)) {
+                context.trace.report(NOT_A_SUPERTYPE.on(superTypeQualifier));
+            } else if (redundantTypeArguments != null) {
+                context.trace.report(TYPE_ARGUMENTS_REDUNDANT_IN_SUPER_QUALIFIER.on(redundantTypeArguments));
+            }
+
+//            if (!components.languageVersionSettings.supportsFeature(LanguageFeature.QualifiedSupertypeMayBeExtendedByOtherSupertype) &&
+//                    result != null &&
+//                    (validClassifier || validType)
+//            ) {
+//                checkResolvedExplicitlyQualifiedSupertype(context.trace, result, supertypes, superTypeQualifier);
+//            }
+        } else {
+            if (UnqualifiedSuperKt.isPossiblyAmbiguousUnqualifiedSuper(expression, supertypes)) {
+                Pair<Collection<CangJieType>, Boolean> supertypesResolvedFromContextWithEqualsMigration =
+                        UnqualifiedSuperKt.resolveUnqualifiedSuperFromExpressionContext(
+                                expression, supertypes, components.builtIns.getAnyType());
+                Collection<CangJieType> supertypesResolvedFromContext = supertypesResolvedFromContextWithEqualsMigration.getFirst();
+                if (supertypesResolvedFromContextWithEqualsMigration.getSecond()) {
+                    context.trace.record(SUPER_EXPRESSION_FROM_ANY_MIGRATION, expression, true);
+                }
+                if (supertypesResolvedFromContext.size() == 1) {
+                    CangJieType singleResolvedType = supertypesResolvedFromContext.iterator().next();
+                    result = substitutor.substitute(singleResolvedType, Variance.INVARIANT);
+                } else if (supertypesResolvedFromContext.isEmpty()) {
+                    // No supertype found, either with concrete or abstract members.
+                    // Resolve to 'Any' (this will cause diagnostics for unresolved member reference).
+                    result = components.builtIns.getAnyType();
+                } else {
+                    context.trace.report(AMBIGUOUS_SUPER.on(expression));
+                }
+            } else {
+                // supertypes may be empty when all the supertypes are error types (are not resolved, for example)
+                CangJieType type = supertypes.isEmpty()
+                        ? components.builtIns.getAnyType()
+                        : supertypes.iterator().next();
+                result = substitutor.substitute(type, Variance.INVARIANT);
+            }
+        }
+        if (result != null) {
+            if (DescriptorUtils.isInterface(thisType.getConstructor().getDeclarationDescriptor())) {
+                if (DescriptorUtils.isClass(result.getConstructor().getDeclarationDescriptor())) {
+                    context.trace.report(SUPERCLASS_NOT_ACCESSIBLE_FROM_INTERFACE.on(expression));
+                }
+            }
+            context.trace.recordType(expression.getInstanceReference(), result);
+            context.trace.record(BindingContext.REFERENCE_TARGET, expression.getInstanceReference(),
+                    result.getConstructor().getDeclarationDescriptor());
+            context.trace.record(THIS_TYPE_FOR_SUPER_EXPRESSION, expression, thisType);
+        }
+
+        BindingContextUtilsKt.recordScope(context.trace, context.scope, superTypeQualifier);
+        return result;
+    }
+    @Override
+    public CangJieTypeInfo visitThisExpression(@NotNull CjThisExpression expression, ExpressionTypingContext context) {
+        CangJieType result = null;
+        LabelResolver.LabeledReceiverResolutionResult resolutionResult = resolveToReceiver(expression, context, false);
+
+        switch (resolutionResult.getCode()) {
+            case LABEL_RESOLUTION_ERROR:
+                // Do nothing, the error is already reported
+                break;
+            case NO_THIS:
+                context.trace.report(NO_THIS.on(expression));
+                break;
+            case SUCCESS:
+                ReceiverParameterDescriptor descriptor = resolutionResult.getReceiverParameterDescriptor();
+                context.trace.record(THIS_REFERENCE_TARGET, expression.getInstanceReference(), descriptor);
+                result = descriptor.getType();
+                context.trace.recordType(expression.getInstanceReference(), result);
+                break;
+        }
+        return components.dataFlowAnalyzer.createCheckedTypeInfo(result, context, expression);
+    }
+
+    @Override
+    public CangJieTypeInfo visitSuperExpression(@NotNull CjSuperExpression expression, ExpressionTypingContext context) {
+        LabelResolver.LabeledReceiverResolutionResult resolutionResult = resolveToReceiver(expression, context, true);
+
+        if (!CjPsiUtil.isLHSOfDot(expression)) {
+            context.trace.report(SUPER_IS_NOT_AN_EXPRESSION.on(expression, expression.getText()));
+            return errorInSuper(expression, context);
+        }
+
+        switch (resolutionResult.getCode()) {
+            case LABEL_RESOLUTION_ERROR:
+                // The error is already reported
+                return errorInSuper(expression, context);
+            case NO_THIS:
+                context.trace.report(SUPER_NOT_AVAILABLE.on(expression));
+                return errorInSuper(expression, context);
+            case SUCCESS:
+                CangJieType result = checkPossiblyQualifiedSuper(expression, context, resolutionResult.getReceiverParameterDescriptor());
+                if (result != null) {
+                    context.trace.recordType(expression.getInstanceReference(), result);
+                }
+                return components.dataFlowAnalyzer.createCheckedTypeInfo(result, context, expression);
+        }
+        throw new IllegalStateException("Unknown code: " + resolutionResult.getCode());
+    }
+
+    private CangJieTypeInfo errorInSuper(CjSuperExpression expression, ExpressionTypingContext context) {
+        CjTypeReference superTypeQualifier = expression.getSuperTypeQualifier();
+        if (superTypeQualifier != null) {
+            components.typeResolver.resolveType(context.scope, superTypeQualifier, context.trace, true);
+        }
         return TypeInfoFactoryKt.noTypeInfo(context);
     }
 

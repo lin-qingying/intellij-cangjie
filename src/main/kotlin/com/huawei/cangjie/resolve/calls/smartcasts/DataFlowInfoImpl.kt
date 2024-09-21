@@ -3,12 +3,15 @@ package com.huawei.cangjie.resolve.calls.smartcasts
 import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.SetMultimap
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.builtins.isFunctionType
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.DefinitelyNotNullType
 import com.huawei.cangjie.types.checker.NewCapturedTypeConstructor
 import com.huawei.cangjie.types.isDefinitelyNotNullType
+import com.huawei.cangjie.types.isFlexible
+import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.contains
 import com.huawei.cangjie.types.util.isSubtypeOf
 import com.huawei.cangjie.types.util.makeNotNullable
@@ -190,6 +193,31 @@ internal class DataFlowInfoImpl(
         identityEquals: Boolean,
         languageVersionSettings: LanguageVersionSettings
     ): DataFlowInfo= equateOrDisequate(a, b, languageVersionSettings, identityEquals, isEquate = true)
+    override fun establishSubtyping(
+        value: DataFlowValue, type: CangJieType, languageVersionSettings: LanguageVersionSettings
+    ): DataFlowInfo {
+        if (value.type == type) return this
+        if (getCollectedTypes(value, languageVersionSettings).contains(type)) return this
+        if (!value.type.isFlexible() && value.type.isSubtypeOf(type)) return this
+
+        val nullabilityInfo = hashMapOf<DataFlowValue, Nullability>()
+
+        val isTypeNotNull =
+            if (languageVersionSettings.supportsFeature(LanguageFeature.NewInference))
+                !TypeUtils.isNullableType(type)
+            else
+                !type.isFunctionType
+
+        if (isTypeNotNull) {
+            putNullabilityAndTypeInfo(nullabilityInfo, value, Nullability.NOT_NULL, languageVersionSettings)
+        }
+
+        return create(
+            this,
+            nullabilityInfo,
+            listOf(Tuple2(value, listOf(type)))
+        )
+    }
 
     override fun or(other: DataFlowInfo): DataFlowInfo {
         if (other === DataFlowInfo.EMPTY) return DataFlowInfo.EMPTY

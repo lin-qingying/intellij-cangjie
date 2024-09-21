@@ -28,6 +28,7 @@ abstract class AbstractVariableDescriptor(
         assert(this._outType == null || this._outType.shouldBeUpdated())
         this._outType = outType
     }
+    override fun hasSynthesizedParameterNames(): Boolean  = false
 
     open fun setType(
         outType: CangJieType,

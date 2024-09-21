@@ -234,6 +234,10 @@ public interface CjTokens {
     int OPERATION_NOT_Id = 208;
     int OPERATION_NOT_EQUALS_Id = 209;
     int OPERATION_EXPONENTIATION_Id = 210;
+
+    int THIS_KEYWORD_UPPER_Id = 211;
+
+
     IElementType DOC_COMMENT = CDocTokens.CDOC;
     IElementType WHITE_SPACE = TokenType.WHITE_SPACE;
 
@@ -271,6 +275,8 @@ public interface CjTokens {
     CjKeywordToken ENUM_KEYWORD = CjKeywordToken.keyword("enum", ENUM_KEYWORD_Id);
     CjKeywordToken STRUCT_KEYWORD = CjKeywordToken.keyword("struct", STRUCT_KEYWORD_Id);
     CjKeywordToken THIS_KEYWORD = CjKeywordToken.keyword("this", THIS_KEYWORD_Id);
+    CjKeywordToken THIS_KEYWORD_UPPER = CjKeywordToken.keyword("This", THIS_KEYWORD_UPPER_Id);
+
     CjKeywordToken SUPER_KEYWORD = CjKeywordToken.keyword("super", SUPER_KEYWORD_Id);
     CjKeywordToken LET_KEYWORD = CjKeywordToken.keyword("let", LET_KEYWORD_Id);
     CjKeywordToken VAR_KEYWORD = CjKeywordToken.keyword("var", VAR_KEYWORD_Id);
@@ -591,6 +597,8 @@ public interface CjTokens {
 
     //基本类型
     TokenSet BASICTYPES = TokenSet.create(
+
+
             INTNATIVE_KEYWORD,
             INT8_KEYWORD,
             INT16_KEYWORD,
@@ -614,7 +622,7 @@ public interface CjTokens {
     );
     TokenSet KEYWORDS = TokenSet.orSet(
             TokenSet.create(PACKAGE_KEYWORD, AS_KEYWORD, CLASS_KEYWORD, INTERFACE_KEYWORD,
-                    THIS_KEYWORD, SUPER_KEYWORD, LET_KEYWORD, VAR_KEYWORD, CONST_KEYWORD, FUNC_KEYWORD, FOR_KEYWORD,
+                    THIS_KEYWORD_UPPER,    THIS_KEYWORD, SUPER_KEYWORD, LET_KEYWORD, VAR_KEYWORD, CONST_KEYWORD, FUNC_KEYWORD, FOR_KEYWORD,
                     MAIN_KEYWORD, STRUCT_KEYWORD, EXTEND_KEYWORD,
                     TRUE_KEYWORD, FALSE_KEYWORD, IS_KEYWORD,
                     IN_KEYWORD, THROW_KEYWORD, RETURN_KEYWORD, BREAK_KEYWORD, CONTINUE_KEYWORD, IF_KEYWORD,

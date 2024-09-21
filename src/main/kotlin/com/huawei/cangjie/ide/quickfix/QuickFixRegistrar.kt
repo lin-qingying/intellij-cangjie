@@ -24,6 +24,8 @@ class QuickFixRegistrar : QuickFixContributor {
         fun DiagnosticFactory<*>.registerActions(vararg action: IntentionAction) {
             quickFixes.register(this, *action)
         }
+        EXPLICIT_DELEGATION_CALL_REQUIRED.registerFactory(InsertDelegationCallQuickfix.InsertThisDelegationCallFactory)
+        EXPLICIT_DELEGATION_CALL_REQUIRED.registerFactory(InsertDelegationCallQuickfix.InsertSuperDelegationCallFactory)
 
 
 

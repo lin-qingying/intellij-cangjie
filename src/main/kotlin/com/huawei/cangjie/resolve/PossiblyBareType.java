@@ -1,7 +1,9 @@
 package com.huawei.cangjie.resolve;
 
 import com.huawei.cangjie.types.CangJieType;
+import com.huawei.cangjie.types.CastDiagnosticsUtil;
 import com.huawei.cangjie.types.TypeConstructor;
+import com.huawei.cangjie.types.TypeReconstructionResult;
 import com.huawei.cangjie.types.util.TypeUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,6 +48,22 @@ public class PossiblyBareType {
     @NotNull
     public static PossiblyBareType bare(@NotNull TypeConstructor bareTypeConstructor, boolean optional) {
         return new PossiblyBareType(null, bareTypeConstructor, optional);
+    }
+
+    @NotNull
+    public TypeReconstructionResult reconstruct(@NotNull CangJieType subjectType) {
+        if (!isBare()) return new TypeReconstructionResult(getActualType(), true);
+
+        TypeReconstructionResult reconstructionResult = CastDiagnosticsUtil.findStaticallyKnownSubtype(
+                TypeUtils.makeNotNullable(subjectType),
+                getBareTypeConstructor()
+        );
+        CangJieType type = reconstructionResult.getResultingType();
+        // No need to make an absent type nullable
+        if (type == null) return reconstructionResult;
+
+        CangJieType resultingType = TypeUtils.makeOptionalAsSpecified(type, isBareTypeNullable());
+        return new TypeReconstructionResult(resultingType, reconstructionResult.isAllArgumentsInferred());
     }
 
     public PossiblyBareType makeOptional() {

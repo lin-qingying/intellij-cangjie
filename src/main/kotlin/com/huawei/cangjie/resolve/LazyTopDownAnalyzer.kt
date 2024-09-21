@@ -393,11 +393,11 @@ class LazyTopDownAnalyzer(
         topLevelFqNames: HashMultimap<FqName, CjElement>,
         variables: MutableList<CjVariable>
     ) {
-        for (property in variables) {
-            val descriptor = lazyDeclarationResolver.resolveToDescriptor(property) as VariableDescriptor
+        for (variable in variables) {
+            val descriptor = lazyDeclarationResolver.resolveToDescriptor(variable) as VariableDescriptor
 
-            c.variables[property] = descriptor
-            registerTopLevelFqName(topLevelFqNames, property, descriptor)
+            c.variables[variable] = descriptor
+            registerTopLevelFqName(topLevelFqNames, variable, descriptor)
         }
     }
 

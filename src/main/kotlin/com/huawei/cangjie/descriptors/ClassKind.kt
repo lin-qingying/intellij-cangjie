@@ -25,3 +25,6 @@ enum class ClassKind(val codeRepresentation: String?) {
 }
 inline val ClassKind.isInterface: Boolean
     get() = this == ClassKind.INTERFACE
+
+inline val ClassKind.isClass: Boolean
+    get() = this == ClassKind.CLASS

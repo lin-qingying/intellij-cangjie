@@ -24,7 +24,16 @@ public class CjNodeType extends IElementType {
             throw new RuntimeException("Must have a constructor with ASTNode");
         }
     }
+    public static class CjLeftBoundNodeType extends CjNodeType {
+        public CjLeftBoundNodeType(@NotNull @NonNls String debugName, Class<? extends CjElement> psiClass) {
+            super(debugName, psiClass);
+        }
 
+        @Override
+        public boolean isLeftBound() {
+            return true;
+        }
+    }
     public CjElement createPsi(ASTNode node) {
         assert node.getElementType() == this;
 

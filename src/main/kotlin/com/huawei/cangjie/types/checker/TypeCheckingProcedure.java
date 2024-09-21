@@ -24,6 +24,12 @@ public class TypeCheckingProcedure {
     public static CangJieType findCorrespondingSupertype(@NotNull CangJieType subtype, @NotNull CangJieType supertype, @NotNull TypeCheckingProcedureCallbacks typeCheckingProcedureCallbacks) {
         return UtilsKt.findCorrespondingSupertype(subtype, supertype, typeCheckingProcedureCallbacks);
     }
+    // This method returns the supertype of the first parameter that has the same constructor
+    // as the second parameter, applying the substitution of type arguments to it
+    @Nullable
+    public static CangJieType findCorrespondingSupertype(@NotNull CangJieType subtype, @NotNull CangJieType supertype) {
+        return findCorrespondingSupertype(subtype, supertype, new TypeCheckerProcedureCallbacksImpl());
+    }
 
     // If class C<out T> then C<T> and C<out T> mean the same
     // out * out = out

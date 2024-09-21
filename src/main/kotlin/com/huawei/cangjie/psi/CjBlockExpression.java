@@ -13,6 +13,7 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.tree.CompositeElement;
 import com.intellij.psi.impl.source.tree.LazyParseablePsiElement;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +24,9 @@ import java.util.*;
 import static com.huawei.cangjie.CjNodeTypes.BLOCK;
 
 public class CjBlockExpression extends LazyParseablePsiElement implements CjElement, CjExpression, CjStatementExpression {
-
+    public CjBlockExpression(@NotNull IElementType type,  @Nullable CharSequence text) {
+        super(type, text);
+    }
     public CjBlockExpression(@Nullable CharSequence text) {
         super(BLOCK, text);
     }

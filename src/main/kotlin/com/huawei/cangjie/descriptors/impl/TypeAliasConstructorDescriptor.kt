@@ -134,6 +134,8 @@ class TypeAliasConstructorDescriptorImpl private constructor(
             .setCopyOverrides(copyOverrides)
             .build() as TypeAliasConstructorDescriptor
 
+    override fun hasSynthesizedParameterNames(): Boolean  = false
+
 
     override fun getConstructedClass(): ClassDescriptor =
         underlyingConstructorDescriptor.constructedClass

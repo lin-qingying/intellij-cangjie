@@ -6,6 +6,9 @@
         <codeInsight.unresolvedReferenceQuickFixProvider
                 id="cangjieUnresolvedReferenceQuickFixProvider"
                 implementation="com.huawei.cangjie.ide.codeinsight.CangJieUnresolvedReferenceQuickFixProvider"/>
+                <codeInsight.lineMarkerProvider language="CangJie"
+                                                implementationClass="com.huawei.cangjie.ide.codeinsight.CangJieIconLineMarkerProvider"/>
+
 
 <!--        <codeInsight.lineMarkerProvider language="CangJie"-->
 <!--                                        implementationClass="com.huawei.cangjie.ide.codeinsight.CangJieSuspendCallLineMarkerProvider"/>-->

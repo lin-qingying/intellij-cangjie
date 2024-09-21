@@ -56,6 +56,7 @@ import com.huawei.cangjie.storage.NotNullLazyValue
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
+import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.classFqNameEquals
 import com.huawei.cangjie.types.util.isConstructedFromGivenClass
 import com.huawei.cangjie.types.util.isNotNullConstructedFromGivenClass
@@ -88,6 +89,11 @@ open class CangJieBuiltIns(
                 type,
                 stringUFqName
             )
+        }
+
+        fun isNullableNothing(type: CangJieType): Boolean {
+            return isNothing(type)
+                    && TypeUtils.isNullableType(type)
         }
 
         fun getPrimitiveArrayType(descriptor: DeclarationDescriptor): PrimitiveType? {
@@ -540,6 +546,7 @@ open class CangJieBuiltIns(
     fun isBooleanOrSubtype(type: CangJieType): Boolean {
         return CangJieTypeChecker.DEFAULT.isSubtypeOf(type, boolType)
     }
+
     private fun getBuiltInClassByName(simpleName: String): ClassDescriptor {
         return myBuiltInClassesByName.invoke(Name.identifier(simpleName))
     }

@@ -366,7 +366,10 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     open fun visitUserType(type: CjUserType) {
         super.visitUserType(type, null)
     }
+    open fun visitThisType(type: CjThisType) {
+        super.visitThisType(type, null)
 
+    }
     open fun visitBasicType(type: CjBasicType) {
         super.visitBasicType(type, null)
 
@@ -786,7 +789,10 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
         visitUserType(type)
         return null
     }
-
+    override fun visitThisType(cjBasicType: CjThisType, data: Void?): Void? {
+        visitThisType(cjBasicType)
+        return null
+    }
     override fun visitBasicType(cjBasicType: CjBasicType, data: Void?): Void? {
         visitBasicType(cjBasicType)
         return null

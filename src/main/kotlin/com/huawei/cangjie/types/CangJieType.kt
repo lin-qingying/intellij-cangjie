@@ -131,6 +131,38 @@ abstract class SimpleType : UnwrappedType(), SimpleTypeMarker, TypeArgumentListM
     }
 }
 
+class ThisType(private val otype: SimpleType): SimpleType() {
+    override fun makeOptionalAsSpecified(newNullability: Boolean): SimpleType {
+        return otype.makeOptionalAsSpecified(newNullability)
+
+    }
+
+    fun getType(): CangJieType {
+        return otype.arguments[0].type
+    }
+
+    override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType {
+        return otype.replaceAttributes(newAttributes)
+
+    }
+
+    @TypeRefinement
+    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType {
+        return otype.refine(cangjieTypeRefiner)
+    }
+
+    override val constructor: TypeConstructor
+        get() = otype.constructor
+    override val arguments: List<TypeProjection>
+        get() = otype.arguments
+    override val attributes: TypeAttributes
+        get() = otype.attributes
+    override val isMarkedOption: Boolean
+        get() = false
+    override val memberScope: MemberScope
+        get() = otype.memberScope
+}
+
 
 class OptionType(private val otype: SimpleType) : SimpleType() {
     override fun makeOptionalAsSpecified(newNullability: Boolean): SimpleType {

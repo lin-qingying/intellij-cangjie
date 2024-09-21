@@ -1,6 +1,7 @@
 package com.huawei.cangjie.types.expressions;
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
+import com.huawei.cangjie.builtins.PlatformToCangJieClassMapper;
 import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.descriptors.ModuleDescriptor;
 import com.huawei.cangjie.extensions.TypeResolutionInterceptor;
@@ -8,6 +9,8 @@ import com.huawei.cangjie.resolve.*;
 import com.huawei.cangjie.resolve.calls.CallExpressionResolver;
 import com.huawei.cangjie.resolve.calls.CallResolver;
 import com.huawei.cangjie.resolve.calls.checkers.AssignmentChecker;
+import com.huawei.cangjie.resolve.calls.checkers.CallChecker;
+import com.huawei.cangjie.resolve.calls.checkers.RttiExpressionChecker;
 import com.huawei.cangjie.resolve.calls.model.CangJieCallComponents;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator;
@@ -23,9 +26,13 @@ public class ExpressionTypingComponents {
     public ModuleDescriptor moduleDescriptor;
     public FunctionDescriptorResolver functionDescriptorResolver;
     public CollectionLiteralResolver collectionLiteralResolver;
+    public PlatformToCangJieClassMapper platformToCangJieClassMapper;
+    public Iterable<CallChecker> callCheckers;
 
     public RangeLiteralResolver rangeLiteralResolver;
 
+    public TypeResolver typeResolver;
+    public Iterable<RttiExpressionChecker> rttiExpressionCheckers;
 
     public FunctionReturnResolver functionReturnResolver;
     public CallResolver callResolver;
@@ -52,7 +59,20 @@ public class ExpressionTypingComponents {
     public ValueParameterResolver valueParameterResolver;
 
     public OverloadChecker overloadChecker;
+    @Inject
+    public void setPlatformToCangJieClassMap(@NotNull PlatformToCangJieClassMapper platformToCangJieClassMapper) {
+        this.platformToCangJieClassMapper = platformToCangJieClassMapper;
+    }
 
+    @Inject
+    public void setCallCheckers(@NotNull Iterable<CallChecker> callCheckers) {
+        this.callCheckers = callCheckers;
+    }
+
+    @Inject
+    public void setRttiExpressionCheckers(@NotNull Iterable<RttiExpressionChecker> rttiExpressionCheckers) {
+        this.rttiExpressionCheckers = rttiExpressionCheckers;
+    }
     @Inject
     public void setFunctionReturnResolver(@NotNull FunctionReturnResolver functionReturnResolver) {
         this.functionReturnResolver = functionReturnResolver;
@@ -72,6 +92,10 @@ public void setForLoopConventionsChecker(@NotNull ForLoopConventionsChecker forL
     @Inject
     public void setIdentifierChecker(@NotNull IdentifierChecker identifierChecker) {
         this.identifierChecker = identifierChecker;
+    }
+    @Inject
+    public void setTypeResolver(TypeResolver typeResolver) {
+        this.typeResolver = typeResolver;
     }
 
     @Inject
