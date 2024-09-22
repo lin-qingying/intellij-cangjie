@@ -186,10 +186,10 @@ class FunctionDescriptorResolver(
             createValueParametersForInvokeInFunctionType(owner, this.getValueParameterTypesFromFunctionType())
         } else null
 
-    fun resolveSecondaryConstructorDescriptor(
+    fun resolveConstructorDescriptor(
         scope: LexicalScope,
         classDescriptor: ClassDescriptor,
-        constructor: CjSecondaryConstructor,
+        constructor: CjConstructor<*>,
         trace: BindingTrace,
         languageVersionSettings: LanguageVersionSettings,
         inferenceSession: InferenceSession?

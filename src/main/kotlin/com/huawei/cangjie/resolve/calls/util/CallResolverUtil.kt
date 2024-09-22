@@ -29,7 +29,7 @@ import com.intellij.psi.PsiElement
 internal fun PsiElement.reportOnElement() =
     (this as? CjConstructorDelegationCall)
         ?.takeIf { isImplicit }
-        ?.let { getStrictParentOfType<CjSecondaryConstructor>()!! }
+        ?.let { getStrictParentOfType<CjConstructor<*>>()!! }
         ?: this
 fun getEffectiveExpectedType(
     parameterDescriptor: ValueParameterDescriptor,

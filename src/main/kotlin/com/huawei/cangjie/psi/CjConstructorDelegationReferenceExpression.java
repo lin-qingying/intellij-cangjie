@@ -9,7 +9,7 @@ public class CjConstructorDelegationReferenceExpression extends CjExpressionImpl
     public CjConstructorDelegationReferenceExpression(@NotNull ASTNode node) {
         super(node);
     }
-
+@NotNull
     public boolean isThis() {
         return findChildByType(CjTokens.THIS_KEYWORD) != null;
     }

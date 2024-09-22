@@ -352,13 +352,13 @@ class LazyTopDownAnalyzer(
         topLevelFqNames: Multimap<FqName, CjElement>,
         reexports: List<CjImportDirective>
     ) {
-        for (reexport in reexports) {
+//        for (reexport in reexports) {
 //            val descriptor = lazyDeclarationResolver.resolveToDescriptor(typeAlias) as TypeAliasDescriptor
 //
 //            c.reexports[typeAlias] = descriptor
 //            ForceResolveUtil.forceResolveAllContents(descriptor.annotations)
 //            registerTopLevelFqName(topLevelFqNames, typeAlias, descriptor)
-        }
+//        }
     }
 
     private fun createTypeAliasDescriptors(

@@ -15,6 +15,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.lazy.ForceResolveUtil;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor;
 import com.huawei.cangjie.resolve.scopes.*;
+import com.huawei.cangjie.resolve.source.PsiSourceElementKt;
 import com.huawei.cangjie.types.*;
 import com.huawei.cangjie.types.expressions.ExpressionTypingContext;
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices;
@@ -376,11 +377,11 @@ public class BodyResolver {
 
     //构造函数重载
     @Nullable
-    private DataFlowInfo resolveSecondaryConstructorDelegationCall(
+    private DataFlowInfo resolveConstructorDelegationCall(
             @NotNull DataFlowInfo outerDataFlowInfo,
             @NotNull BindingTrace trace,
             @NotNull LexicalScope scope,
-            @NotNull CjSecondaryConstructor constructor,
+            @NotNull CjConstructor<?> constructor,
             @NotNull ClassConstructorDescriptor descriptor,
             @Nullable InferenceSession inferenceSession
     ) {
@@ -405,10 +406,36 @@ public class BodyResolver {
         return null;
     }
 
-    public void resolveSecondaryConstructorBody(
+    private void checkPrimaryConstructorIsThis(@NotNull CjPrimaryConstructor constructor) {
+        if (constructor.getDelegationCallOrNull() != null) {
+            if (constructor.getDelegationCall().getCalleeExpression() != null) {
+                if (constructor.getDelegationCall().getCalleeExpression().isThis()) {
+                    trace.report(INVALID_CALLING_THIS_IN_PRIMARY_CONSTRUCTOR.on(constructor.getDelegationCall().getCalleeExpression()));
+                }
+            }
+        }
+
+    }
+
+    public void resolvePrimaryConstructorBody(
             @NotNull DataFlowInfo outerDataFlowInfo,
             @NotNull BindingTrace trace,
-            @NotNull CjSecondaryConstructor constructor,
+            @NotNull CjPrimaryConstructor constructor,
+            @NotNull ClassConstructorDescriptor descriptor,
+            @NotNull LexicalScope declaringScope,
+            @Nullable ExpressionTypingContext localContext
+    ) {
+
+
+        checkPrimaryConstructorIsThis(constructor);
+        resolveConstructorBody(outerDataFlowInfo, trace, constructor, descriptor, declaringScope, localContext);
+
+    }
+
+    public void resolveConstructorBody(
+            @NotNull DataFlowInfo outerDataFlowInfo,
+            @NotNull BindingTrace trace,
+            @NotNull CjConstructor<?> constructor,
             @NotNull ClassConstructorDescriptor descriptor,
             @NotNull LexicalScope declaringScope,
             @Nullable ExpressionTypingContext localContext
@@ -417,7 +444,7 @@ public class BodyResolver {
 
         resolveFunctionBody(
                 outerDataFlowInfo, trace, constructor, descriptor, declaringScope,
-                headerInnerScope -> resolveSecondaryConstructorDelegationCall(
+                headerInnerScope -> resolveConstructorDelegationCall(
                         outerDataFlowInfo, trace, headerInnerScope, constructor,
                         descriptor, localContext != null ? localContext.inferenceSession : null
                 ),
@@ -427,6 +454,17 @@ public class BodyResolver {
                 ),
                 localContext
         );
+    }
+
+    public void resolveSecondaryConstructorBody(
+            @NotNull DataFlowInfo outerDataFlowInfo,
+            @NotNull BindingTrace trace,
+            @NotNull CjSecondaryConstructor constructor,
+            @NotNull ClassConstructorDescriptor descriptor,
+            @NotNull LexicalScope declaringScope,
+            @Nullable ExpressionTypingContext localContext
+    ) {
+        resolveConstructorBody(outerDataFlowInfo, trace, constructor, descriptor, declaringScope, localContext);
     }
 
     private void resolveVariableInitializer(
@@ -564,7 +602,25 @@ public class BodyResolver {
 
     //    与从构造函数行为一致，但是不能有this()
     private void resolvePrimaryConstructorParameters(@NotNull BodiesResolveContext c) {
+        // 检查主构造名称
+//        检查this的使用
+        Set<Map.Entry<CjPrimaryConstructor, ClassConstructorDescriptor>> constructors = c.getPrimaryConstructors().entrySet();
 
+        for (Map.Entry<CjPrimaryConstructor, ClassConstructorDescriptor> entry : constructors) {
+            if (constructors.size() > 1) {
+                trace.report(MULTIPLE_PRIMARY_CONSTRUCTORS.on(entry.getKey(), entry.getValue().getContainingDeclaration()));
+
+            }
+
+            LexicalScope declaringScope = c.getDeclaringScope(entry.getKey());
+            assert declaringScope != null : "Declaring scope should be registered before body resolve";
+            resolvePrimaryConstructorBody(c.getOuterDataFlowInfo(), trace, entry.getKey(), entry.getValue(), declaringScope, c.getLocalContext());
+        }
+        if (c.getPrimaryConstructors().isEmpty()) return;
+        Set<ConstructorDescriptor> visitedConstructors = new HashSet<>();
+        for (Map.Entry<CjPrimaryConstructor, ClassConstructorDescriptor> entry : c.getPrimaryConstructors().entrySet()) {
+            checkCyclicConstructorDelegationCall(entry.getValue(), visitedConstructors);
+        }
     }
 
     private void resolveSecondaryConstructors(@NotNull BodiesResolveContext c) {
@@ -591,7 +647,7 @@ public class BodyResolver {
         do {
             PsiElement constructorToReport = DescriptorToSourceUtils.descriptorToDeclaration(currentConstructor);
             if (constructorToReport != null) {
-                CjConstructorDelegationCall call = ((CjSecondaryConstructor) constructorToReport).getDelegationCall();
+                CjConstructorDelegationCall call = ((CjConstructor<?>) constructorToReport).getDelegationCall();
                 assert call.getCalleeExpression() != null
                         : "Callee expression of delegation call should not be null on cycle as there should be explicit 'this' calls";
                 trace.report(CYCLIC_CONSTRUCTOR_DELEGATION_CALL.on(call.getCalleeExpression()));
@@ -783,6 +839,11 @@ public class BodyResolver {
                 });
     }
 
+    private boolean checkPrimaryConstructor(@Nullable ClassConstructorDescriptor unsubstitutedPrimaryConstructor) {
+
+        return unsubstitutedPrimaryConstructor != null && PsiSourceElementKt.getPsi(unsubstitutedPrimaryConstructor.getSource()) != null && !(PsiSourceElementKt.getPsi(unsubstitutedPrimaryConstructor.getSource()) instanceof CjPrimaryConstructor);
+    }
+
     public void resolveSuperTypeEntryList(
             @NotNull DataFlowInfo outerDataFlowInfo,
             @NotNull CjTypeStatement typeStatement,
@@ -828,7 +889,9 @@ public class BodyResolver {
                     return;
                 }
                 if (descriptor.getKind() != ClassKind.INTERFACE &&
-                        descriptor.getUnsubstitutedPrimaryConstructor() != null &&
+
+                        checkPrimaryConstructor(descriptor.getUnsubstitutedPrimaryConstructor()) &&
+//                        descriptor.getConstructors().isEmpty() &&
                         superClass.getKind() != ClassKind.INTERFACE &&
                         !descriptor.isExpect() && !isEffectivelyExternal(descriptor) &&
                         !ErrorUtils.isError(superClass) && TypeUtils.checkConstructorsNotParameter(superClass)

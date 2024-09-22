@@ -247,6 +247,12 @@ public class DefaultErrorMessages {
         MAP.put(CYCLIC_CONSTRUCTOR_DELEGATION_CALL, "There's a cycle in the init calls chain");
         MAP.put(NO_THIS, "'this' is not defined in this context");
 
+        MAP.put(CONSTRUCTOR_NAME_INCONSISTENCY, "Primary constructor name is inconsistent with type name");
+
+        MAP.put(MULTIPLE_PRIMARY_CONSTRUCTORS, "Class ''{0}'' cannot have more than one primary constructor", CLASS_NAME);
+
+        MAP.put(INVALID_CALLING_THIS_IN_PRIMARY_CONSTRUCTOR, "Invalid calling 'this' in primary constructor" );
+
     }
 
 

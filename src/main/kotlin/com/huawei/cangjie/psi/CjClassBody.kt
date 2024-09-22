@@ -22,6 +22,8 @@ class CjClassBody : CjElementImplStub<CangJiePlaceHolderStub<CjClassBody>>, CjDe
     override fun getParent() = parentByStub
     internal val secondaryConstructors: List<CjSecondaryConstructor>
         get() = getStubOrPsiChildrenAsList(CjStubElementTypes.SECONDARY_CONSTRUCTOR)
+    internal val primaryConstructors: List<CjPrimaryConstructor>
+        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.PRIMARY_CONSTRUCTOR)
 
     /**
      * @return annotations that do not belong to any declaration due to incomplete code or syntax errors

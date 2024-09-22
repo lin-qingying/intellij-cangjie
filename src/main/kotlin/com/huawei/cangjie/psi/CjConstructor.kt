@@ -23,6 +23,18 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
     abstract fun getContainingTypeStatement(): CjTypeStatement
 
     override fun isLocal() = false
+    override fun getBodyExpression(): CjInitBlockExpression? {
+        val stub = stub
+        if (stub != null) {
+            if (stub.hasBody() == false) {
+                return null
+            }
+            if (getContainingCjFile().isCompiled) {
+                return null
+            }
+        }
+        return findChildByClass(CjInitBlockExpression::class.java)
+    }
 
     override fun getValueParameterList() = getStubOrPsiChild(CjStubElementTypes.VALUE_PARAMETER_LIST)
 
@@ -33,14 +45,21 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
     override fun getContextReceivers(): List<CjContextReceiver> = emptyList()
 
     override fun getTypeReference() = null
+    fun getDelegationCall(): CjConstructorDelegationCall = bodyExpression!!.getDelegationCall()
 
+    fun getDelegationCallOrNull(): CjConstructorDelegationCall? = bodyExpression?.getDelegationCallOrNull()
+
+    fun hasImplicitDelegationCall(): Boolean = getDelegationCall().isImplicit
+
+    fun replaceImplicitDelegationCallWithExplicit(isThis: Boolean): CjConstructorDelegationCall {
+        return bodyExpression!!.replaceImplicitDelegationCallWithExplicit(isThis)
+    }
     @Throws(IncorrectOperationException::class)
     override fun setTypeReference(typeRef: CjTypeReference?) =
         throw IncorrectOperationException("setTypeReference to constructor")
 
     override fun getColon() = findChildByType<PsiElement>(CjTokens.COLON)
 
-    override fun getBodyExpression(): CjBlockExpression? = null
 
     override fun getEqualsToken() = null
 

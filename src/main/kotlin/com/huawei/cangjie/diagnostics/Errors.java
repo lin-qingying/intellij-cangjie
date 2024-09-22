@@ -446,6 +446,15 @@ public interface Errors {
     DiagnosticFactory2<CjParameter, ClassDescriptor, ValueParameterDescriptor> PARAMETER_NAME_CHANGED_ON_OVERRIDE =
             DiagnosticFactory2.create(WARNING, DECLARATION_NAME);
 
+    DiagnosticFactory0<PsiElement > CONSTRUCTOR_NAME_INCONSISTENCY =
+            DiagnosticFactory0.create(ERROR );
+
+
+    DiagnosticFactory1<CjPrimaryConstructor ,ClassDescriptor> MULTIPLE_PRIMARY_CONSTRUCTORS =
+            DiagnosticFactory1.create(ERROR );
+
+    DiagnosticFactory0<CjConstructorDelegationReferenceExpression  > INVALID_CALLING_THIS_IN_PRIMARY_CONSTRUCTOR =
+            DiagnosticFactory0.create(ERROR );
 
 
 
@@ -457,9 +466,7 @@ public interface Errors {
 
 
 
-
-
-/*************恶搞警告***********************/
+    /*************恶搞警告***********************/
 DiagnosticFactory0<CjOptionType> NESTING_DOLL_OPTINOTYPE = DiagnosticFactory0.create(WARNING, OPTIONAL_TYPE);
     /************************************/
 

@@ -286,11 +286,56 @@ open class LazyClassMemberScope(
 
     }
 
+    private val primaryConstructor: NullableLazyValue<ClassConstructorDescriptor> =
+        c.storageManager.createNullableLazyValue { resolvePrimaryConstructor() }
+
+
+    protected open fun resolvePrimaryConstructor(): ClassConstructorDescriptor? {
+        val classOrObject = declarationProvider.correspondingClassOrObject ?: return null
+        val primarys = classOrObject.primaryConstructors.map { constructor ->
+            val descriptor = c.functionDescriptorResolver.resolveConstructorDescriptor(
+                thisDescriptor.scopeForConstructorHeaderResolution, thisDescriptor,
+                constructor, trace, c.languageVersionSettings, c.inferenceSession
+            )
+            setDeferredReturnType(descriptor)
+            descriptor
+        }
+        val hasPrimaryConstructor = classOrObject.hasExplicitPrimaryConstructor()
+        if (!hasPrimaryConstructor) {
+            if (thisDescriptor.isExpect && !DescriptorUtils.isEnumEntry(thisDescriptor)) return null
+            if (DescriptorUtils.isInterface(thisDescriptor)) return null
+        }
+
+        if (DescriptorUtils.canHaveDeclaredConstructors(thisDescriptor) || hasPrimaryConstructor) {
+//            val constructor = c.functionDescriptorResolver.resolvePrimaryConstructorDescriptor(
+//                thisDescriptor.scopeForConstructorHeaderResolution, thisDescriptor,
+//                classOrObject, trace, c.languageVersionSettings, c.inferenceSession
+//            )
+            val constructor = if (primarys.isEmpty()) {
+                c.functionDescriptorResolver.resolvePrimaryConstructorDescriptor(
+                    thisDescriptor.scopeForConstructorHeaderResolution, thisDescriptor,
+                    classOrObject, trace, c.languageVersionSettings, c.inferenceSession
+                )
+            } else {
+                primarys.first()
+            }
+            constructor ?: return null
+            setDeferredReturnType(constructor)
+            return constructor
+        }
+
+        val constructor =
+            DescriptorResolver.createAndRecordPrimaryConstructorForObject(classOrObject, thisDescriptor, trace)
+        setDeferredReturnType(constructor)
+        return constructor
+
+    }
+
     private fun resolveSecondaryConstructors(): Collection<ClassConstructorDescriptor> {
         val classOrObject = declarationProvider.correspondingClassOrObject ?: return emptyList()
 
         return classOrObject.secondaryConstructors.map { constructor ->
-            val descriptor = c.functionDescriptorResolver.resolveSecondaryConstructorDescriptor(
+            val descriptor = c.functionDescriptorResolver.resolveConstructorDescriptor(
                 thisDescriptor.scopeForConstructorHeaderResolution, thisDescriptor,
                 constructor, trace, c.languageVersionSettings, c.inferenceSession
             )
@@ -314,35 +359,6 @@ open class LazyClassMemberScope(
         return result
     }
 
-    private val primaryConstructor: NullableLazyValue<ClassConstructorDescriptor> =
-        c.storageManager.createNullableLazyValue { resolvePrimaryConstructor() }
-
-
-    protected open fun resolvePrimaryConstructor(): ClassConstructorDescriptor? {
-        val classOrObject = declarationProvider.correspondingClassOrObject ?: return null
-
-        val hasPrimaryConstructor = classOrObject.hasExplicitPrimaryConstructor()
-        if (!hasPrimaryConstructor) {
-            if (thisDescriptor.isExpect && !DescriptorUtils.isEnumEntry(thisDescriptor)) return null
-            if (DescriptorUtils.isInterface(thisDescriptor)) return null
-        }
-
-        if (DescriptorUtils.canHaveDeclaredConstructors(thisDescriptor) || hasPrimaryConstructor) {
-            val constructor = c.functionDescriptorResolver.resolvePrimaryConstructorDescriptor(
-                thisDescriptor.scopeForConstructorHeaderResolution, thisDescriptor,
-                classOrObject, trace, c.languageVersionSettings, c.inferenceSession
-            )
-            constructor ?: return null
-            setDeferredReturnType(constructor)
-            return constructor
-        }
-
-        val constructor =
-            DescriptorResolver.createAndRecordPrimaryConstructorForObject(classOrObject, thisDescriptor, trace)
-        setDeferredReturnType(constructor)
-        return constructor
-
-    }
 
     //    主构造函数
     fun getPrimaryConstructor(): ClassConstructorDescriptor? =

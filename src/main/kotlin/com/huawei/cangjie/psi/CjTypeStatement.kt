@@ -69,7 +69,7 @@ abstract class CjTypeStatement :
     fun getPrimaryConstructorParameterList(): CjParameterList? = primaryConstructor?.valueParameterList
 
     override fun getSecondaryConstructors(): List<CjSecondaryConstructor> = getBody()?.secondaryConstructors.orEmpty()
-
+    override fun getPrimaryConstructors(): List<CjPrimaryConstructor> = getBody()?.primaryConstructors.orEmpty()
     fun getContextReceiverList(): CjContextReceiverList? = getStubOrPsiChild(CjStubElementTypes.CONTEXT_RECEIVER_LIST)
 
     override fun getContextReceivers(): List<CjContextReceiver> =

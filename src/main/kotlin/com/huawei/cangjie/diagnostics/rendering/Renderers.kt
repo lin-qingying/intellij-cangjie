@@ -22,41 +22,55 @@ fun DescriptorRenderer.asRenderer() = SmartDescriptorRenderer(this)
 
 object Renderers {
     private val LOG = Logger.getInstance(Renderers::class.java)
+
     @JvmField
-    val NAME = renderer<Name> { it.asString()  }
+    val NAME = renderer<Name> { it.asString() }
+
     @JvmField
     val NAMED = renderer<Named> {
-        NAME.render( it.name)
+        NAME.render(it.name)
     }
+
     @JvmField
     val RENDER_CLASS_OR_OBJECT_NAME = renderer<ClassifierDescriptorWithTypeParameters> { it.renderKindWithName() }
 
     @JvmField
     val COMPACT_WITHOUT_SUPERTYPES = DescriptorRenderer.COMPACT_WITHOUT_SUPERTYPES.asRenderer()
+
     @JvmField
     val RENDER_TYPE = SmartTypeRenderer(DescriptorRenderer.FQ_NAMES_IN_TYPES.withOptions {
         parameterNamesInFunctionalTypes = false
     })
+
     @JvmField
-    val NAMES_TO_STRING =  renderer{ names:Collection<Name> ->
+    val CLASS_NAME = renderer { cclass: ClassDescriptor ->
+
+
+        NAME.render(cclass.name)
+    }
+
+    @JvmField
+    val NAMES_TO_STRING = renderer { names: Collection<Name> ->
         names.joinToString(", ", "{", "}") { type ->
 
-           NAME.render(type)
+            NAME.render(type)
         }
 
     }
+
     @JvmField
-    val RENDER_COLLECTION_OF_TYPES =     renderer  { types :List<CangJieType>->
+    val RENDER_COLLECTION_OF_TYPES = renderer { types: List<CangJieType> ->
 
         types.joinToString(", ", "{ ", " }") { type ->
 
-            RENDER_TYPE.render(type,            RenderingContext.of(type))
+            RENDER_TYPE.render(type, RenderingContext.of(type))
         }
 
 
     }
+
     @JvmField
-    val RENDER_TYPE_STATMENT  = renderer { classOrObject: CjTypeStatement ->
+    val RENDER_TYPE_STATMENT = renderer { classOrObject: CjTypeStatement ->
         val name = classOrObject.name?.let { " ${it.wrapIntoQuotes()}" } ?: ""
         when (classOrObject) {
             is CjClass -> "Class$name"
@@ -66,11 +80,12 @@ object Renderers {
             else -> "Class$name"
         }
     }
+
     @JvmField
     val FQ_NAMES_IN_TYPES = DescriptorRenderer.FQ_NAMES_IN_TYPES.asRenderer()
+
     @JvmField
     val COMPACT_WITH_MODIFIERS = DescriptorRenderer.COMPACT_WITH_MODIFIERS.asRenderer()
-
 
 
     @JvmField
@@ -96,6 +111,7 @@ object Renderers {
             }
         }
     }
+
     private fun renderAmbiguousDescriptors(descriptors: Collection<CallableDescriptor>): String {
         val context = RenderingContext.Impl(descriptors)
         return descriptors
@@ -104,11 +120,13 @@ object Renderers {
                 FQ_NAMES_IN_TYPES.render(it, context)
             }
     }
+
     @JvmField
     val AMBIGUOUS_CALLS = renderer { calls: Collection<ResolvedCall<*>> ->
         val descriptors = calls.map { it.resultingDescriptor }
         renderAmbiguousDescriptors(descriptors)
     }
+
     @JvmField
     val TO_STRING = renderer<Any> { element ->
         if (element is DeclarationDescriptor) {
@@ -130,8 +148,11 @@ object Renderers {
     val FQNAME = renderer<FqName> {
         it.asString()
     }
+
     @JvmField
-    val FQ_NAMES_IN_TYPES_ANNOTATIONS_WHITELIST = DescriptorRenderer.FQ_NAMES_IN_TYPES_WITH_ANNOTATIONS.withAnnotationsWhitelist()
+    val FQ_NAMES_IN_TYPES_ANNOTATIONS_WHITELIST =
+        DescriptorRenderer.FQ_NAMES_IN_TYPES_WITH_ANNOTATIONS.withAnnotationsWhitelist()
+
     private fun String.wrapIntoQuotes(): String = "'$this'"
 
 }

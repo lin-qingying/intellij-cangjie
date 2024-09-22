@@ -384,9 +384,25 @@ class ResolveElementCache(
 //        forceResolveAnnotationsInside(typeAlias)
         return trace
     }
-
+    private fun primaryConstructorAdditionalResolve(
+        resolveSession: ResolveSession,
+        constructor: CjPrimaryConstructor,
+        file: CjFile, statementFilter: StatementFilter,
+        bindingTraceFilter: BindingTraceFilter
+    ): BindingTrace{
+        return constructorAdditionalResolve(resolveSession, constructor, file, statementFilter, bindingTraceFilter)
+    }
     private fun secondaryConstructorAdditionalResolve(
-        resolveSession: ResolveSession, constructor: CjSecondaryConstructor,
+        resolveSession: ResolveSession,
+        constructor: CjSecondaryConstructor,
+        file: CjFile, statementFilter: StatementFilter,
+        bindingTraceFilter: BindingTraceFilter
+    ): BindingTrace{
+       return constructorAdditionalResolve(resolveSession, constructor, file, statementFilter, bindingTraceFilter)
+    }
+    private fun constructorAdditionalResolve(
+        resolveSession: ResolveSession,
+        constructor: CjConstructor<*>,
         file: CjFile, statementFilter: StatementFilter,
         bindingTraceFilter: BindingTraceFilter
     ): BindingTrace {
@@ -397,7 +413,7 @@ class ResolveElementCache(
         ForceResolveUtil.forceResolveAllContents(constructorDescriptor)
 
         val bodyResolver = createBodyResolver(resolveSession, trace, file, statementFilter)
-        bodyResolver.resolveSecondaryConstructorBody(
+        bodyResolver.resolveConstructorBody(
             DataFlowInfo.EMPTY,
             trace,
             constructor,
@@ -495,14 +511,21 @@ class ResolveElementCache(
 
             }
 
-            is CjPrimaryConstructor -> constructorAdditionalResolve(
-                resolveSession,
-                resolveElement.parent as CjTypeStatement,
-                file,
-                bodyResolveMode.bindingTraceFilter
-            )
+//            is CjPrimaryConstructor -> constructorAdditionalResolve(
+//                resolveSession,
+//                resolveElement.parent as CjTypeStatement,
+//                file,
+//                bodyResolveMode.bindingTraceFilter
+//            )
 
             is CjTypeConstraint -> typeConstraintAdditionalResolve(resolveSession, resolveElement)
+            is CjPrimaryConstructor -> primaryConstructorAdditionalResolve(
+                resolveSession,
+                resolveElement,
+                file,
+                createStatementFilter(),
+                bodyResolveMode.bindingTraceFilter
+            )
 
             is CjSecondaryConstructor -> secondaryConstructorAdditionalResolve(
                 resolveSession,

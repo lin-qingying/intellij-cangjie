@@ -36,7 +36,8 @@ public interface CjPureTypeStatement extends CjPureElement, CjDeclarationContain
     @NotNull
     @ReadOnly
     List<CjSecondaryConstructor> getSecondaryConstructors();
-
+    @NotNull
+    List<CjPrimaryConstructor> getPrimaryConstructors();
     @NotNull
     @ReadOnly
     List<CjContextReceiver> getContextReceivers();
