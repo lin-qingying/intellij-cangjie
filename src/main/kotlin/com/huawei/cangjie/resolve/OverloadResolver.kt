@@ -12,9 +12,6 @@ import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.intellij.psi.PsiElement
 import com.intellij.util.containers.MultiMap
-import java.util.HashSet
-import java.util.LinkedHashMap
-import java.util.LinkedHashSet
 
 @DefaultImplementation(impl = ConflictingOverloadsDispatcher.Default::class)
 interface ConflictingOverloadsDispatcher {
@@ -209,6 +206,7 @@ class OverloadResolver(
 
         return result
     }
+
     private fun DeclarationDescriptor.isSynthesized() =
         this is CallableMemberDescriptor && kind == CallableMemberDescriptor.Kind.SYNTHESIZED
 
@@ -231,7 +229,8 @@ class OverloadResolver(
         }
         return redeclarations
     }
-    private fun checkOverloadsInPackage(members: Collection<DeclarationDescriptorNonRoot>) {
+
+    fun checkOverloadsInPackage(members: Collection<DeclarationDescriptorNonRoot>) {
         if (members.size == 1) return
 
         val redeclarationsMap = LinkedHashMap<DeclarationDescriptorNonRoot, MutableSet<DeclarationDescriptorNonRoot>>()
@@ -266,6 +265,7 @@ class OverloadResolver(
             }
         }
     }
+
     private fun checkOverloadsInClass(
         classDescriptor: ClassDescriptorWithResolutionScopes,
         nestedClassConstructors: Collection<FunctionDescriptor>
@@ -285,6 +285,7 @@ class OverloadResolver(
             checkOverloadsInClass(e.value)
         }
     }
+
     private fun checkOverloadsInClass(members: Collection<CallableMemberDescriptor>) {
         if (members.size == 1) return
         reportRedeclarations(findRedeclarations(members))

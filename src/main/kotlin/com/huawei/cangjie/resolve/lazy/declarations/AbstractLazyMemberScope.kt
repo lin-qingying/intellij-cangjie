@@ -12,8 +12,8 @@ import com.huawei.cangjie.resolve.descriptorUtil.fqNameSafe
 import com.huawei.cangjie.resolve.lazy.LazyClassContext
 import com.huawei.cangjie.resolve.lazy.data.CjClassInfoUtil
 import com.huawei.cangjie.resolve.lazy.data.CjEnmuEntryInfo
+import com.huawei.cangjie.resolve.lazy.data.CjTypeStatementInfo
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
-import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.LexicalScope
@@ -377,24 +377,54 @@ protected constructor(
 
     protected abstract fun getNonDeclaredFunctions(name: Name, result: MutableSet<SimpleFunctionDescriptor>)
 
+    private fun createClassDescriptor(name: Name, types: Collection<CjTypeStatementInfo<*>>): List<ClassDescriptor> {
+        val result = mutableListOf<ClassDescriptor>()
+
+        val enumList = mutableListOf<CjEnmuEntryInfo>()
+        val isExternal = /*it.modifierList?.hasModifier(CjTokens.EXTERNAL_KEYWORD) ?:*/ false
+
+        types.forEach {
+
+            if (it.classKind.isEnumEntry) {
+                enumList.add(it as CjEnmuEntryInfo)
+
+            } else {
+
+                result.add(LazyClassDescriptor(c, thisDescriptor, name, it, isExternal))
+            }
+        }
+
+        if (enumList.isNotEmpty()) {
+            result.add(
+                c.enumDescriptorResolver.resolveEnumEntryDescriptor(
+                    c, thisDescriptor, name, enumList, isExternal
+                )
+            )
+        }
+
+        return result.toList()
+    }
+
     private fun doGetClasses(name: Name): List<ClassDescriptor> {
         mainScope?.classDescriptors?.invoke(name)?.let { return it }
 
         val result = linkedSetOf<ClassDescriptor>()
-        declarationProvider.getTypeStatementDeclarations(name).mapTo(result) {
-            val isExternal = /*it.modifierList?.hasModifier(CjTokens.EXTERNAL_KEYWORD) ?:*/ false
 
-            if (it.classKind.isEnumEntry) {
-                c.enumDescriptorResolver.resolveEnumEntryDescriptor(
-                    c, thisDescriptor, name, it as CjEnmuEntryInfo, isExternal
-                )
-
-            } else {
-                LazyClassDescriptor(c, thisDescriptor, name, it, isExternal)
-
-            }
-
-        }
+        result.addAll(createClassDescriptor(name, declarationProvider.getTypeStatementDeclarations(name)))
+//        declarationProvider.getTypeStatementDeclarations(name).mapTo(result) {
+//            val isExternal = /*it.modifierList?.hasModifier(CjTokens.EXTERNAL_KEYWORD) ?:*/ false
+//
+//            if (it.classKind.isEnumEntry) {
+//                c.enumDescriptorResolver.resolveEnumEntryDescriptor(
+//                    c, thisDescriptor, name, it as CjEnmuEntryInfo, isExternal
+//                )
+//
+//            } else {
+//                LazyClassDescriptor(c, thisDescriptor, name, it, isExternal)
+//
+//            }
+//
+//        }
         getNonDeclaredClasses(name, result)
 
 

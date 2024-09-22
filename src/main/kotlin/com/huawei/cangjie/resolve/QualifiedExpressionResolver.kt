@@ -2,9 +2,9 @@ package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.descriptors.impl.LazyPackageViewDescriptorImpl
 import com.huawei.cangjie.descriptors.impl.LazyReexportAgent
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.incremental.CangJieLookupLocation
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
@@ -14,6 +14,7 @@ import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getParentOfType
+import com.huawei.cangjie.psi.psiUtil.getTopmostParentQualifiedExpressionForSelector
 import com.huawei.cangjie.resolve.QualifierPosition.*
 import com.huawei.cangjie.resolve.calls.CallExpressionElement
 import com.huawei.cangjie.resolve.calls.unrollToLeftMostQualifiedExpression
@@ -188,7 +189,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                     trace
                 )
 
-//                checkNotEnumEntry(classifier, trace, expression)
+                checkNotEnumEntry(classifier, trace, expression)
                 storeResult(
                     trace,
                     expression,
@@ -231,6 +232,20 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         return resolveQualifierPartListForType(qualifierPartList, ownerDescriptor, scope, trace, isQualifier = false)
     }
 
+    private fun checkNotEnumEntry(
+        descriptor: DeclarationDescriptor?,
+        trace: BindingTrace,
+        expression: CjSimpleNameExpression?
+    ) {
+        expression ?: return
+        if (descriptor != null && DescriptorUtils.isEnumEntry(descriptor)) {
+            val qualifiedParent = expression.getTopmostParentQualifiedExpressionForSelector()
+            if (qualifiedParent == null) {
+                trace.report(ENUM_ENTRY_AS_TYPE.on(expression))
+            }
+        }
+    }
+
     private fun resolveQualifierPartListForType(
         qualifierPartList: List<ExpressionQualifierPart>,
         ownerDescriptor: DeclarationDescriptor?,
@@ -254,7 +269,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
             is ClassDescriptor -> {
                 val descriptor =
                     qualifier.unsubstitutedInnerClassesScope.getContributedClassifier(lastPart.name, lastPart.location)
-//                checkNotEnumEntry(descriptor, trace, lastPart.expression)
+                checkNotEnumEntry(descriptor, trace, lastPart.expression)
                 descriptor
             }
 
@@ -280,15 +295,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
     }
 
 
-    //    private fun checkNotEnumEntry(descriptor: DeclarationDescriptor?, trace: BindingTrace, expression: CjSimpleNameExpression?) {
-//        expression ?: return
-//        if (descriptor != null && DescriptorUtils.isEnumEntry(descriptor)) {
-//            val qualifiedParent = expression.getTopmostParentQualifiedExpressionForSelector()
-//            if (qualifiedParent == null || qualifiedParent.parent !is CjDoubleColonExpression) {
-//                trace.report(Errors.ENUM_ENTRY_AS_TYPE.on(expression))
-//            }
-//        }
-//    }
+
     fun resolvePackageHeader(
         packageDirective: CjPackageDirective,
         module: ModuleDescriptor,
@@ -345,6 +352,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                 receiver.descriptor.module.getPackage(childPackageFQN).takeUnless { it.isEmpty() }
                     ?: receiver.descriptor.memberScope.getContributedClassifier(name, location)
             }
+
             is ClassQualifier -> receiver.staticScope.getContributedClassifier(name, location)
             null -> context.scope.findClassifier(name, location)
                 ?: context.scope.ownerDescriptor.module.getPackage(FqName.ROOT.child(name)).takeUnless { it.isEmpty() }
@@ -596,6 +604,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
     private fun DeclarationDescriptor?.classDescriptorFromTypeAlias(): DeclarationDescriptor? {
         return if (this is TypeAliasDescriptor) classDescriptor else this
     }
+
     private fun resolveInIDEMode(path: List<QualifierPart>): Boolean =
         path.size > 1 && path.first().name.asString() == ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE
 
@@ -988,6 +997,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                     val classDescriptor = descriptor.classDescriptor ?: return null
                     TypeAliasQualifier(referenceExpression, descriptor, classDescriptor)
                 }
+
                 else -> return null
             }
 

@@ -73,7 +73,7 @@ private fun DeclarationDescriptorWithVisibility.isVisible(
 val ClassDescriptor.hasClassValueDescriptor: Boolean get() = classValueDescriptor != null
 val ClassDescriptor.classValueDescriptor: ClassDescriptor?
     get() =
-        if (kind.isSingleton && this is LazyEnumEntryDescriptor && this.types.isEmpty())
+        if (kind.isSingleton && this is LazyEnumEntryDescriptor && this.hasUnsubstitutedPrimaryConstructor())
             this
         else
             null

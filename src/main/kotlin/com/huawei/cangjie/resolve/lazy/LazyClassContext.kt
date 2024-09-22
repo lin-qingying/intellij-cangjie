@@ -22,7 +22,7 @@ interface LazyClassContext {
     val supertypeLoopChecker: SupertypeLoopChecker
     val delegationFilter: DelegationFilter
     val typeResolver: TypeResolver
-
+    val overloadResolver: OverloadResolver
     //    val additionalClassPartsProvider: AdditionalClassPartsProvider
     val syntheticResolveExtension: SyntheticResolveExtension
     val overloadChecker: OverloadChecker

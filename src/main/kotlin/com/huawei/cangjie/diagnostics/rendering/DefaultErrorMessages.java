@@ -252,6 +252,7 @@ public class DefaultErrorMessages {
         MAP.put(MULTIPLE_PRIMARY_CONSTRUCTORS, "Class ''{0}'' cannot have more than one primary constructor", CLASS_NAME);
 
         MAP.put(INVALID_CALLING_THIS_IN_PRIMARY_CONSTRUCTOR, "Invalid calling 'this' in primary constructor" );
+        MAP.put(ENUM_ENTRY_AS_TYPE, "Use of enum entry names as types is not allowed, use enum type instead");
 
     }
 

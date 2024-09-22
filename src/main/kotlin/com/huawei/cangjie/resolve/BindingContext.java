@@ -154,7 +154,7 @@ public interface BindingContext {
     WritableSlice<PsiElement, TypeAliasDescriptor> TYPE_ALIAS = Slices.createSimpleSlice();
     WritableSlice[] DECLARATIONS_TO_DESCRIPTORS = new WritableSlice[]{
             CLASS
-            , TYPE_PARAMETER, FUNCTION, /*CONSTRUCTOR,*/ VARIABLE, VALUE_PARAMETER, /*PROPERTY_ACCESSOR, PRIMARY_CONSTRUCTOR_PARAMETER, */
+            , TYPE_PARAMETER, FUNCTION,  CONSTRUCTOR,  VARIABLE, VALUE_PARAMETER, /*PROPERTY_ACCESSOR, PRIMARY_CONSTRUCTOR_PARAMETER, */
             TYPE_ALIAS
     };
 

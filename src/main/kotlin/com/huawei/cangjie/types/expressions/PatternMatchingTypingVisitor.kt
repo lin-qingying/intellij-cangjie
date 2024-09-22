@@ -2,10 +2,7 @@ package com.huawei.cangjie.types.expressions
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.diagnostics.Errors.*
-import com.huawei.cangjie.psi.CjElement
-import com.huawei.cangjie.psi.CjIsExpression
-import com.huawei.cangjie.psi.CjOptionType
-import com.huawei.cangjie.psi.CjTypeReference
+import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.TypeResolutionContext
@@ -19,11 +16,23 @@ import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.huawei.cangjie.types.util.containsError
-import com.huawei.cangjie.types.util.isAny
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo
 
 class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTypingInternals) :
     ExpressionTypingVisitor(facade) {
+
+    override fun visitMatchExpression(expression: CjMatchExpression, context: ExpressionTypingContext ): CangJieTypeInfo =
+        visitMatchExpression(expression, context, false)
+
+    fun visitMatchExpression(
+        expression: CjMatchExpression,
+        contextWithExpectedType: ExpressionTypingContext,
+        @Suppress("UNUSED_PARAMETER") isStatement: Boolean
+    ): CangJieTypeInfo {
+
+
+        TODO()
+    }
 
     private fun checkTypeForIs(
         context: ExpressionTypingContext,
@@ -130,13 +139,13 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 //                        targetType, components.platformToCangJieClassMapper,/* components.platformSpecificCastChecker*/
 //                    )
 //                }) {
-                context.trace.report(USELESS_IS_CHECK.on(isCheck, false))
+            context.trace.report(USELESS_IS_CHECK.on(isCheck, false))
 //            }
-        }else
+        } else
 
-        if (CastDiagnosticsUtil.isRefinementUseless(possibleTypes, targetType, false)) {
-            context.trace.report(USELESS_IS_CHECK.on(isCheck, true))
-        }
+            if (CastDiagnosticsUtil.isRefinementUseless(possibleTypes, targetType, false)) {
+                context.trace.report(USELESS_IS_CHECK.on(isCheck, true))
+            }
     }
 
     override fun visitIsExpression(
@@ -184,7 +193,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
     /*
        * (a: SubjectType) is Type
        */
-    private fun  checkTypeCompatibility(
+    private fun checkTypeCompatibility(
         context: ExpressionTypingContext,
         type: CangJieType,
         subjectType: CangJieType,

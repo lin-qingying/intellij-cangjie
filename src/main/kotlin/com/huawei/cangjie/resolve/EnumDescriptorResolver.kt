@@ -19,10 +19,10 @@ class EnumDescriptorResolver (
         c: LazyClassContext,
         thisDescriptor: DeclarationDescriptor,
         name: Name,
-        it: CjEnmuEntryInfo,
+        list: List<CjEnmuEntryInfo>,
         external: Boolean
     ): LazyEnumEntryDescriptor {
 //        TODO 在这里校验还是在 LazyEnumEntryDescriptor的构造函数中校验？
-        return LazyEnumEntryDescriptor(c, thisDescriptor, name, it, external)
+        return LazyEnumEntryDescriptor(c, thisDescriptor, name, list, external)
     }
 }

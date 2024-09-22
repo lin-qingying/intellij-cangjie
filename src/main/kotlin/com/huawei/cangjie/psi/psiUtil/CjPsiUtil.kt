@@ -31,6 +31,7 @@ fun CjExpression.getAnnotationEntries(): List<CjAnnotationEntry> {
     }
 }
 
+
 fun CjSimpleNameExpression.isImportDirectiveExpression(): Boolean {
     val parent = parent
     return parent is CjImportDirective || parent!!.parent is CjImportDirective
