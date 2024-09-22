@@ -1,55 +1,29 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.psi.stubs.CangJieStubWithFqName;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.stubs.IStubElementType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.psi.stubs.CangJieStubWithFqName
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.psi.stubs.IStubElementType
 
-import java.util.Collections;
-import java.util.List;
+abstract class CjTypeParameterListOwnerStub<T : CangJieStubWithFqName<*>>
+    : CjNamedDeclarationStub<T>, CjTypeParameterListOwner {
+    constructor(stub: T, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
+
+    constructor(node: ASTNode) : super(node)
 
 
-
-public abstract class CjTypeParameterListOwnerStub<T extends CangJieStubWithFqName<?>>
-        extends CjNamedDeclarationStub<T> implements CjTypeParameterListOwner {
-    public CjTypeParameterListOwnerStub(@NotNull T stub, @NotNull IStubElementType nodeType) {
-        super(stub, nodeType);
-    }
-
-    public CjTypeParameterListOwnerStub(@NotNull ASTNode node) {
-        super(node);
-    }
-
-    @Override
-    @Nullable
-    public CjTypeParameterList getTypeParameterList() {
-        return getStubOrPsiChild(CjStubElementTypes.TYPE_PARAMETER_LIST);
-    }
-
-    @Override
-    @Nullable
-    public CjTypeConstraintList getTypeConstraintList() {
-        return getStubOrPsiChild(CjStubElementTypes.TYPE_CONSTRAINT_LIST);
-    }
-
-    @Override
-    @NotNull
-    public List<CjTypeConstraint> getTypeConstraints() {
-        CjTypeConstraintList typeConstraintList = getTypeConstraintList();
-        if (typeConstraintList == null) {
-            return Collections.emptyList();
+    override val typeParameterList: CjTypeParameterList? get() = getStubOrPsiChild(CjStubElementTypes.TYPE_PARAMETER_LIST)
+    override val typeConstraintList: CjTypeConstraintList? get() = getStubOrPsiChild(CjStubElementTypes.TYPE_CONSTRAINT_LIST)
+    override val typeConstraints: List<CjTypeConstraint>
+        get() {
+            val typeConstraintList = typeConstraintList ?: return emptyList()
+            return typeConstraintList.constraints
         }
-        return typeConstraintList.getConstraints();
-    }
+    override val typeParameters: List<CjTypeParameter>
+        get() {
+            val list = typeParameterList ?: return emptyList()
 
-    @Override
-    @NotNull
-    public List<CjTypeParameter> getTypeParameters() {
-        CjTypeParameterList list = getTypeParameterList();
-        if (list == null) return Collections.emptyList();
+            return list.parameters
+        }
 
-        return list.getParameters();
-    }
 }

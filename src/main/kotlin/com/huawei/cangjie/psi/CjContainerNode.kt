@@ -1,23 +1,15 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.tree.IElementType;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.tree.IElementType
 
-
-public class CjContainerNode extends CjElementImpl {
-    public CjContainerNode(@NotNull ASTNode node) {
-        super(node);
+open class CjContainerNode(node: ASTNode) : CjElementImpl(node) {
+    public override fun <T> findChildByClass(aClass: Class<T>): T? {
+        return super.findChildByClass(aClass)
     }
 
-    @Override
-    protected <T> T findChildByClass(Class<T> aClass) {
-        return super.findChildByClass(aClass);
-    }
-
-    @Override
-    protected <T extends PsiElement> T findChildByType(IElementType type) {
-        return super.findChildByType(type);
+    public override fun <T : PsiElement > findChildByType(type: IElementType): T? {
+        return super.findChildByType(type)
     }
 }

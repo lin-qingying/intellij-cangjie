@@ -58,7 +58,7 @@ private fun CangJieCodeStyleSettings.addTrailingCommaIsAllowedFor(type: IElement
 }
 
 fun PsiElement.canAddTrailingComma(): Boolean = when {
-    this is CjMatchEntry && (is_ || parent.cast<CjMatchExpression>().leftParenthesis == null) -> false
+    this is CjMatchEntry && (is_() || parent.cast<CjMatchExpression>().leftParenthesis == null) -> false
     this is CjFunctionLiteral && arrow == null -> false
     else -> PsiUtilCore.getElementType(this) in TYPES_WITH_TRAILING_COMMA
 }

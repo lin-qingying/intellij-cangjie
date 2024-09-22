@@ -1,18 +1,15 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.intellij.util.ArrayFactory;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.util.ArrayFactory
 
-import java.util.List;
+interface CjTypeElement : CjElement {
+    val typeArgumentsAsTypes: List<CjTypeReference > get() = emptyList()
 
-public interface CjTypeElement extends CjElement {
+    companion object {
+        @JvmStatic
+        val EMPTY_ARRAY: Array<CjTypeElement?> = arrayOfNulls(0)
 
-
-    CjTypeElement[] EMPTY_ARRAY = new CjTypeElement[0];
-
-    ArrayFactory<CjTypeElement> ARRAY_FACTORY = count -> count == 0 ? EMPTY_ARRAY : new CjTypeElement[count];
-
-
-    @NotNull
-    List<CjTypeReference> getTypeArgumentsAsTypes();
+        val ARRAY_FACTORY: ArrayFactory<CjTypeElement ?> =
+            ArrayFactory { count: Int -> if (count == 0) EMPTY_ARRAY else arrayOfNulls(count) }
+    }
 }

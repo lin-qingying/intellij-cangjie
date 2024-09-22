@@ -177,7 +177,7 @@ class ControlFlowAnalyzer(
         dataFlowInfo: DataFlowInfo = DataFlowInfo.EMPTY
     ) {
 
-        if (function is CjFunction && function.hasBody() && function.getTypeReference() == null && functionDescriptor is FunctionDescriptorImpl) {
+        if (function is CjFunction && function.hasBody() && function.typeReference == null && functionDescriptor is FunctionDescriptorImpl) {
 
             val context = expressionTypingServices.createContext(
                 scope,

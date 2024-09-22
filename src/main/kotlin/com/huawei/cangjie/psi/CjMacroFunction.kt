@@ -1,18 +1,13 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.psi.stubs.CangJieFunctionStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
+import com.huawei.cangjie.psi.stubs.CangJieFunctionStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
-public class CjMacroFunction extends CjFunctionImpl{
+class CjMacroFunction : CjFunctionImpl {
+    constructor(node: ASTNode) : super(node)
 
-    public CjMacroFunction(@NotNull ASTNode node) {
-        super(node);
-    }
+    constructor(stub: CangJieFunctionStub) : super(stub, CjStubElementTypes.MACRO)
 
-    public CjMacroFunction(@NotNull CangJieFunctionStub stub) {
-        super(stub, CjStubElementTypes.MACRO);
-    }
 
 }

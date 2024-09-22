@@ -6,6 +6,7 @@ import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.impl.AbstractLazyTypeParameterDescriptor
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.psiUtil.CjStubbedPsiUtil
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.lazy.ForceResolveUtil
 import com.huawei.cangjie.resolve.lazy.LazyClassContext
@@ -50,7 +51,7 @@ class LazyTypeParameterDescriptor(
                 CjTypeStatement::class.java, true
             )
         if (typeStatement is CjClass || typeStatement is CjInterface || typeStatement is CjEnum || typeStatement is CjStruct || typeStatement is CjExtend) {
-            for (typeConstraint in typeStatement.getTypeConstraints()) {
+            for (typeConstraint in typeStatement.typeConstraints) {
                 val constrainedParameterName = typeConstraint.subjectTypeParameterName
                 if (constrainedParameterName != null) {
                     if (name == constrainedParameterName.getReferencedNameAsName()) {

@@ -1,405 +1,299 @@
-package com.huawei.cangjie.resolve.calls.util;
+package com.huawei.cangjie.resolve.calls.util
 
-import com.google.common.collect.Lists;
-import com.huawei.cangjie.psi.*;
-import com.huawei.cangjie.psi.debugtext.DebugTextUtilKt;
-import com.huawei.cangjie.resolve.scopes.receivers.Receiver;
-import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue;
+import com.google.common.collect.Lists
+import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.debugtext.getDebugText
+import com.huawei.cangjie.resolve.scopes.receivers.Receiver
+import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
+import com.intellij.lang.ASTNode
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 
-
-import com.huawei.cangjie.utils.slicedMap.BasicWritableSlice;
-import com.huawei.cangjie.utils.slicedMap.WritableSlice;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.impl.source.tree.LeafPsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-
-public class CallMaker {
-    @NotNull
-    public static ValueArgument makeExternalValueArgument(@NotNull CjExpression expression) {
-        return new ExpressionValueArgument(expression, expression, true);
+object CallMaker {
+    fun makeExternalValueArgument(expression: CjExpression): ValueArgument {
+        return ExpressionValueArgument(expression, expression, true)
     }
 
-    public static Call makeCallForRangeLiteral(@NotNull CjRangeExpression rangeExpression) {
+    fun makeCallForRangeLiteral(rangeExpression: CjRangeExpression): Call {
         return makeCallWithExpressions(
-                rangeExpression,
-                null,
-                null,
-                rangeExpression,
-                rangeExpression.getInnerExpressions(),
-                Call.CallType.DEFAULT);
-    }
-    public static Call makeCallForBlock(@NotNull CjBlockExpression blockExpression) {
-        return makeCallWithExpressions(
-                blockExpression,
-                null,
-                null,
-                blockExpression,
-                blockExpression.getStatementsWithoutReturnKeyword().stream().toList(),
-                Call.CallType.DEFAULT);
-    }
-    public static Call makeCallForCollectionLiteral(@NotNull CjCollectionLiteralExpression collectionLiteralExpression) {
-        return makeCallWithExpressions(
-                collectionLiteralExpression,
-                null,
-                null,
-                collectionLiteralExpression,
-                collectionLiteralExpression.getInnerExpressions(),
-                Call.CallType.DEFAULT);
-    }
-    @NotNull
-    public static Call makeArrayGetCall(@NotNull ReceiverValue arrayAsReceiver, @NotNull CjArrayAccessExpression arrayAccessExpression,
-                                        @NotNull Call.CallType callType) {
-        return makeCallWithExpressions(arrayAccessExpression, arrayAsReceiver, null, arrayAccessExpression, arrayAccessExpression.getIndexExpressions(), callType);
+            rangeExpression,
+            null,
+            null,
+            rangeExpression,
+            rangeExpression.getInnerExpressions(),
+            Call.CallType.DEFAULT
+        )
     }
 
-    @NotNull
-    public static Call makeArraySetCall(@NotNull ReceiverValue arrayAsReceiver, @NotNull CjArrayAccessExpression arrayAccessExpression,
-                                        @NotNull CjExpression rightHandSide, @NotNull Call.CallType callType) {
-        List<CjExpression> arguments = Lists.newArrayList(arrayAccessExpression.getIndexExpressions());
-        arguments.add(rightHandSide);
-        return makeCallWithExpressions(arrayAccessExpression, arrayAsReceiver, null, arrayAccessExpression, arguments, callType);
+    fun makeCallForBlock(blockExpression: CjBlockExpression): Call {
+        return makeCallWithExpressions(
+            blockExpression,
+            null,
+            null,
+            blockExpression,
+            blockExpression.statementsWithoutReturnKeyword.stream().toList(),
+            Call.CallType.DEFAULT
+        )
     }
-    @NotNull
-    public static Call makeCallWithExpressions(
-            @NotNull CjElement callElement, @Nullable Receiver explicitReceiver,
-            @Nullable ASTNode callOperationNode, @NotNull CjExpression calleeExpression,
-            @NotNull List<CjExpression> argumentExpressions, @NotNull Call.CallType callType,
-            boolean isSemanticallyEquivalentToSafeCall
-    ) {
-        List<ValueArgument> arguments;
+
+    fun makeCallForCollectionLiteral(collectionLiteralExpression: CjCollectionLiteralExpression): Call {
+        return makeCallWithExpressions(
+            collectionLiteralExpression,
+            null,
+            null,
+            collectionLiteralExpression,
+            collectionLiteralExpression.innerExpressions,
+            Call.CallType.DEFAULT
+        )
+    }
+
+    fun makeArrayGetCall(
+        arrayAsReceiver: ReceiverValue, arrayAccessExpression: CjArrayAccessExpression,
+        callType: Call.CallType
+    ): Call {
+        return makeCallWithExpressions(
+            arrayAccessExpression,
+            arrayAsReceiver,
+            null,
+            arrayAccessExpression,
+            arrayAccessExpression.indexExpressions,
+            callType
+        )
+    }
+
+    fun makeArraySetCall(
+        arrayAsReceiver: ReceiverValue, arrayAccessExpression: CjArrayAccessExpression,
+        rightHandSide: CjExpression, callType: Call.CallType
+    ): Call {
+        val arguments: MutableList<CjExpression?> = Lists.newArrayList(arrayAccessExpression.indexExpressions)
+        arguments.add(rightHandSide)
+        return makeCallWithExpressions(
+            arrayAccessExpression,
+            arrayAsReceiver,
+            null,
+            arrayAccessExpression,
+            arguments,
+            callType
+        )
+    }
+
+    @JvmOverloads
+    fun makeCallWithExpressions(
+        callElement: CjElement, explicitReceiver: Receiver?,
+        callOperationNode: ASTNode?, calleeExpression: CjExpression,
+        argumentExpressions: List<CjExpression?>, callType: Call.CallType = Call.CallType.DEFAULT,
+        isSemanticallyEquivalentToSafeCall: Boolean = false
+    ): Call {
+        val arguments: List<ValueArgument>
         if (argumentExpressions.isEmpty()) {
-            arguments = Collections.emptyList();
+            arguments = emptyList()
         } else {
-            arguments = new ArrayList<>(argumentExpressions.size());
-            for (CjExpression argumentExpression : argumentExpressions) {
-                arguments.add(makeValueArgument(argumentExpression, calleeExpression));
+            arguments = ArrayList(argumentExpressions.size)
+            for (argumentExpression in argumentExpressions) {
+                arguments.add(makeValueArgument(argumentExpression, calleeExpression))
             }
         }
         return makeCall(
-                callElement, explicitReceiver, callOperationNode, calleeExpression, arguments, callType, isSemanticallyEquivalentToSafeCall
-        );
+            callElement,
+            explicitReceiver,
+            callOperationNode,
+            calleeExpression,
+            arguments,
+            callType,
+            isSemanticallyEquivalentToSafeCall
+        )
     }
 
-    @NotNull
-    public static ValueArgument makeValueArgument(@NotNull CjExpression expression) {
-        return makeValueArgument(expression, expression);
+    @JvmOverloads
+    fun makeValueArgument(expression: CjExpression?, reportErrorsOn: CjElement = expression!!): ValueArgument {
+        return ExpressionValueArgument(expression, reportErrorsOn, false)
     }
 
-    @NotNull
-    public static ValueArgument makeValueArgument(@Nullable CjExpression expression, @NotNull CjElement reportErrorsOn) {
-        return new ExpressionValueArgument(expression, reportErrorsOn, false);
-    }
-    @NotNull
-    public static Call makeCall(@NotNull ReceiverValue leftAsReceiver, CjBinaryExpression expression) {
-        return makeCallWithExpressions(expression, leftAsReceiver, null, expression.getOperationReference(), Collections.singletonList(expression.getRight()));
-    }
-    @NotNull
-    public static Call makeCall(@NotNull ReceiverValue baseAsReceiver, CjUnaryExpression expression) {
-        return makeCall(expression, baseAsReceiver, null, expression.getOperationReference(), Collections.emptyList());
+    @JvmStatic
+    fun makeCall(leftAsReceiver: ReceiverValue, expression: CjBinaryExpression): Call {
+        return makeCallWithExpressions(
+            expression,
+            leftAsReceiver,
+            null,
+            expression.operationReference,
+            listOf(expression.right)
+        )
     }
 
-    @NotNull
-    public static Call makeCall(CjElement callElement, @Nullable Receiver explicitReceiver, @Nullable ASTNode callOperationNode, CjExpression calleeExpression, List<? extends ValueArgument> arguments) {
-        return makeCall(callElement, explicitReceiver, callOperationNode, calleeExpression, arguments, Call.CallType.DEFAULT);
+    @JvmStatic
+    fun makeCall(baseAsReceiver: ReceiverValue, expression: CjUnaryExpression): Call {
+        return makeCall(expression, baseAsReceiver, null, expression.operationReference, emptyList())
     }
-    @NotNull
-    public static Call makeCall(@Nullable Receiver explicitReceiver, @Nullable ASTNode callOperationNode, @NotNull CjCallElement callElement) {
-        return new Call() {
-            @Override
-            public ASTNode getCallOperationNode() {
-                return callOperationNode;
+
+    @JvmStatic
+    fun makeCall(explicitReceiver: Receiver?, callOperationNode: ASTNode?, callElement: CjCallElement): Call {
+        return object : Call {
+            override val callOperationNode: ASTNode?
+                get() = callOperationNode
+
+            override val explicitReceiver: Receiver?
+                get() = explicitReceiver
+
+            override val dispatchReceiver: ReceiverValue?
+                get() = null
+
+            override val calleeExpression: CjExpression?
+                get() = callElement.calleeExpression
+
+            override val valueArgumentList: CjValueArgumentList?
+                get() = callElement.valueArgumentList
+
+            override val valueArguments: List<ValueArgument>
+                get() = callElement.valueArguments
+
+            override val functionLiteralArguments: List<LambdaArgument>
+                get() = callElement.lambdaArguments
+
+            override val typeArguments: List<CjTypeProjection>
+                get() = callElement.typeArguments
+
+            override val typeArgumentList: CjTypeArgumentList?
+                get() = callElement.typeArgumentList
+
+            override val callElement: CjElement
+                get() = callElement
+
+            override fun toString(): String {
+                return callElement.getDebugText()
             }
 
-            @Nullable
-            @Override
-            public Receiver getExplicitReceiver() {
-                return explicitReceiver;
-            }
-
-            @Nullable
-            @Override
-            public ReceiverValue getDispatchReceiver() {
-                return null;
-            }
-
-            @Override
-            @Nullable
-            public CjExpression getCalleeExpression() {
-                return callElement.getCalleeExpression();
-            }
-
-            @Override
-            @Nullable
-            public CjValueArgumentList getValueArgumentList() {
-                return callElement.getValueArgumentList();
-            }
-
-            @Override
-            @NotNull
-            public List<? extends ValueArgument> getValueArguments() {
-                return callElement.getValueArguments();
-            }
-
-            @Override
-            @NotNull
-            public List<? extends LambdaArgument> getFunctionLiteralArguments() {
-                return callElement.getLambdaArguments();
-            }
-
-            @Override
-            @NotNull
-            public List<CjTypeProjection> getTypeArguments() {
-                return callElement.getTypeArguments();
-            }
-
-            @Override
-            @Nullable
-            public CjTypeArgumentList getTypeArgumentList() {
-                return callElement.getTypeArgumentList();
-            }
-
-            @NotNull
-            @Override
-            public CjElement getCallElement() {
-                return callElement;
-            }
-
-            @Override
-            public String toString() {
-                return DebugTextUtilKt.getDebugText(callElement);
-            }
-
-            @NotNull
-            @Override
-            public CallType getCallType() {
-                return CallType.DEFAULT;
-            }
-        };
-    }
-
-    @NotNull
-    public static Call makeCall(
-            CjElement callElement, @Nullable Receiver explicitReceiver, @Nullable ASTNode callOperationNode,
-            CjExpression calleeExpression, List<? extends ValueArgument> arguments, Call.CallType callType
-    ) {
-        return makeCall(callElement, explicitReceiver, callOperationNode, calleeExpression, arguments, callType, false);
-    }
-
-    @NotNull
-    public static Call makeCall(
-            CjElement callElement,
-            @Nullable Receiver explicitReceiver,
-            @Nullable ASTNode callOperationNode,
-            CjExpression calleeExpression,
-            List<? extends ValueArgument> arguments,
-            Call.CallType callType,
-            boolean isSemanticallyEquivalentToSafeCall
-    ) {
-        return new CallImpl(callElement, explicitReceiver, callOperationNode, calleeExpression, arguments, callType, isSemanticallyEquivalentToSafeCall);
-    }
-    @NotNull
-    public static Call makeCallWithExpressions(@NotNull CjElement callElement, @Nullable Receiver explicitReceiver,
-                                               @Nullable ASTNode callOperationNode, @NotNull CjExpression calleeExpression,
-                                               @NotNull List<CjExpression> argumentExpressions, @NotNull Call.CallType callType) {
-        return makeCallWithExpressions(callElement, explicitReceiver, callOperationNode, calleeExpression, argumentExpressions, callType,
-                false);
-    }
-    @NotNull
-    public static Call makeCallWithExpressions(@NotNull CjElement callElement, @Nullable Receiver explicitReceiver,
-                                               @Nullable ASTNode callOperationNode, @NotNull CjExpression calleeExpression,
-                                               @NotNull List<CjExpression> argumentExpressions) {
-        return makeCallWithExpressions(callElement, explicitReceiver, callOperationNode, calleeExpression, argumentExpressions, Call.CallType.DEFAULT,
-                false);
-    }
-
-    @NotNull
-    public static Call makePropertyCall(@Nullable Receiver explicitReceiver, @Nullable ASTNode callOperationNode, @NotNull CjSimpleNameExpression nameExpression) {
-        return makeCallWithExpressions(nameExpression, explicitReceiver, callOperationNode, nameExpression, Collections.emptyList());
-    }
-
-    private static class ExpressionValueArgument implements ValueArgument {
-
-        private final CjExpression expression;
-
-        private final CjElement reportErrorsOn;
-
-        private final boolean isExternal;
-
-        private ExpressionValueArgument(
-                @Nullable CjExpression expression,
-                @NotNull CjElement reportErrorsOn,
-                boolean isExternal
-        ) {
-            this.expression = expression;
-            this.reportErrorsOn = expression == null ? reportErrorsOn : expression;
-            this.isExternal = isExternal;
-        }
-
-        @Override
-        public boolean isExternal() {
-            return isExternal;
-        }
-
-        @Override
-        public CjExpression getArgumentExpression() {
-            return expression;
-        }
-
-        @Override
-        public ValueArgumentName getArgumentName() {
-            return null;
-        }
-
-        @Override
-        public boolean isNamed() {
-            return false;
-        }
-
-        @NotNull
-        @Override
-        public CjElement asElement() {
-            return reportErrorsOn;
-        }
-
-        @Override
-        public LeafPsiElement getSpreadElement() {
-            return null;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            ExpressionValueArgument argument = (ExpressionValueArgument) o;
-
-            return Objects.equals(expression, argument.expression);
-        }
-
-        @Override
-        public int hashCode() {
-            return expression != null ? expression.hashCode() : 0;
+            override val callType: Call.CallType
+                get() = Call.CallType.DEFAULT
         }
     }
 
-    private  static class CallImpl implements Call {
+    @JvmOverloads
+    fun makeCall(
+        callElement: CjElement,
+        explicitReceiver: Receiver?,
+        callOperationNode: ASTNode?,
+        calleeExpression: CjExpression?,
+        arguments: List<ValueArgument>,
+        callType: Call.CallType = Call.CallType.DEFAULT,
+        isSemanticallyEquivalentToSafeCall: Boolean = false
+    ): Call {
+        return CallImpl(
+            callElement,
+            explicitReceiver,
+            callOperationNode,
+            calleeExpression,
+            arguments,
+            callType,
+            isSemanticallyEquivalentToSafeCall
+        )
+    }
 
-        private final CjElement callElement;
-        private final Receiver explicitReceiver;
-        private final ASTNode callOperationNode;
-        private final CjExpression calleeExpression;
-        private final List<? extends ValueArgument> valueArguments;
-        private final Call.CallType callType;
-        private final boolean isSemanticallyEquivalentToSafeCall;
+    fun makePropertyCall(
+        explicitReceiver: Receiver?,
+        callOperationNode: ASTNode?,
+        nameExpression: CjSimpleNameExpression
+    ): Call {
+        return makeCallWithExpressions(
+            nameExpression,
+            explicitReceiver,
+            callOperationNode,
+            nameExpression,
+            emptyList<CjExpression>()
+        )
+    }
 
-        protected CallImpl(
-                @NotNull CjElement callElement,
-                @NotNull Receiver explicitReceiver,
-                @Nullable ASTNode callOperationNode,
-                @Nullable CjExpression calleeExpression,
-                @NotNull List<? extends ValueArgument> valueArguments
-        ) {
-            this(callElement, explicitReceiver, callOperationNode, calleeExpression, valueArguments, CallType.DEFAULT, false);
+    private class ExpressionValueArgument(
+        private val expression: CjExpression?,
+        reportErrorsOn: CjElement,
+        private val isExternal: Boolean
+    ) : ValueArgument {
+        private val reportErrorsOn = expression ?: reportErrorsOn
+
+        override fun isExternal(): Boolean {
+            return isExternal
         }
 
-        protected CallImpl(
-                @NotNull CjElement callElement,
-                @Nullable Receiver explicitReceiver,
-                @Nullable ASTNode callOperationNode,
-                @Nullable CjExpression calleeExpression,
-                @NotNull List<? extends ValueArgument> valueArguments,
-                @NotNull CallType callType,
-                boolean isSemanticallyEquivalentToSafeCall
-        ) {
-            this.callElement = callElement;
-            this.explicitReceiver = explicitReceiver;
-            this.callOperationNode = callOperationNode;
-            this.calleeExpression = calleeExpression;
-            this.valueArguments = valueArguments;
-            this.callType = callType;
-            this.isSemanticallyEquivalentToSafeCall = isSemanticallyEquivalentToSafeCall;
+        override fun getArgumentExpression(): CjExpression? {
+            return expression
         }
 
-        @Override
-        public ASTNode getCallOperationNode() {
-            return callOperationNode;
+        override fun getArgumentName(): ValueArgumentName? {
+            return null
         }
 
-        @Override
-        public boolean isSemanticallyEquivalentToSafeCall() {
-            return isSemanticallyEquivalentToSafeCall || Call.super.isSemanticallyEquivalentToSafeCall();
+        override fun isNamed(): Boolean {
+            return false
         }
 
-
-                @Nullable
-        @Override
-        public Receiver getExplicitReceiver() {
-            return explicitReceiver;
-        }
-//
-        @Nullable
-        @Override
-        public ReceiverValue getDispatchReceiver() {
-            return null;
+        override fun asElement(): CjElement {
+            return reportErrorsOn
         }
 
-        @Override
-        public CjExpression getCalleeExpression() {
-            return calleeExpression;
+        override fun getSpreadElement(): LeafPsiElement? {
+            return null
         }
 
+        override fun equals(o: Any?): Boolean {
+            if (this === o) return true
+            if (o == null || javaClass != o.javaClass) return false
 
-        @NotNull
-        @Override
-        public List<? extends ValueArgument> getValueArguments() {
-            return valueArguments;
+            val argument = o as ExpressionValueArgument
+
+            return expression == argument.expression
         }
 
-        @NotNull
-        @Override
-        public CjElement getCallElement() {
-            return callElement;
+        override fun hashCode(): Int {
+            return expression?.hashCode() ?: 0
         }
+    }
+
+    private class CallImpl(
+        override val callElement: CjElement,
+        override val explicitReceiver: Receiver?,
+        override val callOperationNode: ASTNode?,
+        override val calleeExpression: CjExpression?,
+        override val valueArguments: List<ValueArgument>,
+        override val callType: Call.CallType,
+        val _isSemanticallyEquivalentToSafeCall: Boolean
+    ) : Call {
+          constructor(
+            callElement: CjElement,
+            explicitReceiver: Receiver,
+            callOperationNode: ASTNode?,
+            calleeExpression: CjExpression?,
+            valueArguments: List<ValueArgument>
+        ) : this(
+            callElement,
+            explicitReceiver,
+            callOperationNode,
+            calleeExpression,
+            valueArguments,
+            Call.CallType.DEFAULT,
+            false
+        )
+
+        override val isSemanticallyEquivalentToSafeCall: Boolean
+            get() = _isSemanticallyEquivalentToSafeCall || super.isSemanticallyEquivalentToSafeCall
 
 
+        override val dispatchReceiver: ReceiverValue?
+            //
+            get() = null
 
-        @NotNull
-        @Override
-        public List<LambdaArgument> getFunctionLiteralArguments() {
-            return Collections.emptyList();
-        }
 
-        @Override
-        public @Nullable CjValueArgumentList getValueArgumentList() {
-            return null;
-        }
+        override val functionLiteralArguments: List<LambdaArgument>
+            get() = emptyList()
 
-        @NotNull
-        @Override
-        public List<CjTypeProjection> getTypeArguments() {
-            return Collections.emptyList();
-        }
+        override val valueArgumentList: CjValueArgumentList?
+            get() = null
 
-        @Override
-        public CjTypeArgumentList getTypeArgumentList() {
-            return null;
-        }
+        override val typeArguments: List<CjTypeProjection>
+            get() = emptyList()
 
-        @Override
-        public String toString() {
-            return getCallElement().getText();
-        }
+        override val typeArgumentList: CjTypeArgumentList?
+            get() = null
 
-        @NotNull
-        @Override
-        public CallType getCallType() {
-            return callType;
+        override fun toString(): String {
+            return callElement.text
         }
     }
 }

@@ -1,71 +1,49 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.google.common.collect.Lists;
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.psi.stubs.CangJieUserTypeStub;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.google.common.collect.Lists
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.stubs.CangJieUserTypeStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
-import java.util.Collections;
-import java.util.List;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
+class CjUserType : CjElementImplStub<CangJieUserTypeStub >, CjTypeElement {
+    constructor(node: ASTNode) : super(node)
 
+    constructor(stub: CangJieUserTypeStub) : super(stub, CjStubElementTypes.USER_TYPE)
 
-
-public class CjUserType extends  CjElementImplStub<CangJieUserTypeStub> implements CjTypeElement{
-
-
-    public CjUserType(@NotNull ASTNode node) {
-        super(node);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitUserType(this, data)
     }
 
-    public CjUserType(@NotNull CangJieUserTypeStub stub) {
-        super(stub, CjStubElementTypes.USER_TYPE);
-    }
+    val typeArgumentList: CjTypeArgumentList?
+        get() = getStubOrPsiChild(CjStubElementTypes.TYPE_ARGUMENT_LIST)
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitUserType(this, data);
-    }
-
-    @Nullable
-    public CjTypeArgumentList getTypeArgumentList() {
-        return getStubOrPsiChild(CjStubElementTypes.TYPE_ARGUMENT_LIST);
-    }
-
-    @NotNull
-    public List<CjTypeProjection> getTypeArguments() {
-
-        CjTypeArgumentList typeArgumentList = getTypeArgumentList();
-        return typeArgumentList == null ? Collections.emptyList() : typeArgumentList.getArguments();
-    }
-
-    @Override
-    public String toString() {
-        return getNode().getElementType().toString();
-    }
-
-    @NotNull
-    @Override
-    public List<CjTypeReference> getTypeArgumentsAsTypes() {
-        List<CjTypeReference> result = Lists.newArrayList();
-        for (CjTypeProjection projection : getTypeArguments()) {
-            result.add(projection.getTypeReference());
+    val typeArguments: List<CjTypeProjection>
+        get() {
+            val typeArgumentList = typeArgumentList
+            return typeArgumentList?.arguments ?: emptyList()
         }
-        return result;
+
+    override fun toString(): String {
+        return node.elementType.toString()
     }
 
-    @Nullable @IfNotParsed
-    public CjSimpleNameExpression getReferenceExpression() {
-        return getStubOrPsiChild(CjStubElementTypes.REFERENCE_EXPRESSION);
-    }
+    override val typeArgumentsAsTypes: List<CjTypeReference>
+        get() {
+            val result: MutableList<CjTypeReference > =
+                Lists.newArrayList()
+            for (projection in typeArguments) {
+                projection.typeReference?.let { result.add(it) }
+            }
+            return result
+        }
 
-    @Nullable
-    public CjUserType getQualifier() {
-        return getStubOrPsiChild(CjStubElementTypes.USER_TYPE);
-    }
+    @get:IfNotParsed
+    val referenceExpression: CjSimpleNameExpression?
+        get() = getStubOrPsiChild(CjStubElementTypes.REFERENCE_EXPRESSION)
+
+    val qualifier: CjUserType?
+        get() = getStubOrPsiChild(CjStubElementTypes.USER_TYPE)
 
     /**
      * 保留除该USER_TYPE以外指定数量的psi元素
@@ -74,30 +52,25 @@ public class CjUserType extends  CjElementImplStub<CangJieUserTypeStub> implemen
      *
      * @param size
      */
-    public void deleteQualifier(int size){
+    fun deleteQualifier(size: Int) {
         if (size <= 0) {
-            deleteQualifier();
+            deleteQualifier()
         }
-        CjUserType qualifier = getQualifier();
+        val qualifier = qualifier
 
-        if (qualifier != null) {
-            qualifier.deleteQualifier(size -1);
+        qualifier?.deleteQualifier(size - 1)
+    }
+
+    fun deleteQualifier() {
+        val qualifier = checkNotNull(qualifier)
+        val dot = checkNotNull(findChildByType(CjTokens.DOT))
+        qualifier.delete()
+        dot.delete()
+    }
+
+    val referencedName: String?
+        get() {
+            val referenceExpression = referenceExpression
+            return referenceExpression?.getReferencedName()
         }
-
-    }
-
-    public void deleteQualifier() {
-        CjUserType qualifier = getQualifier();
-        assert qualifier != null;
-        PsiElement dot = findChildByType(CjTokens.DOT);
-        assert dot != null;
-        qualifier.delete();
-        dot.delete();
-    }
-
-    @Nullable
-    public String getReferencedName() {
-        CjSimpleNameExpression referenceExpression = getReferenceExpression();
-        return referenceExpression == null ? null : referenceExpression.getReferencedName();
-    }
 }

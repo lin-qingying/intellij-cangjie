@@ -2,6 +2,7 @@ package com.huawei.cangjie.psi
 
 import com.huawei.cangjie.CjNodeTypes
 import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.psiUtil.CjStubbedPsiUtil
 import com.huawei.cangjie.psi.psiUtil.elementType
 import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
@@ -25,10 +26,9 @@ class CjTypeReference : CjModifierListOwnerStub<CangJiePlaceHolderStub<CjTypeRef
         return visitor.visitTypeReference(this, data)
     }
 
-    override fun getAnnotationEntries(): List<CjAnnotationEntry> {
-        return modifierList?.annotationEntries.orEmpty()
-    }
 
+    override val annotationEntries: List<CjAnnotationEntry>
+        get() = modifierList?.annotationEntries.orEmpty()
     val isPlaceholder: Boolean
         get() = ((typeElement as? CjUserType)?.referenceExpression as? CjNameReferenceExpression)?.isPlaceholder == true
 
@@ -41,7 +41,6 @@ class CjTypeReference : CjModifierListOwnerStub<CangJiePlaceHolderStub<CjTypeRef
                     null
                 }
         }
-
 
 
     fun hasParentheses(): Boolean {

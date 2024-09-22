@@ -324,7 +324,7 @@ class FunctionDescriptorResolver(
             typeResolver.resolveType(context.scope, function.typeReference!!, context.trace, true)
 
         } else if (function.hasBody()) {
-            val block = function.getBodyBlockExpression()
+            val block = function.bodyBlockExpression
             if (block!!.isEmptyBody()) {
                 return builtIns.unitType
             }

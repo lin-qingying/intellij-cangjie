@@ -1,38 +1,21 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.CjNodeTypes;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.CjNodeTypes
+import com.intellij.lang.ASTNode
 
-public class CjIsExpression extends CjExpressionImpl implements CjOperationExpression {
-
-    public CjIsExpression(@NotNull ASTNode node) {
-        super(node);
+class CjIsExpression(node: ASTNode) : CjExpressionImpl(node), CjOperationExpression {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitIsExpression(this, data)
     }
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitIsExpression(this, data);
+    val leftHandSide: CjExpression
+        get() = findChildByClass(CjExpression::class.java)!!
+
+    @get:IfNotParsed
+    val typeReference: CjTypeReference?
+        get() = findChildByType(CjNodeTypes.TYPE_REFERENCE)
+
+    override val operationReference : CjSimpleNameExpression get()   {
+        return findChildByType(CjNodeTypes.OPERATION_REFERENCE)!!
     }
-
-    @NotNull
-    public CjExpression getLeftHandSide() {
-        return findChildByClass(CjExpression.class);
-    }
-
-    @Nullable
-    @IfNotParsed
-    public CjTypeReference getTypeReference() {
-        return findChildByType(CjNodeTypes.TYPE_REFERENCE);
-    }
-
-    @Override
-    @NotNull
-    public CjSimpleNameExpression getOperationReference() {
-        return findChildByType(CjNodeTypes.OPERATION_REFERENCE);
-    }
-
-
-
 }

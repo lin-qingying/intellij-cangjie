@@ -1,58 +1,50 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi.psiUtil
 
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.stubs.StubElement;
-import com.intellij.psi.tree.TokenSet;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.ArrayFactory;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.psi.CjDeclaration
+import com.huawei.cangjie.psi.CjElement
+import com.huawei.cangjie.psi.CjElementImplStub
+import com.intellij.psi.PsiElement
+import com.intellij.psi.tree.TokenSet
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.ArrayFactory
 
-
-public final class CjStubbedPsiUtil {
-    @Nullable
-    public static CjDeclaration getContainingDeclaration(@NotNull PsiElement element) {
-        return getPsiOrStubParent(element, CjDeclaration.class, true);
+object CjStubbedPsiUtil {
+    @JvmStatic
+    fun getContainingDeclaration(element: PsiElement): CjDeclaration? {
+        return getPsiOrStubParent(element, CjDeclaration::class.java, true)
+    }
+    @JvmStatic
+    fun <T : CjDeclaration> getContainingDeclaration(element: PsiElement, declarationClass: Class<T>): T? {
+        return getPsiOrStubParent(element, declarationClass, true)
     }
 
-    @Nullable
-    public static <T extends CjDeclaration> T getContainingDeclaration(@NotNull PsiElement element, @NotNull Class<T> declarationClass) {
-        return getPsiOrStubParent(element, declarationClass, true);
-    }
-
-
-    @Nullable
-    @SuppressWarnings("unchecked")
-    public static <T extends CjElement> T getPsiOrStubParent(
-            @NotNull PsiElement element,
-            @NotNull Class<T> declarationClass,
-            boolean strict
-    ) {
+    @JvmStatic
+    fun <T : CjElement> getPsiOrStubParent(
+        element: PsiElement,
+        declarationClass: Class<T>,
+        strict: Boolean
+    ): T? {
         if (!strict && declarationClass.isInstance(element)) {
-            return (T) element;
+            return element as T
         }
-        if (element instanceof CjElementImplStub) {
-            StubElement<?> stub = ((CjElementImplStub) element).getStub();
+        if (element is CjElementImplStub<*>) {
+            val stub = element.stub
             if (stub != null) {
-                return stub.getParentStubOfType(declarationClass);
+                return stub.getParentStubOfType(declarationClass)
             }
         }
-        return PsiTreeUtil.getParentOfType(element, declarationClass, strict);
+        return PsiTreeUtil.getParentOfType(element, declarationClass, strict)
     }
-
-    @Nullable
-    public static <T extends CjElement> T getStubOrPsiChild(
-            @NotNull CjElementImplStub<?> element,
-            @NotNull TokenSet types,
-            @NotNull ArrayFactory<T> factory
-    ) {
-        T[] typeElements = element.getStubOrPsiChildren(types, factory);
-        if (typeElements.length == 0) {
-            return null;
+@JvmStatic
+    fun <T : CjElement> getStubOrPsiChild(
+    element: CjElementImplStub<*>,
+    types: TokenSet,
+    factory: ArrayFactory<T?>
+    ): T? {
+        val typeElements = element.getStubOrPsiChildren(types, factory)
+        if (typeElements.isEmpty()) {
+            return null
         }
-        return typeElements[0];
-    }
-
-    private CjStubbedPsiUtil() {
+        return typeElements[0]
     }
 }

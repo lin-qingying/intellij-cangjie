@@ -1,58 +1,53 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.resolve.scopes.receivers.Receiver;
-import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue;
-import com.huawei.cangjie.utils.ReadOnly;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.resolve.scopes.receivers.Receiver
+import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
+import com.huawei.cangjie.utils.ReadOnly
+import com.intellij.lang.ASTNode
 
-import java.util.List;
-public interface Call {
-
+interface Call {
     // SAFE_ACCESS or DOT or so
-    @Nullable
-    ASTNode getCallOperationNode();
 
-    default boolean isSemanticallyEquivalentToSafeCall() {
-        return getCallOperationNode() != null && getCallOperationNode().getElementType() == CjTokens.SAFE_ACCESS;
-    }
+    val callOperationNode: ASTNode?
 
-    @Nullable
-    Receiver getExplicitReceiver();
+    val isSemanticallyEquivalentToSafeCall: Boolean
+        get() = callOperationNode != null && callOperationNode!!.elementType === CjTokens.SAFE_ACCESS
 
-    @Nullable
-    ReceiverValue getDispatchReceiver();
 
-    @Nullable
-    CjExpression getCalleeExpression();
+    val explicitReceiver: Receiver?
 
-    @Nullable
-    CjValueArgumentList getValueArgumentList();
 
-    @ReadOnly
-    @NotNull
-    List<? extends ValueArgument> getValueArguments();
+    val dispatchReceiver: ReceiverValue?
 
-    @ReadOnly
-    @NotNull
-    List<? extends LambdaArgument> getFunctionLiteralArguments();
 
-    @ReadOnly
-    @NotNull
-    List<CjTypeProjection> getTypeArguments();
+    val calleeExpression: CjExpression?
 
-    @Nullable
-    CjTypeArgumentList getTypeArgumentList();
 
-    @NotNull
-    CjElement getCallElement();
+    val valueArgumentList: CjValueArgumentList?
 
-    enum CallType {
+
+    @get:ReadOnly
+    val valueArguments: List<ValueArgument>
+
+
+    @get:ReadOnly
+    val functionLiteralArguments: List<LambdaArgument>
+
+
+    @get:ReadOnly
+    val typeArguments: List<CjTypeProjection>
+
+
+    val typeArgumentList: CjTypeArgumentList?
+
+
+    val callElement: CjElement
+
+    enum class CallType {
         DEFAULT, ARRAY_GET_METHOD, ARRAY_SET_METHOD, INVOKE, CONTAINS
     }
 
-    @NotNull
-    Call.CallType getCallType();
+
+    val callType: CallType
 }

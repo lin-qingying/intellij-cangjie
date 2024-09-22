@@ -34,15 +34,6 @@ open class CjClass : CjTypeStatement {
 
 
 
-
-
-
-
-
-
-
-
-
     override fun getBody(): CjClassBody?  = getStubOrPsiChild(CjStubElementTypes.CLASS_BODY)
 
     override fun getClassId(): ClassId?  {

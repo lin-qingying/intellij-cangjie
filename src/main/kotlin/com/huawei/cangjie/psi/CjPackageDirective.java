@@ -10,6 +10,7 @@ import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.name.SpecialNames;
 import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
+import com.huawei.cangjie.psi.psiUtil.CjStubbedPsiUtil;
 import com.huawei.cangjie.psi.stubs.CangJiePackageDirectiveStub;
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
 import com.huawei.cangjie.psi.stubs.elements.CjTokenSets;

@@ -1,22 +1,18 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.descriptors.DescriptorVisibility;
-import com.huawei.cangjie.lexer.CjModifierKeywordToken;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.descriptors.DescriptorVisibility
+import com.huawei.cangjie.lexer.CjModifierKeywordToken
+import com.intellij.psi.PsiElement
 
+interface CjModifierListOwner : PsiElement, CjAnnotated {
 
-public interface CjModifierListOwner extends PsiElement, CjAnnotated {
-    @Nullable
-    CjModifierList getModifierList();
+    val modifierList: CjModifierList?
 
-    boolean hasModifier(@NotNull CjModifierKeywordToken modifier);
+    fun hasModifier(modifier: CjModifierKeywordToken): Boolean
 
-    void addModifier(@NotNull CjModifierKeywordToken modifier);
+    fun addModifier(modifier: CjModifierKeywordToken)
 
-    void removeModifier(@NotNull CjModifierKeywordToken modifier);
+    fun removeModifier(modifier: CjModifierKeywordToken)
 
-    DescriptorVisibility getModifierVisibility();
-
+    val modifierVisibility: DescriptorVisibility?
 }

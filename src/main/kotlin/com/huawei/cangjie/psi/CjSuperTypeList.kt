@@ -1,72 +1,74 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiComment;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiWhiteSpace;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.IncorrectOperationException;
-import org.jetbrains.annotations.NotNull;
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.EditCommaSeparatedListHelper.addItem
+import com.huawei.cangjie.psi.EditCommaSeparatedListHelper.removeItem
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.huawei.cangjie.psi.stubs.elements.CjTokenSets
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiComment
+import com.intellij.psi.PsiWhiteSpace
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.IncorrectOperationException
+import java.util.*
+import java.util.concurrent.atomic.AtomicLong
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.huawei.cangjie.psi.stubs.elements.CjTokenSets;
-import org.jetbrains.annotations.Nullable;
+class CjSuperTypeList : CjElementImplStub<CangJiePlaceHolderStub<CjSuperTypeList >  > {
+    private val _modificationStamp = AtomicLong()
 
-public class CjSuperTypeList extends CjElementImplStub<CangJiePlaceHolderStub<CjSuperTypeList>> {
-    private final AtomicLong modificationStamp = new AtomicLong();
+    constructor(node: ASTNode) : super(node)
 
-    public CjSuperTypeList(@NotNull ASTNode node) {
-        super(node);
+    constructor(stub: CangJiePlaceHolderStub<CjSuperTypeList >) : super(stub, CjStubElementTypes.SUPER_TYPE_LIST)
+
+    override fun toString(): String {
+        return node.elementType.toString()
     }
 
-    public CjSuperTypeList(@NotNull CangJiePlaceHolderStub<CjSuperTypeList> stub) {
-        super(stub, CjStubElementTypes.SUPER_TYPE_LIST);
-    }
-    @Override
-    public String toString() {
-        return   getNode().getElementType().toString();
-    }
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitSuperTypeList(this, data);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitSuperTypeList(this, data)
     }
 
-    @NotNull
-    public CjSuperTypeListEntry addEntry(@NotNull CjSuperTypeListEntry entry) {
-        return EditCommaSeparatedListHelper.INSTANCE.addItem(this, getEntries(), entry);
+    fun addEntry(entry: CjSuperTypeListEntry): CjSuperTypeListEntry {
+        return addItem(
+            this,
+            entries, entry
+        )
     }
 
-    public void removeEntry(@NotNull CjSuperTypeListEntry entry) {
-        EditCommaSeparatedListHelper.INSTANCE.removeItem(entry);
-        if (getEntries().isEmpty()) {
-            delete();
+    fun removeEntry(entry: CjSuperTypeListEntry) {
+        removeItem(entry)
+        if (entries.isEmpty()) {
+            delete()
         }
     }
 
-    @Override
-    public void delete() throws IncorrectOperationException {
-        PsiElement left = PsiTreeUtil.skipSiblingsBackward(this, PsiWhiteSpace.class, PsiComment.class);
-        if (left == null || left.getNode().getElementType() != CjTokens.COLON) left = this;
-        getParent().deleteChildRange(left, this);
+    @Throws(IncorrectOperationException::class)
+    override fun delete() {
+        var left = PsiTreeUtil.skipSiblingsBackward(
+            this,
+            PsiWhiteSpace::class.java,
+            PsiComment::class.java
+        )
+        if (left == null || left.node.elementType !== CjTokens.COLON) left = this
+        parent.deleteChildRange(left, this)
     }
 
-    public List<CjSuperTypeListEntry> getEntries() {
-        return Arrays.asList(getStubOrPsiChildren(CjTokenSets.SUPER_TYPE_LIST_ENTRIES, CjSuperTypeListEntry.ARRAY_FACTORY));
-    }
+    val entries: List<CjSuperTypeListEntry>
+        get() = listOf(
+            *getStubOrPsiChildren(
+                CjTokenSets.SUPER_TYPE_LIST_ENTRIES,
+                CjSuperTypeListEntry.ARRAY_FACTORY
+            )
+        )
 
 
-    @Override
-    public void subtreeChanged() {
-        super.subtreeChanged();
-        modificationStamp.getAndIncrement();
+    override fun subtreeChanged() {
+        super.subtreeChanged()
+        _modificationStamp.getAndIncrement()
     }
 
-    public long getModificationStamp() {
-        return modificationStamp.get();
-    }
+    val modificationStamp : Long get() =
+          _modificationStamp.get()
+
 }

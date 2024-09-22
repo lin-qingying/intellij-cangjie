@@ -10,7 +10,7 @@ class CjRangeExpression(node: ASTNode) : CjBinaryExpression(node), CjReferenceEx
         return visitor.visitRangeExpression(this, data)
     }
 
-    fun getInnerExpressions(): List<CjExpression?> {
+    fun getInnerExpressions(): List<CjExpression> {
 
         return listOfNotNull(left, right,step)
     }

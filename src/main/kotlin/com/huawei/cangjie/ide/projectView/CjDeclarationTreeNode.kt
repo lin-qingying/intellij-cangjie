@@ -15,7 +15,7 @@ class CjDeclarationTreeNode private constructor(
     project: Project?,
     val declaration: CjDeclaration?,
     viewSettings: ViewSettings?
-) : AbstractPsiBasedNode<CjDeclaration?>(project, declaration!!, viewSettings) {
+) : AbstractPsiBasedNode<CjDeclaration >(project, declaration!!, viewSettings) {
     companion object {
         private val CLASS_INITIALIZER = "<" + CangJieBundle.message("project.view.class.initializer") + ">"
         private val EXPRESSION = "<" + CangJieBundle.message("project.view.expression") + ">"

@@ -21,6 +21,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.calls.tasks.OldResolutionCandidate
 import com.huawei.cangjie.resolve.calls.tasks.TracingStrategy
 import com.huawei.cangjie.resolve.calls.util.CallMaker
+import com.huawei.cangjie.resolve.scopes.receivers.Receiver
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.huawei.cangjie.storage.StorageManager
 import com.huawei.cangjie.types.*
@@ -91,7 +92,7 @@ class ControlStructureTypingUtils(
         ): MutableDataFlowInfoForArguments {
             val dataFlowInfoForArgumentsMap: MutableMap<ValueArgument, DataFlowInfo> =
                 HashMap<ValueArgument, DataFlowInfo>()
-            val valueArguments: List<ValueArgument> = callForTry.getValueArguments()
+            val valueArguments: List<ValueArgument> = callForTry.valueArguments
             dataFlowInfoForArgumentsMap[valueArguments[0]] = dataFlowInfoBeforeTry
             for (i in 1 until valueArguments.size) {
                 dataFlowInfoForArgumentsMap[valueArguments[i]] = dataFlowInfoAfterTry
@@ -114,49 +115,30 @@ class ControlStructureTypingUtils(
                 valueArguments.add(CallMaker.makeValueArgument(argument))
             }
             return object : Call {
-                override fun getCallOperationNode(): ASTNode? {
-                    return expression.node
-                }
 
-                override fun getExplicitReceiver(): ReceiverValue? {
-                    return null
-                }
 
-                override fun getDispatchReceiver(): ReceiverValue? {
-                    return null
-                }
-
-                override fun getCalleeExpression(): CjExpression {
-                    return calleeExpression
-                }
-
-                override fun getValueArgumentList(): CjValueArgumentList? {
-                    return null
-                }
-
-                override fun getValueArguments(): List<ValueArgument> {
-                    return valueArguments
-                }
-
-                override fun getFunctionLiteralArguments(): List<LambdaArgument> {
-                    return emptyList()
-                }
-
-                override fun getTypeArguments(): List<CjTypeProjection> {
-                    return emptyList()
-                }
-
-                override fun getTypeArgumentList(): CjTypeArgumentList? {
-                    return null
-                }
-
-                override fun getCallElement(): CjElement {
-                    return expression
-                }
-
-                override fun getCallType(): Call.CallType {
-                    return Call.CallType.DEFAULT
-                }
+                override val callOperationNode: ASTNode?
+                    get() = expression.node
+                override val explicitReceiver: Receiver?
+                    get() = null
+                override val dispatchReceiver: ReceiverValue?
+                    get() = null
+                override val calleeExpression: CjExpression
+                    get() = calleeExpression
+                override val valueArgumentList: CjValueArgumentList?
+                    get() = null
+                override val valueArguments: List<ValueArgument>
+                    get() = valueArguments
+                override val functionLiteralArguments: List<LambdaArgument>
+                    get() = emptyList()
+                override val typeArguments: List<CjTypeProjection>
+                    get() = emptyList()
+                override val typeArgumentList: CjTypeArgumentList?
+                    get() = null
+                override val callElement: CjElement
+                    get() = expression
+                override val callType: Call.CallType
+                    get() = Call.CallType.DEFAULT
             }
         }
 
@@ -214,7 +196,7 @@ class ControlStructureTypingUtils(
             for (i in argumentNames.indices) {
                 val argumentType = if (isArgumentNullable[i]) nullableType else type
                 val valueParameter = ValueParameterDescriptorImpl(
-                    function, null, i, Annotations.EMPTY, Name.identifier(argumentNames[i]),false,
+                    function, null, i, Annotations.EMPTY, Name.identifier(argumentNames[i]), false,
                     argumentType,
                     /* declaresDefaultValue = */ false,
 
@@ -440,12 +422,12 @@ class ControlStructureTypingUtils(
                     expression: CjBinaryExpression,
                     c: CheckTypeContext
                 ): Boolean {
-                    if (expression.getOperationReference()
+                    if (expression.operationReference
                             .getReferencedNameElementType() === CjTokens.ELVIS
                     ) {
                         return checkSubExpressions(
-                            expression.getLeft(),
-                            expression.getRight(),
+                            expression.left,
+                            expression.right,
                             expression,
                             c.makeTypeNullable(),
                             c,
@@ -467,7 +449,7 @@ class ControlStructureTypingUtils(
 
         return object :
             ThrowingOnErrorTracingStrategy("resolve $constructionName as a call") {
-            override fun <D : CallableDescriptor?> bindReference(
+            override fun <D : CallableDescriptor> bindReference(
                 trace: BindingTrace,
                 resolvedCall: ResolvedCall<D>
             ) {
@@ -480,12 +462,12 @@ class ControlStructureTypingUtils(
             ) {
                 trace.record(
                     BindingContext.CALL,
-                    call.getCalleeExpression(),
+                    call.calleeExpression,
                     call
                 )
             }
 
-            override fun <D : CallableDescriptor?> bindResolvedCall(
+            override fun <D : CallableDescriptor> bindResolvedCall(
                 trace: BindingTrace,
                 resolvedCall: ResolvedCall<D>
             ) {
@@ -600,16 +582,16 @@ class ControlStructureTypingUtils(
 //            logError()
 //        }
 
-        override fun <D : CallableDescriptor?> unresolvedReferenceWrongReceiver(
+        override fun <D : CallableDescriptor> unresolvedReferenceWrongReceiver(
             trace: BindingTrace,
-            candidates: Collection<ResolvedCall<D?>?>
+            candidates: Collection<ResolvedCall<D>>
         ) {
             logError()
         }
 
-        override fun <D : CallableDescriptor?> recordAmbiguity(
+        override fun <D : CallableDescriptor> recordAmbiguity(
             trace: BindingTrace,
-            candidates: Collection<ResolvedCall<D?>?>
+            candidates: Collection<ResolvedCall<D>>
         ) {
             logError()
         }
@@ -649,23 +631,23 @@ class ControlStructureTypingUtils(
 //            logError()
 //        }
 
-        override fun <D : CallableDescriptor?> ambiguity(
+        override fun <D : CallableDescriptor> ambiguity(
             trace: BindingTrace,
-            resolvedCalls: Collection<ResolvedCall<D?>?>
+            resolvedCalls: Collection<ResolvedCall<D>>
         ) {
             logError()
         }
 
-        override fun <D : CallableDescriptor?> noneApplicable(
+        override fun <D : CallableDescriptor> noneApplicable(
             trace: BindingTrace,
-            descriptors: Collection<ResolvedCall<D?>?>
+            descriptors: Collection<ResolvedCall<D>>
         ) {
             logError()
         }
 
-        override fun <D : CallableDescriptor?> cannotCompleteResolve(
+        override fun <D : CallableDescriptor> cannotCompleteResolve(
             trace: BindingTrace,
-            descriptors: Collection<ResolvedCall<D?>?>
+            descriptors: Collection<ResolvedCall<D>>
         ) {
             logError()
         }

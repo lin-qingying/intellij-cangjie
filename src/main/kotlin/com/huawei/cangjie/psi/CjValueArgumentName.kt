@@ -1,29 +1,21 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.name.Name;
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
+import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
-public class CjValueArgumentName extends CjElementImplStub<CangJiePlaceHolderStub<CjValueArgumentName>> implements ValueArgumentName {
-    public CjValueArgumentName(@NotNull ASTNode node) {
-        super(node);
-    }
+class CjValueArgumentName : CjElementImplStub<CangJiePlaceHolderStub<CjValueArgumentName > >, ValueArgumentName {
+    constructor(node: ASTNode) : super(node)
 
-    public CjValueArgumentName(@NotNull CangJiePlaceHolderStub<CjValueArgumentName> stub) {
-        super(stub, CjStubElementTypes.VALUE_ARGUMENT_NAME);
-    }
+    constructor(stub: CangJiePlaceHolderStub<CjValueArgumentName >) : super(
+        stub,
+        CjStubElementTypes.VALUE_ARGUMENT_NAME
+    )
 
-    @Override
-    @NotNull
-    public CjSimpleNameExpression getReferenceExpression() {
-        return getStubOrPsiChild(CjStubElementTypes.REFERENCE_EXPRESSION);
-    }
+    override val referenceExpression: CjSimpleNameExpression
+        get() = getStubOrPsiChild(CjStubElementTypes.REFERENCE_EXPRESSION)!!
 
-    @NotNull
-    @Override
-    public Name getAsName() {
-        return getReferenceExpression().getReferencedNameAsName();
-    }
+    override val asName: Name
+        get() = referenceExpression.getReferencedNameAsName()
 }

@@ -1,31 +1,29 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.psi.stubs.CangJieConstantExpressionStub;
-import com.huawei.cangjie.psi.stubs.elements.CjConstantExpressionElementType;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.util.IncorrectOperationException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.psi.CjExpressionImpl.Companion.replaceExpression
+import com.huawei.cangjie.psi.stubs.CangJieConstantExpressionStub
+import com.huawei.cangjie.psi.stubs.elements.CjConstantExpressionElementType.Companion.kindToConstantElementType
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.util.IncorrectOperationException
 
+class CjConstantExpression
 
-public class CjConstantExpression
-        extends CjElementImplStub<CangJieConstantExpressionStub> implements CjExpression {
-    public CjConstantExpression(@NotNull ASTNode node) {
-        super(node);
+    : CjElementImplStub<CangJieConstantExpressionStub>, CjExpression {
+    constructor(node: ASTNode) : super(node)
+
+    constructor(stub: CangJieConstantExpressionStub) : super(stub, kindToConstantElementType(stub.kind()))
+
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitConstantExpression(this, data)
     }
 
-    public CjConstantExpression(@NotNull CangJieConstantExpressionStub stub) {
-        super(stub, CjConstantExpressionElementType.Companion.kindToConstantElementType(stub.kind()));
-    }
-
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitConstantExpression(this, data);
-    }
-
-    @Override
-    public PsiElement replace(@NotNull PsiElement newElement) throws IncorrectOperationException {
-        return CjExpressionImpl.Companion.replaceExpression(this, newElement, true, super::replace);
+    @Throws(IncorrectOperationException::class)
+    override fun replace(newElement: PsiElement): PsiElement {
+        return replaceExpression(this, newElement, true) { newElement: PsiElement? ->
+            super.replace(
+                newElement!!
+            )
+        }
     }
 }

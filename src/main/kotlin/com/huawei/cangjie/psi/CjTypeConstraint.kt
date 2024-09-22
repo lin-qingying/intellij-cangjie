@@ -1,53 +1,33 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
-import java.util.List;
+class CjTypeConstraint : CjElementImplStub<CangJiePlaceHolderStub<CjTypeConstraint > >, CjElement {
+    constructor(node: ASTNode) : super(node)
 
+    constructor(stub: CangJiePlaceHolderStub<CjTypeConstraint >) : super(stub, CjStubElementTypes.TYPE_CONSTRAINT)
 
-public class CjTypeConstraint extends CjElementImplStub<CangJiePlaceHolderStub<CjTypeConstraint>>
-        implements CjElement {
-    public CjTypeConstraint(@NotNull ASTNode node) {
-        super(node);
+    override fun toString(): String {
+        return node.elementType.toString()
     }
 
-    public CjTypeConstraint(@NotNull CangJiePlaceHolderStub<CjTypeConstraint> stub) {
-        super(stub, CjStubElementTypes.TYPE_CONSTRAINT);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitTypeConstraint(this, data)
     }
 
-    @Override
-    public String toString() {
-        return getNode().getElementType().toString();
-    }
+    @get:IfNotParsed
+    val subjectTypeParameterName: CjSimpleNameExpression?
+        get() = getStubOrPsiChild(CjStubElementTypes.REFERENCE_EXPRESSION)
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitTypeConstraint(this, data);
-    }
+    @get:IfNotParsed
+    val boundTypeReference: CjTypeReference?
+        get() = getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)
 
-    @Nullable
-    @IfNotParsed
-    public CjSimpleNameExpression getSubjectTypeParameterName() {
-        return getStubOrPsiChild(CjStubElementTypes.REFERENCE_EXPRESSION);
-    }
-
-    @Nullable
-    @IfNotParsed
-    public CjTypeReference getBoundTypeReference() {
-        return getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE);
-    }
-
-    @NotNull
-    @IfNotParsed
-    public List<CjTypeReference> getBoundTypeReferences() {
-
-
-        return getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_REFERENCE);
-    }
-
-
+    @get:IfNotParsed
+    val boundTypeReferences: List<CjTypeReference>
+        get() = getStubOrPsiChildrenAsList(
+            CjStubElementTypes.TYPE_REFERENCE
+        )
 }

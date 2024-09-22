@@ -1,186 +1,154 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.psi.stubs.CangJiePropertyAccessorStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.huawei.cangjie.types.CangJieType;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.stubs.CangJiePropertyAccessorStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
 
-import java.util.Collections;
-import java.util.List;
+class CjPropertyAccessor : CjDeclarationStub<CangJiePropertyAccessorStub >, CjDeclarationWithBody, CjModifierListOwner,
+    CjDeclarationWithInitializer {
+    constructor(node: ASTNode) : super(node)
+
+    constructor(stub: CangJiePropertyAccessorStub) : super(stub, CjStubElementTypes.PROPERTY_ACCESSOR)
 
 
-public class CjPropertyAccessor extends CjDeclarationStub<CangJiePropertyAccessorStub>
-        implements CjDeclarationWithBody, CjModifierListOwner, CjDeclarationWithInitializer {
-    public CjPropertyAccessor(@NotNull ASTNode node) {
-        super(node);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitPropertyAccessor(this, data)
     }
 
-    public CjPropertyAccessor(@NotNull CangJiePropertyAccessorStub stub) {
-        super(stub, CjStubElementTypes.PROPERTY_ACCESSOR);
-    }
-
-
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
-        return visitor.visitPropertyAccessor(this, data);
-    }
-
-    public boolean isSetter() {
-        CangJiePropertyAccessorStub stub = getStub();
-        if (stub != null) {
-            return !stub.isGetter();
+    val isSetter: Boolean
+        get() {
+            val stub: CangJiePropertyAccessorStub? = stub
+            if (stub != null) {
+                return !stub.isGetter()
+            }
+            return findChildByType<PsiElement?>(CjTokens.SET_KEYWORD) != null
         }
-        return findChildByType(CjTokens.SET_KEYWORD) != null;
-    }
 
-    public boolean isGetter() {
-        CangJiePropertyAccessorStub stub = getStub();
-        if (stub != null) {
-            return stub.isGetter();
+    val isGetter: Boolean
+        get() {
+            val stub: CangJiePropertyAccessorStub? = stub
+            if (stub != null) {
+                return stub.isGetter()
+            }
+            return findChildByType<PsiElement?>(CjTokens.GET_KEYWORD) != null
         }
-        return findChildByType(CjTokens.GET_KEYWORD) != null;
-    }
 
-    @Nullable
-    public CjParameterList getParameterList() {
-        return getStubOrPsiChild(CjStubElementTypes.VALUE_PARAMETER_LIST);
-    }
+    val parameterList: CjParameterList?
+        get() = getStubOrPsiChild(CjStubElementTypes.VALUE_PARAMETER_LIST)
 
-    @Nullable
-    public CjParameter getParameter() {
-        CjParameterList parameterList = getParameterList();
-        if (parameterList == null) return null;
-        List<CjParameter> parameters = parameterList.getParameters();
-        if (parameters.isEmpty()) return null;
-        return parameters.get(0);
-    }
-
-    @NotNull
-    @Override
-    public List<CjParameter> getValueParameters() {
-        CjParameter parameter = getParameter();
-        if (parameter == null) {
-            return Collections.emptyList();
+    val parameter: CjParameter?
+        get() {
+            val parameterList: CjParameterList = parameterList ?: return null
+            val parameters: List<CjParameter> = parameterList.parameters
+            if (parameters.isEmpty()) return null
+            return parameters[0]
         }
-        return Collections.singletonList(parameter);
-    }
 
-    @Nullable
-    @Override
-    public CjExpression getBodyExpression() {
-        CangJiePropertyAccessorStub stub = getStub();
-        if (stub != null) {
-            if (!stub.hasBody()) {
-                return null;
+    override val valueParameters: List<CjParameter>
+        get() {
+            val parameter: CjParameter = parameter ?: return emptyList()
+            return listOf(parameter)
+        }
+
+    override val bodyExpression: CjExpression?
+        get() {
+            val stub: CangJiePropertyAccessorStub? = stub
+            if (stub != null) {
+                if (!stub.hasBody()) {
+                    return null
+                }
+
+                if (containingCjFile.isCompiled) {
+                    return null
+                }
             }
 
-            if (getContainingCjFile().isCompiled()) {
-                return null;
+            return findChildByClass(CjExpression::class.java)
+        }
+
+    override val bodyBlockExpression: CjBlockExpression?
+        get() {
+            val stub: CangJiePropertyAccessorStub? = stub
+            if (stub != null) {
+                if (!(stub.hasBlockBody() && stub.hasBody())) {
+                    return null
+                }
+                if (containingCjFile.isCompiled) {
+                    return null
+                }
             }
-        }
 
-        return  findChildByClass(CjExpression.class);
-    }
-
-    @Nullable
-    @Override
-    public CjBlockExpression getBodyBlockExpression() {
-        CangJiePropertyAccessorStub stub = getStub();
-        if (stub != null) {
-            if (!(stub.hasBlockBody() && stub.hasBody())) {
-                return null;
+            val bodyExpression: CjExpression? = findChildByClass(
+                CjExpression::class.java
+            )
+            if (bodyExpression is CjBlockExpression) {
+                return bodyExpression
             }
-            if (getContainingCjFile().isCompiled()) {
-                return null;
+
+            return null
+        }
+
+    override fun hasBlockBody(): Boolean {
+        val stub: CangJiePropertyAccessorStub? = stub
+        if (stub != null) {
+            return stub.hasBlockBody()
+        }
+        return equalsToken == null
+    }
+
+    override fun hasBody(): Boolean {
+        val stub: CangJiePropertyAccessorStub? = stub
+        if (stub != null) {
+            return stub.hasBody()
+        }
+        return bodyExpression != null
+    }
+
+    override val equalsToken: PsiElement?
+        get() = findChildByType(CjTokens.EQ)
+
+
+    override fun hasDeclaredReturnType(): Boolean {
+        return true
+    }
+
+    val returnTypeReference: CjTypeReference?
+        get() = getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)
+
+    val namePlaceholder: PsiElement
+        get() {
+            val get: PsiElement? = findChildByType(CjTokens.GET_KEYWORD)
+            if (get != null) {
+                return get
             }
+            return findChildByType(CjTokens.SET_KEYWORD)!!
         }
 
-        CjExpression bodyExpression = findChildByClass(CjExpression.class);
-        if (bodyExpression instanceof CjBlockExpression) {
-            return (CjBlockExpression) bodyExpression;
+    val rightParenthesis: PsiElement?
+        get() = findChildByType(CjTokens.RPAR)
+
+    val leftParenthesis: PsiElement?
+        get() = findChildByType(CjTokens.LPAR)
+
+    override val initializer: CjExpression?
+        get() = PsiTreeUtil.getNextSiblingOfType(
+            equalsToken,
+            CjExpression::class.java
+        )
+
+    override fun hasInitializer(): Boolean {
+        return initializer != null
+    }
+
+    val property: CjProperty
+        get() {
+            return parent as CjProperty
         }
 
-        return null;
-    }
-
-    @Override
-    public boolean hasBlockBody() {
-        CangJiePropertyAccessorStub stub = getStub();
-        if (stub != null) {
-            return stub.hasBlockBody();
-        }
-        return getEqualsToken() == null;
-    }
-
-    @Override
-    public boolean hasBody() {
-        CangJiePropertyAccessorStub stub = getStub();
-        if (stub != null) {
-            return stub.hasBody();
-        }
-        return getBodyExpression() != null;
-    }
-
-    @Override
-    @Nullable
-    public PsiElement getEqualsToken() {
-        return findChildByType(CjTokens.EQ);
-    }
-
-
-
-    @Override
-    public boolean hasDeclaredReturnType() {
-        return true;
-    }
-
-    @Nullable
-    public CjTypeReference getReturnTypeReference() {
-        return getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE);
-    }
-
-    @NotNull
-    public PsiElement getNamePlaceholder() {
-        PsiElement get = findChildByType(CjTokens.GET_KEYWORD);
-        if (get != null) {
-            return get;
-        }
-        return findChildByType(CjTokens.SET_KEYWORD);
-    }
-
-    @Nullable
-    public PsiElement getRightParenthesis() {
-        return findChildByType(CjTokens.RPAR);
-    }
-
-    @Nullable
-    public PsiElement getLeftParenthesis() {
-        return findChildByType(CjTokens.LPAR);
-    }
-
-    @Nullable
-    @Override
-    public CjExpression getInitializer() {
-        return PsiTreeUtil.getNextSiblingOfType(getEqualsToken(), CjExpression.class);
-    }
-
-    @Override
-    public boolean hasInitializer() {
-        return getInitializer() != null;
-    }
-
-    @NotNull
-    public CjProperty getProperty() {
-        return (CjProperty) getParent();
-    }
-
-    @Override
-    public int getTextOffset() {
-        return getNamePlaceholder().getTextRange().getStartOffset();
+    override fun getTextOffset(): Int {
+        return namePlaceholder.textRange.startOffset
     }
 }

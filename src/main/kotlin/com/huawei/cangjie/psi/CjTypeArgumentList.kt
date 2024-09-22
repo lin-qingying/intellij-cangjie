@@ -1,42 +1,32 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.EditCommaSeparatedListHelper.addItem
+import com.huawei.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 
-import java.util.List;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
+class CjTypeArgumentList : CjElementImplStub<CangJiePlaceHolderStub<CjTypeArgumentList > > {
+    constructor(node: ASTNode) : super(node)
 
-public class CjTypeArgumentList extends CjElementImplStub<CangJiePlaceHolderStub<CjTypeArgumentList>> {
-    public CjTypeArgumentList(@NotNull ASTNode node) {
-        super(node);
+    constructor(stub: CangJiePlaceHolderStub<CjTypeArgumentList >) : super(stub, CjStubElementTypes.TYPE_ARGUMENT_LIST)
+
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitTypeArgumentList(this, data)
     }
 
-    public CjTypeArgumentList(@NotNull CangJiePlaceHolderStub<CjTypeArgumentList> stub) {
-        super(stub, CjStubElementTypes.TYPE_ARGUMENT_LIST);
+    val arguments: List<CjTypeProjection>
+        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_PROJECTION)
+
+    fun addArgument(typeArgument: CjTypeProjection): CjTypeProjection {
+        return addItem(
+            this,
+            arguments, typeArgument, CjTokens.LT
+        )
     }
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitTypeArgumentList(this, data);
-    }
-
-    @NotNull
-    public List<CjTypeProjection> getArguments() {
-        return getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_PROJECTION);
-    }
-
-    @NotNull
-    public CjTypeProjection addArgument(@NotNull CjTypeProjection typeArgument) {
-        return EditCommaSeparatedListHelper.INSTANCE.addItem(this, getArguments(), typeArgument, CjTokens.LT);
-    }
-
-    @Nullable
-    public PsiElement getTrailingComma() {
-        return CjPsiUtilKt.getTrailingCommaByClosingElement(findChildByType(CjTokens.GT));
-    }
+    val trailingComma: PsiElement?
+        get() = getTrailingCommaByClosingElement(findChildByType(CjTokens.GT))
 }

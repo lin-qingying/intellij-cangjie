@@ -1,42 +1,33 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.psi.PsiElement
 
-import java.util.List;
+interface CjDeclarationWithBody : CjDeclaration {
 
+    val bodyExpression: CjExpression?
 
-public interface CjDeclarationWithBody extends CjDeclaration {
-    @Nullable
-    CjExpression getBodyExpression();
+    val equalsToken: PsiElement?
 
-    @Nullable
-    PsiElement getEqualsToken();
-
-    @Override
-    @Nullable
-    String getName();
+    override fun getName(): String?
 
 
+    fun hasBlockBody(): Boolean
 
-    boolean hasBlockBody();
+    fun hasBody(): Boolean
 
-    boolean hasBody();
+    fun hasDeclaredReturnType(): Boolean
 
-    boolean hasDeclaredReturnType();
 
-    @NotNull
-    List<CjParameter> getValueParameters();
+    val valueParameters: List<CjParameter >
 
-    @Nullable
-    default CjBlockExpression getBodyBlockExpression() {
-        CjExpression bodyExpression = getBodyExpression();
-        if (bodyExpression instanceof CjBlockExpression) {
-            return (CjBlockExpression) bodyExpression;
+    val bodyBlockExpression: CjBlockExpression?
+        get() {
+            val bodyExpression = bodyExpression
+            if (bodyExpression is CjBlockExpression) {
+                return bodyExpression
+            }
+
+            return null
         }
-
-        return null;
-    }
 }
 

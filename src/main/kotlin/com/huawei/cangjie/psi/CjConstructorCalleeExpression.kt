@@ -1,44 +1,30 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
+class CjConstructorCalleeExpression : CjExpressionImplStub<CangJiePlaceHolderStub<CjConstructorCalleeExpression > > {
+    constructor(node: ASTNode) : super(node)
 
+    constructor(stub: CangJiePlaceHolderStub<CjConstructorCalleeExpression >) : super(
+        stub,
+        CjStubElementTypes.CONSTRUCTOR_CALLEE
+    )
 
-public class CjConstructorCalleeExpression extends CjExpressionImplStub<CangJiePlaceHolderStub<CjConstructorCalleeExpression>> {
-    public CjConstructorCalleeExpression(@NotNull ASTNode node) {
-        super(node);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitConstructorCalleeExpression(this, data)
     }
 
-    public CjConstructorCalleeExpression(@NotNull CangJiePlaceHolderStub<CjConstructorCalleeExpression> stub) {
-        super(stub, CjStubElementTypes.CONSTRUCTOR_CALLEE);
-    }
+    @get:IfNotParsed
+    val typeReference: CjTypeReference?
+        get() = getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitConstructorCalleeExpression(this, data);
-    }
-
-    @Nullable
-    @IfNotParsed
-    public CjTypeReference getTypeReference() {
-        return getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE);
-    }
-
-    @Nullable @IfNotParsed
-    public CjSimpleNameExpression getConstructorReferenceExpression() {
-        CjTypeReference typeReference = getTypeReference();
-        if (typeReference == null) {
-            return null;
+    @get:IfNotParsed
+    val constructorReferenceExpression: CjSimpleNameExpression?
+        get() {
+            val typeReference = typeReference ?: return null
+            val typeElement = typeReference.typeElement as? CjUserType ?: return null
+            return typeElement.referenceExpression
         }
-        CjTypeElement typeElement = typeReference.getTypeElement();
-        if (!(typeElement instanceof CjUserType)) {
-            return null;
-        }
-        return ((CjUserType) typeElement).getReferenceExpression();
-    }
-
 }

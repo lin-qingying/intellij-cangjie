@@ -41,7 +41,7 @@ class CjPropertyElementType(debugName: String) : CjStubElementType<CangJieProper
         return CangJiePropertyStubImpl(
             parentStub, StringRef.fromString(psi.name),
             psi.safeFqNameForLazyResolve()
-,psi.getTypeReference() != null
+,psi.typeReference != null
         )
     }
 

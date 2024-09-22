@@ -1,5 +1,4 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
 
-public interface CjReferenceExpression extends CjExpression {
-}
+interface CjReferenceExpression : CjExpression

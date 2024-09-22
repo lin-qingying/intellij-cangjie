@@ -11,7 +11,7 @@ class CjContextReceiverList : CjElementImplStub<CangJiePlaceHolderStub<CjContext
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJiePlaceHolderStub<CjContextReceiverList>) : super(stub, CjStubElementTypes.CONTEXT_RECEIVER_LIST)
 
-    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R  {
         return visitor.visitContextReceiverList(this, data)
     }
 

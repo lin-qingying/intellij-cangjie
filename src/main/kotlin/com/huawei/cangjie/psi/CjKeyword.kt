@@ -1,19 +1,9 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.lang.ASTNode
 
-public class CjKeyword extends CjElementImpl implements CjElement {
-
-
-    public CjKeyword(@NotNull ASTNode node) {
-        super(node);
+class CjKeyword(node: ASTNode) : CjElementImpl(node), CjElement {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitKeyword(this, data)
     }
-
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-         return  visitor.visitKeyword(this, data);
-    }
-
 }

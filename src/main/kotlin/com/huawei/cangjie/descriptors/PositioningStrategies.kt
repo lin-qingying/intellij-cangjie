@@ -278,7 +278,7 @@ object PositioningStrategies {
             if (nameIdentifier != null) {
                 if (element is CjTypeStatement) {
                     val startElement =
-                        element.getModifierList()?.getModifier(CjTokens.ENUM_KEYWORD)
+                        element.modifierList?.getModifier(CjTokens.ENUM_KEYWORD)
                             ?: element.node.findChildByType(
                                 TokenSet.create(
                                     CjTokens.CLASS_KEYWORD,

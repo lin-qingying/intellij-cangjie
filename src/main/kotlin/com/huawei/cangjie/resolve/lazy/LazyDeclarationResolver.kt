@@ -6,6 +6,7 @@ import com.huawei.cangjie.incremental.CangJieLookupLocation
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.psiUtil.CjStubbedPsiUtil
 import com.huawei.cangjie.psi.psiUtil.getElementTextWithContext
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope

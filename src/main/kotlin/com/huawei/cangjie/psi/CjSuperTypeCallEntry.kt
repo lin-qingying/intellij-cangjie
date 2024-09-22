@@ -1,73 +1,48 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.CjNodeTypes;
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.CjNodeTypes
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
-import java.util.Collections;
-import java.util.List;
+class CjSuperTypeCallEntry : CjSuperTypeListEntry, CjCallElement {
+    constructor(node: ASTNode) : super(node)
 
+    constructor(stub: CangJiePlaceHolderStub<out CjSuperTypeListEntry >) : super(
+        stub,
+        CjStubElementTypes.SUPER_TYPE_CALL_ENTRY
+    )
 
-public class CjSuperTypeCallEntry extends CjSuperTypeListEntry implements CjCallElement {
-    public CjSuperTypeCallEntry(@NotNull ASTNode node) {
-        super(node);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitSuperTypeCallEntry(this, data)
     }
 
-    public CjSuperTypeCallEntry(@NotNull CangJiePlaceHolderStub<? extends CjSuperTypeListEntry> stub) {
-        super(stub, CjStubElementTypes.SUPER_TYPE_CALL_ENTRY);
+    override val calleeExpression : CjConstructorCalleeExpression get()   {
+        return getRequiredStubOrPsiChild(CjStubElementTypes.CONSTRUCTOR_CALLEE)
     }
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitSuperTypeCallEntry(this, data);
+    override val lambdaArguments : List<CjLambdaArgument> get(){
+        return emptyList()
     }
 
-    @NotNull
-    @Override
-    public CjConstructorCalleeExpression getCalleeExpression() {
-        return getRequiredStubOrPsiChild(CjStubElementTypes.CONSTRUCTOR_CALLEE);
+    override val typeArguments : List<CjTypeProjection> get(){
+        val typeArgumentList = typeArgumentList ?: return emptyList()
+        return typeArgumentList.arguments
     }
 
-    @Override
-    public @NotNull List<CjLambdaArgument> getLambdaArguments() {
-        return null;
+    override val typeArgumentList : CjTypeArgumentList?   = null
+
+    override val valueArgumentList : CjValueArgumentList? get(){
+        return findChildByType(CjNodeTypes.VALUE_ARGUMENT_LIST)
     }
 
-    @Override
-    public @NotNull List<CjTypeProjection> getTypeArguments() {
-       CjTypeArgumentList typeArgumentList = getTypeArgumentList();
-        if (typeArgumentList == null) {
-            return Collections.emptyList();
-        }
-        return typeArgumentList.getArguments();
-    }
-
-    @Override
-    public @Nullable CjTypeArgumentList getTypeArgumentList() {
-        return null;
-    }
-
-    @Override
-    public @Nullable CjValueArgumentList getValueArgumentList() {
-        return findChildByType(CjNodeTypes.VALUE_ARGUMENT_LIST);
-
-    }
-
-    @Override
-    public @NotNull List<? extends ValueArgument> getValueArguments() {
-       CjValueArgumentList list = getValueArgumentList();
-        return list != null ? list.getArguments() : Collections.<CjValueArgument>emptyList();
+    override val valueArguments : List<ValueArgument > get(){
+        val list = valueArgumentList
+        return list?.arguments ?: emptyList<CjValueArgument>()
     }
 
 
-    @Override
-    public CjTypeReference getTypeReference() {
-        return getCalleeExpression().getTypeReference();
+    override val typeReference : CjTypeReference? get(){
+        return calleeExpression.typeReference
     }
-
-
-
 }

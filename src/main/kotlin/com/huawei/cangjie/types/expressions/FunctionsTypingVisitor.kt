@@ -1,19 +1,19 @@
 package com.huawei.cangjie.types.expressions
 
 import com.google.common.collect.Lists
-import  com.huawei.cangjie.builtins.createFunctionType
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.builtins.createFunctionType
 import com.huawei.cangjie.builtins.getReturnTypeFromFunctionType
 import com.huawei.cangjie.builtins.isBuiltinFunctionalType
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.CallableMemberDescriptor
-import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.descriptors.PsiDiagnosticUtils
 import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.impl.AnonymousFunctionDescriptor
 import com.huawei.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.BindingContext.EXPECTED_RETURN_TYPE
@@ -67,7 +67,12 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
         val functionDescriptor: SimpleFunctionDescriptor
         if (isDeclaration) {
             functionDescriptor = components.functionDescriptorResolver.resolveFunctionDescriptor(
-                context.scope.ownerDescriptor, context.scope, function, context.trace, context.dataFlowInfo, context.inferenceSession
+                context.scope.ownerDescriptor,
+                context.scope,
+                function,
+                context.trace,
+                context.dataFlowInfo,
+                context.inferenceSession
             )
             assert(statementScope != null) {
                 "statementScope must be not null for function: " + function.name + " at location " + PsiDiagnosticUtils.atLocation(
@@ -85,7 +90,12 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
         ForceResolveUtil.forceResolveAllContents(functionDescriptor.annotations)
 
         val functionInnerScope =
-            FunctionDescriptorUtil.getFunctionInnerScope(context.scope, functionDescriptor, context.trace, components.overloadChecker)
+            FunctionDescriptorUtil.getFunctionInnerScope(
+                context.scope,
+                functionDescriptor,
+                context.trace,
+                components.overloadChecker
+            )
         if (!function.hasDeclaredReturnType() && !function.hasBlockBody()) {
             ForceResolveUtil.forceResolveAllContents(functionDescriptor.returnType)
         } else {
@@ -99,7 +109,8 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
             context.dataFlowInfo, context.trace, context.inferenceSession
         )
 
-        components.modifiersChecker.withTrace(context.trace).checkModifiersForLocalDeclaration(function, functionDescriptor)
+        components.modifiersChecker.withTrace(context.trace)
+            .checkModifiersForLocalDeclaration(function, functionDescriptor)
         components.identifierChecker.checkDeclaration(function, context.trace)
 //        components.declarationsCheckerBuilder.withTrace(context.trace).checkFunction(function, functionDescriptor)
 
@@ -112,7 +123,7 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
             val resultType = functionDescriptor.createFunctionType(
                 components.builtIns,
 
-            )
+                )
 
             if (newInferenceEnabled) {
                 // We should avoid type checking for types containing `NO_EXPECTED_TYPE`, the error will be report later if needed
@@ -202,7 +213,7 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
         val resultType = components.typeResolutionInterceptor.interceptType(
             expression,
             context,
-            functionDescriptor.createFunctionType(components.builtIns )!!
+            functionDescriptor.createFunctionType(components.builtIns)!!
         )
 
 //        if (context.inferenceSession is BuilderInferenceSession) {
@@ -223,7 +234,8 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
         functionDescriptor: SimpleFunctionDescriptorImpl,
         functionTypeExpected: Boolean
     ): CangJieType {
-        val expectedReturnType = if (functionTypeExpected) context.expectedType.getReturnTypeFromFunctionType() else null
+        val expectedReturnType =
+            if (functionTypeExpected) context.expectedType.getReturnTypeFromFunctionType() else null
         val returnType = computeUnsafeReturnType(expression, context, functionDescriptor, expectedReturnType)
 
         if (!expression.functionLiteral.hasDeclaredReturnType() && functionTypeExpected) {
@@ -244,7 +256,12 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
 
         val expectedType = expectedReturnType ?: NO_EXPECTED_TYPE
         val functionInnerScope =
-            FunctionDescriptorUtil.getFunctionInnerScope(context.scope, functionDescriptor, context.trace, components.overloadChecker)
+            FunctionDescriptorUtil.getFunctionInnerScope(
+                context.scope,
+                functionDescriptor,
+                context.trace,
+                components.overloadChecker
+            )
         var newContext = context.replaceScope(functionInnerScope).replaceExpectedType(expectedType)
 
         // This is needed for ControlStructureTypingVisitor#visitReturnExpression() to properly type-check returned expressions
@@ -259,7 +276,11 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
 
         // Type-check the body
         val blockReturnedType =
-            components.expressionTypingServices.getBlockReturnedType(functionLiteral.bodyExpression!!,CoercionStrategy. COERCION_TO_UNIT, newContext)
+            components.expressionTypingServices.getBlockReturnedType(
+                functionLiteral.bodyExpression!!,
+                CoercionStrategy.COERCION_TO_UNIT,
+                newContext
+            )
         val typeOfBodyExpression = blockReturnedType.type
 
         newInferenceLambdaInfo?.let {
@@ -269,7 +290,10 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
         return computeReturnTypeBasedOnReturnExpressions(functionLiteral, context, typeOfBodyExpression)
     }
 
-    private fun collectReturns(functionLiteral: CjFunctionLiteral, trace: BindingTrace): Collection<CjReturnExpression> {
+    private fun collectReturns(
+        functionLiteral: CjFunctionLiteral,
+        trace: BindingTrace
+    ): Collection<CjReturnExpression> {
         val result = Lists.newArrayList<CjReturnExpression>()
         val bodyExpression = functionLiteral.bodyExpression
         bodyExpression?.accept(object : CjTreeVisitor<MutableList<CjReturnExpression>>() {
@@ -287,6 +311,7 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
             it.getTargetLabel()?.let { trace.get(BindingContext.LABEL_TARGET, it) } == functionLiteral
         }
     }
+
     private fun computeReturnTypeBasedOnReturnExpressions(
         functionLiteral: CjFunctionLiteral,
         context: ExpressionTypingContext,
@@ -321,7 +346,7 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
         returnedExpressionTypes.addIfNotNull(typeOfBodyExpression)
 
         if (returnedExpressionTypes.isEmpty()) return null
-        if (returnedExpressionTypes.any { it.contains { it.constructor is TypeVariableTypeConstructor }}) return null
+        if (returnedExpressionTypes.any { it.contains { it.constructor is TypeVariableTypeConstructor } }) return null
         return CommonSupertypes.commonSupertype(returnedExpressionTypes)
     }
 }
@@ -329,7 +354,7 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
 fun SimpleFunctionDescriptor.createFunctionType(
     builtIns: CangJieBuiltIns,
 
-): CangJieType? {
+    ): CangJieType? {
     return createFunctionType(
         builtIns,
         Annotations.EMPTY,

@@ -99,7 +99,7 @@ abstract class OperatorReferenceSearcher<TReferenceElement : CjElement>(
                             when (element) {
                                 is CjFunctionLiteral -> element.text
                                 is CjMatchEntry -> {
-                                    if (element.is_)
+                                    if (element.is_())
                                         "CjMatchEntry \"else\""
                                     else
                                         "CjMatchEntry \"" + element.conditions.joinToString(", ") { it.text } + "\""

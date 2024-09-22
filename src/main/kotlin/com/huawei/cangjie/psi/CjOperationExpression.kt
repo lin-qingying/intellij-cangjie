@@ -1,9 +1,6 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import org.jetbrains.annotations.NotNull;
+interface CjOperationExpression : CjExpression {
 
-
-public interface CjOperationExpression extends CjExpression {
-    @NotNull
-    CjSimpleNameExpression getOperationReference();
+    val operationReference: CjSimpleNameExpression
 }

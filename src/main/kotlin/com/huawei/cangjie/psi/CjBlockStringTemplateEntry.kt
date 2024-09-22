@@ -1,23 +1,18 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderWithTextStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderWithTextStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
+class CjBlockStringTemplateEntry : CjStringTemplateEntryWithExpression {
+    constructor(node: ASTNode) : super(node)
 
-public class CjBlockStringTemplateEntry extends CjStringTemplateEntryWithExpression {
-    public CjBlockStringTemplateEntry(@NotNull ASTNode node) {
-        super(node);
-    }
+    constructor(stub: CangJiePlaceHolderWithTextStub<CjBlockStringTemplateEntry >) : super(
+        stub,
+        CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY
+    )
 
-    public CjBlockStringTemplateEntry(@NotNull CangJiePlaceHolderWithTextStub<CjBlockStringTemplateEntry> stub) {
-        super(stub, CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY);
-    }
-
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitBlockStringTemplateEntry(this, data);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitBlockStringTemplateEntry(this, data)
     }
 }

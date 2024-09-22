@@ -1,48 +1,27 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.CjNodeTypes;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.CjNodeTypes
+import com.intellij.lang.ASTNode
 
-import java.util.Collections;
-import java.util.List;
+@Deprecated("")
+abstract class CjTypeParameterListOwnerNotStubbed(node: ASTNode) :
+    CjNamedDeclarationNotStubbed(node), CjTypeParameterListOwner {
+    override val typeParameterList: CjTypeParameterList?
+        get() = findChildByType(CjNodeTypes.TYPE_PARAMETER_LIST)
 
+    override val typeConstraintList: CjTypeConstraintList?
+        get() = findChildByType(CjNodeTypes.TYPE_CONSTRAINT_LIST)
 
-@Deprecated
-abstract class CjTypeParameterListOwnerNotStubbed extends CjNamedDeclarationNotStubbed implements CjTypeParameterListOwner {
-    public CjTypeParameterListOwnerNotStubbed(@NotNull ASTNode node) {
-        super(node);
-    }
-
-    @Override
-    @Nullable
-    public CjTypeParameterList getTypeParameterList() {
-        return findChildByType(CjNodeTypes.TYPE_PARAMETER_LIST);
-    }
-
-    @Override
-    @Nullable
-    public CjTypeConstraintList getTypeConstraintList() {
-        return findChildByType(CjNodeTypes.TYPE_CONSTRAINT_LIST);
-    }
-
-    @Override
-    @NotNull
-    public List<CjTypeConstraint> getTypeConstraints() {
-        CjTypeConstraintList typeConstraintList = getTypeConstraintList();
-        if (typeConstraintList == null) {
-            return Collections.emptyList();
+    override val typeConstraints: List<CjTypeConstraint>
+        get() {
+            val typeConstraintList = typeConstraintList ?: return emptyList()
+            return typeConstraintList.constraints
         }
-        return typeConstraintList.getConstraints();
-    }
 
-    @Override
-    @NotNull
-    public List<CjTypeParameter> getTypeParameters() {
-        CjTypeParameterList list = getTypeParameterList();
-        if (list == null) return Collections.emptyList();
+    override val typeParameters: List<CjTypeParameter>
+        get() {
+            val list = typeParameterList ?: return emptyList()
 
-        return list.getParameters();
-    }
+            return list.parameters
+        }
 }

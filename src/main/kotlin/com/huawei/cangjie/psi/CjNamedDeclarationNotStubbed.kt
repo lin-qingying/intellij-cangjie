@@ -1,59 +1,47 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.name.Name;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.util.IncorrectOperationException;
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.name.Name.Companion.identifier
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.util.IncorrectOperationException
+import org.jetbrains.annotations.NonNls
 
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-
-
-abstract class CjNamedDeclarationNotStubbed extends CjDeclarationImpl implements CjNamedDeclaration {
-    public CjNamedDeclarationNotStubbed(@NotNull ASTNode node) {
-        super(node);
-    }
-
-    @Override
-    public String getName() {
-        PsiElement identifier = getNameIdentifier();
+abstract class CjNamedDeclarationNotStubbed(node: ASTNode) : CjDeclarationImpl(node),
+    CjNamedDeclaration {
+    override fun getName(): String? {
+        val identifier = nameIdentifier
         if (identifier != null) {
-            String text = identifier.getText();
-            return text != null ? CjPsiUtil.unquoteIdentifier(text) : null;
+            val text = identifier.text
+            return if (text != null) CjPsiUtil.unquoteIdentifier(text) else null
+        } else {
+            return null
         }
-        else {
-            return null;
+    }
+
+    override val nameAsName: Name?
+        get() {
+            val name = name
+            return if (name != null) identifier(name) else null
         }
+
+    override val nameAsSafeName: Name
+        get() = CjPsiUtil.safeName(name)
+
+    override fun getNameIdentifier(): PsiElement? {
+        return findChildByType(CjTokens.IDENTIFIER)
     }
 
-    @Override
-    public Name getNameAsName() {
-        String name = getName();
-        return name != null ? Name.identifier(name) : null;
+    @Throws(IncorrectOperationException::class)
+    override fun setName(name: @NonNls String): PsiElement {
+        val identifier = nameIdentifier ?: throw IncorrectOperationException()
+
+        return identifier.replace(CjPsiFactory(project).createNameIdentifier(name))
     }
 
-    @Override
-    public  Name getNameAsSafeName() {
-        return CjPsiUtil.safeName(getName());
-    }
-
-    @Override
-    public PsiElement getNameIdentifier() {
-        return findChildByType(CjTokens.IDENTIFIER);
-    }
-
-    @Override
-    public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
-        PsiElement identifier = getNameIdentifier();
-        if (identifier == null) throw new IncorrectOperationException();
-
-        return identifier.replace(new CjPsiFactory(getProject()).createNameIdentifier(name));
-    }
-
-    @Override
-    public int getTextOffset() {
-        PsiElement identifier = getNameIdentifier();
-        return identifier != null ? identifier.getTextRange().getStartOffset() : getTextRange().getStartOffset();
+    override fun getTextOffset(): Int {
+        val identifier = nameIdentifier
+        return identifier?.textRange?.startOffset ?: textRange.startOffset
     }
 }

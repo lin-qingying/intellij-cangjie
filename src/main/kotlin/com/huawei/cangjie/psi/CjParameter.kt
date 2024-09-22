@@ -24,9 +24,9 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>, CjCallableDecl
         return visitor.visitParameter(this, data)
     }
 
-    override fun getTypeReference(): CjTypeReference? {
-        return getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)
-    }
+
+    override val typeReference: CjTypeReference?
+        get() =  getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)
 
     override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? {
         return setTypeReference(this, nameIdentifier, typeRef)
@@ -39,10 +39,10 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>, CjCallableDecl
             return findChildByType(CjNodeTypes.DESTRUCTURING_DECLARATION)
         }
 
-    override fun getColon(): PsiElement? {
-        return findChildByType(CjTokens.COLON)
-    }
 
+
+    override val colon: PsiElement?
+        get() = findChildByType(CjTokens.COLON)
     val isNamed: Boolean
         get() {
 //            if (colon != null) {
@@ -127,7 +127,7 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>, CjCallableDecl
     }
 
 
-    private fun <T : PsiElement?> checkParentOfParentType(klass: Class<T>): Boolean {
+    private fun <T : PsiElement> checkParentOfParentType(klass: Class<T>): Boolean {
         val parent = parent ?: return false
         return klass.isInstance(parent.parent)
     }
@@ -136,37 +136,15 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>, CjCallableDecl
         get() = checkParentOfParentType(CjCatchClause::class.java)
 
 
-    override fun getValueParameterList(): CjParameterList? {
-        return null
-    }
 
-    override fun getValueParameters(): List<CjParameter> {
-        return emptyList()
-    }
-
-    override fun getReceiverTypeReference(): CjTypeReference? {
-        return null
-    }
-
-    override fun getContextReceivers(): List<CjContextReceiver> {
-        return emptyList()
-    }
-
-    override fun getTypeParameterList(): CjTypeParameterList? {
-        return null
-    }
-
-    override fun getTypeConstraintList(): CjTypeConstraintList? {
-        return null
-    }
-
-    override fun getTypeConstraints(): List<CjTypeConstraint> {
-        return emptyList()
-    }
-
-    override fun getTypeParameters(): List<CjTypeParameter> {
-        return emptyList()
-    }
+    override val contextReceivers: List<CjContextReceiver> = emptyList()
+    override val valueParameterList: CjParameterList? = null
+    override val valueParameters: List<CjParameter> = emptyList()
+    override val receiverTypeReference: CjTypeReference? = null
+    override val typeParameterList: CjTypeParameterList? = null
+    override val typeConstraintList: CjTypeConstraintList? = null
+    override val typeConstraints: List<CjTypeConstraint> = emptyList()
+    override val typeParameters: List<CjTypeParameter> = emptyList()
 
     val ownerFunction: CjDeclarationWithBody?
         get() {

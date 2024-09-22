@@ -1,47 +1,39 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.EditCommaSeparatedListHelper.addItem
+import com.huawei.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 
-import java.util.List;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
+class CjTypeParameterList : CjElementImplStub<CangJiePlaceHolderStub<CjTypeParameterList > > {
+    constructor(node: ASTNode) : super(node)
 
-public class CjTypeParameterList extends CjElementImplStub<CangJiePlaceHolderStub<CjTypeParameterList>> {
-    public CjTypeParameterList(@NotNull ASTNode node) {
-        super(node);
+    constructor(stub: CangJiePlaceHolderStub<CjTypeParameterList >) : super(
+        stub,
+        CjStubElementTypes.TYPE_PARAMETER_LIST
+    )
+
+    override fun toString(): String {
+        return node.elementType.toString()
     }
 
-    public CjTypeParameterList(@NotNull CangJiePlaceHolderStub<CjTypeParameterList> stub) {
-        super(stub, CjStubElementTypes.TYPE_PARAMETER_LIST);
+    val parameters: List<CjTypeParameter>
+        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_PARAMETER)
+
+    fun addParameter(typeParameter: CjTypeParameter): CjTypeParameter {
+        return addItem(
+            this,
+            parameters, typeParameter, CjTokens.LT
+        )
     }
 
-    @Override
-    public String toString() {
-        return getNode().getElementType().toString();
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitTypeParameterList(this, data)
     }
 
-    @NotNull
-    public List<CjTypeParameter> getParameters() {
-        return getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_PARAMETER);
-    }
-
-    @NotNull
-    public CjTypeParameter addParameter(@NotNull CjTypeParameter typeParameter) {
-        return EditCommaSeparatedListHelper.INSTANCE.addItem(this, getParameters(), typeParameter, CjTokens.LT);
-    }
-
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitTypeParameterList(this, data);
-    }
-
-    @Nullable
-    public PsiElement getTrailingComma() {
-        return CjPsiUtilKt.getTrailingCommaByClosingElement(findChildByType(CjTokens.GT));
-    }
+    val trailingComma: PsiElement?
+        get() = getTrailingCommaByClosingElement(findChildByType(CjTokens.GT))
 }

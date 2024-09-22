@@ -1,69 +1,52 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.CjNodeTypes;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.tree.IElementType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.CjNodeTypes
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.tree.IElementType
 
-import java.util.Arrays;
-
-public class CjBinaryExpression extends CjExpressionImpl implements CjOperationExpression{
-
-    public CjBinaryExpression(@NotNull ASTNode node) {
-        super(node);
+open class CjBinaryExpression(node: ASTNode) : CjExpressionImpl(node), CjOperationExpression {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitBinaryExpression(this, data)
     }
 
-
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitBinaryExpression(this, data);
-    }
-
-    @Nullable
-    @IfNotParsed
-    public CjExpression getLeft() {
-        ASTNode node = getOperationReference().getNode().getTreePrev();
-        while (node != null) {
-            PsiElement psi = node.getPsi();
-            if (psi instanceof CjExpression) {
-                return (CjExpression) psi;
+    @get:IfNotParsed
+    val left: CjExpression?
+        get() {
+            var node = operationReference.node.treePrev
+            while (node != null) {
+                val psi = node.psi
+                if (psi is CjExpression) {
+                    return psi
+                }
+                node = node.treePrev
             }
-            node = node.getTreePrev();
+
+            return null
         }
 
-        return null;
-    }
-
-    @Nullable @IfNotParsed
-    public CjExpression getRight() {
-        ASTNode node = getOperationReference().getNode().getTreeNext();
-        while (node != null) {
-            PsiElement psi = node.getPsi();
-            if (psi instanceof CjExpression) {
-                return (CjExpression) psi;
+    @get:IfNotParsed
+    val right: CjExpression?
+        get() {
+            var node = operationReference.node.treeNext
+            while (node != null) {
+                val psi = node.psi
+                if (psi is CjExpression) {
+                    return psi
+                }
+                node = node.treeNext
             }
-            node = node.getTreeNext();
+
+            return null
         }
 
-        return null;
+    override val operationReference : CjOperationReferenceExpression get()  {
+        val operationReference = findChildByType<PsiElement>(CjNodeTypes.OPERATION_REFERENCE)
+            ?: throw NullPointerException("No operation reference for binary expression: " + children.contentToString())
+
+        return operationReference as CjOperationReferenceExpression
     }
 
-    @Override
-    @NotNull
-    public CjOperationReferenceExpression getOperationReference() {
-        PsiElement operationReference = findChildByType(CjNodeTypes.OPERATION_REFERENCE);
-        if (operationReference == null) {
-            throw new NullPointerException("No operation reference for binary expression: " + Arrays.toString(getChildren()));
-        }
-
-        return (CjOperationReferenceExpression) operationReference;
-    }
-
-    @NotNull
-    public IElementType getOperationToken() {
-        return getOperationReference().getReferencedNameElementType();
-    }
-
+    val operationToken: IElementType
+        get() = operationReference.getReferencedNameElementType()
 }

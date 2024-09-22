@@ -1,47 +1,32 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 
-
-public class CjMatchEntry extends CjElementImpl {
-    public CjMatchEntry(@NotNull ASTNode node) {
-        super(node);
+class CjMatchEntry(node: ASTNode) : CjElementImpl(node) {
+    fun is_(): Boolean {
+        return getKeyword() != null
     }
 
-    public boolean is_() {
-        return get_Keyword() != null;
+    fun getKeyword(): PsiElement? {
+        return findChildByType(CjTokens.UNDERLINE)
     }
 
-    public PsiElement get_Keyword() {
-        return findChildByType(CjTokens.UNDERLINE);
+    val expression: CjExpression?
+        get() = findChildByClass(CjExpression::class.java)
+
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitMatchEntry(this, data)
     }
 
-    @Nullable
-    public CjExpression getExpression() {
-        return findChildByClass(CjExpression.class);
-    }
+    val conditions: Array<CjMatchCondition>
+        get() = findChildrenByClass(CjMatchCondition::class.java)
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitMatchEntry(this, data);
-    }
+    val trailingComma: PsiElement?
+        get() = getTrailingCommaByClosingElement(arrow)
 
-    @NotNull
-    public CjMatchCondition[] getConditions() {
-        return findChildrenByClass(CjMatchCondition.class);
-    }
-
-    public PsiElement getTrailingComma() {
-        return CjPsiUtilKt.getTrailingCommaByClosingElement(getArrow());
-    }
-
-    @Nullable
-    public PsiElement getArrow() {
-        return findChildByType(CjTokens.DOUBLE_ARROW);
-    }
+    val arrow: PsiElement?
+        get() = findChildByType(CjTokens.DOUBLE_ARROW)
 }

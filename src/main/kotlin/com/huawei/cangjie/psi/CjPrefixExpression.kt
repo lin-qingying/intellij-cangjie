@@ -1,24 +1,18 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.lang.ASTNode
+import com.intellij.psi.util.PsiTreeUtil
 
-public class CjPrefixExpression extends CjUnaryExpression {
-    public CjPrefixExpression(@NotNull ASTNode node) {
-        super(node);
+class CjPrefixExpression(node: ASTNode) : CjUnaryExpression(node) {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitPrefixExpression(this, data)
     }
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitPrefixExpression(this, data);
-    }
 
-    @Override
-    @Nullable
-    @IfNotParsed
-    public CjExpression getBaseExpression() {
-        return PsiTreeUtil.getNextSiblingOfType(getOperationReference(), CjExpression.class);
-    }
+    @get:IfNotParsed
+    override val baseExpression: CjExpression?
+        get() = PsiTreeUtil.getNextSiblingOfType(
+            operationReference,
+            CjExpression::class.java
+        )
 }

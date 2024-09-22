@@ -1,27 +1,15 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+interface CjCallElement : CjElement {
+    val calleeExpression: CjExpression?
 
-import java.util.List;
+    val valueArgumentList: CjValueArgumentList?
 
+    val valueArguments: List<ValueArgument>
 
-public interface CjCallElement extends CjElement {
-    @Nullable
-    CjExpression getCalleeExpression();
+    val lambdaArguments: List<CjLambdaArgument>
 
-    @Nullable
-    CjValueArgumentList getValueArgumentList();
+    val typeArguments: List<CjTypeProjection>
 
-    @NotNull
-    List<? extends ValueArgument> getValueArguments();
-
-    @NotNull
-    List<CjLambdaArgument> getLambdaArguments();
-
-    @NotNull
-    List<CjTypeProjection> getTypeArguments();
-
-    @Nullable
-    CjTypeArgumentList getTypeArgumentList();
+    val typeArgumentList: CjTypeArgumentList?
 }

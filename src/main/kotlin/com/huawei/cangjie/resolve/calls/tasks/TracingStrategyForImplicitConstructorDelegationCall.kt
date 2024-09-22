@@ -43,17 +43,17 @@ class TracingStrategyForImplicitConstructorDelegationCall(
         trace.report(UNRESOLVED_REFERENCE_WRONG_RECEIVER.on(reference, candidates))
     }
 
-    override fun <D : CallableDescriptor?> ambiguity(trace: BindingTrace, resolvedCalls: MutableCollection<out ResolvedCall<D>>) {
+
+    override fun <D : CallableDescriptor> ambiguity(trace: BindingTrace, resolvedCalls: Collection<ResolvedCall<D>>) {
+        reportError(trace)
+    }
+    override fun <D : CallableDescriptor> noneApplicable(
+        trace: BindingTrace,
+        descriptors: Collection<ResolvedCall<D>>
+    ) {
         reportError(trace)
     }
 
-
-
-
-
-    override fun <D : CallableDescriptor?> noneApplicable(trace: BindingTrace, descriptors: MutableCollection<out ResolvedCall<D>>) {
-        reportError(trace)
-    }
 
     override fun noValueForParameter(trace: BindingTrace, valueParameter: ValueParameterDescriptor) {
         reportError(trace)
@@ -73,10 +73,14 @@ class TracingStrategyForImplicitConstructorDelegationCall(
 
     // Underlying methods should not be called because such errors are impossible
     // when resolving delegation call
-    override fun <D : CallableDescriptor?> cannotCompleteResolve(trace: BindingTrace, descriptors: MutableCollection<out ResolvedCall<D>>) {
+
+
+    override fun <D : CallableDescriptor> cannotCompleteResolve(
+        trace: BindingTrace,
+        descriptors: Collection<ResolvedCall<D>>
+    ) {
         unexpectedError("cannotCompleteResolve")
     }
-
     override fun invisibleMember(trace: BindingTrace, descriptor: DeclarationDescriptorWithVisibility) {
         reportError(trace)
 

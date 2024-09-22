@@ -108,7 +108,7 @@ class ModifiersChecker(
         fun checkTypeParametersModifiers(modifierListOwner: CjModifierListOwner) {
             if (modifierListOwner !is CjTypeParameterListOwner) return
             val typeParameters: List<CjTypeParameter> =
-                modifierListOwner.getTypeParameters()
+                modifierListOwner.typeParameters
             for (typeParameter in typeParameters) {
                 ModifierCheckerCore.check(
                     typeParameter,
@@ -221,7 +221,7 @@ class ModifiersChecker(
             defaultVisibility: DescriptorVisibility
         ): DescriptorVisibility {
             return resolveVisibilityFromModifiers(
-                modifierListOwner.getModifierList(),
+                modifierListOwner.modifierList,
                 defaultVisibility
             )
         }

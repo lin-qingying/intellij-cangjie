@@ -1,97 +1,89 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
-import java.util.List;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.EditCommaSeparatedListHelper.addItem
+import com.huawei.cangjie.psi.EditCommaSeparatedListHelper.addItemAfter
+import com.huawei.cangjie.psi.EditCommaSeparatedListHelper.addItemBefore
+import com.huawei.cangjie.psi.EditCommaSeparatedListHelper.removeItem
+import com.huawei.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 
-public class CjParameterList extends CjElementImplStub<CangJiePlaceHolderStub<CjParameterList>> {
-    public CjParameterList(@NotNull ASTNode node) {
-        super(node);
+class CjParameterList : CjElementImplStub<CangJiePlaceHolderStub<CjParameterList>> {
+    constructor(node: ASTNode) : super(node)
+
+    constructor(stub: CangJiePlaceHolderStub<CjParameterList>) : super(stub, CjStubElementTypes.VALUE_PARAMETER_LIST)
+
+
+    override fun toString(): String {
+        return node.elementType.toString()
     }
 
-    public CjParameterList(@NotNull CangJiePlaceHolderStub<CjParameterList> stub) {
-        super(stub, CjStubElementTypes.VALUE_PARAMETER_LIST);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitParameterList(this, data)
     }
 
-
-    @Override
-    public String toString() {
-        return getNode().getElementType().toString();
+    override fun getParent(): PsiElement {
+        val stub: CangJiePlaceHolderStub<CjParameterList>? = stub
+        return if (stub != null) stub.parentStub.psi else super.getParent()
     }
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitParameterList(this, data);
+    val parameters: List<CjParameter>
+        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.VALUE_PARAMETER)
+
+    fun addParameter(parameter: CjParameter): CjParameter {
+        return addItem(
+            this,
+            parameters, parameter
+        )
     }
 
-    @Override
-    public PsiElement getParent() {
-        CangJiePlaceHolderStub<CjParameterList> stub = getStub();
-        return stub != null ? stub.getParentStub().getPsi() : super.getParent();
+    fun addParameterBefore(parameter: CjParameter, anchor: CjParameter?): CjParameter {
+        return addItemBefore(
+            this,
+            parameters, parameter, anchor
+        )
     }
 
-    @NotNull
-    public List<CjParameter> getParameters() {
-        return getStubOrPsiChildrenAsList(CjStubElementTypes.VALUE_PARAMETER);
+    fun addParameterAfter(parameter: CjParameter, anchor: CjParameter?): CjParameter {
+        return addItemAfter(
+            this,
+            parameters, parameter, anchor
+        )
     }
 
-    @NotNull
-    public CjParameter addParameter(@NotNull CjParameter parameter) {
-        return EditCommaSeparatedListHelper.INSTANCE.addItem(this, getParameters(), parameter);
+    fun removeParameter(parameter: CjParameter) {
+        removeItem(parameter)
     }
 
-    @NotNull
-    public CjParameter addParameterBefore(@NotNull CjParameter parameter, @Nullable CjParameter anchor) {
-        return EditCommaSeparatedListHelper.INSTANCE.addItemBefore(this, getParameters(), parameter, anchor);
+    fun removeParameter(index: Int) {
+        removeParameter(parameters[index])
     }
 
-    @NotNull
-    public CjParameter addParameterAfter(@NotNull CjParameter parameter, @Nullable CjParameter anchor) {
-        return EditCommaSeparatedListHelper.INSTANCE.addItemAfter(this, getParameters(), parameter, anchor);
-    }
+    val ownerFunction: CjDeclarationWithBody?
+        get() {
+            val parent = parentByStub as? CjDeclarationWithBody ?: return null
+            return parent
+        }
 
-    public void removeParameter(@NotNull CjParameter parameter) {
-        EditCommaSeparatedListHelper.INSTANCE.removeItem(parameter);
-    }
+    val rightParenthesis: PsiElement?
+        get() = findChildByType(CjTokens.RPAR)
 
-    public void removeParameter(int index) {
-        removeParameter(getParameters().get(index));
-    }
+    val leftParenthesis: PsiElement?
+        get() = findChildByType(CjTokens.LPAR)
 
-    public CjDeclarationWithBody getOwnerFunction() {
-        PsiElement parent = getParentByStub();
-        if (!(parent instanceof CjDeclarationWithBody)) return null;
-        return (CjDeclarationWithBody) parent;
-    }
+    val firstComma: PsiElement?
+        get() = findChildByType(CjTokens.COMMA)
 
-    @Nullable
-    public PsiElement getRightParenthesis() {
-        return findChildByType(CjTokens.RPAR);
-    }
-
-    @Nullable
-    public PsiElement getLeftParenthesis() {
-        return findChildByType(CjTokens.LPAR);
-    }
-
-    @Nullable
-    public PsiElement getFirstComma() {
-        return findChildByType(CjTokens.COMMA);
-    }
-
-    @Nullable
-    public PsiElement getTrailingComma() {
-        PsiElement parentElement = getParent();
-//        if (parentElement instanceof CjFunctionLiteral || parentElement instanceof CjPropertyAccessor) {
+    val trailingComma: PsiElement?
+        get() {
+            val parentElement = parent
+            //        if (parentElement instanceof CjFunctionLiteral || parentElement instanceof CjPropertyAccessor) {
 //            return CjPsiUtilKt.getTrailingCommaByElementsList(this);
 //        } else {
-            return CjPsiUtilKt.getTrailingCommaByClosingElement(getRightParenthesis());
-//        }
-    }
+            return getTrailingCommaByClosingElement(rightParenthesis)
+            //        }
+        }
 }

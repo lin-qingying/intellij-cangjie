@@ -1,21 +1,16 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+interface CjTypeParameterListOwner : CjNamedDeclaration {
+    val typeParameterList: CjTypeParameterList?
 
-import java.util.List;
+    val typeConstraintList: CjTypeConstraintList?
 
 
-public interface CjTypeParameterListOwner extends CjNamedDeclaration {
-    @Nullable
-    CjTypeParameterList getTypeParameterList();
 
-    @Nullable
-    CjTypeConstraintList getTypeConstraintList();
 
-    @NotNull
-    List<CjTypeConstraint> getTypeConstraints();
+    val typeConstraints: List<CjTypeConstraint >
 
-    @NotNull
-    List<CjTypeParameter> getTypeParameters();
+
+    val typeParameters: List<CjTypeParameter >
+
 }

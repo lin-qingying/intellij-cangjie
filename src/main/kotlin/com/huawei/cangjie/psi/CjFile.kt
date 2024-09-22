@@ -61,7 +61,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
             it.alias != null && fqName == it.importedFqName
         }?.alias
     }
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R =
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R  =
         visitor.visitCjFile(this, data)
 
     override fun accept(visitor: PsiElementVisitor) {

@@ -1,192 +1,170 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.CjNodeTypes;
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.psi.stubs.CangJieVariableStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.psi.PsiElement;
+import com.huawei.cangjie.CjNodeTypes
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.CjVariable
+import com.huawei.cangjie.psi.stubs.CangJieVariableStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.psi.PsiElement
+import com.intellij.psi.tree.TokenSet
+import com.intellij.psi.util.PsiTreeUtil
 
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.tree.TokenSet;
-import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.List;
-
-import static com.huawei.cangjie.lexer.CjTokens.CONST_KEYWORD;
-import static com.huawei.cangjie.lexer.CjTokens.EQ;
+class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub >, CjVariableDeclaration {
+    constructor(stub: CangJieVariableStub) : super(stub, CjStubElementTypes.VARIABLE)
+    constructor(node: ASTNode) : super(node)
 
 
-public class CjVariable extends CjTypeParameterListOwnerStub<CangJieVariableStub>
-        implements CjVariableDeclaration {
+    override val valueParameterList: CjParameterList?
+        //    @Override
+        get() = null
 
-    private static final Logger LOG = Logger.getInstance(CjVariable.class);
 
-    public CjVariable(@NotNull CangJieVariableStub stub ) {
-        super(stub, CjStubElementTypes.VARIABLE);
-    }
-    public CjVariable(@NotNull ASTNode node) {
-        super(node);
+    override fun toString(): String {
+        return super.toString() + ": " + name
     }
 
+    override val valueParameters: List<CjParameter>
+        get() = emptyList()
 
-//    @Override
-//    public bool shouldChangeModificationCount(PsiElement place) {
-//        return false;
-//    }
-
-    @Nullable
-    @Override
-    public CjParameterList getValueParameterList() {
-        return null;
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitVariable(this, data)
     }
 
 
-    @Override
-    public String toString() {
-        return super.toString() + ": " + getName();
-    }
-
-    @Override
-    public @NotNull List<CjParameter> getValueParameters() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitVariable(this, data);
-    }
-
-
-    @Override
-    public @Nullable CjTypeReference getReceiverTypeReference() {
-        CangJieVariableStub stub = getStub();
-        if (stub != null) {
-            if (!stub.isExtension()) {
-                return null;
-            }
-            else {
-                return getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE);
-            }
-        }
-        return getReceiverTypeRefByTree();
-    }
-
-    @Nullable
-    private CjTypeReference getReceiverTypeRefByTree() {
-        ASTNode node = getNode().getFirstChildNode();
-        while (node != null) {
-            IElementType tt = node.getElementType();
-            if (tt == CjTokens.COLON) break;
-
-            if (tt == CjNodeTypes.TYPE_REFERENCE) {
-                return (CjTypeReference) node.getPsi();
-            }
-            node = node.getTreeNext();
-        }
-
-        return null;
-    }
-
-    public boolean isTopLevel() {
-        CangJieVariableStub stub = getStub();
-        if (stub != null) {
-            return stub.isTopLevel();
-        }
-
-        return getParent() instanceof CjFile;
-    }
-    @Override
-    public @Nullable CjTypeReference getTypeReference() {
-        CangJieVariableStub stub = getStub();
-        if (stub != null) {
-            if (!stub.hasReturnTypeRef()) {
-                return null;
-            }
-            else {
-                List<CjTypeReference> typeReferences = getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_REFERENCE);
-                int returnTypeRefPositionInPsi = stub.isExtension() ? 1 : 0;
-                if (typeReferences.size() <= returnTypeRefPositionInPsi) {
-                    LOG.error("Invalid stub structure built for property:\n" + getText());
-                    return null;
+    override val receiverTypeReference: CjTypeReference?
+        get() {
+            val stub = stub
+            if (stub != null) {
+                return if (!stub.isExtension()) {
+                    null
+                } else {
+                    getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)
                 }
-                return typeReferences.get(returnTypeRefPositionInPsi);
             }
-        }
-        return TypeRefHelpersKt.getTypeReference(this);
-    }
-    public boolean isLocal() {
-        return !isTopLevel() && !isMember();
-    }
-
-
-    public boolean isMember() {
-        PsiElement parent = getParent();
-        return parent instanceof CjTypeStatement || parent instanceof CjClassBody  ;
-
-    }
-
-    @Override
-    public @Nullable CjTypeReference setTypeReference(@Nullable CjTypeReference typeRef) {
-        return null;
-    }
-
-    @Override
-    public @Nullable PsiElement getColon() {
-        return findChildByType(CjTokens.COLON);
-    }
-
-    @Override
-    public boolean isVar() {
-        CangJieVariableStub stub = getStub();
-        if (stub != null) {
-            return stub.isVar();
+            return receiverTypeRefByTree
         }
 
-        return getNode().findChildByType(CjTokens.VAR_KEYWORD) != null;
-    }
-    private static final TokenSet LET_VAR_TOKEN_SET = TokenSet.create(CjTokens.LET_KEYWORD,CONST_KEYWORD, CjTokens.VAR_KEYWORD);
+    private val receiverTypeRefByTree: CjTypeReference?
+        get() {
+            var node = node.firstChildNode
+            while (node != null) {
+                val tt = node.elementType
+                if (tt === CjTokens.COLON) break
 
-    @Nullable
-    @Override
-    public PsiElement getLetOrVarKeyword() {
-        PsiElement element = findChildByType(LET_VAR_TOKEN_SET);
-        assert element != null : "Let or var should always exist for property" + this.getText();
-        return element;
-    }
-
-    @Nullable
-    @Override
-    public CjExpression getInitializer() {
-        CangJieVariableStub stub = getStub();
-        if (stub != null) {
-            if (!stub.hasInitializer()) {
-                return null;
+                if (tt === CjNodeTypes.TYPE_REFERENCE) {
+                    return node.psi as CjTypeReference
+                }
+                node = node.treeNext
             }
 
-            if (getContainingCjFile().isCompiled()) {
+            return null
+        }
 
-                return null;
+    val isTopLevel: Boolean
+        get() {
+            val stub = stub
+            if (stub != null) {
+                return stub.isTopLevel()
             }
+
+            return parent is CjFile
+        }
+    override val typeReference: CjTypeReference?
+        get() {
+            val stub = stub
+            if (stub != null) {
+                if (!stub.hasReturnTypeRef()) {
+                    return null
+                } else {
+                    val typeReferences =
+                        getStubOrPsiChildrenAsList(
+                            CjStubElementTypes.TYPE_REFERENCE
+                        )
+                    val returnTypeRefPositionInPsi = if (stub.isExtension()) 1 else 0
+                    if (typeReferences.size <= returnTypeRefPositionInPsi) {
+                        LOG.error(
+                            """
+                                Invalid stub structure built for property:
+                                $text
+                                """.trimIndent()
+                        )
+                        return null
+                    }
+                    return typeReferences[returnTypeRefPositionInPsi]
+                }
+            }
+            return getTypeReference(this)
+        }
+    val isLocal: Boolean
+        get() = !isTopLevel && !isMember
+
+
+    val isMember: Boolean
+        get() {
+            val parent = parent
+            return parent is CjTypeStatement || parent is CjClassBody
         }
 
-        return PsiTreeUtil.getNextSiblingOfType(findChildByType(EQ), CjExpression.class);
+    override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? {
+        return null
     }
 
-    @Override
-    public boolean hasInitializer() {
-        CangJieVariableStub stub = getStub();
+    override val colon: PsiElement?
+        get() = findChildByType(CjTokens.COLON)
+
+    override val isVar: Boolean
+        get() {
+            val stub = stub
+            if (stub != null) {
+                return stub.isVar()
+            }
+
+            return node.findChildByType(CjTokens.VAR_KEYWORD) != null
+        }
+    override val letOrVarKeyword: PsiElement
+        get() {
+            val element =
+                checkNotNull(findChildByType(LET_VAR_TOKEN_SET)) { "Let or var should always exist for property" + this.text }
+            return element
+        }
+
+    override val initializer: CjExpression?
+        get() {
+            val stub = stub
+            if (stub != null) {
+                if (!stub.hasInitializer()) {
+                    return null
+                }
+
+                if (containingCjFile.isCompiled) {
+                    return null
+                }
+            }
+
+            return PsiTreeUtil.getNextSiblingOfType(
+                findChildByType(CjTokens.EQ),
+                CjExpression::class.java
+            )
+        }
+
+    override fun hasInitializer(): Boolean {
+        val stub = stub
         if (stub != null) {
-            return stub.hasInitializer();
+            return stub.hasInitializer()
         }
 
-        return getInitializer() != null;
+        return initializer != null
     }
 
 
+    companion object {
+        private val LOG = Logger.getInstance(
+            CjVariable::class.java
+        )
 
+        private val LET_VAR_TOKEN_SET =
+            TokenSet.create(CjTokens.LET_KEYWORD, CjTokens.CONST_KEYWORD, CjTokens.VAR_KEYWORD)
+    }
 }

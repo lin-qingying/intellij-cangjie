@@ -1,83 +1,60 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.descriptors.DescriptorVisibilities;
-import com.huawei.cangjie.descriptors.DescriptorVisibility;
-import com.huawei.cangjie.doc.psi.CDoc;
-import com.huawei.cangjie.lexer.CjModifierKeywordToken;
-import com.huawei.cangjie.psi.psiUtil.AddRemoveModifierKt;
-import com.huawei.cangjie.psi.psiUtil.FindDocCommentKt;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiTreeUtilKt;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.CjNodeTypes
+import com.huawei.cangjie.descriptors.DescriptorVisibilities
+import com.huawei.cangjie.descriptors.DescriptorVisibility
+import com.huawei.cangjie.doc.psi.CDoc
+import com.huawei.cangjie.lexer.CjModifierKeywordToken
+import com.huawei.cangjie.psi.psiUtil.addModifier
+import com.huawei.cangjie.psi.psiUtil.findDocComment
+import com.huawei.cangjie.psi.psiUtil.removeModifier
+import com.huawei.cangjie.resolve.ModifiersChecker.Companion.resolveVisibilityFromModifiers
+import com.intellij.lang.ASTNode
+import com.intellij.psi.util.PsiTreeUtil
 
-import com.huawei.cangjie.CjNodeTypes;
-
-import java.util.Collections;
-import java.util.List;
-
-import static com.huawei.cangjie.resolve.ModifiersChecker.resolveVisibilityFromModifiers;
+abstract class CjDeclarationImpl(node: ASTNode) : CjExpressionImpl(node), CjDeclaration {
+    override val modifierList : CjModifierList? get() =
+          findChildByType(CjNodeTypes.MODIFIER_LIST)
 
 
-public abstract class CjDeclarationImpl extends CjExpressionImpl implements CjDeclaration {
-    public CjDeclarationImpl(@NotNull ASTNode node) {
-        super(node);
+    override fun hasModifier(modifier: CjModifierKeywordToken): Boolean {
+        val modifierList: CjModifierList? = modifierList
+        return modifierList != null && modifierList.hasModifier(modifier)
     }
 
-    @Override
-    @Nullable
-    public CjModifierList getModifierList() {
-        return findChildByType(CjNodeTypes.MODIFIER_LIST);
+    override val expression: CjExpression?
+        get() = PsiTreeUtil.getStubChildOfType(
+            this,
+            CjExpression::class.java
+        )
+    override val annotations: List<CjAnnotation>
+        get() {
+            val modifierList: CjModifierList = modifierList ?: return emptyList()
+            return modifierList.annotations
+        }
+
+    override val annotationEntries: List<CjAnnotationEntry>
+        get() {
+            val modifierList: CjModifierList = modifierList ?: return emptyList()
+            return modifierList.annotationEntries
+        }
+
+    override fun addModifier(modifier: CjModifierKeywordToken) {
+        addModifier(this, modifier)
     }
 
-    @Override
-    public boolean hasModifier(@NotNull CjModifierKeywordToken modifier) {
-        CjModifierList modifierList = getModifierList();
-        return modifierList != null && modifierList.hasModifier(modifier);
-    }
-
-    @Override
-    public @Nullable CjExpression getExpression() {
-        return PsiTreeUtil.getStubChildOfType(this, CjExpression.class);
-
-    }
-    @NotNull
-    @Override
-    public List<CjAnnotation> getAnnotations() {
-        CjModifierList modifierList = getModifierList();
-        if (modifierList == null) return Collections.emptyList();
-        return modifierList.getAnnotations();
-    }
-
-    @NotNull
-    @Override
-    public List<CjAnnotationEntry> getAnnotationEntries() {
-        CjModifierList modifierList = getModifierList();
-        if (modifierList == null) return Collections.emptyList();
-        return modifierList.getAnnotationEntries();
-    }
-    @Override
-    public void addModifier(@NotNull CjModifierKeywordToken modifier) {
-        AddRemoveModifierKt.addModifier(this, modifier);
-    }
-
-    @Override
-    public void removeModifier(@NotNull CjModifierKeywordToken modifier) {
-        AddRemoveModifierKt.removeModifier(this, modifier);
+    override fun removeModifier(modifier: CjModifierKeywordToken) {
+        removeModifier(this, modifier)
     }
 
 
-    @NotNull
-    @Override
-    public DescriptorVisibility getModifierVisibility() {
-        return resolveVisibilityFromModifiers(this, DescriptorVisibilities.INTERNAL);
-    }
+    override val modifierVisibility : DescriptorVisibility get() =
+          resolveVisibilityFromModifiers(this, DescriptorVisibilities.INTERNAL)
 
 
-    @Nullable
-    @Override
-    public CDoc getDocComment() {
-        return FindDocCommentKt.findDocComment(this);
-    }
+
+    override val docComment: CDoc?
+        get() {
+            return findDocComment(this)
+        }
 }

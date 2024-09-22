@@ -2,6 +2,7 @@ package com.huawei.cangjie.psi.stubs.elements;
 
 import com.huawei.cangjie.psi.*;
 import com.intellij.psi.tree.TokenSet;
+import org.jetbrains.annotations.NotNull;
 
 public interface CjStubElementTypes {
 
@@ -32,7 +33,7 @@ public interface CjStubElementTypes {
     CjTypeParameterElementType TYPE_PARAMETER = new CjTypeParameterElementType("TYPE_PARAMETER");
     CjPlaceHolderStubElementType<CjTypeParameterList> TYPE_PARAMETER_LIST =
             new CjPlaceHolderStubElementType<>("TYPE_PARAMETER_LIST", CjTypeParameterList.class);
-
+@NotNull
     CjAnnotationEntryElementType ANNOTATION_ENTRY = new CjAnnotationEntryElementType("ANNOTATION_ENTRY");
     CjPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
             new CjPlaceHolderStubElementType<>("ANNOTATION", CjAnnotation.class);

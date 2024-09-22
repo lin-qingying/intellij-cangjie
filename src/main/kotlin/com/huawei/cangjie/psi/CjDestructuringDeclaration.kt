@@ -1,78 +1,73 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.tree.TokenSet;
-import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.CjNodeTypes
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.tree.TokenSet
+import com.intellij.psi.util.PsiTreeUtil
 
-import java.util.List;
-import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
+class CjDestructuringDeclaration(node: ASTNode) : CjDeclarationImpl(node), CjLetVarKeywordOwner,
+    CjDeclarationWithInitializer {
+    override val expression: CjExpression?
+        get() = PsiTreeUtil.getStubChildOfType(
+            this,
+            CjExpression::class.java
+        )
 
-import com.huawei.cangjie.CjNodeTypes;
-
-import static com.huawei.cangjie.lexer.CjTokens.*;
-
-public class CjDestructuringDeclaration extends CjDeclarationImpl implements CjLetVarKeywordOwner, CjDeclarationWithInitializer {
-    private static final TokenSet VAL_VAR_KEYWORDS = TokenSet.create(LET_KEYWORD, VAR_KEYWORD,CONST_KEYWORD);
-
-    public CjDestructuringDeclaration(@NotNull ASTNode node) {
-        super(node);
-    }
-    @Override
-    public @Nullable CjExpression getExpression() {
-        return PsiTreeUtil.getStubChildOfType(this, CjExpression.class);
-
-    }
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitDestructuringDeclaration(this, data);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitDestructuringDeclaration(this, data)
     }
 
-    @NotNull
-    public List<CjDestructuringDeclarationEntry> getEntries() {
-        return findChildrenByType(CjNodeTypes.DESTRUCTURING_DECLARATION_ENTRY);
-    }
-
-    @Nullable
-    @Override
-    public CjExpression getInitializer() {
-        ASTNode eqNode = getNode().findChildByType(EQ);
-        if (eqNode == null) {
-            return null;
+    val entries: List<CjDestructuringDeclarationEntry>
+        get() {
+            return findChildrenByType(CjNodeTypes.DESTRUCTURING_DECLARATION_ENTRY)
         }
-        return PsiTreeUtil.getNextSiblingOfType(eqNode.getPsi(), CjExpression.class);
+
+    override val initializer: CjExpression?
+        get() {
+            val eqNode: ASTNode? = node.findChildByType(CjTokens.EQ)
+            if (eqNode == null) {
+                return null
+            }
+            return PsiTreeUtil.getNextSiblingOfType(
+                eqNode.psi,
+                CjExpression::class.java
+            )
+        }
+
+    override fun hasInitializer(): Boolean {
+        return initializer != null
     }
 
-    @Override
-    public boolean hasInitializer() {
-        return getInitializer() != null;
-    }
+    val isVar: Boolean
+        get() {
+            return node.findChildByType(CjTokens.VAR_KEYWORD) != null
+        }
 
-    public boolean isVar() {
-        return getNode().findChildByType(VAR_KEYWORD) != null;
-    }
+    override val letOrVarKeyword: PsiElement?
+        get() {
+            return findChildByType(VAL_VAR_KEYWORDS)
+        }
 
-    @Override
-    @Nullable
-    public PsiElement getLetOrVarKeyword() {
-        return findChildByType(VAL_VAR_KEYWORDS);
-    }
+    val rPar: PsiElement?
+        get() {
+            return findChildByType(CjTokens.RPAR)
+        }
 
-    @Nullable
-    public PsiElement getRPar() {
-        return findChildByType(CjTokens.RPAR);
-    }
+    val lPar: PsiElement?
+        get() {
+            return findChildByType(CjTokens.LPAR)
+        }
 
-    @Nullable
-    public PsiElement getLPar() {
-        return findChildByType(CjTokens.LPAR);
-    }
+    val trailingComma: PsiElement?
+        get() {
+            return getTrailingCommaByClosingElement(rPar)
+        }
 
-    @Nullable
-    public PsiElement getTrailingComma() {
-        return CjPsiUtilKt.getTrailingCommaByClosingElement(getRPar());
+    companion object {
+        private val VAL_VAR_KEYWORDS: TokenSet =
+            TokenSet.create(CjTokens.LET_KEYWORD, CjTokens.VAR_KEYWORD, CjTokens.CONST_KEYWORD)
     }
 }

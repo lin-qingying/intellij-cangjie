@@ -474,18 +474,18 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     }
 
     override fun visitDestructuringDeclaration(
-        multiDeclaration: CjDestructuringDeclaration,
+        cjDestructuringDeclaration: CjDestructuringDeclaration,
         data: Void?
     ): Void? {
-        visitDestructuringDeclaration(multiDeclaration)
+        visitDestructuringDeclaration(cjDestructuringDeclaration)
         return null
     }
 
     override fun visitDestructuringDeclarationEntry(
-        multiDeclarationEntry: CjDestructuringDeclarationEntry,
+        cjDestructuringDeclarationEntry: CjDestructuringDeclarationEntry,
         data: Void?
     ): Void? {
-        visitDestructuringDeclarationEntry(multiDeclarationEntry)
+        visitDestructuringDeclarationEntry(cjDestructuringDeclarationEntry)
         return null
     }
 
@@ -534,18 +534,18 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
         return null
     }
 
-    override fun visitEnumEntry(enumEntry: CjEnumEntry, data: Void?): Void? {
-        visitEnumEntry(enumEntry)
+    override fun visitEnumEntry(cjEnumEntry: CjEnumEntry, data: Void?): Void? {
+        visitEnumEntry(cjEnumEntry)
         return null
     }
 
-    override fun visitParameterList(list: CjParameterList, data: Void?): Void? {
-        visitParameterList(list)
+    override fun visitParameterList(cjParameterList: CjParameterList, data: Void?): Void? {
+        visitParameterList(cjParameterList)
         return null
     }
 
-    override fun visitParameter(parameter: CjParameter, data: Void?): Void? {
-        visitParameter(parameter)
+    override fun visitParameter(cjParameter: CjParameter, data: Void?): Void? {
+        visitParameter(cjParameter)
         return null
     }
 

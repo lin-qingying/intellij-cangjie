@@ -1,32 +1,27 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderWithTextStub;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderWithTextStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
-public class CjLiteralStringTemplateEntry extends CjStringTemplateEntry {
-    public CjLiteralStringTemplateEntry(@NotNull ASTNode node) {
-        super(node);
+class CjLiteralStringTemplateEntry : CjStringTemplateEntry {
+    constructor(node: ASTNode) : super(node)
+
+    constructor(stub: CangJiePlaceHolderWithTextStub<CjLiteralStringTemplateEntry >) : super(
+        stub,
+        CjStubElementTypes.LITERAL_STRING_TEMPLATE_ENTRY
+    )
+
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitLiteralStringTemplateEntry(this, data)
     }
 
-    public CjLiteralStringTemplateEntry(@NotNull CangJiePlaceHolderWithTextStub<CjLiteralStringTemplateEntry> stub) {
-        super(stub, CjStubElementTypes.LITERAL_STRING_TEMPLATE_ENTRY);
-    }
-
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitLiteralStringTemplateEntry(this, data);
-    }
-
-    @Override
-    public String getText() {
-        CangJiePlaceHolderWithTextStub<? extends CjStringTemplateEntry> stub = getStub();
+    override fun getText(): String {
+        val stub = stub
         if (stub != null) {
-            return stub.text();
+            return stub.text()
         }
 
-        return super.getText();
+        return super.getText()
     }
 }

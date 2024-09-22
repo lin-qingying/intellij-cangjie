@@ -152,7 +152,7 @@ class LazyPackageViewDescriptorImpl(
 
                     visibilitys.add(it.packageDirective!!.modifierVisibility)
                 }
-                it.packageDirective?.getModifierVisibility()
+                it.packageDirective?.modifierVisibility
             }
 
 //            如果macroPackagesIS全部为true 或者其中有true

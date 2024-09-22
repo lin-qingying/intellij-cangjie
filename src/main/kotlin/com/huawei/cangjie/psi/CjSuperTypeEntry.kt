@@ -1,28 +1,22 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
+class CjSuperTypeEntry : CjSuperTypeListEntry {
+    constructor(node: ASTNode) : super(node)
 
-public class CjSuperTypeEntry extends CjSuperTypeListEntry {
-    public CjSuperTypeEntry(@NotNull ASTNode node) {
-        super(node);
+    constructor(stub: CangJiePlaceHolderStub<out CjSuperTypeListEntry >) : super(
+        stub,
+        CjStubElementTypes.SUPER_TYPE_ENTRY
+    )
+
+    override fun toString(): String {
+        return node.elementType.toString()
     }
 
-    public CjSuperTypeEntry(@NotNull CangJiePlaceHolderStub<? extends CjSuperTypeListEntry> stub) {
-        super(stub, CjStubElementTypes.SUPER_TYPE_ENTRY);
-    }
-
-    @Override
-    public String toString() {
-        return   getNode().getElementType().toString();
-    }
-
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitSuperTypeEntry(this, data);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitSuperTypeEntry(this, data)
     }
 }

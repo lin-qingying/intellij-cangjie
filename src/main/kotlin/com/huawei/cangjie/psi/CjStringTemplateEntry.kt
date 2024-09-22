@@ -1,28 +1,22 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
+
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderWithTextStub
+import com.intellij.lang.ASTNode
+import com.intellij.psi.stubs.IStubElementType
 
 
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderWithTextStub;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.stubs.IStubElementType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+abstract class CjStringTemplateEntry : CjElementImplStub<CangJiePlaceHolderWithTextStub<out CjStringTemplateEntry > > {
+    constructor(node: ASTNode) : super(node)
 
-public abstract class CjStringTemplateEntry extends CjElementImplStub<CangJiePlaceHolderWithTextStub<? extends CjStringTemplateEntry>> {
-    public static final CjStringTemplateEntry[] EMPTY_ARRAY = new CjStringTemplateEntry[0];
+    constructor(
+        stub: CangJiePlaceHolderWithTextStub<out CjStringTemplateEntry >,
+        elementType: IStubElementType<*, *>
+    ) : super(stub, elementType)
 
-    public CjStringTemplateEntry(@NotNull ASTNode node) {
-        super(node);
-    }
+    val expression: CjExpression?
+        get() = findChildByClass(CjExpression::class.java)
 
-    public CjStringTemplateEntry(
-            @NotNull CangJiePlaceHolderWithTextStub<? extends CjStringTemplateEntry> stub,
-            @NotNull IStubElementType elementType
-    ) {
-        super(stub, elementType);
-    }
-
-    @Nullable
-    public CjExpression getExpression() {
-        return findChildByClass(CjExpression.class);
+    companion object {
+        val EMPTY_ARRAY: Array<CjStringTemplateEntry?> = arrayOfNulls(0)
     }
 }

@@ -1,10 +1,5 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.lang.ASTNode
 
-public abstract class CjMatchCondition  extends CjElementImpl{
-    public CjMatchCondition(@NotNull ASTNode node) {
-        super(node);
-    }
-}
+abstract class CjMatchCondition(node: ASTNode) : CjElementImpl(node)

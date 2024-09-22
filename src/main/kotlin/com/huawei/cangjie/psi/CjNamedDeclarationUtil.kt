@@ -1,62 +1,39 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.name.FqName;
-import com.huawei.cangjie.name.FqNameUnsafe;
-import com.huawei.cangjie.name.Name;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.name.FqName
+import com.huawei.cangjie.name.FqNameUnsafe
 
-
-
-public final class CjNamedDeclarationUtil {
-    @Nullable
-    public static FqNameUnsafe getUnsafeFQName(@NotNull CjNamedDeclaration namedDeclaration) {
-        FqName fqName = namedDeclaration.getFqName();
-        return fqName != null ? fqName.toUnsafe() : null;
+object CjNamedDeclarationUtil {
+    fun getUnsafeFQName(namedDeclaration: CjNamedDeclaration): FqNameUnsafe? {
+        val fqName = namedDeclaration.fqName
+        return fqName?.toUnsafe()
     }
 
-    @Nullable
+    fun getFQName(namedDeclaration: CjNamedDeclaration): FqName? {
+        val name = namedDeclaration.nameAsName ?: return null
 
-  static FqName getFQName(@NotNull CjNamedDeclaration namedDeclaration) {
-        Name name = namedDeclaration.getNameAsName();
-        if (name == null) {
-            return null;
-        }
+        val parentFqName = getParentFqName(namedDeclaration) ?: return null
 
-        FqName parentFqName = getParentFqName(namedDeclaration);
-
-        if (parentFqName == null) {
-            return null;
-        }
-
-        return parentFqName.child(name);
+        return parentFqName.child(name)
     }
 
-    @Nullable
-    public static FqName getParentFqName(@NotNull CjNamedDeclaration namedDeclaration) {
-        PsiElement parent = namedDeclaration.getParent();
-        if (parent instanceof CjClassBody) {
-
-            parent = parent.getParent();
+    fun getParentFqName(namedDeclaration: CjNamedDeclaration): FqName? {
+        var parent = namedDeclaration.parent
+        if (parent is CjClassBody) {
+            parent = parent.getParent()
         }
 
-        if (parent instanceof CjFile) {
-            return ((CjFile) parent).getPackageFqName();
-        }
-
-        else if (namedDeclaration instanceof CjParameter) {
-            CjTypeStatement constructorClass = CjPsiUtil.getClassIfParameterIsProperty((CjParameter) namedDeclaration);
+        if (parent is CjFile) {
+            return parent.packageFqName
+        } else if (namedDeclaration is CjParameter) {
+            val constructorClass = CjPsiUtil.getClassIfParameterIsProperty(namedDeclaration)
             if (constructorClass != null) {
-                return getFQName(constructorClass);
+                return getFQName(constructorClass)
             }
         }
 
 
 
-        return null;
-    }
-
-    private CjNamedDeclarationUtil() {
+        return null
     }
 }

@@ -16,8 +16,10 @@ import com.huawei.cangjie.resolve.scopes.ExplicitImportsScope
 import com.huawei.cangjie.resolve.scopes.addImportingScope
 import com.huawei.cangjie.resolve.scopes.getResolutionScope
 import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver
+import com.huawei.cangjie.resolve.scopes.receivers.Receiver
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.huawei.cangjie.types.util.TypeUtils
+import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
 class ShadowedDeclarationsFilter(
@@ -183,27 +185,17 @@ class ShadowedDeclarationsFilter(
             //val arguments = parameters.indices.map { DummyArgument(it) }
             val callee = psiFactory.createExpressionByPattern("$0", name, reformat = false)
 
-            override fun getCalleeExpression() = callee
-
-            override fun getValueArgumentList() = null
-
-            override fun getValueArguments() = arguments
-
-            override fun getFunctionLiteralArguments() = emptyList<LambdaArgument>()
-
-            override fun getTypeArguments() = emptyList<CjTypeProjection>()
-
-            override fun getTypeArgumentList() = null
-
-            override fun getDispatchReceiver() = null
-
-            override fun getCallOperationNode() = null
-
-            override fun getExplicitReceiver() = explicitReceiverValue
-
-            override fun getCallElement() = callee
-
-            override fun getCallType() = Call.CallType.DEFAULT
+            override val callOperationNode: ASTNode? = null
+            override val explicitReceiver: Receiver? = explicitReceiverValue
+            override val dispatchReceiver: ReceiverValue? = null
+            override val calleeExpression: CjExpression = callee
+            override val valueArgumentList: CjValueArgumentList? = null
+            override val valueArguments: List<ValueArgument> = arguments
+            override val functionLiteralArguments = emptyList<LambdaArgument>()
+            override val typeArguments = emptyList<CjTypeProjection>()
+            override val typeArgumentList: CjTypeArgumentList? = null
+            override val callElement: CjElement = callee
+            override val callType: Call.CallType = Call.CallType.DEFAULT
         }
 
         var scope = context.getResolutionScope(bindingContext, resolutionFacade)

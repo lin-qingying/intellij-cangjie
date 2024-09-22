@@ -1,13 +1,7 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import org.jetbrains.annotations.NotNull;
+interface CjAnnotated : CjElement {
+    val annotations: List<CjAnnotation >
 
-import java.util.List;
-
-public interface CjAnnotated extends CjElement {
-    @NotNull
-    List<CjAnnotation> getAnnotations();
-
-    @NotNull
-    List<CjAnnotationEntry> getAnnotationEntries();
+    val annotationEntries: List<CjAnnotationEntry >
 }

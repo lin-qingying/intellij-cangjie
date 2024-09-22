@@ -1,32 +1,18 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
-import java.util.List;
+class CjImportList : CjElementImplStub<CangJiePlaceHolderStub<CjImportList > > {
+    constructor(node: ASTNode) : super(node)
 
+    constructor(stub: CangJiePlaceHolderStub<CjImportList >) : super(stub, CjStubElementTypes.IMPORT_LIST)
 
-
-public class CjImportList extends CjElementImplStub<CangJiePlaceHolderStub<CjImportList>> {
-
-    public CjImportList(@NotNull ASTNode node) {
-        super(node);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitImportList(this, data)
     }
 
-    public CjImportList(@NotNull CangJiePlaceHolderStub<CjImportList> stub) {
-        super(stub, CjStubElementTypes.IMPORT_LIST);
-    }
-
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitImportList(this, data);
-    }
-
-    @NotNull
-    public List<CjImportDirective> getImports() {
-        return getStubOrPsiChildrenAsList(CjStubElementTypes.IMPORT_DIRECTIVE);
-    }
+    val imports: List<CjImportDirective>
+        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.IMPORT_DIRECTIVE)
 }

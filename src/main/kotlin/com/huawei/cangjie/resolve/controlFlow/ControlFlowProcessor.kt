@@ -1343,7 +1343,7 @@ class ControlFlowProcessor(
             val inputExpressions = ArrayList<CjExpression>()
             for (entry in expression.entries) {
                 if (entry is CjStringTemplateEntryWithExpression) {
-                    val entryExpression = entry.getExpression()
+                    val entryExpression = entry.expression
                     generateInstructions(entryExpression)
                     if (entryExpression != null) {
                         inputExpressions.add(entryExpression)

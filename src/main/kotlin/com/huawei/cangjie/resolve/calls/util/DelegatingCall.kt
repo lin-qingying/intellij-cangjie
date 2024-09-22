@@ -1,102 +1,53 @@
-package com.huawei.cangjie.resolve.calls.util;
+package com.huawei.cangjie.resolve.calls.util
 
-import com.huawei.cangjie.psi.*;
-import com.huawei.cangjie.resolve.scopes.receivers.Receiver;
-import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue;
-import com.huawei.cangjie.utils.ReadOnly;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.resolve.scopes.receivers.Receiver
+import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
+import com.huawei.cangjie.utils.ReadOnly
+import com.intellij.lang.ASTNode
 
-import java.util.List;
-
-
-public class DelegatingCall implements Call {
-
-    private final Call delegate;
-
-    public DelegatingCall(@NotNull Call delegate) {
-        this.delegate = delegate;
-    }
+open class DelegatingCall(private val delegate: Call) : Call {
+    override val callOperationNode: ASTNode?
+        get() = delegate.callOperationNode
+    override val explicitReceiver: Receiver?
+        get() = delegate.explicitReceiver
 
 
-        @Override
-    @Nullable
-    public ASTNode getCallOperationNode() {
-        return delegate.getCallOperationNode();
-    }
-@Override
-@Nullable
-public Receiver getExplicitReceiver() {
-    return delegate.getExplicitReceiver();
-}
+    override val dispatchReceiver: ReceiverValue?
+        get() = delegate.dispatchReceiver
+    override val calleeExpression: CjExpression?
+        //
+        get() = delegate.calleeExpression
 
 
-    @Nullable
-    @Override
-    public ReceiverValue getDispatchReceiver() {
-        return delegate.getDispatchReceiver();
-    }
-//
-    @Override
-    @Nullable
-    public CjExpression getCalleeExpression() {
-        return delegate.getCalleeExpression();
-    }
+    override val valueArgumentList: CjValueArgumentList?
+        get() = delegate.valueArgumentList
+
+    @get:ReadOnly
+    override val valueArguments: List<ValueArgument>
+        //
+        get() = delegate.valueArguments
 
 
+    override val functionLiteralArguments: List<LambdaArgument>
+        get() = delegate.functionLiteralArguments
 
-    @Override
-    @Nullable
-    public CjValueArgumentList getValueArgumentList() {
-        return delegate.getValueArgumentList();
-    }
-//
-    @Override
-    @NotNull
-    @ReadOnly
-    public List<? extends ValueArgument> getValueArguments() {
-        return delegate.getValueArguments();
-    }
+    override val typeArguments: List<CjTypeProjection>
+        get() = delegate.typeArguments
 
 
-
-    @Override
-    @NotNull
-    public List<? extends LambdaArgument> getFunctionLiteralArguments() {
-        return delegate.getFunctionLiteralArguments();
-    }
-
-    @Override
-    @NotNull
-    public List<CjTypeProjection> getTypeArguments() {
-        return delegate.getTypeArguments();
-    }
+    override val typeArgumentList: CjTypeArgumentList?
+        //
+        get() = delegate.typeArgumentList
 
 
-//
-    @Override
-    @Nullable
-    public CjTypeArgumentList getTypeArgumentList() {
-        return delegate.getTypeArgumentList();
-    }
+    override val callElement: CjElement
+        get() = delegate.callElement
 
+    override val callType: Call.CallType
+        get() = delegate.callType
 
-
-    @NotNull
-    @Override
-    public CjElement getCallElement() {
-        return delegate.getCallElement();
-    }
-
-    @NotNull
-    @Override
-    public CallType getCallType() {
-        return delegate.getCallType();
-    }
-
-    @Override
-    public String toString() {
-        return "*" + delegate.toString();
+    override fun toString(): String {
+        return "*$delegate"
     }
 }

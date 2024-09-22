@@ -1,50 +1,40 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.CjNodeTypes;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.CjNodeTypes
+import com.intellij.lang.ASTNode
+import java.util.*
 
-import java.util.Objects;
-
-public class CjBinaryExpressionWithTypeRHS  extends CjExpressionImpl implements CjOperationExpression{
-
-
-    public CjBinaryExpressionWithTypeRHS(@NotNull ASTNode node) {
-        super(node);
+class CjBinaryExpressionWithTypeRHS(node: ASTNode) : CjExpressionImpl(node), CjOperationExpression {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitBinaryWithTypeRHSExpression(this, data)
     }
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitBinaryWithTypeRHSExpression(this, data);
-    }
-
-    @NotNull
-    public CjExpression getLeft() {
-        CjExpression left = findChildByClass(CjExpression.class);
-        assert left != null;
-        return left;
-    }
-
-    @Nullable
-    @IfNotParsed
-    public CjTypeReference getRight() {
-        ASTNode node = getOperationReference().getNode();
-        while (node != null) {
-            PsiElement psi = node.getPsi();
-            if (psi instanceof CjTypeReference) {
-                return (CjTypeReference) psi;
-            }
-            node = node.getTreeNext();
+    val left: CjExpression
+        get() {
+            val left = checkNotNull(
+                findChildByClass(
+                    CjExpression::class.java
+                )
+            )
+            return left
         }
 
-        return null;
-    }
+    @get:IfNotParsed
+    val right: CjTypeReference?
+        get() {
+            var node = operationReference.node
+            while (node != null) {
+                val psi = node.psi
+                if (psi is CjTypeReference) {
+                    return psi
+                }
+                node = node.treeNext
+            }
 
-    @Override
-    @NotNull
-    public CjSimpleNameExpression getOperationReference() {
-        return Objects.requireNonNull(findChildByType(CjNodeTypes.OPERATION_REFERENCE));
-    }
+            return null
+        }
+
+    override val operationReference : CjSimpleNameExpression get() =
+           findChildByType(CjNodeTypes.OPERATION_REFERENCE)!!
+
 }

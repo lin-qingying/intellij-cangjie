@@ -1,16 +1,11 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
+import com.huawei.cangjie.lexer.CjTokens
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 
-
-public class CjConstructorDelegationReferenceExpression extends CjExpressionImpl implements CjReferenceExpression {
-    public CjConstructorDelegationReferenceExpression(@NotNull ASTNode node) {
-        super(node);
-    }
-@NotNull
-    public boolean isThis() {
-        return findChildByType(CjTokens.THIS_KEYWORD) != null;
-    }
+class CjConstructorDelegationReferenceExpression(node: ASTNode) : CjExpressionImpl(node),
+    CjReferenceExpression {
+    val isThis: Boolean
+        get() = findChildByType<PsiElement?>(CjTokens.THIS_KEYWORD) != null
 }

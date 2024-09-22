@@ -6,7 +6,7 @@ import com.huawei.cangjie.diagnostics.Diagnostic
 import com.huawei.cangjie.diagnostics.Severity
 import com.huawei.cangjie.psi.CjAnnotated
 import com.huawei.cangjie.psi.CjFile
-import com.huawei.cangjie.psi.CjStubbedPsiUtil
+import com.huawei.cangjie.psi.psiUtil.CjStubbedPsiUtil
 import com.huawei.cangjie.psi.doNotAnalyze
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.constants.ArrayValue

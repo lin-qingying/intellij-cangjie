@@ -11,7 +11,7 @@ class CjStruct :CjTypeStatement{
 
     override fun toString(): String = node.elementType.toString() + " : $name"
 
-    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R  {
         return visitor.visitStruct(this, data)
     }
 }

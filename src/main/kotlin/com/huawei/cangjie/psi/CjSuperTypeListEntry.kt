@@ -1,60 +1,55 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.psi.psiUtil.PsiUtilsKt;
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.stubs.IStubElementType;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiTreeUtilKt;
-import com.intellij.util.ArrayFactory;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.psi.CjTypeStatement
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.IStubElementType
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.ArrayFactory
 
+open class CjSuperTypeListEntry : CjElementImplStub<CangJiePlaceHolderStub<out CjSuperTypeListEntry > > {
+    constructor(node: ASTNode) : super(node)
 
+    constructor(
+        stub: CangJiePlaceHolderStub<out CjSuperTypeListEntry >,
+        nodeType: IStubElementType<*, *>
+    ) : super(stub, nodeType)
 
-public class CjSuperTypeListEntry extends CjElementImplStub<CangJiePlaceHolderStub<? extends CjSuperTypeListEntry>> {
-    private static final CjSuperTypeListEntry[] EMPTY_ARRAY = new CjSuperTypeListEntry[0];
+    val parentDeclaration: PsiElement?
+        get() = PsiTreeUtil.getParentOfType(
+            this,
+            CjTypeStatement::class.java
+        )
 
-    public static ArrayFactory<CjSuperTypeListEntry> ARRAY_FACTORY = count -> count == 0 ? EMPTY_ARRAY : new CjSuperTypeListEntry[count];
-
-    public CjSuperTypeListEntry(@NotNull ASTNode node) {
-        super(node);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitSuperTypeListEntry(this, data)
     }
 
-    public CjSuperTypeListEntry(
-            @NotNull CangJiePlaceHolderStub<? extends CjSuperTypeListEntry> stub,
-            @NotNull IStubElementType nodeType) {
-        super(stub, nodeType);
+    override fun toString(): String {
+        return node.elementType.toString()
     }
 
-    public PsiElement getParentDeclaration() {
-         return PsiTreeUtil.getParentOfType(this,CjTypeStatement.class);
-    }
+    open val typeReference: CjTypeReference?
+        get() = getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitSuperTypeListEntry(this, data);
-    }
-    @Override
-    public String toString() {
-        return   getNode().getElementType().toString();
-    }
-    @Nullable
-    public CjTypeReference getTypeReference() {
-        return getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE);
-    }
-
-    @Nullable
-    public CjUserType getTypeAsUserType() {
-        CjTypeReference reference = getTypeReference();
-        if (reference != null) {
-            CjTypeElement element = reference.getTypeElement();
-            if (element instanceof CjUserType) {
-                return ((CjUserType) element);
+    val typeAsUserType: CjUserType?
+        get() {
+            val reference = typeReference
+            if (reference != null) {
+                val element = reference.typeElement
+                if (element is CjUserType) {
+                    return element
+                }
             }
+            return null
         }
-        return null;
+
+    companion object {
+        private val EMPTY_ARRAY = arrayOfNulls<CjSuperTypeListEntry>(0)
+
+        var ARRAY_FACTORY: ArrayFactory<CjSuperTypeListEntry > =
+            ArrayFactory { count: Int -> if (count == 0) EMPTY_ARRAY else arrayOfNulls(count) }
     }
 }

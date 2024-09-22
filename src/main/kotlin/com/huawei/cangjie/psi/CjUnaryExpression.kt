@@ -1,29 +1,20 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.CjNodeTypes;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.tree.IElementType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.CjNodeTypes
+import com.intellij.lang.ASTNode
+import com.intellij.psi.tree.IElementType
+import com.intellij.psi.util.PsiTreeUtil
+import java.util.*
 
-import java.util.Objects;
+abstract class CjUnaryExpression(node: ASTNode) : CjExpressionImpl(node), CjOperationExpression {
 
-public abstract class CjUnaryExpression extends CjExpressionImpl implements CjOperationExpression {
-    public CjUnaryExpression(ASTNode node) {
-        super(node);
-    }
+    @get:IfNotParsed
+    open val baseExpression: CjExpression? get() = PsiTreeUtil.getPrevSiblingOfType(operationReference, CjExpression::class.java)
 
-    @Nullable
-    @IfNotParsed
-    public abstract CjExpression getBaseExpression();
 
-    @Override
-    @NotNull
-    public CjSimpleNameExpression getOperationReference() {
-        return  Objects.requireNonNull(findChildByType(CjNodeTypes.OPERATION_REFERENCE));
-    }
 
-    public IElementType getOperationToken() {
-        return getOperationReference().getReferencedNameElementType();
-    }
+    override val operationReference: CjSimpleNameExpression
+        get() = findChildByType(CjNodeTypes.OPERATION_REFERENCE)!!
+    val operationToken: IElementType
+        get() = operationReference.getReferencedNameElementType()
 }

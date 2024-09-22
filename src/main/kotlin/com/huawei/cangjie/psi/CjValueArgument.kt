@@ -1,81 +1,66 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.huawei.cangjie.psi.stubs.CangJieValueArgumentStub;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.impl.source.tree.LeafPsiElement;
-import com.intellij.psi.stubs.IStubElementType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
+import com.huawei.cangjie.CjNodeTypes
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.CangJieValueArgumentStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.stubs.IStubElementType
 
-import static com.huawei.cangjie.CjNodeTypes.CONSTANT_EXPRESSIONS_TYPES;
+open class CjValueArgument : CjElementImplStub<CangJieValueArgumentStub<out CjValueArgument>>,
+    ValueArgument {
+    constructor(node: ASTNode) : super(node)
 
-public class CjValueArgument extends CjElementImplStub<CangJieValueArgumentStub<? extends CjValueArgument>> implements ValueArgument {
-    public CjValueArgument(@NotNull ASTNode node) {
-        super(node);
-    }
+    constructor(stub: CangJieValueArgumentStub<CjValueArgument>) : super(stub, CjStubElementTypes.VALUE_ARGUMENT)
 
-    public CjValueArgument(@NotNull CangJieValueArgumentStub<CjValueArgument> stub) {
-        super(stub, CjStubElementTypes.VALUE_ARGUMENT);
-    }
-
-    protected CjValueArgument(CangJieValueArgumentStub<? extends CjValueArgument> stub, IStubElementType nodeType) {
-        super(stub, nodeType);
-    }
+    protected constructor(
+        stub: CangJieValueArgumentStub<out CjValueArgument>,
+        nodeType: IStubElementType<*, *>
+    ) : super(stub, nodeType)
 
 
-
-    @Nullable
-    @Override
-    public CjExpression getArgumentExpression() {
-        CangJiePlaceHolderStub<? extends CjValueArgument> stub = getStub();
+    override fun getArgumentExpression(): CjExpression? {
+        val stub: CangJiePlaceHolderStub<out CjValueArgument>? = stub
         if (stub != null) {
-            CjExpression[] constantExpressions = stub.getChildrenByType(CONSTANT_EXPRESSIONS_TYPES, CjExpression.getEMPTY_ARRAY());
-            if (constantExpressions.length != 0) {
-                return constantExpressions[0];
+            val constantExpressions =
+                stub.getChildrenByType(CjNodeTypes.CONSTANT_EXPRESSIONS_TYPES, CjExpression.EMPTY_ARRAY)
+            if (constantExpressions.isNotEmpty()) {
+                return constantExpressions[0]
             }
         }
 
-        return findChildByClass(CjExpression.class);
+        return findChildByClass(CjExpression::class.java)
     }
 
-    @Nullable
-    @Override
-    public ValueArgumentName getArgumentName() {
-        return getStubOrPsiChild(CjStubElementTypes.VALUE_ARGUMENT_NAME);
-
+    override fun getArgumentName(): ValueArgumentName? {
+        return getStubOrPsiChild(CjStubElementTypes.VALUE_ARGUMENT_NAME)
     }
 
-    @Override
-    public boolean isNamed() {
-        return false;
+    override fun isNamed(): Boolean {
+        return false
     }
 
-    @NotNull
-    @Override
-    public CjValueArgument asElement() {
-        return this;
+    override fun asElement(): CjValueArgument {
+        return this
     }
 
-    @Nullable
-    @Override
-    public LeafPsiElement getSpreadElement() {
-        return null;
+    override fun getSpreadElement(): LeafPsiElement? {
+        return null
     }
 
-    @Override
-    public boolean isExternal() {
-        return false;
+    override fun isExternal(): Boolean {
+        return false
     }
 
-    public boolean isSpread() {
-     CangJieValueArgumentStub stub = getStub();
-        if (stub != null) {
-            return stub.isSpread();
+    val isSpread: Boolean
+        get() {
+            val stub = stub
+            if (stub != null) {
+                return stub.isSpread()
+            }
+
+            return getSpreadElement() != null
         }
-
-        return getSpreadElement() != null;
-    }
 }
 

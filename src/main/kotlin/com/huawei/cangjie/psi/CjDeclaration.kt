@@ -1,21 +1,19 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.doc.psi.CDoc;
-import com.intellij.util.ArrayFactory;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.doc.psi.CDoc
+import com.intellij.util.ArrayFactory
 
-
-public interface CjDeclaration extends CjExpression, CjModifierListOwner {
-    CjDeclaration[] EMPTY_ARRAY = new CjDeclaration[0];
-
-    ArrayFactory<CjDeclaration> ARRAY_FACTORY = count -> count == 0 ? EMPTY_ARRAY : new CjDeclaration[count];
-
-    @Nullable
-    CDoc getDocComment();
+interface CjDeclaration : CjExpression, CjModifierListOwner {
+    val docComment: CDoc?
 
 
-    @Nullable
-    CjExpression getExpression();
+    val expression: CjExpression?
 
 
+    companion object {
+        val EMPTY_ARRAY: Array<CjDeclaration?> = arrayOfNulls(0)
+
+        val ARRAY_FACTORY: ArrayFactory<CjDeclaration> =
+            ArrayFactory { count: Int -> if (count == 0) EMPTY_ARRAY else arrayOfNulls(count) }
+    }
 }

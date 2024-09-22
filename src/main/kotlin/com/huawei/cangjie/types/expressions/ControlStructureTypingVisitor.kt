@@ -985,7 +985,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                         function
                     )
 
-                if ((expectedType == null) && (function.getTypeReference() != null || function.hasBlockBody())) {
+                if ((expectedType == null) && (function.typeReference != null || function.hasBlockBody())) {
                     expectedType = descriptor.getReturnType()
                 }
             } else {

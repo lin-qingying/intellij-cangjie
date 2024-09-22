@@ -18,11 +18,11 @@ class CjLambdaExpression(text: CharSequence?) :
     val functionLiteral: CjFunctionLiteral
         get() = findChildByType( FUNCTION_LITERAL)?.getPsi(CjFunctionLiteral::class.java)!!
 
-    val valueParameters: MutableList<CjParameter>
-        get() = functionLiteral.getValueParameters()
+    val valueParameters: List<CjParameter>
+        get() = functionLiteral.valueParameters
 
     val bodyExpression: CjBlockExpression?
-        get() = functionLiteral.bodyExpression
+        get() = functionLiteral.bodyExpression as?CjBlockExpression
 
     fun hasDeclaredReturnType(): Boolean {
         return functionLiteral.typeReference != null

@@ -1,68 +1,55 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.google.common.collect.Lists;
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
-import com.intellij.lang.ASTNode;
-import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.google.common.collect.Lists
+import com.huawei.cangjie.CjNodeTypes
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
+import com.intellij.lang.ASTNode
+import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
 
-import java.util.Collections;
-import java.util.List;
-import com.huawei.cangjie.CjNodeTypes;
-
-public class CjArrayAccessExpression extends CjExpressionImpl implements CjReferenceExpression {
-    public CjArrayAccessExpression(@NotNull ASTNode node) {
-        super(node);
+class CjArrayAccessExpression(node: ASTNode) : CjExpressionImpl(node), CjReferenceExpression {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R  {
+        return visitor.visitArrayAccessExpression(this, data)
     }
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitArrayAccessExpression(this, data);
-    }
+    @get:IfNotParsed
+    val arrayExpression: CjExpression?
+        get() = findChildByClass(CjExpression::class.java)
 
-    @Nullable
-    @IfNotParsed
-    public CjExpression getArrayExpression() {
-        return findChildByClass(CjExpression.class);
-    }
+    val indexExpressions: List<CjExpression>
+        get() = PsiTreeUtil.getChildrenOfTypeAsList(
+            indicesNode,
+            CjExpression::class.java
+        )
 
-    @NotNull
-    public List<CjExpression> getIndexExpressions() {
-        return PsiTreeUtil.getChildrenOfTypeAsList(getIndicesNode(), CjExpression.class);
-    }
-
-    @NotNull
-    public CjContainerNode getIndicesNode() {
-        CjContainerNode indicesNode = findChildByType(CjNodeTypes.INDICES);
-        assert indicesNode != null : "Can't be null because of parser";
-        return indicesNode;
-    }
-
-    @NotNull
-    public List<TextRange> getBracketRanges() {
-        PsiElement lBracket = getLeftBracket();
-        PsiElement rBracket = getRightBracket();
-        if (lBracket == null || rBracket == null) {
-            return Collections.emptyList();
+    val indicesNode: CjContainerNode
+        get() {
+            val indicesNode =
+                checkNotNull(findChildByType<CjContainerNode>(CjNodeTypes.INDICES)) { "Can't be null because of parser" }
+            return indicesNode
         }
-        return Lists.newArrayList(lBracket.getTextRange(), rBracket.getTextRange());
-    }
 
-    @Nullable
-    public PsiElement getLeftBracket() {
-        return getIndicesNode().findChildByType(CjTokens.LBRACKET);
-    }
+    val bracketRanges: List<TextRange>
+        get() {
+            val lBracket = leftBracket
+            val rBracket = rightBracket
+            if (lBracket == null || rBracket == null) {
+                return emptyList()
+            }
+            return Lists.newArrayList(
+                lBracket.textRange,
+                rBracket.textRange
+            )
+        }
 
-    @Nullable
-    public PsiElement getRightBracket() {
-        return getIndicesNode().findChildByType(CjTokens.RBRACKET);
-    }
+    val leftBracket: PsiElement?
+        get() = indicesNode.findChildByType(CjTokens.LBRACKET)
 
-    public PsiElement getTrailingComma() {
-        return CjPsiUtilKt.getTrailingCommaByClosingElement(getRightBracket());
-    }
+    val rightBracket: PsiElement?
+        get() = indicesNode.findChildByType(CjTokens.RBRACKET)
+
+    val trailingComma: PsiElement?
+        get() = getTrailingCommaByClosingElement(rightBracket)
 }

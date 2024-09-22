@@ -237,7 +237,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
 //////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public CangJieTypeInfo visitConstructorDelegationCall(CjConstructorDelegationCall cjConstructorDelegationCall, ExpressionTypingContext data) {
+    public CangJieTypeInfo visitConstructorDelegationCall(@NotNull CjConstructorDelegationCall cjConstructorDelegationCall, ExpressionTypingContext data) {
         return super.visitConstructorDelegationCall(cjConstructorDelegationCall, data);
     }
 

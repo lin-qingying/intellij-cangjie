@@ -1,34 +1,26 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
-import java.util.List;
+class CjTypeConstraintList : CjElementImplStub<CangJiePlaceHolderStub<CjTypeConstraintList > > {
+    constructor(node: ASTNode) : super(node)
 
-import  com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import org.jetbrains.annotations.Nullable;
+    constructor(stub: CangJiePlaceHolderStub<CjTypeConstraintList >) : super(
+        stub,
+        CjStubElementTypes.TYPE_CONSTRAINT_LIST
+    )
 
-public class CjTypeConstraintList extends CjElementImplStub<CangJiePlaceHolderStub<CjTypeConstraintList>> {
-    public CjTypeConstraintList(@NotNull ASTNode node) {
-        super(node);
-    }
-
-    public CjTypeConstraintList(@NotNull CangJiePlaceHolderStub<CjTypeConstraintList> stub) {
-        super(stub, CjStubElementTypes.TYPE_CONSTRAINT_LIST);
-    }
-
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitTypeConstraintList(this, data);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitTypeConstraintList(this, data)
     }
 
 
-
-    @NotNull
-    public List<CjTypeConstraint> getConstraints() {
-        return getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_CONSTRAINT);
-    }
+    val constraints: List<CjTypeConstraint>
+        get() = getStubOrPsiChildrenAsList(
+            CjStubElementTypes.TYPE_CONSTRAINT
+        )
 }
 
 

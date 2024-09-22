@@ -191,9 +191,12 @@ public interface CjNodeTypes {
     IElementType CASE_PATTERN = new CjNodeType("CASE_PATTERN", CjCasePattern.class);
 
 //    IElementType CHARACTER_CONSTANT = CjStubElementTypes.CHARACTER_CONSTANT;
-
+IElementType WILDCARD_PATTERN = new CjNodeType("WILDCARD_PATTERN", CjWildcardPattern.class);
     IElementType TYPE_PATTERN = new CjNodeType("TYPE_PATTERN", CjTypePattern.class);
     IElementType ENUM_PATTERN = new CjNodeType("ENUM_PATTERN", CjEnumPattern.class);
+    IElementType BINDING_PATTERN = new CjNodeType("BINDING_PATTERN", CjBindingPattern.class);
+    IElementType TUPLE_PATTERN = new CjNodeType("TUPLE_PATTERN", CjTuplePattern.class);
+    IElementType CONSTANT_PATTERN = new CjNodeType("CONSTANT_PATTERN", CjConstantPattern.class);
 
     IElementType PROPERTY_ACCESSOR = CjStubElementTypes.PROPERTY_ACCESSOR;
     IElementType ERROR_ELEMENT = new CjNodeType("ERROR_ELEMENT", CjErrorElement.class);

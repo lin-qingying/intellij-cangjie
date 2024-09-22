@@ -1,79 +1,65 @@
-package com.huawei.cangjie.resolve.calls.model;
+package com.huawei.cangjie.resolve.calls.model
 
-import com.huawei.cangjie.psi.Call;
-import com.huawei.cangjie.psi.ValueArgument;
-import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.psi.Call
+import com.huawei.cangjie.psi.ValueArgument
+import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
+import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo.Companion.EMPTY
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+class DataFlowInfoForArgumentsImpl(initialInfo: DataFlowInfo, call: Call) :
+    MutableDataFlowInfoForArguments(initialInfo) {
+    private var infoMap: MutableMap<ValueArgument, DataFlowInfo>? = null
+    private var nextArgument: MutableMap<ValueArgument, ValueArgument>? = null
+    private var resultInfo: DataFlowInfo? = null
 
-
-public class DataFlowInfoForArgumentsImpl extends MutableDataFlowInfoForArguments {
-    @Nullable
-    private Map<ValueArgument, DataFlowInfo> infoMap = null;
-    @Nullable private Map<ValueArgument, ValueArgument> nextArgument = null;
-    @Nullable private DataFlowInfo resultInfo;
-
-    public DataFlowInfoForArgumentsImpl(@NotNull DataFlowInfo initialInfo, @NotNull Call call) {
-        super(initialInfo);
-        initNextArgMap(call.getValueArguments());
+    init {
+        initNextArgMap(call.valueArguments)
     }
 
-    private void initNextArgMap(@NotNull List<? extends ValueArgument> valueArguments) {
-        Iterator<? extends ValueArgument> iterator = valueArguments.iterator();
-        ValueArgument prev = null;
+    private fun initNextArgMap(valueArguments: List<ValueArgument>) {
+        val iterator = valueArguments.iterator()
+        var prev: ValueArgument? = null
         while (iterator.hasNext()) {
-            ValueArgument argument = iterator.next();
+            val argument = iterator.next()
             if (prev != null) {
                 if (nextArgument == null) {
-                    nextArgument = new HashMap<>();
+                    nextArgument = HashMap()
                 }
-                nextArgument.put(prev, argument);
+                nextArgument!![prev] = argument
             }
-            prev = argument;
+            prev = argument
         }
     }
 
-    @NotNull
-    @Override
-    public DataFlowInfo getInfo(@NotNull ValueArgument valueArgument) {
-        DataFlowInfo infoForArgument = infoMap == null ? null : infoMap.get(valueArgument);
+    override fun getInfo(valueArgument: ValueArgument): DataFlowInfo {
+        val infoForArgument = if (infoMap == null) null else infoMap!![valueArgument]
         if (infoForArgument == null) {
-            return initialDataFlowInfo;
+            return initialDataFlowInfo
         }
-        return initialDataFlowInfo.and(infoForArgument);
+        return initialDataFlowInfo.and(infoForArgument)
     }
 
-    @Override
-    public void updateInfo(@NotNull ValueArgument valueArgument, @NotNull DataFlowInfo dataFlowInfo) {
-        ValueArgument next = nextArgument == null ? null : nextArgument.get(valueArgument);
+    override fun updateInfo(valueArgument: ValueArgument, dataFlowInfo: DataFlowInfo) {
+        val next = if (nextArgument == null) null else nextArgument!![valueArgument]
         if (next != null) {
             if (infoMap == null) {
-                infoMap = new HashMap<>();
+                infoMap = HashMap()
             }
-            infoMap.put(next, dataFlowInfo);
-            return;
+            infoMap!![next] = dataFlowInfo
+            return
         }
         //TODO assert resultInfo == null
-        resultInfo = dataFlowInfo;
+        resultInfo = dataFlowInfo
     }
 
-    @NotNull
-    @Override
-    public DataFlowInfo getResultInfo() {
-        if (resultInfo == null) return initialDataFlowInfo;
-        return initialDataFlowInfo.and(resultInfo);
+    override fun getResultInfo(): DataFlowInfo {
+        if (resultInfo == null) return initialDataFlowInfo
+        return initialDataFlowInfo.and(resultInfo!!)
     }
 
-    @Override
-    public void updateResultInfo(@NotNull DataFlowInfo dataFlowInfo) {
-        if (dataFlowInfo.equals(DataFlowInfo.Companion.getEMPTY())) return;
+    override fun updateResultInfo(dataFlowInfo: DataFlowInfo) {
+        if (dataFlowInfo == EMPTY) return
 
-        if (resultInfo == null) resultInfo = initialDataFlowInfo;
-        resultInfo = resultInfo.and(dataFlowInfo);
+        if (resultInfo == null) resultInfo = initialDataFlowInfo
+        resultInfo = resultInfo!!.and(dataFlowInfo)
     }
 }

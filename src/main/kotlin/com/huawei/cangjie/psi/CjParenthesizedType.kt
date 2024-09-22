@@ -29,12 +29,14 @@ class CjParenthesizedType : CjElementImplStub<CangJiePlaceHolderStub<CjParenthes
         return typeArgumentList?.arguments ?: emptyList()
     }
 
-    override fun getTypeArgumentsAsTypes(): MutableList<CjTypeReference?> {
+    override val typeArgumentsAsTypes: List<CjTypeReference>
+        get() {
 
-        val result: MutableList<CjTypeReference?> = Lists.newArrayList()
-        for (projection in getTypeArguments()) {
-            result.add(projection.typeReference)
+            val result: MutableList<CjTypeReference> = Lists.newArrayList()
+            for (projection in getTypeArguments()) {
+                projection.typeReference?.let { result.add(it) }
+            }
+            return result
         }
-        return result
-    }
+
 }

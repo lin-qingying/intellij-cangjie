@@ -1,29 +1,20 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.psi.stubs.CangJieFunctionStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.stubs.IStubElementType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.psi.stubs.CangJieFunctionStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.psi.stubs.IStubElementType
 
-public class CjMainFunction extends CjFunctionImpl {
-    public CjMainFunction(@NotNull CangJieFunctionStub stub) {
-        super(stub, CjStubElementTypes.MAIN_FUNC);
-    }
-    public CjMainFunction(@NotNull ASTNode node) {
-        super(node);
-    }
-    public CjMainFunction(@NotNull CangJieFunctionStub stub, @NotNull IStubElementType nodeType) {
-        super(stub, nodeType);
-    }
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitMainFunction(this, data);
+class CjMainFunction : CjFunctionImpl {
+    constructor(stub: CangJieFunctionStub) : super(stub, CjStubElementTypes.MAIN_FUNC)
+    constructor(node: ASTNode) : super(node)
+    constructor(stub: CangJieFunctionStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
+
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitMainFunction(this, data)
     }
 
-    @Override
-    public @Nullable String getName() {
-        return "main";
+    override fun getName(): String {
+        return "main"
     }
 }

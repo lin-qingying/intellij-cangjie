@@ -7,7 +7,7 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.util.ArrayFactory
 
 
- //表达式
+//表达式
 interface CjExpression : CjElement {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R
 
@@ -15,7 +15,8 @@ interface CjExpression : CjElement {
         @JvmStatic
 
         val EMPTY_ARRAY = arrayOf<CjExpression>()
-@JvmStatic
+
+        @JvmStatic
         val ARRAY_FACTORY =
             ArrayFactory { count: Int ->
                 if (count == 0) EMPTY_ARRAY else arrayOfNulls<CjExpression>(count)
@@ -27,11 +28,11 @@ interface CjExpression : CjElement {
 
 abstract class CjExpressionImpl(node: ASTNode) : CjElementImpl(node), CjExpression {
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?) = visitor.visitExpression(this, data)
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R = visitor.visitExpression(this, data)
 
     protected fun findExpressionUnder(type: IElementType): CjExpression? {
         val containerNode = findChildByType<CjContainerNode>(type) ?: return null
-        return containerNode.findChildByClass<CjExpression>(CjExpression::class.java)
+        return containerNode.findChildByClass(CjExpression::class.java)
     }
 
     override fun replace(newElement: PsiElement): PsiElement {
@@ -52,7 +53,13 @@ abstract class CjExpressionImpl(node: ASTNode) : CjElementImpl(node), CjExpressi
                     is CjExpression, is CjValueArgument -> {
                         if (CjPsiUtil.areParenthesesNecessary(newElement, expression, parent as CjElement)) {
                             val factory = CjPsiFactory(expression.project)
-                            return rawReplaceHandler(factory.createExpressionByPattern("($0)", newElement, reformat = reformat))
+                            return rawReplaceHandler(
+                                factory.createExpressionByPattern(
+                                    "($0)",
+                                    newElement,
+                                    reformat = reformat
+                                )
+                            )
                         }
                     }
 //                    is CjSimpleNameStringTemplateEntry -> {

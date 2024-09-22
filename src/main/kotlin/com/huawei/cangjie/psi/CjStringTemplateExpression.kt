@@ -1,122 +1,119 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.*;
-import com.intellij.psi.tree.TokenSet;
-import com.intellij.util.IncorrectOperationException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.CjExpressionImpl.Companion.replaceExpression
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.psi.*
+import com.intellij.psi.tree.TokenSet
+import com.intellij.util.IncorrectOperationException
+import java.util.regex.Pattern
 
-import java.util.regex.Pattern;
+class CjStringTemplateExpression : CjElementImplStub<CangJiePlaceHolderStub<CjStringTemplateExpression > >,
+    CjExpression,
+    PsiLanguageInjectionHost, ContributedReferenceHost {
+    constructor(node: ASTNode) : super(node)
 
+    constructor(stub: CangJiePlaceHolderStub<CjStringTemplateExpression >) : super(
+        stub,
+        CjStubElementTypes.STRING_TEMPLATE
+    )
 
-public class CjStringTemplateExpression extends CjElementImplStub<CangJiePlaceHolderStub<CjStringTemplateExpression>>
-        implements CjExpression, PsiLanguageInjectionHost, ContributedReferenceHost {
-    private static final TokenSet CLOSE_QUOTE_TOKEN_SET = TokenSet.create(CjTokens.CLOSING_QUOTE);
-    private static final TokenSet STRING_ENTRIES_TYPES = TokenSet.create(
-            CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY
-
-    );
-
-    public CjStringTemplateExpression(@NotNull ASTNode node) {
-        super(node);
+    @Throws(IncorrectOperationException::class)
+    override fun replace(newElement: PsiElement): PsiElement {
+        return replaceExpression(this, newElement, true) { newElement: PsiElement? ->
+            super.replace(
+                newElement!!
+            )
+        }
     }
 
-    public CjStringTemplateExpression(@NotNull CangJiePlaceHolderStub<CjStringTemplateExpression> stub) {
-        super(stub, CjStubElementTypes.STRING_TEMPLATE);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitStringTemplateExpression(this, data)
     }
 
-    @Override
-    public PsiElement replace(@NotNull PsiElement newElement) throws IncorrectOperationException {
-        return CjExpressionImpl.Companion.replaceExpression(this, newElement, true, super::replace);
-    }
+    val isDoubleQuote: Boolean
+        /**
+         * 是否双引号
+         */
+        get() = node.firstChildNode.text.startsWith("\"")
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitStringTemplateExpression(this, data);
-    }
+    val isMultiLine: Boolean
+        /**
+         * 是否是多行字符串
+         */
+        get() = node.firstChildNode.text == "\"\"\"" || node.firstChildNode
+            .text == "'''"
 
-    /**
-     * 是否双引号
-     */
-    public boolean isDoubleQuote() {
-        return getNode().getFirstChildNode().getText().startsWith("\"");
-    }
+    val isRawString: Boolean
+        /**
+         * 是否为原始字符串
+         *
+         * @return
+         */
+        get() = Pattern.matches("^#+[\"']", node.firstChildNode.text)
 
-    /**
-     * 是否是多行字符串
-     */
-    public boolean isMultiLine() {
-        return getNode().getFirstChildNode().getText().equals("\"\"\"") || getNode().getFirstChildNode().getText().equals("'''");
-    }
+    val stringContent: String
+        /**
+         * 获取字符串内容
+         *
+         * @return
+         */
+        get() {
+            val node = node
+            val firstChild = node.firstChildNode
+            val lastChild = node.lastChildNode
 
-    /**
-     * 是否为原始字符串
-     *
-     * @return
-     */
-    public boolean isRawString() {
-        return Pattern.matches("^#+[\"']", getNode().getFirstChildNode().getText());
-    }
+            if (firstChild == null || firstChild === lastChild) {
+                return ""
+            }
 
-    /**
-     * 获取字符串内容
-     *
-     * @return
-     */
-    public String getStringContent() {
-        ASTNode node = getNode();
-        ASTNode firstChild = node.getFirstChildNode();
-        ASTNode lastChild = node.getLastChildNode();
+            val content = StringBuilder()
+            var current = firstChild.treeNext
+            while (current != null && current !== lastChild) {
+                content.append(current.text)
+                current = current.treeNext
+            }
 
-        if (firstChild == null || firstChild == lastChild) {
-            return "";
+            return content.toString()
         }
 
-        StringBuilder content = new StringBuilder();
-        ASTNode current = firstChild.getTreeNext();
-        while (current != null && current != lastChild) {
-            content.append(current.getText());
-            current = current.getTreeNext();
-        }
+    val entries: Array<CjStringTemplateEntry>
+        get() = getStubOrPsiChildren(
+            STRING_ENTRIES_TYPES,
+            CjStringTemplateEntry.EMPTY_ARRAY
+        )
 
-        return content.toString();
+    override fun isValidHost(): Boolean {
+        return node.getChildren(CLOSE_QUOTE_TOKEN_SET).isNotEmpty()
     }
 
-    @NotNull
-    public CjStringTemplateEntry[] getEntries() {
-        return getStubOrPsiChildren(STRING_ENTRIES_TYPES, CjStringTemplateEntry.EMPTY_ARRAY);
+    override fun updateText(text: String): PsiLanguageInjectionHost {
+        val newExpression = CjPsiFactory(project).createExpressionIfPossible(text)
+        if (newExpression is CjStringTemplateExpression) return replace(newExpression) as CjStringTemplateExpression
+        return ElementManipulators.handleContentChange(this, text)
     }
 
-    @Override
-    public boolean isValidHost() {
-        return getNode().getChildren(CLOSE_QUOTE_TOKEN_SET).length != 0;
+    override fun createLiteralTextEscaper(): LiteralTextEscaper<out PsiLanguageInjectionHost> {
+        return CangJieStringLiteralTextEscaper(this)
     }
 
-    @Override
-    public PsiLanguageInjectionHost updateText(@NotNull String text) {
-        CjExpression newExpression = new CjPsiFactory(getProject()).createExpressionIfPossible(text);
-        if (newExpression instanceof CjStringTemplateExpression)
-            return (CjStringTemplateExpression) replace(newExpression);
-        return ElementManipulators.handleContentChange(this, text);
-    }
-
-    @NotNull
-    @Override
-    public LiteralTextEscaper<? extends PsiLanguageInjectionHost> createLiteralTextEscaper() {
-        return new CangJieStringLiteralTextEscaper(this);
-    }
-
-    public boolean hasInterpolation() {
-        for (PsiElement child : getChildren()) {
-            if (child instanceof CjSimpleNameStringTemplateEntry || child instanceof CjBlockStringTemplateEntry) {
-                return true;
+    fun hasInterpolation(): Boolean {
+        for (child in children) {
+            if (child is CjSimpleNameStringTemplateEntry || child is CjBlockStringTemplateEntry) {
+                return true
             }
         }
 
-        return false;
+        return false
+    }
+
+    companion object {
+        private val CLOSE_QUOTE_TOKEN_SET = TokenSet.create(CjTokens.CLOSING_QUOTE)
+        private val STRING_ENTRIES_TYPES = TokenSet.create(
+            CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY
+
+        )
     }
 }

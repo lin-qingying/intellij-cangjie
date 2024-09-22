@@ -1,119 +1,98 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lang.CangJieLanguage;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementType;
-import com.intellij.extapi.psi.StubBasedPsiElementBase;
-import com.intellij.lang.ASTNode;
-import com.intellij.lang.Language;
-import com.intellij.psi.*;
-import com.intellij.psi.impl.source.PsiFileImpl;
-import com.intellij.psi.stubs.IStubElementType;
-import com.intellij.psi.stubs.StubElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.lang.CangJieLanguage
+import com.huawei.cangjie.psi.CangJieReferenceProvidersService.Companion.getReferencesFromProviders
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementType
+import com.intellij.extapi.psi.StubBasedPsiElementBase
+import com.intellij.lang.ASTNode
+import com.intellij.lang.Language
+import com.intellij.psi.PsiElementVisitor
+import com.intellij.psi.PsiReference
+import com.intellij.psi.StubBasedPsiElement
+import com.intellij.psi.impl.source.PsiFileImpl
+import com.intellij.psi.stubs.IStubElementType
+import com.intellij.psi.stubs.StubElement
 
-import java.util.Arrays;
-import java.util.List;
+open class CjElementImplStub<T : StubElement<*>> :
+    StubBasedPsiElementBase<T>, CjElement, StubBasedPsiElement<T> {
+    constructor(stub: T, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
-public class CjElementImplStub<T extends StubElement<?>> extends StubBasedPsiElementBase<T>
-        implements CjElement, StubBasedPsiElement<T> {
-    public CjElementImplStub(@NotNull T stub, @NotNull IStubElementType nodeType) {
-        super(stub, nodeType);
-    }
+    constructor(stub: T, nodeType: IStubElementType<*, *>, node: ASTNode?) : super(stub, nodeType, node)
 
-    public CjElementImplStub(@NotNull T stub, @NotNull IStubElementType nodeType, ASTNode node) {
-        super(stub, nodeType, node);
-    }
+    constructor(node: ASTNode) : super(node)
 
-    public CjElementImplStub(@NotNull ASTNode node) {
-        super(node);
-    }
-
-    @NotNull
-    @Override
-    public CjElement getPsiOrParent() {
-        return this;
+    override fun getPsiOrParent(): CjElement {
+        return this
     }
 
 
-    @Override
-    public String toString() {
-        return getNode().getElementType().toString();
+    override fun toString(): String {
+        return node.elementType.toString()
     }
 
 
-    @Override
-    public PsiReference getReference() {
-        PsiReference[] references = getReferences();
-        return (references.length > 0) ? references[0] : null;
+    override fun getReference(): PsiReference? {
+        val references = references
+        return if ((references.isNotEmpty())) references[0] else null
     }
 
-    @Override
-    public PsiReference @NotNull [] getReferences() {
-        return CangJieReferenceProvidersService.getReferencesFromProviders(this);
-
+    override fun getReferences(): Array<PsiReference> {
+        return getReferencesFromProviders(this)
     }
 
-    @NotNull
-    @Override
-    public CjFile getContainingCjFile() {
-        PsiFile file = getContainingFile();
-        if (!(file instanceof CjFile)) {
-
-            String fileString = "";
-            if (file.isValid()) {
+    override fun getContainingCjFile(): CjFile {
+        val file = containingFile
+        if (file !is CjFile) {
+            var fileString = ""
+            if (file.isValid) {
                 try {
-                    fileString = " " + file.getText();
-                } catch (Exception e) {
-
+                    fileString = " " + file.text
+                } catch (_: Exception) {
                 }
             }
             // getNode() will fail if getContainingFile() returns not PsiFileImpl instance
-            String nodeString = (file instanceof PsiFileImpl ? (" node = " + getNode()) : "");
+            val nodeString = (if (file is PsiFileImpl) (" node = $node") else "")
 
-            throw new IllegalStateException("CjElement not inside CjFile: " +
-                    file + fileString + " of type " + file.getClass() +
-                    " for element " + this + " of type " + this.getClass() + nodeString);
+            throw IllegalStateException(
+                "CjElement not inside CjFile: " +
+                        file + fileString + " of type " + file.javaClass +
+                        " for element " + this + " of type " + this.javaClass + nodeString
+            )
         }
-        return (CjFile) file;
+        return file
     }
 
 
-    @Override
-    public @NotNull Language getLanguage() {
-        return CangJieLanguage.INSTANCE;
+    override fun getLanguage(): Language {
+        return CangJieLanguage
     }
 
 
-    @Override
-    public void accept(@NotNull PsiElementVisitor visitor) {
-        if (visitor instanceof CjVisitor) {
-            accept((CjVisitor) visitor, null);
+    override fun accept(visitor: PsiElementVisitor) {
+        if (visitor is CjVisitor<*, *>) {
+            accept (visitor, null)
         } else {
-            visitor.visitElement(this);
+            visitor.visitElement(this)
         }
     }
 
-    @Override
-    public <D> void acceptChildren(@NotNull CjVisitor<Void, D> visitor, D data) {
-        PsiElement child = getFirstChild();
+    override fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D) {
+        var child = firstChild
         while (child != null) {
-            if (child instanceof CjElement) {
-                ((CjElement) child).accept(visitor, data);
+            if (child is CjElement) {
+                child.accept(visitor, data)
             }
-            child = child.getNextSibling();
+            child = child.nextSibling
         }
     }
 
-    @NotNull
-    protected <PsiT extends CjElementImplStub<?>, StubT extends StubElement<?>> List<PsiT> getStubOrPsiChildrenAsList(
-            @NotNull CjStubElementType<StubT, PsiT> elementType
-    ) {
-        return Arrays.asList(getStubOrPsiChildren(elementType, elementType.getArrayFactory()));
+    fun <PsiT : CjElementImplStub<*>  , StubT : StubElement<*>> getStubOrPsiChildrenAsList(
+        elementType: CjStubElementType<StubT, PsiT>
+    ): List<PsiT> {
+        return listOf(*getStubOrPsiChildren(elementType, elementType.arrayFactory))
     }
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitCjElement(this, data);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitCjElement(this, data)
     }
 }

@@ -1,81 +1,55 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.name.FqName;
-import com.huawei.cangjie.name.SpecialNames;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.search.LocalSearchScope;
-import com.intellij.psi.search.SearchScope;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.name.FqName
+import com.huawei.cangjie.name.SpecialNames
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.search.LocalSearchScope
+import com.intellij.psi.search.SearchScope
 
-
-public class CjFunctionLiteral extends CjFunctionNotStubbed {
-    public CjFunctionLiteral(@NotNull ASTNode node) {
-        super(node);
+class CjFunctionLiteral(node: ASTNode) : CjFunctionNotStubbed(node) {
+    override fun hasBlockBody(): Boolean {
+        return false
     }
 
-    @Override
-    public boolean hasBlockBody() {
-        return false;
+    override fun getName(): String {
+        return SpecialNames.ANONYMOUS_STRING
     }
 
-    @Override
-    public String getName() {
-        return SpecialNames.ANONYMOUS_STRING;
+    override fun getNameIdentifier(): PsiElement? {
+        return null
     }
 
-    @Override
-    public PsiElement getNameIdentifier() {
-        return null;
+    fun hasParameterSpecification(): Boolean {
+        return findChildByType<PsiElement?>(CjTokens.ARROW) != null
     }
 
-    public boolean hasParameterSpecification() {
-        return findChildByType(CjTokens.ARROW) != null;
+    override val bodyExpression: CjBlockExpression?
+        get() {
+            return super.bodyExpression as CjBlockExpression?
+        }
+
+
+    override val equalsToken: PsiElement? = null
+    val lBrace: PsiElement
+        get() = findChildByType(CjTokens.LBRACE)!!
+
+    @get:IfNotParsed
+    val rBrace: PsiElement?
+        get() = findChildByType(CjTokens.RBRACE)
+
+    val arrow: PsiElement?
+        get() = findChildByType(CjTokens.ARROW)
+
+    override val fqName: FqName?
+        get() = null
+
+    override fun hasBody(): Boolean {
+        return bodyExpression != null
     }
 
-    @Override
-    public CjBlockExpression getBodyExpression() {
-        return (CjBlockExpression) super.getBodyExpression();
-    }
-
-    @Nullable
-    @Override
-    public PsiElement getEqualsToken() {
-        return null;
-    }
-
-    @NotNull
-    public PsiElement getLBrace() {
-        return findChildByType(CjTokens.LBRACE);
-    }
-
-    @Nullable
-    @IfNotParsed
-    public PsiElement getRBrace() {
-        return findChildByType(CjTokens.RBRACE);
-    }
-
-    @Nullable
-    public PsiElement getArrow() {
-        return findChildByType(CjTokens.ARROW);
-    }
-
-    @Nullable
-    @Override
-    public FqName getFqName() {
-        return null;
-    }
-
-    @Override
-    public boolean hasBody() {
-        return getBodyExpression() != null;
-    }
-
-    @NotNull
-    @Override
-    public SearchScope getUseScope() {
-        return new LocalSearchScope(this);
+    override fun getUseScope(): SearchScope {
+        return LocalSearchScope(this)
     }
 }

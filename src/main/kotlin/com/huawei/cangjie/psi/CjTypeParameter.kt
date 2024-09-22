@@ -1,43 +1,31 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.psi.stubs.CangJieTypeParameterStub;
-import com.huawei.cangjie.types.Variance;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.search.LocalSearchScope;
-import com.intellij.psi.search.SearchScope;
-import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.stubs.CangJieTypeParameterStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.huawei.cangjie.types.Variance
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.search.LocalSearchScope
+import com.intellij.psi.search.SearchScope
+import com.intellij.psi.util.PsiTreeUtil
 
-import java.util.List;
+class CjTypeParameter : CjNamedDeclarationStub<CangJieTypeParameterStub > {
+    constructor(node: ASTNode) : super(node)
 
-public class CjTypeParameter extends CjNamedDeclarationStub<CangJieTypeParameterStub> {
+    constructor(stub: CangJieTypeParameterStub) : super(stub, CjStubElementTypes.TYPE_PARAMETER)
 
-    public CjTypeParameter(@NotNull ASTNode node) {
-        super(node);
-    }
-
-    public CjTypeParameter(@NotNull CangJieTypeParameterStub stub) {
-        super(stub, CjStubElementTypes.TYPE_PARAMETER);
-    }
-
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitTypeParameter(this, data);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitTypeParameter(this, data)
     }
 
 
-    @Override
-    public String toString() {
-        return  getNode().getElementType().toString();
+    override fun toString(): String {
+        return node.elementType.toString()
     }
 
-    @NotNull
-    public Variance getVariance() {
-//        CangJieTypeParameterStub stub = getStub();
+    val variance: Variance
+        get() =//        CangJieTypeParameterStub stub = getStub();
 //        if (stub != null) {
 //
 ////            if (stub.isInVariance()) return Variance.IN_VARIANCE;
@@ -46,45 +34,40 @@ public class CjTypeParameter extends CjNamedDeclarationStub<CangJieTypeParameter
 //
 //        CjModifierList modifierList = getModifierList();
 //        if (modifierList == null) return Variance.INVARIANT;
+            Variance.INVARIANT
 
-
-
-        return Variance.INVARIANT;
-    }
-
-    @Nullable
-    public CjTypeReference setExtendsBound(@Nullable CjTypeReference typeReference) {
-        CjTypeReference currentExtendsBound = getExtendsBound();
+    fun setExtendsBound(typeReference: CjTypeReference?): CjTypeReference? {
+        val currentExtendsBound = extendsBound
         if (currentExtendsBound != null) {
             if (typeReference == null) {
-                PsiElement colon = findChildByType(CjTokens.COLON);
-                if (colon != null) colon.delete();
-                currentExtendsBound.delete();
-                return null;
+                val colon = findChildByType<PsiElement>(CjTokens.COLON)
+                colon?.delete()
+                currentExtendsBound.delete()
+                return null
             }
-            return (CjTypeReference) currentExtendsBound.replace(typeReference);
+            return currentExtendsBound.replace(typeReference) as CjTypeReference
         }
 
         if (typeReference != null) {
-            PsiElement colon = addAfter(new CjPsiFactory(getProject()).createColon(), getNameIdentifier());
-            return (CjTypeReference) addAfter(typeReference, colon);
+            val colon = addAfter(CjPsiFactory(project).createColon(), nameIdentifier)
+            return addAfter(typeReference, colon) as CjTypeReference
         }
 
-        return null;
+        return null
     }
 
-    @Nullable
-    public CjTypeReference getExtendsBound() {
-        return getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE);
-    }
-    @NotNull
-    public List<CjTypeReference> getExtendsBounds() {
-        return getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_REFERENCE);
-    }
-    @NotNull
-    @Override
-    public SearchScope getUseScope() {
-        CjTypeParameterListOwner owner = PsiTreeUtil.getParentOfType(this, CjTypeParameterListOwner.class);
-        return new LocalSearchScope(owner != null ? owner : this);
+    val extendsBound: CjTypeReference?
+        get() = getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)
+    val extendsBounds: List<CjTypeReference>
+        get() = getStubOrPsiChildrenAsList(
+            CjStubElementTypes.TYPE_REFERENCE
+        )
+
+    override fun getUseScope(): SearchScope {
+        val owner = PsiTreeUtil.getParentOfType(
+            this,
+            CjTypeParameterListOwner::class.java
+        )
+        return LocalSearchScope(owner ?: this)
     }
 }

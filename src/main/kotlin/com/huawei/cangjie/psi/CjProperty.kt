@@ -1,5 +1,6 @@
 package com.huawei.cangjie.psi
 
+import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.stubs.CangJiePropertyStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
@@ -36,6 +37,7 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
         return visitor.visitProperty(this, data)
 
     }
+
     fun hasBody(): Boolean {
 //        if (hasDelegateExpressionOrInitializer()) return true
 
@@ -48,37 +50,39 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
         }
         return false
     }
-    override fun getTypeReference(): CjTypeReference? {
-        val stub: CangJiePropertyStub? = stub
-        if (stub != null) {
-            if (!stub.hasReturnTypeRef()) {
-                return null
-            } else {
-                val typeReferences: List<CjTypeReference> =
-                    getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_REFERENCE)
-                val returnTypeRefPositionInPsi = /*if (stub.isExtension()) 1 else*/ 0
-                if (typeReferences.size <= returnTypeRefPositionInPsi) {
-                    LOG.error(
-                        """
+
+    override val typeReference: CjTypeReference?
+        get() {
+            val stub: CangJiePropertyStub? = stub
+            if (stub != null) {
+                if (!stub.hasReturnTypeRef()) {
+                    return null
+                } else {
+                    val typeReferences: List<CjTypeReference> =
+                        getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_REFERENCE)
+                    val returnTypeRefPositionInPsi = /*if (stub.isExtension()) 1 else*/ 0
+                    if (typeReferences.size <= returnTypeRefPositionInPsi) {
+                        LOG.error(
+                            """
                         Invalid stub structure built for property:
                         $text
                         """.trimIndent()
-                    )
-                    return null
+                        )
+                        return null
+                    }
+                    return typeReferences[returnTypeRefPositionInPsi]
                 }
-                return typeReferences[returnTypeRefPositionInPsi]
             }
+            return getTypeReference(this)
         }
-        return getTypeReference(this)
-    }
+
 
     override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? {
         TODO("Not yet implemented")
     }
 
-    override fun getColon(): PsiElement? {
-        TODO("Not yet implemented")
-    }
+    override val colon: PsiElement?
+        get() = findChildByType(CjTokens.COLON)
 
     override val initializer: CjExpression?
         get() = null
@@ -104,19 +108,12 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
 
 
     override fun toString(): String = super.toString() + ": " + name
-    override fun getValueParameterList(): CjParameterList? {
-       return null
-    }
 
-    override fun getValueParameters(): MutableList<CjParameter> {
-      return mutableListOf()
-    }
 
-    override fun getReceiverTypeReference(): CjTypeReference? {
-      return null
-    }
-
-    val accessors: MutableList<CjPropertyAccessor>
+    override val valueParameterList: CjParameterList? = null
+    override val valueParameters: List<CjParameter> = emptyList()
+    override val receiverTypeReference: CjTypeReference? = null
+    val accessors: List<CjPropertyAccessor>
         get() {
             return getStubOrPsiChildrenAsList(CjStubElementTypes.PROPERTY_ACCESSOR)
 
@@ -125,7 +122,7 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
     val getter: CjPropertyAccessor?
         get() {
             for (accessor in accessors) {
-                if (accessor.isGetter()) return accessor
+                if (accessor.isGetter) return accessor
             }
             return null
         }
@@ -133,7 +130,7 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
     val setter: CjPropertyAccessor?
         get() {
             for (accessor in accessors)
-                if (accessor.isSetter()) return accessor
+                if (accessor.isSetter) return accessor
             return null
 
         }

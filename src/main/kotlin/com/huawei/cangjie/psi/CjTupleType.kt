@@ -23,11 +23,7 @@ class CjTupleType : CjElementImplStub<CangJiePlaceHolderStub<CjTupleType>>, CjTy
 //        val list: CjParameterList = getParameterList()
 //        return list?.parameters ?: emptyList()
 //    }
+    override val typeArgumentsAsTypes: List<CjTypeReference>
+        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_REFERENCE)
 
-    override fun getTypeArgumentsAsTypes(): List<CjTypeReference> {
-
-        return getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_REFERENCE)
-
-
-    }
 }

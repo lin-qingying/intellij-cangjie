@@ -58,7 +58,7 @@ class CjClassInitElementType(debugName: String) :
 
     override fun createStub(psi: CjClassInit, parentStub: StubElement<out PsiElement>?): CangJieFunctionStub {
 
-        val isExtension = psi.getReceiverTypeReference() != null
+        val isExtension = psi.receiverTypeReference  != null
         val fqName = psi.safeFqNameForLazyResolve()
         val hasBlockBody = psi.hasBlockBody()
         val hasBody = psi.hasBody()

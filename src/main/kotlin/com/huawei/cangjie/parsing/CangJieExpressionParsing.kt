@@ -275,9 +275,10 @@ open class CangJieExpressionParsing(
         parseExpression()
         argument.done(VALUE_ARGUMENT)
     }
-    fun parseValueArgumentList( ) {
 
-        parseValueArgumentList(LPAR, RPAR )
+    fun parseValueArgumentList() {
+
+        parseValueArgumentList(LPAR, RPAR)
     }
 
     /*
@@ -634,7 +635,7 @@ open class CangJieExpressionParsing(
 
         myBuilder.disableNewlines()
         var isExpression = true
-        if (at( LPAR)) {
+        if (at(LPAR)) {
 
 
 //            val atWhenStart = mark()
@@ -652,7 +653,7 @@ open class CangJieExpressionParsing(
 //                atWhenStart.drop()
 //                parseExpression()
 //            }
-        parseCondition()
+            parseCondition()
             isExpression = false
         }
 
@@ -729,7 +730,7 @@ open class CangJieExpressionParsing(
      *   : case caseCondition{|} "=>" caseBody
      *   ;
      */
-    private fun parseMatchEntry(isExpression:Boolean = false) {
+    private fun parseMatchEntry(isExpression: Boolean = false) {
         val entry = mark()
 
         if (at(CASE_KEYWORD)) {
@@ -750,7 +751,8 @@ open class CangJieExpressionParsing(
         entry.done(MATCH_ENTRY)
 
     }
-  inner  class CasePattern  {
+
+    inner class CasePattern {
         /**
          * 绑定模式(id) | 类型模式(id:type) | 枚举模式(id(expression{,})?)
          */
@@ -801,7 +803,8 @@ open class CangJieExpressionParsing(
 
 
             when (type) {
-                1 -> mark.done(REFERENCE_EXPRESSION)
+                1 -> mark.done(BINDING_PATTERN)
+//                1 -> mark.done(REFERENCE_EXPRESSION)
                 2 -> mark.done(TYPE_PATTERN)
                 3 -> mark.done(ENUM_PATTERN)
             }
@@ -811,31 +814,80 @@ open class CangJieExpressionParsing(
 
 
         fun parseUnderline() {
+            val pattern = mark()
+
             assert(_at(UNDERLINE))
             advance()
-
 
             if (at(COLON)) {
                 advance() // COLON
                 //处理类型
                 cangJieParsing.parseTypeRef()
+                pattern.done(TYPE_PATTERN)
+            } else {
+                pattern.done(WILDCARD_PATTERN)
             }
 
 
         }
 
         fun parseExpression() {
+            val constantPattern = mark()
+
             when (tokenId) {
 
-                UNDERLINE_Id -> parseUnderline()
-                LPAR_Id -> parseParenthesizedExpression()
-                INTEGER_LITERAL_Id -> parseOneTokenExpression(INTEGER_CONSTANT)
-                RUNE_LITERAL_Id -> parseOneTokenExpression(RUNE_CONSTANT)
-                CHARACTER_BYTE_LITERAL_Id -> parseOneTokenExpression(CHARACTER_BYTE_CONSTANT)
-                TRUE_KEYWORD_Id, FALSE_KEYWORD_Id -> parseOneTokenExpression(BOOLEAN_CONSTANT)
-                FLOAT_LITERAL_Id -> parseOneTokenExpression(FLOAT_CONSTANT)
-                OPEN_QUOTE_Id -> parseStringTemplate()
-                IDENTIFIER_Id -> parseSimpleNameExpression()
+                UNDERLINE_Id -> {
+                    constantPattern.drop()
+                    parseUnderline()
+                }
+
+                LPAR_Id -> {
+                    constantPattern.drop()
+
+                    parseParenthesizedExpression()
+                }
+
+                INTEGER_LITERAL_Id -> {
+                    parseOneTokenExpression(INTEGER_CONSTANT)
+                    constantPattern.done(CONSTANT_PATTERN)
+                }
+
+                RUNE_LITERAL_Id -> {
+                    parseOneTokenExpression(RUNE_CONSTANT)
+                    constantPattern.done(CONSTANT_PATTERN)
+
+                }
+
+                CHARACTER_BYTE_LITERAL_Id -> {
+                    parseOneTokenExpression(CHARACTER_BYTE_CONSTANT)
+                    constantPattern.done(CONSTANT_PATTERN)
+
+                }
+
+                TRUE_KEYWORD_Id, FALSE_KEYWORD_Id -> {
+                    parseOneTokenExpression(BOOLEAN_CONSTANT)
+                    constantPattern.done(CONSTANT_PATTERN)
+
+                }
+
+                FLOAT_LITERAL_Id -> {
+                    parseOneTokenExpression(FLOAT_CONSTANT)
+                    constantPattern.done(CONSTANT_PATTERN)
+
+                }
+
+                OPEN_QUOTE_Id -> {
+                    parseStringTemplate()
+                    constantPattern.done(CONSTANT_PATTERN)
+
+                }
+
+                IDENTIFIER_Id -> {
+                    parseSimpleNameExpression()
+                    constantPattern.done(CONSTANT_PATTERN)
+
+                }
+
                 else -> error("Expecting a pattern expression")
 
             }
@@ -884,8 +936,13 @@ open class CangJieExpressionParsing(
 
 
             when {
-                isUnit -> mark.done(UNIT_CONSTANT)
-                isTuple -> mark.done(TUPLE_EXPRESSION)
+                isUnit -> {
+                    val constantPattern = mark()
+                    mark.done(UNIT_CONSTANT)
+                    constantPattern.done(CONSTANT_PATTERN)
+                }
+
+                isTuple -> mark.done(TUPLE_PATTERN)
 
                 else -> mark.drop()
             }
@@ -905,21 +962,19 @@ open class CangJieExpressionParsing(
      * | 逻辑表达式
      * )
      */
-    private fun parseCasePattern(isExpression:Boolean = false) {
+    private fun parseCasePattern(isExpression: Boolean = false) {
         val condition = mark()
 
 
-
-
         val casePattern = CasePattern()
-        if(isExpression ){
-            if(at(UNDERLINE)){
+        if (isExpression) {
+            if (at(UNDERLINE)) {
                 casePattern.parseUnderline()
-            }else{
+            } else {
                 parseExpression()
             }
 
-        }else{
+        } else {
             casePattern.parseExpression()
 
         }

@@ -12,7 +12,7 @@ class CjContextReceiver : CjElementImplStub<CangJieContextReceiverStub> {
     constructor(stub: CangJieContextReceiverStub) : super(stub, CjStubElementTypes.CONTEXT_RECEIVER)
 
     fun targetLabel(): CjSimpleNameExpression? =
-        findChildByType<CjContainerNode?>(CjNodeTypes.LABEL_QUALIFIER)
+        findChildByType<CjContainerNode>(CjNodeTypes.LABEL_QUALIFIER)
             ?.findChildByType(CjNodeTypes.LABEL)
 
     fun labelName(): String? {

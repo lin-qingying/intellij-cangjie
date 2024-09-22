@@ -1,102 +1,78 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.CjNodeTypes;
-import com.huawei.cangjie.name.Name;
-import com.huawei.cangjie.psi.stubs.CangJieAnnotationEntryStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.CjNodeTypes
+import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.name.Name.Companion.identifier
+import com.huawei.cangjie.psi.stubs.CangJieAnnotationEntryStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
-import java.util.Collections;
-import java.util.List;
+class CjAnnotationEntry : CjElementImplStub<CangJieAnnotationEntryStub >, CjCallElement {
+    constructor(node: ASTNode) : super(node)
 
-public class CjAnnotationEntry extends CjElementImplStub<CangJieAnnotationEntryStub> implements CjCallElement  {
+    constructor(stub: CangJieAnnotationEntryStub) : super(stub, CjStubElementTypes.ANNOTATION_ENTRY)
 
-
-    public CjAnnotationEntry(@NotNull ASTNode node) {
-        super(node);
+    override val calleeExpression : CjConstructorCalleeExpression? get(){
+        return getStubOrPsiChild(CjStubElementTypes.CONSTRUCTOR_CALLEE)
     }
 
-    public CjAnnotationEntry(@NotNull CangJieAnnotationEntryStub stub) {
-        super(stub, CjStubElementTypes.ANNOTATION_ENTRY);
-    }
-    @Override
-    public CjConstructorCalleeExpression getCalleeExpression() {
-        return getStubOrPsiChild(CjStubElementTypes.CONSTRUCTOR_CALLEE);
+    override val lambdaArguments: List<CjLambdaArgument> get(){
+        return emptyList()
     }
 
-    @Override
-    public @NotNull List<CjLambdaArgument> getLambdaArguments() {
-        return Collections.emptyList();
-
+    override val typeArguments : List<CjTypeProjection> get(){
+        val typeArgumentList = typeArgumentList ?: return emptyList()
+        return typeArgumentList.arguments
     }
 
-    @Override
-    public @NotNull List<CjTypeProjection> getTypeArguments() {
-        CjTypeArgumentList typeArgumentList = getTypeArgumentList();
-        if (typeArgumentList == null) {
-            return Collections.emptyList();
-        }
-        return typeArgumentList.getArguments();
-    }
+    override val typeArgumentList : CjTypeArgumentList? = null
 
-    @Override
-    public @Nullable CjTypeArgumentList getTypeArgumentList() {
-        return null;
-    }
-
-    @Override
-    public CjValueArgumentList getValueArgumentList() {
-        CangJieAnnotationEntryStub stub = getStub();
-        if (stub == null && getGreenStub() != null) {
-            return findChildByType(CjNodeTypes.VALUE_ARGUMENT_LIST);
+    override val valueArgumentList : CjValueArgumentList? get(){
+        val stub = stub
+        if (stub == null && greenStub != null) {
+            return findChildByType(CjNodeTypes.VALUE_ARGUMENT_LIST)
         }
 
-        return getStubOrPsiChild(CjStubElementTypes.VALUE_ARGUMENT_LIST);
+        return getStubOrPsiChild(CjStubElementTypes.VALUE_ARGUMENT_LIST)
     }
 
-    @Override
-    public @NotNull List<? extends ValueArgument> getValueArguments() {
-        CangJieAnnotationEntryStub stub = getStub();
+    override val valueArguments : List<ValueArgument > get(){
+        val stub = stub
         if (stub != null && !stub.hasValueArguments()) {
-            return Collections.<CjValueArgument>emptyList();
+            return emptyList<CjValueArgument>()
         }
 
-        CjValueArgumentList list = getValueArgumentList();
-        return list != null ? list.getArguments() : Collections.<CjValueArgument>emptyList();
+        val list = valueArgumentList
+        return list?.arguments ?: emptyList<CjValueArgument>()
     }
 
-    @Nullable @IfNotParsed
-    public CjTypeReference getTypeReference() {
-        CjConstructorCalleeExpression calleeExpression = getCalleeExpression();
-        if (calleeExpression == null) {
-            return null;
+    @get:IfNotParsed
+    val typeReference: CjTypeReference?
+        get() {
+            val calleeExpression = calleeExpression ?: return null
+            return calleeExpression.typeReference
         }
-        return calleeExpression.getTypeReference();
-    }
-    @Nullable
-    public Name getShortName() {
-      CangJieAnnotationEntryStub stub = getStub();
-        if (stub != null) {
-            String shortName = stub.getShortName();
-            if (shortName != null) {
-                return Name.identifier(shortName);
+    val shortName: Name?
+        get() {
+            val stub = stub
+            if (stub != null) {
+                val shortName = stub.getShortName()
+                if (shortName != null) {
+                    return identifier(shortName)
+                }
+                return null
             }
-            return null;
-        }
 
-        CjTypeReference typeReference = getTypeReference();
-        assert typeReference != null : "Annotation entry hasn't typeReference " + getText();
-       CjTypeElement typeElement = typeReference.getTypeElement();
-        if (typeElement instanceof CjUserType userType) {
-            String shortName = userType.getReferencedName();
-            if (shortName != null) {
-                return Name.identifier(shortName);
+            val typeReference =
+                checkNotNull(typeReference) { "Annotation entry hasn't typeReference $text" }
+            val typeElement = typeReference.typeElement
+            if (typeElement is CjUserType) {
+                val shortName = typeElement.referencedName
+                if (shortName != null) {
+                    return identifier(shortName)
+                }
             }
+            return null
         }
-        return null;
-    }
-
 
 }

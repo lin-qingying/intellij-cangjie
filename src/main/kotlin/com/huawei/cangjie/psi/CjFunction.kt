@@ -1,13 +1,11 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
 
-public interface CjFunction extends CjDeclarationWithBody, CjCallableDeclaration {
-    boolean isLocal();
-    default boolean isStatic(){
-        return false;
-    }
-    default boolean isOperator() {
-        return false;
-    }
+interface CjFunction : CjDeclarationWithBody, CjCallableDeclaration {
+    val isLocal: Boolean
+    val isStatic: Boolean
+        get() = false
+    val isOperator: Boolean
+        get() = false
 }
 

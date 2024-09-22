@@ -18,15 +18,16 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
         stub,
         nodeType
     )
+
     open fun getConstructorKeyword(): PsiElement? = findChildByType(CjTokens.INIT_KEYWORD)
 
     abstract fun getContainingTypeStatement(): CjTypeStatement
 
-    override fun isLocal() = false
-    override fun getBodyExpression(): CjInitBlockExpression? {
+    override val isLocal  = false
+    override val bodyExpression : CjInitBlockExpression?get()   {
         val stub = stub
         if (stub != null) {
-            if (stub.hasBody() == false) {
+            if (!stub.hasBody()) {
                 return null
             }
             if (getContainingCjFile().isCompiled) {
@@ -36,15 +37,15 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
         return findChildByClass(CjInitBlockExpression::class.java)
     }
 
-    override fun getValueParameterList() = getStubOrPsiChild(CjStubElementTypes.VALUE_PARAMETER_LIST)
 
-    override fun getValueParameters() = valueParameterList?.parameters ?: emptyList()
+    override val receiverTypeReference: CjTypeReference? = null
 
-    override fun getReceiverTypeReference() = null
+    override val contextReceivers: List<CjContextReceiver> = emptyList()
 
-    override fun getContextReceivers(): List<CjContextReceiver> = emptyList()
-
-    override fun getTypeReference() = null
+    override val valueParameters: List<CjParameter>
+        get() = valueParameterList?.parameters ?: emptyList()
+    override val typeReference: CjTypeReference? = null
+    override val valueParameterList: CjParameterList? get() = getStubOrPsiChild(CjStubElementTypes.VALUE_PARAMETER_LIST)
     fun getDelegationCall(): CjConstructorDelegationCall = bodyExpression!!.getDelegationCall()
 
     fun getDelegationCallOrNull(): CjConstructorDelegationCall? = bodyExpression?.getDelegationCallOrNull()
@@ -54,14 +55,15 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
     fun replaceImplicitDelegationCallWithExplicit(isThis: Boolean): CjConstructorDelegationCall {
         return bodyExpression!!.replaceImplicitDelegationCallWithExplicit(isThis)
     }
+
     @Throws(IncorrectOperationException::class)
     override fun setTypeReference(typeRef: CjTypeReference?) =
         throw IncorrectOperationException("setTypeReference to constructor")
 
-    override fun getColon() = findChildByType<PsiElement>(CjTokens.COLON)
 
+    override val colon get() = findChildByType<PsiElement>(CjTokens.COLON)
 
-    override fun getEqualsToken() = null
+    override val equalsToken  = null
 
     override fun hasBlockBody() = hasBody()
 
@@ -69,7 +71,7 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
         stub?.let { return it.isDelegatedCallToThis() }
         return when (this) {
             is CjPrimaryConstructor -> false
-            is CjSecondaryConstructor -> getDelegationCallOrNull()?.isCallToThis() ?: true
+            is CjSecondaryConstructor -> getDelegationCallOrNull()?.isCallToThis ?: true
             else -> throw IllegalStateException("Unknown constructor type: $this")
         }
     }
@@ -79,15 +81,13 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
         return bodyExpression != null
     }
 
+    override val typeParameterList: CjTypeParameterList? = null
+    override val typeConstraintList: CjTypeConstraintList? = null
+    override val typeConstraints: List<CjTypeConstraint> = emptyList()
+    override val typeParameters: List<CjTypeParameter> = emptyList()
+
     override fun hasDeclaredReturnType() = false
 
-    override fun getTypeParameterList() = null
-
-    override fun getTypeConstraintList() = null
-
-    override fun getTypeConstraints() = emptyList<CjTypeConstraint>()
-
-    override fun getTypeParameters() = emptyList<CjTypeParameter>()
 
     override fun getName(): String? = getContainingTypeStatement().name
 

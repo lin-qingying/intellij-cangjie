@@ -1,7 +1,7 @@
 package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens.LPAR
 import com.huawei.cangjie.lexer.CjTokens.QUEST
+import com.huawei.cangjie.psi.psiUtil.CjStubbedPsiUtil
 import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.huawei.cangjie.psi.stubs.elements.CjTokenSets
@@ -18,11 +18,13 @@ class CjOptionType : CjElementImplStub<CangJiePlaceHolderStub<CjOptionType>>, Cj
         return node.findChildByType(QUEST) !!
     }
 
-    override fun getTypeArgumentsAsTypes(): List<CjTypeReference> {
-        val innerType = getInnerType()
-        return innerType?.getTypeArgumentsAsTypes() ?: emptyList()
-    }
 
+    override val typeArgumentsAsTypes: List<CjTypeReference>
+        get() {
+
+            val innerType = getInnerType()
+            return innerType?.typeArgumentsAsTypes ?: emptyList()
+        }
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitOptionType(this, data)
     }

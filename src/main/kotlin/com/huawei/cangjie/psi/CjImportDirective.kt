@@ -1,204 +1,193 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.descriptors.DescriptorVisibilities;
-import com.huawei.cangjie.descriptors.DescriptorVisibility;
-import com.huawei.cangjie.lexer.CjKeywordToken;
-import com.huawei.cangjie.lexer.CjModifierKeywordToken;
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.name.FqName;
-import com.huawei.cangjie.name.Name;
-import com.huawei.cangjie.psi.stubs.CangJieImportDirectiveStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.huawei.cangjie.psi.stubs.elements.CjTokenSets;
-import com.huawei.cangjie.resolve.ImportPath;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.descriptors.DescriptorVisibilities
+import com.huawei.cangjie.descriptors.DescriptorVisibility
+import com.huawei.cangjie.lexer.CjKeywordToken
+import com.huawei.cangjie.lexer.CjModifierKeywordToken
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.name.FqName
+import com.huawei.cangjie.name.FqName.Companion.topLevel
+import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.name.Name.Companion.identifier
+import com.huawei.cangjie.psi.stubs.CangJieImportDirectiveStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.huawei.cangjie.psi.stubs.elements.CjTokenSets
+import com.huawei.cangjie.resolve.ImportPath
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
+import kotlin.concurrent.Volatile
 
-public class CjImportDirective extends CjDeclarationStub<CangJieImportDirectiveStub> implements CjImportInfo {
+class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub>, CjImportInfo {
+    @Volatile
+    private var _importedFqName: FqName? = null
 
-    private volatile FqName importedFqName;
+    constructor(node: ASTNode) : super(node)
 
-    public CjImportDirective(@NotNull ASTNode node) {
-        super(node);
+    constructor(stub: CangJieImportDirectiveStub) : super(stub, CjStubElementTypes.IMPORT_DIRECTIVE)
+
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitImportDirective(this, data)
     }
 
-    public CjImportDirective(@NotNull CangJieImportDirectiveStub stub) {
-        super(stub, CjStubElementTypes.IMPORT_DIRECTIVE);
-    }
-
-    @Nullable
-    public static FqName fqNameFromExpression(@Nullable CjExpression expression) {
-        if (expression == null) {
-            return null;
-        }
-
-        if (expression instanceof CjDotQualifiedExpression dotQualifiedExpression) {
-            FqName parentFqn = fqNameFromExpression(dotQualifiedExpression.getReceiverExpression());
-            Name child = nameFromExpression(dotQualifiedExpression.getSelectorExpression());
-            if (child == null) {
-                return parentFqn;
+    @get:IfNotParsed
+    val importedReference: CjExpression?
+        get() {
+            val references =
+                getStubOrPsiChildren(
+                    CjTokenSets.INSIDE_DIRECTIVE_EXPRESSIONS,
+                    CjExpression.ARRAY_FACTORY
+                )
+            if (references.isNotEmpty()) {
+                return references[0]
             }
-            if (parentFqn != null) {
-                return parentFqn.child(child);
+            return null
+        }
+
+    val alias: CjImportAlias?
+        get() = getStubOrPsiChild(CjStubElementTypes.IMPORT_ALIAS)
+
+    override val aliasName: String?
+        get() {
+            val alias = alias
+            return alias?.name
+        }
+
+    override val isAllUnder: Boolean
+        get() {
+            val stub = stub
+            if (stub != null) {
+                return stub.isAllUnder()
             }
-            return null;
-        } else if (expression instanceof CjSimpleNameExpression simpleNameExpression) {
-            return FqName.topLevel(simpleNameExpression.getReferencedNameAsName());
-        } else {
-            throw new IllegalArgumentException("Can't construct fqn for: " + expression.getClass());
-        }
-    }
-
-    @Nullable
-    private static Name nameFromExpression(@Nullable CjExpression expression) {
-        if (expression == null) {
-            return null;
+            return node.findChildByType(CjTokens.MUL) != null
         }
 
-        if (expression instanceof CjSimpleNameExpression) {
-            return ((CjSimpleNameExpression) expression).getReferencedNameAsName();
-        } else {
-            throw new IllegalArgumentException("Can't construct name for: " + expression.getClass());
-        }
-    }
-
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
-        return visitor.visitImportDirective(this, data);
-    }
-
-    @Nullable
-    @IfNotParsed
-    public CjExpression getImportedReference() {
-        CjExpression[] references = getStubOrPsiChildren(CjTokenSets.INSIDE_DIRECTIVE_EXPRESSIONS, CjExpression.Companion.getARRAY_FACTORY());
-        if (references.length > 0) {
-            return references[0];
-        }
-        return null;
-    }
-
-    @Nullable
-    public CjImportAlias getAlias() {
-        return getStubOrPsiChild(CjStubElementTypes.IMPORT_ALIAS);
-    }
-
-    @Override
-    @Nullable
-    public String getAliasName() {
-        CjImportAlias alias = getAlias();
-        return alias != null ? alias.getName() : null;
-    }
-
-    @Override
-    public boolean isAllUnder() {
-        CangJieImportDirectiveStub stub = getStub();
-        if (stub != null) {
-            return stub.isAllUnder();
-        }
-        return getNode().findChildByType(CjTokens.MUL) != null;
-    }
-
-    @Nullable
-    @Override
-    public ImportContent getImportContent() {
-        CjExpression reference = getImportedReference();
-        if (reference == null) return null;
-        return new ImportContent.ExpressionBased(reference);
-    }
-
-    @Override
-    @Nullable
-    @IfNotParsed
-    public FqName getImportedFqName() {
-
-
-        PsiElement parentStub = this.getParent();
-
-        CangJieImportDirectiveStub stub = getStub();
-        if (stub != null) {
-            return stub.getImportedFqName();
+    override val importContent: CjImportInfo.ImportContent?
+        get() {
+            val reference = importedReference ?: return null
+            return CjImportInfo.ImportContent.ExpressionBased(reference)
         }
 
-        FqName importedFqName = this.importedFqName;
-        if (importedFqName != null) return importedFqName;
-        CjExpression importedReference = getImportedReference();
-        // in case it's not parsed
-        if (importedReference == null) return null;
+    @get:IfNotParsed
+    override val importedFqName: FqName?
+        get() {
+            val parentStub = this.parent
 
-
-        importedFqName = fqNameFromExpression(importedReference);
-
-        if (parentStub instanceof CjMultiImportDirective) {
-            FqName name = ((CjMultiImportDirective) parentStub).getFqName();
-            if (name != null) {
-                importedFqName = name.child(importedFqName);
+            val stub = stub
+            if (stub != null) {
+                return stub.getImportedFqName()
             }
+
+            var importedFqName = this._importedFqName
+            if (importedFqName != null) return importedFqName
+            val importedReference = importedReference ?: return null
+            // in case it's not parsed
+
+
+            importedFqName = fqNameFromExpression(importedReference)
+
+            if (parentStub is CjMultiImportDirective) {
+                val name = parentStub.fqName
+                if (name != null) {
+                    importedFqName = name.child(importedFqName!!)
+                }
+            }
+
+            this._importedFqName = importedFqName
+            return importedFqName
         }
 
-        this.importedFqName = importedFqName;
-        return importedFqName;
-    }
+    @get:IfNotParsed
+    val importPath: ImportPath?
+        get() {
+            val importFqn = _importedFqName ?: return null
 
-    @Nullable
-    @IfNotParsed
-    public ImportPath getImportPath() {
-        FqName importFqn = getImportedFqName();
-        if (importFqn == null) {
-            return null;
+            var alias: Name? = null
+            val aliasName = aliasName
+            if (aliasName != null) {
+                alias = identifier(aliasName)
+            }
+
+            return ImportPath(importFqn, isAllUnder, alias)
         }
 
-        Name alias = null;
-        String aliasName = getAliasName();
-        if (aliasName != null) {
-            alias = Name.identifier(aliasName);
+    val isValidImport: Boolean
+        get() {
+            val stub = stub
+            if (stub != null) {
+                return stub.isValid()
+            }
+            return !PsiTreeUtil.hasErrorElements(this)
         }
 
-        return new ImportPath(importFqn, isAllUnder(), alias);
+    override fun subtreeChanged() {
+        super.subtreeChanged()
+        _importedFqName = null
     }
 
-    public boolean isValidImport() {
-        CangJieImportDirectiveStub stub = getStub();
-        if (stub != null) {
-            return stub.isValid();
-        }
-        return !PsiTreeUtil.hasErrorElements(this);
+    fun getModifier(tokenType: CjKeywordToken): PsiElement? {
+        return findChildByType(tokenType)
     }
 
-    @Override
-    public void subtreeChanged() {
-        super.subtreeChanged();
-        importedFqName = null;
-    }
-
-    @Nullable
-    public PsiElement getModifier(@NotNull CjKeywordToken tokenType) {
-        return findChildByType(tokenType);
-    }
-
-    public boolean hasModifier(@NotNull CjModifierKeywordToken tokenType) {
+    override fun hasModifier(tokenType: CjModifierKeywordToken): Boolean {
 //        CangJieImportDirectiveStub stub = getStub();
 //        if (stub != null) {
 //            return stub.getModifierVisibility(tokenType);
 //        }
-        return getModifier(tokenType) != null;
+        return getModifier(tokenType) != null
     }
 
-    @NotNull
-    @Override
-    public DescriptorVisibility getModifierVisibility() {
-        CangJieImportDirectiveStub stub = getStub();
+    override val modifierVisibility : DescriptorVisibility get()    {
+        val stub = stub
         if (stub != null) {
-            return stub.getModifierVisibility();
+            return stub.getModifierVisibility()
         }
 
-        if (hasModifier(CjTokens.PRIVATE_KEYWORD)) return DescriptorVisibilities.PRIVATE;
-        if (hasModifier(CjTokens.INTERNAL_KEYWORD)) return DescriptorVisibilities.INTERNAL;
-        if (hasModifier(CjTokens.PROTECTED_KEYWORD)) return DescriptorVisibilities.PROTECTED;
-        if (hasModifier(CjTokens.PUBLIC_KEYWORD)) return DescriptorVisibilities.PUBLIC;
-        return DescriptorVisibilities.PRIVATE;
-//        return resolveVisibilityFromModifiers(this, DescriptorVisibilities.PRIVATE);
+        if (hasModifier(CjTokens.PRIVATE_KEYWORD)) return DescriptorVisibilities.PRIVATE
+        if (hasModifier(CjTokens.INTERNAL_KEYWORD)) return DescriptorVisibilities.INTERNAL
+        if (hasModifier(CjTokens.PROTECTED_KEYWORD)) return DescriptorVisibilities.PROTECTED
+        if (hasModifier(CjTokens.PUBLIC_KEYWORD)) return DescriptorVisibilities.PUBLIC
+        return DescriptorVisibilities.PRIVATE
+        //        return resolveVisibilityFromModifiers(this, DescriptorVisibilities.PRIVATE);
+    }
+
+    companion object {
+        fun fqNameFromExpression(expression: CjExpression?): FqName? {
+            if (expression == null) {
+                return null
+            }
+
+            when (expression) {
+                is CjDotQualifiedExpression -> {
+                    val parentFqn = fqNameFromExpression(expression.receiverExpression)
+                    val child =
+                        nameFromExpression(expression.selectorExpression) ?: return parentFqn
+                    if (parentFqn != null) {
+                        return parentFqn.child(child)
+                    }
+                    return null
+                }
+
+                is CjSimpleNameExpression -> {
+                    return topLevel(expression.getReferencedNameAsName())
+                }
+
+                else -> {
+                    throw IllegalArgumentException("Can't construct fqn for: " + expression.javaClass)
+                }
+            }
+        }
+
+        private fun nameFromExpression(expression: CjExpression?): Name? {
+            if (expression == null) {
+                return null
+            }
+
+            if (expression is CjSimpleNameExpression) {
+                return expression.getReferencedNameAsName()
+            } else {
+                throw IllegalArgumentException("Can't construct name for: " + expression.javaClass)
+            }
+        }
     }
 }

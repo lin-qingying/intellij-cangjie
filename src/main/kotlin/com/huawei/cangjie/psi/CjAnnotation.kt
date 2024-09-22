@@ -1,39 +1,28 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
-import java.util.List;
+class CjAnnotation : CjElementImplStub<CangJiePlaceHolderStub<CjAnnotation>> {
+    constructor(node: ASTNode) : super(node)
 
-public class CjAnnotation extends CjElementImplStub<CangJiePlaceHolderStub<CjAnnotation>>  {
+    constructor(stub: CangJiePlaceHolderStub<CjAnnotation>) : super(stub, CjStubElementTypes.ANNOTATION)
 
-    public CjAnnotation(@NotNull ASTNode node) {
-        super(node);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitAnnotation(this, data)
     }
 
-    public CjAnnotation(CangJiePlaceHolderStub<CjAnnotation> stub) {
-        super(stub, CjStubElementTypes.ANNOTATION);
-    }
-
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
-        return visitor.visitAnnotation(this, data);
-    }
-
-    public List<CjAnnotationEntry> getEntries() {
-        return getStubOrPsiChildrenAsList(CjStubElementTypes.ANNOTATION_ENTRY);
-    }
+    val entries: List<CjAnnotationEntry>
+        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.ANNOTATION_ENTRY)
 
 
+    fun removeEntry(entry: CjAnnotationEntry) {
 
-    public void removeEntry(@NotNull CjAnnotationEntry entry) {
-        if (getEntries().size() > 1) {
-            entry.delete();
-        }
-        else {
-            delete();
+        if (entries.size > 1) {
+            entry.delete()
+        } else {
+            delete()
         }
     }
 }

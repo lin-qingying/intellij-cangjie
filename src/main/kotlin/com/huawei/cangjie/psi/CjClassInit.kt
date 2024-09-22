@@ -16,7 +16,7 @@ class CjClassInit: CjFunctionImpl {
 //
     constructor(stub: CangJieFunctionStub, nodeType: IStubElementType<*, *>): super(stub, nodeType)
 
-    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R   {
         return visitor.visitClassInitFunction(this, data)
 
     }

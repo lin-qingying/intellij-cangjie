@@ -1,221 +1,180 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.psi.stubs.CangJieFunctionStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import com.intellij.navigation.ItemPresentation;
-import com.intellij.navigation.ItemPresentationProviders;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.stubs.CangJieFunctionStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.navigation.ItemPresentation
+import com.intellij.navigation.ItemPresentationProviders
+import com.intellij.psi.PsiElement
+import com.intellij.psi.tree.IElementType
+import com.intellij.psi.util.PsiTreeUtil
 
-import java.util.Collections;
-import java.util.List;
+class CjNamedFunction : CjFunctionImpl {
+    constructor(node: ASTNode) : super(node)
 
+    constructor(stub: CangJieFunctionStub) : super(stub, CjStubElementTypes.FUNCTION)
 
-public class CjNamedFunction extends CjFunctionImpl {
-    public CjNamedFunction(@NotNull ASTNode node) {
-        super(node);
-    }
-
-    public CjNamedFunction(@NotNull CangJieFunctionStub stub) {
-        super(stub, CjStubElementTypes.FUNCTION);
-    }
-//    public bool mayHaveContract() {
-//        return mayHaveContract(true);
-//    }
-
+    //    public bool mayHaveContract() {
+    //        return mayHaveContract(true);
+    //    }
     //    public bool mayHaveContract(bool isAllowedOnMembers) {
-//        CangJieFunctionStub stub = getStub();
-//        if (stub != null) {
-//            return stub.mayHaveContract();
-//        }
-//
-//        return CjPsiUtilKt.isContractPresentPsiCheck(this, isAllowedOnMembers);
-//    }
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitNamedFunction(this, data);
+    //        CangJieFunctionStub stub = getStub();
+    //        if (stub != null) {
+    //            return stub.mayHaveContract();
+    //        }
+    //
+    //        return CjPsiUtilKt.isContractPresentPsiCheck(this, isAllowedOnMembers);
+    //    }
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitNamedFunction(this, data)
     }
 
-    public boolean hasTypeParameterListBeforeFunctionName() {
-        CangJieFunctionStub stub = getStub();
+    override fun hasTypeParameterListBeforeFunctionName(): Boolean {
+        val stub: CangJieFunctionStub? = stub
         if (stub != null) {
-            return stub.hasTypeParameterListBeforeFunctionName();
+            return stub.hasTypeParameterListBeforeFunctionName()
         }
-        return hasTypeParameterListBeforeFunctionNameByTree();
+        return hasTypeParameterListBeforeFunctionNameByTree()
     }
 
-    private boolean hasTypeParameterListBeforeFunctionNameByTree() {
-        CjTypeParameterList typeParameterList = getTypeParameterList();
-        if (typeParameterList == null) {
-            return false;
-        }
-        PsiElement nameIdentifier = getNameIdentifier();
-        if (nameIdentifier == null) {
-            return true;
-        }
-        return nameIdentifier.getTextOffset() > typeParameterList.getTextOffset();
+    private fun hasTypeParameterListBeforeFunctionNameByTree(): Boolean {
+        val typeParameterList: CjTypeParameterList = typeParameterList ?: return false
+        val nameIdentifier: PsiElement = nameIdentifier ?: return true
+        return nameIdentifier.textOffset > typeParameterList.textOffset
     }
 
-    @Override
-    public boolean hasBlockBody() {
-        CangJieFunctionStub stub = getStub();
+    override fun hasBlockBody(): Boolean {
+        val stub: CangJieFunctionStub? = stub
         if (stub != null) {
-            return stub.hasBlockBody();
+            return stub.hasBlockBody()
         }
-        return getEqualsToken() == null;
+        return equalsToken == null
     }
 
-    @Nullable
-    @IfNotParsed
-    public PsiElement getFunKeyword() {
-        return findChildByType(CjTokens.FUNC_KEYWORD);
+    @get:IfNotParsed
+    val funKeyword: PsiElement?
+        get() = findChildByType(CjTokens.FUNC_KEYWORD)
+
+    override val equalsToken: PsiElement?
+        get() = super.equalsToken
+
+    override val initializer: CjExpression?
+        get() = PsiTreeUtil.getNextSiblingOfType(
+            equalsToken,
+            CjExpression::class.java
+        )
+
+    override fun hasInitializer(): Boolean {
+        return initializer != null
     }
 
-    @Override
-    @Nullable
-    public PsiElement getEqualsToken() {
-        return super.getEqualsToken();
+    override fun getPresentation(): ItemPresentation? {
+        return ItemPresentationProviders.getItemPresentation(this)
     }
 
-    @Override
-    @Nullable
-    public CjExpression getInitializer() {
-        return PsiTreeUtil.getNextSiblingOfType(getEqualsToken(), CjExpression.class);
-    }
-
-    @Override
-    public boolean hasInitializer() {
-        return getInitializer() != null;
-    }
-
-    @Override
-    public ItemPresentation getPresentation() {
-        return ItemPresentationProviders.getItemPresentation(this);
-    }
-
-    @Override
-    @Nullable
-    public CjParameterList getValueParameterList() {
-        return super.getValueParameterList();
-    }
-
-    @Override
-    @NotNull
-    public List<CjParameter> getValueParameters() {
-        CjParameterList list = getValueParameterList();
-        return list != null ? list.getParameters() : Collections.emptyList();
-    }
-
-    @Override
-    @Nullable
-    public CjExpression getBodyExpression() {
-
-        return super.getBodyExpression();
-    }
-
-    @Nullable
-    @Override
-    public CjBlockExpression getBodyBlockExpression() {
-
-        return super.getBodyBlockExpression();
-    }
-
-    @Override
-    public boolean hasBody() {
-        CangJieFunctionStub stub = getStub();
-        if (stub != null) {
-            return stub.hasBody();
+    override val valueParameterList: CjParameterList?
+        get() {
+            return super.valueParameterList
         }
-        return getBodyBlockExpression() != null;
-    }
 
-    @Override
-    public boolean hasDeclaredReturnType() {
-        return getTypeReference() != null;
-    }
+    override val valueParameters: List<CjParameter>
+        get() {
+            val list: CjParameterList? = valueParameterList
+            return list?.parameters ?: emptyList()
+        }
 
-    @Override
-    @Nullable
-    public CjTypeReference getReceiverTypeReference() {
-        CangJieFunctionStub stub = getStub();
+    override val bodyExpression: CjExpression?
+        get() {
+            return super.bodyExpression
+        }
+
+    override val bodyBlockExpression: CjBlockExpression?
+        get() {
+            return super.bodyBlockExpression
+        }
+
+    override fun hasBody(): Boolean {
+        val stub: CangJieFunctionStub? = stub
         if (stub != null) {
-            if (!stub.isExtension()) {
-                return null;
+            return stub.hasBody()
+        }
+        return bodyBlockExpression != null
+    }
+
+    override fun hasDeclaredReturnType(): Boolean {
+        return typeReference != null
+    }
+
+    override val receiverTypeReference: CjTypeReference?
+        get() {
+            val stub: CangJieFunctionStub? = stub
+            if (stub != null) {
+                if (!stub.isExtension()) {
+                    return null
+                }
+                val childTypeReferences: List<CjTypeReference> =
+                    getStubOrPsiChildrenAsList(
+                        CjStubElementTypes.TYPE_REFERENCE
+                    )
+                return if (childTypeReferences.isNotEmpty()) {
+                    childTypeReferences[0]
+                } else {
+                    null
+                }
             }
-            List<CjTypeReference> childTypeReferences = getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_REFERENCE);
-            if (!childTypeReferences.isEmpty()) {
-                return childTypeReferences.get(0);
-            } else {
-                return null;
-            }
-        }
-        return getReceiverTypeRefByTree();
-    }
-
-    @Nullable
-    private CjTypeReference getReceiverTypeRefByTree() {
-        PsiElement child = getFirstChild();
-        while (child != null) {
-            IElementType tt = child.getNode().getElementType();
-            if (tt == CjTokens.LPAR || tt == CjTokens.COLON) break;
-            if (child instanceof CjTypeReference) {
-                return (CjTypeReference) child;
-            }
-            child = child.getNextSibling();
+            return receiverTypeRefByTree
         }
 
-        return null;
-    }
+    private val receiverTypeRefByTree: CjTypeReference?
+        get() {
+            var child: PsiElement? = firstChild
+            while (child != null) {
+                val tt: IElementType = child.node.elementType
+                if (tt === CjTokens.LPAR || tt === CjTokens.COLON) break
+                if (child is CjTypeReference) {
+                    return child
+                }
+                child = child.nextSibling
+            }
 
-    @Override
-    public String toString() {
+            return null
+        }
+
+    override fun toString(): String {
 //        return getNode().getElementType().toString();
-        return getNode().getElementType() + ": " + getName();
+        return node.elementType.toString() + ": " + name
     }
 
-    @NotNull
-    @Override
-    public List<CjContextReceiver> getContextReceivers() {
-        CjContextReceiverList contextReceiverList = getStubOrPsiChild(CjStubElementTypes.CONTEXT_RECEIVER_LIST);
-        if (contextReceiverList != null) {
-            return contextReceiverList.contextReceivers();
-        } else {
-            return Collections.emptyList();
+    override val contextReceivers: List<CjContextReceiver>
+        get() {
+            val contextReceiverList: CjContextReceiverList? =
+                getStubOrPsiChild(CjStubElementTypes.CONTEXT_RECEIVER_LIST)
+            return contextReceiverList?.contextReceivers() ?: emptyList()
         }
-    }
 
-    @Override
-    @Nullable
-    public CjTypeReference getTypeReference() {
-        return super.getTypeReference();
-    }
+    override val typeReference: CjTypeReference?
+        get() {
+            return super.typeReference
+        }
 
-    @Override
-    @Nullable
-    public CjTypeReference setTypeReference(@Nullable CjTypeReference typeRef) {
-        return TypeRefHelpersKt.setTypeReference(this, getValueParameterList(), typeRef);
+    override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? {
+        return setTypeReference(this, valueParameterList, typeRef)
     }
 
 
-    @Nullable
-    @Override
-    public PsiElement getColon() {
-        return super.getColon();
-    }
+    override val colon: PsiElement?
+        get() {
+            return super.colon
+        }
 
-    public boolean isAnonymous() {
-        return getName() == null && isLocal();
-    }
+    val isAnonymous: Boolean
+        get() {
+            return name == null && isLocal
+        }
 
-    public boolean isTopLevel() {
-
-        return super.isTopLevel();
-    }
-
-
+    override val isTopLevel: Boolean
+        get() {
+            return super.isTopLevel
+        }
 }

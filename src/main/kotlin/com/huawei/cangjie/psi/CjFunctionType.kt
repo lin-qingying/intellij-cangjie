@@ -1,100 +1,72 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.google.common.collect.Lists;
-import com.huawei.cangjie.lexer.CjToken;
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.google.common.collect.Lists
+import com.huawei.cangjie.lexer.CjToken
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+class CjFunctionType : CjElementImplStub<CangJiePlaceHolderStub<CjFunctionType > >, CjTypeElement {
+    constructor(node: ASTNode) : super(node)
 
+    constructor(stub: CangJiePlaceHolderStub<CjFunctionType >) : super(stub, CjStubElementTypes.FUNCTION_TYPE)
 
+    override val typeArgumentsAsTypes: List<CjTypeReference >
+        get() {
+            val result =
+                Lists.newArrayList<CjTypeReference >()
 
-public class CjFunctionType extends CjElementImplStub<CangJiePlaceHolderStub<CjFunctionType>> implements CjTypeElement {
-
-    public static final CjToken RETURN_TYPE_SEPARATOR = CjTokens.ARROW;
-
-    public CjFunctionType(@NotNull ASTNode node) {
-        super(node);
-    }
-
-    public CjFunctionType(@NotNull CangJiePlaceHolderStub<CjFunctionType> stub) {
-        super(stub, CjStubElementTypes.FUNCTION_TYPE);
-    }
-
-    @NotNull
-    @Override
-    public List<CjTypeReference> getTypeArgumentsAsTypes() {
-        ArrayList<CjTypeReference> result = Lists.newArrayList();
-        List<CjTypeReference> contextReceiversTypeRefs = getContextReceiversTypeReferences();
-        if (contextReceiversTypeRefs != null) {
-            result.addAll(contextReceiversTypeRefs);
+            result.addAll(contextReceiversTypeReferences)
+            val receiverTypeRef = receiverTypeReference
+            if (receiverTypeRef != null) {
+                result.add(receiverTypeRef)
+            }
+            for (cjParameter in parameters) {
+                result.add(cjParameter.typeReference)
+            }
+            val returnTypeRef = returnTypeReference
+            if (returnTypeRef != null) {
+                result.add(returnTypeRef)
+            }
+            return result
         }
-        CjTypeReference receiverTypeRef = getReceiverTypeReference();
-        if (receiverTypeRef != null) {
-            result.add(receiverTypeRef);
+
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitFunctionType(this, data)
+    }
+
+    val parameterList: CjParameterList?
+        get() = getStubOrPsiChild(CjStubElementTypes.VALUE_PARAMETER_LIST)
+
+    val parameters: List<CjParameter>
+        get() {
+            val list = parameterList
+            return list?.parameters ?: emptyList()
         }
-        for (CjParameter cjParameter : getParameters()) {
-            result.add(cjParameter.getTypeReference());
+
+    val receiver: CjFunctionTypeReceiver?
+        get() = getStubOrPsiChild(CjStubElementTypes.FUNCTION_TYPE_RECEIVER)
+
+    val receiverTypeReference: CjTypeReference?
+        get() {
+            val receiverDeclaration = receiver ?: return null
+            return receiverDeclaration.typeReference
         }
-        CjTypeReference returnTypeRef = getReturnTypeReference();
-        if (returnTypeRef != null) {
-            result.add(returnTypeRef);
+
+    val contextReceiverList: CjContextReceiverList?
+        get() = getStubOrPsiChild(CjStubElementTypes.CONTEXT_RECEIVER_LIST)
+
+    val contextReceiversTypeReferences: List<CjTypeReference >
+        get() {
+            val contextReceiverList = contextReceiverList
+            return contextReceiverList?.typeReferences() ?: emptyList ()
         }
-        return result;
-    }
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, D data) {
-        return visitor.visitFunctionType(this, data);
-    }
+    val returnTypeReference: CjTypeReference?
+        get() = getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)
 
-    @Nullable
-    public CjParameterList getParameterList() {
-        return getStubOrPsiChild(CjStubElementTypes.VALUE_PARAMETER_LIST);
-    }
-
-    @NotNull
-    public List<CjParameter> getParameters() {
-        CjParameterList list = getParameterList();
-        return list != null ? list.getParameters() : Collections.emptyList();
-    }
-
-    @Nullable
-    public CjFunctionTypeReceiver getReceiver() {
-        return getStubOrPsiChild(CjStubElementTypes.FUNCTION_TYPE_RECEIVER);
-    }
-
-    @Nullable
-    public CjTypeReference getReceiverTypeReference() {
-        CjFunctionTypeReceiver receiverDeclaration = getReceiver();
-        if (receiverDeclaration == null) {
-            return null;
-        }
-        return receiverDeclaration.getTypeReference();
-    }
-
-    @Nullable
-    public CjContextReceiverList getContextReceiverList() {
-        return getStubOrPsiChild(CjStubElementTypes.CONTEXT_RECEIVER_LIST);
-    }
-
-    public List<CjTypeReference> getContextReceiversTypeReferences() {
-        CjContextReceiverList contextReceiverList = getContextReceiverList();
-        if (contextReceiverList != null) {
-            return contextReceiverList.typeReferences();
-        } else {
-            return Collections.emptyList();
-        }
-    }
-
-    @Nullable
-    public CjTypeReference getReturnTypeReference() {
-        return getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE);
+    companion object {
+        val RETURN_TYPE_SEPARATOR: CjToken = CjTokens.ARROW
     }
 }

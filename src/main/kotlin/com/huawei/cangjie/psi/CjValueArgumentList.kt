@@ -1,70 +1,75 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
-import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.EditCommaSeparatedListHelper.addItem
+import com.huawei.cangjie.psi.EditCommaSeparatedListHelper.addItemAfter
+import com.huawei.cangjie.psi.EditCommaSeparatedListHelper.addItemBefore
+import com.huawei.cangjie.psi.EditCommaSeparatedListHelper.removeItem
+import com.huawei.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
+import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 
-import java.util.List;
+class CjValueArgumentList : CjElementImplStub<CangJiePlaceHolderStub<CjValueArgumentList  > > {
+    constructor(node: ASTNode) : super(node)
 
-public class CjValueArgumentList  extends CjElementImplStub<CangJiePlaceHolderStub<CjValueArgumentList>> {
-    public CjValueArgumentList(@NotNull ASTNode node) {
-        super(node);
+    constructor(stub: CangJiePlaceHolderStub<CjValueArgumentList >) : super(
+        stub,
+        CjStubElementTypes.VALUE_ARGUMENT_LIST
+    )
+
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitValueArgumentList(this, data)
     }
 
-    public CjValueArgumentList(@NotNull CangJiePlaceHolderStub<CjValueArgumentList> stub) {
-        super(stub, CjStubElementTypes.VALUE_ARGUMENT_LIST);
+    val arguments: List<CjValueArgument>
+        get() = getStubOrPsiChildrenAsList(
+            CjStubElementTypes.VALUE_ARGUMENT
+        )
+
+    val rightParenthesis: PsiElement?
+        get() {
+            return findChildByType(CjTokens.RPAR)
+        }
+
+    val leftParenthesis: PsiElement?
+        get() {
+            return findChildByType(CjTokens.LPAR)
+        }
+
+    fun addArgument(argument: CjValueArgument): CjValueArgument {
+        return addItem(
+            this,
+            arguments, argument
+        )
     }
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitValueArgumentList(this, data);
+    fun addArgumentAfter(argument: CjValueArgument, anchor: CjValueArgument?): CjValueArgument {
+        return addItemAfter(
+            this,
+            arguments, argument, anchor
+        )
     }
 
-    @NotNull
-    public List<CjValueArgument> getArguments() {
-        return getStubOrPsiChildrenAsList(CjStubElementTypes.VALUE_ARGUMENT);
+    fun addArgumentBefore(argument: CjValueArgument, anchor: CjValueArgument?): CjValueArgument {
+        return addItemBefore(
+            this,
+            arguments, argument, anchor
+        )
     }
 
-    @Nullable
-    public PsiElement getRightParenthesis() {
-        return findChildByType(CjTokens.RPAR);
+    fun removeArgument(argument: CjValueArgument) {
+        assert(argument.parent === this)
+        removeItem(argument)
     }
 
-    @Nullable
-    public PsiElement getLeftParenthesis() {
-        return findChildByType(CjTokens.LPAR);
+    fun removeArgument(index: Int) {
+        removeArgument(arguments[index])
     }
 
-    @NotNull
-    public CjValueArgument addArgument(@NotNull CjValueArgument argument) {
-        return EditCommaSeparatedListHelper.INSTANCE.addItem(this, getArguments(), argument);
-    }
-
-    @NotNull
-    public CjValueArgument addArgumentAfter(@NotNull CjValueArgument argument, @Nullable CjValueArgument anchor) {
-        return EditCommaSeparatedListHelper.INSTANCE.addItemAfter(this, getArguments(), argument, anchor);
-    }
-
-    @NotNull
-    public CjValueArgument addArgumentBefore(@NotNull CjValueArgument argument, @Nullable CjValueArgument anchor) {
-        return EditCommaSeparatedListHelper.INSTANCE.addItemBefore(this, getArguments(), argument, anchor);
-    }
-
-    public void removeArgument(@NotNull CjValueArgument argument) {
-        assert argument.getParent() == this;
-        EditCommaSeparatedListHelper.INSTANCE.removeItem(argument);
-    }
-
-    public void removeArgument(int index) {
-        removeArgument(getArguments().get(index));
-    }
-
-    public PsiElement getTrailingComma() {
-        return CjPsiUtilKt.getTrailingCommaByClosingElement(getRightParenthesis());
-    }
+    val trailingComma: PsiElement?
+        get() {
+            return getTrailingCommaByClosingElement(rightParenthesis)
+        }
 }

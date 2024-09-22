@@ -1,46 +1,35 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.stubs.IStubElementType;
-import com.intellij.psi.stubs.StubElement;
-import com.intellij.util.IncorrectOperationException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.psi.CjExpressionImpl.Companion.replaceExpression
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.IStubElementType
+import com.intellij.psi.stubs.StubElement
+import com.intellij.util.IncorrectOperationException
 
+abstract class CjExpressionImplStub<T : StubElement<*> > : CjElementImplStub<T>, CjExpression {
+    constructor(stub: T, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
-public abstract class CjExpressionImplStub<T extends StubElement<?>> extends CjElementImplStub<T> implements CjExpression {
-    public CjExpressionImplStub(@NotNull T stub, @NotNull IStubElementType nodeType) {
-        super(stub, nodeType);
+    constructor(node: ASTNode) : super(node)
+
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitExpression(this, data)
     }
 
-    public CjExpressionImplStub(@NotNull ASTNode node) {
-        super(node);
+    @Throws(IncorrectOperationException::class)
+    override fun replace(newElement: PsiElement): PsiElement {
+        return replaceExpression(this, newElement, true) { newElement: PsiElement -> this.rawReplace(newElement) }
     }
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitExpression(this, data);
+    fun rawReplace(newElement: PsiElement): PsiElement {
+        return super.replace(newElement)
     }
 
-    @NotNull
-    @Override
-    public PsiElement replace(@NotNull PsiElement newElement) throws IncorrectOperationException {
-        return CjExpressionImpl.Companion.replaceExpression(this, newElement, true, this::rawReplace);
-    }
-
-    @NotNull
-    public PsiElement rawReplace(@NotNull PsiElement newElement) {
-        return super.replace(newElement);
-    }
-
-    @Override
-    public PsiElement getParent() {
-        T stub = getStub();
+    override fun getParent(): PsiElement {
+        val stub = getStub()
         if (stub != null) {
-
-            return stub.getParentStub().getPsi();
+            return stub.parentStub.psi
         }
-        return super.getParent();
+        return super.getParent()
     }
 }

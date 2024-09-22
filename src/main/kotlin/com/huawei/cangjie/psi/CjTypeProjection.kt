@@ -1,68 +1,54 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
 
-import com.huawei.cangjie.lexer.CjTokens;
-import com.huawei.cangjie.psi.stubs.CangJieTypeProjectionStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.tree.IElementType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.stubs.CangJieTypeProjectionStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 
+class CjTypeProjection : CjModifierListOwnerStub<CangJieTypeProjectionStub > {
+    constructor(node: ASTNode) : super(node)
 
+    constructor(stub: CangJieTypeProjectionStub) : super(stub, CjStubElementTypes.TYPE_PROJECTION)
 
-public class CjTypeProjection extends CjModifierListOwnerStub<CangJieTypeProjectionStub> {
-
-    public CjTypeProjection(@NotNull ASTNode node) {
-        super(node);
-    }
-
-    public CjTypeProjection(@NotNull CangJieTypeProjectionStub stub) {
-        super(stub, CjStubElementTypes.TYPE_PROJECTION);
-    }
-
-    @NotNull
-    public CjProjectionKind getProjectionKind() {
-        CangJieTypeProjectionStub stub = getStub();
-        if (stub != null) {
-            return stub.getProjectionKind();
-        }
-
-        PsiElement projectionToken = getProjectionToken();
-        IElementType token = projectionToken != null ? projectionToken.getNode().getElementType() : null;
-        for (CjProjectionKind projectionKind : CjProjectionKind.values()) {
-            if (projectionKind.getToken() == token) {
-                return projectionKind;
+    val projectionKind: CjProjectionKind
+        get() {
+            val stub = stub
+            if (stub != null) {
+                return stub.getProjectionKind()
             }
-        }
-        throw new IllegalStateException(projectionToken.getText());
-    }
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitTypeProjection(this, data);
-    }
-
-    @Nullable
-    public CjTypeReference getTypeReference() {
-        return getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE);
-    }
-
-    @Nullable
-    public PsiElement getProjectionToken() {
-        PsiElement star = findChildByType(CjTokens.MUL);
-        if (star != null) {
-            return star;
+            val projectionToken = projectionToken
+            val token =
+                projectionToken?.node?.elementType
+            for (projectionKind in CjProjectionKind.entries) {
+                if (projectionKind.getToken() === token) {
+                    return projectionKind
+                }
+            }
+            throw IllegalStateException(projectionToken!!.text)
         }
 
-        CjModifierList modifierList = getModifierList();
-        if (modifierList != null) {
-            PsiElement element = modifierList.getModifier(CjTokens.IN_KEYWORD);
-            return element;
-
-
-        }
-
-        return null;
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitTypeProjection(this, data)
     }
+
+    val typeReference: CjTypeReference?
+        get() = getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)
+
+    val projectionToken: PsiElement?
+        get() {
+            val star = findChildByType<PsiElement>(CjTokens.MUL)
+            if (star != null) {
+                return star
+            }
+
+            val modifierList = modifierList
+            if (modifierList != null) {
+                val element = modifierList.getModifier(CjTokens.IN_KEYWORD)
+                return element
+            }
+
+            return null
+        }
 }

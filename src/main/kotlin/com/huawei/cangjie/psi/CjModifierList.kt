@@ -1,75 +1,55 @@
-package com.huawei.cangjie.psi;
+package com.huawei.cangjie.psi
+
+import com.huawei.cangjie.lexer.CjKeywordToken
+import com.huawei.cangjie.lexer.CjModifierKeywordToken
+import com.huawei.cangjie.psi.psiUtil.collectAnnotationEntriesFromStubOrPsi
+import com.huawei.cangjie.psi.stubs.CangJieModifierListStub
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.IStubElementType
+import com.intellij.psi.tree.TokenSet
 
 
+abstract class CjModifierList : CjElementImplStub<CangJieModifierListStub >, CjAnnotationsContainer {
+    constructor(stub: CangJieModifierListStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
-import com.huawei.cangjie.lexer.CjKeywordToken;
-import com.huawei.cangjie.lexer.CjModifierKeywordToken;
-import com.huawei.cangjie.psi.stubs.CangJieModifierListStub;
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.stubs.IStubElementType;
-import com.intellij.psi.tree.TokenSet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+    val annotations: List<CjAnnotation>
+        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.ANNOTATION)
 
-import java.util.List;
+    constructor(node: ASTNode) : super(node)
 
-import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
-
-public abstract class CjModifierList extends CjElementImplStub<CangJieModifierListStub> implements CjAnnotationsContainer {
-
-    public CjModifierList(@NotNull CangJieModifierListStub stub, @NotNull IStubElementType nodeType) {
-        super(stub, nodeType);
-    }
-    @NotNull
-    public List<CjAnnotation> getAnnotations() {
-        return getStubOrPsiChildrenAsList(CjStubElementTypes.ANNOTATION);
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitModifierList(this, data)
     }
 
-    public CjModifierList(@NotNull ASTNode node) {
-        super(node);
-    }
+    val annotationEntries: List<CjAnnotationEntry>
+        get() = this.collectAnnotationEntriesFromStubOrPsi()
 
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitModifierList(this, data);
-    }
-    @NotNull
-    public List<CjAnnotationEntry> getAnnotationEntries() {
-        return CjPsiUtilKt.collectAnnotationEntriesFromStubOrPsi(this);
-    }
-    @NotNull
-
-
-    public boolean hasModifier(@NotNull CjModifierKeywordToken tokenType) {
-        CangJieModifierListStub stub = getStub();
+    fun hasModifier(tokenType: CjModifierKeywordToken): Boolean {
+        val stub = stub
         if (stub != null) {
-            return stub.hasModifier(tokenType);
+            return stub.hasModifier(tokenType)
         }
-        return getModifier(tokenType) != null;
+        return getModifier(tokenType) != null
     }
 
-    @Nullable
-    public PsiElement getModifier(@NotNull CjKeywordToken tokenType) {
-        return findChildByType(tokenType);
+    fun getModifier(tokenType: CjKeywordToken): PsiElement? {
+        return findChildByType(tokenType)
     }
 
-    @Nullable
-    public PsiElement getModifier(@NotNull TokenSet tokenTypes) {
-        return findChildByType(tokenTypes);
+    fun getModifier(tokenTypes: TokenSet): PsiElement? {
+        return findChildByType(tokenTypes)
     }
 
 
-    public PsiElement getOwner() {
-        return getParentByStub();
-    }
+    val owner: PsiElement
+        get() = parentByStub
 
-    @Override
-    public void deleteChildInternal(@NotNull ASTNode child) {
-        super.deleteChildInternal(child);
-        if (getFirstChild() == null) {
-            delete();
+    override fun deleteChildInternal(child: ASTNode) {
+        super.deleteChildInternal(child)
+        if (firstChild == null) {
+            delete()
         }
     }
 }
