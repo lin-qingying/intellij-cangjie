@@ -3,16 +3,17 @@ package com.linqingying.lsp.impl.documentation
 import com.intellij.codeInsight.CodeInsightBundle
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.model.Pointer
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsSafe
 import com.intellij.platform.backend.documentation.DocumentationResult
-import com.intellij.platform.backend.documentation.DocumentationResult.Companion.documentation
 import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.platform.backend.documentation.DocumentationTargetProvider
 import com.intellij.platform.backend.presentation.TargetPresentation
-
 import com.intellij.psi.PsiFile
-import com.linqingying.lsp.api.customization.requests.util.convertMarkupContentToHtml
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.linqingying.lsp.impl.LspServerManagerImpl
+import com.linqingying.lsp.util.convertMarkupContentToHtml
+
 import org.eclipse.lsp4j.MarkupContent
 
 
@@ -37,7 +38,7 @@ internal class LspDocumentationTargetProvider :
                 if (hoverInformation != null) {
                     val textRange = hoverInformation.textRange
                     val text = textRange.substring(topLevelFile.text)
-                    documentationTargets.add(LspDocumentationTarget(text, hoverInformation.markupContent))
+                    documentationTargets.add(LspDocumentationTarget(text, hoverInformation.markupContent, project))
                 }
             }
         }
@@ -46,18 +47,22 @@ internal class LspDocumentationTargetProvider :
     }
 }
 
-
 private class LspDocumentationTarget(
     val presentableText: @NlsSafe String?,
-    val markupContent: MarkupContent
+    val markupContent: MarkupContent,
+    val project: Project
 ) : DocumentationTarget {
 
+    @RequiresReadLock
     override fun computeDocumentation(): DocumentationResult {
-        return documentation(
-              convertMarkupContentToHtml(
-                  this.markupContent
-              )
-          )
+//        return documentation(
+//            convertMarkupContentToHtml(
+//                this.markupContent
+//            )
+//        )
+
+        return createLspDocumentationData(this.markupContent)
+            .toQuickDocHtml(this.project)
 
     }
 
@@ -66,9 +71,10 @@ private class LspDocumentationTarget(
         return TargetPresentation.builder(presentableText).presentation()
     }
 
-    override fun createPointer(): @org.jetbrains.annotations.NotNull Pointer<LspDocumentationTarget> =
-        Pointer.hardPointer(
+    override fun createPointer(): @org.jetbrains.annotations.NotNull Pointer<LspDocumentationTarget> {
+        return Pointer.hardPointer(
             this
         )
+    }
 }
 

@@ -15,7 +15,7 @@ import com.intellij.ui.dsl.builder.panel
 import java.nio.file.Paths
 
 
-class CjProjectConfigurable(override val project: Project) : CjConfigurableBase(project, CangJieBundle.message("settings.cangjie.toolchain.name")), Configurable.NoScroll {
+class CjProjectConfigurable(override val project: Project) : CjConfigurableBase(project, CangJieBundle.message("CangJie")), Configurable.NoScroll {
     private val projectDir = project.cjpmProjects.allProjects.firstOrNull()?.rootDir?.pathAsPath ?: Paths.get(".")
 
 

@@ -104,12 +104,14 @@ object CangJieLspServerManager {
             if (toolchain != null) {
                 setWorkDirectory(toolchain.location.systemIndependentPath)
                 withEnvironment(toolchain.getEnvironment())
+//                setWorkDirectory(binaryPath.parent.toAbsolutePath().toString())
 
             } else {
                 setWorkDirectory(binaryPath.parent.toAbsolutePath().toString())
             }
             addParameter("src")
-            addParameter("-V")
+            addParameter("--log-path=${project.basePath}/.idea/log")
+//            addParameter("--log-path=${binaryPath.parent.toAbsolutePath().toString()}")
 //            withEnvironment(getWindowsPath())
         }
     }
@@ -155,6 +157,14 @@ object CangJieLspServerManager {
 
 }
 
+
+fun String.replacePathBySystem(): String {
+    return if (SystemInfo.isWindows) {
+        this.replace("/", "\\")
+    } else {
+        this
+    }
+}
 
 fun String.toSystemPath(): String {
     return if (SystemInfo.isWindows) {

@@ -1,36 +1,42 @@
 package com.linqingying.lsp.impl.connector
 
-import com.linqingying.lsp.api.LspServer
-import com.intellij.execution.impl.ExecutionManagerImpl
+import com.intellij.execution.impl.ExecutionManagerImpl.Companion.stopProcess
 import com.intellij.execution.process.OSProcessHandler
+import com.intellij.execution.process.ProcessHandler
+import com.linqingying.lsp.impl.LspServerImpl
 import java.io.InputStream
-import java.io.OutputStream
 
-class Lsp4jServerConnectorStdio(lspServer: LspServer) : Lsp4jServerConnector(lspServer) {
+internal class Lsp4jServerConnectorStdio(     lspServer: LspServerImpl) :
+    Lsp4jServerConnector(lspServer) {
+
 
     private val processHandler: OSProcessHandler = lspServer.descriptor.startServerProcess()
-    private val processListener: LspServerProcessListener = LspServerProcessListener(processHandler)
 
+    private val processListener: LspServerProcessListener = LspServerProcessListener( lspServer)
     init {
         processHandler.addProcessListener(processListener)
 
     }
+    override val serverToIdeStream: InputStream = this.processListener.pipedInputStream
+    override val ideToServerStream = processHandler.processInput
 
     override fun disconnect() {
-        LOG.debug("Stopping process: " + this.processHandler)
-        ExecutionManagerImpl.stopProcess(this.processHandler)
+        if (!processHandler.isProcessTerminated) {
+            lspServer.logInfo("Stopping LSP server process: " + processHandler.commandLine)
+            stopProcess(processHandler as ProcessHandler)
+        }
+    }
+
+    override fun isConnectionAlive(): Boolean {
+        return processHandler.isStartNotified && !processHandler.isProcessTerminated
+
+    }
+
+    override fun prepareConnect() {
     }
 
     override fun startNotify() {
-        this.processHandler.startNotify()
-    }
+        processHandler.startNotify()
 
-    override fun getServerOutputStream(): OutputStream {
-        return processHandler.processInput
     }
-
-    override fun getServerInputStream(): InputStream {
-        return processListener.pipedInputStream
-    }
-
 }

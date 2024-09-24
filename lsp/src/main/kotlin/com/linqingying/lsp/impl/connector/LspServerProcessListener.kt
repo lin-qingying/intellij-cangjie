@@ -1,84 +1,89 @@
 package com.linqingying.lsp.impl.connector
 
-import com.intellij.execution.ExecutionException
 import com.intellij.execution.impl.ExecutionManagerImpl
-import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.process.ProcessOutputType
+import com.intellij.openapi.application.ReadAction.compute
 import com.intellij.openapi.diagnostic.Logger
-import java.io.IOException
-import java.io.OutputStreamWriter
-import java.io.PipedInputStream
-import java.io.PipedOutputStream
-import java.nio.charset.StandardCharsets
-import com.intellij.openapi.util.Key
 import com.intellij.util.ReflectionUtil
+import com.intellij.util.io.IOUtil
+import com.linqingying.lsp.impl.LspServerImpl
+import com.linqingying.lsp.impl.LspServerManagerImpl
+import java.io.*
+import java.nio.charset.StandardCharsets
 
-class LspServerProcessListener(private val processHandler: OSProcessHandler) : ProcessListener {
+  open class LspServerProcessListenerBase(open val lspServer: LspServerImpl) :
+    ProcessListener {
 
-    private val outputStreamWriter: OutputStreamWriter
-    val pipedInputStream: PipedInputStream
+    override fun processTerminated(event: ProcessEvent): Unit {
+        val exitCode = event.exitCode
+        val commandLineInfo = "Exit code: $exitCode\nCommand line: ${event.processHandler}"
+        lspServer.logInfo("LSP server process terminated. $commandLineInfo")
 
-
-    init {
-        try {
-            val pipedOutputStream = PipedOutputStream()
-            outputStreamWriter = OutputStreamWriter(pipedOutputStream, StandardCharsets.UTF_8)
-            pipedInputStream = PipedInputStream(pipedOutputStream)
-        } catch (e: IOException) {
-            throw ExecutionException(e)
+        val serverManager = compute<LspServerManagerImpl?, Throwable> {
+            if (!lspServer.project.isDisposed) {
+                LspServerManagerImpl.getInstanceImpl(lspServer.project)
+            } else {
+                null
+            }
         }
+        serverManager?.handleMaybeUnexpectedServerStop(lspServer, commandLineInfo)
     }
 
-    companion object {
-        private val LOG = Logger.getInstance(
-            LspServerProcessListener::class.java
-        )
+    override fun startNotified(event: ProcessEvent): Unit {
+        lspServer.logInfo("LSP server process started: " + event.processHandler)
 
     }
-
-    override fun startNotified(event: ProcessEvent) {
-
-        LOG.info("LSP server process started: $processHandler")
-    }
-
-    override fun processTerminated(event: ProcessEvent) {
+}
 
 
-        LOG.info("LSP server process terminated, exit code = " + event.exitCode + ", command line: " + processHandler)
-        try {
-            outputStreamWriter.close()
-            pipedInputStream.close()
-        } catch (e: IOException) {
-            LOG.error(e)
-        }
-    }
+  class LspServerProcessListener(override val lspServer: LspServerImpl) :
+    LspServerProcessListenerBase(lspServer) {
 
-    override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
+    private val pipedOutputStream: PipedOutputStream = PipedOutputStream()
+
+    val pipedInputStream: PipedInputStream = PipedInputStream(this.pipedOutputStream)
+
+    private val outputStreamWriter: OutputStreamWriter =
+        OutputStreamWriter(pipedOutputStream as OutputStream, StandardCharsets.UTF_8)
+
+    override fun onTextAvailable(
+        event: ProcessEvent,
+        outputType: com.intellij.openapi.util.Key<*>
+    ): Unit {
         if (ProcessOutputType.isStdout(outputType)) {
-            val text = event.text
-
             try {
-                outputStreamWriter.write(text)
+                outputStreamWriter.write(event.text)
                 outputStreamWriter.flush()
-            } catch (exception: IOException) {
-                LOG.error(
-                    "Problem proxying data to the listener, stopping process: ${processHandler.process}; " +
-                            ReflectionUtil.dumpFields(
-                                PipedInputStream::class.java,
-                                pipedInputStream,
-                                *arrayOf("readSide", "writeSide", "closedByReader", "closedByWriter")
-
-                            ),
-                    exception
-                )
-                ExecutionManagerImpl.stopProcess(processHandler)
+            } catch (e: IOException) {
+                val pipedInputStream = this.pipedInputStream
+                val fieldsToDump = arrayOf("readSide", "writeSide", "closedByReader", "closedByWriter")
+                val fieldDump = ReflectionUtil.dumpFields(PipedInputStream::class.java, pipedInputStream, *fieldsToDump)
+                lspServer.logError("Problem proxying data to the listener: ${e.message}\nStopping LSP server process: ${event.processHandler}\n$fieldDump")
+                ExecutionManagerImpl.stopProcess(event.processHandler)
             }
         } else if (ProcessOutputType.isStderr(outputType)) {
-            LOG.info("${processHandler}\n STDERR: ${event.text}")
+            val text = event.text
+            requireNotNull(text) { "Text cannot be null" }
+            val trimmedText = text.trimEnd()
+            val nonEmptyText = if (trimmedText.isNotEmpty()) trimmedText else null
+
+            nonEmptyText?.let {
+                lspServer.logInfo("STDERR: $it")
+                lspServer.appendServerErrorOutput(it)
+            }
         }
     }
 
+    override fun processTerminated(event: ProcessEvent): Unit {
 
+        val log: Logger =
+            Logger.getInstance(LspServerProcessListener::class.java)
+
+
+        IOUtil.closeSafe(log, *arrayOf<Closeable>(this.outputStreamWriter, this.pipedOutputStream))
+        super.processTerminated(event)
+    }
 }
+

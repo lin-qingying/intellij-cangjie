@@ -1,4 +1,6 @@
+// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.linqingying.lsp.api.customization
+
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.util.InspectionMessage
@@ -13,50 +15,49 @@ import org.eclipse.lsp4j.DiagnosticSeverity
 import org.eclipse.lsp4j.DiagnosticTag
 import org.jetbrains.annotations.ApiStatus
 
-
 /**
  * Handles [Diagnostic](https://microsoft.github.io/language-server-protocol/specification#diagnostic) objects received from the LSP server.
  */
-@ApiStatus.Experimental
+
 open class LspDiagnosticsSupport {
-    @RequiresReadLock
-    @RequiresBackgroundThread
-    open fun createAnnotation(holder: AnnotationHolder, diagnostic: Diagnostic, textRange: TextRange, quickFixes: List<IntentionAction>) {
-        val severity = getHighlightSeverity(diagnostic) ?: return
-        holder.newAnnotation(severity, getMessage(diagnostic))
-            .tooltip(getTooltip(diagnostic))
-            .range(textRange)
-            .let {
-                val highlightType = getSpecialHighlightType(diagnostic)
-                if (highlightType != null) it.highlightType(highlightType) else it
-            }
-            .let {
-                var builder = it
-                quickFixes.forEach { fix -> builder = builder.withFix(fix) }
-                builder
-            }
-            .create()
+  @RequiresReadLock
+  @RequiresBackgroundThread
+  open fun createAnnotation(holder: AnnotationHolder, diagnostic: Diagnostic, textRange: TextRange, quickFixes: List<IntentionAction>) {
+    val severity = getHighlightSeverity(diagnostic) ?: return
+    holder.newAnnotation(severity, getMessage(diagnostic))
+      .tooltip(getTooltip(diagnostic))
+      .range(textRange)
+      .let {
+        val highlightType = getSpecialHighlightType(diagnostic)
+        if (highlightType != null) it.highlightType(highlightType) else it
+      }
+      .let {
+        var builder = it
+        quickFixes.forEach { fix -> builder = builder.withFix(fix) }
+        builder
+      }
+      .create()
+  }
+
+  /**
+   * Implementations may return `null` if this [diagnostic] should be ignored.
+   */
+  open fun getHighlightSeverity(diagnostic: Diagnostic): HighlightSeverity? =
+    when (diagnostic.severity) {
+      DiagnosticSeverity.Error -> HighlightSeverity.ERROR
+      DiagnosticSeverity.Warning -> HighlightSeverity.WARNING
+      else -> HighlightSeverity.WEAK_WARNING
     }
 
-    /**
-     * Implementations may return `null` if this [diagnostic] should be ignored.
-     */
-    open fun getHighlightSeverity(diagnostic: Diagnostic): HighlightSeverity? =
-        when (diagnostic.severity) {
-            DiagnosticSeverity.Error -> HighlightSeverity.ERROR
-            DiagnosticSeverity.Warning -> HighlightSeverity.WARNING
-            else -> HighlightSeverity.WEAK_WARNING
-        }
+  @InspectionMessage
+  open fun getMessage(diagnostic: Diagnostic): String = diagnostic.message
 
-    @InspectionMessage
-    open fun getMessage(diagnostic: Diagnostic): String = diagnostic.message
+  @NlsContexts.Tooltip
+  open fun getTooltip(diagnostic: Diagnostic): String = diagnostic.message
 
-    @NlsContexts.Tooltip
-    open fun getTooltip(diagnostic: Diagnostic): String = diagnostic.message
-
-    open fun getSpecialHighlightType(diagnostic: Diagnostic): ProblemHighlightType? = when {
-        diagnostic.tags?.contains(DiagnosticTag.Unnecessary) == true -> ProblemHighlightType.LIKE_UNUSED_SYMBOL
-        diagnostic.tags?.contains(DiagnosticTag.Deprecated) == true -> ProblemHighlightType.LIKE_DEPRECATED
-        else -> null
-    }
+  open fun getSpecialHighlightType(diagnostic: Diagnostic): ProblemHighlightType? = when {
+    diagnostic.tags?.contains(DiagnosticTag.Unnecessary) == true -> ProblemHighlightType.LIKE_UNUSED_SYMBOL
+    diagnostic.tags?.contains(DiagnosticTag.Deprecated) == true -> ProblemHighlightType.LIKE_DEPRECATED
+    else -> null
+  }
 }

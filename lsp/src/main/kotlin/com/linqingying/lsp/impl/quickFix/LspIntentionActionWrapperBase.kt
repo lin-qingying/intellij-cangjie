@@ -4,10 +4,8 @@ import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
-
 import com.intellij.psi.PsiFile
 import com.linqingying.lsp.api.customization.LspIntentionAction
-
 
 abstract class LspIntentionActionWrapperBase(protected val index: Int) :
     IntentionAction,

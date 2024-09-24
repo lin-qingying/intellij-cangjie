@@ -22,7 +22,7 @@ class DiagnosticAndQuickFixes(val diagnostic: Diagnostic, val quickFixes: List<I
     }
 
 
-//    fun copy(diagnostic: Diagnostic,  quickFixes: List<IntentionAction>): DiagnosticAndQuickFixes {
+    //    fun copy(diagnostic: Diagnostic,  quickFixes: List<IntentionAction>): DiagnosticAndQuickFixes {
 //        return DiagnosticAndQuickFixes(diagnostic, quickFixes)
 //    }
     override fun hashCode(): Int {

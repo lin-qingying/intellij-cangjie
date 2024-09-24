@@ -5,8 +5,9 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 
 import com.intellij.psi.PsiFile
+import com.linqingying.lsp.api.LspBundle
 import com.linqingying.lsp.api.customization.LspIntentionAction
-import com.linqingying.lsp.impl.LspBundle
+
 import com.linqingying.lsp.impl.quickFix.LspIntentionActionWrapperBase
 
 
@@ -34,7 +35,7 @@ private open class LspIntentionActionWrapper(index: Int) :
 
     private fun updateLspIntentionAction(editor: Editor) {
         val project = editor.project ?: return
-        val intentionActions = LspIntentionsService.getInstance(project).getIntentionActions(editor)
+        val intentionActions = LspIntentionActionService.getInstance(project).getIntentionActions(editor)
         lspIntentionAction = if (index < intentionActions.size) intentionActions[index] else null
     }
 

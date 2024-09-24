@@ -64,3 +64,7 @@ bin/
 /log/
 /vscode/
 /protoc/
+/htmlReport/
+/generators/deveco/
+/lib/
+/lsp1/

@@ -135,7 +135,24 @@
         <projectConfigurable instance="com.huawei.cangjie.cjpm.project.configurable.CjProjectConfigurable"
                              groupId="language"
                              id="language.cangjie"
-                             bundle="messages.CangJieBundle" key="settings.cangjie.toolchain.name"/>
+                             bundle="messages.CangJieBundle" key="CangJie"/>
+        <projectConfigurable instance="com.huawei.cangjie.configurable.CangJieLanguageServerConfigurable"
+                             parentId="language.cangjie"
+                             groupId="language.cangjie"
+                             id="language.cangjie.languageServer"
+                             bundle="messages.CangJieBundle" key="CangJie.languageServer"/>
+        <projectConfigurable instance="com.huawei.cangjie.configurable.CangJieLspConfigurable"
+                             parentId="language.cangjie.languageServer"
+                             groupId="language.cangjie.languageServer"
+                             id="language.cangjie.languageServer.lsp"
+                             bundle="messages.CangJieBundle" key="CangJie.languageServer.lsp"/>
+        <projectConfigurable instance="com.huawei.cangjie.configurable.CangJieAstAnalyzerConfigurable"
+                             parentId="language.cangjie.languageServer"
+                             groupId="language.cangjie.languageServer"
+                             id="language.cangjie.languageServer.ast"
+                             bundle="messages.CangJieBundle" key="CangJie.languageServer.astanalyzer"/>
+
+
         <!--注释-->
         <lang.commenter language="CangJie" implementationClass="com.huawei.cangjie.ide.commenter.CjCommenter"/>
 

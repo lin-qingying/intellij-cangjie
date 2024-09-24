@@ -3,7 +3,7 @@
 package com.huawei.cangjie.ide.formatter
 
 import com.huawei.cangjie.CangJieBundle
-import com.huawei.cangjie.highlighter.CangJieHighlightingColors
+
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonShortcuts
@@ -16,6 +16,7 @@ import com.intellij.ui.dsl.gridLayout.UnscaledGaps
 import com.intellij.ui.table.JBTable
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.JBInsets
+import com.huawei.cangjie.highlighter.CangJieHighlightingColors
 import org.jetbrains.annotations.Nls
 
 import java.awt.BorderLayout

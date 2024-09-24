@@ -1,4 +1,10 @@
 <idea-plugin>
+
+<!--    <id>com.linqingying.lsp</id>-->
+<!--    <name>LSP</name>-->
+<!--    <vendor email="lin17624294976@outlook.com" url="https://gitee.com/Lin_Qing_Ying">@Lin_Qing_Ying</vendor>-->
+
+<!--    <version>1.0</version>-->
     <extensions defaultExtensionNs="com.intellij">
         <notificationGroup id="LSP window/showMessage"
                            displayType="BALLOON"
@@ -12,28 +18,36 @@
                            displayType="NONE" isLogByDefault="false"
                            bundle="messages.LspBundle"
                            key="notification.group.lsp.log.info.trace"/>
+        <notificationGroup id="lsp.service.stopped.or.restarted" displayType="BALLOON" isLogByDefault="false" bundle="messages.LspBundle" key="language.services.notification.group.service.stopped.or.restarted" />
 
         <projectService serviceInterface="com.linqingying.lsp.api.LspServerManager"
                         serviceImplementation="com.linqingying.lsp.impl.LspServerManagerImpl"/>
 
         <editorFactoryDocumentListener id="LspDocumentListener"
-                                       implementation="com.linqingying.lsp.impl.LspServerManagerImpl$LspDocumentListener"/>
+                                       implementation="com.linqingying.lsp.impl.LspDocumentListener"/>
         <vfs.asyncListener id="LspFileListener"
-                           implementation="com.linqingying.lsp.impl.LspServerManagerImpl$LspFileListener"/>
+                           implementation="com.linqingying.lsp.impl.LspFileListener"/>
 
         <annotator id="LspAnnotator" language=""
                    implementationClass="com.linqingying.lsp.impl.highlighting.LspAnnotator"/>
         <completion.contributor id="LspCompletionContributor"
                                 language="any"
-                                order="last"
+                                order="last, before TextMateCompletionContributor"
                                 implementationClass="com.linqingying.lsp.impl.completion.LspCompletionContributor"/>
         <psi.implicitReferenceProvider id="LspImplicitReferenceProvider"
                                        implementation="com.linqingying.lsp.impl.navigation.LspImplicitReferenceProvider"/>
-
+        <getDataRule key="search.targets" implementationClass="com.linqingying.lsp.impl.usages.LspSearchTargetsRule"/>
+        <searcher forClass="com.intellij.find.usages.api.UsageSearchParameters"
+                  implementationClass="com.linqingying.lsp.impl.usages.LspUsageSearcher"/>
         <platform.backend.documentation.targetProvider id="LspDocumentationTargetProvider"
                                                        implementation="com.linqingying.lsp.impl.documentation.LspDocumentationTargetProvider"/>
         <formattingService id="LspFormattingService"
                            implementation="com.linqingying.lsp.impl.formatter.LspFormattingService"/>
+        <platform.lang.lsWidget.itemsProvider id="LspWidgetItemsProvider"
+                                              implementation="com.linqingying.lsp.impl.lsWidget.LspWidgetItemsProvider"/>
+        <applicationService serviceInterface="com.linqingying.lsp.api.lsWidget.LspWidgetInternalService"
+                            serviceImplementation="com.linqingying.lsp.impl.lsWidget.LspWidgetInternalServiceImpl"/>
+
         <!--@formatter:off-->
         <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention0</className>  <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
         <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention1</className>  <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
@@ -51,14 +65,13 @@
         <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention13</className> <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
         <intentionAction> <className>com.linqingying.lsp.impl.intention.LspIntention14</className> <bundleName>messages.LspBundle</bundleName> <categoryKey>intention.group.name</categoryKey> <descriptionDirectoryName>LspIntention</descriptionDirectoryName> <language/> </intentionAction>
         <!--@formatter:on-->
-
     </extensions>
 
     <projectListeners>
         <listener topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"
-                  class="com.linqingying.lsp.impl.LspServerManagerImpl$LspFileEditorManagerListener"/>
+                  class="com.linqingying.lsp.impl.LspFileEditorManagerListener"/>
         <listener topic="com.intellij.openapi.fileEditor.FileDocumentManagerListener"
-                  class="com.linqingying.lsp.impl.LspServerManagerImpl$LspFileDocumentManagerListener"/>
+                  class="com.linqingying.lsp.impl.LspFileDocumentManagerListener"/>
     </projectListeners>
 
     <applicationListeners>
@@ -66,11 +79,8 @@
                   class="com.linqingying.lsp.impl.navigation.CurrentActionListener"/>
     </applicationListeners>
 
-
     <extensionPoints>
-        <extensionPoint qualifiedName="lsp.serverSupportProvider"
+        <extensionPoint qualifiedName="com.linqingying.lsp.serverSupportProvider"
                         interface="com.linqingying.lsp.api.LspServerSupportProvider" dynamic="true"/>
     </extensionPoints>
-
-
 </idea-plugin>

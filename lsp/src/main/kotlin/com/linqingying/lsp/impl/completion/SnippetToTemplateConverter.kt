@@ -136,23 +136,22 @@ internal class SnippetToTemplateConverter(
     ) {
 
 
-        override operator fun equals(other: Any?): Boolean { /* compiled code */
+        override operator fun equals(other: Any?): Boolean {
             if (this === other) {
                 return true
             } else if (other !is TemplateVariable) {
                 return false
             } else {
-                val var2 = other
-                return if (this.index != var2.index) {
+                return if (this.index != other.index) {
                     false
                 } else {
-                    Intrinsics.areEqual(this.completionVariants, var2.completionVariants)
+                    Intrinsics.areEqual(this.completionVariants, other.completionVariants)
                 }
             }
         }
 
 
-        override fun toString(): String { /* compiled code */
+        override fun toString(): String {
             return "TemplateVariable(index=" + this.index + ", completionVariants=" + this.completionVariants + ")"
 
         }

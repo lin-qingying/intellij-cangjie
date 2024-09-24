@@ -91,7 +91,7 @@ plugins {
     idea
 //    id("org.jetbrains.kotlin.jvm") version "1.9.21"
     kotlin("jvm") version "1.9.21"
-    id("org.jetbrains.intellij") version "1.15.0"
+    id("org.jetbrains.intellij") version "1.17.4"
     id("org.jetbrains.grammarkit") version "2022.3.2"
     kotlin("plugin.serialization") version "1.9.21"
     id("org.gradle.test-retry") version "1.5.3"
@@ -250,7 +250,7 @@ allprojects {
 val cangjie_plugin_project = project(":plugin") {
     intellij {
         pluginName.set("intellij-cangjie")
-        plugins.set(listOf(psiViewerPlugin,indexViewPlugin,chinesePlugin))
+        plugins.set(listOf( psiViewerPlugin,indexViewPlugin,chinesePlugin ))
 
     }
 //    group = "com.huawei.cangjie"
@@ -399,6 +399,9 @@ val cangjie_src_project = project(":") {
         implementation("io.hotmoka:toml4j:0.7.3")
 
         implementation(project(":lsp"))
+//        implementation(project(":lsp1"))
+
+//        implementation(files("lib/lsp.jar"))
         implementation(project(":utils"))
         implementation("io.javaslang:javaslang:2.1.0-alpha")
 
@@ -422,7 +425,7 @@ val cangjie_src_project = project(":") {
         }
     }
 }
-
+//
 project(":lsp") {
     dependencies {
         implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")
@@ -431,8 +434,15 @@ project(":lsp") {
 //        implementation(project(":"))
     }
 }
-
-
+//
+//project(":lsp1") {
+//    dependencies {
+//        implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")
+//        implementation(project(":utils"))
+//
+////        implementation(project(":"))
+//    }
+//}
 
 project(":utils") {
     dependencies {
@@ -445,7 +455,7 @@ when (buildType) {
     IU_NATIVE_DEBUG -> {
         project(":native-debugger") {
             intellij {
-                plugins.set(listOf(nativeDebugPlugin))
+                plugins.set(listOf( nativeDebugPlugin ))
             }
             dependencies {
                 implementation(project(":"))

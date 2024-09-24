@@ -2,7 +2,7 @@ package com.linqingying.lsp.impl.navigation
 
 import com.intellij.openapi.components.Service
 
-@Service
-class CurrentActionHolder {
+@Service(Service.Level.APP)
+  class CurrentActionHolder {
     var runningGoToDeclarationAction: Boolean = false
 }

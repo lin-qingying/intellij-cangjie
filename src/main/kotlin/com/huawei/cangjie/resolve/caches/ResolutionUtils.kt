@@ -3,6 +3,7 @@
 package com.huawei.cangjie.resolve.caches
 
 import com.huawei.cangjie.analyzer.AnalysisResult
+import com.huawei.cangjie.configurable.services.CangJieLanguageServerServices
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.diagnostics.Diagnostic
 import com.huawei.cangjie.ide.FrontendInternals
@@ -17,6 +18,7 @@ import com.huawei.cangjie.resolve.lazy.NoDescriptorForDeclarationException
 import com.huawei.cangjie.utils.actionUnderSafeAnalyzeBlock
 
 fun CjElement.analyzeWithAllCompilerChecks(): AnalysisResult = getResolutionFacade().analyzeWithAllCompilerChecks(this)
+
 @JvmOverloads
 fun CjElement.safeAnalyze(
     bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
@@ -26,6 +28,7 @@ fun CjFile.resolveImportReference(fqName: FqName): Collection<DeclarationDescrip
     val facade = getResolutionFacade()
     return facade.resolveImportReference(facade.moduleDescriptor, fqName)
 }
+
 // this method don't check visibility and collect all descriptors with given fqName
 @OptIn(FrontendInternals::class)
 fun ResolutionFacade.resolveImportReference(
@@ -93,6 +96,7 @@ fun CjDeclaration.resolveToDescriptorIfAny(
     bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL
 ): DeclarationDescriptor? =
     resolveToDescriptorIfAny(getResolutionFacade(), bodyResolveMode)
+
 /**
  * **Please, use overload with providing resolutionFacade for stable results of subsequent calls**
  */
@@ -138,12 +142,14 @@ fun CjDeclaration.resolveToDescriptorIfAny(
         context.get(BindingContext.DECLARATION_TO_DESCRIPTOR, this)
     }
 }
+
 fun CjNamedFunction.resolveToDescriptorIfAny(
     resolutionFacade: ResolutionFacade,
     bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL
 ): FunctionDescriptor? {
     return (this as CjDeclaration).resolveToDescriptorIfAny(resolutionFacade, bodyResolveMode) as? FunctionDescriptor
 }
+
 @JvmOverloads
 fun CjElement.analyze(
     resolutionFacade: ResolutionFacade,
@@ -167,7 +173,11 @@ fun CjElement.getResolutionFacade(): ResolutionFacade =
 @JvmOverloads
 fun CjElement.safeAnalyzeNonSourceRootCode(
     bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
-): BindingContext = safeAnalyzeNonSourceRootCode(getResolutionFacade(), bodyResolveMode)
+): BindingContext {
+    if (!CangJieLanguageServerServices.getInstance().astConfig.enabled) return BindingContext.EMPTY
+
+    return safeAnalyzeNonSourceRootCode(getResolutionFacade(), bodyResolveMode)
+}
 
 /**
  * This function throws exception when resolveToDescriptorIfAny returns null, otherwise works equivalently.

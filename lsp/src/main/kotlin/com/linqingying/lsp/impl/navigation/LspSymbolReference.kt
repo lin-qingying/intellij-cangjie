@@ -10,29 +10,36 @@ class LspSymbolReference(
     val psiFile: PsiFile,
     val rangeInFile: TextRange,
     val lspServerAndLocationLinks: List<LspServerAndLocationLinks>
-) :
-    PsiSymbolReference {
-    override fun getElement(): PsiElement = psiFile
+) : PsiSymbolReference {
 
-    override fun getRangeInElement(): TextRange = rangeInFile
+    override fun getElement(): PsiElement {
+        return psiFile
+    }
 
-    override fun resolveReference(): MutableCollection<out Symbol> {
-        val result = mutableListOf<Symbol>()
+    override fun getRangeInElement(): TextRange {
+        return this.rangeInFile
 
-        for (serverAndLocationLink in lspServerAndLocationLinks) {
-            val server = serverAndLocationLink.lspServer
-            val locationLinks = serverAndLocationLink.locationLinks
+    }
 
-            for (locationLink in locationLinks) {
-                val file = server.descriptor.findFileByUri(locationLink.targetUri)
-                val navigatableSymbol = file?.let { LspNavigatableSymbol(it, locationLink) }
+    override fun resolveReference(): List<LspNavigatableSymbol> {
+        val result = mutableListOf<LspNavigatableSymbol>()
 
-                navigatableSymbol?.let { result.add(it) }
+        for (link in lspServerAndLocationLinks) {
+            val lspServer = link.lspServer
+            for (locationLink in link.locationLinks) {
+                val uri = locationLink.targetUri ?: continue
+                val virtualFile = lspServer.descriptor.findFileByUri(uri)
+
+                if (virtualFile != null) {
+                    result.add(LspNavigatableSymbol(virtualFile, locationLink))
+                }
             }
         }
 
         return result
     }
 
-
+    override fun resolvesTo(target: Symbol): Boolean {
+        return false
+    }
 }

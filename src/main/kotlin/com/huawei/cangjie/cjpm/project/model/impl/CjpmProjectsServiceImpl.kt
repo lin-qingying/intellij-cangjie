@@ -16,6 +16,7 @@ import com.huawei.cangjie.cjpm.project.workspace.CjpmWorkspace
 import com.huawei.cangjie.cjpm.project.workspace.PackageOrigin
 import com.huawei.cangjie.cjpm.project.workspace.additionalRoots
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
+import com.huawei.cangjie.configurable.services.CangJieLanguageServerServices
 import com.huawei.cangjie.ide.notifications.CjNotifications
 import com.huawei.cangjie.ide.run.cjpm.isUnitTestMode
 import com.huawei.cangjie.lang.CangJieFileType
@@ -413,11 +414,11 @@ private fun doRefresh(project: Project, projects: List<CjpmProjectImpl>): Comple
 
 
 
-            if (Config.isLsp) {
-
-//            TODO 重启lsp服务器
+            if(CangJieLanguageServerServices.getInstance().lspConfig.enabled){
+                //            TODO 重启lsp服务器
                 CangJieLspServerManager.restartLspServer(project)
             }
+
 
 
         }

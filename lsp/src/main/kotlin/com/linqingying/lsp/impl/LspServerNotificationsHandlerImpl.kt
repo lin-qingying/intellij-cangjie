@@ -169,7 +169,7 @@ class LspServerNotificationsHandlerImpl(private val lspServer: LspServerImpl) :
         CompletableFuture.completedFuture(null)
 
     override fun notifyProgress(params: ProgressParams) {
-        TODO("Not yet implemented")
+
     }
 
     override fun logTrace(params: LogTraceParams) {

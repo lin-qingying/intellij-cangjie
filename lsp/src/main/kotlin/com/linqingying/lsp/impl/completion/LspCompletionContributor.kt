@@ -9,9 +9,9 @@ import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbAware
-import com.linqingying.lsp.api.customization.requests.util.getLsp4jPosition
 import com.linqingying.lsp.impl.LspServerImpl
 import com.linqingying.lsp.impl.LspServerManagerImpl
+import com.linqingying.lsp.util.getLsp4jPosition
 import org.eclipse.lsp4j.CompletionItem
 import org.eclipse.lsp4j.Position
 import org.eclipse.lsp4j.Range
@@ -32,23 +32,25 @@ class LspCompletionContributor : CompletionContributor(), DumbAware {
 
             LspServerManagerImpl.getInstanceImpl(project).getServersWithThisFileOpen(virtualFile).forEach { lspServer ->
                 ProgressManager.checkCanceled()
-                val serverCapabilities = lspServer.getServerCapabilities()
+                val serverCapabilities = lspServer.serverCapabilities
                 if (serverCapabilities?.completionProvider != null) {
                     val completionSupport = lspServer.descriptor.lspCompletionSupport
                     if (completionSupport != null && completionSupport.shouldRunCodeCompletion(parameters)) {
-                        val completionItems = lspServer.requestExecutor.getCompletionItems(
+                        val completionItems = lspServer.requestExecutor.getCompletionList(
                             virtualFile,
                             hostOffset,
                             parameters.isAutoPopup
                         )
-                        processCompletionItemsImpl(
-                            lspServer,
-                            document,
-                            hostOffset,
-                            result,
-                            completionItems
-                        ) { completionItem ->
-                            completionSupport.createLookupElement(parameters, completionItem)
+                        completionItems?.let {
+                            processCompletionItemsImpl(
+                                lspServer,
+                                document,
+                                hostOffset,
+                                result,
+                                it.items
+                            ) { completionItem ->
+                                completionSupport.createLookupElement(parameters, completionItem)
+                            }
                         }
                     }
                 }
@@ -58,6 +60,7 @@ class LspCompletionContributor : CompletionContributor(), DumbAware {
 
 
 }
+
 
 fun <T> processCompletionItemsImpl(
     lspServer: LspServerImpl,

@@ -5,7 +5,7 @@ import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementDecorator
 import com.intellij.codeInsight.template.TemplateManager
-import com.linqingying.lsp.api.customization.requests.util.applyTextEdits
+import com.linqingying.lsp.util.applyTextEdits
 import org.eclipse.lsp4j.CompletionItem
 import org.eclipse.lsp4j.InsertTextFormat
 
@@ -57,12 +57,11 @@ object LspCompletionItemInsertHandler :
     override fun handleInsert(
         context: InsertionContext,
         lookupElement: LookupElement
-    ): Unit {
+    ) {
         applyAdditionalTextEdits(context, lookupElement)
 
         if (lookupElement is LookupElementDecorator<*>) {
-            val decorator = lookupElement
-            val delegate = decorator.delegate
+            val delegate = lookupElement.delegate
             delegate?.handleInsert(context)
         }
 

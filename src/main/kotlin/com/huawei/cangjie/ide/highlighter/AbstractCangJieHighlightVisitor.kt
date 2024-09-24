@@ -1,5 +1,7 @@
 package com.huawei.cangjie.ide.highlighter
 
+import com.huawei.cangjie.configurable.services.CangJieLanguageServerServices
+import com.huawei.cangjie.configurable.services.Feature
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.diagnostics.Diagnostic
 import com.huawei.cangjie.diagnostics.Errors
@@ -28,6 +30,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.resolve.FileContextUtil
+import com.linqingying.utils.Config
 
 abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
     private var afterAnalysisVisitor: Array<AfterAnalysisHighlightingVisitor>? = null
@@ -57,7 +60,10 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
         try {
 
 //          TODO  静态分析
-            analyze(file, holder)
+            if(CangJieLanguageServerServices.getInstance().astConfig.isFeatureEnabled(Feature.DIAGNOSTICS)){
+                analyze(file, holder)
+
+            }
 
             action.run()
 

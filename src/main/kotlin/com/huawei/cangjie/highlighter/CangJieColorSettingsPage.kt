@@ -12,7 +12,8 @@ import com.intellij.openapi.options.colors.ColorSettingsPage
 import com.intellij.openapi.options.colors.RainbowColorSettingsPage
 import com.intellij.openapi.util.NlsSafe
 
-import java.lang.reflect.Modifier
+import kotlin.reflect.KVisibility
+import kotlin.reflect.full.memberProperties
 
 class CangJieColorSettingsPage : ColorSettingsPage, RainbowColorSettingsPage {
     override fun getLanguage() = CangJieLanguage
@@ -76,26 +77,53 @@ var <PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION><MUTABLE_VARIABLE>globalCounte
 
  """
     }
-
     override fun getAdditionalHighlightingTagToDescriptorMap(): Map<String, TextAttributesKey> {
         val map = HashMap<String, TextAttributesKey>()
-        for (field in CangJieHighlightingColors::class.java.fields) {
 
-            if (Modifier.isStatic(field.modifiers)) {
+
+
+        for (field in CangJieHighlightingColors::class.memberProperties) {
+            if (field.visibility == KVisibility.PUBLIC) {
                 try {
-                    map[field.name] = field.get(null) as TextAttributesKey
-
-                } catch (e: IllegalAccessException) {
+                    map[field.name] = field.getter.call(CangJieHighlightingColors) as TextAttributesKey
+                } catch (e: Exception) {
                     assert(false)
                 }
-
             }
+//            if (Modifier.isStatic(field.modifiers)) {
+//                try {
+//                    map[field.name] = field.get(null) as TextAttributesKey
+//
+//                } catch (e: IllegalAccessException) {
+//                    assert(false)
+//                }
+//
+//            }
         }
 
         map.putAll(DslStyleUtils.descriptionsToStyles)
 
         return map
     }
+//    override fun getAdditionalHighlightingTagToDescriptorMap(): Map<String, TextAttributesKey> {
+//        val map = HashMap<String, TextAttributesKey>()
+//        for (field in CangJieHighlightingColors::class.java.fields) {
+//
+//            if (Modifier.isStatic(field.modifiers)) {
+//                try {
+//                    map[field.name] = field.get(null) as TextAttributesKey
+//
+//                } catch (e: IllegalAccessException) {
+//                    assert(false)
+//                }
+//
+//            }
+//        }
+//
+//        map.putAll(DslStyleUtils.descriptionsToStyles)
+//
+//        return map
+//    }
 
     override fun getAttributeDescriptors(): Array<AttributesDescriptor> {
         infix fun String.to(key: TextAttributesKey) = AttributesDescriptor(this, key)

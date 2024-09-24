@@ -25,7 +25,7 @@ abstract class CjExpressionImplStub<T : StubElement<*> > : CjElementImplStub<T>,
         return super.replace(newElement)
     }
 
-    override fun getParent(): PsiElement {
+    override fun getParent(): PsiElement ?{
         val stub = getStub()
         if (stub != null) {
             return stub.parentStub.psi

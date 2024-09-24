@@ -2,7 +2,7 @@
     <xi:include href="/META-INF/lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 
-    <extensions defaultExtensionNs="lsp">
+    <extensions defaultExtensionNs="com.linqingying.lsp">
         <!-- LSP -->
         <serverSupportProvider implementation="com.huawei.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>
     </extensions>

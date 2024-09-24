@@ -1,304 +1,131 @@
 package com.linqingying.lsp.impl
 
-import com.esotericsoftware.kryo.kryo5.minlog.Log
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.event.DocumentEvent
+import com.intellij.openapi.editor.ex.DocumentEx
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.util.text.Strings.nullize
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.concurrency.annotations.RequiresWriteLock
-import com.intellij.util.containers.ContainerUtil
 import com.linqingying.lsp.api.*
 import com.linqingying.lsp.impl.connector.Lsp4jServerConnector
+import com.linqingying.lsp.impl.connector.Lsp4jServerConnectorSocket
 import com.linqingying.lsp.impl.connector.Lsp4jServerConnectorStdio
+import com.linqingying.lsp.impl.connector.LspInitializationException
 import com.linqingying.lsp.impl.highlighting.DiagnosticAndQuickFixes
-import com.linqingying.lsp.impl.requests.DidChangeWatchedFilesNotification
-import com.linqingying.lsp.impl.requests.DidCloseNotification
-import com.linqingying.lsp.impl.requests.DidOpenNotification
-import com.linqingying.lsp.impl.requests.LspRequestExecutorImpl
+import com.linqingying.lsp.impl.highlighting.LspDiagnosticsCache
+import com.linqingying.lsp.impl.highlighting.LspSemanticToken
+import com.linqingying.lsp.impl.highlighting.LspSemanticTokensCache
 import org.eclipse.lsp4j.*
 import org.eclipse.lsp4j.services.LanguageServer
 import org.jetbrains.annotations.NonNls
-import java.nio.file.Paths
+import java.nio.file.Path
 import java.util.*
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.CompletableFuture
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.TimeSource
 
 
 class LspServerImpl(
-    val pluginClass: Class<out LspServerSupportProvider>,
+    override val providerClass: Class<out LspServerSupportProvider>,
     override val descriptor: LspServerDescriptor,
-    private val listenersAdapter: LspServerManagerListener
+    private val eventBroadcaster: LspServerManagerListener
 
 ) : LspServer {
-
-    enum class State {
-        CREATED,
-        RUNNING,
-        STOPPED,
-        MALFUNCTIONED
+    companion object {
+        private val LOG = Logger.getInstance(
+            LspServerImpl::class.java
+        )
     }
 
+    internal class FileChangeInfo(
+        path: String,
+        val uri: String,
+        isDirectory: Boolean,
+        val changeType: FileChangeType
+    ) : FileInfo(path, isDirectory) {
 
-    private val state: AtomicReference<State> = AtomicReference(State.CREATED)
 
+        fun doesFileWatcherKindMatchFileChangeType(watchKind: Int?): Boolean {
+            if (watchKind == null) {
+                return true
+            }
 
+            return when (changeType) {
+                FileChangeType.Created -> (watchKind and 1) != 0
+                FileChangeType.Changed -> (watchKind and 2) != 0
+                FileChangeType.Deleted -> (watchKind and 4) != 0
+                else -> throw IllegalArgumentException("Unknown change type: $changeType")
+            }
+        }
+    }
+
+    internal val serverNotificationsHandler: LspServerNotificationsHandler = LspServerNotificationsHandlerImpl(
+        this
+    )
     internal val dynamicCapabilities: LspDynamicCapabilities = LspDynamicCapabilities()
-
-
+    internal val errorOutput: String? get() = nullize(errorOutputBuffer.toString(), false)
     val openedFiles: MutableSet<VirtualFile> = Collections.synchronizedSet(HashSet())
-
     private val unsupportedFilePaths: MutableSet<String> = Collections.synchronizedSet(HashSet())
-    private val diagnosticsCache: LspDiagnosticsCache = LspDiagnosticsCache()
-
+    private val stateLock: Any = Any()
+    internal val textDocumentSyncKind: TextDocumentSyncKind?
+        get() {
+            val serverCapabilities = serverCapabilities
+            return serverCapabilities?.textDocumentSync?.let { either ->
+                when {
+                    either.isLeft -> either.left
+                    else -> (either.right as TextDocumentSyncOptions).change
+                }
+            }
+        }
 
     private var lsp4jServerConnector: Lsp4jServerConnector? = null
     private val connectorLock: Any = Any()
-
-    private val myRequestExecutor = LspRequestExecutorImpl(this)
-    private val myServerNotificationsHandler: LspServerNotificationsHandler = LspServerNotificationsHandlerImpl(this)
-
-    @RequiresWriteLock
-    fun sendDidCloseRequest(file: VirtualFile) {
-
-
-        ApplicationManager.getApplication().assertWriteAccessAllowed()
-        if (!openedFiles.remove(file)) {
-            Log.error("sendDidCloseRequest() cannot be called for files that haven't been opened. Ignoring: $file")
-        } else {
-            requestExecutor.sendNotification(DidCloseNotification(this, file))
-        }
-    }
-
-    fun start() {
-        if (!state.compareAndSet(State.CREATED, State.RUNNING)) {
-            LOG.debug("Attempt to start server in wrong myState")
-        } else {
-            LOG.info("Starting server")
-            openedFiles.clear()
-            ApplicationManager.getApplication().executeOnPooledThread {
-                try {
-                    synchronized(connectorLock) {
-                        val connector = Lsp4jServerConnectorStdio(this)
-                        lsp4jServerConnector = connector
-                        connector.connect()
-                    }
-                    sendOpenedFiles()
-                } catch (e: Exception) {
-                    LOG.warn("Failed to start server", e)
-                    listenersAdapter.serverInitializationFailed()
-                    cleanupShutdownAndExit(true)
-                }
-            }
-        }
-    }
-
-    fun isMalfunctioned(): Boolean = state.get() == State.MALFUNCTIONED
-    fun diagnosticsReceived(params: PublishDiagnosticsParams) {
-        val file = descriptor.findFileByUri(params.uri)
-        if (file != null && params.version != null && this.openedFiles.contains(file)) {
-            val document = FileDocumentManager.getInstance().getCachedDocument(file)
-            if (document != null && requestExecutor.getDocumentVersion(document) != params.version) {
-                LOG.debug(
-                    "Ignoring diagnostics (version ${params.version}) for ${file.name}; current document version: ${
-                        requestExecutor.getDocumentVersion(
-                            document
-                        )
-                    }"
-                )
-                return
-            }
-        }
-
-        this.diagnosticsCache.diagnosticsReceived(file, params)
-        if (file != null) {
-            LspServerManagerImpl.getInstanceImpl(project).onDiagnosticsReceived(file)
-        }
-    }
-
-    /**
-     * 清理，关闭并退出
-     */
-    fun cleanupShutdownAndExit(malfunction: Boolean) {
-        if (!state.compareAndSet(State.RUNNING, if (malfunction) State.MALFUNCTIONED else State.STOPPED)) {
-            LOG.debug("Attempt to stop server in wrong myState")
-        } else {
-            LOG.debug("Stopping server")
-            openedFiles.clear()
-            requestExecutor.shutdownNow()
-            val task = Runnable {
-                synchronized(connectorLock) {
-                    lsp4jServerConnector?.shutdownExitDisconnect()
-                }
-            }
-            if (!ApplicationManager.getApplication().isDispatchThread && !ApplicationManager.getApplication().isReadAccessAllowed) {
-                task.run()
-            } else {
-                ApplicationManager.getApplication().executeOnPooledThread(task)
-            }
-        }
-    }
-
     override val project: Project
         get() = descriptor.project
+    override var state: LspServerState = LspServerState.Initializing
+    internal val serverCapabilities: ServerCapabilities?
+        get() {
 
-    override val lsp4jServer: LanguageServer
-        get() = lsp4jServerConnector.let { it?.lsp4jServer } ?: throw IllegalStateException("Server is not running")
-    override val requestExecutor: LspRequestExecutorImpl
-        get() = myRequestExecutor
-    override val serverNotificationsHandler: LspServerNotificationsHandler
-        get() = myServerNotificationsHandler
+            return if (this.state === LspServerState.Running) {
 
-
-    fun isRunning(): Boolean {
-        return state.get() == State.RUNNING
-    }
-
-    /**
-     * 处理文件变化事件
-     */
-    fun processFileEvents(fileChangeInfos: Collection<FileChangeInfo>) {
-
-
-        val registrationOptions =
-            dynamicCapabilities.getCapabilityRegistrationOptions(LspDynamicCapabilities.didChangeWatchedFiles)
-        val roots = descriptor.roots.map { descriptor.getFileUri(it) }.toTypedArray()
-        val notifications = fileChangeInfos.map { processFileEvent(it, registrationOptions, roots) }
-
-        if (notifications.isNotEmpty()) {
-            requestExecutor.sendNotification(DidChangeWatchedFilesNotification(this, notifications))
-        }
-    }
-
-    private fun matchGlobPattern(fileChangeInfo: FileChangeInfo, globPattern: String, roots: Array<String>): Boolean {
-
-
-        for (root in roots) {
-            val relativePath = when {
-                fileChangeInfo.uri == root -> ""
-                fileChangeInfo.uri.startsWith("$root/") -> fileChangeInfo.uri.substring(root.length + 1)
-                else -> continue
+                initializeResult?.capabilities
+            } else {
+                null
             }
 
-            if (fileChangeInfo.isDirectory) {
-                return true
-            }
 
-            val pathMatcher = dynamicCapabilities.getPathMatcherCaching(globPattern)
-            if (pathMatcher.matches(Paths.get(relativePath))) {
-                return true
-            }
         }
-
-        return false
-    }
-
-    private fun processFileEvent(
-        fileChangeInfo: FileChangeInfo,
-        registrationOptions: List<DidChangeWatchedFilesRegistrationOptions>,
-        roots: Array<String>
-    ): FileEvent? {
-
-        for (option in registrationOptions) {
-            for (watcher in option.watchers) {
-                if (watcher.kind != null && watcher.kind and fileChangeInfo.changeType.value == 0) {
-                    continue
-                }
-
-                if (watcher.globPattern.isLeft) {
-                    val globPattern = watcher.globPattern.left
-                    if (matchGlobPattern(fileChangeInfo, globPattern, roots)) {
-                        return FileEvent(fileChangeInfo.uri, fileChangeInfo.changeType)
-                    }
-                } else {
-                    val relativePattern = watcher.globPattern.right
-                    val baseUri =
-                        if (relativePattern.baseUri.isLeft) relativePattern.baseUri.left.uri else relativePattern.baseUri.right
-                    val pattern = relativePattern.pattern
-                    if (matchGlobPattern(fileChangeInfo, pattern, arrayOf(baseUri))) {
-                        return FileEvent(fileChangeInfo.uri, fileChangeInfo.changeType)
-                    }
-                }
-            }
+    override var initializeResult: InitializeResult? = null
+    private val errorOutputBuffer: StringBuilder = StringBuilder()
+    private val semanticTokensCache = LspSemanticTokensCache(this)
+    private val diagnosticsCache: LspDiagnosticsCache = LspDiagnosticsCache()
+    internal fun supportsFindReferences(file: VirtualFile): Boolean {
+        val serverCapabilities = serverCapabilities
+        serverCapabilities?.referencesProvider?.let { referencesProvider ->
+            val leftValue = referencesProvider.left
+            return leftValue ?: true
         }
-
-        return null
+        return checkDynamicCapabilities(file, LspDynamicCapabilities.references)
     }
 
-    fun fileEdited(file: VirtualFile, e: DocumentEvent) {
-
-        diagnosticsCache.fileEdited(file, e)
+    private fun isRunning(): Boolean {
+        return state == LspServerState.Running
     }
 
-    private fun getTextDocumentSyncKind(): TextDocumentSyncKind? {
-        val serverCapabilities = this.getServerCapabilities() ?: return null
-        val textDocumentSync = serverCapabilities.textDocumentSync
-        return if (textDocumentSync.isLeft) {
-            textDocumentSync.left
-        } else {
-            (textDocumentSync.right as TextDocumentSyncOptions).change
-        }
-    }
-
-    fun requiresFullSync(): Boolean {
-        return getTextDocumentSyncKind() == TextDocumentSyncKind.Full
-    }
-
-    @RequiresReadLock
-    @RequiresBackgroundThread
-    fun getFilesToClose(): Collection<VirtualFile> {
-        ApplicationManager.getApplication().assertIsNonDispatchThread()
-        return if (openedFiles.isEmpty()) {
-            emptyList()
-        } else {
-            val fileDocumentManager = FileDocumentManager.getInstance()
-            val fileEditorManager = FileEditorManager.getInstance(project)
-            openedFiles.filter { file ->
-                ProgressManager.checkCanceled()
-                if (fileEditorManager.isFileOpen(file)) {
-                    false
-                } else {
-                    val document = fileDocumentManager.getCachedDocument(file)
-                    document == null || !fileDocumentManager.isDocumentUnsaved(document)
-                }
-            }
-        }
-    }
-
-    @RequiresBackgroundThread
-
-    fun getDiagnosticsAndQuickFixes(file: VirtualFile): List<DiagnosticAndQuickFixes> {
-
-        ApplicationManager.getApplication().assertIsNonDispatchThread()
-        val diagnosticsAndQuickFixes = ContainerUtil.map(diagnosticsCache.getDiagnostics(file)) {
-            DiagnosticAndQuickFixes(it.diagnostic, it.getQuickFixes(this, file))
-        }
-
-        return diagnosticsAndQuickFixes
-    }
-
-    fun requiresIncrementalSync(): Boolean {
-        return getTextDocumentSyncKind() == TextDocumentSyncKind.Incremental
-    }
-
-    fun isFileOpened(file: VirtualFile): Boolean {
-
-        return this.openedFiles.contains(file)
-    }
-
-    /**
-     * 发送所有已打开且未保存的文件
-     */
-    fun sendOpenedFiles() {
+    internal fun sendOpenedFiles() {
         ReadAction.nonBlocking<Set<VirtualFile>> {
             val newFiles = mutableSetOf<VirtualFile>()
             val openFiles = FileEditorManager.getInstance(project).openFiles
@@ -315,7 +142,10 @@ class LspServerImpl(
                 }
             }
             newFiles
-        }.expireWhen { !isRunning() }
+        }
+            .expireWhen {
+                !isRunning()
+            }
             .finishOnUiThread(ModalityState.nonModal()) { files ->
                 if (files.isNotEmpty()) {
                     WriteAction.run<Throwable> {
@@ -323,97 +153,504 @@ class LspServerImpl(
                         files.forEach { sendDidOpenRequest(it) }
                     }
                 }
-            }.submit(AppExecutorUtil.getAppExecutorService())
-    }
 
-    fun hasCapabilities(): Boolean {
-        return this.getServerCapabilities() != null
-    }
-
-    fun getServerCapabilities(): ServerCapabilities? {
-        val connector = lsp4jServerConnector
-        return if (isRunning() && connector != null) connector.getServerCapabilities() else null
+            }
+            .submit(AppExecutorUtil.getAppExecutorService())
     }
 
     @RequiresWriteLock
-    fun sendDidOpenRequest(file: VirtualFile) {
-        ApplicationManager.getApplication().assertWriteAccessAllowed()
-        if (!hasCapabilities()) {
-            LOG.error("sendDidOpenRequest() can only be called when hasCapabilities() == true. Ignoring $file")
+    internal fun sendDidOpenRequest(file: VirtualFile) {
+        if (this.state != LspServerState.Running) {
+            logError("Server is not in the Running state. Ignoring sendDidOpenRequest($file)")
         } else {
             val document = FileDocumentManager.getInstance().getDocument(file)
             if (document == null) {
-                LOG.info("Skipping didOpen request because there's no document for file $file")
+                logInfo("Skipping didOpen request because there's no document for file $file")
             } else {
                 if (openedFiles.add(file)) {
-                    requestExecutor.sendNotification(DidOpenNotification(this, file, document))
-                    listenersAdapter.fileOpened(file)
+                    val textDocumentItem = TextDocumentItem(
+                        descriptor.getFileUri(file),
+                        descriptor.getLanguageId(file),
+                        getDocumentVersion(document),
+                        document.text
+                    )
+                    sendNotification { it: LanguageServer ->
+
+                        it.textDocumentService.didOpen(DidOpenTextDocumentParams(textDocumentItem))
+                    }
+                    eventBroadcaster.fileOpened(this, file)
                 } else {
-                    LOG.error("sendDidOpenRequest() cannot be called for already opened files. Ignoring: $file")
+                    logError("sendDidOpenRequest() cannot be called for already opened files. Ignoring: $file")
                 }
             }
         }
     }
 
-    //    semanticTokens/full
-//    @RequiresWriteLock
-//    fun sendSemanticTokensFullRequest(file: VirtualFile) {
-//        ApplicationManager.getApplication().assertWriteAccessAllowed()
-//        if (!hasCapabilities()) {
-//            LOG.error("sendSemanticTokensFullRequest() can only be called when hasCapabilities() == true. Ignoring $file")
-//        } else {
-//
-//            if (openedFiles.add(file)) {
-//                requestExecutor.sendNotification(SemanticTokensFullNotification(this, file))
-//                listenersAdapter.fileOpened(file)
-//            } else {
-//                LOG.error("sendSemanticTokensFullRequest() cannot be called for already opened files. Ignoring: $file")
-//            }
-//
-//        }
-//
-//    }
+    private fun getFileEvent(
+        fileChangeInfo: FileChangeInfo,
+        registrationOptions: List<DidChangeWatchedFilesRegistrationOptions>
+    ): FileEvent? {
+        for (registration in registrationOptions) {
+            for (watcher in registration.watchers) {
+                if (!fileChangeInfo.doesFileWatcherKindMatchFileChangeType(watcher.kind)) {
+                    continue
+                }
 
+                val patternResult = watcher.globPattern
+                val uri: String = when {
+                    patternResult.isLeft -> patternResult.left
+                    else -> {
+                        val relativePattern = patternResult.right
+                        val baseUri = relativePattern.baseUri
+                        val workspaceFolderUri = baseUri?.left?.uri ?: baseUri?.right ?: return null
 
-    @RequiresReadLock
+                        val fileDescriptor = this.descriptor
+                        val virtualFile = fileDescriptor.findFileByUri(workspaceFolderUri)
+
+                        if (virtualFile != null && virtualFile.isDirectory) {
+                            val filePattern = relativePattern.pattern
+                            if (this.checkFileInfo(fileChangeInfo, filePattern, virtualFile.path)) {
+                                return FileEvent(fileChangeInfo.uri, fileChangeInfo.changeType)
+                            }
+                        }
+                        return null
+                    }
+                }
+
+                if (this.checkFileInfo(fileChangeInfo, uri, null)) {
+                    return FileEvent(fileChangeInfo.uri, fileChangeInfo.changeType)
+                }
+            }
+        }
+        return null
+    }
+
+    internal fun processFileEvents(fileChangeInfos: Collection<FileChangeInfo>) {
+        val registrationOptions =
+            this.dynamicCapabilities.getCapabilityRegistrationOptions(LspDynamicCapabilities.didChangeWatchedFiles)
+        val fileEvents = mutableListOf<FileEvent>()
+
+        for (fileChangeInfo in fileChangeInfos) {
+            val fileEvent = this.getFileEvent(fileChangeInfo, registrationOptions)
+            fileEvent?.let { fileEvents.add(it) }
+        }
+
+        if (fileEvents.isNotEmpty()) {
+            this.sendNotification { languageServer ->
+
+                languageServer.workspaceService.didChangeWatchedFiles(DidChangeWatchedFilesParams(fileEvents))
+            }
+        }
+    }
+    private fun updateServerState(newState: LspServerState) {
+        this.state = newState
+        this.eventBroadcaster.serverStateChanged(this)
+    }
+    /**
+     * 清理，关闭并退出
+     */
+    fun cleanupShutdownAndExit(shutdownNormally: Boolean) {
+        if (this.state !== LspServerState.Initializing && this.state !== LspServerState.Running) {
+            LOG.debug("Attempt to stop server in wrong myState")
+        } else {
+            LOG.debug("Stopping server")
+            this.updateServerState(if (shutdownNormally) LspServerState.ShutdownNormally else LspServerState.ShutdownUnexpectedly)
+
+            openedFiles.clear()
+            requestExecutor.shutdownNow()
+            val task = Runnable {
+                synchronized(connectorLock) {
+                    lsp4jServerConnector?.shutdownExitDisconnect()
+                }
+            }
+            if (!ApplicationManager.getApplication().isDispatchThread && !ApplicationManager.getApplication().isReadAccessAllowed) {
+                task.run()
+            } else {
+                ApplicationManager.getApplication().executeOnPooledThread(task)
+            }
+        }
+    }
+    internal fun diagnosticsReceived(params: PublishDiagnosticsParams) {
+
+        val uri = params.uri
+
+        val virtualFile = descriptor.findFileByUri(uri)
+
+        if (virtualFile != null && params.version != null && this.openedFiles.contains(virtualFile)) {
+            val document = FileDocumentManager.getInstance().getCachedDocument(virtualFile)
+            if (document != null) {
+                val currentVersion = this.getDocumentVersion(document)
+                val receivedVersion = params.version
+
+                if (receivedVersion != null && currentVersion != receivedVersion) {
+                    this.logDebug("Ignoring diagnostics (version $receivedVersion) for ${virtualFile.name}; current document version: $currentVersion")
+                    return
+                }
+            }
+        }
+
+        this.diagnosticsCache.diagnosticsReceived(virtualFile, params)
+
+        if (virtualFile != null) {
+            LspServerManagerImpl.getInstanceImpl(this.project).onDiagnosticsReceived(this, virtualFile)
+        }
+    }
+
     @RequiresBackgroundThread
-    fun isSupportedFile(file: VirtualFile): Boolean {
-        ApplicationManager.getApplication().assertIsNonDispatchThread()
-        if (!file.isInLocalFileSystem || unsupportedFilePaths.contains(file.path) || !ProjectFileIndex.getInstance(
-                project
-            ).isInContent(file)
-        ) {
+    @RequiresReadLock
+    internal fun getFilesToClose(): Collection<VirtualFile> {
+        val editorManager = FileEditorManager.getInstance(project)
+        val documentManager = FileDocumentManager.getInstance()
+        val openedFilesSet = this.openedFiles
+        val filesToClose = mutableListOf<VirtualFile>()
+
+        for (virtualFile in openedFilesSet) {
+            if (!editorManager.isFileOpen(virtualFile)) {
+                val cachedDocument = documentManager.getCachedDocument(virtualFile)
+                if (cachedDocument == null || !documentManager.isDocumentUnsaved(cachedDocument)) {
+                    filesToClose.add(virtualFile)
+                }
+            }
+        }
+
+        return filesToClose
+    }
+
+    private fun createConnector(): Lsp4jServerConnector {
+        return when (val communicationChannel = this.descriptor.lspCommunicationChannel) {
+            is LspCommunicationChannel.StdIO -> Lsp4jServerConnectorStdio(this)
+            is LspCommunicationChannel.Socket -> Lsp4jServerConnectorSocket(this)
+            else -> throw RuntimeException("Unexpected communication channel: $communicationChannel")
+        }
+    }
+
+    private fun initializeServer(
+        startTime:
+        Duration
+    ) {
+
+        try {
+            synchronized(connectorLock) {
+                lsp4jServerConnector = createConnector()
+                val connector =
+                    lsp4jServerConnector ?: throw UninitializedPropertyAccessException("lsp4jServerConnector")
+
+                connector.connect { initializeResult ->
+
+                    this.initializeResult = initializeResult
+
+                    synchronized(stateLock) {
+                        if (state == LspServerState.Initializing) {
+
+                            state = LspServerState.Running
+                        }
+                    }
+
+                    val elapsedTime = TimeSource.Monotonic.markNow().elapsedNow() - startTime
+                    val initializationMessage =
+                        "LSP server initialized in ${elapsedTime.toString(DurationUnit.SECONDS, 3)}"
+
+                    val serverInfo = initializeResult.serverInfo
+                    val infoMessage = serverInfo?.let {
+                        "$initializationMessage, name = ${it.name}, version = ${it.version}"
+                    } ?: initializationMessage
+
+                    logInfo(infoMessage)
+
+                    descriptor.lspServerListener?.serverInitialized(initializeResult)
+                }
+            }
+
+            sendOpenedFiles()
+        } catch (e: Exception) {
+            val cause = (e as? LspInitializationException)?.cause ?: e
+            logWarn("Failed to start LSP server", cause)
+
+            val manager = ReadAction.compute<LspServerManagerImpl, Throwable> {
+                if (!project.isDisposed) {
+                    LspServerManagerImpl.getInstanceImpl(project)
+                }
+                null
+            }
+            val errorMessage = if (e is LspInitializationException) "$e\nCaused by:\n" else ""
+            val stackTrace = errorMessage + cause.stackTraceToString()
+
+            manager?.handleMaybeUnexpectedServerStop(this, stackTrace)
+        }
+    }
+
+    internal fun start() {
+        if (state != LspServerState.Initializing) {
+            logError("start() cannot be called for a server twice")
+        } else {
+            logInfo("Starting LSP server")
+            val startTime = TimeSource.Monotonic.markNow()
+            ApplicationManager.getApplication().executeOnPooledThread {
+                initializeServer(
+                    startTime.elapsedNow()
+                )
+            }
+        }
+    }
+
+    private fun <T : TextDocumentRegistrationOptions> checkDynamicCapabilities(
+        file: VirtualFile,
+        capabilityAndOptionsClass: Pair<String, Class<T>>
+    ): Boolean {
+        if (file.isDirectory) {
+            logWarn("Directory not expected here. Capability: ${capabilityAndOptionsClass.first}, file: ${file.path}")
             return false
         }
-        val isSupported = descriptor.isSupportedFile(file)
-        if (!isSupported) {
-            unsupportedFilePaths.add(file.path)
-        }
-        return isSupported
-    }
 
+        val options = dynamicCapabilities.getCapabilityRegistrationOptions(capabilityAndOptionsClass)
 
-    fun supportsHover(): Boolean {
-        val serverCapabilities = getServerCapabilities()
-        return serverCapabilities?.hoverProvider?.let { provider ->
-            if (provider.isLeft) {
-                provider.left as Boolean
-            } else {
-                true
+        for (registrationOptions in options) {
+            val documentSelector = registrationOptions.documentSelector ?: continue
+
+            for (filter in documentSelector) {
+                if (filter.scheme == "file") {
+                    val language = filter.language
+                    val pattern = filter.pattern
+
+                    if (language == null && pattern == null) continue
+
+                    if (language != null && language != descriptor.getLanguageId(file)) continue
+
+                    if (pattern == null) return true
+
+                    val filePath = file.path
+                    if (this.checkFileInfo(FileInfo(filePath, false), pattern, null)) return true
+                }
             }
-        } ?: false
+        }
+
+        return false
+    }
+
+    private fun checkFileInfo(
+        fileInfo: FileInfo,
+        globPattern: String,
+        basePath: String?
+    ): Boolean {
+        val path = when {
+            basePath == null -> fileInfo.path
+            fileInfo.path == basePath -> ""
+            fileInfo.path.startsWith("$basePath/") -> fileInfo.path.substring(basePath.length + 1)
+
+            else -> return false
+        }
+
+        return if (fileInfo.isDirectory) {
+            true
+        } else {
+            val pathMatcher = dynamicCapabilities.getPathMatcherCaching(globPattern)
+            pathMatcher.matches(Path.of(path))
+        }
+    }
+
+    open class FileInfo(
+        val path: String,
+        val isDirectory: Boolean
+    )
+
+    override fun sendNotification(lsp4jSender: (Lsp4jServer) -> Unit) {
+        requestExecutor.sendNotification(lsp4jSender)
+
+    }
+
+    @com.intellij.util.concurrency.annotations.RequiresWriteLock
+    internal fun sendDidCloseRequest(file: VirtualFile) {
+        if (!openedFiles.remove(file)) {
+            logError("sendDidCloseRequest() cannot be called for files that haven't been opened. Ignoring: $file")
+        } else {
+            val params = DidCloseTextDocumentParams(getDocumentIdentifier(file))
+            sendNotification { server ->
+                server.textDocumentService.didClose(params)
+            }
+        }
+    }
+
+    internal fun appendServerErrorOutput(text: String) {
+        if (errorOutputBuffer.isNotEmpty()) {
+            errorOutputBuffer.append("\n")
+        }
+
+        when {
+            text.length > 1_048_576 -> {
+                errorOutputBuffer.replace(0, errorOutputBuffer.length, text.takeLast(1_048_576))
+            }
+
+            errorOutputBuffer.length + text.length > 1_048_576 -> {
+                errorOutputBuffer.delete(0, errorOutputBuffer.length + text.length - 1_048_576)
+                errorOutputBuffer.append(text)
+            }
+
+            else -> {
+                errorOutputBuffer.append(text)
+            }
+        }
+    }
+
+    @RequiresBackgroundThread
+    internal fun getSemanticTokens(file: VirtualFile): List<LspSemanticToken> {
+        return semanticTokensCache.getSemanticTokens(file)
+
+    }
+
+    internal fun ensureServerStopped(
+        explicitStop: Boolean,
+        updateLspServerManagerState: () -> Unit
+    ) {
+        fun updateServerState(newState: LspServerState) {
+            if (newState != LspServerState.Initializing &&
+                (state == LspServerState.Initializing || newState != LspServerState.Running) &&
+                state != LspServerState.ShutdownNormally &&
+                state != LspServerState.ShutdownUnexpectedly
+            ) {
+
+                state = newState
+                eventBroadcaster.serverStateChanged(this)
+            } else {
+                logger.error("Incorrect state change: $state -> $newState")
+            }
+        }
+        synchronized<Any>(stateLock) {
+            try {
+                updateLspServerManagerState()
+
+                if (state in arrayOf(LspServerState.ShutdownNormally, LspServerState.ShutdownUnexpectedly)) {
+                    return
+                }
+
+                logInfo("Stopping LSP server ${if (explicitStop) "normally" else "unexpectedly"}")
+                updateServerState(if (explicitStop) LspServerState.ShutdownNormally else LspServerState.ShutdownUnexpectedly)
+
+                openedFiles.clear()
+                requestExecutor.shutdownNow()
+                semanticTokensCache.clearCache()
+                diagnosticsCache.clearCache()
+            } finally {
+                // No-op in Kotlin, can be omitted if no cleanup is needed
+            }
+        }
+
+        executeTask()
+    }
+
+    private fun createServerConnector(): Lsp4jServerConnector {
+        return when (  descriptor.lspCommunicationChannel) {
+            is LspCommunicationChannel.StdIO -> Lsp4jServerConnectorStdio(this)
+            is LspCommunicationChannel.Socket -> Lsp4jServerConnectorSocket(this)
+        }
+    }
+
+    @RequiresBackgroundThread
+    fun getDiagnosticsAndQuickFixes(file: VirtualFile): List<DiagnosticAndQuickFixes> {
+        val diagnostics = diagnosticsCache.getDiagnostics(file)
+        val quickFixesList = mutableListOf<DiagnosticAndQuickFixes>()
+
+        for (diagnosticAndQuickFixes in diagnostics) {
+            val diagnostic = diagnosticAndQuickFixes.diagnostic
+            val quickFixes = diagnosticAndQuickFixes.getQuickFixes(this, file)
+            quickFixesList.add(DiagnosticAndQuickFixes(diagnostic, quickFixes))
+        }
+
+        return quickFixesList
     }
 
 
-    fun logError(@NonNls message: String) {
+    internal fun fileEdited(
+        file: VirtualFile,
+        e: DocumentEvent
+    ) {
+        semanticTokensCache.fileEdited(file, e)
+        diagnosticsCache.fileEdited(file, e)
+    }
 
+    internal fun supportsGotoDefinition(): Boolean {
+        val serverCapabilities = serverCapabilities
+        return if (serverCapabilities != null) {
+            val definitionProvider = serverCapabilities.definitionProvider
+            if (definitionProvider != null) {
+                val isSupported = definitionProvider.left
+                isSupported ?: true
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    }
 
-        LOG.error(this.generateMessage(message))
+    internal fun hasFormattingRelatedCapabilities(): Boolean {
+        if (dynamicCapabilities.hasCapability(LspDynamicCapabilities.formatting)) {
+            return true
+        }
+
+        val serverCapabilities = serverCapabilities
+        val documentFormattingProvider = serverCapabilities?.documentFormattingProvider
+
+        return when {
+            documentFormattingProvider == null -> false
+            documentFormattingProvider.isLeft -> documentFormattingProvider.left ?: true
+            else -> true
+        }
+    }
+
+    internal fun supportsHover(): Boolean {
+        val hoverProvider = serverCapabilities?.hoverProvider
+
+        return when {
+            hoverProvider == null -> false
+            hoverProvider.isLeft -> hoverProvider.left ?: true
+            else -> true
+        }
+    }
+
+    internal fun doesServerExplicitlyWantToFormatThisFile(file: VirtualFile): Boolean {
+        return checkDynamicCapabilities(file, LspDynamicCapabilities.formatting)
+    }
+
+    private fun executeTask() {
+        val task = Runnable {
+            synchronized(connectorLock) {
+                lsp4jServerConnector?.shutdownExitDisconnect() ?: run {
+                    throw UninitializedPropertyAccessException("lsp4jServerConnector")
+                }
+
+            }
+        }
+        if (!ApplicationManager.getApplication().isDispatchThread && !ApplicationManager.getApplication().isReadAccessAllowed) {
+            task.run()
+        } else {
+            ApplicationManager.getApplication().executeOnPooledThread(task)
+        }
     }
 
     private fun generateMessage(message: String): String {
         return "${this.javaClass.simpleName}: $message"
     }
+
+
+    internal fun isFileOpened(file: VirtualFile): Boolean {
+        return openedFiles.contains(file)
+    }
+
+    @RequiresReadLock
+    @RequiresBackgroundThread
+    internal fun isSupportedFile(file: VirtualFile): Boolean {
+        if (!file.isInLocalFileSystem) return false
+        if (unsupportedFilePaths.contains(file.path)) return false
+        if (!ProjectFileIndex.getInstance(project).isInContent(file)) return false
+
+        val isSupported = descriptor.isSupportedFile(file)
+        if (!isSupported) {
+            unsupportedFilePaths.add(file.path)
+        }
+
+        return isSupported
+    }
+
 
     fun logDebug(@NonNls message: String) {
 
@@ -421,130 +658,46 @@ class LspServerImpl(
         LOG.debug(this.generateMessage(message))
     }
 
-    fun logWarn(@NonNls message: String, t: Throwable?) {
+    fun logError(@NonNls message: String) {
+
+
+        LOG.error(this.generateMessage(message))
+    }
+
+    fun logWarn(@NonNls message: String, t: Throwable? = null) {
 
 
         LOG.warn(this.generateMessage(message), t)
     }
 
     fun logInfo(@NonNls message: String) {
-
         LOG.info(this.generateMessage(message))
     }
 
-    fun hasFormattingRelatedCapabilities(): Boolean {
-        if (dynamicCapabilities.hasCapability(LspDynamicCapabilities.formatting)) {
-            return true
+    override suspend fun <Lsp4jResponse> sendRequest(lsp4jSender: (Lsp4jServer) -> CompletableFuture<Lsp4jResponse>): Lsp4jResponse? {
+        return requestExecutor.sendRequest(lsp4jSender)
+    }
+
+    override fun <Lsp4jResponse> sendRequestSync(
+        timeoutMs: Int,
+        lsp4jSender: (Lsp4jServer) -> CompletableFuture<Lsp4jResponse>
+    ): Lsp4jResponse? {
+        return requestExecutor.sendRequestSync(timeoutMs, lsp4jSender)
+    }
+
+    override fun getDocumentIdentifier(file: VirtualFile): TextDocumentIdentifier {
+        return TextDocumentIdentifier(descriptor.getFileUri(file))
+    }
+
+    override fun getDocumentVersion(document: Document): Int {
+        return if (document is DocumentEx) {
+            document.modificationSequence
         } else {
-            val serverCapabilities = getServerCapabilities()
-            if (serverCapabilities == null) {
-                return false
-            } else {
-                val documentFormattingProvider = serverCapabilities.documentFormattingProvider
-                return documentFormattingProvider?.isLeft ?: false
-            }
+            document.modificationStamp.toInt()
         }
     }
 
-    private fun <T : TextDocumentRegistrationOptions> checkTextDocumentRegistration(
-        file: VirtualFile,
-        formatting: Pair<String, Class<T>>
-    ): Boolean {
-
-        if (file.isDirectory) {
-            logWarn("Directory not expected here. Capability: ${formatting.first}, file: ${file.path}", null)
-            return false
-        } else {
-            val optionsList = dynamicCapabilities.getCapabilityRegistrationOptions(formatting)
-            for (options in optionsList) {
-                val documentSelector = options.documentSelector
-                if (documentSelector != null) {
-                    for (filter in documentSelector) {
-                        if ("file" == filter.scheme) {
-                            val language = filter.language
-                            val pattern = filter.pattern
-                            if ((language == null || language == descriptor.getLanguageId(file)) &&
-                                (pattern == null || matchesFileInfo(SimpleFileInfo(file.path, false), pattern, null))
-                            ) {
-                                return true
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return false
-    }
-
-    private fun matchesFileInfo(fileInfo: FileInfo, pattern: String, basePath: String?): Boolean {
-
-        val path = basePath ?: fileInfo.path
-        val relativePath = if (basePath == null || fileInfo.path != basePath) {
-            if (!fileInfo.path.startsWith("$basePath/")) {
-                return false
-            }
-            fileInfo.path.substring(basePath?.length?.plus(1) ?: 0)
-        } else {
-            ""
-        }
-
-        if (fileInfo.isDirectory) {
-            return true
-        } else {
-            val pathMatcher = dynamicCapabilities.getPathMatcherCaching(pattern)
-            return pathMatcher.matches(Paths.get(relativePath))
-        }
-    }
-
-    fun doesServerExplicitlyWantToFormatThisFile(file: VirtualFile): Boolean {
-        return this.checkTextDocumentRegistration(
-            file,
-            LspDynamicCapabilities.formatting
-        )
-
-    }
-
-    private interface FileInfo {
-        val path: String
-
-        val isDirectory: Boolean
-    }
-
-    private data class SimpleFileInfo(
-        override val path: String,
-        override val isDirectory: Boolean
-    ) : FileInfo {
-        init {
-            requireNotNull(path) { "Path cannot be null" }
-        }
-
-        override fun toString(): String {
-            return this.toString()
-        }
-
-        override fun hashCode(): Int {
-            return this.hashCode()
-        }
-
-        override fun equals(other: Any?): Boolean {
-            return this === other
-        }
-
-
-    }
-
-    companion object {
-        private val LOG = Logger.getInstance(
-            LspServerImpl::class.java
-        )
-    }
-
-
-    data class FileChangeInfo(
-        val uri: String,
-        val isDirectory: Boolean,
-        val changeType: FileChangeType
-    )
-
-
+    override val lsp4jServer: Lsp4jServer
+        get() = lsp4jServerConnector.let { it?.lsp4jServer } ?: throw IllegalStateException("Server is not running")
+    override val requestExecutor: LspRequestExecutorImpl = LspRequestExecutorImpl(this)
 }

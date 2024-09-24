@@ -2,6 +2,8 @@ package com.huawei.cangjie.ide.searching.usages
 
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.CjNodeTypes
+import com.huawei.cangjie.configurable.services.CangJieLanguageServerServices
+import com.huawei.cangjie.configurable.services.Feature
 import com.huawei.cangjie.lexer.CangJieLexer
 import com.huawei.cangjie.lexer.CjTokens.*
 import com.huawei.cangjie.psi.*

@@ -7,73 +7,83 @@ import com.intellij.formatting.service.FormattingService
 import com.intellij.injected.editor.VirtualFileWindow
 import com.intellij.lang.LanguageFormatting
 import com.intellij.openapi.editor.impl.DocumentImpl
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
-import com.linqingying.lsp.api.customization.requests.util.applyTextEdits
-import com.linqingying.lsp.impl.LspBundle
+import com.linqingying.lsp.api.LspBundle
+import com.linqingying.lsp.api.LspServerState
 import com.linqingying.lsp.impl.LspServerImpl
 import com.linqingying.lsp.impl.LspServerManagerImpl
-import com.linqingying.lsp.impl.requests.LspFormattingRequest
+import com.linqingying.lsp.util.applyTextEdits
+import org.eclipse.lsp4j.DocumentFormattingParams
+import org.eclipse.lsp4j.FormattingOptions
+import org.eclipse.lsp4j.services.LanguageServer
 import org.jetbrains.annotations.Nls
-import org.jetbrains.annotations.NotNull
-
 
 private class LspFormattingService :
     AsyncDocumentFormattingService() {
     override fun canFormat(psiFile: PsiFile): Boolean {
-        val project = psiFile.project
-        val virtualFile = psiFile.virtualFile
-        if (virtualFile == null || virtualFile is VirtualFileWindow || !virtualFile.isInLocalFileSystem) {
-            return false
-        }
-        return V(project, virtualFile) != null
+        return findLspServer(psiFile) != null
     }
 
     override fun createFormattingTask(formattingRequest: AsyncFormattingRequest): FormattingTask? {
 
-        val project = formattingRequest.context.project
-        val virtualFile = formattingRequest.context.virtualFile
-        if (virtualFile == null || virtualFile is VirtualFileWindow || !virtualFile.isInLocalFileSystem) {
-            return null
-        }
-        val lspServerImpl = V(project, virtualFile) ?: return null
-        return LspFormattingTask(lspServerImpl, virtualFile, formattingRequest)
+        val virtualFile = formattingRequest.context.virtualFile ?: return null
+        val psiFile = formattingRequest.context.containingFile
+
+        val lspServer = findLspServer(psiFile) ?: return null
+
+        return LspFormattingTask(lspServer, virtualFile, formattingRequest)
+    }
+
+    override fun getFeatures(): Set<FormattingService.Feature> {
+        return emptySet()
+    }
+
+
+    override fun getName(): @Nls String {
+        return LspBundle.message("lsp.based.formatter", arrayOfNulls<Any>(0))
 
     }
 
-    override fun getFeatures(): Set<FormattingService.Feature> = emptySet()
+    override fun getNotificationGroupId(): String {
+        return "LSP window/showMessage"
 
-    override fun getName(): @NotNull @Nls String = LspBundle.message("lsp.based.formatter")
-    override fun getNotificationGroupId(): String = "LSP window/showMessage"
+    }
 
-    private fun V(
-        project: Project,
-        file: VirtualFile
-    ): LspServerImpl? {
-        return LspServerManagerImpl.getInstanceImpl(project)
-            .findServer {
-                val lspFormattingSupport = it.descriptor.lspFormattingSupport
-                if (lspFormattingSupport == null || !it.hasFormattingRelatedCapabilities() || !it.descriptor.isSupportedFile(
-                        file
-                    )
-                ) {
-                    return@findServer false
+    private fun findLspServer(psiFile: PsiFile): LspServerImpl? {
+        val virtualFile = psiFile.virtualFile ?: return null
+
+        if (virtualFile.isInLocalFileSystem && virtualFile !is VirtualFileWindow) {
+            val project = psiFile.project
+            val lspServerManager = LspServerManagerImpl.getInstanceImpl(project)
+            val lspServers = lspServerManager.lspServers
+
+            for (server in lspServers) {
+                if (server.state == LspServerState.Running) {
+                    val formattingSupport = server.descriptor.lspFormattingSupport
+                    if (formattingSupport != null) {
+                        val isSupportedFile = server.descriptor.isSupportedFile(virtualFile)
+                        val formattingModelBuilder = LanguageFormatting.INSTANCE.forContext(psiFile)
+                        val hasFormattingCapabilities =
+                            server.hasFormattingRelatedCapabilities()
+                        val wantsToFormat =
+                            server.doesServerExplicitlyWantToFormatThisFile(virtualFile)
+
+                        if (hasFormattingCapabilities && isSupportedFile &&
+                            formattingSupport.shouldFormatThisFileExclusivelyByServer(
+                                virtualFile,
+                                formattingModelBuilder != null,
+                                wantsToFormat
+                            )
+                        ) {
+                            return server
+                        }
+                    }
                 }
-                val psiFile = PsiManager.getInstance(project).findFile(file)
-                val formattingModelBuilder = psiFile?.let { LanguageFormatting.INSTANCE.forContext(it) }
-                val hasFormattingSupport = formattingModelBuilder != null
-
-
-                val doesServerWantToFormat = it.doesServerExplicitlyWantToFormatThisFile(file)
-                return@findServer lspFormattingSupport.shouldFormatThisFileExclusivelyByServer(
-                    file,
-                    hasFormattingSupport,
-                    doesServerWantToFormat
-                )
             }
+        }
 
+        return null
     }
 
 
@@ -88,21 +98,28 @@ private class LspFormattingService :
         override fun isRunUnderProgress(): Boolean = true
 
         override fun run() {
-            val text = formattingRequest.documentText
+            val documentText = formattingRequest.documentText
             val codeStyleSettings = formattingRequest.context.codeStyleSettings
-            val edits = lspServer.requestExecutor.sendRequestSync(
-                LspFormattingRequest(
-                    lspServer,
-                    file,
-                    codeStyleSettings
-                )
-            ) ?: emptyList()
+            val documentIdentifier = lspServer.getDocumentIdentifier(file)
+            val formattingOptions = FormattingOptions().apply {
+                tabSize = codeStyleSettings.getIndentSize(file.fileType)
+                isInsertSpaces = !codeStyleSettings.useTabCharacter(file.fileType)
 
-            if (edits.isEmpty()) {
-                formattingRequest.onTextReady(null.toString())
+            }
+
+            val formattingParams = DocumentFormattingParams(documentIdentifier, formattingOptions)
+
+            val formattedTextEdits = lspServer.sendRequestSync { server: LanguageServer ->
+                server.textDocumentService.formatting(formattingParams).also {
+                    requireNotNull(it) { "Formatting request returned null" }
+                }
+            }
+
+            if (formattedTextEdits.isNullOrEmpty()) {
+                formattingRequest.onTextReady(null)
             } else {
-                val document = DocumentImpl(text, false, true)
-                applyTextEdits(document, edits)
+                val document = DocumentImpl(documentText, false, true)
+                applyTextEdits(document, formattedTextEdits)
                 formattingRequest.onTextReady(document.text)
             }
         }

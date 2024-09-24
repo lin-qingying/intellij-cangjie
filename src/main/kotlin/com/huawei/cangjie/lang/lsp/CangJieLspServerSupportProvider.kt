@@ -6,6 +6,8 @@ import com.huawei.cangjie.cjpm.project.model.cjpmProjects
 import com.huawei.cangjie.cjpm.project.model.currentCjpmProject
 import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
 import com.huawei.cangjie.cjpm.project.workspace.PackageOrigin
+import com.huawei.cangjie.configurable.services.CangJieLanguageServerServices
+import com.huawei.cangjie.configurable.services.Feature
 import com.huawei.cangjie.lang.CangJieFileType
 import com.huawei.cangjie.lang.lsp.CangJieLspServerManager.getCommandLine
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -13,10 +15,16 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.platform.lang.lsWidget.LanguageServiceWidgetItem
 import com.intellij.util.io.systemIndependentPath
+import com.linqingying.lsp.api.LspServer
 import com.linqingying.lsp.api.LspServerSupportProvider
 import com.linqingying.lsp.api.ProjectWideLspServerDescriptor
-import com.linqingying.utils.Config
+import com.linqingying.lsp.api.customization.FindReferencesSupport
+import com.linqingying.lsp.api.customization.LspCompletionSupport
+import com.linqingying.lsp.api.customization.LspDiagnosticsSupport
+import com.linqingying.lsp.api.customization.LspSemanticTokensSupport
+import com.linqingying.lsp.api.lsWidget.LspServerWidgetItem
 import org.eclipse.lsp4j.*
 
 fun checkCangJieFIle(file: VirtualFile): Boolean {
@@ -36,7 +44,7 @@ class CangJieLspServerSupportProvider : LspServerSupportProvider {
         file: VirtualFile,
         serverStarter: LspServerSupportProvider.LspServerStarter
     ) {
-        if (!Config.isLsp) return
+        if (!CangJieLanguageServerServices.getInstance().lspConfig.enabled) return
 
         val cangjieSettings = project.cangjieSettings
 
@@ -48,6 +56,16 @@ class CangJieLspServerSupportProvider : LspServerSupportProvider {
 
     }
 
+    override fun createLspWidgetItems(project: Project, currentFile: VirtualFile?): List<LanguageServiceWidgetItem> {
+        if (!CangJieLanguageServerServices.getInstance().lspConfig.enabled) return emptyList()
+
+        return super.createLspWidgetItems(project, currentFile)
+    }
+
+    override fun createLspServerWidgetItem(lspServer: LspServer, currentFile: VirtualFile?): LspServerWidgetItem? {
+        if (!CangJieLanguageServerServices.getInstance().lspConfig.enabled) return null
+        return super.createLspServerWidgetItem(lspServer, currentFile)
+    }
 
 }
 
@@ -55,7 +73,7 @@ class CangJieLspServerSupportProvider : LspServerSupportProvider {
 private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServerDescriptor(project, "Cangjie") {
     override fun isSupportedFile(file: VirtualFile): Boolean {
 
-
+        if (!CangJieLanguageServerServices.getInstance().lspConfig.enabled) return false
         return checkCangJieFIle(file)
 //        如果未配置sdk
 
@@ -71,15 +89,55 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 //    override val lsp4jServerClass: Class<out LanguageServer>
 //        get() = CangJieLangServer::class.java
 
-    override fun createCommandLine(): GeneralCommandLine = getCommandLine(project)
+    override fun createCommandLine(): GeneralCommandLine {
+        return getCommandLine(project)
+    }
 
 
-    // 无需使用LSP服务器即可实现引用解析
-//    override val lspGoToDefinitionSupport = false
+    //  引用解析
+    override val lspGoToDefinitionSupport
+        get() = CangJieLanguageServerServices.getInstance().lspConfig.isFeatureEnabled(
+            Feature.GO_TO_DECLARATION
+        )
 
-//代码补全
-//    override val lspCompletionSupport = CangJieLspCompletionSupport()
+    //代码补全
+    override val lspCompletionSupport: LspCompletionSupport?
+        get() {
+            if (CangJieLanguageServerServices.getInstance().lspConfig.isFeatureEnabled(Feature.AUTO_COMPLETE)) {
+                return super.lspCompletionSupport
+            }
+            return null
+        }
 
+    //语义标记
+    override val lspSemanticTokensSupport: LspSemanticTokensSupport? get() {
+        if (CangJieLanguageServerServices.getInstance().lspConfig.isFeatureEnabled(Feature.SEMANTIC_TOKENS))
+            return LspSemanticTokensSupport()
+        return null
+    }
+
+    //诊断信息
+    override val lspDiagnosticsSupport: LspDiagnosticsSupport?
+        get() {
+            if (CangJieLanguageServerServices.getInstance().lspConfig.isFeatureEnabled(Feature.DIAGNOSTICS))
+                return super.lspDiagnosticsSupport
+            return null
+        }
+
+
+    //查找用法
+    override val lspFindReferencesSupport: FindReferencesSupport?
+        get() {
+
+            if (CangJieLanguageServerServices.getInstance().lspConfig.isFeatureEnabled(Feature.FIND_USAGES)) {
+                return super.lspFindReferencesSupport
+            }
+            return null
+        }
+
+    //    悬停
+    override val lspHoverSupport: Boolean
+        get() = CangJieLanguageServerServices.getInstance().lspConfig.isFeatureEnabled(Feature.HOVER_INFO)
 
 //    override fun createLsp4jClient(handler: LspServerNotificationsHandler): Lsp4jClient {
 //
@@ -112,7 +170,7 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 
             fun getMap(): Map<String, Any> {
                 return mapOf(
-                    "modulesHomeOption" to toolchain.location.systemIndependentPath,
+                    "modulesHomeOption" to toolchain.location.systemIndependentPath.replacePathBySystem(),
 //                    "extensionPath" to "C:\\Users\\27439\\.cangjie\\lsp"
 
 

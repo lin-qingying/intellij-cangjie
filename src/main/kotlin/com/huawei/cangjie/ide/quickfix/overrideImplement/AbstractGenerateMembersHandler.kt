@@ -1,6 +1,7 @@
 package com.huawei.cangjie.ide.quickfix.overrideImplement
 
 import com.huawei.cangjie.CangJieBundle
+import com.huawei.cangjie.ide.quickfix.checkQuickFixIsEnable
 import com.huawei.cangjie.ide.stubindex.resolve.isUnitTestMode
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.psi.CjTypeStatement
@@ -33,7 +34,12 @@ abstract class AbstractGenerateMembersHandler<T : ClassMember> : LanguageCodeIns
     @RequiresBackgroundThread(generateAssertion = false)
     abstract fun collectMembersToGenerate(classOrObject: CjTypeStatement): Collection<T>
 
-    abstract fun generateMembers(editor: Editor, classOrObject: CjTypeStatement, selectedElements: Collection<T>, copyDoc: Boolean)
+    abstract fun generateMembers(
+        editor: Editor,
+        classOrObject: CjTypeStatement,
+        selectedElements: Collection<T>,
+        copyDoc: Boolean
+    )
 
     @NlsContexts.DialogTitle
     protected abstract fun getChooserTitle(): String
@@ -58,6 +64,7 @@ abstract class AbstractGenerateMembersHandler<T : ClassMember> : LanguageCodeIns
     }
 
     override fun isValidFor(editor: Editor, file: PsiFile): Boolean {
+        if (!checkQuickFixIsEnable()) return false
         if (file !is CjFile) return false
         val elementAtCaret = file.findElementAt(editor.caretModel.offset)
         val classOrObject = elementAtCaret?.getNonStrictParentOfType<CjTypeStatement>()

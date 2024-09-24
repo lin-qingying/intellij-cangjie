@@ -98,7 +98,6 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
 
     }
 
-
     fun getEnvironment(): Map<String, String> {
         val separator = if (SystemInfo.isWindows) ";" else ":"
 
@@ -110,17 +109,23 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
         val map = mutableMapOf<String, String>()
 
         val sdkHome = this.location.systemIndependentPath
+        "${sdkHome}${buildPath("runtime","lib",runtimeLlvm)}"
         map["LD_LIBRARY_PATH"] =
-            "${sdkHome}/runtime/lib/${runtimeLlvm}$separator${System.getenv("LD_LIBRARY_PATH") ?: ""}"
+            "${sdkHome}${buildPath("runtime","lib",runtimeLlvm)}$separator${System.getenv("LD_LIBRARY_PATH") ?: ""}"
         map["PATH"] =
-            "${sdkHome}/runtime/lib/${runtimeLlvm}$separator${sdkHome}/bin$separator${sdkHome}/tools/bin$separator${
+            "${sdkHome}${buildPath("runtime","lib",runtimeLlvm)}$separator${sdkHome}${buildPath("bin")}$separator${sdkHome}${buildPath("tools","bin")}$separator${sdkHome}${buildPath("tools","lib")}$separator${sdkHome}${buildPath("runtime","lib",runtimeLlvm)}$separator${sdkHome}${buildPath("debugger","bin")} ${
                 System.getenv(
                     "PATH"
                 )
             }"
 
-        map["CANGJIE_HOME"] = sdkHome
+        map["CANGJIE_HOME"] = "$sdkHome${File.separator}"
+        map["cjcPath"] = "$sdkHome/bin"
         return map
+    }
+
+    fun buildPath(vararg paths: String): String {
+        return paths.joinToString(      File.separator ,   File.separator )
     }
 
     //    val presentableLocation: String get() = pathToExecutable(CJPM.NAMED).toString()

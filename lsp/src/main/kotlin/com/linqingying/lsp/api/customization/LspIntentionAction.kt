@@ -1,27 +1,27 @@
+// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.linqingying.lsp.api.customization
 
 import com.intellij.codeInsight.FileModificationService
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-
+import com.linqingying.lsp.api.LspServer
+import com.linqingying.lsp.util.applyTextEdits
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
+import com.intellij.util.PathUtil
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresWriteLock
-import com.linqingying.lsp.api.LspServer
-import com.linqingying.lsp.api.customization.requests.util.applyTextEdits
-import com.linqingying.lsp.api.customization.requests.util.getOffsetInDocument
 import org.eclipse.lsp4j.*
 import org.jetbrains.annotations.ApiStatus
-
 
 /**
  * [IntentionAction] that knows how to apply [CodeAction] received from the LSP server.
@@ -33,294 +33,239 @@ import org.jetbrains.annotations.ApiStatus
  * [IntentionAction.isAvailable] on those stubs, the stubs ask the LSP server to calculate real [CodeAction] objects and, once received,
  * create [LspIntentionAction] objects. After that, those quick fix stubs delegate [getText], [isAvailable], and [invoke] calls to these
  * [LspIntentionAction] objects.
+ *
+ * [LspIntentionAction] objects are used not only for quick fixes, but also for other kinds of [CodeActions][CodeAction].
+ * In IntelliJ Platform terms, other kinds of `CodeActions` are handled as
+ * [Intention actions](https://www.jetbrains.com/help/idea/intention-actions.html).
  */
-@ApiStatus.Experimental
-open class LspIntentionAction(
-    protected val lspServer: LspServer, protected val codeAction: CodeAction
-) : IntentionAction {
-    private var uriToDocumentMapInitialized: Boolean = false
-    private var uriToDocumentMap: Map<String, Document>? = null
 
-    // `getFamilyName()` is not delegated to this class. The wrapper class returns empty string. This function is never called.
-    final override fun getFamilyName(): String = ""
+open class LspIntentionAction(protected val lspServer: LspServer, private val initialCodeAction: CodeAction) : IntentionAction {
+  // 1. If the `initialCodeAction` contains the `edit` property, it means that it is already resolved.
+  // 2. If the server doesn't support code actions resolve, it also means that the `initialCodeAction` is already resolved.
+  private var resolvedCodeAction: CodeAction? =
+    if (initialCodeAction.edit != null ||
+        lspServer.initializeResult?.capabilities?.codeActionProvider?.right?.resolveProvider != true) {
+      initialCodeAction
+    }
+    else null
 
-    // `startInWriteAction()` is not delegated to this class. The wrapper class returns `false`. This function is never called.
-    final override fun startInWriteAction(): Boolean = false
+  private val codeAction: CodeAction
+    get() = resolvedCodeAction ?: initialCodeAction
 
-    private fun executeLspCommandIfPossible(
-        commandsSupport: LspCommandsSupport?, command: Command?, contextFile: VirtualFile?
-    ) { /* compiled code */
-        if (commandsSupport != null && command != null && contextFile != null) {
-            commandsSupport.executeCommand(this.lspServer, contextFile, command)
-        }
+  private var uriToDocumentMapInitialized: Boolean = false
+  private var uriToDocumentMap: Map<String, Document>? = null
+
+  // `getFamilyName()` is not delegated to this class. The wrapper class returns empty string. This function is never called.
+  final override fun getFamilyName(): String = ""
+
+  // `startInWriteAction()` is not delegated to this class. The wrapper class returns `false`. This function is never called.
+  final override fun startInWriteAction(): Boolean = false
+
+  override fun getText(): String = codeAction.title
+
+  override fun isAvailable(project: Project, editor: Editor, psiFile: PsiFile): Boolean = isAvailable()
+
+  fun isAvailable(): Boolean {
+    codeAction.disabled?.let { return false }
+
+    resolveCodeAction()
+
+    if (!uriToDocumentMapInitialized) {
+      uriToDocumentMap = if (codeAction.edit != null) getUriToDocumentMap(codeAction.edit) else emptyMap()
+      uriToDocumentMapInitialized = true
     }
 
-    override fun getText(): String = codeAction.title
+    return uriToDocumentMap != null && (codeAction.edit != null || codeAction.command != null)
+  }
 
-    override fun isAvailable(project: Project, editor: Editor, file: PsiFile): Boolean {
-        codeAction.disabled?.let { return false }
+  @RequiresBackgroundThread
+  private fun resolveCodeAction() {
+    if (resolvedCodeAction != null) return
 
-        if (!uriToDocumentMapInitialized) {
-            uriToDocumentMap = if (codeAction.edit != null) getUriToDocumentMap(codeAction.edit) else emptyMap()
-            uriToDocumentMapInitialized = true
-        }
+    val resolved = lspServer.sendRequestSync { it.textDocumentService.resolveCodeAction(codeAction) }
+    resolvedCodeAction = resolved ?: initialCodeAction
+  }
 
-        return uriToDocumentMap != null
+  override fun invoke(project: Project, editor: Editor, psiFile: PsiFile) = invoke(psiFile.virtualFile)
+
+  fun invoke(contextFile: VirtualFile?) {
+    val uriToDocumentMap = this.uriToDocumentMap ?: return
+    val files = uriToDocumentMap.map { FileDocumentManager.getInstance().getFile(it.value) }
+    if (!FileModificationService.getInstance().prepareVirtualFilesForWrite(lspServer.project, files)) return
+
+    if (codeAction.edit?.changes?.isNotEmpty() == true || codeAction.edit?.documentChanges?.isNotEmpty() == true) {
+      WriteAction.run<Throwable> { applyWorkspaceEdit(codeAction.edit, uriToDocumentMap) }
     }
 
-    override fun invoke(project: Project, editor: Editor, file: PsiFile) {
-        val uriToDocumentMap = this.uriToDocumentMap ?: return
-        val files = uriToDocumentMap.map { FileDocumentManager.getInstance().getFile(it.value) }
-        if (!FileModificationService.getInstance().prepareVirtualFilesForWrite(lspServer.project, files)) return
+    applyCommand(lspServer.descriptor.lspCommandsSupport, codeAction.command, contextFile)
+  }
 
-        codeAction.edit?.let { edit -> WriteAction.run<Throwable> { applyWorkspaceEdit(edit, uriToDocumentMap) } }
+  private fun applyCommand(commandsSupport: LspCommandsSupport?, command: Command?, contextFile: VirtualFile?) {
+    if (commandsSupport != null && command != null && contextFile != null) {
+      commandsSupport.executeCommand(lspServer, contextFile, command)
+    }
+  }
 
-        applyCommand(lspServer.descriptor.lspCommandsSupport, codeAction.command, file.virtualFile)
+  /**
+   * @param uriToDocumentMap it's guaranteed that it contains `Document` objects for URIs from this [workspaceEdit]
+   */
+  @RequiresWriteLock
+  protected open fun applyWorkspaceEdit(workspaceEdit: WorkspaceEdit, uriToDocumentMap: Map<String, Document>) {
+    workspaceEdit.changes?.let { changes ->
+      changes.entries.forEach { entry ->
+        val document = uriToDocumentMap[entry.key]!!
+        if (!applyTextEdits(document, entry.value)) return@applyWorkspaceEdit
+      }
     }
 
-    private fun applyCommand(commandsSupport: LspCommandsSupport?, command: Command?, contextFile: VirtualFile?) {
-        if (commandsSupport != null && command != null && contextFile != null) {
-            commandsSupport.executeCommand(lspServer, contextFile, command)
+    val uriToCreatedDocumentMap = mutableMapOf<String, Document>()
+
+    workspaceEdit.documentChanges?.let { documentChanges ->
+      if (documentChanges.any { it.isRight && it.right !is CreateFile }) {
+        // TODO support DeleteFile and RenameFile as well
+        return@applyWorkspaceEdit
+      }
+
+      documentChanges.forEach { editOrResourceOperation ->
+        editOrResourceOperation.left?.let { textDocumentEdit ->
+          val document = uriToDocumentMap[textDocumentEdit.textDocument.uri] ?: uriToCreatedDocumentMap[textDocumentEdit.textDocument.uri]
+          if (document == null) {
+            thisLogger().error("No Document for ${textDocumentEdit.textDocument.uri}")
+            return@applyWorkspaceEdit
+          }
+          if (!applyTextEdits(document, textDocumentEdit.edits)) return@applyWorkspaceEdit
         }
+
+        editOrResourceOperation.right?.let { resourceOperation ->
+          when (resourceOperation) {
+            is CreateFile -> createFile(resourceOperation)?.let { uriToCreatedDocumentMap[resourceOperation.uri] = it }
+            is DeleteFile -> {} // TODO implement
+            is RenameFile -> {} // TODO implement
+          }
+        }
+      }
+    }
+  }
+
+  private fun createFile(createFile: CreateFile): Document? {
+    val fileUri = createFile.uri
+    var existingDirUri = PathUtil.getParentPath(fileUri)
+    var existingDir = lspServer.descriptor.findFileByUri(existingDirUri)
+    while (existingDir == null && existingDirUri.isNotEmpty()) {
+      existingDirUri = PathUtil.getParentPath(existingDirUri)
+      existingDir = lspServer.descriptor.findFileByUri(existingDirUri)
     }
 
-    /**
-     * @param uriToDocumentMap it's guaranteed that it contains `Document` objects for URIs from this [workspaceEdit]
-     */
-    @RequiresWriteLock
-    protected open fun applyWorkspaceEdit(workspaceEdit: WorkspaceEdit, uriToDocumentMap: Map<String, Document>) {
-        workspaceEdit.changes?.let { changes ->
-            changes.entries.forEach { entry ->
-                val document = uriToDocumentMap[entry.key]!!
-                for (textEdit in entry.value) {
-                    if (!applyTextEdit(document, textEdit)) return@applyWorkspaceEdit
-                }
-            }
-        }
-
-        workspaceEdit.documentChanges?.let { documentChanges ->
-            if (documentChanges.any { it.isRight }) {
-                // TODO support ResourceOperations
-                return@applyWorkspaceEdit
-            }
-
-            documentChanges.forEach { editOrResourceOperation ->
-                editOrResourceOperation.left?.let { textDocumentEdit ->
-                    val document = uriToDocumentMap[textDocumentEdit.textDocument.uri]!!
-                    for (textEdit in textDocumentEdit.edits) {
-                        if (!applyTextEdit(document, textEdit)) return@applyWorkspaceEdit
-                    }
-                }
-
-                editOrResourceOperation.right?.let { resourceOperation ->
-                    // TODO implement
-                    when (resourceOperation) {
-                        is CreateFile -> {}
-                        is DeleteFile -> {}
-                        is RenameFile -> {}
-                    }
-                }
-            }
-        }
+    if (existingDir == null) {
+      thisLogger().warn("Ignoring CreateFile(${fileUri}): base directory not found")
+      return null
     }
 
-    private fun getUriToDocumentMap(edit: WorkspaceEdit): Map<String, Document>? {
-        val result = mutableMapOf<String, Document>()
+    val relativePath = fileUri.substring(existingDirUri.length + 1)
+    val fileName = PathUtil.getFileName(relativePath)
+    val relativeParentPath = PathUtil.getParentPath(relativePath)
 
-        edit.changes?.let { changes ->
-            changes.keys.forEach { documentUri ->
-                val document = getDocument(documentUri) ?: return null
-                result[documentUri] = document
-            }
-        }
-
-        edit.documentChanges?.let { documentChanges ->
-            documentChanges.forEach { editOrResourceOperation ->
-                editOrResourceOperation.left?.let { textDocumentEdit ->
-                    val documentUri = textDocumentEdit.textDocument.uri
-                    val version: Int? = textDocumentEdit.textDocument.version
-                    val document = getDocument(documentUri, version ?: -1) ?: return null
-                    result[documentUri] = document
-                }
-            }
-        }
-
-        return result
+    val parentDir = when {
+      relativeParentPath.isEmpty() -> existingDir
+      else -> VfsUtil.createDirectoryIfMissing(existingDir.path + "/" + relativeParentPath)
     }
 
-    private fun getDocument(documentUri: String, version: Int = -1): Document? {
-        val file = lspServer.descriptor.findFileByUri(documentUri)
-        if (file == null) {
-            logger<LspIntentionAction>().warn("File not found: $documentUri")
-            return null
-        }
-
-        if (!ProjectFileIndex.getInstance(lspServer.project).isInContent(file)) {
-            logger<LspIntentionAction>().warn("File is not within the project content: $documentUri")
-            return null
-        }
-
-        val document = FileDocumentManager.getInstance().getDocument(file)
-        if (document == null) {
-            logger<LspIntentionAction>().warn("Document not found for file: $file")
-            return null
-        }
-
-        val documentVersion = lspServer.requestExecutor.getDocumentVersion(document)
-        if (version != -1 && documentVersion != version) {
-            logger<LspIntentionAction>().info(
-                "Ignoring CodeAction for document version $version (${file.name}); " + "current document version: $documentVersion"
-            )
-            return null
-        }
-
-        return document
+    if (parentDir == null) {
+      thisLogger().warn("Failed to create parent directory for CreateFile(${fileUri})")
+      return null
     }
 
-    /**
-     * @return `false` if the `textEdit` can't be applied to the `document` because `textEdit.textRange` is outside the `document` text textRange.
-     */
-    protected fun applyTextEdit(document: Document, textEdit: TextEdit): Boolean {
-        val startOffset = getOffsetInDocument(document, textEdit.range.start)
-        val endOffset = getOffsetInDocument(document, textEdit.range.end)
-        if (startOffset == null || endOffset == null) {
-            logger<LspIntentionAction>().warn(
-                "Ignoring TextEdit, its text textRange is outside the document text textRange.\n" + "document.lineCount = ${document.lineCount}, document.textLength = ${document.textLength}, textRange: ${textEdit.range}"
-            )
-            return false
-        }
+    val createdFile = parentDir.createChildData(this, fileName)
+    return FileDocumentManager.getInstance().getDocument(createdFile)
+      .also { if (it == null) thisLogger().warn("No Document for created file ${createdFile.path}") }
+  }
 
-        document.replaceString(startOffset, endOffset, textEdit.newText)
-        return true
+  private fun getUriToDocumentMap(edit: WorkspaceEdit): Map<String, Document>? {
+    val result = mutableMapOf<String, Document>()
+
+    edit.changes?.let { changes ->
+      changes.keys.forEach { documentUri ->
+        val document = getDocument(documentUri) ?: return null
+        result[documentUri] = document
+      }
     }
 
-    private fun getDocumentByUri(
-        documentUri: String, version: Int = -1
-    ): Document? {
+    val urisToCreate = mutableSetOf<String>()
 
-        val file = lspServer.descriptor.findFileByUri(documentUri)
-        if (file == null) {
-            Logger.getInstance(LspIntentionAction::class.java).warn("File not found: $documentUri")
-            return null
-        } else if (!ProjectFileIndex.getInstance(this.lspServer.project).isInContent(file)) {
-            Logger.getInstance(LspIntentionAction::class.java)
-                .warn("File is not within the project content: $documentUri")
-            return null
-        } else {
-            val document = FileDocumentManager.getInstance().getDocument(file)
-            if (document == null) {
-                Logger.getInstance(LspIntentionAction::class.java).warn("Document not found for file: $file")
-                return null
-            } else {
-                val dv = this.lspServer.requestExecutor.getDocumentVersion(document)
-                if (version != -1 && dv != version) {
-                    Logger.getInstance(LspIntentionAction::class.java)
-                        .info("Ignoring CodeAction for document version $version (${file.name}); current document version: $dv")
-                    return null
-                } else {
-                    return document
-                }
-            }
+    edit.documentChanges?.let { documentChanges ->
+      documentChanges.forEach { editOrResourceOperation ->
+        editOrResourceOperation.left?.let { textDocumentEdit ->
+          val documentUri = textDocumentEdit.textDocument.uri
+          if (!urisToCreate.contains(documentUri)) {
+            val version: Int? = textDocumentEdit.textDocument.version
+            val document = getDocument(documentUri, version ?: -1) ?: return null
+            result[documentUri] = document
+          }
         }
+
+        (editOrResourceOperation.right as? CreateFile)?.uri?.let { urisToCreate.add(it) }
+      }
     }
 
-    private fun getDocumentsFromEdit(edit: WorkspaceEdit): Map<String, Document>? {
+    return result
+  }
 
-        val map = LinkedHashMap<String, Document>()
-        edit.changes?.let { textMap ->
-            textMap.keys.forEach { key ->
-                val document = getDocument(key, 0) ?: return null
-                map[key] = document
-            }
-        }
-
-        val map2 = LinkedHashSet<String>()
-        edit.documentChanges?.forEach { either ->
-            val textDocumentEdit = either.left
-            val uri = textDocumentEdit.textDocument.uri
-            if (!map2.contains(uri)) {
-                val version = textDocumentEdit.textDocument.version ?: -1
-                val document = getDocumentByUri(uri, version) ?: return null
-                map[uri] = document
-            }
-
-            val createFile = either.right as? CreateFile
-            if (createFile != null) {
-
-                if (createFile.uri != null) {
-                    map2.add(createFile.uri)
-                }
-            }
-        }
-
-        return map
-
+  private fun getDocument(documentUri: String, version: Int = -1): Document? {
+    val file = lspServer.descriptor.findFileByUri(documentUri)
+    if (file == null) {
+      thisLogger().warn("File not found: $documentUri")
+      return null
     }
 
-    private fun applyEditsFromPhysicalToNonPhysicalDocument(
-        nonPhysicalDocument: Document, physicalDocument: Document
-    ) {
-
-        this.uriToDocumentMap?.let {
-
-            this.codeAction.edit?.let { workspaceEdit ->
-                workspaceEdit.changes?.let { map ->
-                    map.entries.forEach { entry ->
-                        if (physicalDocument == it[entry.key]) {
-                            val edits = entry.value as List<TextEdit>
-                            if (!applyTextEdits(nonPhysicalDocument, edits)) {
-                                return
-                            }
-                        }
-                    }
-                }
-
-                workspaceEdit.documentChanges?.forEach { either ->
-                    val textDocumentEdit = either.left
-                    if (textDocumentEdit != null && physicalDocument == it[textDocumentEdit.textDocument.uri]) {
-                        val edits = textDocumentEdit.edits
-                        if (!applyTextEdits(nonPhysicalDocument, edits)) {
-                            return
-                        }
-                    }
-                }
-            }
-        }
+    if (!ProjectFileIndex.getInstance(lspServer.project).isInContent(file)) {
+      thisLogger().warn("File is not within the project content: $documentUri")
+      return null
     }
 
-    override fun generatePreview(project: Project, editor: Editor, nonPhysicalFile: PsiFile): IntentionPreviewInfo {
-        val uriToDocumentMap = this.uriToDocumentMap ?: return IntentionPreviewInfo.EMPTY
-        val physicalFile = nonPhysicalFile.originalFile
-        val physicalDocument =
-            PsiDocumentManager.getInstance(project).getDocument(physicalFile) ?: return IntentionPreviewInfo.EMPTY
-        if (!uriToDocumentMap.containsValue(physicalDocument)) return IntentionPreviewInfo.EMPTY
-
-        invokeForPreview(nonPhysicalFile.viewProvider.document, physicalDocument)
-        return IntentionPreviewInfo.DIFF
+    val document = FileDocumentManager.getInstance().getDocument(file)
+    if (document == null) {
+      thisLogger().warn("Document not found for file: $file")
+      return null
     }
 
-    private fun invokeForPreview(nonPhysicalDocument: Document, physicalDocument: Document) {
-        val uriToDocumentMap = this.uriToDocumentMap ?: return
-        val workspaceEdit = codeAction.edit ?: return
-
-        workspaceEdit.changes?.let { changes ->
-            changes.entries.forEach { entry ->
-                if (physicalDocument != uriToDocumentMap[entry.key]) return@forEach
-                for (textEdit in entry.value) {
-                    if (!applyTextEdit(nonPhysicalDocument, textEdit)) return@invokeForPreview
-                }
-            }
-        }
-
-        workspaceEdit.documentChanges?.let { documentChanges ->
-            documentChanges.forEach { editOrResourceOperation ->
-                editOrResourceOperation.left?.let { textDocumentEdit ->
-                    if (physicalDocument != uriToDocumentMap[textDocumentEdit.textDocument.uri]) return@forEach
-                    for (textEdit in textDocumentEdit.edits) {
-                        if (!applyTextEdit(nonPhysicalDocument, textEdit)) return@invokeForPreview
-                    }
-                }
-            }
-        }
+    val documentVersion = lspServer.getDocumentVersion(document)
+    if (version != -1 && documentVersion != version) {
+      thisLogger().info("Ignoring CodeAction for document version $version (${file.name}); " +
+                        "current document version: $documentVersion")
+      return null
     }
+
+    return document
+  }
+
+  override fun generatePreview(project: Project, editor: Editor, nonPhysicalFile: PsiFile): IntentionPreviewInfo {
+    val uriToDocumentMap = this.uriToDocumentMap ?: return IntentionPreviewInfo.EMPTY
+    val physicalFile = nonPhysicalFile.originalFile
+    val physicalDocument = PsiDocumentManager.getInstance(project).getDocument(physicalFile) ?: return IntentionPreviewInfo.EMPTY
+    if (!uriToDocumentMap.containsValue(physicalDocument)) return IntentionPreviewInfo.EMPTY
+
+    invokeForPreview(nonPhysicalFile.viewProvider.document, physicalDocument)
+    return IntentionPreviewInfo.DIFF
+  }
+
+  private fun invokeForPreview(nonPhysicalDocument: Document, physicalDocument: Document) {
+    val uriToDocumentMap = this.uriToDocumentMap ?: return
+    val workspaceEdit = codeAction.edit ?: return
+
+    workspaceEdit.changes?.let { changes ->
+      changes.entries.forEach { entry ->
+        if (physicalDocument != uriToDocumentMap[entry.key]) return@forEach
+        if (!applyTextEdits(nonPhysicalDocument, entry.value)) return@invokeForPreview
+      }
+    }
+
+    workspaceEdit.documentChanges?.let { documentChanges ->
+      documentChanges.forEach { editOrResourceOperation ->
+        editOrResourceOperation.left?.let { textDocumentEdit ->
+          if (physicalDocument != uriToDocumentMap[textDocumentEdit.textDocument.uri]) return@forEach
+          if (!applyTextEdits(nonPhysicalDocument, textDocumentEdit.edits)) return@invokeForPreview
+        }
+      }
+    }
+  }
 }

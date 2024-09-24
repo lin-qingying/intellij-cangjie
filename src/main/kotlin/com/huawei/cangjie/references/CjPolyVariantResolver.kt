@@ -1,5 +1,7 @@
 package com.huawei.cangjie.references
 
+import com.huawei.cangjie.configurable.services.CangJieLanguageServerServices
+import com.huawei.cangjie.configurable.services.Feature
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjReferenceExpression
@@ -79,9 +81,14 @@ object CjPolyVariantResolver : ResolveCache.PolyVariantResolver<CjReference> {
     }
 
     override fun resolve(ref: CjReference, incompleteCode: Boolean): Array<ResolveResult> {
+
+        if(!CangJieLanguageServerServices.getInstance().astConfig.isFeatureEnabled(Feature.REFERENCES)){
+            return emptyArray()
+        }
+
         val resolveToPsiElements = resolveToPsiElements(ref)
         return resolveToPsiElements.map { CangJieResolveResult(it) }.toTypedArray()
-//        return emptyArray()
+
     }
 
 }

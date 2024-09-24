@@ -114,12 +114,12 @@ open class LazyDeclarationResolver(
             }
 
             override fun visitParameter(parameter: CjParameter, data: Nothing?): DeclarationDescriptor? {
-                when (val grandFather = parameter.parent.parent) {
+                when (val grandFather = parameter.parent?.parent) {
                     is CjPrimaryConstructor -> {
-                        val ktClassOrObject = grandFather.getContainingTypeStatement()
+                        val cjClassOrObject = grandFather.getContainingTypeStatement()
                         // This is a primary constructor parameter
                         val classDescriptor =
-                            getClassDescriptorIfAny(ktClassOrObject, lookupLocationFor(ktClassOrObject, false))
+                            getClassDescriptorIfAny(cjClassOrObject, lookupLocationFor(cjClassOrObject, false))
                         return when {
                             classDescriptor == null -> null
                             parameter.hasLetOrVar() -> {

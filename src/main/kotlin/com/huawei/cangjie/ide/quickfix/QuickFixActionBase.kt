@@ -1,5 +1,7 @@
 package com.huawei.cangjie.ide.quickfix
 
+import com.huawei.cangjie.configurable.services.CangJieLanguageServerServices
+import com.huawei.cangjie.configurable.services.Feature
 import com.huawei.cangjie.ide.stubindex.resolve.isUnitTestMode
 import com.huawei.cangjie.psi.CjCodeFragment
 import com.huawei.cangjie.psi.CjFile
@@ -29,6 +31,8 @@ abstract class QuickFixActionBase<out T : PsiElement>(element: T) : IntentionAct
     protected open fun isAvailableImpl(project: Project, editor: Editor?, file: PsiFile): Boolean = true
 
     final override fun isAvailable(project: Project, editor: Editor?, file: PsiFile): Boolean {
+        if (!checkQuickFixIsEnable()) return false
+
         if (isUnitTestMode()) {
             CREATE_BY_PATTERN_MAY_NOT_REFORMAT = true
         }

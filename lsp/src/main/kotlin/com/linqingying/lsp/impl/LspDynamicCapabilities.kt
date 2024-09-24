@@ -6,6 +6,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonSyntaxException
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.containers.MultiMap
+
 import org.eclipse.lsp4j.*
 import org.eclipse.lsp4j.jsonrpc.json.MessageJsonHandler
 import java.nio.file.PathMatcher
@@ -69,6 +70,8 @@ internal class LspDynamicCapabilities {
 
         @JvmField
         val implementation = "textDocument/implementation" to ImplementationRegistrationOptions::class.java
+//        @JvmField
+//        val resolve = "completionItem/resolve" to InlayHintRegistrationOptions::class.java
 
         @JvmField
         val inlayHint = "textDocument/inlayHint" to InlayHintRegistrationOptions::class.java
@@ -118,9 +121,9 @@ internal class LspDynamicCapabilities {
         @JvmField
         val symbol = "workspace/symbol" to WorkspaceSymbolRegistrationOptions::class.java
 
-//        textDocument/semanticTokens/full
+        //        textDocument/semanticTokens/full
         @JvmField
-        val  semanticTokensFull = "textDocument/semanticTokens/full" to SemanticTokensServerFull::class.java
+        val semanticTokensFull = "textDocument/semanticTokens/full" to SemanticTokensServerFull::class.java
 
         private var capabilityToLsp4jRegistrationOptionsClass = mapOf(
             prepareCallHierarchy,
@@ -192,7 +195,7 @@ internal class LspDynamicCapabilities {
 
     fun getPathMatcherCaching(globPattern: String): PathMatcher {
 
-        requireNotNull(globPattern) { "globPattern must not be null" }
+
         return patternToPathMatcherCache.getOrPut(globPattern) { getPathMatcher(globPattern) }
     }
 
@@ -228,7 +231,7 @@ internal class LspDynamicCapabilities {
 
     fun unregisterCapability(unregistration: Unregistration) {
         val capabilities = capabilityToInfo[unregistration.method]
-        capabilities.removeIf {  it.registrationId == unregistration.id }
+        capabilities.removeIf { it.registrationId == unregistration.id }
         if (capabilities.isEmpty()) {
             capabilityToInfo.remove(unregistration.method)
         }

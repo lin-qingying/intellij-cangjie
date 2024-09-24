@@ -38,7 +38,7 @@ abstract class CjDeclarationStub<T : StubElement<*>> : CjModifierListOwnerStub<T
             return findDocComment(this)
         }
 
-    override fun getParent(): PsiElement {
+    override fun getParent(): PsiElement? {
         val stub = stub
         // we build stubs for local classes/objects too but they have wrong parent
         if (stub != null && !(stub is CangJieTypeStatementStub<*> && (stub as CangJieTypeStatementStub<*>).isLocal())) {
