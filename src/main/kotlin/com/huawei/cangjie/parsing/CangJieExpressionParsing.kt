@@ -2453,13 +2453,13 @@ open class CangJieExpressionParsing(
             return
 
         } else if (at(SPAWN_KEYWORD)) {
-            cangJieParsing.parseSpawnExpression()
+            parseSpawnExpression()
             return
         } else if (at(SYNCHRONIZED_KEYWORD)) {
             cangJieParsing.parseSynchronizedExpression()
             return
         } else if (at(UNSAFE_KEYWORD)) {
-            cangJieParsing.parseUnsafeExpression()
+            parseUnsafeExpression()
             return
         } else if (at(QUOTE_KEYWORD)) {
             parseQuoteExpression()
@@ -2471,6 +2471,51 @@ open class CangJieExpressionParsing(
         parseBinaryExpression(Precedence.ASSIGNMENT)
     }
 
+    //    public void parseSpawnExpression() {
+    //        assert _at(SPAWN_KEYWORD);
+    //        SyntaxTreeBuilder.Marker spawn = mark();
+    //        advance();
+    //
+    //
+    //        if (at(LBRACE)) {
+    //            parseBlock();
+    //        } else {
+    //            error("Expecting '{' ");  //应该为'{'
+    //        }
+    //
+    //
+    //        spawn.done(SPAWN_EXPRESSION);
+    //    }
+    fun parseUnsafeExpression() {
+        assert(_at(UNSAFE_KEYWORD))
+        val unsafe = mark()
+
+
+        advance()
+
+        parseCallWithClosure()
+
+
+        unsafe.done(UNSAFE_EXPRESSION)
+    }
+
+    fun parseSpawnExpression() {
+        assert(_at(SPAWN_KEYWORD))
+        val spawn = mark()
+        advance()
+
+        parseCallWithClosure()
+
+//        if (at(LBRACE)) {
+//            expect(DOUBLE_ARROW)
+//            parseBlock()
+//        } else {
+//            error("Expecting '{' ") //应该为'{'
+//        }
+
+
+        spawn.done(SPAWN_EXPRESSION)
+    }
 
     /*
      * annotatedLambda

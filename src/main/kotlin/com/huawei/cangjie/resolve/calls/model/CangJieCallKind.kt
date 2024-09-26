@@ -38,7 +38,7 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
 //        CheckExplicitReceiverKindConsistency,
 //        CheckReceivers,
         CheckArgumentsInParenthesis,
-//        CheckExternalArgument,
+        CheckExternalArgument,
 //        EagerResolveOfCallableReferences,
 //        CompatibilityOfPartiallyApplicableSamConversion,
 //        PostponedVariablesInitializerResolutionPart,

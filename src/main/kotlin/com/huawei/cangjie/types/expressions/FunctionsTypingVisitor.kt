@@ -175,6 +175,8 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
         return functionDescriptor
     }
 
+
+
     override fun visitLambdaExpression(
         expression: CjLambdaExpression,
         context: ExpressionTypingContext

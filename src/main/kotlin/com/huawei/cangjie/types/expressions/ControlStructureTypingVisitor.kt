@@ -3,8 +3,10 @@ package com.huawei.cangjie.types.expressions
 import com.google.common.collect.Lists
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.config.LanguageFeature
-import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.diagnostics.Errors
+import com.huawei.cangjie.descriptors.ConstructorDescriptor
+import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.descriptors.FunctionDescriptor
+import com.huawei.cangjie.descriptors.VariableDescriptor
 import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext
@@ -23,7 +25,6 @@ import com.huawei.cangjie.resolve.scopes.LexicalScopeKind
 import com.huawei.cangjie.resolve.scopes.LexicalWritableScope
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.CommonSupertypes
-import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.ErrorUtils.createErrorType
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.checker.TrailingCommaChecker
@@ -55,7 +56,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         return context.dataFlowInfo
     }
 
-    private fun  resolveTryExpressionWithNewInference(
+    private fun resolveTryExpressionWithNewInference(
         tryExpression: CjTryExpression,
         tryInputContext: ExpressionTypingContext
     ): CangJieTypeInfo {
@@ -233,7 +234,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
             components.modifiersChecker.withTrace(context.trace)
         modifiersChecking.checkParameterHasNoLetOrVar(
             catchParameter,
-            Errors.LET_OR_VAR_ON_CATCH_PARAMETER
+            LET_OR_VAR_ON_CATCH_PARAMETER
         )
         ModifierCheckerCore.check(
             catchParameter,
@@ -244,7 +245,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
 
         if (catchParameter.hasDefaultValue()) {
             context.trace.report(
-                Errors.CATCH_PARAMETER_WITH_DEFAULT_VALUE.on(
+                CATCH_PARAMETER_WITH_DEFAULT_VALUE.on(
                     catchParameter
                 )
             )
@@ -419,7 +420,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
             )
         )
 
-        var bodyTypeInfo: CangJieTypeInfo
+        val bodyTypeInfo: CangJieTypeInfo
         val body = expression.body
         if (body is CjLambdaExpression) {
             bodyTypeInfo = facade.getTypeInfo(body, context)
@@ -442,11 +443,11 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         val condition = expression.condition
         val conditionDataFlowInfo = checkCondition(condition, context.replaceScope(conditionScope))
         var dataFlowInfo: DataFlowInfo
-        if (!containsJumpOutOfLoop(expression, context)) {
-            dataFlowInfo = components.dataFlowAnalyzer.extractDataFlowInfoFromCondition(condition, false, context)
+        dataFlowInfo = if (!containsJumpOutOfLoop(expression, context)) {
+            components.dataFlowAnalyzer.extractDataFlowInfoFromCondition(condition, false, context)
                 .and(conditionDataFlowInfo)
         } else {
-            dataFlowInfo = context.dataFlowInfo
+            context.dataFlowInfo
         }
 
         if (body != null) {
@@ -620,9 +621,9 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
             context.replaceDataFlowInfo(presentInfo)
                 .replaceExpectedType(NO_EXPECTED_TYPE)
                 .replaceContextDependency(ContextDependency.INDEPENDENT)
-        val typeInfo: CangJieTypeInfo = components.expressionTypingServices.getBlockReturnedTypeWithWritableScope(
+        val typeInfo = components.expressionTypingServices.getBlockReturnedTypeWithWritableScope(
             presentScope,
-            listOf<CjExpression>(presentBranch),
+            listOf(presentBranch),
             CoercionStrategy.NO_COERCION,
             newContext
         )
@@ -696,7 +697,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
 
         if (parentDeclaration is CjParameter) {
             // In a default value for parameter
-            context.trace.report(Errors.RETURN_NOT_ALLOWED.on(expression))
+            context.trace.report(RETURN_NOT_ALLOWED.on(expression))
         }
 
         if (expression.getTargetLabel() == null) {
@@ -732,7 +733,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                     )
                 ) {
                     // Unqualified, in a function literal
-                    context.trace.report(Errors.RETURN_NOT_ALLOWED.on(expression))
+                    context.trace.report(RETURN_NOT_ALLOWED.on(expression))
                     resultType = createErrorType(ErrorTypeKind.RETURN_NOT_ALLOWED)
                 }
 
@@ -749,7 +750,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                     )
             } else {
                 // Outside a function
-                context.trace.report(Errors.RETURN_NOT_ALLOWED.on(expression))
+                context.trace.report(RETURN_NOT_ALLOWED.on(expression))
                 resultType = createErrorType(ErrorTypeKind.RETURN_NOT_ALLOWED)
             }
         }
@@ -782,7 +783,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                     )
                 }
                 newInferenceLambdaInfo.returnStatements.add(
-                    Pair<CjReturnExpression, LambdaContextInfo>(
+                    Pair(
                         expression,
                         contextInfo
                     )
@@ -801,20 +802,18 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                 ) && !TypeUtils.isDontCarePlaceholder(expectedType)
             ) {
                 context.trace.report(
-                    Errors.RETURN_TYPE_MISMATCH.on(
+                    RETURN_TYPE_MISMATCH.on(
                         expression,
                         expectedType
                     )
                 )
             }
-            if (newInferenceLambdaInfo != null) {
-                newInferenceLambdaInfo.returnStatements.add(
-                    Pair<CjReturnExpression, LambdaContextInfo?>(
-                        expression,
-                        null
-                    )
+            newInferenceLambdaInfo?.returnStatements?.add(
+                Pair<CjReturnExpression, LambdaContextInfo?>(
+                    expression,
+                    null
                 )
-            }
+            )
         }
         return components.dataFlowAnalyzer.createCheckedTypeInfo(resultType, context, expression)
     }
@@ -828,13 +827,22 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         contextWithExpectedType: ExpressionTypingContext,
         isStatement: Boolean
     ): CangJieTypeInfo {
-        if (!isStatement) return components.dataFlowAnalyzer.illegalStatementType(expression, contextWithExpectedType, facade)
+        if (!isStatement) return components.dataFlowAnalyzer.illegalStatementType(
+            expression,
+            contextWithExpectedType,
+            facade
+        )
 //
         var context = contextWithExpectedType.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(
             ContextDependency.INDEPENDENT
         )
         val loopVisitor = PreliminaryLoopVisitor.visitLoop(expression)
-        context = context.replaceDataFlowInfo(loopVisitor.clearDataFlowInfoForAssignedLocalVariables(context.dataFlowInfo, components.languageVersionSettings))
+        context = context.replaceDataFlowInfo(
+            loopVisitor.clearDataFlowInfoForAssignedLocalVariables(
+                context.dataFlowInfo,
+                components.languageVersionSettings
+            )
+        )
 //
         val loopRange = expression.loopRange
         var expectedParameterType: CangJieType? = null
@@ -843,10 +851,11 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
             val loopRangeReceiver = getExpressionReceiver(facade, loopRange, context)
             loopRangeInfo = facade.getTypeInfo(loopRange, context)
             if (loopRangeReceiver != null) {
-                expectedParameterType = components.forLoopConventionsChecker.checkIterableConvention(loopRangeReceiver, context)
+                expectedParameterType =
+                    components.forLoopConventionsChecker.checkIterableConvention(loopRangeReceiver, context)
             }
         } else {
-            loopRangeInfo =  noTypeInfo(context)
+            loopRangeInfo = noTypeInfo(context)
         }
 
         val loopScope = newWritableScopeImpl(context, LexicalScopeKind.FOR, components.overloadChecker)
@@ -860,7 +869,8 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
             loopScope.addVariableDescriptor(variableDescriptor)
             val multiParameter = loopParameter.destructuringDeclaration
             if (multiParameter != null) {
-                val elementType = expectedParameterType ?: ErrorUtils.createErrorType(ErrorTypeKind.NO_TYPE_FOR_LOOP_RANGE)
+                val elementType =
+                    expectedParameterType ?: createErrorType(ErrorTypeKind.NO_TYPE_FOR_LOOP_RANGE)
 //                val iteratorNextAsReceiver = TransientReceiver(elementType)
 //                components.annotationResolver.resolveAnnotationsWithArguments(loopScope, loopParameter.modifierList, context.trace)
 //                components.destructuringDeclarationResolver.defineLocalVariablesFromDestructuringDeclaration(
@@ -874,7 +884,10 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         val body = expression.body
         val bodyTypeInfo: CangJieTypeInfo = if (body != null) {
             components.expressionTypingServices.getBlockReturnedTypeWithWritableScope(
-                loopScope, listOf(body), CoercionStrategy.NO_COERCION, context.replaceDataFlowInfo(loopRangeInfo.dataFlowInfo)
+                loopScope,
+                listOf(body),
+                CoercionStrategy.NO_COERCION,
+                context.replaceDataFlowInfo(loopRangeInfo.dataFlowInfo)
             )
         } else {
             loopRangeInfo
@@ -901,22 +914,42 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         expectedParameterType: CangJieType?,
         context: ExpressionTypingContext
     ): VariableDescriptor {
-        components.modifiersChecker.withTrace(context.trace).checkParameterHasNoLetOrVar(loopParameter, LET_OR_VAR_ON_LOOP_PARAMETER)
+        components.modifiersChecker.withTrace(context.trace)
+            .checkParameterHasNoLetOrVar(loopParameter, LET_OR_VAR_ON_LOOP_PARAMETER)
 
         val typeReference = loopParameter.typeReference
         val variableDescriptor: VariableDescriptor
         if (typeReference != null) {
-            variableDescriptor = components.descriptorResolver.resolveLocalVariableDescriptor(context.scope, loopParameter, context.trace)
+            variableDescriptor = components.descriptorResolver.resolveLocalVariableDescriptor(
+                context.scope,
+                loopParameter,
+                context.trace
+            )
             val actualParameterType = variableDescriptor.type
-            if (expectedParameterType != null && !CangJieTypeChecker.DEFAULT.isSubtypeOf(expectedParameterType, actualParameterType)) {
-                context.trace.report(TYPE_MISMATCH_IN_FOR_LOOP.on(typeReference, expectedParameterType, actualParameterType))
+            if (expectedParameterType != null && !CangJieTypeChecker.DEFAULT.isSubtypeOf(
+                    expectedParameterType,
+                    actualParameterType
+                )
+            ) {
+                context.trace.report(
+                    TYPE_MISMATCH_IN_FOR_LOOP.on(
+                        typeReference,
+                        expectedParameterType,
+                        actualParameterType
+                    )
+                )
             }
         } else {
             var expectedType = expectedParameterType
             if (expectedType == null) {
-                expectedType = ErrorUtils.createErrorType(ErrorTypeKind.NO_TYPE_FOR_LOOP_PARAMETER)
+                expectedType = createErrorType(ErrorTypeKind.NO_TYPE_FOR_LOOP_PARAMETER)
             }
-            variableDescriptor = components.descriptorResolver.resolveLocalVariableDescriptor(loopParameter, expectedType, context.trace, context.scope)
+            variableDescriptor = components.descriptorResolver.resolveLocalVariableDescriptor(
+                loopParameter,
+                expectedType,
+                context.trace,
+                context.scope
+            )
         }
 
         checkVariableShadowing(context.scope, context.trace, variableDescriptor)
@@ -941,7 +974,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
             if (typeParameterDescriptor != null) {
 
                 context.trace.report(
-                    Errors.TYPE_PARAMETER_IN_CATCH_CLAUSE.on(
+                    TYPE_PARAMETER_IN_CATCH_CLAUSE.on(
                         catchParameter
                     )
                 )

@@ -8,6 +8,8 @@ import com.huawei.cangjie.descriptors.annotations.FilteredAnnotations
 import com.huawei.cangjie.resolve.calls.inference.addSubsystemFromArgument
 import com.huawei.cangjie.resolve.calls.inference.components.ConstraintSystemCompletionMode
 import com.huawei.cangjie.resolve.calls.inference.components.freshTypeConstructor
+import com.huawei.cangjie.resolve.calls.inference.model.BuilderInferencePosition
+import com.huawei.cangjie.resolve.calls.inference.model.LambdaArgumentConstraintPositionImpl
 import com.huawei.cangjie.resolve.calls.inference.model.NewTypeVariable
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.types.CangJieType
@@ -15,26 +17,32 @@ import com.huawei.cangjie.types.StubTypeForBuilderInference
 import com.huawei.cangjie.types.UnwrappedType
 import com.huawei.cangjie.types.model.StubTypeMarker
 import com.huawei.cangjie.types.model.TypeVariableMarker
+import com.huawei.cangjie.types.model.defaultType
 import com.huawei.cangjie.types.model.safeSubstitute
+import com.huawei.cangjie.types.util.builtIns
+
 class PostponedArgumentsAnalyzer(
     private val callableReferenceArgumentResolver: CallableReferenceArgumentResolver,
     private val languageVersionSettings: LanguageVersionSettings
-)
-{
+) {
     data class SubstitutorAndStubsForLambdaAnalysis(
         val stubsForPostponedVariables: Map<TypeVariableMarker, StubTypeMarker>,
         val substitute: (CangJieType) -> UnwrappedType
     )
+
     fun PostponedArgumentsAnalyzerContext.createSubstituteFunctorForLambdaAnalysis(): SubstitutorAndStubsForLambdaAnalysis {
         val stubsForPostponedVariables = bindingStubsForPostponedVariables()
-        val currentSubstitutor = buildCurrentSubstitutor(stubsForPostponedVariables.mapKeys { it.key.freshTypeConstructor(this) })
+        val currentSubstitutor =
+            buildCurrentSubstitutor(stubsForPostponedVariables.mapKeys { it.key.freshTypeConstructor(this) })
         return SubstitutorAndStubsForLambdaAnalysis(stubsForPostponedVariables) {
             currentSubstitutor.safeSubstitute(this, it) as UnwrappedType
         }
     }
+
     private fun UnwrappedType?.receiver(): UnwrappedType? {
         return forFunctionalType { getReceiverTypeFromFunctionType()?.unwrap() }
     }
+
     private inline fun <T> UnwrappedType?.forFunctionalType(f: UnwrappedType.() -> T?): T? {
         return if (this?.isBuiltinFunctionalType == true) f(this) else null
     }
@@ -46,6 +54,7 @@ class PostponedArgumentsAnalyzer(
     private fun UnwrappedType?.valueParameters(): List<UnwrappedType>? {
         return forFunctionalType { getValueParameterTypesFromFunctionType().map { it.type.unwrap() } }
     }
+
     fun analyzeLambda(
         c: PostponedArgumentsAnalyzerContext,
         resolutionCallbacks: CangJieResolutionCallbacks,
@@ -60,7 +69,9 @@ class PostponedArgumentsAnalyzer(
         // Mostly, this is needed to report more specific diagnostics on lambda parameters
         fun expectedOrActualType(expected: UnwrappedType?, actual: UnwrappedType?): UnwrappedType? {
             val expectedSubstituted = expected?.let(substitute)
-            return if (expectedSubstituted != null && c.canBeProper(expectedSubstituted)) expectedSubstituted else actual?.let(substitute)
+            return if (expectedSubstituted != null && c.canBeProper(expectedSubstituted)) expectedSubstituted else actual?.let(
+                substitute
+            )
         }
 
         val builtIns = c.getBuilder().builtIns
@@ -115,9 +126,17 @@ class PostponedArgumentsAnalyzer(
             convertedAnnotations ?: Annotations.EMPTY,
             substitutorAndStubsForLambdaAnalysis.stubsForPostponedVariables as Map<NewTypeVariable, StubTypeForBuilderInference>,
         )
-        applyResultsOfAnalyzedLambdaToCandidateSystem(c, lambda, returnArgumentsAnalysisResult, completionMode, diagnosticHolder, substitute)
+        applyResultsOfAnalyzedLambdaToCandidateSystem(
+            c,
+            lambda,
+            returnArgumentsAnalysisResult,
+            completionMode,
+            diagnosticHolder,
+            substitute
+        )
         return returnArgumentsAnalysisResult
     }
+
     fun applyResultsOfAnalyzedLambdaToCandidateSystem(
         c: PostponedArgumentsAnalyzerContext,
         lambda: ResolvedLambdaAtom,
@@ -126,7 +145,83 @@ class PostponedArgumentsAnalyzer(
         diagnosticHolder: CangJieDiagnosticsHolder,
         substitute: (CangJieType) -> UnwrappedType = c.createSubstituteFunctorForLambdaAnalysis().substitute
     ) {
+        val (returnArgumentsInfo, inferenceSession, hasInapplicableCallForBuilderInference) =
+            returnArgumentsAnalysisResult
 
+        if (hasInapplicableCallForBuilderInference) {
+            inferenceSession?.initializeLambda(lambda)
+            c.getBuilder().markCouldBeResolvedWithUnrestrictedBuilderInference()
+            c.getBuilder().removePostponedVariables()
+            return
+        }
+
+        val returnArguments = returnArgumentsInfo.nonErrorArguments
+        returnArguments.forEach { c.addSubsystemFromArgument(it) }
+
+        val lastExpression = returnArgumentsInfo.lastExpression
+        val allReturnArguments =
+            if (lastExpression != null && returnArgumentsInfo.lastExpressionCoercedToUnit && c.addSubsystemFromArgument(
+                    lastExpression
+                )
+            ) {
+                returnArguments + lastExpression
+            } else {
+                returnArguments
+            }
+
+        val subResolvedKtPrimitives = allReturnArguments.map {
+            resolveCjPrimitive(
+                c.getBuilder(), it, lambda.returnType.let(substitute),
+                diagnosticHolder, ReceiverInfo.notReceiver, convertedType = null,
+                inferenceSession
+            )
+        }
+
+        if (!returnArgumentsInfo.returnArgumentsExist) {
+            val unitType = lambda.returnType.builtIns.unitType
+            val lambdaReturnType = lambda.returnType.let(substitute)
+            c.getBuilder()
+                .addSubtypeConstraint(unitType, lambdaReturnType, LambdaArgumentConstraintPositionImpl(lambda))
+        }
+
+        lambda.setAnalyzedResults(returnArgumentsInfo, subResolvedKtPrimitives)
+
+        val shouldUseBuilderInference = lambda.atom.hasBuilderInferenceAnnotation
+                || languageVersionSettings.supportsFeature(LanguageFeature.UseBuilderInferenceWithoutAnnotation)
+
+        if (inferenceSession != null && shouldUseBuilderInference) {
+            val constraintSystemBuilder = c.getBuilder()
+
+            val postponedVariables = inferenceSession.inferPostponedVariables(
+                lambda,
+                constraintSystemBuilder,
+                completionMode,
+                diagnosticHolder
+            )
+            if (postponedVariables == null) {
+                c.getBuilder().removePostponedVariables()
+                return
+            }
+
+            // WARN: Following type constraint system unification algorithm is incorrect,
+            // To perform constraint unification properly, original constraints should be
+            // unified instead of simple result type based constraint
+            // Other possible solution is to add equality constraint, but it will be too strict
+            // and will limit usability
+            // Nevertheless, proper design should be done before fixing this
+            for ((constructor, resultType) in postponedVariables) {
+                val variableWithConstraints =
+                    constraintSystemBuilder.currentStorage().notFixedTypeVariables[constructor] ?: continue
+                val variable = variableWithConstraints.typeVariable
+
+                c.getBuilder().unmarkPostponedVariable(variable)
+
+                // We add <inferred type> <: TypeVariable(T) to be able to contribute type info from several builder inference lambdas
+                c.getBuilder().addSubtypeConstraint(resultType, variable.defaultType(c), BuilderInferencePosition)
+            }
+
+            c.removePostponedTypeVariablesFromConstraints(postponedVariables.keys)
+        }
     }
 
     fun analyze(

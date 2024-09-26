@@ -620,3 +620,10 @@ internal object ArgumentsToCandidateParameterDescriptor : ResolutionPart() {
         resolvedCall.argumentToCandidateParameter = map.compactIfPossible()
     }
 }
+internal object CheckExternalArgument : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+        val argument = cangjieCall.externalArgument ?: return
+
+        resolveCangJieArgument(argument, resolvedCall.argumentToCandidateParameter[argument], ReceiverInfo.notReceiver)
+    }
+}

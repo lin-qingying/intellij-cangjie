@@ -21,6 +21,8 @@ class CjLambdaExpression(text: CharSequence?) :
     val valueParameters: List<CjParameter>
         get() = functionLiteral.valueParameters
 
+    val parameterList: CjParameterList?
+        get() = functionLiteral.valueParameterList
     val bodyExpression: CjBlockExpression?
         get() = functionLiteral.bodyExpression as?CjBlockExpression
 

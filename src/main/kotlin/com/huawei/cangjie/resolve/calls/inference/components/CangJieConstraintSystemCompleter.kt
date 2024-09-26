@@ -21,7 +21,23 @@ class CangJieConstraintSystemCompleter(
     private val postponedArgumentsInputTypesResolver: PostponedArgumentInputTypesResolver,
 //    private val languageVersionSettings: LanguageVersionSettings
 ) {
-
+    fun completeConstraintSystem(
+        c: ConstraintSystemCompletionContext,
+        topLevelType: UnwrappedType,
+        topLevelAtoms: List<ResolvedAtom>,
+        completionMode: ConstraintSystemCompletionMode,
+        diagnosticsHolder: CangJieDiagnosticsHolder
+    ) {
+        c.runCompletion(
+            completionMode,
+            topLevelAtoms,
+            topLevelType,
+            diagnosticsHolder,
+            collectVariablesFromContext = true,
+        ) {
+            error("Shouldn't be called in complete constraint system mode")
+        }
+    }
     fun runCompletion(
         c: ConstraintSystemCompletionContext,
         completionMode: ConstraintSystemCompletionMode,

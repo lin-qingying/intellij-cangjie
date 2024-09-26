@@ -15,6 +15,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import com.huawei.cangjie.resolve.calls.tasks.TracingStrategy;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.types.CangJieType;
+import com.huawei.cangjie.types.expressions.ContextConfig;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,12 +50,13 @@ public final class CallCandidateResolutionContext<D extends CallableDescriptor> 
             @NotNull Function1<CjExpression, CjExpression> expressionContextProvider,
             @NotNull LanguageVersionSettings languageVersionSettings,
             @NotNull DataFlowValueFactory dataFlowValueFactory,
-            @NotNull InferenceSession inferenceSession
+            @NotNull InferenceSession inferenceSession,
+            @NotNull ContextConfig config
     ) {
         super(trace, scope, call, expectedType, dataFlowInfo, contextDependency, checkArguments, resolutionResultsCache,
                 dataFlowInfoForArguments, statementFilter, isAnnotationContext, isDebuggerContext,
-                collectAllCandidates,isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
-                inferenceSession);
+                collectAllCandidates, isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                inferenceSession, config);
         this.candidateCall = candidateCall;
         this.tracing = tracing;
         this.candidateResolveMode = candidateResolveMode;
@@ -71,8 +73,8 @@ public final class CallCandidateResolutionContext<D extends CallableDescriptor> 
                 context.resolutionResultsCache, context.dataFlowInfoForArguments,
                 context.statementFilter,
                 candidateResolveMode, context.isAnnotationContext, context.isDebuggerContext, context.collectAllCandidates,
-                context.isSaveTypeInfo,       context.callPosition, context.expressionContextProvider, context.languageVersionSettings, context.dataFlowValueFactory,
-                context.inferenceSession);
+                context.isSaveTypeInfo, context.callPosition, context.expressionContextProvider, context.languageVersionSettings, context.dataFlowValueFactory,
+                context.inferenceSession, context.config);
     }
 
     @NotNull
@@ -84,8 +86,8 @@ public final class CallCandidateResolutionContext<D extends CallableDescriptor> 
                 context.dataFlowInfo, context.contextDependency, context.checkArguments, context.resolutionResultsCache,
                 context.dataFlowInfoForArguments, context.statementFilter,
                 CandidateResolveMode.FULLY, context.isAnnotationContext, context.isDebuggerContext, context.collectAllCandidates,
-             context.isSaveTypeInfo,   context.callPosition, context.expressionContextProvider, context.languageVersionSettings, context.dataFlowValueFactory,
-                context.inferenceSession);
+                context.isSaveTypeInfo, context.callPosition, context.expressionContextProvider, context.languageVersionSettings, context.dataFlowValueFactory,
+                context.inferenceSession, context.config);
     }
 
     @Override
@@ -103,12 +105,13 @@ public final class CallCandidateResolutionContext<D extends CallableDescriptor> 
             @NotNull Function1<CjExpression, CjExpression> expressionContextProvider,
             @NotNull LanguageVersionSettings languageVersionSettings,
             @NotNull DataFlowValueFactory dataFlowValueFactory,
-            @NotNull InferenceSession inferenceSession
+            @NotNull InferenceSession inferenceSession,
+            @NotNull ContextConfig config
     ) {
         return new CallCandidateResolutionContext<>(
                 candidateCall, tracing, trace, scope, call, expectedType, dataFlowInfo, contextDependency, checkArguments,
                 resolutionResultsCache, dataFlowInfoForArguments, statementFilter,
-                candidateResolveMode, isAnnotationContext, isDebuggerContext, collectAllCandidates,isSaveTypeInfo, callPosition, expressionContextProvider,
-                languageVersionSettings, dataFlowValueFactory, inferenceSession);
+                candidateResolveMode, isAnnotationContext, isDebuggerContext, collectAllCandidates, isSaveTypeInfo, callPosition, expressionContextProvider,
+                languageVersionSettings, dataFlowValueFactory, inferenceSession, config);
     }
 }

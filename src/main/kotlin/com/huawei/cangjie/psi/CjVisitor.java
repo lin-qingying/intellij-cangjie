@@ -48,7 +48,9 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         return visitExpression(expression, data);
 
     }
-
+    public R visitSpawnExpression(@NotNull CjSpawnExpression expression, D data) {
+        return visitCallExpression(expression, data);
+    }
     public R visitLambdaExpression(@NotNull CjLambdaExpression expression, D data) {
         return visitExpression(expression, data);
     }

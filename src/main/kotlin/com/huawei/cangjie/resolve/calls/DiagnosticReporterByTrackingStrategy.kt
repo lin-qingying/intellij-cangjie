@@ -657,13 +657,13 @@ class DiagnosticReporterByTrackingStrategy(
                     selectorCall = (position as ReceiverConstraintPositionImpl).selectorCall, report
                 )
             }
-//            is LambdaArgumentConstraintPosition<*> -> {
-//                reportArgumentConstraintErrorByPosition(
-//                    error, (position.lambda as ResolvedLambdaAtom).atom,
-//                    isWarning, typeMismatchDiagnostic,
-//                    selectorCall = null, report
-//                )
-//            }
+            is LambdaArgumentConstraintPosition<*> -> {
+                reportArgumentConstraintErrorByPosition(
+                    error, (position.lambda as ResolvedLambdaAtom).atom,
+                    isWarning, typeMismatchDiagnostic,
+                    selectorCall = null, report
+                )
+            }
 //            is BuilderInferenceExpectedTypeConstraintPosition -> {
 //                val inferredType =
 //                    if (!error.lowerCangJieType.isNullableNothing()) error.lowerCangJieType
@@ -710,9 +710,9 @@ class DiagnosticReporterByTrackingStrategy(
                     )
                 )
             }
-//            BuilderInferencePosition -> {
-//                // some error reported later?
-//            }
+            BuilderInferencePosition -> {
+                // some error reported later?
+            }
             is DeclaredUpperBoundConstraintPosition<*> -> {
                 val originalCall = (position as DeclaredUpperBoundConstraintPositionImpl).cangjieCall
                 val typeParameterDescriptor = position.typeParameter
@@ -737,7 +737,7 @@ class DiagnosticReporterByTrackingStrategy(
 //            }
             is CallableReferenceConstraintPosition<*>,
             is IncorporationConstraintPosition,
-//            is InjectedAnotherStubTypeConstraintPosition<*>,
+            is InjectedAnotherStubTypeConstraintPosition<*>,
             is /*LHSArgumentConstraintPosition<*, *>,*/ SimpleConstraintSystemConstraintPosition/*, ProvideDelegateFixationPosition*/
                 -> {
                 if (AbstractTypeChecker.RUN_SLOW_ASSERTIONS) {

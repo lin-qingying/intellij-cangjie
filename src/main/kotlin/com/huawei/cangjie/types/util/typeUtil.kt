@@ -215,10 +215,6 @@ fun CangJieType.expandIntersectionTypeIfNecessary(): Collection<CangJieType> {
 }
 
 
-//fun CangJieType?.shouldBeUpdated() =
-//    this == null || contains { it is StubTypeForBuilderInference || it.constructor is TypeVariableTypeConstructorMarker || it.isError }
-fun CangJieType?.shouldBeUpdated() =
-    this == null || contains { it is StubTypeForBuilderInference || it.constructor is TypeVariableTypeConstructorMarker || it.isError }
 
 val CangJieType.builtIns: CangJieBuiltIns
     get() = constructor.builtIns
@@ -239,6 +235,8 @@ private inline fun <reified S : AbstractStubType> CangJieType.isDefNotNullStubTy
 
 fun CangJieType.isStubTypeForVariableInSubtyping(): Boolean =
     this is StubTypeForTypeVariablesInSubtyping || isDefNotNullStubType<StubTypeForTypeVariablesInSubtyping>()
+fun CangJieType?.shouldBeUpdated() =
+    this == null || contains { it is StubTypeForBuilderInference || it.constructor is TypeVariableTypeConstructorMarker || it.isError }
 
 @JvmOverloads
 fun hasTypeParameterRecursiveBounds(

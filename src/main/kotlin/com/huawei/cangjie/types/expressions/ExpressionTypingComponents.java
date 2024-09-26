@@ -30,10 +30,10 @@ public class ExpressionTypingComponents {
     public Iterable<CallChecker> callCheckers;
 
     public RangeLiteralResolver rangeLiteralResolver;
-
+    public SpawnExpressionResolver spawnExpressionResolver;
     public TypeResolver typeResolver;
     public Iterable<RttiExpressionChecker> rttiExpressionCheckers;
-
+    public UnsafeExpressionResolver unsafeExpressionResolver;
     public FunctionReturnResolver functionReturnResolver;
     public CallResolver callResolver;
     public Iterable<AssignmentChecker> assignmentCheckers;
@@ -59,11 +59,15 @@ public class ExpressionTypingComponents {
     public ValueParameterResolver valueParameterResolver;
 
     public OverloadChecker overloadChecker;
+
     @Inject
     public void setPlatformToCangJieClassMap(@NotNull PlatformToCangJieClassMapper platformToCangJieClassMapper) {
         this.platformToCangJieClassMapper = platformToCangJieClassMapper;
     }
-
+    @Inject
+    public void setUnsafeExpressionResolver(@NotNull UnsafeExpressionResolver unsafeExpressionResolver) {
+        this.unsafeExpressionResolver = unsafeExpressionResolver;
+    }
     @Inject
     public void setCallCheckers(@NotNull Iterable<CallChecker> callCheckers) {
         this.callCheckers = callCheckers;
@@ -73,26 +77,36 @@ public class ExpressionTypingComponents {
     public void setRttiExpressionCheckers(@NotNull Iterable<RttiExpressionChecker> rttiExpressionCheckers) {
         this.rttiExpressionCheckers = rttiExpressionCheckers;
     }
+
+    @Inject
+    public void setSpawnExpressionResolver(@NotNull SpawnExpressionResolver spawnExpressionResolver) {
+        this.spawnExpressionResolver = spawnExpressionResolver;
+    }
+
     @Inject
     public void setFunctionReturnResolver(@NotNull FunctionReturnResolver functionReturnResolver) {
         this.functionReturnResolver = functionReturnResolver;
     }
+
     @Inject
     public void setMissingSupertypesResolver(@NotNull MissingSupertypesResolver missingSupertypesResolver) {
         this.missingSupertypesResolver = missingSupertypesResolver;
     }
-//    @Inject
+
+    //    @Inject
 //    public void setDeclarationsCheckerBuilder(@NotNull DeclarationsCheckerBuilder declarationsCheckerBuilder) {
 //        this.declarationsCheckerBuilder = declarationsCheckerBuilder;
 //    }
-@Inject
-public void setForLoopConventionsChecker(@NotNull ForLoopConventionsChecker forLoopConventionsChecker) {
-    this.forLoopConventionsChecker = forLoopConventionsChecker;
-}
+    @Inject
+    public void setForLoopConventionsChecker(@NotNull ForLoopConventionsChecker forLoopConventionsChecker) {
+        this.forLoopConventionsChecker = forLoopConventionsChecker;
+    }
+
     @Inject
     public void setIdentifierChecker(@NotNull IdentifierChecker identifierChecker) {
         this.identifierChecker = identifierChecker;
     }
+
     @Inject
     public void setTypeResolver(TypeResolver typeResolver) {
         this.typeResolver = typeResolver;
@@ -102,14 +116,17 @@ public void setForLoopConventionsChecker(@NotNull ForLoopConventionsChecker forL
     public void setValueParameterResolver(ValueParameterResolver valueParameterResolver) {
         this.valueParameterResolver = valueParameterResolver;
     }
+
     @Inject
     public void setControlStructureTypingUtils(@NotNull ControlStructureTypingUtils controlStructureTypingUtils) {
         this.controlStructureTypingUtils = controlStructureTypingUtils;
     }
+
     @Inject
     public void setDeprecationResolver(DeprecationResolver deprecationResolver) {
         this.deprecationResolver = deprecationResolver;
     }
+
     @Inject
     public void setModifiersChecker(@NotNull ModifiersChecker modifiersChecker) {
         this.modifiersChecker = modifiersChecker;
@@ -119,18 +136,22 @@ public void setForLoopConventionsChecker(@NotNull ForLoopConventionsChecker forL
     public void setDataFlowAnalyzer(@NotNull DataFlowAnalyzer dataFlowAnalyzer) {
         this.dataFlowAnalyzer = dataFlowAnalyzer;
     }
+
     @Inject
     public void setRangeLiteralResolver(RangeLiteralResolver rangeLiteralResolver) {
         this.rangeLiteralResolver = rangeLiteralResolver;
     }
+
     @Inject
     public void setCollectionLiteralResolver(CollectionLiteralResolver collectionLiteralResolver) {
         this.collectionLiteralResolver = collectionLiteralResolver;
     }
+
     @Inject
     public void setCallResolver(@NotNull CallResolver callResolver) {
         this.callResolver = callResolver;
     }
+
     @Inject
     public void setDescriptorResolver(DescriptorResolver descriptorResolver) {
         this.descriptorResolver = descriptorResolver;
@@ -140,6 +161,7 @@ public void setForLoopConventionsChecker(@NotNull ForLoopConventionsChecker forL
     public void setModuleDescriptor(@NotNull ModuleDescriptor moduleDescriptor) {
         this.moduleDescriptor = moduleDescriptor;
     }
+
     @Inject
     public void setLocalVariableResolver(@NotNull LocalVariableResolver localVariableResolver) {
         this.localVariableResolver = localVariableResolver;
@@ -149,6 +171,7 @@ public void setForLoopConventionsChecker(@NotNull ForLoopConventionsChecker forL
     public void setTypeResolutionInterceptor(@NotNull TypeResolutionInterceptor typeResolutionInterceptor) {
         this.typeResolutionInterceptor = typeResolutionInterceptor;
     }
+
     @Inject
     public void setConstantExpressionEvaluator(@NotNull ConstantExpressionEvaluator constantExpressionEvaluator) {
         this.constantExpressionEvaluator = constantExpressionEvaluator;
@@ -173,10 +196,12 @@ public void setForLoopConventionsChecker(@NotNull ForLoopConventionsChecker forL
     public void setDataFlowValueFactory(@NotNull DataFlowValueFactory dataFlowValueFactory) {
         this.dataFlowValueFactory = dataFlowValueFactory;
     }
+
     @Inject
     public void setAssignmentCheckers(@NotNull Iterable<AssignmentChecker> assignmentCheckers) {
         this.assignmentCheckers = assignmentCheckers;
     }
+
     @Inject
     public void setBuiltIns(@NotNull CangJieBuiltIns builtIns) {
         this.builtIns = builtIns;

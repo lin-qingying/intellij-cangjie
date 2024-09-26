@@ -6,7 +6,7 @@ import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
 
-class CjCallExpression(node: ASTNode) : CjExpressionImpl(node), CjCallElement, CjReferenceExpression {
+open class CjCallExpression(node: ASTNode) : CjExpressionImpl(node), CjCallElement, CjReferenceExpression {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitCallExpression(this, data)
     }

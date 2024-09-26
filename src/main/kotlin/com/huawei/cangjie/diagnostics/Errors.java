@@ -80,6 +80,7 @@ public interface Errors {
     DiagnosticFactory0<CjSuperExpression> AMBIGUOUS_SUPER = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjSuperExpression> SUPERCLASS_NOT_ACCESSIBLE_FROM_INTERFACE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjThisExpression> NO_THIS = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<PsiElement> COMMA_IN_MATCH_CONDITION_WITHOUT_ARGUMENT = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactory2<CjElement, CangJieType, CangJieType> INCOMPATIBLE_ENUM_COMPARISON =
             DiagnosticFactory2.create(WARNING);
@@ -437,6 +438,7 @@ public interface Errors {
             DiagnosticFactory1.create(ERROR, DECLARATION_SIGNATURE_OR_DEFAULT);
     DiagnosticFactory0<PsiElement> CYCLIC_INHERITANCE_HIERARCHY = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory2<CjPackageDirective, FqName, FqName> PACKAGE_ACCESS_VIOLATION = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory0<CjParameterList > UNSAFE_EXPRESSION_ERROR = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactory3<CjModifierListOwner, DescriptorVisibility, CallableMemberDescriptor, DeclarationDescriptor>
             CANNOT_WEAKEN_ACCESS_PRIVILEGE =

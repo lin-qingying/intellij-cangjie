@@ -1242,7 +1242,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
             case LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id -> parseVariable(detector);
-            case UNSAFE_KEYWORD_Id -> parseUnsafeExpression();
+//            case UNSAFE_KEYWORD_Id -> parseUnsafeExpression();
             default -> null;
         };
 
@@ -2306,36 +2306,23 @@ public class CangJieParsing extends AbstractCangJieParsing {
         synchronizedMarker.done(SYNCHRONIZED_EXPRESSION);
     }
 
-    public void parseSpawnExpression() {
-        assert _at(SPAWN_KEYWORD);
-        SyntaxTreeBuilder.Marker spawn = mark();
-        advance();
+//    public void parseSpawnExpression() {
+//        assert _at(SPAWN_KEYWORD);
+//        SyntaxTreeBuilder.Marker spawn = mark();
+//        advance();
+//
+//
+//        if (at(LBRACE)) {
+//            parseBlock();
+//        } else {
+//            error("Expecting '{' ");  //应该为'{'
+//        }
+//
+//
+//        spawn.done(SPAWN_EXPRESSION);
+//    }
 
 
-        if (at(LBRACE)) {
-            parseBlock();
-        } else {
-            error("Expecting '{' ");  //应该为'{'
-        }
-
-
-        spawn.done(SPAWN_EXPRESSION);
-    }
-
-    public IElementType parseUnsafeExpression() {
-        assert _at(UNSAFE_KEYWORD);
-        advance();
-
-
-        if (at(LBRACE)) {
-            parseBlock();
-        } else {
-            error("Expecting '{' ");  //应该为'{'
-        }
-
-
-        return UNSAFE_EXPRESSION;
-    }
 
     /**
      * 外部函数声明块

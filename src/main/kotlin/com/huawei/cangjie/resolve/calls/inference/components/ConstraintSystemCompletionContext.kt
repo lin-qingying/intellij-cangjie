@@ -9,10 +9,7 @@ import com.huawei.cangjie.types.model.CangJieTypeMarker
 import com.huawei.cangjie.types.model.TypeConstructorMarker
 import com.huawei.cangjie.types.model.TypeVariableMarker
 
-/*
- * Copyright 2010-2020 JetBrains s.r.o. and CangJie Programming Language contributors.
- * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
- */
+
 
 
 
@@ -51,9 +48,9 @@ abstract class ConstraintSystemCompletionContext : VariableFixationFinder.Contex
 //            languageVersionSettings.supportsFeature(LanguageFeature.UseBuilderInferenceOnlyIfNeeded)
         val argumentToAnalyze =
         //        if (useBuilderInferenceOnlyIfNeeded) {
-//            findPostponedArgumentWithFixedInputTypes(postponedArguments)
+            findPostponedArgumentWithFixedInputTypes(postponedArguments)
 //        } else {
-            findPostponedArgumentWithFixedOrPostponedInputTypes(postponedArguments)
+//            findPostponedArgumentWithFixedOrPostponedInputTypes(postponedArguments)
 //        }
 
         if (argumentToAnalyze != null) {

@@ -13,6 +13,8 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.types.CangJieType;
+import com.huawei.cangjie.types.expressions.ContextConfig;
+import com.huawei.cangjie.types.expressions.ProcessingMode;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,12 +47,16 @@ public abstract class CallResolutionContext<Context extends CallResolutionContex
             @NotNull Function1<CjExpression, CjExpression> expressionContextProvider,
             @NotNull LanguageVersionSettings languageVersionSettings,
             @NotNull DataFlowValueFactory dataFlowValueFactory,
-            @NotNull InferenceSession inferenceSession
+            @NotNull InferenceSession inferenceSession,
+            @NotNull ContextConfig config
+
+
+
     ) {
         super(trace, scope, expectedType, dataFlowInfo, contextDependency, resolutionResultsCache,
                 statementFilter, isAnnotationContext, isDebuggerContext, collectAllCandidates,isSaveTypeInfo, callPosition, expressionContextProvider,
                 languageVersionSettings,
-                dataFlowValueFactory, inferenceSession);
+                dataFlowValueFactory, inferenceSession,config);
         this.call = call;
         this.checkArguments = checkArguments;
         if (dataFlowInfoForArguments != null) {

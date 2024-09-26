@@ -80,8 +80,8 @@
 //        val resultingContextInfo = getContextInfoWhen(ESReturns(ESConstants.wildcard), callExpression, bindingTrace, moduleDescriptor)
 //        for (effect in resultingContextInfo.firedEffects) {
 //            val callsEffect = effect as? ESCalls ?: continue
-//            val lambdaExpression = (callsEffect.callable as? ESLambda)?.lambda ?: continue
-//            bindingTrace.record(BindingContext.LAMBDA_INVOCATIONS, lambdaExpression, callsEffect.kind)
+//            val lambdaArgument = (callsEffect.callable as? ESLambda)?.lambda ?: continue
+//            bindingTrace.record(BindingContext.LAMBDA_INVOCATIONS, lambdaArgument, callsEffect.kind)
 //        }
 //    }
 //

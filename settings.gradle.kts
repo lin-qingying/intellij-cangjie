@@ -73,6 +73,7 @@ when (buildType) {
 
     IC_DAP -> {
         include("dap-debugger")
+//        include("deveco-dap-debugger")
 
     }
 

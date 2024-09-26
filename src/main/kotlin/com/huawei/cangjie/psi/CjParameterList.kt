@@ -25,7 +25,7 @@ class CjParameterList : CjElementImplStub<CangJiePlaceHolderStub<CjParameterList
         return visitor.visitParameterList(this, data)
     }
 
-    override fun getParent(): PsiElement {
+    override fun getParent(): PsiElement? {
         val stub: CangJiePlaceHolderStub<CjParameterList>? = stub
         return if (stub != null) stub.parentStub.psi else super.getParent()
     }

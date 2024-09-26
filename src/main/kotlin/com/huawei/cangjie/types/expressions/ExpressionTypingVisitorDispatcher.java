@@ -38,10 +38,10 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
     protected final FunctionsTypingVisitor functions;
     protected final TuplesTypingVisitor tuples;
     protected final ControlStructureTypingVisitor controlStructures;
+    protected final PatternMatchingTypingVisitor patterns;
     private final ExpressionTypingComponents components;
     @NotNull
     private final AnnotationChecker annotationChecker;
-    protected final PatternMatchingTypingVisitor patterns;
 
     private ExpressionTypingVisitorDispatcher(
             @NotNull ExpressionTypingComponents components,
@@ -251,13 +251,30 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
     }
 
     @Override
+    public CangJieTypeInfo visitSpawnExpression(@NotNull CjSpawnExpression expression, ExpressionTypingContext data) {
+//       if(data.config.getProcessingMode() == ProcessingMode.PARENT) {
+//           return super.visitSpawnExpression(expression, data);
+//       }else {
+           return components.spawnExpressionResolver.resolveSpawnExpression(expression, data);
+//       }
+
+
+    }
+
+    @Override
+    public CangJieTypeInfo visitUnsafeExpression(@NotNull CjUnsafeExpression expression, ExpressionTypingContext data) {
+        return components.unsafeExpressionResolver.resolveUnsafeExpression(expression, data);
+
+    }
+
+    @Override
     public CangJieTypeInfo visitNamedFunction(@NotNull CjNamedFunction function, ExpressionTypingContext data) {
         return functions.visitNamedFunction(function, data);
     }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-        @Override
+    @Override
     public CangJieTypeInfo visitThrowExpression(@NotNull CjThrowExpression expression, ExpressionTypingContext data) {
         return controlStructures.visitThrowExpression(expression, data);
     }

@@ -1,7 +1,10 @@
 package com.huawei.cangjie.types.expressions
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.descriptors.BindingTrace
+import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.diagnostics.Errors.*
+import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.DescriptorUtils
@@ -17,11 +20,18 @@ import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.huawei.cangjie.types.util.containsError
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo
+import com.intellij.psi.PsiElement
 
 class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTypingInternals) :
     ExpressionTypingVisitor(facade) {
 
-    override fun visitMatchExpression(expression: CjMatchExpression, context: ExpressionTypingContext ): CangJieTypeInfo =
+
+    inner class CasePatten
+
+    override fun visitMatchExpression(
+        expression: CjMatchExpression,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo =
         visitMatchExpression(expression, context, false)
 
     fun visitMatchExpression(
@@ -29,10 +39,20 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         contextWithExpectedType: ExpressionTypingContext,
         @Suppress("UNUSED_PARAMETER") isStatement: Boolean
     ): CangJieTypeInfo {
+        val trace = contextWithExpectedType.trace
+        MatchChecker.checkDeprecatedMatchSyntax(trace, expression)
 
+        components.dataFlowAnalyzer.recordExpectedType(trace, expression, contextWithExpectedType.expectedType)
+        val contextBeforeSubject =
+            contextWithExpectedType.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(ContextDependency.INDEPENDENT)
+
+        val subjectExpression = expression.subjectExpression
+
+//根据match标头中的绑定值更改范围
 
         TODO()
     }
+
 
     private fun checkTypeForIs(
         context: ExpressionTypingContext,
@@ -216,15 +236,24 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         return true
     }
 }
-//fun CjOperationExpression.reportDeprecatedDefinitelyNotNullSyntax(
-//    rhs: CjTypeReference?,
-//    context: ExpressionTypingContext
-//) {
-//    val nextLeaf = nextLeaf()
-//    if (nextLeaf is LeafPsiElement && nextLeaf.elementType === CjTokens.EXCLEXCL && rhs?.typeElement is CjUserType) {
-//        val parent = PsiTreeUtil.findCommonParent(nextLeaf, this)
-//        if (parent is CjPostfixExpression && parent.operationToken === CjTokens.EXCLEXCL) {
-//            context.trace.report(Errors.DEPRECATED_SYNTAX_WITH_DEFINITELY_NOT_NULL.on((parent as CjPostfixExpression?)!!))
-//        }
-//    }
-//}
+
+
+object MatchChecker {
+    //    检查没有条件的match表达式的语法  match{}
+    fun checkDeprecatedMatchSyntax(trace: BindingTrace, expression: CjMatchExpression) {
+        if (expression.subjectExpression != null) return
+
+        for (entry in expression.entries) {
+            if (entry.is_()) continue
+            var child: PsiElement? = entry.firstChild
+            while (child != null) {
+                if (child.node.elementType === CjTokens.OR) {
+                    trace.report(COMMA_IN_MATCH_CONDITION_WITHOUT_ARGUMENT.on(child))
+                }
+                if (child.node.elementType === CjTokens.DOUBLE_ARROW) break
+                child = child.nextSibling
+            }
+        }
+    }
+
+}

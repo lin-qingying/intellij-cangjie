@@ -450,6 +450,20 @@ project(":utils") {
 //        implementation("org.yaml:snakeyaml:2.2")
     }
 }
+//project(":deveco-dap-debugger") {
+//    intellij {
+//        plugins.set(listOf( ))
+//    }
+//
+//    dependencies {
+//        implementation(project(":"))
+//// https://mvnrepository.com/artifact/org.eclipse.lsp4j/org.eclipse.lsp4j.debug
+//        implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.debug:0.23.1")
+//        implementation(files("lib/intellij-dap.jar","lib/dap4j.jar"))
+//
+//    }
+//}
+
 
 when (buildType) {
     IU_NATIVE_DEBUG -> {
@@ -472,6 +486,7 @@ when (buildType) {
     }
 
     IC_DAP -> {
+
         val dap = project(":dap-debugger") {
             intellij {
                 plugins.set(listOf(terminalPlugin))
@@ -481,6 +496,8 @@ when (buildType) {
             }
             dependencies {
                 implementation(project(":"))
+
+
                 implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
                 implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
                 implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")

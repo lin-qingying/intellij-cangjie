@@ -10,7 +10,8 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.types.CangJieType;
-
+import com.huawei.cangjie.types.expressions.ContextConfig;
+import com.huawei.cangjie.types.expressions.ProcessingMode;
 import com.huawei.cangjie.types.util.TypeUtils;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -49,7 +50,7 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
     public final DataFlowValueFactory dataFlowValueFactory;
     @NotNull
     public final InferenceSession inferenceSession;
-public  final boolean isSaveTypeInfo  ;
+    public final boolean isSaveTypeInfo;
     @NotNull
     public final LanguageVersionSettings languageVersionSettings;
     /**
@@ -62,6 +63,10 @@ public  final boolean isSaveTypeInfo  ;
      */
     @NotNull
     public final Function1<CjExpression, CjExpression> expressionContextProvider;
+    // 新增枚举字段，默认为 NORMAL
+    @NotNull
+    public final ContextConfig config;
+
 
     protected ResolutionContext(
             @NotNull BindingTrace trace,
@@ -80,7 +85,9 @@ public  final boolean isSaveTypeInfo  ;
             @NotNull LanguageVersionSettings languageVersionSettings,
 
             @NotNull DataFlowValueFactory factory,
-            @NotNull InferenceSession inferenceSession
+            @NotNull InferenceSession inferenceSession,
+            @NotNull ContextConfig config
+
     ) {
         this.trace = trace;
         this.scope = scope;
@@ -101,22 +108,24 @@ public  final boolean isSaveTypeInfo  ;
 
         this.languageVersionSettings = languageVersionSettings;
 
+        this.config = config;
 
     }
+
     @NotNull
     public Context replaceExpressionContextProvider(@NotNull Function1<CjExpression, CjExpression> expressionContextProvider) {
         return create(trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
-                collectAllCandidates, isSaveTypeInfo,callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
-                inferenceSession);
+                collectAllCandidates, isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                inferenceSession, config);
     }
+
     @NotNull
     public Context replaceContextDependency(@NotNull ContextDependency newContextDependency) {
         if (newContextDependency == contextDependency) return self();
         return create(trace, scope, dataFlowInfo, expectedType, newContextDependency, resolutionResultsCache, statementFilter,
-                collectAllCandidates, isSaveTypeInfo,callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
-                inferenceSession);
+                collectAllCandidates, isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                inferenceSession, config);
     }
-
 
 
     @NotNull
@@ -128,15 +137,15 @@ public  final boolean isSaveTypeInfo  ;
     public Context replaceResolutionResultsCache(@NotNull ResolutionResultsCache newResolutionResultsCache) {
         if (newResolutionResultsCache == resolutionResultsCache) return self();
         return create(trace, scope, dataFlowInfo, expectedType, contextDependency, newResolutionResultsCache, statementFilter,
-                collectAllCandidates,isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
-                inferenceSession);
+                collectAllCandidates, isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                inferenceSession, config);
     }
 
     @NotNull
     public Context replaceStatementFilter(@NotNull StatementFilter statementFilter) {
         return create(trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
-                collectAllCandidates,isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
-                inferenceSession);
+                collectAllCandidates, isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                inferenceSession, config);
     }
 
     protected abstract Context create(
@@ -154,19 +163,32 @@ public  final boolean isSaveTypeInfo  ;
             @NotNull LanguageVersionSettings languageVersionSettings,
 
             @NotNull DataFlowValueFactory dataFlowValueFactory,
-            @NotNull InferenceSession inferenceSession
+            @NotNull InferenceSession inferenceSession,
+            @NotNull ContextConfig config
     );
+
     @NotNull
     public Context replaceCollectAllCandidates(boolean newCollectAllCandidates) {
         return create(trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
-                newCollectAllCandidates,isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
-                inferenceSession);
+                newCollectAllCandidates, isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                inferenceSession, config);
     }
+
+    @NotNull
+    public Context replaceProcessingMode(@NotNull ProcessingMode processingMode) {
+
+
+
+        return create(trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
+                collectAllCandidates, isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                inferenceSession, config.copy(processingMode));
+    }
+
     @NotNull
     public Context replaceCallPosition(@NotNull CallPosition callPosition) {
         return create(trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
-                collectAllCandidates,isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
-                inferenceSession);
+                collectAllCandidates, isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                inferenceSession, config);
     }
 
     @NotNull
@@ -180,8 +202,8 @@ public  final boolean isSaveTypeInfo  ;
 //        throw new UnsupportedOperationException("replaceBindingTrace is not implemented");
         if (this.trace == trace) return self();
         return create(trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
-                collectAllCandidates,isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
-                inferenceSession);
+                collectAllCandidates, isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                inferenceSession, config);
     }
 
     @NotNull
@@ -190,8 +212,8 @@ public  final boolean isSaveTypeInfo  ;
 
         if (newDataFlowInfo == dataFlowInfo) return self();
         return create(trace, scope, newDataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
-                collectAllCandidates,isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
-                inferenceSession);
+                collectAllCandidates, isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                inferenceSession, config);
     }
 
     @NotNull
@@ -200,25 +222,27 @@ public  final boolean isSaveTypeInfo  ;
 
         if (newInferenceSession == inferenceSession) return self();
         return create(trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
-                collectAllCandidates,isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
-                newInferenceSession);
+                collectAllCandidates, isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                newInferenceSession, config);
     }
+
     @NotNull
-    public Context replaceIsSaveTypeInfo( boolean isSaveTypeInfo) {
+    public Context replaceIsSaveTypeInfo(boolean isSaveTypeInfo) {
 
 
         return create(trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
-                collectAllCandidates,isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
-                inferenceSession);
+                collectAllCandidates, isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                inferenceSession, config);
     }
+
     @NotNull
     public Context replaceExpectedType(@Nullable CangJieType newExpectedType) {
 
         if (newExpectedType == null) return replaceExpectedType(TypeUtils.NO_EXPECTED_TYPE);
         if (expectedType == newExpectedType) return self();
         return create(trace, scope, dataFlowInfo, newExpectedType, contextDependency, resolutionResultsCache, statementFilter,
-                collectAllCandidates,isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
-                inferenceSession);
+                collectAllCandidates, isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                inferenceSession, config);
     }
 
     @NotNull
@@ -226,8 +250,8 @@ public  final boolean isSaveTypeInfo  ;
 
         if (newScope == scope) return self();
         return create(trace, newScope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
-                collectAllCandidates,isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
-                inferenceSession);
+                collectAllCandidates, isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings, dataFlowValueFactory,
+                inferenceSession, config);
     }
 
 

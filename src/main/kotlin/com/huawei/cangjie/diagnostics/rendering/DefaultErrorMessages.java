@@ -253,6 +253,8 @@ public class DefaultErrorMessages {
 
         MAP.put(INVALID_CALLING_THIS_IN_PRIMARY_CONSTRUCTOR, "Invalid calling 'this' in primary constructor" );
         MAP.put(ENUM_ENTRY_AS_TYPE, "Use of enum entry names as types is not allowed, use enum type instead");
+        MAP.put(UNSAFE_EXPRESSION_ERROR, "'unsafe' is not a lambda expression");
+        MAP.put(CANNOT_INFER_PARAMETER_TYPE, "Cannot infer a type for this parameter. Please specify it explicitly.");
 
     }
 

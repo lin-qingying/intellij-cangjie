@@ -34,6 +34,26 @@ object CallMaker {
             Call.CallType.DEFAULT
         )
     }
+    fun makeCallForUnsafeExpression(callExpression: CjUnsafeExpression): Call {
+        return makeCallWithExpressions(
+            callExpression,
+            null,
+            null,
+            callExpression,
+            listOf(callExpression.lambdaExpression) ,
+            Call.CallType.DEFAULT
+        )
+    }
+    fun makeCallForSpawnExpression(callExpression: CjSpawnExpression): Call {
+        return makeCallWithExpressions(
+            callExpression,
+            null,
+            null,
+            callExpression,
+            listOf(callExpression.lambdaExpression) ,
+            Call.CallType.DEFAULT
+        )
+    }
 
     fun makeCallForCollectionLiteral(collectionLiteralExpression: CjCollectionLiteralExpression): Call {
         return makeCallWithExpressions(
@@ -255,7 +275,7 @@ object CallMaker {
         override val callType: Call.CallType,
         val _isSemanticallyEquivalentToSafeCall: Boolean
     ) : Call {
-          constructor(
+        constructor(
             callElement: CjElement,
             explicitReceiver: Receiver,
             callOperationNode: ASTNode?,

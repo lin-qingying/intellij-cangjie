@@ -50,11 +50,11 @@
 //        return CjLambdaExpression(text)
 //    }
 //    private fun wasArrowMovedOrDeleted(parent: ASTNode?, buffer: CharSequence): Boolean {
-//        val lambdaExpression: CjLambdaExpression =
+//        val lambdaArgument: CjLambdaExpression =
 //          LambdaExpressionElementType.findLambdaExpression(parent)
 //                ?: return false
 //
-//        val literal: CjFunctionLiteral = lambdaExpression.getFunctionLiteral()
+//        val literal: CjFunctionLiteral = lambdaArgument.getFunctionLiteral()
 //        val arrow: PsiElement = literal.getArrow() ?: return false
 //
 //        // No arrow in original node
@@ -62,7 +62,7 @@
 //        val arrowOffset: Int = arrow.startOffsetInParent + literal.getStartOffsetInParent()
 //
 //        return hasTokenMoved(
-//            lambdaExpression.getText(),
+//            lambdaArgument.getText(),
 //            buffer,
 //            arrowOffset,
 //            DOUBLE_ARROW

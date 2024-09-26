@@ -19,6 +19,7 @@ object StandardNames {
     val rangeOfName = Name.identifier("rangeOf")
     val arrayOfName = Name.identifier("arrayOf")
     val returnOfName = Name.identifier("returnOf")
+    val spawnName = Name.identifier("spawn ")
 
     @JvmStatic
     fun getFunctionName(parameterCount: Int): String {
@@ -138,6 +139,8 @@ val MAIN = Name.identifier("main")
     val EQUATABLE = Name.identifier("Equatable")
     @JvmField
     val COMPARABLE = Name.identifier("Comparable")
+    @JvmField
+    val FUTURE = Name.identifier("Future")
 
     @JvmField
     val STRING = Name.identifier("String")
@@ -221,6 +224,8 @@ val MAIN = Name.identifier("main")
 
         @JvmField
         val comparableFqName: FqName = core.child(COMPARABLE)
+        @JvmField
+        val futureFqName: FqName = core.child(FUTURE)
 
         @JvmField
         val rangeFqName: FqName = core.child(RANGE)

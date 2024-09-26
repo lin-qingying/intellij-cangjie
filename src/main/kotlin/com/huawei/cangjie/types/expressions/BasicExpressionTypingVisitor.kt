@@ -347,6 +347,8 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
     }
 
     override fun visitRangeExpression(expression: CjRangeExpression, data: ExpressionTypingContext): CangJieTypeInfo {
+
+
         return components.rangeLiteralResolver.resolveRangeLiteral(expression, data)
     }
 

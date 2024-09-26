@@ -213,7 +213,7 @@ fun CallResolutionResult.resultCallAtom(): ResolvedCallAtom? =
 class StubResolvedAtom(val typeVariable: TypeConstructor) : ResolvedAtom() {
     override val atom: ResolutionAtom? get() = null
 }
-class ResolvedExpressionAtom(override val atom: ExpressionCangJieCallArgument) : ResolvedAtom() {
+class   ResolvedExpressionAtom(override val atom: ExpressionCangJieCallArgument) : ResolvedAtom() {
     init {
         setAnalyzedResults(listOf())
     }

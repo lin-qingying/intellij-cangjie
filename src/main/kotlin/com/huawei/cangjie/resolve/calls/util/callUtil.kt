@@ -189,12 +189,12 @@ fun CjElement.getCall(context: BindingContext): Call? {
     // Do not use Call bound to outer call expression (if any) to prevent stack overflow during analysis
     if (element is CjCallElement && element.calleeExpression == null) return null
 
-    if (element is CjMatchExpression) {
-        val subjectVariable = element.subjectVariable
-        if (subjectVariable != null) {
-            return subjectVariable.getCall(context) ?: context[CALL, element]
-        }
-    }
+//    if (element is CjMatchExpression) {
+//        val subjectVariable = element.subjectVariable
+//        if (subjectVariable != null) {
+//            return subjectVariable.getCall(context) ?: context[CALL, element]
+//        }
+//    }
 
     val reference: CjExpression? = when (val parent = element.parent) {
         is CjInstanceExpressionWithLabel -> parent

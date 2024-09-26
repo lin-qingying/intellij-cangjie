@@ -117,7 +117,10 @@ class NotEnoughInformationForTypeParameterImpl(
     resolvedAtom,
     couldBeResolvedWithUnrestrictedBuilderInference
 )
-class OnlyInputTypesDiagnostic(val typeVariable: TypeVariableMarker) : ConstraintSystemError(CandidateApplicability.INAPPLICABLE)
+
+class OnlyInputTypesDiagnostic(val typeVariable: TypeVariableMarker) :
+    ConstraintSystemError(CandidateApplicability.INAPPLICABLE)
+
 class CapturedTypeFromSubtyping(
     val typeVariable: TypeVariableMarker,
     val constraintType: CangJieTypeMarker,
@@ -139,6 +142,7 @@ class MultipleMinimalCommonSupertypes(
         return "Multiple minimal common supertypes found for $typeVariable: ${candidates.joinToString(", ")}"
     }
 }
+
 class InferredIntoDeclaredUpperBounds(val typeVariable: TypeVariableMarker) : ConstraintSystemError(
     CandidateApplicability.RESOLVED
 )
@@ -151,10 +155,46 @@ abstract class BuilderInferenceSubstitutionConstraintPosition<L>(
     override fun toString(): String = "Incorporated builder inference constraint $initialConstraint " +
             "into $builderInferenceLambda call"
 }
-abstract class ExplicitTypeParameterConstraintPosition<T>(val typeArgument: T) : ConstraintPosition(), OnlyInputTypeConstraintPosition {
+
+abstract class ExplicitTypeParameterConstraintPosition<T>(val typeArgument: T) : ConstraintPosition(),
+    OnlyInputTypeConstraintPosition {
     override fun toString(): String = "TypeParameter $typeArgument"
 }
-class ExpectedTypeConstraintPositionImpl(topLevelCall: CangJieCall) : ExpectedTypeConstraintPosition<CangJieCall>(topLevelCall)
-abstract class ExpectedTypeConstraintPosition<T>(val topLevelCall: T) : ConstraintPosition(), OnlyInputTypeConstraintPosition {
+
+class ExpectedTypeConstraintPositionImpl(topLevelCall: CangJieCall) :
+    ExpectedTypeConstraintPosition<CangJieCall>(topLevelCall)
+
+abstract class ExpectedTypeConstraintPosition<T>(val topLevelCall: T) : ConstraintPosition(),
+    OnlyInputTypeConstraintPosition {
     override fun toString(): String = "ExpectedType for call $topLevelCall"
 }
+
+abstract class LambdaArgumentConstraintPosition<T>(val lambda: T) : ConstraintPosition() {
+    override fun toString(): String {
+        return "LambdaArgument $lambda"
+    }
+}
+
+class LambdaArgumentConstraintPositionImpl(lambda: ResolvedLambdaAtom) :
+    LambdaArgumentConstraintPosition<ResolvedLambdaAtom>(lambda)
+
+object BuilderInferencePosition : ConstraintPosition() {
+    override fun toString(): String = "For builder inference call"
+}
+
+class BuilderInferenceSubstitutionConstraintPositionImpl(
+    builderInferenceLambda: LambdaCangJieCallArgument,
+    initialConstraint: InitialConstraint,
+    isFromNotSubstitutedDeclaredUpperBound: Boolean = false
+) : BuilderInferenceSubstitutionConstraintPosition<LambdaCangJieCallArgument>(
+    builderInferenceLambda, initialConstraint, isFromNotSubstitutedDeclaredUpperBound
+)
+
+abstract class InjectedAnotherStubTypeConstraintPosition<T>(private val builderInferenceLambdaOfInjectedStubType: T) :
+    ConstraintPosition(),
+    OnlyInputTypeConstraintPosition {
+    override fun toString(): String = "Injected from $builderInferenceLambdaOfInjectedStubType builder inference call"
+}
+
+class InjectedAnotherStubTypeConstraintPositionImpl(builderInferenceLambdaOfInjectedStubType: LambdaCangJieCallArgument) :
+    InjectedAnotherStubTypeConstraintPosition<LambdaCangJieCallArgument>(builderInferenceLambdaOfInjectedStubType)

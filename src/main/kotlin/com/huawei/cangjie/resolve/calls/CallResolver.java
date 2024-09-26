@@ -222,6 +222,25 @@ public class CallResolver {
                 callResolutionContext, candidates, new TracingStrategyBlockExpression(expression, call));
     }
     @NotNull
+    public OverloadResolutionResults<FunctionDescriptor> resolveCallExpressionWithGivenDescriptor(
+            @NotNull ExpressionTypingContext context,
+            @NotNull CjCallExpression expression,
+            @NotNull Call call,
+            @NotNull Collection<FunctionDescriptor> functionDescriptors
+    ) {
+        BasicCallResolutionContext callResolutionContext = BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS);
+        List<OldResolutionCandidate<FunctionDescriptor>> candidates = CollectionsKt.map(functionDescriptors, descriptor ->
+                OldResolutionCandidate.create(
+                        call,
+                        descriptor,
+                        null,
+                        ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
+                        null));
+
+        return computeTasksFromCandidatesAndResolvedCall(
+                callResolutionContext, candidates, TracingStrategyImpl.create(expression, call));
+    }
+    @NotNull
     public OverloadResolutionResults<FunctionDescriptor> resolveCollectionLiteralCallWithGivenDescriptor(
             @NotNull ExpressionTypingContext context,
             @NotNull CjCollectionLiteralExpression expression,
@@ -376,12 +395,12 @@ public class CallResolver {
 //        }
 
         CjExpression calleeExpression = context.call.getCalleeExpression();
-        if (calleeExpression instanceof CjSimpleNameExpression expression) {
+         if (calleeExpression instanceof CjSimpleNameExpression expression) {
             return computeTasksAndResolveCall(
                     context, expression.getReferencedNameAsName(), expression,
                     NewResolutionOldInference.ResolutionKind.Function.INSTANCE);
         } else if (calleeExpression instanceof CjConstructorCalleeExpression) {
-            return (OverloadResolutionResults) resolveCallForConstructor(context, (CjConstructorCalleeExpression) calleeExpression);
+            return (OverloadResolutionResults ) resolveCallForConstructor(context, (CjConstructorCalleeExpression) calleeExpression);
         } else if (calleeExpression instanceof CjConstructorDelegationReferenceExpression) {
             CjConstructorDelegationCall delegationCall = (CjConstructorDelegationCall) context.call.getCallElement();
             DeclarationDescriptor container = context.scope.getOwnerDescriptor();

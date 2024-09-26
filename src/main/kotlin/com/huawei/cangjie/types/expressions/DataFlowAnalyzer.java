@@ -9,6 +9,7 @@ import com.huawei.cangjie.diagnostics.DiagnosticUtilsKt;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.BindingContext;
+import com.huawei.cangjie.resolve.calls.checkers.AdditionalTypeChecker;
 import com.huawei.cangjie.resolve.calls.checkers.NewSchemeOfIntegerOperatorResolutionChecker;
 
 import static com.huawei.cangjie.diagnostics.Errors.*;
@@ -41,7 +42,7 @@ import static com.huawei.cangjie.types.util.TypeUtils.*;
 public class DataFlowAnalyzer {
 
 
-    //    private final Iterable<AdditionalTypeChecker> additionalTypeCheckers;
+        private final Iterable<AdditionalTypeChecker> additionalTypeCheckers;
     private final ConstantExpressionEvaluator constantExpressionEvaluator;
     private final ModuleDescriptor module;
     private final CangJieBuiltIns builtIns;
@@ -54,7 +55,7 @@ public class DataFlowAnalyzer {
     private final CangJieTypeChecker cangjieTypeChecker;
 
     public DataFlowAnalyzer(
-//            @NotNull Iterable<AdditionalTypeChecker> additionalTypeCheckers,
+            @NotNull Iterable<AdditionalTypeChecker> additionalTypeCheckers,
             @NotNull ConstantExpressionEvaluator constantExpressionEvaluator,
             @NotNull ModuleDescriptor module,
             @NotNull CangJieBuiltIns builtIns,
@@ -66,7 +67,7 @@ public class DataFlowAnalyzer {
 //            @NotNull SmartCastManager smartCastManager,
             @NotNull CangJieTypeChecker cangjieTypeChecker
     ) {
-//        this.additionalTypeCheckers = additionalTypeCheckers;
+        this.additionalTypeCheckers = additionalTypeCheckers;
         this.constantExpressionEvaluator = constantExpressionEvaluator;
         this.module = module;
         this.builtIns = builtIns;
@@ -173,11 +174,11 @@ public class DataFlowAnalyzer {
         if (expressionType == null) return null;
 
         CangJieType result = checkTypeInternal(expressionType, expression, c, hasError, reportErrorForTypeMismatch);
-//        if (Boolean.FALSE.equals(hasError.get())) {
-//            for (AdditionalTypeChecker checker : additionalTypeCheckers) {
-//                checker.checkType(expression, expressionType, result, c);
-//            }
-//        }
+        if (Boolean.FALSE.equals(hasError.get())) {
+            for (AdditionalTypeChecker checker : additionalTypeCheckers) {
+                checker.checkType(expression, expressionType, result, c);
+            }
+        }
 
         return result;
     }

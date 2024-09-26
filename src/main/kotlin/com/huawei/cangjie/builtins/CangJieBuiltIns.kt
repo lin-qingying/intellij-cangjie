@@ -14,6 +14,7 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.exceptionFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.float16UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.float32UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.float64UFqName
+import com.huawei.cangjie.builtins.StandardNames.FqNames.futureFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int16UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int32UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int64UFqName
@@ -634,6 +635,12 @@ open class CangJieBuiltIns(
     val ccomparableType: SimpleType
         get() {
             return comparable.getDefaultType()
+        }
+    val future: ClassDescriptor
+        get() = findClassDescriptorByFqName(storageManager.project, futureFqName)!!
+    val futureType: SimpleType
+        get() {
+            return future.getDefaultType()
         }
     val range: ClassDescriptor
         get() = findClassDescriptorByFqName(storageManager.project, rangeFqName)!!

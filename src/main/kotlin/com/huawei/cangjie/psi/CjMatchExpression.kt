@@ -6,20 +6,22 @@ import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
 
-
 class CjMatchExpression(node: ASTNode) : CjExpressionImpl(node) {
-    val entries: List<Any>
+    val entries
         get() = findChildrenByType<CjMatchEntry>(CjNodeTypes.MATCH_ENTRY)
-    val subjectVariable
-        get() = findChildByClass(CjProperty::class.java)
-    val subjectExpression
-        get() = findChildByClass<CjExpression>(CjExpression::class.java)
+
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitMatchExpression(this, data)
     }
 
+    val condition: CjContainerNode?
+        get() = findChildByType(CjNodeTypes.CONDITION)
+    val subjectExpression: CjExpression?
+        get() = condition?.expression
     val matchKeyword: PsiElement?
+
+
         get() = findChildByType(CjTokens.MATCH_KEYWORD)
     val closeBrace: PsiElement?
         get() = findChildByType(CjTokens.RBRACE)

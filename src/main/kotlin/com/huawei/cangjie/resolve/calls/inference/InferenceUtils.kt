@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.calls.inference
 
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage
+import com.huawei.cangjie.resolve.calls.inference.model.NewConstraintSystemImpl
 import com.huawei.cangjie.types.model.*
 
 fun ConstraintStorage.buildNotFixedVariablesToNonSubtypableTypesSubstitutor(
@@ -65,4 +66,12 @@ fun ConstraintStorage.buildAbstractResultingSubstitutor(
         }
     }
     return context.typeSubstitutorByTypeConstructor(currentSubstitutorMap + uninferredSubstitutorMap)
+}
+fun NewConstraintSystemImpl.registerTypeVariableIfNotPresent(
+    typeVariable: TypeVariableMarker
+) {
+    val builder = getBuilder()
+    if (typeVariable.freshTypeConstructor(this) !in builder.currentStorage().allTypeVariables.keys) {
+        builder.registerVariable(typeVariable)
+    }
 }

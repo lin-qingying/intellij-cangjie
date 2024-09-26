@@ -32,11 +32,13 @@ public class ExpressionTypingContext extends ResolutionContext<ExpressionTypingC
             @NotNull Function1<CjExpression, CjExpression> expressionContextProvider,
             @NotNull LanguageVersionSettings languageVersionSettings,
             @NotNull DataFlowValueFactory dataFlowValueFactory,
-            @NotNull InferenceSession inferenceSession
+            @NotNull InferenceSession inferenceSession,
+            @NotNull ContextConfig config
+
     ) {
         super(trace, scope, expectedType, dataFlowInfo, contextDependency, resolutionResultsCache,
                 statementFilter, isAnnotationContext, isDebuggerContext, collectAllCandidates, isSaveTypeInfo, callPosition, expressionContextProvider,
-                languageVersionSettings, dataFlowValueFactory, inferenceSession);
+                languageVersionSettings, dataFlowValueFactory, inferenceSession, config);
     }
 
     //    protected ExpressionTypingContext(@NotNull BindingTrace trace, @NotNull LexicalScope scope, @NotNull CangJieType expectedType, @NotNull DataFlowInfo dataFlowInfo, bool isAnnotationContext, bool isDebuggerContext, bool collectAllCandidates, @NotNull Function1<CjExpression, CjExpression> expressionContextProvider, @NotNull DataFlowValueFactory factory, @NotNull InferenceSession inferenceSession) {
@@ -52,7 +54,9 @@ public class ExpressionTypingContext extends ResolutionContext<ExpressionTypingC
                 context.isSaveTypeInfo,
                 context.callPosition, context.expressionContextProvider,
                 context.languageVersionSettings,
-                context.dataFlowValueFactory, context.inferenceSession);
+                context.dataFlowValueFactory, context.inferenceSession,
+                context.config
+        );
     }
 
     @NotNull
@@ -64,7 +68,7 @@ public class ExpressionTypingContext extends ResolutionContext<ExpressionTypingC
                 context.isAnnotationContext, isDebuggerContext, context.collectAllCandidates, context.isSaveTypeInfo,
                 context.callPosition, context.expressionContextProvider,
                 context.languageVersionSettings,
-                context.dataFlowValueFactory, context.inferenceSession);
+                context.dataFlowValueFactory, context.inferenceSession, context.config);
     }
 
     @NotNull
@@ -97,12 +101,14 @@ public class ExpressionTypingContext extends ResolutionContext<ExpressionTypingC
             @NotNull LanguageVersionSettings languageVersionSettings,
             @NotNull DataFlowValueFactory dataFlowValueFactory,
             @NotNull InferenceSession inferenceSession
+
+
     ) {
         return new ExpressionTypingContext(
                 trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache,
                 statementFilter, isAnnotationContext, false, false, true,
                 CallPosition.Unknown.INSTANCE, DEFAULT_EXPRESSION_CONTEXT_PROVIDER, languageVersionSettings, dataFlowValueFactory,
-                inferenceSession);
+                inferenceSession, ContextConfig.DEFAULT);
     }
 
     @NotNull
@@ -137,11 +143,14 @@ public class ExpressionTypingContext extends ResolutionContext<ExpressionTypingC
                                              @NotNull Function1<CjExpression, CjExpression> expressionContextProvider,
                                              @NotNull LanguageVersionSettings languageVersionSettings,
                                              @NotNull DataFlowValueFactory dataFlowValueFactory,
-                                             @NotNull InferenceSession inferenceSession) {
+                                             @NotNull InferenceSession inferenceSession,
+                                             @NotNull ContextConfig config
+
+    ) {
         return new ExpressionTypingContext(trace, scope, dataFlowInfo,
                 expectedType, contextDependency, resolutionResultsCache,
                 statementFilter, isAnnotationContext, isDebuggerContext,
-                collectAllCandidates, isSaveTypeInfo,callPosition, expressionContextProvider, languageVersionSettings,
-                dataFlowValueFactory, inferenceSession);
+                collectAllCandidates, isSaveTypeInfo, callPosition, expressionContextProvider, languageVersionSettings,
+                dataFlowValueFactory, inferenceSession, config);
     }
 }

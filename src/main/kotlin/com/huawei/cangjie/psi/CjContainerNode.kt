@@ -12,4 +12,6 @@ open class CjContainerNode(node: ASTNode) : CjElementImpl(node) {
     public override fun <T : PsiElement > findChildByType(type: IElementType): T? {
         return super.findChildByType(type)
     }
+
+    val expression get() =  findChildByClass(CjExpression::class.java)
 }
