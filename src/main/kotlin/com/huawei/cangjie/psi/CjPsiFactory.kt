@@ -12,6 +12,7 @@ import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.LocalTimeCounter
 import org.jetbrains.annotations.NonNls
 
@@ -73,11 +74,21 @@ class CjPsiFactory private constructor(
     ): CjProperty {
         return createProperty(null, name, type, isMut, initializer)
     }
+    fun createMatchEntry(@NonNls entryText: String): CjMatchEntry {
+        val function = createFunction("func foo() { match(12) { $entryText } }")
+        val matchEntry = PsiTreeUtil.findChildOfType(function, CjMatchEntry::class.java)
 
+        assert(matchEntry != null) { "Couldn't generate match entry" }
+        assert(entryText == matchEntry!!.text) { "Generate when entry text differs from the given text" }
+
+        return matchEntry
+    }
     fun createProperty(@NonNls name: String, @NonNls type: String?, isMut: Boolean): CjProperty {
         return createProperty(name, type, isMut, null)
     }
-
+    fun createEnumPattern(text: String):CjEnumPattern{
+        TODO()
+    }
     fun createProperty(
         @NonNls modifiers: String?,
         @NonNls name: String,

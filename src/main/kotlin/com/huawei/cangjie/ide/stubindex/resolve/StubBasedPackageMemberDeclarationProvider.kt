@@ -136,6 +136,14 @@ class StubBasedPackageMemberDeclarationProvider(
 
     }
 
+    override fun getEnumEntryDeclarations(name: Name): Collection<CjEnumEntry> {
+
+        return runReadAction {
+            CangJieEnumEntryShortNameIndex[name.asString(), project, searchScope]
+        }
+
+    }
+
     override fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>> {
         val childName = childName(name)
         if (isShortNameFilteringEnabled && !name.isSpecial) {

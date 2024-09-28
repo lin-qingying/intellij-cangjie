@@ -299,6 +299,19 @@ object PositioningStrategies {
     }
 
     @JvmField
+    val ELSE_ENTRY: PositioningStrategy<CjMatchEntry> = object : PositioningStrategy<CjMatchEntry>() {
+        override fun mark(element: CjMatchEntry): List<TextRange> {
+            return markElement(element.elseKeyword!!)
+        }
+    }
+
+    @JvmField
+    val MATCH_EXPRESSION: PositioningStrategy<CjMatchExpression> = object : PositioningStrategy<CjMatchExpression>() {
+        override fun mark(element: CjMatchExpression): List<TextRange> {
+            return markElement(element.matchKeyword)
+        }
+    }
+    @JvmField
     val VALUE_ARGUMENTS: PositioningStrategy<CjElement> = object : PositioningStrategy<CjElement>() {
         override fun mark(element: CjElement): List<TextRange> {
             if (element is CjBinaryExpression && element.operationToken in CjTokens.ALL_ASSIGNMENTS) {

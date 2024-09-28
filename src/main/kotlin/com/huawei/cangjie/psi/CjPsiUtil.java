@@ -32,6 +32,13 @@ public class CjPsiUtil {
     public static boolean isBooleanConstant(@Nullable CjExpression condition) {
         return condition != null && condition.getNode().getElementType() == CjNodeTypes.BOOLEAN_CONSTANT;
     }
+    @Nullable
+    public static CjExpression getExpressionOrLastStatementInBlock(@Nullable CjExpression expression) {
+        if (expression instanceof CjBlockExpression) {
+            return getLastStatementInABlock((CjBlockExpression) expression);
+        }
+        return expression;
+    }
     public static boolean isLHSOfDot(@NotNull CjExpression expression) {
         PsiElement parent = expression.getParent();
         if (!(parent instanceof CjQualifiedExpression)) return false;

@@ -16,8 +16,34 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
 
     public R visitQuoteExpression(@NotNull CjQuoteExpression element, D data) {
         return visitExpression(element, data);
+    }
 
+    public R visitCasePattern(@NotNull CjCasePattern element, D data) {
+        return visitCjElement(element, data);
+    }
 
+    public R visitPatternByConstant(@NotNull CjConstantPattern element, D data) {
+        return visitCasePattern(element, data);
+    }
+
+    public R visitPatternByBinding(@NotNull CjBindingPattern element, D data) {
+        return visitCasePattern(element, data);
+    }
+
+    public R visitPatternByType(@NotNull CjTypePattern element, D data) {
+        return visitCasePattern(element, data);
+    }
+
+    public R visitPatternByTuple(@NotNull CjTuplePattern element, D data) {
+        return visitCasePattern(element, data);
+    }
+
+    public R visitPatternByWildcard(@NotNull CjWildcardPattern element, D data) {
+        return visitCasePattern(element, data);
+    }
+
+    public R visitPatternByEnum(@NotNull CjEnumPattern element, D data) {
+        return visitCasePattern(element, data);
     }
 
     public R visitOptionType(@NotNull CjOptionType optionType, D data) {
@@ -48,9 +74,11 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         return visitExpression(expression, data);
 
     }
+
     public R visitSpawnExpression(@NotNull CjSpawnExpression expression, D data) {
         return visitCallExpression(expression, data);
     }
+
     public R visitLambdaExpression(@NotNull CjLambdaExpression expression, D data) {
         return visitExpression(expression, data);
     }

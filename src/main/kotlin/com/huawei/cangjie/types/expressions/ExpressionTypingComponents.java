@@ -3,6 +3,7 @@ package com.huawei.cangjie.types.expressions;
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.builtins.PlatformToCangJieClassMapper;
 import com.huawei.cangjie.config.LanguageVersionSettings;
+import com.huawei.cangjie.contracts.EffectSystem;
 import com.huawei.cangjie.descriptors.ModuleDescriptor;
 import com.huawei.cangjie.extensions.TypeResolutionInterceptor;
 import com.huawei.cangjie.resolve.*;
@@ -57,8 +58,13 @@ public class ExpressionTypingComponents {
     public NewCangJieTypeChecker cangjieTypeChecker;
     public CangJieCallComponents callComponents;
     public ValueParameterResolver valueParameterResolver;
+    public EffectSystem effectSystem;
 
     public OverloadChecker overloadChecker;
+    @Inject
+    public void setEffectSystem(@NotNull EffectSystem effectSystem) {
+        this.effectSystem = effectSystem;
+    }
 
     @Inject
     public void setPlatformToCangJieClassMap(@NotNull PlatformToCangJieClassMapper platformToCangJieClassMapper) {

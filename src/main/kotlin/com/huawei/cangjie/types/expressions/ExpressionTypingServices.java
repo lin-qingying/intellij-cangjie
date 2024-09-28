@@ -136,7 +136,7 @@ public class ExpressionTypingServices {
 
 
     @NotNull
-    public CangJieTypeInfo getTypeInfo(@NotNull CjExpression expression, @NotNull ResolutionContext resolutionContext ) {
+    public CangJieTypeInfo getTypeInfo(@NotNull CjExpression expression, @NotNull ResolutionContext resolutionContext) {
         return expressionTypingFacade.getTypeInfo(expression, ExpressionTypingContext.newContext(resolutionContext));
     }
 
@@ -340,6 +340,12 @@ public class ExpressionTypingServices {
         LexicalWritableScope scope = new LexicalWritableScope(context.scope, containingDescriptor, false, redeclarationChecker,
                 LexicalScopeKind.CODE_BLOCK);
 
+        try {
+            context.config.getAddVariableDescriptor().get(expression.getParent()).invoke(scope);
+
+        } catch (NullPointerException ignored) {
+
+        }
 
         CangJieTypeInfo r;
         if (block.isEmpty()) {

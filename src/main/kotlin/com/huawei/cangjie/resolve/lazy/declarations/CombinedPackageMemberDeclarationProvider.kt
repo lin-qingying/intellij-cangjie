@@ -24,6 +24,10 @@ class CombinedPackageMemberDeclarationProvider(
         return providers.flatMap { it.getDestructuringDeclarationsEntries(name) }
     }
 
+    override fun getEnumEntryDeclarations(name: Name): Collection<CjEnumEntry> {
+        return providers.flatMap { it.getEnumEntryDeclarations(name) }
+
+    }
     override fun getTypeStatementDeclarations(name: Name) = providers.flatMap { it.getTypeStatementDeclarations(name) }
 
     override fun getExtendTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<CjExtend>> =

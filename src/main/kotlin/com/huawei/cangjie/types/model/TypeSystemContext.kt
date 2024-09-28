@@ -173,7 +173,7 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
 
     fun CangJieTypeMarker.isUnit(): Boolean
 
-//    fun CangJieTypeMarker.isBuiltinFunctionTypeOrSubtype(): Boolean
+    fun CangJieTypeMarker.isBuiltinFunctionTypeOrSubtype(): Boolean
 
     fun createCapturedType(
         constructorProjection: TypeArgumentMarker,
@@ -270,11 +270,11 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
 
 //    fun CangJieTypeMarker.extractArgumentsForFunctionTypeOrSubtype(): List<CangJieTypeMarker>
 
-//    fun CangJieTypeMarker.getFunctionTypeFromSupertypes(): CangJieTypeMarker
+    fun CangJieTypeMarker.getFunctionTypeFromSupertypes(): CangJieTypeMarker
 
     fun getNonReflectFunctionTypeConstructor(parametersNumber: Int, kind: FunctionTypeKind): TypeConstructorMarker
 
-//    fun getReflectFunctionTypeConstructor(parametersNumber: Int, kind: FunctionTypeKind): TypeConstructorMarker
+    fun getReflectFunctionTypeConstructor(parametersNumber: Int, kind: FunctionTypeKind): TypeConstructorMarker
 
     // -------------------------------------------------
 
@@ -570,7 +570,7 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
 
     fun SimpleTypeMarker.isPrimitiveType(): Boolean
 
-//    fun CangJieTypeMarker.getAttributes(): List<AnnotationMarker>
+    fun CangJieTypeMarker.getAttributes(): List<AnnotationMarker>
 
 //    fun CangJieTypeMarker.hasCustomAttributes(): Boolean
 

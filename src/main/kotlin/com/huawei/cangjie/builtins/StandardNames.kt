@@ -12,6 +12,8 @@ import com.squareup.wire.internal.JvmField
 object StandardNames {
     @kotlin.jvm.JvmField
     val CONTEXT_FUNCTION_TYPE_PARAMETER_COUNT_NAME = Name.identifier("count")
+    @kotlin.jvm.JvmField
+    val BUILT_INS_PACKAGE_NAME = Name.identifier("cangjie")
 
     @kotlin.jvm.JvmField
     val NAME = Name.identifier("name")

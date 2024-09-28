@@ -83,6 +83,21 @@ class ControlStructureTypingUtils(
             dataFlowInfoForArgumentsMap[callForIf.valueArguments[1]] = elseInfo
             return createIndependentDataFlowInfoForArgumentsForCall(conditionInfo, dataFlowInfoForArgumentsMap)
         }
+        @JvmStatic
+        fun createDataFlowInfoForArgumentsOfMatchCall(
+            callForWhen: Call,
+            subjectDataFlowInfo: DataFlowInfo,
+            entryDataFlowInfos: List<DataFlowInfo>
+        ): MutableDataFlowInfoForArguments {
+            val dataFlowInfoForArgumentsMap = mutableMapOf<ValueArgument, DataFlowInfo>()
+            var i = 0
+            for (argument in callForWhen.valueArguments) {
+                val entryDataFlowInfo = entryDataFlowInfos[i++]
+                dataFlowInfoForArgumentsMap[argument] = entryDataFlowInfo
+            }
+            return createIndependentDataFlowInfoForArgumentsForCall(subjectDataFlowInfo, dataFlowInfoForArgumentsMap)
+        }
+
 
         @JvmStatic
         fun createDataFlowInfoForArgumentsOfTryCall(

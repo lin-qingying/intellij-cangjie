@@ -74,6 +74,7 @@ public interface CjNodeTypes {
     IElementType FUNC = CjStubElementTypes.FUNCTION;
     IFileElementType CJ_FILE = new IFileElementType(CangJieLanguage.INSTANCE);
     IElementType BLOCK = new BlockExpressionElementType();
+    IElementType CASE_BLOCK = new CaseBlockExpressionElementType();
     IElementType INIT_BLOCK = new InitBlockExpressionElementType();
 
     IElementType LAMBDA_EXPRESSION = new LambdaExpressionElementType();
@@ -186,9 +187,10 @@ public interface CjNodeTypes {
 
     IElementType MATCH = new CjNodeType("MATCH", CjMatchExpression.class);
     IElementType MATCH_ENTRY = new CjNodeType("MATCH_ENTRY", CjMatchEntry.class);
+    IElementType CASE_WHERE = new CjNodeType("CASE_WHERE", CjCaseWhere.class);
 
 
-    IElementType CASE_PATTERN = new CjNodeType("CASE_PATTERN", CjCasePattern.class);
+//    IElementType CASE_PATTERN = new CjNodeType("CASE_PATTERN", CjCasePattern.class);
 
 //    IElementType CHARACTER_CONSTANT = CjStubElementTypes.CHARACTER_CONSTANT;
 IElementType WILDCARD_PATTERN = new CjNodeType("WILDCARD_PATTERN", CjWildcardPattern.class);

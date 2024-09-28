@@ -70,7 +70,7 @@ open class CjElementImplStub<T : StubElement<*>> :
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is CjVisitor<*, *>) {
-            accept (visitor, null)
+            accept(visitor, null)
         } else {
             visitor.visitElement(this)
         }
@@ -86,7 +86,7 @@ open class CjElementImplStub<T : StubElement<*>> :
         }
     }
 
-    fun <PsiT : CjElementImplStub<*>  , StubT : StubElement<*>> getStubOrPsiChildrenAsList(
+    fun <PsiT : CjElementImplStub<*>, StubT : StubElement<*>> getStubOrPsiChildrenAsList(
         elementType: CjStubElementType<StubT, PsiT>
     ): List<PsiT> {
         return listOf(*getStubOrPsiChildren(elementType, elementType.arrayFactory))

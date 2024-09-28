@@ -2,6 +2,7 @@ package com.huawei.cangjie.diagnostics.rendering
 
 import com.huawei.cangjie.builtins.fqNameUnsafe
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.diagnostics.MatchMissingCase
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
@@ -42,6 +43,20 @@ object Renderers {
         parameterNamesInFunctionalTypes = false
     })
 
+    private val List<MatchMissingCase>.assumesElseBranchOnly: Boolean
+        get() = any { it == MatchMissingCase.Unknown || it is MatchMissingCase.ConditionTypeIsExpect }
+    private val MATCH_MISSING_LIMIT = 7
+
+    @JvmField
+    val RENDER_MATCH_MISSING_CASES = renderer<List<MatchMissingCase>> {
+        if (!it.assumesElseBranchOnly) {
+            val list = it.joinToString(", ", limit = MATCH_MISSING_LIMIT) { "'$it'" }
+            val branches = if (it.size > 1) "branches" else "branch"
+            "$list $branches or 'else' branch instead"
+        } else {
+            "'else' branch"
+        }
+    }
     @JvmField
     val CLASS_NAME = renderer { cclass: ClassDescriptor ->
 

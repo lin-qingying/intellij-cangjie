@@ -1,5 +1,6 @@
 package com.huawei.cangjie.types
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.SupertypeLoopChecker
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
@@ -32,6 +33,10 @@ open class BasicTypeConstructor(
     open val classDescriptor: BasicTypeDescriptor,
     storageManager: StorageManager
 ) : AbstractClassTypeConstructor(storageManager), TypeConstructor {
+
+    override fun getBuiltIns(): CangJieBuiltIns {
+        return classDescriptor.basicMemberScope.getBuiltIns()
+    }
 
     override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
         val result = mutableListOf<CangJieType>()

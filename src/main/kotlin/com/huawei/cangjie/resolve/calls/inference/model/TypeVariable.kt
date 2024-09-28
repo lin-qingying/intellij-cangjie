@@ -83,6 +83,19 @@ class TypeVariable(
         originalTypeParameter.hasOnlyInputTypesAnnotation()
 }
 
+class TypeVariableForCallableReferenceParameterType(
+    builtIns: CangJieBuiltIns,
+    name: String
+) : NewTypeVariable(builtIns, name) {
+    override fun hasOnlyInputTypesAnnotation(): Boolean = false
+}
+
+class TypeVariableForCallableReferenceReturnType(
+    builtIns: CangJieBuiltIns,
+    name: String
+) : NewTypeVariable(builtIns, name) {
+    override fun hasOnlyInputTypesAnnotation(): Boolean = false
+}
 class TypeVariableForLambdaReturnType(
     builtIns: CangJieBuiltIns,
     name: String

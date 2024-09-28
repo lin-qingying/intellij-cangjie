@@ -708,9 +708,9 @@ open class CangJieExpressionParsing(
             if (at(RBRACE) || at(CASE_KEYWORD)) {
 
 //             errorBefore("match case cannot be empty")
-                val error = body.precede()
+//                val error = body.precede()
 
-                error.error("match case cannot be empty")
+                 error("match case cannot be empty")
 
                 body.drop()
                 return
@@ -722,7 +722,7 @@ open class CangJieExpressionParsing(
 
 
         }
-        body.done(BODY)
+        body.done(CASE_BLOCK)
     }
 
     /*
@@ -744,6 +744,7 @@ open class CangJieExpressionParsing(
             expect(DOUBLE_ARROW, "Expecting '=>'")
             parseCaseBody()
 
+//            parseControlStructureOrBody()
         } else {
             error("Expecting 'case'")
         }
@@ -883,12 +884,16 @@ open class CangJieExpressionParsing(
                 }
 
                 IDENTIFIER_Id -> {
+                    constantPattern.drop()
+
                     parseSimpleNameExpression()
-                    constantPattern.done(CONSTANT_PATTERN)
 
                 }
 
-                else -> error("Expecting a pattern expression")
+                else -> {
+                    error("Expecting a pattern expression")
+                    constantPattern.drop()
+                }
 
             }
         }
@@ -963,7 +968,7 @@ open class CangJieExpressionParsing(
      * )
      */
     private fun parseCasePattern(isExpression: Boolean = false) {
-        val condition = mark()
+//        val condition = mark()
 
 
         val casePattern = CasePattern()
@@ -1015,12 +1020,14 @@ open class CangJieExpressionParsing(
 
 
         if (at(WHERE_KEYWORD)) {
+            val caseWhere = mark()
             advance()
 
             parseExpression()
+            caseWhere.done(CASE_WHERE)
         }
 
-        condition.done(CASE_PATTERN)
+//        condition.done(CASE_PATTERN)
     }
 
     /*
@@ -1248,11 +1255,14 @@ open class CangJieExpressionParsing(
 
     }
 
+    private fun parseControlStructureOrBody() {
+        if (!parseAnnotatedLambda( /* preferBlock = */true)) {
+            parseBlockLevelExpression()
+        }
+
+    }
 
     private fun parseControlStructureBody() {
-//        if (!parseAnnotatedLambda( /* preferBlock = */true)) {
-//            parseBlockLevelExpression()
-//        }
 
         if (at(LBRACE)) {
 
@@ -1492,7 +1502,7 @@ open class CangJieExpressionParsing(
             if (at(LEFT_ARROW)) {
                 advance()
             } else {
-                errorAndAdvance("Expecting '<-'")
+                error("Expecting '<-'")
             }
 
 

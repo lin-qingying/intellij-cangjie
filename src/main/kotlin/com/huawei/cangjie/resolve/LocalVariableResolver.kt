@@ -198,7 +198,7 @@ class LocalVariableResolver(
 //        variableDescriptor.initialize(getter, setter)
     }
 
-    internal fun resolveLocalVariableDescriptorWithType(
+      fun resolveLocalVariableDescriptorWithType(
         scope: LexicalScope,
         variable: CjVariableDeclaration,
         type: CangJieType?,

@@ -51,6 +51,38 @@ val CandidateWithBoundDispatchReceiver.requiresExtensionReceiver: Boolean
 //
 //    return scopeTower.interceptFunctionCandidates(this, name, result, location, dispatchReceiver, extensionReceiver)
 //}
+
+//对枚举进行展开
+//internal class EnumEntryScopeTowerLevel(scopeTower: ImplicitScopeTower):AbstractScopeTowerLevel(scopeTower) {
+//    override fun getVariables(
+//        name: Name,
+//        extensionReceiver: ReceiverValueWithSmartCastInfo?
+//    ): Collection<CandidateWithBoundDispatchReceiver> {
+//        return emptyList()
+//    }
+//
+//    override fun getObjects(
+//        name: Name,
+//        extensionReceiver: ReceiverValueWithSmartCastInfo?
+//    ): Collection<CandidateWithBoundDispatchReceiver> {
+//        return emptyList()
+//
+//    }
+//
+//    override fun getFunctions(
+//        name: Name,
+//        extensionReceiver: ReceiverValueWithSmartCastInfo?
+//    ): Collection<CandidateWithBoundDispatchReceiver> {
+//        return emptyList()
+//
+//    }
+//
+//    override fun recordLookup(name: Name) {
+//
+//
+//    }
+//}
+
 internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qualifier: QualifierReceiver) :
     AbstractScopeTowerLevel(scopeTower) {
     override fun getVariables(

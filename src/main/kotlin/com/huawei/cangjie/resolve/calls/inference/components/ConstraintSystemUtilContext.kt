@@ -1,5 +1,6 @@
 package com.huawei.cangjie.resolve.calls.inference.components
 
+import com.huawei.cangjie.resolve.calls.inference.model.ArgumentConstraintPosition
 import com.huawei.cangjie.resolve.calls.inference.model.FixVariableConstraintPosition
 import com.huawei.cangjie.resolve.calls.model.PostponedAtomWithRevisableExpectedType
 import com.huawei.cangjie.types.model.CangJieTypeMarker
@@ -12,8 +13,16 @@ import com.huawei.cangjie.types.model.TypeVariableMarker
  *   but we need access classes from :compiler:resolution for this function implementation
  */
 interface ConstraintSystemUtilContext{
-    fun TypeVariableMarker.shouldBeFlexible(): Boolean
+    fun createTypeVariableForLambdaReturnType(): TypeVariableMarker
+    fun createTypeVariableForCallableReferenceReturnType(): TypeVariableMarker
 
+    fun TypeVariableMarker.shouldBeFlexible(): Boolean
+    fun createArgumentConstraintPosition(argument: PostponedAtomWithRevisableExpectedType): ArgumentConstraintPosition<*>
+    fun createTypeVariableForLambdaParameterType(argument: PostponedAtomWithRevisableExpectedType, index: Int): TypeVariableMarker
+    fun createTypeVariableForCallableReferenceParameterType(
+        argument: PostponedAtomWithRevisableExpectedType,
+        index: Int
+    ): TypeVariableMarker
      fun extractLambdaParameterTypesFromDeclaration(declaration: PostponedAtomWithRevisableExpectedType): List<CangJieTypeMarker?>?
     fun PostponedAtomWithRevisableExpectedType.isFunctionExpression(): Boolean
     fun PostponedAtomWithRevisableExpectedType.isFunctionExpressionWithReceiver(): Boolean
@@ -22,5 +31,6 @@ interface ConstraintSystemUtilContext{
     val isForcedAllowForkingInferenceSystem get() = false
     fun CangJieTypeMarker.unCapture(): CangJieTypeMarker
     fun TypeVariableMarker.hasOnlyInputTypesAttribute(): Boolean
+    val isForcedConsiderExtensionReceiverFromConstrainsInLambda get() = false
 
 }

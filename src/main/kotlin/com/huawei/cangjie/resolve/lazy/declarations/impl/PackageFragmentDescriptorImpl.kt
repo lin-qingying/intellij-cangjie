@@ -1,5 +1,6 @@
 package com.huawei.cangjie.resolve.lazy.declarations.impl
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.builtins.StandardNames
 import com.huawei.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import com.huawei.cangjie.builtins.StandardNames.FqNames.cpointerUFqName
@@ -181,6 +182,10 @@ class PackageFragmentDescriptorBasicImpl(
 
 
     inner class BasicMemberScope : MemberScope {
+
+        fun getBuiltIns():CangJieBuiltIns{
+            return module.builtIns
+        }
         override fun getContributedVariables(
             name: Name,
             location: LookupLocation

@@ -33,6 +33,9 @@ class QuickFixRegistrar : QuickFixContributor {
         UNRESOLVED_REFERENCE.registerFactory(ImportConstructorReferenceFix)
 
 
+        NO_ELSE_IN_MATCH.registerFactory(AddMatchElseBranchFix, AddMatchRemainingBranchesFix)
+        NO_ELSE_IN_MATCH_WARNING.registerFactory(AddMatchElseBranchFix, AddMatchRemainingBranchesFix)
+
 //        添加 ABSTRACT_KEYWORD
         val addAbstractModifierFactory = AddModifierFix.createFactory(ABSTRACT_KEYWORD)
         ABSTRACT_MEMBER_NOT_IMPLEMENTED.registerFactory(addAbstractModifierFactory)

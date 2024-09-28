@@ -5,6 +5,7 @@ import com.huawei.cangjie.lexer.CangJieLexer
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.parsing.CangJieParser
 import com.huawei.cangjie.psi.CjBlockExpression
+import com.huawei.cangjie.psi.CjCaseBlockExpression
 import com.huawei.cangjie.psi.CjInitBlockExpression
 import com.intellij.lang.ASTNode
 import com.intellij.lang.Language
@@ -12,6 +13,21 @@ import com.intellij.lang.PsiBuilderFactory
 import com.intellij.openapi.project.Project
 import com.intellij.psi.tree.ICompositeElementType
 import com.intellij.psi.tree.IErrorCounterReparseableElementType
+class CaseBlockExpressionElementType : BlockExpressionElementType("CASE_BLOCK") {
+    override fun parseContents(chameleon: ASTNode): ASTNode {
+        val project = chameleon.psi.project
+        val builder = PsiBuilderFactory.getInstance().createBuilder(
+            project, chameleon, null, CangJieLanguage, chameleon.chars
+        )
+
+        return CangJieParser.parseInitFunctionBlockExpression(builder).firstChildNode
+    }
+
+    override fun createCompositeNode() = CjCaseBlockExpression(null)
+
+    override fun createNode(text: CharSequence?) = CjCaseBlockExpression(text)
+
+}
 
 class InitBlockExpressionElementType : BlockExpressionElementType("INIT_BLOCK") {
     override fun parseContents(chameleon: ASTNode): ASTNode {

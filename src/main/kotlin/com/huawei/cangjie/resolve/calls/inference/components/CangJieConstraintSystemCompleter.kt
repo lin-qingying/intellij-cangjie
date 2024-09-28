@@ -38,6 +38,7 @@ class CangJieConstraintSystemCompleter(
             error("Shouldn't be called in complete constraint system mode")
         }
     }
+
     fun runCompletion(
         c: ConstraintSystemCompletionContext,
         completionMode: ConstraintSystemCompletionMode,
@@ -89,7 +90,7 @@ class CangJieConstraintSystemCompleter(
             ) != null
 
             // If there aren't any postponed arguments and ready for fixation variables, then completion isn't needed: nothing to do
-            if (postponedArguments.isEmpty() && !isThereAnyReadyForFixationVariable)
+                if (postponedArguments.isEmpty() && !isThereAnyReadyForFixationVariable)
                 break
 
             val postponedArgumentsWithRevisableType = postponedArguments
@@ -453,9 +454,11 @@ class CangJieConstraintSystemCompleter(
                 is ResolvedLambdaAtom -> {
                     listOfNotNull(typeVariableForLambdaReturnType?.freshTypeConstructor)
                 }
-//                is LambdaWithTypeVariableAsExpectedTypeAtom -> {
-//                    getVariablesFromRevisedExpectedType(revisedExpectedType).orEmpty()
-//                }
+
+                is LambdaWithTypeVariableAsExpectedTypeAtom -> {
+                    getVariablesFromRevisedExpectedType(revisedExpectedType).orEmpty()
+                }
+
                 is PostponedCallableReferenceAtom -> {
                     getVariablesFromRevisedExpectedType(revisedExpectedType).orEmpty() +
                             candidate?.freshVariablesSubstitutor?.freshVariables?.map { it.freshTypeConstructor }

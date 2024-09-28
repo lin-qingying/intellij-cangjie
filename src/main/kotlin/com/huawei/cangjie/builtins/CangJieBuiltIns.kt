@@ -1,6 +1,7 @@
 package com.huawei.cangjie.builtins
 
 import com.huawei.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
+import com.huawei.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_NAME
 import com.huawei.cangjie.builtins.StandardNames.FqNames.anyFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.anyUFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.arrayClassFqNameToPrimitiveType
@@ -30,13 +31,11 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.stringUFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.uint16UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.uint32UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.uint8UFqName
+import com.huawei.cangjie.builtins.StandardNames.FqNames.unitUFqName
 import com.huawei.cangjie.builtins.StandardNames.STD_CORE_PACKAGE_FQ_NAME
 import com.huawei.cangjie.builtins.functions.FunctionTypeKind
 import com.huawei.cangjie.context.ProjectContext
-import com.huawei.cangjie.descriptors.ClassDescriptor
-import com.huawei.cangjie.descriptors.ClassifierDescriptor
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.ModuleDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.impl.FunctionClassDescriptor
 import com.huawei.cangjie.descriptors.impl.ModuleDescriptorImpl
@@ -84,6 +83,30 @@ open class CangJieBuiltIns(
                 }
         }
 
+        fun isBooleanOrNullableBoolean(type: CangJieType): Boolean {
+            return  isConstructedFromGivenClass(type, boolUFqName)
+        }
+        fun isUnitOrNullableUnit(type: CangJieType): Boolean {
+            return  isConstructedFromGivenClass(type, unitUFqName)
+        }
+        fun isAnyOrNullableAny(type:CangJieType): Boolean {
+            return  isConstructedFromGivenClass(type, anyUFqName)
+        }
+        /**
+         * @return true if the containing package of the descriptor is "kotlin" or any subpackage of "cangjie"
+         */
+        fun isUnderCangJiePackage(descriptor:  DeclarationDescriptor): Boolean {
+            var current:  DeclarationDescriptor ?= descriptor
+            while (current != null) {
+                if (current is PackageFragmentDescriptor) {
+                    return current.fqName.startsWith(
+                        BUILT_INS_PACKAGE_NAME
+                    )
+                }
+                current = current.containingDeclaration
+            }
+            return false
+        }
         @JvmStatic
         fun isString(type: CangJieType?): Boolean {
             return type != null && isNotNullConstructedFromGivenClass(

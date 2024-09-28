@@ -113,3 +113,5 @@ abstract class FunctionTypeKind internal constructor(
 //        override fun nonReflectKind(): FunctionTypeKind = SuspendFunction
 //    }
 }
+val FunctionTypeKind.isBasicFunction : Boolean
+    get() = this.nonReflectKind() == FunctionTypeKind.Function

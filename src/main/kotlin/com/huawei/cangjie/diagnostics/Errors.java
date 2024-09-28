@@ -98,9 +98,16 @@ public interface Errors {
     DiagnosticFactory1<CjElement, CangJieType> CANNOT_CHECK_FOR_ERASED = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory0<CjElement> SENSELESS_NULL_IN_MATCH = DiagnosticFactory0.create(WARNING);
     DiagnosticFactory2<CjElement, CangJieType, CangJieType> INCOMPATIBLE_TYPES = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory2<CjExpression, CangJieType, CangJieType> IMPLICIT_CAST_TO_ANY = DiagnosticFactory2.create(WARNING);
+    DiagnosticFactory1<CjMatchExpression, List<MatchMissingCase>> NO_ELSE_IN_MATCH = DiagnosticFactory1.create(ERROR,MATCH_EXPRESSION);
+    DiagnosticFactory1<CjMatchExpression, String> EXPECT_TYPE_IN_MATCH_WITHOUT_ELSE = DiagnosticFactory1.create(ERROR, MATCH_EXPRESSION);
+    DiagnosticFactory0<CjMatchEntry> REDUNDANT_ELSE_IN_MATCH = DiagnosticFactory0.create(WARNING, ELSE_ENTRY);
+    DiagnosticFactory0<PsiElement> DUPLICATE_LABEL_IN_MATCH = DiagnosticFactory0.create(WARNING);
 
     DiagnosticFactory0<CjTypeReference> INVALID_TYPE_OF_ANNOTATION_MEMBER = DiagnosticFactory0.create(ERROR);
-
+    DiagnosticFactory0<PsiElement> INVALID_IF_AS_EXPRESSION_WARNING = DiagnosticFactory0.create(WARNING);
+    DiagnosticFactory1<CjMatchExpression, List<MatchMissingCase>> NO_ELSE_IN_MATCH_WARNING =
+            DiagnosticFactory1.create(WARNING, MATCH_EXPRESSION);
     DiagnosticFactory3<CjSimpleNameExpression, DeclarationDescriptor, DescriptorVisibility, FqName> INVISIBLE_REFERENCE_REEXPORT =
             DiagnosticFactory3.create(ERROR);
     DiagnosticFactory2<CjExpression, String, Collection<? extends ResolvedCall<?>>> DELEGATE_SPECIAL_FUNCTION_NONE_APPLICABLE =
@@ -178,6 +185,7 @@ public interface Errors {
     DiagnosticFactory2<CjElement, Set<CjElement>, Set<CjElement>> UNREACHABLE_CODE = DiagnosticFactory2.create(
                 WARNING, ClassicPositioningStrategies.UNREACHABLE_CODE);
     DiagnosticFactory0<CjSimpleNameExpression> ENUM_ENTRY_AS_TYPE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjMatchEntry> ELSE_MISPLACED_IN_MATCH = DiagnosticFactory0.create(ERROR, ELSE_ENTRY);
 
 
     DiagnosticFactory1<PsiElement, String> COULD_BE_INFERRED_ONLY_WITH_UNRESTRICTED_BUILDER_INFERENCE = DiagnosticFactory1.create(ERROR);

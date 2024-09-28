@@ -82,7 +82,7 @@ class CangJieWithSubjectEntryPositionContext(
     override val nameExpression: CjSimpleNameExpression,
     override val explicitReceiver: CjExpression?,
     val subjectExpression: CjExpression,
-    val whenCondition: CjMatchCondition,
+    val matchCondition: CjCasePattern,
 ) : CangJieSimpleNameReferencePositionContext()
 
 /**
@@ -191,7 +191,7 @@ object CangJiePositionContextDetector {
             ?: return null
         val explicitReceiver = nameExpression.getReceiverExpression()
         val parent = nameExpression.parent
-        val subjectExpressionForWhenCondition = (parent as? CjMatchCondition)?.getSubjectExpression()
+        val subjectExpressionForWhenCondition = (parent as? CjCasePattern)?.getSubjectExpression()
 
         return when {
             parent is CjUserType -> {
@@ -204,14 +204,14 @@ object CangJiePositionContextDetector {
                 )
             }
 
-            parent is CjMatchCondition && subjectExpressionForWhenCondition != null -> {
+            parent is CjCasePattern && subjectExpressionForWhenCondition != null -> {
                 CangJieWithSubjectEntryPositionContext(
                     position,
                     reference,
                     nameExpression,
                     explicitReceiver,
                     subjectExpressionForWhenCondition,
-                    whenCondition = parent,
+                    matchCondition = parent,
                 )
             }
 
@@ -270,7 +270,7 @@ object CangJiePositionContextDetector {
 //        }
 //    }
 
-    private fun CjMatchCondition.getSubjectExpression(): CjExpression? {
+    private fun CjCasePattern.getSubjectExpression(): CjExpression? {
         val whenEntry = (parent as? CjMatchEntry) ?: return null
         val whenExpression = whenEntry.parent as? CjMatchExpression ?: return null
         return whenExpression.subjectExpression

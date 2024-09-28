@@ -30,7 +30,7 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
     @NotNull
     public final BindingTrace trace;
     @NotNull
-    public final LexicalScope scope;
+    public   LexicalScope scope;
     @NotNull
     public final CangJieType expectedType;
     @NotNull
@@ -112,6 +112,10 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
 
     }
 
+    public void setScope(LexicalScope scope) {
+        this.scope = scope;
+    }
+
     @NotNull
     public Context replaceExpressionContextProvider(@NotNull Function1<CjExpression, CjExpression> expressionContextProvider) {
         return create(trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
@@ -176,7 +180,6 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
 
     @NotNull
     public Context replaceProcessingMode(@NotNull ProcessingMode processingMode) {
-
 
 
         return create(trace, scope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,

@@ -10,15 +10,15 @@ import com.intellij.psi.search.SearchScope
 import com.intellij.psi.tree.TokenSet
 
 @Suppress("deprecation")
-  class CjDestructuringDeclarationEntry(node: ASTNode) : CjNamedDeclarationNotStubbed(node), CjVariableDeclaration {
+class CjDestructuringDeclarationEntry(node: ASTNode) : CjNamedDeclarationNotStubbed(node), CjVariableDeclaration {
 
 
     override val typeReference: CjTypeReference?
         get() = getTypeReference(this)
+
     override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? {
         return setTypeReference(this, nameIdentifier, typeRef)
     }
-
 
 
     override val colon: PsiElement?

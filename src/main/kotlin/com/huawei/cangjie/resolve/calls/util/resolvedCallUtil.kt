@@ -1,20 +1,27 @@
 package com.huawei.cangjie.resolve.calls.util
 
 import com.huawei.cangjie.descriptors.CallableDescriptor
-import com.huawei.cangjie.resolve.calls.context.CallResolutionContext
+import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.psi.CjPsiUtil
+import com.huawei.cangjie.psi.CjThisExpression
+import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall
 import com.huawei.cangjie.resolve.calls.results.ResolutionStatus
 import com.huawei.cangjie.resolve.calls.tower.CandidateApplicability
 import com.huawei.cangjie.resolve.calls.tower.NewAbstractResolvedCall
 import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
+import com.huawei.cangjie.resolve.getOwnerForEffectiveDispatchReceiverParameter
+import com.huawei.cangjie.resolve.scopes.receivers.ClassValueReceiver
+import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver
+import com.huawei.cangjie.resolve.scopes.receivers.ImplicitReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.DefinitelyNotNullType
 import com.huawei.cangjie.types.ErrorUtils
 import com.huawei.cangjie.types.StubTypeForBuilderInference
 import com.huawei.cangjie.types.checker.NewCapturedType
-import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.contains
+
 fun ResolvedCall<*>.getDispatchReceiverWithSmartCast(): ReceiverValue? =
     getReceiverValueWithSmartCast(dispatchReceiver, smartCastDispatchReceiverType)
 
@@ -31,6 +38,39 @@ private class SmartCastReceiverValue(private val type: CangJieType, original: Sm
     override fun getOriginal() = original
 }
 
+// it returns true if call has no dispatch receiver (e.g. resulting descriptor is top-level function or local variable)
+// or call receiver is effectively `this` instance (explicitly or implicitly) of resulting descriptor
+// class A {
+//   init(other: A)
+//   let x
+//   let y = other.x // return false for `other.x` as it's receiver is not `this`
+// }
+fun ResolvedCall<*>.hasThisOrNoDispatchReceiver(
+    context: BindingContext
+): Boolean {
+    val dispatchReceiverValue = dispatchReceiver
+    if (resultingDescriptor.dispatchReceiverParameter == null || dispatchReceiverValue == null) return true
+
+    var dispatchReceiverDescriptor: DeclarationDescriptor? = null
+    when (dispatchReceiverValue) {
+        is ImplicitReceiver -> // foo() -- implicit receiver
+            dispatchReceiverDescriptor = dispatchReceiverValue.declarationDescriptor
+
+        is ClassValueReceiver -> {
+            dispatchReceiverDescriptor = dispatchReceiverValue.classQualifier.descriptor
+        }
+
+        is ExpressionReceiver -> {
+            val expression = CjPsiUtil.deparenthesize(dispatchReceiverValue.expression)
+            if (expression is CjThisExpression) {
+                // this.foo() -- explicit receiver
+                dispatchReceiverDescriptor = context.get(BindingContext.REFERENCE_TARGET, expression.instanceReference)
+            }
+        }
+    }
+
+    return dispatchReceiverDescriptor == resultingDescriptor.getOwnerForEffectiveDispatchReceiverParameter()
+}
 
 fun ResolvedCall<*>.isNewNotCompleted(): Boolean = if (this is NewAbstractResolvedCall) !isCompleted() else false
 fun CallableDescriptor.isNotSimpleCall(): Boolean =

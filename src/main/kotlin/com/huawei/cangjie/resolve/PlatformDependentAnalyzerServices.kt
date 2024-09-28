@@ -22,7 +22,8 @@ abstract class PlatformDependentAnalyzerServices {
             ArrayList<ImportPath>().apply {
 //emptyList<String>()
                 listOf(
-                    "std.core.*"
+                    "std.core.*",
+//                    "untitled3.A.*"
                 ).forEach { add(ImportPath.fromString(it)) }
 
 

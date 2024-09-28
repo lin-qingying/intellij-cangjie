@@ -59,6 +59,8 @@ public class ExpressionTypingContext extends ResolutionContext<ExpressionTypingC
         );
     }
 
+
+
     @NotNull
     public static ExpressionTypingContext newContext(@NotNull ResolutionContext<?> context, boolean isDebuggerContext) {
         return new ExpressionTypingContext(

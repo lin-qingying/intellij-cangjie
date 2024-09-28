@@ -366,10 +366,12 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     open fun visitUserType(type: CjUserType) {
         super.visitUserType(type, null)
     }
+
     open fun visitThisType(type: CjThisType) {
         super.visitThisType(type, null)
 
     }
+
     open fun visitBasicType(type: CjBasicType) {
         super.visitBasicType(type, null)
 
@@ -789,10 +791,12 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
         visitUserType(type)
         return null
     }
+
     override fun visitThisType(cjBasicType: CjThisType, data: Void?): Void? {
         visitThisType(cjBasicType)
         return null
     }
+
     override fun visitBasicType(cjBasicType: CjBasicType, data: Void?): Void? {
         visitBasicType(cjBasicType)
         return null
@@ -923,5 +927,69 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     override fun visitClassInitializer(initializer: CjClassInitializer, data: Void?): Void? {
         visitClassInitializer(initializer)
         return null
+    }
+
+
+    override fun visitCasePattern(element: CjCasePattern, data: Void?): Void? {
+        visitCasePattern(element)
+        return null
+    }
+
+    open fun visitCasePattern(element: CjCasePattern) {
+        super.visitCasePattern(element, null)
+    }
+
+    override fun visitPatternByBinding(element: CjBindingPattern, data: Void?): Void? {
+        visitPatternByBinding(element)
+        return null
+    }
+
+    open fun visitPatternByBinding(element: CjBindingPattern) {
+        super.visitPatternByBinding(element, null)
+    }
+
+    override fun visitPatternByConstant(element: CjConstantPattern, data: Void?): Void? {
+        visitPatternByConstant(element)
+        return null
+    }
+
+    open fun visitPatternByConstant(element: CjConstantPattern) {
+        super.visitPatternByConstant(element, null)
+    }
+
+    override fun visitPatternByEnum(element: CjEnumPattern, data: Void?): Void? {
+        visitPatternByEnum(element)
+        return null
+    }
+
+    open fun visitPatternByEnum(element: CjEnumPattern) {
+        super.visitPatternByEnum(element, null)
+    }
+
+    override fun visitPatternByTuple(element: CjTuplePattern, data: Void?): Void? {
+        visitPatternByTuple(element)
+        return null
+    }
+
+    open fun visitPatternByTuple(element: CjTuplePattern) {
+        super.visitPatternByTuple(element, null)
+    }
+
+    override fun visitPatternByWildcard(element: CjWildcardPattern, data: Void?): Void? {
+        visitPatternByWildcard(element)
+        return null
+    }
+
+    override fun visitPatternByType(element: CjTypePattern, data: Void?): Void? {
+        visitPatternByType(element)
+        return null
+    }
+
+    open fun visitPatternByType(element: CjTypePattern) {
+        super.visitPatternByType(element, null)
+    }
+
+    open fun visitPatternByWildcard(element: CjWildcardPattern) {
+        super.visitPatternByWildcard(element, null)
     }
 }

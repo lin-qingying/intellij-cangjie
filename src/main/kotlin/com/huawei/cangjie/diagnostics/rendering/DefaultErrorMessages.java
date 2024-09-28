@@ -255,6 +255,8 @@ public class DefaultErrorMessages {
         MAP.put(ENUM_ENTRY_AS_TYPE, "Use of enum entry names as types is not allowed, use enum type instead");
         MAP.put(UNSAFE_EXPRESSION_ERROR, "'unsafe' is not a lambda expression");
         MAP.put(CANNOT_INFER_PARAMETER_TYPE, "Cannot infer a type for this parameter. Please specify it explicitly.");
+        MAP.put(NO_ELSE_IN_MATCH, "''match'' expression must be exhaustive, add necessary {0}", RENDER_MATCH_MISSING_CASES);
+        MAP.put(CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON, "Cannot import-on-demand from class ''{0}''", NAMED);
 
     }
 

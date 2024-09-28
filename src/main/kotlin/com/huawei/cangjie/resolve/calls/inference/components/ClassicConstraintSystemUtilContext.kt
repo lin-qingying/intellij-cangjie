@@ -2,14 +2,12 @@ package com.huawei.cangjie.resolve.calls.inference.components
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.resolve.calls.components.CreateFreshVariablesSubstitutor.shouldBeFlexible
-import com.huawei.cangjie.resolve.calls.inference.model.FixVariableConstraintPosition
-import com.huawei.cangjie.resolve.calls.inference.model.FixVariableConstraintPositionImpl
-import com.huawei.cangjie.resolve.calls.inference.model.NewTypeVariable
-import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableFromCallableDescriptor
-import com.huawei.cangjie.resolve.calls.model.FunctionExpression
-import com.huawei.cangjie.resolve.calls.model.LambdaCangJieCallArgument
-import com.huawei.cangjie.resolve.calls.model.PostponedAtomWithRevisableExpectedType
-import com.huawei.cangjie.resolve.calls.model.ResolvedAtom
+import com.huawei.cangjie.resolve.calls.inference.components.PostponedArgumentInputTypesResolver.Companion.TYPE_VARIABLE_NAME_FOR_CR_RETURN_TYPE
+import com.huawei.cangjie.resolve.calls.inference.components.PostponedArgumentInputTypesResolver.Companion.TYPE_VARIABLE_NAME_FOR_LAMBDA_RETURN_TYPE
+import com.huawei.cangjie.resolve.calls.inference.components.PostponedArgumentInputTypesResolver.Companion.TYPE_VARIABLE_NAME_PREFIX_FOR_CR_PARAMETER_TYPE
+import com.huawei.cangjie.resolve.calls.inference.components.PostponedArgumentInputTypesResolver.Companion.TYPE_VARIABLE_NAME_PREFIX_FOR_LAMBDA_PARAMETER_TYPE
+import com.huawei.cangjie.resolve.calls.inference.model.*
+import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.model.CangJieTypeMarker
@@ -34,8 +32,22 @@ class ClassicConstraintSystemUtilContext(
         return unCaptureCangJieType().unwrap()
     }
 
+    override fun createTypeVariableForLambdaReturnType(): TypeVariableMarker {
+        return TypeVariableForLambdaReturnType(
+            builtIns,
+            TYPE_VARIABLE_NAME_FOR_LAMBDA_RETURN_TYPE
+        )
+    }
 
-override fun TypeVariableMarker.shouldBeFlexible(): Boolean {
+
+    override fun createTypeVariableForCallableReferenceReturnType(): TypeVariableMarker {
+        return TypeVariableForCallableReferenceReturnType(
+            builtIns,
+            TYPE_VARIABLE_NAME_FOR_CR_RETURN_TYPE
+        )
+    }
+
+    override fun TypeVariableMarker.shouldBeFlexible(): Boolean {
     return this is TypeVariableFromCallableDescriptor && this.originalTypeParameter.shouldBeFlexible()
 }
     override fun extractLambdaParameterTypesFromDeclaration(declaration: PostponedAtomWithRevisableExpectedType): List<CangJieTypeMarker?>? {
@@ -50,7 +62,34 @@ override fun TypeVariableMarker.shouldBeFlexible(): Boolean {
             else -> null
         }
     }
+    override fun createArgumentConstraintPosition(argument: PostponedAtomWithRevisableExpectedType): ArgumentConstraintPosition<*> {
+        require(argument is ResolvedAtom)
+        return ArgumentConstraintPositionImpl(argument.atom as CangJieCallArgument)
+    }
 
+    override fun createTypeVariableForLambdaParameterType(
+        argument: PostponedAtomWithRevisableExpectedType,
+        index: Int
+    ): TypeVariableMarker {
+        require(argument is ResolvedAtom)
+        val atom = argument.atom as PostponableCangJieCallArgument
+        return TypeVariableForLambdaParameterType(
+            atom,
+            index,
+            builtIns,
+            TYPE_VARIABLE_NAME_PREFIX_FOR_LAMBDA_PARAMETER_TYPE + (index + 1)
+        )
+    }
+
+    override fun createTypeVariableForCallableReferenceParameterType(
+        argument: PostponedAtomWithRevisableExpectedType,
+        index: Int
+    ): TypeVariableMarker {
+        return TypeVariableForCallableReferenceParameterType(
+            builtIns,
+            TYPE_VARIABLE_NAME_PREFIX_FOR_CR_PARAMETER_TYPE + (index + 1)
+        )
+    }
     override fun PostponedAtomWithRevisableExpectedType.isFunctionExpression(): Boolean {
         require(this is ResolvedAtom)
         return this.atom is FunctionExpression

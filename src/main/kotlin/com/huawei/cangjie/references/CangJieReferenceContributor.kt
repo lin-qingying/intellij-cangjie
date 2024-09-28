@@ -15,7 +15,8 @@ class CangJieReferenceContributor : CangJieReferenceProviderContributor {
             registerProvider(factory = ::CjSimpleNameReference)
             registerProvider(factory = ::CjInvokeFunctionReference)
             registerProvider(factory = ::CjConstructorDelegationReference)
-
+//            registerProvider(factory = ::CjPatternEnumReference)
+//
             registerMultiProvider<CjNameReferenceExpression> { nameReferenceExpression ->
 
                 if (nameReferenceExpression.getReferencedNameElementType() != CjTokens.IDENTIFIER) {

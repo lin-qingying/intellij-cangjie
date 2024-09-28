@@ -24,6 +24,8 @@ fun BindingTrace.recordScope(scope: LexicalScope, element: CjElement?) {
     }
 }
 
+fun CjExpression.isUsedAsResultOfLambda(context: BindingContext): Boolean = context[USED_AS_RESULT_OF_LAMBDA, this]!!
+
 fun CjExpression.getReferenceTargets(context: BindingContext): Collection<DeclarationDescriptor> {
     val targetDescriptor = if (this is CjReferenceExpression) context[REFERENCE_TARGET, this] else null
     return targetDescriptor?.let { listOf(it) } ?: context[AMBIGUOUS_REFERENCE_TARGET, this].orEmpty()
@@ -57,6 +59,10 @@ fun CjPureElement.findClassDescriptor(bindingContext: BindingContext): ClassDesc
     is PsiElement -> BindingContextUtils.getNotNull(bindingContext, CLASS, this)
 //    is SyntheticClassOrObjectDescriptor.SyntheticDeclaration -> descriptor()
     else -> throw IllegalArgumentException("$this shall be PsiElement or SyntheticClassOrObjectDescriptor.SyntheticDeclaration")
+}
+fun CjElement.recordUsedAsExpression(trace: BindingTrace, value: Boolean) {
+    if (isUsedAsExpression(trace.bindingContext)) return
+    trace.record(USED_AS_EXPRESSION, this, value)
 }
 
 fun <T : PsiElement> CjElement.getParentOfTypeCodeFragmentAware(vararg parentClasses: Class<out T>): T? {

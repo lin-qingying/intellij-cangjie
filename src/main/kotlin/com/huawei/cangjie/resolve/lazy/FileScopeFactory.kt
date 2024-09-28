@@ -41,7 +41,22 @@ class FileScopeFactory(
         analyzerServices.getDefaultImports(components.languageVersionSettings, includeLowPriorityImports = false)
             .map(::DefaultImportImpl)
 
+
+    private lateinit var enumDefualtImports: List<EnumDefualtImportImpl>
+
     private val defaultLowPriorityImports = analyzerServices.defaultLowPriorityImports.map(::DefaultImportImpl)
+
+    //    为enum进行展开
+    class EnumDefualtImportImpl(private val importPath: ImportPath) : CjImportInfo {
+        override val isAllUnder: Boolean
+            get() = true
+        override val importContent: CjImportInfo.ImportContent
+            get() = TODO("Not yet implemented")
+        override val importedFqName: FqName
+            get() = TODO("Not yet implemented")
+        override val aliasName: String
+            get() = TODO("Not yet implemented")
+    }
 
     private class DefaultImportImpl(private val importPath: ImportPath) : CjImportInfo {
         override val isAllUnder: Boolean get() = importPath.isAllUnder
@@ -79,11 +94,11 @@ class FileScopeFactory(
 
     private fun createDefaultImportResolvers(
         extraImports: Collection<CjImportInfo>,
-        aliasImportNames: Collection<FqName>
+        aliasImportNames: Collection<FqName>,
     ): DefaultImportResolvers {
         val tempTrace =
             TemporaryBindingTrace.create(bindingTrace, "Transient trace for default imports lazy resolve", false)
-        val allImplicitImports = defaultImports concat extraImports
+        val allImplicitImports = defaultImports concat extraImports/* concat enumDefualtImports*/
 
         val defaultImportsFiltered = if (aliasImportNames.isEmpty()) { // optimization
             allImplicitImports
@@ -117,7 +132,7 @@ class FileScopeFactory(
     }
 
     private val defaultImportResolvers by components.storageManager.createLazyValue {
-        createDefaultImportResolvers(emptyList(), emptyList())
+        createDefaultImportResolvers(emptyList(), emptyList() )
     }
 
     private fun createDefaultImportResolver(
@@ -213,11 +228,22 @@ class FileScopeFactory(
         private fun createDefaultImportResolversForFile(): DefaultImportResolvers {
             val extraImports = ExtraImportsProviderExtension.getInstance(file.project).getExtraImports(file)
 
+
+//查找枚举
+//            enumDefualtImports = findEnumImports()
+
+
             if (extraImports.isEmpty() && aliasImportNames.isEmpty()) {
                 return defaultImportResolvers
             }
 
-            return createDefaultImportResolvers(extraImports, aliasImportNames)
+            return createDefaultImportResolvers(extraImports, aliasImportNames )
+        }
+
+        fun findEnumImports(): List<EnumDefualtImportImpl> {
+
+
+            TODO()
         }
 
         fun createCurrentFileScope(): ImportingScope {
@@ -274,7 +300,10 @@ class FileScopeFactory(
                 return emptyList()
             }
 
-            override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
+            override fun getContributedVariables(
+                name: Name,
+                location: LookupLocation
+            ): Collection<@JvmWildcard VariableDescriptor> {
                 return emptyList()
 
             }
@@ -510,7 +539,10 @@ class FileScopeFactory(
             return scope.getExtendClass(name)
         }
 
-        override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
+        override fun getContributedVariables(
+            name: Name,
+            location: LookupLocation
+        ): Collection<@JvmWildcard VariableDescriptor> {
             if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
             if (name in excludedNames) return emptyList()
             return scope.getContributedVariables(name, location)

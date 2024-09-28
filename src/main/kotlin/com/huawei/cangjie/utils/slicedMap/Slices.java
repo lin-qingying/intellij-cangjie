@@ -82,7 +82,9 @@ public class Slices {
     public static <K, V> WritableSlice<K, V> createSimpleSlice() {
         return new BasicWritableSlice<>(ONLY_REWRITE_TO_EQUAL);
     }
-
+    public static <K> WritableSlice<K, Boolean> createSimpleSetSlice() {
+        return new SetSlice<>(RewritePolicy.DO_NOTHING);
+    }
     public static class SliceBuilder<K, V> {
         private final RewritePolicy rewritePolicy;
         private List<ReadOnlySlice<K, V>> furtherLookupSlices;

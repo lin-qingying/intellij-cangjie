@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve;
 import com.huawei.cangjie.contracts.description.EventOccurrencesRange;
 import com.huawei.cangjie.diagnostics.Diagnostics;
 import com.huawei.cangjie.name.FqNameUnsafe;
+import com.huawei.cangjie.resolve.caches.PrimitiveNumericComparisonInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.ExplicitSmartCasts;
 import com.huawei.cangjie.resolve.calls.tower.CangJieResolutionCallbacksImpl;
 
@@ -27,10 +28,7 @@ import com.huawei.cangjie.types.expressions.PreliminaryDeclarationVisitor;
 import com.huawei.cangjie.utils.Box;
 import com.huawei.cangjie.utils.ReadOnly;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
-import com.huawei.cangjie.utils.slicedMap.BasicWritableSlice;
-import com.huawei.cangjie.utils.slicedMap.ReadOnlySlice;
-import com.huawei.cangjie.utils.slicedMap.Slices;
-import com.huawei.cangjie.utils.slicedMap.WritableSlice;
+import com.huawei.cangjie.utils.slicedMap.*;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -92,6 +90,8 @@ public interface BindingContext {
     WritableSlice<CjExpression, ResolvedCall<FunctionDescriptor>> LOOP_RANGE_NEXT_RESOLVED_CALL = Slices.createSimpleSlice();
     WritableSlice<CjDestructuringDeclarationEntry, ResolvedCall<FunctionDescriptor>> COMPONENT_RESOLVED_CALL = Slices.createSimpleSlice();
     WritableSlice<CjLambdaExpression, EventOccurrencesRange> LAMBDA_INVOCATIONS = Slices.createSimpleSlice();
+    WritableSlice<CjElement, Boolean> USED_AS_RESULT_OF_LAMBDA = Slices.createSimpleSetSlice();
+    WritableSlice<CjExpression, ExplicitSmartCasts> SMARTCAST = new BasicWritableSlice<>(DO_NOTHING);
 
     WritableSlice<CjTypeReference, CangJieType> TYPE = Slices.createSimpleSlice();
     WritableSlice<DeclarationDescriptor, Multimap<String, ReceiverParameterDescriptor>> DESCRIPTOR_TO_CONTEXT_RECEIVER_MAP = Slices.createSimpleSlice();
@@ -108,6 +108,39 @@ public interface BindingContext {
     WritableSlice<FqNameUnsafe, ClassDescriptor> FQNAME_TO_CLASS_DESCRIPTOR = new BasicWritableSlice<>(DO_NOTHING, true);
     WritableSlice<CjExpression, ResolvedCall<FunctionDescriptor>> INDEXED_LVALUE_SET = Slices.createSimpleSlice();
     WritableSlice<CjExpression, ResolvedCall<FunctionDescriptor>> INDEXED_LVALUE_GET = Slices.createSimpleSlice();
+    WritableSlice<CjExpression, PrimitiveNumericComparisonInfo> PRIMITIVE_NUMERIC_COMPARISON_INFO = Slices.createSimpleSlice();
+    WritableSlice<PropertyDescriptor, Boolean> BACKING_FIELD_REQUIRED = new BasicWritableSlice<PropertyDescriptor, Boolean>(DO_NOTHING) {
+        @Override
+        public Boolean computeValue(
+                SlicedMap map,
+                PropertyDescriptor propertyDescriptor,
+                Boolean backingFieldRequired,
+                boolean valueNotFound
+        ) {
+            if (propertyDescriptor.getKind() != CallableMemberDescriptor.Kind.DECLARATION) {
+                return false;
+            }
+//            PsiElement declarationPsiElement = DescriptorToSourceUtils.descriptorToDeclaration(propertyDescriptor);
+//            if (declarationPsiElement instanceof CjParameter) {
+//                CjParameter cjParameter = (CjParameter) declarationPsiElement;
+//                return cjParameter.hasLetOrVar() ||
+//                        backingFieldRequired; // this part is unused because we do not allow access to constructor parameters in member bodies
+//            }
+//            if (propertyDescriptor.getModality() == Modality.ABSTRACT) return false;
+//            if (declarationPsiElement instanceof CjProperty  ) return false;
+//            PropertyGetterDescriptor getter = propertyDescriptor.getGetter();
+//            PropertySetterDescriptor setter = propertyDescriptor.getSetter();
+//
+//            if (getter == null) return true;
+//            if (propertyDescriptor.isVar() && setter == null) return true;
+//            if (setter != null && !DescriptorPsiUtilsKt.hasBody(setter) && setter.getModality() != Modality.ABSTRACT) return true;
+//            if (!DescriptorPsiUtilsKt.hasBody(getter) && getter.getModality() != Modality.ABSTRACT) return true;
+//
+//            return backingFieldRequired;
+            return false;
+        }
+    };
+    WritableSlice<CjMatchExpression, Boolean> IMPLICIT_EXHAUSTIVE_MATCH = Slices.createSimpleSlice();
 
     WritableSlice<CjReferenceExpression, ReceiverParameterDescriptor> THIS_REFERENCE_TARGET = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjElement, Computation> EXPRESSION_EFFECTS = Slices.createSimpleSlice();

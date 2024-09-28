@@ -226,6 +226,16 @@ fun CangJieType.isStubTypeForBuilderInference(): Boolean =
 
 fun CangJieType.isPrimitiveNumberType(): Boolean = CangJieBuiltIns.isPrimitiveType(this) && !isBoolean()
 fun CangJieType.isBoolean(): Boolean = CangJieBuiltIns.isBoolean(this)
+//fun CangJieType.isNotNullThrowable(): Boolean = CangJieBuiltIns.isThrowableOrNullableThrowable(this) && !isMarkedNullable
+fun CangJieType.isInt8() = CangJieBuiltIns.isInt8(this)
+fun CangJieType.isRune() = CangJieBuiltIns.isRune(this)
+fun CangJieType.isInt16() = CangJieBuiltIns.isInt16(this)
+fun CangJieType.isInt32() = CangJieBuiltIns.isInt32(this)
+fun CangJieType.isInt64() = CangJieBuiltIns.isInt64(this)
+fun CangJieType.isFloat16() = CangJieBuiltIns.isFloat16(this)
+fun CangJieType.isFloat32() = CangJieBuiltIns.isFloat32(this)
+fun CangJieType.isFloat64() = CangJieBuiltIns.isFloat64(this)
+
 //fun CangJieType.isUnsignedNumberType(): Boolean = UnsignedTypes.isUnsignedType(this)
 
 fun CangJieType.asTypeProjection(): TypeProjection = TypeProjectionImpl(this)
@@ -347,6 +357,9 @@ val TypeParameterDescriptor.representativeUpperBound: CangJieType
             classDescriptor.kind != ClassKind.INTERFACE && classDescriptor.kind != ClassKind.ANNOTATION_CLASS
         } ?: upperBounds.first()
     }
+
+fun CangJieType.isBooleanOrNullableBoolean(): Boolean = CangJieBuiltIns.isBooleanOrNullableBoolean(this)
+
 object TypeUtils {
 
     val DONT_CARE: SimpleType = ErrorUtils.createErrorType(ErrorTypeKind.DONT_CARE)
@@ -1029,3 +1042,4 @@ val CangJieType.classKind: ClassKind
         }
 
     }
+fun CangJieType.immediateSupertypes(): Collection<CangJieType> = TypeUtils.getImmediateSupertypes(this)

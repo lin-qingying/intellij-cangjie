@@ -19,6 +19,11 @@ interface DeclarationProvider {
     fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>>
 
     /**
+     * 获取枚举项
+     */
+    fun getEnumEntryDeclarations(name: Name): Collection<CjEnumEntry>
+
+    /**
      * 获取扩展
      */
     fun getExtendTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<CjExtend>>

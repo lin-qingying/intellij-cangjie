@@ -460,10 +460,10 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return CangJieBuiltIns.isUnit(this)
     }
 
-//    override fun CangJieTypeMarker.isBuiltinFunctionTypeOrSubtype(): Boolean {
-//        require(this is UnwrappedType, this::errorMessage)
-//        return isBuiltinFunctionalTypeOrSubtype
-//    }
+    override fun CangJieTypeMarker.isBuiltinFunctionTypeOrSubtype(): Boolean {
+        require(this is UnwrappedType, this::errorMessage)
+        return isBuiltinFunctionalTypeOrSubtype
+    }
 
     override fun createFlexibleType(lowerBound: SimpleTypeMarker, upperBound: SimpleTypeMarker): CangJieTypeMarker {
         require(lowerBound is SimpleType, this::errorMessage)
@@ -766,10 +766,10 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return CangJieBuiltIns.isPrimitiveType(this)
     }
 
-//    override fun CangJieTypeMarker.getAttributes(): List<AnnotationMarker> {
-//        require(this is CangJieType, this::errorMessage)
-//        return this.attributes.toList()
-//    }
+    override fun CangJieTypeMarker.getAttributes(): List<AnnotationMarker> {
+        require(this is CangJieType, this::errorMessage)
+        return this.attributes.toList()
+    }
 
 //    override fun CangJieTypeMarker.hasCustomAttributes(): Boolean {
 //        require(this is CangJieType, this::errorMessage)
@@ -947,10 +947,10 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 //        return this.getPureArgumentsForFunctionalTypeOrSubtype()
 //    }
 
-//    override fun CangJieTypeMarker.getFunctionTypeFromSupertypes(): CangJieTypeMarker {
-//        require(this is CangJieType)
-//        return this.extractFunctionalTypeFromSupertypes()
-//    }
+    override fun CangJieTypeMarker.getFunctionTypeFromSupertypes(): CangJieTypeMarker {
+        require(this is CangJieType)
+        return this.extractFunctionalTypeFromSupertypes()
+    }
 
     override fun CangJieTypeMarker.functionTypeKind(): FunctionTypeKind? {
         require(this is CangJieType)
@@ -972,16 +972,16 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         ).typeConstructor
     }
 
-//    override fun getReflectFunctionTypeConstructor(
-//        parametersNumber: Int,
-//        kind: FunctionTypeKind
-//    ): TypeConstructorMarker {
-//        return getCFunctionDescriptor(
-//            builtIns,
-//            parametersNumber,
-//            isSuspendFunction = kind.reflectKind() == FunctionTypeKind.CSuspendFunction
-//        ).typeConstructor
-//    }
+    override fun getReflectFunctionTypeConstructor(
+        parametersNumber: Int,
+        kind: FunctionTypeKind
+    ): TypeConstructorMarker {
+        return getFunctionDescriptor(
+            builtIns,
+            parametersNumber,
+
+        ).typeConstructor
+    }
 
     override fun createSubstitutorForSuperTypes(baseType: CangJieTypeMarker): TypeSubstitutorMarker? {
         require(baseType is CangJieType, baseType::errorMessage)

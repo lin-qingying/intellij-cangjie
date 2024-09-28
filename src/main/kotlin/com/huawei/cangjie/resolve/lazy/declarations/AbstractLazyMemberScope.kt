@@ -5,8 +5,10 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.core
 import com.huawei.cangjie.builtins.StandardNames.MAIN
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
+import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.psiUtil.findParentOfType
 import com.huawei.cangjie.resolve.calls.components.InferenceSession
 import com.huawei.cangjie.resolve.descriptorUtil.fqNameSafe
 import com.huawei.cangjie.resolve.lazy.LazyClassContext
@@ -411,20 +413,29 @@ protected constructor(
         val result = linkedSetOf<ClassDescriptor>()
 
         result.addAll(createClassDescriptor(name, declarationProvider.getTypeStatementDeclarations(name)))
-//        declarationProvider.getTypeStatementDeclarations(name).mapTo(result) {
-//            val isExternal = /*it.modifierList?.hasModifier(CjTokens.EXTERNAL_KEYWORD) ?:*/ false
-//
-//            if (it.classKind.isEnumEntry) {
-//                c.enumDescriptorResolver.resolveEnumEntryDescriptor(
-//                    c, thisDescriptor, name, it as CjEnmuEntryInfo, isExternal
-//                )
-//
-//            } else {
-//                LazyClassDescriptor(c, thisDescriptor, name, it, isExternal)
-//
-//            }
-//
-//        }
+
+
+        declarationProvider.getEnumEntryDeclarations(name).forEach {
+
+            val enum = it.findParentOfType<CjEnum>()
+            val entryName = Name.identifier(enum?.name + "")
+
+            createClassDescriptor(
+                name,
+                declarationProvider.getTypeStatementDeclarations(entryName)
+            ).forEach { classDescriptor ->
+                (classDescriptor.unsubstitutedMemberScope.getContributedClassifier(
+                    name,
+                    NoLookupLocation.FROM_IDE
+                ) as? ClassDescriptor)
+                    ?.let { enumEntryClassDescriptor ->
+                        result.add(enumEntryClassDescriptor)
+                    }
+
+            }
+
+
+        }
         getNonDeclaredClasses(name, result)
 
 

@@ -310,6 +310,6 @@ class VariableAndObjectScopeTowerProcessor<out C : Candidate>(
 
     override fun recordLookups(skippedData: Collection<TowerData>, name: Name) {
         variableProcessor.recordLookups(skippedData, name)
-//        objectProcessor.recordLookups(skippedData, name)
+        objectProcessor.recordLookups(skippedData, name)
     }
 }

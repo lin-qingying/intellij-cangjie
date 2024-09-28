@@ -51,8 +51,7 @@ import java.util.Objects;
 
 import static com.huawei.cangjie.diagnostics.Errors.*;
 import static com.huawei.cangjie.psi.CjPsiUtil.deparenthesize;
-import static com.huawei.cangjie.resolve.BindingContext.AMBIGUOUS_REFERENCE_TARGET;
-import static com.huawei.cangjie.resolve.BindingContext.VARIABLE_REASSIGNMENT;
+import static com.huawei.cangjie.resolve.BindingContext.*;
 import static com.huawei.cangjie.resolve.calls.context.ContextDependency.INDEPENDENT;
 import static com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;
 import static com.huawei.cangjie.types.util.TypeUtils.noExpectedType;
@@ -143,6 +142,7 @@ public class ExpressionTypingVisitorForStatements extends ExpressionTypingVisito
     public CangJieTypeInfo visitIfExpression(@NotNull CjIfExpression expression, ExpressionTypingContext context) {
         return controlStructures.visitIfExpression(expression, context);
     }
+
 
     @Override
     public CangJieTypeInfo visitCjElement(@NotNull CjElement element, ExpressionTypingContext context) {
@@ -500,6 +500,24 @@ public class ExpressionTypingVisitorForStatements extends ExpressionTypingVisito
         scope.addVariableDescriptor(typeInfoAndVariableDescriptor.getSecond());
         return typeInfoAndVariableDescriptor.getFirst();
     }
+
+//    @Override
+//    public CangJieTypeInfo visitPatternByBinding(@NotNull CjBindingPattern element, ExpressionTypingContext data) {
+////        Pair<CangJieTypeInfo, VariableDescriptor> typeInfoAndVariableDescriptor = components.localVariableResolver.process(element, data, scope, facade);
+////        scope.addVariableDescriptor(typeInfoAndVariableDescriptor.getSecond());
+////        return typeInfoAndVariableDescriptor.getFirst();
+//
+//        VariableDescriptor variableDescriptor = data.trace.get(VARIABLE, element);
+//
+//
+//        if (variableDescriptor == null) {
+//            return TypeInfoFactoryKt.noTypeInfo(data);
+//        } else {
+//            scope.addVariableDescriptor(variableDescriptor);
+//            return TypeInfoFactoryKt.createTypeInfo(variableDescriptor.getType());
+//        }
+//
+//    }
 
 
 }

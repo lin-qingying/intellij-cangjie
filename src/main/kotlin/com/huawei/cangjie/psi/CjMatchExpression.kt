@@ -19,10 +19,8 @@ class CjMatchExpression(node: ASTNode) : CjExpressionImpl(node) {
         get() = findChildByType(CjNodeTypes.CONDITION)
     val subjectExpression: CjExpression?
         get() = condition?.expression
-    val matchKeyword: PsiElement?
-
-
-        get() = findChildByType(CjTokens.MATCH_KEYWORD)
+    val matchKeyword: PsiElement
+        get() = findChildByType(CjTokens.MATCH_KEYWORD)!!
     val closeBrace: PsiElement?
         get() = findChildByType(CjTokens.RBRACE)
     val openBrace: PsiElement?

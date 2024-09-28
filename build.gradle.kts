@@ -275,7 +275,7 @@ val cangjie_plugin_project = project(":plugin") {
     // We need to put all plugin manifest files into single jar to make new plugin model work
     val mergePluginJarTask = task<Jar>("mergePluginJars") {
         dependsOn
-        duplicatesStrategy = DuplicatesStrategy.FAIL
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE // 避免重复文件错误
         archiveBaseName.set(basePluginArchiveName)
 
         exclude("META-INF/MANIFEST.MF")

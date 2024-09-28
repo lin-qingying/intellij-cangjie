@@ -22,6 +22,7 @@ import com.huawei.cangjie.resolve.calls.CallExpressionElement
 import com.huawei.cangjie.resolve.calls.unrollToLeftMostQualifiedExpression
 import com.huawei.cangjie.resolve.descriptorUtil.fqNameSafe
 import com.huawei.cangjie.resolve.descriptorUtil.module
+import com.huawei.cangjie.resolve.lazy.FileScopeFactory
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.receivers.*
 import com.huawei.cangjie.resolve.source.CangJieSourceElement
@@ -435,7 +436,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                 scopeForFirstPart = null, position = IMPORT
             ).classDescriptorFromTypeAlias() ?: return null
 
-            if (packageOrClassDescriptor is ClassDescriptor && packageOrClassDescriptor.kind.isObject && lastPart.expression != null) {
+            if (packageOrClassDescriptor is ClassDescriptor  && importDirective !is FileScopeFactory.EnumDefualtImportImpl/* && packageOrClassDescriptor.kind.isObject */&& lastPart.expression != null) {
                 trace.report(
                     CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON.on(
                         lastPart.expression!!,

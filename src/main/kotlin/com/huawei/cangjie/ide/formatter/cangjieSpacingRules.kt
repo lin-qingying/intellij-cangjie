@@ -677,11 +677,10 @@ fun SpacingBuilder.beforeInside(element: IElementType, tokenSet: TokenSet, spaci
 private fun excludeLambdas(parent: ASTBlock): List<TextRange> {
     val rangesToExclude = mutableListOf<TextRange>()
 //    parent.requireNode().psi.accept(object : CjTreeVisitorVoid() {
-//        override fun visitLambdaExpression(lambdaArgument: CjLambdaExpression) {
-//            super.visitLambdaExpression(lambdaArgument)
-//            rangesToExclude.add(lambdaArgument.textRange)
+//        override fun visitLambdaExpression(lambdaExpression: CjLambdaExpression) {
+//            super.visitLambdaExpression(lambdaExpression)
+//            rangesToExclude.add(lambdaExpression.textRange)
 //        }
-//
 
 //
 //        override fun visitNamedFunction(function: CjNamedFunction) {

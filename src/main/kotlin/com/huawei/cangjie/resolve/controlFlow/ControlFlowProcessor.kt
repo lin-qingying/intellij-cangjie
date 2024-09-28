@@ -10,8 +10,7 @@ import com.huawei.cangjie.contracts.description.canBeRevisited
 import com.huawei.cangjie.contracts.description.isDefinitelyVisited
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.AnonymousFunctionDescriptor
-import com.huawei.cangjie.diagnostics.Errors.BREAK_OR_CONTINUE_IN_WHEN
-import com.huawei.cangjie.diagnostics.Errors.BREAK_OR_CONTINUE_OUTSIDE_A_LOOP
+import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.lexer.CjToken
 import com.huawei.cangjie.lexer.CjTokens.*
 import com.huawei.cangjie.psi.*
@@ -27,6 +26,7 @@ import com.huawei.cangjie.resolve.calls.util.getResolvedCall
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import com.huawei.cangjie.resolve.controlFlow.pseudocode.*
 import com.huawei.cangjie.resolve.scopes.receivers.*
+import com.huawei.cangjie.types.expressions.MatchChecker
 import com.huawei.cangjie.utils.exceptions.OperatorConventions
 import com.huawei.cangjie.utils.slicedMap.ReadOnlySlice
 import com.intellij.psi.PsiElement
@@ -43,7 +43,7 @@ class ControlFlowProcessor(
     private val builder: ControlFlowBuilder = ControlFlowInstructionsGenerator()
     private fun generateImplicitReturnValue(bodyExpression: CjExpression, subroutine: CjElement) {
         val subroutineDescriptor =
-            trace.get(BindingContext.DECLARATION_TO_DESCRIPTOR, subroutine) as CallableDescriptor? ?: return
+            trace[BindingContext.DECLARATION_TO_DESCRIPTOR, subroutine] as CallableDescriptor? ?: return
 
         val returnType = subroutineDescriptor.returnType
         if (returnType != null && CangJieBuiltIns.isUnit(returnType) && subroutineDescriptor is AnonymousFunctionDescriptor) return
@@ -107,7 +107,7 @@ class ControlFlowProcessor(
 
         private val conditionVisitor = object : CjVisitorVoid() {
 
-            private fun getSubjectExpression(condition: CjMatchCondition): CjExpression? =
+            private fun getSubjectExpression(condition: CjCasePattern): CjExpression? =
                 condition.getStrictParentOfType<CjMatchExpression>()?.subjectExpression
 //
 //            override fun visitMatchConditionInRange(condition: CjMatchConditionInRange) {
@@ -131,13 +131,39 @@ class ControlFlowProcessor(
 //
 //                val subjectExpression = getSubjectExpression(condition)
 //                if (subjectExpression != null) {
-//                    // todo: this can be replaced by equals() invocation (when corresponding resolved call is recorded)
+//                    // todo: this can be replaced by equals() invocation (match corresponding resolved call is recorded)
 //                    createNonSyntheticValue(condition, MagicKind.EQUALS_IN_WHEN_CONDITION, subjectExpression, expression)
 //                } else {
 //                    copyValue(expression, condition)
 //                }
 //            }
 
+            override fun visitPatternByConstant(element: CjConstantPattern) {
+                mark(element)
+//
+                val expression = element.expression
+                generateInstructions(expression)
+
+                val subjectExpression = getSubjectExpression(element)
+                if (subjectExpression != null) {
+                    // todo: this can be replaced by equals() invocation (match corresponding resolved call is recorded)
+                    createNonSyntheticValue(element, MagicKind.EQUALS_IN_WHEN_CONDITION, subjectExpression, expression)
+                } else {
+                    copyValue(expression, element)
+                }
+            }
+
+            override fun visitPatternByBinding(element: CjBindingPattern) {
+
+            }
+
+            override fun visitPatternByWildcard(element: CjWildcardPattern) {
+
+            }
+
+            override fun visitPatternByType(element: CjTypePattern) {
+
+            }
             override fun visitCjElement(element: CjElement) {
                 throw UnsupportedOperationException("[ControlFlowProcessor] $element")
             }
@@ -405,11 +431,11 @@ class ControlFlowProcessor(
                 if (accessTarget is AccessTarget.Call) {
                     receiverValues = getReceiverValues(accessTarget.resolvedCall)
                 }
-            } else if (left is CjProperty) {
+            } else if (left is CjProperty || left is CjVariable) {
                 accessTarget = getDeclarationAccessTarget(left)
             }
 
-            if (accessTarget === AccessTarget.BlackBox && left !is CjProperty) {
+            if (accessTarget === AccessTarget.BlackBox && left !is CjProperty && left !is CjVariable) {
                 generateInstructions(left)
                 createSyntheticValue(left, MagicKind.VALUE_CONSUMER, left)
             }
@@ -1155,6 +1181,31 @@ class ControlFlowProcessor(
             return receiverExpression
         }
 
+        override fun visitVariable(variable: CjVariable) {
+            builder.declareVariable(variable)
+            val initializer = variable.initializer
+            if (initializer != null) {
+                visitAssignment(variable, getDeferredValue(initializer), variable)
+            }
+//            val delegate = variable.delegateExpression
+//            if (delegate != null) {
+//                // We do not want to have getDeferredValue(delegate) here, because delegate value will be read anyway later
+//                visitAssignment(variable, getDeferredValue(null), variable)
+//                generateInstructions(delegate)
+//                if (variable.isLocal) {
+//                    generateInitializer(variable, createSyntheticValue(variable, MagicKind.FAKE_INITIALIZER))
+//                }
+//                if (builder.getBoundValue(delegate) != null) {
+//                    createSyntheticValue(variable, MagicKind.VALUE_CONSUMER, delegate)
+//                }
+//            }
+
+//            if (CjPsiUtil.isLocal(variable)) {
+//                for (accessor in variable.accessors) {
+//                    generateInstructions(accessor)
+//                }
+//            }
+        }
 //        override fun visitProperty(property: CjProperty) {
 //            builder.declareVariable(property)
 //            val initializer = property.initializer
@@ -1258,7 +1309,7 @@ class ControlFlowProcessor(
         }
 
         override fun visitArrayAccessExpression(expression: CjArrayAccessExpression) {
-            generateArrayAccess(expression, trace.get(BindingContext.INDEXED_LVALUE_GET, expression))
+            generateArrayAccess(expression, trace[BindingContext.INDEXED_LVALUE_GET, expression])
         }
 
         override fun visitIsExpression(expression: CjIsExpression) {
@@ -1268,73 +1319,73 @@ class ControlFlowProcessor(
             createNonSyntheticValue(expression, MagicKind.IS, left)
         }
 
-//        override fun visitMatchExpression(expression: CjMatchExpression) {
-//            mark(expression)
-//
-//            val subjectExpression = expression.subjectExpression
-//            if (subjectExpression != null) {
-//                generateInstructions(subjectExpression)
-//            }
-//
-//            val branches = java.util.ArrayList<CjExpression>()
-//
-//            val doneLabel = builder.createUnboundLabel("after 'match' expression")
-//
-//            var nextLabel: Label? = null
-//            val iterator = expression.entries.iterator()
-//            while (iterator.hasNext()) {
-//                val whenEntry = iterator.next()
-//                mark(whenEntry)
-//
-//                val isElse = whenEntry.isElse
-//                if (isElse) {
-//                    if (iterator.hasNext()) {
-//                        trace.report(ELSE_MISPLACED_IN_WHEN.on(whenEntry))
-//                    }
-//                }
-//                val bodyLabel = builder.createUnboundLabel("'when' entry body")
-//
-//                val conditions = whenEntry.conditions
-//                for (i in conditions.indices) {
-//                    val condition = conditions[i]
-//                    condition.accept(conditionVisitor)
-//                    if (i + 1 < conditions.size) {
-//                        builder.nondeterministicJump(bodyLabel, expression, builder.getBoundValue(condition))
-//                    }
-//                }
-//
-//                if (!isElse) {
-//                    nextLabel = builder.createUnboundLabel("next 'when' entry")
-//                    val lastCondition = conditions.lastOrNull()
-//                    builder.nondeterministicJump(nextLabel, expression, builder.getBoundValue(lastCondition))
-//                }
-//
-//                builder.bindLabel(bodyLabel)
-//                val whenEntryExpression = whenEntry.expression
-//                if (whenEntryExpression != null) {
-//                    generateInstructions(whenEntryExpression)
-//                    branches.add(whenEntryExpression)
-//                }
-//                builder.jump(doneLabel, expression)
-//
-//                if (!isElse && nextLabel != null) {
-//                    builder.bindLabel(nextLabel)
-//                    // For the last entry of exhaustive when,
-//                    // attempt to jump further should lead to error, not to "done"
-//                    if (!iterator.hasNext() && MatchChecker.isMatchExhaustive(expression, trace)) {
-//                        builder.magic(expression, null, emptyList(), MagicKind.EXHAUSTIVE_WHEN_ELSE)
-//                    }
-//                }
-//            }
-//            builder.bindLabel(doneLabel)
-//
-//            mergeValues(branches, expression)
-//            MatchChecker.checkDuplicatedLabels(
-//                expression,
-//                trace,
-//                languageVersionSettings
-//            )
-//        }
+        override fun visitMatchExpression(expression: CjMatchExpression) {
+            mark(expression)
+
+            val subjectExpression = expression.subjectExpression
+            if (subjectExpression != null) {
+                generateInstructions(subjectExpression)
+            }
+
+            val branches = ArrayList<CjExpression>()
+
+            val doneLabel = builder.createUnboundLabel("after 'match' expression")
+
+            var nextLabel: Label? = null
+            val iterator = expression.entries.iterator()
+            while (iterator.hasNext()) {
+                val matchEntry = iterator.next()
+                mark(matchEntry)
+
+                val isElse = matchEntry.isElse
+                if (isElse) {
+                    if (iterator.hasNext()) {
+                        trace.report(ELSE_MISPLACED_IN_MATCH.on(matchEntry))
+                    }
+                }
+                val bodyLabel = builder.createUnboundLabel("'when' entry body")
+
+                val conditions = matchEntry.conditions
+                for (i in conditions.indices) {
+                    val condition = conditions[i]
+                    condition.accept(conditionVisitor)
+                    if (i + 1 < conditions.size) {
+                        builder.nondeterministicJump(bodyLabel, expression, builder.getBoundValue(condition))
+                    }
+                }
+
+                if (!isElse) {
+                    nextLabel = builder.createUnboundLabel("next 'match' entry")
+                    val lastCondition = conditions.lastOrNull()
+                    builder.nondeterministicJump(nextLabel, expression, builder.getBoundValue(lastCondition))
+                }
+
+                builder.bindLabel(bodyLabel)
+                val matchEntryExpression = matchEntry.expression
+                if (matchEntryExpression != null) {
+                    generateInstructions(matchEntryExpression)
+                    branches.add(matchEntryExpression)
+                }
+                builder.jump(doneLabel, expression)
+
+                if (!isElse && nextLabel != null) {
+                    builder.bindLabel(nextLabel)
+                    // For the last entry of exhaustive match,
+                    // attempt to jump further should lead to error, not to "done"
+                    if (!iterator.hasNext() && MatchChecker.isMatchExhaustive(expression, trace)) {
+                        builder.magic(expression, null, emptyList(), MagicKind.EXHAUSTIVE_MATCH_ELSE)
+                    }
+                }
+            }
+            builder.bindLabel(doneLabel)
+
+            mergeValues(branches, expression)
+            MatchChecker.checkDuplicatedLabels(
+                expression,
+                trace,
+                languageVersionSettings
+            )
+        }
 
 
         override fun visitStringTemplateExpression(expression: CjStringTemplateExpression) {

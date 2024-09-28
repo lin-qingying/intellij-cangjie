@@ -1,5 +1,9 @@
 package com.huawei.cangjie.types.expressions
 
+import com.huawei.cangjie.psi.CjElement
+import com.huawei.cangjie.resolve.calls.context.ResolutionContext
+import com.intellij.psi.PsiElement
+
 enum class ProcessingMode {
     CHILD,       // 子类处理
 
@@ -10,10 +14,11 @@ enum class ProcessingMode {
 data class ContextConfig(
     val processingMode: ProcessingMode = ProcessingMode.DEFAULT,
 
+    ) {
+    var addVariableDescriptor: MutableMap<PsiElement, (context: Any) -> Unit> = mutableMapOf()
 
-)
-{
-    companion object{
+
+    companion object {
         @JvmField
         val DEFAULT = ContextConfig()
     }

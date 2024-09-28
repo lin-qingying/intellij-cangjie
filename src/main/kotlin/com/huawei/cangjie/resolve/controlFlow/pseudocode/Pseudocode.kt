@@ -245,7 +245,7 @@ class PseudocodeImpl(override val correspondingElement: CjElement, override val 
         traverseFollowingInstructions(
             enterInstruction, reachableFromThisPseudocode, TraversalOrder.FORWARD
         ) { instruction ->
-            if (instruction is MagicInstruction && instruction.kind === MagicKind.EXHAUSTIVE_WHEN_ELSE) {
+            if (instruction is MagicInstruction && instruction.kind === MagicKind.EXHAUSTIVE_MATCH_ELSE) {
                 return@traverseFollowingInstructions TraverseInstructionResult.SKIP
             }
             TraverseInstructionResult.CONTINUE

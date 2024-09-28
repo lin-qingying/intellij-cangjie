@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.calls.inference.components
 import com.huawei.cangjie.resolve.calls.inference.model.Constraint
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintKind
 import com.huawei.cangjie.types.model.CangJieTypeMarker
+import com.huawei.cangjie.types.model.SimpleTypeMarker
 import com.huawei.cangjie.types.model.TypeSystemInferenceExtensionContext
 import com.huawei.cangjie.types.model.TypeSystemInferenceExtensionContextDelegate
 
@@ -26,4 +27,39 @@ class TrivialConstraintTypeInferenceOracle private constructor(context: TypeSyst
     ): Boolean {
         return !resultType.typeConstructor().isNothingConstructor() || (/*isK2 &&*/ resultType.isDynamic())
     }
+    private fun CangJieTypeMarker.isNothingOrNullableNothing(): Boolean =
+        typeConstructor().isNothingConstructor()
+
+
+    // It's possible to generate Nothing-like constraints inside incorporation mechanism:
+    // For instance, when two type variables are in subtyping relation `T <: K`, after incorporation
+    // there will be constraint `approximation(out K) <: K` => `Nothing <: K`, which is innocent
+    // but can change result of the constraint system.
+    // Therefore, here we avoid adding such trivial constraints to have stable constraint system
+    fun isGeneratedConstraintTrivial(
+        baseConstraint: Constraint,
+        otherConstraint: Constraint,
+        generatedConstraintType: CangJieTypeMarker,
+        isSubtype: Boolean
+    ): Boolean {
+        if (isSubtype && (generatedConstraintType.isNothing() || generatedConstraintType.isFlexibleNothing())) return true
+        if (!isSubtype && generatedConstraintType.isNullableAny()) return true
+
+        // If types from constraints that will be used to generate new constraint already contains `Nothing(?)`,
+        // then we can't decide that resulting constraint will be useless
+        if (baseConstraint.type.contains { it.isNothingOrNullableNothing() }) return false
+        if (otherConstraint.type.contains { it.isNothingOrNullableNothing() }) return false
+
+        // It's important to preserve constraints with nullable Nothing: `Nothing? <: T` (see implicitNothingConstraintFromReturn.kt test)
+        if (generatedConstraintType.containsOnlyNonNullableNothing()) return true
+
+        return false
+    }
+
+
+    private fun CangJieTypeMarker.containsOnlyNonNullableNothing(): Boolean =
+        contains {
+            (it.isNothing() || it.isFlexibleNothing()) &&
+                    !(it is SimpleTypeMarker && it.typeConstructor().isNothingConstructor() && it.isMarkedNullable())
+        }
 }

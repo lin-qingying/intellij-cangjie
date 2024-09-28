@@ -1,26 +1,43 @@
 package com.huawei.cangjie.types.expressions
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.diagnostics.Errors
+import com.huawei.cangjie.descriptors.ClassDescriptor
+import com.huawei.cangjie.descriptors.ClassKind
 import com.huawei.cangjie.diagnostics.Errors.*
+import com.huawei.cangjie.diagnostics.MatchMissingCase
+import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext
+import com.huawei.cangjie.resolve.BindingContext.SMARTCAST
 import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.TypeResolutionContext
+import com.huawei.cangjie.resolve.caches.PrimitiveNumericComparisonCallChecker
 import com.huawei.cangjie.resolve.calls.checkers.RttiExpressionInformation
 import com.huawei.cangjie.resolve.calls.checkers.RttiOperation
 import com.huawei.cangjie.resolve.calls.context.ContextDependency
 import com.huawei.cangjie.resolve.calls.smartcasts.ConditionalDataFlowInfo
+import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValue
+import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
+import com.huawei.cangjie.resolve.calls.util.CallMaker
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
+import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
+import com.huawei.cangjie.types.error.ErrorTypeKind
+import com.huawei.cangjie.types.expressions.ControlStructureTypingUtils.Companion.createCallForSpecialConstruction
+import com.huawei.cangjie.types.expressions.ControlStructureTypingUtils.Companion.createDataFlowInfoForArgumentsOfMatchCall
+import com.huawei.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.huawei.cangjie.types.util.containsError
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo
 import com.intellij.psi.PsiElement
+import java.util.*
 
 class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTypingInternals) :
     ExpressionTypingVisitor(facade) {
@@ -44,15 +61,341 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
         components.dataFlowAnalyzer.recordExpectedType(trace, expression, contextWithExpectedType.expectedType)
         val contextBeforeSubject =
-            contextWithExpectedType.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(ContextDependency.INDEPENDENT)
+            contextWithExpectedType.replaceExpectedType(NO_EXPECTED_TYPE)
+                .replaceContextDependency(ContextDependency.INDEPENDENT)
 
-        val subjectExpression = expression.subjectExpression
 
 //根据match标头中的绑定值更改范围
+        val subjectExpression = expression.subjectExpression
 
-        TODO()
+        val subject = when {
+
+            subjectExpression != null ->
+                Subject.Expression(
+                    subjectExpression,
+                    facade.getTypeInfo(subjectExpression, contextBeforeSubject),
+                    components.dataFlowValueFactory
+                )
+
+            else ->
+                Subject.None()
+        }
+
+        val contextAfterSubject = run {
+            var result = contextBeforeSubject
+            subject.scopeWithSubject?.let { result = result.replaceScope(it) }
+            subject.dataFlowInfo?.let { result = result.replaceDataFlowInfo(it) }
+            result
+        }
+        val contextWithExpectedTypeAndSubjectVariable =
+            subject.scopeWithSubject?.let { contextWithExpectedType.replaceScope(it) } ?: contextWithExpectedType
+        subject.initDataFlowValue(contextAfterSubject, components.builtIns)
+        val possibleTypesForSubject =
+            subject.typeInfo?.dataFlowInfo?.getStableTypes(subject.dataFlowValue, components.languageVersionSettings)
+                ?: emptySet()
+
+//        checkSmartCastsInSubjectIfRequired(expression, contextBeforeSubject, subject.type, possibleTypesForSubject)
+
+
+        val dataFlowInfoForEntries = analyzeConditionsInMatchEntries(expression, contextAfterSubject, subject)
+        val matchReturnType = inferTypeForMatchExpression(
+            expression,
+            subject,
+            contextWithExpectedTypeAndSubjectVariable,
+            contextAfterSubject,
+            dataFlowInfoForEntries
+        )
+        val matchResultValue =
+            matchReturnType?.let {
+                facade.components.dataFlowValueFactory.createDataFlowValue(
+                    expression,
+                    it,
+                    contextAfterSubject
+                )
+            }
+
+//        val branchesTypeInfo =
+//            joinMatchExpressionBranches(expression, contextAfterSubject, matchReturnType, subject.jumpOutPossible, matchResultValue)
+//
+//        val isExhaustive = MatchChecker.isMatchExhaustive(expression, trace)
+//
+//        val branchesDataFlowInfo = branchesTypeInfo.dataFlowInfo
+//        val resultDataFlowInfo = if (expression.elseExpression == null && !isExhaustive) {
+//            // Without else expression in non-exhaustive when, we *must* take initial data flow info into account,
+//            // because data flow can bypass all when branches in this case
+//            branchesDataFlowInfo.or(contextAfterSubject.dataFlowInfo)
+//        } else {
+//            branchesDataFlowInfo
+//        }
+//
+//        if (matchReturnType != null && isExhaustive && expression.elseExpression == null && KotlinBuiltIns.isNothing(whenReturnType)) {
+//            trace.record(BindingContext.IMPLICIT_EXHAUSTIVE_WHEN, expression)
+//        }
+//
+//        val branchesType = branchesTypeInfo.type ?: return noTypeInfo(resultDataFlowInfo)
+//        val resultType = components.dataFlowAnalyzer.checkType(branchesType, expression, contextWithExpectedType)
+//
+//        ConfusingMatchBranchSyntaxChecker.check(expression, contextWithExpectedType.languageVersionSettings, trace)
+//
+//        return createTypeInfo(resultType, resultDataFlowInfo, branchesTypeInfo.jumpOutPossible, contextWithExpectedType.dataFlowInfo)
+
+        return createTypeInfo(null)
     }
 
+    private fun inferTypeForMatchExpression(
+        expression: CjMatchExpression,
+        subject: Subject,
+        contextWithExpectedType: ExpressionTypingContext,
+        contextAfterSubject: ExpressionTypingContext,
+        dataFlowInfoForEntries: List<DataFlowInfo>
+    ): CangJieType? {
+        if (expression.entries.all { it.expression == null }) {
+            return components.builtIns.unitType
+        }
+
+        val wrappedArgumentExpressions = wrapMatchEntryExpressionsAsSpecialCallArguments(expression)
+        val callForMatch = createCallForSpecialConstruction(
+            expression,
+            subject.getCalleeExpressionForSpecialCall() ?: expression,
+            wrappedArgumentExpressions
+        )
+        val dataFlowInfoForArguments = createDataFlowInfoForArgumentsOfMatchCall(
+            callForMatch, contextAfterSubject.dataFlowInfo, dataFlowInfoForEntries
+        )
+
+        val resolvedCall = components.controlStructureTypingUtils.resolveSpecialConstructionAsCall(
+            callForMatch,
+            ControlStructureTypingUtils.ResolveConstruct.MATCH,
+            object : AbstractList<String>() {
+                override fun get(index: Int): String = "entry$index"
+                override val size: Int get() = wrappedArgumentExpressions.size
+            },
+            Collections.nCopies(wrappedArgumentExpressions.size, false),
+            contextWithExpectedType,
+            dataFlowInfoForArguments
+        )
+
+        return resolvedCall.resultingDescriptor.returnType
+    }
+
+    private fun wrapMatchEntryExpressionsAsSpecialCallArguments(expression: CjMatchExpression): List<CjExpression> {
+        val psiFactory = CjPsiFactory(expression.project)
+        return expression.entries.mapNotNull { matchEntry ->
+            matchEntry.expression?.let { psiFactory.wrapInABlockWrapper(it) }
+        }
+    }
+
+    private fun noChange(context: ExpressionTypingContext) = ConditionalDataFlowInfo(context.dataFlowInfo)
+
+    private fun checkCasePattern(
+        subject: Subject,
+        condition: CjCasePattern,
+        context: ExpressionTypingContext
+    ): ConditionalDataFlowInfo {
+        var newDataFlowInfo = noChange(context)
+
+
+        condition.accept(object : CjVisitorVoid() {
+
+            override fun visitPatternByType(element: CjTypePattern) {
+                val type =
+                    element.typeReference?.let {
+                        components.typeResolver.resolveType(
+                            context.scope,
+                            it, context.trace, false
+                        )
+                    }
+
+                val redeclarationChecker =
+                    TraceBasedLocalRedeclarationChecker(
+                        context.trace,
+                        this@PatternMatchingTypingVisitor.components.overloadChecker
+                    )
+                val scope = LexicalWritableScope(
+                    context.scope, context.scope.ownerDescriptor, false, redeclarationChecker,
+                    LexicalScopeKind.CODE_BLOCK
+                )
+                val variable = components.localVariableResolver.resolveLocalVariableDescriptorWithType(
+                    scope, element, type, context.trace
+                )
+//                if (context.scope is LexicalWritableScope) {
+//                    (context.scope as LexicalWritableScope).addVariableDescriptor(variable)
+//                }
+                element.parent?.let {
+                    context.config.addVariableDescriptor[it] = { scope ->
+                        scope as LexicalWritableScope
+                        scope.addVariableDescriptor(variable)
+                    }
+
+                }
+            }
+
+            //            绑定模式  生成变量  TODO 与枚举模式混淆
+            override fun visitPatternByBinding(element: CjBindingPattern) {
+
+
+//
+                val classDescriptor =
+                    context.scope.findClassifier(Name.identifier(element.text), NoLookupLocation.FROM_PACKAGE)
+
+                if (classDescriptor != null && classDescriptor is LazyEnumEntryDescriptor) {
+//                        优先使用enum枚举覆盖
+
+                } else {
+                    val redeclarationChecker =
+                        TraceBasedLocalRedeclarationChecker(
+                            context.trace,
+                            this@PatternMatchingTypingVisitor.components.overloadChecker
+                        )
+                    val scope = LexicalWritableScope(
+                        context.scope, context.scope.ownerDescriptor, false, redeclarationChecker,
+                        LexicalScopeKind.CODE_BLOCK
+                    )
+                    val variable = components.localVariableResolver.resolveLocalVariableDescriptorWithType(
+                        scope, element, subject.type, context.trace
+                    )
+//                if (context.scope is LexicalWritableScope) {
+//                    (context.scope as LexicalWritableScope).addVariableDescriptor(variable)
+//                }
+                    element.parent?.let {
+                        context.config.addVariableDescriptor[it] = { scope ->
+                            scope as LexicalWritableScope
+                            scope.addVariableDescriptor(variable)
+                        }
+
+                    }
+                }
+            }
+
+            override fun visitPatternByConstant(element: CjConstantPattern) {
+
+//                常量模式，当作表达式检查
+
+                val expression = element.expression ?: return
+
+                val basicDataFlowInfo =
+                    checkTypeForExpressionCondition(context, expression, subject)
+                val moduleDescriptor = DescriptorUtils.getContainingModule(context.scope.ownerDescriptor)
+                val dataFlowInfoFromES =
+                    components.effectSystem.getDataFlowInfoMatchEquals(
+                        subject.valueExpression,
+                        expression,
+                        context.trace,
+                        moduleDescriptor
+                    )
+                newDataFlowInfo = basicDataFlowInfo.and(dataFlowInfoFromES)
+
+            }
+
+        })
+        return newDataFlowInfo
+
+    }
+
+
+    private fun analyzeMatchEntryConditions(
+        matchEntry: CjMatchEntry,
+        context: ExpressionTypingContext,
+        subject: Subject
+    ): ConditionalDataFlowInfo {
+        if (matchEntry.isElse) {
+            return ConditionalDataFlowInfo(context.dataFlowInfo)
+        }
+
+        var entryInfo: ConditionalDataFlowInfo? = null
+        var contextForCondition = context
+        for (condition in matchEntry.conditions) {
+            val conditionInfo = checkCasePattern(subject, condition, contextForCondition)
+            entryInfo = entryInfo?.let {
+                ConditionalDataFlowInfo(it.thenInfo.or(conditionInfo.thenInfo), it.elseInfo.and(conditionInfo.elseInfo))
+            } ?: conditionInfo
+
+            contextForCondition = contextForCondition.replaceDataFlowInfo(conditionInfo.elseInfo)
+        }
+
+        return entryInfo ?: ConditionalDataFlowInfo(context.dataFlowInfo)
+    }
+
+    private fun analyzeConditionsInMatchEntries(
+        expression: CjMatchExpression,
+        contextAfterSubject: ExpressionTypingContext,
+        subject: Subject
+    ): ArrayList<DataFlowInfo> {
+        val argumentDataFlowInfos = ArrayList<DataFlowInfo>()
+        var inputDataFlowInfo = contextAfterSubject.dataFlowInfo
+        for (matchEntry in expression.entries) {
+            val conditionsInfo = analyzeMatchEntryConditions(
+                matchEntry,
+                contextAfterSubject.replaceDataFlowInfo(inputDataFlowInfo),
+                subject
+            )
+            inputDataFlowInfo = inputDataFlowInfo.and(conditionsInfo.elseInfo)
+
+            if (matchEntry.expression != null) {
+                argumentDataFlowInfos.add(conditionsInfo.thenInfo)
+            }
+        }
+        return argumentDataFlowInfos
+    }
+
+    //    类型只能转换
+    private fun checkSmartCastsInSubjectIfRequired(
+        expression: CjMatchExpression,
+        contextBeforeSubject: ExpressionTypingContext,
+        subjectType: CangJieType,
+        possibleTypesForSubject: Set<CangJieType>
+    ) {
+
+    }
+
+    private abstract class Subject(
+        val element: CjElement?,
+        val typeInfo: CangJieTypeInfo?,
+        val scopeWithSubject: LexicalScope?,
+        val type: CangJieType = typeInfo?.type ?: ErrorUtils.createErrorType(ErrorTypeKind.UNKNOWN_TYPE)
+    ) {
+        protected abstract fun createDataFlowValue(
+            contextAfterSubject: ExpressionTypingContext,
+            builtIns: CangJieBuiltIns
+        ): DataFlowValue
+
+        abstract fun makeValueArgument(): ValueArgument?
+        abstract val valueExpression: CjExpression?
+        open fun getCalleeExpressionForSpecialCall(): CjExpression? = null
+        lateinit var dataFlowValue: DataFlowValue; private set
+        fun initDataFlowValue(contextAfterSubject: ExpressionTypingContext, builtIns: CangJieBuiltIns) {
+            dataFlowValue = createDataFlowValue(contextAfterSubject, builtIns)
+        }
+
+        val dataFlowInfo get() = typeInfo?.dataFlowInfo
+
+        val jumpOutPossible get() = typeInfo?.jumpOutPossible ?: false
+
+        class None : Subject(null, null, null) {
+            override fun createDataFlowValue(contextAfterSubject: ExpressionTypingContext, builtIns: CangJieBuiltIns) =
+                DataFlowValue.nullValue(builtIns)
+
+            override fun makeValueArgument(): ValueArgument? = null
+
+            override val valueExpression: CjExpression? get() = null
+        }
+
+        class Expression(
+            val expression: CjExpression,
+            typeInfo: CangJieTypeInfo,
+            private val dataFlowValueFactory: DataFlowValueFactory
+        ) : Subject(expression, typeInfo, null) {
+            override fun createDataFlowValue(contextAfterSubject: ExpressionTypingContext, builtIns: CangJieBuiltIns) =
+                dataFlowValueFactory.createDataFlowValue(expression, type, contextAfterSubject)
+
+            override fun makeValueArgument(): ValueArgument =
+                CallMaker.makeExternalValueArgument(expression)
+
+            override val valueExpression: CjExpression
+                get() = expression
+        }
+
+    }
 
     private fun checkTypeForIs(
         context: ExpressionTypingContext,
@@ -210,18 +553,82 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         return resultTypeInfo
     }
 
-    /*
-       * (a: SubjectType) is Type
-       */
+    private fun checkTypeForExpressionCondition(
+        context: ExpressionTypingContext,
+        expression: CjExpression,
+        subject: Subject
+    ): ConditionalDataFlowInfo {
+        var newContext = context
+        val typeInfo = facade.getTypeInfo(expression, newContext)
+        val type = typeInfo.type ?: return noChange(newContext)
+        newContext = newContext.replaceDataFlowInfo(typeInfo.dataFlowInfo)
+
+        if (subject is Subject.None) { // condition expected
+            val booleanType = components.builtIns.boolType
+            val checkedTypeInfo =
+                components.dataFlowAnalyzer.checkType(typeInfo, expression, newContext.replaceExpectedType(booleanType))
+            if (CangJieTypeChecker.DEFAULT.equalTypes(booleanType, checkedTypeInfo.type ?: type)) {
+                val ifInfo = components.dataFlowAnalyzer.extractDataFlowInfoFromCondition(expression, true, newContext)
+                val elseInfo =
+                    components.dataFlowAnalyzer.extractDataFlowInfoFromCondition(expression, false, newContext)
+                return ConditionalDataFlowInfo(ifInfo, elseInfo)
+            }
+            return noChange(newContext)
+        }
+
+        checkTypeCompatibility(newContext, type, subject.type, expression, true)
+        val expressionDataFlowValue =
+            facade.components.dataFlowValueFactory.createDataFlowValue(expression, type, newContext)
+
+        val subjectStableTypes =
+            listOf(subject.type) + context.dataFlowInfo.getStableTypes(
+                subject.dataFlowValue,
+                components.languageVersionSettings
+            )
+        val expressionStableTypes =
+            listOf(type) + newContext.dataFlowInfo.getStableTypes(
+                expressionDataFlowValue,
+                components.languageVersionSettings
+            )
+        PrimitiveNumericComparisonCallChecker.inferPrimitiveNumericComparisonType(
+            context.trace,
+            subjectStableTypes,
+            expressionStableTypes,
+            expression
+        )
+
+        val result = noChange(newContext)
+        return ConditionalDataFlowInfo(
+            result.thenInfo.equate(
+                subject.dataFlowValue, expressionDataFlowValue,
+                identityEquals = facade.components.dataFlowAnalyzer.typeHasEqualsFromAny(subject.type, expression),
+                languageVersionSettings = components.languageVersionSettings
+            ),
+            result.elseInfo.disequate(
+                subject.dataFlowValue,
+                expressionDataFlowValue,
+                components.languageVersionSettings
+            )
+        )
+    }
+
+    /**
+     * 检查类型兼容
+     * (a: SubjectType) is Type
+     */
     private fun checkTypeCompatibility(
         context: ExpressionTypingContext,
         type: CangJieType,
         subjectType: CangJieType,
-        reportErrorOn: CjElement
+        reportErrorOn: CjElement,
+        isReportError: Boolean = false
     ): Boolean {
         // TODO : Take smart casts into account?
         if (TypeIntersector.isIntersectionEmpty(type, subjectType)) {
-//            context.trace.report(INCOMPATIBLE_TYPES.on(reportErrorOn, type, subjectType))
+            if (isReportError) {
+                context.trace.report(INCOMPATIBLE_TYPES.on(reportErrorOn, type, subjectType))
+
+            }
 //            context.trace.report(USELESS_IS_CHECK.on(reportErrorOn, false))
 
             return false
@@ -237,14 +644,90 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
     }
 }
 
+private interface MatchExhaustivenessChecker {
+    fun getMissingCases(
+        expression: CjMatchExpression,
+        context: BindingContext,
+        subjectDescriptor: ClassDescriptor?,
+        nullable: Boolean
+    ): List<MatchMissingCase>
+
+    fun isApplicable(subjectType: CangJieType): Boolean = false
+}
 
 object MatchChecker {
+    @JvmStatic
+    fun getClassDescriptorOfTypeIfSealed(type: CangJieType?): ClassDescriptor? =
+        type?.let { TypeUtils.getClassDescriptor(it) }?.takeIf { DescriptorUtils.isSealedClass(it) }
+
+    @JvmStatic
+    fun getClassDescriptorOfTypeIfEnum(type: CangJieType?): ClassDescriptor? {
+        if (type == null) return null
+        val classDescriptor = TypeUtils.getClassDescriptor(type) ?: return null
+        if (classDescriptor.kind != ClassKind.ENUM) return null
+
+        return classDescriptor
+    }
+
+    @JvmStatic
+    fun matchSubjectType(expression: CjMatchExpression, context: BindingContext): CangJieType? {
+//        val subjectVariable = expression.subjectVariable
+        val subjectExpression = expression.subjectExpression
+        return when {
+//            subjectVariable != null -> context.get(VARIABLE, subjectVariable)?.type
+            subjectExpression != null -> context.get(SMARTCAST, subjectExpression)?.defaultType ?: context.getType(
+                subjectExpression
+            )
+
+            else -> null
+        }
+    }
+
+    private val exhaustivenessCheckers: List<MatchExhaustivenessChecker> = listOf(
+//        MatchOnBooleanExhaustivenessChecker,
+//        MatchOnEnumExhaustivenessChecker,
+//        MatchOnSealedExhaustivenessChecker
+    )
+
+    fun getMissingCases(expression: CjMatchExpression, context: BindingContext): List<MatchMissingCase> {
+        val type = MatchSubjectType(expression, context) ?: return listOf(MatchMissingCase.Unknown)
+        val nullable = type.isMarkedOption
+        val checkers = exhaustivenessCheckers.filter { it.isApplicable(type) }
+        if (checkers.isEmpty()) return listOf(MatchMissingCase.Unknown)
+        return checkers.map { it.getMissingCases(expression, context, TypeUtils.getClassDescriptor(type), nullable) }
+            .flatten()
+    }
+
+
+    @JvmStatic
+    fun MatchSubjectType(expression: CjMatchExpression, context: BindingContext): CangJieType? {
+//        val subjectVariable = expression.subjectVariable
+        val subjectExpression = expression.subjectExpression
+        return when {
+//            subjectVariable != null -> context.get(VARIABLE, subjectVariable)?.type
+            subjectExpression != null -> context.get(SMARTCAST, subjectExpression)?.defaultType ?: context.getType(
+                subjectExpression
+            )
+
+            else -> null
+        }
+    }
+
+    @JvmStatic
+    fun isMatchExhaustive(expression: CjMatchExpression, trace: BindingTrace) = false
+
+    //        if (getMissingCases(expression, trace.bindingContext).isEmpty()) {
+//            trace.record(BindingContext.EXHAUSTIVE_WHEN, expression)
+//            true
+//        } else {
+//            false
+//        }
     //    检查没有条件的match表达式的语法  match{}
     fun checkDeprecatedMatchSyntax(trace: BindingTrace, expression: CjMatchExpression) {
         if (expression.subjectExpression != null) return
 
         for (entry in expression.entries) {
-            if (entry.is_()) continue
+            if (entry.isElse) continue
             var child: PsiElement? = entry.firstChild
             while (child != null) {
                 if (child.node.elementType === CjTokens.OR) {
@@ -254,6 +737,77 @@ object MatchChecker {
                 child = child.nextSibling
             }
         }
+    }
+
+    fun checkDuplicatedLabels(
+        expression: CjMatchExpression,
+        trace: BindingTrace,
+        languageVersionSettings: LanguageVersionSettings,
+    ) {
+//        if (expression.subjectExpression == null) return
+//
+//        val checkedTypes = HashSet<Pair<CangJieType, Boolean>>()
+//        val checkedConstants = mutableMapOf<CompileTimeConstant<*>, Boolean>()
+//        val notTrivialBranches = mutableMapOf<CompileTimeConstant<*>, CjExpression>()
+//        for (entry in expression.entries) {
+//            if (entry.isElse) continue
+//
+//            conditions@ for (condition in entry.conditions) {
+//                when (condition) {
+//                    is CjMatchConditionWithExpression -> {
+//                        val constantExpression = condition.expression ?: continue@conditions
+//                        val constant = ConstantExpressionEvaluator.getConstant(
+//                            constantExpression, trace.bindingContext
+//                        ) ?: continue@conditions
+//
+//                        fun report(reportOn: CjExpression) {
+//                            trace.report(Errors.DUPLICATE_LABEL_IN_MATCH.on(reportOn))
+//                        }
+//
+//                        when (checkedConstants[constant]) {
+//                            true -> {
+//                                // already found trivial constant in previous branches
+//                                report(constantExpression)
+//                            }
+//                            false -> {
+//                                // already found bad constant in previous branches
+//                                val isTrivial = constant.isTrivial(constantExpression, languageVersionSettings)
+//                                if (isTrivial) {
+//                                    // this constant is trivial -> report on first non trivial constant
+//                                    val reportOn = notTrivialBranches.remove(constant)!!
+//                                    report(reportOn)
+//                                    checkedConstants[constant] = true
+//                                } else {
+//                                    // this constant is also not trivial -> report on it
+//                                    report(constantExpression)
+//                                }
+//                            }
+//                            null -> {
+//                                // met constant for a first time
+//                                val isTrivial = constant.isTrivial(constantExpression, languageVersionSettings)
+//                                checkedConstants[constant] = isTrivial
+//                                if (!isTrivial) {
+//                                    notTrivialBranches[constant] = constantExpression
+//                                }
+//                            }
+//                        }
+//
+//                    }
+//                    is CjMatchConditionIsPattern -> {
+//                        val typeReference = condition.typeReference ?: continue@conditions
+//                        val type = trace.get(BindingContext.TYPE, typeReference) ?: continue@conditions
+//                        val typeWithIsNegation = type to condition.isNegated
+//                        if (checkedTypes.contains(typeWithIsNegation)) {
+//                            trace.report(Errors.DUPLICATE_LABEL_IN_WHEN.on(typeReference))
+//                        } else {
+//                            checkedTypes.add(typeWithIsNegation)
+//                        }
+//                    }
+//                    else -> {
+//                    }
+//                }
+//            }
+//        }
     }
 
 }

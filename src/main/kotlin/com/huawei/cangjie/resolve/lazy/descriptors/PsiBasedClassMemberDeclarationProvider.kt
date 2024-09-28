@@ -144,6 +144,9 @@ is CjMainFunction ->
     override fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>> =
         index().classesAndObjects[name.safeNameForLazyResolve()]
 
+    override fun getEnumEntryDeclarations(name: Name): Collection<CjEnumEntry> {
+ return emptyList()
+    }
 
     override fun getExtendTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<CjExtend>> =
         index().extends[name.safeNameForLazyResolve()]
