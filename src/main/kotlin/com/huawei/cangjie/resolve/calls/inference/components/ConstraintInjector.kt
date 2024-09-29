@@ -427,7 +427,7 @@ class ConstraintInjector(
                     isFromNullabilityConstraint
                 )
 
-            if (!isSubtypeOf(upperType)) {
+           if (!isSubtypeOf(upperType)) {
                 // todo improve error reporting -- add information about base types
                 if (shouldTryUseDifferentFlexibilityForUpperType && upperType.isSimpleType()) {
                     /*

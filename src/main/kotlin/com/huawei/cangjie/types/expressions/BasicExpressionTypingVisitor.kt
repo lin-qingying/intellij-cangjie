@@ -666,7 +666,9 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 //        // TODO : other members
 //        // TODO : type substitutions???
         val callExpressionResolver = components.callExpressionResolver
-        val typeInfo = callExpressionResolver.getSimpleNameExpressionTypeInfo(expression, null, null, context)
+        val typeInfo =    callExpressionResolver.getSimpleNameExpressionTypeInfo(expression, null, null, context)
+
+
         checkNull(expression, context, typeInfo.type)
 
         components.constantExpressionEvaluator.evaluateExpression(

@@ -115,3 +115,4 @@ val PsiElement.cangjieFqName: FqName?
         is CjNamedDeclaration -> element.fqName
         else -> null
     }
+

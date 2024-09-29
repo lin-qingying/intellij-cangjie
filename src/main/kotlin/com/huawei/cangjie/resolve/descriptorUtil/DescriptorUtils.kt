@@ -86,7 +86,7 @@ val ClassifierDescriptorWithTypeParameters.classValueTypeDescriptor: ClassDescri
             ENUM_ENTRY -> {
                 // enum entry has the type of enum class
                 val container = this.containingDeclaration
-                assert(container is ClassDescriptor /*&& container.kind == ENUM_CLASS*/)
+                assert(container is ClassDescriptor  && container.kind == ClassKind.ENUM)
                 container as ClassDescriptor
             }
 

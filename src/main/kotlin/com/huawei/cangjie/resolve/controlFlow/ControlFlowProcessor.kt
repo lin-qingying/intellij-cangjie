@@ -161,9 +161,19 @@ class ControlFlowProcessor(
 
             }
 
-            override fun visitPatternByType(element: CjTypePattern) {
+            override fun visitPatternByTuple(element: CjTuplePattern) {
 
             }
+
+            override fun visitPatternByEnum(element: CjEnumPattern) {
+
+            }
+
+            override fun visitPatternByType(element: CjTypePattern) {
+                mark(element)
+                createNonSyntheticValue(element, MagicKind.IS, getSubjectExpression(element))
+            }
+
             override fun visitCjElement(element: CjElement) {
                 throw UnsupportedOperationException("[ControlFlowProcessor] $element")
             }

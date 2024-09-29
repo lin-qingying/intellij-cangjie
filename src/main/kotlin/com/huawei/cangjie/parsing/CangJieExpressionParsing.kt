@@ -375,38 +375,6 @@ open class CangJieExpressionParsing(
         var expression = mark()
 
 
-//        if (atSet(BASICTYPES)) {
-//            if (lookahead(1) === LPAR) {
-//                cangJieParsing.parseTypeRef()//BASICTYPES
-//                if (parseCallSuffix()) {
-//                    expression.done(CALL_EXPRESSION)
-//
-//                }
-//
-//            } else if (lookahead(1) === DOT) {
-//                cangJieParsing.parseTypeRef()//BASICTYPES
-//                while (at(DOT)) {
-//
-//                    val expressionType: IElementType = DOT_QUALIFIED_EXPRESSION
-//                    advance() // DOT
-//                    if (!parseAtomicExpression()) {
-//                        expression.drop()
-//                        expression = mark()
-//                        continue
-//                    }
-////                    parseSelectorCallExpression()
-//                    expression.done(expressionType)
-//
-//                    expression = expression.precede()
-//                }
-//            } else {
-//                error("expected expression or declaration, found keyword ${myBuilder.tokenText}")
-//            }
-//            expression.drop()
-//            return
-//        }
-
-
         var firstExpressionParsed =
 //            TODO 是否应该处理安全访问 ?.
             if ((atSet(BASICTYPES) && lookahead(1) === LPAR) || (atSet(BASICTYPES) && (lookahead(1) === DOT || lookahead(
@@ -710,7 +678,7 @@ open class CangJieExpressionParsing(
 //             errorBefore("match case cannot be empty")
 //                val error = body.precede()
 
-                 error("match case cannot be empty")
+                error("match case cannot be empty")
 
                 body.drop()
                 return
@@ -753,17 +721,89 @@ open class CangJieExpressionParsing(
 
     }
 
+    private fun parseReferenceExpression() {
+
+
+        var reference = mark()
+
+        parseSimpleNameExpression()
+
+        while (at(DOT)) {
+
+            advance()
+            parseSimpleNameExpression()
+            reference.done(DOT_QUALIFIED_EXPRESSION)
+            reference = reference.precede()
+        }
+        reference.drop()
+
+//    var reference = mark()
+////a .a
+//    var type = REFERENCE_EXPRESSION
+//    if (at(IDENTIFIER)) {
+//        advance() // IDENTIFIER
+//
+//    }else{
+//        error("Expecting identifier")
+//
+//    }
+
+//        if (at(IDENTIFIER) && lookahead(1) == DOT) {
+//            val dot = mark()
+//            val reference = mark()
+//            if (at(IDENTIFIER)) {
+//                advance() // IDENTIFIER
+//
+//            } else {
+//                error("Expecting identifier")
+//
+//            }
+//            reference.done(REFERENCE_EXPRESSION)
+//            advance() // DOT
+//            parseReferenceExpression()
+//
+//            dot.done(DOT_QUALIFIED_EXPRESSION)
+//
+//        } else {
+//            val reference = mark()
+//            if (at(IDENTIFIER)) {
+//                advance() // IDENTIFIER
+//
+//            } else {
+//                error("Expecting identifier")
+//
+//            }
+//            reference.done(REFERENCE_EXPRESSION)
+//        }
+
+//    if (at(DOT)) {
+//        reference .rollbackTo()
+//        reference = mark()
+//        parseReferenceExpression()
+////        reference.done(REFERENCE_EXPRESSION)
+////        reference = mark()
+//
+//        advance() // DOT
+//        parseReferenceExpression()
+//        reference.done(DOT_QUALIFIED_EXPRESSION)
+//    }
+//
+//
+//
+//    reference.done(type)
+    }
+
     inner class CasePattern {
         /**
          * 绑定模式(id) | 类型模式(id:type) | 枚举模式(id(expression{,})?)
          */
         fun parseSimpleNameExpression() {
             assert(_at(IDENTIFIER))
-            val mark = mark()
+            var mark = mark()
             var type = 1
 
             if (lookahead(1) == DOT) {
-                cangJieParsing.parseTypeRef()
+                parseReferenceExpression()
 
                 type = 3
 
@@ -779,7 +819,10 @@ open class CangJieExpressionParsing(
                     expect(RPAR, "Expecting ')'")
                 }
             } else {
-                advance() // IDENTIFIER
+//                var reference = mark()
+
+//                advance() // IDENTIFIER
+                parseReferenceExpression()
 
                 //1.绑定模式
                 //2.类型模式
@@ -790,6 +833,11 @@ open class CangJieExpressionParsing(
                     cangJieParsing.parseTypeRef()
 
                 } else if (at(LPAR)) {
+                    mark.rollbackTo()
+                    mark = mark()
+
+                    parseReferenceExpression()
+
                     //枚举模式
                     advance() // LPAR
                     type = 3

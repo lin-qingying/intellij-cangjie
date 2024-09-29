@@ -1,16 +1,11 @@
 package com.huawei.cangjie.resolve.calls
 
-import com.huawei.cangjie.resolve.recordDataFlowInfo
-import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.builtins.toFunctionType
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
-import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.descriptors.ConstructorDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.diagnostics.Errors.*
-import com.huawei.cangjie.descriptors.FunctionDescriptor
-import com.huawei.cangjie.descriptors.VariableDescriptor
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.calls.context.*
@@ -37,6 +32,7 @@ import com.huawei.cangjie.types.expressions.ExpressionTypingServices
 import com.huawei.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.huawei.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import com.huawei.cangjie.types.isError
+import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo
 import com.intellij.lang.ASTNode
@@ -188,6 +184,10 @@ class CallExpressionResolver(
         callOperationNode: ASTNode?, context: ExpressionTypingContext
     ) = getSimpleNameExpressionTypeInfo(nameExpression, receiver, callOperationNode, context, context.dataFlowInfo)
 
+    fun getSimpleNameExpressionEnumEntryType(
+        nameExpression: CjSimpleNameExpression, receiver: Receiver?,
+        callOperationNode: ASTNode?, context: ExpressionTypingContext
+    ) = getSimpleNameExpressionEnumEntryType(nameExpression, receiver, callOperationNode, context, context.dataFlowInfo)
 
     private fun getVariableType(
         nameExpression: CjSimpleNameExpression, receiver: Receiver?,
@@ -203,22 +203,33 @@ class CallExpressionResolver(
         )
         val resolutionResult = callResolver.resolveSimpleVariable(contextForVariable)
 
-        // if the expression is a receiver in a qualified expression, it should be resolved after the selector is resolved
-//        val isLHSOfDot = CjPsiUtil.isLHSOfDot(nameExpression)
-//        if (!resolutionResult.isNothing && resolutionResult.resultCode != CANDIDATES_WITH_WRONG_RECEIVER) {
-//            val isQualifier = isLHSOfDot &&
-//                    resolutionResult.isSingleResult &&
-//                    resolutionResult.resultingDescriptor is FakeCallableDescriptorForObject
-//            if (!isQualifier) {
-//                temporaryForVariable.commit()
-//                return Pair(true, if (resolutionResult.isSingleResult) resolutionResult.resultingDescriptor.returnType else null)
-//            }
-//        }
 
         temporaryForVariable.commit()
         return Pair(
             !resolutionResult.isNothing,
             if (resolutionResult.isSingleResult) resolutionResult.resultingDescriptor.returnType else null
+        )
+    }
+
+    private fun getEnumEntryDescriptor(
+        nameExpression: CjSimpleNameExpression, receiver: Receiver?,
+        callOperationNode: ASTNode?, context: ExpressionTypingContext
+    ): Pair<Boolean, CallableDescriptor?> {
+        val temporaryForVariable = TemporaryTraceAndCache.create(
+            context, "trace to resolve as local variable or property", nameExpression
+        )
+        val call = CallMaker.makePropertyCall(receiver, callOperationNode, nameExpression)
+        val contextForVariable = BasicCallResolutionContext.create(
+            context.replaceTraceAndCache(temporaryForVariable),
+            call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS
+        )
+        val resolutionResult = callResolver.resolveSimpleVariable(contextForVariable)
+
+
+        temporaryForVariable.commit()
+        return Pair(
+            !resolutionResult.isNothing,
+            if (resolutionResult.isSingleResult) resolutionResult.resultingDescriptor else null
         )
     }
 
@@ -250,6 +261,48 @@ class CallExpressionResolver(
             Pair(true, OverloadResolutionResultsUtil.getResultingCall(results, context))
         else
             Pair(false, null)
+    }
+
+    private fun getSimpleNameExpressionEnumEntryType(
+        nameExpression: CjSimpleNameExpression, receiver: Receiver?,
+        callOperationNode: ASTNode?, context: ExpressionTypingContext,
+        initialDataFlowInfoForArguments: DataFlowInfo
+    ): DeclarationDescriptor? {
+
+
+        val temporaryForVariable = TemporaryTraceAndCache.create(
+            context, "trace to resolve as variable", nameExpression
+        )
+        val (notNothing, type) = getEnumEntryDescriptor(
+            nameExpression, receiver, callOperationNode,
+            context.replaceTraceAndCache(temporaryForVariable)
+        )
+
+        if (notNothing) {
+            temporaryForVariable.commit()
+            return type
+        }
+
+        val call = CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression, emptyList())
+        val temporaryForFunction = TemporaryTraceAndCache.create(
+            context, "trace to resolve as function", nameExpression
+        )
+        val newContext = context.replaceTraceAndCache(temporaryForFunction)
+        val (resolveResult, resolvedCall) = getResolvedCallForFunction(
+            call, newContext, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, initialDataFlowInfoForArguments
+        )
+        if (resolveResult) {
+            val functionDescriptor = resolvedCall?.resultingDescriptor
+            if (functionDescriptor is ConstructorDescriptor) {
+                temporaryForFunction.commit()
+                return functionDescriptor.constructedClass
+
+            }
+        }
+
+
+        return null
+
     }
 
     private fun getSimpleNameExpressionTypeInfo(
@@ -418,30 +471,41 @@ class CallExpressionResolver(
         is CjCallExpression -> getCallExpressionTypeInfoWithoutFinalTypeCheck(
             selectorExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
         )
+
         is CjSimpleNameExpression -> getSimpleNameExpressionTypeInfo(
             selectorExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
         )
+
         is CjExpression -> {
             expressionTypingServices.getTypeInfo(selectorExpression, context)
             context.trace.report(ILLEGAL_SELECTOR.on(selectorExpression))
             noTypeInfo(context)
         }
+
         else /*null*/ -> noTypeInfo(context)
     }
 
 
-    private fun getSafeOrUnsafeSelectorTypeInfo(receiver: Receiver, element: CallExpressionElement, context: ExpressionTypingContext):
+    private fun getSafeOrUnsafeSelectorTypeInfo(
+        receiver: Receiver,
+        element: CallExpressionElement,
+        context: ExpressionTypingContext
+    ):
             CangJieTypeInfo {
         var initialDataFlowInfoForArguments = context.dataFlowInfo
-        val receiverDataFlowValue = (receiver as? ReceiverValue)?.let { dataFlowValueFactory.createDataFlowValue(it, context) }
+        val receiverDataFlowValue =
+            (receiver as? ReceiverValue)?.let { dataFlowValueFactory.createDataFlowValue(it, context) }
 
-        val receiverCanBeNull = receiverDataFlowValue != null && initialDataFlowInfoForArguments.getStableNullability(receiverDataFlowValue).canBeNull()
+        val receiverCanBeNull =
+            receiverDataFlowValue != null && initialDataFlowInfoForArguments.getStableNullability(receiverDataFlowValue)
+                .canBeNull()
         val shouldNullifySafeCallType =
             receiverCanBeNull || context.languageVersionSettings.supportsFeature(LanguageFeature.SafeCallsAreAlwaysNullable)
 
-        val callOperationNode = AstLoadingFilter.forceAllowTreeLoading(element.qualified.containingFile, ThrowableComputable {
-            element.node
-        })
+        val callOperationNode =
+            AstLoadingFilter.forceAllowTreeLoading(element.qualified.containingFile, ThrowableComputable {
+                element.node
+            })
 
         if (receiverDataFlowValue != null && element.safe) {
             // Additional "receiver != null" information should be applied if we consider a safe call
@@ -542,7 +606,7 @@ class CallExpressionResolver(
         }
     }
 
-    companion object{
+    companion object {
 
         fun reportUnnecessarySafeCall(
             trace: BindingTrace,

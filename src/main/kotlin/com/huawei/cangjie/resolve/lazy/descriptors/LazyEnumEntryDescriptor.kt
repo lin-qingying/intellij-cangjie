@@ -4,6 +4,8 @@ import com.huawei.cangjie.descriptors.ClassConstructorDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.SourceElement
 import com.huawei.cangjie.descriptors.impl.EnumEntryConstructorDescriptor
+import com.huawei.cangjie.diagnostics.Errors.REDECLARATION
+import com.huawei.cangjie.diagnostics.reportOnDeclaration
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.lazy.LazyClassContext
@@ -49,9 +51,21 @@ class LazyEnumEntryDescriptor(
         }
 
 //        寻找相同的方法
+//        c.overloadResolver.checkOverloadsInPackage(_constructors)
+        checkArgumentBySize()
+    }
 
-        c.overloadResolver.checkOverloadsInPackage(_constructors)
+    fun checkArgumentBySize() {
+        val map = _constructors.groupBy {
+            it.valueParameters.size
+        }
+        map.values.forEach { values ->
+            if (values.size > 1)
+                reportOnDeclaration(c.trace, values.first()) {
+                    REDECLARATION.on(it, values)
+                }
 
+        }
     }
 
     init {

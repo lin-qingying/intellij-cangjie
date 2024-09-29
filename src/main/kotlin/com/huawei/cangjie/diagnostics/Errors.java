@@ -81,6 +81,9 @@ public interface Errors {
     DiagnosticFactory0<CjSuperExpression> SUPERCLASS_NOT_ACCESSIBLE_FROM_INTERFACE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjThisExpression> NO_THIS = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<PsiElement> COMMA_IN_MATCH_CONDITION_WITHOUT_ARGUMENT = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<PsiElement> NOT_ENUM_ENTRY_VALUE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<PsiElement> NOT_ENUM_MATCH = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory1<PsiElement,Integer> ENUM_CONSTRUCTOR_MISMATCH = DiagnosticFactory1.create(ERROR);
 
     DiagnosticFactory2<CjElement, CangJieType, CangJieType> INCOMPATIBLE_ENUM_COMPARISON =
             DiagnosticFactory2.create(WARNING);

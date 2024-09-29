@@ -411,6 +411,7 @@ protected constructor(
         mainScope?.classDescriptors?.invoke(name)?.let { return it }
 
         val result = linkedSetOf<ClassDescriptor>()
+        val result1 = linkedSetOf<ClassDescriptor>()
 
         result.addAll(createClassDescriptor(name, declarationProvider.getTypeStatementDeclarations(name)))
 
@@ -421,7 +422,7 @@ protected constructor(
             val entryName = Name.identifier(enum?.name + "")
 
             createClassDescriptor(
-                name,
+                entryName,
                 declarationProvider.getTypeStatementDeclarations(entryName)
             ).forEach { classDescriptor ->
                 (classDescriptor.unsubstitutedMemberScope.getContributedClassifier(
@@ -429,7 +430,7 @@ protected constructor(
                     NoLookupLocation.FROM_IDE
                 ) as? ClassDescriptor)
                     ?.let { enumEntryClassDescriptor ->
-                        result.add(enumEntryClassDescriptor)
+                        result1.add(enumEntryClassDescriptor)
                     }
 
             }
@@ -455,7 +456,7 @@ protected constructor(
         }
 
 
-        return result.toList()
+        return result.toList() + result1 .toList()
     }
 
 

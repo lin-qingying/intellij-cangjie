@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.container.DefaultImplementation
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.impl.EnumEntryConstructorDescriptor
 import com.huawei.cangjie.diagnostics.DiagnosticFactory1
 import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.diagnostics.reportOnDeclaration
@@ -255,11 +256,15 @@ class OverloadResolver(
 
         for (memberDescriptor in redeclarations) {
             when (memberDescriptor) {
+
+                is EnumEntryConstructorDescriptor -> {}
+
                 is PropertyDescriptor,
                 is VariableDescriptor,
                 is ClassifierDescriptor,
                 is FunctionDescriptor ->
                     reportOnDeclaration(trace, memberDescriptor) { Errors.REDECLARATION.on(it, redeclarations) }
+
 //                is FunctionDescriptor ->
 //                    reportOnDeclaration(trace, memberDescriptor) { Errors.CONFLICTING_OVERLOADS.on(it, redeclarations) }
             }

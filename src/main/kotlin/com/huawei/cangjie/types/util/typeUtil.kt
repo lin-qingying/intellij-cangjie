@@ -141,6 +141,7 @@ fun CangJieType.isInterface(): Boolean =
     (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.INTERFACE
 
 fun CangJieType.isEnum(): Boolean = (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.ENUM
+fun CangJieType.isEnumEntry(): Boolean = (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.ENUM_ENTRY
 
 //fun CangJieType.containsTypeProjectionsInTopLevelArguments(): Boolean {
 //    if (isError) return false

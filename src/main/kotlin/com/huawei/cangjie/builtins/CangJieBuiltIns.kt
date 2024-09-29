@@ -216,7 +216,7 @@ open class CangJieBuiltIns(
             return classFqNameEquals(descriptor, anyUFqName)
         }
 //        @JvmStatic
-//        fun getEnumType(argument: SimpleType): SimpleType {
+//        fun getEnumEntryType(argument: SimpleType): SimpleType {
 //            val projectionType: Variance = Variance.INVARIANT
 //            val types =
 //                listOf(

@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.Random;
 
 import static com.huawei.cangjie.diagnostics.Errors.*;
-import static com.huawei.cangjie.diagnostics.rendering.CommonRenderers.*;
+import static com.huawei.cangjie.diagnostics.rendering.CommonRenderers.STRING;
+import static com.huawei.cangjie.diagnostics.rendering.CommonRenderers.THROWABLE;
 import static com.huawei.cangjie.diagnostics.rendering.Renderers.*;
 
 
@@ -128,7 +129,7 @@ public class DefaultErrorMessages {
         MAP.put(PARAMETER_NAME_CHANGED_ON_OVERRIDE, "The corresponding parameter in the supertype ''{0}'' is named ''{1}''. " +
                 "This may cause problems when calling this function with named arguments.", NAMED, NAMED);
 //类型系统
-        MAP.put(INVALID_THIS_TYPE, "'This' type is not allowed, 'This' type can only be used as the return type of an instance member function in class"  );
+        MAP.put(INVALID_THIS_TYPE, "'This' type is not allowed, 'This' type can only be used as the return type of an instance member function in class");
         MAP.put(TYPE_MISMATCH_MULTIPLE_SUPERTYPES, "Type inference failed: multiple smallest common supertypes found {0}", RENDER_COLLECTION_OF_TYPES);
         MAP.put(TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS,
                 "Type mismatch: inferred type is {1} but {0} was expected. Projected type {2} restricts use of {3}",
@@ -222,10 +223,10 @@ public class DefaultErrorMessages {
             return expressionType.charAt(0) +
                     expressionType.substring(1).toLowerCase();
         });
-        MAP.put(UNREACHABLE_CODE, "Unreachable code",CommonRenderers. EMPTY,CommonRenderers. EMPTY);
+        MAP.put(UNREACHABLE_CODE, "Unreachable code", CommonRenderers.EMPTY, CommonRenderers.EMPTY);
         MAP.put(NAMED_PARAMETER_NOT_FOUND, "Cannot find a parameter with this name: {0}", ELEMENT_TEXT);
         MAP.put(NAMED_PARAMETER_PREFIX_MISSING, "missing argument prefix {0} for named parameter", NAMES_TO_STRING);
-        MAP.put(NON_NAMED_PARAMETER_AFTER_NAMED_PARAMETER, "unnamed parameters must come before named parameters" );
+        MAP.put(NON_NAMED_PARAMETER_AFTER_NAMED_PARAMETER, "unnamed parameters must come before named parameters");
         MAP.put(POSITIONAL_ARGUMENT_AFTER_NAMED_ARGUMENT, "positional argument cannot appear after named argument");
         MAP.put(ARGUMENT_PASSED_TWICE, "An argument is already passed for this parameter");
 
@@ -251,12 +252,16 @@ public class DefaultErrorMessages {
 
         MAP.put(MULTIPLE_PRIMARY_CONSTRUCTORS, "Class ''{0}'' cannot have more than one primary constructor", CLASS_NAME);
 
-        MAP.put(INVALID_CALLING_THIS_IN_PRIMARY_CONSTRUCTOR, "Invalid calling 'this' in primary constructor" );
+        MAP.put(INVALID_CALLING_THIS_IN_PRIMARY_CONSTRUCTOR, "Invalid calling 'this' in primary constructor");
         MAP.put(ENUM_ENTRY_AS_TYPE, "Use of enum entry names as types is not allowed, use enum type instead");
         MAP.put(UNSAFE_EXPRESSION_ERROR, "'unsafe' is not a lambda expression");
         MAP.put(CANNOT_INFER_PARAMETER_TYPE, "Cannot infer a type for this parameter. Please specify it explicitly.");
         MAP.put(NO_ELSE_IN_MATCH, "''match'' expression must be exhaustive, add necessary {0}", RENDER_MATCH_MISSING_CASES);
         MAP.put(CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON, "Cannot import-on-demand from class ''{0}''", NAMED);
+        MAP.put(NOT_ENUM_ENTRY_VALUE, "Not an enumerated value");
+        MAP.put(NOT_ENUM_MATCH , "enum pattern is not matched");
+        MAP.put(NOT_ENUM_MATCH , "enum pattern is not matched");
+        MAP.put(ENUM_CONSTRUCTOR_MISMATCH , "No enumeration constructor found with parameter ''{0}''",INT);
 
     }
 

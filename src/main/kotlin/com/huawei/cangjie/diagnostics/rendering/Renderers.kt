@@ -28,6 +28,11 @@ object Renderers {
     val NAME = renderer<Name> { it.asString() }
 
     @JvmField
+    val INT = renderer<Int> {
+        it.toString()
+    }
+
+    @JvmField
     val NAMED = renderer<Named> {
         NAME.render(it.name)
     }
@@ -57,6 +62,7 @@ object Renderers {
             "'else' branch"
         }
     }
+
     @JvmField
     val CLASS_NAME = renderer { cclass: ClassDescriptor ->
 

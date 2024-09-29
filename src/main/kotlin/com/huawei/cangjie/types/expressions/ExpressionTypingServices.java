@@ -24,6 +24,7 @@ import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.huawei.cangjie.utils.slicedMap.WritableSlice;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -341,7 +342,12 @@ public class ExpressionTypingServices {
                 LexicalScopeKind.CODE_BLOCK);
 
         try {
-            context.config.getAddVariableDescriptor().get(expression.getParent()).invoke(scope);
+
+            context.config.getAddVariableDescriptor().get(PsiTreeUtil.getParentOfType(expression, CjMatchEntry.class)).forEach(
+                    it -> it.invoke(scope)
+            );
+//            清空
+            context.config.getAddVariableDescriptor().put(PsiTreeUtil.getParentOfType(expression, CjMatchEntry.class), null);
 
         } catch (NullPointerException ignored) {
 

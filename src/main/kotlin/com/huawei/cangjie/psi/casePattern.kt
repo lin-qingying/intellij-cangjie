@@ -9,6 +9,7 @@ import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
+import com.intellij.psi.tree.IElementType
 
 
 abstract class CjCasePattern(node: ASTNode) : CjElementImpl(node) {
@@ -29,6 +30,7 @@ abstract class PatternVariableDeclaration(node: ASTNode) : CjCasePattern(node), 
     override fun getName(): String? {
         return text
     }
+
     override val colon: PsiElement? = null
     override val nameAsSafeName: Name
         get() = TODO("Not yet implemented")
@@ -73,7 +75,28 @@ abstract class PatternVariableDeclaration(node: ASTNode) : CjCasePattern(node), 
     override val letOrVarKeyword: PsiElement? = null
 }
 
-class CjBindingPattern(node: ASTNode) : PatternVariableDeclaration(node) ,CjReferenceExpression{
+class CjBindingPattern(node: ASTNode) : PatternVariableDeclaration(node)/*, CjSimpleNameExpression*/ {
+//    override fun getReferencedName(): String {
+//        TODO("Not yet implemented")
+//    }
+//
+//    override fun getReferencedNameAsName(): Name {
+//        TODO("Not yet implemented")
+//    }
+//
+//    override fun getReferencedNameElement(): PsiElement {
+//        TODO("Not yet implemented")
+//    }
+//
+//    override fun getIdentifier(): PsiElement? {
+//        return findChildByType(CjTokens.IDENTIFIER)
+//    }
+//
+//    override fun getReferencedNameElementType(): IElementType {
+//        TODO("Not yet implemented")
+//    }
+override val expression: CjSimpleNameExpression?
+    get() = findChildByType(CjNodeTypes.REFERENCE_EXPRESSION)
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitPatternByBinding(this, data)
     }
@@ -83,11 +106,13 @@ class CjTypePattern(node: ASTNode) : PatternVariableDeclaration(node) {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitPatternByType(this, data)
     }
+
     val identifier: PsiElement? get() = findChildByType(CjTokens.IDENTIFIER)
     override fun getName(): String? {
         return identifier?.text
     }
-    override val typeReference   get() = findChildByType<CjTypeReference>(CjNodeTypes.TYPE_REFERENCE)
+
+    override val typeReference get() = findChildByType<CjTypeReference>(CjNodeTypes.TYPE_REFERENCE)
 }
 
 class CjTuplePattern(node: ASTNode) : CjCasePattern(node) {
@@ -100,6 +125,15 @@ class CjEnumPattern(node: ASTNode) : CjCasePattern(node) {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitPatternByEnum(this, data)
     }
+
+    val expression: CjSimpleNameExpression?
+        get() = findChildByType(CjNodeTypes.REFERENCE_EXPRESSION) ?: findChildByType<CjSimpleNameExpression>(
+            CjNodeTypes.DOT_QUALIFIED_EXPRESSION
+        )
+
+
+    val patterns get() =  findChildrenByClass(CjCasePattern::class.java).toList()
+
 }
 
 class CjWildcardPattern(node: ASTNode) : CjCasePattern(node) {
