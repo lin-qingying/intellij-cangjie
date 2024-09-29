@@ -1,4 +1,4 @@
-package com.huawei.cangjie.ide.highlighter
+package com.huawei.cangjie.highlighter
 
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall

@@ -1,10 +1,9 @@
 package com.huawei.cangjie.ide.search.ideExtensions
 
 import com.huawei.cangjie.ide.allScope
-import com.huawei.cangjie.ide.highlighter.unwrapped
+import com.huawei.cangjie.highlighter.unwrapped
 import com.huawei.cangjie.ide.search.ideExtensions.CangJieReferencesSearchOptions.Companion.Empty
 import com.huawei.cangjie.psi.CjDestructuringDeclaration
-import com.huawei.cangjie.psi.CjFunction
 import com.huawei.cangjie.psi.CjNamedDeclaration
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.progress.ProgressManager

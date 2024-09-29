@@ -1,16 +1,13 @@
 @file:JvmName("CangJieHighlightingUtils")
-package com.huawei.cangjie.ide.highlighter
+package com.huawei.cangjie.highlighter
 
 import com.huawei.cangjie.ide.base.projectStructure.RootKindFilter
-import com.huawei.cangjie.ide.base.projectStructure.RootKindMatcher
 import com.huawei.cangjie.ide.base.projectStructure.matches
 import com.huawei.cangjie.psi.CjCodeFragment
 import com.huawei.cangjie.psi.CjFile
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
 
 //
 fun CjFile.shouldHighlightErrors(): Boolean {

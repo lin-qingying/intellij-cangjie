@@ -1,4 +1,4 @@
-package com.huawei.cangjie.ide.highlighter
+package com.huawei.cangjie.highlighter
 
 import com.huawei.cangjie.configurable.services.CangJieLanguageServerServices
 import com.huawei.cangjie.configurable.services.Feature
@@ -9,7 +9,7 @@ import com.huawei.cangjie.descriptors.InvalidModuleException
 import com.huawei.cangjie.diagnostics.Severity
 import com.huawei.cangjie.diagnostics.rendering.RenderingContext
 import com.huawei.cangjie.diagnostics.rendering.parameters
-import com.huawei.cangjie.ide.highlighter.suspender.CangJieHighlightingSuspender
+import com.huawei.cangjie.highlighter.suspender.CangJieHighlightingSuspender
 import com.huawei.cangjie.ide.statistics.compilationError.CangJieCompilationErrorFrequencyStatsCollector
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.psi.CjNameReferenceExpression
@@ -30,7 +30,6 @@ import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.resolve.FileContextUtil
-import com.linqingying.utils.Config
 
 abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
     private var afterAnalysisVisitor: Array<AfterAnalysisHighlightingVisitor>? = null

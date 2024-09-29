@@ -1,6 +1,6 @@
 package com.huawei.cangjie.ide.codeinsight
 
-import com.huawei.cangjie.ide.highlighter.CangJieQuickFixProvider
+import com.huawei.cangjie.highlighter.CangJieQuickFixProvider
 import com.huawei.cangjie.psi.CjElement
 import com.intellij.codeInsight.daemon.QuickFixActionRegistrar
 import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider

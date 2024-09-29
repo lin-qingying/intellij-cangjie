@@ -1,7 +1,7 @@
 package com.huawei.cangjie.ide.codeinsight.shorten
 
 import com.huawei.cangjie.ide.ShortenReferences
-import com.huawei.cangjie.ide.highlighter.unwrapped
+import com.huawei.cangjie.highlighter.unwrapped
 import com.huawei.cangjie.ide.imports.ImportInsertHelper
 import com.huawei.cangjie.psi.CjDeclaration
 import com.huawei.cangjie.psi.CjElement

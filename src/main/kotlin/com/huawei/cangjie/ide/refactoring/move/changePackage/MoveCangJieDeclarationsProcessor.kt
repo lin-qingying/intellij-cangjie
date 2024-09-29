@@ -1,7 +1,7 @@
 package com.huawei.cangjie.ide.refactoring.move.changePackage
 
 import com.huawei.cangjie.CangJieBundle
-import com.huawei.cangjie.ide.highlighter.namedUnwrappedElement
+import com.huawei.cangjie.highlighter.namedUnwrappedElement
 import com.huawei.cangjie.ide.refactoring.move.CangJieMoveSource
 import com.huawei.cangjie.ide.refactoring.move.CangJieMover
 import com.huawei.cangjie.ide.refactoring.move.MoveDeclarationsDescriptor

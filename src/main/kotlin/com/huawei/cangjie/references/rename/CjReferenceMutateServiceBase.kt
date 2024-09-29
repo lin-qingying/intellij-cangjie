@@ -5,21 +5,16 @@ import com.huawei.cangjie.analyzer.withRootPrefixIfNeeded
 import com.huawei.cangjie.ide.ShortenReferences
 import com.huawei.cangjie.ide.codeinsight.shorten.addDelayedImportRequest
 import com.huawei.cangjie.ide.codeinsight.shorten.addToShorteningWaitSet
-import com.huawei.cangjie.ide.highlighter.unwrapped
-import com.huawei.cangjie.ide.inspections.OperatorToFunctionConverter
+import com.huawei.cangjie.highlighter.unwrapped
 
-import com.huawei.cangjie.lexer.CjSingleValueToken
-import com.huawei.cangjie.lexer.CjToken
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.*
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.*
 import com.huawei.cangjie.references.*
-import com.huawei.cangjie.utils.exceptions.OperatorConventions
 import com.huawei.cangjie.utils.isDispatchThread
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.util.parents
 import com.intellij.util.IncorrectOperationException
 
 /**

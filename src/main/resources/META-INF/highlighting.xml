@@ -3,12 +3,12 @@
     <extensionPoints>
         <extensionPoint
                 qualifiedName="com.huawei.cangjie.highlighterExtension"
-                interface="com.huawei.cangjie.ide.highlighter.CangJieHighlightingVisitorExtension"
+                interface="com.huawei.cangjie.highlighter.CangJieHighlightingVisitorExtension"
                 dynamic="true"/>
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
-        <highlightVisitor implementation="com.huawei.cangjie.ide.highlighter.CangJieHighlightVisitor"/>
+        <highlightVisitor implementation="com.huawei.cangjie.highlighter.CangJieHighlightVisitor"/>
         <registryKey key="cangjie.highlighting.suspended.timeout"
                      description="Timeout (in seconds) when highlighting is temporarily turned off in case of unexpected errors."
                      defaultValue="10"
@@ -18,7 +18,7 @@
                      description="Suppress cangjie.Deprecated warning"
                      defaultValue="false"/>
         <projectService
-                serviceInterface="com.huawei.cangjie.ide.highlighter.CangJieQuickFixProvider"
+                serviceInterface="com.huawei.cangjie.highlighter.CangJieQuickFixProvider"
                 serviceImplementation="com.huawei.cangjie.ide.codeinsight.CangJieQuickFixProviderImpl"/>
         <applicationService
                 serviceInterface="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicy"

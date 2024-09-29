@@ -2,11 +2,8 @@ package com.huawei.cangjie.references.util
 
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptorWithSource
-import com.huawei.cangjie.ide.highlighter.unwrapped
+import com.huawei.cangjie.highlighter.unwrapped
 import com.huawei.cangjie.ide.imports.importableFqName
-import com.huawei.cangjie.ide.stubindex.CangJieFullClassNameIndex
-import com.huawei.cangjie.ide.stubindex.CangJieFunctionShortNameIndex
-import com.huawei.cangjie.ide.stubindex.CangJieTypeAliasShortNameIndex
 import com.huawei.cangjie.psi.CjNamedDeclaration
 import com.huawei.cangjie.psi.CjProperty
 import com.huawei.cangjie.psi.CjPropertyAccessor

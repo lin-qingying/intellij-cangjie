@@ -1,7 +1,7 @@
 package com.huawei.cangjie.ide.search
 
 import com.huawei.cangjie.ide.base.projectStructure.CangJieSourceFilterScope
-import com.huawei.cangjie.ide.highlighter.namedUnwrappedElement
+import com.huawei.cangjie.highlighter.namedUnwrappedElement
 
 import com.huawei.cangjie.ide.search.ideExtensions.CangJieAwareReferencesSearchParameters
 import com.huawei.cangjie.ide.search.ideExtensions.CangJieReferencesSearchOptions.Companion.Empty

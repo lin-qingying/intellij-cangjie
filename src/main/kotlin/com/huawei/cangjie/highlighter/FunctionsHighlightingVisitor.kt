@@ -1,12 +1,10 @@
-package com.huawei.cangjie.ide.highlighter
+package com.huawei.cangjie.highlighter
 
 import com.huawei.cangjie.builtins.isFunctionTypeOrSubtype
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.ConstructorDescriptor
 import com.huawei.cangjie.descriptors.FunctionDescriptor
-import com.huawei.cangjie.descriptors.annotations.fqNameOrNull
-import com.huawei.cangjie.highlighter.CangJieHighlightInfoTypeSemanticNames
 import com.huawei.cangjie.psi.CjBinaryExpression
 import com.huawei.cangjie.psi.CjCallExpression
 import com.huawei.cangjie.psi.CjReferenceExpression

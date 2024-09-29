@@ -1,4 +1,4 @@
-package com.huawei.cangjie.ide.highlighter
+package com.huawei.cangjie.highlighter
 
 import com.huawei.cangjie.highlighter.visitor.AbstractHighlightingVisitor
 import com.huawei.cangjie.resolve.BindingContext

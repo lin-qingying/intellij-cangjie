@@ -1,4 +1,4 @@
-package com.huawei.cangjie.ide.highlighter.suspender
+package com.huawei.cangjie.highlighter.suspender
 
 import com.huawei.cangjie.ide.core.CangJiePluginDisposable
 import com.intellij.openapi.components.Service
@@ -8,7 +8,6 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.Alarm
-import org.jetbrains.annotations.ApiStatus
 import java.util.concurrent.TimeUnit
 
 /**

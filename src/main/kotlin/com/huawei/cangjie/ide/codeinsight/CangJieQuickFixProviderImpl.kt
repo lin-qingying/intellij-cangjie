@@ -5,8 +5,8 @@ import com.huawei.cangjie.diagnostics.Diagnostic
 import com.huawei.cangjie.diagnostics.DiagnosticFactory
 import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.diagnostics.Severity
-import com.huawei.cangjie.ide.highlighter.CangJieQuickFixProvider
-import com.huawei.cangjie.ide.highlighter.RegisterQuickFixesLaterIntentionAction
+import com.huawei.cangjie.highlighter.CangJieQuickFixProvider
+import com.huawei.cangjie.highlighter.RegisterQuickFixesLaterIntentionAction
 import com.huawei.cangjie.ide.inspections.suppress.AnnotationHostKind
 import com.huawei.cangjie.ide.inspections.suppress.CangJieSuppressIntentionAction
 import com.huawei.cangjie.ide.quickfix.CangJieIntentionActionsFactory

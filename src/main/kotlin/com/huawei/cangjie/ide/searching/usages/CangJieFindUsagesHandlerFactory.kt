@@ -1,6 +1,6 @@
 package com.huawei.cangjie.ide.searching.usages
 
-import com.huawei.cangjie.ide.highlighter.unwrapped
+import com.huawei.cangjie.highlighter.unwrapped
 import com.huawei.cangjie.psi.*
 import com.intellij.find.findUsages.FindUsagesHandler
 import com.intellij.find.findUsages.FindUsagesHandler.NULL_HANDLER

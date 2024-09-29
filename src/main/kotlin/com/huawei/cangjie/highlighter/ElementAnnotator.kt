@@ -1,9 +1,8 @@
-package com.huawei.cangjie.ide.highlighter
+package com.huawei.cangjie.highlighter
 
 import com.huawei.cangjie.diagnostics.Diagnostic
 import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.diagnostics.Severity
-import com.huawei.cangjie.highlighter.CangJieHighlightingColors
 import com.huawei.cangjie.psi.CjParameter
 import com.huawei.cangjie.psi.CjReferenceExpression
 import com.huawei.cangjie.references.mainReference

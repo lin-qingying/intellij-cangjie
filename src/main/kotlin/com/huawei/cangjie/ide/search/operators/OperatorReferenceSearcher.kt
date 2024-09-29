@@ -1,7 +1,7 @@
 package com.huawei.cangjie.ide.search.operators
 
 import com.huawei.cangjie.analyzer.CangJieBaseAnalysisBundle
-import com.huawei.cangjie.ide.highlighter.namedUnwrappedElement
+import com.huawei.cangjie.highlighter.namedUnwrappedElement
 import com.huawei.cangjie.ide.restrictToCangJieSources
 import com.huawei.cangjie.ide.search.CangJieSearchUsagesSupport.SearchUtils.forceResolveReferences
 import com.huawei.cangjie.ide.search.CangJieSearchUsagesSupport.SearchUtils.getReceiverTypeSearcherInfo

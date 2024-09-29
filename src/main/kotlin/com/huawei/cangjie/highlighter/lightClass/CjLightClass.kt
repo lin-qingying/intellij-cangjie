@@ -1,4 +1,4 @@
-package com.huawei.cangjie.ide.highlighter.lightClass
+package com.huawei.cangjie.highlighter.lightClass
 
 import com.huawei.cangjie.psi.CjTypeStatement
 
