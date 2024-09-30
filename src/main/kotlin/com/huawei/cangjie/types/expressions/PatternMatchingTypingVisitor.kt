@@ -1,22 +1,25 @@
 package com.huawei.cangjie.types.expressions
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.builtins.isBuiltinTupleType
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.ClassKind
+import com.huawei.cangjie.descriptors.Modality
 import com.huawei.cangjie.descriptors.impl.EnumEntryConstructorDescriptor
 import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.diagnostics.MatchMissingCase
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.lexer.CjTokens
-import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.name.*
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.findParentOfType
-import com.huawei.cangjie.resolve.BindingContext
-import com.huawei.cangjie.resolve.BindingContext.SMARTCAST
-import com.huawei.cangjie.resolve.DescriptorUtils
-import com.huawei.cangjie.resolve.TypeResolutionContext
+import com.huawei.cangjie.psi.psiUtil.referenceExpression
+import com.huawei.cangjie.resolve.*
+import com.huawei.cangjie.resolve.BindingContext.*
+import com.huawei.cangjie.resolve.DescriptorUtils.isEnum
+import com.huawei.cangjie.resolve.caches.ConfusingMatchBranchSyntaxChecker
 import com.huawei.cangjie.resolve.caches.PrimitiveNumericComparisonCallChecker
 import com.huawei.cangjie.resolve.calls.checkers.RttiExpressionInformation
 import com.huawei.cangjie.resolve.calls.checkers.RttiOperation
@@ -27,6 +30,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValue
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import com.huawei.cangjie.resolve.calls.util.CallMaker
 import com.huawei.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
+import com.huawei.cangjie.resolve.descriptorUtil.classId
 import com.huawei.cangjie.resolve.descriptorUtil.classValueType
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
 import com.huawei.cangjie.resolve.scopes.*
@@ -36,14 +40,20 @@ import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.expressions.ControlStructureTypingUtils.Companion.createCallForSpecialConstruction
 import com.huawei.cangjie.types.expressions.ControlStructureTypingUtils.Companion.createDataFlowInfoForArgumentsOfMatchCall
 import com.huawei.cangjie.types.expressions.typeInfoFactory.createTypeInfo
+import com.huawei.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.huawei.cangjie.types.util.containsError
 import com.huawei.cangjie.types.util.isEnumEntry
+import com.huawei.cangjie.utils.addIfNotNull
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo
+import com.huawei.cangjie.utils.runIf
 import com.intellij.psi.PsiElement
 import java.util.*
 
+
+interface ClassAndEnumConstructorDescriptor
+class TupleConstructor(val types: List<CangJieType>) : ClassAndEnumConstructorDescriptor
 class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTypingInternals) :
     ExpressionTypingVisitor(facade) {
 
@@ -119,32 +129,99 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 )
             }
 
-//        val branchesTypeInfo =
-//            joinMatchExpressionBranches(expression, contextAfterSubject, matchReturnType, subject.jumpOutPossible, matchResultValue)
-//
-//        val isExhaustive = MatchChecker.isMatchExhaustive(expression, trace)
-//
-//        val branchesDataFlowInfo = branchesTypeInfo.dataFlowInfo
-//        val resultDataFlowInfo = if (expression.elseExpression == null && !isExhaustive) {
-//            // Without else expression in non-exhaustive when, we *must* take initial data flow info into account,
-//            // because data flow can bypass all when branches in this case
-//            branchesDataFlowInfo.or(contextAfterSubject.dataFlowInfo)
-//        } else {
-//            branchesDataFlowInfo
-//        }
-//
-//        if (matchReturnType != null && isExhaustive && expression.elseExpression == null && KotlinBuiltIns.isNothing(whenReturnType)) {
-//            trace.record(BindingContext.IMPLICIT_EXHAUSTIVE_WHEN, expression)
-//        }
-//
-//        val branchesType = branchesTypeInfo.type ?: return noTypeInfo(resultDataFlowInfo)
-//        val resultType = components.dataFlowAnalyzer.checkType(branchesType, expression, contextWithExpectedType)
-//
-//        ConfusingMatchBranchSyntaxChecker.check(expression, contextWithExpectedType.languageVersionSettings, trace)
-//
-//        return createTypeInfo(resultType, resultDataFlowInfo, branchesTypeInfo.jumpOutPossible, contextWithExpectedType.dataFlowInfo)
+        val branchesTypeInfo =
+            joinMatchExpressionBranches(
+                expression,
+                contextAfterSubject,
+                matchReturnType,
+                subject.jumpOutPossible,
+                matchResultValue
+            )
 
-        return createTypeInfo(null)
+        val isExhaustive = MatchChecker.isMatchExhaustive(expression, trace)
+
+        val branchesDataFlowInfo = branchesTypeInfo.dataFlowInfo
+        val resultDataFlowInfo = if (expression.elseExpression == null && !isExhaustive) {
+            // Without else expression in non-exhaustive when, we *must* take initial data flow info into account,
+            // because data flow can bypass all when branches in this case
+            branchesDataFlowInfo.or(contextAfterSubject.dataFlowInfo)
+        } else {
+            branchesDataFlowInfo
+        }
+
+        if (matchReturnType != null && isExhaustive && expression.elseExpression == null && CangJieBuiltIns.isNothing(
+                matchReturnType
+            )
+        ) {
+            trace.record(IMPLICIT_EXHAUSTIVE_WHEN, expression)
+        }
+
+        val branchesType = branchesTypeInfo.type ?: return noTypeInfo(resultDataFlowInfo)
+        val resultType = components.dataFlowAnalyzer.checkType(branchesType, expression, contextWithExpectedType)
+
+        ConfusingMatchBranchSyntaxChecker.check(expression, contextWithExpectedType.languageVersionSettings, trace)
+
+        return createTypeInfo(
+            resultType,
+            resultDataFlowInfo,
+            branchesTypeInfo.jumpOutPossible,
+            contextWithExpectedType.dataFlowInfo
+        )
+
+
+    }
+
+    private fun joinMatchExpressionBranches(
+        expression: CjMatchExpression,
+        contextAfterSubject: ExpressionTypingContext,
+        resultType: CangJieType?,
+        jumpOutPossibleInSubject: Boolean,
+        whenResultValue: DataFlowValue?
+    ): CangJieTypeInfo {
+        val bindingContext = contextAfterSubject.trace.bindingContext
+
+        var currentDataFlowInfo: DataFlowInfo? = null
+        var jumpOutPossible = jumpOutPossibleInSubject
+        var errorTypeExistInBranch = false
+        for (whenEntry in expression.entries) {
+            val entryExpression = whenEntry.expression ?: continue
+
+            val entryTypeInfo = BindingContextUtils.getRecordedTypeInfo(entryExpression, bindingContext) ?: continue
+            val entryType = entryTypeInfo.type
+            if (entryType == null) {
+                errorTypeExistInBranch = true
+            }
+
+            val entryDataFlowInfo =
+                if (whenResultValue != null && entryType != null) {
+                    val entryValue =
+                        facade.components.dataFlowValueFactory.createDataFlowValue(
+                            entryExpression,
+                            entryType,
+                            contextAfterSubject
+                        )
+                    entryTypeInfo.dataFlowInfo.assign(
+                        whenResultValue,
+                        entryValue/*, components.languageVersionSettings*/
+                    )
+                } else {
+                    entryTypeInfo.dataFlowInfo
+                }
+
+            currentDataFlowInfo = when {
+                entryType != null && CangJieBuiltIns.isNothing(entryType) -> currentDataFlowInfo
+                currentDataFlowInfo != null -> currentDataFlowInfo.or(entryDataFlowInfo)
+                else -> entryDataFlowInfo
+            }
+
+            jumpOutPossible = jumpOutPossible or entryTypeInfo.jumpOutPossible
+        }
+
+        val resultDataFlowInfo = currentDataFlowInfo ?: contextAfterSubject.dataFlowInfo
+        return if (resultType == null || errorTypeExistInBranch && CangJieBuiltIns.isNothing(resultType))
+            noTypeInfo(resultDataFlowInfo)
+        else
+            createTypeInfo(resultType, resultDataFlowInfo, jumpOutPossible, resultDataFlowInfo)
     }
 
     private fun inferTypeForMatchExpression(
@@ -201,12 +278,46 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         var newDataFlowInfo = noChange(context)
 
         val patternVisitor = object : CjVisitorVoid() {
+
+            override fun visitMatchConditionWithExpression(element: CjMatchConditionWithExpression) {
+                val expression = element.expression ?: return
+
+                val basicDataFlowInfo =
+                    checkTypeForExpressionCondition(context, expression, subject)
+                val moduleDescriptor = DescriptorUtils.getContainingModule(context.scope.ownerDescriptor)
+                val dataFlowInfoFromES =
+                    components.effectSystem.getDataFlowInfoMatchEquals(
+                        subject.valueExpression,
+                        expression,
+                        context.trace,
+                        moduleDescriptor
+                    )
+                newDataFlowInfo = basicDataFlowInfo.and(dataFlowInfoFromES)
+            }
+
             //            枚举模式
             override fun visitPatternByEnum(element: CjEnumPattern) {
                 context.config.getEnumEntryType = true
 
                 val descriptor: ClassDescriptor = when (val it = element.expression?.let {
-                    components.callExpressionResolver.getSimpleNameExpressionEnumEntryType(it, null, null, context)
+                    when (it) {
+                        is CjQualifiedExpression -> components.callExpressionResolver.getQualifiedExpressionEnumEntryType(
+                            it,
+
+                            context
+                        )
+
+                        is CjSimpleNameExpression -> components.callExpressionResolver.getSimpleNameExpressionEnumEntryType(
+                            it,
+                            null,
+                            null,
+                            context
+                        )
+
+                        else -> {}
+                    }
+
+
                 }) {
                     is FakeCallableDescriptorForObject -> it.classDescriptor
 
@@ -244,7 +355,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 val constructor = descriptor.constructors.filter {
                     patternSize == it.valueParameters.size
                 }
-                if (constructor.isEmpty()) {
+                if (constructor.isEmpty() && (descriptor.constructors.isNotEmpty() || patternSize != 0)) {
                     context.trace.report(ENUM_CONSTRUCTOR_MISMATCH.on(element.expression, patternSize))
                     return
                 }
@@ -252,6 +363,9 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
                 constructor.forEach {
                     it as EnumEntryConstructorDescriptor
+
+//                    TODO 将使用构建器的枚举项的引用替换为构造器
+                    context.trace.record(REFERENCE_TARGET, element.expression!!.referenceExpression(), it)
 
                     it.valueParameters.forEachIndexed { index, value ->
 
@@ -267,8 +381,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                         )
                     }
                 }
-//                CangJieTypeChecker.DEFAULT.isSubtypeOf(type!!, subject.type)
-                type
+
             }
 
 
@@ -323,11 +436,20 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
 //                if (  enumTypeInfo?.type ?.isEnum() == true) {
 //             如具有无参构造器 使用枚举覆盖psi
-                if (classDescriptor != null && classDescriptor is LazyEnumEntryDescriptor && classDescriptor.hasUnsubstitutedPrimaryConstructor()) {
+                if (classDescriptor != null && classDescriptor is LazyEnumEntryDescriptor /*&& classDescriptor.hasUnsubstitutedPrimaryConstructor()*/) {
 //                        优先使用enum枚举覆盖
 
-                    val enumTypeInfo = element.expression?.let { facade.getTypeInfo(it, context) }
+                    val enumType1 = subject.type
 
+                    val enumType2 = classDescriptor.classValueType
+
+                    if (enumType2 != null && !CangJieTypeChecker.DEFAULT.equalTypes(enumType1, enumType2)) {
+                        context.trace.report(NOT_ENUM_MATCH.on(element.expression))
+
+                    } else {
+                        val enumTypeInfo = element.expression?.let { facade.getTypeInfo(it, context) }
+                        context.trace.record(EXPRESSION_TYPE_INFO, subject.valueExpression, enumTypeInfo)
+                    }
                 } else {
                     val redeclarationChecker =
                         TraceBasedLocalRedeclarationChecker(
@@ -354,11 +476,42 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                     }
                 }
             }
-//元组模式
+
+            //元组模式
 //            需要sub expr类型为 tupleN (需类型一致）
 //            每个元组项的类型需一致
 //            元组个数需要大于1
             override fun visitPatternByTuple(element: CjTuplePattern) {
+
+
+                val patterns = element.patterns
+                val patternSize = patterns.size
+
+                if (!subject.type.isBuiltinTupleType) {
+                    context.trace.report(TUPLE_PATTERN_TYPE_MISMATCH.on(element, subject.type))
+                    return
+                }
+
+                if (patternSize < 1) {
+                    context.trace.report(TUPLE_ARGS_TOO_FEW.on(element))
+                    return
+                }
+                if (patternSize != subject.type.arguments.size) {
+                    context.trace.report(TUPLE_ARGS_MISMATCH.on(element, subject.type.arguments.size, patternSize))
+                    return
+                }
+                subject.type.arguments.forEachIndexed { index, argumentType ->
+                    checkCasePattern(
+                        Subject.Type(
+
+                            createTypeInfo(argumentType.type, context),
+                            subject.dataFlowValue
+                        ),
+                        patterns[index],
+                        context
+                    )
+
+                }
 
             }
 
@@ -646,7 +799,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             val dataFlowValue = components.dataFlowValueFactory.createDataFlowValue(leftHandSide, knownType, context)
             val conditionInfo = checkTypeForIs(context, expression, knownType, typeReference, dataFlowValue).thenInfo
             val newDataFlowInfo = conditionInfo.and(typeInfo.dataFlowInfo)
-            context.trace.record(BindingContext.DATAFLOW_INFO_AFTER_CONDITION, expression, newDataFlowInfo)
+            context.trace.record(DATAFLOW_INFO_AFTER_CONDITION, expression, newDataFlowInfo)
         }
 
 //        expression.reportDeprecatedDefinitelyNotNullSyntax(expression.typeReference, contextWithExpectedType)
@@ -658,7 +811,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         )
 
         if (typeReference != null) {
-            val rhsType = context.trace[BindingContext.TYPE, typeReference]
+            val rhsType = context.trace[TYPE, typeReference]
             val rttiInformation = RttiExpressionInformation(
                 subject = leftHandSide,
                 sourceType = knownType,
@@ -768,6 +921,15 @@ private interface MatchExhaustivenessChecker {
     fun getMissingCases(
         expression: CjMatchExpression,
         context: BindingContext,
+        type: CangJieType?,
+        nullable: Boolean
+    ): List<MatchMissingCase> {
+        return emptyList()
+    }
+
+    fun getMissingCases(
+        expression: CjMatchExpression,
+        context: BindingContext,
         subjectDescriptor: ClassDescriptor?,
         nullable: Boolean
     ): List<MatchMissingCase>
@@ -779,6 +941,15 @@ object MatchChecker {
     @JvmStatic
     fun getClassDescriptorOfTypeIfSealed(type: CangJieType?): ClassDescriptor? =
         type?.let { TypeUtils.getClassDescriptor(it) }?.takeIf { DescriptorUtils.isSealedClass(it) }
+
+    @JvmStatic
+    fun getClassDescriptorOfTypeIfTuple(type: CangJieType?): ClassDescriptor? {
+        if (type == null) return null
+        val classDescriptor = TypeUtils.getClassDescriptor(type) ?: return null
+        if (classDescriptor.kind != ClassKind.TUPLE) return null
+
+        return classDescriptor
+    }
 
     @JvmStatic
     fun getClassDescriptorOfTypeIfEnum(type: CangJieType?): ClassDescriptor? {
@@ -805,7 +976,9 @@ object MatchChecker {
 
     private val exhaustivenessCheckers: List<MatchExhaustivenessChecker> = listOf(
 //        MatchOnBooleanExhaustivenessChecker,
-//        MatchOnEnumExhaustivenessChecker,
+        MatchOnEnumExhaustivenessChecker,
+        MatchOnTupleExhaustivenessChecker,
+        MatchOnOtherExhaustivenessChecker,
 //        MatchOnSealedExhaustivenessChecker
     )
 
@@ -814,7 +987,14 @@ object MatchChecker {
         val nullable = type.isMarkedOption
         val checkers = exhaustivenessCheckers.filter { it.isApplicable(type) }
         if (checkers.isEmpty()) return listOf(MatchMissingCase.Unknown)
-        return checkers.map { it.getMissingCases(expression, context, TypeUtils.getClassDescriptor(type), nullable) }
+        return checkers.map {
+            it.getMissingCases(
+                expression,
+                context,
+                TypeUtils.getClassDescriptor(type),
+                nullable
+            ) + it.getMissingCases(expression, context, type, nullable)
+        }
             .flatten()
     }
 
@@ -930,4 +1110,463 @@ object MatchChecker {
 //        }
     }
 
+}
+
+internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessChecker {
+    var a = 1
+    private fun getReference(expression: CjExpression?): CjSimpleNameExpression? =
+        when (expression) {
+            is CjSimpleNameExpression -> expression
+            is CjQualifiedExpression -> getReference(expression.selectorExpression)
+            else -> null
+        }
+
+    val ClassDescriptor.enumEntriesConstructor: Set<ClassAndEnumConstructorDescriptor>
+        get() {
+            val enumEntryList = enumEntries
+            val _enumEntryList = mutableListOf<ClassAndEnumConstructorDescriptor>()
+
+            enumEntryList.forEach {
+                it as LazyEnumEntryDescriptor
+                _enumEntryList.addAll(it.getEnumEntryConstructorDescriptors())
+            }
+            return _enumEntryList.toSet()
+        }
+
+    val ClassDescriptor.enumEntries: Set<ClassDescriptor>
+        get() = DescriptorUtils.getAllDescriptors(this.unsubstitutedInnerClassesScope)
+            .filter {
+                DescriptorUtils.isEnumEntry(it)
+            }
+            .filterIsInstance<ClassDescriptor>()
+            .toSet()
+
+
+    protected val ClassDescriptor.deepSealedSubclasses: Set<ClassAndEnumConstructorDescriptor>
+        get() = this.sealedSubclasses.flatMapTo(mutableSetOf()) {
+            it.subclasses
+        }
+
+    private val ClassDescriptor.subclasses: Set<ClassAndEnumConstructorDescriptor>
+        get() = when {
+            this.modality == Modality.SEALED -> this.deepSealedSubclasses
+            this.kind == ClassKind.ENUM -> this.enumEntries
+            else -> setOf(this)
+        }
+
+    private val CjCasePattern.negated
+        get() =/* (this as? CjMatchConditionIsPattern)?.isNegated ?:*/ false
+
+    private fun CjCasePattern.isRelevant(checkedDescriptor: ClassAndEnumConstructorDescriptor) =
+        this !is CjMatchConditionWithExpression ||
+//                DescriptorUtils.isObject(checkedDescriptor) ||
+                when (checkedDescriptor) {
+                    is ClassDescriptor -> DescriptorUtils.isEnumEntry(checkedDescriptor)
+                    is EnumEntryConstructorDescriptor -> true
+                    else -> false
+                }
+
+    private fun CjCasePattern.getCheckedDescriptor(context: BindingContext): ClassAndEnumConstructorDescriptor? {
+        return when (this) {
+//            is CjMatchConditionIsPattern -> {
+//                val checkedType = context.get(BindingContext.TYPE, typeReference) ?: return null
+//                TypeUtils.getClassDescriptor(checkedType)
+//            }
+            is CjTuplePattern -> {
+                null
+            }
+//            is CjTypePattern -> {
+//                val reference = expression?.let { getReference(it) } ?: return null
+//                context.get(REFERENCE_TARGET, reference) as? ClassDescriptor
+//                null
+//            }
+            is CjMatchConditionWithExpression -> {
+                val reference = expression?.let { getReference(it) } ?: return null
+                context.get(REFERENCE_TARGET, reference) as? ClassDescriptor
+            }
+
+            is CjEnumPattern -> {
+                val reference = expression?.let { getReference(it) } ?: return null
+                context.get(REFERENCE_TARGET, reference).let {
+                    when (it) {
+
+                        is ClassDescriptor -> it
+                        is FakeCallableDescriptorForObject -> it.classDescriptor
+                        is EnumEntryConstructorDescriptor -> it
+                        else -> null
+                    }
+                }
+            }
+
+            is CjBindingPattern -> {
+                val reference = expression?.let { getReference(it) } ?: return null
+                context.get(REFERENCE_TARGET, reference).let {
+                    when (it) {
+                        is ClassDescriptor -> it
+                        is FakeCallableDescriptorForObject -> it.classDescriptor
+                        else -> {
+                            null
+                        }
+                    }
+                }
+            }
+
+            else -> {
+                null
+            }
+        }
+    }
+
+    fun <E> Set<E>.containsOrEquals(element: E): Boolean {
+
+        return this.contains(element) || this.any { it?.equals(element) == true }
+
+    }
+
+
+    //    检查元组模式 枚举模式是否使用绑定模式或通配符模式进行覆盖
+    fun checkBindingPatternOrWildcardPattern(
+        condition: CjCasePattern,
+        context: BindingContext,
+        types: List<CangJieType> = emptyList()
+    ): Boolean {
+
+
+        return when (condition) {
+
+            is CjEnumAndTuplePattern
+                -> {
+                val pattens = condition.patterns
+
+                if (pattens.all { it is CjBindingPattern || it is CjWildcardPattern }) {
+//                    全部覆盖
+                    return true
+                }
+                var result = true
+                pattens.forEachIndexed { index, value ->
+                    when (value) {
+                        is CjTypePattern -> {
+
+                            types.getOrNull(index)?.let {
+                                if (!checkTypePattern(value, it, context)) {
+                                    return false
+                                }
+                            }
+                        }
+
+                        is CjWildcardPattern,
+                        is CjBindingPattern -> {
+                        }
+
+                        else -> return false
+                    }
+
+
+                }
+                result
+            }
+
+            else -> true
+
+        }
+    }
+    protected fun getMissingClassCasesByOther(
+        whenExpression: CjMatchExpression,
+        type: CangJieType,
+        context: BindingContext
+    ): List<MatchMissingCase>{
+
+//        for (matchEntry in whenExpression.entries) {
+//            for (condition in matchEntry.conditions) {
+//
+//
+//                // Checks are important only for nested subclasses of the sealed class
+//                // In additional, check without "is" is important only for objects
+//                if (!checkBindingPatternOrWildcardPattern(
+//                        condition,
+//                        context,
+//                        listOf(type)
+//                    )
+//                ) {
+//                    continue
+//                }
+//                return emptyList()
+//            }
+//        }
+        return  listOf(MatchMissingCase.OtherCheckIsMissing())
+    }
+
+    protected fun getMissingClassCasesByTuple(
+        whenExpression: CjMatchExpression,
+        subclasses: Set<ClassAndEnumConstructorDescriptor>,
+        context: BindingContext
+    ): List<MatchMissingCase> {
+        if (subclasses.isEmpty()) return listOf(MatchMissingCase.Unknown)
+
+        for (matchEntry in whenExpression.entries) {
+            for (condition in matchEntry.conditions) {
+
+                val types = (subclasses.first() as TupleConstructor).types
+
+                // Checks are important only for nested subclasses of the sealed class
+                // In additional, check without "is" is important only for objects
+                if (!checkBindingPatternOrWildcardPattern(
+                        condition,
+                        context,
+                        types
+                    )
+                ) {
+                    continue
+                }
+                return emptyList()
+            }
+        }
+        return subclasses
+            .map(::createMatchMissingCaseForClassOrEnum)
+    }
+
+    protected fun getMissingClassCases(
+        whenExpression: CjMatchExpression,
+        subclasses: Set<ClassAndEnumConstructorDescriptor>,
+        context: BindingContext
+    ): List<MatchMissingCase> {
+        a++
+        // when on empty enum / sealed is considered non-exhaustive, see test whenOnEmptySealed
+        if (subclasses.isEmpty()) return listOf(MatchMissingCase.Unknown)
+
+        val checkedDescriptors = linkedSetOf<ClassAndEnumConstructorDescriptor>()
+        for (matchEntry in whenExpression.entries) {
+            for (condition in matchEntry.conditions) {
+                val negated = condition.negated
+                val checkedDescriptor = condition.getCheckedDescriptor(context) ?: continue
+                val checkedDescriptorSubclasses = when (checkedDescriptor) {
+                    is ClassDescriptor -> checkedDescriptor.subclasses
+                    is EnumEntryConstructorDescriptor -> setOf(checkedDescriptor)
+                    else -> error("Unexpected class descriptor")
+                }
+                val types = when (checkedDescriptor) {
+                    is EnumEntryConstructorDescriptor -> checkedDescriptor.getConstructorTypes()
+                    else -> emptyList<CangJieType>()
+                }
+
+                // Checks are important only for nested subclasses of the sealed class
+                // In additional, check without "is" is important only for objects
+                if (!checkBindingPatternOrWildcardPattern(
+                        condition,
+                        context,
+                        types
+                    ) || (checkedDescriptorSubclasses.none { subclasses.containsOrEquals(it) } ||
+                            !condition.isRelevant(checkedDescriptor))
+                ) {
+                    continue
+                }
+                if (negated) {
+                    if (checkedDescriptors.containsAll(checkedDescriptorSubclasses)) return listOf()
+                    checkedDescriptors.addAll(subclasses)
+                    checkedDescriptors.removeAll(checkedDescriptorSubclasses)
+                } else {
+                    checkedDescriptors.addAll(checkedDescriptorSubclasses)
+                }
+            }
+        }
+        return subclasses.filterNot { checkedDescriptors.containsOrEquals(it) }
+            .map(::createMatchMissingCaseForClassOrEnum)
+//        return (subclasses - checkedDescriptors).map(::createMatchMissingCaseForClassOrEnum)
+    }
+
+
+    private fun createMatchMissingCaseForClassOrEnum(classDescriptor: ClassAndEnumConstructorDescriptor): MatchMissingCase {
+        val classId = when (classDescriptor) {
+            is ClassDescriptor -> DescriptorUtils.getClassIdForNonLocalClass(classDescriptor)
+            is EnumEntryConstructorDescriptor -> ClassIdByConstructor(
+                classDescriptor.constructedClass.classId!!,
+                classDescriptor.getConstructorTypes()
+            )
+
+            is TupleConstructor -> ClassIdByConstructor(
+                ClassId(FqName.topLevel(Name.identifier("Tuple")), Name.identifier("Tuple")),
+                classDescriptor.types
+            )
+
+            else -> error("Unexpected class descriptor")
+        }
+        val kind = when (classDescriptor) {
+            is ClassDescriptor -> classDescriptor.kind
+            is EnumEntryConstructorDescriptor -> ClassKind.ENUM_ENTRY
+            is TupleConstructor -> ClassKind.TUPLE
+            else -> {
+                error("Unexpected class descriptor")
+            }
+        }
+        return if (kind == ClassKind.TUPLE) {
+            MatchMissingCase.TupleCheckIsMissing(
+
+                CallableId(classId.relativeClassName, classId.shortClassName)
+            )
+        } else if (kind != ClassKind.ENUM_ENTRY) {
+            MatchMissingCase.IsTypeCheckIsMissing(
+                classId = classId,
+                isSingleton = kind.isSingleton
+            )
+        } else {
+            val enumClassId = classId.outerClassId ?: error("Enum should have class id")
+            MatchMissingCase.EnumCheckIsMissing(CallableId(enumClassId, classId.shortClassName))
+        }
+    }
+}
+
+private object MatchOnOtherExhaustivenessChecker : MatchOnClassExhaustivenessChecker() {
+
+    override fun isApplicable(subjectType: CangJieType): Boolean {
+        return MatchChecker.getClassDescriptorOfTypeIfTuple(subjectType) == null &&
+                MatchChecker.getClassDescriptorOfTypeIfEnum(subjectType) == null
+    }
+
+    override fun getMissingCases(
+        expression: CjMatchExpression,
+        context: BindingContext,
+        type: CangJieType?,
+        nullable: Boolean
+    ): List<MatchMissingCase> {
+        type ?: return emptyList()
+
+
+        return buildList {
+            addAll(
+                getMissingClassCasesByOther(
+                    expression,
+                    type,
+                    context
+                )
+            )
+
+        }
+    }
+    override fun getMissingCases(
+        expression: CjMatchExpression,
+        context: BindingContext,
+        subjectDescriptor: ClassDescriptor?,
+        nullable: Boolean
+    ): List<MatchMissingCase> {
+        return emptyList()
+    }
+}
+
+private object MatchOnTupleExhaustivenessChecker : MatchOnClassExhaustivenessChecker() {
+    override fun getMissingCases(
+        expression: CjMatchExpression,
+        context: BindingContext,
+        type: CangJieType?,
+        nullable: Boolean
+    ): List<MatchMissingCase> {
+        type ?: return emptyList()
+        assert(type.isBuiltinTupleType) { "isMatchOnEnumExhaustive should be called with an tuple class descriptor" }
+
+
+        return buildList {
+            addAll(
+                getMissingClassCasesByTuple(
+                    expression,
+                    setOf(TupleConstructor(type.arguments.map { it.type })),
+                    context
+                )
+            )
+
+        }
+    }
+
+    override fun getMissingCases(
+        expression: CjMatchExpression,
+        context: BindingContext,
+        subjectDescriptor: ClassDescriptor?,
+        nullable: Boolean
+    ): List<MatchMissingCase> {
+        return emptyList()
+//        assert(isTuple(subjectDescriptor)) { "isMatchOnEnumExhaustive should be called with an tuple class descriptor" }
+//        return buildList {
+//            addAll(getMissingClassCases(expression, subjectDescriptor!!.enumEntriesConstructor, context))
+//            addAll(MatchOnNullableExhaustivenessChecker.getMissingCases(expression, context, nullable))
+//            addIfNotNull(MatchOnExpectExhaustivenessChecker.getMissingCase(subjectDescriptor))
+//        }
+    }
+
+    override fun isApplicable(subjectType: CangJieType): Boolean {
+        return MatchChecker.getClassDescriptorOfTypeIfTuple(subjectType) != null
+    }
+}
+
+private object MatchOnEnumExhaustivenessChecker : MatchOnClassExhaustivenessChecker() {
+    override fun getMissingCases(
+        expression: CjMatchExpression,
+        context: BindingContext,
+        subjectDescriptor: ClassDescriptor?,
+        nullable: Boolean
+    ): List<MatchMissingCase> {
+        assert(isEnum(subjectDescriptor)) { "isMatchOnEnumExhaustive should be called with an enum class descriptor" }
+        return buildList {
+            addAll(getMissingClassCases(expression, subjectDescriptor!!.enumEntriesConstructor, context))
+            addAll(MatchOnNullableExhaustivenessChecker.getMissingCases(expression, context, nullable))
+            addIfNotNull(MatchOnExpectExhaustivenessChecker.getMissingCase(subjectDescriptor))
+        }
+    }
+
+    override fun isApplicable(subjectType: CangJieType): Boolean {
+        return MatchChecker.getClassDescriptorOfTypeIfEnum(subjectType) != null
+    }
+}
+
+
+// It's not a regular exhaustiveness checker, invoke it only inside other checkers
+private object MatchOnNullableExhaustivenessChecker /* : WhenExhaustivenessChecker*/ {
+    fun getMissingCases(expression: CjMatchExpression, context: BindingContext, nullable: Boolean) =
+        if (nullable) getNullCaseIfMissing(expression, context) else listOf()
+
+    private fun getNullCaseIfMissing(expression: CjMatchExpression, context: BindingContext): List<MatchMissingCase> {
+        for (entry in expression.entries) {
+            for (condition in entry.conditions) {
+                if (condition is CjMatchConditionWithExpression) {
+                    condition.expression?.let {
+                        val type = context.getType(it)
+                        if (type != null && CangJieBuiltIns.isNullableNothing(type)) {
+                            return listOf()
+                        }
+                    }
+                }
+            }
+        }
+        return listOf(MatchMissingCase.NullIsMissing)
+    }
+}
+
+// It's not a regular exhaustiveness checker, invoke it only inside other checkers
+private object MatchOnExpectExhaustivenessChecker {
+    fun getMissingCase(subjectDescriptor: ClassDescriptor?): MatchMissingCase? {
+        return runIf(subjectDescriptor?.isExpect == true) {
+            when (subjectDescriptor!!.kind) {
+                ClassKind.CLASS -> MatchMissingCase.ConditionTypeIsExpect.SealedClass
+                ClassKind.INTERFACE -> MatchMissingCase.ConditionTypeIsExpect.SealedInterface
+                ClassKind.ENUM -> MatchMissingCase.ConditionTypeIsExpect.Enum
+                else -> MatchMissingCase.Unknown
+            }
+        }
+    }
+}
+
+//    检查是否有type模式覆盖
+fun checkTypePattern(condition: CjTypePattern, type: CangJieType?, context: BindingContext): Boolean {
+    type ?: return false
+    val typeReference = condition.typeReference
+
+    val typeByPsi = typeReference?.getType(context) ?: return false
+
+    return CangJieTypeChecker.DEFAULT.equalTypes(typeByPsi, type)
+
+
+}
+
+fun isBindingPattern(pattern: CjBindingPattern, context: BindingContext): Boolean {
+    return context.get(
+        VARIABLE,
+        pattern
+    ) != null
 }

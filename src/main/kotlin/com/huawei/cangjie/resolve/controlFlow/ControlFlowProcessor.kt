@@ -123,20 +123,20 @@ class ControlFlowProcessor(
 //                createNonSyntheticValue(condition, MagicKind.IS, getSubjectExpression(condition))
 //            }
 //
-//            override fun visitMatchConditionWithExpression(condition: CjMatchConditionWithExpression) {
-//                mark(condition)
-//
-//                val expression = condition.expression
-//                generateInstructions(expression)
-//
-//                val subjectExpression = getSubjectExpression(condition)
-//                if (subjectExpression != null) {
-//                    // todo: this can be replaced by equals() invocation (match corresponding resolved call is recorded)
-//                    createNonSyntheticValue(condition, MagicKind.EQUALS_IN_WHEN_CONDITION, subjectExpression, expression)
-//                } else {
-//                    copyValue(expression, condition)
-//                }
-//            }
+            override fun visitMatchConditionWithExpression(element: CjMatchConditionWithExpression) {
+                mark(element)
+
+                val expression = element.expression
+                generateInstructions(expression)
+
+                val subjectExpression = getSubjectExpression(element)
+                if (subjectExpression != null) {
+                    // todo: this can be replaced by equals() invocation (match corresponding resolved call is recorded)
+                    createNonSyntheticValue(element, MagicKind.EQUALS_IN_MATCH_CONDITION, subjectExpression, expression)
+                } else {
+                    copyValue(expression, element)
+                }
+            }
 
             override fun visitPatternByConstant(element: CjConstantPattern) {
                 mark(element)
@@ -147,7 +147,7 @@ class ControlFlowProcessor(
                 val subjectExpression = getSubjectExpression(element)
                 if (subjectExpression != null) {
                     // todo: this can be replaced by equals() invocation (match corresponding resolved call is recorded)
-                    createNonSyntheticValue(element, MagicKind.EQUALS_IN_WHEN_CONDITION, subjectExpression, expression)
+                    createNonSyntheticValue(element, MagicKind.EQUALS_IN_MATCH_CONDITION, subjectExpression, expression)
                 } else {
                     copyValue(expression, element)
                 }

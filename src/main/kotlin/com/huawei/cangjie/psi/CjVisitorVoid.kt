@@ -956,12 +956,17 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     open fun visitPatternByConstant(element: CjConstantPattern) {
         super.visitPatternByConstant(element, null)
     }
-
+    override fun visitMatchConditionWithExpression(element: CjMatchConditionWithExpression, data: Void?): Void? {
+        visitMatchConditionWithExpression(element)
+        return null
+    }
     override fun visitPatternByEnum(element: CjEnumPattern, data: Void?): Void? {
         visitPatternByEnum(element)
         return null
     }
-
+    open fun visitMatchConditionWithExpression(element: CjMatchConditionWithExpression) {
+        super.visitMatchConditionWithExpression(element, null)
+    }
     open fun visitPatternByEnum(element: CjEnumPattern) {
         super.visitPatternByEnum(element, null)
     }

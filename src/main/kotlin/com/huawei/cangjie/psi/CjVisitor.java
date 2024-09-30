@@ -29,7 +29,9 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitPatternByBinding(@NotNull CjBindingPattern element, D data) {
         return visitCasePattern(element, data);
     }
-
+    public R visitMatchConditionWithExpression(@NotNull CjMatchConditionWithExpression condition, D data) {
+        return visitCasePattern(condition, data);
+    }
     public R visitPatternByType(@NotNull CjTypePattern element, D data) {
         return visitCasePattern(element, data);
     }

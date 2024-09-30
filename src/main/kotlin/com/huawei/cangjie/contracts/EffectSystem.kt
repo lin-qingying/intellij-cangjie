@@ -35,7 +35,32 @@ class EffectSystem(
         return DataFlowInfo.EMPTY
 
     }
+    fun getDataFlowInfoWhenEquals(
+        leftExpression: CjExpression?,
+        rightExpression: CjExpression?,
+        bindingTrace: BindingTrace,
+        moduleDescriptor: ModuleDescriptor
+    ): ConditionalDataFlowInfo {
+        return ConditionalDataFlowInfo.EMPTY
 
+//        if (!languageVersionSettings.supportsFeature(LanguageFeature.UseReturnsEffect)) return ConditionalDataFlowInfo.EMPTY
+//        if (leftExpression == null || rightExpression == null) return ConditionalDataFlowInfo.EMPTY
+//
+//        val leftComputation =
+//            getNonTrivialComputation(leftExpression, bindingTrace, moduleDescriptor) ?: return ConditionalDataFlowInfo.EMPTY
+//        val rightComputation =
+//            getNonTrivialComputation(rightExpression, bindingTrace, moduleDescriptor) ?: return ConditionalDataFlowInfo.EMPTY
+//
+//        val effects = EqualsFunctor(false).invokeWithArguments(leftComputation, rightComputation)
+//
+//        val equalsContextInfo = InfoCollector(ESReturns(ESConstants.trueValue), builtIns).collectFromSchema(effects)
+//        val notEqualsContextInfo = InfoCollector(ESReturns(ESConstants.falseValue), builtIns).collectFromSchema(effects)
+//
+//        return ConditionalDataFlowInfo(
+//            equalsContextInfo.toDataFlowInfo(languageVersionSettings, builtIns),
+//            notEqualsContextInfo.toDataFlowInfo(languageVersionSettings, builtIns)
+//        )
+    }
     fun getDataFlowInfoMatchEquals(
         leftExpression: CjExpression?,
         rightExpression: CjExpression?,

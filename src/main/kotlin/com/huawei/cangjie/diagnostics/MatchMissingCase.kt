@@ -2,6 +2,7 @@ package com.huawei.cangjie.diagnostics
 
 import com.huawei.cangjie.name.CallableId
 import com.huawei.cangjie.name.ClassId
+import com.huawei.cangjie.name.IClassId
 
 
 sealed class MatchMissingCase {
@@ -34,7 +35,7 @@ sealed class MatchMissingCase {
         override val branchConditionText: String = value.toString()
     }
 
-    class IsTypeCheckIsMissing(val classId: ClassId, val isSingleton: Boolean) : MatchMissingCase() {
+    class IsTypeCheckIsMissing(val classId: IClassId, val isSingleton: Boolean) : MatchMissingCase() {
         override val branchConditionText: String = run {
             val fqName = classId.asSingleFqName().toString()
             if (isSingleton) fqName else "is $fqName"
@@ -46,6 +47,10 @@ sealed class MatchMissingCase {
             return if (isSingleton) name else "is $name"
         }
     }
+    class OtherCheckIsMissing(): MatchMissingCase() {
+        override val branchConditionText: String
+            get() = "Other"
+    }
 
     class EnumCheckIsMissing(val callableId: CallableId) : MatchMissingCase() {
         override val branchConditionText: String = callableId.asSingleFqName().toString()
@@ -54,7 +59,13 @@ sealed class MatchMissingCase {
             return callableId.callableName.identifier
         }
     }
+    class TupleCheckIsMissing(val callableId: CallableId) : MatchMissingCase() {
+        override val branchConditionText: String = callableId.asSingleFqName().toString()
 
+        override fun toString(): String {
+            return callableId.callableName.identifier
+        }
+    }
     override fun toString(): String {
         return branchConditionText
     }

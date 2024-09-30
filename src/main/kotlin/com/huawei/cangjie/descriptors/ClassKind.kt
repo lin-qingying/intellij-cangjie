@@ -5,6 +5,7 @@ enum class ClassKind(val codeRepresentation: String?) {
     STRUCT("struct"),
     CLASS("class"),
     INTERFACE("interface"),
+    TUPLE("tuple"),
     ENUM("enum"),
     EXTEND("extend"),
     ENUM_ENTRY(null),

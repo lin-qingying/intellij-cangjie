@@ -114,7 +114,7 @@ enum class MagicKind(val sideEffectFree: Boolean = false) {
     AND(true),
     OR(true),
     NOT_NULL_ASSERTION(),
-    EQUALS_IN_WHEN_CONDITION(),
+    EQUALS_IN_MATCH_CONDITION(),
     IS(),
     CAST(),
     UNBOUND_CALLABLE_REFERENCE(true),

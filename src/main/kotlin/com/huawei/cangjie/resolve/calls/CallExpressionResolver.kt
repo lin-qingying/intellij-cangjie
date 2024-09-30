@@ -388,6 +388,66 @@ class CallExpressionResolver(
             }
         }
 
+    fun getQualifiedExpressionEnumEntryType(
+        expression: CjQualifiedExpression,
+        context: ExpressionTypingContext
+    ): DeclarationDescriptor? {
+
+        val currentContext =
+            context.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(ContextDependency.INDEPENDENT)
+        val trace = currentContext.trace
+
+        val elementChain = expression.elementChain(currentContext)
+        val firstReceiver = elementChain.first().receiver
+
+        val receiverTypeInfo = when (trace[BindingContext.QUALIFIER, firstReceiver]) {
+            null -> expressionTypingServices.getTypeInfo(firstReceiver, currentContext)
+            else -> CangJieTypeInfo(null, currentContext.dataFlowInfo)
+        }
+
+        // Branch point: right before first safe call
+        val branchPointDataFlowInfo = receiverTypeInfo.dataFlowInfo
+        var resultTypeInfo: DeclarationDescriptor? = null
+        for (element in elementChain) {
+            val receiverType = receiverTypeInfo.type
+                ?: ErrorUtils.createErrorType(
+                    ErrorTypeKind.ERROR_RECEIVER_TYPE,
+                    when (val receiver = element.receiver) {
+                        is CjNameReferenceExpression -> receiver.getReferencedName()
+                        else -> receiver.text
+                    }
+                )
+
+            val receiver = trace[BindingContext.QUALIFIER, element.receiver]
+                ?: ExpressionReceiver.create(element.receiver, receiverType, trace.bindingContext)
+
+            val qualifiedExpression = element.qualified
+            val lastStage = qualifiedExpression === expression
+            // Drop NO_EXPECTED_TYPE / INDEPENDENT at last stage
+            val contextForSelector = (if (lastStage) context else currentContext).replaceDataFlowInfo(
+                if (receiver is ReceiverValue && TypeUtils.isNullableType(receiver.type) && !element.safe) {
+                    // Call with nullable receiver: take data flow info from branch point
+                    branchPointDataFlowInfo
+                } else {
+                    // Take data flow info from the current receiver
+                    receiverTypeInfo.dataFlowInfo
+                }
+            )
+
+            val selectorTypeInfo = getSafeOrUnsafeSelectorEnumEntryType(receiver, element, contextForSelector)
+            // if we have only dots and not ?. move branch point further
+
+
+
+
+            // For the next stage, if any, current stage selector is the receiver!
+            resultTypeInfo = selectorTypeInfo
+        }
+
+        return resultTypeInfo
+
+    }
+
     /**
      * Visits a qualified expression like x.y or x?.z controlling data flow information changes.
 
@@ -461,6 +521,23 @@ class CallExpressionResolver(
         return resultTypeInfo
     }
 
+    private fun getUnsafeSelectorEnumEntryType(
+        receiver: Receiver,
+        callOperationNode: ASTNode?,
+        selectorExpression: CjExpression?,
+        context: ExpressionTypingContext,
+        initialDataFlowInfoForArguments: DataFlowInfo
+    ): DeclarationDescriptor? = when (selectorExpression) {
+
+
+        is CjSimpleNameExpression -> getSimpleNameExpressionEnumEntryType(
+            selectorExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
+        )
+
+
+        else /*null*/ -> null
+    }
+
     private fun getUnsafeSelectorTypeInfo(
         receiver: Receiver,
         callOperationNode: ASTNode?,
@@ -484,7 +561,55 @@ class CallExpressionResolver(
 
         else /*null*/ -> noTypeInfo(context)
     }
+    private fun getSafeOrUnsafeSelectorEnumEntryType(
+        receiver: Receiver,
+        element: CallExpressionElement,
+        context: ExpressionTypingContext
+    ):
+            DeclarationDescriptor? {
+        var initialDataFlowInfoForArguments = context.dataFlowInfo
+        val receiverDataFlowValue =
+            (receiver as? ReceiverValue)?.let { dataFlowValueFactory.createDataFlowValue(it, context) }
 
+        val receiverCanBeNull =
+            receiverDataFlowValue != null && initialDataFlowInfoForArguments.getStableNullability(receiverDataFlowValue)
+                .canBeNull()
+        val shouldNullifySafeCallType =
+            receiverCanBeNull || context.languageVersionSettings.supportsFeature(LanguageFeature.SafeCallsAreAlwaysNullable)
+
+        val callOperationNode =
+            AstLoadingFilter.forceAllowTreeLoading(element.qualified.containingFile, ThrowableComputable {
+                element.node
+            })
+
+        if (receiverDataFlowValue != null && element.safe) {
+            // Additional "receiver != null" information should be applied if we consider a safe call
+            if (shouldNullifySafeCallType) {
+                initialDataFlowInfoForArguments = initialDataFlowInfoForArguments.disequate(
+                    receiverDataFlowValue, DataFlowValue.nullValue(builtIns), languageVersionSettings
+                )
+            }
+            if (!receiverCanBeNull) {
+                reportUnnecessarySafeCall(
+                    context.trace,
+                    receiver.type,
+                    element.qualified,
+                    callOperationNode,
+                    receiver,
+                    context.languageVersionSettings
+                )
+            }
+        }
+
+        val selector = element.selector
+
+        @OptIn(TypeRefinement::class)
+        val selectorTypeInfo =
+            getUnsafeSelectorEnumEntryType(receiver, callOperationNode, selector, context, initialDataFlowInfoForArguments)
+
+
+        return selectorTypeInfo
+    }
 
     private fun getSafeOrUnsafeSelectorTypeInfo(
         receiver: Receiver,

@@ -6,7 +6,7 @@ class CallableId private constructor(
     val packageName: FqName,
     val className: FqName?,
     val callableName: Name,
-    val classId: ClassId?,
+    val classId: IClassId?,
     // Currently, it's only used for debug info
     private val pathToLocal: FqName?
 ) {

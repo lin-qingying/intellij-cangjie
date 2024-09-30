@@ -245,6 +245,7 @@ abstract class DescriptorRenderer {
                     ANNOTATION_CLASS -> "annotation class"
                     ENUM_ENTRY -> "enum entry"
                     BASIC -> "basic type"
+                    TUPLE -> "tuple"
                 }
 
             else ->

@@ -4,6 +4,8 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.checker.CangJieTypeChecker
+import com.huawei.cangjie.types.expressions.ClassAndEnumConstructorDescriptor
 
 
 val String.name get() = Name.identifier(this)
@@ -22,7 +24,7 @@ class EnumEntryConstructorDescriptor(
     CallableMemberDescriptor.Kind.DECLARATION, //声明
     source
 
-) {
+), ClassAndEnumConstructorDescriptor {
     private var values: MutableList<ValueParameterDescriptor>? = null
 
     private fun fillValues() {
@@ -57,7 +59,7 @@ class EnumEntryConstructorDescriptor(
         while (_containingDeclaration != null) {
             if (_containingDeclaration.kind != ClassKind.ENUM) {
                 _containingDeclaration = _containingDeclaration.containingDeclaration as? ClassDescriptor
-            }else{
+            } else {
                 break
             }
         }
@@ -69,14 +71,48 @@ class EnumEntryConstructorDescriptor(
         return getEnumType()
     }
 
+    override fun equals(other: Any?): Boolean {
+
+
+        if (this === other) return true
+        if (other !is EnumEntryConstructorDescriptor) return false
+        if (this.containingDeclaration != other.containingDeclaration) return false
+        if (this.values?.size != other.values?.size) return false
+
+        if (this.values?.any {
+                other.values?.any { value2 ->
+                    CangJieTypeChecker.DEFAULT.equalTypes(it.type, value2.type)
+                } == true
+            } == false) {
+            return false
+        }
+
+
+
+        return true
+    }
+
     override fun hasSynthesizedParameterNames(): Boolean {
         return false
     }
+
 
     override fun getValueParameters(): List<ValueParameterDescriptor> {
         if (values == null) {
             fillValues()
         }
         return values!!
+    }
+
+    fun getConstructorTypes(): List<CangJieType> {
+        return getValueParameters().map {
+            it.type
+        }
+    }
+
+    override fun hashCode(): Int {
+        var result = types.hashCode()
+        result = 31 * result + (values?.hashCode() ?: 0)
+        return result
     }
 }

@@ -12,6 +12,7 @@ import com.huawei.cangjie.resolve.scopes.MemberScope;
 import com.huawei.cangjie.types.SimpleType;
 import com.huawei.cangjie.types.TypeProjection;
 import com.huawei.cangjie.types.TypeSubstitution;
+import com.huawei.cangjie.types.expressions.ClassAndEnumConstructorDescriptor;
 import com.huawei.cangjie.utils.ReadOnly;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 public interface ClassDescriptor extends ClassifierDescriptorWithTypeParameters, ClassOrPackageFragmentDescriptor,
-        RegularClassSymbolMarker {
+        RegularClassSymbolMarker ,ClassAndEnumConstructorDescriptor{
     @NotNull
     MemberScope getMemberScope(@NotNull List<? extends TypeProjection> typeArguments);
 

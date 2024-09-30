@@ -1,9 +1,44 @@
 package com.huawei.cangjie.name
 
+import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.utils.runIf
 
+interface IClassId {
+    val packageFqName: FqName
+    val relativeClassName: FqName
+    val isLocal: Boolean
+    val shortClassName: Name
+    fun asSingleFqName(): FqName
+    val outerClassId: ClassId?
+}
+//包含构造器的classid  用于枚举构造器
+data class ClassIdByConstructor(val classId: ClassId, val types: List<CangJieType> = emptyList()) : IClassId {
+    override val packageFqName: FqName
+        get() = classId.packageFqName
+    override val relativeClassName: FqName
+        get() = classId.relativeClassName
+    override val isLocal: Boolean
+        get() = classId.isLocal
+    override val shortClassName: Name
+        get() = Name.identifier(classId.shortClassName.identifier + "(" + types.size + ")")
 
-data class ClassId(val packageFqName: FqName, val relativeClassName: FqName, val isLocal: Boolean) {
+    override fun asSingleFqName(): FqName {
+        return classId.asSingleFqName()
+    }
+
+    override val outerClassId: ClassId?
+        get() = classId.outerClassId
+
+    override fun toString(): String {
+        return classId.toString() + "(" + types.joinToString(",") { it.toString() } + ")"
+    }
+}
+
+data class ClassId(
+    override val packageFqName: FqName,
+    override val relativeClassName: FqName,
+    override val isLocal: Boolean
+) : IClassId {
     constructor(packageFqName: FqName, topLevelName: Name) : this(
         packageFqName,
         FqName.topLevel(topLevelName),
@@ -19,10 +54,10 @@ data class ClassId(val packageFqName: FqName, val relativeClassName: FqName, val
             ClassId(packageFqName, relativeClassName.parent(), isLocal)
         }
 
-    val shortClassName: Name
+    override val shortClassName: Name
         get() = relativeClassName.shortName()
 
-    val outerClassId: ClassId?
+    override val outerClassId: ClassId?
         get() {
             val parent = relativeClassName.parent()
             return runIf(!parent.isRoot) { ClassId(packageFqName, parent, isLocal) }
@@ -44,7 +79,7 @@ data class ClassId(val packageFqName: FqName, val relativeClassName: FqName, val
         return ClassId(packageFqName, relativeClassName.child(name), isLocal)
     }
 
-    fun asSingleFqName(): FqName {
+    override fun asSingleFqName(): FqName {
         return if (packageFqName.isRoot) relativeClassName else FqName(packageFqName.asString() + "." + relativeClassName.asString())
     }
 
@@ -65,7 +100,7 @@ data class ClassId(val packageFqName: FqName, val relativeClassName: FqName, val
         }
     }
 
-    override operator fun equals(other: Any?): Boolean {
+    override fun equals(other: Any?): Boolean {
 
 
         if (other !is ClassId) return false

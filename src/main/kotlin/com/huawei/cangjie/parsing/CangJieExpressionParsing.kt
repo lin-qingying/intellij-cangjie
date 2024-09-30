@@ -1024,7 +1024,9 @@ open class CangJieExpressionParsing(
             if (at(UNDERLINE)) {
                 casePattern.parseUnderline()
             } else {
+                val expr = mark()
                 parseExpression()
+                expr.done(MATCH_CONDITION_EXPRESSION)
             }
 
         } else {

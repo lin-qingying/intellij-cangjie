@@ -217,6 +217,7 @@ IElementType WILDCARD_PATTERN = new CjNodeType("WILDCARD_PATTERN", CjWildcardPat
     CjBlockCodeFragmentType BLOCK_CODE_FRAGMENT = new CjBlockCodeFragmentType();
 
 
+    IElementType MATCH_CONDITION_EXPRESSION = new CjNodeType("MATCH_CONDITION_WITH_EXPRESSION", CjMatchConditionWithExpression.class);
 
     TokenSet CONSTANT_EXPRESSIONS_TYPES = TokenSet.create(
 

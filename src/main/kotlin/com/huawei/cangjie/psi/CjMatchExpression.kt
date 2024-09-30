@@ -14,7 +14,14 @@ class CjMatchExpression(node: ASTNode) : CjExpressionImpl(node) {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitMatchExpression(this, data)
     }
-
+    val elseExpression : CjExpression? get(){
+        for (entry in entries) {
+            if (entry.isElse) {
+                return entry.expression
+            }
+        }
+        return null
+    }
     val condition: CjContainerNode?
         get() = findChildByType(CjNodeTypes.CONDITION)
     val subjectExpression: CjExpression?

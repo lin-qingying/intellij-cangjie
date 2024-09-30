@@ -173,6 +173,9 @@ public interface Errors {
             DiagnosticFactory3.create(ERROR, CALL_ELEMENT);
     DiagnosticFactory2<CjExpression, CangJieType, CangJieType> TYPE_MISMATCH_WARNING = DiagnosticFactory2.create(WARNING);
     DiagnosticFactory2<CjExpression, CangJieType, CangJieType> TYPE_MISMATCH = DiagnosticFactory2.create(ERROR);
+
+    DiagnosticFactory1<CjElement, CangJieType> TUPLE_PATTERN_TYPE_MISMATCH = DiagnosticFactory1.create(ERROR);
+
     DiagnosticFactory1<PsiElement, List<CangJieType>> TYPE_MISMATCH_MULTIPLE_SUPERTYPES = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<CjNamedDeclaration, TypeParameterDescriptor> CONFLICTING_UPPER_BOUNDS =
             DiagnosticFactory1.create(ERROR, DECLARATION_NAME);
@@ -181,14 +184,16 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, String> NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory0<PsiElement > ARRAY_LITERAL_TYPE_INFERENCE_FAILED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjParameter > NON_NAMED_PARAMETER_AFTER_NAMED_PARAMETER = DiagnosticFactory0.create(ERROR);
-    DiagnosticFactory0<CjElement > POSITIONAL_ARGUMENT_AFTER_NAMED_ARGUMENT = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjElement> POSITIONAL_ARGUMENT_AFTER_NAMED_ARGUMENT = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjElement> TUPLE_ARGS_TOO_FEW = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory2<CjElement,Integer,Integer> TUPLE_ARGS_MISMATCH = DiagnosticFactory2.create(ERROR);
 
     DiagnosticFactoryForDeprecation1<PsiElement, TypeParameterDescriptor> TYPE_INFERENCE_ONLY_INPUT_TYPES =
             DiagnosticFactoryForDeprecation1.create(LanguageFeature.StrictOnlyInputTypesChecks);
     DiagnosticFactory2<CjElement, Set<CjElement>, Set<CjElement>> UNREACHABLE_CODE = DiagnosticFactory2.create(
                 WARNING, ClassicPositioningStrategies.UNREACHABLE_CODE);
     DiagnosticFactory0<CjSimpleNameExpression> ENUM_ENTRY_AS_TYPE = DiagnosticFactory0.create(ERROR);
-    DiagnosticFactory0<CjMatchEntry> ELSE_MISPLACED_IN_MATCH = DiagnosticFactory0.create(ERROR, ELSE_ENTRY);
+    DiagnosticFactory0<CjMatchEntry> ELSE_MISPLACED_IN_MATCH = DiagnosticFactory0.create(WARNING, ELSE_ENTRY);
 
 
     DiagnosticFactory1<PsiElement, String> COULD_BE_INFERRED_ONLY_WITH_UNRESTRICTED_BUILDER_INFERENCE = DiagnosticFactory1.create(ERROR);

@@ -259,9 +259,14 @@ public class DefaultErrorMessages {
         MAP.put(NO_ELSE_IN_MATCH, "''match'' expression must be exhaustive, add necessary {0}", RENDER_MATCH_MISSING_CASES);
         MAP.put(CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON, "Cannot import-on-demand from class ''{0}''", NAMED);
         MAP.put(NOT_ENUM_ENTRY_VALUE, "Not an enumerated value");
-        MAP.put(NOT_ENUM_MATCH , "enum pattern is not matched");
-        MAP.put(NOT_ENUM_MATCH , "enum pattern is not matched");
-        MAP.put(ENUM_CONSTRUCTOR_MISMATCH , "No enumeration constructor found with parameter ''{0}''",INT);
+        MAP.put(NOT_ENUM_MATCH, "enum pattern is not matched");
+        MAP.put(NOT_ENUM_MATCH, "enum pattern is not matched");
+        MAP.put(ENUM_CONSTRUCTOR_MISMATCH, "No enumeration constructor found with parameter ''{0}''", INT);
+        MAP.put(TUPLE_ARGS_TOO_FEW, "The number of arguments for the tuple pattern is less than 2");
+        MAP.put(TUPLE_ARGS_MISMATCH, "The number of arguments to the tuple pattern does not match, ''{0}'' is needed, but ''{1}'' are obtained", INT, INT);
+
+        MAP.put(TUPLE_PATTERN_TYPE_MISMATCH, "Type mismatch: inferred type is Tuple but {0} was expected", RENDER_TYPE);
+        MAP.put(ELSE_MISPLACED_IN_MATCH, "'else _' entry must be the last one in a match-expression");
 
     }
 

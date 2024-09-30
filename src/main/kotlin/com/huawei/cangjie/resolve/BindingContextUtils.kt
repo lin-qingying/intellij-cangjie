@@ -13,6 +13,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.calls.util.getResolvedCall
 import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.resolve.scopes.takeSnapshot
+import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
@@ -25,7 +26,10 @@ fun BindingTrace.recordScope(scope: LexicalScope, element: CjElement?) {
 }
 
 fun CjExpression.isUsedAsResultOfLambda(context: BindingContext): Boolean = context[USED_AS_RESULT_OF_LAMBDA, this]!!
+fun CjTypeReference.getType(context: BindingContext): CangJieType?{
 
+    return context[TYPE, this]
+}
 fun CjExpression.getReferenceTargets(context: BindingContext): Collection<DeclarationDescriptor> {
     val targetDescriptor = if (this is CjReferenceExpression) context[REFERENCE_TARGET, this] else null
     return targetDescriptor?.let { listOf(it) } ?: context[AMBIGUOUS_REFERENCE_TARGET, this].orEmpty()

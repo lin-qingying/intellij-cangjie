@@ -7,12 +7,11 @@ import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
-import com.huawei.cangjie.name.FqName
-import com.huawei.cangjie.name.FqNameUnsafe
-import com.huawei.cangjie.name.SpecialNames
+import com.huawei.cangjie.name.*
 import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.resolve.DescriptorUtils.getContainingModule
 import com.huawei.cangjie.resolve.descriptorUtil.builtIns
+import com.huawei.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorImpl
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
@@ -77,6 +76,7 @@ val ClassDescriptor.classValueDescriptor: ClassDescriptor?
             this
         else
             null
+
 /**
  * Returns containing declaration of dispatch receiver for callable adjusted to fake-overridden cases
  *
@@ -101,6 +101,7 @@ fun CallableDescriptor.getOwnerForEffectiveDispatchReceiverParameter(): Declarat
     }
     return dispatchReceiverParameter?.containingDeclaration
 }
+
 object DescriptorUtils {
     @JvmStatic
     fun isDirectSubclass(
@@ -113,6 +114,21 @@ object DescriptorUtils {
             }
         }
         return false
+    }
+
+    fun getClassIdForNonLocalClass(descriptor: DeclarationDescriptor): ClassId {
+        val containingDeclaration =
+            descriptor.containingDeclaration
+        val name: Name = descriptor.name
+        if (containingDeclaration is PackageFragmentDescriptorImpl) {
+            val packageFqName: FqName =
+                containingDeclaration.fqName
+            return ClassId(packageFqName, name)
+        }
+        if (containingDeclaration !is ClassDescriptor) {
+            return ClassId(FqName.ROOT, name)
+        }
+        return getClassIdForNonLocalClass(containingDeclaration).createNestedClassId(name)
     }
 
     @JvmStatic
@@ -428,7 +444,14 @@ object DescriptorUtils {
         }
         return classDescriptor.builtIns.anyType
     }
+    @JvmStatic
 
+    fun isTuple(descriptor: DeclarationDescriptor?): Boolean {
+        return isKindOf(
+            descriptor,
+            ClassKind.TUPLE
+        )
+    }
     @JvmStatic
 
     fun isEnum(descriptor: DeclarationDescriptor?): Boolean {

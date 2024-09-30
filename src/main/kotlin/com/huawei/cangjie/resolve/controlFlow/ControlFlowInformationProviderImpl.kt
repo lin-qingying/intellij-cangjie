@@ -28,6 +28,8 @@ import com.huawei.cangjie.resolve.isUsedAsResultOfLambda
 import com.huawei.cangjie.resolve.recordUsedAsExpression
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.expressions.MatchChecker
+import com.huawei.cangjie.types.expressions.checkTypePattern
+import com.huawei.cangjie.types.expressions.isBindingPattern
 import com.huawei.cangjie.types.isFlexible
 import com.huawei.cangjie.types.util.TypeUtils.DONT_CARE
 import com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
@@ -383,8 +385,13 @@ class ControlFlowInformationProviderImpl private constructor(
 
                 val elseEntry = element.entries.find { it.isElse }
                 val subjectExpression = element.subjectExpression
-                if (/*usedAsExpression &&*/ missingCases.isNotEmpty()) {
+
+//                val isEnum = missingCases.first() is MatchMissingCase.EnumCheckIsMissing
+                if (usedAsExpression && /* !isEnum &&*/ missingCases.isNotEmpty()) {
                     if (elseEntry != null) continue
+                    if (element.entries.any { it.conditions.first() is CjBindingPattern }) {
+                        continue
+                    }
                     trace.report(NO_ELSE_IN_MATCH.on(element, missingCases))
                     missingCases.firstOrNull { it is MatchMissingCase.ConditionTypeIsExpect }?.let {
                         require(it is MatchMissingCase.ConditionTypeIsExpect)
@@ -392,6 +399,8 @@ class ControlFlowInformationProviderImpl private constructor(
                     }
                 } else if (subjectExpression != null) {
                     val subjectType = MatchChecker.matchSubjectType(element, trace.bindingContext)
+
+
                     if (elseEntry != null) {
                         if (missingCases.isEmpty() && subjectType != null && !subjectType.isFlexible()) {
                             val subjectClass = subjectType.constructor.declarationDescriptor as? ClassDescriptor
@@ -407,6 +416,16 @@ class ControlFlowInformationProviderImpl private constructor(
                         continue
                     }
 
+                    if (element.entries.any {
+                            it.conditions.isNotEmpty() &&           it.conditions.first() is CjBindingPattern &&   isBindingPattern(it.conditions.first() as CjBindingPattern,context)
+                        }) {
+                        continue
+                    }
+                    if (element.entries.any {
+                            it.conditions.isNotEmpty() &&     it.conditions.first() is CjTypePattern &&   checkTypePattern(it.conditions.first() as CjTypePattern,subjectType,context)
+                        }) {
+                        continue
+                    }
 //                    enumMatchTracker?.record(subjectType, subjectExpression, elseEntry)
 
                     if (!usedAsExpression) {
@@ -443,9 +462,12 @@ class ControlFlowInformationProviderImpl private constructor(
     ) {
         if (missingCases.isEmpty()) return
         val kind = when {
+            missingCases.all { it is MatchMissingCase.OtherCheckIsMissing } -> AlgebraicTypeKind.Constant
+            MatchChecker.getClassDescriptorOfTypeIfTuple(subjectType) != null -> AlgebraicTypeKind.Tuple
             MatchChecker.getClassDescriptorOfTypeIfSealed(subjectType) != null -> AlgebraicTypeKind.Sealed
             MatchChecker.getClassDescriptorOfTypeIfEnum(subjectType) != null -> AlgebraicTypeKind.Enum
             subjectType?.isBooleanOrNullableBoolean() == true -> AlgebraicTypeKind.Boolean
+
             else -> null
         }
 
@@ -457,8 +479,10 @@ class ControlFlowInformationProviderImpl private constructor(
     }
 
     private enum class AlgebraicTypeKind(val displayName: String) {
+       Constant("constant"),
         Sealed("sealed class/interface"),
         Enum("enum"),
+        Tuple("Tuple"),
         Boolean("Boolean")
     }
 
@@ -689,3 +713,4 @@ class ControlFlowInformationProviderImpl private constructor(
 
     }
 }
+

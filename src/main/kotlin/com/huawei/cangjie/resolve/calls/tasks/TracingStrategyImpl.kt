@@ -32,10 +32,7 @@ class TracingStrategyImpl private constructor(override val reference: CjReferenc
 //                trace.record(SHORT_REFERENCE_TO_COMPANION_OBJECT, reference, fakeCallableDescriptorForObject.getClassDescriptor());
 //            }
 //        }
-        val storedReference = trace.get(
-            BindingContext.REFERENCE_TARGET,
-            reference
-        )
+        val storedReference = trace[BindingContext.REFERENCE_TARGET, reference]
         if (storedReference == null || !isError(descriptor)) {
             trace.record(
                 BindingContext.REFERENCE_TARGET,

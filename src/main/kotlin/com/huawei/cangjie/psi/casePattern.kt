@@ -9,12 +9,21 @@ import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
-import com.intellij.psi.tree.IElementType
 
 
 abstract class CjCasePattern(node: ASTNode) : CjElementImpl(node) {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitCasePattern(this, data)
+    }
+}
+
+class CjMatchConditionWithExpression(node: ASTNode) : CjCasePattern(node)  {
+    @get:IfNotParsed
+    val expression
+        get() = findChildByClass<CjExpression>(CjExpression::class.java)
+
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitMatchConditionWithExpression(this, data)
     }
 }
 
@@ -109,30 +118,36 @@ class CjTypePattern(node: ASTNode) : PatternVariableDeclaration(node) {
 
     val identifier: PsiElement? get() = findChildByType(CjTokens.IDENTIFIER)
     override fun getName(): String? {
-        return identifier?.text
+        return reference?.text
     }
+    val reference get() =   findChildByType<CjSimpleNameExpression>(CjNodeTypes.REFERENCE_EXPRESSION)
 
     override val typeReference get() = findChildByType<CjTypeReference>(CjNodeTypes.TYPE_REFERENCE)
 }
 
-class CjTuplePattern(node: ASTNode) : CjCasePattern(node) {
+class CjTuplePattern(node: ASTNode) : CjCasePattern(node) ,CjEnumAndTuplePattern{
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitPatternByTuple(this, data)
     }
-}
 
-class CjEnumPattern(node: ASTNode) : CjCasePattern(node) {
+    override val patterns get() =  findChildrenByClass(CjCasePattern::class.java).toList()
+
+}
+interface CjEnumAndTuplePattern{
+    val patterns:List<CjCasePattern>
+}
+class CjEnumPattern(node: ASTNode) : CjCasePattern(node),CjEnumAndTuplePattern {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitPatternByEnum(this, data)
     }
 
-    val expression: CjSimpleNameExpression?
-        get() = findChildByType(CjNodeTypes.REFERENCE_EXPRESSION) ?: findChildByType<CjSimpleNameExpression>(
+    val expression:CjExpression?
+        get() = findChildByType(CjNodeTypes.REFERENCE_EXPRESSION) ?: findChildByType (
             CjNodeTypes.DOT_QUALIFIED_EXPRESSION
         )
 
 
-    val patterns get() =  findChildrenByClass(CjCasePattern::class.java).toList()
+    override val patterns get() =  findChildrenByClass(CjCasePattern::class.java).toList()
 
 }
 

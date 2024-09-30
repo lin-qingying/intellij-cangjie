@@ -8,11 +8,13 @@ import com.huawei.cangjie.diagnostics.Errors.REDECLARATION
 import com.huawei.cangjie.diagnostics.reportOnDeclaration
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.BindingContext
+import com.huawei.cangjie.resolve.descriptorUtil.classId
 import com.huawei.cangjie.resolve.lazy.LazyClassContext
 import com.huawei.cangjie.resolve.lazy.data.CjClassInfo
 import com.huawei.cangjie.resolve.lazy.data.CjEnmuEntryInfo
 import com.huawei.cangjie.resolve.source.toSourceElement
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.expressions.ClassAndEnumConstructorDescriptor
 
 
 fun CjClassInfo<*>.toSourceElement(): SourceElement {
@@ -27,11 +29,29 @@ class LazyEnumEntryDescriptor(
     isExternal: Boolean
 ) : LazyClassDescriptor(c, thisDescriptor, name, list.first(), isExternal) {
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is LazyEnumEntryDescriptor) return false
+
+
+        if (other.name != name) return false
+        if (other.list.size != list.size) return false
+        if (other._constructors.size != _constructors.size) return false
+
+        if (!(list.any { other.list.any { otherit -> otherit.name == it.name } })) {
+            return false
+        }
+        if (this.classId != other.classId) {
+            return false
+        }
+
+        return true
+    }
 
     override val classLikeInfo: CjEnmuEntryInfo = super.classLikeInfo as CjEnmuEntryInfo
 
 
-    private var _constructors: MutableList<EnumEntryConstructorDescriptor> = mutableListOf()
+    var _constructors: MutableList<EnumEntryConstructorDescriptor> = mutableListOf()
     fun checkEntrys() {
 //REDECLARATION
         list.forEach {
@@ -78,6 +98,17 @@ class LazyEnumEntryDescriptor(
 
     }
 
+    fun getEnumEntryConstructorDescriptors(): List<ClassAndEnumConstructorDescriptor> {
+        return _constructors.map {
+            if (it.valueParameters.isEmpty()) {
+                this
+            } else {
+                it
+            }
+        }
+
+    }
+
     override fun getConstructors(): List<ClassConstructorDescriptor> {
         return _constructors.filter { it.valueParameters.isNotEmpty() }
     }
@@ -93,5 +124,12 @@ class LazyEnumEntryDescriptor(
 //        }
 //        return _constructor!!
 
+    }
+
+    override fun hashCode(): Int {
+        var result = list.hashCode()
+        result = 31 * result + classLikeInfo.hashCode()
+        result = 31 * result + _constructors.hashCode()
+        return result
     }
 }
