@@ -5,11 +5,11 @@ import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.ClassKind
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.resolve.AnnotationTargetLists.T_MEMBER_PROPERTY
 import com.huawei.cangjie.resolve.CangJieTarget.*
 import com.huawei.cangjie.types.expressions.ExpressionTypingUtils
 
 class AnnotationChecker {
-
 
 
     fun check(annotated: CjAnnotated, trace: BindingTrace, descriptor: DeclarationDescriptor? = null) {
@@ -40,35 +40,17 @@ class AnnotationChecker {
                     } ?: TargetLists.T_CLASSIFIER
                 }
 
-//                is CjDestructuringDeclarationEntry -> TargetLists.T_LOCAL_VARIABLE
-//                is CjProperty -> {
-//                    when {
-//                        annotated.isLocal -> TargetLists.T_LOCAL_VARIABLE
-//                        annotated.isMember -> TargetLists.T_MEMBER_PROPERTY(
-//                            descriptor.hasBackingField(context),
-//                            annotated.hasDelegate()
-//                        )
-//
-//                        else -> TargetLists.T_TOP_LEVEL_PROPERTY(
-//                            descriptor.hasBackingField(context),
-//                            annotated.hasDelegate()
-//                        )
-//                    }
-//                }
-//                is CjVariable -> {
-//                    when {
-//                        annotated.isLocal -> TargetLists.T_LOCAL_VARIABLE
-//                        annotated.isMember -> TargetLists.T_MEMBER_PROPERTY(
-//                            descriptor.hasBackingField(context),
-//                            annotated.hasDelegate()
-//                        )
-//
-//                        else -> TargetLists.T_TOP_LEVEL_PROPERTY(
-//                            descriptor.hasBackingField(context),
-//                            annotated.hasDelegate()
-//                        )
-//                    }
-//                }
+                is CjDestructuringDeclarationEntry -> TargetLists.T_LOCAL_VARIABLE
+                is CjProperty -> {
+                    T_MEMBER_PROPERTY
+                }
+                is CjVariable -> {
+                    when {
+                        annotated.isLocal -> TargetLists.T_LOCAL_VARIABLE
+                        annotated.isMember -> TargetLists.T_MEMBER_VARIABLE
+                        else -> TargetLists.T_TOP_LEVEL_VARIABLE
+                    }
+                }
                 is CjParameter -> {
                     val destructuringDeclaration = annotated.destructuringDeclaration
                     when {
@@ -95,7 +77,7 @@ class AnnotationChecker {
                 is CjFile -> TargetLists.T_FILE
                 is CjTypeParameter -> TargetLists.T_TYPE_PARAMETER
                 is CjTypeProjection ->
-                   TargetLists.T_TYPE_PROJECTION
+                    TargetLists.T_TYPE_PROJECTION
 
                 is CjAnonymousInitializer -> TargetLists.T_INITIALIZER
                 is CjDestructuringDeclaration -> TargetLists.T_DESTRUCTURING_DECLARATION
@@ -105,8 +87,12 @@ class AnnotationChecker {
                 else -> TargetLists.EMPTY
             }
         }
-        fun getDeclarationSiteActualTargetList(annotated: CjElement, descriptor: ClassDescriptor?, context: BindingContext):
-                List<CangJieTarget> {
+
+        fun getDeclarationSiteActualTargetList(
+            annotated: CjElement,
+            descriptor: ClassDescriptor?,
+            context: BindingContext
+        ): List<CangJieTarget> {
             return getActualTargetList(annotated, descriptor, context).defaultTargets
         }
     }
@@ -122,21 +108,26 @@ class AnnotationTargetList(
 
 enum class CangJieTarget(val description: String, val isDefault: Boolean = true) {
     LOCAL_CLASS("local class", false),
-    CLASS("class"),    EXTEND("extend"),
+    CLASS("class"), EXTEND("extend"),
     CLASS_ONLY("class", false),
     STRUCT("struct", false),
-    ENUM ("enum ", false),
+    ENUM("enum ", false),
     INTERFACE("interface", false),
     ENUM_ENTRY("enum entry", false),
     PROPERTY("property"),                      // includes *_PROPERTY (with and without backing field), PROPERTY_PARAMETER, ENUM_ENTRY
-  VARIABLE("variable"),                      // includes *_PROPERTY (with and without backing field), PROPERTY_PARAMETER, ENUM_ENTRY
+    VARIABLE("variable"),                      // includes *_PROPERTY (with and without backing field), PROPERTY_PARAMETER, ENUM_ENTRY
     TYPEALIAS("typealias", false),
     DESTRUCTURING_DECLARATION("destructuring declaration", false),
     EXPRESSION("expression", false),           // includes FUNCTION_LITERAL, OBJECT_LITERAL
-    FIELD("field"),                            // includes MEMBER_PROPERTY_WITH_FIELD, TOP_LEVEL_PROPERTY_WITH_FIELD, PROPERTY_PARAMETER, ENUM_ENTRY
+    FIELD("field"),
+
+    LOCAL_VARIABLE("local variable"),// includes MEMBER_PROPERTY_WITH_FIELD, TOP_LEVEL_PROPERTY_WITH_FIELD, PROPERTY_PARAMETER, ENUM_ENTRY
     INITIALIZER("initializer", false),
     VALUE_PARAMETER("value parameter"),
-    MEMBER_PROPERTY("member property", false), // includes PROPERTY_PARAMETER, with and without field/delegate
+    MEMBER_VARIABLE("member variable", false),
+    MEMBER_PROPERTY("member property", false),
+
+ // includes PROPERTY_PARAMETER, with and without field/delegate
     CONSTRUCTOR("constructor"),
     PROPERTY_GETTER("getter"),
     PROPERTY_SETTER("setter"),
@@ -156,57 +147,63 @@ enum class CangJieTarget(val description: String, val isDefault: Boolean = true)
 
     ;
 
-   companion object{
-       val LOCAL_CLASS_LIST = listOf(LOCAL_CLASS, CLASS)
-       val CLASS_LIST = listOf(CLASS_ONLY, CLASS)
-       val STRUCT_LIST = listOf(  STRUCT, CLASS)
-       val INTERFACE_LIST = listOf(INTERFACE, CLASS)
-       val ENUM_LIST = listOf(ENUM , CLASS)
-       val ENUM_ENTRY_LIST = listOf(ENUM_ENTRY, PROPERTY, VARIABLE,FIELD)
-       val EXTEND_LIST = listOf(  EXTEND)
-       fun classActualTargets(
-           kind: ClassKind,
+    companion object {
+        val LOCAL_CLASS_LIST = listOf(LOCAL_CLASS, CLASS)
+        val CLASS_LIST = listOf(CLASS_ONLY, CLASS)
+        val STRUCT_LIST = listOf(STRUCT, CLASS)
+        val INTERFACE_LIST = listOf(INTERFACE, CLASS)
+        val ENUM_LIST = listOf(ENUM, CLASS)
+        val ENUM_ENTRY_LIST = listOf(ENUM_ENTRY, PROPERTY, VARIABLE, FIELD)
+        val EXTEND_LIST = listOf(EXTEND)
+        fun classActualTargets(
+            kind: ClassKind,
 
-           isLocalClass: Boolean
-       ): List<CangJieTarget> = when (kind) {
-           ClassKind.EXTEND ->
-               // inner local classes should be CLASS_ONLY, not LOCAL_CLASS
+            isLocalClass: Boolean
+        ): List<CangJieTarget> = when (kind) {
+            ClassKind.EXTEND ->
+                // inner local classes should be CLASS_ONLY, not LOCAL_CLASS
 
-                   EXTEND_LIST
+                EXTEND_LIST
 
 
 //        ClassKind.ANNOTATION_CLASS -> ANNOTATION_CLASS_LIST
-           ClassKind.CLASS ->
-               // inner local classes should be CLASS_ONLY, not LOCAL_CLASS
-               if (isLocalClass) {
-                   LOCAL_CLASS_LIST
-               } else {
-                   CLASS_LIST
-               }
+            ClassKind.CLASS ->
+                // inner local classes should be CLASS_ONLY, not LOCAL_CLASS
+                if (isLocalClass) {
+                    LOCAL_CLASS_LIST
+                } else {
+                    CLASS_LIST
+                }
 
-           ClassKind.STRUCT ->
+            ClassKind.STRUCT ->
 
-               STRUCT_LIST
+                STRUCT_LIST
 
-           ClassKind.INTERFACE -> INTERFACE_LIST
-           ClassKind.ENUM  ->
-               if (isLocalClass) {
-                   LOCAL_CLASS_LIST
-               } else {
-                   ENUM_LIST
-               }
+            ClassKind.INTERFACE -> INTERFACE_LIST
+            ClassKind.ENUM ->
+                if (isLocalClass) {
+                    LOCAL_CLASS_LIST
+                } else {
+                    ENUM_LIST
+                }
 
-           ClassKind.ENUM_ENTRY -> ENUM_ENTRY_LIST
-           else -> TODO()
-       }
-   }
+            ClassKind.ENUM_ENTRY -> ENUM_ENTRY_LIST
+            else -> TODO()
+        }
+    }
 
 }
+
 object AnnotationTargetLists {
     val T_CLASSIFIER = targetList(CLASS)
     val T_DESTRUCTURING_DECLARATION = targetList(DESTRUCTURING_DECLARATION)
     val T_INITIALIZER = targetList(INITIALIZER)
     val T_VALUE_PARAMETER_WITHOUT_LET = targetList(VALUE_PARAMETER)
+        val T_LOCAL_VARIABLE = targetList(LOCAL_VARIABLE)
+    val T_MEMBER_VARIABLE = targetList(MEMBER_VARIABLE, VARIABLE)
+    val T_MEMBER_PROPERTY = targetList(MEMBER_PROPERTY, PROPERTY)
+    val T_TOP_LEVEL_PROPERTY = targetList( TOP_LEVEL_PROPERTY, PROPERTY)
+    val T_TOP_LEVEL_VARIABLE = targetList( TOP_LEVEL_VARIABLE, VARIABLE)
 
     val T_TYPEALIAS = targetList(TYPEALIAS)
     val T_VALUE_PARAMETER_WITH_LET = targetList(VALUE_PARAMETER, VARIABLE, MEMBER_PROPERTY) {
@@ -234,7 +231,10 @@ object AnnotationTargetLists {
         onlyWithUseSiteTarget(VALUE_PARAMETER)
     }
 
-    private fun targetList(vararg target: CangJieTarget, otherTargets: TargetListBuilder.() -> Unit = {}): AnnotationTargetList {
+    private fun targetList(
+        vararg target: CangJieTarget,
+        otherTargets: TargetListBuilder.() -> Unit = {}
+    ): AnnotationTargetList {
         val builder = TargetListBuilder(*target)
         builder.otherTargets()
         return builder.build()

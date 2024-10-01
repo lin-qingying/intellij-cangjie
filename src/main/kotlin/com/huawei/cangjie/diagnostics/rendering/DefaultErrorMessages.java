@@ -272,7 +272,12 @@ public class DefaultErrorMessages {
         MAP.put(VARIABLE_INTRODUCTION_CONFLICT, "cannot introduce variables in patterns connected by '|'");
         MAP.put(NOT_ENUM_PARAMETER_CONSTRUCTOR, "No parameterless constructor");
         MAP.put(LET_EXPRESSION_NO_TYPE_PATTERN, "type pattern is not allowed in let expression");
+        MAP.put(ABSTRACT_PROPERTY_IN_NON_ABSTRACT_CLASS, "Abstract property ''{0}'' in non-abstract class ''{1}''", STRING, NAMED);
+        MAP.put(ABSTRACT_FUNCTION_IN_NON_ABSTRACT_CLASS, "Abstract function ''{0}'' in non-abstract class ''{1}''", STRING, NAMED);
+        MAP.put(REPEATED_MODIFIER, "Repeated ''{0}''", TO_STRING);
+        MAP.put(LET_WITH_SETTER, "A immutable  property cannot have a setter");
 
+        MAP.put(ABSTRACT_FUNCTION_WITH_BODY, "A function ''{0}'' with body cannot be abstract", NAMED);
     }
 
 

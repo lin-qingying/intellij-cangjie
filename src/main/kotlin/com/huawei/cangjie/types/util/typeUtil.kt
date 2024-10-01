@@ -30,6 +30,7 @@ fun CangJieType.replaceAnnotations(newAnnotations: Annotations): CangJieType {
     if (annotations.isEmpty() && newAnnotations.isEmpty()) return this
     return unwrap().replaceAttributes(attributes.replaceAnnotations(newAnnotations))
 }
+fun CangJieType.isUnit(): Boolean = CangJieBuiltIns.isUnit(this)
 
 fun CangJieType.unCapture(): CangJieType = unwrap().unCapture()
 

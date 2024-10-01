@@ -4,6 +4,7 @@ package com.huawei.cangjie.descriptors.impl;
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.name.Name;
+import com.huawei.cangjie.name.SpecialNames;
 import com.huawei.cangjie.resolve.scopes.receivers.ContextReceiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ExtensionReceiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ImplicitContextReceiver;
@@ -14,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+
+import static com.huawei.cangjie.resolve.descriptorUtil.DescriptorUtilsKt.getBuiltIns;
 
 
 @SuppressWarnings("deprecation")
@@ -28,8 +31,8 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
 //    private ReceiverParameterDescriptor dispatchReceiverParameter;
 //    private ReceiverParameterDescriptor extensionReceiverParameter;
 //    private List<TypeParameterDescriptor> typeParameters;
-    //    private PropertyGetterDescriptorImpl getter;
-//    private PropertySetterDescriptor setter;
+        private PropertyGetterDescriptorImpl getter;
+    private PropertySetterDescriptor setter;
     private boolean setterProjectedOut;
 //    private FieldDescriptor backingField;
 //    private FieldDescriptor delegateField;
@@ -90,12 +93,12 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
         );
     }
 
-//    private static DescriptorVisibility normalizeVisibility(DescriptorVisibility prev, Kind kind) {
-//        if (kind == Kind.FAKE_OVERRIDE && DescriptorVisibilities.isPrivate(prev.normalize())) {
-//            return DescriptorVisibilities.INVISIBLE_FAKE;
-//        }
-//        return prev;
-//    }
+    private static DescriptorVisibility normalizeVisibility(DescriptorVisibility prev, Kind kind) {
+        if (kind == Kind.FAKE_OVERRIDE && DescriptorVisibilities.isPrivate(prev.normalize())) {
+            return DescriptorVisibilities.INVISIBLE_FAKE;
+        }
+        return prev;
+    }
 
     private static ReceiverParameterDescriptor substituteParameterDescriptor(
             TypeSubstitutor substitutor,
@@ -128,19 +131,19 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
         );
     }
 
-//    private static FunctionDescriptor getSubstitutedInitialSignatureDescriptor(
-//            @NotNull TypeSubstitutor substitutor,
-//            @NotNull PropertyAccessorDescriptor accessorDescriptor
-//    ) {
-//        return accessorDescriptor.getInitialSignatureDescriptor() != null
-//                ? accessorDescriptor.getInitialSignatureDescriptor().substitute(substitutor)
-//                : null;
-//    }
+    private static FunctionDescriptor getSubstitutedInitialSignatureDescriptor(
+            @NotNull TypeSubstitutor substitutor,
+            @NotNull PropertyAccessorDescriptor accessorDescriptor
+    ) {
+        return accessorDescriptor.getInitialSignatureDescriptor() != null
+                ? accessorDescriptor.getInitialSignatureDescriptor().substitute(substitutor)
+                : null;
+    }
 
     @Override
     public CangJieType getInType() {
-//        return setter != null ? setter.getValueParameters().get(0).getType() : null;
-        return null;
+        return setter != null ? setter.getValueParameters().get(0).getType() : null;
+
     }
 
     public void setInType(@NotNull CangJieType inType) {
@@ -158,40 +161,18 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
                 Collections.emptyList());
     }
 
-//    public void setType(
-//            @NotNull CangJieType outType,
-//            @ReadOnly @NotNull List<? extends TypeParameterDescriptor> typeParameters,
-//            @Nullable ReceiverParameterDescriptor dispatchReceiverParameter,
-//            @Nullable ReceiverParameterDescriptor extensionReceiverParameter,
-//            List<? extends ReceiverParameterDescriptor> _contextReceiverParameters
-//    ) {
-//        setOutType(outType);
-//
-//        this.typeParameters = new ArrayList<TypeParameterDescriptor>(typeParameters);
-//
-//        this.extensionReceiverParameter = extensionReceiverParameter;
-//        this.dispatchReceiverParameter = dispatchReceiverParameter;
-//        this._contextReceiverParameters =  _contextReceiverParameters;
-//    }
 
-//    public void initialize(
-//            @Nullable PropertyGetterDescriptorImpl getter,
-//            @Nullable PropertySetterDescriptor setter
-//    ) {
-//        initialize(getter, setter, null, null);
-//    }
 
-//    public void initialize(
-//            @Nullable PropertyGetterDescriptorImpl getter,
-//            @Nullable PropertySetterDescriptor setter,
-//            @Nullable FieldDescriptor backingField,
-//            @Nullable FieldDescriptor delegateField
-//    ) {
-//        this.getter = getter;
-//        this.setter = setter;
-//        this.backingField = backingField;
-//        this.delegateField = delegateField;
-//    }
+
+    public void initialize(
+            @Nullable PropertyGetterDescriptorImpl getter,
+            @Nullable PropertySetterDescriptor setter
+
+    ) {
+        this.getter = getter;
+        this.setter = setter;
+
+    }
 
     @NotNull
     @Override
@@ -233,17 +214,18 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
         this.visibility = visibility;
     }
 
-//    @Override
-//    @Nullable
-//    public PropertyGetterDescriptorImpl getGetter() {
-//        return getter;
-//    }
+    @Override
+    @Nullable
+    public PropertyGetterDescriptorImpl getGetter() {
+        return getter;
+    }
 
-//    @Override
-//    @Nullable
-//    public PropertySetterDescriptor getSetter() {
-//        return setter;
-//    }
+    @Override
+    @Nullable
+    public PropertySetterDescriptor getSetter() {
+        return setter;
+    }
+
 
     @Override
     public boolean isSetterProjectedOut() {
@@ -254,16 +236,12 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
         this.setterProjectedOut = setterProjectedOut;
     }
 
-    //    @Override
-//    public bool isLateInit() {
-//        return lateInit;
-//    }
-//
+
 //    @Override
-//    public bool isConst() {
+//    public boolean isConst() {
 //        return isConst;
 //    }
-//
+
 //    @Override
 //    public bool isExternal() {
 //        return isExternal;
@@ -274,18 +252,18 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
 //        return isDelegated;
 //    }
 
-//    @Override
-//    @NotNull
-//    public List<PropertyAccessorDescriptor> getAccessors() {
-//        List<PropertyAccessorDescriptor> result = new ArrayList<PropertyAccessorDescriptor>(2);
-//        if (getter != null) {
-//            result.add(getter);
-//        }
-//        if (setter != null) {
-//            result.add(setter);
-//        }
-//        return result;
-//    }
+    @Override
+    @NotNull
+    public List<PropertyAccessorDescriptor> getAccessors() {
+        List<PropertyAccessorDescriptor> result = new ArrayList<PropertyAccessorDescriptor>(2);
+        if (getter != null) {
+            result.add(getter);
+        }
+        if (setter != null) {
+            result.add(setter);
+        }
+        return result;
+    }
 
     @Override
     public PropertyDescriptor substitute(@NotNull TypeSubstitutor originalSubstitutor) {
@@ -360,56 +338,55 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
         substitutedDescriptor.setType(outType, substitutedTypeParameters, substitutedDispatchReceiver, substitutedExtensionReceiver,
                 substitutedContextReceivers);
 //
-//        PropertyGetterDescriptorImpl newGetter = getter == null ? null : new PropertyGetterDescriptorImpl(
-//                substitutedDescriptor, getter.getAnnotations(), copyConfiguration.modality, normalizeVisibility(getter.getVisibility(), copyConfiguration.kind),
-//                getter.isDefault(), getter.isExternal(), getter.isInline(), copyConfiguration.kind,
-//                copyConfiguration.getOriginalGetter(),
-//                SourceElement.NO_SOURCE
-//        );
-//        if (newGetter != null) {
-//            CangJieType returnType = getter.getReturnType();
-//            newGetter.setInitialSignatureDescriptor(getSubstitutedInitialSignatureDescriptor(substitutor, getter));
-//            newGetter.initialize(returnType != null ? substitutor.substitute(returnType, Variance.OUT_VARIANCE) : null);
-//        }
-//        PropertySetterDescriptorImpl newSetter = setter == null ? null : new PropertySetterDescriptorImpl(
-//                substitutedDescriptor, setter.getAnnotations(), copyConfiguration.modality, normalizeVisibility(setter.getVisibility(), copyConfiguration.kind),
-//                setter.isDefault(), setter.isExternal(), setter.isInline(), copyConfiguration.kind,
-//                copyConfiguration.getOriginalSetter(),
-//                SourceElement.NO_SOURCE
-//        );
-//        if (newSetter != null) {
-//            List<ValueParameterDescriptor> substitutedValueParameters = FunctionDescriptorImpl.getSubstitutedValueParameters(
-//                    newSetter, setter.getValueParameters(), substitutor, /* dropOriginal = */ false,
-//                    false, null
-//            );
-//            if (substitutedValueParameters == null) {
-//                // The setter is projected out, e.g. in this case:
-//                //     trait Tr<T> { var v: T }
-//                //     fun test(tr: Tr<out Any?>) { ... }
-//                // we want to tell the user that although the property is declared as a var,
-//                // it can not be assigned to because of the projection
-//                substitutedDescriptor.setSetterProjectedOut(true);
-//                substitutedValueParameters = Collections.<ValueParameterDescriptor>singletonList(
-//                        PropertySetterDescriptorImpl.createSetterParameter(
-//                                newSetter,
-//                                getBuiltIns(copyConfiguration.owner).getNothingType(),
-//                                setter.getValueParameters().get(0).getAnnotations()
-//                        )
-//                );
-//            }
-//            if (substitutedValueParameters.size() != 1) {
-//                throw new IllegalStateException();
-//            }
-//            newSetter.setInitialSignatureDescriptor(getSubstitutedInitialSignatureDescriptor(substitutor, setter));
-//            newSetter.initialize(substitutedValueParameters.get(0));
-//        }
+        PropertyGetterDescriptorImpl newGetter = getter == null ? null : new PropertyGetterDescriptorImpl(
+                substitutedDescriptor, getter.getAnnotations(), copyConfiguration.modality, normalizeVisibility(getter.getVisibility(), copyConfiguration.kind),
+                getter.isDefault(),  copyConfiguration.kind,
+                copyConfiguration.getOriginalGetter(),
+                SourceElement.NO_SOURCE
+        );
+        if (newGetter != null) {
+            CangJieType returnType = getter.getReturnType();
+            newGetter.setInitialSignatureDescriptor(getSubstitutedInitialSignatureDescriptor(substitutor, getter));
+            newGetter.initialize(returnType != null ? substitutor.substitute(returnType, Variance. INVARIANT) : null);
+        }
+        PropertySetterDescriptorImpl newSetter = setter == null ? null : new PropertySetterDescriptorImpl(
+                substitutedDescriptor, setter.getAnnotations(), copyConfiguration.modality, normalizeVisibility(setter.getVisibility(), copyConfiguration.kind),
+                setter.isDefault(),  copyConfiguration.kind,
+                copyConfiguration.getOriginalSetter(),
+                SourceElement.NO_SOURCE
+        );
+        if (newSetter != null) {
+            List<ValueParameterDescriptor> substitutedValueParameters = FunctionDescriptorImpl.getSubstitutedValueParameters(
+                    newSetter, setter.getValueParameters(), substitutor, /* dropOriginal = */ false,
+                    false, null
+            );
+            if (substitutedValueParameters == null) {
+                // The setter is projected out, e.g. in this case:
+                //     trait Tr<T> { var v: T }
+                //     fun test(tr: Tr<out Any?>) { ... }
+                // we want to tell the user that although the property is declared as a var,
+                // it can not be assigned to because of the projection
+                substitutedDescriptor.setSetterProjectedOut(true);
+                substitutedValueParameters = Collections.<ValueParameterDescriptor>singletonList(
+                         createSetterParameter(
+                                newSetter,
+                                getBuiltIns(copyConfiguration.owner).getNothingType(),
+                                setter.getValueParameters().get(0).getAnnotations()
+                        )
+                );
+            }
+            if (substitutedValueParameters.size() != 1) {
+                throw new IllegalStateException();
+            }
+            newSetter.setInitialSignatureDescriptor(getSubstitutedInitialSignatureDescriptor(substitutor, setter));
+            newSetter.initialize(substitutedValueParameters.get(0));
+        }
 
-//        substitutedDescriptor.initialize(
-//                newGetter,
-//                newSetter,
-//                backingField == null ? null : new FieldDescriptorImpl(backingField.getAnnotations(), substitutedDescriptor),
-//                delegateField == null ? null : new FieldDescriptorImpl(delegateField.getAnnotations(), substitutedDescriptor)
-//        );
+        substitutedDescriptor.initialize(
+                newGetter,
+                newSetter
+
+        );
 
         if (copyConfiguration.copyOverrides) {
             Collection<CallableMemberDescriptor> overridden = SmartSet.create();
@@ -425,7 +402,19 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
 
         return substitutedDescriptor;
     }
-
+    public static ValueParameterDescriptorImpl createSetterParameter(
+            @NotNull PropertySetterDescriptor setterDescriptor,
+            @NotNull CangJieType type,
+            @NotNull Annotations annotations
+    ) {
+        return new ValueParameterDescriptorImpl(
+                setterDescriptor, null, 0, annotations, SpecialNames.IMPLICIT_SET_PARAMETER,false, type,
+                /* declaresDefaultValue = */ false,
+//                /* isCrossinline = */ false,
+//                /* isNoinline = */ false,
+               /* null,*/ SourceElement.NO_SOURCE
+        );
+    }
     @NotNull
     protected PropertyDescriptorImpl createSubstitutedCopy(
             @NotNull DeclarationDescriptor newOwner,
@@ -625,14 +614,14 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
             return doSubstitute(this);
         }
 
-//        PropertyGetterDescriptor getOriginalGetter() {
-//            if (original == null) return null;
-//            return original.getGetter();
-//        }
-//
-//        PropertySetterDescriptor getOriginalSetter() {
-//            if (original == null) return null;
-//            return original.getSetter();
-//        }
+        PropertyGetterDescriptor getOriginalGetter() {
+            if (original == null) return null;
+            return original.getGetter();
+        }
+
+        PropertySetterDescriptor getOriginalSetter() {
+            if (original == null) return null;
+            return original.getSetter();
+        }
     }
 }

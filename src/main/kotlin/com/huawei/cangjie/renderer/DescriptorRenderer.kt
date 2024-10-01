@@ -7,6 +7,7 @@ import com.huawei.cangjie.descriptors.ClassKind.*
 import com.huawei.cangjie.descriptors.annotations.Annotated
 import com.huawei.cangjie.descriptors.annotations.AnnotationDescriptor
 import com.huawei.cangjie.descriptors.annotations.AnnotationUseSiteTarget
+import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptor
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
@@ -425,8 +426,8 @@ internal class DescriptorRendererOptionsImpl : DescriptorRendererOptions {
     override var propertyConstantRenderer: ((ConstantValue<*>) -> String?)? by property(null)
     override var withoutTypeParameters by property(false)
     override var withoutSuperTypes by property(false)
-    override var typeNormalizer by property<(CangJieType) -> CangJieType>({ it })
-    override var defaultParameterValueRenderer by property<((ValueParameterDescriptor) -> String)?>({ "..." })
+    override var typeNormalizer by property<(CangJieType) -> CangJieType> { it }
+    override var defaultParameterValueRenderer by property<((ValueParameterDescriptor) -> String)?> { "..." }
     override var secondaryConstructorsAsPrimary by property(true)
     override var overrideRenderingPolicy by property(OverrideRenderingPolicy.RENDER_OPEN)
     override var valueParametersHandler: DescriptorRenderer.ValueParametersHandler by property(DescriptorRenderer.ValueParametersHandler.DEFAULT)
@@ -1572,37 +1573,9 @@ internal class DescriptorRendererImpl(
 
         //
         override fun visitPropertyDescriptor(descriptor: PropertyDescriptor, builder: StringBuilder?) {
-//            renderProperty(descriptor, builder)
+            builder?.let { renderProperty(descriptor, it) }
         }
-//
-//        override fun visitPropertyGetterDescriptor(descriptor: PropertyGetterDescriptor, builder: StringBuilder) {
-//            visitPropertyAccessorDescriptor(descriptor, builder, "getter")
-//        }
-//
-//        override fun visitPropertySetterDescriptor(descriptor: PropertySetterDescriptor, builder: StringBuilder) {
-//            visitPropertyAccessorDescriptor(descriptor, builder, "setter")
-//        }
 
-//        private fun visitPropertyAccessorDescriptor(
-//            descriptor: PropertyAccessorDescriptor,
-//            builder: StringBuilder,
-//            kind: String
-//        ) {
-//            when (propertyAccessorRenderingPolicy) {
-//                PropertyAccessorRenderingPolicy.PRETTY -> {
-//                    /**/renderAccessorModifiers(descriptor, builder)
-//                    builder.append("$kind for ")
-//                    renderProperty(descriptor.correspondingProperty, builder)
-//                }
-//
-//                PropertyAccessorRenderingPolicy.DEBUG -> {
-//                    visitFunctionDescriptor(descriptor, builder)
-//                }
-//
-//                PropertyAccessorRenderingPolicy.NONE -> {
-//                }
-//            }
-//        }
 
         override fun visitFunctionDescriptor(descriptor: FunctionDescriptor, builder: StringBuilder?) {
             builder?.let { renderFunction(descriptor, it) }
@@ -1686,10 +1659,63 @@ internal class DescriptorRendererImpl(
             builder?.let { renderConstructor(constructorDescriptor, it) }
 
         }
+
+        private fun renderProperty(property: PropertyDescriptor, builder: StringBuilder) {
+            if (!startFromName) {
+                if (!startFromDeclarationKeyword) {
+                    renderContextReceivers(property.contextReceiverParameters, builder)
+//                    renderPropertyAnnotations(property, builder)
+                    renderVisibility(property.visibility, builder)
+                    renderModifier(builder, DescriptorRendererModifier.CONST in modifiers && property.isConst, "const")
+                    renderMemberModifiers(property, builder)
+                    renderModalityForCallable(property, builder)
+                    renderOverride(property, builder)
+//                    renderModifier(builder, DescriptorRendererModifier.LATEINIT in modifiers && property.isLateInit, "lateinit")
+                    renderMemberKind(property, builder)
+                }
+                renderValVarPrefix(property, builder)
+                renderTypeParameters(property.typeParameters, builder, true)
+                renderReceiver(property, builder)
+            }
+
+            renderName(property, builder, true)
+            builder.append(": ").append(renderType(property.type))
+
+            renderReceiverAfterName(property, builder)
 //
-//        override fun visitTypeAliasDescriptor(descriptor: TypeAliasDescriptor, builder: StringBuilder) {
-//            renderTypeAlias(descriptor, builder)
-//        }
+//            renderInitializer(property, builder)
+
+            renderWhereSuffix(property.typeParameters, builder)
+        }
+
+        private fun renderAccessorModifiers(descriptor: PropertyAccessorDescriptor, builder: StringBuilder) {
+            renderMemberModifiers(descriptor, builder)
+        }
+        private fun visitPropertyAccessorDescriptor(descriptor: PropertyAccessorDescriptor, builder: StringBuilder, kind: String) {
+            when (propertyAccessorRenderingPolicy) {
+                PropertyAccessorRenderingPolicy.PRETTY -> {
+                    renderAccessorModifiers(descriptor, builder)
+                    builder.append("$kind for ")
+                    renderProperty(descriptor.correspondingProperty, builder)
+                }
+                PropertyAccessorRenderingPolicy.DEBUG -> {
+                    visitFunctionDescriptor(descriptor, builder)
+                }
+                PropertyAccessorRenderingPolicy.NONE -> {
+                }
+            }
+        }
+        override fun visitPropertyGetterDescriptor(descriptor: PropertyGetterDescriptor, builder: StringBuilder?) {
+            builder?.let { visitPropertyAccessorDescriptor(descriptor, it, "getter") }
+
+        }
+
+        override fun visitPropertySetterDescriptor(descriptor: PropertySetterDescriptor, builder: StringBuilder?) {
+            builder?.let { visitPropertyAccessorDescriptor(descriptor, it, "setter") }
+
+        }
+
+
     }
 
     private fun renderSpaceIfNeeded(builder: StringBuilder) {

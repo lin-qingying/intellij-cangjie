@@ -1,14 +1,23 @@
 package com.huawei.cangjie.resolve
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.builtins.UnsignedTypes
+import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.diagnostics.Errors.*
+import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext.TYPE
+import com.huawei.cangjie.resolve.BindingContext.TYPE_PARAMETER
+import com.huawei.cangjie.resolve.DescriptorUtils.classCanHaveAbstractDeclaration
 import com.huawei.cangjie.resolve.calls.results.TypeSpecificityComparator
-import com.huawei.cangjie.types.CangJieType
-import com.huawei.cangjie.types.SubstitutionUtils
+import com.huawei.cangjie.resolve.descriptorUtil.builtIns
+import com.huawei.cangjie.resolve.descriptorUtil.isEffectivelyExternal
+import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
+import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.isNothing
+import com.huawei.cangjie.types.util.contains
 import com.intellij.psi.PsiElement
 
 class DeclarationsChecker(
@@ -31,7 +40,7 @@ class DeclarationsChecker(
         checkTypesInClassHeader(typeStatement)
 
         when (typeStatement) {
-            is CjClass, is CjInterface, is CjStruct, is CjExtend,is CjEnum -> {
+            is CjClass, is CjInterface, is CjStruct, is CjExtend, is CjEnum -> {
 //
                 descriptorResolver.checkNamesInConstraints(
                     typeStatement, classDescriptor, classDescriptor.scopeForClassHeaderResolution, trace
@@ -146,6 +155,243 @@ class DeclarationsChecker(
             languageVersionSettings = languageVersionSettings
         )
     }
+//    private val shadowedExtensionChecker = ShadowedExtensionChecker(typeSpecificityComparator, trace)
+//private val exposedChecker = ExposedVisibilityChecker(languageVersionSettings, trace)
+
+    private fun hasConstraints(typeParameter: CjTypeParameter, constraints: List<CjTypeConstraint>): Boolean {
+        if (typeParameter.name == null) return false
+        return constraints.any { it.subjectTypeParameterName?.text == typeParameter.name }
+    }
+
+
+    private fun checkOnlyOneTypeParameterBound(
+        descriptor: TypeParameterDescriptor, declaration: CjTypeParameter, owner: CjTypeParameterListOwner
+    ) {
+        val upperBounds = descriptor.upperBounds
+        val (boundsWhichAreTypeParameters, otherBounds) = upperBounds
+            .map(CangJieType::constructor)
+            .partition { constructor -> constructor.declarationDescriptor is TypeParameterDescriptor }
+            .let { pair -> pair.first.toSet() to pair.second.toSet() }
+        if (boundsWhichAreTypeParameters.size > 1 || (boundsWhichAreTypeParameters.size == 1 && otherBounds.isNotEmpty())) {
+            val reportOn = if (boundsWhichAreTypeParameters.size + otherBounds.size == 2) {
+                // If there's only one problematic bound (either 2 type parameter bounds, or 1 type parameter bound + 1 other bound),
+                // report the diagnostic on that bound
+
+                val allBounds: List<Pair<CjTypeReference, CangJieType?>> =
+                    owner.typeConstraints
+                        .filter { constraint ->
+                            constraint.subjectTypeParameterName?.getReferencedNameAsName() == declaration.nameAsName
+                        }
+                        .mapNotNull { constraint -> constraint.boundTypeReference }
+                        .map { typeReference -> typeReference to trace.bindingContext.get(TYPE, typeReference) }
+
+                val problematicBound =
+                    allBounds.firstOrNull { bound -> bound.second?.constructor != boundsWhichAreTypeParameters.first() }
+
+                problematicBound?.first ?: declaration
+            } else {
+                // Otherwise report the diagnostic on the type parameter declaration
+                declaration
+            }
+
+            trace.report(BOUNDS_NOT_ALLOWED_IF_BOUNDED_BY_TYPE_PARAMETER.on(reportOn))
+        }
+    }
+
+    private fun checkTypeParameterConstraints(typeParameterListOwner: CjTypeParameterListOwner) {
+        val constraints = typeParameterListOwner.typeConstraints
+        if (constraints.isEmpty()) return
+
+        for (typeParameter in typeParameterListOwner.typeParameters) {
+            if (typeParameter.extendsBound != null && hasConstraints(typeParameter, constraints)) {
+                trace.report(MISPLACED_TYPE_PARAMETER_CONSTRAINTS.on(typeParameter))
+            }
+            val typeParameterDescriptor = trace[TYPE_PARAMETER, typeParameter] ?: continue
+            checkSupertypesForConsistency(typeParameterDescriptor, typeParameter)
+            checkOnlyOneTypeParameterBound(typeParameterDescriptor, typeParameter, typeParameterListOwner)
+        }
+
+//        for (constraint in constraints) {
+//            constraint.annotationEntries.forEach {
+//                trace.report(ANNOTATION_IN_WHERE_CLAUSE_WARNING.on(it))
+//            }
+//        }
+    }
+    private fun checkImplicitCallableType(declaration: CjCallableDeclaration, descriptor: CallableDescriptor) {
+        descriptor.returnType?.unwrap()?.let {
+            val target = declaration.nameIdentifier ?: declaration
+            if (declaration.typeReference == null) {
+                if (it.isNothing() && !declaration.hasModifier(CjTokens.OVERRIDE_KEYWORD)) {
+                    trace.report(
+                        (if (declaration is CjProperty) IMPLICIT_NOTHING_PROPERTY_TYPE else IMPLICIT_NOTHING_RETURN_TYPE).on(target)
+                    )
+                }
+                if (it.contains { type -> type.constructor is IntersectionTypeConstructor }) {
+                    trace.report(IMPLICIT_INTERSECTION_TYPE.on(target, it))
+                }
+            } else if (it.isNothing() && it is AbbreviatedType) {
+                trace.report(
+                    (if (declaration is CjProperty) ABBREVIATED_NOTHING_PROPERTY_TYPE else ABBREVIATED_NOTHING_RETURN_TYPE).on(target)
+                )
+            }
+        }
+    }
+    private fun checkVarargParameters(trace: BindingTrace, callableDescriptor: CallableDescriptor) {
+
+    }
+    fun checkFunction(function: CjNamedFunction, functionDescriptor: SimpleFunctionDescriptor) {
+        val typeParameterList = function.typeParameterList
+        val nameIdentifier = function.nameIdentifier
+        if (typeParameterList != null && nameIdentifier != null &&
+            typeParameterList.textRange.startOffset > nameIdentifier.textRange.startOffset
+        ) {
+            trace.report(DEPRECATED_TYPE_PARAMETER_SYNTAX.on(typeParameterList))
+        }
+        checkTypeParameterConstraints(function)
+        checkImplicitCallableType(function, functionDescriptor)
+//        exposedChecker.checkFunction(function, functionDescriptor)
+        checkVarargParameters(trace, functionDescriptor)
+
+        val containingDescriptor = functionDescriptor.containingDeclaration
+        val hasAbstractModifier = function.hasModifier(CjTokens.ABSTRACT_KEYWORD)
+        val hasExternalModifier = functionDescriptor.isEffectivelyExternal()
+
+        if (containingDescriptor is ClassDescriptor) {
+            val inInterface = containingDescriptor.kind == ClassKind.INTERFACE
+            val isExpectClass = containingDescriptor.isExpect
+            if (hasAbstractModifier && !classCanHaveAbstractDeclaration(containingDescriptor)) {
+                trace.report(
+                    ABSTRACT_FUNCTION_IN_NON_ABSTRACT_CLASS.on(
+                        function,
+                        functionDescriptor.name.asString(),
+                        containingDescriptor
+                    )
+                )
+            }
+            val hasBody = function.hasBody()
+            if (hasBody && hasAbstractModifier) {
+                trace.report(ABSTRACT_FUNCTION_WITH_BODY.on(function, functionDescriptor))
+            }
+            if (!hasBody && inInterface) {
+                if (function.hasModifier(CjTokens.PRIVATE_KEYWORD)) {
+                    trace.report(PRIVATE_FUNCTION_WITH_NO_BODY.on(function, functionDescriptor))
+                }
+                if (!containingDescriptor.isExpect && !hasAbstractModifier && function.hasModifier(CjTokens.OPEN_KEYWORD)) {
+                    trace.report(REDUNDANT_OPEN_IN_INTERFACE.on(function))
+                }
+            }
+//            if (!hasBody && !hasAbstractModifier && !hasExternalModifier && !inInterface && !isExpectClass &&
+//                diagnosticSuppressor.shouldReportNoBody(functionDescriptor)
+//            ) {
+//                trace.report(NON_ABSTRACT_FUNCTION_WITH_NO_BODY.on(function, functionDescriptor))
+//            }
+        } else /* top-level only */ {
+//            if (!function.hasBody() && !hasAbstractModifier && !hasExternalModifier && !functionDescriptor.isExpect &&
+//                diagnosticSuppressor.shouldReportNoBody(functionDescriptor)
+//            ) {
+//                trace.report(NON_MEMBER_FUNCTION_NO_BODY.on(function, functionDescriptor))
+//            }
+        }
+
+        if (functionDescriptor.isExpect) {
+            checkExpectedFunction(function, functionDescriptor)
+        }
+
+//        shadowedExtensionChecker.checkDeclaration(function, functionDescriptor)
+    }
+
+    private fun checkExpectDeclarationModifiers(declaration: CjDeclaration, descriptor: MemberDescriptor) {
+        if (!descriptor.isExpect) return
+
+        if (DescriptorVisibilities.isPrivate(descriptor.visibility)) {
+            trace.report(
+                EXPECTED_PRIVATE_DECLARATION.on(
+                    declaration.modifierList?.getModifier(CjTokens.PRIVATE_KEYWORD) ?: declaration
+                )
+            )
+        }
+
+        checkExpectDeclarationHasNoExternalModifier(declaration)
+//        if (declaration is CjFunction && languageVersionSettings.supportsFeature(LanguageFeature.MultiplatformRestrictions)) {
+//            declaration.modifierList?.getModifier(CjTokens.TAILREC_KEYWORD)?.let {
+//                trace.report(EXPECTED_TAILREC_FUNCTION.on(it))
+//            }
+//        }
+    }
+
+    private fun checkExpectDeclarationHasNoExternalModifier(declaration: CjDeclaration) {
+//        if (languageVersionSettings.supportsFeature(LanguageFeature.MultiplatformRestrictions)) {
+//            declaration.modifierList?.getModifier(CjTokens.EXTERNAL_KEYWORD)?.let {
+//                trace.report(EXPECTED_EXTERNAL_DECLARATION.on(it))
+//            }
+//        }
+    }
+
+    private fun checkExpectedFunction(function: CjNamedFunction, functionDescriptor: FunctionDescriptor) {
+        if (function.hasBody()) {
+            trace.report(EXPECTED_DECLARATION_WITH_BODY.on(function))
+        }
+
+        checkExpectDeclarationModifiers(function, functionDescriptor)
+    }
+    private fun checkMemberProperty(
+        property: CjProperty,
+        propertyDescriptor: PropertyDescriptor,
+        classDescriptor: ClassDescriptor
+    ) {
+        val modifierList = property.modifierList
+
+        if (modifierList != null) {
+            if (modifierList.hasModifier(CjTokens.ABSTRACT_KEYWORD)) {
+                //has abstract modifier
+                if (!classCanHaveAbstractDeclaration(classDescriptor)) {
+                    trace.report(ABSTRACT_PROPERTY_IN_NON_ABSTRACT_CLASS.on(property, property.name ?: "", classDescriptor))
+                    return
+                }
+            } else if (classDescriptor.kind == ClassKind.INTERFACE &&
+                modifierList.hasModifier(CjTokens.OPEN_KEYWORD) &&
+                propertyDescriptor.modality == Modality.ABSTRACT
+            ) {
+                trace.report(REDUNDANT_OPEN_IN_INTERFACE.on(property))
+            }
+        }
+
+//        if (propertyDescriptor.modality == Modality.ABSTRACT) {
+//
+//            val getter = property.getter
+//            if (getter != null && getter.hasBody()) {
+//                trace.report(ABSTRACT_PROPERTY_WITH_GETTER.on(getter))
+//            }
+//            val setter = property.setter
+//            if (setter != null && setter.hasBody()) {
+//                trace.report(ABSTRACT_PROPERTY_WITH_SETTER.on(setter))
+//            }
+//        }
+    }
+    private fun checkBackingField(property: CjProperty) {
+//        property.fieldDeclaration?.let {
+//            trace.report(EXPLICIT_BACKING_FIELDS_UNSUPPORTED.on(it))
+//        }
+    }
+//    private fun checkProperty(property: CjProperty, propertyDescriptor: PropertyDescriptor) {
+//        val containingDeclaration = propertyDescriptor.containingDeclaration
+//        if (containingDeclaration is ClassDescriptor) {
+//            checkMemberProperty(property, propertyDescriptor, containingDeclaration)
+//        }
+//        LateinitModifierApplicabilityChecker.checkLateinitModifierApplicability(trace, property, propertyDescriptor, languageVersionSettings)
+//        checkPropertyInitializer(property, propertyDescriptor)
+//        checkAccessors(property, propertyDescriptor)
+//        checkTypeParameterConstraints(property)
+//        exposedChecker.checkProperty(property, propertyDescriptor)
+//        shadowedExtensionChecker.checkDeclaration(property, propertyDescriptor)
+//        checkPropertyTypeParametersAreUsedInReceiverType(propertyDescriptor)
+//        checkImplicitCallableType(property, propertyDescriptor)
+//        checkExpectDeclarationModifiers(property, propertyDescriptor)
+//        checkBackingField(property)
+//    }
+    fun checkVariable(variable: CjVariable, variableDescriptor: VariableDescriptor) {
+
+    }
 
     fun process(bodiesResolveContext: BodiesResolveContext) {
         for (file in bodiesResolveContext.files) {
@@ -160,11 +406,17 @@ class DeclarationsChecker(
 //            exposedChecker.checkClassHeader(classOrObject, classDescriptor)
         }
 
-//        for ((function, functionDescriptor) in bodiesResolveContext.functions.entries) {
-//            checkFunction(function, functionDescriptor)
-//            modifiersChecker.checkModifiersForDeclaration(function, functionDescriptor)
-//            identifierChecker.checkDeclaration(function, trace)
-//        }
+        for ((function, functionDescriptor) in bodiesResolveContext.functions.entries) {
+            checkFunction(function, functionDescriptor)
+            modifiersChecker.checkModifiersForDeclaration(function, functionDescriptor)
+            identifierChecker.checkDeclaration(function, trace)
+        }
+
+                for ((variable, variableDescriptor) in bodiesResolveContext.variables.entries) {
+            checkVariable(variable, variableDescriptor)
+            modifiersChecker.checkModifiersForDeclaration(variable, variableDescriptor)
+            identifierChecker.checkDeclaration(variable, trace)
+        }
 //
 //        for ((property, propertyDescriptor) in bodiesResolveContext.properties.entries) {
 //            checkProperty(property, propertyDescriptor)

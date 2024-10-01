@@ -2,15 +2,13 @@ package com.huawei.cangjie.resolve;
 
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
-import com.huawei.cangjie.descriptors.impl.ClassConstructorDescriptorImpl;
-import com.huawei.cangjie.descriptors.impl.ReceiverParameterDescriptorImpl;
+import com.huawei.cangjie.descriptors.impl.*;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.name.NameUtils;
 import com.huawei.cangjie.resolve.scopes.receivers.ContextClassReceiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ContextReceiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ExtensionReceiver;
 import com.huawei.cangjie.types.CangJieType;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,19 +17,75 @@ import java.util.Collections;
 import static com.huawei.cangjie.resolve.DescriptorUtils.getDefaultConstructorVisibility;
 
 public class DescriptorFactory {
-
-
-    private static class DefaultClassConstructorDescriptor extends ClassConstructorDescriptorImpl {
-        public DefaultClassConstructorDescriptor(
-                @NotNull ClassDescriptor containingClass,
-                @NotNull SourceElement source,
-                boolean freedomForSealedInterfacesSupported
-        ) {
-            super(containingClass, null, Annotations.EMPTY, true, Kind.DECLARATION, source);
-            initialize(Collections.emptyList(),
-                    getDefaultConstructorVisibility(containingClass, freedomForSealedInterfacesSupported));
-        }
+    @NotNull
+    public static PropertySetterDescriptorImpl createDefaultSetter(
+            @NotNull PropertyDescriptor propertyDescriptor,
+            @NotNull Annotations annotations,
+            @NotNull Annotations parameterAnnotations
+    ) {
+        return createSetter(propertyDescriptor, annotations, parameterAnnotations, true,   propertyDescriptor.getSource());
     }
+
+    @NotNull
+    public static PropertySetterDescriptorImpl createSetter(
+            @NotNull PropertyDescriptor propertyDescriptor,
+            @NotNull Annotations annotations,
+            @NotNull Annotations parameterAnnotations,
+            boolean isDefault,
+
+            @NotNull SourceElement sourceElement
+    ) {
+        return createSetter(
+                propertyDescriptor, annotations, parameterAnnotations, isDefault,
+                propertyDescriptor.getVisibility(), sourceElement
+        );
+    }
+
+    @NotNull
+    public static PropertySetterDescriptorImpl createSetter(
+            @NotNull PropertyDescriptor propertyDescriptor,
+            @NotNull Annotations annotations,
+            @NotNull Annotations parameterAnnotations,
+            boolean isDefault,
+
+            @NotNull DescriptorVisibility visibility,
+            @NotNull SourceElement sourceElement
+    ) {
+        PropertySetterDescriptorImpl setterDescriptor = new PropertySetterDescriptorImpl(
+                propertyDescriptor, annotations, propertyDescriptor.getModality(), visibility, isDefault,
+               CallableMemberDescriptor.Kind.DECLARATION, null, sourceElement
+        );
+        ValueParameterDescriptorImpl parameter =
+                PropertySetterDescriptorImpl.createSetterParameter(setterDescriptor, propertyDescriptor.getType(), parameterAnnotations);
+        setterDescriptor.initialize(parameter);
+        return setterDescriptor;
+    }
+
+    @NotNull
+    public static PropertyGetterDescriptorImpl createGetter(
+            @NotNull PropertyDescriptor propertyDescriptor,
+            @NotNull Annotations annotations,
+            boolean isDefault
+
+    ) {
+        return createGetter(propertyDescriptor, annotations, isDefault, propertyDescriptor.getSource());
+    }
+
+    @NotNull
+    public static PropertyGetterDescriptorImpl createGetter(
+            @NotNull PropertyDescriptor propertyDescriptor,
+            @NotNull Annotations annotations,
+            boolean isDefault,
+
+
+            @NotNull SourceElement sourceElement
+    ) {
+        return new PropertyGetterDescriptorImpl(
+                propertyDescriptor, annotations, propertyDescriptor.getModality(), propertyDescriptor.getVisibility(),
+                isDefault, CallableMemberDescriptor.Kind.DECLARATION, null, sourceElement
+        );
+    }
+
     @Nullable
     public static ReceiverParameterDescriptor createExtensionReceiverParameterForCallable(
             @NotNull CallableDescriptor owner,
@@ -42,6 +96,7 @@ public class DescriptorFactory {
                 ? null
                 : new ReceiverParameterDescriptorImpl(owner, new ExtensionReceiver(owner, receiverParameterType, null), annotations);
     }
+
     @NotNull
     public static ClassConstructorDescriptorImpl createPrimaryConstructorForObject(
             @NotNull ClassDescriptor containingClass,
@@ -53,6 +108,7 @@ public class DescriptorFactory {
          */
         return new DefaultClassConstructorDescriptor(containingClass, source, false);
     }
+
     @Nullable
     public static ReceiverParameterDescriptor createContextReceiverParameterForClass(
             @NotNull ClassDescriptor owner,
@@ -66,6 +122,7 @@ public class DescriptorFactory {
                 : new ReceiverParameterDescriptorImpl(owner, new ContextClassReceiver(owner, receiverParameterType, customLabelName, null),
                 annotations, NameUtils.contextReceiverName(index));
     }
+
     @Nullable
     public static ReceiverParameterDescriptor createContextReceiverParameterForCallable(
             @NotNull CallableDescriptor owner,
@@ -78,5 +135,17 @@ public class DescriptorFactory {
                 ? null
                 : new ReceiverParameterDescriptorImpl(owner, new ContextReceiver(owner, receiverParameterType, customLabelName, null), annotations,
                 NameUtils.contextReceiverName(index));
+    }
+
+    private static class DefaultClassConstructorDescriptor extends ClassConstructorDescriptorImpl {
+        public DefaultClassConstructorDescriptor(
+                @NotNull ClassDescriptor containingClass,
+                @NotNull SourceElement source,
+                boolean freedomForSealedInterfacesSupported
+        ) {
+            super(containingClass, null, Annotations.EMPTY, true, Kind.DECLARATION, source);
+            initialize(Collections.emptyList(),
+                    getDefaultConstructorVisibility(containingClass, freedomForSealedInterfacesSupported));
+        }
     }
 }

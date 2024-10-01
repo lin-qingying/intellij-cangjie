@@ -34,6 +34,8 @@ abstract class CjTypeStatement :
     override fun toString(): String {
         return node.elementType.toString()
     }
+    val variables :List<CjVariable> get() =   body?.variables.orEmpty()
+    val properties :List<CjProperty> get() = body?.properties.orEmpty()
 
     fun getSuperTypeList(): CjSuperTypeList? = getStubOrPsiChild(CjStubElementTypes.SUPER_TYPE_LIST)
 

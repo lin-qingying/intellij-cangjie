@@ -28,7 +28,7 @@ public class ObservableBindingTrace implements BindingTrace  {
 
     private final BindingTrace originalTrace;
 
-    private final SmartFMap<WritableSlice, RecordHandler> handlers = SmartFMap.emptyMap();
+    private   SmartFMap<WritableSlice, RecordHandler> handlers = SmartFMap.emptyMap();
 
     public ObservableBindingTrace(BindingTrace originalTrace) {
         this.originalTrace = originalTrace;
@@ -39,7 +39,10 @@ public class ObservableBindingTrace implements BindingTrace  {
         return originalTrace.getBindingContext();
     }
 
-
+    public <K, V> ObservableBindingTrace addHandler(@NotNull WritableSlice<K, V> slice, @NotNull RecordHandler<K, V> handler) {
+        handlers = handlers.plus(slice, handler);
+        return this;
+    }
     @Override
     @NotNull
     public <K, V> Collection<K> getKeys(WritableSlice<K, V> slice) {

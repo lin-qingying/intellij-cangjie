@@ -79,7 +79,7 @@ class LocalVariableResolver(
 //                )
 //            }
 
-//            if (variableDescriptor is VariableDescriptorWithAccessors) {
+//            if (variableDescriptor is PropertyDescriptorWithAccessors) {
 //                delegatedVariableResolver.resolveVariableDelegate(
 //                    typingContext.dataFlowInfo,
 //                    variable,

@@ -15,7 +15,15 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
         )
 
     }
+    val isLocal: Boolean
+        get() =   !isMember
 
+
+    val isMember: Boolean
+        get() {
+            val parent = parent
+            return parent is CjTypeStatement || parent is CjClassBody
+        }
     override val isStatic: Boolean
         get() = node.findChildByType(CjTokens.STATIC_KEYWORD) != null
 //
@@ -107,7 +115,7 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
     constructor(node: ASTNode) : super(node)
 
     override val isVar: Boolean
-        get() = false
+        get() = hasModifier(CjTokens.MUT_KEYWORD)
 
 
     override fun toString(): String = super.toString() + ": " + name
@@ -116,9 +124,10 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
     override val valueParameterList: CjParameterList? = null
     override val valueParameters: List<CjParameter> = emptyList()
     override val receiverTypeReference: CjTypeReference? = null
+    val body :CjPropertyBody? get() = findChildByClass(CjPropertyBody::class.java)
     val accessors: List<CjPropertyAccessor>
         get() {
-            return getStubOrPsiChildrenAsList(CjStubElementTypes.PROPERTY_ACCESSOR)
+            return body?.accessors ?: emptyList()
 
         }
 

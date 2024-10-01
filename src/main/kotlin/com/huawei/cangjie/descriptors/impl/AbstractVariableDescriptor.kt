@@ -24,7 +24,9 @@ abstract class AbstractVariableDescriptor(
     private var _dispatchReceiverParameter: ReceiverParameterDescriptor? = null
     private var _extensionReceiverParameter: ReceiverParameterDescriptor? = null
     override val original: VariableDescriptor = super.original as VariableDescriptor
-
+    override fun getModality(): Modality {
+        return Modality.FINAL
+    }
     override val isStatic: Boolean
         get() {
 

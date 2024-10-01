@@ -6,6 +6,7 @@ import com.huawei.cangjie.descriptors.BindingTrace;
 import com.huawei.cangjie.descriptors.DeclarationDescriptor;
 import com.huawei.cangjie.descriptors.FunctionDescriptor;
 import com.huawei.cangjie.descriptors.impl.FunctionDescriptorImpl;
+import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptorImpl;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.resolve.*;
 import com.huawei.cangjie.resolve.calls.components.InferenceSession;
@@ -20,6 +21,7 @@ import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.ErrorUtils;
 import com.huawei.cangjie.types.error.ErrorTypeKind;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
+import com.huawei.cangjie.types.util.TypeUtilKt;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.huawei.cangjie.utils.slicedMap.WritableSlice;
 import com.intellij.openapi.progress.ProgressManager;
@@ -181,23 +183,31 @@ public class ExpressionTypingServices {
 
         if (!(statementExpression instanceof CjReturnExpression)) {
             var parentDeclaration =
-                    context.trace.getBindingContext().get(BindingContext.FUNCTION, context.getContextParentOfType(
+                    context.trace.getBindingContext().get(BindingContext.DECLARATION_TO_DESCRIPTOR, context.getContextParentOfType(
                             statementExpression,
                             CjDeclaration.class
                     ));
+
+            CangJieType type = null;
+            if(parentDeclaration instanceof PropertyAccessorDescriptorImpl){
+                type = ((PropertyAccessorDescriptorImpl) parentDeclaration).getReturnType();
+            }
             if (parentDeclaration instanceof FunctionDescriptorImpl) {
-                if (parentDeclaration.getReturnType() != null && !CangJieBuiltIns.isUnit(parentDeclaration.getReturnType())) {
+                if (((FunctionDescriptorImpl)parentDeclaration).getReturnType() != null && !CangJieBuiltIns.isUnit(((FunctionDescriptorImpl)parentDeclaration).getReturnType())) {
 //                    context = context.replaceExpectedType(parentDeclaration.getReturnType());
 //fix 修复对于该语句执行时，方法返回值还为推断时出现的类型一致
-                    if (parentDeclaration.getSource() instanceof PsiSourceElement && ((PsiSourceElement) parentDeclaration.getSource()).getPsi() instanceof CjFunction) {
+                    if (((FunctionDescriptorImpl)parentDeclaration).getSource() instanceof PsiSourceElement && ((PsiSourceElement) ((FunctionDescriptorImpl)parentDeclaration).getSource()).getPsi() instanceof CjFunction) {
 
-                        if (!(((CjFunction) ((PsiSourceElement) parentDeclaration.getSource()).getPsi()).getTypeReference() == null
+                        if (!(((CjFunction) ((PsiSourceElement) ((FunctionDescriptorImpl)parentDeclaration).getSource()).getPsi()).getTypeReference() == null
                         )) {
-                            context = context.replaceExpectedType(parentDeclaration.getReturnType());
-
+type = ((FunctionDescriptorImpl)parentDeclaration).getReturnType();
                         }
                     }
                 }
+            }
+            if(type != null && !TypeUtilKt.isUnit(type)){
+                context = context.replaceExpectedType(type);
+
             }
         }
         CangJieTypeInfo result = blockLevelVisitor.getTypeInfo(statementExpression, context, true);

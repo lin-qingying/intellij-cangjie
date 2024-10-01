@@ -75,6 +75,33 @@ protected constructor(
 
     protected abstract fun getScopeForInitializerResolution(declaration: CjDeclaration): LexicalScope
 
+    private fun getDeclaredProperties(
+        name: Name
+    ): Collection<PropertyDescriptor> {
+
+        // TODO: do we really need to copy descriptors?
+        if (mainScope != null) return mainScope.declaredPropertyDescriptors(name).map {
+            it.newCopyBuilder().setPreserveSourceElement().build()!!
+        }
+        val result = LinkedHashSet<PropertyDescriptor>()
+        val propDeclarations = declarationProvider.getPropertyDeclarations(name)
+        for (propertyDeclaration in propDeclarations) {
+            val propertyDescriptor = c.descriptorResolver.resolvePropertyDescriptor(
+                thisDescriptor,
+                getScopeForMemberDeclarationResolution(propertyDeclaration),
+                getScopeForInitializerResolution(propertyDeclaration),
+                propertyDeclaration,
+                trace,
+                c.declarationScopeProvider.getOuterDataFlowInfoForDeclaration(propertyDeclaration),
+                c.inferenceSession ?: InferenceSession.default
+            )
+            result.add(propertyDescriptor)
+        }
+
+
+        return result
+    }
+
     private fun getDeclaredVariables(
         name: Name
     ): Collection<VariableDescriptor> {
@@ -118,45 +145,6 @@ protected constructor(
 
     }
 
-    private fun getDeclaredProperties(
-        name: Name
-    ): Collection<PropertyDescriptor> {
-
-        // TODO: do we really need to copy descriptors?
-        if (mainScope != null) return mainScope.declaredPropertyDescriptors(name).map {
-            it.newCopyBuilder().setPreserveSourceElement().build()!!
-        }
-        val result = LinkedHashSet<PropertyDescriptor>()
-        val propDeclarations = declarationProvider.getPropertyDeclarations(name)
-        for (propertyDeclaration in propDeclarations) {
-            val propertyDescriptor = c.descriptorResolver.resolvePropertyDescriptor(
-                thisDescriptor,
-                getScopeForMemberDeclarationResolution(propertyDeclaration),
-                getScopeForInitializerResolution(propertyDeclaration),
-                propertyDeclaration,
-                trace,
-                c.declarationScopeProvider.getOuterDataFlowInfoForDeclaration(propertyDeclaration),
-                c.inferenceSession ?: InferenceSession.default
-            )
-            result.add(propertyDescriptor)
-        }
-//        val variableDeclarations = declarationProvider.getVariableDeclarations(name)
-//        for (variableDeclaration in variableDeclarations) {
-//            val propertyDescriptor = c.descriptorResolver.resolvePropertyDescriptor(
-//                thisDescriptor,
-//                getScopeForMemberDeclarationResolution(variableDeclaration),
-//                getScopeForInitializerResolution(variableDeclaration),
-//                variableDeclaration,
-//                trace,
-//                c.declarationScopeProvider.getOuterDataFlowInfoForDeclaration(variableDeclaration),
-//                c.inferenceSession ?: InferenceSession.default
-//            )
-//            result.add(propertyDescriptor)
-//        }
-
-
-        return emptyList()
-    }
 
     private fun doGetProperties(name: Name): Collection<PropertyDescriptor> {
 
@@ -188,6 +176,7 @@ protected constructor(
 
         return classes + typeAliases
     }
+
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
         recordLookup(name, location)
         // NB we should resolve type alias descriptors even if a class descriptor with corresponding name is present
@@ -206,7 +195,6 @@ protected constructor(
 //        if ((result?.source as? CangJieSourceElement)?.psi?.isValid == false) {
 //            throw AssertionError("PSI is invalidated for contributed classifier ${result.fqNameSafe}")
 //        }
-
 
 
         return result
@@ -466,7 +454,7 @@ protected constructor(
         }
 
 
-        return result.toList() + result1 .toList()
+        return result.toList() + result1.toList()
     }
 
 

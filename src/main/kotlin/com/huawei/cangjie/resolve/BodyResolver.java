@@ -4,6 +4,8 @@ import com.google.common.collect.Maps;
 import com.huawei.cangjie.builtins.CangJieBuiltIns;
 import com.huawei.cangjie.config.LanguageVersionSettings;
 import com.huawei.cangjie.descriptors.*;
+import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptor;
+import com.huawei.cangjie.descriptors.impl.SyntheticFieldDescriptor;
 import com.huawei.cangjie.diagnostics.Errors;
 import com.huawei.cangjie.psi.*;
 import com.huawei.cangjie.psi.psiUtil.PsiUtilsKt;
@@ -15,6 +17,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.lazy.ForceResolveUtil;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor;
 import com.huawei.cangjie.resolve.scopes.*;
+import com.huawei.cangjie.resolve.source.CangJieSourceElementKt;
 import com.huawei.cangjie.resolve.source.PsiSourceElementKt;
 import com.huawei.cangjie.types.*;
 import com.huawei.cangjie.types.expressions.ExpressionTypingContext;
@@ -324,10 +327,10 @@ public class BodyResolver {
         // Member   veraible
         Set<CjProperty> processed = new HashSet<>();
         for (Map.Entry<CjTypeStatement, ClassDescriptorWithResolutionScopes> entry : c.getDeclaredClasses().entrySet()) {
-            if (!(entry.getKey() instanceof CjClass cjClass)) continue;
+//            if (!(entry.getKey() instanceof CjClass cjClass)) continue;
             ClassDescriptorWithResolutionScopes classDescriptor = entry.getValue();
 
-            for (CjProperty property : cjClass.getProperties()) {
+            for (CjProperty property : entry.getKey().getProperties()) {
                 PropertyDescriptor propertyDescriptor = c.getProperties().get(property);
                 assert propertyDescriptor != null;
 
@@ -336,15 +339,7 @@ public class BodyResolver {
             }
         }
 
-//        // Top-level properties & properties of objects
-//        for (Map.Entry<CjVariable, VariableDescriptor> entry : c.getVariables().entrySet()) {
-//            CjVariable variable = entry.getKey();
-//            if (processed.contains(variable)) continue;
-//
-//            VariableDescriptor variableDescriptor = entry.getValue();
-//
-//            resolveVariable(c, variable, variableDescriptor);
-//        }
+
     }
 
     private void resolveVariableDeclarationBodies(@NotNull BodiesResolveContext c) {
@@ -352,11 +347,11 @@ public class BodyResolver {
         // Member   veraible
         Set<CjVariable> processed = new HashSet<>();
         for (Map.Entry<CjTypeStatement, ClassDescriptorWithResolutionScopes> entry : c.getDeclaredClasses().entrySet()) {
-            if (!(entry.getKey() instanceof CjClass cjClass)) continue;
+//            if (!(entry.getKey() instanceof CjClass cjClass)) continue;
 
             ClassDescriptorWithResolutionScopes classDescriptor = entry.getValue();
 
-            for (CjVariable variable : cjClass.getVariables()) {
+            for (CjVariable variable : entry.getKey().getVariables()) {
                 VariableDescriptor variableDescriptor = c.getVariables().get(variable);
                 assert variableDescriptor != null;
 
@@ -504,19 +499,72 @@ public class BodyResolver {
         }
     }
 
+    private ObservableBindingTrace createFieldTrackingTrace(PropertyDescriptor propertyDescriptor) {
+        return new ObservableBindingTrace(trace).addHandler(
+                BindingContext.REFERENCE_TARGET,
+                (slice, expression, descriptor) -> {
+                    if (expression instanceof CjSimpleNameExpression &&
+                            descriptor instanceof SyntheticFieldDescriptor) {
+                        trace.record(BindingContext.BACKING_FIELD_REQUIRED,
+                                propertyDescriptor);
+                    }
+                }
+        );
+    }
+    private static LexicalScope makeScopeForPropertyAccessor(
+            @NotNull BodiesResolveContext c, @NotNull CjPropertyAccessor accessor, @NotNull PropertyDescriptor descriptor
+    ) {
+        LexicalScope accessorDeclaringScope = c.getDeclaringScope(accessor);
+        assert accessorDeclaringScope != null : "Scope for accessor " + accessor.getText() + " should exists";
+        LexicalScope headerScope = ScopeUtils.makeScopeForPropertyHeader(accessorDeclaringScope, descriptor);
+        return new LexicalScopeImpl(headerScope, descriptor, true, descriptor.getExtensionReceiverParameter(), descriptor.getContextReceiverParameters(),
+                LexicalScopeKind.PROPERTY_ACCESSOR_BODY);
+    }
+    private void resolvePropertyAccessors(
+            @NotNull BodiesResolveContext c,
+            @NotNull CjProperty property,
+            @NotNull PropertyDescriptor propertyDescriptor
+    ) {
+        ObservableBindingTrace fieldAccessTrackingTrace = createFieldTrackingTrace(propertyDescriptor);
+
+        CjPropertyAccessor getter = property.getGetter();
+        PropertyGetterDescriptor getterDescriptor = propertyDescriptor.getGetter();
+
+        boolean forceResolveAnnotations = true;
+        if (getterDescriptor != null) {
+            if (getter != null) {
+                LexicalScope accessorScope = makeScopeForPropertyAccessor(c, getter, propertyDescriptor);
+                resolveFunctionBody(c.getOuterDataFlowInfo(), fieldAccessTrackingTrace, getter, getterDescriptor, accessorScope, c.getLocalContext());
+            }
+
+            if (getter != null || forceResolveAnnotations) {
+                ForceResolveUtil.forceResolveAllContents(getterDescriptor.getAnnotations());
+            }
+        }
+
+        CjPropertyAccessor setter = property.getSetter();
+        PropertySetterDescriptor setterDescriptor = propertyDescriptor.getSetter();
+
+        if (setterDescriptor != null) {
+            if (setter != null) {
+                LexicalScope accessorScope = makeScopeForPropertyAccessor(c, setter, propertyDescriptor);
+                resolveFunctionBody(c.getOuterDataFlowInfo(), fieldAccessTrackingTrace, setter, setterDescriptor, accessorScope, c.getLocalContext());
+            }
+
+            if (setter != null || forceResolveAnnotations) {
+                ForceResolveUtil.forceResolveAllContents(setterDescriptor.getAnnotations());
+            }
+        }
+    }
+
     void resolveProperty(BodiesResolveContext c, CjProperty property, PropertyDescriptor propertyDescriptor) {
         computeDeferredType(propertyDescriptor.getReturnType());
         PreliminaryDeclarationVisitor.Companion.createForDeclaration(property, trace, languageVersionSettings);
-        CjExpression initializer = property.getInitializer();
-        LexicalScope variableHeaderScope = ScopeUtils.makeScopeForPropertyHeader(getScopeForProperty(c, property), propertyDescriptor);
-        ExpressionTypingContext context = c.getLocalContext();
+//        CjExpression initializer = property.getInitializer();
+//        LexicalScope variableHeaderScope = ScopeUtils.makeScopeForPropertyHeader(getScopeForProperty(c, property), propertyDescriptor);
+//        ExpressionTypingContext context = c.getLocalContext();
 
-        if (initializer != null) {
-            resolvePropertyInitializer(
-                    c.getOuterDataFlowInfo(), property, propertyDescriptor,
-                    initializer, variableHeaderScope, context != null ? context.inferenceSession : null
-            );
-        }
+
 //委托 没有
 //        CjExpression delegateExpression = variable.getDelegateExpression();
 //        if (delegateExpression != null) {
@@ -526,6 +574,7 @@ public class BodyResolver {
 //                    delegateExpression, variableHeaderScope, context != null ? context.inferenceSession : null
 //            );
 //        }
+        resolvePropertyAccessors(c, property, propertyDescriptor);
 
 //注解 宏？
 //        ForceResolveUtil.forceResolveAllContents(propertyDescriptor.getAnnotations());
@@ -696,6 +745,7 @@ public class BodyResolver {
 
     private void resolveBehaviorDeclarationBodies(@NotNull BodiesResolveContext c) {
         resolveSuperTypeEntryLists(c);
+        resolvePropertyDeclarationBodies(c);
 
         resolveVariableDeclarationBodies(c);
 
@@ -780,31 +830,31 @@ public class BodyResolver {
         List<ValueParameterDescriptor> valueParameterDescriptors = functionDescriptor.getValueParameters();
 //
         LexicalScope headerScope = headerScopeFactory != null ? headerScopeFactory.invoke(innerScope) : innerScope;
-//        valueParameterResolver.resolveValueParameters(
-//                valueParameters, valueParameterDescriptors, headerScope, outerDataFlowInfo, trace,
-//                localContext != null ? localContext.inferenceSession : null
-//        );
+        valueParameterResolver.resolveValueParameters(
+                valueParameters, valueParameterDescriptors, headerScope, outerDataFlowInfo, trace,
+                localContext != null ? localContext.inferenceSession : null
+        );
 
-        // Synthetic "field" creation
-//        if (functionDescriptor instanceof PropertyAccessorDescriptor && functionDescriptor.getExtensionReceiverParameter() == null
-//                && functionDescriptor.get_contextReceiverParameters().isEmpty()) {
-//            PropertyAccessorDescriptor accessorDescriptor = (PropertyAccessorDescriptor) functionDescriptor;
-//            CjProperty property = (CjProperty) function.getParent();
-//            SourceElement propertySourceElement = CangJieSourceElementCj.toSourceElement(property);
-//            SyntheticFieldDescriptor fieldDescriptor = new SyntheticFieldDescriptor(accessorDescriptor, propertySourceElement);
-//            innerScope = new LexicalScopeImpl(innerScope, functionDescriptor, true, null, Collections.emptyList(),
-//                    LexicalScopeKind.PROPERTY_ACCESSOR_BODY,
-//                    LocalRedeclarationChecker.DO_NOTHING.INSTANCE, handler -> {
-//                handler.addVariableDescriptor(fieldDescriptor);
-//                return Unit.INSTANCE;
-//            });
-//            // Check parameter name shadowing
-//            for (CjParameter parameter : function.getValueParameters()) {
-//                if (SyntheticFieldDescriptor.NAMED.equals(parameter.getNameAsName())) {
-//                    trace.report(Errors.getACCESSOR_PARAMETER_NAME_SHADOWING().on(parameter));
-//                }
-//            }
-//        }
+//         Synthetic "field" creation
+        if (functionDescriptor instanceof PropertyAccessorDescriptor && functionDescriptor.getExtensionReceiverParameter() == null
+                && functionDescriptor.getContextReceiverParameters().isEmpty()) {
+            PropertyAccessorDescriptor accessorDescriptor = (PropertyAccessorDescriptor) functionDescriptor;
+            CjProperty property = (CjProperty) function.getParent().getParent();
+            SourceElement propertySourceElement = CangJieSourceElementKt.toSourceElement(property);
+            SyntheticFieldDescriptor fieldDescriptor = new SyntheticFieldDescriptor(accessorDescriptor, propertySourceElement);
+            innerScope = new LexicalScopeImpl(innerScope, functionDescriptor, true, null, Collections.emptyList(),
+                    LexicalScopeKind.PROPERTY_ACCESSOR_BODY,
+                    LocalRedeclarationChecker.DO_NOTHING.INSTANCE, handler -> {
+                handler.addVariableDescriptor(fieldDescriptor);
+                return Unit.INSTANCE;
+            });
+            // Check parameter name shadowing
+            for (CjParameter parameter : function.getValueParameters()) {
+                if (SyntheticFieldDescriptor.NAME .equals(parameter.getNameAsName())) {
+                    trace.report(Errors. ACCESSOR_PARAMETER_NAME_SHADOWING .on(parameter));
+                }
+            }
+        }
 
         DataFlowInfo dataFlowInfo = null;
 

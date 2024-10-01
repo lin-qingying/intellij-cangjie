@@ -20,7 +20,7 @@ open class CjToken : IElementType {
     }
 
     override fun toString(): String {
-        return "Cj:$debugName"
+        return debugName
     }
 
 }

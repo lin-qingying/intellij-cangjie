@@ -68,11 +68,21 @@ object PositioningStrategies {
 
     @JvmField
     val VARIANCE_MODIFIER: PositioningStrategy<CjModifierListOwner> = projectionPosition()
+    @JvmField
+    val OPEN_MODIFIER: PositioningStrategy<CjModifierListOwner> =
+        ModifierSetBasedPositioningStrategy(CjTokens.OPEN_KEYWORD)
 
     @JvmField
     val DECLARATION_SIGNATURE: PositioningStrategy<CjDeclaration> = object : DeclarationHeader<CjDeclaration>() {
 
     }
+    @JvmField
+    val PRIVATE_MODIFIER: PositioningStrategy<CjModifierListOwner> =
+        ModifierSetBasedPositioningStrategy(CjTokens.PRIVATE_KEYWORD)
+
+    @JvmField
+    val ABSTRACT_MODIFIER: PositioningStrategy<CjModifierListOwner> =
+        ModifierSetBasedPositioningStrategy(CjTokens.ABSTRACT_KEYWORD)
 
     @JvmField
     val CUT_CHAR_QUOTES: PositioningStrategy<CjElement> = object : PositioningStrategy<CjElement>() {

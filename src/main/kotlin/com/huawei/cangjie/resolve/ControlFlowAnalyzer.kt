@@ -2,17 +2,11 @@ package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.config.LanguageVersionSettings
-import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.FunctionDescriptor
-import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.FunctionDescriptorImpl
+import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptor
 import com.huawei.cangjie.diagnostics.Errors
-import com.huawei.cangjie.ide.stubindex.CangJieMainFunctionFqnNameIndex
-import com.huawei.cangjie.psi.CjCallableDeclaration
-import com.huawei.cangjie.psi.CjDeclarationWithBody
-import com.huawei.cangjie.psi.CjFunction
-import com.huawei.cangjie.psi.CjParameter
+import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.controlFlow.ControlFlowInformationProvider
 import com.huawei.cangjie.resolve.controlFlow.ControlFlowInformationProviderImpl
@@ -21,9 +15,9 @@ import com.huawei.cangjie.resolve.scopes.LexicalScopeKind
 import com.huawei.cangjie.resolve.scopes.LexicalWritableScope
 import com.huawei.cangjie.resolve.scopes.LocalRedeclarationChecker
 import com.huawei.cangjie.resolve.source.getPsi
+import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.expressions.ExpressionTypingServices
 import com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
-import com.intellij.openapi.application.runReadAction
 import jakarta.inject.Inject
 
 class ControlFlowAnalyzer(
@@ -169,7 +163,38 @@ class ControlFlowAnalyzer(
 
         controlFlowInformationProvider.checkFunction(expectedReturnType)
     }
-
+    private fun checkFunction(
+        c: BodiesResolveContext,
+        function: CjDeclarationWithBody,
+        expectedReturnType: CangJieType?
+    ) {
+        val controlFlowInformationProvider:  ControlFlowInformationProvider =
+            controlFlowInformationProviderFactory.createControlFlowInformationProvider(
+                function, trace, languageVersionSettings,/* diagnosticSuppressor, enumWhenTracker*/
+            )
+        if (c.getTopDownAnalysisMode().isLocalDeclarations) {
+            controlFlowInformationProvider.checkForLocalClassOrObjectMode()
+            return
+        }
+        controlFlowInformationProvider.checkDeclaration()
+        controlFlowInformationProvider.checkFunction(expectedReturnType)
+    }
+    private fun checkProperty(
+        c:  BodiesResolveContext,
+        property: CjProperty,
+        propertyDescriptor: PropertyDescriptor
+    ) {
+        for (accessor in property.accessors) {
+            val accessorDescriptor: PropertyAccessorDescriptor = checkNotNull(
+                if (accessor.isGetter)
+                    propertyDescriptor.getter
+                else
+                    propertyDescriptor.setter
+            ) { "no property accessor descriptor " + accessor.getText() }
+            val returnType :CangJieType?  = accessorDescriptor.getReturnType()
+            checkFunction(c, accessor, returnType)
+        }
+    }
     fun inferredFunctionReturnType(
         scope: LexicalScope,
         function: CjDeclarationWithBody,
@@ -207,10 +232,39 @@ class ControlFlowAnalyzer(
         }
 
     }
-
+    // SomeFile.kt
+    private fun checkDeclarationContainer(c: BodiesResolveContext, declarationContainer: CjDeclarationContainer) {
+        // A pseudocode of class/object initialization corresponds to a class/object
+        // or initialization of properties corresponds to a package declared in a file
+        val controlFlowInformationProvider = controlFlowInformationProviderFactory.createControlFlowInformationProvider(
+            declarationContainer as CjElement, trace, languageVersionSettings, /*diagnosticSuppressor, enumWhenTracker*/
+        )
+        if (c.getTopDownAnalysisMode().isLocalDeclarations) {
+            controlFlowInformationProvider.checkForLocalClassOrObjectMode()
+            return
+        }
+        controlFlowInformationProvider.checkDeclaration()
+    }
+    // SomeFile.kt
+    private fun checkSecondaryConstructor(constructor: CjSecondaryConstructor) {
+        val controlFlowInformationProvider = controlFlowInformationProviderFactory.createControlFlowInformationProvider(
+            constructor, trace, languageVersionSettings,/* diagnosticSuppressor, enumWhenTracker*/
+        )
+        controlFlowInformationProvider.checkDeclaration()
+        controlFlowInformationProvider.checkFunction(builtIns.unitType)
+    }
     fun process(c: BodiesResolveContext) {
 
+        for (file in c.files) {
+            checkDeclarationContainer(c, file)
+        }
+        for (aClass in c.declaredClasses.keys) {
+            checkDeclarationContainer(c, aClass)
+        }
 
+        for (constructor in c.secondaryConstructors.keys) {
+            checkSecondaryConstructor(constructor)
+        }
         for ((function, functionDescriptor) in c.functions.entries) {
             inferredFunctionReturnType(c, function, functionDescriptor)
 
@@ -226,7 +280,9 @@ class ControlFlowAnalyzer(
 
             checkMainFunction(c, function, functionDescriptor)
         }
-
+        for ((property, propertyDescriptor) in c.properties.entries) {
+            checkProperty(c, property, propertyDescriptor)
+        }
     }
 
 }

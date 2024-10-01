@@ -16,6 +16,7 @@ class AnnotationSplitter(
             AnnotationUseSiteTarget.PROPERTY, AnnotationUseSiteTarget.FIELD
         )
     }
+    fun getOtherAnnotations(): Annotations = LazySplitAnnotations(storageManager, null)
 
     private val splitAnnotations = storageManager.createLazyValue {
         val map = hashMapOf<AnnotationUseSiteTarget, MutableList<AnnotationDescriptor>>()

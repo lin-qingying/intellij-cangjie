@@ -15,6 +15,8 @@ enum class ErrorTypeKind(val debugMessage: String, val isUnresolved: Boolean = f
     RETURN_TYPE("Return type for %s cannot be resolved"),
     RETURN_TYPE_FOR_FUNCTION("Return type for function cannot be resolved"),
     RETURN_TYPE_FOR_VARIABLE("Return type for variable %s cannot be resolved"),
+    RETURN_TYPE_FOR_PROPERTY("Return type for property %s cannot be resolved"),
+
     RETURN_TYPE_FOR_CONSTRUCTOR("Return type for constructor %s cannot be resolved"),
     IMPLICIT_RETURN_TYPE_FOR_FUNCTION("Implicit return type for function %s cannot be resolved"),
     IMPLICIT_RETURN_TYPE_FOR_PROPERTY("Implicit return type for property %s cannot be resolved"),

@@ -21,7 +21,7 @@
 
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieSuperClassIndex"/>
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelTypeAliasFqNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelPropertyFqnNameIndex"/>
+<!--        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelPropertyFqnNameIndex"/>-->
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelVariableFqnNameIndex"/>
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelClassByPackageIndex"/>
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieFullClassNameIndex"/>

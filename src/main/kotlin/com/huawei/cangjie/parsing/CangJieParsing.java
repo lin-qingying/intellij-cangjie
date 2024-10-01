@@ -1425,10 +1425,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //            return;
 //        }
 
-        if (!detector.isMutDetected()) {
-            set.error("immutable property cannot have setter");
-            return;
-        }
+//        if (!detector.isMutDetected()) {
+//            set.error("immutable property cannot have setter");
+//            return;
+//        }
 //        set.done(PROPERTY_SET);
         set.done(PROPERTY_ACCESSOR);
 
@@ -1463,13 +1463,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
 
 
-//        if(detector.isMutDetected()){
-//            if (at(SET_KEYWORD)) {
-//                parsePropertySet(detector);
-//            } else {
-//                error("Set accessor should be implemented");
-//            }
-//        }
         if (at(SET_KEYWORD)) {
             parsePropertySet(detector);
         } else if (detector != null && detector.isMutDetected()) {

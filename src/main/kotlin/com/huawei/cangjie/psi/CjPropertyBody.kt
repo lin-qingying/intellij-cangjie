@@ -15,7 +15,11 @@ class CjPropertyBody: CjElementImplStub<CangJiePlaceHolderStub<CjPropertyBody>>,
 
 
     constructor(stub: CangJiePlaceHolderStub<CjPropertyBody>) : super(stub, CjStubElementTypes.PROPERTY_BODY)
+    val accessors: List<CjPropertyAccessor>
+        get() {
+            return getStubOrPsiChildrenAsList(CjStubElementTypes.PROPERTY_ACCESSOR)
 
+        }
     override val declarations: List<CjDeclaration>
         get() = stub?.getChildrenByType(CjFile.FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
             ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java)

@@ -145,7 +145,7 @@ class CjPropertyAccessor : CjDeclarationStub<CangJiePropertyAccessorStub >, CjDe
 
     val property: CjProperty
         get() {
-            return parent as CjProperty
+            return parent!!.parent as   CjProperty
         }
 
     override fun getTextOffset(): Int {

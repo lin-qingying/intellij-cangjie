@@ -623,11 +623,11 @@ class ResolveElementCache(
 
         forceResolveAnnotationsInside(property)
 
-//        for (accessor in property.accessors) {
-//            ControlFlowInformationProviderImpl(
-//                accessor, trace, accessor.languageVersionSettings, resolveSession.platformDiagnosticSuppressor
-//            ).checkDeclaration()
-//        }
+        for (accessor in property.accessors) {
+            ControlFlowInformationProviderImpl(
+                accessor, trace, accessor.languageVersionSettings, /*resolveSession.platformDiagnosticSuppressor*/
+            ).checkDeclaration()
+        }
 
         return trace
     }

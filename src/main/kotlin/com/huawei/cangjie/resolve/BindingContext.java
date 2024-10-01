@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve;
 
 import com.huawei.cangjie.contracts.description.EventOccurrencesRange;
+import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptor;
 import com.huawei.cangjie.diagnostics.Diagnostics;
 import com.huawei.cangjie.name.FqNameUnsafe;
 import com.huawei.cangjie.resolve.caches.PrimitiveNumericComparisonInfo;
@@ -93,6 +94,7 @@ public interface BindingContext {
     WritableSlice<CjElement, Boolean> USED_AS_RESULT_OF_LAMBDA = Slices.createSimpleSetSlice();
     WritableSlice<CjExpression, ExplicitSmartCasts> SMARTCAST = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjMatchExpression, Boolean> IMPLICIT_EXHAUSTIVE_WHEN = Slices.createSimpleSlice();
+    WritableSlice<CjPropertyAccessor, PropertyAccessorDescriptor> PROPERTY_ACCESSOR = Slices.createSimpleSlice();
 
     WritableSlice<CjTypeReference, CangJieType> TYPE = Slices.createSimpleSlice();
     WritableSlice<DeclarationDescriptor, Multimap<String, ReceiverParameterDescriptor>> DESCRIPTOR_TO_CONTEXT_RECEIVER_MAP = Slices.createSimpleSlice();
@@ -188,7 +190,7 @@ public interface BindingContext {
     WritableSlice<PsiElement, TypeAliasDescriptor> TYPE_ALIAS = Slices.createSimpleSlice();
     WritableSlice[] DECLARATIONS_TO_DESCRIPTORS = new WritableSlice[]{
             CLASS
-            , TYPE_PARAMETER, FUNCTION,  CONSTRUCTOR,  VARIABLE, VALUE_PARAMETER, /*PROPERTY_ACCESSOR, PRIMARY_CONSTRUCTOR_PARAMETER, */
+            , TYPE_PARAMETER, FUNCTION,  CONSTRUCTOR,  VARIABLE, VALUE_PARAMETER, PROPERTY_ACCESSOR, PRIMARY_CONSTRUCTOR_PARAMETER,
             TYPE_ALIAS
     };
 

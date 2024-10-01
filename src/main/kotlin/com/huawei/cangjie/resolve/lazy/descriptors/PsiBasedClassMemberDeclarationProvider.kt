@@ -60,8 +60,10 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
             when (declaration) {
                 is CjNamedFunction ->
                     functions.put(declaration.safeNameForLazyResolve(), declaration)
-is CjMainFunction ->
+
+                is CjMainFunction ->
                     mainFunctions.put(MAIN, declaration)
+
                 is CjProperty ->
                     properties.put(declaration.safeNameForLazyResolve(), declaration)
 
@@ -83,8 +85,7 @@ is CjMainFunction ->
                         declaration.nameAsName.safeNameForLazyResolve(),
                         CjClassInfoUtil.createTypeStatementInfo(declaration)
                     )
-//                is CjScript ->
-//                    scripts.put(CjScriptInfo(declaration).script.nameAsName!!, CjScriptInfo(declaration))
+
                 is CjDestructuringDeclaration -> {
                     for (entry in declaration.entries) {
                         val name = entry.nameAsName.safeNameForLazyResolve()
@@ -131,6 +132,7 @@ is CjMainFunction ->
 
     override fun getMainFunctionDeclarations(): Collection<CjMainFunction> =
         index().mainFunctions[MAIN].toList()
+
     override fun getPropertyDeclarations(name: Name): List<CjProperty> =
         index().properties[name.safeNameForLazyResolve()].toList()
 
@@ -145,7 +147,7 @@ is CjMainFunction ->
         index().classesAndObjects[name.safeNameForLazyResolve()]
 
     override fun getEnumEntryDeclarations(name: Name): Collection<CjEnumEntry> {
- return emptyList()
+        return emptyList()
     }
 
     override fun getExtendTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<CjExtend>> =

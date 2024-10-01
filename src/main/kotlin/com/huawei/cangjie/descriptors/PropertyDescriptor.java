@@ -1,22 +1,28 @@
 package com.huawei.cangjie.descriptors;
 
 
+import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptor;
 import com.huawei.cangjie.mpp.PropertySymbolMarker;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.TypeSubstitutor;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.List;
 
-public interface PropertyDescriptor extends VariableDescriptorWithAccessors, PropertySymbolMarker , CallableMemberDescriptor{
-//    @Override
-//    @Nullable
-//    PropertyGetterDescriptor getGetter();
-//
-//    @Override
-//    @Nullable
-//    PropertySetterDescriptor getSetter();
+public interface PropertyDescriptor extends PropertyDescriptorWithAccessors, PropertySymbolMarker , CallableMemberDescriptor{
+    @Override
+    @Nullable
+    PropertyGetterDescriptor getGetter();
+
+    @Override
+    @Nullable
+    PropertySetterDescriptor getSetter();
+
+    @NotNull
+    List<PropertyAccessorDescriptor> getAccessors();
 
     /**
      * In the following case, the setter is projected out:

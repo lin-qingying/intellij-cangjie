@@ -3,7 +3,7 @@ package com.huawei.cangjie.descriptors
 import com.huawei.cangjie.resolve.constants.ConstantValue
 import com.huawei.cangjie.types.TypeSubstitutor
 
-interface VariableDescriptor : ValueDescriptor/*,
+interface VariableDescriptor : ValueDescriptor ,MemberDescriptor/*,
    CallableMemberDescriptor, VariableSymbolMarker*/ {
 
 

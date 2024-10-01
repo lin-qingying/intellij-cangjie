@@ -35,6 +35,9 @@ class VariableTypeAndInitializerResolver(
 ) {
     companion object {
         @JvmStatic
+        fun getTypeForPropertyWithoutReturnType(property: String): SimpleType =
+            ErrorUtils.createErrorType(ErrorTypeKind.RETURN_TYPE_FOR_PROPERTY, property)
+        @JvmStatic
         fun getTypeForVariableWithoutReturnType(property: String): SimpleType =
             ErrorUtils.createErrorType(ErrorTypeKind.RETURN_TYPE_FOR_VARIABLE, property)
     }
@@ -94,7 +97,7 @@ class VariableTypeAndInitializerResolver(
 
 //    private fun resolveDelegatedPropertyType(
 //        property: CjVariableDeclaration,
-//        variableDescriptor: VariableDescriptorWithAccessors,
+//        variableDescriptor: PropertyDescriptorWithAccessors,
 //        scopeForInitializer: LexicalScope,
 //        dataFlowInfo: DataFlowInfo,
 //        inferenceSession: InferenceSession,
@@ -132,7 +135,7 @@ class VariableTypeAndInitializerResolver(
         return when {
             propertyTypeRef != null -> typeResolver.resolveType(scopeForInitializer, propertyTypeRef, trace, true)
 
-//            !variable.hasInitializer() && (variable is CjProperty || variable is CjVariable) && variableDescriptor is VariableDescriptorWithAccessors &&
+//            !variable.hasInitializer() && (variable is CjProperty || variable is CjVariable) && variableDescriptor is PropertyDescriptorWithAccessors &&
 //                    variable.hasDelegateExpression() ->
 //                resolveDelegatedPropertyType(
 //                    variable, variableDescriptor, scopeForInitializer, dataFlowInfo, inferenceSession, trace, local

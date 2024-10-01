@@ -81,7 +81,7 @@ class StubBasedPackageMemberDeclarationProvider(
     }
 
     override fun getPropertyDeclarations(name: Name): Collection<CjProperty> = runReadAction {
-//        CangJieTopLevelPropertyFqnNameIndex[childName(name), project, searchScope]
+
         emptyList()
     }
 

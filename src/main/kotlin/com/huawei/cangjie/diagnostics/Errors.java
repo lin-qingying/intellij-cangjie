@@ -197,10 +197,27 @@ public interface Errors {
     DiagnosticFactory0<CjCasePattern> VARIABLE_INTRODUCTION_CONFLICT = DiagnosticFactory0.create(ERROR );
     DiagnosticFactory0<PsiElement> NOT_ENUM_PARAMETER_CONSTRUCTOR = DiagnosticFactory0.create(ERROR );
     DiagnosticFactory0<PsiElement> LET_EXPRESSION_NO_TYPE_PATTERN = DiagnosticFactory0.create(ERROR );
+    DiagnosticFactory0<CjElement> BOUNDS_NOT_ALLOWED_IF_BOUNDED_BY_TYPE_PARAMETER = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjTypeParameter> MISPLACED_TYPE_PARAMETER_CONSTRAINTS = DiagnosticFactory0.create(WARNING);
+    DiagnosticFactory0<CjTypeParameterList> DEPRECATED_TYPE_PARAMETER_SYNTAX = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory2<CjFunction, String, ClassDescriptor> ABSTRACT_FUNCTION_IN_NON_ABSTRACT_CLASS =
+            DiagnosticFactory2.create(ERROR, ABSTRACT_MODIFIER);
+    DiagnosticFactory1<CjFunction, SimpleFunctionDescriptor> ABSTRACT_FUNCTION_WITH_BODY =
+            DiagnosticFactory1.create(ERROR, ABSTRACT_MODIFIER);
+    DiagnosticFactory0<CjModifierListOwner> REDUNDANT_OPEN_IN_INTERFACE = DiagnosticFactory0.create(WARNING, OPEN_MODIFIER);
+    DiagnosticFactory0<PsiElement> EXPECTED_PRIVATE_DECLARATION = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjDeclaration> EXPECTED_DECLARATION_WITH_BODY = DiagnosticFactory0.create(ERROR, DECLARATION_SIGNATURE);
+    DiagnosticFactory0<PsiElement> IMPLICIT_NOTHING_PROPERTY_TYPE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<PsiElement> IMPLICIT_NOTHING_RETURN_TYPE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory1<PsiElement, CangJieType> IMPLICIT_INTERSECTION_TYPE = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory0<PsiElement> ABBREVIATED_NOTHING_PROPERTY_TYPE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<PsiElement> ABBREVIATED_NOTHING_RETURN_TYPE = DiagnosticFactory0.create(ERROR);
 
-
+    DiagnosticFactory2<CjModifierListOwner, String, ClassDescriptor> ABSTRACT_PROPERTY_IN_NON_ABSTRACT_CLASS =
+            DiagnosticFactory2.create(ERROR, ABSTRACT_MODIFIER);
     DiagnosticFactory1<PsiElement, String> COULD_BE_INFERRED_ONLY_WITH_UNRESTRICTED_BUILDER_INFERENCE = DiagnosticFactory1.create(ERROR);
-
+    DiagnosticFactory1<CjFunction, SimpleFunctionDescriptor> PRIVATE_FUNCTION_WITH_NO_BODY =
+            DiagnosticFactory1.create(ERROR, PRIVATE_MODIFIER);
     DiagnosticFactory1<CjDeclaration, Collection<CangJieType>> AMBIGUOUS_ANONYMOUS_TYPE_INFERRED =
             DiagnosticFactory1.create(ERROR, DECLARATION_SIGNATURE);
     DiagnosticFactory1<CjDeclaration, CangJieType> APPROXIMATED_LOCAL_TYPE_WILL_BECOME_FLEXIBLE =
@@ -360,6 +377,11 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, RenderedDiagnostic<?>> PLUGIN_INFO = DiagnosticFactory1.create(INFO);
     DiagnosticFactory2<PsiElement, String,DeclarationDescriptor> STATIC_CONTEXT_REFERENCE_ERROR = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory2<PsiElement, String,DeclarationDescriptor> INSTANCE_ACCESS_STATIC_MEMBER_ERROR = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory2<CjTypeReference, CangJieType, CangJieType> WRONG_GETTER_RETURN_TYPE = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory0<CjTypeReference> WRONG_SETTER_RETURN_TYPE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory2<CjTypeReference, CangJieType, CangJieType> WRONG_SETTER_PARAMETER_TYPE = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory0<CjExpression> SETTER_PARAMETER_WITH_DEFAULT_VALUE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjPropertyAccessor> LET_WITH_SETTER = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactory1<CjImportDirective, FqName> SELF_IMPORT_NOT_ALLOWED = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory2<CjImportDirective, FqName, DescriptorVisibility> IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED = DiagnosticFactory2.create(ERROR);
@@ -380,6 +402,9 @@ public interface Errors {
     DiagnosticFactory2<PsiElement, CjModifierKeywordToken, CjModifierKeywordToken> REDUNDANT_MODIFIER = DiagnosticFactory2.create(WARNING);
     DiagnosticFactory2<PsiElement, CjModifierKeywordToken, CjModifierKeywordToken> DEPRECATED_MODIFIER_PAIR =
             DiagnosticFactory2.create(WARNING);
+    DiagnosticFactory0<CjElement> EXPLICIT_BACKING_FIELDS_UNSUPPORTED = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjPropertyAccessor> ABSTRACT_PROPERTY_WITH_GETTER = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjExpression> ABSTRACT_PROPERTY_WITH_INITIALIZER = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactory0<PsiElement> SEALED_ABSTRACT =
             DiagnosticFactory0.create(ERROR);

@@ -210,7 +210,7 @@ class LazyTopDownAnalyzer(
         createFunctionDescriptors(c, functions)
         createMainFunctionDescriptors(c, mainFunctions)
 
-//        createPropertyDescriptors(c, topLevelFqNames, properties)
+        createPropertyDescriptors(c, topLevelFqNames, properties)
 
         createVariableDescriptors(c, topLevelFqNames, variables)
         createTypeAliasDescriptors(c, topLevelFqNames, typeAliases)
@@ -378,9 +378,9 @@ class LazyTopDownAnalyzer(
     private fun createPropertyDescriptors(
         c: TopDownAnalysisContext,
         topLevelFqNames: HashMultimap<FqName, CjElement>,
-        variables: MutableList<CjProperty>
+        propertys: MutableList<CjProperty>
     ) {
-        for (property in variables) {
+        for (property in propertys) {
             val descriptor = lazyDeclarationResolver.resolveToDescriptor(property) as PropertyDescriptor
 
             c.properties[property] = descriptor

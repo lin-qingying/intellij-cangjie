@@ -1,10 +1,12 @@
 package com.huawei.cangjie.descriptors
 
+import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptor
 
-interface VariableDescriptorWithAccessors : VariableDescriptor {
-//    val getter: VariableAccessorDescriptor?
-//
-//    val setter: VariableAccessorDescriptor?
+
+interface PropertyDescriptorWithAccessors : VariableDescriptor {
+    val getter: PropertyAccessorDescriptor?
+
+    val setter: PropertyAccessorDescriptor?
 
     /**
      * Please be careful with this method. Depending on the fact that a property is delegated may be dangerous in the compiler.
@@ -17,5 +19,5 @@ interface VariableDescriptorWithAccessors : VariableDescriptor {
 //    val isDelegated: Boolean
 }
 
-//val VariableDescriptorWithAccessors.accessors: List<VariableAccessorDescriptor>
+//val PropertyDescriptorWithAccessors.accessors: List<VariableAccessorDescriptor>
 //    get() = listOfNotNull(getter, setter)

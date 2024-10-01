@@ -415,6 +415,9 @@ open class CangJieBuiltIns(
             types
         )
     }
+    fun getNullableNothingType():  SimpleType {
+        return nothingType .makeOptionalAsSpecified(true)
+    }
 
     fun getArrayType(
 

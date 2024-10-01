@@ -73,6 +73,9 @@ open class FakeCallableDescriptorForObject(
     override val containingDeclaration: DeclarationDescriptor
         get() = classDescriptor.getClassObjectReferenceTarget().containingDeclaration
 
+    override fun getModality(): Modality {
+        return Modality.FINAL
+    }
 
 
     override fun substitute(substitutor: TypeSubstitutor) = this

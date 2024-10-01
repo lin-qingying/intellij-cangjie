@@ -16,6 +16,7 @@ import java.util.List;
 public interface FunctionDescriptor extends CallableMemberDescriptor, FunctionSymbolMarker {
     @NotNull
     boolean getIsExtend();
+
     default   boolean isStatic() {
 
         return false;

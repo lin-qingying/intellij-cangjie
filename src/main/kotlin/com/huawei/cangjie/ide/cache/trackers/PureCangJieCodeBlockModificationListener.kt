@@ -1,6 +1,7 @@
 package com.huawei.cangjie.ide.cache.trackers
 
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.psiUtil.anyDescendantOfType
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -200,7 +201,44 @@ class PureCangJieCodeBlockModificationListener(val project: Project) : Disposabl
                     }
                 }
 
+                is CjProperty -> {
+                    //                    if (blockDeclaration.visibilityModifierType()?.toVisibility() == Visibilities.PRIVATE) {
+                    //                        topClassLikeDeclaration(blockDeclaration)?.let {
+                    //                            return BlockModificationScopeElement(it, it)
+                    //                        }
+                    //                    }
 
+                    if (blockDeclaration.typeReference != null &&
+                        // TODO: it's a workaround for KTIJ-20240 :
+                        //  FE does not report CONSTANT_EXPECTED_TYPE_MISMATCH within a property within a class
+                        (parentClassOrObject == null || element !is CjConstantExpression)
+                    ) {
+
+                        // adding annotations to accessor is the same as change contract of property
+                        if (element !is CjAnnotated || element.annotationEntries.isEmpty()) {
+
+                            val properExpression = blockDeclaration.accessors
+                                .firstOrNull { (it.initializer ?: it.bodyExpression).isAncestor(element) }
+                                ?: blockDeclaration.initializer?.takeIf {
+                                    // name references changes in property initializer are OCB, see KT-38443, KT-38762
+                                    it.isAncestor(element) && !it.anyDescendantOfType<CjNameReferenceExpression>()
+                                }
+
+                            if (properExpression != null) {
+                                val declaration =
+                                    blockDeclaration.findTopmostParentOfType<CjTypeStatement>() as? CjElement
+
+                                if (declaration != null) {
+                                    return if (parentClassOrObject == directParentClassOrObject) {
+                                        BlockModificationScopeElement(declaration, properExpression)
+                                    } else if (parentClassOrObject != null) {
+                                        BlockModificationScopeElement(parentClassOrObject, properExpression)
+                                    } else null
+                                }
+                            }
+                        }
+                    }
+                }
 
 
                 is CjClassInitializer -> {
