@@ -2,11 +2,7 @@ package com.huawei.cangjie.resolve.calls.components
 
 import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.descriptors.impl.FunctionDescriptorImpl
 import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
-import com.huawei.cangjie.psi.CjBinaryExpression
-import com.huawei.cangjie.psi.CjCallExpression
-import com.huawei.cangjie.psi.CjCollectionLiteralExpression
 import com.huawei.cangjie.psi.CjNameReferenceExpression
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.ConstraintSystemOperation
@@ -22,9 +18,8 @@ import com.huawei.cangjie.resolve.calls.tower.VisibilityError
 import com.huawei.cangjie.resolve.calls.tower.psiCangJieCall
 import com.huawei.cangjie.resolve.calls.util.getReceiverValueWithSmartCast
 import com.huawei.cangjie.resolve.isInsideInterface
-import com.huawei.cangjie.resolve.isSealed
 import com.huawei.cangjie.resolve.isStatic
-import com.huawei.cangjie.resolve.source.getPsi
+import com.huawei.cangjie.resolve.scopes.receivers.ClassQualifier
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.utils.compactIfPossible
 
@@ -69,14 +64,51 @@ internal object CheckSuperExpressionCallPart : ResolutionPart() {
 }
 
 
-internal object CheckStaticCall  : ResolutionPart() {
+internal object CheckStaticCall : ResolutionPart() {
+
+    fun ResolvedCallAtom.isStaticContext(): Boolean {
+        atom.explicitReceiver ?: return false
+        return when (val value = atom.explicitReceiver!!.receiver) {
+
+            is ClassQualifier -> {
+                !(value.descriptor.kind == ClassKind.ENUM || value.descriptor.kind == ClassKind.ENUM_ENTRY)
+
+            }
+
+            else -> false
+        }
+
+
+    }
+
     override fun ResolutionCandidate.process(workIndex: Int) {
-//        if(invisibleMember.isStatic()){
-//            TODO()
-//        }
+        val descriptor = this.descriptor
+
+
+//        是否为static上下文
+        val isStaticContext = this.resolvedCall.isStaticContext()
+
+        val kind = when (descriptor) {
+            is PropertyDescriptor -> "property"
+            is VariableDescriptor -> "variable"
+            is FunctionDescriptor -> "method"
+            else -> "unknown"
+        }
+        val memberStatic = descriptor.isStatic()
+//        非静态上下文访问静态成员
+        if (memberStatic && !isStaticContext) {
+            addDiagnostic(NonStaticContextAccessStaticMemberDiagnostic(kind, descriptor))
+        }
+//静态上下文访问非静成员
+        if (!memberStatic && isStaticContext) {
+            addDiagnostic(StaticContextAccessNonStaticMemberDiagnostic(kind, descriptor))
+        }
+
+
     }
 
 }
+
 internal object CheckVisibility : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {
         val containingDescriptor = scopeTower.lexicalScope.ownerDescriptor
@@ -419,7 +451,7 @@ internal object MapArguments : ResolutionPart() {
         if (/*cangjieCall.psiCangJieCall.psiCall.callElement !is CjCallExpression
             && cangjieCall.psiCangJieCall.psiCall.callElement !is CjBinaryExpression
             && cangjieCall.psiCangJieCall.psiCall.callElement !is CjCollectionLiteralExpression*/
-            cangjieCall.psiCangJieCall.psiCall.callElement  is CjNameReferenceExpression
+            cangjieCall.psiCangJieCall.psiCall.callElement is CjNameReferenceExpression
         ) {
             resolvedCall.argumentMappingByOriginal = emptyMap()
             return
@@ -620,6 +652,7 @@ internal object ArgumentsToCandidateParameterDescriptor : ResolutionPart() {
         resolvedCall.argumentToCandidateParameter = map.compactIfPossible()
     }
 }
+
 internal object CheckExternalArgument : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {
         val argument = cangjieCall.externalArgument ?: return

@@ -67,6 +67,27 @@ class DiagnosticReporterByTrackingStrategy(
     override fun onCall(diagnostic: CangJieCallDiagnostic) {
         when (diagnostic) {
 
+            is StaticContextAccessNonStaticMemberDiagnostic -> {
+                trace.report(
+                    STATIC_CONTEXT_REFERENCE_ERROR.on(
+                        psiCangJieCall.psiCall.callElement,
+                        diagnostic.kind,
+                        diagnostic.descriptor
+                    )
+                )
+            }
+
+            is NonStaticContextAccessStaticMemberDiagnostic -> {
+                trace.report(
+                    INSTANCE_ACCESS_STATIC_MEMBER_ERROR.on(
+                        psiCangJieCall.psiCall.callElement,
+                        diagnostic.kind,
+                        diagnostic.descriptor
+                    )
+                )
+
+            }
+
 //            is NoneOperatorCallDiagnostic -> {
 //             if(diagnostic.left !is ErrorType && diagnostic.right !is ErrorType){
 //                 call.calleeExpression?.let{
@@ -657,6 +678,7 @@ class DiagnosticReporterByTrackingStrategy(
                     selectorCall = (position as ReceiverConstraintPositionImpl).selectorCall, report
                 )
             }
+
             is LambdaArgumentConstraintPosition<*> -> {
                 reportArgumentConstraintErrorByPosition(
                     error, (position.lambda as ResolvedLambdaAtom).atom,
@@ -710,9 +732,11 @@ class DiagnosticReporterByTrackingStrategy(
                     )
                 )
             }
+
             BuilderInferencePosition -> {
                 // some error reported later?
             }
+
             is DeclaredUpperBoundConstraintPosition<*> -> {
                 val originalCall = (position as DeclaredUpperBoundConstraintPositionImpl).cangjieCall
                 val typeParameterDescriptor = position.typeParameter

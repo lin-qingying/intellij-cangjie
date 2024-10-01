@@ -2,24 +2,29 @@ package com.huawei.cangjie.resolve.caches
 
 import com.google.common.collect.ImmutableMap
 import com.huawei.cangjie.analyzer.AnalysisResult
-import com.huawei.cangjie.resolve.controlFlow.ControlFlowInformationProviderImpl
 import com.huawei.cangjie.container.ComponentProvider
 import com.huawei.cangjie.container.get
 import com.huawei.cangjie.context.GlobalContext
 import com.huawei.cangjie.context.ModuleContext
 import com.huawei.cangjie.context.withModule
 import com.huawei.cangjie.context.withProject
-import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.BindingTrace
+import com.huawei.cangjie.descriptors.DeclarationDescriptorWithSource
+import com.huawei.cangjie.descriptors.InvalidModuleException
+import com.huawei.cangjie.descriptors.ModuleDescriptor
 import com.huawei.cangjie.diagnostics.*
 import com.huawei.cangjie.frontend.createContainerForLazyBodyResolve
 import com.huawei.cangjie.ide.cache.trackers.clearInBlockModifications
 import com.huawei.cangjie.ide.cache.trackers.inBlockModifications
 import com.huawei.cangjie.ide.cache.trackers.removeInBlockModifications
 import com.huawei.cangjie.ide.projectStructure.languageVersionSettings
+import com.huawei.cangjie.ide.projectStructure.moduleInfo
 import com.huawei.cangjie.ide.stubindex.resolve.PluginDeclarationProviderFactory
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.parentsWithSelf
 import com.huawei.cangjie.resolve.*
+import com.huawei.cangjie.resolve.controlFlow.ControlFlowInformationProviderImpl
+import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.resolve.lazy.IdeaAbsentDescriptorHandler
 import com.huawei.cangjie.resolve.lazy.ResolveSession
 import com.huawei.cangjie.resolve.source.getPsi
@@ -69,7 +74,7 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
     private var fileResult: AnalysisResult? = null
     private val moduleDescriptor = componentProvider.get<ModuleDescriptor>()
     private val bodyResolveCache = componentProvider.get<BodyResolveCache>()
-//    private val codeFragmentAnalyzer = componentProvider.get<CodeFragmentAnalyzer>()
+    private val codeFragmentAnalyzer = componentProvider.get<CodeFragmentAnalyzer>()
 
     private val resolveSession = componentProvider.get<ResolveSession>()
     private val lock = ReentrantLock()
@@ -181,7 +186,7 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
 
         if (inBlockModifications.isNotEmpty()) {
             try {
-                   fileResult = fileResult?.let { result ->
+                fileResult = fileResult?.let { result ->
                     var analysisResult = result
                     // Force full analysis when existed is erroneous
                     if (analysisResult.isError()) return@let null
@@ -289,8 +294,11 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
             localDiagnostics.add(d)
             callback.callback(d)
         } else null
+
         val result = try {
-            analyze(element, null, localCallback)
+
+            analyze(element, null,  localCallback)
+
         } catch (e: Throwable) {
             e.throwAsInvalidModuleException {
                 ProcessCanceledException(it)
@@ -321,7 +329,7 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
                 globalContext.withProject(project).withModule(moduleDescriptor),
                 moduleDescriptor,
                 resolveSession,
-//                codeFragmentAnalyzer,
+                codeFragmentAnalyzer,
                 pluginDeclarationProviderFactory,
                 bodyResolveCache,
                 analyzableElement,
@@ -392,48 +400,113 @@ object CangJieResolveDataProvider {
         projectContext: ModuleContext,
         moduleDescriptor: ModuleDescriptor,
         resolveSession: ResolveSession,
-//        codeFragmentAnalyzer: CodeFragmentAnalyzer,
+        codeFragmentAnalyzer: CodeFragmentAnalyzer,
         pluginDeclarationProviderFactory: PluginDeclarationProviderFactory,
         bodyResolveCache: BodyResolveCache,
         analyzableElement: CjElement,
         bindingTrace: BindingTrace?,
         callback: DiagnosticSink.DiagnosticsCallback?
     ): AnalysisResult {
-
-
-        var callbackSet = false
-        val trace = bindingTrace ?: BindingTraceForBodyResolve(
-            resolveSession.bindingContext,
-            "Trace for resolution of $analyzableElement"
-        )
         try {
-            val lazyTopDownAnalyzer = createContainerForLazyBodyResolve(
-                //TODO: should get ModuleContext
-                projectContext,
-                resolveSession,
-                trace,
-//                targetPlatform,
-                bodyResolveCache,
-//                targetPlatform.findAnalyzerServices(project),
-                PlatformDependentAnalyzerServicesImpl,
-//                pluginDeclarationProviderFactory,
-                analyzableElement.languageVersionSettings,
-//                IdeaModuleStructureOracle(),
-//                IdeMainFunctionDetectorFactory(),
-//                IdeSealedClassInheritorsProvider,
-                ControlFlowInformationProviderImpl.Factory,
-                absentDescriptorHandler = IdeaAbsentDescriptorHandler(pluginDeclarationProviderFactory),
-//                optimizingOptions = null
-            ).get<LazyTopDownAnalyzer>()
-//            val lazyTopDownAnalyzer = LazyTopDownAnalyzer()
-            lazyTopDownAnalyzer.analyzeDeclarations(TopDownAnalysisMode.TopLevelDeclarations, listOf(analyzableElement))
-
-        } finally {
-            if (callbackSet) {
-                trace.resetCallback()
+            if (analyzableElement is CjCodeFragment) {
+                val bodyResolveMode = BodyResolveMode.PARTIAL_FOR_COMPLETION
+                val trace: BindingTrace = codeFragmentAnalyzer.analyzeCodeFragment(analyzableElement, bodyResolveMode)
+                val bindingContext = trace.bindingContext
+                return AnalysisResult.success(bindingContext, moduleDescriptor)
             }
+
+            val trace = bindingTrace ?: BindingTraceForBodyResolve(
+                resolveSession.bindingContext,
+                "Trace for resolution of $analyzableElement"
+            )
+
+//            val moduleInfo = analyzableElement.containingCjFile.moduleInfo
+
+
+
+            var callbackSet = false
+            try {
+                callbackSet = callback?.let(trace::setCallbackIfNotSet) ?: false
+                /*
+                Note that currently we *have* to re-create LazyTopDownAnalyzer with custom trace in order to disallow resolution of
+                bodies in top-level trace (trace from DI-container).
+                Resolving bodies in top-level trace may lead to memory leaks and incorrect resolution, because top-level
+                trace isn't invalidated on in-block modifications (while body resolution surely does)
+
+                Also note that for function bodies, we'll create DelegatingBindingTrace in ResolveElementCache anyways
+                (see 'functionAdditionalResolve'). However, this trace is still needed, because we have other
+                codepaths for other KtDeclarationWithBodies (like property accessors/secondary constructors/class initializers)
+                 */
+                val lazyTopDownAnalyzer = createContainerForLazyBodyResolve(
+                    //TODO: should get ModuleContext
+                    projectContext,
+                    resolveSession,
+                    trace,
+
+                    bodyResolveCache,
+                    PlatformDependentAnalyzerServicesImpl,
+                    analyzableElement.languageVersionSettings,
+
+                    ControlFlowInformationProviderImpl.Factory,
+                    absentDescriptorHandler = IdeaAbsentDescriptorHandler(pluginDeclarationProviderFactory),
+
+                ).get<LazyTopDownAnalyzer>()
+
+                lazyTopDownAnalyzer.analyzeDeclarations(TopDownAnalysisMode.TopLevelDeclarations, listOf(analyzableElement))
+            } finally {
+                if (callbackSet) {
+                    trace.resetCallback()
+                }
+            }
+
+            return AnalysisResult.success(trace.bindingContext, moduleDescriptor)
+        } catch (e: ProcessCanceledException) {
+            throw e
+        } catch (e: IndexNotReadyException) {
+            throw e
+        } catch (e: Throwable) {
+            e.throwAsInvalidModuleException()
+
+            DiagnosticUtils.throwIfRunningOnServer(e)
+            LOG.warn(e)
+
+            return AnalysisResult.internalError(BindingContext.EMPTY, e)
         }
-        return AnalysisResult.success(trace.bindingContext, moduleDescriptor)
+
+
+//        var callbackSet = false
+//        val trace = bindingTrace ?: BindingTraceForBodyResolve(
+//            resolveSession.bindingContext,
+//            "Trace for resolution of $analyzableElement"
+//        )
+//        try {
+//            val lazyTopDownAnalyzer = createContainerForLazyBodyResolve(
+//                //TODO: should get ModuleContext
+//                projectContext,
+//                resolveSession,
+//                trace,
+////                targetPlatform,
+//                bodyResolveCache,
+////                targetPlatform.findAnalyzerServices(project),
+//                PlatformDependentAnalyzerServicesImpl,
+////                pluginDeclarationProviderFactory,
+//                analyzableElement.languageVersionSettings,
+////                IdeaModuleStructureOracle(),
+////                IdeMainFunctionDetectorFactory(),
+////                IdeSealedClassInheritorsProvider,
+//                ControlFlowInformationProviderImpl.Factory,
+//                absentDescriptorHandler = IdeaAbsentDescriptorHandler(pluginDeclarationProviderFactory),
+////                optimizingOptions = null
+//            ).get<LazyTopDownAnalyzer>()
+////            val lazyTopDownAnalyzer = LazyTopDownAnalyzer()
+//            lazyTopDownAnalyzer.analyzeDeclarations(TopDownAnalysisMode.TopLevelDeclarations, listOf(analyzableElement))
+//
+//        } finally {
+//            if (callbackSet) {
+//                trace.resetCallback()
+//            }
+//        }
+//        return AnalysisResult.success(trace.bindingContext, moduleDescriptor)
 
 
     }

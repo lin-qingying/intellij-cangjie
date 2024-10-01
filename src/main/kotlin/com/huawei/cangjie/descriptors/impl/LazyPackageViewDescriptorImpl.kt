@@ -84,11 +84,11 @@ class LazyPackageViewDescriptorImpl(
     override fun isEmpty(): Boolean = empty
 
 
-    private val reexportDirectives = runReadAction {
+    private val reexportDirectives =
         module.project?.let {
-            CangJieImportFqNameForPackageNameIndex.getReexport(fqName.asString(), it)
+            runReadAction { CangJieImportFqNameForPackageNameIndex.getReexport(fqName.asString(), it) }
         }?.toSet()
-    } ?: emptySet()
+            ?: emptySet()
 
 
     private val reexportPackageView: MutableMap<CjImportInfo, PackageViewDescriptor> = mutableMapOf()
@@ -237,7 +237,11 @@ class LazyPackageViewDescriptorImpl(
                         importScope[packageViewDescriptor]!![aliasName]!!
                     }
                 val declarations = scope.getContributedDescriptors().map {
-                    LazyReexportAgent(key.modifierVisibility, it,    ReexportPackageFragment(module, this.fqName, memberScope))
+                    LazyReexportAgent(
+                        key.modifierVisibility,
+                        it,
+                        ReexportPackageFragment(module, this.fqName, memberScope)
+                    )
                 }
 
                 declarationList.addAll(declarations)

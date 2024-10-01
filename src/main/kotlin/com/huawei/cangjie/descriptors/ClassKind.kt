@@ -17,7 +17,7 @@ enum class ClassKind(val codeRepresentation: String?) {
     val isEnumEntry: Boolean
         get() = this == ENUM_ENTRY
     val isObject: Boolean
-        get() =  isEnumEntry || isStruct
+        get() =  isEnumEntry
     val isEnum: Boolean
         get() = this == ENUM || this == ENUM_ENTRY
 

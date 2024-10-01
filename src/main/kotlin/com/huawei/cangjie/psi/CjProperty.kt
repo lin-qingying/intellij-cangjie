@@ -15,6 +15,9 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
         )
 
     }
+
+    override val isStatic: Boolean
+        get() = node.findChildByType(CjTokens.STATIC_KEYWORD) != null
 //
 //    fun getDelegateExpression():CjExpression? {
 //        val stub: CangJiePropertyStub? = stub

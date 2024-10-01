@@ -25,6 +25,18 @@ fun BindingTrace.recordScope(scope: LexicalScope, element: CjElement?) {
     }
 }
 
+fun BindingContext.getDataFlowInfoAfter(position: PsiElement): DataFlowInfo {
+    for (element in position.parentsWithSelf) {
+        (element as? CjExpression)?.let {
+            val parent = it.parent
+            //TODO: it's a hack because KotlinTypeInfo with wrong DataFlowInfo stored for call expression after qualifier
+            if (parent is CjQualifiedExpression && it == parent.selectorExpression) return@let null
+            this[EXPRESSION_TYPE_INFO, it]
+        }?.let { return it.dataFlowInfo }
+    }
+    return DataFlowInfo.EMPTY
+}
+
 fun CjExpression.isUsedAsResultOfLambda(context: BindingContext): Boolean = context[USED_AS_RESULT_OF_LAMBDA, this]!!
 fun CjTypeReference.getType(context: BindingContext): CangJieType?{
 

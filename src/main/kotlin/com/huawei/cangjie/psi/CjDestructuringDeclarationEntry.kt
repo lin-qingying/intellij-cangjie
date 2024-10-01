@@ -47,6 +47,8 @@ class CjDestructuringDeclarationEntry(node: ASTNode) : CjNamedDeclarationNotStub
 
     override val isVar: Boolean
         get() = parentNode.findChildByType(CjTokens.VAR_KEYWORD) != null
+    override val isStatic: Boolean
+        get() = parentNode.findChildByType(CjTokens.STATIC_KEYWORD) != null
 
     override val initializer: CjExpression?
         get() = null

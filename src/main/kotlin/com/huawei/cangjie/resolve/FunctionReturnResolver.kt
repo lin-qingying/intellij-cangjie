@@ -217,7 +217,7 @@ class FunctionReturnResolver(
 //        清除缓存
 //         TODO 如果其他方法使用了该方法作为返回，但是由于该方法更新了返回值，其其他方法没有更新，所以出现检查没有执行
 //        TODO 这里重构还是写一种更新检查的线程
-        (context.trace as? DelegatingBindingTrace)?.clear()
+        (context.trace as? DelegatingBindingTrace)?.clearTraceCache()
         returns.forEach {
 
 

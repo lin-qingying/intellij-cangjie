@@ -5,6 +5,7 @@ import com.intellij.psi.PsiElement
 
 interface  CjVariableDeclaration : CjCallableDeclaration, CjDeclarationWithInitializer, CjLetVarKeywordOwner {
     val isVar: Boolean
+    val isStatic :Boolean get() = false
 }
 
 

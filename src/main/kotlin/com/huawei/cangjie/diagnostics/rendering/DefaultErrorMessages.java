@@ -91,8 +91,10 @@ public class DefaultErrorMessages {
         MAP.put(INVISIBLE_REFERENCE, "Cannot access ''{0}'': it is {1} in {2}", NAMED, VISIBILITY, NAME_OF_CONTAINING_DECLARATION_OR_FILE);
         MAP.put(INCONSISTENT_PACKAGE_MODIFIERS, "Inconsistent modifiers for package ''{0}''", FQNAME);
         MAP.put(INCONSISTENT_PACKAGE_MACOR, "Inconsistent macro package declarations");
+        MAP.put(OVERRIDING_FINAL_MEMBER, "''{0}'' cannot be referenced from a static context", NAMED, NAMED);
 
-        MAP.put(OVERRIDING_FINAL_MEMBER, "''{0}'' in ''{1}'' is final and cannot be overridden", NAMED, NAMED);
+        MAP.put(STATIC_CONTEXT_REFERENCE_ERROR, "Non-static {0} ''{1}'' cannot be referenced from a static context", STRING, NAMED_ADN_PARAMETER);
+        MAP.put(INSTANCE_ACCESS_STATIC_MEMBER_ERROR, "Static {0} ''{1}'' accessed via instance reference", STRING, NAMED_ADN_PARAMETER);
 
 //        类型检查
 

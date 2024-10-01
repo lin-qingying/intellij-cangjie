@@ -592,6 +592,8 @@ fun DeclarationDescriptor.isStatic(): Boolean {
     return when (this) {
 
         is FunctionDescriptor -> isStatic
+        is VariableDescriptor -> isStatic
+
         else -> false
     }
 

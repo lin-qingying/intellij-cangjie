@@ -31,6 +31,19 @@ object Renderers {
     val INT = renderer<Int> {
         it.toString()
     }
+    @JvmField
+    val NAMED_ADN_PARAMETER = renderer  { d:DeclarationDescriptor ->
+        NAME.render(d.name)  + when(d){
+            is FunctionDescriptor -> {
+                "(" +
+                        d.valueParameters.joinToString(",") {
+                            RENDER_TYPE.render(it.type ,RenderingContext.Empty)
+                        } +
+                        ")"
+            }
+            else -> ""
+        }
+    }
 
     @JvmField
     val NAMED = renderer<Named> {

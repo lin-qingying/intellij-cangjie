@@ -60,6 +60,11 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
 
     }
 
+    @Override
+    public boolean isStatic() {
+        return super.isStatic();
+    }
+
     @NotNull
     public static PropertyDescriptorImpl create(
             @NotNull DeclarationDescriptor containingDeclaration,

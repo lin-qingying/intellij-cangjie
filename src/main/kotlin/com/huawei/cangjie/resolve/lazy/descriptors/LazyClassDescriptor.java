@@ -433,8 +433,9 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
                 list
 
                 ,
-                descriptor -> descriptor instanceof CallableMemberDescriptor
-                        && ((CallableMemberDescriptor) descriptor).getKind() != CallableMemberDescriptor.Kind.FAKE_OVERRIDE
+                descriptor -> (descriptor instanceof CallableMemberDescriptor
+                        && ((CallableMemberDescriptor) descriptor).getKind() != CallableMemberDescriptor.Kind.FAKE_OVERRIDE)
+                        || descriptor instanceof VariableDescriptor
         );
     }
 
@@ -486,7 +487,7 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
     }
 
     @Override
-    public   ClassConstructorDescriptor getUnsubstitutedPrimaryConstructor() {
+    public ClassConstructorDescriptor getUnsubstitutedPrimaryConstructor() {
         return ((LazyClassMemberScope) getUnsubstitutedMemberScope()).getPrimaryConstructor();
 
     }

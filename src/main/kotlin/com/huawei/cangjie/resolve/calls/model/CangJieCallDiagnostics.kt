@@ -1,9 +1,6 @@
 package com.huawei.cangjie.resolve.calls.model
 
-import com.huawei.cangjie.descriptors.CallableDescriptor
-import com.huawei.cangjie.descriptors.ClassDescriptor
-import com.huawei.cangjie.descriptors.PropertyDescriptor
-import com.huawei.cangjie.descriptors.ValueParameterDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
@@ -281,7 +278,23 @@ class ArgumentNullabilityWarningDiagnostic(
         reporter.onCallArgument(expressionArgument, this)
     }
 }
+//非静态上下文访问静态成员
+class NonStaticContextAccessStaticMemberDiagnostic(val kind:String,val descriptor: DeclarationDescriptor) :
+    CangJieCallDiagnostic(CandidateApplicability.RUNTIME_ERROR) {
+    override fun report(reporter: DiagnosticReporter) {
 
+        reporter.onCall(this)
+    }
+}
+//静态上下文访问非静态成员
+class StaticContextAccessNonStaticMemberDiagnostic(val kind:String,val descriptor: DeclarationDescriptor) :
+    CangJieCallDiagnostic(CandidateApplicability.RUNTIME_ERROR) {
+    override fun report(reporter: DiagnosticReporter) {
+        reporter.onCall(this)
+
+
+    }
+}
 class SuperAsExtensionReceiver(val receiver: SimpleCangJieCallArgument) :
     CangJieCallDiagnostic(CandidateApplicability.RUNTIME_ERROR) {
     override fun report(reporter: DiagnosticReporter) {

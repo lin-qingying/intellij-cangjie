@@ -3,6 +3,8 @@ package com.huawei.cangjie.descriptors.impl
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.psi.CjVariableDeclaration
+import com.huawei.cangjie.resolve.source.getPsi
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.util.shouldBeUpdated
 import com.huawei.cangjie.utils.ReadOnly
@@ -23,7 +25,16 @@ abstract class AbstractVariableDescriptor(
     private var _extensionReceiverParameter: ReceiverParameterDescriptor? = null
     override val original: VariableDescriptor = super.original as VariableDescriptor
 
+    override val isStatic: Boolean
+        get() {
 
+            val element = source.getPsi()
+            if(element is CjVariableDeclaration){
+                return element.isStatic
+            }
+
+            return false
+        }
     open fun setOutType(outType: CangJieType) {
         assert(this._outType == null || this._outType.shouldBeUpdated())
         this._outType = outType
@@ -49,6 +60,7 @@ abstract class AbstractVariableDescriptor(
     override fun getContextReceiverParameters(): List<ReceiverParameterDescriptor> {
         return _contextReceiverParameters
     }
+
 
     override var visibility: DescriptorVisibility = DescriptorVisibilities.LOCAL
 

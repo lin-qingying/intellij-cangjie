@@ -17,6 +17,7 @@ import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.forEachDescendantOfType
 import com.huawei.cangjie.psi.psiUtil.getElementTextWithContext
 import com.huawei.cangjie.psi.psiUtil.getNonStrictParentOfType
+import com.huawei.cangjie.resolve.caches.CodeFragmentAnalyzer
 import com.huawei.cangjie.resolve.caches.analyzeControlFlow
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.controlFlow.ControlFlowInformationProviderImpl
@@ -44,7 +45,7 @@ class ResolveElementCache(
     private val resolveSession: ResolveSession,
     private val project: Project,
 
-//    private val codeFragmentAnalyzer: CodeFragmentAnalyzer
+    private val codeFragmentAnalyzer: CodeFragmentAnalyzer
 ) : BodyResolveCache {
     private val cacheDependencies = listOfNotNull(
         resolveSession.exceptionTracker,
@@ -72,6 +73,18 @@ class ResolveElementCache(
         override fun toString(): String {
             return "{CachedPartialResolve: $mode $modificationStamp}"
         }
+    }
+
+    private fun codeFragmentAdditionalResolve(
+        codeFragment: CjCodeFragment,
+        bodyResolveMode: BodyResolveMode
+    ): BindingTrace {
+        val contextResolveMode = if (bodyResolveMode == PARTIAL)
+            PARTIAL_FOR_COMPLETION
+        else
+            bodyResolveMode
+
+        return codeFragmentAnalyzer.analyzeCodeFragment(codeFragment, contextResolveMode)
     }
 
     fun resolveToElements(elements: Collection<CjElement>, bodyResolveMode: BodyResolveMode = FULL): BindingContext {
@@ -384,22 +397,25 @@ class ResolveElementCache(
 //        forceResolveAnnotationsInside(typeAlias)
         return trace
     }
+
     private fun primaryConstructorAdditionalResolve(
         resolveSession: ResolveSession,
         constructor: CjPrimaryConstructor,
         file: CjFile, statementFilter: StatementFilter,
         bindingTraceFilter: BindingTraceFilter
-    ): BindingTrace{
+    ): BindingTrace {
         return constructorAdditionalResolve(resolveSession, constructor, file, statementFilter, bindingTraceFilter)
     }
+
     private fun secondaryConstructorAdditionalResolve(
         resolveSession: ResolveSession,
         constructor: CjSecondaryConstructor,
         file: CjFile, statementFilter: StatementFilter,
         bindingTraceFilter: BindingTraceFilter
-    ): BindingTrace{
-       return constructorAdditionalResolve(resolveSession, constructor, file, statementFilter, bindingTraceFilter)
+    ): BindingTrace {
+        return constructorAdditionalResolve(resolveSession, constructor, file, statementFilter, bindingTraceFilter)
     }
+
     private fun constructorAdditionalResolve(
         resolveSession: ResolveSession,
         constructor: CjConstructor<*>,
@@ -461,6 +477,7 @@ class ResolveElementCache(
                 createStatementFilter(),
                 bodyResolveMode.bindingTraceFilter
             )
+
             is CjNamedFunction -> functionAdditionalResolve(
                 resolveSession,
                 resolveElement,

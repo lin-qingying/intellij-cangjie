@@ -41,7 +41,7 @@ open class DelegatingBindingTrace(
         TrackingSlicedMap(BindingTraceContext.TRACK_WITH_STACK_TRACES)
     else
         SlicedMapImpl(allowSliceRewrite,name)
-    override val bindingContext = MyBindingContext()
+    final override val bindingContext = MyBindingContext()
 
     fun moveAllMyDataTo(trace: BindingTrace) {
         addOwnDataTo(trace, null, true)
@@ -91,6 +91,11 @@ open class DelegatingBindingTrace(
     open fun clear() {
         map.clear()
         mutableDiagnostics?.clear()
+    }
+
+    fun clearTraceCache(){
+        map.clear()
+
     }
 
     open fun <K> remove(key:K){
@@ -149,7 +154,17 @@ open class DelegatingBindingTrace(
         selfGet(slice, key) ?: parentContext.get(slice, key)
 
 
-
+    override fun resetCallback() {
+        diagnosticsCallback = null
+        mutableDiagnostics?.resetCallback()
+    }
+    override fun setCallbackIfNotSet(callback: DiagnosticSink.DiagnosticsCallback): Boolean {
+        val callbackIfNotSet = mutableDiagnostics?.setCallbackIfNotSet(callback) ?: false
+        if (callbackIfNotSet) {
+            diagnosticsCallback = callback
+        }
+        return callbackIfNotSet
+    }
 
 
     override fun report(diagnostic: Diagnostic) {

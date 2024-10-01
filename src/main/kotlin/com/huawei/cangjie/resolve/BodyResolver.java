@@ -353,6 +353,7 @@ public class BodyResolver {
         Set<CjVariable> processed = new HashSet<>();
         for (Map.Entry<CjTypeStatement, ClassDescriptorWithResolutionScopes> entry : c.getDeclaredClasses().entrySet()) {
             if (!(entry.getKey() instanceof CjClass cjClass)) continue;
+
             ClassDescriptorWithResolutionScopes classDescriptor = entry.getValue();
 
             for (CjVariable variable : cjClass.getVariables()) {

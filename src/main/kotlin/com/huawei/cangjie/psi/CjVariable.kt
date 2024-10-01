@@ -123,6 +123,8 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub >, CjVariabl
 
             return node.findChildByType(CjTokens.VAR_KEYWORD) != null
         }
+    override val isStatic: Boolean
+        get() =  hasModifier(CjTokens.STATIC_KEYWORD)
     override val letOrVarKeyword: PsiElement
         get() {
             val element =

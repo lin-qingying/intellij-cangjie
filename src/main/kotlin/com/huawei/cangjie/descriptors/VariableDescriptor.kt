@@ -1,7 +1,5 @@
 package com.huawei.cangjie.descriptors
 
-import com.huawei.cangjie.mpp.PropertySymbolMarker
-import com.huawei.cangjie.mpp.VariableSymbolMarker
 import com.huawei.cangjie.resolve.constants.ConstantValue
 import com.huawei.cangjie.types.TypeSubstitutor
 
@@ -28,5 +26,10 @@ interface VariableDescriptor : ValueDescriptor/*,
     //    FieldDescriptor getDelegateField();
     override fun substitute(substitutor: TypeSubstitutor): VariableDescriptor?
     val isConst: Boolean
+    val isStatic : Boolean get() = false
+
+    //    bool isActual();
+    //
+    //    bool isExternal();
     val isVar: Boolean
 }

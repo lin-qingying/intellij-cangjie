@@ -16,7 +16,10 @@ import java.util.List;
 public interface FunctionDescriptor extends CallableMemberDescriptor, FunctionSymbolMarker {
     @NotNull
     boolean getIsExtend();
+    default   boolean isStatic() {
 
+        return false;
+    }
     @Override
     @NotNull
     DeclarationDescriptor getContainingDeclaration();
@@ -57,7 +60,7 @@ public interface FunctionDescriptor extends CallableMemberDescriptor, FunctionSy
     FunctionDescriptor copy(DeclarationDescriptor newOwner, Modality modality, DescriptorVisibility visibility, Kind kind, boolean copyOverrides);
 
     boolean isOperator();
-boolean isStatic();
+
 //    bool isInfix();
 
 //    bool isInline();

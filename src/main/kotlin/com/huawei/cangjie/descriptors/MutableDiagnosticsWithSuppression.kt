@@ -4,8 +4,11 @@ import com.huawei.cangjie.diagnostics.Diagnostic
 import com.huawei.cangjie.diagnostics.DiagnosticSink
 import com.huawei.cangjie.diagnostics.Diagnostics
 import com.huawei.cangjie.diagnostics.DiagnosticsWithSuppression
+import com.huawei.cangjie.psi.CjAnnotated
+import com.huawei.cangjie.psi.psiUtil.CjStubbedPsiUtil
 import com.intellij.openapi.util.CompositeModificationTracker
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.util.CachedValueImpl
 import org.jetbrains.annotations.TestOnly
@@ -34,29 +37,29 @@ class MutableDiagnosticsWithSuppression(
         diagnosticsCallback = null
         delegateDiagnostics.resetCallback()
     }
-
+    private fun onTheFlyDiagnosticsCallback(diagnostic: Diagnostic): DiagnosticSink.DiagnosticsCallback? {
+        val callback = diagnosticsCallback ?: return null
+        // Due to a potential recursion in filter.invoke (via LazyAnnotations) do not try to report
+        // diagnostic on-the-fly if it happened in annotations, and do not report any potentially suppressed elements
+        var element: PsiElement? = diagnostic.psiElement
+        while (element != null && element !is PsiFile) {
+            val annotated = CjStubbedPsiUtil.getPsiOrStubParent(element, CjAnnotated::class.java, false)
+            val annotationEntries = annotated?.annotationEntries
+            if (annotationEntries?.isNotEmpty() == true) return null
+            element = annotated?.parent
+        }
+        val filtered = suppressCache.filter.invoke(diagnostic)
+        if (!filtered) return null
+        return callback
+    }
     fun report(diagnostic: Diagnostic) {
-//        onTheFlyDiagnosticsCallback(diagnostic)?.callback(diagnostic)
+        onTheFlyDiagnosticsCallback(diagnostic)?.callback(diagnostic)
 
         diagnosticList.add(diagnostic)
         modificationTracker.incModificationCount()
     }
 
-//    private fun onTheFlyDiagnosticsCallback(diagnostic: Diagnostic): DiagnosticSink.DiagnosticsCallback? {
-//        val callback = diagnosticsCallback ?: return null
-//        // Due to a potential recursion in filter.invoke (via LazyAnnotations) do not try to report
-//        // diagnostic on-the-fly if it happened in annotations, and do not report any potentially suppressed elements
-//        var element: PsiElement? = diagnostic.psiElement
-//        while (element != null && element !is PsiFile) {
-//            val annotated = CjStubbedPsiUtil.getPsiOrStubParent(element, CjAnnotated::class.java, false)
-//            val annotationEntries = annotated?.annotationEntries
-//            if (annotationEntries?.isNotEmpty() == true) return null
-//            element = annotated?.parent
-//        }
-//        val filtered = suppressCache.filter.invoke(diagnostic)
-//        if (!filtered) return null
-//        return callback
-//    }
+
 
     fun clear() {
         diagnosticList.clear()

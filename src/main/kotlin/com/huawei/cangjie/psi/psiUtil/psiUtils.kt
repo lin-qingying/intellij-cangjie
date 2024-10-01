@@ -115,3 +115,6 @@ val PsiElement.cangjieFqName: FqName?
         else -> null
     }
 
+inline fun <reified T : PsiElement, reified V : PsiElement, reified U : PsiElement> PsiElement.getParentOfTypes3(): PsiElement? {
+    return PsiTreeUtil.getParentOfType(this, T::class.java, V::class.java, U::class.java)
+}

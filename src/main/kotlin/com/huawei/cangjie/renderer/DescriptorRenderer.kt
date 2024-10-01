@@ -1196,6 +1196,11 @@ internal class DescriptorRendererImpl(
                 renderContextReceivers(function.contextReceiverParameters, builder)
                 builder.renderAnnotations(function)
                 renderVisibility(function.visibility, builder)
+
+                if(function.isStatic){
+                    builder.append("static ")
+                }
+
                 renderModalityForCallable(function, builder)
 
                 if (includeAdditionalModifiers) {

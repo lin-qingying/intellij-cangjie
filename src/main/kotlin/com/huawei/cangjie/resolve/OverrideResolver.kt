@@ -42,7 +42,9 @@ class OverrideResolver(
 
 
     private fun checkOverrides(c: TopDownAnalysisContext) {
+        var index = 0
         for ((key, value) in c.declaredClasses) {
+            index ++
             checkOverridesInAClass(value, key)
         }
     }
