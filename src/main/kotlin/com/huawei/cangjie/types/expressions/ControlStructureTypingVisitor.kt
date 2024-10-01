@@ -41,6 +41,18 @@ import com.intellij.psi.PsiElement
 
 class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypingVisitor(facade) {
 
+
+    private fun checkLetExpression(
+        letExpression: CjLetExpression,
+        context: ExpressionTypingContext
+    ): DataFlowInfo {
+
+        facade.checkLetExpression(letExpression, context)
+
+        return context.dataFlowInfo
+
+    }
+
     private fun checkCondition(
         condition: CjExpression?,
         context: ExpressionTypingContext
@@ -314,8 +326,12 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
 
     override fun visitIfExpression(expression: CjIfExpression, context: ExpressionTypingContext): CangJieTypeInfo {
         val condition = expression.condition
-        val conditionDataFlowInfo: DataFlowInfo =
+        val letExpression = expression.letExpression
+        val conditionDataFlowInfo: DataFlowInfo = if (condition == null && letExpression != null) {
+            checkLetExpression(letExpression, context)
+        } else {
             checkCondition(condition, context)
+        }
         val loopBreakContinuePossibleInCondition = condition != null && containsJumpOutOfLoop(condition, context)
 
         val elseBranch = expression.`else`
@@ -495,7 +511,12 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         )
 
         val condition = expression.condition
-        var dataFlowInfo = checkCondition(condition, context)
+        val letExpression = expression.letExpression
+        var dataFlowInfo = if (condition == null && letExpression != null) {
+            checkLetExpression(letExpression, context)
+        } else {
+            checkCondition(condition, context)
+        }
 
         val body = expression.body
         val conditionInfo =

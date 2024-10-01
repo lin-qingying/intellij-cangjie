@@ -1,9 +1,7 @@
 package com.huawei.cangjie.types.expressions;
 
-import com.huawei.cangjie.psi.CjElement;
-import com.huawei.cangjie.psi.CjExpression;
-import com.huawei.cangjie.psi.CjSimpleNameExpression;
-import com.huawei.cangjie.psi.ValueArgument;
+import com.huawei.cangjie.psi.*;
+import com.huawei.cangjie.resolve.calls.smartcasts.ConditionalDataFlowInfo;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
     void checkStatementType(@NotNull CjExpression expression, ExpressionTypingContext context);
 
+    void checkLetExpression(@NotNull CjLetExpression pattern, ExpressionTypingContext context);
     @NotNull
     ExpressionTypingComponents getComponents();
 }

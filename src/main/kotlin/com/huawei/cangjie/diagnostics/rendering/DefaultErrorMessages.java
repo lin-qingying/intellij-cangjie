@@ -269,6 +269,7 @@ public class DefaultErrorMessages {
         MAP.put(ELSE_MISPLACED_IN_MATCH, "'else _' entry must be the last one in a match-expression");
         MAP.put(VARIABLE_INTRODUCTION_CONFLICT, "cannot introduce variables in patterns connected by '|'");
         MAP.put(NOT_ENUM_PARAMETER_CONSTRUCTOR, "No parameterless constructor");
+        MAP.put(LET_EXPRESSION_NO_TYPE_PATTERN, "type pattern is not allowed in let expression");
 
     }
 

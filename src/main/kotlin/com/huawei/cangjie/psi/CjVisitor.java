@@ -109,6 +109,9 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitMatchExpression(@NotNull CjMatchExpression expression, D data) {
         return visitExpression(expression, data);
     }
+    public R visitLetExpression(@NotNull CjLetExpression expression, D data) {
+        return visitCjElement(expression, data);
+    }
 
     public R visitWhileExpression(@NotNull CjWhileExpression expression, D data) {
         return visitLoopExpression(expression, data);

@@ -343,11 +343,11 @@ public class ExpressionTypingServices {
 
         try {
 
-            context.config.getAddVariableDescriptor().get(PsiTreeUtil.getParentOfType(expression, CjMatchEntry.class)).forEach(
+            context.config.getAddVariableDescriptor().get(PsiTreeUtil.getParentOfType(expression, CjPatternEntryBlock.class)).forEach(
                     it -> it.invoke(scope)
             );
 //            清空
-            context.config.getAddVariableDescriptor().put(PsiTreeUtil.getParentOfType(expression, CjMatchEntry.class), null);
+            context.config.getAddVariableDescriptor().put(PsiTreeUtil.getParentOfType(expression, CjPatternEntryBlock.class), null);
 
         } catch (NullPointerException ignored) {
 

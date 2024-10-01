@@ -6,7 +6,9 @@ import com.huawei.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
-class CjMatchEntry(node: ASTNode) : CjElementImpl(node) {
+interface CjPatternEntryBlock:PsiElement
+
+class CjMatchEntry(node: ASTNode) : CjElementImpl(node),CjPatternEntryBlock {
     val isElse: Boolean
         get() {
             return elseKeyword != null

@@ -9,6 +9,7 @@ import com.huawei.cangjie.resolve.BindingContext;
 import com.huawei.cangjie.resolve.BindingContextUtils;
 import com.huawei.cangjie.resolve.BindingContextUtilsKt;
 import com.huawei.cangjie.resolve.calls.context.CallPosition;
+import com.huawei.cangjie.resolve.calls.smartcasts.ConditionalDataFlowInfo;
 import com.huawei.cangjie.resolve.scopes.LexicalScopeKind;
 import com.huawei.cangjie.resolve.scopes.LexicalWritableScope;
 import com.huawei.cangjie.storage.ReenteringLazyValueComputationException;
@@ -55,6 +56,11 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
         this.functions = new FunctionsTypingVisitor(this);
         this.tuples = new TuplesTypingVisitor(this);
 //        this.declarationsCheckerBuilder = components.declarationsCheckerBuilder;
+    }
+
+    @Override
+    public void checkLetExpression(@NotNull CjLetExpression pattern, ExpressionTypingContext context) {
+          patterns.visitLetExpression(pattern, context);
     }
 
     private static void logOrThrowException(@NotNull CjExpression expression, Throwable e) {

@@ -59,6 +59,47 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
     inner class CasePatten
 
+
+    override fun visitLetExpression(
+        expression: CjLetExpression,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
+        if(expression.pattern is CjTypePattern){
+
+            context.trace.report(LET_EXPRESSION_NO_TYPE_PATTERN.on(expression.pattern))
+//            return noTypeInfo(context)
+
+        }
+        val subjectExpression = expression.expression
+
+
+        val subject = when {
+
+            subjectExpression != null ->
+                Subject.Expression(
+                    subjectExpression,
+                    facade.getTypeInfo(subjectExpression, context),
+                    components.dataFlowValueFactory
+                )
+
+            else ->
+                Subject.None()
+        }
+
+        val contextAfterSubject = run {
+            var result = context
+            subject.scopeWithSubject?.let { result = result.replaceScope(it) }
+            subject.dataFlowInfo?.let { result = result.replaceDataFlowInfo(it) }
+            result
+        }
+
+        subject.initDataFlowValue(contextAfterSubject, components.builtIns)
+
+        expression.pattern?.let { checkCasePattern(subject, it, contextAfterSubject) }
+        return noTypeInfo(context)
+    }
+
+
     override fun visitMatchExpression(
         expression: CjMatchExpression,
         context: ExpressionTypingContext
@@ -268,6 +309,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
     private fun noChange(context: ExpressionTypingContext) = ConditionalDataFlowInfo(context.dataFlowInfo)
 
+
     private fun checkCasePattern(
         subject: Subject,
         condition: CjCasePattern,
@@ -419,7 +461,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 //                    (context.scope as LexicalWritableScope).addVariableDescriptor(variable)
 //                }
                 element.parent?.let {
-                    element.findParentOfType<CjMatchEntry>()?.let {
+                    element.findParentOfType<CjPatternEntryBlock>()?.let {
                         if (context.config.addVariableDescriptor[it] == null) {
                             context.config.addVariableDescriptor[it] = mutableListOf()
                         }
@@ -452,7 +494,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 //                如果条件值是枚举类型，则直接在条件值的枚举类型中查找
 //                否则在scope中查找一个!枚举值
 
-                var classDescriptor =
+                val classDescriptor =
                     (if (subject.type.isEnumEntry() || subject.type.isEnum()) {
                         subject.type.memberScope.getContributedClassifier(
                             Name.identifier(element.text),
@@ -505,7 +547,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                         scope, element, subject.type, context.trace
                     )
 
-                    element.findParentOfType<CjMatchEntry>()?.let {
+                    element.findParentOfType<CjPatternEntryBlock>()?.let {
                         if (context.config.addVariableDescriptor[it] == null) {
                             context.config.addVariableDescriptor[it] = mutableListOf()
                         }
@@ -1341,15 +1383,16 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
                         is EnumEntryConstructorDescriptor -> it
                         is ClassConstructorDescriptor -> {
                             var constructor = it
-                            while (constructor != null){
-                                if(constructor is EnumEntryConstructorDescriptor){
+                            while (constructor != null) {
+                                if (constructor is EnumEntryConstructorDescriptor) {
                                     break
                                 }
 
-                                constructor  = constructor.original
+                                constructor = constructor.original
                             }
                             constructor as EnumEntryConstructorDescriptor
                         }
+
                         else -> null
                     }
                 }

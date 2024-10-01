@@ -196,6 +196,7 @@ public interface Errors {
     DiagnosticFactory0<CjMatchEntry> ELSE_MISPLACED_IN_MATCH = DiagnosticFactory0.create(WARNING, ELSE_ENTRY);
     DiagnosticFactory0<CjCasePattern> VARIABLE_INTRODUCTION_CONFLICT = DiagnosticFactory0.create(ERROR );
     DiagnosticFactory0<PsiElement> NOT_ENUM_PARAMETER_CONSTRUCTOR = DiagnosticFactory0.create(ERROR );
+    DiagnosticFactory0<PsiElement> LET_EXPRESSION_NO_TYPE_PATTERN = DiagnosticFactory0.create(ERROR );
 
 
     DiagnosticFactory1<PsiElement, String> COULD_BE_INFERRED_ONLY_WITH_UNRESTRICTED_BUILDER_INFERENCE = DiagnosticFactory1.create(ERROR);
