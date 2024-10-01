@@ -990,9 +990,8 @@ open class CangJieExpressionParsing(
 
             when {
                 isUnit -> {
-                    val constantPattern = mark()
-                    mark.done(UNIT_CONSTANT)
-                    constantPattern.done(CONSTANT_PATTERN)
+                    mark().done(UNIT_CONSTANT)
+                    mark.done(CONSTANT_PATTERN)
                 }
 
                 isTuple -> mark.done(TUPLE_PATTERN)

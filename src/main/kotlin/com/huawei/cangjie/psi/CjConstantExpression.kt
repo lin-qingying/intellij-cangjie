@@ -18,6 +18,7 @@ class CjConstantExpression
         return visitor.visitConstantExpression(this, data)
     }
 
+
     @Throws(IncorrectOperationException::class)
     override fun replace(newElement: PsiElement): PsiElement {
         return replaceExpression(this, newElement, true) { newElement: PsiElement? ->

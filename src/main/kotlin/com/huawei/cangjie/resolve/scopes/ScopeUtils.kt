@@ -287,6 +287,15 @@ fun DeclarationDescriptor.canBeResolvedWithoutDeprecation(
     return false
 }
 
+
+fun HierarchicalScope.findClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> =
+    findFirstFromMeAndParent {
+        val list = it.getContributedClassifiers(name, location)
+        list.ifEmpty {
+            null
+        }
+    } ?: emptyList()
+
 fun HierarchicalScope.findClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
     findFirstFromMeAndParent { it.getContributedClassifier(name, location) }
 
@@ -320,7 +329,7 @@ fun LexicalScope.findLocalVariable(name: Name): VariableDescriptor? {
 
 fun HierarchicalScope?.getExtendClasss(name: Name, location: LookupLocation): List<LazyExtendClassDescriptor> {
 
-    return this?.getListFromMeAndParent { it.getExtendClass(name) } ?:  emptyList()
+    return this?.getListFromMeAndParent { it.getExtendClass(name) } ?: emptyList()
 }
 
 fun HierarchicalScope.findPackageFqNames(
@@ -394,13 +403,14 @@ fun ImportingScope.withParent(newParent: ImportingScope?): ImportingScope {
 }
 
 fun Project.projectScope(): GlobalSearchScope = GlobalSearchScope.projectScope(this)
-fun LexicalScope.getDeclarationsByLabel(labelName: Name): Collection<DeclarationDescriptor> = collectAllFromMeAndParent {
-    if (it is LexicalScope && it.isOwnerDescriptorAccessibleByLabel && it.ownerDescriptor.name == labelName) {
-        listOf(it.ownerDescriptor)
-    } else {
-        listOf()
+fun LexicalScope.getDeclarationsByLabel(labelName: Name): Collection<DeclarationDescriptor> =
+    collectAllFromMeAndParent {
+        if (it is LexicalScope && it.isOwnerDescriptorAccessibleByLabel && it.ownerDescriptor.name == labelName) {
+            listOf(it.ownerDescriptor)
+        } else {
+            listOf()
+        }
     }
-}
 
 inline fun <T : Any> HierarchicalScope.collectAllFromMeAndParent(
     collect: (HierarchicalScope) -> Collection<T>

@@ -1,12 +1,11 @@
 package com.huawei.cangjie.types.expressions
 
+import com.huawei.cangjie.CjNodeTypes.BOOLEAN_CONSTANT
+import com.huawei.cangjie.CjNodeTypes.UNIT_CONSTANT
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.builtins.isBuiltinTupleType
 import com.huawei.cangjie.config.LanguageVersionSettings
-import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.descriptors.ClassDescriptor
-import com.huawei.cangjie.descriptors.ClassKind
-import com.huawei.cangjie.descriptors.Modality
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.EnumEntryConstructorDescriptor
 import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.diagnostics.MatchMissingCase
@@ -14,6 +13,7 @@ import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.*
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.psiUtil.elementType
 import com.huawei.cangjie.psi.psiUtil.findParentOfType
 import com.huawei.cangjie.psi.psiUtil.referenceExpression
 import com.huawei.cangjie.resolve.*
@@ -36,15 +36,14 @@ import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
+import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.isUnit
 import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.expressions.ControlStructureTypingUtils.Companion.createCallForSpecialConstruction
 import com.huawei.cangjie.types.expressions.ControlStructureTypingUtils.Companion.createDataFlowInfoForArgumentsOfMatchCall
 import com.huawei.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.huawei.cangjie.types.expressions.typeInfoFactory.noTypeInfo
-import com.huawei.cangjie.types.util.TypeUtils
+import com.huawei.cangjie.types.util.*
 import com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
-import com.huawei.cangjie.types.util.containsError
-import com.huawei.cangjie.types.util.isEnumEntry
 import com.huawei.cangjie.utils.addIfNotNull
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo
 import com.huawei.cangjie.utils.runIf
@@ -299,40 +298,49 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             override fun visitPatternByEnum(element: CjEnumPattern) {
                 context.config.getEnumEntryType = true
 
-                val descriptor: ClassDescriptor = when (val it = element.expression?.let {
-                    when (it) {
-                        is CjQualifiedExpression -> components.callExpressionResolver.getQualifiedExpressionEnumEntryType(
-                            it,
 
-                            context
-                        )
-
-                        is CjSimpleNameExpression -> components.callExpressionResolver.getSimpleNameExpressionEnumEntryType(
-                            it,
-                            null,
-                            null,
-                            context
-                        )
-
-                        else -> {}
-                    }
+                val descriptor: ClassDescriptor = if (subject.type.isEnumEntry() || subject.type.isEnum()) {
+                    subject.type.memberScope.getContributedClassifier(
+                        Name.identifier(element.expression?.text ?: ""),
+                        NoLookupLocation.FROM_PACKAGE
+                    ) as? ClassDescriptor ?: return
+                } else {
 
 
-                }) {
-                    is FakeCallableDescriptorForObject -> it.classDescriptor
+                    when (val it = element.expression?.let {
+                        when (it) {
+                            is CjQualifiedExpression -> components.callExpressionResolver.getQualifiedExpressionEnumEntryType(
+                                it,
 
-                    is ClassDescriptor -> it
+                                context
+                            )
+
+                            is CjSimpleNameExpression -> components.callExpressionResolver.getSimpleNameExpressionEnumEntryType(
+                                it,
+                                null,
+                                null,
+                                context
+                            )
+
+                            else -> {}
+                        }
 
 
-                    else -> {
+                    }) {
+                        is FakeCallableDescriptorForObject -> it.classDescriptor
+
+                        is ClassDescriptor -> it
+
+
+                        else -> {
 //                        context.trace.report(NOT_ENUM_MATCH.on(element.expression))
-                        context.trace.report(NOT_ENUM_ENTRY_VALUE.on(element.expression))
+                            context.trace.report(NOT_ENUM_ENTRY_VALUE.on(element.expression))
 
-                        return
+                            return
+                        }
                     }
+
                 }
-
-
                 val type = descriptor.defaultType
                 if (!type.isEnumEntry()) {
                     context.trace.report(NOT_ENUM_ENTRY_VALUE.on(element.expression))
@@ -343,7 +351,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
                 val enumType2 = descriptor.classValueType ?: return
 
-                if (!CangJieTypeChecker.DEFAULT.equalTypes(enumType1, enumType2)) {
+                if (!CangJieTypeChecker.DEFAULT.equalsIgnoringGenerics(enumType1, enumType2)) {
                     context.trace.report(NOT_ENUM_MATCH.on(element.expression))
                     return
                 }
@@ -362,7 +370,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
 
                 constructor.forEach {
-                    it as EnumEntryConstructorDescriptor
+                    it as ClassConstructorDescriptor
 
 //                    TODO 将使用构建器的枚举项的引用替换为构造器
                     context.trace.record(REFERENCE_TARGET, element.expression!!.referenceExpression(), it)
@@ -425,29 +433,62 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 }
             }
 
+
+            fun ClassifierDescriptor?.findEnumEntryClassDescriptor(): LazyEnumEntryDescriptor? {
+                var descriptor: ClassifierDescriptor? = this
+                while (descriptor != null) {
+                    if (descriptor is LazyEnumEntryDescriptor) {
+                        break
+                    }
+                    descriptor = descriptor.original
+                }
+                return descriptor as? LazyEnumEntryDescriptor
+            }
+
             //            绑定模式  生成变量  TODO 与枚举模式混淆
             override fun visitPatternByBinding(element: CjBindingPattern) {
 
+//                由于仓颉的枚举默认展开，所以会出现查找到多个枚举项的情况，而这种情况下条件值与模式值会出现不同一枚举类型下
+//                如果条件值是枚举类型，则直接在条件值的枚举类型中查找
+//                否则在scope中查找一个!枚举值
 
-//
-                val classDescriptor =
-                    context.scope.findClassifier(Name.identifier(element.text), NoLookupLocation.FROM_PACKAGE)
+                var classDescriptor =
+                    (if (subject.type.isEnumEntry() || subject.type.isEnum()) {
+                        subject.type.memberScope.getContributedClassifier(
+                            Name.identifier(element.text),
+                            NoLookupLocation.FROM_PACKAGE
+                        )
+                    } else {
+                        context.scope.findClassifier(Name.identifier(element.text), NoLookupLocation.FROM_PACKAGE)
+                    } ?: context.scope.findClassifier(
+                        Name.identifier(element.text),
+                        NoLookupLocation.FROM_PACKAGE
+                    )).findEnumEntryClassDescriptor()
+//                context.scope.findClassifiers(Name.identifier(element.text), NoLookupLocation.FROM_PACKAGE)
 
 
 //                if (  enumTypeInfo?.type ?.isEnum() == true) {
 //             如具有无参构造器 使用枚举覆盖psi
-                if (classDescriptor != null && classDescriptor is LazyEnumEntryDescriptor /*&& classDescriptor.hasUnsubstitutedPrimaryConstructor()*/) {
+                if (classDescriptor != null && classDescriptor.kind == ClassKind.ENUM_ENTRY /*&& classDescriptor.hasUnsubstitutedPrimaryConstructor()*/) {
 //                        优先使用enum枚举覆盖
+
+                    if (!classDescriptor.hasUnsubstitutedPrimaryConstructor()) {
+                        context.trace.report(NOT_ENUM_PARAMETER_CONSTRUCTOR.on(element))
+                        return
+                    }
 
                     val enumType1 = subject.type
 
                     val enumType2 = classDescriptor.classValueType
 
-                    if (enumType2 != null && !CangJieTypeChecker.DEFAULT.equalTypes(enumType1, enumType2)) {
+                    if (enumType2 != null && !CangJieTypeChecker.DEFAULT.equalsIgnoringGenerics(enumType1, enumType2)) {
                         context.trace.report(NOT_ENUM_MATCH.on(element.expression))
 
                     } else {
-                        val enumTypeInfo = element.expression?.let { facade.getTypeInfo(it, context) }
+                        val enumTypeInfo = createTypeInfo(classDescriptor.defaultType)
+
+//                        val enumTypeInfo = element.expression?.let { facade.getTypeInfo(it, context) }
+                        context.trace.record(REFERENCE_TARGET, element.expression, classDescriptor)
                         context.trace.record(EXPRESSION_TYPE_INFO, subject.valueExpression, enumTypeInfo)
                     }
                 } else {
@@ -588,7 +629,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         return argumentDataFlowInfos
     }
 
-    //    类型只能转换
+    //    类型智能转换
     private fun checkSmartCastsInSubjectIfRequired(
         expression: CjMatchExpression,
         contextBeforeSubject: ExpressionTypingContext,
@@ -954,7 +995,10 @@ object MatchChecker {
     @JvmStatic
     fun getClassDescriptorOfTypeIfEnum(type: CangJieType?): ClassDescriptor? {
         if (type == null) return null
-        val classDescriptor = TypeUtils.getClassDescriptor(type) ?: return null
+        var classDescriptor = TypeUtils.getClassDescriptor(type) ?: return null
+        if (classDescriptor.kind == ClassKind.ENUM_ENTRY) {
+            classDescriptor = classDescriptor.containingDeclaration as ClassDescriptor
+        }
         if (classDescriptor.kind != ClassKind.ENUM) return null
 
         return classDescriptor
@@ -1003,7 +1047,7 @@ object MatchChecker {
     fun MatchSubjectType(expression: CjMatchExpression, context: BindingContext): CangJieType? {
 //        val subjectVariable = expression.subjectVariable
         val subjectExpression = expression.subjectExpression
-        return when {
+        val type = when {
 //            subjectVariable != null -> context.get(VARIABLE, subjectVariable)?.type
             subjectExpression != null -> context.get(SMARTCAST, subjectExpression)?.defaultType ?: context.getType(
                 subjectExpression
@@ -1011,6 +1055,12 @@ object MatchChecker {
 
             else -> null
         }
+        return if (type?.isEnumEntry() == true) {
+            return (type.constructor.declarationDescriptor?.containingDeclaration as? ClassDescriptor)?.defaultType
+        } else {
+            type
+        }
+
     }
 
     @JvmStatic
@@ -1110,6 +1160,102 @@ object MatchChecker {
 //        }
     }
 
+    fun checkConnector(matchExpression: CjMatchExpression, trace: BindingTrace) {
+        val bindingContext = trace.bindingContext
+
+        //不能引入变量
+        fun reportVariableIntroductionConflict(element: CjCasePattern) {
+            trace.report(VARIABLE_INTRODUCTION_CONFLICT.on(element))
+        }
+
+        val connectorVisitor = object : CjVisitorVoid() {
+            override fun visitPatternByType(element: CjTypePattern) {
+                reportVariableIntroductionConflict(element)
+
+            }
+
+            override fun visitPatternByEnum(element: CjEnumPattern) {
+                element.patterns.forEach {
+                    it.accept(this)
+                }
+            }
+
+            override fun visitPatternByTuple(element: CjTuplePattern) {
+                element.patterns.forEach {
+                    it.accept(this)
+                }
+
+            }
+
+            override fun visitPatternByBinding(element: CjBindingPattern) {
+                if (isBindingPattern(element, bindingContext)) {
+                    reportVariableIntroductionConflict(element)
+                }
+
+            }
+        }
+//        val subjectExpression  = matchExpression.subjectExpression ?: return
+//        val subjectType = matchSubjectType(matchExpression, bindingContext)
+
+        for (matchEntry in matchExpression.entries) {
+            if (matchEntry.conditions.size < 2) continue
+//
+//            if(!matchEntry.conditions.all { it::class == matchEntry.conditions::class }){
+////                不为同一类型 （从简单角度）
+//            }
+//            val firstPattern = matchEntry.conditions.first()
+
+//            when (firstPattern) {
+//                is CjEnumPattern -> {
+//
+//                }
+//
+//                is CjBindingPattern -> {
+//
+//                }
+//            }
+
+
+            for (condition in matchEntry.conditions) {
+                condition.accept(connectorVisitor)
+
+            }
+        }
+
+    }
+
+    fun checkLiteralPattern(
+        matchExpression: CjMatchExpression,
+        subjectType: CangJieType?,
+        context: BindingContext
+    ): Boolean {
+        subjectType ?: return false
+        return when {
+            subjectType.isBoolean() -> {
+
+                val booleanValues = matchExpression.entries.flatMap {
+                    it.conditions.filter { condition ->
+                        condition is CjConstantPattern && condition.expression is CjConstantExpression && condition.expression?.elementType == BOOLEAN_CONSTANT
+
+
+                    }.map { it.text }
+                }
+                booleanValues.contains("true") && booleanValues.contains("false")
+            }
+
+            subjectType.isUnit() -> {
+                matchExpression.entries.any {
+                    it.conditions.any { condition ->
+                        condition is CjConstantPattern && condition.expression is CjConstantExpression && condition.expression?.elementType == UNIT_CONSTANT
+                    }
+                }
+            }
+
+            else -> false
+        }
+
+    }
+
 }
 
 internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessChecker {
@@ -1193,6 +1339,17 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
                         is ClassDescriptor -> it
                         is FakeCallableDescriptorForObject -> it.classDescriptor
                         is EnumEntryConstructorDescriptor -> it
+                        is ClassConstructorDescriptor -> {
+                            var constructor = it
+                            while (constructor != null){
+                                if(constructor is EnumEntryConstructorDescriptor){
+                                    break
+                                }
+
+                                constructor  = constructor.original
+                            }
+                            constructor as EnumEntryConstructorDescriptor
+                        }
                         else -> null
                     }
                 }
@@ -1270,13 +1427,14 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
 
         }
     }
+
     protected fun getMissingClassCasesByOther(
-        whenExpression: CjMatchExpression,
+        matchExpression: CjMatchExpression,
         type: CangJieType,
         context: BindingContext
-    ): List<MatchMissingCase>{
+    ): List<MatchMissingCase> {
 
-//        for (matchEntry in whenExpression.entries) {
+//        for (matchEntry in matchExpression.entries) {
 //            for (condition in matchEntry.conditions) {
 //
 //
@@ -1293,17 +1451,17 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
 //                return emptyList()
 //            }
 //        }
-        return  listOf(MatchMissingCase.OtherCheckIsMissing())
+        return listOf(MatchMissingCase.OtherCheckIsMissing())
     }
 
     protected fun getMissingClassCasesByTuple(
-        whenExpression: CjMatchExpression,
+        matchExpression: CjMatchExpression,
         subclasses: Set<ClassAndEnumConstructorDescriptor>,
         context: BindingContext
     ): List<MatchMissingCase> {
         if (subclasses.isEmpty()) return listOf(MatchMissingCase.Unknown)
 
-        for (matchEntry in whenExpression.entries) {
+        for (matchEntry in matchExpression.entries) {
             for (condition in matchEntry.conditions) {
 
                 val types = (subclasses.first() as TupleConstructor).types
@@ -1326,7 +1484,7 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
     }
 
     protected fun getMissingClassCases(
-        whenExpression: CjMatchExpression,
+        matchExpression: CjMatchExpression,
         subclasses: Set<ClassAndEnumConstructorDescriptor>,
         context: BindingContext
     ): List<MatchMissingCase> {
@@ -1335,7 +1493,7 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
         if (subclasses.isEmpty()) return listOf(MatchMissingCase.Unknown)
 
         val checkedDescriptors = linkedSetOf<ClassAndEnumConstructorDescriptor>()
-        for (matchEntry in whenExpression.entries) {
+        for (matchEntry in matchExpression.entries) {
             for (condition in matchEntry.conditions) {
                 val negated = condition.negated
                 val checkedDescriptor = condition.getCheckedDescriptor(context) ?: continue
@@ -1442,6 +1600,7 @@ private object MatchOnOtherExhaustivenessChecker : MatchOnClassExhaustivenessChe
 
         }
     }
+
     override fun getMissingCases(
         expression: CjMatchExpression,
         context: BindingContext,

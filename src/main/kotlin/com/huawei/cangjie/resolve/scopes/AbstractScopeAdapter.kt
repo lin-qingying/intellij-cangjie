@@ -25,7 +25,9 @@ abstract class AbstractScopeAdapter : MemberScope {
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
         return workerScope.getContributedFunctions(name, location)
     }
-
+    override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
+        return workerScope.getContributedClassifiers(name, location)
+    }
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
         return workerScope.getContributedClassifier(name, location)
     }

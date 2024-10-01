@@ -2,7 +2,6 @@ package com.huawei.cangjie.types
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.types.checker.AbstractTypePreparator
-import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.areEqualTypeConstructors
 import com.huawei.cangjie.types.model.*
 import com.huawei.cangjie.utils.SmartSet
 import com.intellij.util.SmartList
@@ -175,6 +174,18 @@ object AbstractTypeChecker {
         return null
     }
 
+    fun equalsIgnoringGenerics(state: TypeCheckerState, a: CangJieTypeMarker, b: CangJieTypeMarker): Boolean =
+        with(state.typeSystemContext) {
+            if (a === b) return true
+
+
+            if (areEqualTypeConstructors(
+                    a.typeConstructor(),
+                    b.typeConstructor()
+                )
+            ) return true
+            return isSubtypeOf(state, a, b) && isSubtypeOf(state, b, a)
+        }
 
     fun equalTypes(state: TypeCheckerState, a: CangJieTypeMarker, b: CangJieTypeMarker): Boolean =
         with(state.typeSystemContext) {
@@ -234,11 +245,11 @@ object AbstractTypeChecker {
             }
         }
 
-      fun checkOptionType(
+    fun checkOptionType(
         state: TypeCheckerState,
         subType: SimpleTypeMarker,
         superType: SimpleTypeMarker
-    ): Boolean = with(state.typeSystemContext){
+    ): Boolean = with(state.typeSystemContext) {
 
         if (!CangJieBuiltIns.isOptionType(superType as CangJieType)) return false
 
@@ -246,8 +257,11 @@ object AbstractTypeChecker {
         if (superType.arguments.size != 1) return false
 
 //        TODO 修复出现套娃的情况
-        if(CangJieBuiltIns.isOptionType(superType.arguments[0].type)) return checkOptionType(state, subType, superType.arguments[0].type as SimpleTypeMarker)
-
+        if (CangJieBuiltIns.isOptionType(superType.arguments[0].type)) return checkOptionType(
+            state,
+            subType,
+            superType.arguments[0].type as SimpleTypeMarker
+        )
 
 
         val superConstructor = superType.arguments[0].type.constructor
@@ -340,7 +354,7 @@ object AbstractTypeChecker {
                     newArguments.add(intersection)
                 }
 
-                if ( state.isSubtypeForSameConstructor(newArguments, superType)) return true
+                if (state.isSubtypeForSameConstructor(newArguments, superType)) return true
 
                 return state.runForkingPoint {
                     for (subTypeArguments in supertypesWithSameConstructor) {
@@ -447,7 +461,7 @@ object AbstractTypeChecker {
         fun isCapturedIntegerLiteralType(type: SimpleTypeMarker): Boolean {
             if (type !is CapturedTypeMarker) return false
             val projection = type.typeConstructor().projection()
-            return  projection.getType().upperBoundIfFlexible().isIntegerLiteralType()
+            return projection.getType().upperBoundIfFlexible().isIntegerLiteralType()
         }
 
         fun isIntegerLiteralTypeOrCapturedOne(type: SimpleTypeMarker) =
@@ -753,6 +767,7 @@ object AbstractNullabilityChecker {
         with(state.typeSystemContext) {
             state.hasNotNullSupertype(type.lowerBoundIfFlexible(), TypeCheckerState.SupertypesPolicy.LowerIfFlexible)
         }
+
     fun isSubtypeOfAny(context: TypeCheckerProviderContext, type: CangJieTypeMarker): Boolean =
         isSubtypeOfAny(
             context.newTypeCheckerState(
@@ -806,7 +821,7 @@ object AbstractFlexibilityChecker {
 
         for (i in 0 until types.first().argumentsCount()) {
             val typeArgumentForOtherTypes = types.mapNotNull {
-                if (it.argumentsCount() > i  ) it.getArgument(i)
+                if (it.argumentsCount() > i) it.getArgument(i)
                     .getType() else null
             }
 

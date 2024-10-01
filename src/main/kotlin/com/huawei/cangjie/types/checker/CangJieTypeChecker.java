@@ -13,6 +13,11 @@ public interface CangJieTypeChecker {
 
     CangJieTypeChecker DEFAULT = NewCangJieTypeChecker.Companion.getDefault();
 
+    /**
+     * 比较两个类型，但是不比较泛型
+     */
+    boolean equalsIgnoringGenerics(@NotNull CangJieType a, @NotNull CangJieType b);
+
     boolean isSubtypeOf(@NotNull CangJieType subtype, @NotNull CangJieType supertype);
     boolean equalTypes(@NotNull CangJieType a, @NotNull CangJieType b);
 }

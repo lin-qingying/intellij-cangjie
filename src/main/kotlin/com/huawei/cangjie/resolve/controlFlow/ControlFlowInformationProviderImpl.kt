@@ -382,6 +382,8 @@ class ControlFlowInformationProviderImpl private constructor(
 
                 val context = trace.bindingContext
                 val missingCases = MatchChecker.getMissingCases(element, context)
+//                检查连接符
+                MatchChecker.checkConnector(element,trace)
 
                 val elseEntry = element.entries.find { it.isElse }
                 val subjectExpression = element.subjectExpression
@@ -413,6 +415,11 @@ class ControlFlowInformationProviderImpl private constructor(
                                 trace.report(REDUNDANT_ELSE_IN_MATCH.on(elseEntry))
                             }
                         }
+                        continue
+                    }
+
+//                    检查一些类型字面量数据固定或比较少的模式 例如 ()    true false
+                    if( MatchChecker. checkLiteralPattern(element,subjectType,context)){
                         continue
                     }
 

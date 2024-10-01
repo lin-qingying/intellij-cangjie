@@ -267,6 +267,8 @@ public class DefaultErrorMessages {
 
         MAP.put(TUPLE_PATTERN_TYPE_MISMATCH, "Type mismatch: inferred type is Tuple but {0} was expected", RENDER_TYPE);
         MAP.put(ELSE_MISPLACED_IN_MATCH, "'else _' entry must be the last one in a match-expression");
+        MAP.put(VARIABLE_INTRODUCTION_CONFLICT, "cannot introduce variables in patterns connected by '|'");
+        MAP.put(NOT_ENUM_PARAMETER_CONSTRUCTOR, "No parameterless constructor");
 
     }
 

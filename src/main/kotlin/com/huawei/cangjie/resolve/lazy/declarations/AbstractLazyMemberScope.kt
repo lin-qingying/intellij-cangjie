@@ -180,7 +180,14 @@ protected constructor(
 
     protected abstract fun getNonDeclaredProperties(name: Name, result: MutableSet<PropertyDescriptor>)
 
+    override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
+        recordLookup(name, location)
+        // NB we should resolve type alias descriptors even if a class descriptor with corresponding name is present
+        val classes = classDescriptors(name)
+        val typeAliases = typeAliasDescriptors(name)
 
+        return classes + typeAliases
+    }
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
         recordLookup(name, location)
         // NB we should resolve type alias descriptors even if a class descriptor with corresponding name is present
@@ -199,6 +206,9 @@ protected constructor(
 //        if ((result?.source as? CangJieSourceElement)?.psi?.isValid == false) {
 //            throw AssertionError("PSI is invalidated for contributed classifier ${result.fqNameSafe}")
 //        }
+
+
+
         return result
     }
 

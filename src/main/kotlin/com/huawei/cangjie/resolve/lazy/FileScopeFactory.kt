@@ -476,7 +476,13 @@ class FileScopeFactory(
 
         override fun getContributedPackage(name: Name): Nothing? = null
 
+        private fun getClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
 
+            return explicitImportResolver.getClassifiers(name, location)  + allUnderImportResolver.getClassifiers(
+                name,
+                location
+            )
+        }
         private fun getClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
 
             return explicitImportResolver.getClassifier(name, location) ?: allUnderImportResolver.getClassifier(
@@ -484,6 +490,18 @@ class FileScopeFactory(
                 location
             )
         }
+        private fun LazyImportResolver<*>.getClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor>  =
+            components.storageManager.compute {
+                val imports = indexedImports.importsForName(name)
+
+                val targetList = mutableListOf<ClassifierDescriptor>()
+                for (directive in imports) {
+                    targetList .addAll(getImportScope(directive).getContributedClassifiers(name, location))
+
+                }
+
+                targetList
+            }
 
         private fun LazyImportResolver<*>.getClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
             components.storageManager.compute {
@@ -535,6 +553,16 @@ class FileScopeFactory(
             return classifier.takeIf { filteringKind == if (visible) FilteringKind.VISIBLE_CLASSES else FilteringKind.INVISIBLE_CLASSES }
         }
 
+        override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
+          val list =   scope.getContributedClassifiers(name, location)
+            /*   如在当前包查找不到，在重导出语句中查找 (重导出语句不管什么访问修饰，都可以在本包访问)*/
+          val list2 =  getClassifiers(
+                name,
+                location
+            )
+
+            return list + list2
+        }
         override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
             return scope.getExtendClass(name)
         }

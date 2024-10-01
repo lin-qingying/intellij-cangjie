@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve.lazy.descriptors
 
 import com.huawei.cangjie.descriptors.ClassConstructorDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.descriptors.DescriptorVisibility
 import com.huawei.cangjie.descriptors.SourceElement
 import com.huawei.cangjie.descriptors.impl.EnumEntryConstructorDescriptor
 import com.huawei.cangjie.diagnostics.Errors.REDECLARATION
@@ -28,6 +29,9 @@ class LazyEnumEntryDescriptor(
     val list: List<CjEnmuEntryInfo>,
     isExternal: Boolean
 ) : LazyClassDescriptor(c, thisDescriptor, name, list.first(), isExternal) {
+
+    override val visibility: DescriptorVisibility
+         = containingDeclaration.visibility
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

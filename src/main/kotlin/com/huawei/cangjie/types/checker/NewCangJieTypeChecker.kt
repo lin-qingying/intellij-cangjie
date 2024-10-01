@@ -5,6 +5,7 @@ import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.AbstractNullabilityChecker.hasNotNullSupertype
 
 object SimpleClassicTypeSystemContext : ClassicTypeSystemContext
+
 fun UnwrappedType.hasSupertypeWithGivenTypeConstructor(typeConstructor: TypeConstructor) =
     createClassicTypeCheckerState(isErrorTypeEqualsToAnything = false).anySupertype(lowerIfFlexible(), {
         require(it is SimpleType)
@@ -22,6 +23,14 @@ interface NewCangJieTypeChecker : CangJieTypeChecker {
 }
 
 object ErrorTypesAreEqualToAnything : CangJieTypeChecker {
+    override fun equalsIgnoringGenerics(a: CangJieType, b: CangJieType): Boolean =
+        NewCangJieTypeChecker.Default.run {
+            createClassicTypeCheckerState(isErrorTypeEqualsToAnything = true).equalsIgnoringGenerics(
+                a.unwrap(),
+                b.unwrap()
+            )
+        }
+
     override fun isSubtypeOf(subtype: CangJieType, supertype: CangJieType): Boolean =
         NewCangJieTypeChecker.Default.run {
             createClassicTypeCheckerState(isErrorTypeEqualsToAnything = true).isSubtypeOf(
@@ -41,6 +50,10 @@ class NewCangJieTypeCheckerImpl(
     override val cangjieTypePreparator: CangJieTypePreparator = CangJieTypePreparator.Default
 ) : NewCangJieTypeChecker {
     override val overridingUtil: OverridingUtil = OverridingUtil.createWithTypeRefiner(cangjieTypeRefiner)
+    override fun equalsIgnoringGenerics(a: CangJieType, b: CangJieType): Boolean =
+        createClassicTypeCheckerState(
+            false, cangjieTypeRefiner = cangjieTypeRefiner, cangjieTypePreparator = cangjieTypePreparator
+        ).equalsIgnoringGenerics(a.unwrap(), b.unwrap())
 
     override fun isSubtypeOf(subtype: CangJieType, supertype: CangJieType): Boolean =
         createClassicTypeCheckerState(
@@ -54,6 +67,10 @@ class NewCangJieTypeCheckerImpl(
 
     fun TypeCheckerState.equalTypes(a: UnwrappedType, b: UnwrappedType): Boolean {
         return AbstractTypeChecker.equalTypes(this, a, b)
+    }
+
+    fun TypeCheckerState.equalsIgnoringGenerics(a: UnwrappedType, b: UnwrappedType): Boolean {
+        return AbstractTypeChecker.equalsIgnoringGenerics(this, a, b)
     }
 
     fun TypeCheckerState.isSubtypeOf(subType: UnwrappedType, superType: UnwrappedType): Boolean {

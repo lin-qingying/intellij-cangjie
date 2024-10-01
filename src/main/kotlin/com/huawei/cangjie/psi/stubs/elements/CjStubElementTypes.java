@@ -148,6 +148,7 @@ CjPlaceHolderStubElementType<CjOptionType> OPTIONAL_TYPE =
     CjConstantExpressionElementType INTEGER_CONSTANT    = new CjConstantExpressionElementType("INTEGER_CONSTANT");
 //    CjClassLiteralExpressionElementType CLASS_LITERAL_EXPRESSION = new CjClassLiteralExpressionElementType("CLASS_LITERAL_EXPRESSION");
 CjConstantExpressionElementType RUNE_CONSTANT = new CjConstantExpressionElementType("RUNE_CONSTANT");
+    CjConstantExpressionElementType UNIT_CONSTANT = new CjConstantExpressionElementType("UNIT_CONSTANT");
 
 
     CjCollectionLiteralExpressionElementType COLLECTION_LITERAL_EXPRESSION = new CjCollectionLiteralExpressionElementType("COLLECTION_LITERAL_EXPRESSION");
@@ -171,7 +172,6 @@ CjConstantExpressionElementType RUNE_CONSTANT = new CjConstantExpressionElementT
 
 
 
-    CjConstantExpressionElementType UNIT_CONSTANT = new CjConstantExpressionElementType("UNIT_CONSTANT");
     CjAnnotationEntryElementType MACRO_EXPRESSION = new CjAnnotationEntryElementType("MACRO_EXPRESSION");
 
 

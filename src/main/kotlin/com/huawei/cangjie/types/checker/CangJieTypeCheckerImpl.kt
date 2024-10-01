@@ -14,6 +14,11 @@ class CangJieTypeCheckerImpl protected constructor(procedure: TypeCheckingProced
         return procedure.isSubtypeOf(subtype, supertype)
     }
 
+    override fun equalsIgnoringGenerics(a: CangJieType, b: CangJieType): Boolean {
+
+        return procedure.equalsIgnoringGenerics(a, b)
+
+    }
     override fun equalTypes(
         a:  CangJieType,
         b: CangJieType

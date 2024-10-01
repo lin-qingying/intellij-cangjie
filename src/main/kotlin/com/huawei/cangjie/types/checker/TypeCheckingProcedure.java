@@ -62,6 +62,60 @@ public class TypeCheckingProcedure {
     private static CangJieType getOutType(@NotNull TypeParameterDescriptor parameter, @NotNull TypeProjection argument) {
                return   DescriptorUtilsKt.getBuiltIns(parameter).getAnyType()  ;
     }
+    public boolean equalsIgnoringGenerics(@NotNull CangJieType type1, @NotNull CangJieType type2) {
+        if (type1 == type2) return true;
+        if (FlexibleTypesKt.isFlexible(type1)) {
+            if (FlexibleTypesKt.isFlexible(type2)) {
+                return !CangJieTypeKt.isError(type1) && !CangJieTypeKt.isError(type2) &&
+                        isSubtypeOf(type1, type2) && isSubtypeOf(type2, type1);
+            }
+            return heterogeneousEquivalence(type2, type1);
+        } else if (FlexibleTypesKt.isFlexible(type2)) {
+            return heterogeneousEquivalence(type1, type2);
+        }
+
+        if (type1.isMarkedOption() != type2.isMarkedOption()) {
+            return false;
+        }
+
+        if (type1.isMarkedOption()) {
+            // Then type2 is nullable, too (see the previous condition
+            return constraints.assertEqualTypes(TypeUtils.makeNotNullable(type1), TypeUtils.makeNotNullable(type2), this);
+        }
+
+        TypeConstructor constructor1 = type1.getConstructor();
+        TypeConstructor constructor2 = type2.getConstructor();
+
+        if (!constraints.assertEqualTypeConstructors(constructor1, constructor2)) {
+            return false;
+        }
+
+        List<TypeProjection> type1Arguments = type1.getArguments();
+        List<TypeProjection> type2Arguments = type2.getArguments();
+        if (type1Arguments.size() != type2Arguments.size()) {
+            return false;
+        }
+
+        for (int i = 0; i < type1Arguments.size(); i++) {
+            TypeProjection typeProjection1 = type1Arguments.get(i);
+            TypeProjection typeProjection2 = type2Arguments.get(i);
+
+            TypeParameterDescriptor typeParameter1 = constructor1.getParameters().get(i);
+            TypeParameterDescriptor typeParameter2 = constructor2.getParameters().get(i);
+
+            if (capture(typeProjection1, typeProjection2, typeParameter1)) {
+                continue;
+            }
+            if (getEffectiveProjectionKind(typeParameter1, typeProjection1) != getEffectiveProjectionKind(typeParameter2, typeProjection2)) {
+                return false;
+            }
+
+            if (!constraints.assertEqualTypes(typeProjection1.getType(), typeProjection2.getType(), this)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     public boolean isSubtypeOf(@NotNull CangJieType subtype, @NotNull CangJieType supertype) {
         if (TypeCapabilitiesKt.sameTypeConstructors(subtype, supertype)) {
