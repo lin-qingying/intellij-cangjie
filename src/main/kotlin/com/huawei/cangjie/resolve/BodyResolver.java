@@ -745,6 +745,8 @@ public class BodyResolver {
 
     private void resolveBehaviorDeclarationBodies(@NotNull BodiesResolveContext c) {
         resolveSuperTypeEntryLists(c);
+
+
         resolvePropertyDeclarationBodies(c);
 
         resolveVariableDeclarationBodies(c);

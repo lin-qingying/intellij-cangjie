@@ -1,20 +1,21 @@
 package com.huawei.cangjie.resolve
 
-import com.huawei.cangjie.builtins.CangJieBuiltIns
-import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptor
+import com.huawei.cangjie.diagnostics.DiagnosticFactory0
 import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
-import com.huawei.cangjie.resolve.BindingContext.TYPE
-import com.huawei.cangjie.resolve.BindingContext.TYPE_PARAMETER
+import com.huawei.cangjie.resolve.BindingContext.*
 import com.huawei.cangjie.resolve.DescriptorUtils.classCanHaveAbstractDeclaration
 import com.huawei.cangjie.resolve.calls.results.TypeSpecificityComparator
-import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.resolve.descriptorUtil.isEffectivelyExternal
-import com.huawei.cangjie.types.*
+import com.huawei.cangjie.types.AbbreviatedType
+import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.IntersectionTypeConstructor
+import com.huawei.cangjie.types.SubstitutionUtils
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.isNothing
 import com.huawei.cangjie.types.util.contains
@@ -217,13 +218,16 @@ class DeclarationsChecker(
 //            }
 //        }
     }
+
     private fun checkImplicitCallableType(declaration: CjCallableDeclaration, descriptor: CallableDescriptor) {
         descriptor.returnType?.unwrap()?.let {
             val target = declaration.nameIdentifier ?: declaration
             if (declaration.typeReference == null) {
                 if (it.isNothing() && !declaration.hasModifier(CjTokens.OVERRIDE_KEYWORD)) {
                     trace.report(
-                        (if (declaration is CjProperty) IMPLICIT_NOTHING_PROPERTY_TYPE else IMPLICIT_NOTHING_RETURN_TYPE).on(target)
+                        (if (declaration is CjProperty) IMPLICIT_NOTHING_PROPERTY_TYPE else IMPLICIT_NOTHING_RETURN_TYPE).on(
+                            target
+                        )
                     )
                 }
                 if (it.contains { type -> type.constructor is IntersectionTypeConstructor }) {
@@ -231,14 +235,18 @@ class DeclarationsChecker(
                 }
             } else if (it.isNothing() && it is AbbreviatedType) {
                 trace.report(
-                    (if (declaration is CjProperty) ABBREVIATED_NOTHING_PROPERTY_TYPE else ABBREVIATED_NOTHING_RETURN_TYPE).on(target)
+                    (if (declaration is CjProperty) ABBREVIATED_NOTHING_PROPERTY_TYPE else ABBREVIATED_NOTHING_RETURN_TYPE).on(
+                        target
+                    )
                 )
             }
         }
     }
+
     private fun checkVarargParameters(trace: BindingTrace, callableDescriptor: CallableDescriptor) {
 
     }
+
     fun checkFunction(function: CjNamedFunction, functionDescriptor: SimpleFunctionDescriptor) {
         val typeParameterList = function.typeParameterList
         val nameIdentifier = function.nameIdentifier
@@ -334,6 +342,7 @@ class DeclarationsChecker(
 
         checkExpectDeclarationModifiers(function, functionDescriptor)
     }
+
     private fun checkMemberProperty(
         property: CjProperty,
         propertyDescriptor: PropertyDescriptor,
@@ -345,7 +354,13 @@ class DeclarationsChecker(
             if (modifierList.hasModifier(CjTokens.ABSTRACT_KEYWORD)) {
                 //has abstract modifier
                 if (!classCanHaveAbstractDeclaration(classDescriptor)) {
-                    trace.report(ABSTRACT_PROPERTY_IN_NON_ABSTRACT_CLASS.on(property, property.name ?: "", classDescriptor))
+                    trace.report(
+                        ABSTRACT_PROPERTY_IN_NON_ABSTRACT_CLASS.on(
+                            property,
+                            property.name ?: "",
+                            classDescriptor
+                        )
+                    )
                     return
                 }
             } else if (classDescriptor.kind == ClassKind.INTERFACE &&
@@ -356,41 +371,230 @@ class DeclarationsChecker(
             }
         }
 
-//        if (propertyDescriptor.modality == Modality.ABSTRACT) {
-//
-//            val getter = property.getter
-//            if (getter != null && getter.hasBody()) {
-//                trace.report(ABSTRACT_PROPERTY_WITH_GETTER.on(getter))
-//            }
-//            val setter = property.setter
-//            if (setter != null && setter.hasBody()) {
-//                trace.report(ABSTRACT_PROPERTY_WITH_SETTER.on(setter))
-//            }
-//        }
+        if (propertyDescriptor.modality == Modality.ABSTRACT) {
+
+            val getter = property.getter
+            if (getter != null && getter.hasBody()) {
+                trace.report(ABSTRACT_PROPERTY_WITH_GETTER.on(getter))
+            }
+            val setter = property.setter
+            if (setter != null && setter.hasBody()) {
+                trace.report(ABSTRACT_PROPERTY_WITH_SETTER.on(setter))
+            }
+        }
     }
+
     private fun checkBackingField(property: CjProperty) {
 //        property.fieldDeclaration?.let {
 //            trace.report(EXPLICIT_BACKING_FIELDS_UNSUPPORTED.on(it))
 //        }
     }
-//    private fun checkProperty(property: CjProperty, propertyDescriptor: PropertyDescriptor) {
-//        val containingDeclaration = propertyDescriptor.containingDeclaration
-//        if (containingDeclaration is ClassDescriptor) {
-//            checkMemberProperty(property, propertyDescriptor, containingDeclaration)
+
+    private fun checkAccessors(property: CjProperty, propertyDescriptor: PropertyDescriptor) {
+        for (accessorDescriptor in propertyDescriptor.accessors) {
+            val accessor = if (accessorDescriptor is PropertyGetterDescriptor) property.getter else property.setter
+            if (accessor != null) {
+                modifiersChecker.checkModifiersForDeclaration(accessor, accessorDescriptor)
+                identifierChecker.checkDeclaration(accessor, trace)
+            } else {
+                modifiersChecker.runDeclarationCheckers(property, accessorDescriptor)
+            }
+        }
+        checkAccessor(propertyDescriptor, property.getter, propertyDescriptor.getter)
+        checkAccessor(propertyDescriptor, property.setter, propertyDescriptor.setter)
+    }
+
+    private fun checkAccessor(
+        propertyDescriptor: PropertyDescriptor,
+        accessor: CjPropertyAccessor?,
+        accessorDescriptor: PropertyAccessorDescriptor?
+    ) {
+        if (accessor == null || accessorDescriptor == null) return
+        if (propertyDescriptor.isExpect && accessor.hasBody()) {
+            trace.report(EXPECTED_DECLARATION_WITH_BODY.on(accessor))
+        }
+
+//        val accessorModifierList = accessor.modifierList ?: return
+//        val tokens = modifiersChecker.getTokensCorrespondingToModifiers(
+//            accessorModifierList,
+//            setOf(CjTokens.PUBLIC_KEYWORD, CjTokens.PROTECTED_KEYWORD, CjTokens.PRIVATE_KEYWORD, CjTokens.INTERNAL_KEYWORD)
+//        )
+//        if (accessor.isGetter) {
+//            if (accessorDescriptor.visibility != propertyDescriptor.visibility) {
+//                reportVisibilityModifierDiagnostics(tokens.values, GETTER_VISIBILITY_DIFFERS_FROM_PROPERTY_VISIBILITY)
+//            } else {
+//                reportVisibilityModifierDiagnostics(tokens.values, REDUNDANT_MODIFIER_IN_GETTER)
+//            }
+//        } else {
+//            if (propertyDescriptor.isOverridable
+//                && accessorDescriptor.visibility == DescriptorVisibilities.PRIVATE
+//                && propertyDescriptor.visibility != DescriptorVisibilities.PRIVATE
+//            ) {
+//                if (propertyDescriptor.modality == Modality.ABSTRACT) {
+//                    reportVisibilityModifierDiagnostics(tokens.values, PRIVATE_SETTER_FOR_ABSTRACT_PROPERTY)
+//                } else {
+//                    reportVisibilityModifierDiagnostics(tokens.values, PRIVATE_SETTER_FOR_OPEN_PROPERTY)
+//                }
+//            } else {
+//                val compare = DescriptorVisibilities.compare(accessorDescriptor.visibility, propertyDescriptor.visibility)
+//                if (compare == null || compare > 0) {
+//                    reportVisibilityModifierDiagnostics(tokens.values, SETTER_VISIBILITY_INCONSISTENT_WITH_PROPERTY_VISIBILITY)
+//                }
+//            }
 //        }
-//        LateinitModifierApplicabilityChecker.checkLateinitModifierApplicability(trace, property, propertyDescriptor, languageVersionSettings)
-//        checkPropertyInitializer(property, propertyDescriptor)
-//        checkAccessors(property, propertyDescriptor)
-//        checkTypeParameterConstraints(property)
+        if (propertyDescriptor.isExpect) {
+            checkExpectDeclarationHasNoExternalModifier(accessor)
+        }
+    }
+
+    private fun checkProperty(property: CjProperty, propertyDescriptor: PropertyDescriptor) {
+        val containingDeclaration = propertyDescriptor.containingDeclaration
+        if (containingDeclaration is ClassDescriptor) {
+            checkMemberProperty(property, propertyDescriptor, containingDeclaration)
+        }
+
+
+        checkAccessors(property, propertyDescriptor)
+        checkTypeParameterConstraints(property)
 //        exposedChecker.checkProperty(property, propertyDescriptor)
 //        shadowedExtensionChecker.checkDeclaration(property, propertyDescriptor)
 //        checkPropertyTypeParametersAreUsedInReceiverType(propertyDescriptor)
-//        checkImplicitCallableType(property, propertyDescriptor)
-//        checkExpectDeclarationModifiers(property, propertyDescriptor)
-//        checkBackingField(property)
-//    }
-    fun checkVariable(variable: CjVariable, variableDescriptor: VariableDescriptor) {
+        checkImplicitCallableType(property, propertyDescriptor)
+        checkExpectDeclarationModifiers(property, propertyDescriptor)
+        checkBackingField(property)
+    }
 
+    fun checkVariable(variable: CjVariable, variableDescriptor: VariableDescriptor) {
+        val containingDeclaration = variableDescriptor.containingDeclaration
+        if (containingDeclaration is ClassDescriptor) {
+            checkMemberVariable(variable, variableDescriptor, containingDeclaration)
+        }
+        checkVariableInitializer(variable, variableDescriptor)
+    }
+
+    private fun checkVariableInitializer(variable: CjVariable, variableDescriptor: VariableDescriptor) {
+
+        val containingDeclaration = variableDescriptor.containingDeclaration
+        val inInterface = DescriptorUtils.isInterface(containingDeclaration)
+//        if (variableDescriptor.modality == Modality.ABSTRACT) {
+//
+//            if (inInterface && variable.hasModifier(CjTokens.PRIVATE_KEYWORD) && !variable.hasModifier(CjTokens.ABSTRACT_KEYWORD)) {
+//                trace.report(PRIVATE_PROPERTY_IN_INTERFACE.on(variable))
+//            }
+//            return
+//        }
+        val initializer = variable.initializer
+        val isExpect = variableDescriptor.isExpect
+
+        if (initializer != null) {
+            when {
+                inInterface -> trace.report(VARIABLE_INITIALIZER_IN_INTERFACE.on(initializer))
+                isExpect -> trace.report(EXPECTED_VARIABLE_INITIALIZER.on(initializer))
+
+                variable.receiverTypeReference != null -> trace.report(
+                    EXTENSION_VARIABLE_WITH_BACKING_FIELD.on(
+                        initializer
+                    )
+                )
+
+                variable.contextReceivers.isNotEmpty() -> trace.report(
+                    CONTEXT_RECEIVERS_WITH_BACKING_FIELD.on(
+                        initializer
+                    )
+                )
+            }
+        } else {
+            val isUninitialized = trace.bindingContext.get(IS_UNINITIALIZED, variableDescriptor) ?: false
+            val isExternal = variableDescriptor.isEffectivelyExternal()
+            if (!inInterface && !isExpect && isUninitialized && !isExternal) {
+
+
+                reportMustBeInitialized(
+                    variableDescriptor,
+                    containingDeclaration,
+                    false,
+                    variable,
+                    false,
+                    languageVersionSettings,
+                    trace
+                )
+
+            }/* else if (variable.typeReference == null && !languageVersionSettings.supportsFeature(LanguageFeature.ShortSyntaxForPropertyGetters)) {
+                trace.report(
+                    UNSUPPORTED_FEATURE.on(
+                        variable,
+                        LanguageFeature.ShortSyntaxForPropertyGetters to languageVersionSettings
+                    )
+                )
+            } */
+
+
+        }
+    }
+
+    private fun reportMustBeInitialized(
+        variableDescriptor: VariableDescriptor,
+        containingDeclaration: DeclarationDescriptor,
+        hasAnyAccessorImplementation: Boolean,
+        variable: CjVariable,
+        isOpenValDeferredInitDeprecationWarning: Boolean,
+        languageVersionSettings: LanguageVersionSettings,
+        trace: BindingTrace,
+    ) {
+
+
+        val factory = when {
+
+            else -> MUST_BE_INITIALIZED
+        }
+        trace.report(
+            when ( isOpenValDeferredInitDeprecationWarning) {
+                true -> factory.deprecationWarning
+                false -> factory
+            }.on(variable)
+        )
+    }
+
+    private val DiagnosticFactory0<CjVariable>.deprecationWarning: DiagnosticFactory0<CjVariable>
+        get() = when (this) {
+//            MUST_BE_INITIALIZED -> MUST_BE_INITIALIZED_WARNING
+//            MUST_BE_INITIALIZED_OR_BE_ABSTRACT -> MUST_BE_INITIALIZED_OR_BE_ABSTRACT_WARNING
+//            MUST_BE_INITIALIZED_OR_BE_FINAL -> MUST_BE_INITIALIZED_OR_BE_FINAL_WARNING
+//            MUST_BE_INITIALIZED_OR_FINAL_OR_ABSTRACT -> MUST_BE_INITIALIZED_OR_FINAL_OR_ABSTRACT_WARNING
+            else -> error("Only MUST_BE_INITIALIZED is supported")
+        }
+
+    private fun checkMemberVariable(
+        variable: CjVariable,
+        propertyDescriptor: VariableDescriptor,
+        classDescriptor: ClassDescriptor
+    ) {
+        val modifierList = variable.modifierList
+
+        if (modifierList != null) {
+            if (modifierList.hasModifier(CjTokens.ABSTRACT_KEYWORD)) {
+                //has abstract modifier
+                if (!classCanHaveAbstractDeclaration(classDescriptor)) {
+                    trace.report(
+                        ABSTRACT_PROPERTY_IN_NON_ABSTRACT_CLASS.on(
+                            variable,
+                            variable.name ?: "",
+                            classDescriptor
+                        )
+                    )
+                    return
+                }
+            } else if (classDescriptor.kind == ClassKind.INTERFACE &&
+                modifierList.hasModifier(CjTokens.OPEN_KEYWORD) &&
+                propertyDescriptor.modality == Modality.ABSTRACT
+            ) {
+                trace.report(REDUNDANT_OPEN_IN_INTERFACE.on(variable))
+            }
+        }
+
+        if (propertyDescriptor.modality == Modality.ABSTRACT) {
+            variable.initializer?.let { trace.report(ABSTRACT_PROPERTY_WITH_INITIALIZER.on(it)) }
+        }
     }
 
     fun process(bodiesResolveContext: BodiesResolveContext) {
@@ -412,17 +616,17 @@ class DeclarationsChecker(
             identifierChecker.checkDeclaration(function, trace)
         }
 
-                for ((variable, variableDescriptor) in bodiesResolveContext.variables.entries) {
+        for ((variable, variableDescriptor) in bodiesResolveContext.variables.entries) {
             checkVariable(variable, variableDescriptor)
             modifiersChecker.checkModifiersForDeclaration(variable, variableDescriptor)
             identifierChecker.checkDeclaration(variable, trace)
         }
 //
-//        for ((property, propertyDescriptor) in bodiesResolveContext.properties.entries) {
-//            checkProperty(property, propertyDescriptor)
-//            modifiersChecker.checkModifiersForDeclaration(property, propertyDescriptor)
-//            identifierChecker.checkDeclaration(property, trace)
-//        }
+        for ((property, propertyDescriptor) in bodiesResolveContext.properties.entries) {
+            checkProperty(property, propertyDescriptor)
+            modifiersChecker.checkModifiersForDeclaration(property, propertyDescriptor)
+            identifierChecker.checkDeclaration(property, trace)
+        }
 //
 //        val destructuringDeclarations = bodiesResolveContext.destructuringDeclarationEntries.entries
 //            .map { (entry, _) -> entry.parent }
@@ -463,3 +667,9 @@ class DeclarationsChecker(
 
     }
 }
+
+private fun VariableDescriptor.getEffectiveModality(): Modality =
+    when (modality == Modality.OPEN && (containingDeclaration as? ClassDescriptor)?.modality == Modality.FINAL) {
+        true -> Modality.FINAL
+        false -> modality
+    }

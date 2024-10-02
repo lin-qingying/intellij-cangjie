@@ -22,6 +22,7 @@ import com.huawei.cangjie.types.TypeConstructor
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.isError
 import com.huawei.cangjie.types.util.TypeUtils
+import com.huawei.cangjie.utils.DFS
 import com.intellij.psi.PsiElement
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -101,7 +102,28 @@ fun CallableDescriptor.getOwnerForEffectiveDispatchReceiverParameter(): Declarat
     }
     return dispatchReceiverParameter?.containingDeclaration
 }
+fun CallableMemberDescriptor.firstOverridden(
+    useOriginal: Boolean = false,
+    predicate: (CallableMemberDescriptor) -> Boolean
+): CallableMemberDescriptor? {
+    var result: CallableMemberDescriptor? = null
+    return DFS.dfs(listOf(this),
+        { current ->
+            val descriptor = if (useOriginal) current?.original else current
+            (descriptor?.overriddenDescriptors ?: emptyList()) as MutableIterable<CallableMemberDescriptor>
+        },
+        object : DFS.AbstractNodeHandler<CallableMemberDescriptor, CallableMemberDescriptor?>() {
+            override fun beforeChildren(current: CallableMemberDescriptor) = result == null
+            override fun afterChildren(current: CallableMemberDescriptor) {
+                if (result == null && predicate(current)) {
+                    result = current
+                }
+            }
 
+            override fun result(): CallableMemberDescriptor? = result
+        }
+    )
+}
 object DescriptorUtils {
     @JvmStatic
     fun isDirectSubclass(

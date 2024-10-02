@@ -256,6 +256,10 @@ class OverrideResolver(
             )
         }
 
+        override fun letOverriddenByVar(overriding: CallableMemberDescriptor, overridden: CallableMemberDescriptor) {
+            reportDelegationProblemIfRequired(VAR_OVERRIDDEN_BY_LET_BY_DELEGATION, null, overriding, overridden)
+
+        }
         override fun varOverriddenByLet(overriding: CallableMemberDescriptor, overridden: CallableMemberDescriptor) {
             reportDelegationProblemIfRequired(VAR_OVERRIDDEN_BY_LET_BY_DELEGATION, null, overriding, overridden)
         }
@@ -323,6 +327,10 @@ class OverrideResolver(
         fun overridingFinalMember(overriding: CallableMemberDescriptor, overridden: CallableMemberDescriptor)
         fun returnTypeMismatchOnOverride(overriding: CallableMemberDescriptor, overridden: CallableMemberDescriptor)
         fun varOverriddenByLet(overriding: CallableMemberDescriptor, overridden: CallableMemberDescriptor)
+
+
+        fun letOverriddenByVar(overriding: CallableMemberDescriptor, overridden: CallableMemberDescriptor)
+
     }
 
     private interface CheckOverrideReportForDeclaredMemberStrategy : CheckOverrideReportStrategy {
@@ -402,6 +410,21 @@ class OverrideResolver(
                 }
             }
 
+            override fun letOverriddenByVar(
+                overriding: CallableMemberDescriptor,
+                overridden: CallableMemberDescriptor
+            ) {
+                if (!kindMismatchError) {
+                    kindMismatchError = true
+                    trace.report(
+                        LET_OVERRIDDEN_BY_VAR.on(
+                            member,
+                            declared as PropertyDescriptor,
+                            overridden as PropertyDescriptor
+                        )
+                    )
+                }
+            }
             override fun varOverriddenByLet(
                 overriding: CallableMemberDescriptor,
                 overridden: CallableMemberDescriptor
@@ -411,8 +434,8 @@ class OverrideResolver(
                     trace.report(
                         VAR_OVERRIDDEN_BY_LET.on(
                             member,
-                            declared as VariableDescriptor,
-                            overridden as VariableDescriptor
+                            declared as PropertyDescriptor,
+                            overridden as PropertyDescriptor
                         )
                     )
                 }
@@ -1048,7 +1071,9 @@ class OverrideResolver(
                     }
                     reportError.returnTypeMismatchOnOverride(memberDescriptor, overridden)
                 }
-
+                if (checkPropertyKind(overridden, false) && checkPropertyKind(memberDescriptor, true)) {
+                    reportError.letOverriddenByVar(memberDescriptor, overridden)
+                }
                 if (checkPropertyKind(overridden, true) && checkPropertyKind(memberDescriptor, false)) {
                     reportError.varOverriddenByLet(memberDescriptor, overridden)
                 }

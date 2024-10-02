@@ -151,8 +151,9 @@ fun ResolutionScope.getContributedVariablesAndIntercept(
     extensionReceiver: ReceiverValueWithSmartCastInfo?,
     scopeTower: ImplicitScopeTower
 ): Collection<VariableDescriptor> {
-    val result = getContributedVariables(name, location)
-
+    val variables = getContributedVariables(name, location)
+    val propertys = getContributedPropertys(name, location)
+    val result = variables + propertys
     return scopeTower.interceptVariableCandidates(this, name, result, location, dispatchReceiver, extensionReceiver)
 }
 

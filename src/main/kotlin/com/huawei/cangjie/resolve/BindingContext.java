@@ -82,6 +82,7 @@ public interface BindingContext {
     WritableSlice<Box<DeferredType>, Boolean> DEFERRED_TYPE = Slices.createCollectiveSetSlice();
     WritableSlice<CjCollectionLiteralExpression, ResolvedCall<FunctionDescriptor>> COLLECTION_LITERAL_CALL = Slices.createSimpleSlice();
     WritableSlice<CjRangeExpression, ResolvedCall<FunctionDescriptor>> RANGE_LITERAL_CALL = Slices.createSimpleSlice();
+    WritableSlice<VariableDescriptor, Boolean> IS_UNINITIALIZED = Slices.createSimpleSetSlice();
 
     WritableSlice<CjExpression, ExplicitSmartCasts> UNSTABLE_SMARTCAST = new BasicWritableSlice<>( DO_NOTHING);
     WritableSlice<CjExpression, DataFlowInfo> DATAFLOW_INFO_AFTER_CONDITION = Slices.createSimpleSlice();
@@ -107,6 +108,8 @@ public interface BindingContext {
     WritableSlice<PsiElement, PropertyDescriptor> PRIMARY_CONSTRUCTOR_PARAMETER = Slices.createSimpleSlice();
     WritableSlice<CjReferenceExpression, ClassifierDescriptorWithTypeParameters> SHORT_REFERENCE_TO_COMPANION_OBJECT =
             new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<ValueParameterDescriptor, PropertyDescriptor> VALUE_PARAMETER_AS_PROPERTY = Slices.createSimpleSlice();
+
     WritableSlice<CjFunction, CangJieType> EXPECTED_RETURN_TYPE = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<FqNameUnsafe, ClassDescriptor> FQNAME_TO_CLASS_DESCRIPTOR = new BasicWritableSlice<>(DO_NOTHING, true);
     WritableSlice<CjExpression, ResolvedCall<FunctionDescriptor>> INDEXED_LVALUE_SET = Slices.createSimpleSlice();

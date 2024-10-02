@@ -44,6 +44,7 @@ class AnnotationChecker {
                 is CjProperty -> {
                     T_MEMBER_PROPERTY
                 }
+
                 is CjVariable -> {
                     when {
                         annotated.isLocal -> TargetLists.T_LOCAL_VARIABLE
@@ -51,6 +52,7 @@ class AnnotationChecker {
                         else -> TargetLists.T_TOP_LEVEL_VARIABLE
                     }
                 }
+
                 is CjParameter -> {
                     val destructuringDeclaration = annotated.destructuringDeclaration
                     when {
@@ -66,6 +68,8 @@ class AnnotationChecker {
                         ExpressionTypingUtils.isFunctionExpression(descriptor) -> TargetLists.T_FUNCTION_EXPRESSION
                         annotated.name == null -> TargetLists.T_FUNCTION_EXPRESSION
                         annotated.isLocal -> TargetLists.T_LOCAL_FUNCTION
+                        annotated.parent is CjStruct || annotated.parent.parent is CjStruct -> TargetLists.T_STRUCT_MEMBER_FUNCTION
+
                         annotated.parent is CjTypeStatement || annotated.parent is CjClassBody -> TargetLists.T_MEMBER_FUNCTION
                         else -> TargetLists.T_TOP_LEVEL_FUNCTION
                     }
@@ -108,7 +112,8 @@ class AnnotationTargetList(
 
 enum class CangJieTarget(val description: String, val isDefault: Boolean = true) {
     LOCAL_CLASS("local class", false),
-    CLASS("class"), EXTEND("extend"),
+    CLASS("class"),
+    EXTEND("extend"),
     CLASS_ONLY("class", false),
     STRUCT("struct", false),
     ENUM("enum ", false),
@@ -127,7 +132,7 @@ enum class CangJieTarget(val description: String, val isDefault: Boolean = true)
     MEMBER_VARIABLE("member variable", false),
     MEMBER_PROPERTY("member property", false),
 
- // includes PROPERTY_PARAMETER, with and without field/delegate
+    // includes PROPERTY_PARAMETER, with and without field/delegate
     CONSTRUCTOR("constructor"),
     PROPERTY_GETTER("getter"),
     PROPERTY_SETTER("setter"),
@@ -143,6 +148,8 @@ enum class CangJieTarget(val description: String, val isDefault: Boolean = true)
     LOCAL_FUNCTION("local function", false),
     TYPE_PARAMETER("type parameter", false),
     MEMBER_FUNCTION("member function", false),
+   STRUCT_MEMBER_FUNCTION("struct member function", false),
+
     TYPE("type usage", false),
 
     ;
@@ -199,11 +206,11 @@ object AnnotationTargetLists {
     val T_DESTRUCTURING_DECLARATION = targetList(DESTRUCTURING_DECLARATION)
     val T_INITIALIZER = targetList(INITIALIZER)
     val T_VALUE_PARAMETER_WITHOUT_LET = targetList(VALUE_PARAMETER)
-        val T_LOCAL_VARIABLE = targetList(LOCAL_VARIABLE)
+    val T_LOCAL_VARIABLE = targetList(LOCAL_VARIABLE)
     val T_MEMBER_VARIABLE = targetList(MEMBER_VARIABLE, VARIABLE)
     val T_MEMBER_PROPERTY = targetList(MEMBER_PROPERTY, PROPERTY)
-    val T_TOP_LEVEL_PROPERTY = targetList( TOP_LEVEL_PROPERTY, PROPERTY)
-    val T_TOP_LEVEL_VARIABLE = targetList( TOP_LEVEL_VARIABLE, VARIABLE)
+    val T_TOP_LEVEL_PROPERTY = targetList(TOP_LEVEL_PROPERTY, PROPERTY)
+    val T_TOP_LEVEL_VARIABLE = targetList(TOP_LEVEL_VARIABLE, VARIABLE)
 
     val T_TYPEALIAS = targetList(TYPEALIAS)
     val T_VALUE_PARAMETER_WITH_LET = targetList(VALUE_PARAMETER, VARIABLE, MEMBER_PROPERTY) {
@@ -222,6 +229,9 @@ object AnnotationTargetLists {
         onlyWithUseSiteTarget(VALUE_PARAMETER)
     }
     val T_TOP_LEVEL_FUNCTION = targetList(TOP_LEVEL_FUNCTION, FUNCTION) {
+        onlyWithUseSiteTarget(VALUE_PARAMETER)
+    }
+    val T_STRUCT_MEMBER_FUNCTION = targetList(STRUCT_MEMBER_FUNCTION, /*FUNCTION*/) {
         onlyWithUseSiteTarget(VALUE_PARAMETER)
     }
     val T_MEMBER_FUNCTION = targetList(MEMBER_FUNCTION, FUNCTION) {

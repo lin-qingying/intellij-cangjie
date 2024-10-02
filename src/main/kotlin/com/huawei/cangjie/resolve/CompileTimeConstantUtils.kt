@@ -5,6 +5,7 @@ import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.builtins.isFunctionType
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.diagnostics.Errors.INVALID_TYPE_OF_ANNOTATION_MEMBER
+
 import com.huawei.cangjie.diagnostics.Errors.OPTIONAL_TYPE_OF_ANNOTATION_MEMBER
 import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.psi.CjParameter

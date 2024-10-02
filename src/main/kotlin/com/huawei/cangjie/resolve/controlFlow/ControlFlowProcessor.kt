@@ -1191,56 +1191,20 @@ class ControlFlowProcessor(
             return receiverExpression
         }
 
+
         override fun visitVariable(variable: CjVariable) {
             builder.declareVariable(variable)
             val initializer = variable.initializer
             if (initializer != null) {
                 visitAssignment(variable, getDeferredValue(initializer), variable)
             }
-//            val delegate = variable.delegateExpression
-//            if (delegate != null) {
-//                // We do not want to have getDeferredValue(delegate) here, because delegate value will be read anyway later
-//                visitAssignment(variable, getDeferredValue(null), variable)
-//                generateInstructions(delegate)
-//                if (variable.isLocal) {
-//                    generateInitializer(variable, createSyntheticValue(variable, MagicKind.FAKE_INITIALIZER))
-//                }
-//                if (builder.getBoundValue(delegate) != null) {
-//                    createSyntheticValue(variable, MagicKind.VALUE_CONSUMER, delegate)
-//                }
-//            }
 
-//            if (CjPsiUtil.isLocal(variable)) {
-//                for (accessor in variable.accessors) {
-//                    generateInstructions(accessor)
-//                }
-//            }
+
         }
-//        override fun visitProperty(property: CjProperty) {
-//            builder.declareVariable(property)
-//            val initializer = property.initializer
-//            if (initializer != null) {
-//                visitAssignment(property, getDeferredValue(initializer), property)
-//            }
-//            val delegate = property.delegateExpression
-//            if (delegate != null) {
-//                // We do not want to have getDeferredValue(delegate) here, because delegate value will be read anyway later
-//                visitAssignment(property, getDeferredValue(null), property)
-//                generateInstructions(delegate)
-//                if (property.isLocal) {
-//                    generateInitializer(property, createSyntheticValue(property, MagicKind.FAKE_INITIALIZER))
-//                }
-//                if (builder.getBoundValue(delegate) != null) {
-//                    createSyntheticValue(property, MagicKind.VALUE_CONSUMER, delegate)
-//                }
-//            }
-//
-//            if (CjPsiUtil.isLocal(property)) {
-//                for (accessor in property.accessors) {
-//                    generateInstructions(accessor)
-//                }
-//            }
-//        }
+        override fun visitProperty(property: CjProperty) {
+            builder.declareVariable(property)
+
+        }
 
         override fun visitDestructuringDeclaration(destructuringDeclaration: CjDestructuringDeclaration) {
             visitDestructuringDeclaration(destructuringDeclaration, true)
@@ -1544,7 +1508,7 @@ class ControlFlowProcessor(
 
         override fun visitCjFile(file: CjFile) {
             for (declaration in file.declarations) {
-                if (declaration is CjProperty) {
+                if (declaration is CjProperty || declaration is CjVariable) {
                     generateInstructions(declaration)
                 }
             }

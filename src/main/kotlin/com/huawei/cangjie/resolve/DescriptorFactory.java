@@ -27,6 +27,13 @@ public class DescriptorFactory {
     }
 
     @NotNull
+    public static PropertyGetterDescriptorImpl createDefaultGetter(
+            @NotNull PropertyDescriptor propertyDescriptor,
+            @NotNull Annotations annotations
+    ) {
+        return createGetter(propertyDescriptor, annotations, true   );
+    }
+    @NotNull
     public static PropertySetterDescriptorImpl createSetter(
             @NotNull PropertyDescriptor propertyDescriptor,
             @NotNull Annotations annotations,

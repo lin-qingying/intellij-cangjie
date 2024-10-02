@@ -259,7 +259,7 @@ protected constructor(
                 is CjProperty -> {
                     val name = declaration.nameAsSafeName
                     if (nameFilter(name)) {
-                        result.addAll(getContributedVariables(name, location))
+                        result.addAll(getContributedPropertys(name, location))
                     }
                 }
 

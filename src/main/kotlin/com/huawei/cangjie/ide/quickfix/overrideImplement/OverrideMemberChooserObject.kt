@@ -10,6 +10,7 @@ import com.huawei.cangjie.psi.psiUtil.findDocComment
 import com.huawei.cangjie.references.util.DescriptorToSourceUtilsIde
 import com.huawei.cangjie.renderer.*
 import com.huawei.cangjie.renderer.DescriptorRenderer.Companion.withOptions
+import com.huawei.cangjie.resolve.setSingleOverridden
 import com.huawei.cangjie.types.util.approximateFlexibleTypes
 import com.intellij.codeInsight.generation.ClassMember
 import com.intellij.codeInsight.generation.MemberChooserObject
@@ -133,7 +134,7 @@ fun OverrideMemberChooserObject.generateMember(
             bodyType,
             mode == MemberGenerateMode.OVERRIDE
         )
-//        is PropertyDescriptor -> generateProperty(project, descriptor, renderer, bodyType, mode == MemberGenerateMode.OVERRIDE)
+        is PropertyDescriptor -> generateProperty(project, descriptor, renderer, bodyType, mode == MemberGenerateMode.OVERRIDE)
         else -> error("Unknown member to override: $descriptor")
     }
 
@@ -323,4 +324,43 @@ fun generateUnsupportedOrSuperCall(
             }
         }
     }
+}
+private fun generateProperty(
+    project: Project,
+    descriptor: PropertyDescriptor,
+    renderer: DescriptorRenderer,
+    bodyType: BodyType,
+    forceOverride: Boolean
+): CjProperty {
+    val newDescriptor = descriptor.wrap(forceOverride)
+
+    val returnType = descriptor.returnType
+    val returnsNotUnit = returnType != null && !CangJieBuiltIns.isUnit(returnType)
+
+    val body =
+        if (bodyType != BodyType.NoBody) {
+            buildString {
+                append("{")
+                append("\nget(){")
+
+                append(generateUnsupportedOrSuperCall(project, descriptor, bodyType, !returnsNotUnit))
+                append("}")
+                if (descriptor.isVar) {
+                    append("\nset(value) {}")
+                }
+                append("}")
+
+            }
+        } else ""
+    return CjPsiFactory(project).createProperty(renderer.render(newDescriptor) + body)
+}
+private fun PropertyDescriptor.wrap(forceOverride: Boolean): PropertyDescriptor {
+    val delegate = copy(containingDeclaration, if (forceOverride) Modality.OPEN else modality, visibility, kind, true) as PropertyDescriptor
+    val newDescriptor = object : PropertyDescriptor by delegate {
+        override fun isExpect() = false
+    }
+    if (forceOverride) {
+        newDescriptor.setSingleOverridden(this)
+    }
+    return newDescriptor
 }

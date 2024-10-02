@@ -209,7 +209,7 @@ object PositioningStrategies {
         override fun mark(element: CjDeclaration): List<TextRange> {
             return when (element) {
                 is CjParameter -> markElement(element.letOrVarKeyword ?: element)
-//                is CjProperty -> markElement(element.valOrVarKeyword)
+                is CjProperty -> markElement(element.letOrVarKeyword ?: element)
                 is CjVariable -> markElement(element.letOrVarKeyword ?: element)
                 is CjDestructuringDeclaration -> markElement(element.letOrVarKeyword ?: element)
                 else -> error("Declaration is neither a parameter nor a property: " + element.getElementTextWithContext())

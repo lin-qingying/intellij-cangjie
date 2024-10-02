@@ -613,7 +613,7 @@ class ResolveElementCache(
         ForceResolveUtil.forceResolveAllContents(descriptor)
 
         val bodyResolveContext = BodyResolveContextForLazy(TopDownAnalysisMode.LocalDeclarations) { declaration ->
-            assert(declaration.parent == property || declaration == property) {
+            assert(declaration.parent == property || declaration == property || declaration.parent.parent == property) {
                 "Must be called only for property accessors or for property, but called for $declaration"
             }
             resolveSession.declarationScopeProvider.getResolutionScopeForDeclaration(declaration)

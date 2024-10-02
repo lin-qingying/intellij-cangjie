@@ -983,7 +983,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 //                    tokenId != null && (tokenId == INTERFACE_KEYWORD_Id || tokenId == EXTEND_KEYWORD_Id) ?  parseFunction(true,classdetector, detector):parseFunction( ) ;
             case PROP_KEYWORD_Id ->
-                    tokenId != null && (tokenId == INTERFACE_KEYWORD_Id || tokenId == EXTEND_KEYWORD_Id) ? parseProperty(true) : parseProperty(classdetector, detector);
+                    tokenId != null && (tokenId == INTERFACE_KEYWORD_Id || tokenId == EXTEND_KEYWORD_Id) ? parseProperty(true, classdetector, detector) : parseProperty(classdetector, detector);
             case LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id -> parseVariable(classdetector);
             default -> null;
         };
@@ -1410,7 +1410,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
         if (expect(LPAR, "Expecting '('")) {
+            SyntaxTreeBuilder.Marker plist = mark();
+            SyntaxTreeBuilder.Marker value = mark();
+
             expect(IDENTIFIER, "Expecting identifier");
+            value.done(VALUE_PARAMETER);
+            plist.done(VALUE_PARAMETER_LIST);
             if (expect(RPAR, "Expecting ')'")) {
                 if (at(LBRACE)) {
                     parseBlock();
@@ -1454,18 +1459,26 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         PsiBuilder.Marker body = mark();
         advance(); // LBRACE
+        boolean isGet = false;
+        boolean isSet = false;
+        while (at(GET_KEYWORD) || at(SET_KEYWORD)) {
+            if (at(GET_KEYWORD) && !isGet) {
+                isGet = true;
+                parsePropertyGet();
+            }
 
+            if (at(SET_KEYWORD) && !isSet) {
+                isSet = true;
+                parsePropertySet(detector);
+            }
 
-        if (at(GET_KEYWORD)) {
-            parsePropertyGet();
-        } else {
+        }
+
+        if (!isGet) {
             error("Get accessor should be implemented");
         }
 
-
-        if (at(SET_KEYWORD)) {
-            parsePropertySet(detector);
-        } else if (detector != null && detector.isMutDetected()) {
+        if (!isSet && detector != null && detector.isMutDetected()) {
             error("Set accessor should be implemented");
         }
 
@@ -2316,7 +2329,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //    }
 
 
-
     /**
      * 外部函数声明块
      */
@@ -2874,6 +2886,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         return typeRefMarker;
     }
+
     /**
      * 解析This类型
      */
@@ -2892,6 +2905,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
     }
+
     /**
      * 解析基本类型
      */
@@ -3118,7 +3132,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     private void parseTypeRefContents() {
-        if(parseThisType()) return;
+        if (parseThisType()) return;
         if (parseBasicType()) return;
         if (at(IDENTIFIER)) {
             parseUserType();

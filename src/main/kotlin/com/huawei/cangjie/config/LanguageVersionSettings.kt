@@ -65,12 +65,14 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER),
     StrictOnlyInputTypesChecks(CANGJIE_0_53_4),
 
     TypeInferenceOnCallsWithSelfTypes(CANGJIE_0_53_4),
+    TakeIntoAccountEffectivelyFinalInMustBeInitializedCheck(CANGJIE_0_53_4, kind = OTHER), // KT-58587
 
     UseBuilderInferenceWithoutAnnotation(CANGJIE_0_53_4),
 
     DefinitelyNonNullableTypes(CANGJIE_0_53_4),
 
     SafeCallsAreAlwaysNullable(CANGJIE_0_53_4),
+    RestrictionOfLetReassignmentViaBackingField(CANGJIE_0_53_4, kind = BUG_FIX),
 
     ProperTypeInferenceConstraintsProcessing(CANGJIE_0_53_4, kind = BUG_FIX),
 

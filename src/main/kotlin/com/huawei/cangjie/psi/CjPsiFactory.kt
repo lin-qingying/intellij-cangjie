@@ -108,7 +108,11 @@ class CjPsiFactory private constructor(
     }
 
     fun createProperty(@NonNls text: String): CjProperty {
-        return createDeclaration(text)
+
+     return   createClass(
+            "class A { $text }"
+        ).properties.first()
+
     }
 
     fun createSimpleName(@NonNls name: String): CjSimpleNameExpression {

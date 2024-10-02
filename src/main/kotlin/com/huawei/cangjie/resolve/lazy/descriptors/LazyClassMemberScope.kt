@@ -40,8 +40,43 @@ open class LazyClassMemberScope(
     override fun getScopeForInitializerResolution(declaration: CjDeclaration): LexicalScope =
         thisDescriptor.scopeForInitializerResolution
 
+    protected open fun createPropertiesFromPrimaryConstructorParameters(name: Name, result: MutableSet<PropertyDescriptor>) {
+
+        // From primary constructor parameters
+        val primaryConstructor = getPrimaryConstructor() ?: return
+
+        val valueParameterDescriptors = primaryConstructor.valueParameters
+        val primaryConstructorParameters = declarationProvider.primaryConstructorParameters
+        assert(valueParameterDescriptors.size == primaryConstructorParameters.size) {
+            "From descriptor: ${valueParameterDescriptors.size} but from PSI: ${primaryConstructorParameters.size}"
+        }
+
+        for (valueParameterDescriptor in valueParameterDescriptors) {
+            if (name != valueParameterDescriptor.name) continue
+
+            val parameter = primaryConstructorParameters.get(valueParameterDescriptor.index)
+            if (parameter.hasLetOrVar()) {
+                val propertyDescriptor =
+                    trace.get(BindingContext.PRIMARY_CONSTRUCTOR_PARAMETER, parameter)
+                        ?: c.descriptorResolver.resolvePrimaryConstructorParameterToAProperty(
+                            // TODO: can't test because we get types from cache for this case
+                            thisDescriptor, valueParameterDescriptor, thisDescriptor.scopeForConstructorHeaderResolution, parameter, trace
+                        )
+                result.add(propertyDescriptor)
+            }
+        }
+    }
     override fun getNonDeclaredProperties(name: Name, result: MutableSet<PropertyDescriptor>) {
-//        TODO("Not yet implemented")
+        createPropertiesFromPrimaryConstructorParameters(name, result)
+
+        // Members from supertypes
+        val fromSupertypes = ArrayList<PropertyDescriptor>()
+        for (supertype in supertypes) {
+            fromSupertypes.addAll(supertype.memberScope.getContributedPropertys(name, NoLookupLocation.FOR_ALREADY_TRACKED))
+        }
+//        result.addAll(generateDelegatingDescriptors(name, EXTRACT_PROPERTIES, result))
+        c.syntheticResolveExtension.generateSyntheticProperties(thisDescriptor, name, trace.bindingContext, fromSupertypes, result)
+        generateFakeOverrides(name, fromSupertypes, result, PropertyDescriptor::class.java)
     }
 
     private val allClassifierDescriptors = storageManager.createLazyValue {
@@ -133,7 +168,7 @@ open class LazyClassMemberScope(
                 if (descriptor is FunctionDescriptor) {
                     result.addAll(getContributedFunctions(descriptor.name, location))
                 } else if (descriptor is PropertyDescriptor) {
-                    result.addAll(getContributedVariables(descriptor.name, location))
+                    result.addAll(getContributedPropertys(descriptor.name, location))
                 }
                 // Nothing else is inherited
             }

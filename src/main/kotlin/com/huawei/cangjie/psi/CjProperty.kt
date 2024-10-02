@@ -1,15 +1,18 @@
 package com.huawei.cangjie.psi
 
 import com.huawei.cangjie.lexer.CjTokens
+ 
 import com.huawei.cangjie.psi.stubs.CangJiePropertyStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
+import com.intellij.psi.tree.TokenSet
 
 open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVariableDeclaration {
     companion object {
-
+        private val LET_VAR_TOKEN_SET =
+            TokenSet.create(CjTokens.PROP_KEYWORD, CjTokens.MUT_KEYWORD, CjTokens.CONST_KEYWORD)
         val LOG: Logger = Logger.getInstance(
             CjProperty::class.java
         )
@@ -108,7 +111,11 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
     }
 
     override val letOrVarKeyword: PsiElement?
-        get() = null
+       get() {
+        val element =
+            checkNotNull(findChildByType(LET_VAR_TOKEN_SET)) { "Let or var should always exist for property" + this.text }
+        return element
+    }
 
 
     constructor(stub: CangJiePropertyStub) : super(stub, CjStubElementTypes.PROPERTY)

@@ -217,7 +217,7 @@ public class DefaultErrorMessages {
 
         MAP.put(ASSIGNMENT_IN_EXPRESSION_CONTEXT, "Assignments are not expressions, and only expressions are allowed in this context");
         MAP.put(VARIABLE_EXPECTED, "Variable expected");
-        MAP.put(LET_REASSIGNMENT, "Val cannot be reassigned", NAMED);
+        MAP.put(LET_REASSIGNMENT, "Cannot assign to immutable value {0}", NAMED);
         MAP.put(USELESS_ELVIS, "Elvis operator (??) always returns the left operand of non-option type {0}", RENDER_TYPE);
         MAP.put(USELESS_ELVIS_RIGHT_IS_NULL, "Right operand of elvis operator (??) is useless if it is Option");
         MAP.put(EXPRESSION_EXPECTED, "{0} is not an expression, and only expressions are allowed here", (expression, context) -> {
@@ -276,7 +276,15 @@ public class DefaultErrorMessages {
         MAP.put(ABSTRACT_FUNCTION_IN_NON_ABSTRACT_CLASS, "Abstract function ''{0}'' in non-abstract class ''{1}''", STRING, NAMED);
         MAP.put(REPEATED_MODIFIER, "Repeated ''{0}''", TO_STRING);
         MAP.put(LET_WITH_SETTER, "A immutable  property cannot have a setter");
-
+        MAP.put(UNINITIALIZED_VARIABLE, "Variable ''{0}'' must be initialized", NAMED);
+        MAP.put(IMMUTABLE_FUNCTION_INSTANCE_MEMBER_MODIFICATION, "Instance member variable ''{0}'' cannot be modified in immutable function", NAMED);
+        MAP.put(MUST_BE_INITIALIZED, "Variable must be initialized");
+        MAP.put(VARIABLE_INITIALIZER_IN_INTERFACE, "Variable initializers are not allowed in interfaces");
+        MAP.put(INTERFACE_BODY_NO_VARIABLES, "Unexpected variable declaration in interface body");
+        MAP.put(VAR_OVERRIDDEN_BY_LET, "Mut-property {0} cannot be overridden by  property {1}", FQ_NAMES_IN_TYPES,
+                FQ_NAMES_IN_TYPES);
+        MAP.put(LET_OVERRIDDEN_BY_VAR, "property {0} cannot be overridden by  Mut-property {1}", FQ_NAMES_IN_TYPES,
+                FQ_NAMES_IN_TYPES);
         MAP.put(ABSTRACT_FUNCTION_WITH_BODY, "A function ''{0}'' with body cannot be abstract", NAMED);
     }
 

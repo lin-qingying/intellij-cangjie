@@ -1,31 +1,39 @@
 package com.huawei.cangjie.resolve.controlFlow
 
+
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.cfg.pseudocodeTraverser.Edges
 import com.huawei.cangjie.cfg.pseudocodeTraverser.TraversalOrder
 import com.huawei.cangjie.cfg.pseudocodeTraverser.traverse
 import com.huawei.cangjie.cfg.pseudocodeTraverser.traverseIncludingDeadCode
 import com.huawei.cangjie.config.LanguageVersionSettings
-import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.descriptors.CallableDescriptor
-import com.huawei.cangjie.descriptors.ClassDescriptor
-import com.huawei.cangjie.descriptors.FunctionDescriptor
+import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.impl.SyntheticFieldDescriptor
+import com.huawei.cangjie.diagnostics.Diagnostic
+import com.huawei.cangjie.diagnostics.DiagnosticFactory
 import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.diagnostics.MatchMissingCase
 import com.huawei.cangjie.psi.*
-import com.huawei.cangjie.resolve.BindingContext
+import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.BindingContext.*
+import com.huawei.cangjie.resolve.caches.getEffectiveModality
+import com.huawei.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
+import com.huawei.cangjie.resolve.calls.util.getDispatchReceiverWithSmartCast
+import com.huawei.cangjie.resolve.calls.util.getResolvedCall
 import com.huawei.cangjie.resolve.controlFlow.pseudocode.Pseudocode
+import com.huawei.cangjie.resolve.controlFlow.pseudocode.PseudocodeUtil
 import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.CjElementInstruction
 import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.Instruction
 import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.InstructionVisitor
 import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.eval.*
 import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.jumps.*
 import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.special.MarkInstruction
+import com.huawei.cangjie.resolve.controlFlow.variable.BlockScopeVariableInfo
 import com.huawei.cangjie.resolve.controlFlow.variable.PseudocodeVariablesData
+import com.huawei.cangjie.resolve.controlFlow.variable.VariableControlFlowState
+import com.huawei.cangjie.resolve.controlFlow.variable.VariableInitReadOnlyControlFlowInfo
+import com.huawei.cangjie.resolve.descriptorUtil.isEffectivelyExternal
 import com.huawei.cangjie.resolve.descriptorUtil.module
-import com.huawei.cangjie.resolve.isUsedAsExpression
-import com.huawei.cangjie.resolve.isUsedAsResultOfLambda
-import com.huawei.cangjie.resolve.recordUsedAsExpression
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.expressions.MatchChecker
 import com.huawei.cangjie.types.expressions.checkTypePattern
@@ -36,6 +44,7 @@ import com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.huawei.cangjie.types.util.TypeUtils.noExpectedType
 import com.huawei.cangjie.types.util.isBooleanOrNullableBoolean
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
 
 interface ControlFlowInformationProvider {
     fun checkForLocalClassOrObjectMode()
@@ -228,17 +237,36 @@ class ControlFlowInformationProviderImpl private constructor(
     }
 
     override fun checkForLocalClassOrObjectMode() {
-//        recordInitializedVariables()
+        recordInitializedVariables()
     }
 
-    //    private fun recordInitializedVariables() {
-//        val pseudocode = pseudocodeVariablesData.pseudocode
-//        val initializers = pseudocodeVariablesData.variableInitializers
-//        recordInitializedVariables(pseudocode, initializers)
-//        for (instruction in pseudocode.localDeclarations) {
-//            recordInitializedVariables(instruction.body, initializers)
-//        }
-//    }
+    private fun recordInitializedVariables() {
+        val pseudocode = pseudocodeVariablesData.pseudocode
+        val initializers = pseudocodeVariablesData.variableInitializers
+        recordInitializedVariables(pseudocode, initializers)
+        for (instruction in pseudocode.localDeclarations) {
+            recordInitializedVariables(instruction.body, initializers)
+        }
+    }
+
+    private fun recordInitializedVariables(
+        pseudocode: Pseudocode,
+        initializersMap: Map<Instruction, Edges<VariableInitReadOnlyControlFlowInfo>>
+    ) {
+        val initializers = initializersMap[pseudocode.exitInstruction] ?: return
+        val declaredVariables = pseudocodeVariablesData.getDeclaredVariables(pseudocode, false)
+        for (variable in declaredVariables) {
+            // - If we have a primary constructor and several secondary constructors then the `if` below is called only once for the primary
+            //   constructor/init block
+            // - If we have several secondary constructors without a primary constructor then the `if` below is called each time for every
+            //   secondary constructor. (init block is considered as part of each secondary constructor in that case)
+//            if (true) {
+            if (initializers.incoming.getOrNull(variable)?.definitelyInitialized() == true) continue
+//                trace.record(IS_DEFINITELY_NOT_ASSIGNED_IN_CONSTRUCTOR, variable)
+            trace.record(IS_UNINITIALIZED, variable)
+//            }
+        }
+    }
 
     fun getLocalFunctions(): Set<Pair<CjFunction, FunctionDescriptor?>> {
         return pseudocode.localDeclarations.mapNotNull {
@@ -282,7 +310,7 @@ class ControlFlowInformationProviderImpl private constructor(
     }
 
     override fun checkDeclaration() {
-//        recordInitializedVariables()
+        recordInitializedVariables()
 
         checkLocalFunctions()
         checkMainFunction()
@@ -383,7 +411,7 @@ class ControlFlowInformationProviderImpl private constructor(
                 val context = trace.bindingContext
                 val missingCases = MatchChecker.getMissingCases(element, context)
 //                检查连接符
-                MatchChecker.checkConnector(element,trace)
+                MatchChecker.checkConnector(element, trace)
 
                 val elseEntry = element.entries.find { it.isElse }
                 val subjectExpression = element.subjectExpression
@@ -419,17 +447,24 @@ class ControlFlowInformationProviderImpl private constructor(
                     }
 
 //                    检查一些类型字面量数据固定或比较少的模式 例如 ()    true false
-                    if( MatchChecker. checkLiteralPattern(element,subjectType,context)){
+                    if (MatchChecker.checkLiteralPattern(element, subjectType, context)) {
                         continue
                     }
 
                     if (element.entries.any {
-                            it.conditions.isNotEmpty() &&           it.conditions.first() is CjBindingPattern &&   isBindingPattern(it.conditions.first() as CjBindingPattern,context)
+                            it.conditions.isNotEmpty() && it.conditions.first() is CjBindingPattern && isBindingPattern(
+                                it.conditions.first() as CjBindingPattern,
+                                context
+                            )
                         }) {
                         continue
                     }
                     if (element.entries.any {
-                            it.conditions.isNotEmpty() &&     it.conditions.first() is CjTypePattern &&   checkTypePattern(it.conditions.first() as CjTypePattern,subjectType,context)
+                            it.conditions.isNotEmpty() && it.conditions.first() is CjTypePattern && checkTypePattern(
+                                it.conditions.first() as CjTypePattern,
+                                subjectType,
+                                context
+                            )
                         }) {
                         continue
                     }
@@ -486,7 +521,7 @@ class ControlFlowInformationProviderImpl private constructor(
     }
 
     private enum class AlgebraicTypeKind(val displayName: String) {
-       Constant("constant"),
+        Constant("constant"),
         Sealed("sealed class/interface"),
         Enum("enum"),
         Tuple("Tuple"),
@@ -526,7 +561,7 @@ class ControlFlowInformationProviderImpl private constructor(
     private fun checkImplicitCastOnConditionalExpression(expression: CjExpression) {
         val branchExpressions = collectResultingExpressionsOfConditionalExpression(expression)
 
-        val expectedExpressionType = trace.get(EXPECTED_EXPRESSION_TYPE, expression)
+        val expectedExpressionType = trace[EXPECTED_EXPRESSION_TYPE, expression]
         if (expectedExpressionType != null && expectedExpressionType !== DONT_CARE) return
 
         val expressionType = trace.getType(expression) ?: return
@@ -554,46 +589,415 @@ class ControlFlowInformationProviderImpl private constructor(
         }
     }
 
-    private fun markUninitializedVariables() {
-//        val varWithUninitializedErrorGenerated = hashSetOf<VariableDescriptor>()
-//        val varWithValReassignErrorGenerated = hashSetOf<VariableDescriptor>()
-//        val processClassOrObject = subroutine is CjClassOrObject || subroutine is CjSecondaryConstructor
-//
-//        val initializers = pseudocodeVariablesData.variableInitializers
-//        val declaredVariables = pseudocodeVariablesData.getDeclaredVariables(pseudocode, true)
-//        val blockScopeVariableInfo = pseudocodeVariablesData.blockScopeVariableInfo
-//
-//        val reportedDiagnosticMap = hashMapOf<Instruction, DiagnosticFactory<*>>()
-//
-//        pseudocode.traverse(TraversalOrder.FORWARD, initializers) { instruction: Instruction,
-//                                                                    enterData: VariableInitReadOnlyControlFlowInfo,
-//                                                                    exitData: VariableInitReadOnlyControlFlowInfo ->
-//
-//            val ctxt =
-//                VariableInitContext(instruction, reportedDiagnosticMap, enterData, exitData, blockScopeVariableInfo)
-//            if (ctxt.variableDescriptor == null) return@traverse
-//            if (instruction is ReadValueInstruction) {
-//                val element = instruction.element
-//                if (PseudocodeUtil.isThisOrNoDispatchReceiver(instruction, trace.bindingContext)
-//                    && declaredVariables.contains(ctxt.variableDescriptor)
-//                ) {
-//                    checkIsInitialized(ctxt, element, varWithUninitializedErrorGenerated)
-//                }
-//                return@traverse
-//            }
-//            if (instruction !is WriteValueInstruction) return@traverse
-//            val element = instruction.lValue as? CjExpression ?: return@traverse
-//            var error = checkValReassignment(
-//                ctxt, element, instruction,
-//                varWithValReassignErrorGenerated
-//            )
-//            if (!error && processClassOrObject) {
-//                error = checkAssignmentBeforeDeclaration(ctxt, element)
-//            }
-//            if (!error && processClassOrObject) {
-//                checkInitializationForCustomSetter(ctxt, element)
-//            }
+    private open inner class VariableContext(
+        val instruction: Instruction,
+        val reportedDiagnosticMap: MutableMap<Instruction, DiagnosticFactory<*>>
+    ) {
+        val variableDescriptor =
+            PseudocodeUtil.extractVariableDescriptorFromReference(instruction, trace.bindingContext)
+    }
+
+    private inner class VariableInitContext(
+        instruction: Instruction,
+        map: MutableMap<Instruction, DiagnosticFactory<*>>,
+        `in`: VariableInitReadOnlyControlFlowInfo,
+        out: VariableInitReadOnlyControlFlowInfo,
+        blockScopeVariableInfo: BlockScopeVariableInfo
+    ) : VariableContext(instruction, map) {
+        val enterInitState = initialize(variableDescriptor, blockScopeVariableInfo, `in`)
+        val exitInitState = initialize(variableDescriptor, blockScopeVariableInfo, out)
+
+        private fun initialize(
+            variableDescriptor: VariableDescriptor?,
+            blockScopeVariableInfo: BlockScopeVariableInfo,
+            map: VariableInitReadOnlyControlFlowInfo
+        ): VariableControlFlowState? {
+            val state = map.getOrNull(variableDescriptor ?: return null)
+            if (state != null) return state
+            return PseudocodeVariablesData.getDefaultValueForInitializers(
+                variableDescriptor,
+                instruction,
+                blockScopeVariableInfo
+            )
+        }
+    }
+
+    /**
+     * The method provides reporting of the same diagnostic only once for copied instructions
+     * (depends on whether it should be reported for all or only for one of the copies)
+     */
+    private fun report(
+        diagnostic: Diagnostic,
+        ctxt: VariableContext
+    ) {
+        val instruction = ctxt.instruction
+        if (instruction.copies.isEmpty()) {
+            trace.report(diagnostic)
+            return
+        }
+        val previouslyReported = ctxt.reportedDiagnosticMap
+        previouslyReported[instruction] = diagnostic.factory
+
+        var alreadyReported = false
+        var sameErrorForAllCopies = true
+        for (copy in instruction.copies) {
+            val previouslyReportedErrorFactory = previouslyReported[copy]
+            if (previouslyReportedErrorFactory != null) {
+                alreadyReported = true
+            }
+
+            if (previouslyReportedErrorFactory !== diagnostic.factory) {
+                sameErrorForAllCopies = false
+            }
+        }
+
+        if (mustBeReportedOnAllCopies(diagnostic.factory)) {
+            if (sameErrorForAllCopies) {
+                trace.report(diagnostic)
+            }
+        } else {
+            //only one reporting required
+            if (!alreadyReported) {
+                trace.report(diagnostic)
+            }
+        }
+    }
+
+    private fun checkIsInitialized(
+        ctxt: VariableInitContext,
+        element: CjElement,
+        varWithUninitializedErrorGenerated: MutableCollection<VariableDescriptor>
+    ) {
+        if (element !is CjSimpleNameExpression) return
+
+        val isDefinitelyInitialized = ctxt.exitInitState?.definitelyInitialized() ?: false
+        val variableDescriptor = ctxt.variableDescriptor
+//        if (!isDefinitelyInitialized && variableDescriptor is VariableDescriptor) {
+//            isDefinitelyInitialized = variableDescriptor.isDefinitelyInitialized()
 //        }
+        if (!isDefinitelyInitialized && !varWithUninitializedErrorGenerated.contains(variableDescriptor)) {
+//            if (variableDescriptor !is VariableDescriptor) {
+//                variableDescriptor?.let { varWithUninitializedErrorGenerated.add(it) }
+//            }
+            when (variableDescriptor) {
+                is ValueParameterDescriptor ->
+                    report(UNINITIALIZED_PARAMETER.on(element, variableDescriptor), ctxt)
+
+                is FakeCallableDescriptorForObject -> {
+                    val classDescriptor = variableDescriptor.classDescriptor
+                    when (classDescriptor.kind) {
+                        ClassKind.ENUM_ENTRY ->
+                            report(UNINITIALIZED_ENUM_ENTRY.on(element, classDescriptor), ctxt)
+
+                        else -> {
+                        }
+                    }
+                }
+
+                is VariableDescriptor ->
+                    if (!(/*variableDescriptor is MemberDescriptor &&*/ variableDescriptor.isEffectivelyExternal())
+                    ) {
+                        report(UNINITIALIZED_VARIABLE.on(element, variableDescriptor), ctxt)
+                    }
+            }
+        }
+    }
+
+    private fun PropertyDescriptor.isDefinitelyInitialized(): Boolean {
+        if (trace[BACKING_FIELD_REQUIRED, this] == true) return false
+        val property = DescriptorToSourceUtils.descriptorToDeclaration(this)
+
+        return true
+    }
+
+    private fun markUninitializedVariables() {
+        val varWithUninitializedErrorGenerated = hashSetOf<VariableDescriptor>()
+        val varWithLetReassignErrorGenerated = hashSetOf<VariableDescriptor>()
+        val processClassOrObject = subroutine is CjTypeStatement || subroutine is CjSecondaryConstructor
+
+        val initializers = pseudocodeVariablesData.variableInitializers
+        val declaredVariables = pseudocodeVariablesData.getDeclaredVariables(pseudocode, true)
+        val blockScopeVariableInfo = pseudocodeVariablesData.blockScopeVariableInfo
+
+        val reportedDiagnosticMap = hashMapOf<Instruction, DiagnosticFactory<*>>()
+
+        pseudocode.traverse(TraversalOrder.FORWARD, initializers) { instruction: Instruction,
+                                                                    enterData: VariableInitReadOnlyControlFlowInfo,
+                                                                    exitData: VariableInitReadOnlyControlFlowInfo ->
+
+            val ctxt =
+                VariableInitContext(instruction, reportedDiagnosticMap, enterData, exitData, blockScopeVariableInfo)
+            if (ctxt.variableDescriptor == null) return@traverse
+            if (instruction is ReadValueInstruction) {
+                val element = instruction.element
+                if (PseudocodeUtil.isThisOrNoDispatchReceiver(instruction, trace.bindingContext)
+                    && declaredVariables.contains(ctxt.variableDescriptor)
+                ) {
+                    checkIsInitialized(ctxt, element, varWithUninitializedErrorGenerated)
+                }
+                return@traverse
+            }
+            if (instruction !is WriteValueInstruction) return@traverse
+            val element = instruction.lValue as? CjExpression ?: return@traverse
+            var error = checkLetReassignment(
+                ctxt, element, instruction,
+                varWithLetReassignErrorGenerated
+            )
+            if (!error && processClassOrObject) {
+                error = checkAssignmentBeforeDeclaration(ctxt, element)
+            }
+            if (!error && processClassOrObject) {
+                checkInitializationForCustomSetter(ctxt, element)
+            }
+        }
+    }
+
+    private fun checkInitializationForCustomSetter(ctxt: VariableInitContext, expression: CjExpression): Boolean {
+        val variableDescriptor = ctxt.variableDescriptor
+        if (variableDescriptor !is PropertyDescriptor
+            || ctxt.enterInitState?.mayBeInitialized() == true
+            || ctxt.exitInitState?.mayBeInitialized() != true
+            || trace[BACKING_FIELD_REQUIRED, variableDescriptor] != true
+        ) {
+            return false
+        }
+
+        val property = DescriptorToSourceUtils.descriptorToDeclaration(variableDescriptor) as? CjProperty
+            ?: throw AssertionError("$variableDescriptor is not related to CjProperty")
+        val setter = property.setter
+        if (variableDescriptor.getEffectiveModality(languageVersionSettings) == Modality.FINAL && (setter == null || !setter.hasBody())) {
+            return false
+        }
+
+        val variable = if (expression is CjDotQualifiedExpression &&
+            expression.receiverExpression is CjThisExpression
+        ) {
+            expression.selectorExpression
+        } else {
+            expression
+        }
+        if (variable is CjSimpleNameExpression) {
+            trace.record(IS_UNINITIALIZED, variableDescriptor)
+            return true
+        }
+        return false
+    }
+
+    private fun VariableInitContext.isInitializationBeforeDeclaration(): Boolean =
+        // is not declared
+        enterInitState?.isDeclared != true && exitInitState?.isDeclared != true &&
+                // wasn't initialized before current instruction
+                enterInitState?.mayBeInitialized() != true
+
+    private fun checkAssignmentBeforeDeclaration(ctxt: VariableInitContext, expression: CjExpression) =
+        if (ctxt.isInitializationBeforeDeclaration()) {
+            if (ctxt.variableDescriptor != null) {
+                report(INITIALIZATION_BEFORE_DECLARATION.on(expression, ctxt.variableDescriptor), ctxt)
+            }
+            true
+        } else {
+            false
+        }
+
+    private fun checkLetReassignment(
+        ctxt: VariableInitContext,
+        expression: CjExpression,
+        writeValueInstruction: WriteValueInstruction,
+        varWithLetReassignErrorGenerated: MutableCollection<VariableDescriptor>
+    ): Boolean {
+        val variableDescriptor = ctxt.variableDescriptor
+        val mayBeInitializedNotHere = ctxt.enterInitState?.mayBeInitialized() ?: false
+        val hasBackingField = (variableDescriptor as? PropertyDescriptor)?.let {
+            trace[BACKING_FIELD_REQUIRED, it] ?: false
+        } ?: true
+        if (variableDescriptor is PropertyDescriptor && variableDescriptor.isVar) {
+            val descriptor = getEnclosingDescriptor(trace.bindingContext, expression)
+            val setterDescriptor = variableDescriptor.setter
+
+            val receiverValue = expression.getResolvedCall(trace.bindingContext)?.getDispatchReceiverWithSmartCast()
+
+            if (DescriptorVisibilityUtils.isVisible(
+                    receiverValue,
+                    variableDescriptor,
+                    descriptor,
+                    languageVersionSettings
+                )
+                && setterDescriptor != null
+            ) {
+                if (!DescriptorVisibilityUtils.isVisible(
+                        receiverValue,
+                        setterDescriptor,
+                        descriptor,
+                        languageVersionSettings
+                    )
+                ) {
+                    report(
+                        INVISIBLE_SETTER.on(
+                            expression, variableDescriptor, setterDescriptor.visibility,
+                            setterDescriptor
+                        ), ctxt
+                    )
+                    return true
+                } else {
+                    // don't return anything as only warning is reported (not error), so further diagnostics are also important
+                    reportVisibilityWarningForInternalFakeSetterOverride(
+                        setterDescriptor,
+                        expression,
+                        variableDescriptor,
+                        ctxt
+                    )
+                }
+            }
+        }
+        val isThisOrNoDispatchReceiver =
+            PseudocodeUtil.isThisOrNoDispatchReceiver(writeValueInstruction, trace.bindingContext)
+        val captured = variableDescriptor?.let { isCapturedWrite(it, writeValueInstruction) } ?: false
+        if ((mayBeInitializedNotHere || !hasBackingField || !isThisOrNoDispatchReceiver || captured) &&
+            variableDescriptor != null && !variableDescriptor.isVar
+        ) {
+            var hasReassignMethodReturningUnit = false
+            val operationReference =
+                when (val parent = expression.parent) {
+                    is CjBinaryExpression -> parent.operationReference
+                    is CjUnaryExpression -> parent.operationReference
+                    else -> null
+                }
+            if (operationReference != null) {
+                val descriptor = trace[REFERENCE_TARGET, operationReference]
+                if (descriptor is FunctionDescriptor) {
+                    if (descriptor.returnType?.let { CangJieBuiltIns.isUnit(it) } == true) {
+                        hasReassignMethodReturningUnit = true
+                    }
+                }
+                if (descriptor == null) {
+                    val descriptors =
+                        trace[AMBIGUOUS_REFERENCE_TARGET, operationReference] ?: emptyList<DeclarationDescriptor>()
+                    for (referenceDescriptor in descriptors) {
+                        if ((referenceDescriptor as? FunctionDescriptor)?.returnType?.let { CangJieBuiltIns.isUnit(it) } == true) {
+                            hasReassignMethodReturningUnit = true
+                        }
+                    }
+                }
+            }
+            if (!hasReassignMethodReturningUnit) {
+                if (!isThisOrNoDispatchReceiver || !varWithLetReassignErrorGenerated.contains(variableDescriptor)) {
+                    if (captured && !mayBeInitializedNotHere && hasBackingField && isThisOrNoDispatchReceiver) {
+                        if (variableDescriptor.containingDeclaration is ClassDescriptor) {
+                            report(CAPTURED_MEMBER_LET_INITIALIZATION.on(expression, variableDescriptor), ctxt)
+                        } else {
+                            report(CAPTURED_LET_INITIALIZATION.on(expression, variableDescriptor), ctxt)
+                        }
+                    } else {
+                        if (isBackingFieldReference(variableDescriptor)) {
+                            reportLetReassigned(expression, variableDescriptor, ctxt)
+                        } else {
+                            report(LET_REASSIGNMENT.on(expression, variableDescriptor), ctxt)
+                        }
+                    }
+                }
+                if (isThisOrNoDispatchReceiver) {
+                    // try to get rid of repeating VAL_REASSIGNMENT diagnostic only for vars with no receiver
+                    // or when receiver is this
+                    varWithLetReassignErrorGenerated.add(variableDescriptor)
+                }
+                return true
+            }
+        }
+
+        if (variableDescriptor?.containingDeclaration is ClassDescriptor) {
+            val cclass = variableDescriptor.containingDeclaration as ClassDescriptor
+            if (cclass.kind == ClassKind.STRUCT) {
+
+                when (val parentElement = writeValueInstruction.blockScope.block.parent) {
+                    is CjFunction -> {
+
+                        if (!parentElement.isMut) {
+                            report(
+                                IMMUTABLE_FUNCTION_INSTANCE_MEMBER_MODIFICATION.on(expression, variableDescriptor),
+                                ctxt
+                            )
+
+                        }
+                    }
+
+                }
+
+
+            }
+
+        }
+        return false
+    }
+
+    private fun reportLetReassigned(
+        expression: CjExpression,
+        variableDescriptor: VariableDescriptor,
+        ctxt: VariableInitContext
+    ) {
+        report(LET_REASSIGNMENT_VIA_BACKING_FIELD.on(languageVersionSettings, expression, variableDescriptor), ctxt)
+    }
+
+    private fun reportVisibilityWarningForInternalFakeSetterOverride(
+        setterDescriptor: PropertySetterDescriptor,
+        expression: CjExpression,
+        variableDescriptor: PropertyDescriptor,
+        ctxt: VariableInitContext
+    ) {
+        if (setterDescriptor.kind.isReal) return
+        if (setterDescriptor.visibility.isPublicAPI) return
+
+        val containingClass = setterDescriptor.containingDeclaration as? ClassDescriptor ?: return
+        val firstRealOverridden = setterDescriptor.firstOverridden { it.kind.isReal } ?: return
+
+        val visibleOverrides = OverridingUtil.filterVisibleFakeOverrides(containingClass, listOf(firstRealOverridden))
+        if (visibleOverrides.isEmpty()) {
+            val diagnostic = INVISIBLE_SETTER
+
+            report(
+                diagnostic.on(
+                    expression, variableDescriptor, setterDescriptor.visibility,
+                    setterDescriptor
+                ), ctxt
+            )
+        }
+    }
+
+    private fun isCapturedWrite(
+        variableDescriptor: VariableDescriptor,
+        writeValueInstruction: WriteValueInstruction
+    ): Boolean {
+        val containingDeclarationDescriptor = variableDescriptor.containingDeclaration
+        // Do not consider top-level properties
+        if (containingDeclarationDescriptor is PackageFragmentDescriptor) return false
+        var parentDeclaration = writeValueInstruction.element.getElementParentDeclaration()
+
+        loop@ while (true) {
+            val context = trace.bindingContext
+            val parentDescriptor = parentDeclaration.getDeclarationDescriptorIncludingConstructors(context)
+            if (parentDescriptor == containingDeclarationDescriptor) {
+                return false
+            }
+            when (parentDeclaration) {
+
+                is CjDeclarationWithBody -> {
+                    // If it is captured write in lambda that is called in-place, then skip it (treat as parent)
+                    val maybeEnclosingLambdaExpr = parentDeclaration.parent
+                    if (maybeEnclosingLambdaExpr is CjLambdaExpression && trace[LAMBDA_INVOCATIONS, maybeEnclosingLambdaExpr] != null) {
+                        parentDeclaration = parentDeclaration.getElementParentDeclaration()
+                        continue@loop
+                    }
+
+                    if (parentDeclaration is CjFunction && parentDeclaration.isLocal) return true
+                    // miss non-local function or accessor just once
+                    parentDeclaration = parentDeclaration.getElementParentDeclaration()
+                    return parentDeclaration.getDeclarationDescriptorIncludingConstructors(context) != containingDeclarationDescriptor
+                }
+
+                else -> {
+                    return true
+                }
+            }
+        }
     }
 
     private fun reportUnreachableCode(unreachableCode: UnreachableCode) {
@@ -654,7 +1058,7 @@ class ControlFlowInformationProviderImpl private constructor(
     // Tail calls
 
     private fun markAndCheckTailCalls() {
-        val subroutineDescriptor = trace.get(DECLARATION_TO_DESCRIPTOR, subroutine) as? FunctionDescriptor ?: return
+        val subroutineDescriptor = trace[DECLARATION_TO_DESCRIPTOR, subroutine] as? FunctionDescriptor ?: return
 
 //        markAndCheckRecursiveTailCalls(subroutineDescriptor)
     }
@@ -693,6 +1097,12 @@ class ControlFlowInformationProviderImpl private constructor(
             return finger
         }
 
+        private fun mustBeReportedOnAllCopies(diagnosticFactory: DiagnosticFactory<*>) =
+            diagnosticFactory === UNUSED_VARIABLE
+                    || diagnosticFactory === UNUSED_PARAMETER
+                    || diagnosticFactory === UNUSED_ANONYMOUS_PARAMETER
+                    || diagnosticFactory === UNUSED_CHANGED_VALUE
+
         private fun collectResultingExpressionsOfConditionalExpressionRec(
             expression: CjExpression?,
             resultingExpressions: MutableList<CjExpression>
@@ -721,3 +1131,22 @@ class ControlFlowInformationProviderImpl private constructor(
     }
 }
 
+fun CjElement.getElementParentDeclaration(): CjDeclaration? =
+    PsiTreeUtil.getParentOfType(this, CjDeclarationWithBody::class.java, CjTypeStatement::class.java)
+
+fun CjDeclaration?.getDeclarationDescriptorIncludingConstructors(context: BindingContext): DeclarationDescriptor? {
+    val descriptor =
+        context.get(DECLARATION_TO_DESCRIPTOR, (this as? CjClassInitializer)?.containingDeclaration ?: this)
+    return if (descriptor is ClassDescriptor && this is CjClassInitializer) {
+        // For a class primary constructor, we cannot directly get ConstructorDescriptor by CjClassInitializer,
+        // so we have to do additional conversion: CjClassInitializer -> CjClassOrObject -> ClassDescriptor -> ConstructorDescriptor
+        descriptor.unsubstitutedPrimaryConstructor
+            ?: (descriptor as? ClassDescriptorWithResolutionScopes)?.scopeForInitializerResolution?.ownerDescriptor
+    } else {
+        descriptor
+    }
+}
+
+fun isBackingFieldReference(descriptor: DeclarationDescriptor?): Boolean {
+    return descriptor is SyntheticFieldDescriptor
+}

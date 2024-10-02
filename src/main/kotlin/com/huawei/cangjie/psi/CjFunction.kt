@@ -7,5 +7,6 @@ interface CjFunction : CjDeclarationWithBody, CjCallableDeclaration {
         get() = false
     val isOperator: Boolean
         get() = false
+    val isMut get() = false
 }
 

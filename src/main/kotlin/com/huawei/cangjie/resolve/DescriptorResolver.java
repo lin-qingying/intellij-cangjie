@@ -190,6 +190,75 @@ public class DescriptorResolver {
     public static ClassDescriptor getContainingClass(@NotNull LexicalScope scope) {
         return getParentOfType(scope.getOwnerDescriptor(), ClassDescriptor.class, false);
     }
+    public PropertyDescriptor resolvePrimaryConstructorParameterToAProperty(
+            @NotNull ClassDescriptor classDescriptor,
+            @NotNull ValueParameterDescriptor valueParameter,
+            @NotNull LexicalScope scope,
+            @NotNull CjParameter parameter,
+            BindingTrace trace
+    ) {
+        CangJieType type = resolveParameterType(scope, parameter, trace);
+        Name name = parameter.getNameAsSafeName();
+        boolean isMutable = parameter.isMutable();
+        CjModifierList modifierList = parameter.getModifierList();
+
+        if (modifierList != null) {
+            if (modifierList.hasModifier(CjTokens.ABSTRACT_KEYWORD)) {
+                trace.report(ABSTRACT_PROPERTY_IN_PRIMARY_CONSTRUCTOR_PARAMETERS.on(parameter));
+            }
+        }
+
+        Annotations allAnnotations = annotationResolver.resolveAnnotationsWithoutArguments(scope, parameter.getModifierList(), trace);
+        Set<AnnotationUseSiteTarget> targetSet = EnumSet.of(PROPERTY, PROPERTY_GETTER, FIELD, CONSTRUCTOR_PARAMETER, PROPERTY_SETTER);
+        if (isMutable) {
+            targetSet.add(PROPERTY_SETTER);
+            targetSet.add(SETTER_PARAMETER);
+        }
+        AnnotationSplitter annotationSplitter = new AnnotationSplitter(storageManager, allAnnotations, targetSet);
+
+        Annotations propertyAnnotations = new CompositeAnnotations(
+                annotationSplitter.getAnnotationsForTarget(PROPERTY),
+                annotationSplitter.getOtherAnnotations()
+        );
+
+        PropertyDescriptorImpl propertyDescriptor = PropertyDescriptorImpl.create(
+                classDescriptor,
+                propertyAnnotations,
+                resolveMemberModalityFromModifiers(parameter, Modality.FINAL, trace.getBindingContext(), classDescriptor),
+                resolveVisibilityFromModifiers(parameter, getDefaultVisibility(parameter, classDescriptor)),
+                isMutable,
+                name,
+                CallableMemberDescriptor.Kind.DECLARATION,
+                CangJieSourceElementKt.toSourceElement(parameter)
+
+
+        );
+        propertyDescriptor.setType(type, Collections.emptyList(), getDispatchReceiverParameterIfNeeded(classDescriptor), null,
+                CollectionsKt.emptyList());
+
+        Annotations setterAnnotations = annotationSplitter.getAnnotationsForTarget(PROPERTY_SETTER);
+        Annotations getterAnnotations = new CompositeAnnotations(CollectionsKt.listOf(
+                annotationSplitter.getAnnotationsForTarget(PROPERTY_GETTER)));
+
+        PropertyGetterDescriptorImpl getter = DescriptorFactory.createDefaultGetter(propertyDescriptor, getterAnnotations);
+        PropertySetterDescriptor setter =
+                propertyDescriptor.isVar()
+                        ? DescriptorFactory.createDefaultSetter(
+                        propertyDescriptor, setterAnnotations, annotationSplitter.getAnnotationsForTarget(SETTER_PARAMETER)
+                )
+                        : null;
+
+        propertyDescriptor.initialize(
+                getter, setter
+
+        );
+
+        getter.initialize(propertyDescriptor.getType());
+
+        trace.record(BindingContext.PRIMARY_CONSTRUCTOR_PARAMETER, parameter, propertyDescriptor);
+        trace.record(BindingContext.VALUE_PARAMETER_AS_PROPERTY, valueParameter, propertyDescriptor);
+        return propertyDescriptor;
+    }
 
     /**
      * @return true if descriptor is a class inside another class and does not have access to the outer class
@@ -1421,31 +1490,9 @@ public class DescriptorResolver {
 
 
                 CangJieSourceElementKt.toSourceElement(variableDeclaration)
-//                modifierList != null && modifierList.hasModifier(CjTokens.LATEINIT_KEYWORD),
-//                modifierList != null && modifierList.hasModifier(CjTokens.CONST_KEYWORD),
-//                modifierList != null && PsiUtilsKt.hasExpectModifier(modifierList) && container instanceof PackageFragmentDescriptor ||
-//                        container instanceof ClassDescriptor && ((ClassDescriptor) container).isExpect(),
-//                modifierList != null && PsiUtilsKt.hasActualModifier(modifierList),
-//                modifierList != null && modifierList.hasModifier(CjTokens.EXTERNAL_KEYWORD),
-//                propertyInfo.getHasDelegate()
+
         );
-//        VariableDescriptorImpl variableDescriptor = VariableDescriptorImpl.create(
-//                container,
-//                variableAnnotations,
-//                modality,
-//                visibility,
-//                isVar,
-//                CjPsiUtil.safeName(variableDeclaration.getName()),
-//                CallableMemberDescriptor.Kind.DECLARATION,
-//                CangJieSourceElementKt.toSourceElement(variableDeclaration)
-////                modifierList != null && modifierList.hasModifier(CjTokens.LATEINIT_KEYWORD),
-////                modifierList != null && modifierList.hasModifier(CjTokens.CONST_KEYWORD),
-////                modifierList != null && PsiUtilsKt.hasExpectModifier(modifierList) && container instanceof PackageFragmentDescriptor ||
-////                        container instanceof ClassDescriptor && ((ClassDescriptor) container).isExpect(),
-////                modifierList != null && PsiUtilsKt.hasActualModifier(modifierList),
-////                modifierList != null && modifierList.hasModifier(CjTokens.EXTERNAL_KEYWORD),
-////                propertyInfo.getHasDelegate()
-//        );
+
         List<TypeParameterDescriptorImpl> typeParameterDescriptors;
         LexicalScope scopeForDeclarationResolutionWithTypeParameters;
         LexicalScope scopeForInitializerResolutionWithTypeParameters;
@@ -1520,6 +1567,11 @@ public class DescriptorResolver {
 
 
         trace.record(BindingContext.VARIABLE, variableDeclaration, variableDescriptor);
+
+
+        if(container instanceof  ClassDescriptor && ((ClassDescriptor) container).getKind() == ClassKind.INTERFACE){
+            trace.report(INTERFACE_BODY_NO_VARIABLES.on(variableDeclaration));
+        }
 
         return variableDescriptor;
     }

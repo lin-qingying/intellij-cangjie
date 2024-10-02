@@ -252,6 +252,10 @@ fun <C : Candidate> createFunctionProcessor(
 
     return PrioritizedCompositeScopeTowerProcessor(simpleFunction, invokeProcessor/*invokeExtensionProcessor*/)
 }
+fun <C : Candidate> createPropertyProcessor(
+    scopeTower: ImplicitScopeTower, name: Name,
+    context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
+) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getVariables(name, it) }
 
 fun <C : Candidate> createVariableProcessor(
     scopeTower: ImplicitScopeTower, name: Name,
@@ -263,6 +267,8 @@ fun <C : Candidate> createVariableAndObjectProcessor(
     context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
 ) = VariableAndObjectScopeTowerProcessor(
     createVariableProcessor(scopeTower, name, context, explicitReceiver),
+//    createPropertyProcessor(scopeTower, name, context, explicitReceiver),
+
     createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getObjects(name, it) }
 )
 

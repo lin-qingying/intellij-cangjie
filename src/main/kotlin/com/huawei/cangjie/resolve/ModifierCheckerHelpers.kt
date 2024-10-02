@@ -25,8 +25,14 @@ val possibleTargetMap = mapOf(
         CangJieTarget.CLASS_ONLY,
         CangJieTarget.LOCAL_CLASS,
 //        CangJieTarget.INTERFACE,
+//        CangJieTarget.MEMBER_PROPERTY,
+//        CangJieTarget.MEMBER_FUNCTION
+    ),
+    MUT_KEYWORD to EnumSet.of(
+
+
         CangJieTarget.MEMBER_PROPERTY,
-        CangJieTarget.MEMBER_FUNCTION
+        CangJieTarget.STRUCT_MEMBER_FUNCTION
     ),
     OPEN_KEYWORD to EnumSet.of(
         CangJieTarget.CLASS_ONLY,

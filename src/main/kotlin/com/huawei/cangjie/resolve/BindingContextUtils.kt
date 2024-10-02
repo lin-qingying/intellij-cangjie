@@ -15,6 +15,7 @@ import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.resolve.scopes.takeSnapshot
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.expressions.typeInfoFactory.noTypeInfo
+import com.huawei.cangjie.utils.CangJieExceptionWithAttachments
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 
@@ -22,6 +23,19 @@ fun BindingTrace.recordScope(scope: LexicalScope, element: CjElement?) {
     if (element != null) {
 
         record(LEXICAL_SCOPE, element, scope.takeSnapshot() as LexicalScope)
+    }
+}
+fun getEnclosingDescriptor(context: BindingContext, element: CjElement): DeclarationDescriptor {
+    val declaration =
+        element.getParentOfTypeCodeFragmentAware(CjNamedDeclaration::class.java)
+            ?: throw CangJieExceptionWithAttachments("No parent CjNamedDeclaration for of type ${element.javaClass}")
+                .withPsiAttachment("element.kt", element)
+    return if (declaration is CjFunctionLiteral) {
+        getEnclosingDescriptor(context, declaration)
+    } else {
+        context.get(DECLARATION_TO_DESCRIPTOR, declaration)
+            ?: throw CangJieExceptionWithAttachments("No descriptor for named declaration of type ${declaration.javaClass}")
+                .withPsiAttachment("declaration.kt", declaration)
     }
 }
 

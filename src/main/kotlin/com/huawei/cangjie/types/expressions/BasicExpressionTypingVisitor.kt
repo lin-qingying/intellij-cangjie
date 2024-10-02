@@ -181,7 +181,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         context: ExpressionTypingContext
     ): CangJieTypeInfo {
         facade.checkStatementType(expression, context)
-        if (!context.isDebuggerContext) {
+        if (!context.isDebuggerContext && context.isSaveTypeInfo) {
             context.trace.report(Errors.ASSIGNMENT_IN_EXPRESSION_CONTEXT.on(expression))
         }
         return noTypeInfo(context)
