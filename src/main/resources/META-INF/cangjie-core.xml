@@ -21,15 +21,12 @@
         <lang.foldingBuilder language="CangJie"
                              implementationClass="com.huawei.cangjie.ide.editor.folding.CangJieFoldingBuilder"/>
 
-        <!--        文件索引-->
-        <!--        <fileBasedIndex implementation=""></fileBasedIndex>-->
-
 
         <!--        插件启动初始化-->
         <!--        <applicationService serviceImplementation="com.huawei.cangjie.CangJieStartupActivity" serviceInterface="com.intellij.openapi.startup.StartupActivity"/>-->
         <!--        <postStartupActivity implementation="com.huawei.cangjie.ide.project.CangJieProjectActivity"/>-->
-        <!--        <additionalLibraryRootsProvider-->
-        <!--                implementation="com.huawei.cangjie.cjpm.project.workspace.CjAdditionalLibraryRootsProvider"/>-->
+<!--                <additionalLibraryRootsProvider-->
+<!--                        implementation="com.huawei.cangjie.cjpm.project.workspace.CjAdditionalLibraryRootsProvider"/>-->
 
         <!--        编辑器自动插入-->
         <typedHandler implementation="com.huawei.cangjie.ide.editor.CangJieTypedHandler"/>
@@ -52,9 +49,9 @@
         <!--        <annotator language="CangJie" implementationClass="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>-->
         <!--        <highlightRangeExtension implementation="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>-->
 
-        <lang.documentationProvider language="CangJie"
-                                    implementationClass="com.huawei.cangjie.ide.CangJieDocumentationProvider"
-                                    order="first"/>
+<!--        <lang.documentationProvider language="CangJie"-->
+<!--                                    implementationClass="com.huawei.cangjie.ide.CangJieDocumentationProvider"-->
+<!--                                    order="first"/>-->
 
         <!--        文件类型-->
         <fileType name="CangJie"

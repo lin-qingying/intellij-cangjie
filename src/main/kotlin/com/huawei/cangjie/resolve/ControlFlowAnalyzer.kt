@@ -202,23 +202,23 @@ class ControlFlowAnalyzer(
         dataFlowInfo: DataFlowInfo = DataFlowInfo.EMPTY
     ) {
 
-        if (function is CjFunction && function.hasBody() && function.typeReference == null && functionDescriptor is FunctionDescriptorImpl) {
-
-            val context = expressionTypingServices.createContext(
-                scope,
-                dataFlowInfo, NO_EXPECTED_TYPE,
-                trace
-            )
-            functionReturnResolver.resolveFunctionReturn(function, context)?.let {
-
-                if (it != functionDescriptor.returnType) {
-                    functionDescriptor.setReturnType(it)
-
-                }
-            }
-
-
-        }
+//        if (function is CjFunction && function.hasBody() && function.typeReference == null && functionDescriptor is FunctionDescriptorImpl) {
+//
+//            val context = expressionTypingServices.createContext(
+//                scope,
+//                dataFlowInfo, NO_EXPECTED_TYPE,
+//                trace
+//            )
+//            functionReturnResolver.resolveFunctionReturn(function, context)?.let {
+//
+//                if (it != functionDescriptor.returnType) {
+//                    functionDescriptor.setReturnType(it)
+//
+//                }
+//            }
+//
+//
+//        }
     }
 
     fun inferredFunctionReturnType(

@@ -208,6 +208,8 @@ public interface Errors {
     DiagnosticFactory0<CjTypeParameterList> DEPRECATED_TYPE_PARAMETER_SYNTAX = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory2<CjFunction, String, ClassDescriptor> ABSTRACT_FUNCTION_IN_NON_ABSTRACT_CLASS =
             DiagnosticFactory2.create(ERROR, ABSTRACT_MODIFIER);
+    DiagnosticFactory0<PsiElement> RETURN_TYPE_NOT_SPECIFIED_ERROR =
+            DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<CjFunction, SimpleFunctionDescriptor> ABSTRACT_FUNCTION_WITH_BODY =
             DiagnosticFactory1.create(ERROR, ABSTRACT_MODIFIER);
     DiagnosticFactory0<CjModifierListOwner> REDUNDANT_OPEN_IN_INTERFACE = DiagnosticFactory0.create(WARNING, OPEN_MODIFIER);

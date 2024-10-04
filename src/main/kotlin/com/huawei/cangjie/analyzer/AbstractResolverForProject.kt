@@ -268,31 +268,31 @@ private object DiagnoseUnknownModuleInfoReporter {
     fun report(name: String, infos: List<ModuleInfo>, allModules: Collection<ModuleInfo>): Nothing {
         val message = "$name does not know how to resolve"
         val error = when {
-//            name.contains(ResolverForProject.resolverForSdkName) -> errorInSdkResolver(message)
+
             name.contains(ResolverForProject.resolverForLibrariesName) -> errorInLibrariesResolver(message)
-//            name.contains(ResolverForProject.resolverForModulesName) -> {
-//                when {
-//                    infos.isEmpty() -> errorInModulesResolverWithEmptyInfos(message)
-//                    infos.size == 1 -> {
-//                        val infoAsString = infos.single().toString()
-//                        when {
-//                            infoAsString.contains("ScriptDependencies") -> errorInModulesResolverWithScriptDependencies(message)
-//                            infoAsString.contains("Library") -> errorInModulesResolverWithLibraryInfo(message)
-//                            else -> errorInModulesResolver(message)
-//                        }
-//                    }
-//
-//                    else -> errorInModulesResolver(message)
-//                }
-//            }
-//
-//            name.contains(ResolverForProject.resolverForScriptDependenciesName) -> errorInScriptDependenciesInfoResolver(message)
-//            name.contains(ResolverForProject.resolverForSpecialInfoName) -> {
-//                when {
-//                    name.contains("ScriptModuleInfo") -> errorInScriptModuleInfoResolver(message)
-//                    else -> errorInSpecialModuleInfoResolver(message)
-//                }
-//            }
+            name.contains(ResolverForProject.resolverForModulesName) -> {
+                when {
+                    infos.isEmpty() -> errorInModulesResolverWithEmptyInfos(message)
+                    infos.size == 1 -> {
+                        val infoAsString = infos.single().toString()
+                        when {
+                            infoAsString.contains("ScriptDependencies") -> errorInModulesResolverWithScriptDependencies(message)
+                            infoAsString.contains("Library") -> errorInModulesResolverWithLibraryInfo(message)
+                            else -> errorInModulesResolver(message)
+                        }
+                    }
+
+                    else -> errorInModulesResolver(message)
+                }
+            }
+
+
+            name.contains(ResolverForProject.resolverForSpecialInfoName) -> {
+                when {
+                    name.contains("ScriptModuleInfo") -> errorInScriptModuleInfoResolver(message)
+                    else -> errorInSpecialModuleInfoResolver(message)
+                }
+            }
 
             else -> otherError(message)
         }

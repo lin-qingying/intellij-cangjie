@@ -1462,9 +1462,9 @@ class ControlFlowProcessor(
                     ?: error("Guaranteed by parsing contract")
 
             processParameters(constructor.valueParameters)
-            generateCallOrMarkUnresolved(constructor.getDelegationCall())
+            constructor.getDelegationCall()?.let { generateCallOrMarkUnresolved(it) }
 
-            if (!constructor.getDelegationCall().isCallToThis) {
+            if (!(constructor.getDelegationCall()?.isCallToThis == true)) {
                 generateInitializersForClassOrObject(classOrObject)
             }
 

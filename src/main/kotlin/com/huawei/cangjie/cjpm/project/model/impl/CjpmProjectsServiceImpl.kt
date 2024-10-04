@@ -58,7 +58,6 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.indexing.LightDirectoryIndex
 import com.intellij.util.io.systemIndependentPath
-import com.linqingying.utils.Config
 import org.jdom.Element
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -523,12 +522,7 @@ private fun addDependencies(project: Project, cjpmProjects: List<CjpmProject>) {
 
 private fun CjpmWorkspace.Package.getOrCreateLibrary(libraryTable: LibraryTable): Library {
     return if (this.origin == PackageOrigin.STDLIB) {
-        val library = libraryTable.getLibraryByName("stdlib")
-        if (library != null) {
-            library
-        } else {
-            libraryTable.createLibrary("stdlib")
-        }
+        libraryTable.getLibraryByName("stdlib") ?: libraryTable.createLibrary("stdlib")
     } else {
         libraryTable.createLibrary()
     }

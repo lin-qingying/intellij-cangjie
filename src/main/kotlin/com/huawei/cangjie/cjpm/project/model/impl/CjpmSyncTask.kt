@@ -487,7 +487,7 @@ private fun fetchStdlib(
             stdlibPath.toFile().mkdirs()
 
             // 下载标准库到 stdlibPath
-            return@runWithChildProgress when (val downloadResult = downloadStdlib()) {
+            return@runWithChildProgress when (val downloadResult = downloadStdlib(toolchain.cjc().version.semver.rawVersion)) {
                 is DownloadResult.Ok -> {
                     // 解压标准库到 stdlibPath.resolve(version)
                     // 假设 downloadResult.value 是下载的文件
@@ -538,9 +538,9 @@ private fun unzip(zipFile: File, destDir: File) {
     }
 }
 
-fun downloadStdlib(/*owner: Disposable? = null, listener: ProcessListener? = null*/): DownloadResult<File> {
+fun downloadStdlib(/*owner: Disposable? = null, listener: ProcessListener? = null*/version:String): DownloadResult<File> {
     // 假设下载链接为 CjToolchainBase.STDLIB_DOWNLOAD_URL
-    val downloadUrl = CjToolchainBase.STDLIB_DOWNLOAD_URL
+    val downloadUrl = CjToolchainBase.getStdlibDowloadUrl(version)
     val targetFile = CjToolchainBase.stdlibPath.resolve("downloaded_stdlib.zip").toFile()
 
     return try {

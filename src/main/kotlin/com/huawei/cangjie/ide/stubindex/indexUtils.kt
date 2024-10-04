@@ -87,6 +87,26 @@ private fun CjTypeElement.index(
 
             }
 
+            is CjOptionType -> getInnerType()?.indexWithVisited(
+                declaration,
+                containingTypeReference,
+                visited,
+                occurrence
+            )
+
+            is CjTupleType -> {
+
+                val arity = typeArgumentsAsTypes.size
+
+                occurrence("Tuple$arity")
+            }
+
+            is CjFunctionType -> {
+                val arity = parameters.size + (if (receiverTypeReference != null) 1 else 0)
+
+                occurrence("Function$arity")
+            }
+
             is CjBasicType -> {
                 occurrence(this.name)
 

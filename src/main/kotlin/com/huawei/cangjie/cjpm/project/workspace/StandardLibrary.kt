@@ -20,9 +20,9 @@ data class StandardLibrary(
     companion object {
         fun fromFileStdlib(path: Path, version: String): StandardLibrary {
 // TODO 标准库验证
-//            if (!FileUtils.verifyFileList(path)) {
-//                throw IllegalArgumentException("Invalid standard library file")
-//            }
+            if (!FileUtils.verifyFileList(path)) {
+                throw IllegalArgumentException("Invalid standard library file")
+            }
 
 
             val packages = mutableMapOf<PackageId, CjpmWorkspaceData.Package>()

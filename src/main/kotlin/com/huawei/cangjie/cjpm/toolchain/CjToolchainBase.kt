@@ -231,6 +231,11 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
         val STDLIB_DOWNLOAD_URL =
             "https://gitee.com/Lin_Qing_Ying/intellij-cangjie-stdlib/releases/download/0.53.4/intellij-cangjie-stdlib.zip"
 
+        fun getStdlibDowloadUrl(version:String): String {
+
+            return  "https://gitee.com/Lin_Qing_Ying/intellij-cangjie-stdlib/releases/download/$version/intellij-cangjie-stdlib.zip"
+        }
+
         //        标准库位置
         val stdlibPath = File(System.getProperty("user.home")).resolve(".cangjie").resolve("stdlib").toPath()
 

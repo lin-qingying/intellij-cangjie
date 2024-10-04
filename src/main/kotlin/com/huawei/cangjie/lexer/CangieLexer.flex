@@ -22,36 +22,47 @@ import com.huawei.cangjie.lexer.CjTokens;
 %{
     private static final class State {
             final int lBraceCount;
+            final int requiredInterpolationPrefix;
             final int state;
 
-            public State(int state, int lBraceCount) {
+            public State(int state, int lBraceCount, int requiredInterpolationPrefix) {
                 this.state = state;
                 this.lBraceCount = lBraceCount;
+                this.requiredInterpolationPrefix = requiredInterpolationPrefix;
             }
 
             @Override
             public String toString() {
-                return "yystate = " + state + (lBraceCount == 0 ? "" : "lBraceCount = " + lBraceCount);
+                return "yystate = " + state
+                    + (lBraceCount == 0 ? "" : "lBraceCount = " + lBraceCount)
+                    + (requiredInterpolationPrefix == -1 ? "" : "requiredInterpolationPrefix = " + requiredInterpolationPrefix);
             }
         }
-
         private final Stack<State> states = new Stack<State>();
         private int lBraceCount;
+    private int requiredInterpolationPrefix;
 
         private int commentStart;
         private int commentDepth;
 
-        private void pushState(int state) {
-            states.push(new State(yystate(), lBraceCount));
-            lBraceCount = 0;
-            yybegin(state);
-        }
-
-        private void popState() {
-            State state = states.pop();
-            lBraceCount = state.lBraceCount;
-            yybegin(state.state);
-        }
+         private void pushState(int state) {
+             states.push(new State(yystate(), lBraceCount, requiredInterpolationPrefix));
+             lBraceCount = 0;
+             requiredInterpolationPrefix = -1;
+             yybegin(state);
+         }
+   private void pushInterpolationPrefix(int interpolationPrefix) {
+        states.push(new State(yystate(), lBraceCount, requiredInterpolationPrefix));
+        lBraceCount = 0;
+        requiredInterpolationPrefix = interpolationPrefix;
+        yybegin(STRING_PREFIX);
+    }
+      private void popState() {
+              State state = states.pop();
+              lBraceCount = state.lBraceCount;
+              requiredInterpolationPrefix = state.requiredInterpolationPrefix;
+              yybegin(state.state);
+          }
 
         private State getState(){
 
@@ -87,7 +98,7 @@ import com.huawei.cangjie.lexer.CjTokens;
   return;
 %eof}
 
-%xstate HSAH_STRING_SINGLE HSAH_STRING_DOUBLE  STRING_SINGLE STRING_DOUBLE RAW_STRING_SINGLE RAW_STRING_DOUBLE SHORT_TEMPLATE_ENTRY BLOCK_COMMENT DOC_COMMENT
+%xstate STRING_PREFIX  HSAH_STRING_SINGLE  HSAH_STRING_DOUBLE  STRING_SINGLE  STRING_DOUBLE  RAW_STRING_SINGLE RAW_STRING_DOUBLE SHORT_TEMPLATE_ENTRY BLOCK_COMMENT DOC_COMMENT
 %state LONG_TEMPLATE_ENTRY UNMATCHED_BACKTICK
 
 
@@ -113,16 +124,14 @@ BOOLEAN_LITERAL= true | false
 
 //TODO：这必须允许运行库接受的所有内容。
 //TODO：将反号替换为开头的一个反斜杠
+
 ESCAPED_IDENTIFIER = `[^`\n]+`
-IDENTIFIER = {PLAIN_IDENTIFIER}|{ESCAPED_IDENTIFIER}
+IDENTIFIER  =    {ESCAPED_IDENTIFIER } |  {PLAIN_IDENTIFIER}
+
 FIELD_IDENTIFIER = \${IDENTIFIER}
 
 EOL_COMMENT="/""/"[^\n]*
-//SHEBANG_COMMENT="#!"[^\n]*
 
-//UNIT_LTIERAL="()"
-//元素，两个以上表达式 (p1,p2,...,pn)
-//TUPLE_LTIERAL="("[^)]*")"
 
 INTEGER_LITERAL=({DECIMAL_INTEGER_LITERAL}|{HEX_INTEGER_LITERAL}|{BIN_INTEGER_LITERAL} |{OCT_INTEGER_LITERAL})(u8|u16|u32|u64|i8|i16|i32|i64)?
 DECIMAL_INTEGER_LITERAL=(0|([1-9]({DIGIT_OR_UNDERSCORE})*))
@@ -174,7 +183,7 @@ ESCAPE_SEQ  = ({UNI_CHARACTER_LITERAL} | {ESCAPED_IDENTIFIER})
 UNI_CHARACTER_LITERAL  =  '\\' 'u' \{ {HEX_DIGIT} ({HEX_DIGIT}  ({HEX_DIGIT}  ({HEX_DIGIT}  ({HEX_DIGIT}  {HEX_DIGIT} ?)?)?)?)? \}
 
 // 定义转义标识符
-ESCAPED_IDENTIFIER   =   '\\' ('t' | 'b' | 'r' | 'n' | '\'' | '\"' | '\\' | 'f' | 'v' | '0' | '\$')
+//ESCAPED_IDENTIFIER   =   '\\' ('t' | 'b' | 'r' | 'n' | '\'' | '\"' | '\\' | 'f' | 'v' | '0' | '\$')
 
 //字符
 RUNE_LITERAL = {RUNE_SINGLE_LITERAL} | {RUNE_DOUBLE_LITERAL}
@@ -208,8 +217,10 @@ DOUBLE_QUO = \"
 REGULAR_STRING_PART=[^\\\"\n\$]+
 REGULAR_STRING_PART_DOUBLE=[^\\\"\n\$]+
 REGULAR_STRING_PART_SINGLE=[^\\\'\n\$]+
+INTERPOLATION = \$+
 
-SHORT_TEMPLATE_ENTRY=\${IDENTIFIER}
+SHORT_TEMPLATE_ENTRY={INTERPOLATION}{IDENTIFIER}
+
 LONELY_DOLLAR=\$
 LONG_TEMPLATE_ENTRY_START=\$\{
 LONELY_BACKTICK=`
@@ -366,10 +377,26 @@ LONELY_BACKTICK=`
           return CjTokens.REGULAR_STRING_PART; }
 
 <STRING_SINGLE,STRING_DOUBLE, RAW_STRING_DOUBLE,RAW_STRING_SINGLE> {SHORT_TEMPLATE_ENTRY}        {
-                                                        pushState(SHORT_TEMPLATE_ENTRY);
-                                                        yypushback(yylength() - 1);
-                                                        return CjTokens.SHORT_TEMPLATE_ENTRY_START;
-                                                   }
+                          int interpolationPrefix = 0;
+                       for (int i = 0; i < yylength(); i++) {
+                           if (yycharat(i) == '$') { interpolationPrefix++; }
+                           else { break; }
+                       }
+                       int rest = yylength() - interpolationPrefix;
+                       if (interpolationPrefix == requiredInterpolationPrefix) {
+                           pushState(SHORT_TEMPLATE_ENTRY);
+                           yypushback(rest);
+                           return CjTokens.SHORT_TEMPLATE_ENTRY_START;
+                       } else if (interpolationPrefix < requiredInterpolationPrefix) {
+                           yypushback(rest);
+                           return CjTokens.REGULAR_STRING_PART;
+                       } else {
+                           yypushback(requiredInterpolationPrefix + rest);
+                           return CjTokens.REGULAR_STRING_PART;
+                       }
+                }
+
+
 // Only *this* keyword is itself an expression valid in this position
 // *null*, *true* and *false* are also keywords and expression, but it does not make sense to put them
 // in a string template for it'd be easier to just type them in without a dollar
@@ -559,7 +586,7 @@ LONELY_BACKTICK=`
 "_"            { return CjTokens.UNDERLINE ;}
 
 {FIELD_IDENTIFIER} { return CjTokens.FIELD_IDENTIFIER; }
-{IDENTIFIER} { return CjTokens.IDENTIFIER; }
+ {IDENTIFIER}     { return CjTokens.IDENTIFIER; }
 \!in{IDENTIFIER_PART}        { yypushback(3); return CjTokens.EXCL; }
 \!is{IDENTIFIER_PART}        { yypushback(3); return CjTokens.EXCL; }
 
@@ -633,11 +660,27 @@ LONELY_BACKTICK=`
  "<<"     { return CjTokens.LTLT     ; }
 
 
-{LONELY_BACKTICK} { pushState(UNMATCHED_BACKTICK); return TokenType.BAD_CHARACTER; }
+{LONELY_BACKTICK} {
+
+          pushState(UNMATCHED_BACKTICK);
+
+          return TokenType.BAD_CHARACTER;
+      }
 
 // error fallback
-[\s\S]       { return TokenType.BAD_CHARACTER; }
+[\s\S]       {
+
+
+          return TokenType.BAD_CHARACTER;
+
+      }
 // error fallback for exclusive states
 <STRING_DOUBLE,STRING_SINGLE, RAW_STRING_DOUBLE,RAW_STRING_SINGLE, SHORT_TEMPLATE_ENTRY, BLOCK_COMMENT, DOC_COMMENT , HSAH_STRING_DOUBLE,HSAH_STRING_SINGLE> .
-             { return TokenType.BAD_CHARACTER; }
+             {
+
+
+          return TokenType.BAD_CHARACTER;
+
+
+      }
 

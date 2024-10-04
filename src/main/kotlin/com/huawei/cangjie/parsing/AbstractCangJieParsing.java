@@ -396,7 +396,7 @@ public abstract class AbstractCangJieParsing {
         IElementType tt = tt();
         if (recoverySet == null ||
                 recoverySet.contains(tt) ||
-                tt == LBRACE || tt == RBRACE ||
+//                tt == LBRACE || tt == RBRACE ||
                 (recoverySet.contains(EOL_OR_SEMICOLON) && (eof() || tt == SEMICOLON || myBuilder.newlineBeforeCurrentToken()))) {
             error(message);
         } else {

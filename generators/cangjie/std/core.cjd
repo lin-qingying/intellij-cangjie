@@ -1,3 +1,0 @@
-package std.core
-
-public interface Any{}

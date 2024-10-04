@@ -450,9 +450,12 @@ public class CallResolver {
     public OverloadResolutionResults<ConstructorDescriptor> resolveConstructorDelegationCall(
             @NotNull BindingTrace trace, @NotNull LexicalScope scope, @NotNull DataFlowInfo dataFlowInfo,
             @NotNull ClassConstructorDescriptor constructorDescriptor,
-            @NotNull CjConstructorDelegationCall call,
+            @Nullable CjConstructorDelegationCall call,
             @Nullable InferenceSession inferenceSession
     ) {
+        if(call == null){
+            return null;
+        }
         // Method returns `null` when there is nothing to resolve in trivial cases like `null` call expression or
         // when super call should be conventional enum constructor and super call should be empty
 

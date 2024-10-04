@@ -2216,6 +2216,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //            return FUNC;
         } */ else {
             //函数名
+            myBuilder.getTokenType();
             parseIdentifier();
         }
 
@@ -2432,6 +2433,24 @@ public class CangJieParsing extends AbstractCangJieParsing {
             parseTypeRef();
         }
         parseTypeConstraintsGuarded(typeParameterListOccurred);
+
+
+
+        if (isDeclarationsFile) {
+
+            if (at(LBRACE)) {
+                PsiBuilder.Marker body = mark();
+                while (!atSet(KEYWORDALL) && !eof()) {
+                    advance();
+                }
+
+                body.error("Method bodies are not allowed in declaration files");
+
+            }
+
+            return MACRO  ;
+        }
+
         //函数体
 //        if (at(SEMICOLON)) {
 //            advance(); // SEMICOLON
@@ -2457,6 +2476,20 @@ public class CangJieParsing extends AbstractCangJieParsing {
             while (!at(LBRACE)) advance();
 
             error.error("Expecting '{' ");
+        }
+        if (isDeclarationsFile) {
+
+            if (at(LBRACE)) {
+                PsiBuilder.Marker body = mark();
+                while (!atSet(KEYWORDALL) && !eof()) {
+                    advance();
+                }
+
+                body.error("Method bodies are not allowed in declaration files");
+
+            }
+
+            return  ;
         }
         if (at(LBRACE)) {
             parseInitFunctionBlock();
@@ -2975,29 +3008,44 @@ public class CangJieParsing extends AbstractCangJieParsing {
         myBuilder.disableNewlines();
         advance(); // LT
 
-        while (true) {
+
+        do{
+            if (at(COMMA)){
+                advance();
+            }
+
             PsiBuilder.Marker projection = mark();
 
-
-//            if (at(MUL)) {
-//                advance(); // MUL
-//            } else {
             parseTypeRef(extraRecoverySet);
-//            }
-            projection.done(TYPE_PROJECTION);
-//            if (!at(COMMA)) break;
-//            advance(); // COMMA
 
-            if (at(COMMA)) {
-                advance();
-                parseTypeRef(extraRecoverySet);
-            } else {
-                break;
-            }
+            projection.done(TYPE_PROJECTION);
             if (at(GT)) {
                 break;
             }
-        }
+        }while (at(COMMA));
+//        while (true) {
+//            PsiBuilder.Marker projection = mark();
+//
+//
+////            if (at(MUL)) {
+////                advance(); // MUL
+////            } else {
+//            parseTypeRef(extraRecoverySet);
+////            }
+//            projection.done(TYPE_PROJECTION);
+////            if (!at(COMMA)) break;
+////            advance(); // COMMA
+//
+//            if (at(COMMA)) {
+//                advance();
+//                parseTypeRef(extraRecoverySet);
+//            } else {
+//                break;
+//            }
+//            if (at(GT)) {
+//                break;
+//            }
+//        }
 
         boolean atGT = at(GT);
         if (!atGT) {

@@ -286,6 +286,11 @@ public class DefaultErrorMessages {
         MAP.put(LET_OVERRIDDEN_BY_VAR, "property {0} cannot be overridden by  Mut-property {1}", FQ_NAMES_IN_TYPES,
                 FQ_NAMES_IN_TYPES);
         MAP.put(ABSTRACT_FUNCTION_WITH_BODY, "A function ''{0}'' with body cannot be abstract", NAMED);
+
+// ... existing code ...
+        MAP.put(RETURN_TYPE_NOT_SPECIFIED_ERROR, "For technical reasons, please display the return type of the specified method" );
+// ... existing code ...
+
     }
 
 

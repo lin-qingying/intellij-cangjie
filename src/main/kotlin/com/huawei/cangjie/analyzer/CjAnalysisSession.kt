@@ -1,5 +1,9 @@
 package com.huawei.cangjie.analyzer
 
+import com.huawei.cangjie.analyzer.api.CjSymbolProvider
+import com.huawei.cangjie.analyzer.api.CjSymbolProviderMixIn
+import com.huawei.cangjie.analyzer.api.CjTypeProvider
+import com.huawei.cangjie.analyzer.api.CjTypeProviderMixIn
 import com.huawei.cangjie.analyzer.components.CjAnalysisScopeProvider
 import com.huawei.cangjie.analyzer.components.CjAnalysisScopeProviderImpl
 import com.huawei.cangjie.analyzer.components.CjAnalysisScopeProviderMixIn
@@ -46,10 +50,14 @@ import com.intellij.psi.search.GlobalSearchScope
 
 @Suppress("AnalysisApiMissingLifetimeCheck")
 abstract class CjAnalysisSession(final override val token: CjLifetimeToken) : CjLifetimeOwner,
-    CjOriginalPsiProviderMixIn, CjAnalysisScopeProviderMixIn {
+    CjOriginalPsiProviderMixIn, CjAnalysisScopeProviderMixIn , CjTypeProviderMixIn, CjSymbolProviderMixIn {
 
     override val analysisSession: CjAnalysisSession get() = this
     abstract val useSiteModule: CjModule
+    internal val typeProvider: CjTypeProvider get() = typeProviderImpl
+    protected abstract val typeProviderImpl: CjTypeProvider
+    internal val symbolProvider: CjSymbolProvider get() = symbolProviderImpl
+    protected abstract val symbolProviderImpl: CjSymbolProvider
 
     internal val analysisScopeProvider: CjAnalysisScopeProvider get() = analysisScopeProviderImpl
     protected abstract val analysisScopeProviderImpl: CjAnalysisScopeProvider
@@ -294,7 +302,12 @@ class CjAnalysisSessionImpl(
     val analysisContext: CjAnalysisContext,
     override val useSiteModule: CjModule,
     token: CjLifetimeToken,
-) : CjAnalysisSession(token) {
+    ) : CjAnalysisSession(token) {
+
+    override val typeProviderImpl: CjTypeProvider = TODO()
+
+    override val symbolProviderImpl: CjSymbolProvider
+        get() = TODO("Not yet implemented")
     override val analysisScopeProviderImpl: CjAnalysisScopeProvider
         get() = CjAnalysisScopeProviderImpl(this, token, shadowedScope = GlobalSearchScope.EMPTY_SCOPE)
     override val originalPsiProviderImpl: CjOriginalPsiProvider

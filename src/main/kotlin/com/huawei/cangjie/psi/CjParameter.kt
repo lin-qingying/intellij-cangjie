@@ -40,6 +40,15 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>, CjCallableDecl
         }
 
 
+    /**
+     * For example,
+     * fun foo(lambdaArgument: (functionTypeParameter: T, ...) -> R) { ... }
+     *
+     * @return [true] if this [KtParameter] is a parameter of a function type.
+     */
+    fun isFunctionTypeParameter(): Boolean {
+        return checkParentOfParentType ( CjFunctionType::class.java)
+    }
 
     override val colon: PsiElement?
         get() = findChildByType(CjTokens.COLON)

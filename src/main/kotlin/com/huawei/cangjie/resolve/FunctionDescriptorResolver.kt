@@ -114,9 +114,9 @@ class FunctionDescriptorResolver(
             val valueParameter = valueParameters[i]
 
 
-            if(valueParameter.isNamed){
+            if (valueParameter.isNamed) {
                 isNamed = true
-            }else if(isNamed){
+            } else if (isNamed) {
                 trace.report(NON_NAMED_PARAMETER_AFTER_NAMED_PARAMETER.on(valueParameter))
             }
 
@@ -318,7 +318,7 @@ class FunctionDescriptorResolver(
     fun resolveFunctionReturnType(
         function: CjFunction,
         context: ExpressionTypingContext,
-    ): CangJieType ?{
+    ): CangJieType {
 //        显示指定的类型
         return if (function.typeReference != null) {
             typeResolver.resolveType(context.scope, function.typeReference!!, context.trace, true)
@@ -332,7 +332,11 @@ class FunctionDescriptorResolver(
 //        TODO 返回值类型推断 暂时返回Unit
 //            return block.returnValueInferred()
 //            return builtIns.unitType
-            return null
+            context.trace.report(
+                RETURN_TYPE_NOT_SPECIFIED_ERROR.on(function.firstChild)
+            )
+            return builtIns.nothingType
+
 //            return functionReturnResolver.resolveFunctionReturn(function, context)
 //            return NO_EXPECTED_TYPE
         } else {
@@ -405,7 +409,6 @@ class FunctionDescriptorResolver(
         headerScope.freeze()
 
 
-
         val innerScope: LexicalScope =
             FunctionDescriptorUtil.getFunctionInnerScope(
                 headerScope,
@@ -413,10 +416,10 @@ class FunctionDescriptorResolver(
                 trace,
                 overloadChecker
             )
-        val codeBlockscope  =
-          LexicalWritableScope(
-              innerScope, functionDescriptor, false, LocalRedeclarationChecker.DO_NOTHING,
-              LexicalScopeKind.CODE_BLOCK
+        val codeBlockscope =
+            LexicalWritableScope(
+                innerScope, functionDescriptor, false, LocalRedeclarationChecker.DO_NOTHING,
+                LexicalScopeKind.CODE_BLOCK
             )
 
         val context = expressionTypingServices.createContext(

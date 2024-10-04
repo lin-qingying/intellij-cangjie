@@ -2,6 +2,7 @@ package com.huawei.cangjie.doc.parser
 
 import com.huawei.cangjie.lexer.CangJieLexer
 import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.lexer.CjTokens.UNDERLINE
 import com.intellij.lang.ASTNode
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.PsiBuilderFactory
@@ -64,7 +65,7 @@ class CDocLinkParser : PsiParser {
         var marker = builder.mark()
         while (true) {
             // 如果链接中的某个单词恰好是CangJie关键字，则不要将其突出显示为错误
-            if (!isName(builder.tokenType)) {
+            if (!isName(builder.tokenType) && builder.tokenType != UNDERLINE) {
                 marker.drop()
                 builder.error("Identifier expected")
                 break
