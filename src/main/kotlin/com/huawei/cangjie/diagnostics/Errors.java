@@ -159,6 +159,10 @@ public interface Errors {
             DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<LeafPsiElement> SPREAD_OF_LAMBDA_OR_CALLABLE_REFERENCE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<PsiElement> NO_CONSTRUCTOR = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory1<PsiElement,String> UNEXPECTED_FINALIZER_IN_BODY_ERROR = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory0<PsiElement> FINALIZER_CANNOT_HAVE_PARAMETERS_ERROR = DiagnosticFactory0.create(ERROR);
+
+    DiagnosticFactory1<PsiElement,String> UNEXPECTED_CONSTRUCTOR_IN_BODY_ERROR = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory0<CjExpression> NOT_A_CLASS = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<PsiElement> NO_CONSTRUCTOR_WARNING = DiagnosticFactory0.create(WARNING);
     DiagnosticFactory0<PsiElement> PRIMARY_CONSTRUCTOR_DELEGATION_CALL_EXPECTED =

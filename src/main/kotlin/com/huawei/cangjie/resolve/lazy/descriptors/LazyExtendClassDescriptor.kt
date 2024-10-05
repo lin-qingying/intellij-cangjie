@@ -179,6 +179,7 @@ class LazyExtendClassDescriptor(
     override fun toString(): String {
         return "extend $classDescriptor"
     }
+    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> =emptySet()
 
     @OptIn(TypeRefinement::class)
     private fun createScopesHolderForClass(

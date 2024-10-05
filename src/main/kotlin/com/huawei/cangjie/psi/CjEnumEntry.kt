@@ -15,7 +15,8 @@ class CjEnumEntry : CjTypeStatement {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitEnumEntry(this, data)
     }
-
+    override val typeName: String
+        get() = "enum entry"
     override fun hasExplicitPrimaryConstructor(): Boolean {
         return typeReferences.isNotEmpty()
     }

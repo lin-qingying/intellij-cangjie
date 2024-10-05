@@ -48,6 +48,7 @@ class BuiltInTypeDescriptor(
     private val parameters: List<TypeParameterDescriptor> = emptyList(),
 //    如果后期有其他内置类型有泛型，可以在这里添加回调函数，目前只有CPointer有泛型，所以不做更改
 ) : BasicTypeDescriptor(basicMemberScope, storageManager, name) {
+    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> =emptySet()
 
 
     override val typeConstructor = BuiltInTypeConstructor(this, storageManager, parameters.toMutableList())
@@ -128,6 +129,8 @@ open class BasicTypeDescriptor(
 ) : AbstractClassDescriptor(
     storageManager, name
 ), ClassDescriptorWithResolutionScopes {
+    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> =emptySet()
+
     private inner class OperatorFunctionDescriptor(
         functionName: Name,
         rightType: CangJieType?,

@@ -157,6 +157,11 @@ class LazyTopDownAnalyzer(
                         lazyDeclarationResolver.resolveToDescriptor(constructor) as ClassConstructorDescriptor
                 }
 
+                override fun visitEndSecondaryConstructor(constructor: CjEndSecondaryConstructor) {
+                    c.endSecondaryConstructors[constructor] =
+                        lazyDeclarationResolver.resolveToDescriptor(constructor) as ClassConstructorDescriptor
+                }
+
                 private fun checkTypeStatementDeclarations(
                     typeStatement: CjTypeStatement,
                     classDescriptor: ClassDescriptor

@@ -26,6 +26,7 @@ public class TopDownAnalysisContext implements BodiesResolveContext {
     private final Map<CjTypeStatement, ClassDescriptorWithResolutionScopes> classes = Maps.newLinkedHashMap();
     private final Map<CjSecondaryConstructor, ClassConstructorDescriptor> secondaryConstructors = Maps.newLinkedHashMap();
     private final Map<CjPrimaryConstructor, ClassConstructorDescriptor> primaryConstructor = Maps.newLinkedHashMap();
+    private final Map<CjEndSecondaryConstructor, ClassConstructorDescriptor> endSecondaryConstructors = Maps.newLinkedHashMap();
 
     private final TopDownAnalysisMode topDownAnalysisMode;
     private final DeclarationScopeProvider declarationScopeProvider;
@@ -92,6 +93,12 @@ public class TopDownAnalysisContext implements BodiesResolveContext {
     @Override
     public @NotNull Map<CjSecondaryConstructor, ClassConstructorDescriptor> getSecondaryConstructors() {
         return secondaryConstructors;
+    }
+
+    @Override
+    @NotNull
+    public Map<CjEndSecondaryConstructor, ClassConstructorDescriptor> getEndSecondaryConstructors() {
+        return endSecondaryConstructors;
     }
 
     @Override

@@ -39,7 +39,7 @@ class ErrorClassDescriptor(name: Name) : ClassDescriptorImpl(
             memberScope,
             ErrorTypeKind.ERROR_CLASS
         )
-        initialize(memberScope, setOf(errorConstructor), errorConstructor)
+        initialize(memberScope, setOf(errorConstructor), errorConstructor, emptySet())
     }
 
 

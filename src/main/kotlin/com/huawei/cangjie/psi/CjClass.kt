@@ -17,7 +17,8 @@ open class CjClass : CjTypeStatement {
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJieClassStub) : super(stub, CjStubElementTypes.CLASS)
 
-
+    override val typeName: String
+        get() = "class"
     override fun isLocal(): Boolean  = stub?.isLocal() ?: CjPsiUtil.isLocal(this)
     override fun getSuperTypeListEntries(): List<CjSuperTypeListEntry> = getSuperTypeList()?.entries.orEmpty()
 

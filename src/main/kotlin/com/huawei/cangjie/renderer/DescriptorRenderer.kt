@@ -523,8 +523,11 @@ internal class DescriptorRendererImpl(
             escaped
     }
 
-    private fun renderName(descriptor: DeclarationDescriptor, builder: StringBuilder, rootRenderedElement: Boolean) {
+    private fun renderName(descriptor: DeclarationDescriptor, builder: StringBuilder, rootRenderedElement: Boolean,isEnd:Boolean = false) {
+if(isEnd){
+    builder.append("~")
 
+}
         if (descriptor is FunctionDescriptor && descriptor.isOperator) {
             builder.append(descriptor.name.asOperatorString())
 
@@ -534,23 +537,7 @@ internal class DescriptorRendererImpl(
         }
     }
 
-    private fun renderCompanionObjectName(descriptor: DeclarationDescriptor, builder: StringBuilder) {
-        if (renderCompanionObjectName) {
-            if (startFromName) {
-                builder.append("companion object")
-            }
-            renderSpaceIfNeeded(builder)
-            val containingDeclaration = descriptor.containingDeclaration
-            if (containingDeclaration != null) {
-                builder.append("of ")
-                builder.append(renderName(containingDeclaration.name, false))
-            }
-        }
-        if (verbose || descriptor.name != SpecialNames.DEFAULT_NAME_FOR_COMPANION_OBJECT) {
-            if (!startFromName) renderSpaceIfNeeded(builder)
-            builder.append(renderName(descriptor.name, true))
-        }
-    }
+
 
     override fun renderFqName(fqName: FqNameUnsafe) = renderFqName(fqName.pathSegments())
 
@@ -772,38 +759,11 @@ internal class DescriptorRendererImpl(
         type: CangJieType,
         typeConstructor: TypeConstructor = type.constructor
     ) {
-//        if (type.isMarkedOption) {
-//            renderTypeConstructorAndArguments(type.arguments[0].type)
-//        } else {
+
         append(renderTypeConstructor(typeConstructor))
         append(renderTypeArguments(type.arguments))
-//        }
-//        val possiblyInnerType = type.buildPossiblyInnerType()
-//        if (possiblyInnerType == null) {
 
-//        return
-//        }
-
-//        renderPossiblyInnerType(possiblyInnerType)
     }
-//    private fun StringBuilder.renderPossiblyInnerType(possiblyInnerType: PossiblyInnerType) {
-//        possiblyInnerType.outerType?.let {
-//            renderPossiblyInnerType(it)
-//            append('.')
-//            append(renderName(possiblyInnerType.classifierDescriptor.name, false))
-//        } ?: append(renderTypeConstructor(possiblyInnerType.classifierDescriptor.typeConstructor))
-//
-//        append(renderTypeArguments(possiblyInnerType.arguments))
-//    }
-    /*    private fun StringBuilder.renderPossiblyInnerType(possiblyInnerType: PossiblyInnerType) {
-            possiblyInnerType.outerType?.let {
-                renderPossiblyInnerType(it)
-                append('.')
-                append(renderName(possiblyInnerType.classifierDescriptor.name, false))
-            } ?: append(renderTypeConstructor(possiblyInnerType.classifierDescriptor.typeConstructor))
-
-            append(renderTypeArguments(possiblyInnerType.arguments))
-        }*/
 
     override fun renderTypeConstructor(typeConstructor: TypeConstructor): String =
         when (val cd = typeConstructor.declarationDescriptor) {
@@ -1645,7 +1605,7 @@ internal class DescriptorRendererImpl(
                 if (constructorKeywordRendered) {
                     builder.append(" ")
                 }
-                renderName(classDescriptor, builder, true)
+                renderName(classDescriptor, builder, true,constructor.isEnd)
                 renderTypeParameters(constructor.typeParameters, builder, false)
             }
 

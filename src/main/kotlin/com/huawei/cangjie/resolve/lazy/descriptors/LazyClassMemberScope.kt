@@ -40,7 +40,10 @@ open class LazyClassMemberScope(
     override fun getScopeForInitializerResolution(declaration: CjDeclaration): LexicalScope =
         thisDescriptor.scopeForInitializerResolution
 
-    protected open fun createPropertiesFromPrimaryConstructorParameters(name: Name, result: MutableSet<PropertyDescriptor>) {
+    protected open fun createPropertiesFromPrimaryConstructorParameters(
+        name: Name,
+        result: MutableSet<PropertyDescriptor>
+    ) {
 
         // From primary constructor parameters
         val primaryConstructor = getPrimaryConstructor() ?: return
@@ -60,22 +63,38 @@ open class LazyClassMemberScope(
                     trace.get(BindingContext.PRIMARY_CONSTRUCTOR_PARAMETER, parameter)
                         ?: c.descriptorResolver.resolvePrimaryConstructorParameterToAProperty(
                             // TODO: can't test because we get types from cache for this case
-                            thisDescriptor, valueParameterDescriptor, thisDescriptor.scopeForConstructorHeaderResolution, parameter, trace
+                            thisDescriptor,
+                            valueParameterDescriptor,
+                            thisDescriptor.scopeForConstructorHeaderResolution,
+                            parameter,
+                            trace
                         )
                 result.add(propertyDescriptor)
             }
         }
     }
+
     override fun getNonDeclaredProperties(name: Name, result: MutableSet<PropertyDescriptor>) {
         createPropertiesFromPrimaryConstructorParameters(name, result)
 
         // Members from supertypes
         val fromSupertypes = ArrayList<PropertyDescriptor>()
         for (supertype in supertypes) {
-            fromSupertypes.addAll(supertype.memberScope.getContributedPropertys(name, NoLookupLocation.FOR_ALREADY_TRACKED))
+            fromSupertypes.addAll(
+                supertype.memberScope.getContributedPropertys(
+                    name,
+                    NoLookupLocation.FOR_ALREADY_TRACKED
+                )
+            )
         }
 //        result.addAll(generateDelegatingDescriptors(name, EXTRACT_PROPERTIES, result))
-        c.syntheticResolveExtension.generateSyntheticProperties(thisDescriptor, name, trace.bindingContext, fromSupertypes, result)
+        c.syntheticResolveExtension.generateSyntheticProperties(
+            thisDescriptor,
+            name,
+            trace.bindingContext,
+            fromSupertypes,
+            result
+        )
         generateFakeOverrides(name, fromSupertypes, result, PropertyDescriptor::class.java)
     }
 
@@ -91,6 +110,9 @@ open class LazyClassMemberScope(
     }
     private val secondaryConstructors: NotNullLazyValue<Collection<ClassConstructorDescriptor>> =
         c.storageManager.createLazyValue { doGetConstructors() }
+
+    private val endSecondaryConstructors: NotNullLazyValue<Collection<ClassConstructorDescriptor>> =
+        c.storageManager.createLazyValue { doGetEndConstructors() }
 
 
     val extendClassDescriptors: List<LazyExtendClassDescriptor>
@@ -387,6 +409,26 @@ open class LazyClassMemberScope(
         c.syntheticResolveExtension.generateSyntheticSecondaryConstructors(thisDescriptor, trace.bindingContext, result)
     }
 
+    private fun doGetEndConstructors(): Collection<ClassConstructorDescriptor> {
+        val result = mutableListOf<ClassConstructorDescriptor>()
+        result.addAll(resolveEndSecondaryConstructors())
+        addSyntheticSecondaryConstructors(result)
+        return result
+    }
+
+    private fun resolveEndSecondaryConstructors(): Collection<ClassConstructorDescriptor> {
+        val classOrObject = declarationProvider.correspondingClassOrObject ?: return emptyList()
+
+        return classOrObject.endSecondaryConstructors.map { constructor ->
+            val descriptor = c.functionDescriptorResolver.resolveConstructorDescriptor(
+                thisDescriptor.scopeForConstructorHeaderResolution, thisDescriptor,
+                constructor, trace, c.languageVersionSettings, c.inferenceSession, true
+            )
+            setDeferredReturnType(descriptor)
+            descriptor
+        }
+    }
+
     private fun doGetConstructors(): Collection<ClassConstructorDescriptor> {
         val result = mutableListOf<ClassConstructorDescriptor>()
         result.addAll(resolveSecondaryConstructors())
@@ -405,6 +447,12 @@ open class LazyClassMemberScope(
         return if (primaryConstructor == null) result else result + primaryConstructor
     }
 
+    fun getEndConstructors(): Collection<ClassConstructorDescriptor> {
+        val result =
+            (mainScope as LazyClassMemberScope?)?.endSecondaryConstructors?.invoke() ?: endSecondaryConstructors()
+
+        return result
+    }
 
     private interface MemberExtractor<out T : CallableMemberDescriptor> {
         fun extract(extractFrom: CangJieType, name: Name): Collection<T>

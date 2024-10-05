@@ -42,7 +42,6 @@ import com.huawei.cangjie.utils.OperatorNameConventions;
 import com.huawei.cangjie.utils.PerformanceCounter;
 import com.intellij.psi.PsiElement;
 import jakarta.inject.Inject;
-
 import kotlin.Pair;
 import kotlin.collections.CollectionsKt;
 import org.jetbrains.annotations.NotNull;
@@ -55,31 +54,17 @@ import static com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;
 
 
 public class CallResolver {
-    private ExpressionTypingServices expressionTypingServices;
-    private final LanguageVersionSettings languageVersionSettings;
-    private SyntheticScopes syntheticScopes;
-
     private static final PerformanceCounter callResolvePerfCounter = PerformanceCounter.Companion.create("Call resolve", ExpressionTypingVisitorDispatcher.typeInfoPerfCounter);
+    private final LanguageVersionSettings languageVersionSettings;
+    private final CangJieBuiltIns builtIns;
+    private final DataFlowValueFactory dataFlowValueFactory;
+    private ExpressionTypingServices expressionTypingServices;
+    private SyntheticScopes syntheticScopes;
     private ArgumentTypeResolver argumentTypeResolver;
     private NewResolutionOldInference newResolutionOldInference;
     private PSICallResolver PSICallResolver;
     private TypeResolver typeResolver;
-    private final CangJieBuiltIns builtIns;
-    private final DataFlowValueFactory dataFlowValueFactory;
-    @Inject
-    public void setSyntheticScopes(@NotNull SyntheticScopes syntheticScopes) {
-        this.syntheticScopes = syntheticScopes;
-    }
 
-    @Inject
-    public void setPSICallResolver(@NotNull PSICallResolver PSICallResolver) {
-        this.PSICallResolver = PSICallResolver;
-    }
-    // component dependency cycle
-    @Inject
-    public void setTypeResolver(@NotNull TypeResolver typeResolver) {
-        this.typeResolver = typeResolver;
-    }
     public CallResolver(
             @NotNull CangJieBuiltIns builtIns,
             @NotNull LanguageVersionSettings languageVersionSettings,
@@ -89,6 +74,60 @@ public class CallResolver {
         this.languageVersionSettings = languageVersionSettings;
         this.dataFlowValueFactory = dataFlowValueFactory;
     }
+
+    @NotNull
+    private static Pair<Collection<OldResolutionCandidate<ConstructorDescriptor>>, BasicCallResolutionContext> prepareCandidatesAndContextForConstructorCall(
+            @NotNull CangJieType superType,
+            @NotNull BasicCallResolutionContext context,
+            @NotNull SyntheticScopes syntheticScopes
+    ) {
+        if (!(superType.getConstructor().getDeclarationDescriptor() instanceof ClassDescriptor)) {
+            return new Pair<>(Collections.emptyList(), context);
+        }
+
+        // If any constructor has type parameter (currently it only can be true for ones from Java), try to infer arguments for them
+        // Otherwise use NO_EXPECTED_TYPE and known type substitutor
+        boolean anyConstructorHasDeclaredTypeParameters =
+                anyConstructorHasDeclaredTypeParameters(superType.getConstructor().getDeclarationDescriptor());
+
+        if (anyConstructorHasDeclaredTypeParameters) {
+            context = context.replaceExpectedType(superType);
+        }
+
+        List<OldResolutionCandidate<ConstructorDescriptor>> candidates =
+                CallResolverUtilKt.createResolutionCandidatesForConstructors(
+                        context.scope, context.call, superType, !anyConstructorHasDeclaredTypeParameters, syntheticScopes
+                );
+
+        return new Pair<>(candidates, context);
+    }
+
+    private static boolean anyConstructorHasDeclaredTypeParameters(@Nullable ClassifierDescriptor classDescriptor) {
+        if (!(classDescriptor instanceof ClassDescriptor)) return false;
+        for (ConstructorDescriptor constructor : ((ClassDescriptor) classDescriptor).getConstructors()) {
+            if (constructor.getTypeParameters().size() > constructor.getContainingDeclaration().getDeclaredTypeParameters().size())
+                return true;
+        }
+
+        return false;
+    }
+
+    @Inject
+    public void setSyntheticScopes(@NotNull SyntheticScopes syntheticScopes) {
+        this.syntheticScopes = syntheticScopes;
+    }
+
+    @Inject
+    public void setPSICallResolver(@NotNull PSICallResolver PSICallResolver) {
+        this.PSICallResolver = PSICallResolver;
+    }
+
+    // component dependency cycle
+    @Inject
+    public void setTypeResolver(@NotNull TypeResolver typeResolver) {
+        this.typeResolver = typeResolver;
+    }
+
     @SuppressWarnings("WeakerAccess")
     @NotNull
     public <D extends CallableDescriptor> OverloadResolutionResults<D> computeTasksAndResolveCall(
@@ -100,10 +139,12 @@ public class CallResolver {
         TracingStrategy tracing = TracingStrategyImpl.create(referenceExpression, context.call);
         return computeTasksAndResolveCall(context, name, tracing, kind);
     }
+
     private <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> checkArgumentTypesAndFail(BasicCallResolutionContext context) {
         argumentTypeResolver.checkTypesWithNoCallee(context);
         return OverloadResolutionResultsImpl.nameNotFound();
     }
+
     @NotNull
     public OverloadResolutionResults<FunctionDescriptor> resolveCallWithGivenName(
             @NotNull ResolutionContext<?> context,
@@ -127,6 +168,7 @@ public class CallResolver {
         BasicCallResolutionContext callResolutionContext = BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS);
         return computeTasksAndResolveCall(callResolutionContext, name, tracing, NewResolutionOldInference.ResolutionKind.Function.INSTANCE);
     }
+
     public OverloadResolutionResults<FunctionDescriptor> resolveCallWithKnownCandidate(
             @NotNull Call call,
             @NotNull TracingStrategy tracing,
@@ -170,7 +212,7 @@ public class CallResolver {
             CjBinaryExpression binaryExpression,
             @NotNull Collection<FunctionDescriptor> functionDescriptors
     ) {
-        Call call =  CallMaker.makeCall(receiver, binaryExpression);
+        Call call = CallMaker.makeCall(receiver, binaryExpression);
         BasicCallResolutionContext callResolutionContext = BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS);
         List<OldResolutionCandidate<FunctionDescriptor>> candidates = CollectionsKt.map(functionDescriptors, descriptor ->
                 OldResolutionCandidate.create(
@@ -183,6 +225,7 @@ public class CallResolver {
         return computeTasksFromCandidatesAndResolvedCall(
                 callResolutionContext, candidates, TracingStrategyImpl.create(binaryExpression.getOperationReference(), call));
     }
+
     @NotNull
     public OverloadResolutionResults<FunctionDescriptor> resolveRangeLiteralCallWithGivenDescriptor(
             @NotNull ExpressionTypingContext context,
@@ -202,6 +245,7 @@ public class CallResolver {
         return computeTasksFromCandidatesAndResolvedCall(
                 callResolutionContext, candidates, TracingStrategyImpl.create(expression, call));
     }
+
     @NotNull
     public OverloadResolutionResults<FunctionDescriptor> resolveBloackReturnCallWithGivenDescriptor(
             @NotNull ExpressionTypingContext context,
@@ -221,6 +265,7 @@ public class CallResolver {
         return computeTasksFromCandidatesAndResolvedCall(
                 callResolutionContext, candidates, new TracingStrategyBlockExpression(expression, call));
     }
+
     @NotNull
     public OverloadResolutionResults<FunctionDescriptor> resolveCallExpressionWithGivenDescriptor(
             @NotNull ExpressionTypingContext context,
@@ -240,6 +285,7 @@ public class CallResolver {
         return computeTasksFromCandidatesAndResolvedCall(
                 callResolutionContext, candidates, TracingStrategyImpl.create(expression, call));
     }
+
     @NotNull
     public OverloadResolutionResults<FunctionDescriptor> resolveCollectionLiteralCallWithGivenDescriptor(
             @NotNull ExpressionTypingContext context,
@@ -259,11 +305,13 @@ public class CallResolver {
         return computeTasksFromCandidatesAndResolvedCall(
                 callResolutionContext, candidates, TracingStrategyImpl.create(expression, call));
     }
+
     // component dependency cycle
     @Inject
     public void setExpressionTypingServices(@NotNull ExpressionTypingServices expressionTypingServices) {
         this.expressionTypingServices = expressionTypingServices;
     }
+
     @NotNull
     private OverloadResolutionResults<ConstructorDescriptor> resolveConstructorDelegationCall(
             @NotNull BasicCallResolutionContext context,
@@ -273,7 +321,7 @@ public class CallResolver {
     ) {
         context.trace.record(BindingContext.LEXICAL_SCOPE, call, context.scope);
 
-        boolean isThisCall = calleeExpression.isThis();
+        boolean isThisCall = calleeExpression.isThis() /*|| currentClassDescriptor.getKind() == ClassKind.STRUCT*/;
         if (currentClassDescriptor.getKind() == ClassKind.ENUM && !isThisCall) {
             context.trace.report(DELEGATION_SUPER_CALL_IN_ENUM_CONSTRUCTOR.on(calleeExpression));
             return checkArgumentTypesAndFail(context);
@@ -292,7 +340,7 @@ public class CallResolver {
 //            if (call.isImplicit()) return OverloadResolutionResultsImpl.nameNotFound();
 //        }
 
-        if (constructors.isEmpty()) {
+        if (constructors.isEmpty()  ) {
             context.trace.report(NO_CONSTRUCTOR.on(CallUtilKt.getValueArgumentListOrElement(context.call)));
             return checkArgumentTypesAndFail(context);
         }
@@ -320,6 +368,7 @@ public class CallResolver {
 
         return computeTasksFromCandidatesAndResolvedCall(context, candidates, tracing);
     }
+
     @NotNull
     private <D extends FunctionDescriptor> OverloadResolutionResults<D> computeTasksFromCandidatesAndResolvedCall(
             @NotNull BasicCallResolutionContext context,
@@ -343,43 +392,7 @@ public class CallResolver {
         return computeTasksFromCandidatesAndResolvedCall(context, candidates,
                 TracingStrategyImpl.create(referenceExpression, context.call));
     }
-    @NotNull
-    private static Pair<Collection<OldResolutionCandidate<ConstructorDescriptor>>, BasicCallResolutionContext> prepareCandidatesAndContextForConstructorCall(
-            @NotNull CangJieType superType,
-            @NotNull BasicCallResolutionContext context,
-            @NotNull SyntheticScopes syntheticScopes
-    ) {
-        if (!(superType.getConstructor().getDeclarationDescriptor() instanceof ClassDescriptor)) {
-            return new Pair<>(Collections.emptyList(), context);
-        }
 
-        // If any constructor has type parameter (currently it only can be true for ones from Java), try to infer arguments for them
-        // Otherwise use NO_EXPECTED_TYPE and known type substitutor
-        boolean anyConstructorHasDeclaredTypeParameters =
-                anyConstructorHasDeclaredTypeParameters(superType.getConstructor().getDeclarationDescriptor());
-
-        if (anyConstructorHasDeclaredTypeParameters) {
-            context = context.replaceExpectedType(superType);
-        }
-
-        List<OldResolutionCandidate<ConstructorDescriptor>> candidates =
-                CallResolverUtilKt.createResolutionCandidatesForConstructors(
-                        context.scope, context.call, superType, !anyConstructorHasDeclaredTypeParameters, syntheticScopes
-                );
-
-        return new Pair<>(candidates, context);
-    }
-
-
-
-    private static boolean anyConstructorHasDeclaredTypeParameters(@Nullable ClassifierDescriptor classDescriptor) {
-        if (!(classDescriptor instanceof ClassDescriptor)) return false;
-        for (ConstructorDescriptor constructor : ((ClassDescriptor) classDescriptor).getConstructors()) {
-            if (constructor.getTypeParameters().size() > constructor.getContainingDeclaration().getDeclaredTypeParameters().size()) return true;
-        }
-
-        return false;
-    }
     @NotNull
     @SuppressWarnings("unchecked")
     public OverloadResolutionResults<FunctionDescriptor> resolveFunctionCall(@NotNull BasicCallResolutionContext context) {
@@ -395,12 +408,12 @@ public class CallResolver {
 //        }
 
         CjExpression calleeExpression = context.call.getCalleeExpression();
-         if (calleeExpression instanceof CjSimpleNameExpression expression) {
+        if (calleeExpression instanceof CjSimpleNameExpression expression) {
             return computeTasksAndResolveCall(
                     context, expression.getReferencedNameAsName(), expression,
                     NewResolutionOldInference.ResolutionKind.Function.INSTANCE);
         } else if (calleeExpression instanceof CjConstructorCalleeExpression) {
-            return (OverloadResolutionResults ) resolveCallForConstructor(context, (CjConstructorCalleeExpression) calleeExpression);
+            return (OverloadResolutionResults) resolveCallForConstructor(context, (CjConstructorCalleeExpression) calleeExpression);
         } else if (calleeExpression instanceof CjConstructorDelegationReferenceExpression) {
             CjConstructorDelegationCall delegationCall = (CjConstructorDelegationCall) context.call.getCallElement();
             DeclarationDescriptor container = context.scope.getOwnerDescriptor();
@@ -436,6 +449,7 @@ public class CallResolver {
         TracingStrategyForInvoke tracingForInvoke = new TracingStrategyForInvoke(calleeExpression, call, calleeType);
         return resolveCallForInvoke(context.replaceCall(call), tracingForInvoke);
     }
+
     @NotNull
     private OverloadResolutionResults<FunctionDescriptor> resolveCallForInvoke(
             @NotNull BasicCallResolutionContext context,
@@ -453,7 +467,7 @@ public class CallResolver {
             @Nullable CjConstructorDelegationCall call,
             @Nullable InferenceSession inferenceSession
     ) {
-        if(call == null){
+        if (call == null) {
             return null;
         }
         // Method returns `null` when there is nothing to resolve in trivial cases like `null` call expression or
@@ -498,6 +512,7 @@ public class CallResolver {
         PsiElement delegationCall = calleeExpression.getParent();
         return CallResolverUtilKt.reportOnElement(delegationCall);
     }
+
     private OverloadResolutionResults<ConstructorDescriptor> resolveCallForConstructor(
             @NotNull BasicCallResolutionContext context,
             @NotNull CjConstructorCalleeExpression expression
@@ -578,7 +593,7 @@ public class CallResolver {
         NewResolutionOldInference.ResolutionKind resolutionKind = resolutionTask.resolutionKind;
         if (
                 newInferenceEnabled &&
-                PSICallResolver.getDefaultResolutionKinds().contains(resolutionKind)) {
+                        PSICallResolver.getDefaultResolutionKinds().contains(resolutionKind)) {
             assert resolutionTask.name != null;
             BindingContextUtilsKt.recordScope(context.trace, context.scope, context.call.getCalleeExpression());
             return PSICallResolver.runResolutionAndInference(context, resolutionTask.name, resolutionKind, tracing);
@@ -632,9 +647,8 @@ public class CallResolver {
         OverloadResolutionResultsImpl<D> result;
         if (!(resolutionTask.resolutionKind instanceof NewResolutionOldInference.ResolutionKind.GivenCandidates)) {
             assert resolutionTask.name != null;
-        result = newResolutionOldInference.runResolution(context, resolutionTask.name, resolutionTask.resolutionKind, tracing);
-        }
-        else {
+            result = newResolutionOldInference.runResolution(context, resolutionTask.name, resolutionTask.resolutionKind, tracing);
+        } else {
             assert resolutionTask.givenCandidates != null;
             result = newResolutionOldInference.runResolutionForGivenCandidates(context, tracing, resolutionTask.givenCandidates);
         }
@@ -656,6 +670,7 @@ public class CallResolver {
 //        }
         return result;
     }
+
     // component dependency cycle
     @Inject
     public void setArgumentTypeResolver(@NotNull ArgumentTypeResolver argumentTypeResolver) {

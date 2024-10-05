@@ -57,6 +57,7 @@ class OverloadResolver(
             }
             val containingDeclaration = cclass.containingDeclaration
             if (containingDeclaration is ClassDescriptor) {
+
                 constructorsByOuterClass.putValues(containingDeclaration, cclass.constructors)
             } else if (!(containingDeclaration is FunctionDescriptor ||
                         containingDeclaration is PropertyDescriptor ||
@@ -279,6 +280,10 @@ class OverloadResolver(
 
         for (function in classDescriptor.declaredCallableMembers) {
             functionsByName.putValue(function.name, function)
+        }
+
+        for (constructor in classDescriptor.endConstructors) {
+            functionsByName.putValue(constructor.name, constructor)
         }
 
         for (nestedConstructor in nestedClassConstructors) {

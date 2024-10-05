@@ -47,11 +47,14 @@ class TypeAliasConstructorDescriptorImpl private constructor(
     annotations: Annotations,
     kind: CallableMemberDescriptor.Kind,
     source: SourceElement
-) :
-    FunctionDescriptorImpl(typeAliasDescriptor, original, annotations, SpecialNames.INIT, kind, source),
+) : FunctionDescriptorImpl(typeAliasDescriptor, original, annotations, SpecialNames.INIT, kind, source),
     TypeAliasConstructorDescriptor {
     override fun isPrimary(): Boolean =
         underlyingConstructorDescriptor.isPrimary
+
+    override fun isEnd(): Boolean {
+        return underlyingConstructorDescriptor.isEnd
+    }
 
     override var underlyingConstructorDescriptor: ClassConstructorDescriptor = underlyingConstructorDescriptor
         private set
@@ -134,7 +137,7 @@ class TypeAliasConstructorDescriptorImpl private constructor(
             .setCopyOverrides(copyOverrides)
             .build() as TypeAliasConstructorDescriptor
 
-    override fun hasSynthesizedParameterNames(): Boolean  = false
+    override fun hasSynthesizedParameterNames(): Boolean = false
 
 
     override fun getConstructedClass(): ClassDescriptor =

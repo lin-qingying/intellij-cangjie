@@ -48,6 +48,9 @@ public interface ClassDescriptor extends ClassifierDescriptorWithTypeParameters,
     @NotNull
     @ReadOnly
     Collection<ClassConstructorDescriptor> getConstructors();
+    @NotNull
+    @ReadOnly
+    Collection<ClassConstructorDescriptor> getEndConstructors();
 
     @Override
     @NotNull

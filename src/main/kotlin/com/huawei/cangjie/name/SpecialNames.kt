@@ -35,6 +35,8 @@ object SpecialNames {
 
     @JvmField
     val THIS = Name.special("<this>")
+    @JvmField
+    val END_INIT = Name.special("<~init>")
 
     @JvmField
     val INIT = Name.special("<init>")

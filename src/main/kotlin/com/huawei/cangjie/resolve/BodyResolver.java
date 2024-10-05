@@ -371,6 +371,9 @@ public class BodyResolver {
             @NotNull ClassConstructorDescriptor descriptor,
             @Nullable InferenceSession inferenceSession
     ) {
+        if (descriptor.getContainingDeclaration().getKind() == ClassKind.STRUCT && descriptor.isPrimary() && constructor instanceof CjPrimaryConstructor) {
+            return DataFlowInfo.Companion.getEMPTY();
+        }
         if (descriptor.isExpect() || isEffectivelyExternal(descriptor)) {
             // For expected and external classes, we do not resolve constructor delegation calls because they are prohibited
             return DataFlowInfo.Companion.getEMPTY();
@@ -441,7 +444,16 @@ public class BodyResolver {
                 localContext
         );
     }
-
+    public void resolveEndSecondaryConstructorBody(
+            @NotNull DataFlowInfo outerDataFlowInfo,
+            @NotNull BindingTrace trace,
+            @NotNull CjEndSecondaryConstructor constructor,
+            @NotNull ClassConstructorDescriptor descriptor,
+            @NotNull LexicalScope declaringScope,
+            @Nullable ExpressionTypingContext localContext
+    ) {
+        resolveConstructorBody(outerDataFlowInfo, trace, constructor, descriptor, declaringScope, localContext);
+    }
     public void resolveSecondaryConstructorBody(
             @NotNull DataFlowInfo outerDataFlowInfo,
             @NotNull BindingTrace trace,
@@ -632,17 +644,69 @@ public class BodyResolver {
         valueParameterResolver.resolveValueParameters(valueParameters, valueParameterDescriptors, scope, outerDataFlowInfo, trace, inferenceSession);
     }
 
+    /**
+     * 检查主构造函数数量
+     * 检查非class struct的意外构造函数
+     *
+     * @param c
+     */
+    private void checkConstructorSize(@NotNull BodiesResolveContext c) {
+        Set<Map.Entry<CjTypeStatement, ClassDescriptorWithResolutionScopes>> typeStatments = c.getDeclaredClasses().entrySet();
+
+        for (Map.Entry<CjTypeStatement, ClassDescriptorWithResolutionScopes> entry : typeStatments) {
+
+
+            for (CjConstructor constructor : entry.getKey().getEndSecondaryConstructors()) {
+                if (!(entry.getKey() instanceof CjClass)) {
+                    trace.report(UNEXPECTED_FINALIZER_IN_BODY_ERROR.on(constructor.getIdentifyingElement(), entry.getKey().getTypeName()));
+                } else {
+                    if (!constructor.getValueParameters().isEmpty()) {
+                        trace.report(FINALIZER_CANNOT_HAVE_PARAMETERS_ERROR.on(constructor.getValueParameterList()));
+
+                    }
+                }
+            }
+
+            if (entry.getKey().isExtend()) {
+                for (CjConstructor constructor : entry.getKey().getConstructors()) {
+                    trace.report(UNEXPECTED_CONSTRUCTOR_IN_BODY_ERROR.on(constructor.getIdentifyingElement(), "extend"));
+                }
+            }
+            if (entry.getKey().isEnum()) {
+                for (CjConstructor constructor : entry.getKey().getConstructors()) {
+                    trace.report(UNEXPECTED_CONSTRUCTOR_IN_BODY_ERROR.on(constructor.getIdentifyingElement(), "enum"));
+
+                }
+            }
+
+            for (CjPrimaryConstructor constructor : entry.getKey().getPrimaryConstructors()) {
+                if (!constructor.getName().equals(entry.getValue().getName().asString())) {
+//                    主构造函数名称不一致
+                    trace.report(CONSTRUCTOR_NAME_INCONSISTENCY.on(constructor));
+
+                }
+                if (entry.getKey().getPrimaryConstructors().size() > 1) {
+                    trace.report(MULTIPLE_PRIMARY_CONSTRUCTORS.on(constructor, entry.getValue()));
+
+                }
+            }
+
+        }
+    }
+
     //    与从构造函数行为一致，但是不能有this()
     private void resolvePrimaryConstructorParameters(@NotNull BodiesResolveContext c) {
         // 检查主构造名称
 //        检查this的使用
         Set<Map.Entry<CjPrimaryConstructor, ClassConstructorDescriptor>> constructors = c.getPrimaryConstructors().entrySet();
 
-        for (Map.Entry<CjPrimaryConstructor, ClassConstructorDescriptor> entry : constructors) {
-            if (constructors.size() > 1) {
-                trace.report(MULTIPLE_PRIMARY_CONSTRUCTORS.on(entry.getKey(), entry.getValue().getContainingDeclaration()));
 
-            }
+        for (Map.Entry<CjPrimaryConstructor, ClassConstructorDescriptor> entry : constructors) {
+
+//            if (constructors.size() > 1) {
+//                trace.report(MULTIPLE_PRIMARY_CONSTRUCTORS.on(entry.getKey(), entry.getValue().getContainingDeclaration()));
+//
+//            }
 
             LexicalScope declaringScope = c.getDeclaringScope(entry.getKey());
             assert declaringScope != null : "Declaring scope should be registered before body resolve";
@@ -654,7 +718,14 @@ public class BodyResolver {
             checkCyclicConstructorDelegationCall(entry.getValue(), visitedConstructors);
         }
     }
+    private void resolveEndSecondaryConstructors(@NotNull BodiesResolveContext c){
+        for (Map.Entry<CjEndSecondaryConstructor, ClassConstructorDescriptor> entry : c.getEndSecondaryConstructors().entrySet()) {
+            LexicalScope declaringScope = c.getDeclaringScope(entry.getKey());
+            assert declaringScope != null : "Declaring scope should be registered before body resolve";
+            resolveEndSecondaryConstructorBody(c.getOuterDataFlowInfo(), trace, entry.getKey(), entry.getValue(), declaringScope, c.getLocalContext());
+        }
 
+    }
     private void resolveSecondaryConstructors(@NotNull BodiesResolveContext c) {
         for (Map.Entry<CjSecondaryConstructor, ClassConstructorDescriptor> entry : c.getSecondaryConstructors().entrySet()) {
             LexicalScope declaringScope = c.getDeclaringScope(entry.getKey());
@@ -733,9 +804,12 @@ public class BodyResolver {
 
         resolveVariableDeclarationBodies(c);
 
-//TODO 析构函数
+
+        checkConstructorSize(c);
         resolvePrimaryConstructorParameters(c);
         resolveSecondaryConstructors(c);
+        //TODO 析构函数
+        resolveEndSecondaryConstructors(c);
         resolveMainFunctionBodies(c);
 
 

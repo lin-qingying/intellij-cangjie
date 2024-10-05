@@ -465,6 +465,11 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
     }
 
     @Override
+    public @NotNull Collection<ClassConstructorDescriptor> getEndConstructors() {
+       return ((LazyClassMemberScope) getUnsubstitutedMemberScope()).getEndConstructors();
+    }
+
+    @Override
     public @NotNull ClassKind getKind() {
         return kind;
 

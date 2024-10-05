@@ -54,7 +54,7 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
         val names = hashSetOf<Name>()
 
         fun putToIndex(declaration: CjDeclaration) {
-            if (declaration is CjAnonymousInitializer || declaration is CjSecondaryConstructor || declaration is CjPrimaryConstructor) return
+            if (declaration is CjAnonymousInitializer || declaration is CjConstructor<*>) return
 
             allDeclarations.add(declaration)
             when (declaration) {

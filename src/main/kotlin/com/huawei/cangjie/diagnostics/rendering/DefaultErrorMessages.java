@@ -290,6 +290,12 @@ public class DefaultErrorMessages {
 
         MAP.put(RETURN_TYPE_NOT_SPECIFIED_ERROR, "For technical reasons, please display the return type of the specified method" );
         MAP.put(ABSTRACT_MEMBER_VISIBILITY_ERROR, "The visibility of an ''{0}'' {1} must be {2}",MODALITY_NAME, DESCRIPTOR_KIND_NAME,VISIBLITYS_NAMES);
+        MAP.put(NO_CONSTRUCTOR, "This class does not have a constructor");
+        MAP.put(UNEXPECTED_CONSTRUCTOR_IN_BODY_ERROR, "Unexpected constructor in {0} body",STRING);
+        MAP.put(UNEXPECTED_FINALIZER_IN_BODY_ERROR, "unexpected finalizer in {0} body",STRING);
+
+
+        MAP.put(FINALIZER_CANNOT_HAVE_PARAMETERS_ERROR, "Finalizer cannot have any parameter");
 
     }
 

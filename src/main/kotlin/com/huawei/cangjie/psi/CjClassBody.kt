@@ -24,7 +24,8 @@ class CjClassBody : CjElementImplStub<CangJiePlaceHolderStub<CjClassBody>>, CjDe
         get() = getStubOrPsiChildrenAsList(CjStubElementTypes.SECONDARY_CONSTRUCTOR)
     internal val primaryConstructors: List<CjPrimaryConstructor>
         get() = getStubOrPsiChildrenAsList(CjStubElementTypes.PRIMARY_CONSTRUCTOR)
-
+    internal val endSecondaryConstructors: List<CjEndSecondaryConstructor>
+        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.END_SECONDARY_CONSTRUCTOR)
     /**
      * @return annotations that do not belong to any declaration due to incomplete code or syntax errors
      */

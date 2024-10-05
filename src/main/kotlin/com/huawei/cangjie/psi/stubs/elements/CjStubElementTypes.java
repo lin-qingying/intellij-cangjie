@@ -21,6 +21,8 @@ public interface CjStubElementTypes {
 //    CjObjectElementType OBJECT_DECLARATION = new CjObjectElementType("OBJECT_DECLARATION");
     CjPlaceHolderStubElementType<CjClassInitializer> CLASS_INITIALIZER =
             new CjPlaceHolderStubElementType<>("CLASS_INITIALIZER", CjClassInitializer.class);
+    CjEndSecondaryConstructorElementType END_SECONDARY_CONSTRUCTOR =
+            new CjEndSecondaryConstructorElementType("END_SECONDARY_CONSTRUCTOR");
     CjSecondaryConstructorElementType SECONDARY_CONSTRUCTOR =
             new CjSecondaryConstructorElementType("SECONDARY_CONSTRUCTOR");
     CjPrimaryConstructorElementType PRIMARY_CONSTRUCTOR =

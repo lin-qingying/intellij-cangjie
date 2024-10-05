@@ -12,6 +12,7 @@ class CjInterface : CjTypeStatement {
     override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R  {
         return visitor.visitInterface(this, data)
     }
-
+    override val typeName: String
+        get() = "interface"
     override fun toString(): String = node.elementType.toString() + " : $name"
 }

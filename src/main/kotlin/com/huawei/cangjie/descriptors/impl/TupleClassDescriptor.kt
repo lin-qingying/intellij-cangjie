@@ -117,6 +117,9 @@ class TupleClassDescriptor(
 
 
     override fun getConstructors() = emptyList<ClassConstructorDescriptor>()
+    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> =emptySet()
+
+
     override fun getKind() = ClassKind.TUPLE
     override fun getModality() = Modality.FINAL
     override fun getUnsubstitutedPrimaryConstructor() = null

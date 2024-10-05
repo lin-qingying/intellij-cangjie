@@ -32,6 +32,7 @@ class LazyEnumEntryDescriptor(
 
     override val visibility: DescriptorVisibility
          = containingDeclaration.visibility
+    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> =emptySet()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

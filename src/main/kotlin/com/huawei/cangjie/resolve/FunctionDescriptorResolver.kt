@@ -192,18 +192,20 @@ class FunctionDescriptorResolver(
         constructor: CjConstructor<*>,
         trace: BindingTrace,
         languageVersionSettings: LanguageVersionSettings,
-        inferenceSession: InferenceSession?
+        inferenceSession: InferenceSession?,
+        isEnd: Boolean = false
     ): ClassConstructorDescriptorImpl {
         return createConstructorDescriptor(
             scope,
             classDescriptor,
-            false,
+            constructor is CjPrimaryConstructor,
             constructor.modifierList,
             constructor,
             constructor.valueParameters,
             trace,
             languageVersionSettings,
-            inferenceSession
+            inferenceSession,
+            isEnd
         )
     }
 
@@ -217,13 +219,15 @@ class FunctionDescriptorResolver(
         valueParameters: List<CjParameter>,
         trace: BindingTrace,
         languageVersionSettings: LanguageVersionSettings,
-        inferenceSession: InferenceSession?
+        inferenceSession: InferenceSession?,
+        isEnd: Boolean = false
     ): ClassConstructorDescriptorImpl {
         val constructorDescriptor = ClassConstructorDescriptorImpl.create(
             classDescriptor,
             annotationResolver.resolveAnnotationsWithoutArguments(scope, modifierList, trace),
             isPrimary,
-            declarationToTrace.toSourceElement()
+            declarationToTrace.toSourceElement(),
+            isEnd
         )
         constructorDescriptor.isExpect = classDescriptor.isExpect
 //        constructorDescriptor.isActual = modifierList?.hasActualModifier() == true ||
@@ -254,7 +258,13 @@ class FunctionDescriptorResolver(
 //            CompileTimeConstantUtils.checkConstructorParametersType(valueParameters, trace)
 //        }
         if (declarationToTrace is PsiElement)
-            trace.record(BindingContext.CONSTRUCTOR, declarationToTrace, constructorDescriptor)
+            trace.record(
+                if (isEnd) {
+                    BindingContext.END_CONSTRUCTOR
+                } else {
+                    BindingContext.CONSTRUCTOR
+                }, declarationToTrace, constructorDescriptor
+            )
         return constructor
     }
 

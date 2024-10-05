@@ -10,7 +10,8 @@ class CjStruct :CjTypeStatement{
     constructor(stub: CangJieStructStub) : super(stub, CjStubElementTypes.STRUCT)
 
     override fun toString(): String = node.elementType.toString() + " : $name"
-
+    override val typeName: String
+        get() = "struct"
     override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R  {
         return visitor.visitStruct(this, data)
     }

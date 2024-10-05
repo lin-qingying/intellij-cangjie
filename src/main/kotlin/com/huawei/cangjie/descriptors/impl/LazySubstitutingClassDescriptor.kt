@@ -232,6 +232,7 @@ class LazySubstitutingClassDescriptor(
         }
         return result
     }
+    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> =emptySet()
 
 
     override fun getKind(): ClassKind {

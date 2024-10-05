@@ -17,7 +17,8 @@ class CjExtend : CjTypeStatement {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitExtend(this, data)
     }
-
+    override val typeName: String
+        get() = "extend"
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJieExtendStub) : super(stub, CjStubElementTypes.EXTEND)
 

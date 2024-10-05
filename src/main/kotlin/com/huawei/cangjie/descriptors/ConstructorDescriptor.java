@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 public interface ConstructorDescriptor extends FunctionDescriptor{
     boolean isPrimary();
+    boolean isEnd();
 
     @NotNull
     @Override

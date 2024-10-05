@@ -151,7 +151,13 @@ open class LazyDeclarationResolver(
                         function?.valueParameters
                         return bindingContext.get(BindingContext.VALUE_PARAMETER, parameter)
                     }
-
+                    is CjEndSecondaryConstructor -> {
+                        val constructorDescriptor = visitEndSecondaryConstructor(
+                            grandFather, data
+                        ) as? ConstructorDescriptor
+                        constructorDescriptor?.valueParameters
+                        return bindingContext.get(BindingContext.VALUE_PARAMETER, parameter)
+                    }
                     is CjSecondaryConstructor -> {
                         val constructorDescriptor = visitSecondaryConstructor(
                             grandFather, data
@@ -180,6 +186,16 @@ open class LazyDeclarationResolver(
                 return getExtendClassDescriptor(cjExtend)
             }
 
+            override fun visitEndSecondaryConstructor(
+                constructor: CjEndSecondaryConstructor,
+                data: Nothing?
+            ): DeclarationDescriptor? {
+                getClassDescriptorIfAny(
+                    constructor.parent?.parent as CjTypeStatement,
+                    lookupLocationFor(constructor, false)
+                )?.endConstructors
+                return bindingContext.get(BindingContext.END_CONSTRUCTOR, constructor)
+            }
             override fun visitSecondaryConstructor(
                 constructor: CjSecondaryConstructor,
                 data: Nothing?

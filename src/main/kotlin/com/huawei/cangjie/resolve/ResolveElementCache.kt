@@ -407,6 +407,15 @@ class ResolveElementCache(
         return constructorAdditionalResolve(resolveSession, constructor, file, statementFilter, bindingTraceFilter)
     }
 
+    private fun endSecondaryConstructorAdditionalResolve(
+        resolveSession: ResolveSession,
+        constructor: CjEndSecondaryConstructor,
+        file: CjFile, statementFilter: StatementFilter,
+        bindingTraceFilter: BindingTraceFilter
+    ): BindingTrace {
+        return constructorAdditionalResolve(resolveSession, constructor, file, statementFilter, bindingTraceFilter)
+    }
+
     private fun secondaryConstructorAdditionalResolve(
         resolveSession: ResolveSession,
         constructor: CjSecondaryConstructor,
@@ -537,6 +546,14 @@ class ResolveElementCache(
 
             is CjTypeConstraint -> typeConstraintAdditionalResolve(resolveSession, resolveElement)
             is CjPrimaryConstructor -> primaryConstructorAdditionalResolve(
+                resolveSession,
+                resolveElement,
+                file,
+                createStatementFilter(),
+                bodyResolveMode.bindingTraceFilter
+            )
+
+            is CjEndSecondaryConstructor -> endSecondaryConstructorAdditionalResolve(
                 resolveSession,
                 resolveElement,
                 file,
@@ -826,6 +843,8 @@ class ResolveElementCache(
     ) : BodiesResolveContext {
 
         override val files: Collection<CjFile> = setOf()
+        override val endSecondaryConstructors: MutableMap<CjEndSecondaryConstructor, ClassConstructorDescriptor> =
+            hashMapOf()
         override val primaryConstructors: MutableMap<CjPrimaryConstructor, ClassConstructorDescriptor> = hashMapOf()
         override val secondaryConstructors: MutableMap<CjSecondaryConstructor, ClassConstructorDescriptor> = hashMapOf()
         override val declaredClasses: MutableMap<CjTypeStatement, ClassDescriptorWithResolutionScopes> = hashMapOf()

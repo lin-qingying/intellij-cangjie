@@ -17,6 +17,7 @@ import java.util.List;
 import static com.huawei.cangjie.CjNodeTypes.*;
 import static com.huawei.cangjie.lexer.CjTokens.*;
 import static com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes.CONSTRUCTOR_CALLEE;
+import static com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes.END_SECONDARY_CONSTRUCTOR;
 
 public class CangJieParsing extends AbstractCangJieParsing {
     public static final TokenSet PARAMETER_NAME_RECOVERY_SET = TokenSet.create(COLON, EQ, COMMA, RPAR);
@@ -1929,7 +1930,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 advance(); // TILDE ~
                 parseInitFunc();
 //                析构函数
-                declType = CLASS_TILDE_INIT;
+                declType = END_SECONDARY_CONSTRUCTOR;
 
             }
 

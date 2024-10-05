@@ -67,6 +67,7 @@ class FunctionClassDescriptor(
     override fun getKind() = ClassKind.INTERFACE
     override fun getModality() = Modality.ABSTRACT
     override fun getUnsubstitutedPrimaryConstructor() = null
+    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> =emptySet()
 
 
     override val visibility: DescriptorVisibility = DescriptorVisibilities.PUBLIC

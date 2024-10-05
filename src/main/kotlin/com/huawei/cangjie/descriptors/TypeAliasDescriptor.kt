@@ -19,5 +19,6 @@ interface TypeAliasDescriptor : ClassifierDescriptorWithTypeParameters, TypeAlia
 
     override val original: TypeAliasDescriptor
 
+
     val constructors: Collection<TypeAliasConstructorDescriptor>
 }

@@ -96,7 +96,9 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     open fun visitTypeAlias(typeAlias: CjTypeAlias) {
         super.visitTypeAlias(typeAlias, null)
     }
-
+    open fun visitEndSecondaryConstructor(constructor: CjEndSecondaryConstructor) {
+        super.visitEndSecondaryConstructor(constructor, null)
+    }
 
     open fun visitSecondaryConstructor(constructor: CjSecondaryConstructor) {
         super.visitSecondaryConstructor(constructor, null)
@@ -452,6 +454,11 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     override fun visitVariable(variable: CjVariable, data: Void?): Void? {
 
         visitVariable(variable)
+        return null
+    }
+
+    override fun visitEndSecondaryConstructor (constructor: CjEndSecondaryConstructor, data: Void?): Void? {
+        visitEndSecondaryConstructor(constructor)
         return null
     }
 

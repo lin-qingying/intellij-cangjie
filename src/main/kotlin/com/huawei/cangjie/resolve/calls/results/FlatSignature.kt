@@ -29,7 +29,8 @@ fun <T> FlatSignature.Companion.create(
     return FlatSignature(
         origin,
         descriptor.typeParameters,
-        valueParameterTypes = contextReceiverTypes + extensionReceiverType?.let { listOf(TypeWithConversion(it)) }.orEmpty() + parameterTypes,
+        valueParameterTypes = contextReceiverTypes + extensionReceiverType?.let { listOf(TypeWithConversion(it)) }
+            .orEmpty() + parameterTypes,
         hasExtensionReceiver = extensionReceiverType != null,
         contextReceiverCount = contextReceiverTypes.size,
 //        hasVarargs = descriptor.valueParameters.any { it.varargElementType != null },
@@ -39,7 +40,7 @@ fun <T> FlatSignature.Companion.create(
     )
 }
 
-class FlatSignature<out T> constructor(
+class FlatSignature<out T>(
     val origin: T,
     val typeParameters: Collection<TypeParameterMarker>,
     val hasExtensionReceiver: Boolean,
@@ -49,8 +50,7 @@ class FlatSignature<out T> constructor(
     val isExpect: Boolean,
     val isSyntheticMember: Boolean,
     val valueParameterTypes: List<TypeWithConversion?>,
-)
-{
+) {
     val isGeneric = typeParameters.isNotEmpty()
 
     constructor(
@@ -64,11 +64,13 @@ class FlatSignature<out T> constructor(
         isExpect: Boolean,
         isSyntheticMember: Boolean,
     ) : this(
-        origin, typeParameters, hasExtensionReceiver, contextReceiverCount,  numDefaults, isExpect,
+        origin, typeParameters, hasExtensionReceiver, contextReceiverCount, numDefaults, isExpect,
         isSyntheticMember, valueParameterTypes.map(::TypeWithConversion)
     )
+
     companion object
 }
+
 interface SimpleConstraintSystem {
     fun registerTypeVariables(typeParameters: Collection<TypeParameterMarker>): TypeSubstitutorMarker
     fun addSubtypeConstraint(subType: CangJieTypeMarker, superType: CangJieTypeMarker)
@@ -79,6 +81,7 @@ interface SimpleConstraintSystem {
 
     val context: TypeSystemInferenceExtensionContext
 }
+
 fun <D : CallableDescriptor> FlatSignature.Companion.createFromCallableDescriptor(descriptor: D): FlatSignature<D> =
     FlatSignature(
         descriptor,
@@ -90,10 +93,13 @@ fun <D : CallableDescriptor> FlatSignature.Companion.createFromCallableDescripto
         contextReceiverCount = descriptor.contextReceiverParameters.size,
 
         numDefaults = 0,
-        isExpect = descriptor is MemberDescriptor  ,
+        isExpect = descriptor is MemberDescriptor,
         isSyntheticMember = descriptor is SyntheticMemberDescriptor<*>
     )
-val ValueParameterDescriptor.argumentValueType get() =  type
+
+val ValueParameterDescriptor.argumentValueType get() = type
+
+
 fun <T> SimpleConstraintSystem.isSignatureNotLessSpecific(
     specific: FlatSignature<T>,
     general: FlatSignature<T>,
@@ -119,6 +125,7 @@ fun <T> SimpleConstraintSystem.isSignatureNotLessSpecific(
 
     return !hasContradiction()
 }
+
 private fun <T> SimpleConstraintSystem.isValueParameterTypeNotLessSpecific(
     specific: FlatSignature<T>,
     general: FlatSignature<T>,
@@ -172,6 +179,7 @@ private fun <T> SimpleConstraintSystem.isValueParameterTypeNotLessSpecific(
 
     return true
 }
+
 fun <T> FlatSignature.Companion.createFromReflectionType(
     origin: T,
     descriptor: CallableDescriptor,
@@ -206,6 +214,7 @@ fun <T> FlatSignature.Companion.createFromReflectionType(
         isSyntheticMember = descriptor is SyntheticMemberDescriptor<*>
     )
 }
+
 object OverloadabilitySpecificityCallbacks : SpecificityComparisonCallbacks {
     override fun isNonSubtypeNotLessSpecific(specific: CangJieTypeMarker, general: CangJieTypeMarker): Boolean =
         false

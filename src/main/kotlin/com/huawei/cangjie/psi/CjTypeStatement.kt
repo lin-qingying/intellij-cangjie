@@ -34,8 +34,9 @@ abstract class CjTypeStatement :
     override fun toString(): String {
         return node.elementType.toString()
     }
-    val variables :List<CjVariable> get() =   body?.variables.orEmpty()
-    val properties :List<CjProperty> get() = body?.properties.orEmpty()
+ abstract val typeName:String
+    val variables: List<CjVariable> get() = body?.variables.orEmpty()
+    val properties: List<CjProperty> get() = body?.properties.orEmpty()
 
     fun getSuperTypeList(): CjSuperTypeList? = getStubOrPsiChild(CjStubElementTypes.SUPER_TYPE_LIST)
 
@@ -51,6 +52,7 @@ abstract class CjTypeStatement :
             body.addAfter(declaration, anchor)
         } as T
     }
+
     override fun hasExplicitPrimaryConstructor(): Boolean = primaryConstructor != null
 
     fun hasSecondaryConstructors(): Boolean = !secondaryConstructors.isEmpty()
@@ -72,6 +74,8 @@ abstract class CjTypeStatement :
 
     override fun getSecondaryConstructors(): List<CjSecondaryConstructor> = getBody()?.secondaryConstructors.orEmpty()
     override fun getPrimaryConstructors(): List<CjPrimaryConstructor> = getBody()?.primaryConstructors.orEmpty()
+    override fun getEndSecondaryConstructors(): List<CjEndSecondaryConstructor>  = getBody()?.endSecondaryConstructors.orEmpty()
+    fun getConstructors(): List<CjConstructor<*>> = getSecondaryConstructors() + getPrimaryConstructors() +  getEndSecondaryConstructors()
     fun getContextReceiverList(): CjContextReceiverList? = getStubOrPsiChild(CjStubElementTypes.CONTEXT_RECEIVER_LIST)
 
     override fun getContextReceivers(): List<CjContextReceiver> =
@@ -82,6 +86,11 @@ abstract class CjTypeStatement :
     override fun getClassId(): ClassId? {
         stub?.let { return it.getClassId() }
         return ClassIdCalculator.calculateClassId(this)
+    }
+
+    fun isExtend(): Boolean {
+        return this is CjExtend
+
     }
 
     fun isEnum(): Boolean {

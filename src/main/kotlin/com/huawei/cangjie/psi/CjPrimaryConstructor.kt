@@ -42,12 +42,14 @@ class CjPrimaryConstructor : CjConstructor<CjPrimaryConstructor> {
         }
     }
 
-      val identifier: PsiElement  get() = firstChild
-
+    override fun getIdentifyingElement(): PsiElement? {
+        return identifier
+    }
+      val identifier: PsiElement?  get() = findChildByType(CjTokens.IDENTIFIER)
     override fun getName(): String? {
 
 
-        return identifier .text
+        return identifier ?.text
     }
     override fun removeModifier(modifier: CjModifierKeywordToken) {
         super.removeModifier(modifier)

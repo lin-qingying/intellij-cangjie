@@ -353,7 +353,9 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitCallExpression(CjCallExpression cjCallExpression, D data) {
         return visitReferenceExpression(cjCallExpression, data);
     }
-
+    public R visitEndSecondaryConstructor(@NotNull CjEndSecondaryConstructor constructor, D data) {
+        return visitNamedDeclaration(constructor, data);
+    }
     public R visitSecondaryConstructor(@NotNull CjSecondaryConstructor constructor, D data) {
         return visitNamedDeclaration(constructor, data);
     }
