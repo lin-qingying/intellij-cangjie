@@ -62,7 +62,7 @@ class CjAnnotationEntry : CjElementImplStub<CangJieAnnotationEntryStub >, CjCall
                 }
                 return null
             }
-
+            typeReference ?: return null
             val typeReference =
                 checkNotNull(typeReference) { "Annotation entry hasn't typeReference $text" }
             val typeElement = typeReference.typeElement

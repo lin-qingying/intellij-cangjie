@@ -107,7 +107,7 @@ public abstract class AbstractTypeParameterDescriptor extends DeclarationDescrip
 
     @Override
     public int getIndex() {
-        return 0;
+        return index;
     }
 
     @Override

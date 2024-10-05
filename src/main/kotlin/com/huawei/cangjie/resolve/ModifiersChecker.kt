@@ -61,6 +61,7 @@ class ModifiersChecker(
             checkNestedClassAllowed(modifierListOwner, descriptor)
             checkTypeParametersModifiers(modifierListOwner)
             checkModifierListCommon(modifierListOwner, descriptor)
+
             checkIllegalHeader(modifierListOwner, descriptor)
         }
 
@@ -241,12 +242,33 @@ class ModifiersChecker(
 
         private fun resolveModalityFromModifiers(
             containingDescriptor: DeclarationDescriptor?,
-            modifierList: CjModifierList?,
+            modifierListOwner: CjModifierListOwner?,
             defaultModality: Modality,
             allowSealed: Boolean
         ): Modality {
+            val modifierList = if ((modifierListOwner != null)) modifierListOwner.modifierList else null
 
-            if (modifierList == null) return defaultModality
+
+            if (modifierList?.owner is CjNamedFunction || modifierList?.owner is CjProperty) {
+                if (containingDescriptor is MemberDescriptor && containingDescriptor is ClassDescriptor) {
+
+                    if (containingDescriptor.modality == Modality.ABSTRACT && containingDescriptor.kind == ClassKind.CLASS) {
+                        if (modifierListOwner is CjProperty && !modifierListOwner.hasBody()) {
+
+                            return Modality.ABSTRACT
+
+                        } else if (modifierListOwner is CjNamedFunction) {
+                            return Modality.ABSTRACT
+
+                        }
+                    }
+                }
+
+
+            }
+            if (modifierList == null) {
+                return defaultModality
+            }
             val hasAbstractModifier = modifierList.hasModifier(CjTokens.ABSTRACT_KEYWORD)
             val hasOverrideModifier = modifierList.hasModifier(CjTokens.OVERRIDE_KEYWORD)
 
@@ -288,12 +310,11 @@ class ModifiersChecker(
             containingDescriptor: DeclarationDescriptor?,
             allowSealed: Boolean
         ): Modality {
-//            TODO()
-            val modifierList = if ((modifierListOwner != null)) modifierListOwner.modifierList else null
+
             var modality =
                 resolveModalityFromModifiers(
                     containingDescriptor,
-                    modifierList,
+                    modifierListOwner,
                     defaultModality,
                     allowSealed
                 )

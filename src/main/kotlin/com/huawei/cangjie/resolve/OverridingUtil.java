@@ -1,8 +1,7 @@
 package com.huawei.cangjie.resolve;
 
 import com.huawei.cangjie.descriptors.*;
-import com.huawei.cangjie.descriptors.impl.FunctionDescriptorImpl;
-import com.huawei.cangjie.descriptors.impl.VariableDescriptorImpl;
+import com.huawei.cangjie.descriptors.impl.*;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.types.*;
 import com.huawei.cangjie.types.checker.CangJieTypeChecker;
@@ -200,6 +199,7 @@ public class OverridingUtil {
         });
     }
 
+
     private static void createAndBindFakeOverride(
             @NotNull Collection<CallableMemberDescriptor> overridables,
             @NotNull ClassDescriptor current,
@@ -210,6 +210,7 @@ public class OverridingUtil {
         Collection<CallableMemberDescriptor> effectiveOverridden = allInvisible ? overridables : visibleOverridables;
 
         Modality modality = determineModalityForFakeOverride(effectiveOverridden, current);
+//        DescriptorVisibility visibility = allInvisible ? DescriptorVisibilities.INVISIBLE_FAKE : DescriptorVisibilities.INHERITED;
         DescriptorVisibility visibility = allInvisible ? DescriptorVisibilities.INVISIBLE_FAKE : DescriptorVisibilities.INHERITED;
 
         // FIXME doesn't work as expected for flexible types: should create a refined signature.
@@ -629,30 +630,26 @@ public class OverridingUtil {
             visibilityToInherit = maxVisibility;
         }
 
-//        if (memberDescriptor instanceof PropertyDescriptorImpl) {
-//            ((PropertyDescriptorImpl) memberDescriptor).setVisibility(visibilityToInherit);
-//            for (PropertyAccessorDescriptor accessor : ((PropertyDescriptor) memberDescriptor).getAccessors()) {
-//                // If we couldn't infer visibility for property, the diagnostic is already reported, no need to report it again on accessors
-//                resolveUnknownVisibilityForMember(accessor, maxVisibility == null ? null : cannotInferVisibility);
-//            }
-//        }
-        if (memberDescriptor instanceof VariableDescriptorImpl) {
+        if (memberDescriptor instanceof PropertyDescriptorImpl) {
+            ((PropertyDescriptorImpl) memberDescriptor).setVisibility(visibilityToInherit);
+            for (PropertyAccessorDescriptor accessor : ((PropertyDescriptor) memberDescriptor).getAccessors()) {
+                // If we couldn't infer visibility for property, the diagnostic is already reported, no need to report it again on accessors
+                resolveUnknownVisibilityForMember(accessor, maxVisibility == null ? null : cannotInferVisibility);
+            }
+        }/*else   if (memberDescriptor instanceof VariableDescriptorImpl) {
             ((VariableDescriptorImpl) memberDescriptor).setVisibility(visibilityToInherit);
-//            for (PropertyAccessorDescriptor accessor : ((PropertyDescriptor) memberDescriptor).getAccessors()) {
-//                // If we couldn't infer visibility for property, the diagnostic is already reported, no need to report it again on accessors
-//                resolveUnknownVisibilityForMember(accessor, maxVisibility == null ? null : cannotInferVisibility);
-//            }
-        } else if (memberDescriptor instanceof FunctionDescriptorImpl) {
+
+        } */else if (memberDescriptor instanceof FunctionDescriptorImpl) {
             ((FunctionDescriptorImpl) memberDescriptor).setVisibility(visibilityToInherit);
         }
-//        else {
-//            assert memberDescriptor instanceof PropertyAccessorDescriptorImpl;
-//            PropertyAccessorDescriptorImpl propertyAccessorDescriptor = (PropertyAccessorDescriptorImpl) memberDescriptor;
-//            propertyAccessorDescriptor.setVisibility(visibilityToInherit);
-//            if (visibilityToInherit != propertyAccessorDescriptor.getCorrespondingProperty().getVisibility()) {
-//                propertyAccessorDescriptor.setDefault(false);
-//            }
-//        }
+        else {
+            assert memberDescriptor instanceof PropertyAccessorDescriptorImpl;
+            PropertyAccessorDescriptorImpl propertyAccessorDescriptor = (PropertyAccessorDescriptorImpl) memberDescriptor;
+            propertyAccessorDescriptor.setVisibility(visibilityToInherit);
+            if (visibilityToInherit != propertyAccessorDescriptor.getCorrespondingProperty().getVisibility()) {
+                propertyAccessorDescriptor.setDefault(false);
+            }
+        }
     }
 
     @Nullable

@@ -56,9 +56,9 @@ class CapturedTypeConstructorImpl(
 //    var newTypeConstructor: NewCapturedTypeConstructor? = null
 
     init {
-        assert(projection.projectionKind != Variance.INVARIANT) {
-            "Only nontrivial projections can be captured, not: $projection"
-        }
+//        assert(projection.projectionKind != Variance.INVARIANT) {
+//            "Only nontrivial projections can be captured, not: $projection"
+//        }
     }
 
     override fun getParameters(): List<TypeParameterDescriptor> = listOf()

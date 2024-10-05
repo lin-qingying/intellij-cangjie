@@ -87,12 +87,6 @@ class LazyTopDownAnalyzer(
                     typeAliases.add(typeAlias)
                 }
 
-                override fun visitExtend(cjExtend: CjExtend) {
-
-                    extendDescriptorResolver.check(c, cjExtend)
-
-                }
-
 
                 override fun visitDeclaration(dcl: CjDeclaration) {
                     throw IllegalArgumentException("Unsupported declaration: " + dcl + " " + dcl.text)
@@ -129,6 +123,13 @@ class LazyTopDownAnalyzer(
                     checkTypeStatementDeclarations(typeStatement, descriptor)
                 }
 
+                override fun visitExtend(cjExtend: CjExtend) {
+
+                    extendDescriptorResolver.check(c, cjExtend)
+                    registerDeclarations(cjExtend.declarations)
+
+
+                }
 
                 override fun visitClass(cclass: CjClass) {
                     visitTypeStatement(cclass)

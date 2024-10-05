@@ -88,12 +88,7 @@ internal object CheckStaticCall : ResolutionPart() {
 //        是否为static上下文
         val isStaticContext = this.resolvedCall.isStaticContext()
 
-        val kind = when (descriptor) {
-            is PropertyDescriptor -> "property"
-            is VariableDescriptor -> "variable"
-            is FunctionDescriptor -> "method"
-            else -> "unknown"
-        }
+        val kind =  descriptor.getDescriptorKind()
         val memberStatic = descriptor.isStatic()
 //        非静态上下文访问静态成员
         if (memberStatic && !isStaticContext) {
@@ -658,5 +653,20 @@ internal object CheckExternalArgument : ResolutionPart() {
         val argument = cangjieCall.externalArgument ?: return
 
         resolveCangJieArgument(argument, resolvedCall.argumentToCandidateParameter[argument], ReceiverInfo.notReceiver)
+    }
+}
+enum class DescriptorKind(val kind: String) {
+    PROPERTY("property"),
+    VARIABLE("variable"),
+    FUNCTION("method"),
+    UNKNOWN("unknown")
+}
+// 提取的方法
+fun DeclarationDescriptor.getDescriptorKind( ): DescriptorKind {
+    return when (this) {
+        is PropertyDescriptor -> DescriptorKind.PROPERTY
+        is VariableDescriptor -> DescriptorKind.VARIABLE
+        is FunctionDescriptor -> DescriptorKind.FUNCTION
+        else -> DescriptorKind.UNKNOWN
     }
 }

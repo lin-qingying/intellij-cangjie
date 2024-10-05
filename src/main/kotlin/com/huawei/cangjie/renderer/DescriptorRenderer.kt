@@ -1243,9 +1243,9 @@ internal class DescriptorRendererImpl(
         renderReceiverAfterName(function, builder)
 
         val returnType = function.returnType
-        if (!withoutReturnType && (unitReturnType || (returnType == null || !CangJieBuiltIns.isUnit(returnType)))) {
+//        if (!withoutReturnType && (unitReturnType || (returnType == null /*|| !CangJieBuiltIns.isUnit(returnType)*/))) {
             builder.append(": ").append(if (returnType == null) "[NULL]" else renderType(returnType))
-        }
+//        }
 
         renderWhereSuffix(function.typeParameters, builder)
     }

@@ -250,7 +250,7 @@ allprojects {
 val cangjie_plugin_project = project(":plugin") {
     intellij {
         pluginName.set("intellij-cangjie")
-        plugins.set(listOf( /*psiViewerPlugin,indexViewPlugin,chinesePlugin*/ ))
+        plugins.set(listOf( psiViewerPlugin,indexViewPlugin,chinesePlugin ))
 
     }
 //    group = "com.huawei.cangjie"

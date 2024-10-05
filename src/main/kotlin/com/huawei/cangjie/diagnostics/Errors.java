@@ -13,6 +13,7 @@ import com.huawei.cangjie.lexer.CjModifierKeywordToken;
 import com.huawei.cangjie.name.FqName;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.psi.*;
+import com.huawei.cangjie.resolve.calls.components.DescriptorKind;
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintPosition;
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall;
 import com.huawei.cangjie.resolve.calls.tower.CandidateApplicability;
@@ -68,7 +69,7 @@ public interface Errors {
     DiagnosticFactory2<CjExpression, Name, Collection<? extends ResolvedCall<?>>> COMPONENT_FUNCTION_AMBIGUITY =
             DiagnosticFactory2.create(ERROR, DEFAULT);
     DiagnosticFactory1<CjExpression, Name> COMPONENT_FUNCTION_ON_NULLABLE = DiagnosticFactory1.create(ERROR, DEFAULT);
-    DiagnosticFactory0<CjDeclarationWithBody>   NO_RETURN_IN_FUNCTION_WITH_BLOCK_BODY = DiagnosticFactory0.create(ERROR, DECLARATION_WITH_BODY);
+    DiagnosticFactory0<CjDeclarationWithBody> NO_RETURN_IN_FUNCTION_WITH_BLOCK_BODY = DiagnosticFactory0.create(ERROR, DECLARATION_WITH_BODY);
     DiagnosticFactory2<CjSimpleNameExpression, String, String> LABEL_RESOLVE_WILL_CHANGE = DiagnosticFactory2.create(WARNING);
     DiagnosticFactory0<CjSimpleNameExpression> AMBIGUOUS_LABEL = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjSimpleNameExpression> LABEL_NAME_CLASH = DiagnosticFactory0.create(WARNING);
@@ -83,7 +84,7 @@ public interface Errors {
     DiagnosticFactory0<PsiElement> COMMA_IN_MATCH_CONDITION_WITHOUT_ARGUMENT = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<PsiElement> NOT_ENUM_ENTRY_VALUE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<PsiElement> NOT_ENUM_MATCH = DiagnosticFactory0.create(ERROR);
-    DiagnosticFactory1<PsiElement,Integer> ENUM_CONSTRUCTOR_MISMATCH = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, Integer> ENUM_CONSTRUCTOR_MISMATCH = DiagnosticFactory1.create(ERROR);
 
     DiagnosticFactory2<CjElement, CangJieType, CangJieType> INCOMPATIBLE_ENUM_COMPARISON =
             DiagnosticFactory2.create(WARNING);
@@ -94,7 +95,7 @@ public interface Errors {
     DiagnosticFactory0<CjTypeReference> OPTIONAL_TYPE_OF_ANNOTATION_MEMBER = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<CjExpressionWithLabel, String> NOT_A_LOOP_LABEL = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory0<CjExpressionWithLabel> BREAK_OR_CONTINUE_OUTSIDE_A_LOOP = DiagnosticFactory0.create(ERROR);
-        DiagnosticFactory0<CjExpressionWithLabel> BREAK_OR_CONTINUE_IN_WHEN = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjExpressionWithLabel> BREAK_OR_CONTINUE_IN_WHEN = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory2<CjTypeReference, Integer, String> NO_TYPE_ARGUMENTS_ON_RHS = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory0<CjTypeReference> IS_ENUM_ENTRY = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjTypeReference> DYNAMIC_NOT_ALLOWED = DiagnosticFactory0.create(ERROR);
@@ -104,7 +105,7 @@ public interface Errors {
     DiagnosticFactory0<CjElement> SENSELESS_NULL_IN_MATCH = DiagnosticFactory0.create(WARNING);
     DiagnosticFactory2<CjElement, CangJieType, CangJieType> INCOMPATIBLE_TYPES = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory2<CjExpression, CangJieType, CangJieType> IMPLICIT_CAST_TO_ANY = DiagnosticFactory2.create(WARNING);
-    DiagnosticFactory1<CjMatchExpression, List<MatchMissingCase>> NO_ELSE_IN_MATCH = DiagnosticFactory1.create(ERROR,MATCH_EXPRESSION);
+    DiagnosticFactory1<CjMatchExpression, List<MatchMissingCase>> NO_ELSE_IN_MATCH = DiagnosticFactory1.create(ERROR, MATCH_EXPRESSION);
     DiagnosticFactory1<CjMatchExpression, String> EXPECT_TYPE_IN_MATCH_WITHOUT_ELSE = DiagnosticFactory1.create(ERROR, MATCH_EXPRESSION);
     DiagnosticFactory0<CjMatchEntry> REDUNDANT_ELSE_IN_MATCH = DiagnosticFactory0.create(WARNING, ELSE_ENTRY);
     DiagnosticFactory0<PsiElement> DUPLICATE_LABEL_IN_MATCH = DiagnosticFactory0.create(WARNING);
@@ -116,8 +117,8 @@ public interface Errors {
     DiagnosticFactory0<CjThisType> INVALID_THIS_TYPE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory3<CjSimpleNameExpression, DeclarationDescriptor, DescriptorVisibility, FqName> INVISIBLE_REFERENCE_REEXPORT =
             DiagnosticFactory3.create(ERROR);
-    DiagnosticFactory0<CjConstructorDelegationReferenceExpression  > INVALID_CALLING_THIS_IN_PRIMARY_CONSTRUCTOR =
-            DiagnosticFactory0.create(ERROR );
+    DiagnosticFactory0<CjConstructorDelegationReferenceExpression> INVALID_CALLING_THIS_IN_PRIMARY_CONSTRUCTOR =
+            DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactory2<CjExpression, String, Collection<? extends ResolvedCall<?>>> DELEGATE_SPECIAL_FUNCTION_NONE_APPLICABLE =
             DiagnosticFactory2.create(ERROR);
@@ -144,7 +145,7 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, InvalidBinaryData> INLETID_BINARY_OPERATOR = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<CjExpression, CjExpression> EXPRESSION_EXPECTED = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory0<CjParameter> CATCH_PARAMETER_WITH_DEFAULT_VALUE = DiagnosticFactory0.create(ERROR);
-    DiagnosticFactory1<CjElement  , Set<Name>> NAMED_PARAMETER_PREFIX_MISSING =
+    DiagnosticFactory1<CjElement, Set<Name>> NAMED_PARAMETER_PREFIX_MISSING =
             DiagnosticFactory1.create(ERROR);
     DiagnosticFactory2<CjExpression, CjExpression, Boolean> FUNCTION_CALL_EXPECTED = DiagnosticFactory2.create(ERROR, CALL_EXPRESSION);
     DiagnosticFactory3<CjReferenceExpression, ClassifierDescriptor, WrongResolutionToClassifier, String> RESOLUTION_TO_CLASSIFIER =
@@ -188,21 +189,21 @@ public interface Errors {
     DiagnosticFactory1<CjElement, CangJieType> TYPE_MISMATCH_DUE_TO_EQUALS_LAMBDA_IN_FUN = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> MISSING_STDLIB = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory0<PsiElement > ARRAY_LITERAL_TYPE_INFERENCE_FAILED = DiagnosticFactory0.create(ERROR);
-    DiagnosticFactory0<CjParameter > NON_NAMED_PARAMETER_AFTER_NAMED_PARAMETER = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<PsiElement> ARRAY_LITERAL_TYPE_INFERENCE_FAILED = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjParameter> NON_NAMED_PARAMETER_AFTER_NAMED_PARAMETER = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjElement> POSITIONAL_ARGUMENT_AFTER_NAMED_ARGUMENT = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjElement> TUPLE_ARGS_TOO_FEW = DiagnosticFactory0.create(ERROR);
-    DiagnosticFactory2<CjElement,Integer,Integer> TUPLE_ARGS_MISMATCH = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory2<CjElement, Integer, Integer> TUPLE_ARGS_MISMATCH = DiagnosticFactory2.create(ERROR);
 
     DiagnosticFactoryForDeprecation1<PsiElement, TypeParameterDescriptor> TYPE_INFERENCE_ONLY_INPUT_TYPES =
             DiagnosticFactoryForDeprecation1.create(LanguageFeature.StrictOnlyInputTypesChecks);
     DiagnosticFactory2<CjElement, Set<CjElement>, Set<CjElement>> UNREACHABLE_CODE = DiagnosticFactory2.create(
-                WARNING, ClassicPositioningStrategies.UNREACHABLE_CODE);
+            WARNING, ClassicPositioningStrategies.UNREACHABLE_CODE);
     DiagnosticFactory0<CjSimpleNameExpression> ENUM_ENTRY_AS_TYPE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjMatchEntry> ELSE_MISPLACED_IN_MATCH = DiagnosticFactory0.create(WARNING, ELSE_ENTRY);
-    DiagnosticFactory0<CjCasePattern> VARIABLE_INTRODUCTION_CONFLICT = DiagnosticFactory0.create(ERROR );
-    DiagnosticFactory0<PsiElement> NOT_ENUM_PARAMETER_CONSTRUCTOR = DiagnosticFactory0.create(ERROR );
-    DiagnosticFactory0<PsiElement> LET_EXPRESSION_NO_TYPE_PATTERN = DiagnosticFactory0.create(ERROR );
+    DiagnosticFactory0<CjCasePattern> VARIABLE_INTRODUCTION_CONFLICT = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<PsiElement> NOT_ENUM_PARAMETER_CONSTRUCTOR = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<PsiElement> LET_EXPRESSION_NO_TYPE_PATTERN = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjElement> BOUNDS_NOT_ALLOWED_IF_BOUNDED_BY_TYPE_PARAMETER = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjTypeParameter> MISPLACED_TYPE_PARAMETER_CONSTRAINTS = DiagnosticFactory0.create(WARNING);
     DiagnosticFactory0<CjTypeParameterList> DEPRECATED_TYPE_PARAMETER_SYNTAX = DiagnosticFactory0.create(ERROR);
@@ -210,6 +211,8 @@ public interface Errors {
             DiagnosticFactory2.create(ERROR, ABSTRACT_MODIFIER);
     DiagnosticFactory0<PsiElement> RETURN_TYPE_NOT_SPECIFIED_ERROR =
             DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory3<PsiElement, Modality, DescriptorKind, List<DescriptorVisibility>> ABSTRACT_MEMBER_VISIBILITY_ERROR =
+            DiagnosticFactory3.create(ERROR);
     DiagnosticFactory1<CjFunction, SimpleFunctionDescriptor> ABSTRACT_FUNCTION_WITH_BODY =
             DiagnosticFactory1.create(ERROR, ABSTRACT_MODIFIER);
     DiagnosticFactory0<CjModifierListOwner> REDUNDANT_OPEN_IN_INTERFACE = DiagnosticFactory0.create(WARNING, OPEN_MODIFIER);
@@ -251,7 +254,7 @@ public interface Errors {
     DiagnosticFactory0<CjTypeReference> LOCAL_EXTENSION_VARIABLE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<CjExpression, CangJieType> EXPECTED_TYPE_MISMATCH = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> NAME_SHADOWING = DiagnosticFactory1.create(WARNING, PositioningStrategies.FOR_REDECLARATION);
-    DiagnosticFactory2<CjElement, CallableDescriptor, CangJieType> MEMBER_PROJECTED  = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory2<CjElement, CallableDescriptor, CangJieType> MEMBER_PROJECTED = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory1<CjElement, TypeMismatchDueToTypeProjectionsData> TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS =
             DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<CjReferenceExpression, CjReferenceExpression> UNRESOLVED_REFERENCE =
@@ -285,7 +288,6 @@ public interface Errors {
 
     DiagnosticFactory0<CjBinaryExpression> USELESS_ELVIS_RIGHT_IS_NULL =
             DiagnosticFactory0.create(WARNING, PositioningStrategies.USELESS_ELVIS);
-
 
 
     DiagnosticFactory2<CjSimpleNameExpression, DeclarationDescriptor, CjSimpleNameExpression> ASSIGNMENT_OPERATOR_SHOULD_RETURN_UNIT =
@@ -395,8 +397,8 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, RenderedDiagnostic<?>> PLUGIN_ERROR = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, RenderedDiagnostic<?>> PLUGIN_WARNING = DiagnosticFactory1.create(WARNING);
     DiagnosticFactory1<PsiElement, RenderedDiagnostic<?>> PLUGIN_INFO = DiagnosticFactory1.create(INFO);
-    DiagnosticFactory2<PsiElement, String,DeclarationDescriptor> STATIC_CONTEXT_REFERENCE_ERROR = DiagnosticFactory2.create(ERROR);
-    DiagnosticFactory2<PsiElement, String,DeclarationDescriptor> INSTANCE_ACCESS_STATIC_MEMBER_ERROR = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory2<PsiElement, DescriptorKind, DeclarationDescriptor> STATIC_CONTEXT_REFERENCE_ERROR = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory2<PsiElement, DescriptorKind, DeclarationDescriptor> INSTANCE_ACCESS_STATIC_MEMBER_ERROR = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory2<CjTypeReference, CangJieType, CangJieType> WRONG_GETTER_RETURN_TYPE = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory0<CjTypeReference> WRONG_SETTER_RETURN_TYPE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory2<CjTypeReference, CangJieType, CangJieType> WRONG_SETTER_PARAMETER_TYPE = DiagnosticFactory2.create(ERROR);
@@ -415,7 +417,7 @@ public interface Errors {
 
     DiagnosticFactory2<PsiElement, FqName, FqName> MISSING_DEPENDENCY_SUPERCLASS = DiagnosticFactory2.create(ERROR);
 
-    DiagnosticFactory1<CjSuperTypeEntry,CangJieType> SUPERTYPE_NOT_INITIALIZED = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<CjSuperTypeEntry, CangJieType> SUPERTYPE_NOT_INITIALIZED = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory2<PsiElement, CjModifierKeywordToken, CjModifierKeywordToken> INCOMPATIBLE_MODIFIERS =
             DiagnosticFactory2.create(ERROR);
     DiagnosticFactory1<CjSimpleNameExpression, Name> CANNOT_BE_IMPORTED = DiagnosticFactory1.create(ERROR);
@@ -519,7 +521,7 @@ public interface Errors {
             DiagnosticFactory1.create(ERROR, DECLARATION_SIGNATURE_OR_DEFAULT);
     DiagnosticFactory0<PsiElement> CYCLIC_INHERITANCE_HIERARCHY = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory2<CjPackageDirective, FqName, FqName> PACKAGE_ACCESS_VIOLATION = DiagnosticFactory2.create(ERROR);
-    DiagnosticFactory0<CjParameterList > UNSAFE_EXPRESSION_ERROR = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjParameterList> UNSAFE_EXPRESSION_ERROR = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactory3<CjModifierListOwner, DescriptorVisibility, CallableMemberDescriptor, DeclarationDescriptor>
             CANNOT_WEAKEN_ACCESS_PRIVILEGE =
@@ -530,21 +532,15 @@ public interface Errors {
     DiagnosticFactory2<CjParameter, ClassDescriptor, ValueParameterDescriptor> PARAMETER_NAME_CHANGED_ON_OVERRIDE =
             DiagnosticFactory2.create(WARNING, DECLARATION_NAME);
 
-    DiagnosticFactory0<PsiElement > CONSTRUCTOR_NAME_INCONSISTENCY =
-            DiagnosticFactory0.create(ERROR );
+    DiagnosticFactory0<PsiElement> CONSTRUCTOR_NAME_INCONSISTENCY =
+            DiagnosticFactory0.create(ERROR);
 
 
-    DiagnosticFactory1<CjPrimaryConstructor ,ClassDescriptor> MULTIPLE_PRIMARY_CONSTRUCTORS =
-            DiagnosticFactory1.create(ERROR );
+    DiagnosticFactory1<CjPrimaryConstructor, ClassDescriptor> MULTIPLE_PRIMARY_CONSTRUCTORS =
+            DiagnosticFactory1.create(ERROR);
 
-    DiagnosticFactory0<CjConstructorDelegationReferenceExpression  > INLETID_CALLING_THIS_IN_PRIMARY_CONSTRUCTOR =
-            DiagnosticFactory0.create(ERROR );
-
-
-
-
-
-
+    DiagnosticFactory0<CjConstructorDelegationReferenceExpression> INLETID_CALLING_THIS_IN_PRIMARY_CONSTRUCTOR =
+            DiagnosticFactory0.create(ERROR);
 
 
     ImmutableSet<? extends DiagnosticFactory<?>> MUST_BE_INITIALIZED_DIAGNOSTICS = ImmutableSet.of(
@@ -553,7 +549,7 @@ public interface Errors {
 
 
     /*************恶搞警告***********************/
-DiagnosticFactory0<CjOptionType> NESTING_DOLL_OPTINOTYPE = DiagnosticFactory0.create(WARNING, OPTIONAL_TYPE);
+    DiagnosticFactory0<CjOptionType> NESTING_DOLL_OPTINOTYPE = DiagnosticFactory0.create(WARNING, OPTIONAL_TYPE);
     /************************************/
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

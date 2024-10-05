@@ -524,7 +524,7 @@ private fun CjpmWorkspace.Package.getOrCreateLibrary(libraryTable: LibraryTable)
     return if (this.origin == PackageOrigin.STDLIB) {
         libraryTable.getLibraryByName("stdlib") ?: libraryTable.createLibrary("stdlib")
     } else {
-        libraryTable.createLibrary()
+        libraryTable.createLibrary(this.name)
     }
 }
 

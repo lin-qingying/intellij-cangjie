@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve.calls.model
 
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.calls.components.DescriptorKind
 import com.huawei.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintSystemError
@@ -279,7 +280,7 @@ class ArgumentNullabilityWarningDiagnostic(
     }
 }
 //非静态上下文访问静态成员
-class NonStaticContextAccessStaticMemberDiagnostic(val kind:String,val descriptor: DeclarationDescriptor) :
+class NonStaticContextAccessStaticMemberDiagnostic(val kind: DescriptorKind, val descriptor: DeclarationDescriptor) :
     CangJieCallDiagnostic(CandidateApplicability.RUNTIME_ERROR) {
     override fun report(reporter: DiagnosticReporter) {
 
@@ -287,7 +288,7 @@ class NonStaticContextAccessStaticMemberDiagnostic(val kind:String,val descripto
     }
 }
 //静态上下文访问非静态成员
-class StaticContextAccessNonStaticMemberDiagnostic(val kind:String,val descriptor: DeclarationDescriptor) :
+class StaticContextAccessNonStaticMemberDiagnostic(val kind:DescriptorKind,val descriptor: DeclarationDescriptor) :
     CangJieCallDiagnostic(CandidateApplicability.RUNTIME_ERROR) {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCall(this)

@@ -93,8 +93,8 @@ public class DefaultErrorMessages {
         MAP.put(INCONSISTENT_PACKAGE_MACOR, "Inconsistent macro package declarations");
         MAP.put(OVERRIDING_FINAL_MEMBER, "''{0}'' cannot be referenced from a static context", NAMED, NAMED);
 
-        MAP.put(STATIC_CONTEXT_REFERENCE_ERROR, "Non-static {0} ''{1}'' cannot be referenced from a static context", STRING, NAMED_ADN_PARAMETER);
-        MAP.put(INSTANCE_ACCESS_STATIC_MEMBER_ERROR, "Static {0} ''{1}'' accessed via instance reference", STRING, NAMED_ADN_PARAMETER);
+        MAP.put(STATIC_CONTEXT_REFERENCE_ERROR, "Non-static {0} ''{1}'' cannot be referenced from a static context", DESCRIPTOR_KIND_NAME, NAMED_ADN_PARAMETER);
+        MAP.put(INSTANCE_ACCESS_STATIC_MEMBER_ERROR, "Static {0} ''{1}'' accessed via instance reference", DESCRIPTOR_KIND_NAME, NAMED_ADN_PARAMETER);
 
 //        类型检查
 
@@ -287,9 +287,9 @@ public class DefaultErrorMessages {
                 FQ_NAMES_IN_TYPES);
         MAP.put(ABSTRACT_FUNCTION_WITH_BODY, "A function ''{0}'' with body cannot be abstract", NAMED);
 
-// ... existing code ...
+
         MAP.put(RETURN_TYPE_NOT_SPECIFIED_ERROR, "For technical reasons, please display the return type of the specified method" );
-// ... existing code ...
+        MAP.put(ABSTRACT_MEMBER_VISIBILITY_ERROR, "The visibility of an ''{0}'' {1} must be {2}",MODALITY_NAME, DESCRIPTOR_KIND_NAME,VISIBLITYS_NAMES);
 
     }
 

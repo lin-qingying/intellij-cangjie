@@ -1,16 +1,13 @@
 package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.config.LanguageVersionSettings
-import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.descriptors.ClassDescriptor
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.lexer.CjTokens
-import com.huawei.cangjie.psi.CjDeclarationWithBody
-import com.huawei.cangjie.psi.CjModifierList
-import com.huawei.cangjie.psi.CjModifierListOwner
-import com.huawei.cangjie.psi.CjTypeStatement
+import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.resolve.calls.components.getDescriptorKind
+import com.huawei.cangjie.resolve.source.getPsi
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
@@ -55,6 +52,8 @@ object ModifierCheckerCore {
         languageVersionSettings: LanguageVersionSettings
 
     ) {
+        checkModifierByVisibility(descriptor, trace)
+
         if (listOwner is CjDeclarationWithBody) {
             // CjFunction or CjPropertyAccessor
             for (parameter in listOwner.valueParameters) {
@@ -67,7 +66,57 @@ object ModifierCheckerCore {
             listOwner, descriptor as? ClassDescriptor, trace.bindingContext
         )
         val list = listOwner.modifierList ?: return
-        checkModifierList(list, trace, descriptor?.containingDeclaration , actualTargets , languageVersionSettings)
+        checkModifierList(list, trace, descriptor?.containingDeclaration, actualTargets, languageVersionSettings)
+
+
+
+
+    }
+
+    /**
+     * 根据修饰符检查可见性
+     */
+    private fun checkModifierByVisibility(descriptor: DeclarationDescriptor?, trace: BindingTrace) {
+        descriptor ?: return
+        val visibilitys = mutableListOf<DescriptorVisibility>()
+        var modality: Modality? = null
+        if (descriptor is CallableMemberDescriptor && descriptor.isMemberFunOrProperty()) {
+
+            if (descriptor.modality == Modality.OPEN || descriptor.modality == Modality.ABSTRACT) {
+                if (descriptor.visibility != DescriptorVisibilities.PUBLIC && descriptor.visibility != DescriptorVisibilities.PROTECTED) {
+                    modality = descriptor.modality
+                    visibilitys.addAll(listOf(DescriptorVisibilities.PUBLIC, DescriptorVisibilities.PROTECTED))
+                }
+            }
+        }
+        modality?.let { modality ->
+            (descriptor as? DeclarationDescriptorWithSource)?.let { descriptorWithSource ->
+                descriptorWithSource.source.getPsi()?.let { psi ->
+                    psi.getNameElement()?.let {
+                        trace.report(
+                            Errors.ABSTRACT_MEMBER_VISIBILITY_ERROR.on(
+                                it,
+                                modality,
+                                descriptor.getDescriptorKind(),
+                                visibilitys
+                            )
+                        )
+
+                    }
+
+
+                }
+
+            }
+        }
+    }
+
+    fun PsiElement.getNameElement(): PsiElement? {
+        return when (this) {
+            is CjNamedDeclaration -> nameIdentifier
+
+            else -> null
+        }
     }
 
     private val MODIFIER_KEYWORD_SET = CjTokens.MODIFIER_KEYWORDS
@@ -205,13 +254,20 @@ object ModifierCheckerCore {
             }
         }
     }
+
     // Should return false if error is reported, true otherwise
     private fun checkTarget(trace: BindingTrace, node: ASTNode, actualTargets: List<CangJieTarget>): Boolean {
         val modifier = node.elementType as CjModifierKeywordToken
 
         val possibleTargets = possibleTargetMap[modifier] ?: emptySet()
         if (!actualTargets.any { it in possibleTargets }) {
-            trace.report(Errors.WRONG_MODIFIER_TARGET.on(node.psi, modifier, actualTargets.firstOrNull()?.description ?: "this"))
+            trace.report(
+                Errors.WRONG_MODIFIER_TARGET.on(
+                    node.psi,
+                    modifier,
+                    actualTargets.firstOrNull()?.description ?: "this"
+                )
+            )
             return false
         }
 
@@ -227,6 +283,7 @@ object ModifierCheckerCore {
                         actualTargets.firstOrNull()?.description ?: "this"
                     )
                 )
+
             actualTargets.any { it in redundantTargets } ->
                 trace.report(
                     Errors.REDUNDANT_MODIFIER_FOR_TARGET.on(
@@ -238,6 +295,7 @@ object ModifierCheckerCore {
         }
         return true
     }
+
     private fun checkSealed(list: CjModifierList, trace: BindingTrace) {
         if (list.hasModifier(CjTokens.SEALED_KEYWORD)) {
             if (!list.hasModifier(CjTokens.ABSTRACT_KEYWORD)) {
@@ -247,4 +305,24 @@ object ModifierCheckerCore {
             }
         }
     }
+}
+
+
+/**
+ * 是否为成员方法或者成员属性
+ */
+fun DeclarationDescriptor?.isMemberFunOrProperty(): Boolean {
+    this ?: return false
+    val source = (this as? DeclarationDescriptorWithSource)?.source?.getPsi() ?: return false
+    if (this !is FunctionDescriptor && this !is PropertyDescriptor) return false
+    if (source !is CjNamedFunction && source !is CjProperty) return false
+
+    if (source is CjNamedFunction) {
+        if (source.isTopLevel) return false
+        if (source.parent !is CjClassBody) return false
+    }
+
+
+
+    return true
 }

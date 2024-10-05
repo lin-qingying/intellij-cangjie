@@ -11,6 +11,7 @@ import com.huawei.cangjie.renderer.ClassifierNamePolicy
 import com.huawei.cangjie.renderer.DescriptorRenderer
 import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.MemberComparator
+import com.huawei.cangjie.resolve.calls.components.DescriptorKind
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.getAbbreviation
@@ -31,16 +32,18 @@ object Renderers {
     val INT = renderer<Int> {
         it.toString()
     }
+
     @JvmField
-    val NAMED_ADN_PARAMETER = renderer  { d:DeclarationDescriptor ->
-        NAME.render(d.name)  + when(d){
+    val NAMED_ADN_PARAMETER = renderer { d: DeclarationDescriptor ->
+        NAME.render(d.name) + when (d) {
             is FunctionDescriptor -> {
                 "(" +
                         d.valueParameters.joinToString(",") {
-                            RENDER_TYPE.render(it.type ,RenderingContext.Empty)
+                            RENDER_TYPE.render(it.type, RenderingContext.Empty)
                         } +
                         ")"
             }
+
             else -> ""
         }
     }
@@ -91,6 +94,18 @@ object Renderers {
         }
 
     }
+    @JvmField
+    val VISIBLITYS_NAMES = renderer {
+
+        visiblitys :List<DescriptorVisibility> ->
+        visiblitys.joinToString(" or ") {
+
+            "'${it.name}'"
+        }
+
+
+
+    }
 
     @JvmField
     val RENDER_COLLECTION_OF_TYPES = renderer { types: List<CangJieType> ->
@@ -120,7 +135,15 @@ object Renderers {
 
     @JvmField
     val COMPACT_WITH_MODIFIERS = DescriptorRenderer.COMPACT_WITH_MODIFIERS.asRenderer()
+    @JvmField
+    val DESCRIPTOR_KIND_NAME = renderer { kind: DescriptorKind ->
+        kind.kind
+    }
 
+    @JvmField
+    val MODALITY_NAME = renderer { modality: Modality ->
+        modality.name.lowercase()
+    }
 
     @JvmField
     val VISIBILITY = renderer<DescriptorVisibility> {

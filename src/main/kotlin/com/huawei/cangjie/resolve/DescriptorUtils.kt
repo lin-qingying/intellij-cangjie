@@ -192,7 +192,7 @@ object DescriptorUtils {
 //        if (  isAnonymousObject(classDescriptor)) {
 //            return  DescriptorVisibilities.DEFAULT_VISIBILITY
 //        }
-        assert(classKind == ClassKind.CLASS || classKind == ClassKind.STRUCT || classKind == ClassKind.INTERFACE || classKind == ClassKind.ANNOTATION_CLASS) {
+        assert(classKind == ClassKind.CLASS || classKind == ClassKind.EXTEND || classKind == ClassKind.STRUCT || classKind == ClassKind.INTERFACE || classKind == ClassKind.ANNOTATION_CLASS) {
             "Unexpected class kind: $classKind"
         }
         return DescriptorVisibilities.PUBLIC

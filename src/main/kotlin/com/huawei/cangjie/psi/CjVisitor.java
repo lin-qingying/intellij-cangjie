@@ -447,7 +447,7 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     }
 
     public R visitExtend(@NotNull CjExtend cjExtend, D data) {
-        return visitCjElement(cjExtend, data);
+        return visitTypeStatement(cjExtend, data);
     }
 
     public R visitClass(@NotNull CjClass cclass, D data) {
