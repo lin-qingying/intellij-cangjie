@@ -37,15 +37,13 @@ import com.intellij.openapi.externalSystem.autoimport.AutoImportProjectTracker
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker
 import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.project.modules
-import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.roots.ModuleRootModificationUtil
-import com.intellij.openapi.roots.OrderRootType
-import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.roots.*
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.roots.libraries.LibraryTable
@@ -413,11 +411,10 @@ private fun doRefresh(project: Project, projects: List<CjpmProjectImpl>): Comple
 
 
 
-            if(CangJieLanguageServerServices.getInstance().lspConfig.enabled){
+            if (CangJieLanguageServerServices.getInstance().lspConfig.enabled) {
                 //            TODO 重启lsp服务器
                 CangJieLspServerManager.restartLspServer(project)
             }
-
 
 
         }
@@ -489,6 +486,10 @@ private val libraryTablesRegistrar = LibraryTablesRegistrar.getInstance()
  */
 private fun addDependencies(project: Project, cjpmProjects: List<CjpmProject>) {
     val libraryTable = libraryTablesRegistrar.getLibraryTable(project)
+
+    val module = ModuleManager.getInstance(project).findModuleByName(project.name)
+    val moudleModel: ModifiableRootModel? = module?.let { ModuleRootManager.getInstance(it).modifiableModel }
+
 //    删除所有库
     libraryTable.libraries.forEach {
         libraryTable.removeLibrary(it)
@@ -513,9 +514,13 @@ private fun addDependencies(project: Project, cjpmProjects: List<CjpmProject>) {
                 it.contentRoot?.url?.let { it1 -> modifiableModel.addRoot(it1, OrderRootType.CLASSES) }
             }
             modifiableModel.commit()
+
+            moudleModel?.addLibraryEntry(library)
+
         }
 
     }
+    moudleModel?.commit()
 
 
 }

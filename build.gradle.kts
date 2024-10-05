@@ -1,6 +1,5 @@
 import Build_gradle.BuildType.*
 import groovy.xml.XmlParser
-import org.gradle.internal.impldep.org.bouncycastle.asn1.iana.IANAObjectIdentifiers.experimental
 import org.jetbrains.intellij.tasks.PatchPluginXmlTask
 import org.jetbrains.intellij.tasks.PublishPluginTask
 import org.jetbrains.intellij.tasks.RunIdeTask
@@ -52,7 +51,7 @@ val buildType = BuildType.fromString(build_type)
 //IDEA版本
 val ideaVersion = "2024.1"
 //插件版本
-val cangjiePluginVersion = "3.0.0-beta-3"
+val cangjiePluginVersion = "3.0.0-beta-4"
 
 
 val kotlinVersion = "1.9.21"
@@ -188,7 +187,7 @@ allprojects {
 //        }
         withType<KotlinCompile> {
             kotlinOptions.jvmTarget = "17"
-            kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all","-Xcontext-receivers")
+            kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all", "-Xcontext-receivers")
         }
 
         withType<PatchPluginXmlTask> {
@@ -250,7 +249,13 @@ allprojects {
 val cangjie_plugin_project = project(":plugin") {
     intellij {
         pluginName.set("intellij-cangjie")
-        plugins.set(listOf( psiViewerPlugin,indexViewPlugin,chinesePlugin ))
+        plugins.set(
+            if (isBuildPlugin()) {
+                listOf()
+            } else {
+                listOf(psiViewerPlugin, indexViewPlugin, chinesePlugin)
+            }
+        )
 
     }
 //    group = "com.huawei.cangjie"
@@ -469,7 +474,7 @@ when (buildType) {
     IU_NATIVE_DEBUG -> {
         project(":native-debugger") {
             intellij {
-                plugins.set(listOf( nativeDebugPlugin ))
+                plugins.set(listOf(nativeDebugPlugin))
             }
             dependencies {
                 implementation(project(":"))
@@ -516,6 +521,9 @@ when (buildType) {
 }
 
 
+fun isBuildPlugin(): Boolean {
+    return "buildPlugin" in gradle.startParameter.taskNames
+}
 
 fun File.isPluginJar(): Boolean {
     if ("buildPlugin" in gradle.startParameter.taskNames) {

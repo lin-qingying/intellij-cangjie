@@ -1,8 +1,10 @@
 package com.huawei.cangjie.ide.cache.project
 
 
-import com.huawei.cangjie.analyzer.*
-import com.huawei.cangjie.cjpm.project.workspace.CjpmLibrary
+import com.huawei.cangjie.analyzer.CangJieLibrary
+import com.huawei.cangjie.analyzer.CangJieModuleInfo
+import com.huawei.cangjie.analyzer.LibraryInfo
+import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.ide.cache.trackers.CangJieCodeBlockModificationListener
 import com.huawei.cangjie.utils.CangJieExceptionWithAttachments
 import com.intellij.java.workspace.entities.JavaModuleSettingsEntity
@@ -63,8 +65,9 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
     private val modules: CachedValue<List<ModuleInfo>>
     private val moduleCache = ModuleCache()
     private val modificationTracker = SimpleModificationTracker()
-//    private val libraries: CachedValue<Collection<CjpmLibraryInfo>>
-private val libraries: CachedValue<Collection<LibraryInfo>>
+
+    //    private val libraries: CachedValue<Collection<CjpmLibraryInfo>>
+    private val libraries: CachedValue<Collection<LibraryInfo>>
 
     init {
         val cachedValuesManager = CachedValuesManager.getManager(project)
@@ -75,26 +78,7 @@ private val libraries: CachedValue<Collection<LibraryInfo>>
             }
             CachedValueProvider.Result.create(ideaModuleInfos, modificationTracker)
         }
-//        libraries = cachedValuesManager.createCachedValue {
-//            val libraryCache = CjpmLibraryInfoCache.getInstance(project)
-//            val collectedLibraries = mutableSetOf<CjpmLibraryInfo>()
-//            for (module in ModuleManager.getInstance(project).modules) {
-//                ProgressManager.checkCanceled()
-//                for (entry in CjAdditionalLibraryRootsProvider.getCjpmLibrarys(project)) {
-//                    if (entry !is CjpmLibrary) continue
-//
-//                    collectedLibraries += libraryCache[entry]
-//                }
-//            }
-//
-//            collectedLibraries.checkValidity { "libraries calculation" }
-//
-//            CachedValueProvider.Result.create(
-//                collectedLibraries,
-////                libraryCache.removedLibraryInfoTracker(),
-//                modificationTracker
-//            )
-//        }
+
 
         libraries = cachedValuesManager.createCachedValue {
             val libraryCache = LibraryInfoCache.getInstance(project)
@@ -110,7 +94,11 @@ private val libraries: CachedValue<Collection<LibraryInfo>>
 
             collectedLibraries.checkValidity { "libraries calculation" }
 
-            CachedValueProvider.Result.create(collectedLibraries, libraryCache.removedLibraryInfoTracker(), modificationTracker)
+            CachedValueProvider.Result.create(
+                collectedLibraries,
+                libraryCache.removedLibraryInfoTracker(),
+                modificationTracker
+            )
         }
 
     }
@@ -232,11 +220,11 @@ private val libraries: CachedValue<Collection<LibraryInfo>>
         abstract fun modelChanged(event: VersionedStorageChange)
     }
 
-    override fun allModules(): List<ModuleInfo> = (modules.value  + libraries.value).also {
+    override fun allModules(): List<ModuleInfo> = (modules.value + libraries.value).also {
         it.checkValidity { "allModules" }
     }
 
-    override fun getModuleInfosForModule(module: Module): Collection<ModuleInfo>  = moduleCache[module]
+    override fun getModuleInfosForModule(module: Module): Collection<ModuleInfo> = moduleCache[module]
 
     private fun incModificationCount() {
         modificationTracker.incModificationCount()
@@ -251,8 +239,14 @@ private val libraries: CachedValue<Collection<LibraryInfo>>
 fun Collection<ModuleInfo>.checkValidity(lazyMessage: () -> String) {
     val disposed = filter {
         when (it) {
-            is CangJieModuleInfo -> it.module.isDisposed
-//            is CjpmLibraryInfo -> it.library.isDisposed
+            is CangJieModuleInfo -> {
+                it.module.isDisposed
+            }
+
+            is LibraryInfo -> {
+                it.library.isDisposed
+            }
+
             else -> false
         }
     }
@@ -272,6 +266,7 @@ fun Module.checkValidity() {
 val Module.moduleInfos: List<ModuleInfo>
     get() = listOfNotNull(cangjieModuleInfo)
 
+val moduleInfoMaps: MutableMap<Module, CangJieModuleInfo> = mutableMapOf()
 
 var _cangjieModuleInfo: CangJieModuleInfo? = null
 
@@ -283,10 +278,10 @@ val Module.cangjieModuleInfo: CangJieModuleInfo
 //        return if (hasProductionRoots) CangJieModuleInfo(this) else null
 //        return CangJieModuleInfo(this)
 //
-        if (_cangjieModuleInfo == null) {
-            _cangjieModuleInfo = CangJieModuleInfo(this)
+        if (moduleInfoMaps[this] == null) {
+            moduleInfoMaps[this] = CangJieModuleInfo(this)
         }
-        return _cangjieModuleInfo!!
+        return moduleInfoMaps[this]!!
 
     }
 
@@ -429,6 +424,7 @@ class LibraryInfoCache(project: Project) : Disposable {
         require(key is LibraryEx) { "Library '${key.presentableName}' does not implement LibraryEx which is not expected" }
         return libraryInfoCache[key]
     }
+
     fun deduplicatedLibrary(key: Library): Library = get(key).first().library
     fun removedLibraryInfoTracker(): ModificationTracker = libraryInfoCache.removedLibraryInfoTracker
 

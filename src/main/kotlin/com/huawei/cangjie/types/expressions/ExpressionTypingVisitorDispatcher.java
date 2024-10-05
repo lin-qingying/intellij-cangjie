@@ -9,7 +9,6 @@ import com.huawei.cangjie.resolve.BindingContext;
 import com.huawei.cangjie.resolve.BindingContextUtils;
 import com.huawei.cangjie.resolve.BindingContextUtilsKt;
 import com.huawei.cangjie.resolve.calls.context.CallPosition;
-import com.huawei.cangjie.resolve.calls.smartcasts.ConditionalDataFlowInfo;
 import com.huawei.cangjie.resolve.scopes.LexicalScopeKind;
 import com.huawei.cangjie.resolve.scopes.LexicalWritableScope;
 import com.huawei.cangjie.storage.ReenteringLazyValueComputationException;
@@ -58,11 +57,6 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
 //        this.declarationsCheckerBuilder = components.declarationsCheckerBuilder;
     }
 
-    @Override
-    public void checkLetExpression(@NotNull CjLetExpression pattern, ExpressionTypingContext context) {
-          patterns.visitLetExpression(pattern, context);
-    }
-
     private static void logOrThrowException(@NotNull CjExpression expression, Throwable e) {
         try {
             String location;
@@ -81,6 +75,11 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
             // simply throwing AssertionError causes its being wrapped over and over again
             throw new CangJieFrontEndException(errorFromLogger.getMessage(), e);
         }
+    }
+
+    @Override
+    public void checkLetExpression(@NotNull CjLetExpression pattern, ExpressionTypingContext context) {
+        patterns.visitLetExpression(pattern, context);
     }
 
     protected ExpressionTypingVisitorForStatements createStatementVisitor(ExpressionTypingContext context) {
@@ -261,7 +260,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
 //       if(data.config.getProcessingMode() == ProcessingMode.PARENT) {
 //           return super.visitSpawnExpression(expression, data);
 //       }else {
-           return components.spawnExpressionResolver.resolveSpawnExpression(expression, data);
+        return components.spawnExpressionResolver.resolveSpawnExpression(expression, data);
 //       }
 
 

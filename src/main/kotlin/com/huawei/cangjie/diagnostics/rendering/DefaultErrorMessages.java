@@ -296,6 +296,7 @@ public class DefaultErrorMessages {
 
 
         MAP.put(FINALIZER_CANNOT_HAVE_PARAMETERS_ERROR, "Finalizer cannot have any parameter");
+        MAP.put(IMPLICIT_NOTHING_RETURN_TYPE, "'Nothing' return type needs to be specified explicitly");
 
     }
 
