@@ -248,13 +248,13 @@ class DeclarationsChecker(
     }
 
     fun checkFunction(function: CjNamedFunction, functionDescriptor: SimpleFunctionDescriptor) {
-        val typeParameterList = function.typeParameterList
-        val nameIdentifier = function.nameIdentifier
-        if (typeParameterList != null && nameIdentifier != null &&
-            typeParameterList.textRange.startOffset > nameIdentifier.textRange.startOffset
-        ) {
-            trace.report(DEPRECATED_TYPE_PARAMETER_SYNTAX.on(typeParameterList))
-        }
+//        val typeParameterList = function.typeParameterList
+//        val nameIdentifier = function.nameIdentifier
+//        if (typeParameterList != null && nameIdentifier != null &&
+//            typeParameterList.textRange.startOffset > nameIdentifier.textRange.startOffset
+//        ) {
+//            trace.report(DEPRECATED_TYPE_PARAMETER_SYNTAX.on(typeParameterList))
+//        }
         checkTypeParameterConstraints(function)
         checkImplicitCallableType(function, functionDescriptor)
 //        exposedChecker.checkFunction(function, functionDescriptor)

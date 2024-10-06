@@ -224,6 +224,9 @@ open class BasicTypeDescriptor(
 
             when (name.asString()) {
                 "Int64" -> {
+                    operatorFunctions[TIMES] =
+                        listOf(createOperatorFunction(TIMES, StandardNames.INT64, StandardNames.INT64))
+
 
                     operatorFunctions[PLUS] =
                         listOf(createOperatorFunction(PLUS, StandardNames.INT64, StandardNames.INT64))

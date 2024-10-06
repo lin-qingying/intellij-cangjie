@@ -11,6 +11,7 @@ import com.huawei.cangjie.resolve.BindingContextUtilsKt;
 import com.huawei.cangjie.resolve.calls.context.CallPosition;
 import com.huawei.cangjie.resolve.scopes.LexicalScopeKind;
 import com.huawei.cangjie.resolve.scopes.LexicalWritableScope;
+import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue;
 import com.huawei.cangjie.storage.ReenteringLazyValueComputationException;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.DeferredType;
@@ -75,6 +76,12 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
             // simply throwing AssertionError causes its being wrapped over and over again
             throw new CangJieFrontEndException(errorFromLogger.getMessage(), e);
         }
+    }
+
+
+    @Override
+    public void defineLocalVariablesFromPattern(LexicalWritableScope writableScope, CjCasePattern casePattern, ReceiverValue receiver, CjExpression initializer, ExpressionTypingContext context) {
+        patterns.defineLocalVariablesFromPattern(writableScope, casePattern, receiver, initializer, context);
     }
 
     @Override

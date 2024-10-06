@@ -23,6 +23,7 @@ import com.huawei.cangjie.resolve.calls.tower.LambdaContextInfo
 import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.resolve.scopes.LexicalScopeKind
 import com.huawei.cangjie.resolve.scopes.LexicalWritableScope
+import com.huawei.cangjie.resolve.scopes.receivers.TransientReceiver
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.CommonSupertypes
 import com.huawei.cangjie.types.ErrorUtils.createErrorType
@@ -900,6 +901,28 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                 modifiersCheckingProcedure.checkModifiersForDestructuringDeclaration(multiParameter)
                 components.identifierChecker.checkDeclaration(multiParameter, context.trace)
             }
+            val pattern = loopParameter.pattern
+            pattern?.let {
+//                facade.checkCasePattern(it,context)
+                val elementType = expectedParameterType ?: createErrorType(ErrorTypeKind.NO_TYPE_FOR_LOOP_RANGE)
+                val iteratorNextAsReceiver = TransientReceiver(elementType)
+//                components.annotationResolver.resolveAnnotationsWithArguments(loopScope, loopParameter.modifierList, context.trace)
+//                components.destructuringDeclarationResolver.defineLocalVariablesFromDestructuringDeclaration(
+//                    loopScope, multiParameter, iteratorNextAsReceiver, loopRange, context
+//                )
+//                modifiersCheckingProcedure.checkModifiersForDestructuringDeclaration(multiParameter)
+//                components.identifierChecker.checkDeclaration(it, context.trace)
+
+
+                facade.defineLocalVariablesFromPattern(
+                    loopScope,
+                    it,
+                    iteratorNextAsReceiver,
+                    loopRange,
+                    context
+                )
+
+            }
         }
 
         val body = expression.body
@@ -909,6 +932,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                 listOf(body),
                 CoercionStrategy.NO_COERCION,
                 context.replaceDataFlowInfo(loopRangeInfo.dataFlowInfo)
+                    .replaceExpectedType(components.builtIns.unitType)
             )
         } else {
             loopRangeInfo

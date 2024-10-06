@@ -43,6 +43,12 @@ object PositioningStrategies {
 
 
     @JvmField
+    val ARRAY_ACCESS: PositioningStrategy<CjArrayAccessExpression> = object : PositioningStrategy<CjArrayAccessExpression>() {
+        override fun mark(element: CjArrayAccessExpression): List<TextRange> {
+            return markElement(element.indicesNode)
+        }
+    }
+    @JvmField
     val RETURN_WITH_LABEL: PositioningStrategy<CjReturnExpression> =
         object : PositioningStrategy<CjReturnExpression>() {
             override fun mark(element: CjReturnExpression): List<TextRange> {

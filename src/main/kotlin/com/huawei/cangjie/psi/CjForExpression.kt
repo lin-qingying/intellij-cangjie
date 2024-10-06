@@ -6,15 +6,14 @@ import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
 
-
-class CjForExpression(node: ASTNode) : CjLoopExpression(node) {
+class CjForExpression(node: ASTNode) : CjLoopExpression(node),CjPatternEntryBlock {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitForExpression(this, data)
     }
 
     @get: IfNotParsed
     val loopParameter: CjParameter?
-        get() = findChildByType< PsiElement>(CjNodeTypes.VALUE_PARAMETER) as CjParameter?
+        get() = findChildByType<PsiElement>(CjNodeTypes.VALUE_PARAMETER) as CjParameter?
     val destructuringDeclaration: CjDestructuringDeclaration?
         get() {
             val loopParameter: CjParameter = loopParameter ?: return null

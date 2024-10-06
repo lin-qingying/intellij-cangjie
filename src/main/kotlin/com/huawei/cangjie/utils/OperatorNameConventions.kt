@@ -11,6 +11,8 @@ object OperatorNameConventions {
     @JvmField
 
     val GET = Name.identifier("*operator_get")
+@JvmField
+   val SET = Name.identifier("*operator_set")
 
     @JvmField
     val NOT = Name.identifier("*operator_not") //!

@@ -30,7 +30,7 @@ public class DefaultErrorMessages {
         MAP.put(COMPILER_AFFECTED_SYNTAX_ERROR, "Affected by the compiler, this writing will report an error");
 
 
-/***************声明检查************************************************/
+/**************声明检查************************************************/
 //未定义
         MAP.put(UNSUPPORTED, "Unsupported [{0}]", STRING);
 //重复定义
@@ -297,6 +297,12 @@ public class DefaultErrorMessages {
 
         MAP.put(FINALIZER_CANNOT_HAVE_PARAMETERS_ERROR, "Finalizer cannot have any parameter");
         MAP.put(IMPLICIT_NOTHING_RETURN_TYPE, "'Nothing' return type needs to be specified explicitly");
+        MAP.put(IRREFUTABLE_PATTERN_ERROR, "The pattern in for-in expression must be irrefutable");
+
+
+        MAP.put(NO_GET_METHOD, "No get method providing array access");
+        MAP.put(NO_SET_METHOD, "No set method providing array access");
+        MAP.put(DEPRECATED_TYPE_PARAMETER_SYNTAX, "Type parameters must be placed before the name of the function");
 
     }
 
@@ -314,7 +320,6 @@ public class DefaultErrorMessages {
     @Nullable
     public static DiagnosticRenderer getRendererForDiagnostic(@NotNull UnboundDiagnostic diagnostic) {
         // firstNotNullOfOrNull from stdlib can not be used here because it is InlineOnly function and can not be accessed from Java
-        @SuppressWarnings("deprecation")
         DiagnosticRenderer<?> renderer = AddToStdlibKt.firstNotNullResult(RENDERER_MAPS, map -> map.get(diagnostic.getFactory()));
         if (renderer != null)
             return renderer;

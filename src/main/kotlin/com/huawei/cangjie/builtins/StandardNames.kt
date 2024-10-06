@@ -126,6 +126,9 @@ val MAIN = Name.identifier("main")
     val EXCEPTION = Name.identifier("Exception")
 
     @JvmField
+    val ITERABLE = Name.identifier("Iterable")
+
+    @JvmField
     val OBJECT = Name.identifier("Object")
 
     @JvmField

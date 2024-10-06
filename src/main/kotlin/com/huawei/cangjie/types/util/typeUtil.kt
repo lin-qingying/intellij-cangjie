@@ -7,6 +7,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
+import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjBlockExpression
 import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.constants.IntegerLiteralTypeConstructor
@@ -426,6 +427,21 @@ fun CangJieType.extractTypeParametersFromUpperBounds(visitedTypeParameters: Set<
             visitedTypeParameters
         )
     }
+
+/**
+ * 根据Name获取指定父类型 ，如果获取不到，则返回第一个父类型
+ * @param name Name
+ */
+fun CangJieType.extractSuperType(name: Name): CangJieType  {
+    val superTypes = this.supertypes()
+    for (superType in superTypes) {
+        if (superType.constructor.declarationDescriptor?.name == name) {
+            return superType
+        }
+    }
+    return superTypes.first()
+
+}
 
 object TypeUtils {
 

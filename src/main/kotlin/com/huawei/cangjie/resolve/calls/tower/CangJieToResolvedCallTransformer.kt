@@ -18,6 +18,7 @@ import com.huawei.cangjie.resolve.calls.checkers.AdditionalTypeChecker
 import com.huawei.cangjie.resolve.calls.checkers.CallChecker
 import com.huawei.cangjie.resolve.calls.checkers.CallCheckerContext
 import com.huawei.cangjie.resolve.calls.components.AdditionalDiagnosticReporter
+import com.huawei.cangjie.resolve.calls.components.isArrayType
 import com.huawei.cangjie.resolve.calls.components.isVararg
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
 import com.huawei.cangjie.resolve.calls.context.CallPosition
@@ -123,7 +124,7 @@ class CangJieToResolvedCallTransformer(
                             }
                         } else
 
-                            if (parameter?.isVararg == true) {
+                        if (parameter?.isVararg == true &&   !resolvedCall.cangjieCall.argumentsInParenthesis.any { it.isArrayType() }) {
                                 parameter.varargElementType
 
                             } else {
@@ -141,6 +142,7 @@ class CangJieToResolvedCallTransformer(
                     constantConvertedArgument.unknownIntegerType, argumentExpression, context.trace, false
                 )
             }
+
 
             if (!valueArgument.isExternal()) {
                 updateRecordedType(

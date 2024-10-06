@@ -999,6 +999,9 @@ open class CangJieExpressionParsing(
                 else -> mark.drop()
             }
 
+            myBuilder.restoreNewlinesState()
+
+
         }
 
     }
@@ -1095,11 +1098,11 @@ open class CangJieExpressionParsing(
             myBuilder.disableNewlines()
             if (!at(RPAR)) {
 
-                CasePattern().parseExpression()
-//                val parameter = mark()
-//                if (!at(IN_KEYWORD)) {
-//                    cangJieParsing.parseModifierList(IN_KEYWORD_R_PAR_COLON_SET)
-//                }
+
+                val parameter = mark()
+                if (!at(IN_KEYWORD)) {
+                    cangJieParsing.parseModifierList(IN_KEYWORD_R_PAR_COLON_SET)
+                }
 
 //                if (at(LPAR)) {
 //                    val destructuringDeclaration = mark()
@@ -1118,7 +1121,9 @@ open class CangJieExpressionParsing(
 //                        errorAndAdvance("the pattern in for-in expression must be irrefutable")
 //                    }
 //                }
-//                parameter.done(VALUE_PARAMETER)
+
+                CasePattern().parseExpression()
+                parameter.done(VALUE_PARAMETER)
 
 
                 if (expect(IN_KEYWORD, "Expecting 'in'", L_PAR_L_BRACE_R_PAR_SET)) {

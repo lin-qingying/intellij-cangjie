@@ -29,6 +29,7 @@ public class ExpressionTypingComponents {
     public CollectionLiteralResolver collectionLiteralResolver;
     public PlatformToCangJieClassMapper platformToCangJieClassMapper;
     public Iterable<CallChecker> callCheckers;
+    public DestructuringDeclarationResolver destructuringDeclarationResolver;
 
     public RangeLiteralResolver rangeLiteralResolver;
     public SpawnExpressionResolver spawnExpressionResolver;
@@ -77,6 +78,10 @@ public class ExpressionTypingComponents {
     @Inject
     public void setCallCheckers(@NotNull Iterable<CallChecker> callCheckers) {
         this.callCheckers = callCheckers;
+    }
+    @Inject
+    public void setDestructuringDeclarationResolver(DestructuringDeclarationResolver destructuringDeclarationResolver) {
+        this.destructuringDeclarationResolver = destructuringDeclarationResolver;
     }
 
     @Inject

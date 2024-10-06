@@ -20,7 +20,7 @@ val defaultVisibilityTargets: EnumSet<CangJieTarget> = EnumSet.of(
     CangJieTarget.CONSTRUCTOR,
     CangJieTarget.TYPEALIAS,
 
-)
+    )
 
 val possibleTargetMap = mapOf(
 
@@ -39,7 +39,7 @@ val possibleTargetMap = mapOf(
     ),
     MUT_KEYWORD to EnumSet.of(
 
-
+        CangJieTarget.INTERFACE_MEMBER_FUNCTION,
         CangJieTarget.MEMBER_PROPERTY,
         CangJieTarget.STRUCT_MEMBER_FUNCTION
     ),

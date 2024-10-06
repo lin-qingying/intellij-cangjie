@@ -3,6 +3,7 @@ package com.huawei.cangjie.types.expressions
 import com.huawei.cangjie.CjNodeTypes.BOOLEAN_CONSTANT
 import com.huawei.cangjie.CjNodeTypes.UNIT_CONSTANT
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.builtins.StandardNames.ITERABLE
 import com.huawei.cangjie.builtins.isBuiltinTupleType
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
@@ -34,6 +35,7 @@ import com.huawei.cangjie.resolve.descriptorUtil.classId
 import com.huawei.cangjie.resolve.descriptorUtil.classValueType
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
 import com.huawei.cangjie.resolve.scopes.*
+import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.isUnit
@@ -53,18 +55,17 @@ import java.util.*
 
 interface ClassAndEnumConstructorDescriptor
 class TupleConstructor(val types: List<CangJieType>) : ClassAndEnumConstructorDescriptor
+
+
 class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTypingInternals) :
     ExpressionTypingVisitor(facade) {
-
-
-    inner class CasePatten
 
 
     override fun visitLetExpression(
         expression: CjLetExpression,
         context: ExpressionTypingContext
     ): CangJieTypeInfo {
-        if(expression.pattern is CjTypePattern){
+        if (expression.pattern is CjTypePattern) {
 
             context.trace.report(LET_EXPRESSION_NO_TYPE_PATTERN.on(expression.pattern))
 //            return noTypeInfo(context)
@@ -99,6 +100,44 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         return noTypeInfo(context)
     }
 
+    fun defineLocalVariablesFromPattern(
+        writableScope: LexicalWritableScope,
+        casePattern: CjCasePattern,
+        receiver: ReceiverValue,
+        initializer: CjExpression,
+        context: ExpressionTypingContext
+    ) {
+//        获取原始迭代器对象
+        val iterator = receiver.type.extractSuperType(ITERABLE)
+//        被迭代对象
+        val iteratedType = iterator.arguments.first().type
+
+
+        val subject =
+            Subject.Expression(initializer, createTypeInfo(iteratedType), context.dataFlowValueFactory).apply {
+                initDataFlowValue(context, components.builtIns)
+            }
+
+        checkCasePattern(
+            subject, casePattern, context, Config(false)
+        )
+        initializer.findParentOfType<CjPatternEntryBlock>()?.let {
+            context.config.addVariableDescriptor[it]?.let { variables ->
+                variables.forEach { variable ->
+                    variable(writableScope)
+                }
+
+
+            }
+            context.config.addVariableDescriptor.remove(it)
+        }
+        val isOverwrite = MatchChecker.isOverwrite(casePattern, iteratedType, context.trace.bindingContext)
+        if (!isOverwrite) {
+            context.trace.report(IRREFUTABLE_PATTERN_ERROR.on(casePattern))
+        }
+
+
+    }
 
     override fun visitMatchExpression(
         expression: CjMatchExpression,
@@ -309,11 +348,15 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
     private fun noChange(context: ExpressionTypingContext) = ConditionalDataFlowInfo(context.dataFlowInfo)
 
+    data class Config(
+        val bindEnumType: Boolean = true,
+    )
 
     private fun checkCasePattern(
         subject: Subject,
         condition: CjCasePattern,
-        context: ExpressionTypingContext
+        context: ExpressionTypingContext,
+        config: Config = Config()
     ): ConditionalDataFlowInfo {
 
         var newDataFlowInfo = noChange(context)
@@ -511,7 +554,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
 //                if (  enumTypeInfo?.type ?.isEnum() == true) {
 //             如具有无参构造器 使用枚举覆盖psi
-                if (classDescriptor != null && classDescriptor.kind == ClassKind.ENUM_ENTRY /*&& classDescriptor.hasUnsubstitutedPrimaryConstructor()*/) {
+                if (config.bindEnumType && classDescriptor != null && classDescriptor.kind == ClassKind.ENUM_ENTRY /*&& classDescriptor.hasUnsubstitutedPrimaryConstructor()*/) {
 //                        优先使用enum枚举覆盖
 
                     if (!classDescriptor.hasUnsubstitutedPrimaryConstructor()) {
@@ -715,17 +758,20 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             override val valueExpression: CjExpression? get() = null
         }
 
-        class Type(typeInfo: CangJieTypeInfo, val _dataFlowValue: DataFlowValue) : Subject(null, typeInfo, null) {
+        class Type(typeInfo: CangJieTypeInfo, _dataFlowValue: DataFlowValue) : Subject(null, typeInfo, null) {
+
 
             init {
+
                 dataFlowValue = _dataFlowValue
+
             }
 
             override fun createDataFlowValue(
                 contextAfterSubject: ExpressionTypingContext,
                 builtIns: CangJieBuiltIns
             ): DataFlowValue {
-                return _dataFlowValue
+                return dataFlowValue
             }
 
             override fun makeValueArgument(): ValueArgument? {
@@ -998,6 +1044,8 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         }
         return true
     }
+
+
 }
 
 private interface MatchExhaustivenessChecker {
@@ -1016,6 +1064,15 @@ private interface MatchExhaustivenessChecker {
         subjectDescriptor: ClassDescriptor?,
         nullable: Boolean
     ): List<MatchMissingCase>
+
+    fun isOverwrite(
+        pattern: CjCasePattern,
+
+        context: BindingContext,
+        subjectDescriptor: ClassDescriptor?,
+
+
+        ): Boolean
 
     fun isApplicable(subjectType: CangJieType): Boolean = false
 }
@@ -1067,6 +1124,23 @@ object MatchChecker {
         MatchOnOtherExhaustivenessChecker,
 //        MatchOnSealedExhaustivenessChecker
     )
+
+    fun isOverwrite(pattern: CjCasePattern, type: CangJieType, context: BindingContext): Boolean {
+
+
+        val checkers = exhaustivenessCheckers.filter { it.isApplicable(type) }
+        if (checkers.isEmpty()) return false
+        return checkers.all {
+            it.isOverwrite(
+                pattern,
+
+                context,
+                TypeUtils.getClassDescriptor(type)
+            )
+        }
+
+
+    }
 
     fun getMissingCases(expression: CjMatchExpression, context: BindingContext): List<MatchMissingCase> {
         val type = MatchSubjectType(expression, context) ?: return listOf(MatchMissingCase.Unknown)
@@ -1301,7 +1375,7 @@ object MatchChecker {
 }
 
 internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessChecker {
-    var a = 1
+
     private fun getReference(expression: CjExpression?): CjSimpleNameExpression? =
         when (expression) {
             is CjSimpleNameExpression -> expression
@@ -1526,12 +1600,53 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
             .map(::createMatchMissingCaseForClassOrEnum)
     }
 
+    /**
+     * 检查单个pattern是否被覆盖
+     */
+
+    override fun isOverwrite(
+        pattern: CjCasePattern,
+        context: BindingContext,
+        subjectDescriptor: ClassDescriptor?
+    ): Boolean {
+        return isOverwrite(pattern, context)
+    }
+
+    fun isOverwrite(
+        pattern: CjCasePattern,
+        context: BindingContext,
+        subclasses: Set<ClassAndEnumConstructorDescriptor> = emptySet()
+    ): Boolean {
+        if (pattern is CjBindingPattern || pattern is CjWildcardPattern) {
+            return true
+        }
+
+
+        val checkedDescriptor = pattern.getCheckedDescriptor(context)
+        if (checkedDescriptor == null && pattern !is CjTuplePattern) {
+            return false
+        }
+        val types = when (checkedDescriptor) {
+            is EnumEntryConstructorDescriptor -> checkedDescriptor.getConstructorTypes()
+            else -> emptyList()
+        }
+
+        if (subclasses.size > 1) return false
+        // Checks are important only for nested subclasses of the sealed class
+        // In additional, check without "is" is important only for objects
+        return checkBindingPatternOrWildcardPattern(
+            pattern,
+            context,
+            types
+        ) || checkedDescriptor?.let { pattern.isRelevant(it) } != true
+    }
+
     protected fun getMissingClassCases(
         matchExpression: CjMatchExpression,
         subclasses: Set<ClassAndEnumConstructorDescriptor>,
         context: BindingContext
     ): List<MatchMissingCase> {
-        a++
+
         // when on empty enum / sealed is considered non-exhaustive, see test whenOnEmptySealed
         if (subclasses.isEmpty()) return listOf(MatchMissingCase.Unknown)
 
@@ -1698,6 +1813,17 @@ private object MatchOnTupleExhaustivenessChecker : MatchOnClassExhaustivenessChe
 }
 
 private object MatchOnEnumExhaustivenessChecker : MatchOnClassExhaustivenessChecker() {
+
+    override fun isOverwrite(
+        pattern: CjCasePattern,
+        context: BindingContext,
+        subjectDescriptor: ClassDescriptor?,
+
+        ): Boolean {
+
+        return isOverwrite(pattern, context, subjectDescriptor?.enumEntriesConstructor ?: emptySet())
+    }
+
     override fun getMissingCases(
         expression: CjMatchExpression,
         context: BindingContext,

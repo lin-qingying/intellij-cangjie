@@ -1,20 +1,32 @@
 package com.huawei.cangjie.resolve.calls.components
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.config.LanguageVersionSettings
-import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.descriptors.ParameterDescriptor
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor
 import com.huawei.cangjie.resolve.calls.model.CangJieCallArgument
+import com.huawei.cangjie.resolve.calls.model.ReceiverCangJieCallArgument
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.huawei.cangjie.types.UnwrappedType
-import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.isNullableNothing
 import com.huawei.cangjie.types.checker.intersectWrappedTypes
 import com.huawei.cangjie.types.checker.prepareArgumentTypeRegardingCaptureTypes
 import com.huawei.cangjie.utils.DFS
 
 val ValueParameterDescriptor.isVararg: Boolean get() = varargElementType != null
+  fun CangJieCallArgument.isArrayType(): Boolean {
+    if (this !is ReceiverCangJieCallArgument) return false
 
-internal fun CangJieCallArgument.getExpectedType(parameter: ParameterDescriptor, languageVersionSettings: LanguageVersionSettings) =
+    if (receiver !is ReceiverValueWithSmartCastInfo) return false
+
+    return CangJieBuiltIns.isArray((receiver as ReceiverValueWithSmartCastInfo).receiverValue.type)
+
+
+}
+
+internal fun CangJieCallArgument.getExpectedType(
+    parameter: ParameterDescriptor,
+    languageVersionSettings: LanguageVersionSettings
+) =
     if (
         this.isSpread /*||
         this.isArrayAssignedAsNamedArgumentInAnnotation(parameter, languageVersionSettings) ||
@@ -22,8 +34,17 @@ internal fun CangJieCallArgument.getExpectedType(parameter: ParameterDescriptor,
     ) {
         parameter.type.unwrap()
     } else {
-        (parameter as? ValueParameterDescriptor)?.varargElementType?.unwrap() ?:  parameter.type.unwrap()
+        val varargType = (parameter as? ValueParameterDescriptor)?.varargElementType?.unwrap()
+        if (isArrayType() && varargType != null) {
+            parameter.type.unwrap()
+
+        } else {
+            varargType?: parameter.type.unwrap()
+
+        }
+//        if(verargType != null && this is ReceiverCangJieCallArgument && receiver.)
     }
+
 /**
  * @return `true` iff the parameter has a default value, i.e. declares it, inherits it by overriding a parameter which has a default value,
  * or is a parameter of an 'actual' declaration, such that the corresponding 'expect' parameter has a default value.
@@ -35,6 +56,7 @@ fun ValueParameterDescriptor.hasDefaultValue(): Boolean {
         { it.declaresDefaultValue() || it.isActualParameterWithCorrespondingExpectedDefault }
     )
 }
+
 /**
  * @see isActualParameterWithAnyExpectedDefault
  */
@@ -49,6 +71,7 @@ private fun ValueParameterDescriptor.checkExpectedParameter(checker: (ValueParam
 //    }
     return false
 }
+
 // with all smart casts if stable
 val ReceiverValueWithSmartCastInfo.stableType: UnwrappedType
     get() {
@@ -78,8 +101,10 @@ val ReceiverValueWithSmartCastInfo.stableType: UnwrappedType
 
         return prepareArgumentTypeRegardingCaptureTypes(intersectionType) ?: intersectionType
     }
+
 internal fun unexpectedArgument(argument: CangJieCallArgument): Nothing =
     error("Unexpected argument type: $argument, ${argument.javaClass.canonicalName}.")
+
 internal val ReceiverValueWithSmartCastInfo.unstableType: UnwrappedType?
     get() {
         if (isStable || !hasTypesFromSmartCasts())

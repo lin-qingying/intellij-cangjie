@@ -41,6 +41,16 @@ private val FILE_IN_BLOCK_MODIFICATION_COUNT = Key<Long>("FILE_IN_BLOCK_MODIFICA
 
 val CjFile.inBlockModificationCount: Long by NotNullableUserDataProperty(FILE_IN_BLOCK_MODIFICATION_COUNT, 0)
 
+//排除的类型
+private val EXCLUDED_TYPES = setOf(
+    CjAnonymousInitializer::class,
+    CjDestructuringDeclaration::class,
+    CjDestructuringDeclarationEntry::class,
+    CjBindingPattern::class,
+    CjTypePattern::class
+
+)
+
 class ResolveElementCache(
     private val resolveSession: ResolveSession,
     private val project: Project,
@@ -250,7 +260,12 @@ class ResolveElementCache(
             getElementsAdditionalResolve(elementOfAdditionalResolve, element, null, bodyResolveMode)
         } else {
             element.getNonStrictParentOfType<CjDeclaration>()?.takeIf {
-                it !is CjAnonymousInitializer && it !is CjDestructuringDeclaration && it !is CjDestructuringDeclarationEntry
+
+                !EXCLUDED_TYPES.any{ kclass->
+                    kclass  == it::class
+
+                }
+//                it !is CjAnonymousInitializer && it !is CjDestructuringDeclaration && it !is CjDestructuringDeclarationEntry
             }?.let { resolveSession.resolveToDescriptor(it) }
             resolveSession.bindingContext
         }

@@ -69,6 +69,7 @@ class AnnotationChecker {
                         annotated.name == null -> TargetLists.T_FUNCTION_EXPRESSION
                         annotated.isLocal -> TargetLists.T_LOCAL_FUNCTION
                         annotated.parent is CjStruct || annotated.parent.parent is CjStruct -> TargetLists.T_STRUCT_MEMBER_FUNCTION
+                        annotated.parent is CjInterface || annotated.parent.parent is CjInterface -> TargetLists.T_INTERFACE_MEMBER_FUNCTION
 
                         annotated.parent is CjTypeStatement || annotated.parent is CjClassBody -> TargetLists.T_MEMBER_FUNCTION
                         else -> TargetLists.T_TOP_LEVEL_FUNCTION
@@ -149,6 +150,7 @@ enum class CangJieTarget(val description: String, val isDefault: Boolean = true)
     TYPE_PARAMETER("type parameter", false),
     MEMBER_FUNCTION("member function", false),
    STRUCT_MEMBER_FUNCTION("struct member function", false),
+    INTERFACE_MEMBER_FUNCTION("interface member function", false),
 
     TYPE("type usage", false),
 
@@ -240,7 +242,9 @@ object AnnotationTargetLists {
     val T_TYPE_REFERENCE = targetList(TYPE) {
         onlyWithUseSiteTarget(VALUE_PARAMETER)
     }
-
+    val T_INTERFACE_MEMBER_FUNCTION = targetList(INTERFACE_MEMBER_FUNCTION, /*FUNCTION*/) {
+        onlyWithUseSiteTarget(VALUE_PARAMETER)
+    }
     private fun targetList(
         vararg target: CangJieTarget,
         otherTargets: TargetListBuilder.() -> Unit = {}

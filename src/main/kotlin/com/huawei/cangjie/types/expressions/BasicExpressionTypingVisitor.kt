@@ -8,8 +8,11 @@ import com.huawei.cangjie.builtins.CangJieBuiltIns.Companion.isNothing
 import com.huawei.cangjie.builtins.CangJieBuiltIns.Companion.isNumber
 import com.huawei.cangjie.builtins.CangJieBuiltIns.Companion.isUnit
 import com.huawei.cangjie.builtins.StandardNames
+import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.diagnostics.Errors
+import com.huawei.cangjie.diagnostics.Errors.NO_GET_METHOD
+import com.huawei.cangjie.diagnostics.Errors.NO_SET_METHOD
 import com.huawei.cangjie.diagnostics.InvalidBinaryData
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.lexer.CjKeywordToken
@@ -20,6 +23,8 @@ import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.parsing.hasIllegalUnderscore
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext
+import com.huawei.cangjie.resolve.BindingContext.INDEXED_LVALUE_GET
+import com.huawei.cangjie.resolve.BindingContext.INDEXED_LVALUE_SET
 import com.huawei.cangjie.resolve.BindingContextUtils
 import com.huawei.cangjie.resolve.DescriptorUtils.isClass
 import com.huawei.cangjie.resolve.DescriptorUtils.isInterface
@@ -39,6 +44,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValue.Companion.nullV
 import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.huawei.cangjie.resolve.calls.tasks.OldResolutionCandidate
 import com.huawei.cangjie.resolve.calls.tasks.TracingStrategy
+import com.huawei.cangjie.resolve.calls.util.CallMaker
 import com.huawei.cangjie.resolve.calls.util.CallMaker.makeCall
 import com.huawei.cangjie.resolve.constants.CompileTimeConstantChecker
 import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstant
@@ -72,6 +78,7 @@ import com.huawei.cangjie.types.isError
 import com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.huawei.cangjie.types.util.TypeUtils.isNullableType
 import com.huawei.cangjie.types.util.TypeUtils.makeNotNullable
+import com.huawei.cangjie.utils.OperatorNameConventions
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo
 import com.huawei.cangjie.utils.exceptions.OperatorConventions
 import com.huawei.cangjie.utils.exceptions.OperatorConventions.isConventionType
@@ -185,6 +192,88 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             context.trace.report(Errors.ASSIGNMENT_IN_EXPRESSION_CONTEXT.on(expression))
         }
         return noTypeInfo(context)
+    }
+
+    override fun visitArrayAccessExpression(
+        expression: CjArrayAccessExpression,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
+        return components.dataFlowAnalyzer.checkType(
+            resolveArrayAccessGetMethod(expression, context),
+            expression,
+            context
+        )
+    }
+
+    private fun resolveArrayAccessSpecialMethod(
+        arrayAccessExpression: CjArrayAccessExpression,
+        rightHandSide: CjExpression?, // only for 'set' method
+        oldContext: ExpressionTypingContext,
+        traceForResolveResult: BindingTrace,
+        isGet: Boolean,
+        isImplicit: Boolean
+    ): CangJieTypeInfo {
+        val arrayExpression = arrayAccessExpression.arrayExpression ?: return noTypeInfo(oldContext)
+
+        val arrayTypeInfo = facade.safeGetTypeInfo(
+            arrayExpression,
+            oldContext.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(ContextDependency.INDEPENDENT)
+        )
+        val arrayType = ExpressionTypingUtils.safeGetType(arrayTypeInfo)
+
+        val context = oldContext.replaceDataFlowInfo(arrayTypeInfo.dataFlowInfo)
+        val receiver = create(arrayExpression, arrayType, context.trace.bindingContext)
+        if (!isGet) assert(rightHandSide != null)
+
+        val call = if (isGet) {
+            CallMaker.makeArrayGetCall(receiver, arrayAccessExpression, Call.CallType.ARRAY_GET_METHOD)
+        } else {
+            CallMaker.makeArraySetCall(receiver, arrayAccessExpression, rightHandSide!!, Call.CallType.ARRAY_SET_METHOD)
+        }
+
+        val functionResults = components.callResolver.resolveCallWithGivenName(
+            context,
+            call,
+            arrayAccessExpression,
+
+            if (isGet) OperatorNameConventions.GET else OperatorNameConventions.SET
+
+        )
+
+        val indices = arrayAccessExpression.indexExpressions
+
+        val resultTypeInfo = computeAccumulatedInfoForArrayAccessExpression(
+            arrayTypeInfo,
+            indices,
+            rightHandSide,
+            isGet,
+            context,
+            facade
+        )
+
+        if ((isImplicit && !functionResults.isSuccess) || !functionResults.isSingleResult) {
+            traceForResolveResult.report(
+                if (isGet) NO_GET_METHOD.on(arrayAccessExpression) else NO_SET_METHOD.on(
+                    arrayAccessExpression
+                )
+            )
+            return resultTypeInfo.clearType()
+        }
+
+        if (isGet) {
+            traceForResolveResult.record(INDEXED_LVALUE_GET, arrayAccessExpression, functionResults.resultingCall)
+        } else {
+            traceForResolveResult.record(INDEXED_LVALUE_SET, arrayAccessExpression, functionResults.resultingCall)
+        }
+
+        return resultTypeInfo.replaceType(functionResults.resultingDescriptor.returnType)
+    }
+
+    fun resolveArrayAccessGetMethod(
+        arrayAccessExpression: CjArrayAccessExpression,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
+        return resolveArrayAccessSpecialMethod(arrayAccessExpression, null, context, context.trace, true, false)
     }
 
     override fun visitBlockExpression(
@@ -666,7 +755,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 //        // TODO : other members
 //        // TODO : type substitutions???
         val callExpressionResolver = components.callExpressionResolver
-        val typeInfo =    callExpressionResolver.getSimpleNameExpressionTypeInfo(expression, null, null, context)
+        val typeInfo = callExpressionResolver.getSimpleNameExpressionTypeInfo(expression, null, null, context)
 
 
         checkNull(expression, context, typeInfo.type)
@@ -1169,24 +1258,24 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 
     override fun visitDeclaration(dcl: CjDeclaration, context: ExpressionTypingContext): CangJieTypeInfo {
         return declarationInIllegalContext(dcl, context)
-    } //    @NotNull
+    } //
 
     //        /*package*/ CangJieTypeInfo resolveImplicitArrayAccessSetMethod(
-    //            @NotNull CjArrayAccessExpression arrayAccessExpression,
-    //            @NotNull CjExpression rightHandSide,
-    //            @NotNull ExpressionTypingContext context,
-    //            @NotNull BindingTrace traceForResolveResult
+    //             CjArrayAccessExpression arrayAccessExpression,
+    //             CjExpression rightHandSide,
+    //             ExpressionTypingContext context,
+    //             BindingTrace traceForResolveResult
     //    ) {
     //        return resolveArrayAccessSpecialMethod(arrayAccessExpression, rightHandSide, context, traceForResolveResult, false, true);
     //    }
     //
     //
-    //    @NotNull
+    //
     //    private CangJieTypeInfo resolveArrayAccessSpecialMethod(
-    //            @NotNull CjArrayAccessExpression arrayAccessExpression,
-    //            @Nullable CjExpression rightHandSide, //only for 'set' method
-    //            @NotNull ExpressionTypingContext oldContext,
-    //            @NotNull BindingTrace traceForResolveResult,
+    //             CjArrayAccessExpression arrayAccessExpression,
+    //              CjExpression rightHandSide, //only for 'set' method
+    //             ExpressionTypingContext oldContext,
+    //             BindingTrace traceForResolveResult,
     //            boolean isGet,
     //            boolean isImplicit
     //    ) {
@@ -1252,6 +1341,42 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             }
 
             return isLValue(expression, parent)
+        }
+
+        private fun getTypeInfo(
+            expression: CjExpression,
+            facade: ExpressionTypingInternals,
+            context: ExpressionTypingContext,
+            forceExpressionResolve: Boolean
+        ): CangJieTypeInfo? {
+            return if (forceExpressionResolve) {
+                facade.getTypeInfo(expression, context)
+            } else {
+                BindingContextUtils.getRecordedTypeInfo(expression, context.trace.bindingContext)
+            }
+        }
+
+        private fun computeAccumulatedInfoForArrayAccessExpression(
+            arrayTypeInfo: CangJieTypeInfo,
+            indices: List<CjExpression>,
+            rightHandSide: CjExpression?,
+            isGet: Boolean,
+            context: ExpressionTypingContext,
+            facade: ExpressionTypingInternals
+        ): CangJieTypeInfo {
+            var accumulatedTypeInfo: CangJieTypeInfo? = null
+            val forceResolve = !context.languageVersionSettings.supportsFeature(LanguageFeature.NewInference)
+
+            // The accumulated data flow info of all index expressions is saved on the last index
+            if (indices.isNotEmpty()) {
+                accumulatedTypeInfo = getTypeInfo(indices[indices.size - 1], facade, context, forceResolve)
+            }
+
+            if (!isGet && rightHandSide != null) {
+                accumulatedTypeInfo = getTypeInfo(rightHandSide, facade, context, forceResolve)
+            }
+
+            return accumulatedTypeInfo ?: arrayTypeInfo
         }
 
         //字面量前缀和后缀

@@ -113,6 +113,11 @@ open class LazyDeclarationResolver(
                 return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, function)
             }
 
+            override fun visitPatternByBinding(element: CjBindingPattern, data: Nothing?): DeclarationDescriptor? {
+
+                return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, element)
+            }
+
             override fun visitParameter(parameter: CjParameter, data: Nothing?): DeclarationDescriptor? {
                 when (val grandFather = parameter.parent?.parent) {
                     is CjPrimaryConstructor -> {

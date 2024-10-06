@@ -1,8 +1,8 @@
 package com.huawei.cangjie.types.expressions;
 
 import com.huawei.cangjie.psi.*;
-import com.huawei.cangjie.resolve.calls.smartcasts.ConditionalDataFlowInfo;
-import com.huawei.cangjie.types.CangJieType;
+import com.huawei.cangjie.resolve.scopes.LexicalWritableScope;
+import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue;
 import com.huawei.cangjie.utils.exceptions.CangJieTypeInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,7 +19,16 @@ import org.jetbrains.annotations.Nullable;
 
     void checkStatementType(@NotNull CjExpression expression, ExpressionTypingContext context);
 
+
+    void defineLocalVariablesFromPattern(
+            LexicalWritableScope writableScope,
+            CjCasePattern casePattern,
+            ReceiverValue receiver,
+            CjExpression initializer,
+            ExpressionTypingContext context);
+
     void checkLetExpression(@NotNull CjLetExpression pattern, ExpressionTypingContext context);
+
     @NotNull
     ExpressionTypingComponents getComponents();
 }

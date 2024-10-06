@@ -189,23 +189,23 @@ public class ExpressionTypingServices {
                     ));
 
             CangJieType type = null;
-            if(parentDeclaration instanceof PropertyAccessorDescriptorImpl){
+            if (parentDeclaration instanceof PropertyAccessorDescriptorImpl) {
                 type = ((PropertyAccessorDescriptorImpl) parentDeclaration).getReturnType();
             }
-            if (parentDeclaration instanceof FunctionDescriptorImpl) {
-                if (((FunctionDescriptorImpl)parentDeclaration).getReturnType() != null && !CangJieBuiltIns.isUnit(((FunctionDescriptorImpl)parentDeclaration).getReturnType())) {
+            if (parentDeclaration instanceof FunctionDescriptorImpl && (statementExpression.getParent() instanceof  CjFunction || statementExpression.getParent() instanceof CjPropertyAccessor)) {
+                if (((FunctionDescriptorImpl) parentDeclaration).getReturnType() != null && !CangJieBuiltIns.isUnit(((FunctionDescriptorImpl) parentDeclaration).getReturnType())) {
 //                    context = context.replaceExpectedType(parentDeclaration.getReturnType());
 //fix 修复对于该语句执行时，方法返回值还为推断时出现的类型一致
-                    if (((FunctionDescriptorImpl)parentDeclaration).getSource() instanceof PsiSourceElement && ((PsiSourceElement) ((FunctionDescriptorImpl)parentDeclaration).getSource()).getPsi() instanceof CjFunction) {
+                    if (((FunctionDescriptorImpl) parentDeclaration).getSource() instanceof PsiSourceElement && ((PsiSourceElement) ((FunctionDescriptorImpl) parentDeclaration).getSource()).getPsi() instanceof CjFunction) {
 
-                        if (!(((CjFunction) ((PsiSourceElement) ((FunctionDescriptorImpl)parentDeclaration).getSource()).getPsi()).getTypeReference() == null
+                        if (!(((CjFunction) ((PsiSourceElement) ((FunctionDescriptorImpl) parentDeclaration).getSource()).getPsi()).getTypeReference() == null
                         )) {
-type = ((FunctionDescriptorImpl)parentDeclaration).getReturnType();
+                            type = ((FunctionDescriptorImpl) parentDeclaration).getReturnType();
                         }
                     }
                 }
             }
-            if(type != null && !TypeUtilKt.isUnit(type)){
+            if (type != null && !TypeUtilKt.isUnit(type)) {
                 context = context.replaceExpectedType(type);
 
             }
