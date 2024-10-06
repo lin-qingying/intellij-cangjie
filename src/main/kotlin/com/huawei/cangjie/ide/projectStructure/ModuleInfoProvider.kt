@@ -3,10 +3,8 @@ package com.huawei.cangjie.ide.projectStructure
 import com.huawei.cangjie.analyzer.LibraryInfo
 import com.huawei.cangjie.analyzer.ModuleInfo
 import com.huawei.cangjie.analyzer.ModuleSourceInfo
-import com.huawei.cangjie.cjpm.project.workspace.CjpmLibrary
 import com.huawei.cangjie.ide.base.projectStructure.RootKindFilter
 import com.huawei.cangjie.ide.base.projectStructure.matches
-
 import com.huawei.cangjie.ide.cache.project.LibraryInfoCache
 import com.huawei.cangjie.ide.cache.project.cangjieModuleInfo
 import com.huawei.cangjie.psi.*
@@ -210,12 +208,16 @@ class ModuleInfoProvider(private val project: Project) {
                         config = config,
                         extensionBlock = { findContainingModules(project, virtualFile) },
                     ) {
+
+//                        ApplicationManager.getApplication().invokeLater {
                         runReadAction { fileIndex.getModuleForFile(virtualFile) }?.let { module ->
 
                             yield { module }
 
 
                         }
+//                        }
+
                     }
                 }
                 val iterator = modules.iterator()
@@ -319,23 +321,9 @@ class ModuleInfoProvider(private val project: Project) {
                 contextualModuleResult?.let(Result.Companion::success)
             }
 
+//            ApplicationManager.getApplication().invokeLater {
             yieldAll(object : Iterable<Result<ModuleInfo>> {
                 override fun iterator(): Iterator<Result<ModuleInfo>> {
-
-//                    val librarys =
-//                        runReadAction { CjAdditionalLibraryRootsProvider.findLibrarysByCjFile(project, virtualFile) }
-//
-//                    val iterator = librarys.iterator()
-//                    return MappingIterator(iterator) { orderEntry ->
-//                        collectByOrderEntry(
-//                            virtualFile,
-//                            orderEntry,
-//                            isLibrarySource,
-//                            visited,
-//                            config
-//                        )?.let(Result.Companion::success)
-//                    }
-
 
 
                     val orderEntries = runReadAction { fileIndex.getOrderEntriesForFile(virtualFile) }
@@ -351,6 +339,7 @@ class ModuleInfoProvider(private val project: Project) {
                     }
                 }
             })
+//            }
         }
 
     }

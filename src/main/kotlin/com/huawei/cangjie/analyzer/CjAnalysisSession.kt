@@ -150,7 +150,7 @@ fun <T> FlatSignature.Companion.create(
         valueParameterTypes = contextReceiverTypes + listOfNotNull(extensionReceiverType) + parameterTypes,
         hasExtensionReceiver = extensionReceiverType != null,
         contextReceiverCount = contextReceiverTypes.size,
-//        hasVarargs = descriptor.valueParameters.any { it.varargElementType != null },
+        hasVarargs = descriptor.valueParameters.any { it.varargElementType != null },
         numDefaults = numDefaults,
         isExpect = descriptor is MemberDescriptor && descriptor.isExpect,
         isSyntheticMember = descriptor is SyntheticMemberDescriptor<*>
@@ -174,7 +174,7 @@ fun <T> FlatSignature.Companion.create(
             .orEmpty() + parameterTypes,
         hasExtensionReceiver = extensionReceiverType != null,
         contextReceiverCount = contextReceiverTypes.size,
-//        hasVarargs =false /*descriptor.valueParameters.any { it.varargElementType != null }*/,
+        hasVarargs =false /*descriptor.valueParameters.any { it.varargElementType != null }*/,
         numDefaults = numDefaults,
         isExpect = descriptor is MemberDescriptor && descriptor.isExpect,
         isSyntheticMember = descriptor is SyntheticMemberDescriptor<*>

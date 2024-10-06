@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.calls.model
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor
+import com.huawei.cangjie.resolve.calls.components.TypeArgumentsToParametersMapper
 import com.huawei.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.components.FreshVariableNewTypeSubstitutor
@@ -38,6 +39,7 @@ open class MutableResolvedCallAtom(
     private var _candidateDescriptor = originalCandidateDescriptor
     private var unitAdapterMap: HashMap<CangJieCallArgument, UnwrappedType>? = null
     private var suspendAdapterMap: HashMap<CangJieCallArgument, UnwrappedType>? = null
+    override lateinit var typeArgumentMappingByOriginal: TypeArgumentsToParametersMapper.TypeArgumentsMapping
 
     override val candidateDescriptor: CallableDescriptor
         get() = _candidateDescriptor

@@ -15,15 +15,15 @@
 // *
 // * There is only few constants are supported (@see [ESConstant.Companion])
 // */
-//class ESConstant internal constructor(val constantReference: ConstantReference, override val type: ESType) : AbstractESValue(type) {
-//    override fun <T> accept(visitor: ESExpressionVisitor<T>): T = visitor.visitConstant(this)
-//
-//    override fun equals(other: Any?): Boolean = other is ESConstant && constantReference == other.constantReference
-//
-//    override fun hashCode(): Int = Objects.hashCode(constantReference)
-//
-//    override fun toString(): String = constantReference.name
-//
-//    fun isNullConstant(): Boolean =
-//        constantReference == ConstantReference.NULL || constantReference == ConstantReference.NOT_NULL
-//}
+////class ESConstant internal constructor(val constantReference: ConstantReference, override val type: ESType) : AbstractESValue(type) {
+////    override fun <T> accept(visitor: ESExpressionVisitor<T>): T = visitor.visitConstant(this)
+////
+////    override fun equals(other: Any?): Boolean = other is ESConstant && constantReference == other.constantReference
+////
+////    override fun hashCode(): Int = Objects.hashCode(constantReference)
+////
+////    override fun toString(): String = constantReference.name
+////
+////    fun isNullConstant(): Boolean =
+////        constantReference == ConstantReference.NULL || constantReference == ConstantReference.NOT_NULL
+////}

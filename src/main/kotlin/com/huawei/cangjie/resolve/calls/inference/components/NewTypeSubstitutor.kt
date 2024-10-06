@@ -3,13 +3,13 @@ package com.huawei.cangjie.resolve.calls.inference.components
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.resolve.calls.inference.isCaptured
 import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableFromCallableDescriptor
+import com.huawei.cangjie.resolve.calls.inference.substitute
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.NewCapturedType
 import com.huawei.cangjie.types.checker.NewCapturedTypeConstructor
 import com.huawei.cangjie.types.checker.intersectTypes
 import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.model.TypeSubstitutorMarker
-import com.huawei.cangjie.resolve.calls.inference.substitute
 
 interface NewTypeSubstitutor : TypeSubstitutorMarker {
 
@@ -166,14 +166,14 @@ interface NewTypeSubstitutor : TypeSubstitutorMarker {
             val argument = arguments[index]
 
 
-
             val specialProjectionSubstitution = substituteArgumentProjection(argument)
             if (specialProjectionSubstitution != null) {
                 newArguments[index] = specialProjectionSubstitution
                 continue
             }
 
-            val substitutedArgumentType =  substitute(argument.type.unwrap(), keepAnnotation, runCapturedChecks) ?: continue
+            val substitutedArgumentType =
+                substitute(argument.type.unwrap(), keepAnnotation, runCapturedChecks) ?: continue
 
             newArguments[index] = TypeProjectionImpl(argument.projectionKind, substitutedArgumentType)
         }
@@ -251,6 +251,7 @@ class FreshVariableNewTypeSubstitutor(val freshVariables: List<TypeVariableFromC
         val Empty = FreshVariableNewTypeSubstitutor(emptyList())
     }
 }
+
 fun TypeSubstitutor.composeWith(appliedAfter: NewTypeSubstitutor) = createCompositeSubstitutor(this, appliedAfter)
 fun createCompositeSubstitutor(appliedFirst: TypeSubstitutor, appliedLast: NewTypeSubstitutor): NewTypeSubstitutor {
     if (appliedFirst.isEmpty) return appliedLast

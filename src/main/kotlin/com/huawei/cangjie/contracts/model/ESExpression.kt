@@ -5,9 +5,9 @@ package com.huawei.cangjie.contracts.model
  *   in right hand side of conditional effect) and [ESExpression] with subtypes
  *   precisely enumerate what can be found here.
  */
-interface ESExpression {
-    fun <T> accept(visitor: ESExpressionVisitor<T>): T
-}
+//interface ESExpression {
+//    fun <T> accept(visitor: ESExpressionVisitor<T>): T
+//}
 
 //interface ESOperator : ESExpression {
 //    /**
@@ -16,4 +16,4 @@ interface ESExpression {
 //    val functor: Functor
 //}
 
-interface ESValue : Computation, ESExpression
+//interface ESValue : Computation, ESExpression

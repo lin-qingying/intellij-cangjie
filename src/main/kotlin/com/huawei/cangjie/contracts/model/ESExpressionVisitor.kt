@@ -1,8 +1,10 @@
-package com.huawei.cangjie.contracts.model
-
-
-
-interface ESExpressionVisitor<out T> {
+//package com.huawei.cangjie.contracts.model
+//
+//import com.huawei.cangjie.contracts.model.structure.ESEqual
+//import com.huawei.cangjie.contracts.model.structure.ESIs
+//
+//
+//interface ESExpressionVisitor<out T> {
 //    fun visitIs(isOperator: ESIs): T
 //    fun visitEqual(equal: ESEqual): T
 //    fun visitAnd(and: ESAnd): T
@@ -16,4 +18,4 @@ interface ESExpressionVisitor<out T> {
 //
 //    // ESLambda is invisible in this module
 //    fun visitLambda(lambda: ESValue): T
-}
+//}

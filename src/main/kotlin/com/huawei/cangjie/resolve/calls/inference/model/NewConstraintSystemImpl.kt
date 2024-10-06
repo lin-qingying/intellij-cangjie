@@ -30,6 +30,7 @@ class NewConstraintSystemImpl(
     private var couldBeResolvedWithUnrestrictedBuilderInference: Boolean = false
     private val properTypesCache: MutableSet<CangJieTypeMarker> = SmartSet.create()
     private val utilContext = constraintInjector.constraintIncorporator.utilContext
+    private val intersectionTypesCache: MutableMap<Collection<CangJieTypeMarker>, EmptyIntersectionTypeInfo?> = mutableMapOf()
 
     private val storage = MutableConstraintStorage()
     private val postponedComputationsAfterAllVariablesAreFixed = mutableListOf<() -> Unit>()
@@ -347,7 +348,14 @@ class NewConstraintSystemImpl(
         storage.errors.add(error)
     }
 
+    override fun getEmptyIntersectionTypeKind(types: Collection<CangJieTypeMarker>): EmptyIntersectionTypeInfo? {
+        if (types in intersectionTypesCache)
+            return intersectionTypesCache.getValue(types)
 
+        return computeEmptyIntersectionTypeKind(types).also {
+            intersectionTypesCache[types] = it
+        }
+    }
     private fun checkInferredEmptyIntersection(variable: TypeVariableMarker, resultType: CangJieTypeMarker) {
 //        val intersectionTypeConstructor = resultType.typeConstructor().takeIf { it is IntersectionTypeConstructorMarker } ?: return
 //        val upperTypes = intersectionTypeConstructor.supertypes()

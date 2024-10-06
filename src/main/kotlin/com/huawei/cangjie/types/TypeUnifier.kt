@@ -1,5 +1,7 @@
 package com.huawei.cangjie.types
 
+import com.huawei.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
+import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.utils.newHashMapWithExpectedSize
 import com.huawei.cangjie.utils.newHashSetWithExpectedSize
@@ -153,3 +155,5 @@ object TypeUnifier {
         }
     }
 }
+
+

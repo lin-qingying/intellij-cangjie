@@ -13,15 +13,15 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
         CheckStaticCall,
         CheckVisibility,
         CheckSuperExpressionCallPart,
-//        NoTypeArguments,
+        NoTypeArguments,
         NoArguments,
         CreateFreshVariablesSubstitutor,
 //        CollectionTypeVariableUsagesInfo,
 //        CheckExplicitReceiverKindConsistency,
 //        CheckReceivers,
-//        PostponedVariablesInitializerResolutionPart,
+        PostponedVariablesInitializerResolutionPart,
 //        CheckContextReceiversResolutionPart,
-//        CheckIncompatibleTypeVariableUpperBounds
+        CheckIncompatibleTypeVariableUpperBounds
     ),
     FUNCTION(
         CheckStaticCall,
@@ -30,7 +30,7 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
 //        CheckInfixResolutionPart,
 //        CheckOperatorResolutionPart,
         CheckSuperExpressionCallPart,
-//        MapTypeArguments,
+        MapTypeArguments,
         MapArguments,
         ArgumentsToCandidateParameterDescriptor,
         CreateFreshVariablesSubstitutor,
@@ -41,20 +41,20 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
         CheckExternalArgument,
 //        EagerResolveOfCallableReferences,
 //        CompatibilityOfPartiallyApplicableSamConversion,
-//        PostponedVariablesInitializerResolutionPart,
+        PostponedVariablesInitializerResolutionPart,
 //        CheckContextReceiversResolutionPart,
-//        CheckIncompatibleTypeVariableUpperBounds
+        CheckIncompatibleTypeVariableUpperBounds
     ),
     INVOKE(*FUNCTION.resolutionSequence.toTypedArray()),
     CALLABLE_REFERENCE(
         CheckVisibility,
-//        NoTypeArguments,
+        NoTypeArguments,
         NoArguments,
         CreateFreshVariablesSubstitutor,
 //        CollectionTypeVariableUsagesInfo,
 //        CheckReceivers,
 //        CheckCallableReference,
-//        CheckIncompatibleTypeVariableUpperBounds
+        CheckIncompatibleTypeVariableUpperBounds
     ),
     UNSUPPORTED();
 

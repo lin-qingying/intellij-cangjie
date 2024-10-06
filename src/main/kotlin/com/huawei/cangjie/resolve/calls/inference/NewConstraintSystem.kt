@@ -5,7 +5,15 @@ import com.huawei.cangjie.resolve.calls.inference.components.ConstraintSystemCom
 import com.huawei.cangjie.resolve.calls.inference.model.Constraint
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintStorage
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintSystemError
+import com.huawei.cangjie.types.model.CangJieTypeMarker
 import com.huawei.cangjie.types.model.TypeVariableMarker
+
+enum class EmptyIntersectionTypeKind(val description: String, val isDefinitelyEmpty: Boolean) {
+    MULTIPLE_CLASSES("multiple incompatible classes", isDefinitelyEmpty = true),
+    FINAL_CLASS_AND_INTERFACE("final class and interface", isDefinitelyEmpty = false)
+}
+
+class EmptyIntersectionTypeInfo(val kind: EmptyIntersectionTypeKind, vararg val casingTypes: CangJieTypeMarker)
 
 interface NewConstraintSystem {
         val hasContradiction: Boolean
@@ -18,6 +26,7 @@ interface NewConstraintSystem {
 
     fun getBuilder(): ConstraintSystemBuilder
     fun asPostponedArgumentsAnalyzerContext(): PostponedArgumentsAnalyzerContext
+    fun getEmptyIntersectionTypeKind(types: Collection<CangJieTypeMarker>): EmptyIntersectionTypeInfo?
 
 }
 

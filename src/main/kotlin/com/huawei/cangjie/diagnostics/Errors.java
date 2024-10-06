@@ -38,6 +38,10 @@ import static com.huawei.cangjie.diagnostics.Severity.*;
  * For error messages, see DefaultErrorMessages and IdeErrorMessages.
  */
 public interface Errors {
+
+    DiagnosticFactory0<CjExpression> INTEGER_OVERFLOW = DiagnosticFactory0.create(WARNING);
+    DiagnosticFactory0<CjExpression> DIVISION_BY_ZERO = DiagnosticFactory0.create(WARNING);
+
     DiagnosticFactory0<PsiElement> EXPLICIT_DELEGATION_CALL_REQUIRED =
             DiagnosticFactory0.create(ERROR, PositioningStrategies.SECONDARY_CONSTRUCTOR_DELEGATION_CALL);
     DiagnosticFactory1<PsiElement, Collection<? extends ResolvedCall<?>>> NONE_APPLICABLE = DiagnosticFactory1.create(ERROR);
@@ -227,7 +231,10 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, CangJieType> IMPLICIT_INTERSECTION_TYPE = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory0<PsiElement> ABBREVIATED_NOTHING_PROPERTY_TYPE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<PsiElement> ABBREVIATED_NOTHING_RETURN_TYPE = DiagnosticFactory0.create(ERROR);
-
+    DiagnosticFactoryForDeprecation4<PsiElement, String, Collection<CangJieType>, String, String> INFERRED_TYPE_VARIABLE_INTO_EMPTY_INTERSECTION =
+            DiagnosticFactoryForDeprecation4.create(LanguageFeature.ForbidInferringTypeVariablesIntoEmptyIntersection);
+    DiagnosticFactory4<PsiElement, String, Collection<CangJieType>, String, String> INFERRED_TYPE_VARIABLE_INTO_POSSIBLE_EMPTY_INTERSECTION =
+            DiagnosticFactory4.create(WARNING);
     DiagnosticFactory2<CjModifierListOwner, String, ClassDescriptor> ABSTRACT_PROPERTY_IN_NON_ABSTRACT_CLASS =
             DiagnosticFactory2.create(ERROR, ABSTRACT_MODIFIER);
     DiagnosticFactory1<PsiElement, String> COULD_BE_INFERRED_ONLY_WITH_UNRESTRICTED_BUILDER_INFERENCE = DiagnosticFactory1.create(ERROR);

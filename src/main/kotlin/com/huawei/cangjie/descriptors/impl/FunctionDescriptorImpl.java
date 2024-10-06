@@ -36,7 +36,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     private boolean isStatic = false;
 
     private boolean isExpect = false;
-       private boolean isHiddenToOvercomeSignatureClash = false;
+    private boolean isHiddenToOvercomeSignatureClash = false;
     private boolean isHiddenForResolutionEverywhereBesideSupercalls = false;
     private boolean hasStableParameterNames = true;
     private boolean hasSynthesizedParameterNames = false;
@@ -217,9 +217,6 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     }
 
 
-
-
-
     @Nullable
     @Override
     public ReceiverParameterDescriptor getExtensionReceiverParameter() {
@@ -240,6 +237,10 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     @Override
     @SuppressWarnings("unchecked")
     public void setOverriddenDescriptors(@NotNull Collection<? extends CallableMemberDescriptor> overriddenDescriptors) {
+
+        if (this.getContainingDeclaration() instanceof LazyExtendClassDescriptor && overriddenDescriptors.isEmpty()) {
+            return;
+        }
         this.overriddenFunctions = new ArrayList<>();
 
         for (FunctionDescriptor function : (Collection<? extends FunctionDescriptor>) overriddenDescriptors) {
@@ -308,7 +309,6 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 
         return false;
     }
-
 
 
     public void setOperator(boolean isOperator) {

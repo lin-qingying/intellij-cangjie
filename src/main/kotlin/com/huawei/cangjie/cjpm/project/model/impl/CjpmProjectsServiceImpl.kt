@@ -490,11 +490,10 @@ private fun addDependencies(project: Project, cjpmProjects: List<CjpmProject>) {
     val module = ModuleManager.getInstance(project).findModuleByName(project.name)
     val moudleModel: ModifiableRootModel? = module?.let { ModuleRootManager.getInstance(it).modifiableModel }
 
-//    删除所有库
-    libraryTable.libraries.forEach {
-        libraryTable.removeLibrary(it)
-
-    }
+//    删除所有库  TODO 会引发 disposed 异常
+//    libraryTable.libraries.forEach {
+//        libraryTable.removeLibrary(it)
+//    }
     cjpmProjects.forEach { cjpmProject ->
         cjpmProject.workspace?.packages?.forEach {
             if (it.origin == PackageOrigin.WORKSPACE) {
@@ -529,7 +528,8 @@ private fun CjpmWorkspace.Package.getOrCreateLibrary(libraryTable: LibraryTable)
     return if (this.origin == PackageOrigin.STDLIB) {
         libraryTable.getLibraryByName("stdlib") ?: libraryTable.createLibrary("stdlib")
     } else {
-        libraryTable.createLibrary(this.name)
+        libraryTable.getLibraryByName(this.name) ?: libraryTable.createLibrary(this.name)
+
     }
 }
 

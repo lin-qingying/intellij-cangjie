@@ -398,7 +398,9 @@ open class OverloadingConflictResolver<C : Any>(
         call1: FlatSignature<C>,
         call2: FlatSignature<C>
     ): Boolean {
-
+        val hasVarargs1 = call1.hasVarargs
+        val hasVarargs2 = call2.hasVarargs
+        if (hasVarargs1 && !hasVarargs2) return false
 
         if (call1.numDefaults > call2.numDefaults) {
             return false
@@ -462,5 +464,13 @@ open class OverloadingConflictResolver<C : Any>(
                         candidates.filterNotTo(mutableSetOf()) { createFlatSignature(it).isSyntheticMember },
                         discriminateGenerics
                     )
+
+                    // Attempt 4: disambiguation on original SAM-types
+                    ?: hasSAMConversion?.let { hasConversion ->
+                        findMaximallySpecificCall(
+                            candidates.filterTo(mutableSetOf(), hasConversion),
+                            discriminateGenerics, useOriginalSamTypes = true
+                        )
+                    }
         }
 }

@@ -65,7 +65,8 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER),
     StrictOnlyInputTypesChecks(CANGJIE_0_53_4),
 
     TypeInferenceOnCallsWithSelfTypes(CANGJIE_0_53_4),
-    TakeIntoAccountEffectivelyFinalInMustBeInitializedCheck(CANGJIE_0_53_4, kind = OTHER), // KT-58587
+    TakeIntoAccountEffectivelyFinalInMustBeInitializedCheck(CANGJIE_0_53_4, kind = OTHER),
+    ForbidInferringTypeVariablesIntoEmptyIntersection(sinceVersion = null, kind = BUG_FIX),
 
     UseBuilderInferenceWithoutAnnotation(CANGJIE_0_53_4),
 

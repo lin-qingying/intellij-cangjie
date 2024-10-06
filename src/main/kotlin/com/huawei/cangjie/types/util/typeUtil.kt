@@ -22,6 +22,7 @@ import com.huawei.cangjie.types.error.ErrorTypeKind
 import com.huawei.cangjie.types.model.TypeArgumentMarker
 import com.huawei.cangjie.types.model.TypeVariableTypeConstructorMarker
 import com.huawei.cangjie.types.util.TypeUtils.isSpecialType
+import com.huawei.cangjie.types.util.TypeUtils.makeProjection
 import com.huawei.cangjie.utils.SmartSet
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -30,6 +31,7 @@ fun CangJieType.replaceAnnotations(newAnnotations: Annotations): CangJieType {
     if (annotations.isEmpty() && newAnnotations.isEmpty()) return this
     return unwrap().replaceAttributes(attributes.replaceAnnotations(newAnnotations))
 }
+
 fun CangJieType.isUnit(): Boolean = CangJieBuiltIns.isUnit(this)
 
 fun CangJieType.unCapture(): CangJieType = unwrap().unCapture()
@@ -142,7 +144,8 @@ fun CangJieType.isInterface(): Boolean =
     (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.INTERFACE
 
 fun CangJieType.isEnum(): Boolean = (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.ENUM
-fun CangJieType.isEnumEntry(): Boolean = (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.ENUM_ENTRY
+fun CangJieType.isEnumEntry(): Boolean =
+    (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.ENUM_ENTRY
 
 //fun CangJieType.containsTypeProjectionsInTopLevelArguments(): Boolean {
 //    if (isError) return false
@@ -217,7 +220,6 @@ fun CangJieType.expandIntersectionTypeIfNecessary(): Collection<CangJieType> {
 }
 
 
-
 val CangJieType.builtIns: CangJieBuiltIns
     get() = constructor.builtIns
 
@@ -228,6 +230,7 @@ fun CangJieType.isStubTypeForBuilderInference(): Boolean =
 
 fun CangJieType.isPrimitiveNumberType(): Boolean = CangJieBuiltIns.isPrimitiveType(this) && !isBoolean()
 fun CangJieType.isBoolean(): Boolean = CangJieBuiltIns.isBoolean(this)
+
 //fun CangJieType.isNotNullThrowable(): Boolean = CangJieBuiltIns.isThrowableOrNullableThrowable(this) && !isMarkedNullable
 fun CangJieType.isInt8() = CangJieBuiltIns.isInt8(this)
 fun CangJieType.isRune() = CangJieBuiltIns.isRune(this)
@@ -247,6 +250,7 @@ private inline fun <reified S : AbstractStubType> CangJieType.isDefNotNullStubTy
 
 fun CangJieType.isStubTypeForVariableInSubtyping(): Boolean =
     this is StubTypeForTypeVariablesInSubtyping || isDefNotNullStubType<StubTypeForTypeVariablesInSubtyping>()
+
 fun CangJieType?.shouldBeUpdated() =
     this == null || contains { it is StubTypeForBuilderInference || it.constructor is TypeVariableTypeConstructorMarker || it.isError }
 
@@ -360,7 +364,68 @@ val TypeParameterDescriptor.representativeUpperBound: CangJieType
         } ?: upperBounds.first()
     }
 
+inline fun CangJieType.replaceArgumentsByParametersWith(replacement: (TypeParameterDescriptor) -> TypeProjection): CangJieType {
+    val unwrapped = unwrap()
+    return when (unwrapped) {
+        is FlexibleType -> CangJieTypeFactory.flexibleType(
+            unwrapped.lowerBound.replaceArgumentsByParametersWith(replacement),
+            unwrapped.upperBound.replaceArgumentsByParametersWith(replacement)
+        )
+
+        is SimpleType -> unwrapped.replaceArgumentsByParametersWith(replacement)
+    }.inheritEnhancement(unwrapped)
+}
+
+fun CangJieType.containsTypeParameter(): Boolean = TypeUtils.contains(this) { t -> TypeUtils.isTypeParameter(t) }
+
+inline fun SimpleType.replaceArgumentsByParametersWith(replacement: (TypeParameterDescriptor) -> TypeProjection): SimpleType {
+    if (constructor.parameters.isEmpty() || constructor.declarationDescriptor == null) return this
+
+    val newArguments = constructor.parameters.map(replacement)
+
+    return replace(newArguments)
+}
+
 fun CangJieType.isBooleanOrNullableBoolean(): Boolean = CangJieBuiltIns.isBooleanOrNullableBoolean(this)
+private fun CangJieType.extractTypeParametersFromUpperBounds(
+    baseType: CangJieType,
+    to: MutableSet<TypeParameterDescriptor>,
+    visitedTypeParameters: Set<TypeParameterDescriptor>?
+) {
+    val declarationDescriptor = constructor.declarationDescriptor
+
+    if (declarationDescriptor is TypeParameterDescriptor) {
+        if (constructor != baseType.constructor) {
+            to += declarationDescriptor
+        } else {
+            for (upperBound in declarationDescriptor.upperBounds) {
+                upperBound.extractTypeParametersFromUpperBounds(baseType, to, visitedTypeParameters)
+            }
+        }
+    } else {
+        val typeParameters =
+            (constructor.declarationDescriptor as? ClassifierDescriptorWithTypeParameters)?.declaredTypeParameters
+        for ((i, argument) in arguments.withIndex()) {
+            val typeParameter = typeParameters?.getOrNull(i) // TODO: support inner classes' type parameters
+            val isTypeParameterVisited =
+                typeParameter != null && visitedTypeParameters != null && typeParameter in visitedTypeParameters
+            if (isTypeParameterVisited) continue
+            if (argument.type.constructor.declarationDescriptor in to || argument.type.constructor == baseType.constructor) continue
+            argument.type.extractTypeParametersFromUpperBounds(baseType, to, visitedTypeParameters)
+        }
+    }
+}
+
+fun CangJieType.replaceArgumentsWithProjections() = replaceArgumentsByParametersWith(::makeProjection)
+
+fun CangJieType.extractTypeParametersFromUpperBounds(visitedTypeParameters: Set<TypeParameterDescriptor>?): Set<TypeParameterDescriptor> =
+    mutableSetOf<TypeParameterDescriptor>().also {
+        extractTypeParametersFromUpperBounds(
+            this,
+            it,
+            visitedTypeParameters
+        )
+    }
 
 object TypeUtils {
 
@@ -379,6 +444,16 @@ object TypeUtils {
         return TypeProjectionImpl(parameterDescriptor.defaultType)
     }
 
+    fun makeProjection(
+        parameterDescriptor:  TypeParameterDescriptor,
+        attr:  ErasureTypeAttributes
+    ):  TypeProjection {
+//        return if (attr.howThisTypeIsUsed ==  TypeUsage.SUPERTYPE) {
+          return   TypeProjectionImpl(parameterDescriptor.projectionType())
+//        } else {
+//           StarProjectionImpl(parameterDescriptor)
+//        }
+    }
     /**
      * Differs from `isNullableType` only by treating type parameters: acceptsNullable(T) <=> T has nullable lower bound
      * Semantics should be the same as `isSubtype(Nothing?, T)`
@@ -898,7 +973,7 @@ object TypeUtils {
      * 检查构造方法是否有参数
      */
     @JvmStatic
-    fun checkConstructorsNotParameter(classDescriptor:  ClassDescriptor): Boolean {
+    fun checkConstructorsNotParameter(classDescriptor: ClassDescriptor): Boolean {
         val constructors = classDescriptor.constructors
 
 
@@ -1044,4 +1119,5 @@ val CangJieType.classKind: ClassKind
         }
 
     }
+
 fun CangJieType.immediateSupertypes(): Collection<CangJieType> = TypeUtils.getImmediateSupertypes(this)

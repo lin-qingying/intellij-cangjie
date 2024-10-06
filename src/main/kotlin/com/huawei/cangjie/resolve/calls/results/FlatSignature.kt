@@ -33,7 +33,7 @@ fun <T> FlatSignature.Companion.create(
             .orEmpty() + parameterTypes,
         hasExtensionReceiver = extensionReceiverType != null,
         contextReceiverCount = contextReceiverTypes.size,
-//        hasVarargs = descriptor.valueParameters.any { it.varargElementType != null },
+        hasVarargs = descriptor.valueParameters.any { it.varargElementType != null },
         numDefaults = numDefaults,
         isExpect = descriptor is MemberDescriptor /*&& descriptor.isExpect*/,
         isSyntheticMember = descriptor is SyntheticMemberDescriptor<*>
@@ -45,6 +45,7 @@ class FlatSignature<out T>(
     val typeParameters: Collection<TypeParameterMarker>,
     val hasExtensionReceiver: Boolean,
     val contextReceiverCount: Int,
+    val hasVarargs: Boolean,
 
     val numDefaults: Int,
     val isExpect: Boolean,
@@ -59,12 +60,13 @@ class FlatSignature<out T>(
         valueParameterTypes: List<CangJieTypeMarker?>,
         hasExtensionReceiver: Boolean,
         contextReceiverCount: Int,
+        hasVarargs: Boolean,
 
         numDefaults: Int,
         isExpect: Boolean,
         isSyntheticMember: Boolean,
     ) : this(
-        origin, typeParameters, hasExtensionReceiver, contextReceiverCount, numDefaults, isExpect,
+        origin, typeParameters, hasExtensionReceiver, contextReceiverCount, hasVarargs, numDefaults, isExpect,
         isSyntheticMember, valueParameterTypes.map(::TypeWithConversion)
     )
 
@@ -91,6 +93,7 @@ fun <D : CallableDescriptor> FlatSignature.Companion.createFromCallableDescripto
                 + descriptor.valueParameters.map { it.argumentValueType },
         hasExtensionReceiver = descriptor.extensionReceiverParameter?.type != null,
         contextReceiverCount = descriptor.contextReceiverParameters.size,
+        hasVarargs = descriptor.valueParameters.any { it.varargElementType != null },
 
         numDefaults = 0,
         isExpect = descriptor is MemberDescriptor,
@@ -208,7 +211,7 @@ fun <T> FlatSignature.Companion.createFromReflectionType(
         contextReceiversTypes + listOfNotNull(receiver) + parameters,
         hasExtensionReceiver = receiver != null,
         contextReceiverCount = contextReceiversTypes.size,
-//        hasVarargs = descriptor.valueParameters.any { it.varargElementType != null },
+        hasVarargs = descriptor.valueParameters.any { it.varargElementType != null },
         numDefaults = numDefaults,
         isExpect = descriptor is MemberDescriptor /*&& descriptor.isExpect*/,
         isSyntheticMember = descriptor is SyntheticMemberDescriptor<*>

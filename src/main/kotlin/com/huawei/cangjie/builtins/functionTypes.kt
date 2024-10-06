@@ -285,3 +285,4 @@ fun FunctionDescriptor.toFunctionType(): CangJieType  {
         emptyList(), parameterTypes, parameterNames, this.returnType!!
     )
 }
+

@@ -10,6 +10,8 @@ package com.huawei.cangjie.types.model
 import com.huawei.cangjie.builtins.functions.FunctionTypeKind
 import com.huawei.cangjie.psi.CjProjectionKind
 import com.huawei.cangjie.psi.stubs.impl.CangJieTypeArgumentBean
+import com.huawei.cangjie.resolve.caches.EmptyIntersectionTypeChecker
+import com.huawei.cangjie.resolve.calls.inference.EmptyIntersectionTypeInfo
 import com.huawei.cangjie.types.TypeCheckerState
 import com.huawei.cangjie.types.TypeProjectionImpl
 import com.huawei.cangjie.types.Variance
@@ -158,6 +160,9 @@ interface TypeSystemInferenceExtensionContextDelegate : TypeSystemInferenceExten
 interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBuiltInsContext,
     TypeSystemCommonSuperTypesContext {
     fun CangJieTypeMarker.contains(predicate: (CangJieTypeMarker) -> Boolean): Boolean
+    fun computeEmptyIntersectionTypeKind(types: Collection<CangJieTypeMarker>): EmptyIntersectionTypeInfo? =
+        EmptyIntersectionTypeChecker.computeEmptyIntersectionEmptiness(this, types)
+    fun CangJieTypeMarker.eraseContainingTypeParameters(): CangJieTypeMarker
 
     fun TypeConstructorMarker.isUnitTypeConstructor(): Boolean
     fun CangJieTypeMarker.hasExactAnnotation(): Boolean = false
@@ -229,7 +234,7 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
 //    fun CangJieTypeMarker.hasExactAnnotation(): Boolean
 //    fun CangJieTypeMarker.hasNoInferAnnotation(): Boolean
 
-//    fun TypeConstructorMarker.isFinalClassConstructor(): Boolean
+    fun TypeConstructorMarker.isFinalClassConstructor(): Boolean
 
     fun TypeVariableMarker.freshTypeConstructor(): TypeConstructorMarker
 

@@ -1,19 +1,18 @@
 package com.huawei.cangjie.resolve.calls.components
 
 import com.huawei.cangjie.builtins.UnsignedTypes
+import com.huawei.cangjie.builtins.getReceiverTypeFromFunctionType
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
 import com.huawei.cangjie.psi.CjNameReferenceExpression
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.ConstraintSystemOperation
 import com.huawei.cangjie.resolve.calls.inference.components.*
-import com.huawei.cangjie.resolve.calls.inference.model.ConstraintKind
-import com.huawei.cangjie.resolve.calls.inference.model.DeclaredUpperBoundConstraintPositionImpl
-import com.huawei.cangjie.resolve.calls.inference.model.ExplicitTypeParameterConstraintPositionImpl
-import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableFromCallableDescriptor
+import com.huawei.cangjie.resolve.calls.inference.model.*
 import com.huawei.cangjie.resolve.calls.inference.runTransaction
 import com.huawei.cangjie.resolve.calls.inference.substitute
 import com.huawei.cangjie.resolve.calls.model.*
+import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.huawei.cangjie.resolve.calls.tower.VisibilityError
 import com.huawei.cangjie.resolve.calls.tower.psiCangJieCall
 import com.huawei.cangjie.resolve.calls.util.getReceiverValueWithSmartCast
@@ -21,6 +20,10 @@ import com.huawei.cangjie.resolve.isInsideInterface
 import com.huawei.cangjie.resolve.isStatic
 import com.huawei.cangjie.resolve.scopes.receivers.ClassQualifier
 import com.huawei.cangjie.types.*
+import com.huawei.cangjie.types.model.CangJieTypeMarker
+import com.huawei.cangjie.types.util.contains
+import com.huawei.cangjie.types.util.makeNotNullable
+import com.huawei.cangjie.types.util.makeOptional
 import com.huawei.cangjie.utils.compactIfPossible
 
 
@@ -88,10 +91,10 @@ internal object CheckStaticCall : ResolutionPart() {
 //        是否为static上下文
         val isStaticContext = this.resolvedCall.isStaticContext()
 
-        val kind =  descriptor.getDescriptorKind()
+        val kind = descriptor.getDescriptorKind()
         val memberStatic = descriptor.isStatic()
 //        非静态上下文访问静态成员
-        if (memberStatic && !isStaticContext) {
+        if (memberStatic && (!isStaticContext && resolvedCall.explicitReceiverKind == ExplicitReceiverKind.DISPATCH_RECEIVER)) {
             addDiagnostic(NonStaticContextAccessStaticMemberDiagnostic(kind, descriptor))
         }
 //静态上下文访问非静成员
@@ -145,6 +148,56 @@ internal object CheckVisibility : ResolutionPart() {
             addDiagnostic(VisibilityError(invisibleMember))
 
         }
+    }
+}
+
+
+internal object NoTypeArguments : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+        assert(cangjieCall.typeArguments.isEmpty()) {
+            "Variable call cannot has explicit type arguments: ${cangjieCall.typeArguments}. Call: $cangjieCall"
+        }
+        resolvedCall.typeArgumentMappingByOriginal =
+            TypeArgumentsToParametersMapper.TypeArgumentsMapping.NoExplicitArguments
+    }
+}
+
+
+internal object PostponedVariablesInitializerResolutionPart : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+        val csBuilder = getSystem().getBuilder()
+        for ((argument, parameter) in resolvedCall.argumentToCandidateParameter) {
+            if (!callComponents.statelessCallbacks.isBuilderInferenceCall(argument, parameter)) continue
+            val receiverType = parameter.type.getReceiverTypeFromFunctionType() ?: continue
+//            val dontUseBuilderInferenceIfPossible =
+//                callComponents.languageVersionSettings.supportsFeature(LanguageFeature.UseBuilderInferenceOnlyIfNeeded)
+
+            if (argument is LambdaCangJieCallArgument && !argument.hasBuilderInferenceAnnotation) {
+                argument.hasBuilderInferenceAnnotation = true
+            }
+
+//            if (dontUseBuilderInferenceIfPossible) continue
+
+            for (freshVariable in resolvedCall.freshVariablesSubstitutor.freshVariables) {
+                if (resolvedCall.typeArgumentMappingByOriginal.getTypeArgument(freshVariable.originalTypeParameter) is SimpleTypeArgument)
+                    continue
+
+                if (csBuilder.isPostponedTypeVariable(freshVariable)) continue
+                if (receiverType.contains { it.constructor == freshVariable.originalTypeParameter.typeConstructor }) {
+                    csBuilder.markPostponedVariable(freshVariable)
+                }
+            }
+        }
+    }
+}
+
+internal object MapTypeArguments : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+        resolvedCall.typeArgumentMappingByOriginal =
+            callComponents.typeArgumentsToParametersMapper.mapTypeArguments(cangjieCall, candidateDescriptor.original)
+                .also {
+                    it.diagnostics.forEach(this@process::addDiagnostic)
+                }
     }
 }
 
@@ -212,6 +265,25 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
         return toFreshVariables
     }
 
+    private fun getTypePreservingFlexibilityWrtTypeVariable(
+        type: CangJieType,
+        typeVariable: TypeVariableFromCallableDescriptor
+    ): CangJieType {
+        fun createFlexibleType() =
+            CangJieTypeFactory.flexibleType(
+                type.makeNotNullable().lowerIfFlexible(),
+                type.makeOptional().upperIfFlexible()
+            )
+
+        return when {
+            typeVariable.originalTypeParameter.shouldBeFlexible { it is FlexibleTypeWithEnhancement } ->
+                createFlexibleType().wrapEnhancement(type)
+
+            typeVariable.originalTypeParameter.shouldBeFlexible() -> createFlexibleType()
+            else -> type
+        }
+    }
+
     private fun createKnownParametersFromFreshVariablesSubstitutor(
         freshVariableSubstitutor: FreshVariableNewTypeSubstitutor,
         knownTypeParametersSubstitutor: TypeSubstitutor,
@@ -264,138 +336,42 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
         if (csBuilder.hasContradiction) return
 
         // optimization
-//        if (resolvedCall.typeArgumentMappingByOriginal == NoExplicitArguments && knownTypeParametersResultingSubstitutor == null) {
-//            return
-//        }
+        if (resolvedCall.typeArgumentMappingByOriginal == TypeArgumentsToParametersMapper.TypeArgumentsMapping.NoExplicitArguments && knownTypeParametersResultingSubstitutor == null) {
+            return
+        }
 
-//        val typeParameters = candidateDescriptor.original.typeParameters
-//        for (index in typeParameters.indices) {
-//            val typeParameter = typeParameters[index]
-//            val freshVariable = toFreshVariables.freshVariables[index]
-//
-//            val knownTypeArgument = knownTypeParametersResultingSubstitutor?.substitute(typeParameter.defaultType)
-//            if (knownTypeArgument != null) {
-//                csBuilder.addEqualityConstraint(
-//                    freshVariable.defaultType,
-//                    getTypePreservingFlexibilityWrtTypeVariable(knownTypeArgument.unwrap(), freshVariable),
-//                    KnownTypeParameterConstraintPositionImpl(knownTypeArgument)
-//                )
-//                continue
-//            }
-//
-//            val typeArgument = resolvedCall.typeArgumentMappingByOriginal.getTypeArgument(typeParameter)
-//
-//            if (typeArgument is SimpleTypeArgument) {
-//                csBuilder.addEqualityConstraint(
-//                    freshVariable.defaultType,
-//                    getTypePreservingFlexibilityWrtTypeVariable(typeArgument.type, freshVariable),
-//                    ExplicitTypeParameterConstraintPositionImpl(typeArgument)
-//                )
-//            } else {
-//                assert(typeArgument == TypeArgumentPlaceholder) {
-//                    "Unexpected typeArgument: $typeArgument, ${typeArgument.javaClass.canonicalName}"
-//                }
-//            }
-//        }
+        val typeParameters = candidateDescriptor.original.typeParameters
+        for (index in typeParameters.indices) {
+            val typeParameter = typeParameters[index]
+            val freshVariable = toFreshVariables.freshVariables[index]
+
+            val knownTypeArgument = knownTypeParametersResultingSubstitutor?.substitute(typeParameter.defaultType)
+            if (knownTypeArgument != null) {
+                csBuilder.addEqualityConstraint(
+                    freshVariable.defaultType,
+                    getTypePreservingFlexibilityWrtTypeVariable(knownTypeArgument.unwrap(), freshVariable),
+                    KnownTypeParameterConstraintPositionImpl(knownTypeArgument)
+                )
+                continue
+            }
+
+            val typeArgument = resolvedCall.typeArgumentMappingByOriginal.getTypeArgument(typeParameter)
+
+            if (typeArgument is SimpleTypeArgument) {
+                csBuilder.addEqualityConstraint(
+                    freshVariable.defaultType,
+                    getTypePreservingFlexibilityWrtTypeVariable(typeArgument.type, freshVariable),
+                    ExplicitTypeParameterConstraintPositionImpl(typeArgument)
+                )
+            } else {
+                assert(typeArgument == TypeArgumentPlaceholder) {
+                    "Unexpected typeArgument: $typeArgument, ${typeArgument.javaClass.canonicalName}"
+                }
+            }
+        }
     }
 
-//    fun TypeParameterDescriptor.shouldBeFlexible(flexibleCheck: (CangJieType) -> Boolean = { it.isFlexible() }): Boolean {
-//        return upperBounds.any {
-//            flexibleCheck(it) || ((it.constructor.declarationDescriptor as? TypeParameterDescriptor)?.run { shouldBeFlexible() } ?: false)
-//        }
-//    }
-//
-//    private fun getTypePreservingFlexibilityWrtTypeVariable(
-//        type: CangJieType,
-//        typeVariable: TypeVariableFromCallableDescriptor
-//    ): CangJieType {
-//        fun createFlexibleType() =
-//            CangJieTypeFactory.flexibleType(type.makeNotNullable().lowerIfFlexible(), type.makeOptional().upperIfFlexible())
-//
-//        return when {
-//            typeVariable.originalTypeParameter.shouldBeFlexible { it is FlexibleTypeWithEnhancement } ->
-//                createFlexibleType().wrapEnhancement(type)
-//            typeVariable.originalTypeParameter.shouldBeFlexible() -> createFlexibleType()
-//            else -> type
-//        }
-//    }
-//
-//    private fun createKnownParametersFromFreshVariablesSubstitutor(
-//        freshVariableSubstitutor: FreshVariableNewTypeSubstitutor,
-//        knownTypeParametersSubstitutor: TypeSubstitutor,
-//    ): NewTypeSubstitutor {
-//        if (knownTypeParametersSubstitutor.isEmpty)
-//            return EmptySubstitutor
-//
-//        val knownTypeParameterByTypeVariable = mutableMapOf<TypeConstructor, UnwrappedType>().let { map ->
-//            for (typeVariable in freshVariableSubstitutor.freshVariables) {
-//                val typeParameterType = typeVariable.originalTypeParameter.defaultType
-//                val substitutedKnownTypeParameter = knownTypeParametersSubstitutor.substitute(typeParameterType)
-//
-//                if (substitutedKnownTypeParameter !== typeParameterType)
-//                    map[typeVariable.defaultType.constructor] = substitutedKnownTypeParameter
-//            }
-//            map
-//        }
-//
-//        return knownTypeParametersSubstitutor.composeWith(NewTypeSubstitutorByConstructorMap(knownTypeParameterByTypeVariable))
-//    }
-//
-//    fun createToFreshVariableSubstitutorAndAddInitialConstraints(
-//        candidateDescriptor: CallableDescriptor,
-//        cangjieCall: CangJieCall,
-//        csBuilder: ConstraintSystemOperation
-//    ): FreshVariableNewTypeSubstitutor {
-//        val typeParameters = candidateDescriptor.typeParameters
-//
-//        val freshTypeVariables = typeParameters.map { TypeVariableFromCallableDescriptor(it) }
-//
-//        val toFreshVariables = FreshVariableNewTypeSubstitutor(freshTypeVariables)
-//
-//        for (freshVariable in freshTypeVariables) {
-//            csBuilder.registerVariable(freshVariable)
-//        }
-//
-//        fun TypeVariableFromCallableDescriptor.addSubtypeConstraint(
-//            upperBound: CangJieType,
-//            position: DeclaredUpperBoundConstraintPositionImpl
-//        ) {
-//            csBuilder.addSubtypeConstraint(defaultType, toFreshVariables.safeSubstitute(upperBound.unwrap()), position)
-//        }
-//
-//        for (index in typeParameters.indices) {
-//            val typeParameter = typeParameters[index]
-//            val freshVariable = freshTypeVariables[index]
-//            val position = DeclaredUpperBoundConstraintPositionImpl(typeParameter, cangjieCall)
-//
-//            for (upperBound in typeParameter.upperBounds) {
-//                freshVariable.addSubtypeConstraint(upperBound, position)
-//            }
-//        }
-//
-//        if (candidateDescriptor is TypeAliasConstructorDescriptor) {
-//            val typeAliasDescriptor = candidateDescriptor.typeAliasDescriptor
-//            val originalTypes = typeAliasDescriptor.underlyingType.arguments.map { it.type }
-//            val originalTypeParameters = candidateDescriptor.underlyingConstructorDescriptor.typeParameters
-//            for (index in typeParameters.indices) {
-//                val typeParameter = typeParameters[index]
-//                val freshVariable = freshTypeVariables[index]
-//                val typeMapping = originalTypes.mapIndexedNotNull { i: Int, cangjieType: CangJieType ->
-//                    if (cangjieType == typeParameter.defaultType) i else null
-//                }
-//                for (originalIndex in typeMapping) {
-//                    // there can be null in case we already captured type parameter in outer class (in case of inner classes)
-//                    // see test innerClassTypeAliasConstructor.cj
-//                    val originalTypeParameter = originalTypeParameters.getOrNull(originalIndex) ?: continue
-//                    val position = DeclaredUpperBoundConstraintPositionImpl(originalTypeParameter, cangjieCall)
-//                    for (upperBound in originalTypeParameter.upperBounds) {
-//                        freshVariable.addSubtypeConstraint(upperBound, position)
-//                    }
-//                }
-//            }
-//        }
-//        return toFreshVariables
-//    }
+
 }
 
 internal object NoArguments : ResolutionPart() {
@@ -411,33 +387,7 @@ internal object NoArguments : ResolutionPart() {
     }
 }
 
-//internal object PostponedVariablesInitializerResolutionPart : ResolutionPart() {
-//    override fun ResolutionCandidate.process(workIndex: Int) {
-//        val csBuilder = getSystem().getBuilder()
-//        for ((argument, parameter) in resolvedCall.argumentToCandidateParameter) {
-//            if (!callComponents.statelessCallbacks.isBuilderInferenceCall(argument, parameter)) continue
-//            val receiverType = parameter.type.getReceiverTypeFromFunctionType() ?: continue
-//            val dontUseBuilderInferenceIfPossible =
-//                callComponents.languageVersionSettings.supportsFeature(LanguageFeature.UseBuilderInferenceOnlyIfNeeded)
-//
-//            if (argument is LambdaCangJieCallArgument && !argument.hasBuilderInferenceAnnotation) {
-//                argument.hasBuilderInferenceAnnotation = true
-//            }
-//
-//            if (dontUseBuilderInferenceIfPossible) continue
-//
-//            for (freshVariable in resolvedCall.freshVariablesSubstitutor.freshVariables) {
-//                if (resolvedCall.typeArgumentMappingByOriginal.getTypeArgument(freshVariable.originalTypeParameter) is SimpleTypeArgument)
-//                    continue
-//
-//                if (csBuilder.isPostponedTypeVariable(freshVariable)) continue
-//                if (receiverType.contains { it.constructor == freshVariable.originalTypeParameter.typeConstructor }) {
-//                    csBuilder.markPostponedVariable(freshVariable)
-//                }
-//            }
-//        }
-//    }
-//}
+
 internal object MapArguments : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {
 
@@ -616,7 +566,8 @@ internal object ErrorDescriptorResolutionPart : ResolutionPart() {
         assert(ErrorUtils.isError(candidateDescriptor)) {
             "Should be error descriptor: $candidateDescriptor"
         }
-//        resolvedCall.typeArgumentMappingByOriginal = TypeArgumentsToParametersMapper.TypeArgumentsMapping.NoExplicitArguments
+        resolvedCall.typeArgumentMappingByOriginal =
+            TypeArgumentsToParametersMapper.TypeArgumentsMapping.NoExplicitArguments
         resolvedCall.argumentMappingByOriginal = emptyMap()
         resolvedCall.freshVariablesSubstitutor = FreshVariableNewTypeSubstitutor.Empty
         resolvedCall.knownParametersSubstitutor = EmptySubstitutor
@@ -655,18 +606,72 @@ internal object CheckExternalArgument : ResolutionPart() {
         resolveCangJieArgument(argument, resolvedCall.argumentToCandidateParameter[argument], ReceiverInfo.notReceiver)
     }
 }
+
 enum class DescriptorKind(val kind: String) {
     PROPERTY("property"),
     VARIABLE("variable"),
     FUNCTION("method"),
     UNKNOWN("unknown")
 }
+
 // 提取的方法
-fun DeclarationDescriptor.getDescriptorKind( ): DescriptorKind {
+fun DeclarationDescriptor.getDescriptorKind(): DescriptorKind {
     return when (this) {
         is PropertyDescriptor -> DescriptorKind.PROPERTY
         is VariableDescriptor -> DescriptorKind.VARIABLE
         is FunctionDescriptor -> DescriptorKind.FUNCTION
         else -> DescriptorKind.UNKNOWN
+    }
+}
+
+internal object CheckIncompatibleTypeVariableUpperBounds : ResolutionPart() {
+    /*
+     * Check if the candidate was already discriminated by `CompatibilityOfTypeVariableAsIntersectionTypePart` resolution part
+     * If it's true we shouldn't mark the candidate with warning, but should mark with error, to repeat the existing proper behaviour
+     */
+    private fun ResolutionCandidate.wasPreviouslyDiscriminated(upperTypes: List<CangJieTypeMarker>): Boolean {
+        @Suppress("UNCHECKED_CAST")
+        return callComponents.statelessCallbacks.isOldIntersectionIsEmpty(upperTypes as List<CangJieType>)
+    }
+
+    override fun ResolutionCandidate.process(workIndex: Int) = with(getSystem().asConstraintSystemCompleterContext()) {
+        val constraintSystem = getSystem()
+        for (variableWithConstraints in constraintSystem.getBuilder().currentStorage().notFixedTypeVariables.values) {
+            val upperTypes = variableWithConstraints.constraints.extractUpperTypesToCheckIntersectionEmptiness()
+
+            when {
+                // TODO: consider reporting errors on bounded type variables by incompatible types but with other lower constraints
+                upperTypes.size <= 1 || variableWithConstraints.constraints.any { it.kind.isLower() } ->
+                    continue
+
+                wasPreviouslyDiscriminated(upperTypes) -> {
+                    markCandidateForCompatibilityResolve(needToReportWarning = false)
+                    continue
+                }
+
+                (variableWithConstraints.typeVariable as? TypeVariableFromCallableDescriptor)?.originalTypeParameter?.let { parameter ->
+                    resolvedCall.typeArgumentMappingByOriginal.getTypeArgument(parameter)
+                } is SimpleTypeArgument -> continue
+
+                else -> {
+                    val emptyIntersectionTypeInfo =
+                        constraintSystem.getEmptyIntersectionTypeKind(upperTypes) ?: continue
+//                    val isInferredEmptyIntersectionForbidden = callComponents.languageVersionSettings.supportsFeature(
+//                        LanguageFeature.ForbidInferringTypeVariablesIntoEmptyIntersection
+//                    )
+                    val errorFactory = ::InferredEmptyIntersectionError
+//                        if (isInferredEmptyIntersectionForbidden) ::InferredEmptyIntersectionError else ::InferredEmptyIntersectionWarning
+
+                    addError(
+                        errorFactory(
+                            upperTypes,
+                            emptyIntersectionTypeInfo.casingTypes.toList(),
+                            variableWithConstraints.typeVariable,
+                            emptyIntersectionTypeInfo.kind
+                        )
+                    )
+                }
+            }
+        }
     }
 }

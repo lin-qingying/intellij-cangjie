@@ -4,6 +4,7 @@ import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.calls.components.ReturnArgumentsInfo
+import com.huawei.cangjie.resolve.calls.components.TypeArgumentsToParametersMapper
 import com.huawei.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.components.extractInputOutputTypesFromCallableReferenceExpectedType
@@ -74,6 +75,7 @@ abstract class ResolvedCallAtom : ResolvedAtom() {
     abstract var extensionReceiverArgument: SimpleCangJieCallArgument?
     abstract val extensionReceiverArgumentCandidates: List<SimpleCangJieCallArgument>?
     abstract var contextReceiversArguments: List<SimpleCangJieCallArgument>
+    abstract val typeArgumentMappingByOriginal: TypeArgumentsToParametersMapper.TypeArgumentsMapping
 
     abstract val argumentMappingByOriginal: Map<ValueParameterDescriptor, ResolvedCallArgument>
     abstract val freshVariablesSubstitutor: FreshVariableNewTypeSubstitutor

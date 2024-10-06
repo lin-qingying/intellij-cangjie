@@ -55,7 +55,7 @@ interface ModelInfosCache {
     fun allModules(): List<ModuleInfo>
     fun getModuleInfosForModule(module: Module): Collection<ModuleInfo>
 
-//    fun getLibraryInfosForLibrary(library: Library): Collection<CjpmLibraryInfo>
+    fun getLibraryInfosForLibrary(library: Library): Collection<LibraryInfo>
 //    fun getSdkInfoForSdk(sdk: Sdk): SdkInfo?
 
 }
@@ -67,7 +67,7 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
     private val modificationTracker = SimpleModificationTracker()
 
     //    private val libraries: CachedValue<Collection<CjpmLibraryInfo>>
-    private val libraries: CachedValue<Collection<LibraryInfo>>
+    private var libraries: CachedValue<Collection<LibraryInfo>>
 
     init {
         val cachedValuesManager = CachedValuesManager.getManager(project)
@@ -82,6 +82,7 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
 
         libraries = cachedValuesManager.createCachedValue {
             val libraryCache = LibraryInfoCache.getInstance(project)
+
             val collectedLibraries = mutableSetOf<LibraryInfo>()
             for (module in ModuleManager.getInstance(project).modules) {
                 ProgressManager.checkCanceled()
@@ -100,7 +101,34 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
                 modificationTracker
             )
         }
+        Disposer.register(this, moduleCache)
 
+    }
+    private fun resetLibraries() {
+
+        val cachedValuesManager = CachedValuesManager.getManager(project)
+
+        libraries = cachedValuesManager.createCachedValue {
+            val libraryCache = LibraryInfoCache.getInstance(project)
+
+            val collectedLibraries = mutableSetOf<LibraryInfo>()
+            for (module in ModuleManager.getInstance(project).modules) {
+                ProgressManager.checkCanceled()
+                for (entry in ModuleRootManager.getInstance(module).orderEntries) {
+                    if (entry !is LibraryOrderEntry) continue
+                    val library = entry.library ?: continue
+                    collectedLibraries += libraryCache[library]
+                }
+            }
+
+            collectedLibraries.checkValidity { "libraries calculation" }
+
+            CachedValueProvider.Result.create(
+                collectedLibraries,
+                libraryCache.removedLibraryInfoTracker(),
+                modificationTracker
+            )
+        }
     }
 
     inner class ModuleCache : AbstractCache<Module, List<ModuleInfo>>(
@@ -220,11 +248,22 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
         abstract fun modelChanged(event: VersionedStorageChange)
     }
 
-    override fun allModules(): List<ModuleInfo> = (modules.value + libraries.value).also {
-        it.checkValidity { "allModules" }
+    override fun allModules(): List<ModuleInfo> {
+        val list = /*try{*/
+            (modules.value + libraries.value).also {
+                it.checkValidity { "allModules" }
+            }
+//        }catch (e:CangJieExceptionWithAttachments){
+//            resetLibraries()
+//            return allModules()
+
+//        }
+
+        return list
     }
 
     override fun getModuleInfosForModule(module: Module): Collection<ModuleInfo> = moduleCache[module]
+    override fun getLibraryInfosForLibrary(library: Library): Collection<LibraryInfo> = LibraryInfoCache.getInstance(project)[library]
 
     private fun incModificationCount() {
         modificationTracker.incModificationCount()
@@ -416,6 +455,10 @@ class LibraryInfoCache(project: Project) : Disposable {
 
     override fun dispose() {
 
+    }
+
+    fun clear() {
+        libraryInfoCache.clear()
     }
 
     fun values(): Collection<List<LibraryInfo>> = libraryInfoCache.values()

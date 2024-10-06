@@ -48,6 +48,33 @@ import com.intellij.psi.tree.IElementType
 
 
 object OperatorConventions {
+
+    val DOUBLE: Name = Name.identifier("toDouble")
+
+    val FLOAT: Name = Name.identifier("toFloat")
+
+    val LONG: Name = Name.identifier("toLong")
+
+    val INT: Name = Name.identifier("toInt")
+
+    val CHAR: Name = Name.identifier("toChar")
+
+    val SHORT: Name = Name.identifier("toShort")
+
+    val BYTE: Name = Name.identifier("toByte")
+
+
+    val NUMBER_CONVERSIONS: ImmutableSet<Name> =
+        ImmutableSet.of<Name>(
+//           OperatorConventions.DOUBLE,
+//           OperatorConventions.FLOAT,
+            LONG,
+//           OperatorConventions.INT,
+//           OperatorConventions.SHORT,
+//           OperatorConventions.BYTE,
+//           OperatorConventions.CHAR
+        )
+
     fun isConventionName(name: Name): Boolean {
         return CONVENTION_NAMES.contains(name)
     }
@@ -131,7 +158,7 @@ object OperatorConventions {
         if (name != null) return name
         name = COMPARISON_OPERATIONS_NAMES[token]
         if (name != null) return name
- name = BOOLEAN_OPERATIONS_NAMES[token]
+        name = BOOLEAN_OPERATIONS_NAMES[token]
         if (name != null) return name
 //        if (OperatorConventions.EQUALS_OPERATIONS.contains(token)) return EQUALS
 //        if (OperatorConventions.IN_OPERATIONS.contains(token)) return CONTAINS

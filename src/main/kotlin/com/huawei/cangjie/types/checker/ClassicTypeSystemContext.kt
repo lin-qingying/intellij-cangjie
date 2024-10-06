@@ -8,6 +8,7 @@ import com.huawei.cangjie.descriptors.TypeAliasDescriptor
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.descriptors.impl.AbstractTypeParameterDescriptor
+import com.huawei.cangjie.descriptors.isFinalClass
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.SpecialNames
 import com.huawei.cangjie.resolve.DescriptorUtils
@@ -349,11 +350,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return DescriptorUtils.isInterface(declarationDescriptor)
     }
 
-//    override fun TypeConstructorMarker.isFinalClassConstructor(): Boolean {
-//        require(this is TypeConstructor, this::errorMessage)
-//        val classDescriptor = declarationDescriptor as? ClassDescriptor ?: return false
-//        return classDescriptor.isFinalClass
-//    }
+
 
 //    override fun TypeConstructorMarker.isCommonFinalClassConstructor(): Boolean {
 //        require(this is TypeConstructor, this::errorMessage)
@@ -427,7 +424,11 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         require(this is CangJieType, this::errorMessage)
         return containsInternal(this, predicate)
     }
-
+    override fun TypeConstructorMarker.isFinalClassConstructor(): Boolean {
+        require(this is TypeConstructor, this::errorMessage)
+        val classDescriptor = declarationDescriptor as? ClassDescriptor ?: return false
+        return classDescriptor.isFinalClass
+    }
     //
     override fun SimpleTypeMarker.typeDepth(): Int {
         require(this is SimpleType, this::errorMessage)
@@ -801,21 +802,21 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return this is NewCapturedTypeConstructor
     }
 
-//    override fun CangJieTypeMarker.eraseContainingTypeParameters(): CangJieTypeMarker {
-//        val eraser = TypeParameterUpperBoundEraser(
-//            ErasureProjectionComputer(),
-//            TypeParameterErasureOptions(leaveNonTypeParameterTypes = true, intersectUpperBounds = true)
-//        )
-//        val typeParameters = this.extractTypeParameters()
-//            .map { it as TypeParameterDescriptor }
-//            .associateWith {
-//                TypeProjectionImpl(
-//                    Variance.OUT_VARIANCE,
-//                    eraser.getErasedUpperBound(it, ErasureTypeAttributes(TypeUsage.COMMON))
-//                )
-//            }
-//        return TypeConstructorSubstitution.createByParametersMap(typeParameters).buildSubstitutor().safeSubstitute(this)
-//    }
+    override fun CangJieTypeMarker.eraseContainingTypeParameters(): CangJieTypeMarker {
+        val eraser = TypeParameterUpperBoundEraser(
+            ErasureProjectionComputer(),
+            TypeParameterErasureOptions(leaveNonTypeParameterTypes = true, intersectUpperBounds = true)
+        )
+        val typeParameters = this.extractTypeParameters()
+            .map { it as TypeParameterDescriptor }
+            .associateWith {
+                TypeProjectionImpl(
+                    Variance.INVARIANT,
+                    eraser.getErasedUpperBound(it, ErasureTypeAttributes(TypeUsage.COMMON))
+                )
+            }
+        return TypeConstructorSubstitution.createByParametersMap(typeParameters).buildSubstitutor().safeSubstitute(this)
+    }
 
     override fun TypeConstructorMarker.isTypeParameterTypeConstructor(): Boolean {
         return this is ClassifierBasedTypeConstructor && this.declarationDescriptor is AbstractTypeParameterDescriptor

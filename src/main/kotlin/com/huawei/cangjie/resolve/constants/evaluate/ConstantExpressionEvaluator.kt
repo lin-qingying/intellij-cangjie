@@ -1,27 +1,40 @@
 package com.huawei.cangjie.resolve.constants.evaluate
 
+
 import com.huawei.cangjie.CjNodeTypes
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.builtins.StandardNames
 import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.BindingTrace
-import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.descriptors.ModuleDescriptor
+import com.huawei.cangjie.descriptors.ValueParameterDescriptor
+import com.huawei.cangjie.diagnostics.Errors
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.parsing.*
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.psiUtil.getStrictParentOfType
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.BindingContextUtils
 import com.huawei.cangjie.resolve.StatementFilter
+import com.huawei.cangjie.resolve.calls.inference.model.ResolvedValueArgument
+import com.huawei.cangjie.resolve.calls.model.ResolvedCall
+import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
+import com.huawei.cangjie.resolve.calls.util.getResolvedCall
 import com.huawei.cangjie.resolve.constants.*
 import com.huawei.cangjie.types.BasicType
 import com.huawei.cangjie.types.CangJieType
-
-
 import com.huawei.cangjie.types.isError
 import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.isGenericArrayOfTypeParameter
+import com.huawei.cangjie.types.util.isSubtypeOf
+import com.huawei.cangjie.utils.OperatorNameConventions
+import com.huawei.cangjie.utils.exceptions.OperatorConventions
 import com.intellij.openapi.project.Project
+import com.intellij.psi.util.PsiTreeUtil
+import java.math.BigInteger
 
 
 class ConstantExpressionEvaluator(
@@ -317,6 +330,222 @@ private class ConstantExpressionEvaluatorVisitor(
 
     }
 
+    private class OperationArgument(val value: Any, val ctcType: CompileTimeType, val expression: CjExpression)
+
+    private fun getCompileTimeType(c: CangJieType): CompileTimeType? =
+        when (TypeUtils.makeNotNullable(c)) {
+            builtIns.int32Type -> CompileTimeType.Int32
+            builtIns.int8Type -> CompileTimeType.Int8
+            builtIns.int16Type -> CompileTimeType.Int16
+            builtIns.int64Type -> CompileTimeType.Int64
+            builtIns.float64Type -> CompileTimeType.Flout64
+            builtIns.float32Type -> CompileTimeType.Flout32
+            builtIns.float16Type -> CompileTimeType.Flout16
+
+            builtIns.runeType -> CompileTimeType.Rune
+            builtIns.boolType -> CompileTimeType.Bool
+            builtIns.stringType -> CompileTimeType.String
+            builtIns.anyType -> CompileTimeType.Any
+            else -> null
+        }
+
+    private fun createOperationArgument(
+        expression: CjExpression,
+        parameterType: CangJieType,
+        compileTimeType: CompileTimeType,
+    ): OperationArgument? {
+        val compileTimeConstant =
+            constantExpressionEvaluator.evaluateExpression(expression, trace, parameterType) ?: return null
+        if (compileTimeConstant is TypedCompileTimeConstant && !compileTimeConstant.type.isSubtypeOf(parameterType)) return null
+        val constantValue = compileTimeConstant.toConstantValue(parameterType)
+        val evaluationResult =
+            (if (compileTimeType == CompileTimeType.Any) constantValue.boxedValue() else constantValue.value)
+                ?: return null
+        return OperationArgument(evaluationResult, compileTimeType, expression)
+    }
+
+    private fun createOperationArgumentForReceiver(
+        resolvedCall: ResolvedCall<*>,
+        expression: CjExpression
+    ): OperationArgument? {
+        val receiverExpressionType = getReceiverExpressionType(resolvedCall) ?: return null
+
+        val receiverCompileTimeType = getCompileTimeType(receiverExpressionType) ?: return null
+
+        return createOperationArgument(expression, receiverExpressionType, receiverCompileTimeType)
+    }
+
+    private fun usesVariableAsConstant(expression: CjExpression) =
+        ConstantExpressionEvaluator.getConstant(expression, trace.bindingContext)?.usesVariableAsConstant ?: false
+
+    private fun usesNonConstValAsConstant(expression: CjExpression) =
+        ConstantExpressionEvaluator.getConstant(expression, trace.bindingContext)?.usesNonConstValAsConstant ?: false
+
+    private fun canBeUsedInAnnotation(expression: CjExpression) =
+        ConstantExpressionEvaluator.getConstant(expression, trace.bindingContext)?.canBeUsedInAnnotations ?: false
+
+    private fun isPureConstant(expression: CjExpression) =
+        ConstantExpressionEvaluator.getConstant(expression, trace.bindingContext)?.isPure ?: false
+
+    private fun evaluateUnaryAndCheck(receiver: OperationArgument, name: String, callExpression: CjExpression): Any? {
+        return evaluateUnaryAndCheck(name, receiver.ctcType, receiver.value) {
+            trace.report(Errors.INTEGER_OVERFLOW.on(callExpression.getStrictParentOfType() ?: callExpression))
+        }
+    }
+
+    private fun isDivisionByZero(name: String, parameter: Any?): Boolean {
+        return name in DIVISION_OPERATION_NAMES && isZero(parameter)
+    }
+
+    private fun evaluateBinaryAndCheck(
+        receiver: OperationArgument,
+        parameter: OperationArgument,
+        name: String,
+        callExpression: CjExpression
+    ): Any? {
+        return evaluateBinaryAndCheck(name, receiver.ctcType, receiver.value, parameter.ctcType, parameter.value) {
+            trace.report(Errors.INTEGER_OVERFLOW.on(callExpression.getStrictParentOfType() ?: callExpression))
+        }
+    }
+
+    private fun createOperationArgumentForFirstParameter(
+        argument: ResolvedValueArgument,
+        parameter: ValueParameterDescriptor
+    ): OperationArgument? {
+        val argumentCompileTimeType = getCompileTimeType(parameter.type) ?: return null
+
+        val arguments = argument.arguments
+        if (arguments.size != 1) return null
+
+        val argumentExpression = arguments.first().getArgumentExpression() ?: return null
+
+        return createOperationArgument(argumentExpression, parameter.type, argumentCompileTimeType)
+    }
+
+    private fun evaluateCall(
+        callExpression: CjExpression,
+        receiverExpression: CjExpression,
+        expectedType: CangJieType?
+    ): CompileTimeConstant<*>? {
+        val resolvedCall = callExpression.getResolvedCall(trace.bindingContext) ?: return null
+//        if (!CangJieBuiltIns.isUnderCangJiePackage(resolvedCall.resultingDescriptor)) return null
+
+        val resultingDescriptorName = resolvedCall.resultingDescriptor.name
+
+        val argumentForReceiver = createOperationArgumentForReceiver(resolvedCall, receiverExpression) ?: return null
+        if (isStandaloneOnlyConstant(argumentForReceiver.expression)) {
+            return null
+        }
+
+        val argumentsEntrySet = resolvedCall.valueArguments.entries
+        if (argumentsEntrySet.isEmpty()) {
+            val result = evaluateUnaryAndCheck(argumentForReceiver, resultingDescriptorName.asString(), callExpression)
+                ?: return null
+
+            val isArgumentPure = isPureConstant(argumentForReceiver.expression)
+            val canBeUsedInAnnotation = canBeUsedInAnnotation(argumentForReceiver.expression)
+            val usesVariableAsConstant = usesVariableAsConstant(argumentForReceiver.expression)
+            val usesNonConstValAsConstant = usesNonConstValAsConstant(argumentForReceiver.expression)
+            val isNumberConversionMethod = resultingDescriptorName in OperatorConventions.NUMBER_CONVERSIONS
+//            val isCharCode =
+//                argumentForReceiver.ctcType == CompileTimeType.Rune && resultingDescriptorName == StandardNames.CHAR_CODE
+            return createConstant(
+                result,
+                expectedType,
+                CompileTimeConstant.Parameters(
+                    canBeUsedInAnnotation,
+                    !isNumberConversionMethod && /*!isCharCode &&*/ isArgumentPure,
+                    isUnsignedNumberLiteral = false,
+                    isUnsignedLongNumberLiteral = false,
+                    usesVariableAsConstant,
+                    usesNonConstValAsConstant,
+                    isConvertableConstVal = false
+                )
+            )
+        } else if (argumentsEntrySet.size == 1) {
+            val (parameter, argument) = argumentsEntrySet.first()
+            val argumentForParameter = createOperationArgumentForFirstParameter(argument, parameter) ?: return null
+            if (isStandaloneOnlyConstant(argumentForParameter.expression)) {
+                return null
+            }
+
+            if (isDivisionByZero(resultingDescriptorName.asString(), argumentForParameter.value)) {
+                val parentExpression: CjExpression =
+                    PsiTreeUtil.getParentOfType(receiverExpression, CjExpression::class.java)!!
+                trace.report(Errors.DIVISION_BY_ZERO.on(parentExpression))
+
+                if ((isIntegerType(argumentForReceiver.value) && isIntegerType(argumentForParameter.value)) /*||
+                    !languageVersionSettings.supportsFeature(LanguageFeature.DivisionByZeroInConstantExpressions)*/
+                ) {
+                    return ErrorValue.create("Division by zero").wrap()
+                }
+            }
+
+            val result = evaluateBinaryAndCheck(
+                argumentForReceiver,
+                argumentForParameter,
+                resultingDescriptorName.asString(),
+                callExpression
+            ) ?: return null
+
+            val areArgumentsPure =
+                isPureConstant(argumentForReceiver.expression) && isPureConstant(argumentForParameter.expression)
+            val canBeUsedInAnnotation =
+                canBeUsedInAnnotation(argumentForReceiver.expression) && canBeUsedInAnnotation(argumentForParameter.expression)
+            val usesVariableAsConstant =
+                usesVariableAsConstant(argumentForReceiver.expression) || usesVariableAsConstant(argumentForParameter.expression)
+            val usesNonConstValAsConstant =
+                usesNonConstValAsConstant(argumentForReceiver.expression) || usesNonConstValAsConstant(
+                    argumentForParameter.expression
+                )
+            val parameters = CompileTimeConstant.Parameters(
+                canBeUsedInAnnotation,
+                areArgumentsPure,
+                isUnsignedNumberLiteral = false,
+                isUnsignedLongNumberLiteral = false,
+                usesVariableAsConstant,
+                usesNonConstValAsConstant,
+                isConvertableConstVal = false
+            )
+            return when (resultingDescriptorName) {
+                OperatorNameConventions.COMPARE_LT,
+                OperatorNameConventions.COMPARE_GT,
+                OperatorNameConventions.COMPARE_GTEQ,
+                OperatorNameConventions.COMPARE_LTEQ
+                    -> createCompileTimeConstantForCompareTo(
+                    result,
+                    callExpression
+                )?.wrap(parameters)
+
+                OperatorNameConventions.EQUALS -> createCompileTimeConstantForEquals(result, callExpression)?.wrap(
+                    parameters
+                )
+
+                else -> {
+                    createConstant(
+                        result,
+                        expectedType,
+                        parameters
+                    )
+                }
+            }
+        }
+
+        return null
+    }
+
+    override fun visitUnaryExpression(
+        expression: CjUnaryExpression,
+        expectedType: CangJieType?
+    ): CompileTimeConstant<*>? {
+        val leftExpression = expression.baseExpression ?: return null
+        return evaluateCall(
+            expression.operationReference,
+            leftExpression,
+            expectedType
+        )
+    }
+
     private fun createCompileTimeConstant(
         value: Any?,
         parameters: CompileTimeConstant.Parameters,
@@ -418,11 +647,12 @@ private class ConstantExpressionEvaluatorVisitor(
             }
 
             when (expression.isDoubleQuote) {
-                true -> if(expression.stringContent.endsWith("\"")){
-                        trace.report(Errors.COMPILER_AFFECTED_SYNTAX_ERROR.on(expression.lastChild.prevSibling))
+                true -> if (expression.stringContent.endsWith("\"")) {
+                    trace.report(Errors.COMPILER_AFFECTED_SYNTAX_ERROR.on(expression.lastChild.prevSibling))
                 }
-                false -> if(expression.stringContent.endsWith("'")){
-                        trace.report(Errors.COMPILER_AFFECTED_SYNTAX_ERROR.on(expression.lastChild.prevSibling))
+
+                false -> if (expression.stringContent.endsWith("'")) {
+                    trace.report(Errors.COMPILER_AFFECTED_SYNTAX_ERROR.on(expression.lastChild.prevSibling))
                 }
             }
 
@@ -484,4 +714,117 @@ fun CompileTimeConstant<*>.isStandaloneOnlyConstant(): Boolean {
         is TypedCompileTimeConstant -> this.constantValue.isStandaloneOnlyConstant()
         else -> return false
     }
+}
+
+enum class CompileTimeType {
+    Int8,
+    Int16,
+    Int32,
+    Int64,
+    Flout64,
+    Flout32,
+    Flout16,
+    Rune,
+    Bool,
+    String,
+    Any
+}
+
+private fun getReceiverExpressionType(resolvedCall: ResolvedCall<*>): CangJieType? {
+    return when (resolvedCall.explicitReceiverKind) {
+        ExplicitReceiverKind.DISPATCH_RECEIVER -> resolvedCall.dispatchReceiver!!.type
+        ExplicitReceiverKind.EXTENSION_RECEIVER -> resolvedCall.extensionReceiver!!.type
+        ExplicitReceiverKind.NO_EXPLICIT_RECEIVER -> null
+        ExplicitReceiverKind.BOTH_RECEIVERS -> null
+        else -> null
+    }
+}
+
+private fun evaluateUnaryAndCheck(
+    name: String,
+    type: CompileTimeType,
+    value: Any,
+    reportIntegerOverflow: () -> Unit
+): Any? =
+    evalUnaryOp(name, type, value).also { result ->
+        if (isIntegerType(value) && (name == "*operator_minus" || name == "*operator_unaryMinus") && value == result && !isZero(value)) {
+            reportIntegerOverflow()
+        }
+    }
+
+fun isIntegerType(value: Any?) = value is Byte || value is Short || value is Int || value is Long
+
+private fun isZero(value: Any?): Boolean {
+    return when {
+        isIntegerType(value) -> (value as Number).toLong() == 0L
+        value is Float || value is Double -> (value as Number).toDouble() == 0.0
+        else -> false
+    }
+}
+
+private fun evaluateBinaryAndCheck(
+    name: String,
+    receiverType: CompileTimeType,
+    receiverValue: Any,
+    parameterType: CompileTimeType,
+    parameterValue: Any,
+    reportIntegerOverflow: () -> Unit,
+): Any? {
+    val actualResult = try {
+        evalBinaryOp(name, receiverType, receiverValue, parameterType, parameterValue)
+    } catch (e: Exception) {
+        null
+    }
+
+    fun toBigInteger(value: Any?) = BigInteger.valueOf((value as Number).toLong())
+
+    if (actualResult != null && isIntegerType(receiverValue) && isIntegerType(parameterValue)) {
+        val checkedResult =
+            checkBinaryOp(name, receiverType, toBigInteger(receiverValue), parameterType, toBigInteger(parameterValue))
+        if (checkedResult != null && toBigInteger(actualResult) != checkedResult) {
+            reportIntegerOverflow()
+        }
+    }
+
+    return actualResult
+}
+
+private val DIVISION_OPERATION_NAMES =
+    listOf(OperatorNameConventions.DIV, OperatorNameConventions.REM)
+        .map(Name::asString)
+        .toSet()
+
+private fun createCompileTimeConstantForEquals(result: Any?, operationReference: CjExpression): ConstantValue<*>? {
+    if (result is Boolean) {
+        assert(operationReference is CjSimpleNameExpression) { "This method should be called only for equals operations" }
+        val value: Boolean =
+            when (val operationToken = (operationReference as CjSimpleNameExpression).getReferencedNameElementType()) {
+                CjTokens.EQEQ -> result
+                CjTokens.EXCLEQ -> !result
+                CjTokens.IDENTIFIER -> {
+                    assert(operationReference.getReferencedNameAsName() == OperatorNameConventions.EQUALS) { "This method should be called only for equals operations" }
+                    result
+                }
+
+                else -> throw IllegalStateException("Unknown equals operation token: $operationToken ${operationReference.text}")
+            }
+        return BoolValue(value)
+    }
+    return null
+}
+
+private fun createCompileTimeConstantForCompareTo(result: Any?, operationReference: CjExpression): ConstantValue<*>? {
+    if (result is Int) {
+        assert(operationReference is CjSimpleNameExpression) { "This method should be called only for compareTo operations" }
+        return when (val operationToken =
+            (operationReference as CjSimpleNameExpression).getReferencedNameElementType()) {
+            CjTokens.LT -> BoolValue(result < 0)
+            CjTokens.LTEQ -> BoolValue(result <= 0)
+            CjTokens.GT -> BoolValue(result > 0)
+            CjTokens.GTEQ -> BoolValue(result >= 0)
+
+            else -> throw IllegalStateException("Unknown compareTo operation token: $operationToken")
+        }
+    }
+    return null
 }

@@ -41,18 +41,20 @@ abstract class FineGrainedEntityCache<Key : Any, Value : Any>(
     }
 
     private fun registerLowMemoryWatcher() {
-        LowMemoryWatcher.register({ runReadAction {
-            val nowMs = System.currentTimeMillis()
-            val isInvalidationThrottled = invalidationThrottlingMs > 0
-                    && nowMs < lastInvalidatedTimestampMs.get() + invalidationThrottlingMs
-            if (isInvalidationThrottled) {
-                logger.debug("invalidation throttled")
-            } else {
-                logger.debug("invalidated on low memory")
-                invalidate()
-                lastInvalidatedTimestampMs.getAndSet(nowMs)
+        LowMemoryWatcher.register({
+            runReadAction {
+                val nowMs = System.currentTimeMillis()
+                val isInvalidationThrottled = invalidationThrottlingMs > 0
+                        && nowMs < lastInvalidatedTimestampMs.get() + invalidationThrottlingMs
+                if (isInvalidationThrottled) {
+                    logger.debug("invalidation throttled")
+                } else {
+                    logger.debug("invalidated on low memory")
+                    invalidate()
+                    lastInvalidatedTimestampMs.getAndSet(nowMs)
+                }
             }
-        } }, this)
+        }, this)
     }
 
     protected fun checkIsInitialized() {
@@ -145,7 +147,10 @@ abstract class FineGrainedEntityCache<Key : Any, Value : Any>(
         }
     }
 
-    protected open fun doInvalidateKeysAndGetOutdatedValues(keys: Collection<Key>, cache: MutableMap<Key, Value>): Collection<Value> {
+    protected open fun doInvalidateKeysAndGetOutdatedValues(
+        keys: Collection<Key>,
+        cache: MutableMap<Key, Value>
+    ): Collection<Value> {
         return buildList {
             for (key in keys) {
                 cache.remove(key)?.let(::add)
@@ -286,6 +291,12 @@ abstract class SynchronizedFineGrainedEntityCache<Key : Any, Value : Any>(
         }
     }
 
+    fun clear() {
+        useCache {
+            it.clear()
+        }
+    }
+
     final override fun <T> useCache(block: (MutableMap<Key, Value>) -> T): T {
         checkIsInitialized()
         return synchronized(lock) {
@@ -332,7 +343,11 @@ abstract class SynchronizedFineGrainedEntityCache<Key : Any, Value : Any>(
     open fun postProcessNewValue(key: Key, value: Value) {}
 }
 
-abstract class SynchronizedFineGrainedValueCache<Value : Any>(project: Project, doSelfInitialization: Boolean = true, cleanOnLowMemory: Boolean = false) :
+abstract class SynchronizedFineGrainedValueCache<Value : Any>(
+    project: Project,
+    doSelfInitialization: Boolean = true,
+    cleanOnLowMemory: Boolean = false
+) :
     SynchronizedFineGrainedEntityCache<Unit, Value>(project, cleanOnLowMemory = cleanOnLowMemory) {
     @Deprecated("Do not use directly", level = DeprecationLevel.ERROR)
     override val cache: MutableMap<Unit, Value> = HashMap(1)

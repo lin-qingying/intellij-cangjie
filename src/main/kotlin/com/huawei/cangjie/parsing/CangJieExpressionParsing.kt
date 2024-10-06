@@ -1094,29 +1094,33 @@ open class CangJieExpressionParsing(
         if (expect(LPAR, "Expecting '(' to open a loop range", EXPRESSION_FIRST)) {
             myBuilder.disableNewlines()
             if (!at(RPAR)) {
-                val parameter = mark()
-                if (!at(IN_KEYWORD)) {
-                    cangJieParsing.parseModifierList(IN_KEYWORD_R_PAR_COLON_SET)
-                }
 
-                if (at(LPAR)) {
-                    val destructuringDeclaration = mark()
-                    cangJieParsing.parseMultiDeclarationName(
-                        IN_KEYWORD_L_BRACE_SET,
-                        IN_KEYWORD_L_BRACE_RECOVERY_SET
-                    )
-                    destructuringDeclaration.done(DESTRUCTURING_DECLARATION)
-                } else {
-                    expect(
-                        IDENTIFIER_RECOVERY_SET,
-                        "Expecting a variable name",
-                        COLON_IN_KEYWORD_SET
-                    )
-                    if (at(COLON)) {
-                        errorAndAdvance("the pattern in for-in expression must be irrefutable")
-                    }
-                }
-                parameter.done(VALUE_PARAMETER)
+                CasePattern().parseExpression()
+//                val parameter = mark()
+//                if (!at(IN_KEYWORD)) {
+//                    cangJieParsing.parseModifierList(IN_KEYWORD_R_PAR_COLON_SET)
+//                }
+
+//                if (at(LPAR)) {
+//                    val destructuringDeclaration = mark()
+//                    cangJieParsing.parseMultiDeclarationName(
+//                        IN_KEYWORD_L_BRACE_SET,
+//                        IN_KEYWORD_L_BRACE_RECOVERY_SET
+//                    )
+//                    destructuringDeclaration.done(DESTRUCTURING_DECLARATION)
+//                } else {
+//                    expect(
+//                        IDENTIFIER_RECOVERY_SET,
+//                        "Expecting a variable name",
+//                        COLON_IN_KEYWORD_SET
+//                    )
+//                    if (at(COLON)) {
+//                        errorAndAdvance("the pattern in for-in expression must be irrefutable")
+//                    }
+//                }
+//                parameter.done(VALUE_PARAMETER)
+
+
                 if (expect(IN_KEYWORD, "Expecting 'in'", L_PAR_L_BRACE_R_PAR_SET)) {
                     val range = mark()
                     parseExpression()

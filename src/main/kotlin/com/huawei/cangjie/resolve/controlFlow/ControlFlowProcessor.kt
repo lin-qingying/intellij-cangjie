@@ -1,9 +1,6 @@
 package com.huawei.cangjie.resolve.controlFlow
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
-import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.eval.AccessTarget
-import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.eval.InstructionWithValue
-import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.eval.MagicKind
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.contracts.description.EventOccurrencesRange
 import com.huawei.cangjie.contracts.description.canBeRevisited
@@ -25,6 +22,9 @@ import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.huawei.cangjie.resolve.calls.util.getResolvedCall
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import com.huawei.cangjie.resolve.controlFlow.pseudocode.*
+import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.eval.AccessTarget
+import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.eval.InstructionWithValue
+import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.eval.MagicKind
 import com.huawei.cangjie.resolve.scopes.receivers.*
 import com.huawei.cangjie.types.expressions.MatchChecker
 import com.huawei.cangjie.utils.exceptions.OperatorConventions
@@ -109,7 +109,8 @@ class ControlFlowProcessor(
 
             private fun getSubjectExpression(condition: CjCasePattern): CjExpression? =
                 condition.getStrictParentOfType<CjMatchExpression>()?.subjectExpression
-//
+
+            //
 //            override fun visitMatchConditionInRange(condition: CjMatchConditionInRange) {
 //                if (!generateCall(condition.operationReference)) {
 //                    val rangeExpression = condition.rangeExpression
@@ -1201,6 +1202,7 @@ class ControlFlowProcessor(
 
 
         }
+
         override fun visitProperty(property: CjProperty) {
             builder.declareVariable(property)
 
@@ -1394,13 +1396,13 @@ class ControlFlowProcessor(
 
         private fun generateInitializersForClassOrObject(classOrObject: CjDeclarationContainer) {
             for (declaration in classOrObject.declarations) {
-                if (declaration is CjProperty || declaration is CjAnonymousInitializer) {
+                if (declaration is CjProperty || declaration is CjVariable || declaration is CjAnonymousInitializer) {
                     generateInstructions(declaration)
                 }
             }
         }
 
-//        private fun processEntryOrObject(entryOrObject: CjTypeStatement) {
+        //        private fun processEntryOrObject(entryOrObject: CjTypeStatement) {
 //            val classDescriptor = trace[BindingContext.DECLARATION_TO_DESCRIPTOR, entryOrObject]
 //            if (classDescriptor is ClassDescriptor) {
 //                builder.declareEntryOrObject(entryOrObject)
@@ -1411,6 +1413,17 @@ class ControlFlowProcessor(
 //                generateInstructions(entryOrObject)
 //            }
 //        }
+        override fun visitTypeStatement(typeStatement: CjTypeStatement) {
+            if (typeStatement.hasPrimaryConstructor()) {
+                processParameters(typeStatement.primaryConstructorParameters)
+
+                // delegation specifiers of primary constructor, anonymous class and property initializers
+                generateHeaderDelegationSpecifiers(typeStatement)
+                generateInitializersForClassOrObject(typeStatement)
+            }
+
+            generateDeclarationForLocalClassOrObjectIfNeeded(typeStatement)
+        }
 
         override fun visitClass(cclass: CjClass) {
             if (cclass.hasPrimaryConstructor()) {

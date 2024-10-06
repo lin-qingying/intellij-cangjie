@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.calls.inference.model
 
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
+import com.huawei.cangjie.resolve.calls.inference.EmptyIntersectionTypeKind
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.tower.CandidateApplicability
 import com.huawei.cangjie.types.CangJieType
@@ -15,6 +16,30 @@ abstract class FixVariableConstraintPosition<T>(val variable: TypeVariableMarker
     ConstraintPosition() {
     override fun toString(): String = "Fix variable $variable"
 }
+sealed interface InferredEmptyIntersection {
+    val incompatibleTypes: List<CangJieTypeMarker>
+    val causingTypes: List<CangJieTypeMarker>
+    val typeVariable: TypeVariableMarker
+    val kind: EmptyIntersectionTypeKind
+}
+class KnownTypeParameterConstraintPositionImpl(typeArgument: CangJieType) : KnownTypeParameterConstraintPosition<CangJieType>(typeArgument)
+abstract class KnownTypeParameterConstraintPosition<T : CangJieTypeMarker>(val typeArgument: T) : ConstraintPosition() {
+    override fun toString(): String = "TypeArgument $typeArgument"
+}
+
+class InferredEmptyIntersectionWarning(
+    override val incompatibleTypes: List<CangJieTypeMarker>,
+    override val causingTypes: List<CangJieTypeMarker>,
+    override val typeVariable: TypeVariableMarker,
+    override val kind: EmptyIntersectionTypeKind,
+) : ConstraintSystemError(CandidateApplicability.RESOLVED), InferredEmptyIntersection
+
+class InferredEmptyIntersectionError(
+    override val incompatibleTypes: List<CangJieTypeMarker>,
+    override val causingTypes: List<CangJieTypeMarker>,
+    override val typeVariable: TypeVariableMarker,
+    override val kind: EmptyIntersectionTypeKind,
+) : ConstraintSystemError(CandidateApplicability.INAPPLICABLE), InferredEmptyIntersection
 
 class ConstrainingTypeIsError(
     val typeVariable: TypeVariableMarker,

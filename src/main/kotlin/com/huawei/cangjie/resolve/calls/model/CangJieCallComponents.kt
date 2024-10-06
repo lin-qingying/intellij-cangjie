@@ -7,6 +7,7 @@ import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.incremental.components.LookupTracker
 import com.huawei.cangjie.resolve.calls.components.ArgumentsToParametersMapper
 import com.huawei.cangjie.resolve.calls.components.CangJieResolutionStatelessCallbacks
+import com.huawei.cangjie.resolve.calls.components.TypeArgumentsToParametersMapper
 import com.huawei.cangjie.resolve.calls.inference.components.ConstraintInjector
 
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
@@ -18,7 +19,7 @@ import com.huawei.cangjie.types.checker.NewCangJieTypeChecker
 class CangJieCallComponents(
     val statelessCallbacks: CangJieResolutionStatelessCallbacks,
     val argumentsToParametersMapper: ArgumentsToParametersMapper,
-//    val typeArgumentsToParametersMapper: TypeArgumentsToParametersMapper,
+    val typeArgumentsToParametersMapper: TypeArgumentsToParametersMapper,
     val constraintInjector: ConstraintInjector,
     val reflectionTypes: ReflectionTypes,
     val builtIns: CangJieBuiltIns,

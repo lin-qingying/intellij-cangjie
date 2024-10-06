@@ -756,9 +756,9 @@ class DiagnosticReporterByTrackingStrategy(
 //            is DelegatedPropertyConstraintPosition<*> -> {
 //                // DELEGATE_SPECIAL_FUNCTION_NONE_APPLICABLE, reported later
 //            }
-//            is KnownTypeParameterConstraintPosition<*> -> {
-//                // UPPER_BOUND_VIOLATED, reported later?
-//            }
+            is KnownTypeParameterConstraintPosition<*> -> {
+                // UPPER_BOUND_VIOLATED, reported later?
+            }
             is CallableReferenceConstraintPosition<*>,
             is IncorporationConstraintPosition,
             is InjectedAnotherStubTypeConstraintPosition<*>,
@@ -994,34 +994,34 @@ class DiagnosticReporterByTrackingStrategy(
                 }
             }
 //
-//            is InferredEmptyIntersectionError, is InferredEmptyIntersectionWarning -> {
-//                val typeVariable = (error as InferredEmptyIntersection).typeVariable
-//                psiCangJieCall.psiCall.calleeExpression?.let { expression ->
-//                    val typeVariableText = (typeVariable as? TypeVariableFromCallableDescriptor)?.originalTypeParameter?.name?.asString()
-//                        ?: typeVariable.toString()
-//
-//                    @Suppress("UNCHECKED_CAST")
-//                    val incompatibleTypes = error.incompatibleTypes as List<CangJieType>
-//
-//                    @Suppress("UNCHECKED_CAST")
-//                    val causingTypes = error.causingTypes as List<CangJieType>
-//                    val causingTypesText = if (incompatibleTypes == causingTypes) "" else ": ${causingTypes.joinToString()}"
-//                    val diagnostic = if (error.kind.isDefinitelyEmpty) {
-//                        INFERRED_TYPE_VARIABLE_INTO_EMPTY_INTERSECTION.on(
-//                            context.languageVersionSettings, expression, typeVariableText,
-//                            incompatibleTypes, error.kind.description, causingTypesText
-//                        )
-//                    } else {
-//                        INFERRED_TYPE_VARIABLE_INTO_POSSIBLE_EMPTY_INTERSECTION.on(
-//                            expression, typeVariableText,
-//                            incompatibleTypes, error.kind.description, causingTypesText
-//                        )
-//                    }
-//
-//                    trace.reportDiagnosticOnce(diagnostic)
-//                }
-//            }
-//            // ConstrainingTypeIsError means that some type isError, so it's reported somewhere else
+            is InferredEmptyIntersectionError, is InferredEmptyIntersectionWarning -> {
+                val typeVariable = (error as InferredEmptyIntersection).typeVariable
+                psiCangJieCall.psiCall.calleeExpression?.let { expression ->
+                    val typeVariableText = (typeVariable as? TypeVariableFromCallableDescriptor)?.originalTypeParameter?.name?.asString()
+                        ?: typeVariable.toString()
+
+                    @Suppress("UNCHECKED_CAST")
+                    val incompatibleTypes = error.incompatibleTypes as List<CangJieType>
+
+                    @Suppress("UNCHECKED_CAST")
+                    val causingTypes = error.causingTypes as List<CangJieType>
+                    val causingTypesText = if (incompatibleTypes == causingTypes) "" else ": ${causingTypes.joinToString()}"
+                    val diagnostic = if (error.kind.isDefinitelyEmpty) {
+                        INFERRED_TYPE_VARIABLE_INTO_EMPTY_INTERSECTION.on(
+                            context.languageVersionSettings, expression, typeVariableText,
+                            incompatibleTypes, error.kind.description, causingTypesText
+                        )
+                    } else {
+                        INFERRED_TYPE_VARIABLE_INTO_POSSIBLE_EMPTY_INTERSECTION.on(
+                            expression, typeVariableText,
+                            incompatibleTypes, error.kind.description, causingTypesText
+                        )
+                    }
+
+                    trace.reportDiagnosticOnce(diagnostic)
+                }
+            }
+            // ConstrainingTypeIsError means that some type isError, so it's reported somewhere else
             is ConstrainingTypeIsError -> {}
 //            // LowerPriorityToPreserveCompatibility is not expected to report something
             is LowerPriorityToPreserveCompatibility -> {}
