@@ -11,7 +11,8 @@ import com.huawei.cangjie.utils.Printer
 import com.intellij.util.containers.addIfNotNull
 
 
-open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, private val fqName: FqName) : MemberScopeImpl() {
+open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, private val fqName: FqName) :
+    MemberScopeImpl() {
 
     protected fun getPackage(name: Name): PackageViewDescriptor? {
         if (name.isSpecial) {
@@ -23,10 +24,23 @@ open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, priv
         }
         return packageViewDescriptor
     }
-    override fun getClassifierNames(): Set<Name> = emptySet()
 
-    override fun getContributedDescriptors(kindFilter: DescriptorKindFilter,
-                                           nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> {
+    val builtinsPackageScope = moduleDescriptor.builtIns.getBuiltInsPackageScope()
+    override fun getClassifierNames(): Set<Name> {
+      return   builtinsPackageScope.getClassifierNames() ?: emptySet()
+    }
+    override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
+     return  builtinsPackageScope.getContributedClassifier(name, location)
+    }
+    override fun definitelyDoesNotContainName(name: Name): Boolean {
+        return getClassifierNames().contains(name)
+
+    }
+
+    override fun getContributedDescriptors(
+        kindFilter: DescriptorKindFilter,
+        nameFilter: (Name) -> Boolean
+    ): Collection<DeclarationDescriptor> {
         if (!kindFilter.acceptsKinds(DescriptorKindFilter.PACKAGES_MASK)) return listOf()
         if (fqName.isRoot && kindFilter.excludes.contains(DescriptorKindExclude.TopLevelPackages)) return listOf()
 
@@ -40,8 +54,6 @@ open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, priv
         }
         return result
     }
-
-
 
 
     override fun getContributedPackages(name: Name, location: LookupLocation): Collection<PackageFragmentDescriptor> {

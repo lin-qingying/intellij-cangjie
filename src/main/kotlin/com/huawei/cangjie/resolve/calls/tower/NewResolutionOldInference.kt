@@ -32,6 +32,7 @@ import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
 import com.huawei.cangjie.resolve.scopes.HierarchicalScope
 import com.huawei.cangjie.resolve.scopes.SyntheticScopes
 import com.huawei.cangjie.resolve.scopes.canBeResolvedWithoutDeprecation
+import com.huawei.cangjie.resolve.scopes.receivers.DetailedReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.huawei.cangjie.resolve.scopes.receivers.SuperCallReceiverValue

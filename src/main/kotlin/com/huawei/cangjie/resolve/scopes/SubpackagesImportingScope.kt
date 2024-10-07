@@ -18,11 +18,21 @@ class SubpackagesImportingScope(
 
     override fun printStructure(p: Printer) = printScopeStructure(p)
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> = super.getContributedVariables(name, location)
-    override fun getContributedFunctions(name: Name, location: LookupLocation) = super.getContributedFunctions(name, location)
+    override fun getContributedVariables(
+        name: Name,
+        location: LookupLocation
+    ): Collection<@JvmWildcard VariableDescriptor> = super.getContributedVariables(name, location)
 
-    //TODO: kept old behavior, but it seems very strange (super call seems more applicable)
-    override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
+    override fun getContributedFunctions(name: Name, location: LookupLocation) =
+        super.getContributedFunctions(name, location)
+
+    override fun definitelyDoesNotContainName(name: Name): Boolean {
+        return super<SubpackagesScope>.definitelyDoesNotContainName(name)
+    }
+
+    override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
+        return super.getContributedClassifier(name, location)
+    }
 
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,

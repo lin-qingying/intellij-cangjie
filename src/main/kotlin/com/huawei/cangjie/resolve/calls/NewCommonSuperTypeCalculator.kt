@@ -10,7 +10,9 @@ import com.huawei.cangjie.types.error.MultipleSupertypeTypeInferenceFailure
 
 import com.huawei.cangjie.types.model.*
 
-//检索最小公共父类
+/**
+ * 检索最小公共父类
+ */
 object NewCommonSuperTypeCalculator {
 //    fun commonSuperType(types: List<CangJieTypeMarker>): CangJieTypeMarker{
 //        return commonSuperType(types)

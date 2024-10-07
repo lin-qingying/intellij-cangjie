@@ -419,7 +419,7 @@ class TowerResolver {
             }
 
             fun processImportingScope(scope: ImportingScope): Collection<C>? {
-                TowerData.TowerLevel(ImportingScopeBasedTowerLevel(implicitScopeTower, scope))
+               TowerData.TowerLevel(ImportingScopeBasedTowerLevel(implicitScopeTower, scope))
                     .process(scope.mayFitForName(name))?.let { return it }
                 return null
             }

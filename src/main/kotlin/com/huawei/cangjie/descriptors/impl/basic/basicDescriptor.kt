@@ -6,10 +6,7 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.ctypeFqName
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.DescriptorVisibilities.PUBLIC
 import com.huawei.cangjie.descriptors.annotations.Annotations
-import com.huawei.cangjie.descriptors.impl.AbstractClassDescriptor
-import com.huawei.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
-import com.huawei.cangjie.descriptors.impl.TypeParameterDescriptorImpl
-import com.huawei.cangjie.descriptors.impl.ValueParameterDescriptorImpl
+import com.huawei.cangjie.descriptors.impl.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.Name
@@ -48,7 +45,7 @@ class BuiltInTypeDescriptor(
     private val parameters: List<TypeParameterDescriptor> = emptyList(),
 //    如果后期有其他内置类型有泛型，可以在这里添加回调函数，目前只有CPointer有泛型，所以不做更改
 ) : BasicTypeDescriptor(basicMemberScope, storageManager, name) {
-    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> =emptySet()
+    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> = emptySet()
 
 
     override val typeConstructor = BuiltInTypeConstructor(this, storageManager, parameters.toMutableList())
@@ -129,7 +126,7 @@ open class BasicTypeDescriptor(
 ) : AbstractClassDescriptor(
     storageManager, name
 ), ClassDescriptorWithResolutionScopes {
-    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> =emptySet()
+    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> = emptySet()
 
     private inner class OperatorFunctionDescriptor(
         functionName: Name,
@@ -640,7 +637,7 @@ open class BasicTypeDescriptor(
 
 //    val extendClassDescriptor = mutableSetOf<LazyExtendClassDescriptor>()
 
-    private var constructors: Set<ClassConstructorDescriptor> = mutableSetOf()
+    private var constructors: MutableSet<ClassConstructorDescriptor>? = null
 
     val basicTypeMemberScope = BasicTypeMemberScope()
 
@@ -669,15 +666,15 @@ open class BasicTypeDescriptor(
         }
     }
 
-    fun initialize(
-
-        constructors: Set<ClassConstructorDescriptor>,
-
-        ) {
-
-        this.constructors = constructors
-
-    }
+//    fun initialize(
+//
+//        constructors: Set<ClassConstructorDescriptor>,
+//
+//        ) {
+//
+//        this.constructors = constructors
+//
+//    }
 
     override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner): MemberScope {
 
@@ -716,7 +713,10 @@ open class BasicTypeDescriptor(
     }
 
     override fun getConstructors(): Set<ClassConstructorDescriptor> {
-        return constructors
+        if (constructors == null) {
+            fillConstructors()
+        }
+        return constructors!!
 
     }
 
@@ -764,4 +764,177 @@ open class BasicTypeDescriptor(
         return name.asString()
     }
 
+    private fun fillConstructors() {
+        constructors = mutableSetOf()
+
+
+        fun createValueParameterByConstructor(vararg typeName: Name) {
+            constructors!!.add(BasicClassConstructorDescriptor().apply {
+                val values = typeName.mapIndexed { index, value ->
+                    ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
+                        this@apply, null, index, Annotations.EMPTY, Name.identifier("e$index"),
+                        false, basicMemberScope.getContributedClassifier(
+                            value, NoLookupLocation.FROM_BUILTINS
+                        )!!.getDefaultType(), false, SourceElement.NO_SOURCE, null
+                    )
+                }
+                initialize(values)
+                returnType = this@BasicTypeDescriptor.getDefaultType()
+            })
+
+
+        }
+
+        when (name.asString()) {
+            "Rune" -> {
+                createValueParameterByConstructor(StandardNames.INT64)
+                createValueParameterByConstructor(StandardNames.INT32)
+                createValueParameterByConstructor(StandardNames.INT16)
+                createValueParameterByConstructor(StandardNames.INT8)
+
+                createValueParameterByConstructor(StandardNames.UINT64)
+                createValueParameterByConstructor(StandardNames.UINT32)
+                createValueParameterByConstructor(StandardNames.UINT16)
+                createValueParameterByConstructor(StandardNames.UINT8)
+            }
+
+            "Int64" -> {
+                createValueParameterByConstructor(StandardNames.FLOAT16)
+                createValueParameterByConstructor(StandardNames.FLOAT32)
+                createValueParameterByConstructor(StandardNames.FLOAT64)
+
+                createValueParameterByConstructor(StandardNames.INT64)
+                createValueParameterByConstructor(StandardNames.INT32)
+                createValueParameterByConstructor(StandardNames.INT16)
+                createValueParameterByConstructor(StandardNames.INT8)
+
+                createValueParameterByConstructor(StandardNames.UINT64)
+                createValueParameterByConstructor(StandardNames.UINT32)
+                createValueParameterByConstructor(StandardNames.UINT16)
+                createValueParameterByConstructor(StandardNames.UINT8)
+
+            }
+
+            "Int32" -> {
+                createValueParameterByConstructor(StandardNames.FLOAT16)
+                createValueParameterByConstructor(StandardNames.FLOAT32)
+                createValueParameterByConstructor(StandardNames.FLOAT64)
+
+                createValueParameterByConstructor(StandardNames.INT64)
+                createValueParameterByConstructor(StandardNames.INT32)
+                createValueParameterByConstructor(StandardNames.INT16)
+                createValueParameterByConstructor(StandardNames.INT8)
+
+                createValueParameterByConstructor(StandardNames.UINT64)
+                createValueParameterByConstructor(StandardNames.UINT32)
+                createValueParameterByConstructor(StandardNames.UINT16)
+                createValueParameterByConstructor(StandardNames.UINT8)
+            }
+
+            "Int8" -> {
+                createValueParameterByConstructor(StandardNames.FLOAT16)
+                createValueParameterByConstructor(StandardNames.FLOAT32)
+                createValueParameterByConstructor(StandardNames.FLOAT64)
+
+                createValueParameterByConstructor(StandardNames.INT64)
+                createValueParameterByConstructor(StandardNames.INT32)
+                createValueParameterByConstructor(StandardNames.INT16)
+                createValueParameterByConstructor(StandardNames.INT8)
+
+                createValueParameterByConstructor(StandardNames.UINT64)
+                createValueParameterByConstructor(StandardNames.UINT32)
+                createValueParameterByConstructor(StandardNames.UINT16)
+                createValueParameterByConstructor(StandardNames.UINT8)
+            }
+
+            "Int16" -> {
+                createValueParameterByConstructor(StandardNames.FLOAT16)
+                createValueParameterByConstructor(StandardNames.FLOAT32)
+                createValueParameterByConstructor(StandardNames.FLOAT64)
+
+                createValueParameterByConstructor(StandardNames.INT64)
+                createValueParameterByConstructor(StandardNames.INT32)
+                createValueParameterByConstructor(StandardNames.INT16)
+                createValueParameterByConstructor(StandardNames.INT8)
+
+                createValueParameterByConstructor(StandardNames.UINT64)
+                createValueParameterByConstructor(StandardNames.UINT32)
+                createValueParameterByConstructor(StandardNames.UINT16)
+                createValueParameterByConstructor(StandardNames.UINT8)
+            }
+
+
+            "Float16" -> {
+                createValueParameterByConstructor(StandardNames.FLOAT16)
+                createValueParameterByConstructor(StandardNames.FLOAT32)
+                createValueParameterByConstructor(StandardNames.FLOAT64)
+
+
+                createValueParameterByConstructor(StandardNames.INT64)
+                createValueParameterByConstructor(StandardNames.INT32)
+                createValueParameterByConstructor(StandardNames.INT16)
+                createValueParameterByConstructor(StandardNames.INT8)
+
+                createValueParameterByConstructor(StandardNames.UINT64)
+                createValueParameterByConstructor(StandardNames.UINT32)
+                createValueParameterByConstructor(StandardNames.UINT16)
+                createValueParameterByConstructor(StandardNames.UINT8)
+            }
+
+            "Float32" -> {
+                createValueParameterByConstructor(StandardNames.FLOAT16)
+                createValueParameterByConstructor(StandardNames.FLOAT32)
+                createValueParameterByConstructor(StandardNames.FLOAT64)
+
+                createValueParameterByConstructor(StandardNames.INT64)
+                createValueParameterByConstructor(StandardNames.INT32)
+                createValueParameterByConstructor(StandardNames.INT16)
+                createValueParameterByConstructor(StandardNames.INT8)
+
+                createValueParameterByConstructor(StandardNames.UINT64)
+                createValueParameterByConstructor(StandardNames.UINT32)
+                createValueParameterByConstructor(StandardNames.UINT16)
+                createValueParameterByConstructor(StandardNames.UINT8)
+
+            }
+
+            "Float64" -> {
+
+                createValueParameterByConstructor(StandardNames.FLOAT16)
+                createValueParameterByConstructor(StandardNames.FLOAT32)
+                createValueParameterByConstructor(StandardNames.FLOAT64)
+
+
+                createValueParameterByConstructor(StandardNames.INT64)
+                createValueParameterByConstructor(StandardNames.INT32)
+                createValueParameterByConstructor(StandardNames.INT16)
+                createValueParameterByConstructor(StandardNames.INT8)
+
+                createValueParameterByConstructor(StandardNames.UINT64)
+                createValueParameterByConstructor(StandardNames.UINT32)
+                createValueParameterByConstructor(StandardNames.UINT16)
+                createValueParameterByConstructor(StandardNames.UINT8)
+            }
+
+            "Bool" -> {
+
+            }
+        }
+    }
+
+    inner class BasicClassConstructorDescriptor : ClassConstructorDescriptorImpl(
+        this@BasicTypeDescriptor,
+        null,
+        Annotations.EMPTY,
+        false,
+        CallableMemberDescriptor.Kind.DECLARATION,
+        SourceElement.NO_SOURCE
+    ) {
+//        init {
+//
+//            super.initialize(unsubstitutedValueParameters)
+//        }
+    }
 }
+
+

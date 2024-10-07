@@ -22,7 +22,9 @@ abstract class PlatformDependentAnalyzerServices {
             ArrayList<ImportPath>().apply {
 //emptyList<String>()
                 listOf(
+
                     "std.core.*",
+//"<built-ins module>"
 //                    "untitled3.A.*"
                 ).forEach { add(ImportPath.fromString(it)) }
 
