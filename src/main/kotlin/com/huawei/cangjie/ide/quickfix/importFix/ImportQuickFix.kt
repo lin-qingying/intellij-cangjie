@@ -166,7 +166,7 @@
 //        // are created by [com.huawei.cangjie.idea.codeInsight.CangJieFirUnresolvedReferenceQuickFixProvider]
 //        val unresolvedReferenceFactory = diagnosticFixFactory(CjFirDiagnostic.UnresolvedReference::class) { getFixes(it.psi) }
 //
-//        context(CjAnalysisSession)
+//        context(CangJieAnalysisSession)
 //        fun getFixes(diagnosticPsi: PsiElement): List<ImportQuickFix> {
 //            val position = diagnosticPsi.containingFile.findElementAt(diagnosticPsi.startOffset)
 //            val positionContext = position?.let { CangJiePositionContextDetector.detect(it) }
@@ -229,7 +229,7 @@
 //        }
 //
 //
-//        context(CjAnalysisSession)
+//        context(CangJieAnalysisSession)
 //        private fun renderSymbol(symbol: CjDeclarationSymbol): String = prettyPrint {
 //            val fqName = symbol.getFqName()
 //            if (symbol is CjNamedClassOrObjectSymbol) {
@@ -248,7 +248,7 @@
 //            }
 //        }
 //
-//        context(CjAnalysisSession)
+//        context(CangJieAnalysisSession)
 //        private fun createImportFix(
 //            position: CjElement,
 //            importCandidateSymbols: List<CjDeclarationSymbol>,
@@ -299,7 +299,7 @@
 //            return ImportQuickFix(position, text, sortedImportVariants)
 //        }
 //
-//        context(CjAnalysisSession)
+//        context(CangJieAnalysisSession)
 //        private fun CjDeclarationSymbol.doNotImportOnTheFly(doNotImportCallablesOnFly: Boolean): Boolean = when (this) {
 //            // don't import nested class on the fly because it will probably add qualification and confuse the user
 //            is CjNamedClassOrObjectSymbol -> isNested()
@@ -307,10 +307,10 @@
 //            else -> false
 //        }
 //
-//        context(CjAnalysisSession)
+//        context(CangJieAnalysisSession)
 //        private fun CjNamedClassOrObjectSymbol.isNested(): Boolean = getContainingSymbol() is CjNamedClassOrObjectSymbol
 //
-//        context(CjAnalysisSession)
+//        context(CangJieAnalysisSession)
 //        private fun CjDeclarationSymbol.getImportKind(): ImportFixHelper.ImportKind? = when {
 //            this is CjPropertySymbol && isExtension -> ImportFixHelper.ImportKind.EXTENSION_PROPERTY
 //            this is CjPropertySymbol -> ImportFixHelper.ImportKind.PROPERTY
@@ -327,7 +327,7 @@
 //            else -> null
 //        }
 //
-//        context(CjAnalysisSession)
+//        context(CangJieAnalysisSession)
 //        private fun CjDeclarationSymbol.getImportName(): String = buildString {
 //            if (this@getImportName !is CjNamedSymbol) error("Unexpected anonymous declaration")
 //
@@ -340,11 +340,11 @@
 //            append(name.asString())
 //        }
 //
-//        context(CjAnalysisSession)
+//        context(CangJieAnalysisSession)
 //        private fun CjDeclarationSymbol.getFqName(): FqName =
 //            getFqNameIfPackageOrNonLocal() ?: error("Unexpected null for fully-qualified name of importable symbol")
 //
-//        context(CjAnalysisSession)
+//        context(CangJieAnalysisSession)
 //        private fun createPriorityForImportableSymbol(
 //            prioritizer: ImportPrioritizer,
 //            expressionImportWeigher: ExpressionImportWeigher,

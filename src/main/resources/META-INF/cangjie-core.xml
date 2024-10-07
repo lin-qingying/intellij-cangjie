@@ -274,6 +274,20 @@
 
         <projectService serviceInterface="com.huawei.cangjie.references.CangJieReferenceProviderContributor"
                         serviceImplementation="com.huawei.cangjie.references.CangJieReferenceContributor"/>
+        <projectService
+                serviceInterface="com.huawei.cangjie.analyzer.lifetime.CjLifetimeTokenProvider"
+                serviceImplementation="com.huawei.cangjie.analyzer.lifetime.CjReadActionConfinementLifetimeTokenProvider"/>
+        <projectService
+                serviceInterface="com.huawei.cangjie.analyzer.ProjectStructureProvider"
+                serviceImplementation="com.huawei.cangjie.analyzer.ProjectStructureProviderIdeImpl"/>
+
+        <projectService
+                serviceInterface="com.huawei.cangjie.analyzer.CjAnalysisFacade"
+                serviceImplementation="com.huawei.cangjie.analyzer.IdeCjAnalysisFacade"/>
+
+        <projectService
+                serviceInterface="com.huawei.cangjie.analyzer.session.CjAnalysisSessionProvider"
+                serviceImplementation="com.huawei.cangjie.analyzer.session.CjAnalysisSessionProviderImpl"/>
 
         <!--        <projectService-->
         <!--                serviceInterface="com.huawei.cangjie.analyzer.lifetime.CjLifetimeTokenProvider"-->

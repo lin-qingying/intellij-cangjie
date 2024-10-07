@@ -797,6 +797,63 @@ open class BasicTypeDescriptor(
                 createValueParameterByConstructor(StandardNames.UINT16)
                 createValueParameterByConstructor(StandardNames.UINT8)
             }
+            "UInt64" -> {
+                createValueParameterByConstructor(StandardNames.FLOAT16)
+                createValueParameterByConstructor(StandardNames.FLOAT32)
+                createValueParameterByConstructor(StandardNames.FLOAT64)
+
+                createValueParameterByConstructor(StandardNames.INT64)
+                createValueParameterByConstructor(StandardNames.INT32)
+                createValueParameterByConstructor(StandardNames.INT16)
+                createValueParameterByConstructor(StandardNames.INT8)
+
+                createValueParameterByConstructor(StandardNames.UINT64)
+                createValueParameterByConstructor(StandardNames.UINT32)
+                createValueParameterByConstructor(StandardNames.UINT16)
+                createValueParameterByConstructor(StandardNames.UINT8)
+
+
+                createValueParameterByConstructor(StandardNames.UINT_NATIVE)
+                createValueParameterByConstructor(StandardNames.INT_NATIVE)
+            }
+
+            "UInt32" -> {
+                createValueParameterByConstructor(StandardNames.FLOAT16)
+                createValueParameterByConstructor(StandardNames.FLOAT32)
+                createValueParameterByConstructor(StandardNames.FLOAT64)
+
+                createValueParameterByConstructor(StandardNames.INT64)
+                createValueParameterByConstructor(StandardNames.INT32)
+                createValueParameterByConstructor(StandardNames.INT16)
+                createValueParameterByConstructor(StandardNames.INT8)
+
+                createValueParameterByConstructor(StandardNames.UINT64)
+                createValueParameterByConstructor(StandardNames.UINT32)
+                createValueParameterByConstructor(StandardNames.UINT16)
+                createValueParameterByConstructor(StandardNames.UINT8)
+
+                createValueParameterByConstructor(StandardNames.UINT_NATIVE)
+                createValueParameterByConstructor(StandardNames.INT_NATIVE)
+            }
+
+            "UInt8" -> {
+                createValueParameterByConstructor(StandardNames.FLOAT16)
+                createValueParameterByConstructor(StandardNames.FLOAT32)
+                createValueParameterByConstructor(StandardNames.FLOAT64)
+
+                createValueParameterByConstructor(StandardNames.INT64)
+                createValueParameterByConstructor(StandardNames.INT32)
+                createValueParameterByConstructor(StandardNames.INT16)
+                createValueParameterByConstructor(StandardNames.INT8)
+
+                createValueParameterByConstructor(StandardNames.UINT64)
+                createValueParameterByConstructor(StandardNames.UINT32)
+                createValueParameterByConstructor(StandardNames.UINT16)
+                createValueParameterByConstructor(StandardNames.UINT8)
+
+                createValueParameterByConstructor(StandardNames.UINT_NATIVE)
+                createValueParameterByConstructor(StandardNames.INT_NATIVE)
+            }
 
             "Int64" -> {
                 createValueParameterByConstructor(StandardNames.FLOAT16)
@@ -813,6 +870,8 @@ open class BasicTypeDescriptor(
                 createValueParameterByConstructor(StandardNames.UINT16)
                 createValueParameterByConstructor(StandardNames.UINT8)
 
+                createValueParameterByConstructor(StandardNames.UINT_NATIVE)
+                createValueParameterByConstructor(StandardNames.INT_NATIVE)
             }
 
             "Int32" -> {
@@ -829,6 +888,9 @@ open class BasicTypeDescriptor(
                 createValueParameterByConstructor(StandardNames.UINT32)
                 createValueParameterByConstructor(StandardNames.UINT16)
                 createValueParameterByConstructor(StandardNames.UINT8)
+
+                createValueParameterByConstructor(StandardNames.UINT_NATIVE)
+                createValueParameterByConstructor(StandardNames.INT_NATIVE)
             }
 
             "Int8" -> {
@@ -845,6 +907,9 @@ open class BasicTypeDescriptor(
                 createValueParameterByConstructor(StandardNames.UINT32)
                 createValueParameterByConstructor(StandardNames.UINT16)
                 createValueParameterByConstructor(StandardNames.UINT8)
+
+                createValueParameterByConstructor(StandardNames.UINT_NATIVE)
+                createValueParameterByConstructor(StandardNames.INT_NATIVE)
             }
 
             "Int16" -> {
@@ -861,6 +926,9 @@ open class BasicTypeDescriptor(
                 createValueParameterByConstructor(StandardNames.UINT32)
                 createValueParameterByConstructor(StandardNames.UINT16)
                 createValueParameterByConstructor(StandardNames.UINT8)
+
+                createValueParameterByConstructor(StandardNames.UINT_NATIVE)
+                createValueParameterByConstructor(StandardNames.INT_NATIVE)
             }
 
 
@@ -879,6 +947,9 @@ open class BasicTypeDescriptor(
                 createValueParameterByConstructor(StandardNames.UINT32)
                 createValueParameterByConstructor(StandardNames.UINT16)
                 createValueParameterByConstructor(StandardNames.UINT8)
+
+                createValueParameterByConstructor(StandardNames.UINT_NATIVE)
+                createValueParameterByConstructor(StandardNames.INT_NATIVE)
             }
 
             "Float32" -> {
@@ -896,8 +967,10 @@ open class BasicTypeDescriptor(
                 createValueParameterByConstructor(StandardNames.UINT16)
                 createValueParameterByConstructor(StandardNames.UINT8)
 
-            }
+                createValueParameterByConstructor(StandardNames.UINT_NATIVE)
+                createValueParameterByConstructor(StandardNames.INT_NATIVE)
 
+            }
             "Float64" -> {
 
                 createValueParameterByConstructor(StandardNames.FLOAT16)
@@ -914,6 +987,51 @@ open class BasicTypeDescriptor(
                 createValueParameterByConstructor(StandardNames.UINT32)
                 createValueParameterByConstructor(StandardNames.UINT16)
                 createValueParameterByConstructor(StandardNames.UINT8)
+
+                createValueParameterByConstructor(StandardNames.UINT_NATIVE)
+                createValueParameterByConstructor(StandardNames.INT_NATIVE)
+            }
+
+            "IntNative" -> {
+
+                createValueParameterByConstructor(StandardNames.FLOAT16)
+                createValueParameterByConstructor(StandardNames.FLOAT32)
+                createValueParameterByConstructor(StandardNames.FLOAT64)
+
+
+                createValueParameterByConstructor(StandardNames.INT64)
+                createValueParameterByConstructor(StandardNames.INT32)
+                createValueParameterByConstructor(StandardNames.INT16)
+                createValueParameterByConstructor(StandardNames.INT8)
+
+                createValueParameterByConstructor(StandardNames.UINT64)
+                createValueParameterByConstructor(StandardNames.UINT32)
+                createValueParameterByConstructor(StandardNames.UINT16)
+                createValueParameterByConstructor(StandardNames.UINT8)
+
+                createValueParameterByConstructor(StandardNames.UINT_NATIVE)
+                createValueParameterByConstructor(StandardNames.INT_NATIVE)
+            }
+
+            "UIntNative" -> {
+
+                createValueParameterByConstructor(StandardNames.FLOAT16)
+                createValueParameterByConstructor(StandardNames.FLOAT32)
+                createValueParameterByConstructor(StandardNames.FLOAT64)
+
+
+                createValueParameterByConstructor(StandardNames.INT64)
+                createValueParameterByConstructor(StandardNames.INT32)
+                createValueParameterByConstructor(StandardNames.INT16)
+                createValueParameterByConstructor(StandardNames.INT8)
+
+                createValueParameterByConstructor(StandardNames.UINT64)
+                createValueParameterByConstructor(StandardNames.UINT32)
+                createValueParameterByConstructor(StandardNames.UINT16)
+                createValueParameterByConstructor(StandardNames.UINT8)
+
+                createValueParameterByConstructor(StandardNames.UINT_NATIVE)
+                createValueParameterByConstructor(StandardNames.INT_NATIVE)
             }
 
             "Bool" -> {

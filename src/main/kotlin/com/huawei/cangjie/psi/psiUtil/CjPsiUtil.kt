@@ -30,7 +30,9 @@ fun CjExpression.getAnnotationEntries(): List<CjAnnotationEntry> {
         else -> emptyList()
     }
 }
+fun CjTypeStatement.isAbstract(): Boolean = this is CjInterface || this is CjClass && hasModifier(CjTokens.ABSTRACT_KEYWORD)
 
+fun CjParameter.isPropertyParameter() = ownerFunction is CjPrimaryConstructor && hasLetOrVar()
 
 fun CjSimpleNameExpression.isImportDirectiveExpression(): Boolean {
     val parent = parent

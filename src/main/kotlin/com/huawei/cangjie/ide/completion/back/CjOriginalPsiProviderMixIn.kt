@@ -1,20 +1,20 @@
 package com.huawei.cangjie.ide.completion.back
 
-import com.huawei.cangjie.analyzer.CjAnalysisSession
-import com.huawei.cangjie.analyzer.components.CjAnalysisSessionComponent
+import com.huawei.cangjie.analyzer.CangJieAnalysisSession
+import com.huawei.cangjie.analyzer.components.CangJieAnalysisSessionComponent
 import com.huawei.cangjie.analyzer.components.CjAnalysisSessionMixIn
 import com.huawei.cangjie.analyzer.lifetime.withValidityAssertion
 import com.huawei.cangjie.psi.CjDeclaration
 import com.huawei.cangjie.psi.CjFile
 
-abstract class CjOriginalPsiProvider : CjAnalysisSessionComponent() {
+abstract class CangJieOriginalPsiProvider : CangJieAnalysisSessionComponent() {
     abstract fun getOriginalDeclaration(declaration: CjDeclaration): CjDeclaration?
     abstract fun getOriginalCjFile(file: CjFile): CjFile?
 
     abstract fun recordOriginalDeclaration(fakeDeclaration: CjDeclaration, originalDeclaration: CjDeclaration)
     abstract fun recordOriginalCjFile(fakeFile: CjFile, originalFile: CjFile)
 }
-class CjOriginalPsiProviderImpl(override val analysisSession: CjAnalysisSession) : CjOriginalPsiProvider() {
+class CangJieOriginalPsiProviderImpl(override val analysisSession: CangJieAnalysisSession) : CangJieOriginalPsiProvider() {
     override fun getOriginalDeclaration(declaration: CjDeclaration): CjDeclaration?  = null
 
     override fun getOriginalCjFile(file: CjFile): CjFile?  = null

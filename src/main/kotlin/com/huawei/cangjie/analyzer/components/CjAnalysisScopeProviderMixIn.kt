@@ -1,6 +1,6 @@
 package com.huawei.cangjie.analyzer.components
 
-import com.huawei.cangjie.analyzer.CjAnalysisSession
+import com.huawei.cangjie.analyzer.CangJieAnalysisSession
 import com.huawei.cangjie.analyzer.lifetime.CjLifetimeOwner
 import com.huawei.cangjie.analyzer.lifetime.CjLifetimeToken
 import com.huawei.cangjie.analyzer.lifetime.withValidityAssertion
@@ -12,26 +12,26 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 
-abstract class CjAnalysisSessionComponent {
-    protected abstract val analysisSession: CjAnalysisSession
+abstract class CangJieAnalysisSessionComponent {
+    protected abstract val analysisSession: CangJieAnalysisSession
     protected open val token: CjLifetimeToken get() = analysisSession.token
 }
 
 interface CjAnalysisSessionMixIn : CjLifetimeOwner {
-    val analysisSession: CjAnalysisSession
+    val analysisSession: CangJieAnalysisSession
 }
 
-abstract class CjAnalysisScopeProvider : CjAnalysisSessionComponent() {
+abstract class CangJieAnalysisScopeProvider : CangJieAnalysisSessionComponent() {
     abstract fun getAnalysisScope(): GlobalSearchScope
 
     abstract fun canBeAnalysed(psi: PsiElement): Boolean
 }
 
-class CjAnalysisScopeProviderImpl(
-    override val analysisSession: CjAnalysisSession,
+class CangJieAnalysisScopeProviderImpl(
+    override val analysisSession: CangJieAnalysisSession,
     override val token: CjLifetimeToken,
     private val shadowedScope: GlobalSearchScope
-) : CjAnalysisScopeProvider() {
+) : CangJieAnalysisScopeProvider() {
     private val baseResolveScope by lazy(LazyThreadSafetyMode.PUBLICATION) {
         CangJieResolutionScopeProvider.getInstance(analysisSession.useSiteModule.project)
             .getResolutionScope(analysisSession.useSiteModule)
@@ -54,7 +54,7 @@ class CjAnalysisScopeProviderImpl(
 
 interface CjAnalysisScopeProviderMixIn : CjAnalysisSessionMixIn {
     /**
-     * Return [GlobalSearchScope] represent a scope code in which can be analysed by current [CjAnalysisSession].
+     * Return [GlobalSearchScope] represent a scope code in which can be analysed by current [CangJieAnalysisSession].
        */
     val analysisScope: GlobalSearchScope
         get() = withValidityAssertion { analysisSession.analysisScopeProvider.getAnalysisScope() }

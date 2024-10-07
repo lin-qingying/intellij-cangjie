@@ -1,11 +1,7 @@
 package com.huawei.cangjie.analyzer
 
-import com.huawei.cangjie.analyzer.api.CjSymbolProvider
-import com.huawei.cangjie.analyzer.api.CjSymbolProviderMixIn
-import com.huawei.cangjie.analyzer.api.CjTypeProvider
-import com.huawei.cangjie.analyzer.api.CjTypeProviderMixIn
-import com.huawei.cangjie.analyzer.components.CjAnalysisScopeProvider
-import com.huawei.cangjie.analyzer.components.CjAnalysisScopeProviderImpl
+import com.huawei.cangjie.analyzer.components.CangJieAnalysisScopeProvider
+import com.huawei.cangjie.analyzer.components.CangJieAnalysisScopeProviderImpl
 import com.huawei.cangjie.analyzer.components.CjAnalysisScopeProviderMixIn
 import com.huawei.cangjie.analyzer.lifetime.CjLifetimeOwner
 import com.huawei.cangjie.analyzer.lifetime.CjLifetimeToken
@@ -19,8 +15,8 @@ import com.huawei.cangjie.descriptors.synthetic.SyntheticMemberDescriptor
 import com.huawei.cangjie.ide.FrontendInternals
 import com.huawei.cangjie.ide.base.projectStructure.RootKindFilter
 import com.huawei.cangjie.ide.base.projectStructure.matches
-import com.huawei.cangjie.ide.completion.back.CjOriginalPsiProvider
-import com.huawei.cangjie.ide.completion.back.CjOriginalPsiProviderImpl
+import com.huawei.cangjie.ide.completion.back.CangJieOriginalPsiProvider
+import com.huawei.cangjie.ide.completion.back.CangJieOriginalPsiProviderImpl
 import com.huawei.cangjie.ide.completion.back.CjOriginalPsiProviderMixIn
 import com.huawei.cangjie.ide.projectStructure.moduleInfo
 import com.huawei.cangjie.psi.CjCodeFragment
@@ -49,20 +45,17 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 
 @Suppress("AnalysisApiMissingLifetimeCheck")
-abstract class CjAnalysisSession(final override val token: CjLifetimeToken) : CjLifetimeOwner,
-    CjOriginalPsiProviderMixIn, CjAnalysisScopeProviderMixIn , CjTypeProviderMixIn, CjSymbolProviderMixIn {
+abstract class CangJieAnalysisSession(final override val token: CjLifetimeToken) : CjLifetimeOwner,
+    CjOriginalPsiProviderMixIn, CjAnalysisScopeProviderMixIn {
 
-    override val analysisSession: CjAnalysisSession get() = this
+    override val analysisSession: CangJieAnalysisSession get() = this
     abstract val useSiteModule: CjModule
-    internal val typeProvider: CjTypeProvider get() = typeProviderImpl
-    protected abstract val typeProviderImpl: CjTypeProvider
-    internal val symbolProvider: CjSymbolProvider get() = symbolProviderImpl
-    protected abstract val symbolProviderImpl: CjSymbolProvider
 
-    internal val analysisScopeProvider: CjAnalysisScopeProvider get() = analysisScopeProviderImpl
-    protected abstract val analysisScopeProviderImpl: CjAnalysisScopeProvider
-    internal val originalPsiProvider: CjOriginalPsiProvider get() = originalPsiProviderImpl
-    protected abstract val originalPsiProviderImpl: CjOriginalPsiProvider
+
+    internal val analysisScopeProvider: CangJieAnalysisScopeProvider get() = analysisScopeProviderImpl
+    protected abstract val analysisScopeProviderImpl: CangJieAnalysisScopeProvider
+    internal val originalPsiProvider: CangJieOriginalPsiProvider get() = originalPsiProviderImpl
+    protected abstract val originalPsiProviderImpl: CangJieOriginalPsiProvider
 }
 
 class CjAnalysisContext(
@@ -298,20 +291,17 @@ internal class IdeCjAnalysisFacade(private val project: Project) : CjAnalysisFac
 
 }
 
-class CjAnalysisSessionImpl(
+class CangJieAnalysisSessionImpl(
     val analysisContext: CjAnalysisContext,
     override val useSiteModule: CjModule,
     token: CjLifetimeToken,
-    ) : CjAnalysisSession(token) {
+    ) : CangJieAnalysisSession(token) {
 
-    override val typeProviderImpl: CjTypeProvider = TODO()
 
-    override val symbolProviderImpl: CjSymbolProvider
-        get() = TODO("Not yet implemented")
-    override val analysisScopeProviderImpl: CjAnalysisScopeProvider
-        get() = CjAnalysisScopeProviderImpl(this, token, shadowedScope = GlobalSearchScope.EMPTY_SCOPE)
-    override val originalPsiProviderImpl: CjOriginalPsiProvider
-        get() = CjOriginalPsiProviderImpl(this)
+    override val analysisScopeProviderImpl: CangJieAnalysisScopeProvider
+        get() = CangJieAnalysisScopeProviderImpl(this, token, shadowedScope = GlobalSearchScope.EMPTY_SCOPE)
+    override val originalPsiProviderImpl: CangJieOriginalPsiProvider
+        get() = CangJieOriginalPsiProviderImpl(this)
 
 }
 

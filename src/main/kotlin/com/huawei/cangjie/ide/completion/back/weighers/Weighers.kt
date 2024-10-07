@@ -9,14 +9,14 @@ import com.intellij.codeInsight.lookup.LookupElementWeigher
 import com.intellij.openapi.util.Key
 
 //
-//import com.huawei.cangjie.analyzer.CjAnalysisSession
+//import com.huawei.cangjie.analyzer.CangJieAnalysisSession
 //import com.intellij.codeInsight.completion.CompletionSorter
 //import com.intellij.codeInsight.lookup.LookupElement
 //import com.intellij.codeInsight.lookup.WeighingContext
 //
 //
 internal object Weighers {
-//    context(CjAnalysisSession)
+//    context(CangJieAnalysisSession)
 //    fun applyWeighsToLookupElement(
 //        context: WeighingContext,
 //        lookupElement: LookupElement,
@@ -43,7 +43,7 @@ internal object Weighers {
 //        PreferFewerParametersWeigher. addWeight(lookupElement, symbol)
 //    }
 //
-//    context(CjAnalysisSession)
+//    context(CangJieAnalysisSession)
 //    fun applyWeighsToLookupElementForCallable(
 //        context: WeighingContext,
 //        lookupElement: LookupElement,

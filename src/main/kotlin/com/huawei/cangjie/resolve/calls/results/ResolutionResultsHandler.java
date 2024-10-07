@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.huawei.cangjie.analyzer.CjAnalysisSessionKt.createOverloadingConflictResolver;
+import static com.huawei.cangjie.analyzer.CangJieAnalysisSessionKt.createOverloadingConflictResolver;
 import static com.huawei.cangjie.resolve.calls.results.ResolutionStatus.*;
 
 public class ResolutionResultsHandler {

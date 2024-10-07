@@ -641,7 +641,11 @@ class LspServerImpl(
     internal fun isSupportedFile(file: VirtualFile): Boolean {
         if (!file.isInLocalFileSystem) return false
         if (unsupportedFilePaths.contains(file.path)) return false
-        if (!ProjectFileIndex.getInstance(project).isInContent(file)) return false
+
+
+
+            if (!ProjectFileIndex.getInstance(project).isInContent(file)) return false
+
 
         val isSupported = descriptor.isSupportedFile(file)
         if (!isSupported) {

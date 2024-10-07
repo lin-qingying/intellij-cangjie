@@ -58,6 +58,8 @@ object CangJieHighlightingColors {
         TextAttributesKey.createTextAttributesKey("CANGJIE_COMMA", DefaultLanguageHighlighterColors.COMMA)
     val SEMICOLON: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_SEMICOLON", DefaultLanguageHighlighterColors.SEMICOLON)
+    val LT_COLON: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_LT_COLON")
+
     val COLON: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_COLON")
     val DOUBLE_COLON: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_DOUBLE_COLON")
     val DOT: TextAttributesKey =

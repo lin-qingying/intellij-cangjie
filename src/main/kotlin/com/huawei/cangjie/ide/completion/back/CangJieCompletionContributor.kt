@@ -1,13 +1,12 @@
 package com.huawei.cangjie.ide.completion.back
 
-import com.huawei.cangjie.analyzer.CjAnalysisSession
+import com.huawei.cangjie.analyzer.CangJieAnalysisSession
 import com.huawei.cangjie.analyzer.analyze
 import com.huawei.cangjie.ide.completion.back.CangJieCompletionParameters.*
 import com.huawei.cangjie.ide.completion.back.CangJieCompletionParameters.Corrected
 import com.huawei.cangjie.ide.completion.back.CangJieCompletionParameters.Original
 import com.huawei.cangjie.ide.completion.back.CangJieCompletionParametersProvider.provide
 import com.huawei.cangjie.ide.completion.back.context.CangJieBasicCompletionContext
-import com.huawei.cangjie.ide.completion.back.contributors.CangJieCompletionContributorFactory
 import com.huawei.cangjie.ide.completion.back.positionContext.CangJieClassifierNamePositionContext
 import com.huawei.cangjie.ide.completion.back.positionContext.CangJiePositionContextDetector
 import com.huawei.cangjie.ide.completion.back.positionContext.CangJieRawPositionContext
@@ -17,9 +16,6 @@ import com.huawei.cangjie.psi.CjDeclaration
 import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.completion.addingPolicy.PolicyController
 import com.intellij.patterns.PlatformPatterns.psiElement
-import com.intellij.platform.ml.impl.turboComplete.KindCollector
-import com.intellij.platform.ml.impl.turboComplete.KindVariety
-import com.intellij.platform.ml.impl.turboComplete.SuggestionGeneratorExecutor
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ProcessingContext
 
@@ -83,7 +79,7 @@ private object CangJieCompletionProvider : CompletionProvider<CompletionParamete
     private inline fun analyzeInContext(
         basicContext: CangJieBasicCompletionContext,
         positionContext: CangJieRawPositionContext,
-        action: CjAnalysisSession.() -> Unit
+        action: CangJieAnalysisSession.() -> Unit
     ) {
         analyze(basicContext.fakeCjFile) {
             when (positionContext) {
@@ -139,7 +135,7 @@ private object CangJieCompletionProvider : CompletionProvider<CompletionParamete
 //            complete(basicContext, positionContext, resultController)
         }
     }
-//    context(CjAnalysisSession)
+//    context(CangJieAnalysisSession)
 //    private fun complete(
 //        basicContext: CangJieBasicCompletionContext,
 //        positionContext:CangJieRawPositionContext,
@@ -152,14 +148,14 @@ private object CangJieCompletionProvider : CompletionProvider<CompletionParamete
 //            complete(factory, positionContext, weighingContext, sessionParameters)
 //        }
 //    }
-    context(CjAnalysisSession)
+    context(CangJieAnalysisSession)
     private fun recordOriginalFile(basicCompletionContext: CangJieBasicCompletionContext) {
         val originalFile = basicCompletionContext.originalCjFile
         val fakeFile = basicCompletionContext.fakeCjFile
         fakeFile.recordOriginalCjFile(originalFile)
     }
 
-    context(CjAnalysisSession)
+    context(CangJieAnalysisSession)
 
     private fun recordOriginalDeclaration(basicContext: CangJieBasicCompletionContext, declaration: CjDeclaration) {
         try {

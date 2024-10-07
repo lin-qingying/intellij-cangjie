@@ -11,7 +11,6 @@ import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptor
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
-import com.huawei.cangjie.name.SpecialNames
 import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.constants.ArrayValue
 import com.huawei.cangjie.resolve.constants.ConstantValue
@@ -361,7 +360,7 @@ interface DescriptorRendererOptions {
 }
 
 
-internal class DescriptorRendererOptionsImpl : DescriptorRendererOptions {
+open class DescriptorRendererOptionsImpl : DescriptorRendererOptions {
     var isLocked: Boolean = false
         private set
 
@@ -370,7 +369,7 @@ internal class DescriptorRendererOptionsImpl : DescriptorRendererOptions {
         isLocked = true
     }
 
-    fun copy(): DescriptorRendererOptionsImpl {
+    open fun copy(): DescriptorRendererOptionsImpl {
         val copy = DescriptorRendererOptionsImpl()
 
         //TODO: use CangJie reflection
@@ -472,11 +471,22 @@ internal class DescriptorRendererOptionsImpl : DescriptorRendererOptions {
 }
 
 
-internal class DescriptorRendererImpl(
-    val options: DescriptorRendererOptionsImpl
+open class DescriptorRendererImpl(
+     val options: DescriptorRendererOptionsImpl
 ) : DescriptorRenderer(), DescriptorRendererOptions by options/* this gives access to options without qualifier */ {
     init {
         assert(options.isLocked)
+    }
+
+
+    companion object {
+        fun withOptions(changeOptions: DescriptorRendererOptionsImpl.() -> Unit): DescriptorRendererImpl {
+            val options = DescriptorRendererOptionsImpl()
+            options.changeOptions()
+            options.lock()
+            return DescriptorRendererImpl(options)
+        }
+
     }
 
     private val functionTypeAnnotationsRenderer: DescriptorRendererImpl by lazy {
@@ -523,11 +533,16 @@ internal class DescriptorRendererImpl(
             escaped
     }
 
-    private fun renderName(descriptor: DeclarationDescriptor, builder: StringBuilder, rootRenderedElement: Boolean,isEnd:Boolean = false) {
-if(isEnd){
-    builder.append("~")
+    private fun renderName(
+        descriptor: DeclarationDescriptor,
+        builder: StringBuilder,
+        rootRenderedElement: Boolean,
+        isEnd: Boolean = false
+    ) {
+        if (isEnd) {
+            builder.append("~")
 
-}
+        }
         if (descriptor is FunctionDescriptor && descriptor.isOperator) {
             builder.append(descriptor.name.asOperatorString())
 
@@ -536,7 +551,6 @@ if(isEnd){
 
         }
     }
-
 
 
     override fun renderFqName(fqName: FqNameUnsafe) = renderFqName(fqName.pathSegments())
@@ -1204,7 +1218,7 @@ if(isEnd){
 
         val returnType = function.returnType
 //        if (!withoutReturnType && (unitReturnType || (returnType == null /*|| !CangJieBuiltIns.isUnit(returnType)*/))) {
-            builder.append(": ").append(if (returnType == null) "[NULL]" else renderType(returnType))
+        builder.append(": ").append(if (returnType == null) "[NULL]" else renderType(returnType))
 //        }
 
         renderWhereSuffix(function.typeParameters, builder)
@@ -1605,7 +1619,7 @@ if(isEnd){
                 if (constructorKeywordRendered) {
                     builder.append(" ")
                 }
-                renderName(classDescriptor, builder, true,constructor.isEnd)
+                renderName(classDescriptor, builder, true, constructor.isEnd)
                 renderTypeParameters(constructor.typeParameters, builder, false)
             }
 

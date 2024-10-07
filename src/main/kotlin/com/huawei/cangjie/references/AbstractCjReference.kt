@@ -80,6 +80,7 @@ import com.intellij.psi.impl.source.resolve.ResolveCache
 //        }
 //    }
 //}
+abstract class CjMultiReference<T : CjElement>(expression: T) : AbstractCjReference<T>(expression)
 
 
 abstract class AbstractCjReference<T : CjElement>(element: T) : PsiPolyVariantReferenceBase<T>(element), CjReference {

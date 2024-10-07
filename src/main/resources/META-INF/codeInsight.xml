@@ -10,12 +10,13 @@
                                                 implementationClass="com.huawei.cangjie.ide.codeinsight.CangJieIconLineMarkerProvider"/>
 
 
+        <lang.documentationProvider language="CangJie" implementationClass="com.huawei.cangjie.ide.codeinsight.quickDoc.cdoc.CangJieDocumentationProvider" order="first"/>
 
-        <platform.backend.documentation.targetProvider id="CangJieDocumentationTargetProvider"
-                                                       implementation="com.huawei.cangjie.ide.codeinsight.quickDoc.CangJieDocumentationTargetProvider"/>
+<!--        <platform.backend.documentation.targetProvider id="CangJieDocumentationTargetProvider"-->
+<!--                                                       implementation="com.huawei.cangjie.ide.codeinsight.quickDoc.CangJieDocumentationTargetProvider"/>-->
 
-        <platform.backend.documentation.psiTargetProvider id="CangJieDocumentationTargetProvider"
-                                                          implementation="com.huawei.cangjie.ide.codeinsight.quickDoc.CangJiePsiDocumentationTargetProvider"/>
+<!--        <platform.backend.documentation.psiTargetProvider id="CangJieDocumentationTargetProvider"-->
+<!--                                                          implementation="com.huawei.cangjie.ide.codeinsight.quickDoc.CangJiePsiDocumentationTargetProvider"/>-->
 
     </extensions>
 </idea-plugin>

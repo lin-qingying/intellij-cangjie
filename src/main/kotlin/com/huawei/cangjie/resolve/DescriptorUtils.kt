@@ -124,6 +124,10 @@ fun CallableMemberDescriptor.firstOverridden(
         }
     )
 }
+
+val DeclarationDescriptor.fqNameSafe: FqName
+    get() = DescriptorUtils.getFqNameSafe(this)
+
 object DescriptorUtils {
     @JvmStatic
     fun isDirectSubclass(

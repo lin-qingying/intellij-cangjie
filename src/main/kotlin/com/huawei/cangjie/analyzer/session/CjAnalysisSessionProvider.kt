@@ -1,8 +1,8 @@
 package com.huawei.cangjie.analyzer.session
 
 import com.huawei.cangjie.analyzer.CjAnalysisFacade
-import com.huawei.cangjie.analyzer.CjAnalysisSession
-import com.huawei.cangjie.analyzer.CjAnalysisSessionImpl
+import com.huawei.cangjie.analyzer.CangJieAnalysisSession
+import com.huawei.cangjie.analyzer.CangJieAnalysisSessionImpl
 import com.huawei.cangjie.analyzer.ProjectStructureProvider
 import com.huawei.cangjie.analyzer.lifetime.CjLifetimeTokenFactory
 import com.huawei.cangjie.analyzer.lifetime.CjLifetimeTokenProvider
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.TestOnly
 
 
 /**
- * Provides [CjAnalysisSession]s by use-site [CjElement]s or [CjModule]s.
+ * Provides [CangJieAnalysisSession]s by use-site [CjElement]s or [CjModule]s.
  *
  * This provider should not be used directly.
  */
@@ -28,8 +28,8 @@ abstract class CjAnalysisSessionProvider(val project: Project) : Disposable {
         NoWriteActionInAnalyseCallChecker(this)
 
     inline fun <R> analyse(
-        analysisSession: CjAnalysisSession,
-        action: CjAnalysisSession.() -> R,
+        analysisSession: CangJieAnalysisSession,
+        action: CangJieAnalysisSession.() -> R,
     ): R {
         noWriteActionInAnalyseCallChecker.beforeEnteringAnalysisContext()
         tokenFactory.beforeEnteringAnalysisContext(analysisSession.token)
@@ -41,11 +41,11 @@ abstract class CjAnalysisSessionProvider(val project: Project) : Disposable {
         }
     }
 
-    abstract fun getAnalysisSession(useSiteCjElement: CjElement): CjAnalysisSession
+    abstract fun getAnalysisSession(useSiteCjElement: CjElement): CangJieAnalysisSession
 
     inline fun <R> analyse(
         useSiteCjElement: CjElement,
-        action: CjAnalysisSession.() -> R,
+        action: CangJieAnalysisSession.() -> R,
     ): R {
         return analyse(getAnalysisSession(useSiteCjElement), action)
     }
@@ -63,12 +63,12 @@ abstract class CjAnalysisSessionProvider(val project: Project) : Disposable {
 }
 
 class CjAnalysisSessionProviderImpl(project: Project) : CjAnalysisSessionProvider(project) {
-    override fun getAnalysisSession(useSiteCjElement: CjElement): CjAnalysisSession {
+    override fun getAnalysisSession(useSiteCjElement: CjElement): CangJieAnalysisSession {
         val facade = CjAnalysisFacade.getInstance(project)
         val token = tokenFactory.create(project)
         val context = facade.getAnalysisContext(useSiteCjElement, token)
         val useSiteModule = ProjectStructureProvider.getModule(project, useSiteCjElement, contextualModule = null)
-        return CjAnalysisSessionImpl(context, useSiteModule, token)
+        return CangJieAnalysisSessionImpl(context, useSiteModule, token)
     }
 
     override fun clearCaches() {
