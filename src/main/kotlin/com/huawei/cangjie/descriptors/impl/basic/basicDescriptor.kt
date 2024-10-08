@@ -753,9 +753,10 @@ open class BasicTypeDescriptor(
         TODO("Not yet implemented")
     }
 
-
+//    override val containingDeclaration: DeclarationDescriptor
+//        get() = EmptyDeclarationDescriptor(null)
     override val containingDeclaration: DeclarationDescriptor
-        get() = EmptyDeclarationDescriptor(null)
+        get() = basicMemberScope.getBuiltIns().builtInsModule
     override val annotations: Annotations
         get() = Annotations.EMPTY
 

@@ -16,6 +16,7 @@ class CangJieReferenceContributor : CangJieReferenceProviderContributor {
             registerProvider(factory = ::CjInvokeFunctionReference)
             registerProvider(factory = ::CjConstructorDelegationReference)
             registerProvider(factory = ::CjArrayAccessReference)
+            registerProvider(factory = ::CangJieCDocReference)
 
 //            registerProvider(factory = ::CjPatternEnumReference)
 //

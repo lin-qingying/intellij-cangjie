@@ -1,6 +1,7 @@
 package com.huawei.cangjie.references
 
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.doc.psi.impl.CDocName
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.CjDeclaration
 import com.huawei.cangjie.psi.CjElement
@@ -15,6 +16,7 @@ interface CjReferenceResolutionHelper {
     fun partialAnalyze(element: CjElement): BindingContext
     fun resolveImportReference(file: CjFile, fqName: FqName): Collection<DeclarationDescriptor>
     fun findPsiDeclarations(declaration: DeclarationDescriptor, project: Project, resolveScope: GlobalSearchScope): Collection<PsiElement>
+    fun resolveCDocLink(element: CDocName): Collection<DeclarationDescriptor>
 
 //    fun findDecompiledDeclaration(
 //        project: Project,

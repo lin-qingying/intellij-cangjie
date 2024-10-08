@@ -1,19 +1,40 @@
 package com.huawei.cangjie.psi.psiUtil
 
 import com.huawei.cangjie.descriptors.ClassDescriptor
+import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.descriptors.MemberDescriptor
 import com.huawei.cangjie.descriptors.Modality
 import com.huawei.cangjie.extensions.DeclarationAttributeAltererExtension
 import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.lexer.CjTokens
-import com.huawei.cangjie.psi.CjDeclaration
-import com.huawei.cangjie.psi.CjFunction
-import com.huawei.cangjie.psi.CjInterface
-import com.huawei.cangjie.psi.CjTypeStatement
+import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext
+import com.huawei.cangjie.resolve.caches.resolveToDescriptorIfAny
 import com.huawei.cangjie.resolve.caches.safeAnalyzeNonSourceRootCode
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
+import com.huawei.cangjie.utils.match
 import com.intellij.psi.tree.IElementType
 
+fun CjDeclaration.getModalityFromDescriptor(descriptor: DeclarationDescriptor? = resolveToDescriptorIfAny()): CjModifierKeywordToken? {
+    if (descriptor is MemberDescriptor) {
+        return mapModality(descriptor.modality)
+    }
+
+    return null
+}
+fun CjDeclaration.isOverridable(): Boolean =
+    !hasModifier(CjTokens.PRIVATE_KEYWORD) &&  // 'private' is incompatible with 'open'
+            (parents.match(CjParameterList::class, CjPrimaryConstructor::class, last = CjTypeStatement::class)
+                ?: parents.match(CjClassBody::class, last = CjTypeStatement::class))
+                ?.let { it.isInheritable() || it.isEnum() } == true &&
+            getModalityFromDescriptor() in setOf(CjTokens.ABSTRACT_KEYWORD, CjTokens.OPEN_KEYWORD)
+
+fun CjTypeStatement.isInheritable(): Boolean {
+    return when (getModalityFromDescriptor()) {
+        CjTokens.ABSTRACT_KEYWORD, CjTokens.OPEN_KEYWORD, CjTokens.SEALED_KEYWORD -> true
+        else -> false
+    }
+}
 private fun CjDeclaration.predictImplicitModality(): CjModifierKeywordToken? {
     if (this is CjTypeStatement) {
         if (this is CjInterface) return CjTokens.ABSTRACT_KEYWORD

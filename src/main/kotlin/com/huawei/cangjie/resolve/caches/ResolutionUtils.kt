@@ -16,6 +16,7 @@ import com.huawei.cangjie.resolve.calls.util.safeAnalyze
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.resolve.lazy.NoDescriptorForDeclarationException
 import com.huawei.cangjie.utils.actionUnderSafeAnalyzeBlock
+import com.huawei.cangjie.utils.returnIfNoDescriptorForDeclarationException
 
 fun CjElement.analyzeWithAllCompilerChecks(): AnalysisResult = getResolutionFacade().analyzeWithAllCompilerChecks(this)
 
@@ -28,7 +29,14 @@ fun CjFile.resolveImportReference(fqName: FqName): Collection<DeclarationDescrip
     val facade = getResolutionFacade()
     return facade.resolveImportReference(facade.moduleDescriptor, fqName)
 }
-
+fun CjElement.safeAnalyze(
+    resolutionFacade: ResolutionFacade,
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
+): BindingContext = try {
+    analyze(resolutionFacade, bodyResolveMode)
+} catch (e: Exception) {
+    e.returnIfNoDescriptorForDeclarationException { BindingContext.EMPTY }
+}
 // this method don't check visibility and collect all descriptors with given fqName
 @OptIn(FrontendInternals::class)
 fun ResolutionFacade.resolveImportReference(

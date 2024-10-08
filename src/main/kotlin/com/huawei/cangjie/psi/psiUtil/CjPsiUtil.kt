@@ -18,6 +18,12 @@ import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.tree.TokenSet
 import com.intellij.util.codeInsight.CommentUtilCore
 import java.util.*
+//fun CjDeclaration.isExpectDeclaration(): Boolean =
+//    when {
+//        hasExpectModifier() -> true
+//        this is CjParameter -> ownerFunction?.isExpectDeclaration() == true
+//        else -> containingTypeStatement?.isExpectDeclaration() == true
+//    }
 
 fun CjExpression.lastBlockStatementOrThis(): CjExpression =
     (this as? CjBlockExpression)?.statements?.lastOrNull() ?: this

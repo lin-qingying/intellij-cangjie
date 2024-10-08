@@ -18,6 +18,25 @@ data class RootKindFilter(
 
 
     companion object {
+
+        @JvmField
+        val projectAndLibrarySources = RootKindFilter(
+            includeProjectSourceFiles = true,
+            includeLibraryClassFiles = false,
+            includeLibrarySourceFiles = true,
+            includeScriptDependencies = false,
+            includeScriptsOutsideSourceRoots = false,
+            includeResources = false
+        )
+        @JvmField
+        val projectAndLibrarySourcesWithScripts = RootKindFilter(
+            includeProjectSourceFiles = true,
+            includeLibraryClassFiles = false,
+            includeLibrarySourceFiles = true,
+            includeScriptDependencies = true,
+            includeScriptsOutsideSourceRoots = false,
+            includeResources = false
+        )
         @JvmField
         val projectSourcesAndLibraryClasses = RootKindFilter(
             includeProjectSourceFiles = true,

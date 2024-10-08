@@ -25,6 +25,7 @@ import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.resolve.scopes.receivers.Qualifier;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.DeferredType;
+import com.huawei.cangjie.types.expressions.CaptureKind;
 import com.huawei.cangjie.types.expressions.PreliminaryDeclarationVisitor;
 import com.huawei.cangjie.utils.Box;
 import com.huawei.cangjie.utils.ReadOnly;
@@ -96,6 +97,9 @@ public interface BindingContext {
     WritableSlice<CjExpression, ExplicitSmartCasts> SMARTCAST = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjMatchExpression, Boolean> IMPLICIT_EXHAUSTIVE_WHEN = Slices.createSimpleSlice();
     WritableSlice<CjPropertyAccessor, PropertyAccessorDescriptor> PROPERTY_ACCESSOR = Slices.createSimpleSlice();
+    WritableSlice<CjExpression, Boolean> SMARTCAST_NULL = Slices.createSimpleSlice();
+//    WritableSlice<CjExpression, ImplicitSmartCasts> IMPLICIT_RECEIVER_SMARTCAST = new BasicWritableSlice<>(DO_NOTHING);
+WritableSlice<VariableDescriptor, CaptureKind> CAPTURED_IN_CLOSURE = new BasicWritableSlice<>(DO_NOTHING);
 
     WritableSlice<CjTypeReference, CangJieType> TYPE = Slices.createSimpleSlice();
     WritableSlice<DeclarationDescriptor, Multimap<String, ReceiverParameterDescriptor>> DESCRIPTOR_TO_CONTEXT_RECEIVER_MAP = Slices.createSimpleSlice();
@@ -109,6 +113,7 @@ public interface BindingContext {
     WritableSlice<CjReferenceExpression, ClassifierDescriptorWithTypeParameters> SHORT_REFERENCE_TO_COMPANION_OBJECT =
             new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<ValueParameterDescriptor, PropertyDescriptor> VALUE_PARAMETER_AS_PROPERTY = Slices.createSimpleSlice();
+    WritableSlice<ValueParameterDescriptor, Boolean> AUTO_CREATED_IT = Slices.createSimpleSetSlice();
 
     WritableSlice<CjFunction, CangJieType> EXPECTED_RETURN_TYPE = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<FqNameUnsafe, ClassDescriptor> FQNAME_TO_CLASS_DESCRIPTOR = new BasicWritableSlice<>(DO_NOTHING, true);

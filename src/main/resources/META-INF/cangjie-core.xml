@@ -288,7 +288,9 @@
         <projectService
                 serviceInterface="com.huawei.cangjie.analyzer.session.CjAnalysisSessionProvider"
                 serviceImplementation="com.huawei.cangjie.analyzer.session.CjAnalysisSessionProviderImpl"/>
-
+        <projectService
+                serviceInterface="com.huawei.cangjie.ide.cdoc.CDocLinkResolutionService"
+                serviceImplementation="com.huawei.cangjie.ide.cdoc.IdeCDocLinkResolutionService"/>
         <!--        <projectService-->
         <!--                serviceInterface="com.huawei.cangjie.analyzer.lifetime.CjLifetimeTokenProvider"-->
         <!--                serviceImplementation="com.huawei.cangjie.analyzer.lifetime.CjReadActionConfinementLifetimeTokenProvider"/>-->

@@ -262,10 +262,10 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
 
         fun getAfterAnalysisVisitor(holder: HighlightInfoHolder, bindingContext: BindingContext) =
             arrayOf<AfterAnalysisHighlightingVisitor>(
-//            PropertiesHighlightingVisitor(holder, bindingContext),
+            PropertiesHighlightingVisitor(holder, bindingContext),
             FunctionsHighlightingVisitor(holder, bindingContext),
-//            VariablesHighlightingVisitor(holder, bindingContext),
-//            TypeKindHighlightingVisitor(holder, bindingContext)
+            VariablesHighlightingVisitor(holder, bindingContext),
+            TypeKindHighlightingVisitor(holder, bindingContext)
             )
 
         private const val ATTEMPT_THRESHOLD = 10

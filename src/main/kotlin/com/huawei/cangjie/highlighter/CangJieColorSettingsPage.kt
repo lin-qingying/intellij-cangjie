@@ -6,6 +6,7 @@ import com.huawei.cangjie.icon.CangJieIcons
 import com.huawei.cangjie.lang.CangJieLanguage
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighter
+import com.intellij.openapi.options.OptionsBundle
 import com.intellij.openapi.options.colors.AttributesDescriptor
 import com.intellij.openapi.options.colors.ColorDescriptor
 import com.intellij.openapi.options.colors.ColorSettingsPage
@@ -69,9 +70,11 @@ var <PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION><MUTABLE_VARIABLE>globalCounte
 <KEYWORD>interface</KEYWORD> <TRAIT>FunctionLike</TRAIT> {
     <KEYWORD>func</KEYWORD> <FUNCTION_DECLARATION>invoke</FUNCTION_DECLARATION>()  
 }
+<KEYWORD>type</KEYWORD> <TYPE_ALIAS>Predicate</TYPE_ALIAS><<TYPE_PARAMETER>T</TYPE_PARAMETER>> = (<TYPE_PARAMETER>T</TYPE_PARAMETER>) -> <CLASS>Bool</CLASS>
 
  
 <KEYWORD>func</KEYWORD> <FUNCTION_DECLARATION>baz</FUNCTION_DECLARATION>(<PARAMETER>p</PARAMETER>: <TYPE_ALIAS>Predicate</TYPE_ALIAS><<CLASS>Int</CLASS>>) {
+  print(1,<NAMED_ARGUMENT>flush :</NAMED_ARGUMENT>  <KEYWORD>true</KEYWORD>)
 <KEYWORD>return </KEYWORD> <PARAMETER><VARIABLE_AS_FUNCTION_CALL>p</VARIABLE_AS_FUNCTION_CALL></PARAMETER>(<NUMBER>42</NUMBER>)
 } 
 
@@ -142,12 +145,15 @@ var <PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION><MUTABLE_VARIABLE>globalCounte
             CangJieBundle.message("highlighter.descriptor.text.safe.access") to CangJieHighlightingColors.SAFE_ACCESS,
             CangJieBundle.message("highlighter.descriptor.text.quest") to CangJieHighlightingColors.QUEST,
             CangJieBundle.message("highlighter.descriptor.text.exclexcl") to CangJieHighlightingColors.EXCLEXCL,
-            CangJieBundle.message("highlighter.descriptor.text.kdoc.comment") to CangJieHighlightingColors.DOC_COMMENT,
-            CangJieBundle.message("highlighter.descriptor.text.kdoc.tag") to CangJieHighlightingColors.CDOC_TAG,
-            CangJieBundle.message("highlighter.descriptor.text.kdoc.value") to CangJieHighlightingColors.CDOC_LINK,
+            OptionsBundle.message("options.java.attribute.descriptor.line.comment") to CangJieHighlightingColors.LINE_COMMENT,
+            OptionsBundle.message("options.java.attribute.descriptor.block.comment") to CangJieHighlightingColors.BLOCK_COMMENT,
+            CangJieBundle.message("highlighter.descriptor.text.cdoc.comment") to CangJieHighlightingColors.DOC_COMMENT,
+            CangJieBundle.message("highlighter.descriptor.text.cdoc.tag") to CangJieHighlightingColors.CDOC_TAG,
+            CangJieBundle.message("highlighter.descriptor.text.cdoc.value") to CangJieHighlightingColors.CDOC_LINK,
             CangJieBundle.message("highlighter.descriptor.text.abstract.class") to CangJieHighlightingColors.ABSTRACT_CLASS,
 //            CangJieBundle.message("highlighter.descriptor.text.annotation") to CangJieHighlightingColors.ANNOTATION,
 //            CangJieBundle.message("highlighter.descriptor.text.annotation.attribute.name") to CangJieHighlightingColors.ANNOTATION_ATTRIBUTE_NAME_ATTRIBUTES,
+            OptionsBundle.message("options.java.attribute.descriptor.type.parameter") to CangJieHighlightingColors.TYPE_PARAMETER,
 
             CangJieBundle.message("highlighter.descriptor.text.enum") to CangJieHighlightingColors.ENUM,
             CangJieBundle.message("highlighter.descriptor.text.enumEntry") to CangJieHighlightingColors.ENUM_ENTRY,
@@ -157,6 +163,9 @@ var <PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION><MUTABLE_VARIABLE>globalCounte
             CangJieBundle.message("highlighter.descriptor.text.captured.variable") to CangJieHighlightingColors.WRAPPED_INTO_REF,
             CangJieBundle.message("highlighter.descriptor.text.instance.property") to CangJieHighlightingColors.INSTANCE_PROPERTY,
             CangJieBundle.message("highlighter.descriptor.text.instance.property.custom.property.declaration") to CangJieHighlightingColors.INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION,
+            OptionsBundle.message("options.java.attribute.descriptor.parameter") to CangJieHighlightingColors.PARAMETER,
+
+
             CangJieBundle.message("highlighter.descriptor.text.package.property.custom.property.declaration") to CangJieHighlightingColors.PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION,
             CangJieBundle.message("highlighter.descriptor.text.package.property") to CangJieHighlightingColors.PACKAGE_PROPERTY,
             CangJieBundle.message("highlighter.descriptor.text.field") to CangJieHighlightingColors.BACKING_FIELD_VARIABLE,
@@ -173,10 +182,10 @@ var <PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION><MUTABLE_VARIABLE>globalCounte
             CangJieBundle.message("highlighter.descriptor.text.constructor.call") to CangJieHighlightingColors.CONSTRUCTOR_CALL,
             CangJieBundle.message("highlighter.descriptor.text.variable.as.function.call") to CangJieHighlightingColors.VARIABLE_AS_FUNCTION_CALL,
             CangJieBundle.message("highlighter.descriptor.text.variable.as.function.like.call") to CangJieHighlightingColors.VARIABLE_AS_FUNCTION_LIKE_CALL,
-            CangJieBundle.message("highlighter.descriptor.text.smart.cast") to CangJieHighlightingColors.SMART_CAST_VALUE,
-            CangJieBundle.message("highlighter.descriptor.text.smart.constant") to CangJieHighlightingColors.SMART_CONSTANT,
-            CangJieBundle.message("highlighter.descriptor.text.smart.cast.receiver") to CangJieHighlightingColors.SMART_CAST_RECEIVER,
-            CangJieBundle.message("highlighter.descriptor.text.label") to CangJieHighlightingColors.LABEL,
+//            CangJieBundle.message("highlighter.descriptor.text.smart.cast") to CangJieHighlightingColors.SMART_CAST_VALUE,
+//            CangJieBundle.message("highlighter.descriptor.text.smart.constant") to CangJieHighlightingColors.SMART_CONSTANT,
+//            CangJieBundle.message("highlighter.descriptor.text.smart.cast.receiver") to CangJieHighlightingColors.SMART_CAST_RECEIVER,
+//            CangJieBundle.message("highlighter.descriptor.text.label") to CangJieHighlightingColors.LABEL,
             CangJieBundle.message("highlighter.descriptor.text.named.argument") to CangJieHighlightingColors.NAMED_ARGUMENT
         ) + DslStyleUtils.descriptionsToStyles.map { (description, key) -> description to key }.toTypedArray()
     }

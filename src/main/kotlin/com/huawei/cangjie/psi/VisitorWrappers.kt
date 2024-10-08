@@ -8,3 +8,16 @@ fun packageDirectiveVisitor(block: (CjPackageDirective) -> Unit) =
             block(packageDirective)
         }
     }
+fun namedDeclarationVisitor(block: (CjNamedDeclaration) -> Unit) =
+    object : CjVisitorVoid() {
+        override fun visitNamedDeclaration(namedDeclaration: CjNamedDeclaration) {
+            block(namedDeclaration)
+        }
+    }
+
+fun declarationVisitor(block: (CjDeclaration) -> Unit) =
+    object : CjVisitorVoid() {
+        override fun visitDeclaration(declaration: CjDeclaration) {
+            block(declaration)
+        }
+    }

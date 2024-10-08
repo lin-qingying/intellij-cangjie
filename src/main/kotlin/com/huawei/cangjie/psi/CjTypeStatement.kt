@@ -17,6 +17,11 @@ abstract class CjTypeStatement :
     CjNamedDeclaration,
     CjPureTypeStatement, CjClassLikeDeclaration {
 
+    companion object {
+        val EMPTY_ARRAY: Array<CjTypeStatement?> = arrayOfNulls(0)
+
+    }
+
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJieTypeStatementStub<out CjTypeStatement>, nodeType: IStubElementType<*, *>) : super(
         stub,
@@ -34,7 +39,8 @@ abstract class CjTypeStatement :
     override fun toString(): String {
         return node.elementType.toString()
     }
- abstract val typeName:String
+
+    abstract val typeName: String
     val variables: List<CjVariable> get() = body?.variables.orEmpty()
     val properties: List<CjProperty> get() = body?.properties.orEmpty()
 
@@ -74,8 +80,12 @@ abstract class CjTypeStatement :
 
     override fun getSecondaryConstructors(): List<CjSecondaryConstructor> = getBody()?.secondaryConstructors.orEmpty()
     override fun getPrimaryConstructors(): List<CjPrimaryConstructor> = getBody()?.primaryConstructors.orEmpty()
-    override fun getEndSecondaryConstructors(): List<CjEndSecondaryConstructor>  = getBody()?.endSecondaryConstructors.orEmpty()
-    fun getConstructors(): List<CjConstructor<*>> = getSecondaryConstructors() + getPrimaryConstructors() +  getEndSecondaryConstructors()
+    override fun getEndSecondaryConstructors(): List<CjEndSecondaryConstructor> =
+        getBody()?.endSecondaryConstructors.orEmpty()
+
+    fun getConstructors(): List<CjConstructor<*>> =
+        getSecondaryConstructors() + getPrimaryConstructors() + getEndSecondaryConstructors()
+
     fun getContextReceiverList(): CjContextReceiverList? = getStubOrPsiChild(CjStubElementTypes.CONTEXT_RECEIVER_LIST)
 
     override fun getContextReceivers(): List<CjContextReceiver> =
@@ -90,6 +100,11 @@ abstract class CjTypeStatement :
 
     fun isExtend(): Boolean {
         return this is CjExtend
+
+    }
+
+    fun isInterface(): Boolean {
+        return this is CjInterface
 
     }
 

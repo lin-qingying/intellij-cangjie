@@ -4,10 +4,12 @@ import com.huawei.cangjie.lang.CangJieFileType
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.LocalSearchScope
 import com.intellij.psi.search.PsiSearchHelper
 import com.intellij.psi.search.SearchScope
+fun PsiFile.fileScope(): GlobalSearchScope = GlobalSearchScope.fileScope(this)
 
 fun PsiElement.useScope(): SearchScope = PsiSearchHelper.getInstance(project).getUseScope(this)
 fun GlobalSearchScope.restrictToCangJieSources() = restrictByFileType(CangJieFileType.INSTANCE)

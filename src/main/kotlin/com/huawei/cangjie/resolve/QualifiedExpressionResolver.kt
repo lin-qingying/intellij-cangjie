@@ -72,7 +72,39 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
 
         override fun component2() = expression
     }
+    data class QualifiedExpressionResolveResult(
+        val classOrPackage: DeclarationDescriptor?,
+        val memberName: Name?
+    ) {
+        companion object {
+            val UNRESOLVED = QualifiedExpressionResolveResult(null, null)
+        }
+    }
+    fun resolveClassOrPackageInQualifiedExpression(
+        expression: CjQualifiedExpression,
+        scope: LexicalScope,
+        context: BindingContext
+    ): QualifiedExpressionResolveResult {
+        val qualifiedExpressions = unrollToLeftMostQualifiedExpression(expression)
+        val path = mapToQualifierParts(qualifiedExpressions, 0)
+        val trace = DelegatingBindingTrace(context, "Temp trace for resolving qualified expression")
 
+        val (result, index) = resolveToPackageOrClassPrefix(
+            path = path,
+            moduleDescriptor = scope.ownerDescriptor.module,
+            trace = trace,
+            shouldBeVisibleFrom = scope.ownerDescriptor,
+            scopeForFirstPart = scope,
+            position = QualifierPosition.EXPRESSION
+        )
+
+        if (result == null) return QualifiedExpressionResolveResult.UNRESOLVED
+        return when (index) {
+            path.size -> QualifiedExpressionResolveResult(result, null)
+            path.size - 1 -> QualifiedExpressionResolveResult(result, path[index].name)
+            else -> QualifiedExpressionResolveResult.UNRESOLVED
+        }
+    }
     private fun LexicalScope.findClassifierAndReportDeprecationIfNeeded(
         name: Name,
         lookupLocation: CangJieLookupLocation,

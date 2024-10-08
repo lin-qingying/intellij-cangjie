@@ -1,11 +1,13 @@
 package com.huawei.cangjie.psi
 
 import com.huawei.cangjie.CjNodeTypes
+import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.name.Name.Companion.identifier
 import com.huawei.cangjie.psi.stubs.CangJieAnnotationEntryStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 
 class CjAnnotationEntry : CjElementImplStub<CangJieAnnotationEntryStub >, CjCallElement {
     constructor(node: ASTNode) : super(node)
@@ -45,7 +47,9 @@ class CjAnnotationEntry : CjElementImplStub<CangJieAnnotationEntryStub >, CjCall
         val list = valueArgumentList
         return list?.arguments ?: emptyList<CjValueArgument>()
     }
-
+    val atSymbol : PsiElement? get()    {
+        return findChildByType(CjTokens.AT)
+    }
     @get:IfNotParsed
     val typeReference: CjTypeReference?
         get() {

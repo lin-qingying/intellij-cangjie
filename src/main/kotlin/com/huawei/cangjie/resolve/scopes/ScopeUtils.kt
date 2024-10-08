@@ -36,6 +36,20 @@ import com.intellij.util.SmartList
 @JvmOverloads
 fun MemberScope.memberScopeAsImportingScope(parentScope: ImportingScope? = null): ImportingScope =
     MemberScopeToImportingScopeAdapter(parentScope, this)
+// Result is guaranteed to be filtered by kind and name.
+fun HierarchicalScope.collectDescriptorsFiltered(
+    kindFilter: DescriptorKindFilter = DescriptorKindFilter.ALL,
+    nameFilter: (Name) -> Boolean = MemberScope.ALL_NAME_FILTER,
+    changeNamesForAliased: Boolean = false
+): Collection<DeclarationDescriptor> {
+    if (kindFilter.kindMask == 0) return listOf()
+    return collectAllFromMeAndParent {
+        if (it is ImportingScope)
+            it.getContributedDescriptors(kindFilter, nameFilter, changeNamesForAliased)
+        else
+            it.getContributedDescriptors(kindFilter, nameFilter)
+    }.filter { kindFilter.accepts(it) && nameFilter(it.name) }
+}
 
 fun HierarchicalScope.findPackage(name: Name): PackageViewDescriptor? =
     findFirstFromImportingScopes { it.getContributedPackage(name) }
@@ -43,6 +57,10 @@ fun HierarchicalScope.findPackage(name: Name): PackageViewDescriptor? =
 inline fun <T : Any> HierarchicalScope.findFirstFromImportingScopes(fetch: (ImportingScope) -> T?): T? {
     return findFirstFromMeAndParent { if (it is ImportingScope) fetch(it) else null }
 }
+fun HierarchicalScope.collectFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
+    collectAllFromMeAndParent { it.getContributedFunctions(name, location) }
+fun HierarchicalScope.collectVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
+    collectAllFromMeAndParent { it.getContributedVariables(name, location) }
 
 fun CjElement.getResolutionScope(): LexicalScope {
     val resolutionFacade = getResolutionFacade()

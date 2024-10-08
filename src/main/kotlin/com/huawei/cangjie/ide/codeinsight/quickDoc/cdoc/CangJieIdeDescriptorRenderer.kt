@@ -832,14 +832,14 @@ open class CangJieIdeDescriptorRenderer(
                 }
             }
 
-            append(renderKeyword("fun"))
+            append(renderKeyword("func"))
             append(" ")
-            appendTypeParameters(function.typeParameters, true)
+
             appendReceiver(function)
         }
 
         appendName(function, true) { asFunDeclaration }
-
+        appendTypeParameters(function.typeParameters, true)
         appendValueParameters(function.valueParameters, function.hasSynthesizedParameterNames())
 
         appendReceiverAfterName(function)
@@ -977,7 +977,7 @@ open class CangJieIdeDescriptorRenderer(
 
 
         if (isEnumEntry) return
-
+append(" ")
         appendName(cclass, true) { asClassName }
 
         val typeParameters = cclass.declaredTypeParameters
@@ -1238,7 +1238,7 @@ open class CangJieIdeDescriptorRenderer(
         rootRenderedElement: Boolean,
         attributesBuilder: CangJieIdeDescriptorRendererHighlightingManager<CangJieIdeDescriptorRendererHighlightingManager.Companion.Attributes>.() -> CangJieIdeDescriptorRendererHighlightingManager.Companion.Attributes
     ) {
-        append(" ")
+
         return with(options.highlightingManager) {
             this@appendName.appendHighlighted(renderName(descriptor.name, rootRenderedElement), attributesBuilder())
         }

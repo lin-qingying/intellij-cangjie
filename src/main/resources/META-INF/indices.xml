@@ -21,7 +21,7 @@
 
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieSuperClassIndex"/>
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelTypeAliasFqNameIndex"/>
-<!--        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelPropertyFqnNameIndex"/>-->
+        <!--        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelPropertyFqnNameIndex"/>-->
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelVariableFqnNameIndex"/>
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelClassByPackageIndex"/>
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieFullClassNameIndex"/>
@@ -75,14 +75,30 @@
         <registryKey key="cangjie.indices.timing.enabled"
                      defaultValue="false"
                      description="Allows indices access time tracking"/>
+
+
+        <definitionsScopedSearch implementation="com.huawei.cangjie.ide.search.CangJieDefinitionsSearcher"/>
+
     </extensions>
+    <extensions defaultExtensionNs="com.huawei.cangjie.ide.search">
+        <directClassInheritorsSearch implementation="com.huawei.cangjie.ide.search.CangJieDirectInheritorsSearcher"/>
+        <classInheritorsSearch implementation="com.huawei.cangjie.ide.search.CangJieInnerClassInheritorsSearcher"/>
+        <classInheritorsSearch implementation="com.huawei.cangjie.ide.search.CangJieClassInheritorsSearcher"/>
+
+    </extensions>
+    <extensionPoints>
+        <extensionPoint qualifiedName="com.huawei.cangjie.ide.search.classInheritorsSearch"
+                        interface="com.intellij.util.QueryExecutor" dynamic="true"/>
+        <extensionPoint qualifiedName="com.huawei.cangjie.ide.search.directClassInheritorsSearch"
+                        interface="com.intellij.util.QueryExecutor" dynamic="true"/>
+
+    </extensionPoints>
 
     <projectListeners>
         <listener class="com.huawei.cangjie.ide.stubindex.resolve.CangJieRepairIdeAfterCorruptionNotification"
                   topic="com.huawei.cangjie.ide.stubindex.resolve.CangJieCorruptedIndexListener"
                   activeInHeadlessMode="false"
                   activeInTestMode="false"/>
-
 
 
     </projectListeners>

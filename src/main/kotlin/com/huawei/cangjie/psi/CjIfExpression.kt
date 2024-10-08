@@ -31,7 +31,7 @@ class CjIfExpression(node: ASTNode) : CjExpressionImpl(node) ,CjPatternEntryBloc
         get() = findExpressionUnder(CjNodeTypes.ELSE)
     val elseKeyword: PsiElement?
         get() = findChildByType(CjTokens.ELSE_KEYWORD)
-    val ifKeyword: PsiElement?
-        get() = findChildByType(CjTokens.IF_KEYWORD)
+    val ifKeyword: PsiElement
+        get() = findChildByType(CjTokens.IF_KEYWORD)!!
 }
 

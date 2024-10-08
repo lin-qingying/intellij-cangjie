@@ -26,10 +26,28 @@ import com.huawei.cangjie.utils.DFS
 import com.intellij.psi.PsiElement
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
-
+fun DeclarationDescriptor.unwrapIfTypeAlias(): DeclarationDescriptor? =
+    when(this) {
+        is TypeAliasDescriptor -> this.classDescriptor?.unwrapIfTypeAlias()
+        else -> this
+    }
 val DeclarationDescriptor.isExtension: Boolean
     get() = this is CallableDescriptor && extensionReceiverParameter != null
-
+fun <D : CallableMemberDescriptor> D.getDirectlyOverriddenDeclarations(): Collection<D> {
+    val result = java.util.LinkedHashSet<D>()
+    for (overriddenDescriptor in overriddenDescriptors) {
+        @Suppress("UNCHECKED_CAST")
+        when (overriddenDescriptor.kind) {
+            CallableMemberDescriptor.Kind.     DECLARATION -> result.add(overriddenDescriptor as D)
+            CallableMemberDescriptor.Kind.    FAKE_OVERRIDE,     CallableMemberDescriptor.Kind. DELEGATION -> result.addAll((overriddenDescriptor as D).getDirectlyOverriddenDeclarations())
+            CallableMemberDescriptor.Kind.    SYNTHESIZED -> {
+                //do nothing
+            }
+            else -> throw AssertionError("Unexpected callable kind ${overriddenDescriptor.kind}: $overriddenDescriptor")
+        }
+    }
+    return OverridingUtil.filterOutOverridden(result)
+}
 fun DeclarationDescriptorWithVisibility.isVisible(
     context: PsiElement,
     receiverExpression: CjExpression?,
@@ -129,6 +147,18 @@ val DeclarationDescriptor.fqNameSafe: FqName
     get() = DescriptorUtils.getFqNameSafe(this)
 
 object DescriptorUtils {
+
+    /**
+     * @return true iff this is a top-level declaration or a class member with no expected "this" object
+     */
+    fun isStaticDeclaration(descriptor: CallableDescriptor): Boolean {
+        if (descriptor is  ConstructorDescriptor) return false
+
+        val container: DeclarationDescriptor = descriptor.containingDeclaration
+        return container is PackageFragmentDescriptor ||
+                (container is ClassDescriptor && descriptor.getDispatchReceiverParameter() == null)
+    }
+
     @JvmStatic
     fun isDirectSubclass(
         subClass: ClassDescriptor,

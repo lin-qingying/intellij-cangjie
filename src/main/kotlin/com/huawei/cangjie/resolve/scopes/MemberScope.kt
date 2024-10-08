@@ -81,7 +81,19 @@ interface MemberScope : ResolutionScope {
 
 abstract class DescriptorKindExclude {
     abstract fun excludes(descriptor: DeclarationDescriptor): Boolean
+    object Extensions : DescriptorKindExclude() {
+        override fun excludes(descriptor: DeclarationDescriptor)
+                = descriptor is CallableDescriptor && descriptor.extensionReceiverParameter != null
 
+        override val fullyExcludedDescriptorKinds: Int get() = 0
+    }
+    object NonExtensions : DescriptorKindExclude() {
+        override fun excludes(descriptor: DeclarationDescriptor)
+                = descriptor !is CallableDescriptor || descriptor.extensionReceiverParameter == null
+
+        override val fullyExcludedDescriptorKinds
+                = DescriptorKindFilter.ALL_KINDS_MASK and (DescriptorKindFilter.FUNCTIONS_MASK or DescriptorKindFilter.VARIABLES_MASK).inv()
+    }
     object TopLevelPackages : DescriptorKindExclude() {
         override fun excludes(descriptor: DeclarationDescriptor): Boolean {
             val fqName = when (descriptor) {

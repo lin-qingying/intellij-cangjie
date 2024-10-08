@@ -14,11 +14,14 @@ import com.huawei.cangjie.ide.codeinsight.quickDoc.cdoc.CDocRenderer.appendHighl
 import com.huawei.cangjie.ide.codeinsight.quickDoc.cdoc.CDocRenderer.createHighlightingManager
 import com.huawei.cangjie.ide.codeinsight.quickDoc.cdoc.CDocRenderer.highlight
 import com.huawei.cangjie.ide.codeinsight.quickDoc.cdoc.CDocRenderer.renderCDoc
+import com.huawei.cangjie.ide.completion.DescriptorBasedDeclarationLookupObject
 import com.huawei.cangjie.ide.navigation.SourceNavigationHelper
+import com.huawei.cangjie.lang.CangJieLanguage
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.*
 import com.huawei.cangjie.references.mainReference
+import com.huawei.cangjie.references.resolveCDocLink
 import com.huawei.cangjie.references.util.DescriptorToSourceUtilsIde
 import com.huawei.cangjie.renderer.DescriptorRenderer
 import com.huawei.cangjie.renderer.DescriptorRendererImpl
@@ -34,8 +37,6 @@ import com.intellij.lang.documentation.CompositeDocumentationProvider
 import com.intellij.lang.documentation.ExternalDocumentationProvider
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.NlsSafe
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiWhiteSpace
 import org.jetbrains.annotations.Nls
 import com.huawei.cangjie.resolve.source.getPsi
 import com.huawei.cangjie.renderer.ClassifierNamePolicy
@@ -49,8 +50,18 @@ import com.huawei.cangjie.utils.safeAs
 
 import com.intellij.lang.documentation.DocumentationMarkup.*
 import com.intellij.lang.documentation.DocumentationSettings
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.HtmlChunk
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.psi.*
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.io.HttpRequests
+import java.util.function.Consumer
 
 
 class HtmlClassifierNamePolicy(val base: ClassifierNamePolicy) : ClassifierNamePolicyEx {
@@ -143,6 +154,57 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
 
     }
 
+    override fun getDocumentationElementForLink(psiManager: PsiManager, link: String, context: PsiElement?): PsiElement? {
+        val navElement = context?.navigationElement as? CjElement ?: return null
+        val resolutionFacade = navElement.getResolutionFacade()
+        val bindingContext = navElement.safeAnalyzeNonSourceRootCode(resolutionFacade, BodyResolveMode.PARTIAL)
+        val contextDescriptor = bindingContext[BindingContext.DECLARATION_TO_DESCRIPTOR, navElement] ?: return null
+        val descriptors = resolveCDocLink(
+            bindingContext, resolutionFacade,
+            contextDescriptor, navElement, null, link.split('.')
+        )
+        val target = descriptors.firstOrNull() ?: return null
+        return DescriptorToSourceUtilsIde.getAnyDeclaration(psiManager.project, target)
+    }
+    override fun collectDocComments(file: PsiFile, sink: Consumer<in PsiDocCommentBase>) {
+        if (file !is CjFile) return
+
+        PsiTreeUtil.processElements(file) {
+            val comment = (it as? CjDeclaration)?.docComment
+            if (comment != null) sink.accept(comment)
+            true
+        }
+    }
+
+
+
+    override fun getDocumentationElementForLookupItem(psiManager: PsiManager, `object`: Any?, element: PsiElement?): PsiElement? {
+        if (`object` is DescriptorBasedDeclarationLookupObject) {
+            `object`.psiElement?.let { return it }
+            `object`.descriptor?.let { descriptor ->
+                return DescriptorToSourceUtilsIde.getAnyDeclaration(psiManager.project, descriptor)
+            }
+        }
+        return null
+    }
+    @Nls
+    override fun generateRenderedDoc(comment: PsiDocCommentBase): String? {
+        val docComment = comment as? CDoc ?: return null
+
+        val result = StringBuilder().also {
+            it.renderCDoc(docComment.getDefaultSection(), docComment.getAllSections())
+        }
+
+        @Suppress("HardCodedStringLiteral")
+        return result.toString()
+    }
+    override fun getCustomDocumentationElement(editor: Editor, file: PsiFile, contextElement: PsiElement?, targetOffset: Int): PsiElement? {
+        return if (contextElement.isModifier()) contextElement else null
+    }
+    @Nls
+    override fun getQuickNavigateInfo(element: PsiElement?, originalElement: PsiElement?): String? {
+        return if (element == null) null else getText(element, originalElement, true)
+    }
     override fun promptToConfigureDocumentation(element: PsiElement?) {
 
     }
@@ -348,7 +410,7 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
                         DocumentationManagerUtil.createHyperlink(this, it.asString(), highlighted, false, false)
                     }
                     HtmlChunk.fragment(
-                        HtmlChunk.tag("icon").attr("src", "/org/jetbrains/kotlin/idea/icons/classKotlin.svg"),
+//                        HtmlChunk.tag("icon").attr("src", "/org/jetbrains/kotlin/idea/icons/classKotlin.svg"),
                         HtmlChunk.nbsp(),
                         HtmlChunk.raw(link.toString()),
                         HtmlChunk.br()
