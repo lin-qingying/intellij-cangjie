@@ -16,7 +16,9 @@ public interface CallableMemberDescriptor extends CallableDescriptor, MemberDesc
     @NotNull
     Kind getKind();
     void setOverriddenDescriptors(@NotNull Collection<? extends CallableMemberDescriptor> overriddenDescriptors);
-
+    @NotNull
+    @Override
+    CallableMemberDescriptor getOriginal();
     @NotNull
     @Override
     Collection<? extends CallableMemberDescriptor> getOverriddenDescriptors();

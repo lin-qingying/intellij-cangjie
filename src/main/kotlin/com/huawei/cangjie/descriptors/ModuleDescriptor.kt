@@ -1,5 +1,6 @@
 package com.huawei.cangjie.descriptors
 
+import com.huawei.cangjie.analyzer.ModuleOrigin
 import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
@@ -7,6 +8,7 @@ import com.huawei.cangjie.name.Name
 class ModuleCapability<T>(val name: String) {
     override fun toString() = name
 }
+val OriginCapability = ModuleCapability<ModuleOrigin>("MODULE_ORIGIN")
 
 interface ModuleDescriptor : DeclarationDescriptor{
     val isValid: Boolean

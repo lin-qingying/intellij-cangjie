@@ -1,6 +1,7 @@
 package com.huawei.cangjie.psi;
 
 import com.huawei.cangjie.CjNodeTypes;
+import com.huawei.cangjie.doc.psi.CDocElement;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.name.SpecialNames;
 import com.huawei.cangjie.parsing.CangJieExpressionParsing;
@@ -11,6 +12,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.codeInsight.CommentUtilCore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.huawei.cangjie.psi.psiUtil.CjPsiUtilKt;
@@ -32,6 +34,19 @@ public class CjPsiUtil {
     public static boolean isBooleanConstant(@Nullable CjExpression condition) {
         return condition != null && condition.getNode().getElementType() == CjNodeTypes.BOOLEAN_CONSTANT;
     }
+    /**
+     * CommentUtilCore.isComment fails if element <strong>inside</strong> comment.
+     *
+     * Also, we can not add KDocTokens to COMMENTS TokenSet, because it is used in KotlinParserDefinition.getCommentTokens(),
+     * and therefor all COMMENTS tokens will be ignored by PsiBuilder.
+     *
+     * @param element
+     * @return
+     */
+    public static boolean isInComment(PsiElement element) {
+        return CommentUtilCore.isComment(element) || element instanceof CDocElement;
+    }
+
     @Nullable
     public static CjExpression getExpressionOrLastStatementInBlock(@Nullable CjExpression expression) {
         if (expression instanceof CjBlockExpression) {

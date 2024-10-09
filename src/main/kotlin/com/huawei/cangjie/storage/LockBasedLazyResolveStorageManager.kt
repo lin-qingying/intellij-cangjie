@@ -56,6 +56,8 @@ class LockBasedLazyResolveStorageManager(private val storageManager: StorageMana
         override val bindingContext: BindingContext
             get() = context
 
+        override val size: Int
+            get() = trace.size
         override fun <K, V> getKeys(slice: WritableSlice<K, V>): Collection<K> =
             storageManager.compute { trace.getKeys<K, V>(slice) }
 

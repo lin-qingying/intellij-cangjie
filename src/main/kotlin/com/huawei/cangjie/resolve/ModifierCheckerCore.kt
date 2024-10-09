@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.diagnostics.Errors
+import com.huawei.cangjie.lexer.CjKeywordToken
 import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
@@ -10,6 +11,7 @@ import com.huawei.cangjie.resolve.calls.components.getDescriptorKind
 import com.huawei.cangjie.resolve.source.getPsi
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
+import com.intellij.psi.tree.TokenSet
 
 /**
  * 检查修饰符
@@ -119,7 +121,9 @@ object ModifierCheckerCore {
         }
     }
 
-    private val MODIFIER_KEYWORD_SET = CjTokens.MODIFIER_KEYWORDS
+    private val MODIFIER_KEYWORD_SET = TokenSet.create(*CjTokens.MODIFIER_KEYWORDS_ARRAY,
+        CjTokens.CONST_KEYWORD
+    )
 
     private fun checkCompatibility(
         trace: BindingTrace,
@@ -257,7 +261,7 @@ object ModifierCheckerCore {
 
     // Should return false if error is reported, true otherwise
     private fun checkTarget(trace: BindingTrace, node: ASTNode, actualTargets: List<CangJieTarget>): Boolean {
-        val modifier = node.elementType as CjModifierKeywordToken
+        val modifier = node.elementType as CjKeywordToken
 
         val possibleTargets = possibleTargetMap[modifier] ?: emptySet()
         if (!actualTargets.any { it in possibleTargets }) {

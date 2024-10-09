@@ -63,6 +63,17 @@ object OperatorConventions {
 
     val BYTE: Name = Name.identifier("toByte")
 
+    fun getOperationSymbolForName(name: Name): CjToken? {
+        if (!isConventionName(name)) return null
+        var token =
+            BINARY_OPERATION_NAMES.inverse().get(name)
+        if (token != null) return token
+        token = UNARY_OPERATION_NAMES.inverse().get(name)
+        if (token != null) return token
+        token = ASSIGNMENT_OPERATIONS.inverse().get(name)
+        if (token != null) return token
+        return null
+    }
 
     val NUMBER_CONVERSIONS: ImmutableSet<Name> =
         ImmutableSet.of<Name>(

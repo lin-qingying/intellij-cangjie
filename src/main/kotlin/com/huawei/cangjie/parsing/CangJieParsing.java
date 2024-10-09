@@ -329,7 +329,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private void parseImportDirectives() {
         PsiBuilder.Marker importList = mark();
 
-
+        if (!(at(IMPORT_KEYWORD) || atSet(IMPORT_ACCESS_MODIFIER_SET) && (lookahead(1) == IMPORT_KEYWORD))) {
+            // this is necessary to allow comments at the start of the file to be bound to the first declaration
+            importList.setCustomEdgeTokenBinders(DoNotBindAnything.INSTANCE, null);
+        }
         while (at(IMPORT_KEYWORD) || atSet(IMPORT_ACCESS_MODIFIER_SET) && (lookahead(1) == IMPORT_KEYWORD)) {
             parseImportDirective();
         }

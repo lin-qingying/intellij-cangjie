@@ -2,10 +2,12 @@ package com.huawei.cangjie.resolve
 
 
 import com.huawei.cangjie.builtins.CangJieBuiltIns
+import com.huawei.cangjie.builtins.StandardNames
 import com.huawei.cangjie.builtins.StandardNames.FqNames.fromByName
 import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptor
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.name.*
 import com.huawei.cangjie.psi.CjExpression
@@ -26,28 +28,38 @@ import com.huawei.cangjie.utils.DFS
 import com.intellij.psi.PsiElement
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
+
 fun DeclarationDescriptor.unwrapIfTypeAlias(): DeclarationDescriptor? =
-    when(this) {
+    when (this) {
         is TypeAliasDescriptor -> this.classDescriptor?.unwrapIfTypeAlias()
         else -> this
     }
+
+fun DeclarationDescriptor.isPublishedApi(): Boolean {
+    val descriptor = if (this is CallableMemberDescriptor) DescriptorUtils.getDirectMember(this) else this
+    return descriptor.annotations.hasAnnotation(StandardNames.FqNames.publishedApi)
+}
+
 val DeclarationDescriptor.isExtension: Boolean
     get() = this is CallableDescriptor && extensionReceiverParameter != null
+
 fun <D : CallableMemberDescriptor> D.getDirectlyOverriddenDeclarations(): Collection<D> {
     val result = java.util.LinkedHashSet<D>()
     for (overriddenDescriptor in overriddenDescriptors) {
         @Suppress("UNCHECKED_CAST")
         when (overriddenDescriptor.kind) {
-            CallableMemberDescriptor.Kind.     DECLARATION -> result.add(overriddenDescriptor as D)
-            CallableMemberDescriptor.Kind.    FAKE_OVERRIDE,     CallableMemberDescriptor.Kind. DELEGATION -> result.addAll((overriddenDescriptor as D).getDirectlyOverriddenDeclarations())
-            CallableMemberDescriptor.Kind.    SYNTHESIZED -> {
+            CallableMemberDescriptor.Kind.DECLARATION -> result.add(overriddenDescriptor as D)
+            CallableMemberDescriptor.Kind.FAKE_OVERRIDE, CallableMemberDescriptor.Kind.DELEGATION -> result.addAll((overriddenDescriptor as D).getDirectlyOverriddenDeclarations())
+            CallableMemberDescriptor.Kind.SYNTHESIZED -> {
                 //do nothing
             }
+
             else -> throw AssertionError("Unexpected callable kind ${overriddenDescriptor.kind}: $overriddenDescriptor")
         }
     }
     return OverridingUtil.filterOutOverridden(result)
 }
+
 fun DeclarationDescriptorWithVisibility.isVisible(
     context: PsiElement,
     receiverExpression: CjExpression?,
@@ -120,6 +132,7 @@ fun CallableDescriptor.getOwnerForEffectiveDispatchReceiverParameter(): Declarat
     }
     return dispatchReceiverParameter?.containingDeclaration
 }
+
 fun CallableMemberDescriptor.firstOverridden(
     useOriginal: Boolean = false,
     predicate: (CallableMemberDescriptor) -> Boolean
@@ -146,13 +159,61 @@ fun CallableMemberDescriptor.firstOverridden(
 val DeclarationDescriptor.fqNameSafe: FqName
     get() = DescriptorUtils.getFqNameSafe(this)
 
+fun TypeConstructor.supertypesWithAny(): Collection<CangJieType> {
+    val supertypes = supertypes
+    val noSuperClass = supertypes.map { it.constructor.declarationDescriptor as? ClassDescriptor }.all {
+        it == null || it.kind == ClassKind.INTERFACE
+    }
+    return if (noSuperClass) supertypes + builtIns.anyType else supertypes
+}
+
+fun <D : CallableDescriptor> D.overriddenTreeUniqueAsSequence(useOriginal: Boolean): Sequence<D> {
+    val set = hashSetOf<D>()
+
+    @Suppress("UNCHECKED_CAST")
+    fun D.doBuildOverriddenTreeAsSequence(): Sequence<D> {
+        return with(if (useOriginal) original as D else this) {
+            if (original in set)
+                emptySequence()
+            else {
+                set += original as D
+                sequenceOf(this) + (overriddenDescriptors as Collection<D>).asSequence()
+                    .flatMap { it.doBuildOverriddenTreeAsSequence() }
+            }
+        }
+    }
+
+    return doBuildOverriddenTreeAsSequence()
+}
+
+
+val DeclarationDescriptorWithVisibility.isEffectivelyPublicApi: Boolean
+    get() = effectiveVisibility().publicApi
+
+
 object DescriptorUtils {
+    fun getFqNameFromTopLevelClass(descriptor: DeclarationDescriptor): FqName {
+        val containingDeclaration =
+            descriptor.containingDeclaration
+        val name: Name = descriptor.name
+        if (containingDeclaration !is ClassDescriptor) {
+            return FqName.topLevel(name)
+        }
+        return getFqNameFromTopLevelClass(containingDeclaration).child(name)
+    }
+
+    fun getDirectMember(descriptor: CallableMemberDescriptor): CallableMemberDescriptor {
+        return if (descriptor is PropertyAccessorDescriptor)
+            descriptor.correspondingProperty
+        else
+            descriptor
+    }
 
     /**
      * @return true iff this is a top-level declaration or a class member with no expected "this" object
      */
     fun isStaticDeclaration(descriptor: CallableDescriptor): Boolean {
-        if (descriptor is  ConstructorDescriptor) return false
+        if (descriptor is ConstructorDescriptor) return false
 
         val container: DeclarationDescriptor = descriptor.containingDeclaration
         return container is PackageFragmentDescriptor ||
@@ -500,6 +561,7 @@ object DescriptorUtils {
         }
         return classDescriptor.builtIns.anyType
     }
+
     @JvmStatic
 
     fun isTuple(descriptor: DeclarationDescriptor?): Boolean {
@@ -508,6 +570,7 @@ object DescriptorUtils {
             ClassKind.TUPLE
         )
     }
+
     @JvmStatic
 
     fun isEnum(descriptor: DeclarationDescriptor?): Boolean {

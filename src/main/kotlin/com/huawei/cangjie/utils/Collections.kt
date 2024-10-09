@@ -4,6 +4,18 @@ package com.huawei.cangjie.utils
 
 import com.intellij.util.SmartList
 import java.util.*
+
+
+inline fun <K, V> MutableMap<K, V>.getOrPutNullable(key: K, defaultValue: () -> V): V {
+    return if (!containsKey(key)) {
+        val answer = defaultValue()
+        put(key, answer)
+        answer
+    } else {
+        @Suppress("UNCHECKED_CAST")
+        get(key) as V
+    }
+}
 fun <E> newHashSetWithExpectedSize(expectedSize: Int): HashSet<E> =
     HashSet(capacity(expectedSize))
 private fun capacity(expectedSize: Int): Int =

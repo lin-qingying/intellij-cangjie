@@ -172,7 +172,10 @@ class CjNamedFunction : CjFunctionImpl {
         get() {
             return name == null && isLocal
         }
+
     override val isMut: Boolean
+        get() = hasModifier(CjTokens.MUT_KEYWORD)
+    override val isConst: Boolean
         get() = hasModifier(CjTokens.MUT_KEYWORD)
     override val isTopLevel: Boolean
         get() {

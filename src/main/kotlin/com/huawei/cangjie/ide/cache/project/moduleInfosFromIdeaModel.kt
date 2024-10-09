@@ -1,10 +1,7 @@
 package com.huawei.cangjie.ide.cache.project
 
 
-import com.huawei.cangjie.analyzer.CangJieLibrary
-import com.huawei.cangjie.analyzer.CangJieModuleInfo
-import com.huawei.cangjie.analyzer.LibraryInfo
-import com.huawei.cangjie.analyzer.ModuleInfo
+import com.huawei.cangjie.analyzer.*
 import com.huawei.cangjie.ide.cache.trackers.CangJieCodeBlockModificationListener
 import com.huawei.cangjie.utils.CangJieExceptionWithAttachments
 import com.intellij.java.workspace.entities.JavaModuleSettingsEntity
@@ -304,7 +301,8 @@ fun Module.checkValidity() {
 
 val Module.moduleInfos: List<ModuleInfo>
     get() = listOfNotNull(cangjieModuleInfo)
-
+val Module.sourceModuleInfos: List<ModuleSourceInfo>
+    get() = listOfNotNull(cangjieModuleInfo)
 val moduleInfoMaps: MutableMap<Module, CangJieModuleInfo> = mutableMapOf()
 
 var _cangjieModuleInfo: CangJieModuleInfo? = null

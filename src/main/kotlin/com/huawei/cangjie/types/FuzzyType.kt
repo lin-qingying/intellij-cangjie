@@ -1,14 +1,13 @@
 package com.huawei.cangjie.types
 
+import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.CallableMemberDescriptor
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.resolve.calls.inference.CallHandle
 import com.huawei.cangjie.resolve.calls.inference.ConstraintSystemBuilderImpl
 import com.huawei.cangjie.resolve.calls.inference.constraintPosition.ConstraintPositionKind
 import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.isUnit
-import com.huawei.cangjie.types.util.TypeNullability
-import com.huawei.cangjie.types.util.isSubtypeOf
-import com.huawei.cangjie.types.util.nullability
+import com.huawei.cangjie.types.util.*
 import java.util.HashSet
 
 class FuzzyType(val type: CangJieType, freeParameters: Collection<TypeParameterDescriptor>)
@@ -49,6 +48,7 @@ class FuzzyType(val type: CangJieType, freeParameters: Collection<TypeParameterD
         val typeParameters = original.typeParameters ?: error("typeParameters = null for $original")
         return typeParameters[index]
     }
+    fun checkIsSubtypeOf(otherType: CangJieType): TypeSubstitutor? = checkIsSubtypeOf(otherType.toFuzzyType(emptyList()))
 
     fun checkIsSubtypeOf(otherType: FuzzyType): TypeSubstitutor? = matchedSubstitutor(otherType, MatchKind.IS_SUBTYPE)
     private enum class MatchKind {
@@ -119,3 +119,11 @@ class FuzzyType(val type: CangJieType, freeParameters: Collection<TypeParameterD
 }
 fun CangJieType.toFuzzyType(freeParameters: Collection<TypeParameterDescriptor>) = FuzzyType(this, freeParameters)
 fun FuzzyType.nullability()  = type.nullability()
+fun CallableDescriptor.fuzzyReturnType() = returnType?.toFuzzyType(typeParameters)
+fun FuzzyType.isAlmostEverything(): Boolean {
+    if (freeParameters.isEmpty()) return false
+    val typeParameter = type.constructor.declarationDescriptor as? TypeParameterDescriptor ?: return false
+    if (typeParameter !in freeParameters) return false
+    return typeParameter.upperBounds.singleOrNull()?.isAnyOrNullableAny() ?: false
+}
+fun FuzzyType.makeNotNullable() = type.makeNotNullable().toFuzzyType(freeParameters)

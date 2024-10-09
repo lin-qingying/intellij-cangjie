@@ -16,3 +16,77 @@ fun String.toLowerCaseAsciiOnly(): String {
     }
     return builder.toString()
 }
+/**
+ * "FooBar" -> "fooBar"
+ * "FOOBar" -> "fooBar"
+ * "FOO" -> "foo"
+ * "FOO_BAR" -> "fooBar"
+ * "__F_BAR" -> "fBar"
+ */
+fun String.decapitalizeSmart(asciiOnly: Boolean = false): String {
+    return decapitalizeWithUnderscores(this, asciiOnly)
+        ?: decapitalizeSmartForCompiler(asciiOnly)
+}
+/**
+ * FOOBAR -> null
+ * FOO_BAR -> "fooBar"
+ * FOO_BAR_BAZ -> "fooBarBaz"
+ * "__F_BAR" -> "fBar"
+ * "_F_BAR" -> "fBar"
+ * "F_BAR" -> "fBar"
+ */
+private fun decapitalizeWithUnderscores(str: String, asciiOnly: Boolean): String? {
+    val words = str.split("_").filter { it.isNotEmpty() }
+
+    if (words.size <= 1) return null
+
+    val builder = StringBuilder()
+
+    words.forEachIndexed { index, word ->
+        if (index == 0) {
+            builder.append(toLowerCase(word, asciiOnly))
+        } else {
+            builder.append(toUpperCase(word.first().toString(), asciiOnly))
+            builder.append(toLowerCase(word.drop(1), asciiOnly))
+        }
+    }
+
+    return builder.toString()
+}
+private fun toLowerCase(string: String, asciiOnly: Boolean): String {
+    return if (asciiOnly) string.toLowerCaseAsciiOnly() else string.lowercase()
+}
+
+private fun toUpperCase(string: String, asciiOnly: Boolean): String {
+    return if (asciiOnly) string.toUpperCaseAsciiOnly() else string.uppercase()
+}
+/**
+ * "FooBar" -> "fooBar"
+ * "FOOBar" -> "fooBar"
+ * "FOO" -> "foo"
+ * "FOO_BAR" -> "foO_BAR"
+ */
+fun String.decapitalizeSmartForCompiler(asciiOnly: Boolean = false): String {
+    if (isEmpty() || !isUpperCaseCharAt(0, asciiOnly)) return this
+
+    if (length == 1 || !isUpperCaseCharAt(1, asciiOnly)) {
+        return if (asciiOnly) decapitalizeAsciiOnly() else replaceFirstChar(Char::lowercaseChar)
+    }
+
+    val secondWordStart = (indices.firstOrNull { !isUpperCaseCharAt(it, asciiOnly) } ?: return toLowerCase(this, asciiOnly)) - 1
+
+    return toLowerCase(substring(0, secondWordStart), asciiOnly) + substring(secondWordStart)
+}
+
+private fun String.isUpperCaseCharAt(index: Int, asciiOnly: Boolean): Boolean {
+    val c = this[index]
+    return if (asciiOnly) c in 'A'..'Z' else c.isUpperCase()
+}
+fun String.decapitalizeAsciiOnly(): String {
+    if (isEmpty()) return this
+    val c = this[0]
+    return if (c in 'A'..'Z')
+        c.lowercaseChar() + substring(1)
+    else
+        this
+}

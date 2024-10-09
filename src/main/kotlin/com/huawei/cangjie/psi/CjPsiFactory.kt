@@ -48,7 +48,10 @@ class CjPsiFactory private constructor(
     fun createEmptyClassBody(): CjClassBody {
         return createClass("class A{}").getBody()!!
     }
-
+    fun createTypeArguments(@NonNls text: String): CjTypeArgumentList {
+        val property = createVariable("let x = foo$text()")
+        return (property.initializer as CjCallExpression).typeArgumentList!!
+    }
     companion object {
         @JvmStatic
         @JvmOverloads

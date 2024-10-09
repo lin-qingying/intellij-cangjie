@@ -259,6 +259,7 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
             "NOTHING_TO_OVERRIDE"
         )
 
+        fun wasUnresolved(element: CjNameReferenceExpression) = element.getUserData(UNRESOLVED_KEY) != null
 
         fun getAfterAnalysisVisitor(holder: HighlightInfoHolder, bindingContext: BindingContext) =
             arrayOf<AfterAnalysisHighlightingVisitor>(

@@ -1,47 +1,36 @@
 package com.huawei.cangjie.ide.completion
 
+import com.huawei.cangjie.ide.completion.smart.SmartCompletion
+import com.huawei.cangjie.ide.completion.stringTemplates.StringTemplateCompletion
+import com.huawei.cangjie.ide.completion.stringTemplates.wrapLookupElementForStringTemplateAfterDotCompletion
 import com.huawei.cangjie.lexer.CjTokens
-import com.huawei.cangjie.psi.CjFile
-import com.huawei.cangjie.psi.CjNameReferenceExpression
+import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.psiUtil.endOffset
 import com.huawei.cangjie.psi.psiUtil.getNonStrictParentOfType
 import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.completion.addingPolicy.PolicyController
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher
 import com.intellij.codeInsight.lookup.LookupElement
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.patterns.PlatformPatterns.elementType
 import com.intellij.patterns.PlatformPatterns.psiElement
-import com.intellij.platform.ml.impl.turboComplete.KindCollector
-import com.intellij.platform.ml.impl.turboComplete.KindVariety
-import com.intellij.platform.ml.impl.turboComplete.SuggestionGeneratorExecutor
+import com.intellij.platform.ml.impl.turboComplete.*
+import com.intellij.platform.ml.impl.turboComplete.SmartPipelineRunner
 import com.intellij.psi.PsiComment
 import com.intellij.util.indexing.DumbModeAccessType
+import kotlin.math.max
 
 
-abstract class CangJieKindExecutingCompletionContributor : CompletionContributor(), KindCollector
+abstract class CangJieKindExecutingCompletionContributor : CompletionContributor(), KindCollector{
+    override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
+        SmartPipelineRunner.getOneOrDefault().runPipeline(this, parameters, result)
+    }
+}
 
 class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor() {
-
-
-//    init {
-//        extend(CompletionType.BASIC, psiElement(),
-//
-//            object : CompletionProvider<CompletionParameters>() {
-//                override fun addCompletions(
-//                    parameters: CompletionParameters,
-//                    context: ProcessingContext,
-//                    result: CompletionResultSet
-//                ) {
-//
-//                    CjTokens.KEYWORDALL.types.forEach {
-//                        result.addElement(LookupElementBuilder.create(it.toString()))
-//
-//                    }
-//                }
-//
-//            })
-//    }
 
     override val kindVariety: KindVariety = CangJieKindVariety
     private val AFTER_NUMBER_LITERAL = psiElement().afterLeafSkipping(
@@ -58,10 +47,16 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
         generatorExecutor: SuggestionGeneratorExecutor,
         result: CompletionResultSet
     ) {
-//        StringTemplateCompletion.correctParametersForInStringTemplateCompletion(parameters)?.let { correctedParameters ->
-////            generateCompletionKinds(correctedParameters, generatorExecutor, result, ::wrapLookupElementForStringTemplateAfterDotCompletion)
-//            return
-//        }
+        StringTemplateCompletion.correctParametersForInStringTemplateCompletion(parameters)
+            ?.let { correctedParameters ->
+                generateCompletionKinds(
+                    correctedParameters,
+                    generatorExecutor,
+                    result,
+                    ::wrapLookupElementForStringTemplateAfterDotCompletion
+                )
+                return
+            }
 
         DumbModeAccessType.RELIABLE_DATA_ONLY.ignoreDumbMode(ThrowableComputable {
             generateCompletionKinds(parameters, generatorExecutor, result, null)
@@ -101,6 +96,97 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
         return false
     }
 
+    companion object {
+        // add '$' to ignore context after the caret
+        const val DEFAULT_DUMMY_IDENTIFIER: String = CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED + "$"
+    }
+
+    private fun replacementOffsetByExpression(expression: CjExpression): Int {
+        when (expression) {
+            is CjCallExpression -> {
+                val calleeExpression = expression.calleeExpression
+                if (calleeExpression != null) {
+                    return calleeExpression.textRange!!.endOffset
+                }
+            }
+
+            is CjQualifiedExpression -> {
+                val selector = expression.selectorExpression
+                if (selector != null) {
+                    return replacementOffsetByExpression(selector)
+                }
+            }
+        }
+        return expression.textRange!!.endOffset
+    }
+
+    override fun beforeCompletion(context: CompletionInitializationContext) {
+        val offset = context.startOffset
+        val psiFile = context.file
+        val tokenBefore = psiFile.findElementAt(max(0, offset - 1))
+
+        // this code will make replacement offset "modified" and prevents altering it by the code in CompletionProgressIndicator
+        context.markReplacementOffsetAsModified()
+
+        val dummyIdentifierCorrected =
+            CompletionDummyIdentifierProviderService.getInstance().correctPositionForStringTemplateEntry(context)
+        if (dummyIdentifierCorrected) {
+            return
+        }
+        context.dummyIdentifier = when {
+            context.completionType == CompletionType.SMART -> DEFAULT_DUMMY_IDENTIFIER
+
+            PackageDirectiveCompletion.ACTIVATION_PATTERN.accepts(tokenBefore) -> PackageDirectiveCompletion.DUMMY_IDENTIFIER
+
+            else -> CompletionDummyIdentifierProviderService.getInstance().provideDummyIdentifier(context)
+        }
+
+        val tokenAt = psiFile.findElementAt(max(0, offset))
+        if (tokenAt != null) {
+            /* do not use parent expression if we are at the end of line - it's probably parsed incorrectly */
+            if (context.completionType == CompletionType.SMART && !isAtEndOfLine(offset, context.editor.document)) {
+                var parent = tokenAt.parent
+                if (parent is CjExpression && parent !is CjBlockExpression) {
+                    // search expression to be replaced - go up while we are the first child of parent expression
+                    var expression: CjExpression = parent
+                    parent = expression.parent
+                    while (parent is CjExpression && parent.getFirstChild() == expression) {
+                        expression = parent
+                        parent = expression.parent
+                    }
+
+                    val suggestedReplacementOffset = replacementOffsetByExpression(expression)
+                    if (suggestedReplacementOffset > context.replacementOffset) {
+                        context.replacementOffset = suggestedReplacementOffset
+                    }
+
+                    context.offsetMap.addOffset(SmartCompletion.OLD_ARGUMENTS_REPLACEMENT_OFFSET, expression.endOffset)
+
+                    val argumentList = (expression.parent as? CjValueArgument)?.parent as? CjValueArgumentList
+                    if (argumentList != null) {
+                        context.offsetMap.addOffset(
+                            SmartCompletion.MULTIPLE_ARGUMENTS_REPLACEMENT_OFFSET,
+                            argumentList.rightParenthesis?.textRange?.startOffset ?: argumentList.endOffset
+                        )
+                    }
+                }
+            }
+            CompletionDummyIdentifierProviderService.getInstance().correctPositionForParameter(context)
+        }
+    }
+
+    private fun isAtEndOfLine(offset: Int, document: Document): Boolean {
+        var i = offset
+        val chars = document.charsSequence
+        while (i < chars.length) {
+            val c = chars[i]
+            if (c == '\n') return true
+            if (!Character.isWhitespace(c)) return false
+            i++
+        }
+        return true
+    }
+
     private fun generateCompletionKinds(
         parameters: CompletionParameters,
         suggestionGeneratorExecutor: SuggestionGeneratorExecutor,
@@ -117,11 +203,11 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
             result.stopHere()
             return
         }
-//
-//        if (PackageDirectiveCompletion.perform(parameters, result)) {
-//            result.stopHere()
-//            return
-//        }
+
+        if (PackageDirectiveCompletion.perform(parameters, result)) {
+            result.stopHere()
+            return
+        }
 
         fun addPostProcessor(session: CompletionSession) {
             if (lookupElementPostProcessor != null) {
@@ -151,9 +237,8 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
                 // Rerun completion if nothing was found
                 val newConfiguration = CompletionSessionConfiguration(
 //                    useBetterPrefixMatcherForNonImportedClasses = false,
-//                    nonAccessibleDeclarations = false,
-//                    javaGettersAndSetters = true,
-//                    javaClassesNotToBeUsed = false,
+                    nonAccessibleDeclarations = false,
+
                     staticMembers = parameters.invocationCount > 0,
 //                    dataClassComponentFunctions = true,
 //                    excludeEnumEntries = configuration.excludeEnumEntries,
@@ -172,7 +257,12 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
             session.complete()
         }
 
-        println()
+
     }
 
+}
+
+fun CompletionInitializationContext.markReplacementOffsetAsModified() {
+    // set replacement offset explicitly to mark it as modified
+    replacementOffset = replacementOffset
 }

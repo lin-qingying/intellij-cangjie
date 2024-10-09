@@ -9,6 +9,7 @@ import com.huawei.cangjie.ide.stubindex.*
 import com.huawei.cangjie.ide.util.substituteExtensionIfCallable
 import com.huawei.cangjie.incremental.CangJieLookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
+import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext
@@ -70,7 +71,29 @@ class CangJieIndicesHelper(
             true
         }
     }
+    fun getMemberOperatorsByName(name: String): Collection<FunctionDescriptor> {
+        return CangJieFunctionShortNameIndex.getAllElements(name, project, scope) {
+            it.parent is CjClassBody && it.receiverTypeReference == null && it.hasModifier(CjTokens.OPERATOR_KEYWORD)
+        }
+            .flatMap {
+                ProgressManager.checkCanceled()
+                it.resolveToDescriptors<FunctionDescriptor>()
+            }
+            .filter { descriptorFilter(it) && it.extensionReceiverParameter == null }
+            .distinct()
+    }
 
+    fun getTopLevelExtensionOperatorsByName(name: String): Collection<FunctionDescriptor> {
+        return CangJieFunctionShortNameIndex.getAllElements(name, project, scope) {
+            it.parent is CjFile && it.receiverTypeReference != null && it.hasModifier(CjTokens.OPERATOR_KEYWORD)
+        }
+            .flatMap {
+                ProgressManager.checkCanceled()
+                it.resolveToDescriptors<FunctionDescriptor>()
+            }
+            .filter { descriptorFilter(it) && it.extensionReceiverParameter != null }
+            .distinct()
+    }
 
 
     fun getCangJieEnumsByName(name: String): Collection<DeclarationDescriptor> {

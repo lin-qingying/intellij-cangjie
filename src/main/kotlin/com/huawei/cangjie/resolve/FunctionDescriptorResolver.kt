@@ -334,18 +334,21 @@ class FunctionDescriptorResolver(
             typeResolver.resolveType(context.scope, function.typeReference!!, context.trace, true)
 
         } else if (function.hasBody()) {
-            val block = function.bodyBlockExpression
-            if (block!!.isEmptyBody()) {
-                return builtIns.unitType
-            }
+//            val block = function.bodyBlockExpression
+//            if (block!!.isEmptyBody()) {
+//                return builtIns.unitType
+//            }
 
 //        TODO 返回值类型推断 暂时返回Unit
 //            return block.returnValueInferred()
 //            return builtIns.unitType
-            context.trace.report(
-                RETURN_TYPE_NOT_SPECIFIED_ERROR.on(function.firstChild)
-            )
-            return builtIns.nothingType
+
+            function.keyword?.let {
+                context.trace.report(
+                    RETURN_TYPE_NOT_SPECIFIED_ERROR.on(it)
+                )
+            }
+            return builtIns.unitType
 
 //            return functionReturnResolver.resolveFunctionReturn(function, context)
 //            return NO_EXPECTED_TYPE

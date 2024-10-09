@@ -17,6 +17,8 @@ open class VariableDescriptorImpl(
     visibility: DescriptorVisibility
 ) : VariableDescriptorWithInitializerImpl(containingDeclaration, Annotations.EMPTY, name, outType, isVar, source),
     CallableMemberDescriptor {
+    override val original: VariableDescriptorImpl
+        get() = super.original as VariableDescriptorImpl
     private var _visibility: DescriptorVisibility = visibility
 
     companion object {

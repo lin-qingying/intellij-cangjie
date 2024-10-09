@@ -49,7 +49,7 @@ abstract class ImportInsertHelper {
         return importDescriptor(file as CjElement, descriptor, runImmediately = true, forceAllUnderImport)
     }
 
-//    abstract fun importPsiClass(element: CjElement, psiClass: PsiClass, runImmediately: Boolean = true): ImportDescriptorResult
+    abstract fun importPsiClass(element: CjElement, psiClass: CjTypeStatement, runImmediately: Boolean = true): ImportDescriptorResult
 
     companion object {
         @JvmStatic
@@ -104,6 +104,9 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
         return ClassImportFilter.allowClassImport(classInfo, contextFile)
     }
 
+    override fun importPsiClass(element: CjElement, psiClass: CjTypeStatement, runImmediately: Boolean): ImportDescriptorResult {
+        return Importer(element, runImmediately).importPsiClass(psiClass)
+    }
     override fun importDescriptor(
         element: CjElement,
         descriptor: DeclarationDescriptor,
@@ -126,7 +129,28 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
         private val file = element.getContainingCjFile()
         private val resolutionFacade = file.getResolutionFacade()
         private val languageVersionSettings = resolutionFacade.languageVersionSettings
+        fun importPsiClass(psiClass: CjTypeStatement): ImportDescriptorResult {
 
+
+            val targetFqName = psiClass.fqName
+            val name = Name.identifier(psiClass.name!!)
+
+            val scope = if (element == file) resolutionFacade.getFileResolutionScope(file) else element.getResolutionScope()
+
+            scope.findClassifier(name, NoLookupLocation.FROM_IDE)?.let {
+                return if (it.fqNameSafe == targetFqName) ImportDescriptorResult.ALREADY_IMPORTED else ImportDescriptorResult.FAIL
+            }
+
+            val imports = file.importDirectives
+
+            if (imports.any { !it.isAllUnder && (it.importPath?.alias == name || it.importPath?.fqName == targetFqName) }) {
+                return ImportDescriptorResult.FAIL
+            }
+
+            targetFqName?.let { addImport(it, false) }
+
+            return ImportDescriptorResult.IMPORT_ADDED
+        }
         private fun alreadyImported(
             target: DeclarationDescriptor,
             scope: LexicalScope,

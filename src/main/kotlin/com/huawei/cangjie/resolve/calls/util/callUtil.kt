@@ -9,6 +9,7 @@ import com.huawei.cangjie.ide.FrontendInternals
 import com.huawei.cangjie.ide.refactoring.getLastLambdaExpression
 import com.huawei.cangjie.incremental.CangJieLookupLocation
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.psiUtil.firstIsInstanceOrNull
 import com.huawei.cangjie.psi.psiUtil.getQualifiedExpressionForSelectorOrThis
 import com.huawei.cangjie.psi.psiUtil.unpackFunctionLiteral
 import com.huawei.cangjie.resolve.*
@@ -18,14 +19,12 @@ import com.huawei.cangjie.resolve.caches.analyze
 import com.huawei.cangjie.resolve.calls.ArgumentTypeResolver
 import com.huawei.cangjie.resolve.calls.CallResolver
 import com.huawei.cangjie.resolve.calls.CallTransformer
+import com.huawei.cangjie.resolve.calls.components.isVararg
 import com.huawei.cangjie.resolve.calls.context.BasicCallResolutionContext
 import com.huawei.cangjie.resolve.calls.context.CheckArgumentTypesMode
 import com.huawei.cangjie.resolve.calls.context.ContextDependency
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext
-import com.huawei.cangjie.resolve.calls.model.CangJieCall
-import com.huawei.cangjie.resolve.calls.model.MutableResolvedCall
-import com.huawei.cangjie.resolve.calls.model.ResolvedCall
-import com.huawei.cangjie.resolve.calls.model.VariableAsFunctionResolvedCall
+import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.results.ResolutionStatus
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
@@ -33,6 +32,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.SmartCastManager
 import com.huawei.cangjie.resolve.calls.tower.NewResolvedCallImpl
 import com.huawei.cangjie.resolve.calls.tower.psiCangJieCall
 import com.huawei.cangjie.resolve.descriptorUtil.classValueType
+import com.huawei.cangjie.resolve.descriptorUtil.parentsWithSelf
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.resolve.scopes.getResolutionScope
 import com.huawei.cangjie.resolve.scopes.receivers.ClassQualifier
@@ -60,7 +60,9 @@ fun CjExpression.getType(context: BindingContext): CangJieType? {
     }
     return null
 }
-
+fun <D : CallableDescriptor> ResolvedCall<D>.getParameterForArgument(valueArgument: ValueArgument?): ValueParameterDescriptor? {
+    return (valueArgument?.let { getArgumentMapping(it) } as? ArgumentMatch)?.valueParameter
+}
 fun Call.getValueArgumentListOrElement(): CjElement =
     if (this is CallTransformer.CallForImplicitInvoke) {
         outerCall.getValueArgumentListOrElement()
@@ -85,6 +87,9 @@ inline fun BindingTrace.reportTrailingLambdaErrorOr(
         }
     }
 }
+
+fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentsMapped() =
+    call.valueArguments.all { argument -> getArgumentMapping(argument) is ArgumentMatch }
 
 private fun expectedType(call: Call, bindingContext: BindingContext): CangJieType {
     return (call.callElement as? CjExpression)?.let {
@@ -249,6 +254,7 @@ fun CjElement.safeAnalyze(
 fun CjElement?.getResolvedCall(context: BindingContext): ResolvedCall<out CallableDescriptor>? {
     return this?.getCall(context)?.getResolvedCall(context)
 }
+
 fun CallTypeAndReceiver<*, *>.receiverTypes(
     bindingContext: BindingContext,
     contextElement: PsiElement,
@@ -256,8 +262,15 @@ fun CallTypeAndReceiver<*, *>.receiverTypes(
     resolutionFacade: ResolutionFacade,
     stableSmartCastsOnly: Boolean
 ): List<CangJieType>? {
-    return receiverTypesWithIndex(bindingContext, contextElement, moduleDescriptor, resolutionFacade, stableSmartCastsOnly)?.map { it.type }
+    return receiverTypesWithIndex(
+        bindingContext,
+        contextElement,
+        moduleDescriptor,
+        resolutionFacade,
+        stableSmartCastsOnly
+    )?.map { it.type }
 }
+
 fun CallableDescriptor.receiverType(): CangJieType? = (dispatchReceiverParameter ?: extensionReceiverParameter)?.type
 fun CallTypeAndReceiver<*, *>.receiverTypesWithIndex(
     bindingContext: BindingContext,
@@ -271,25 +284,10 @@ fun CallTypeAndReceiver<*, *>.receiverTypesWithIndex(
 
     val receiverExpression: CjExpression?
     when (this) {
-//        is CallTypeAndReceiver.CALLABLE_REFERENCE -> {
-//            if (receiver != null) {
-//                return when (val lhs =
-//                    bindingContext[BindingContext.DOUBLE_COLON_LHS, receiver] ?: return emptyList()) {
-//                    is DoubleColonLHS.Type -> listOf(ReceiverType(lhs.type, 0))
-//
-//                    is DoubleColonLHS.Expression -> {
-//                        val receiverValue = ExpressionReceiver.create(receiver, lhs.type, bindingContext)
-//                        receiverValueTypes(
-//                            receiverValue, lhs.dataFlowInfo, bindingContext,
-//                            moduleDescriptor, stableSmartCastsOnly,
-//                            resolutionFacade
-//                        ).map { ReceiverType(it, 0) }
-//                    }
-//                }
-//            } else {
-//                return emptyList()
-//            }
-//        }
+        is CallTypeAndReceiver.CALLABLE_REFERENCE -> {
+            return emptyList()
+
+        }
 
         is CallTypeAndReceiver.DEFAULT -> receiverExpression = null
 
@@ -298,23 +296,23 @@ fun CallTypeAndReceiver<*, *>.receiverTypesWithIndex(
 
         is CallTypeAndReceiver.OPERATOR -> receiverExpression = receiver
 
-//        is CallTypeAndReceiver.SUPER_MEMBERS -> {
-//            val qualifier = receiver.superTypeQualifier
-//            return if (qualifier != null) {
-//                listOfNotNull(bindingContext.getType(receiver)).map { ReceiverType(it, 0) }
-//            } else {
-//                val resolutionScope = contextElement.getResolutionScope(bindingContext, resolutionFacade)
-//                val classDescriptor =
-//                    resolutionScope.ownerDescriptor.parentsWithSelf.firstIsInstanceOrNull<ClassDescriptor>()
-//                        ?: return emptyList()
-//                classDescriptor.typeConstructor.supertypesWithAny().map { ReceiverType(it, 0) }
-//            }
-//        }
+        is CallTypeAndReceiver.SUPER_MEMBERS -> {
+            val qualifier = receiver.superTypeQualifier
+            return if (qualifier != null) {
+                listOfNotNull(bindingContext.getType(receiver)).map { ReceiverType(it, 0) }
+            } else {
+                val resolutionScope = contextElement.getResolutionScope(bindingContext, resolutionFacade)
+                val classDescriptor =
+                    resolutionScope.ownerDescriptor.parentsWithSelf.firstIsInstanceOrNull<ClassDescriptor>()
+                        ?: return emptyList()
+                classDescriptor.typeConstructor.supertypesWithAny().map { ReceiverType(it, 0) }
+            }
+        }
 
         is CallTypeAndReceiver.IMPORT_DIRECTIVE,
         is CallTypeAndReceiver.PACKAGE_DIRECTIVE,
         is CallTypeAndReceiver.TYPE,
-//        is CallTypeAndReceiver.ANNOTATION,
+        is CallTypeAndReceiver.ANNOTATION,
         is CallTypeAndReceiver.UNKNOWN ->
             return null
     }
@@ -373,6 +371,7 @@ fun CallTypeAndReceiver<*, *>.receiverTypesWithIndex(
     }
     return result
 }
+
 fun CjCallExpression.singleLambdaArgumentExpression(): CjLambdaExpression? {
     return lambdaArguments.singleOrNull()?.getArgumentExpression()?.unpackFunctionLiteral() ?: getLastLambdaExpression()
 }
@@ -421,6 +420,7 @@ val CjLambdaExpression.isTrailingLambdaOnNewLIne
 
         return false
     }
+
 @OptIn(FrontendInternals::class)
 private fun receiverValueTypes(
     receiverValue: ReceiverValue,
@@ -447,6 +447,7 @@ private fun receiverValueTypes(
         listOf(receiverValue.type)
     }
 }
+
 fun SmartCastManager.getSmartCastVariantsWithLessSpecificExcluded(
     receiverToCast: ReceiverValue,
     bindingContext: BindingContext,
@@ -464,9 +465,15 @@ fun SmartCastManager.getSmartCastVariantsWithLessSpecificExcluded(
         dataFlowValueFactory
     )
     return variants.filter { type ->
-        variants.all { another -> another === type || chooseMoreSpecific(type, another).let { it == null || it === type } }
+        variants.all { another ->
+            another === type || chooseMoreSpecific(
+                type,
+                another
+            ).let { it == null || it === type }
+        }
     }
 }
+
 private fun chooseMoreSpecific(type1: CangJieType, type2: CangJieType): CangJieType? {
     val type1IsSubtype = CangJieTypeChecker.DEFAULT.isSubtypeOf(type1, type2)
     val type2IsSubtype = CangJieTypeChecker.DEFAULT.isSubtypeOf(type2, type1)
@@ -483,4 +490,47 @@ private fun chooseMoreSpecific(type1: CangJieType, type2: CangJieType): CangJieT
 
     return type1.takeIf { type1IsSubtype }
         ?: type2.takeIf { type2IsSubtype }
+}
+/**
+ * See `ArgumentsToParametersMapper` class in the compiler.
+ */
+fun Call.mapArgumentsToParameters(targetDescriptor: CallableDescriptor): Map<ValueArgument, ValueParameterDescriptor> {
+    val parameters = targetDescriptor.valueParameters
+    if (parameters.isEmpty()) return emptyMap()
+
+    val map = HashMap<ValueArgument, ValueParameterDescriptor>()
+    val parametersByName = if (targetDescriptor.hasStableParameterNames()) parameters.associateBy { it.name } else emptyMap()
+
+    var positionalArgumentIndex: Int? = 0
+
+    for (argument in valueArguments) {
+        if (argument is LambdaArgument) {
+            map[argument] = parameters.last()
+        } else {
+            val argumentName = argument.getArgumentName()?.asName
+
+            if (argumentName != null) {
+                val parameter = parametersByName[argumentName]
+                if (parameter != null) {
+                    map[argument] = parameter
+                    if (parameter.index == positionalArgumentIndex) {
+                        positionalArgumentIndex++
+                        continue
+                    }
+                }
+                positionalArgumentIndex = null
+            } else {
+                if (positionalArgumentIndex != null && positionalArgumentIndex < parameters.size) {
+                    val parameter = parameters[positionalArgumentIndex]
+                    map[argument] = parameter
+
+                    if (!parameter.isVararg) {
+                        positionalArgumentIndex++
+                    }
+                }
+            }
+        }
+    }
+
+    return map
 }

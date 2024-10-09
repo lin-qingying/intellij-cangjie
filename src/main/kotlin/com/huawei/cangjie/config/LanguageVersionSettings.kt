@@ -31,6 +31,7 @@ enum class LanguageFeature(
 
 
     SingleUnderscoreForParameterName(CANGJIE_0_53_4),
+    SealedInterfaces(CANGJIE_0_53_4),
 
     SafeCallBoundSmartCasts(CANGJIE_0_53_4),
 

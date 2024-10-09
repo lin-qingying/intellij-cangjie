@@ -442,6 +442,7 @@ fun CangJieType.extractSuperType(name: Name): CangJieType  {
     return superTypes.first()
 
 }
+fun CangJieType.isAnyOrNullableAny(): Boolean =CangJieBuiltIns.isAnyOrNullableAny(this)
 
 object TypeUtils {
 

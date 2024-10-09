@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.descriptors.CallableDescriptor
+import com.huawei.cangjie.utils.DFS
 import com.huawei.cangjie.utils.SmartSet
 import java.util.*
 
@@ -41,4 +42,24 @@ fun <H : Any> Collection<H>.selectMostSpecificInEachOverridableGroup(
         result.add(mostSpecific)
     }
     return result
+}
+fun <D : CallableDescriptor> D.findOriginalTopMostOverriddenDescriptors(): Set<D> {
+    return findTopMostOverriddenDescriptors().mapTo(LinkedHashSet<D>()) {
+        @Suppress("UNCHECKED_CAST")
+        (it.original as D)
+    }
+}
+
+fun <D : CallableDescriptor> D.findTopMostOverriddenDescriptors(): List<D> {
+    return DFS.dfs(
+        listOf(this),
+        { current -> current.overriddenDescriptors },
+        object : DFS.CollectingNodeHandler<CallableDescriptor, CallableDescriptor, ArrayList<D>>(ArrayList<D>()) {
+            override fun afterChildren(current: CallableDescriptor) {
+                if (current.overriddenDescriptors.isEmpty()) {
+                    @Suppress("UNCHECKED_CAST")
+                    result.add(current as D)
+                }
+            }
+        })
 }

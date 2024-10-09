@@ -85,6 +85,7 @@ companion object{
     const val resolverForLibrariesName = "project libraries"
     const val resolverForModulesName = "project source roots and libraries"
     const val resolverForSpecialInfoName = "completion/highlighting in "
+    const val resolverForSdkName = "sdk"
 
 }
 }

@@ -9,6 +9,10 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.findParentInFile
 import com.intellij.psi.util.isAncestor
+
+
+fun TextRange.containsInside(offset: Int): Boolean = startOffset < offset && offset < endOffset
+
 fun PsiElement.isExtensionDeclaration(): Boolean {
     val callable: CjCallableDeclaration? = when (this) {
         is CjNamedFunction, is CjProperty , is CjVariable -> this as CjCallableDeclaration

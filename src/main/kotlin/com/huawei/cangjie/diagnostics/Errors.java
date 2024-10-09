@@ -54,8 +54,8 @@ public interface Errors {
     DiagnosticFactory0<CjConstantExpression> ILLEGAL_UNDERSCORE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjConstantExpression> UNSIGNED_LITERAL_WITHOUT_DECLARATIONS_ON_CLASSPATH = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<PsiElement> CYCLIC_GENERIC_UPPER_BOUND = DiagnosticFactory0.create(ERROR);
-    DiagnosticFactory2<PsiElement, CjModifierKeywordToken, String> DEPRECATED_MODIFIER_FOR_TARGET = DiagnosticFactory2.create(WARNING);
-    DiagnosticFactory2<PsiElement, CjModifierKeywordToken, String> REDUNDANT_MODIFIER_FOR_TARGET = DiagnosticFactory2.create(WARNING);
+    DiagnosticFactory2<PsiElement, CjKeywordToken, String> DEPRECATED_MODIFIER_FOR_TARGET = DiagnosticFactory2.create(WARNING);
+    DiagnosticFactory2<PsiElement, CjKeywordToken, String> REDUNDANT_MODIFIER_FOR_TARGET = DiagnosticFactory2.create(WARNING);
     DiagnosticFactory1<CjExpression, CangJieType> RETURN_TYPE_MISMATCH = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory0<PsiElement> UNDERSCORE_IS_RESERVED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory2<CjTypeReference, CangJieType, CangJieType> UPPER_BOUND_VIOLATED_WARNING = DiagnosticFactory2.create(WARNING);
@@ -409,7 +409,7 @@ public interface Errors {
 
 
     DiagnosticFactory1<CjPackageDirective, FqName> INCONSISTENT_PACKAGE_MODIFIERS = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory2<PsiElement, CjModifierKeywordToken, String> WRONG_MODIFIER_TARGET = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory2<PsiElement, CjKeywordToken, String> WRONG_MODIFIER_TARGET = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory1<PsiElement, RenderedDiagnostic<?>> PLUGIN_ERROR = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, RenderedDiagnostic<?>> PLUGIN_WARNING = DiagnosticFactory1.create(WARNING);
     DiagnosticFactory1<PsiElement, RenderedDiagnostic<?>> PLUGIN_INFO = DiagnosticFactory1.create(INFO);

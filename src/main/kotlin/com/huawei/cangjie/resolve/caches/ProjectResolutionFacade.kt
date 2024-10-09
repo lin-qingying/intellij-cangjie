@@ -104,28 +104,13 @@ class ProjectResolutionFacade(
     internal fun getResolverForProject(): ResolverForProject< ModuleInfo> = cachedResolverForProject
     internal fun resolverForModuleInfo(moduleInfo: ModuleInfo) = cachedResolverForProject.resolverForModule(moduleInfo)
 
-//    val moduleDescriptor = createModuleDescriptor(globalContext.withProject(project), project)
-//        .apply {
-//            this as ModuleDescriptorImpl
-//            initialize(
-//                BuiltInsLoader.Instance.createPackageFragmentProvider(
-//                    globalContext.storageManager,
-//                    this,
-////                getClassDescriptorFactories(),
-////                getPlatformDependentDeclarationFilter(),
-////                getAdditionalClassPartsProvider(),
-//                    false
-//                )
-//            )
-//            setDependencies(this)
-//        }
 
 
-    var componentProvider: ComponentProvider? = null
+
     private val analysisResults = CachedValuesManager.getManager(project).createCachedValue(
         {
             val resolverForProject = cachedResolverForProject
-//            val resolverForProject = cachedResolverForProject
+
             val results = object : SLRUCache<CjFile, PerFileAnalysisCache>(2, 3) {
                 private val lock = ReentrantLock()
 
@@ -134,38 +119,7 @@ class ProjectResolutionFacade(
                         file,
                         resolverForProject.resolverForModule(file.moduleInfo).componentProvider
                     )
-//                    val trace = CodeAnalyzerInitializer.getInstance(project).createTrace()
-//
-//
-//                    val declarationProviderFactory = DeclarationProviderFactoryService.createDeclarationProviderFactory(
-//                        project, globalContext.storageManager, syntheticFiles,
-////                        moduleContentScope,
-//                        GlobalSearchScope.fileScope(file)
-//
-//
-//                    )
-//                    componentProvider = createContainerForLazyResolve(
-//                        globalContext.withProject(project)
-//                            .withModule(moduleDescriptor),
-//                        trace,
-//                        declarationProviderFactory,
-//                        file.languageVersionSettings,
-//                        IdeaAbsentDescriptorHandler::class.java
-//                    )
-//                    return PerFileAnalysisCache(
-//                        file,
-//                        componentProvider!!
-////                        TODO()
-////
-//
-////                        createContainer("cangjie", PlatformDependentAnalyzerServicesImpl){
-//
-////                            useInstance(trace)
-////
-////                            configureStandardResolveComponents()
-////                        }
-////                        resolverForProject.resolverForModule(file.moduleInfo).componentProvider
-//                    )
+
                 }
 
                 override fun getIfCached(key: CjFile?): PerFileAnalysisCache? {
@@ -281,10 +235,7 @@ class ProjectResolutionFacade(
 
 
         val moduleInfos = mutableSetOf<ModuleInfo>()
-//
-//        val config = allModules?.firstIsInstanceOrNull<ScriptDependenciesInfo.ForFile>()?.let {
-//            ModuleInfoProvider.Configuration(contextualModuleInfo = it)
-//        }
+
 
         val elementModuleInfos = ModuleInfoProvider.getInstance(element.project).collect(
             element,

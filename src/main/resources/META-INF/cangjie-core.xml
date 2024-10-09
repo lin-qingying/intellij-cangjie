@@ -10,6 +10,7 @@
     <xi:include href="/META-INF/quickfix.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/refactoring.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/navigation.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/completion.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <extensions defaultExtensionNs="com.intellij">
 
@@ -183,12 +184,6 @@
         <applicationService serviceImplementation="com.huawei.cangjie.ide.newProject.state.CjUserTemplatesState"/>
 
         <!--        <projectService serviceImplementation="com.huawei.cangjie.ide.run.cjpm.back.CangJieProjectSettingsService"/>-->
-        <!--代码补全-->
-        <completion.contributor
-                language="CangJie"
-                id="CangJieCompletionContributor"
-                order="first, after liveTemplates"
-                implementationClass="com.huawei.cangjie.ide.completion.CangJieCompletionContributor"/>
 
         <!--        <applicationService serviceInterface="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicy"-->
         <!--                        serviceImplementation="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>-->
@@ -308,6 +303,10 @@
         <!--        <projectService-->
         <!--                serviceInterface="com.huawei.cangjie.analyzer.session.CjAnalysisSessionProvider"-->
         <!--                serviceImplementation="com.huawei.cangjie.analyzer.session.CjAnalysisSessionProviderImpl"/>-->
+
+<!--        <projectService-->
+<!--                serviceInterface="com.huawei.cangjie.NotPropertiesService"-->
+<!--                serviceImplementation="com.huawei.cangjie.NotPropertiesServiceImpl"/>-->
     </extensions>
 
     <!--        监听-->

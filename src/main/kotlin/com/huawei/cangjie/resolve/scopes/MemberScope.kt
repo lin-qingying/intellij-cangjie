@@ -159,10 +159,14 @@ class DescriptorKindFilter(
 
     infix fun exclude(exclude: DescriptorKindExclude): DescriptorKindFilter =
         DescriptorKindFilter(kindMask, excludes + listOf(exclude))
+    fun withKinds(kinds: Int): DescriptorKindFilter
+            = DescriptorKindFilter(kindMask or kinds, excludes)
 
     companion object {
 
         private var nextMaskValue: Int = 0x01
+        val NON_SINGLETON_CLASSIFIERS_MASK: Int = nextMask()
+
         val SINGLETON_CLASSIFIERS_MASK: Int = nextMask()
         val TYPE_ALIASES_MASK: Int = nextMask()
         val FUNCTIONS_MASK: Int = nextMask()
@@ -175,6 +179,7 @@ class DescriptorKindFilter(
         val REEXPORT_MASK: Int = nextMask()
         val ALL_KINDS_MASK: Int = nextMask() - 1
         val CALLABLES_MASK: Int = FUNCTIONS_MASK or VARIABLES_MASK
+        val VALUES_MASK: Int = SINGLETON_CLASSIFIERS_MASK or FUNCTIONS_MASK or VARIABLES_MASK
 
         @JvmField
         val PACKAGES: DescriptorKindFilter = DescriptorKindFilter(PACKAGES_MASK)
@@ -182,6 +187,7 @@ class DescriptorKindFilter(
         @JvmField
         val FUNCTIONS: DescriptorKindFilter = DescriptorKindFilter(FUNCTIONS_MASK)
         @JvmField val CALLABLES: DescriptorKindFilter = DescriptorKindFilter(CALLABLES_MASK)
+        @JvmField val NON_SINGLETON_CLASSIFIERS: DescriptorKindFilter = DescriptorKindFilter(NON_SINGLETON_CLASSIFIERS_MASK)
 
         @JvmField
         val VARIABLES: DescriptorKindFilter = DescriptorKindFilter(VARIABLES_MASK)
@@ -194,10 +200,11 @@ class DescriptorKindFilter(
 
         @JvmField
         val ALL: DescriptorKindFilter = DescriptorKindFilter(ALL_KINDS_MASK)
+        @JvmField val VALUES: DescriptorKindFilter = DescriptorKindFilter(VALUES_MASK)
 
         private fun nextMask() = nextMaskValue.apply { nextMaskValue = nextMaskValue shl 1 }
 
-        val NON_SINGLETON_CLASSIFIERS_MASK: Int = nextMask()
+
 
         val CLASSIFIERS_MASK: Int = NON_SINGLETON_CLASSIFIERS_MASK or SINGLETON_CLASSIFIERS_MASK or TYPE_ALIASES_MASK
 

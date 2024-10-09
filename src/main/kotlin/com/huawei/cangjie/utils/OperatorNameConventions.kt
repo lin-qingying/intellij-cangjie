@@ -4,6 +4,7 @@ import com.huawei.cangjie.name.Name
 
 
 object OperatorNameConventions {
+    @JvmField val CONTAINS = Name.identifier("contains")
 
     @JvmField
     val INVOKE = Name.identifier("*operator_invoke")

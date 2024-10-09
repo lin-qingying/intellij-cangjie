@@ -100,6 +100,7 @@ abstract class KeyWithSlice<K, V, out Slice : ReadOnlySlice<K, V>>(debugName: St
 interface MutableSlicedMap : SlicedMap {
     fun <K, V> put(slice: WritableSlice<K, V>, key: K, value: V)
 
+    val size:Int get() = 0
     fun clear()
 
     fun <K> remove(key: K)

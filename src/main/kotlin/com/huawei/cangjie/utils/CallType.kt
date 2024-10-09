@@ -1,8 +1,8 @@
 package com.huawei.cangjie.utils
 
+import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.SimpleFunctionDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getReceiverExpression
@@ -10,6 +10,7 @@ import com.huawei.cangjie.resolve.calls.DslMarkerUtils
 import com.huawei.cangjie.resolve.scopes.DescriptorKindExclude
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
+import com.huawei.cangjie.resolve.unwrapIfTypeAlias
 import com.huawei.cangjie.types.CangJieType
 
 
@@ -22,19 +23,25 @@ sealed class CallType<TReceiver : CjElement?>(val descriptorKindFilter: Descript
     data object DOT : CallType<CjExpression>(DescriptorKindFilter.ALL)
 
     data object SAFE : CallType<CjExpression>(DescriptorKindFilter.ALL)
+    private object AbstractMembersExclude : DescriptorKindExclude() {
+        override fun excludes(descriptor: DeclarationDescriptor) =
+            descriptor is CallableMemberDescriptor && descriptor.modality == Modality.ABSTRACT
 
-//    object SUPER_MEMBERS : CallType<CjSuperExpression>(
-//        DescriptorKindFilter.CALLABLES exclude DescriptorKindExclude.Extensions exclude AbstractMembersExclude
-//    )
+        override val fullyExcludedDescriptorKinds: Int
+            get() = 0
+    }
+    data object SUPER_MEMBERS : CallType<CjSuperExpression>(
+        DescriptorKindFilter.CALLABLES exclude DescriptorKindExclude.Extensions exclude AbstractMembersExclude
+    )
 
 
     data object OPERATOR : CallType<CjExpression>(DescriptorKindFilter.FUNCTIONS exclude NonOperatorExclude)
 
-//    class CallableReference(settings: LanguageVersionSettings) :
-//        CallType<CjExpression?>(DescriptorKindFilter.CALLABLES exclude LocalsAndSyntheticExclude(settings)) {
-//        override fun equals(other: Any?): Boolean = other is CallableReference
-//        override fun hashCode(): Int = javaClass.hashCode()
-//    }
+    class CallableReference(settings: LanguageVersionSettings) :
+        CallType<CjExpression?>(DescriptorKindFilter.CALLABLES exclude LocalsAndSyntheticExclude(settings)) {
+        override fun equals(other: Any?): Boolean = other is CallableReference
+        override fun hashCode(): Int = javaClass.hashCode()
+    }
 
     data object IMPORT_DIRECTIVE : CallType<CjExpression?>(DescriptorKindFilter.ALL)
 
@@ -47,11 +54,31 @@ sealed class CallType<TReceiver : CjElement?>(val descriptorKindFilter: Descript
 
     data object DELEGATE : CallType<CjExpression?>(DescriptorKindFilter.FUNCTIONS exclude NonOperatorExclude)
 
-//    object ANNOTATION : CallType<CjExpression?>(
-//        DescriptorKindFilter(DescriptorKindFilter.CLASSIFIERS_MASK or DescriptorKindFilter.PACKAGES_MASK)
-//                exclude NonAnnotationClassifierExclude
-//    )
+    data object ANNOTATION : CallType<CjExpression?>(
+        DescriptorKindFilter(DescriptorKindFilter.CLASSIFIERS_MASK or DescriptorKindFilter.PACKAGES_MASK)
+                exclude NonAnnotationClassifierExclude
+    )
+    private object NonAnnotationClassifierExclude : DescriptorKindExclude() {
 
+        override fun excludes(descriptor: DeclarationDescriptor): Boolean {
+            val descriptorToCheck = descriptor.unwrapIfTypeAlias()
+            if (descriptorToCheck !is ClassifierDescriptor) return false
+            return descriptorToCheck !is ClassDescriptor || descriptorToCheck.kind != ClassKind.ANNOTATION_CLASS
+        }
+
+        override val fullyExcludedDescriptorKinds: Int get() = 0
+
+    }
+
+    private class LocalsAndSyntheticExclude(private val settings: LanguageVersionSettings) : DescriptorKindExclude() {
+        // Currently, Kotlin doesn't support references to local variables
+        // References to Java synthetic properties are supported only since Kotlin 1.9
+        override fun excludes(descriptor: DeclarationDescriptor): Boolean  =
+            descriptor !is CallableMemberDescriptor || descriptor.kind == CallableMemberDescriptor.Kind.SYNTHESIZED
+
+        override val fullyExcludedDescriptorKinds: Int
+            get() = 0
+    }
 
     private object NonOperatorExclude : DescriptorKindExclude() {
         override fun excludes(descriptor: DeclarationDescriptor) =
@@ -61,36 +88,6 @@ sealed class CallType<TReceiver : CjElement?>(val descriptorKindFilter: Descript
             get() = 0
     }
 
-//    private class LocalsAndSyntheticExclude(private val settings: LanguageVersionSettings) : DescriptorKindExclude() {
-//        // Currently, CangJie doesn't support references to local variables
-//        // References to Java synthetic properties are supported only since CangJie 1.9
-//        override fun excludes(descriptor: DeclarationDescriptor): Boolean  =
-//            descriptor !is CallableMemberDescriptor || descriptor.kind == CallableMemberDescriptor.Kind.SYNTHESIZED &&
-//                    !settings.supportsFeature(LanguageFeature.ReferencesToSyntheticJavaProperties)
-//
-//        override val fullyExcludedDescriptorKinds: Int
-//            get() = 0
-//    }
-
-//    private object NonAnnotationClassifierExclude : DescriptorKindExclude() {
-//
-//        override fun excludes(descriptor: DeclarationDescriptor): Boolean {
-//            val descriptorToCheck = descriptor.unwrapIfTypeAlias()
-//            if (descriptorToCheck !is ClassifierDescriptor) return false
-//            return descriptorToCheck !is ClassDescriptor || descriptorToCheck.kind != ClassKind.ANNOTATION_CLASS
-//        }
-//
-//        override val fullyExcludedDescriptorKinds: Int get() = 0
-//
-//    }
-
-//    private object AbstractMembersExclude : DescriptorKindExclude() {
-//        override fun excludes(descriptor: DeclarationDescriptor) =
-//            descriptor is CallableMemberDescriptor && descriptor.modality == Modality.ABSTRACT
-//
-//        override val fullyExcludedDescriptorKinds: Int
-//            get() = 0
-//    }
 }
 
 @Suppress("ClassName")
@@ -102,16 +99,16 @@ sealed class CallTypeAndReceiver<TReceiver : CjElement?, out TCallType : CallTyp
     data object DEFAULT : CallTypeAndReceiver<Nothing?, CallType.DEFAULT>(CallType.DEFAULT, null)
     class DOT(receiver: CjExpression) : CallTypeAndReceiver<CjExpression, CallType.DOT>(CallType.DOT, receiver)
     class SAFE(receiver: CjExpression) : CallTypeAndReceiver<CjExpression, CallType.SAFE>(CallType.SAFE, receiver)
-//    class SUPER_MEMBERS(receiver: CjSuperExpression) : CallTypeAndReceiver<CjSuperExpression, CallType.SUPER_MEMBERS>(
-//        CallType.SUPER_MEMBERS, receiver
-//    )
+    class SUPER_MEMBERS(receiver: CjSuperExpression) : CallTypeAndReceiver<CjSuperExpression, CallType.SUPER_MEMBERS>(
+        CallType.SUPER_MEMBERS, receiver
+    )
 
 
     class OPERATOR(receiver: CjExpression) : CallTypeAndReceiver<CjExpression, CallType.OPERATOR>(CallType.OPERATOR, receiver)
-//    class CALLABLE_REFERENCE(
-//        receiver: CjExpression?,
-//        val settings: LanguageVersionSettings
-//    ) : CallTypeAndReceiver<CjExpression?, CallType.CallableReference>(CallType.CallableReference(settings), receiver)
+    class CALLABLE_REFERENCE(
+        receiver: CjExpression?,
+        val settings: LanguageVersionSettings
+    ) : CallTypeAndReceiver<CjExpression?, CallType.CallableReference>(CallType.CallableReference(settings), receiver)
 
     class IMPORT_DIRECTIVE(receiver: CjExpression?) : CallTypeAndReceiver<CjExpression?, CallType.IMPORT_DIRECTIVE>(
         CallType.IMPORT_DIRECTIVE, receiver
@@ -122,7 +119,7 @@ sealed class CallTypeAndReceiver<TReceiver : CjElement?, out TCallType : CallTyp
 
     class TYPE(receiver: CjExpression?) : CallTypeAndReceiver<CjExpression?, CallType.TYPE>(CallType.TYPE, receiver)
 //    class DELEGATE(receiver: CjExpression?) : CallTypeAndReceiver<CjExpression?, CallType.DELEGATE>(CallType.DELEGATE, receiver)
-//    class ANNOTATION(receiver: CjExpression?) : CallTypeAndReceiver<CjExpression?, CallType.ANNOTATION>(CallType.ANNOTATION, receiver)
+    class ANNOTATION(receiver: CjExpression?) : CallTypeAndReceiver<CjExpression?, CallType.ANNOTATION>(CallType.ANNOTATION, receiver)
 
     companion object {
         fun detect(expression: CjSimpleNameExpression): CallTypeAndReceiver<*, *> {

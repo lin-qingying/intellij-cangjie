@@ -47,6 +47,8 @@ class BindingTraceContext(
 
     )
 
+    override val size: Int
+        get() = map.size
     override val bindingContext: BindingContext = object : CleanableBindingContext {
 
 

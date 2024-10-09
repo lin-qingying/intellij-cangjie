@@ -36,7 +36,9 @@ class ModuleResolutionFacadeImpl(
     private fun <T : Any> getFrontendService(ideaModuleInfo: ModuleInfo, serviceClass: Class<T>): T {
         return projectFacade.resolverForModuleInfo(ideaModuleInfo).componentProvider.getService(serviceClass)
     }
-
+    override fun <T : Any> getIdeService(serviceClass: Class<T>): T {
+        return projectFacade.resolverForModuleInfo(moduleInfo).componentProvider.create(serviceClass)
+    }
     override fun findModuleDescriptor(ideaModuleInfo: ModuleInfo) = projectFacade.findModuleDescriptor(ideaModuleInfo)
     override fun getResolverForProject(): ResolverForProject<ModuleInfo> {
         return projectFacade.getResolverForProject()

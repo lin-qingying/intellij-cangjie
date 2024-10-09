@@ -4,6 +4,7 @@ package com.huawei.cangjie.icon
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.IconManager
+import com.intellij.ui.PlatformIcons
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -37,6 +38,11 @@ object CangJieIcons {
         return IconManager.getInstance()
             .loadRasterizedIcon(path, CangJieIcons::class.java.classLoader, cacheKey, flags)
     }
+
+    val PARAMETER: Icon = IconManager.getInstance().getPlatformIcon(PlatformIcons.Parameter)
+
+    /** 16x16  */
+    val LAMBDA: Icon = CangJieBaseResourcesIcons.Lambda
 
 }
 

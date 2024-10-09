@@ -70,6 +70,23 @@ open class CangJieBuiltIns(
 //    val moduleInfo: ModuleInfo? = null
 ) {
     companion object {
+        // This function only checks presence of Deprecated annotation at declaration-site, it doesn't take into account @DeprecatedSinceKotlin
+        // To check that a referenced descriptor is actually deprecated at call-site, use DeprecationResolver
+        fun isDeprecated(declarationDescriptor: DeclarationDescriptor): Boolean {
+            if (declarationDescriptor.original.annotations.hasAnnotation(StandardNames.FqNames.deprecated)) return true
+
+            if (declarationDescriptor is PropertyDescriptor) {
+                val isVar: Boolean =
+                    declarationDescriptor.isVar
+                val getter =
+                    declarationDescriptor.getter
+                val setter =
+                    declarationDescriptor.setter
+                return getter != null && isDeprecated(getter) && (!isVar || setter != null && isDeprecated(setter))
+            }
+
+            return false
+        }
 
         //    内置类型名称
         enum class BuiltCangJieTypeName(private val _typeName: String) {
@@ -84,19 +101,22 @@ open class CangJieBuiltIns(
         }
 
         fun isBooleanOrNullableBoolean(type: CangJieType): Boolean {
-            return  isConstructedFromGivenClass(type, boolUFqName)
+            return isConstructedFromGivenClass(type, boolUFqName)
         }
+
         fun isUnitOrNullableUnit(type: CangJieType): Boolean {
-            return  isConstructedFromGivenClass(type, unitUFqName)
+            return isConstructedFromGivenClass(type, unitUFqName)
         }
-        fun isAnyOrNullableAny(type:CangJieType): Boolean {
-            return  isConstructedFromGivenClass(type, anyUFqName)
+
+        fun isAnyOrNullableAny(type: CangJieType): Boolean {
+            return isConstructedFromGivenClass(type, anyUFqName)
         }
+
         /**
          * @return true if the containing package of the descriptor is "kotlin" or any subpackage of "cangjie"
          */
-        fun isUnderCangJiePackage(descriptor:  DeclarationDescriptor): Boolean {
-            var current:  DeclarationDescriptor ?= descriptor
+        fun isUnderCangJiePackage(descriptor: DeclarationDescriptor): Boolean {
+            var current: DeclarationDescriptor? = descriptor
             while (current != null) {
                 if (current is PackageFragmentDescriptor) {
                     return current.fqName.startsWith(
@@ -107,6 +127,7 @@ open class CangJieBuiltIns(
             }
             return false
         }
+
         @JvmStatic
         fun isString(type: CangJieType?): Boolean {
             return type != null && isNotNullConstructedFromGivenClass(
@@ -253,7 +274,7 @@ open class CangJieBuiltIns(
 
         @JvmStatic
         fun isUnit(type: CangJieType): Boolean {
-            return isNotNullConstructedFromGivenClass(type, StandardNames.FqNames.unitUFqName)
+            return isNotNullConstructedFromGivenClass(type, unitUFqName)
         }
 
 //        @JvmStatic
@@ -370,9 +391,22 @@ open class CangJieBuiltIns(
 
     }
 
+    val builtInPackagesImportedByDefault: NotNullLazyValue<List<PackageViewDescriptor>> =
+        storageManager.createLazyValue {
+            listOf(builtInsModule.getPackage(BUILT_INS_PACKAGE_FQ_NAME)
+
+            )
+
+        }
+
+
     init {
 
         createBuiltInsModule(true)
+    }
+
+    fun getBuiltInPackagesImportedByDefault(): Collection<PackageViewDescriptor> {
+        return builtInPackagesImportedByDefault.invoke()
     }
 
     val defaultBound: SimpleType get() = anyType
@@ -415,8 +449,13 @@ open class CangJieBuiltIns(
             types
         )
     }
-    fun getNullableNothingType():  SimpleType {
-        return nothingType .makeOptionalAsSpecified(true)
+
+    fun getNullableNothingType(): SimpleType {
+        return nothingType.makeOptionalAsSpecified(true)
+    }
+
+    fun isMemberOfAny(descriptor: DeclarationDescriptor): Boolean {
+        return descriptor.containingDeclaration === any
     }
 
     fun getArrayType(

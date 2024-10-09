@@ -170,6 +170,11 @@ val MAIN = Name.identifier("main")
     val BUILT_INS_PACKAGE_FQ_NAME = FqName("")
 
     object FqNames {
+        @kotlin.jvm.JvmField
+        val deprecated: FqName = fqName("Deprecated")
+        @kotlin.jvm.JvmField
+        val publishedApi: FqName = fqName("PublishedApi")
+
         @JvmField
         val fqNameToPrimitiveType: Map<FqNameUnsafe, PrimitiveType> =
             newHashMapWithExpectedSize<FqNameUnsafe, PrimitiveType>(PrimitiveType.entries.size).apply {
@@ -177,6 +182,8 @@ val MAIN = Name.identifier("main")
                     this[fqNameUnsafe(primitiveType.typeName.asString())] = primitiveType
                 }
             }
+        @kotlin.jvm.JvmField
+        val deprecatedSinceCangJie: FqName = fqName("DeprecatedSinceCangJie")
 
         @JvmField
         val primitiveArrayTypeShortNames: Set<Name> =

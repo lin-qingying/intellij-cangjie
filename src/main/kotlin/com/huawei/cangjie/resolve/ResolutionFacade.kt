@@ -15,6 +15,7 @@ import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 
+inline fun <reified T : Any> ResolutionFacade.ideService(): T = this.getIdeService(T::class.java)
 
 interface ResolutionFacade{
     val project: Project
@@ -24,6 +25,7 @@ interface ResolutionFacade{
     // get service for the module this resolution was created for
     @FrontendInternals
     fun <T : Any> getFrontendService(serviceClass: Class<T>): T
+    fun <T : Any> getIdeService(serviceClass: Class<T>): T
 
     fun analyzeWithAllCompilerChecks(element: CjElement, callback: DiagnosticSink.DiagnosticsCallback? = null): AnalysisResult
             = analyzeWithAllCompilerChecks(listOf(element), callback)

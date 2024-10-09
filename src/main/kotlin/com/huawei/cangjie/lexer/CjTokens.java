@@ -237,6 +237,8 @@ public interface CjTokens {
 
     int THIS_KEYWORD_UPPER_Id = 211;
 
+    int FILE_KEYWORD_Id = 212;
+
 
     IElementType DOC_COMMENT = CDocTokens.CDOC;
     IElementType WHITE_SPACE = TokenType.WHITE_SPACE;
@@ -245,6 +247,7 @@ public interface CjTokens {
     CjSingleValueToken HASH = new CjSingleValueToken("HASH", "#", HASH_Id);
     CjSingleValueToken QUOTESYMBOL = new CjSingleValueToken("QUOTESYMBOL", "`", QUOTESYMBOL_Id);
     CjSingleValueToken DOLLAR = new CjSingleValueToken("DOLLAR", "$", DOLLAR_Id);
+    CjKeywordToken FILE_KEYWORD    = CjKeywordToken.softKeyword("file", FILE_KEYWORD_Id);
 
 
     CjToken BLOCK_COMMENT = new CjToken("BLOCK_COMMENT", BLOCK_COMMENT_Id);
@@ -510,6 +513,7 @@ public interface CjTokens {
     */
     CjModifierKeywordToken[] MODIFIER_KEYWORDS_ARRAY =
             new CjModifierKeywordToken[]{
+
                     ABSTRACT_KEYWORD, OPEN_KEYWORD, OVERRIDE_KEYWORD, PRIVATE_KEYWORD,
                     PUBLIC_KEYWORD, PROTECTED_KEYWORD, INTERNAL_KEYWORD,
                     STATIC_KEYWORD,
@@ -521,7 +525,11 @@ public interface CjTokens {
 //                    UNSAFE_KEYWORD,
                     REDEF_KEYWORD
             };
-    TokenSet MODIFIER_KEYWORDS = TokenSet.create(MODIFIER_KEYWORDS_ARRAY);
+
+    TokenSet MODIFIER_KEYWORDS =         TokenSet.create(MODIFIER_KEYWORDS_ARRAY  );
+//    TokenSet MODIFIER_KEYWORDS = TokenSet.andSet(
+//            TokenSet.create(MODIFIER_KEYWORDS_ARRAY  ),TokenSet.create(CONST_KEYWORD)
+//    );
     //    类成员函数修饰符
     CjKeywordToken[] FUNC_CLASSMEMBER_MODIFIER_KEYWORDS_ARRAY = new CjKeywordToken[]{
             OVERRIDE_KEYWORD,

@@ -111,7 +111,8 @@ abstract class CjFunctionImpl : CjTypeParameterListOwnerStub<CangJieFunctionStub
             return findChildByClass(CjExpression::class.java)
         }
 
-
+    override val keyword: PsiElement?
+        get() = findChildByType(CjTokens.FUNC_KEYWORD)
     override val equalsToken: PsiElement?
         get() = findChildByType(CjTokens.EQ)
     override val bodyBlockExpression: CjBlockExpression?

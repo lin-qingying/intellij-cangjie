@@ -16,6 +16,7 @@ import com.huawei.cangjie.psi.psiUtil.getPrevSiblingIgnoringWhitespace
 import com.huawei.cangjie.psi.psiUtil.getStartOffsetIn
 import com.huawei.cangjie.psi.psiUtil.parentsWithSelf
 import com.huawei.cangjie.psi.psiUtil.textRange
+import com.huawei.cangjie.renderer.DescriptorRenderer.Companion.FQ_NAMES_IN_TYPES
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -41,6 +42,14 @@ object IdeDescriptorRenderers {
     val APPROXIMATE_FLEXIBLE_TYPES: (CangJieType) -> CangJieType = {
         it.approximateFlexibleTypes(preferNotNull = false)
     }
+
+    @JvmField
+    val FQ_NAMES_IN_TYPES_WITH_NORMALIZER: DescriptorRenderer = FQ_NAMES_IN_TYPES.withOptions {
+        classifierNamePolicy = ClassifierNamePolicy.SOURCE_CODE_QUALIFIED
+        typeNormalizer = { APPROXIMATE_FLEXIBLE_TYPES(unwrapAnonymousType(it)) }
+        renderUnabbreviatedType = false
+    }
+
     private val BASE: DescriptorRenderer = DescriptorRenderer.withOptions {
         normalizedVisibilities = true
         withDefinedIn = false

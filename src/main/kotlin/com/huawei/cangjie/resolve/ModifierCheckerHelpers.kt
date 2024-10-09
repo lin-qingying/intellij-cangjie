@@ -1,8 +1,11 @@
 package com.huawei.cangjie.resolve
 
+import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.lexer.CjKeywordToken
 import com.huawei.cangjie.lexer.CjTokens.*
 import java.util.*
+
+val deprecatedParentTargetMap = mapOf<CjKeywordToken, Set<CangJieTarget>>()
 
 val defaultVisibilityTargets: EnumSet<CangJieTarget> = EnumSet.of(
     CangJieTarget.CLASS_ONLY,
@@ -117,9 +120,8 @@ val possibleTargetMap = mapOf(
 //    ANNOTATION_KEYWORD to EnumSet.of(CangJieTarget.ANNOTATION_CLASS),
 //    CROSSINLINE_KEYWORD to EnumSet.of(CangJieTarget.VALUE_PARAMETER),
     CONST_KEYWORD to EnumSet.of(
-        CangJieTarget.MEMBER_PROPERTY,
-        CangJieTarget.TOP_LEVEL_PROPERTY,
-        CangJieTarget.TOP_LEVEL_VARIABLE
+        CangJieTarget.FUNCTION,
+
     ),
     OPERATOR_KEYWORD to EnumSet.of(CangJieTarget.FUNCTION),
 //    INFIX_KEYWORD to EnumSet.of(CangJieTarget.FUNCTION),
@@ -175,4 +177,71 @@ val deprecatedTargetMap = mapOf<CjKeywordToken, Set<CangJieTarget>>()
 // NOTE: redundant targets must be possible!
 val redundantTargetMap = mapOf<CjKeywordToken, Set<CangJieTarget>>(
     OPEN_KEYWORD to EnumSet.of(CangJieTarget.INTERFACE)
+)
+
+interface TargetAllowedPredicate {
+    fun isAllowed(target: CangJieTarget, languageVersionSettings: LanguageVersionSettings): Boolean
+}
+
+fun always(target: CangJieTarget, vararg targets: CangJieTarget) = object : TargetAllowedPredicate {
+    private val targetSet = EnumSet.of(target, *targets)
+
+    override fun isAllowed(target: CangJieTarget, languageVersionSettings: LanguageVersionSettings) =
+        target in targetSet
+}
+
+val possibleParentTargetPredicateMap = mapOf(
+
+
+    OVERRIDE_KEYWORD to always(
+        CangJieTarget.CLASS_ONLY,
+        CangJieTarget.LOCAL_CLASS,
+        CangJieTarget.STRUCT,
+
+        CangJieTarget.INTERFACE,
+        CangJieTarget.ENUM,
+        CangJieTarget.ENUM_ENTRY
+    ),
+    PROTECTED_KEYWORD to always(
+        CangJieTarget.CLASS_ONLY,
+        CangJieTarget.LOCAL_CLASS,
+        CangJieTarget.ENUM,
+
+    ),
+    INTERNAL_KEYWORD to always(
+        CangJieTarget.CLASS_ONLY,
+        CangJieTarget.LOCAL_CLASS,
+        CangJieTarget.STRUCT,
+
+        CangJieTarget.ENUM,
+        CangJieTarget.ENUM_ENTRY,
+        CangJieTarget.FILE
+    ),
+    PRIVATE_KEYWORD to always(
+        CangJieTarget.CLASS_ONLY,
+        CangJieTarget.LOCAL_CLASS,
+        CangJieTarget.STRUCT,
+
+        CangJieTarget.INTERFACE,
+        CangJieTarget.ENUM,
+        CangJieTarget.ENUM_ENTRY,
+        CangJieTarget.FILE
+    ),
+//    COMPANION_KEYWORD to always(
+//        CangJieTarget.CLASS_ONLY,
+//        CangJieTarget.INTERFACE,
+//        CangJieTarget.ENUM  ,
+////        CangJieTarget.ANNOTATION_CLASS
+//    ),
+//    FINAL_KEYWORD to always(
+//        CangJieTarget.CLASS_ONLY,
+//        CangJieTarget.LOCAL_CLASS,
+//        CangJieTarget.STRUCT,
+//
+//        CangJieTarget.ENUM ,
+//        CangJieTarget.ENUM_ENTRY,
+////        CangJieTarget.ANNOTATION_CLASS,
+//        CangJieTarget.FILE
+//    ),
+//    VARARG_KEYWORD to always(CangJieTarget.CONSTRUCTOR, CangJieTarget.FUNCTION, CangJieTarget.CLASS)
 )

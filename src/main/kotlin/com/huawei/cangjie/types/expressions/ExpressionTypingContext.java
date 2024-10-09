@@ -112,7 +112,18 @@ public class ExpressionTypingContext extends ResolutionContext<ExpressionTypingC
                 CallPosition.Unknown.INSTANCE, DEFAULT_EXPRESSION_CONTEXT_PROVIDER, languageVersionSettings, dataFlowValueFactory,
                 inferenceSession, ContextConfig.DEFAULT);
     }
-
+    @NotNull
+    public static ExpressionTypingContext newContext(
+            @NotNull BindingTrace trace,
+            @NotNull LexicalScope scope,
+            @NotNull DataFlowInfo dataFlowInfo,
+            @NotNull CangJieType expectedType,
+            @NotNull LanguageVersionSettings languageVersionSettings,
+            @NotNull DataFlowValueFactory dataFlowValueFactory
+    ) {
+        return newContext(trace, scope, dataFlowInfo, expectedType, ContextDependency.INDEPENDENT, StatementFilter.NONE,
+                languageVersionSettings, dataFlowValueFactory, InferenceSession.Companion.getDefault());
+    }
     @NotNull
     public static ExpressionTypingContext newContext(
             @NotNull BindingTrace trace,

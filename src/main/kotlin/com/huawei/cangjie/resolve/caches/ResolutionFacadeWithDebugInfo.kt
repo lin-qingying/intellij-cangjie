@@ -99,7 +99,11 @@ private class ResolutionFacadeWithDebugInfo(
             delegate.getFrontendService(serviceClass)
         }
     }
-
+    override fun <T : Any> getIdeService(serviceClass: Class<T>): T {
+        return wrapExceptions({ ResolvingWhat(serviceClass = serviceClass) }) {
+            delegate.getIdeService(serviceClass)
+        }
+    }
 //    @FrontendInternals
 //    override fun <T : Any> getFrontendService(serviceClass: Class<T>): T {
 //        return wrapExceptions({ ResolvingWhat(serviceClass = serviceClass) }) {

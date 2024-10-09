@@ -1,0 +1,43 @@
+<idea-plugin>
+
+    <extensionPoints>
+        <extensionPoint
+                qualifiedName="com.huawei.cangjie.completionInformationProvider"
+                interface="com.huawei.cangjie.ide.completion.CompletionInformationProvider"
+                dynamic="true"/>
+        <extensionPoint qualifiedName="com.huawei.cangjie.turboComplete.smartPipelineRunner"
+                        interface="com.huawei.cangjie.ide.completion.turboComplete.SmartPipelineRunner"
+                        dynamic="true"/>
+    </extensionPoints>
+
+    <extensions defaultExtensionNs="com.intellij">
+
+        <applicationService
+                serviceInterface="com.huawei.cangjie.ide.completion.CompletionDummyIdentifierProviderService"
+                serviceImplementation="com.huawei.cangjie.ide.completion.CangJieCompletionDummyIdentifierProviderService"/>
+
+        <registryKey
+                key="cangjie.auto.completion.prefer.vararg.to.noargs"
+                description="For functions show vararg variant before no argruments variant"
+                defaultValue="true"
+                restartRequired="false"/>
+        <applicationService
+                serviceInterface="com.huawei.cangjie.ide.completion.handlers.SmartCompletionTailOffsetProvider"
+                serviceImplementation="com.huawei.cangjie.ide.completion.handlers.SmartCompletionTailOffsetProviderImpl"/>
+
+        <registryKey
+                key="cangjie.auto.completion.insert.constructor.parenthesis"
+                description="Insert constructor parenthesis on class autocompletion"
+                defaultValue="false"
+                restartRequired="false"/>
+        <!--代码补全-->
+        <completion.contributor
+                language="CangJie"
+                id="CangJieCompletionContributor"
+                order="first, after liveTemplates"
+                implementationClass="com.huawei.cangjie.ide.completion.CangJieCompletionContributor"/>
+        <completion.contributor
+                language="CangJie"
+                implementationClass="com.huawei.cangjie.ide.completion.CDocCompletionContributor"/>
+    </extensions>
+</idea-plugin>

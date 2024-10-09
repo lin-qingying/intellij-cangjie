@@ -15,5 +15,14 @@
                          language="CangJie"
                          key="inspection.package.directory.mismatch.display.name" bundle="messages.CangJieBundle"/>
 
+        <localInspection implementationClass="com.huawei.cangjie.ide.inspections.cdoc.CDocMissingDocumentationInspection"
+                         groupPath="CangJie"
+                         groupBundle="messages.CangJieBundle" groupKey="group.names.other.problems"
+                         enabledByDefault="false"
+                         level="WARNING"
+                         language="CangJie"
+                         runForWholeFile="true"
+                         key="inspection.c.doc.missing.documentation.display.name" bundle="messages.CangJieBundle"/>
+
     </extensions>
 </idea-plugin>

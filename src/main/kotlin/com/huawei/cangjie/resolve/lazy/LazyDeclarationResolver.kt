@@ -12,6 +12,7 @@ import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.LockBasedLazyResolveStorageManager
+import jakarta.inject.Inject
 
 open class LazyDeclarationResolver(
     globalContext: GlobalContext,
@@ -23,7 +24,11 @@ open class LazyDeclarationResolver(
 
     private val bindingContext: BindingContext
         get() = trace.bindingContext
-
+    protected lateinit var scopeProvider: DeclarationScopeProvider
+    @Inject
+    fun setDeclarationScopeProvider(scopeProvider: DeclarationScopeProviderImpl) {
+        this.scopeProvider = scopeProvider
+    }
     init {
         val lockBasedLazyResolveStorageManager = LockBasedLazyResolveStorageManager(globalContext.storageManager)
 

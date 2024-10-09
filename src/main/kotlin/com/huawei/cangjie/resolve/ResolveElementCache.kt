@@ -64,7 +64,7 @@ class ResolveElementCache(
             CangJieCodeBlockModificationListener.getInstance(project).cangjieOutOfCodeBlockTracker
         } else null
     ).toTypedArray()
-
+    val traceSize get() = resolveSession.trace.size
     private class CachedPartialResolve(val bindingContext: BindingContext, file: CjFile, val mode: BodyResolveMode) {
         private val modificationStamp: Long = modificationStamp(file)
 
@@ -249,7 +249,7 @@ class ResolveElementCache(
         val elementOfAdditionalResolve = findElementOfAdditionalResolve(element, bodyResolveMode)
 
 //        ensureFileAnnotationsResolved(element.getContainingCjFile())
-
+traceSize
         val bindingContext = if (elementOfAdditionalResolve != null) {
             if (elementOfAdditionalResolve is CjParameter) {
                 throw AssertionError(

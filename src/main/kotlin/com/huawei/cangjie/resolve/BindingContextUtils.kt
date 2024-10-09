@@ -4,8 +4,10 @@ import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.FunctionDescriptor
+import com.huawei.cangjie.descriptors.impl.AnonymousFunctionDescriptor
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.CjPsiUtil.deparenthesizeOnce
+import com.huawei.cangjie.psi.psiUtil.getNonStrictParentOfType
 import com.huawei.cangjie.psi.psiUtil.parentsWithSelf
 import com.huawei.cangjie.resolve.BindingContext.*
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext
@@ -18,6 +20,18 @@ import com.huawei.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import com.huawei.cangjie.utils.CangJieExceptionWithAttachments
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
+fun CjReturnExpression.getTargetFunctionDescriptor(context: BindingContext): FunctionDescriptor? {
+    val targetLabel = getTargetLabel()
+    if (targetLabel != null) return context[LABEL_TARGET, targetLabel]?.let { context[FUNCTION, it] }
+
+    val declarationDescriptor = context[DECLARATION_TO_DESCRIPTOR, getNonStrictParentOfType<CjDeclarationWithBody>()]
+    val containingFunctionDescriptor = DescriptorUtils.getParentOfType(declarationDescriptor, FunctionDescriptor::class.java, false)
+        ?: return null
+
+    return generateSequence(containingFunctionDescriptor) { DescriptorUtils.getParentOfType(it, FunctionDescriptor::class.java) }
+        .dropWhile { it is AnonymousFunctionDescriptor }
+        .firstOrNull()
+}
 
 fun BindingTrace.recordScope(scope: LexicalScope, element: CjElement?) {
     if (element != null) {

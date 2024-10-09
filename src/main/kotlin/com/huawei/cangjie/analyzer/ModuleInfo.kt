@@ -18,6 +18,7 @@ import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.impl.libraries.LibraryEx
 import com.intellij.openapi.roots.libraries.Library
+import com.intellij.openapi.roots.ui.configuration.SdkLookupProvider
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 
@@ -66,6 +67,7 @@ interface ModuleSourceInfo : ModuleInfo {
     val module: Module
 
 }
+fun  ModuleInfo.isLibraryClasses() =   this is LibraryInfo
 
 abstract class LibraryInfo internal constructor(
     override val project: Project,

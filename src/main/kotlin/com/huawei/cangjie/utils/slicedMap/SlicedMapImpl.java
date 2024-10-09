@@ -35,6 +35,14 @@ public class SlicedMapImpl implements MutableSlicedMap {
         return debugName;
     }
 
+    @Override
+    public int getSize() {
+        if (map != null) {
+            return map.size();
+        }
+        return 0;
+    }
+
     @Nullable
     @Override
     public <K, V> V get(@NotNull ReadOnlySlice<K, V> slice, K key) {
