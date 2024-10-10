@@ -3,6 +3,7 @@ package com.huawei.cangjie.ide.util
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeSubstitutor
+import com.huawei.cangjie.types.fuzzyExtensionReceiverType
 import com.huawei.cangjie.types.nullability
 import com.huawei.cangjie.types.util.TypeNullability
 import com.huawei.cangjie.types.util.makeNotNullable

@@ -2,4 +2,5 @@ package #if (${PACKAGE_NAME} && ${PACKAGE_NAME} != "") ${PROJECT_NAME}.${PACKAGE
 #end
 #parse("File Header.java")
 enum  ${NAME} {
+UNKNOWN
 }

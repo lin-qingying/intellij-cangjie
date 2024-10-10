@@ -102,3 +102,13 @@ fun SyntheticScopes.collectSyntheticStaticFunctions(
 }
 fun SyntheticScopes.collectSyntheticMemberFunctions(receiverTypes: Collection<CangJieType>, name: Name, location: LookupLocation)
         = scopes.flatMap { it.getSyntheticMemberFunctions(receiverTypes, name, location) }
+fun SyntheticScopes.collectSyntheticStaticFunctions(functionDescriptors: Collection<DeclarationDescriptor>)
+        = scopes.flatMap { it.getSyntheticStaticFunctions(functionDescriptors) }
+fun SyntheticScopes.collectSyntheticConstructors(classifierDescriptors: Collection<DeclarationDescriptor>)
+        = scopes.flatMap { it.getSyntheticConstructors(classifierDescriptors) }
+fun SyntheticScopes.collectSyntheticExtensionProperties(receiverTypes: Collection<CangJieType>, location: LookupLocation)
+        = scopes.flatMap { it.getSyntheticExtensionProperties(receiverTypes, location) }
+
+fun SyntheticScopes.collectSyntheticMemberFunctions(receiverTypes: Collection<CangJieType>)
+        = scopes.flatMap { it.getSyntheticMemberFunctions(receiverTypes) }
+

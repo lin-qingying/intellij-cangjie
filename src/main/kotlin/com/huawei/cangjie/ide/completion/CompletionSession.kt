@@ -1,5 +1,6 @@
 package com.huawei.cangjie.ide.completion
 
+import com.huawei.cangjie.NotPropertiesService
 import com.huawei.cangjie.analyzer.ModuleOrigin
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.doc.psi.impl.CDocLink
@@ -8,6 +9,7 @@ import com.huawei.cangjie.ide.CangJieIndicesHelper
 import com.huawei.cangjie.ide.ExpectedInfo
 import com.huawei.cangjie.ide.codeinsight.ReferenceVariantsHelper
 import com.huawei.cangjie.ide.fuzzyType
+import com.huawei.cangjie.ide.imports.ImportInsertHelper
 import com.huawei.cangjie.ide.imports.importableFqName
 import com.huawei.cangjie.ide.isExcludedFromAutoImport
 import com.huawei.cangjie.psi.*
@@ -17,21 +19,25 @@ import com.huawei.cangjie.psi.psiUtil.parents
 import com.huawei.cangjie.references.mainReference
 import com.huawei.cangjie.references.resolveCDocLink
 import com.huawei.cangjie.resolve.BindingContext
+import com.huawei.cangjie.resolve.ImportPath
 import com.huawei.cangjie.resolve.caches.getResolutionFacade
 import com.huawei.cangjie.resolve.caches.resolveToDescriptorIfAny
 import com.huawei.cangjie.resolve.calls.util.receiverTypesWithIndex
+import com.huawei.cangjie.resolve.compareDescriptors
 import com.huawei.cangjie.resolve.descriptorUtil.denotedClassDescriptor
 import com.huawei.cangjie.resolve.descriptorUtil.module
 import com.huawei.cangjie.resolve.isVisible
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.getResolutionScope
 import com.huawei.cangjie.resolve.scopes.getResolveScope
+import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver
 import com.huawei.cangjie.types.FuzzyType
+import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.toFuzzyType
+import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.makeNotNullable
-import com.huawei.cangjie.utils.CallTypeAndReceiver
-import com.huawei.cangjie.utils.ReceiverType
-import com.huawei.cangjie.utils.match
+import com.huawei.cangjie.utils.*
+import com.huawei.cangjie.utils.fqname.ImportableFqNameClassifier
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionSorter
@@ -47,7 +53,7 @@ import com.intellij.util.ProcessingContext
 
 
 class CompletionSessionConfiguration(
-//    val useBetterPrefixMatcherForNonImportedClasses: Boolean,
+    val useBetterPrefixMatcherForNonImportedClasses: Boolean,
     val nonAccessibleDeclarations: Boolean,
 
     val staticMembers: Boolean,
@@ -56,7 +62,7 @@ class CompletionSessionConfiguration(
 )
 
 fun CompletionSessionConfiguration(parameters: CompletionParameters) = CompletionSessionConfiguration(
-//    useBetterPrefixMatcherForNonImportedClasses = parameters.invocationCount < 2,
+    useBetterPrefixMatcherForNonImportedClasses = parameters.invocationCount < 2,
     nonAccessibleDeclarations = parameters.invocationCount >= 2,
 //    javaGettersAndSetters = parameters.invocationCount >= 2,
 //    javaClassesNotToBeUsed = parameters.invocationCount >= 2,
@@ -121,6 +127,10 @@ abstract class CompletionSession(
         }
     }
 
+    protected val importableFqNameClassifier = ImportableFqNameClassifier(file) {
+        ImportInsertHelper.getInstance(file.project).isImportedWithDefault(ImportPath(it, false), file)
+    }
+
     protected val isVisibleFilter: (DeclarationDescriptor) -> Boolean =
         { isVisibleDescriptor(it, completeNonAccessible = configuration.nonAccessibleDeclarations) }
     protected val prefix = CompletionUtil.findIdentifierPrefix(
@@ -138,6 +148,7 @@ abstract class CompletionSession(
     protected val callTypeAndReceiver =
         if (nameExpression == null) CallTypeAndReceiver.UNKNOWN else CallTypeAndReceiver.detect(nameExpression)
     protected val allowExpectedDeclarations = false
+
     //    // LookupElementsCollector instantiation is deferred because virtual call to createSorter uses data from derived classes
     protected val collector: LookupElementsCollector by lazy(LazyThreadSafetyMode.NONE) {
         LookupElementsCollector(
@@ -160,7 +171,8 @@ abstract class CompletionSession(
 
     protected val descriptorNameFilter: (String) -> Boolean = prefixMatcher.asStringNameFilter()
     protected abstract val descriptorKindFilter: DescriptorKindFilter?
-//    protected val referenceVariantsHelper = ReferenceVariantsHelper(
+
+    //    protected val referenceVariantsHelper = ReferenceVariantsHelper(
 //        bindingContext,
 //        resolutionFacade,
 //        moduleDescriptor,
@@ -172,6 +184,42 @@ abstract class CompletionSession(
         getResolveScope(originalParameters.originalFile as CjFile)
     protected val isVisibleFilterCheckAlways: (DeclarationDescriptor) -> Boolean =
         { isVisibleDescriptor(it, completeNonAccessible = false) }
+    protected val referenceVariantsHelper = ReferenceVariantsHelper(
+        bindingContext,
+        resolutionFacade,
+        moduleDescriptor,
+        isVisibleFilter,
+        NotPropertiesService.getNotProperties(position)
+    )
+
+    protected val shadowedFilter: ((Collection<DeclarationDescriptor>) -> Collection<DeclarationDescriptor>)? by lazy {
+        ShadowedDeclarationsFilter.create(
+            bindingContext = bindingContext,
+            resolutionFacade = resolutionFacade,
+            context = nameExpression!!,
+            callTypeAndReceiver = callTypeAndReceiver,
+        )?.createNonImportedDeclarationsFilter(
+            importedDeclarations = referenceVariantsCollector!!.allCollected.imported,
+            allowExpectedDeclarations = allowExpectedDeclarations,
+        )
+    }
+    protected val referenceVariantsCollector = if (nameExpression != null) {
+        ReferenceVariantsCollector(
+            referenceVariantsHelper = referenceVariantsHelper,
+            indicesHelper = indicesHelper(true),
+            prefixMatcher = prefixMatcher,
+            applicabilityFilter = applicabilityFilter,
+            nameExpression = nameExpression,
+            callTypeAndReceiver = callTypeAndReceiver,
+            resolutionFacade = resolutionFacade,
+            bindingContext = bindingContext,
+            importableFqNameClassifier = importableFqNameClassifier,
+            configuration = configuration,
+            allowExpectedDeclarations = allowExpectedDeclarations,
+        )
+    } else {
+        null
+    }
 
     private fun isVisibleDescriptor(descriptor: DeclarationDescriptor, completeNonAccessible: Boolean): Boolean {
 
@@ -214,7 +262,97 @@ abstract class CompletionSession(
     }
 
 
+    protected fun getRuntimeReceiverTypeReferenceVariants(lookupElementFactory: LookupElementFactory): Pair<ReferenceVariants, LookupElementFactory>? {
+        val evaluator = file.getCopyableUserData(CodeFragmentUtils.RUNTIME_TYPE_EVALUATOR) ?: return null
+        val referenceVariants = referenceVariantsCollector?.allCollected ?: return null
 
+        val explicitReceiver = callTypeAndReceiver.receiver as? CjExpression ?: return null
+        val type = bindingContext.getType(explicitReceiver) ?: return null
+        if (!TypeUtils.canHaveSubtypes(CangJieTypeChecker.DEFAULT, type)) return null
+
+        val runtimeType = evaluator(explicitReceiver)
+        if (runtimeType == null || runtimeType == type) return null
+
+        val expressionReceiver = ExpressionReceiver.create(explicitReceiver, runtimeType, bindingContext)
+        val (variants, notImportedExtensions) = ReferenceVariantsCollector(
+            referenceVariantsHelper = referenceVariantsHelper,
+            indicesHelper = indicesHelper(true),
+            prefixMatcher = prefixMatcher,
+            applicabilityFilter = applicabilityFilter,
+            nameExpression = nameExpression!!,
+            callTypeAndReceiver = callTypeAndReceiver,
+            resolutionFacade = resolutionFacade,
+            bindingContext = bindingContext,
+            importableFqNameClassifier = importableFqNameClassifier,
+            configuration = configuration,
+            allowExpectedDeclarations = allowExpectedDeclarations,
+            runtimeReceiver = expressionReceiver,
+        ).collectReferenceVariants(descriptorKindFilter!!)
+
+        val filteredVariants = filterVariantsForRuntimeReceiverType(variants, referenceVariants.imported)
+        val filteredNotImportedExtensions =
+            filterVariantsForRuntimeReceiverType(notImportedExtensions, referenceVariants.notImportedExtensions)
+
+        val runtimeVariants = ReferenceVariants(filteredVariants, filteredNotImportedExtensions)
+        return Pair(runtimeVariants, lookupElementFactory.copy(receiverTypes = listOf(ReceiverType(runtimeType, 0))))
+    }
+
+    protected fun processTopLevelCallables(processor: (DeclarationDescriptor) -> Unit) {
+        indicesHelper(true).processTopLevelCallables({ prefixMatcher.prefixMatches(it) }) {
+            processWithShadowedFilter(it, processor)
+        }
+    }
+    protected open fun shouldCompleteTopLevelCallablesFromIndex(): Boolean {
+        if (nameExpression == null) return false
+        if ((descriptorKindFilter?.kindMask ?: 0).and(DescriptorKindFilter.CALLABLES_MASK) == 0) return false
+        if (callTypeAndReceiver is CallTypeAndReceiver.IMPORT_DIRECTIVE) return false
+        return callTypeAndReceiver.receiver == null
+    }
+
+    protected inline fun <reified T : DeclarationDescriptor> processWithShadowedFilter(
+        descriptor: T,
+        processor: (T) -> Unit
+    ) {
+        val shadowedFilter = shadowedFilter
+        val element = if (shadowedFilter != null) {
+            shadowedFilter(listOf(descriptor)).singleOrNull()?.let { it as T }
+        } else {
+            descriptor
+        }
+
+        element?.let(processor)
+    }
+
+    protected fun withContextVariablesProvider(
+        contextVariablesProvider: ContextVariablesProvider,
+        action: (LookupElementFactory) -> Unit
+    ) {
+        val lookupElementFactory = createLookupElementFactory(contextVariablesProvider)
+        action(lookupElementFactory)
+    }
+
+    private fun <TDescriptor : DeclarationDescriptor> filterVariantsForRuntimeReceiverType(
+        runtimeVariants: Collection<TDescriptor>,
+        baseVariants: Collection<TDescriptor>
+    ): Collection<TDescriptor> {
+        val baseVariantsByName = baseVariants.groupBy { it.name }
+        val result = ArrayList<TDescriptor>()
+        for (variant in runtimeVariants) {
+            val candidates = baseVariantsByName[variant.name]
+            if (candidates == null || candidates.none { compareDescriptors(project, variant, it) }) {
+                result.add(variant)
+            }
+        }
+        return result
+    }
+
+    protected fun referenceVariantsWithSingleFunctionTypeParameter(): ReferenceVariants? {
+        val variants = referenceVariantsCollector?.allCollected ?: return null
+        val filter = { descriptor: DeclarationDescriptor ->
+            descriptor is FunctionDescriptor && LookupElementFactory.hasSingleFunctionTypeParameter(descriptor)
+        }
+        return ReferenceVariants(variants.imported.filter(filter), variants.notImportedExtensions.filter(filter))
+    }
 
     protected open fun createLookupElementFactory(contextVariablesProvider: ContextVariablesProvider): LookupElementFactory {
         return LookupElementFactory(
@@ -277,6 +415,7 @@ abstract class CompletionSession(
             throw pce
         }
     }
+
     private fun calcContextForStatisticsInfo(): String? {
         if (expectedInfos.isEmpty()) return null
 
@@ -296,11 +435,12 @@ abstract class CompletionSession(
 
         return context
     }
+
     private fun _complete(): Boolean {
         val prefixPattern = StandardPatterns.string().with(
             object : PatternCondition<String>("get or set prefix") {
-            override fun accepts(prefix: String, context: ProcessingContext?) = prefix == "get" || prefix == "set"
-        }
+                override fun accepts(prefix: String, context: ProcessingContext?) = prefix == "get" || prefix == "set"
+            }
         )
         collector.restartCompletionOnPrefixChange(prefixPattern)
 
@@ -375,7 +515,7 @@ abstract class CompletionSession(
         return provider.requiredTypes
     }
 
-//    protected val referenceVariantsCollector = if (nameExpression != null) {
+    //    protected val referenceVariantsCollector = if (nameExpression != null) {
 //        ReferenceVariantsCollector(
 //            referenceVariantsHelper = referenceVariantsHelper,
 //            indicesHelper = indicesHelper(true),

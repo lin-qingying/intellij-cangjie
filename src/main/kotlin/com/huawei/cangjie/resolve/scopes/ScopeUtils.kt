@@ -27,6 +27,7 @@ import com.huawei.cangjie.resolve.scopes.util.parentsWithSelf
 import com.huawei.cangjie.types.error.ErrorClassDescriptor
 import com.huawei.cangjie.types.error.ErrorEntity
 import com.huawei.cangjie.utils.Printer
+import com.huawei.cangjie.utils.getImplicitReceiversWithInstance
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -43,12 +44,13 @@ fun HierarchicalScope.collectDescriptorsFiltered(
     changeNamesForAliased: Boolean = false
 ): Collection<DeclarationDescriptor> {
     if (kindFilter.kindMask == 0) return listOf()
-    return collectAllFromMeAndParent {
+    val result = collectAllFromMeAndParent {
         if (it is ImportingScope)
             it.getContributedDescriptors(kindFilter, nameFilter, changeNamesForAliased)
         else
             it.getContributedDescriptors(kindFilter, nameFilter)
     }.filter { kindFilter.accepts(it) && nameFilter(it.name) }
+    return result
 }
 
 fun HierarchicalScope.findPackage(name: Name): PackageViewDescriptor? =
@@ -437,7 +439,12 @@ inline fun <T : Any> HierarchicalScope.collectAllFromMeAndParent(
     processForMeAndParent { result = result.concat(collect(it)) }
     return result ?: emptySet()
 }
-
+fun LexicalScope.getVariableFromImplicitReceivers(name: Name): VariableDescriptor? {
+    getImplicitReceiversWithInstance().forEach {
+        it.type.memberScope.getContributedVariables(name, NoLookupLocation.FROM_IDE).singleOrNull()?.let { return it }
+    }
+    return null
+}
 object ScopeUtils {
     @JvmStatic
     fun makeScopeForPropertyInitializer(

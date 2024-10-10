@@ -233,7 +233,7 @@ abstract class DescriptorRenderer {
 
         fun getClassifierKindPrefix(classifier: ClassifierDescriptorWithTypeParameters): String = when (classifier) {
             is TypeAliasDescriptor ->
-                "typealias"
+                "type"
 
             is ClassDescriptor ->
                 when (classifier.kind) {
@@ -1408,7 +1408,7 @@ open class DescriptorRendererImpl(
         builder.renderAnnotations(typeAlias)
         renderVisibility(typeAlias.visibility, builder)
         renderMemberModifiers(typeAlias, builder)
-        builder.append(renderKeyword("typealias")).append(" ")
+        builder.append(renderKeyword("type")).append(" ")
         renderName(typeAlias, builder, true)
 
         renderTypeParameters(typeAlias.declaredTypeParameters, builder, false)

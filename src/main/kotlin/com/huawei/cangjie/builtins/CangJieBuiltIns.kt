@@ -20,6 +20,7 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.int16UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int32UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int64UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.int8UFqName
+import com.huawei.cangjie.builtins.StandardNames.FqNames.iterableFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.nothingUFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.objectFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.optionUFqName
@@ -61,6 +62,8 @@ import com.huawei.cangjie.types.util.classFqNameEquals
 import com.huawei.cangjie.types.util.isConstructedFromGivenClass
 import com.huawei.cangjie.types.util.isNotNullConstructedFromGivenClass
 import com.intellij.openapi.project.Project
+import java.util.*
+
 
 
 open class CangJieBuiltIns(
@@ -70,7 +73,7 @@ open class CangJieBuiltIns(
 //    val moduleInfo: ModuleInfo? = null
 ) {
     companion object {
-        // This function only checks presence of Deprecated annotation at declaration-site, it doesn't take into account @DeprecatedSinceKotlin
+        // This function only checks presence of Deprecated annotation at declaration-site, it doesn't take into account @DeprecatedSinceCangJie
         // To check that a referenced descriptor is actually deprecated at call-site, use DeprecationResolver
         fun isDeprecated(declarationDescriptor: DeclarationDescriptor): Boolean {
             if (declarationDescriptor.original.annotations.hasAnnotation(StandardNames.FqNames.deprecated)) return true
@@ -113,7 +116,7 @@ open class CangJieBuiltIns(
         }
 
         /**
-         * @return true if the containing package of the descriptor is "kotlin" or any subpackage of "cangjie"
+         * @return true if the containing package of the descriptor is "cangjie" or any subpackage of "cangjie"
          */
         fun isUnderCangJiePackage(descriptor: DeclarationDescriptor): Boolean {
             var current: DeclarationDescriptor? = descriptor
@@ -449,7 +452,70 @@ open class CangJieBuiltIns(
             types
         )
     }
+    private class Primitives(
+        val primitiveTypeToArrayCangJieType: Map<PrimitiveType, SimpleType>,
+        val primitiveCangJieTypeToCangJieArrayType: Map<CangJieType, SimpleType>,
+        val cangjieArrayTypeToPrimitiveCangJieType: Map<SimpleType, SimpleType>
+    )
+    private val primitives:  NotNullLazyValue< Primitives> = storageManager.createLazyValue{
+        val primitiveTypeToArrayCangJieType = EnumMap<PrimitiveType, SimpleType>(PrimitiveType::class.java)
+        val primitiveCangJieTypeToCangJieArrayType = HashMap<CangJieType, SimpleType>()
+        val cangjieArrayTypeToPrimitiveCangJieType = HashMap<SimpleType, SimpleType>()
 
+        for (primitive in PrimitiveType.entries) {
+            val type = getPrimitiveBuiltInCangJieType(primitive.typeName )
+            val arrayType = getPrimitiveBuiltInCangJieType(primitive.arrayTypeName )
+
+            primitiveTypeToArrayCangJieType[primitive] = arrayType
+            primitiveCangJieTypeToCangJieArrayType[type] = arrayType
+            cangjieArrayTypeToPrimitiveCangJieType[arrayType] = type
+        }
+
+          Primitives(
+            primitiveTypeToArrayCangJieType,
+            primitiveCangJieTypeToCangJieArrayType,
+            cangjieArrayTypeToPrimitiveCangJieType
+        )
+    }
+
+//    fun getArrayElementType(arrayType:  CangJieType):  CangJieType {
+//        if ( isArray(arrayType)) {
+//            check(arrayType.arguments.size == 1)
+//            return arrayType.arguments.get(0).getType()
+//        }
+//        val notNullArrayType  =
+//             TypeUtils.makeNotNullable(arrayType)
+//        val primitiveType =
+//            primitives.invoke().cangjieArrayTypeToPrimitiveCangJieType.get(notNullArrayType)
+//        if (primitiveType != null) return primitiveType
+//
+//        val module  =
+//           DescriptorUtils.getContainingModuleOrNull(notNullArrayType)
+//        if (module != null) {
+//            val unsignedType:  CangJieType =
+//                 getElementTypeForUnsignedArray(notNullArrayType, module)
+//            if (unsignedType != null) return unsignedType
+//        }
+//
+//
+//        throw IllegalStateException("not array: $arrayType")
+//    }
+
+//    private fun getElementTypeForUnsignedArray(
+//          notNullArrayType: CangJieType,
+//          module: ModuleDescriptor
+//    ): CangJieType? {
+//        val descriptor = notNullArrayType.constructor.declarationDescriptor ?: return null
+//        if (!UnsignedTypes.isShortNameOfUnsignedArray(descriptor.name)) return null
+//
+//        val arrayClassId = DescriptorUtils.getClassId(descriptor) ?: return null
+//
+//        val elementClassId = UnsignedTypes.INSTANCE.getUnsignedClassIdByArrayClassId(arrayClassId) ?: return null
+//
+//        val elementClassDescriptor = FindClassInModule.findClassAcrossModuleDependencies(module, elementClassId) ?: return null
+//
+//        return elementClassDescriptor.defaultType
+//    }
     fun getNullableNothingType(): SimpleType {
         return nothingType.makeOptionalAsSpecified(true)
     }
@@ -693,6 +759,12 @@ open class CangJieBuiltIns(
     val equatableType: SimpleType
         get() {
             return equatable.getDefaultType()
+        }
+    val iterable: ClassDescriptor
+        get() = findClassDescriptorByFqName(storageManager.project, iterableFqName)!!
+    val iterableType: SimpleType
+        get() {
+            return iterable.getDefaultType()
         }
 
     val comparable: ClassDescriptor

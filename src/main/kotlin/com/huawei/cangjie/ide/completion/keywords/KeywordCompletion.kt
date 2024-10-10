@@ -130,7 +130,7 @@ class KeywordCompletion(private val languageVersionSettingProvider: LanguageVers
 
             GET_KEYWORD,
             SET_KEYWORD
-        ).map { it.value } + "companion object"
+        ).map { it.value }
     }
 
     fun complete(

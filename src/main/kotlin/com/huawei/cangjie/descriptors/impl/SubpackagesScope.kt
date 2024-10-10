@@ -2,6 +2,7 @@ package com.huawei.cangjie.descriptors.impl
 
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
+import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.scopes.DescriptorKindExclude
@@ -27,11 +28,13 @@ open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, priv
 
     val builtinsPackageScope = moduleDescriptor.builtIns.getBuiltInsPackageScope()
     override fun getClassifierNames(): Set<Name> {
-      return   builtinsPackageScope.getClassifierNames() ?: emptySet()
+        return builtinsPackageScope.getClassifierNames() ?: emptySet()
     }
+
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
-     return  builtinsPackageScope.getContributedClassifier(name, location)
+        return builtinsPackageScope.getContributedClassifier(name, location)
     }
+
     override fun definitelyDoesNotContainName(name: Name): Boolean {
         return getClassifierNames().contains(name)
 
@@ -41,11 +44,21 @@ open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, priv
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> {
-        if (!kindFilter.acceptsKinds(DescriptorKindFilter.PACKAGES_MASK)) return listOf()
+        val result = mutableListOf<DeclarationDescriptor>()
+        val basicTypeNames = builtinsPackageScope.getClassifierNames()
+
+        if (basicTypeNames != null) {
+            for (name in basicTypeNames) {
+                if (nameFilter(name))
+                    result.addIfNotNull(getContributedClassifier(name, NoLookupLocation.FROM_BUILTINS))
+            }
+        }
+
+        if (!kindFilter.acceptsKinds(DescriptorKindFilter.PACKAGES_MASK)) return result
         if (fqName.isRoot && kindFilter.excludes.contains(DescriptorKindExclude.TopLevelPackages)) return listOf()
 
         val subFqNames = moduleDescriptor.getSubPackagesOf(fqName, nameFilter)
-        val result = ArrayList<DeclarationDescriptor>(subFqNames.size)
+
         for (subFqName in subFqNames) {
             val shortName = subFqName.shortName()
             if (nameFilter(shortName)) {

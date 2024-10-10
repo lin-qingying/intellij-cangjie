@@ -1,20 +1,28 @@
 package com.huawei.cangjie.ide.completion.smart
 
-import com.huawei.cangjie.descriptors.CallableDescriptor
-import com.huawei.cangjie.descriptors.ClassDescriptor
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.VariableDescriptor
+import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.impl.LocalVariableDescriptor
 import com.huawei.cangjie.ide.ExpectedInfo
+import com.huawei.cangjie.ide.ItemOptions
+import com.huawei.cangjie.ide.ReturnValueAdditionalData
+import com.huawei.cangjie.ide.Tail
 import com.huawei.cangjie.ide.completion.SmartCastCalculator
+import com.huawei.cangjie.ide.completion.handlers.WithExpressionPrefixInsertHandler
+import com.huawei.cangjie.ide.completion.handlers.WithTailInsertHandler
+import com.huawei.cangjie.ide.completion.suppressAutoInsertion
 import com.huawei.cangjie.psi.NotNullableUserDataProperty
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.ResolutionFacade
+import com.huawei.cangjie.resolve.descriptorUtil.descriptorsEqualWithSubstitution
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.isNothing
 import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.isNullableNothing
 import com.huawei.cangjie.types.util.TypeNullability
 import com.huawei.cangjie.utils.CallTypeAndReceiver
+import com.intellij.codeInsight.completion.PrefixMatcher
 import com.intellij.codeInsight.lookup.LookupElement
+import com.intellij.codeInsight.lookup.LookupElementDecorator
+import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.util.Key
 
 enum class SmartCompletionItemPriority {
@@ -43,6 +51,7 @@ enum class SmartCompletionItemPriority {
     NAMED_ARGUMENT_NULL,
     INHERITOR_INSTANTIATION
 }
+
 val SMART_COMPLETION_ITEM_PRIORITY_KEY = Key<SmartCompletionItemPriority>("SMART_COMPLETION_ITEM_PRIORITY_KEY")
 
 class ExpectedInfoMatch
@@ -58,8 +67,10 @@ private constructor(
         fun ifNotNullMatch(substitutor: TypeSubstitutor) = ExpectedInfoMatch(substitutor, true)
     }
 }
+
 internal var LookupElement.keywordProbability: KeywordProbability
         by NotNullableUserDataProperty(Key.create("KEYWORD_PROBABILITY_KEY"), KeywordProbability.DEFAULT)
+
 /**
  * In some completion contexts, certain keywords are more probable than others. This enum together with
  * [keywordProbability] property are used to capture that. They should be considered when weighting completion
@@ -70,6 +81,7 @@ internal enum class KeywordProbability {
     DEFAULT,
     LOW,
 }
+
 fun DeclarationDescriptor.fuzzyTypesForSmartCompletion(
     smartCastCalculator: SmartCastCalculator,
     callTypeAndReceiver: CallTypeAndReceiver<*, *>,
@@ -104,6 +116,7 @@ fun DeclarationDescriptor.fuzzyTypesForSmartCompletion(
         return emptyList()
     }
 }
+
 fun Collection<FuzzyType>.matchExpectedInfo(expectedInfo: ExpectedInfo): ExpectedInfoMatch {
     val sequence = asSequence()
     val substitutor = sequence.map { expectedInfo.matchingSubstitutor(it) }.firstOrNull()
@@ -119,4 +132,139 @@ fun Collection<FuzzyType>.matchExpectedInfo(expectedInfo: ExpectedInfo): Expecte
     }
 
     return ExpectedInfoMatch.noMatch
+}
+
+fun LookupElement.withOptions(options: ItemOptions): LookupElement =
+    if (options.starPrefix) {
+        object : LookupElementDecorator<LookupElement>(this) {
+            override fun renderElement(presentation: LookupElementPresentation) {
+                super.renderElement(presentation)
+                presentation.itemText = "*" + presentation.itemText
+            }
+
+            override fun getDelegateInsertHandler() = WithExpressionPrefixInsertHandler("*")
+        }
+    } else {
+        this
+    }
+
+fun FuzzyType.matchExpectedInfo(expectedInfo: ExpectedInfo) = listOf(this).matchExpectedInfo(expectedInfo)
+fun <TDescriptor : DeclarationDescriptor?> MutableCollection<LookupElement>.addLookupElements(
+    descriptor: TDescriptor,
+    expectedInfos: Collection<ExpectedInfo>,
+    infoMatcher: (ExpectedInfo) -> ExpectedInfoMatch,
+    noNameSimilarityForReturnItself: Boolean = false,
+    lookupElementFactory: (TDescriptor) -> Collection<LookupElement>
+) {
+    class ItemData(val descriptor: TDescriptor, val itemOptions: ItemOptions) {
+        @Suppress("UNCHECKED_CAST")
+        override fun equals(other: Any?) = descriptorsEqualWithSubstitution(
+            this.descriptor,
+            (other as? ItemData)?.descriptor
+        ) && itemOptions == (other as? ItemData)?.itemOptions
+
+        override fun hashCode() = if (this.descriptor != null) this.descriptor.original.hashCode() else 0
+    }
+
+    fun ItemData.createLookupElements() = lookupElementFactory(this.descriptor).map { it.withOptions(this.itemOptions) }
+
+    val matchedInfos = HashMap<ItemData, MutableList<ExpectedInfo>>()
+    val makeNullableInfos = HashMap<ItemData, MutableList<ExpectedInfo>>()
+    for (info in expectedInfos) {
+        val classification = infoMatcher(info)
+        if (classification.substitutor != null) {
+            val substitutedDescriptor = descriptor.substituteFixed(classification.substitutor)
+            val map = if (classification.makeNotNullable) makeNullableInfos else matchedInfos
+            map.getOrPut(ItemData(substitutedDescriptor, info.itemOptions)) { ArrayList() }.add(info)
+        }
+    }
+
+    if (matchedInfos.isNotEmpty()) {
+        for ((itemData, infos) in matchedInfos) {
+            val lookupElements = itemData.createLookupElements()
+            val nameSimilarityInfos = if (noNameSimilarityForReturnItself && descriptor is CallableDescriptor) {
+                infos.filter { (it.additionalData as? ReturnValueAdditionalData)?.callable != descriptor } // do not calculate name similarity with function itself in its return
+            } else
+                infos
+            lookupElements.mapTo(this) { it.addTailAndNameSimilarity(infos, nameSimilarityInfos) }
+        }
+    } else {
+        for ((itemData, infos) in makeNullableInfos) {
+            addLookupElementsForNullable({ itemData.createLookupElements() }, infos)
+        }
+    }
+}
+fun shouldCompleteThisItems(prefixMatcher: PrefixMatcher): Boolean {
+    val prefix = prefixMatcher.prefix
+    val s = "this@"
+    return prefix.startsWith(s) || s.startsWith(prefix)
+}
+
+private fun MutableCollection<LookupElement>.addLookupElementsForNullable(
+    factory: () -> Collection<LookupElement>,
+    matchedInfos: Collection<ExpectedInfo>
+) {
+    fun LookupElement.postProcess(): LookupElement {
+        var element = this
+        element = element.suppressAutoInsertion()
+        element = element.assignSmartCompletionPriority(SmartCompletionItemPriority.NULLABLE)
+        element = element.addTailAndNameSimilarity(matchedInfos)
+        return element
+    }
+
+    factory().mapTo(this) {
+        object : LookupElementDecorator<LookupElement>(it) {
+            override fun renderElement(presentation: LookupElementPresentation) {
+                super.renderElement(presentation)
+                presentation.itemText = "!! " + presentation.itemText
+            }
+
+            override fun getDelegateInsertHandler() = WithTailInsertHandler("!!", spaceBefore = false, spaceAfter = false)
+        }.postProcess()
+    }
+
+    factory().mapTo(this) {
+        object : LookupElementDecorator<LookupElement>(it) {
+            override fun renderElement(presentation: LookupElementPresentation) {
+                super.renderElement(presentation)
+                presentation.itemText = "?: " + presentation.itemText
+            }
+
+            override fun getDelegateInsertHandler() = WithTailInsertHandler("?:", spaceBefore = true, spaceAfter = true)
+        }.postProcess()
+    }
+}
+
+private fun <T : DeclarationDescriptor?> T.substituteFixed(substitutor: TypeSubstitutor): T {
+    if (this is LocalVariableDescriptor || this is ValueParameterDescriptor || this !is Substitutable<*>) {
+        return this
+    }
+    return this.substitute(substitutor) as T
+}
+
+fun LookupElement.addTailAndNameSimilarity(
+    matchedExpectedInfos: Collection<ExpectedInfo>,
+    nameSimilarityExpectedInfos: Collection<ExpectedInfo> = matchedExpectedInfos
+): LookupElement {
+    val lookupElement = addTail(mergeTails(matchedExpectedInfos.map { it.tail }))
+    val similarity = calcNameSimilarity(lookupElement.lookupString, nameSimilarityExpectedInfos)
+    if (similarity != 0) {
+        lookupElement.putUserData(NAME_SIMILARITY_KEY, similarity)
+    }
+    return lookupElement
+}
+
+fun LookupElement.addTail(tail: Tail?): LookupElement = when (tail) {
+    null -> this
+    Tail.COMMA -> LookupElementDecorator.withDelegateInsertHandler(this, WithTailInsertHandler.COMMA)
+    Tail.RPARENTH -> LookupElementDecorator.withDelegateInsertHandler(this, WithTailInsertHandler.RPARENTH)
+    Tail.RBRACKET -> LookupElementDecorator.withDelegateInsertHandler(this, WithTailInsertHandler.RBRACKET)
+    Tail.ELSE -> LookupElementDecorator.withDelegateInsertHandler(this, WithTailInsertHandler.ELSE)
+    Tail.RBRACE -> LookupElementDecorator.withDelegateInsertHandler(this, WithTailInsertHandler.RBRACE)
+}
+
+fun mergeTails(tails: Collection<Tail?>): Tail? = tails.singleOrNull() ?: tails.toSet().singleOrNull()
+fun LookupElement.assignSmartCompletionPriority(priority: SmartCompletionItemPriority): LookupElement {
+    putUserData(SMART_COMPLETION_ITEM_PRIORITY_KEY, priority)
+    return this
 }

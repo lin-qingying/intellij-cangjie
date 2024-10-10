@@ -1,17 +1,88 @@
 package com.huawei.cangjie.ide
 
-import com.huawei.cangjie.psi.CjDeclaration
-import com.huawei.cangjie.psi.CjFile
-import com.huawei.cangjie.psi.CjTypeAlias
-import com.huawei.cangjie.psi.CjTypeStatement
+import com.huawei.cangjie.highlighter.unwrapped
+import com.huawei.cangjie.icon.CangJieIcons.ABSTRACT_CLASS
+import com.huawei.cangjie.icon.CangJieIcons.ABSTRACT_EXTENSION_FUNCTION
+import com.huawei.cangjie.icon.CangJieIcons.CLASS
+import com.huawei.cangjie.icon.CangJieIcons.ENUM
+import com.huawei.cangjie.icon.CangJieIcons.EXTENSION_FUNCTION
+import com.huawei.cangjie.icon.CangJieIcons.FIELD_LET
+import com.huawei.cangjie.icon.CangJieIcons.FIELD_VAR
+import com.huawei.cangjie.icon.CangJieIcons.FILE
+import com.huawei.cangjie.icon.CangJieIcons.FUNCTION
+import com.huawei.cangjie.icon.CangJieIcons.INTERFACE
+import com.huawei.cangjie.icon.CangJieIcons.LAMBDA
+import com.huawei.cangjie.icon.CangJieIcons.PARAMETER
+import com.huawei.cangjie.icon.CangJieIcons.STRUCT
+import com.huawei.cangjie.icon.CangJieIcons.TYPE_ALIAS
+import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.psiUtil.getStrictParentOfType
+import com.huawei.cangjie.psi.psiUtil.isAbstract
 import com.huawei.cangjie.psi.psiUtil.isPrivate
+import com.intellij.icons.AllIcons
 import com.intellij.ide.IconProvider
 import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.project.IndexNotReadyException
+import com.intellij.openapi.util.Iconable
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.psi.PsiElement
+import com.intellij.ui.RowIcon
+import com.intellij.util.PlatformIcons
+import com.linqingying.utils.toCamelCase
+import javax.swing.Icon
 
-abstract class CangJieIconProvider : IconProvider(), DumbAware {
 
-    companion object{
+class CangJieIconProvider : AbstractCangJieIconProvider(){
+//    override fun isMatchingExpected(declaration: CjDeclaration): Boolean {
+//        return declaration.hasActualModifier() && declaration.hasMatchingExpected()
+//    }
+}
+
+abstract class AbstractCangJieIconProvider : IconProvider(), DumbAware {
+//    protected abstract fun isMatchingExpected(declaration: CjDeclaration): Boolean
+
+    private fun Icon.addExpectActualMarker(element: PsiElement): Icon {
+        return this
+//        val declaration = (element as? CjNamedDeclaration) ?: return this
+//        val additionalIcon = when {
+////            isExpectDeclaration(declaration) -> EXPECT
+////            isMatchingExpected(declaration) -> ACTUAL
+//            else -> return this
+//        }
+//        return RowIcon(2).apply {
+//            setIcon(this@addExpectActualMarker, 0)
+//            setIcon(additionalIcon, 1)
+//        }
+    }
+
+
+    override fun getIcon(psiElement: PsiElement, flags: Int): Icon? {
+        if (psiElement is CjFile) {
+
+            val mainClass = getSingleClass(psiElement)
+            return if (mainClass != null) getIcon(mainClass, flags) else FILE
+        }
+
+        val result = psiElement.getBaseIcon()
+        if (flags and Iconable.ICON_FLAG_VISIBILITY > 0 && result != null && (psiElement is CjModifierListOwner && psiElement !is CjClassInitializer)) {
+            val list = psiElement.modifierList
+            val visibilityIcon = getVisibilityIcon(list)
+
+            val withExpectedActual: Icon = try {
+                result.addExpectActualMarker(psiElement)
+            } catch (indexNotReady: IndexNotReadyException) {
+                result
+            }
+
+            return createRowIcon(withExpectedActual, visibilityIcon)
+        }
+        return result
+    }
+
+    companion object {
+        fun isSingleClassFile(file: CjFile) = getSingleClass(file) != null
+
         fun getSingleClass(file: CjFile): CjTypeStatement? {
             var targetDeclaration: CjDeclaration? = null
             for (declaration: CjDeclaration in file.declarations) {
@@ -20,8 +91,86 @@ abstract class CangJieIconProvider : IconProvider(), DumbAware {
                     targetDeclaration = declaration
                 }
             }
-            return targetDeclaration?.takeIf { it is CjTypeStatement && StringUtil.getPackageName(file.name) == it.name } as? CjTypeStatement
+            return targetDeclaration?.takeIf { it is CjTypeStatement && StringUtil.getPackageName(file.name.toCamelCase()) == it.name } as? CjTypeStatement
         }
 
+        fun getMainClass(file: CjFile): CjTypeStatement? {
+            var targetClassOrObject: CjTypeStatement? = null
+            for (declaration in file.declarations) {
+                if (!declaration.isPrivate() && declaration is CjTypeStatement) {
+                    if (targetClassOrObject != null) return null
+                    targetClassOrObject = declaration
+                }
+            }
+            return targetClassOrObject?.takeIf { StringUtil.getPackageName(file.name) == it.name }
+        }
+
+        private fun createRowIcon(baseIcon: Icon, visibilityIcon: Icon): RowIcon {
+            val rowIcon = RowIcon(2)
+            rowIcon.setIcon(baseIcon, 0)
+            rowIcon.setIcon(visibilityIcon, 1)
+            return rowIcon
+        }
+
+        fun getVisibilityIcon(list: CjModifierList?): Icon {
+            val icon: Icon? = if (list != null) {
+                when {
+                    list.hasModifier(CjTokens.PRIVATE_KEYWORD) -> AllIcons.Nodes.C_private
+                    list.hasModifier(CjTokens.PROTECTED_KEYWORD) -> AllIcons.Nodes.C_protected
+                    list.hasModifier(CjTokens.INTERNAL_KEYWORD) -> AllIcons.Nodes.C_plocal
+                    else -> null
+                }
+            } else {
+                null
+            }
+
+            return icon ?: PlatformIcons.PUBLIC_ICON
+        }
+
+
+        fun PsiElement.getBaseIcon(): Icon? = when (this) {
+            is CjPackageDirective -> AllIcons.Nodes.Package
+            is CjFile -> FILE
+
+            is CjNamedFunction -> when {
+                receiverTypeReference != null ->
+                    if (CjPsiUtil.isAbstract(this)) ABSTRACT_EXTENSION_FUNCTION else EXTENSION_FUNCTION
+
+                getStrictParentOfType<CjNamedDeclaration>() is CjClass ->
+                    if (CjPsiUtil.isAbstract(this)) PlatformIcons.ABSTRACT_METHOD_ICON else
+                        AllIcons.Nodes.Method
+
+                else ->
+                    FUNCTION
+            }
+
+            is CjConstructor<*> -> AllIcons.Nodes.Method
+
+
+            is CjFunctionLiteral -> LAMBDA
+            is CjInterface -> INTERFACE
+            is CjEnum -> ENUM
+            is CjStruct -> STRUCT
+            is CjClass ->  if (isAbstract()) ABSTRACT_CLASS else CLASS
+            is CjEnumEntry -> if( getPrimaryConstructorParameterList() == null) ENUM else null
+
+
+            is CjParameter -> {
+                if (CjPsiUtil.getClassIfParameterIsProperty(this) != null) {
+                    if (isMutable) FIELD_VAR else FIELD_LET
+                } else
+                    PARAMETER
+            }
+
+            is CjProperty -> if (isVar) FIELD_VAR else FIELD_LET
+
+
+            is CjTypeAlias -> TYPE_ALIAS
+
+
+            else -> getBaseIconUnwrapped()
+        }
+
+        private fun PsiElement.getBaseIconUnwrapped(): Icon? = unwrapped?.takeIf { it != this }?.getBaseIcon()
     }
 }

@@ -5,7 +5,7 @@ import com.huawei.cangjie.descriptors.FunctionDescriptor
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.ide.CangJieIndicesHelper
 import com.huawei.cangjie.ide.search.isValidOperator
-import com.huawei.cangjie.ide.util.fuzzyExtensionReceiverType
+
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.scopes.LexicalScope

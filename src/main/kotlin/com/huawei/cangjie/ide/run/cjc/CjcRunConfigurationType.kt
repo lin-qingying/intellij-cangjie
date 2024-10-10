@@ -12,7 +12,7 @@ import com.intellij.openapi.util.NotNullLazyValue
 class CjcRunConfigurationType : SimpleConfigurationType("CjcRunConfigurationType",
     "Cjc",
     "Cjc",
-    NotNullLazyValue.createValue { CangJieIcons.CANGJIE_16 }
+    NotNullLazyValue.createValue { CangJieIcons.CANGJIE }
 
 ) {
     override fun createTemplateConfiguration(project: Project): CjcRunConfiguration {

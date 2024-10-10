@@ -1015,7 +1015,7 @@ append(" ")
 //        appendAnnotations(typeAlias, eachAnnotationOnNewLine)
         appendVisibility(typeAlias.visibility)
         appendMemberModifiers(typeAlias)
-        append(renderKeyword("typealias"))
+        append(renderKeyword("type"))
         append(" ")
         appendName(typeAlias, true) { asTypeAlias }
 

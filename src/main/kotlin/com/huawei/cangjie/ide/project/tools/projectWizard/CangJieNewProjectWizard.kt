@@ -54,7 +54,7 @@ class CangJieGeneratorNewProjectWizard : LanguageGeneratorNewProjectWizard {
 
     }
 
-    override val icon: Icon = CangJieIcons.CANGJIE_16
+    override val icon: Icon = CangJieIcons.CANGJIE
     override val name: String = CangJieBundle.message("cangjie")
 
     override fun createStep(parent: NewProjectWizardStep): NewProjectWizardStep = Step(parent as NewProjectWizardLanguageStep)

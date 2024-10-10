@@ -25,7 +25,7 @@ class CangJieLibraryModuleType : ModuleType<CangJieModuleBuilder>( ID) {
     override fun getDescription(): String  = CangJieBundle.message("CangJie.module.library")
 
     override fun getNodeIcon(isOpened: Boolean): Icon {
-        return CangJieIcons.CANGJIE_16
+        return CangJieIcons.CANGJIE
     }
     override fun isSupportedRootType(type: JpsModuleSourceRootType<*>?): Boolean {
         return super.isSupportedRootType(type)

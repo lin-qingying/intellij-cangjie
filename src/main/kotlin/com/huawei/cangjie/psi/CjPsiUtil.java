@@ -1,6 +1,7 @@
 package com.huawei.cangjie.psi;
 
 import com.huawei.cangjie.CjNodeTypes;
+import com.huawei.cangjie.builtins.StandardNames;
 import com.huawei.cangjie.doc.psi.CDocElement;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.name.SpecialNames;
@@ -27,6 +28,23 @@ public class CjPsiUtil {
     public interface CjExpressionWrapper {
         CjExpression getBaseExpression();
     }
+    public static boolean isAbstract(@NotNull CjDeclarationWithBody declaration) {
+        return declaration.getBodyExpression() == null;
+    }
+    public static boolean isDeprecated(@NotNull CjModifierListOwner owner) {
+        CjModifierList modifierList = owner.getModifierList();
+        if (modifierList != null) {
+            List<CjAnnotationEntry> annotationEntries = modifierList.getAnnotationEntries();
+            for (CjAnnotationEntry annotation : annotationEntries) {
+                Name shortName = annotation.getShortName();
+                if (StandardNames.FqNames.deprecated.shortName().equals(shortName)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     @NotNull
     public static CjExpression safeDeparenthesize(@NotNull CjExpression expression) {
         return safeDeparenthesize(expression, false);

@@ -5,7 +5,7 @@ import com.huawei.cangjie.TypesWithContainsDetector
 import com.huawei.cangjie.builtins.getReturnTypeFromFunctionType
 import com.huawei.cangjie.builtins.isFunctionType
 import com.huawei.cangjie.descriptors.*
-import com.huawei.cangjie.ide.util.fuzzyExtensionReceiverType
+
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
@@ -661,3 +661,5 @@ class ExpectedInfos(
 val COMPARISON_TOKENS = setOf(CjTokens.EQEQ, CjTokens.EXCLEQ )
 class ComparisonOperandAdditionalData(val suppressNullLiteral: Boolean) : ExpectedInfo.AdditionalData
 object IfConditionAdditionalData : ExpectedInfo.AdditionalData
+val ExpectedInfo.multipleFuzzyTypes: Collection<FuzzyType>
+    get() = filter.multipleFuzzyTypes

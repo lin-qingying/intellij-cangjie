@@ -1,5 +1,6 @@
 package com.huawei.cangjie.ide.navigationToolbar
 
+import com.huawei.cangjie.ide.AbstractCangJieIconProvider
 import com.huawei.cangjie.ide.CangJieIconProvider
 import com.huawei.cangjie.ide.projectView.CjDeclarationTreeNode.Companion.tryGetRepresentableText
 import com.huawei.cangjie.psi.CjDeclaration
@@ -16,6 +17,6 @@ class CangJieNavBarModelExtension: AbstractNavBarModelExtensionCompatBase() {
         }
 
         val containingFile = psiElement?.containingFile as? CjFile ?: return psiElement
-        return CangJieIconProvider.getSingleClass(containingFile) ?: psiElement
+        return AbstractCangJieIconProvider.getSingleClass(containingFile) ?: psiElement
     }
 }

@@ -1,12 +1,12 @@
 package com.huawei.cangjie.ide.codeinsight.quickDoc.cdoc
 
 import com.google.common.html.HtmlEscapers
-import  com.huawei.cangjie.doc.insert
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.builtins.StandardNames
 import com.huawei.cangjie.builtins.fqNameUnsafe
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.doc.CDocTemplate
+import com.huawei.cangjie.doc.insert
 import com.huawei.cangjie.doc.psi.CDoc
 import com.huawei.cangjie.doc.psi.impl.CDocSection
 import com.huawei.cangjie.ide.FrontendInternals
@@ -16,51 +16,41 @@ import com.huawei.cangjie.ide.codeinsight.quickDoc.cdoc.CDocRenderer.highlight
 import com.huawei.cangjie.ide.codeinsight.quickDoc.cdoc.CDocRenderer.renderCDoc
 import com.huawei.cangjie.ide.completion.DescriptorBasedDeclarationLookupObject
 import com.huawei.cangjie.ide.navigation.SourceNavigationHelper
-import com.huawei.cangjie.lang.CangJieLanguage
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.*
 import com.huawei.cangjie.references.mainReference
 import com.huawei.cangjie.references.resolveCDocLink
 import com.huawei.cangjie.references.util.DescriptorToSourceUtilsIde
-import com.huawei.cangjie.renderer.DescriptorRenderer
-import com.huawei.cangjie.renderer.DescriptorRendererImpl
-import com.huawei.cangjie.renderer.RenderingFormat
+import com.huawei.cangjie.renderer.*
+import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.caches.getResolutionFacade
 import com.huawei.cangjie.resolve.caches.resolveToDescriptorIfAny
 import com.huawei.cangjie.resolve.caches.safeAnalyzeNonSourceRootCode
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
 import com.huawei.cangjie.resolve.descriptorUtil.getSuperClassNotAny
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
-import com.intellij.lang.documentation.AbstractDocumentationProvider
-import com.intellij.lang.documentation.CompositeDocumentationProvider
-import com.intellij.lang.documentation.ExternalDocumentationProvider
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.NlsSafe
-import org.jetbrains.annotations.Nls
 import com.huawei.cangjie.resolve.source.getPsi
-import com.huawei.cangjie.renderer.ClassifierNamePolicy
-import com.huawei.cangjie.renderer.DescriptorRendererModifier
-import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.isDefinitelyNotNullType
-import com.intellij.codeInsight.documentation.DocumentationManagerUtil
-import com.huawei.cangjie.renderer.AnnotationArgumentsRenderingPolicy
 import com.huawei.cangjie.utils.safeAs
-
+import com.intellij.codeInsight.documentation.DocumentationManagerUtil
+import com.intellij.lang.documentation.AbstractDocumentationProvider
+import com.intellij.lang.documentation.CompositeDocumentationProvider
 import com.intellij.lang.documentation.DocumentationMarkup.*
 import com.intellij.lang.documentation.DocumentationSettings
-import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.diagnostic.logger
+import com.intellij.lang.documentation.ExternalDocumentationProvider
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.progress.ProcessCanceledException
-import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.NlsSafe
 import com.intellij.openapi.util.text.HtmlChunk
-import com.intellij.openapi.util.text.StringUtil
-import com.intellij.psi.*
+import com.intellij.psi.PsiDocCommentBase
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.util.io.HttpRequests
+import org.jetbrains.annotations.Nls
 import java.util.function.Consumer
 
 
@@ -69,13 +59,18 @@ class HtmlClassifierNamePolicy(val base: ClassifierNamePolicy) : ClassifierNameP
     override fun renderClassifier(classifier: ClassifierDescriptor, renderer: DescriptorRenderer): String =
         render(classifier, renderer, null)
 
-    override fun renderClassifierWithType(classifier: ClassifierDescriptor, renderer: DescriptorRenderer, type: CangJieType): String =
+    override fun renderClassifierWithType(
+        classifier: ClassifierDescriptor,
+        renderer: DescriptorRenderer,
+        type: CangJieType
+    ): String =
         render(classifier, renderer, type)
 
     private fun render(classifier: ClassifierDescriptor, renderer: DescriptorRenderer, type: CangJieType?): String {
 
         val name =
-            base.renderClassifier(classifier, renderer) + (type?.takeIf { it.isDefinitelyNotNullType }?.let { " & Any" } ?: "")
+            base.renderClassifier(classifier, renderer) + (type?.takeIf { it.isDefinitelyNotNullType }?.let { " & Any" }
+                ?: "")
 
         if (classifier.isBoringBuiltinClass())
             return name
@@ -85,26 +80,28 @@ class HtmlClassifierNamePolicy(val base: ClassifierNamePolicy) : ClassifierNameP
         }
     }
 }
+
 private val boringBuiltinClasses = setOf(
     StandardNames.FqNames.unitUFqName,
-    StandardNames. FqNames.int8UFqName,
-    StandardNames. FqNames.int16UFqName,
-    StandardNames.  FqNames.int32UFqName,
-    StandardNames.  FqNames.int64UFqName,
-    StandardNames.  FqNames.runeUFqName,
-    StandardNames.  FqNames.boolUFqName,
-    StandardNames.  FqNames.float16UFqName,
+    StandardNames.FqNames.int8UFqName,
+    StandardNames.FqNames.int16UFqName,
+    StandardNames.FqNames.int32UFqName,
+    StandardNames.FqNames.int64UFqName,
+    StandardNames.FqNames.runeUFqName,
+    StandardNames.FqNames.boolUFqName,
+    StandardNames.FqNames.float16UFqName,
 
-    StandardNames.  FqNames.float32UFqName,
+    StandardNames.FqNames.float32UFqName,
 
-    StandardNames.  FqNames.float64UFqName,
+    StandardNames.FqNames.float64UFqName,
 
 
+    )
 
-)
 fun ClassifierDescriptor.isBoringBuiltinClass(): Boolean = DescriptorUtils.getFqName(this) in boringBuiltinClasses
 
-class WrapValueParameterHandler(val base: DescriptorRenderer.ValueParametersHandler) : DescriptorRenderer.ValueParametersHandler {
+class WrapValueParameterHandler(val base: DescriptorRenderer.ValueParametersHandler) :
+    DescriptorRenderer.ValueParametersHandler {
 
 
     override fun appendBeforeValueParameters(parameterCount: Int, builder: StringBuilder) {
@@ -141,20 +138,27 @@ class WrapValueParameterHandler(val base: DescriptorRenderer.ValueParametersHand
 }
 
 class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDocumentationProvider {
+    @Deprecated("Deprecated in Java")
     override fun hasDocumentationFor(element: PsiElement?, originalElement: PsiElement?): Boolean {
         return CompositeDocumentationProvider.hasUrlsFor(this, element, originalElement)
 
     }
+
     @Nls
     override fun generateDoc(element: PsiElement, originalElement: PsiElement?): String? {
         return getText(element, originalElement, false)
     }
+
     override fun canPromptToConfigureDocumentation(element: PsiElement?): Boolean {
         return false
 
     }
 
-    override fun getDocumentationElementForLink(psiManager: PsiManager, link: String, context: PsiElement?): PsiElement? {
+    override fun getDocumentationElementForLink(
+        psiManager: PsiManager,
+        link: String,
+        context: PsiElement?
+    ): PsiElement? {
         val navElement = context?.navigationElement as? CjElement ?: return null
         val resolutionFacade = navElement.getResolutionFacade()
         val bindingContext = navElement.safeAnalyzeNonSourceRootCode(resolutionFacade, BodyResolveMode.PARTIAL)
@@ -166,6 +170,7 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
         val target = descriptors.firstOrNull() ?: return null
         return DescriptorToSourceUtilsIde.getAnyDeclaration(psiManager.project, target)
     }
+
     override fun collectDocComments(file: PsiFile, sink: Consumer<in PsiDocCommentBase>) {
         if (file !is CjFile) return
 
@@ -177,8 +182,11 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
     }
 
 
-
-    override fun getDocumentationElementForLookupItem(psiManager: PsiManager, `object`: Any?, element: PsiElement?): PsiElement? {
+    override fun getDocumentationElementForLookupItem(
+        psiManager: PsiManager,
+        `object`: Any?,
+        element: PsiElement?
+    ): PsiElement? {
         if (`object` is DescriptorBasedDeclarationLookupObject) {
             `object`.psiElement?.let { return it }
             `object`.descriptor?.let { descriptor ->
@@ -187,6 +195,7 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
         }
         return null
     }
+
     @Nls
     override fun generateRenderedDoc(comment: PsiDocCommentBase): String? {
         val docComment = comment as? CDoc ?: return null
@@ -198,16 +207,25 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
         @Suppress("HardCodedStringLiteral")
         return result.toString()
     }
-    override fun getCustomDocumentationElement(editor: Editor, file: PsiFile, contextElement: PsiElement?, targetOffset: Int): PsiElement? {
+
+    override fun getCustomDocumentationElement(
+        editor: Editor,
+        file: PsiFile,
+        contextElement: PsiElement?,
+        targetOffset: Int
+    ): PsiElement? {
         return if (contextElement.isModifier()) contextElement else null
     }
+
     @Nls
     override fun getQuickNavigateInfo(element: PsiElement?, originalElement: PsiElement?): String? {
         return if (element == null) null else getText(element, originalElement, true)
     }
+
     override fun promptToConfigureDocumentation(element: PsiElement?) {
 
     }
+
     private object Lazy {
 
         val DESCRIPTOR_RENDERER = CangJieIdeDescriptorRenderer.withOptions {
@@ -225,7 +243,7 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
         }
     }
 
-    companion object{
+    companion object {
         private fun findElementWithText(element: PsiElement?, text: String): PsiElement? {
             return when {
                 element == null -> null
@@ -234,15 +252,21 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
                 else -> null
             }
         }
+
         private val LOG = Logger.getInstance(CangJieDocumentationProvider::class.java)
 
-        private fun renderEnumSpecialFunction(element: CjEnum, functionDescriptor: FunctionDescriptor, quickNavigation: Boolean): String {
+        private fun renderEnumSpecialFunction(
+            element: CjEnum,
+            functionDescriptor: FunctionDescriptor,
+            quickNavigation: Boolean
+        ): String {
             val kdoc = run {
                 val declarationDescriptor = element.resolveToDescriptorIfAny()
                 val enumDescriptor = declarationDescriptor?.getSuperClassNotAny() ?: return@run null
 
                 val enumDeclaration =
-                    DescriptorToSourceUtilsIde.getAnyDeclaration(element.project, enumDescriptor) as? CjDeclaration ?: return@run null
+                    DescriptorToSourceUtilsIde.getAnyDeclaration(element.project, enumDescriptor) as? CjDeclaration
+                        ?: return@run null
 
                 val enumSource = SourceNavigationHelper.getNavigationElement(enumDeclaration)
                 val functionName = functionDescriptor.fqNameSafe.shortName().asString()
@@ -266,12 +290,14 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
                 }
             }
         }
+
         private fun StringBuilder.renderDefinition(descriptor: DeclarationDescriptor, renderer: DescriptorRenderer) {
             append(renderer.render(descriptor))
         }
 
         private fun PsiElement?.isModifier() =
             this != null && parent is CjModifierList && CjTokens.MODIFIER_KEYWORDS_ARRAY.firstOrNull { it.value == text } != null
+
         @NlsSafe
         private fun renderEnum(element: CjEnum, originalElement: PsiElement?, quickNavigation: Boolean): String {
             val referenceExpression = originalElement?.getNonStrictParentOfType<CjReferenceExpression>()
@@ -288,6 +314,7 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
             }
             return renderCangJieDeclaration(element, quickNavigation)
         }
+
         private fun buildCangJieDeclaration(declaration: CjExpression, quickNavigation: Boolean): CDocTemplate {
             val resolutionFacade = declaration.getResolutionFacade()
             val context = declaration.safeAnalyzeNonSourceRootCode(resolutionFacade, BodyResolveMode.PARTIAL)
@@ -304,6 +331,7 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
 
             return buildCangJie(context, declarationDescriptor, quickNavigation, declaration, resolutionFacade)
         }
+
         private fun String.htmlEscape(): String = HtmlEscapers.htmlEscaper().escape(this)
 
         private fun CDocTemplate.insertDeprecationInfo(
@@ -364,7 +392,12 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
 
                 if (!quickNavigation) {
                     description {
-                        declarationDescriptor.findCDoc { DescriptorToSourceUtilsIde.getAnyDeclaration(cjElement.project, it) }?.let {
+                        declarationDescriptor.findCDoc {
+                            DescriptorToSourceUtilsIde.getAnyDeclaration(
+                                cjElement.project,
+                                it
+                            )
+                        }?.let {
                             renderCDoc(it.contentTag, it.sections)
                             return@description
                         }
@@ -390,6 +423,7 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
                 }
             }
         }
+
         private fun getContainerInfo(element: PsiElement?): HtmlChunk? {
             if (element !is CjExpression) return null
 
@@ -405,12 +439,15 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
                 ?.let {
                     @Nls val link = StringBuilder().apply {
                         val highlighted =
-                            if (DocumentationSettings.isSemanticHighlightingOfLinksEnabled()) highlight(it.asString(), element.project) { asClassName }
+                            if (DocumentationSettings.isSemanticHighlightingOfLinksEnabled()) highlight(
+                                it.asString(),
+                                element.project
+                            ) { asClassName }
                             else it.asString()
                         DocumentationManagerUtil.createHyperlink(this, it.asString(), highlighted, false, false)
                     }
                     HtmlChunk.fragment(
-//                        HtmlChunk.tag("icon").attr("src", "/org/jetbrains/kotlin/idea/icons/classKotlin.svg"),
+                        HtmlChunk.tag("icon").attr("src", "/icons/classCangJie.svg"),
                         HtmlChunk.nbsp(),
                         HtmlChunk.raw(link.toString()),
                         HtmlChunk.br()
@@ -424,9 +461,9 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
                 ?.containingFile
                 ?.name
                 ?.takeIf { containingDeclaration is PackageFragmentDescriptor }
-                ?.let {  fileName: @NlsSafe String ->
+                ?.let { fileName: @NlsSafe String ->
                     HtmlChunk.fragment(
-                        HtmlChunk.tag("icon").attr("src", "/org/jetbrains/kotlin/idea/icons/kotlin_file.svg"),
+                        HtmlChunk.tag("icon").attr("src", "icons/cangjie_file.svg"),
                         HtmlChunk.nbsp(),
                         HtmlChunk.text(fileName),
                         HtmlChunk.br()
@@ -441,6 +478,7 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
         private fun renderCangJieDeclaration(declaration: CjExpression, quickNavigation: Boolean) = buildString {
             insert(buildCangJieDeclaration(declaration, quickNavigation)) {}
         }
+
         @Nls
         private fun getTextImpl(element: PsiElement, originalElement: PsiElement?, quickNavigation: Boolean): String? {
             (element as? CjElement)?.navigationElement.takeIf { it != element }?.let {
@@ -448,7 +486,9 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
             }
 
 
-
+            if (element is CjBasicType) {
+                return "基本类型"
+            }
             if (element is CjTypeReference) {
                 val declaration = element.parent
                 if (declaration is CjCallableDeclaration && declaration.receiverTypeReference == element) {
@@ -459,12 +499,13 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
                 }
             }
 
-            if (element is CjEnum  ) {
+            if (element is CjEnum) {
                 // When caret on special enum function (e.g. SomeEnum.values<caret>())
                 // element is not an CjReferenceExpression, but CjClass of enum
                 return renderEnum(element, originalElement, quickNavigation)
             } else if (element is CjEnumEntry && !quickNavigation) {
-                val ordinal = element.containingTypeStatement?.body?.run { getChildrenOfType<CjEnumEntry>().indexOf(element) }
+                val ordinal =
+                    element.containingTypeStatement?.body?.run { getChildrenOfType<CjEnumEntry>().indexOf(element) }
 
                 val project = element.project
                 @Suppress("HardCodedStringLiteral")
@@ -475,7 +516,10 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
                             ordinal?.let {
                                 append("<br>")
                                 appendHighlighted("// ", project) { asInfo }
-                                appendHighlighted(CangJieBundle.message("quick.doc.text.enum.ordinal", ordinal), project) { asInfo }
+                                appendHighlighted(
+                                    CangJieBundle.message("quick.doc.text.enum.ordinal", ordinal),
+                                    project
+                                ) { asInfo }
                             }
                         }
                     }
@@ -494,7 +538,6 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
                 val calledElement = element.referenceExpression()?.mainReference?.resolve()
                 return calledElement?.let { getTextImpl(it, originalElement, quickNavigation) }
             }
-
 
 
             // This element was resolved to non-kotlin element, it will be rendered with own provider

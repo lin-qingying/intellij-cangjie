@@ -9,7 +9,7 @@ public interface CjTokenSets {
     TokenSet SUPER_TYPE_LIST_ENTRIES = TokenSet.create(SUPER_TYPE_CALL_ENTRY, SUPER_TYPE_ENTRY);
 
     TokenSet DECLARATION_TYPES =
-            TokenSet.create(CLASS);
+            TokenSet.create(CLASS,STRUCT,ENUM,EXTEND,INTERFACE);
     TokenSet INSIDE_DIRECTIVE_EXPRESSIONS = TokenSet.create(
 
 //            IMPORT_DIRECTIVE_ITEM,

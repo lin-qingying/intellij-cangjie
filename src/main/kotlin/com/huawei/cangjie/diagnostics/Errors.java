@@ -434,12 +434,12 @@ public interface Errors {
     DiagnosticFactory2<PsiElement, FqName, FqName> MISSING_DEPENDENCY_SUPERCLASS = DiagnosticFactory2.create(ERROR);
 
     DiagnosticFactory1<CjSuperTypeEntry, CangJieType> SUPERTYPE_NOT_INITIALIZED = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory2<PsiElement, CjModifierKeywordToken, CjModifierKeywordToken> INCOMPATIBLE_MODIFIERS =
+    DiagnosticFactory2<PsiElement, CjKeywordToken, CjKeywordToken> INCOMPATIBLE_MODIFIERS =
             DiagnosticFactory2.create(ERROR);
     DiagnosticFactory1<CjSimpleNameExpression, Name> CANNOT_BE_IMPORTED = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory1<PsiElement, CjModifierKeywordToken> REPEATED_MODIFIER = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory2<PsiElement, CjModifierKeywordToken, CjModifierKeywordToken> REDUNDANT_MODIFIER = DiagnosticFactory2.create(WARNING);
-    DiagnosticFactory2<PsiElement, CjModifierKeywordToken, CjModifierKeywordToken> DEPRECATED_MODIFIER_PAIR =
+    DiagnosticFactory1<PsiElement, CjKeywordToken> REPEATED_MODIFIER = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory2<PsiElement, CjKeywordToken, CjKeywordToken> REDUNDANT_MODIFIER = DiagnosticFactory2.create(WARNING);
+    DiagnosticFactory2<PsiElement, CjKeywordToken, CjKeywordToken> DEPRECATED_MODIFIER_PAIR =
             DiagnosticFactory2.create(WARNING);
     DiagnosticFactory0<CjElement> EXPLICIT_BACKING_FIELDS_UNSUPPORTED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjPropertyAccessor> ABSTRACT_PROPERTY_WITH_GETTER = DiagnosticFactory0.create(ERROR);

@@ -1,13 +1,14 @@
 package com.huawei.cangjie.ide.completion
 
 import com.huawei.cangjie.builtins.isFunctionType
-import com.huawei.cangjie.descriptors.CallableDescriptor
-import com.huawei.cangjie.descriptors.DeclarationDescriptor
-import com.huawei.cangjie.descriptors.ReceiverParameterDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.icon.CangJieIcons
 import com.huawei.cangjie.ide.IdeDescriptorRenderers
 import com.huawei.cangjie.ide.ShortenReferences
+import com.huawei.cangjie.ide.completion.handlers.CastReceiverInsertHandler
 import com.huawei.cangjie.ide.completion.keywords.KeywordLookupObject
+import com.huawei.cangjie.ide.imports.ImportInsertHelper
+import com.huawei.cangjie.ide.imports.importableFqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.endOffset
@@ -15,10 +16,12 @@ import com.huawei.cangjie.psi.psiUtil.parentsWithSelf
 import com.huawei.cangjie.psi.psiUtil.startOffset
 import com.huawei.cangjie.renderer.render
 import com.huawei.cangjie.resolve.BindingContext
+import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.ResolutionFacade
 import com.huawei.cangjie.resolve.scopes.getResolutionScope
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.isError
+import com.huawei.cangjie.utils.fqname.ImportableFqNameClassifier
 import com.huawei.cangjie.utils.getImplicitReceiversWithInstanceToExpression
 import com.huawei.cangjie.utils.safeAs
 import com.intellij.codeInsight.completion.InsertHandler
@@ -230,3 +233,76 @@ fun BasicLookupElementFactory.createLookupElementForType(type: CangJieType): Loo
         }
     }
 }
+fun LookupElement.withReceiverCast(): LookupElement = LookupElementDecorator.withDelegateInsertHandler(this) { context, element ->
+    element.handleInsert(context)
+    CastReceiverInsertHandler.postHandleInsert(context, element)
+}
+infix fun <T> ((T) -> Boolean).or(otherFilter: (T) -> Boolean): (T) -> Boolean = { this(it) || otherFilter(it) }
+
+fun ImportableFqNameClassifier.isImportableDescriptorImported(descriptor: DeclarationDescriptor): Boolean {
+    val classification = classify(descriptor.importableFqName!!, false)
+    return classification != ImportableFqNameClassifier.Classification.notImported
+            && classification != ImportableFqNameClassifier.Classification.siblingImported
+}
+fun LookupElement.decorateAsStaticMember(
+    memberDescriptor: DeclarationDescriptor,
+    classNameAsLookupString: Boolean
+): LookupElement? {
+    val container = memberDescriptor.containingDeclaration as? ClassDescriptor ?: return null
+
+    val containerFqName = container.importableFqName ?: return null
+    val qualifierPresentation = container.name.asString()
+
+    return object : LookupElementDecorator<LookupElement>(this) {
+        private val descriptorIsCallableExtension = (memberDescriptor as? CallableDescriptor)?.extensionReceiverParameter != null
+        override fun getAllLookupStrings(): Set<String> {
+            return if (classNameAsLookupString) setOf(delegate.lookupString, qualifierPresentation) else super.getAllLookupStrings()
+        }
+
+        override fun renderElement(presentation: LookupElementPresentation) {
+            delegate.renderElement(presentation)
+
+            if (!descriptorIsCallableExtension) {
+                presentation.itemText = qualifierPresentation + "." + presentation.itemText
+            }
+
+            val tailText = " (" + DescriptorUtils.getFqName(container.containingDeclaration) + ")"
+            if (memberDescriptor is FunctionDescriptor) {
+                presentation.appendTailText(tailText, true)
+            } else {
+                presentation.setTailText(tailText, true)
+            }
+
+            if (presentation.typeText.isNullOrEmpty()) {
+                presentation.typeText = BasicLookupElementFactory.SHORT_NAMES_RENDERER.renderType(container.defaultType)
+            }
+        }
+
+        override fun handleInsert(context: InsertionContext) {
+            val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
+            val file = context.file as CjFile
+
+            fun importFromSameParentIsPresent() = file.importDirectives.any {
+                !it.isAllUnder && it.importPath?.fqName?.parent() == containerFqName
+            }
+
+            val addMemberImport = descriptorIsCallableExtension || importFromSameParentIsPresent()
+
+            if (addMemberImport) {
+                psiDocumentManager.commitDocument(context.document)
+                ImportInsertHelper.getInstance(context.project).importDescriptor(file, memberDescriptor)
+                psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
+            }
+
+            super.handleInsert(context)
+        }
+    }
+}
+fun LookupElement.keepOldArgumentListOnTab(): LookupElement {
+    putUserData(KEEP_OLD_ARGUMENT_LIST_ON_TAB_KEY, Unit)
+    return this
+}
+var LookupElement.acceptOpeningBrace: Boolean by NotNullableUserDataProperty(
+    Key("CANGJIE_ACCEPT_OPENING_BRACE"),
+    defaultValue = false,
+)

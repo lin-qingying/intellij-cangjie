@@ -44,7 +44,7 @@ class CjDirectoryProjectGenerator : DirectoryProjectGeneratorBase<ConfigurationD
 
     override fun getName(): String = CangJieBundle.message("cangjie")
 
-    override fun getLogo(): Icon = CangJieIcons.CANGJIE_16
+    override fun getLogo(): Icon = CangJieIcons.CANGJIE
 
     override fun generateProject(project: Project, baseDir: VirtualFile, data: ConfigurationData, module: Module) {
         val (settings, projectType) = data

@@ -50,7 +50,24 @@ import com.huawei.cangjie.utils.getImplicitReceiversWithInstance
 import com.huawei.cangjie.utils.returnIfNoDescriptorForDeclarationException
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
+import com.intellij.psi.util.PsiTreeUtil
 
+fun CjElement?.getParentResolvedCall(context: BindingContext, strict: Boolean = true): ResolvedCall<out CallableDescriptor>? {
+    return this?.getParentCall(context, strict)?.getResolvedCall(context)
+}
+fun CjElement.getParentCall(context: BindingContext, strict: Boolean = true): Call? {
+    val callExpressionTypes = arrayOf(
+        CjSimpleNameExpression::class.java, CjCallElement::class.java, CjBinaryExpression::class.java,
+        CjUnaryExpression::class.java, CjArrayAccessExpression::class.java
+    )
+
+    val parent = if (strict) {
+        PsiTreeUtil.getParentOfType(this, *callExpressionTypes)
+    } else {
+        PsiTreeUtil.getNonStrictParentOfType(this, *callExpressionTypes)
+    }
+    return parent?.getCall(context)
+}
 fun CjExpression.getType(context: BindingContext): CangJieType? {
     val type = context.getType(this)
     if (type != null) return type

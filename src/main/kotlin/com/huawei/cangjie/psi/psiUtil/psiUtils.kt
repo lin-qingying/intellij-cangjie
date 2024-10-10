@@ -12,6 +12,7 @@ import com.intellij.psi.util.isAncestor
 
 
 fun TextRange.containsInside(offset: Int): Boolean = startOffset < offset && offset < endOffset
+inline fun <reified T : PsiElement> PsiElement.getLastParentOfTypeInRow() = parents.takeWhile { it is T }.lastOrNull() as? T
 
 fun PsiElement.isExtensionDeclaration(): Boolean {
     val callable: CjCallableDeclaration? = when (this) {

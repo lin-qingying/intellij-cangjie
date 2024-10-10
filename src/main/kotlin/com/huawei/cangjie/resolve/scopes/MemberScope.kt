@@ -81,19 +81,22 @@ interface MemberScope : ResolutionScope {
 
 abstract class DescriptorKindExclude {
     abstract fun excludes(descriptor: DeclarationDescriptor): Boolean
+
     object Extensions : DescriptorKindExclude() {
-        override fun excludes(descriptor: DeclarationDescriptor)
-                = descriptor is CallableDescriptor && descriptor.extensionReceiverParameter != null
+        override fun excludes(descriptor: DeclarationDescriptor) =
+            descriptor is CallableDescriptor && descriptor.extensionReceiverParameter != null
 
         override val fullyExcludedDescriptorKinds: Int get() = 0
     }
-    object NonExtensions : DescriptorKindExclude() {
-        override fun excludes(descriptor: DeclarationDescriptor)
-                = descriptor !is CallableDescriptor || descriptor.extensionReceiverParameter == null
 
-        override val fullyExcludedDescriptorKinds
-                = DescriptorKindFilter.ALL_KINDS_MASK and (DescriptorKindFilter.FUNCTIONS_MASK or DescriptorKindFilter.VARIABLES_MASK).inv()
+    object NonExtensions : DescriptorKindExclude() {
+        override fun excludes(descriptor: DeclarationDescriptor) =
+            descriptor !is CallableDescriptor || descriptor.extensionReceiverParameter == null
+
+        override val fullyExcludedDescriptorKinds =
+            DescriptorKindFilter.ALL_KINDS_MASK and (DescriptorKindFilter.FUNCTIONS_MASK or DescriptorKindFilter.VARIABLES_MASK).inv()
     }
+
     object TopLevelPackages : DescriptorKindExclude() {
         override fun excludes(descriptor: DeclarationDescriptor): Boolean {
             val fqName = when (descriptor) {
@@ -133,6 +136,7 @@ class DescriptorKindFilter(
         excludes.forEach { mask = mask and it.fullyExcludedDescriptorKinds.inv() }
         this.kindMask = mask
     }
+    fun intersect(other: DescriptorKindFilter) = DescriptorKindFilter(kindMask and other.kindMask, excludes + other.excludes)
 
     fun acceptsKinds(kinds: Int): Boolean = kindMask and kinds != 0
     fun withoutKinds(kinds: Int): DescriptorKindFilter = DescriptorKindFilter(kindMask and kinds.inv(), excludes)
@@ -159,8 +163,8 @@ class DescriptorKindFilter(
 
     infix fun exclude(exclude: DescriptorKindExclude): DescriptorKindFilter =
         DescriptorKindFilter(kindMask, excludes + listOf(exclude))
-    fun withKinds(kinds: Int): DescriptorKindFilter
-            = DescriptorKindFilter(kindMask or kinds, excludes)
+
+    fun withKinds(kinds: Int): DescriptorKindFilter = DescriptorKindFilter(kindMask or kinds, excludes)
 
     companion object {
 
@@ -186,8 +190,10 @@ class DescriptorKindFilter(
 
         @JvmField
         val FUNCTIONS: DescriptorKindFilter = DescriptorKindFilter(FUNCTIONS_MASK)
-        @JvmField val CALLABLES: DescriptorKindFilter = DescriptorKindFilter(CALLABLES_MASK)
-        @JvmField val NON_SINGLETON_CLASSIFIERS: DescriptorKindFilter = DescriptorKindFilter(NON_SINGLETON_CLASSIFIERS_MASK)
+        @JvmField
+        val CALLABLES: DescriptorKindFilter = DescriptorKindFilter(CALLABLES_MASK)
+        @JvmField
+        val NON_SINGLETON_CLASSIFIERS: DescriptorKindFilter = DescriptorKindFilter(NON_SINGLETON_CLASSIFIERS_MASK)
 
         @JvmField
         val VARIABLES: DescriptorKindFilter = DescriptorKindFilter(VARIABLES_MASK)
@@ -200,10 +206,10 @@ class DescriptorKindFilter(
 
         @JvmField
         val ALL: DescriptorKindFilter = DescriptorKindFilter(ALL_KINDS_MASK)
-        @JvmField val VALUES: DescriptorKindFilter = DescriptorKindFilter(VALUES_MASK)
+        @JvmField
+        val VALUES: DescriptorKindFilter = DescriptorKindFilter(VALUES_MASK)
 
         private fun nextMask() = nextMaskValue.apply { nextMaskValue = nextMaskValue shl 1 }
-
 
 
         val CLASSIFIERS_MASK: Int = NON_SINGLETON_CLASSIFIERS_MASK or SINGLETON_CLASSIFIERS_MASK or TYPE_ALIASES_MASK
@@ -219,7 +225,10 @@ fun CjFile.getScope(): FileScope {
 }
 
 class FileScope(val file: CjFile) : MemberScope {
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
+    override fun getContributedVariables(
+        name: Name,
+        location: LookupLocation
+    ): Collection<@JvmWildcard VariableDescriptor> {
         TODO("Not yet implemented")
     }
 

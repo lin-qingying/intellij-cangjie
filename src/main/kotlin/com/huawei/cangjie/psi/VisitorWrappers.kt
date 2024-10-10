@@ -17,7 +17,7 @@ fun namedDeclarationVisitor(block: (CjNamedDeclaration) -> Unit) =
 
 fun declarationVisitor(block: (CjDeclaration) -> Unit) =
     object : CjVisitorVoid() {
-        override fun visitDeclaration(declaration: CjDeclaration) {
-            block(declaration)
+        override fun visitDeclaration(dcl: CjDeclaration) {
+            block(dcl)
         }
     }

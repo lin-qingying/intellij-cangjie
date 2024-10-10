@@ -3,7 +3,7 @@ package com.huawei.cangjie.ide.search
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.FunctionDescriptor
-import com.huawei.cangjie.ide.util.fuzzyExtensionReceiverType
+
 import com.huawei.cangjie.psi.CjDeclaration
 import com.huawei.cangjie.psi.CjImportDirective
 import com.huawei.cangjie.psi.CjTypeStatement
@@ -19,6 +19,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
 import com.huawei.cangjie.resolve.isExtension
+import com.huawei.cangjie.types.fuzzyExtensionReceiverType
 
 fun PsiReference.isImportUsage(): Boolean =
     element.getNonStrictParentOfType<CjImportDirective>() != null

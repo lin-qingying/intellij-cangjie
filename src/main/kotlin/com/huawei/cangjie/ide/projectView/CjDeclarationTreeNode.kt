@@ -21,6 +21,8 @@ class CjDeclarationTreeNode private constructor(
         private val EXPRESSION = "<" + CangJieBundle.message("project.view.expression") + ">"
         private val ERROR_NAME = "<" + CangJieBundle.message("project.view.class.error.name") + ">"
         private fun String?.orErrorName() = if (!isNullOrBlank()) this else ERROR_NAME
+        fun create(project: Project?, ktDeclaration: CjDeclaration, viewSettings: ViewSettings): CjDeclarationTreeNode =
+            CjDeclarationTreeNode(project, ktDeclaration, viewSettings)
 
         @NlsSafe
         fun tryGetRepresentableText(declaration: CjDeclaration, renderArguments: Boolean = true): String {

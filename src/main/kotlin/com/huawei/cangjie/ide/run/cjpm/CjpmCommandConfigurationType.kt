@@ -9,7 +9,7 @@ import com.intellij.openapi.util.NotNullLazyValue
 class CjpmCommandConfigurationType : ConfigurationTypeBase("CjpmCommandConfigurationType",
     "Cjpm",
     "Cjpm",
-    NotNullLazyValue.createValue { CangJieIcons.CANGJIE_16 }
+    NotNullLazyValue.createValue { CangJieIcons.CANGJIE }
 
 ) {
     val factory: ConfigurationFactory get() = configurationFactories.single()

@@ -1,5 +1,6 @@
 package com.huawei.cangjie.ide.navigationToolbar
 
+import com.huawei.cangjie.ide.AbstractCangJieIconProvider
 import com.huawei.cangjie.ide.CangJieIconProvider
 import com.huawei.cangjie.lang.CangJieLanguage
 import com.huawei.cangjie.psi.CjFile
@@ -17,7 +18,7 @@ abstract class AbstractNavBarModelExtensionCompatBase : StructureAwareNavBarMode
         get() = CangJieLanguage
     override fun acceptParentFromModel(psiElement: PsiElement?): Boolean {
         if (psiElement is CjFile) {
-            return CangJieIconProvider.getSingleClass(psiElement) == null
+            return AbstractCangJieIconProvider.getSingleClass(psiElement) == null
         }
         return true
     }

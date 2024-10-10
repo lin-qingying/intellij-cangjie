@@ -2,6 +2,7 @@ package com.huawei.cangjie.ide.codeinsight
 
 import com.huawei.cangjie.lexer.CangJieLexer
 import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.isIdentifier
 import com.huawei.cangjie.psi.psiUtil.unquoteCangJieIdentifier
 import com.huawei.cangjie.utils.decapitalizeSmart
@@ -11,7 +12,20 @@ class CangJieNameSuggester {
     companion object {
         private val ACCESSOR_PREFIXES = arrayOf("get", "is", "set")
         private const val MAX_NUMBER_OF_SUGGESTED_NAME_CHECKS = 1000
-
+        fun suggestNamesByExpressionPSI(expression: CjExpression?, validator: (String) -> Boolean): Sequence<String> {
+            val simpleExpressionName = getSimpleExpressionName(expression) ?: return emptySequence()
+            return getCamelNames(simpleExpressionName, validator)
+        }
+        private fun getSimpleExpressionName(expression: CjExpression?): String? {
+            if (expression == null) return null
+            return when (val deparenthesized = CjPsiUtil.safeDeparenthesize(expression)) {
+                is CjSimpleNameExpression -> return deparenthesized.getReferencedName()
+                is CjQualifiedExpression -> getSimpleExpressionName(deparenthesized.selectorExpression)
+                is CjCallExpression -> getSimpleExpressionName(deparenthesized.calleeExpression)
+                is CjPostfixExpression -> getSimpleExpressionName(deparenthesized.baseExpression)
+                else -> null
+            }
+        }
         private fun extractIdentifiers(s: String): String {
             return buildString {
                 val lexer = CangJieLexer()

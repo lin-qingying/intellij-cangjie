@@ -17,6 +17,7 @@ val defaultVisibilityTargets: EnumSet<CangJieTarget> = EnumSet.of(
     CangJieTarget.MEMBER_VARIABLE,
     CangJieTarget.VARIABLE,
     CangJieTarget.FUNCTION,
+    CangJieTarget.INTERFACE_MEMBER_FUNCTION,
 
     CangJieTarget.MEMBER_PROPERTY,
     CangJieTarget.TOP_LEVEL_VARIABLE,
@@ -63,7 +64,10 @@ val possibleTargetMap = mapOf(
 //    ),
     SEALED_KEYWORD to EnumSet.of(CangJieTarget.CLASS_ONLY, CangJieTarget.INTERFACE),
 //    INNER_KEYWORD to EnumSet.of(CangJieTarget.CLASS_ONLY),
-    OVERRIDE_KEYWORD to EnumSet.of(CangJieTarget.MEMBER_PROPERTY, CangJieTarget.MEMBER_FUNCTION),
+
+    OVERRIDE_KEYWORD to EnumSet.of(CangJieTarget.MEMBER_PROPERTY, CangJieTarget.MEMBER_FUNCTION, CangJieTarget.INTERFACE_MEMBER_FUNCTION,
+        CangJieTarget.STRUCT_MEMBER_FUNCTION
+        ),
     PRIVATE_KEYWORD to defaultVisibilityTargets + CangJieTarget.BACKING_FIELD,
     PUBLIC_KEYWORD to defaultVisibilityTargets,
     INTERNAL_KEYWORD to defaultVisibilityTargets + CangJieTarget.BACKING_FIELD,

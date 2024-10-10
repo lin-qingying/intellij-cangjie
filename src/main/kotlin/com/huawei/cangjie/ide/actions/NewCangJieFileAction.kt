@@ -1,6 +1,7 @@
 package com.huawei.cangjie.ide.actions
 
 import com.huawei.cangjie.CangJieBundle
+import com.huawei.cangjie.icon.CangJieIcons
 import com.huawei.cangjie.ide.configuration.CangJieProjectConfigurator
 import com.huawei.cangjie.lang.CangJieFileType
 import com.huawei.cangjie.lexer.CjTokens
@@ -38,7 +39,6 @@ import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
 import com.intellij.util.IncorrectOperationException
 import com.linqingying.utils.toCamelCase
-import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes
 import java.util.*
 
@@ -63,34 +63,39 @@ class NewCangJieFileAction : AbstractNewCangJieFileAction(), DumbAware {
     override fun buildDialog(project: Project, directory: PsiDirectory, builder: CreateFileFromTemplateDialog.Builder) {
 //        val sealedTemplatesEnabled = RegistryManager.getInstance().`is`("cangjie.create.sealed.templates.enabled")
         builder.setTitle(CangJieBundle.message("action.new.file.dialog.title"))
-//        TODO 图标
+
         builder
             .addKind(
                 CangJieBundle.message("action.new.file.dialog.class.title"),
 //
-                null,
+                CangJieIcons.CLASS,
                 "CangJie Class"
             )
             .addKind(
                 CangJieBundle.message("action.new.file.dialog.file.title"),
-                null,
+                CangJieIcons.CANGJIE_FILE,
                 "CangJie File"
             )
             .addKind(
                 CangJieBundle.message("action.new.file.dialog.interface.title"),
-                null,
+                CangJieIcons.INTERFACE,
                 "CangJie Interface"
             )
             .addKind(
                 CangJieBundle.message("action.new.file.dialog.enum.title"),
-                null,
+                CangJieIcons.ENUM,
                 "CangJie Enum"
             )
 
             .addKind(
                 CangJieBundle.message("action.new.file.dialog.struct.title"),
-                null,
+                CangJieIcons.STRUCT,
                 "CangJie Struct"
+            )
+            .addKind(
+                CangJieBundle.message("action.new.file.dialog.extend.title"),
+                CangJieIcons.CANGJIE_FILE,
+                "CangJie Extend"
             )
         builder.setValidator(NewCangJieFileNameValidator)
 
@@ -161,7 +166,6 @@ abstract class AbstractNewCangJieFileAction : CreateFileFromTemplateAction() {
 }
 
 
-
 object NewCangJieFileNameValidator : InputValidatorEx {
     override fun getErrorText(inputString: String): String? {
         if (inputString.trim().isEmpty()) {
@@ -183,7 +187,6 @@ object NewCangJieFileNameValidator : InputValidatorEx {
 
 private val FQNAME_SEPARATORS: CharArray = charArrayOf('/', '\\', '.')
 private val FILE_SEPARATORS: CharArray = charArrayOf('/', '\\')
-
 
 
 abstract class NewCangJieFileHook {

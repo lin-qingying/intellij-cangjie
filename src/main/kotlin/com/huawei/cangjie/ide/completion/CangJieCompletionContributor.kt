@@ -236,7 +236,7 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
             if (session.isNothingAddedToResult && parameters.invocationCount < 2) {
                 // Rerun completion if nothing was found
                 val newConfiguration = CompletionSessionConfiguration(
-//                    useBetterPrefixMatcherForNonImportedClasses = false,
+                    useBetterPrefixMatcherForNonImportedClasses = false,
                     nonAccessibleDeclarations = false,
 
                     staticMembers = parameters.invocationCount > 0,

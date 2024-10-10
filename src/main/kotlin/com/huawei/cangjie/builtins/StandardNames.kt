@@ -233,6 +233,8 @@ val MAIN = Name.identifier("main")
         val countableFqName: FqName = core.child(COUNTABLE)
         @JvmField
         val equatableFqName: FqName = core.child(EQUATABLE)
+        @JvmField
+        val iterableFqName: FqName = core.child(ITERABLE)
 
         @JvmField
         val comparableFqName: FqName = core.child(COMPARABLE)

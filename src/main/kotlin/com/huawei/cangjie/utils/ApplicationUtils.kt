@@ -5,9 +5,11 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ex.ApplicationEx
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.CommandProcessor
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.impl.CancellationCheck
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsContexts
+import com.intellij.openapi.util.ThrowableComputable
 import org.jetbrains.annotations.Nls
 
 fun <T> runWithCancellationCheck(block: () -> T): T = CancellationCheck.runWithCancellationCheck(block)
@@ -54,4 +56,12 @@ fun <T: Any> underModalProgressOrUnderWriteActionWithNonCancellableProgressInDis
     } else {
         ActionUtil.underModalProgress(project, progressTitle, computable)
     }
+}
+fun <T> executeInBackgroundWithProgress(project: Project? = null, @NlsContexts.ProgressTitle title: String, block: () -> T): T {
+    assert(!ApplicationManager.getApplication().isWriteAccessAllowed) {
+        "Rescheduling computation into the background is impossible under the write lock"
+    }
+    return ProgressManager.getInstance().runProcessWithProgressSynchronously(
+        ThrowableComputable { block() }, title, true, project
+    )
 }

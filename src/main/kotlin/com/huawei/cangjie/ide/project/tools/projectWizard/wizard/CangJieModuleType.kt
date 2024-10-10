@@ -2,7 +2,6 @@ package com.huawei.cangjie.ide.project.tools.projectWizard.wizard
 
 import com.huawei.cangjie.CangJieBundle
 import com.huawei.cangjie.icon.CangJieIcons
-import com.intellij.ide.util.projectWizard.ModuleBuilder
 import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.module.ModuleTypeManager
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType
@@ -18,7 +17,7 @@ class CangJieModuleType : ModuleType<CangJieModuleBuilder>( ID) {
     override fun getDescription(): String  = CangJieBundle.message("CangJie.module")
 
     override fun getNodeIcon(isOpened: Boolean): Icon {
-        return CangJieIcons.CANGJIE_16
+        return CangJieIcons.CANGJIE
     }
     override fun isSupportedRootType(type: JpsModuleSourceRootType<*>?): Boolean {
         return super.isSupportedRootType(type)

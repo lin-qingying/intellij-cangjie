@@ -132,8 +132,8 @@ object ModifierCheckerCore {
         owner: PsiElement,
         incorrectNodes: MutableSet<ASTNode>
     ) {
-        val firstModifier = firstNode.elementType as CjModifierKeywordToken
-        val secondModifier = secondNode.elementType as CjModifierKeywordToken
+        val firstModifier = firstNode.elementType as CjKeywordToken
+        val secondModifier = secondNode.elementType as CjKeywordToken
         when (val compatibility = compatibility(firstModifier, secondModifier)) {
             Compatibility.COMPATIBLE -> {
             }

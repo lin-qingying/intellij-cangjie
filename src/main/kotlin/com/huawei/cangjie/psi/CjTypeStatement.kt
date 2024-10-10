@@ -1,6 +1,7 @@
 package com.huawei.cangjie.psi
 
 import com.huawei.cangjie.ide.quickfix.overrideImplement.getOrCreateBody
+import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.ClassId
 import com.huawei.cangjie.psi.psiUtil.ClassIdCalculator
 import com.huawei.cangjie.psi.stubs.CangJieTypeStatementStub
@@ -102,11 +103,15 @@ abstract class CjTypeStatement :
         return this is CjExtend
 
     }
+    fun isStruct(): Boolean {
+        return this is CjStruct
 
+    }
     fun isInterface(): Boolean {
         return this is CjInterface
 
     }
+    fun isSealed(): Boolean = hasModifier(CjTokens.SEALED_KEYWORD)
 
     fun isEnum(): Boolean {
         return this is CjEnum

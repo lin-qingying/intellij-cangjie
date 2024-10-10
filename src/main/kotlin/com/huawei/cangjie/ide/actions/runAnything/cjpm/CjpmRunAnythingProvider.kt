@@ -27,7 +27,7 @@ class CjpmRunAnythingProvider : CjRunAnythingProvider() {
     override fun getMainListItem(dataContext: DataContext, value: String): RunAnythingItem =
         RunAnythingCjpmItem(getCommand(value), getIcon(value))
 
-    override fun getIcon(value: String): Icon = CangJieIcons.CANGJIE_16
+    override fun getIcon(value: String): Icon = CangJieIcons.CANGJIE
 
     override fun run(
         executor: Executor,

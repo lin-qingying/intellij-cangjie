@@ -1,19 +1,36 @@
 package com.huawei.cangjie.ide.completion
 
+import com.huawei.cangjie.builtins.isBuiltinFunctionalType
 import com.huawei.cangjie.builtins.isFunctionType
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.ide.completion.handlers.CangJieFunctionInsertHandler
+import com.huawei.cangjie.ide.completion.handlers.GenerateLambdaInfo
+import com.huawei.cangjie.ide.completion.handlers.createNormalFunctionInsertHandler
+import com.huawei.cangjie.renderer.DescriptorRenderer
+import com.huawei.cangjie.renderer.render
+import com.huawei.cangjie.resolve.calls.components.hasDefaultValue
+import com.huawei.cangjie.resolve.calls.util.getValueParametersCountFromFunctionType
+import com.huawei.cangjie.resolve.descriptorUtil.parentsWithSelf
+import com.huawei.cangjie.resolve.findOriginalTopMostOverriddenDescriptors
 import com.huawei.cangjie.resolve.isExtension
 import com.huawei.cangjie.resolve.overriddenTreeUniqueAsSequence
 import com.huawei.cangjie.resolve.scopes.receivers.TransientReceiver
 import com.huawei.cangjie.types.CangJieType
+import com.huawei.cangjie.types.toFuzzyType
 import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.types.util.isSubtypeOf
 import com.huawei.cangjie.utils.CallType
+import com.huawei.cangjie.utils.OperatorNameConventions
 import com.huawei.cangjie.utils.ReceiverType
+import com.huawei.cangjie.utils.addIfNotNull
+import com.intellij.codeInsight.completion.CompositeDeclarativeInsertHandler
+import com.intellij.codeInsight.completion.DeclarativeInsertHandler
+import com.intellij.codeInsight.completion.InsertHandler
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementDecorator
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.editor.Editor
+import com.intellij.util.SmartList
 
 interface AbstractLookupElementFactory {
     fun createStandardLookupElementsForDescriptor(
@@ -40,11 +57,213 @@ class LookupElementFactory(
     private val contextVariablesProvider: ContextVariablesProvider,
     private val standardLookupElementsPostProcessor: (LookupElement) -> LookupElement = { it }
 ) : AbstractLookupElementFactory {
+    private fun createFunctionCallElementWithLambda(
+        descriptor: FunctionDescriptor,
+        parameterType: CangJieType,
+        useReceiverTypes: Boolean,
+        explicitLambdaParameters: Boolean
+    ): LookupElement {
+        var lookupElement = createLookupElement(descriptor, useReceiverTypes)
+        val lambdaInfo = GenerateLambdaInfo(parameterType, explicitLambdaParameters)
+        val lambdaPresentation = if (explicitLambdaParameters)
+            LambdaSignatureTemplates.lambdaPresentation(parameterType, LambdaSignatureTemplates.SignaturePresentation.NAMES_OR_TYPES)
+        else
+            LambdaSignatureTemplates.DEFAULT_LAMBDA_PRESENTATION
+
+        // render only the last parameter because all other should be optional and will be omitted
+        var parametersRenderer = BasicLookupElementFactory.SHORT_NAMES_RENDERER
+        if (descriptor.valueParameters.size > 1) {
+            parametersRenderer = parametersRenderer.withOptions {
+                valueParametersHandler = object : DescriptorRenderer.ValueParametersHandler by this.valueParametersHandler {
+                    override fun appendBeforeValueParameter(
+                        parameter: ValueParameterDescriptor,
+                        parameterIndex: Int,
+                        parameterCount: Int,
+                        builder: StringBuilder
+                    ) {
+                        builder.append("..., ")
+                    }
+                }
+            }
+        }
+
+        val parametersPresentation =
+            parametersRenderer.renderValueParameters(listOf(descriptor.valueParameters.last()), descriptor.hasSynthesizedParameterNames())
+
+        val handler = createNormalFunctionInsertHandler(
+            editor,
+            callType,
+            descriptor.name,
+            insertHandlerProvider.needTypeArguments(descriptor),
+            inputValueArguments = false,
+            lambdaInfo = lambdaInfo,
+        )
+
+        lookupElement = object : LookupElementDecorator<LookupElement>(lookupElement) {
+            override fun renderElement(presentation: LookupElementPresentation) {
+                super.renderElement(presentation)
+
+                presentation.clearTail()
+                presentation.appendTailText(" $lambdaPresentation ", false)
+                presentation.appendTailText(parametersPresentation, true)
+                basicFactory.appendContainerAndReceiverInformation(descriptor) { presentation.appendTailText(it, true) }
+            }
+
+            override fun getDelegateInsertHandler(): InsertHandler<LookupElement> = handler
+        }
+
+        return lookupElement
+    }
+
+    private fun MutableCollection<LookupElement>.addSpecialFunctionCallElements(descriptor: FunctionDescriptor, useReceiverTypes: Boolean) {
+        // check that all parameters except for the last one are optional
+        val lastParameter = descriptor.valueParameters.lastOrNull() ?: return
+        if (!descriptor.valueParameters.all { it == lastParameter || it.hasDefaultValue() }) return
+
+        if (lastParameter.original.type.isBuiltinFunctionalType) {
+            val isSingleParameter = descriptor.valueParameters.size == 1
+            val parameterType = lastParameter.type
+
+            if (!InsertHandlerProvider.isCangJieLambda(descriptor, callType)) {
+                val functionParameterCount = getValueParametersCountFromFunctionType(parameterType)
+                add(
+                    createFunctionCallElementWithLambda(
+                        descriptor,
+                        parameterType,
+                        useReceiverTypes,
+                        explicitLambdaParameters = functionParameterCount > 1
+                    )
+                )
+            }
+
+            if (isSingleParameter) {
+                //TODO: also ::function? at least for local functions
+                //TODO: order for them
+                val fuzzyParameterType = parameterType.toFuzzyType(descriptor.typeParameters)
+                for ((variable, substitutor) in contextVariablesProvider.functionTypeVariables(fuzzyParameterType)) {
+                    val substitutedDescriptor = descriptor.substitute(substitutor) ?: continue
+                    add(createFunctionCallElementWithArguments(substitutedDescriptor, variable.name.render(), useReceiverTypes))
+                }
+            }
+        }
+    }
+    private inner class FunctionCallWithArgumentsLookupElement(
+        originalLookupElement: LookupElement,
+        private val descriptor: FunctionDescriptor,
+        private val argumentText: String,
+        private val needTypeArguments: Boolean
+    ) : LookupElementDecorator<LookupElement>(originalLookupElement) {
+
+        override fun equals(other: Any?) =
+            other is FunctionCallWithArgumentsLookupElement && delegate == other.delegate && argumentText == other.argumentText
+
+        override fun hashCode() = delegate.hashCode() * 17 + argumentText.hashCode()
+
+        override fun renderElement(presentation: LookupElementPresentation) {
+            super.renderElement(presentation)
+
+            presentation.clearTail()
+            presentation.appendTailText("($argumentText)", false)
+            basicFactory.appendContainerAndReceiverInformation(descriptor) { presentation.appendTailText(it, true) }
+        }
+
+        override fun getDecoratorInsertHandler() = CangJieFunctionInsertHandler.Normal(
+            callType,
+            inputTypeArguments = needTypeArguments,
+            inputValueArguments = false,
+            argumentText = argumentText,
+        )
+    }
+    private fun createFunctionCallElementWithArguments(
+        descriptor: FunctionDescriptor,
+        argumentText: String,
+        useReceiverTypes: Boolean
+    ): LookupElement {
+        val lookupElement = createLookupElement(descriptor, useReceiverTypes)
+        return FunctionCallWithArgumentsLookupElement(
+            lookupElement,
+            descriptor,
+            argumentText,
+            insertHandlerProvider.needTypeArguments(descriptor),
+        )
+    }
+
+    private val superFunctions: Set<FunctionDescriptor> by lazy {
+        inDescriptor.parentsWithSelf.takeWhile { it !is ClassDescriptor }.filterIsInstance<FunctionDescriptor>().toList()
+            .flatMap { it.findOriginalTopMostOverriddenDescriptors() }.toSet()
+    }
     override fun createStandardLookupElementsForDescriptor(
         descriptor: DeclarationDescriptor,
         useReceiverTypes: Boolean
     ): Collection<LookupElement> {
-        TODO("Not yet implemented")
+        val result = SmartList<LookupElement>()
+
+        val isNormalCall =
+            callType == CallType.DEFAULT || callType == CallType.DOT || callType == CallType.SAFE || callType == CallType.SUPER_MEMBERS
+
+        result.add(createLookupElement(descriptor, useReceiverTypes, parametersAndTypeGrayed = !isNormalCall  ))
+
+        // add special item for function with one argument of function type with more than one parameter
+        if (descriptor is FunctionDescriptor && isNormalCall) {
+            if (callType != CallType.SUPER_MEMBERS) {
+                result.addSpecialFunctionCallElements(descriptor, useReceiverTypes)
+            } else if (useReceiverTypes) {
+                result.addIfNotNull(createSuperFunctionCallWithArguments(descriptor))
+            }
+        }
+
+        // special "[]" item for get-operator
+        if (callType == CallType.DOT && descriptor is FunctionDescriptor && descriptor.isOperator && descriptor.name == OperatorNameConventions.GET) {
+            val brackets = "[]"
+
+            val insertHandler = CompositeDeclarativeInsertHandler.withUniversalHandler(
+                "\n\t",
+                DeclarativeInsertHandler.Builder()
+                    .addOperation(offsetFrom = -1 - brackets.length, offsetTo = -brackets.length, newText = "")
+                    .withOffsetToPutCaret(-1)
+                    .withPopupOptions(DeclarativeInsertHandler.PopupOptions.ParameterInfo)
+                    .build(),
+            )
+
+            val baseLookupElement = createLookupElement(descriptor, useReceiverTypes)
+            val lookupElement = object : LookupElementDecorator<LookupElement>(baseLookupElement) {
+                override fun getLookupString() = brackets
+                override fun getAllLookupStrings() = setOf(lookupString)
+                override fun renderElement(presentation: LookupElementPresentation) {
+                    super.renderElement(presentation)
+                    presentation.itemText = lookupString
+                }
+
+                override fun getDelegateInsertHandler() = insertHandler
+            }
+
+
+            lookupElement.assignPriority(ItemPriority.GET_OPERATOR)
+            result += lookupElement
+        }
+
+        return result.map(standardLookupElementsPostProcessor)
+    }
+    private fun createSuperFunctionCallWithArguments(descriptor: FunctionDescriptor): LookupElement? {
+        if (descriptor.valueParameters.isEmpty()) return null
+        if (descriptor.findOriginalTopMostOverriddenDescriptors().none { it in superFunctions }) return null
+
+        val argumentText = descriptor.valueParameters.joinToString(", ") {
+            (if (it.varargElementType != null) "*" else "") + it.name.render()
+        } //TODO: use code formatting settings
+
+        val lookupElement = createFunctionCallElementWithArguments(descriptor, argumentText, true)
+        lookupElement.assignPriority(ItemPriority.SUPER_METHOD_WITH_ARGUMENTS)
+        lookupElement.suppressItemSelectionByCharsOnTyping = true
+        return lookupElement
+    }
+    val insertHandlerProvider = basicFactory.insertHandlerProvider
+
+    companion object {
+        fun hasSingleFunctionTypeParameter(descriptor: FunctionDescriptor): Boolean {
+            val parameter = descriptor.original.valueParameters.singleOrNull() ?: return false
+            return parameter.type.isBuiltinFunctionalType
+        }
     }
 
     private fun LookupElement.boldIfImmediate(weight: CallableWeight?): LookupElement {

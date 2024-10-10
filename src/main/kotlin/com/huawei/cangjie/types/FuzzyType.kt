@@ -7,9 +7,28 @@ import com.huawei.cangjie.resolve.calls.inference.CallHandle
 import com.huawei.cangjie.resolve.calls.inference.ConstraintSystemBuilderImpl
 import com.huawei.cangjie.resolve.calls.inference.constraintPosition.ConstraintPositionKind
 import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.isUnit
+import com.huawei.cangjie.types.checker.StrictEqualityTypeChecker
 import com.huawei.cangjie.types.util.*
 import java.util.HashSet
+/**
+ * Replaces free parameters inside the type with corresponding type parameters of the class (when possible)
+ */
+fun FuzzyType.presentationType(): CangJieType {
+    if (freeParameters.isEmpty()) return type
 
+    val map = HashMap<TypeConstructor, TypeProjection>()
+    for ((argument, typeParameter) in type.arguments.zip(type.constructor.parameters)) {
+        if (argument.projectionKind == Variance.INVARIANT) {
+            val equalToFreeParameter = freeParameters.firstOrNull {
+                StrictEqualityTypeChecker.strictEqualTypes(it.defaultType, argument.type.unwrap())
+            } ?: continue
+
+            map[equalToFreeParameter.typeConstructor] = createProjection(typeParameter.defaultType, Variance.INVARIANT, null)
+        }
+    }
+    val substitutor = TypeSubstitutor.create(map)
+    return substitutor.substitute(type, Variance.INVARIANT)!!
+}
 class FuzzyType(val type: CangJieType, freeParameters: Collection<TypeParameterDescriptor>)
 {
 
@@ -127,3 +146,4 @@ fun FuzzyType.isAlmostEverything(): Boolean {
     return typeParameter.upperBounds.singleOrNull()?.isAnyOrNullableAny() ?: false
 }
 fun FuzzyType.makeNotNullable() = type.makeNotNullable().toFuzzyType(freeParameters)
+fun CallableDescriptor.fuzzyExtensionReceiverType() = extensionReceiverParameter?.type?.toFuzzyType(typeParameters)

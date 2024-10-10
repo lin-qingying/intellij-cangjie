@@ -443,6 +443,10 @@ fun CangJieType.extractSuperType(name: Name): CangJieType  {
 
 }
 fun CangJieType.isAnyOrNullableAny(): Boolean =CangJieBuiltIns.isAnyOrNullableAny(this)
+fun CangJieType.isNothing(): Boolean = CangJieBuiltIns.isNothing(this)
+
+fun createProjection(type: CangJieType, projectionKind: Variance, typeParameterDescriptor: TypeParameterDescriptor?): TypeProjection =
+    TypeProjectionImpl(if (typeParameterDescriptor?.variance == projectionKind) Variance.INVARIANT else projectionKind, type)
 
 object TypeUtils {
 

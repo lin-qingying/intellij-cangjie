@@ -190,6 +190,9 @@
         <projectService serviceInterface="com.huawei.cangjie.references.ReadWriteAccessChecker"
                         serviceImplementation="com.huawei.cangjie.references.ReadWriteAccessCheckerDescriptorsImpl"/>
 
+        <iconProvider implementation="com.huawei.cangjie.ide.CangJieIconProvider"/>
+        <treeStructureProvider implementation="com.huawei.cangjie.ide.projectView.CangJieSelectInProjectViewProvider"/>
+        <treeStructureProvider implementation="com.huawei.cangjie.ide.projectView.CangJieExpandNodeProjectViewProvider" order="last, after ClassesTreeStructureProvider"/>
 
         <projectService
                 serviceInterface="com.huawei.cangjie.ide.projectStructure.LibraryUsageIndex"
@@ -304,9 +307,9 @@
         <!--                serviceInterface="com.huawei.cangjie.analyzer.session.CjAnalysisSessionProvider"-->
         <!--                serviceImplementation="com.huawei.cangjie.analyzer.session.CjAnalysisSessionProviderImpl"/>-->
 
-<!--        <projectService-->
-<!--                serviceInterface="com.huawei.cangjie.NotPropertiesService"-->
-<!--                serviceImplementation="com.huawei.cangjie.NotPropertiesServiceImpl"/>-->
+        <projectService
+                serviceInterface="com.huawei.cangjie.NotPropertiesService"
+                serviceImplementation="com.huawei.cangjie.ide.intentions.NotPropertiesServiceImpl"/>
     </extensions>
 
     <!--        监听-->
@@ -390,9 +393,10 @@
         <!--          icon="com.huawei.cangjie.ide.icons.CangJieIcons.CANGJIE_FILE"    -->
         <action id="CangJie.NewFile" class="com.huawei.cangjie.ide.actions.NewCangJieFileAction"
                 text="Add Cangjie File"
-        >
+                icon="com.huawei.cangjie.icon.CangJieIcons.CANGJIE">
 
-            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewGroup1"/>
+
+        <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewGroup1"/>
         </action>
 
 

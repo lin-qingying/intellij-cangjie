@@ -9,8 +9,12 @@ import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptor
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
+import com.huawei.cangjie.ide.IdeDescriptorRenderers
+import com.huawei.cangjie.lexer.CjModifierKeywordToken
+import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.*
 import com.huawei.cangjie.psi.CjExpression
+import com.huawei.cangjie.references.util.DescriptorToSourceUtilsIde
 import com.huawei.cangjie.resolve.DescriptorUtils.getContainingModule
 import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorImpl
@@ -25,6 +29,7 @@ import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.isError
 import com.huawei.cangjie.types.util.TypeUtils
 import com.huawei.cangjie.utils.DFS
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -190,7 +195,35 @@ fun <D : CallableDescriptor> D.overriddenTreeUniqueAsSequence(useOriginal: Boole
 val DeclarationDescriptorWithVisibility.isEffectivelyPublicApi: Boolean
     get() = effectiveVisibility().publicApi
 
+val ClassifierDescriptorWithTypeParameters.constructors: Collection<ConstructorDescriptor>
+    get() = when (this) {
+        is TypeAliasDescriptor -> this.constructors
+        is ClassDescriptor -> this.constructors
+        else -> emptyList()
+    }
+val ClassifierDescriptorWithTypeParameters.kind: ClassKind?
+    get() = when (this) {
+        is TypeAliasDescriptor -> classDescriptor?.kind
+        is ClassDescriptor -> kind
+        else -> null
+    }
 
+
+
+
+
+fun DescriptorVisibility.toKeywordToken(): CjModifierKeywordToken = when (val normalized = normalize()) {
+    DescriptorVisibilities.PUBLIC -> CjTokens.PUBLIC_KEYWORD
+    DescriptorVisibilities.PROTECTED -> CjTokens.PROTECTED_KEYWORD
+    DescriptorVisibilities.INTERNAL -> CjTokens.INTERNAL_KEYWORD
+    else -> {
+        if (DescriptorVisibilities.isPrivate(normalized)) {
+            CjTokens.PRIVATE_KEYWORD
+        } else {
+            error("Unexpected visibility '$normalized'")
+        }
+    }
+}
 object DescriptorUtils {
     fun getFqNameFromTopLevelClass(descriptor: DeclarationDescriptor): FqName {
         val containingDeclaration =
@@ -200,6 +233,21 @@ object DescriptorUtils {
             return FqName.topLevel(name)
         }
         return getFqNameFromTopLevelClass(containingDeclaration).child(name)
+    }
+
+    fun isAncestor(
+        ancestor: DeclarationDescriptor?,
+        declarationDescriptor: DeclarationDescriptor,
+        strict: Boolean
+    ): Boolean {
+        if (ancestor == null) return false
+        var descriptor =
+            if (strict) declarationDescriptor.containingDeclaration else declarationDescriptor
+        while (descriptor != null) {
+            if (ancestor === descriptor) return true
+            descriptor = descriptor.containingDeclaration
+        }
+        return false
     }
 
     fun getDirectMember(descriptor: CallableMemberDescriptor): CallableMemberDescriptor {
@@ -670,6 +718,13 @@ object DescriptorUtils {
         return null
     }
 
+    fun getContainingModuleOrNull(cangjieType: CangJieType): ModuleDescriptor? {
+        val descriptor: ClassifierDescriptor =
+            cangjieType.constructor.getDeclarationDescriptor()
+                ?: return null
+
+        return getContainingModuleOrNull(descriptor)
+    }
 }
 
 object DeserializedDeclarationsFromSupertypeConflictDataKey : CallableDescriptor.UserDataKey<CallableMemberDescriptor>
@@ -716,4 +771,46 @@ fun DeclarationDescriptor.isStatic(): Boolean {
         else -> false
     }
 
+}
+
+fun DeclarationDescriptor.isAncestorOf(descriptor: DeclarationDescriptor, strict: Boolean): Boolean =
+    DescriptorUtils.isAncestor(this, descriptor, strict)
+
+fun compareDescriptors(
+    project: Project,
+    currentDescriptor: DeclarationDescriptor?,
+    originalDescriptor: DeclarationDescriptor?
+): Boolean {
+    if (currentDescriptor == originalDescriptor) return true
+    if (currentDescriptor == null || originalDescriptor == null) return false
+
+    if (currentDescriptor.name != originalDescriptor.name) return false
+
+
+    if (compareDescriptorsText(project, currentDescriptor, originalDescriptor)) return true
+
+    if (originalDescriptor is CallableDescriptor && currentDescriptor is CallableDescriptor) {
+        val overriddenOriginalDescriptor = originalDescriptor.findOriginalTopMostOverriddenDescriptors()
+        val overriddenCurrentDescriptor = currentDescriptor.findOriginalTopMostOverriddenDescriptors()
+
+        if (overriddenOriginalDescriptor.size != overriddenCurrentDescriptor.size) return false
+        return overriddenCurrentDescriptor.zip(overriddenOriginalDescriptor).all {
+            compareDescriptorsText(project, it.first, it.second)
+        }
+    }
+
+    return false
+}
+
+private fun compareDescriptorsText(project: Project, d1: DeclarationDescriptor, d2: DeclarationDescriptor): Boolean {
+    if (d1 == d2) return true
+    if (d1.name != d2.name) return false
+
+    val renderedD1 = IdeDescriptorRenderers.SOURCE_CODE.render(d1)
+    val renderedD2 = IdeDescriptorRenderers.SOURCE_CODE.render(d2)
+    if (renderedD1 == renderedD2) return true
+
+    val declarations1 = DescriptorToSourceUtilsIde.getAllDeclarations(project, d1)
+    val declarations2 = DescriptorToSourceUtilsIde.getAllDeclarations(project, d2)
+    return declarations1 == declarations2 && declarations1.isNotEmpty()
 }

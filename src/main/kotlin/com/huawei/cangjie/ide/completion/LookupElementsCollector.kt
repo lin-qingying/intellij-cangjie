@@ -1,10 +1,13 @@
 package com.huawei.cangjie.ide.completion
 
+import com.huawei.cangjie.descriptors.CallableDescriptor
+import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.MemberDescriptor
 import com.huawei.cangjie.ide.intentions.InsertExplicitTypeArgumentsIntention
 import com.huawei.cangjie.psi.CjCallExpression
 import com.huawei.cangjie.psi.CjDotQualifiedExpression
 import com.huawei.cangjie.psi.psiUtil.collectDescendantsOfType
+import com.huawei.cangjie.resolve.ImportedFromObjectCallableDescriptor
 import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.completion.impl.RealPrefixMatchingWeigher
 import com.intellij.codeInsight.lookup.LookupElement
@@ -20,14 +23,14 @@ class LookupElementsCollector(
     sorter: CompletionSorter,
     private val filter: ((LookupElement) -> Boolean)?,
     private val allowExpectDeclarations: Boolean
-)
-{
+) {
     var bestMatchingDegree = Int.MIN_VALUE
         private set
     private val elements = ArrayList<LookupElement>()
     val resultSet = resultSet.withPrefixMatcher(prefixMatcher).withRelevanceSorter(sorter)
     var isResultEmpty: Boolean = true
         private set
+
     fun flushToResultSet() {
         if (elements.isNotEmpty()) {
             onFlush()
@@ -37,14 +40,55 @@ class LookupElementsCollector(
             isResultEmpty = false
         }
     }
+
     private val postProcessors = ArrayList<(LookupElement) -> LookupElement>()
+    private val processedCallables = HashSet<CallableDescriptor>()
+
+    fun addDescriptorElements(
+        descriptors: Iterable<DeclarationDescriptor>,
+        lookupElementFactory: AbstractLookupElementFactory,
+        notImported: Boolean = false,
+        withReceiverCast: Boolean = false,
+        prohibitDuplicates: Boolean = false
+    ) {
+        for (descriptor in descriptors) {
+            addDescriptorElements(descriptor, lookupElementFactory, notImported, withReceiverCast, prohibitDuplicates)
+        }
+    }
+
+    fun addDescriptorElements(
+        descriptor: DeclarationDescriptor,
+        lookupElementFactory: AbstractLookupElementFactory,
+        notImported: Boolean = false,
+        withReceiverCast: Boolean = false,
+        prohibitDuplicates: Boolean = false
+    ) {
+        if (prohibitDuplicates && descriptor is CallableDescriptor && unwrapIfImportedFromObject(descriptor) in processedCallables) return
+
+        var lookupElements =
+            lookupElementFactory.createStandardLookupElementsForDescriptor(descriptor, useReceiverTypes = true)
+
+        if (withReceiverCast) {
+            lookupElements = lookupElements.map { it.withReceiverCast() }
+        }
+
+        addElements(lookupElements, notImported)
+
+        if (prohibitDuplicates && descriptor is CallableDescriptor) processedCallables.add(
+            unwrapIfImportedFromObject(
+                descriptor
+            )
+        )
+    }
 
     fun addLookupElementPostProcessor(processor: (LookupElement) -> LookupElement) {
         postProcessors.add(processor)
     }
+
     fun restartCompletionOnPrefixChange(prefixCondition: ElementPattern<String>) {
         resultSet.restartCompletionOnPrefixChange(prefixCondition)
     }
+
     fun addElements(elements: Iterable<LookupElement>, notImported: Boolean = false) {
         elements.forEach { addElement(it, notImported) }
     }
@@ -92,26 +136,31 @@ class LookupElementsCollector(
     }
 
 }
+
 private class DeclarationLookupObjectLookupElementDecorator(
     element: LookupElement,
     private val declarationLookupObject: DescriptorBasedDeclarationLookupObject
 ) : LookupElementDecorator<LookupElement>(element) {
     override fun getPsiElement() = declarationLookupObject.psiElement
 }
+
 private class InsertExplicitTypeArgumentsLookupElementDecorator(
     element: LookupElement,
-): LookupElementDecorator<LookupElement>(element) {
-    override fun getDecoratorInsertHandler(): InsertHandler<LookupElementDecorator<LookupElement>> = InsertHandler { context, decorator ->
-        delegate.handleInsert(context)
+) : LookupElementDecorator<LookupElement>(element) {
+    override fun getDecoratorInsertHandler(): InsertHandler<LookupElementDecorator<LookupElement>> =
+        InsertHandler { context, decorator ->
+            delegate.handleInsert(context)
 
-        val (typeArgs, exprOffset) = argList ?: return@InsertHandler
-        val beforeCaret = context.file.findElementAt(exprOffset) ?: return@InsertHandler
-        val callExpr = when (val beforeCaretExpr = beforeCaret.prevSibling) {
-            is CjCallExpression -> beforeCaretExpr
-            is CjDotQualifiedExpression -> beforeCaretExpr.collectDescendantsOfType<CjCallExpression>().lastOrNull()
-            else -> null
-        } ?: return@InsertHandler
+            val (typeArgs, exprOffset) = argList ?: return@InsertHandler
+            val beforeCaret = context.file.findElementAt(exprOffset) ?: return@InsertHandler
+            val callExpr = when (val beforeCaretExpr = beforeCaret.prevSibling) {
+                is CjCallExpression -> beforeCaretExpr
+                is CjDotQualifiedExpression -> beforeCaretExpr.collectDescendantsOfType<CjCallExpression>().lastOrNull()
+                else -> null
+            } ?: return@InsertHandler
 
-        InsertExplicitTypeArgumentsIntention.applyTo(callExpr, typeArgs, true)
-    }
+            InsertExplicitTypeArgumentsIntention.applyTo(callExpr, typeArgs, true)
+        }
 }
+private fun unwrapIfImportedFromObject(descriptor: CallableDescriptor): CallableDescriptor =
+    if (descriptor is ImportedFromObjectCallableDescriptor<*>) descriptor.callableFromObject else descriptor

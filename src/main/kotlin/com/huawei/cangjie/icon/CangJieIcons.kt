@@ -1,10 +1,8 @@
 package com.huawei.cangjie.icon
 
 
-import com.intellij.openapi.util.IconLoader
+import com.intellij.icons.AllIcons
 import com.intellij.ui.AnimatedIcon
-import com.intellij.ui.IconManager
-import com.intellij.ui.PlatformIcons
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -14,32 +12,60 @@ object CangJieIcons {
     /** 16x16  */
 //    val FILE: Icon = CangJieResourcesIcons.CangJie_file
 
-    val CANGJIE_FILE = load("/icons/cangjie_file.svg")
-    val CANGJIE = load("/icons/cangjie_icon.png")
-    val CANGJIE_16 = load("/icons/cangjie_icon_16_16.png")
-
+    val CANGJIE_FILE = CangJieBaseResourcesIcons.CangJieFile
 
     /** 16x16  */
+    @JvmField
+    val FILE: Icon = CangJieBaseResourcesIcons.CangJie_file
+    @JvmField
+
+    val CANGJIE = CangJieBaseResourcesIcons.CangJie
 
     /** 16x16  */
-    val Class: Icon =
-        load("/icons/class.svg")
+    val ANNOTATION: Icon = CangJieBaseResourcesIcons.AnnotationCangJie
+
+    /** 16x16  */
+    val TYPE_ALIAS: Icon = CangJieBaseResourcesIcons.TypeAlias
+
+    /** 16x16  */
+    val CLASS: Icon = CangJieBaseResourcesIcons.ClassCangJie
+
+    /** 16x16  */
+    val INTERFACE: Icon = CangJieBaseResourcesIcons.InterfaceCangJie
+
+    /** 16x16  */
+    val ENUM = CangJieBaseResourcesIcons.EnumCangJie
+
+    /** 16x16  */
+    val STRUCT = CangJieBaseResourcesIcons.StructCangJie
+
+    /** 16x16  */
+    val ABSTRACT_CLASS: Icon = CangJieBaseResourcesIcons.AbstractClassCangJie
+
     val GEAR = CANGJIE_FILE
     val GEAR_OFF = CANGJIE_FILE
 
-    //    val GEAR = load("/icons/gear.svg")
-//    val GEAR_OFF = load("/icons/gearOff.svg")
+    val VAR: Icon = AllIcons.Nodes.Variable
+
+    /** 16x16  */
+    val FIELD_VAR: Icon = CangJieBaseResourcesIcons.Field_variable
+
+    /** 16x16  */
+    val FIELD_LET: Icon = CangJieBaseResourcesIcons.Field_value
+    val FUNCTION: Icon = AllIcons.Nodes.Function
+
+    /** 16x16  */
+    val LET: Icon = CangJieBaseResourcesIcons.Value
+
     val GEAR_ANIMATED =
         AnimatedIcon(AnimatedIcon.Default.DELAY, GEAR, GEAR.rotated(15.0), GEAR.rotated(30.0), GEAR.rotated(45.0))
+    val EXTENSION_FUNCTION: Icon = AllIcons.Nodes.Function
 
-    private fun load(path: String): Icon = IconLoader.getIcon(path, CangJieIcons::class.java)
+    /** 16x16  */
+    val ABSTRACT_EXTENSION_FUNCTION: Icon = CangJieBaseResourcesIcons.Abstract_extension_function
 
-    private fun load(path: String, cacheKey: Int, flags: Int): Icon {
-        return IconManager.getInstance()
-            .loadRasterizedIcon(path, CangJieIcons::class.java.classLoader, cacheKey, flags)
-    }
 
-    val PARAMETER: Icon = IconManager.getInstance().getPlatformIcon(PlatformIcons.Parameter)
+    val PARAMETER: Icon = AllIcons.Nodes.Parameter
 
     /** 16x16  */
     val LAMBDA: Icon = CangJieBaseResourcesIcons.Lambda

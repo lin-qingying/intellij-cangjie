@@ -24,5 +24,15 @@
                          runForWholeFile="true"
                          key="inspection.c.doc.missing.documentation.display.name" bundle="messages.CangJieBundle"/>
 
+
+        <localInspection implementationClass="com.huawei.cangjie.ide.inspections.CangJieRedundantVisibilityModifierInspection"
+                         groupPath="CangJie"
+                         groupBundle="messages.CangJieBundle" groupKey="group.names.redundant.constructs"
+                         enabledByDefault="true"
+                         cleanupTool="true"
+                         level="WARNING"
+                         language="CangJie" editorAttributes="NOT_USED_ELEMENT_ATTRIBUTES"
+                         key="inspection.redundant.visibility.modifier.display.name" bundle="messages.CangJieBundle"/>
+
     </extensions>
 </idea-plugin>

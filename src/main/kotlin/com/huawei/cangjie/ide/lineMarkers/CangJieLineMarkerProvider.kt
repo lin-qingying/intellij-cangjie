@@ -76,7 +76,7 @@ private fun collectSuperDeclarationMarkers(declaration: CjDeclaration, result: L
     assert(declaration is CjNamedFunction || declaration is CjProperty || declaration is CjParameter)
     declaration as CjNamedDeclaration // implied by assert
 
-    if (!declaration.hasModifier(CjTokens.OVERRIDE_KEYWORD)) return
+//    if (!declaration.hasModifier(CjTokens.OVERRIDE_KEYWORD)) return
 
     val resolveWithParents = resolveDeclarationWithParents(declaration)
     if (resolveWithParents.overriddenDescriptors.isEmpty()) return

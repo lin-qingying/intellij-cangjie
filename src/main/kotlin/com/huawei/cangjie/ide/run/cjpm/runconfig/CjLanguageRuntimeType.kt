@@ -20,7 +20,7 @@ class CjLanguageRuntimeType : LanguageRuntimeType<CjLanguageRuntimeConfiguration
         get() = TODO("Not yet implemented")
     override val displayName: String
         get() = TODO("Not yet implemented")
-    override val icon: Icon = CangJieIcons.CANGJIE_16
+    override val icon: Icon = CangJieIcons.CANGJIE
     override val launchDescription: String
         get() = TODO("Not yet implemented")
 

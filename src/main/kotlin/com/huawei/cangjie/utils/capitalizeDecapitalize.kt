@@ -9,6 +9,18 @@ fun String.toUpperCaseAsciiOnly(): String {
 }
 
 
+fun String.capitalizeAsciiOnly(): String {
+    if (isEmpty()) return this
+    val c = this[0]
+    return if (c in 'a'..'z')
+        buildString(length) {
+            append(c.uppercaseChar())
+            append(this@capitalizeAsciiOnly, 1, this@capitalizeAsciiOnly.length)
+        }
+    else
+        this
+}
+
 fun String.toLowerCaseAsciiOnly(): String {
     val builder = StringBuilder(length)
     for (c in this) {

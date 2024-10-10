@@ -21,7 +21,22 @@ interface NewCangJieTypeChecker : CangJieTypeChecker {
         val Default = NewCangJieTypeCheckerImpl(CangJieTypeRefiner.Default)
     }
 }
+object StrictEqualityTypeChecker {
 
+    /**
+     * String! != String & A<String!> != A<String>, also A<in Nothing> != A<out Any?>
+     * also A<*> != A<out Any?>
+     * different error types non-equals even errorTypeEqualToAnything
+     */
+    fun strictEqualTypes(a: UnwrappedType, b: UnwrappedType): Boolean {
+        return AbstractStrictEqualityTypeChecker.strictEqualTypes(SimpleClassicTypeSystemContext, a, b)
+    }
+
+    fun strictEqualTypes(a: SimpleType, b: SimpleType): Boolean {
+        return AbstractStrictEqualityTypeChecker.strictEqualTypes(SimpleClassicTypeSystemContext, a, b)
+    }
+
+}
 object ErrorTypesAreEqualToAnything : CangJieTypeChecker {
     override fun equalsIgnoringGenerics(a: CangJieType, b: CangJieType): Boolean =
         NewCangJieTypeChecker.Default.run {

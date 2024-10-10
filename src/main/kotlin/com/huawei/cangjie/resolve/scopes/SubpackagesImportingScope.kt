@@ -37,8 +37,10 @@ class SubpackagesImportingScope(
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
-    ): Collection<DeclarationDescriptor> =
-        emptyList()
+    ): Collection<DeclarationDescriptor> {
+        return  super<SubpackagesScope>.getContributedDescriptors(kindFilter, nameFilter)
+    }
+
 
     //TODO: kept old behavior, but it seems very strange (super call seems more applicable)
     override fun getContributedDescriptors(

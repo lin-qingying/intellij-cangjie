@@ -17,7 +17,9 @@ import com.huawei.cangjie.resolve.ResolutionFacade
 import com.huawei.cangjie.resolve.caches.resolveImportReference
 import com.huawei.cangjie.resolve.calls.util.receiverTypes
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
+import com.huawei.cangjie.resolve.fqNameSafe
 import com.huawei.cangjie.resolve.frontendService
+import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.isError
 import com.huawei.cangjie.utils.CallTypeAndReceiver
@@ -25,6 +27,7 @@ import com.huawei.cangjie.utils.CangJieExceptionWithAttachments
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.Processor
 
@@ -38,15 +41,17 @@ class CangJieIndicesHelper(
     applyExcludeSettings: Boolean = true,
     private val filterOutPrivate: Boolean = true,
     private val file: CjFile? = null
-)
-{
+) {
     private val moduleDescriptor = resolutionFacade.moduleDescriptor
 
     private val project = resolutionFacade.project
+
     @OptIn(FrontendInternals::class)
     private val descriptorFilter: (DeclarationDescriptor) -> Boolean = filter@{ descriptor ->
         if (!applicabilityFilter(descriptor)) return@filter false
-        if (resolutionFacade.frontendService<DeprecationResolver>().isHiddenInResolution(descriptor)) return@filter false
+        if (resolutionFacade.frontendService<DeprecationResolver>()
+                .isHiddenInResolution(descriptor)
+        ) return@filter false
         if (!visibilityFilter(descriptor)) return@filter false
         if (applyExcludeSettings) {
             val fqName = descriptor.importableFqName
@@ -56,8 +61,35 @@ class CangJieIndicesHelper(
         }
         return@filter true
     }
+
     private inline fun <reified TDescriptor : Any> CjNamedDeclaration.resolveToDescriptors(): Collection<TDescriptor> {
         return resolveToDescriptorsWithHack { true }.filterIsInstance<TDescriptor>()
+    }
+    fun processTopLevelCallables(nameFilter: (String) -> Boolean, processor: (CallableDescriptor) -> Unit) {
+        val callableDeclarationProcessor = Processor<CjCallableDeclaration> { declaration ->
+            if (declaration.receiverTypeReference != null) return@Processor true
+            if (filterOutPrivate && declaration.hasModifier(CjTokens.PRIVATE_KEYWORD)) return@Processor true
+            ProgressManager.checkCanceled()
+            declaration.resolveToDescriptors<CallableDescriptor>().forEach { descriptor ->
+                if (descriptorFilter(descriptor)) {
+                    processor(descriptor)
+                }
+            }
+            true
+        }
+
+        val filter: (String) -> Boolean = { key -> nameFilter(key.substringAfterLast('.', key)) }
+
+        CangJieTopLevelFunctionFqnNameIndex.processAllElements(project, scope, filter, callableDeclarationProcessor)
+      CangJieTopLevelVariableFqnNameIndex.processAllElements(project, scope, filter, callableDeclarationProcessor)
+    }
+
+    fun processStaticMembers(
+        descriptorKindFilter: DescriptorKindFilter,
+        nameFilter: (String) -> Boolean,
+        processor: (DeclarationDescriptor) -> Unit
+    ) {
+
     }
     private fun MutableSet<CjNamedDeclaration>.addTopLevelNonExtensionCallablesByName(
         helper: CangJieStringStubIndexHelper<out CjNamedDeclaration>,
@@ -71,6 +103,51 @@ class CangJieIndicesHelper(
             true
         }
     }
+
+    fun processCallableExtensionsDeclaredInObjects(
+        callTypeAndReceiver: CallTypeAndReceiver<*, *>,
+        receiverTypes: Collection<CangJieType>,
+        nameFilter: (String) -> Boolean,
+        declarationFilter: (CjDeclaration) -> Boolean = { true },
+        processor: (CallableDescriptor) -> Unit
+    ) {
+        if (receiverTypes.isEmpty()) return
+//
+//       CangJieExtensionsInObjectsByReceiverTypeIndex.processSuitableExtensions(
+//            receiverTypes,
+//            nameFilter,
+//            declarationFilter,
+//            callTypeAndReceiver,
+//            processor
+//        )
+    }
+    fun processAllCallablesFromSubclassObjects(
+        callTypeAndReceiver: CallTypeAndReceiver<*, *>,
+        receiverTypes: Collection<CangJieType>,
+        nameFilter: (String) -> Boolean,
+        processor: (CallableDescriptor) -> Unit
+    ){
+
+    }
+    fun resolveTypeAliasesUsingIndex(type: CangJieType, originalTypeName: String): Set<TypeAliasDescriptor> {
+        val typeConstructor = type.constructor
+
+        val out = LinkedHashMap<FqName, TypeAliasDescriptor>()
+
+        fun searchRecursively(typeName: String) {
+            ProgressManager.checkCanceled()
+            CangJieTypeAliasByExpansionShortNameIndex[typeName, project, scope].asSequence()
+                .flatMap { it.resolveToDescriptors<TypeAliasDescriptor>().asSequence() }
+                .filter { it.expandedType.constructor == typeConstructor }
+                .filter { out.putIfAbsent(it.fqNameSafe, it) == null }
+                .map { it.name.asString() }
+                .forEach(::searchRecursively)
+        }
+
+        searchRecursively(originalTypeName)
+        return out.values.toSet()
+    }
+
     fun getMemberOperatorsByName(name: String): Collection<FunctionDescriptor> {
         return CangJieFunctionShortNameIndex.getAllElements(name, project, scope) {
             it.parent is CjClassBody && it.receiverTypeReference == null && it.hasModifier(CjTokens.OPERATOR_KEYWORD)
@@ -121,9 +198,10 @@ class CangJieIndicesHelper(
             .flatMap { it.resolveToDescriptors<CallableDescriptor>() }
             .filter { descriptorFilter(it) }
     }
+
     fun processTopLevelTypeAliases(nameFilter: (String) -> Boolean, processor: (TypeAliasDescriptor) -> Unit) {
         val typeAliasProcessor = Processor<CjTypeAlias> { typeAlias ->
-                typeAlias.resolveToDescriptors<TypeAliasDescriptor>().forEach {
+            typeAlias.resolveToDescriptors<TypeAliasDescriptor>().forEach {
                 ProgressManager.checkCanceled()
                 if (descriptorFilter(it)) {
                     processor(it)
@@ -131,7 +209,7 @@ class CangJieIndicesHelper(
             }
             true
         }
-       CangJieTopLevelTypeAliasFqNameIndex
+        CangJieTopLevelTypeAliasFqNameIndex
             .processAllElements(project, scope, { nameFilter(it.substringAfterLast('.')) }, typeAliasProcessor)
     }
 
@@ -178,7 +256,13 @@ class CangJieIndicesHelper(
 
         val lookupLocation = this.file?.let { CangJieLookupLocation(it) } ?: NoLookupLocation.FROM_IDE
         for (extension in CangJieIndicesHelperExtension.getInstances(project)) {
-            extension.appendExtensionCallables(additionalDescriptors, moduleDescriptor, receiverTypes, nameFilter, lookupLocation)
+            extension.appendExtensionCallables(
+                additionalDescriptors,
+                moduleDescriptor,
+                receiverTypes,
+                nameFilter,
+                lookupLocation
+            )
         }
 
         return if (additionalDescriptors.isNotEmpty()) {
@@ -187,11 +271,13 @@ class CangJieIndicesHelper(
             suitableTopLevelExtensions
         }
     }
+
     private fun collectAllNamesOfTypes(types: Collection<CangJieType>): HashSet<String> {
         val receiverTypeNames = HashSet<String>()
         types.forEach { receiverTypeNames.addTypeNames(it) }
         return receiverTypeNames
     }
+
     private fun MutableCollection<String>.addTypeNames(type: CangJieType) {
         val constructor = type.constructor
         constructor.declarationDescriptor?.name?.asString()?.let { typeName ->
@@ -200,6 +286,7 @@ class CangJieIndicesHelper(
         }
         constructor.supertypes.forEach { addTypeNames(it) }
     }
+
     private fun possibleTypeAliasExpansionNames(originalTypeName: String): Set<String> {
         val out = mutableSetOf<String>()
 
@@ -233,7 +320,7 @@ class CangJieIndicesHelper(
             if (declarationFilter(callableDeclaration)) {
                 callableDeclaration.resolveToDescriptors<CallableDescriptor>().forEach { descriptor ->
                     if (descriptor.extensionReceiverParameter != null && descriptorFilter(descriptor)) {
-                        for (callableDescriptor in descriptor.substituteExtensionIfCallable(receiverTypes, callType)){
+                        for (callableDescriptor in descriptor.substituteExtensionIfCallable(receiverTypes, callType)) {
                             if (processed.add(callableDescriptor)) processor(callableDescriptor)
                         }
                     }
@@ -248,6 +335,7 @@ class CangJieIndicesHelper(
             declarationProcessor
         )
     }
+
     private fun CjNamedDeclaration.resolveToDescriptorsWithHack(
         psiFilter: (CjDeclaration) -> Boolean
     ): Collection<DeclarationDescriptor> {
@@ -277,6 +365,7 @@ class CangJieIndicesHelper(
             return listOfNotNull(resolutionFacade.resolveToDescriptor(translatedDeclaration))
         }
     }
+
     fun processCangJieClasses(
         nameFilter: (String) -> Boolean,
         psiFilter: (CjDeclaration) -> Boolean = { true },
@@ -294,15 +383,23 @@ class CangJieIndicesHelper(
             }
             true
         }
-        CangJieFullClassNameIndex.processAllElements(project, scope, { nameFilter(it.substringAfterLast('.')) }, classOrObjectProcessor)
+        CangJieFullClassNameIndex.processAllElements(
+            project,
+            scope,
+            { nameFilter(it.substringAfterLast('.')) },
+            classOrObjectProcessor
+        )
     }
+
     companion object {
         private val LOG = Logger.getInstance(CangJieIndicesHelper::class.java)
     }
 }
+
 fun FqName.isExcludedFromAutoImport(
     project: Project,
     contextFile: CjFile?,
     languageVersionSettings: LanguageVersionSettings? = contextFile?.languageVersionSettings
 ): Boolean {
-   return false}
+    return false
+}
