@@ -1,21 +1,21 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
 
-<!--        <fileType name="TOML"-->
-<!--                  language="TOML"-->
-<!--                  implementationClass="com.huawei.cangjie.toml.CangJieTomlFileType"-->
-<!--                  fieldName="INSTANCE"-->
-<!--                  extensions="toml"-->
-<!--                  fileNames="cjpm.lock"/>-->
-<fileType name="TOML"
-language="TOML"
-          fileNames="cjpm.lock"
-/>
-<!--<filetype.decompiler filetype="TOML" implementationClass="com.huawei.cangjie.toml.CangJieTomlDecompile"/>-->
-<!--<fileTypeRegistrar implementation="com.huawei.cangjie.toml.CangJieTomlFileTypeRegistrar"/>-->
-<!--        <fileTypeFactory implementation="com.huawei.cangjie.toml.CangJieTomlFileTypeFactory"/>-->
-<!--        <fileTypeOverrider implementation="com.huawei.cangjie.toml.CangJieTomlFileTypeOverrider"/>-->
-<!--   -->
+        <!--        <fileType name="TOML"-->
+        <!--                  language="TOML"-->
+        <!--                  implementationClass="com.huawei.cangjie.toml.CangJieTomlFileType"-->
+        <!--                  fieldName="INSTANCE"-->
+        <!--                  extensions="toml"-->
+        <!--                  fileNames="cjpm.lock"/>-->
+        <fileType name="TOML"
+                  language="TOML"
+                  fileNames="cjpm.lock"
+        />
+        <!--<filetype.decompiler filetype="TOML" implementationClass="com.huawei.cangjie.toml.CangJieTomlDecompile"/>-->
+        <!--<fileTypeRegistrar implementation="com.huawei.cangjie.toml.CangJieTomlFileTypeRegistrar"/>-->
+        <!--        <fileTypeFactory implementation="com.huawei.cangjie.toml.CangJieTomlFileTypeFactory"/>-->
+        <!--        <fileTypeOverrider implementation="com.huawei.cangjie.toml.CangJieTomlFileTypeOverrider"/>-->
+        <!--   -->
     </extensions>
 
 </idea-plugin>

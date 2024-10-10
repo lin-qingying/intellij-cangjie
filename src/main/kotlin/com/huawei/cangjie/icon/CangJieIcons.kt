@@ -20,6 +20,9 @@ object CangJieIcons {
     @JvmField
 
     val CANGJIE = CangJieBaseResourcesIcons.CangJie
+    @JvmField
+
+    val TOML = CangJieBaseResourcesIcons.Toml
 
     /** 16x16  */
     val ANNOTATION: Icon = CangJieBaseResourcesIcons.AnnotationCangJie

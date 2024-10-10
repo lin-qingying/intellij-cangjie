@@ -4,9 +4,9 @@ import com.intellij.openapi.util.IconLoader
 import javax.swing.Icon
 
 object CjpmIcons {
-    val ICON = CangJieIcons.CANGJIE_FILE
-    val LOCK_ICON = CangJieIcons.CANGJIE_FILE
-    val MANIFEST_ICON = CangJieIcons.CANGJIE_FILE
+    val ICON = CangJieIcons.TOML
+    val LOCK_ICON = CangJieIcons.TOML
+    val MANIFEST_ICON = CangJieIcons.TOML
 //    val ICON = load("/icons/cargo.svg")
 //    val LOCK_ICON = load("/icons/cargoLock.svg")
 

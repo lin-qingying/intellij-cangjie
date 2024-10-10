@@ -43,6 +43,8 @@ object CangJieBaseResourcesIcons {
     /** 16x16 */
     @JvmField
     val CangJie: Icon = load("/icons/cangjie_icon_16_16.png")
+    @JvmField
+    val Toml: Icon = load("/icons/toml.svg")
 
     /** 16x16 */
     @JvmField
