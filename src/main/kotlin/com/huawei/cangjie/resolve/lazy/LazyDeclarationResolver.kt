@@ -274,6 +274,7 @@ open class LazyDeclarationResolver(
                 return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, property)
             }
 
+
             override fun visitCjElement(element: CjElement, data: Nothing?): DeclarationDescriptor {
                 throw IllegalArgumentException(
                     "Unsupported declaration type: " + element + " " +

@@ -119,33 +119,7 @@ class BasicCompletionSession(
 
         override fun generateCategories() {
 
-            val declaration = isStartOfExtensionReceiverFor()
-            if (declaration != null) {
-//                completeDeclarationNameFromUnresolvedOrOverride(declaration)
-//
-//                if (declaration is CjProperty) {
-//                    // we want to insert type only if the property is lateinit,
-//                    // because lateinit var cannot have its type deduced from initializer
-//                    completeParameterOrVarNameAndType(withType = declaration.hasModifier(CjTokens.LATEINIT_KEYWORD))
-//                }
 
-                // no auto-popup on typing after "val", "var" and "fun" because it's likely the name of the declaration which is being typed by user
-                if (parameters.invocationCount == 0 && (
-                            // suppressOtherCompletion
-                            declaration !is CjNamedFunction && declaration !is CjVariable ||
-                                    prefixMatcher.prefix.let { it.isEmpty() || it[0].isLowerCase() /* function name usually starts with lower case letter */ }
-                            )
-                ) {
-                    if (declaration is CjNamedFunction &&
-                        declaration.modifierList?.allChildren.orEmpty()
-                            .map { it.node.elementType }
-                            .none { it is CjModifierKeywordToken && it !in CjTokens.VISIBILITY_MODIFIERS }
-                    ) {
-                        KEYWORDS_ONLY.generateCategories()
-                    }
-                    return
-                }
-            }
             fun addReferenceVariants(lookupElementFactory: LookupElementFactory, referenceVariants: ReferenceVariants) {
                 collector.addDescriptorElements(
                     referenceVariantsHelper.excludeNonInitializedVariable(referenceVariants.imported, position),
@@ -201,6 +175,7 @@ class BasicCompletionSession(
                     generators.forEach { it.getArtifact() }
                     referenceVariantsCollector!!.collectingFinished()
                     provider.requiredTypes
+
                 }
             }
 
@@ -220,16 +195,31 @@ class BasicCompletionSession(
                     collector.addElements(additionalItems)
                 }
             }
-//            withCollectRequiredContextVariableTypes(CangJieCompletionKindName.DSL_FUNCTION) { lookupFactory ->
-//                DslMembersCompletion(
-//                    prefixMatcher,
-//                    lookupFactory,
-//                    receiverTypes,
-//                    collector,
-//                    indicesHelper(true),
-//                    callTypeAndReceiver,
-//                ).completeDslFunctions()
-//            }
+
+            val declaration = isStartOfExtensionReceiverFor()
+            if (declaration != null) {
+                completeDeclarationNameFromUnresolvedOrOverride(declaration)
+
+
+                // no auto-popup on typing after "let", "var" and "fun" because it's likely the name of the declaration which is being typed by user
+                if (parameters.invocationCount == 0 && (
+                            // suppressOtherCompletion
+                            declaration !is CjNamedFunction && declaration !is CjVariable ||
+                                    prefixMatcher.prefix.let { it.isEmpty() || it[0].isLowerCase() /* function name usually starts with lower case letter */ }
+                            )
+                ) {
+                    if (declaration is CjNamedFunction &&
+                        declaration.modifierList?.allChildren.orEmpty()
+                            .map { it.node.elementType }
+                            .none { it is CjModifierKeywordToken && it !in CjTokens.VISIBILITY_MODIFIERS }
+                    ) {
+                        KEYWORDS_ONLY.generateCategories()
+                    }
+                    return
+                }
+            }
+
+
             KEYWORDS_ONLY.generateCategories()
             val contextVariableTypesForSmartCompletion = withCollectRequiredContextVariableTypes(
                 CangJieCompletionKindName.SMART_ADDITIONAL_ITEM,
@@ -267,7 +257,7 @@ class BasicCompletionSession(
                     //TODO: move this code somewhere else?
                     val packageNames = CangJiePackageIndexUtils.getSubPackageFqNames(
                         FqName.ROOT,
-                        searchScope,
+                        GlobalSearchScope.allScope(project),
                         prefixMatcher.asNameFilter()
                     )
                         .toHashSet()
@@ -861,7 +851,7 @@ class BasicCompletionSession(
                         }
                     }
 
-                    // if "return" is parsed correctly in the current context - insert it and all return@xxx items
+                    // if "return" is parsed correctly in the current context - insert it and all return
                     "return" -> {
                         if (expression != null) {
                             collector.addElements(returnExpressionItems(bindingContext, expression))

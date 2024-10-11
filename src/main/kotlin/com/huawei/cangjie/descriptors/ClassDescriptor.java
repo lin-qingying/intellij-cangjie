@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 public interface ClassDescriptor extends ClassifierDescriptorWithTypeParameters, ClassOrPackageFragmentDescriptor,
-        RegularClassSymbolMarker ,ClassAndEnumConstructorDescriptor{
+        RegularClassSymbolMarker, ClassAndEnumConstructorDescriptor {
     @NotNull
     MemberScope getMemberScope(@NotNull List<? extends TypeProjection> typeArguments);
 
@@ -43,18 +43,24 @@ public interface ClassDescriptor extends ClassifierDescriptorWithTypeParameters,
     MemberScope getUnsubstitutedInnerClassesScope();
 
     @NotNull
+    default MemberScope getInstanceScope() {
+
+        return MemberScope.Empty.INSTANCE;
+    }
+
+    @NotNull
     MemberScope getStaticScope();
 
     @NotNull
     @ReadOnly
     Collection<ClassConstructorDescriptor> getConstructors();
+
     @NotNull
     @ReadOnly
     Collection<ClassConstructorDescriptor> getEndConstructors();
 
     @Override
     @NotNull
-
     DeclarationDescriptor getContainingDeclaration();
 
     /**

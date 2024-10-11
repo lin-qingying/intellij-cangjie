@@ -1,0 +1,10 @@
+<idea-plugin>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <projectService serviceInterface="com.huawei.cangjie.utils.roots.PackageIndex"
+                        serviceImplementation="com.huawei.cangjie.utils.roots.impl.ProjectPackageIndexImpl"/>
+        <projectService serviceInterface="com.intellij.openapi.roots.impl.CangJieDirectoryIndex"
+                        serviceImplementation="com.intellij.openapi.roots.impl.CangJieDirectoryIndexImpl" />
+
+    </extensions>
+</idea-plugin>

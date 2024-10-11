@@ -4,7 +4,9 @@ import com.huawei.cangjie.descriptors.annotations.Annotated
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.renderer.DescriptorRenderer
 import com.huawei.cangjie.renderer.DescriptorRendererOptions
+import com.huawei.cangjie.resolve.scopes.InstanceMemberScope
 import com.huawei.cangjie.resolve.scopes.MemberScope
+import com.huawei.cangjie.resolve.scopes.StaticMemberScope
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
 import com.huawei.cangjie.types.error.ErrorType
 import com.huawei.cangjie.types.model.CangJieTypeMarker
@@ -38,6 +40,11 @@ sealed class CangJieType : Annotated, CangJieTypeMarker {
     abstract val isMarkedOption: Boolean
     abstract val memberScope: MemberScope
 
+    //    静态
+    val staticMemberScope: MemberScope get() = StaticMemberScope(memberScope)
+
+    //    实例
+    val instanceMemberScope: MemberScope get() = InstanceMemberScope(memberScope)
 
     //    是否为扩展类型的原父类型
     var isExtensionType: Boolean = false
@@ -131,7 +138,7 @@ abstract class SimpleType : UnwrappedType(), SimpleTypeMarker, TypeArgumentListM
     }
 }
 
-class ThisType(private val otype: SimpleType): SimpleType() {
+class ThisType(private val otype: SimpleType) : SimpleType() {
     override fun makeOptionalAsSpecified(newNullability: Boolean): SimpleType {
         return otype.makeOptionalAsSpecified(newNullability)
 

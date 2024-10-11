@@ -47,7 +47,8 @@ private val EXCLUDED_TYPES = setOf(
     CjDestructuringDeclaration::class,
     CjDestructuringDeclarationEntry::class,
     CjBindingPattern::class,
-    CjTypePattern::class
+    CjTypePattern::class,
+    CjPackageDirective::class
 
 )
 
@@ -245,11 +246,11 @@ class ResolveElementCache(
 //        doResolveAnnotations(fileLevelAnnotations)
     }
 
-    fun resolveToElement(element: CjElement, bodyResolveMode: BodyResolveMode = FULL): BindingContext {
+        fun resolveToElement(element: CjElement, bodyResolveMode: BodyResolveMode = FULL): BindingContext {
         val elementOfAdditionalResolve = findElementOfAdditionalResolve(element, bodyResolveMode)
 
 //        ensureFileAnnotationsResolved(element.getContainingCjFile())
-traceSize
+
         val bindingContext = if (elementOfAdditionalResolve != null) {
             if (elementOfAdditionalResolve is CjParameter) {
                 throw AssertionError(

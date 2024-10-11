@@ -2,7 +2,6 @@ package com.huawei.cangjie.ide.indices
 
 import com.huawei.cangjie.ide.stubindex.CangJieExactPackagesIndex
 import com.huawei.cangjie.ide.vfilefinder.NAME
-
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjFile
@@ -11,7 +10,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.indexing.FileBasedIndex
 
 
-object CangJiePackageIndexUtils{
+object CangJiePackageIndexUtils {
     fun getSubPackageFqNames(
         packageFqName: FqName,
         scope: GlobalSearchScope,
@@ -23,6 +22,15 @@ object CangJiePackageIndexUtils{
         searchScope: GlobalSearchScope,
         project: Project
     ): Collection<CjFile> = CangJieExactPackagesIndex.get(packageFqName.asString(), project, searchScope)
+
+
+    fun findFilesWithExactPackageByAllScope(
+        packageFqName: FqName,
+
+        project: Project
+    ): Collection<CjFile> =
+        CangJieExactPackagesIndex.get(packageFqName.asString(), project, GlobalSearchScope.allScope(project))
+
     /**
      * Return all direct subpackages of package [fqName].
      *
@@ -35,8 +43,8 @@ object CangJiePackageIndexUtils{
         val result = hashSetOf<FqName>()
 
         FileBasedIndex.getInstance().processValues(
-           NAME, fqName, null,
-            FileBasedIndex.ValueProcessor { _, subPackageName ->
+            NAME, fqName, null,
+            { _, subPackageName ->
                 if (subPackageName != null && nameFilter(subPackageName)) {
                     result.add(fqName.child(subPackageName))
                 }
@@ -46,6 +54,22 @@ object CangJiePackageIndexUtils{
 
         return result
     }
+
+
+    fun getSubPackageFqNamesByAllScope(
+        packageFqName: FqName,
+        project: Project
+    ): Collection<FqName> = getSubpackages(packageFqName, GlobalSearchScope.allScope(project)) {
+        true
+    }
+
+    fun getSubPackageFqNames(
+        packageFqName: FqName,
+        scope: GlobalSearchScope
+    ): Collection<FqName> = getSubpackages(packageFqName, scope) {
+        true
+    }
+
 
     /**
      * Return true if exists package with exact [fqName] OR there are some subpackages of [fqName]
@@ -61,7 +85,7 @@ object CangJiePackageIndexUtils{
         packageFqName: FqName,
         searchScope: GlobalSearchScope
     ): Boolean {
-        val a= !FileBasedIndex.getInstance().processValues(
+        val a = !FileBasedIndex.getInstance().processValues(
             NAME,
             packageFqName,
             null,

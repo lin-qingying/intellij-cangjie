@@ -1,0 +1,9 @@
+<!--<idea-plugin>-->
+<!--    <dependencies>-->
+<!--        <plugin id="com.intellij.diagram"/>-->
+<!--    </dependencies>-->
+
+<!--<extensions defaultExtensionNs="com.intellij.diagram">-->
+<!--    <Provider implementation="com.huawei.cangjie.uml.CangJieUmlProvider"/>-->
+<!--</extensions>-->
+<!--</idea-plugin>-->

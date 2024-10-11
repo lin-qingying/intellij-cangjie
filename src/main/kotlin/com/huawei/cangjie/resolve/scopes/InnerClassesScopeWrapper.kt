@@ -1,9 +1,6 @@
 package com.huawei.cangjie.resolve.scopes
 
-import com.huawei.cangjie.descriptors.ClassDescriptor
-import com.huawei.cangjie.descriptors.ClassifierDescriptor
-import com.huawei.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
-import com.huawei.cangjie.descriptors.TypeAliasDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.source.MemberScopeImpl
@@ -17,9 +14,9 @@ class InnerClassesScopeWrapper(val workerScope: MemberScope) : MemberScopeImpl()
         }
     override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> =
         workerScope.getContributedClassifiers(name, location)
-    override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): List<ClassifierDescriptor> {
+    override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): List<DeclarationDescriptor> {
         val restrictedFilter = kindFilter.restrictedToKindsOrNull(DescriptorKindFilter.CLASSIFIERS_MASK) ?: return listOf()
-        return workerScope.getContributedDescriptors(restrictedFilter, nameFilter).filterIsInstance<ClassifierDescriptorWithTypeParameters>()
+        return workerScope.getContributedDescriptors(restrictedFilter, nameFilter) .toList()
     }
 
     override fun printScopeStructure(p: Printer) {

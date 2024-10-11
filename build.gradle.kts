@@ -61,7 +61,7 @@ val nativeDebugPlugin: String = "com.intellij.nativeDebug:241.14494.73"
 val psiViewerPlugin: String = "PsiViewer:241-SNAPSHOT"
 val indexViewPlugin = "com.jetbrains.hackathon.indices.viewer:1.26"
 val chinesePlugin = "com.intellij.zh:241.230"
-
+val diagramPlugin = "com.intellij.diagram"
 val basePluginArchiveName = "intellij-cangjie-analyzer"
 
 val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
@@ -390,7 +390,7 @@ val cangjie_plugin_project = project(":plugin") {
 
 val cangjie_src_project = project(":") {
     intellij {
-        plugins.set(listOf(tomlPlugin))
+        plugins.set(listOf(tomlPlugin/*,diagramPlugin*/))
     }
     dependencies {
         implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")

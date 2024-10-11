@@ -1,38 +1,49 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
 
-<!--        <intentionAction>-->
-<!--            <language>CangJie</language>-->
-<!--            <className>com.huawei.cangjie.ide.intentions.ReplaceExplicitFunctionLiteralParamWithItIntention</className>-->
-<!--            <bundleName>messages.CangJieBundle</bundleName>-->
-<!--            <categoryKey>group.names.cangjie</categoryKey>-->
-<!--        </intentionAction>-->
-        <localInspection implementationClass="com.huawei.cangjie.ide.refactoring.move.changePackage.CangJiePackageDirectoryMismatchInspection"
-                         groupPath="CangJie"
-                         groupBundle="messages.CangJieBundle" groupKey="group.names.cangjie.interop.issues"
-                         enabledByDefault="true"
-                         level="ERROR"
-                         language="CangJie"
-                         key="inspection.package.directory.mismatch.display.name" bundle="messages.CangJieBundle"/>
+        <!--        <intentionAction>-->
+        <!--            <language>CangJie</language>-->
+        <!--            <className>com.huawei.cangjie.ide.intentions.ReplaceExplicitFunctionLiteralParamWithItIntention</className>-->
+        <!--            <bundleName>messages.CangJieBundle</bundleName>-->
+        <!--            <categoryKey>group.names.cangjie</categoryKey>-->
+        <!--        </intentionAction>-->
+        <localInspection
+                implementationClass="com.huawei.cangjie.ide.refactoring.move.changePackage.CangJiePackageDirectoryMismatchInspection"
+                groupPath="CangJie"
+                groupBundle="messages.CangJieBundle" groupKey="group.names.cangjie.interop.issues"
+                enabledByDefault="true"
+                level="ERROR"
+                language="CangJie"
+                key="inspection.package.directory.mismatch.display.name" bundle="messages.CangJieBundle"/>
 
-        <localInspection implementationClass="com.huawei.cangjie.ide.inspections.cdoc.CDocMissingDocumentationInspection"
-                         groupPath="CangJie"
-                         groupBundle="messages.CangJieBundle" groupKey="group.names.other.problems"
-                         enabledByDefault="false"
-                         level="WARNING"
-                         language="CangJie"
-                         runForWholeFile="true"
-                         key="inspection.c.doc.missing.documentation.display.name" bundle="messages.CangJieBundle"/>
+        <intentionAction>
+            <language>CangJie</language>
+            <className>com.huawei.cangjie.ide.intentions.CangJieInsertExplicitTypeArgumentsIntention</className>
+            <bundleName>messages.CangJieBundle</bundleName>
+            <categoryKey>group.names.cangjie</categoryKey>
+        </intentionAction>
 
 
-        <localInspection implementationClass="com.huawei.cangjie.ide.inspections.CangJieRedundantVisibilityModifierInspection"
-                         groupPath="CangJie"
-                         groupBundle="messages.CangJieBundle" groupKey="group.names.redundant.constructs"
-                         enabledByDefault="true"
-                         cleanupTool="true"
-                         level="WARNING"
-                         language="CangJie" editorAttributes="NOT_USED_ELEMENT_ATTRIBUTES"
-                         key="inspection.redundant.visibility.modifier.display.name" bundle="messages.CangJieBundle"/>
+        <localInspection
+                implementationClass="com.huawei.cangjie.ide.inspections.cdoc.CDocMissingDocumentationInspection"
+                groupPath="CangJie"
+                groupBundle="messages.CangJieBundle" groupKey="group.names.other.problems"
+                enabledByDefault="false"
+                level="WARNING"
+                language="CangJie"
+                runForWholeFile="true"
+                key="inspection.c.doc.missing.documentation.display.name" bundle="messages.CangJieBundle"/>
+
+
+        <localInspection
+                implementationClass="com.huawei.cangjie.ide.inspections.CangJieRedundantVisibilityModifierInspection"
+                groupPath="CangJie"
+                groupBundle="messages.CangJieBundle" groupKey="group.names.redundant.constructs"
+                enabledByDefault="true"
+                cleanupTool="true"
+                level="WARNING"
+                language="CangJie" editorAttributes="NOT_USED_ELEMENT_ATTRIBUTES"
+                key="inspection.redundant.visibility.modifier.display.name" bundle="messages.CangJieBundle"/>
 
     </extensions>
 </idea-plugin>

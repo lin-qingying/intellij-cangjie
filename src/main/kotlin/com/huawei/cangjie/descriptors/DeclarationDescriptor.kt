@@ -20,5 +20,7 @@ interface DeclarationDescriptor : Annotated,
 
     fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R?
 
+    val isStatic:Boolean get() = false
+
     fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>)
 }

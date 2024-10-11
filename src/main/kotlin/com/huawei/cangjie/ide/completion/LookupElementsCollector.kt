@@ -3,7 +3,7 @@ package com.huawei.cangjie.ide.completion
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.MemberDescriptor
-import com.huawei.cangjie.ide.intentions.InsertExplicitTypeArgumentsIntention
+import com.huawei.cangjie.ide.intentions.CangJieInsertExplicitTypeArgumentsIntention
 import com.huawei.cangjie.psi.CjCallExpression
 import com.huawei.cangjie.psi.CjDotQualifiedExpression
 import com.huawei.cangjie.psi.psiUtil.collectDescendantsOfType
@@ -137,6 +137,9 @@ class LookupElementsCollector(
 
 }
 
+/**
+ * 声明补全
+ */
 private class DeclarationLookupObjectLookupElementDecorator(
     element: LookupElement,
     private val declarationLookupObject: DescriptorBasedDeclarationLookupObject
@@ -159,7 +162,7 @@ private class InsertExplicitTypeArgumentsLookupElementDecorator(
                 else -> null
             } ?: return@InsertHandler
 
-            InsertExplicitTypeArgumentsIntention.applyTo(callExpr, typeArgs, true)
+            CangJieInsertExplicitTypeArgumentsIntention.applyTo(callExpr, typeArgs, true)
         }
 }
 private fun unwrapIfImportedFromObject(descriptor: CallableDescriptor): CallableDescriptor =

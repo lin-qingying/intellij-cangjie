@@ -241,12 +241,6 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
 
 }
 
-interface BuildSystemCangJieNewProjectWizard : NewProjectWizardMultiStepFactory<CangJieNewProjectWizard.Step> {
-    companion object {
-        var EP_NAME =
-            ExtensionPointName<BuildSystemCangJieNewProjectWizard>("com.intellij.newProjectWizard.CangJie.buildSystem")
-    }
-}
 
 class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
     val project: Project

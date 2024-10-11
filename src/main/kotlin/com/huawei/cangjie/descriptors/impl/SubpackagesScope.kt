@@ -55,6 +55,7 @@ open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, priv
         }
 
         if (!kindFilter.acceptsKinds(DescriptorKindFilter.PACKAGES_MASK)) return result
+        result.clear()
         if (fqName.isRoot && kindFilter.excludes.contains(DescriptorKindExclude.TopLevelPackages)) return listOf()
 
         val subFqNames = moduleDescriptor.getSubPackagesOf(fqName, nameFilter)

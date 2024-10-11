@@ -3,6 +3,8 @@ package com.huawei.cangjie.references
 import com.huawei.cangjie.configurable.services.CangJieLanguageServerServices
 import com.huawei.cangjie.configurable.services.Feature
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
+import com.huawei.cangjie.descriptors.PackageViewDescriptor
+import com.huawei.cangjie.psi.CangJiePsiFacade
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjReferenceExpression
 import com.huawei.cangjie.references.util.DescriptorToSourceUtilsIde
@@ -24,19 +26,20 @@ object CjPolyVariantResolver : ResolveCache.PolyVariantResolver<CjReference> {
         ref: CjReference,
         targetDescriptor: DeclarationDescriptor
     ): Collection<PsiElement> {
-        return DescriptorToSourceUtilsIde.getAllDeclarations(
-            ref.element.project,
-            targetDescriptor,
-            ref.element.resolveScope
-        )
 
-//     return   if (targetDescriptor is PackageViewDescriptor) {
-//            val psiFacade = JavaPsiFacade.getInstance(ref.element.project)
-//            val fqName = targetDescriptor.fqName.asString()
-//            listOfNotNull(psiFacade.findPackage(fqName))
-//        } else {
-//            DescriptorToSourceUtilsIde.getAllDeclarations(ref.element.project, targetDescriptor, ref.element.resolveScope)
-//        }
+
+        return if (targetDescriptor is PackageViewDescriptor) {
+            val psiFacade = CangJiePsiFacade.getInstance(ref.element.project)
+            val fqName = targetDescriptor.fqName
+            listOfNotNull(psiFacade.findPackage(fqName))
+
+        } else {
+            DescriptorToSourceUtilsIde.getAllDeclarations(
+                ref.element.project,
+                targetDescriptor,
+                ref.element.resolveScope
+            )
+        }
     }
 
     private fun resolveToPsiElements(
@@ -75,14 +78,14 @@ object CjPolyVariantResolver : ResolveCache.PolyVariantResolver<CjReference> {
 //            return emptySet()
 //        }
 
-        val bindingContext =  CjReferenceResolutionHelper.getInstance().partialAnalyze(ref.expression)
+        val bindingContext = CjReferenceResolutionHelper.getInstance().partialAnalyze(ref.expression)
         if (bindingContext == BindingContext.EMPTY) return emptySet()
         return resolveToPsiElements(ref, bindingContext, ref.getTargetDescriptors(bindingContext))
     }
 
     override fun resolve(ref: CjReference, incompleteCode: Boolean): Array<ResolveResult> {
 
-        if(!CangJieLanguageServerServices.getInstance().astConfig.isFeatureEnabled(Feature.REFERENCES)){
+        if (!CangJieLanguageServerServices.getInstance().astConfig.isFeatureEnabled(Feature.REFERENCES)) {
             return emptyArray()
         }
 

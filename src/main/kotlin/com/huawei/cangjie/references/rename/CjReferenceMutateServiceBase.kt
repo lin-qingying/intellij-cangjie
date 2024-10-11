@@ -6,12 +6,14 @@ import com.huawei.cangjie.ide.ShortenReferences
 import com.huawei.cangjie.ide.codeinsight.shorten.addDelayedImportRequest
 import com.huawei.cangjie.ide.codeinsight.shorten.addToShorteningWaitSet
 import com.huawei.cangjie.highlighter.unwrapped
+import com.huawei.cangjie.ide.inspections.OperatorToFunctionConverter
 
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.*
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.*
 import com.huawei.cangjie.references.*
+import com.huawei.cangjie.utils.OperatorNameConventions
 import com.huawei.cangjie.utils.isDispatchThread
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
@@ -32,6 +34,19 @@ abstract class CjReferenceMutateServiceBase : CjReferenceMutateService {
             else -> throw IncorrectOperationException()
         }
     }
+//    private fun AbstractCjReference<out CjExpression>.renameImplicitConventionalCall(newName: String): CjExpression {
+//        val (newExpression, newNameElement) = OperatorToFunctionConverter.convert(expression)
+//        if (OperatorNameConventions.INVOKE.asString() == newName && newExpression is CjDotQualifiedExpression) {
+//            replaceWithImplicitInvokeInvocation(newExpression)?.let { return it }
+//        }
+//
+//        newNameElement.mainReference.handleElementRename(newName)
+//        return newExpression
+//    }
+//    private fun CjArrayAccessReference.renameTo(newElementName: String): CjExpression {
+//        return renameImplicitConventionalCall(newElementName)
+//    }
+
     private fun CjSimpleNameReference.renameTo(newElementName: String): CjExpression {
         if (!canRename()) throw IncorrectOperationException()
 

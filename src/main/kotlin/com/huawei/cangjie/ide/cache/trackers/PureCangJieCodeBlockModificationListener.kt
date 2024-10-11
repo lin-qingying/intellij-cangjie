@@ -170,7 +170,7 @@ class PureCangJieCodeBlockModificationListener(val project: Project) : Disposabl
 //                } ?: directParentClassOrObject
 
             when (blockDeclaration) {
-                is CjNamedFunction -> {
+                is CjFunction -> {
                     //                    if (blockDeclaration.visibilityModifierType()?.toVisibility() == Visibilities.PRIVATE) {
                     //                        topClassLikeDeclaration(blockDeclaration)?.let {
                     //                            return BlockModificationScopeElement(it, it)
@@ -187,7 +187,7 @@ class PureCangJieCodeBlockModificationListener(val project: Project) : Disposabl
                                     BlockModificationScopeElement(parentClassOrObject, it)
                                 } else null
                             }
-                    } else if (blockDeclaration.hasDeclaredReturnType()) {
+                    } /*else if (blockDeclaration.hasDeclaredReturnType()) {
                         // case like `fun foo(): String = b<caret>labla`
                         return blockDeclaration.initializer
                             ?.takeIf { it.isAncestor(element) }
@@ -198,7 +198,7 @@ class PureCangJieCodeBlockModificationListener(val project: Project) : Disposabl
                                     BlockModificationScopeElement(parentClassOrObject, it)
                                 } else null
                             }
-                    }
+                    }*/
                 }
 
                 is CjProperty -> {
@@ -288,10 +288,9 @@ class PureCangJieCodeBlockModificationListener(val project: Project) : Disposabl
         data class BlockModificationScopeElement(val blockDeclaration: CjElement, val element: CjElement)
 
         fun isBlockDeclaration(declaration: PsiElement): Boolean {
-            return declaration is CjProperty ||
-                    declaration is CjNamedFunction ||
-                    declaration is CjClassInitializer ||
-                    declaration is CjSecondaryConstructor
+            return declaration is CjPropertyAccessor || declaration is CjVariable ||
+                    declaration is CjFunction ||
+                    declaration is CjClassInitializer
 
         }
     }

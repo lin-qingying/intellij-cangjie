@@ -21,6 +21,7 @@
 
     <dependencies>
         <plugin id="org.toml.lang"/>
+
     </dependencies>
 
     <!--    <depends>com.jetbrains.performancePlugin</depends>-->

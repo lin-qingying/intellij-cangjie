@@ -25,7 +25,8 @@ import com.intellij.codeInsight.intention.LowPriorityAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.TextRange
 
-class InsertExplicitTypeArgumentsIntention : SelfTargetingRangeIntention<CjCallExpression>(
+
+class CangJieInsertExplicitTypeArgumentsIntention : SelfTargetingRangeIntention<CjCallExpression>(
     CjCallExpression::class.java,
     CangJieBundle.lazyMessage("add.explicit.type.arguments")
 ), LowPriorityAction {
@@ -35,7 +36,7 @@ class InsertExplicitTypeArgumentsIntention : SelfTargetingRangeIntention<CjCallE
     override fun applyTo(element: CjCallExpression, editor: Editor?) = applyTo(element)
 
     companion object : CangJieSingleIntentionActionFactory() {
-        override fun createAction(diagnostic: Diagnostic): IntentionAction = InsertExplicitTypeArgumentsIntention()
+        override fun createAction(diagnostic: Diagnostic): IntentionAction = CangJieInsertExplicitTypeArgumentsIntention()
 
         fun isApplicableTo(element: CjCallElement, bindingContext: BindingContext = element.safeAnalyzeNonSourceRootCode(
             BodyResolveMode.PARTIAL)): Boolean {
@@ -47,9 +48,6 @@ class InsertExplicitTypeArgumentsIntention : SelfTargetingRangeIntention<CjCallE
             val valueParameters = resolvedCall.resultingDescriptor.valueParameters
             if (resolvedCall is NewResolvedCallImpl<*> && valueParameters.any { ErrorUtils.containsErrorType(it.type) }) return false
 
-            /** Can't use definitely-non-nullable type as reified type argument, see [DEFINITELY_NON_NULLABLE_AS_REIFIED] */
-//            if (valueParameters.any { it.type is DefinitelyNotNullType && (it.original.type.constructor.declarationDescriptor as? TypeParameterDescriptor)?.isReified == true })
-//                return false
 
             return typeArgs.isNotEmpty() && typeArgs.values.none { ErrorUtils.containsErrorType(it) || it is CapturedType || it is NewCapturedType }
         }

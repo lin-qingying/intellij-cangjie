@@ -17,10 +17,7 @@ public interface FunctionDescriptor extends CallableMemberDescriptor, FunctionSy
     @NotNull
     boolean getIsExtend();
 
-    default   boolean isStatic() {
 
-        return false;
-    }
     @Override
     @NotNull
     DeclarationDescriptor getContainingDeclaration();

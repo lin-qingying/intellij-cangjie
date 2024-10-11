@@ -3,9 +3,12 @@ package com.huawei.cangjie.utils
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.ide.projectStructure.languageVersionSettings
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.getReceiverExpression
+import com.huawei.cangjie.psi.psiUtil.isImportDirectiveExpression
+import com.huawei.cangjie.psi.psiUtil.isPackageDirectiveExpression
 import com.huawei.cangjie.resolve.calls.DslMarkerUtils
 import com.huawei.cangjie.resolve.scopes.DescriptorKindExclude
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
@@ -118,31 +121,31 @@ sealed class CallTypeAndReceiver<TReceiver : CjElement?, out TCallType : CallTyp
         CallTypeAndReceiver<CjExpression?, CallType.PACKAGE_DIRECTIVE>(CallType.PACKAGE_DIRECTIVE, receiver)
 
     class TYPE(receiver: CjExpression?) : CallTypeAndReceiver<CjExpression?, CallType.TYPE>(CallType.TYPE, receiver)
-//    class DELEGATE(receiver: CjExpression?) : CallTypeAndReceiver<CjExpression?, CallType.DELEGATE>(CallType.DELEGATE, receiver)
+    class DELEGATE(receiver: CjExpression?) : CallTypeAndReceiver<CjExpression?, CallType.DELEGATE>(CallType.DELEGATE, receiver)
     class ANNOTATION(receiver: CjExpression?) : CallTypeAndReceiver<CjExpression?, CallType.ANNOTATION>(CallType.ANNOTATION, receiver)
 
     companion object {
         fun detect(expression: CjSimpleNameExpression): CallTypeAndReceiver<*, *> {
             val parent = expression.parent
-//            if (parent is CjCallableReferenceExpression && expression == parent.callableReference) {
-//                return CALLABLE_REFERENCE(parent.receiverExpression, expression.languageVersionSettings)
-//            }
-//
+            if (parent is CjCallableReferenceExpression && expression == parent.callableReference) {
+                return CALLABLE_REFERENCE(parent.receiverExpression, expression.languageVersionSettings)
+            }
+
             val receiverExpression = expression.getReceiverExpression()
-//
+
             if (parent != null) {
-//                if (expression.isImportDirectiveExpression()) {
-//                    return IMPORT_DIRECTIVE(receiverExpression)
-//                }
-//
-//                if (expression.isPackageDirectiveExpression()) {
-//                    return PACKAGE_DIRECTIVE(receiverExpression)
-//                }
+                if (expression.isImportDirectiveExpression()) {
+                    return IMPORT_DIRECTIVE(receiverExpression)
+                }
+
+                if (expression.isPackageDirectiveExpression()) {
+                    return PACKAGE_DIRECTIVE(receiverExpression)
+                }
                 if (parent is CjUserType) {
-//                    val constructorCallee = (parent.parent as? CjTypeReference)?.parent as? CjConstructorCalleeExpression
-//                    if (constructorCallee != null && constructorCallee.parent is CjAnnotationEntry) {
-//                        return ANNOTATION(receiverExpression)
-//                    }
+                    val constructorCallee = (parent.parent as? CjTypeReference)?.parent as? CjConstructorCalleeExpression
+                    if (constructorCallee != null && constructorCallee.parent is CjAnnotationEntry) {
+                        return ANNOTATION(receiverExpression)
+                    }
 
                     return TYPE(receiverExpression)
                 }
@@ -170,9 +173,9 @@ sealed class CallTypeAndReceiver<TReceiver : CjElement?, out TCallType : CallTyp
                         return DEFAULT
                     }
 
-//                    if (receiverExpression is CjSuperExpression) {
-//                        return SUPER_MEMBERS(receiverExpression)
-//                    }
+                    if (receiverExpression is CjSuperExpression) {
+                        return SUPER_MEMBERS(receiverExpression)
+                    }
 
                     return when (parent) {
                         is CjCallExpression -> {

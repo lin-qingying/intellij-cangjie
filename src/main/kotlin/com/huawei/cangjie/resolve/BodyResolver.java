@@ -265,6 +265,11 @@ public class BodyResolver {
                         trace.report(EXTEND_WITH_SUPERCLASS.on(typeReference));
                         addSupertype = false;
                         return;
+                    } else if (supertypeOwner.getKind() == ClassKind.STRUCT &&
+                            !classAppeared   && !DynamicTypesKt.isDynamic(supertype) /* avoid duplicate diagnostics */) {
+                        trace.report(STRUCT_WITH_SUPERCLASS.on(typeReference));
+                        addSupertype = false;
+                        return;
                     }
 
 
@@ -444,6 +449,7 @@ public class BodyResolver {
                 localContext
         );
     }
+
     public void resolveEndSecondaryConstructorBody(
             @NotNull DataFlowInfo outerDataFlowInfo,
             @NotNull BindingTrace trace,
@@ -454,6 +460,7 @@ public class BodyResolver {
     ) {
         resolveConstructorBody(outerDataFlowInfo, trace, constructor, descriptor, declaringScope, localContext);
     }
+
     public void resolveSecondaryConstructorBody(
             @NotNull DataFlowInfo outerDataFlowInfo,
             @NotNull BindingTrace trace,
@@ -718,7 +725,8 @@ public class BodyResolver {
             checkCyclicConstructorDelegationCall(entry.getValue(), visitedConstructors);
         }
     }
-    private void resolveEndSecondaryConstructors(@NotNull BodiesResolveContext c){
+
+    private void resolveEndSecondaryConstructors(@NotNull BodiesResolveContext c) {
         for (Map.Entry<CjEndSecondaryConstructor, ClassConstructorDescriptor> entry : c.getEndSecondaryConstructors().entrySet()) {
             LexicalScope declaringScope = c.getDeclaringScope(entry.getKey());
             assert declaringScope != null : "Declaring scope should be registered before body resolve";
@@ -726,6 +734,7 @@ public class BodyResolver {
         }
 
     }
+
     private void resolveSecondaryConstructors(@NotNull BodiesResolveContext c) {
         for (Map.Entry<CjSecondaryConstructor, ClassConstructorDescriptor> entry : c.getSecondaryConstructors().entrySet()) {
             LexicalScope declaringScope = c.getDeclaringScope(entry.getKey());

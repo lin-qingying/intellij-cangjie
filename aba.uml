@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>com.huawei.cangjie.ide.hierarchy.aba</OriginalElement>
+  <nodes>
+    <node x="-151.50000000000003" y="-61.5">com.huawei.cangjie.ide.hierarchy.aba</node>
+  </nodes>
+  <notes />
+  <edges />
+  <settings layout="分层" zoom="1.5" showDependencies="false" x="194.5" y="78.5" />
+  <SelectedNodes>
+    <node>com.huawei.cangjie.ide.hierarchy.aba</node>
+  </SelectedNodes>
+  <Categories>
+    <Category>内部类</Category>
+    <Category>属性</Category>
+    <Category>方法</Category>
+    <Category>构造函数</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

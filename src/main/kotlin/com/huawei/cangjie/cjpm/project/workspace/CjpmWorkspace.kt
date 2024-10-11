@@ -61,7 +61,7 @@ interface CjpmWorkspace {
 //        val features: Set<PackageFeature>
 
         val workspace: CjpmWorkspace
-
+        val manifestPath: VirtualFile?
 
         val moduleData: CjpmProjectInfo?
         val version: String
@@ -97,7 +97,9 @@ class PackageImpl(
     override fun toString() = "Package(name='$name', contentRootUrl='$contentRootUrl', version='$version')"
 
     override val contentRoot: VirtualFile? by CachedVirtualFile(contentRootUrl)
-    val manifestPath: Path? = contentRoot?.pathAsPath?.resolve(CjpmConstants.MANIFEST_FILE)
+    override val manifestPath: VirtualFile? = contentRoot?.pathAsPath?.resolve(CjpmConstants.MANIFEST_FILE)?.let {
+        LocalFileSystem.getInstance().findFileByNioFile(it)
+    }
 
 //TODO 为每个包的module.json编制数据 时间占用过于庞大，目前用不到，所以就先不读了
 //    init {

@@ -192,28 +192,30 @@ class ReferenceVariantsHelper(
                         nameFilter
                     )
                 )
+            }else{
+
+                val explicitReceiverTypes = if (useReceiverType != null) {
+                    listOf(useReceiverType)
+                } else {
+                    callTypeAndReceiver.receiverTypes(
+                        bindingContext,
+                        contextElement,
+                        moduleDescriptor,
+                        resolutionFacade,
+                        stableSmartCastsOnly = false
+                    )!!
+                }
+
+                descriptors.processAll(
+                    implicitReceiverTypes,
+                    explicitReceiverTypes,
+                    resolutionScope,
+                    callType,
+                    kindFilter,
+                    nameFilter
+                )
             }
 
-            val explicitReceiverTypes = if (useReceiverType != null) {
-                listOf(useReceiverType)
-            } else {
-                callTypeAndReceiver.receiverTypes(
-                    bindingContext,
-                    contextElement,
-                    moduleDescriptor,
-                    resolutionFacade,
-                    stableSmartCastsOnly = false
-                )!!
-            }
-
-            descriptors.processAll(
-                implicitReceiverTypes,
-                explicitReceiverTypes,
-                resolutionScope,
-                callType,
-                kindFilter,
-                nameFilter
-            )
         } else {
             assert(useReceiverType == null) { "'useReceiverType' parameter is not supported for implicit receiver" }
 
@@ -318,9 +320,69 @@ class ReferenceVariantsHelper(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
     ) {
-//        addNonExtensionMembers(receiverTypes, kindFilter, nameFilter, constructorFilter = { it.isInner })
+        addNonExtensionMembers(receiverTypes, kindFilter, nameFilter, constructorFilter = { false })
         addMemberExtensions(implicitReceiverTypes, receiverTypes, callType, kindFilter, nameFilter)
         addScopeAndSyntheticExtensions(resolutionScope, receiverTypes, callType, kindFilter, nameFilter)
+    }
+
+
+    private fun MutableSet<DeclarationDescriptor>.addNonExtensionCallablesAndConstructors(
+        scope: HierarchicalScope,
+        kindFilter: DescriptorKindFilter,
+        nameFilter: (Name) -> Boolean,
+        constructorFilter: (ClassDescriptor) -> Boolean,
+        classesOnly: Boolean
+    ) {
+        var filterToUse =
+            DescriptorKindFilter(kindFilter.kindMask and DescriptorKindFilter.CALLABLES.kindMask).exclude(DescriptorKindExclude.Extensions)
+
+        // should process classes if we need constructors
+        if (filterToUse.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK)) {
+            filterToUse = filterToUse.withKinds(DescriptorKindFilter.NON_SINGLETON_CLASSIFIERS_MASK)
+        }
+
+        for (descriptor in scope.collectDescriptorsFiltered(filterToUse, nameFilter, changeNamesForAliased = true)) {
+            if (descriptor is ClassDescriptor) {
+                if (descriptor.modality == Modality.ABSTRACT || descriptor.modality == Modality.SEALED) continue
+                if (!constructorFilter(descriptor)) continue
+                descriptor.constructors.filterTo(this) { kindFilter.accepts(it) }
+            } else if (!classesOnly && kindFilter.accepts(descriptor)) {
+                this.add(descriptor)
+            }
+        }
+    }
+    private fun MutableSet<DeclarationDescriptor>.addNonExtensionMembers(
+        memberScope: MemberScope,
+        typeConstructor: TypeConstructor,
+        kindFilter: DescriptorKindFilter,
+        nameFilter: (Name) -> Boolean,
+        constructorFilter: (ClassDescriptor) -> Boolean
+    ) {
+        addNonExtensionCallablesAndConstructors(
+            memberScope.memberScopeAsImportingScope(),
+            kindFilter, nameFilter, constructorFilter,
+            false
+        )
+        typeConstructor.supertypes.forEach {
+            addNonExtensionCallablesAndConstructors(
+                it.memberScope.memberScopeAsImportingScope(),
+                kindFilter, nameFilter, constructorFilter,
+                true
+            )
+        }
+    }
+    private fun MutableSet<DeclarationDescriptor>.addNonExtensionMembers(
+        receiverTypes: Collection<CangJieType>,
+        kindFilter: DescriptorKindFilter,
+        nameFilter: (Name) -> Boolean,
+        constructorFilter: (ClassDescriptor) -> Boolean
+    ) {
+        for (receiverType in receiverTypes) {
+            addNonExtensionMembers(receiverType.instanceMemberScope, receiverType.constructor, kindFilter, nameFilter, constructorFilter)
+//            receiverType.constructor.declarationDescriptor.safeAs<ClassDescriptor>()?.companionObjectDescriptor?.let {
+//                addNonExtensionMembers(it.unsubstitutedMemberScope, it.typeConstructor, kindFilter, nameFilter, constructorFilter)
+//            }
+        }
     }
     private fun MutableSet<DeclarationDescriptor>.addMemberExtensions(
         dispatchReceiverTypes: Collection<CangJieType>,

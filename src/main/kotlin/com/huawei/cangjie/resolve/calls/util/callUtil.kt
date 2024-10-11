@@ -312,6 +312,7 @@ fun CallTypeAndReceiver<*, *>.receiverTypesWithIndex(
         is CallTypeAndReceiver.SAFE -> receiverExpression = receiver
 
         is CallTypeAndReceiver.OPERATOR -> receiverExpression = receiver
+        is CallTypeAndReceiver.DELEGATE -> receiverExpression = receiver
 
         is CallTypeAndReceiver.SUPER_MEMBERS -> {
             val qualifier = receiver.superTypeQualifier

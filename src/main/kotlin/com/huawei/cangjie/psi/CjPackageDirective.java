@@ -95,6 +95,25 @@ public class CjPackageDirective extends CjDeclarationStub<CangJiePackageDirectiv
         return nameIdentifier == null ? "" : nameIdentifier.getText();
     }
 
+    @Override
+    public void navigate(boolean requestFocus) {
+        super.navigate(requestFocus);
+    }
+
+    @Override
+    public boolean canNavigateToSource() {
+        return super.canNavigateToSource();
+    }
+
+    @Override
+    public boolean canNavigate() {
+        return super.canNavigate();
+    }
+
+    @Override
+    public @NotNull PsiElement getNavigationElement() {
+        return super.getNavigationElement();
+    }
 
     @Nullable
     public PsiElement getModifier(@NotNull CjKeywordToken tokenType) {

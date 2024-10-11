@@ -27,7 +27,31 @@ import java.util.*
 
 fun CjExpression.lastBlockStatementOrThis(): CjExpression =
     (this as? CjBlockExpression)?.statements?.lastOrNull() ?: this
+fun CjFunctionLiteral.findLabelAndCall(): Pair<Name?, CjCallExpression?> {
+    val literalParent = (this.parent as CjLambdaExpression).parent
 
+    fun CjValueArgument.callExpression(): CjCallExpression? {
+        val parent = parent
+        return (if (parent is CjValueArgumentList) parent else this).parent as? CjCallExpression
+    }
+
+    when (literalParent) {
+//        is CjLabeledExpression -> {
+//            val callExpression = (literalParent.parent as? CjValueArgument)?.callExpression()
+//            return Pair(literalParent.getLabelNameAsName(), callExpression)
+//        }
+
+        is CjValueArgument -> {
+            val callExpression = literalParent.callExpression()
+            val label = (callExpression?.calleeExpression as? CjSimpleNameExpression)?.getReferencedNameAsName()
+            return Pair(label, callExpression)
+        }
+
+        else -> {
+            return Pair(null, null)
+        }
+    }
+}
 // Annotations on labeled expression lies on it's base expression
 fun CjExpression.getAnnotationEntries(): List<CjAnnotationEntry> {
     return when (val parent = parent) {
@@ -50,6 +74,10 @@ fun CjExpression.getOutermostParenthesizerOrThis(): CjExpression {
 fun CjTypeStatement.isAbstract(): Boolean = this is CjInterface || this is CjClass && hasModifier(CjTokens.ABSTRACT_KEYWORD)
 
 fun CjParameter.isPropertyParameter() = ownerFunction is CjPrimaryConstructor && hasLetOrVar()
+fun CjSimpleNameExpression.isPackageDirectiveExpression(): Boolean {
+    val parent = parent
+    return parent is CjPackageDirective || parent.parent is CjPackageDirective
+}
 
 fun CjSimpleNameExpression.isImportDirectiveExpression(): Boolean {
     val parent = parent

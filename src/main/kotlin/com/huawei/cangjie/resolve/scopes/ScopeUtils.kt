@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.scopes
 
 import com.huawei.cangjie.analyzer.CangJieModuleInfo
+import com.huawei.cangjie.analyzer.ModuleSourceInfo
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.ide.FrontendInternals
 import com.huawei.cangjie.ide.base.projectStructure.CangJieSourceFilterScope
@@ -624,7 +625,7 @@ fun getResolveScope(file: CjFile): GlobalSearchScope {
     }
 
     return when (file.moduleInfo) {
-        is CangJieModuleInfo -> {
+        is ModuleSourceInfo -> {
             val projectScope = CangJieSourceFilterScope.projectFiles(file.resolveScope, file.project)
             CangJieResolveScopeEnlarger.enlargeScope(projectScope, file)
         }

@@ -26,7 +26,6 @@ interface VariableDescriptor : ValueDescriptor ,MemberDescriptor/*,
     //    FieldDescriptor getDelegateField();
     override fun substitute(substitutor: TypeSubstitutor): VariableDescriptor?
     val isConst: Boolean
-    val isStatic : Boolean get() = false
 
     //    bool isActual();
     //

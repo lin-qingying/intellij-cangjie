@@ -811,6 +811,9 @@ open class CangJieIdeDescriptorRenderer(
                     appendMemberModifiers(function)
                 }
 
+                if (function.isStatic) {
+                    renderKeyword("static")
+                }
                 appendOverride(function)
 
 //                if (includeAdditionalModifiers) {

@@ -4,7 +4,9 @@ package com.huawei.cangjie.descriptors.impl;
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.name.Name;
+import com.huawei.cangjie.resolve.scopes.InstanceMemberScope;
 import com.huawei.cangjie.resolve.scopes.MemberScope;
+import com.huawei.cangjie.resolve.scopes.StaticMemberScope;
 import com.huawei.cangjie.storage.StorageManager;
 import com.huawei.cangjie.types.*;
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner;
@@ -76,8 +78,12 @@ public class ClassDescriptorImpl extends ClassDescriptorBase {
 
     @Override
     public @NotNull MemberScope getStaticScope() {
-        return MemberScope.Empty.INSTANCE;
+        return new StaticMemberScope(unsubstitutedMemberScope);
+    }
 
+    @Override
+    public @NotNull MemberScope getInstanceScope() {
+        return new InstanceMemberScope(unsubstitutedMemberScope);
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.huawei.cangjie.psi.CjReferenceExpression
 import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.utils.slicedMap.ReadOnlySlice
 import com.huawei.cangjie.utils.slicedMap.Slices
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.impl.source.resolve.ResolveCache
 

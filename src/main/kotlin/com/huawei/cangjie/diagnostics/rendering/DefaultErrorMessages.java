@@ -117,6 +117,7 @@ public class DefaultErrorMessages {
         MAP.put(SUPERTYPE_NOT_A_CLASS_OR_INTERFACE, "Only classes and interfaces may serve as supertypes");
         MAP.put(CLASS_IN_SUPERTYPE_FOR_ENUM, "Enum  cannot inherit from classes");
         MAP.put(INTERFACE_WITH_SUPERCLASS, "An interface can only inherit from a interface");
+        MAP.put(STRUCT_WITH_SUPERCLASS, "An struct can only inherit from a interface");
         MAP.put(EXTEND_WITH_SUPERCLASS, "An extend can only inherit from a interface");
         MAP.put(CYCLIC_INHERITANCE_HIERARCHY, "There's a cycle in the inheritance hierarchy for this type");
         MAP.put(OBJECT_IN_SUPERTYPE, "Cannot inherit from a struct");

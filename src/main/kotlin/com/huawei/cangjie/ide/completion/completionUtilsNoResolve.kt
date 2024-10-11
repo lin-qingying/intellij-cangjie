@@ -2,6 +2,7 @@ package com.huawei.cangjie.ide.completion
 
 import com.huawei.cangjie.ide.completion.back.or
 import com.huawei.cangjie.ide.completion.back.singleCharPattern
+import com.huawei.cangjie.ide.completion.handlers.WithTailInsertHandler
 import com.huawei.cangjie.ide.completion.keywords.KeywordLookupObject
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
@@ -19,6 +20,20 @@ fun cangjieIdentifierStartPattern(): ElementPattern<Char> =
 
 fun cangjieIdentifierPartPattern(): ElementPattern<Char> =
     StandardPatterns.character().javaIdentifierPart().andNot(singleCharPattern('$')) or singleCharPattern('@')
+
+fun createKeywordElementWithSpace(
+    keyword: String,
+    tail: String = "",
+    addSpaceAfter: Boolean = false,
+    lookupObject: KeywordLookupObject = KeywordLookupObject()
+): LookupElement {
+    val element = createKeywordElement(keyword, tail, lookupObject)
+    return if (addSpaceAfter) {
+        element.withInsertHandler(WithTailInsertHandler.SPACE.asPostInsertHandler)
+    } else {
+        element
+    }
+}
 
 fun isAtFunctionLiteralStart(position: PsiElement): Boolean {
     val lBrace = PsiTreeUtil.prevCodeLeaf(position)

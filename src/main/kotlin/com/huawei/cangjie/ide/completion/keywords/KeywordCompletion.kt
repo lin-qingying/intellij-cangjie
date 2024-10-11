@@ -111,8 +111,8 @@ class KeywordCompletion(private val languageVersionSettingProvider: LanguageVers
             CATCH_KEYWORD to "func foo() { try {} catch (caret)",
             FINALLY_KEYWORD to "func foo() { try {\n}\nfinally{\ncaret\n}",
             DO_KEYWORD to "func foo() { do {\ncaret\n}",
-            INIT_KEYWORD to "class C { init {\ncaret\n}",
-            INIT_KEYWORD to "class C { init(caret)",
+
+            INIT_KEYWORD to "class C { init(caret){}",
 
             )
 
@@ -343,7 +343,7 @@ class KeywordCompletion(private val languageVersionSettingProvider: LanguageVers
                 is CjBlockExpression -> {
 
 
-                    var prefixText = "fun foo() { "
+                    var prefixText = "func foo() { "
                     if (prevParent is CjExpression) {
                         // check that we are right after a try-expression without finally-block or after if-expression without else
                         val prevLeaf =
@@ -400,14 +400,14 @@ class KeywordCompletion(private val languageVersionSettingProvider: LanguageVers
                 is CjDeclarationWithInitializer -> {
                     val initializer = parent.initializer
                     if (prevParent == initializer) {
-                        return buildFilterWithContext("val v = ", initializer, position)
+                        return buildFilterWithContext("let v = ", initializer, position)
                     }
                 }
 
                 is CjParameter -> {
                     val default = parent.defaultValue
                     if (prevParent == default) {
-                        return buildFilterWithContext("val v = ", default, position)
+                        return buildFilterWithContext("let v = ", default, position)
                     }
                 }
 

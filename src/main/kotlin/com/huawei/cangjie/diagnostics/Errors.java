@@ -342,6 +342,8 @@ public interface Errors {
     DiagnosticFactory0<CjTypeReference> ENUM_IN_SUPERTYPE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<PsiElement> CLASS_IN_SUPERTYPE_FOR_ENUM = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<PsiElement> INTERFACE_WITH_SUPERCLASS = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<PsiElement> STRUCT_WITH_SUPERCLASS = DiagnosticFactory0.create(ERROR);
+
     DiagnosticFactory0<PsiElement> EXTEND_WITH_SUPERCLASS = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<CjTypeReference, CangJieType> FINAL_SUPERTYPE = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory0<CjTypeReference> EXTEND_CANNOT_INTERFACE = DiagnosticFactory0.create(ERROR);

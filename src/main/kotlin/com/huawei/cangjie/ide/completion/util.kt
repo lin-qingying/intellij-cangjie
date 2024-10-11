@@ -1,5 +1,6 @@
 package com.huawei.cangjie.ide.completion
 
+import com.huawei.cangjie.ide.intentions.CangJieInsertExplicitTypeArgumentsIntention
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.endOffset
 import com.huawei.cangjie.psi.psiUtil.getQualifiedExpressionForSelector
@@ -55,28 +56,28 @@ private fun addParamTypes(position: PsiElement): PsiElement {
     }
 
     fun applyTypeArguments(callAndDiff: CallAndDiff, bindingContext: BindingContext): Pair<CjTypeArgumentList, PsiElement>? {
-//        val (callExpression, dotExprWithoutCaret, dotExprWithCaret) = callAndDiff
-//
-//        // CjCallExpression [call()]
-//        InsertExplicitTypeArgumentsIntention.applyTo(callExpression, false) // affects dotExprWithoutCaret as a parent
-//        // CjCallExpression [call<TypeA, TypeB>()]
-//
-//        val dotExprWithoutCaretCopy = dotExprWithoutCaret.copy() as CjExpression
-//
-//        // Now we're restoring original smth.call().IntellijIdeaRulezzz on its place and
-//        // replace call() with call<TypeA, TypeB>().
-//
-//        // smth.call() -> smth.call().IntellijIdeaRulezzz
-//        val originalDotExpr = dotExprWithoutCaret.replace(dotExprWithCaret) as CjQualifiedExpression
-//        val originalNestedDotExpr = originalDotExpr.receiverExpression // smth.call()
-//        originalNestedDotExpr.replace(dotExprWithoutCaretCopy) // smth.call() -> smth.call<TypeA, TYpeB>
-//
-//        // IntellijIdeaRulezzz as before
-//        val newPosition = (originalDotExpr.selectorExpression as? CjNameReferenceExpression)?.getReferencedNameElement() ?: return null
-//        val typeArguments = InsertExplicitTypeArgumentsIntention.createTypeArguments(callExpression, bindingContext) ?: return null
-//
-//        return typeArguments to newPosition
-        return null
+        val (callExpression, dotExprWithoutCaret, dotExprWithCaret) = callAndDiff
+
+        // CjCallExpression [call()]
+        CangJieInsertExplicitTypeArgumentsIntention.applyTo(callExpression, false) // affects dotExprWithoutCaret as a parent
+        // CjCallExpression [call<TypeA, TypeB>()]
+
+        val dotExprWithoutCaretCopy = dotExprWithoutCaret.copy() as CjExpression
+
+        // Now we're restoring original smth.call().IntellijIdeaRulezzz on its place and
+        // replace call() with call<TypeA, TypeB>().
+
+        // smth.call() -> smth.call().IntellijIdeaRulezzz
+        val originalDotExpr = dotExprWithoutCaret.replace(dotExprWithCaret) as CjQualifiedExpression
+        val originalNestedDotExpr = originalDotExpr.receiverExpression // smth.call()
+        originalNestedDotExpr.replace(dotExprWithoutCaretCopy) // smth.call() -> smth.call<TypeA, TYpeB>
+
+        // IntellijIdeaRulezzz as before
+        val newPosition = (originalDotExpr.selectorExpression as? CjNameReferenceExpression)?.getReferencedNameElement() ?: return null
+        val typeArguments = CangJieInsertExplicitTypeArgumentsIntention.createTypeArguments(callExpression, bindingContext) ?: return null
+
+        return typeArguments to newPosition
+
     }
 
     val fileCopy = position.containingFile.copy() as CjFile

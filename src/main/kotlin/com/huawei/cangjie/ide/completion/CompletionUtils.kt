@@ -1,5 +1,6 @@
 package com.huawei.cangjie.ide.completion
 
+import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.builtins.isFunctionType
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.icon.CangJieIcons
@@ -21,6 +22,8 @@ import com.huawei.cangjie.resolve.ResolutionFacade
 import com.huawei.cangjie.resolve.scopes.getResolutionScope
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.isError
+import com.huawei.cangjie.types.util.TypeNullability
+import com.huawei.cangjie.types.util.nullability
 import com.huawei.cangjie.utils.fqname.ImportableFqNameClassifier
 import com.huawei.cangjie.utils.getImplicitReceiversWithInstanceToExpression
 import com.huawei.cangjie.utils.safeAs
@@ -34,8 +37,12 @@ import com.intellij.codeInsight.lookup.LookupElementDecorator
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiDocumentManager
+
 val KEEP_OLD_ARGUMENT_LIST_ON_TAB_KEY = Key<Unit>("KEEP_OLD_ARGUMENT_LIST_ON_TAB_KEY")
-class ThisItemLookupObject(val receiverParameter: ReceiverParameterDescriptor, val labelName: Name?) : KeywordLookupObject()
+
+class ThisItemLookupObject(val receiverParameter: ReceiverParameterDescriptor, val labelName: Name?) :
+    KeywordLookupObject()
+
 fun thisExpressionItems(
     bindingContext: BindingContext,
     position: CjExpression,
@@ -58,8 +65,10 @@ fun thisExpressionItems(
     return result
 }
 
-fun ThisItemLookupObject.createLookupElement() = createKeywordElement("this", labelName.labelNameToTail(), lookupObject = this)
-    .withTypeText(BasicLookupElementFactory.SHORT_NAMES_RENDERER.renderType(receiverParameter.type))
+fun ThisItemLookupObject.createLookupElement() =
+    createKeywordElement("this", labelName.labelNameToTail(), lookupObject = this)
+        .withTypeText(BasicLookupElementFactory.SHORT_NAMES_RENDERER.renderType(receiverParameter.type))
+
 fun Name?.labelNameToTail(): String = if (this != null) "@" + render() else ""
 
 fun OffsetMap.tryGetOffset(key: OffsetKey): Int? {
@@ -70,6 +79,7 @@ fun OffsetMap.tryGetOffset(key: OffsetKey): Int? {
         return null
     }
 }
+
 val STATISTICS_INFO_CONTEXT_KEY = Key<String>("STATISTICS_INFO_CONTEXT_KEY")
 
 val DeclarationDescriptor.isArtificialImportAliasedDescriptor: Boolean
@@ -130,68 +140,65 @@ fun shortenReferences(
     else
         shortenReferences.process(file, startOffset, endOffset)
 }
+
 private fun CjDeclarationWithBody.returnType(bindingContext: BindingContext): CangJieType? {
     val callable = bindingContext[BindingContext.DECLARATION_TO_DESCRIPTOR, this] as? CallableDescriptor ?: return null
     return callable.returnType
 }
+
 /**
  * Implementation in K2: [org.jetbrains.kotlin.idea.completion.contributors.keywords.ReturnKeywordHandler]
  */
 fun returnExpressionItems(bindingContext: BindingContext, position: CjElement): Collection<LookupElement> {
     val result = mutableListOf<LookupElement>()
 
-//    for (parent in position.parentsWithSelf.filterIsInstance<CjDeclarationWithBody>()) {
-//        val returnType = parent.returnType(bindingContext)
-//        val isUnit = returnType == null || CangJieBuiltIns.isUnit(returnType)
-//        if (parent is CjFunctionLiteral) {
-//            val (label, call) = parent.findLabelAndCall()
-//            if (label != null) {
-//                result.add(createKeywordElementWithSpace("return", tail = label.labelNameToTail(), addSpaceAfter = !isUnit))
-//            }
-//
-//            // check if the current function literal is inlined and stop processing outer declarations if it's not
-//            val callee = call?.calleeExpression as? CjReferenceExpression ?: break // not inlined
-//            if (!InlineUtil.isInline(bindingContext[BindingContext.REFERENCE_TARGET, callee])) break // not inlined
-//        } else {
-//            if (parent.hasBlockBody()) {
-//                val blockBodyReturns = mutableListOf<LookupElement>()
-//                blockBodyReturns.add(createKeywordElementWithSpace("return", addSpaceAfter = !isUnit))
-//
-//                if (returnType != null) {
-//                    if (returnType.nullability() == TypeNullability.NULLABLE) {
-//                        blockBodyReturns.add(createKeywordElement("return None"))
-//                    }
-//
-//                    fun emptyListShouldBeSuggested(): Boolean = CangJieBuiltIns.isCollectionOrNullableCollection(returnType)
-//                            || CangJieBuiltIns.isListOrNullableList(returnType)
-//                            || CangJieBuiltIns.isIterableOrNullableIterable(returnType)
-//
-//                    if (CangJieBuiltIns.isBooleanOrNullableBoolean(returnType)) {
-//                        blockBodyReturns.add(createKeywordElement("return true"))
-//                        blockBodyReturns.add(createKeywordElement("return false"))
-//                    } else if (emptyListShouldBeSuggested()) {
+    for (parent in position.parentsWithSelf.filterIsInstance<CjDeclarationWithBody>()) {
+        val returnType = parent.returnType(bindingContext)
+        val isUnit = returnType == null || CangJieBuiltIns.isUnit(returnType)
+
+        if (parent.hasBlockBody()) {
+            val blockBodyReturns = mutableListOf<LookupElement>()
+            blockBodyReturns.add(createKeywordElementWithSpace("return", addSpaceAfter = !isUnit))
+
+            if (returnType != null) {
+                if (returnType.nullability() == TypeNullability.NULLABLE) {
+                    blockBodyReturns.add(createKeywordElement("return None"))
+                }
+
+
+                if (CangJieBuiltIns.isBooleanOrNullableBoolean(returnType)) {
+                    blockBodyReturns.add(createKeywordElement("return true"))
+                    blockBodyReturns.add(createKeywordElement("return false"))
+                }
+                //                    else if (emptyListShouldBeSuggested()) {
 //                        blockBodyReturns.add(createKeywordElement("return", tail = " emptyList()"))
 //                    } else if (CangJieBuiltIns.isSetOrNullableSet(returnType)) {
 //                        blockBodyReturns.add(createKeywordElement("return", tail = " emptySet()"))
 //                    }
-//                }
-//
-//                if (isLikelyInPositionForReturn(position, parent, isUnit)) {
-//                    blockBodyReturns.forEach { it.keywordProbability = KeywordProbability.HIGH }
-//                }
-//
-//                result.addAll(blockBodyReturns)
+//                fun emptyListShouldBeSuggested(): Boolean = CangJieBuiltIns.isCollectionOrNullableCollection(returnType)
+//                        || CangJieBuiltIns.isListOrNullableList(returnType)
+//                        || CangJieBuiltIns.isIterableOrNullableIterable(returnType)
+
+            }
+
+//            if (isLikelyInPositionForReturn(position, parent, isUnit)) {
+//                blockBodyReturns.forEach { it.keywordProbability = KeywordProbability.HIGH }
 //            }
-//            break
-//        }
-//    }
+
+            result.addAll(blockBodyReturns)
+        }
+        break
+
+    }
 
     return result
 }
+
 fun LookupElement.assignPriority(priority: ItemPriority): LookupElement {
     this.priority = priority
     return this
 }
+
 private val CangJieType.fqType: String get() = IdeDescriptorRenderers.FQ_NAMES_IN_TYPES_WITH_NORMALIZER.renderType(this)
 
 private open class BaseTypeLookupElement(type: CangJieType, baseLookupElement: LookupElement) :
@@ -217,7 +224,8 @@ fun BasicLookupElementFactory.createLookupElementForType(type: CangJieType): Loo
         BaseTypeLookupElement(type, baseLookupElement)
     } else {
         val classifier = type.constructor.declarationDescriptor ?: return null
-        val baseLookupElement = createLookupElement(classifier, qualifyNestedClasses = true, includeClassTypeArguments = false)
+        val baseLookupElement =
+            createLookupElement(classifier, qualifyNestedClasses = true, includeClassTypeArguments = false)
 
         // if type is simply classifier without anything else, use classifier's lookup element to avoid duplicates (works after "as" in basic completion)
         if (type.fqType == IdeDescriptorRenderers.FQ_NAMES_IN_TYPES_WITH_NORMALIZER.renderClassifierName(classifier))
@@ -233,10 +241,13 @@ fun BasicLookupElementFactory.createLookupElementForType(type: CangJieType): Loo
         }
     }
 }
-fun LookupElement.withReceiverCast(): LookupElement = LookupElementDecorator.withDelegateInsertHandler(this) { context, element ->
-    element.handleInsert(context)
-    CastReceiverInsertHandler.postHandleInsert(context, element)
-}
+
+fun LookupElement.withReceiverCast(): LookupElement =
+    LookupElementDecorator.withDelegateInsertHandler(this) { context, element ->
+        element.handleInsert(context)
+        CastReceiverInsertHandler.postHandleInsert(context, element)
+    }
+
 infix fun <T> ((T) -> Boolean).or(otherFilter: (T) -> Boolean): (T) -> Boolean = { this(it) || otherFilter(it) }
 
 fun ImportableFqNameClassifier.isImportableDescriptorImported(descriptor: DeclarationDescriptor): Boolean {
@@ -244,6 +255,7 @@ fun ImportableFqNameClassifier.isImportableDescriptorImported(descriptor: Declar
     return classification != ImportableFqNameClassifier.Classification.notImported
             && classification != ImportableFqNameClassifier.Classification.siblingImported
 }
+
 fun LookupElement.decorateAsStaticMember(
     memberDescriptor: DeclarationDescriptor,
     classNameAsLookupString: Boolean
@@ -254,9 +266,14 @@ fun LookupElement.decorateAsStaticMember(
     val qualifierPresentation = container.name.asString()
 
     return object : LookupElementDecorator<LookupElement>(this) {
-        private val descriptorIsCallableExtension = (memberDescriptor as? CallableDescriptor)?.extensionReceiverParameter != null
+        private val descriptorIsCallableExtension =
+            (memberDescriptor as? CallableDescriptor)?.extensionReceiverParameter != null
+
         override fun getAllLookupStrings(): Set<String> {
-            return if (classNameAsLookupString) setOf(delegate.lookupString, qualifierPresentation) else super.getAllLookupStrings()
+            return if (classNameAsLookupString) setOf(
+                delegate.lookupString,
+                qualifierPresentation
+            ) else super.getAllLookupStrings()
         }
 
         override fun renderElement(presentation: LookupElementPresentation) {
@@ -298,10 +315,12 @@ fun LookupElement.decorateAsStaticMember(
         }
     }
 }
+
 fun LookupElement.keepOldArgumentListOnTab(): LookupElement {
     putUserData(KEEP_OLD_ARGUMENT_LIST_ON_TAB_KEY, Unit)
     return this
 }
+
 var LookupElement.acceptOpeningBrace: Boolean by NotNullableUserDataProperty(
     Key("CANGJIE_ACCEPT_OPENING_BRACE"),
     defaultValue = false,

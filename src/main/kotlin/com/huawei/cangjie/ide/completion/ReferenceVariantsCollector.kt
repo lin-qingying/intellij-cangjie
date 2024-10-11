@@ -56,7 +56,7 @@ class ReferenceVariantsCollector(
     )
 
     fun collectingFinished() {
-        assert(!isCollectingFinished)
+        assert(!isCollectingFinished){ "collectingFinished() should be called only once"  }
         isCollectingFinished = true
     }
     fun collectReferenceVariants(descriptorKindFilter: DescriptorKindFilter, consumer: (ReferenceVariants) -> Unit) {

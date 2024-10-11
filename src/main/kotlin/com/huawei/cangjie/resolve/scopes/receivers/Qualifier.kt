@@ -11,6 +11,7 @@ import com.huawei.cangjie.resolve.descriptorUtil.classValueType
 import com.huawei.cangjie.resolve.scopes.ChainedMemberScope
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
 import com.huawei.cangjie.resolve.scopes.MemberScope
+import com.huawei.cangjie.resolve.scopes.StaticMemberScope
 import com.huawei.cangjie.resolve.source.MemberScopeImpl
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.utils.Printer
@@ -45,10 +46,12 @@ class ClassQualifier(
     override val staticScope: MemberScope
         get() =
             if (descriptor.kind == ClassKind.ENUM_ENTRY) descriptor.staticScope
-            else ChainedMemberScope.create(
-                "Static scope for ${descriptor.name} as class or object",
-                descriptor.staticScope,
-                descriptor.unsubstitutedInnerClassesScope
+            else StaticMemberScope(
+                ChainedMemberScope.create(
+                    "Static scope for ${descriptor.name} as class or object",
+                    descriptor.staticScope,
+                    descriptor.unsubstitutedInnerClassesScope
+                )
             )
 
 

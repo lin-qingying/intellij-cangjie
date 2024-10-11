@@ -209,9 +209,6 @@ val ClassifierDescriptorWithTypeParameters.kind: ClassKind?
     }
 
 
-
-
-
 fun DescriptorVisibility.toKeywordToken(): CjModifierKeywordToken = when (val normalized = normalize()) {
     DescriptorVisibilities.PUBLIC -> CjTokens.PUBLIC_KEYWORD
     DescriptorVisibilities.PROTECTED -> CjTokens.PROTECTED_KEYWORD
@@ -224,6 +221,7 @@ fun DescriptorVisibility.toKeywordToken(): CjModifierKeywordToken = when (val no
         }
     }
 }
+
 object DescriptorUtils {
     fun getFqNameFromTopLevelClass(descriptor: DeclarationDescriptor): FqName {
         val containingDeclaration =
@@ -233,6 +231,22 @@ object DescriptorUtils {
             return FqName.topLevel(name)
         }
         return getFqNameFromTopLevelClass(containingDeclaration).child(name)
+    }
+
+    fun <D : CallableMemberDescriptor?> getAllOverriddenDeclarations(memberDescriptor: D): Set<D> {
+        val result: MutableSet<D> = HashSet()
+        for (overriddenDeclaration in memberDescriptor?.getOverriddenDescriptors() ?: emptyList()) {
+            val kind: CallableMemberDescriptor.Kind = overriddenDeclaration.getKind()
+            if (kind == CallableMemberDescriptor.Kind.DECLARATION) {
+                result.add(overriddenDeclaration as D)
+            } else if (kind == CallableMemberDescriptor.Kind.DELEGATION || kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE || kind == CallableMemberDescriptor.Kind.SYNTHESIZED) {
+                //do nothing
+            } else {
+                throw java.lang.AssertionError("Unexpected callable kind $kind")
+            }
+            result.addAll(getAllOverriddenDeclarations(overriddenDeclaration as D))
+        }
+        return result
     }
 
     fun isAncestor(

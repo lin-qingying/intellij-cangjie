@@ -11,6 +11,8 @@
     <xi:include href="/META-INF/refactoring.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/navigation.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/completion.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <!--    <xi:include href="/META-INF/diagrams.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+    <xi:include href="/META-INF/intellij.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <extensions defaultExtensionNs="com.intellij">
 
@@ -26,8 +28,8 @@
         <!--        插件启动初始化-->
         <!--        <applicationService serviceImplementation="com.huawei.cangjie.CangJieStartupActivity" serviceInterface="com.intellij.openapi.startup.StartupActivity"/>-->
         <!--        <postStartupActivity implementation="com.huawei.cangjie.ide.project.CangJieProjectActivity"/>-->
-<!--                <additionalLibraryRootsProvider-->
-<!--                        implementation="com.huawei.cangjie.cjpm.project.workspace.CjAdditionalLibraryRootsProvider"/>-->
+        <!--                <additionalLibraryRootsProvider-->
+        <!--                        implementation="com.huawei.cangjie.cjpm.project.workspace.CjAdditionalLibraryRootsProvider"/>-->
 
         <!--        编辑器自动插入-->
         <typedHandler implementation="com.huawei.cangjie.ide.editor.CangJieTypedHandler"/>
@@ -50,9 +52,9 @@
         <!--        <annotator language="CangJie" implementationClass="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>-->
         <!--        <highlightRangeExtension implementation="com.huawei.cangjie.ide.annotator.CjErrorAnnotator"/>-->
 
-<!--        <lang.documentationProvider language="CangJie"-->
-<!--                                    implementationClass="com.huawei.cangjie.ide.CangJieDocumentationProvider"-->
-<!--                                    order="first"/>-->
+        <!--        <lang.documentationProvider language="CangJie"-->
+        <!--                                    implementationClass="com.huawei.cangjie.ide.CangJieDocumentationProvider"-->
+        <!--                                    order="first"/>-->
 
         <!--        文件类型-->
         <fileType name="CangJie"
@@ -153,8 +155,13 @@
 
         <!--注释-->
         <lang.commenter language="CangJie" implementationClass="com.huawei.cangjie.ide.commenter.CjCommenter"/>
-
-
+        <!--结构视图-->
+        <lang.psiStructureViewFactory
+                language="CangJie"
+                implementationClass="com.huawei.cangjie.ide.structureView.CangJieStructureViewFactory"/>
+        <typeHierarchyProvider
+                language="CangJie"
+                implementationClass="com.huawei.cangjie.ide.hierarchy.CangJieTypeHierarchyProvider"/>
         <executionTargetLanguageRuntimeType
                 implementation="com.huawei.cangjie.ide.run.cjpm.runconfig.CjLanguageRuntimeType"/>
         <applicationService
@@ -181,6 +188,10 @@
         <projectService
                 serviceInterface="com.huawei.cangjie.ide.imports.ImportInsertHelper"
                 serviceImplementation="com.huawei.cangjie.ide.imports.ImportInsertHelperImpl"/>
+        <projectService
+                serviceInterface="com.huawei.cangjie.psi.CangJiePsiFacade"
+                serviceImplementation="com.huawei.cangjie.psi.DefaultCangJiePsiFacade"/>
+
         <applicationService serviceImplementation="com.huawei.cangjie.ide.newProject.state.CjUserTemplatesState"/>
 
         <!--        <projectService serviceImplementation="com.huawei.cangjie.ide.run.cjpm.back.CangJieProjectSettingsService"/>-->
@@ -192,7 +203,8 @@
 
         <iconProvider implementation="com.huawei.cangjie.ide.CangJieIconProvider"/>
         <treeStructureProvider implementation="com.huawei.cangjie.ide.projectView.CangJieSelectInProjectViewProvider"/>
-        <treeStructureProvider implementation="com.huawei.cangjie.ide.projectView.CangJieExpandNodeProjectViewProvider" order="last, after ClassesTreeStructureProvider"/>
+        <treeStructureProvider implementation="com.huawei.cangjie.ide.projectView.CangJieExpandNodeProjectViewProvider"
+                               order="last"/>
 
         <projectService
                 serviceInterface="com.huawei.cangjie.ide.projectStructure.LibraryUsageIndex"
@@ -325,57 +337,55 @@
     </projectListeners>
 
     <extensionPoints>
+        <!--        工具链  多平台支持-->
         <extensionPoint qualifiedName="com.huawei.cangjie.toolchainProvider"
                         interface="com.huawei.cangjie.cjpm.toolchain.CjToolchainProvider"
                         dynamic="true"/>
-        <!--        <extensionPoint qualifiedName="com.huawei.cangjie.toolchainProvider"-->
-        <!--                        interface="com.huawei.cangjie.ide.run.cjpm.back.CjToolchainProvider"-->
-        <!--                        dynamic="true"/>-->
-
-        <!--        <extensionPoint qualifiedName="com.huawei.cangjie.toolchainFlavor"-->
-        <!--                        interface="com.huawei.cangjie.ide.run.cjpm.back.CjToolchainFlavor"-->
-        <!--                        dynamic="true"/>-->
-
         <extensionPoint qualifiedName="com.huawei.cangjie.toolchainFlavor"
                         interface="com.huawei.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor"
                         dynamic="true"/>
+        <!--        psi查找-->
+        <extensionPoint qualifiedName="com.huawei.cangjie.psi.elementFinder" dynamic="true"
+                        area="IDEA_PROJECT" interface="com.huawei.cangjie.psi.CangJiePsiElementFinderBase"/>
+        <!--分析之前高亮-->
         <extensionPoint
                 qualifiedName="com.huawei.cangjie.beforeResolveHighlightingVisitor"
                 interface="com.huawei.cangjie.highlighter.BeforeResolveHighlightingExtension"
                 dynamic="true"/>
-        <!--        <extensionPoint-->
-        <!--                qualifiedName="com.huawei.cangjie.completionExtension"-->
-        <!--                interface="com.huawei.cangjie.ide.completion.CangJieCompletionExtension" dynamic="true"/>-->
+        <!--        诊断抑制-->
         <extensionPoint qualifiedName="com.huawei.cangjie.diagnosticSuppressor"
                         interface="com.huawei.cangjie.descriptors.DiagnosticSuppressor"
                         dynamic="true"/>
+        <!--        Cjpm 运行配置-->
         <extensionPoint qualifiedName="com.huawei.cangjie.runConfigurationExtension"
                         interface="com.huawei.cangjie.ide.run.cjpm.runconfig.CjpmCommandConfigurationExtension"
                         dynamic="true"/>
-        <extensionPoint
-                qualifiedName="com.intellij.newProjectWizard.CangJie.buildSystem"
-                interface="com.huawei.cangjie.ide.project.tools.projectWizard.BuildSystemCangJieNewProjectWizard"
-                dynamic="true"/>
+        <!--文件被创建后的处理-->
         <extensionPoint
                 qualifiedName="com.huawei.cangjie.newFileHook"
                 interface="com.huawei.cangjie.ide.actions.NewCangJieFileHook"
                 dynamic="true"/>
-
+        <!--         项目配置-->
         <extensionPoint
                 qualifiedName="com.huawei.cangjie.projectConfigurator"
                 interface="com.huawei.cangjie.ide.configuration.CangJieProjectConfigurator"
                 dynamic="true"/>
+        <!--        模块信息提供者-->
         <extensionPoint
                 qualifiedName="com.huawei.cangjie.moduleinfo.moduleInfoProviderExtension"
                 interface="com.huawei.cangjie.ide.projectStructure.ModuleInfoProviderExtension"
                 area="IDEA_PROJECT"
                 dynamic="true"/>
+        <!--        解析范围-->
         <extensionPoint qualifiedName="com.huawei.cangjie.resolveScopeEnlarger"
+                        dynamic="true"
                         interface="com.huawei.cangjie.ide.projectStructure.CangJieResolveScopeEnlarger"/>
+        <!--        类导入过滤器-->
         <extensionPoint
                 qualifiedName="com.huawei.cangjie.classImportFilter"
                 interface="com.huawei.cangjie.ide.util.ClassImportFilter"
                 dynamic="true"/>
+        <!--        简单名称引用扩展点-->
         <extensionPoint qualifiedName="com.huawei.cangjie.simpleNameReferenceExtension"
                         interface="com.huawei.cangjie.references.SimpleNameReferenceExtension"
                         area="IDEA_PROJECT" dynamic="true"/>
@@ -396,7 +406,7 @@
                 icon="com.huawei.cangjie.icon.CangJieIcons.CANGJIE">
 
 
-        <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewGroup1"/>
+            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewGroup"/>
         </action>
 
 
@@ -467,12 +477,20 @@
                          implementation="com.huawei.cangjie.cjpm.toolchain.flavors.CjWinToolchainFlavor"/>
 
         <toolchainProvider implementation="com.huawei.cangjie.cjpm.toolchain.CjLocalToolchainProvider"/>
+        <psi.elementFinder implementation="com.huawei.cangjie.psi.CjpmProjectPsiElementFinder" id="CjpmProject"
+                           order="first"/>
+        <psi.elementFinder implementation="com.huawei.cangjie.psi.CjpmPackagePsiElementFinder" id="CjpmPackage"
+                           order="first"/>
+        <psi.elementFinder implementation="com.huawei.cangjie.psi.CjpmStdlibPsiElementFinder" id="CjpmStdlib"
+                           order="first"/>
+
 
         <toolchainFlavor id="cangjie.wslToolchainFlavor"
                          implementation="com.huawei.cangjie.cjpm.toolchain.wsl.CjWslToolchainFlavor"/>
 
         <moduleinfo.moduleInfoProviderExtension
                 implementation="com.huawei.cangjie.ide.projectStructure.DefaultModuleInfoProviderExtension"/>
+
     </extensions>
 
 </idea-plugin>

@@ -3,16 +3,21 @@ package com.huawei.cangjie.utils
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.ReceiverParameterDescriptor
+import com.huawei.cangjie.ide.IdeDescriptorRenderers
 import com.huawei.cangjie.name.FqName
+import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjExpression
+import com.huawei.cangjie.psi.CjFunctionLiteral
 import com.huawei.cangjie.psi.CjPsiFactory
+import com.huawei.cangjie.psi.psiUtil.findLabelAndCall
+import com.huawei.cangjie.renderer.render
+import com.huawei.cangjie.resolve.DescriptorToSourceUtils
 import com.huawei.cangjie.resolve.DescriptorUtils
-import com.huawei.cangjie.resolve.calls.DslMarkerUtils
 import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.resolve.scopes.getImplicitReceiversHierarchy
 
-fun LexicalScope.getImplicitReceiversWithInstance( ): Collection<ReceiverParameterDescriptor> {
-    return getImplicitReceiversWithInstanceToExpression( ).keys
+fun LexicalScope.getImplicitReceiversWithInstance(): Collection<ReceiverParameterDescriptor> {
+    return getImplicitReceiversWithInstanceToExpression().keys
 }
 
 
@@ -21,11 +26,13 @@ interface ReceiverExpressionFactory {
     val expressionText: String
     fun createExpression(psiFactory: CjPsiFactory, shortThis: Boolean = true): CjExpression
 }
+
 fun LexicalScope.getImplicitReceiversWithInstanceToExpression(
 
 ): Map<ReceiverParameterDescriptor, ReceiverExpressionFactory?> {
+    val allReceivers = getImplicitReceiversHierarchy()
 
-
+    val receivers = allReceivers
     val outerDeclarationsWithInstance = LinkedHashSet<DeclarationDescriptor>()
     var current: DeclarationDescriptor? = ownerDescriptor
     while (current != null) {
@@ -35,35 +42,53 @@ fun LexicalScope.getImplicitReceiversWithInstanceToExpression(
         outerDeclarationsWithInstance.add(current)
 
         val classDescriptor = current as? ClassDescriptor
-        if (classDescriptor != null &&  !DescriptorUtils.isLocal(classDescriptor)) break
+        if (classDescriptor != null && !DescriptorUtils.isLocal(classDescriptor)) break
 
         current = current.containingDeclaration
     }
 
     val result = LinkedHashMap<ReceiverParameterDescriptor, ReceiverExpressionFactory?>()
-//    for ((index, receiver) in receivers.withIndex()) {
-//        val owner = receiver.containingDeclaration
-//
-//
-//        val (expressionText, isImmediateThis) = when {
-//            owner in outerDeclarationsWithInstance -> {
-//                val thisWithLabel = getThisQualifierName(receiver)?.let { "this@${it.render()}" }
-//                when (index) {
-//                    0 -> (thisWithLabel ?: "this") to true
-//                    else -> thisWithLabel to false
-//                }
-//            }
-//            owner is ClassDescriptor && owner.kind.isSingleton -> {
-//                IdeDescriptorRenderers.SOURCE_CODE.renderClassifierName(owner) to false
-//            }
-//            else -> continue
-//        }
-//
-//        result[receiver] = if (expressionText != null) createReceiverExpressionFactory(expressionText, isImmediateThis) else null
-//    }
+    for ((index, receiver) in receivers.withIndex()) {
+        val owner = receiver.containingDeclaration
+
+
+        val (expressionText, isImmediateThis) = when {
+            owner in outerDeclarationsWithInstance -> {
+                val thisWithLabel = getThisQualifierName(receiver)?.let { "this@${it.render()}" } //extended
+                when (index) {
+                    0 -> (thisWithLabel ?: "this") to true
+                    else -> thisWithLabel to false
+                }
+
+            }
+
+            owner is ClassDescriptor && owner.kind.isSingleton -> {
+                IdeDescriptorRenderers.SOURCE_CODE.renderClassifierName(owner) to false
+            }
+
+            else -> continue
+        }
+
+        result[receiver] =
+            if (expressionText != null)
+                createReceiverExpressionFactory(expressionText, isImmediateThis)
+            else null
+    }
 
     return result
 }
+
+private fun getThisQualifierName(receiver: ReceiverParameterDescriptor): Name? {
+    val descriptor = receiver.containingDeclaration
+    val name = descriptor.name
+    if (!name.isSpecial) {
+        return name
+    }
+
+    val functionLiteral = DescriptorToSourceUtils.descriptorToDeclaration(descriptor) as? CjFunctionLiteral
+    return functionLiteral?.findLabelAndCall()?.first
+}
+
 private fun getParametersShadowedByDslMarkers(receiverParameters: List<ReceiverParameterDescriptor>): Set<ReceiverParameterDescriptor> {
     val typesByDslScopes = mutableMapOf<FqName, MutableList<ReceiverParameterDescriptor>>()
 
@@ -77,7 +102,11 @@ private fun getParametersShadowedByDslMarkers(receiverParameters: List<ReceiverP
     // For each DSL marker, all receivers except the closest one are shadowed by it; that is why we drop it
     return typesByDslScopes.values.flatMapTo(mutableSetOf()) { it.drop(1) }
 }
-private fun createReceiverExpressionFactory(expressionText: String, isImmediateThis: Boolean): ReceiverExpressionFactory {
+
+private fun createReceiverExpressionFactory(
+    expressionText: String,
+    isImmediateThis: Boolean
+): ReceiverExpressionFactory {
     return object : ReceiverExpressionFactory {
         override val isImmediate = isImmediateThis
         override val expressionText: String get() = expressionText
