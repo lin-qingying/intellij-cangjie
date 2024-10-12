@@ -581,7 +581,7 @@ class BasicCompletionSession(
         ) {
         AllClassesCompletion(
             parameters = completionParameters,
-            kotlinIndicesHelper = indicesHelper,
+            cangjieIndicesHelper = indicesHelper,
             prefixMatcher = prefixMatcher,
             resolutionFacade = resolutionFacade,
             kindFilter = kindFilter,

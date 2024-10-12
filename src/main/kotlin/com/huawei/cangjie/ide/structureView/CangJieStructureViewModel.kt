@@ -57,7 +57,7 @@ object CangJieVisibilitySorter : VisibilitySorter() {
 
     override fun getName() = ID
 
-    const val ID = "KOTLIN_VISIBILITY_SORTER"
+    const val ID = "CANGJIE_VISIBILITY_SORTER"
 }
 
 object PublicElementsFilter : Filter {
@@ -77,7 +77,7 @@ object PublicElementsFilter : Filter {
 
     override fun isReverted() = true
 
-    const val ID = "KOTLIN_SHOW_NON_PUBLIC"
+    const val ID = "CANGJIE_SHOW_NON_PUBLIC"
 }
 
 object PropertiesFilter : Filter {
@@ -96,5 +96,5 @@ object PropertiesFilter : Filter {
 
     override fun isReverted() = true
 
-    const val ID = "KOTLIN_SHOW_PROPERTIES"
+    const val ID = "CANGJIE_SHOW_PROPERTIES"
 }

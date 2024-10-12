@@ -29,19 +29,12 @@ object DefaultCompletionKeywordHandlerProvider : CompletionKeywordHandlerProvide
             buildList {
                 add(lookupElement.withLineIndentAdjuster())
                 if (!parameters.isUseSiteAnnotationTarget) {
+
                     add(
                         createKeywordConstructLookupElement(
                             project,
                             CjTokens.GET_KEYWORD.value,
-                            "prop v:Int{ get()=caret}",
-                            adjustLineIndent = true,
-                        )
-                    )
-                    add(
-                        createKeywordConstructLookupElement(
-                            project,
-                            CjTokens.GET_KEYWORD.value,
-                            "prop v:Int{ get(){caret}}",
+                            "get(){caret}",
                             trimSpacesAroundCaret = true,
                             adjustLineIndent = true,
                         )
@@ -55,20 +48,12 @@ object DefaultCompletionKeywordHandlerProvider : CompletionKeywordHandlerProvide
             buildList {
                 add(lookupElement.withLineIndentAdjuster())
                 if (!parameters.isUseSiteAnnotationTarget) {
-                    add(
-                        createKeywordConstructLookupElement(
-                            project,
-                            CjTokens.SET_KEYWORD.value,
-                            "mut prop v:Int{ set(value)=caret}",
-                            adjustLineIndent = true,
-                        )
-                    )
 
                     add(
                         createKeywordConstructLookupElement(
                             project,
                             CjTokens.SET_KEYWORD.value,
-                            "mut prop v:Int{ set(value){caret}}",
+                            " set(value){caret} ",
                             trimSpacesAroundCaret = true,
                             adjustLineIndent = true,
                         )

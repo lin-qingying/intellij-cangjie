@@ -1,5 +1,6 @@
 package com.huawei.cangjie.ide.completion
 
+import com.huawei.cangjie.ide.completion.handlers.InsertHandlerProvider
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.psi.CjPackageDirective
 import com.huawei.cangjie.psi.CjSimpleNameExpression

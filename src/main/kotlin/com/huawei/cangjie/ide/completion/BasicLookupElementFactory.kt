@@ -4,6 +4,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.ide.CangJieDescriptorIconProvider
 import com.huawei.cangjie.ide.completion.handlers.BaseDeclarationInsertHandler
 import com.huawei.cangjie.ide.completion.handlers.DeclarationLookupObjectImpl
+import com.huawei.cangjie.ide.completion.handlers.InsertHandlerProvider
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.references.util.DescriptorToSourceUtilsIde
 import com.huawei.cangjie.renderer.DescriptorRenderer

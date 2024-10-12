@@ -14,10 +14,10 @@ interface CangJieIdeDescriptorRendererHighlightingManager<TAttributes : CangJieI
     val asDot: TAttributes
 
     val asComma: TAttributes
-
+    val asStatic: TAttributes
     val asColon: TAttributes
 
-    val asLtColon:TAttributes
+    val asLtColon: TAttributes
     val asDoubleColon: TAttributes
 
     val asParentheses: TAttributes
@@ -37,7 +37,8 @@ interface CangJieIdeDescriptorRendererHighlightingManager<TAttributes : CangJieI
     val asKeyword: TAttributes
 
     val asLet: TAttributes
-
+    val asMut: TAttributes
+    val asProp: TAttributes
     val asVar: TAttributes
 
     val asAnnotationName: TAttributes
@@ -85,12 +86,14 @@ interface CangJieIdeDescriptorRendererHighlightingManager<TAttributes : CangJieI
             override fun StringBuilder.appendCodeSnippetHighlightedByLexer(codeSnippet: String) {
                 append(codeSnippet)
             }
+
             override val asLtColon = EMPTY_ATTRIBUTES
             override val asError = EMPTY_ATTRIBUTES
             override val asInfo = EMPTY_ATTRIBUTES
             override val asDot = EMPTY_ATTRIBUTES
             override val asComma = EMPTY_ATTRIBUTES
             override val asColon = EMPTY_ATTRIBUTES
+            override val asStatic = EMPTY_ATTRIBUTES
             override val asDoubleColon = EMPTY_ATTRIBUTES
             override val asParentheses = EMPTY_ATTRIBUTES
             override val asArrow = EMPTY_ATTRIBUTES
@@ -114,6 +117,9 @@ interface CangJieIdeDescriptorRendererHighlightingManager<TAttributes : CangJieI
             override val asLocalVarOrLet = EMPTY_ATTRIBUTES
             override val asFunDeclaration = EMPTY_ATTRIBUTES
             override val asFunCall = EMPTY_ATTRIBUTES
+
+            override val asMut: Attributes = EMPTY_ATTRIBUTES
+            override val asProp: Attributes = EMPTY_ATTRIBUTES
         }
     }
 }

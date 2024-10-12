@@ -51,10 +51,17 @@ object CangJieIcons {
     val VAR: Icon = AllIcons.Nodes.Variable
 
     /** 16x16  */
+    val FIELD_MPROP: Icon = CangJieBaseResourcesIcons.Field_property
+
+    /** 16x16  */
+    val FIELD_PROP: Icon = CangJieBaseResourcesIcons.Field_property_value
+
+    /** 16x16  */
     val FIELD_VAR: Icon = CangJieBaseResourcesIcons.Field_variable
 
     /** 16x16  */
-    val FIELD_LET: Icon = CangJieBaseResourcesIcons.Field_value
+    val FIELD_LET: Icon = CangJieBaseResourcesIcons.Field_variable_value
+
     val FUNCTION: Icon = AllIcons.Nodes.Function
 
     /** 16x16  */

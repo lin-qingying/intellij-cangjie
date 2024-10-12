@@ -75,7 +75,7 @@ sealed class CangJieFunctionInsertHandler(callType: CallType<*>) : CangJieCallab
 
             addArguments(context, element)
 
-            // hack for KT-31902
+
             if (callType == CallType.DEFAULT) {
                 context.file
                     .findElementAt(elementOffset)
@@ -104,12 +104,14 @@ sealed class CangJieFunctionInsertHandler(callType: CallType<*>) : CangJieCallab
             val isReplaceCompletion = completionChar == Lookup.REPLACE_SELECT_CHAR
             val isNormalCompletion = completionChar == Lookup.NORMAL_SELECT_CHAR
 
-            val insertLambda = lambdaInfo != null && completionChar != '(' && !(isReplaceCompletion && chars.isCharAt(offset, '('))
+            val insertLambda =
+                lambdaInfo != null && completionChar != '(' && !(isReplaceCompletion && chars.isCharAt(offset, '('))
 
             val openingBracket = if (insertLambda) '{' else '('
             val closingBracket = if (insertLambda) '}' else ')'
 
-            var insertTypeArguments = inputTypeArguments && (isNormalCompletion || isReplaceCompletion || isSmartEnterCompletion)
+            var insertTypeArguments =
+                inputTypeArguments && (isNormalCompletion || isReplaceCompletion || isSmartEnterCompletion)
 
             val psiDocumentManager = PsiDocumentManager.getInstance(project)
             if (isReplaceCompletion) {
@@ -171,11 +173,18 @@ sealed class CangJieFunctionInsertHandler(callType: CallType<*>) : CangJieCallab
                 psiDocumentManager.commitDocument(document)
 
                 openingBracketOffset = document.charsSequence.indexOfSkippingSpace(openingBracket, offset)!!
-                closeBracketOffset = document.charsSequence.indexOfSkippingSpace(closingBracket, openingBracketOffset + 1)
+                closeBracketOffset =
+                    document.charsSequence.indexOfSkippingSpace(closingBracket, openingBracketOffset + 1)
             }
 
             if (insertLambda && lambdaInfo!!.explicitParameters) {
-                insertLambdaSignatureTemplate(openingBracketOffset, closeBracketOffset!!, lambdaInfo.lambdaType, context, context)
+                insertLambdaSignatureTemplate(
+                    openingBracketOffset,
+                    closeBracketOffset!!,
+                    lambdaInfo.lambdaType,
+                    context,
+                    context
+                )
                 return
             }
 
@@ -205,7 +214,6 @@ sealed class CangJieFunctionInsertHandler(callType: CallType<*>) : CangJieCallab
     }
 
 
-
     class OnlyName(callType: CallType<*>) : CangJieFunctionInsertHandler(callType)
 
     override fun handleInsert(context: InsertionContext, item: LookupElement) {
@@ -216,6 +224,7 @@ sealed class CangJieFunctionInsertHandler(callType: CallType<*>) : CangJieCallab
         psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
     }
 }
+
 private operator fun OffsetMap.get(key: OffsetKey): Int? {
     return if (containsOffset(key)) getOffset(key) else null
 }

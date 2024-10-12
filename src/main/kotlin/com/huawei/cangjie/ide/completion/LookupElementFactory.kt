@@ -5,6 +5,7 @@ import com.huawei.cangjie.builtins.isFunctionType
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.ide.completion.handlers.CangJieFunctionInsertHandler
 import com.huawei.cangjie.ide.completion.handlers.GenerateLambdaInfo
+import com.huawei.cangjie.ide.completion.handlers.InsertHandlerProvider
 import com.huawei.cangjie.ide.completion.handlers.createNormalFunctionInsertHandler
 import com.huawei.cangjie.renderer.DescriptorRenderer
 import com.huawei.cangjie.renderer.render

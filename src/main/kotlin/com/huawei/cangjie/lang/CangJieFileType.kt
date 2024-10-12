@@ -33,7 +33,7 @@ open class CangJieFileType : LanguageFileType(CangJieLanguage) {
     companion object {
         val EXTENSION: String = "cj"
 
-        val DOT_DEFAULT_EXTENSION: String = "." + EXTENSION
+        val DOT_DEFAULT_EXTENSION: String = ".$EXTENSION"
         val INSTANCE = CangJieFileType()
     }
 

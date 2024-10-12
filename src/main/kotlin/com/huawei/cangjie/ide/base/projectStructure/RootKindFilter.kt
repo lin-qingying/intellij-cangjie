@@ -11,8 +11,7 @@ data class RootKindFilter(
     val includeProjectSourceFiles: Boolean,
     val includeLibraryClassFiles: Boolean,
     val includeLibrarySourceFiles: Boolean,
-    val includeScriptDependencies: Boolean,
-    val includeScriptsOutsideSourceRoots: Boolean,
+
     val includeResources: Boolean
 ) {
 
@@ -24,8 +23,7 @@ data class RootKindFilter(
             includeProjectSourceFiles = true,
             includeLibraryClassFiles = false,
             includeLibrarySourceFiles = true,
-            includeScriptDependencies = false,
-            includeScriptsOutsideSourceRoots = false,
+
             includeResources = false
         )
         @JvmField
@@ -33,8 +31,7 @@ data class RootKindFilter(
             includeProjectSourceFiles = true,
             includeLibraryClassFiles = false,
             includeLibrarySourceFiles = true,
-            includeScriptDependencies = true,
-            includeScriptsOutsideSourceRoots = false,
+
             includeResources = false
         )
         @JvmField
@@ -42,8 +39,7 @@ data class RootKindFilter(
             includeProjectSourceFiles = true,
             includeLibraryClassFiles = true,
             includeLibrarySourceFiles = false,
-            includeScriptDependencies = true,
-            includeScriptsOutsideSourceRoots = false,
+
             includeResources = false
         )
         @JvmField
@@ -51,8 +47,7 @@ data class RootKindFilter(
             includeProjectSourceFiles = true,
             includeLibraryClassFiles = true,
             includeLibrarySourceFiles = false,
-            includeScriptDependencies = false,
-            includeScriptsOutsideSourceRoots = false,
+
             includeResources = false
         )
         @JvmField
@@ -60,8 +55,7 @@ data class RootKindFilter(
             includeProjectSourceFiles = true,
             includeLibraryClassFiles = false,
             includeLibrarySourceFiles = false,
-            includeScriptDependencies = false,
-            includeScriptsOutsideSourceRoots = false,
+
             includeResources = true
         )
 
@@ -70,8 +64,7 @@ data class RootKindFilter(
             includeProjectSourceFiles = false,
             includeLibraryClassFiles = false,
             includeLibrarySourceFiles = true,
-            includeScriptDependencies = true,
-            includeScriptsOutsideSourceRoots = false,
+
             includeResources = false
         )
 
@@ -80,8 +73,7 @@ data class RootKindFilter(
             includeProjectSourceFiles = true,
             includeLibraryClassFiles = true,
             includeLibrarySourceFiles = true,
-            includeScriptDependencies = true,
-            includeScriptsOutsideSourceRoots = false,
+
             includeResources = false
         )
         @JvmField
@@ -89,8 +81,7 @@ data class RootKindFilter(
             includeProjectSourceFiles = false,
             includeLibraryClassFiles = true,
             includeLibrarySourceFiles = true,
-            includeScriptDependencies = true,
-            includeScriptsOutsideSourceRoots = false,
+
             includeResources = false
         )
         @JvmField
@@ -98,8 +89,7 @@ data class RootKindFilter(
             includeProjectSourceFiles = false,
             includeLibraryClassFiles = true,
             includeLibrarySourceFiles = false,
-            includeScriptDependencies = true,
-            includeScriptsOutsideSourceRoots = false,
+
             includeResources = false
         )
 
@@ -108,8 +98,7 @@ data class RootKindFilter(
             includeProjectSourceFiles = true,
             includeLibraryClassFiles = false,
             includeLibrarySourceFiles = false,
-            includeScriptDependencies = false,
-            includeScriptsOutsideSourceRoots = false,
+
             includeResources = false
         )
     }

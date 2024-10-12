@@ -1,4 +1,4 @@
-package com.huawei.cangjie.ide.completion
+package com.huawei.cangjie.ide.completion.handlers
 
 import com.huawei.cangjie.builtins.getReceiverTypeFromFunctionType
 import com.huawei.cangjie.builtins.getReturnTypeFromFunctionType
@@ -6,8 +6,6 @@ import com.huawei.cangjie.builtins.getValueParameterTypesFromFunctionType
 import com.huawei.cangjie.builtins.isBuiltinFunctionalType
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.ide.ExpectedInfo
-import com.huawei.cangjie.ide.completion.handlers.BaseDeclarationInsertHandler
-import com.huawei.cangjie.ide.completion.handlers.CangJieClassifierInsertHandler
 import com.huawei.cangjie.ide.fuzzyType
 import com.huawei.cangjie.resolve.calls.components.hasDefaultValue
 import com.huawei.cangjie.resolve.calls.util.getValueParametersCountFromFunctionType
@@ -35,7 +33,10 @@ class InsertHandlerProvider(
                         val parameter = parameters.single()
                         val parameterType = parameter.type
 
-                        if (parameterType.isBuiltinFunctionalType && getValueParametersCountFromFunctionType(parameterType) <= 1 && !parameter.hasDefaultValue()) {
+                        if (parameterType.isBuiltinFunctionalType && getValueParametersCountFromFunctionType(
+                                parameterType
+                            ) <= 1 && !parameter.hasDefaultValue()
+                        ) {
                             return true
                         }
                     }
@@ -48,49 +49,68 @@ class InsertHandlerProvider(
 
     fun insertHandler(descriptor: DeclarationDescriptor, argumentsOnly: Boolean = false): InsertHandler<LookupElement> {
         return when (descriptor) {
-//            is FunctionDescriptor -> {
-//                when (callType) {
-//                    CallType.DEFAULT, CallType.DOT, CallType.SAFE, CallType.SUPER_MEMBERS -> {
-//                        if (!EditorSettingsExternalizable.getInstance().isInsertParenthesesAutomatically) {
-//                            return CangJieFunctionInsertHandler.OnlyName(callType)
-//                        }
-//                        val needTypeArguments = needTypeArguments(descriptor)
-//                        val parameters = descriptor.valueParameters
-//                        val functionName = descriptor.name
-//                        when (parameters.size) {
-//                            0 -> {
-//                                createNormalFunctionInsertHandler(editor, callType, functionName, needTypeArguments,
-//                                    inputValueArguments = false, argumentsOnly = argumentsOnly)
-//                            }
-//
-//                            1 -> {
-//                                if (callType != CallType.SUPER_MEMBERS) { // for super call we don't suggest to generate "super.foo { ... }" (seems to be non-typical use)
-//                                    val parameter = parameters.single()
-//                                    val parameterType = parameter.type
-//                                    if (parameterType.isBuiltinFunctionalType) {
-//                                        if (getValueParametersCountFromFunctionType(parameterType) <= 1 && !parameter.hasDefaultValue()) {
-//                                            // otherwise additional item with lambda template is to be added
-//                                            return CangJieFunctionInsertHandler.Normal(
-//                                                callType, needTypeArguments, inputValueArguments = false,
-//                                                lambdaInfo = GenerateLambdaInfo(parameterType, false), argumentsOnly = argumentsOnly
-//                                            )
-//                                        }
-//                                    }
-//                                }
-//
-//                                createNormalFunctionInsertHandler(editor, callType, functionName, inputTypeArguments = needTypeArguments, inputValueArguments = true, argumentsOnly = argumentsOnly)
-//                            }
-//
-//                            else -> createNormalFunctionInsertHandler(editor, callType, functionName, needTypeArguments, inputValueArguments = true, argumentsOnly = argumentsOnly)
-//                        }
-//                    }
-//
-//                    else -> CangJieFunctionInsertHandler.OnlyName(callType)
-//                }
-//
-//            }
-//
-//            is PropertyDescriptor -> CangJiePropertyInsertHandler(callType)
+            is FunctionDescriptor -> {
+                when (callType) {
+                    CallType.DEFAULT, CallType.DOT, CallType.SAFE, CallType.SUPER_MEMBERS -> {
+                        if (!EditorSettingsExternalizable.getInstance().isInsertParenthesesAutomatically) {
+                            return CangJieFunctionInsertHandler.OnlyName(callType)
+                        }
+                        val needTypeArguments = needTypeArguments(descriptor)
+                        val parameters = descriptor.valueParameters
+                        val functionName = descriptor.name
+                        when (parameters.size) {
+                            0 -> {
+                                createNormalFunctionInsertHandler(
+                                    editor, callType, functionName, needTypeArguments,
+                                    inputValueArguments = false, argumentsOnly = argumentsOnly
+                                )
+                            }
+
+                            1 -> {
+                                if (callType != CallType.SUPER_MEMBERS) { // for super call we don't suggest to generate "super.foo { ... }" (seems to be non-typical use)
+                                    val parameter = parameters.single()
+                                    val parameterType = parameter.type
+                                    if (parameterType.isBuiltinFunctionalType) {
+                                        if (getValueParametersCountFromFunctionType(parameterType) <= 1 && !parameter.hasDefaultValue()) {
+                                            // otherwise additional item with lambda template is to be added
+                                            return CangJieFunctionInsertHandler.Normal(
+                                                callType,
+                                                needTypeArguments,
+                                                inputValueArguments = false,
+                                                lambdaInfo = GenerateLambdaInfo(parameterType, false),
+                                                argumentsOnly = argumentsOnly
+                                            )
+                                        }
+                                    }
+                                }
+
+                                createNormalFunctionInsertHandler(
+                                    editor,
+                                    callType,
+                                    functionName,
+                                    inputTypeArguments = needTypeArguments,
+                                    inputValueArguments = true,
+                                    argumentsOnly = argumentsOnly
+                                )
+                            }
+
+                            else -> createNormalFunctionInsertHandler(
+                                editor,
+                                callType,
+                                functionName,
+                                needTypeArguments,
+                                inputValueArguments = true,
+                                argumentsOnly = argumentsOnly
+                            )
+                        }
+                    }
+
+                    else -> CangJieFunctionInsertHandler.OnlyName(callType)
+                }
+
+            }
+
+            is PropertyDescriptor, is VariableDescriptor -> CangJiePropertyInsertHandler(callType)
 
             is ClassifierDescriptor -> CangJieClassifierInsertHandler
 
@@ -119,7 +139,7 @@ class InsertHandlerProvider(
          * we can't rely on the inference from `handler`, because lambda input types may not be inferred without explicit type arguments.
          */
         fun addPotentiallyInferred(type: CangJieType, onlyCollectReturnTypeOfFunctionalType: Boolean) {
-            val descriptor = type.constructor.declarationDescriptor as?  TypeParameterDescriptor
+            val descriptor = type.constructor.declarationDescriptor as? TypeParameterDescriptor
             if (descriptor != null && descriptor in typeParameters && descriptor !in potentiallyInferred) {
                 potentiallyInferred.add(descriptor)
                 // Add possible inferred by type-arguments of upper-bound of parameter
@@ -143,13 +163,23 @@ class InsertHandlerProvider(
 
             for (argument in type.arguments) {
 
-                    addPotentiallyInferred(argument.type, onlyCollectReturnTypeOfFunctionalType)
+                addPotentiallyInferred(argument.type, onlyCollectReturnTypeOfFunctionalType)
 
             }
         }
 
-        originalFunction.extensionReceiverParameter?.type?.let { addPotentiallyInferred(it, onlyCollectReturnTypeOfFunctionalType = false) }
-        originalFunction.valueParameters.forEach { addPotentiallyInferred(it.type, onlyCollectReturnTypeOfFunctionalType = true) }
+        originalFunction.extensionReceiverParameter?.type?.let {
+            addPotentiallyInferred(
+                it,
+                onlyCollectReturnTypeOfFunctionalType = false
+            )
+        }
+        originalFunction.valueParameters.forEach {
+            addPotentiallyInferred(
+                it.type,
+                onlyCollectReturnTypeOfFunctionalType = true
+            )
+        }
 
         fun allTypeParametersPotentiallyInferred() = originalFunction.typeParameters.all { it in potentiallyInferred }
 

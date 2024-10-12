@@ -501,7 +501,7 @@ open class CangJieIdeDescriptorRenderer(
         append(gt())
     }
 
-    override fun renderTypeProjection(typeProjection: TypeProjection): String  = buildString {
+    override fun renderTypeProjection(typeProjection: TypeProjection): String = buildString {
         appendTypeProjections(listOf(typeProjection))
     }
 
@@ -645,7 +645,9 @@ open class CangJieIdeDescriptorRenderer(
             if (!startFromDeclarationKeyword) {
 
                 appendVisibility(property.visibility)
-                appendModifier(DescriptorRendererModifier.CONST in modifiers && property.isConst, "const")
+                appendStatic(property.isStatic)
+
+//                appendModifier(DescriptorRendererModifier.CONST in modifiers && property.isConst, "const")
                 appendMemberModifiers(property)
 
 
@@ -666,19 +668,57 @@ open class CangJieIdeDescriptorRenderer(
         appendWhereSuffix(property.typeParameters)
     }
 
+    private fun StringBuilder.appendStatic(isStatic: Boolean) {
+        if (isStatic) {
+            appendHighlighted("static ") { asStatic }
+        }
+    }
+    private fun StringBuilder.appendVariable(
+        variable: VariableDescriptor,
+        includeName: Boolean,
+        topLevel: Boolean,
+        isInPrimaryConstructor: Boolean = false
+    ) {
+        val realType = variable.type
+
+        val varargElementType = (variable as? ValueParameterDescriptor)?.varargElementType
+        val typeToRender = varargElementType ?: realType
+        appendModifier(varargElementType != null, "vararg")
+
+        if (isInPrimaryConstructor || topLevel && !startFromName) {
+            appendLetVarPrefix(variable, isInPrimaryConstructor)
+        }
+
+        if (includeName) {
+            appendName(variable, topLevel) { asLocalVarOrLet }
+            appendHighlighted(": ") { asColon }
+        }
+
+        append(renderType(typeToRender))
+
+        appendInitializer(variable)
+
+        if (verbose && varargElementType != null) {
+            val expandedType = withNoHighlighting { renderType(realType) }
+            appendHighlighted(" /*${expandedType}*/") { asInfo }
+        }
+    }
     private fun StringBuilder.appendProperty(property: PropertyDescriptor) {
         if (!startFromName) {
             if (!startFromDeclarationKeyword) {
                 appendPropertyAnnotations(property)
                 appendVisibility(property.visibility)
-                appendModifier(DescriptorRendererModifier.CONST in modifiers && property.isConst, "const")
+                appendStatic(property.isStatic)
+//                appendModifier(DescriptorRendererModifier.CONST in modifiers && property.isConst, "const")
                 appendMemberModifiers(property)
                 appendModalityForCallable(property)
                 appendOverride(property)
 
                 appendMemberKind(property)
+
             }
-            appendLetVarPrefix(property)
+
+            appendMutPropPrefix(property)
             appendTypeParameters(property.typeParameters, true)
             appendReceiver(property)
         }
@@ -786,7 +826,7 @@ open class CangJieIdeDescriptorRenderer(
             ) {
                 return
             }
-            if(callable.modality != Modality.FINAL) {
+            if (callable.modality != Modality.FINAL) {
                 appendModality(callable.modality, callable.implicitModalityWithoutExtensions())
 
             }
@@ -810,10 +850,9 @@ open class CangJieIdeDescriptorRenderer(
                 if (includeAdditionalModifiers) {
                     appendMemberModifiers(function)
                 }
+                appendStatic(function.isStatic)
 
-                if (function.isStatic) {
-                    renderKeyword("static")
-                }
+
                 appendOverride(function)
 
 //                if (includeAdditionalModifiers) {
@@ -980,7 +1019,7 @@ open class CangJieIdeDescriptorRenderer(
 
 
         if (isEnumEntry) return
-append(" ")
+        append(" ")
         appendName(cclass, true) { asClassName }
 
         val typeParameters = cclass.declaredTypeParameters
@@ -1046,7 +1085,7 @@ append(" ")
         }
 
         override fun visitVariableDescriptor(descriptor: VariableDescriptor, builder: StringBuilder?) {
-            builder?.appendVariable(descriptor, true, true)
+            builder?.appendVariable(descriptor )
         }
 
         override fun visitVariableDescriptorBase(descriptor: VariableDescriptor, builder: StringBuilder?) {
@@ -1186,6 +1225,22 @@ append(" ")
         }
     }
 
+    private fun StringBuilder.appendMutPropPrefix(
+        variable: VariableDescriptor,
+        isInPrimaryConstructor: Boolean = false
+    ) {
+        if (isInPrimaryConstructor || variable !is ValueParameterDescriptor) {
+            if (variable.isVar) {
+                appendHighlighted("mut ") { asMut }
+                appendHighlighted("prop") { asProp }
+
+            } else {
+                appendHighlighted("prop") { asProp }
+            }
+            append(" ")
+        }
+    }
+
     private fun StringBuilder.appendLetVarPrefix(
         variable: VariableDescriptor,
         isInPrimaryConstructor: Boolean = false
@@ -1201,36 +1256,7 @@ append(" ")
     }
 
 
-    private fun StringBuilder.appendVariable(
-        variable: VariableDescriptor,
-        includeName: Boolean,
-        topLevel: Boolean,
-        isInPrimaryConstructor: Boolean = false
-    ) {
-        val realType = variable.type
 
-        val varargElementType = (variable as? ValueParameterDescriptor)?.varargElementType
-        val typeToRender = varargElementType ?: realType
-        appendModifier(varargElementType != null, "vararg")
-
-        if (isInPrimaryConstructor || topLevel && !startFromName) {
-            appendLetVarPrefix(variable, isInPrimaryConstructor)
-        }
-
-        if (includeName) {
-            appendName(variable, topLevel) { asLocalVarOrLet }
-            appendHighlighted(": ") { asColon }
-        }
-
-        append(renderType(typeToRender))
-
-        appendInitializer(variable)
-
-        if (verbose && varargElementType != null) {
-            val expandedType = withNoHighlighting { renderType(realType) }
-            appendHighlighted(" /*${expandedType}*/") { asInfo }
-        }
-    }
 
     protected fun StringBuilder.appendName(descriptor: DeclarationDescriptor, rootRenderedElement: Boolean) {
         append(renderName(descriptor.name, rootRenderedElement))

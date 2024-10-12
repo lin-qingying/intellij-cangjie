@@ -7,7 +7,7 @@
                   style="fill:#2ee89f; stroke-width:0px;"/>
         </g>
         <path id="Vector" fill-rule="evenodd" clip-rule="evenodd"
-              d="M8 15C4.134 15 1 11.866 1 8C1 4.134 4.134 1 8 1C11.866 1 15 4.134 15 8H8V15Z" fill="#40B6E0"
+              d="M8 15C4.134 15 1 11.866 1 8C1 4.134 4.134 1 8 1C11.866 1 15 4.134 15 8H8V15Z" fill="#FF6EFA"
               fill-opacity="0.6"/>
         <path id="Vector_2" fill-rule="evenodd" clip-rule="evenodd" d="M8 11H6V5H10V6H7V7H9V8H7V10H8V11Z" fill="#231F20"
               fill-opacity="0.7"/>

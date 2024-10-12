@@ -17,8 +17,6 @@ import com.intellij.patterns.StandardPatterns
 import com.intellij.util.ProcessingContext
 import java.util.*
 
-class CDocCompletion {
-}
 
 object CDocTagCompletionProvider : CompletionProvider<CompletionParameters>() {
     override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {

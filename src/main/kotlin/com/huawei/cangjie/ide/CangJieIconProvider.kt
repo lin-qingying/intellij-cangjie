@@ -7,6 +7,8 @@ import com.huawei.cangjie.icon.CangJieIcons.CLASS
 import com.huawei.cangjie.icon.CangJieIcons.ENUM
 import com.huawei.cangjie.icon.CangJieIcons.EXTENSION_FUNCTION
 import com.huawei.cangjie.icon.CangJieIcons.FIELD_LET
+import com.huawei.cangjie.icon.CangJieIcons.FIELD_MPROP
+import com.huawei.cangjie.icon.CangJieIcons.FIELD_PROP
 import com.huawei.cangjie.icon.CangJieIcons.FIELD_VAR
 import com.huawei.cangjie.icon.CangJieIcons.FILE
 import com.huawei.cangjie.icon.CangJieIcons.FUNCTION
@@ -33,7 +35,7 @@ import com.linqingying.utils.toCamelCase
 import javax.swing.Icon
 
 
-class CangJieIconProvider : AbstractCangJieIconProvider(){
+class CangJieIconProvider : AbstractCangJieIconProvider() {
 //    override fun isMatchingExpected(declaration: CjDeclaration): Boolean {
 //        return declaration.hasActualModifier() && declaration.hasMatchingExpected()
 //    }
@@ -151,8 +153,8 @@ abstract class AbstractCangJieIconProvider : IconProvider(), DumbAware {
             is CjInterface -> INTERFACE
             is CjEnum -> ENUM
             is CjStruct -> STRUCT
-            is CjClass ->  if (isAbstract()) ABSTRACT_CLASS else CLASS
-            is CjEnumEntry -> if( getPrimaryConstructorParameterList() == null) ENUM else null
+            is CjClass -> if (isAbstract()) ABSTRACT_CLASS else CLASS
+            is CjEnumEntry -> if (getPrimaryConstructorParameterList() == null) ENUM else null
 
 
             is CjParameter -> {
@@ -162,7 +164,9 @@ abstract class AbstractCangJieIconProvider : IconProvider(), DumbAware {
                     PARAMETER
             }
 
-            is CjProperty -> if (isVar) FIELD_VAR else FIELD_LET
+            is CjVariable -> if (isVar) FIELD_VAR else FIELD_LET
+
+            is CjProperty -> if (isVar) FIELD_MPROP else FIELD_PROP
 
 
             is CjTypeAlias -> TYPE_ALIAS

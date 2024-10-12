@@ -1,6 +1,8 @@
 package com.huawei.cangjie.ide.base.projectStructure
 
 import com.huawei.cangjie.ide.projectStructure.scope.PoweredLibraryScopeBase
+import com.intellij.openapi.fileTypes.FileTypeRegistry
+import com.intellij.openapi.fileTypes.FileTypes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.DelegatingGlobalSearchScope
@@ -15,8 +17,8 @@ class CangJieSourceFilterScope private constructor(
 
 
     override fun contains(file: VirtualFile): Boolean {
-        val baseScope = this.myBaseScope
-        if (!super.contains(file)) {
+
+      if (!super.contains(file)) {
             return false
         }
 
@@ -51,11 +53,11 @@ class CangJieSourceFilterScope private constructor(
     companion object {
         @JvmStatic
         fun everything(delegate: GlobalSearchScope, project: Project) =
-            create(delegate, project, RootKindFilter.everything.copy(includeScriptsOutsideSourceRoots = true))
+            create(delegate, project, RootKindFilter.everything.copy( ))
 
         @JvmStatic
         fun projectAndLibrarySources(delegate: GlobalSearchScope, project: Project) =
-            create(delegate, project, RootKindFilter.projectAndLibrarySourcesWithScripts.copy(includeScriptsOutsideSourceRoots = true))
+            create(delegate, project, RootKindFilter.projectAndLibrarySourcesWithScripts.copy( ))
 
         @JvmStatic
         fun createByType(delegate: GlobalSearchScope, project: Project): GlobalSearchScope {
@@ -110,20 +112,20 @@ class CangJieSourceFilterScope private constructor(
 
         @JvmStatic
         fun projectFiles(delegate: GlobalSearchScope, project: Project) =
-            create(delegate, project, RootKindFilter.projectFiles.copy(includeScriptsOutsideSourceRoots = true))
+            create(delegate, project, RootKindFilter.projectFiles.copy( ))
 
         @JvmStatic
         fun projectSourcesAndLibraryClasses(delegate: GlobalSearchScope, project: Project) =
             create(
                 delegate,
                 project,
-                RootKindFilter.projectSourcesAndLibraryClasses.copy(includeScriptsOutsideSourceRoots = true)
+                RootKindFilter.projectSourcesAndLibraryClasses.copy( )
             )
 
 
         @JvmStatic
         fun projectSources(delegate: GlobalSearchScope, project: Project) =
-            create(delegate, project, RootKindFilter.projectSources.copy(includeScriptsOutsideSourceRoots = true))
+            create(delegate, project, RootKindFilter.projectSources.copy( ))
     }
 
 }

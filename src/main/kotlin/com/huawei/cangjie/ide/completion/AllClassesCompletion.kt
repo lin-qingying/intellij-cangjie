@@ -14,13 +14,13 @@ import com.intellij.codeInsight.completion.PrefixMatcher
 
 class AllClassesCompletion(
     private val parameters: CompletionParameters,
-    private val kotlinIndicesHelper: CangJieIndicesHelper,
+    private val cangjieIndicesHelper: CangJieIndicesHelper,
     private val prefixMatcher: PrefixMatcher,
     private val resolutionFacade: ResolutionFacade,
     private val kindFilter: (ClassKind) -> Boolean,
     private val includeTypeAliases: Boolean,
 
-) {
+    ) {
     fun collect(classifierDescriptorCollector: (ClassifierDescriptorWithTypeParameters) -> Unit ) {
 
         //TODO: this is a temporary solution until we have built-ins in indices
@@ -33,14 +33,14 @@ class AllClassesCompletion(
             }
         }
 
-        kotlinIndicesHelper.processCangJieClasses(
+        cangjieIndicesHelper.processCangJieClasses(
             { prefixMatcher.prefixMatches(it) },
             kindFilter = kindFilter,
             processor = classifierDescriptorCollector
         )
 
         if (includeTypeAliases) {
-            kotlinIndicesHelper.processTopLevelTypeAliases(prefixMatcher.asStringNameFilter(), classifierDescriptorCollector)
+            cangjieIndicesHelper.processTopLevelTypeAliases(prefixMatcher.asStringNameFilter(), classifierDescriptorCollector)
         }
 
 

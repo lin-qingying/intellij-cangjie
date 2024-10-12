@@ -7,6 +7,7 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 object CangJieHighlightingColors {
     val KEYWORD: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD)
+
     //    val KEYWORD = TextAttributesKey.createTextAttributesKey(
 //        "CANGJIE_KEYWORD",
 ////        DefaultLanguageHighlighterColors.KEYWORD
@@ -27,6 +28,9 @@ object CangJieHighlightingColors {
     val BUILTIN_ANNOTATION: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_BUILTIN_ANNOTATION", KEYWORD)
     val LET_KEYWORD: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_KEYWORD_LET", KEYWORD)
+    val MUT_KEYWORD: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_KEYWORD_MUT", KEYWORD)
+    val PROP_KEYWORD: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_KEYWORD_PROP", KEYWORD)
+
     val VAR_KEYWORD: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_KEYWORD_VAR", KEYWORD)
     val CONST_KEYWORD: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_KEYWORD_CONST", KEYWORD)
 
@@ -59,6 +63,8 @@ object CangJieHighlightingColors {
     val SEMICOLON: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_SEMICOLON", DefaultLanguageHighlighterColors.SEMICOLON)
     val LT_COLON: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_LT_COLON")
+    val STATIC: TextAttributesKey =
+        TextAttributesKey.createTextAttributesKey("CANGJIE_STATIC", DefaultLanguageHighlighterColors.KEYWORD)
 
     val COLON: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_COLON")
     val DOUBLE_COLON: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_DOUBLE_COLON")

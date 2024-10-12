@@ -24,7 +24,7 @@ fun CjFile.shouldHighlightErrors(): Boolean {
 //        return calculateShouldHighlightScript()
 //    }
 
-    return RootKindFilter.projectSources.copy(includeScriptsOutsideSourceRoots = indexingInProgress).matches(this)
+    return RootKindFilter.projectSources.copy( ).matches(this)
 }
 
 private fun isIndexingInProgress(project: Project) = runReadAction { DumbService.getInstance(project).isDumb }

@@ -8,6 +8,7 @@ import com.huawei.cangjie.doc.psi.impl.CDocName
 import com.huawei.cangjie.ide.CangJieIndicesHelper
 import com.huawei.cangjie.ide.ExpectedInfo
 import com.huawei.cangjie.ide.codeinsight.ReferenceVariantsHelper
+import com.huawei.cangjie.ide.completion.handlers.InsertHandlerProvider
 import com.huawei.cangjie.ide.fuzzyType
 import com.huawei.cangjie.ide.imports.ImportInsertHelper
 import com.huawei.cangjie.ide.imports.importableFqName

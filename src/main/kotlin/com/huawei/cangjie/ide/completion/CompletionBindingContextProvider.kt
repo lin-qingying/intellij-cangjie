@@ -141,8 +141,7 @@ class CompletionBindingContextProvider(project: Project) {
             }
         }
 
-        val bindingContext =
-            resolutionFacade.analyze(
+        val bindingContext =  resolutionFacade.analyze(
                 position.parentsWithSelf.firstIsInstance<CjElement>(),
                 BodyResolveMode.PARTIAL_FOR_COMPLETION
             )

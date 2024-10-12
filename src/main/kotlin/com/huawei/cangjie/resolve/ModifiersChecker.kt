@@ -221,6 +221,7 @@ class ModifiersChecker(
             modifierListOwner: CjModifierListOwner,
             defaultVisibility: DescriptorVisibility
         ): DescriptorVisibility {
+            if(modifierListOwner is CjMainFunction) return DescriptorVisibilities.PUBLIC
             return resolveVisibilityFromModifiers(
                 modifierListOwner.modifierList,
                 defaultVisibility

@@ -108,7 +108,8 @@ object CangJieDescriptorIconProvider {
 
             is ValueParameterDescriptor -> CangJieIcons.PARAMETER
             is LocalVariableDescriptor -> if (descriptor.isVar) CangJieIcons.VAR else CangJieIcons.LET
-            is PropertyDescriptor -> if (descriptor.isVar) CangJieIcons.FIELD_VAR else CangJieIcons.FIELD_LET
+            is PropertyDescriptor -> if (descriptor.isVar) CangJieIcons.FIELD_MPROP else CangJieIcons.FIELD_PROP
+            is VariableDescriptor -> if (descriptor.isVar) CangJieIcons.FIELD_VAR else CangJieIcons.FIELD_LET
             is TypeParameterDescriptor -> AllIcons.Nodes.Class
             is TypeAliasDescriptor -> CangJieIcons.TYPE_ALIAS
             else -> {

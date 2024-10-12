@@ -632,7 +632,7 @@ object CDocRenderer {
             override val asComma get() = resolveKey(CangJieHighlightingColors.COMMA)
             override val asColon get() = resolveKey(CangJieHighlightingColors.COLON)
             override val asLtColon: TextAttributesAdapter  = resolveKey(CangJieHighlightingColors.LT_COLON)
-
+            override val asStatic: TextAttributesAdapter = resolveKey(CangJieHighlightingColors.STATIC)
             override val asDoubleColon get() = resolveKey(CangJieHighlightingColors.DOUBLE_COLON)
             override val asParentheses get() = resolveKey(CangJieHighlightingColors.PARENTHESIS)
             override val asArrow get() = resolveKey(CangJieHighlightingColors.ARROW)
@@ -643,6 +643,8 @@ object CDocRenderer {
             override val asNullityMarker get() = resolveKey(CangJieHighlightingColors.QUEST)
             override val asKeyword get() = resolveKey(CangJieHighlightingColors.KEYWORD)
             override val asLet get() = resolveKey(CangJieHighlightingColors.LET_KEYWORD)
+            override val asMut: TextAttributesAdapter = resolveKey(CangJieHighlightingColors.MUT_KEYWORD)
+            override val asProp: TextAttributesAdapter = resolveKey(CangJieHighlightingColors.PROP_KEYWORD)
             override val asVar get() = resolveKey(CangJieHighlightingColors.VAR_KEYWORD)
             override val asAnnotationName get() = resolveKey(CangJieHighlightingColors.ANNOTATION)
             override val asAnnotationAttributeName get() = resolveKey(CangJieHighlightingColors.ANNOTATION_ATTRIBUTE_NAME_ATTRIBUTES)

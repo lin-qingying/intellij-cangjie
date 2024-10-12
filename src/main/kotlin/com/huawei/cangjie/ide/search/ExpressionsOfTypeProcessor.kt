@@ -607,7 +607,7 @@ class ExpressionsOfTypeProcessor(
     }
 
     private fun isInProjectScope(classToSearch: CjTypeStatement): Boolean {
-        return RootKindFilter.projectSources.copy(includeScriptsOutsideSourceRoots = false).matches(classToSearch)
+        return RootKindFilter.projectSources.copy( ).matches(classToSearch)
     }
 
 }

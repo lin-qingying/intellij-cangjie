@@ -1,7 +1,7 @@
 package com.huawei.cangjie.psi
 
 import com.huawei.cangjie.lexer.CjTokens
- 
+
 import com.huawei.cangjie.psi.stubs.CangJiePropertyStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
@@ -28,7 +28,7 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
             return parent is CjTypeStatement || parent is CjClassBody
         }
     override val isStatic: Boolean
-        get() = node.findChildByType(CjTokens.STATIC_KEYWORD) != null
+        get() = hasModifier(CjTokens.STATIC_KEYWORD)
 //
 //    fun getDelegateExpression():CjExpression? {
 //        val stub: CangJiePropertyStub? = stub

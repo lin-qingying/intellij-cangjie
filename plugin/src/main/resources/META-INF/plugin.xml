@@ -14,7 +14,7 @@
     The plugin provides support for CangJie language
     ]]>
     </change-notes>
-    <version>3.0.0-deta-5</version>
+    <version>3.0.0-deta-6</version>
     <!--    <depends>com.intellij.modules.platform</depends>-->
     <depends>com.intellij.modules.lang</depends>
     <!--suppress PluginXmlValidity -->

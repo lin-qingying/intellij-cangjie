@@ -13,6 +13,7 @@
     <xi:include href="/META-INF/completion.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <!--    <xi:include href="/META-INF/diagrams.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
     <xi:include href="/META-INF/intellij.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/file-types.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <extensions defaultExtensionNs="com.intellij">
 

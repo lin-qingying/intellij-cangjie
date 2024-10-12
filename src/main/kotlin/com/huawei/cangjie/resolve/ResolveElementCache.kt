@@ -66,6 +66,7 @@ class ResolveElementCache(
         } else null
     ).toTypedArray()
     val traceSize get() = resolveSession.trace.size
+
     private class CachedPartialResolve(val bindingContext: BindingContext, file: CjFile, val mode: BodyResolveMode) {
         private val modificationStamp: Long = modificationStamp(file)
 
@@ -185,10 +186,10 @@ class ResolveElementCache(
             return element
 
         val elementOfAdditionalResolve = element.findTopmostParentInFile {
-            it is CjNamedFunction ||
+            it is CjFunction ||
                     it is CjAnonymousInitializer ||
-                    it is CjPrimaryConstructor ||
-                    it is CjSecondaryConstructor ||
+//                    it is CjPrimaryConstructor ||
+//                    it is CjSecondaryConstructor ||
                     it is CjProperty ||
                     it is CjVariable ||
                     it is CjSuperTypeList ||
@@ -246,10 +247,11 @@ class ResolveElementCache(
 //        doResolveAnnotations(fileLevelAnnotations)
     }
 
-        fun resolveToElement(element: CjElement, bodyResolveMode: BodyResolveMode = FULL): BindingContext {
+
+    fun resolveToElement(element: CjElement, bodyResolveMode: BodyResolveMode = FULL): BindingContext {
         val elementOfAdditionalResolve = findElementOfAdditionalResolve(element, bodyResolveMode)
 
-//        ensureFileAnnotationsResolved(element.getContainingCjFile())
+        ensureFileAnnotationsResolved(element.getContainingCjFile())
 
         val bindingContext = if (elementOfAdditionalResolve != null) {
             if (elementOfAdditionalResolve is CjParameter) {
@@ -262,8 +264,8 @@ class ResolveElementCache(
         } else {
             element.getNonStrictParentOfType<CjDeclaration>()?.takeIf {
 
-                !EXCLUDED_TYPES.any{ kclass->
-                    kclass  == it::class
+                !EXCLUDED_TYPES.any { kclass ->
+                    kclass == it::class
 
                 }
 //                it !is CjAnonymousInitializer && it !is CjDestructuringDeclaration && it !is CjDestructuringDeclarationEntry

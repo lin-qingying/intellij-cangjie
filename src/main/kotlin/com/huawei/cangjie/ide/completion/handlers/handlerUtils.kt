@@ -6,12 +6,11 @@ import com.huawei.cangjie.ide.formatter.adjustLineIndent
 import com.huawei.cangjie.ide.formatter.cangjieCustomSettings
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.psi.CjBlockStringTemplateEntry
 import com.huawei.cangjie.psi.CjDotQualifiedExpression
+import com.huawei.cangjie.psi.CjNameReferenceExpression
 import com.huawei.cangjie.psi.CjPsiFactory
-import com.huawei.cangjie.psi.psiUtil.getLastParentOfTypeInRow
-import com.huawei.cangjie.psi.psiUtil.getNextSiblingIgnoringWhitespace
-import com.huawei.cangjie.psi.psiUtil.moveCaret
-import com.huawei.cangjie.psi.psiUtil.startOffset
+import com.huawei.cangjie.psi.psiUtil.*
 import com.huawei.cangjie.renderer.render
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.utils.CallType
@@ -32,6 +31,25 @@ import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.refactoring.suggested.createSmartPointer
 
+fun removeRedundantBracesInStringTemplate(context: InsertionContext) {
+    val document = context.document
+    val tailOffset = context.tailOffset
+    if (document.charsSequence[tailOffset] == '}') {
+        PsiDocumentManager.getInstance(context.project).commitDocument(document)
+
+        val token = context.file.findElementAt(tailOffset)
+        if (token != null && token.node.elementType == CjTokens.LONG_TEMPLATE_ENTRY_END) {
+            val entry = token.parent as CjBlockStringTemplateEntry
+            val nameExpression = entry.expression as? CjNameReferenceExpression ?: return
+            if (canPlaceAfterSimpleNameEntry(entry.nextSibling)) {
+                context.tailOffset++ // place after '}' otherwise it gets invalidated
+                val name = nameExpression.getReferencedName()
+                val newEntry = CjPsiFactory(context.project).createSimpleNameStringTemplateEntry(name)
+                entry.replace(newEntry)
+            }
+        }
+    }
+}
 fun Document.isTextAt(offset: Int, text: String) =
     offset + text.length <= textLength && getText(TextRange(offset, offset + text.length)) == text
 fun createNormalFunctionInsertHandler(
@@ -117,7 +135,7 @@ fun createNormalFunctionInsertHandler(
         }
 
         var prefixModificationOperation: DeclarativeInsertHandler.RelativeTextEdit? = null
-        var alreadyHasBackTickInTheEnd = false
+        var alreadyHasBacCjickInTheEnd = false
         if (!argumentsOnly) {
             val specialSymbols = charArrayOf('_', '`', '~')
             val typedFuzzyName = editor.document.text.subSequence(0, offset)
@@ -132,7 +150,7 @@ fun createNormalFunctionInsertHandler(
 
                 Though it is not obvious why. Operation offsets are relative to cursor position before insertion. In this
                 case it will be offset of lookup element text end - which is functionStartOffset + `functionName.asString().length`.
-                NB! asString() and not render(), we rely on knowledge that backticks are not elevated into LookupElement.
+                NB! asString() and not render(), we rely on knowledge that bacCjicks are not elevated into LookupElement.
 
                 Example:
                 we have a function "fun fooBar(i: Int) {}" which we want to call from a string template.
@@ -177,7 +195,7 @@ fun createNormalFunctionInsertHandler(
                 }
             }
 
-            // enclosing with backticks
+            // enclosing with bacCjicks
             run {
                 if (!functionName.isSpecial) {
                     val renderedName = functionName.render()
@@ -186,11 +204,11 @@ fun createNormalFunctionInsertHandler(
                     val alreadyHasTickAtFront = chars.getOrNull(functionStartOffset) == '`'
 
                     if (renderedName.firstOrNull() == '`') {
-                        alreadyHasBackTickInTheEnd = chars.getOrNull(offset) == '`'
+                        alreadyHasBacCjickInTheEnd = chars.getOrNull(offset) == '`'
 
-                        // requires backticks
+                        // requires bacCjicks
                         if (!alreadyHasTickAtFront) {
-                            // backtick is not present already, so need to add it manually
+                            // bacCjick is not present already, so need to add it manually
                             prefixModificationOperation = when (val operation = prefixModificationOperation) {
                                 null -> DeclarativeInsertHandler.RelativeTextEdit(
                                     normalizedBeforeFunctionOffset,
@@ -202,12 +220,12 @@ fun createNormalFunctionInsertHandler(
                             }
                         }
 
-                        if (!alreadyHasBackTickInTheEnd) {
+                        if (!alreadyHasBacCjickInTheEnd) {
                             argumentsStringToInsert.insert(0, "`")
                             builder.offsetToPutCaret += 1
                         }
                     } else {
-                        // no backticks required
+                        // no bacCjicks required
                         if (alreadyHasTickAtFront) {
                             prefixModificationOperation = when (val operation = prefixModificationOperation) {
                                 null -> DeclarativeInsertHandler.RelativeTextEdit(
@@ -225,7 +243,7 @@ fun createNormalFunctionInsertHandler(
         }
 
         prefixModificationOperation?.also { builder.addOperation(it) }
-        if (alreadyHasBackTickInTheEnd) {
+        if (alreadyHasBacCjickInTheEnd) {
             builder.addOperation(1, argumentsStringToInsert.toString())
             builder.offsetToPutCaret += 1
         } else {
@@ -234,7 +252,7 @@ fun createNormalFunctionInsertHandler(
 
         builder.withPostInsertHandler(InsertHandler<LookupElement> { context, item ->
             // The following code looks hacky:
-            // brackets with arguments are already present, so are braces and backticks, and they should be kept.
+            // brackets with arguments are already present, so are braces and bacCjicks, and they should be kept.
             // that's why we provide fake context which is adjusted
             // NB: it is important to fork context here and keep the original one intact
             context.forkByOffsetMap().also { forkedContext ->
@@ -269,7 +287,7 @@ fun createNormalFunctionInsertHandler(
                     insertLambdaSignatureTemplate(startOffset, endOffset, lambdaInfo.lambdaType, forkedContext, context)
                 }
 
-                // hack for KT-31902
+
                 if (callType == CallType.DEFAULT) {
                     val psiDocumentManager = PsiDocumentManager.getInstance(forkedContext.project)
 

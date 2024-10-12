@@ -2,6 +2,7 @@ package com.huawei.cangjie.ide.navigation
 
 import com.huawei.cangjie.ide.base.projectStructure.RootKindFilter
 import com.huawei.cangjie.ide.base.projectStructure.matches
+import com.huawei.cangjie.lang.declarations.CjDeclarationsFile
 import com.huawei.cangjie.psi.*
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
@@ -35,7 +36,7 @@ object SourceNavigationHelper {
             NavigationKind.CLASS_FILES_TO_SOURCES -> if (!from.getContainingCjFile().isCompiled) return from
             NavigationKind.SOURCES_TO_CLASS_FILES -> {
                 val file = from.containingFile
-                if (file is CjFile && file.isCompiled) return from
+                if (file is CjDeclarationsFile /*&& file.isCompiled*/) return from
                 if (!RootKindFilter.librarySources.matches(from)) return from
                 if (CjPsiUtil.isLocal(from)) return from
             }
