@@ -23,7 +23,10 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>, CjCallableDecl
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitParameter(this, data)
     }
+    val isVarArg : Boolean get()   {
 
+        return modifierList != null && modifierList!!.hasModifier(CjTokens.VARARG_KEYWORD)
+    }
 
     override val typeReference: CjTypeReference?
         get() =  getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)

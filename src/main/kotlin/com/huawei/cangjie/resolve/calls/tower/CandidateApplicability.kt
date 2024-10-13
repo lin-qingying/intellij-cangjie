@@ -18,7 +18,7 @@ enum class CandidateApplicability {
 
     /**
      * Candidate could be successful but requires an unsupported feature.
-     * Reported for references to local variables in K2.
+     * Reported for references to local .
      * Provokes UNSUPPORTED.
      */
      UNSUPPORTED,

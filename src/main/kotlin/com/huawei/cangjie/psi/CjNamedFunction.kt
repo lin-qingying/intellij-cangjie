@@ -1,6 +1,7 @@
 package com.huawei.cangjie.psi
 
 import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.psiUtil.getStrictParentOfType
 import com.huawei.cangjie.psi.stubs.CangJieFunctionStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
@@ -106,40 +107,33 @@ class CjNamedFunction : CjFunctionImpl {
         return typeReference != null
     }
 
-    override val receiverTypeReference: CjTypeReference?
-        get() {
-            val stub: CangJieFunctionStub? = stub
-            if (stub != null) {
-                if (!stub.isExtension()) {
-                    return null
-                }
-                val childTypeReferences: List<CjTypeReference> =
-                    getStubOrPsiChildrenAsList(
-                        CjStubElementTypes.TYPE_REFERENCE
-                    )
-                return if (childTypeReferences.isNotEmpty()) {
-                    childTypeReferences[0]
-                } else {
-                    null
-                }
-            }
-            return receiverTypeRefByTree
-        }
-
-    private val receiverTypeRefByTree: CjTypeReference?
-        get() {
-            var child: PsiElement? = firstChild
-            while (child != null) {
-                val tt: IElementType = child.node.elementType
-                if (tt === CjTokens.LPAR || tt === CjTokens.COLON) break
-                if (child is CjTypeReference) {
-                    return child
-                }
-                child = child.nextSibling
-            }
-
-            return null
-        }
+//    override val receiverTypeReference: CjTypeReference?
+//        get() {
+//            val stub: CangJieFunctionStub? = stub
+//            if (stub != null) {
+//                if (!stub.isExtension()) {
+//                    return null
+//                }
+//                val childTypeReferences: List<CjTypeReference> =
+//                    getStubOrPsiChildrenAsList(
+//                        CjStubElementTypes.TYPE_REFERENCE
+//                    )
+//                return if (childTypeReferences.isNotEmpty()) {
+//                    childTypeReferences[0]
+//                } else {
+//                    null
+//                }
+//            }
+//            return receiverTypeRefByTree
+//        }
+//
+//    private val receiverTypeRefByTree: CjTypeReference?
+//        get() {
+//            val parent = this.getStrictParentOfType<CjExtend>()
+//
+//            return parent?.receiverTypeReceiver
+//
+//        }
 
     override fun toString(): String {
 //        return getNode().getElementType().toString();

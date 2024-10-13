@@ -10,6 +10,7 @@ import com.huawei.cangjie.diagnostics.reportOnDeclaration
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.intellij.psi.PsiElement
 import com.intellij.util.containers.MultiMap
@@ -91,7 +92,10 @@ class OverloadResolver(
         overloadFilter: OverloadFilter,
         getMembersByName: (MemberScope, Name) -> Collection<DeclarationDescriptorNonRoot>
     ): Collection<DeclarationDescriptorNonRoot> {
-        val containingPackage = descriptor.containingDeclaration
+        var containingPackage = descriptor.containingDeclaration
+        if (containingPackage is LazyExtendClassDescriptor) {
+            containingPackage = containingPackage.containingDeclaration
+        }
         if (containingPackage !is PackageFragmentDescriptor) {
             throw AssertionError("$descriptor is not a top-level package member")
         }
@@ -102,7 +106,9 @@ class OverloadResolver(
             else -> throw AssertionError("Unexpected descriptor kind: $descriptor")
         }
 
-        val containingPackageScope = containingModule.getPackage(containingPackage.fqName).memberScope
+        val containingPackageScope = containingModule.getPackage(
+            containingPackage.fqName
+        ).memberScope
         val possibleOverloads =
             getMembersByName(containingPackageScope, descriptor.name).filter {
                 // NB memberScope for PackageViewDescriptor includes module dependencies
@@ -120,7 +126,9 @@ class OverloadResolver(
     ) {
         val observedFQNs = hashSetOf<FqNameUnsafe>()
         for (descriptor in interestingDescriptors) {
-            if (descriptor.containingDeclaration !is PackageFragmentDescriptor) continue
+            if (descriptor.containingDeclaration !is PackageFragmentDescriptor && descriptor.containingDeclaration !is
+                        LazyExtendClassDescriptor
+            ) continue
 
             val descriptorFQN = DescriptorUtils.getFqName(descriptor)
             if (observedFQNs.contains(descriptorFQN)) continue
@@ -270,6 +278,13 @@ class OverloadResolver(
 //                    reportOnDeclaration(trace, memberDescriptor) { Errors.CONFLICTING_OVERLOADS.on(it, redeclarations) }
             }
         }
+//
+//        for (memberDescriptor in redeclarations) {
+//            val diagnostic = errorDispatcher.getDiagnostic(languageVersionSettings, memberDescriptor, redeclarations) ?: continue
+//            reportOnDeclaration(trace, memberDescriptor) {
+//                diagnostic.on(it, redeclarations)
+//            }
+//        }
     }
 
     private fun checkOverloadsInClass(

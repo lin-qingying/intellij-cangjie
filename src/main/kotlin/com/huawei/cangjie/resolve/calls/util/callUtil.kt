@@ -52,9 +52,28 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.PsiTreeUtil
 
-fun CjElement?.getParentResolvedCall(context: BindingContext, strict: Boolean = true): ResolvedCall<out CallableDescriptor>? {
+fun CjElement?.getParentResolvedCall(
+    context: BindingContext,
+    strict: Boolean = true
+): ResolvedCall<out CallableDescriptor>? {
     return this?.getParentCall(context, strict)?.getResolvedCall(context)
 }
+
+
+fun <D : CallableDescriptor> ResolvedCall<D>.hasTypeMismatchErrorOnParameter(parameter: ValueParameterDescriptor): Boolean {
+    val resolvedValueArgument = valueArguments[parameter]
+    if (resolvedValueArgument == null) return true
+
+    return resolvedValueArgument.arguments.any { argument ->
+        val argumentMapping = getArgumentMapping(argument)
+        argumentMapping is ArgumentMatch && argumentMapping.status == ArgumentMatchStatus.TYPE_MISMATCH
+    }
+}
+
+fun <D : CallableDescriptor> ResolvedCall<D>.hasUnmappedArguments(): Boolean {
+    return call.valueArguments.any { argument -> getArgumentMapping(argument) == ArgumentUnmapped }
+}
+
 fun CjElement.getParentCall(context: BindingContext, strict: Boolean = true): Call? {
     val callExpressionTypes = arrayOf(
         CjSimpleNameExpression::class.java, CjCallElement::class.java, CjBinaryExpression::class.java,
@@ -68,6 +87,7 @@ fun CjElement.getParentCall(context: BindingContext, strict: Boolean = true): Ca
     }
     return parent?.getCall(context)
 }
+
 fun CjExpression.getType(context: BindingContext): CangJieType? {
     val type = context.getType(this)
     if (type != null) return type
@@ -77,9 +97,11 @@ fun CjExpression.getType(context: BindingContext): CangJieType? {
     }
     return null
 }
+
 fun <D : CallableDescriptor> ResolvedCall<D>.getParameterForArgument(valueArgument: ValueArgument?): ValueParameterDescriptor? {
     return (valueArgument?.let { getArgumentMapping(it) } as? ArgumentMatch)?.valueParameter
 }
+
 fun Call.getValueArgumentListOrElement(): CjElement =
     if (this is CallTransformer.CallForImplicitInvoke) {
         outerCall.getValueArgumentListOrElement()
@@ -509,6 +531,7 @@ private fun chooseMoreSpecific(type1: CangJieType, type2: CangJieType): CangJieT
     return type1.takeIf { type1IsSubtype }
         ?: type2.takeIf { type2IsSubtype }
 }
+
 /**
  * See `ArgumentsToParametersMapper` class in the compiler.
  */
@@ -517,7 +540,8 @@ fun Call.mapArgumentsToParameters(targetDescriptor: CallableDescriptor): Map<Val
     if (parameters.isEmpty()) return emptyMap()
 
     val map = HashMap<ValueArgument, ValueParameterDescriptor>()
-    val parametersByName = if (targetDescriptor.hasStableParameterNames()) parameters.associateBy { it.name } else emptyMap()
+    val parametersByName =
+        if (targetDescriptor.hasStableParameterNames()) parameters.associateBy { it.name } else emptyMap()
 
     var positionalArgumentIndex: Int? = 0
 

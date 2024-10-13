@@ -422,11 +422,12 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
 
         Collection<DeclarationDescriptor> list = new ArrayList<>(DescriptorUtils.getAllDescriptors(getUnsubstitutedMemberScope()));
 
-        getExtendClassDescriptors().forEach(
-                it -> {
-                    list.addAll(DescriptorUtils.getAllDescriptors(it.getUnsubstitutedMemberScope()));
-                }
-        );
+//        TODO 扩展
+//        getExtendClassDescriptors().forEach(
+//                it -> {
+//                    list.addAll(DescriptorUtils.getAllDescriptors(it.getUnsubstitutedMemberScope()));
+//                }
+//        );
 
         return (Collection) CollectionsKt.filter(
 

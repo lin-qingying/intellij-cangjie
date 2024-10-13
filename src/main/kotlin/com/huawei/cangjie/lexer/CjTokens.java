@@ -239,6 +239,8 @@ public interface CjTokens {
 
     int FILE_KEYWORD_Id = 212;
 
+    int VARARG_KEYWORD_Id = 213;
+
 
     IElementType DOC_COMMENT = CDocTokens.CDOC;
     IElementType WHITE_SPACE = TokenType.WHITE_SPACE;
@@ -253,6 +255,7 @@ public interface CjTokens {
     CjToken BLOCK_COMMENT = new CjToken("BLOCK_COMMENT", BLOCK_COMMENT_Id);
     CjToken EOL_COMMENT = new CjToken("EOL_COMMENT", EOL_COMMENT_Id);
     CjToken SHEBANG_COMMENT = new CjToken("SHEBANG_COMMENT", SHEBANG_COMMENT_Id);
+    CjModifierKeywordToken VARARG_KEYWORD    = CjModifierKeywordToken.softKeywordModifier("vararg", VARARG_KEYWORD_Id);
 
     CjToken INTEGER_LITERAL = new CjToken("INTEGER_LITERAL", INTEGER_LITERAL_Id);
     CjToken FLOAT_LITERAL = new CjToken("FLOAT_CONSTANT", FLOAT_LITERAL_Id);

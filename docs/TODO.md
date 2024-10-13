@@ -31,3 +31,11 @@ try (Resource res = ...) {
     由于枚举是展开的，可能与其他声明的重名检查不触发
     接口与变量重名检查不触发
 ```
+
+
+ 
+com.linqingying.lsp.api.lsWidget.LspServerWidgetItem 在 2024.2.3中有一些方法没有实现导致报错
+
+扩展中重写的成员不能使用override
+
+多导入语句还没有实现

@@ -102,6 +102,7 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER),
     ContextReceivers(sinceVersion = null),
 
     ImplicitSignedToUnsignedIntegerConversion(sinceVersion = null),
+    NoBuilderInferenceWithoutAnnotationRestriction(sinceVersion = null, kind = OTHER),
 
     ;
 

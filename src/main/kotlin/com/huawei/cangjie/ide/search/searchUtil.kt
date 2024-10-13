@@ -3,12 +3,11 @@ package com.huawei.cangjie.ide.search
 import com.huawei.cangjie.descriptors.CallableDescriptor
 import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.FunctionDescriptor
+import com.huawei.cangjie.psi.*
 
-import com.huawei.cangjie.psi.CjDeclaration
-import com.huawei.cangjie.psi.CjImportDirective
-import com.huawei.cangjie.psi.CjTypeStatement
 import com.huawei.cangjie.psi.psiUtil.getNonStrictParentOfType
 import com.huawei.cangjie.references.util.DescriptorToSourceUtilsIde
+import com.huawei.cangjie.resolve.caches.getResolutionFacade
 import com.huawei.cangjie.resolve.caches.resolveToDescriptorIfAny
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.types.CangJieType
@@ -31,6 +30,11 @@ fun PsiElement.getReceiverTypeSearcherInfo(): ReceiverTypeSearcherInfo? {
         containsTypeOrDerivedInside(it, receiverType)
     }
 }
+
+fun CjFile.forceResolveReferences(elements: List<CjElement>) {
+    getResolutionFacade().analyze(elements, BodyResolveMode.PARTIAL)
+}
+
 private fun containsTypeOrDerivedInside(declaration: CjDeclaration, typeToSearch: FuzzyType): Boolean {
 
     fun CangJieType.containsTypeOrDerivedInside(): Boolean {
@@ -67,3 +71,4 @@ private fun PsiElement.resolveTargetToDescriptor( ): FunctionDescriptor? {
         else -> null
     } as? FunctionDescriptor
 }
+

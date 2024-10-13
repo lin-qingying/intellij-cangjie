@@ -17,6 +17,6 @@ object CangJieHighlightingBundle : AbstractCangJieBundle(BUNDLE) {
 
     @Nls
     @JvmStatic
-    fun htmlMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String =
+    fun htmlMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any?): String =
         getMessage(key, *params).withHtml()
 }

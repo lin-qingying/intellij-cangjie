@@ -13,11 +13,14 @@ class CangJiePropertyStubImpl(
     parent: StubElement<out PsiElement>?,
     private val name: StringRef?,
     private val fqName: FqName?,
+    private val isExtension: Boolean,
+
     private val hasReturnTypeRef: Boolean,
 
 ) : CangJieStubBaseImpl<CjProperty>(parent, CjStubElementTypes.PROPERTY), CangJiePropertyStub {
     override fun getFqName(): FqName? = fqName
     override fun hasReturnTypeRef() = hasReturnTypeRef
+    override fun isExtension() = isExtension
 
     override fun getName(): String? = StringRef.toString(name)
 }

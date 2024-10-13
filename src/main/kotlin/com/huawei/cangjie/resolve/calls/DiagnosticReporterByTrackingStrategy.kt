@@ -66,15 +66,24 @@ class DiagnosticReporterByTrackingStrategy(
 
     override fun onCall(diagnostic: CangJieCallDiagnostic) {
         when (diagnostic) {
-
-            is StaticContextAccessNonStaticMemberDiagnostic -> {
-                trace.report(
-                    STATIC_CONTEXT_REFERENCE_ERROR.on(
-                        psiCangJieCall.psiCall.callElement,
-                        diagnostic.kind,
+            is NoCallOperatorFunction -> {
+                   trace.report(
+                    NO_CALL_OPERATOR.on(
+                        psiCangJieCall.psiCall.callElement as CjCallExpression,
                         diagnostic.descriptor
                     )
                 )
+
+            }
+
+            is StaticContextAccessNonStaticMemberDiagnostic -> {
+                    trace.report(
+                        STATIC_CONTEXT_REFERENCE_ERROR.on(
+                            psiCangJieCall.psiCall.callElement,
+                            diagnostic.kind,
+                            diagnostic.descriptor
+                        )
+                    )
             }
 
             is NonStaticContextAccessStaticMemberDiagnostic -> {

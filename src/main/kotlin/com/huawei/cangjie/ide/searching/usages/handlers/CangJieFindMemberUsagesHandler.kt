@@ -1,29 +1,70 @@
 package com.huawei.cangjie.ide.searching.usages.handlers
 
+import com.huawei.cangjie.CangJieBundle
+import com.huawei.cangjie.ide.search.CangJieSearchUsagesSupport
+import com.huawei.cangjie.ide.search.declarationsSearch.HierarchySearchRequest
+import com.huawei.cangjie.ide.search.ideExtensions.CangJieReferencesSearchOptions
+import com.huawei.cangjie.ide.search.ideExtensions.CangJieReferencesSearchParameters
+import com.huawei.cangjie.ide.search.isImportUsage
+import com.huawei.cangjie.ide.searching.findUsages.CangJieFindUsagesSupport
 import com.huawei.cangjie.ide.searching.usages.CangJieCallableFindUsagesOptions
 import com.huawei.cangjie.ide.searching.usages.CangJieFindUsagesHandlerFactory
+import com.huawei.cangjie.ide.searching.usages.CangJieFunctionFindUsagesOptions
+import com.huawei.cangjie.ide.searching.usages.CangJiePropertyFindUsagesOptions
+import com.huawei.cangjie.ide.stubindex.resolve.isUnitTestMode
 import com.huawei.cangjie.psi.*
-import com.intellij.find.findUsages.AbstractFindUsagesDialog
+import com.huawei.cangjie.utils.runReadActionInSmartMode
+import com.intellij.find.FindManager
 import com.intellij.find.findUsages.FindUsagesOptions
+import com.intellij.find.impl.FindManagerImpl
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
+import com.intellij.psi.search.SearchScope
+import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.*
+import org.jetbrains.annotations.TestOnly
+import java.util.*
 
 
 abstract class CangJieFindMemberUsagesHandler<T : CjNamedDeclaration> protected constructor(
     declaration: T,
     elementsToSearch: Collection<PsiElement>,
     factory: CangJieFindUsagesHandlerFactory
-) : CangJieFindUsagesHandler<T>(declaration, elementsToSearch, factory)
-{
+) : CangJieFindUsagesHandler<T>(declaration, elementsToSearch, factory) {
     override fun createSearcher(
         element: PsiElement,
         processor: Processor<in UsageInfo>,
         options: FindUsagesOptions
     ): Searcher {
         return MySearcher(element, processor, options)
+    }
+    private fun searchReferences(
+        element: PsiElement,
+        processor: Processor<in UsageInfo>,
+        options: FindUsagesOptions,
+        forHighlight: Boolean
+    ): Boolean {
+        val searcher = createSearcher(element, processor, options)
+        if (!runReadAction { project }.runReadActionInSmartMode { searcher.buildTaskList(forHighlight) }) return false
+        return searcher.executeTasks()
+    }
+    override fun findReferencesToHighlight(target: PsiElement, searchScope: SearchScope): Collection<PsiReference> {
+
+        val baseDeclarations = CangJieSearchUsagesSupport.SearchUtils.findDeepestSuperMethodsNoWrapping(target)
+
+        return if (baseDeclarations.isNotEmpty()) {
+            baseDeclarations.flatMap {
+                val handler = (FindManager.getInstance(project) as FindManagerImpl).findUsagesManager.getFindUsagesHandler(it, true)
+                handler?.findReferencesToHighlight(it, searchScope) ?: emptyList()
+            }
+        } else {
+            super.findReferencesToHighlight(target, searchScope)
+        }
     }
 
     private inner class MySearcher(
@@ -33,42 +74,32 @@ abstract class CangJieFindMemberUsagesHandler<T : CjNamedDeclaration> protected 
         private val cangjieOptions = options as CangJieCallableFindUsagesOptions
 
         override fun buildTaskList(forHighlight: Boolean): Boolean {
-//            val referenceProcessor = createReferenceProcessor(processor)
-//            val uniqueProcessor = CommonProcessors.UniqueProcessor(processor)
-//
-//            if (options.isUsages) {
-//                val baseCangJieSearchOptions = createCangJieReferencesSearchOptions(options, forHighlight)
-//                val cangjieSearchOptions = if (element is CjNamedFunction && CangJiePsiHeuristics.isPossibleOperator(element)) {
-//                    baseCangJieSearchOptions
-//                } else {
-//                    baseCangJieSearchOptions.copy(searchForOperatorConventions = false)
-//                }
-//
-//                val searchParameters = CangJieReferencesSearchParameters(element, options.searchScope, cangjieOptions = cangjieSearchOptions)
-//
-//                addTask { applyQueryFilters(element, options, ReferencesSearch.search(searchParameters)).forEach(referenceProcessor) }
-//
-//                if (element is CjElement && !isOnlyCangJieSearch(options.searchScope)) {
-//                    // TODO: very bad code!! ReferencesSearch does not work correctly for constructors and annotation parameters
-//                    val psiMethodScopeSearch = when {
-//                        element is CjParameter && element.dataClassComponentMethodName != null ->
-//                            options.searchScope.excludeCangJieSources(project)
-//                        else -> options.searchScope
-//                    }
-//
-//                    for (psiMethod in element.toLightMethods().filterDataClassComponentsIfDisabled(cangjieSearchOptions)) {
-//                        addTask {
-//                            val query = MethodReferencesSearch.search(psiMethod, psiMethodScopeSearch, true)
-//                            applyQueryFilters(
-//                                element,
-//                                options,
-//                                query
-//                            ).forEach(referenceProcessor)
-//                        }
-//                    }
-//                }
-//            }
-//
+            val referenceProcessor = createReferenceProcessor(processor)
+            val uniqueProcessor = CommonProcessors.UniqueProcessor(processor)
+
+            if (options.isUsages) {
+                val baseCangJieSearchOptions = createCangJieReferencesSearchOptions(options, forHighlight)
+                val cangjieSearchOptions =
+                    if (element is CjNamedFunction && CangJiePsiHeuristics.isPossibleOperator(element)) {
+                        baseCangJieSearchOptions
+                    } else {
+                        baseCangJieSearchOptions.copy(searchForOperatorConventions = false)
+                    }
+
+                val searchParameters = CangJieReferencesSearchParameters(
+                    element,
+                    options.searchScope,
+                    cangjieOptions = cangjieSearchOptions
+                )
+
+                addTask {
+                    applyQueryFilters(element, options, ReferencesSearch.search(searchParameters)).forEach(
+                        referenceProcessor
+                    )
+                }
+
+
+            }
 //            if (cangjieOptions.searchOverrides) {
 //                addTask {
 //                    val overriders = HierarchySearchRequest(element, options.searchScope, true).searchOverriders()
@@ -79,9 +110,11 @@ abstract class CangJieFindMemberUsagesHandler<T : CjNamedDeclaration> protected 
 //                }
 //            }
 
+
             return true
         }
     }
+
     private class Function(
         declaration: CjFunction,
         elementsToSearch: Collection<PsiElement>,
@@ -90,28 +123,35 @@ abstract class CangJieFindMemberUsagesHandler<T : CjNamedDeclaration> protected 
 
         override fun getFindUsagesOptions(dataContext: DataContext?): FindUsagesOptions = factory.findFunctionOptions
 
-//        override fun getPrimaryElements(): Array<PsiElement> =
-//            if (factory.findFunctionOptions.isSearchForBaseMethod) {
-//                val supers = CangJieFindUsagesSupport.getSuperMethods(psiElement as CjFunction, null)
-//                if (supers.contains(psiElement)) supers.toTypedArray() else (supers + psiElement).toTypedArray()
-//            } else super.getPrimaryElements()
+        override fun getPrimaryElements(): Array<PsiElement> =
+            if (factory.findFunctionOptions.isSearchForBaseMethod) {
+                val supers = CangJieFindUsagesSupport.getSuperMethods(psiElement as CjFunction, null)
+                if (supers.contains(psiElement)) supers.toTypedArray() else (supers + psiElement).toTypedArray()
+            } else super.getPrimaryElements()
 
-        //        override fun createCangJieReferencesSearchOptions(options: FindUsagesOptions, forHighlight: Boolean): CangJieReferencesSearchOptions {
-//            val cangjieOptions = options as CangJieFunctionFindUsagesOptions
-//            return CangJieReferencesSearchOptions(
-//                acceptCallableOverrides = true,
-//                acceptOverloads = cangjieOptions.isIncludeOverloadUsages,
-//                acceptExtensionsOfDeclarationClass = cangjieOptions.isIncludeOverloadUsages,
-//                searchForExpectedUsages = cangjieOptions.searchExpected,
-//                searchForComponentConventions = !forHighlight
-//            )
-//        }
+        override fun createCangJieReferencesSearchOptions(
+            options: FindUsagesOptions,
+            forHighlight: Boolean
+        ): CangJieReferencesSearchOptions {
+            val cangjieOptions = options as CangJieFunctionFindUsagesOptions
+            return CangJieReferencesSearchOptions(
+                acceptCallableOverrides = true,
+                acceptOverloads = cangjieOptions.isIncludeOverloadUsages,
+                acceptExtensionsOfDeclarationClass = cangjieOptions.isIncludeOverloadUsages,
+                searchForExpectedUsages = cangjieOptions.searchExpected,
+                searchForComponentConventions = !forHighlight
+            )
+        }
 
-//        override fun applyQueryFilters(element: PsiElement, options: FindUsagesOptions, query: Query<PsiReference>): Query<PsiReference> {
-//            val cangjieOptions = options as CangJieFunctionFindUsagesOptions
-//            return query
-//                .applyFilter(/*cangjieOptions.isSkipImportStatements*/true) { !it.isImportUsage() }
-//        }
+        override fun applyQueryFilters(
+            element: PsiElement,
+            options: FindUsagesOptions,
+            query: Query<PsiReference>
+        ): Query<PsiReference> {
+            val cangjieOptions = options as CangJieFunctionFindUsagesOptions
+            return query
+                .applyFilter(/*cangjieOptions.isSkipImportStatements*/true) { !it.isImportUsage() }
+        }
     }
 
     private class Property(
@@ -119,45 +159,45 @@ abstract class CangJieFindMemberUsagesHandler<T : CjNamedDeclaration> protected 
         elementsToSearch: Collection<PsiElement>,
         factory: CangJieFindUsagesHandlerFactory
     ) : CangJieFindMemberUsagesHandler<CjNamedDeclaration>(propertyDeclaration, elementsToSearch, factory) {
-//
-//        override fun processElementUsages(
-//            element: PsiElement,
-//            processor: Processor<in UsageInfo>,
-//            options: FindUsagesOptions
-//        ): Boolean {
-//
-//            if (isUnitTestMode() ||
-//                !isPropertyOfDataClass ||
-//                psiElement.getDisableComponentAndDestructionSearch(resetSingleFind = false)
-//            ) return super.processElementUsages(element, processor, options)
-//
-//            val indicator = ProgressManager.getInstance().progressIndicator
-//
-//            val notificationCanceller = scheduleNotificationForDataClassComponent(project, element, indicator)
-//            try {
-//                return super.processElementUsages(element, processor, options)
-//            } finally {
-//                Disposer.dispose(notificationCanceller)
-//            }
-//        }
+        //
+        override fun processElementUsages(
+            element: PsiElement,
+            processor: Processor<in UsageInfo>,
+            options: FindUsagesOptions
+        ): Boolean {
 
-//        private val isPropertyOfDataClass = true == runReadAction {
-//            propertyDeclaration.parents.match(CjParameterList::class, CjPrimaryConstructor::class, last = CjClass::class)?.isData()
-//        }
+            if (isUnitTestMode() ||
 
-//        override fun getPrimaryElements(): Array<PsiElement> {
-//            val element = psiElement as CjNamedDeclaration
-//            if (element is CjParameter && !element.hasLetOrVar() && factory.findPropertyOptions.isSearchInOverridingMethods) {
-//                return ActionUtil.underModalProgress(project, CangJieBundle.message("find.usages.progress.text.declaration.superMethods")) { getPrimaryElementsUnderProgress(element) }
-//            } else if (factory.findPropertyOptions.isSearchForBaseAccessors) {
-//                val supers = CangJieFindUsagesSupport.getSuperMethods(element, null)
-//                return if (supers.contains(psiElement)) supers.toTypedArray() else (supers + psiElement).toTypedArray()
-//            }
-//
-//            return super.getPrimaryElements()
-//        }
+                psiElement.getDisableComponentAndDestructionSearch(resetSingleFind = false)
+            ) return super.processElementUsages(element, processor, options)
 
-//        private fun getPrimaryElementsUnderProgress(element: CjParameter): Array<PsiElement> {
+            val indicator = ProgressManager.getInstance().progressIndicator
+
+
+            try {
+                return super.processElementUsages(element, processor, options)
+            } finally {
+
+            }
+        }
+
+
+        override fun getPrimaryElements(): Array<PsiElement> {
+            val element = psiElement as CjNamedDeclaration
+            if (element is CjParameter && !element.hasLetOrVar() && factory.findPropertyOptions.isSearchInOverridingMethods) {
+                return ActionUtil.underModalProgress(
+                    project,
+                    CangJieBundle.message("find.usages.progress.text.declaration.superMethods")
+                ) { getPrimaryElementsUnderProgress(element) }
+            } else if (factory.findPropertyOptions.isSearchForBaseAccessors) {
+                val supers = CangJieFindUsagesSupport.getSuperMethods(element, null)
+                return if (supers.contains(psiElement)) supers.toTypedArray() else (supers + psiElement).toTypedArray()
+            }
+
+            return super.getPrimaryElements()
+        }
+
+        private fun getPrimaryElementsUnderProgress(element: CjParameter): Array<PsiElement> {
 //            val function = element.ownerFunction
 //            if (function != null && function.isOverridable()) {
 //                function.toLightMethods().singleOrNull()?.let { method ->
@@ -173,11 +213,11 @@ abstract class CangJieFindMemberUsagesHandler<T : CjNamedDeclaration> protected 
 //                    }
 //                }
 //            }
-//            return super.getPrimaryElements()
-//        }
+            return super.getPrimaryElements()
+        }
 
-//        override fun getFindUsagesOptions(dataContext: DataContext?): FindUsagesOptions = factory.findPropertyOptions
-//
+        override fun getFindUsagesOptions(dataContext: DataContext?): FindUsagesOptions = factory.findPropertyOptions
+
 //        override fun getFindUsagesDialog(
 //            isSingleFile: Boolean,
 //            toShowInNewTab: Boolean,
@@ -194,15 +234,19 @@ abstract class CangJieFindMemberUsagesHandler<T : CjNamedDeclaration> protected 
 //            )
 //        }
 
-//        override fun applyQueryFilters(element: PsiElement, options: FindUsagesOptions, query: Query<PsiReference>): Query<PsiReference> {
-//            val cangjieOptions = options as CangJiePropertyFindUsagesOptions
-//
-//            if (!cangjieOptions.isReadAccess && !cangjieOptions.isWriteAccess) {
-//                return EmptyQuery()
-//            }
-//
-//            val result = query.applyFilter(cangjieOptions.isSkipImportStatements) { !it.isImportUsage() }
-//
+        override fun applyQueryFilters(
+            element: PsiElement,
+            options: FindUsagesOptions,
+            query: Query<PsiReference>
+        ): Query<PsiReference> {
+            val cangjieOptions = options as CangJiePropertyFindUsagesOptions
+
+            if (!cangjieOptions.isReadAccess && !cangjieOptions.isWriteAccess) {
+                return EmptyQuery()
+            }
+
+            val result = query.applyFilter(cangjieOptions.isSkipImportStatements) { !it.isImportUsage() }
+
 //            if (!cangjieOptions.isReadAccess || !cangjieOptions.isWriteAccess) {
 //                val detector = CangJieReadWriteAccessDetector()
 //
@@ -214,54 +258,54 @@ abstract class CangJieFindMemberUsagesHandler<T : CjNamedDeclaration> protected 
 //                    }
 //                }
 //            }
-//            return result
-//        }
+            return result
+        }
 
-//        private fun PsiElement.getDisableComponentAndDestructionSearch(resetSingleFind: Boolean): Boolean {
-//
-//            if (!isPropertyOfDataClass) return false
-//
-//            if (forceDisableComponentAndDestructionSearch) return true
-//
+        private fun PsiElement.getDisableComponentAndDestructionSearch(resetSingleFind: Boolean): Boolean {
+
+
+            return forceDisableComponentAndDestructionSearch
+
 //            if ( CangJieFindPropertyUsagesDialog.getDisableComponentAndDestructionSearch(project)) return true
-//
-//            return if (getUserData(FIND_USAGES_ONES_FOR_DATA_CLASS_KEY) == true) {
-//                if (resetSingleFind) {
-//                    putUserData(FIND_USAGES_ONES_FOR_DATA_CLASS_KEY, null)
-//                }
-//                true
-//            } else false
-//        }
+        }
 
 
-//        override fun createCangJieReferencesSearchOptions(options: FindUsagesOptions, forHighlight: Boolean): CangJieReferencesSearchOptions {
-//            val cangjieOptions = options as CangJiePropertyFindUsagesOptions
-//
-//            val disabledComponentsAndOperatorsSearch =
-//                !forHighlight && psiElement.getDisableComponentAndDestructionSearch(resetSingleFind = true)
-//
-//            return CangJieReferencesSearchOptions(
-//                acceptCallableOverrides = true,
-//                acceptOverloads = false,
-//                acceptExtensionsOfDeclarationClass = false,
-//                searchForExpectedUsages = cangjieOptions.searchExpected,
-//                searchForOperatorConventions = !disabledComponentsAndOperatorsSearch,
-//                searchForComponentConventions = !disabledComponentsAndOperatorsSearch
-//            )
-//        }
+        override fun createCangJieReferencesSearchOptions(
+            options: FindUsagesOptions,
+            forHighlight: Boolean
+        ): CangJieReferencesSearchOptions {
+            val cangjieOptions = options as CangJiePropertyFindUsagesOptions
+
+            val disabledComponentsAndOperatorsSearch =
+                !forHighlight && psiElement.getDisableComponentAndDestructionSearch(resetSingleFind = true)
+
+            return CangJieReferencesSearchOptions(
+                acceptCallableOverrides = true,
+                acceptOverloads = false,
+                acceptExtensionsOfDeclarationClass = false,
+                searchForExpectedUsages = cangjieOptions.searchExpected,
+                searchForOperatorConventions = !disabledComponentsAndOperatorsSearch,
+                searchForComponentConventions = !disabledComponentsAndOperatorsSearch
+            )
+        }
     }
 
-//    protected abstract fun createCangJieReferencesSearchOptions(
-//        options: FindUsagesOptions,
-//        forHighlight: Boolean
-//    ): CangJieReferencesSearchOptions
-//
-//    protected abstract fun applyQueryFilters(
-//        element: PsiElement,
-//        options: FindUsagesOptions,
-//        query: Query<PsiReference>
-//    ): Query<PsiReference>
-    companion object{
+    protected abstract fun createCangJieReferencesSearchOptions(
+        options: FindUsagesOptions,
+        forHighlight: Boolean
+    ): CangJieReferencesSearchOptions
+
+    protected abstract fun applyQueryFilters(
+        element: PsiElement,
+        options: FindUsagesOptions,
+        query: Query<PsiReference>
+    ): Query<PsiReference>
+
+    companion object {
+        @Volatile
+        @get:TestOnly
+        var forceDisableComponentAndDestructionSearch = false
+
         fun getInstance(
             declaration: CjNamedDeclaration,
             elementsToSearch: Collection<PsiElement> = emptyList(),
@@ -274,6 +318,7 @@ abstract class CangJieFindMemberUsagesHandler<T : CjNamedDeclaration> protected 
         }
     }
 }
+
 fun Query<PsiReference>.applyFilter(flag: Boolean, condition: (PsiReference) -> Boolean): Query<PsiReference> {
     return if (flag) FilteredQuery(this, condition) else this
 }

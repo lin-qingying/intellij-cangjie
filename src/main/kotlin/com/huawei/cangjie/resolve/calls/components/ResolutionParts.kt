@@ -2,17 +2,23 @@ package com.huawei.cangjie.resolve.calls.components
 
 import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.builtins.getReceiverTypeFromFunctionType
+import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.DescriptorVisibilities.PRIVATE
 import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
+import com.huawei.cangjie.psi.CjCallExpression
 import com.huawei.cangjie.psi.CjNameReferenceExpression
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.ConstraintSystemOperation
 import com.huawei.cangjie.resolve.calls.inference.components.*
+import com.huawei.cangjie.resolve.calls.inference.isSubtypeConstraintCompatible
 import com.huawei.cangjie.resolve.calls.inference.model.*
 import com.huawei.cangjie.resolve.calls.inference.runTransaction
 import com.huawei.cangjie.resolve.calls.inference.substitute
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
+import com.huawei.cangjie.resolve.calls.tower.ContextReceiverAmbiguity
+import com.huawei.cangjie.resolve.calls.tower.NoMatchingContextReceiver
 import com.huawei.cangjie.resolve.calls.tower.VisibilityError
 import com.huawei.cangjie.resolve.calls.tower.psiCangJieCall
 import com.huawei.cangjie.resolve.calls.util.getReceiverValueWithSmartCast
@@ -20,12 +26,26 @@ import com.huawei.cangjie.resolve.isInsideInterface
 import com.huawei.cangjie.resolve.isStatic
 import com.huawei.cangjie.resolve.scopes.receivers.ClassQualifier
 import com.huawei.cangjie.types.*
+import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.model.CangJieTypeMarker
 import com.huawei.cangjie.types.util.contains
 import com.huawei.cangjie.types.util.makeNotNullable
 import com.huawei.cangjie.types.util.makeOptional
 import com.huawei.cangjie.utils.compactIfPossible
 
+/**
+ * 检查通过call调用操作符函数的情况
+ */
+internal object CheckOperatorCallPart : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+        if (candidateDescriptor !is FunctionDescriptor) return
+//禁止使用call方式调用操作符函数
+        if ((candidateDescriptor as FunctionDescriptor).isOperator && resolvedCall.atom.psiCangJieCall.psiCall.callElement is CjCallExpression) {
+            addDiagnostic(NoCallOperatorFunction(candidateDescriptor))
+
+        }
+    }
+}
 
 internal object CheckSuperExpressionCallPart : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {
@@ -69,7 +89,7 @@ internal object CheckSuperExpressionCallPart : ResolutionPart() {
 
 internal object CheckStaticCall : ResolutionPart() {
 
-    fun ResolvedCallAtom.isStaticContext(): Boolean {
+    private fun ResolvedCallAtom.isStaticContext(): Boolean {
         atom.explicitReceiver ?: return false
         return when (val value = atom.explicitReceiver!!.receiver) {
 
@@ -94,12 +114,220 @@ internal object CheckStaticCall : ResolutionPart() {
         val kind = descriptor.getDescriptorKind()
         val memberStatic = descriptor.isStatic()
 //        非静态上下文访问静态成员
-        if (memberStatic && (!isStaticContext && resolvedCall.explicitReceiverKind == ExplicitReceiverKind.DISPATCH_RECEIVER)) {
+        if (memberStatic && (!isStaticContext && (resolvedCall.explicitReceiverKind == ExplicitReceiverKind.DISPATCH_RECEIVER || resolvedCall.explicitReceiverKind == ExplicitReceiverKind.EXTENSION_RECEIVER))) {
             addDiagnostic(NonStaticContextAccessStaticMemberDiagnostic(kind, descriptor))
         }
 //静态上下文访问非静成员
         if (!memberStatic && isStaticContext) {
             addDiagnostic(StaticContextAccessNonStaticMemberDiagnostic(kind, descriptor))
+        }
+
+
+    }
+
+}
+
+private data class ApplicableContextReceiverArgumentWithConstraint(
+    val argument: SimpleCangJieCallArgument,
+    val argumentType: UnwrappedType,
+    val expectedType: UnwrappedType,
+    val position: ConstraintPosition
+)
+
+private fun ResolutionCandidate.getReceiverArgumentWithConstraintIfCompatible(
+    argument: SimpleCangJieCallArgument,
+    parameter: ParameterDescriptor
+): ApplicableContextReceiverArgumentWithConstraint? {
+    val csBuilder = getSystem().getBuilder()
+    val expectedTypeUnprepared = argument.getExpectedType(parameter, callComponents.languageVersionSettings)
+    val expectedType = prepareExpectedType(expectedTypeUnprepared)
+    val argumentType = captureFromTypeParameterUpperBoundIfNeeded(argument.receiver.stableType, expectedType)
+    val position = ReceiverConstraintPositionImpl(argument, resolvedCall.atom)
+    return if (csBuilder.isSubtypeConstraintCompatible(argumentType, expectedType, position))
+        ApplicableContextReceiverArgumentWithConstraint(argument, argumentType, expectedType, position)
+    else null
+}
+
+internal enum class ImplicitInvokeCheckStatus {
+    NO_INVOKE, INVOKE_ON_NOT_NULL_VARIABLE, UNSAFE_INVOKE_REPORTED
+}
+
+//检查扩展接收器
+internal object CheckReceivers : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+        when (workIndex) {
+            0 -> checkReceiver(
+                resolvedCall.dispatchReceiverArgument,
+                candidateDescriptor.dispatchReceiverParameter,
+                shouldCheckImplicitInvoke = true,
+            )
+
+            1 -> {
+                var extensionReceiverArgument = resolvedCall.extensionReceiverArgument
+                if (extensionReceiverArgument == null) {
+                    extensionReceiverArgument = chooseExtensionReceiverCandidate() ?: return
+                    resolvedCall.extensionReceiverArgument = extensionReceiverArgument
+                }
+                val checkBuilderInferenceRestriction =
+                    !callComponents.languageVersionSettings
+                        .supportsFeature(LanguageFeature.NoBuilderInferenceWithoutAnnotationRestriction)
+                if (checkBuilderInferenceRestriction &&
+                    extensionReceiverArgument.receiver.receiverValue.type is StubTypeForBuilderInference
+                ) {
+                    addDiagnostic(
+                        StubBuilderInferenceReceiver(
+                            extensionReceiverArgument,
+                            candidateDescriptor.extensionReceiverParameter!!
+                        )
+                    )
+                }
+                checkReceiver(
+                    resolvedCall.extensionReceiverArgument,
+                    candidateDescriptor.extensionReceiverParameter,
+                    shouldCheckImplicitInvoke = false, // reproduce old inference behaviour
+                )
+            }
+        }
+    }
+
+    override fun ResolutionCandidate.workCount() = 2
+
+    private fun ResolutionCandidate.chooseExtensionReceiverCandidate(): SimpleCangJieCallArgument? {
+        val receiverCandidates = resolvedCall.extensionReceiverArgumentCandidates
+        if (receiverCandidates.isNullOrEmpty()) {
+            return null
+        }
+        if (receiverCandidates.size == 1) {
+            return receiverCandidates.single()
+        }
+        val extensionReceiverParameter = candidateDescriptor.extensionReceiverParameter ?: return null
+        val compatible = receiverCandidates.mapNotNull {
+            getReceiverArgumentWithConstraintIfCompatible(
+                it,
+                extensionReceiverParameter
+            )
+        }
+        return when (compatible.size) {
+            0 -> {
+                addDiagnostic(NoMatchingContextReceiver())
+                null
+            }
+
+            1 -> compatible.single().argument
+            else -> {
+                addDiagnostic(ContextReceiverAmbiguity())
+                null
+            }
+        }
+    }
+
+    private fun ResolutionCandidate.checkReceiver(
+        receiverArgument: SimpleCangJieCallArgument?,
+        receiverParameter: ReceiverParameterDescriptor?,
+        shouldCheckImplicitInvoke: Boolean,
+    ) {
+//        TODO 检查接收器会在使用操作符函数报错，所以注释了
+//        if (this !is CallableReferenceResolutionCandidate && (receiverArgument == null) != (receiverParameter == null)) {
+//            error("Inconsistency receiver state for call $cangjieCall and candidate descriptor: $candidateDescriptor")
+//        }
+        if (receiverArgument == null || receiverParameter == null) return
+
+        val implicitInvokeState = if (shouldCheckImplicitInvoke) {
+            checkUnsafeImplicitInvokeAfterSafeCall(receiverArgument)
+        } else ImplicitInvokeCheckStatus.NO_INVOKE
+
+        val receiverInfo = ReceiverInfo(
+            isReceiver = true,
+            shouldReportUnsafeCall = implicitInvokeState != ImplicitInvokeCheckStatus.UNSAFE_INVOKE_REPORTED,
+            reportUnsafeCallAsUnsafeImplicitInvoke = implicitInvokeState == ImplicitInvokeCheckStatus.INVOKE_ON_NOT_NULL_VARIABLE,
+            selectorCall = resolvedCall.atom
+        )
+
+        resolveCangJieArgument(receiverArgument, receiverParameter, receiverInfo)
+    }
+}
+
+private fun ResolutionCandidate.checkUnsafeImplicitInvokeAfterSafeCall(argument: SimpleCangJieCallArgument): ImplicitInvokeCheckStatus {
+    val variableForInvoke = variableCandidateIfInvoke ?: return ImplicitInvokeCheckStatus.NO_INVOKE
+
+    val receiverArgument = with(variableForInvoke.resolvedCall) {
+        when (explicitReceiverKind) {
+            ExplicitReceiverKind.DISPATCH_RECEIVER -> dispatchReceiverArgument
+            ExplicitReceiverKind.EXTENSION_RECEIVER,
+            ExplicitReceiverKind.BOTH_RECEIVERS -> extensionReceiverArgument
+
+            ExplicitReceiverKind.NO_EXPLICIT_RECEIVER -> return ImplicitInvokeCheckStatus.INVOKE_ON_NOT_NULL_VARIABLE
+        }
+    } ?: error("Receiver kind does not match receiver argument")
+
+    if (receiverArgument.isSafeCall && receiverArgument.receiver.stableType.isNullable() && resolvedCall.candidateDescriptor.typeParameters.isEmpty()) {
+        addDiagnostic(UnsafeCallError(argument, isForImplicitInvoke = true))
+        return ImplicitInvokeCheckStatus.UNSAFE_INVOKE_REPORTED
+    }
+
+    return ImplicitInvokeCheckStatus.INVOKE_ON_NOT_NULL_VARIABLE
+}
+
+//检查扩展之间的private修饰符访问
+internal object CheckExtensionPrivateVisibility : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+        val containingDescriptor = scopeTower.lexicalScope.ownerDescriptor  //调用所在声明
+
+        val dispatchReceiverArgument = resolvedCall.dispatchReceiverArgument
+        resolvedCall.extensionReceiverArgument ?: return
+
+        val callCandidateDescriptor = resolvedCall.candidateDescriptor //被调用声明
+        val receiverValue =
+            dispatchReceiverArgument?.receiver?.receiverValue ?: DescriptorVisibilities.ALWAYS_SUITABLE_RECEIVER
+        val invisibleMember =
+            DescriptorVisibilityUtils.findInvisibleMember(
+                receiverValue,
+                callCandidateDescriptor,
+                containingDescriptor,
+                callComponents.languageVersionSettings
+            )
+
+        if (dispatchReceiverArgument is ExpressionCangJieCallArgument) {
+            val smartCastReceiver =
+                getReceiverValueWithSmartCast(receiverValue, dispatchReceiverArgument.receiver.stableType)
+            if (DescriptorVisibilityUtils.findInvisibleMember(
+                    smartCastReceiver,
+                    candidateDescriptor,
+                    containingDescriptor,
+                    callComponents.languageVersionSettings
+                ) == null
+            ) {
+                addDiagnostic(
+                    SmartCastDiagnostic(
+                        dispatchReceiverArgument,
+                        dispatchReceiverArgument.receiver.stableType,
+                        resolvedCall.atom
+                    )
+                )
+                return
+            }
+        }
+
+        if (containingDescriptor is CallableDescriptor) {
+            if (callCandidateDescriptor.extensionReceiverParameter?.value?.type?.let {
+                    containingDescriptor.extensionReceiverParameter?.value?.type?.let { it1 ->
+                        CangJieTypeChecker.DEFAULT.equalTypes(
+                            it, it1
+                        )
+                    }
+                } == true) {
+//                判断扩展id是否相同
+                if (invisibleMember == null && callCandidateDescriptor.visibility == PRIVATE) {
+                    addDiagnostic(VisibilityError(callCandidateDescriptor))
+
+                }
+            }
+
+        }
+
+
+        if (invisibleMember is DeclarationDescriptorWithVisibility) {
+            addDiagnostic(VisibilityError(invisibleMember))
         }
 
 
@@ -194,7 +422,10 @@ internal object PostponedVariablesInitializerResolutionPart : ResolutionPart() {
 internal object MapTypeArguments : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {
         resolvedCall.typeArgumentMappingByOriginal =
-            callComponents.typeArgumentsToParametersMapper.mapTypeArguments(cangjieCall, candidateDescriptor.original)
+            callComponents.typeArgumentsToParametersMapper.mapTypeArguments(
+                cangjieCall,
+                candidateDescriptor.original
+            )
                 .also {
                     it.diagnostics.forEach(this@process::addDiagnostic)
                 }
@@ -228,7 +459,11 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
             upperBound: CangJieType,
             position: DeclaredUpperBoundConstraintPositionImpl
         ) {
-            csBuilder.addSubtypeConstraint(defaultType, toFreshVariables.safeSubstitute(upperBound.unwrap()), position)
+            csBuilder.addSubtypeConstraint(
+                defaultType,
+                toFreshVariables.safeSubstitute(upperBound.unwrap()),
+                position
+            )
         }
 
         for (index in typeParameters.indices) {
@@ -430,7 +665,11 @@ class ReceiverInfo(
 internal object CheckArgumentsInParenthesis : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {
         val argument = cangjieCall.argumentsInParenthesis[workIndex]
-        resolveCangJieArgument(argument, resolvedCall.argumentToCandidateParameter[argument], ReceiverInfo.notReceiver)
+        resolveCangJieArgument(
+            argument,
+            resolvedCall.argumentToCandidateParameter[argument],
+            ReceiverInfo.notReceiver
+        )
     }
 
     override fun ResolutionCandidate.workCount() = cangjieCall.argumentsInParenthesis.size
@@ -459,14 +698,15 @@ private fun ResolutionCandidate.resolveCangJieArgument(
     val unsubstitutedExpectedType = conversionDataBeforeSubtyping?.convertedType ?: candidateExpectedType
     val expectedType = unsubstitutedExpectedType?.let { prepareExpectedType(it) }
 
-    val convertedArgument = if (expectedType != null && !isReceiver && shouldRunConversionForConstants(expectedType)) {
-        val convertedConstant = resolutionCallbacks.convertSignedConstantToUnsigned(argument)
-        if (convertedConstant != null) {
-            resolvedCall.registerArgumentWithConstantConversion(argument, convertedConstant)
-        }
+    val convertedArgument =
+        if (expectedType != null && !isReceiver && shouldRunConversionForConstants(expectedType)) {
+            val convertedConstant = resolutionCallbacks.convertSignedConstantToUnsigned(argument)
+            if (convertedConstant != null) {
+                resolvedCall.registerArgumentWithConstantConversion(argument, convertedConstant)
+            }
 
-        convertedConstant
-    } else null
+            convertedConstant
+        } else null
 
 
     val inferenceSession = resolutionCallbacks.inferenceSession
@@ -590,7 +830,8 @@ internal object ArgumentsToCandidateParameterDescriptor : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {
         val map = hashMapOf<CangJieCallArgument, ValueParameterDescriptor>()
         for ((originalValueParameter, resolvedCallArgument) in resolvedCall.argumentMappingByOriginal) {
-            val valueParameter = candidateDescriptor.valueParameters.getOrNull(originalValueParameter.index) ?: continue
+            val valueParameter =
+                candidateDescriptor.valueParameters.getOrNull(originalValueParameter.index) ?: continue
             for (argument in resolvedCallArgument.arguments) {
                 map[argument] = valueParameter
             }
@@ -603,7 +844,11 @@ internal object CheckExternalArgument : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {
         val argument = cangjieCall.externalArgument ?: return
 
-        resolveCangJieArgument(argument, resolvedCall.argumentToCandidateParameter[argument], ReceiverInfo.notReceiver)
+        resolveCangJieArgument(
+            argument,
+            resolvedCall.argumentToCandidateParameter[argument],
+            ReceiverInfo.notReceiver
+        )
     }
 }
 
@@ -634,44 +879,46 @@ internal object CheckIncompatibleTypeVariableUpperBounds : ResolutionPart() {
         return callComponents.statelessCallbacks.isOldIntersectionIsEmpty(upperTypes as List<CangJieType>)
     }
 
-    override fun ResolutionCandidate.process(workIndex: Int) = with(getSystem().asConstraintSystemCompleterContext()) {
-        val constraintSystem = getSystem()
-        for (variableWithConstraints in constraintSystem.getBuilder().currentStorage().notFixedTypeVariables.values) {
-            val upperTypes = variableWithConstraints.constraints.extractUpperTypesToCheckIntersectionEmptiness()
+    override fun ResolutionCandidate.process(workIndex: Int) =
+        with(getSystem().asConstraintSystemCompleterContext()) {
+            val constraintSystem = getSystem()
+            for (variableWithConstraints in constraintSystem.getBuilder()
+                .currentStorage().notFixedTypeVariables.values) {
+                val upperTypes = variableWithConstraints.constraints.extractUpperTypesToCheckIntersectionEmptiness()
 
-            when {
-                // TODO: consider reporting errors on bounded type variables by incompatible types but with other lower constraints
-                upperTypes.size <= 1 || variableWithConstraints.constraints.any { it.kind.isLower() } ->
-                    continue
+                when {
+                    // TODO: consider reporting errors on bounded type variables by incompatible types but with other lower constraints
+                    upperTypes.size <= 1 || variableWithConstraints.constraints.any { it.kind.isLower() } ->
+                        continue
 
-                wasPreviouslyDiscriminated(upperTypes) -> {
-                    markCandidateForCompatibilityResolve(needToReportWarning = false)
-                    continue
-                }
+                    wasPreviouslyDiscriminated(upperTypes) -> {
+                        markCandidateForCompatibilityResolve(needToReportWarning = false)
+                        continue
+                    }
 
-                (variableWithConstraints.typeVariable as? TypeVariableFromCallableDescriptor)?.originalTypeParameter?.let { parameter ->
-                    resolvedCall.typeArgumentMappingByOriginal.getTypeArgument(parameter)
-                } is SimpleTypeArgument -> continue
+                    (variableWithConstraints.typeVariable as? TypeVariableFromCallableDescriptor)?.originalTypeParameter?.let { parameter ->
+                        resolvedCall.typeArgumentMappingByOriginal.getTypeArgument(parameter)
+                    } is SimpleTypeArgument -> continue
 
-                else -> {
-                    val emptyIntersectionTypeInfo =
-                        constraintSystem.getEmptyIntersectionTypeKind(upperTypes) ?: continue
+                    else -> {
+                        val emptyIntersectionTypeInfo =
+                            constraintSystem.getEmptyIntersectionTypeKind(upperTypes) ?: continue
 //                    val isInferredEmptyIntersectionForbidden = callComponents.languageVersionSettings.supportsFeature(
 //                        LanguageFeature.ForbidInferringTypeVariablesIntoEmptyIntersection
 //                    )
-                    val errorFactory = ::InferredEmptyIntersectionError
+                        val errorFactory = ::InferredEmptyIntersectionError
 //                        if (isInferredEmptyIntersectionForbidden) ::InferredEmptyIntersectionError else ::InferredEmptyIntersectionWarning
 
-                    addError(
-                        errorFactory(
-                            upperTypes,
-                            emptyIntersectionTypeInfo.casingTypes.toList(),
-                            variableWithConstraints.typeVariable,
-                            emptyIntersectionTypeInfo.kind
+                        addError(
+                            errorFactory(
+                                upperTypes,
+                                emptyIntersectionTypeInfo.casingTypes.toList(),
+                                variableWithConstraints.typeVariable,
+                                emptyIntersectionTypeInfo.kind
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
-    }
 }

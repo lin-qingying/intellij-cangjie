@@ -33,6 +33,7 @@ class DeclarationsChecker(
     private val upperBoundChecker: UpperBoundChecker
 ) {
 //    private val exposedChecker = ExposedVisibilityChecker(languageVersionSettings, trace)
+private val shadowedExtensionChecker = ShadowedExtensionChecker(typeSpecificityComparator, trace)
 
     private val modifiersChecker = modifiersChecker.withTrace(trace)
     private fun checkClass(classDescriptor: ClassDescriptorWithResolutionScopes, typeStatement: CjTypeStatement) {
@@ -305,7 +306,7 @@ class DeclarationsChecker(
             checkExpectedFunction(function, functionDescriptor)
         }
 
-//        shadowedExtensionChecker.checkDeclaration(function, functionDescriptor)
+        shadowedExtensionChecker.checkDeclaration(function, functionDescriptor)
     }
 
     private fun checkExpectDeclarationModifiers(declaration: CjDeclaration, descriptor: MemberDescriptor) {
@@ -457,7 +458,7 @@ class DeclarationsChecker(
         checkAccessors(property, propertyDescriptor)
         checkTypeParameterConstraints(property)
 //        exposedChecker.checkProperty(property, propertyDescriptor)
-//        shadowedExtensionChecker.checkDeclaration(property, propertyDescriptor)
+        shadowedExtensionChecker.checkDeclaration(property, propertyDescriptor)
 //        checkPropertyTypeParametersAreUsedInReceiverType(propertyDescriptor)
         checkImplicitCallableType(property, propertyDescriptor)
         checkExpectDeclarationModifiers(property, propertyDescriptor)
@@ -470,6 +471,8 @@ class DeclarationsChecker(
             checkMemberVariable(variable, variableDescriptor, containingDeclaration)
         }
         checkVariableInitializer(variable, variableDescriptor)
+        shadowedExtensionChecker.checkDeclaration(variable, variableDescriptor)
+
     }
 
     private fun checkVariableInitializer(variable: CjVariable, variableDescriptor: VariableDescriptor) {
@@ -596,6 +599,7 @@ class DeclarationsChecker(
             variable.initializer?.let { trace.report(ABSTRACT_PROPERTY_WITH_INITIALIZER.on(it)) }
         }
     }
+
 
     fun process(bodiesResolveContext: BodiesResolveContext) {
         for (file in bodiesResolveContext.files) {

@@ -114,7 +114,7 @@ internal open class ScopeBasedTowerLevel protected constructor(
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver> {
         val result: ArrayList<CandidateWithBoundDispatchReceiver> = ArrayList()
-//
+
         resolutionScope.getContributedFunctionsAndConstructors(name, location, null, extensionReceiver, scopeTower)
             .mapTo(result) {
                 createCandidateDescriptor(

@@ -6,6 +6,7 @@ import com.huawei.cangjie.descriptors.MemberDescriptor
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor
 import com.huawei.cangjie.descriptors.VariableDescriptor
 import com.huawei.cangjie.descriptors.synthetic.SyntheticMemberDescriptor
+import com.huawei.cangjie.resolve.calls.components.hasDefaultValue
 import com.huawei.cangjie.types.AbstractTypeChecker
 import com.huawei.cangjie.types.UnwrappedType
 import com.huawei.cangjie.types.model.*
@@ -83,7 +84,18 @@ interface SimpleConstraintSystem {
 
     val context: TypeSystemInferenceExtensionContext
 }
-
+fun <D : CallableDescriptor> FlatSignature.Companion.createForPossiblyShadowedExtension(descriptor: D): FlatSignature<D> =
+    FlatSignature(
+        descriptor,
+        descriptor.typeParameters,
+        valueParameterTypes = descriptor.valueParameters.map { it.argumentValueType },
+        hasExtensionReceiver = false,
+        contextReceiverCount = 0,
+        hasVarargs = descriptor.valueParameters.any { it.varargElementType != null },
+        numDefaults = descriptor.valueParameters.count { it.hasDefaultValue() },
+        isExpect = descriptor is MemberDescriptor && descriptor.isExpect,
+        isSyntheticMember = descriptor is SyntheticMemberDescriptor<*>
+    )
 fun <D : CallableDescriptor> FlatSignature.Companion.createFromCallableDescriptor(descriptor: D): FlatSignature<D> =
     FlatSignature(
         descriptor,

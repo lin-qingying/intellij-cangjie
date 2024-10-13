@@ -27,7 +27,6 @@ import com.huawei.cangjie.utils.CangJieExceptionWithAttachments
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.Processor
 
@@ -65,6 +64,7 @@ class CangJieIndicesHelper(
     private inline fun <reified TDescriptor : Any> CjNamedDeclaration.resolveToDescriptors(): Collection<TDescriptor> {
         return resolveToDescriptorsWithHack { true }.filterIsInstance<TDescriptor>()
     }
+
     fun processTopLevelCallables(nameFilter: (String) -> Boolean, processor: (CallableDescriptor) -> Unit) {
         val callableDeclarationProcessor = Processor<CjCallableDeclaration> { declaration ->
             if (declaration.receiverTypeReference != null) return@Processor true
@@ -81,7 +81,7 @@ class CangJieIndicesHelper(
         val filter: (String) -> Boolean = { key -> nameFilter(key.substringAfterLast('.', key)) }
 
         CangJieTopLevelFunctionFqnNameIndex.processAllElements(project, scope, filter, callableDeclarationProcessor)
-      CangJieTopLevelVariableFqnNameIndex.processAllElements(project, scope, filter, callableDeclarationProcessor)
+        CangJieTopLevelVariableFqnNameIndex.processAllElements(project, scope, filter, callableDeclarationProcessor)
     }
 
     fun processStaticMembers(
@@ -91,6 +91,7 @@ class CangJieIndicesHelper(
     ) {
 
     }
+
     private fun MutableSet<CjNamedDeclaration>.addTopLevelNonExtensionCallablesByName(
         helper: CangJieStringStubIndexHelper<out CjNamedDeclaration>,
         name: String
@@ -121,14 +122,16 @@ class CangJieIndicesHelper(
 //            processor
 //        )
     }
+
     fun processAllCallablesFromSubclassObjects(
         callTypeAndReceiver: CallTypeAndReceiver<*, *>,
         receiverTypes: Collection<CangJieType>,
         nameFilter: (String) -> Boolean,
         processor: (CallableDescriptor) -> Unit
-    ){
+    ) {
 
     }
+
     fun resolveTypeAliasesUsingIndex(type: CangJieType, originalTypeName: String): Set<TypeAliasDescriptor> {
         val typeConstructor = type.constructor
 
@@ -231,7 +234,15 @@ class CangJieIndicesHelper(
             else
                 emptyList()
         } else {
-            getCallableTopLevelExtensions(callTypeAndReceiver, receiverTypes, nameFilter)
+            getCallableTopLevelExtensions(callTypeAndReceiver, receiverTypes, nameFilter).filter {
+                val isStatic =
+                    bindingContext[BindingContext.QUALIFIER, callTypeAndReceiver.receiver as? CjExpression] != null
+                if (isStatic) {
+                    return@filter it.isStatic
+
+                }
+                true
+            }
         }
     }
 
@@ -241,6 +252,7 @@ class CangJieIndicesHelper(
         nameFilter: (String) -> Boolean,
         declarationFilter: (CjDeclaration) -> Boolean = { true }
     ): Collection<CallableDescriptor> {
+
         if (receiverTypes.isEmpty()) return emptyList()
 
         val suitableTopLevelExtensions = mutableListOf<CallableDescriptor>()

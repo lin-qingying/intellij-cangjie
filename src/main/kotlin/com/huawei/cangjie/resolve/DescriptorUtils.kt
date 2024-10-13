@@ -232,7 +232,9 @@ object DescriptorUtils {
         }
         return getFqNameFromTopLevelClass(containingDeclaration).child(name)
     }
-
+    fun isOverride(descriptor: CallableMemberDescriptor): Boolean {
+        return !descriptor.getOverriddenDescriptors().isEmpty()
+    }
     fun <D : CallableMemberDescriptor?> getAllOverriddenDeclarations(memberDescriptor: D): Set<D> {
         val result: MutableSet<D> = HashSet()
         for (overriddenDeclaration in memberDescriptor?.getOverriddenDescriptors() ?: emptyList()) {

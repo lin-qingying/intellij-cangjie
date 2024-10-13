@@ -84,7 +84,7 @@ open class CangJieFindUsagesProviderBase : FindUsagesProvider {
             }
 
             is CjFunction -> {
-                //TODO: Correct FIR implementation
+
                 @Suppress("HardCodedStringLiteral")
 
                 return  if(element.isOperator){

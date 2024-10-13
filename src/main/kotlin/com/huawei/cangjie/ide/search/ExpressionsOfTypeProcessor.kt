@@ -107,12 +107,25 @@ class ExpressionsOfTypeProcessor(
 
     }
 
+    fun runByExtendBasic(psiElement: PsiElement) {
+        searchReferences(psiElement, searchScope) { reference ->
+
+            return@searchReferences true
+        }
+    }
+
     fun run() {
         val usePlainSearch = when (mode) {
             Mode.ALWAYS_SMART -> false
             Mode.ALWAYS_PLAIN -> true
             Mode.PLAIN_WHEN_NEEDED -> searchScope is LocalSearchScope // for local scope it's faster to use plain search
         }
+
+        /*
+         *           如果是扩展的操作符重载函数，并且被扩展的类型是没有源psi的类型，例如内置类型，基本类型，将无法查找用法
+         *         由于获取的psiClass为null ，所以无法调用 [addClassToProcess]
+         *
+         */
         if (usePlainSearch || classToSearch == null) {
             possibleMatchesInScopeHandler(searchScope)
             return
@@ -374,6 +387,9 @@ class ExpressionsOfTypeProcessor(
     private fun processClassUsageInUserType(userType: CjUserType): Boolean {
         val typeRef = userType.parents.lastOrNull { it is CjTypeReference }
         when (val typeRefParent = typeRef?.parent) {
+            is CjExtend -> {
+                return true
+            }
             // TODO: type alias
             //is CjTypeAlias -> {}
             is CjCallableDeclaration -> {
@@ -607,7 +623,7 @@ class ExpressionsOfTypeProcessor(
     }
 
     private fun isInProjectScope(classToSearch: CjTypeStatement): Boolean {
-        return RootKindFilter.projectSources.copy( ).matches(classToSearch)
+        return RootKindFilter.projectSources.copy().matches(classToSearch)
     }
 
 }

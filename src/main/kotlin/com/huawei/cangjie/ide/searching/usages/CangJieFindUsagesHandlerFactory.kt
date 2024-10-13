@@ -1,6 +1,7 @@
 package com.huawei.cangjie.ide.searching.usages
 
 import com.huawei.cangjie.highlighter.unwrapped
+import com.huawei.cangjie.ide.searching.usages.handlers.CangJieFindClassUsagesHandler
 import com.huawei.cangjie.psi.*
 import com.intellij.find.findUsages.FindUsagesHandler
 import com.intellij.find.findUsages.FindUsagesHandler.NULL_HANDLER
@@ -11,14 +12,15 @@ import com.intellij.psi.PsiElement
 import com.huawei.cangjie.psi.psiUtil.getQualifiedElementSelector
 import com.huawei.cangjie.references.mainReference
 import com.huawei.cangjie.ide.searching.usages.handlers.CangJieFindMemberUsagesHandler
+import com.huawei.cangjie.ide.searching.usages.handlers.CangJieTypeParameterFindUsagesHandler
 import com.huawei.cangjie.ide.searching.usages.handlers.DelegatingFindMemberUsagesHandler
 
 class CangJieFindUsagesHandlerFactory(project: Project) : FindUsagesHandlerFactory() {
 
     val findFunctionOptions: CangJieFunctionFindUsagesOptions = CangJieFunctionFindUsagesOptions(project)
 
-    //    val findPropertyOptions = CangJiePropertyFindUsagesOptions(project)
-//    val findClassOptions = CangJieClassFindUsagesOptions(project)
+        val findPropertyOptions = CangJiePropertyFindUsagesOptions(project)
+    val findClassOptions = CangJieClassFindUsagesOptions(project)
     val defaultOptions = FindUsagesOptions(project)
 
     override fun canFindUsages(element: PsiElement): Boolean =
@@ -50,11 +52,11 @@ class CangJieFindUsagesHandlerFactory(project: Project) : FindUsagesHandlerFacto
                 }
             }
 
-//            is CjTypeStatement ->
-//                return CangJieFindClassUsagesHandler(element, this)
-//
-//            is CjParameter -> return if (!forHighlightUsages) handlerForMultiple(element, listOf(element))
-//            else CangJieFindMemberUsagesHandler.getInstance(element, factory = this)
+            is CjTypeStatement ->
+                return CangJieFindClassUsagesHandler(element, this)
+
+            is CjParameter -> return if (!forHighlightUsages) handlerForMultiple(element, listOf(element))
+            else CangJieFindMemberUsagesHandler.getInstance(element, factory = this)
 
             is CjNamedFunction, is CjProperty, is CjConstructor<*> -> {
                 val declaration = element as CjNamedDeclaration
@@ -65,8 +67,8 @@ class CangJieFindUsagesHandlerFactory(project: Project) : FindUsagesHandlerFacto
                 return handlerForMultiple(declaration, listOf(declaration))
             }
 
-//            is CjTypeParameter ->
-//                return CangJieTypeParameterFindUsagesHandler(element, this)
+            is CjTypeParameter ->
+                return CangJieTypeParameterFindUsagesHandler(element, this)
 
             else ->
                 throw IllegalArgumentException("unexpected element type: $element")

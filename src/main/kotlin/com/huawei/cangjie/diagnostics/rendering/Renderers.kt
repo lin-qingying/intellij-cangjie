@@ -232,14 +232,7 @@ private val ADAPTIVE_CLASSIFIER_POLICY_KEY =
         }
     }
 
-class SmartTypeRenderer(private val baseRenderer: DescriptorRenderer) : DiagnosticParameterRenderer<CangJieType> {
-    override fun render(obj: CangJieType, renderingContext: RenderingContext): String {
-        val adaptiveRenderer = baseRenderer.withOptions {
-            classifierNamePolicy = renderingContext.adaptiveClassifierPolicy
-        }
-        return adaptiveRenderer.renderType(obj)
-    }
-}
+
 
 private class AdaptiveClassifierNamePolicy(private val ambiguousNames: List<Name>) : ClassifierNamePolicy {
     private val renderedParameters = mutableMapOf<Name, LinkedHashSet<TypeParameterDescriptor>>()
@@ -313,12 +306,3 @@ private fun collectMentionedClassifiersFqNames(contextObjects: Iterable<Any?>, r
     }
 }
 
-class SmartDescriptorRenderer(private val baseRenderer: DescriptorRenderer) :
-    DiagnosticParameterRenderer<DeclarationDescriptor> {
-    override fun render(obj: DeclarationDescriptor, renderingContext: RenderingContext): String {
-        val adaptiveRenderer = baseRenderer.withOptions {
-            classifierNamePolicy = renderingContext.adaptiveClassifierPolicy
-        }
-        return adaptiveRenderer.render(obj)
-    }
-}

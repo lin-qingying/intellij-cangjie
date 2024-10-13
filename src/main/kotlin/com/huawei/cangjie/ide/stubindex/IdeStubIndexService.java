@@ -34,8 +34,8 @@ public class IdeStubIndexService extends StubIndexService {
             sink.occurrence(CangJieSuperClassIndex.Helper.getIndexKey(), superName);
         }
 
-        if (!(stub instanceof CangJieClassStub)) {
-        }
+//        if (!(stub instanceof CangJieClassStub)) {
+//        }
 
 //        CangJieModifierListStub modifierListStub = getModifierListStub(stub);
 
@@ -138,15 +138,15 @@ public class IdeStubIndexService extends StubIndexService {
             indexPrime(stub, sink);
         }
 
-//        if (stub.isTopLevel()) {
-//            FqName fqName = stub.getFqName();
-//            // can have special fq name in case of syntactically incorrect property with no name
-//            if (fqName != null) {
-//                sink.occurrence(CangJieTopLevelPropertyFqnNameIndex.Helper.getIndexKey(), fqName.asString());
-//                sink.occurrence(CangJieTopLevelPropertyByPackageIndex.Helper.getIndexKey(), fqName.parent().asString());
-//                IndexUtilsKt.indexTopLevelExtension(stub, sink);
-//            }
-//        }
+        if (stub.isExtension()) {
+            FqName fqName = stub.getFqName();
+            // can have special fq name in case of syntactically incorrect property with no name
+            if (fqName != null) {
+                sink.occurrence(CangJieTopLevelPropertyFqnNameIndex.Helper.getIndexKey(), fqName.asString());
+                sink.occurrence(CangJieTopLevelPropertyByPackageIndex.Helper.getIndexKey(), fqName.parent().asString());
+                IndexUtilsKt.indexTopLevelExtension(stub, sink);
+            }
+        }
 
         IndexUtilsKt.indexInternals(stub, sink);
     }
@@ -273,8 +273,8 @@ public class IdeStubIndexService extends StubIndexService {
 
             indexPrime(stub, sink);
         }
-
-        if (stub.isTopLevel()) {
+//如果该方法是顶层方法或有扩展接收器，则将其索引到顶层
+        if (stub.isTopLevel() || stub.isExtension()) {
             // can have special fq name in case of syntactically incorrect function with no name
             FqName fqName = stub.getFqName();
             if (fqName != null) {
@@ -347,7 +347,7 @@ public class IdeStubIndexService extends StubIndexService {
     public void indexEnumEntry(@NotNull CangJieEnumEntryStub stub, @NotNull IndexSink sink) {
         indexTypeStatementStub(stub, sink);
 
-        sink.occurrence(CangJieEnumEntryShortNameIndex.Helper.getIndexKey(),stub.getName());
+        sink.occurrence(CangJieEnumEntryShortNameIndex.Helper.getIndexKey(), stub.getName());
     }
 
     @Override

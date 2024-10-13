@@ -21,11 +21,17 @@ public class ExtensionReceiver extends AbstractReceiverValue implements Implicit
     @NotNull
     @Override
     public DeclarationDescriptor getDeclarationDescriptor() {
-        return null;
+        return descriptor;
+
     }
 
     @Override
+    public String toString() {
+        return getType() + ": Ext {" + descriptor + "}";
+    }
+    @Override
     public @NotNull ReceiverValue replaceType(@NotNull CangJieType newType) {
-        return null;
+        return new ExtensionReceiver(descriptor, newType, getOriginal());
+
     }
 }

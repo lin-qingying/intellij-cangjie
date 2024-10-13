@@ -28,6 +28,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     private List<ValueParameterDescriptor> unsubstitutedValueParameters = new ArrayList<>();
     private CangJieType unsubstitutedReturnType;
     private List<ReceiverParameterDescriptor> contextReceiverParameters;
+//    扩展接收器
     private ReceiverParameterDescriptor extensionReceiverParameter;
     private ReceiverParameterDescriptor dispatchReceiverParameter;
     private Modality modality;
@@ -234,6 +235,11 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         return overriddenFunctions != null ? overriddenFunctions : Collections.emptyList();
     }
 
+
+    /**
+     * 重写规则  this 表示的该对象 (已经重写的对象，open修饰): 注意 这里的open
+     * @param overriddenDescriptors 被重写方法，也就是抽象方法
+     */
     @Override
     @SuppressWarnings("unchecked")
     public void setOverriddenDescriptors(@NotNull Collection<? extends CallableMemberDescriptor> overriddenDescriptors) {

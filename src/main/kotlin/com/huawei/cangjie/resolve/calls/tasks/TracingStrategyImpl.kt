@@ -53,7 +53,7 @@ class TracingStrategyImpl private constructor(override val reference: CjReferenc
         trace: BindingTrace,
         candidates: Collection<ResolvedCall<D>>
     ) {
-        val variableDescriptor = isFunctionExpectedError<D>(candidates)
+        val variableDescriptor = isFunctionExpectedError(candidates)
         if (variableDescriptor != null) {
             trace.report(
                 Errors.FUNCTION_EXPECTED.on(
@@ -146,7 +146,7 @@ class TracingStrategyImpl private constructor(override val reference: CjReferenc
             candidates: Collection<ResolvedCall<D>>
         ): VariableDescriptor? {
             val variables =
-                candidates.map { candidate: ResolvedCall<D> -> variableIfFunctionExpectedError(candidate)!! }
+                candidates.map { candidate: ResolvedCall<D> -> variableIfFunctionExpectedError(candidate) }
             val distinctVariables = variables.distinct()
             return distinctVariables.singleOrNull()
         }

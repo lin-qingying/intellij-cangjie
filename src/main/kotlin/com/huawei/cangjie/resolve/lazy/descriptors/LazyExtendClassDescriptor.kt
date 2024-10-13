@@ -174,7 +174,9 @@ class LazyExtendClassDescriptor(
 
         return true
     }
-
+    val extendId:String get() {
+        return typeStatement.getExtendId()
+    }
 
     override fun toString(): String {
         return "extend $classDescriptor"

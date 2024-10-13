@@ -24,7 +24,14 @@ import java.util.*
 //        this is CjParameter -> ownerFunction?.isExpectDeclaration() == true
 //        else -> containingTypeStatement?.isExpectDeclaration() == true
 //    }
+fun CjTypeStatement.effectiveDeclarations(): List<CjDeclaration> {
+    return when (this) {
+        is CjStruct -> declarations+ primaryConstructorParameters.filter { p -> p.hasLetOrVar() }
 
+        is CjClass -> declarations+ primaryConstructorParameters.filter { p -> p.hasLetOrVar() }
+        else -> declarations
+    }
+}
 fun CjExpression.lastBlockStatementOrThis(): CjExpression =
     (this as? CjBlockExpression)?.statements?.lastOrNull() ?: this
 fun CjFunctionLiteral.findLabelAndCall(): Pair<Name?, CjCallExpression?> {

@@ -20,7 +20,6 @@ import com.huawei.cangjie.types.UnwrappedType
  * For A::memberM dispatchReceiver = UnboundReceiver, extensionReceiver = null
  * For a::memberExtM dispatchReceiver = ExplicitValueReceiver, extensionReceiver = ExplicitValueReceiver
  *
- * For class B with companion object B::companionM dispatchReceiver = BoundValueReference
  */
 class CallableReferenceResolutionCandidate(
     val candidate: CallableDescriptor,

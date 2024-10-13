@@ -526,9 +526,10 @@ public class OverridingUtil {
             CallableDescriptor superDescriptor,
             CallableDescriptor subDescriptor
     ) {
-        if ((superDescriptor.getExtensionReceiverParameter() == null) != (subDescriptor.getExtensionReceiverParameter() == null)) {
-            return OverrideCompatibilityInfo.incompatible("Receiver presence mismatch");
-        }
+//        TODO 如果使用扩展接收器，那么这里就要注释掉
+//        if ((superDescriptor.getExtensionReceiverParameter() == null) != (subDescriptor.getExtensionReceiverParameter() == null)) {
+//            return OverrideCompatibilityInfo.incompatible("Receiver presence mismatch");
+//        }
 
         if (superDescriptor.getValueParameters().size() != subDescriptor.getValueParameters().size()) {
             return OverrideCompatibilityInfo.incompatible("Value parameter number mismatch");

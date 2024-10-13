@@ -30,6 +30,8 @@ object CjNamedDeclarationUtil {
             if (constructorClass != null) {
                 return getFQName(constructorClass)
             }
+        }else if (parent is CjExtend){
+            return getParentFqName(parent)
         }
 
 

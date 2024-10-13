@@ -33,6 +33,9 @@ public class DefaultErrorMessages {
 /**************声明检查************************************************/
 //未定义
         MAP.put(UNSUPPORTED, "Unsupported [{0}]", STRING);
+//        MAP.put(UNRESOLVED_REFERENCE_WRONG_RECEIVER, "Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: {0}", AMBIGUOUS_CALLS);
+        MAP.put(UNRESOLVED_REFERENCE_WRONG_RECEIVER, "Unresolved reference. ", AMBIGUOUS_CALLS);
+
 //重复定义
         MAP.put(CONFLICTING_OVERLOADS, "Conflicting overloads: {0}", CommonRenderers.commaSeparated(FQ_NAMES_IN_TYPES));
         MAP.put(PACKAGE_OR_CLASSIFIER_REDECLARATION, "Redeclaration: {0}", STRING);
@@ -92,6 +95,7 @@ public class DefaultErrorMessages {
         MAP.put(INCONSISTENT_PACKAGE_MODIFIERS, "Inconsistent modifiers for package ''{0}''", FQNAME);
         MAP.put(INCONSISTENT_PACKAGE_MACOR, "Inconsistent macro package declarations");
         MAP.put(OVERRIDING_FINAL_MEMBER, "''{0}'' cannot be referenced from a static context", NAMED, NAMED);
+        MAP.put(NO_CALL_OPERATOR, "Calls are not allowed {0}",  NAMED_ADN_PARAMETER);
 
         MAP.put(STATIC_CONTEXT_REFERENCE_ERROR, "Non-static {0} ''{1}'' cannot be referenced from a static context", DESCRIPTOR_KIND_NAME, NAMED_ADN_PARAMETER);
         MAP.put(INSTANCE_ACCESS_STATIC_MEMBER_ERROR, "Static {0} ''{1}'' accessed via instance reference", DESCRIPTOR_KIND_NAME, NAMED_ADN_PARAMETER);
@@ -289,11 +293,11 @@ public class DefaultErrorMessages {
         MAP.put(ABSTRACT_FUNCTION_WITH_BODY, "A function ''{0}'' with body cannot be abstract", NAMED);
 
 
-        MAP.put(RETURN_TYPE_NOT_SPECIFIED_ERROR, "For technical reasons, please display the return type of the specified method" );
-        MAP.put(ABSTRACT_MEMBER_VISIBILITY_ERROR, "The visibility of an ''{0}'' {1} must be {2}",MODALITY_NAME, DESCRIPTOR_KIND_NAME,VISIBLITYS_NAMES);
+        MAP.put(RETURN_TYPE_NOT_SPECIFIED_ERROR, "For technical reasons, please display the return type of the specified method");
+        MAP.put(ABSTRACT_MEMBER_VISIBILITY_ERROR, "The visibility of an ''{0}'' {1} must be {2}", MODALITY_NAME, DESCRIPTOR_KIND_NAME, VISIBLITYS_NAMES);
         MAP.put(NO_CONSTRUCTOR, "This class does not have a constructor");
-        MAP.put(UNEXPECTED_CONSTRUCTOR_IN_BODY_ERROR, "Unexpected constructor in {0} body",STRING);
-        MAP.put(UNEXPECTED_FINALIZER_IN_BODY_ERROR, "unexpected finalizer in {0} body",STRING);
+        MAP.put(UNEXPECTED_CONSTRUCTOR_IN_BODY_ERROR, "Unexpected constructor in {0} body", STRING);
+        MAP.put(UNEXPECTED_FINALIZER_IN_BODY_ERROR, "unexpected finalizer in {0} body", STRING);
 
 
         MAP.put(FINALIZER_CANNOT_HAVE_PARAMETERS_ERROR, "Finalizer cannot have any parameter");
@@ -304,6 +308,9 @@ public class DefaultErrorMessages {
         MAP.put(NO_GET_METHOD, "No get method providing array access");
         MAP.put(NO_SET_METHOD, "No set method providing array access");
         MAP.put(DEPRECATED_TYPE_PARAMETER_SYNTAX, "Type parameters must be placed before the name of the function");
+
+
+        MAP.put(EXTENSION_SHADOWED_BY_MEMBER, "Extension is shadowed by a member: {0}", COMPACT_WITH_MODIFIERS);
 
     }
 

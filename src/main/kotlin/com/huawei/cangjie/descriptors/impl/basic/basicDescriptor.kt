@@ -10,6 +10,7 @@ import com.huawei.cangjie.descriptors.impl.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.psi.CjPsiFactory
 import com.huawei.cangjie.psi.CjSuperTypeListEntry
 import com.huawei.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorBasicImpl
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
@@ -689,7 +690,11 @@ open class BasicTypeDescriptor(
         return basicTypeMemberScope
     }
 
-    override fun getSource(): SourceElement = SourceElement.NO_SOURCE
+    override fun getSource(): SourceElement {
+
+
+        return SourceElement.NO_SOURCE
+    }
     override fun getDefaultType(): BasicType {
         return BasicType(typeConstructor, basicTypeMemberScope)
     }

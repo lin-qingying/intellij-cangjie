@@ -293,7 +293,8 @@ public interface Errors {
     DiagnosticFactory0<CjParameter>
             ANONYMOUS_FUNCTION_PARAMETER_WITH_DEFAULT_VALUE = DiagnosticFactory0.create(ERROR, PARAMETER_DEFAULT_VALUE);
     DiagnosticFactory0<CjParameter> USELESS_VARARG_ON_PARAMETER = DiagnosticFactory0.create(WARNING);
-
+    DiagnosticFactory1<CjDeclaration, CallableMemberDescriptor> EXTENSION_SHADOWED_BY_MEMBER =
+            DiagnosticFactory1.create(ERROR, FOR_REDECLARATION);
     DiagnosticFactory1<CjBinaryExpression, CangJieType> USELESS_ELVIS =
             DiagnosticFactory1.create(WARNING, PositioningStrategies.USELESS_ELVIS);
 
@@ -415,6 +416,7 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, RenderedDiagnostic<?>> PLUGIN_ERROR = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, RenderedDiagnostic<?>> PLUGIN_WARNING = DiagnosticFactory1.create(WARNING);
     DiagnosticFactory1<PsiElement, RenderedDiagnostic<?>> PLUGIN_INFO = DiagnosticFactory1.create(INFO);
+    DiagnosticFactory1<CjCallExpression,  DeclarationDescriptor> NO_CALL_OPERATOR = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory2<PsiElement, DescriptorKind, DeclarationDescriptor> STATIC_CONTEXT_REFERENCE_ERROR = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory2<PsiElement, DescriptorKind, DeclarationDescriptor> INSTANCE_ACCESS_STATIC_MEMBER_ERROR = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory2<CjTypeReference, CangJieType, CangJieType> WRONG_GETTER_RETURN_TYPE = DiagnosticFactory2.create(ERROR);

@@ -4,8 +4,8 @@
         <!--        <fileStructureGroupRuleProvider-->
         <!--                implementation="com.huawei.cangjie.ide.searching.usages.CangJieDeclarationSecondLevelGroupRuleProvider"/>-->
 
-        <!--        <findUsagesHandlerFactory implementation="com.huawei.cangjie.ide.searching.usages.CangJieFindUsagesHandlerFactory"-->
-        <!--                                  id="cangjieFindUsagesHandlerFactory"/>-->
+                <findUsagesHandlerFactory implementation="com.huawei.cangjie.ide.searching.usages.CangJieFindUsagesHandlerFactory"
+                                          id="cangjieFindUsagesHandlerFactory"/>
 
         <!--        <importFilteringRule implementation="com.huawei.cangjie.ide.searching.usages.CangJieImportFilteringRule"/>-->
         <!--        <elementDescriptionProvider-->
@@ -15,6 +15,8 @@
         <referencesSearch implementation="com.huawei.cangjie.ide.search.CangJieReferencesSearcher"/>
 
 
+        <elementDescriptionProvider order="first" implementation="com.huawei.cangjie.ide.searching.usages.CangJieElementDescriptionProvider"/>
+
         <lang.findUsagesProvider language="CangJie"
                                  implementationClass="com.huawei.cangjie.ide.searching.usages.CangJieFindUsagesProviderBase"/>
 
@@ -22,6 +24,8 @@
                                  implementationClass="com.huawei.cangjie.ide.searching.usages.CangJieFindUsagesProvider"/>
         <projectService serviceInterface="com.huawei.cangjie.ide.search.CangJieSearchUsagesSupport"
                         serviceImplementation="com.huawei.cangjie.ide.search.CangJieSearchUsagesSupportImpl"/>
+        <projectService serviceInterface="com.huawei.cangjie.ide.searching.findUsages.CangJieFindUsagesSupport"
+                        serviceImplementation="com.huawei.cangjie.ide.searching.findUsages.CangJieFindUsagesSupportImpl"/>
 
     </extensions>
 </idea-plugin>

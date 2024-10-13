@@ -1,6 +1,5 @@
 package com.huawei.cangjie.ide.search
 
-import com.huawei.cangjie.ide.search.CangJieSearchUsagesSupport.SearchUtils.forceResolveReferences
 import com.huawei.cangjie.psi.CjDeclaration
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjFile
@@ -18,9 +17,12 @@ interface CangJieSearchUsagesSupport {
             getInstance(project).getReceiverTypeSearcherInfo(this )
         fun CjFile.forceResolveReferences(elements: List<CjElement>) =
             getInstance(project).forceResolveReferences(this, elements)
+        fun findDeepestSuperMethodsNoWrapping(method: PsiElement): List<PsiElement> =
+            getInstance(method.project).findSuperMethodsNoWrapping(method, true)
 
     }
     fun forceResolveReferences(file: CjFile, elements: List<CjElement>)
+    fun findSuperMethodsNoWrapping(method: PsiElement, deepest: Boolean): List<PsiElement>
 
     /**
      *
@@ -36,16 +38,4 @@ interface CangJieSearchUsagesSupport {
     companion object {
         fun getInstance(project: Project): CangJieSearchUsagesSupport = project.service()
     }
-}
-class CangJieSearchUsagesSupportImpl : CangJieSearchUsagesSupport {
-    override fun getReceiverTypeSearcherInfo(
-        psiElement: PsiElement,
-
-    ): ReceiverTypeSearcherInfo? {
-
-        return  psiElement.getReceiverTypeSearcherInfo()
-    }
-    override fun forceResolveReferences(file: CjFile, elements: List<CjElement>) =
-        file.forceResolveReferences(elements)
-
 }

@@ -1,6 +1,7 @@
 package com.huawei.cangjie.psi
 
 import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.psiUtil.getStrictParentOfType
 
 import com.huawei.cangjie.psi.stubs.CangJiePropertyStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
@@ -126,11 +127,34 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
 
 
     override fun toString(): String = super.toString() + ": " + name
+    private val receiverTypeRefByTree: CjTypeReference?
+        get() {
+            val parent = this.getStrictParentOfType<CjExtend>()
 
+            return parent?.receiverTypeReceiver
+        }
+
+
+    override val receiverTypeReference: CjTypeReference?
+        get() {
+
+            val stub = stub
+            if (stub != null) {
+                if (!stub.isExtension()) {
+                    return null
+                }
+
+                val parent = this.getStrictParentOfType<CjExtend>()
+
+                return parent?.receiverTypeReceiver
+            }
+//            return null
+            return receiverTypeRefByTree
+        }
 
     override val valueParameterList: CjParameterList? = null
     override val valueParameters: List<CjParameter> = emptyList()
-    override val receiverTypeReference: CjTypeReference? = null
+
     val body :CjPropertyBody? get() = findChildByClass(CjPropertyBody::class.java)
     val accessors: List<CjPropertyAccessor>
         get() {

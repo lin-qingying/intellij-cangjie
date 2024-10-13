@@ -50,6 +50,7 @@ interface ConstraintSystemOperation {
 
     val errors: List<ConstraintSystemError>
 }
+
 // if runOperations return true, then this operation will be applied, and function return true
 inline fun ConstraintSystemBuilder.runTransaction(crossinline runOperations: ConstraintSystemOperation.() -> Boolean): Boolean {
     val transactionState = prepareTransaction()
@@ -63,11 +64,40 @@ inline fun ConstraintSystemBuilder.runTransaction(crossinline runOperations: Con
     transactionState.rollbackTransaction()
     return false
 }
+
 abstract class ConstraintSystemTransaction {
     abstract fun closeTransaction()
 
     abstract fun rollbackTransaction()
 }
+
+fun ConstraintSystemBuilder.isSubtypeConstraintCompatible(
+    lowerType: CangJieTypeMarker,
+    upperType: CangJieTypeMarker,
+    position: ConstraintPosition
+): Boolean = isConstraintCompatible(lowerType, upperType, position, ConstraintKind.LOWER)
+
+private fun ConstraintSystemBuilder.isConstraintCompatible(
+    lowerType: CangJieTypeMarker,
+    upperType: CangJieTypeMarker,
+    position: ConstraintPosition,
+    kind: ConstraintKind
+): Boolean {
+    var isCompatible = false
+    runTransaction {
+        if (!hasContradiction) {
+            when (kind) {
+                ConstraintKind.LOWER -> addSubtypeConstraint(lowerType, upperType, position)
+                ConstraintKind.UPPER -> addSubtypeConstraint(upperType, lowerType, position)
+                ConstraintKind.EQUALITY -> addEqualityConstraint(lowerType, upperType, position)
+            }
+        }
+        isCompatible = !hasContradiction
+        false
+    }
+    return isCompatible
+}
+
 interface ConstraintSystemBuilder : ConstraintSystemOperation {
     fun prepareTransaction(): ConstraintSystemTransaction
 
@@ -75,11 +105,13 @@ interface ConstraintSystemBuilder : ConstraintSystemOperation {
 
     fun currentStorage(): ConstraintStorage
 }
+
 fun ConstraintSystemBuilder.addSubtypeConstraintIfCompatible(
     lowerType: CangJieTypeMarker,
     upperType: CangJieTypeMarker,
     position: ConstraintPosition
 ): Boolean = addConstraintIfCompatible(lowerType, upperType, position, ConstraintKind.LOWER)
+
 private fun ConstraintSystemBuilder.addConstraintIfCompatible(
     lowerType: CangJieTypeMarker,
     upperType: CangJieTypeMarker,
@@ -95,6 +127,7 @@ private fun ConstraintSystemBuilder.addConstraintIfCompatible(
     }
     !hasContradiction
 }
+
 fun ConstraintSystemBuilder.addEqualityConstraintIfCompatible(
     lowerType: CangJieTypeMarker,
     upperType: CangJieTypeMarker,

@@ -1,6 +1,7 @@
 package com.huawei.cangjie.psi
 
 import com.huawei.cangjie.lexer.CjTokens
+import com.huawei.cangjie.psi.psiUtil.getStrictParentOfType
 import com.huawei.cangjie.psi.stubs.CangJieFunctionStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
@@ -39,37 +40,38 @@ abstract class CjFunctionImpl : CjTypeParameterListOwnerStub<CangJieFunctionStub
 
     override val receiverTypeReference: CjTypeReference?
         get() {
+
             val stub = stub
             if (stub != null) {
                 if (!stub.isExtension()) {
                     return null
                 }
-                val childTypeReferences =
-                    getStubOrPsiChildrenAsList(
-                        CjStubElementTypes.TYPE_REFERENCE
-                    )
-                return if (childTypeReferences.isNotEmpty()) {
-                    childTypeReferences[0]
-                } else {
-                    null
-                }
+
+                val parent = this.getStrictParentOfType<CjExtend>()
+
+                return parent?.receiverTypeReceiver
             }
+//            return null
             return receiverTypeRefByTree
         }
 
+    override val typeParameterList: CjTypeParameterList?
+        get() {
+
+            val superTypeParameterList = super.typeParameterList
+
+            if (superTypeParameterList != null) return superTypeParameterList
+
+            if (receiverTypeReference != null) {
+                return this.getStrictParentOfType<CjExtend>()?.typeParameterList
+            }
+            return null
+        }
     private val receiverTypeRefByTree: CjTypeReference?
         get() {
-            var child = firstChild
-            while (child != null) {
-                val tt = child.node.elementType
-                if (tt === CjTokens.LPAR || tt === CjTokens.COLON) break
-                if (child is CjTypeReference) {
-                    return child
-                }
-                child = child.nextSibling
-            }
+            val parent = this.getStrictParentOfType<CjExtend>()
 
-            return null
+            return parent?.receiverTypeReceiver
         }
 
 

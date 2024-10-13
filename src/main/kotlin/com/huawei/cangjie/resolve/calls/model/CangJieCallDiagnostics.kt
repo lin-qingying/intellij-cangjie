@@ -128,6 +128,12 @@ class NoneCandidatesCallDiagnostic : CangJieCallDiagnostic(CandidateApplicabilit
         reporter.onCall(this)
     }
 }
+class StubBuilderInferenceReceiver(
+    val receiver: SimpleCangJieCallArgument,
+    val extensionReceiverParameter: ReceiverParameterDescriptor,
+) : CangJieCallDiagnostic(CandidateApplicability.RESOLVED) {
+    override fun report(reporter: DiagnosticReporter) = reporter.onCallReceiver(receiver, this)
+}
 
 class NoneOperatorCallDiagnostic(val left: CangJieType, val right: CangJieType) :
     CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
@@ -300,6 +306,11 @@ class SuperAsExtensionReceiver(val receiver: SimpleCangJieCallArgument) :
     CangJieCallDiagnostic(CandidateApplicability.RUNTIME_ERROR) {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCallReceiver(receiver, this)
+    }
+}
+class NoCallOperatorFunction(val descriptor: DeclarationDescriptor) : CangJieCallDiagnostic(CandidateApplicability.UNSAFE_CALL) {
+    override fun report(reporter: DiagnosticReporter) {
+        reporter.onCall(this)
     }
 }
 

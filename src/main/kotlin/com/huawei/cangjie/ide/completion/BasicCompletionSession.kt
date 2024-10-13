@@ -277,19 +277,19 @@ class BasicCompletionSession(
             }
             val contextVariablesProvider = RealContextVariablesProvider(referenceVariantsHelper, position)
             withContextVariablesProvider(contextVariablesProvider) { lookupElementFactory ->
-//                if (receiverTypes != null) {
-//                    addKind(CangJieCompletionKindName.EXTENSION_FUNCTION_TYPE_VALUE) {
-//                        ExtensionFunctionTypeValueCompletion(receiverTypes, callTypeAndReceiver.callType, lookupElementFactory)
-//                            .processVariables(contextVariablesProvider)
-//                            .forEach {
-//                                val lookupElements = it.factory.createStandardLookupElementsForDescriptor(
-//                                    it.invokeDescriptor,
-//                                    useReceiverTypes = true,
-//                                )
-//                                collector.addElements(lookupElements)
-//                            }
-//                    }
-//                }
+                if (receiverTypes != null) {
+                    addKind(CangJieCompletionKindName.EXTENSION_FUNCTION_TYPE_VALUE) {
+                        ExtensionFunctionTypeValueCompletion(receiverTypes, callTypeAndReceiver.callType, lookupElementFactory)
+                            .processVariables(contextVariablesProvider)
+                            .forEach {
+                                val lookupElements = it.factory.createStandardLookupElementsForDescriptor(
+                                    it.invokeDescriptor,
+                                    useReceiverTypes = true,
+                                )
+                                collector.addElements(lookupElements)
+                            }
+                    }
+                }
 
                 addKind(CangJieCompletionKindName.CONTEXT_VARIABLE_TYPE_SC) {
                     if (contextVariableTypesForSmartCompletion.getArtifact().any {

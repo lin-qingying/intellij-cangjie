@@ -52,12 +52,12 @@ fun CjDeclaration.implicitVisibility(): CjModifierKeywordToken? {
             }
         }
 
-        hasModifier(CjTokens.OVERRIDE_KEYWORD) -> {
-            resolveToDescriptorIfAny()?.safeAs<CallableMemberDescriptor>()
-                ?.overriddenDescriptors
-                ?.let { OverridingUtil.findMaxVisibility(it) }
-                ?.toKeywordToken()
-        }
+//        hasModifier(CjTokens.OVERRIDE_KEYWORD) -> {
+//            resolveToDescriptorIfAny()?.safeAs<CallableMemberDescriptor>()
+//                ?.overriddenDescriptors
+//                ?.let { OverridingUtil.findMaxVisibility(it) }
+//                ?.toKeywordToken()
+//        }
 
         else -> CjTokens.DEFAULT_VISIBILITY_KEYWORD
     }

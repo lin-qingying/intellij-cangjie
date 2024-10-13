@@ -13,6 +13,9 @@ import com.huawei.cangjie.types.model.CangJieTypeMarker
 import com.huawei.cangjie.types.model.FlexibleTypeMarker
 import com.huawei.cangjie.types.model.SimpleTypeMarker
 import com.huawei.cangjie.types.model.TypeArgumentListMarker
+import com.huawei.cangjie.types.util.TypeUtils
+
+fun CangJieType.isNullable(): Boolean = TypeUtils.isNullableType(this)
 
 val CangJieType.isError: Boolean
     get() = unwrap().let { unwrapped ->

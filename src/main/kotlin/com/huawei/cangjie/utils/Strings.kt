@@ -8,7 +8,22 @@ import com.intellij.openapi.util.text.StringUtil
 private val CARET_MARKER = "<~!!~>"
 private val BEGIN_MARKER = "<~BEGIN~>"
 private val END_MARKER = "<~END~>"
-
+fun String.collapseSpaces(): String {
+    val builder = StringBuilder()
+    var haveSpaces = false
+    for (c in this) {
+        if (c.isWhitespace()) {
+            haveSpaces = true
+        } else {
+            if (haveSpaces) {
+                builder.append(" ")
+                haveSpaces = false
+            }
+            builder.append(c)
+        }
+    }
+    return builder.toString()
+}
 fun CharSequence.substringWithContext(beginIndex: Int, endIndex: Int, range: Int): String {
     val start = kotlin.math.max(0, beginIndex - range)
     val end = kotlin.math.min(this.length, endIndex + range)

@@ -6,6 +6,7 @@ import com.huawei.cangjie.ide.IdeDescriptorRenderers
 import com.huawei.cangjie.psi.CjFunction
 import com.huawei.cangjie.resolve.caches.unsafeResolveToDescriptor
 import com.huawei.cangjie.types.checker.SimpleClassicTypeSystemContext.isUnit
+import com.intellij.lang.cacheBuilder.WordsScanner
 import com.intellij.psi.PsiElement
 
 

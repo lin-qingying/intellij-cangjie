@@ -400,6 +400,8 @@ class PSICallResolver(
         override val syntheticScopes: SyntheticScopes get() = this@PSICallResolver.syntheticScopes
         override val dynamicScope: MemberScope =
             dynamicCallableDescriptors.createDynamicDescriptorScope(context.call, context.scope.ownerDescriptor)
+        override fun getContextReceivers(scope: LexicalScope): List<ReceiverValueWithSmartCastInfo> =
+            scope.contextReceiversGroup.map { cache.getOrPut(it) { context.transformToReceiverWithSmartCastInfo(it.value) } }
 
         override val typeApproximator: TypeApproximator get() = this@PSICallResolver.typeApproximator
 

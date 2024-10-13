@@ -207,8 +207,9 @@ internal class ConstraintSystemImpl(
     }
 
     override val resultingSubstitutor: TypeSubstitutor
-        get() = TODO("Not yet implemented")
-
+        get() = getSubstitutor(substituteOriginal = true) {
+            ErrorUtils.createErrorType(ErrorTypeKind.UNINFERRED_TYPE_VARIABLE, it.originalTypeParameter.name.asString())
+        }
     override fun getTypeBounds(typeVariable: TypeVariable): TypeBoundsImpl {
         return allTypeParameterBounds[typeVariable]
             ?: throw IllegalArgumentException("TypeParameterDescriptor is not a type variable for constraint system: $typeVariable")

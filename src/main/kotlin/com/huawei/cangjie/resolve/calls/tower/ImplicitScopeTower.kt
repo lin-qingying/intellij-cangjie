@@ -36,6 +36,18 @@ class VisibilityError(val invisibleMember: DeclarationDescriptorWithVisibility) 
     }
 }
 
+class ContextReceiverAmbiguity : ResolutionDiagnostic(CandidateApplicability.RESOLVED_WITH_ERROR) {
+    override fun report(reporter: DiagnosticReporter) {
+        reporter.onCall(this)
+    }
+}
+
+class NoMatchingContextReceiver : ResolutionDiagnostic(CandidateApplicability.INAPPLICABLE_WRONG_RECEIVER) {
+    override fun report(reporter: DiagnosticReporter) {
+        reporter.onCall(this)
+    }
+}
+
 object HiddenDescriptor : ResolutionDiagnostic(CandidateApplicability.HIDDEN)
 
 interface ScopeTowerLevel {
@@ -44,7 +56,10 @@ interface ScopeTowerLevel {
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver>
 
-    fun getObjects(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?): Collection<CandidateWithBoundDispatchReceiver>
+    fun getObjects(
+        name: Name,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): Collection<CandidateWithBoundDispatchReceiver>
 
     fun getFunctions(
         name: Name,
@@ -64,6 +79,7 @@ interface ImplicitScopeTower {
 
     val typeApproximator: TypeApproximator
     val isNewInferenceEnabled: Boolean
+    fun getContextReceivers(scope: LexicalScope): List<ReceiverValueWithSmartCastInfo>
 
     fun interceptVariableCandidates(
         resolutionScope: ResolutionScope,

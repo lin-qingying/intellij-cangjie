@@ -21,9 +21,11 @@ import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.source.getPsi
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.TypeConstructor
-import com.huawei.cangjie.utils.*
+import com.huawei.cangjie.utils.CallType
+import com.huawei.cangjie.utils.CallTypeAndReceiver
+import com.huawei.cangjie.utils.ShadowedDeclarationsFilter
+import com.huawei.cangjie.utils.getImplicitReceiversWithInstance
 import com.intellij.psi.PsiElement
-import com.intellij.util.containers.addIfNotNull
 
 fun DeclarationDescriptor.findPsi(): PsiElement? {
     val psi = (this as? DeclarationDescriptorWithSource)?.source?.getPsi()
@@ -113,8 +115,6 @@ class ReferenceVariantsHelper(
     }
 
 
-
-
     private fun getReferenceVariantsNoVisibilityFilter(
         contextElement: PsiElement,
         kindFilter: DescriptorKindFilter,
@@ -192,7 +192,7 @@ class ReferenceVariantsHelper(
                         nameFilter
                     )
                 )
-            }else{
+            } else {
 
                 val explicitReceiverTypes = if (useReceiverType != null) {
                     listOf(useReceiverType)
@@ -267,6 +267,7 @@ class ReferenceVariantsHelper(
             return scope.collectDescriptorsFiltered(kindFilter, nameFilter, changeNamesForAliased = true)
         }
     }
+
     private fun MutableSet<DeclarationDescriptor>.addScopeAndSyntheticExtensions(
         scope: LexicalScope,
         receiverTypes: Collection<CangJieType>,
@@ -298,8 +299,9 @@ class ReferenceVariantsHelper(
 
         val syntheticScopes = resolutionFacade.getFrontendService(SyntheticScopes::class.java).forceEnableSamAdapters()
         if (kindFilter.acceptsKinds(DescriptorKindFilter.VARIABLES_MASK)) {
-            val lookupLocation = (scope.ownerDescriptor.toSourceElement.getPsi() as? CjElement)?.let { CangJieLookupLocation(it) }
-                ?: NoLookupLocation.FROM_IDE
+            val lookupLocation =
+                (scope.ownerDescriptor.toSourceElement.getPsi() as? CjElement)?.let { CangJieLookupLocation(it) }
+                    ?: NoLookupLocation.FROM_IDE
 
             for (extension in syntheticScopes.collectSyntheticExtensionProperties(receiverTypes, lookupLocation)) {
                 process(extension)
@@ -312,6 +314,7 @@ class ReferenceVariantsHelper(
             }
         }
     }
+
     private fun MutableSet<DeclarationDescriptor>.processAll(
         implicitReceiverTypes: Collection<CangJieType>,
         receiverTypes: Collection<CangJieType>,
@@ -323,8 +326,15 @@ class ReferenceVariantsHelper(
         addNonExtensionMembers(receiverTypes, kindFilter, nameFilter, constructorFilter = { false })
         addMemberExtensions(implicitReceiverTypes, receiverTypes, callType, kindFilter, nameFilter)
         addScopeAndSyntheticExtensions(resolutionScope, receiverTypes, callType, kindFilter, nameFilter)
+
+        filtration()
+
     }
 
+    private fun MutableSet<DeclarationDescriptor>.filtration() {
+//        过滤掉操作符函数
+        removeIf { it is FunctionDescriptor && it.isOperator }
+    }
 
     private fun MutableSet<DeclarationDescriptor>.addNonExtensionCallablesAndConstructors(
         scope: HierarchicalScope,
@@ -334,7 +344,9 @@ class ReferenceVariantsHelper(
         classesOnly: Boolean
     ) {
         var filterToUse =
-            DescriptorKindFilter(kindFilter.kindMask and DescriptorKindFilter.CALLABLES.kindMask).exclude(DescriptorKindExclude.Extensions)
+            DescriptorKindFilter(kindFilter.kindMask and DescriptorKindFilter.CALLABLES.kindMask).exclude(
+                DescriptorKindExclude.Extensions
+            )
 
         // should process classes if we need constructors
         if (filterToUse.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK)) {
@@ -351,6 +363,7 @@ class ReferenceVariantsHelper(
             }
         }
     }
+
     private fun MutableSet<DeclarationDescriptor>.addNonExtensionMembers(
         memberScope: MemberScope,
         typeConstructor: TypeConstructor,
@@ -371,6 +384,7 @@ class ReferenceVariantsHelper(
             )
         }
     }
+
     private fun MutableSet<DeclarationDescriptor>.addNonExtensionMembers(
         receiverTypes: Collection<CangJieType>,
         kindFilter: DescriptorKindFilter,
@@ -378,12 +392,20 @@ class ReferenceVariantsHelper(
         constructorFilter: (ClassDescriptor) -> Boolean
     ) {
         for (receiverType in receiverTypes) {
-            addNonExtensionMembers(receiverType.instanceMemberScope, receiverType.constructor, kindFilter, nameFilter, constructorFilter)
-//            receiverType.constructor.declarationDescriptor.safeAs<ClassDescriptor>()?.companionObjectDescriptor?.let {
-//                addNonExtensionMembers(it.unsubstitutedMemberScope, it.typeConstructor, kindFilter, nameFilter, constructorFilter)
-//            }
+            addNonExtensionMembers(
+                receiverType.instanceMemberScope,
+                receiverType.constructor,
+                kindFilter,
+                nameFilter,
+                constructorFilter
+            )
+//           TODO 是否需要添加静态成员
+//            addNonExtensionMembers(receiverType.staticMemberScope, receiverType.constructor, kindFilter, nameFilter, constructorFilter)
+
+
         }
     }
+
     private fun MutableSet<DeclarationDescriptor>.addMemberExtensions(
         dispatchReceiverTypes: Collection<CangJieType>,
         extensionReceiverTypes: Collection<CangJieType>,
@@ -398,7 +420,6 @@ class ReferenceVariantsHelper(
             }
         }
     }
-
 
 
     // filters out variable inside its initializer
@@ -472,5 +493,6 @@ private fun MemberScope.collectStaticMembers(
         nameFilter
     )
 }
+
 val DeclarationDescriptor.toSourceElement: SourceElement
     get() = if (this is DeclarationDescriptorWithSource) source else SourceElement.NO_SOURCE

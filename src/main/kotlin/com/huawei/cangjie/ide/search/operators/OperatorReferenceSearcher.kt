@@ -11,11 +11,14 @@ import com.huawei.cangjie.ide.search.ExpressionsOfTypeProcessor.Companion.testLo
 import com.huawei.cangjie.ide.search.ideExtensions.CangJieReferencesSearchOptions
 import com.huawei.cangjie.ide.search.ideExtensions.CangJieRequestResultProcessor
 import com.huawei.cangjie.lang.CangJieFileType
+import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.collectDescendantsOfType
+import com.huawei.cangjie.psi.psiUtil.getStrictParentOfType
 import com.huawei.cangjie.utils.OperatorNameConventions
 import com.huawei.cangjie.utils.OperatorNameConventions.asOperatorName
+import com.huawei.cangjie.utils.exceptions.OperatorConventions
 import com.huawei.cangjie.utils.ifTrue
 import com.huawei.cangjie.utils.safeAs
 import com.intellij.openapi.application.runReadAction
@@ -26,8 +29,6 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiReference
 import com.intellij.psi.search.*
 import com.intellij.util.Processor
-import java.util.ArrayList
-import java.util.HashSet
 
 
 abstract class OperatorReferenceSearcher<TReferenceElement : CjElement>(
@@ -48,18 +49,22 @@ abstract class OperatorReferenceSearcher<TReferenceElement : CjElement>(
             true
         }
     }
+
     fun run() {
+
         val (psiClass, containsTypeOrDerivedInside) = runReadAction {
-            targetDeclaration.getReceiverTypeSearcherInfo( )
+            targetDeclaration.getReceiverTypeSearcherInfo()
         } ?: return
 
         val inProgress = SearchesInProgress.get()
         if (psiClass != null) {
             if (!inProgress.add(psiClass)) {
                 testLog {
-                    "ExpressionOfTypeProcessor is already started for ${psiClass.name}. Exit for operator ${logPresentation(
-                        targetDeclaration
-                    )}."
+                    "ExpressionOfTypeProcessor is already started for ${psiClass.name}. Exit for operator ${
+                        logPresentation(
+                            targetDeclaration
+                        )
+                    }."
                 }
                 return
             }
@@ -71,18 +76,36 @@ abstract class OperatorReferenceSearcher<TReferenceElement : CjElement>(
         }
 
         try {
-            ExpressionsOfTypeProcessor(
-                containsTypeOrDerivedInside,
-                psiClass,
-                searchScope,
-                project,
-                possibleMatchHandler = { expression -> processPossibleReceiverExpression(expression) },
-                possibleMatchesInScopeHandler = { searchScope -> doPlainSearch(searchScope) }
-            ).run()
+            val extend = runReadAction { targetDeclaration.getStrictParentOfType<CjExtend>() }
+            if (extend != null && psiClass == null) {
+                ExpressionsOfTypeProcessor(
+                    containsTypeOrDerivedInside,
+                    psiClass,
+                    searchScope,
+                    project,
+                    possibleMatchHandler = { expression -> processPossibleReceiverExpression(expression) },
+                    possibleMatchesInScopeHandler = { searchScope -> doPlainSearch(searchScope) }
+                )
+
+                    .runByExtendBasic(targetDeclaration)
+            } else {
+                ExpressionsOfTypeProcessor(
+                    containsTypeOrDerivedInside,
+                    psiClass,
+                    searchScope,
+                    project,
+                    possibleMatchHandler = { expression -> processPossibleReceiverExpression(expression) },
+                    possibleMatchesInScopeHandler = { searchScope -> doPlainSearch(searchScope) }
+                )
+
+                    .run()
+            }
+
         } finally {
             inProgress.remove(psiClass ?: targetDeclaration)
         }
     }
+
     /**
      * Invoked for all expressions that may have type matching receiver type of our operator
      */
@@ -104,6 +127,7 @@ abstract class OperatorReferenceSearcher<TReferenceElement : CjElement>(
                                     else
                                         "CjMatchEntry \"" + element.conditions.joinToString(", ") { it.text } + "\""
                                 }
+
                                 is CjNamedDeclaration -> element.node.elementType.toString() + ":" + element.name
                                 else -> element.toString()
                             }
@@ -118,6 +142,7 @@ abstract class OperatorReferenceSearcher<TReferenceElement : CjElement>(
         }
 
     }
+
     private fun doPlainSearch(scope: SearchScope) {
         testLog { "Used plain search of ${logPresentation(targetDeclaration)} in ${scope.logPresentation()}" }
 
@@ -195,6 +220,7 @@ abstract class OperatorReferenceSearcher<TReferenceElement : CjElement>(
             }
         }
     }
+
     protected abstract fun isReferenceToCheck(ref: PsiReference): Boolean
     protected abstract fun extractReference(element: CjElement): PsiReference?
 
@@ -223,7 +249,7 @@ abstract class OperatorReferenceSearcher<TReferenceElement : CjElement>(
             } ?: return null
 
             if (!Name.isValidIdentifier(functionName)) return null
-            val name =  functionName.asOperatorName()
+            val name = functionName.asOperatorName()
 
 
             return createInReadAction(declaration, name, consumer, optimizer, options, searchScope)
@@ -244,55 +270,93 @@ abstract class OperatorReferenceSearcher<TReferenceElement : CjElement>(
             val operator = declaration !is CjElement
                     || (declaration is CjNamedFunction && CangJiePsiHeuristics.isPossibleOperator(declaration))
 
+            val binaryOp = OperatorConventions.BINARY_OPERATION_NAMES.inverse()[name]
+            val assignmentOp = OperatorConventions.ASSIGNMENT_OPERATIONS.inverse()[name]
+            val unaryOp = OperatorConventions.UNARY_OPERATION_NAMES.inverse()[name]
 
+//          TODO  操作符搜索
             return when {
-//                operator && binaryOp != null -> {
-//                    val counterpartAssignmentOp = OperatorConventions.ASSIGNMENT_OPERATION_COUNTERPARTS.inverse()[binaryOp]
-//                    val operationTokens = listOfNotNull(binaryOp, counterpartAssignmentOp)
-//                    BinaryOperatorReferenceSearcher(declaration, operationTokens, searchScope, consumer, optimizer, options)
-//                }
-//
-//                operator && assignmentOp != null ->
-//                    BinaryOperatorReferenceSearcher(declaration, listOf(assignmentOp), searchScope, consumer, optimizer, options)
-//
-//                operator && unaryOp != null ->
-//                    UnaryOperatorReferenceSearcher(declaration, unaryOp, searchScope, consumer, optimizer, options)
-//
+                operator && binaryOp != null -> {
+                    val counterpartAssignmentOp =
+                        OperatorConventions.ASSIGNMENT_OPERATION_COUNTERPARTS.inverse()[binaryOp]
+                    val operationTokens = listOfNotNull(binaryOp, counterpartAssignmentOp)
+                    BinaryOperatorReferenceSearcher(
+                        declaration,
+                        operationTokens,
+                        searchScope,
+                        consumer,
+                        optimizer,
+                        options
+                    )
+                }
+
+                operator && assignmentOp != null ->
+                    BinaryOperatorReferenceSearcher(
+                        declaration,
+                        listOf(assignmentOp),
+                        searchScope,
+                        consumer,
+                        optimizer,
+                        options
+                    )
+
+                operator && unaryOp != null ->
+                    UnaryOperatorReferenceSearcher(declaration, unaryOp, searchScope, consumer, optimizer, options)
+
                 operator && name == OperatorNameConventions.INVOKE ->
                     InvokeOperatorReferenceSearcher(declaration, searchScope, consumer, optimizer, options)
-//
-//                operator && name == OperatorNameConventions.GET ->
-//                    IndexingOperatorReferenceSearcher(declaration, searchScope, consumer, optimizer, options, isSet = false)
-//
-//                operator && name == OperatorNameConventions.SET ->
-//                    IndexingOperatorReferenceSearcher(declaration, searchScope, consumer, optimizer, options, isSet = true)
-//
+
+                operator && name == OperatorNameConventions.GET ->
+                    IndexingOperatorReferenceSearcher(
+                        declaration,
+                        searchScope,
+                        consumer,
+                        optimizer,
+                        options,
+                        isSet = false
+                    )
+
+                operator && name == OperatorNameConventions.SET ->
+                    IndexingOperatorReferenceSearcher(
+                        declaration,
+                        searchScope,
+                        consumer,
+                        optimizer,
+                        options,
+                        isSet = true
+                    )
+
 //                operator && name == OperatorNameConventions.CONTAINS ->
 //                    ContainsOperatorReferenceSearcher(declaration, searchScope, consumer, optimizer, options)
-//
-//                name == OperatorNameConventions.EQUALS ->
-//                    BinaryOperatorReferenceSearcher(
-//                        declaration,
-//                        listOf(CjTokens.EQEQ, CjTokens.EXCLEQ),
-//                        searchScope,
-//                        consumer,
-//                        optimizer,
-//                        options
-//                    )
-//
-//                operator && name == OperatorNameConventions.COMPARE_TO ->
-//                    BinaryOperatorReferenceSearcher(
-//                        declaration,
-//                        listOf(CjTokens.LT, CjTokens.GT, CjTokens.LTEQ, CjTokens.GTEQ),
-//                        searchScope,
-//                        consumer,
-//                        optimizer,
-//                        options
-//                    )
-//
+
+                name == OperatorNameConventions.EQUALS || name == OperatorNameConventions.NOT_EQUALS ->
+                    BinaryOperatorReferenceSearcher(
+                        declaration,
+                        listOf(CjTokens.EQEQ, CjTokens.EXCLEQ),
+                        searchScope,
+                        consumer,
+                        optimizer,
+                        options
+                    )
+
+                operator && (name == OperatorNameConventions.COMPARE_LT
+                        || name == OperatorNameConventions.COMPARE_LTEQ
+                        || name == OperatorNameConventions.COMPARE_GT
+                        || name == OperatorNameConventions.COMPARE_GTEQ
+
+                        ) ->
+                    BinaryOperatorReferenceSearcher(
+                        declaration,
+                        listOf(CjTokens.LT, CjTokens.GT, CjTokens.LTEQ, CjTokens.GTEQ),
+                        searchScope,
+                        consumer,
+                        optimizer,
+                        options
+                    )
+
 //                operator && name == OperatorNameConventions.ITERATOR ->
 //                    IteratorOperatorReferenceSearcher(declaration, searchScope, consumer, optimizer, options)
-//
+
 //                operator && (name == OperatorNameConventions.GET_VALUE || name == OperatorNameConventions.SET_VALUE || name == OperatorNameConventions.PROVIDE_DELEGATE) ->
 //                    PropertyDelegationOperatorReferenceSearcher(declaration, searchScope, consumer, optimizer, options)
 
