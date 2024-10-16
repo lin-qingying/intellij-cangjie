@@ -7,6 +7,7 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.fromByName
 import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.impl.LazySubstitutingClassDescriptor
 import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptor
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.huawei.cangjie.ide.IdeDescriptorRenderers
@@ -108,9 +109,9 @@ private fun DeclarationDescriptorWithVisibility.isVisible(
 val ClassDescriptor.hasClassValueDescriptor: Boolean get() = classValueDescriptor != null
 val ClassDescriptor.classValueDescriptor: ClassDescriptor?
     get() =
-        if (kind.isSingleton && this is LazyEnumEntryDescriptor && this.hasUnsubstitutedPrimaryConstructor())
+       /* if (kind.isSingleton && ((this is LazyEnumEntryDescriptor && this.hasUnsubstitutedPrimaryConstructor()) || (this is LazySubstitutingClassDescriptor && original is LazyEnumEntryDescriptor && original.hasUnsubstitutedPrimaryConstructor())))
             this
-        else
+        else*/
             null
 
 /**
@@ -232,9 +233,11 @@ object DescriptorUtils {
         }
         return getFqNameFromTopLevelClass(containingDeclaration).child(name)
     }
+
     fun isOverride(descriptor: CallableMemberDescriptor): Boolean {
         return !descriptor.getOverriddenDescriptors().isEmpty()
     }
+
     fun <D : CallableMemberDescriptor?> getAllOverriddenDeclarations(memberDescriptor: D): Set<D> {
         val result: MutableSet<D> = HashSet()
         for (overriddenDeclaration in memberDescriptor?.getOverriddenDescriptors() ?: emptyList()) {
@@ -441,7 +444,7 @@ object DescriptorUtils {
 
     @JvmStatic
     fun getContainingSourceFile(descriptor: DeclarationDescriptor): SourceFile {
-        var descriptor: DeclarationDescriptor = descriptor
+//        val descriptor: DeclarationDescriptor = descriptor
 //        if (descriptor is  PropertySetterDescriptor) {
 //            descriptor =
 //                (descriptor as  PropertySetterDescriptor).getCorrespondingProperty()

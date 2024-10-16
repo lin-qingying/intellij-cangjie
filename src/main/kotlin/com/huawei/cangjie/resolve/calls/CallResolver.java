@@ -22,6 +22,7 @@ import com.huawei.cangjie.resolve.calls.results.OverloadResolutionResultsImpl;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import com.huawei.cangjie.resolve.calls.tasks.*;
+import com.huawei.cangjie.resolve.calls.tower.EnumClassCallableDescriptor;
 import com.huawei.cangjie.resolve.calls.tower.NewResolutionOldInference;
 import com.huawei.cangjie.resolve.calls.tower.PSICallResolver;
 import com.huawei.cangjie.resolve.calls.util.CallMaker;
@@ -50,6 +51,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.huawei.cangjie.diagnostics.Errors.*;
+import static com.huawei.cangjie.resolve.calls.results.OverloadResolutionResults.Code.NAME_NOT_FOUND;
+import static com.huawei.cangjie.resolve.calls.results.OverloadResolutionResults.Code.SUCCESS_NAME_NOT_FOUND;
 import static com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;
 
 
@@ -128,6 +131,19 @@ public class CallResolver {
         this.typeResolver = typeResolver;
     }
 
+    /**
+     * 计算任务并解析调用
+     * <p>
+     * 此方法用于在给定的上下文中计算任务并解析特定名称的调用它接受一个基本的调用解析上下文、一个名称、一个引用表达式和一个解析类型，
+     * 并返回一个OverloadResolutionResults的实例，该实例包含解析的结果和任务
+     *
+     * @param context             调用解析的上下文，包含有关调用的信息和设置
+     * @param name                要解析的调用名称
+     * @param referenceExpression 一个CjReferenceExpression对象，表示对某个元素的引用
+     * @param kind                解析的类型，指示解析应该如何执行
+     * @param <D>                 一个扩展了CallableDescriptor的类型，表示可以被解析的调用描述符
+     * @return 返回一个OverloadResolutionResults的实例，包含解析的结果和任务
+     */
     @SuppressWarnings("WeakerAccess")
     @NotNull
     public <D extends CallableDescriptor> OverloadResolutionResults<D> computeTasksAndResolveCall(
@@ -136,7 +152,9 @@ public class CallResolver {
             @NotNull CjReferenceExpression referenceExpression,
             @NotNull NewResolutionOldInference.ResolutionKind kind
     ) {
+        // 创建一个追踪策略，用于在解析过程中记录和追踪信息
         TracingStrategy tracing = TracingStrategyImpl.create(referenceExpression, context.call);
+        // 调用重载的方法，计算任务并解析调用
         return computeTasksAndResolveCall(context, name, tracing, kind);
     }
 
@@ -340,7 +358,7 @@ public class CallResolver {
 //            if (call.isImplicit()) return OverloadResolutionResultsImpl.nameNotFound();
 //        }
 
-        if (constructors.isEmpty()  ) {
+        if (constructors.isEmpty()) {
             context.trace.report(NO_CONSTRUCTOR.on(CallUtilKt.getValueArgumentListOrElement(context.call)));
             return checkArgumentTypesAndFail(context);
         }
@@ -391,6 +409,88 @@ public class CallResolver {
     ) {
         return computeTasksFromCandidatesAndResolvedCall(context, candidates,
                 TracingStrategyImpl.create(referenceExpression, context.call));
+    }
+
+    @NotNull
+    @SuppressWarnings("unchecked")
+    public  OverloadResolutionResults<? extends CallableDescriptor> resolveEnumCall(@NotNull BasicCallResolutionContext context) {
+        ProgressIndicatorAndCompilationCanceledStatus.checkCanceled();
+
+        CjExpression calleeExpression = context.call.getCalleeExpression();
+
+        CjElement callExpression = context.call.getCallElement();
+
+        boolean isCall = callExpression instanceof CjCallExpression && ((CjCallExpression) callExpression).getValueArgumentList() != null;
+        OverloadResolutionResults result = null;
+        if (calleeExpression instanceof CjSimpleNameExpression expression) {
+            if(isCall){
+                context.call.setNoValueArgument(true);
+
+            }
+
+            result = computeTasksAndResolveCall(
+                    context, expression.getReferencedNameAsName(), expression,
+                    NewResolutionOldInference.ResolutionKind.Enum.INSTANCE);
+            if(isCall){
+                context.call.setNoValueArgument(false);
+
+
+            }
+        }
+
+        if (result == null || result.isNothing()) {
+            return OverloadResolutionResultsImpl.nameNotFound();
+        }
+        if (result.isSuccess() && !isCall) {
+            return result;
+        }
+        EnumClassCallableDescriptor resultDescriptor;
+
+        if (result.getResultingDescriptor() == null) {
+            return result;
+        } else {
+            resultDescriptor = (EnumClassCallableDescriptor) result.getResultingDescriptor();
+        }
+
+//        判断结果是否有无参构造，如果没有则调用 resolveCallForInvoke
+        if (resultDescriptor.hashUnsubstitutedPrimaryConstructor() && !isCall) {
+            return result;
+        }
+
+
+//        CangJieType expectedType = NO_EXPECTED_TYPE;
+//        if (calleeExpression instanceof CjLambdaExpression) {
+//            int parameterNumber = ((CjLambdaExpression) calleeExpression).getValueParameters().size();
+//            List<CangJieType> parameterTypes = new ArrayList<>(parameterNumber);
+//            for (int i = 0; i < parameterNumber; i++) {
+//                parameterTypes.add(NO_EXPECTED_TYPE);
+//            }
+//            expectedType = FunctionTypesKt.createFunctionType(
+//                    builtIns, Annotations.EMPTY, null, Collections.emptyList(), parameterTypes, null, context.expectedType
+//            );
+//        }
+        CangJieType calleeType = resultDescriptor.getReturnType();
+
+        ExpressionReceiver expressionReceiver = ExpressionReceiver.Companion.create(calleeExpression, calleeType, context.trace.getBindingContext());
+
+        Call call = new CallTransformer.CallForImplicitInvoke(context.call.getExplicitReceiver(), expressionReceiver, context.call,
+                false);
+        TracingStrategyForInvoke tracingForInvoke = new TracingStrategyForInvoke(calleeExpression, call, calleeType);
+        if (isCall) {
+            if(!resultDescriptor.getTypeParameters().isEmpty()){
+//                如果有类型参数，去掉表达式中的类型参数
+//                然而实际上，操作符函数不能有类型参数，可以直接设置为null
+         call.setNoTypeParameter(true);
+            }
+            OverloadResolutionResults<FunctionDescriptor> temp =
+                    resolveCallForInvoke(context.replaceCall(call), tracingForInvoke);
+            call.setNoTypeParameter(false);
+
+
+            return   temp.replaceCode(SUCCESS_NAME_NOT_FOUND);
+        }
+
+        return OverloadResolutionResultsImpl.nameNotFound();
     }
 
     @NotNull
@@ -563,6 +663,19 @@ public class CallResolver {
         return computeTasksFromCandidatesAndResolvedCall(context, functionReference, candidates);
     }
 
+    /**
+     * 计算任务并解析调用
+     * <p>
+     * 该方法主要用于在给定的调用上下文中，计算所有可能的解析任务，并根据这些任务解析调用
+     * 它结合了调用的基本上下文、调用的名字、追踪策略以及解析的种类，来执行具体的解析逻辑
+     *
+     * @param context 调用解析的基本上下文，包含了进行解析所需的所有信息
+     * @param name    调用的名字，用于识别和区分不同的调用
+     * @param tracing 追踪策略，用于在解析过程中追踪和记录解析的路径
+     * @param kind    解析的种类，表示解析的具体类型，可以是函数、构造器等
+     * @param <D>     CallableDescriptor的子类，表示可以被调用的描述符类型
+     * @return 返回一个OverloadResolutionResults对象，包含了解析的结果和相关信息
+     */
     @SuppressWarnings("WeakerAccess")
     @NotNull
     public <D extends CallableDescriptor> OverloadResolutionResults<D> computeTasksAndResolveCall(
@@ -571,26 +684,40 @@ public class CallResolver {
             @NotNull TracingStrategy tracing,
             @NotNull NewResolutionOldInference.ResolutionKind kind
     ) {
-//        return null;
+        // 通过性能计数器来记录解析调用的时间
         return callResolvePerfCounter.time(() -> {
-            ResolutionTask<D> resolutionTask = new ResolutionTask<>(kind, name
-                    , null
-            );
+            // 创建一个解析任务，该任务根据解析的种类、调用的名字等信息初始化
+            ResolutionTask<D> resolutionTask = new ResolutionTask<>(kind, name, null);
+            // 执行解析任务或获取缓存的解析结果
             return doResolveCallOrGetCachedResults(context, resolutionTask, tracing);
         });
     }
 
+
+    /**
+     * 执行函数或方法的重载解析，或者获取缓存的解析结果
+     * 该方法是实际进行重载解析的核心逻辑，它会根据不同的情况调用不同的解析策略
+     *
+     * @param context        调用解析的上下文信息，包括调用表达式、当前作用域等
+     * @param resolutionTask 解析任务对象，包含了需要解析的描述符类型以及解析的种类
+     * @param tracing        追踪策略对象，用于绑定调用并记录解析过程中的信息
+     * @param <D>            可调用描述符的类型，继承自CallableDescriptor
+     * @return 返回解析结果对象，包含成功或失败的解析信息
+     */
     private <D extends CallableDescriptor> OverloadResolutionResults<D> doResolveCallOrGetCachedResults(
             @NotNull BasicCallResolutionContext context,
             @NotNull ResolutionTask<D> resolutionTask,
             @NotNull TracingStrategy tracing
     ) {
+        // 获取调用表达式和追踪对象
         Call call = context.call;
         tracing.bindCall(context.trace, call);
 
-
+        // 判断是否启用新的推断功能，并根据解析任务的种类选择解析策略
         boolean newInferenceEnabled = languageVersionSettings.supportsFeature(LanguageFeature.NewInference);
         NewResolutionOldInference.ResolutionKind resolutionKind = resolutionTask.resolutionKind;
+
+        // 如果启用新推断功能且解析种类在默认解析种类列表中，则执行新的解析和推断过程
         if (
                 newInferenceEnabled &&
                         PSICallResolver.getDefaultResolutionKinds().contains(resolutionKind)) {
@@ -598,19 +725,23 @@ public class CallResolver {
             BindingContextUtilsKt.recordScope(context.trace, context.scope, context.call.getCalleeExpression());
             return PSICallResolver.runResolutionAndInference(context, resolutionTask.name, resolutionKind, tracing);
         }
+
+        // 如果启用新推断功能且解析种类为给定候选，则执行针对给定候选的解析和推断过程
         if (newInferenceEnabled && resolutionKind instanceof NewResolutionOldInference.ResolutionKind.GivenCandidates) {
             assert resolutionTask.givenCandidates != null;
             BindingContextUtilsKt.recordScope(context.trace, context.scope, context.call.getCalleeExpression());
             return PSICallResolver.runResolutionAndInferenceForGivenCandidates(context, resolutionTask.givenCandidates, tracing);
         }
+
+        // 创建一个临时的追踪对象，用于记录解析调用过程中的信息
         TemporaryBindingTrace traceToResolveCall = TemporaryBindingTrace.create(context.trace, "trace to resolve call", call);
 
+        // 使用临时追踪对象替换原有的上下文对象
         BasicCallResolutionContext newContext = context.replaceBindingTrace(traceToResolveCall);
 
-        OverloadResolutionResultsImpl<D> results = doResolveCall(newContext, resolutionTask, tracing);
+        // 执行重载解析，并返回解析结果
 
-        return results;
-
+        return doResolveCall(newContext, resolutionTask, tracing);
     }
 
     // component dependency cycle

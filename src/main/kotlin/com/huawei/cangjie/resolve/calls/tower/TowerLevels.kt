@@ -1,15 +1,19 @@
 package com.huawei.cangjie.resolve.calls.tower
 
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.ide.codeinsight.toSourceElement
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
 import com.huawei.cangjie.resolve.hasClassValueDescriptor
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassMemberScope
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.ErrorUtils
+import com.huawei.cangjie.types.TypeSubstitutor
 import com.intellij.util.SmartList
 import com.intellij.util.containers.addIfNotNull
 
@@ -50,7 +54,10 @@ internal abstract class AbstractScopeTowerLevel(
 //                )?.let { diagnostics.add(VisibilityError(it)) }
 //            }
 //        }
+
         return CandidateWithBoundDispatchReceiver(dispatchReceiver, descriptor, diagnostics)
+
+
     }
 
 }
@@ -108,6 +115,55 @@ internal open class ScopeBasedTowerLevel protected constructor(
                     ) else null
                 )
             }
+
+    override fun getEnumTypeByKind(
+        name: Name,
+        kind: ClassKind,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): Collection<CandidateWithBoundDispatchReceiver> {
+        return resolutionScope.getContributedClassifiers(name, location).filter {
+            (it as? ClassDescriptor)?.kind == kind
+        }
+            .map {
+                createCandidateDescriptor(
+                    /*   if(it is ClassDescriptor && it.kind == ClassKind.ENUM){
+                           it.unsubstitutedPrimaryConstructor!!
+
+                       }else{*/
+                    EnumClassCallableDescriptor(it)
+//                    }
+                    ,
+                    dispatchReceiver = null,
+                    specialError = ResolvedUsingDeprecatedVisibility(
+                        resolutionScope,
+                        location
+                    )
+                )
+            }
+    }
+
+    override fun getClassType(
+        name: Name,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): Collection<CandidateWithBoundDispatchReceiver> {
+        return resolutionScope.getContributedClassifiers(name, location)
+            .map {
+                createCandidateDescriptor(
+                    /*   if(it is ClassDescriptor && it.kind == ClassKind.ENUM){
+                           it.unsubstitutedPrimaryConstructor!!
+
+                       }else{*/
+                    ClassCallableDescriptor(it)
+//                    }
+                    ,
+                    dispatchReceiver = null,
+                    specialError = ResolvedUsingDeprecatedVisibility(
+                        resolutionScope,
+                        location
+                    )
+                )
+            }
+    }
 
     override fun getFunctions(
         name: Name,
@@ -169,6 +225,9 @@ fun ResolutionScope.getContributedFunctionsAndConstructors(
     val result = ArrayList<FunctionDescriptor>(contributedFunctions)
 
     getContributedClassifier(name, location)?.let {
+        if (  DescriptorUtils.isEnum(it) || DescriptorUtils.isEnumEntry(it) ) {
+            return@let
+        }
         result.addAll(getConstructorsOfClassifier(it))
         result.addAll(scopeTower.syntheticScopes.collectSyntheticConstructors(it, location))
     }
@@ -239,4 +298,161 @@ private fun ResolutionScope.getContributedObjectVariablesIncludeDeprecateds(
 
     }
 
+}
+
+//用于枚举类与枚举项
+class EnumClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDescriptor {
+
+    private val memberScope = when (type) {
+        is ClassDescriptor -> type.unsubstitutedMemberScope
+        else -> null
+    }
+    private val constructors = when (memberScope) {
+        is LazyClassMemberScope -> memberScope.getConstructors()
+        else -> emptyList()
+    }
+    private var constructor = constructors.firstOrNull()
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+        return visitor.visitEnumClassCallDescriptor(this, data)
+    }
+
+    //    是否具有无参构造
+    fun hashUnsubstitutedPrimaryConstructor(): Boolean {
+
+        if (DescriptorUtils.isEnum(type)) return true
+
+        return false
+    }
+
+
+    override fun getValueParameters(): List<ValueParameterDescriptor> {
+
+        return emptyList()
+    }
+
+
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+
+    }
+
+    override fun getSource(): SourceElement {
+        return type.toSourceElement
+
+    }
+
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
+
+        constructor = constructor?.substitute(substitutor)
+        return this
+    }
+
+    override fun getContextReceiverParameters(): List<ReceiverParameterDescriptor> {
+        return emptyList()
+    }
+
+    override fun getReturnType(): CangJieType? {
+
+        return constructor?.returnType
+    }
+
+    override fun getExtensionReceiverParameter(): ReceiverParameterDescriptor? {
+        return null
+    }
+
+    override fun getOverriddenDescriptors(): List<CallableDescriptor> {
+        return emptyList()
+    }
+
+    override fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? {
+        return null
+
+    }
+
+    override fun hasSynthesizedParameterNames(): Boolean {
+        return false
+    }
+
+    override fun getTypeParameters(): List<TypeParameterDescriptor> {
+        return constructors.firstOrNull()?.typeParameters ?: emptyList()
+    }
+
+    override fun hasStableParameterNames(): Boolean {
+        return false
+    }
+
+    override val original: CallableDescriptor
+        get() = this
+    override val containingDeclaration: DeclarationDescriptor
+        get() = type
+    override val visibility: DescriptorVisibility
+        get() = type.visibility
+    override val name: Name
+        get() = type.name
+}
+
+//    无其他用处，请勿使用，只作用于重载检查
+class ClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDescriptor {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+        return visitor.visitClassCallDescriptor(this, data)
+    }
+
+    override fun getValueParameters(): List<ValueParameterDescriptor> {
+
+        return emptyList()
+    }
+
+
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+
+    }
+
+    override fun getSource(): SourceElement {
+        return type.toSourceElement
+    }
+
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
+        return this
+    }
+
+    override fun getContextReceiverParameters(): List<ReceiverParameterDescriptor> {
+        return emptyList()
+    }
+
+    override fun getReturnType(): CangJieType? {
+        return null
+    }
+
+    override fun getExtensionReceiverParameter(): ReceiverParameterDescriptor? {
+        return null
+    }
+
+    override fun getOverriddenDescriptors(): List<CallableDescriptor> {
+        return emptyList()
+    }
+
+    override fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? {
+        return null
+
+    }
+
+    override fun hasSynthesizedParameterNames(): Boolean {
+        return false
+    }
+
+    override fun getTypeParameters(): List<TypeParameterDescriptor> {
+        return emptyList()
+    }
+
+    override fun hasStableParameterNames(): Boolean {
+        return false
+    }
+
+    override val original: CallableDescriptor
+        get() = this
+    override val containingDeclaration: DeclarationDescriptor
+        get() = type
+    override val visibility: DescriptorVisibility
+        get() = type.visibility
+    override val name: Name
+        get() = type.name
 }

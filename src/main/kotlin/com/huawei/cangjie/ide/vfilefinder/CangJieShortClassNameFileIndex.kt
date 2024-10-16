@@ -2,9 +2,11 @@ package com.huawei.cangjie.ide.vfilefinder
 
 import com.huawei.cangjie.lang.CangJieFileType
 import com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType
+import com.huawei.cangjie.psi.CjEnumEntry
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.psi.CjTreeVisitorVoid
 import com.huawei.cangjie.psi.CjTypeStatement
+import com.huawei.cangjie.psi.psiUtil.safeFqNameForLazyResolve
 import com.intellij.util.indexing.*
 import com.intellij.util.indexing.impl.CollectionDataExternalizer
 import com.intellij.util.io.EnumeratorStringDescriptor
@@ -50,10 +52,10 @@ class CangJieShortClassNameFileIndex : FileBasedIndexExtension<String, Collectio
             is CangJieFileType -> {
                 val cjFile = fileContent.psiFile as? CjFile ?: return@DataIndexer emptyMap()
                 cjFile.acceptChildren(object : CjTreeVisitorVoid() {
-//                    override fun visitEnumEntry(enumEntry: CjEnumEntry) {
-//                        add(enumEntry.name, enumEntry.fqName?.asString())
-//                        super.visitEnumEntry(enumEntry)
-//                    }
+                    override fun visitEnumEntry(enumEntry: CjEnumEntry) {
+                        add(enumEntry.name, enumEntry.safeFqNameForLazyResolve()?.asString())
+                        super.visitEnumEntry(enumEntry)
+                    }
 
 
                     override fun visitTypeStatement(typeStatement: CjTypeStatement) {

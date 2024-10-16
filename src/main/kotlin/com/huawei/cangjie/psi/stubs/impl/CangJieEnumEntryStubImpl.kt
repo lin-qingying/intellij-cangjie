@@ -13,7 +13,8 @@ import com.intellij.util.io.StringRef
 open class CangJieEnumEntryStubImpl(
     type: CjEnumEntryElementType,
     parent: StubElement<out PsiElement>?,
-    private val qualifiedName: StringRef?,
+      val qualifiedNameByParent: StringRef?,  //枚举值对于enum声明的名称
+      val qualifiedNameByPackage:StringRef?, //枚举值对于包声明的名称
     private val classId: ClassId?,
     private val name: StringRef?,
 
@@ -24,7 +25,11 @@ open class CangJieEnumEntryStubImpl(
 ) : CangJieStubBaseImpl<CjEnumEntry>(parent, type), CangJieEnumEntryStub {
 
     override fun getFqName(): FqName? {
-        val stringRef = StringRef.toString(qualifiedName) ?: return null
+        val stringRef = StringRef.toString(qualifiedNameByParent) ?: return null
+        return FqName(stringRef)
+    }
+    override val fqNameByPackage: FqName?get() {
+        val stringRef = StringRef.toString(qualifiedNameByPackage) ?: return null
         return FqName(stringRef)
     }
 

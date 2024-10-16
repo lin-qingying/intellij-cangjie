@@ -12,6 +12,7 @@ import com.huawei.cangjie.resolve.BindingContext
 import com.huawei.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
 import com.huawei.cangjie.resolve.scopes.MemberScope
 import com.huawei.cangjie.storage.LockBasedLazyResolveStorageManager
+import com.intellij.psi.util.PsiTreeUtil
 import jakarta.inject.Inject
 
 open class LazyDeclarationResolver(
@@ -117,7 +118,20 @@ open class LazyDeclarationResolver(
                 scopeForDeclaration.getContributedFunctions(function.nameAsSafeName, location)
                 return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, function)
             }
+            override fun visitTypeParameter(parameter: CjTypeParameter, data: Nothing?): DeclarationDescriptor? {
+                val ownerElement = PsiTreeUtil.getParentOfType(parameter, CjTypeParameterListOwner::class.java)
+                    ?: error("Owner not found for type parameter: " + parameter.text)
+                val ownerDescriptor = resolveToDescriptor(ownerElement, /*track =*/false) ?: return null
+                val typeParameters: List<TypeParameterDescriptor> = when (ownerDescriptor) {
+                    is CallableDescriptor -> ownerDescriptor.typeParameters
+                    is ClassifierDescriptorWithTypeParameters -> ownerDescriptor.typeConstructor.parameters
+                    else -> throw IllegalStateException("Unknown owner kind for a type parameter: " + ownerDescriptor)
+                }
 
+                val name = parameter.nameAsSafeName
+                return typeParameters.firstOrNull { it.name == name }
+                    ?: throw IllegalStateException("Type parameter $name not found for $ownerDescriptor")
+            }
             override fun visitPatternByBinding(element: CjBindingPattern, data: Nothing?): DeclarationDescriptor? {
 
                 return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, element)

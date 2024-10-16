@@ -82,6 +82,7 @@ sealed class LHSResult {
 
     object Error : LHSResult()
 }
+
 interface SimpleTypeArgument : TypeArgument {
     val type: UnwrappedType
 }
@@ -101,12 +102,15 @@ interface FunctionExpression : LambdaCangJieCallArgument {
 interface SimpleCangJieArgument : CangJieCallArgument, ReceiverCangJieCallArgument {
     override val receiver: ReceiverValueWithSmartCastInfo
 }
+
 interface TypeArgument
+
 // Used as a stub or underscored type argument
 object TypeArgumentPlaceholder : TypeArgument
 interface SubCangJieCallArgument : SimpleCangJieCallArgument, ResolutionAtom {
     val callResult: PartialCallResolutionResult
 }
+
 class QualifierReceiverCangJieCallArgument(override val receiver: QualifierReceiver) : ReceiverCangJieCallArgument {
     override val isSafeCall: Boolean
         get() = false // TODO: add warning
@@ -116,6 +120,7 @@ class QualifierReceiverCangJieCallArgument(override val receiver: QualifierRecei
     override val isSpread get() = false
     override val argumentName: Name? get() = null
 }
+
 interface LambdaCangJieCallArgument : PostponableCangJieCallArgument {
     override val isSpread: Boolean
         get() = false

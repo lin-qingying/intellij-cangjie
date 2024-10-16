@@ -71,7 +71,7 @@ class CangJieCallResolver(
         )
         val mostSpecificCandidates = choseMostSpecific(cangjieCall, resolutionCallbacks, candidates)
 
-        return cangjieCallCompleter.runCompletion(candidateFactory, mostSpecificCandidates, expectedType, resolutionCallbacks)
+        return cangjieCallCompleter.runCompletion(candidateFactory, mostSpecificCandidates.toMutableSet(), expectedType, resolutionCallbacks)
     }
     private fun createCallableReferenceCallFactory(
         scopeTower: ImplicitScopeTower,
@@ -134,6 +134,16 @@ class CangJieCallResolver(
         cangjieCall.checkCallInvariants()
 
         val processor = when (cangjieCall.callKind) {
+            ENUM ->{
+                createEnumAndEntryProcessor(
+                    cangjieCall,
+                    scopeTower,
+
+                    candidateFactory,
+
+                )
+            }
+
             VARIABLE -> {
                 createVariableAndObjectProcessor(
                     scopeTower,
@@ -294,6 +304,6 @@ class CangJieCallResolver(
             return cangjieCallCompleter.createAllCandidatesResult(candidates, expectedType, resolutionCallbacks)
         }
 
-        return cangjieCallCompleter.runCompletion(candidateFactory, candidates, expectedType, resolutionCallbacks)
+        return cangjieCallCompleter.runCompletion(candidateFactory, candidates.toMutableSet(), expectedType, resolutionCallbacks)
     }
 }

@@ -34,23 +34,25 @@ object CallMaker {
             Call.CallType.DEFAULT
         )
     }
+
     fun makeCallForUnsafeExpression(callExpression: CjUnsafeExpression): Call {
         return makeCallWithExpressions(
             callExpression,
             null,
             null,
             callExpression,
-            listOf(callExpression.lambdaExpression) ,
+            listOf(callExpression.lambdaExpression),
             Call.CallType.DEFAULT
         )
     }
+
     fun makeCallForSpawnExpression(callExpression: CjSpawnExpression): Call {
         return makeCallWithExpressions(
             callExpression,
             null,
             null,
             callExpression,
-            listOf(callExpression.lambdaExpression) ,
+            listOf(callExpression.lambdaExpression),
             Call.CallType.DEFAULT
         )
     }
@@ -160,19 +162,36 @@ object CallMaker {
                 get() = callElement.calleeExpression
 
             override val valueArgumentList: CjValueArgumentList?
-                get() = callElement.valueArgumentList
+                get() {
+                    if (noValueArgument) return null
 
+                    return callElement.valueArgumentList
+                }
+
+            override var noValueArgument: Boolean = false
             override val valueArguments: List<ValueArgument>
-                get() = callElement.valueArguments
+                get() {
+                    if (noValueArgument) return emptyList()
+                    return callElement.valueArguments
+                }
 
             override val functionLiteralArguments: List<LambdaArgument>
                 get() = callElement.lambdaArguments
 
+            override var noTypeParameter: Boolean = false
             override val typeArguments: List<CjTypeProjection>
-                get() = callElement.typeArguments
+                get() {
+                    if (noTypeParameter) return emptyList()
+                    return callElement.typeArguments
+                }
+
 
             override val typeArgumentList: CjTypeArgumentList?
-                get() = callElement.typeArgumentList
+                get() {
+                    if (noTypeParameter) return null
+                    return callElement.typeArgumentList
+                }
+
 
             override val callElement: CjElement
                 get() = callElement
@@ -291,6 +310,9 @@ object CallMaker {
             false
         )
 
+        override var noTypeParameter: Boolean = false
+        override var noValueArgument: Boolean = false
+
         override val isSemanticallyEquivalentToSafeCall: Boolean
             get() = _isSemanticallyEquivalentToSafeCall || super.isSemanticallyEquivalentToSafeCall
 
@@ -306,11 +328,13 @@ object CallMaker {
         override val valueArgumentList: CjValueArgumentList?
             get() = null
 
+
         override val typeArguments: List<CjTypeProjection>
             get() = emptyList()
 
-        override val typeArgumentList: CjTypeArgumentList?
+        override var typeArgumentList: CjTypeArgumentList?
             get() = null
+            set(_) {}
 
         override fun toString(): String {
             return callElement.text

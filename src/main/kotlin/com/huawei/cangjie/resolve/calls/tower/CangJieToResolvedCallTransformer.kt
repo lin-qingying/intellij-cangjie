@@ -431,7 +431,7 @@ class CangJieToResolvedCallTransformer(
 
         completedCallAtom.setCandidateDescriptor(
             candidateInterceptor.interceptResolvedCallAtomCandidate(
-                completedCallAtom.candidateDescriptor,
+                completedCallAtom.candidateDescriptor as CallableDescriptor,
                 completedCallAtom,
                 trace,
                 resultSubstitutor,

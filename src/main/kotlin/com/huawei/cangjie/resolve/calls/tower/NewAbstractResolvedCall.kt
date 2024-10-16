@@ -201,6 +201,15 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
 
     protected fun substitutedResultingDescriptor(substitutor: NewTypeSubstitutor?) =
         when (val candidateDescriptor = candidateDescriptor) {
+
+            is EnumClassCallableDescriptor ->{
+                val explicitTypeArguments =
+                    resolvedCallAtom?.atom?.typeArguments?.filterIsInstance<SimpleTypeArgument>() ?: emptyList()
+
+                candidateDescriptor.substituteInferredVariablesAndApproximate(
+                    getSubstitutorWithoutFlexibleTypes(substitutor, explicitTypeArguments),
+                )
+            }
             is ClassConstructorDescriptor, is SyntheticMemberDescriptor<*> -> {
                 val explicitTypeArguments =
                     resolvedCallAtom?.atom?.typeArguments?.filterIsInstance<SimpleTypeArgument>() ?: emptyList()

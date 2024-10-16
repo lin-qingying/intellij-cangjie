@@ -1,5 +1,8 @@
 package com.huawei.cangjie.descriptors
 
+import com.huawei.cangjie.resolve.calls.tower.ClassCallableDescriptor
+import com.huawei.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
+
 interface DeclarationDescriptorVisitor<R, D> {
     fun visitPackageViewDescriptor(descriptor: PackageViewDescriptor, builder: D?): R
     fun visitTypeParameterDescriptor(descriptor: TypeParameterDescriptor, builder: D?): R
@@ -25,6 +28,8 @@ interface DeclarationDescriptorVisitor<R, D> {
         constructorDescriptor: ConstructorDescriptor,
         builder: D?
     ): R
+    fun visitClassCallDescriptor(descriptor: ClassCallableDescriptor, builder: D?): R
+    fun visitEnumClassCallDescriptor(descriptor: EnumClassCallableDescriptor, builder: D?): R
 
     fun visitClassDescriptor(descriptor: ClassDescriptor, builder: D?): R
     fun visitVariableDescriptorBase(descriptor: VariableDescriptor, builder: D?): R

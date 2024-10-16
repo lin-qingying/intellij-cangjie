@@ -1,8 +1,12 @@
 package com.huawei.cangjie.resolve.calls.components
 
 import com.huawei.cangjie.descriptors.CallableDescriptor
+import com.huawei.cangjie.descriptors.ClassKind
 import com.huawei.cangjie.descriptors.TypeParameterDescriptor
+import com.huawei.cangjie.descriptors.impl.EnumEntryConstructorDescriptor
 import com.huawei.cangjie.resolve.calls.model.*
+import com.huawei.cangjie.resolve.scopes.receivers.ClassQualifier
+import com.huawei.cangjie.resolve.scopes.receivers.EnumClassQualifier
 import com.huawei.cangjie.types.CangJieType
 
 
@@ -29,14 +33,50 @@ class TypeArgumentsToParametersMapper {
             override fun getTypeArgument(typeParameterDescriptor: TypeParameterDescriptor): TypeArgument =
                 typeParameterToArgumentMap[typeParameterDescriptor] ?: TypeArgumentPlaceholder
 
-            override fun iterator() = typeParameterToArgumentMap.mapValues { (it.value as? SimpleTypeArgument)?.type }.iterator()
+            override fun iterator() =
+                typeParameterToArgumentMap.mapValues { (it.value as? SimpleTypeArgument)?.type }.iterator()
         }
     }
 
     fun mapTypeArguments(call: CangJieCall, descriptor: CallableDescriptor): TypeArgumentsMapping {
+
+
+        /**
+         *  enum 奇怪的语法
+         *   type arguments cannot appear after 'enum entry' when enum type 'enum' is given
+         *   如果枚举类语句类型参数，则不允许枚举项使用类型参数
+         */
+        if (descriptor is EnumEntryConstructorDescriptor) {
+            if (call.explicitReceiver != null && call.explicitReceiver!!.receiver is EnumClassQualifier) {
+                val enumClassQualifier = call.explicitReceiver!!.receiver as EnumClassQualifier
+                if (enumClassQualifier.referenceExpression.typeArguments.isNotEmpty() && call.typeArguments.isNotEmpty()) {
+                    return TypeArgumentsMapping.TypeArgumentsMappingImpl(
+                        listOf(TypeArgumentsAfterEnumEntry(descriptor.constructedClass, enumClassQualifier.descriptor)),
+                        emptyMap()
+                    )
+
+                }else if(call.typeArguments.isEmpty() && enumClassQualifier.referenceExpression.typeArguments.isNotEmpty()){
+//将类型参数传递
+                    enumClassQualifier.call?.typeArguments?.let { (call.typeArguments as ArrayList).addAll(it) }
+                }else if(call.typeArguments.isNotEmpty() && enumClassQualifier.referenceExpression.typeArguments.isEmpty()){
+                    return TypeArgumentsMapping.TypeArgumentsMappingImpl(
+                        listOf(TypeArgumentsCompilerError  ),
+                        emptyMap()
+                    )
+                }
+            }else if(call.typeArguments.isNotEmpty() && call.explicitReceiver?.receiver is ClassQualifier &&
+               ( call.explicitReceiver!!.receiver as ClassQualifier).descriptor.kind == ClassKind.ENUM){
+                return TypeArgumentsMapping.TypeArgumentsMappingImpl(
+                    listOf(TypeArgumentsCompilerError  ),
+                    emptyMap()
+                )
+            }
+        }
+
         if (call.typeArguments.isEmpty()) {
             return TypeArgumentsMapping.NoExplicitArguments
         }
+
 
         if (call.typeArguments.size != descriptor.typeParameters.size) {
             return TypeArgumentsMapping.TypeArgumentsMappingImpl(

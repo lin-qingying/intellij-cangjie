@@ -131,7 +131,9 @@ interface CangJieStructStub : CangJieTypeStatementStub<CjStruct>
 interface CangJieInterfaceStub : CangJieTypeStatementStub<CjInterface>
 
 interface CangJieEnumStub : CangJieTypeStatementStub<CjEnum>
-interface CangJieEnumEntryStub : CangJieTypeStatementStub<CjEnumEntry>
+interface CangJieEnumEntryStub : CangJieTypeStatementStub<CjEnumEntry>{
+    val fqNameByPackage:FqName?
+}
 interface CangJieExtendStub : CangJieTypeStatementStub<CjExtend> {
 
 //    fun getClassId(): ClassId?

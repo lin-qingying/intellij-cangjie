@@ -15,6 +15,7 @@ data class ContextConfig(
     ) {
     var addVariableDescriptor: MutableMap<PsiElement,MutableList< (context: Any) -> Unit>> = mutableMapOf()
     var getEnumEntryType = false
+    var isDotEnumGetType:Boolean = false
 
     companion object {
         @JvmField

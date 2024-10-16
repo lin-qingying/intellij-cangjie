@@ -1,7 +1,6 @@
 package com.huawei.cangjie.resolve
 
 
-
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.LazyPackageViewDescriptorImpl
@@ -72,6 +71,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
 
         override fun component2() = expression
     }
+
     data class QualifiedExpressionResolveResult(
         val classOrPackage: DeclarationDescriptor?,
         val memberName: Name?
@@ -80,6 +80,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
             val UNRESOLVED = QualifiedExpressionResolveResult(null, null)
         }
     }
+
     fun resolveClassOrPackageInQualifiedExpression(
         expression: CjQualifiedExpression,
         scope: LexicalScope,
@@ -95,7 +96,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
             trace = trace,
             shouldBeVisibleFrom = scope.ownerDescriptor,
             scopeForFirstPart = scope,
-            position = QualifierPosition.EXPRESSION
+            position = EXPRESSION
         )
 
         if (result == null) return QualifiedExpressionResolveResult.UNRESOLVED
@@ -105,6 +106,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
             else -> QualifiedExpressionResolveResult.UNRESOLVED
         }
     }
+
     private fun LexicalScope.findClassifierAndReportDeprecationIfNeeded(
         name: Name,
         lookupLocation: CangJieLookupLocation,
@@ -330,7 +332,6 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
     }
 
 
-
     fun resolvePackageHeader(
         packageDirective: CjPackageDirective,
         module: ModuleDescriptor,
@@ -372,7 +373,8 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         expression: CjSimpleNameExpression,
         receiver: Receiver?,
         context: ExpressionTypingContext
-    ): Qualifier? {
+    ): QualifierReceiver? {
+
         val name = expression.getReferencedNameAsName()
         if (!expression.isPhysical && !name.isSpecial && name.asString()
                 .endsWith(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
@@ -388,6 +390,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                     ?: receiver.descriptor.memberScope.getContributedClassifier(name, location)
             }
 
+            is EnumClassQualifier -> receiver.staticScope.getContributedClassifier(name, location)
             is ClassQualifier -> receiver.staticScope.getContributedClassifier(name, location)
             null -> context.scope.findClassifier(name, location)
                 ?: context.scope.ownerDescriptor.module.getPackage(FqName.ROOT.child(name)).takeUnless { it.isEmpty() }
@@ -468,7 +471,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                 scopeForFirstPart = null, position = IMPORT
             ).classDescriptorFromTypeAlias() ?: return null
 
-            if (packageOrClassDescriptor is ClassDescriptor  && importDirective !is FileScopeFactory.EnumDefualtImportImpl/* && packageOrClassDescriptor.kind.isObject */&& lastPart.expression != null) {
+            if (packageOrClassDescriptor is ClassDescriptor && importDirective !is FileScopeFactory.EnumDefualtImportImpl/* && packageOrClassDescriptor.kind.isObject */ && lastPart.expression != null) {
                 trace.report(
                     CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON.on(
                         lastPart.expression!!,
@@ -882,7 +885,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         isQualifier: Boolean = true,
         packageView: DeclarationDescriptor? = null,
         reportReexportError: Boolean = true
-    ): Qualifier? {
+    ): QualifierReceiver? {
         referenceExpression ?: return null
         if (descriptor == null) {
             trace.report(UNRESOLVED_REFERENCE.on(referenceExpression, referenceExpression))
@@ -1022,11 +1025,21 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         trace: BindingTrace,
         referenceExpression: CjSimpleNameExpression,
         descriptor: DeclarationDescriptor
-    ): Qualifier? {
+    ): QualifierReceiver? {
         val qualifier =
             when (descriptor) {
                 is PackageViewDescriptor -> PackageQualifier(referenceExpression, descriptor)
-                is ClassDescriptor -> ClassQualifier(referenceExpression, descriptor)
+                is ClassDescriptor -> {
+                    if (descriptor.kind == ClassKind.ENUM) {
+                        EnumClassQualifier(referenceExpression, descriptor)
+                    } else {
+                        ClassQualifier(referenceExpression, descriptor)
+
+                    }
+
+
+                }
+
                 is TypeParameterDescriptor -> TypeParameterQualifier(referenceExpression, descriptor)
                 is TypeAliasDescriptor -> {
                     val classDescriptor = descriptor.classDescriptor ?: return null

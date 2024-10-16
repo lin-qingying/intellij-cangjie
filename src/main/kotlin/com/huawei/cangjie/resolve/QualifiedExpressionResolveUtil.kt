@@ -1,12 +1,12 @@
 package com.huawei.cangjie.resolve
 
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.impl.LazySubstitutingClassDescriptor
 import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.resolve.descriptorUtil.classValueDescriptor
 import com.huawei.cangjie.resolve.descriptorUtil.classValueTypeDescriptor
-import com.huawei.cangjie.resolve.scopes.receivers.ClassifierQualifier
-import com.huawei.cangjie.resolve.scopes.receivers.Qualifier
-import com.huawei.cangjie.resolve.scopes.receivers.expression
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
+import com.huawei.cangjie.resolve.scopes.receivers.*
 import com.huawei.cangjie.types.expressions.ExpressionTypingContext
 
 
@@ -23,7 +23,7 @@ fun resolveQualifierAsReceiverInExpression(
 }
 
 fun resolveQualifierAsStandaloneExpression(
-    qualifier: Qualifier, context: ExpressionTypingContext
+    qualifier: QualifierReceiver, context: ExpressionTypingContext
 ): DeclarationDescriptor {
     val referenceTarget = resolveQualifierReferenceTarget(qualifier, null, context)
 
@@ -31,20 +31,20 @@ fun resolveQualifierAsStandaloneExpression(
         is TypeAliasDescriptor -> {
             referenceTarget.classDescriptor?.let { classDescriptor ->
                 if (!classDescriptor.kind.isObject) {
-                    context.trace.report(Errors.EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(qualifier.referenceExpression, referenceTarget))
+                    context.trace.report(Errors.EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(qualifier.expression, referenceTarget))
                 }
             }
         }
         is TypeParameterDescriptor -> {
-            context.trace.report(Errors.TYPE_PARAMETER_IS_NOT_AN_EXPRESSION.on(qualifier.referenceExpression, referenceTarget))
+            context.trace.report(Errors.TYPE_PARAMETER_IS_NOT_AN_EXPRESSION.on(qualifier.expression, referenceTarget))
         }
         is ClassDescriptor -> {
-            if (!referenceTarget.hasClassValueDescriptor) {
-                context.trace.report(Errors.EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(qualifier.referenceExpression, referenceTarget))
+            if (!context.config.isDotEnumGetType && !referenceTarget.hasClassValueDescriptor ) {
+                context.trace.report(Errors.EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(qualifier.expression, referenceTarget))
             }
         }
         is PackageViewDescriptor -> {
-            context.trace.report(Errors.EXPRESSION_EXPECTED_PACKAGE_FOUND.on(qualifier.referenceExpression))
+            context.trace.report(Errors.EXPRESSION_EXPECTED_PACKAGE_FOUND.on(qualifier.expression))
         }
     }
 
@@ -52,7 +52,7 @@ fun resolveQualifierAsStandaloneExpression(
 }
 
 private fun resolveQualifierReferenceTarget(
-    qualifier: Qualifier,
+    qualifier: QualifierReceiver,
     selector: DeclarationDescriptor?,
     context: ExpressionTypingContext
 ): DeclarationDescriptor {

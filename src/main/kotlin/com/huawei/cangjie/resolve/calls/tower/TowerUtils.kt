@@ -1,9 +1,6 @@
 package com.huawei.cangjie.resolve.calls.tower
 
-import com.huawei.cangjie.descriptors.CallableDescriptor
-import com.huawei.cangjie.descriptors.CallableMemberDescriptor
-import com.huawei.cangjie.descriptors.FunctionDescriptor
-import com.huawei.cangjie.descriptors.VariableDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.scopes.ResolutionScope
@@ -117,7 +114,42 @@ internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qual
             createCandidateDescriptor(it, dispatchReceiver = null)
         }
 
+    override fun getEnumTypeByKind(
+        name: Name,
+        kind: ClassKind,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): Collection<CandidateWithBoundDispatchReceiver> {
+        return qualifier.staticScope
+            .getContributedClassifiers(name, location).filter {
+            (    it as? ClassDescriptor)?.kind == kind
+            }.map {
+                createCandidateDescriptor(  /*if(it is ClassDescriptor && it.kind == ClassKind.ENUM){
+            it.unsubstitutedPrimaryConstructor!!
 
+        }else{*/
+                    EnumClassCallableDescriptor(it)
+//        }
+
+                    , dispatchReceiver = null)
+            }
+    }
+
+    override fun getClassType(
+        name: Name,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): Collection<CandidateWithBoundDispatchReceiver> {
+return qualifier.staticScope
+    .getContributedClassifiers(name, location).map {
+        createCandidateDescriptor(  /*if(it is ClassDescriptor && it.kind == ClassKind.ENUM){
+            it.unsubstitutedPrimaryConstructor!!
+
+        }else{*/
+            ClassCallableDescriptor(it)
+//        }
+        , dispatchReceiver = null)
+    }
+
+    }
 
     override fun recordLookup(name: Name) {
 

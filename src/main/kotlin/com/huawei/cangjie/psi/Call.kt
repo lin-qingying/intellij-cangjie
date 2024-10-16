@@ -8,7 +8,10 @@ import com.intellij.lang.ASTNode
 
 interface Call {
     // SAFE_ACCESS or DOT or so
+    var noValueArgument: Boolean
 
+    //控制typeArgumentList返回空值
+    var noTypeParameter: Boolean
     val callOperationNode: ASTNode?
 
     val isSemanticallyEquivalentToSafeCall: Boolean

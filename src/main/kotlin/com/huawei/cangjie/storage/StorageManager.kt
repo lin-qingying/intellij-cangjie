@@ -1,21 +1,27 @@
 package com.huawei.cangjie.storage
 
 
-
 import com.intellij.openapi.project.Project
 import java.util.concurrent.ConcurrentMap
 
-interface StorageManager{
-    val project:Project
+interface StorageManager {
+    val project: Project
 
-    fun <K : Any, V : Any> createMemoizedFunction(compute: (K) -> V, onRecursiveCall: (K, Boolean) -> V): MemoizedFunctionToNotNull<K, V>
+    fun <K : Any, V : Any> createMemoizedFunction(
+        compute: (K) -> V,
+        onRecursiveCall: (K, Boolean) -> V
+    ): MemoizedFunctionToNotNull<K, V>
+
     fun <T : Any> createNullableLazyValue(computable: () -> T?): NullableLazyValue<T>
 
     fun <K, V : Any> createCacheWithNotNullValues(): CacheWithNotNullValues<K, V>
 
     fun <T : Any> createRecursionTolerantLazyValue(computable: () -> T, onRecursiveCall: T): NotNullLazyValue<T>
 
-    fun <T : Any> createRecursionTolerantNullableLazyValue(computable: () -> T?, onRecursiveCall: T?): NullableLazyValue<T>
+    fun <T : Any> createRecursionTolerantNullableLazyValue(
+        computable: () -> T?,
+        onRecursiveCall: T?
+    ): NullableLazyValue<T>
 
     /**
      * @param onRecursiveCall is called if the computation calls itself recursively.
@@ -28,16 +34,33 @@ interface StorageManager{
      *                    to provide (or not to provide) thread-safety guarantees on writes made in postCompute -- see javadoc for
      *                    LockBasedLazyValue for details.
      */
-    fun <T : Any> createLazyValueWithPostCompute(computable: () -> T, onRecursiveCall: ((Boolean) -> T)?, postCompute: (T) -> Unit): NotNullLazyValue<T>
+    fun <T : Any> createLazyValueWithPostCompute(
+        computable: () -> T,
+        onRecursiveCall: ((Boolean) -> T)?,
+        postCompute: (T) -> Unit
+    ): NotNullLazyValue<T>
+
     fun <T : Any> createLazyValue(computable: () -> T, onRecursiveCall: (Boolean) -> T): NotNullLazyValue<T>
 
     fun <T : Any> createLazyValue(computable: () -> T): NotNullLazyValue<T>
     fun <K, V : Any> createMemoizedFunctionWithNullableValues(compute: (K) -> V?): MemoizedFunctionToNullable<K, V>
 
-    fun <K, V : Any> createMemoizedFunctionWithNullableValues(compute: (K) -> V, map: ConcurrentMap<K, Any>): MemoizedFunctionToNullable<K, V>
-    fun <K, V : Any> createMemoizedFunction(compute: (K) -> V, onRecursiveCall: (K, Boolean) -> V, map: ConcurrentMap<K, Any>): MemoizedFunctionToNotNull<K, V>
+    fun <K, V : Any> createMemoizedFunctionWithNullableValues(
+        compute: (K) -> V,
+        map: ConcurrentMap<K, Any>
+    ): MemoizedFunctionToNullable<K, V>
 
-    fun <K, V : Any> createMemoizedFunction(compute: (K) -> V, map: ConcurrentMap<K, Any>): MemoizedFunctionToNotNull<K, V>
+    fun <K, V : Any> createMemoizedFunction(
+        compute: (K) -> V,
+        onRecursiveCall: (K, Boolean) -> V,
+        map: ConcurrentMap<K, Any>
+    ): MemoizedFunctionToNotNull<K, V>
+
+    fun <K, V : Any> createMemoizedFunction(
+        compute: (K) -> V,
+        map: ConcurrentMap<K, Any>
+    ): MemoizedFunctionToNotNull<K, V>
+
     fun <K, V : Any> createMemoizedFunction(compute: (K) -> V): MemoizedFunctionToNotNull<K, V>
 
     fun <T> compute(computable: () -> T): T

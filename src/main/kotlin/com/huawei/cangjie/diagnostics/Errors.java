@@ -41,6 +41,8 @@ public interface Errors {
 
     DiagnosticFactory0<CjExpression> INTEGER_OVERFLOW = DiagnosticFactory0.create(WARNING);
     DiagnosticFactory0<CjExpression> DIVISION_BY_ZERO = DiagnosticFactory0.create(WARNING);
+    DiagnosticFactory0<CjCallExpression> ENUM_CLASS_CONSTRUCTOR_CALL = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjCallExpression> SEALED_CLASS_CONSTRUCTOR_CALL = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactory0<PsiElement> EXPLICIT_DELEGATION_CALL_REQUIRED =
             DiagnosticFactory0.create(ERROR, PositioningStrategies.SECONDARY_CONSTRUCTOR_DELEGATION_CALL);
@@ -130,6 +132,10 @@ public interface Errors {
     DiagnosticFactory1<CjElement, DeclarationDescriptor> DEPRECATED_ACCESS_BY_SHORT_NAME = DiagnosticFactory1.create(WARNING);
     DiagnosticFactory1<PsiElement, String> NEW_INFERENCE_ERROR = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory2<CjElement, Integer, DeclarationDescriptor> WRONG_NUMBER_OF_TYPE_ARGUMENTS = DiagnosticFactory2.create(ERROR);
+
+    DiagnosticFactory2<CjElement, DeclarationDescriptor, DeclarationDescriptor> TYPE_ARGUMENTS_NOT_AFTER_ENUMENTRY = DiagnosticFactory2.create(ERROR);
+
+
     DiagnosticFactory1<PsiElement, BadNamedArgumentsTarget> NAMED_ARGUMENTS_NOT_ALLOWED = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory3<CjExpression, String, CangJieType, String> DELEGATE_SPECIAL_FUNCTION_MISSING = DiagnosticFactory3.create(ERROR);
     DiagnosticFactory0<CjReferenceExpression> ARGUMENT_PASSED_TWICE = DiagnosticFactory0.create(ERROR);
@@ -151,6 +157,12 @@ public interface Errors {
     DiagnosticFactory0<CjParameter> CATCH_PARAMETER_WITH_DEFAULT_VALUE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<CjElement, Set<Name>> NAMED_PARAMETER_PREFIX_MISSING =
             DiagnosticFactory1.create(ERROR);
+
+
+
+    DiagnosticFactory1<PsiElement, String> MESSAGE_ERROR = DiagnosticFactory1.create(ERROR );
+
+
     DiagnosticFactory2<CjExpression, CjExpression, Boolean> FUNCTION_CALL_EXPECTED = DiagnosticFactory2.create(ERROR, CALL_EXPRESSION);
     DiagnosticFactory3<CjReferenceExpression, ClassifierDescriptor, WrongResolutionToClassifier, String> RESOLUTION_TO_CLASSIFIER =
             DiagnosticFactory3.create(ERROR);
@@ -180,6 +192,8 @@ public interface Errors {
     DiagnosticFactory0<CjTypeProjection> PROJECTION_ON_NON_CLASS_TYPE_ARGUMENT = DiagnosticFactory0.create(ERROR, VARIANCE_IN_PROJECTION);
     DiagnosticFactory1<PsiElement, Collection<DeclarationDescriptor>> REDECLARATION =
             DiagnosticFactory1.create(ERROR, FOR_REDECLARATION);
+    DiagnosticFactory1<PsiElement, String> ENUM_REDECLARATION =
+            DiagnosticFactory1.create(ERROR );
     DiagnosticFactory3<PsiElement, CangJieType, CangJieType, ConstraintPosition> TYPE_MISMATCH_IN_CONSTRAINT = DiagnosticFactory3.create(ERROR);
     DiagnosticFactory4<CjElement, Name, Name, CangJieType, CangJieType> UPPER_BOUND_VIOLATION_IN_CONSTRAINT = DiagnosticFactory4.create(ERROR);
     DiagnosticFactory1<CjParameter, CangJieType> EXPECTED_PARAMETER_TYPE_MISMATCH_WARNING = DiagnosticFactory1.create(WARNING);
@@ -350,18 +364,19 @@ public interface Errors {
     DiagnosticFactory0<CjTypeReference> EXTEND_CANNOT_INTERFACE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<PsiElement> NO_MULTILINE_NEWLINE = DiagnosticFactory0.create(ERROR);
 
-    DiagnosticFactory0<CjSimpleNameExpression> EXPRESSION_EXPECTED_PACKAGE_FOUND = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjElement> EXPRESSION_EXPECTED_PACKAGE_FOUND = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<CjExpression, ClassifierDescriptorWithTypeParameters> NESTED_CLASS_ACCESSED_VIA_INSTANCE_REFERENCE =
             DiagnosticFactory1.create(ERROR);
     DiagnosticFactory0<PsiElement> UNEXPECTED_SAFE_CALL = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<PsiElement, CangJieType> UNNECESSARY_SAFE_CALL = DiagnosticFactory1.create(WARNING);
     DiagnosticFactory0<CjExpression> ILLEGAL_SELECTOR = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjQualifiedExpression> SAFE_CALL_WILL_CHANGE_NULLABILITY = DiagnosticFactory0.create(WARNING, PositioningStrategies.CALL_ELEMENT_WITH_DOT);
+    DiagnosticFactory1<PsiElement,String> COMPILER_AFFECTED_SYNTAX_ERROR_BY_MESSAGE = DiagnosticFactory1.create(ERROR);
 
     DiagnosticFactory0<PsiElement> COMPILER_AFFECTED_SYNTAX_ERROR = DiagnosticFactory0.create(ERROR);
-    DiagnosticFactory1<CjSimpleNameExpression, TypeParameterDescriptor> TYPE_PARAMETER_IS_NOT_AN_EXPRESSION =
+    DiagnosticFactory1<CjExpression, TypeParameterDescriptor> TYPE_PARAMETER_IS_NOT_AN_EXPRESSION =
             DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory1<CjSimpleNameExpression, ClassifierDescriptor> EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<CjExpression, ClassifierDescriptor> EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory2<CjTypeReference, CangJieType, CangJieType> UPPER_BOUND_VIOLATED = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory0<CjTypeArgumentList> TYPE_ARGUMENTS_FOR_OUTER_CLASS_WHEN_NESTED_REFERENCED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<CjTypeReference, CangJieType> TYPEALIAS_SHOULD_EXPAND_TO_CLASS = DiagnosticFactory1.create(ERROR);

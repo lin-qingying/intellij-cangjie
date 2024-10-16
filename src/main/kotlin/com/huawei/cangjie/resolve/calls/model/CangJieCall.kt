@@ -62,7 +62,9 @@ fun CangJieCall.checkCallInvariants() {
             }
 
         }
+CangJieCallKind.ENUM ->{
 
+}
         CangJieCallKind.CALLABLE_REFERENCE -> {
             assert(argumentsInParenthesis.isEmpty()) {
                 "Callable references can't have value arguments"

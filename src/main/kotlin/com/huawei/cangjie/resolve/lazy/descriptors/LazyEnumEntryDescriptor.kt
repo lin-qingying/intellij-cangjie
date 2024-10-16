@@ -29,10 +29,10 @@ class LazyEnumEntryDescriptor(
     val list: List<CjEnmuEntryInfo>,
     isExternal: Boolean
 ) : LazyClassDescriptor(c, thisDescriptor, name, list.first(), isExternal) {
-
-    override val visibility: DescriptorVisibility
-         = containingDeclaration.visibility
-    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> =emptySet()
+    override val isStatic: Boolean
+        get() = true
+    override val visibility: DescriptorVisibility = containingDeclaration.visibility
+    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> = emptySet()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -54,6 +54,7 @@ class LazyEnumEntryDescriptor(
     }
 
     override val classLikeInfo: CjEnmuEntryInfo = super.classLikeInfo as CjEnmuEntryInfo
+//    override val classLikeInfo: CjEnmuEntryInfo = list.last()
 
 
     var _constructors: MutableList<EnumEntryConstructorDescriptor> = mutableListOf()
@@ -99,7 +100,8 @@ class LazyEnumEntryDescriptor(
 
     //    是否有无参构造
     fun hasUnsubstitutedPrimaryConstructor(): Boolean {
-        return _constructors.isEmpty() || _constructors.any { it.valueParameters.isEmpty() }
+        return (_constructors.isEmpty() || _constructors.any { it.valueParameters.isEmpty() }) && containingDeclaration is LazyClassDescriptor &&
+                (containingDeclaration as LazyClassDescriptor).declaredTypeParameters.isEmpty()
 
     }
 
@@ -115,7 +117,7 @@ class LazyEnumEntryDescriptor(
     }
 
     override fun getConstructors(): List<ClassConstructorDescriptor> {
-        return _constructors.filter { it.valueParameters.isNotEmpty() }
+        return _constructors/*.filter { it.valueParameters.isNotEmpty() }*/
     }
 
 

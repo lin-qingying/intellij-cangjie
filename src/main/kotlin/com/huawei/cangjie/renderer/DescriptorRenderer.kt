@@ -12,6 +12,8 @@ import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.DescriptorUtils
+import com.huawei.cangjie.resolve.calls.tower.ClassCallableDescriptor
+import com.huawei.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
 import com.huawei.cangjie.resolve.constants.ArrayValue
 import com.huawei.cangjie.resolve.constants.ConstantValue
 import com.huawei.cangjie.resolve.descriptorUtil.annotationClass
@@ -472,7 +474,7 @@ open class DescriptorRendererOptionsImpl : DescriptorRendererOptions {
 
 
 open class DescriptorRendererImpl(
-     val options: DescriptorRendererOptionsImpl
+    val options: DescriptorRendererOptionsImpl
 ) : DescriptorRenderer(), DescriptorRendererOptions by options/* this gives access to options without qualifier */ {
     init {
         assert(options.isLocked)
@@ -1591,7 +1593,12 @@ open class DescriptorRendererImpl(
         override fun visitModuleDeclaration(descriptor: ModuleDescriptor, builder: StringBuilder?) {
             builder?.let { renderName(descriptor, it, true) }
         }
-
+        override fun visitEnumClassCallDescriptor(descriptor: EnumClassCallableDescriptor, builder: StringBuilder?) {
+            descriptor.type.accept(this, builder)
+        }
+        override fun visitClassCallDescriptor(descriptor: ClassCallableDescriptor, builder: StringBuilder?) {
+            descriptor.type.accept(this, builder)
+        }
 
         override fun visitClassDescriptor(descriptor: ClassDescriptor, builder: StringBuilder?) {
             builder?.let { renderClass(descriptor, it) }

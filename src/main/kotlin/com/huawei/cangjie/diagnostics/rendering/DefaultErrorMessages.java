@@ -27,6 +27,10 @@ public class DefaultErrorMessages {
 
     static {
 
+        MAP.put(MESSAGE_ERROR, "{0}",STRING);
+
+        MAP.put(COMPILER_AFFECTED_SYNTAX_ERROR_BY_MESSAGE, "Affected by the compiler, this writing will report an error : {0}",STRING);
+
         MAP.put(COMPILER_AFFECTED_SYNTAX_ERROR, "Affected by the compiler, this writing will report an error");
 
 
@@ -41,6 +45,7 @@ public class DefaultErrorMessages {
         MAP.put(PACKAGE_OR_CLASSIFIER_REDECLARATION, "Redeclaration: {0}", STRING);
 
         MAP.put(REDECLARATION, "Conflicting declarations: {0}", CommonRenderers.commaSeparated(COMPACT_WITH_MODIFIERS));
+        MAP.put(ENUM_REDECLARATION, "Enumeration constructor parameters are the same: {0}" ,STRING  );
 
         MAP.put(FUNCTION_CALL_EXPECTED, "Function invocation ''{0}({1})'' expected", ELEMENT_TEXT,
                 (hasValueParameters, context) -> hasValueParameters ? "..." : "");
@@ -95,7 +100,7 @@ public class DefaultErrorMessages {
         MAP.put(INCONSISTENT_PACKAGE_MODIFIERS, "Inconsistent modifiers for package ''{0}''", FQNAME);
         MAP.put(INCONSISTENT_PACKAGE_MACOR, "Inconsistent macro package declarations");
         MAP.put(OVERRIDING_FINAL_MEMBER, "''{0}'' cannot be referenced from a static context", NAMED, NAMED);
-        MAP.put(NO_CALL_OPERATOR, "Calls are not allowed {0}",  NAMED_ADN_PARAMETER);
+        MAP.put(NO_CALL_OPERATOR, "Calls are not allowed {0}", NAMED_ADN_PARAMETER);
 
         MAP.put(STATIC_CONTEXT_REFERENCE_ERROR, "Non-static {0} ''{1}'' cannot be referenced from a static context", DESCRIPTOR_KIND_NAME, NAMED_ADN_PARAMETER);
         MAP.put(INSTANCE_ACCESS_STATIC_MEMBER_ERROR, "Static {0} ''{1}'' accessed via instance reference", DESCRIPTOR_KIND_NAME, NAMED_ADN_PARAMETER);
@@ -112,7 +117,7 @@ public class DefaultErrorMessages {
         MAP.put(RETURN_TYPE_MISMATCH_ON_OVERRIDE, "Return type of ''{0}'' is not a subtype of the return type of the overridden member ''{1}''",
                 NAMED, FQ_NAMES_IN_TYPES_ANNOTATIONS_WHITELIST);
         String wrongNumberOfTypeArguments = "{0,choice,0#No type arguments|1#One type argument|1<{0,number,integer} type arguments} expected";
-
+        MAP.put(TYPE_ARGUMENTS_NOT_AFTER_ENUMENTRY, "type arguments cannot appear after ''{0}'' when enum type ''{1}'' is give", NAMED, NAMED);
         MAP.put(WRONG_NUMBER_OF_TYPE_ARGUMENTS, wrongNumberOfTypeArguments + " for {1}", null, COMPACT_WITHOUT_SUPERTYPES);
         MAP.put(MEMBER_PROJECTED, "type ''{1}'' prohibits the use of ''{0}''", FQ_NAMES_IN_TYPES, RENDER_TYPE);
 
@@ -271,6 +276,8 @@ public class DefaultErrorMessages {
         MAP.put(ENUM_CONSTRUCTOR_MISMATCH, "No enumeration constructor found with parameter ''{0}''", INT);
         MAP.put(TUPLE_ARGS_TOO_FEW, "The number of arguments for the tuple pattern is less than 2");
         MAP.put(TUPLE_ARGS_MISMATCH, "The number of arguments to the tuple pattern does not match, ''{0}'' is needed, but ''{1}'' are obtained", INT, INT);
+        MAP.put(ENUM_CLASS_CONSTRUCTOR_CALL, "Enum types cannot be instantiated");
+        MAP.put(SEALED_CLASS_CONSTRUCTOR_CALL, "Sealed types cannot be instantiated");
 
         MAP.put(TUPLE_PATTERN_TYPE_MISMATCH, "Type mismatch: inferred type is Tuple but {0} was expected", RENDER_TYPE);
         MAP.put(ELSE_MISPLACED_IN_MATCH, "'else _' entry must be the last one in a match-expression");
@@ -311,6 +318,7 @@ public class DefaultErrorMessages {
 
 
         MAP.put(EXTENSION_SHADOWED_BY_MEMBER, "Extension is shadowed by a member: {0}", COMPACT_WITH_MODIFIERS);
+        MAP.put(INACCESSIBLE_OUTER_CLASS_EXPRESSION, "Expression is inaccessible from a nested class ''{0}''", NAMED);
 
     }
 

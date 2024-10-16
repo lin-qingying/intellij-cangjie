@@ -2,6 +2,7 @@ package com.huawei.cangjie.resolve.calls.tasks
 
 import com.huawei.cangjie.descriptors.BindingTrace
 import com.huawei.cangjie.descriptors.CallableDescriptor
+import com.huawei.cangjie.descriptors.ConstructorDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptorWithVisibility
 import com.huawei.cangjie.descriptors.ValueParameterDescriptor
 import com.huawei.cangjie.diagnostics.Errors
@@ -9,6 +10,7 @@ import com.huawei.cangjie.psi.Call
 import com.huawei.cangjie.psi.CjBinaryExpression
 import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.resolve.BindingContext
+import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.calls.model.ResolvedCall
 import com.huawei.cangjie.resolve.calls.util.getValueArgumentListOrElement
 import com.huawei.cangjie.types.CangJieType
@@ -80,6 +82,8 @@ abstract class AbstractTracingStrategy protected constructor(
     }
 
     override fun invisibleMember(trace: BindingTrace, descriptor: DeclarationDescriptorWithVisibility) {
+
+        if(descriptor is ConstructorDescriptor && DescriptorUtils.isEnum(descriptor.constructedClass)) return
         trace.report(Errors.INVISIBLE_MEMBER.on(call.callElement, descriptor, descriptor.visibility, descriptor))
     }
 

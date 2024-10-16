@@ -4,6 +4,7 @@ import com.huawei.cangjie.builtins.CangJieBuiltIns
 import com.huawei.cangjie.builtins.StandardNames.FqNames.core
 import com.huawei.cangjie.builtins.StandardNames.MAIN
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.enumd.LazyEnumDescriptor
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.Name
@@ -385,22 +386,38 @@ protected constructor(
 
         types.forEach {
 
-            if (it.classKind.isEnumEntry) {
-                enumList.add(it as CjEnmuEntryInfo)
+//            if (it.classKind.isEnumEntry) {
+//                enumList.add(it as CjEnmuEntryInfo)
+//
+//            } else {
+            when (it.classKind) {
+                    ClassKind.ENUM -> {
+                        result.add(LazyEnumDescriptor(c, it, thisDescriptor, name))
+                    }
+                ClassKind.ENUM_ENTRY -> {
+                    result.add(
+                        c.enumDescriptorResolver.resolveEnumEntryDescriptor(
+                            c, thisDescriptor, name, it as CjEnmuEntryInfo, isExternal
+                        )
+                    )
+                }
 
-            } else {
+                else -> {
+                    result.add(LazyClassDescriptor(c, thisDescriptor, name, it, isExternal))
 
-                result.add(LazyClassDescriptor(c, thisDescriptor, name, it, isExternal))
+                }
             }
+
+//            }
         }
 
-        if (enumList.isNotEmpty()) {
-            result.add(
-                c.enumDescriptorResolver.resolveEnumEntryDescriptor(
-                    c, thisDescriptor, name, enumList, isExternal
-                )
-            )
-        }
+//        if (enumList.isNotEmpty()) {
+//            result.add(
+//                c.enumDescriptorResolver.resolveLazyEnumEntryDescriptor(
+//                    c, thisDescriptor, name, enumList, isExternal
+//                )
+//            )
+//        }
 
         return result.toList()
     }

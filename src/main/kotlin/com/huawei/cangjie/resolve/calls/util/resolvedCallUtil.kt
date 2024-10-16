@@ -83,7 +83,14 @@ fun CallableDescriptor.isNotSimpleCall(): Boolean =
                             it is StubTypeForBuilderInference
                 }
             } ?: false)
-
+/**
+ * 检查解析调用是否具有推断出的返回类型
+ *
+ * 此函数用于确定当前解析的调用是否已经推断出了具体的返回类型它通过检查调用的结果描述符
+ * 来判断，如果结果描述符的返回类型包含未推断的类型变量，则表明返回类型尚未确定
+ *
+ * @return 如果解析调用具有推断出的返回类型，则返回true；否则返回false
+ */
 fun ResolvedCall<*>.hasInferredReturnType(): Boolean {
     if (isNewNotCompleted()) return false
 

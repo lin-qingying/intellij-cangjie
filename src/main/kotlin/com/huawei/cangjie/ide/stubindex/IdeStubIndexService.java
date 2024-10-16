@@ -253,6 +253,22 @@ public class IdeStubIndexService extends StubIndexService {
     }
 
     @Override
+    public void indexMacroFunction(@NotNull CangJieFunctionStub stub, @NotNull IndexSink sink) {
+        String name = stub.getName();
+        if (name != null) {
+            sink.occurrence(CangJieMacroFunctionShortNameIndex.Helper.getIndexKey(), name);
+
+            indexPrime(stub, sink);
+        }
+        FqName fqName = stub.getFqName();
+        if (fqName != null) {
+            sink.occurrence(CangJieMacroFqnNameIndex.Helper.getIndexKey(), fqName.asString());
+            sink.occurrence(CangJieMacroByPackageIndex.Helper.getIndexKey(), fqName.parent().asString());
+            IndexUtilsKt.indexTopLevelExtension(stub, sink);
+        }
+    }
+
+    @Override
     public void indexFunction(@NotNull CangJieFunctionStub stub, @NotNull IndexSink sink) {
         String name = stub.getName();
         if (name != null) {
@@ -345,8 +361,11 @@ public class IdeStubIndexService extends StubIndexService {
 
     @Override
     public void indexEnumEntry(@NotNull CangJieEnumEntryStub stub, @NotNull IndexSink sink) {
-        indexTypeStatementStub(stub, sink);
 
+        processNames(sink, stub.getName(), stub.getFqName()/*, stub.isTopLevel()*/);
+        indexSuperNames(stub, sink);
+
+        indexPrime(stub, sink);
         sink.occurrence(CangJieEnumEntryShortNameIndex.Helper.getIndexKey(), stub.getName());
     }
 

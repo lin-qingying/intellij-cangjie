@@ -2,31 +2,16 @@ package com.huawei.cangjie.resolve.calls.tower
 
 import com.huawei.cangjie.descriptors.ClassKind
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.psi.CjCallExpression
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
+import com.huawei.cangjie.resolve.calls.model.CangJieCall
 import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.huawei.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
 import com.huawei.cangjie.resolve.scopes.receivers.DetailedReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.QualifierReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 
-// use this if processors priority is important
-class PrioritizedCompositeScopeTowerProcessor<out C>(
-    vararg val processors: ScopeTowerProcessor<C>
-) : ScopeTowerProcessor<C> {
-    override fun process(data: TowerData): List<Collection<C>> = processors.flatMap { it.process(data) }
-
-    override fun recordLookups(skippedData: Collection<TowerData>, name: Name) {
-        processors.forEach { it.recordLookups(skippedData, name) }
-    }
-
-}
-
-interface SimpleScopeTowerProcessor<out C> : ScopeTowerProcessor<C> {
-    fun simpleProcess(data: TowerData): Collection<C>
-
-    override fun process(data: TowerData): List<Collection<C>> =
-        listOfNotNull(simpleProcess(data).takeIf { it.isNotEmpty() })
-}
 
 internal abstract class AbstractSimpleScopeTowerProcessor<C : Candidate>(
     val candidateFactory: CandidateFactory<C>
@@ -252,15 +237,51 @@ fun <C : Candidate> createFunctionProcessor(
 
     return PrioritizedCompositeScopeTowerProcessor(simpleFunction, invokeProcessor/*invokeExtensionProcessor*/)
 }
+
 fun <C : Candidate> createPropertyProcessor(
     scopeTower: ImplicitScopeTower, name: Name,
     context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
 ) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getVariables(name, it) }
 
+fun <C : Candidate> createEnumEntryProcessor(
+    scopeTower: ImplicitScopeTower, name: Name,
+    context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
+) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) {
+    getEnumTypeByKind(
+        name,
+        ClassKind.ENUM_ENTRY,
+        it
+    )
+}
+
+fun <C : Candidate> createEnumProcessor(
+    scopeTower: ImplicitScopeTower, name: Name,
+    context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
+) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) {
+    getEnumTypeByKind(
+        name,
+        ClassKind.ENUM,
+        it
+    )
+}
+
 fun <C : Candidate> createVariableProcessor(
     scopeTower: ImplicitScopeTower, name: Name,
     context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
 ) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getVariables(name, it) }
+
+fun <C : Candidate> createEnumAndEntryProcessor(
+    cangjieCall: CangJieCall,
+    scopeTower: ImplicitScopeTower,
+    context: CandidateFactory<C>, classValueReceiver: Boolean = true
+) = EnumAndEntryTowerProcessor(
+    cangjieCall,
+    createEnumProcessor(scopeTower, cangjieCall.name, context, cangjieCall.explicitReceiver?.receiver),
+
+    createEnumEntryProcessor(scopeTower, cangjieCall.name, context, cangjieCall.explicitReceiver?.receiver),
+
+
+    )
 
 fun <C : Candidate> createVariableAndObjectProcessor(
     scopeTower: ImplicitScopeTower, name: Name,
@@ -269,17 +290,22 @@ fun <C : Candidate> createVariableAndObjectProcessor(
     createVariableProcessor(scopeTower, name, context, explicitReceiver),
 //    createPropertyProcessor(scopeTower, name, context, explicitReceiver),
 
-    createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getObjects(name, it) }
+    createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) {
+        getObjects(name, it)
+    },
+//    createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getClassType(name, it) }
 )
 
 
 class VariableAndObjectScopeTowerProcessor<out C : Candidate>(
     private val variableProcessor: ScopeTowerProcessor<C>,
-    private val objectProcessor: ScopeTowerProcessor<C>
+    private val objectProcessor: ScopeTowerProcessor<C>,
+//    private val classTypeProcessor: ScopeTowerProcessor<C>,
 ) : ScopeTowerProcessor<C> {
     override fun process(data: TowerData): List<Collection<C>> {
         val variablesResult = variableProcessor.process(data)
         val objectResult = objectProcessor.process(data)
+//        val classTypeResult = classTypeProcessor.process(data)
         if (objectResult.isEmpty()) return variablesResult
         if (objectResult.none { level ->
                 level.any {
@@ -290,15 +316,27 @@ class VariableAndObjectScopeTowerProcessor<out C : Candidate>(
             return variablesResult + objectResult
         val result = mutableListOf<List<C>>()
         result.addAll(variablesResult.map { it.toMutableList() })
+//        result.addAll(classTypeResult.map { it.toMutableList() })
+
         for ((index, objectLevel) in objectResult.withIndex()) {
-            val enumEntryLevel = objectLevel.filter { it.isEnumEntryCandidate() }
+            val enumEntryLevel = objectLevel.filter { it.isEnumEntryCandidate() }.toMutableList()
+
+
             if (enumEntryLevel.isEmpty()) continue
             if (index < variablesResult.size) {
                 // It's guaranteed this element is a mutable list
                 (result[index] as MutableList).addAll(enumEntryLevel)
             } else {
+
+//                val classResult =
+//                    classTypeResult.firstOrNull()?.filter { !it.isEnumEntryCandidateByClassType() } ?: emptyList()
+//                enumEntryLevel.addAll(classResult)
                 result.add(enumEntryLevel)
+
+
             }
+
+
         }
         for (objectLevel in objectResult) {
             val nonEnumEntryLevel = objectLevel.filter { !it.isEnumEntryCandidate() }
@@ -306,6 +344,12 @@ class VariableAndObjectScopeTowerProcessor<out C : Candidate>(
             result.add(nonEnumEntryLevel)
         }
         return result
+    }
+
+    private fun Candidate.isEnumEntryCandidateByClassType(): Boolean {
+        if (this !is ResolutionCandidate) return false
+        val callableDescriptor = resolvedCall.candidateDescriptor as? ClassCallableDescriptor ?: return false
+        return callableDescriptor.type is LazyEnumEntryDescriptor
     }
 
     private fun Candidate.isEnumEntryCandidate(): Boolean {
@@ -318,4 +362,65 @@ class VariableAndObjectScopeTowerProcessor<out C : Candidate>(
         variableProcessor.recordLookups(skippedData, name)
         objectProcessor.recordLookups(skippedData, name)
     }
+}
+
+class EnumAndEntryTowerProcessor<out C : Candidate>(
+   val cangjieCall: CangJieCall,
+
+    private val enumProcessor: ScopeTowerProcessor<C>,
+    private val entryProcessor: ScopeTowerProcessor<C>,
+
+    ) : ScopeTowerProcessor<C> {
+    override fun process(data: TowerData): List<Collection<C>> {
+        val enumResult = enumProcessor.process(data)
+        val entryResult = entryProcessor.process(data)
+        val result = mutableListOf<List<C>>()
+
+        result.addAll(enumResult.map { it.toMutableList() })
+        result.addAll(entryResult.map { it.toMutableList() })
+//        for ((index, enumLevel) in enumResult.withIndex()) {
+//
+//
+//            result.add (
+//
+//                enumLevel.filter {
+//                    val isCall = cangjieCall.psiCangJieCall.psiCall.callElement is CjCallExpression &&  (cangjieCall.psiCangJieCall.psiCall.callElement as CjCallExpression) .valueArgumentList != null
+//                    !isCall
+//                }
+//            )
+//
+//
+//
+//        }
+
+
+
+        return result
+    }
+
+    override fun recordLookups(skippedData: Collection<TowerData>, name: Name) {
+        enumProcessor.recordLookups(skippedData, name)
+        entryProcessor.recordLookups(skippedData, name)
+
+    }
+}
+
+// use this if processors priority is important
+class PrioritizedCompositeScopeTowerProcessor<out C>(
+    vararg val processors: ScopeTowerProcessor<C>
+) : ScopeTowerProcessor<C> {
+    override fun process(data: TowerData): List<Collection<C>> = processors.flatMap { it.process(data) }
+
+    override fun recordLookups(skippedData: Collection<TowerData>, name: Name) {
+        processors.forEach { it.recordLookups(skippedData, name) }
+    }
+
+}
+
+
+interface SimpleScopeTowerProcessor<out C> : ScopeTowerProcessor<C> {
+    fun simpleProcess(data: TowerData): Collection<C>
+
+    override fun process(data: TowerData): List<Collection<C>> =
+        listOfNotNull(simpleProcess(data).takeIf { it.isNotEmpty() })
 }

@@ -75,32 +75,6 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
         }
 
         val provider = PackageFragmentProviderImpl(packageFragments)
-//        val provider = PackageFragmentProviderImpl()
-//        val notFoundClasses = NotFoundClasses(storageManager, module)
-//
-//        val components = DeserializationComponents(
-//            storageManager,
-//            module,
-//            DeserializationConfiguration.Default,
-//            DeserializedClassDataFinder(provider),
-//            AnnotationAndConstantLoaderImpl(module, notFoundClasses, BuiltInSerializerProtocol),
-//            provider,
-//            LocalClassifierTypeSettings.Default,
-//            ErrorReporter.DO_NOTHING,
-//            LookupTracker.DO_NOTHING,
-//            FlexibleTypeDeserializer.ThrowException,
-//            classDescriptorFactories,
-//            notFoundClasses,
-//            ContractDeserializer.DEFAULT,
-//            additionalClassPartsProvider,
-//            platformDependentDeclarationFilter,
-//            BuiltInSerializerProtocol.extensionRegistry,
-//            samConversionResolver = SamConversionResolverImpl(storageManager, samWithReceiverResolvers = emptyList())
-//        )
-//
-//        for (packageFragment in packageFragments) {
-//            packageFragment.initialize(components)
-//        }
 
         return provider
     }

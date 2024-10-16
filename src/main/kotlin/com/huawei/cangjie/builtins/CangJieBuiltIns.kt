@@ -33,7 +33,6 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.uint16UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.uint32UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.uint8UFqName
 import com.huawei.cangjie.builtins.StandardNames.FqNames.unitUFqName
-import com.huawei.cangjie.builtins.StandardNames.STD_CORE_PACKAGE_FQ_NAME
 import com.huawei.cangjie.builtins.functions.FunctionTypeKind
 import com.huawei.cangjie.context.ProjectContext
 import com.huawei.cangjie.descriptors.*
@@ -419,17 +418,15 @@ open class CangJieBuiltIns(
 //    }
     fun getTuple(parameterCount: Int): ClassDescriptor {
         return TupleClassDescriptor.create(storageManager, builtInsModule, parameterCount)
-//        return getBuiltInClassByName(getFunctionName(parameterCount))
+
     }
 
     fun getFunction(parameterCount: Int): ClassDescriptor {
         return FunctionClassDescriptor.create(storageManager, builtInsModule, FunctionTypeKind.Function, parameterCount)
-//        return getBuiltInClassByName(getFunctionName(parameterCount))
+
     }
 
-    //    val number: ClassDescriptor get() = getBuiltInClassByName("Number")
-//    val numberType get() = number.getDefaultType()
-//    val comparable: ClassDescriptor get() = getBuiltInClassByName("Comparable")
+
     private fun getPrimitiveClassBasicDescriptor(type: PrimitiveType): ClassDescriptor {
         return getBuiltInBasicTypeByName(type.typeName.asString())
     }
@@ -478,44 +475,6 @@ open class CangJieBuiltIns(
         )
     }
 
-//    fun getArrayElementType(arrayType:  CangJieType):  CangJieType {
-//        if ( isArray(arrayType)) {
-//            check(arrayType.arguments.size == 1)
-//            return arrayType.arguments.get(0).getType()
-//        }
-//        val notNullArrayType  =
-//             TypeUtils.makeNotNullable(arrayType)
-//        val primitiveType =
-//            primitives.invoke().cangjieArrayTypeToPrimitiveCangJieType.get(notNullArrayType)
-//        if (primitiveType != null) return primitiveType
-//
-//        val module  =
-//           DescriptorUtils.getContainingModuleOrNull(notNullArrayType)
-//        if (module != null) {
-//            val unsignedType:  CangJieType =
-//                 getElementTypeForUnsignedArray(notNullArrayType, module)
-//            if (unsignedType != null) return unsignedType
-//        }
-//
-//
-//        throw IllegalStateException("not array: $arrayType")
-//    }
-
-//    private fun getElementTypeForUnsignedArray(
-//          notNullArrayType: CangJieType,
-//          module: ModuleDescriptor
-//    ): CangJieType? {
-//        val descriptor = notNullArrayType.constructor.declarationDescriptor ?: return null
-//        if (!UnsignedTypes.isShortNameOfUnsignedArray(descriptor.name)) return null
-//
-//        val arrayClassId = DescriptorUtils.getClassId(descriptor) ?: return null
-//
-//        val elementClassId = UnsignedTypes.INSTANCE.getUnsignedClassIdByArrayClassId(arrayClassId) ?: return null
-//
-//        val elementClassDescriptor = FindClassInModule.findClassAcrossModuleDependencies(module, elementClassId) ?: return null
-//
-//        return elementClassDescriptor.defaultType
-//    }
     fun getNullableNothingType(): SimpleType {
         return nothingType.makeOptionalAsSpecified(true)
     }
@@ -539,19 +498,6 @@ open class CangJieBuiltIns(
         return getBuiltInClassByName(type.typeName.asString())
     }
 
-    private val myStdCoreClassesByName = storageManager.createMemoizedFunction { name: Name ->
-        val classifier = getBuiltInsStdCoreScope().getContributedClassifier(
-            name,
-            NoLookupLocation.FROM_BUILTINS
-        )
-        if (classifier == null) {
-            throw AssertionError("Built-in class " + BUILT_INS_PACKAGE_FQ_NAME.child(name) + " is not found")
-        }
-        if (classifier !is ClassDescriptor) {
-            throw AssertionError("Must be a class descriptor $name, but was $classifier")
-        }
-        classifier
-    }
 
     private val myBuiltInClassesByName = storageManager.createMemoizedFunction { name: Name ->
         val classifier = getBuiltInsPackageScope().getContributedClassifier(
@@ -618,12 +564,10 @@ open class CangJieBuiltIns(
     }
 
 
-    //    val nullableNothingType: SimpleType get() = nothingType.makeOptionalAsSpecified(true)
     val nothingType: SimpleType
         get() = nothing.getDefaultType()
 
-//
-//    val nullableAnyType: SimpleType get() = anyType.makeOptionalAsSpecified(true)
+
 
 
     protected fun createBuiltInsModule(isFallback: Boolean) {
@@ -666,15 +610,6 @@ open class CangJieBuiltIns(
 //        return getBuiltInsStdCoreScope()
     }
 
-    fun getBuiltInsStdCoreScope(): MemberScope {
-        return if (sourcesModuleDescriptor != null) {
-            sourcesModuleDescriptor!!.getPackage(STD_CORE_PACKAGE_FQ_NAME).memberScope
-        } else {
-            builtInsModule.getPackage(STD_CORE_PACKAGE_FQ_NAME).memberScope
-        }
-
-    }
-
     fun isBooleanOrSubtype(type: CangJieType): Boolean {
         return CangJieTypeChecker.DEFAULT.isSubtypeOf(type, boolType)
     }
@@ -683,9 +618,7 @@ open class CangJieBuiltIns(
         return myBuiltInClassesByName.invoke(Name.identifier(simpleName))
     }
 
-    private fun getStdCoreClassByName(simpleName: String): ClassDescriptor {
-        return myStdCoreClassesByName.invoke(Name.identifier(simpleName))
-    }
+
 
     fun getBuiltInBasicTypeByName(simpleName: String): BasicTypeDescriptor {
         return getBuiltInClassByName(simpleName) as BasicTypeDescriptor

@@ -103,7 +103,7 @@ class MissingNamedArgumentPrefix(
     val names: Set<Name>
 
 ) : CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
-    override fun report(reporter: DiagnosticReporter) = reporter.onCallArgument (argument, this)
+    override fun report(reporter: DiagnosticReporter) = reporter.onCallArgument(argument, this)
 
 }
 
@@ -128,6 +128,7 @@ class NoneCandidatesCallDiagnostic : CangJieCallDiagnostic(CandidateApplicabilit
         reporter.onCall(this)
     }
 }
+
 class StubBuilderInferenceReceiver(
     val receiver: SimpleCangJieCallArgument,
     val extensionReceiverParameter: ReceiverParameterDescriptor,
@@ -203,6 +204,17 @@ class WrongCountOfTypeArguments(
 ) : CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
     override fun report(reporter: DiagnosticReporter) = reporter.onTypeArguments(this)
 }
+
+//type arguments cannot appear after 'enum entry' when enum type 'enum' is given
+class TypeArgumentsAfterEnumEntry(val enumEntry: ClassDescriptor,val enum :ClassDescriptor) :
+    CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
+    override fun report(reporter: DiagnosticReporter)= reporter.onTypeArguments(this)
+}
+object TypeArgumentsCompilerError  :
+    CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
+    override fun report(reporter: DiagnosticReporter)= reporter.onTypeArguments(this)
+}
+
 
 class CallableReferenceCallCandidatesAmbiguity(
     val argument: CallableReferenceCangJieCallArgument,
@@ -285,6 +297,7 @@ class ArgumentNullabilityWarningDiagnostic(
         reporter.onCallArgument(expressionArgument, this)
     }
 }
+
 //非静态上下文访问静态成员
 class NonStaticContextAccessStaticMemberDiagnostic(val kind: DescriptorKind, val descriptor: DeclarationDescriptor) :
     CangJieCallDiagnostic(CandidateApplicability.RUNTIME_ERROR) {
@@ -293,8 +306,9 @@ class NonStaticContextAccessStaticMemberDiagnostic(val kind: DescriptorKind, val
         reporter.onCall(this)
     }
 }
+
 //静态上下文访问非静态成员
-class StaticContextAccessNonStaticMemberDiagnostic(val kind:DescriptorKind,val descriptor: DeclarationDescriptor) :
+class StaticContextAccessNonStaticMemberDiagnostic(val kind: DescriptorKind, val descriptor: DeclarationDescriptor) :
     CangJieCallDiagnostic(CandidateApplicability.RUNTIME_ERROR) {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCall(this)
@@ -302,13 +316,16 @@ class StaticContextAccessNonStaticMemberDiagnostic(val kind:DescriptorKind,val d
 
     }
 }
+
 class SuperAsExtensionReceiver(val receiver: SimpleCangJieCallArgument) :
     CangJieCallDiagnostic(CandidateApplicability.RUNTIME_ERROR) {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCallReceiver(receiver, this)
     }
 }
-class NoCallOperatorFunction(val descriptor: DeclarationDescriptor) : CangJieCallDiagnostic(CandidateApplicability.UNSAFE_CALL) {
+
+class NoCallOperatorFunction(val descriptor: DeclarationDescriptor) :
+    CangJieCallDiagnostic(CandidateApplicability.UNSAFE_CALL) {
     override fun report(reporter: DiagnosticReporter) {
         reporter.onCall(this)
     }

@@ -23,6 +23,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValue;
 import com.huawei.cangjie.resolve.constants.CompileTimeConstant;
 import com.huawei.cangjie.resolve.scopes.LexicalScope;
 import com.huawei.cangjie.resolve.scopes.receivers.Qualifier;
+import com.huawei.cangjie.resolve.scopes.receivers.QualifierReceiver;
 import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.DeferredType;
 import com.huawei.cangjie.types.expressions.CaptureKind;
@@ -175,7 +176,7 @@ WritableSlice<VariableDescriptor, CaptureKind> CAPTURED_IN_CLOSURE = new BasicWr
     WritableSlice<CjAnnotationEntry, AnnotationDescriptor> ANNOTATION = Slices.createSimpleSlice();
     WritableSlice<FqName, Collection<CjFile>> PACKAGE_TO_FILES = Slices.createSimpleSlice();
     WritableSlice<PsiElement, SimpleFunctionDescriptor> FUNCTION = Slices.createSimpleSlice();
-    WritableSlice<CjExpression, Qualifier> QUALIFIER = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjExpression, QualifierReceiver> QUALIFIER = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjElement, Boolean> USED_AS_EXPRESSION = new BasicWritableSlice<>(DO_NOTHING);
 
     WritableSlice<CjElement, Call> CALL = new BasicWritableSlice<>(DO_NOTHING);

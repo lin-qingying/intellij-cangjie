@@ -10,6 +10,7 @@ import com.huawei.cangjie.doc.insert
 import com.huawei.cangjie.doc.psi.CDoc
 import com.huawei.cangjie.doc.psi.impl.CDocSection
 import com.huawei.cangjie.ide.FrontendInternals
+import com.huawei.cangjie.ide.codeinsight.quickDoc.cdoc.CDocRenderer.appendCodeSnippetHighlightedByLexer
 import com.huawei.cangjie.ide.codeinsight.quickDoc.cdoc.CDocRenderer.appendHighlighted
 import com.huawei.cangjie.ide.codeinsight.quickDoc.cdoc.CDocRenderer.createHighlightingManager
 import com.huawei.cangjie.ide.codeinsight.quickDoc.cdoc.CDocRenderer.highlight
@@ -28,6 +29,7 @@ import com.huawei.cangjie.resolve.caches.getResolutionFacade
 import com.huawei.cangjie.resolve.caches.resolveToDescriptorIfAny
 import com.huawei.cangjie.resolve.caches.safeAnalyzeNonSourceRootCode
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver
+import com.huawei.cangjie.resolve.deprecation.deprecatedByAnnotationReplaceWithExpression
 import com.huawei.cangjie.resolve.descriptorUtil.getSuperClassNotAny
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
 import com.huawei.cangjie.resolve.source.getPsi
@@ -331,7 +333,15 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
 
             return buildCangJie(context, declarationDescriptor, quickNavigation, declaration, resolutionFacade)
         }
+        private inline fun StringBuilder.wrapTag(tag: String, crossinline body: () -> Unit) {
+            wrap("<$tag>", "</$tag>", body)
+        }
 
+        private inline fun StringBuilder.wrap(prefix: String, postfix: String, crossinline body: () -> Unit) {
+            this.append(prefix)
+            body()
+            this.append(postfix)
+        }
         private fun String.htmlEscape(): String = HtmlEscapers.htmlEscaper().escape(this)
 
         private fun CDocTemplate.insertDeprecationInfo(
@@ -349,15 +359,15 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
                     append(message.htmlEscape())
                     append(SECTION_END)
                 }
-//                deprecationInfo.deprecatedByAnnotationReplaceWithExpression()?.let { replaceWith ->
-//                    append(SECTION_HEADER_START)
-//                    append(CangJieBundle.message("quick.doc.section.replace.with"))
-//                    append(SECTION_SEPARATOR)
-//                    wrapTag("code") {
-//                        appendCodeSnippetHighlightedByLexer(project, replaceWith.htmlEscape())
-//                    }
-//                    append(SECTION_END)
-//                }
+                deprecationInfo.deprecatedByAnnotationReplaceWithExpression()?.let { replaceWith ->
+                    append(SECTION_HEADER_START)
+                    append(CangJieBundle.message("quick.doc.section.replace.with"))
+                    append(SECTION_SEPARATOR)
+                    wrapTag("code") {
+                        appendCodeSnippetHighlightedByLexer(project, replaceWith.htmlEscape())
+                    }
+                    append(SECTION_END)
+                }
             }
         }
 

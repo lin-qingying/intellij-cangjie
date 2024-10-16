@@ -67,7 +67,7 @@ class DiagnosticReporterByTrackingStrategy(
     override fun onCall(diagnostic: CangJieCallDiagnostic) {
         when (diagnostic) {
             is NoCallOperatorFunction -> {
-                   trace.report(
+                trace.report(
                     NO_CALL_OPERATOR.on(
                         psiCangJieCall.psiCall.callElement as CjCallExpression,
                         diagnostic.descriptor
@@ -77,13 +77,13 @@ class DiagnosticReporterByTrackingStrategy(
             }
 
             is StaticContextAccessNonStaticMemberDiagnostic -> {
-                    trace.report(
-                        STATIC_CONTEXT_REFERENCE_ERROR.on(
-                            psiCangJieCall.psiCall.callElement,
-                            diagnostic.kind,
-                            diagnostic.descriptor
-                        )
+                trace.report(
+                    STATIC_CONTEXT_REFERENCE_ERROR.on(
+                        psiCangJieCall.psiCall.callElement,
+                        diagnostic.kind,
+                        diagnostic.descriptor
                     )
+                )
             }
 
             is NonStaticContextAccessStaticMemberDiagnostic -> {
@@ -233,6 +233,24 @@ class DiagnosticReporterByTrackingStrategy(
                 psiCallElement
 
         when (diagnostic) {
+            is TypeArgumentsCompilerError -> {
+            trace.report(
+                COMPILER_AFFECTED_SYNTAX_ERROR_BY_MESSAGE.on(
+                    reportElement,
+               "unable to infer generic argument of this function"
+                )
+            )
+        }
+            is TypeArgumentsAfterEnumEntry -> {
+                trace.report(
+                    TYPE_ARGUMENTS_NOT_AFTER_ENUMENTRY.on(
+                        reportElement,
+                        diagnostic.enumEntry,
+                        diagnostic.enum
+                    )
+                )
+            }
+
             is WrongCountOfTypeArguments -> {
                 val expectedTypeArgumentsCount = diagnostic.descriptor.typeParameters.size
                 trace.report(
@@ -768,6 +786,7 @@ class DiagnosticReporterByTrackingStrategy(
             is KnownTypeParameterConstraintPosition<*> -> {
                 // UPPER_BOUND_VIOLATED, reported later?
             }
+
             is CallableReferenceConstraintPosition<*>,
             is IncorporationConstraintPosition,
             is InjectedAnotherStubTypeConstraintPosition<*>,
@@ -1006,15 +1025,17 @@ class DiagnosticReporterByTrackingStrategy(
             is InferredEmptyIntersectionError, is InferredEmptyIntersectionWarning -> {
                 val typeVariable = (error as InferredEmptyIntersection).typeVariable
                 psiCangJieCall.psiCall.calleeExpression?.let { expression ->
-                    val typeVariableText = (typeVariable as? TypeVariableFromCallableDescriptor)?.originalTypeParameter?.name?.asString()
-                        ?: typeVariable.toString()
+                    val typeVariableText =
+                        (typeVariable as? TypeVariableFromCallableDescriptor)?.originalTypeParameter?.name?.asString()
+                            ?: typeVariable.toString()
 
                     @Suppress("UNCHECKED_CAST")
                     val incompatibleTypes = error.incompatibleTypes as List<CangJieType>
 
                     @Suppress("UNCHECKED_CAST")
                     val causingTypes = error.causingTypes as List<CangJieType>
-                    val causingTypesText = if (incompatibleTypes == causingTypes) "" else ": ${causingTypes.joinToString()}"
+                    val causingTypesText =
+                        if (incompatibleTypes == causingTypes) "" else ": ${causingTypes.joinToString()}"
                     val diagnostic = if (error.kind.isDefinitelyEmpty) {
                         INFERRED_TYPE_VARIABLE_INTO_EMPTY_INTERSECTION.on(
                             context.languageVersionSettings, expression, typeVariableText,

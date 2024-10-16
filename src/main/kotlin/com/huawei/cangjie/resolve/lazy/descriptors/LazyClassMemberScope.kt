@@ -11,6 +11,7 @@ import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.incremental.record
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjDeclaration
+import com.huawei.cangjie.psi.CjEnumEntry
 import com.huawei.cangjie.psi.CjTypeStatement
 import com.huawei.cangjie.resolve.*
 import com.huawei.cangjie.resolve.descriptorUtil.reportOnDeclarationAs
@@ -343,12 +344,27 @@ open class LazyClassMemberScope(
 
     }
 
+    private val enumEntryPrimaryConstructor: NullableLazyValue<ClassConstructorDescriptor> =
+        c.storageManager.createNullableLazyValue { resolveEnumEntryPrimaryConstructor() }
+
     private val primaryConstructor: NullableLazyValue<ClassConstructorDescriptor> =
         c.storageManager.createNullableLazyValue { resolvePrimaryConstructor() }
 
+    protected fun resolveEnumEntryPrimaryConstructor(): ClassConstructorDescriptor {
+        val enumEntry = declarationProvider.correspondingClassOrObject as CjEnumEntry
+
+        val descriptor =  c.enumDescriptorResolver.resolbeEnumEntryConstructorDescriptor(
+            thisDescriptor.scopeForConstructorHeaderResolution, thisDescriptor,
+            enumEntry , trace, c.languageVersionSettings, c.inferenceSession
+        )
+        setDeferredReturnType(descriptor)
+        return descriptor
+
+    }
 
     protected open fun resolvePrimaryConstructor(): ClassConstructorDescriptor? {
         val classOrObject = declarationProvider.correspondingClassOrObject ?: return null
+//        if(classOrObject is CjEnum) return null
         val primarys = classOrObject.primaryConstructors.map { constructor ->
             val descriptor = c.functionDescriptorResolver.resolveConstructorDescriptor(
                 thisDescriptor.scopeForConstructorHeaderResolution, thisDescriptor,
@@ -436,6 +452,9 @@ open class LazyClassMemberScope(
         return result
     }
 
+    //    主构造函数
+    fun getEnumEntryPrimaryConstructor(): ClassConstructorDescriptor? =
+        (mainScope as LazyClassMemberScope?)?.enumEntryPrimaryConstructor?.invoke() ?: enumEntryPrimaryConstructor()
 
     //    主构造函数
     fun getPrimaryConstructor(): ClassConstructorDescriptor? =

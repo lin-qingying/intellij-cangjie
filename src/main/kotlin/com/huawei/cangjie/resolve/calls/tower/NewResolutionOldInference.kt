@@ -89,7 +89,21 @@ class NewResolutionOldInference(
 //            explicitReceiver: DetailedReceiver?,
 //            context: BasicCallResolutionContext
 //        ): ScopeTowerProcessor<MyCandidate>
-
+object Enum : ResolutionKind() {
+//            override fun createTowerProcessor(
+//                outer: NewResolutionOldInference, name: Name, tracing: TracingStrategy,
+//                scopeTower: ImplicitScopeTower, explicitReceiver: DetailedReceiver?, context: BasicCallResolutionContext
+//            ): ScopeTowerProcessor<MyCandidate> {
+//                val functionFactory = outer.CandidateFactoryImpl(name, context, tracing)
+//                return createFunctionProcessor(
+//                    scopeTower,
+//                    name,
+//                    functionFactory,
+//                    outer.CandidateFactoryProviderForInvokeImpl(functionFactory),
+//                    explicitReceiver
+//                )
+//            }
+}
         object Function : ResolutionKind() {
 //            override fun createTowerProcessor(
 //                outer: NewResolutionOldInference, name: Name, tracing: TracingStrategy,
@@ -333,6 +347,7 @@ internal fun reportResolvedUsingDeprecatedVisibility(
         is FakeCallableDescriptorForObject -> candidateDescriptor.classDescriptor
         is SyntheticMemberDescriptor<*> -> candidateDescriptor.baseDescriptorForSynthetic
         is PropertyDescriptor, is FunctionDescriptor -> candidateDescriptor
+        is EnumClassCallableDescriptor -> candidateDescriptor.type
         else -> error(
             "Unexpected candidate descriptor of resolved call with " +
                     "ResolvedUsingDeprecatedVisibility-diagnostic: $candidateDescriptor\n" +

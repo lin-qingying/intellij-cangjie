@@ -9,6 +9,7 @@ import com.huawei.cangjie.psi.stubs.CangJieFunctionStub;
 import com.huawei.cangjie.psi.stubs.impl.CangJieFunctionStubImpl;
 import com.huawei.cangjie.psi.stubs.impl.CangJieStubOrigin;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
 import com.intellij.psi.stubs.StubOutputStream;
@@ -31,7 +32,7 @@ public class CjMacroElementType extends CjStubElementType<CangJieFunctionStub, C
         boolean hasBlockBody = psi.hasBlockBody();
         boolean hasBody = psi.hasBody();
         return new CangJieFunctionStubImpl(
-                parentStub,CjStubElementTypes.FUNCTION, StringRef.fromString(psi.getName()), isTopLevel, fqName,
+                parentStub,CjStubElementTypes.MACRO, StringRef.fromString(psi.getName()), isTopLevel, fqName,
                 isExtension, hasBlockBody, hasBody, psi.hasTypeParameterListBeforeFunctionName(),
 
 null,
@@ -61,6 +62,12 @@ null,
     }
 
     @Override
+    public void indexStub(@NotNull CangJieFunctionStub stub, @NotNull IndexSink sink) {
+        StubIndexService.getInstance().indexMacroFunction(stub, sink);
+
+    }
+
+    @Override
     public @NotNull CangJieFunctionStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
         StringRef name = dataStream.readName();
         boolean isTopLevel = dataStream.readBoolean();
@@ -74,7 +81,7 @@ null,
         boolean hasTypeParameterListBeforeFunctionName = dataStream.readBoolean();
 //        bool mayHaveContract = dataStream.readBoolean();
         return new CangJieFunctionStubImpl(
-                (StubElement<?>) parentStub,CjStubElementTypes.FUNCTION, name, isTopLevel, fqName, isExtension, hasBlockBody, hasBody,
+                (StubElement<?>) parentStub,CjStubElementTypes.MACRO, name, isTopLevel, fqName, isExtension, hasBlockBody, hasBody,
                 hasTypeParameterListBeforeFunctionName,
 null,
                 CangJieStubOrigin.deserialize(dataStream)

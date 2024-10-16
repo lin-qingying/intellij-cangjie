@@ -18,6 +18,7 @@ import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.tree.TokenSet
 import com.intellij.util.codeInsight.CommentUtilCore
 import java.util.*
+
 //fun CjDeclaration.isExpectDeclaration(): Boolean =
 //    when {
 //        hasExpectModifier() -> true
@@ -26,14 +27,16 @@ import java.util.*
 //    }
 fun CjTypeStatement.effectiveDeclarations(): List<CjDeclaration> {
     return when (this) {
-        is CjStruct -> declarations+ primaryConstructorParameters.filter { p -> p.hasLetOrVar() }
+        is CjStruct -> declarations + primaryConstructorParameters.filter { p -> p.hasLetOrVar() }
 
-        is CjClass -> declarations+ primaryConstructorParameters.filter { p -> p.hasLetOrVar() }
+        is CjClass -> declarations + primaryConstructorParameters.filter { p -> p.hasLetOrVar() }
         else -> declarations
     }
 }
+
 fun CjExpression.lastBlockStatementOrThis(): CjExpression =
     (this as? CjBlockExpression)?.statements?.lastOrNull() ?: this
+
 fun CjFunctionLiteral.findLabelAndCall(): Pair<Name?, CjCallExpression?> {
     val literalParent = (this.parent as CjLambdaExpression).parent
 
@@ -59,6 +62,7 @@ fun CjFunctionLiteral.findLabelAndCall(): Pair<Name?, CjCallExpression?> {
         }
     }
 }
+
 // Annotations on labeled expression lies on it's base expression
 fun CjExpression.getAnnotationEntries(): List<CjAnnotationEntry> {
     return when (val parent = parent) {
@@ -78,7 +82,9 @@ fun CjExpression.getOutermostParenthesizerOrThis(): CjExpression {
         }
     }?.first as CjExpression? ?: this
 }
-fun CjTypeStatement.isAbstract(): Boolean = this is CjInterface || this is CjClass && hasModifier(CjTokens.ABSTRACT_KEYWORD)
+
+fun CjTypeStatement.isAbstract(): Boolean =
+    this is CjInterface || this is CjClass && hasModifier(CjTokens.ABSTRACT_KEYWORD)
 
 fun CjParameter.isPropertyParameter() = ownerFunction is CjPrimaryConstructor && hasLetOrVar()
 fun CjSimpleNameExpression.isPackageDirectiveExpression(): Boolean {
@@ -291,6 +297,17 @@ fun isComment(element: PsiElement): Boolean {
     return CommentUtilCore.isComment(element)
 }
 
+fun CjEnumEntry.safeFqNameForLazyResolveByParent(): FqName? {
+    //应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
+    val parentFqName = (this.parent?.parent as CjEnum).safeFqNameForLazyResolve()
+    return parentFqName?.child(safeNameForLazyResolve())
+}
+
+fun CjEnumEntry.safeFqNameForLazyResolve(): FqName? {
+    //应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
+    val parentFqName = CjNamedDeclarationUtil.getParentFqName(this.parent?.parent as CjEnum)
+    return parentFqName?.child(safeNameForLazyResolve())
+}
 
 fun CjNamedDeclaration.safeFqNameForLazyResolve(): FqName? {
     //应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称

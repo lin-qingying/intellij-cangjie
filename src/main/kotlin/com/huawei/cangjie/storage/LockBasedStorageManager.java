@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -464,7 +465,14 @@ public class LockBasedStorageManager implements StorageManager {
             this.cache = map;
             this.compute = compute;
         }
-
+private boolean checkEmpty(Object value) {
+            if(value instanceof List<?>){
+                return ((List<?>) value).isEmpty();
+            }else if(value instanceof Map<?, ?>){
+                return ((Map<?, ?>) value).isEmpty();
+            }
+            return true;
+}
         @NotNull
         protected RecursionDetectedResult<V> recursionDetected(K input, boolean firstTime) {
             return storageManager.recursionDetectedDefault("", input);
@@ -477,7 +485,7 @@ public class LockBasedStorageManager implements StorageManager {
         @Override
         public V invoke(K input) {
             Object value = cache.get(input);
-            if (value != null && value != NotValue.COMPUTING) return WrappedValues.unescapeExceptionOrNull(value);
+            if (value != null  && value != NotValue.COMPUTING) return WrappedValues.unescapeExceptionOrNull(value);
 
             storageManager.lock.lock();
             try {
@@ -498,7 +506,7 @@ public class LockBasedStorageManager implements StorageManager {
                     }
                 }
 
-                if (value != null) return WrappedValues.unescapeExceptionOrNull(value);
+                if (value != null  ) return WrappedValues.unescapeExceptionOrNull(value);
 
                 AssertionError error = null;
                 try {

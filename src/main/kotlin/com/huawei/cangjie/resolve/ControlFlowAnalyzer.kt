@@ -159,7 +159,7 @@ class ControlFlowAnalyzer(
             if (!function.hasBlockBody() && !function.hasDeclaredReturnType())
                 NO_EXPECTED_TYPE
             else
-                functionDescriptor.getReturnType()
+                functionDescriptor.returnType
 
         controlFlowInformationProvider.checkFunction(expectedReturnType)
     }
@@ -190,8 +190,8 @@ class ControlFlowAnalyzer(
                     propertyDescriptor.getter
                 else
                     propertyDescriptor.setter
-            ) { "no property accessor descriptor " + accessor.getText() }
-            val returnType :CangJieType?  = accessorDescriptor.getReturnType()
+            ) { "no property accessor descriptor " + accessor.text }
+            val returnType :CangJieType?  = accessorDescriptor.returnType
             checkFunction(c, accessor, returnType)
         }
     }

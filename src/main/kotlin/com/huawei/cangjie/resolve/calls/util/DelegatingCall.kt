@@ -7,6 +7,7 @@ import com.huawei.cangjie.utils.ReadOnly
 import com.intellij.lang.ASTNode
 
 open class DelegatingCall(private val delegate: Call) : Call {
+
     override val callOperationNode: ASTNode?
         get() = delegate.callOperationNode
     override val explicitReceiver: Receiver?
@@ -19,26 +20,40 @@ open class DelegatingCall(private val delegate: Call) : Call {
         //
         get() = delegate.calleeExpression
 
+    override var noValueArgument: Boolean = false
 
     override val valueArgumentList: CjValueArgumentList?
-        get() = delegate.valueArgumentList
+        get() {
+            if (noValueArgument) return null
+            return delegate.valueArgumentList
+        }
+
 
     @get:ReadOnly
     override val valueArguments: List<ValueArgument>
-        //
-        get() = delegate.valueArguments
+        get() {
+            if (noValueArgument) return emptyList()
+            return delegate.valueArguments
+        }
 
 
     override val functionLiteralArguments: List<LambdaArgument>
         get() = delegate.functionLiteralArguments
+    override var noTypeParameter: Boolean = false
 
     override val typeArguments: List<CjTypeProjection>
-        get() = delegate.typeArguments
+        get() {
+            if (noTypeParameter) return emptyList()
+            return delegate.typeArguments
+        }
 
 
     override val typeArgumentList: CjTypeArgumentList?
         //
-        get() = delegate.typeArgumentList
+        get() {
+            if (noTypeParameter) return null
+            return delegate.typeArgumentList
+        }
 
 
     override val callElement: CjElement

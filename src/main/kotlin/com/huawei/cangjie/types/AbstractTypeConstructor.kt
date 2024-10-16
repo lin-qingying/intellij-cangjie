@@ -65,7 +65,9 @@ abstract class AbstractTypeConstructor(storageManager: StorageManager) : Classif
 
     private val supertypes = storageManager.createLazyValueWithPostCompute(
         { Supertypes(computeSupertypes()) },
-        { Supertypes(listOf(ErrorUtils.errorTypeForLoopInSupertypes)) },
+        {
+            Supertypes(listOf(ErrorUtils.errorTypeForLoopInSupertypes))
+        },
         { supertypes ->
             // It's important that loops disconnection begins in post-compute phase, because it guarantees that
             // when we start calculation supertypes of supertypes (for computing neighbours), they start their disconnection loop process
@@ -105,7 +107,7 @@ abstract class AbstractTypeConstructor(storageManager: StorageManager) : Classif
         } ?: supertypes
 
     protected abstract fun computeSupertypes(): Collection<CangJieType>
-    protected abstract fun computeExtendSuperTypes(extendId:String?): Collection<CangJieType>
+    protected abstract fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType>
     protected abstract val supertypeLoopChecker: SupertypeLoopChecker
     protected open fun reportSupertypeLoopError(type: CangJieType) {}
 

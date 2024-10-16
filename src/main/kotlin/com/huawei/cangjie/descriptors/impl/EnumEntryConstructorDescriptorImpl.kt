@@ -3,12 +3,17 @@ package com.huawei.cangjie.descriptors.impl
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.Annotations
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.expressions.ClassAndEnumConstructorDescriptor
 
 
 val String.name get() = Name.identifier(this)
+fun EnumEntryConstructorDescriptor.getEnumTypeParameters(): List<TypeParameterDescriptor> {
+    return (containingDeclaration.containingDeclaration as? LazyClassDescriptor)?.declaredTypeParameters?.toList()
+        ?: emptyList()
+}
 
 class EnumEntryConstructorDescriptor(
 //    val types: List<CangJieType>,
@@ -48,8 +53,20 @@ class EnumEntryConstructorDescriptor(
         }
     }
 
+
+    override val visibility: DescriptorVisibility
+        get() = containingDeclaration.visibility
+
     override fun getTypeParameters(): List<TypeParameterDescriptor> {
-        return emptyList()
+//        if(values ?.isEmpty() == true) return emptyList()
+        val typeParameters = getEnumTypeParameters()
+//        val tempTypeParameters = mutableListOf<TypeParameterDescriptor>()
+//        for (typeParameter in typeParameters) {
+//            if (values!!.map {it.type.constructor.declarationDescriptor?.name }.contains(typeParameter.name))
+//                tempTypeParameters.add(typeParameter)
+//        }
+
+        return typeParameters
     }
 
     fun getEnumType(): CangJieType {

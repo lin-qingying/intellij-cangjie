@@ -48,8 +48,9 @@ private val EXCLUDED_TYPES = setOf(
     CjDestructuringDeclarationEntry::class,
     CjBindingPattern::class,
     CjTypePattern::class,
-    CjPackageDirective::class
+    CjPackageDirective::class,
 
+    CjMacroFunction::class,
 )
 
 class ResolveElementCache(

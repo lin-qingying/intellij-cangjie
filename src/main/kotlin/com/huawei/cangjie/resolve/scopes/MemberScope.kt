@@ -4,6 +4,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjFile
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
 import com.huawei.cangjie.resolve.source.MemberScopeImpl
@@ -129,7 +130,7 @@ class StaticMemberScope(val memberScope: MemberScope) : MemberScope {
     }
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
-        return memberScope.getContributedClassifier(name, location)?.takeIf { it.isStatic } // 过滤非静态分类器
+        return memberScope.getContributedClassifier(name, location)?.takeIf { it.isStatic   || it  is LazyEnumEntryDescriptor} // 过滤非静态分类器
     }
 
     override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {

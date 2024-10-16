@@ -1,6 +1,8 @@
 package com.huawei.cangjie.psi.stubs.elements
 
+import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.CjEnumEntry
+import com.huawei.cangjie.psi.CjNamedDeclaration
 import com.huawei.cangjie.psi.psiUtil.StubUtils.createNestedClassId
 import com.huawei.cangjie.psi.psiUtil.StubUtils.deserializeClassId
 import com.huawei.cangjie.psi.psiUtil.StubUtils.serializeClassId
@@ -31,13 +33,14 @@ class CjEnumEntryElementType(debugName: String) : CjStubElementType<CangJieEnumE
     }
 
     override fun createStub(psi: CjEnumEntry, parentStub: StubElement<*>?): CangJieEnumEntryStub {
-        val fqName = psi.safeFqNameForLazyResolve()
+        val fqNameByParent: FqName? = (psi as CjNamedDeclaration).safeFqNameForLazyResolve() //psi.safeFqNameForLazyResolveByParent()
 
-
+        val fqNameByPackage = psi.safeFqNameForLazyResolve()
         val classId = createNestedClassId(parentStub!!, psi)
         return CangJieEnumEntryStubImpl(
             getStubType(), parentStub as StubElement<*>?,
-            StringRef.fromString(fqName?.asString()), classId,
+            StringRef.fromString(fqNameByParent?.asString()),
+            StringRef.fromString(fqNameByPackage?.asString()), classId,
             StringRef.fromString(psi.name),
 
             psi.isLocal
@@ -46,10 +49,15 @@ class CjEnumEntryElementType(debugName: String) : CjStubElementType<CangJieEnumE
 
     @Throws(IOException::class)
     override fun serialize(stub: CangJieEnumEntryStub, dataStream: StubOutputStream) {
+
         dataStream.writeName(stub.name)
 
-        val fqName = stub.getFqName()
-        dataStream.writeName(fqName?.asString())
+
+        val fqNameByParent = stub.getFqName()
+        val fqNameByPacage = stub.fqNameByPackage
+
+        dataStream.writeName(fqNameByParent?.asString())
+        dataStream.writeName(fqNameByPacage?.asString())
 
         serializeClassId(dataStream, stub.getClassId())
 
@@ -67,15 +75,20 @@ class CjEnumEntryElementType(debugName: String) : CjStubElementType<CangJieEnumE
     @Throws(IOException::class)
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?): CangJieEnumEntryStub {
         val name = dataStream.readName()
-        val qualifiedName = dataStream.readName()
+        val qualifiedNameByParent = dataStream.readName()
+        val qualifiedNameByPackage = dataStream.readName()
 
         val classId = deserializeClassId(dataStream)
 
-        val isLocal = dataStream.readBoolean()
+        val isLocal = try{
+            dataStream.readBoolean()
+        }catch (e:IOException){
+            false
+        }
 
 
         return CangJieEnumEntryStubImpl(
-            getStubType(), parentStub, qualifiedName, classId, name,
+            getStubType(), parentStub, qualifiedNameByParent, qualifiedNameByPackage, classId, name,
             isLocal
         )
     }

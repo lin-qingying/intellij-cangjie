@@ -31,6 +31,7 @@ import com.huawei.cangjie.types.model.CangJieTypeMarker
 import com.huawei.cangjie.types.util.contains
 import com.huawei.cangjie.types.util.makeNotNullable
 import com.huawei.cangjie.types.util.makeOptional
+import com.huawei.cangjie.utils.OperatorNameConventions
 import com.huawei.cangjie.utils.compactIfPossible
 
 /**
@@ -41,6 +42,10 @@ internal object CheckOperatorCallPart : ResolutionPart() {
         if (candidateDescriptor !is FunctionDescriptor) return
 //禁止使用call方式调用操作符函数
         if ((candidateDescriptor as FunctionDescriptor).isOperator && resolvedCall.atom.psiCangJieCall.psiCall.callElement is CjCallExpression) {
+           val funcName = candidateDescriptor.name
+            if(funcName == OperatorNameConventions.INVOKE
+                || funcName == OperatorNameConventions.GET ) return
+
             addDiagnostic(NoCallOperatorFunction(candidateDescriptor))
 
         }

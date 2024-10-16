@@ -110,7 +110,12 @@ class LazyExtendClassDescriptor(
             searchscope,
             typeStatement.typeParameters,
             c.trace
-        )
+        ).apply {
+            forEach {
+                it.setInitialized()
+            }
+        }
+
         this.parameters = c.storageManager.createLazyValue {
             val classInfo = declarationProvider.ownerInfo
             var typeParameterList: CjTypeParameterList? = null

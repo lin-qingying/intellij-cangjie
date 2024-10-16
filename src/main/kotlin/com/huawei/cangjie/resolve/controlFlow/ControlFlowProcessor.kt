@@ -1547,7 +1547,7 @@ class ControlFlowProcessor(
             createNonSyntheticValue(element, MagicKind.UNSUPPORTED_ELEMENT)
         }
 
-        private fun generateQualifier(expression: CjExpression, qualifier: Qualifier): Boolean {
+        private fun generateQualifier(expression: CjExpression, qualifier: QualifierReceiver): Boolean {
             val qualifierDescriptor = qualifier.descriptor
 //            if (qualifierDescriptor is ClassDescriptor) {
 //                getFakeDescriptorForObject(qualifierDescriptor)?.let {

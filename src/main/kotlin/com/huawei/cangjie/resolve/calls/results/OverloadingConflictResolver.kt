@@ -11,6 +11,7 @@ import com.huawei.cangjie.descriptors.synthetic.SyntheticMemberDescriptor
 import com.huawei.cangjie.resolve.DescriptorEquivalenceForOverrides
 import com.huawei.cangjie.resolve.OverridingUtil
 import com.huawei.cangjie.resolve.calls.context.CheckArgumentTypesMode
+import com.huawei.cangjie.resolve.calls.tower.ClassCallableDescriptor
 import com.huawei.cangjie.resolve.descriptorUtil.isTypeRefinementEnabled
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.checker.CangJieTypeRefiner
@@ -149,13 +150,13 @@ open class OverloadingConflictResolver<C : Any>(
         }
 
         val maximallySpecific = findMaximallySpecific(noOverrides, checkArgumentsMode, false)
-        if (maximallySpecific != null) {
+        if (maximallySpecific != null && maximallySpecific.resultingDescriptor !is ClassCallableDescriptor) {
             return setOf(maximallySpecific)
         }
 
         if (discriminateGenerics) {
             val maximallySpecificGenericsDiscriminated = findMaximallySpecific(noOverrides, checkArgumentsMode, true)
-            if (maximallySpecificGenericsDiscriminated != null) {
+            if (maximallySpecificGenericsDiscriminated != null && maximallySpecificGenericsDiscriminated.resultingDescriptor !is ClassCallableDescriptor) {
                 return setOf(maximallySpecificGenericsDiscriminated)
             }
         }

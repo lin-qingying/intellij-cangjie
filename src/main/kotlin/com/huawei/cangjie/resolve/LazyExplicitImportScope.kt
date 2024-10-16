@@ -5,6 +5,7 @@ import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.Name
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.huawei.cangjie.resolve.scopes.BaseImportingScope
 import com.huawei.cangjie.resolve.scopes.DescriptorKindFilter
@@ -67,6 +68,9 @@ class LazyExplicitImportScope(
     override fun getContributedPackage(name: Name): PackageViewDescriptor? {
 
         return when (packageOrClassDescriptor) {
+            is LazyClassDescriptor -> {
+                packageOrClassDescriptor.containingDeclaration as? PackageViewDescriptor
+            }
             is PackageViewDescriptor -> {
 
                 val packageViewDescriptor = packageOrClassDescriptor.module.getPackage(

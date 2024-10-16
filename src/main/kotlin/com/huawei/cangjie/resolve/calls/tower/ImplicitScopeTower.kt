@@ -1,9 +1,6 @@
 package com.huawei.cangjie.resolve.calls.tower
 
-import com.huawei.cangjie.descriptors.CallableDescriptor
-import com.huawei.cangjie.descriptors.DeclarationDescriptorWithVisibility
-import com.huawei.cangjie.descriptors.FunctionDescriptor
-import com.huawei.cangjie.descriptors.VariableDescriptor
+import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.calls.inference.model.ConstraintSystemError
@@ -52,6 +49,17 @@ object HiddenDescriptor : ResolutionDiagnostic(CandidateApplicability.HIDDEN)
 
 interface ScopeTowerLevel {
     fun getVariables(
+        name: Name,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): Collection<CandidateWithBoundDispatchReceiver>
+
+    fun getEnumTypeByKind(
+        name: Name,
+        kind:ClassKind,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): Collection<CandidateWithBoundDispatchReceiver> = emptyList()
+
+    fun getClassType(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver>
@@ -116,10 +124,10 @@ abstract class ResolutionDiagnostic(candidateApplicability: CandidateApplicabili
     }
 }
 
-class CandidateWithBoundDispatchReceiver(
-    val dispatchReceiver: ReceiverValueWithSmartCastInfo?,
-    val descriptor: CallableDescriptor,
-    val diagnostics: List<ResolutionDiagnostic>
+class  CandidateWithBoundDispatchReceiver(
+       val dispatchReceiver: ReceiverValueWithSmartCastInfo?,
+      val descriptor: CallableDescriptor,
+        val diagnostics: List<ResolutionDiagnostic>
 )
 
 object ErrorDescriptorDiagnostic :

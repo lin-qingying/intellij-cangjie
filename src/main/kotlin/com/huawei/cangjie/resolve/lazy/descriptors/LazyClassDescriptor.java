@@ -304,6 +304,10 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
             this.c.getTrace().record(BindingContext.CLASS, typeStatement, this);
         }
         this.c.getTrace().record(BindingContext.FQNAME_TO_CLASS_DESCRIPTOR, DescriptorUtils.getFqName(this), this);
+        init();
+    }
+
+    protected void init() {
 
     }
 
@@ -495,7 +499,6 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
     @Override
     public ClassConstructorDescriptor getUnsubstitutedPrimaryConstructor() {
         return ((LazyClassMemberScope) getUnsubstitutedMemberScope()).getPrimaryConstructor();
-
     }
 
     @Override
@@ -587,25 +590,17 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
         if (CangJieBuiltIns.isSpecialClassWithNoSupertypes(this)) {
             return Collections.emptyList();
         }
-        BindingTrace trace = c.getTrace();
-        LexicalScope scope = getScopeForClassHeaderResolution();
+
+
         CjTypeStatement classOrObject = declarationProvider.getOwnerInfo().getCorrespondingClass();
-//        if (this.typeStatement instanceof CjExtend) {
-//            if (extendTrace != null) {
-//                trace = extendTrace;
-//            }
-//            if (extendScope != null) {
-//                scope = extendScope;
-//            }
-//            classOrObject = this.typeStatement;
-//        }
+
         if (classOrObject == null) {
             return Collections.singleton(c.getModuleDescriptor().getBuiltIns().getAnyType());
         }
 
 
         List<CangJieType> allSupertypes =
-                c.getDescriptorResolver().resolveSupertypes(scope, this, classOrObject, trace);
+                c.getDescriptorResolver().resolveSupertypes(getScopeForClassHeaderResolution(), this, classOrObject, c.getTrace());
 
         return new ArrayList<>(CollectionsKt.filter(allSupertypes, VALID_SUPERTYPE));
     }

@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.diagnostics.Errors.REDECLARATION
 import com.huawei.cangjie.diagnostics.reportOnDeclaration
@@ -46,7 +47,7 @@ class DeclarationResolver(
         for (classDescriptor in c.declaredClasses.values) {
             val descriptorMap = HashMultimap.create<Name, DeclarationDescriptor>()
             for (desc in classDescriptor.unsubstitutedMemberScope.getContributedDescriptors()) {
-                if (desc is ClassifierDescriptor || desc is PropertyDescriptor || desc is VariableDescriptor) {
+                if ((desc is ClassifierDescriptor || desc is PropertyDescriptor || desc is VariableDescriptor) && desc !is EnumEntryDescriptor) {
                     descriptorMap.put(desc.name, desc)
                 }
             }

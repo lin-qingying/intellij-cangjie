@@ -48,6 +48,7 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
         CheckIncompatibleTypeVariableUpperBounds
     ),
     INVOKE(*FUNCTION.resolutionSequence.toTypedArray()),
+    ENUM(*FUNCTION.resolutionSequence.toTypedArray(), ),
     CALLABLE_REFERENCE(
         CheckVisibility,
         NoTypeArguments,

@@ -9,8 +9,6 @@ class   DiagnosticFactory1<E : PsiElement , A:Any>    (
 ) :
     DiagnosticFactoryWithPsiElement<E, DiagnosticWithParameters1<E, A> >(severity, positioningStrategy) {
     fun on(element: E, argument: A): ParametrizedDiagnostic<E> {
-
-
         return DiagnosticWithParameters1(element, argument, this, severity)
     }
 

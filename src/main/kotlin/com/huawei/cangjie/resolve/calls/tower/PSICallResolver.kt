@@ -84,6 +84,8 @@ class PSICallResolver(
         NewResolutionOldInference.ResolutionKind.Function,
         NewResolutionOldInference.ResolutionKind.Variable,
         NewResolutionOldInference.ResolutionKind.Invoke,
+        NewResolutionOldInference.ResolutionKind.Enum,
+
 //        NewResolutionOldInference.ResolutionKind.CallableReference
     )
 
@@ -204,7 +206,7 @@ class PSICallResolver(
             temporaryTrace.record(
                 BindingContext.REFERENCE_TARGET,
                 calleeExpression,
-                variable.resolvedCall.candidateDescriptor
+                variable.resolvedCall.candidateDescriptor as DeclarationDescriptor
             )
             val dataFlowValue =
                 dataFlowValueFactory.createDataFlowValue(
@@ -222,25 +224,39 @@ class PSICallResolver(
     }
 
 
+    /**
+     * 将给定的调用解析结果转换为过载解析结果.
+     *
+     * 此函数负责根据基本调用解析上下文和 tracing 策略，将调用解析结果转换为过载解析结果.
+     * 它处理各种类型的调用解析结果，并根据情况返回相应的过载解析结果.
+     *
+     * @param context 基本调用解析上下文，包含调用信息和配置.
+     * @param result 调用解析结果，可能包含多个候选者或错误信息.
+     * @param tracingStrategy 追踪策略，用于在解析过程中追踪和报告.
+     * @param <D> 可调用描述符的类型，继承自 CallableDescriptor.
+     * @return 返回转换后的过载解析结果.
+     */
     fun <D : CallableDescriptor> convertToOverloadResolutionResults(
         context: BasicCallResolutionContext,
         result: CallResolutionResult,
         tracingStrategy: TracingStrategy
     ): OverloadResolutionResults<D> {
-//        if (result is AllCandidatesResolutionResult) {
-//            val resolvedCalls = result.allCandidates.map { (candidate, diagnostics) ->
-//                val system = candidate.getSystem()
-//                val resultingSubstitutor =
-//                    system.asReadOnlyStorage().buildResultingSubstitutor(system as TypeSystemInferenceExtensionContext)
-//
-//                cangjieToResolvedCallTransformer.transformToResolvedCall<D>(
-//                    candidate.resolvedCall, null, resultingSubstitutor, diagnostics
-//                )
-//            }
-//
-//            return AllCandidates(resolvedCalls)
-//        }
+        // 如果结果是所有候选者的解析结果，则将每个候选者转换为 resolved call，并返回所有候选者的过载解析结果.
+        // if (result is AllCandidatesResolutionResult) {
+        //     val resolvedCalls = result.allCandidates.map { (candidate, diagnostics) ->
+        //         val system = candidate.getSystem()
+        //         val resultingSubstitutor =
+        //             system.asReadOnlyStorage().buildResultingSubstitutor(system as TypeSystemInferenceExtensionContext)
+        //
+        //         cangjieToResolvedCallTransformer.transformToResolvedCall<D>(
+        //             candidate.resolvedCall, null, resultingSubstitutor, diagnostics
+        //         )
+        //     }
+        //
+        //     return AllCandidates(resolvedCalls)
+        // }
 
+        // 处理错误解析结果，如果结果是错误，则记录错误信息并返回错误结果.
         val trace = context.trace
 
         handleErrorResolutionResult<D>(context, trace, result, tracingStrategy)?.let { errorResult ->
@@ -248,25 +264,41 @@ class PSICallResolver(
             return errorResult
         }
 
+        // 将解析结果转换为 resolved call，并记录转换过程中的诊断信息.
         val resolvedCall = cangjieToResolvedCallTransformer.transformAndReport<D>(result, context, tracingStrategy)
 
-        // NB. Be careful with moving this invocation, as effect system expects resolution results to be written in trace
-        // (see EffectSystem for details)
-//        resolvedCall.recordEffects(trace)
+        // 注意：移动此调用的位置可能会导致副作用，因为效果系统期望解析结果被写入 trace 中.
+        // resolvedCall.recordEffects(trace)
 
+        // 返回单个 resolved call 的过载解析结果.
         return SingleOverloadResolutionResult(resolvedCall)
     }
 
+
     private val givenCandidatesName = Name.special("<given candidates>")
 
+    /**
+     * 为给定的候选函数运行解析和推断过程。
+     *
+     * 该函数负责根据提供的解析候选对象来执行过载解析和类型推断。它包括准备数据、调用具体解析方法和转换结果。
+     *
+     * @param context 基本调用解析上下文，包含解析所需的基本信息和配置。
+     * @param resolutionCandidates 解析候选集合，每个候选代表一个可能的函数匹配。
+     * @param tracingStrategy 跟踪策略，定义了如何记录解析过程中的决策和信息。
+     * @param <D> 可调用描述符类型，限定为CallableDescriptor的子类型，用于描述函数或其他可调用成员。
+     * @return 返回过载解析结果，包含解析后的函数及其相关推断信息。
+     */
     fun <D : CallableDescriptor> runResolutionAndInferenceForGivenCandidates(
         context: BasicCallResolutionContext,
         resolutionCandidates: Collection<OldResolutionCandidate<D>>,
         tracingStrategy: TracingStrategy
     ): OverloadResolutionResults<D> {
+        // 获取第一个非空的dispatch接收者，用于后续的特殊函数判断和调用。
         val dispatchReceiver = resolutionCandidates.firstNotNullOfOrNull { it.dispatchReceiver }
 
+        // 判断是否有特殊函数，特殊函数需要特别的处理逻辑。
         val isSpecialFunction = resolutionCandidates.any { it.descriptor.name in SPECIAL_FUNCTION_NAMES }
+        // 将当前调用转换为仓颉调用模型，以便进行统一的解析处理。
         val cangjieCall = toCangJieCall(
             context,
             CangJieCallKind.FUNCTION,
@@ -276,9 +308,12 @@ class PSICallResolver(
             isSpecialFunction,
             dispatchReceiver
         )
+        // 构建AST作用域塔，用于解析过程中作用域的管理。
         val scopeTower = ASTScopeTower(context)
+        // 创建解析回调函数列表，用于在解析过程中进行各种操作和处理。
         val resolutionCallbacks = createResolutionCallbacks(context)
 
+        // 将解析候选对象转换为GivenCandidate形式，这是解析过程需要的数据结构。
         val givenCandidates = resolutionCandidates.map {
             GivenCandidate(
                 it.descriptor as FunctionDescriptor,
@@ -287,6 +322,7 @@ class PSICallResolver(
             )
         }
 
+        // 调用仓颉解析器来对给定的候选函数进行解析和完成，这是解析过程的核心部分。
         val result = cangjieCallResolver.resolveAndCompleteGivenCandidates(
             scopeTower,
             resolutionCallbacks,
@@ -295,43 +331,69 @@ class PSICallResolver(
             givenCandidates,
             context.collectAllCandidates
         )
+        // 将解析结果转换为过载解析结果形式，以便返回和使用。
         val overloadResolutionResults = convertToOverloadResolutionResults<D>(context, result, tracingStrategy)
         return overloadResolutionResults.also {
+            // 解析完成后清除近似结果的缓存，以避免潜在的内存泄漏和保持一致性。
             clearCacheForApproximationResults()
         }
     }
 
+    /**
+     * 处理错误的重载解析结果
+     *
+     * 此函数旨在处理各种重载解析错误情况，根据不同的诊断结果执行相应的处理逻辑
+     * 它通过分析[CallResolutionResult]中的诊断信息，来确定应如何记录和处理这些错误
+     *
+     * @param context 基本调用解析上下文，包含解析所需的上下文信息
+     * @param trace 绑定跟踪对象，用于记录解析过程中的关键信息
+     * @param result 调用解析结果，包含诊断信息和可能的解析候选
+     * @param tracingStrategy 跟踪策略，定义了如何记录解析过程中的事件
+     * @return 返回处理后的重载解析结果，如果没有适用的结果则返回null
+     */
     private fun <D : CallableDescriptor> handleErrorResolutionResult(
         context: BasicCallResolutionContext,
         trace: BindingTrace,
         result: CallResolutionResult,
         tracingStrategy: TracingStrategy
     ): OverloadResolutionResults<D>? {
+        // 获取解析结果中的诊断信息
         val diagnostics = result.diagnostics
 
+        // 如果诊断信息表明没有合适的候选调用
         diagnostics.firstIsInstanceOrNull<NoneCandidatesCallDiagnostic>()?.let {
+            // 将结果转换为ResolvedCall并报告诊断信息
             cangjieToResolvedCallTransformer.transformAndReport<D>(result, context, tracingStrategy)
 
+            // 记录未解决的引用错误
             tracingStrategy.unresolvedReference(trace)
+            // 返回名称未找到的结果
             return OverloadResolutionResultsImpl.nameNotFound()
         }
 
-
+        // 如果诊断信息表明有多个候选调用
         diagnostics.firstIsInstanceOrNull<ManyCandidatesCallDiagnostic>()?.let {
+            // 将结果转换为ResolvedCall并报告诊断信息
             cangjieToResolvedCallTransformer.transformAndReport<D>(result, context, tracingStrategy)
 
+            // 转换多个候选并记录跟踪信息
             return transformManyCandidatesAndRecordTrace(it, tracingStrategy, trace, context)
         }
 
+        // 如果诊断信息表明候选不适用，且原因是因为接收者不正确
         if (getResultApplicability(diagnostics.filterErrorDiagnostics()) == CandidateApplicability.INAPPLICABLE_WRONG_RECEIVER) {
+            // 获取唯一的候选调用，这里假设结果不应该为空
             val singleCandidate = result.resultCallAtom() ?: error("Should be not null for result: $result")
+            // 将唯一的候选转换为ResolvedCall，并记录错误接收者的跟踪信息
             val resolvedCall = cangjieToResolvedCallTransformer.onlyTransform<D>(singleCandidate, diagnostics).also {
                 tracingStrategy.unresolvedReferenceWrongReceiver(trace, listOf(it))
             }
 
+            // 返回包含单个解析调用的结果
             return SingleOverloadResolutionResult(resolvedCall)
         }
 
+        // 如果没有匹配上述任何条件，则返回null
         return null
     }
 
@@ -345,35 +407,58 @@ class PSICallResolver(
             it.resultingApplicability == CandidateApplicability.INAPPLICABLE_WRONG_RECEIVER
         }
 
+    /**
+     * 处理多个候选调用的情况并记录trace
+     *
+     * 该函数主要用于处理含有多个候选调用的诊断情况它会根据不同的条件记录相应的诊断信息，
+     * 包括但不限于记录歧义、不可解析的引用、错误的接收者等信息同时，它还会根据上下文和解析结果
+     * 的不同，选择合适的诊断策略进行记录
+     *
+     * @param diagnostic 包含多个候选调用的诊断信息
+     * @param tracingStrategy 用于记录诊断信息的策略
+     * @param trace 绑定跟踪对象，用于记录解析过程中的信息
+     * @param context 基本调用解析上下文，包含解析所需的上下文信息
+     * @return 返回一个包含已解析调用的 ManyCandidates 对象
+     */
     private fun <D : CallableDescriptor> transformManyCandidatesAndRecordTrace(
         diagnostic: ManyCandidatesCallDiagnostic,
         tracingStrategy: TracingStrategy,
         trace: BindingTrace,
         context: BasicCallResolutionContext
     ): ManyCandidates<D> {
+        // 将诊断中的候选调用转换为解析调用，并记录相关的错误信息
         val resolvedCalls = diagnostic.candidates.map {
             cangjieToResolvedCallTransformer.onlyTransform<D>(
                 it.resolvedCall, it.diagnostics + it.getSystem().errors.asDiagnostics()
             )
         }
 
+        // 如果所有候选调用都失败了
         if (diagnostic.candidates.areAllFailed()) {
+            // 如果所有失败的调用都是因为接收者不适用
             if (diagnostic.candidates.areAllFailedWithInapplicableWrongReceiver()) {
                 tracingStrategy.unresolvedReferenceWrongReceiver(trace, resolvedCalls)
             } else {
+                // 记录所有不适用的调用
                 tracingStrategy.noneApplicable(trace, resolvedCalls)
+                // 记录歧义
                 tracingStrategy.recordAmbiguity(trace, resolvedCalls)
             }
         } else {
+            // 记录歧义
             tracingStrategy.recordAmbiguity(trace, resolvedCalls)
+            // 如果调用的参数都已解析
             if (!context.call.hasUnresolvedArguments(context)) {
+                // 如果所有解析调用都是不完整的
                 if (resolvedCalls.allIncomplete) {
                     tracingStrategy.cannotCompleteResolve(trace, resolvedCalls)
                 } else {
+                    // 记录歧义
                     tracingStrategy.ambiguity(trace, resolvedCalls)
                 }
             }
         }
+        // 返回包含已解析调用的 ManyCandidates 对象
         return ManyCandidates(resolvedCalls)
     }
 
@@ -400,12 +485,16 @@ class PSICallResolver(
         override val syntheticScopes: SyntheticScopes get() = this@PSICallResolver.syntheticScopes
         override val dynamicScope: MemberScope =
             dynamicCallableDescriptors.createDynamicDescriptorScope(context.call, context.scope.ownerDescriptor)
+
         override fun getContextReceivers(scope: LexicalScope): List<ReceiverValueWithSmartCastInfo> =
             scope.contextReceiversGroup.map { cache.getOrPut(it) { context.transformToReceiverWithSmartCastInfo(it.value) } }
 
         override val typeApproximator: TypeApproximator get() = this@PSICallResolver.typeApproximator
 
-        override val isNewInferenceEnabled: Boolean get() = context.languageVersionSettings.supportsFeature(LanguageFeature.NewInference)
+        override val isNewInferenceEnabled: Boolean
+            get() = context.languageVersionSettings.supportsFeature(
+                LanguageFeature.NewInference
+            )
 
 
         override fun interceptVariableCandidates(
@@ -545,16 +634,30 @@ class PSICallResolver(
         }
     }
 
+    /**
+     * 为Invoke调用解析调度接收者
+     *
+     * 本函数旨在处理Invoke调用方式的接收者解析对于非Invoke调用或无效的调用类型，函数将返回null
+     * 主要关注于ImplicitInvoke调用的接收者解析，确保调用的正确处理和执行
+     *
+     * @param context 解析上下文，包含呼叫解析所需的基本信息和参数
+     * @param cangjieCallKind 调用的种类，用于识别调用类型是否为Invoke
+     * @param oldCall 原始调用对象，仅适用于ImplicitInvoke类型的调用
+     * @return 返回解析后的接收者对象，如果解析失败或不适用则返回null
+     */
     private fun resolveDispatchReceiverForInvoke(
         context: BasicCallResolutionContext,
         cangjieCallKind: CangJieCallKind,
         oldCall: Call
     ): ReceiverCangJieCallArgument? {
 
+        // 当调用种类不是Invoke时，直接返回null，无需进一步处理
         if (cangjieCallKind != CangJieCallKind.INVOKE) return null
 
+        // 确保oldCall是CallForImplicitInvoke类型，否则抛出异常，表明调用类型错误
         require(oldCall is CallTransformer.CallForImplicitInvoke) { "Call should be CallForImplicitInvoke, but it is: $oldCall" }
 
+        // 调用resolveReceiver函数解析接收者，由于是用于ImplicitInvoke，因此isForImplicitInvoke设置为true
         return resolveReceiver(context, oldCall.dispatchReceiver, isSafeCall = false, isForImplicitInvoke = true)
     }
 
@@ -783,6 +886,7 @@ class PSICallResolver(
             is NewResolutionOldInference.ResolutionKind.Function -> CangJieCallKind.FUNCTION
             is NewResolutionOldInference.ResolutionKind.Variable -> CangJieCallKind.VARIABLE
             is NewResolutionOldInference.ResolutionKind.Invoke -> CangJieCallKind.INVOKE
+            is NewResolutionOldInference.ResolutionKind.Enum -> CangJieCallKind.ENUM
 //            is NewResolutionOldInference.ResolutionKind.CallableReference -> CangJieCallKind.CALLABLE_REFERENCE
             is NewResolutionOldInference.ResolutionKind.GivenCandidates -> CangJieCallKind.UNSUPPORTED
 

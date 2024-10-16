@@ -9,14 +9,17 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 
-public class OverloadResolutionResultsImpl <D extends CallableDescriptor> implements OverloadResolutionResults<D>{
+public class OverloadResolutionResultsImpl<D extends CallableDescriptor> implements OverloadResolutionResults<D> {
     private final Code resultCode;
 
     private final Collection<MutableResolvedCall<D>> results;
+    private Collection<ResolvedCall<D>> allCandidates;
+
     private OverloadResolutionResultsImpl(@NotNull Code resultCode, @NotNull Collection<MutableResolvedCall<D>> results) {
         this.results = results;
         this.resultCode = resultCode;
     }
+
     public static <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> incompleteTypeInference(MutableResolvedCall<D> candidate) {
         return incompleteTypeInference(Collections.singleton(candidate));
     }
@@ -24,36 +27,46 @@ public class OverloadResolutionResultsImpl <D extends CallableDescriptor> implem
     public static <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> incompleteTypeInference(Collection<MutableResolvedCall<D>> candidates) {
         return new OverloadResolutionResultsImpl<>(Code.INCOMPLETE_TYPE_INFERENCE, candidates);
     }
-    private Collection<ResolvedCall<D>> allCandidates;
+
     public static <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> ambiguity(Collection<MutableResolvedCall<D>> candidates) {
         return new OverloadResolutionResultsImpl<>(Code.AMBIGUITY, candidates);
     }
+
     public static <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> candidatesWithWrongReceiver(Collection<MutableResolvedCall<D>> failedCandidates) {
         return new OverloadResolutionResultsImpl<>(Code.CANDIDATES_WITH_WRONG_RECEIVER, failedCandidates);
     }
+
     public static <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> singleFailedCandidate(MutableResolvedCall<D> candidate) {
         return new OverloadResolutionResultsImpl<>(Code.SINGLE_CANDIDATE_ARGUMENT_MISMATCH, Collections.singleton(candidate));
     }
+
     public static <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> manyFailedCandidates(Collection<MutableResolvedCall<D>> failedCandidates) {
         return new OverloadResolutionResultsImpl<>(Code.MANY_FAILED_CANDIDATES, failedCandidates);
     }
 
     public static <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> nameNotFound() {
         OverloadResolutionResultsImpl<D> results = new OverloadResolutionResultsImpl<>(
-                Code.NAME_NOT_FOUND, Collections.<MutableResolvedCall<D>>emptyList());
+                Code.NAME_NOT_FOUND, Collections.emptyList());
         results.setAllCandidates(Collections.emptyList());
         return results;
     }
-    public void setAllCandidates(@Nullable Collection<ResolvedCall<D>> allCandidates) {
-        this.allCandidates = allCandidates;
-    }
+
     public static <D extends CallableDescriptor> OverloadResolutionResultsImpl<D> success(@NotNull MutableResolvedCall<D> candidate) {
         return new OverloadResolutionResultsImpl<>(Code.SUCCESS, Collections.singleton(candidate));
     }
+@Override
+    public OverloadResolutionResultsImpl<D> replaceCode(@NotNull Code newCode) {
+        return new OverloadResolutionResultsImpl<>(newCode, results);
+    }
+
     @Override
     public @Nullable Collection<ResolvedCall<D>> getAllCandidates() {
         return allCandidates;
 
+    }
+
+    public void setAllCandidates(@Nullable Collection<ResolvedCall<D>> allCandidates) {
+        this.allCandidates = allCandidates;
     }
 
     @Override

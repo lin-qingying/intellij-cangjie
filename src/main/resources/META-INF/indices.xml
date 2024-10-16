@@ -11,6 +11,12 @@
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelFunctionFqnNameIndex"/>
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieMainFunctionFqnNameIndex"/>
 
+        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieMacroByPackageIndex"/>
+        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieMacroFqnNameIndex"/>
+
+        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieMacroFunctionShortNameIndex"/>
+
+
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieFunctionShortNameIndex"/>
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieProbablyNothingFunctionShortNameIndex"/>
         <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJiePrimeSymbolNameIndex"/>

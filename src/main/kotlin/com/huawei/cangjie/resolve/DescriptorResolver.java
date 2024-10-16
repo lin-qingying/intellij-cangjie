@@ -12,6 +12,7 @@ import com.huawei.cangjie.descriptors.annotations.AnnotationUseSiteTarget;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.descriptors.annotations.CompositeAnnotations;
 import com.huawei.cangjie.descriptors.impl.*;
+import com.huawei.cangjie.diagnostics.Errors;
 import com.huawei.cangjie.incremental.components.NoLookupLocation;
 import com.huawei.cangjie.lexer.CjTokens;
 import com.huawei.cangjie.name.ClassId;
@@ -25,6 +26,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import com.huawei.cangjie.resolve.calls.util.CallResolverUtilKt;
 import com.huawei.cangjie.resolve.calls.util.UnderscoreUtilKt;
 import com.huawei.cangjie.resolve.lazy.ForceResolveUtil;
+import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyTypeAliasDescriptor;
 import com.huawei.cangjie.resolve.scopes.*;
@@ -167,6 +169,9 @@ public class DescriptorResolver {
     ) {
         ClassDescriptor classDescriptor = getContainingClass(scope);
 
+        if(classDescriptor instanceof LazyEnumEntryDescriptor){
+            return true;
+        }
         if (!isInsideOuterClassOrItsSubclass(classDescriptor, target)) {
             return true;
         }
@@ -1364,15 +1369,15 @@ public class DescriptorResolver {
         TypeParameterDescriptorImpl typeParameterDescriptor = TypeParameterDescriptorImpl.createForFurtherModification(
                 containingDescriptor,
                 annotations,
-                //                typeParameter.hasModifier(CjTokens.REIFIED_KEYWORD),
+
                 typeParameter.getVariance(),
                 CjPsiUtil.safeName(typeParameter.getName()),
                 index,
                 CangJieSourceElementKt.toSourceElement(typeParameter),
                 type -> {
-//                    if (!(containingDescriptor instanceof TypeAliasDescriptor)) {
-//                        trace.report(Errors.CYCLIC_GENERIC_UPPER_BOUND.on(typeParameter));
-//                    }
+                    if (!(containingDescriptor instanceof TypeAliasDescriptor)) {
+                        trace.report(Errors.CYCLIC_GENERIC_UPPER_BOUND.on(typeParameter));
+                    }
                     return null;
                 },
                 supertypeLoopsResolver,
