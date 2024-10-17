@@ -386,14 +386,11 @@ protected constructor(
 
         types.forEach {
 
-//            if (it.classKind.isEnumEntry) {
-//                enumList.add(it as CjEnmuEntryInfo)
-//
-//            } else {
             when (it.classKind) {
-                    ClassKind.ENUM -> {
-                        result.add(LazyEnumDescriptor(c, it, thisDescriptor, name))
-                    }
+                ClassKind.ENUM -> {
+                    result.add(LazyEnumDescriptor(c, it, thisDescriptor, name))
+                }
+
                 ClassKind.ENUM_ENTRY -> {
                     result.add(
                         c.enumDescriptorResolver.resolveEnumEntryDescriptor(
@@ -430,28 +427,46 @@ protected constructor(
 
         result.addAll(createClassDescriptor(name, declarationProvider.getTypeStatementDeclarations(name)))
 
+        declarationProvider.getEnumEntryDeclarations(name).groupBy {
+            it.findParentOfType<CjEnum>()
+        }.forEach { cjenum, cjentry ->
 
-        declarationProvider.getEnumEntryDeclarations(name).forEach {
-
-            val enum = it.findParentOfType<CjEnum>()
-            val entryName = Name.identifier(enum?.name + "")
-
+            val entryName = Name.identifier(cjenum?.name + "")
             createClassDescriptor(
                 entryName,
                 declarationProvider.getTypeStatementDeclarations(entryName)
             ).forEach { classDescriptor ->
-                (classDescriptor.unsubstitutedMemberScope.getContributedClassifier(
+                classDescriptor.unsubstitutedMemberScope.getContributedClassifiers(
                     name,
                     NoLookupLocation.FROM_IDE
-                ) as? ClassDescriptor)
-                    ?.let { enumEntryClassDescriptor ->
-                        result1.add(enumEntryClassDescriptor)
-                    }
+                ).forEach { enumEntryClassDescriptor ->
+                    (enumEntryClassDescriptor as? ClassDescriptor)?.let { it1 -> result1.add(it1) }
+                }
+
 
             }
-
-
         }
+//        declarationProvider.getEnumEntryDeclarations(name).forEach {
+//
+//            val enum = it.findParentOfType<CjEnum>()
+//            val entryName = Name.identifier(enum?.name + "")
+//
+//            createClassDescriptor(
+//                entryName,
+//                declarationProvider.getTypeStatementDeclarations(entryName)
+//            ).forEach { classDescriptor ->
+//                classDescriptor.unsubstitutedMemberScope.getContributedClassifiers(
+//                    name,
+//                    NoLookupLocation.FROM_IDE
+//                ).forEach { enumEntryClassDescriptor ->
+//                    (enumEntryClassDescriptor as? ClassDescriptor)?.let { it1 -> result1.add(it1) }
+//                }
+//
+//
+//            }
+//
+//
+//        }
         getNonDeclaredClasses(name, result)
 
 

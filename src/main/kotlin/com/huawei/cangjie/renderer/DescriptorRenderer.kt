@@ -7,6 +7,7 @@ import com.huawei.cangjie.descriptors.ClassKind.*
 import com.huawei.cangjie.descriptors.annotations.Annotated
 import com.huawei.cangjie.descriptors.annotations.AnnotationDescriptor
 import com.huawei.cangjie.descriptors.annotations.AnnotationUseSiteTarget
+import com.huawei.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptor
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
@@ -84,7 +85,7 @@ abstract class DescriptorRenderer {
 
     abstract fun renderTypeConstructor(typeConstructor: TypeConstructor): String
 
-    abstract fun renderClassifierName(klass: ClassifierDescriptor): String
+    abstract fun renderClassifierName(cclass: ClassifierDescriptor): String
 
     abstract fun renderAnnotation(annotation: AnnotationDescriptor, target: AnnotationUseSiteTarget? = null): String
 
@@ -1436,16 +1437,45 @@ open class DescriptorRendererImpl(
         }
     }
 
+    private fun StringBuilder.renderEnumEntry(enumEntry: EnumEntryDescriptor) {
+        append(renderKeyword("enum "))
+        append(renderKeyword("entry "))
+
+
+        renderName(enumEntry, this, false)
+
+        if (!enumEntry.hasUnsubstitutedPrimaryConstructor()) {
+
+            append("(")
+
+            append(enumEntry.unsubstitutedPrimaryConstructor.valueParameters.map {
+                it.type
+            }.joinToString(",") {
+                val temp = StringBuilder()
+                renderDefaultType(it)
+
+                temp.toString()
+            })
+            append(")")
+
+        }
+
+
+    }
+
     /* CLASSES */
     private fun renderClass(cclass: ClassDescriptor, builder: StringBuilder) {
         val isEnumEntry = cclass.kind == ENUM_ENTRY
-
+        if (isEnumEntry) {
+            builder.renderEnumEntry(cclass as EnumEntryDescriptor)
+            return
+        }
         if (!startFromName) {
 //            renderContextReceivers(cclass.contextReceivers, builder)
             builder.renderAnnotations(cclass)
-            if (!isEnumEntry) {
-                renderVisibility(cclass.visibility, builder)
-            }
+
+            renderVisibility(cclass.visibility, builder)
+
             if (!(cclass.kind == INTERFACE && cclass.modality == Modality.ABSTRACT ||
                         cclass.kind.isObject && cclass.modality == Modality.FINAL)
             ) {
@@ -1464,7 +1494,6 @@ open class DescriptorRendererImpl(
 //            renderCompanionObjectName(cclass, builder)
 //        }
 
-        if (isEnumEntry) return
 
         val typeParameters = cclass.declaredTypeParameters
         renderTypeParameters(typeParameters, builder, false)
@@ -1490,12 +1519,12 @@ open class DescriptorRendererImpl(
         renderWhereSuffix(typeParameters, builder)
     }
 
-    private fun renderSuperTypes(klass: ClassDescriptor, builder: StringBuilder) {
+    private fun renderSuperTypes(cclass: ClassDescriptor, builder: StringBuilder) {
         if (withoutSuperTypes) return
 
-        if (CangJieBuiltIns.isNothing(klass.defaultType)) return
+        if (CangJieBuiltIns.isNothing(cclass.defaultType)) return
 
-        val supertypes = klass.typeConstructor.supertypes
+        val supertypes = cclass.typeConstructor.supertypes
         if (supertypes.isEmpty() || supertypes.size == 1 && CangJieBuiltIns.isAny(
                 supertypes.iterator().next()
             )
@@ -1506,8 +1535,8 @@ open class DescriptorRendererImpl(
         supertypes.joinTo(builder, ", ") { renderType(it) }
     }
 
-    private fun renderClassKindPrefix(klass: ClassDescriptor, builder: StringBuilder) {
-        builder.append(renderKeyword(getClassifierKindPrefix(klass)))
+    private fun renderClassKindPrefix(cclass: ClassDescriptor, builder: StringBuilder) {
+        builder.append(renderKeyword(getClassifierKindPrefix(cclass)))
         builder.append("  ")
     }
 
@@ -1593,9 +1622,11 @@ open class DescriptorRendererImpl(
         override fun visitModuleDeclaration(descriptor: ModuleDescriptor, builder: StringBuilder?) {
             builder?.let { renderName(descriptor, it, true) }
         }
+
         override fun visitEnumClassCallDescriptor(descriptor: EnumClassCallableDescriptor, builder: StringBuilder?) {
             descriptor.type.accept(this, builder)
         }
+
         override fun visitClassCallDescriptor(descriptor: ClassCallableDescriptor, builder: StringBuilder?) {
             descriptor.type.accept(this, builder)
         }

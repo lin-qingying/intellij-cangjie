@@ -124,7 +124,7 @@ public class DefaultErrorMessages {
         MAP.put(UPPER_BOUND_VIOLATED, "Type argument is not within its bounds: should be subtype of ''{0}''", RENDER_TYPE, RENDER_TYPE);
         MAP.put(SUPERTYPE_APPEARS_TWICE, "A supertype appears twice");
         MAP.put(SUPERTYPE_NOT_A_CLASS_OR_INTERFACE, "Only classes and interfaces may serve as supertypes");
-        MAP.put(CLASS_IN_SUPERTYPE_FOR_ENUM, "Enum  cannot inherit from classes");
+        MAP.put(CLASS_IN_SUPERTYPE_FOR_ENUM, "Enum cannot inherit from classes");
         MAP.put(INTERFACE_WITH_SUPERCLASS, "An interface can only inherit from a interface");
         MAP.put(STRUCT_WITH_SUPERCLASS, "An struct can only inherit from a interface");
         MAP.put(EXTEND_WITH_SUPERCLASS, "An extend can only inherit from a interface");
@@ -278,11 +278,13 @@ public class DefaultErrorMessages {
         MAP.put(TUPLE_ARGS_MISMATCH, "The number of arguments to the tuple pattern does not match, ''{0}'' is needed, but ''{1}'' are obtained", INT, INT);
         MAP.put(ENUM_CLASS_CONSTRUCTOR_CALL, "Enum types cannot be instantiated");
         MAP.put(SEALED_CLASS_CONSTRUCTOR_CALL, "Sealed types cannot be instantiated");
+        MAP.put(DEPRECATED_ACCESS_BY_SHORT_NAME, "Access to this type by short name is deprecated, and soon is going to be removed. Please, add explicit qualifier or import", NAMED);
 
         MAP.put(TUPLE_PATTERN_TYPE_MISMATCH, "Type mismatch: inferred type is Tuple but {0} was expected", RENDER_TYPE);
         MAP.put(ELSE_MISPLACED_IN_MATCH, "'else _' entry must be the last one in a match-expression");
         MAP.put(VARIABLE_INTRODUCTION_CONFLICT, "cannot introduce variables in patterns connected by '|'");
         MAP.put(NOT_ENUM_PARAMETER_CONSTRUCTOR, "No parameterless constructor");
+        MAP.put(ENUM_ENTRY_CONSTRUCTOR_REQUIER, "Enumeration constructor requires parameters");
         MAP.put(LET_EXPRESSION_NO_TYPE_PATTERN, "type pattern is not allowed in let expression");
         MAP.put(ABSTRACT_PROPERTY_IN_NON_ABSTRACT_CLASS, "Abstract property ''{0}'' in non-abstract class ''{1}''", STRING, NAMED);
         MAP.put(ABSTRACT_FUNCTION_IN_NON_ABSTRACT_CLASS, "Abstract function ''{0}'' in non-abstract class ''{1}''", STRING, NAMED);

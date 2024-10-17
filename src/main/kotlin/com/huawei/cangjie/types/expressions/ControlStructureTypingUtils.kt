@@ -130,7 +130,8 @@ class ControlStructureTypingUtils(
                 valueArguments.add(CallMaker.makeValueArgument(argument))
             }
             return object : Call {
-
+                override var noValueArgument: Boolean  = false
+                override var noTypeParameter: Boolean = false
 
                 override val callOperationNode: ASTNode?
                     get() = expression.node

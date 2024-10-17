@@ -7,6 +7,7 @@ import com.huawei.cangjie.builtins.StandardNames.FqNames.fromByName
 import com.huawei.cangjie.builtins.UnsignedTypes
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.huawei.cangjie.descriptors.impl.LazySubstitutingClassDescriptor
 import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptor
 import com.huawei.cangjie.descriptors.impl.basic.BasicTypeDescriptor
@@ -17,6 +18,7 @@ import com.huawei.cangjie.name.*
 import com.huawei.cangjie.psi.CjExpression
 import com.huawei.cangjie.references.util.DescriptorToSourceUtilsIde
 import com.huawei.cangjie.resolve.DescriptorUtils.getContainingModule
+import com.huawei.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
 import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorImpl
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
@@ -107,12 +109,24 @@ private fun DeclarationDescriptorWithVisibility.isVisible(
 }
 
 val ClassDescriptor.hasClassValueDescriptor: Boolean get() = classValueDescriptor != null
+val ClassDescriptor.isEnumEntry:Boolean get() = when(this){
+    is EnumEntryDescriptor -> true
+    is LazySubstitutingClassDescriptor -> {
+        original is EnumEntryDescriptor
+    }
+    else -> false
+}
 val ClassDescriptor.classValueDescriptor: ClassDescriptor?
     get() =
-       /* if (kind.isSingleton && ((this is LazyEnumEntryDescriptor && this.hasUnsubstitutedPrimaryConstructor()) || (this is LazySubstitutingClassDescriptor && original is LazyEnumEntryDescriptor && original.hasUnsubstitutedPrimaryConstructor())))
+        if(kind.isSingleton && isEnumEntry){
             this
-        else*/
+        }else{
             null
+        }
+//        if (kind.isSingleton && ((this is LazyEnumEntryDescriptor && this.hasUnsubstitutedPrimaryConstructor()) || (this is LazySubstitutingClassDescriptor && original is LazyEnumEntryDescriptor && original.hasUnsubstitutedPrimaryConstructor())))
+//            this
+//        else
+//            null
 
 /**
  * Returns containing declaration of dispatch receiver for callable adjusted to fake-overridden cases
@@ -662,7 +676,12 @@ object DescriptorUtils {
 
     @JvmStatic
     private fun isKindOf(descriptor: DeclarationDescriptor?, classKind: ClassKind): Boolean {
-        return descriptor is ClassDescriptor && descriptor.kind == classKind
+        return when (descriptor) {
+            is ClassDescriptor -> descriptor.kind == classKind
+            is EnumClassCallableDescriptor ->  isKindOf(descriptor.type,classKind)
+            else -> false
+        }
+
     }
 
     @JvmStatic

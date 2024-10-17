@@ -1,6 +1,7 @@
 package com.huawei.cangjie.resolve.calls.tower
 
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.huawei.cangjie.ide.codeinsight.toSourceElement
 import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.name.Name
@@ -225,7 +226,7 @@ fun ResolutionScope.getContributedFunctionsAndConstructors(
     val result = ArrayList<FunctionDescriptor>(contributedFunctions)
 
     getContributedClassifier(name, location)?.let {
-        if (  DescriptorUtils.isEnum(it) || DescriptorUtils.isEnumEntry(it) ) {
+        if (DescriptorUtils.isEnum(it) || DescriptorUtils.isEnumEntry(it)) {
             return@let
         }
         result.addAll(getConstructorsOfClassifier(it))
@@ -266,7 +267,7 @@ fun getFakeDescriptorForObject(classifier: ClassifierDescriptor?): FakeCallableD
 //                    null
 //            }
         is ClassDescriptor ->
-            if (classifier.hasClassValueDescriptor)
+            if (classifier.hasClassValueDescriptor && classifier !is EnumEntryDescriptor)
                 FakeCallableDescriptorForObject(classifier)
             else
                 null
@@ -302,7 +303,7 @@ private fun ResolutionScope.getContributedObjectVariablesIncludeDeprecateds(
 
 //用于枚举类与枚举项
 class EnumClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDescriptor {
-
+    val isEnumEntry get() = DescriptorUtils.isEnumEntry(type)
     private val memberScope = when (type) {
         is ClassDescriptor -> type.unsubstitutedMemberScope
         else -> null
@@ -320,14 +321,16 @@ class EnumClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDes
     fun hashUnsubstitutedPrimaryConstructor(): Boolean {
 
         if (DescriptorUtils.isEnum(type)) return true
-
+        if (DescriptorUtils.isEnumEntry(type)) {
+            return (type as EnumEntryDescriptor).hasUnsubstitutedPrimaryConstructor()
+        }
         return false
     }
 
 
     override fun getValueParameters(): List<ValueParameterDescriptor> {
 
-        return emptyList()
+        return constructor?.valueParameters ?: emptyList()
     }
 
 

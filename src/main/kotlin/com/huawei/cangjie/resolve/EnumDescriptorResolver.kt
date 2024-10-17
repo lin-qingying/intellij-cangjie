@@ -38,7 +38,7 @@ class EnumDescriptorResolver(
         languageVersionSettings: LanguageVersionSettings,
         inferenceSession: InferenceSession?,
     ): ClassConstructorDescriptorImpl {
-        entry.typeReferences
+
         val parameterScope = LexicalWritableScope(
             scope,
             classDescriptor,

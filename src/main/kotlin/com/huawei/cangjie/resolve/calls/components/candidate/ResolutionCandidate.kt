@@ -32,7 +32,7 @@ sealed class ResolutionCandidate : Candidate, CangJieDiagnosticsHolder {
     override val isSuccessful: Boolean
         get() {
             processParts(stopOnFirstError = true)
-            // Note: candidate with K1_RESOLVED_WITH_ERROR is exceptionally treated as successful
+            // Note: candidate with  RESOLVED_WITH_ERROR is exceptionally treated as successful
             return resultingApplicabilities.minOrNull()!!.isSuccessOrSuccessWithError && !getSystem().hasContradiction
         }
 
@@ -98,9 +98,16 @@ sealed class ResolutionCandidate : Candidate, CangJieDiagnosticsHolder {
         return newSystem!!
     }
 
+    /**
+     * 根据给定的错误处理策略处理各个部分。
+     *
+     * 该函数负责按照分辨率序列处理每个部分，如果需要则在第一个错误时停止处理，或继续直到所有部分都被处理完毕。
+     *
+     * @param stopOnFirstError 布尔值，指示是否在第一个错误时停止处理。如果为 true，则在发生错误时立即停止处理；如果为 false，则继续处理。
+     */
     private fun processParts(stopOnFirstError: Boolean) {
-        if (stopOnFirstError && step > 0) return // error already happened
-        if (step == stepCount) return
+        if (stopOnFirstError && step > 0) return // 错误已经发生，直接返回
+        if (step == stepCount) return // 已经处理完所有步骤，直接返回
 
         var partIndex = 0
         var workStep = step
@@ -113,19 +120,25 @@ sealed class ResolutionCandidate : Candidate, CangJieDiagnosticsHolder {
                 break
             }
         }
+
+        // 处理当前部分
         if (partIndex < resolutionSequence.size) {
             if (processPart(resolutionSequence[partIndex], stopOnFirstError, workStep)) return
             partIndex++
         }
 
+        // 继续处理剩余部分
         while (partIndex < resolutionSequence.size) {
             if (processPart(resolutionSequence[partIndex], stopOnFirstError)) return
             partIndex++
         }
+
+        // 如果所有步骤都已处理完成，设置分析结果
         if (step == stepCount) {
             resolvedCall.setAnalyzedResults(getSubResolvedAtoms())
         }
     }
+
 
     // true if part was interrupted
     private fun processPart(part: ResolutionPart, stopOnFirstError: Boolean, startWorkIndex: Int = 0): Boolean {

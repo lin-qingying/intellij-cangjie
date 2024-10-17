@@ -13,7 +13,15 @@ import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.huawei.cangjie.resolve.constants.IntegerValueTypeConstant
 import com.huawei.cangjie.types.UnwrappedType
 
+/**
+ * 表示解析过程的一个步骤
+ * 所有解析过程都需要继承该类，并且需要实现process方法
+ */
 abstract class ResolutionPart {
+    /**
+     * 处理一个过程
+     * @param workIndex: Int 该步骤的索引
+     */
     abstract fun ResolutionCandidate.process(workIndex: Int)
 
     open fun ResolutionCandidate.workCount(): Int = 1

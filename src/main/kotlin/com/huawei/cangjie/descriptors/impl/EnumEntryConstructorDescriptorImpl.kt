@@ -16,7 +16,7 @@ fun EnumEntryConstructorDescriptor.getEnumTypeParameters(): List<TypeParameterDe
 }
 
 class EnumEntryConstructorDescriptor(
-//    val types: List<CangJieType>,
+
     containingDeclaration: ClassDescriptor,
     original: ConstructorDescriptor?,
     source: SourceElement,

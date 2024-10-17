@@ -120,9 +120,9 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
 
             // slow-path: we know that closest classifier is imported by the deprecated path, but before reporting
             // deprecation, we have to recheck if there's some other import path, which isn't deprecated (e.g. explicit import)
-            if (!classifier.canBeResolvedWithoutDeprecation(this, lookupLocation)) {
-                trace.report(DEPRECATED_ACCESS_BY_SHORT_NAME.on(reportOn, classifier))
-            }
+//            if (!classifier.canBeResolvedWithoutDeprecation(this, lookupLocation)) {
+//                trace.report(DEPRECATED_ACCESS_BY_SHORT_NAME.on(reportOn, classifier))
+//            }
         }
 
         return classifier

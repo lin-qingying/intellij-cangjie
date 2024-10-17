@@ -51,7 +51,7 @@ val buildType = BuildType.fromString(build_type)
 //IDEA版本
 val ideaVersion = "2024.1"
 //插件版本
-val cangjiePluginVersion = "3.0.0-beta-6"
+val cangjiePluginVersion = "3.0.0-beta-7"
 
 
 val kotlinVersion = "1.9.21"

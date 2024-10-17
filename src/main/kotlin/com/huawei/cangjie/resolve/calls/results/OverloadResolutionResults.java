@@ -41,14 +41,14 @@ public interface OverloadResolutionResults<D extends CallableDescriptor> {
 
 
     enum Code {
-        SUCCESS(true),
-        NAME_NOT_FOUND(false),
-        SINGLE_CANDIDATE_ARGUMENT_MISMATCH(false),
-        AMBIGUITY(false),
-        MANY_FAILED_CANDIDATES(false),
-        CANDIDATES_WITH_WRONG_RECEIVER(false),
-        INCOMPLETE_TYPE_INFERENCE(false),
-        SUCCESS_NAME_NOT_FOUND(true) //虽然是成功，但是没有找到合适的函数
+        SUCCESS(true), // 操作成功
+        NAME_NOT_FOUND(false), // 未找到名称
+        SINGLE_CANDIDATE_ARGUMENT_MISMATCH(false), // 单一候选者参数不匹配
+        AMBIGUITY(false), // 存在歧义
+        MANY_FAILED_CANDIDATES(false), // 多个候选者失败
+        CANDIDATES_WITH_WRONG_RECEIVER(false), // 候选者接收者错误
+        INCOMPLETE_TYPE_INFERENCE(false), // 类型推断不完整
+        SUCCESS_NAME_NOT_FOUND(true) // 虽然是成功，但是没有找到合适的函数
         ;
 
         private final boolean success;

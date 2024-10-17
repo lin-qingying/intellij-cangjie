@@ -21,6 +21,7 @@ import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.huawei.cangjie.types.util.TypeUtils
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
+import kotlin.reflect.KProperty
 
 class ShadowedDeclarationsFilter(
     private val bindingContext: BindingContext,
@@ -184,6 +185,8 @@ class ShadowedDeclarationsFilter(
 
             //val arguments = parameters.indices.map { DummyArgument(it) }
             val callee = psiFactory.createExpressionByPattern("$0", name, reformat = false)
+            override var noValueArgument: Boolean  = false
+            override var noTypeParameter: Boolean = false
 
             override val callOperationNode: ASTNode? = null
             override val explicitReceiver: Receiver? = explicitReceiverValue

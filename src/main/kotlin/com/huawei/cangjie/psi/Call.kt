@@ -5,10 +5,12 @@ import com.huawei.cangjie.resolve.scopes.receivers.Receiver
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.huawei.cangjie.utils.ReadOnly
 import com.intellij.lang.ASTNode
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.KProperty
 
 interface Call {
     // SAFE_ACCESS or DOT or so
-    var noValueArgument: Boolean
+    var  noValueArgument: Boolean
 
     //控制typeArgumentList返回空值
     var noTypeParameter: Boolean

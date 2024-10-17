@@ -234,13 +234,14 @@ class DiagnosticReporterByTrackingStrategy(
 
         when (diagnostic) {
             is TypeArgumentsCompilerError -> {
-            trace.report(
-                COMPILER_AFFECTED_SYNTAX_ERROR_BY_MESSAGE.on(
-                    reportElement,
-               "unable to infer generic argument of this function"
+                trace.report(
+                    COMPILER_AFFECTED_SYNTAX_ERROR_BY_MESSAGE.on(
+                        reportElement,
+                        "unable to infer generic argument of this function"
+                    )
                 )
-            )
-        }
+            }
+
             is TypeArgumentsAfterEnumEntry -> {
                 trace.report(
                     TYPE_ARGUMENTS_NOT_AFTER_ENUMENTRY.on(

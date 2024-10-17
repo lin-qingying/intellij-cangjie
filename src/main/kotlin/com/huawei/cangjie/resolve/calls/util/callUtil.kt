@@ -142,7 +142,7 @@ fun Call.resolveCandidates(
     expectedType: CangJieType = expectedType(this, bindingContext),
     filterOutWrongReceiver: Boolean = true,
     filterOutByVisibility: Boolean = true
-): Collection<ResolvedCall<FunctionDescriptor>> {
+): Collection<ResolvedCall<out FunctionDescriptor>> {
     val resolutionScope = callElement.getResolutionScope(bindingContext, resolutionFacade)
     val inDescriptor = resolutionScope.ownerDescriptor
 

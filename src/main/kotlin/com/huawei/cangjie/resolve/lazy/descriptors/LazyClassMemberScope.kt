@@ -457,8 +457,13 @@ open class LazyClassMemberScope(
         (mainScope as LazyClassMemberScope?)?.enumEntryPrimaryConstructor?.invoke() ?: enumEntryPrimaryConstructor()
 
     //    主构造函数
-    fun getPrimaryConstructor(): ClassConstructorDescriptor? =
-        (mainScope as LazyClassMemberScope?)?.primaryConstructor?.invoke() ?: primaryConstructor()
+    fun getPrimaryConstructor(): ClassConstructorDescriptor? {
+        if(DescriptorUtils.isEnumEntry(thisDescriptor)){
+            return getEnumEntryPrimaryConstructor()
+        }
+
+        return (mainScope as LazyClassMemberScope?)?.primaryConstructor?.invoke() ?: primaryConstructor()
+    }
 
     fun getConstructors(): Collection<ClassConstructorDescriptor> {
         val result = (mainScope as LazyClassMemberScope?)?.secondaryConstructors?.invoke() ?: secondaryConstructors()

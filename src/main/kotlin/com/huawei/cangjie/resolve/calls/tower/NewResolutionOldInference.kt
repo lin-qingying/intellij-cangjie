@@ -357,22 +357,22 @@ internal fun reportResolvedUsingDeprecatedVisibility(
 
     // If this descriptor was resolved from HierarchicalScope, then there can be another, non-deprecated path
     // in parents of base scope
-    val sourceScope = diagnostic.baseSourceScope
-    val canBeResolvedWithoutDeprecation = if (sourceScope is HierarchicalScope) {
-        descriptorToLookup.canBeResolvedWithoutDeprecation(
-            sourceScope,
-            diagnostic.lookupLocation
-        )
-    } else {
-        // Normally, that should be unreachable, but instead of asserting that, we will report diagnostic
-        false
-    }
+//    val sourceScope = diagnostic.baseSourceScope
+//    val canBeResolvedWithoutDeprecation = if (sourceScope is HierarchicalScope) {
+//        descriptorToLookup.canBeResolvedWithoutDeprecation(
+//            sourceScope,
+//            diagnostic.lookupLocation
+//        )
+//    } else {
+//        // Normally, that should be unreachable, but instead of asserting that, we will report diagnostic
+//        false
+//    }
 
-    if (!canBeResolvedWithoutDeprecation) {
-        trace.report(
-            Errors.DEPRECATED_ACCESS_BY_SHORT_NAME.on(call.callElement, resultingDescriptor)
-        )
-    }
+//    if (!canBeResolvedWithoutDeprecation) {
+//        trace.report(
+//            Errors.DEPRECATED_ACCESS_BY_SHORT_NAME.on(call.callElement, resultingDescriptor)
+//        )
+//    }
 
 }
 internal class PreviousResolutionError(candidateLevel: CandidateApplicability) : ResolutionDiagnostic(candidateLevel)

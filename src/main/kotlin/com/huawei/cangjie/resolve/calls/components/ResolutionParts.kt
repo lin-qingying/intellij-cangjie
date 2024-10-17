@@ -8,6 +8,7 @@ import com.huawei.cangjie.descriptors.DescriptorVisibilities.PRIVATE
 import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
 import com.huawei.cangjie.psi.CjCallExpression
 import com.huawei.cangjie.psi.CjNameReferenceExpression
+import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.inference.ConstraintSystemOperation
 import com.huawei.cangjie.resolve.calls.inference.components.*
@@ -17,10 +18,7 @@ import com.huawei.cangjie.resolve.calls.inference.runTransaction
 import com.huawei.cangjie.resolve.calls.inference.substitute
 import com.huawei.cangjie.resolve.calls.model.*
 import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
-import com.huawei.cangjie.resolve.calls.tower.ContextReceiverAmbiguity
-import com.huawei.cangjie.resolve.calls.tower.NoMatchingContextReceiver
-import com.huawei.cangjie.resolve.calls.tower.VisibilityError
-import com.huawei.cangjie.resolve.calls.tower.psiCangJieCall
+import com.huawei.cangjie.resolve.calls.tower.*
 import com.huawei.cangjie.resolve.calls.util.getReceiverValueWithSmartCast
 import com.huawei.cangjie.resolve.isInsideInterface
 import com.huawei.cangjie.resolve.isStatic
@@ -42,9 +40,10 @@ internal object CheckOperatorCallPart : ResolutionPart() {
         if (candidateDescriptor !is FunctionDescriptor) return
 //禁止使用call方式调用操作符函数
         if ((candidateDescriptor as FunctionDescriptor).isOperator && resolvedCall.atom.psiCangJieCall.psiCall.callElement is CjCallExpression) {
-           val funcName = candidateDescriptor.name
-            if(funcName == OperatorNameConventions.INVOKE
-                || funcName == OperatorNameConventions.GET ) return
+            val funcName = candidateDescriptor.name
+            if (funcName == OperatorNameConventions.INVOKE
+                || funcName == OperatorNameConventions.GET
+            ) return
 
             addDiagnostic(NoCallOperatorFunction(candidateDescriptor))
 
@@ -91,6 +90,28 @@ internal object CheckSuperExpressionCallPart : ResolutionPart() {
     }
 }
 
+internal object CheckEnumCall : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+        val descriptor = resolvedCall.candidateDescriptor as? EnumClassCallableDescriptor ?: return
+
+
+        val callExpression = resolvedCall.atom.psiCangJieCall.psiCall.callElement
+        if (DescriptorUtils.isEnum(descriptor) && callExpression is CjCallExpression && callExpression.typeArgumentList != null) {
+            addDiagnostic(EmptyDiagnostic)
+            return
+        }
+        val isCall = callExpression is CjCallExpression && callExpression.typeArgumentList != null
+        if (DescriptorUtils.isEnumEntry(descriptor)) {
+            if (descriptor.hashUnsubstitutedPrimaryConstructor() && isCall) {
+                addDiagnostic(EmptyDiagnostic)
+            }else if(!descriptor.hashUnsubstitutedPrimaryConstructor() && !isCall){
+                addDiagnostic(EmptyDiagnostic)
+            }
+        }
+
+
+    }
+}
 
 internal object CheckStaticCall : ResolutionPart() {
 
@@ -637,6 +658,7 @@ internal object MapArguments : ResolutionPart() {
             && cangjieCall.psiCangJieCall.psiCall.callElement !is CjBinaryExpression
             && cangjieCall.psiCangJieCall.psiCall.callElement !is CjCollectionLiteralExpression*/
             cangjieCall.psiCangJieCall.psiCall.callElement is CjNameReferenceExpression
+            && !DescriptorUtils.isEnumEntry(this.candidateDescriptor)
         ) {
             resolvedCall.argumentMappingByOriginal = emptyMap()
             return

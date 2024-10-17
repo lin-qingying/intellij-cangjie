@@ -84,6 +84,7 @@ class FunctionDescriptorResolver(
         languageVersionSettings: LanguageVersionSettings,
         inferenceSession: InferenceSession?
     ): ClassConstructorDescriptorImpl? {
+
         if (/*classDescriptor.kind == ClassKind.ENUM_ENTRY ||*/ !classElement.hasPrimaryConstructor()) return null
         return createConstructorDescriptor(
             scope,

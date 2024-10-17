@@ -240,6 +240,13 @@ class TowerResolver {
     ): Collection<C> = scopeTower.run(processor, SuccessfulResultCollector(), useOrder, name)
 
     abstract class ResultCollector<C : Candidate> {
+        /**
+         * 获取成功的候选人集合
+         * 此方法用于从候选组中识别和返回成功的候选人集合成功的定义基于特定的业务逻辑，
+         * 包括兼容性候选人的评估和是否需要停止解析的决策
+         *
+         * @return 成功的候选人集合，如果没有符合条件的候选人，则返回null
+         */
         abstract fun getSuccessfulCandidates(): Collection<C>?
 
         abstract fun getFinalCandidates(): Collection<C>
@@ -251,18 +258,33 @@ class TowerResolver {
         private var candidateGroups = arrayListOf<Collection<C>>()
         private var isSuccessful = false
 
+        /**
+         * 获取成功的候选人集合
+         * 此方法用于从候选组中识别和返回成功的候选人集合成功的定义基于特定的业务逻辑，
+         * 包括兼容性候选人的评估和是否需要停止解析的决策
+         *
+         * @return 成功的候选人集合，如果没有符合条件的候选人，则返回null
+         */
         override fun getSuccessfulCandidates(): Collection<C>? {
+            // 如果当前状态不是成功状态，则直接返回null
             if (!isSuccessful) return null
+
+            // 初始化兼容性候选人和其所在的组
             var compatibilityCandidate: C? = null
             var compatibilityGroup: Collection<C>? = null
+            // 初始化决定是否停止解析的组
             var shouldStopGroup: Collection<C>? = null
+
+            // 遍历候选组，寻找兼容性候选人和决定是否停止解析的组
             outer@ for (group in candidateGroups) {
                 for (candidate in group) {
+                    // 如果当前候选人满足停止解析的条件，则记录当前组并跳出循环
                     if (shouldStopResolveOnCandidate(candidate)) {
                         shouldStopGroup = group
                         break@outer
                     }
 
+                    // 如果尚未找到兼容性候选人，并且当前候选人满足兼容性条件，则记录当前组和候选人
                     if (compatibilityCandidate == null && isPreserveCompatibilityCandidate(candidate)) {
                         compatibilityGroup = group
                         compatibilityCandidate = candidate
@@ -270,7 +292,10 @@ class TowerResolver {
                 }
             }
 
+            // 如果没有满足停止解析条件的组，则返回null
             if (shouldStopGroup == null) return null
+
+            // 如果找到了兼容性候选人，并且它不在应该停止解析的组中，并且需要报告兼容性警告，则向所有应停止解析的候选人添加兼容性警告
             if (compatibilityCandidate != null
                 && compatibilityGroup !== shouldStopGroup
                 && needToReportCompatibilityWarning(compatibilityCandidate)
@@ -278,6 +303,7 @@ class TowerResolver {
                 shouldStopGroup.forEach { it.addCompatibilityWarning(compatibilityCandidate) }
             }
 
+            // 返回经过过滤的应停止解析的组，确保组中的候选人都满足停止解析的条件
             return shouldStopGroup.filter(::shouldStopResolveOnCandidate)
         }
 

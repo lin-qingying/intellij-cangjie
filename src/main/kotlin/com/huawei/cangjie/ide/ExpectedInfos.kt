@@ -262,7 +262,7 @@ class ExpectedInfos(
     }
 
     private fun MutableCollection<ExpectedInfo>.addExpectedInfoForCandidate(
-        candidate: ResolvedCall<FunctionDescriptor>,
+        candidate: ResolvedCall< out FunctionDescriptor>,
         call: Call,
         argument: ValueArgument,
         argumentIndex: Int,

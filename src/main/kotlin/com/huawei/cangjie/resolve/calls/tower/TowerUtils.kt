@@ -123,12 +123,9 @@ internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qual
             .getContributedClassifiers(name, location).filter {
             (    it as? ClassDescriptor)?.kind == kind
             }.map {
-                createCandidateDescriptor(  /*if(it is ClassDescriptor && it.kind == ClassKind.ENUM){
-            it.unsubstitutedPrimaryConstructor!!
+                createCandidateDescriptor(
 
-        }else{*/
                     EnumClassCallableDescriptor(it)
-//        }
 
                     , dispatchReceiver = null)
             }

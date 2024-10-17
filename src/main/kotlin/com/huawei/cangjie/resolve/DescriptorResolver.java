@@ -271,7 +271,7 @@ public class DescriptorResolver {
     public static boolean isStaticNestedClass(@NotNull DeclarationDescriptor descriptor) {
         DeclarationDescriptor containing = descriptor.getContainingDeclaration();
         return descriptor instanceof ClassDescriptor &&
-                containing instanceof ClassDescriptor;
+                containing instanceof ClassDescriptor&& !DescriptorUtils.isEnumEntry(descriptor);
     }
 
     public static DescriptorVisibility getDefaultVisibility(CjModifierListOwner modifierListOwner, DeclarationDescriptor containingDescriptor) {

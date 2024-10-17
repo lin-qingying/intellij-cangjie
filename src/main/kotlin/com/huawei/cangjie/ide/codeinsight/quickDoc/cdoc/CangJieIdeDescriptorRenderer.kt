@@ -4,6 +4,7 @@ import com.huawei.cangjie.builtins.*
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.annotations.AnnotationDescriptor
 import com.huawei.cangjie.descriptors.annotations.AnnotationUseSiteTarget
+import com.huawei.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptor
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
@@ -675,6 +676,7 @@ open class CangJieIdeDescriptorRenderer(
             appendHighlighted("static ") { asStatic }
         }
     }
+
     private fun StringBuilder.appendVariable(
         variable: VariableDescriptor,
         includeName: Boolean,
@@ -705,6 +707,7 @@ open class CangJieIdeDescriptorRenderer(
             appendHighlighted(" /*${expandedType}*/") { asInfo }
         }
     }
+
     private fun StringBuilder.appendProperty(property: PropertyDescriptor) {
         if (!startFromName) {
             if (!startFromDeclarationKeyword) {
@@ -1000,14 +1003,42 @@ open class CangJieIdeDescriptorRenderer(
         append(renderKeyword(getClassifierKindPrefix(klass)))
     }
 
-    private fun StringBuilder.appendClass(cclass: ClassDescriptor) {
-        val isEnumEntry = cclass.kind == ClassKind.ENUM_ENTRY
+    private fun StringBuilder.appendEnumEntry(enumEntry: EnumEntryDescriptor) {
+        append(renderKeyword("enum "))
+        append(renderKeyword("entry "))
 
+        appendName(enumEntry, false)
+
+        if (!enumEntry.hasUnsubstitutedPrimaryConstructor()) {
+
+            append("(")
+
+            append(enumEntry.unsubstitutedPrimaryConstructor.valueParameters.map {
+                it.type
+            }.joinToString(",") {
+                val temp = StringBuilder()
+                temp.appendSimpleType(it as SimpleType)
+                temp.toString()
+            })
+            append(")")
+
+        }
+
+
+    }
+
+    private fun StringBuilder.appendClass(cclass: ClassDescriptor) {
+        val isEnumEntry = cclass.kind == ClassKind.ENUM_ENTRY && cclass is EnumEntryDescriptor
+
+        if (isEnumEntry) {
+            appendEnumEntry(cclass as EnumEntryDescriptor)
+            return
+        }
         if (!startFromName) {
 //            appendAnnotations(cclass, eachAnnotationOnNewLine)
-            if (!isEnumEntry) {
-                appendVisibility(cclass.visibility)
-            }
+
+            appendVisibility(cclass.visibility)
+
             if (!(cclass.kind == ClassKind.INTERFACE && cclass.modality == Modality.ABSTRACT) && cclass.modality != Modality.FINAL
             ) {
                 appendModality(cclass.modality, cclass.implicitModalityWithoutExtensions())
@@ -1020,7 +1051,7 @@ open class CangJieIdeDescriptorRenderer(
         }
 
 
-        if (isEnumEntry) return
+
         append(" ")
         appendName(cclass, true) { asClassName }
 
@@ -1087,7 +1118,7 @@ open class CangJieIdeDescriptorRenderer(
         }
 
         override fun visitVariableDescriptor(descriptor: VariableDescriptor, builder: StringBuilder?) {
-            builder?.appendVariable(descriptor )
+            builder?.appendVariable(descriptor)
         }
 
         override fun visitVariableDescriptorBase(descriptor: VariableDescriptor, builder: StringBuilder?) {
@@ -1168,10 +1199,11 @@ open class CangJieIdeDescriptorRenderer(
         }
 
         override fun visitClassCallDescriptor(descriptor: ClassCallableDescriptor, builder: StringBuilder?) {
-            descriptor.type.accept(this,builder)
+            descriptor.type.accept(this, builder)
         }
+
         override fun visitEnumClassCallDescriptor(descriptor: EnumClassCallableDescriptor, builder: StringBuilder?) {
-            descriptor.type.accept(this,builder)
+            descriptor.type.accept(this, builder)
         }
 
     }
@@ -1262,8 +1294,6 @@ open class CangJieIdeDescriptorRenderer(
             append(" ")
         }
     }
-
-
 
 
     protected fun StringBuilder.appendName(descriptor: DeclarationDescriptor, rootRenderedElement: Boolean) {

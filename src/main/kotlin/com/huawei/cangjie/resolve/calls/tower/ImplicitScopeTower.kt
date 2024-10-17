@@ -132,7 +132,7 @@ class  CandidateWithBoundDispatchReceiver(
 
 object ErrorDescriptorDiagnostic :
     ResolutionDiagnostic(CandidateApplicability.RESOLVED) // todo discuss and change to INAPPLICABLE
-
+object EmptyDiagnostic: ResolutionDiagnostic(CandidateApplicability.INAPPLICABLE)
 object DynamicDescriptorDiagnostic : ResolutionDiagnostic(CandidateApplicability.RESOLVED_LOW_PRIORITY)
 
 class ResolvedUsingDeprecatedVisibility(val baseSourceScope: ResolutionScope, val lookupLocation: LookupLocation) :

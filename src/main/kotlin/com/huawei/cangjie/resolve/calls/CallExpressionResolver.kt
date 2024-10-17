@@ -20,6 +20,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValue
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import com.huawei.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
+import com.huawei.cangjie.resolve.calls.tower.NewAbstractResolvedCall
 import com.huawei.cangjie.resolve.calls.util.*
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import com.huawei.cangjie.resolve.scopes.receivers.*
@@ -88,56 +89,6 @@ class CallExpressionResolver(
             val functionDescriptor = resolvedCall?.resultingDescriptor
             temporaryForFunction.commit()
 
-//            val isEnumClass = when (functionDescriptor) {
-//                is ConstructorDescriptor -> functionDescriptor.constructedClass.kind == ClassKind.ENUM
-//                else -> false
-//            }
-//            val isEnumEntry = when (functionDescriptor) {
-//                is ConstructorDescriptor -> functionDescriptor.constructedClass.kind == ClassKind.ENUM_ENTRY
-//                else -> false
-//            }
-//
-//            if (isEnumEntry) {
-//                val enumEntryConstructor = functionDescriptor as ConstructorDescriptor
-//                if (enumEntryConstructor.valueParameters.isNotEmpty() && callExpression.valueArgumentList == null) {
-//
-//                    context.trace.report(FUNCTION_CALL_EXPECTED.on(callExpression, callExpression, true))
-//
-//                } else if (enumEntryConstructor.valueParameters.isEmpty() && callExpression.valueArgumentList != null) {
-//                    context.trace.report(
-//                        MESSAGE_ERROR.on(
-//                            callExpression,
-//                            "generic type should be used with type argument"
-//                        )
-//                    )
-//                }
-//            }
-//
-//            if (!isEnumClass && !isEnumEntry && callExpression.valueArgumentList == null && callExpression.lambdaArguments.isEmpty()) {
-//                // there are only type arguments
-//                val hasValueParameters = functionDescriptor == null || functionDescriptor.valueParameters.size > 0
-//                context.trace.report(FUNCTION_CALL_EXPECTED.on(callExpression, callExpression, hasValueParameters))
-//            } else if (isEnumClass && callExpression.valueArgumentList != null /*&& callExpression.lambdaArguments.isNotEmpty()*/) {
-//                context.trace.report(ENUM_CLASS_CONSTRUCTOR_CALL.on(callExpression))
-//            }
-//
-//            /*else if(isEnumClass && callExpression.parent?.elementType !is CjDotQualifiedExpressionElementType){
-//
-//                context.trace.report(Errors.EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(callExpression,  (functionDescriptor as ConstructorDescriptor).constructedClass))
-//
-//            }*/
-//            else if (isEnumClass) {
-//                context.trace.record(
-//                    BindingContext.QUALIFIER, callExpression,
-//                    EnumClassQualifier(
-//                        callExpression,
-//                        (functionDescriptor as ConstructorDescriptor).constructedClass,
-//                        (resolvedCall as? NewAbstractResolvedCall)?.cangjieCall
-//                    )
-//
-//                )
-//            }
-
 
             if (callExpression.valueArgumentList == null && callExpression.lambdaArguments.isEmpty()) {
                 // there are only type arguments
@@ -150,18 +101,7 @@ class CallExpressionResolver(
             }
             if (functionDescriptor is ConstructorDescriptor) {
                 val constructedClass = functionDescriptor.constructedClass
-//                if (DescriptorUtils.isAnnotationClass(constructedClass) && !canInstantiateAnnotationClass(
-//                        callExpression,
-//                        context.trace
-//                    )
-//                ) {
-//                    val supported =
-//                        context.languageVersionSettings.supportsFeature(LanguageFeature.InstantiationOfAnnotationClasses)
-//                    if (!supported) context.trace.report(ANNOTATION_CLASS_CONSTRUCTOR_CALL.on(callExpression))
-//                }
-//                if (DescriptorUtils.isEnum(constructedClass)) {
-//                    context.trace.report(ENUM_CLASS_CONSTRUCTOR_CALL.on(callExpression))
-//                }
+
                 if (DescriptorUtils.isSealedClass(constructedClass)) {
                     context.trace.report(SEALED_CLASS_CONSTRUCTOR_CALL.on(callExpression))
                 }
@@ -191,6 +131,7 @@ class CallExpressionResolver(
         )
         val (resolveByEnumResult, resolvedByEnumCall) = getResolvedCallForEnum(
             call,
+            temporaryForEnum,
             context.replaceTraceAndCache(temporaryForEnum),
             CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
             initialDataFlowInfoForArguments
@@ -200,7 +141,10 @@ class CallExpressionResolver(
         if (resolveByEnumResult) {
             temporaryForEnum.commit()
             val enumDescriptor = resolvedByEnumCall?.resultingDescriptor ?: return noTypeInfo(context)
-
+            val isEnumClass = when (enumDescriptor) {
+                is EnumClassCallableDescriptor -> !enumDescriptor.isEnumEntry
+                else -> false
+            }
 
             val type = enumDescriptor.returnType
             val resultFlowInfo = resolvedByEnumCall.dataFlowInfoForArguments.resultInfo
@@ -218,7 +162,24 @@ class CallExpressionResolver(
 
             }
 
+            if (isEnumClass) {
+                val enumClass:ClassDescriptor? = when(enumDescriptor){
+                    is EnumClassCallableDescriptor -> enumDescriptor.type as ClassDescriptor
 
+                    else -> null
+                }
+                context.trace.record(
+                    BindingContext.QUALIFIER, callExpression,
+                    enumClass?.let {
+                        EnumClassQualifier(
+                            callExpression,
+                            it,
+                            (resolvedByEnumCall as? NewAbstractResolvedCall)?.cangjieCall
+                        )
+                    }
+
+                )
+            }
             return createTypeInfo(type, resultFlowInfo)
         }
 
@@ -344,11 +305,13 @@ class CallExpressionResolver(
 
     private fun getResolvedCallForEnum(
         call: Call,
+       tcache: TemporaryTraceAndCache,
         context: ResolutionContext<*>,
         checkArguments: CheckArgumentTypesMode,
         initialDataFlowInfoForArguments: DataFlowInfo
     ): Pair<Boolean, ResolvedCall<out CallableDescriptor>?> {
-        val results = callResolver.resolveEnumCall(
+
+        val results = callResolver.resolveEnumCall(tcache,
             BasicCallResolutionContext.create(
                 context, call, checkArguments, DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
             )
@@ -364,7 +327,7 @@ class CallExpressionResolver(
         context: ResolutionContext<*>,
         checkArguments: CheckArgumentTypesMode,
         initialDataFlowInfoForArguments: DataFlowInfo
-    ): Pair<Boolean, ResolvedCall<FunctionDescriptor>?> {
+    ): Pair<Boolean, ResolvedCall<out FunctionDescriptor>?> {
         val results = callResolver.resolveFunctionCall(
             BasicCallResolutionContext.create(
                 context, call, checkArguments, DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
@@ -463,7 +426,7 @@ class CallExpressionResolver(
         val newEnumContext = context.replaceTraceAndCache(temporaryForEnum)
 
         val (resolveEnumResult, resolvedEnumCall) = getResolvedCallForEnum(
-            call, newEnumContext, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, initialDataFlowInfoForArguments
+            call,temporaryForEnum, newEnumContext, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, initialDataFlowInfoForArguments
         )
         if (resolveEnumResult) {
             temporaryForEnum.commit()

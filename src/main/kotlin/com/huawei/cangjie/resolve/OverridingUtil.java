@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve;
 import com.huawei.cangjie.descriptors.*;
 import com.huawei.cangjie.descriptors.impl.*;
 import com.huawei.cangjie.name.Name;
+import com.huawei.cangjie.resolve.calls.tower.EnumClassCallableDescriptor;
 import com.huawei.cangjie.types.*;
 import com.huawei.cangjie.types.checker.CangJieTypeChecker;
 import com.huawei.cangjie.types.checker.CangJieTypePreparator;
@@ -504,10 +505,14 @@ public class OverridingUtil {
             @NotNull CallableDescriptor superDescriptor,
             @NotNull CallableDescriptor subDescriptor
     ) {
+        if(subDescriptor instanceof EnumClassCallableDescriptor || superDescriptor instanceof  EnumClassCallableDescriptor){
+            return OverrideCompatibilityInfo.incompatible("Enum member cannot override non-enum member");
+        }
         if (superDescriptor instanceof FunctionDescriptor && !(subDescriptor instanceof FunctionDescriptor) ||
                 superDescriptor instanceof VariableDescriptor && !(subDescriptor instanceof VariableDescriptor)) {
             return OverrideCompatibilityInfo.incompatible("Member kind mismatch");
         }
+
 
         if (!(superDescriptor instanceof FunctionDescriptor) && !(superDescriptor instanceof VariableDescriptor)) {
             throw new IllegalArgumentException("This type of CallableDescriptor cannot be checked for overridability: " + superDescriptor);

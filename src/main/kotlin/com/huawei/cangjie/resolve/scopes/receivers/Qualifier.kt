@@ -35,19 +35,21 @@ interface Qualifier : QualifierReceiver {
 /**
  * enum<T,T>
  */
-interface EnumClassQualifierByCall:QualifierReceiver{
+interface EnumClassQualifierByCall : QualifierReceiver {
     val referenceExpression: CjCallElement
     override val descriptor: ClassifierDescriptorWithTypeParameters
 
 }
+
 interface ClassifierQualifier : Qualifier {
     override val descriptor: ClassifierDescriptorWithTypeParameters
 }
+
 val QualifierReceiver.expression: CjExpression
     get() {
-     return   when(this){
+        return when (this) {
             is Qualifier -> referenceExpression.getTopmostParentQualifiedExpressionForSelector() ?: referenceExpression
-            is EnumClassQualifierByCall ->    referenceExpression.calleeExpression!!
+            is EnumClassQualifierByCall -> referenceExpression.calleeExpression!!
             else -> throw IllegalStateException("QualifierReceiver is not a Qualifier")
         }
     }
@@ -71,21 +73,21 @@ class PackageQualifier(
 class EnumClassQualifier(
     override val referenceExpression: CjCallElement,
     override val descriptor: ClassDescriptor,
-    val call:CangJieCall?
-):EnumClassQualifierByCall{
-    class EnumCallElement(val  referenceExpression: CjSimpleNameExpression,):CjCallElement{
+    val call: CangJieCall?
+) : EnumClassQualifierByCall {
+    class EnumCallElement(val referenceExpression: CjSimpleNameExpression) : CjCallElement {
         override val calleeExpression: CjExpression
             get() = referenceExpression
         override val valueArgumentList: CjValueArgumentList?
             get() = null
         override val valueArguments: List<ValueArgument>
-            get() = TODO("Not yet implemented")
+            get() = emptyList()
         override val lambdaArguments: List<CjLambdaArgument>
-            get() = TODO("Not yet implemented")
+            get() = emptyList()
         override val typeArguments: List<CjTypeProjection>
-            get() = TODO("Not yet implemented")
+            get() = emptyList()
         override val typeArgumentList: CjTypeArgumentList?
-            get() =  null
+            get() = null
 
         override fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D) {
 
@@ -96,7 +98,7 @@ class EnumClassQualifier(
         }
 
         override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
-           return referenceExpression.accept(visitor,data)
+            return referenceExpression.accept(visitor, data)
         }
 
         override fun accept(visitor: PsiElementVisitor) {
@@ -104,7 +106,7 @@ class EnumClassQualifier(
         }
 
         override fun getReference(): PsiReference? {
-           return null
+            return null
         }
 
         override fun <T : Any?> getUserData(key: Key<T>): T? {
@@ -121,7 +123,7 @@ class EnumClassQualifier(
         }
 
         override fun getProject(): Project {
-return referenceExpression.project
+            return referenceExpression.project
         }
 
         override fun getLanguage(): Language {
@@ -217,7 +219,7 @@ return referenceExpression.project
         }
 
         override fun add(element: PsiElement): PsiElement {
-         return  referenceExpression.add(element)
+            return referenceExpression.add(element)
         }
 
         override fun addBefore(element: PsiElement, anchor: PsiElement?): PsiElement {
@@ -330,14 +332,15 @@ return referenceExpression.project
         }
 
     }
+
     constructor(
         referenceExpression: CjSimpleNameExpression,
         descriptor: ClassDescriptor
-    ):this(EnumCallElement(referenceExpression),descriptor,null)
+    ) : this(EnumCallElement(referenceExpression), descriptor, null)
 
 
     override val classValueReceiver: EnumClassValueReceiver? = descriptor.classValueType?.let {
-       EnumClassValueReceiver(this, it)
+        EnumClassValueReceiver(this, it)
     }
 
     override val staticScope: MemberScope
@@ -354,6 +357,7 @@ return referenceExpression.project
 
     override fun toString() = "Class{$descriptor}"
 }
+
 class ClassQualifier(
     override val referenceExpression: CjSimpleNameExpression,
     override val descriptor: ClassDescriptor
@@ -376,6 +380,7 @@ class ClassQualifier(
 
     override fun toString() = "Class{$descriptor}"
 }
+
 class EnumClassValueReceiver @JvmOverloads constructor(
     val classQualifier: EnumClassQualifierByCall,
     private val type: CangJieType,
@@ -392,6 +397,7 @@ class EnumClassValueReceiver @JvmOverloads constructor(
 
     override fun getOriginal() = original
 }
+
 class ClassValueReceiver @JvmOverloads constructor(
     val classQualifier: ClassifierQualifier,
     private val type: CangJieType,
@@ -408,6 +414,7 @@ class ClassValueReceiver @JvmOverloads constructor(
 
     override fun getOriginal() = original
 }
+
 class TypeParameterQualifier(
     override val referenceExpression: CjSimpleNameExpression,
     override val descriptor: TypeParameterDescriptor
@@ -430,12 +437,13 @@ class TypeAliasQualifier(
 
     override val staticScope: MemberScope
         get() = when {
-            DescriptorUtils.isEnum (classDescriptor) ->
+            DescriptorUtils.isEnum(classDescriptor) ->
                 ChainedMemberScope.create(
                     "Static scope for typealias ${descriptor.name}",
                     classDescriptor.staticScope,
                     EnumEntriesScope()
                 )
+
             else ->
                 classDescriptor.staticScope
         }

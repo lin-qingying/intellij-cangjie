@@ -76,6 +76,8 @@ object CjpmMetadata {
         @JsonDeserialize(using = PackageListDeserializer::class)
         val packages: List<Package> = emptyList(),
 
+        @SerialName("version")
+        @JsonProperty("version")
         val version: Int,
 
 
